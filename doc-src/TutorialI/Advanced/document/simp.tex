@@ -126,16 +126,71 @@ this.%
 \label{sec:SimpHow}
 Roughly speaking, the simplifier proceeds bottom-up (subterms are simplified
 first) and a conditional equation is only applied if its condition could be
-proved (again by simplification). Below we explain some special%
+proved (again by simplification). Below we explain some special features of the rewriting process.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsubsection{Higher-order patterns}
 %
-\isamarkupsubsubsection{Local assumptions}
+\begin{isamarkuptext}%
+\index{simplification rule|(}
+So far we have pretended the simplifier can deal with arbitrary
+rewrite rules. This is not quite true.  Due to efficiency (and
+potentially also computability) reasons, the simplifier expects the
+left-hand side of each rule to be a so-called \emph{higher-order
+pattern}~\cite{nipkow-patterns}\indexbold{higher-order
+pattern}\indexbold{pattern, higher-order}. This restricts where
+unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
+form (this will always be the case unless you have done something
+strange) where each occurrence of an unknown is of the form
+$\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
+variables. Thus all ``standard'' rewrite rules, where all unknowns are
+of base type, for example \isa{{\isacharquery}m\ {\isacharplus}\ {\isacharquery}n\ {\isacharplus}\ {\isacharquery}k\ {\isacharequal}\ {\isacharquery}m\ {\isacharplus}\ {\isacharparenleft}{\isacharquery}n\ {\isacharplus}\ {\isacharquery}k{\isacharparenright}}, are OK: if an unknown is
+of base type, it cannot have any arguments. Additionally, the rule
+\isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymand}\ {\isacharquery}Q\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}Q\ x{\isacharparenright}{\isacharparenright}} is also OK, in
+both directions: all arguments of the unknowns \isa{{\isacharquery}P} and
+\isa{{\isacharquery}Q} are distinct bound variables.
+
+If the left-hand side is not a higher-order pattern, not all is lost
+and the simplifier will still try to apply the rule, but only if it
+matches ``directly'', i.e.\ without much $\lambda$-calculus hocus
+pocus. For example, \isa{{\isacharquery}f\ {\isacharquery}x\ {\isasymin}\ range\ {\isacharquery}f\ {\isacharequal}\ True} rewrites
+\isa{g\ a\ {\isasymin}\ range\ g} to \isa{True}, but will fail to match
+\isa{g{\isacharparenleft}h\ b{\isacharparenright}\ {\isasymin}\ range{\isacharparenleft}{\isasymlambda}x{\isachardot}\ g{\isacharparenleft}h\ x{\isacharparenright}{\isacharparenright}}.  However, you can
+replace the offending subterms (in our case \isa{{\isacharquery}f\ {\isacharquery}x}, which
+is not a pattern) by adding new variables and conditions: \isa{{\isacharquery}y\ {\isacharequal}\ {\isacharquery}f\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isacharquery}y\ {\isasymin}\ range\ {\isacharquery}f\ {\isacharequal}\ True} is fine
+as a conditional rewrite rule since conditions can be arbitrary
+terms. However, this trick is not a panacea because the newly
+introduced conditions may be hard to prove, which has to take place
+before the rule can actually be applied.
+  
+There is basically no restriction on the form of the right-hand
+sides.  They may not contain extraneous term or type variables, though.%
+\end{isamarkuptext}%
 %
 \isamarkupsubsubsection{The preprocessor}
 %
 \begin{isamarkuptext}%
+When some theorem is declared a simplification rule, it need not be a
+conditional equation already.  The simplifier will turn it into a set of
+conditional equations automatically.  For example, given \isa{f\ x\ {\isacharequal}\ g\ x\ {\isasymand}\ h\ x\ {\isacharequal}\ k\ x} the simplifier will turn this into the two separate
+simplifiction rules \isa{f\ x\ {\isacharequal}\ g\ x} and \isa{h\ x\ {\isacharequal}\ k\ x}. In
+general, the input theorem is converted as follows:
+\begin{eqnarray}
+\neg P &\mapsto& P = False \nonumber\\
+P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
+P \land Q &\mapsto& P,\ Q \nonumber\\
+\forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
+\forall x \in A.\ P~x &\mapsto& \Var{x} \in A \Longrightarrow P~\Var{x} \nonumber\\
+\isa{if}\ P\ \isa{then}\ Q\ \isa{else}\ R &\mapsto&
+ P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
+\end{eqnarray}
+Once this conversion process is finished, all remaining non-equations
+$P$ are turned into trivial equations $P = True$.
+For example, the formula \isa{{\isacharparenleft}p\ {\isasymlongrightarrow}\ q\ {\isasymand}\ r{\isacharparenright}\ {\isasymand}\ s} is converted into the three rules
+\begin{center}
+\isa{p\ {\isasymLongrightarrow}\ q\ {\isacharequal}\ True},\quad  \isa{p\ {\isasymLongrightarrow}\ r\ {\isacharequal}\ True},\quad  \isa{s\ {\isacharequal}\ True}.
+\end{center}
+\index{simplification rule|)}
 \index{simplification|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%

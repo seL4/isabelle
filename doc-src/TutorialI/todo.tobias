@@ -27,14 +27,15 @@ recdef: funny behaviour with map (see email to Konrad.Slind, Recdef/Nested1)
 
 defs with = and pattern matching
 
-Why can't I declare trev at the end of Recdef/Nested0 and define it in
-Recdef/Nested1??
-
 use arith_tac in recdef to solve termination conditions?
 -> new example in Recdef/termination
 
 a tactic for replacing a specific occurrence:
 apply(substitute [2] thm)
+
+it would be nice if @term could deal with ?-vars.
+then a number of (unchecked!) @texts could be converted to @terms.
+
 
 Minor fixes in the tutorial
 ===========================
@@ -44,8 +45,6 @@ replace simp only split by split_tac.
 get rid of use_thy?
 
 Explain typographic conventions?
-
-how the simplifier works
 
 an example of induction: !y. A --> B --> C ??
 
@@ -80,15 +79,18 @@ recdef with nested recursion: either an example or at least a pointer to the
 literature. In Recdef/termination.thy, at the end.
 %FIXME, with one exception: nested recursion.
 
-Sets: rels and ^*
+Syntax section: syntax annotations nor just for consts but also for constdefs and datatype.
+
+Prove EU exercise in CTL.
 
 
 Minor additions to the tutorial, unclear where
 ==============================================
 
-insert: lcp?
-
 Tacticals: , ? +
+
+"typedecl" is used in CTL/Base, but where is it introduced?
+In More Types chapter? Rephrase the CTL bit accordingly.
 
 print_simpset (-> print_simps?)
 (Another subsection Useful theorems, methods, and commands?)
@@ -107,7 +109,6 @@ explain rulify before induction section?
 
 demonstrate x : set xs in Sets. Or Tricks chapter?
 
-Table with symbols \<forall> etc. Apendix?
 Appendix with HOL keywords. Say something about other keywords.
 
 
@@ -122,8 +123,6 @@ braucht wfrec!
 
 Nested inductive datatypes: another example/exercise:
  size(t) <= size(subst s t)?
-
-Add Until to CTL.
 
 insertion sort: primrec, later recdef
 

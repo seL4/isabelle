@@ -309,7 +309,7 @@ by (REPEAT (ares_tac [monoI, subset_refl, CONS_mono] 1));
 qed "Lconst_fun_mono";
 
 (* Lconst(M) = CONS M (Lconst M) *)
-bind_thm ("Lconst", (Lconst_fun_mono RS (Lconst_def RS def_lfp_Tarski)));
+bind_thm ("Lconst", (Lconst_fun_mono RS (Lconst_def RS def_lfp_unfold)));
 
 (*A typical use of co-induction to show membership in the gfp.
   The containing set is simply the singleton {Lconst(M)}. *)
@@ -330,7 +330,7 @@ qed "Lconst_eq_LList_corec";
 Goal "gfp(%N. CONS M N) = LList_corec M (%x. Some(x,x))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
-by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);
+by (rtac (Lconst_fun_mono RS gfp_unfold) 1);
 qed "gfp_Lconst_eq_LList_corec";
 
 

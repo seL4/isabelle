@@ -87,7 +87,7 @@ by (rtac mp 1);
  by (assume_tac 2);
 by (etac induct2 1);
 by (fast_tac (claset() addSIs [monoI]) 1);
-by (stac gfp_Tarski 1);
+by (stac gfp_unfold 1);
  by (fast_tac (claset() addSIs [monoI]) 1);
 by (Fast_tac 1);
 qed "wp_While";

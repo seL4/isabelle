@@ -32,7 +32,7 @@ qed "gfp_lemma3";
 
 Goal "mono(f) ==> gfp(f) = f(gfp(f))";
 by (REPEAT (ares_tac [equalityI,gfp_lemma2,gfp_lemma3] 1));
-qed "gfp_Tarski";
+qed "gfp_unfold";
 
 (*** Coinduction rules for greatest fixed points ***)
 
@@ -72,26 +72,26 @@ by (etac (coinduct3_mono_lemma RS lfp_lemma3) 1);
 by (rtac (Un_least RS Un_least) 1);
 by (rtac subset_refl 1);
 by (assume_tac 1); 
-by (rtac (gfp_Tarski RS equalityD1 RS subset_trans) 1);
+by (rtac (gfp_unfold RS equalityD1 RS subset_trans) 1);
 by (assume_tac 1);
 by (rtac monoD 1 THEN assume_tac 1);
-by (stac (coinduct3_mono_lemma RS lfp_Tarski) 1);
+by (stac (coinduct3_mono_lemma RS lfp_unfold) 1);
 by Auto_tac;  
 qed "coinduct3_lemma";
 
 Goal
   "[| mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un gfp(f))) |] ==> a : gfp(f)";
 by (rtac (coinduct3_lemma RSN (2,weak_coinduct)) 1);
-by (resolve_tac [coinduct3_mono_lemma RS lfp_Tarski RS ssubst] 1);
+by (resolve_tac [coinduct3_mono_lemma RS lfp_unfold RS ssubst] 1);
 by Auto_tac;
 qed "coinduct3";
 
 
-(** Definition forms of gfp_Tarski and coinduct, to control unfolding **)
+(** Definition forms of gfp_unfold and coinduct, to control unfolding **)
 
 Goal "[| A==gfp(f);  mono(f) |] ==> A = f(A)";
-by (auto_tac (claset() addSIs [gfp_Tarski], simpset()));  
-qed "def_gfp_Tarski";
+by (auto_tac (claset() addSIs [gfp_unfold], simpset()));  
+qed "def_gfp_unfold";
 
 Goal "[| A==gfp(f);  mono(f);  a:X;  X <= f(X Un A) |] ==> a: A";
 by (auto_tac (claset() addSIs [coinduct], simpset()));  

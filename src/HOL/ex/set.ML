@@ -102,7 +102,7 @@ qed "bij_if_then_else";
 
 Goal "EX X. X = - (g``(- (f``X)))";
 by (rtac exI 1);
-by (rtac lfp_Tarski 1);
+by (rtac lfp_unfold 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
 qed "decomposition";
 

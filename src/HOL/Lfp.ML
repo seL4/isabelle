@@ -33,7 +33,7 @@ qed "lfp_lemma3";
 
 Goal "mono(f) ==> lfp(f) = f(lfp(f))";
 by (REPEAT (ares_tac [equalityI,lfp_lemma2,lfp_lemma3] 1));
-qed "lfp_Tarski";
+qed "lfp_unfold";
 
 (*** General induction rule for least fixed points ***)
 
@@ -56,8 +56,8 @@ bind_thm ("induct2",
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 
 Goal "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
-by (auto_tac (claset() addSIs [lfp_Tarski], simpset()));  
-qed "def_lfp_Tarski";
+by (auto_tac (claset() addSIs [lfp_unfold], simpset()));  
+qed "def_lfp_unfold";
 
 val rew::prems = Goal
     "[| A == lfp(f);  mono(f);   a:A;                   \

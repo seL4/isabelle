@@ -54,7 +54,7 @@ Goal
 \ ==> lfp f = fst(while (%(A,fA). A~=fA) (%(A,fA). (fA, f fA)) ({},f{}))";
 by(res_inst_tac [("P","%(A,B).(A <= U & B = f A & A <= B & B <= lfp f)")]
      while_rule 1);
-   by(stac lfp_Tarski 1);
+   by(stac lfp_unfold 1);
     ba 1;
    by(Clarsimp_tac 1);
    by(blast_tac (claset() addDs [monoD]) 1);
@@ -67,7 +67,7 @@ by(res_inst_tac [("P","%(A,B).(A <= U & B = f A & A <= B & B <= lfp f)")]
  by(clarsimp_tac (claset(),simpset() addsimps
       [inv_image_def,finite_psubset_def,order_less_le]) 1);
  by(blast_tac (claset() addSIs [finite_Diff] addDs [monoD]) 1);
-by(stac lfp_Tarski 1);
+by(stac lfp_unfold 1);
  ba 1;
 by(asm_simp_tac (simpset() addsimps [monoD]) 1);
 qed "lfp_conv_while";

@@ -15,7 +15,7 @@ by (rtac monoI 1);
 by (REPEAT (ares_tac [monoI, subset_refl, comp_mono, Un_mono] 1));
 qed "rtrancl_fun_mono";
 
-bind_thm ("rtrancl_unfold", rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski));
+bind_thm ("rtrancl_unfold", rtrancl_fun_mono RS (rtrancl_def RS def_lfp_unfold));
 
 (*Reflexivity of rtrancl*)
 Goal "(a,a) : r^*";

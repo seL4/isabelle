@@ -91,9 +91,9 @@ apply(rule equalityI);
 apply(rule subsetI);
 apply(simp, clarify);
 apply(erule converse_rtrancl_induct);
- apply(rule ssubst[OF lfp_Tarski[OF mono_ef]]);
+ apply(rule ssubst[OF lfp_unfold[OF mono_ef]]);
  apply(blast);
-apply(rule ssubst[OF lfp_Tarski[OF mono_ef]]);
+apply(rule ssubst[OF lfp_unfold[OF mono_ef]]);
 by(blast);
 (*>*)
 text{*
@@ -174,7 +174,7 @@ The one-step argument in the above sketch
 lemma not_in_lfp_afD:
  "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t)\<in>M \<and> t \<notin> lfp(af A))";
 apply(erule swap);
-apply(rule ssubst[OF lfp_Tarski[OF mono_af]]);
+apply(rule ssubst[OF lfp_unfold[OF mono_af]]);
 apply(simp add:af_def);
 done;
 
@@ -380,19 +380,21 @@ Extend the datatype of formulae by the binary until operator @{term"EU f g"} wit
 @{text[display]"s \<Turnstile> EU f g = (\<exists>p\<in>Paths s. \<exists>j. p j \<Turnstile> g \<and> (\<exists>i < j. p i \<Turnstile> f))"}
 and model checking algorithm
 @{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M^-1 ^^ T))"}
-Prove the equivalence between semantics and model checking, i.e.\
-@{prop"mc(EU f g) = {s. s \<Turnstile> EU f g}"}.
-
-For readability you may want to equip @{term EU} with the following customary syntax:
-@{text"E[f U g]"}.
+Prove the equivalence between semantics and model checking, i.e.\ that
+@{prop[display]"mc(EU f g) = {s. s \<Turnstile> EU f g}"}
+%For readability you may want to annotate {term EU} with its customary syntax
+%{text[display]"| EU formula formula    E[_ U _]"}
+%which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
+For more CTL exercises see, for example \cite{Huth-Ryan-book,Clarke-as-well?}.
+\bigskip
 
-Let us close this section with a few words about the executability of @{term mc}.
+Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.
 Fortunately the HOL library proves that in the case of finite sets and a monotone @{term F},
 @{term"lfp F"} can be computed by iterated application of @{term F} to @{term"{}"} until
-a fixpoint is reached. It is possible to generate executable functional programs
+a fixpoint is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.
 *}
 
@@ -428,7 +430,7 @@ lemma Avoid_in_lfp[rule_format(no_asm)]:
 apply(subgoal_tac "wf{(y,x). (x,y)\<in>M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}");
  apply(erule_tac a = t in wf_induct);
  apply(clarsimp);
- apply(rule ssubst [OF lfp_Tarski[OF mono_af]]);
+ apply(rule ssubst [OF lfp_unfold[OF mono_af]]);
  apply(unfold af_def);
  apply(blast intro:Avoid.intros);
 apply(erule contrapos2);

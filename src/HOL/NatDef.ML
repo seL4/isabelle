@@ -8,7 +8,7 @@ Goal "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "Nat_fun_mono";
 
-bind_thm ("Nat_unfold", Nat_fun_mono RS (Nat_def RS def_lfp_Tarski));
+bind_thm ("Nat_unfold", Nat_fun_mono RS (Nat_def RS def_lfp_unfold));
 
 (* Zero is a natural number -- this also justifies the type definition*)
 Goal "Zero_Rep: Nat";

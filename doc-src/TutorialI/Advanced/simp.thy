@@ -114,16 +114,72 @@ subsection{*How it works*}
 text{*\label{sec:SimpHow}
 Roughly speaking, the simplifier proceeds bottom-up (subterms are simplified
 first) and a conditional equation is only applied if its condition could be
-proved (again by simplification). Below we explain some special 
+proved (again by simplification). Below we explain some special features of the rewriting process.
 *}
 
 subsubsection{*Higher-order patterns*}
 
-subsubsection{*Local assumptions*}
+text{*\index{simplification rule|(}
+So far we have pretended the simplifier can deal with arbitrary
+rewrite rules. This is not quite true.  Due to efficiency (and
+potentially also computability) reasons, the simplifier expects the
+left-hand side of each rule to be a so-called \emph{higher-order
+pattern}~\cite{nipkow-patterns}\indexbold{higher-order
+pattern}\indexbold{pattern, higher-order}. This restricts where
+unknowns may occur.  Higher-order patterns are terms in $\beta$-normal
+form (this will always be the case unless you have done something
+strange) where each occurrence of an unknown is of the form
+$\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
+variables. Thus all ``standard'' rewrite rules, where all unknowns are
+of base type, for example @{thm add_assoc}, are OK: if an unknown is
+of base type, it cannot have any arguments. Additionally, the rule
+@{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also OK, in
+both directions: all arguments of the unknowns @{text"?P"} and
+@{text"?Q"} are distinct bound variables.
+
+If the left-hand side is not a higher-order pattern, not all is lost
+and the simplifier will still try to apply the rule, but only if it
+matches ``directly'', i.e.\ without much $\lambda$-calculus hocus
+pocus. For example, @{text"?f ?x \<in> range ?f = True"} rewrites
+@{term"g a \<in> range g"} to @{term True}, but will fail to match
+@{text"g(h b) \<in> range(\<lambda>x. g(h x))"}.  However, you can
+replace the offending subterms (in our case @{text"?f ?x"}, which
+is not a pattern) by adding new variables and conditions: @{text"?y =
+?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is fine
+as a conditional rewrite rule since conditions can be arbitrary
+terms. However, this trick is not a panacea because the newly
+introduced conditions may be hard to prove, which has to take place
+before the rule can actually be applied.
+  
+There is basically no restriction on the form of the right-hand
+sides.  They may not contain extraneous term or type variables, though.
+*}
 
 subsubsection{*The preprocessor*}
 
 text{*
+When some theorem is declared a simplification rule, it need not be a
+conditional equation already.  The simplifier will turn it into a set of
+conditional equations automatically.  For example, given @{prop"f x =
+g x & h x = k x"} the simplifier will turn this into the two separate
+simplifiction rules @{prop"f x = g x"} and @{prop"h x = k x"}. In
+general, the input theorem is converted as follows:
+\begin{eqnarray}
+\neg P &\mapsto& P = False \nonumber\\
+P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
+P \land Q &\mapsto& P,\ Q \nonumber\\
+\forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
+\forall x \in A.\ P~x &\mapsto& \Var{x} \in A \Longrightarrow P~\Var{x} \nonumber\\
+@{text if}\ P\ @{text then}\ Q\ @{text else}\ R &\mapsto&
+ P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
+\end{eqnarray}
+Once this conversion process is finished, all remaining non-equations
+$P$ are turned into trivial equations $P = True$.
+For example, the formula @{prop"(p \<longrightarrow> q \<and> r) \<and> s"} is converted into the three rules
+\begin{center}
+@{prop"p \<Longrightarrow> q = True"},\quad  @{prop"p \<Longrightarrow> r = True"},\quad  @{prop"s = True"}.
+\end{center}
+\index{simplification rule|)}
 \index{simplification|)}
 *}
 (*<*)

@@ -1,7 +1,6 @@
 (*<*)
 theory Nested1 = Nested0:;
 (*>*)
-consts trev  :: "('a,'b)term \<Rightarrow> ('a,'b)term";
 
 text{*\noindent
 Although the definition of @{term trev} is quite natural, we will have

@@ -10,7 +10,7 @@ Goal "mono(%X. {1} Un (Suc``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "pnat_fun_mono";
 
-bind_thm ("pnat_unfold", pnat_fun_mono RS (pnat_def RS def_lfp_Tarski));
+bind_thm ("pnat_unfold", pnat_fun_mono RS (pnat_def RS def_lfp_unfold));
 
 Goal "1 : pnat";
 by (stac pnat_unfold 1);

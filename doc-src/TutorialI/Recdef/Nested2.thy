@@ -1,6 +1,5 @@
 (*<*)
 theory Nested2 = Nested0:;
-consts trev  :: "('a,'b)term => ('a,'b)term";
 (*>*)
 
 text{*\noindent

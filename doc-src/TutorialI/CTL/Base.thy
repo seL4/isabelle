@@ -1,12 +1,12 @@
 (*<*)theory Base = Main:(*>*)
 
-section{*A verified model checker*}
+section{*Case study: Verified model checkers*}
 
 text{*
 Model checking is a very popular technique for the verification of finite
 state systems (implementations) w.r.t.\ temporal logic formulae
-(specifications) \cite{Clark}. Its foundations are completely set theoretic
-and this section shall develop them in HOL. This is done in two steps: first
+(specifications) \cite{Clarke,Huth-Ryan-book}. Its foundations are completely set theoretic
+and this section shall explore them a little in HOL. This is done in two steps: first
 we consider a simple modal logic called propositional dynamic
 logic (PDL) which we then extend to the temporal logic CTL used in many real
 model checkers. In each case we give both a traditional semantics (@{text \<Turnstile>}) and a
@@ -45,8 +45,9 @@ transitions between them, as shown in this simple example:
 Each state has a unique name or number ($s_0,s_1,s_2$), and in each
 state certain \emph{atomic propositions} ($p,q,r$) are true.
 The aim of temporal logic is to formalize statements such as ``there is no
-transition sequence starting from $s_2$ leading to a state where $p$ or $q$
-are true''.
+path starting from $s_2$ leading to a state where $p$ or $q$
+are true'', which is true, and ``on all paths starting from $s_0$ $q$ is always true'',
+which is false.
 
 Abstracting from this concrete example, we assume there is some type of
 states

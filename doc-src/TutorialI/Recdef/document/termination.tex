@@ -75,21 +75,7 @@ allows a delayed proof of termination: instead of proving
 it later on and then use it to remove the preconditions from the theorems
 about \isa{f}. In most cases this is more cumbersome than proving things
 up front.
-%FIXME, with one exception: nested recursion.
-
-Although all the above examples employ measure functions, \isacommand{recdef}
-allows arbitrary wellfounded relations. For example, termination of
-Ackermann's function requires the lexicographic product \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
-\end{isamarkuptext}%
-\isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}ack{\isacharparenleft}\isadigit{0}{\isacharcomma}n{\isacharparenright}\ \ \ \ \ \ \ \ \ {\isacharequal}\ Suc\ n{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}\isadigit{0}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}\ \isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}Suc\ n{\isacharparenright}\ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}ack{\isacharparenleft}Suc\ m{\isacharcomma}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
-\begin{isamarkuptext}%
-\noindent
-For details see the manual~\cite{isabelle-HOL} and the examples in the
-library.%
+%FIXME, with one exception: nested recursion.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

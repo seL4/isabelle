@@ -17,7 +17,6 @@ you needed to reprove many lemmas reminiscent of similar lemmas about
 definitions and proofs about nested recursive datatypes. As an example we
 choose exercise~\ref{ex:trev-trev}:
 *}
-(* consts trev  :: "('a,'b)term => ('a,'b)term" *)
-(*<*)
-end
-(*>*)
+
+consts trev  :: "('a,'b)term \<Rightarrow> ('a,'b)term"
+(*<*)end(*>*)

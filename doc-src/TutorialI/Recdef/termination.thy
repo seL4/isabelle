@@ -81,21 +81,6 @@ it later on and then use it to remove the preconditions from the theorems
 about @{term f}. In most cases this is more cumbersome than proving things
 up front.
 %FIXME, with one exception: nested recursion.
-
-Although all the above examples employ measure functions, \isacommand{recdef}
-allows arbitrary wellfounded relations. For example, termination of
-Ackermann's function requires the lexicographic product @{text"<*lex*>"}:
-*}
-
-consts ack :: "nat\<times>nat \<Rightarrow> nat";
-recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
-  "ack(0,n)         = Suc n"
-  "ack(Suc m,0)     = ack(m, 1)"
-  "ack(Suc m,Suc n) = ack(m,ack(Suc m,n))";
-
-text{*\noindent
-For details see the manual~\cite{isabelle-HOL} and the examples in the
-library.
 *}
 
 (*<*)

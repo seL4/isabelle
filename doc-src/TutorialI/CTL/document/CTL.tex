@@ -114,7 +114,7 @@ The one-step argument in the above sketch%
 \isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
 \ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}erule\ swap{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
@@ -283,19 +283,23 @@ and model checking algorithm
 \begin{isabelle}%
 \ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
-Prove the equivalence between semantics and model checking, i.e.\
-\isa{mc\ {\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ EU\ f\ g{\isacharbraceright}}.
-
-For readability you may want to equip \isa{EU} with the following customary syntax:
-\isa{E{\isacharbrackleft}f\ U\ g{\isacharbrackright}}.
+Prove the equivalence between semantics and model checking, i.e.\ that
+\begin{isabelle}%
+\ \ \ \ \ mc\ {\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ EU\ f\ g{\isacharbraceright}%
+\end{isabelle}
+%For readability you may want to annotate {term EU} with its customary syntax
+%{text[display]"| EU formula formula    E[_ U _]"}
+%which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
+For more CTL exercises see, for example \cite{Huth-Ryan-book,Clarke-as-well?}.
+\bigskip
 
-Let us close this section with a few words about the executability of \isa{mc}.
+Let us close this section with a few words about the executability of our model checkers.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only \isa{lfp} requires a little thought.
 Fortunately the HOL library proves that in the case of finite sets and a monotone \isa{F},
 \isa{lfp\ F} can be computed by iterated application of \isa{F} to \isa{{\isacharbraceleft}{\isacharbraceright}} until
-a fixpoint is reached. It is possible to generate executable functional programs
+a fixpoint is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \end{isamarkuptext}%
 \end{isabellebody}%

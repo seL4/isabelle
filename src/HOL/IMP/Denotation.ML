@@ -13,7 +13,7 @@ qed_goalw "Gamma_mono" Denotation.thy [mono_def,Gamma_def]
 
 Goal "C(WHILE b DO c) = C(IF b THEN c;WHILE b DO c ELSE SKIP)";
 by (Simp_tac 1);
-by (EVERY[stac (Gamma_mono RS lfp_Tarski) 1,
+by (EVERY[stac (Gamma_mono RS lfp_unfold) 1,
           stac (Gamma_def RS meta_eq_to_obj_eq RS fun_cong) 1,
           Simp_tac 1,
           IF_UNSOLVED no_tac]);
@@ -29,9 +29,9 @@ by (etac evalc.induct 1);
 by Auto_tac;
 (* while *)
 by (rewtac Gamma_def);
-by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski)) 1);
+by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_unfold)) 1);
 by (Fast_tac 1);
-by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski)) 1);
+by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_unfold)) 1);
 by (Fast_tac 1);
 
 qed "com1";
