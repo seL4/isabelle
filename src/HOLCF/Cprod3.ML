@@ -228,6 +228,11 @@ qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def]
         (Simp_tac  1)
         ]);
 
+qed_goal "cfst_strict" Cprod3.thy "cfst`UU = UU" (fn _ => [
+                      (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1)]);
+qed_goal "csnd_strict" Cprod3.thy "csnd`UU = UU" (fn _ => [
+                      (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1)]);
+
 qed_goalw "surjective_pairing_Cprod2" Cprod3.thy 
         [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p"
  (fn prems =>
