@@ -36,7 +36,7 @@ into document output unless you really know what you are doing!
 with main HOL; the theory loader path already includes this directory
 by default; the following existing theories have been moved here:
 HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
-(as While_Combinator);
+(as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
 
 
 New in Isabelle99-1 (October 2000)
