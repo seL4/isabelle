@@ -145,7 +145,7 @@ fun varify th =
   let val {maxidx,...} = rep_thm th
   in
     th |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-       |> Thm.strip_shyps |> Thm.implies_intr_shyps
+       |> Drule.strip_shyps_warning
        |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
@@ -173,7 +173,7 @@ fun standard_some thy A_set th =
   in
     th |> implies_intr_some_hyps thy A_set
        |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-       |> Thm.strip_shyps |> Thm.implies_intr_shyps
+       |> Drule.strip_shyps_warning
        |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
@@ -210,10 +210,9 @@ fun prepare_proof atomic rths chorn =
         let val state = Seq.hd (flexflex_rule state)
 	    		handle THM _ => state   (*smash flexflex pairs*)
 	    val ngoals = nprems_of state
-            val ath = strip_shyps (implies_intr_list cAs state)
+            val ath = implies_intr_list cAs state
             val th = ath RS Drule.rev_triv_goal
             val {hyps,prop,sign=sign',...} = rep_thm th
-            val xshyps = extra_shyps th;
         in  if not check then th
 	    else if not (Sign.eq_sg(sign,sign')) then !result_error_fn state
 		("Signature of proof state has changed!" ^
@@ -227,9 +226,6 @@ fun prepare_proof atomic rths chorn =
 		    (map (Sign.string_of_term sign) 
 		     (filter (fn x => (not (Locale.in_locale [x] sign))) 
 		      hyps)))
-	    else if not (null xshyps) then !result_error_fn state
-                ("Extra sort hypotheses: " ^
-                 commas (map (Sign.str_of_sort sign) xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  (if (null(hyps)) then standard th 
