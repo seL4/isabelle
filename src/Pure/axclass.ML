@@ -465,13 +465,15 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    (((P.name -- Scan.optional (P.$$$ "<" |-- P.!!! (P.list1 P.xname)) []) --| P.marg_comment)
+    (((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+        P.!!! (P.list1 P.xname)) []) --| P.marg_comment)
       -- Scan.repeat (P.spec_name --| P.marg_comment)
       >> (fn (cls, axs) => Toplevel.theory (#1 o add_axclass cls axs)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-    ((P.xname -- (P.$$$ "<" |-- P.xname) -- P.marg_comment >> instance_subclass_proof ||
+    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname)
+        -- P.marg_comment >> instance_subclass_proof ||
       (P.xname -- (P.$$$ "::" |-- P.simple_arity) >> P.triple2) -- P.marg_comment
         >> instance_arity_proof)
       >> (Toplevel.print oo Toplevel.theory_to_proof));

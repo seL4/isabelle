@@ -85,12 +85,13 @@ val txt_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "txt_raw"
 
 val classesP =
   OuterSyntax.command "classes" "declare type classes" K.thy_decl
-    (Scan.repeat1 (P.name -- Scan.optional (P.$$$ "<" |-- P.!!! (P.list1 P.xname)) [])
+    (Scan.repeat1 (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+        P.!!! (P.list1 P.xname)) [])
       -- P.marg_comment >> (Toplevel.theory o IsarThy.add_classes));
 
 val classrelP =
   OuterSyntax.command "classrel" "state inclusion of type classes (axiomatic!)" K.thy_decl
-    (P.xname -- (P.$$$ "<" |-- P.!!! P.xname) -- P.marg_comment
+    (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) -- P.marg_comment
       >> (Toplevel.theory o IsarThy.add_classrel));
 
 val defaultsortP =
@@ -668,8 +669,8 @@ val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
   "files", "in", "infixl", "infixr", "is", "output", "overloaded",
-  "|", "\\<rightharpoonup>", "\\<leftharpoondown>",
-  "\\<rightleftharpoons>", "\\<equiv>"];
+  "|", "\\<equiv>", "\\<rightharpoonup>", "\\<leftharpoondown>",
+  "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
   (*theory structure*)
