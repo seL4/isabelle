@@ -5,6 +5,7 @@
 The abstract type "sg" of signatures.
 
 TODO:
+  clean
   pure sign: elim Syntax.constrainC
 *)
 
@@ -14,7 +15,7 @@ sig
   structure Syntax: SYNTAX
   structure Type: TYPE
   sharing Symtab = Type.Symtab
-  local open Type Syntax Syntax.Mixfix in
+  local open Type Syntax in
     type sg
     val rep_sg: sg ->
       {tsig: type_sig,
@@ -29,6 +30,7 @@ sig
     val subsort: sg -> sort * sort -> bool      (* FIXME move? *)
     val norm_sort: sg -> sort -> sort           (* FIXME move? *)
     val print_sg: sg -> unit
+    val pretty_sg: sg -> Pretty.T
     val pprint_sg: sg -> pprint_args -> unit
     val pretty_term: sg -> term -> Pretty.T
     val pretty_typ: sg -> typ -> Pretty.T
@@ -39,7 +41,9 @@ sig
     val certify_typ: sg -> typ -> typ
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
-    val add_classes: (class list * class * class list) list -> sg -> sg
+    val infer_types: sg -> (indexname -> typ option) ->
+      (indexname -> sort option) -> term * typ -> term * (indexname * typ) list
+    val add_classes: (class * class list) list -> sg -> sg
     val add_classrel: (class * class) list -> sg -> sg
     val add_defsort: sort -> sg -> sg
     val add_types: (string * int * mixfix) list -> sg -> sg
@@ -58,12 +62,6 @@ sig
     val add_trrules: xrule list -> sg -> sg
     val add_name: string -> sg -> sg
     val make_draft: sg -> sg
-    val extend: sg -> string ->
-      (class * class list) list * class list *
-      (string list * int) list *
-      (string * string list * string) list *
-      (string list * (sort list * class)) list *
-      (string list * string) list * sext option -> sg
     val merge: sg * sg -> sg
     val pure: sg
     val const_of_class: class -> string
@@ -79,8 +77,7 @@ structure Syntax = Syntax;
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 structure Pretty = Syntax.Pretty;
 structure Type = Type;
-open BasicSyntax (* FIXME *) Type;
-open Syntax.Mixfix;   (* FIXME *)
+open BasicSyntax Type;
 
 
 (** datatype sg **)
@@ -175,8 +172,10 @@ fun print_sg sg =
   end;
 
 
-fun pprint_sg (Sg {stamps, ...}) =
-  Pretty.pprint (Pretty.str_list "{" "}" (stamp_names stamps));
+fun pretty_sg (Sg {stamps, ...}) =
+  Pretty.str_list "{" "}" (stamp_names stamps);
+
+val pprint_sg = Pretty.pprint o pretty_sg;
 
 
 
@@ -190,6 +189,22 @@ fun string_of_typ (Sg {syn, ...}) = Syntax.string_of_typ syn;
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
+
+
+
+(** read types **)  (*exception ERROR*)
+
+fun err_in_type s =
+  error ("The error(s) above occurred in type " ^ quote s);
+
+fun read_raw_typ syn tsig sort_of str =
+  Syntax.read_typ syn (fn x => if_none (sort_of x) (defaultS tsig)) str
+    handle ERROR => err_in_type str;
+
+(*read and certify typ wrt a signature*)
+fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
+  cert_typ tsig (read_raw_typ syn tsig sort_of str)
+    handle TYPE (msg, _, _) => (writeln msg; err_in_type str);
 
 
 
@@ -229,22 +244,24 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 
 
-(** read types **)    (*exception ERROR*)
+(** infer_types **)         (*exception ERROR*)   (* FIXME check *)
 
-(* FIXME rd_typ vs. read_raw_typ (?) *)
-
-fun rd_typ tsig syn sort_of s =
+fun infer_types sg types sorts (t, T) =
   let
-    val def_sort = defaultS tsig;
-    val raw_ty =        (*this may raise ERROR, too!*)
-      Syntax.read_typ syn (fn x => if_none (sort_of x) def_sort) s;
-  in
-    cert_typ tsig raw_ty
-      handle TYPE (msg, _, _) => error msg
-  end
-  handle ERROR => error ("The error(s) above occurred in type " ^ quote s);
+    val Sg {tsig, ...} = sg;
+    val show_typ = string_of_typ sg;
+    val show_term = string_of_term sg;
 
-fun read_typ (Sg {tsig, syn, ...}, sort_of) s = rd_typ tsig syn sort_of s;
+    fun term_err [] = ""
+      | term_err [t] = "\nInvolving this term:\n" ^ show_term t
+      | term_err ts = "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
+
+    val T' = certify_typ sg T
+      handle TYPE (msg, _, _) => error msg;
+    val (t', tye) = Type.infer_types (tsig, const_type sg, types, sorts, T', t)
+      handle TYPE (msg, Ts, ts) => error ("Type checking error: " ^ msg ^ "\n"
+        ^ cat_lines (map show_typ Ts) ^ term_err ts);
+  in (t', tye) end;
 
 
 
@@ -262,10 +279,7 @@ fun varify_typ (Type (t, tys)) = Type (t, map varify_typ tys)
 (* fake newstyle interfaces *) (* FIXME -> type.ML *)
 
 fun ext_tsig_classes tsig classes =
-  if exists (fn ([], _, _) => false | _ => true) classes then
-    sys_error "FIXME ext_tsig_classes"
-  else
-    extend_tsig tsig (map (fn (_, c, cs) => (c, cs)) classes, [], [], []);
+  extend_tsig tsig (classes, [], [], []);
 
 fun ext_tsig_types tsig types =
   extend_tsig tsig ([], [], map (fn (t, n) => ([t], n)) types, []);
@@ -276,22 +290,6 @@ fun ext_tsig_abbrs tsig abbrs = Type.ext_tsig_abbrs tsig
 
 fun ext_tsig_arities tsig arities = extend_tsig tsig
   ([], [], [], flat (map (fn (t, ss, cs) => map (fn c => ([t], (ss, c))) cs) arities));
-
-
-
-(** read types **)  (*exception ERROR*)
-
-fun err_in_type s =
-  error ("The error(s) above occurred in type " ^ quote s);
-
-fun read_raw_typ syn tsig sort_of str =
-  Syntax.read_typ syn (fn x => if_none (sort_of x) (defaultS tsig)) str
-    handle ERROR => err_in_type str;
-
-(*read and certify typ wrt a signature*)
-fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
-  cert_typ tsig (read_raw_typ syn tsig sort_of str)
-    handle TYPE (msg, _, _) => (writeln msg; err_in_type str);
 
 
 
@@ -311,7 +309,7 @@ fun ext_defsort (syn, tsig, ctab) defsort =
 
 fun ext_types (syn, tsig, ctab) types =
   (Syntax.extend_type_gram syn types,
-    ext_tsig_types tsig (decls_of type_name types),
+    ext_tsig_types tsig (decls_of Syntax.type_name types),
     ctab);
 
 
@@ -327,7 +325,7 @@ fun ext_abbrs rd_abbr (syn, tsig, ctab) abbrs =
     val syn1 = Syntax.extend_type_gram syn (map mfix_of abbrs);
 
     fun decl_of (t, vs, rhs, mx) =
-      rd_abbr syn1 tsig (type_name t mx, vs, rhs);
+      rd_abbr syn1 tsig (Syntax.type_name t mx, vs, rhs);
   in
     (syn1, ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
   end;
@@ -358,7 +356,7 @@ fun err_dup_consts cs =
 
 fun read_const syn tsig (c, ty_src, mx) =
   (c, read_raw_typ syn tsig (K None) ty_src, mx)
-    handle ERROR => err_in_const (const_name c mx);
+    handle ERROR => err_in_const (Syntax.const_name c mx);
 
 (* FIXME move *)
 fun no_tvars ty =
@@ -369,12 +367,12 @@ fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
     (* FIXME clean *)
     fun prep_const (c, ty, mx) = (c, varify_typ (cert_typ tsig (no_tvars ty)), mx)
-      handle TYPE (msg, _, _) => (writeln msg; err_in_const (const_name c mx));
+      handle TYPE (msg, _, _) => (writeln msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
     val decls =
       if syn_only then []
-      else filter_out (equal "" o fst) (decls_of const_name consts);
+      else filter_out (equal "" o fst) (decls_of Syntax.const_name consts);
   in
     (Syntax.extend_const_gram syn consts, tsig,
       Symtab.extend_new (ctab, decls)
@@ -402,7 +400,7 @@ fun class_of_const c_class =
 
 fun ext_classes (syn, tsig, ctab) classes =
   let
-    val names = map (fn (_, c, _) => c) classes;
+    val names = map fst classes;
     val consts =
       map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
   in
@@ -467,57 +465,6 @@ val make_draft = add_name "#";
 
 
 
-(** extend signature (old) **)      (* FIXME remove *)
-
-fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
-  let
-    fun read_abbr syn (c, vs, rhs_src) =
-      (c, (map (rpair 0) vs, varifyT (Syntax.read_typ syn (K []) rhs_src)))
-        handle ERROR => error ("The error(s) above occurred in the rhs " ^
-          quote rhs_src ^ "\nof type abbreviation " ^ quote c);
-
-    (*reset TVar indices to 0, renaming to preserve distinctness*)
-    fun zero_tvar_idxs T =
-      let
-        val inxSs = typ_tvars T;
-        val nms' = variantlist (map (#1 o #1) inxSs, []);
-        val tye = map2 (fn ((v, S), a) => (v, TVar ((a, 0), S))) (inxSs, nms');
-      in
-        typ_subst_TVars tye T
-      end;
-
-    (*read and check the type mentioned in a const declaration; zero type var
-      indices because type inference requires it*)
-    fun read_const tsig syn (c, s) =
-      (c, zero_tvar_idxs (varifyT (rd_typ tsig syn (K None) s)))
-        handle ERROR => error ("in declaration of constant " ^ quote c);
-
-
-    val Sg {tsig, const_tab, syn, stamps} = sg;
-    val xconsts = map #1 classes @ flat (map #1 types) @ map #1 abbrs @
-      flat (map #1 consts);
-    val sext = if_none opt_sext Syntax.empty_sext;
-
-    val tsig' = extend_tsig tsig (classes, default, types, arities);
-    val tsig1 = Type.ext_tsig_abbrs tsig' (map (read_abbr syn) abbrs);
-
-    val syn1 = Syntax.extend syn (rd_typ tsig1 syn (K None))
-      (logical_types tsig1, xconsts, sext);
-
-    val all_consts = flat (map (fn (cs, s) => map (rpair s) cs)
-      (Syntax.constants sext @ consts));
-
-    val const_tab1 =
-      Symtab.extend_new (const_tab, map (read_const tsig1 syn) all_consts)
-        handle Symtab.DUPS cs => err_dup_consts cs;
-
-    val stamps1 = ext_stamps stamps name;
-  in
-    Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1, stamps = stamps1}
-  end;
-
-
-
 (** merge signatures **)    (*exception TERM*)
 
 fun merge (sg1, sg2) =
@@ -562,22 +509,22 @@ val pure =
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
     ("itself", 1, NoSyn) ::
-    Syntax.Mixfix.pure_types)
-  |> add_classes [([], logicC, [])]
+    Syntax.pure_types)
+  |> add_classes [(logicC, [])]
   |> add_defsort logicS
   |> add_arities
    [("fun", [logicS, logicS], logicS),
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
-  |> add_syntax Syntax.Mixfix.pure_syntax
+  |> add_syntax Syntax.pure_syntax
   |> add_trfuns Syntax.pure_trfuns
   |> add_consts
    [("==", "['a::{}, 'a] => prop", Mixfix ("(_ ==/ _)", [3, 2], 2)),
     ("=?=", "['a::{}, 'a] => prop", Mixfix ("(_ =?=/ _)", [3, 2], 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_ ==>/ _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0)),
-    ("TYPE", "'a itself", NoSyn),
-    (Syntax.constrainC, "'a::{} => 'a", NoSyn)]
+    ("TYPE", "'a itself", NoSyn)(*,(* FIXME *)
+    (Syntax.constrainC, "'a::{} => 'a", NoSyn)*)]
   |> add_name "Pure";
 
 
