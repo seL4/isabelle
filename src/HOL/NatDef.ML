@@ -175,6 +175,9 @@ Goal "n<m ==> m ~= (n::nat)";
 by (blast_tac (claset() addSEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
+(* s < t ==> s ~= t *)
+bind_thm ("less_not_refl3", less_not_refl2 RS not_sym);
+
 
 val major::prems = Goalw [less_def, pred_nat_def]
     "[| i<k;  k=Suc(i) ==> P;  !!j. [| i<j;  k=Suc(j) |] ==> P \
@@ -403,6 +406,7 @@ Goalw [le_def] "m < n ==> m <= (n::nat)";
 by (blast_tac (claset() addEs [less_asym]) 1);
 qed "less_imp_le";
 
+
 (** Equivalence of m<=n and  m<n | m=n **)
 
 Goalw [le_def] "m <= n ==> m < n | m=(n::nat)";
@@ -425,6 +429,11 @@ bind_thm ("eq_imp_le", disjI2 RS less_or_eq_imp_le);
 Goal "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
+
+(*Obvious ways of proving m<=n; 
+  adding these rules to claset might be risky*)
+Addsimps [le_refl, less_imp_le];
+
 
 Goal "[| i <= j; j < k |] ==> i < (k::nat)";
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]
@@ -459,6 +468,9 @@ by (simp_tac (simpset() addsimps [le_def, nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_asym]) 1);
 qed "nat_less_le";
 
+(* [| m <= n; m ~= n |] ==> m < n *)
+bind_thm ("le_neq_implies_less", [nat_less_le, conjI] MRS iffD2);
+
 (* Axiom 'linorder_linear' of class 'linorder': *)
 Goal "(m::nat) <= n | n <= m";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
@@ -466,6 +478,14 @@ by (cut_facts_tac [less_linear] 1);
 by (Blast_tac 1);
 qed "nat_le_linear";
 
+Goal "~ n < m ==> (n < Suc m) = (n = m)";
+by (blast_tac (claset() addSEs [less_SucE]) 1);
+qed "not_less_less_Suc_eq";
+
+
+(*Rewrite (n < Suc m) to (n=m) if  ~ n<m or m<=n hold.
+  Not suitable as default simprules because they often lead to looping*)
+val not_less_simps = [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq];
 
 (** max
 
