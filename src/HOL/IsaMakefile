@@ -361,7 +361,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/BV/Convert.thy MicroJava/BV/StepMono.thy \
   MicroJava/BV/LBVSpec.thy MicroJava/BV/LBVCorrect.thy \
   MicroJava/BV/LBVComplete.thy \
-  MicroJava/document/root.tex
+  MicroJava/document/root.bib MicroJava/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
 
 
