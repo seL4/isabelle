@@ -29,7 +29,7 @@ sig
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   val is_ml_identifier: string -> bool
-  val print_thms_containing: theory -> xstring list -> unit
+  val print_thms_containing: theory -> term list -> unit
 end;
 
 structure ThmDatabase: THM_DATABASE =
@@ -95,22 +95,34 @@ fun no_qed () = ();
 
 (** retrieve theorems **)
 
-(*get theorems that contain all of given constants*)
-fun thms_containing_thy thy raw_consts =
-  let val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
-  in PureThy.thms_containing thy consts end
-  handle THEORY (msg,_) => error msg;
+fun thms_containing_thy thy consts = PureThy.thms_containing thy consts
+  handle THEORY (msg, _) => error msg | THM (msg, _, _) => error msg;
 
-fun thms_containing cs =
-  thms_containing_thy (ThyInfo.theory_of_sign (Thm.sign_of_thm (Goals.topthm ()))) cs;
+fun theory_of_goal () = ThyInfo.theory_of_sign (Thm.sign_of_thm (Goals.topthm ()));
 
-fun prt_thm (a, th) =
-  Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
-    Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))];
+fun thms_containing raw_consts =
+  let
+    val thy = theory_of_goal ();
+    val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
+  in thms_containing_thy thy consts end;
 
-fun print_thms_containing thy cs =
-  Pretty.writeln (Pretty.blk (0, Pretty.fbreaks (map prt_thm (thms_containing_thy thy cs))));
+fun print_thms_containing thy ts =
+  let
+    val prt_const =
+      Pretty.quote o Pretty.str o Sign.cond_extern (Theory.sign_of thy) Sign.constK;
+    fun prt_thm (a, th) = Pretty.block [Pretty.str (a ^ ":"),
+      Pretty.brk 1, Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))];
 
+    val cs = foldr Term.add_term_consts (ts, []);
+    val header =
+      if Library.null cs then []
+      else [Pretty.block (Pretty.breaks (Pretty.str "theorems containing constants:" ::
+          map prt_const cs)), Pretty.str ""];
+  in
+    if Library.null cs andalso not (Library.null ts) then
+      warning "thms_containing: no constants in specification"
+    else (header @ map prt_thm (thms_containing_thy thy cs)) |> Pretty.chunks |> Pretty.writeln
+  end;
 
 (*top_const: main constant, ignoring Trueprop*)
 fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
@@ -133,13 +145,13 @@ where thm [| A1 ; ...; An |] ==> B is returned by
 (* could be provided by thm db *)
 fun index_intros c =
   let fun topc(_,thm) = intro_const thm = Some(c);
-      val named_thms = thms_containing [c]
+      val named_thms = thms_containing_thy (theory_of_goal ()) [c]
   in filter topc named_thms end;
 
 (* could be provided by thm db *)
 fun index_elims c =
   let fun topc(_,thm) = elim_const thm = Some(c);
-      val named_thms = thms_containing [c]
+      val named_thms = thms_containing_thy (theory_of_goal ()) [c]
   in filter topc named_thms end;
 
 (*assume that parameters have unique names; reverse them for substitution*)

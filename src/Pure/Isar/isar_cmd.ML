@@ -50,7 +50,7 @@ sig
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val print_thms_containing: xstring list -> Toplevel.transition -> Toplevel.transition
+  val print_thms_containing: string list -> Toplevel.transition -> Toplevel.transition
   val thm_deps: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
@@ -195,8 +195,9 @@ val print_methods = Toplevel.unknown_theory o
 
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
-fun print_thms_containing cs = Toplevel.unknown_theory o
-  Toplevel.keep (fn state => ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
+fun print_thms_containing ss = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  ThmDatabase.print_thms_containing (Toplevel.theory_of state)
+    (map (ProofContext.read_term (Toplevel.context_of state)) ss));
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));

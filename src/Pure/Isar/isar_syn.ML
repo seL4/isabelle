@@ -539,8 +539,8 @@ val print_antiquotationsP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
 val thms_containingP =
-  OuterSyntax.improper_command "thms_containing" "print theorems containing all given constants"
-    K.diag (Scan.repeat P.xname >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
+  OuterSyntax.improper_command "thms_containing" "print theorems containing certain constants"
+    K.diag (Scan.repeat P.term >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
 
 val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"

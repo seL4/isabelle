@@ -13,7 +13,7 @@ sig
   val try_update_thy_only: string -> unit
   val inform_file_processed: string -> unit
   val inform_file_retracted: string -> unit
-  val thms_containing: xstring list -> unit
+  val thms_containing: string list -> unit
   val help: unit -> unit
   val show_context: unit -> theory
   val kill_goal: unit -> unit
@@ -180,7 +180,11 @@ fun proper_inform_file_processed file state =
 
 (* misc commands for ProofGeneral/isa *)
 
-fun thms_containing cs = ThmDatabase.print_thms_containing (the_context ()) cs;
+fun thms_containing ss =
+  let
+    val thy = the_context ();
+    fun read_term s = Thm.term_of (Thm.read_cterm (Theory.sign_of thy) (s, TypeInfer.logicT));
+  in ThmDatabase.print_thms_containing thy (map read_term ss) end;
 
 val welcome = priority o Session.welcome;
 val help = welcome;
