@@ -9,6 +9,7 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 use "proof_context.ML";
 use "proof.ML";
 use "proof_data.ML";
+use "proof_history.ML";
 use "args.ML";
 use "attrib.ML";
 use "method.ML";
@@ -17,9 +18,9 @@ use "method.ML";
 use "outer_lex.ML";
 use "outer_parse.ML";
 
-(*interactive subsystem*)
-use "proof_history.ML";
+(*toplevel environment*)
 use "toplevel.ML";
+use "session.ML";
 
 (*theory operations*)
 use "isar_thy.ML";

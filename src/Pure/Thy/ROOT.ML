@@ -14,8 +14,6 @@ use "browser_info.ML";
 use "present.ML";
 use "thm_database.ML";
 
-use "session.ML";
-
 (*theory syntax (old format)*)
 use "thy_scan.ML";
 use "thy_parse.ML";

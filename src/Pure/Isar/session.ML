@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/session.ML
+(*  Title:      Pure/Isar/session.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
@@ -62,7 +62,7 @@ fun use_dir reset info parent name =
   (init reset parent name;
     Present.init info (path ()) name;
     Symbol.use root_file;
-    finish ()) handle _ => exit 1;
+    finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
 end;
