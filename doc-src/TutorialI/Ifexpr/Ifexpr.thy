@@ -189,5 +189,43 @@ can provide the clue.  The necessity of universal quantification
 \index{boolean expressions example|)}
 *}
 (*<*)
+
+consts normif2 :: "ifex => ifex => ifex => ifex"
+primrec
+"normif2 (CIF b)    t e = (if b then t else e)"
+"normif2 (VIF x)    t e = IF (VIF x) t e"
+"normif2 (IF b t e) u f = normif2 b (normif2 t u f) (normif2 e u f)"
+
+consts norm2 :: "ifex => ifex"
+primrec
+"norm2 (CIF b)    = CIF b"
+"norm2 (VIF x)    = VIF x"
+"norm2 (IF b t e) = normif2 b (norm2 t) (norm2 e)"
+
+consts normal2 :: "ifex => bool"
+primrec
+"normal2(CIF b) = True"
+"normal2(VIF x) = True"
+"normal2(IF b t e) = (normal2 t & normal2 e &
+     (case b of CIF b => False | VIF x => True | IF x y z => False))"
+
+
+lemma [simp]:
+  "ALL t e. valif (normif2 b t e) env = valif (IF b t e) env"
+apply(induct b)
+by(auto)
+
+theorem "valif (norm2 b) env = valif b env"
+apply(induct b)
+by(auto)
+
+lemma [simp]: "ALL t e. normal2 t & normal2 e --> normal2(normif2 b t e)"
+apply(induct b)
+by(auto)
+
+theorem "normal2(norm2 b)"
+apply(induct b)
+by(auto)
+
 end
 (*>*)
