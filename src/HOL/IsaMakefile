@@ -183,7 +183,8 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/Extend.ML UNITY/Extend.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
   UNITY/GenPrefix.thy UNITY/GenPrefix.ML \
-  UNITY/LessThan.ML UNITY/LessThan.thy UNITY/ListOrder.thy\
+  UNITY/LessThan.ML UNITY/LessThan.thy \
+  UNITY/Lift_prog.ML UNITY/Lift_prog.thy UNITY/ListOrder.thy\
   UNITY/Mutex.ML UNITY/Mutex.thy\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/Token.ML UNITY/Token.thy\
