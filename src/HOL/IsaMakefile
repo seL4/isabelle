@@ -296,8 +296,9 @@ HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
 
 $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.ML Hoare/Arith2.thy \
   Hoare/Examples.thy Hoare/hoare.ML Hoare/Hoare.thy \
-  Hoare/Pointers.thy Hoare/Pointer_Examples.thy Hoare/ROOT.ML \
-  Hoare/ExamplesAbort.thy Hoare/hoareAbort.ML Hoare/HoareAbort.thy
+  Hoare/Heap.thy Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy \
+  Hoare/ROOT.ML Hoare/ExamplesAbort.thy  Hoare/HeapSyntaxAbort.thy \
+  Hoare/hoareAbort.ML Hoare/HoareAbort.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Hoare
 
 

@@ -7,13 +7,7 @@ Proof of the Schorr-Waite graph marking algorithm.
 *)
 
 
-theory SchorrWaite = Pointers:
-
-syntax comment1 :: "'a \<Rightarrow> nat \<Rightarrow> 'a" ("_ --- _" [1000,0] 999)
-       comment2 :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" ("-- _ _" [0,1000] 1000)
-translations
- "-- i x" => "x"
- "x --- i" => "x"
+theory SchorrWaite = HeapSyntax:
 
 section {* Machinery for the Schorr-Waite proof*}
 
@@ -203,23 +197,23 @@ theorem SchorrWaiteAlgorithm:
  t := root; p := Null;
  WHILE p \<noteq> Null \<or> t \<noteq> Null \<and> \<not> t^.m
  INV {\<exists>stack.
-          List (S c l r) p stack \<and>                                         -- (i1)
-          (\<forall>x \<in> set stack. m x) \<and>                                        -- (i2)
-          R = reachable (relS{l, r}) {t,p} \<and>                           -- (i3)
-          (\<forall>x. x \<in> R \<and> \<not>m x \<longrightarrow>                                        -- (i4)
+          List (S c l r) p stack \<and>                                         (*i1*)
+          (\<forall>x \<in> set stack. m x) \<and>                                        (*i2*)
+          R = reachable (relS{l, r}) {t,p} \<and>                           (*i3*)
+          (\<forall>x. x \<in> R \<and> \<not>m x \<longrightarrow>                                        (*i4*)
                  x \<in> reachable (relS{l,r}|m) ({t}\<union>set(map r stack))) \<and>
-          (\<forall>x. m x \<longrightarrow> x \<in> R) \<and>                                         -- (i5)
-          (\<forall>x. x \<notin> set stack \<longrightarrow> r x = iR x \<and> l x = iL x) \<and>       -- (i6)
-          (stkOk c l r iL iR t stack)                                    --- (i7) }
+          (\<forall>x. m x \<longrightarrow> x \<in> R) \<and>                                         (*i5*)
+          (\<forall>x. x \<notin> set stack \<longrightarrow> r x = iR x \<and> l x = iL x) \<and>       (*i6*)
+          (stkOk c l r iL iR t stack)                                    (*i7*) }
  DO IF t = Null \<or> t^.m
       THEN IF p^.c
-               THEN q := t; t := p; p := p^.r; t^.r := q               --- pop
-               ELSE q := t; t := p^.r; p^.r := p^.l;                      -- swing
+               THEN q := t; t := p; p := p^.r; t^.r := q               (*pop*)
+               ELSE q := t; t := p^.r; p^.r := p^.l;                      (*swing*)
                         p^.l := q; p^.c := True          FI    
-      ELSE q := p; p := t; t := t^.l; p^.l := q;                         -- push
+      ELSE q := p; p := t; t := t^.l; p^.l := q;                         (*push*)
                p^.m := True; p^.c := False            FI       OD
  {(\<forall>x. (x \<in> R) = m x) \<and> (r = iR \<and> l = iL) }"
-  (is "VARS c m l r t p q root {?Pre c m l r root} (?c1; ?c2; ?c3) {?Post c m l r}") 
+  (is "VARS c m l r t p q root {?Pre c m l r root} (?c1; ?c2; ?c3) {?Post c m l r}")
 proof (vcg)
   let "While {(c, m, l, r, t, p, q, root). ?whileB m t p}
     {(c, m, l, r, t, p, q, root). ?inv c m l r t p} ?body" = ?c3

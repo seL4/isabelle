@@ -31,20 +31,20 @@ types 'a sem = "'a option => 'a option => bool"
 
 consts iter :: "nat => 'a bexp => 'a sem => 'a sem"
 primrec
-"iter 0 b S = (%s s'. s ~: Some ` b & (s=s'))"
-"iter (Suc n) b S = (%s s'. s : Some ` b & (? s''. S s s'' & iter n b S s'' s'))"
+"iter 0 b S = (\<lambda>s s'. s \<notin> Some ` b \<and> s=s')"
+"iter (Suc n) b S =
+  (\<lambda>s s'. s \<in> Some ` b \<and> (\<exists>s''. S s s'' \<and> iter n b S s'' s'))"
 
 consts Sem :: "'a com => 'a sem"
 primrec
 "Sem(Basic f) s s' = (case s of None \<Rightarrow> s' = None | Some t \<Rightarrow> s' = Some(f t))"
 "Sem Abort s s' = (s' = None)"
-"Sem(c1;c2) s s' = (? s''. Sem c1 s s'' & Sem c2 s'' s')"
+"Sem(c1;c2) s s' = (\<exists>s''. Sem c1 s s'' \<and> Sem c2 s'' s')"
 "Sem(IF b THEN c1 ELSE c2 FI) s s' =
  (case s of None \<Rightarrow> s' = None
-  | Some t \<Rightarrow> ((t : b --> Sem c1 s s') & (t ~: b --> Sem c2 s s')))"
+  | Some t \<Rightarrow> ((t \<in> b \<longrightarrow> Sem c1 s s') \<and> (t \<notin> b \<longrightarrow> Sem c2 s s')))"
 "Sem(While b x c) s s' =
- (if s = None then s' = None
-  else EX n. iter n b (Sem c) s s')"
+ (if s = None then s' = None else \<exists>n. iter n b (Sem c) s s')"
 
 constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
   "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
@@ -211,8 +211,9 @@ lemma CondRule:
   \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
 by (fastsimp simp:Valid_def image_def)
 
-lemma iter_aux: "! s s'. Sem c s s' --> s : Some ` (I \<inter> b) --> s' : Some ` I ==>
-       (\<And>s s'. s : Some ` I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : Some ` (I \<inter> -b))";
+lemma iter_aux:
+ "! s s'. Sem c s s' \<longrightarrow> s \<in> Some ` (I \<inter> b) \<longrightarrow> s' \<in> Some ` I \<Longrightarrow>
+  (\<And>s s'. s \<in> Some ` I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' \<in> Some ` (I \<inter> -b))";
 apply(unfold image_def)
 apply(induct n)
  apply clarsimp
@@ -246,5 +247,18 @@ method_setup vcg_simp = {*
     Method.METHOD (fn facts => 
       hoare_tac (asm_full_simp_tac (Simplifier.get_local_simpset ctxt))1)) *}
   "verification condition generator plus simplification"
+
+(* Special syntax for guarded statements and guarded array updates: *)
+
+syntax
+  guarded_com :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
+  array_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70,65] 61)
+translations
+  "P \<rightarrow> c" == "IF P THEN c ELSE Abort FI"
+  "a[i] := v" => "(i < length a) \<rightarrow> (a := list_update a i v)"
+  (* reverse translation not possible because of duplicate "a" *)
+
+text{* Note: there is no special syntax for guarded array access. Thus
+you must write @{text"j < length a \<rightarrow> a[i] := a!j"}. *}
 
 end

@@ -1,14 +1,13 @@
-(*  Title:      HOL/Hoare/Pointers.thy
+(*  Title:      HOL/Hoare/Heap.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
-How to use Hoare logic to verify pointer manipulating programs.
-The old idea: the store is a global mapping from pointers to values.
+Pointers, heaps and heap abstractions.
 See the paper by Mehta and Nipkow.
 *)
 
-theory Pointers = Hoare:
+theory Heap = Main:
 
 subsection "References"
 
@@ -22,33 +21,6 @@ lemma not_Ref_eq [iff]: "(ALL y. x ~= Ref y) = (x = Null)"
 
 consts addr :: "'a ref \<Rightarrow> 'a"
 primrec "addr(Ref a) = a"
-
-subsection "Field access and update"
-
-syntax
-  "@refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
-   ("_/'((_ \<rightarrow> _)')" [1000,0] 900)
-  "@fassign"  :: "'a ref => id => 'v => 's com"
-   ("(2_^._ :=/ _)" [70,1000,65] 61)
-  "@faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
-   ("_^._" [65,1000] 65)
-translations
-  "f(r \<rightarrow> v)"  ==  "f(addr r := v)"
-  "p^.f := e"  =>  "f := f(p \<rightarrow> e)"
-  "p^.f"       =>  "f(addr p)"
-
-
-text "An example due to Suzuki:"
-
-lemma "VARS v n
-  {w = Ref w0 & x = Ref x0 & y = Ref y0 & z = Ref z0 &
-   distinct[w0,x0,y0,z0]}
-  w^.v := (1::int); w^.n := x;
-  x^.v := 2; x^.n := y;
-  y^.v := 3; y^.n := z;
-  z^.v := 4; x^.n := z
-  {w^.n^.n^.v = 4}"
-by vcg_simp
 
 
 section "The heap"
@@ -112,9 +84,6 @@ apply(induct as)
 apply simp
 apply(clarsimp simp add:fun_upd_apply)
 done
-
-
-declare fun_upd_apply[simp del]fun_upd_same[simp] fun_upd_other[simp]
 
 lemma List_unique: "\<And>x bs. List h x as \<Longrightarrow> List h x bs \<Longrightarrow> as = bs"
 by(induct as, simp, clarsimp)
