@@ -418,7 +418,7 @@ lemma order_less_irrefl [simp]: "~ x < (x::'a::order)"
 lemma order_le_less: "((x::'a::order) <= y) = (x < y | x = y)"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
   apply (simp add: order_less_le)
-  apply (blast intro!: order_refl)
+  apply blast
   done
 
 lemmas order_le_imp_less_or_eq = order_le_less [THEN iffD1, standard]
