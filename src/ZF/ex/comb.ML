@@ -19,18 +19,7 @@ structure Comb = Datatype_Fun
 	  [(["K","S"],	"i"),
 	   (["op #"],	"[i,i]=>i")])];
   val rec_styp = "i";
-  val ext = Some (NewSext {
-	     mixfix =
-	      [Infixl("#", "[i,i] => i", 90)],
-	     xrules = [],
-	     parse_ast_translation = [],
-	     parse_preproc = None,
-	     parse_postproc = None,
-	     parse_translation = [],
-	     print_translation = [],
-	     print_preproc = None,
-	     print_postproc = None,
-	     print_ast_translation = []});
+  val ext = Some (Syntax.simple_sext [Infixl("#", "[i,i] => i", 90)]);
   val sintrs = 
 	  ["K : comb",
 	   "S : comb",

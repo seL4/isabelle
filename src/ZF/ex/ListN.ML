@@ -41,3 +41,9 @@ by (rtac equality_iffI 1);
 by (simp_tac (list_ss addsimps [listn_iff,separation,image_singleton_iff]) 1);
 val listn_image_eq = result();
 
+goalw ListN.thy ListN.defs "!!A B. A<=B ==> listn(A) <= listn(B)";
+by (rtac lfp_mono 1);
+by (REPEAT (rtac ListN.bnd_mono 1));
+by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));
+val listn_mono = result();
+

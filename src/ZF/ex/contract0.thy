@@ -1,6 +1,6 @@
 (*  Title: 	ZF/ex/contract.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow & Lawrence C Paulson
+    Author: 	Lawrence C Paulson
     Copyright   1993  University of Cambridge
 
 Inductive definition of (1-step) contractions and (mult-step) reductions

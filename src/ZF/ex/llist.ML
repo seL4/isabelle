@@ -55,10 +55,10 @@ val quniv_cs = ZF_cs addSIs in_quniv_rls
 goal LList.thy
    "!!i. i : nat ==> 	\
 \        ALL l: llist(quniv(A)). l Int Vfrom(quniv(A), i) : quniv(A)";
-be complete_induct 1;
-br ballI 1;
-be LList.elim 1;
-bws ([QInl_def,QInr_def]@LList.con_defs);
+by (etac complete_induct 1);
+by (rtac ballI 1);
+by (etac LList.elim 1);
+by (rewrite_goals_tac ([QInl_def,QInr_def]@LList.con_defs));
 by (fast_tac quniv_cs 1);
 by (etac natE 1 THEN REPEAT_FIRST hyp_subst_tac);
 by (fast_tac quniv_cs 1);
@@ -66,9 +66,9 @@ by (fast_tac quniv_cs 1);
 val llist_quniv_lemma = result();
 
 goal LList.thy "llist(quniv(A)) <= quniv(A)";
-br subsetI 1;
-br quniv_Int_Vfrom 1;
-be (LList.dom_subset RS subsetD) 1;
+by (rtac subsetI 1);
+by (rtac quniv_Int_Vfrom 1);
+by (etac (LList.dom_subset RS subsetD) 1);
 by (REPEAT (ares_tac [llist_quniv_lemma RS bspec] 1));
 val llist_quniv = result();
 
@@ -102,20 +102,20 @@ val lleq_cs = subset_cs
 (*Keep unfolding the lazy list until the induction hypothesis applies*)
 goal LList_Eq.thy
    "!!i. Ord(i) ==> ALL l l'. <l;l'> : lleq(A) --> l Int Vset(i) <= l'";
-be trans_induct 1;
+by (etac trans_induct 1);
 by (safe_tac subset_cs);
-be LList_Eq.elim 1;
+by (etac LList_Eq.elim 1);
 by (safe_tac (subset_cs addSEs [QPair_inject]));
-bws LList.con_defs;
+by (rewrite_goals_tac LList.con_defs);
 by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
 (*0 case*)
 by (fast_tac lleq_cs 1);
 (*succ(j) case*)
-bw QInr_def;
+by (rewtac QInr_def);
 by (fast_tac lleq_cs 1);
 (*Limit(i) case*)
-be (Limit_Vfrom_eq RS ssubst) 1;
-br (Int_UN_distrib RS ssubst) 1;
+by (etac (Limit_Vfrom_eq RS ssubst) 1);
+by (rtac (Int_UN_distrib RS ssubst) 1);
 by (fast_tac lleq_cs 1);
 val lleq_Int_Vset_subset_lemma = result();
 
@@ -125,15 +125,15 @@ val lleq_Int_Vset_subset = standard
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
 val [prem] = goal LList_Eq.thy "<l;l'> : lleq(A) ==> <l';l> : lleq(A)";
-br (prem RS qconverseI RS LList_Eq.co_induct) 1;
-br (LList_Eq.dom_subset RS qconverse_type) 1;
+by (rtac (prem RS qconverseI RS LList_Eq.co_induct) 1);
+by (rtac (LList_Eq.dom_subset RS qconverse_type) 1);
 by (safe_tac qconverse_cs);
-be LList_Eq.elim 1;
+by (etac LList_Eq.elim 1);
 by (ALLGOALS (fast_tac qconverse_cs));
 val lleq_symmetric = result();
 
 goal LList_Eq.thy "!!l l'. <l;l'> : lleq(A) ==> l=l'";
-br equalityI 1;
+by (rtac equalityI 1);
 by (REPEAT (ares_tac [lleq_Int_Vset_subset RS Int_Vset_subset] 1
      ORELSE etac lleq_symmetric 1));
 val lleq_implies_equal = result();
@@ -141,9 +141,9 @@ val lleq_implies_equal = result();
 val [eqprem,lprem] = goal LList_Eq.thy
     "[| l=l';  l: llist(A) |] ==> <l;l'> : lleq(A)";
 by (res_inst_tac [("X", "{<l;l>. l: llist(A)}")] LList_Eq.co_induct 1);
-br (lprem RS RepFunI RS (eqprem RS subst)) 1;
+by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
 by (safe_tac qpair_cs);
-be LList.elim 1;
+by (etac LList.elim 1);
 by (ALLGOALS (fast_tac qpair_cs));
 val equal_llist_implies_leq = result();
 

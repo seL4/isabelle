@@ -190,9 +190,10 @@ val [major] = goal PropThms.thy
 by (rtac (expand_if RS iffD2) 1);
 by (rtac (major RS Prop.induct) 1);
 by (ALLGOALS (asm_simp_tac (prop_ss addsimps [thms_I, thms_H])));
-by (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2, 
-			   weaken_right, Imp_Fls]
-                    addSEs [Fls_Imp]) 1);
+by (safe_tac (ZF_cs addSEs [Fls_Imp RS weaken_left_Un1, 
+			    Fls_Imp RS weaken_left_Un2]));
+by (ALLGOALS (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2, 
+				     weaken_right, Imp_Fls])));
 val hyps_thms_if = result();
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
@@ -264,7 +265,7 @@ val cons_Diff_subset2 = result();
 val [major] = goal PropThms.thy
     "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (rtac (major RS Prop.induct) 1);
-by (asm_simp_tac (prop_ss addsimps [Fin_0I, Fin_consI, UN_I] 
+by (asm_simp_tac (prop_ss addsimps [Fin_0I, Fin_consI, UN_I, cons_iff]
 		  setloop (split_tac [expand_if])) 2);
 by (ALLGOALS (asm_simp_tac (prop_ss addsimps [Un_0, Fin_0I, Fin_UnI])));
 val hyps_finite = result();
@@ -324,5 +325,3 @@ by (fast_tac (ZF_cs addSEs [soundness, finite RS completeness,
 val thms_iff = result();
 
 writeln"Reached end of file.";
-
-

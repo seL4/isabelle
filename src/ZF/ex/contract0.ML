@@ -1,7 +1,7 @@
 (*  Title: 	ZF/ex/contract.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow & Lawrence C Paulson
-    Copyright   1992  University of Cambridge
+    Author: 	Lawrence C Paulson
+    Copyright   1993  University of Cambridge
 
 For ex/contract.thy.
 *)

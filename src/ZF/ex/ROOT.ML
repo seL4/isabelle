@@ -6,7 +6,7 @@
 Executes all examples for Zermelo-Fraenkel Set Theory
 *)
 
-ZF_build_completed;	(*Cause examples to fail if ZF did*)
+ZF_build_completed;	(*Make examples fail if ZF did*)
 
 writeln"Root file for ZF Set Theory examples";
 proof_timing := true;
@@ -36,6 +36,8 @@ time_use_thy "ex/tf-fn";
 time_use     "ex/enum.ML";
 
 (** Inductive definitions **)
+(*mapping a relation over a list*)
+time_use     "ex/rmap.ML";
 (*completeness of propositional logic*)
 time_use     "ex/prop.ML";
 time_use_thy "ex/prop-log";
@@ -46,6 +48,7 @@ time_use     "ex/acc.ML";
 time_use     "ex/comb.ML";
 time_use_thy "ex/contract";
 time_use     "ex/parcontract.ML";
+time_use_thy "ex/primrec";
 
 (** Co-Datatypes **)
 time_use     "ex/llist.ML";

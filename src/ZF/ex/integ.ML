@@ -185,7 +185,7 @@ val [nnat] = goalw Integ.thy [znegative_def, znat_def]
     "n: nat ==> znegative($~ $# succ(n))";
 by (simp_tac (intrel_ss addsimps [zminus,nnat]) 1);
 by (REPEAT 
-    (resolve_tac [refl, exI, conjI, naturals_are_ordinals RS Ord_0_mem_succ,
+    (resolve_tac [refl, exI, conjI, nat_0_in_succ,
 		  refl RS intrelI RS imageI, consI1, nnat, nat_0I,
 		  nat_succI] 1));
 val znegative_zminus_znat = result();
@@ -377,7 +377,7 @@ by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
 by (asm_simp_tac (arith_ss addsimps [zmult]) 1);
 val zmult_0 = result();
 
-goalw Integ.thy [integ_def,znat_def,one_def]
+goalw Integ.thy [integ_def,znat_def]
     "!!z. z : integ ==> $#1 $* z = z";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
 by (asm_simp_tac (arith_ss addsimps [zmult,add_0_right]) 1);

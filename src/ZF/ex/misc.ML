@@ -62,7 +62,7 @@ val [gfun] = goal SB_thy
 \    X - lfp(X, %W. X - g``(Y - f``W)) ";
 by (res_inst_tac [("P", "%u. ?v = X-u")] 
      (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
-by (simp_tac (ZF_ss addsimps [subset_refl, double_complement, Diff_subset,
+by (simp_tac (ZF_ss addsimps [subset_refl, double_complement,
 			     gfun RS fun_is_rel RS image_subset]) 1);
 val Banach_last_equation = result();
 
