@@ -17,14 +17,13 @@ EX_FILES = ex/ROOT.ML \
     $(ILL_NAMES:%=ex/ILL/%.thy) $(ILL_NAMES:%=ex/ILL/%.ML)
 
 $(OUT)/Sequents: $(OUT)/Pure $(FILES)
-	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure Sequents
+	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
 	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
 test: $(OUT)/Sequents $(EX_FILES)
-	@$(ISABELLE) -e 'make_html := $(ISABELLE_HTML); exit_use"ex/ROOT.ML"; quit();' \
-	  -rq $(OUT)/Sequents
+	@$(ISATOOL) usedir $(OUT)/Sequents ex
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/Sequents
