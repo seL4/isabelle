@@ -91,14 +91,11 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
     val z = mk_variant"z" and X = mk_variant"X" and w = mk_variant"w";
 
     (*Mutual recursion ?? *)
-    val domTs = summands (dest_setT (body_type recT));
-                (*alternative defn: map (dest_setT o fastype_of) rec_tms *)
-    val dom_sumT = fold_bal mk_sum domTs;
-    val dom_set  = mk_setT dom_sumT;
+    val dom_set  = body_type recT
+    val dom_sumT = dest_setT dom_set
 
     val freez   = Free(z, dom_sumT)
     and freeX   = Free(X, dom_set);
-    (*type of w may be any of the domTs*)
 
     fun dest_tprop (Const("Trueprop",_) $ P) = P
       | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^ 
@@ -120,10 +117,11 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
                   Const("Part", [dom_set, domT-->dom_sumT]---> dom_set)
           in  Part_const $ freeX $ Abs(w,domT,goodh)  end;
 
-    (*Access to balanced disjoint sums via injections*)
+    (*Access to balanced disjoint sums via injections??
+      Mutual recursion is NOT supported*)
     val parts = ListPair.map mk_Part
-                (accesses_bal (ap Inl, ap Inr, Bound 0) (length domTs),
-                 domTs);
+                (accesses_bal (ap Inl, ap Inr, Bound 0) 1,
+                 [dom_set]);
 
     (*replace each set by the corresponding Part(A,h)*)
     val part_intrs = map (subst_free (rec_tms ~~ parts) o lfp_part) intr_tms;
