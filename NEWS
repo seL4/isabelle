@@ -12,6 +12,14 @@ New in this Isabelle version
   constants declared in the same theory;
 
 
+*** Proof tools ***
+
+* Provers/Arith/fast_lin_arith.ML contains a functor for creating a decision
+procedure for linear arithmetic. Currently it is used for types `nat' and
+`int' in HOL (see below) but can, should and will be instantiated for other
+types and logics as well.
+
+
 *** General ***
 
 * in locales, the "assumes" and "defines" parts may be omitted if empty;
@@ -59,6 +67,8 @@ string -> unit if you really want to output text without newline;
   on a datatype;
 
 * the datatype declaration of type T now defines the recursor T_rec;
+
+* The syntax "if P then x else y" is now available in addition to if(P,x,y).
 
 
 New in Isabelle98-1 (October 1998)
