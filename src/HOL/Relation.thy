@@ -1,4 +1,4 @@
-(*  Title:      Relation.thy
+(*  Title:      HOL/Relation.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
@@ -7,9 +7,12 @@
 Relation = Product_Type +
 
 constdefs
-  converse :: "('a*'b) set => ('b*'a) set"               ("(_^-1)" [1000] 999)
-    "r^-1 == {(y,x). (x,y):r}"
+  converse :: "('a * 'b) set => ('b * 'a) set"    ("(_^-1)" [1000] 999)
+  "r^-1 == {(y, x). (x, y) : r}"
+syntax (xsymbols)
+  converse :: "('a * 'b) set => ('b * 'a) set"    ("(_\\<inverse>)" [1000] 999)
 
+constdefs
   comp  :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set"  (infixr "O" 60)
     "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
 
@@ -48,7 +51,6 @@ constdefs
 
 syntax
   reflexive :: "('a * 'a)set => bool"       (*reflexivity over a type*)
-
 translations
   "reflexive" == "refl UNIV"
 
