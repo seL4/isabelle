@@ -233,7 +233,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]);
   (* 7 *)
   by (tac3 1);
   by (tac_ren 1);
-  by (Blast_tac 1);
+  by (Force_tac 1);	
 
   (* 6 - 3 *)
 
