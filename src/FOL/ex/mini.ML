@@ -60,14 +60,7 @@ val all_simps = map prove_fun
                  "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))"];
 
 
-val mini_ss = 
-  empty_ss 
-  setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls@prems) 
-                          ORELSE' assume_tac
-                          ORELSE' etac FalseE)
-  setsubgoaler asm_simp_tac
-  addsimps (demorgans @ nnf_simps @ ex_simps @ all_simps);
+val mini_ss=FOL_basic_ss addsimps (demorgans @ nnf_simps @ ex_simps @ all_simps);
 
 val mini_tac = rtac ccontr THEN' asm_full_simp_tac mini_ss;
 
