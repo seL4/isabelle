@@ -56,7 +56,7 @@ struct
 
 (** equality **)
 
-(*Make an equality.*)
+(*Make an equality.  DOES NOT CHECK TYPE OF u*)
 fun mk_equals(t,u) = equals(fastype_of t) $ t $ u;
 
 fun dest_equals (Const("==",_) $ t $ u)  =  (t,u)
