@@ -1,5 +1,15 @@
+(*  Title:      HOL/ex/BinEx.ML
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1998  University of Cambridge
 
-(*** Examples of performing binary arithmetic by simplification ***)
+Examples of performing binary arithmetic by simplification
+
+Also a proof that binary arithmetic on normalized operands 
+yields normalized results. 
+*)
+
+set proof_timing;
 
 (** Addition **)
 
@@ -71,3 +81,89 @@ result();
 Goal "#1234567 <= #1234567";  
 by (Simp_tac 1); 
 result();
+
+
+Addsimps normal.intrs;
+
+Goal "(w BIT b): normal ==> (w BIT b BIT c): normal";
+by (case_tac "c" 1);
+by Auto_tac;
+qed "normal_BIT_I";
+
+Addsimps [normal_BIT_I];
+
+Goal "w BIT b: normal ==> w: normal";
+by (etac normal.elim 1);
+by Auto_tac;
+qed "normal_BIT_D";
+
+Goal "w : normal --> NCons w b : normal";
+by (induct_tac "w" 1);
+by (auto_tac (claset(), simpset() addsimps [NCons_Pls, NCons_Min]));
+qed_spec_mp "NCons_normal";
+
+Addsimps [NCons_normal];
+
+Goal "NCons w True ~= Pls";
+by (induct_tac "w" 1);
+by Auto_tac;
+qed "NCons_True";
+
+Goal "NCons w False ~= Min";
+by (induct_tac "w" 1);
+by Auto_tac;
+qed "NCons_False";
+
+Goal "w: normal ==> bin_succ w : normal";
+by (etac normal.induct 1);
+by (exhaust_tac "w" 4);
+by (auto_tac (claset(), simpset() addsimps [NCons_True, bin_succ_BIT]));
+qed "bin_succ_normal";
+
+Goal "w: normal ==> bin_pred w : normal";
+by (etac normal.induct 1);
+by (exhaust_tac "w" 3);
+by (auto_tac (claset(), simpset() addsimps [NCons_False, bin_pred_BIT]));
+qed "bin_pred_normal";
+
+Addsimps [bin_succ_normal, bin_pred_normal];
+
+Goal "w : normal --> (ALL z. z: normal --> bin_add w z : normal)";
+by (induct_tac "w" 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
+by (rtac impI 1);
+by (rtac allI 1);
+by (induct_tac "z" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [bin_add_BIT])));
+by (safe_tac (claset() addSDs [normal_BIT_D]));
+by (ALLGOALS Asm_simp_tac);
+qed_spec_mp "bin_add_normal";
+
+
+
+Goal "w: normal ==> (w = Pls) = (integ_of w = #0)";
+by (etac normal.induct 1);
+by Auto_tac;
+qed "normal_Pls_eq_0";
+
+Goal "w : normal ==> bin_minus w : normal";
+by (etac normal.induct 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [bin_minus_BIT])));
+by (resolve_tac normal.intrs 1);
+by (assume_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [normal_Pls_eq_0]) 1);
+by (asm_full_simp_tac 
+    (simpset_of Integ.thy addsimps [integ_of_minus, iszero_def, 
+				    zminus_exchange]) 1);
+qed "bin_minus_normal";
+
+
+Goal "w : normal ==> z: normal --> bin_mult w z : normal";
+by (etac normal.induct 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [bin_minus_normal,
+						bin_mult_BIT])));
+by (safe_tac (claset() addSDs [normal_BIT_D]));
+by (asm_simp_tac (simpset() addsimps [bin_add_normal]) 1);
+qed_spec_mp "bin_mult_normal";
+
