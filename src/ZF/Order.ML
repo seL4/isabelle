@@ -73,6 +73,18 @@ by (REPEAT (eresolve_tac [asm_rl,
 by (asm_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
 qed "ord_iso_converse";
 
+(*Rewriting with bijections and converse (function inverse)*)
+val bij_ss = ZF_ss setsolver (type_auto_tac [bij_is_fun RS apply_type, 
+					     bij_converse_bij])
+		   addsimps [right_inverse_bij, left_inverse_bij];
+
+(*Symmetry of the order-isomorphism relation*)
+goalw Order.thy [ord_iso_def] 
+    "!!f. f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
+by (safe_tac ZF_cs);
+by (ALLGOALS (asm_full_simp_tac bij_ss));
+val ord_iso_sym = result();
+
 val major::premx::premy::prems = goalw Order.thy [linear_def]
     "[| linear(A,r);  x:A;  y:A;  \
 \       <x,y>:r ==> P;  x=y ==> P;  <y,x>:r ==> P |] ==> P";
@@ -119,8 +131,7 @@ qed "not_well_ord_iso_pred_lemma";
 (*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
                      of a well-ordering*)
 goal Order.thy
-    "!!r. [| well_ord(A,r);  x:A |] ==> \
-\         ALL f. f ~: ord_iso(A, r, pred(A,x,r), r)";
+    "!!r. [| well_ord(A,r);  x:A |] ==> f ~: ord_iso(A, r, pred(A,x,r), r)";
 by (safe_tac ZF_cs);
 by (metacut_tac not_well_ord_iso_pred_lemma 1);
 by (REPEAT_SOME assume_tac);
