@@ -159,7 +159,7 @@ Goal "[| i < ack(k,j);  j:nat;  k:nat |] ==> \
 \             i#+j < ack(succ(succ(succ(succ(k)))), j)";
 by (res_inst_tac [("j", "ack(k,j) #+ ack(0,j)")] lt_trans 1);
 by (rtac (ack_add_bound RS lt_trans2) 2);
-br add_lt_mono 1;
+by (rtac add_lt_mono 1);
 by Auto_tac;
 qed "ack_add_bound2";
 

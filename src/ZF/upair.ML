@@ -230,8 +230,8 @@ by (resolve_tac prems 1);
 by (rtac theI 1);
 by (rtac classical 1);
 by (resolve_tac prems 1);
-be (the_0 RS subst) 1;
-ba 1;
+by (etac (the_0 RS subst) 1);
+by (assume_tac 1);
 qed "theI2";
 
 (*** if -- a conditional expression for formulae ***)

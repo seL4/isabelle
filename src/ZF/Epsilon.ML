@@ -217,8 +217,8 @@ qed "rank_mono";
 Goal "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
 by (rtac le_anti_sym 1);
-br UN_upper_le 2;
-br UN_least_le 1;
+by (rtac UN_upper_le 2);
+by (rtac UN_least_le 1);
 by (auto_tac (claset() addIs [rank_mono], simpset()));
 qed "rank_Pow";
 

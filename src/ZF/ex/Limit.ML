@@ -1425,7 +1425,7 @@ qed "subcpo_Dinf";
 
 Goal "emb_chain(DD,ee) ==> cpo(Dinf(DD,ee))";
 by (rtac subcpo_cpo 1);
-be subcpo_Dinf 1;
+by (etac subcpo_Dinf 1);
 by (auto_tac (claset() addIs [cpo_iprod, emb_chain_cpo], simpset()));
 qed "cpo_Dinf";
 

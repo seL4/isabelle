@@ -535,7 +535,7 @@ qed "add_le_elim1";
 
 Goal "[| m<n; n: nat |] ==> EX k: nat. n = succ(m#+k)";
 by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
-be rev_mp 1;
+by (etac rev_mp 1);
 by (induct_tac "n" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [le_iff])));
 by (blast_tac (claset() addSEs [leE] 
