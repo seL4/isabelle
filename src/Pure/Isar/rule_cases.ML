@@ -32,7 +32,7 @@ val casesN = "cases";
 
 fun name names thm =
   thm
-  |> Drule.untag_rule (casesN, [])
+  |> Drule.untag_rule casesN
   |> Drule.tag_rule (casesN, names);
 
 fun case_names ss = Drule.rule_attribute (K (name ss));
