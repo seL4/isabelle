@@ -99,9 +99,8 @@ IMP:	$(OUT)/HOLCF $(IMP_FILES)
 
 ## Miscellaneous examples
 
-EX_THYS = ex/Classlib.thy\
-	  ex/Dnat.thy ex/Dlist.thy ex/Stream.thy\
-	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy\
+EX_THYS = ex/Dnat.thy ex/Dlist.thy ex/Stream.thy \
+	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy \
 	  ex/Hoare.thy ex/Loop.thy
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
