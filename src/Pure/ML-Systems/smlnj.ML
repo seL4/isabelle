@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Carsten Clasohm and Markus Wenzel, TU Muenchen
 
-Compatibility file for Standard ML of New Jersey versions 109.27 to
-109.33, and 110 or later.
+Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
 (** ML system related **)

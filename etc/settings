@@ -11,6 +11,16 @@
 ## Uncomment and adapt one of the sections below.  Note that ML_HOME
 ## specifies the location of the actual compiler binaries.
 
+# Standard ML of New Jersey 110 or later
+#ML_SYSTEM=smlnj-110
+#ML_HOME=/usr/local/smlnj-110/bin
+#ML_OPTIONS="@SMLdebug=/dev/null"
+
+# MLWorks 2.0 or later
+#ML_SYSTEM=mlworks
+#ML_HOME=/usr/local/mlworks/bin
+#ML_OPTIONS=""
+
 # Poly/ML 2.x
 #ML_SYSTEM=polyml-2.07
 #ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
@@ -25,21 +35,6 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
 #ML_HOME=/usr/local/ldist/DIR/sml-0.93/src
-#ML_OPTIONS=""
-
-# Standard ML of New Jersey 109.27 to 109.33
-#ML_SYSTEM=smlnj-109
-#ML_HOME=/usr/proj/smlnj/109.32/bin
-#ML_OPTIONS="@SMLdebug=/dev/null"
-
-# Standard ML of New Jersey 110 or later
-#ML_SYSTEM=smlnj-110
-#ML_HOME=/usr/local/smlnj-110/bin
-#ML_OPTIONS="@SMLdebug=/dev/null"
-
-# MLWorks 1.0r2 or later (2.0 recommended)
-#ML_SYSTEM=mlworks
-#ML_HOME=/usr/local/mlworks/bin
 #ML_OPTIONS=""
 
 

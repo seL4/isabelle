@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# SML/NJ startup script (for 109.27-109.33, 110 or later).
+# SML/NJ startup script (for 110 or later).
 #
 # Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
 # and from settings
