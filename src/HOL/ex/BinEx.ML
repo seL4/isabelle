@@ -85,39 +85,39 @@ result();
 
 (** Testing the cancellation of complementary terms **)
 
-Goal "y + (x + -x) = int 0 + y";
+Goal "y + (x + -x) = #0 + y";
 by (Simp_tac 1);
 result();
 
-Goal "y + (-x + (- y + x)) = int 0";
+Goal "y + (-x + (- y + x)) = #0";
 by (Simp_tac 1);
 result();
 
-Goal "-x + (y + (- y + x)) = int 0";
+Goal "-x + (y + (- y + x)) = #0";
 by (Simp_tac 1);
 result();
 
-Goal "x + (x + (- x + (- x + (- y + - z)))) = int 0 - y - z";
+Goal "x + (x + (- x + (- x + (- y + - z)))) = #0 - y - z";
 by (Simp_tac 1);
 result();
 
-Goal "x + x - x - x - y - z = int 0 - y - z";
+Goal "x + x - x - x - y - z = #0 - y - z";
 by (Simp_tac 1);
 result();
 
-Goal "x + y + z - (x + z) = y - int 0";
+Goal "x + y + z - (x + z) = y - #0";
 by (Simp_tac 1);
 result();
 
-Goal "x+(y+(y+(y+ (-x + -x)))) = int 0 + y - x + y + y";
+Goal "x+(y+(y+(y+ (-x + -x)))) = #0 + y - x + y + y";
 by (Simp_tac 1);
 result();
 
-Goal "x+(y+(y+(y+ (-y + -x)))) = y + int 0 + y";
+Goal "x+(y+(y+(y+ (-y + -x)))) = y + #0 + y";
 by (Simp_tac 1);
 result();
 
-Goal "x + y - x + z - x - y - z + x < int 1";
+Goal "x + y - x + z - x - y - z + x < #1";
 by (Simp_tac 1);
 result();
 

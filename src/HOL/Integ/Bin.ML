@@ -244,6 +244,28 @@ qed "zero_zle_int";
 AddIffs [zero_zle_int];
 
 
+(** Needed because (int 0) rewrites to #0.
+    Can these be generalized without evaluating large numbers?**)
+
+Goal "~ (int k < #0)";
+by (Simp_tac 1);
+qed "int_less_0_conv";
+
+Goal "(int k <= #0) = (k=0)";
+by (Simp_tac 1);
+qed "int_le_0_conv";
+
+Goal "(int k = #0) = (k=0)";
+by (Simp_tac 1);
+qed "int_eq_0_conv";
+
+Goal "(#0 = int k) = (k=0)";
+by Auto_tac;
+qed "int_eq_0_conv'";
+
+Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv'];
+
+
 (** Simplification rules for comparison of binary numbers (Norbert Voelker) **)
 
 (** Equals (=) **)
@@ -445,9 +467,14 @@ by (etac (nat_0_le RS subst) 1);
 by (Simp_tac 1);
 qed "nat_less_iff";
 
+
+(*Otherwise (int 0) sometimes turns up...*)
+Addsimps [int_0];
+
 Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
 by (auto_tac (claset(), simpset() addsimps [nat_less_iff]));
 by (auto_tac (claset() addIs [zless_trans], 
-	      simpset() addsimps [neg_eq_less_0, zle_def, int_0]));
+	      simpset() addsimps [neg_eq_less_0, zle_def]));
 qed "nat_less_eq_zless";
+
