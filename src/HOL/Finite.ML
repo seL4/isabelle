@@ -54,22 +54,17 @@ qed "finite_subset";
 
 Goal "finite(F Un G) = (finite F & finite G)";
 by (blast_tac (claset() 
-	         addIs [read_instantiate [("B", "?X Un ?Y")] finite_subset, 
-			finite_UnI]) 1);
+	         addIs [inst "B" "?X Un ?Y" finite_subset, finite_UnI]) 1);
 qed "finite_Un";
 AddIffs[finite_Un];
 
-Goal "finite F ==> finite(F Int G)";
+(*The converse obviously fails*)
+Goal "finite F | finite G ==> finite(F Int G)";
 by (blast_tac (claset() addIs [finite_subset]) 1);
-qed "finite_Int1";
+qed "finite_Int";
 
-Goal "finite G ==> finite(F Int G)";
-by (blast_tac (claset() addIs [finite_subset]) 1);
-qed "finite_Int2";
-
-Addsimps[finite_Int1, finite_Int2];
-AddIs[finite_Int1, finite_Int2];
-
+Addsimps [finite_Int];
+AddIs [finite_Int];
 
 Goal "finite(insert a A) = finite A";
 by (stac insert_is_Un 1);
@@ -125,12 +120,11 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "finite_Diff_insert";
 AddIffs [finite_Diff_insert];
 
-(* lemma merely for classical reasoner *)
+(*lemma merely for classical reasoner in the proof below: force_tac can't
+  prove it.*)
 Goal "finite(A-{}) = finite A";
 by (Simp_tac 1);
 val lemma = result();
-AddSIs [lemma RS iffD2];
-AddSDs [lemma RS iffD1];
 
 (*Lemma for proving finite_imageD*)
 Goal "finite B ==> !A. f``A = B --> inj_on f A --> finite A";
@@ -140,7 +134,7 @@ by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
  by (full_simp_tac (simpset() addsimps [inj_on_def]) 1);
- by (Blast_tac 1);
+ by (blast_tac (claset() addSDs [lemma RS iffD1]) 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
 by (Clarify_tac 1);
