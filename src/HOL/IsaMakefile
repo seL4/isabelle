@@ -197,7 +197,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/FuncSet.thy Library/Library.thy \
-  Library/List_Prefix.thy Library/Multiset.thy \
+  Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy \
   Library/Quotient.thy Library/Ring_and_Field.thy \
   Library/Ring_and_Field_Example.thy Library/Nat_Infinity.thy \
@@ -354,7 +354,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
 
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
-$(LOG)/HOL-Auth.gz: $(OUT)/HOL \
+$(LOG)/HOL-Auth.gz: $(OUT)/HOL Library/NatPair.thy \
   Auth/CertifiedEmail.thy Auth/Event.thy \
   Auth/Message.thy Auth/NS_Public.thy Auth/NS_Public_Bad.thy \
   Auth/NS_Shared.thy Auth/OtwayRees.thy Auth/OtwayRees_AN.thy \
