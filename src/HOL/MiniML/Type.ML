@@ -26,7 +26,6 @@ by (rtac allI 1);
 by (typ.induct_tac "t'" 1);
  by (Simp_tac 1);
 by (Asm_full_simp_tac 1);
-by (Fast_tac 1);
 qed_spec_mp "mk_scheme_injective";
 
 goal thy "!!t. free_tv (mk_scheme t) = free_tv t";
