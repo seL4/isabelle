@@ -98,7 +98,7 @@ Goal "E~={} \
 \          (reachable v <==> {s. (root,v) : REACHABLE}) Int nmsg_eq 0 e) \
 \         <= final";
 by (ftac final_lemma2 1);
-by (simp_tac (simpset() addsimps [Eq_lemma2]) 1);
+by (full_simp_tac (simpset() addsimps [Eq_lemma2]) 1);
 qed "final_lemma3";
 
 
@@ -117,7 +117,7 @@ Goal "E~={} \
 \          ((reachable v) <==> {s. (root,v) : REACHABLE}) Int nmsg_eq 0 e) \
 \         = final";
 by (ftac final_lemma4 1);
-by (simp_tac (simpset() addsimps [Eq_lemma2]) 1);
+by (full_simp_tac (simpset() addsimps [Eq_lemma2]) 1);
 qed "final_lemma5";
 
 
@@ -135,11 +135,9 @@ Goalw [final_def]
 \      ((reachable v) <==> {s. (root,v) : REACHABLE}) Int \
 \      (-{s. (v,w) : E} Un (nmsg_eq 0 (v,w))))";
 by (rtac subset_antisym 1);
-by (Blast_tac 1);
-by (auto_tac (claset(), simpset() addsplits [split_if_asm]));
-by (ftac E_imp_in_V_R 1);
-by (ftac E_imp_in_V_L 1);
-by (Blast_tac 1);
+by (Blast_tac 1); 
+by (auto_tac (claset(), simpset() addsplits [split_if_asm])); 
+by (ALLGOALS (blast_tac (claset() addDs [E_imp_in_V_L, E_imp_in_V_R]))); 
 qed "final_lemma7"; 
 
 (* ------------------------------------ *)
