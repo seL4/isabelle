@@ -16,7 +16,6 @@ sig
   include BASIC_METHOD
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val FINISHED: tactic -> tactic
-  val LIFT: tactic -> thm -> (thm * (indexname * term) list * (string * thm list) list) Seq.seq
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
@@ -86,8 +85,7 @@ val FINISHED = FILTER (equal 0 o Thm.nprems_of);
 
 (* method from tactic *)
 
-fun LIFT tac goal = Seq.map (fn x => (x, [], [])) (tac goal);
-fun METHOD tacf = Proof.method (LIFT o tacf);
+val METHOD = Proof.method;
 fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Method may not be used with facts");
 
 
@@ -161,10 +159,11 @@ struct
   fun print _ {space, meths} =
     let
       fun prt_meth (name, ((_, comment), _)) = Pretty.block
-        [Pretty.str (NameSpace.cond_extern space name ^ ":"), Pretty.brk 2, Pretty.str comment];
+        [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
       Pretty.writeln (Display.pretty_name_space ("method name space", space));
-      Pretty.writeln (Pretty.big_list "methods:" (map prt_meth (Symtab.dest meths)))
+      Pretty.writeln (Pretty.big_list "methods:"
+        (map prt_meth (NameSpace.cond_extern_table space meths)))
     end;
 end;
 
@@ -331,7 +330,7 @@ val pure_methods =
   ("finish", no_args asm_finish, "finish proof by assumption"),
   ("fold", thms_args fold, "fold definitions"),
   ("unfold", thms_args unfold, "unfold definitions"),
-  ("rule", thms_args rule, "apply primitive rule")];
+  ("rule", thms_args rule, "apply some rule")];
 
 
 (* setup *)
