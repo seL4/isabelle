@@ -209,6 +209,11 @@ fun read_typ (Sg {tsig, syn, ...}, sort_of) s = rd_typ tsig syn sort_of s;
 
 fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
   let
+    fun read_abbr syn (c, vs, rhs_src) =
+      (c, (map (rpair 0) vs, varifyT (Syntax.read_typ syn (K []) rhs_src)))
+        handle ERROR => error ("The error(s) above occurred in the rhs " ^
+          quote rhs_src ^ "\nof type abbreviation " ^ quote c);
+
     (*reset TVar indices to 0, renaming to preserve distinctness*)
     fun zero_tvar_idxs T =
       let
@@ -225,10 +230,6 @@ fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
       (c, zero_tvar_idxs (varifyT (rd_typ tsig syn (K None) s)))
         handle ERROR => error ("in declaration of constant " ^ quote c);
 
-    fun read_abbr tsig syn (c, vs, rhs_src) =
-      (c, (map (rpair 0) vs, varifyT (rd_typ tsig syn (K None) rhs_src)
-        handle ERROR => error ("in type abbreviation " ^ quote c)));
-
 
     val Sg {tsig, const_tab, syn, stamps} = sg;
     val xconsts = map #1 classes @ flat (map #1 types) @ map #1 abbrs @
@@ -236,7 +237,7 @@ fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
     val sext = if_none opt_sext Syntax.empty_sext;
 
     val tsig' = extend_tsig tsig (classes, default, types, arities);
-    val tsig1 = ext_tsig_abbrs tsig' (map (read_abbr tsig' syn) abbrs);
+    val tsig1 = ext_tsig_abbrs tsig' (map (read_abbr syn) abbrs);
 
     val syn1 = Syntax.extend syn (rd_typ tsig1 syn (K None))
       (logical_types tsig1, xconsts, sext);
