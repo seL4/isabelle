@@ -147,9 +147,9 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
       |> (if no_def then I else (#1 oo (PureThy.add_defs_i false o map Thm.no_attributes))
        [Logic.mk_defpair (setC, set)])
       |> PureThy.add_axioms_i [((typedef_name, typedef_prop),
-          [apsnd (fn cond_axm => standard (nonempty RS cond_axm))])]
+          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])]
       |> (fn (theory', axm) =>
-        let fun make th = standard (th OF axm) in
+        let fun make th = Drule.standard (th OF axm) in
           rpair (hd axm) (theory'
           |> (#1 oo PureThy.add_thms)
             ([((Rep_name, make Rep), []),
@@ -193,8 +193,8 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
 
     (*test theory errors now!*)
     val test_thy = Theory.copy thy;
-    val test_sign = Theory.sign_of test_thy;
-    val _ = (test_thy, Thm.assume (Thm.cterm_of test_sign goal)) |> typedef_att;
+    val _ = (test_thy,
+      setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal) |> typedef_att;
 
   in (cset, goal, goal_pat, typedef_att) end
   handle ERROR => err_in_typedef name;
