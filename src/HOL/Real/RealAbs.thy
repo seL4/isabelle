@@ -8,6 +8,6 @@ RealAbs = Real +
 
 constdefs
    rabs   :: real => real
-   "rabs r      == if 0r<=r then r else %~r" 
+   "rabs r      == if 0r<=r then r else -r" 
 
 end

@@ -11,5 +11,7 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 writeln"Root file for HOL/Real";
 
 set proof_timing;
+time_use_thy "RealDef";
+use          "simproc";
 time_use_thy "RealAbs";
 time_use_thy "RComplete";

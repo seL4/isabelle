@@ -31,12 +31,12 @@ Goal "[| ALL x: S. 0r < x; \
 \                 EX u. isUb (UNIV::real set) S u \
 \              |] ==> EX t. isLub (UNIV::real set) S t";
 by (res_inst_tac [("x","%#psup({w. %#w : S})")] exI 1);
-by (auto_tac (claset(),simpset() addsimps [isLub_def,leastP_def,isUb_def]));
+by (auto_tac (claset(), simpset() addsimps [isLub_def,leastP_def,isUb_def]));
 by (auto_tac (claset() addSIs [setleI,setgeI] 
-    addSDs [real_gt_zero_preal_Ex RS iffD1],simpset()));
+	               addSDs [real_gt_zero_preal_Ex RS iffD1],simpset()));
 by (forw_inst_tac [("x","y")] bspec 1 THEN assume_tac 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
-by (auto_tac (claset(),simpset() addsimps [real_preal_le_iff]));
+by (auto_tac (claset(), simpset() addsimps [real_preal_le_iff]));
 by (rtac preal_psup_leI2a 1);
 by (forw_inst_tac [("y","%#ya")] setleD 1 THEN assume_tac 1);
 by (forward_tac  [real_ge_preal_preal_Ex] 1);
@@ -46,73 +46,48 @@ by (blast_tac (claset() addSDs [setleD] addIs [real_preal_le_iff RS iffD1]) 1);
 by (forw_inst_tac [("x","x")] bspec 1 THEN assume_tac 1);
 by (forward_tac [isUbD2] 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
-by (auto_tac (claset() addSDs [isUbD,
-    real_ge_preal_preal_Ex],simpset() addsimps [real_preal_le_iff]));
-by (blast_tac (claset() addSDs [setleD] addSIs 
-    [psup_le_ub1] addIs [real_preal_le_iff RS iffD1]) 1);
+by (auto_tac (claset() addSDs [isUbD, real_ge_preal_preal_Ex],
+	      simpset() addsimps [real_preal_le_iff]));
+by (blast_tac (claset() addSDs [setleD] addSIs [psup_le_ub1] 
+	                addIs [real_preal_le_iff RS iffD1]) 1);
 qed "posreals_complete";
 
 
 (*-------------------------------
     Lemmas
  -------------------------------*)
-Goal "! y : {z. ? x: P. z = x + %~xa + 1r} Int {x. 0r < x}. 0r < y";
+Goal "! y : {z. ? x: P. z = x + -xa + 1r} Int {x. 0r < x}. 0r < y";
 by Auto_tac;
 qed "real_sup_lemma3";
  
-(* lemmas re-arranging the terms *)
-Goal "(S <= Y + %~X + Z) = (S + X + %~Z <= Y)";
-by (Step_tac 1);
-by (dres_inst_tac [("x","%~Z")] real_add_le_mono1 1);
-by (dres_inst_tac [("x","Z")] real_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
-    real_add_minus,real_add_zero_right,real_add_minus_left]));
-by (dres_inst_tac [("x","X")] real_add_le_mono1 1);
-by (dres_inst_tac [("x","%~X")] real_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
-    real_add_minus,real_add_zero_right,real_add_minus_left]));
-by (auto_tac (claset(),simpset() addsimps [real_add_commute]));
-qed "lemma_le_swap";
-
-Goal "(xa <= S + X + %~Z) = (xa + %~X + Z <= S)";
-by (Step_tac 1);
-by (dres_inst_tac [("x","Z")] real_add_le_mono1 1);
-by (dres_inst_tac [("x","%~Z")] real_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
-    real_add_minus,real_add_zero_right,real_add_minus_left]));
-by (dres_inst_tac [("x","%~X")] real_add_le_mono1 1);
-by (dres_inst_tac [("x","X")] real_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
-    real_add_minus,real_add_zero_right,real_add_minus_left]));
-by (auto_tac (claset(),simpset() addsimps [real_add_commute]));
+Goal "(xa <= S + X + -Z) = (xa + -X + Z <= (S::real))";
+by (simp_tac (simpset() addsimps [real_diff_def, real_diff_le_eq RS sym] @
+	                         real_add_ac) 1);
 qed "lemma_le_swap2";
 
-Goal "[| 0r < x + %~X + 1r; x < xa |] ==> 0r < xa + %~X + 1r";
+Goal "[| 0r < x + -X + 1r; x < xa |] ==> 0r < xa + -X + 1r";
 by (dtac real_add_less_mono 1);
 by (assume_tac 1);
-by (dres_inst_tac [("C","%~x"),("A","0r + x")] real_add_less_mono2 1);
+by (dres_inst_tac [("C","-x"),("A","0r + x")] real_add_less_mono2 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_zero_right,
     real_add_assoc RS sym,real_add_minus_left,real_add_zero_left]) 1);
 by (asm_full_simp_tac (simpset() addsimps real_add_ac) 1);
 qed "lemma_real_complete1";
 
-Goal "!!x. [| x + %~X + 1r <= S; xa < x |] ==> xa + %~X + 1r <= S";
+Goal "!!x. [| x + -X + 1r <= S; xa < x |] ==> xa + -X + 1r <= S";
 by (dtac real_less_imp_le 1);
 by (dtac real_add_le_mono 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps real_add_ac) 1);
-by (dres_inst_tac [("x","%~x"),("q2.0","x + S")] real_add_left_le_mono1 1);
-by (asm_full_simp_tac (simpset() addsimps [real_add_assoc RS sym,
-        real_add_minus_left,real_add_zero_left]) 1);
 qed "lemma_real_complete2";
 
-Goal "[| x + %~X + 1r <= S; xa < x |] ==> xa <= S + X + %~1r"; (**)
+Goal "[| x + -X + 1r <= S; xa < x |] ==> xa <= S + X + -1r"; (**)
 by (rtac (lemma_le_swap2 RS iffD2) 1);
 by (etac lemma_real_complete2 1);
 by (assume_tac 1);
 qed "lemma_real_complete2a";
 
-Goal "[| x + %~X + 1r <= S; xa <= x |] ==> xa <= S + X + %~1r";
+Goal "[| x + -X + 1r <= S; xa <= x |] ==> xa <= S + X + -1r";
 by (rotate_tac 1 1);
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (blast_tac (claset() addIs [lemma_real_complete2a]) 1);
@@ -126,20 +101,22 @@ Goal "!!(S::real set). [| EX X. X: S; \
 \                             EX Y. isUb (UNIV::real set) S Y \
 \                          |] ==> EX t. isLub (UNIV :: real set) S t";
 by (Step_tac 1);
-by (subgoal_tac "? u. u: {z. ? x: S. z = x + %~X + 1r} \
+by (subgoal_tac "? u. u: {z. ? x: S. z = x + -X + 1r} \
 \                Int {x. 0r < x}" 1);
-by (subgoal_tac "isUb (UNIV::real set) ({z. ? x: S. z = x + %~X + 1r} \
-\                Int {x. 0r < x})  (Y + %~X + 1r)" 1); 
+by (subgoal_tac "isUb (UNIV::real set) ({z. ? x: S. z = x + -X + 1r} \
+\                Int {x. 0r < x})  (Y + -X + 1r)" 1); 
 by (cut_inst_tac [("P","S"),("xa","X")] real_sup_lemma3 1);
 by (EVERY1[forward_tac [exI RSN (3,posreals_complete)], Blast_tac, Blast_tac, Step_tac]);
-by (res_inst_tac [("x","t + X + %~1r")] exI 1);
+by (res_inst_tac [("x","t + X + -1r")] exI 1);
 by (rtac isLubI2 1);
 by (rtac setgeI 2 THEN Step_tac 2);
-by (subgoal_tac "isUb (UNIV:: real set) ({z. ? x: S. z = x + %~X + 1r} \
-\                Int {x. 0r < x})  (y + %~X + 1r)" 2); 
-by (dres_inst_tac [("y","(y + %~ X + 1r)")] isLub_le_isUb 2 
+by (subgoal_tac "isUb (UNIV:: real set) ({z. ? x: S. z = x + -X + 1r} \
+\                Int {x. 0r < x})  (y + -X + 1r)" 2); 
+by (dres_inst_tac [("y","(y + - X + 1r)")] isLub_le_isUb 2 
       THEN assume_tac 2);
-by (etac (lemma_le_swap RS subst) 2);
+by (full_simp_tac
+    (simpset() addsimps [real_diff_def, real_diff_le_eq RS sym] @
+                        real_add_ac) 2);
 by (rtac (setleI RS isUbI) 1);
 by (Step_tac 1);
 by (res_inst_tac [("R1.0","x"),("R2.0","y")] real_linear_less2 1);
@@ -154,26 +131,19 @@ by (Blast_tac 1);
 by (rtac lemma_real_complete2b 1);
 by (etac real_less_imp_le 2);
 by (blast_tac (claset() addSIs [isLubD2]) 1 THEN Step_tac 1);
-by (blast_tac (claset() addDs [isUbD] addSIs [(setleI RS isUbI)]
-    addIs [real_add_le_mono1,real_add_assoc RS ssubst]) 1);
-by (blast_tac (claset() addDs [isUbD] addSIs [(setleI RS isUbI)]
-    addIs [real_add_le_mono1,real_add_assoc RS ssubst]) 1);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc RS sym,
-     real_add_minus,real_add_zero_left,real_zero_less_one]));
+by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
+by (blast_tac (claset() addDs [isUbD] addSIs [setleI RS isUbI]
+                        addIs [real_add_le_mono1]) 1);
+by (blast_tac (claset() addDs [isUbD] addSIs [setleI RS isUbI]
+                        addIs [real_add_le_mono1]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [real_add_assoc RS sym,
+				  real_zero_less_one]));
 qed "reals_complete";
 
 (*----------------------------------------------------------------
         Related property: Archimedean property of reals
  ----------------------------------------------------------------*)
-
-Goal "(ALL m. x*%%#m + x <= t) = (ALL m. x*%%#m <= t + %~x)";
-by Auto_tac;
-by (ALLGOALS(dres_inst_tac [("x","m")] spec));
-by (dres_inst_tac [("x","%~x")] real_add_le_mono1 1);
-by (dres_inst_tac [("x","x")] real_add_le_mono1 2);
-by (auto_tac (claset(),simpset() addsimps [real_add_assoc,
-      real_add_minus,real_add_minus_left,real_add_zero_right]));
-qed "lemma_arch";
 
 Goal "0r < x ==> EX n. rinv(%%#n) < x";
 by (stac real_nat_rinv_Ex_iff 1);
@@ -187,15 +157,15 @@ by (subgoal_tac "ALL m. x*(%%#Suc m) <= t" 1);
 by (asm_full_simp_tac (simpset() addsimps 
    [real_nat_Suc,real_add_mult_distrib2]) 1);
 by (blast_tac (claset() addIs [isLubD2]) 2);
-by (asm_full_simp_tac (simpset() addsimps [lemma_arch]) 1);
-by (subgoal_tac "isUb (UNIV::real set) {z. EX n. z = x*%%#n} (t + %~x)" 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [real_le_diff_eq RS sym, real_diff_def]) 1);
+by (subgoal_tac "isUb (UNIV::real set) {z. EX n. z = x*%%#n} (t + -x)" 1);
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);
-by (dres_inst_tac [("y","t+%~x")] isLub_le_isUb 1);
-by (dres_inst_tac [("x","%~t")] real_add_left_le_mono1 2);
+by (dres_inst_tac [("y","t+-x")] isLub_le_isUb 1);
+by (dres_inst_tac [("x","-t")] real_add_left_le_mono1 2);
 by (auto_tac (claset() addDs [real_le_less_trans,
-    (real_minus_zero_less_iff2 RS iffD2)], simpset() 
-    addsimps [real_less_not_refl,real_add_assoc RS sym,
-    real_add_minus_left,real_add_zero_left]));
+			      (real_minus_zero_less_iff2 RS iffD2)], 
+	      simpset() addsimps [real_less_not_refl,real_add_assoc RS sym]));
 qed "reals_Archimedean";
 
 Goal "EX n. (x::real) < %%#n";
@@ -203,15 +173,17 @@ by (res_inst_tac [("R1.0","x"),("R2.0","0r")] real_linear_less2 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","0")] exI 2);
 by (auto_tac (claset() addEs [real_less_trans],
-    simpset() addsimps [real_nat_one,real_zero_less_one]));
+	      simpset() addsimps [real_nat_one,real_zero_less_one]));
 by (forward_tac [(real_rinv_gt_zero RS reals_Archimedean)] 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (forw_inst_tac [("y","rinv x")] real_mult_less_mono1 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
 by (dres_inst_tac [("n1","n"),("y","1r")] 
      (real_nat_less_zero RS real_mult_less_mono2)  1);
-by (auto_tac (claset(),simpset() addsimps [real_nat_less_zero,
-    real_not_refl2 RS not_sym,real_mult_assoc RS sym]));
+by (auto_tac (claset(),
+	      simpset() addsimps [real_nat_less_zero,
+				  real_not_refl2 RS not_sym,
+				  real_mult_assoc RS sym]));
 qed "reals_Archimedean2";
 
 

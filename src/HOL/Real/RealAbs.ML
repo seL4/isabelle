@@ -4,13 +4,11 @@
     Description : Absolute value function for the reals
 *) 
 
-open RealAbs;
-
 (*----------------------------------------------------------------------------
        Properties of the absolute value function over the reals
        (adapted version of previously proved theorems about abs)
  ----------------------------------------------------------------------------*)
-Goalw [rabs_def] "rabs r = (if 0r<=r then r else %~r)";
+Goalw [rabs_def] "rabs r = (if 0r<=r then r else -r)";
 by Auto_tac;
 qed "rabs_iff";
 
@@ -20,7 +18,7 @@ qed "rabs_zero";
 
 Addsimps [rabs_zero];
 
-Goalw [rabs_def] "rabs 0r = %~0r";
+Goalw [rabs_def] "rabs 0r = -0r";
 by (stac real_minus_zero 1);
 by (rtac if_cancel 1);
 qed "rabs_minus_zero";
@@ -33,19 +31,19 @@ val [prem] = goalw thy [rabs_def] "0r<x ==> rabs x = x";
 by (simp_tac (simpset() addsimps [(prem RS real_less_imp_le),rabs_eqI1]) 1);
 qed "rabs_eqI2";
 
-val [prem] = goalw thy [rabs_def,real_le_def] "x<0r ==> rabs x = %~x";
+val [prem] = goalw thy [rabs_def,real_le_def] "x<0r ==> rabs x = -x";
 by (simp_tac (simpset() addsimps [prem,if_not_P]) 1);
 qed "rabs_minus_eqI2";
 
-Goal "x<=0r ==> rabs x = %~x";
+Goal "x<=0r ==> rabs x = -x";
 by (dtac real_le_imp_less_or_eq 1);
 by (blast_tac (HOL_cs addIs [rabs_minus_zero,rabs_minus_eqI2]) 1);
 qed "rabs_minus_eqI1";
 
 Goalw [rabs_def,real_le_def] "0r<= rabs x";
-by (full_simp_tac (simpset()  setloop (split_tac [expand_if])) 1);
+by (Full_simp_tac 1);
 by (blast_tac (claset() addDs [real_minus_zero_less_iff RS iffD2,
-    real_less_asym]) 1);
+			       real_less_asym]) 1);
 qed "rabs_ge_zero";
 
 Goal "rabs(rabs x)=rabs x";
@@ -54,29 +52,27 @@ by (blast_tac (claset() addIs [if_P,rabs_ge_zero]) 1);
 qed "rabs_idempotent";
 
 Goalw [rabs_def] "(x=0r) = (rabs x = 0r)";
-by (full_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (Full_simp_tac 1);
 qed "rabs_zero_iff";
 
 Goal  "(x ~= 0r) = (rabs x ~= 0r)";
-by (full_simp_tac (simpset() addsimps [rabs_zero_iff RS sym] 
-    setloop (split_tac [expand_if])) 1);
+by (full_simp_tac (simpset() addsimps [rabs_zero_iff RS sym]) 1);
 qed "rabs_not_zero_iff";
 
 Goalw [rabs_def] "x<=rabs x";
-by (full_simp_tac (simpset() addsimps [real_le_refl] setloop (split_tac [expand_if])) 1);
+by (Full_simp_tac 1);
 by (auto_tac (claset() addDs [not_real_leE RS real_less_imp_le],
-    simpset() addsimps [real_le_zero_iff]));
+	      simpset() addsimps [real_le_zero_iff]));
 qed "rabs_ge_self";
 
-Goalw [rabs_def] "%~x<=rabs x";
-by (full_simp_tac (simpset() addsimps [real_le_refl,
-    real_ge_zero_iff] setloop (split_tac [expand_if])) 1);
+Goalw [rabs_def] "-x<=rabs x";
+by (full_simp_tac (simpset() addsimps [real_ge_zero_iff]) 1);
 qed "rabs_ge_minus_self";
 
 (* case splits nightmare *)
 Goalw [rabs_def] "rabs(x*y) = (rabs x)*(rabs y)";
 by (auto_tac (claset(),simpset() addsimps [real_minus_mult_eq1,
-   real_minus_mult_commute,real_minus_mult_eq2] setloop (split_tac [expand_if])));
+   real_minus_mult_commute,real_minus_mult_eq2]));
 by (blast_tac (claset() addDs [real_le_mult_order]) 1);
 by (auto_tac (claset() addSDs [not_real_leE],simpset()));
 by (EVERY1[dtac real_mult_le_zero, assume_tac, dtac real_le_anti_sym]);
@@ -88,7 +84,7 @@ qed "rabs_mult";
 
 Goalw [rabs_def] "x~= 0r ==> rabs(rinv(x)) = rinv(rabs(x))";
 by (auto_tac (claset(),simpset() addsimps [real_minus_rinv] 
-    setloop (split_tac [expand_if])));
+   ));
 by (ALLGOALS(dtac not_real_leE));
 by (etac real_less_asym 1);
 by (blast_tac (claset() addDs [real_le_imp_less_or_eq,
@@ -108,28 +104,30 @@ qed "rabs_mult_rinv";
 
 Goal "rabs(x+y) <= rabs x + rabs y";
 by (EVERY1 [res_inst_tac [("Q1","0r<=x+y")] (expand_if RS ssubst), rtac conjI]);
-by (asm_simp_tac (simpset() addsimps [rabs_eqI1,real_add_le_mono,rabs_ge_self]) 1);
-by (asm_simp_tac (simpset() addsimps [not_real_leE,rabs_minus_eqI2,real_add_le_mono,
-                                     rabs_ge_minus_self,real_minus_add_eq]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [rabs_eqI1,real_add_le_mono,rabs_ge_self]) 1);
+by (asm_simp_tac 
+    (simpset() addsimps [not_real_leE,rabs_minus_eqI2,real_add_le_mono,
+			 rabs_ge_minus_self]) 1);
 qed "rabs_triangle_ineq";
 
 Goal "rabs(w + x + y + z) <= rabs(w) + rabs(x) + rabs(y) + rabs(z)";
 by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
 by (blast_tac (claset() addSIs [(rabs_triangle_ineq RS real_le_trans),
-                real_add_left_le_mono1,real_le_refl]) 1);
+				real_add_left_le_mono1]) 1);
 qed "rabs_triangle_ineq_four";
 
-Goalw [rabs_def] "rabs(%~x)=rabs(x)";
+Goalw [rabs_def] "rabs(-x)=rabs(x)";
 by (auto_tac (claset() addSDs [not_real_leE,real_less_asym] addIs [real_le_anti_sym],
-   simpset() addsimps [real_ge_zero_iff] setloop (split_tac [expand_if])));
+   simpset() addsimps [real_ge_zero_iff]));
 qed "rabs_minus_cancel";
 
-Goal "rabs(x + %~y) <= rabs x + rabs y";
+Goal "rabs(x + -y) <= rabs x + rabs y";
 by (res_inst_tac [("x1","y")] (rabs_minus_cancel RS subst) 1);
 by (rtac rabs_triangle_ineq 1);
 qed "rabs_triangle_minus_ineq";
 
-Goal "rabs (x + y + (%~l + %~m)) <= rabs(x + %~l) + rabs(y + %~m)";
+Goal "rabs (x + y + (-l + -m)) <= rabs(x + -l) + rabs(y + -m)";
 by (full_simp_tac (simpset() addsimps [real_add_assoc]) 1);
 by (res_inst_tac [("x1","y")] (real_add_left_commute RS ssubst) 1);
 by (rtac (real_add_assoc RS subst) 1);
@@ -142,7 +140,7 @@ by (rtac rabs_triangle_ineq 1);
 by (REPEAT (ares_tac [real_add_less_mono] 1));
 qed "rabs_add_less";
 
-Goal "[| rabs x < r; rabs y < s |] ==> rabs(x+ %~y) < r+s";
+Goal "[| rabs x < r; rabs y < s |] ==> rabs(x+ -y) < r+s";
 by (rotate_tac 1 1);
 by (dtac (rabs_minus_cancel RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [rabs_add_less]) 1);
@@ -176,8 +174,7 @@ by (blast_tac (HOL_cs addIs [rabs_ge_zero, real_mult_order,
 			     real_le_less_trans]) 1);
 qed "rabs_mult_less";
 
-Goal "[| rabs x < r; rabs y < s |] \
-\          ==> rabs(x)*rabs(y)<r*s";
+Goal "[| rabs x < r; rabs y < s |] ==> rabs(x)*rabs(y)<r*s";
 by (auto_tac (claset() addIs [rabs_mult_less],
               simpset() addsimps [rabs_mult RS sym]));
 qed "rabs_mult_less2";
@@ -186,13 +183,13 @@ Goal "1r < rabs x ==> rabs y <= rabs(x*y)";
 by (cut_inst_tac [("x1","y")] (rabs_ge_zero RS real_le_imp_less_or_eq) 1);
 by (EVERY1[etac disjE,rtac real_less_imp_le]);
 by (dres_inst_tac [("W","1r")]  real_less_sum_gt_zero 1);
-by (forw_inst_tac [("y","rabs x + %~1r")] real_mult_order 1);
+by (forw_inst_tac [("y","rabs x + -1r")] real_mult_order 1);
 by (assume_tac 1);
 by (rtac real_sum_gt_zero_less 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib2,
-    rabs_mult, real_mult_commute,real_minus_mult_eq1 RS sym]) 1);
+    real_mult_commute, rabs_mult]) 1);
 by (dtac sym 1);
-by (asm_full_simp_tac (simpset() addsimps [real_le_refl,rabs_mult]) 1);
+by (asm_full_simp_tac (simpset() addsimps [rabs_mult]) 1);
 qed "rabs_mult_le";
 
 Goal "[| 1r < rabs x; r < rabs y|] ==> r < rabs(x*y)";
@@ -205,27 +202,27 @@ qed "rabs_less_gt_zero";
 
 Goalw [rabs_def] "rabs 1r = 1r";
 by (auto_tac (claset() addSDs [not_real_leE RS real_less_asym],
-   simpset() addsimps [real_zero_less_one] setloop (split_tac [expand_if])));
+   simpset() addsimps [real_zero_less_one]));
 qed "rabs_one";
 
 Goal "[| 0r < x ; x < r |] ==> rabs x < r";
 by (asm_simp_tac (simpset() addsimps [rabs_eqI2]) 1);
 qed "rabs_lessI";
 
-Goal "rabs x =x | rabs x = %~x";
+Goal "rabs x =x | rabs x = -x";
 by (cut_inst_tac [("R1.0","0r"),("R2.0","x")] real_linear 1);
 by (blast_tac (claset() addIs [rabs_eqI2,rabs_minus_eqI2,
                             rabs_zero,rabs_minus_zero]) 1);
 qed "rabs_disj";
 
-Goal "rabs x = y ==> x = y | %~x = y";
+Goal "rabs x = y ==> x = y | -x = y";
 by (dtac sym 1);
 by (hyp_subst_tac 1);
 by (res_inst_tac [("x1","x")] (rabs_disj RS disjE) 1);
 by (REPEAT(Asm_simp_tac 1));
 qed "rabs_eq_disj";
 
-Goal "(rabs x < r) = (%~r<x & x<r)";
+Goal "(rabs x < r) = (-r<x & x<r)";
 by Safe_tac;
 by (rtac (real_less_swap_iff RS iffD2) 1);
 by (asm_simp_tac (simpset() addsimps [(rabs_ge_minus_self 

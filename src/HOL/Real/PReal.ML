@@ -157,28 +157,6 @@ qed "inj_preal_prat";
       (*** theorems for ordering ***)
 (* prove introduction and elimination rules for preal_less *)
 
-Goalw [preal_less_def]
-      "R1 < (R2::preal) = (Rep_preal(R1) < Rep_preal(R2))";
-by (Fast_tac 1);
-qed "preal_less_iff";
-
-Goalw [preal_less_def]
-      "!! (R1::preal). R1 < R2 ==> (Rep_preal(R1) < Rep_preal(R2))";
-by (Fast_tac  1);
-qed "preal_lessI";
-
-Goalw [preal_less_def]
-      "R1 < (R2::preal) --> (Rep_preal(R1) < Rep_preal(R2))";
-by (Fast_tac  1);
-qed "preal_lessE_lemma";
-
-Goal "!!P. [| R1 < (R2::preal); \
-\             (Rep_preal(R1) < Rep_preal(R2)) ==> P |] \
-\          ==> P";
-by (dtac (preal_lessE_lemma RS mp) 1);
-by Auto_tac;
-qed "preal_lessE";
-
 (* A positive fraction not in a positive real is an upper bound *)
 (* Gleason p. 122 - Remark (1)                                  *)
 
@@ -806,10 +784,6 @@ Goalw [preal_le_def,preal_less_def,psubset_def]
 by Auto_tac;
 qed "preal_less_or_eq_imp_le";
 
-Goal "(x <= (y::preal)) = (x < y | x=y)";
-by (REPEAT(ares_tac [iffI, preal_less_or_eq_imp_le, preal_le_imp_less_or_eq] 1));
-qed "preal_le_eq_less_or_eq";
-
 Goalw [preal_le_def] "w <= (w::preal)";
 by (Simp_tac 1);
 qed "preal_le_refl";
@@ -1037,13 +1011,6 @@ by (auto_tac (claset() addDs [preal_add_left_le_mono1],
     simpset() addsimps [preal_add_commute]));
 qed "preal_add_le_mono1";
  
-Goal "!!k l::preal. [|i<=j;  k<=l |] ==> i + k <= j + l";
-by (etac (preal_add_le_mono1 RS preal_le_trans) 1);
-by (simp_tac (simpset() addsimps [preal_add_commute]) 1);
-(*j moves to the end because it is free while k, l are bound*)
-by (etac preal_add_le_mono1 1);
-qed "preal_add_le_mono";
-
 Goal "!!(A::preal). A + C < B + C ==> A < B";
 by (cut_facts_tac [preal_linear] 1);
 by (auto_tac (claset() addEs [preal_less_irrefl],simpset()));

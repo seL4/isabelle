@@ -518,7 +518,7 @@ Goalw [pnat_less_def]
 \     |] ==> f(i) <= (f(j)::pnat)";
 by (auto_tac (claset() addSDs [inj_Rep_pnat RS injD],
              simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-                                     le_eq_less_or_eq]));
+				 order_le_less]));
 qed "pnat_less_mono_imp_le_mono";
 
 Goal "!!i j k::pnat. i<=j ==> i + k <= j + k";
