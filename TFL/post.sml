@@ -58,21 +58,19 @@ fun termination_goals rules =
   * Simple wellfoundedness prover.
   *--------------------------------------------------------------------------*)
  fun WF_TAC thms = REPEAT(FIRST1(map rtac thms))
- val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, 
+ val WFtac = WF_TAC[wf_measure, wf_inv_image, wf_lex_prod, wf_less_than,
                     wf_pred_nat, wf_pred_list, wf_trancl];
 
- val terminator = simp_tac(HOL_ss addsimps[pred_nat_def,pred_list_def,
-                                           fst_conv,snd_conv,
-                                           mem_Collect_eq,lessI]) 1
-                  THEN TRY(fast_tac set_cs 1);
-
-val length_Cons = prove_goal List.thy "length(h#t) = Suc(length t)" 
-    (fn _ => [Simp_tac 1]);
+ val terminator = simp_tac(!simpset addsimps [less_than_def, pred_nat_def,
+					      pred_list_def]) 1
+                  THEN TRY(best_tac
+			   (!claset addSDs [not0_implies_Suc]
+				    addIs [r_into_trancl,
+					   trans_trancl RS transD]
+				    addss (!simpset)) 1);
 
  val simpls = [less_eq RS eq_reflection,
-               lex_prod_def, measure_def, inv_image_def, 
-               fst_conv RS eq_reflection, snd_conv RS eq_reflection,
-               mem_Collect_eq RS eq_reflection, length_Cons RS eq_reflection];
+               lex_prod_def, rprod_def, measure_def, inv_image_def];
 
  (*---------------------------------------------------------------------------
   * Does some standard things with the termination conditions of a definition:
@@ -84,8 +82,8 @@ val length_Cons = prove_goal List.thy "length(h#t) = Suc(length t)"
                                     terminator = terminator, 
                                     simplifier = Prim.Rules.simpl_conv simpls};
 
- val simplifier = rewrite_rule (simpls @ #simps(rep_ss HOL_ss) @ 
-                                [pred_nat_def,pred_list_def]);
+ val simplifier = rewrite_rule (simpls @ #simps(rep_ss (!simpset)) @ 
+                                [less_than_def, pred_nat_def, pred_list_def]);
 
  fun tflcongs thy = Prim.Context.read() @ (#case_congs(Thry.extract_info thy));
 
@@ -198,7 +196,10 @@ val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
 
 fun simplify_defn (thy,(id,pats)) =
-   let val def = freezeT(get_def thy id  RS  meta_eq_to_obj_eq)
+   let val dummy = deny (id  mem  map ! (stamps_of_thy thy))
+                        ("Recursive definition " ^ id ^ 
+			 " would clash with the theory of the same name!")
+       val def = freezeT(get_def thy id  RS  meta_eq_to_obj_eq)
        val {theory,rules,TCs,full_pats_TCs,patterns} = 
 		Prim.post_definition (thy,(def,pats))
        val {lhs=f,rhs} = S.dest_eq(concl def)
@@ -225,17 +226,16 @@ end;
  *     inference at theory-construction time.
  *
 
-local fun floutput s = (output(std_out,s); flush_out std_out)
-      structure R = Prim.Rules
+local structure R = Prim.Rules
 in
 fun function theory eqs = 
- let val dummy = floutput "Making definition..   "
+ let val dummy = prs "Making definition..   "
      val {rules,R,theory,full_pats_TCs,...} = Prim.lazyR_def theory eqs
      val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-     val dummy = floutput "Definition made.\n"
-     val dummy = floutput "Proving induction theorem..  "
+     val dummy = prs "Definition made.\n"
+     val dummy = prs "Proving induction theorem..  "
      val induction = Prim.mk_induction theory f R full_pats_TCs
-     val dummy = floutput "Induction theorem proved.\n"
+     val dummy = prs "Induction theorem proved.\n"
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end
