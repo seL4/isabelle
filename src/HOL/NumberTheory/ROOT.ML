@@ -6,7 +6,10 @@
 Number theory developments by Thomas M Rasmussen
 *)
 
-use_thy "Chinese";
-use_thy "EulerFermat";
-use_thy "WilsonRuss";
-use_thy "WilsonBij";
+time_use_thy "Primes";
+time_use_thy "Fib";
+with_path "../Induct" time_use_thy "Factorization";
+time_use_thy "Chinese";
+time_use_thy "EulerFermat";
+time_use_thy "WilsonRuss";
+time_use_thy "WilsonBij";
