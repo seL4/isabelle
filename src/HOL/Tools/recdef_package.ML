@@ -22,12 +22,8 @@ end;
 structure RecdefPackage: RECDEF_PACKAGE =
 struct
 
-(* FIXME tmp
 val quiet_mode = Tfl.quiet_mode;
 val message = Tfl.message;
-*)
-val quiet_mode = ref false;
-val message = writeln;
 
 
 
