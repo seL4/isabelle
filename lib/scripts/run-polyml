@@ -17,11 +17,11 @@ function fail_out()
   exit 2
 }
 
-function check_mlhome_file()
+function check_file()
 {
   if [ ! -f "$1" ]; then
     echo "Unable to locate $1" >&2
-    echo "Please check your ML_HOME setting!" >&2
+    echo "Please check your ML system settings!" >&2
     exit 2
   fi
 }
@@ -29,18 +29,39 @@ function check_mlhome_file()
 
 ## Poly/ML programs
 
+ML_DBASE_PREFIX=""
 POLY="$ML_HOME/poly"
-DISCGARB="$ML_HOME/discgarb"
-
-check_mlhome_file "$POLY"
-check_mlhome_file "$DISCGARB"
-
+check_file "$POLY"
 
 case "$ML_SYSTEM" in
   polyml-4.*)
+    if [ -z "$ML_DBASE" ]; then
+      if [ -z "$COPYDB" ]; then
+        ML_DBASE_PREFIX="$ML_HOME/"
+        ML_DBASE="ML_dbase"
+      else
+        ML_DBASE="$ML_HOME/ML_dbase"
+      fi
+      POLYPATH="$ML_HOME"
+    else
+      POLYPATH=$(dirname "$ML_DBASE")
+    fi
+    export POLYPATH
+
+    DISCGARB="$POLY"
+    DISCGARB_OPTIONS="-d -c"
+
     EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
     ;;
   *)
+    if [ -z "$ML_DBASE" ]; then
+      ML_DBASE="$ML_HOME/ML_dbase"
+    fi
+
+    DISCGARB="$ML_HOME/discgarb"
+    DISCGARB_OPTIONS="-c"
+    check_file "$DISCGARB"
+
     EXIT="val exit = PolyML.exit;"
     ;;
 esac
@@ -49,8 +70,8 @@ esac
 ## prepare databases
 
 if [ -z "$INFILE" ]; then
-  INFILE="$ML_HOME/ML_dbase"
-  check_mlhome_file "$INFILE"
+  check_file "$ML_DBASE_PREFIX$ML_DBASE"
+  INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
 else
   COPYDB=true
@@ -82,14 +103,15 @@ else
   FEEDER_OPTS="-q"
 fi
 
-DB_INFO=$(ls -l "$DB")
+DB_INFO=$(ls -l "$DB" 2>/dev/null)
 
 "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" $FEEDER_OPTS | \
   { read FPID; "$POLY" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
 RC="$?"
 
-NEW_DB_INFO=$(ls -l "$DB")
-[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && "$DISCGARB" -c "$OUTFILE"
+NEW_DB_INFO=$(ls -l "$DB" 2>/dev/null)
+[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && \
+  "$DISCGARB" $DISCGARB_OPTIONS "$OUTFILE"
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit "$RC"
