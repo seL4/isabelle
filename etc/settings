@@ -47,7 +47,7 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 ### Compilation options
 ###
 
-ISABELLE_USEDIR_OPTIONS=""
+ISABELLE_USEDIR_OPTIONS="-i false"
 
 
 ###
