@@ -6,7 +6,8 @@
 
 header {*
   \title{The Greatest Common Divisor and Euclid's algorithm}
-  \author{Christophe Tabacznyj and Lawrence C Paulson} *}
+  \author{Christophe Tabacznyj and Lawrence C Paulson}
+*}
 
 theory Primes = Main:
 
