@@ -43,12 +43,11 @@ by (etac zero_less_power 1);
 by (contr_tac 1);
 qed "power_less_imp_less";
 
-Goal "k^j dvd n --> i<j --> k^i dvd (n::nat)";
+Goal "k^j dvd n --> i<=j --> k^i dvd (n::nat)";
 by (induct_tac "j" 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
-by (stac mult_commute 1);
-by (blast_tac (claset() addSDs [dvd_mult_left]) 1);
-qed_spec_mp "power_less_dvd";
+by (ALLGOALS (simp_tac (simpset() addsimps [le_Suc_eq])));
+by (blast_tac (claset() addSDs [dvd_mult_right]) 1);
+qed_spec_mp "power_le_dvd";
 
 
 (*** Binomial Coefficients, following Andy Gordon and Florian Kammueller ***)
