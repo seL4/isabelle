@@ -327,7 +327,8 @@ by (case_tac "x:B" 1);
  by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
  by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff]) 2);
 by (fast_tac (claset() addss
-	      (simpset() addsimps [subset_insert_iff, finite_subset])) 1);
+	      (simpset() addsimps [subset_insert_iff, finite_subset]
+			 delsimps [insert_subset])) 1);
 qed_spec_mp "card_mono";
 
 
