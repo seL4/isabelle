@@ -167,6 +167,28 @@ qed_goalw "cont2contlub" Cont.thy [contlub]
         ]);
 
 (* ------------------------------------------------------------------------ *)
+(* monotone functions map finite chains to finite chains              	    *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goalw "monofun_finch2finch" Cont.thy [finite_chain_def]
+  "[| monofun f; finite_chain Y |] ==> finite_chain (%n. f (Y n))" 
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	safe_tac HOL_cs,
+	fast_tac (HOL_cs addSEs [ch2ch_monofun]) 1,
+	fast_tac (HOL_cs addss (HOL_ss addsimps [max_in_chain_def])) 1
+	]);
+
+(* ------------------------------------------------------------------------ *)
+(* The same holds for continuous functions				    *)
+(* ------------------------------------------------------------------------ *)
+
+bind_thm ("cont_finch2finch", cont2mono RS monofun_finch2finch);
+(* [| cont ?f; finite_chain ?Y |] ==> finite_chain (%n. ?f (?Y n)) *)
+
+
+(* ------------------------------------------------------------------------ *)
 (* The following results are about a curried function that is monotone      *)
 (* in both arguments                                                        *)
 (* ------------------------------------------------------------------------ *)

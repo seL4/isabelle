@@ -230,7 +230,6 @@ qed_goalw "monofun_Ifix" Fix.thy  [monofun,Ifix_def] "monofun(Ifix)"
         (etac (monofun_iterate RS monofunE RS spec RS spec RS mp) 1)
         ]);
 
-
 (* ------------------------------------------------------------------------ *)
 (* since iterate is not monotone in its first argument, special lemmas must *)
 (* be derived for lubs in this argument                                     *)
@@ -589,6 +588,19 @@ qed_goalw "flat_imp_chain_finite"  Fix.thy  [flat_def,chain_finite_def]
 bind_thm ("adm_flat", flat_imp_chain_finite RS adm_chain_finite);
 (* flat(?x::?'a) ==> adm(?P::?'a => bool) *)
 
+(* ------------------------------------------------------------------------ *)
+(* some properties of flat			 			    *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goalw "flatdom2monofun" Fix.thy [flat_def] 
+  "[| flat(x::'a::pcpo); f UU = UU |] ==> monofun (f::'a=>'b::pcpo)" 
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	fast_tac ((HOL_cs addss !simpset) addSIs [monofunI]) 1
+	]);
+
+
 qed_goalw "flat_void" Fix.thy [flat_def] "flat(UU::void)"
  (fn prems =>
         [
@@ -601,6 +613,78 @@ qed_goalw "flat_eq" Fix.thy [flat_def]
         "[| flat (x::'a); (a::'a) ~= UU |] ==> a << b = (a = b)" (fn prems=>[
         (cut_facts_tac prems 1),
         (fast_tac (HOL_cs addIs [refl_less]) 1)]);
+
+
+(* ------------------------------------------------------------------------ *)
+(* some lemmata for functions with flat/chain_finite domain/range types	    *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goal "chfin2finch" Fix.thy 
+    "[| is_chain (Y::nat=>'a); chain_finite (x::'a) |] ==> finite_chain Y"
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	fast_tac (HOL_cs addss 
+		 (!simpset addsimps [chain_finite_def,finite_chain_def])) 1
+	]);
+
+qed_goal "chfindom_monofun2cont" Fix.thy 
+  "[| chain_finite(x::'a::pcpo); monofun f |] ==> cont (f::'a=>'b::pcpo)"
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	rtac monocontlub2cont 1,
+	 atac 1,
+	rtac contlubI 1,
+	strip_tac 1,
+	dtac (chfin2finch COMP swap_prems_rl) 1,
+	 atac 1,
+	rtac antisym_less 1,
+	 fast_tac ((HOL_cs addIs [is_ub_thelub,ch2ch_monofun]) 
+	     addss (HOL_ss addsimps [finite_chain_def,maxinch_is_thelub])) 1,
+	dtac (monofun_finch2finch COMP swap_prems_rl) 1,
+	 atac 1,
+	fast_tac ((HOL_cs 
+	    addIs [is_ub_thelub,(monofunE RS spec RS spec RS mp)]) 
+	    addss (HOL_ss addsimps [finite_chain_def,maxinch_is_thelub])) 1
+	]);
+
+bind_thm("flatdom_monofun2cont",flat_imp_chain_finite RS chfindom_monofun2cont);
+(* [| flat ?x; monofun ?f |] ==> cont ?f *)
+
+qed_goal "flatdom_strict2cont" Fix.thy 
+  "[| flat(x::'a::pcpo); f UU = UU |] ==> cont (f::'a=>'b::pcpo)" 
+(fn prems =>
+	[
+	cut_facts_tac prems 1,
+	fast_tac ((HOL_cs addSIs [flatdom2monofun,
+			flat_imp_chain_finite RS chfindom_monofun2cont])) 1
+	]);
+
+qed_goal "chfin_fappR" Fix.thy 
+    "[| is_chain (Y::nat => 'a->'b); chain_finite(x::'b) |] ==> \
+\    !s. ? n. lub(range(Y))`s = Y n`s" 
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	rtac allI 1,
+	rtac (contlub_cfun_fun RS ssubst) 1,
+	 atac 1,
+	fast_tac (HOL_cs addSIs [thelubI,lub_finch2,chfin2finch,ch2ch_fappL])1
+	]);
+
+qed_goalw "adm_chfindom" Fix.thy [adm_def]
+	    "chain_finite (x::'b) ==> adm (%(u::'a->'b). P(u`s))" (fn prems => [
+	cut_facts_tac prems 1,
+	strip_tac 1,
+	dtac chfin_fappR 1,
+	 atac 1,
+	eres_inst_tac [("x","s")] allE 1,
+	fast_tac (HOL_cs addss !simpset) 1]);
+
+bind_thm("adm_flatdom",flat_imp_chain_finite RS adm_chfindom);
+(* flat ?x ==> adm (%u. ?P (u`?s)) *)
+
 
 (* ------------------------------------------------------------------------ *)
 (* lemmata for improved admissibility introdution rule                      *)

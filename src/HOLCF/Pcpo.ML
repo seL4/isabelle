@@ -33,6 +33,20 @@ bind_thm ("is_ub_thelub", cpo RS lubI RS is_ub_lub);
 bind_thm ("is_lub_thelub", cpo RS lubI RS is_lub_lub);
 (* [| is_chain(?S5); range(?S5) <| ?x1 |] ==> lub(range(?S5)) << ?x1        *)
 
+qed_goal "maxinch_is_thelub" Pcpo.thy "is_chain Y ==> \
+\	max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::pcpo))" 
+(fn prems => 
+	[
+	cut_facts_tac prems 1,
+	rtac iffI 1,
+	fast_tac (HOL_cs addSIs [thelubI,lub_finch1]) 1,
+	rewtac max_in_chain_def,
+	safe_tac (HOL_cs addSIs [antisym_less]),
+	fast_tac (HOL_cs addSEs [chain_mono3]) 1,
+	dtac sym 1,
+	fast_tac ((HOL_cs addSEs [is_ub_thelub]) addss !simpset) 1
+	]);
+
 
 (* ------------------------------------------------------------------------ *)
 (* the << relation between two chains is preserved by their lubs            *)
