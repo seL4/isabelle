@@ -35,12 +35,12 @@ cenvalid  :: "[triple set,etriple   ] => bool" ("_ ||=e/ _" [61,61] 60)
 
 syntax (xsymbols)
    valid  :: "[assn,stmt, assn] => bool" ( "\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
-  evalid  :: "[assn,expr,vassn] => bool" ("\<Turnstile>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
+  evalid  :: "[assn,expr,vassn] => bool" ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
   nvalid  :: "[nat, triple          ] => bool" ("\<Turnstile>_: _"  [61,61] 60)
- envalid  :: "[nat,etriple          ] => bool" ("\<Turnstile>_:e _" [61,61] 60)
+ envalid  :: "[nat,etriple          ] => bool" ("\<Turnstile>_:\<^sub>e _" [61,61] 60)
   nvalids :: "[nat,       triple set] => bool" ("|\<Turnstile>_: _"  [61,61] 60)
  cnvalids :: "[triple set,triple set] => bool" ("_ |\<Turnstile>/ _" [61,61] 60)
-cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>e/ _"[61,61] 60)
+cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
 
 
 lemma nvalid_def2: "\<Turnstile>n: (P,c,Q) \<equiv> \<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t"
@@ -51,16 +51,16 @@ apply (simp add: valid_def nvalid_def2)
 apply blast
 done
 
-lemma envalid_def2: "\<Turnstile>n:e (P,e,Q) \<equiv> \<forall>s v t. s -e\<succ>v-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q v t"
+lemma envalid_def2: "\<Turnstile>n:\<^sub>e (P,e,Q) \<equiv> \<forall>s v t. s -e\<succ>v-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q v t"
 by (simp add: envalid_def Let_def)
 
-lemma evalid_def2: "\<Turnstile>e {P} e {Q} = (\<forall>n. \<Turnstile>n:e (P,e,Q))"
+lemma evalid_def2: "\<Turnstile>\<^sub>e {P} e {Q} = (\<forall>n. \<Turnstile>n:\<^sub>e (P,e,Q))"
 apply (simp add: evalid_def envalid_def2)
 apply blast
 done
 
 lemma cenvalid_def2: 
-  "A|\<Turnstile>e (P,e,Q) = (\<forall>n. |\<Turnstile>n: A \<longrightarrow> (\<forall>s v t. s -e\<succ>v-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q v t))"
+  "A|\<Turnstile>\<^sub>e (P,e,Q) = (\<forall>n. |\<Turnstile>n: A \<longrightarrow> (\<forall>s v t. s -e\<succ>v-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q v t))"
 by(simp add: cenvalid_def envalid_def2) 
 
 
@@ -103,7 +103,7 @@ lemma cnvalid1_eq:
   "A |\<Turnstile> {(P,c,Q)} \<equiv> \<forall>n. |\<Turnstile>n: A \<longrightarrow> (\<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t)"
 by(simp add: cnvalids_def nvalids_def nvalid_def2)
 
-lemma hoare_sound_main:"\<And>t. (A |\<turnstile> C \<longrightarrow> A |\<Turnstile> C) \<and> (A |\<turnstile>e t \<longrightarrow> A |\<Turnstile>e t)"
+lemma hoare_sound_main:"\<And>t. (A |\<turnstile> C \<longrightarrow> A |\<Turnstile> C) \<and> (A |\<turnstile>\<^sub>e t \<longrightarrow> A |\<Turnstile>\<^sub>e t)"
 apply (tactic "split_all_tac 1", rename_tac P e Q)
 apply (rule hoare_ehoare.induct)
 apply (tactic {* ALLGOALS (REPEAT o dresolve_tac [thm "all_conjunct2", thm "all3_conjunct2"]) *})
@@ -149,7 +149,7 @@ apply (unfold cnvalids_def nvalids_def)
 apply fast
 done
 
-theorem ehoare_sound: "{} \<turnstile>e {P} e {Q} \<Longrightarrow> \<Turnstile>e {P} e {Q}"
+theorem ehoare_sound: "{} \<turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> \<Turnstile>\<^sub>e {P} e {Q}"
 apply (simp only: evalid_def2)
 apply (drule hoare_sound_main [THEN conjunct2, rule_format])
 apply (unfold cenvalid_def nvalids_def)
@@ -160,9 +160,11 @@ done
 subsection "(Relative) Completeness"
 
 constdefs MGT    :: "stmt => state =>  triple"
-         "MGT c z \<equiv> (\<lambda>s. z = s, c, \<lambda>  t. \<exists>n. z -c-  n-> t)"
-         eMGT    :: "expr => state => etriple"
-        "eMGT e z \<equiv> (\<lambda>s. z = s, e, \<lambda>v t. \<exists>n. z -e>v-n-> t)"
+         "MGT  c z \<equiv> (\<lambda>s. z = s, c, \<lambda>  t. \<exists>n. z -c-  n-> t)"
+          MGTe   :: "expr => state => etriple"
+         "MGTe e z \<equiv> (\<lambda>s. z = s, e, \<lambda>v t. \<exists>n. z -e>v-n-> t)"
+syntax (xsymbols)
+         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
  "\<forall>z. {} |\<turnstile> { MGT c z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"
@@ -173,9 +175,9 @@ apply (clarsimp simp add: nvalid_def2)
 done
 
 lemma eMGF_implies_complete:
- "\<forall>z. {} |\<turnstile>e eMGT e z \<Longrightarrow> \<Turnstile>e {P} e {Q} \<Longrightarrow> {} \<turnstile>e {P} e {Q}"
+ "\<forall>z. {} |\<turnstile>\<^sub>e MGT\<^sub>e e z \<Longrightarrow> \<Turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> {} \<turnstile>\<^sub>e {P} e {Q}"
 apply (simp only: evalid_def2)
-apply (unfold eMGT_def)
+apply (unfold MGTe_def)
 apply (erule hoare_ehoare.eConseq)
 apply (clarsimp simp add: envalid_def2)
 done
@@ -183,8 +185,8 @@ done
 declare exec_eval.intros[intro!]
 
 lemma MGF_Loop: "\<forall>z. A \<turnstile> {op = z} c {\<lambda>t. \<exists>n. z -c-n\<rightarrow> t} \<Longrightarrow> 
-  A \<turnstile> {op = z} While (e) c {\<lambda>t. \<exists>n. z -While (e) c-n\<rightarrow> t}"
-apply (rule_tac P' = "\<lambda>z s. (z,s) \<in> ({(s,t). \<exists>n. s<e> \<noteq> Null \<and> s -c-n\<rightarrow> t})^*"
+  A \<turnstile> {op = z} While (x) c {\<lambda>t. \<exists>n. z -While (x) c-n\<rightarrow> t}"
+apply (rule_tac P' = "\<lambda>z s. (z,s) \<in> ({(s,t). \<exists>n. s<x> \<noteq> Null \<and> s -c-n\<rightarrow> t})^*"
        in hoare_ehoare.Conseq)
 apply  (rule allI)
 apply  (rule hoare_ehoare.Loop)
@@ -203,8 +205,8 @@ apply (blast del: exec_elim_cases)
 done
 
 lemma MGF_lemma: "\<forall>C m z. A |\<turnstile> {MGT (Impl C m) z} \<Longrightarrow> 
- (\<forall>z. A |\<turnstile> {MGT c z}) \<and> (\<forall>z. A |\<turnstile>e eMGT e z)"
-apply (simp add: MGT_def eMGT_def)
+ (\<forall>z. A |\<turnstile> {MGT c z}) \<and> (\<forall>z. A |\<turnstile>\<^sub>e MGT\<^sub>e e z)"
+apply (simp add: MGT_def MGTe_def)
 apply (rule stmt_expr.induct)
 apply (rule_tac [!] allI)
 
@@ -301,7 +303,7 @@ apply (rule MGF_lemma [THEN conjunct1, rule_format])
 apply (rule MGF_Impl)
 done
 
-theorem ehoare_relative_complete: "\<Turnstile>e {P} e {Q} \<Longrightarrow> {} \<turnstile>e {P} e {Q}"
+theorem ehoare_relative_complete: "\<Turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> {} \<turnstile>\<^sub>e {P} e {Q}"
 apply (rule eMGF_implies_complete)
 apply  (erule_tac [2] asm_rl)
 apply (rule allI)

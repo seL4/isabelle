@@ -9,7 +9,7 @@ header "Axiomatic Semantics (Hoare Logic)"
 theory AxSem = State:
 
 types assn   = "state => bool"
-     vassn   = "val \<Rightarrow> assn"
+     vassn   = "val => assn"
       triple = "assn \<times> stmt \<times>  assn"
      etriple = "assn \<times> expr \<times> vassn"
 translations
@@ -24,9 +24,9 @@ syntax (xsymbols)
  "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ |\<turnstile>/ _" [61,61]    60)
  "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
                                    ("_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
-"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ |\<turnstile>e/ _"[61,61]60)
+"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ |\<turnstile>\<^sub>e/ _"[61,61]60)
 "@ehoare1" :: "[triple set,  assn,expr,vassn]=> bool"
-                                  ("_ \<turnstile>e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
+                                  ("_ \<turnstile>\<^sub>e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
 syntax
  "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ ||-/ _" [61,61] 60)
  "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
@@ -37,9 +37,9 @@ syntax
 
 translations "A |\<turnstile> C"        \<rightleftharpoons> "(A,C) \<in> hoare"
              "A  \<turnstile> {P}c{Q}"  \<rightleftharpoons> "A |\<turnstile> {(P,c,Q)}"
-             "A |\<turnstile>e t"       \<rightleftharpoons> "(A,t) \<in> ehoare"
-             "A |\<turnstile>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (** shouldn't be necess.**)
-             "A  \<turnstile>e{P}e{Q}"  \<rightleftharpoons> "A |\<turnstile>e (P,e,Q)"
+             "A |\<turnstile>\<^sub>e t"       \<rightleftharpoons> "(A,t) \<in> ehoare"
+             "A |\<turnstile>\<^sub>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (** shouldn't be necess.**)
+             "A  \<turnstile>\<^sub>e {P}e{Q}" \<rightleftharpoons> "A |\<turnstile>\<^sub>e (P,e,Q)"
 
 
 inductive hoare ehoare
@@ -124,13 +124,13 @@ apply  (rule allI, assumption)
 apply fast
 done
 
-lemma eConseq1: "\<lbrakk>A \<turnstile>e {P'} e {Q}; \<forall>s. P s \<longrightarrow> P' s\<rbrakk> \<Longrightarrow> A \<turnstile>e {P} e {Q}"
+lemma eConseq1: "\<lbrakk>A \<turnstile>\<^sub>e {P'} e {Q}; \<forall>s. P s \<longrightarrow> P' s\<rbrakk> \<Longrightarrow> A \<turnstile>\<^sub>e {P} e {Q}"
 apply (rule hoare_ehoare.eConseq)
 apply  (rule allI, assumption)
 apply fast
 done
 
-lemma eConseq2: "\<lbrakk>A \<turnstile>e {P} e {Q'}; \<forall>v t. Q' v t \<longrightarrow> Q v t\<rbrakk> \<Longrightarrow> A \<turnstile>e {P} e {Q}"
+lemma eConseq2: "\<lbrakk>A \<turnstile>\<^sub>e {P} e {Q'}; \<forall>v t. Q' v t \<longrightarrow> Q v t\<rbrakk> \<Longrightarrow> A \<turnstile>\<^sub>e {P} e {Q}"
 apply (rule hoare_ehoare.eConseq)
 apply  (rule allI, assumption)
 apply fast

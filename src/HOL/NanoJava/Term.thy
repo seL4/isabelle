@@ -38,11 +38,5 @@ and expr
   | Call cname expr mname expr                   (* method call      *)
                      ("{_}_.._'(_')" [99,95,99,95] 95)
 
-
-lemma pair_imageI [intro]: "(a, b) \<in> A ==> f a b : (%(a, b). f a b) ` A"
-apply (rule_tac x = "(a,b)" in image_eqI)
-apply  auto
-done
-
 end
 

@@ -22,7 +22,6 @@ translations
  "s -e>v-n-> s'" == "(s, e, v, n, s') \<in> eval"
 
 inductive exec eval intros
-
   Skip: "   s -Skip-n-> s"
 
   Comp: "[| s0 -c1-n-> s1; s1 -c2-n-> s2 |] ==>
@@ -67,21 +66,21 @@ inductive exec eval intros
 
 
 inductive_cases exec_elim_cases':
-	"s -Skip            -n\<rightarrow> t"
-	"s -c1;; c2         -n\<rightarrow> t"
-	"s -If(e) c1 Else c2-n\<rightarrow> t"
-	"s -While(x) c      -n\<rightarrow> t"
-	"s -x:==e           -n\<rightarrow> t"
-	"s -e1..f:==e2      -n\<rightarrow> t"
-inductive_cases Meth_elim_cases: "s -Meth C m-n\<rightarrow> t"
-inductive_cases Impl_elim_cases: "s -Impl C m-n\<rightarrow> t"
+				  "s -Skip            -n\<rightarrow> t"
+				  "s -c1;; c2         -n\<rightarrow> t"
+				  "s -If(e) c1 Else c2-n\<rightarrow> t"
+				  "s -While(x) c      -n\<rightarrow> t"
+				  "s -x:==e           -n\<rightarrow> t"
+				  "s -e1..f:==e2      -n\<rightarrow> t"
+inductive_cases Meth_elim_cases:  "s -Meth C m-n\<rightarrow> t"
+inductive_cases Impl_elim_cases:  "s -Impl C m-n\<rightarrow> t"
 lemmas exec_elim_cases = exec_elim_cases' Meth_elim_cases Impl_elim_cases
 inductive_cases eval_elim_cases:
-	"s -new C         \<succ>v-n\<rightarrow> t"
-	"s -Cast C e      \<succ>v-n\<rightarrow> t"
-	"s -LAcc x        \<succ>v-n\<rightarrow> t"
-	"s -e..f          \<succ>v-n\<rightarrow> t"
-	"s -{C}e1..m(e2)  \<succ>v-n\<rightarrow> t"
+				  "s -new C         \<succ>v-n\<rightarrow> t"
+				  "s -Cast C e      \<succ>v-n\<rightarrow> t"
+				  "s -LAcc x        \<succ>v-n\<rightarrow> t"
+				  "s -e..f          \<succ>v-n\<rightarrow> t"
+				  "s -{C}e1..m(e2)  \<succ>v-n\<rightarrow> t"
 
 lemma exec_eval_mono [rule_format]: 
   "(s -c  -n\<rightarrow> t \<longrightarrow> (\<forall>m. n \<le> m \<longrightarrow> s -c  -m\<rightarrow> t)) \<and>

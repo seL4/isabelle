@@ -15,7 +15,6 @@ datatype ty
 types	fdecl		(* field declaration *)
 	= "vnam \<times> ty"
 
-
 record  methd		(* method declaration *)
 	= par :: ty 
           res :: ty 
@@ -46,9 +45,6 @@ translations
 consts
 
   Prog    :: prog	(* program as a global value *)
-
-consts
-
   Object  :: cname	(* name of root class *)
 
 
