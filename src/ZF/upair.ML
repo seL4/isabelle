@@ -167,6 +167,15 @@ val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
     (resolve_tac [major RS the_equality2 RS ssubst] 1),
     (REPEAT (assume_tac 1)) ]);
 
+(*the_cong is no longer necessary: if (ALL y.P(y)<->Q(y)) then 
+  (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
+
+(*If it's "undefined", it's zero!*)
+val the_0 = prove_goalw ZF.thy [the_def]
+    "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
+ (fn _ =>
+  [ (fast_tac (lemmas_cs addIs [equalityI]) 1) ]);
+
 
 (*** if -- a conditional expression for formulae ***)
 
@@ -225,6 +234,10 @@ val mem_anti_refl = prove_goal ZF.thy "a:a ==> P"
 
 val mem_not_refl = prove_goal ZF.thy "a~:a"
  (K [ (rtac notI 1), (etac mem_anti_refl 1) ]);
+
+(*Good for proving inequalities by rewriting*)
+val mem_imp_not_eq = prove_goal ZF.thy "!!a A. a:A ==> a ~= A"
+ (fn _=> [ fast_tac (lemmas_cs addSEs [mem_anti_refl]) 1 ]);
 
 (*** Rules for succ ***)
 

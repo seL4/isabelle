@@ -79,15 +79,18 @@ fun atomize th =
 		     Some rls => flat (map atomize ([th] RL rls))
 		   | None     => [th])
 	    | _ => [th]
-  in case concl_of th of (*The operator below is Trueprop*)
-	_ $ (Const("op :",_) $ a $ b) => tryrules atomize_mem_pairs b
-      | _ $ (Const("True",_)) => []	(*True is DELETED*)
-      | _ $ (Const("False",_)) => []	(*should False do something??*)
-      | _ $ A => tryrules atomize_pairs A
+  in case concl_of th of 
+       Const("Trueprop",_) $ P => 
+	  (case P of
+	       Const("op :",_) $ a $ b => tryrules atomize_mem_pairs b
+	     | Const("True",_)         => []
+	     | Const("False",_)        => []
+	     | A => tryrules atomize_pairs A)
+     | _                       => [th]
   end;
 
 val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
-		beta, eta, restrict, fst_conv, snd_conv, split];
+		beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause
   flex-flex pairs and the "Check your prover" error -- because most

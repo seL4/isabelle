@@ -119,7 +119,7 @@ val dummy = assert_all (is_some o lookup_const sign) rec_names
 val intr_tms = map (term_of o rd propT) sintrs;
 
 local (*Checking the introduction rules*)
-  val intr_sets = map (#2 o rule_concl) intr_tms;
+  val intr_sets = map (#2 o rule_concl_msg sign) intr_tms;
 
   fun intr_ok set =
       case head_of set of Const(a,recT) => a mem rec_names | _ => false;
@@ -153,6 +153,10 @@ fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
 	deny (rec_hd occs t) "Recursion term on left of member symbol"
   | chk_prem rec_hd t = 
 	deny (rec_hd occs t) "Recursion term in side formula";
+
+fun dest_tprop (Const("Trueprop",_) $ P) = P
+  | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^ 
+			  Sign.string_of_term sign Q);
 
 (*Makes a disjunct from an introduction rule*)
 fun lfp_part intr = (*quantify over rule's free vars except parameters*)
@@ -213,7 +217,7 @@ val big_rec_def::part_rec_defs = defs;
 val prove = prove_term (sign_of thy);
 
 (********)
-val dummy = writeln "Proving monotonocity...";
+val dummy = writeln "Proving monotonicity...";
 
 val bnd_mono = 
     prove [] (mk_tprop (Fp.bnd_mono $ dom_sum $ lfp_abs), 

@@ -1,4 +1,4 @@
-(*  Title: 	ZF/list.ML
+(*  Title: 	ZF/List.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -36,6 +36,14 @@ fun list_ind_tac a prems i =
 	   rename_last_tac a ["1"] (i+2),
 	   ares_tac prems i];
 
+goal List.thy "list(A) = {0} + (A * list(A))";
+by (rtac (List.unfold RS trans) 1);
+bws List.con_defs;
+by (fast_tac (sum_cs addIs ([equalityI] @ datatype_intrs)
+		     addDs [List.dom_subset RS subsetD]
+ 	             addEs [A_into_univ]) 1);
+val list_unfold = result();
+
 (**  Lemmas to justify using "list" in other recursive type definitions **)
 
 goalw List.thy List.defs "!!A B. A<=B ==> list(A) <= list(B)";
@@ -53,6 +61,10 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 val list_univ = result();
 
 val list_subset_univ = standard ([list_mono, list_univ] MRS subset_trans);
+
+goal List.thy "!!l A B. [| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
+by (REPEAT (ares_tac [list_subset_univ RS subsetD] 1));
+val list_into_univ = result();
 
 val major::prems = goal List.thy
     "[| l: list(A);    \

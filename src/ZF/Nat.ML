@@ -68,10 +68,12 @@ val natE = result();
 val prems = goal Nat.thy "n: nat ==> Ord(n)";
 by (nat_ind_tac "n" prems 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
-val naturals_are_ordinals = result();
+val nat_into_Ord = result();
 
 (* i: nat ==> 0 le i *)
-val nat_0_le = naturals_are_ordinals RS Ord_0_le;
+val nat_0_le = nat_into_Ord RS Ord_0_le;
+
+val nat_le_refl = nat_into_Ord RS le_refl;
 
 goal Nat.thy "!!n. n: nat ==> n=0 | 0:n";
 by (etac nat_induct 1);
@@ -81,18 +83,23 @@ val natE0 = result();
 
 goal Nat.thy "Ord(nat)";
 by (rtac OrdI 1);
-by (etac (naturals_are_ordinals RS Ord_is_Transset) 2);
+by (etac (nat_into_Ord RS Ord_is_Transset) 2);
 by (rewtac Transset_def);
 by (rtac ballI 1);
 by (etac nat_induct 1);
 by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 val Ord_nat = result();
 
+goalw Nat.thy [Limit_def] "Limit(nat)";
+by (safe_tac (ZF_cs addSIs [ltI, nat_0I, nat_1I, nat_succI, Ord_nat]));
+by (etac ltD 1);
+val Limit_nat = result();
+
 (* succ(i): nat ==> i: nat *)
 val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
 
 (* [| succ(i): k;  k: nat |] ==> i: k *)
-val succ_in_naturalD = [succI1, asm_rl, naturals_are_ordinals] MRS Ord_trans;
+val succ_in_naturalD = [succI1, asm_rl, nat_into_Ord] MRS Ord_trans;
 
 goal Nat.thy "!!m n. [| m<n;  n: nat |] ==> m: nat";
 by (etac ltE 1);

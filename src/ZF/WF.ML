@@ -22,33 +22,52 @@ open WF;
 
 (*** Well-founded relations ***)
 
-(*Are these two theorems at all useful??*)
+(** Equivalences between wf and wf_on **)
 
-(*If every subset of field(r) possesses an r-minimal element then wf(r).
-  Seems impossible to prove this for domain(r) or range(r) instead...
-  Consider in particular finite wf relations!*)
-val [prem1,prem2] = goalw WF.thy [wf_def]
-    "[| field(r)<=A;  \
-\       !!Z u. [| Z<=A;  u:Z;  ALL x:Z. EX y:Z. <y,x>:r |] ==> False |] \
-\    ==>  wf(r)";
+goalw WF.thy [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
+by (fast_tac ZF_cs 1);
+val wf_imp_wf_on = result();
+
+goalw WF.thy [wf_def, wf_on_def] "!!r. wf[field(r)](r) ==> wf(r)";
+by (fast_tac ZF_cs 1);
+val wf_on_field_imp_wf = result();
+
+goal WF.thy "wf(r) <-> wf[field(r)](r)";
+by (fast_tac (ZF_cs addSEs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
+val wf_iff_wf_on_field = result();
+
+goalw WF.thy [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
+by (fast_tac ZF_cs 1);
+val wf_on_subset_A = result();
+
+goalw WF.thy [wf_on_def, wf_def] "!!A r s. [| wf[A](r);  s<=r |] ==> wf[A](s)";
+by (fast_tac ZF_cs 1);
+val wf_on_subset_r = result();
+
+(** Introduction rules for wf_on **)
+
+(*If every non-empty subset of A has an r-minimal element then wf[A](r).*)
+val [prem] = goalw WF.thy [wf_on_def, wf_def]
+    "[| !!Z u. [| Z<=A;  u:Z;  ALL x:Z. EX y:Z. <y,x>:r |] ==> False |] \
+\    ==>  wf[A](r)";
 by (rtac (equals0I RS disjCI RS allI) 1);
-by (rtac prem2 1);
-by (res_inst_tac [ ("B1", "Z") ] (prem1 RS (Int_lower1 RS subset_trans)) 1);
-by (fast_tac ZF_cs 1);
-by (fast_tac ZF_cs 1);
-val wfI = result();
+by (res_inst_tac [ ("Z", "Z") ] prem 1);
+by (ALLGOALS (fast_tac ZF_cs));
+val wf_onI = result();
 
-(*If r allows well-founded induction then wf(r)*)
-val [prem1,prem2] = goal WF.thy
-    "[| field(r)<=A;  \
-\       !!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B |]  \
-\    ==>  wf(r)";
-by (rtac (prem1 RS wfI) 1);
-by (res_inst_tac [ ("B", "A-Z") ] (prem2 RS subsetCE) 1);
-by (fast_tac ZF_cs 3);
+(*If r allows well-founded induction over A then wf[A](r)
+  Premise is equivalent to 
+  !!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B  *)
+val [prem] = goal WF.thy
+    "[| !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
+\              |] ==> y:B |] \
+\    ==>  wf[A](r)";
+br wf_onI 1;
+by (res_inst_tac [ ("c", "u") ] (prem RS DiffE) 1);
+by (contr_tac 3);
 by (fast_tac ZF_cs 2);
 by (fast_tac ZF_cs 1);
-val wfI2 = result();
+val wf_onI2 = result();
 
 
 (** Well-founded Induction **)
@@ -88,28 +107,99 @@ by (eresolve_tac prems 1);
 by (fast_tac (ZF_cs addIs (prems RL [subsetD])) 1);
 val wf_induct2 = result();
 
-val prems = goal WF.thy "[| wf(r);  <a,x>:r;  <x,a>:r |] ==> False";
-by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> False" 1);
-by (wf_ind_tac "a" prems 2);
+goal ZF.thy "!!r A. field(r Int A*A) <= A";
+by (fast_tac ZF_cs 1);
+val field_Int_square = result();
+
+val wfr::amem::prems = goalw WF.thy [wf_on_def]
+    "[| wf[A](r);  a:A;  					\
+\       !!x.[| x: A;  ALL y:A. <y,x>: r --> P(y) |] ==> P(x) 	\
+\    |]  ==>  P(a)";
+by (rtac ([wfr, amem, field_Int_square] MRS wf_induct2) 1);
+by (REPEAT (ares_tac prems 1));
+by (fast_tac ZF_cs 1);
+val wf_on_induct = result();
+
+fun wf_on_ind_tac a prems i = 
+    EVERY [res_inst_tac [("a",a)] wf_on_induct i,
+	   rename_last_tac a ["1"] (i+2),
+	   REPEAT (ares_tac prems i)];
+
+(*If r allows well-founded induction then wf(r)*)
+val [subs,indhyp] = goal WF.thy
+    "[| field(r)<=A;  \
+\       !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
+\              |] ==> y:B |] \
+\    ==>  wf(r)";
+br ([wf_onI2, subs] MRS (wf_on_subset_A RS wf_on_field_imp_wf)) 1;
+by (REPEAT (ares_tac [indhyp] 1));
+val wfI2 = result();
+
+
+(*** Properties of well-founded relations ***)
+
+goal WF.thy "!!r. wf(r) ==> <a,a> ~: r";
+by (wf_ind_tac "a" [] 1);
+by (fast_tac ZF_cs 1);
+val wf_not_refl = result();
+
+goal WF.thy "!!r. [| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
+by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
+by (wf_ind_tac "a" [] 2);
 by (fast_tac ZF_cs 2);
-by (fast_tac (FOL_cs addIs prems) 1);
+by (fast_tac FOL_cs 1);
 val wf_anti_sym = result();
 
-(*transitive closure of a WF relation is WF!*)
-val [prem] = goal WF.thy "wf(r) ==> wf(r^+)";
-by (rtac (trancl_type RS field_rel_subset RS wfI2) 1);
-by (rtac subsetI 1);
-(*must retain the universal formula for later use!*)
-by (rtac (bspec RS mp) 1 THEN assume_tac 1 THEN assume_tac 1);
-by (eres_inst_tac [("a","x")] (prem RS wf_induct2) 1);
-by (rtac subset_refl 1);
-by (rtac (impI RS allI) 1);
-by (etac tranclE 1);
-by (etac (bspec RS mp) 1);
-by (etac fieldI1 1);
+goal WF.thy "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
+by (wf_on_ind_tac "a" [] 1);
 by (fast_tac ZF_cs 1);
+val wf_on_not_refl = result();
+
+goal WF.thy "!!r. [| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
+by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
+by (wf_on_ind_tac "a" [] 2);
+by (fast_tac ZF_cs 2);
+by (fast_tac ZF_cs 1);
+val wf_on_anti_sym = result();
+
+(*Needed to prove well_ordI.  Could also reason that wf[A](r) means
+  wf(r Int A*A);  thus wf( (r Int A*A)^+ ) and use wf_not_refl *)
+goal WF.thy
+    "!!r. [| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P";
+by (subgoal_tac
+    "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P" 1);
+by (wf_on_ind_tac "a" [] 2);
+by (fast_tac ZF_cs 2);
+by (fast_tac ZF_cs 1);
+val wf_on_chain3 = result();
+
+
+(*retains the universal formula for later use!*)
+val bchain_tac = EVERY' [rtac (bspec RS mp), assume_tac, assume_tac ];
+
+(*transitive closure of a WF relation is WF provided A is downwards closed*)
+val [wfr,subs] = goal WF.thy
+    "[| wf[A](r);  r-``A <= A |] ==> wf[A](r^+)";
+br wf_onI2 1;
+by (bchain_tac 1);
+by (eres_inst_tac [("a","y")] (wfr RS wf_on_induct) 1);
+by (rtac (impI RS ballI) 1);
+by (etac tranclE 1);
+by (etac (bspec RS mp) 1 THEN assume_tac 1);
+by (fast_tac ZF_cs 1);
+by (cut_facts_tac [subs] 1);
+(*astar_tac is slightly faster*)
+by (best_tac ZF_cs 1);
+val wf_on_trancl = result();
+
+goal WF.thy "!!r. wf(r) ==> wf(r^+)";
+by (asm_full_simp_tac (ZF_ss addsimps [wf_iff_wf_on_field]) 1);
+br (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1;
+be wf_on_trancl 1;
 by (fast_tac ZF_cs 1);
 val wf_trancl = result();
+
+
 
 (** r-``{a} is the set of everything under a in r **)
 
@@ -247,3 +337,12 @@ by (rtac (wfrec RS ssubst) 4);
 by (REPEAT (ares_tac (prems@[lam_type]) 1
      ORELSE eresolve_tac [spec RS mp, underD] 1));
 val wfrec_type = result();
+
+
+goalw WF.thy [wf_on_def, wfrec_on_def]
+ "!!A r. [| wf[A](r);  a: A |] ==> \
+\        wfrec[A](r,a,H) = H(a, lam x: (r-``{a}) Int A. wfrec[A](r,x,H))";
+be (wfrec RS trans) 1;
+by (asm_simp_tac (ZF_ss addsimps [vimage_Int_square, cons_subset_iff]) 1);
+val wfrec_on = result();
+

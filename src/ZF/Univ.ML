@@ -1,7 +1,7 @@
-(*  Title: 	ZF/univ
+(*  Title: 	ZF/Univ
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 The cumulative hierarchy and a small universe for recursive types
 *)
@@ -161,37 +161,6 @@ by (rtac (Vfrom RS ssubst) 1);
 by (fast_tac ZF_cs 1);
 val Vfrom_Union = result();
 
-(*** Limit ordinals -- general properties ***)
-
-goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> Union(i) = i";
-by (fast_tac (eq_cs addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
-val Limit_Union_eq = result();
-
-goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> Ord(i)";
-by (etac conjunct1 1);
-val Limit_is_Ord = result();
-
-goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> 0 < i";
-by (etac (conjunct2 RS conjunct1) 1);
-val Limit_has_0 = result();
-
-goalw Univ.thy [Limit_def] "!!i. [| Limit(i);  j<i |] ==> succ(j) < i";
-by (fast_tac ZF_cs 1);
-val Limit_has_succ = result();
-
-goalw Univ.thy [Limit_def] "Limit(nat)";
-by (safe_tac (ZF_cs addSIs (ltI::nat_typechecks)));
-by (etac ltD 1);
-val Limit_nat = result();
-
-goalw Univ.thy [Limit_def]
-    "!!i. [| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)";
-by (safe_tac subset_cs);
-by (rtac (not_le_iff_lt RS iffD1) 2);
-by (fast_tac (lt_cs addEs [lt_anti_sym]) 4);
-by (REPEAT (eresolve_tac [asm_rl, ltE, Ord_succ] 1));
-val non_succ_LimitI = result();
-
 goal Univ.thy "!!i. Ord(i) ==> i=0 | (EX j. i=succ(j)) | Limit(i)";
 by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_lt]) 1);
 val Ord_cases_lemma = result();
@@ -284,7 +253,7 @@ by (rtac (A_subset_Vfrom RS subset_trans) 1);
 by (etac (Transset_Vfrom RS (Transset_iff_Pow RS iffD1)) 1);
 val Transset_Vfrom_succ = result();
 
-goalw Ord.thy [Pair_def,Transset_def]
+goalw Ordinal.thy [Pair_def,Transset_def]
     "!!C. [| <a,b> <= C; Transset(C) |] ==> a: C & b: C";
 by (fast_tac ZF_cs 1);
 val Transset_Pair_subset = result();

@@ -75,10 +75,13 @@ val [prem] = goalw Perm.thy [id_def] "A<=B ==> id(A) <= id(B)";
 by (rtac (prem RS lam_mono) 1);
 val id_mono = result();
 
-goalw Perm.thy [inj_def,id_def] "id(A): inj(A,A)";
+goalw Perm.thy [inj_def,id_def] "!!A B. A<=B ==> id(A): inj(A,B)";
 by (REPEAT (ares_tac [CollectI,lam_type] 1));
+by (etac subsetD 1 THEN assume_tac 1);
 by (simp_tac ZF_ss 1);
-val id_inj = result();
+val id_subset_inj = result();
+
+val id_inj = subset_refl RS id_subset_inj;
 
 goalw Perm.thy [id_def,surj_def] "id(A): surj(A,A)";
 by (fast_tac (ZF_cs addIs [lam_type,beta]) 1);
@@ -111,11 +114,12 @@ val prems = goal Perm.thy
 by (fast_tac (ZF_cs addIs (prems@[apply_Pair,apply_equality,converseI])) 1);
 val left_inverse_lemma = result();
 
-val prems = goal Perm.thy
-    "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
-by (fast_tac (ZF_cs addIs (prems@
-       [left_inverse_lemma,inj_converse_fun,inj_is_fun])) 1);
+goal Perm.thy
+    "!!f. [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a";
+by (fast_tac (ZF_cs addIs [left_inverse_lemma,inj_converse_fun,inj_is_fun]) 1);
 val left_inverse = result();
+
+val left_inverse_bij = bij_is_inj RS left_inverse;
 
 val prems = goal Perm.thy
     "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b";
@@ -123,11 +127,18 @@ by (rtac (apply_Pair RS (converseD RS apply_equality)) 1);
 by (REPEAT (resolve_tac prems 1));
 val right_inverse_lemma = result();
 
-val prems = goal Perm.thy
-    "[| f: inj(A,B);  b: range(f) |] ==> f`(converse(f)`b) = b";
+goal Perm.thy
+    "!!f. [| f: inj(A,B);  b: range(f) |] ==> f`(converse(f)`b) = b";
 by (rtac right_inverse_lemma 1);
-by (REPEAT (resolve_tac (prems@ [inj_converse_fun,inj_is_fun]) 1));
+by (REPEAT (ares_tac [inj_converse_fun,inj_is_fun] 1));
 val right_inverse = result();
+
+goalw Perm.thy [bij_def]
+    "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
+by (EVERY1 [etac IntE, etac right_inverse, 
+	    etac (surj_range RS ssubst),
+	    assume_tac]);
+val right_inverse_bij = result();
 
 val prems = goal Perm.thy
     "f: inj(A,B) ==> converse(f): inj(range(f), A)";
@@ -236,22 +247,22 @@ goal Perm.thy "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
 by (REPEAT (ares_tac [PiI,comp_rel,ex1I,compI] 1
      ORELSE eresolve_tac [fun_is_rel,apply_Pair,apply_type] 1));
 by (fast_tac (comp_cs addDs [apply_equality]) 1);
-val comp_func = result();
+val comp_fun = result();
 
 goal Perm.thy "!!f g. [| g: A->B;  f: B->C;  a:A |] ==> (f O g)`a = f`(g`a)";
-by (REPEAT (ares_tac [comp_func,apply_equality,compI,
+by (REPEAT (ares_tac [comp_fun,apply_equality,compI,
 		      apply_Pair,apply_type] 1));
-val comp_func_apply = result();
+val comp_fun_apply = result();
 
 goalw Perm.thy [inj_def]
     "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
 by (REPEAT (eresolve_tac [bspec RS bspec RS mp, box_equals] 1
-     ORELSE step_tac (ZF_cs addSIs [comp_func,apply_type,comp_func_apply]) 1));
+     ORELSE step_tac (ZF_cs addSIs [comp_fun,apply_type,comp_fun_apply]) 1));
 val comp_inj = result();
 
 goalw Perm.thy [surj_def]
     "!!f g. [| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)";
-by (best_tac (ZF_cs addSIs [comp_func,comp_func_apply]) 1);
+by (best_tac (ZF_cs addSIs [comp_fun,comp_fun_apply]) 1);
 val comp_surj = result();
 
 goalw Perm.thy [bij_def]
@@ -268,7 +279,7 @@ goalw Perm.thy [inj_def]
     "!!f g. [| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
 by (safe_tac comp_cs);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (asm_simp_tac (FOL_ss addsimps [comp_func_apply]) 1);
+by (asm_simp_tac (FOL_ss addsimps [comp_fun_apply]) 1);
 val comp_mem_injD1 = result();
 
 goalw Perm.thy [inj_def,surj_def]
@@ -280,24 +291,24 @@ by (REPEAT (assume_tac 1));
 by (safe_tac comp_cs);
 by (res_inst_tac [("t", "op `(g)")] subst_context 1);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (asm_simp_tac (FOL_ss addsimps [comp_func_apply]) 1);
+by (asm_simp_tac (FOL_ss addsimps [comp_fun_apply]) 1);
 val comp_mem_injD2 = result();
 
 goalw Perm.thy [surj_def]
     "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: B->C |] ==> f: surj(B,C)";
-by (fast_tac (comp_cs addSIs [comp_func_apply RS sym, apply_type]) 1);
+by (fast_tac (comp_cs addSIs [comp_fun_apply RS sym, apply_type]) 1);
 val comp_mem_surjD1 = result();
 
 goal Perm.thy
     "!!f g. [| (f O g)`a = c;  g: A->B;  f: B->C;  a:A |] ==> f`(g`a) = c";
-by (REPEAT (ares_tac [comp_func_apply RS sym RS trans] 1));
-val comp_func_applyD = result();
+by (REPEAT (ares_tac [comp_fun_apply RS sym RS trans] 1));
+val comp_fun_applyD = result();
 
 goalw Perm.thy [inj_def,surj_def]
     "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: inj(B,C) |] ==> g: surj(A,B)";
 by (safe_tac comp_cs);
 by (eres_inst_tac [("x1", "f`y")] (bspec RS bexE) 1);
-by (REPEAT (ares_tac [apply_type] 1 ORELSE dtac comp_func_applyD 1));
+by (REPEAT (ares_tac [apply_type] 1 ORELSE dtac comp_fun_applyD 1));
 by (best_tac (comp_cs addSIs [apply_type]) 1);
 val comp_mem_surjD2 = result();
 
@@ -324,6 +335,49 @@ by (rtac equalityI 1);
 by (best_tac (comp_cs addEs [domain_type, range_type, make_elim appfD]) 1);
 by (best_tac (comp_cs addIs [apply_Pair]) 1);
 val right_comp_inverse = result();
+
+(** Proving that a function is a bijection **)
+
+val prems = 
+goalw Perm.thy [bij_def, inj_def, surj_def]
+    "[| !!x. x:A ==> c(x): B;		\
+\       !!y. y:B ==> d(y): A;  		\
+\       !!x. x:A ==> d(c(x)) = x;      	\
+\       !!y. y:B ==> c(d(y)) = y	\
+\    |] ==> (lam x:A.c(x)) : bij(A,B)";
+by (simp_tac (ZF_ss addsimps ([lam_type]@prems)) 1);
+by (safe_tac ZF_cs);
+(*Apply d to both sides then simplify (type constraint is essential) *)
+by (dres_inst_tac [("t", "d::i=>i")] subst_context 1);
+by (asm_full_simp_tac (ZF_ss addsimps prems) 1);
+by (fast_tac (ZF_cs addIs prems) 1);
+val lam_bijective = result();
+
+goalw Perm.thy [id_def]
+    "!!f A B. [| f: A->B;  g: B->A |] ==> \
+\             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
+by (safe_tac ZF_cs);
+by (dres_inst_tac [("t", "%h.h`y ")] subst_context 1);
+by (asm_full_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
+br fun_extension 1;
+by (REPEAT (ares_tac [comp_fun, lam_type] 1));
+by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
+val comp_eq_id_iff = result();
+
+goalw Perm.thy [bij_def, inj_def, surj_def]
+    "!!f A B. [| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
+\             |] ==> f : bij(A,B)";
+by (asm_full_simp_tac (ZF_ss addsimps [comp_eq_id_iff]) 1);
+by (safe_tac ZF_cs);
+(*Apply g to both sides then simplify*)
+by (dres_inst_tac [("t", "op `(g)"), ("a", "f`x")] subst_context 1);
+by (asm_full_simp_tac ZF_ss 1);
+by (fast_tac (ZF_cs addIs [apply_type]) 1);
+val fg_imp_bijective = result();
+
+goal Perm.thy "!!f A. [| f: A->A;  f O f = id(A) |] ==> f : bij(A,A)";
+by (REPEAT (ares_tac [fg_imp_bijective] 1));
+val nilpotent_imp_bijective = result();
 
 (*Injective case applies converse(f) to both sides then simplifies
     using left_inverse_lemma*)

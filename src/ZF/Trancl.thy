@@ -6,16 +6,12 @@
 Transitive closure of a relation
 *)
 
-Trancl = Fixedpt + Perm + "mono" +
+Trancl = Fixedpt + Perm + "mono" + Rel + 
 consts
-    "rtrancl"	:: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)
-    "trancl"    :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
-    "trans"	:: "i=>o"  			(*transitivity predicate*)
+    rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)
+    trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
 
 rules
-    trans_def   "trans(r) == ALL x y z. <x,y>: r --> <y,z>: r --> <x,z>: r"
-
     rtrancl_def	"r^* == lfp(field(r)*field(r), %s. id(field(r)) Un (r O s))"
-
     trancl_def  "r^+ == r O r^*"
 end

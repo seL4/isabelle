@@ -22,8 +22,11 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	func.ML simpdata.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
-	equalities.ML Perm.thy Perm.ML Trancl.thy Trancl.ML \
-	WF.thy WF.ML Ord.thy Ord.ML Nat.thy Nat.ML \
+	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
+	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
+	OrderType.thy OrderType.ML OrderArith.thy OrderArith.ML \
+	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
+	Nat.thy Nat.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
 	Fin.ML List.ML ListFn.thy ListFn.ML
@@ -44,7 +47,8 @@ $(BIN)/ZF:   $(BIN)/FOL  $(FILES)
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/ZF ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/FOL:
@@ -54,7 +58,8 @@ test:   ex/ROOT.ML  $(BIN)/ZF  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/ZF ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/ZF;;\
-	*)	echo Bad value for ISABELLECOMP;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/ZF 

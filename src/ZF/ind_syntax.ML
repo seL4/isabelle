@@ -89,7 +89,6 @@ fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
 
 val Trueprop = Const("Trueprop",oT-->propT);
 fun mk_tprop P = Trueprop $ P;
-fun dest_tprop (Const("Trueprop",_) $ P) = P;
 
 (*Prove a goal stated as a term, with exception handling*)
 fun prove_term sign defs (P,tacsf) = 
@@ -113,9 +112,14 @@ val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono,
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
-    case dest_tprop (Logic.strip_imp_concl rl) of
-        Const("op :",_) $ t $ X => (t,X) 
-      | _ => error "Conclusion of rule should be a set membership";
+    let val Const("Trueprop",_) $ (Const("op :",_) $ t $ X) = 
+		Logic.strip_imp_concl rl
+    in  (t,X)  end;
+
+(*As above, but return error message if bad*)
+fun rule_concl_msg sign rl = rule_concl rl
+    handle Bind => error ("Ill-formed conclusion of introduction rule: " ^ 
+			  Sign.string_of_term sign rl);
 
 (*For deriving cases rules.  CollectD2 discards the domain, which is redundant;
   read_instantiate replaces a propositional variable by a formula variable*)

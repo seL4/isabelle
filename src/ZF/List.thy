@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-list = Univ + "Datatype" + "intr_elim"
+List = Univ + "Datatype" + "intr_elim"

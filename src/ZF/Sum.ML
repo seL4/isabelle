@@ -35,19 +35,19 @@ val sumE = result();
 (** Injection and freeness equivalences, for rewriting **)
 
 goalw Sum.thy sum_defs "Inl(a)=Inl(b) <-> a=b";
-by (simp_tac (ZF_ss addsimps [Pair_iff]) 1);
+by (simp_tac ZF_ss 1);
 val Inl_iff = result();
 
 goalw Sum.thy sum_defs "Inr(a)=Inr(b) <-> a=b";
-by (simp_tac (ZF_ss addsimps [Pair_iff]) 1);
+by (simp_tac ZF_ss 1);
 val Inr_iff = result();
 
 goalw Sum.thy sum_defs "Inl(a)=Inr(b) <-> False";
-by (simp_tac (ZF_ss addsimps [Pair_iff, one_not_0 RS not_sym]) 1);
+by (simp_tac (ZF_ss addsimps [one_not_0 RS not_sym]) 1);
 val Inl_Inr_iff = result();
 
 goalw Sum.thy sum_defs "Inr(b)=Inl(a) <-> False";
-by (simp_tac (ZF_ss addsimps [Pair_iff, one_not_0]) 1);
+by (simp_tac (ZF_ss addsimps [one_not_0]) 1);
 val Inr_Inl_iff = result();
 
 (*Injection and freeness rules*)
@@ -59,6 +59,9 @@ val Inr_neq_Inl = standard (Inr_Inl_iff RS iffD1 RS FalseE);
 
 val sum_cs = ZF_cs addSIs [InlI,InrI] addSEs [sumE,Inl_neq_Inr,Inr_neq_Inl]
                    addSDs [Inl_inject,Inr_inject];
+
+val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
+			     Inl_Inr_iff, Inr_Inl_iff];
 
 goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
 by (fast_tac sum_cs 1);
@@ -103,6 +106,19 @@ by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[case_Inl,case_Inr]))));
 val case_type = result();
+
+goal Sum.thy
+  "!!u. u: A+B ==>   \
+\       R(case(c,d,u)) <-> \
+\       ((ALL x:A. u = Inl(x) --> R(c(x))) & \
+\       (ALL y:B. u = Inr(y) --> R(d(y))))";
+by (etac sumE 1);
+by (asm_simp_tac (ZF_ss addsimps [case_Inl]) 1);
+by (fast_tac sum_cs 1);
+by (asm_simp_tac (ZF_ss addsimps [case_Inr]) 1);
+by (fast_tac sum_cs 1);
+val expand_case = result();
+
 
 (** Rules for the Part primitive **)
 

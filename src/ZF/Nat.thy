@@ -1,12 +1,12 @@
-(*  Title: 	ZF/nat.thy
+(*  Title: 	ZF/Nat.thy
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Natural numbers in Zermelo-Fraenkel Set Theory 
 *)
 
-Nat = Ord + Bool + "mono" +
+Nat = Ordinal + Bool + "mono" +
 consts
     nat 	::      "i"
     nat_case    ::      "[i, i=>i, i]=>i"

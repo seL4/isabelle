@@ -1,7 +1,7 @@
 (*  Title: 	ZF/zf.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory 
 *)
@@ -10,63 +10,66 @@ open ZF;
 
 signature ZF_LEMMAS = 
   sig
-  val ballE : thm
-  val ballI : thm
-  val ball_cong : thm
-  val ball_simp : thm
-  val ball_tac : int -> tactic
-  val bexCI : thm
-  val bexE : thm
-  val bexI : thm
-  val bex_cong : thm
-  val bspec : thm
-  val CollectD1 : thm
-  val CollectD2 : thm
-  val CollectE : thm
-  val CollectI : thm
-  val Collect_cong : thm
-  val emptyE : thm
-  val empty_subsetI : thm
-  val equalityCE : thm
-  val equalityD1 : thm
-  val equalityD2 : thm
-  val equalityE : thm
-  val equalityI : thm
-  val equality_iffI : thm
-  val equals0D : thm
-  val equals0I : thm
-  val ex1_functional : thm
-  val InterD : thm
-  val InterE : thm
-  val InterI : thm
-  val INT_E : thm
-  val INT_I : thm
-  val lemmas_cs : claset
-  val PowD : thm
-  val PowI : thm
-  val RepFunE : thm
-  val RepFunI : thm
-  val RepFun_eqI : thm
-  val RepFun_cong : thm
-  val ReplaceE : thm
-  val ReplaceI : thm
-  val Replace_iff : thm
-  val Replace_cong : thm
-  val rev_ballE : thm
-  val rev_bspec : thm
-  val rev_subsetD : thm
-  val separation : thm
-  val setup_induction : thm
-  val set_mp_tac : int -> tactic
-  val subsetCE : thm
-  val subsetD : thm
-  val subsetI : thm
-  val subset_refl : thm
-  val subset_trans : thm
-  val UnionE : thm
-  val UnionI : thm
-  val UN_E : thm
-  val UN_I : thm
+  val ballE	: thm
+  val ballI	: thm
+  val ball_cong	: thm
+  val ball_simp	: thm
+  val ball_tac	: int -> tactic
+  val bexCI	: thm
+  val bexE	: thm
+  val bexI	: thm
+  val bex_cong	: thm
+  val bspec	: thm
+  val CollectD1	: thm
+  val CollectD2	: thm
+  val CollectE	: thm
+  val CollectI	: thm
+  val Collect_cong	: thm
+  val emptyE	: thm
+  val empty_subsetI	: thm
+  val equalityCE	: thm
+  val equalityD1	: thm
+  val equalityD2	: thm
+  val equalityE	: thm
+  val equalityI	: thm
+  val equality_iffI	: thm
+  val equals0D	: thm
+  val equals0I	: thm
+  val ex1_functional	: thm
+  val InterD	: thm
+  val InterE	: thm
+  val InterI	: thm
+  val INT_E	: thm
+  val INT_I	: thm
+  val INT_cong	: thm
+  val lemmas_cs	: claset
+  val PowD	: thm
+  val PowI	: thm
+  val RepFunE	: thm
+  val RepFunI	: thm
+  val RepFun_eqI	: thm
+  val RepFun_cong	: thm
+  val ReplaceE	: thm
+  val ReplaceI	: thm
+  val Replace_iff	: thm
+  val Replace_cong	: thm
+  val rev_ballE	: thm
+  val rev_bspec	: thm
+  val rev_subsetD	: thm
+  val separation	: thm
+  val setup_induction	: thm
+  val set_mp_tac	: int -> tactic
+  val subsetCE	: thm
+  val subsetD	: thm
+  val subsetI	: thm
+  val subset_iff	: thm
+  val subset_refl	: thm
+  val subset_trans	: thm
+  val UnionE	: thm
+  val UnionI	: thm
+  val UN_E	: thm
+  val UN_I	: thm
+  val UN_cong	: thm
   end;
 
 
@@ -174,6 +177,11 @@ val subset_refl = prove_goal ZF.thy "A <= A"
 
 val subset_trans = prove_goal ZF.thy "[| A<=B;  B<=C |] ==> A<=C"
  (fn prems=> [ (REPEAT (ares_tac ([subsetI]@(prems RL [subsetD])) 1)) ]);
+
+(*Useful for proving A<=B by rewriting in some cases*)
+val subset_iff = prove_goalw ZF.thy [subset_def,Ball_def]
+     "A<=B <-> (ALL x. x:A --> x:B)"
+ (fn _=> [ (rtac iff_refl 1) ]);
 
 
 (*** Rules for equality ***)
@@ -379,6 +387,10 @@ val UN_E = prove_goal ZF.thy
   [ (rtac (major RS UnionE) 1),
     (REPEAT (eresolve_tac (prems@[asm_rl, RepFunE, subst]) 1)) ]);
 
+val UN_cong = prove_goal ZF.thy
+    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (UN x:A.C(x)) = (UN x:B.D(x))"
+ (fn prems=> [ (simp_tac (FOL_ss addcongs [RepFun_cong] addsimps prems) 1) ]);
+
 
 (*** Rules for Intersections of families ***)
 (* INT x:A. B(x) abbreviates Inter({B(x). x:A}) *)
@@ -394,6 +406,10 @@ val INT_E = prove_goal ZF.thy
  (fn [major,minor]=>
   [ (rtac (major RS InterD) 1),
     (rtac (minor RS RepFunI) 1) ]);
+
+val INT_cong = prove_goal ZF.thy
+    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A.C(x)) = (INT x:B.D(x))"
+ (fn prems=> [ (simp_tac (FOL_ss addcongs [RepFun_cong] addsimps prems) 1) ]);
 
 
 (*** Rules for Powersets ***)

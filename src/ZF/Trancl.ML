@@ -8,12 +8,6 @@ For trancl.thy.  Transitive closure of a relation
 
 open Trancl;
 
-val major::prems = goalw Trancl.thy [trans_def]
-    "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
-by (rtac (major RS spec RS spec RS spec RS mp RS mp) 1);
-by (REPEAT (resolve_tac prems 1));
-val transD = result();
-
 goal Trancl.thy "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, Un_mono, comp_mono] 2));

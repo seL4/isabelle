@@ -10,18 +10,15 @@ Standard notation for Vset(i) is V(i), but users might want V for a variable
 
 Univ = Arith + Sum + "mono" +
 consts
-    Limit       ::      "i=>o"
-    Vfrom       ::      "[i,i]=>i"
-    Vset        ::      "i=>i"
-    Vrec        ::      "[i, [i,i]=>i] =>i"
-    univ        ::      "i=>i"
+    Vfrom       :: "[i,i]=>i"
+    Vset        :: "i=>i"
+    Vrec        :: "[i, [i,i]=>i] =>i"
+    univ        :: "i=>i"
 
 translations
     "Vset(x)"   == 	"Vfrom(0,x)"
 
 rules
-    Limit_def   "Limit(i) == Ord(i) & 0<i & (ALL y. y<i --> succ(y)<i)"
-
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"
 
     Vrec_def

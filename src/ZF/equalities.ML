@@ -58,6 +58,10 @@ goal ZF.thy "A<=B <-> A Int B = A";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 val subset_Int_iff = result();
 
+goal ZF.thy "A<=B <-> B Int A = A";
+by (fast_tac (eq_cs addSEs [equalityE]) 1);
+val subset_Int_iff2 = result();
+
 (** Binary Union **)
 
 goal ZF.thy "0 Un A = A";
@@ -87,6 +91,10 @@ val Un_Int_distrib = result();
 goal ZF.thy "A<=B <-> A Un B = B";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 val subset_Un_iff = result();
+
+goal ZF.thy "A<=B <-> B Un A = B";
+by (fast_tac (eq_cs addSEs [equalityE]) 1);
+val subset_Un_iff2 = result();
 
 (** Simple properties of Diff -- set difference **)
 
@@ -161,6 +169,10 @@ goal ZF.thy "Union(A Un B) = Union(A) Un Union(B)";
 by (fast_tac eq_cs 1);
 val Union_Un_distrib = result();
 
+goal ZF.thy "Union(A Int B) <= Union(A) Int Union(B)";
+by (fast_tac ZF_cs 1);
+val Union_Int_subset = result();
+
 goal ZF.thy "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 val Union_disjoint = result();
@@ -208,15 +220,13 @@ goal ZF.thy
 by (fast_tac eq_cs 1);
 val Un_INT_distrib2 = result();
 
-goal ZF.thy "!!A. [| a: A;  ALL y:A. b(y)=b(a) |] ==> (UN y:A. b(y)) = b(a)";
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
-val UN_singleton_lemma = result();
-val UN_singleton = ballI RSN (2,UN_singleton_lemma);
+goal ZF.thy "!!A. a: A ==> (UN y:A. c) = c";
+by (fast_tac eq_cs 1);
+val UN_constant = result();
 
-goal ZF.thy "!!A. [| a: A;  ALL y:A. b(y)=b(a) |] ==> (INT y:A. b(y)) = b(a)";
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
-val INT_singleton_lemma = result();
-val INT_singleton = ballI RSN (2,INT_singleton_lemma);
+goal ZF.thy "!!A. a: A ==> (INT y:A. c) = c";
+by (fast_tac eq_cs 1);
+val INT_constant = result();
 
 (** Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
     Union of a family of unions **)
@@ -292,7 +302,7 @@ by (fast_tac eq_cs 1);
 val range_Un_eq = result();
 
 goal ZF.thy "range(A Int B) <= range(A) Int range(B)";
-by (fast_tac eq_cs 1);
+by (fast_tac ZF_cs 1);
 val range_Int_subset = result();
 
 goal ZF.thy "range(A) - range(B) <= range(A - B)";
@@ -310,6 +320,52 @@ val field_Int_subset = result();
 goal ZF.thy "field(A) - field(B) <= field(A - B)";
 by (fast_tac eq_cs 1);
 val field_diff_subset = result();
+
+
+(** Image **)
+
+goal ZF.thy "r``0 = 0";
+by (fast_tac eq_cs 1);
+val image_empty = result();
+
+goal ZF.thy "r``(A Un B) = (r``A) Un (r``B)";
+by (fast_tac eq_cs 1);
+val image_Un = result();
+
+goal ZF.thy "r``(A Int B) <= (r``A) Int (r``B)";
+by (fast_tac ZF_cs 1);
+val image_Int_subset = result();
+
+goal ZF.thy "(r Int A*A)``B <= (r``B) Int A";
+by (fast_tac ZF_cs 1);
+val image_Int_square_subset = result();
+
+goal ZF.thy "!!r. B<=A ==> (r Int A*A)``B = (r``B) Int A";
+by (fast_tac eq_cs 1);
+val image_Int_square = result();
+
+
+(** Inverse Image **)
+
+goal ZF.thy "r-``0 = 0";
+by (fast_tac eq_cs 1);
+val vimage_empty = result();
+
+goal ZF.thy "r-``(A Un B) = (r-``A) Un (r-``B)";
+by (fast_tac eq_cs 1);
+val vimage_Un = result();
+
+goal ZF.thy "r-``(A Int B) <= (r-``A) Int (r-``B)";
+by (fast_tac ZF_cs 1);
+val vimage_Int_subset = result();
+
+goal ZF.thy "(r Int A*A)-``B <= (r-``B) Int A";
+by (fast_tac ZF_cs 1);
+val vimage_Int_square_subset = result();
+
+goal ZF.thy "!!r. B<=A ==> (r Int A*A)-``B = (r-``B) Int A";
+by (fast_tac eq_cs 1);
+val vimage_Int_square = result();
 
 
 (** Converse **)
@@ -351,3 +407,4 @@ val Int_Pow_eq = result();
 goal ZF.thy "!!x A. x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
 by (fast_tac eq_cs 1);
 val INT_Pow_subset = result();
+

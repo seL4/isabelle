@@ -1,0 +1,352 @@
+(*  Title: 	ZF/Cardinal.ML
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1994  University of Cambridge
+
+Cardinals in Zermelo-Fraenkel Set Theory 
+
+This theory does NOT assume the Axiom of Choice
+*)
+
+open Cardinal;
+
+(*** The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 ***)
+
+(** Lemma: Banach's Decomposition Theorem **)
+
+goal Cardinal.thy "bnd_mono(X, %W. X - g``(Y - f``W))";
+by (rtac bnd_monoI 1);
+by (REPEAT (ares_tac [Diff_subset, subset_refl, Diff_mono, image_mono] 1));
+val decomp_bnd_mono = result();
+
+val [gfun] = goal Cardinal.thy
+    "g: Y->X ==>   					\
+\    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) = 	\
+\    X - lfp(X, %W. X - g``(Y - f``W)) ";
+by (res_inst_tac [("P", "%u. ?v = X-u")] 
+     (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
+by (simp_tac (ZF_ss addsimps [subset_refl, double_complement,
+			     gfun RS fun_is_rel RS image_subset]) 1);
+val Banach_last_equation = result();
+
+val prems = goal Cardinal.thy
+    "[| f: X->Y;  g: Y->X |] ==>   \
+\    EX XA XB YA YB. (XA Int XB = 0) & (XA Un XB = X) &    \
+\                    (YA Int YB = 0) & (YA Un YB = Y) &    \
+\                    f``XA=YA & g``YB=XB";
+by (REPEAT 
+    (FIRSTGOAL
+     (resolve_tac [refl, exI, conjI, Diff_disjoint, Diff_partition])));
+by (rtac Banach_last_equation 3);
+by (REPEAT (resolve_tac (prems@[fun_is_rel, image_subset, lfp_subset]) 1));
+val decomposition = result();
+
+val prems = goal Cardinal.thy
+    "[| f: inj(X,Y);  g: inj(Y,X) |] ==> EX h. h: bij(X,Y)";
+by (cut_facts_tac prems 1);
+by (cut_facts_tac [(prems RL [inj_is_fun]) MRS decomposition] 1);
+by (fast_tac (ZF_cs addSIs [restrict_bij,bij_disjoint_Un]
+                    addIs [bij_converse_bij]) 1);
+(* The instantiation of exI to "restrict(f,XA) Un converse(restrict(g,YB))"
+   is forced by the context!! *)
+val schroeder_bernstein = result();
+
+
+(** Equipollence is an equivalence relation **)
+
+goalw Cardinal.thy [eqpoll_def] "X eqpoll X";
+br exI 1;
+br id_bij 1;
+val eqpoll_refl = result();
+
+goalw Cardinal.thy [eqpoll_def] "!!X Y. X eqpoll Y ==> Y eqpoll X";
+by (fast_tac (ZF_cs addIs [bij_converse_bij]) 1);
+val eqpoll_sym = result();
+
+goalw Cardinal.thy [eqpoll_def]
+    "!!X Y. [| X eqpoll Y;  Y eqpoll Z |] ==> X eqpoll Z";
+by (fast_tac (ZF_cs addIs [comp_bij]) 1);
+val eqpoll_trans = result();
+
+(** Le-pollence is a partial ordering **)
+
+goalw Cardinal.thy [lepoll_def] "!!X Y. X<=Y ==> X lepoll Y";
+br exI 1;
+be id_subset_inj 1;
+val subset_imp_lepoll = result();
+
+val lepoll_refl = subset_refl RS subset_imp_lepoll;
+
+goalw Cardinal.thy [eqpoll_def, bij_def, lepoll_def]
+    "!!X Y. X eqpoll Y ==> X lepoll Y";
+by (fast_tac ZF_cs 1);
+val eqpoll_imp_lepoll = result();
+
+goalw Cardinal.thy [lepoll_def]
+    "!!X Y. [| X lepoll Y;  Y lepoll Z |] ==> X lepoll Z";
+by (fast_tac (ZF_cs addIs [comp_inj]) 1);
+val lepoll_trans = result();
+
+(*Asymmetry law*)
+goalw Cardinal.thy [lepoll_def,eqpoll_def]
+    "!!X Y. [| X lepoll Y;  Y lepoll X |] ==> X eqpoll Y";
+by (REPEAT (etac exE 1));
+by (rtac schroeder_bernstein 1);
+by (REPEAT (assume_tac 1));
+val eqpollI = result();
+
+val [major,minor] = goal Cardinal.thy
+    "[| X eqpoll Y; [| X lepoll Y; Y lepoll X |] ==> P |] ==> P";
+br minor 1;
+by (REPEAT (resolve_tac [major, eqpoll_imp_lepoll, eqpoll_sym] 1));
+val eqpollE = result();
+
+goal Cardinal.thy "X eqpoll Y <-> X lepoll Y & Y lepoll X";
+by (fast_tac (ZF_cs addIs [eqpollI] addSEs [eqpollE]) 1);
+val eqpoll_iff = result();
+
+
+(** LEAST -- the least number operator [from HOL/Univ.ML] **)
+
+val [premP,premOrd,premNot] = goalw Cardinal.thy [Least_def]
+    "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (LEAST x.P(x)) = i";
+by (rtac the_equality 1);
+by (fast_tac (ZF_cs addSIs [premP,premOrd,premNot]) 1);
+by (REPEAT (etac conjE 1));
+be (premOrd RS Ord_linear_lt) 1;
+by (ALLGOALS (fast_tac (ZF_cs addSIs [premP] addSDs [premNot])));
+val Least_equality = result();
+
+goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> P(LEAST x.P(x))";
+by (etac rev_mp 1);
+by (trans_ind_tac "i" [] 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (EVERY1 [rtac (Least_equality RS ssubst), assume_tac, assume_tac]);
+by (assume_tac 2);
+by (fast_tac (ZF_cs addSEs [ltE]) 1);
+val LeastI = result();
+
+(*Proof is almost identical to the one above!*)
+goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> (LEAST x.P(x)) le i";
+by (etac rev_mp 1);
+by (trans_ind_tac "i" [] 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (EVERY1 [rtac (Least_equality RS ssubst), assume_tac, assume_tac]);
+by (etac le_refl 2);
+by (fast_tac (ZF_cs addEs [ltE, lt_trans1] addIs [leI, ltI]) 1);
+val Least_le = result();
+
+(*LEAST really is the smallest*)
+goal Cardinal.thy "!!i. [| P(i);  i < (LEAST x.P(x)) |] ==> Q";
+br (Least_le RSN (2,lt_trans2) RS lt_anti_refl) 1;
+by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
+val less_LeastE = result();
+
+goal Cardinal.thy "Ord(LEAST x.P(x))";
+by (res_inst_tac [("Q","EX i. Ord(i) & P(i)")] (excluded_middle RS disjE) 1);
+by (safe_tac ZF_cs);
+br (Least_le RS ltE) 2;
+by (REPEAT_SOME assume_tac);
+bw Least_def;
+by (rtac (the_0 RS ssubst) 1 THEN rtac Ord_0 2);
+by (fast_tac FOL_cs 1);
+val Ord_Least = result();
+
+
+(** Basic properties of cardinals **)
+
+(*Not needed for simplification, but helpful below*)
+val prems = goal Cardinal.thy
+    "[| !!y. P(y) <-> Q(y) |] ==> (LEAST x.P(x)) = (LEAST x.Q(x))";
+by (simp_tac (FOL_ss addsimps prems) 1);
+val Least_cong = result();
+
+(*Need AC to prove   X lepoll Y ==> |X| le |Y| ; see well_ord_lepoll_imp_le  *)
+goalw Cardinal.thy [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
+br Least_cong 1;
+by (fast_tac (ZF_cs addEs [comp_bij,bij_converse_bij]) 1);
+val cardinal_cong = result();
+
+(*Under AC, the premise becomes trivial; one consequence is ||A|| = |A|*)
+goalw Cardinal.thy [eqpoll_def, cardinal_def]
+    "!!A. well_ord(A,r) ==> |A| eqpoll A";
+br LeastI 1;
+be Ord_ordertype 2;
+br exI 1;
+be (ordertype_bij RS bij_converse_bij) 1;
+val well_ord_cardinal_eqpoll = result();
+
+val Ord_cardinal_eqpoll = well_ord_Memrel RS well_ord_cardinal_eqpoll 
+                          |> standard;
+
+goal Cardinal.thy
+    "!!X Y. [| well_ord(X,r);  well_ord(Y,s);  |X| = |Y| |] ==> X eqpoll Y";
+br (eqpoll_sym RS eqpoll_trans) 1;
+be well_ord_cardinal_eqpoll 1;
+by (asm_simp_tac (ZF_ss addsimps [well_ord_cardinal_eqpoll]) 1);
+val well_ord_cardinal_eqE = result();
+
+
+(** Observations from Kunen, page 28 **)
+
+goalw Cardinal.thy [cardinal_def] "!!i. Ord(i) ==> |i| le i";
+be (eqpoll_refl RS Least_le) 1;
+val Ord_cardinal_le = result();
+
+goalw Cardinal.thy [Card_def] "!!i. Card(i) ==> |i| = i";
+be sym 1;
+val Card_cardinal_eq = result();
+
+val prems = goalw Cardinal.thy [Card_def,cardinal_def]
+    "[| Ord(i);  !!j. j<i ==> ~(j eqpoll i) |] ==> Card(i)";
+br (Least_equality RS ssubst) 1;
+by (REPEAT (ares_tac ([refl,eqpoll_refl]@prems) 1));
+val CardI = result();
+
+goalw Cardinal.thy [Card_def, cardinal_def] "!!i. Card(i) ==> Ord(i)";
+be ssubst 1;
+br Ord_Least 1;
+val Card_is_Ord = result();
+
+goalw Cardinal.thy [cardinal_def] "Ord( |i| )";
+br Ord_Least 1;
+val Ord_cardinal = result();
+
+(*Kunen's Lemma 10.5*)
+goal Cardinal.thy "!!i j. [| |i| le j;  j le i |] ==> |j| = |i|";
+br (eqpollI RS cardinal_cong) 1;
+be (le_imp_subset RS subset_imp_lepoll) 1;
+br lepoll_trans 1;
+be (le_imp_subset RS subset_imp_lepoll) 2;
+br (eqpoll_sym RS eqpoll_imp_lepoll) 1;
+br Ord_cardinal_eqpoll 1;
+by (REPEAT (eresolve_tac [ltE, Ord_succD] 1));
+val cardinal_eq_lemma = result();
+
+goal Cardinal.thy "!!i j. i le j ==> |i| le |j|";
+by (res_inst_tac [("i","|i|"),("j","|j|")] Ord_linear_le 1);
+by (REPEAT_FIRST (ares_tac [Ord_cardinal, le_eqI]));
+br cardinal_eq_lemma 1;
+ba 2;
+be le_trans 1;
+be ltE 1;
+be Ord_cardinal_le 1;
+val cardinal_mono = result();
+
+(*Since we have |succ(nat)| le |nat|, the converse of cardinal_mono fails!*)
+goal Cardinal.thy "!!i j. [| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j";
+br Ord_linear2 1;
+by (REPEAT_SOME assume_tac);
+be (lt_trans2 RS lt_anti_refl) 1;
+be cardinal_mono 1;
+val cardinal_lt_imp_lt = result();
+
+goal Cardinal.thy "!!i j. [| |i| < k;  Ord(i);  Card(k) |] ==> i < k";
+by (asm_simp_tac (ZF_ss addsimps 
+		  [cardinal_lt_imp_lt, Card_is_Ord, Card_cardinal_eq]) 1);
+val Card_lt_imp_lt = result();
+
+
+(** The swap operator [NOT USED] **)
+
+goalw Cardinal.thy [swap_def]
+    "!!A. [| x:A;  y:A |] ==> swap(A,x,y) : A->A";
+by (REPEAT (ares_tac [lam_type,if_type] 1));
+val swap_type = result();
+
+goalw Cardinal.thy [swap_def]
+    "!!A. [| x:A;  y:A;  z:A |] ==> swap(A,x,y)`(swap(A,x,y)`z) = z";
+by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
+val swap_swap_identity = result();
+
+goal Cardinal.thy "!!A. [| x:A;  y:A |] ==> swap(A,x,y) : bij(A,A)";
+br nilpotent_imp_bijective 1;
+by (REPEAT (ares_tac [swap_type, comp_eq_id_iff RS iffD2,
+		      ballI, swap_swap_identity] 1));
+val swap_bij = result();
+
+(*** The finite cardinals ***)
+
+(*Lemma suggested by Mike Fourman*)
+val [prem] = goalw Cardinal.thy [inj_def]
+ "f: inj(succ(m), succ(n)) ==> (lam x:m. if(f`x=n, f`m, f`x)) : inj(m,n)";
+br CollectI 1;
+(*Proving it's in the function space m->n*)
+by (cut_facts_tac [prem] 1);
+br (if_type RS lam_type) 1;
+by (fast_tac (ZF_cs addSEs [mem_anti_refl] addEs [apply_funtype RS succE]) 1);
+by (fast_tac (ZF_cs addSEs [mem_anti_refl] addEs [apply_funtype RS succE]) 1);
+(*Proving it's injective*)
+by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
+(*Adding  prem  earlier would cause the simplifier to loop*)
+by (cut_facts_tac [prem] 1);
+by (fast_tac (ZF_cs addSEs [mem_anti_refl]) 1);
+val inj_succ_succD = result();
+
+val [prem] = goalw Cardinal.thy [lepoll_def]
+    "m:nat ==> ALL n: nat. m lepoll n --> m le n";
+by (nat_ind_tac "m" [prem] 1);
+by (fast_tac (ZF_cs addSIs [nat_0_le]) 1);
+br ballI 1;
+by (eres_inst_tac [("n","n")] natE 1);
+by (asm_simp_tac (ZF_ss addsimps [inj_def, succI1 RS Pi_empty2]) 1);
+by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [inj_succ_succD]) 1);
+val nat_lepoll_imp_le_lemma = result();
+val nat_lepoll_imp_le = nat_lepoll_imp_le_lemma RS bspec RS mp |> standard;
+
+goal Cardinal.thy
+    "!!m n. [| m:nat; n: nat |] ==> m eqpoll n <-> m = n";
+br iffI 1;
+by (asm_simp_tac (ZF_ss addsimps [eqpoll_refl]) 2);
+by (fast_tac (ZF_cs addIs [nat_lepoll_imp_le, le_asym] addSEs [eqpollE]) 1);
+val nat_eqpoll_iff = result();
+
+goalw Cardinal.thy [Card_def,cardinal_def]
+    "!!n. n: nat ==> Card(n)";
+br (Least_equality RS ssubst) 1;
+by (REPEAT_FIRST (ares_tac [eqpoll_refl, nat_into_Ord, refl]));
+by (asm_simp_tac (ZF_ss addsimps [lt_nat_in_nat RS nat_eqpoll_iff]) 1);
+by (fast_tac (ZF_cs addSEs [lt_anti_refl]) 1);
+val nat_into_Card = result();
+
+val Card_0 = nat_0I RS nat_into_Card;
+
+(*Part of Kunen's Lemma 10.6*)
+goal Cardinal.thy "!!n. [| succ(n) lepoll n;  n:nat |] ==> P";
+br (nat_lepoll_imp_le RS lt_anti_refl) 1;
+by (REPEAT (ares_tac [nat_succI] 1));
+val succ_lepoll_natE = result();
+
+
+(*** The first infinite cardinal: Omega, or nat ***)
+
+(*This implies Kunen's Lemma 10.6*)
+goal Cardinal.thy "!!n. [| n<i;  n:nat |] ==> ~ i lepoll n";
+br notI 1;
+by (rtac succ_lepoll_natE 1 THEN assume_tac 2);
+by (rtac lepoll_trans 1 THEN assume_tac 2);
+be ltE 1;
+by (REPEAT (ares_tac [Ord_succ_subsetI RS subset_imp_lepoll] 1));
+val lt_not_lepoll = result();
+
+goalw Cardinal.thy [Card_def,cardinal_def] "Card(nat)";
+br (Least_equality RS ssubst) 1;
+by (REPEAT_FIRST (ares_tac [eqpoll_refl, Ord_nat, refl]));
+be ltE 1;
+by (asm_simp_tac (ZF_ss addsimps [eqpoll_iff, lt_not_lepoll, ltI]) 1);
+val Card_nat = result();
+
+goal Cardinal.thy "!!i n. [| Ord(i);  n:nat |] ==> i eqpoll n <-> i=n";
+br iffI 1;
+by (asm_simp_tac (ZF_ss addsimps [eqpoll_refl]) 2);
+by (rtac Ord_linear_lt 1);
+by (REPEAT_SOME (eresolve_tac [asm_rl, nat_into_Ord]));
+by (etac (lt_nat_in_nat RS nat_eqpoll_iff RS iffD1) 1 THEN
+    REPEAT (assume_tac 1));
+by (rtac (lt_not_lepoll RS notE) 1 THEN (REPEAT (assume_tac 1)));
+be eqpoll_imp_lepoll 1;
+val Ord_nat_eqpoll_iff = result();
+
+

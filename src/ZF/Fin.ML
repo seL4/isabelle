@@ -1,11 +1,9 @@
-(*  Title: 	ZF/ex/fin.ML
+(*  Title: 	ZF/ex/Fin.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Finite powerset operator
-
-could define cardinality?
 
 prove X:Fin(A) ==> EX n:nat. EX f. f:bij(X,n)
 	card(0)=0

@@ -42,7 +42,7 @@ by (ALLGOALS
     (asm_simp_tac (ZF_ss addsimps (prems@[rec_0,rec_succ]))));
 val rec_type = result();
 
-val nat_le_refl = naturals_are_ordinals RS le_refl;
+val nat_le_refl = nat_into_Ord RS le_refl;
 
 val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
 
@@ -113,7 +113,7 @@ by (etac leE 3);
 by (ALLGOALS
     (asm_simp_tac
      (nat_ss addsimps (prems @ [le_iff, diff_0, diff_0_eq_0, 
-				diff_succ_succ, naturals_are_ordinals]))));
+				diff_succ_succ, nat_into_Ord]))));
 val diff_le_self = result();
 
 (*** Simplification over add, mult, diff ***)
@@ -150,12 +150,21 @@ val add_succ_right = prove_goal Arith.thy
 
 (*Commutative law for addition*)  
 val add_commute = prove_goal Arith.thy 
-    "[| m:nat;  n:nat |] ==> m #+ n = n #+ m"
- (fn prems=>
-  [ (nat_ind_tac "n" prems 1),
+    "!!m n. [| m:nat;  n:nat |] ==> m #+ n = n #+ m"
+ (fn _ =>
+  [ (nat_ind_tac "n" [] 1),
     (ALLGOALS
-     (asm_simp_tac
-      (arith_ss addsimps (prems@[add_0_right, add_succ_right])))) ]);
+     (asm_simp_tac (arith_ss addsimps [add_0_right, add_succ_right]))) ]);
+
+val add_left_commute = prove_goal Arith.thy
+    "!!m n k. [| m:nat;  n:nat;  k:nat |] ==> m#+(n#+k)=n#+(m#+k)"
+ (fn _ => [rtac (add_commute RS trans) 1, 
+           rtac (add_assoc RS trans) 3, 
+	   rtac (add_commute RS subst_context) 4,
+	   REPEAT (ares_tac [add_type] 1)]);
+
+(*Addition is an AC-operator*)
+val add_ac = [add_assoc, add_commute, add_left_commute];
 
 (*Cancellation law on the left*)
 val [knat,eqn] = goal Arith.thy 
@@ -170,20 +179,17 @@ val add_left_cancel = result();
 
 (*right annihilation in product*)
 val mult_0_right = prove_goal Arith.thy 
-    "m:nat ==> m #* 0 = 0"
- (fn prems=>
-  [ (nat_ind_tac "m" prems 1),
-    (ALLGOALS (asm_simp_tac (arith_ss addsimps prems)))  ]);
+    "!!m. m:nat ==> m #* 0 = 0"
+ (fn _=>
+  [ (nat_ind_tac "m" [] 1),
+    (ALLGOALS (asm_simp_tac arith_ss))  ]);
 
 (*right successor law for multiplication*)
 val mult_succ_right = prove_goal Arith.thy 
     "!!m n. [| m:nat;  n:nat |] ==> m #* succ(n) = m #+ (m #* n)"
- (fn _=>
+ (fn _ =>
   [ (nat_ind_tac "m" [] 1),
-    (ALLGOALS (asm_simp_tac (arith_ss addsimps [add_assoc RS sym]))),
-       (*The final goal requires the commutative law for addition*)
-    (rtac (add_commute RS subst_context) 1),
-    (REPEAT (assume_tac 1))  ]);
+    (ALLGOALS (asm_simp_tac (arith_ss addsimps add_ac))) ]);
 
 (*Commutative law for multiplication*)
 val mult_commute = prove_goal Arith.thy 
@@ -202,12 +208,11 @@ val add_mult_distrib = prove_goal Arith.thy
 
 (*Distributive law on the left; requires an extra typing premise*)
 val add_mult_distrib_left = prove_goal Arith.thy 
-    "[| m:nat;  n:nat;  k:nat |] ==> k #* (m #+ n) = (k #* m) #+ (k #* n)"
+    "!!m. [| m:nat;  n:nat;  k:nat |] ==> k #* (m #+ n) = (k #* m) #+ (k #* n)"
  (fn prems=>
-      let val mult_commute' = read_instantiate [("m","k")] mult_commute
-          val ss = arith_ss addsimps ([mult_commute',add_mult_distrib]@prems)
-      in [ (simp_tac ss 1) ]
-      end);
+  [ (nat_ind_tac "m" [] 1),
+    (asm_simp_tac (arith_ss addsimps [mult_0_right]) 1),
+    (asm_simp_tac (arith_ss addsimps ([mult_succ_right] @ add_ac)) 1) ]);
 
 (*Associative law for multiplication*)
 val mult_assoc = prove_goal Arith.thy 
@@ -261,9 +266,9 @@ val div_termination = result();
 val div_rls =	(*for mod and div*)
     nat_typechecks @
     [Ord_transrec_type, apply_type, div_termination RS ltD, if_type,
-     naturals_are_ordinals, not_lt_iff_le RS iffD1];
+     nat_into_Ord, not_lt_iff_le RS iffD1];
 
-val div_ss = ZF_ss addsimps [naturals_are_ordinals, div_termination RS ltD,
+val div_ss = ZF_ss addsimps [nat_into_Ord, div_termination RS ltD,
 			     not_lt_iff_le RS iffD2];
 
 (*Type checking depends upon termination!*)
@@ -311,7 +316,7 @@ by (res_inst_tac [("Q","x<n")] (excluded_middle RS disjE) 1);
 by (asm_simp_tac (arith_ss addsimps [mod_less, div_less]) 2);
 (*case n le x*)
 by (asm_full_simp_tac
-     (arith_ss addsimps [not_lt_iff_le, naturals_are_ordinals,
+     (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
 			 mod_geq, div_geq, add_assoc,
 			 div_termination RS ltD, add_diff_inverse]) 1);
 val mod_div_equality = result();
@@ -350,7 +355,7 @@ by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 val add_lt_mono = result();
 
 (*A [clumsy] way of lifting < monotonicity to le monotonicity *)
-val lt_mono::ford::prems = goal Ord.thy
+val lt_mono::ford::prems = goal Ordinal.thy
      "[| !!i j. [| i<j; j:k |] ==> f(i) < f(j);	\
 \        !!i. i:k ==> Ord(f(i));		\
 \        i le j;  j:k				\
@@ -363,7 +368,7 @@ val Ord_lt_mono_imp_le_mono = result();
 goal Arith.thy
     "!!i j k. [| i le j; j:nat; k:nat |] ==> i#+k le j#+k";
 by (res_inst_tac [("f", "%j.j#+k")] Ord_lt_mono_imp_le_mono 1);
-by (REPEAT (ares_tac [add_lt_mono1, add_type RS naturals_are_ordinals] 1));
+by (REPEAT (ares_tac [add_lt_mono1, add_type RS nat_into_Ord] 1));
 val add_le_mono1 = result();
 
 (* le monotonicity, BOTH arguments*)

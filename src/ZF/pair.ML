@@ -103,7 +103,7 @@ val Sigma_empty2 = prove_goal ZF.thy "A*0 = 0"
 val split = prove_goalw ZF.thy [split_def]
     "split(%x y.c(x,y), <a,b>) = c(a,b)"
  (fn _ =>
-  [ (fast_tac (upair_cs addIs [the_equality] addEs [Pair_inject]) 1) ]);
+  [ (fast_tac (upair_cs addIs [the_equality] addSEs [Pair_inject]) 1) ]);
 
 val split_type = prove_goal ZF.thy
     "[|  p:Sigma(A,B);   \
@@ -113,6 +113,16 @@ val split_type = prove_goal ZF.thy
   [ (rtac (major RS SigmaE) 1),
     (etac ssubst 1),
     (REPEAT (ares_tac (prems @ [split RS ssubst]) 1)) ]);
+
+
+goal ZF.thy
+  "!!u. u: A*B ==>   \
+\       R(split(c,u)) <-> (ALL x:A. ALL y:B. u = <x,y> --> R(c(x,y)))";
+by (etac SigmaE 1);
+by (asm_simp_tac (FOL_ss addsimps [split]) 1);
+by (fast_tac (upair_cs addSEs [Pair_inject]) 1);
+val expand_split = result();
+
 
 (*** conversions for fst and snd ***)
 
