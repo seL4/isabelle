@@ -210,7 +210,7 @@ val pathP =
 (* use ML text *)
 
 val useP =
-  OuterSyntax.parser true "use" "eval ML text from file"
+  OuterSyntax.parser false "use" "eval ML text from file"
     (name >> IsarCmd.use);
 
 val mlP =
@@ -511,7 +511,7 @@ val breakP =
 
 val keywords =
  ["(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
-  "?", "[", "]", "and", "as", "binder", "infixl", "infixr", "is",
+  "?", "[", "]", "and", "as", "binder", "files", "infixl", "infixr", "is",
   "output", "{", "|", "}"];
 
 val parsers = [
