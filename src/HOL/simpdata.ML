@@ -208,6 +208,8 @@ prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
 prove "not_iff" "(P~=Q) = (P = (~Q))";
+prove "not1_or" "(~P | Q) = (P --> Q)";
+prove "not2_or" "(P | ~Q) = (Q --> P)"; (* changes orientation :-( *)
 
 (*Avoids duplication of subgoals after expand_if, when the true and false 
   cases boil down to the same thing.*) 
@@ -354,6 +356,9 @@ fun Delsplits splits = (simpset_ref() := simpset() delsplits splits);
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (K [split_tac [expand_if] 1, blast_tac HOL_cs 1]);
 
+qed_goal "if_eq_cancel" HOL.thy "(if x = y then y else x) = x"
+  (K [split_tac [expand_if] 1, blast_tac HOL_cs 1]);
+
 (** 'if' congruence rules: neither included by default! *)
 
 (*Simplifies x assuming c and y assuming ~c*)
@@ -402,10 +407,10 @@ val HOL_ss =
     HOL_basic_ss addsimps 
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
-       if_True, if_False, if_cancel,
+       if_True, if_False, if_cancel, if_eq_cancel,
        o_apply, imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       not_all, not_ex, cases_simp]
+       not1_or, not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong];
