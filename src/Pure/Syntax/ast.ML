@@ -84,8 +84,7 @@ fun str_of_ast (Constant a) = quote a
 fun pretty_ast (Constant a) = Pretty.str (quote a)
   | pretty_ast (Variable x) = Pretty.str x
   | pretty_ast (Appl asts) =
-      Pretty.blk (2, (Pretty.str "(") ::
-        (separate (Pretty.brk 1) (map pretty_ast asts)) @ [Pretty.str ")"]);
+      Pretty.parents "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 
 (* pprint_ast *)
@@ -96,8 +95,7 @@ val pprint_ast = Pretty.pprint o pretty_ast;
 (* pretty_rule *)
 
 fun pretty_rule (lhs, rhs) =
-  Pretty.blk
-    (2, [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs]);
+  Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];
 
 
 (* head_of_ast, head_of_rule *)
@@ -211,8 +209,6 @@ fun normalize trace stat get_rules pre_ast =
     val lookups = ref 0;
     val failed_matches = ref 0;
     val changes = ref 0;
-
-    fun inc i = i := ! i + 1;
 
     fun subst _ (ast as Constant _) = ast
       | subst env (Variable x) = Env.get (env, x)
