@@ -228,9 +228,12 @@ Goal "[| i<j;  j<k |] ==> i<k";
 by (blast_tac (claset() addSIs [ltI] addSEs [ltE] addIs [Ord_trans]) 1);
 qed "lt_trans";
 
-Goalw [lt_def] "[| i<j;  j<i |] ==> P";
-by (REPEAT (eresolve_tac [asm_rl, conjE, mem_asym] 1));
-qed "lt_asym";
+Goalw [lt_def] "i<j ==> ~ (j<i)";
+by (blast_tac (claset() addEs [mem_asym]) 1);
+qed "lt_not_sym";
+
+(* [| i<j;  ~P ==> j<i |] ==> P *)
+bind_thm ("lt_asym", lt_not_sym RS swap);
 
 qed_goal "lt_irrefl" Ordinal.thy "i<i ==> P"
  (fn [major]=> [ (rtac (major RS (major RS lt_asym)) 1) ]);
@@ -283,7 +286,6 @@ AddIs [le_refl];
 AddSDs [le0D];
 Addsimps [le0_iff];
 
-(*blast_tac will NOT see lt_asym*)
 val le_cs = claset() addSIs [leCI] addSEs [leE] addEs [lt_asym];
 
 
