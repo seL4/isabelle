@@ -808,7 +808,7 @@ In addition, it is possible to use tuples as patterns in abstractions:
 Nested patterns are translated recursively:
 {\tt\%<$x$,$y$,$z$>.$t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>.$t$} $\leadsto$
 {\tt split(\%$x$.\%<$y$,$z$>.$t$)} $\leadsto$ {\tt split(\%$x$.split(\%$y$
-  $z$.$t$))}. The reverse translation is performed upon printing.
+  $z$.$t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and {\tt split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
@@ -818,7 +818,7 @@ Nested patterns are translated recursively:
 \end{warn}
 In addition to explicit $\lambda$-abstractions, patterns can be used in any
 variable binding construct which is internally described by a
-$\lambda$-abstraction. Some important examples are
+$\lambda$-abstraction.  Some important examples are
 \begin{description}
 \item[Let:] {\tt let {\it pattern} = $t$ in $u$}
 \item[Choice:] {\tt THE~{\it pattern}~.~$P$}
