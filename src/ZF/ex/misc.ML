@@ -14,7 +14,7 @@ goal ZF.thy "!!S. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (Blast_tac 1);
 result();
 
-set_current_thy"Perm";
+context Perm.thy;
 
 (*Example 12 (credited to Peter Andrews) from
  W. Bledsoe.  A Maximal Method for Set Variables in Automatic Theorem-proving.

@@ -9,7 +9,7 @@ Cantor's Theorem; the Schroeder-Berstein Theorem.
 
 writeln"File HOL/ex/set.";
 
-set_current_thy"Set";
+context Set.thy;
 
 (*Nice demonstration of blast_tac--and its overloading problems*)
 goal Set.thy "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
