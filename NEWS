@@ -161,6 +161,15 @@ changed syntax and (many) tactics;
 
   datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 
+* HOL/record: record_simproc (part of the default simpset) takes care
+of selectors applied to updated records; record_split_tac is no longer
+part of the default claset; COMPATIBILITY:
+
+  claset_ref () := claset() addSWrapper record_split_wrapper;
+  Delsimprocs [record_simproc]
+
+achieve the old bahaviour;
+
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
 
