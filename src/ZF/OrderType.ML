@@ -143,12 +143,12 @@ by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));;
 qed "well_ord_Memrel";
 
 goal OrderType.thy "!!i. [| Ord(i);  j:i |] ==> ordermap(i,Memrel(i)) ` j = j";
-by (eresolve_tac [Ord_induct] 1);
-ba 1;
+by (etac Ord_induct 1);
+by (assume_tac 1);
 by (asm_simp_tac (ZF_ss addsimps
 	     [well_ord_Memrel RS well_ord_is_wf RS ordermap_pred_unfold]) 1);
 by (asm_simp_tac (ZF_ss addsimps [pred_def, Memrel_iff]) 1);
-by (dresolve_tac [OrdmemD] 1);
+by (dtac OrdmemD 1);
 by (assume_tac 1);
 by (fast_tac eq_cs 1);
 qed "ordermap_Memrel";
@@ -197,8 +197,8 @@ by (asm_simp_tac
 (*combining these two simplifications LOOPS! *)
 by (asm_simp_tac (ZF_ss addsimps [pred_pred_eq]) 1);
 by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 1);
-br (refl RSN (2,RepFun_cong)) 1;
-bd well_ord_is_trans_on 1;
+by (rtac (refl RSN (2,RepFun_cong)) 1);
+by (dtac well_ord_is_trans_on 1);
 by (fast_tac (eq_cs addSEs [trans_onD]) 1);
 qed "ordermap_pred_eq_ordermap";
 
@@ -229,10 +229,10 @@ goal OrderType.thy
     "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j))	\
 \         |] ==> R";
 by (forward_tac [lt_eq_pred] 1);
-be ltE 1;
+by (etac ltE 1);
 by (rtac (well_ord_Memrel RS well_ord_iso_predE) 1 THEN
     assume_tac 3 THEN assume_tac 1);
-be subst 1;
+by (etac subst 1);
 by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
 (*Combining the two simplifications causes looping*)
 by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
