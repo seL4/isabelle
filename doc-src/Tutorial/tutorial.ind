@@ -91,6 +91,11 @@
   \indexspace
 
   \item {\tt nat}, 2, \bold{16}
+  \item {\tt None}, \bold{32}
+
+  \indexspace
+
+  \item {\tt option}, \bold{32}
 
   \indexspace
 
@@ -114,6 +119,7 @@
   \item {\tt simp_tac}, \bold{21}
   \item simplifier, \bold{19}
   \item simpset, \bold{20}
+  \item {\tt Some}, \bold{32}
 
   \indexspace
 

@@ -1229,7 +1229,7 @@ and proved by induction on \texttt{e} followed by simplification, once we
 have the following lemma about executing the concatenation of two instruction
 sequences:
 \begin{ttbox}\makeatother
-\input{CodeGen/goal2.ML}\end{ttbox}
+\input{CodeGen/goal1.ML}\end{ttbox}
 This requires induction on \texttt{xs} and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
 that contains two \texttt{case}-expressions over instructions. Thus we add
@@ -1246,6 +1246,9 @@ its instance.
 \section{Advanced datatypes}
 \index{*datatype|(}
 \index{*primrec|(}
+
+This section presents advanced forms of \texttt{datatype}s and (in the near
+future!) records.
 
 \subsection{Mutual recursion}
 
@@ -1349,7 +1352,7 @@ would be something like
 Although we do not recommend this unfolding to the user, this is how Isabelle
 deals with nested recursion internally. Strictly speaking, this information
 is irrelevant at the user level (and might change in the future), but it
-motivates why \texttt{primrec} and induction work for nested types they way
+motivates why \texttt{primrec} and induction work for nested types the way
 they do. We now return to the initial definition of \texttt{term} using
 nested recursion.
 
@@ -1369,13 +1372,13 @@ strengthened and proved as follows:
 Note that \texttt{Var} is the identity substitution because by definition it
 leaves variables unchanged: \texttt{subst Var (Var $x$) = Var $x$}. Note also
 that the type annotations are necessary because otherwise there is nothing in
-the goal to enforce that both halfs of the goal talk about the same type
+the goal to enforce that both halves of the goal talk about the same type
 parameters \texttt{('a,'b)}. As a result, induction would fail
-because the two halfs of the goal would be unrelated.
+because the two halves of the goal would be unrelated.
 
 \begin{exercise}
-Substitution distributes over composition can be expressed roughly as
-follows:
+The fact that substitution distributes over composition can be expressed
+roughly as follows:
 \begin{ttbox}
 subst (f o g) t = subst f (subst g t)
 \end{ttbox}
@@ -1437,7 +1440,7 @@ LCF~\cite{Paulson-LCF} is a logic where types like
 \begin{ttbox}
 datatype t = C (t -> t)
 \end{ttbox}
-makes enormous sense (note the intentionally different arrow \texttt{->}!).
+do indeed make sense (note the intentionally different arrow \texttt{->}!).
 There is even a version of LCF on top of HOL, called
 HOLCF~\cite{MuellerNvOS98}.
 
@@ -1491,16 +1494,16 @@ update function, and prove that they behave as expected.
 \label{fig:trie}
 \end{figure}
 
-Proper tries associates some value with each string. Since the
+Proper tries associate some value with each string. Since the
 information is stored only in the final node associated with the string, many
 nodes do not carry any value. This distinction is captured by the
 following predefined datatype:
 \begin{ttbox}
 datatype 'a option = None | Some 'a
-\end{ttbox}
+\end{ttbox}\indexbold{*option}\indexbold{*None}\indexbold{*Some}
 
 To minimize running time, each node of a trie should contain an array that maps
-letters to subtries. We have chose a more space efficient representation
+letters to subtries. We have chosen a more space efficient representation
 where the subtries are held in an association list, i.e.\ a list of
 (letter,trie) pairs.  Abstracting over the alphabet \texttt{'a} and the
 values \texttt{'v} we define a trie as follows:
@@ -1603,12 +1606,7 @@ supplied) sense.
 
 Here is a simple example, the Fibonacci function:
 \begin{ttbox}
-consts fib  :: nat => nat
-recdef fib "measure(\%n. n)"
-    "fib 0 = 0"
-    "fib 1 = 1"
-    "fib (Suc(Suc x)) = fib x + fib (Suc x)"
-\end{ttbox}
+\input{Recdef/fib}\end{ttbox}
 The definition of \texttt{fib} is accompanied by a \bfindex{measure function}
 \texttt{\%n.$\;$n} that maps the argument of \texttt{fib} to a natural
 number. The requirement is that in each equation the measure of the argument
@@ -1620,35 +1618,29 @@ strictly greater than both \texttt{x} and \texttt{Suc~x}.
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:
 \begin{ttbox}
-consts sep :: "'a * 'a list => 'a list"
-recdef sep "measure (\%(a,xs). length xs)"
-    "sep(a, [])     = []"
-    "sep(a, [x])    = [x]"
-    "sep(a, x#y#zs) = x # a # sep(a,y#zs)"
-\end{ttbox}
+\input{Recdef/sep1}\end{ttbox}
 This time the measure is the length of the list, which decreases with the
 recursive call; the first component of the argument tuple is irrelevant.
 
 Pattern matching need not be exhaustive:
 \begin{ttbox}
-consts last :: 'a list => bool
-recdef last "measure (\%xs. length xs)"
-    "last [x]      = x"
-    "last (x#y#zs) = last (y#zs)"
-\end{ttbox}
+\input{Recdef/last}\end{ttbox}
 
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:
-v\begin{ttbox}
-recdef sep "measure (\%(a,xs). length xs)"
-    "sep(a, x#y#zs) = x # a # sep(a,y#zs)"
-    "sep(a, xs)     = xs"
-\end{ttbox}
+\begin{ttbox}
+\input{Recdef/sep1}\end{ttbox}
 This defines exactly the same function \texttt{sep} as further above.
 
 \begin{warn}
-Currently \texttt{recdef} only accepts functions with a single argument,
-possibly of tuple type.
+  Currently \texttt{recdef} only takes the first argument of a (curried)
+  recursive function into account. This means both the termination measure
+  and pattern matching can only use that first argument. In general, you will
+  therefore have to combine several arguments into a tuple. In case only one
+  argument is relevant for termination, you can also rearrange the order of
+  arguments as in
+\begin{ttbox}
+\input{Recdef/sep2}\end{ttbox}
 \end{warn}
 
 When loading a theory containing a \texttt{recdef} of a function $f$,
@@ -1665,9 +1657,8 @@ equations.
 In general, Isabelle may not be able to prove all termination conditions
 automatically. For example, termination of
 \begin{ttbox}
-consts gcd :: "nat*nat => nat"
-recdef gcd "measure ((\%(m,n).n))"
-    "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
+\input{Recdef/constsgcd}recdef gcd "measure ((\%(m,n).n))"
+  "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 relies on the lemma \texttt{mod_less_divisor}
 \begin{ttbox}
@@ -1681,10 +1672,7 @@ warning and \texttt{gcd.rules} contains a precondition:
 We need to instruct \texttt{recdef} to use an extended simpset to prove the
 termination condition:
 \begin{ttbox}
-recdef gcd "measure ((\%(m,n).n))"
-  simpset "simpset() addsimps [mod_less_divisor]"
-    "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
-\end{ttbox}
+\input{Recdef/gcd}\end{ttbox}
 This time everything works fine and \texttt{gcd.rules} contains precisely the
 stated recursion equation for \texttt{gcd}.
 
@@ -1698,17 +1686,14 @@ Although all the above examples employ measure functions, \texttt{recdef}
 allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product \texttt{**}:
 \begin{ttbox}
-recdef ack "measure(\%m. m) ** measure(\%n. n)"
-    "ack(0,n)         = Suc n"
-    "ack(Suc m,0)     = ack(m, 1)"
-    "ack(Suc m,Suc n) = ack(m,ack(Suc m,n))"
-\end{ttbox}
-For details see~\cite{Isa-Logics-Man} and the examples in the library.
+\input{Recdef/ack}\end{ttbox}
+For details see the manual~\cite{Isa-Logics-Man} and the examples in the
+library.
 
 
 \subsection{Deriving simplification rules}
 
-Once we have succeeded to prove all termination conditions, we can start to
+Once we have succeeded in proving all termination conditions, we can start to
 derive some theorems. In contrast to \texttt{primrec} definitions, which are
 automatically added to the simpset, \texttt{recdef} rules must be included
 explicitly, for example as in

@@ -4,7 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Datatype HOL-Misc
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Datatype HOL-Recdef HOL-Misc
 
 
 ## global settings
@@ -88,6 +88,24 @@ $(LOG)/HOL-Datatype.gz: $(OUT)/HOL \
   Datatype/tidproof.ML Datatype/appmap.ML Datatype/lookupempty.ML \
   Datatype/trieAdds.ML Datatype/triemain.ML Datatype/trieinduct.ML Datatype/trieexhaust.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Datatype
+
+## HOL-Recdef
+
+HOL-Recdef: HOL $(LOG)/HOL-Recdef.gz
+
+Recdef/Examples.thy: Recdef/exprolog Recdef/fib Recdef/sep Recdef/last \
+  Recdef/constsgcd Recdef/gcd Recdef/ack
+	cd Recdef; cat exprolog fib sep last constsgcd gcd ack end > Examples.thy
+
+Recdef/Sep1.thy: Recdef/sep1prolog Recdef/sep1
+	cd Recdef; cat sep1prolog sep1 end > Sep1.thy
+
+Recdef/Sep2.thy: Recdef/sep2prolog Recdef/sep2
+	cd Recdef; cat sep2prolog sep2 end > Sep2.thy
+
+$(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/ROOT.ML \
+  Recdef/Examples.thy Recdef/Sep1.thy Recdef/Sep2.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Recdef
 
 ## HOL-Misc
 
