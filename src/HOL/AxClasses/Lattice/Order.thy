@@ -31,15 +31,15 @@ axclass
 (* partial orders *)
 
 axclass
-  order < quasi_order
+  partial_order < quasi_order
   le_antisym    "x [= y & y [= x --> x = y"
 
 
 (* linear orders *)
 
 axclass
-  lin_order < order
-  le_lin        "x [= y | y [= x"
+  linear_order < partial_order
+  le_linear     "x [= y | y [= x"
 
 
 
@@ -49,11 +49,11 @@ axclass
 
 consts
   (*binary*)
-  is_inf        :: "['a::order, 'a, 'a] => bool"
-  is_sup        :: "['a::order, 'a, 'a] => bool"
+  is_inf        :: "['a::partial_order, 'a, 'a] => bool"
+  is_sup        :: "['a::partial_order, 'a, 'a] => bool"
   (*general*)
-  is_Inf        :: "['a::order set, 'a] => bool"
-  is_Sup        :: "['a::order set, 'a] => bool"
+  is_Inf        :: "['a::partial_order set, 'a] => bool"
+  is_Sup        :: "['a::partial_order set, 'a] => bool"
 
 defs
   is_inf_def    "is_inf x y inf ==
@@ -71,13 +71,13 @@ defs
 
 
 
-(* binary minima and maxima (on lin_orders) *)
+(* binary minima and maxima (on linear_orders) *)
 
 constdefs
-  minimum      :: "['a::lin_order, 'a] => 'a"
+  minimum      :: "['a::linear_order, 'a] => 'a"
   "minimum x y == (if x [= y then x else y)"
 
-  maximum      :: "['a::lin_order, 'a] => 'a"
+  maximum      :: "['a::linear_order, 'a] => 'a"
   "maximum x y == (if x [= y then y else x)"
 
 end

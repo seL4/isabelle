@@ -8,7 +8,7 @@ Lattices are orders with binary (finitary) infima and suprema.
 Lattice = Order +
 
 axclass
-  lattice < order
+  lattice < partial_order
   ex_inf       "ALL x y. EX inf. is_inf x y inf"
   ex_sup       "ALL x y. EX sup. is_sup x y sup"
 

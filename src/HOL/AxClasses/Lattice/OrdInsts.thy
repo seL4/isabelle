@@ -14,30 +14,30 @@ instance
   "*" :: (quasi_order, quasi_order) quasi_order         (le_prod_refl, le_prod_trans)
 
 instance
-  "*" :: (order, order) order                           (le_prod_antisym)
+  "*" :: (partial_order, partial_order) partial_order   (le_prod_antisym)
   
 
 instance
   fun :: (term, quasi_order) quasi_order                (le_fun_refl, le_fun_trans)
 
 instance
-  fun :: (term, order) order                            (le_fun_antisym)
+  fun :: (term, partial_order) partial_order            (le_fun_antisym)
 
 
-(* duals of quasi_orders / orders / lin_orders *)
+(* duals of quasi orders / partial orders / linear orders *)
 
 instance
   dual :: (quasi_order) quasi_order                     (le_dual_refl, le_dual_trans)
 
 instance
-  dual :: (order) order                                 (le_dual_antisym)
+  dual :: (partial_order) partial_order                 (le_dual_antisym)
 
 
 (*FIXME: had to be moved to LatInsts.thy due to some unpleasant
   'feature' in Pure/type.ML
 
 instance
-  dual :: (lin_order) lin_order                         (le_dual_lin)
+  dual :: (linear_order) linear_order                   (le_dual_lin)
 *)
 
 end

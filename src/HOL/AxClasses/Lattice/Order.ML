@@ -114,7 +114,7 @@ qed "is_sup_assoc";
 
 (** limits in linear orders **)
 
-goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::lin_order) y (minimum x y)";
+goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y)";
   by (stac expand_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
@@ -122,7 +122,7 @@ goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::lin_order) y (minimum x y)";
     ba 1;
     by (Fast_tac 1);
   (*case "~ x [= y"*)
-    br (le_lin RS disjE) 1;
+    br (le_linear RS disjE) 1;
     ba 1;
     be notE 1;
     ba 1;
@@ -130,7 +130,7 @@ goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::lin_order) y (minimum x y)";
     by (Fast_tac 1);
 qed "min_is_inf";
 
-goalw thy [maximum_def, is_sup_def] "is_sup (x::'a::lin_order) y (maximum x y)";
+goalw thy [maximum_def, is_sup_def] "is_sup (x::'a::linear_order) y (maximum x y)";
   by (stac expand_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
@@ -139,7 +139,7 @@ goalw thy [maximum_def, is_sup_def] "is_sup (x::'a::lin_order) y (maximum x y)";
     by (Fast_tac 1);
   (*case "~ x [= y"*)
     br le_refl 1;
-    br (le_lin RS disjE) 1;
+    br (le_linear RS disjE) 1;
     ba 1;
     be notE 1;
     ba 1;

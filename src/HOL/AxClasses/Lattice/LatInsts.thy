@@ -11,7 +11,7 @@ LatInsts = LatPreInsts +
 (* linear orders are lattices *)
 
 instance
-  lin_order < lattice                   (allI, exI, min_is_inf, max_is_sup)
+  linear_order < lattice                (allI, exI, min_is_inf, max_is_sup)
 
 
 (* complete lattices are lattices *)
@@ -36,6 +36,6 @@ instance
 
 (*FIXME bug workaround (see also OrdInsts.thy)*)
 instance
-  dual :: (lin_order) lin_order         (le_dual_lin)
+  dual :: (linear_order) linear_order   (le_dual_linear)
 
 end

@@ -12,7 +12,7 @@ TODO:
 CLattice = Order +
 
 axclass
-  clattice < order
+  clattice < partial_order
   ex_Inf       "ALL A. EX inf. is_Inf A inf"
   ex_Sup       "ALL A. EX sup. is_Sup A sup"
 
