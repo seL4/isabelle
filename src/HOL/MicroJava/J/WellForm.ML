@@ -97,7 +97,7 @@ qed "subcls1_induct";
 
 Goal "[|wf ((subcls1 G)^-1); \\<forall>D fs ms. class G C = Some (Some D,fs,ms) --> is_class G D|] ==> method (G,C) = \
 \ (case class G C of None => empty | Some (sc,fs,ms) => \
-\ (case sc of None => empty | Some D => method (G,D)) \\<oplus> \
+\ (case sc of None => empty | Some D => method (G,D)) ++ \
 \ map_of (map (\\<lambda>(s,m). (s,(C,m))) ms))";
 by( stac (method_TC RS (wf_subcls1_rel RS (hd method.simps))) 1);
 by( asm_simp_tac (simpset() addsplits[option.split]) 1);
@@ -106,7 +106,7 @@ qed "method_rec_lemma";
 
 Goal "wf_prog wf_mb G ==> method (G,C) = \
 \ (case class G C of None => empty | Some (sc,fs,ms) => \
-\ (case sc of None => empty | Some D => method (G,D)) \\<oplus> \
+\ (case sc of None => empty | Some D => method (G,D)) ++ \
 \ map_of (map (\\<lambda>(s,m). (s,(C,m))) ms))";
 by(rtac method_rec_lemma 1);
 by( clarsimp_tac (claset(), simpset() addsimps [wf_subcls1,empty_def] 

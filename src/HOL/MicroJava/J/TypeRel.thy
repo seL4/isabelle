@@ -52,7 +52,7 @@ recdef method "subcls1_rel"
  "method (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None => empty
                    | Some (sc,fs,ms) => (case sc of None => empty | Some D => 
                                            if is_class G D then method (G,D) 
-                                                           else arbitrary) \\<oplus>
+                                                           else arbitrary) ++
                                            map_of (map (\\<lambda>(s,  m ). 
                                                         (s,(C,m))) ms))
                   else arbitrary)"

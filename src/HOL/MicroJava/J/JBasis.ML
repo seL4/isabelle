@@ -140,7 +140,7 @@ val split_Pair_eq = prove_goal Prod.thy
 
 (* More about Maps *)
 
-val override_SomeD = prove_goalw thy [override_def] "(s \\<oplus> t) k = Some x ==> \
+val override_SomeD = prove_goalw thy [override_def] "(s ++ t) k = Some x ==> \
 \ t k = Some x |  t k = None \\<and>  s k = Some x" (fn prems => [
 	cut_facts_tac prems 1,
 	case_tac "\\<exists>x. t k = Some x" 1,

@@ -1,4 +1,3 @@
-open Example;
 
 AddIs [widen.null];
 
@@ -130,7 +129,7 @@ by  Auto_tac;
 qed "method_Base";
 Addsimps [method_Base];
 
-Goal "method (tprg, Ext) = (method (tprg, Base) \\<oplus> map_of \
+Goal "method (tprg, Ext) = (method (tprg, Base) ++ map_of \
 \ [((foo, [Class Base]), Ext , (Class Ext, foo_Ext))])";
 br trans 1;
 br  method_rec_ 1;
