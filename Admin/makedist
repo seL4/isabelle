@@ -182,7 +182,7 @@ perl -pi -e \
   s/{PACKED_SIZE}/$PACKED_SIZE/g; \
   s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
   s/{AUTHOR}/$LOGNAME/g; \
-  s/{DATE}/$DATE/g;" index.html
+  s/{DATE}/$DATE/g;" index.html $DISTNAME/lib/html/index1.html $DISTNAME/lib/html/index2.html
 
 
 # final note
