@@ -386,8 +386,9 @@ qed "neg_number_of_BIT";
 
 (** Less-than-or-equals (<=) **)
 
-Goal "(number_of x <= (number_of y::int)) = (~ number_of y < (number_of x::int))";
-by (simp_tac (simpset() addsimps [zle_def]) 1);
+Goal "(number_of x <= (number_of y::int)) = \
+\     (~ number_of y < (number_of x::int))";
+by (rtac (linorder_not_less RS sym) 1);
 qed "le_number_of_eq_not_less"; 
 
 (*Delete the original rewrites, with their clumsy conditional expressions*)
@@ -674,6 +675,10 @@ qed "nat_le_0";
 
 Addsimps [nat_0_le, nat_le_0];
 
+val [major,minor] = Goal "[| #0 <= z;  !!m. z = int m ==> P |] ==> P"; 
+by (rtac (major RS nat_0_le RS sym RS minor) 1);
+qed "nonneg_eq_int"; 
+
 Goal "#0 <= w ==> (nat w = m) = (w = int m)";
 by Auto_tac;
 qed "nat_eq_iff";
@@ -701,39 +706,6 @@ qed "nat_1";
 Goal "nat #2 = 2";
 by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
 qed "nat_2";
-
-Goal "nat #3 = Suc 2";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_3";
-
-Goal "nat #4 = Suc (Suc 2)";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_4";
-
-Goal "nat #5 = Suc (Suc (Suc 2))";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_5";
-
-Goal "nat #6 = Suc (Suc (Suc (Suc 2)))";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_6";
-
-Goal "nat #7 = Suc (Suc (Suc (Suc (Suc 2))))";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_7";
-
-Goal "nat #8 = Suc (Suc (Suc (Suc (Suc (Suc 2)))))";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_8";
-
-Goal "nat #9 = Suc (Suc (Suc (Suc (Suc (Suc (Suc 2))))))";
-by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
-qed "nat_9";
-
-(*Users also don't want to see (nat 0), (nat 1), ...*)
-Addsimps [nat_0, nat_1, nat_2, nat_3, nat_4, 
-	  nat_5, nat_6, nat_7, nat_8, nat_9];
-
 
 Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
