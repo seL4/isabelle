@@ -38,6 +38,7 @@ consts
   (* Binders *)
 
   Eps           :: "('a => bool) => 'a"
+  The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
   Ex1           :: "('a => bool) => bool"           (binder "EX! " 10)
@@ -97,6 +98,7 @@ nonterminals
 syntax
   ~=            :: "['a, 'a] => bool"                    (infixl 50)
   "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3SOME _./ _)" [0, 10] 10)
+  "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
 
   (* Let expressions *)
 
@@ -115,6 +117,7 @@ syntax
 translations
   "x ~= y"                == "~ (x = y)"
   "SOME x. P"             == "Eps (%x. P)"
+  "THE x. P"              == "The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 
@@ -171,6 +174,7 @@ axioms
   ext:          "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
 
   someI:        "P (x::'a) ==> P (SOME x. P x)"
+  the_eq_trivial: "(THE x. x = a) = (a::'a)"
 
   impI:         "(P ==> Q) ==> P-->Q"
   mp:           "[| P-->Q;  P |] ==> Q"

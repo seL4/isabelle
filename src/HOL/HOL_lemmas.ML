@@ -403,6 +403,61 @@ by (etac sym 1);
 qed "some_sym_eq_trivial";
 
 
+
+section "THE: definite description operator";
+
+val [prema,premx] = Goal "[| P a;  !!x. P x ==> x=a |] ==> (THE x. P x) = a";
+by (rtac trans 1); 
+ by (rtac (thm "the_eq_trivial") 2);
+by (res_inst_tac [("f","The")] arg_cong 1); 
+by (rtac ext 1); 
+ by (rtac iffI 1); 
+by (etac premx 1); 
+by (etac ssubst 1 THEN rtac prema 1);
+qed "the_equality";
+
+val [prema,premx] = Goal "[| P a;  !!x. P x ==> x=a |] ==> P (THE x. P x)";
+by (rtac (the_equality RS ssubst) 1);
+by (REPEAT (ares_tac [prema,premx] 1));
+qed "theI";
+
+Goal "(EX! x. P x) ==> P (THE x. P x)";
+by (etac ex1E 1);
+by (etac theI 1);
+by (etac allE 1);
+by (etac mp 1);
+by (atac 1);
+qed "theI'";
+
+(*Easier to apply than theI: only one occurrence of P*)
+val [prema,premx,premq] = Goal
+     "[| P a;  !!x. P x ==> x=a;  !!x. P x ==> Q x |] \
+\     ==> Q (THE x. P x)";
+by (rtac premq 1); 
+by (rtac theI 1); 
+by (REPEAT (ares_tac [prema,premx] 1));
+qed "theI2";
+
+Goal "[| EX!x. P x; P a |] ==> (THE x. P x) = a";
+by (rtac the_equality 1);
+by  (atac 1);
+by (etac ex1E 1);
+by (etac all_dupE 1);
+by (dtac mp 1);
+by  (atac 1);
+by (etac ssubst 1);
+by (etac allE 1);
+by (etac mp 1);
+by (atac 1);
+qed "the1_equality";
+
+Goal "(THE y. x=y) = x";
+by (rtac the_equality 1);
+by (rtac refl 1);
+by (etac sym 1);
+qed "the_sym_eq_trivial";
+
+
 section "Classical intro rules for disjunction and existential quantifiers";
 
 val prems = Goal "(~Q ==> P) ==> P|Q";
