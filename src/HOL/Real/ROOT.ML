@@ -10,7 +10,6 @@ Linear real arithmetic is installed in RealBin.ML.
 
 writeln"Root file for HOL/Real";
 
-set proof_timing;
 time_use_thy "RealDef";
 use          "simproc.ML";
 time_use_thy "Real";
