@@ -28,6 +28,8 @@ signature NET =
   val match_term: 'a net -> term -> 'a list
   val key_of_term: term -> key list
   val unify_term: 'a net -> term -> 'a list
+  val dest: 'a net -> (key list * 'a) list
+  val merge: 'a net * 'a net * ('a*'a -> bool) -> 'a net
   end;
 
 
@@ -214,5 +216,27 @@ fun match_term net t =
 (*return items whose key could unify with t*)
 fun unify_term net t = 
     extract_leaves (matching true t (net,[]));
+
+
+(** dest **)
+
+fun cons_fst x (xs, y) = (x :: xs, y);
+val cons_fsts = map o cons_fst;
+
+fun dest (Leaf xs) = map (pair []) xs
+  | dest (Net {comb, var, alist}) =
+      cons_fsts CombK (dest comb) @
+      cons_fsts VarK (dest var) @
+      flat (map (fn (a, net) => cons_fsts (AtomK a) (dest net)) alist);
+
+
+(** merge **)
+
+fun add eq (net, keys_x) =
+  insert (keys_x, net, eq) handle INSERT => net;
+
+fun merge (net1, net2, eq) =
+  foldl (add eq) (net1, dest net2);
+
 
 end;
