@@ -6,8 +6,8 @@ Combination of classical reasoner and simplifier (depends on
 simplifier.ML, splitter.ML classical.ML, blast.ML).
 *)
 
-infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2;
-infix 4 addSss addss;
+infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2
+  addSss addss addIffs delIffs;
 
 signature CLASIMP_DATA =
 sig
@@ -16,6 +16,13 @@ sig
   structure Classical: CLASSICAL
   structure Blast: BLAST
   sharing type Classical.claset = Blast.claset
+  val dest_Trueprop: term -> term
+  val not_const: term
+  val iff_const: term
+  val notE: thm
+  val iffD1: thm
+  val iffD2: thm
+  val cla_make_elim: thm -> thm
 end
 
 signature CLASIMP =
@@ -24,35 +31,44 @@ sig
   type claset
   type simpset
   type clasimpset
-  val addSIs2   : clasimpset * thm list -> clasimpset
-  val addSEs2   : clasimpset * thm list -> clasimpset
-  val addSDs2   : clasimpset * thm list -> clasimpset
-  val addIs2    : clasimpset * thm list -> clasimpset
-  val addEs2    : clasimpset * thm list -> clasimpset
-  val addDs2    : clasimpset * thm list -> clasimpset
-  val addsimps2 : clasimpset * thm list -> clasimpset
-  val delsimps2 : clasimpset * thm list -> clasimpset
-  val addSss    : claset * simpset -> claset
-  val addss     : claset * simpset -> claset
-  val CLASIMPSET  :(clasimpset -> tactic) -> tactic
-  val CLASIMPSET' :(clasimpset -> 'a -> tactic) -> 'a -> tactic
+  val addSIs2: clasimpset * thm list -> clasimpset
+  val addSEs2: clasimpset * thm list -> clasimpset
+  val addSDs2: clasimpset * thm list -> clasimpset
+  val addIs2: clasimpset * thm list -> clasimpset
+  val addEs2: clasimpset * thm list -> clasimpset
+  val addDs2: clasimpset * thm list -> clasimpset
+  val addsimps2: clasimpset * thm list -> clasimpset
+  val delsimps2: clasimpset * thm list -> clasimpset
+  val addSss: claset * simpset -> claset
+  val addss: claset * simpset -> claset
+  val addIffs: clasimpset * thm list -> clasimpset
+  val delIffs: clasimpset * thm list -> clasimpset
+  val AddIffs: thm list -> unit
+  val DelIffs: thm list -> unit
+  val CLASIMPSET: (clasimpset -> tactic) -> tactic
+  val CLASIMPSET': (clasimpset -> 'a -> tactic) -> 'a -> tactic
   val clarsimp_tac: clasimpset -> int -> tactic
-  val Clarsimp_tac:               int -> tactic
-  val mk_auto_tac : clasimpset -> int -> int -> tactic
-  val auto_tac    : clasimpset -> tactic
-  val Auto_tac    : tactic
-  val auto        : unit -> unit
-  val force_tac   : clasimpset  -> int -> tactic
-  val Force_tac   : int -> tactic
-  val force       : int -> unit
-  val fast_simp_tac : clasimpset -> int -> tactic
-  val slow_simp_tac : clasimpset -> int -> tactic
-  val best_simp_tac : clasimpset -> int -> tactic
+  val Clarsimp_tac: int -> tactic
+  val mk_auto_tac: clasimpset -> int -> int -> tactic
+  val auto_tac: clasimpset -> tactic
+  val Auto_tac: tactic
+  val auto: unit -> unit
+  val force_tac: clasimpset  -> int -> tactic
+  val Force_tac: int -> tactic
+  val force: int -> unit
+  val fast_simp_tac: clasimpset -> int -> tactic
+  val slow_simp_tac: clasimpset -> int -> tactic
+  val best_simp_tac: clasimpset -> int -> tactic
   val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val get_local_clasimpset: Proof.context -> clasimpset
+  val iff_add_global: theory attribute
+  val iff_del_global: theory attribute
+  val iff_add_local: Proof.context attribute
+  val iff_del_local: Proof.context attribute
+  val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val setup       : (theory -> theory) list
+  val setup: (theory -> theory) list
 end;
 
 functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
@@ -91,6 +107,56 @@ fun cs addSss ss = Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
                             CHANGED o safe_asm_full_simp_tac ss));
 fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
                             CHANGED o Simplifier.asm_full_simp_tac ss));
+
+
+(* iffs: addition of rules to simpsets and clasets simultaneously *)
+
+(*Takes UNCONDITIONAL theorems of the form A<->B to
+        the Safe Intr     rule B==>A and
+        the Safe Destruct rule A==>B.
+  Also ~A goes to the Safe Elim rule A ==> ?R
+  Failing other cases, A is added as a Safe Intr rule*)
+local
+
+fun addIff ((cla, simp), th) =
+  (case dest_Trueprop (#prop (rep_thm th)) of
+    con $ _ $ _ =>
+      if con = Data.iff_const then
+        Classical.addSDs (Classical.addSIs (cla, [zero_var_indexes (th RS Data.iffD2)]),
+          [zero_var_indexes (th RS Data.iffD1)])
+      else Classical.addSIs (cla, [th])
+  | con $ A =>
+      if con = Data.not_const then Classical.addSEs (cla, [zero_var_indexes (th RS Data.notE)])
+      else Classical.addSIs (cla, [th])
+  | _ => Classical.addSIs (cla, [th]), Simplifier.addsimps (simp, [th]))
+  handle TERM _ => error ("iff add: theorem must be unconditional\n" ^ Display.string_of_thm th);
+
+fun delIff ((cla, simp), th) =
+  (case dest_Trueprop (#prop (rep_thm th)) of
+    con $ _ $ _ =>
+      if con = Data.iff_const then
+        Classical.delrules (cla, [zero_var_indexes (th RS Data.iffD2),
+          Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
+      else Classical.delrules (cla, [th])
+  | con $ A =>
+      if con = Data.not_const then Classical.delrules (cla, [zero_var_indexes (th RS Data.notE)])
+      else Classical.delrules (cla, [th])
+  | _ => Classical.delrules (cla, [th]), Simplifier.delsimps (simp, [th]))
+  handle TERM _ =>
+    (warning ("iff del: ignoring conditional theorem\n" ^ string_of_thm th); (cla, simp));
+
+fun store_clasimp (cla, simp) =
+  (Classical.claset_ref () := cla; Simplifier.simpset_ref () := simp);
+
+in
+
+val op addIffs = foldl addIff;
+val op delIffs = foldl delIff;
+fun AddIffs thms = store_clasimp ((Classical.claset (), Simplifier.simpset ()) addIffs thms);
+fun DelIffs thms = store_clasimp ((Classical.claset (), Simplifier.simpset ()) delIffs thms);
+
+end;
+
 
 (* tacticals *)
 
@@ -167,7 +233,7 @@ val slow_simp_tac = ADDSS Classical.slow_tac;
 val best_simp_tac = ADDSS Classical.best_tac;
 
 
-(* change clasimpset *)
+(* access clasimpset *)
 
 fun change_global_css f (thy, th) =
   let
@@ -187,14 +253,39 @@ fun change_local_css f (ctxt, th) =
       |> Simplifier.put_local_simpset ss';
   in (ctxt', th) end;
 
-
-(* methods *)
-
 fun get_local_clasimpset ctxt =
   (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
+
+(* attributes *)
+
+val iff_add_global = change_global_css (op addIffs);
+val iff_del_global = change_global_css (op delIffs);
+val iff_add_local = change_local_css (op addIffs);
+val iff_del_local = change_local_css (op delIffs);
+
+val iff_attr =
+ (Attrib.add_del_args iff_add_global iff_del_global,
+  Attrib.add_del_args iff_add_local iff_del_local);
+
+
+(* method modifiers *)
+
+val iffN = "iff";
+val addN = "add";
+val delN = "del";
+
+val iff_modifiers =
+ [Args.$$$ iffN -- Args.colon >> K ((I, iff_add_local): Method.modifier),
+  Args.$$$ iffN -- Args.$$$ addN -- Args.colon >> K (I, iff_add_local),
+  Args.$$$ iffN -- Args.$$$ delN -- Args.colon >> K (I, iff_del_local)];
+
 val clasimp_modifiers =
-  Simplifier.simp_modifiers @ Splitter.split_modifiers @ Classical.cla_modifiers;
+  Simplifier.simp_modifiers @ Splitter.split_modifiers @
+  Classical.cla_modifiers @ iff_modifiers;
+
+
+(* methods *)
 
 fun clasimp_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_clasimpset ctxt));
@@ -216,13 +307,14 @@ fun auto_meth None = clasimp_meth (CHANGED o auto_tac)
 (* theory setup *)
 
 val setup =
- [Method.add_methods
+ [Attrib.add_attributes
+  [("iff", iff_attr, "declare simplifier / classical rules")],
+  Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),
     ("bestsimp", clasimp_method' best_simp_tac, "combined best and simp"),
     ("force", clasimp_method' force_tac, "force"),
     ("auto", auto_args auto_meth, "auto"),
     ("clarsimp", clasimp_method' (CHANGED oo clarsimp_tac), "clarify simplified goal")]];
-
 
 end;
