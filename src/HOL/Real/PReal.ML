@@ -1,4 +1,4 @@
-(*  Title       : PReal.ML
+(*  Title       : HOL/Real/PReal.ML
     ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
@@ -449,10 +449,6 @@ by (fast_tac (claset() addSIs [mem_Rep_preal_multD,mem_Rep_preal_multI]) 1);
 qed "mem_Rep_preal_mult_iff";
 
 (** More lemmas for preal_add_mult_distrib2 **)
-goal PRat.thy "!!(a1::prat). a1 < a2 ==> a1 * b + a2 * c < a2 * (b + c)";
-by (auto_tac (claset() addSIs [prat_add_less2_mono1,prat_mult_less2_mono1],
-              simpset() addsimps [prat_add_mult_distrib2]));
-qed "lemma_prat_add_mult_mono";
 
 Goal "[| xb: Rep_preal z1; xc: Rep_preal z2; ya: \
 \                  Rep_preal w; yb: Rep_preal w |] ==> \
@@ -702,7 +698,7 @@ by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_inv 1);
 qed "preal_mult_inv_right";
 
-val [prem] = goal thy
+val [prem] = goal (the_context ())
     "(!!u. z = Abs_preal(u) ==> P) ==> P";
 by (cut_inst_tac [("x1","z")] 
     (rewrite_rule [preal_def] (Rep_preal RS Abs_preal_inverse)) 1);
@@ -783,12 +779,12 @@ Goalw [preal_le_def] "w <= (w::preal)";
 by (Simp_tac 1);
 qed "preal_le_refl";
 
-val prems = goal thy "!!i. [| i <= j; j < k |] ==> i < (k::preal)";
+val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::preal)";
 by (dtac preal_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [preal_less_trans]) 1);
 qed "preal_le_less_trans";
 
-val prems = goal thy "!!i. [| i < j; j <= k |] ==> i < (k::preal)";
+val prems = goal (the_context ()) "!!i. [| i < j; j <= k |] ==> i < (k::preal)";
 by (dtac preal_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [preal_less_trans]) 1);
 qed "preal_less_le_trans";
