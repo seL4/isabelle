@@ -134,7 +134,7 @@ val emacs_trans =
 (* FIXME 'a -> \alpha etc. *)
 
 val latex_trans =
- trans_mode "latex" [];
+ trans_mode "latex" [] : (string * string * (string -> string * int)) list;
 
 
 
