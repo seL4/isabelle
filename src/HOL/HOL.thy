@@ -219,8 +219,8 @@ lemmas atomize = all_eq imp_eq
 use "blastdata.ML"	setup Blast.setup
 use "simpdata.ML"	setup Simplifier.setup
 			setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
-                        setup Splitter.setup setup Clasimp.setup setup iff_attrib_setup
-			setup attrib_setup
+                        setup Splitter.setup setup Clasimp.setup
+			setup rulify_attrib_setup
 
 use "Tools/meson.ML"
 
