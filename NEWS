@@ -33,6 +33,10 @@ X-Symbol;
 *** Isar ***
 
 * improved proof by cases and induction:
+  - removed obsolete "(simplified)" and "(stripped)" options of methods;
+  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
+  - moved induct/cases attributes to Pure, methods to Provers;
+  - generic method setup instantiated for FOL and HOL;
 
   - 'case' command admits impromptu naming of parameters (such as
 "case (Suc n)");
@@ -51,10 +55,12 @@ atomized version); this means that the context of a non-atomic
 statement becomes is included in the hypothesis, avoiding the slightly
 cumbersome show "PROP ?case" form;
 
-  - removed obsolete "(simplified)" and "(stripped)" options of methods;
-  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
-  - moved induct/cases attributes to Pure, methods to Provers;
-  - generic method setup instantiated for FOL and HOL;
+  - 'induct' may now use elim-style induction rules without chaining
+facts, using ``missing'' premises from the goal state; this allows
+rules stemming from inductive sets to be applied in unstructured
+scripts, while still benefitting from proper handling of non-atomic
+statements; NB: major inductive premises need to be put first, all the
+rest of the goal is passed through the induction;
 
 * Pure: renamed "antecedent" case to "rule_context";
 
