@@ -387,8 +387,8 @@ fun run_thy name path =
     Present.init_theory name;
     Present.verbatim_source name (present_text text);
     if is_old_theory (src, pos) then ThySyn.load_thy name text
-    else (Present.token_source name (present_toks text pos);
-      Toplevel.excursion_error (parse_thy (src, pos)))
+    else (Toplevel.excursion_error (parse_thy (src, pos));
+      Present.token_source name (present_toks text pos))
   end;
 
 in
