@@ -99,7 +99,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
   let
     val _ = message "Constructing primrec combinators ...";
 
-    val fun_rel_comp_name = Sign.intern_const (sign_of Relation.thy) "fun_rel_comp";
+    val fun_rel_comp_name = "Relation.fun_rel_comp";
     val [fun_rel_comp_def, o_def] =
       map (get_thm Relation.thy) ["fun_rel_comp_def", "o_def"];
 
@@ -417,7 +417,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val size_name = Sign.intern_const (Theory.sign_of (theory "NatArith")) "size";
+    val size_name = "Nat.size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.full_name (Theory.sign_of thy1)) (DatatypeProp.indexify_names
         (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));

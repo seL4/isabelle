@@ -45,11 +45,16 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
     val Datatype_thy = theory "Datatype";
-    val node_name = Sign.intern_tycon (Theory.sign_of Datatype_thy) "node";
-    val [In0_name, In1_name, Scons_name, Leaf_name, Numb_name, Lim_name,
-      Funs_name, o_name, sum_case_name] =
-      map (Sign.intern_const (Theory.sign_of Datatype_thy))
-        ["In0", "In1", "Scons", "Leaf", "Numb", "Lim", "Funs", "op o", "sum_case"];
+    val node_name = "Datatype_Universe.node";
+    val In0_name = "Datatype_Universe.In0";
+    val In1_name = "Datatype_Universe.In1";
+    val Scons_name = "Datatype_Universe.Scons";
+    val Leaf_name = "Datatype_Universe.Leaf";
+    val Numb_name = "Datatype_Universe.Numb";
+    val Lim_name = "Datatype_Universe.Lim";
+    val Funs_name = "Datatype_Universe.Funs";
+    val o_name = "Fun.op o";
+    val sum_case_name = "Datatype.sum.sum_case";
 
     val [In0_inject, In1_inject, Scons_inject, Leaf_inject, In0_eq, In1_eq,
          In0_not_In1, In1_not_In0, Funs_mono, FunsI, Lim_inject,

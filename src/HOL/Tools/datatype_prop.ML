@@ -168,7 +168,7 @@ fun make_casedists descr sorts =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
-    val o_name = Sign.intern_const (sign_of Fun.thy) "op o";
+    val o_name = "Fun.op o";
 
     val sign = Theory.sign_of thy;
 
@@ -399,7 +399,7 @@ fun make_size descr sorts thy =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val size_name = Sign.intern_const (Theory.sign_of (theory "NatArith")) "size";
+    val size_name = "Nat.size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.intern_const (Theory.sign_of thy)) (indexify_names
         (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));
