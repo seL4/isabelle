@@ -9,7 +9,7 @@ Example for higher order quotients: fractions
 FRACT = NPAIR + HQUOT +
 instance 
 	NP::per	
-	{| (etac per_sym_NP 1) THEN (etac per_trans_NP 1) THEN (atac 1) |}
+	{| (etac per_trans_NP 1) THEN (atac 1) THEN (etac per_sym_NP 1) |}
 
 (* now define fractions *)
 
