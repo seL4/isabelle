@@ -209,21 +209,21 @@ section "The proof in Nielson and Nielson";
 *)
 Goal "!c1 s. (c1;c2,s) -n-> (SKIP,t) --> \
 \     (? i1 i2 u. (c1,s) -i1-> (SKIP,u) & (c2,u) -i2-> (SKIP,t) & i1<n & i2<n)";
-by(induct_tac "n" 1);
+by (induct_tac "n" 1);
  by (fast_tac (claset() addSDs [hlemma]) 1);
-by(fast_tac (claset() addSIs [rel_pow_0_I,rel_pow_Suc_I2]
+by (fast_tac (claset() addSIs [rel_pow_0_I,rel_pow_Suc_I2]
                       addSDs [rel_pow_Suc_D2] addss simpset()) 1);
 qed_spec_mp "comp_decomp_lemma";
 
 Goal "!c s t. (c,s) -n-> (SKIP,t) --> <c,s> -c-> t";
-by(res_inst_tac [("n","n")] less_induct 1);
-by(Clarify_tac 1);
-be rel_pow_E2 1;
+by (res_inst_tac [("n","n")] less_induct 1);
+by (Clarify_tac 1);
+by (etac rel_pow_E2 1);
  by (asm_full_simp_tac (simpset() addsimps evalc.intrs) 1);
-by(exhaust_tac "c" 1);
+by (exhaust_tac "c" 1);
     by (fast_tac (claset() addSDs [hlemma]) 1);
-   by(Blast_tac 1);
-  by(blast_tac (claset() addSDs [rel_pow_Suc_I2 RS comp_decomp_lemma]) 1);
- by(Blast_tac 1);
-by(Blast_tac 1);
+   by (Blast_tac 1);
+  by (blast_tac (claset() addSDs [rel_pow_Suc_I2 RS comp_decomp_lemma]) 1);
+ by (Blast_tac 1);
+by (Blast_tac 1);
 qed_spec_mp "evalc1_impl_evalc";
