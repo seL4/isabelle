@@ -27,9 +27,8 @@ Goal "neg (number_of (bin_minus v)) ==> \
 by (stac Suc_diff_eq_diff_pred 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
-by (asm_full_simp_tac
-    (simpset_of Int.thy addsimps [diff_nat_number_of, less_0_number_of RS sym,
-                                  neg_number_of_bin_pred_iff_0]) 1);
+by (asm_full_simp_tac (ss_Int addsimps [diff_nat_number_of, 
+                    less_0_number_of RS sym, neg_number_of_bin_pred_iff_0]) 1);
 qed "Suc_diff_number_of";
 
 (* now redundant because of the inverse_fold simproc

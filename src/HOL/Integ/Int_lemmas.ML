@@ -8,16 +8,10 @@ Type "int" is a linear order
 And many further lemmas
 *)
 
-(* legacy ML bindings *)
-
-structure Int =
-struct
-  val thy = the_context ();
-  val zabs_def = thm "zabs_def";
-  val nat_def  = thm "nat_def";
-end;
-
-open Int;
+(*Legacy ML bindings, but no longer the structure Int.*)
+val Int_thy = the_context ();
+val zabs_def = thm "zabs_def";
+val nat_def  = thm "nat_def";
 
 Goal "int 0 = (0::int)";
 by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
@@ -319,7 +313,7 @@ by (auto_tac (claset() addIs [inst "x" "0::nat" exI]
 qed "zle_iff_zadd";
 
 Goal "abs (int m) = int m";
-by (simp_tac (simpset() addsimps [Int.zabs_def]) 1); 
+by (simp_tac (simpset() addsimps [zabs_def]) 1); 
 qed "abs_int_eq";
 Addsimps [abs_int_eq];
 
