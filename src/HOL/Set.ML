@@ -530,6 +530,10 @@ by (Blast_tac 1);
 qed "singleton_conv2";
 Addsimps [singleton_conv2];
 
+Goal "[| A - {x} <= B; x : A |] ==> A <= insert x B"; 
+by(Blast_tac 1);
+qed "diff_single_insert";
+
 
 section "Unions of families -- UNION x:A. B(x) is Union(B`A)";
 
@@ -687,12 +691,18 @@ Goal "(f`A <= B) = (ALL x:A. f(x): B)";
 by (Blast_tac 1);
 qed "image_subset_iff";
 
+Goal "B <= f ` A = (? AA. AA <= A & B = f ` AA)";
+by Safe_tac;
+by  (Fast_tac 2);
+by (res_inst_tac [("x","{a. a : A & f a : B}")] exI 1);
+by (Fast_tac 1);
+qed "subset_image_iff";
+
 (*Replaces the three steps subsetI, imageE, hyp_subst_tac, but breaks too
   many existing proofs.*)
 val prems = Goal "(!!x. x:A ==> f(x) : B) ==> f`A <= B";
 by (blast_tac (claset() addIs prems) 1);
 qed "image_subsetI";
-
 
 (*** Range of a function -- just a translation for image! ***)
 
