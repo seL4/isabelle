@@ -142,8 +142,7 @@
 \chardef\ttlbrace=`\{   % A left brace for \tt font
 \chardef\ttrbrace=`\}   % A right brace for \tt font
 
-\newfont{\sltt}{cmsltt10}     %% for output from terminal sessions
-\newcommand\out{\ \sltt}
+\newcommand\out{\ \ttfamily\slshape}   %% for output from terminal sessions
 
 % The mathcodes for the letters A, ..., Z, a, ..., z are changed to
 % generate text italic rather than math italic by default. This makes
