@@ -2,17 +2,22 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
-
-The Token Ring.
-
-From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 *)
 
 
-theory Token = WFair:
+header {*The Token Ring*}
 
-(*process states*)
+theory Token
+imports "../WFair"
+
+begin
+
+text{*From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.*}
+
+subsection{*Definitions*}
+
 datatype pstate = Hungry | Eating | Thinking
+    --{*process states*}
 
 record state =
   token :: "nat"
@@ -36,8 +41,7 @@ constdefs
 locale Token =
   fixes N and F and nodeOrder and "next"   
   defines nodeOrder_def:
-       "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
-	 	       (lessThan N <*> lessThan N)"
+       "nodeOrder j == measure(%i. ((j+N)-i) mod N) \<inter> {..<N} \<times> {..<N}"
       and next_def:
        "next i == (Suc i) mod N"
   assumes N_positive [iff]: "0<N"
@@ -66,22 +70,22 @@ apply (simp_all add: H_def E_def T_def)
 done
 
 
-(*** Progress under weak fairness ***)
+subsection{*Progress under Weak Fairness*}
 
 lemma (in Token) wf_nodeOrder: "wf(nodeOrder j)"
 apply (unfold nodeOrder_def)
-apply (rule wf_less_than [THEN wf_inv_image, THEN wf_subset], blast)
+apply (rule wf_measure [THEN wf_subset], blast)
 done
 
 lemma (in Token) nodeOrder_eq: 
      "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
-apply (unfold nodeOrder_def next_def inv_image_def)
+apply (unfold nodeOrder_def next_def measure_def inv_image_def)
 apply (auto simp add: mod_Suc mod_geq)
 apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
 done
 
-(*From "A Logic for Concurrent Programming", but not used in Chapter 4.
-  Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
+text{*From "A Logic for Concurrent Programming", but not used in Chapter 4.
+  Note the use of @{text case_tac}.  Reasoning about leadsTo takes practice!*}
 lemma (in Token) TR7_nodeOrder:
      "[| i<N; j<N |] ==>    
       F \<in> (HasTok i) leadsTo ({s. (token s, i) \<in> nodeOrder j} \<union> HasTok j)"
@@ -92,7 +96,7 @@ apply (auto simp add: HasTok_def nodeOrder_eq)
 done
 
 
-(*Chapter 4 variant, the one actually used below.*)
+text{*Chapter 4 variant, the one actually used below.*}
 lemma (in Token) TR7_aux: "[| i<N; j<N; i\<noteq>j |]     
       ==> F \<in> (HasTok i) leadsTo {s. (token s, i) \<in> nodeOrder j}"
 apply (rule TR7 [THEN leadsTo_weaken_R])
@@ -104,7 +108,7 @@ lemma (in Token) token_lemma:
 by auto
 
 
-(*Misra's TR9: the token reaches an arbitrary node*)
+text{*Misra's TR9: the token reaches an arbitrary node*}
 lemma  (in Token) leadsTo_j: "j<N ==> F \<in> {s. token s < N} leadsTo (HasTok j)"
 apply (rule leadsTo_weaken_R)
 apply (rule_tac I = "-{j}" and f = token and B = "{}" 
@@ -116,7 +120,7 @@ apply (rule TR7_aux [THEN leadsTo_weaken])
 apply (auto simp add: HasTok_def nodeOrder_def)
 done
 
-(*Misra's TR8: a hungry process eventually eats*)
+text{*Misra's TR8: a hungry process eventually eats*}
 lemma (in Token) token_progress:
      "j<N ==> F \<in> ({s. token s < N} \<inter> H j) leadsTo (E j)"
 apply (rule leadsTo_cancel1 [THEN leadsTo_Un_duplicate])
