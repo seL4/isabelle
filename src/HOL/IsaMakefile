@@ -107,7 +107,8 @@ HOL-Lex: HOL $(LOG)/HOL-Lex.gz
 $(LOG)/HOL-Lex.gz: $(OUT)/HOL Lex/Auto.thy Lex/Auto.ML \
   Lex/AutoChopper.thy Lex/AutoChopper.ML Lex/AutoChopper1.thy \
   Lex/Chopper.thy Lex/Prefix.thy Lex/Prefix.ML Lex/ROOT.ML \
-  Lex/Regset_of_auto.ML Lex/Regset_of_auto.thy
+  Lex/Regset_of_auto.ML Lex/Regset_of_auto.thy Lex/MaxChop.thy Lex/MaxChop.ML \
+  Lex/MaxPrefix.thy Lex/MaxPrefix.ML Lex/AutoMaxChop.thy Lex/AutoMaxChop.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
 
 
