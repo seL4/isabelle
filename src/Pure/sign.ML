@@ -70,8 +70,6 @@ signature SIGN =
 structure Sign : SIGN =
 struct
 
-(*local open Type Syntax in*)
-
 (** datatype sg **)
 
 (*the "ref" in stamps ensures that no two signatures are identical -- it is
@@ -623,5 +621,4 @@ val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
 
-(*end*)
 end;
