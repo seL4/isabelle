@@ -1,12 +1,12 @@
 % rail.sty - style file to support railroad diagrams
 %
 % 09-Jul-90 L. Rooijakkers
-% 08-Oct-90 L. Rooijakkers	fixed centering bug when \rail@tmpc<0.
-% 07-Feb-91 L. Rooijakkers	added \railoptions command, indexing
-% 08-Feb-91 L. Rooijakkers	minor fixes
-% 28-Jun-94 K. Barthelmann	turned into LaTeX2e package
-% 08-Dec-96 K. Barthelmann	replaced \@writefile
-% 13-Dec-96 K. Barthelmann	cleanup
+% 08-Oct-90 L. Rooijakkers      fixed centering bug when \rail@tmpc<0.
+% 07-Feb-91 L. Rooijakkers      added \railoptions command, indexing
+% 08-Feb-91 L. Rooijakkers      minor fixes
+% 28-Jun-94 K. Barthelmann      turned into LaTeX2e package
+% 08-Dec-96 K. Barthelmann      replaced \@writefile
+% 13-Dec-96 K. Barthelmann      cleanup
 %
 % This style file needs to be used in conjunction with the 'rail'
 % program. Running LaTeX as 'latex file' produces file.rai, which should be
@@ -101,9 +101,9 @@
 % \rail@boxhht  : \railboxheight / 2
 % \rail@ovalsp  : \railovalspace
 % \rail@framesp : \railframespace
-% \rail@textlf	: \railtextleft
-% \rail@textrt	: \railtextright
-% \rail@textup	: \railtextup
+% \rail@textlf  : \railtextleft
+% \rail@textrt  : \railtextright
+% \rail@textup  : \railtextup
 % \rail@joinsz  : \railjoinsize
 % \rail@joinhsz : \railjoinsize / 2
 % \rail@joinadj : \railjoinadjust
@@ -192,6 +192,7 @@
 %
 % \railindexfont{TEXT} : set index entry format setup to TEXT
 
+\def\rail@tokenfont{\ttfamily\upshape}
 \def\rail@termfont{\ttfamily\upshape}
 \def\rail@nontfont{\rmfamily\upshape}
 \def\rail@annofont{\rmfamily\itshape}
@@ -238,7 +239,7 @@
 %
 % \ifrail@match : current \rail@i{NR}{TEXT} matches
 %
-% \rail@first :	actions to be done first. read in .rao file,
+% \rail@first : actions to be done first. read in .rao file,
 %               open .rai file if \@filesw true, undefine \rail@first.
 %               executed from \begin{rail} and \railtoken.
 %
@@ -454,14 +455,14 @@
 
 \def\rail@token#1[#2]{
 \rail@setbox{%
-{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+{\rail@tokenfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@oval
 }
 
 \def\rail@ctoken#1[#2]{
 \rail@setbox{%
-{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+{\rail@tokenfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@coval
 }
