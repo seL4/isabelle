@@ -18,8 +18,8 @@ fun I x = x;
 fun K x y = x;
 
 (*reverse apply*)
-infix also;
-fun (x also f) = f x;
+infix |>;
+fun (x |> f) = f x;
 
 (*combine two functions forming the union of their domains*)
 infix orelf;

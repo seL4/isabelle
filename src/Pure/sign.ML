@@ -547,27 +547,27 @@ fun merge (sg1, sg2) =
 
 val pure =
   make_sign (Syntax.type_syn, tsig0, Symtab.null) [] "#"
-  also add_types
+  |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
     ("itself", 1, NoSyn) ::
     Syntax.Mixfix.pure_types)
-  also add_classes [([], logicC, [])]
-  also add_defsort logicS
-  also add_arities
+  |> add_classes [([], logicC, [])]
+  |> add_defsort logicS
+  |> add_arities
    [("fun", [logicS, logicS], logicS),
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
-  also add_syntax Syntax.Mixfix.pure_syntax
-  also add_trfuns Syntax.pure_trfuns
-  also add_consts
+  |> add_syntax Syntax.Mixfix.pure_syntax
+  |> add_trfuns Syntax.pure_trfuns
+  |> add_consts
    [("==", "['a::{}, 'a] => prop", Mixfix ("(_ ==/ _)", [3, 2], 2)),
     ("=?=", "['a::{}, 'a] => prop", Mixfix ("(_ =?=/ _)", [3, 2], 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_ ==>/ _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0)),
     ("TYPE", "'a itself", NoSyn),
     (Syntax.constrainC, "'a::{} => 'a", NoSyn)]
-  also add_name "Pure";
+  |> add_name "Pure";
 
 
 end;
