@@ -651,12 +651,13 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
 (*global goals*)
 fun global_goal prep kind a raw_locale elems args thy =
   let
-    val st = thy |> init_state |> open_block;
+    val init = init_state thy;
     val (opt_name, locale_ctxt, elems_ctxt, propp) =
-      prep (apsome fst raw_locale) elems (map snd args) (context_of st);
+      prep (apsome fst raw_locale) elems (map snd args) (context_of init);
     val locale = (case raw_locale of None => None | Some (_, atts) => Some (the opt_name, atts));
   in
-    st
+    init
+    |> open_block
     |> map_context (K locale_ctxt)
     |> open_block
     |> map_context (K elems_ctxt)
@@ -744,7 +745,7 @@ fun finish_local (print_result, print_rule) state =
   in
     print_result goal_ctxt (kind_name (sign_of state) kind, names ~~ Library.unflat tss results);
     outer_state
-    |> auto_bind_facts (map (ProofContext.generalize goal_ctxt outer_ctxt) ts)
+    |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
     |> (fn st => Seq.map (fn res =>
       have_thmss ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
     |> (Seq.flat o Seq.map opt_solve)
