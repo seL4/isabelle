@@ -12,4 +12,4 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 val banner = "Security Protocols";
 writeln banner;
 
-use_thy "Message";
+use_thy "Event";
