@@ -318,9 +318,9 @@ goalw thy [free_tv_subst,dom_def]
      "free_tv (%u::nat. $ s1 (s2 u) :: typ) <=   \
 \     free_tv s1 Un free_tv s2";
 by (fast_tac (set_cs addSDs [free_tv_app_subst_te RS subsetD,
-			     free_tv_subst_var RS subsetD] 
-	             addss (!simpset delsimps bex_simps
-				     addsimps [cod_def,dom_def])) 1);
+                             free_tv_subst_var RS subsetD] 
+                     addss (!simpset delsimps bex_simps
+                                     addsimps [cod_def,dom_def])) 1);
 qed "free_tv_comp_subst";
 
 goalw thy [o_def] 
@@ -481,7 +481,7 @@ Addsimps [new_tv_subst_te];
 goal thy "new_tv n S --> new_tv n (sch::type_scheme) --> new_tv n ($ S sch)";
 by (type_scheme.induct_tac "sch" 1);
 by (ALLGOALS (Asm_full_simp_tac));
-by (rewrite_goals_tac [new_tv_def]);
+by (rewtac new_tv_def);
 by (simp_tac (!simpset addsimps [free_tv_subst,dom_def,cod_def]) 1);
 by (strip_tac 1);
 by (case_tac "S nat = TVar nat" 1);
@@ -638,7 +638,7 @@ by (thin_tac "? n. new_tv n A'" 1);
 by (REPEAT (etac exE 1));
 by (rename_tac "n2 n1" 1);
 by (res_inst_tac [("x","(max n1 n2)")] exI 1);
-by (rewrite_goals_tac [new_tv_def]);
+by (rewtac new_tv_def);
 by (fast_tac (!claset addIs [less_maxL,less_maxR]) 1);
 qed "ex_fresh_variable";
 

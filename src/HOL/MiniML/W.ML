@@ -206,13 +206,13 @@ by (etac W_var_ge 1);
 ba 1;
 ba 1;
 ba 1;
-by (rewrite_goals_tac [new_tv_def]);
+by (rewtac new_tv_def);
 by (Asm_simp_tac 1);
 by (dtac W_var_ge 1);
 by (rtac allI 1);
 by (rename_tac "p" 1);
 by (strip_tac 1);
-by (rewrite_goals_tac [free_tv_subst]);
+by (rewtac free_tv_subst);
 by (dtac (free_tv_app_subst_scheme_list RS subsetD) 1);
 fun restrict_prems is tacf =
   METAHYPS(fn prems =>
@@ -494,7 +494,7 @@ by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (best_tac (HOL_cs addSDs [mk_scheme_injective] 
                   unsafe_addss (!simpset addcongs [conj_cong] 
-				setloop (split_tac [expand_option_bind]))) 1);
+                                setloop (split_tac [expand_option_bind]))) 1);
 (** LEVEL 19 **)
 
 (* case App e1 e2 *)

@@ -74,8 +74,8 @@ goal thy "!!A::type_scheme list. \
 \                       else TVar x) o \
 \                  (%x. if x : free_tv A \
 \                       then x else n + x)) A)";
-by (rtac (S_o_alpha_type_scheme_list RS ssubst) 1);
-by (rtac (alpha_A RS ssubst) 1);
+by (stac S_o_alpha_type_scheme_list 1);
+by (stac alpha_A 1);
 by (rtac refl 1);
 qed "S'_A_eq_S'_alpha_A";
 

@@ -174,7 +174,7 @@ by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
 by (fast_tac (HOL_cs addSEs [allE]
-	             addIs [cod_app_subst]
+                     addIs [cod_app_subst]
                      addss (!simpset addsimps [less_Suc_eq])) 1);
 (** LEVEL 12 **)
 (* case App e1 e2 *)
@@ -211,11 +211,11 @@ by (dtac (sym RS W_var_geD) 1);
 by (dtac (sym RS W_var_geD) 1);
 by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
 by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
-			    free_tv_app_subst_te RS subsetD,
-			    free_tv_app_subst_tel RS subsetD,
-			    less_le_trans,subsetD]
-	             addSEs [UnE]
-		     addss !simpset) 1); 
+                            free_tv_app_subst_te RS subsetD,
+                            free_tv_app_subst_tel RS subsetD,
+                            less_le_trans,subsetD]
+                     addSEs [UnE]
+                     addss !simpset) 1); 
 qed_spec_mp "free_tv_W"; 
 
 (* Completeness of W w.r.t. has_type *)
@@ -370,7 +370,7 @@ by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 2);
 by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (dtac (free_tv_app_subst_tel RS subsetD) 1);
 by (fast_tac (set_cs addDs [codD,subst_comp_tel RSN (2,trans),
-			    eq_subst_tel_eq_free] 
+                            eq_subst_tel_eq_free] 
        addss ((!simpset addsimps [free_tv_subst,dom_def]))) 1);
 (** LEVEL 106 **)
 by (Fast_tac 1);
