@@ -340,7 +340,7 @@ proof -
   have F: "vectorspace F" ..
   have linearform: "linearform F f" .
   have F_norm: "normed_vectorspace F norm"
-    by (rule subspace_normed_vs [OF _ _ _ norm.intro])
+    by (rule subspace_normed_vs [OF _ _ norm.intro])
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
     by (rule normed_vectorspace.fn_norm_ge_zero
       [OF F_norm _ continuous.intro, folded B_def fn_norm_def])
