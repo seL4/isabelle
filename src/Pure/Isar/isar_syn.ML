@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Pure outer syntax.
+Isar/Pure outer syntax.
 
 TODO:
   - add_parsers: warn if command name coincides with other keyword (if
@@ -15,7 +15,7 @@ TODO:
   - check evaluation of transformers (exns!);
   - 'result' command;
   - '--' (comment) option almost everywhere:
-  - 'thm': xthms1;
+  - 'thms': xthms1 (vs. 'thm' (!?));
 *)
 
 signature ISAR_SYN =
@@ -58,6 +58,10 @@ val update_contextP =
 val textP = OuterSyntax.parser false "text" "formal comments"
   (text >> (Toplevel.theory o IsarThy.add_text));
 
+val titleP = OuterSyntax.parser false "title" "document title"
+  ((text -- Scan.optional text "" -- Scan.optional text "")
+    >> (fn ((x, y), z) => Toplevel.theory (IsarThy.add_title x y z)));
+
 val chapterP = OuterSyntax.parser false "chapter" "chapter heading"
   (text >> (Toplevel.theory o IsarThy.add_chapter));
 
@@ -90,7 +94,7 @@ val defaultsortP =
 (* types *)
 
 val typedeclP =
-  OuterSyntax.parser false "typedecl" "declare logical type"
+  OuterSyntax.parser false "typedecl" "Pure type declaration"
     (type_args -- name -- opt_infix
       >> (fn ((args, a), mx) => Toplevel.theory (PureThy.add_typedecls [(a, args, mx)])));
 
@@ -452,7 +456,7 @@ val print_termP =
     (term >> IsarCmd.print_term);
 
 val print_typeP =
-  OuterSyntax.parser true "typ" "read and print type"
+  OuterSyntax.parser true "type" "read and print type"
     (typ >> IsarCmd.print_type);
 
 
@@ -518,7 +522,7 @@ val parsers = [
   (*theory structure*)
   theoryP, endP, contextP, update_contextP,
   (*theory sections*)
-  textP, chapterP, sectionP, subsectionP, subsubsectionP, classesP,
+  textP, titleP, chapterP, sectionP, subsectionP, subsubsectionP, classesP,
   classrelP, defaultsortP, typedeclP, typeabbrP, nontermP, aritiesP,
   constsP, syntaxP, translationsP, axiomsP, defsP, theoremsP, lemmasP,
   axclassP, instanceP, globalP, localP, pathP, useP, mlP, setupP,
