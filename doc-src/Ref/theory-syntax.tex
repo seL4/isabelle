@@ -25,7 +25,7 @@ theoryDef : id '=' (name + '+') ('+' extension | ());
 
 name: id | string;
 
-extension : (section +) 'end' ml;
+extension : (section +) 'end' ( () | ml );
 
 section : classes
         | default
@@ -88,8 +88,7 @@ rules : 'rules' (( id string ) + )
 defs : 'defs' (( id string ) + )
      ;
 
-ml :  ()
-   | 'ML' text
+ml : 'ML' text
    ;
 
 \end{rail}
