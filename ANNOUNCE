@@ -21,27 +21,21 @@ The most prominent highlights of Isabelle99-1 are as follows.
       o Hindley-Milner polymorphism for proof texts.
       o More robust document preparation, better LaTeX output due to
         fake math-mode.
-      o Extended "Isabelle/Isar Reference Manual"
+      o Extended "Isabelle/Isar Reference Manual".
 
-  * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
-    Cornelia Pusch)
-    Formalization of a fragment of Java, together with a corresponding
-    virtual machine and a specification of its bytecode verifier and a
-    lightweight bytecode verifier, including proofs of type-safety.
+  * HOL/Algebra (Clemens Ballarin)
+    Rings and univariate polynomials.
 
   * HOL/BCV (Tobias Nipkow)
     Generic model of bytecode verification, i.e. data-flow
     analysis for assembly languages with subtypes.
 
-  * HOL/Real (Jacques Fleuriot)
-    More on nonstandard real analysis.
+  * HOL/IMPP (David von Oheimb)
+    Extension of IMP with local variables and mutually recursive
+    procedures.
 
-  * HOL/Algebra (Clemens Ballarin)
-    Rings and univariate polynomials.
-
-  * HOL/NumberTheory (Thomas Rasmussen)
-    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
-    Fermat/Euler Theorem, Wilson's Theorem.
+  * HOL/Isar_examples (Markus Wenzel)
+    More examples, including a formulation of Hoare Logic in Isabelle/Isar.
 
   * HOL/Lambda (Stefan Berghofer and Tobias Nipkow)
     More on termination of simply-typed lambda-terms; converted into
@@ -50,11 +44,23 @@ The most prominent highlights of Isabelle99-1 are as follows.
   * HOL/Lattice (Markus Wenzel)
     Lattices and orders in Isabelle/Isar.
 
-  * HOL/Isar_examples (Markus Wenzel)
-    More examples, including a formulation of Hoare Logic in Isabelle/Isar.
+  * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
+    Cornelia Pusch)
+    Formalization of a fragment of Java, together with a corresponding
+    virtual machine and a specification of its bytecode verifier and a
+    lightweight bytecode verifier, including proofs of type-safety.
+
+  * HOL/NumberTheory (Thomas Rasmussen)
+    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
+    Fermat/Euler Theorem, Wilson's Theorem.
+
+  * HOL/Real (Jacques Fleuriot)
+    More on nonstandard real analysis.
 
   * HOL/Prolog (David von Oheimb)
     A (bare-bones) implementation of Lambda-Prolog.
+
+
 
 See the NEWS file distributed with Isabelle for more details.
 
