@@ -1,6 +1,13 @@
 
 %% $Id$
 
+% FIXME TODO
+%
+% - update Proof General and X-symbol installation notes;
+% - update tactic emulation (including refcard);
+% - proof script conversion guide;
+
+
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx,../iman,../extra,../proof,../rail,../railsetup,../isar,../pdfsetup}
 
@@ -97,17 +104,18 @@
 \pagenumbering{roman} \tableofcontents \clearfirst
 
 %FIXME
-% - HahnBanach paper
-% - Freek Widijk's stuff
-
-%FIXME
-\nocite{Rudnicki:1992:MizarOverview}
+\nocite{Aspinall:2000:eProof}
+\nocite{Bauer-Wenzel:2000:HB}
 \nocite{Harrison:1996:MizarHOL}
+\nocite{Muzalewski:Mizar}
 \nocite{Rudnicki:1992:MizarOverview}
-\nocite{Trybulec:1993:MizarFeatures}
+\nocite{Rudnicki:1992:MizarOverview}
 \nocite{Syme:1997:DECLARE}
 \nocite{Syme:1998:thesis}
 \nocite{Syme:1999:TPHOL}
+\nocite{Trybulec:1993:MizarFeatures}
+\nocite{Wiedijk:1999:Mizar}
+\nocite{Wiedijk:2000:MV}
 \nocite{Zammit:1999:TPHOL}
 
 \include{intro}
@@ -119,6 +127,7 @@
 
 \appendix
 \include{refcard}
+\include{conversion}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing
