@@ -39,7 +39,7 @@ lemma [simp]: "0 < fib (Suc n)";
 text {* Alternative induction rule. *};
 
 theorem fib_induct:
-"[| P 0; P 1; !!n. [| P (n + 1); P n |] ==> P (n + 2) |] ==> P n";
+    "P 0 ==> P 1 ==> (!!n. P (n + 1) ==> P n ==> P (n + 2)) ==> P n";
   by (induct rule: fib.induct, simp+);
 
 
@@ -48,10 +48,11 @@ subsection {* Fib and gcd commute *};
 
 text {* A few laws taken from \cite{Concrete-Math}. *};
 
-lemma fib_add: 
+lemma fib_add:
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
-  (is "?P n");
-proof (induct ?P n rule: fib_induct) -- {* see \cite[page 280]{Concrete-Math} *};
+  (is "?P n")
+  -- {* see \cite[page 280]{Concrete-Math} *};
+proof (induct ?P n rule: fib_induct);
   show "?P 0"; by simp;
   show "?P 1"; by simp;
   fix n;
@@ -70,11 +71,11 @@ proof (induct ?P n rule: fib_induct) -- {* see \cite[page 280]{Concrete-Math} *}
 qed;
 
 lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (n + 1)) = 1" (is "?P n");
-proof (induct ?P n rule: fib_induct); 
+proof (induct ?P n rule: fib_induct);
   show "?P 0"; by simp;
   show "?P 1"; by simp;
-  fix n; 
-  have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)"; 
+  fix n;
+  have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)";
     by simp;
   also; have "gcd (fib (n + 2), ...) = gcd (fib (n + 2), fib (n + 1))";
     by (simp only: gcd_add2);
@@ -87,64 +88,65 @@ qed;
 lemma gcd_mult_add: "0 < n ==> gcd (n * k + m, n) = gcd (m, n)";
 proof -;
   assume "0 < n";
-  hence "gcd (n * k + m, n) = gcd (n, m mod n)"; 
+  hence "gcd (n * k + m, n) = gcd (n, m mod n)";
     by (simp add: gcd_non_0 add_commute);
   also; have "... = gcd (m, n)"; by (simp! add: gcd_non_0);
   finally; show ?thesis; .;
 qed;
 
-lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"; 
+lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)";
 proof (cases m);
   assume "m = 0";
   thus ?thesis; by simp;
 next;
-  fix k; assume "m = Suc k"; 
+  fix k; assume "m = Suc k";
   hence "gcd (fib m, fib (n + m)) = gcd (fib (n + k + 1), fib (k + 1))";
     by (simp add: gcd_commute);
-  also; have "fib (n + k + 1) 
+  also; have "fib (n + k + 1)
     = fib (k + 1) * fib (n + 1) + fib k * fib n";
     by (rule fib_add);
-  also; have "gcd (..., fib (k + 1)) = gcd (fib k * fib n, fib (k + 1))"; 
+  also; have "gcd (..., fib (k + 1)) = gcd (fib k * fib n, fib (k + 1))";
     by (simp add: gcd_mult_add);
-  also; have "... = gcd (fib n, fib (k + 1))"; 
+  also; have "... = gcd (fib n, fib (k + 1))";
     by (simp only: gcd_fib_Suc_eq_1 gcd_mult_cancel);
-  also; have "... = gcd (fib m, fib n)"; 
+  also; have "... = gcd (fib m, fib n)";
     by (simp! add: gcd_commute);
   finally; show ?thesis; .;
 qed;
 
-lemma gcd_fib_diff: 
+lemma gcd_fib_diff:
   "m <= n ==> gcd (fib m, fib (n - m)) = gcd (fib m, fib n)";
-proof -; 
+proof -;
   assume "m <= n";
-  have "gcd (fib m, fib (n - m)) = gcd (fib m, fib (n - m + m))"; 
+  have "gcd (fib m, fib (n - m)) = gcd (fib m, fib (n - m + m))";
     by (simp add: gcd_fib_add);
-  also; have "n - m + m = n"; by (simp!); 
+  also; have "n - m + m = n"; by (simp!);
   finally; show ?thesis; .;
 qed;
 
-lemma if_cases:    (* FIXME move to HOL.thy (!?) *)
-  "[| Q ==> P x; ~ Q ==> P y |] ==> P (if Q then x else y)"; by simp;
-
-lemma gcd_fib_mod: 
+lemma gcd_fib_mod:
   "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
 proof (induct n rule: less_induct);
-  fix n; 
+  fix n;
   assume m: "0 < m"
-  and hyp: "ALL ma. ma < n 
+  and hyp: "ALL ma. ma < n
            --> gcd (fib m, fib (ma mod m)) = gcd (fib m, fib ma)";
   have "n mod m = (if n < m then n else (n - m) mod m)";
     by (rule mod_if);
   also; have "gcd (fib m, fib ...) = gcd (fib m, fib n)";
-  proof (rule if_cases);
-    assume "~ n < m"; hence m_le_n: "m <= n"; by simp;
+  proof cases;
+    assume "n < m"; thus ?thesis; by simp;
+  next;
+    assume not_lt: "~ n < m"; hence le: "m <= n"; by simp;
     have "n - m < n"; by (simp! add: diff_less);
     with hyp; have "gcd (fib m, fib ((n - m) mod m))
        = gcd (fib m, fib (n - m))"; by simp;
-    also; from m_le_n; have "... = gcd (fib m, fib n)"; 
+    also; from le; have "... = gcd (fib m, fib n)";
       by (rule gcd_fib_diff);
-    finally; show "gcd (fib m, fib ((n - m) mod m)) = gcd (fib m, fib n)"; .;
-  qed simp;
+    finally; have "gcd (fib m, fib ((n - m) mod m)) =
+      gcd (fib m, fib n)"; .;
+    with not_lt; show ?thesis; by simp;
+  qed;
   finally; show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"; .;
 qed;
 

@@ -69,7 +69,8 @@ lemma Sigma_Suc1:
   by (simp add: below_def less_Suc_eq) blast;
 
 lemma Sigma_Suc2:
-    "m = n + 2 ==> A <*> below m = (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)";
+    "m = n + 2 ==> A <*> below m =
+      (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)";
   by (auto simp add: below_def) arith;
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2;
@@ -112,7 +113,7 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 subsection {* Dominoes *};
 
 consts 
-  domino  :: "(nat * nat) set set";
+  domino :: "(nat * nat) set set";
 
 inductive domino
   intros

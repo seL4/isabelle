@@ -221,7 +221,7 @@ proof;
 qed;
 
 text {*
- We can still push forward reasoning a bit further, even at the risk
+ We can still push forward-reasoning a bit further, even at the risk
  of getting ridiculous.  Note that we force the initial proof step to
  do nothing here, by referring to the ``-'' proof method.
 *};

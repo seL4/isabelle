@@ -25,11 +25,11 @@ subsection {* A technical lemma *};
 
 lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
     (EX M. (M, M0) : mult1 r & N = M + {#a#}) |
-    (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K)"
+    (EX K. (ALL b. b :# K --> (b, a) : r) & N = M0 + K)"
   (concl is "?case1 (mult1 r) | ?case2");
 proof (unfold mult1_def);
-  let ?r = "\\<lambda>K a. ALL b. elem K b --> (b, a) : r";
-  let ?R = "\\<lambda>N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
+  let ?r = "\<lambda>K a. ALL b. b :# K --> (b, a) : r";
+  let ?R = "\<lambda>N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
   let ?case1 = "?case1 {(N, M). ?R N M}";
 
   assume "(N, M0 + {#a#}) : {(N, M). ?R N M}";
@@ -77,7 +77,7 @@ proof;
       fix N;
       assume "(N, M0 + {#a#}) : ?R";
       hence "((EX M. (M, M0) : ?R & N = M + {#a#}) |
-          (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
+          (EX K. (ALL b. b :# K --> (b, a) : r) & N = M0 + K))";
 	by (rule less_add);
       thus "N : ?W";
       proof (elim exE disjE conjE);
@@ -88,7 +88,7 @@ proof;
       next;
 	fix K;
 	assume N: "N = M0 + K";
-	assume "ALL b. elem K b --> (b, a) : r";
+	assume "ALL b. b :# K --> (b, a) : r";
 	have "?this --> M0 + K : ?W" (is "?P K");
 	proof (induct K);
 	  from M0; have "M0 + {#} : ?W"; by simp;
@@ -97,7 +97,7 @@ proof;
 	  fix K x; assume hyp: "?P K";
 	  show "?P (K + {#x#})";
 	  proof;
-	    assume a: "ALL b. elem (K + {#x#}) b --> (b, a) : r";
+	    assume a: "ALL b. b :# (K + {#x#}) --> (b, a) : r";
 	    hence "(x, a) : r"; by simp;
 	    with wf_hyp; have b: "ALL M:?W. M + {#x#} : ?W"; by blast;
 

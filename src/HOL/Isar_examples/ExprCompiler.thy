@@ -169,7 +169,8 @@ proof (induct ?P xs);
           exec (Const val # xs @ ys) s env";
         by simp;
       also; have "... = exec (xs @ ys) (val # s) env"; by simp;
-      also; from hyp; have "... = exec ys (exec xs (val # s) env) env"; ..;
+      also; from hyp;
+        have "... = exec ys (exec xs (val # s) env) env"; ..;
       also; have "... = exec ys (exec (Const val # xs) s env) env";
         by simp;
       finally; show "?Q s"; .;
@@ -188,7 +189,8 @@ proof (induct ?P xs);
           exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env";
         by simp;
       also; from hyp; have "... =
-        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env"; ..;
+        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env";
+        ..;
       also; have "... = exec ys (exec (Apply fun # xs) s env) env"; by simp;
       finally; show "?Q s"; .;
     qed;
@@ -198,7 +200,8 @@ qed;
 theorem correctness: "execute (compile e) env = eval e env";
 proof -;
   have exec_compile:
-  "ALL stack. exec (compile e) stack env = eval e env # stack" (is "?P e");
+    "ALL stack. exec (compile e) stack env = eval e env # stack"
+    (is "?P e");
   proof (induct e);
     fix adr; show "?P (Variable adr)" (is "ALL s. ?Q s");
     proof;
@@ -217,15 +220,18 @@ proof -;
     proof;
       fix s; have "exec (compile (Binop fun e1 e2)) s env
         = exec (compile e2 @ compile e1 @ [Apply fun]) s env"; by simp;
-      also; have "... =
-          exec [Apply fun] (exec (compile e1) (exec (compile e2) s env) env) env";
+      also; have "... = exec [Apply fun]
+          (exec (compile e1) (exec (compile e2) s env) env) env";
         by (simp only: exec_append);
-      also; from hyp2; have "exec (compile e2) s env = eval e2 env # s"; ..;
-      also; from hyp1; have "exec (compile e1) ... env = eval e1 env # ..."; ..;
+      also; from hyp2;
+        have "exec (compile e2) s env = eval e2 env # s"; ..;
+      also; from hyp1;
+        have "exec (compile e1) ... env = eval e1 env # ..."; ..;
       also; have "exec [Apply fun] ... env =
         fun (hd ...) (hd (tl ...)) # (tl (tl ...))"; by simp;
       also; have "... = fun (eval e1 env) (eval e2 env) # s"; by simp;
-      also; have "fun (eval e1 env) (eval e2 env) = eval (Binop fun e1 e2) env";
+      also; have "fun (eval e1 env) (eval e2 env) =
+          eval (Binop fun e1 e2) env";
         by simp;
       finally; show "?Q s"; .;
     qed;
@@ -233,7 +239,8 @@ proof -;
 
   have "execute (compile e) env = hd (exec (compile e) [] env)";
     by (simp add: execute_def);
-  also; from exec_compile; have "exec (compile e) [] env = [eval e env]"; ..;
+  also; from exec_compile;
+    have "exec (compile e) [] env = [eval e env]"; ..;
   also; have "hd ... = eval e env"; by simp;
   finally; show ?thesis; .;
 qed;

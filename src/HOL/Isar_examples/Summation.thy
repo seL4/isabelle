@@ -153,7 +153,8 @@ proof (induct n);
   show "?P 0"; by (simp add: power_eq_if);
 
   fix n;
-  have "?S (n + 1) = ?S n + #4 * (n + 1)^#3"; by (simp add: power_eq_if distrib);
+  have "?S (n + 1) = ?S n + #4 * (n + 1)^#3";
+    by (simp add: power_eq_if distrib);
   also; assume "?S n = (n * (n + 1))^2";
   also; have "... + #4 * (n + 1)^#3 = ((n + 1) * ((n + 1) + 1))^2";
     by (simp add: power_eq_if distrib);

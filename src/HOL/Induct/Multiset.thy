@@ -5,8 +5,6 @@
 
 A definitional theory of multisets,
 including a wellfoundedness proof for the multiset order.
-use_thy"Multiset";
-
 *)
 
 Multiset = Multiset0 + Acc +

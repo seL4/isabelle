@@ -36,8 +36,8 @@ inductive has_type
   intros [simp]
     Var: "n < length a ==> a |- Var n :: a ! n"
     Abs: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
-    App: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
-              ==> a |- App e1 e2 :: t1";
+    App: "a |- e1 :: t2 -> t1 ==> a |- e2 :: t2
+      ==> a |- App e1 e2 :: t1";
 
 
 text {* Type assigment is closed wrt.\ substitution. *};
@@ -46,7 +46,7 @@ lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
   assume "a |- e :: t";
   thus ?thesis (is "?P a e t");
-  proof (induct ?P a e t);
+  proof (induct (open) ?P a e t);
     case Var;
     hence "n < length (map ($ s) a)"; by simp;
     hence "map ($ s) a |- Var n :: map ($ s) a ! n";

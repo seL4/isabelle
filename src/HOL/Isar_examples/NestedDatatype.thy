@@ -32,7 +32,8 @@ lemma
       subst_term_list f1 (subst_term_list f2 ts)";
   by (induct t and ts rule: term.induct) simp_all;
 
-lemma "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)";
+lemma "subst_term (subst_term f1 o f2) t =
+  subst_term f1 (subst_term f2 t)";
 proof -;
   let "?P t" = ?thesis;
   let ?Q = "\\<lambda>ts. subst_term_list (subst_term f1 o f2) ts =
@@ -55,7 +56,8 @@ qed;
 subsection {* Alternative induction *};
 
 theorem term_induct' [case_names Var App]:
- "(!!a. P (Var a)) ==> (!!b ts. list_all P ts ==> P (App b ts)) ==> P t";
+  "(!!a. P (Var a)) ==>
+   (!!b ts. list_all P ts ==> P (App b ts)) ==> P t";
 proof -;
   assume var: "!!a. P (Var a)";
   assume app: "!!b ts. list_all P ts ==> P (App b ts)";
@@ -76,7 +78,7 @@ qed;
 lemma
   "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)"
   (is "?P t");
-proof (induct ?P t rule: term_induct');
+proof (induct (open) ?P t rule: term_induct');
   case Var;
   show "?P (Var a)"; by (simp add: o_def);
 next;
