@@ -5,7 +5,7 @@
 *)
 
 header {*
-  \title{List prefixes}
+  \title{List prefixes and postfixes}
   \author{Tobias Nipkow and Markus Wenzel}
 *}
 
@@ -214,5 +214,44 @@ next
     with neq ys show ?thesis by blast
   qed
 qed
+
+
+subsection {* Postfix order on lists *}
+
+constdefs
+  postfix :: "'a list => 'a list => bool"  ("(_/ >= _)" [51, 50] 50)
+  "xs >= ys == \<exists>zs. xs = zs @ ys"
+
+lemma postfix_refl [simp, intro!]: "xs >= xs" by (auto simp add: postfix_def)
+lemma postfix_trans: "\<lbrakk>xs >= ys; ys >= zs\<rbrakk> \<Longrightarrow> xs >= zs" 
+         by (auto simp add: postfix_def)
+lemma postfix_antisym: "\<lbrakk>xs >= ys; ys >= xs\<rbrakk> \<Longrightarrow> xs = ys" 
+         by (auto simp add: postfix_def)
+
+lemma Nil_postfix [iff]: "xs >= []" by (simp add: postfix_def)
+lemma postfix_Nil [simp]: "([] >= xs) = (xs = [])"by (auto simp add:postfix_def)
+
+lemma postfix_ConsI: "xs >= ys \<Longrightarrow> x#xs >= ys" by (auto simp add: postfix_def)
+lemma postfix_ConsD: "xs >= y#ys \<Longrightarrow> xs >= ys" by (auto simp add: postfix_def)
+
+lemma postfix_appendI: "xs >= ys \<Longrightarrow> zs@xs >= ys" by(auto simp add: postfix_def)
+lemma postfix_appendD: "xs >= zs@ys \<Longrightarrow> xs >= ys" by(auto simp add: postfix_def)
+
+lemma postfix_is_subset_lemma: "xs = zs @ ys \<Longrightarrow> set ys \<subseteq> set xs"
+by (induct zs, auto)
+lemma postfix_is_subset: "xs >= ys \<Longrightarrow> set ys \<subseteq> set xs"
+by (unfold postfix_def, erule exE, erule postfix_is_subset_lemma)
+
+lemma postfix_ConsD2_lemma [rule_format]: "x#xs = zs @ y#ys \<longrightarrow> xs >= ys"
+by (induct zs, auto intro!: postfix_appendI postfix_ConsI)
+lemma postfix_ConsD2: "x#xs >= y#ys \<Longrightarrow> xs >= ys"
+by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
+
+lemma postfix2prefix: "(xs >= ys) = (rev ys <= rev xs)"
+apply (unfold prefix_def postfix_def, safe)
+apply (rule_tac x = "rev zs" in exI, simp)
+apply (rule_tac x = "rev zs" in exI)
+apply (rule rev_is_rev_conv [THEN iffD1], simp)
+done
 
 end
