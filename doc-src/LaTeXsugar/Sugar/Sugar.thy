@@ -182,7 +182,7 @@ text {*
   typeset nicely: for some reason people tend to prefer aligned 
   @{text "="} signs.
 
-  Isabelle2005 will have a nice mechanism for that, namely the two
+  Isabelle2005 has a nice mechanism for this, namely the two
   antiquotations \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}!.
 
   \begin{center}
@@ -211,37 +211,6 @@ text {*
   try to be smart about the interpretation of the theorem they
   print, they work just as well for meta equality @{text "\<equiv>"} and other
   binary operators like @{text "<"}.
-
-  Should you lack both the development version of Isabelle and a time
-  machine, you can still try to simulate the effect using the equation syntax
-  in \texttt{sugar.sty} and \texttt{OptionalSugar}.
-  
-  \begin{center}
-  \begin{tabular}{l@ { }l@ { }l}
-  \setcounter{isatabs}{0}%
-  @{thm [mode=tab] foldl_Nil[no_vars]}\nl
-  @{thm [mode=tab] foldl_Cons[no_vars]}
-  \end{tabular}
-  \end{center}
-
-  \noindent 
-  is produced by:
-
-\begin{quote}
-  \verb!\begin{center}!\\
-  \verb!\begin{tabular}{l@ { }l@ { }l}!\\
-  \verb!\setcounter{isatabs}{0}%!\\
-  \verb!@!\verb!{thm [mode=tab] foldl_Nil[no_vars]}\nl!\\
-  \verb!@!\verb!{thm [mode=tab] foldl_Cons[no_vars]}!\\
-  \verb!\end{tabular}!\\
-  \verb!\end{center}!
-\end{quote}
-
-  \noindent
-  These \LaTeX\ macros are not as flexible as the antiquotations
-  above, they only work for proper equations and definitions and they
-  only work correctly if the left hand side does not contain any
-  @{text "="} signs.
 *}
 
 subsection "Patterns"

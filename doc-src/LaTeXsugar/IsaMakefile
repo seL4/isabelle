@@ -23,8 +23,7 @@ Sugar: $(LOG)/HOL-Sugar.gz
 
 $(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/Sugar.thy \
   Sugar/document/root.tex Sugar/document/root.bib \
-  ../../HOL/Library/LaTeXsugar.thy ../../HOL/Library/OptionalSugar.thy \
-  ../../Distribution/lib/texinputs/sugar.sty
+  ../../HOL/Library/LaTeXsugar.thy ../../HOL/Library/OptionalSugar.thy 
 	@$(USEDIR) HOL Sugar
 
 
