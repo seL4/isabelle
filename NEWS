@@ -171,6 +171,8 @@ New in this Isabelle release
 
 * Streams now come with concatenation and are part of the HOLCF image
 
+
+
 New in Isabelle2003 (May 2003)
 --------------------------------
 
@@ -389,6 +391,7 @@ broke \Rightarrow)
 
 * normal size for \<zero>...\<nine> (uses \mathbf instead of 
 textcomp package)
+
 
 
 New in Isabelle2002 (March 2002)
