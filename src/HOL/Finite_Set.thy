@@ -30,7 +30,7 @@ done
 lemmas plus_ac0 = plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
                   plus_ac0.zero plus_ac0_zero_right
 
-instance semiring < plus_ac0
+instance almost_semiring < plus_ac0
 proof qed (rule add_commute add_assoc almost_semiring.add_0)+
 
 axclass times_ac1 < times, one
@@ -59,7 +59,7 @@ proof -
   finally show ?thesis .
 qed
 
-instance semiring < times_ac1
+instance almost_semiring < times_ac1
   apply intro_classes
   apply (rule mult_commute)
   apply (rule mult_assoc, simp)
