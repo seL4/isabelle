@@ -280,6 +280,10 @@ val fromP =
   OuterSyntax.command "from" "forward chaining from given facts" K.prf_chain
     (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
 
+val withP =
+  OuterSyntax.command "with" "forward chaining from given and current facts" K.prf_chain
+    (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.with_facts)));
+
 val noteP =
   OuterSyntax.command "note" "define facts" K.prf_decl
     (facts -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
@@ -366,13 +370,16 @@ val proofP =
 
 (* calculational proof commands *)
 
+val calc_args =
+  Scan.option (P.$$$ "(" |-- P.!!! ((P.xthms1 --| P.$$$ ")") -- P.interest));
+
 val alsoP =
   OuterSyntax.command "also" "intermediate calculational proof step" K.prf_decl
-    (P.marg_comment >> IsarThy.also);
+    (calc_args -- P.marg_comment >> IsarThy.also);
 
 val finallyP =
   OuterSyntax.command "finally" "terminal calculational proof step" K.prf_chain
-    (P.marg_comment >> IsarThy.finally);
+    (calc_args -- P.marg_comment >> IsarThy.finally);
 
 
 (* proof navigation *)
@@ -547,10 +554,11 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  fixP, letP, thenP, fromP, noteP, beginP, endP, nextP, qed_withP,
-  qedP, terminal_proofP, immediate_proofP, default_proofP, applyP,
-  then_applyP, proofP, alsoP, finallyP, backP, prevP, upP, topP,
-  cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
+  fixP, letP, thenP, fromP, withP, noteP, beginP, endP, nextP,
+  qed_withP, qedP, terminal_proofP, immediate_proofP, default_proofP,
+  applyP, then_applyP, proofP, alsoP, finallyP, backP, prevP, upP,
+  topP, cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP,
+  undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
