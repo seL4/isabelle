@@ -7,7 +7,8 @@
 *)
 
 theory Datatype = Inductive + Univ + QUniv
-  files "Tools/datatype_package.ML":
+  files
+    "Tools/datatype_package.ML"
+    "Tools/numeral_syntax.ML":  (*belongs to theory Bin*)
 
 end
-

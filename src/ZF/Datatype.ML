@@ -22,11 +22,12 @@ structure Data_Arg =
 
 
 structure Data_Package = 
-    Add_datatype_def_Fun
-      (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
-       and Su=Standard_Sum
-       and Ind_Package = Ind_Package
-       and Datatype_Arg = Data_Arg);
+  Add_datatype_def_Fun
+   (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
+    and Su=Standard_Sum
+    and Ind_Package = Ind_Package
+    and Datatype_Arg = Data_Arg
+    val coind = false);
 
 
 (*Typechecking rules for most codatatypes involving quniv*)
@@ -42,10 +43,12 @@ structure CoData_Arg =
   end;
 
 structure CoData_Package = 
-    Add_datatype_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
-                          and Su=Quine_Sum
-                          and Ind_Package = CoInd_Package
-                          and Datatype_Arg = CoData_Arg);
+  Add_datatype_def_Fun
+   (structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
+    and Su=Quine_Sum
+    and Ind_Package = CoInd_Package
+    and Datatype_Arg = CoData_Arg
+    val coind = true);
 
 
 

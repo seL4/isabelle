@@ -21,14 +21,7 @@ use "thy_syntax";
 use "~~/src/Provers/Arith/cancel_numerals.ML";
 use "~~/src/Provers/Arith/combine_numerals.ML";
 
-use_thy "mono";
-use "ind_syntax.ML";
-use_thy "Datatype";
-
-use     "Tools/numeral_syntax.ML";
-(*the all-in-one theory*)
 with_path "Integ" use_thy "Main";
-
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
 
 print_depth 8;

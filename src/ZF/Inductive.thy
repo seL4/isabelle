@@ -8,6 +8,7 @@
 
 theory Inductive = Fixedpt + mono
   files
+    "ind_syntax.ML"
     "Tools/cartprod.ML"
     "Tools/ind_cases.ML"
     "Tools/inductive_package.ML"

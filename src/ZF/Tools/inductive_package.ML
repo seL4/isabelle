@@ -47,6 +47,7 @@ functor Add_inductive_def_Fun
     (structure Fp: FP and Pr : PR and CP: CARTPROD and Su : SU val coind: bool)
  : INDUCTIVE_PACKAGE =
 struct
+
 open Logic Ind_Syntax;
 
 
@@ -522,28 +523,27 @@ let
                   |> standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
-     val induct_att =
-       (case rec_names of [name] => [InductAttrib.induct_set_global name] | _ => []);
-     val (thy', [induct', mutual_induct']) =
-        thy |> PureThy.add_thms [(("induct", induct), induct_att),
-          (("mutual_induct", mutual_induct), [])];
+     val (thy', [induct', mutual_induct']) = thy |>
+       PureThy.add_thms [(("induct", induct), [InductAttrib.induct_set_global big_rec_name]),
+         (("mutual_induct", mutual_induct), [])];
     in (thy', induct', mutual_induct')
     end;  (*of induction_rules*)
 
   val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
 
   val (thy2, induct, mutual_induct) =
-      if #1 (dest_Const Fp.oper) = "Fixedpt.lfp" then induction_rules raw_induct thy1
+      if not coind then induction_rules raw_induct thy1
       else (thy1, raw_induct, TrueI)
   and defs = big_rec_def :: part_rec_defs
 
 
   val (thy3, ([bnd_mono', dom_subset', elim'], [defs', intrs'])) =
     thy2
+    |> IndCases.declare big_rec_name make_cases
     |> PureThy.add_thms
       [(("bnd_mono", bnd_mono), []),
        (("dom_subset", dom_subset), []),
-       (("cases", elim), [InductAttrib.cases_set_global ""])]
+       (("cases", elim), [InductAttrib.cases_set_global big_rec_name])]
     |>>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
          ("intros", intrs)];

@@ -12,7 +12,6 @@ Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations
 *)
 
-
 type datatype_result =
    {con_defs   : thm list,             (*definitions made in thy*)
     case_eqns  : thm list,             (*equations for case operator*)
@@ -21,52 +20,39 @@ type datatype_result =
     free_SEs   : thm list,             (*freeness destruct rules*)
     mk_free    : string -> thm};       (*function to make freeness theorems*)
 
-
 signature DATATYPE_ARG =
-  sig
+sig
   val intrs : thm list
   val elims : thm list
-  end;
-
+end;
 
 (*Functor's result signature*)
 signature DATATYPE_PACKAGE =
 sig
-
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
-  val add_datatype_i:
-      term * term list * Ind_Syntax.constructor_spec list list *
-      thm list * thm list * thm list
-      -> theory -> theory * inductive_result * datatype_result
-
-  val add_datatype:
-      string * string list *
-      (string * string list * mixfix) list list *
-      thm list * thm list * thm list
-      -> theory -> theory * inductive_result * datatype_result
-
+  val add_datatype_i: term * term list -> Ind_Syntax.constructor_spec list list ->
+    thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
+  val add_datatype_x: string * string list -> (string * string list * mixfix) list list ->
+    thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
+  val add_datatype: string * string list -> (string * string list * mixfix) list list ->
+    (xstring * Args.src list) list * (xstring * Args.src list) list *
+    (xstring * Args.src list) list -> theory -> theory * inductive_result * datatype_result
 end;
 
-
-(*Declares functions to add fixedpoint/constructor defs to a theory.
-  Recursive sets must *already* be declared as constants.*)
 functor Add_datatype_def_Fun
-    (structure Fp: FP and Pr : PR and CP: CARTPROD and Su : SU
-           and Ind_Package : INDUCTIVE_PACKAGE
-           and Datatype_Arg : DATATYPE_ARG)
- : DATATYPE_PACKAGE =
+ (structure Fp: FP and Pr : PR and CP: CARTPROD and Su : SU
+  and Ind_Package : INDUCTIVE_PACKAGE
+  and Datatype_Arg : DATATYPE_ARG
+  val coind : bool): DATATYPE_PACKAGE =
 struct
 
+(*con_ty_lists specifies the constructors in the form (name, prems, mixfix) *)
 
-(*con_ty_lists specifies the constructors in the form (name,prems,mixfix) *)
-fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
-                    monos, type_intrs, type_elims) thy =
+fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy =
  let
-  open BasisLibrary
   val dummy = (*has essential ancestors?*)
     Theory.requires thy "Datatype" "(co)datatype definitions";
-
 
   val rec_names = map (#1 o dest_Const o head_of) rec_tms
   val rec_base_names = map Sign.base_name rec_names
@@ -80,9 +66,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   val intr_tms = Ind_Syntax.mk_all_intr_tms sign (rec_tms, con_ty_lists);
 
   val dummy =
-        writeln ((if (#1 (dest_Const Fp.oper) = "Fixedpt.lfp") then "Datatype"
-                  else "Codatatype")
-                 ^ " definition " ^ big_rec_name)
+    writeln ((if coind then "Codatatype" else "Datatype") ^ " definition " ^ big_rec_name);
 
   val case_varname = "f";                (*name for case variables*)
 
@@ -238,8 +222,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
 
   (* Build the new theory *)
 
-  val need_recursor =
-      (#1 (dest_Const Fp.oper) = "Fixedpt.lfp" andalso recursor_typ <> case_typ);
+  val need_recursor = (not coind andalso recursor_typ <> case_typ);
 
   fun add_recursor thy =
       if need_recursor then
@@ -387,17 +370,11 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
  in
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Theory.add_path big_rec_base_name
-        |> (#1 o PureThy.add_thmss [(("simps", simps),
-                               [Simplifier.simp_add_global])])
-        |> (#1 o PureThy.add_thmss [(("", intrs),
-                                (*not "intrs" to avoid the warning that they
-                                  are already stored by the inductive package*)
-                               [Classical.safe_intro_global])])
-        |> DatatypesData.put
-            (Symtab.update
-             ((big_rec_name, dt_info), DatatypesData.get thy1))
-        |> ConstructorsData.put
-             (foldr Symtab.update (con_pairs, ConstructorsData.get thy1))
+        |> (#1 o PureThy.add_thmss
+         [(("simps", simps), [Simplifier.simp_add_global]),
+          (("", intrs), [Classical.safe_intro_global])])
+        |> DatatypesData.map (fn tab => Symtab.update ((big_rec_name, dt_info), tab))
+        |> ConstructorsData.map (fn tab => foldr Symtab.update (con_pairs, tab))
         |> Theory.parent_path,
    ind_result,
    {con_defs = con_defs,
@@ -409,20 +386,52 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   end;
 
 
-fun add_datatype (sdom, srec_tms, scon_ty_lists,
-                  monos, type_intrs, type_elims) thy =
-  let val sign = sign_of thy
-      val read_i = Sign.simple_read_term sign Ind_Syntax.iT
-      val rec_tms = map read_i srec_tms
-      val con_ty_lists = Ind_Syntax.read_constructs sign scon_ty_lists
-      val dom_sum =
-          if sdom = "" then
-              Ind_Syntax.data_domain (#1(dest_Const Fp.oper) <> "Fixedpt.lfp")
-                                     (rec_tms, con_ty_lists)
-          else read_i sdom
-  in
-      add_datatype_i (dom_sum, rec_tms, con_ty_lists,
-                      monos, type_intrs, type_elims) thy
-  end
+fun add_datatype_x (sdom, srec_tms) scon_ty_lists (monos, type_intrs, type_elims) thy =
+  let
+    val sign = sign_of thy;
+    val read_i = Sign.simple_read_term sign Ind_Syntax.iT;
+    val rec_tms = map read_i srec_tms;
+    val con_ty_lists = Ind_Syntax.read_constructs sign scon_ty_lists
+    val dom_sum =
+      if sdom = "" then Ind_Syntax.data_domain coind (rec_tms, con_ty_lists)
+      else read_i sdom;
+  in add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy end;
+
+fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
+  let
+    val (thy', ((monos, type_intrs), type_elims)) = thy
+      |> IsarThy.apply_theorems raw_monos
+      |>>> IsarThy.apply_theorems raw_type_intrs
+      |>>> IsarThy.apply_theorems raw_type_elims;
+  in add_datatype_x (sdom, srec_tms) scon_ty_lists (monos, type_intrs, type_elims) thy' end;
+
+
+(* outer syntax *)
+
+local structure P = OuterParse and K = OuterSyntax.Keyword in
+
+fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
+  #1 o add_datatype (dom, map fst dts) (map snd dts) (monos, type_intrs, type_elims);
+
+val con_decl =
+  P.name -- Scan.optional (P.$$$ "(" |-- P.list1 P.term --| P.$$$ ")") [] -- P.opt_mixfix
+  >> P.triple1;
+
+val datatype_decl =
+  (Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
+  P.and_list1 (P.term -- (P.$$$ "=" |-- P.enum1 "|" con_decl)) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
+  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
+  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1 --| P.marg_comment) []
+  >> (Toplevel.theory o mk_datatype);
+
+val coind_prefix = if coind then "co" else "";
+
+val inductiveP = OuterSyntax.command (coind_prefix ^ "datatype")
+  ("define " ^ coind_prefix ^ "datatype") K.thy_decl datatype_decl;
+
+val _ = OuterSyntax.add_parsers [inductiveP];
+
+end;
 
 end;
