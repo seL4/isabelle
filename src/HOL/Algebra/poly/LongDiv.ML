@@ -19,18 +19,10 @@ val monom_mult_smult = thm "monom_mult_smult";
 val field_ax = thm "field_ax";
 val lcoeff_nonzero = thm "lcoeff_nonzero";
 
-Goal
-  "!! f::(nat=>'a::ring). \
-\    (ALL i. i < m --> f i = 0) --> \
-\      setsum (%i. f (i+m)) {..d} = setsum f {..m+d}";
-by (induct_tac "d" 1);
-(* Base case *)
-by (induct_tac "m" 1);
-by (Simp_tac 1);
-by (Force_tac 1);
-(* Induction step *)
-by (asm_simp_tac (simpset() addsimps add_ac) 1);
-val SUM_shrink_below_lemma = result();
+val lcoeff_def = thm "lcoeff_def";
+val eucl_size_def = thm "eucl_size_def";
+
+val SUM_shrink_below_lemma = thm "SUM_shrink_below_lemma";
 
 Goal
   "!! f::(nat=>'a::ring). \
