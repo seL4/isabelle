@@ -200,33 +200,41 @@ qed "zdiff_self";
 
 Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
+(** Distributive laws for constants only **)
+
+Addsimps (map (read_instantiate_sg (sign_of Bin.thy) [("w", "integ_of ?v")])
+	  [zadd_zmult_distrib, zadd_zmult_distrib2,
+	   zdiff_zmult_distrib, zdiff_zmult_distrib2]);
+
+(** Special-case simplification for small constants **)
+
 Goal "#0 * z = #0";
 by (Simp_tac 1);
 qed "zmult_0";
-
-Goal "#1 * z = z";
-by (Simp_tac 1);
-qed "zmult_1";
-
-Goal "#2 * z = z+z";
-by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
-qed "zmult_2";
 
 Goal "z * #0 = #0";
 by (Simp_tac 1);
 qed "zmult_0_right";
 
+Goal "#1 * z = z";
+by (Simp_tac 1);
+qed "zmult_1";
+
 Goal "z * #1 = z";
 by (Simp_tac 1);
 qed "zmult_1_right";
+
+(*For specialist use*)
+Goal "#2 * z = z+z";
+by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
+qed "zmult_2";
 
 Goal "z * #2 = z+z";
 by (simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
 qed "zmult_2_right";
 
 Addsimps [zmult_0, zmult_0_right, 
-	  zmult_1, zmult_1_right, 
-	  zmult_2, zmult_2_right];
+	  zmult_1, zmult_1_right];
 
 Goal "(w < z + #1) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
@@ -679,3 +687,6 @@ by (auto_tac (claset() addIs [zless_trans],
 	      simpset() addsimps [neg_eq_less_0, zle_def]));
 qed "nat_less_eq_zless";
 
+
+Addsimps zadd_ac;
+Addsimps zmult_ac;
