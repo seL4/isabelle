@@ -108,7 +108,7 @@ primrec takeWhile list
   "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
 primrec dropWhile list
   "dropWhile P [] = []"
-  "dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)"
+  "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
 
 end
 
