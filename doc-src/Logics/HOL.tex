@@ -1963,15 +1963,16 @@ by (ALLGOALS Asm\_simp\_tac);
 \index{*primrec|)}
 
 
-\subsection{Well-founded recursive functions}
+\subsection{General recursive functions}
 \label{sec:HOL:recdef}
 \index{recursion!general|(}
 \index{*recdef|(}
 
-Well-founded recursion can express any function whose termination can be
-proved by showing that each recursive call makes the argument smaller in a
-suitable sense.  The recursion need not involve datatypes and there are few
-syntactic restrictions.  Nested recursion and pattern-matching are allowed.
+Using \texttt{recdef}, you can declare functions involving nested recursion
+and pattern-matching.  Recursion need not involve datatypes and there are few
+syntactic restrictions.  Termination is proved by showing that each recursive
+call makes the argument smaller in a suitable sense, which you specify by
+supplying a well-founded relation.
 
 Here is a simple example, the Fibonacci function.  The first line declares
 \texttt{fib} to be a constant.  The well-founded relation is simply~$<$ (on
@@ -1989,6 +1990,14 @@ With \texttt{recdef}, function definitions may be incomplete, and patterns may
 overlap, as in functional programming.  The \texttt{recdef} package
 disambiguates overlapping patterns by taking the order of rules into account.
 For missing patterns, the function is defined to return an arbitrary value.
+For example, here is a declaration of the list function \cdx{hd}:
+\begin{ttbox}
+consts hd :: 'a list => 'a
+recdef hd "\{\}"
+    "hd (x#l) = x"
+\end{ttbox}
+Because this function is not recursive, we may supply the empty well-founded
+relation, $\{\}$.
 
 The well-founded relation defines a notion of ``smaller'' for the function's
 argument type.  The relation $\prec$ is \textbf{well-founded} provided it
