@@ -40,6 +40,8 @@ sig
   val use_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val update_thy_only: string -> Toplevel.transition -> Toplevel.transition
+  val display_drafts: string list -> Toplevel.transition -> Toplevel.transition
+  val print_drafts: string list -> Toplevel.transition -> Toplevel.transition
   val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
@@ -177,6 +179,17 @@ fun use_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.use_t
 fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
 fun update_thy_only name =
   Toplevel.imperative (fn () => Context.save ThyInfo.update_thy_only name);
+
+
+(* present draft files *)
+
+fun display_drafts files = Toplevel.imperative (fn () =>
+  let val outfile = File.quote_sysify_path (Present.drafts "dvi" (map Path.unpack files))
+  in system ("\"$ISATOOL\" display -c " ^ outfile ^ " &"); () end);
+
+fun print_drafts files = Toplevel.imperative (fn () =>
+  let val outfile = File.quote_sysify_path (Present.drafts "ps" (map Path.unpack files))
+  in system ("\"$ISATOOL\" print -c " ^ outfile); () end);
 
 
 (* pretty_setmargin *)

@@ -1507,7 +1507,8 @@ undo-able.
 \subsection{System operations}
 
 \indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use-thy}\indexisarcmd{use-thy-only}
-\indexisarcmd{update-thy}\indexisarcmd{update-thy-only}
+\indexisarcmd{update-thy}\indexisarcmd{update-thy-only}\indexisarcmd{display-drafts}
+\indexisarcmd{print-drafts}
 \begin{matharray}{rcl}
   \isarcmd{cd}^* & : & \isarkeep{\cdot} \\
   \isarcmd{pwd}^* & : & \isarkeep{\cdot} \\
@@ -1515,6 +1516,8 @@ undo-able.
   \isarcmd{use_thy_only}^* & : & \isarkeep{\cdot} \\
   \isarcmd{update_thy}^* & : & \isarkeep{\cdot} \\
   \isarcmd{update_thy_only}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{display_drafts}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{print_drafts}^* & : & \isarkeep{\cdot} \\
 \end{matharray}
 
 \begin{descr}
@@ -1528,6 +1531,10 @@ undo-able.
     implicit theory context to that of the theory loaded.}  (see also
   \cite[\S1,\S6]{isabelle-ref}).  Note that both the ML and Isar versions may
   load new- and old-style theories alike.
+\item [$\isarkeyword{display_drafts} and \isarkeyword{print_drafts}$] perform
+  simple output of a given list of raw source files (specified as repeated
+  $name$ arguments).  Only those symbols that do not require additional LaTeX
+  packages are displayed properly, everything else is left verbatim.
 \end{descr}
 
 These system commands are scarcely used when working with the Proof~General

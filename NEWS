@@ -54,6 +54,14 @@ New in this Isabelle release
   and printing the subsequent argument, as in @{thm [locale=LC]
   fold_commute}, for example.
 
+* Document preparation: commands 'display_drafts' and 'print_drafts'
+  perform simple output of raw sources.  Only those symbols that do
+  not require additional LaTeX packages (depending on comments in
+  isabellesym.sty) are displayed properly, everything else is left
+  verbatim.  We use isatool display and isatool print as front ends;
+  these are subject to the DVI_VIEWER and PRINT_COMMAND settings,
+  respectively.
+
 * ML: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary
   transformations depending on the print_mode (cf. Output.add_mode --

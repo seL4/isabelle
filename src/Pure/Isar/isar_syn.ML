@@ -703,6 +703,14 @@ val kill_thyP =
   OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
     K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.kill_thy));
 
+val display_draftsP =
+  OuterSyntax.improper_command "display_drafts" "display raw source files with symbols"
+    K.diag (Scan.repeat1 P.name >> (Toplevel.no_timing oo IsarCmd.display_drafts));
+
+val print_draftsP =
+  OuterSyntax.improper_command "print_drafts" "print raw source files with symbols"
+    K.diag (Scan.repeat1 P.name >> (Toplevel.no_timing oo IsarCmd.print_drafts));
+
 val opt_limits =
   Scan.option P.nat -- Scan.option (P.$$$ "," |-- P.!!! P.nat);
 
@@ -787,8 +795,8 @@ val parsers = [
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
-  kill_thyP, prP, disable_prP, enable_prP, commitP, quitP, exitP,
-  init_toplevelP, welcomeP];
+  kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,
+  enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
 end;
 
