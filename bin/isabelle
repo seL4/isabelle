@@ -24,6 +24,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
   echo
   echo "  Options are:"
+  echo "    -C           tell ML system to copy output image"
   echo "    -I           startup Isar interaction mode"
   echo "    -P           startup Proof General interaction mode"
   echo "    -c           tell ML system to compress output image"
@@ -53,6 +54,7 @@ function fail()
 
 # options
 
+COPYDB=""
 ISAR=false
 PROOFGENERAL=""
 COMPRESS=""
@@ -62,9 +64,12 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPce:m:qruw" OPT
+while getopts "CIPce:m:qruw" OPT
 do
   case "$OPT" in
+    C)
+      COPYDB=true
+      ;;
     I)
       ISAR=true
       ;;
@@ -199,7 +204,7 @@ elif [ "$ISAR" = true ]; then
   MLTEXT="$MLTEXT; Isar.main();"
 fi
 
-export INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
+export INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
