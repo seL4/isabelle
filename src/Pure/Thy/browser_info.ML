@@ -94,7 +94,7 @@ local
     in tack_on base rpath end
 in
   val html_path = make_path "html";
-  val graph_path = make_path "graph"
+  val graph_path = make_path "graph/data"
 end;
 
 
