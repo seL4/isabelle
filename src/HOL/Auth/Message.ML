@@ -188,7 +188,7 @@ qed "parts_UN1";
 Addsimps [parts_Un, parts_UN, parts_UN1];
 
 goal thy "insert X (parts H) <= parts(insert X H)";
-by (fast_tac (!claset addEs [impOfSubs parts_mono]) 1);
+by (blast_tac (!claset addIs [impOfSubs parts_mono]) 1);
 qed "parts_insert_subset";
 
 (** Idempotence and transitivity **)
@@ -196,8 +196,8 @@ qed "parts_insert_subset";
 goal thy "!!H. X: parts (parts H) ==> X: parts H";
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
-qed "parts_partsE";
-AddSDs [parts_partsE];
+qed "parts_partsD";
+AddSDs [parts_partsD];
 
 goal thy "parts (parts H) = parts H";
 by (Blast_tac 1);
@@ -255,7 +255,7 @@ by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (Auto_tac());
 by (etac parts.induct 1);
-by (ALLGOALS (best_tac (!claset addIs [parts.Body])));
+by (ALLGOALS (blast_tac (!claset addIs [parts.Body])));
 qed "parts_insert_Crypt";
 
 goal thy "parts (insert {|X,Y|} H) = \
@@ -265,7 +265,7 @@ by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (Auto_tac());
 by (etac parts.induct 1);
-by (ALLGOALS (best_tac (!claset addIs [parts.Fst, parts.Snd])));
+by (ALLGOALS (blast_tac (!claset addIs [parts.Fst, parts.Snd])));
 qed "parts_insert_MPair";
 
 Addsimps [parts_insert_Agent, parts_insert_Nonce, parts_insert_Key, 
@@ -350,7 +350,7 @@ by (REPEAT (ares_tac [Un_least, analz_mono, Un_upper1, Un_upper2] 1));
 qed "analz_Un";
 
 goal thy "insert X (analz H) <= analz(insert X H)";
-by (fast_tac (!claset addEs [impOfSubs analz_mono]) 1);
+by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
 qed "analz_insert";
 
 (** Rewrite rules for pulling out atomic messages **)
@@ -386,7 +386,7 @@ by (rtac subsetI 1);
 by (etac analz.induct 1);
 by (Auto_tac());
 by (etac analz.induct 1);
-by (ALLGOALS (deepen_tac (!claset addIs [analz.Fst, analz.Snd]) 0));
+by (ALLGOALS (blast_tac (!claset addIs [analz.Fst, analz.Snd])));
 qed "analz_insert_MPair";
 
 (*Can pull out enCrypted message if the Key is not known*)
@@ -410,7 +410,7 @@ goal thy "!!H. Key (invKey K) : analz H ==>  \
 by (Auto_tac());
 by (eres_inst_tac [("za","x")] analz.induct 1);
 by (Auto_tac());
-by (best_tac (!claset addIs [subset_insertI RS analz_mono RS subsetD,
+by (blast_tac (!claset addIs [subset_insertI RS analz_mono RS subsetD,
                              analz.Decrypt]) 1);
 val lemma2 = result();
 
@@ -459,8 +459,8 @@ Addsimps [analz_image_Key];
 goal thy "!!H. X: analz (analz H) ==> X: analz H";
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
-qed "analz_analzE";
-AddSDs [analz_analzE];
+qed "analz_analzD";
+AddSDs [analz_analzD];
 
 goal thy "analz (analz H) = analz H";
 by (Blast_tac 1);
@@ -515,12 +515,11 @@ qed "analz_trivial";
 (*Helps to prove Fake cases*)
 goal thy "!!X. X: analz (UN i. analz (H i)) ==> X: analz (UN i. H i)";
 by (etac analz.induct 1);
-by (ALLGOALS (fast_tac (!claset addEs [impOfSubs analz_mono])));
+by (ALLGOALS (blast_tac (!claset addIs [impOfSubs analz_mono])));
 val lemma = result();
 
 goal thy "analz (UN i. analz (H i)) = analz (UN i. H i)";
-by (fast_tac (!claset addIs [lemma]
-                      addEs [impOfSubs analz_mono]) 1);
+by (blast_tac (!claset addIs [lemma, impOfSubs analz_mono]) 1);
 qed "analz_UN_analz";
 Addsimps [analz_UN_analz];
 
@@ -561,7 +560,7 @@ by (REPEAT (ares_tac [Un_least, synth_mono, Un_upper1, Un_upper2] 1));
 qed "synth_Un";
 
 goal thy "insert X (synth H) <= synth(insert X H)";
-by (fast_tac (!claset addEs [impOfSubs synth_mono]) 1);
+by (blast_tac (!claset addIs [impOfSubs synth_mono]) 1);
 qed "synth_insert";
 
 (** Idempotence and transitivity **)
@@ -569,8 +568,8 @@ qed "synth_insert";
 goal thy "!!H. X: synth (synth H) ==> X: synth H";
 by (etac synth.induct 1);
 by (ALLGOALS Blast_tac);
-qed "synth_synthE";
-AddSDs [synth_synthE];
+qed "synth_synthD";
+AddSDs [synth_synthD];
 
 goal thy "synth (synth H) = synth H";
 by (Blast_tac 1);
@@ -620,7 +619,7 @@ by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (ALLGOALS
-    (best_tac (!claset addIs ((synth_increasing RS parts_mono RS subsetD)
+    (blast_tac (!claset addIs ((synth_increasing RS parts_mono RS subsetD)
                              ::parts.intrs))));
 qed "parts_synth";
 Addsimps [parts_synth];
@@ -634,9 +633,8 @@ goal thy "analz (synth G Un H) = analz (G Un H) Un synth G";
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
-by (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 5);
-(*Strange that best_tac just can't hack this one...*)
-by (ALLGOALS (deepen_tac (!claset addIs analz.intrs) 0));
+by (blast_tac (!claset addIs [impOfSubs analz_mono]) 5);
+by (ALLGOALS (blast_tac (!claset addIs analz.intrs)));
 qed "analz_synth_Un";
 
 goal thy "analz (synth H) = analz H Un synth H";
@@ -651,8 +649,8 @@ goal thy "analz (UN i. synth (H i)) = \
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
-by (best_tac
-    (!claset addEs [impOfSubs synth_increasing,
+by (blast_tac
+    (!claset addIs [impOfSubs synth_increasing,
                     impOfSubs analz_mono]) 5);
 by (Blast_tac 1);
 by (blast_tac (!claset addIs [analz.Inj RS analz.Fst]) 1);
@@ -691,8 +689,8 @@ goal thy "!!H. X: synth (analz G) ==> \
 \              analz (insert X H) <= synth (analz G) Un analz (G Un H)";
 by (rtac subsetI 1);
 by (subgoal_tac "x : analz (synth (analz G) Un H)" 1);
-by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
-                      addSEs [impOfSubs analz_mono]) 2);
+by (blast_tac (!claset addIs [impOfSubs analz_mono,
+			      impOfSubs (analz_mono RS synth_mono)]) 2);
 by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_analz_insert";

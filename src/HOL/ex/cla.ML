@@ -424,7 +424,7 @@ goal HOL.thy "lives(agatha) & lives(butler) & lives(charles) & \
 \  (!x. hates agatha x --> hates butler x) & \
 \  (!x. ~hates x agatha | ~hates x butler | ~hates x charles) --> \
 \   killed ?who agatha";
-by (Blast_tac 1);
+by (Fast_tac 1);
 result();
 
 writeln"Problem 56";

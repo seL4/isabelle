@@ -120,7 +120,8 @@ local
   fun mk_params ((ts, tname), cons) =
    ("val (thy, " ^ tname ^ "_add_primrec) = Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
-    \val thy = thy",
+    \val thy = thy"
+    ,
     "structure " ^ tname ^ " =\n\
     \struct\n\
     \ val inject = map (get_axiom thy) " ^
@@ -172,6 +173,7 @@ end;
 
 (** primrec **)
 
+(*recursion equations have user-supplied names*)
 fun mk_primrec_decl_1 ((fname, tname), axms) =
   let
     (*Isolate type name from the structure's identifier it may be stored in*)
@@ -184,10 +186,13 @@ fun mk_primrec_decl_1 ((fname, tname), axms) =
       \  (fn _ => [Simp_tac 1]));";
 
     val axs = mk_list (map (fn (n, a) => mk_pair (quote n, a)) axms);
-  in ("|> " ^ tname ^ "_add_primrec " ^ axs, cat_lines (map mk_prove axms)
+  in ("|> " ^ tname ^ "_add_primrec " ^ axs
+      , 
+      cat_lines (map mk_prove axms)
       ^ "\nval dummy = Addsimps " ^ mk_list (map fst axms) ^ ";")
   end;
 
+(*recursion equations have no names*)
 fun mk_primrec_decl_2 ((fname, tname), axms) =
   let
     (*Isolate type name from the structure's identifier it may be stored in*)
@@ -199,14 +204,41 @@ fun mk_primrec_decl_2 ((fname, tname), axms) =
       \(fn _ => [Simp_tac 1])";
 
     val axs = mk_list (map (fn a => mk_pair ("\"\"", a)) axms);
-  in ("|> " ^ tname ^ "_add_primrec " ^ axs,
+  in ("|> " ^ tname ^ "_add_primrec " ^ axs
+      ,
       "val dummy = Addsimps " ^
       brackets(space_implode ",\n" (map mk_prove axms)) ^ ";")
   end;
 
+(*function name, argument type and either (name,axiom) pairs or just axioms*)
 val primrec_decl =
   (name -- long_id -- repeat1 (ident -- string) >> mk_primrec_decl_1) ||
   (name -- long_id -- repeat1 string >> mk_primrec_decl_2) ;
+
+
+
+
+(** rec: interface to Slind's TFL **)
+
+
+fun mk_rec_decl ((fname, rel), axms) =
+  let val fid = trim fname
+  in
+	 (";\n\n\
+          \structure " ^ fid ^ " =\n\
+          \  struct\n\
+          \  val _ = writeln \"Recursive function " ^ fid ^ "\"\n\
+          \  val {induct,eqns,thy,tcs} = Tfl.RfuncStringList " ^ 
+	                 rel ^ "\n" ^ mk_big_list axms ^ " thy;\n\
+          \  end;\n\n\
+          \val thy = thy"
+         ,
+	 "")
+  end;
+
+val rec_decl = (name -- string -- repeat1 string >> mk_rec_decl) ;
+
+
 
 
 
@@ -219,7 +251,8 @@ val user_sections =
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
   ("datatype", datatype_decl),
-  ("primrec", primrec_decl)];
+  ("primrec", primrec_decl),
+  ("recdef", rec_decl)];
 
 
 end;

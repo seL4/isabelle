@@ -99,11 +99,9 @@ qed "inj_onto_contraD";
 
 (*** Lemmas about inj ***)
 
-val prems = goalw Fun.thy [o_def]
-    "[| inj(f);  inj_onto g (range f) |] ==> inj(g o f)";
-by (cut_facts_tac prems 1);
-by (fast_tac (!claset addIs [injI]
-                     addEs [injD,inj_ontoD]) 1);
+goalw Fun.thy [o_def]
+    "!!f g. [| inj(f);  inj_onto g (range f) |] ==> inj(g o f)";
+by (fast_tac (!claset addIs [injI] addEs [injD, inj_ontoD]) 1);
 qed "comp_inj";
 
 val [prem] = goal Fun.thy "inj(f) ==> inj_onto f A";

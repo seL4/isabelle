@@ -424,5 +424,5 @@ val analz_image_freshK_ss =
 goal thy  
  "!!evs. (Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
 \        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
-by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
+by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
 qed "analz_image_freshK_lemma";

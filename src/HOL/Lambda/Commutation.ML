@@ -94,6 +94,6 @@ by (safe_tac HOL_cs);
        rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
-by (slow_best_tac (!claset addIs [r_into_rtrancl]
-                    addEs [rtrancl_trans,r_into_rtrancl RS rtrancl_trans]) 1);
+by (blast_tac (!claset delrules [rtrancl_refl] 
+                       addIs [r_into_rtrancl, rtrancl_trans]) 1);
 qed "Church_Rosser_confluent";

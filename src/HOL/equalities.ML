@@ -30,7 +30,7 @@ by (Blast_tac 1);
 qed "insert_is_Un";
 
 goal Set.thy "insert a A ~= {}";
-by (fast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (!claset addEs [equalityCE]) 1);
 qed"insert_not_empty";
 Addsimps[insert_not_empty];
 
@@ -152,11 +152,11 @@ by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
 goal Set.thy "(A<=B) = (A Int B = A)";
-by (fast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "subset_Int_eq";
 
 goal Set.thy "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
-by (fast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (!claset addEs [equalityCE]) 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
 
@@ -213,7 +213,7 @@ by (Blast_tac 1);
 qed "Un_Int_crazy";
 
 goal Set.thy "(A<=B) = (A Un B = B)";
-by (fast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "subset_Un_eq";
 
 goal Set.thy "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
@@ -221,7 +221,7 @@ by (Blast_tac 1);
 qed "subset_insert_iff";
 
 goal Set.thy "(A Un B = {}) = (A = {} & B = {})";
-by (fast_tac (!claset addEs [equalityCE]) 1);
+by (blast_tac (!claset addEs [equalityCE]) 1);
 qed "Un_empty";
 Addsimps[Un_empty];
 
@@ -260,7 +260,7 @@ qed "Compl_INT";
 (*Halmos, Naive Set Theory, page 16.*)
 
 goal Set.thy "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
-by (fast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "Un_Int_assoc_eq";
 
 
@@ -292,7 +292,7 @@ qed "Union_Int_subset";
 
 val prems = goal Set.thy
    "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
-by (fast_tac (!claset addSEs [equalityE]) 1);
+by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
 section "Inter";
@@ -517,8 +517,8 @@ by (Blast_tac 1);
 qed "insert_Diff1";
 Addsimps [insert_Diff1];
 
-val prems = goal Set.thy "a:A ==> insert a (A-{a}) = A";
-by (fast_tac (!claset addSIs prems) 1);
+goal Set.thy "!!a. a:A ==> insert a (A-{a}) = A";
+by (Blast_tac 1);
 qed "insert_Diff";
 
 goal Set.thy "A Int (B-A) = {}";

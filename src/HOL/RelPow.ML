@@ -17,14 +17,14 @@ qed "rel_pow_0_I";
 
 goal RelPow.thy "!!R. [| (x,y) : R^n; (y,z):R |] ==> (x,z):R^(Suc n)";
 by (Simp_tac  1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "rel_pow_Suc_I";
 
 goal RelPow.thy "!z. (x,y) : R --> (y,z):R^n -->  (x,z):R^(Suc n)";
 by (nat_ind_tac "n" 1);
 by (Simp_tac  1);
 by (Asm_full_simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed_spec_mp "rel_pow_Suc_I2";
 
 goal RelPow.thy "!!R. [| (x,y) : R^0; x=y ==> P |] ==> P";
@@ -53,8 +53,8 @@ qed "rel_pow_E";
 
 goal RelPow.thy "!x z. (x,z):R^(Suc n) --> (? y. (x,y):R & (y,z):R^n)";
 by (nat_ind_tac "n" 1);
-by (fast_tac (!claset addIs [rel_pow_0_I] addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
-by (fast_tac (!claset addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (!claset addIs [rel_pow_0_I] addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (!claset addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 1);
 qed_spec_mp "rel_pow_Suc_D2";
 
 
@@ -86,13 +86,14 @@ qed "rel_pow_E2";
 goal RelPow.thy "!!p. p:R^* ==> p : (UN n. R^n)";
 by (split_all_tac 1);
 by (etac rtrancl_induct 1);
-by (ALLGOALS (fast_tac (!claset addIs [rel_pow_0_I,rel_pow_Suc_I])));
+by (ALLGOALS (blast_tac (!claset addIs [rel_pow_0_I,rel_pow_Suc_I])));
 qed "rtrancl_imp_UN_rel_pow";
 
 goal RelPow.thy "!y. (x,y):R^n --> (x,y):R^*";
 by (nat_ind_tac "n" 1);
-by (fast_tac (!claset addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
-by (fast_tac (!claset addEs [rel_pow_Suc_E,rtrancl_into_rtrancl]) 1);
+by (blast_tac (!claset addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
+by (blast_tac (!claset addEs [rel_pow_Suc_E]
+	               addIs [rtrancl_into_rtrancl]) 1);
 val lemma = result() RS spec RS mp;
 
 goal RelPow.thy "!!p. p:R^n ==> p:R^*";

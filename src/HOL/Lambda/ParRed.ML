@@ -43,8 +43,10 @@ goal ParRed.thy "par_beta <= beta^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac par_beta.induct 1);
-by (ALLGOALS (slow_best_tac (!claset addIs [rtrancl_into_rtrancl] 
-                                     addEs [rtrancl_trans])));
+by (Blast_tac 1);
+(* rtrancl_refl complicates the proof by increasing the branching factor*)
+by (ALLGOALS (blast_tac (!claset delrules [rtrancl_refl]
+				 addIs [rtrancl_into_rtrancl])));
 qed "par_beta_subset_beta";
 
 (*** => ***)
@@ -72,7 +74,7 @@ qed_spec_mp "par_beta_subst";
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac par_beta.induct 1);
-by (ALLGOALS(Blast.depth_tac (!claset addSIs [par_beta_subst]) 7));
+by (ALLGOALS(blast_tac (!claset addSIs [par_beta_subst])));
 qed "diamond_par_beta";
 
 
@@ -90,7 +92,7 @@ qed_spec_mp "par_beta_cd";
 (*** Confluence (via cd) ***)
 
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
-by (blast_tac (HOL_cs addIs [par_beta_cd]) 1);
+by (blast_tac (!claset addIs [par_beta_cd]) 1);
 qed "diamond_par_beta2";
 
 goal ParRed.thy "confluent(beta)";

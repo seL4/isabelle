@@ -80,10 +80,9 @@ by (Simp_tac 1);
 by (etac eta.induct 1);
 by (slow_tac (!claset addIs [subst_not_free,eta_subst]
                       addIs [free_eta RS iffD1] addss !simpset) 1);
-by (slow_tac (!claset) 1);
-by (slow_tac (!claset) 1);
-by (slow_tac (!claset addSIs [eta_subst]
-                           addIs [free_eta RS iffD1]) 1);
+by (safe_tac (!claset));
+by (blast_tac (!claset addSIs [eta_subst] addIs [free_eta RS iffD1]) 5);
+by (ALLGOALS Blast_tac);
 qed "square_eta";
 
 goal Eta.thy "confluent(eta)";
@@ -108,8 +107,8 @@ by (ALLGOALS(blast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppR";
 
 goal Eta.thy "!!s. [| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
-by (deepen_tac (!claset addSIs [rtrancl_eta_AppL,rtrancl_eta_AppR]
-                     addIs [rtrancl_trans]) 2 1);
+by (blast_tac (!claset addSIs [rtrancl_eta_AppL, rtrancl_eta_AppR]
+                       addIs [rtrancl_trans]) 1);
 qed "rtrancl_eta_App";
 
 section "Commutation of -> and -e>";
@@ -152,8 +151,9 @@ by (rtac (impI RS allI RS allI) 1);
 by (etac beta.induct 1);
 by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_subst,eta_subst]
                       addss !simpset) 1);
-by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 1);
-by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 1);
+by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 6 1);
+by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 6 1);
+(*23 seconds?*)
 by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_Abs,free_beta]
                       addss !simpset) 1);
 qed "square_beta_eta";

@@ -278,7 +278,7 @@ by (Blast_tac 1);
 qed "less_SucE";
 
 goal thy "(m < Suc(n)) = (m < n | m = n)";
-by (fast_tac (!claset addEs  [less_trans, less_SucE]) 1);
+by (fast_tac (!claset addEs [less_trans, less_SucE]) 1);
 qed "less_Suc_eq";
 
 val prems = goal thy "m<n ==> n ~= 0";

@@ -38,8 +38,8 @@ by (ALLGOALS (blast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
 goal Lambda.thy "!!s. [| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
-by (deepen_tac (!claset addSIs [rtrancl_beta_AppL, rtrancl_beta_AppR]
-                        addIs  [rtrancl_trans]) 3 1);
+by (blast_tac (!claset addSIs [rtrancl_beta_AppL, rtrancl_beta_AppR]
+                       addIs  [rtrancl_trans]) 1);
 qed "rtrancl_beta_App";
 AddIs [rtrancl_beta_App];
 
@@ -90,8 +90,8 @@ by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (!simpset addsimps [subst_Var,lift_lift]
                                 setloop (split_tac [expand_if])
                                 addSolver cut_trans_tac)));
-by(safe_tac (HOL_cs addSEs [nat_neqE]));
-by(ALLGOALS trans_tac);
+by (safe_tac (HOL_cs addSEs [nat_neqE]));
+by (ALLGOALS trans_tac);
 qed "lift_subst_lt";
 
 goal Lambda.thy "!k s. (lift t k)[s/k] = t";
@@ -108,8 +108,8 @@ by (ALLGOALS(asm_simp_tac
       (!simpset addsimps [pred_def,subst_Var,lift_lift RS sym,lift_subst_lt]
                 setloop (split_tac [expand_if,expand_nat_case])
                 addSolver cut_trans_tac)));
-by(safe_tac (HOL_cs addSEs [nat_neqE]));
-by(ALLGOALS trans_tac);
+by (safe_tac (HOL_cs addSEs [nat_neqE]));
+by (ALLGOALS trans_tac);
 qed_spec_mp "subst_subst";
 
 

@@ -50,7 +50,7 @@ goal Arith.thy "!!k. 0<k ==> EX j. k = Suc(j)";
 by (etac rev_mp 1);
 by (nat_ind_tac "k" 1);
 by (Simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 (* [| 0 < k; !!j. [| j: nat; k = succ(j) |] ==> Q |] ==> Q *)
@@ -247,7 +247,7 @@ qed "diff_mult_distrib2" ;
 (*In ordinary notation: if 0<n and n<=m then m-n < m *)
 goal Arith.thy "!!m. [| 0<n; ~ m<n |] ==> m - n < m";
 by (subgoal_tac "0<n --> ~ m<n --> m - n < m" 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS(asm_simp_tac(!simpset addsimps [diff_less_Suc])));
 qed "diff_less";
@@ -335,7 +335,7 @@ qed "if_Suc_diff_n";
 
 goal Arith.thy "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";
 by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
-by (ALLGOALS (strip_tac THEN' Simp_tac THEN' TRY o Fast_tac));
+by (ALLGOALS (strip_tac THEN' Simp_tac THEN' TRY o Blast_tac));
 qed "zero_induct_lemma";
 
 val prems = goal Arith.thy "[| P(k);  !!n. P(Suc(n)) ==> P(n) |] ==> P(0)";
@@ -385,7 +385,7 @@ goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2 < 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "mod2_cases";
 
 goal thy "Suc(Suc(m)) mod 2 = m mod 2";
@@ -452,7 +452,7 @@ goal Arith.thy "!!i. i+j < (k::nat) ==> i<k";
 by (etac rev_mp 1);
 by (nat_ind_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
-by (fast_tac (!claset addDs [Suc_lessD]) 1);
+by (blast_tac (!claset addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
 goal Arith.thy "!!k::nat. m <= n ==> m <= n+k";
@@ -468,7 +468,7 @@ qed "less_imp_add_less";
 goal Arith.thy "m+k<=n --> m<=(n::nat)";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
-by (fast_tac (!claset addDs [Suc_leD]) 1);
+by (blast_tac (!claset addDs [Suc_leD]) 1);
 qed_spec_mp "add_leD1";
 
 goal Arith.thy "!!n::nat. m+k<=n ==> k<=n";
@@ -477,7 +477,7 @@ by (etac add_leD1 1);
 qed_spec_mp "add_leD2";
 
 goal Arith.thy "!!n::nat. m+k<=n ==> m<=n & k<=n";
-by (fast_tac (!claset addDs [add_leD1, add_leD2]) 1);
+by (blast_tac (!claset addDs [add_leD1, add_leD2]) 1);
 bind_thm ("add_leE", result() RS conjE);
 
 goal Arith.thy "!!k l::nat. [| k<l; m+l = k+n |] ==> m<n";
@@ -513,7 +513,7 @@ val [lt_mono,le] = goal Arith.thy
 \     |] ==> f(i) <= (f(j)::nat)";
 by (cut_facts_tac [le] 1);
 by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-by (fast_tac (!claset addSIs [lt_mono]) 1);
+by (blast_tac (!claset addSIs [lt_mono]) 1);
 qed "less_mono_imp_le_mono";
 
 (*non-strict, in 1st argument*)

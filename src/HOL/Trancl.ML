@@ -80,7 +80,7 @@ bind_thm
 goalw Trancl.thy [trans_def] "trans(r^*)";
 by (safe_tac (!claset));
 by (eres_inst_tac [("b","z")] rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
+by (ALLGOALS(blast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "trans_rtrancl";
 
 bind_thm ("rtrancl_trans", trans_rtrancl RS transD);
@@ -110,7 +110,7 @@ by (hyp_subst_tac 1);
 by (rtac iffI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (fast_tac (!claset addEs [rtrancl_trans]) 1);
+by (blast_tac (!claset addIs [rtrancl_trans]) 1);
 by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
@@ -128,13 +128,13 @@ by (Blast_tac 1);
 qed "rtrancl_subset";
 
 goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
-by (best_tac (!claset addSIs [rtrancl_subset]
-                      addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
+by (blast_tac (!claset addSIs [rtrancl_subset]
+                       addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
 
 goal Trancl.thy "(R^=)^* = R^*";
-by (fast_tac (!claset addSIs [rtrancl_refl,rtrancl_subset]
-                      addIs  [r_into_rtrancl]) 1);
+by (blast_tac (!claset addSIs [rtrancl_subset]
+                       addIs  [rtrancl_refl, r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
@@ -142,14 +142,14 @@ goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (deepen_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 0 1);
+by (blast_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
 goal Trancl.thy "!!r. (x,y) : converse(r^*) ==> (x,y) : (converse r)^*";
 by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (deepen_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 0 1);
+by (blast_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
 goal Trancl.thy "(converse r)^* = converse(r^*)";
@@ -241,7 +241,7 @@ by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
 by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
 by (etac rtranclE 1);
 by (Blast_tac 1);
-by (fast_tac (!claset addSIs [rtrancl_into_trancl1]) 1);
+by (blast_tac (!claset addSIs [rtrancl_into_trancl1]) 1);
 qed "tranclE";
 
 (*Transitivity of r^+.
