@@ -29,6 +29,7 @@ time_use_thy "Enum";            (*Enormous enumeration type*)
 
 (** Inductive definitions **)
 time_use_thy "Rmap";            (*mapping a relation over a list*)
+time_use_thy "Mutil";           (*mutilated checkerboard*)
 time_use_thy "PropLog";         (*completeness of propositional logic*)
 (*two Coq examples by Christine Paulin-Mohring*)
 time_use_thy "ListN";
