@@ -558,28 +558,10 @@ is proved by simplification, whereas the only slightly more complex
 \input{Misc/document/arith4.tex}%
 is not proved by simplification and requires \isa{arith}.
 
-\subsubsection{Permutative rewrite rules}
-
-A rewrite rule is \textbf{permutative} if the left-hand side and right-hand
-side are the same up to renaming of variables.  The most common permutative
-rule is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.
-Such rules are problematic because once they apply, they can be used forever.
-The simplifier is aware of this danger and treats permutative rules
-separately. For details see~\cite{isabelle-ref}.
-
 \subsubsection{Tracing}
 \indexbold{tracing the simplifier}
 
 {\makeatother\input{Misc/document/trace_simp.tex}}
-
-\subsection{How it works}
-\label{sec:SimpHow}
-
-\subsubsection{Higher-order patterns}
-
-\subsubsection{Local assumptions}
-
-\subsubsection{The preprocessor}
 
 \index{simplification|)}
 
@@ -800,9 +782,3 @@ supplied) sense.
 \input{Recdef/document/Nested2.tex}
 
 \index{*recdef|)}
-
-\section{Advanced induction techniques}
-\label{sec:advanced-ind}
-\input{Misc/document/AdvancedInd.tex}
-
-%\input{Datatype/document/Nested2.tex}
