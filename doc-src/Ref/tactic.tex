@@ -109,19 +109,20 @@ forw_inst_tac : (string*string)list -> thm -> int -> tactic
 \end{ttbox}
 These tactics are designed for applying rules such as substitution and
 induction, which cause difficulties for higher-order unification.  The
-tactics accept explicit instantiations for schematic variables in the rule
---- typically, in the rule's conclusion.  Each instantiation is a pair
-{\tt($v$,$e$)}, where $v$ can be a type variable or ordinary variable:
+tactics accept explicit instantiations for unknowns in the rule ---
+typically, in the rule's conclusion.  Each instantiation is a pair
+{\tt($v$,$e$)}, where $v$ is an unknown {\em without\/} its leading
+question mark!
 \begin{itemize}
-\item If $v$ is the {\bf type variable} {\tt'a}, then
-the rule must contain a schematic type variable \verb$?'a$ of some
+\item If $v$ is the type unknown {\tt'a}, then
+the rule must contain a type unknown \verb$?'a$ of some
 sort~$s$, and $e$ should be a type of sort $s$.
 
-\item If $v$ is the {\bf variable} {\tt P}, then
-the rule must contain a schematic variable \verb$?P$ of some type~$\tau$,
+\item If $v$ is the unknown {\tt P}, then
+the rule must contain an unknown \verb$?P$ of some type~$\tau$,
 and $e$ should be a term of some type~$\sigma$ such that $\tau$ and
 $\sigma$ are unifiable.  If the unification of $\tau$ and $\sigma$
-instantiates any schematic type variables in $\tau$, these instantiations
+instantiates any type unknowns in $\tau$, these instantiations
 are recorded for application to the rule.
 \end{itemize}
 Types are instantiated before terms.  Because type instantiations are
@@ -142,7 +143,7 @@ may not refer to unknowns in the subgoal.
 instantiates the rule {\it thm} with the instantiations {\it insts}, as
 described above, and then performs resolution on subgoal~$i$.  Resolution
 typically causes further instantiations; you need not give explicit
-instantiations for every variable in the rule.
+instantiations for every unknown in the rule.
 
 \item[\ttindexbold{eres_inst_tac}] 
 is like {\tt res_inst_tac}, but performs elim-resolution.
@@ -162,17 +163,17 @@ result as a new assumption.
 \index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
 \index{definitions}
 
-Definitions in Isabelle have the form $t\equiv u$, where typically $t$ is a
+Definitions in Isabelle have the form $t\equiv u$, where $t$ is typically a
 constant or a constant applied to a list of variables, for example $\it
 sqr(n)\equiv n\times n$.  (Conditional definitions, $\phi\Imp t\equiv u$,
-are not supported.)  {\bf Unfolding} the definition $t\equiv u$ means using
+are not supported.)  {\bf Unfolding} the definition ${t\equiv u}$ means using
 it as a rewrite rule, replacing~$t$ by~$u$ throughout a theorem.  {\bf
 Folding} $t\equiv u$ means replacing~$u$ by~$t$.  Rewriting continues until
 no rewrites are applicable to any subterm.
 
 There are rules for unfolding and folding definitions; Isabelle does not do
 this automatically.  The corresponding tactics rewrite the proof state,
-yielding a unique result.  See also the {\tt goalw} command, which is the
+yielding a single next state.  See also the {\tt goalw} command, which is the
 easiest way of handling definitions.
 \begin{ttbox} 
 rewrite_goals_tac : thm list -> tactic
@@ -204,12 +205,12 @@ folds the {\it defs} throughout the proof state.
 \index{tactics!resolution}\index{tactics!assumption}
 \index{tactics!meta-rewriting}
 \begin{ttbox} 
-rtac     : thm -> int ->tactic
-etac     : thm -> int ->tactic
-dtac     : thm -> int ->tactic
-atac     : int ->tactic
+rtac     :      thm -> int -> tactic
+etac     :      thm -> int -> tactic
+dtac     :      thm -> int -> tactic
+atac     :             int -> tactic
 ares_tac : thm list -> int -> tactic
-rewtac   : thm -> tactic
+rewtac   :      thm ->        tactic
 \end{ttbox}
 These abbreviate common uses of tactics.
 \begin{ttdescription}
@@ -224,7 +225,7 @@ abbreviates \hbox{\tt dresolve_tac [{\it thm}] {\it i}}, doing
 destruct-resolution.
 
 \item[\ttindexbold{atac} {\it i}] 
-is a synonym for \hbox{\tt assume_tac {\it i}}, doing proof by assumption.
+abbreviates \hbox{\tt assume_tac {\it i}}, doing proof by assumption.
 
 \item[\ttindexbold{ares_tac} {\it thms} {\it i}] 
 tries proof by assumption and resolution; it abbreviates
@@ -244,8 +245,7 @@ cut_facts_tac : thm list -> int -> tactic
 cut_inst_tac  : (string*string)list -> thm -> int -> tactic
 subgoal_tac   : string -> int -> tactic
 \end{ttbox}
-These tactics add assumptions --- which must be proved, sooner or later ---
-to a given subgoal.
+These tactics add assumptions to a given subgoal.
 \begin{ttdescription}
 \item[\ttindexbold{cut_facts_tac} {\it thms} {\it i}] 
   adds the {\it thms} as new assumptions to subgoal~$i$.  Once they have
@@ -367,7 +367,7 @@ makes Isabelle generate uniform names for parameters.
 \begin{ttbox}
 compose_tac: (bool * thm * int) -> int -> tactic
 \end{ttbox}
-{\bf Composing} two rules means to resolve them without prior lifting or
+{\bf Composing} two rules means resolving them without prior lifting or
 renaming of unknowns.  This low-level operation, which underlies the
 resolution tactics, may occasionally be useful for special effects.
 A typical application is \ttindex{res_inst_tac}, which lifts and instantiates a
@@ -422,7 +422,7 @@ ordinary resolution because it solves the major premise by assumption.
 \item[\ttindexbold{lessb} ({\it brl1},{\it brl2})] 
 returns the result of 
 \begin{ttbox}
-subgoals_of_brl {\it brl1} < subgoals_of_brl {\it brl2}
+subgoals_of_brl{\it brl1} < subgoals_of_brl{\it brl2}
 \end{ttbox}
 \end{ttdescription}
 Note that \hbox{\tt sort lessb {\it brls}} sorts a list of $\it
@@ -463,7 +463,7 @@ elimination rules indexed by their major premise.  Isabelle provides
 several functions for `compiling' long lists of rules into fast
 resolution tactics.  When supplied with a list of theorems, these functions
 build a discrimination net; the net is used when the tactic is applied to a
-goal.  To avoid repreatedly constructing the nets, use currying: bind the
+goal.  To avoid repeatedly constructing the nets, use currying: bind the
 resulting tactics to \ML{} identifiers.
 
 \begin{ttdescription}
@@ -562,15 +562,15 @@ SUBGOAL (fn (t,i) => {\it tactic-valued expression})
 pause_tac: tactic
 print_tac: tactic
 \end{ttbox}
-These violate the functional behaviour of tactics by printing information
-when they are applied to a proof state.  Their output may be difficult to
-interpret.  Note that certain of the searching tacticals, such as {\tt
-REPEAT}, have built-in tracing options.
+These tactics print tracing information when they are applied to a proof
+state.  Their output may be difficult to interpret.  Note that certain of
+the searching tacticals, such as {\tt REPEAT}, have built-in tracing
+options.
 \begin{ttdescription}
 \item[\ttindexbold{pause_tac}] 
-prints {\tt** Press RETURN to continue:} and then reads a line from the
-terminal.  If this line is blank then it returns the proof state unchanged;
-otherwise it fails (which may terminate a repetition).
+prints {\footnotesize\tt** Press RETURN to continue:} and then reads a line
+from the terminal.  If this line is blank then it returns the proof state
+unchanged; otherwise it fails (which may terminate a repetition).
 
 \item[\ttindexbold{print_tac}] 
 returns the proof state unchanged, with the side effect of printing it at
@@ -612,7 +612,7 @@ constructs the sequence containing the single element~$x$.
 \item[Sequence.pull $s$] 
 returns {\tt None} if the sequence is empty and {\tt Some($x$,$s'$)} if the
 sequence has head~$x$ and tail~$s'$.  Warning: calling \hbox{Sequence.pull
-$s$} again will {\bf recompute} the value of~$x$; it is not stored!
+$s$} again will {\it recompute\/} the value of~$x$; it is not stored!
 \end{ttdescription}
 
 
@@ -623,7 +623,7 @@ list_of_s : 'a seq -> 'a list
 s_of_list : 'a list -> 'a seq
 \end{ttbox}
 \begin{ttdescription}
-\item[Sequence.chop ($n$, $s$)] 
+\item[Sequence.chop($n$,$s$)] 
 returns the first~$n$ elements of~$s$ as a list, paired with the remaining
 elements of~$s$.  If $s$ has fewer than~$n$ elements, then so will the
 list.
@@ -645,10 +645,10 @@ maps       : ('a -> 'b) -> 'a seq -> 'b seq
 filters    : ('a -> bool) -> 'a seq -> 'a seq
 \end{ttbox} 
 \begin{ttdescription}
-\item[Sequence.append ($s@1$, $s@2$)] 
+\item[Sequence.append($s@1$,$s@2$)] 
 concatenates $s@1$ to $s@2$.
 
-\item[Sequence.interleave ($s@1$, $s@2$)] 
+\item[Sequence.interleave($s@1$,$s@2$)] 
 joins $s@1$ with $s@2$ by interleaving their elements.  The result contains
 all the elements of the sequences, even if both are infinite.
 

@@ -142,7 +142,7 @@ rule fails to resolve with some goal.
 
 \begin{ttdescription}
 \item[\ttindexbold{show_hyps} := false;]   
-makes Isabelle show each meta-level hypotheses as a dot.
+makes Isabelle show each meta-level hypothesis as a dot.
 
 \item[\ttindexbold{show_types} := true;]
 makes Isabelle show types when printing a term or theorem.
@@ -160,7 +160,7 @@ eta_contract: bool ref \hfill{\bf initially false}
 The {\bf $\eta$-contraction law} asserts $(\lambda x.f(x))\equiv f$,
 provided $x$ is not free in ~$f$.  It asserts {\bf extensionality} of
 functions: $f\equiv g$ if $f(x)\equiv g(x)$ for all~$x$.  Higher-order
-unification occasionally puts terms into a fully $\eta$-expanded form.  For
+unification frequently puts terms into a fully $\eta$-expanded form.  For
 example, if $F$ has type $(\tau\To\tau)\To\tau$ then its expanded form is
 $\lambda h.F(\lambda x.h(x))$.  By default, the user sees this expanded
 form.

@@ -139,7 +139,7 @@ outcome.
 Note {\tt REPEAT}'s explicit abstraction over the proof state.  Recursive
 tacticals must be coded in this awkward fashion to avoid infinite
 recursion.  With the following definition, \hbox{\tt REPEAT $tac$} would
-loop:
+loop due to \ML's eager evaluation strategy:
 \begin{ttbox} 
 fun REPEAT tac = (tac THEN REPEAT tac) ORELSE all_tac;
 \end{ttbox}
@@ -185,8 +185,8 @@ always has some effect on the state.
 \index{tracing!of searching tacticals}
 \begin{ttbox} 
 DEPTH_FIRST   : (thm->bool) -> tactic -> tactic
-DEPTH_SOLVE   : tactic -> tactic
-DEPTH_SOLVE_1 : tactic -> tactic
+DEPTH_SOLVE   :                tactic -> tactic
+DEPTH_SOLVE_1 :                tactic -> tactic
 trace_DEPTH_FIRST: bool ref \hfill{\bf initially false}
 \end{ttbox}
 \begin{ttdescription}
@@ -213,7 +213,7 @@ tracing options, type {\tt h} at the prompt.
 \index{tacticals!searching}
 \index{tracing!of searching tacticals}
 \begin{ttbox} 
-BREADTH_FIRST   : (thm->bool) -> tactic -> tactic
+BREADTH_FIRST   :            (thm->bool) -> tactic -> tactic
 BEST_FIRST      : (thm->bool)*(thm->int) -> tactic -> tactic
 THEN_BEST_FIRST : tactic * ((thm->bool) * (thm->int) * tactic)
                   -> tactic                    \hfill{\bf infix 1}
@@ -330,11 +330,11 @@ subgoal~$i$.  If {\it tac\/} returns multiple results then so does
 \hbox{\tt SELECT_GOAL {\it tac} $i$}.
 
 {\tt SELECT_GOAL} works by creating a state of the form $\phi\Imp\phi$,
-with the one subgoal~$\phi$.  If subgoal~$i$ has the form then
-$(\psi\Imp\theta)\Imp(\psi\Imp\theta)$ is in fact $\List{\psi\Imp\theta;\;
-  \psi}\Imp\theta$, a proof state with two subgoals.  Such a proof state
-might cause tactics to go astray.  Therefore {\tt SELECT_GOAL} inserts a
-quantifier to create the state
+with the one subgoal~$\phi$.  If subgoal~$i$ has the form $\psi\Imp\theta$
+then $(\psi\Imp\theta)\Imp(\psi\Imp\theta)$ is in fact
+$\List{\psi\Imp\theta;\; \psi}\Imp\theta$, a proof state with two subgoals.
+Such a proof state might cause tactics to go astray.  Therefore {\tt
+  SELECT_GOAL} inserts a quantifier to create the state
 \[ (\Forall x.\psi\Imp\theta)\Imp(\Forall x.\psi\Imp\theta). \]
 
 \item[\ttindexbold{METAHYPS} {\it tacf} $i$]\index{meta-assumptions}
@@ -362,6 +362,8 @@ of an inference rule (these are called {\bf higher-level assumptions}).
 \begin{ttbox} 
 val hyp_res_tac = METAHYPS (fn prems => resolve_tac prems 1);
 \end{ttbox} 
+The function \ttindex{gethyps} is useful for debugging applications of {\tt
+  METAHYPS}. 
 \end{ttdescription}
 
 \begin{warn}

@@ -28,9 +28,10 @@ interactive proof assistants provide this much automation.  The tactics can
 be traced, and their components can be called directly; in this manner,
 any proof can be viewed interactively.
 
-The logics {\tt FOL}, {\tt HOL} and {\tt ZF} have the classical reasoner
-already installed.  We shall first consider how to use it, then see how to
-instantiate it for new logics.
+We shall first discuss the underlying principles, then consider how to use
+the classical reasoner.  Finally, we shall see how to instantiate it for
+new logics.  The logics {\tt FOL}, {\tt HOL} and {\tt ZF} have it already
+installed.
 
 
 \section{The sequent calculus}
@@ -136,7 +137,7 @@ Q$.  The introduction rules~$({\disj}I1,2)$ are replaced by a rule that
 simulates $({\disj}R)$:
 \[ (\neg Q\Imp P) \Imp P\disj Q \]
 The destruction rule $({\imp}E)$ is replaced by
-\[ \List{P\imp Q;\; \neg P\imp R;\; Q\imp R} \Imp R. \]
+\[ \List{P\imp Q;\; \neg P\Imp R;\; Q\Imp R} \Imp R. \]
 Quantifier replication also requires special rules.  In classical logic,
 $\exists x{.}P$ is equivalent to $\neg\forall x{.}\neg P$; the rules
 $(\exists R)$ and $(\forall L)$ are dual:
@@ -165,7 +166,7 @@ single use.  To replicate universal quantifiers, replace the rule by
 $$ \List{\forall x{.}P(x);\; \List{P(t); \forall x{.}P(x)}\Imp Q} \Imp Q.
    \eqno(\forall E@3) $$
 To replicate existential quantifiers, replace $(\exists I)$ by
-\[ \Bigl(\neg(\exists x{.}P(x)) \Imp P(t)\Bigr) \Imp \exists x{.}P(x). \]
+\[ \List{\neg(\exists x{.}P(x)) \Imp P(t)} \Imp \exists x{.}P(x). \]
 All introduction rules mentioned above are also useful in swapped form.
 
 Replication makes the search space infinite; we must apply the rules with
@@ -263,6 +264,25 @@ $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 If installed, the classical module provides several tactics (and other
 operations) for simulating the classical sequent calculus.
 
+\subsection{The automatic tactics}
+\begin{ttbox} 
+fast_tac : claset -> int -> tactic
+best_tac : claset -> int -> tactic
+\end{ttbox}
+Both of these tactics work by applying {\tt step_tac} repeatedly.  Their
+effect is restricted (by {\tt SELECT_GOAL}) to one subgoal; they either
+solve this subgoal or fail.
+\begin{ttdescription}
+\item[\ttindexbold{fast_tac} $cs$ $i$] applies {\tt step_tac} using
+depth-first search, to solve subgoal~$i$.
+
+\item[\ttindexbold{best_tac} $cs$ $i$] applies {\tt step_tac} using
+best-first search, to solve subgoal~$i$.  A heuristic function ---
+typically, the total size of the proof state --- guides the search.  This
+function is supplied when the classical reasoner is set up.
+\end{ttdescription}
+
+
 \subsection{Single-step tactics}
 \begin{ttbox} 
 safe_step_tac : claset -> int -> tactic
@@ -286,7 +306,7 @@ can replicate certain quantifiers explicitly by applying appropriate rules.
 \item[\ttindexbold{inst_step_tac} $cs$ $i$] is like {\tt safe_step_tac},
 but allows unknowns to be instantiated.
 
-\item[\ttindexbold{step_tac} $cs$ $i$] tries {\tt safe_tac}.  IF this
+\item[\ttindexbold{step_tac} $cs$ $i$] tries {\tt safe_tac}.  If this
 fails, it tries {\tt inst_step_tac}, or applies an unsafe rule from~$cs$.
 This is the basic step of the proof procedure.
 
@@ -296,25 +316,6 @@ This is the basic step of the proof procedure.
   The resulting search space is too large for use in the standard proof
   procedures, but {\tt slow_step_tac} is worth considering in special
   situations.
-\end{ttdescription}
-
-
-\subsection{The automatic tactics}
-\begin{ttbox} 
-fast_tac : claset -> int -> tactic
-best_tac : claset -> int -> tactic
-\end{ttbox}
-Both of these tactics work by applying {\tt step_tac} repeatedly.  Their
-effect is restricted (by {\tt SELECT_GOAL}) to one subgoal; they either
-solve this subgoal or fail.
-\begin{ttdescription}
-\item[\ttindexbold{fast_tac} $cs$ $i$] applies {\tt step_tac} using
-depth-first search, to solve subgoal~$i$.
-
-\item[\ttindexbold{best_tac} $cs$ $i$] applies {\tt step_tac} using
-best-first search, to solve subgoal~$i$.  A heuristic function ---
-typically, the total size of the proof state --- guides the search.  This
-function is supplied when the classical reasoner is set up.
 \end{ttdescription}
 
 

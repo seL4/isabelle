@@ -19,7 +19,8 @@ defaults so that most simplifier calls specify only rewrite rules.
 Experienced users can exploit the other components to streamline proofs.
 
 
-\subsection{Rewrite rules}\index{rewrite rules}
+\subsection{Rewrite rules}
+\index{rewrite rules|(}
 Rewrite rules are theorems expressing some form of equality:
 \begin{eqnarray*}
   Suc(\Var{m}) + \Var{n} &=&      \Var{m} + Suc(\Var{n}) \\
@@ -41,18 +42,22 @@ The function processes theorems added by \ttindex{addsimps} as well as
 local assumptions.
 
 
-\begin{warn}\index{rewrite rules}
+\begin{warn}
   The left-hand side of a rewrite rule must look like a first-order term:
-  after eta-contraction, none of its unknowns should have arguments.  Hence
-  ${\Var{i}+(\Var{j}+\Var{k})} = {(\Var{i}+\Var{j})+\Var{k}}$ and $\neg(\forall
-  x.\Var{P}(x)) \bimp (\exists x.\neg\Var{P}(x))$ are acceptable, whereas
-  $\Var{f}(\Var{x})\in {\tt range}(\Var{f}) = True$ is not.  However, you can
-  replace the offending subterms by new variables and conditions: $\Var{y} =
-  \Var{f}(\Var{x}) \Imp \Var{y}\in {\tt range}(\Var{f}) = True$ is again
-  acceptable.
+  none of its unknowns should have arguments.  Hence
+  ${\Var{i}+(\Var{j}+\Var{k})} = {(\Var{i}+\Var{j})+\Var{k}}$ is
+  acceptable.  Even $\neg(\forall x.\Var{P}(x)) \bimp (\exists
+  x.\neg\Var{P}(x))$ is acceptable because its left-hand side is
+  $\neg(All(\Var{P}))$ after $\eta$-contraction.  But ${\Var{f}(\Var{x})\in
+    {\tt range}(\Var{f})} = True$ is not acceptable.  However, you can
+  replace the offending subterms by adding new variables and conditions:
+  $\Var{y} = \Var{f}(\Var{x}) \Imp \Var{y}\in {\tt range}(\Var{f}) = True$
+  is acceptable as a conditional rewrite rule.
 \end{warn}
 
-\subsection {Congruence rules}\index{congruence rules}
+\index{rewrite rules|)}
+
+\subsection{*Congruence rules}\index{congruence rules}
 Congruence rules are meta-equalities of the form
 \[ \List{\dots} \Imp
    f(\Var{x@1},\ldots,\Var{x@n}) \equiv f(\Var{y@1},\ldots,\Var{y@n}).
@@ -108,10 +113,11 @@ default strategy could loop.
 The subgoaler can be set explicitly with \ttindex{setsubgoaler}.  For
 example, the subgoaler
 \begin{ttbox}
-fun subgoal_tac ss = resolve_tac (prems_of_ss ss) ORELSE' 
+fun subgoal_tac ss = assume_tac ORELSE'
+                     resolve_tac (prems_of_ss ss) ORELSE' 
                      asm_simp_tac ss;
 \end{ttbox}
-tries to solve the subgoal with one of the premises and calls
+tries to solve the subgoal by assumption or with one of the premises, calling
 simplification only if that fails; here {\tt prems_of_ss} extracts the
 current premises from a simpset.
 
@@ -229,9 +235,10 @@ There are three basic simplification tactics:
   is like \verb$simp_tac$, but extracts additional rewrite rules from the
   assumptions.
 
-\item[\ttindexbold{asm_full_simp_tac}] is like \verb$asm_simp_tac$, but also
-  simplifies the assumptions one by one, using each assumption in the
-  simplification of the following ones.
+\item[\ttindexbold{asm_full_simp_tac}] 
+  is like \verb$asm_simp_tac$, but also simplifies the assumptions one by
+  one.  Working from left to right, it uses each assumption in the
+  simplification of those following.
 \end{ttdescription}
 Using the simplifier effectively may take a bit of experimentation.  The
 tactics can be traced with the ML command \verb$trace_simp := true$.  To
@@ -253,7 +260,7 @@ Assume we are working within {\tt FOL} and that
     \Var{P}(Suc(x))} \Imp \Var{P}(\Var{n})$.
 \item[FOL_ss]
   is a basic simpset for {\tt FOL}.%
-\footnote{These examples reside on the file {\tt FOL/ex/nat.ML}.} 
+\footnote{These examples reside on the file {\tt FOL/ex/Nat.ML}.} 
 \end{ttdescription}
 
 We create a simpset for natural numbers by extending~{\tt FOL_ss}:
@@ -397,7 +404,7 @@ by (asm_simp_tac (add_ss addsimps [prem]) 1);
 \end{ttbox}
 
 
-\section{*Permutative rewrite rules}
+\section{Permutative rewrite rules}
 \index{rewrite rules!permutative|(}
 
 A rewrite rule is {\bf permutative} if the left-hand side and right-hand
@@ -455,7 +462,7 @@ rules  sum_0      "sum(f,0) = 0"
        sum_Suc    "sum(f,Suc(n)) = f(n) + sum(f,n)"
 end
 \end{ttbox}
-After declaring {\tt open Natsum}, we make the required simpset by adding
+After declaring {\tt open NatSum}, we make the required simpset by adding
 the AC-rules for~$+$ and the axioms for~{\tt sum}:
 \begin{ttbox}
 val natsum_ss = arith_ss addsimps ([sum_0,sum_Suc] \at add_ac);
@@ -564,7 +571,7 @@ iff_reflection  "(P<->Q) ==> (P==Q)"
 Of course, you should only assert such rules if they are true for your
 particular logic.  In Constructive Type Theory, equality is a ternary
 relation of the form $a=b\in A$; the type~$A$ determines the meaning of the
-equality effectively as a partial equivalence relation.  The present
+equality essentially as a partial equivalence relation.  The present
 simplifier cannot be used.  Rewriting in {\tt CTT} uses another simplifier,
 which resides in the file {\tt typedsimp.ML} and is not documented.  Even
 this does not work for later variants of Constructive Type Theory that use

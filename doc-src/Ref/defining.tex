@@ -117,7 +117,8 @@ $sort$ &=& $id$ ~~$|$~~ {\tt\ttlbrace\ttrbrace}
 \index{*PROP symbol}
 \index{*== symbol}\index{*=?= symbol}\index{*==> symbol}
 \index{*:: symbol}\index{*=> symbol}
-%index command: percent is permitted, but braces must match!
+\index{sort constraints}
+%the index command: a percent is permitted, but braces must match!
 \index{%@{\tt\%} symbol}
 \index{{}@{\tt\ttlbrace} symbol}\index{{}@{\tt\ttrbrace} symbol}
 \index{*[ symbol}\index{*] symbol}
@@ -164,6 +165,7 @@ nonterminals:
   treating {\tt y} like a type constructor applied to {\tt nat}.  The
   likely result is an error message.  To avoid this interpretation, use
   parentheses and write \verb|(x::nat) y|.
+  \index{type constraints}\index{*:: symbol}
 
   Similarly, \verb|x::nat y::nat| is parsed as \verb|x::(nat y::nat)| and
   yields an error.  The correct form is \verb|(x::nat) (y::nat)|.
@@ -295,7 +297,7 @@ Syntax.print_syntax (syn_of Pure.thy);
 {\out print_ast_translation: "==>" "_abs" "_idts" "fun"}
 \end{ttbox}
 
-As you can see, the output is divided into labeled sections.  The grammar
+As you can see, the output is divided into labelled sections.  The grammar
 is represented by {\tt lexicon}, {\tt roots} and {\tt prods}.  The rest
 refers to syntactic translations and macro expansion.  Here is an
 explanation of the various sections.
@@ -378,7 +380,7 @@ A simple type is typically declared for each nonterminal symbol.  In
 first-order logic, type~$i$ stands for terms and~$o$ for formulae.  Only
 the outermost type constructor is taken into account.  For example, any
 type of the form $\sigma list$ stands for a list;  productions may refer
-to the symbol {\tt list} and will apply lists of any type.
+to the symbol {\tt list} and will apply to lists of any type.
 
 The symbol associated with a type is called its {\bf root} since it may
 serve as the root of a parse tree.  Precisely, the root of $(\tau@1, \dots,
@@ -411,7 +413,7 @@ line occurs within the {\tt consts} section of a {\tt .thy} file:
 \begin{center}
   {\tt $c$ ::\ "$\sigma$" ("$template$" $ps$ $p$)}
 \end{center}
-This constant declaration and mixfix annotation is interpreted as follows:
+This constant declaration and mixfix annotation are interpreted as follows:
 \begin{itemize}\index{productions}
 \item The string {\tt $c$} is the name of the constant associated with the
   production; unless it is a valid identifier, it must be enclosed in
@@ -488,7 +490,7 @@ consts
 end
 \end{ttbox}
 The {\tt arities} declaration causes {\tt exp} to be added as a new root.
-If you put this into a file {\tt exp.thy} and load it via {\tt
+If you put this into a file {\tt EXP.thy} and load it via {\tt
   use_thy "EXP"}, you can run some tests:
 \begin{ttbox}
 val read_exp = Syntax.test_read (syn_of EXP.thy) "exp";
@@ -607,6 +609,7 @@ The declaration is expanded internally to
 "\(\Q\)"\hskip-3pt  :: "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(\Q\)_./ _)" \(p\))
 \end{ttbox}
 Here \ndx{idts} is the nonterminal symbol for a list of identifiers with
+\index{type constraints}
 optional type constraints (see Fig.\ts\ref{fig:pure_gram}).  The
 declaration also installs a parse translation\index{translations!parse}
 for~$\Q$ and a print translation\index{translations!print} for~$c$ to
@@ -657,7 +660,7 @@ consts
 end
 \end{ttbox}
 The constant \cdx{Trueprop} (the name is arbitrary) acts as an invisible
-coercion function.  Assuming this definition resides in a file {\tt base.thy},
+coercion function.  Assuming this definition resides in a file {\tt Base.thy},
 you have to load it with the command {\tt use_thy "Base"}.
 
 One of the simplest nontrivial logics is {\bf minimal logic} of
@@ -673,7 +676,7 @@ rules
   MP    "[| P --> Q; P |] ==> Q"
 end
 \end{ttbox}
-After loading this definition from the file {\tt hilbert.thy}, you can
+After loading this definition from the file {\tt Hilbert.thy}, you can
 start to prove theorems in the logic:
 \begin{ttbox}
 goal Hilbert.thy "P --> P";

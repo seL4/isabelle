@@ -10,8 +10,8 @@ Theory operations signal errors by raising exception \xdx{THEORY},
 returning a message and a list of theories.
 
 Signatures, which contain information about sorts, types, constants and
-syntax, have the \ML\ type~\mltydx{Sign.sg}.  For identification,
-each signature carries a unique list of {\bf stamps}, which are \ML\
+syntax, have the \ML\ type~\mltydx{Sign.sg}.  For identification, each
+signature carries a unique list of \bfindex{stamps}, which are \ML\ 
 references to strings.  The strings serve as human-readable names; the
 references serve as unique identifiers.  Each primitive signature has a
 single stamp.  When two signatures are merged, their lists of stamps are
@@ -68,7 +68,7 @@ constituent parts:
   Only 2-place type constructors can have infix status and symbolic names;
   an example is {\tt ('a,'b)"*"}, which expresses binary product types.
 
-  A {\bf type synonym}\indexbold{types!synonyms} is an abbreviation
+  A {\bf type synonym}\indexbold{type synonyms} is an abbreviation
   $(\alpha@1,\dots,\alpha@n)name = \mbox{\tt"}\tau\mbox{\tt"}$, where
   $name$ can be a string and $\tau$ must be enclosed in quotation marks.
   
@@ -177,41 +177,37 @@ suppresses the deletion of temporary files.
 \end{ttdescription}
 %
 Each theory definition must reside in a separate file.  Let the file {\it
-  tf}{\tt.thy} contain the definition of a theory called $TF$ with parent
-theories $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it
-  TF\/}{\tt"} reads file {\it tf}{\tt.thy}, writes a temporary \ML{}
-file {\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file.  Recursive {\tt
+  T}{\tt.thy} contain the definition of a theory called~$T$, whose parent
+theories are $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"{\it
+  T\/}"} reads the file {\it T}{\tt.thy}, writes a temporary \ML{}
+file {\tt.{\it T}.thy.ML}, and reads the latter file.  Recursive {\tt
   use_thy} calls load those parent theories that have not been loaded
-previously; the recursion may continue to any depth.  One {\tt use_thy}
-call can read an entire logic if all theories are linked appropriately.
+previously; the recursive calls may continue to any depth.  One {\tt use_thy}
+call can read an entire logic provided all theories are linked appropriately.
 
-The result is an \ML\ structure~$TF$ containing a component {\tt thy} for
-the new theory and components $r@1$ \dots $r@n$ for the rules.  The
-structure also contains the definitions of the {\tt ML} section, if
-present.  The file {\tt.}{\it tf}{\tt.thy.ML} is then deleted if
-{\tt delete_tmpfiles} is set to {\tt true} and no errors occurred.
+The result is an \ML\ structure~$T$ containing a component {\tt thy} for
+the new theory and components for each of the rules.  The structure also
+contains the definitions of the {\tt ML} section, if present.  The file
+{\tt.{\it T}.thy.ML} is then deleted if {\tt delete_tmpfiles} is set
+to {\tt true} and no errors occurred.
 
-Finally the file {\it tf}{\tt.ML} is read, if it exists.  This file
-normally contains proofs involving the new theory.  It is also possible to
-provide only a {\tt.ML} file, with no {\tt.thy} file.  In this case the
-{\tt.ML} file must declare an \ML\ structure having the theory's name.  If
-both the {\tt.thy} file and a structure declaration in the {\tt.ML} file
-exist, then the latter declaration is used.  See {\tt ZF/ex/llist.ML} for
-an example.
+Finally the file {\it T}{\tt.ML} is read, if it exists.  This file normally
+begins with the declaration {\tt open~$T$} and contains proofs involving
+the new theory.
 
-\indexbold{theories!names of}\indexbold{files!names of}
-\begin{warn}
-  Case is significant.  The argument of \ttindex{use_thy} should be the
-  exact theory name, as defined in the theory file.  The corresponding
-  filenames are derived by appending {\tt.thy} or {\tt.ML} to the theory's
-  name {\it after conversion to lower case}.
-\end{warn}
+Special applications, such as \ZF's inductive definition package, construct
+theories directly by calling the \ML{} function {\tt extend_theory}.  In
+this situation there is no {\tt.thy} file, only an {\tt.ML} file.  The
+{\tt.ML} file must declare an \ML\ structure having the theory's name.  See
+the file {\tt ZF/ex/LList.ML} for an example.
+Section~\ref{sec:pseudo-theories} below describes a way of linking such
+theories to their parents.
 
 \begin{warn}
-  Temporary files are written to the current directory, which therefore
-  must be writable.  Isabelle inherits the current directory from the
-  operating system; you can change it within Isabelle by typing
-  \hbox{\tt\ \ \ttindex{cd} "{\it dir}";\ \ }.
+Temporary files are written to the current directory, which therefore must
+be writable.  Isabelle inherits the current directory from the operating
+system; you can change it within Isabelle by typing \hbox{\tt\ \ 
+  \ttindex{cd} "{\it dir}";\ \ }.
 \end{warn}
 
 
@@ -221,6 +217,11 @@ an example.
 update     : unit -> unit
 unlink_thy : string -> unit
 \end{ttbox}
+Changing a theory on disk often makes it necessary to reload all theories
+descended from it.  However, {\tt use_thy} reads only one theory, even if
+some of the parent theories are out of date.  In this case you should call
+{\tt update()}.
+
 Isabelle keeps track of all loaded theories and their files.  If
 \ttindex{use_thy} finds that the theory to be loaded has been read before,
 it determines whether to reload the theory as follows.  First it looks for
@@ -229,15 +230,9 @@ compares their modification times to the internal data and stops if they
 are equal.  If the files have been moved, {\tt use_thy} searches for them
 as it would for a new theory.  After {\tt use_thy} reloads a theory, it
 marks the children as out-of-date.
-\begin{warn}
-  Changing a theory on disk often makes it necessary to reload all theories
-  descended from it.  However, {\tt use_thy} reads only one theory, even if
-  some of the parent theories are out of date.  In this case you should
-  call {\tt update()}.
-\end{warn}
 
 \begin{ttdescription}
-\item[\ttindexbold{update} ()] 
+\item[\ttindexbold{update}()] 
   reloads all modified theories and their descendants in the correct order.  
 
 \item[\ttindexbold{unlink_thy} $thyname$]\indexbold{theories!removing}
@@ -247,6 +242,7 @@ marks the children as out-of-date.
 \end{ttdescription}
 
 
+\goodbreak
 \subsection{Important note for Poly/ML users}\index{Poly/{\ML} compiler}
 The theory mechanism depends upon reference variables.  At the end of a
 Poly/\ML{} session, the contents of references are lost unless they are
@@ -266,13 +262,17 @@ theories.  You should not omit the declarations even if the parent database
 has no loaded theories, since they allocate new references.
 
 
-\subsection{*Pseudo theories}\indexbold{theories!pseudo}
+\subsection{*Pseudo theories}\label{sec:pseudo-theories}
+\indexbold{theories!pseudo}%
 Any automatic reloading facility requires complete knowledge of all
 dependencies.  Sometimes theories depend on objects created in \ML{} files
-with no associated {\tt.thy} file.  Unless such dependencies are documented,
-{\tt update} fails to reload these \ML{} files and the system is left in a
-state where some objects, such as theorems, still refer to old versions of
-theories.  This may lead to the error
+with no associated {\tt.thy} file.  These objects may be theories but they
+could also be theorems, proof procedures, etc.
+
+Unless such dependencies are documented, {\tt update} fails to reload these
+\ML{} files and the system is left in a state where some objects, such as
+theorems, still refer to old versions of theories.  This may lead to the
+error
 \begin{ttbox}
 Attempt to merge different versions of theory: \(T\)
 \end{ttbox}
@@ -280,8 +280,8 @@ Therefore there is a way to link theories and {\bf orphaned} \ML{} files ---
 those without associated {\tt.thy} file.
 
 Let us assume we have an orphaned \ML{} file named {\tt orphan.ML} and a
-theory~$B$ that depends on {\tt orphan.ML} --- for example, {\tt b.ML} uses
-theorems proved in {\tt orphan.ML}.  Then {\tt b.thy} should
+theory~$B$ that depends on {\tt orphan.ML} --- for example, {\tt B.ML} uses
+theorems proved in {\tt orphan.ML}.  Then {\tt B.thy} should
 mention this dependence by means of a string:
 \begin{ttbox}
 B = ... + "orphan" + ...
@@ -327,17 +327,17 @@ to have the same name; {\tt get_axiom} returns an arbitrary one.
   complains about additional assumptions, but \ttindex{uresult} does not.
 
 For example, if {\it formula} is
-\hbox{\tt a=b ==> b=a} then the resulting theorem might have the form
-\hbox{\tt\frenchspacing ?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]}
+\hbox{\tt a=b ==> b=a} then the resulting theorem has the form
+\hbox{\verb'?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]'}
 \end{ttdescription}
 
 \subsection{Building a theory}
 \label{BuildingATheory}
 \index{theories!constructing|bold}
 \begin{ttbox} 
-pure_thy: theory
-merge_theories: theory * theory -> theory
-extend_theory: theory -> string -> \(\cdots\) -> theory
+pure_thy       : theory
+merge_theories : theory * theory -> theory
+extend_theory  : theory -> string -> \(\cdots\) -> theory
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{pure_thy}] contains just the types, constants, and syntax
@@ -414,7 +414,7 @@ elements, depending upon whether $thy$ is {\tt pure_thy},
 \hbox{\tt extend_theory $thy$} or \hbox{\tt merge_theories ($thy@1$, $thy@2$)}.
 
 \item[\ttindexbold{stamps_of_thy} $thy$]\index{signatures}
-returns the stamps of the signature associated with~$thy$.
+returns the \rmindex{stamps} of the signature associated with~$thy$.
 
 \item[\ttindexbold{sign_of} $thy$] 
 returns the signature associated with~$thy$.  It is useful with functions
@@ -470,7 +470,7 @@ datatype term = Const of string * typ
 is the {\bf application} of~$t$ to~$u$.  
 \end{ttdescription}
 Application is written as an infix operator to aid readability.
-Here is an \ML\ pattern to recognize first-order formulae of
+Here is an \ML\ pattern to recognize \FOL{} formulae of
 the form~$A\imp B$, binding the subformulae to~$A$ and~$B$:
 \begin{ttbox} 
 Const("Trueprop",_) $ (Const("op -->",_) $ A $ B)
@@ -496,7 +496,7 @@ bound variables.
   the number 0.  A well-formed term does not contain any loose variables.
 
 \item[\ttindexbold{incr_boundvars} $j$] 
-  increases a term's dangling bound variables by the offset~$j$.  This
+  increases a term's dangling bound variables by the offset~$j$.  This is
   required when moving a subterm into a context where it is enclosed by a
   different number of abstractions.  Bound variables with a matching
   abstraction are unaffected.
@@ -510,7 +510,7 @@ bound variables.
   substitutes into $u$, which should be the body of an abstraction.
   It replaces each occurrence of the outermost bound variable by a free
   variable.  The free variable has type~$T$ and its name is a variant
-  of~$a$ choosen to be distinct from all constants and from all variables
+  of~$a$ chosen to be distinct from all constants and from all variables
   free in~$u$.
 
 \item[$t$ \ttindexbold{aconv} $u$] 

@@ -92,7 +92,7 @@ abbreviates \hbox{\tt$thm@1$ RSN $(1,thm@2)$}.  Thus, it resolves the
 conclusion of $thm@1$ with the first premise of~$thm@2$.
 
 \item[\tt {$[thm@1,\ldots,thm@n]$} MRS $thm$] \indexbold{*MRS} 
-  uses {\tt RLN} to resolve $thm@i$ against premise~$i$ of $thm$, for
+  uses {\tt RSN} to resolve $thm@i$ against premise~$i$ of $thm$, for
   $i=n$, \ldots,~1.  This applies $thm@n$, \ldots, $thm@1$ to the first $n$
   premises of $thm$.  Because the theorems are used from right to left, it
   does not matter if the $thm@i$ create new premises.  {\tt MRS} is useful
@@ -169,15 +169,15 @@ as pairs of certified terms, not as strings to be read.
 \subsection{Miscellaneous forward rules}
 \index{theorems!standardizing}
 \begin{ttbox} 
-standard         : thm -> thm
-zero_var_indexes : thm -> thm
-make_elim        : thm -> thm
+standard         :           thm -> thm
+zero_var_indexes :           thm -> thm
+make_elim        :           thm -> thm
 rule_by_tactic   : tactic -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{standard} $thm$]  
 puts $thm$ into the standard form of object-rules.  It discharges all
-meta-hypotheses, replaces free variables by schematic variables, and
+meta-assumptions, replaces free variables by schematic variables, and
 renames schematic variables to have subscript zero.
 
 \item[\ttindexbold{zero_var_indexes} $thm$] 
@@ -228,7 +228,7 @@ returns the number of premises in $thm$, and is equivalent to {\tt
 returns the flex-flex constraints of $thm$.
 
 \item[\ttindexbold{stamps_of_thm} $thm$] 
-returns the stamps of the signature associated with~$thm$.
+returns the \rmindex{stamps} of the signature associated with~$thm$.
 
 \item[\ttindexbold{dest_state} $(thm,i)$] 
 decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
@@ -237,7 +237,7 @@ list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 
 \item[\ttindexbold{rep_thm} $thm$] 
 decomposes $thm$ as a record containing the statement of~$thm$, its list of
-meta-hypotheses, the maximum subscript of its unknowns, and its signature.
+meta-assumptions, the maximum subscript of its unknowns, and its signature.
 \end{ttdescription}
 
 
@@ -284,12 +284,12 @@ malformed premises, incompatible signatures and similar errors.
 
 \index{meta-assumptions}
 The meta-logic uses natural deduction.  Each theorem may depend on
-meta-hypotheses, or assumptions.  Certain rules, such as $({\Imp}I)$,
+meta-level assumptions.  Certain rules, such as $({\Imp}I)$,
 discharge assumptions; in most other rules, the conclusion depends on all
 of the assumptions of the premises.  Formally, the system works with
 assertions of the form
 \[ \phi \quad [\phi@1,\ldots,\phi@n], \]
-where $\phi@1$,~\ldots,~$\phi@n$ are the hypotheses.  Do not confuse
+where $\phi@1$,~\ldots,~$\phi@n$ are the assumptions.  Do not confuse
 meta-level assumptions with the object-level assumptions in a subgoal,
 which are represented in the meta-logic using~$\Imp$.
 
@@ -299,7 +299,7 @@ to make a signature for the conclusion.  This fails if the signatures are
 incompatible. 
 
 \index{meta-implication}
-The {\em implication\/} rules are $({\Imp}I)$
+The {\bf implication} rules are $({\Imp}I)$
 and $({\Imp}E)$:
 \[ \infer[({\Imp}I)]{\phi\Imp \psi}{\infer*{\psi}{[\phi]}}  \qquad
    \infer[({\Imp}E)]{\psi}{\phi\Imp \psi & \phi}  \]
@@ -311,7 +311,7 @@ Equality of truth values means logical equivalence:
    \qquad
    \infer[({\equiv}E)]{\psi}{\phi\equiv \psi & \phi}   \]
 
-The {\em equality\/} rules are reflexivity, symmetry, and transitivity:
+The {\bf equality} rules are reflexivity, symmetry, and transitivity:
 \[ {a\equiv a}\,(refl)  \qquad
    \infer[(sym)]{b\equiv a}{a\equiv b}  \qquad
    \infer[(trans)]{a\equiv c}{a\equiv b & b\equiv c}   \]
@@ -324,14 +324,14 @@ in~$a$; $(ext)$ holds if $x$ is not free in the assumptions, $f$, or~$g$.}
    {((\lambda x.a)(b)) \equiv a[b/x]}           \qquad
    \infer[(ext)]{f\equiv g}{f(x) \equiv g(x)}   \]
 
-The {\it abstraction\/} and {\it combination\/} rules permit the conversion
-of subterms:\footnote{Abstraction holds if $x$ is not free in the
+The {\bf abstraction} and {\bf combination} rules let conversions be
+applied to subterms:\footnote{Abstraction holds if $x$ is not free in the
 assumptions.}
 \[  \infer[(abs)]{(\lambda x.a) \equiv (\lambda x.b)}{a\equiv b}   \qquad
     \infer[(comb)]{f(a)\equiv g(b)}{f\equiv g & a\equiv b}   \]
 
 \index{meta-quantifiers}
-The {\em universal quantification\/} rules are $(\Forall I)$ and $(\Forall
+The {\bf universal quantification} rules are $(\Forall I)$ and $(\Forall
 E)$:\footnote{$(\Forall I)$ holds if $x$ is not free in the assumptions.}
 \[ \infer[(\Forall I)]{\Forall x.\phi}{\phi}        \qquad
    \infer[(\Forall E)]{\phi[b/x]}{\Forall x.\phi}   \]
@@ -344,9 +344,9 @@ assume: Sign.cterm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{assume} $ct$] 
-makes the theorem \(\phi \quad[\phi]\), where $\phi$ is the value of~$ct$.
+makes the theorem \(\phi \;[\phi]\), where $\phi$ is the value of~$ct$.
 The rule checks that $ct$ has type $prop$ and contains no unknowns, which
-are not allowed in hypotheses.
+are not allowed in assumptions.
 \end{ttdescription}
 
 \subsection{Implication rules}
@@ -361,15 +361,16 @@ implies_elim_list : thm -> thm list -> thm
 \begin{ttdescription}
 \item[\ttindexbold{implies_intr} $ct$ $thm$] 
 is $({\Imp}I)$, where $ct$ is the assumption to discharge, say~$\phi$.  It
-maps the premise $\psi\quad[\phi]$ to the conclusion $\phi\Imp\psi$.  The
-rule checks that $ct$ has type $prop$.
+maps the premise~$\psi$ to the conclusion $\phi\Imp\psi$, removing all
+occurrences of~$\phi$ from the assumptions.  The rule checks that $ct$ has
+type $prop$. 
 
 \item[\ttindexbold{implies_intr_list} $cts$ $thm$] 
 applies $({\Imp}I)$ repeatedly, on every element of the list~$cts$.
 
 \item[\ttindexbold{implies_intr_hyps} $thm$] 
-applies $({\Imp}I)$ to discharge all the hypotheses of~$thm$.  It maps the
-premise $\phi \quad [\phi@1,\ldots,\phi@n]$ to the conclusion
+applies $({\Imp}I)$ to discharge all the hypotheses (assumptions) of~$thm$.
+It maps the premise $\phi \; [\phi@1,\ldots,\phi@n]$ to the conclusion
 $\List{\phi@1,\ldots,\phi@n}\Imp\phi$.
 
 \item[\ttindexbold{implies_elim} $thm@1$ $thm@2$] 
@@ -390,8 +391,10 @@ equal_elim : thm -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{equal_intr} $thm@1$ $thm@2$] 
-applies $({\equiv}I)$ to $thm@1$ and~$thm@2$.  It maps the premises
-$\psi\quad[\phi]$ and $\phi\quad[\psi]$ to the conclusion~$\phi\equiv\psi$.
+applies $({\equiv}I)$ to $thm@1$ and~$thm@2$.  It maps the premises~$\psi$
+and~$\phi$ to the conclusion~$\phi\equiv\psi$; the assumptions are those of
+the first premise with~$\phi$ removed, plus those of
+the second premise with~$\psi$ removed.
 
 \item[\ttindexbold{equal_elim} $thm@1$ $thm@2$] 
 applies $({\equiv}E)$ to $thm@1$ and~$thm@2$.  It maps the premises
@@ -436,14 +439,14 @@ term $(\lambda x.a)(b)$.
 \item[\ttindexbold{extensional} $thm$] 
 maps the premise $f(x) \equiv g(x)$ to the conclusion $f\equiv g$.
 Parameter~$x$ is taken from the premise.  It may be an unknown or a free
-variable (provided it does not occur in the hypotheses); it must not occur
+variable (provided it does not occur in the assumptions); it must not occur
 in $f$ or~$g$.
 
 \item[\ttindexbold{abstract_rule} $v$ $x$ $thm$] 
 maps the premise $a\equiv b$ to the conclusion $(\lambda x.a) \equiv
 (\lambda x.b)$, abstracting over all occurrences (if any!) of~$x$.
 Parameter~$x$ is supplied as a cterm.  It may be an unknown or a free
-variable (provided it does not occur in the hypotheses).  In the
+variable (provided it does not occur in the assumptions).  In the
 conclusion, the bound variable is named~$v$.
 
 \item[\ttindexbold{combination} $thm@1$ $thm@2$] 
@@ -465,7 +468,7 @@ forall_intr_frees :                    thm -> thm
 applies $({\Forall}I)$, abstracting over all occurrences (if any!) of~$x$.
 The rule maps the premise $\phi$ to the conclusion $\Forall x.\phi$.
 Parameter~$x$ is supplied as a cterm.  It may be an unknown or a free
-variable (provided it does not occur in the hypotheses).
+variable (provided it does not occur in the assumptions).
 
 \item[\ttindexbold{forall_intr_list} $xs$ $thm$] 
 applies $({\Forall}I)$ repeatedly, on every element of the list~$xs$.
@@ -592,7 +595,7 @@ unique; otherwise, it raises exception~\xdx{THM}\@.  It is
 analogous to {\tt RS}\@.  
 
 For example, suppose that $thm@1$ is $a=b\Imp b=a$, a symmetry rule, and
-that $thm@2$ is $\List{P\Imp Q; \neg Q} \Imp\neg P)$, which is the
+that $thm@2$ is $\List{P\Imp Q; \neg Q} \Imp\neg P$, which is the
 principle of contrapositives.  Then the result would be the
 derived rule $\neg(b=a)\Imp\neg(a=b)$.
 

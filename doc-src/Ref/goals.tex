@@ -44,7 +44,7 @@ They all return a list of meta-hypotheses taken from the main goal.  If
 this list is non-empty, bind its value to an \ML{} identifier by typing
 something like
 \begin{ttbox} 
-val prems = it;
+val prems = goal{\it theory\/ formula};
 \end{ttbox}\index{assumptions!of main goal}
 These assumptions serve as the premises when you are deriving a rule.  They
 are also stored internally and can be retrieved later by the function {\tt
@@ -53,7 +53,7 @@ stored assumptions with the actual assumptions in the proof state.
 
 \index{definitions!unfolding}
 Some of the commands unfold definitions using meta-rewrite rules.  This
-expansion affects both the first subgoal and the premises, which would
+expansion affects both the initial subgoal and the premises, which would
 otherwise require use of {\tt rewrite_goals_tac} and
 {\tt rewrite_rule}.
 
@@ -321,8 +321,8 @@ is like {\tt bw} but takes a list of definitions.
 
 \item[\ttindexbold{ren} {\it names} {\it i};] 
 performs \hbox{\tt by (rename_tac {\it names} {\it i});} it renames
-parameters in subgoal~$i$.  (Ignore the message {\tt Warning:\ same as
-previous level}.)
+parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
+  same as previous level}.)
 \index{parameters!renaming}
 \end{ttdescription}
 
@@ -341,9 +341,9 @@ The forms {\tt prove_goal}, {\tt prove_goalw} and {\tt prove_goalw_cterm}
 are analogous to {\tt goal}, {\tt goalw} and {\tt goalw_cterm}.
 
 The tactic is specified by a function from theorem lists to tactic lists.
-The function is applied to the list of meta-hypotheses taken from the main
-goal.  The resulting tactics are applied in sequence (using {\tt EVERY}).
-For example, a proof consisting of the commands
+The function is applied to the list of meta-assumptions taken from
+the main goal.  The resulting tactics are applied in sequence (using {\tt
+  EVERY}).  For example, a proof consisting of the commands
 \begin{ttbox} 
 val prems = goal {\it theory} {\it formula};
 by \(tac@1\);  \ldots  by \(tac@n\);
@@ -355,17 +355,10 @@ val my_thm = prove_goal {\it theory} {\it formula}
  (fn prems=> [ \(tac@1\), \ldots, \(tac@n\) ]);
 \end{ttbox}
 The methods perform identical processing of the initial {\it formula} and
-the final proof state, but {\tt prove_goal} executes the tactic as a
-atomic operation, bypassing the subgoal module.  
-
-A batch proof may alternatively consist of subgoal commands encapsulated
-using~{\tt let}:
-\begin{ttbox} 
-val my_thm = 
-    let val prems = goal {\it theory} {\it formula}
-    in  by \(tac@1\);  \ldots  by \(tac@n\);  result() end;
-\end{ttbox}
-
+the final proof state.  But {\tt prove_goal} executes the tactic as a
+atomic operation, bypassing the subgoal module; the current interactive
+proof is unaffected.
+%
 \begin{ttdescription}
 \item[\ttindexbold{prove_goal} {\it theory} {\it formula} {\it tacsf};] 
 executes a proof of the {\it formula\/} in the given {\it theory}, using
@@ -429,7 +422,7 @@ proof state on to the stack.
 
 \item[\ttindexbold{pop_proof}();]  
 discards the top element of the stack.  It returns the list of
-meta-hypotheses associated with the new proof;  you should bind these to an
+assumptions associated with the new proof;  you should bind these to an
 \ML\ identifier.  They can also be obtained by calling \ttindex{premises}.
 
 \item[\ttindexbold{rotate_proof}();]

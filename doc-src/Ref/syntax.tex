@@ -64,7 +64,7 @@ datatype ast = Constant of string
 %
 Isabelle uses an S-expression syntax for abstract syntax trees.  Constant
 atoms are shown as quoted strings, variable atoms as non-quoted strings and
-applications as a parenthesized list of subtrees.  For example, the \AST
+applications as a parenthesised list of subtrees.  For example, the \AST
 \begin{ttbox}
 Appl [Constant "_constrain",
       Appl [Constant "_abs", Variable "x", Variable "t"],
@@ -270,11 +270,11 @@ More precisely, the mapping $\astofterm{-}$ is defined as follows:
     \]
 \end{itemize}
 %
-Type constraints are inserted to allow the printing of types.  This is
-governed by the boolean variable \ttindex{show_types}:
+Type constraints\index{type constraints} are inserted to allow the printing
+of types.  This is governed by the boolean variable \ttindex{show_types}:
 \begin{itemize}
   \item $constrain(x, \tau) = x$ \ if $\tau = \mtt{dummyT}$ \index{*dummyT} or
-    \ttindex{show_types} not set to {\tt true}.
+    \ttindex{show_types} is set to {\tt false}.
 
   \item $constrain(x, \tau) = \Appl{\Constant \mtt{"_constrain"}, x, 
          \astofterm{\tau}}$ \ otherwise.  
@@ -289,7 +289,7 @@ governed by the boolean variable \ttindex{show_types}:
 %
 The \AST{}, after application of macros (see \S\ref{sec:macros}), is
 transformed into the final output string.  The built-in {\bf print AST
-  translations}\indexbold{translations!print AST} effectively reverse the
+  translations}\indexbold{translations!print AST} reverse the
 parse \AST{} translations of Fig.\ts\ref{fig:parse_ast_tr}.
 
 For the actual printing process, the names attached to productions
@@ -338,11 +338,11 @@ express all but the most obscure translations.
 Figure~\ref{fig:set_trans} defines a fragment of first-order logic and set
 theory.\footnote{This and the following theories are complete working
   examples, though they specify only syntax, no axioms.  The file {\tt
-    ZF/zf.thy} presents the full set theory definition, including many
+    ZF/ZF.thy} presents the full set theory definition, including many
   macro rules.}  Theory {\tt SET} defines constants for set comprehension
 ({\tt Collect}), replacement ({\tt Replace}) and bounded universal
 quantification ({\tt Ball}).  Each of these binds some variables.  Without
-additional syntax we should have to express $\forall x \in A.  P$ as {\tt
+additional syntax we should have to write $\forall x \in A.  P$ as {\tt
   Ball(A,\%x.P)}, and similarly for the others.
 
 \begin{figure}
@@ -464,7 +464,7 @@ print_rules:
 If \ttindex{eta_contract} is set to {\tt true}, terms will be
 $\eta$-contracted {\em before\/} the \AST{} rewriter sees them.  Thus some
 abstraction nodes needed for print rules to match may vanish.  For example,
-\verb|Ball(A, %x. P(x))| contracts {\tt Ball(A, P)}; the print rule does
+\verb|Ball(A, %x. P(x))| contracts to {\tt Ball(A, P)}; the print rule does
 not apply and the output will be {\tt Ball(A, P)}.  This problem would not
 occur if \ML{} translation functions were used instead of macros (as is
 done for binder declarations).
@@ -491,10 +491,10 @@ object-logics.
 \subsection{Applying rules}
 As a term is being parsed or printed, an \AST{} is generated as an
 intermediate form (recall Fig.\ts\ref{fig:parse_print}).  The \AST{} is
-normalized by applying macro rules in the manner of a traditional term
+normalised by applying macro rules in the manner of a traditional term
 rewriting system.  We first examine how a single rule is applied.
 
-Let $t$ be the abstract syntax tree to be normalized and $(l, r)$ some
+Let $t$ be the abstract syntax tree to be normalised and $(l, r)$ some
 translation rule.  A subtree~$u$ of $t$ is a {\bf redex} if it is an
 instance of~$l$; in this case $l$ is said to {\bf match}~$u$.  A redex
 matched by $l$ may be replaced by the corresponding instance of~$r$, thus
@@ -546,10 +546,10 @@ translations
 \end{ttbox}
 The term {\tt Nil} will be printed as {\tt []}, just as expected.
 The term \verb|%Nil.t| will be printed as \verb|%[].t|, which might not be
-expected! 
+expected!  How is the type~{\tt Nil} printed?
 
 Normalizing an \AST{} involves repeatedly applying macro rules until none
-is applicable.  Macro rules are chosen in the order that they appear in the
+are applicable.  Macro rules are chosen in the order that they appear in the
 {\tt translations} section.  You can watch the normalization of \AST{}s
 during parsing and printing by setting \ttindex{Syntax.trace_norm_ast} to
 {\tt true}.\index{tracing!of macros} Alternatively, use
@@ -626,7 +626,7 @@ Likewise, \verb|{xs}| and \verb|{x}| represent any set enumeration.
 The parse rules only work in the order given.
 
 \begin{warn}
-  The \AST{} rewriter cannot discern constants from variables and looks
+  The \AST{} rewriter cannot distinguish constants from variables and looks
   only for names of atoms.  Thus the names of {\tt Constant}s occurring in
   the (internal) left-hand side of translation rules should be regarded as
   \rmindex{reserved words}.  Choose non-identifiers like {\tt\at Finset} or
@@ -635,7 +635,7 @@ The parse rules only work in the order given.
 \begin{ttbox}
 \%empty insert. insert(x, empty)
 \end{ttbox}
-  gets printed as \verb|%empty insert. {x}|.
+\par\noindent is printed as \verb|%empty insert. {x}|.
 \end{warn}
 
 
@@ -690,8 +690,8 @@ dependent_tr'} is exported by the syntax module for public use.  See
 This section describes the translation function mechanism.  By writing
 \ML{} functions, you can do almost everything with terms or \AST{}s during
 parsing and printing.  The logic \LK\ is a good example of sophisticated
-transformations between internal and external representations of
-associative sequences; here, macros would be useless.
+transformations between internal and external representations of sequents;
+here, macros would be useless. 
 
 A full understanding of translations requires some familiarity
 with Isabelle's internals, especially the datatypes {\tt term}, {\tt typ},
@@ -805,9 +805,10 @@ fun dependent_tr' (q,r) (A :: Abs (x, T, B) :: ts) =
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 \end{ttbox}
-The argument {\tt (q,r)} is supplied to {\tt dependent_tr'} by a curried
-function application during its installation.  We could set up print
-translations for both {\tt Pi} and {\tt Sigma} by including
+The argument {\tt (q,r)} is supplied to the curried function {\tt
+  dependent_tr'} by a partial application during its installation.  We
+can set up print translations for both {\tt Pi} and {\tt Sigma} by
+including
 \begin{ttbox}\index{*ML section}
 val print_translation =
   [("Pi",    dependent_tr' ("{\at}PROD", "{\at}->")),
@@ -815,11 +816,11 @@ val print_translation =
 \end{ttbox}
 within the {\tt ML} section.  The first of these transforms ${\tt Pi}(A,
 \mtt{Abs}(x, T, B))$ into $\hbox{\tt{\at}PROD}(x', A, B')$ or
-$\hbox{\tt{\at}->}r(A, B)$, choosing the latter form if $B$ does not depend
+$\hbox{\tt{\at}->}(A, B)$, choosing the latter form if $B$ does not depend
 on~$x$.  It checks this using \ttindex{loose_bnos}, yet another function
 from {\tt Pure/term.ML}.  Note that $x'$ is a version of $x$ renamed away
-from all names in $B$, and $B'$ the body $B$ with {\tt Bound} nodes
-referring to our {\tt Abs} node replaced by $\ttfct{Free} (x',
+from all names in $B$, and $B'$ is the body $B$ with {\tt Bound} nodes
+referring to the {\tt Abs} node replaced by $\ttfct{Free} (x',
 \mtt{dummyT})$.
 
 We must be careful with types here.  While types of {\tt Const}s are
