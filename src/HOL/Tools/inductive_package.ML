@@ -592,19 +592,14 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 
 (** definitional introduction of (co)inductive sets **)
 
-fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
-    atts intros monos con_defs thy params paramTs cTs cnames induct_cases =
+fun mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
+      params paramTs cTs cnames =
   let
-    val _ = if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive set(s) " ^
-      commas_quote cnames) else ();
-
     val sumT = fold_bal (fn (T, U) => Type ("+", [T, U])) cTs;
     val setT = HOLogic.mk_setT sumT;
 
     val fp_name = if coind then Sign.intern_const (Theory.sign_of Gfp.thy) "gfp"
       else Sign.intern_const (Theory.sign_of Lfp.thy) "lfp";
-
-    val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
 
     val used = foldr add_term_names (intr_ts, []);
     val [sname, xname] = variantlist (["S", "x"], used);
@@ -659,10 +654,24 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       |> Theory.add_path rec_name
       |> PureThy.add_defss_i [(("defs", def_terms), [])];
 
+    val mono = prove_mono setT fp_fun monos thy'
 
-    (* prove and store theorems *)
+  in
+    (thy', mono, fp_def, rec_sets_defs, rec_const, sumT) 
+  end;
 
-    val mono = prove_mono setT fp_fun monos thy';
+fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
+    atts intros monos con_defs thy params paramTs cTs cnames induct_cases =
+  let
+    val _ = if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive set(s) " ^
+      commas_quote cnames) else ();
+
+    val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
+
+    val (thy', mono, fp_def, rec_sets_defs, rec_const, sumT) =
+      mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
+        params paramTs cTs cnames;
+
     val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts con_defs
       rec_sets_defs thy';
     val elims = if no_elim then [] else
@@ -705,41 +714,38 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     atts intros monos con_defs thy params paramTs cTs cnames induct_cases =
   let
-    val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
+    val _ = message (coind_prefix coind ^ "inductive set(s) " ^ commas_quote cnames);
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
+    val (thy', _, _, _, _, _) =
+      mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
+        params paramTs cTs cnames;
     val (elim_ts, elim_cases) = Library.split_list (mk_elims cs cTs params intr_ts intr_names);
-
     val (_, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
     val ind_t = Logic.list_implies (ind_prems, mutual_ind_concl);
     
-    val thy' =
-      thy
-      |> (if declare_consts then
-            Theory.add_consts_i
-              (map (fn (c, n) => (n, paramTs ---> fastype_of c, NoSyn)) (cs ~~ cnames))
-         else I)
-      |> Theory.add_path rec_name
+    val thy'' =
+      thy'
       |> (#1 o PureThy.add_axiomss_i [(("intrs", intr_ts), atts), (("raw_elims", elim_ts), [])])
       |> (if coind then I else
             #1 o PureThy.add_axioms_i [(("raw_induct", ind_t), [apsnd (standard o split_rule)])]);
 
-    val intrs = PureThy.get_thms thy' "intrs";
+    val intrs = PureThy.get_thms thy'' "intrs";
     val elims = map2 (fn (th, cases) => RuleCases.name cases th)
-      (PureThy.get_thms thy' "raw_elims", elim_cases);
-    val raw_induct = if coind then Drule.asm_rl else PureThy.get_thm thy' "raw_induct";
+      (PureThy.get_thms thy'' "raw_elims", elim_cases);
+    val raw_induct = if coind then Drule.asm_rl else PureThy.get_thm thy'' "raw_induct";
     val induct = if coind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
 
-    val (thy'', ([elims'], intrs')) =
-      thy'
+    val (thy''', ([elims'], intrs')) =
+      thy''
       |> PureThy.add_thmss [(("elims", elims), [])]
       |>> (if coind then I
           else #1 o PureThy.add_thms [(("induct", induct), [RuleCases.case_names induct_cases])])
       |>>> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts)
       |>> Theory.parent_path;
-    val induct' = if coind then raw_induct else PureThy.get_thm thy'' "induct";
-  in (thy'',
+    val induct' = if coind then raw_induct else PureThy.get_thm thy''' "induct";
+  in (thy''',
     {defs = [],
      mono = Drule.asm_rl,
      unfold = Drule.asm_rl,
