@@ -12,4 +12,4 @@ Gérard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
 J. Functional Programming 4(3) 1994, 371-394.
 *)
 
-time_use_thy "Conversion";
+time_use_thy "Confluence";

@@ -95,12 +95,9 @@ $(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.ML IMP/Com.thy IMP/Denotation.ML \
 
 ZF-Resid: ZF $(LOG)/ZF-Resid.gz
 
-$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/Confluence.ML Resid/Confluence.thy \
-  Resid/Conversion.ML Resid/Conversion.thy Resid/Cube.ML Resid/Cube.thy \
-  Resid/ROOT.ML Resid/Redex.ML Resid/Redex.thy Resid/Reduction.ML \
-  Resid/Reduction.thy Resid/Residuals.ML Resid/Residuals.thy \
-  Resid/Substitution.ML \
-  Resid/Substitution.thy Resid/Terms.ML Resid/Terms.thy
+$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML Resid/Confluence.thy \
+  Resid/Redex.thy Resid/Reduction.thy Resid/Residuals.thy \
+  Resid/Substitution.thy 
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
 
