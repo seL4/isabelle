@@ -3,8 +3,7 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-(Co-) Datatype Definitions for Zermelo-Fraenkel Set Theory
-
+(Co)Datatype Definitions for Zermelo-Fraenkel Set Theory
 *)
 
 
@@ -29,15 +28,15 @@ open Inductive
 end;
 
 
-(*Co-datatype definitions use greatest fixedpoints, Quine products and sums*)
-functor Co_Datatype_Fun (Const: CONSTRUCTOR) 
-         : sig include CONSTRUCTOR_RESULT INTR_ELIM CO_INDRULE end =
+(*Codatatype definitions use greatest fixedpoints, Quine products and sums*)
+functor CoDatatype_Fun (Const: CONSTRUCTOR) 
+         : sig include CONSTRUCTOR_RESULT INTR_ELIM COINDRULE end =
 struct
 structure Constructor = Constructor_Fun (structure Const=Const and 
   		                      Pr=Quine_Prod and Su=Quine_Sum);
 open Const Constructor;
 
-structure Co_Inductive = Co_Inductive_Fun
+structure CoInductive = CoInductive_Fun
         (val thy = con_thy;
 	 val rec_doms = (map #1 rec_specs) ~~ (map #2 rec_specs);
 	 val sintrs = sintrs;
@@ -46,7 +45,7 @@ structure Co_Inductive = Co_Inductive_Fun
 	 val type_intrs = type_intrs;
 	 val type_elims = type_elims);
 
-open Co_Inductive
+open CoInductive
 end;
 
 
@@ -60,11 +59,11 @@ val datatype_intrs =
 (*Needed for mutual recursion*)
 val datatype_elims = [make_elim InlD, make_elim InrD];
 
-(*For most co-datatypes involving quniv*)
-val co_datatype_intrs = 
+(*For most codatatypes involving quniv*)
+val codatatype_intrs = 
     [QSigmaI, QInlI, QInrI,
      QPair_in_quniv, QInl_in_quniv, QInr_in_quniv, 
      zero_in_quniv, A_into_quniv, nat_into_quniv, UnCI];
 
-val co_datatype_elims = [make_elim QInlD, make_elim QInrD];
+val codatatype_elims = [make_elim QInlD, make_elim QInrD];
 

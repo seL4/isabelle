@@ -290,7 +290,7 @@ by (REPEAT (assume_tac 1));
 val QPair_Int_Vfrom_in_quniv = result();
 
 
-(**** "Take-lemma" rules for proving a=b by co-induction ****)
+(**** "Take-lemma" rules for proving a=b by coinduction ****)
 
 (** Unfortunately, the technique used above does not apply here, since
     the base case appears impossible to prove: it involves an intersection

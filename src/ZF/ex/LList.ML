@@ -3,10 +3,10 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Co-Datatype definition of Lazy Lists
+CoDatatype definition of Lazy Lists
 *)
 
-structure LList = Co_Datatype_Fun
+structure LList = CoDatatype_Fun
  (val thy = QUniv.thy;
   val rec_specs = 
       [("llist", "quniv(A)",
@@ -18,8 +18,8 @@ structure LList = Co_Datatype_Fun
       ["LNil : llist(A)",
        "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"];
   val monos = [];
-  val type_intrs = co_datatype_intrs
-  val type_elims = co_datatype_elims);
+  val type_intrs = codatatype_intrs
+  val type_elims = codatatype_elims);
   
 val [LNilI, LConsI] = LList.intrs;
 
@@ -46,7 +46,7 @@ val in_quniv_rls =
   QPair_Int_Vfrom_succ_in_quniv, QPair_Int_Vfrom_in_quniv];
 
 val quniv_cs = ZF_cs addSIs in_quniv_rls 
-                     addIs (Int_quniv_in_quniv::co_datatype_intrs);
+                     addIs (Int_quniv_in_quniv::codatatype_intrs);
 
 (*Keep unfolding the lazy list until the induction hypothesis applies*)
 goal LList.thy

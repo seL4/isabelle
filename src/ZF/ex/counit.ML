@@ -3,15 +3,15 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Trivial co-datatype definitions, one of which goes wrong!
+Trivial codatatype definitions, one of which goes wrong!
 
-Need to find sufficient conditions for co-datatypes to work correctly!
+Need to find sufficient conditions for codatatypes to work correctly!
 *)
 
 (*This degenerate definition does not work well because the one constructor's
   definition is trivial!
 *)
-structure CoUnit = Co_Datatype_Fun
+structure CoUnit = CoDatatype_Fun
  (val thy = QUniv.thy;
   val rec_specs = 
       [("counit", "quniv(0)",
@@ -20,8 +20,8 @@ structure CoUnit = Co_Datatype_Fun
   val ext = None
   val sintrs = ["x: counit ==> Con(x) : counit"];
   val monos = [];
-  val type_intrs = co_datatype_intrs
-  val type_elims = co_datatype_elims);
+  val type_intrs = codatatype_intrs
+  val type_elims = codatatype_elims);
   
 val [ConI] = CoUnit.intrs;
 
@@ -35,7 +35,7 @@ val Con_iff = CoUnit.mk_free "Con(x)=Con(y) <-> x=y";
 goal CoUnit.thy "counit = quniv(0)";
 by (rtac (CoUnit.dom_subset RS equalityI) 1);
 by (rtac subsetI 1);
-by (etac CoUnit.co_induct 1);
+by (etac CoUnit.coinduct 1);
 by (rtac subset_refl 1);
 by (rewrite_goals_tac CoUnit.con_defs);
 by (fast_tac ZF_cs 1);
@@ -48,7 +48,7 @@ val counit_eq_univ = result();
   The resulting set is a singleton.
 *)
 
-structure CoUnit2 = Co_Datatype_Fun
+structure CoUnit2 = CoDatatype_Fun
  (val thy = QUniv.thy;
   val rec_specs = 
       [("counit2", "quniv(0)",
@@ -57,8 +57,8 @@ structure CoUnit2 = Co_Datatype_Fun
   val ext = None
   val sintrs = ["[| x: counit2;  y: counit2 |] ==> Con2(x,y) : counit2"];
   val monos = [];
-  val type_intrs = co_datatype_intrs
-  val type_elims = co_datatype_elims);
+  val type_intrs = codatatype_intrs
+  val type_elims = codatatype_elims);
 
 val [Con2I] = CoUnit2.intrs;
 
@@ -73,7 +73,7 @@ by (REPEAT (ares_tac [subset_refl, QPair_subset_univ, QPair_mono] 1));
 val Con2_bnd_mono = result();
 
 goal CoUnit2.thy "lfp(univ(0), %x. Con2(x,x)) : counit2";
-by (rtac (singletonI RS CoUnit2.co_induct) 1);
+by (rtac (singletonI RS CoUnit2.coinduct) 1);
 by (rtac (qunivI RS singleton_subsetI) 1);
 by (rtac ([lfp_subset, empty_subsetI RS univ_mono] MRS subset_trans) 1);
 by (fast_tac (ZF_cs addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);

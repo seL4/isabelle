@@ -108,7 +108,7 @@ val bin_typechecks = bin_typechecks0 @
 val bin_ss = integ_ss 
     addsimps([bool_1I, bool_0I,
 	     bin_rec_Plus, bin_rec_Minus, bin_rec_Bcons] @ 
-	     bin_recs integ_of_bin_def @ bool_rews @ bin_typechecks);
+	     bin_recs integ_of_bin_def @ bool_simps @ bin_typechecks);
 
 val typechecks = bin_typechecks @ integ_typechecks @ nat_typechecks @
                  [bool_subset_nat RS subsetD];

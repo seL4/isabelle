@@ -51,7 +51,7 @@ time_use_thy "ex/contract0";
 time_use     "ex/parcontract.ML";
 time_use_thy "ex/primrec0";
 
-(** Co-Datatypes **)
+(** CoDatatypes **)
 time_use_thy "ex/LList";
 time_use     "ex/llist_eq.ML";
 time_use_thy "ex/llistfn";

@@ -31,12 +31,12 @@ translations
 
 rules
   QPair_def       "<a;b> == a+b"
-  qsplit_def      "qsplit(c,p)  ==  THE y. EX a b. p=<a;b> & y=c(a,b)"
+  qsplit_def      "qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)"
   qfsplit_def     "qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)"
   qconverse_def   "qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}"
   QSigma_def      "QSigma(A,B)  ==  UN x:A. UN y:B(x). {<x;y>}"
 
-  qsum_def        "A <+> B      == QSigma({0}, %x.A) Un QSigma({1}, %x.B)"
+  qsum_def        "A <+> B      == ({0} <*> A) Un ({1} <*> B)"
   QInl_def        "QInl(a)      == <0;a>"
   QInr_def        "QInr(b)      == <1;b>"
   qcase_def       "qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))"

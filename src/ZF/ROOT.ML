@@ -46,7 +46,7 @@ use_thy "qpair";
 use     "mono.ML";
 use_thy "fixedpt";
 
-(*Inductive/co-inductive definitions*)
+(*Inductive/coinductive definitions*)
 use     "ind_syntax.ML";
 use     "intr_elim.ML";
 use     "indrule.ML";
@@ -61,7 +61,7 @@ use_thy "nat";
 use_thy "epsilon";
 use_thy "arith";
 
-(*Datatype/co-datatype definitions*)
+(*Datatype/codatatype definitions*)
 use_thy "univ";
 use_thy "quniv";
 use     "constructor.ML";

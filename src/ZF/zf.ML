@@ -270,7 +270,7 @@ val RepFunI = prove_goalw ZF.thy [RepFun_def]
     "!!a A. a : A ==> f(a) : {f(x). x:A}"
  (fn _ => [ (REPEAT (ares_tac [ReplaceI,refl] 1)) ]);
 
-(*Useful for co-induction proofs*)
+(*Useful for coinduction proofs*)
 val RepFun_eqI = prove_goal ZF.thy
     "!!b a f. [| b=f(a);  a : A |] ==> b : {f(x). x:A}"
  (fn _ => [ etac ssubst 1, etac RepFunI 1 ]);

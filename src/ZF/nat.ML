@@ -36,7 +36,8 @@ by (rtac (nat_0I RS nat_succI) 1);
 val nat_1I = result();
 
 goal Nat.thy "bool <= nat";
-by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1 ORELSE etac boolE 1));
+by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
+	    ORELSE eresolve_tac [boolE,ssubst] 1));
 val bool_subset_nat = result();
 
 val bool_into_nat = bool_subset_nat RS subsetD;

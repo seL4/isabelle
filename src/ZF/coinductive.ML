@@ -1,9 +1,9 @@
-(*  Title: 	ZF/co-inductive.ML
+(*  Title: 	ZF/coinductive.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Co-inductive Definitions for Zermelo-Fraenkel Set Theory
+Coinductive Definitions for Zermelo-Fraenkel Set Theory
 
 Uses greatest fixedpoints with Quine-inspired products and sums
 
@@ -48,20 +48,20 @@ structure Quine_Sum =
   val distinct' = QInr_QInl_iff
   end;
 
-signature CO_INDRULE =
+signature COINDRULE =
   sig
-  val co_induct : thm
+  val coinduct : thm
   end;
 
 
-functor Co_Inductive_Fun (Ind: INDUCTIVE) 
-          : sig include INTR_ELIM CO_INDRULE end =
+functor CoInductive_Fun (Ind: INDUCTIVE) 
+          : sig include INTR_ELIM COINDRULE end =
 struct
 structure Intr_elim = 
     Intr_elim_Fun(structure Ind=Ind and Fp=Gfp and 
 		  Pr=Quine_Prod and Su=Quine_Sum);
 
 open Intr_elim 
-val co_induct = raw_induct
+val coinduct = raw_induct
 end;
 
