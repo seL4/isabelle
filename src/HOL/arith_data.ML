@@ -18,19 +18,25 @@ struct
 
 (** abstract syntax of structure nat: 0, Suc, + **)
 
-(* mk_sum *)
+(* mk_sum, mk_norm_sum *)
 
+val one = HOLogic.mk_nat 1;
 val mk_plus = HOLogic.mk_binop "op +";
 
 fun mk_sum [] = HOLogic.zero
   | mk_sum [t] = t
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
+(*normal form of sums: Suc (... (Suc (a + (b + ...))))*)
+fun mk_norm_sum ts =
+  let val (ones, sums) = partition (equal one) ts in
+    funpow (length ones) HOLogic.mk_Suc (mk_sum sums)
+  end;
+
 
 (* dest_sum *)
 
 val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
-val one = HOLogic.mk_nat 1;
 
 fun dest_sum tm =
   if HOLogic.is_zero tm then []
@@ -72,7 +78,7 @@ val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
 
 structure Sum =
 struct
-  val mk_sum = mk_sum;
+  val mk_sum = mk_norm_sum;
   val dest_sum = dest_sum;
   val prove_conv = prove_conv;
   val norm_tac = simp_all add_rules THEN simp_all add_ac;
@@ -125,7 +131,7 @@ end);
 
 structure Factor =
 struct
-  val mk_sum = mk_sum;
+  val mk_sum = mk_norm_sum;
   val dest_sum = dest_sum;
   val prove_conv = prove_conv;
   val norm_tac = simp_all (add_rules @ mult_rules) THEN simp_all add_ac;
