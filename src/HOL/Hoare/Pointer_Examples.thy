@@ -170,6 +170,12 @@ subsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
+constdefs
+ cor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+"cor P Q == if P then True else Q"
+ cand :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+"cand P Q == if P then Q else False"
+
 consts merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
 
 recdef merge "measure(%(xs,ys,f). size xs + size ys)"
@@ -179,15 +185,19 @@ recdef merge "measure(%(xs,ys,f). size xs + size ys)"
 "merge([],y#ys,f) = y # merge([],ys,f)"
 "merge([],[],f) = []"
 
-lemma imp_disjCL: "(P|Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (~P \<longrightarrow> Q \<longrightarrow> R))"
-by blast
+text{* Simplifies the proof a little: *}
 
-declare imp_disjL[simp del] imp_disjCL[simp]
+lemma [simp]: "({} = insert a A \<inter> B) = (a \<notin> B & {} = A \<inter> B)"
+by blast
+lemma [simp]: "({} = A \<inter> insert b B) = (b \<notin> A & {} = A \<inter> B)"
+by blast
+lemma [simp]: "({} = A \<inter> (B \<union> C)) = ({} = A \<inter> B & {} = A \<inter> C)"
+by blast
 
 lemma "VARS hd tl p q r s
  {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {} \<and>
   (p \<noteq> Null \<or> q \<noteq> Null)}
- IF if q = Null then True else p \<noteq> Null \<and> p^.hd \<le> q^.hd
+ IF cor (q = Null) (cand (p \<noteq> Null) (p^.hd \<le> q^.hd))
  THEN r := p; p := p^.tl ELSE r := q; q := q^.tl FI;
  s := r;
  WHILE p \<noteq> Null \<or> q \<noteq> Null
@@ -196,28 +206,116 @@ lemma "VARS hd tl p q r s
       merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
       rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>
       (tl a = p \<or> tl a = q)}
- DO IF if q = Null then True else p \<noteq> Null \<and> p^.hd \<le> q^.hd
+ DO IF cor (q = Null) (cand (p \<noteq> Null) (p^.hd \<le> q^.hd))
     THEN s^.tl := p; p := p^.tl ELSE s^.tl := q; q := q^.tl FI;
     s := s^.tl
  OD
  {List tl r (merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y))}"
 apply vcg_simp
+apply (simp_all add: cand_def cor_def)
 
 apply (fastsimp)
 
-(* One big fastsimp does not seem to converge: *)
+apply clarsimp
+apply(rule conjI)
 apply clarsimp
 apply(rule conjI)
 apply (fastsimp intro!:Path_snoc intro:Path_upd[THEN iffD2] notin_List_update[THEN iffD2] simp:eq_sym_conv)
 apply clarsimp
 apply(rule conjI)
-apply (fastsimp intro!:Path_snoc intro:Path_upd[THEN iffD2] notin_List_update[THEN iffD2] simp:eq_sym_conv)
+apply (clarsimp)
+apply(rule_tac x = "rs @ [a]" in exI)
+apply(clarsimp simp:eq_sym_conv)
+apply(rule_tac x = "bs" in exI)
+apply(clarsimp simp:eq_sym_conv)
+apply(rule_tac x = "ya#bsa" in exI)
+apply(simp)
+apply(clarsimp simp:eq_sym_conv)
+apply(rule_tac x = "rs @ [a]" in exI)
+apply(clarsimp simp:eq_sym_conv)
+apply(rule_tac x = "y#bs" in exI)
+apply(clarsimp simp:eq_sym_conv)
+apply(rule_tac x = "bsa" in exI)
+apply(simp)
 apply (fastsimp intro!:Path_snoc intro:Path_upd[THEN iffD2] notin_List_update[THEN iffD2] simp:eq_sym_conv)
 
 apply(clarsimp simp add:List_app)
 done
 
-(* merging with islist/list instead of List? Unlikely to be simpler *)
+
+text{* More of the proof can be automated, but the runtime goes up
+drastically. In general it is usually more efficient to give the
+witness directly than to have it found by proof.
+
+Now we try a functional version of the abstraction relation @{term
+Path}. Since the result is not that convincing, we do not prove any of
+the lemmas.*}
+
+consts ispath:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool"
+       path:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> 'a list"
+
+ML"set quick_and_dirty"
+
+text"First some basic lemmas:"
+
+lemma [simp]: "ispath f p p"
+sorry
+lemma [simp]: "path f p p = []"
+sorry
+lemma [simp]: "ispath f p q \<Longrightarrow> a \<notin> set(path f p q) \<Longrightarrow> ispath (f(a := r)) p q"
+sorry
+lemma [simp]: "ispath f p q \<Longrightarrow> a \<notin> set(path f p q) \<Longrightarrow>
+ path (f(a := r)) p q = path f p q"
+sorry
+
+text"Some more specific lemmas needed by the example:"
+
+lemma [simp]: "ispath (f(a := q)) p (Ref a) \<Longrightarrow> ispath (f(a := q)) p q"
+sorry
+lemma [simp]: "ispath (f(a := q)) p (Ref a) \<Longrightarrow>
+ path (f(a := q)) p q = path (f(a := q)) p (Ref a) @ [a]"
+sorry
+lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Ref b \<Longrightarrow>
+ b \<notin> set (path f p (Ref a))"
+sorry
+lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Null \<Longrightarrow> islist f p"
+sorry
+lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Null \<Longrightarrow> list f p = path f p (Ref a) @ [a]"
+sorry
+
+lemma [simp]: "islist f p \<Longrightarrow> distinct (list f p)"
+sorry
+ML"reset quick_and_dirty"
+
+lemma "VARS hd tl p q r s
+ {islist tl p & Ps = list tl p \<and> islist tl q & Qs = list tl q \<and>
+  set Ps \<inter> set Qs = {} \<and>
+  (p \<noteq> Null \<or> q \<noteq> Null)}
+ IF cor (q = Null) (cand (p \<noteq> Null) (p^.hd \<le> q^.hd))
+ THEN r := p; p := p^.tl ELSE r := q; q := q^.tl FI;
+ s := r;
+ WHILE p \<noteq> Null \<or> q \<noteq> Null
+ INV {EX rs ps qs a. ispath tl r s & rs = path tl r s \<and>
+      islist tl p & ps = list tl p \<and> islist tl q & qs = list tl q \<and>
+      distinct(a # ps @ qs @ rs) \<and> s = Ref a \<and>
+      merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
+      rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>
+      (tl a = p \<or> tl a = q)}
+ DO IF cor (q = Null) (cand (p \<noteq> Null) (p^.hd \<le> q^.hd))
+    THEN s^.tl := p; p := p^.tl ELSE s^.tl := q; q := q^.tl FI;
+    s := s^.tl
+ OD
+ {islist tl r & list tl r = (merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y))}"
+apply vcg_simp
+
+apply (simp_all add: cand_def cor_def)
+  apply (fastsimp)
+ apply (fastsimp simp: eq_sym_conv)
+apply(clarsimp)
+done
+
+text"The proof is automatic, but requires a numbet of special lemmas."
+
 
 subsection "Storage allocation"
 
