@@ -34,7 +34,7 @@ sig
       DtTFree of string
     | DtType of string * (dtyp list)
     | DtRec of int;
-
+  type descr
   type datatype_info
 
   exception Datatype
@@ -152,9 +152,11 @@ datatype dtyp =
 
 (* information about datatypes *)
 
+type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
+
 type datatype_info =
   {index : int,
-   descr : (int * (string * dtyp list * (string * dtyp list) list)) list,
+   descr : descr,
    rec_names : string list,
    rec_rewrites : thm list,
    case_name : string,
