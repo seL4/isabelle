@@ -13,17 +13,17 @@ NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 	Divides Power Sexp Univ List RelPow Option Map
 
 PROVERS = hypsubst.ML classical.ML blast.ML \
-	simplifier.ML splitter.ML nat_transitive.ML 
+	simplifier.ML splitter.ML Arith/nat_transitive.ML Arith/cancel_sums.ML
 
 TFL   = dcterm.sml post.sml rules.new.sml rules.sig \
 	sys.sml tfl.sig tfl.sml thms.sig thms.sml thry.sig thry.sml   \
 	usyntax.sig usyntax.sml utils.sig utils.sml
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
-	ind_syntax.ML cladata.ML simpdata.ML \
-	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML \
+	ind_syntax.ML cladata.ML simpdata.ML arith_data.ML \
+	typedef.ML thy_syntax.ML thy_data.ML $(ISABELLE_HOME)/src/Pure/section_utils.ML \
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML) $(TFL:%=../TFL/%) \
-	$(PROVERS:%=../Provers/%)
+	$(PROVERS:%=$(ISABELLE_HOME)/src/Provers/%)
 
 $(OUT)/HOL: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL

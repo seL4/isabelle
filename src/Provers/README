@@ -1,17 +1,23 @@
-			Provers
+
+                        Provers
 
 This directory contains ML sources of generic theorem proving tools.
 Typically, they can be applied to various logics, provided rules of a
 certain form are derivable.  Some of these are documented in the
 Reference Manual.
 
-blast.ML          -- generic tableau prover with proof reconstruction
-classical.ML      -- theorem prover for classical logics
-genelim.ML        -- bits and pieces for deriving elimination rules
-hypsubst.ML       -- tactic to substitute in the hypotheses
-ind.ML            -- a simple induction package
-nat_transitive.ML -- simple package for inequalities over nat
-simp.ML           -- powerful but slow simplifier
-simplifier.ML     -- fast simplifier
-splitter.ML       -- performs case splits for simplifier.ML
-typedsimp.ML      -- basic simplifier for explicitly typed logics
+blast.ML                -- generic tableau prover with proof reconstruction
+classical.ML            -- theorem prover for classical logics
+genelim.ML              -- bits and pieces for deriving elimination rules
+hypsubst.ML             -- tactic to substitute in the hypotheses
+ind.ML                  -- a simple induction package
+simp.ML                 -- powerful but slow simplifier
+simplifier.ML           -- fast simplifier
+splitter.ML             -- performs case splits for simplifier.ML
+typedsimp.ML            -- basic simplifier for explicitly typed logics
+
+directory Arith:
+  nat_transitive.ML     -- simple package for inequalities over nat
+
+
+$Id$
