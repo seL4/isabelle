@@ -87,10 +87,14 @@ translations
 syntax ("" output)
   "_setle"      :: ['a set, 'a set] => bool           ("(_/ <= _)" [50, 51] 50)
   "_setle"      :: ['a set, 'a set] => bool           ("op <=")
+  "_setless"    :: ['a set, 'a set] => bool           ("(_/ < _)" [50, 51] 50)
+  "_setless"    :: ['a set, 'a set] => bool           ("op <")
 
 syntax (symbols)
   "_setle"      :: ['a set, 'a set] => bool           ("(_/ \\<subseteq> _)" [50, 51] 50)
   "_setle"      :: ['a set, 'a set] => bool           ("op \\<subseteq>")
+  "_setless"    :: ['a set, 'a set] => bool           ("(_/ \\<subset> _)" [50, 51] 50)
+  "_setless"    :: ['a set, 'a set] => bool           ("op \\<subset>")
   "op Int"      :: ['a set, 'a set] => 'a set         (infixl "\\<inter>" 70)
   "op Un"       :: ['a set, 'a set] => 'a set         (infixl "\\<union>" 65)
   "op :"        :: ['a, 'a set] => bool               ("(_/ \\<in> _)" [50, 51] 50)
@@ -112,6 +116,7 @@ syntax (symbols output)
 
 translations
   "op \\<subseteq>" => "op <="
+  "op \\<subset>" => "op <"
 
 
 
@@ -161,6 +166,10 @@ fun le_tr' (*op <=*) (Type ("fun", (Type ("set", _) :: _))) ts =
       list_comb (Syntax.const "_setle", ts)
   | le_tr' (*op <=*) _ _ = raise Match;
 
+fun less_tr' (*op <*) (Type ("fun", (Type ("set", _) :: _))) ts =
+      list_comb (Syntax.const "_setless", ts)
+  | less_tr' (*op <*) _ _ = raise Match;
+
 
 (* Translates between { e | x1..xn. P} and {u. ? x1..xn. u=e & P}      *)
 (* {y. ? x1..xn. y = e & P} is only translated if [0..n] subset bvs(e) *)
@@ -194,7 +203,7 @@ in
 
 val parse_translation = [("@SetCompr", setcompr_tr)];
 val print_translation = [("Collect", setcompr_tr')];
-val typed_print_translation = [("op <=", le_tr')];
+val typed_print_translation = [("op <=", le_tr'), ("op <", less_tr')];
 val print_ast_translation =
   map HOL.alt_ast_tr' [("@Ball", "*Ball"), ("@Bex", "*Bex")];
 
