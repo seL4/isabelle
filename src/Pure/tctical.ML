@@ -14,9 +14,7 @@ infix 0 THEN_ELSE;
 
 signature TACTICAL =
   sig
-  structure Thm : THM
-  local open Thm  in
-  datatype tactic = Tactic of thm -> thm Sequence.seq
+  type tactic  (* = thm -> thm Sequence.seq*)
   val all_tac		: tactic
   val ALLGOALS		: (int -> tactic) -> tactic   
   val APPEND		: tactic * tactic -> tactic
@@ -63,7 +61,6 @@ signature TACTICAL =
   val strip_context	: term -> (string * typ) list * term list * term
   val SUBGOAL		: ((term*int) -> tactic) -> int -> tactic
   val suppress_tracing	: bool ref
-  val tapply		: tactic * thm -> thm Sequence.seq
   val THEN		: tactic * tactic -> tactic
   val THEN'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val THEN_BEST_FIRST	: tactic * ((thm->bool) * (thm->int) * tactic) 
@@ -76,17 +73,11 @@ signature TACTICAL =
   val trace_REPEAT	: bool ref
   val TRY		: tactic -> tactic
   val TRYALL		: (int -> tactic) -> tactic   
-  end
   end;
 
 
-functor TacticalFun (structure Logic: LOGIC and Drule: DRULE) : TACTICAL = 
+structure Tactical : TACTICAL = 
 struct
-structure Thm = Drule.Thm;
-structure Sequence = Thm.Sequence;
-structure Sign = Thm.Sign;
-local open Drule Thm
-in
 
 (**** Tactics ****)
 
@@ -94,79 +85,74 @@ in
     if length of sequence = 0 then the tactic does not apply;
     if length > 1 then backtracking on the alternatives can occur.*)
 
-datatype tactic = Tactic of thm -> thm Sequence.seq;
-
-fun tapply(Tactic tf, state) = tf (state);
+type tactic = thm -> thm Sequence.seq;
 
 (*Makes a tactic from one that uses the components of the state.*)
-fun STATE tacfun = Tactic (fn state => tapply(tacfun state, state));
+fun STATE tacfun st = tacfun st st;
 
 
 (*** LCF-style tacticals ***)
 
 (*the tactical THEN performs one tactic followed by another*)
-fun (Tactic tf1)  THEN  (Tactic tf2) = 
-  Tactic (fn state => Sequence.flats (Sequence.maps tf2 (tf1 state)));
+fun (tac1 THEN tac2) st = Sequence.flats (Sequence.maps tac2 (tac1 st));
 
 
 (*The tactical ORELSE uses the first tactic that returns a nonempty sequence.
   Like in LCF, ORELSE commits to either tac1 or tac2 immediately.
   Does not backtrack to tac2 if tac1 was initially chosen. *)
-fun (Tactic tf1)  ORELSE  (Tactic tf2) = 
-  Tactic (fn state =>  
-    case Sequence.pull(tf1 state) of
-	None       => tf2 state
-      | sequencecell => Sequence.seqof(fn()=> sequencecell));
+fun (tac1 ORELSE tac2) st =
+    case Sequence.pull(tac1 st) of
+	None       => tac2 st
+      | sequencecell => Sequence.seqof(fn()=> sequencecell);
 
 
 (*The tactical APPEND combines the results of two tactics.
   Like ORELSE, but allows backtracking on both tac1 and tac2.
   The tactic tac2 is not applied until needed.*)
-fun (Tactic tf1)  APPEND  (Tactic tf2) = 
-  Tactic (fn state =>  Sequence.append(tf1 state,
-                          Sequence.seqof(fn()=> Sequence.pull (tf2 state))));
+fun (tac1 APPEND tac2) st = 
+  Sequence.append(tac1 st,
+		  Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
 
 (*Like APPEND, but interleaves results of tac1 and tac2.*)
-fun (Tactic tf1)  INTLEAVE  (Tactic tf2) = 
-  Tactic (fn state =>  Sequence.interleave(tf1 state,
-                          Sequence.seqof(fn()=> Sequence.pull (tf2 state))));
+fun (tac1 INTLEAVE tac2) st = 
+    Sequence.interleave(tac1 st,
+			Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
 
 (*Conditional tactic.
 	tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
 	tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
 *)
-fun (Tactic tf) THEN_ELSE (Tactic tf1, Tactic tf2) = 
-  Tactic (fn state =>  
-    case Sequence.pull(tf state) of
-	None    => tf2 state		(*failed; try tactic 2*)
+fun (tac THEN_ELSE (tac1, tac2)) st = 
+    case Sequence.pull(tac st) of
+	None    => tac2 st		(*failed; try tactic 2*)
       | seqcell => Sequence.flats 	(*succeeded; use tactic 1*)
-	            (Sequence.maps tf1 (Sequence.seqof(fn()=> seqcell))));
+	            (Sequence.maps tac1 (Sequence.seqof(fn()=> seqcell)));
 
 
 (*Versions for combining tactic-valued functions, as in
      SOMEGOAL (resolve_tac rls THEN' assume_tac) *)
-fun tac1 THEN' tac2 = fn x => tac1 x THEN tac2 x;
-fun tac1 ORELSE' tac2 = fn x => tac1 x ORELSE tac2 x;
-fun tac1 APPEND' tac2 = fn x => tac1 x APPEND tac2 x;
-fun tac1 INTLEAVE' tac2 = fn x => tac1 x INTLEAVE tac2 x;
+fun (tac1 THEN' tac2) x = tac1 x THEN tac2 x;
+fun (tac1 ORELSE' tac2) x = tac1 x ORELSE tac2 x;
+fun (tac1 APPEND' tac2) x = tac1 x APPEND tac2 x;
+fun (tac1 INTLEAVE' tac2) x = tac1 x INTLEAVE tac2 x;
 
 (*passes all proofs through unchanged;  identity of THEN*)
-val all_tac = Tactic (fn state => Sequence.single state);
+fun all_tac st = Sequence.single st;
 
 (*passes no proofs through;  identity of ORELSE and APPEND*)
-val no_tac  = Tactic (fn state => Sequence.null);
+fun no_tac st  = Sequence.null;
 
 
 (*Make a tactic deterministic by chopping the tail of the proof sequence*)
-fun DETERM (Tactic tf) = Tactic (fn state => 
-      case Sequence.pull (tf state) of
+fun DETERM tac st =  
+      case Sequence.pull (tac st) of
 	      None => Sequence.null
-            | Some(x,_) => Sequence.cons(x, Sequence.null));
+            | Some(x,_) => Sequence.cons(x, Sequence.null);
 
 
 (*Conditional tactical: testfun controls which tactic to use next.
   Beware: due to eager evaluation, both thentac and elsetac are evaluated.*)
-fun COND testfun (Tactic thenf) (Tactic elsef) = Tactic (fn prf =>
+fun COND testfun thenf elsef = (fn prf =>
     if testfun prf then  thenf prf   else  elsef prf);
 
 (*Do the tactic or else do nothing*)
@@ -178,20 +164,20 @@ fun TRY tac = tac ORELSE all_tac;
 (* EVERY [tac1,...,tacn]   equals    tac1 THEN ... THEN tacn   *)
 fun EVERY tacs = foldr (op THEN) (tacs, all_tac);
 
-(* EVERY' [tf1,...,tfn] i  equals    tf1 i THEN ... THEN tfn i   *)
-fun EVERY' tfs = foldr (op THEN') (tfs, K all_tac);
+(* EVERY' [tac1,...,tacn] i  equals    tac1 i THEN ... THEN tacn i   *)
+fun EVERY' tacs = foldr (op THEN') (tacs, K all_tac);
 
 (*Apply every tactic to 1*)
-fun EVERY1 tfs = EVERY' tfs 1;
+fun EVERY1 tacs = EVERY' tacs 1;
 
 (* FIRST [tac1,...,tacn]   equals    tac1 ORELSE ... ORELSE tacn   *)
 fun FIRST tacs = foldr (op ORELSE) (tacs, no_tac);
 
-(* FIRST' [tf1,...,tfn] i  equals    tf1 i ORELSE ... ORELSE tfn i   *)
-fun FIRST' tfs = foldr (op ORELSE') (tfs, K no_tac);
+(* FIRST' [tac1,...,tacn] i  equals    tac1 i ORELSE ... ORELSE tacn i   *)
+fun FIRST' tacs = foldr (op ORELSE') (tacs, K no_tac);
 
 (*Apply first tactic to 1*)
-fun FIRST1 tfs = FIRST' tfs 1;
+fun FIRST1 tacs = FIRST' tacs 1;
 
 
 (*** Tracing tactics ***)
@@ -200,15 +186,15 @@ fun FIRST1 tfs = FIRST' tfs 1;
 val goals_limit = ref 10;
 
 (*Print the current proof state and pass it on.*)
-val print_tac = Tactic 
-    (fn state => 
-     (!print_goals_ref (!goals_limit) state;   Sequence.single state));
+val print_tac = 
+    (fn st => 
+     (!print_goals_ref (!goals_limit) st;   Sequence.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
-val pause_tac = Tactic (fn state => 
+fun pause_tac st =  
   (prs"** Press RETURN to continue: ";
-   if input(std_in,1) = "\n" then Sequence.single state
-   else (prs"Goodbye\n";  Sequence.null)));
+   if input(std_in,1) = "\n" then Sequence.single st
+   else (prs"Goodbye\n";  Sequence.null));
 
 exception TRACE_EXIT of thm
 and TRACE_QUIT;
@@ -220,13 +206,13 @@ and trace_BEST_FIRST = ref false
 and suppress_tracing = ref false;
 
 (*Handle all tracing commands for current state and tactic *)
-fun exec_trace_command flag (tf, state) = 
+fun exec_trace_command flag (tac, st) = 
    case input_line(std_in) of
-       "\n" => tf state
+       "\n" => tac st
      | "f\n" => Sequence.null
-     | "o\n" => (flag:=false;  tf state)
-     | "s\n" => (suppress_tracing:=true;  tf state)
-     | "x\n" => (prs"Exiting now\n";  raise (TRACE_EXIT state))
+     | "o\n" => (flag:=false;  tac st)
+     | "s\n" => (suppress_tracing:=true;  tac st)
+     | "x\n" => (prs"Exiting now\n";  raise (TRACE_EXIT st))
      | "quit\n" => raise TRACE_QUIT
      | _     => (prs
 "Type RETURN to continue or...\n\
@@ -235,32 +221,32 @@ fun exec_trace_command flag (tf, state) =
 \     s    - to suppress tracing until next entry to a tactical\n\
 \     x    - to exit at this point\n\
 \     quit - to abort this tracing run\n\
-\** Well? "     ;  exec_trace_command flag (tf, state));
+\** Well? "     ;  exec_trace_command flag (tac, st));
 
 
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
-fun tracify flag (Tactic tf) state =
+fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
-           then (!print_goals_ref (!goals_limit) state;  
+           then (!print_goals_ref (!goals_limit) st;  
 		 prs"** Press RETURN to continue: ";
-		 exec_trace_command flag (tf,state))
-  else tf state;
+		 exec_trace_command flag (tac,st))
+  else tac st;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
-fun traced_tac seqf = Tactic (fn st =>
+fun traced_tac seqf st = 
     (suppress_tracing := false;
      Sequence.seqof (fn()=> seqf st
-		         handle TRACE_EXIT st' => Some(st', Sequence.null))));
+		         handle TRACE_EXIT st' => Some(st', Sequence.null)));
 
 
 (*Deterministic REPEAT: only retains the first outcome; 
   uses less space than REPEAT; tail recursive.
   If non-negative, n bounds the number of repetitions.*)
 fun REPEAT_DETERM_N n tac = 
-  let val tf = tracify trace_REPEAT tac
+  let val tac = tracify trace_REPEAT tac
       fun drep 0 st = Some(st, Sequence.null)
 	| drep n st =
-	   (case Sequence.pull(tf st) of
+	   (case Sequence.pull(tac st) of
 		None       => Some(st, Sequence.null)
 	      | Some(st',_) => drep (n-1) st')
   in  traced_tac (drep n)  end;
@@ -270,9 +256,9 @@ val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 
 (*General REPEAT: maintains a stack of alternatives; tail recursive*)
 fun REPEAT tac = 
-  let val tf = tracify trace_REPEAT tac
+  let val tac = tracify trace_REPEAT tac
       fun rep qs st = 
-	case Sequence.pull(tf st) of
+	case Sequence.pull(tac st) of
   	    None       => Some(st, Sequence.seqof(fn()=> repq qs))
           | Some(st',q) => rep (q::qs) st'
       and repq [] = None
@@ -291,7 +277,7 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 (*Searches until "satp" reports proof tree as satisfied.
   Suppresses duplicate solutions to minimize search space.*)
 fun DEPTH_FIRST satp tac = 
- let val tf = tracify trace_DEPTH_FIRST tac
+ let val tac = tracify trace_DEPTH_FIRST tac
      fun depth used [] = None
        | depth used (q::qs) =
 	  case Sequence.pull q of
@@ -300,7 +286,7 @@ fun DEPTH_FIRST satp tac =
 		if satp st andalso not (gen_mem eq_thm (st, used))
 		then Some(st, Sequence.seqof
 			         (fn()=> depth (st::used) (stq::qs)))
-		else depth used (tf st :: stq :: qs)
+		else depth used (tac st :: stq :: qs)
   in  traced_tac (fn st => depth [] ([Sequence.single st]))  end;
 
 
@@ -314,8 +300,8 @@ val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
 (*Tactical to reduce the number of premises by 1.
   If no subgoals then it must fail! *)
 fun DEPTH_SOLVE_1 tac = STATE
- (fn state => 
-    (case nprems_of state of
+ (fn st => 
+    (case nprems_of st of
 	0 => no_tac
       | n => DEPTH_FIRST (has_fewer_prems n) tac));
 
@@ -339,9 +325,9 @@ fun some_of_list []     = None
 
 (* Best-first search for a state that satisfies satp (incl initial state)
   Function sizef estimates size of problem remaining (smaller means better).
-  tactic tf0 sets up the initial priority queue, which is searched by tac. *)
-fun (Tactic tf0) THEN_BEST_FIRST (satp, sizef, tac) = 
-  let val tf = tracify trace_BEST_FIRST tac
+  tactic tac0 sets up the initial priority queue, which is searched by tac. *)
+fun tac0 THEN_BEST_FIRST (satp, sizef, tac1) = 
+  let val tac = tracify trace_BEST_FIRST tac1
       fun pairsize th = (sizef th, th);
       fun bfs (news,nprfs) =
 	   (case  partition satp news  of
@@ -354,17 +340,17 @@ fun (Tactic tf0) THEN_BEST_FIRST (satp, sizef, tac) =
 	       then writeln("state size = " ^ string_of_int n ^ 
 		         "  queue length =" ^ string_of_int (length nprfs))  
                else ();
-	     bfs (Sequence.list_of_s (tf prf), nprfs))
-      fun tf st = bfs (Sequence.list_of_s (tf0 st),  [])
-  in traced_tac tf end;
+	     bfs (Sequence.list_of_s (tac prf), nprfs))
+      fun btac st = bfs (Sequence.list_of_s (tac0 st),  [])
+  in traced_tac btac end;
 
 (*Ordinary best-first search, with no initial tactic*)
 fun BEST_FIRST (satp,sizef) tac = all_tac THEN_BEST_FIRST (satp,sizef,tac);
 
 (*Breadth-first search to satisfy satpred (including initial state) 
   SLOW -- SHOULD NOT USE APPEND!*)
-fun BREADTH_FIRST satpred (Tactic tf) = 
-  let val tacf = Sequence.list_of_s o tf;
+fun BREADTH_FIRST satpred tac = 
+  let val tacf = Sequence.list_of_s o tac;
       fun bfs prfs =
 	 (case  partition satpred prfs  of
 	      ([],[]) => []
@@ -372,64 +358,63 @@ fun BREADTH_FIRST satpred (Tactic tf) =
 		  (prs("breadth=" ^ string_of_int(length nonsats) ^ "\n");
 		   bfs (flat (map tacf nonsats)))
 	    | (sats,_)  => sats)
-  in Tactic (fn state => Sequence.s_of_list (bfs [state])) end;
+  in (fn st => Sequence.s_of_list (bfs [st])) end;
 
 
 (** Filtering tacticals **)
 
 (*Returns all states satisfying the predicate*)
-fun FILTER pred (Tactic tf) = Tactic
-      (fn state => Sequence.filters pred (tf state));
+fun FILTER pred tac st = Sequence.filters pred (tac st);
 
 (*Returns all changed states*)
-fun CHANGED (Tactic tf)  = 
-  Tactic (fn state => 
-    let fun diff st = not (eq_thm(state,st))
-    in  Sequence.filters diff (tf state)
+fun CHANGED tac  = 
+  (fn st => 
+    let fun diff st = not (eq_thm(st,st))
+    in  Sequence.filters diff (tac st)
     end );
 
 
 (*** Tacticals based on subgoal numbering ***)
 
-(*For n subgoals, performs tf(n) THEN ... THEN tf(1) 
-  Essential to work backwards since tf(i) may add/delete subgoals at i. *)
-fun ALLGOALS tf = 
-  let fun tac 0 = all_tac
-	| tac n = tf(n) THEN tac(n-1)
-  in  Tactic(fn state => tapply(tac(nprems_of state), state))  end;
+(*For n subgoals, performs tac(n) THEN ... THEN tac(1) 
+  Essential to work backwards since tac(i) may add/delete subgoals at i. *)
+fun ALLGOALS tac st = 
+  let fun doall 0 = all_tac
+	| doall n = tac(n) THEN doall(n-1)
+  in  doall(nprems_of st)st  end;
 
-(*For n subgoals, performs tf(n) ORELSE ... ORELSE tf(1)  *)
-fun SOMEGOAL tf = 
-  let fun tac 0 = no_tac
-	| tac n = tf(n) ORELSE tac(n-1)
-  in  Tactic(fn state => tapply(tac(nprems_of state), state))  end;
+(*For n subgoals, performs tac(n) ORELSE ... ORELSE tac(1)  *)
+fun SOMEGOAL tac st = 
+  let fun find 0 = no_tac
+	| find n = tac(n) ORELSE find(n-1)
+  in  find(nprems_of st)st  end;
 
-(*For n subgoals, performs tf(1) ORELSE ... ORELSE tf(n).
+(*For n subgoals, performs tac(1) ORELSE ... ORELSE tac(n).
   More appropriate than SOMEGOAL in some cases.*)
-fun FIRSTGOAL tf = 
-  let fun tac (i,n) = if i>n then no_tac else  tf(i) ORELSE tac (i+1,n)
-  in  Tactic(fn state => tapply(tac(1, nprems_of state), state))  end;
+fun FIRSTGOAL tac st = 
+  let fun find (i,n) = if i>n then no_tac else  tac(i) ORELSE find (i+1,n)
+  in  find(1, nprems_of st)st  end;
 
-(*Repeatedly solve some using tf. *)
-fun REPEAT_SOME tf = REPEAT1 (SOMEGOAL (REPEAT1 o tf));
-fun REPEAT_DETERM_SOME tf = REPEAT_DETERM1 (SOMEGOAL (REPEAT_DETERM1 o tf));
+(*Repeatedly solve some using tac. *)
+fun REPEAT_SOME tac = REPEAT1 (SOMEGOAL (REPEAT1 o tac));
+fun REPEAT_DETERM_SOME tac = REPEAT_DETERM1 (SOMEGOAL (REPEAT_DETERM1 o tac));
 
-(*Repeatedly solve the first possible subgoal using tf. *)
-fun REPEAT_FIRST tf = REPEAT1 (FIRSTGOAL (REPEAT1 o tf));
-fun REPEAT_DETERM_FIRST tf = REPEAT_DETERM1 (FIRSTGOAL (REPEAT_DETERM1 o tf));
+(*Repeatedly solve the first possible subgoal using tac. *)
+fun REPEAT_FIRST tac = REPEAT1 (FIRSTGOAL (REPEAT1 o tac));
+fun REPEAT_DETERM_FIRST tac = REPEAT_DETERM1 (FIRSTGOAL (REPEAT_DETERM1 o tac));
 
-(*For n subgoals, tries to apply tf to n,...1  *)
-fun TRYALL tf = ALLGOALS (TRY o tf);
+(*For n subgoals, tries to apply tac to n,...1  *)
+fun TRYALL tac = ALLGOALS (TRY o tac);
 
 
 (*Make a tactic for subgoal i, if there is one.  *)
-fun SUBGOAL goalfun i = Tactic(fn state =>
-  case drop(i-1, prems_of state) of
+fun SUBGOAL goalfun i st = 
+  case drop(i-1, prems_of st) of
       [] => Sequence.null
-    | prem::_ => tapply(goalfun (prem,i), state));
+    | prem::_ => goalfun (prem,i) st;
 
 (*Tactical for restricting the effect of a tactic to subgoal i.
-  Works by making a new state from subgoal i, applying tf to it, and
+  Works by making a new state from subgoal i, applying tac to it, and
   composing the resulting metathm with the original state.
   The "main goal" of the new state will not be atomic, some tactics may fail!
   DOES NOT work if tactic affects the main goal other than by instantiation.*)
@@ -441,23 +426,23 @@ val dummy_quant_rl =
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
-fun protect_subgoal state i =
-	Sequence.hd (bicompose false (false,dummy_quant_rl,1) i state)
+fun protect_subgoal st i =
+	Sequence.hd (bicompose false (false,dummy_quant_rl,1) i st)
 	handle _ => error"SELECT_GOAL -- impossible error???";
 
 (*Does the work of SELECT_GOAL. *)
-fun select (Tactic tf) state i =
-  let val cprem::_ = drop(i-1, cprems_of state)
-      fun next st = bicompose false (false, st, nprems_of st) i state
-  in  Sequence.flats (Sequence.maps next (tf (trivial cprem)))
+fun select tac st0 i =
+  let val cprem::_ = drop(i-1, cprems_of st0)
+      fun next st = bicompose false (false, st, nprems_of st) i st0
+  in  Sequence.flats (Sequence.maps next (tac (trivial cprem)))
   end;
 
-fun SELECT_GOAL tac i = Tactic (fn state =>
-  case (i, drop(i-1, prems_of state)) of
+fun SELECT_GOAL tac i st = 
+  case (i, drop(i-1, prems_of st)) of
       (_,[]) => Sequence.null
-    | (1,[_]) => tapply(tac,state)  (*If i=1 and only one subgoal do nothing!*)
-    | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal state i) i
-    | (_, _::_) => select tac state i);
+    | (1,[_]) => tac st		(*If i=1 and only one subgoal do nothing!*)
+    | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal st i) i
+    | (_, _::_) => select tac st i;
 
 
 (*Strips assumptions in goal yielding  ( [x1,...,xm], [H1,...,Hn], B )
@@ -475,7 +460,7 @@ fun strip_context A = strip_context_aux ([],[],A);
 
 
 (**** METAHYPS -- tactical for using hypotheses as meta-level assumptions
-       METAHYPS (fn prems => tac (prems)) i
+       METAHYPS (fn prems => tac prems) i
 
 converts subgoal i, of the form !!x1...xm. [| A1;...;An] ==> A into a new
 proof state A==>A, supplying A1,...,An as meta-level assumptions (in
@@ -489,7 +474,6 @@ DOES NOT HANDLE TYPE UNKNOWNS.
 ****)
 
 local 
-  open Logic 
 
   (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
     Instantiates distinct free variables by terms of same type.*)
@@ -503,11 +487,11 @@ local
   fun mk_inst (var as Var(v,T))  = (var,  free_of "METAHYP1_" (v,T))
 in
 
-fun metahyps_aux_tac tacf (prem,i) = Tactic (fn state =>
+fun metahyps_aux_tac tacf (prem,i) state = 
   let val {sign,maxidx,...} = rep_thm state
       val cterm = cterm_of sign
       (*find all vars in the hyps -- should find tvars also!*)
-      val hyps_vars = foldr add_term_vars (strip_assums_hyp prem, [])
+      val hyps_vars = foldr add_term_vars (Logic.strip_assums_hyp prem, [])
       val insts = map mk_inst hyps_vars
       (*replace the hyps_vars by Frees*)
       val prem' = subst_atomic insts prem
@@ -533,20 +517,20 @@ fun metahyps_aux_tac tacf (prem,i) = Tactic (fn state =>
 	  if in_concl then (cterm u, cterm t)
           else (cterm u, cterm(Var((a, i+maxidx), U)))
       (*Embed B in the original context of params and hyps*)
-      fun embed B = list_all_free (params, list_implies (hyps, B))
+      fun embed B = list_all_free (params, Logic.list_implies (hyps, B))
       (*Strip the context using elimination rules*)
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
       (*Embed an ff pair in the original params*)
-      fun embed_ff(t,u) = 
-	  mk_flexpair (list_abs_free (params, t), list_abs_free (params, u))
+      fun embed_ff(t,u) = Logic.mk_flexpair (list_abs_free (params, t), 
+					     list_abs_free (params, u))
       (*Remove parameter abstractions from the ff pairs*)
       fun elim_ff ff = flexpair_abs_elim_list cparams ff
       (*A form of lifting that discharges assumptions.*)
       fun relift st = 
 	let val prop = #prop(rep_thm st)
 	    val subgoal_vars = (*Vars introduced in the subgoals*)
-		  foldr add_term_vars (strip_imp_prems prop, [])
-	    and concl_vars = add_term_vars (strip_imp_concl prop, [])
+		  foldr add_term_vars (Logic.strip_imp_prems prop, [])
+	    and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
 	    val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
 	    val st' = instantiate ([], map mk_ctpair subgoal_insts) st
 	    val emBs = map (cterm o embed) (prems_of st')
@@ -566,11 +550,12 @@ fun metahyps_aux_tac tacf (prem,i) = Tactic (fn state =>
       (*function to replace the current subgoal*)
       fun next st = bicompose false (false, relift st, nprems_of st)
 	            i state
-  in  Sequence.flats (Sequence.maps next (tapply(tacf subprems, st0)))
-  end);
+  in  Sequence.flats (Sequence.maps next (tacf subprems st0))
+  end;
 end;
 
 fun METAHYPS tacf = SUBGOAL (metahyps_aux_tac tacf);
 
 end;
-end;
+
+open Tactical;
