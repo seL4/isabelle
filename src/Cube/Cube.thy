@@ -17,18 +17,20 @@ arities
 consts
   Abs, Prod     :: "[term, term => term] => term"
   Trueprop      :: "[context, typing] => prop"          ("(_/ |- _)")
-  Trueprop1     :: "typing => prop"                     ("(_)")
   MT_context    :: "context"                            ("")
-  ""            :: "id => context"                      ("_ ")
-  ""            :: "var => context"                     ("_ ")
   Context       :: "[typing, context] => context"       ("_ _")
   star          :: "term"                               ("*")
   box           :: "term"                               ("[]")
   "^"           :: "[term, term] => term"               (infixl 20)
-  Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
-  Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
   "->"          :: "[term, term] => term"               (infixr 10)
   Has_type      :: "[term, term] => typing"             ("(_:/ _)" [0, 0] 5)
+
+syntax
+  Trueprop1     :: "typing => prop"                     ("(_)")
+  ""            :: "id => context"                      ("_ ")
+  ""            :: "var => context"                     ("_ ")
+  Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
+  Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
 
 translations
   (prop) "x:X"  == (prop) "|- x:X"
