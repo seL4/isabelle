@@ -22,7 +22,7 @@ href="http://www.proofgeneral.org/register">register</a>) together
 with the (optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
 package.  Both of these should be used with a recent version of <a
-href="http://www.xemacs.org">XEmacs-21</a>.
+href="http://www.xemacs.org">XEmacs-21</a> (preferably with MULE).
 
 <p>
 
@@ -50,8 +50,9 @@ implementations (for further platforms) not included here.
 <table border="0" cellspacing="5" cellpadding="4" width="520">
 
 <!-- _GP_ downloadhead("Isabelle system") -->
-<!-- _GP_ download(1, "Isabelle main system", distname . ".tar.gz", "../..") -->
-<!-- _GP_ download(1, "Isabelle pdf documentation", distname . "_pdf.tar.gz", "../..") -->
+<!-- _GP_ download(1, "Main sources and documentation", distname . ".tar.gz", "../..") -->
+<!-- _GP_ download(1, "Alternative documentation in PDF", distname . "_pdf.tar.gz", "../..") -->
+<!-- _GP_ download(1, "Browsable version of theory library", distname . "_library.tar.gz", "../..") -->
 
 <!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
 <!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
@@ -111,6 +112,7 @@ location may be changed to anything appropriate).
 
 Users may now invoke Isabelle without further ado, e.g. run the main
 executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the
-Proof General interface for Isabelle/Isar.
+Proof General interface for Isabelle/Isar.  Note that there is a
+separate option to enable X-Symbol.
 
 <p>
