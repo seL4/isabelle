@@ -259,10 +259,10 @@ by (ALLGOALS (etac less_floor_imp THEN' Clarify_tac THEN' Asm_full_simp_tac));
 by (etac (leI RS le_anti_sym RS sym) 1);
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS metric_simp_tac);
-by (asm_simp_tac (simpset() addsimps [less_diff_conv, trans_le_add1]) 1);
 by (auto_tac
-    (claset() addEs [diff_less_Suc_diff RS less_not_refl3 RSN (2, rev_notE)],
-	      simpset()));
+    (claset() addEs [diff_less_Suc_diff RS less_not_refl3 RSN (2, rev_notE)]
+              addIs [diff_le_Suc_diff, diff_less_Suc_diff],
+	      simpset() addsimps [trans_le_add1]));
 qed "E_thm12b";
 
 

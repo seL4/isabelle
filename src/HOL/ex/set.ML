@@ -72,41 +72,37 @@ Goal "f(a) ~: (f``X) ==> a~:X";
 by (Blast_tac 1);
 qed "contra_imageI";
 
-Goal "(a ~: Compl(X)) = (a:X)";
+Goal "(a ~: -(X)) = (a:X)";
 by (Blast_tac 1);
 qed "not_Compl";
 
 (*Lots of backtracking in this proof...*)
 val [compl,fg,Xa] = goal Lfp.thy
-    "[| Compl(f``X) = g``Compl(X);  f(a)=g(b);  a:X |] ==> b:X";
+    "[| -(f``X) = g``(-X);  f(a)=g(b);  a:X |] ==> b:X";
 by (EVERY1 [rtac (not_Compl RS subst), rtac contra_imageI,
             rtac (compl RS subst), rtac (fg RS subst), stac not_Compl,
             rtac imageI, rtac Xa]);
 qed "disj_lemma";
 
 Goalw [image_def]
-     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
+     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``(-X)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "range_if_then_else";
-
-Goal "a : X Un Compl(X)";
-by (Blast_tac 1);
-qed "X_Un_Compl";
 
 Goalw [surj_def] "surj(f) = (!a. a : range(f))";
 by (fast_tac (claset() addEs [ssubst]) 1);
 qed "surj_iff_full_range";
 
-Goal "Compl(f``X) = g``Compl(X) ==> surj(%z. if z:X then f(z) else g(z))";
+Goal "-(f``X) = g``(-X) ==> surj(%z. if z:X then f(z) else g(z))";
 by (EVERY1[stac surj_iff_full_range, stac range_if_then_else,
            etac subst]);
-by (rtac (X_Un_Compl RS allI) 1);
+by (Blast_tac 1);
 qed "surj_if_then_else";
 
 val [injf,injg,compl,bij] = 
 goal Lfp.thy
-    "[| inj_on f X;  inj_on g (Compl X);  Compl(f``X) = g``Compl(X); \
+    "[| inj_on f X;  inj_on g (-X);  -(f``X) = g``(-X); \
 \       bij = (%z. if z:X then f(z) else g(z)) |] ==> \
 \       inj(bij) & surj(bij)";
 val f_eq_gE = make_elim (compl RS disj_lemma);
@@ -121,7 +117,7 @@ by (stac split_if 1);
 by (fast_tac (claset() addEs  [inj_onD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
-Goal "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";
+Goal "!!f:: 'a=>'b.  ? X. X = - (g``(- f``X))";
 by (rtac exI 1);
 by (rtac lfp_Tarski 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));

@@ -295,19 +295,19 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 
 section "Set complement -- Compl";
 
-qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : Compl(A)) = (c~:A)"
+qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : -A) = (c~:A)"
  (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Compl_iff];
 
-val prems = Goalw [Compl_def] "[| c:A ==> False |] ==> c : Compl(A)";
+val prems = Goalw [Compl_def] "[| c:A ==> False |] ==> c : -A";
 by (REPEAT (ares_tac (prems @ [CollectI,notI]) 1));
 qed "ComplI";
 
 (*This form, with negated conclusion, works well with the Classical prover.
   Negated assumptions behave like formulae on the right side of the notional
   turnstile...*)
-Goalw [Compl_def] "c : Compl(A) ==> c~:A";
+Goalw [Compl_def] "c : -A ==> c~:A";
 by (etac CollectD 1);
 qed "ComplD";
 

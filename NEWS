@@ -20,6 +20,8 @@ called `inj_on';
   less_imp_add_less  should be replaced by  trans_less_add1
   le_imp_add_le      should be replaced by  trans_le_add1
 
+* HOL: unary - is now overloaded (new type constraints may be required);
+
 * Pure: ML function 'theory_of' replaced by 'theory';
 
 
@@ -208,6 +210,10 @@ literature);
 
 * HOL/recdef can now declare non-recursive functions, with {} supplied as
 the well-founded relation;
+
+* HOL/Set INCOMPATIBILITY: the complement of set A is now written -A instead of
+    Compl A.  The "Compl" syntax remains available as input syntax for this
+    release ONLY.
 
 * HOL/Update: new theory of function updates:
     f(a:=b) == %x. if x=a then b else f x

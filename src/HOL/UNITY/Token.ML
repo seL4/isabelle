@@ -34,7 +34,7 @@ val next_def   = (thm "next_def");
 
 AddIffs [thm "N_positive", thm"skip"];
 
-Goalw [stable_def] "stable acts (Compl(E i) Un (HasTok i))";
+Goalw [stable_def] "stable acts (-(E i) Un (HasTok i))";
 by (rtac constrains_weaken 1);
 by (rtac ([[TR2, TR4] MRS constrains_Un, TR5] MRS constrains_Un) 1);
 by (auto_tac (claset(), simpset() addsimps [not_E_eq]));
@@ -96,7 +96,7 @@ val token_lemma = result();
 (*Misra's TR9: the token reaches an arbitrary node*)
 Goal "j<N ==> leadsTo acts {s. token s < N} (HasTok j)";
 by (rtac leadsTo_weaken_R 1);
-by (res_inst_tac [("I", "Compl{j}"), ("f", "token"), ("B", "{}")]
+by (res_inst_tac [("I", "-{j}"), ("f", "token"), ("B", "{}")]
      (wf_nodeOrder RS bounded_induct) 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [token_lemma, vimage_Diff,
 						HasTok_def])));

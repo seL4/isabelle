@@ -186,7 +186,7 @@ by (Blast_tac 1);
 qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
-Goal "(A Int B = {}) = (A <= Compl B)";
+Goal "(A Int B = {}) = (A <= -B)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "disjoint_eq_subset_Compl";
 
@@ -338,33 +338,33 @@ qed "Un_Diff_Int";
 
 section "Compl";
 
-Goal "A Int Compl(A) = {}";
+Goal "A Int -A = {}";
 by (Blast_tac 1);
 qed "Compl_disjoint";
 Addsimps[Compl_disjoint];
 
-Goal "A Un Compl(A) = UNIV";
+Goal "A Un -A = UNIV";
 by (Blast_tac 1);
 qed "Compl_partition";
 
-Goal "Compl(Compl(A)) = A";
+Goal "- -A = (A:: 'a set)";
 by (Blast_tac 1);
 qed "double_complement";
 Addsimps[double_complement];
 
-Goal "Compl(A Un B) = Compl(A) Int Compl(B)";
+Goal "-(A Un B) = -A Int -B";
 by (Blast_tac 1);
 qed "Compl_Un";
 
-Goal "Compl(A Int B) = Compl(A) Un Compl(B)";
+Goal "-(A Int B) = -A Un -B";
 by (Blast_tac 1);
 qed "Compl_Int";
 
-Goal "Compl(UN x:A. B(x)) = (INT x:A. Compl(B(x)))";
+Goal "-(UN x:A. B(x)) = (INT x:A. -B(x))";
 by (Blast_tac 1);
 qed "Compl_UN";
 
-Goal "Compl(INT x:A. B(x)) = (UN x:A. Compl(B(x)))";
+Goal "-(INT x:A. B(x)) = (UN x:A. -B(x))";
 by (Blast_tac 1);
 qed "Compl_INT";
 
@@ -602,7 +602,7 @@ qed "bex_UN";
 
 section "-";
 
-Goal "A-B = A Int Compl B";
+Goal "A-B = A Int -B";
 by (Blast_tac 1);
 qed "Diff_eq";
 

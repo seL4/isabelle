@@ -32,8 +32,7 @@ by (Blast_tac 1);
 qed "transient_strengthen";
 
 Goalw [transient_def]
-    "[| act:acts;  A <= Domain act;  act^^A <= Compl A |] \
-\         ==> transient acts A";
+    "[| act:acts;  A <= Domain act;  act^^A <= -A |] ==> transient acts A";
 by (Blast_tac 1);
 qed "transient_mem";
 

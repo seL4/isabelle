@@ -32,7 +32,7 @@ by (Blast_tac 1);
 qed "UN_lessThan_UNIV";
 
 Goalw [lessThan_def, atLeast_def, le_def]
-    "Compl(lessThan k) = atLeast k";
+    "-lessThan k = atLeast k";
 by (Blast_tac 1);
 qed "Compl_lessThan";
 
@@ -58,12 +58,12 @@ by (Blast_tac 1);
 qed "INT_greaterThan_UNIV";
 
 Goalw [greaterThan_def, atMost_def, le_def]
-    "Compl(greaterThan k) = atMost k";
+    "-greaterThan k = atMost k";
 by (Blast_tac 1);
 qed "Compl_greaterThan";
 
 Goalw [greaterThan_def, atMost_def, le_def]
-    "Compl(atMost k) = greaterThan k";
+    "-atMost k = greaterThan k";
 by (Blast_tac 1);
 qed "Compl_atMost";
 
@@ -96,7 +96,7 @@ by (Blast_tac 1);
 qed "UN_atLeast_UNIV";
 
 Goalw [lessThan_def, atLeast_def, le_def]
-    "Compl(atLeast k) = lessThan k";
+    "-atLeast k = lessThan k";
 by (Blast_tac 1);
 qed "Compl_atLeast";
 
@@ -128,7 +128,7 @@ by (Blast_tac 1);
 qed "UN_atMost_UNIV";
 
 Goalw [atMost_def, le_def]
-    "Compl(atMost k) = greaterThan k";
+    "-atMost k = greaterThan k";
 by (Blast_tac 1);
 qed "Compl_atMost";
 Addsimps [Compl_atMost];
@@ -148,31 +148,40 @@ qed "atMost_Int_atLeast";
 
 context Set.thy;
 
-(** Rewrites rules to eliminate A.  Conditions can be satisfied by letting B
+(** Rewrite rules to eliminate A.  Conditions can be satisfied by letting B
     be any set including A Int C and contained in A Un C, such as B=A or B=C.
 **)
 
 Goal "[| A Int C <= B; B <= A Un C |] \
-\     ==> (A Int B) Un (Compl A Int C) = B Un C";
+\     ==> (A Int B) Un (-A Int C) = B Un C";
 by (Blast_tac 1);
+qed "set_cancel1";
 
 Goal "[| A Int C <= B; B <= A Un C |] \
-\     ==> (A Un B) Int (Compl A Un C) = B Int C";
+\     ==> (A Un B) Int (-A Un C) = B Int C";
 by (Blast_tac 1);
+qed "set_cancel2";
 
 (*The base B=A*)
-Goal "A Un (Compl A Int C) = A Un C";
+Goal "A Un (-A Int C) = A Un C";
 by (Blast_tac 1);
+qed "set_cancel3";
 
-Goal "A Int (Compl A Un C) = A Int C";
+Goal "A Int (-A Un C) = A Int C";
 by (Blast_tac 1);
+qed "set_cancel4";
 
 (*The base B=C*)
-Goal "(A Int C) Un (Compl A Int C) = C";
+Goal "(A Int C) Un (-A Int C) = C";
 by (Blast_tac 1);
+qed "set_cancel5";
 
-Goal "(A Un C) Int (Compl A Un C) = C";
+Goal "(A Un C) Int (-A Un C) = C";
 by (Blast_tac 1);
+qed "set_cancel6";
+
+Addsimps [set_cancel1, set_cancel2, set_cancel3,
+	  set_cancel4, set_cancel5, set_cancel6];
 
 
 (** More ad-hoc rules **)
@@ -180,6 +189,7 @@ by (Blast_tac 1);
 Goal "A Un B - (A - B) = B";
 by (Blast_tac 1);
 qed "Un_Diff_Diff";
+Addsimps [Un_Diff_Diff];
 
 Goal "A Int (B - C) Un C = A Int B Un C";
 by (Blast_tac 1);

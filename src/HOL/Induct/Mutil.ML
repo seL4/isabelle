@@ -10,7 +10,7 @@ Addsimps tiling.intrs;
 
 (** The union of two disjoint tilings is a tiling **)
 
-Goal "t: tiling A ==> u: tiling A --> t <= Compl u --> t Un u : tiling A";
+Goal "t: tiling A ==> u: tiling A --> t Int u = {} --> t Un u : tiling A";
 by (etac tiling.induct 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [Un_assoc]) 1);
@@ -59,7 +59,7 @@ Goal "(below m) Times below(n+n) : tiling domino";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Sigma_Suc1])));
 by (blast_tac (claset() addSIs [tiling_UnI, dominoes_tile_row]
-                       addSEs [below_less_iff RS iffD1 RS less_irrefl]) 1);
+                        addSEs [below_less_iff RS iffD1 RS less_irrefl]) 1);
 qed "dominoes_tile_matrix";
 
 

@@ -79,9 +79,9 @@ by (blast_tac (claset() addDs [PSP_stable2]
                         addIs [common_stable, LeadsTo_weaken_R]) 1);
 val lemma = result();
 
-(*The "ALL m: Compl common" form echoes CMT6.*)
+(*The "ALL m: -common" form echoes CMT6.*)
 Goal "[| ALL m. Constrains prg {m} (maxfg m); \
-\               ALL m: Compl common. LeadsTo prg {m} (greaterThan m); \
+\               ALL m: -common. LeadsTo prg {m} (greaterThan m); \
 \               n: common;  id: Acts prg |]  \
 \            ==> LeadsTo prg (atMost (LEAST n. n: common)) common";
 by (rtac lemma 1);

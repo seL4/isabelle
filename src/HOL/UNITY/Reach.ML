@@ -73,7 +73,7 @@ qed "FP_fixedpoint";
   a LEADSTO assertion that the metric decreases if we are not at a fixedpoint.
   *)
 
-Goal "Compl fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
+Goal "- fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
 by (simp_tac (simpset() addsimps
 	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym])) 1);
 by Auto_tac;

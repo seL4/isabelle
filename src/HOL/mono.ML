@@ -51,7 +51,7 @@ Goal "!!A::'a set. [| A<=C;  D<=B |] ==> A-B <= C-D";
 by (Blast_tac 1);
 qed "Diff_mono";
 
-Goal "A<=B ==> Compl(B) <= Compl(A)";
+Goal "!!A::'a set. A <= B ==> -B <= -A";
 by (Blast_tac 1);
 qed "Compl_anti_mono";
 

@@ -53,7 +53,7 @@ Goal "f-``{} = {}";
 by (Blast_tac 1);
 qed "vimage_empty";
 
-Goal "f-``(Compl A) = Compl (f-``A)";
+Goal "f-``(-A) = -(f-``A)";
 by (Blast_tac 1);
 qed "vimage_Compl";
 
