@@ -31,14 +31,12 @@ record 'a semigroup = "'a partial_object" +
 record 'a monoid = "'a semigroup" +
   one :: 'a ("\<one>\<index>")
 
-constdefs
-  m_inv :: "[('a, 'm) monoid_scheme, 'a] => 'a" ("inv\<index> _" [81] 80)
-  "m_inv G x == (THE y. y \<in> carrier G &
-                  mult G x y = one G & mult G y x = one G)"
+constdefs (structure G)
+  m_inv :: "_ => 'a => 'a" ("inv\<index> _" [81] 80)
+  "inv x == (THE y. y \<in> carrier G & x \<otimes> y = \<one> & y \<otimes> x = \<one>)"
 
-  Units :: "('a, 'm) monoid_scheme => 'a set"
-  "Units G == {y. y \<in> carrier G &
-                  (EX x : carrier G. mult G x y = one G & mult G y x = one G)}"
+  Units :: "_ => 'a set"
+  "Units G == {y. y \<in> carrier G & (EX x : carrier G. x \<otimes> y = \<one> & y \<otimes> x = \<one>)}"
 
 consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
@@ -492,20 +490,13 @@ lemma (in monoid) Units_subgroup:
 
 subsection {* Direct Products *}
 
-constdefs
-  DirProdSemigroup ::
-    "[('a, 'm) semigroup_scheme, ('b, 'n) semigroup_scheme]
-    => ('a \<times> 'b) semigroup"
-    (infixr "\<times>\<^sub>s" 80)
+constdefs (structure G and H)
+  DirProdSemigroup :: "_ => _ => ('a \<times> 'b) semigroup"  (infixr "\<times>\<^sub>s" 80)
   "G \<times>\<^sub>s H == (| carrier = carrier G \<times> carrier H,
-    mult = (%(xg, xh) (yg, yh). (mult G xg yg, mult H xh yh)) |)"
+    mult = (%(xg, xh) (yg, yh). (xg \<otimes> yg, xh \<otimes>\<^sub>2 yh)) |)"
 
-  DirProdGroup ::
-    "[('a, 'm) monoid_scheme, ('b, 'n) monoid_scheme] => ('a \<times> 'b) monoid"
-    (infixr "\<times>\<^sub>g" 80)
-  "G \<times>\<^sub>g H == (| carrier = carrier (G \<times>\<^sub>s H),
-    mult = mult (G \<times>\<^sub>s H),
-    one = (one G, one H) |)"
+  DirProdGroup :: "_ => _ => ('a \<times> 'b) monoid"  (infixr "\<times>\<^sub>g" 80)
+  "G \<times>\<^sub>g H == semigroup.extend (G \<times>\<^sub>s H) (| one = (\<one>, \<one>\<^sub>2) |)"
 
 lemma DirProdSemigroup_magma:
   includes magma G + magma H
@@ -529,13 +520,13 @@ lemma DirProdGroup_magma:
   includes magma G + magma H
   shows "magma (G \<times>\<^sub>g H)"
   by (rule magma.intro)
-    (auto simp add: DirProdGroup_def DirProdSemigroup_def)
+    (auto simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma DirProdGroup_semigroup_axioms:
   includes semigroup G + semigroup H
   shows "semigroup_axioms (G \<times>\<^sub>g H)"
   by (rule semigroup_axioms.intro)
-    (auto simp add: DirProdGroup_def DirProdSemigroup_def
+    (auto simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs
       G.m_assoc H.m_assoc)
 
 lemma DirProdGroup_semigroup:
@@ -545,26 +536,26 @@ lemma DirProdGroup_semigroup:
   by (fast intro: semigroup.intro
     DirProdGroup_magma DirProdGroup_semigroup_axioms)
 
-(* ... and further lemmas for group ... *)
+text {* \dots\ and further lemmas for group \dots *}
 
 lemma DirProdGroup_group:
   includes group G + group H
   shows "group (G \<times>\<^sub>g H)"
   by (rule groupI)
     (auto intro: G.m_assoc H.m_assoc G.l_inv H.l_inv
-      simp add: DirProdGroup_def DirProdSemigroup_def)
+      simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma carrier_DirProdGroup [simp]:
      "carrier (G \<times>\<^sub>g H) = carrier G \<times> carrier H"
-  by (simp add: DirProdGroup_def DirProdSemigroup_def)
+  by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma one_DirProdGroup [simp]:
      "one (G \<times>\<^sub>g H) = (one G, one H)"
-  by (simp add: DirProdGroup_def DirProdSemigroup_def);
+  by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma mult_DirProdGroup [simp]:
      "mult (G \<times>\<^sub>g H) (g, h) (g', h') = (mult G g g', mult H h h')"
-  by (simp add: DirProdGroup_def DirProdSemigroup_def)
+  by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma inv_DirProdGroup [simp]:
   includes group G + group H
@@ -577,12 +568,11 @@ lemma inv_DirProdGroup [simp]:
 
 subsection {* Homomorphisms *}
 
-constdefs
-  hom :: "[('a, 'c) semigroup_scheme, ('b, 'd) semigroup_scheme]
-    => ('a => 'b)set"
+constdefs (structure G and H)
+  hom :: "_ => _ => ('a => 'b) set"
   "hom G H ==
     {h. h \<in> carrier G -> carrier H &
-      (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (mult G x y) = mult H (h x) (h y))}"
+      (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes> y) = h x \<otimes>\<^sub>2 h y)}"
 
 lemma (in semigroup) hom:
   includes semigroup G

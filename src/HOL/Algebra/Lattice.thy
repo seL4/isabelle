@@ -25,40 +25,41 @@ locale partial_order = order_syntax +
                   "[| x \<sqsubseteq> y; y \<sqsubseteq> z;
                    x \<in> carrier L; y \<in> carrier L; z \<in> carrier L |] ==> x \<sqsubseteq> z"
 
-constdefs
-  less :: "[('a, 'm) order_scheme, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
-  "less L x y == le L x y & x ~= y"
+constdefs (structure L)
+  less :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
+  "x \<sqsubset> y == x \<sqsubseteq> y & x ~= y"
 
-  (* Upper and lower bounds of a set. *)
-  Upper :: "[('a, 'm) order_scheme, 'a set] => 'a set"
+  -- {* Upper and lower bounds of a set. *}
+  Upper :: "[_, 'a set] => 'a set"
   "Upper L A == {u. (ALL x. x \<in> A \<inter> carrier L --> le L x u)} \<inter>
                 carrier L"
 
-  Lower :: "[('a, 'm) order_scheme, 'a set] => 'a set"
+  Lower :: "[_, 'a set] => 'a set"
   "Lower L A == {l. (ALL x. x \<in> A \<inter> carrier L --> le L l x)} \<inter>
                 carrier L"
 
-  (* Least and greatest, as predicate. *)
-  least :: "[('a, 'm) order_scheme, 'a, 'a set] => bool"
+  -- {* Least and greatest, as predicate. *}
+  least :: "[_, 'a, 'a set] => bool"
   "least L l A == A \<subseteq> carrier L & l \<in> A & (ALL x : A. le L l x)"
 
-  greatest :: "[('a, 'm) order_scheme, 'a, 'a set] => bool"
+  greatest :: "[_, 'a, 'a set] => bool"
   "greatest L g A == A \<subseteq> carrier L & g \<in> A & (ALL x : A. le L x g)"
 
-  (* Supremum and infimum *)
-  sup :: "[('a, 'm) order_scheme, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
-  "sup L A == THE x. least L x (Upper L A)"
+  -- {* Supremum and infimum *}
+  sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
+  "\<Squnion>A == THE x. least L x (Upper L A)"
 
-  inf :: "[('a, 'm) order_scheme, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
-  "inf L A == THE x. greatest L x (Lower L A)"
+  inf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
+  "\<Sqinter>A == THE x. greatest L x (Lower L A)"
 
-  join :: "[('a, 'm) order_scheme, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
-  "join L x y == sup L {x, y}"
+  join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
+  "x \<squnion> y == sup L {x, y}"
 
-  meet :: "[('a, 'm) order_scheme, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 65)
-  "meet L x y == inf L {x, y}"
+  meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 65)
+  "x \<sqinter> y == inf L {x, y}"
 
-(* Upper *)
+
+subsubsection {* Upper *}
 
 lemma Upper_closed [intro, simp]:
   "Upper L A \<subseteq> carrier L"
@@ -78,7 +79,8 @@ lemma Upper_antimono:
   "A \<subseteq> B ==> Upper L B \<subseteq> Upper L A"
   by (unfold Upper_def) blast
 
-(* Lower *)
+
+subsubsection {* Lower *}
 
 lemma Lower_closed [intro, simp]:
   "Lower L A \<subseteq> carrier L"
@@ -98,7 +100,8 @@ lemma Lower_antimono:
   "A \<subseteq> B ==> Lower L B \<subseteq> Lower L A"
   by (unfold Lower_def) blast
 
-(* least *)
+
+subsubsection {* least *}
 
 lemma least_carrier [intro, simp]:
   shows "least L l A ==> l \<in> carrier L"
@@ -131,7 +134,8 @@ next
   from below show "ALL x : Upper L A. s \<sqsubseteq> x" by fast
 qed
 
-(* greatest *)
+
+subsubsection {* greatest *}
 
 lemma greatest_carrier [intro, simp]:
   shows "greatest L l A ==> l \<in> carrier L"
@@ -199,8 +203,7 @@ lemma (in lattice) join_closed [simp]:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<squnion> y \<in> carrier L"
   by (rule joinI) (rule least_carrier)
 
-lemma (in partial_order) sup_of_singletonI:
-  (* only reflexivity needed ? *)
+lemma (in partial_order) sup_of_singletonI:      (* only reflexivity needed ? *)
   "x \<in> carrier L ==> least L x (Upper L {x})"
   by (rule least_UpperI) fast+
 
@@ -404,7 +407,7 @@ lemma (in lattice) join_assoc_lemma:
   assumes L: "x \<in> carrier L" "y \<in> carrier L" "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) = \<Squnion> {x, y, z}"
 proof (rule finite_sup_insertI)
-  (* The textbook argument in Jacobson I, p 457 *)
+  -- {* The textbook argument in Jacobson I, p 457 *}
   fix s
   assume sup: "least L s (Upper L {x, y, z})"
   show "x \<squnion> (y \<squnion> z) = s"
@@ -452,8 +455,7 @@ lemma (in lattice) meet_closed [simp]:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqinter> y \<in> carrier L"
   by (rule meetI) (rule greatest_carrier)
 
-lemma (in partial_order) inf_of_singletonI:
-  (* only reflexivity needed ? *)
+lemma (in partial_order) inf_of_singletonI:      (* only reflexivity needed ? *)
   "x \<in> carrier L ==> greatest L x (Lower L {x})"
   by (rule greatest_LowerI) fast+
 
@@ -765,17 +767,17 @@ proof (rule complete_lattice.intro)
   by (rule lattice_axioms.intro) (blast intro: sup_exists inf_exists)+
 qed (assumption | rule complete_lattice_axioms.intro)+
 
-constdefs
-  top :: "('a, 'm) order_scheme => 'a" ("\<top>\<index>")
-  "top L == sup L (carrier L)"
+constdefs (structure L)
+  top :: "_ => 'a" ("\<top>\<index>")
+  "\<top> == sup L (carrier L)"
 
-  bottom :: "('a, 'm) order_scheme => 'a" ("\<bottom>\<index>")
-  "bottom L == inf L (carrier L)"
+  bottom :: "_ => 'a" ("\<bottom>\<index>")
+  "\<bottom> == inf L (carrier L)"
 
 
 lemma (in complete_lattice) supI:
   "[| !!l. least L l (Upper L A) ==> P l; A \<subseteq> carrier L |]
-  ==> P (\<Squnion> A)"
+  ==> P (\<Squnion>A)"
 proof (unfold sup_def)
   assume L: "A \<subseteq> carrier L"
     and P: "!!l. least L l (Upper L A) ==> P l"

@@ -15,8 +15,8 @@ theory Sylow = Coset:
 subsection {*Order of a Group and Lagrange's Theorem*}
 
 constdefs
-  order     :: "(('a,'b) semigroup_scheme) => nat"
-   "order(S) == card(carrier S)"
+  order     :: "('a,'b) semigroup_scheme => nat"
+  "order S == card (carrier S)"
 
 theorem (in coset) lagrange:
      "[| finite(carrier G); subgroup H G |] 

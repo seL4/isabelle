@@ -9,9 +9,10 @@ header {* Product Operator *}
 
 theory FiniteProduct = Group:
 
-(* Instantiation of LC from Finite_Set.thy is not possible,
-   because here we have explicit typing rules like x : carrier G.
-   We introduce an explicit argument for the domain D *)
+text {* Instantiation of @{text LC} from theory @{text Finite_Set} is not
+  possible, because here we have explicit typing rules like @{text "x
+  : carrier G"}.  We introduce an explicit argument for the domain
+  @{text D}. *}
 
 consts
   foldSetD :: "['a set, 'b => 'a => 'a, 'a] => ('b set * 'a) set"
@@ -281,14 +282,23 @@ lemma (in ACeD) foldD_Un_disjoint:
 
 subsection {* Products over Finite Sets *}
 
-constdefs
-  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
+constdefs (structure G)
+  finprod :: "[_, 'a => 'b, 'a set] => 'b"
   "finprod G f A == if finite A
-      then foldD (carrier G) (mult G o f) (one G) A
+      then foldD (carrier G) (mult G o f) \<one> A
       else arbitrary"
 
-(* TODO: nice syntax for the summation operator inside the locale
-   like \<Otimes>\<index> i\<in>A. f i, probably needs hand-coded translation *)
+syntax
+  "_finprod" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Otimes>__:_. _" [1000, 0, 51, 10] 10)
+syntax (xsymbols)
+  "_finprod" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Otimes>__\<in>_. _" [1000, 0, 51, 10] 10)
+syntax (HTML output)
+  "_finprod" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Otimes>__\<in>_. _" [1000, 0, 51, 10] 10)
+translations
+  "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
 
 ML_setup {* 
   simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
@@ -324,7 +334,7 @@ lemma (in comm_monoid) finprod_insert [simp]:
   done
 
 lemma (in comm_monoid) finprod_one [simp]:
-  "finite A ==> finprod G (%i. \<one>) A = \<one>"
+  "finite A ==> (\<Otimes>i:A. \<one>) = \<one>"
 proof (induct set: Finites)
   case empty show ?case by simp
 next

@@ -58,18 +58,18 @@ record ('a, 'p) up_ring = "('a, 'p) module" +
   monom :: "['a, nat] => 'p"
   coeff :: "['p, nat] => 'a"
 
-constdefs
-  up :: "('a, 'm) ring_scheme => (nat => 'a) set"
-  "up R == {f. f \<in> UNIV -> carrier R & (EX n. bound (zero R) n f)}"
-  UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
+constdefs (structure R)
+  up :: "_ => (nat => 'a) set"
+  "up R == {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero> n f)}"
+  UP :: "_ => ('a, nat => 'a) up_ring"
   "UP R == (|
     carrier = up R,
-    mult = (%p:up R. %q:up R. %n. finsum R (%i. mult R (p i) (q (n-i))) {..n}),
-    one = (%i. if i=0 then one R else zero R),
-    zero = (%i. zero R),
-    add = (%p:up R. %q:up R. %i. add R (p i) (q i)),
-    smult = (%a:carrier R. %p:up R. %i. mult R a (p i)),
-    monom = (%a:carrier R. %n i. if i=n then a else zero R),
+    mult = (%p:up R. %q:up R. %n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i)),
+    one = (%i. if i=0 then \<one> else \<zero>),
+    zero = (%i. \<zero>),
+    add = (%p:up R. %q:up R. %i. p i \<oplus> q i),
+    smult = (%a:carrier R. %p:up R. %i. a \<otimes> p i),
+    monom = (%a:carrier R. %n i. if i=n then a else \<zero>),
     coeff = (%p:up R. %n. p n) |)"
 
 text {*
@@ -179,9 +179,8 @@ locale UP_cring = UP + cring R
 locale UP_domain = UP_cring + "domain" R
 
 text {*
-  Temporarily declare UP.P\_def as simp rule.
-*}
-(* TODO: use antiquotation once text (in locale) is supported. *)
+  Temporarily declare @{text UP.P_def} as simp rule.
+*}  (* TODO: use antiquotation once text (in locale) is supported. *)
 
 declare (in UP) P_def [simp]
 
@@ -785,9 +784,9 @@ qed
 
 subsection {* The degree function *}
 
-constdefs
-  deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
-  "deg R p == LEAST n. bound (zero R) n (coeff (UP R) p)"
+constdefs (structure R)
+  deg :: "[_, nat => 'a] => nat"
+  "deg R p == LEAST n. bound \<zero> n (coeff (UP R) p)"
 
 lemma (in UP_cring) deg_aboveI:
   "[| (!!m. n < m ==> coeff P p m = \<zero>); p \<in> carrier P |] ==> deg R p <= n" 
@@ -1248,11 +1247,10 @@ lemma (in UP_cring) const_ring_hom:
   "(%a. monom P a 0) \<in> ring_hom R P"
   by (auto intro!: ring_hom_memI intro: up_eqI simp: monom_mult_is_smult)
 
-constdefs
-  eval :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme,
-          'a => 'b, 'b, nat => 'a] => 'b"
-  "eval R S phi s == (\<lambda>p \<in> carrier (UP R).
-    finsum S (%i. mult S (phi (coeff (UP R) p i)) (pow S s i)) {..deg R p})"
+constdefs (structure S)
+  eval :: "[_, _, 'a => 'b, 'b, nat => 'a] => 'b"
+  "eval R S phi s == \<lambda>p \<in> carrier (UP R).
+    \<Oplus>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes> pow S s i"
 (*
   "eval R S phi s p == if p \<in> carrier (UP R)
   then finsum S (%i. mult S (phi (coeff (UP R) p i)) (pow S s i)) {..deg R p}
@@ -1565,6 +1563,5 @@ lemma "eval INTEG INTEG id 10 (monom (UP INTEG) 5 2) = 500"
   by (simp add: ring_hom_UP_cring.eval_monom [OF INTEG_id])
 
 -- {* Calculates @{term "x = 500"} *}
-
 
 end

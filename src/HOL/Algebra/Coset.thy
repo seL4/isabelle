@@ -9,23 +9,23 @@ theory Coset = Group + Exponent:
 
 declare (in group) l_inv [simp]  r_inv [simp] 
 
-constdefs
-  r_coset    :: "[('a,'b) monoid_scheme,'a set, 'a] => 'a set"    
-   "r_coset G H a == (% x. (mult G) x a) ` H"
+constdefs (structure G)
+  r_coset    :: "[_,'a set, 'a] => 'a set"    
+   "r_coset G H a == (% x. x \<otimes> a) ` H"
 
-  l_coset    :: "[('a,'b) monoid_scheme, 'a, 'a set] => 'a set"
-   "l_coset G a H == (% x. (mult G) a x) ` H"
+  l_coset    :: "[_, 'a, 'a set] => 'a set"
+   "l_coset G a H == (% x. a \<otimes> x) ` H"
 
-  rcosets  :: "[('a,'b) monoid_scheme,'a set] => ('a set)set"
+  rcosets  :: "[_, 'a set] => ('a set)set"
    "rcosets G H == r_coset G H ` (carrier G)"
 
-  set_mult  :: "[('a,'b) monoid_scheme,'a set,'a set] => 'a set"
-   "set_mult G H K == (%(x,y). (mult G) x y) ` (H \<times> K)"
+  set_mult  :: "[_, 'a set ,'a set] => 'a set"
+   "set_mult G H K == (%(x,y). x \<otimes> y) ` (H \<times> K)"
 
-  set_inv   :: "[('a,'b) monoid_scheme,'a set] => 'a set"
-   "set_inv G H == (m_inv G) ` H"
+  set_inv   :: "[_,'a set] => 'a set"
+   "set_inv G H == m_inv G ` H"
 
-  normal     :: "['a set, ('a,'b) monoid_scheme] => bool"       (infixl "<|" 60)
+  normal     :: "['a set, _] => bool"       (infixl "<|" 60)
    "normal H G == subgroup H G & 
                   (\<forall>x \<in> carrier G. r_coset G H x = l_coset G x H)"
 

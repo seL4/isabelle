@@ -16,12 +16,12 @@ record 'a ring = "'a monoid" +
 
 text {* Derived operations. *}
 
-constdefs
-  a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
+constdefs (structure R)
+  a_inv :: "[_, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
   "a_inv R == m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
 
   minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
-  "[| x \<in> carrier R; y \<in> carrier R |] ==> minus R x y == add R x (a_inv R y)"
+  "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y == x \<oplus> (\<ominus> y)"
 
 locale abelian_monoid = struct G +
   assumes a_comm_monoid: "comm_monoid (| carrier = carrier G,
@@ -183,9 +183,21 @@ text {*
 *}
 
 constdefs
-  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b"
+  finsum :: "[_, 'a => 'b, 'a set] => 'b"
   "finsum G f A == finprod (| carrier = carrier G,
      mult = add G, one = zero G |) f A"
+
+syntax
+  "_finsum" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Oplus>__:_. _" [1000, 0, 51, 10] 10)
+syntax (xsymbols)
+  "_finsum" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Oplus>__\<in>_. _" [1000, 0, 51, 10] 10)
+syntax (HTML output)
+  "_finsum" :: "index => idt => 'a set => 'b => 'b"
+      ("\<Oplus>__\<in>_. _" [1000, 0, 51, 10] 10)
+translations
+  "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
 
 (*
   lemmas (in abelian_monoid) finsum_empty [simp] =
@@ -214,7 +226,7 @@ lemma (in abelian_monoid) finsum_insert [simp]:
     folded finsum_def, simplified monoid_record_simps])
 
 lemma (in abelian_monoid) finsum_zero [simp]:
-  "finite A ==> finsum G (%i. \<zero>) A = \<zero>"
+  "finite A ==> (\<Oplus>i: A. \<zero>) = \<zero>"
   by (rule comm_monoid.finprod_one [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 

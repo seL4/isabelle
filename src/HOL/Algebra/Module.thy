@@ -32,60 +32,63 @@ locale algebra = module R M + cring M +
       (a \<odot>\<^sub>2 x) \<otimes>\<^sub>2 y = a \<odot>\<^sub>2 (x \<otimes>\<^sub>2 y)"
 
 lemma moduleI:
+  includes struct R + struct M
   assumes cring: "cring R"
     and abelian_group: "abelian_group M"
     and smult_closed:
-      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> smult M a x \<in> carrier M"
+      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 x \<in> carrier M"
     and smult_l_distr:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      smult M (add R a b) x = add M (smult M a x) (smult M b x)"
+      (a \<oplus> b) \<odot>\<^sub>2 x = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (b \<odot>\<^sub>2 x)"
     and smult_r_distr:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      smult M a (add M x y) = add M (smult M a x) (smult M a y)"
+      a \<odot>\<^sub>2 (x \<oplus>\<^sub>2 y) = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (a \<odot>\<^sub>2 y)"
     and smult_assoc1:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      smult M (mult R a b) x = smult M a (smult M b x)"
+      (a \<otimes> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 (b \<odot>\<^sub>2 x)"
     and smult_one:
-      "!!x. x \<in> carrier M ==> smult M (one R) x = x"
+      "!!x. x \<in> carrier M ==> \<one> \<odot>\<^sub>2 x = x"
   shows "module R M"
   by (auto intro: module.intro cring.axioms abelian_group.axioms
     module_axioms.intro prems)
 
 lemma algebraI:
+  includes struct R + struct M
   assumes R_cring: "cring R"
     and M_cring: "cring M"
     and smult_closed:
-      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> smult M a x \<in> carrier M"
+      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 x \<in> carrier M"
     and smult_l_distr:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      smult M (add R a b) x = add M (smult M a x) (smult M b x)"
+      (a \<oplus> b) \<odot>\<^sub>2 x = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (b \<odot>\<^sub>2 x)"
     and smult_r_distr:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      smult M a (add M x y) = add M (smult M a x) (smult M a y)"
+      a \<odot>\<^sub>2 (x \<oplus>\<^sub>2 y) = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (a \<odot>\<^sub>2 y)"
     and smult_assoc1:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      smult M (mult R a b) x = smult M a (smult M b x)"
+      (a \<otimes> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 (b \<odot>\<^sub>2 x)"
     and smult_one:
-      "!!x. x \<in> carrier M ==> smult M (one R) x = x"
+      "!!x. x \<in> carrier M ==> (one R) \<odot>\<^sub>2 x = x"
     and smult_assoc2:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      mult M (smult M a x) y = smult M a (mult M x y)"
+      (a \<odot>\<^sub>2 x) \<otimes>\<^sub>2 y = a \<odot>\<^sub>2 (x \<otimes>\<^sub>2 y)"
   shows "algebra R M"
   by (auto intro!: algebra.intro algebra_axioms.intro cring.axioms 
     module_axioms.intro prems)
 
 lemma (in algebra) R_cring:
   "cring R"
-  by (rule cring.intro) assumption+
+  by (rule cring.intro)
 
 lemma (in algebra) M_cring:
   "cring M"
-  by (rule cring.intro) assumption+
+  by (rule cring.intro)
 
 lemma (in algebra) module:
   "module R M"
   by (auto intro: moduleI R_cring is_abelian_group
     smult_l_distr smult_r_distr smult_assoc1)
+
 
 subsection {* Basic Properties of Algebras *}
 
