@@ -44,7 +44,7 @@ Goalw [WO1_def] "[| WO1; ALL B:A. EX C:D(B). P(C,B) |]  \
 by (eres_inst_tac [("x","Union({{C:D(B). P(C,B)}. B:A})")] allE 1);
 by (etac exE 1);
 by (dtac ex_choice_fun 1);
-by (fast_tac (claset() addEs [RepFunE, sym RS equals0D]) 1);
+by (fast_tac (claset() addEs [sym RS equals0E]) 1);
 by (etac exE 1);
 by (res_inst_tac [("x","lam x:A. f`{C:D(x). P(C,x)}")] exI 1);
 by (Asm_full_simp_tac 1);
@@ -69,8 +69,7 @@ by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 1);
 val lemma2_1 = result();
 
 Goal "f : bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i:D} : Pow(Pow(B))";
-by (fast_tac (claset() addSIs [InlI, InrI]
-                addSEs [RepFunE, bij_is_fun RS apply_type]) 1);
+by (fast_tac (claset() addSEs [bij_is_fun RS apply_type]) 1);
 val lemma2_2 = result();
 
 Goal "[| f:inj(A,B); f`a = f`b; a:A; b:A |] ==> a=b";
@@ -79,13 +78,8 @@ by (TRYALL (fast_tac (claset() addSEs [inj_is_fun RS apply_Pair] addEs [subst]))
 val lemma = result();
 
 Goalw AC_aux_defs
-        "f : bij(D+D, B) ==>  \
-\               pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i:D})";
-by (fast_tac (claset() addSEs [RepFunE, not_emptyE] 
-        addDs [bij_is_inj RS lemma, Inl_iff RS iffD1,
-                Inr_iff RS iffD1, Inl_Inr_iff RS iffD1 RS FalseE,
-                Inr_Inl_iff RS iffD1 RS FalseE]
-        addSIs [InlI, InrI]) 1);
+        "f : bij(D+D, B) ==> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i:D})";
+by (blast_tac (claset() addDs [bij_is_inj RS lemma]) 1);
 val lemma2_3 = result();
 
 val [major, minor] = goalw thy AC_aux_defs 
@@ -93,11 +87,11 @@ val [major, minor] = goalw thy AC_aux_defs
 \       sets_of_size_between({{f`Inl(i), f`Inr(i)}. i:D}, 2, succ(n))";
 by (rewtac succ_def);
 by (fast_tac (claset() 
-        addSIs [cons_lepoll_cong, minor, lepoll_refl, InlI, InrI] 
+        addSIs [cons_lepoll_cong, minor, lepoll_refl] 
         addIs [singleton_eqpoll_1 RS eqpoll_imp_lepoll RS lepoll_trans,
                 le_imp_subset RS subset_imp_lepoll]
-        addDs [major RS bij_is_inj RS lemma, Inl_Inr_iff RS iffD1 RS FalseE]
-        addSEs [RepFunE, not_emptyE, mem_irrefl]) 1);
+        addDs [major RS bij_is_inj RS lemma]
+        addSEs [mem_irrefl]) 1);
 val lemma2_4 = result();
 
 Goalw [bij_def, surj_def]

@@ -61,8 +61,7 @@ val lemma2 = result();
 
 Goal "[| f`Z : Z; Z:Pow(x)-{0} |] ==>  \
 \       (lam X:Pow(x)-{0}. {f`X})`Z : Pow(Z)-{0}";
-by (Asm_full_simp_tac 1);
-by (fast_tac (claset() addSDs [equals0D]) 1);
+by Auto_tac;
 val lemma3 = result();
 
 Goal "EX f:F. f`((lam f:F. Q(f))`f) : (lam f:F. Q(f))`f  \

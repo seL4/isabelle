@@ -151,8 +151,7 @@ by (deepen_tac (claset() addSIs [bexI] addSEs [equalityE]) 4 1);
 qed "lam_surj_sing";
 
 Goal "y:Pow(x)-{0} ==> x ~= 0";
-by (fast_tac (claset() addSIs [equals0I, singletonI RS subst_elem]
-                addSDs [equals0D]) 1);
+by Auto_tac;
 qed "not_emptyI2";
 
 Goal "f`(x - (UN j:i. HH(f,x,j))): Pow(x - (UN j:i. HH(f,x,j)))-{0}  \

@@ -378,7 +378,7 @@ qed "ex_subset_eqpoll";
 
 
 Goal "[| A <= B Un C; A Int C = 0 |] ==> A <= B";
-by (fast_tac (claset() addDs [equals0D]) 1);
+by (fast_tac (claset() addEs [equals0E]) 1);
 qed "subset_Un_disjoint";
 
 

@@ -10,7 +10,7 @@ val [prem] = goalw thy [lepoll_def]
         "Ord(a) ==> {P(b). b:a} lepoll a";
 by (res_inst_tac [("x","lam z:RepFun(a,P). LEAST i. z=P(i)")] exI 1);
 by (res_inst_tac [("d","%z. P(z)")] (sym RSN (2, lam_injective)) 1);
-by (fast_tac (claset() addSEs [RepFunE] addSIs [Least_in_Ord, prem]) 1);
+by (fast_tac (claset() addSIs [Least_in_Ord, prem]) 1);
 by (REPEAT (eresolve_tac [RepFunE, LeastI, prem RS Ord_in_Ord] 1));
 qed "RepFun_lepoll";
 

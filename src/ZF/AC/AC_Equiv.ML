@@ -39,7 +39,7 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (* ********************************************************************** *)
 
 Goal "(A->X)=0 ==> X=0";
-by (fast_tac (claset() addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
+by (fast_tac (claset() addSIs [equals0I] addEs [lam_type RSN (2, equals0E)]) 1);
 qed "fun_space_emptyD";
 
 (* used only in WO1_DC.ML *)
@@ -119,7 +119,7 @@ by (fast_tac (claset() addSEs [minor]
 qed "inj_strengthen_type";
 
 Goal "A*B=0 <-> A=0 | B=0";
-by (fast_tac (claset() addSIs [equals0I] addEs [equals0D]) 1);
+by (fast_tac (claset() addSIs [equals0I] addEs [equals0E]) 1);
 qed "Sigma_empty_iff";
 
 Goalw [Finite_def] "n:nat ==> Finite(n)";

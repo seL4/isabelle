@@ -572,11 +572,10 @@ by (fast_tac (claset() addSIs [lam_type, RepFunI]) 1);
 qed "lam_type_RepFun";
 
 Goal "[| ALL Y:Pow(X). Y lesspoll a --> (EX x:X. <Y, x> : R);  \
-\       b:a; Z:Pow(X); Z lesspoll a |]  \
-\       ==> {x:X. <Z,x> : R} ~= 0";
-by (fast_tac (FOL_cs addEs [bexE, equals0D]
-        addSDs [bspec] addIs [CollectI]) 1);
-val lemma_ = result();
+\        b:a; Z:Pow(X); Z lesspoll a |]  \
+\     ==> {x:X. <Z,x> : R} ~= 0";
+by (blast_tac (claset() addEs [equals0E]) 1);
+val lemmaX = result();
 
 Goal "[| Card(K); well_ord(X,Q);  \
 \       ALL Y:Pow(X). Y lesspoll K --> (EX x:X. <Y, x> : R); b:K |]  \
@@ -590,11 +589,10 @@ by (etac the_first_in 1);
 by (Fast_tac 1);
 by (asm_full_simp_tac (simpset()
         addsimps [[lam_type_RepFun, subset_refl] MRS image_fun]) 1);
-by (etac lemma_ 1 THEN (assume_tac 1));
-by (fast_tac (claset() addSEs [RepFunE, impE, notE]
-                addEs [Card_is_Ord RSN (2, OrdmemD) RS subsetD]) 1);
+by (etac lemmaX 1 THEN assume_tac 1);
+by (blast_tac (claset() addIs [Card_is_Ord RSN (2, OrdmemD) RS subsetD]) 1);
 by (fast_tac (claset() addSEs [[in_Card_imp_lesspoll, RepFun_lepoll]
-                MRS lepoll_lesspoll_lesspoll]) 1);
+			       MRS lepoll_lesspoll_lesspoll]) 1);
 val lemma = result();
 
 Goalw [DC_def, WO1_def]

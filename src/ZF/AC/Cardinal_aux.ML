@@ -185,16 +185,6 @@ by (eres_inst_tac [("P","%z. x:F(z)"),("i","c")] less_LeastE 1);
 by (eresolve_tac [Ord_Least RSN (2, ltI)] 1);
 qed "UN_eq_UN_Diffs";
 
-Goalw [eqpoll_def] "A Int B = 0 ==> A Un B eqpoll A + B";
-by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
-by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
-by (fast_tac (claset() addSIs [if_type, InlI, InrI]) 1);
-by (TRYALL (etac sumE ));
-by (TRYALL (split_tac [split_if]));
-by (TRYALL Asm_simp_tac);
-by (fast_tac (claset() addDs [equals0D]) 1);
-qed "disj_Un_eqpoll_sum";
-
 Goalw [lepoll_def, eqpoll_def]
         "a lepoll X ==> EX Y. Y<=X & a eqpoll Y";
 by (etac exE 1);

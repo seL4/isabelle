@@ -25,14 +25,13 @@ Goal "[| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
 by (rtac subsetI 1);
 by (eres_inst_tac [("x","{{b:B(a). x:X(a,b)}. a:A}")] allE 1);
 by (etac impE 1);
-by (fast_tac (claset() addSEs [RepFunE] addSDs [INT_E]
-                addEs [UN_E, sym RS equals0D]) 1);
+by (fast_tac (claset() addEs [sym RS equals0E]) 1);
 by (etac exE 1);
 by (rtac UN_I 1);
 by (fast_tac (claset() addSEs [PROD_subsets]) 1);
 by (Simp_tac 1);
 by (fast_tac (claset() addSEs [not_emptyE] addDs [RepFunI RSN (2, apply_type)]
-                addEs [CollectD2] addSIs [INT_I]) 1);
+	      ) 1);
 qed "lemma_AC18";
 
 val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";
@@ -57,8 +56,8 @@ qed "AC18_AC19";
 
 Goalw [u_def]
         "[| A ~= 0; 0 ~: A |] ==> {u_(a). a:A} ~= 0 & 0 ~: {u_(a). a:A}";
-by (fast_tac (claset() addSIs [not_emptyI, RepFunI]
-                addSEs [not_emptyE, RepFunE]
+by (fast_tac (claset() addSIs [not_emptyI]
+                addSEs [not_emptyE]
                 addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
 qed "RepRep_conj";
 
@@ -76,8 +75,7 @@ val lemma1_1 = result();
 Goalw [u_def]
         "[| f`(u_(a)) ~: a; f: (PROD B:{u_(a). a:A}. B); a:A |]  \
 \               ==> f`(u_(a))-{0} : a";
-by (fast_tac (claset() addSEs [RepFunI, RepFunE, lemma1_1]
-                addSDs [apply_type]) 1);
+by (fast_tac (claset() addSEs [lemma1_1] addSDs [apply_type]) 1);
 val lemma1_2 = result();
 
 Goal  "EX f. f: (PROD B:{u_(a). a:A}. B) ==> EX f. f: (PROD B:A. B)";
@@ -98,7 +96,7 @@ val lemma2_1 = result();
 Goal "[| A~=0; 0~:A |] ==> (INT x:{u_(a). a:A}. UN b:x. b) ~= 0";
 by (etac not_emptyE 1);
 by (res_inst_tac [("a","0")] not_emptyI 1);
-by (fast_tac (claset() addSIs [INT_I, RepFunI, lemma2_1] addSEs [RepFunE]) 1);
+by (fast_tac (claset() addSIs [lemma2_1]) 1);
 val lemma2 = result();
 
 Goal "(UN f:F. P(f)) ~= 0 ==> F ~= 0";

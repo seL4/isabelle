@@ -49,9 +49,7 @@ by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1
     THEN (assume_tac 1));
 by (rtac notI 1);
 by (eres_inst_tac [("x","nat")] allE 1);
-by (etac disjE 1);
-by (fast_tac (claset() addSDs [nat_0I RSN (2,equals0D)]) 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addSEs [nat_0I RSN (2,equals0E)]) 1);
 qed "converse_Memrel_not_wf_on";
 
 Goalw [well_ord_def] 

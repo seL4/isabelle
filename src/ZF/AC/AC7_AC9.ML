@@ -20,7 +20,7 @@ qed "mem_not_eq_not_mem";
 Goal "[| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
 by (fast_tac (claset() addSDs [Sigma_empty_iff RS iffD1]
                 addDs [fun_space_emptyD, mem_not_eq_not_mem]
-                addEs [equals0D]
+                addEs [equals0E]
                 addSIs [equals0I,UnionI]) 1);
 qed "Sigma_fun_space_not0";
 
@@ -105,12 +105,11 @@ val lemma1_2 = result();
 Goal "(PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0  \
 \               ==> (PROD B:A. B) ~= 0";
 by (fast_tac (claset() addSIs [equals0I,lemma1_1, lemma1_2]
-                addSEs [equals0D]) 1);
+                addSEs [equals0E]) 1);
 val lemma1 = result();
 
 Goal "0 ~: A ==> 0 ~: {(nat -> Union(A)) * C. C:A}";
-by (fast_tac (claset() addEs [RepFunE,
-                Sigma_fun_space_not0 RS not_sym RS notE]) 1);
+by (fast_tac (claset() addEs [Sigma_fun_space_not0 RS not_sym RS notE]) 1);
 val lemma2 = result();
 
 Goalw AC_defs "AC7 ==> AC6";
@@ -121,9 +120,8 @@ by (fast_tac (claset() addSIs [not_emptyI, empty_fun]) 2);
 by (rtac lemma1 1);
 by (etac allE 1);
 by (etac impE 1 THEN (assume_tac 2));
-by (fast_tac (claset() addSEs [RepFunE]
-        addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
-                Sigma_fun_space_eqpoll]) 1);
+by (fast_tac (claset() addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
+			       Sigma_fun_space_eqpoll]) 1);
 qed "AC7_AC6";
 
 
@@ -134,26 +132,17 @@ qed "AC7_AC6";
 Goalw [eqpoll_def]
         "ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
 \       ==> 0 ~: { bij(fst(B),snd(B)). B:A }";
-by (rtac notI 1);
-by (etac RepFunE 1);
-by (dtac bspec 1 THEN (assume_tac 1));
-by (REPEAT (eresolve_tac [exE,conjE] 1));
-by (hyp_subst_tac 1);
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 val lemma1 = result();
 
-Goal "[| f: (PROD X:RepFun(A,p). X); D:A |]  \
-\               ==> (lam x:A. f`p(x))`D : p(D)";
+Goal "[| f: (PROD X:RepFun(A,p). X); D:A |] ==> (lam x:A. f`p(x))`D : p(D)";
 by (resolve_tac [beta RS ssubst] 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [apply_type]) 1);
 val lemma2 = result();
 
 Goalw AC_defs "AC1 ==> AC8";
-by (rtac allI 1);
-by (etac allE 1);
-by (rtac impI 1);
-by (etac impE 1);
-by (etac lemma1 1);
+by (Clarify_tac 1);
+by (dtac lemma1 1);
 by (fast_tac (claset() addSEs [lemma2]) 1);
 qed "AC1_AC8";
 
