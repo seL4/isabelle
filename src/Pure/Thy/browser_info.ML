@@ -215,8 +215,13 @@ fun theory_source name src = with_session (fn _ =>
 
 (* FIXME clean *)
 
-fun begin_theory name parents orig_files = with_session (fn {session, html_prefix, ...} =>
+fun parent_link name =
+  if is_some (Symtab.lookup (#theories (! browser_info), name)) then (Some (html_path name), name)
+  else (None, name);
+
+fun begin_theory name raw_parents orig_files = with_session (fn {session, html_prefix, ...} =>
   let
+    val parents = map parent_link raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = orig_files @		(* FIXME improve!? *)
       (if is_some (ThyLoad.check_file ml_path) then [(ml_path, true)] else []);

@@ -27,7 +27,7 @@ sig
   val theory_entry: Path.T * string -> text
   val session_entries: (Path.T * string) list -> text
   val source: (string, 'a) Source.source -> text
-  val begin_theory: Path.T * string -> string -> string list ->
+  val begin_theory: Path.T * string -> string -> (Path.T option * string) list ->
     (Path.T option * Path.T * bool) list -> text -> text
   val end_theory: text
   val ml_file: Path.T -> string -> text
@@ -168,20 +168,23 @@ local
     (case opt_ref of None => I | Some p => href_path p)
       ((if not loadit then enclose "(" ")" else I) (file_path path));
 
-  fun suffix_last _ [] = []
-    | suffix_last s lst = let val (xs, x) = split_last lst in xs @ [x ^ s] end;
+  fun colon_last [] = []
+    | colon_last lst = let val (prfx, (x, y)) = split_last lst in prfx @ [(x, y ^ ":")] end;
 
-  val plus_names = space_implode " + " o map name;
+  fun parent (None, s) = name s
+    | parent (Some p, s) = href_path p (name s);
+
+  val parents = space_implode " + " o map parent;
 
   fun theory back A =
     begin_document ("Theory " ^ A) ^ "\n" ^ back_link back ^
     keyword "theory" ^ " " ^ name A ^ " = ";
 in
 
-fun begin_theory back A Bs [] body = theory back A ^ plus_names (suffix_last ":" Bs) ^ "\n" ^ body
+fun begin_theory back A Bs [] body = theory back A ^ parents (colon_last Bs) ^ "\n" ^ body
   | begin_theory back A Bs Ps body =
-      theory back A ^ plus_names Bs ^
-      "<br>" ^ keyword "files" ^ " " ^ space_implode " + " (map file Ps) ^ ":" ^ "\n" ^ body;
+      theory back A ^ parents Bs ^ "<br>" ^ keyword "files" ^
+      " " ^ space_implode " + " (map file Ps) ^ ":" ^ "\n" ^ body;
 end;
 
 val end_theory = end_document;
