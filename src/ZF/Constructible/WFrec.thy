@@ -275,7 +275,7 @@ apply (rule exists_is_recfun_indstep)
 done
 
 constdefs
- M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+  M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
    "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
@@ -283,11 +283,20 @@ constdefs
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
                xa \<in> r & MH(x, f_r_sx, y))"
 
+  is_wfrec :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+   "is_wfrec(M,MH,r,a,z) == 
+      \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)"
+
+  wfrec_replacement :: "[i=>o, [i,i,i]=>o, i] => o"
+   "wfrec_replacement(M,MH,r) ==
+        strong_replacement(M, 
+             \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & is_wfrec(M,MH,r,x,y))"
+
 lemma (in M_axioms) is_recfun_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(r); M(a); M(f); 
-         \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(x,g,y) <-> y = H(x,g) |] 
+         relativize2(M,MH,H) |] 
       ==> M_is_recfun(M,MH,r,a,f) <-> is_recfun(r,a,H,f)"
-apply (simp add: M_is_recfun_def is_recfun_relativize)
+apply (simp add: M_is_recfun_def relativize2_def is_recfun_relativize)
 apply (rule rall_cong)
 apply (blast dest: transM)
 done
@@ -298,7 +307,33 @@ lemma M_is_recfun_cong [cong]:
       ==> M_is_recfun(M,MH,r,a,f) <-> M_is_recfun(M,MH',r',a',f')"
 by (simp add: M_is_recfun_def) 
 
+lemma (in M_axioms) is_wfrec_abs:
+     "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
+         relativize2(M,MH,H);  M(r); M(a); M(z) |]
+      ==> is_wfrec(M,MH,r,a,z) <-> 
+          (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
+by (simp add: is_wfrec_def relativize2_def is_recfun_abs)
 
+text{*Relating @{term wfrec_replacement} to native constructs*}
+lemma (in M_axioms) wfrec_replacement':
+  "[|wfrec_replacement(M,MH,r);
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
+     relativize2(M,MH,H);  M(r)|] 
+   ==> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
+                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g)))"
+apply (rotate_tac 1) 
+apply (simp add: wfrec_replacement_def is_wfrec_abs) 
+done
+
+lemma wfrec_replacement_cong [cong]:
+     "[| !!x y z. [| M(x); M(y); M(z) |] ==> MH(x,y,z) <-> MH'(x,y,z);
+         r=r' |] 
+      ==> wfrec_replacement(M, %x y. MH(x,y), r) <-> 
+          wfrec_replacement(M, %x y. MH'(x,y), r')" 
+by (simp add: is_wfrec_def wfrec_replacement_def) 
+
+
+(*FIXME: update to use new techniques!!*)
 constdefs
  (*This expresses ordinal addition in the language of ZF.  It also 
    provides an abbreviation that can be used in the instance of strong
@@ -367,7 +402,7 @@ lemma (in M_ord_arith) is_oadd_fun_iff:
 	f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) --> x < a --> f`x = i Un f``x)"
 apply (frule lt_Ord) 
 apply (simp add: is_oadd_fun_def Memrel_closed Un_closed 
-             is_recfun_abs [of "%x g. i Un g``x"]
+             relativize2_def is_recfun_abs [of "%x g. i Un g``x"]
              image_closed is_recfun_iff_equation  
              Ball_def lt_trans [OF ltI, of _ a] lt_Memrel)
 apply (simp add: lt_def) 
@@ -382,7 +417,7 @@ lemma (in M_ord_arith) oadd_strong_replacement':
 		  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
 		  y = i Un g``x))" 
 apply (insert oadd_strong_replacement [of i j]) 
-apply (simp add: is_oadd_fun_def is_recfun_abs [of "%x g. i Un g``x"])  
+apply (simp add: is_oadd_fun_def relativize2_def is_recfun_abs [of "%x g. i Un g``x"])  
 done
 
 

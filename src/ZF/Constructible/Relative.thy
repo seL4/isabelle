@@ -179,6 +179,16 @@ constdefs
        (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
        (is_quasinat(M,k) | z=0)"
 
+  relativize1 :: "[i=>o, [i,i]=>o, i=>i] => o"
+    "relativize1(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. is_f(x,y) <-> y = f(x)"
+
+  relativize2 :: "[i=>o, [i,i,i]=>o, [i,i]=>i] => o"
+    "relativize2(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. is_f(x,y,z) <-> z = f(x,y)"
+
+  relativize3 :: "[i=>o, [i,i,i,i]=>o, [i,i,i]=>i] => o"
+    "relativize3(M,is_f,f) == 
+       \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M]. is_f(x,y,z,u) <-> u = f(x,y,z)"
+
 
 subsection {*The relativized ZF axioms*}
 constdefs
@@ -584,7 +594,7 @@ done
   nonconstructible set.  So we cannot assume that M(X) implies M(RepFun(X,f))
   even for f : M -> M.
 *)
-lemma (in M_triv_axioms) RepFun_closed [intro,simp]:
+lemma (in M_triv_axioms) RepFun_closed:
      "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A,f))"
 apply (simp add: RepFun_def) 
@@ -592,10 +602,23 @@ apply (rule strong_replacement_closed)
 apply (auto dest: transM  simp add: univalent_def) 
 done
 
+lemma Replace_conj_eq: "{y . x \<in> A, x\<in>A & y=f(x)} = {y . x\<in>A, y=f(x)}"
+by simp
+
+text{*Better than @{text RepFun_closed} when having the formula @{term "x\<in>A"}
+      makes relativization easier.*}
+lemma (in M_triv_axioms) RepFun_closed2:
+     "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
+      ==> M(RepFun(A, %x. f(x)))"
+apply (simp add: RepFun_def)
+apply (frule strong_replacement_closed, assumption)
+apply (auto dest: transM  simp add: Replace_conj_eq univalent_def) 
+done
+
 lemma (in M_triv_axioms) lam_closed [intro,simp]:
      "[| strong_replacement(M, \<lambda>x y. y = <x,b(x)>); M(A); \<forall>x\<in>A. M(b(x)) |]
       ==> M(\<lambda>x\<in>A. b(x))"
-by (simp add: lam_def, blast dest: transM) 
+by (simp add: lam_def, blast intro: RepFun_closed dest: transM) 
 
 lemma (in M_triv_axioms) image_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> image(M,r,A,z) <-> z = r``A"
@@ -635,19 +658,18 @@ lemma (in M_triv_axioms) quasinat_abs [simp]:
 by (auto simp add: is_quasinat_def quasinat_def)
 
 lemma (in M_triv_axioms) nat_case_abs [simp]: 
-  assumes b_abs: "!!x y. M(x) --> M(y) --> (is_b(x,y) <-> y = b(x))"
-  shows
-     "[| M(k); M(z) |] ==> is_nat_case(M,a,is_b,k,z) <-> z = nat_case(a,b,k)"
+     "[| relativize1(M,is_b,b); M(k); M(z) |] 
+      ==> is_nat_case(M,a,is_b,k,z) <-> z = nat_case(a,b,k)"
 apply (case_tac "quasinat(k)") 
  prefer 2 
  apply (simp add: is_nat_case_def non_nat_case) 
  apply (force simp add: quasinat_def) 
 apply (simp add: quasinat_def is_nat_case_def)
 apply (elim disjE exE) 
- apply (simp_all add: b_abs) 
+ apply (simp_all add: relativize1_def) 
 done
 
-(*Needed?  surely better to replace by nat_case?*)
+(*Needed?  surely better to replace is_nat_case by nat_case?*)
 lemma (in M_triv_axioms) is_nat_case_cong [cong]:
      "[| a = a'; k = k';  z = z';  M(z');
        !!x y. [| M(x); M(y) |] ==> is_b(x,y) <-> is_b'(x,y) |]
@@ -980,8 +1002,7 @@ by (simp add: apply_def)
 
 lemma (in M_axioms) apply_abs [simp]: 
      "[| M(f); M(x); M(y) |] ==> fun_apply(M,f,x,y) <-> f`x = y"
-apply (simp add: fun_apply_def apply_def)
-apply (blast intro: elim:); 
+apply (simp add: fun_apply_def apply_def, blast) 
 done
 
 lemma (in M_axioms) typed_function_abs [simp]: 

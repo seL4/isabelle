@@ -92,33 +92,58 @@ by (simp add: list_eq_lfp2 lfp_eq_Union list_fun_bnd_mono list_fun_contin)
 
 subsection {*Absoluteness for "Iterates"*}
 
-lemma (in M_trancl) iterates_relativize:
-  "[|n \<in> nat; M(v); \<forall>x[M]. M(F(x));
-     strong_replacement(M, 
-       \<lambda>x z. \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) &
-              M_is_recfun(M, \<lambda>n f z. z = nat_case(v, \<lambda>m. F(f`m), n), 
-                          Memrel(succ(n)), x, g) &
-              y = nat_case(v, \<lambda>m. F(g`m), x))|] 
-   ==> iterates(F,n,v) = z <-> 
-       (\<exists>g[M]. is_recfun(Memrel(succ(n)), n, 
-                             \<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n), g) &
-            z = nat_case(v, \<lambda>m. F(g`m), n))"
-by (simp add: iterates_nat_def recursor_def transrec_def 
-              eclose_sing_Ord_eq trans_wfrec_relativize nat_into_M
-              wf_Memrel trans_Memrel relation_Memrel
-              is_recfun_abs [of "\<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n)"])
+constdefs
+
+  iterates_MH :: "[i=>o, [i,i]=>o, i, i, i, i] => o"
+   "iterates_MH(M,isF,v,n,g,z) ==
+        is_nat_case(M, v, \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) & isF(gm,u),
+                    n, z)"
+
+  iterates_replacement :: "[i=>o, [i,i]=>o, i] => o"
+   "iterates_replacement(M,isF,v) ==
+      \<forall>n[M]. n\<in>nat -->
+         wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
+
+lemma (in M_axioms) iterates_MH_abs:
+  "[| relativize1(M,isF,F); M(n); M(g); M(z) |] 
+   ==> iterates_MH(M,isF,v,n,g,z) <-> z = nat_case(v, \<lambda>m. F(g`m), n)"
+apply (simp add: iterates_MH_def) 
+apply (rule nat_case_abs) 
+apply (simp_all add: relativize1_def) 
+done
+
+
+lemma (in M_axioms) iterates_imp_wfrec_replacement:
+  "[|relativize1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
+   ==> wfrec_replacement(M, \<lambda>n f z. z = nat_case(v, \<lambda>m. F(f`m), n), 
+                       Memrel(succ(n)))" 
+by (simp add: iterates_replacement_def iterates_MH_abs)
+
+theorem (in M_trancl) iterates_abs:
+  "[| iterates_replacement(M,isF,v); relativize1(M,isF,F);
+      n \<in> nat; M(v); M(z); \<forall>x[M]. M(F(x)) |] 
+   ==> is_wfrec(M, iterates_MH(M,isF,v), Memrel(succ(n)), n, z) <->
+       z = iterates(F,n,v)" 
+apply (frule iterates_imp_wfrec_replacement, assumption+)
+apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
+                 relativize2_def iterates_MH_abs 
+                 iterates_nat_def recursor_def transrec_def 
+                 eclose_sing_Ord_eq nat_into_M
+         trans_wfrec_abs [of _ _ _ _ "\<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n)"])
+done
+
 
 lemma (in M_wfrank) iterates_closed [intro,simp]:
-  "[|n \<in> nat; M(v); \<forall>x[M]. M(F(x));
-     strong_replacement(M, 
-       \<lambda>x z. \<exists>y[M]. \<exists>g[M]. pair(M, x, y, z) &
-              is_recfun (Memrel(succ(n)), x,
-                         \<lambda>n f. nat_case(v, \<lambda>m. F(f`m), n), g) &
-              y = nat_case(v, \<lambda>m. F(g`m), x))|] 
+  "[| iterates_replacement(M,isF,v); relativize1(M,isF,F);
+      n \<in> nat; M(v); \<forall>x[M]. M(F(x)) |] 
    ==> M(iterates(F,n,v))"
-by (simp add: iterates_nat_def recursor_def transrec_def 
-              eclose_sing_Ord_eq trans_wfrec_closed nat_into_M
-              wf_Memrel trans_Memrel relation_Memrel nat_case_closed)
+apply (frule iterates_imp_wfrec_replacement, assumption+)
+apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
+                 relativize2_def iterates_MH_abs 
+                 iterates_nat_def recursor_def transrec_def 
+                 eclose_sing_Ord_eq nat_into_M
+         trans_wfrec_closed [of _ _ _ "\<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n)"])
+done
 
 
 constdefs
@@ -127,60 +152,43 @@ constdefs
         \<exists>n1[M]. \<exists>AX[M]. 
          number1(M,n1) & cartprod(M,A,X,AX) & is_sum(M,n1,AX,Z)"
 
-  list_functor_case :: "[i=>o,i,i,i,i] => o"
-    --{*Abbreviation for the definition of lists below*}
-    "list_functor_case(M,A,g,x,y) == 
-        is_nat_case(M, 0, 
-             \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) & is_list_functor(M,A,gm,u),
-             x, y)"
-
 lemma (in M_axioms) list_functor_abs [simp]: 
      "[| M(A); M(X); M(Z) |] ==> is_list_functor(M,A,X,Z) <-> (Z = {0} + A*X)"
 by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
-lemma (in M_axioms) list_functor_case_abs: 
-     "[| M(A); M(n); M(y); M(g) |] 
-      ==> list_functor_case(M,A,g,n,y) <-> 
-          y = nat_case(0, \<lambda>m. {0} + A * g`m, n)"
-by (simp add: list_functor_case_def nat_into_M)
-
 
 locale M_datatypes = M_wfrank +
-  assumes list_replacement1: 
-       "[|M(A); n \<in> nat|] ==> 
-	strong_replacement(M, 
-	  \<lambda>x z. \<exists>y[M]. \<exists>g[M]. \<exists>sucn[M]. \<exists>memr[M]. 
-		 pair(M,x,y,z) & successor(M,n,sucn) & 
-		 membership(M,sucn,memr) &
-		 M_is_recfun(M, \<lambda>n f z. list_functor_case(M,A,f,n,z), 
-                             memr, x, g) &
-                 list_functor_case(M,A,g,x,y))"
-(*THEY NEED RELATIVIZATION*)
-      and list_replacement2: 
-           "M(A) ==> strong_replacement(M, \<lambda>x y. y = (\<lambda>X. {0} + A * X)^x (0))"
+ assumes list_replacement1: 
+   "M(A) ==> \<exists>zero[M]. empty(M,zero) & 
+		       iterates_replacement(M, is_list_functor(M,A), zero)"
+  and list_replacement2: 
+   "M(A) ==> 
+    \<exists>zero[M]. empty(M,zero) & 
+	      strong_replacement(M, 
+         \<lambda>n y. n\<in>nat & 
+               (\<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
+               is_wfrec(M, iterates_MH(M,is_list_functor(M,A), zero), 
+                        msn, n, y)))"
 
-
-
-lemma (in M_datatypes) list_replacement1':
-  "[|M(A); n \<in> nat|]
-   ==> strong_replacement
-	  (M, \<lambda>x z. \<exists>y[M]. z = \<langle>x,y\<rangle> &
-               (\<exists>g[M]. is_recfun (Memrel(succ(n)), x,
-		          \<lambda>n f. nat_case(0, \<lambda>m. {0} + A * f`m, n), g) &
- 	       y = nat_case(0, \<lambda>m. {0} + A * g ` m, x)))"
-apply (insert list_replacement1 [of A n], simp add: nat_into_M)
-apply (simp add: nat_into_M list_functor_case_abs
-                 is_recfun_abs [of "\<lambda>n f. nat_case(0, \<lambda>m. {0} + A * f`m, n)"])
+lemma (in M_datatypes) list_replacement1': 
+   "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
+apply (insert list_replacement1, simp) 
 done
 
 lemma (in M_datatypes) list_replacement2': 
-  "M(A) ==> strong_replacement(M, \<lambda>x y. y = (\<lambda>X. {0} + A * X)^x (0))"
-by (insert list_replacement2, simp add: nat_into_M) 
-
+  "M(A) ==> strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. {0} + A * X)^n (0))"
+apply (insert list_replacement2 [of A]) 
+apply (rule strong_replacement_cong [THEN iffD1])  
+apply (rule conj_cong [OF iff_refl iterates_abs [of "is_list_functor(M,A)"]]) 
+apply (simp_all add: list_replacement1' relativize1_def) 
+done
 
 lemma (in M_datatypes) list_closed [intro,simp]:
      "M(A) ==> M(list(A))"
-by (simp add: list_eq_Union list_replacement1' list_replacement2')
+apply (insert list_replacement1)
+by  (simp add: RepFun_closed2 list_eq_Union 
+               list_replacement2' relativize1_def
+               iterates_closed [of "is_list_functor(M,A)"])
 
 
 end

@@ -261,7 +261,7 @@ lemma (in M_wfrank) wfrank_separation':
       separation
 	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
 apply (insert wfrank_separation [of r])
-apply (simp add: is_recfun_abs [of "%x. range"])
+apply (simp add: relativize2_def is_recfun_abs [of "%x. range"])
 done
 
 lemma (in M_wfrank) wfrank_strong_replacement':
@@ -270,7 +270,7 @@ lemma (in M_wfrank) wfrank_strong_replacement':
 		  pair(M,x,y,z) & is_recfun(r^+, x, %x f. range(f), f) &
 		  y = range(f))"
 apply (insert wfrank_strong_replacement [of r])
-apply (simp add: is_recfun_abs [of "%x. range"])
+apply (simp add: relativize2_def is_recfun_abs [of "%x. range"])
 done
 
 lemma (in M_wfrank) Ord_wfrank_separation':
@@ -278,7 +278,7 @@ lemma (in M_wfrank) Ord_wfrank_separation':
       separation (M, \<lambda>x. 
          ~ (\<forall>f[M]. is_recfun(r^+, x, \<lambda>x. range, f) --> Ord(range(f))))" 
 apply (insert Ord_wfrank_separation [of r])
-apply (simp add: is_recfun_abs [of "%x. range"])
+apply (simp add: relativize2_def is_recfun_abs [of "%x. range"])
 done
 
 text{*This function, defined using replacement, is a rank function for
@@ -524,19 +524,26 @@ text{*Assuming @{term r} is transitive simplifies the occurrences of @{text H}.
       before we can replace @{term "r^+"} by @{term r}. *}
 theorem (in M_trancl) trans_wfrec_relativize:
   "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
-                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g))); 
+     wfrec_replacement(M,MH,r);  relativize2(M,MH,H);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> wfrec(r,a,H) = z <-> (\<exists>f[M]. is_recfun(r,a,H,f) & z = H(a,f))" 
-by (simp cong: is_recfun_cong
-         add: wfrec_relativize trancl_eq_r
-               is_recfun_restrict_idem domain_restrict_idem)
+apply (frule wfrec_replacement', assumption+) 
+apply (simp cong: is_recfun_cong
+           add: wfrec_relativize trancl_eq_r
+                is_recfun_restrict_idem domain_restrict_idem)
+done
 
+theorem (in M_trancl) trans_wfrec_abs:
+  "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);  M(z);
+     wfrec_replacement(M,MH,r);  relativize2(M,MH,H);
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
+   ==> is_wfrec(M,MH,r,a,z) <-> z=wfrec(r,a,H)" 
+apply (simp add: trans_wfrec_relativize [THEN iff_sym] is_wfrec_abs, blast) 
+done
 
 lemma (in M_trancl) trans_eq_pair_wfrec_iff:
   "[|wf(r);  trans(r); relation(r); M(r);  M(y); 
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
-                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g))); 
+     wfrec_replacement(M,MH,r);  relativize2(M,MH,H);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> y = <x, wfrec(r, x, H)> <-> 
        (\<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
@@ -566,8 +573,8 @@ done
 
 text{*Eliminates one instance of replacement.*}
 lemma (in M_wfrank) wfrec_replacement_iff:
-     "strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M]. 
-                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)) <->
+     "strong_replacement(M, \<lambda>x z. 
+          \<exists>y[M]. pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g))) <->
       strong_replacement(M, 
            \<lambda>x y. \<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
 apply simp 
@@ -577,11 +584,10 @@ done
 text{*Useful version for transitive relations*}
 theorem (in M_wfrank) trans_wfrec_closed:
      "[|wf(r); trans(r); relation(r); M(r); M(a);
-        strong_replacement(M, 
-             \<lambda>x z. \<exists>y[M]. \<exists>g[M].
-                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+       wfrec_replacement(M,MH,r);  relativize2(M,MH,H);
         \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
       ==> M(wfrec(r,a,H))"
+apply (frule wfrec_replacement', assumption+) 
 apply (frule wfrec_replacement_iff [THEN iffD1]) 
 apply (rule wfrec_closed_lemma, assumption+) 
 apply (simp_all add: wfrec_replacement_iff trans_eq_pair_wfrec_iff) 
@@ -621,15 +627,16 @@ done
 text{*Full version not assuming transitivity, but maybe not very useful.*}
 theorem (in M_wfrank) wfrec_closed:
      "[|wf(r); M(r); M(a);
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
-          pair(M,x,y,z) & 
-          is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
-          y = H(x, restrict(g, r -`` {x}))); 
+        wfrec_replacement(M,MH,r^+);  
+        relativize2(M,MH, \<lambda>x f. H(x, restrict(f, r -`` {x})));
         \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
       ==> M(wfrec(r,a,H))"
-apply (frule wfrec_replacement_iff [THEN iffD1]) 
-apply (rule wfrec_closed_lemma, assumption+) 
-apply (simp_all add: eq_pair_wfrec_iff) 
+apply (frule wfrec_replacement' 
+               [of MH "r^+" "\<lambda>x f. H(x, restrict(f, r -`` {x}))"])
+   prefer 4
+   apply (frule wfrec_replacement_iff [THEN iffD1]) 
+   apply (rule wfrec_closed_lemma, assumption+) 
+     apply (simp_all add: eq_pair_wfrec_iff func.function_restrictI) 
 done
 
 end
