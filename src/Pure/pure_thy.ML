@@ -7,9 +7,10 @@ Init 'theorems' data.  The Pure theories.
 
 signature PURE_THY =
 sig
-  val put_thms: (bstring * thm) list -> theory -> theory        (*DESTRUCTIVE*)
-  val put_thmss: (bstring * thm list) list -> theory -> theory  (*DESTRUCTIVE*)
-  val store_thm: (bstring * thm) -> thm                         (*DESTRUCTIVE*)
+  val store_thms: (bstring * thm) list -> theory -> theory   	  (*DESTRUCTIVE*)
+  val store_thmss: (bstring * thm list) list -> theory -> theory  (*DESTRUCTIVE*)
+  val store_thm: theory -> (bstring * thm) -> thm                 (*DESTRUCTIVE*)
+  val smart_store_thm: (bstring * thm) -> thm                     (*DESTRUCTIVE*)
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
   val proto_pure: theory
@@ -144,13 +145,13 @@ fun do_enter_thms sg single name_thms =
   (enter_thms sg single name_thms; ());
 
 
-fun put_thmss thmss thy =
+fun store_thmss thmss thy =
   (seq (do_enter_thms (sign_of thy) false) thmss; thy);
 
-fun put_thms thms thy =
+fun store_thms thms thy =
   (seq (do_enter_thms (sign_of thy) true) (map (apsnd (fn th => [th])) thms); thy);
 
-fun store_thm (name, thm) =
+fun smart_store_thm (name, thm) =
   let val [named_thm] = enter_thms (Thm.sign_of_thm thm) true (name, [thm])
   in named_thm end;
 
