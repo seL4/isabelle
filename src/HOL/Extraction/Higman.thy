@@ -292,9 +292,7 @@ theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> vs \<in> good"
   done
 
 
-subsection {* Realizers *}
-
-subsubsection {* Bar induction *}
+subsection {* Realizer for Bar induction *}
 
 datatype Bar =
    Good "letter list list"
@@ -354,34 +352,6 @@ realizers
   bar.induct (P): "\<lambda>x P. bar_ind"
     "\<Lambda>x P r (h1: _) f (h2: _) g.
        Bar_ind_realizer \<cdot> _ \<cdot> _ \<cdot> (\<lambda>r x. realizes r (P x)) \<cdot> _ \<cdot> _ \<bullet> h1 \<bullet> h2"
-
-subsubsection {* Lists *}
-
-theorem list_ind_realizer:
-  assumes f: "P f []"
-  and g: "\<And>a as r. P r as \<Longrightarrow> P (g a as r) (a # as)"
-  shows "P (list_rec f g xs) xs"
-  apply (induct xs)
-  apply simp
-  apply (rule f)
-  apply simp
-  apply (rule g)
-  apply assumption
-  done
-
-realizers
-  list.induct (P): "\<lambda>P xs f g. list_rec f g xs"
-    "\<Lambda>P xs f (h: _) g. list_ind_realizer \<cdot> _ \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> h"
-
-subsubsection {* Letters *}
-
-theorem letter_exhaust_realizer:
-  "(y = A \<Longrightarrow> P r) \<Longrightarrow> (y = B \<Longrightarrow> P s) \<Longrightarrow> P (case y of A \<Rightarrow> r | B \<Rightarrow> s)"
-  by (case_tac y, simp+)
-
-realizers
-  letter.exhaust (P): "\<lambda>y P r s. case y of A \<Rightarrow> r | B \<Rightarrow> s"
-    "\<Lambda>y P r (h: _) s. letter_exhaust_realizer \<cdot> _ \<cdot> (\<lambda>x. realizes x P) \<cdot> _ \<cdot> _ \<bullet> h"
 
 
 subsection {* Extracting the program *}
