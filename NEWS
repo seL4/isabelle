@@ -105,6 +105,9 @@ recommended to convert to these new commands using isatool fixgoal
 * new top-level commands 'thm' and 'thms' for retrieving theorems from
 the current theory context, and 'theory' to lookup stored theories;
 
+* new theory section 'locale' for declaring constants, assumptions and
+definitions that have local scope;
+
 * new theory section 'nonterminals' for purely syntactic types;
 
 * new theory section 'setup' for generic ML setup functions
