@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel and Lawrence C Paulson and Carsten Clasohm
 
-Additional theory file sections for HOL.
+Additional sections for *old-style* theory files in HOL.
 *)
 
 local

@@ -3,12 +3,10 @@
     Author:     Lawrence C Paulson
     Copyright   1994  University of Cambridge
 
-Additional theory file sections for ZF.
+Additional sections for *old-style* theory files in ZF.
 *)
 
-
 local
-
 
 open ThyParse;
 
