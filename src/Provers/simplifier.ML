@@ -91,6 +91,7 @@ sig
   val simp_add_local: Proof.context attribute
   val simp_del_local: Proof.context attribute
   val simp_only_local: Proof.context attribute
+  val change_simpset_of: (simpset * 'a -> simpset) -> 'a -> theory -> theory
   val simp_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
   val setup: (theory -> theory) list
 end;
@@ -293,7 +294,11 @@ val simpset_ref = simpset_ref_of_sg o Theory.sign_of o Context.the_context;
 
 (* change global simpset *)
 
-fun change_simpset f x = simpset_ref () := (f (simpset (), x));
+fun change_simpset_of f x thy =
+  let val r = simpset_ref_of thy
+  in r := f (! r, x); thy end;
+
+fun change_simpset f x = (change_simpset_of f x (Context.the_context ()); ());
 
 val Addsimps = change_simpset (op addsimps);
 val Delsimps = change_simpset (op delsimps);
