@@ -432,9 +432,9 @@ fun read_instantiate sinsts th =
   Instantiates distinct Vars by terms, inferring type instantiations. *)
 local
   fun add_types ((ct,cu), (sign,tye,maxidx)) =
-    let val {sign=signt, t=t, T= T, maxidx=maxidxt,...} = rep_cterm ct
-        and {sign=signu, t=u, T= U, maxidx=maxidxu,...} = rep_cterm cu;
-        val maxi = max[maxidx,maxidxt,maxidxu];
+    let val {sign=signt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
+        and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
+        val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
         val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
           handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
