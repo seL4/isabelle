@@ -16,7 +16,7 @@ David Basin and Matt Kaufmann.
 Robert Boyer, Ewing Lusk, William McCune, Ross Overbeek, Mark Stickel, and
   Lawrence Wos.
 \newblock Set theory in first-order logic: Clauses for {G\"{o}del's} axioms.
-\newblock {\em Journal of Automated Reasoning}, 2(3):287--327, 1986.
+\newblock {\em J. Auto. Reas.}, 2(3):287--327, 1986.
 
 \bibitem{camilleri92}
 J.~Camilleri and T.~F. Melham.
@@ -43,7 +43,7 @@ Michael Dummett.
 \bibitem{dyckhoff}
 Roy Dyckhoff.
 \newblock Contraction-free sequent calculi for intuitionistic logic.
-\newblock {\em Journal of Symbolic Logic}, 57(3):795--807, 1992.
+\newblock {\em J. Symb. Logic}, 57(3):795--807, 1992.
 
 \bibitem{halmos60}
 Paul~R. Halmos.
@@ -58,13 +58,13 @@ Kenneth Kunen.
 \bibitem{noel}
 Philippe No{\"e}l.
 \newblock Experimenting with {Isabelle} in {ZF} set theory.
-\newblock {\em Journal of Automated Reasoning}, 10(1):15--58, 1993.
+\newblock {\em J. Auto. Reas.}, 10(1):15--58, 1993.
 
-\bibitem{paulin92}
+\bibitem{paulin-tlca}
 Christine Paulin-Mohring.
 \newblock Inductive definitions in the system {Coq}: Rules and properties.
-\newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon,
-  December 1992.
+\newblock In M.~Bezem and J.F. Groote, editors, {\em Typed Lambda Calculi and
+  Applications}, LNCS 664, pages 328--345. Springer, 1993.
 
 \bibitem{paulson87}
 Lawrence~C. Paulson.
@@ -74,7 +74,7 @@ Lawrence~C. Paulson.
 \bibitem{paulson-set-I}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {I}. {From} foundations to functions.
-\newblock {\em Journal of Automated Reasoning}, 11(3):353--389, 1993.
+\newblock {\em J. Auto. Reas.}, 11(3):353--389, 1993.
 
 \bibitem{paulson-CADE}
 Lawrence~C. Paulson.
@@ -82,17 +82,10 @@ Lawrence~C. Paulson.
 \newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12
   International Conference}, LNAI 814, pages 148--161. Springer, 1994.
 
-\bibitem{paulson-final}
-Lawrence~C. Paulson.
-\newblock A concrete final coalgebra theorem for {ZF} set theory.
-\newblock In Peter Dybjer, Bengt Nordstr{\"om}, and Jan Smith, editors, {\em
-  Types for Proofs and Programs: International Workshop {TYPES '94}}, LNCS 996,
-  pages 120--139. Springer, 1995.
-
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
-\newblock {\em Journal of Automated Reasoning}, 15(2):167--215, 1995.
+\newblock {\em J. Auto. Reas.}, 15(2):167--215, 1995.
 
 \bibitem{paulson-generic}
 Lawrence~C. Paulson.
@@ -100,10 +93,16 @@ Lawrence~C. Paulson.
 \newblock In Robert Veroff, editor, {\em Automated Reasoning and its
   Applications: Essays in Honor of {Larry Wos}}, chapter~3. MIT Press, 1997.
 
+\bibitem{paulson-mscs}
+Lawrence~C. Paulson.
+\newblock Final coalgebras as greatest fixed points in zf set theory.
+\newblock {\em Mathematical Structures in Computer Science}, 9, 1999.
+\newblock in press.
+
 \bibitem{quaife92}
 Art Quaife.
 \newblock Automated deduction in {von Neumann-Bernays-G\"{o}del} set theory.
-\newblock {\em Journal of Automated Reasoning}, 8(1):91--147, 1992.
+\newblock {\em J. Auto. Reas.}, 8(1):91--147, 1992.
 
 \bibitem{suppes72}
 Patrick Suppes.

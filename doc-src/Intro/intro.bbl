@@ -69,17 +69,17 @@ Lawrence~C. Paulson.
 \newblock In P.~Odifreddi, editor, {\em Logic and Computer Science}, pages
   361--386. Academic Press, 1990.
 
-\bibitem{paulson91}
-Lawrence~C. Paulson.
-\newblock {\em {ML} for the Working Programmer}.
-\newblock Cambridge University Press, 1991.
-
 \bibitem{paulson-handbook}
 Lawrence~C. Paulson.
 \newblock Designing a theorem prover.
 \newblock In S.~Abramsky, D.~M. Gabbay, and T.~S.~E. Maibaum, editors, {\em
   Handbook of Logic in Computer Science}, volume~2, pages 415--475. Oxford
   University Press, 1992.
+
+\bibitem{paulson-ml2}
+Lawrence~C. Paulson.
+\newblock {\em {ML} for the Working Programmer}.
+\newblock Cambridge University Press, 2nd edition, 1996.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.

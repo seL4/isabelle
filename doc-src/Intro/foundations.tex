@@ -959,7 +959,7 @@ of {\sc lcf}, {\sc hol} and Nuprl by operating on entire proof states,
 rather than on individual subgoals.  An Isabelle tactic is a function that
 takes a proof state and returns a sequence (lazy list) of possible
 successor states.  Lazy lists are coded in ML as functions, a standard
-technique~\cite{paulson91}.  Isabelle represents proof states by theorems.
+technique~\cite{paulson-ml2}.  Isabelle represents proof states by theorems.
 
 Basic tactics execute the meta-rules described above, operating on a
 given subgoal.  The {\bf resolution tactics} take a list of rules and

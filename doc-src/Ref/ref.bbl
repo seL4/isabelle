@@ -44,11 +44,6 @@ Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
 \newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
 \newblock Oxford University Press, 1990.
 
-\bibitem{paulson91}
-Lawrence~C. Paulson.
-\newblock {\em {ML} for the Working Programmer}.
-\newblock Cambridge University Press, 1991.
-
 \bibitem{paulson-ml2}
 Lawrence~C. Paulson.
 \newblock {\em {ML} for the Working Programmer}.
