@@ -62,7 +62,7 @@ case $FORCE.$EXEC in
   on.on) (cd $ISABELLEBIN;
           for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP
 	  do 
-	   rm -f $f $f.heap
+	   rm -f $f $f.heap*
 	  done)
 esac
 
@@ -90,7 +90,7 @@ echo '*****Set theory (ZF)*****'
 tail ZF/make$$.log
 gzip ZF/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/ZF $ISABELLEBIN/ZF.heap
+    on.on)	rm -f $ISABELLEBIN/ZF $ISABELLEBIN/ZF.heap*
 esac
 
 echo
@@ -100,7 +100,7 @@ echo '*****Classical Computational Logic (CCL)*****'
 tail CCL/make$$.log
 gzip CCL/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/CCL $ISABELLEBIN/CCL.heap
+    on.on)	rm -f $ISABELLEBIN/CCL $ISABELLEBIN/CCL.heap*
 esac
 
 echo
@@ -110,8 +110,8 @@ echo '*****Domain Theory (LCF)*****'
 tail LCF/make$$.log
 gzip LCF/make$$.log
 case $CLEAN.$EXEC in
-  on.on)	rm -f $ISABELLEBIN/FOL $ISABELLEBIN/FOL.heap \
-                      $ISABELLEBIN/LCF $ISABELLEBIN/LCF.heap
+  on.on)	rm -f $ISABELLEBIN/FOL $ISABELLEBIN/FOL.heap* \
+                      $ISABELLEBIN/LCF $ISABELLEBIN/LCF.heap*
 esac
 
 echo
@@ -121,7 +121,7 @@ echo '*****Constructive Type Theory (CTT)*****'
 tail CTT/make$$.log
 gzip CTT/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/CTT $ISABELLEBIN/CTT.heap
+    on.on)	rm -f $ISABELLEBIN/CTT $ISABELLEBIN/CTT.heap*
 esac
 
 echo
@@ -131,7 +131,7 @@ echo '*****Sequent Calculi (Sequents)*****'
 tail Sequents/make$$.log
 gzip Sequents/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/Sequents $ISABELLEBIN/Sequents.heap
+    on.on)	rm -f $ISABELLEBIN/Sequents $ISABELLEBIN/Sequents.heap*
 esac
 
 echo
@@ -149,8 +149,8 @@ echo '*****LCF in HOL (HOLCF)*****'
 tail HOLCF/make$$.log
 gzip HOLCF/make$$.log
 case $CLEAN.$EXEC in
-  on.on)	rm -f $ISABELLEBIN/HOL $ISABELLEBIN/HOL.heap \
-                      $ISABELLEBIN/HOLCF $ISABELLEBIN/HOLCF.heap
+  on.on)	rm -f $ISABELLEBIN/HOL $ISABELLEBIN/HOL.heap* \
+                      $ISABELLEBIN/HOLCF $ISABELLEBIN/HOLCF.heap*
 esac
 
 echo
@@ -158,7 +158,7 @@ echo
 echo '*****The Lambda-Cube (Cube)*****'
 (cd Cube;  make $NO $TEST > make$$.log)
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/Cube $ISABELLEBIN/Cube.heap
+    on.on)	rm -f $ISABELLEBIN/Cube $ISABELLEBIN/Cube.heap*
 esac
 tail Cube/make$$.log 
 gzip Cube/make$$.log 
@@ -168,7 +168,7 @@ echo
 echo '*****First-Order Logic with Proof Terms (FOLP)*****'
 (cd FOLP;  make $NO $TEST > make$$.log)
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLEBIN/FOLP $ISABELLEBIN/FOLP.heap
+    on.on)	rm -f $ISABELLEBIN/FOLP $ISABELLEBIN/FOLP.heap*
 esac
 tail FOLP/make$$.log 
 gzip FOLP/make$$.log 
