@@ -160,7 +160,7 @@ struct
 
 (* formal comments *)
 
-fun add_text comment thy = thy;
+fun add_text comment thy = thy:theory;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
 val add_section = add_text;
@@ -168,9 +168,9 @@ val add_subsection = add_text;
 val add_subsubsection = add_text;
 
 fun add_txt comment = ProofHistory.apply Proof.assert_forward;
-val add_sect = add_text;
-val add_subsect = add_text;
-val add_subsubsect = add_text;
+val add_sect = add_txt;
+val add_subsect = add_txt;
+val add_subsubsect = add_txt;
 
 
 (* signature and syntax *)
