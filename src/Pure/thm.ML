@@ -1524,7 +1524,7 @@ fun mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless) =
     prems = prems, mk_rews = mk_rews, termless = termless};
 
 val empty_mss =
-  mk_mss (Net.empty, [], Net.empty, [], [], K [], Logic.termless);
+  mk_mss (Net.empty, [], Net.empty, [], [], K [], Term.termless);
 
 
 
