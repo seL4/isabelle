@@ -105,7 +105,7 @@ goal IOA.thy
 "actions(asig_comp a b) = actions(a) Un actions(b)";
   by(simp_tac (!simpset addsimps
                ([actions_def,asig_comp_def]@asig_projections)) 1);
-  by(fast_tac eq_cs 1);
+  by(Fast_tac 1);
 qed "actions_asig_comp";
 
 goal IOA.thy

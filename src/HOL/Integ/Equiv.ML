@@ -129,7 +129,7 @@ qed "quotientE";
 (** Not needed by Theory Integ --> bypassed **)
 (**goalw Equiv.thy [equiv_def,refl_def,quotient_def]
     "!!A r. equiv A r ==> Union(A/r) = A";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Union_quotient";
 **)
 
@@ -147,7 +147,7 @@ qed "quotient_disj";
 
 (* theorem needed to prove UN_equiv_class *)
 goal Set.thy "!!A. [| a:A; ! y:A. b(y)=b(a) |] ==> (UN y:A. b(y))=b(a)";
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
+by (fast_tac (!claset addSEs [equalityE]) 1);
 qed "UN_singleton_lemma";
 val UN_singleton = ballI RSN (2,UN_singleton_lemma);
 
