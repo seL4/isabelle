@@ -197,7 +197,6 @@ qed "preal_linear_less2";
 
 Goalw [preal_add_def] "(x::preal) + y = y + x";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (rtac set_ext 1);
 by (blast_tac (claset() addIs [prat_add_commute RS subst]) 1);
 qed "preal_add_commute";
 
@@ -265,9 +264,7 @@ qed "preal_mem_add_set";
 
 Goalw [preal_add_def] "((x::preal) + y) + z = x + (y + z)";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (rtac set_ext 1);
-by (rtac (preal_mem_add_set RS Abs_preal_inverse RS ssubst) 1);
-by (rtac (preal_mem_add_set RS Abs_preal_inverse RS ssubst) 1);
+by (simp_tac (simpset() addsimps [preal_mem_add_set RS Abs_preal_inverse]) 1); 
 by (auto_tac (claset(),simpset() addsimps prat_add_ac));
 by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_add_ac));
@@ -288,7 +285,6 @@ bind_thms ("preal_add_ac", [preal_add_assoc, preal_add_commute, preal_add_left_c
 
 Goalw [preal_mult_def] "(x::preal) * y = y * x";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (rtac set_ext 1);
 by (blast_tac (claset() addIs [prat_mult_commute RS subst]) 1);
 qed "preal_mult_commute";
 
@@ -351,9 +347,7 @@ qed "preal_mem_mult_set";
 
 Goalw [preal_mult_def] "((x::preal) * y) * z = x * (y * z)";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (rtac set_ext 1);
-by (rtac (preal_mem_mult_set RS Abs_preal_inverse RS ssubst) 1);
-by (rtac (preal_mem_mult_set RS Abs_preal_inverse RS ssubst) 1);
+by (simp_tac (simpset() addsimps [preal_mem_mult_set RS Abs_preal_inverse]) 1);
 by (auto_tac (claset(),simpset() addsimps prat_mult_ac));
 by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_mult_ac));
@@ -377,7 +371,6 @@ Goalw [preal_of_prat_def,preal_mult_def]
 by (rtac (Rep_preal_inverse RS subst) 1);
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
 by (rtac (one_set_mem_preal RS Abs_preal_inverse RS ssubst) 1);
-by (rtac set_ext 1);
 by (auto_tac(claset(),simpset() addsimps [Rep_preal_inverse]));
 by (EVERY1[dtac (Rep_preal RS prealE_lemma4a),etac bexE]);
 by (dtac prat_mult_less_mono 1);
@@ -490,14 +483,13 @@ qed "lemma_preal_add_mult_distrib2";
 
 Goal "(w * ((z1::preal) + z2)) = (w * z1) + (w * z2)";
 by (rtac (inj_Rep_preal RS injD) 1);
-by (rtac set_ext 1);
 by (fast_tac (claset() addIs [lemma_preal_add_mult_distrib,
-                       lemma_preal_add_mult_distrib2]) 1);
+                              lemma_preal_add_mult_distrib2]) 1);
 qed "preal_add_mult_distrib2";
 
 Goal "(((z1::preal) + z2) * w) = (z1 * w) + (z2 * w)";
 by (simp_tac (simpset() addsimps [preal_mult_commute,
-                       preal_add_mult_distrib2]) 1);
+                                  preal_add_mult_distrib2]) 1);
 qed "preal_add_mult_distrib";
 
 (*** Prove existence of inverse ***)
@@ -687,7 +679,6 @@ qed "preal_mem_mult_invI";
 
 Goal "pinv(A)*A = (preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
 by (rtac (inj_Rep_preal RS injD) 1);
-by (rtac set_ext 1);
 by (fast_tac (claset() addDs [preal_mem_mult_invD,preal_mem_mult_invI]) 1);
 qed "preal_mult_inv";
 
@@ -1199,7 +1190,7 @@ by (rotate_tac 4 1);
 by (asm_full_simp_tac (simpset() addsimps [psubset_def]) 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (REPEAT(etac conjE 1));
-by (EVERY1[rtac contrapos_np, assume_tac, rtac set_ext]);
+by (EVERY1[rtac contrapos_np, assume_tac]);
 by (auto_tac (claset() addSDs [lemma_psubset_mem],simpset()));
 by (cut_inst_tac [("r1.0","Xa"),("r2.0","Ya")] preal_linear 1);
 by (auto_tac (claset() addDs [psubsetD],simpset() addsimps [preal_less_def]));
@@ -1224,8 +1215,8 @@ Goalw [preal_of_prat_def,preal_add_def]
       "preal_of_prat ((z1::prat) + z2) = \
 \      preal_of_prat z1 + preal_of_prat z2";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (auto_tac (claset() addIs [prat_add_less_mono] addSIs [set_ext],simpset() addsimps 
-    [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
+by (auto_tac (claset() addIs [prat_add_less_mono],
+     simpset() addsimps [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
 by (res_inst_tac [("x","x*z1*qinv(z1+z2)")] exI 1 THEN rtac conjI 1);
 by (etac lemma_preal_rat_less 1);
 by (res_inst_tac [("x","x*z2*qinv(z1+z2)")] exI 1 THEN rtac conjI 1);
@@ -1250,8 +1241,8 @@ Goalw [preal_of_prat_def,preal_mult_def]
       "preal_of_prat ((z1::prat) * z2) = \
 \      preal_of_prat z1 * preal_of_prat z2";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
-by (auto_tac (claset() addIs [prat_mult_less_mono] addSIs [set_ext],simpset() addsimps 
-    [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
+by (auto_tac (claset() addIs [prat_mult_less_mono],
+     simpset() addsimps [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
 by (dtac prat_dense 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","x*z1*qinv(xa)")] exI 1 THEN rtac conjI 1);
@@ -1267,8 +1258,8 @@ qed "preal_of_prat_mult";
 Goalw [preal_of_prat_def,preal_less_def] 
       "(preal_of_prat p < preal_of_prat q) = (p < q)";
 by (auto_tac (claset() addSDs [lemma_prat_set_eq] addEs [prat_less_trans],
-    simpset() addsimps [lemma_prat_less_set_mem_preal,
-    psubset_def,prat_less_not_refl]));
+              simpset() addsimps [lemma_prat_less_set_mem_preal,
+                                  psubset_def,prat_less_not_refl]));
 by (res_inst_tac [("q1.0","p"),("q2.0","q")] prat_linear_less2 1);
 by (auto_tac (claset() addIs [prat_less_irrefl],simpset()));
 qed "preal_of_prat_less_iff";

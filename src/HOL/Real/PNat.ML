@@ -126,9 +126,7 @@ qed "pnat_add_commute";
 (** alternative definition for pnat **)
 (** order isomorphism **)
 Goal "pnat = {x::nat. 0 < x}";
-by (rtac set_ext 1);
-by (simp_tac (simpset() addsimps 
-    [mem_pnat_gt_0_iff]) 1);
+by (auto_tac (claset(), simpset() addsimps [mem_pnat_gt_0_iff]));  
 qed "Collect_pnat_gt_0";
 
 (*** Distinctness of constructors ***)
