@@ -374,10 +374,3 @@ fun qed_goalw_spec_mp name thy defs s p =
 	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
 
 end;
-
-
-(*Thus, assignments to the references claset and simpset are recorded
-  with theory "HOL".  These files cannot be loaded directly in ROOT.ML.*)
-use "hologic.ML";
-use "cladata.ML";
-use "simpdata.ML";
