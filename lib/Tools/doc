@@ -45,7 +45,7 @@ if [ -z "$DOC" ]; then
 else
   for DIR in $ISABELLE_DOCS
   do
-    [ -f $DIR/$DOC.dvi ] && exec $DVI_VIEWER $DIR/$DOC.dvi
+    [ -f $DIR/$DOC.dvi ] && { cd $DIR; exec $DVI_VIEWER $DOC.dvi }
   done
   fail "Unknown Isabelle document: $DOC"  
 fi
