@@ -12,10 +12,10 @@ This means that it may be necessary to attach explicit type constraints.
 Examples: range(f^n) = A and Range(R^n) = B need constraints.
 *)
 
-Relation_Power = Nat +
+theory Relation_Power = Nat:
 
 instance
-  set :: (type) power   (* only ('a * 'a) set should be in power! *)
+  set :: (type) power ..  (* only ('a * 'a) set should be in power! *)
 
 primrec (relpow)
   "R^0 = Id"
@@ -23,10 +23,13 @@ primrec (relpow)
 
 
 instance
-  fun :: (type, type) power   (* only 'a => 'a should be in power! *)
+  fun :: (type, type) power ..  (* only 'a => 'a should be in power! *)
 
 primrec (funpow)
   "f^0 = id"
   "f^(Suc n) = f o (f^n)"
+
+lemma funpow_add: "f ^ (m+n) = f^m o f^n"
+by(induct m) simp_all
 
 end
