@@ -110,9 +110,10 @@ moment we assume this and proceed with the induction:%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ {\isasymlbrakk}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharsemicolon}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ {\isasymlbrakk}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharsemicolon}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ \ \ \ }{\isasymforall}y{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ A\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ \ \ \ {\isasymforall}y{\isachardot}\ }y\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ y\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ \ \ \ {\isasymforall}y{\isachardot}\ }y\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ y\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ \ \ \ }t\ {\isasymin}\ Avoid\ s\ A{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}t{\isachardot}\ }{\isasymLongrightarrow}\ t\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\isanewline
 \isaindent{\ {\isadigit{2}}{\isachardot}\ }wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
