@@ -102,24 +102,25 @@ example,
 {\out  1. ALL x. f x = g (f (g x)) ==> f 0 = f 0 + 0}
 \end{ttbox}
 is solved by \texttt{Simp_tac}, but \texttt{Asm_simp_tac} and {\tt
-  Asm_simp_tac} loop because the rewrite rule $f\,\Var{x} =
+  Asm_full_simp_tac} loop because the rewrite rule $f\,\Var{x} =
 g\,(f\,(g\,\Var{x}))$ extracted from the assumption does not
 terminate.  Isabelle notices certain simple forms of nontermination,
 but not this one. Because assumptions may simplify each other, there can be
-very subtle cases of nontermination.
- 
-\begin{warn}
-  \verb$Asm_full_simp_tac$ may miss opportunities to simplify an assumption
-  $A@i$ using an assumption $A@j$ in case $A@j$ is to the right of $A@i$.
-  For example, given the subgoal
+very subtle cases of nontermination. For example, invoking
+{\tt Asm_full_simp_tac} on
 \begin{ttbox}
-{\out [| \dots f a \dots; P a; ALL x. P x --> f x = g x |] ==> \dots}
+{\out  1. [| P (f x); y = x; f x = f y |] ==> Q}
 \end{ttbox}
-\verb$Asm_full_simp_tac$ will not simplify the \texttt{f a} on the left.
-This problem can be overcome by reordering assumptions (see
-{\S}\ref{sec:reordering-asms}). Future versions of \verb$Asm_full_simp_tac$
-will not suffer from this deficiency.
-\end{warn}
+gives rise to the infinite reduction sequence
+\[
+P\,(f\,x) \stackrel{f\,x = f\,y}{\mapsto} P\,(f\,y) \stackrel{y = x}{\mapsto}
+P\,(f\,x) \stackrel{f\,x = f\,y}{\mapsto} \cdots
+\]
+whereas applying the same tactic to
+\begin{ttbox}
+{\out  1. [| y = x; f x = f y; P (f x) |] ==> Q}
+\end{ttbox}
+terminates.
 
 \medskip
 
