@@ -79,6 +79,7 @@ private database.  New Jersey \ML{} will discard the state!
 \index{files!reading}
 \begin{ttbox} 
 cd              : string -> unit
+pwd             : unit -> string
 use             : string -> unit
 time_use        : string -> unit
 \end{ttbox}
@@ -87,6 +88,8 @@ Section~\ref{LoadingTheories} describes commands for loading theory files.
 \item[\ttindexbold{cd} "{\it dir}";]
   changes the current directory to {\it dir}.  This is the default directory
   for reading files and for writing temporary files.
+
+\item[\ttindexbold{pwd} ();] returns the path of the current directory.
 
 \item[\ttindexbold{use} "$file$";]  
 reads the given {\it file} as input to the \ML{} session.  Reading a file
