@@ -35,7 +35,6 @@ signature ZF_LEMMAS =
   val equality_iffI	: thm
   val equals0D		: thm
   val equals0I		: thm
-  val ex1_functional	: thm
   val InterD		: thm
   val InterE		: thm
   val InterI		: thm
@@ -232,12 +231,6 @@ val setup_induction = prove_goal ZF.thy
 
 
 (*** Rules for Replace -- the derived form of replacement ***)
-
-val ex1_functional = prove_goal ZF.thy
-    "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
- (fn prems=>
-  [ (cut_facts_tac prems 1),
-    (best_tac FOL_dup_cs 1) ]);
 
 val Replace_iff = prove_goalw ZF.thy [Replace_def]
     "b : {y. x:A, P(x,y)}  <->  (EX x:A. P(x,b) & (ALL y. P(x,y) --> y=b))"
