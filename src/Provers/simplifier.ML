@@ -473,7 +473,7 @@ val simp_args = Method.only_sectioned_args simp_modifiers';
 fun simp_meth thin cut tac ctxt = Method.METHOD (fn facts =>
   FIRSTGOAL
     ((if thin then REPEAT_DETERM o etac Drule.thin_rl else K all_tac)
-      THEN' (if cut then Method.same_tac facts else K all_tac)
+      THEN' (if cut then Method.insert_tac facts else K all_tac)
       THEN' tac (get_local_simpset ctxt)));
 
 val simp_method = simp_args ooo simp_meth;
@@ -482,9 +482,10 @@ val simp_method = simp_args ooo simp_meth;
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method true true (CHANGED oo asm_full_simp_tac), "simplification"),
+ [(simpN,               simp_method true true (CHANGED oo asm_full_simp_tac),
+    "full simplification (including facts, excluding assumptions)"),
   (asm_simpN,           simp_method false true (CHANGED oo asm_full_simp_tac),
-    "simplification (including assumption)"),
+    "full simplification (including facts and assumptions)"),
   ("simp_tac",          simp_method false false simp_tac, "simp_tac (improper!)"),
   ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac (improper!)"),
   ("full_simp_tac",     simp_method false false full_simp_tac, "full_simp_tac (improper!)"),
