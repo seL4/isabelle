@@ -193,11 +193,12 @@ fun print_outer_syntax () =
   end;
 
 val print_help =
-  Toplevel.imperative print_outer_syntax o
   Toplevel.keep (fn state =>
-    (print_outer_syntax ();
-      Method.help_methods (Toplevel.theory_of state);
-      Attrib.help_attributes (Toplevel.theory_of state)));
+    let val opt_thy = try Toplevel.theory_of state in
+      print_outer_syntax ();
+      Method.help_methods opt_thy;
+      Attrib.help_attributes opt_thy
+    end);
 
 
 
