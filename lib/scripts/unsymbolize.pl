@@ -22,13 +22,15 @@ sub unsymbolize {
     s/\\?\\<Midarrow>\\?\\<Rightarrow>/==>/g;
     s/\\?\\<Rightarrow>/=>/g;
     s/\\?\\<equiv>/==/g;
-    s/\\?\\<lbrakk>/[|/g;
-    s/\\?\\<rbrakk>/|]/g;
+    s/\\?\\<lbrakk> ?/[| /g;
+    s/\\?\\ ?<rbrakk>/ |]/g;
+    s/\\?\\<lparr> ?/(| /g;
+    s/\\?\\ ?<rparr>/ |)/g;
     # HOL
     s/\\?\\<longrightarrow>/-->/g;
     s/\\?\\<midarrow>\\?\\<rightarrow>/-->/g;
     s/\\?\\<rightarrow>/->/g;
-    s/\\?\\<epsilon>\s*/SOME /g;
+    s/\\?\\<epsilon> ?/SOME /g;
 
     $result = $_;
 
