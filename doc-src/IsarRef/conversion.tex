@@ -171,9 +171,9 @@ This form may be turned into an Isar tactic-emulation script like this:
   \qquad \vdots \\
   \quad \DONE \\
 \end{matharray}
-Note that the main statement may be $\THEOREMNAME$ as well.  See
-\S\ref{sec:conv-tac} for further details on how to convert actual tactic
-expressions into proof methods.
+Note that the main statement may be $\THEOREMNAME$ or $\COROLLARYNAME$ as
+well.  See \S\ref{sec:conv-tac} for further details on how to convert actual
+tactic expressions into proof methods.
 
 \medskip Classic Isabelle provides many variant forms of goal commands, see
 also \cite{isabelle-ref} for further details.  The second most common one is
@@ -195,38 +195,24 @@ Deriving non-atomic meta-level propositions requires special precautions in
 classic Isabelle: the primitive \texttt{goal} command decomposes a statement
 into the atomic conclusion and a list of assumptions, which are exhibited as
 ML values of type \texttt{thm}.  After the proof is finished, these premises
-are discharged again, resulting in the original rule statement.
-
-In contrast, Isabelle/Isar does \emph{not} require any special treatment of
-non-atomic statements --- assumptions and goals may be arbitrarily complex.
-While this would basically require to proceed by structured proof, decomposing
-the main problem into sub-problems according to the basic Isar scheme of
-backward reasoning, the old tactic-style procedure may be mimicked as follows.
-The general ML goal statement for derived rules looks like this:
+are discharged again, resulting in the original rule statement.  The ``long
+format'' of Isabelle/Isar goal statements admits to emulate this technique
+closely.  The general ML goal statement for derived rules looks like this:
 \begin{ttbox}
  val [\(prem@1\), \dots] = goal "\(\phi@1 \Imp \dots \Imp \psi\)";
  by \(tac@1\);
    \(\vdots\)
+ qed "\(a\)"
 \end{ttbox}
-This form may be turned into a tactic-emulation script that is wrapped in an
-Isar text to get access to the premises as local facts.
+This form may be turned into a tactic-emulation script as follows:
 \begin{matharray}{l}
-  \LEMMA{}{\texttt"{\phi@1 \Imp \dots \Imp \psi}\texttt"} \\
-  \PROOF{}~- \\
-  \quad \ASSUME{prem@1}{\phi@1}~\AND~\dots \\
-  \quad \SHOW{}{\Var{thesis}} \\
+  \LEMMA{a}{} \\
+  \quad \ASSUMES{prem@1}{\texttt"\phi@1\texttt"}~\AND~\dots \\
+  \quad \SHOWS{}{\texttt"{\psi}\texttt"} \\
   \qquad \APPLY{meth@1} \\
   \qquad\quad \vdots \\
   \qquad \DONE \\
-  \QED{} \\
 \end{matharray}
-Note that the above scheme repeats the text of premises $\phi@1$, \dots, while
-the conclusion $\psi$ is referenced via the automatic text abbreviation
-$\Var{thesis}$.  The assumption context may be invoked in a less verbose
-manner as well, using ``$\CASE{rule_context}$'' instead of
-``$\ASSUME{prem@1}{\phi@1}~\AND~\dots$'' above.  Then the list of \emph{all}
-premises is bound to the name $rule_context$; Isar does not provide a way to
-destruct lists into single items, though.
 
 \medskip In practice, actual rules are often rather direct consequences of
 corresponding atomic statements, typically stemming from the definition of a
@@ -269,6 +255,21 @@ throughout the whole result statement.  This is the right thing in most cases.
 For historical reasons, \texttt{qed_spec_mp} would only operate on the
 conclusion; one may get this exact behavior by using
 ``$rule_format~(no_asm)$'' instead.
+
+\medskip Actually ``$rule_format$'' is a bit unpleasant to work with, since
+the final result statement is not shown in the text.  An alternative is to
+state the resulting rule in the intended form in the first place, and have the
+initial refinement step turn it into internal object-logic form using the
+$atomize$ method indicated below.  The remaining script is unchanged.
+
+\begin{matharray}{l}
+  \LEMMA{name}{\texttt"{\All{\vec x}\vec\phi \Imp \psi}\texttt"} \\
+  \quad \APPLY{atomize~(full)} \\
+  \quad \APPLY{meth@1} \\
+  \qquad \vdots \\
+  \quad \DONE \\
+\end{matharray}
+
 
 \subsection{Tactics}\label{sec:conv-tac}
 
