@@ -292,23 +292,6 @@ Better: use wf_finite_psubset in WF_Rel
 
 (** Towards the induction rule **)
 
-Goal "finite F ==> (setsum f F = 0) = (! a:F. f a = (0::nat))";
-by (etac finite_induct 1);
-by Auto_tac;
-qed "setsum_0";
-Addsimps [setsum_0];
-
-Goal "finite F ==> setsum f F = Suc n --> (? a:F. 0 < f a)";
-by (etac finite_induct 1);
-by Auto_tac;
-no_qed();
-val lemma = result();
-
-Goal "[| setsum f F = Suc n; finite F |] ==> ? a:F. 0 < f a";
-by (dtac lemma 1);
-by (Fast_tac 1);
-qed "setsum_SucD";
-
 Goal "[| finite F; 0 < f a |] ==> \
 \     setsum (f(a:=f(a)-1)) F = (if a:F then setsum f F - 1 else setsum f F)";
 by (etac finite_induct 1);
