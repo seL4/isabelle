@@ -154,14 +154,10 @@ bind_thm ("ordermap_surj",
 
 goalw OrderType.thy [well_ord_def, tot_ord_def, bij_def, inj_def]
     "!!r. well_ord(A,r) ==> ordermap(A,r) : bij(A, ordertype(A,r))";
-by (safe_tac ZF_cs);
-by (rtac ordermap_type 1);
-by (rtac ordermap_surj 2);
-by (linear_case_tac 1);
-(*The two cases yield similar contradictions*)
-by (ALLGOALS (dtac ordermap_mono));
-by (REPEAT_SOME assume_tac);
-by (ALLGOALS (asm_full_simp_tac (ZF_ss addsimps [mem_not_refl])));
+by (fast_tac (ZF_cs addSIs [ordermap_type, ordermap_surj]
+		    addEs [linearE]
+		    addDs [ordermap_mono]
+                    addss (ZF_ss addsimps [mem_not_refl])) 1);
 qed "ordermap_bij";
 
 (*** Isomorphisms involving ordertype ***)
@@ -278,16 +274,14 @@ goal OrderType.thy
     "!!A r. well_ord(A,r) ==>  \
 \           ordertype(A,r) = {ordertype(pred(A,x,r),r). x:A}";
 by (safe_tac (eq_cs addSIs [ordertype_pred_lt RS ltD]));
-by (asm_full_simp_tac 
-    (ZF_ss addsimps [ordertype_def, 
-		     ordermap_bij RS bij_is_fun RS image_fun]) 1);
-by (eresolve_tac [RepFunE] 1);
-by (asm_full_simp_tac 
-    (ZF_ss addsimps [well_ord_is_wf, ordermap_eq_image, 
-		     ordermap_type RS image_fun, 
-		     ordermap_pred_eq_ordermap, 
-		     pred_subset, subset_refl]) 1);
-by (eresolve_tac [RepFunI] 1);
+by (fast_tac
+    (ZF_cs addss
+     (ZF_ss addsimps [ordertype_def, 
+		      well_ord_is_wf RS ordermap_eq_image, 
+		      ordermap_type RS image_fun, 
+		      ordermap_pred_eq_ordermap, 
+		      pred_subset]))
+    1);
 qed "ordertype_pred_unfold";
 
 
@@ -331,9 +325,7 @@ goal OrderType.thy
  "!!A r. well_ord(A,r) ==> ordertype(A+0, radd(A,r,0,s)) = ordertype(A,r)";
 by (resolve_tac [bij_sum_0 RS ord_isoI RS ordertype_eq] 1);
 by (assume_tac 2);
-by (asm_simp_tac ZF_ss 1);
-by (REPEAT_FIRST (eresolve_tac [sumE, emptyE]));
-by (asm_simp_tac (sum_ss addsimps [radd_Inl_iff, Memrel_iff]) 1);
+by (fast_tac (sum_cs addss (sum_ss addsimps [radd_Inl_iff, Memrel_iff])) 1);
 qed "ordertype_sum_0_eq";
 
 goal OrderType.thy "(lam z:0+A. case(%x.x, %y.y, z)) : bij(0+A, A)";
@@ -346,9 +338,7 @@ goal OrderType.thy
  "!!A r. well_ord(A,r) ==> ordertype(0+A, radd(0,s,A,r)) = ordertype(A,r)";
 by (resolve_tac [bij_0_sum RS ord_isoI RS ordertype_eq] 1);
 by (assume_tac 2);
-by (asm_simp_tac ZF_ss 1);
-by (REPEAT_FIRST (eresolve_tac [sumE, emptyE]));
-by (asm_simp_tac (sum_ss addsimps [radd_Inr_iff, Memrel_iff]) 1);
+by (fast_tac (sum_cs addss (sum_ss addsimps [radd_Inr_iff, Memrel_iff])) 1);
 qed "ordertype_0_sum_eq";
 
 (** Initial segments of radd.  Statements by Grabczewski **)
@@ -388,10 +378,8 @@ goal OrderType.thy
 \        ordertype(pred(A+B, Inr(b), radd(A,r,B,s)), radd(A,r,B,s)) = \
 \        ordertype(A+pred(B,b,s), radd(A,r,pred(B,b,s),s))";
 by (resolve_tac [pred_Inr_bij RS ord_isoI RS ord_iso_sym RS ordertype_eq] 1);
+by (fast_tac (sum_cs addss (radd_ss addsimps [pred_def, id_def])) 2);
 by (REPEAT_FIRST (ares_tac [well_ord_radd, pred_subset, well_ord_subset]));
-by (asm_full_simp_tac (ZF_ss addsimps [pred_def, id_def]) 1);
-by (REPEAT_FIRST (eresolve_tac [sumE]));
-by (ALLGOALS (asm_simp_tac radd_ss));
 qed "ordertype_pred_Inr_eq";
 
 (*** Basic laws for ordinal addition ***)
@@ -421,13 +409,12 @@ goalw OrderType.thy [oadd_def] "!!i j k. [| k<i;  Ord(j) |] ==> k < i++j";
 by (resolve_tac [ltE] 1 THEN assume_tac 1);
 by (resolve_tac [ltI] 1);
 by (REPEAT (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel] 2));
-by (asm_simp_tac (ZF_ss addsimps [ordertype_pred_unfold, 
-				  well_ord_radd, well_ord_Memrel]) 1);
-by (resolve_tac [RepFun_eqI] 1);
-by (eresolve_tac [InlI] 2);
 by (asm_simp_tac 
-    (ZF_ss addsimps [ordertype_pred_Inl_eq, well_ord_Memrel, 
-		     lt_pred_Memrel, leI RS le_ordertype_Memrel]) 1);
+    (ZF_ss addsimps [ordertype_pred_unfold, 
+		     well_ord_radd, well_ord_Memrel,
+		     ordertype_pred_Inl_eq, 
+		     lt_pred_Memrel, leI RS le_ordertype_Memrel]
+	   setloop rtac (InlI RSN (2,RepFun_eqI))) 1);
 qed "lt_oadd1";
 
 goal OrderType.thy "!!i j. [| Ord(i);  Ord(j) |] ==> i le i++j";
@@ -470,8 +457,8 @@ goal OrderType.thy "!!i j. [| i++j = i++k; Ord(i); Ord(j); Ord(k) |] ==> j=k";
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
-    (dresolve_tac [oadd_lt_mono2] THEN' assume_tac THEN'
-     asm_full_simp_tac (ZF_ss addsimps [lt_not_refl])));
+    (fast_tac (ZF_cs addDs [oadd_lt_mono2] 
+                     addss (ZF_ss addsimps [lt_not_refl]))));
 qed "oadd_inject";
 
 goalw OrderType.thy [oadd_def] 
@@ -482,14 +469,11 @@ by (asm_full_simp_tac
     (ZF_ss addsimps [ordertype_pred_unfold, well_ord_radd,
 		     well_ord_Memrel]) 1);
 by (eresolve_tac [ltD RS RepFunE] 1);
-by (eresolve_tac [sumE] 1);
-by (asm_simp_tac
-    (ZF_ss addsimps [ordertype_pred_Inl_eq, well_ord_Memrel, 
-		     ltI, lt_pred_Memrel, le_ordertype_Memrel, leI]) 1);
-by (asm_simp_tac
-    (ZF_ss addsimps [ordertype_pred_Inr_eq, well_ord_Memrel,
-		     ltI, lt_pred_Memrel, ordertype_sum_Memrel]) 1);
-by (fast_tac ZF_cs 1);
+by (fast_tac (sum_cs addss 
+	      (ZF_ss addsimps [ordertype_pred_Inl_eq, well_ord_Memrel, 
+			       ltI, lt_pred_Memrel, le_ordertype_Memrel, leI,
+			       ordertype_pred_Inr_eq, 
+			       ordertype_sum_Memrel])) 1);
 qed "lt_oadd_disj";
 
 
@@ -512,13 +496,10 @@ goal OrderType.thy
 by (rtac (subsetI RS equalityI) 1);
 by (eresolve_tac [ltI RS lt_oadd_disj RS disjE] 1);
 by (REPEAT (ares_tac [Ord_oadd] 1));
+by (fast_tac (ZF_cs addIs [lt_oadd1, oadd_lt_mono2]
+	            addss (ZF_ss addsimps [Ord_mem_iff_lt, Ord_oadd])) 3);
+by (fast_tac ZF_cs 2);
 by (fast_tac (ZF_cs addSEs [ltE]) 1);
-by (fast_tac ZF_cs 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS
-    (asm_full_simp_tac (ZF_ss addsimps [Ord_mem_iff_lt, Ord_oadd])));
-by (fast_tac (ZF_cs addIs [lt_oadd1]) 1);
-by (fast_tac (ZF_cs addIs [oadd_lt_mono2]) 1);
 qed "oadd_unfold";
 
 goal OrderType.thy "!!i. Ord(i) ==> i++1 = succ(i)";
@@ -663,7 +644,7 @@ goal OrderType.thy
 by (asm_simp_tac (ZF_ss addsimps [pred_Pair_eq]) 1);
 by (resolve_tac [ordertype_eq RS sym] 1);
 by (resolve_tac [prod_sum_singleton_ord_iso] 1);
-by (REPEAT_FIRST (ares_tac [pred_subset, well_ord_rmult RS  well_ord_subset]));
+by (REPEAT_FIRST (ares_tac [pred_subset, well_ord_rmult RS well_ord_subset]));
 by (fast_tac (ZF_cs addSEs [predE]) 1);
 qed "ordertype_pred_Pair_eq";
 
@@ -672,7 +653,8 @@ goalw OrderType.thy [oadd_def, omult_def]
 \        ordertype(pred(i*j, <i',j'>, rmult(i,Memrel(i),j,Memrel(j))), \
 \                  rmult(i,Memrel(i),j,Memrel(j))) = \
 \        j**i' ++ j'";
-by (asm_simp_tac (ZF_ss addsimps [ordertype_pred_Pair_eq, lt_pred_Memrel, ltD, lt_Ord2, well_ord_Memrel]) 1);
+by (asm_simp_tac (ZF_ss addsimps [ordertype_pred_Pair_eq, lt_pred_Memrel, 
+				  ltD, lt_Ord2, well_ord_Memrel]) 1);
 by (resolve_tac [trans] 1);
 by (resolve_tac [ordertype_ord_iso RS sum_ord_iso_cong RS ordertype_eq] 2);
 by (resolve_tac [ord_iso_refl] 3);
@@ -700,16 +682,16 @@ qed "lt_omult";
 goalw OrderType.thy [omult_def]
  "!!i j. [| j'<j;  i'<i |] ==> j**i' ++ j'  <  j**i";
 by (resolve_tac [ltI] 1);
-by (asm_full_simp_tac 
+by (asm_simp_tac
+    (ZF_ss addsimps [Ord_ordertype, well_ord_rmult, well_ord_Memrel, 
+		     lt_Ord2]) 2);
+by (asm_simp_tac 
     (ZF_ss addsimps [ordertype_pred_unfold, 
 		     well_ord_rmult, well_ord_Memrel, lt_Ord2]) 1);
 by (resolve_tac [RepFun_eqI] 1);
 by (fast_tac (ZF_cs addSEs [ltE]) 2);
 by (asm_simp_tac 
     (ZF_ss addsimps [ordertype_pred_Pair_lemma, ltI, symmetric omult_def]) 1);
-by (asm_simp_tac
-    (ZF_ss addsimps [Ord_ordertype, well_ord_rmult, well_ord_Memrel, 
-		     lt_Ord2]) 1);
 qed "omult_oadd_lt";
 
 goal OrderType.thy
@@ -844,9 +826,7 @@ goal OrderType.thy "!!i j k. [| k le j;  Ord(i) |] ==> i**k le i**j";
 by (resolve_tac [subset_imp_le] 1);
 by (safe_tac (ZF_cs addSEs [ltE, make_elim Ord_succD] addSIs [Ord_omult]));
 by (asm_full_simp_tac (ZF_ss addsimps [omult_unfold]) 1);
-by (safe_tac ZF_cs);
-by (eresolve_tac [UN_I] 1);
-by (deepen_tac (ZF_cs addEs [Ord_trans]) 0 1);
+by (deepen_tac (ZF_cs addEs [Ord_trans, UN_I]) 0 1);
 qed "omult_le_mono2";
 
 goal OrderType.thy "!!i j. [| i' le i;  j' le j |] ==> i'**j' le i**j";
@@ -891,8 +871,8 @@ goal OrderType.thy "!!i j. [| i**j = i**k;  0<i;  Ord(j);  Ord(k) |] ==> j=k";
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
-    (dresolve_tac [omult_lt_mono2] THEN' assume_tac THEN'
-     asm_full_simp_tac (ZF_ss addsimps [lt_not_refl])));
+    (fast_tac (ZF_cs addDs [omult_lt_mono2] 
+                     addss (ZF_ss addsimps [lt_not_refl]))));
 qed "omult_inject";
 
 
