@@ -3,25 +3,15 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Auxiliary theorems *}
+header {* Auxiliary theorems *}  (* FIXME clean *)
 
-theory Aux = Real + Zorn:
+theory Aux = Real + Bounds + Zorn:
 
 text {* Some existing theorems are declared as extra introduction
 or elimination rules, respectively. *}
 
-lemmas [intro?] = isLub_isUb
-lemmas [intro?] = chainD
-lemmas chainE2 = chainD2 [elim_format, standard]
-
-
-text {* \medskip Lemmas about sets. *}
-
-lemma Int_singletonD: "A \<inter> B = {v} \<Longrightarrow> x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> x = v"
-  by (fast elim: equalityE)
-
-lemma set_less_imp_diff_not_empty: "H < E \<Longrightarrow> \<exists>x0 \<in> E. x0 \<notin> H"
-  by (auto simp add: psubset_eq)
+lemmas [dest?] = chainD
+lemmas chainE2 [elim?] = chainD2 [elim_format, standard]
 
 
 text{* \medskip Some lemmas about orders. *}

@@ -7,47 +7,71 @@ header {* Bounds *}
 
 theory Bounds = Main + Real:
 
-text {*
-  A supremum\footnote{The definition of the supremum is based on one
-  in \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Lubs.html}}
-  of an ordered set @{text B} w.~r.~t. @{text A} is defined as a least
-  upper bound of @{text B}, which lies in @{text A}.
-*}
-   
-text {*
-  If a supremum exists, then @{text "Sup A B"} is equal to the
-  supremum. *}
+locale lub =
+  fixes A and x
+  assumes least [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> a \<le> b) \<Longrightarrow> x \<le> b"
+    and upper [intro?]: "a \<in> A \<Longrightarrow> a \<le> x"
+
+lemmas [elim?] = lub.least lub.upper
+
+syntax (xsymbols)
+  the_lub :: "'a::order set \<Rightarrow> 'a"    ("\<Squnion>_" [90] 90)
 
 constdefs
-  is_Sup :: "('a::order) set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool"
-  "is_Sup A B x \<equiv> isLub A B x"
+  the_lub :: "'a::order set \<Rightarrow> 'a"
+  "\<Squnion>A \<equiv> The (lub A)"
 
-  Sup :: "('a::order) set \<Rightarrow> 'a set \<Rightarrow> 'a"
-  "Sup A B \<equiv> Eps (is_Sup A B)"
-
-text {*
-  The supremum of @{text B} is less than any upper bound of
-  @{text B}. *}
-
-lemma sup_le_ub: "isUb A B y \<Longrightarrow> is_Sup A B s \<Longrightarrow> s \<le> y"
-  by (unfold is_Sup_def, rule isLub_le_isUb)
-
-text {* The supremum @{text B} is an upper bound for @{text B}. *}
-
-lemma sup_ub: "y \<in> B \<Longrightarrow> is_Sup A B s \<Longrightarrow> y \<le> s"
-  by (unfold is_Sup_def, rule isLubD2)
-
-text {*
-  The supremum of a non-empty set @{text B} is greater than a lower
-  bound of @{text B}. *}
-
-lemma sup_ub1: 
-  "\<forall>y \<in> B. a \<le> y \<Longrightarrow> is_Sup A B s \<Longrightarrow> x \<in> B \<Longrightarrow> a \<le> s"
-proof - 
-  assume "\<forall>y \<in> B. a \<le> y"  "is_Sup A B s"  "x \<in> B"
-  have "a \<le> x" by (rule bspec)
-  also have "x \<le> s" by (rule sup_ub)
-  finally show "a \<le> s" .
+lemma the_lub_equality [elim?]:
+  includes lub
+  shows "\<Squnion>A = (x::'a::order)"
+proof (unfold the_lub_def)
+  from lub_axioms show "The (lub A) = x"
+  proof
+    fix x' assume lub': "lub A x'"
+    show "x' = x"
+    proof (rule order_antisym)
+      from lub' show "x' \<le> x"
+      proof
+        fix a assume "a \<in> A"
+        then show "a \<le> x" ..
+      qed
+      show "x \<le> x'"
+      proof
+        fix a assume "a \<in> A"
+        with lub' show "a \<le> x'" ..
+      qed
+    qed
+  qed
 qed
-  
+
+lemma the_lubI_ex:
+  assumes ex: "\<exists>x. lub A x"
+  shows "lub A (\<Squnion>A)"
+proof -
+  from ex obtain x where x: "lub A x" ..
+  also from x have [symmetric]: "\<Squnion>A = x" ..
+  finally show ?thesis .
+qed
+
+lemma lub_compat: "lub A x = isLub UNIV A x"
+proof -
+  have "isUb UNIV A = (\<lambda>x. A *<= x \<and> x \<in> UNIV)"
+    by (rule ext) (simp only: isUb_def)
+  then show ?thesis
+    by (simp only: lub_def isLub_def leastP_def setge_def setle_def) blast
+qed
+
+lemma real_complete:
+  fixes A :: "real set"
+  assumes nonempty: "\<exists>a. a \<in> A"
+    and ex_upper: "\<exists>y. \<forall>a \<in> A. a \<le> y"
+  shows "\<exists>x. lub A x"
+proof -
+  from ex_upper have "\<exists>y. isUb UNIV A y"
+    by (unfold isUb_def setle_def) blast
+  with nonempty have "\<exists>x. isLub UNIV A x"
+    by (rule reals_complete)
+  then show ?thesis by (simp only: lub_compat)
+qed
+
 end

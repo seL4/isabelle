@@ -19,23 +19,22 @@ text {*
 *}
 
 theorem Zorn's_Lemma:
-  "(\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S) \<Longrightarrow> a \<in> S
-  \<Longrightarrow> \<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
+  assumes r: "\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
+    and aS: "a \<in> S"
+  shows "\<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
 proof (rule Zorn_Lemma2)
   txt_raw {* \footnote{See
   \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}} \isanewline *}
-  assume r: "\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
-  assume aS: "a \<in> S"
   show "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
   proof
     fix c assume "c \<in> chain S"
     show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
     proof cases
- 
+
       txt {* If @{text c} is an empty chain, then every element in
       @{text S} is an upper bound of @{text c}. *}
 
-      assume "c = {}" 
+      assume "c = {}"
       with aS show ?thesis by fast
 
       txt {* If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
@@ -43,12 +42,12 @@ proof (rule Zorn_Lemma2)
 
     next
       assume c: "c \<noteq> {}"
-      show ?thesis 
-      proof 
+      show ?thesis
+      proof
         show "\<forall>z \<in> c. z \<subseteq> \<Union>c" by fast
-        show "\<Union>c \<in> S" 
+        show "\<Union>c \<in> S"
         proof (rule r)
-          from c show "\<exists>x. x \<in> c" by fast  
+          from c show "\<exists>x. x \<in> c" by fast
         qed
       qed
     qed

@@ -20,57 +20,57 @@ text {*
   graph.
 *}
 
-types 'a graph = "('a * real) set"
+types 'a graph = "('a \<times> real) set"
 
 constdefs
-  graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph "
+  graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph"
   "graph F f \<equiv> {(x, f x) | x. x \<in> F}"
 
-lemma graphI [intro?]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
+lemma graphI [intro]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
   by (unfold graph_def) blast
 
-lemma graphI2 [intro?]: "x \<in> F \<Longrightarrow> \<exists>t\<in> (graph F f). t = (x, f x)"
+lemma graphI2 [intro?]: "x \<in> F \<Longrightarrow> \<exists>t \<in> graph F f. t = (x, f x)"
   by (unfold graph_def) blast
 
-lemma graphD1 [intro?]: "(x, y) \<in> graph F f \<Longrightarrow> x \<in> F"
-  by (unfold graph_def) blast
-
-lemma graphD2 [intro?]: "(x, y) \<in> graph H h \<Longrightarrow> y = h x"
+lemma graphE [elim?]:
+    "(x, y) \<in> graph F f \<Longrightarrow> (x \<in> F \<Longrightarrow> y = f x \<Longrightarrow> C) \<Longrightarrow> C"
   by (unfold graph_def) blast
 
 
 subsection {* Functions ordered by domain extension *}
 
-text {* A function @{text h'} is an extension of @{text h}, iff the
-  graph of @{text h} is a subset of the graph of @{text h'}. *}
+text {*
+  A function @{text h'} is an extension of @{text h}, iff the graph of
+  @{text h} is a subset of the graph of @{text h'}.
+*}
 
 lemma graph_extI:
   "(\<And>x. x \<in> H \<Longrightarrow> h x = h' x) \<Longrightarrow> H \<subseteq> H'
-  \<Longrightarrow> graph H h \<subseteq> graph H' h'"
+    \<Longrightarrow> graph H h \<subseteq> graph H' h'"
   by (unfold graph_def) blast
 
-lemma graph_extD1 [intro?]:
+lemma graph_extD1 [dest?]:
   "graph H h \<subseteq> graph H' h' \<Longrightarrow> x \<in> H \<Longrightarrow> h x = h' x"
   by (unfold graph_def) blast
 
-lemma graph_extD2 [intro?]:
+lemma graph_extD2 [dest?]:
   "graph H h \<subseteq> graph H' h' \<Longrightarrow> H \<subseteq> H'"
   by (unfold graph_def) blast
+
 
 subsection {* Domain and function of a graph *}
 
 text {*
-  The inverse functions to @{text graph} are @{text domain} and
-  @{text funct}.
+  The inverse functions to @{text graph} are @{text domain} and @{text
+  funct}.
 *}
 
 constdefs
-  domain :: "'a graph \<Rightarrow> 'a set"
+  "domain" :: "'a graph \<Rightarrow> 'a set"
   "domain g \<equiv> {x. \<exists>y. (x, y) \<in> g}"
 
   funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
   "funct g \<equiv> \<lambda>x. (SOME y. (x, y) \<in> g)"
-
 
 text {*
   The following lemma states that @{text g} is the graph of a function
@@ -78,19 +78,18 @@ text {*
 *}
 
 lemma graph_domain_funct:
-  "(\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y)
-  \<Longrightarrow> graph (domain g) (funct g) = g"
-proof (unfold domain_def funct_def graph_def, auto)
+  assumes uniq: "\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y"
+  shows "graph (domain g) (funct g) = g"
+proof (unfold domain_def funct_def graph_def, auto)  (* FIXME !? *)
   fix a b assume "(a, b) \<in> g"
   show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule someI2)
   show "\<exists>y. (a, y) \<in> g" ..
-  assume uniq: "\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y"
   show "b = (SOME y. (a, y) \<in> g)"
   proof (rule some_equality [symmetric])
-    fix y assume "(a, y) \<in> g" show "y = b" by (rule uniq)
+    fix y assume "(a, y) \<in> g"
+    show "y = b" by (rule uniq)
   qed
 qed
-
 
 
 subsection {* Norm-preserving extensions of a function *}
@@ -105,39 +104,35 @@ text {*
 constdefs
   norm_pres_extensions ::
     "'a::{plus, minus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
-    \<Rightarrow> 'a graph set"
+      \<Rightarrow> 'a graph set"
     "norm_pres_extensions E p F f
-    \<equiv> {g. \<exists>H h. graph H h = g
-                \<and> is_linearform H h
-                \<and> is_subspace H E
-                \<and> is_subspace F H
-                \<and> graph F f \<subseteq> graph H h
-                \<and> (\<forall>x \<in> H. h x \<le> p x)}"
+      \<equiv> {g. \<exists>H h. g = graph H h
+          \<and> linearform H h
+          \<and> H \<unlhd> E
+          \<and> F \<unlhd> H
+          \<and> graph F f \<subseteq> graph H h
+          \<and> (\<forall>x \<in> H. h x \<le> p x)}"
 
-lemma norm_pres_extension_D:
+lemma norm_pres_extensionE [elim]:
   "g \<in> norm_pres_extensions E p F f
-  \<Longrightarrow> \<exists>H h. graph H h = g
-            \<and> is_linearform H h
-            \<and> is_subspace H E
-            \<and> is_subspace F H
-            \<and> graph F f \<subseteq> graph H h
-            \<and> (\<forall>x \<in> H. h x \<le> p x)"
+  \<Longrightarrow> (\<And>H h. g = graph H h \<Longrightarrow> linearform H h
+        \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H \<Longrightarrow> graph F f \<subseteq> graph H h
+        \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x \<Longrightarrow> C) \<Longrightarrow> C"
   by (unfold norm_pres_extensions_def) blast
 
 lemma norm_pres_extensionI2 [intro]:
-  "is_linearform H h \<Longrightarrow> is_subspace H E \<Longrightarrow> is_subspace F H \<Longrightarrow>
-  graph F f \<subseteq> graph H h \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x
-  \<Longrightarrow> (graph H h \<in> norm_pres_extensions E p F f)"
- by (unfold norm_pres_extensions_def) blast
+  "linearform H h \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H
+    \<Longrightarrow> graph F f \<subseteq> graph H h \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x
+    \<Longrightarrow> graph H h \<in> norm_pres_extensions E p F f"
+  by (unfold norm_pres_extensions_def) blast
 
-lemma norm_pres_extensionI [intro]:
-  "\<exists>H h. graph H h = g
-         \<and> is_linearform H h
-         \<and> is_subspace H E
-         \<and> is_subspace F H
-         \<and> graph F f \<subseteq> graph H h
-         \<and> (\<forall>x \<in> H. h x \<le> p x)
-  \<Longrightarrow> g \<in> norm_pres_extensions E p F f"
+lemma norm_pres_extensionI:  (* FIXME ? *)
+  "\<exists>H h. g = graph H h
+    \<and> linearform H h
+    \<and> H \<unlhd> E
+    \<and> F \<unlhd> H
+    \<and> graph F f \<subseteq> graph H h
+    \<and> (\<forall>x \<in> H. h x \<le> p x) \<Longrightarrow> g \<in> norm_pres_extensions E p F f"
   by (unfold norm_pres_extensions_def) blast
 
 end
