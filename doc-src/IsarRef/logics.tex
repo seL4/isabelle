@@ -100,7 +100,7 @@ declarations internally.
   'typedef' altname? abstype '=' repset
   ;
 
-  altname = '(' (name | 'open' name?) ')'
+  altname: '(' (name | 'open' | 'open' name) ')'
   ;
   abstype: typespec infix?
   ;
