@@ -321,9 +321,3 @@ val explode = sym_explode;
 val escape = sym_escape;
 
 end;
-
-
-(* Overwrites versions in Library *)
-
-val quote = Symbol.quote;
-val commas_quote = Symbol.commas_quote;
