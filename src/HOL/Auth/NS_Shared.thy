@@ -22,7 +22,7 @@ inductive "ns_shared"
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: ns_shared;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X # evs : ns_shared"
 
          (*Alice initiates a protocol run, requesting to talk to any B*)

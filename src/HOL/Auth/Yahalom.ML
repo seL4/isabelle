@@ -44,42 +44,42 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (*Lets us treat YM4 using a similar argument as for the Fake case.*)
 goal thy "!!evs. Says S A {|Crypt (shrK A) Y, X|} : set evs ==> \
-\                X : analz (sees Spy evs)";
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
-qed "YM4_analz_sees_Spy";
+\                X : analz (spies evs)";
+by (blast_tac (!claset addSDs [Says_imp_spies RS analz.Inj]) 1);
+qed "YM4_analz_spies";
 
-bind_thm ("YM4_parts_sees_Spy",
-          YM4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
+bind_thm ("YM4_parts_spies",
+          YM4_analz_spies RS (impOfSubs analz_subset_parts));
 
 (*Relates to both YM4 and Oops*)
 goal thy "!!evs. Says S A {|Crypt (shrK A) {|B,K,NA,NB|}, X|} : set evs ==> \
-\                K : parts (sees Spy evs)";
+\                K : parts (spies evs)";
 by (blast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
-qed "YM4_Key_parts_sees_Spy";
+                      addSDs [Says_imp_spies RS parts.Inj]) 1);
+qed "YM4_Key_parts_spies";
 
-(*For proving the easier theorems about X ~: parts (sees Spy evs).*)
-fun parts_sees_tac i = 
-    forward_tac [YM4_Key_parts_sees_Spy] (i+6) THEN
-    forward_tac [YM4_parts_sees_Spy] (i+5)     THEN
+(*For proving the easier theorems about X ~: parts (spies evs).*)
+fun parts_spies_tac i = 
+    forward_tac [YM4_Key_parts_spies] (i+6) THEN
+    forward_tac [YM4_parts_spies] (i+5)     THEN
     prove_simple_subgoals_tac  i;
 
 (*Induction for regularity theorems.  If induction formula has the form
-   X ~: analz (sees Spy evs) --> ... then it shortens the proof by discarding
-   needless information about analz (insert X (sees Spy evs))  *)
+   X ~: analz (spies evs) --> ... then it shortens the proof by discarding
+   needless information about analz (insert X (spies evs))  *)
 fun parts_induct_tac i = 
     etac yahalom.induct i
     THEN 
     REPEAT (FIRSTGOAL analz_mono_contra_tac)
-    THEN  parts_sees_tac i;
+    THEN  parts_spies_tac i;
 
 
-(** Theorems of the form X ~: parts (sees Spy evs) imply that NOBODY
+(** Theorems of the form X ~: parts (spies evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees another agent's shared key! (unless it's lost at start)*)
+(*Spy never sees another agent's shared key! (unless it's bad at start)*)
 goal thy 
- "!!evs. evs : yahalom ==> (Key (shrK A) : parts (sees Spy evs)) = (A : lost)";
+ "!!evs. evs : yahalom ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
@@ -87,13 +87,13 @@ qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
- "!!evs. evs : yahalom ==> (Key (shrK A) : analz (sees Spy evs)) = (A : lost)";
+ "!!evs. evs : yahalom ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
 by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (sees Spy evs);       \
-\                  evs : yahalom |] ==> A:lost";
+goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
+\                  evs : yahalom |] ==> A:bad";
 by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
@@ -103,10 +103,10 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*Nobody can have used non-existent keys!  Needed to apply analz_insert_Key*)
 goal thy "!!evs. evs : yahalom ==>          \
-\         Key K ~: used evs --> K ~: keysFor (parts (sees Spy evs))";
+\         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*YM4: Key K is not fresh!*)
-by (blast_tac (!claset addSEs sees_Spy_partsEs) 3);
+by (blast_tac (!claset addSEs spies_partsEs) 3);
 (*YM3*)
 by (Blast_tac 2);
 (*Fake*)
@@ -139,8 +139,8 @@ qed "Says_Server_message_form";
 
 
 (*For proofs involving analz.*)
-val analz_sees_tac = 
-    forward_tac [YM4_analz_sees_Spy] 6 THEN
+val analz_spies_tac = 
+    forward_tac [YM4_analz_spies] 6 THEN
     forward_tac [Says_Server_message_form] 7 THEN
     assume_tac 7 THEN REPEAT ((etac exE ORELSE' hyp_subst_tac) 7);
 
@@ -148,8 +148,8 @@ val analz_sees_tac =
 (****
  The following is to prove theorems of the form
 
-  Key K : analz (insert (Key KAB) (sees Spy evs)) ==>
-  Key K : analz (sees Spy evs)
+  Key K : analz (insert (Key KAB) (spies evs)) ==>
+  Key K : analz (spies evs)
 
  A more general formula must be proved inductively.
 ****)
@@ -159,10 +159,10 @@ val analz_sees_tac =
 goal thy  
  "!!evs. evs : yahalom ==>                                 \
 \  ALL K KK. KK <= Compl (range shrK) -->                       \
-\            (Key K : analz (Key``KK Un (sees Spy evs))) = \
-\            (K : KK | Key K : analz (sees Spy evs))";
+\            (Key K : analz (Key``KK Un (spies evs))) = \
+\            (K : KK | Key K : analz (spies evs))";
 by (etac yahalom.induct 1);
-by analz_sees_tac;
+by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
@@ -174,8 +174,8 @@ qed_spec_mp "analz_image_freshK";
 
 goal thy
  "!!evs. [| evs : yahalom;  KAB ~: range shrK |] ==>             \
-\        Key K : analz (insert (Key KAB) (sees Spy evs)) =       \
-\        (K = KAB | Key K : analz (sees Spy evs))";
+\        Key K : analz (insert (Key KAB) (spies evs)) =       \
+\        (K = KAB | Key K : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
@@ -197,17 +197,15 @@ by (Blast_tac 2);
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
-by (blast_tac (!claset addSEs sees_Spy_partsEs
+by (blast_tac (!claset addSEs spies_partsEs
                       delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
 val lemma = result();
 
 goal thy 
-"!!evs. [| Says Server A                                            \
-\           {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}        \
-\           : set evs;                                              \
-\          Says Server A'                                           \
-\           {|Crypt (shrK A') {|Agent B', Key K, na', nb'|}, X'|}   \
-\           : set evs;                                              \
+"!!evs. [| Says Server A                                                 \
+\            {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|} : set evs; \
+\          Says Server A'                                                \
+\            {|Crypt (shrK A') {|Agent B', Key K, na', nb'|}, X'|} : set evs; \
 \          evs : yahalom |]                                    \
 \       ==> A=A' & B=B' & na=na' & nb=nb'";
 by (prove_unique_tac lemma 1);
@@ -217,15 +215,15 @@ qed "unique_session_keys";
 (** Crucial secrecy property: Spy does not see the keys sent in msg YM3 **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : yahalom |]         \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : yahalom |]         \
 \        ==> Says Server A                                        \
 \              {|Crypt (shrK A) {|Agent B, Key K, na, nb|},       \
 \                Crypt (shrK B) {|Agent A, Key K|}|}              \
 \             : set evs -->                                       \
 \            Says A Spy {|na, nb, Key K|} ~: set evs -->          \
-\            Key K ~: analz (sees Spy evs)";
+\            Key K ~: analz (spies evs)";
 by (etac yahalom.induct 1);
-by analz_sees_tac;
+by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
@@ -234,7 +232,7 @@ by (ALLGOALS
 by (blast_tac (!claset addDs [unique_session_keys]) 3);
 (*YM3*)
 by (blast_tac (!claset delrules [impCE]
-                       addSEs sees_Spy_partsEs
+                       addSEs spies_partsEs
                        addIs [impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
@@ -248,8 +246,8 @@ goal thy
 \                Crypt (shrK B) {|Agent A, Key K|}|}              \
 \             : set evs;                                          \
 \           Says A Spy {|na, nb, Key K|} ~: set evs;              \
-\           A ~: lost;  B ~: lost;  evs : yahalom |]         \
-\        ==> Key K ~: analz (sees Spy evs)";
+\           A ~: bad;  B ~: bad;  evs : yahalom |]         \
+\        ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
@@ -259,9 +257,8 @@ qed "Spy_not_see_encrypted_key";
 
 (*If the encrypted message appears then it originated with the Server*)
 goal thy
- "!!evs. [| Crypt (shrK A) {|Agent B, Key K, na, nb|}                  \
-\            : parts (sees Spy evs);                              \
-\           A ~: lost;  evs : yahalom |]                          \
+ "!!evs. [| Crypt (shrK A) {|Agent B, Key K, na, nb|} : parts (spies evs); \
+\           A ~: bad;  evs : yahalom |]                          \
 \         ==> Says Server A                                            \
 \              {|Crypt (shrK A) {|Agent B, Key K, na, nb|},            \
 \                Crypt (shrK B) {|Agent A, Key K|}|}                   \
@@ -277,8 +274,8 @@ qed "A_trusts_YM3";
 (*B knows, by the first part of A's message, that the Server distributed 
   the key for A and B.  But this part says nothing about nonces.*)
 goal thy 
- "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (sees Spy evs);   \
-\           B ~: lost;  evs : yahalom |]                                \
+ "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (spies evs);   \
+\           B ~: bad;  evs : yahalom |]                                \
 \        ==> EX NA NB. Says Server A                                    \
 \                        {|Crypt (shrK A) {|Agent B, Key K,             \
 \                                           Nonce NA, Nonce NB|},       \
@@ -296,8 +293,8 @@ qed "B_trusts_YM4_shrK";
   Secrecy of NB is crucial.*)
 goal thy 
  "!!evs. evs : yahalom                                             \
-\        ==> Nonce NB ~: analz (sees Spy evs) -->                  \
-\            Crypt K (Nonce NB) : parts (sees Spy evs) -->         \
+\        ==> Nonce NB ~: analz (spies evs) -->                  \
+\            Crypt K (Nonce NB) : parts (spies evs) -->         \
 \            (EX A B NA. Says Server A                             \
 \                        {|Crypt (shrK A) {|Agent B, Key K,        \
 \                                  Nonce NA, Nonce NB|},           \
@@ -310,9 +307,9 @@ by (Fake_parts_insert_tac 1);
 (*YM4*)
 by (Step_tac 1);
 (*A is uncompromised because NB is secure*)
-by (not_lost_tac "A" 1);
+by (not_bad_tac "A" 1);
 (*A's certificate guarantees the existence of the Server message*)
-by (blast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj RS parts.Fst RS
 			      A_trusts_YM3]) 1);
 bind_thm ("B_trusts_YM4_newK", result() RS mp RSN (2, rev_mp));
 
@@ -342,7 +339,7 @@ Addsimps [KeyWithNonce_Says];
   (with respect to a given trace). *)
 goalw thy [KeyWithNonce_def]
  "!!evs. Key K ~: used evs ==> ~ KeyWithNonce K NB evs";
-by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSEs spies_partsEs) 1);
 qed "fresh_not_KeyWithNonce";
 
 (*The Server message associates K with NB' and therefore not with any 
@@ -374,10 +371,10 @@ goal thy
  "!!evs. evs : yahalom ==>                                         \
 \        (ALL KK. KK <= Compl (range shrK) -->                          \
 \             (ALL K: KK. ~ KeyWithNonce K NB evs)   -->                \
-\             (Nonce NB : analz (Key``KK Un (sees Spy evs))) =     \
-\             (Nonce NB : analz (sees Spy evs)))";
+\             (Nonce NB : analz (Key``KK Un (spies evs))) =     \
+\             (Nonce NB : analz (spies evs)))";
 by (etac yahalom.induct 1);
-by analz_sees_tac;
+by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [impI RS allI]));
 by (REPEAT_FIRST (rtac lemma));
 (*For Oops, simplification proves NBa~=NB.  By Says_Server_KeyWithNonce,
@@ -395,8 +392,8 @@ by (Blast_tac 1);
 (*Fake*) 
 by (spy_analz_tac 1);
 (*YM4*)  (** LEVEL 7 **)
-by (not_lost_tac "A" 1);
-by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
+by (not_bad_tac "A" 1);
+by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
     THEN REPEAT (assume_tac 1));
 by (blast_tac (!claset addIs [KeyWithNonceI]) 1);
 qed_spec_mp "Nonce_secrecy";
@@ -410,8 +407,8 @@ goal thy
 \            {|Crypt (shrK A) {|Agent B, Key KAB, na, Nonce NB'|}, X|}    \
 \           : set evs;                                                    \
 \           NB ~= NB';  KAB ~: range shrK;  evs : yahalom |]         \
-\        ==> (Nonce NB : analz (insert (Key KAB) (sees Spy evs))) =  \
-\            (Nonce NB : analz (sees Spy evs))";
+\        ==> (Nonce NB : analz (insert (Key KAB) (spies evs))) =  \
+\            (Nonce NB : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps 
 		  [Nonce_secrecy, Says_Server_KeyWithNonce]) 1);
 qed "single_Nonce_secrecy";
@@ -422,8 +419,8 @@ qed "single_Nonce_secrecy";
 goal thy 
  "!!evs. evs : yahalom ==>                                            \
 \   EX NA' A' B'. ALL NA A B.                                              \
-\      Crypt (shrK B) {|Agent A, Nonce NA, nb|} : parts(sees Spy evs) \
-\      --> B ~: lost --> NA = NA' & A = A' & B = B'";
+\      Crypt (shrK B) {|Agent A, Nonce NA, nb|} : parts(spies evs) \
+\      --> B ~: bad --> NA = NA' & A = A' & B = B'";
 by (parts_induct_tac 1);
 (*Fake*)
 by (REPEAT (etac (exI RSN (2,exE)) 1)   (*stripping EXs makes proof faster*)
@@ -432,31 +429,29 @@ by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
 (*YM2: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "nb = ?y" 1);
 by (REPEAT (resolve_tac [exI, conjI, impI, refl] 1));
-by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSEs spies_partsEs) 1);
 val lemma = result();
 
 goal thy 
- "!!evs.[| Crypt (shrK B) {|Agent A, Nonce NA, nb|}        \
-\                  : parts (sees Spy evs);            \
-\          Crypt (shrK B') {|Agent A', Nonce NA', nb|}     \
-\                  : parts (sees Spy evs);            \
-\          evs : yahalom;  B ~: lost;  B' ~: lost |]  \
+ "!!evs.[| Crypt (shrK B) {|Agent A, Nonce NA, nb|} : parts (spies evs); \
+\          Crypt (shrK B') {|Agent A', Nonce NA', nb|} : parts (spies evs); \
+\          evs : yahalom;  B ~: bad;  B' ~: bad |]  \
 \        ==> NA' = NA & A' = A & B' = B";
 by (prove_unique_tac lemma 1);
 qed "unique_NB";
 
 
 (*Variant useful for proving secrecy of NB: the Says... form allows 
-  not_lost_tac to remove the assumption B' ~: lost.*)
+  not_bad_tac to remove the assumption B' ~: bad.*)
 goal thy 
  "!!evs.[| Says C D   {|X,  Crypt (shrK B) {|Agent A, Nonce NA, nb|}|}    \
-\            : set evs;          B ~: lost;                               \
+\            : set evs;          B ~: bad;                               \
 \          Says C' D' {|X', Crypt (shrK B') {|Agent A', Nonce NA', nb|}|} \
 \            : set evs;                                                   \
-\          nb ~: analz (sees Spy evs);  evs : yahalom |]        \
+\          nb ~: analz (spies evs);  evs : yahalom |]        \
 \        ==> NA' = NA & A' = A & B' = B";
-by (not_lost_tac "B'" 1);
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
+by (not_bad_tac "B'" 1);
+by (blast_tac (!claset addSDs [Says_imp_spies RS parts.Inj]
                        addSEs [MPair_parts]
                        addDs  [unique_NB]) 1);
 qed "Says_unique_NB";
@@ -465,15 +460,13 @@ qed "Says_unique_NB";
 (** A nonce value is never used both as NA and as NB **)
 
 goal thy 
- "!!evs. [| B ~: lost;  evs : yahalom  |]            \
-\ ==> Nonce NB ~: analz (sees Spy evs) -->           \
-\     Crypt (shrK B') {|Agent A', Nonce NB, nb'|}    \
-\       : parts(sees Spy evs)                        \
-\ --> Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|} \
-\       ~: parts(sees Spy evs)";
+ "!!evs. [| B ~: bad;  evs : yahalom  |]            \
+\ ==> Nonce NB ~: analz (spies evs) -->           \
+\     Crypt (shrK B') {|Agent A', Nonce NB, nb'|} : parts(spies evs) --> \
+\     Crypt (shrK B)  {|Agent A, Nonce NA, Nonce NB|} ~: parts(spies evs)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (blast_tac (!claset addDs [Says_imp_sees_Spy RS analz.Inj]
+by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj]
                        addSIs [parts_insertI]
                        addSEs partsEs) 1);
 bind_thm ("no_nonce_YM1_YM2", result() RS mp RSN (2,rev_mp) RSN (2,rev_notE));
@@ -495,37 +488,37 @@ qed "Says_Server_imp_YM2";
 
 (*A vital theorem for B, that nonce NB remains secure from the Spy.*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : yahalom |]  \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : yahalom |]  \
 \ ==> Says B Server                                                    \
 \          {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|} \
 \     : set evs -->                                                    \
 \     (ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs) -->     \
-\     Nonce NB ~: analz (sees Spy evs)";
+\     Nonce NB ~: analz (spies evs)";
 by (etac yahalom.induct 1);
-by analz_sees_tac;
+by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
                setloop split_tac [expand_if])));
 (*Prove YM3 by showing that no NB can also be an NA*)
-by (blast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj]
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
 	               addSEs [MPair_parts]
 		       addDs  [no_nonce_YM1_YM2, Says_unique_NB]) 4
     THEN flexflex_tac);
 (*YM2: similar freshness reasoning*) 
 by (blast_tac (!claset addSEs partsEs
-		       addDs  [Says_imp_sees_Spy RS analz.Inj,
+		       addDs  [Says_imp_spies RS analz.Inj,
 			       impOfSubs analz_subset_parts]) 3);
 (*YM1: NB=NA is impossible anyway, but NA is secret because it is fresh!*)
 by (blast_tac (!claset addSIs [parts_insertI]
-                       addSEs sees_Spy_partsEs) 2);
+                       addSEs spies_partsEs) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (** LEVEL 7: YM4 and Oops remain **)
 (*YM4: key K is visible to Spy, contradicting session key secrecy theorem*) 
 by (REPEAT (Safe_step_tac 1));
-by (not_lost_tac "Aa" 1);
-by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
+by (not_bad_tac "Aa" 1);
+by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
 by (forward_tac [Says_Server_message_form] 3);
 by (forward_tac [Says_Server_imp_YM2] 4);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, bexE, exE, disjE]));
@@ -544,7 +537,7 @@ by (blast_tac (!claset addDs [Says_unique_NB]) 1 THEN flexflex_tac);
 (*case NB ~= NBa*)
 by (asm_simp_tac (!simpset addsimps [single_Nonce_secrecy]) 1);
 by (blast_tac (!claset addSEs [MPair_parts]
-		       addDs  [Says_imp_sees_Spy RS parts.Inj, 
+		       addDs  [Says_imp_spies RS parts.Inj, 
 			       no_nonce_YM1_YM2 (*to prove NB~=NAa*) ]) 1);
 bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
 
@@ -561,14 +554,14 @@ goal thy
 \           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \                       Crypt K (Nonce NB)|} : set evs;                     \
 \           ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs;         \
-\           A ~: lost;  B ~: lost;  evs : yahalom |]       \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \         ==> Says Server A                                                 \
 \                     {|Crypt (shrK A) {|Agent B, Key K,                    \
 \                               Nonce NA, Nonce NB|},                       \
 \                       Crypt (shrK B) {|Agent A, Key K|}|}                 \
 \               : set evs";
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
-by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1 THEN
+by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1 THEN
     dtac B_trusts_YM4_shrK 1);
 by (dtac B_trusts_YM4_newK 3);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
@@ -584,9 +577,8 @@ qed "B_trusts_YM4";
 (*The encryption in message YM2 tells us it cannot be faked.*)
 goal thy 
  "!!evs. evs : yahalom                                            \
-\  ==> Crypt (shrK B) {|Agent A, Nonce NA, nb|}                   \
-\        : parts (sees Spy evs) -->                               \
-\      B ~: lost -->                                              \
+\  ==> Crypt (shrK B) {|Agent A, Nonce NA, nb|} : parts (spies evs) --> \
+\      B ~: bad -->                                              \
 \      Says B Server {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, nb|}|}  \
 \         : set evs";
 by (parts_induct_tac 1);
@@ -598,7 +590,7 @@ goal thy
  "!!evs. evs : yahalom                                                      \
 \  ==> Says Server A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, nb|}, X|} \
 \         : set evs -->                                                     \
-\      B ~: lost -->                                                        \
+\      B ~: bad -->                                                        \
 \      Says B Server {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, nb|}|}  \
 \                 : set evs";
 by (etac yahalom.induct 1);
@@ -606,7 +598,7 @@ by (ALLGOALS Asm_simp_tac);
 (*YM4*)
 by (Blast_tac 2);
 (*YM3*)
-by (best_tac (!claset addSDs [B_Said_YM2, Says_imp_sees_Spy RS parts.Inj]
+by (best_tac (!claset addSDs [B_Said_YM2, Says_imp_spies RS parts.Inj]
 		      addSEs [MPair_parts]) 1);
 val lemma = result() RSN (2, rev_mp) RS mp |> standard;
 
@@ -614,11 +606,11 @@ val lemma = result() RSN (2, rev_mp) RS mp |> standard;
 goal thy
  "!!evs. [| Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, nb|}, X|} \
 \             : set evs;                                                    \
-\           A ~: lost;  B ~: lost;  evs : yahalom |]                        \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                        \
 \   ==> Says B Server {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, nb|}|} \
 \         : set evs";
 by (blast_tac (!claset addSDs [A_trusts_YM3, lemma]
-		       addEs sees_Spy_partsEs) 1);
+		       addEs spies_partsEs) 1);
 qed "YM3_auth_B_to_A";
 
 
@@ -629,12 +621,11 @@ qed "YM3_auth_B_to_A";
   NB matters for freshness.*)  
 goal thy 
  "!!evs. evs : yahalom                                             \
-\        ==> Key K ~: analz (sees Spy evs) -->                     \
-\            Crypt K (Nonce NB) : parts (sees Spy evs) -->         \
-\            Crypt (shrK B) {|Agent A, Key K|}                     \
-\              : parts (sees Spy evs) -->                          \
-\            B ~: lost -->                                         \
-\             (EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs)";
+\        ==> Key K ~: analz (spies evs) -->                     \
+\            Crypt K (Nonce NB) : parts (spies evs) -->         \
+\            Crypt (shrK B) {|Agent A, Key K|} : parts (spies evs) --> \
+\            B ~: bad -->                                         \
+\            (EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs)";
 by (parts_induct_tac 1);
 (*Fake*)
 by (Fake_parts_insert_tac 1);
@@ -643,10 +634,10 @@ by (fast_tac (!claset addSDs [Crypt_imp_invKey_keysFor] addss (!simpset)) 1);
 (*YM4: was Crypt K (Nonce NB) the very last message?  If not, use ind. hyp.*)
 by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
 (*yes: apply unicity of session keys*)
-by (not_lost_tac "Aa" 1);
+by (not_bad_tac "Aa" 1);
 by (blast_tac (!claset addSEs [MPair_parts]
                        addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
-		       addDs  [Says_imp_sees_Spy RS parts.Inj,
+		       addDs  [Says_imp_spies RS parts.Inj,
 			       unique_session_keys]) 1);
 val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
 
@@ -660,14 +651,14 @@ goal thy
 \           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \                       Crypt K (Nonce NB)|} : set evs;                     \
 \           (ALL NA k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set evs);    \
-\           A ~: lost;  B ~: lost;  evs : yahalom |]       \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (dtac B_trusts_YM4 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, spec]));
-by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1);
+by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);
 by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
 by (blast_tac (!claset addSEs [MPair_parts]
-	       	       addDs [Says_imp_sees_Spy RS parts.Inj]) 1);
+	       	       addDs [Says_imp_spies RS parts.Inj]) 1);
 qed_spec_mp "YM4_imp_A_Said_YM3";

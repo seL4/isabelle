@@ -83,7 +83,7 @@ inductive tls
 
     Fake (*The spy, an active attacker, MAY say anything he CAN say.*)
          "[| evs: tls;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X # evs : tls"
 
     SpyKeys (*The spy may apply PRF, clientK & serverK to available nonces*)

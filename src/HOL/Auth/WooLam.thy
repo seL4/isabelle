@@ -26,7 +26,7 @@ inductive woolam
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: woolam;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : woolam"
 
          (*Alice initiates a protocol run*)
@@ -49,7 +49,7 @@ inductive woolam
          (*Bob forwards Alice's response to the Server.  NOTE: usually
            the messages are shown in chronological order, for clarity.
            But here, exchanging the two events would cause the lemma
-           WL4_analz_sees_Spy to pick up the wrong assumption!*)
+           WL4_analz_spies to pick up the wrong assumption!*)
     WL4  "[| evs4: woolam;  B ~= Server;  
              Says A'  B X         : set evs4;
              Says A'' B (Agent A) : set evs4 |]

@@ -24,7 +24,7 @@ inductive "otway"
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: otway;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)

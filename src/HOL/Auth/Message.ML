@@ -875,7 +875,7 @@ val pushes = pushKeys@pushCrypts;
 (*** Tactics useful for many protocol proofs ***)
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
-  concerns  Crypt K X ~: Key``shrK``lost  and cannot be proved by rewriting
+  concerns  Crypt K X ~: Key``shrK``bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i = 
     fast_tac (!claset addss (!simpset)) i THEN

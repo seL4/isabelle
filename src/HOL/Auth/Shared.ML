@@ -29,47 +29,48 @@ qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
 
-(*** Function "sees" ***)
-
-(*Agents see their own shared keys!*)
-goal thy "A ~= Spy --> Key (shrK A) : sees A evs";
-by (induct_tac "evs" 1);
-by (induct_tac "A" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
-by (Blast_tac 1);
-qed_spec_mp "sees_own_shrK";
+(*** Function "spies" ***)
 
 (*Spy sees shared keys of agents!*)
-goal thy "!!A. A: lost ==> Key (shrK A) : sees Spy evs";
+goal thy "!!A. A: bad ==> Key (shrK A) : spies evs";
 by (induct_tac "evs" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
-by (Blast_tac 1);
-qed "Spy_sees_lost";
+by (ALLGOALS (asm_simp_tac
+	      (!simpset addsimps [imageI, spies_Cons]
+	                setloop split_tac [expand_event_case, expand_if])));
+qed "Spy_spies_bad";
 
-AddSIs [sees_own_shrK, Spy_sees_lost];
+AddSIs [Spy_spies_bad];
 
-(*For not_lost_tac*)
-goal thy "!!A. [| Crypt (shrK A) X : analz (sees Spy evs);  A: lost |] \
-\              ==> X : analz (sees Spy evs)";
+(*For not_bad_tac*)
+goal thy "!!A. [| Crypt (shrK A) X : analz (spies evs);  A: bad |] \
+\              ==> X : analz (spies evs)";
 by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
-qed "Crypt_Spy_analz_lost";
+qed "Crypt_Spy_analz_bad";
 
 (*Prove that the agent is uncompromised by the confidentiality of 
   a component of a message she's said.*)
-fun not_lost_tac s =
-    case_tac ("(" ^ s ^ ") : lost") THEN'
+fun not_bad_tac s =
+    case_tac ("(" ^ s ^ ") : bad") THEN'
     SELECT_GOAL 
-      (REPEAT_DETERM (dtac (Says_imp_sees_Spy RS analz.Inj) 1) THEN
+      (REPEAT_DETERM (dtac (Says_imp_spies RS analz.Inj) 1) THEN
        REPEAT_DETERM (etac MPair_analz 1) THEN
        THEN_BEST_FIRST 
-         (dres_inst_tac [("A", s)] Crypt_Spy_analz_lost 1 THEN assume_tac 1)
+         (dres_inst_tac [("A", s)] Crypt_Spy_analz_bad 1 THEN assume_tac 1)
          (has_fewer_prems 1, size_of_thm)
          (Step_tac 1));
 
 
 (** Fresh keys never clash with long-term shared keys **)
 
+(*Agents see their own shared keys!*)
+goal thy "Key (shrK A) : initState A";
+by (induct_tac "A" 1);
+by (Auto_tac());
+qed "shrK_in_initState";
+AddIffs [shrK_in_initState];
+
 goal thy "Key (shrK A) : used evs";
+br initState_into_used 1;
 by (Blast_tac 1);
 qed "shrK_in_used";
 AddIffs [shrK_in_used];
@@ -97,7 +98,7 @@ qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
 goal thy "Nonce N ~: used []";
-by (simp_tac (!simpset addsimps [used_def]) 1);
+by (simp_tac (!simpset addsimps [used_Nil]) 1);
 qed "Nonce_notin_used_empty";
 Addsimps [Nonce_notin_used_empty];
 
@@ -105,16 +106,13 @@ Addsimps [Nonce_notin_used_empty];
 (*** Supply fresh nonces for possibility theorems. ***)
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
-goalw thy [used_def] "EX N. ALL n. N<=n --> Nonce n ~: used evs";
+goal thy "EX N. ALL n. N<=n --> Nonce n ~: used evs";
 by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
+by (ALLGOALS (asm_simp_tac
+	      (!simpset addsimps [used_Cons]
+			setloop split_tac [expand_event_case, expand_if])));
 by (Step_tac 1);
-by (Full_simp_tac 1);
-(*Inductive step*)
-by (induct_tac "a" 1);
-by (ALLGOALS (full_simp_tac 
-	      (!simpset addsimps [UN_parts_sees_Says,
-				  UN_parts_sees_Notes])));
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
 val lemma = result();

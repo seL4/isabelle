@@ -22,7 +22,7 @@ inductive "yahalom"
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: yahalom;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : yahalom"
 
          (*Alice initiates a protocol run*)

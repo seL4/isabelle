@@ -57,7 +57,7 @@ inductive "recur"
          (*The spy MAY say anything he CAN say.  Common to
            all similar protocols.*)
     Fake "[| evs: recur;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : recur"
 
          (*Alice initiates a protocol run.

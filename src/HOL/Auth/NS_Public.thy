@@ -20,7 +20,7 @@ inductive ns_public
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: ns_public;  B ~= Spy;  
-             X: synth (analz (sees Spy evs)) |]
+             X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)

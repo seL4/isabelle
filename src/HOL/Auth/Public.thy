@@ -26,7 +26,7 @@ primrec initState agent
   initState_Friend  "initState (Friend i) =    
  		         insert (Key (priK (Friend i))) (Key `` range pubK)"
   initState_Spy     "initState Spy        =    
- 		         (Key``invKey``pubK``lost) Un (Key `` range pubK)"
+ 		         (Key``invKey``pubK``bad) Un (Key `` range pubK)"
 
 
 rules
