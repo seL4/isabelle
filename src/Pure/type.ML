@@ -29,6 +29,7 @@ sig
   val defaultS: type_sig -> sort
   val logical_types: type_sig -> string list
   val univ_witness: type_sig -> (typ * sort) option
+  val is_type_abbr: type_sig -> string -> bool
   val subsort: type_sig -> sort * sort -> bool
   val eq_sort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
@@ -178,6 +179,7 @@ fun classes (TySg {classes = cs, ...}) = cs;
 fun defaultS (TySg {default, ...}) = default;
 fun logical_types (TySg {log_types, ...}) = log_types;
 fun univ_witness (TySg {univ_witness, ...}) = univ_witness;
+fun is_type_abbr (TySg {abbrs, ...}) name = is_some (Symtab.lookup (abbrs, name));
 
 
 (* sorts *)

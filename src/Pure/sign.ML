@@ -47,6 +47,7 @@ sig
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
   val univ_witness: sg -> (typ * sort) option
+  val is_type_abbr: sg -> string -> bool
   val classK: string
   val typeK: string
   val constK: string
@@ -267,6 +268,7 @@ val norm_sort = Type.norm_sort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val univ_witness = Type.univ_witness o tsig_of;
+val is_type_abbr = Type.is_type_abbr o tsig_of;
 
 
 
