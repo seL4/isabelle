@@ -17,7 +17,8 @@ and induction, for example
 
 lemma "sum n + sum n = n*(Suc n)";
 apply(induct_tac n);
-by(auto);
+apply(auto);
+done
 
 (*<*)
 end

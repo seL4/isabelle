@@ -33,7 +33,8 @@ of your function once more. In our case the required lemma is the obvious one:%
 It was not proved automatically because of the special nature of \isa{{\isacharminus}}
 on \isa{nat}. This requires more arithmetic than is tried by default:%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}arith{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
@@ -51,7 +52,8 @@ the stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
 \isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{0}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 More exciting theorems require induction, which is discussed below.

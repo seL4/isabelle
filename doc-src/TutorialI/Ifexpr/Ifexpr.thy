@@ -92,7 +92,8 @@ The proof is canonical:
 *}
 
 apply(induct_tac b);
-by(auto);
+apply(auto);
+done
 
 text{*\noindent
 In fact, all proofs in this case study look exactly like this. Hence we do

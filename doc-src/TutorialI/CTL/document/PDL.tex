@@ -173,7 +173,24 @@ The main theorem is proved in the familiar manner: induction followed by
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}EF{\isacharunderscore}lemma{\isacharparenright}\isanewline
-\isacommand{done}\end{isabellebody}%
+\isacommand{done}%
+\begin{isamarkuptext}%
+\begin{exercise}
+\isa{AX} has a dual operator \isa{EN}\footnote{We cannot use the customary \isa{EX}
+as that is the ASCII equivalent of \isa{{\isasymexists}}}
+(``there exists a next state such that'') with the intended semantics
+\begin{isabelle}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ EN\ f\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}%
+\end{isabelle}
+Fortunately, \isa{EN\ f} can already be expressed as a PDL formula. How?
+
+Show that the semantics for \isa{EF} satisfies the following recursion equation:
+\begin{isabelle}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ EF\ f\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymor}\ s\ {\isasymTurnstile}\ EN\ {\isacharparenleft}EF\ f{\isacharparenright}{\isacharparenright}%
+\end{isabelle}
+\end{exercise}%
+\end{isamarkuptext}%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

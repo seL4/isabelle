@@ -12,7 +12,7 @@ where function symbols can be applied to a list of arguments:%
 \begin{isamarkuptext}%
 \noindent
 Note that we need to quote \isa{term} on the left to avoid confusion with
-the command \isacommand{term}.
+the Isabelle command \isacommand{term}.
 Parameter \isa{{\isacharprime}a} is the type of variables and \isa{{\isacharprime}b} the type of
 function symbols.
 A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ {\isacharbrackleft}Var\ x{\isacharcomma}\ App\ g\ {\isacharbrackleft}Var\ y{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
@@ -50,7 +50,8 @@ substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\
 \ \ {\isachardoublequote}substs\ s\ {\isacharparenleft}t\ {\isacharhash}\ ts{\isacharparenright}\ {\isacharequal}\ subst\ s\ t\ {\isacharhash}\ substs\ s\ ts{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-(Please ignore the label \isa{subst{\isacharunderscore}App} for the moment.)
+Individual equations in a primrec definition may be named as shown for \isa{subst{\isacharunderscore}App}.
+The significance of this device will become apparent below.
 
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
@@ -59,7 +60,8 @@ strengthened and proved as follows:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
 \ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 Note that \isa{Var} is the identity substitution because by definition it
@@ -97,7 +99,8 @@ insists on the above fixed format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 What is more, we can now disable the old defining equation as a

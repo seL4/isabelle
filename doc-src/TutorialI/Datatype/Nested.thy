@@ -12,18 +12,18 @@ where function symbols can be applied to a list of arguments:
 datatype ('a,'b)"term" = Var 'a | App 'b "('a,'b)term list";
 
 text{*\noindent
-Note that we need to quote @{text"term"} on the left to avoid confusion with
-the command \isacommand{term}.
+Note that we need to quote @{text term} on the left to avoid confusion with
+the Isabelle command \isacommand{term}.
 Parameter @{typ"'a"} is the type of variables and @{typ"'b"} the type of
 function symbols.
 A mathematical term like $f(x,g(y))$ becomes @{term"App f [Var x, App g
-  [Var y]]"}, where @{term"f"}, @{term"g"}, @{term"x"}, @{term"y"} are
+  [Var y]]"}, where @{term f}, @{term g}, @{term x}, @{term y} are
 suitable values, e.g.\ numbers or strings.
 
-What complicates the definition of @{text"term"} is the nested occurrence of
-@{text"term"} inside @{text"list"} on the right-hand side. In principle,
+What complicates the definition of @{text term} is the nested occurrence of
+@{text term} inside @{text list} on the right-hand side. In principle,
 nested recursion can be eliminated in favour of mutual recursion by unfolding
-the offending datatypes, here @{text"list"}. The result for @{text"term"}
+the offending datatypes, here @{text list}. The result for @{text term}
 would be something like
 \medskip
 
@@ -33,7 +33,7 @@ would be something like
 \noindent
 Although we do not recommend this unfolding to the user, it shows how to
 simulate nested recursion by mutual recursion.
-Now we return to the initial definition of @{text"term"} using
+Now we return to the initial definition of @{text term} using
 nested recursion.
 
 Let us define a substitution function on terms. Because terms involve term
@@ -41,8 +41,8 @@ lists, we need to define two substitution functions simultaneously:
 *}
 
 consts
-subst :: "('a\\<Rightarrow>('a,'b)term) \\<Rightarrow> ('a,'b)term      \\<Rightarrow> ('a,'b)term"
-substs:: "('a\\<Rightarrow>('a,'b)term) \\<Rightarrow> ('a,'b)term list \\<Rightarrow> ('a,'b)term list";
+subst :: "('a\<Rightarrow>('a,'b)term) \<Rightarrow> ('a,'b)term      \<Rightarrow> ('a,'b)term"
+substs:: "('a\<Rightarrow>('a,'b)term) \<Rightarrow> ('a,'b)term list \<Rightarrow> ('a,'b)term list";
 
 primrec
   "subst s (Var x) = s x"
@@ -53,7 +53,8 @@ primrec
   "substs s (t # ts) = subst s t # substs s ts";
 
 text{*\noindent
-(Please ignore the label @{thm[source]subst_App} for the moment.)
+Individual equations in a primrec definition may be named as shown for @{thm[source]subst_App}.
+The significance of this device will become apparent below.
 
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
@@ -61,12 +62,13 @@ the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:
 *}
 
-lemma "subst  Var t  = (t ::('a,'b)term)  \\<and>
+lemma "subst  Var t  = (t ::('a,'b)term)  \<and>
         substs Var ts = (ts::('a,'b)term list)";
-by(induct_tac t and ts, simp_all);
+apply(induct_tac t and ts, simp_all);
+done
 
 text{*\noindent
-Note that @{term"Var"} is the identity substitution because by definition it
+Note that @{term Var} is the identity substitution because by definition it
 leaves variables unchanged: @{prop"subst Var (Var x) = Var x"}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
@@ -82,14 +84,14 @@ strengthen it, and prove it. (Note: \isaindexbold{o} is function composition;
 its definition is found in theorem @{thm[source]o_def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}
-  Define a function @{text"trev"} of type @{typ"('a,'b)term => ('a,'b)term"}
+  Define a function @{term trev} of type @{typ"('a,'b)term => ('a,'b)term"}
 that recursively reverses the order of arguments of all function symbols in a
   term. Prove that @{prop"trev(trev t) = t"}.
 \end{exercise}
 
 The experienced functional programmer may feel that our above definition of
-@{term"subst"} is unnecessarily complicated in that @{term"substs"} is
-completely unnecessary. The @{term"App"}-case can be defined directly as
+@{term subst} is unnecessarily complicated in that @{term substs} is
+completely unnecessary. The @{term App}-case can be defined directly as
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
 where @{term"map"} is the standard list function such that
 @{text"map f [x1,...,xn] = [f x1,...,f xn]"}. This is true, but Isabelle
@@ -98,7 +100,8 @@ that the suggested equation holds:
 *}
 
 lemma [simp]: "subst s (App f ts) = App f (map (subst s) ts)"
-by(induct_tac ts, simp_all)
+apply(induct_tac ts, simp_all)
+done
 
 text{*\noindent
 What is more, we can now disable the old defining equation as a
@@ -108,18 +111,18 @@ simplification rule:
 declare subst_App [simp del]
 
 text{*\noindent
-The advantage is that now we have replaced @{term"substs"} by
-@{term"map"}, we can profit from the large number of pre-proved lemmas
-about @{term"map"}.  Unfortunately inductive proofs about type
-@{text"term"} are still awkward because they expect a conjunction. One
+The advantage is that now we have replaced @{term substs} by
+@{term map}, we can profit from the large number of pre-proved lemmas
+about @{term map}.  Unfortunately inductive proofs about type
+@{text term} are still awkward because they expect a conjunction. One
 could derive a new induction principle as well (see
 \S\ref{sec:derive-ind}), but turns out to be simpler to define
 functions by \isacommand{recdef} instead of \isacommand{primrec}.
 The details are explained in \S\ref{sec:advanced-recdef} below.
 
 Of course, you may also combine mutual and nested recursion. For example,
-constructor @{text"Sum"} in \S\ref{sec:datatype-mut-rec} could take a list of
-expressions as its argument: @{text"Sum"}~@{typ[quotes]"'a aexp list"}.
+constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
+expressions as its argument: @{text Sum}~@{typ[quotes]"'a aexp list"}.
 *}
 (*<*)
 end

@@ -291,12 +291,13 @@ done;
 text{*
 Function @{term path} has fulfilled its purpose now and can be forgotten
 about. It was merely defined to provide the witness in the proof of the
-@{thm[source]infinity_lemma}. Afficionados of minimal proofs might like to know
+@{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
 @{term[display]"nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> P u)"}
+is extensionally equal to @{term"path s P"},
 where @{term nat_rec} is the predefined primitive recursor on @{typ nat}, whose defining
-equations we omit, is extensionally equal to @{term"path s P"}.
+equations we omit.
 *};
 (*<*)
 lemma infinity_lemma:
@@ -372,6 +373,18 @@ apply(auto simp add: EF_lemma equalityI[OF AF_lemma1 AF_lemma2]);
 done
 
 text{*
+The above language is not quite CTL. The latter also includes an
+until-operator, usually written as an infix @{text U}. The formula
+@{term"f U g"} means ``@{term f} until @{term g}''.
+It is not definable in terms of the other operators!
+\begin{exercise}
+Extend the datatype of formulae by the until operator with semantics
+@{text[display]"s \<Turnstile> f U g = (............)"}
+and model checking algorithm
+@{text[display]"mc(f U g) = (............)"}
+Prove that the equivalence between semantics and model checking still holds.
+\end{exercise}
+
 Let us close this section with a few words about the executability of @{term mc}.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.

@@ -23,7 +23,7 @@ each recursive call. The resulting termination condition
 is provded automatically because it is already present as a lemma in the
 arithmetic library. Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
-the recursive call inside the \isa{if} branch, which is why programming
+the recursive call inside the \isa{else} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
 something else which leads to the same problem: it splits \isa{if}s if the
 condition simplifies to neither \isa{True} nor \isa{False}. For
@@ -78,9 +78,11 @@ A final alternative is to replace the offending simplification rules by
 derived conditional ones. For \isa{gcd} it means we have to prove%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ \isadigit{0}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{done}\isanewline
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ gcd{\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 after which we can disable the original simplification rule:%

@@ -261,14 +261,17 @@ No~subgoals!
 
 We still need to confirm that the proof is now finished:%
 \end{isamarkuptxt}%
-\isacommand{{\isachardot}}%
+\isacommand{done}%
 \begin{isamarkuptext}%
-\noindent\indexbold{$Isar@\texttt{.}}%
-As a result of that final dot, Isabelle associates the lemma
-just proved with its name. Instead of \isacommand{apply}
-followed by a dot, you can simply write \isacommand{by}\indexbold{by},
-which we do most of the time. Notice that in lemma \isa{app{\isacharunderscore}Nil\isadigit{2}}
-(as printed out after the final dot) the free variable \isa{xs} has been
+\noindent\indexbold{done}%
+As a result of that final \isacommand{done}, Isabelle associates the lemma just proved
+with its name. In this tutorial, we sometimes omit to show that final \isacommand{done}
+if it is obvious from the context that the proof is finished.
+
+% Instead of \isacommand{apply} followed by a dot, you can simply write
+% \isacommand{by}\indexbold{by}, which we do most of the time.
+Notice that in lemma \isa{app{\isacharunderscore}Nil\isadigit{2}}
+(as printed out after the final \isacommand{done}) the free variable \isa{xs} has been
 replaced by the unknown \isa{{\isacharquery}xs}, just as explained in
 \S\ref{sec:variables}.
 
@@ -302,7 +305,8 @@ Abandoning the previous proof, the canonical proof procedure%
 \end{isamarkuptext}%
 \isacommand{lemma}\ app{\isacharunderscore}assoc\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 succeeds without further ado.
@@ -310,14 +314,16 @@ Now we can go back and prove the first lemma%
 \end{isamarkuptext}%
 \isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 and then solve our main theorem:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 The final \isacommand{end} tells Isabelle to close the current theory because

@@ -46,7 +46,8 @@ trie \isa{Trie\ None\ {\isacharbrackleft}{\isacharbrackright}} always returns \i
 distinguishes the two cases whether the search string is empty or not:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}lookup\ {\isacharparenleft}Trie\ None\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ as\ {\isacharequal}\ None{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}case{\isacharunderscore}tac\ as{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ as{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 Things begin to get interesting with the definition of an update function
 that adds a new (string,value) pair to a trie, overwriting the old value
@@ -107,7 +108,8 @@ Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}case{\isacharunderscore}tac{\isacharbrackleft}{\isacharbang}{\isacharbrackright}\ bs{\isacharcomma}\ auto{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac{\isacharbrackleft}{\isacharbang}{\isacharbrackright}\ bs{\isacharcomma}\ auto{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 All methods ending in \isa{tac} take an optional first argument that

@@ -5,80 +5,90 @@
 
 \begin{figure}[htbp]
 \begin{center}
-\begin{tabular}{|ccccccccccc|}
+\begin{tabular}{|l|l|l|}
 \hline
-\indexboldpos{\isasymand}{$HOL0and} &
-\indexboldpos{\isasymor}{$HOL0or} &
-\indexboldpos{\isasymimp}{$HOL0imp} &
-\indexboldpos{\isasymnot}{$HOL0not} &
-\indexboldpos{\isasymnoteq}{$HOL0noteq} &
-\indexboldpos{\isasymforall}{$HOL0All} &
-\isasymforall &
-\indexboldpos{\isasymexists}{$HOL0Ex} &
-\isasymexists &
-\isasymuniqex\index{$HOL0ExU@\isasymuniqex|bold} &
-\isasymuniqex \\
-\texttt{\&}\indexbold{$HOL0and@{\texttt{\&}}} &
-\texttt{|}\index{$HOL0or@\ttor|bold} &
-\ttindexboldpos{-->}{$HOL0imp} &
-\verb$~$\index{$HOL0not@\verb$~$|bold} &
-\verb$~=$\index{$HOL0noteq@\verb$~=$|bold} &
-\ttindexbold{ALL} &
-\texttt{!}\index{$HOL0All@\ttall|bold} &
-\ttindexbold{EX} &
-\texttt{?}\index{$HOL0Ex@\texttt{?}|bold} &
-\ttEXU\index{EXX@\ttEXU|bold} &
-\ttuniquex\index{$HOL0ExU@\ttuniquex|bold}\\
-\hline\hline
 \indexboldpos{\isasymlbrakk}{$Isabrl} &
-\indexboldpos{\isasymrbrakk}{$Isabrr} &
-\indexboldpos{\isasymImp}{$IsaImp} &
-\indexboldpos{\isasymAnd}{$IsaAnd} &
-\indexboldpos{\isasymequiv}{$IsaEq} &
-\indexboldpos{\isasymlambda}{$Isalam} &
-\indexboldpos{\isasymFun}{$IsaFun}&
-&
-&
-&
-\\
 \texttt{[|}\index{$Isabrl@\ttlbr|bold} &
+\verb$\<lbrakk>$ \\
+\indexboldpos{\isasymrbrakk}{$Isabrr} &
 \texttt{|]}\index{$Isabrr@\ttrbr|bold} &
+\verb$\<rbrakk>$ \\
+\indexboldpos{\isasymImp}{$IsaImp} &
 \ttindexboldpos{==>}{$IsaImp} &
+\verb$\<Longrightarrow>$ \\
+\indexboldpos{\isasymAnd}{$IsaAnd} &
 \texttt{!!}\index{$IsaAnd@\ttAnd|bold} &
+\verb$\<And>$ \\
+\indexboldpos{\isasymequiv}{$IsaEq} &
 \ttindexboldpos{==}{$IsaEq} &
+\verb$\<equiv>$ \\
+\indexboldpos{\isasymlambda}{$Isalam} &
 \texttt{\%}\indexbold{$Isalam@\texttt{\%}} &
-\ttindexboldpos{=>}{$IsaFun}&
-&
-&
-&
- \\
-\hline\hline
+\verb$\<lambda>$ \\
+\indexboldpos{\isasymFun}{$IsaFun} &
+\ttindexboldpos{=>}{$IsaFun} &
+\verb$\<Rightarrow>$ \\
+\indexboldpos{\isasymand}{$HOL0and} &
+\texttt{\&}\indexbold{$HOL0and@{\texttt{\&}}} &
+\verb$\<and>$ \\
+\indexboldpos{\isasymor}{$HOL0or} &
+\texttt{|}\index{$HOL0or@\ttor|bold} &
+\verb$\<or>$ \\
+\indexboldpos{\isasymimp}{$HOL0imp} &
+\ttindexboldpos{-->}{$HOL0imp} &
+\verb$\<longrightarrow>$ \\
+\indexboldpos{\isasymnot}{$HOL0not} &
+\verb$~$\index{$HOL0not@\verb$~$|bold} &
+\verb$\<not>$ \\
+\indexboldpos{\isasymnoteq}{$HOL0noteq} &
+\verb$~=$\index{$HOL0noteq@\verb$~=$|bold} &
+\verb$\<noteq>$ \\
+\indexboldpos{\isasymforall}{$HOL0All} &
+\ttindexbold{ALL}, \texttt{!}\index{$HOL0All@\ttall|bold} &
+\verb$\<forall>$ \\
+\indexboldpos{\isasymexists}{$HOL0Ex} &
+\ttindexbold{EX}, \texttt{?}\index{$HOL0Ex@\texttt{?}|bold} &
+\verb$\<exists>$ \\
+\isasymuniqex\index{$HOL0ExU@\isasymuniqex|bold} &
+\ttEXU\index{EXX@\ttEXU|bold}, \ttuniquex\index{$HOL0ExU@\ttuniquex|bold} &
+\verb$\<exists>!$\\
+\indexboldpos{\isasymepsilon}{$HOL0ExSome} &
+\ttindexbold{SOME} &
+\verb$\<?>$\\
 \indexboldpos{\isasymcirc}{$HOL1} &
-\indexboldpos{\isasymle}{$HOL2arithrel}&
-\indexboldpos{\isasymtimes}{$IsaFun}&
-&
-&
-&
-&
-&
-&
-&
- \\
 \ttindexbold{o} &
+\verb$\<?>$\\
+\indexboldpos{\isasymle}{$HOL2arithrel}&
 \ttindexboldpos{<=}{$HOL2arithrel}&
+\verb$\<le>$\\
+\indexboldpos{\isasymtimes}{$IsaFun}&
 \ttindexboldpos{*}{$HOL2arithfun} &
-&
-&
-&
-&
-&
-&
-&
-\\
+\verb$\<times>$\\
+\indexboldpos{\isasymin}{$HOL3Set}&
+\ttindexboldpos{:}{$HOL3Set} &
+\verb$\<in>$\\
+? & %\indexboldpos{\isasymnotin}{$HOL3Set} fails for some strange reason
+\verb$~:$\index{$HOL3Set@\verb$~:$|bold} &
+\verb$\<notin>$\\
+\indexboldpos{\isasymsubseteq}{$HOL3Set}&
+\verb$<=$ &
+\verb$\<subseteq>$\\
+\indexboldpos{\isasymunion}{$HOL3Set}&
+\ttindexbold{Un} &
+\verb$\<union>$\\
+\indexboldpos{\isasyminter}{$HOL3Set}&
+\ttindexbold{Int} &
+\verb$\<inter>$\\
+\indexboldpos{\isasymUnion}{$HOL3Set}&
+\ttindexbold{UN}, \ttindexbold{Union} &
+\verb$\<Union>$\\
+\indexboldpos{\isasymInter}{$HOL3Set}&
+\ttindexbold{INT}, \ttindexbold{Inter} &
+\verb$\<Inter>$\\
 \hline
 \end{tabular}
 \end{center}
-\caption{Mathematical symbols and their ASCII-equivalents}
+\caption{Mathematical symbols, their ASCII-equivalents and ProofGeneral codes}
 \label{fig:ascii}
 \end{figure}\indexbold{ASCII symbols}
 

@@ -72,7 +72,7 @@ situation where you need to supply \isacommand{recdef} with new congruence
 rules, you can either append a hint locally
 to the specific occurrence of \isacommand{recdef}%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 or declare them globally
@@ -80,10 +80,11 @@ by giving them the \isa{recdef{\isacharunderscore}cong} attribute as in%
 \end{isamarkuptext}%
 \isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}%
 \begin{isamarkuptext}%
-Note that the global \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
+Note that the \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
 intentionally kept apart because they control different activities, namely
-simplification and making recursive definitions. The local \isa{cong} in
-the hints section of \isacommand{recdef} is merely short for \isa{recdef{\isacharunderscore}cong}.
+simplification and making recursive definitions.
+% The local \isa{cong} in
+% the hints section of \isacommand{recdef} is merely short for \isa{recdef{\isacharunderscore}cong}.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.%

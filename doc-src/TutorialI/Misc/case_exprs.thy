@@ -65,8 +65,8 @@ results in the proof state
 which is solved automatically:
 *}
 
-by(auto)
-
+apply(auto)
+(*<*)done(*>*)
 text{*
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.

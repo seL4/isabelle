@@ -78,7 +78,7 @@ consts dummy :: "nat => nat"
 recdef dummy "{}"
 "dummy n = n"
 (*>*)
-(hints cong: map_cong)
+(hints recdef_cong: map_cong)
 
 text{*\noindent
 or declare them globally
@@ -88,11 +88,11 @@ by giving them the @{text recdef_cong} attribute as in
 declare map_cong[recdef_cong];
 
 text{*
-Note that the global @{text cong} and @{text recdef_cong} attributes are
+Note that the @{text cong} and @{text recdef_cong} attributes are
 intentionally kept apart because they control different activities, namely
-simplification and making recursive definitions. The local @{text cong} in
-the hints section of \isacommand{recdef} is merely short for @{text
-recdef_cong}.
+simplification and making recursive definitions.
+% The local @{text cong} in
+% the hints section of \isacommand{recdef} is merely short for @{text recdef_cong}.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.

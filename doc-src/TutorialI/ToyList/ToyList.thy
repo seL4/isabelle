@@ -281,14 +281,17 @@ No~subgoals!
 We still need to confirm that the proof is now finished:
 *}
 
-.
+done
 
-text{*\noindent\indexbold{$Isar@\texttt{.}}%
-As a result of that final dot, Isabelle associates the lemma
-just proved with its name. Instead of \isacommand{apply}
-followed by a dot, you can simply write \isacommand{by}\indexbold{by},
-which we do most of the time. Notice that in lemma @{thm[source]app_Nil2}
-(as printed out after the final dot) the free variable @{term"xs"} has been
+text{*\noindent\indexbold{done}%
+As a result of that final \isacommand{done}, Isabelle associates the lemma just proved
+with its name. In this tutorial, we sometimes omit to show that final \isacommand{done}
+if it is obvious from the context that the proof is finished.
+
+% Instead of \isacommand{apply} followed by a dot, you can simply write
+% \isacommand{by}\indexbold{by}, which we do most of the time.
+Notice that in lemma @{thm[source]app_Nil2}
+(as printed out after the final \isacommand{done}) the free variable @{term"xs"} has been
 replaced by the unknown @{text"?xs"}, just as explained in
 \S\ref{sec:variables}.
 
@@ -326,7 +329,8 @@ Abandoning the previous proof, the canonical proof procedure
 
 lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)";
 apply(induct_tac xs);
-by(auto);
+apply(auto);
+done
 
 text{*
 \noindent
@@ -336,7 +340,8 @@ Now we can go back and prove the first lemma
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
 apply(induct_tac xs);
-by(auto);
+apply(auto);
+done
 
 text{*\noindent
 and then solve our main theorem:
@@ -344,7 +349,8 @@ and then solve our main theorem:
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 apply(induct_tac xs);
-by(auto);
+apply(auto);
+done
 
 text{*\noindent
 The final \isacommand{end} tells Isabelle to close the current theory because

@@ -79,8 +79,9 @@ By default, assumptions are part of the simplification process: they are used
 as simplification rules and are simplified themselves. For example:
 *}
 
-lemma "\\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \\<rbrakk> \\<Longrightarrow> ys = zs";
-by simp;
+lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs";
+apply simp;
+done
 
 text{*\noindent
 The second assumption simplifies to @{term"xs = []"}, which in turn
@@ -91,7 +92,7 @@ In some cases this may be too much of a good thing and may lead to
 nontermination:
 *}
 
-lemma "\\<forall>x. f x = g (f (g x)) \\<Longrightarrow> f [] = f [] @ []";
+lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []";
 
 txt{*\noindent
 cannot be solved by an unmodified application of @{text"simp"} because the
@@ -101,7 +102,8 @@ nontermination but not this one. The problem can be circumvented by
 explicitly telling the simplifier to ignore the assumptions:
 *}
 
-by(simp (no_asm));
+apply(simp (no_asm));
+done
 
 text{*\noindent
 There are three options that influence the treatment of assumptions:
@@ -134,14 +136,14 @@ enough lemmas that characterize the concept sufficiently for us to forget the
 original definition. For example, given
 *}
 
-constdefs exor :: "bool \\<Rightarrow> bool \\<Rightarrow> bool"
-         "exor A B \\<equiv> (A \\<and> \\<not>B) \\<or> (\\<not>A \\<and> B)";
+constdefs exor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+         "exor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)";
 
 text{*\noindent
 we may want to prove
 *}
 
-lemma "exor A (\\<not>A)";
+lemma "exor A (\<not>A)";
 
 txt{*\noindent
 Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
@@ -155,10 +157,10 @@ In this particular case, the resulting goal
 \begin{isabelle}
 ~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
 \end{isabelle}
-can be proved by simplification. Thus we could have proved the lemma outright
-*}(*<*)oops;lemma "exor A (\\<not>A)";(*>*)
-by(simp add: exor_def)
-
+can be proved by simplification. Thus we could have proved the lemma outright by
+*}(*<*)oops;lemma "exor A (\<not>A)";(*>*)
+apply(simp add: exor_def)
+(*<*)done(*>*)
 text{*\noindent
 Of course we can also unfold definitions in the middle of a proof.
 
@@ -183,7 +185,8 @@ requires the @{text"let"}-con\-structs to be expanded at some point. Since
 *}
 
 lemma "(let xs = [] in xs@ys@xs) = ys";
-by(simp add: Let_def);
+apply(simp add: Let_def);
+done
 
 text{*
 If, in a particular context, there is no danger of a combinatorial explosion
@@ -199,8 +202,9 @@ So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example
 *}
 
-lemma hd_Cons_tl[simp]: "xs \\<noteq> []  \\<Longrightarrow>  hd xs # tl xs = xs";
-by(case_tac xs, simp, simp);
+lemma hd_Cons_tl[simp]: "xs \<noteq> []  \<Longrightarrow>  hd xs # tl xs = xs";
+apply(case_tac xs, simp, simp);
+done
 
 text{*\noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
@@ -209,7 +213,7 @@ sequence of methods. Assuming that the simplification rule
 is present as well,
 *}
 
-lemma "xs \\<noteq> [] \\<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
+lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
 (*<*)
 by(simp);
 (*>*)
@@ -230,7 +234,7 @@ Goals containing @{text"if"}-expressions are usually proved by case
 distinction on the condition of the @{text"if"}. For example the goal
 *}
 
-lemma "\\<forall>xs. if xs = [] then rev xs = [] else rev xs \\<noteq> []";
+lemma "\<forall>xs. if xs = [] then rev xs = [] else rev xs \<noteq> []";
 
 txt{*\noindent
 can be split into
@@ -254,7 +258,7 @@ on the initial goal above.
 This splitting idea generalizes from @{text"if"} to \isaindex{case}:
 *}
 
-lemma "(case xs of [] \\<Rightarrow> zs | y#ys \\<Rightarrow> y#(ys@zs)) = xs@zs";
+lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
 txt{*\noindent
 becomes
 \begin{isabelle}\makeatother
@@ -274,10 +278,10 @@ in case of recursive datatypes. Again, if the @{text"only:"} modifier is
 dropped, the above goal is solved,
 *}
 (*<*)
-lemma "(case xs of [] \\<Rightarrow> zs | y#ys \\<Rightarrow> y#(ys@zs)) = xs@zs";
+lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
 (*>*)
-by(simp split: list.split);
-
+apply(simp split: list.split);
+(*<*)done(*>*)
 text{*\noindent%
 which \isacommand{apply}@{text"(simp)"} alone will not do.
 
@@ -350,14 +354,14 @@ assumptions and conclusions that are (possibly negated) (in)equalities
 (@{text"="}, \isasymle, @{text"<"}) and it only knows about addition. Thus
 *}
 
-lemma "\\<lbrakk> \\<not> m < n; m < n+1 \\<rbrakk> \\<Longrightarrow> m = n"
+lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
 (*<*)by(auto)(*>*)
 
 text{*\noindent
 is proved by simplification, whereas the only slightly more complex
 *}
 
-lemma "\\<not> m < n \\<and> m < n+1 \\<Longrightarrow> m = n";
+lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n";
 (*<*)by(arith)(*>*)
 
 text{*\noindent

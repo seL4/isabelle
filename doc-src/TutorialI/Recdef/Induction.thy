@@ -41,7 +41,8 @@ clauses for @{term"sep"}:
 The rest is pure simplification:
 *}
 
-by simp_all;
+apply simp_all;
+done
 
 text{*
 Try proving the above lemma by structural induction, and you find that you

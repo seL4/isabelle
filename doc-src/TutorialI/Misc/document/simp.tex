@@ -81,7 +81,8 @@ By default, assumptions are part of the simplification process: they are used
 as simplification rules and are simplified themselves. For example:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ xs\ {\isacharat}\ zs\ {\isacharequal}\ ys\ {\isacharat}\ xs{\isacharsemicolon}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ zs{\isachardoublequote}\isanewline
-\isacommand{by}\ simp%
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 The second assumption simplifies to \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}, which in turn
@@ -100,7 +101,8 @@ does not terminate. Isabelle notices certain simple forms of
 nontermination but not this one. The problem can be circumvented by
 explicitly telling the simplifier to ignore the assumptions:%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 There are three options that influence the treatment of assumptions:
@@ -152,9 +154,9 @@ In this particular case, the resulting goal
 \begin{isabelle}
 ~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
 \end{isabelle}
-can be proved by simplification. Thus we could have proved the lemma outright%
+can be proved by simplification. Thus we could have proved the lemma outright by%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ exor{\isacharunderscore}def{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ exor{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Of course we can also unfold definitions in the middle of a proof.
@@ -180,7 +182,8 @@ requires the \isa{let}-con\-structs to be expanded at some point. Since
 \isa{Let{\isacharunderscore}def}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}let\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ in\ xs{\isacharat}ys{\isacharat}xs{\isacharparenright}\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 If, in a particular context, there is no danger of a combinatorial explosion
 of nested \isa{let}s one could even simlify with \isa{Let{\isacharunderscore}def} by
@@ -194,7 +197,8 @@ So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
 \isacommand{lemma}\ hd{\isacharunderscore}Cons{\isacharunderscore}tl{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ \ {\isasymLongrightarrow}\ \ hd\ xs\ {\isacharhash}\ tl\ xs\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}\isanewline
+\isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
@@ -259,7 +263,7 @@ In contrast to \isa{if}-expressions, the simplifier does not split
 in case of recursive datatypes. Again, if the \isa{only{\isacharcolon}} modifier is
 dropped, the above goal is solved,%
 \end{isamarkuptext}%
-\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent%
 which \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}} alone will not do.

@@ -188,7 +188,7 @@ The conclusion looks exceedingly trivial: after all, \isa{t} is chosen such that
 holds. However, we first have to show that such a \isa{t} actually exists! This reasoning
 is embodied in the theorem \isa{someI\isadigit{2}{\isacharunderscore}ex}:
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isasymexists}a{\isachardot}\ {\isacharquery}P\ a{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q\ {\isacharparenleft}Eps\ {\isacharquery}P{\isacharparenright}%
+\ \ \ \ \ {\isasymlbrakk}{\isasymexists}a{\isachardot}\ {\isacharquery}P\ a{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q\ {\isacharparenleft}SOME\ x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}%
 \end{isabelle}
 When we apply this theorem as an introduction rule, \isa{{\isacharquery}P\ x} becomes
 \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ x} and \isa{{\isacharquery}Q\ x} becomes \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M} and we have to prove
@@ -220,14 +220,15 @@ The induction step is similar, but more involved, because now we face nested occ
 \begin{isamarkuptext}%
 Function \isa{path} has fulfilled its purpose now and can be forgotten
 about. It was merely defined to provide the witness in the proof of the
-\isa{infinity{\isacharunderscore}lemma}. Afficionados of minimal proofs might like to know
+\isa{infinity{\isacharunderscore}lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
 \begin{isabelle}%
 \ \ \ \ \ nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ u{\isacharparenright}%
 \end{isabelle}
+is extensionally equal to \isa{path\ s\ P},
 where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}, whose defining
-equations we omit, is extensionally equal to \isa{path\ s\ P}.%
+equations we omit.%
 \end{isamarkuptext}%
 %
 \begin{isamarkuptext}%
@@ -271,6 +272,22 @@ on the spot:%
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma\ equalityI{\isacharbrackleft}OF\ AF{\isacharunderscore}lemma\isadigit{1}\ AF{\isacharunderscore}lemma\isadigit{2}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
+The above language is not quite CTL. The latter also includes an
+until-operator, usually written as an infix \isa{U}. The formula
+\isa{f\ U\ g} means ``\isa{f} until \isa{g}''.
+It is not definable in terms of the other operators!
+\begin{exercise}
+Extend the datatype of formulae by the until operator with semantics
+\begin{isabelle}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ f\ U\ g\ {\isacharequal}\ {\isacharparenleft}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isacharparenright}%
+\end{isabelle}
+and model checking algorithm
+\begin{isabelle}%
+\ \ \ \ \ mc{\isacharparenleft}f\ U\ g{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isachardot}{\isacharparenright}%
+\end{isabelle}
+Prove that the equivalence between semantics and model checking still holds.
+\end{exercise}
+
 Let us close this section with a few words about the executability of \isa{mc}.
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only \isa{lfp} requires a little thought.

@@ -36,7 +36,8 @@ It was not proved automatically because of the special nature of @{text"-"}
 on @{typ"nat"}. This requires more arithmetic than is tried by default:
 *}
 
-by(arith);
+apply(arith);
+done
 
 text{*\noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
@@ -51,12 +52,13 @@ recdef g "measure(\<lambda>(x,y). x-y)"
 
 text{*\noindent
 This time everything works fine. Now @{thm[source]g.simps} contains precisely
-the stated recursion equation for @{term"g"} and they are simplification
+the stated recursion equation for @{term g} and they are simplification
 rules. Thus we can automatically prove
 *}
 
 theorem "g(1,0) = g(1,1)";
-by(simp);
+apply(simp);
+done
 
 text{*\noindent
 More exciting theorems require induction, which is discussed below.
@@ -66,17 +68,17 @@ turn it permanently into a simplification rule, in which case the above
 \isacommand{hint} is not necessary. But our @{thm[source]termi_lem} is not
 sufficiently general to warrant this distinction.
 
-The attentive reader may wonder why we chose to call our function @{term"g"}
-rather than @{term"f"} the second time around. The reason is that, despite
-the failed termination proof, the definition of @{term"f"} did not
+The attentive reader may wonder why we chose to call our function @{term g}
+rather than @{term f} the second time around. The reason is that, despite
+the failed termination proof, the definition of @{term f} did not
 fail, and thus we could not define it a second time. However, all theorems
-about @{term"f"}, for example @{thm[source]f.simps}, carry as a precondition
+about @{term f}, for example @{thm[source]f.simps}, carry as a precondition
 the unproved termination condition. Moreover, the theorems
 @{thm[source]f.simps} are not simplification rules. However, this mechanism
 allows a delayed proof of termination: instead of proving
 @{thm[source]termi_lem} up front, we could prove 
 it later on and then use it to remove the preconditions from the theorems
-about @{term"f"}. In most cases this is more cumbersome than proving things
+about @{term f}. In most cases this is more cumbersome than proving things
 up front.
 %FIXME, with one exception: nested recursion.
 

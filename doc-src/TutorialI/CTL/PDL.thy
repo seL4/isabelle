@@ -187,4 +187,34 @@ theorem "mc f = {s. s \<Turnstile> f}";
 apply(induct_tac f);
 apply(auto simp add:EF_lemma);
 done;
-(*<*)end(*>*)
+
+text{*
+\begin{exercise}
+@{term AX} has a dual operator @{term EN}\footnote{We cannot use the customary @{text EX}
+as that is the ASCII equivalent of @{text"\<exists>"}}
+(``there exists a next state such that'') with the intended semantics
+@{prop[display]"(s \<Turnstile> EN f) = (EX t. (s,t) : M & t \<Turnstile> f)"}
+Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
+
+Show that the semantics for @{term EF} satisfies the following recursion equation:
+@{prop[display]"(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> EN(EF f))"}
+\end{exercise}
+*}
+(*<*)
+theorem main: "mc f = {s. s \<Turnstile> f}";
+apply(induct_tac f);
+apply(auto simp add:EF_lemma);
+done;
+
+lemma aux: "s \<Turnstile> f = (s : mc f)";
+apply(simp add:main);
+done;
+
+lemma "(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> Neg(AX(Neg(EF f))))";
+apply(simp only:aux);
+apply(simp);
+apply(rule ssubst[OF lfp_Tarski[OF mono_ef]], fast);
+done
+
+end
+(*>*)

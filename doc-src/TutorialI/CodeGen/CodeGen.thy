@@ -14,7 +14,7 @@ a fixed set of binary operations: instead the expression contains the
 appropriate function itself.
 *}
 
-types 'v binop = "'v \\<Rightarrow> 'v \\<Rightarrow> 'v";
+types 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
 datatype ('a,'v)expr = Cex 'v
                      | Vex 'a
                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
@@ -27,7 +27,7 @@ The value of an expression w.r.t.\ an environment that maps variables to
 values is easily defined:
 *}
 
-consts value :: "('a,'v)expr \\<Rightarrow> ('a \\<Rightarrow> 'v) \\<Rightarrow> 'v";
+consts value :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v";
 primrec
 "value (Cex v) env = v"
 "value (Vex a) env = env a"
@@ -53,13 +53,13 @@ and returns the stack at the end of the execution---the store remains
 unchanged:
 *}
 
-consts exec :: "('a,'v)instr list \\<Rightarrow> ('a\\<Rightarrow>'v) \\<Rightarrow> 'v list \\<Rightarrow> 'v list";
+consts exec :: "('a,'v)instr list \<Rightarrow> ('a\<Rightarrow>'v) \<Rightarrow> 'v list \<Rightarrow> 'v list";
 primrec
 "exec [] s vs = vs"
 "exec (i#is) s vs = (case i of
-    Const v  \\<Rightarrow> exec is s (v#vs)
-  | Load a   \\<Rightarrow> exec is s ((s a)#vs)
-  | Apply f  \\<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
+    Const v  \<Rightarrow> exec is s (v#vs)
+  | Load a   \<Rightarrow> exec is s ((s a)#vs)
+  | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
 
 text{*\noindent
 Recall that @{term"hd"} and @{term"tl"}
@@ -74,7 +74,7 @@ The compiler is a function from expressions to a list of instructions. Its
 definition is pretty much obvious:
 *}
 
-consts comp :: "('a,'v)expr \\<Rightarrow> ('a,'v)instr list";
+consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list";
 primrec
 "comp (Cex v)       = [Const v]"
 "comp (Vex a)       = [Load a]"
@@ -90,7 +90,7 @@ text{*\noindent
 This theorem needs to be generalized to
 *}
 
-theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
+theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 
 txt{*\noindent
 which is proved by induction on @{term"e"} followed by simplification, once
@@ -99,7 +99,7 @@ instruction sequences:
 *}
 (*<*)oops;(*>*)
 lemma exec_app[simp]:
-  "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
+  "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 
 txt{*\noindent
 This requires induction on @{term"xs"} and ordinary simplification for the
@@ -107,8 +107,8 @@ base cases. In the induction step, simplification leaves us with a formula
 that contains two @{text"case"}-expressions over instructions. Thus we add
 automatic case splitting as well, which finishes the proof:
 *}
-by(induct_tac xs, simp, simp split: instr.split);
-
+apply(induct_tac xs, simp, simp split: instr.split);
+(*<*)done(*>*)
 text{*\noindent
 Note that because \isaindex{auto} performs simplification, it can
 also be modified in the same way @{text simp} can. Thus the proof can be
@@ -116,10 +116,10 @@ rewritten as
 *}
 (*<*)
 declare exec_app[simp del];
-lemma [simp]: "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
+lemma [simp]: "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 (*>*)
-by(induct_tac xs, auto split: instr.split);
-
+apply(induct_tac xs, auto split: instr.split);
+(*<*)done(*>*)
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
@@ -129,7 +129,7 @@ However, this is unnecessary because the generalized version fully subsumes
 its instance.
 *}
 (*<*)
-theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
+theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 by(induct_tac e, auto);
 end
 (*>*)
