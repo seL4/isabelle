@@ -1,6 +1,6 @@
 %% $ lcp Exp $
 \documentstyle[12pt,rail,proof,iman,epsf,mathsing]{book}
-%%\includeonly{Logics/HOL}
+%\includeonly{Ref/simplifier}
 %%  index{\(\w+\)\!meta-level     index{meta-\1
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %% run    sedindex springer    to prepare index file
@@ -12,23 +12,6 @@
 
 \date{} 
 \makeindex
-\let\idx=\ttindexbold
-%for indexing constants, symbols, theorems, ...
-\newcommand\cdx[1]{{\tt#1}\index{#1@{\tt#1} constant}}
-\newcommand\sdx[1]{{\tt#1}\index{#1@{\tt#1} symbol}}
-
-\newcommand\tdx[1]{{\tt#1}\index{#1@{\tt#1} theorem}}
-\newcommand\tdxbold[1]{{\tt#1}\index{#1@{\tt#1} theorem|bold}}
-
-\newcommand\mltydx[1]{{\tt#1}\index{#1@{\tt#1} ML type}}
-\newcommand\xdx[1]{{\tt#1}\index{#1@{\tt#1} exception}}
-
-\newcommand\ndx[1]{{\tt#1}\index{#1@{\tt#1} nonterminal}}
-\newcommand\ndxbold[1]{{\tt#1}\index{#1@{\tt#1} nonterminal|bold}}
-
-\newcommand\cldx[1]{{\tt#1}\index{#1@{\tt#1} class}}
-\newcommand\tydx[1]{{\tt#1}\index{#1@{\tt#1} type}}
-\newcommand\thydx[1]{{\tt#1}\index{#1@{\tt#1} theory}}
 
 \def\S{Sect.\thinspace}%This is how Springer like it
 
@@ -49,13 +32,13 @@
 \listoffigures
 \newpage
 
-\pagenumbering{arabic}
-
 \markboth{}{}
 \newfont{\sanssi}{cmssi12}
 \vspace*{2.5cm}
-\begin{quote}
-\raggedleft
+\begin{quote}\raggedleft
+{\em To Nathan and Sarah}
+
+\vspace*{1.2cm}
 {\sanssi
 You can only find truth with logic\\
 if you have already found truth without it.}\\
@@ -64,15 +47,17 @@ if you have already found truth without it.}\\
 G.K. Chesterton, {\em The Man who was Orthodox}
 \end{quote}
 
+\thispagestyle{empty}
+\newpage
+\pagenumbering{arabic}
+\part{Introduction to Isabelle}   
 
 \index{hypotheses|see{assumptions}}
 \index{rewriting|see{simplification}}
 \index{variables!schematic|see{unknowns}} 
 \index{abstract syntax trees|see{ASTs}}
 
-\part{Introduction to Isabelle}   
-
-\begingroup
+\begingroup%things local to Intro -- especially, redefining \part!!
 \newcommand\qeq{\stackrel{?}{\equiv}}  %for disagreement pairs in unification
 \newcommand{\nand}{\mathbin{\lnot\&}} 
 \newcommand{\xor}{\mathbin{\#}}
