@@ -99,6 +99,7 @@ sig
   val has_internal: tag list -> bool
   val impose_hyps: cterm list -> thm -> thm
   val close_derivation: thm -> thm
+  val local_standard: thm -> thm
   val compose_single: thm * int * thm -> thm
   val add_rules: thm list -> thm list -> thm list
   val del_rules: thm list -> thm list -> thm list
@@ -364,6 +365,10 @@ fun standard' th =
   end;
 
 val standard = close_derivation o standard';
+
+fun local_standard th =
+  th |> strip_shyps_warning |> zero_var_indexes
+  |> Thm.compress |> close_derivation;
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for
