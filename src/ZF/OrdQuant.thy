@@ -60,10 +60,6 @@ done
 
 (** Now some very basic ZF theorems **)
 
-(*FIXME: move to ZF.thy or even to FOL.thy??*)
-lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
-by blast
-
 (*FIXME: move to Rel.thy*)
 lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
 by (unfold trans_def trans_on_def, blast)

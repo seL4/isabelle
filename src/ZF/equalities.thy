@@ -11,6 +11,20 @@ And set theory equalities involving Union, Intersection, Inclusion, etc.
 
 theory equalities = pair + subset:
 
+(*FIXME: move to ZF.thy or even to FOL.thy??*)
+lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
+by blast
+
+(*FIXME: move to ZF.thy or even to FOL.thy??*)
+lemma not_disj_iff_imp: "~P | Q <-> (P-->Q)"
+by blast
+
+(*FIXME: move to upair once it's Isar format*)
+lemma the_eq_trivial [simp]: "(THE x. x = a) = a"
+by blast
+
+lemma the_eq_0 [simp]: "(THE x. False) = 0"
+by (blast intro: the_0)
 
 (*** converse ***)
 
@@ -27,8 +41,7 @@ lemma converseE [elim!]:
     "[| yx : converse(r);   
         !!x y. [| yx=<y,x>;  <x,y>:r |] ==> P |]
      ==> P"
-apply (unfold converse_def, blast) 
-done
+by (unfold converse_def, blast) 
 
 lemma converse_converse: "r<=Sigma(A,B) ==> converse(converse(r)) = r"
 by blast
@@ -42,7 +55,8 @@ by blast
 lemma converse_empty [simp]: "converse(0) = 0"
 by blast
 
-lemma converse_subset_iff: "A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
+lemma converse_subset_iff:
+     "A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
 by blast
 
 
@@ -56,8 +70,7 @@ by (unfold domain_def, blast)
 
 lemma domainE [elim!]:
     "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P"
-apply (unfold domain_def, blast)
-done
+by (unfold domain_def, blast)
 
 lemma domain_subset: "domain(Sigma(A,B)) <= A"
 by blast

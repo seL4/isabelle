@@ -199,10 +199,10 @@ by (blast intro: succ_lt_induct_lemma lt_nat_in_nat)
 (** nat_case **)
 
 lemma nat_case_0 [simp]: "nat_case(a,b,0) = a"
-by (simp add: nat_case_def, blast)
+by (simp add: nat_case_def)
 
 lemma nat_case_succ [simp]: "nat_case(a,b,succ(n)) = b(n)" 
-by (simp add: nat_case_def, blast)
+by (simp add: nat_case_def)
 
 lemma nat_case_type [TC]:
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |] 
@@ -212,10 +212,10 @@ by (erule nat_induct, auto)
 (** nat_case3 **)
 
 lemma nat_case3_0 [simp]: "nat_case3(a,b,0) = a"
-by (simp add: nat_case3_def, blast)
+by (simp add: nat_case3_def)
 
 lemma nat_case3_succ [simp]: "n\<in>nat \<Longrightarrow> nat_case3(a,b,succ(n)) = b(n)"
-by (simp add: nat_case3_def, blast)
+by (simp add: nat_case3_def)
 
 lemma non_nat_case3: "x\<notin>nat \<Longrightarrow> nat_case3(a,b,x) = 0"
 apply (simp add: nat_case3_def) 

@@ -233,9 +233,13 @@ done
 lemma image_lam: "C <= A ==> (lam x:A. b(x)) `` C = {b(x). x:C}"
 by (unfold lam_def, blast)
 
+lemma image_function:
+     "[| function(f);  C <= domain(f) |] ==> f``C = {f`x. x:C}";
+by (blast dest: function_apply_equality intro: function_apply_Pair) 
+
 lemma image_fun: "[| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}"
-apply (erule eta [THEN subst])
-apply (simp add: image_lam subset_iff)
+apply (simp add: Pi_iff) 
+apply (blast intro: image_function) 
 done
 
 lemma Pi_image_cons:
@@ -322,6 +326,10 @@ lemma fun_Union:
 apply (unfold Pi_def)
 apply (blast intro!: rel_Union function_Union)
 done
+
+lemma gen_relation_Union [rule_format]:
+     "\<forall>f\<in>F. relation(f) \<Longrightarrow> relation(Union(F))"
+by (simp add: relation_def) 
 
 
 (** The Union of 2 disjoint functions is a function **)
