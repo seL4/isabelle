@@ -54,66 +54,23 @@ lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
 by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
 
 
-subsection{*Comparison laws*}
-
-(*RING AND FIELD????????????????????????????????????????????????????????????*)
-
-lemma zminus_zless_zminus [simp]: "(- x < - y) = (y < (x::int))"
-by (simp add: zless_def zdiff_def zadd_ac)
-
-lemma zminus_zle_zminus [simp]: "(- x \<le> - y) = (y \<le> (x::int))"
-by (simp add: zle_def)
-
-text{*The next several equations can make the simplifier loop!*}
-
-lemma zless_zminus: "(x < - y) = (y < - (x::int))"
-by (simp add: zless_def zdiff_def zadd_ac)
-
-lemma zminus_zless: "(- x < y) = (- y < (x::int))"
-by (simp add: zless_def zdiff_def zadd_ac)
-
-lemma zle_zminus: "(x \<le> - y) = (y \<le> - (x::int))"
-by (simp add: zle_def zminus_zless)
-
-lemma zminus_zle: "(- x \<le> y) = (- y \<le> (x::int))"
-by (simp add: zle_def zless_zminus)
-
-lemma equation_zminus: "(x = - y) = (y = - (x::int))"
-by auto
-
-lemma zminus_equation: "(- x = y) = (- (y::int) = x)"
-by auto
-
-
 subsection{*nat: magnitide of an integer, as a natural number*}
 
 lemma nat_int [simp]: "nat(int n) = n"
 by (unfold nat_def, auto)
-
-lemma nat_zminus_int [simp]: "nat(- (int n)) = 0"
-apply (unfold nat_def)
-apply (auto simp add: neg_eq_less_0 zero_reorient zminus_zless)
-done
 
 lemma nat_zero [simp]: "nat 0 = 0"
 apply (unfold Zero_int_def)
 apply (rule nat_int)
 done
 
+lemma neg_nat: "neg z ==> nat z = 0"
+by (unfold nat_def, auto)
+
 lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
 apply (drule not_neg_eq_ge_0 [THEN iffD1])
 apply (drule zle_imp_zless_or_eq)
 apply (auto simp add: zless_iff_Suc_zadd)
-done
-
-lemma neg_nat: "neg z ==> nat z = 0"
-by (unfold nat_def, auto)
-
-lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
-apply (case_tac "neg z")
-apply (erule_tac [2] not_neg_nat [THEN subst])
-apply (auto simp add: neg_nat)
-apply (auto dest: order_less_trans simp add: neg_eq_less_0)
 done
 
 lemma nat_0_le [simp]: "0 \<le> z ==> int (nat z) = z"
@@ -122,7 +79,7 @@ by (simp add: neg_eq_less_0 zle_def not_neg_nat)
 lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
 by (auto simp add: order_le_less neg_eq_less_0 zle_def neg_nat)
 
-(*An alternative condition is  0 \<le> w  *)
+text{*An alternative condition is @{term "0 \<le> w"} *}
 lemma nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
 apply (subst zless_int [symmetric])
 apply (simp (no_asm_simp) add: not_neg_nat not_neg_eq_ge_0 order_le_less)
@@ -137,10 +94,11 @@ apply (case_tac "0 < z")
 apply (auto simp add: nat_mono_iff linorder_not_less)
 done
 
-
 subsection{*Monotonicity results*}
 
-(*RING AND FIELD?*)
+text{*Most are available in theory @{text Ring_and_Field}, but they are
+      not yet available: we must prove @{text zadd_zless_mono} before we
+      can prove that the integers are a ring.*}
 
 lemma zadd_right_cancel_zless [simp]: "(v+z < w+z) = (v < (w::int))"
 by (simp add: zless_def zdiff_def zadd_ac) 
@@ -181,7 +139,7 @@ apply (induct_tac "k", simp)
 apply (simp add: int_Suc)
 apply (case_tac "n=0")
 apply (simp_all add: zadd_zmult_distrib int_Suc0_eq_1 order_le_less)
-apply (simp_all add: zadd_zmult_distrib zadd_zless_mono int_Suc0_eq_1 order_le_less)
+apply (simp_all add: zadd_zless_mono int_Suc0_eq_1 order_le_less)
 done
 
 lemma zmult_zless_mono2: "[| i<j;  (0::int) < k |] ==> k*i < k*j"
@@ -190,6 +148,7 @@ apply (erule_tac [2] zmult_zless_mono2_lemma [THEN mp])
 apply (simp add: not_neg_eq_ge_0 order_le_less)
 apply (frule conjI [THEN zless_nat_conj [THEN iffD2]], auto)
 done
+
 
 text{*The Integers Form an Ordered Ring*}
 instance int :: ordered_ring
@@ -209,6 +168,39 @@ proof
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
 qed
+
+
+subsection{*Comparison laws*}
+
+text{*Legacy bindings: all are in theory @{text Ring_and_Field}.*}
+
+lemma zminus_zless_zminus: "(- x < - y) = (y < (x::int))"
+  by (rule Ring_and_Field.neg_less_iff_less)
+
+lemma zminus_zle_zminus: "(- x \<le> - y) = (y \<le> (x::int))"
+  by (rule Ring_and_Field.neg_le_iff_le)
+
+
+text{*The next several equations can make the simplifier loop!*}
+
+lemma zless_zminus: "(x < - y) = (y < - (x::int))"
+  by (rule Ring_and_Field.less_minus_iff)
+
+lemma zminus_zless: "(- x < y) = (- y < (x::int))"
+  by (rule Ring_and_Field.minus_less_iff)
+
+lemma zle_zminus: "(x \<le> - y) = (y \<le> - (x::int))"
+  by (rule Ring_and_Field.le_minus_iff)
+
+lemma zminus_zle: "(- x \<le> y) = (- y \<le> (x::int))"
+  by (rule Ring_and_Field.minus_le_iff)
+
+lemma equation_zminus: "(x = - y) = (y = - (x::int))"
+  by (rule Ring_and_Field.equation_minus_iff)
+
+lemma zminus_equation: "(- x = y) = (- (y::int) = x)"
+  by (rule Ring_and_Field.minus_equation_iff)
+
 
 subsection{*Lemmas about the Function @{term int} and Orderings*}
 
@@ -253,6 +245,18 @@ by (simp add: zabs_def)
 
 
 subsection{*Misc Results*}
+
+lemma nat_zminus_int [simp]: "nat(- (int n)) = 0"
+apply (unfold nat_def)
+apply (auto simp add: neg_eq_less_0 zero_reorient zminus_zless)
+done
+
+lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
+apply (case_tac "neg z")
+apply (erule_tac [2] not_neg_nat [THEN subst])
+apply (auto simp add: neg_nat)
+apply (auto dest: order_less_trans simp add: neg_eq_less_0)
+done
 
 lemma zless_eq_neg: "(w<z) = neg(w-z)"
 by (simp add: zless_def)
@@ -350,6 +354,22 @@ apply (rule_tac t = y in zadd_0_right [THEN subst], subst zadd_left_cancel)
 apply (simp add: eq_diff_eq [symmetric])
 done
 
+
+
+text{*A case theorem distinguishing non-negative and negative int*}
+
+lemma negD: "neg x ==> EX n. x = - (int (Suc n))"
+by (auto simp add: neg_eq_less_0 zless_iff_Suc_zadd 
+                   diff_eq_eq [symmetric] zdiff_def)
+
+lemma int_cases: 
+     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
+apply (case_tac "neg z")
+apply (fast dest!: negD)
+apply (drule not_neg_nat [symmetric], auto) 
+done
+
+
 (*Legacy ML bindings, but no longer the structure Int.*)
 ML
 {*
@@ -372,61 +392,6 @@ val iszero_0 = thm "iszero_0";
 val not_iszero_1 = thm "not_iszero_1";
 val int_0_less_1 = thm "int_0_less_1";
 val int_0_neq_1 = thm "int_0_neq_1";
-val zadd_cancel_21 = thm "zadd_cancel_21";
-val zadd_cancel_end = thm "zadd_cancel_end";
-
-structure Int_Cancel_Data =
-struct
-  val ss		= HOL_ss
-  val eq_reflection	= eq_reflection
-
-  val sg_ref 		= Sign.self_ref (Theory.sign_of (the_context()))
-  val T		= HOLogic.intT
-  val zero		= Const ("0", HOLogic.intT)
-  val restrict_to_left  = restrict_to_left
-  val add_cancel_21	= zadd_cancel_21
-  val add_cancel_end	= zadd_cancel_end
-  val add_left_cancel	= zadd_left_cancel
-  val add_assoc		= zadd_assoc
-  val add_commute	= zadd_commute
-  val add_left_commute	= zadd_left_commute
-  val add_0		= zadd_0
-  val add_0_right	= zadd_0_right
-
-  val eq_diff_eq	= eq_diff_eq
-  val eqI_rules		= [zless_eqI, zeq_eqI, zle_eqI]
-  fun dest_eqI th = 
-      #1 (HOLogic.dest_bin "op =" HOLogic.boolT
-	      (HOLogic.dest_Trueprop (concl_of th)))
-
-  val diff_def		= zdiff_def
-  val minus_add_distrib	= zminus_zadd_distrib
-  val minus_minus	= zminus_zminus
-  val minus_0		= zminus_0
-  val add_inverses	= [zadd_zminus_inverse, zadd_zminus_inverse2]
-  val cancel_simps	= [zadd_zminus_cancel, zminus_zadd_cancel]
-end;
-
-structure Int_Cancel = Abel_Cancel (Int_Cancel_Data);
-*}
-
-
-text{*A case theorem distinguishing non-negative and negative int*}
-
-lemma negD: "neg x ==> EX n. x = - (int (Suc n))"
-by (auto simp add: neg_eq_less_0 zless_iff_Suc_zadd 
-                   diff_eq_eq [symmetric] zdiff_def)
-
-lemma int_cases: 
-     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
-apply (case_tac "neg z")
-apply (fast dest!: negD)
-apply (drule not_neg_nat [symmetric], auto) 
-done
-
-
-ML
-{*
 val zless_eq_neg = thm "zless_eq_neg";
 val eq_eq_iszero = thm "eq_eq_iszero";
 val zle_eq_not_neg = thm "zle_eq_not_neg";

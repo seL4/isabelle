@@ -420,9 +420,6 @@ end;
 Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Int_Numeral_Simprocs.combine_numerals];
 
-(*The Abel_Cancel simprocs are now obsolete*)
-Delsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
-
 (*examples:
 print_depth 22;
 set timing;
