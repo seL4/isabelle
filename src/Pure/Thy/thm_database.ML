@@ -14,7 +14,7 @@ sig
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory -> thm list -> string -> (thm list -> tactic list) -> unit
   (*these peek at the proof state!*)
-  val thms_containing: string list -> (string * thm) list
+  val thms_containing: xstring list -> (string * thm) list
   val findI: int -> (string * thm) list
   val findEs: int -> (string * thm) list
   val findE: int -> int -> (string * thm) list
