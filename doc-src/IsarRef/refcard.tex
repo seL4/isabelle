@@ -23,7 +23,9 @@
   theory{\dsh}stmt & = & \THEOREM{name}{prop} ~proof \\
   & \Or & \LEMMA{name}{prop}~proof \\
   & \Or & \TYPES~\dots \Or \CONSTS~\dots \Or \DEFS~\dots \Or \dots \\[1ex]
-  proof & = & \PROOF{method}~stmt^*~\QED{method} \\[1ex]
+  proof & = & prfx^*~\PROOF{method}~stmt^*~\QED{method} \\[1ex]
+  prfx & = & \APPLY{method} \\
+  & \Or & \USING{name^+} \\
   stmt & = & \BG~stmt^*~\EN \\
   & \Or & \NEXT \\
   & \Or & \NOTE{name}{name^+} \\
@@ -31,8 +33,8 @@
   & \Or & \FIX{var^+} \\
   & \Or & \ASSUME{name}{prop^+}\\
   & \Or & \THEN~goal{\dsh}stmt \\
-  & \Or & goal{\dsh}stmt \\
-  goal{\dsh}stmt & = & \HAVE{name}{prop}~proof \\
+  & \Or & goal \\
+  goal & = & \HAVE{name}{prop}~proof \\
   & \Or & \SHOW{name}{prop}~proof \\
 \end{matharray}
 
@@ -104,6 +106,7 @@
   $unfold~\vec a$ & \Text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
+  $rules$ & \Text{intuitionistic proof search} \\
   $simp$, $simp_all$ & Simplifier (+ Splitter) \\
   $blast$, $fast$ & Classical Reasoner \\
   $auto$, $force$ & Simplifier + Classical Reasoner \\

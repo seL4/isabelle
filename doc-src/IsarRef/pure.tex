@@ -291,19 +291,20 @@ preceding the actual theory definition.
 \end{rail}
 
 \begin{descr}
+  
 \item [$\isarkeyword{syntax}~(mode)~decls$] is similar to $\CONSTS~decls$,
   except that the actual logical signature extension is omitted.  Thus the
   context free grammar of Isabelle's inner syntax may be augmented in
   arbitrary ways, independently of the logic.  The $mode$ argument refers to
-  the print mode that the grammar rules belong; unless the \texttt{output}
-  flag is given, all productions are added both to the input and output
-  grammar.
+  the print mode that the grammar rules belong; unless the
+  $\isarkeyword{output}$ indicator is given, all productions are added both to
+  the input and output grammar.
+  
 \item [$\isarkeyword{translations}~rules$] specifies syntactic translation
-  rules (i.e.\ \emph{macros}): parse~/ print rules (\texttt{==} or
-  \isasymrightleftharpoons), parse rules (\texttt{=>} or
-  \isasymrightharpoonup), or print rules (\texttt{<=} or
-  \isasymleftharpoondown).  Translation patterns may be prefixed by the
-  syntactic category to be used for parsing; the default is \texttt{logic}.
+  rules (i.e.\ macros): parse~/ print rules (\isasymrightleftharpoons), parse
+  rules (\isasymrightharpoonup), or print rules (\isasymleftharpoondown).
+  Translation patterns may be prefixed by the syntactic category to be used
+  for parsing; the default is $logic$.
 \end{descr}
 
 
@@ -333,7 +334,7 @@ preceding the actual theory definition.
   Everyday work is typically done the hard way, with proper definitions and
   actual proven theorems.
   
-\item [$\isarkeyword{lemmas}~a = \vec b$] restrieves and stores existing facts
+\item [$\isarkeyword{lemmas}~a = \vec b$] retrieves and stores existing facts
   in the theory context, or the specified locale (see also
   \S\ref{sec:locale}).  Typical applications would also involve attributes, to
   declare Simplifier rules, for example.
@@ -933,43 +934,59 @@ of Isar.  Further methods and attributes are provided by several generic and
 object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \ref{ch:logics}).
 
-\indexisarmeth{assumption}\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{$-$}
-\indexisaratt{OF}\indexisaratt{of}
+\indexisarmeth{$-$}\indexisarmeth{assumption}
+\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{rules}
 \indexisarattof{Pure}{intro}\indexisarattof{Pure}{elim}
 \indexisarattof{Pure}{dest}\indexisarattof{Pure}{rule}
+\indexisaratt{OF}\indexisaratt{of}
 \begin{matharray}{rcl}
+  - & : & \isarmeth \\
   assumption & : & \isarmeth \\
   this & : & \isarmeth \\
   rule & : & \isarmeth \\
-  - & : & \isarmeth \\
-  OF & : & \isaratt \\
-  of & : & \isaratt \\
+  rules & : & \isarmeth \\[0.5ex]
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
-  rule & : & \isaratt \\
+  rule & : & \isaratt \\[0.5ex]
+  OF & : & \isaratt \\
+  of & : & \isaratt \\
 \end{matharray}
-
-%FIXME intro!, intro, intro?
 
 \begin{rail}
   'rule' thmrefs?
+  ;
+  'rules' ('!' ?) (rulemod *)
+  ;
+  rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
+  ;
+  ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
+  ;
+  'rule' 'del'
   ;
   'OF' thmrefs
   ;
   'of' insts ('concl' ':' insts)?
   ;
-  'rule' 'del'
-  ;
 \end{rail}
 
 \begin{descr}
+  
+\item [``$-$''] does nothing but insert the forward chaining facts as premises
+  into the goal.  Note that command $\PROOFNAME$ without any method actually
+  performs a single reduction step using the $rule$ method; thus a plain
+  \emph{do-nothing} proof step would be $\PROOF{-}$ rather than $\PROOFNAME$
+  alone.
+  
 \item [$assumption$] solves some goal by a single assumption step.  Any facts
   given (${} \le 1$) are guaranteed to participate in the refinement.  Recall
   that $\QEDNAME$ (see \S\ref{sec:proof-steps}) already concludes any
-  remaining sub-goals by assumption.
+  remaining sub-goals by assumption, so structured proofs usually need not
+  quote the $assumption$ method at all.
+  
 \item [$this$] applies all of the current facts directly as rules.  Recall
   that ``$\DOT$'' (dot) abbreviates $\BY{this}$.
+  
 \item [$rule~\vec a$] applies some rule given as argument in backward manner;
   facts are used to reduce the rule before applying it to the goal.  Thus
   $rule$ without facts is plain \emph{introduction}, while with facts it
@@ -980,27 +997,41 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   $elim$, $dest$ attributes (see below).  This is the default behavior of
   $\PROOFNAME$ and ``$\DDOT$'' (double-dot) steps (see
   \S\ref{sec:proof-steps}).
-\item [``$-$''] does nothing but insert the forward chaining facts as premises
-  into the goal.  Note that command $\PROOFNAME$ without any method actually
-  performs a single reduction step using the $rule$ method; thus a plain
-  \emph{do-nothing} proof step would be $\PROOF{-}$ rather than $\PROOFNAME$
-  alone.
+  
+\item [$rules$] performs intuitionistic proof search, depending on
+  specifically declared rules from the context, or given as explicit
+  arguments.  Chained facts are inserted into the goal before commencing proof
+  search; $rules!$ means to include the current $prems$ as well.
+  
+  Rules need to be classified as $intro$, $elim$, or $dest$; here the ``$!$''
+  indicator refers to ``safe'' rules, which may be applied aggressively
+  (without considering back-tracking later).  Rules declared with ``$?$'' are
+  ignored in proof search (the single-step $rule$ method still observes
+  these).  An explicit weight annotation may be given as well; otherwise the
+  number of rule premises will be taken into account.
+
+\item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
+  destruct rules, to be used with the $rule$ and $rules$ methods.  Note that
+  the latter will ignore rules declare with ``$?$'', while ``$!$'' are used
+  most aggressively.
+  
+  The classical reasoner (see \S\ref{sec:classical-basic}) introduces its own
+  variants of these attributes; use qualified names to access the present
+  versions of Isabelle/Pure, i.e.\ $Pure{\dtt}intro$ or $CPure{\dtt}intro$.
+  
+\item [$rule~del$] undeclares introduction, elimination, or destruct rules.
+  
 \item [$OF~\vec a$] applies some theorem to given rules $\vec a$ (in
   parallel).  This corresponds to the \texttt{MRS} operator in ML
   \cite[\S5]{isabelle-ref}, but note the reversed order.  Positions may be
   skipped by including ``$\_$'' (underscore) as argument.
+  
 \item [$of~\vec t$] performs positional instantiation.  The terms $\vec t$ are
   substituted for any schematic variables occurring in a theorem from left to
   right; ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
   following a ``$concl\colon$'' specification refer to positions of the
   conclusion of a rule.
-\item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
-  destruct rules, respectively.  Note that the classical reasoner (see
-  \S\ref{sec:classical-basic}) introduces different versions of these
-  attributes, and the $rule$ method, too.  In object-logics with classical
-  reasoning enabled, the latter version should be used all the time to avoid
-  confusion!
-\item [$rule~del$] undeclares introduction, elimination, or destruct rules.
+  
 \end{descr}
 
 

@@ -16,7 +16,7 @@ Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
 interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
 may make use of this light-weight mechanism of abstract theories
 \cite{Wenzel:1997:TPHOL}.  There is also a tutorial on using axiomatic type
-classes in isabelle \cite{isabelle-axclass} that is part of the standard
+classes in Isabelle \cite{isabelle-axclass} that is part of the standard
 Isabelle documentation.
 
 \begin{rail}
@@ -27,7 +27,7 @@ Isabelle documentation.
 \end{rail}
 
 \begin{descr}
-\item [$\AXCLASS~c \subseteq \vec c~axms$] defines an axiomatic type class as
+\item [$\AXCLASS~c \subseteq \vec c~~axms$] defines an axiomatic type class as
   the intersection of existing classes, with additional axioms holding.  Class
   axioms may not contain more than one type variable.  The class axioms (with
   implicit sort constraints added) are bound to the given names.  Furthermore
@@ -37,7 +37,7 @@ Isabelle documentation.
   
   The ``axioms'' are stored as theorems according to the given name
   specifications, adding the class name $c$ as name space prefix; these facts
-  are stored collectively as $c.axioms$, too.
+  are stored collectively as $c{\dtt}axioms$, too.
   
 \item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)c$] setup a
   goal stating a class relation or type arity.  The proof would usually
@@ -132,8 +132,8 @@ proof, too (e.g.\ local $simp$ rules).
 \item [$\LOCALE~loc~=~import~+~body$] defines new locale $loc$ as a context
   consisting of a certain view of existing locales ($import$) plus some
   additional elements ($body$).  Both $import$ and $body$ are optional; the
-  trivial $\LOCALE~loc$ defines an empty locale, which may still be useful to
-  collect declarations of facts later on.  Type-inference on locale
+  degenerate form $\LOCALE~loc$ defines an empty locale, which may still be
+  useful to collect declarations of facts later on.  Type-inference on locale
   expressions automatically takes care of the most general typing that the
   combined context elements may acquire.
   
@@ -299,16 +299,14 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{matharray}
 
 \begin{rail}
-  ('also' | 'finally') transrules?
+  ('also' | 'finally') ('(' thmrefs ')')?
   ;
   'trans' (() | 'add' | 'del')
-  ;
-
-  transrules: '(' thmrefs ')'
   ;
 \end{rail}
 
 \begin{descr}
+  
 \item [$\ALSO~(\vec a)$] maintains the auxiliary $calculation$ register as
   follows.  The first occurrence of $\ALSO$ in some calculational thread
   initializes $calculation$ by $this$. Any subsequent $\ALSO$ on the same
@@ -328,22 +326,23 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
   but collect results only, without applying rules.
   
-\item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity (and
-  symmetry) rules declared in the current context.
-
+\item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity
+  rules (for calculational commands $\ALSO$ and $\FINALLY$) and symmetry rules
+  (for the $symmetric$ operation and single step elimination patters) of the
+  current context.
+  
 \item [$trans$] declares theorems as transitivity rules.
   
-\item [$sym$] declares symmetry rules, to be used either with the $symmetric$
-  operation (see below), or in canonical single-step eliminations (such as
-  ``$\ASSUME{}{x = y}~\HENCE{}{y = x}~\DDOT$'').
-  
-  Isabelle/Pure declares symmetry of $\equiv$, common object-logics add
-  further standard rules, such as symmetry of $=$ and $\not=$.
+\item [$sym$] declares symmetry rules.
   
 \item [$symmetric$] resolves a theorem with some rule declared as $sym$ in the
   current context.  For example, ``$\ASSUME{[symmetric]}{x = y}$'' produces a
   swapped fact derived from that assumption.
-
+  
+  In structured proof texts it is often more appropriate to use an explicit
+  single-step elimination proof, such as ``$\ASSUME{}{x = y}~\HENCE{}{y =
+    x}~\DDOT$''.  Note that the very same rules known to $symmetric$ are
+  declared as $elim$ at the same time.
 \end{descr}
 
 
@@ -360,7 +359,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   insert & : & \isarmeth \\[0.5ex]
   erule^* & : & \isarmeth \\
   drule^* & : & \isarmeth \\
-  frule^* & : & \isarmeth \\[0.5ex]
+  frule^* & : & \isarmeth \\
   succeed & : & \isarmeth \\
   fail & : & \isarmeth \\
 \end{matharray}
@@ -373,11 +372,14 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{rail}
 
 \begin{descr}
-\item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
-  meta-level definitions throughout all goals; any facts provided are inserted
-  into the goal and subject to rewriting as well.
+  
+\item [$unfold~\vec a$ and $fold~\vec a$] expand (or fold back again) the
+  given meta-level definitions throughout all goals; any chained facts
+  provided are inserted into the goal and subject to rewriting as well.
+  
 \item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
   state.  Note that current facts indicated for forward chaining are ignored.
+
 \item [$erule~\vec a$, $drule~\vec a$, and $frule~\vec a$] are similar to the
   basic $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
   elim-resolution, destruct-resolution, and forward-resolution, respectively
@@ -390,17 +392,20 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   rather than via implicit proof state manipulations.  For example, a proper
   single-step elimination would be done using the basic $rule$ method, with
   forward chaining of current facts.
+
 \item [$succeed$] yields a single (unchanged) result; it is the identity of
   the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
+
 \item [$fail$] yields an empty result sequence; it is the identity of the
   ``\texttt{|}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
+
 \end{descr}
 
 \indexisaratt{tagged}\indexisaratt{untagged}
 \indexisaratt{THEN}\indexisaratt{COMP}
 \indexisaratt{where}\indexisaratt{unfolded}\indexisaratt{folded}
 \indexisaratt{standard}\indexisaratt{elim-format}
-\indexisaratt{no-vars}\indexisaratt{exported}
+\indexisaratt{no-vars}
 \begin{matharray}{rcl}
   tagged & : & \isaratt \\
   untagged & : & \isaratt \\[0.5ex]
@@ -412,7 +417,6 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   standard & : & \isaratt \\
   elim_format & : & \isaratt \\
   no_vars^* & : & \isaratt \\
-  exported^* & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -450,10 +454,6 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   see also the ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
-\item [$exported$] lifts a local result out of the current proof context,
-  generalizing all fixed variables and discharging all assumptions.  Note that
-  proper incremental export is already done as part of the basic Isar
-  machinery.  This attribute is mainly for experimentation.
 \end{descr}
 
 
@@ -547,7 +547,7 @@ named $foo_tac$.
   \cite[\S3]{isabelle-ref}).
 \item [$cut_tac$] inserts facts into the proof state as assumption of a
   subgoal, see also \texttt{cut_facts_tac} in \cite[\S3]{isabelle-ref}.  Note
-  that the scope of schmatic variables is spread over the main goal statement.
+  that the scope of schematic variables is spread over the main goal statement.
   Instantiations may be given as well, see also ML tactic
   \texttt{cut_inst_tac} in \cite[\S3]{isabelle-ref}.
 \item [$thin_tac~\phi$] deletes the specified assumption from a subgoal; note
@@ -567,7 +567,6 @@ named $foo_tac$.
   implicit theory context, the ML code may refer to the following locally
   bound values:
 
-%%FIXME ttbox produces too much trailing space (why?)
 {\footnotesize\begin{verbatim}
 val ctxt  : Proof.context
 val facts : thm list
@@ -637,7 +636,7 @@ val thms  : string -> thm list
 
 By default the Simplifier methods take local assumptions fully into account,
 using equational assumptions in the subsequent normalization process, or
-simplifying assumptions themselvess (cf.\ \texttt{asm_full_simp_tac} in
+simplifying assumptions themselves (cf.\ \texttt{asm_full_simp_tac} in
 \cite[\S10]{isabelle-ref}).  In structured proofs this is usually quite well
 behaved in practice: just the local premises of the actual goal are involved,
 additional facts may inserted via explicit forward-chaining (using $\THEN$,
@@ -665,7 +664,7 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \indexisarcmd{print-simpset}
 \indexisaratt{simp}\indexisaratt{split}\indexisaratt{cong}
 \begin{matharray}{rcl}
-  print_simpset^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_simpset}^* & : & \isarkeep{theory~|~proof} \\
   simp & : & \isaratt \\
   cong & : & \isaratt \\
   split & : & \isaratt \\
@@ -677,12 +676,17 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \end{rail}
 
 \begin{descr}
-\item [$print_simpset$] prints the collection of rules declared to the
-  Simplifier, which is also known as ``simpset'' internally
+
+\item [$\isarcmd{print_simpset}$] prints the collection of rules declared to
+  the Simplifier, which is also known as ``simpset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
+
 \item [$simp$] declares simplification rules.
+
 \item [$cong$] declares congruence rules.
+
 \item [$split$] declares case split rules.
+
 \end{descr}
 
 
@@ -762,13 +766,13 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 
 \subsubsection{Basic methods}\label{sec:classical-basic}
 
-\indexisarmeth{rule}\indexisarmeth{intro}
-\indexisarmeth{elim}\indexisarmeth{default}\indexisarmeth{contradiction}
+\indexisarmeth{rule}\indexisarmeth{default}\indexisarmeth{contradiction}
+\indexisarmeth{intro}\indexisarmeth{elim}
 \begin{matharray}{rcl}
   rule & : & \isarmeth \\
+  contradiction & : & \isarmeth \\
   intro & : & \isarmeth \\
   elim & : & \isarmeth \\
-  contradiction & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
@@ -777,13 +781,20 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 \end{rail}
 
 \begin{descr}
+  
 \item [$rule$] as offered by the classical reasoner is a refinement over the
-  primitive one (see \S\ref{sec:pure-meth-att}).  In case that no rules are
-  provided as arguments, it automatically determines elimination and
-  introduction rules from the context (see also \S\ref{sec:classical-mod}).
-  This is made the default method for basic proof steps, such as $\PROOFNAME$
-  and ``$\DDOT$'' (two dots), see also \S\ref{sec:proof-steps} and
-  \S\ref{sec:pure-meth-att}.
+  primitive one (see \S\ref{sec:pure-meth-att}).  Both versions essentially
+  work the same, but the classical version observes the classical rule context
+  in addition to the Isabelle/Pure one.
+  
+  The library of common object logics (HOL, ZF, etc.) usually declare a rich
+  collection of classical rules (even if these perfectly OK from the
+  intuitionistic viewpoint), but only few declarations to the rule context of
+  Isabelle/Pure (\S\ref{sec:pure-meth-att}).
+  
+\item [$contradiction$] solves some goal by contradiction, deriving any result
+  from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
+  appear in either order.
 
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
   elim-resolution, after having inserted any facts.  Omitting the arguments
@@ -792,10 +803,7 @@ way for automated normalization (see \S\ref{sec:simplifier}).
   of what actually happens, thus it is very appropriate as an initial method
   for $\PROOFNAME$ that splits up certain connectives of the goal, before
   entering the actual sub-proof.
-
-\item [$contradiction$] solves some goal by contradiction, deriving any result
-  from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
-  appear in either order.
+  
 \end{descr}
 
 
@@ -891,7 +899,7 @@ This is slightly less hazardous than for the Simplifier (see
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
 \indexisaratt{iff}\indexisaratt{rule}
 \begin{matharray}{rcl}
-  print_claset^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_claset}^* & : & \isarkeep{theory~|~proof} \\
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
@@ -909,31 +917,31 @@ This is slightly less hazardous than for the Simplifier (see
 \end{rail}
 
 \begin{descr}
-\item [$print_claset$] prints the collection of rules declared to the
-  Classical Reasoner, which is also known as ``simpset'' internally
+
+\item [$\isarcmd{print_claset}$] prints the collection of rules declared to
+  the Classical Reasoner, which is also known as ``simpset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
+
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruction rules, respectively.  By default, rules are considered as
   \emph{unsafe} (i.e.\ not applied blindly without backtracking), while a
   single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
   applied in the search-oriented automated methods, but only in single-step
   methods such as $rule$).
+
 \item [$rule~del$] deletes introduction, elimination, or destruction rules from
   the context.
-\item [$iff$] declares a (possibly conditional) ``safe'' rule to the context in
-  several ways.   The rule is declared as a rewrite rule to the Simplifier. 
-  Furthermore, it is 
-  declared in several ways (depending on its structure) to the Classical 
-  Reasoner for aggressive use, which would normally be indicated by ``!'').
-  If the rule is an equivalence, the two corresponding implications are 
-  declared as introduction and destruction rules. Otherwise, 
-  if the rule is an inequality, the corresponding negation elimination rule
-  is declared, else the rule itself is declared as an introduction rule.
   
-  The ``?'' version of $iff$ declares ``extra'' Classical Reasoner rules only,
-  and omits the Simplifier declaration.  Thus the declaration does not have
-  any effect on automated proof tools, but only on simple methods such as
-  $rule$ (see \S\ref{sec:misc-meth-att}).
+\item [$iff$] declares a logical equivalences to the Simplifier and the
+  Classical reasoner at the same time.  Non-conditional rules result in a
+  ``safe'' introduction and elimination pair; conditional ones are considered
+  ``unsafe''.  Rules with negative conclusion are automatically inverted
+  (using $\neg$-elimination).
+  
+  The ``?'' version of $iff$ declares rules to the Pure context only, and
+  omits the Simplifier declaration.  Thus the declaration does not have any
+  effect on automated proof tools, but only on the single-step $rule$ method
+  (see \S\ref{sec:misc-meth-att}).
 \end{descr}
 
 
@@ -986,8 +994,11 @@ may be used in advanced case analysis later.
 \railterm{casenames}
 
 \begin{rail}
-  'case' nameref attributes?
+  'case' caseref | ('(' caseref ((name | underscore) +) ')')
   ;
+  caseref: nameref attributes?
+  ;
+
   casenames (name + )
   ;
   'params' ((name * ) + 'and')
@@ -1189,17 +1200,24 @@ instead, one would have to specify this explicitly, e.g.\ by appending
   ;
 \end{rail}
 
-The $cases$ and $induct$ attributes augment the corresponding context of rules
-for reasoning about inductive sets and types.  The standard rules are already
-declared by advanced definitional packages.  For special applications, these
-may be replaced manually by variant versions.
+\begin{descr}
+  
+\item [$\isarkeyword{print_induct_rules}$] prints cases and induct rules for
+  sets and types of the current context.
 
-Refer to the $case_names$ and $ps$ attributes (see \S\ref{sec:rule-cases}) to
-adjust names of cases and parameters of a rule.
-
-The $consumes$ declaration (cf.\ \S\ref{sec:rule-cases}) is taken care of
-automatically (if none had been given already): $consumes~0$ is specified for
-``type'' rules and $consumes~1$ for ``set'' rules.
+\item [$cases$ and $induct$] (as attributes) augment the corresponding context
+  of rules for reasoning about inductive sets and types, using the
+  corresponding methods of the same name.  Certain definitional packages of
+  object-logics usually declare emerging cases and induction rules as
+  expected, so users rarely need to intervene.
+  
+  Manual rule declarations usually include the the $case_names$ and $ps$
+  attributes to adjust names of cases and parameters of a rule (see
+  \S\ref{sec:rule-cases}); the $consumes$ declaration is taken care of
+  automatically: $consumes~0$ is specified for ``type'' rules and $consumes~1$
+  for ``set'' rules.
+  
+\end{descr}
 
 %%% Local Variables:
 %%% mode: latex

@@ -221,7 +221,7 @@ greatly simplified, using one of the standard automated proof tools, such as
 $simp$, $blast$, or $auto$.  This would work as follows:
 \begin{matharray}{l}
   \LEMMA{}{\texttt"{\phi@1 \Imp \dots \Imp \psi}\texttt"} \\
-  \quad \APPLY{unfold~defs} \quad \CMT{or ``$\APPLY{insert~facts}$''} \\
+  \quad \APPLY{unfold~defs} \\
   \quad \APPLY{blast} \\
   \quad \DONE \\
 \end{matharray}
