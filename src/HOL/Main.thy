@@ -116,6 +116,10 @@ consts_code
   "Nil"     ("[]")
   "Cons"    ("(_ ::/ _)")
 
+  "wfrec"   ("wf'_rec?")
+
+ML {* fun wf_rec f x = f (wf_rec f) x; *}
+
 lemma [code]: "((n::nat) < 0) = False" by simp
 declare less_Suc_eq [code]
 
