@@ -24,10 +24,6 @@ constdefs
    "suminf f == (@s. f sums s)"
 
 
-text{*This simprule replaces @{text "sumr 0 n"} by a term involving 
-  @{term lessThan}, making other simprules inapplicable.*}
-declare atLeast0LessThan [simp del]
-
 lemma sumr_Suc [simp]:
      "sumr m (Suc n) f = (if n < m then 0 else sumr m n f + f(n))"
 by (simp add: atLeastLessThanSuc)

@@ -14,7 +14,7 @@ constdefs
     "x powr a == exp(a * ln x)"
 
   log :: "[real,real] => real"
-    --{*logarithm of @[term x} to base @[term a}*}
+    --{*logarithm of @{term x} to base @{term a}*}
     "log a x == ln x / ln a"
 
 

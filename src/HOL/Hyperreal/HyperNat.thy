@@ -280,7 +280,7 @@ by (auto simp add: hypnat_zero_def hypnat_one_def)
 declare hypnat_zero_not_eq_one [THEN not_sym, simp]
 
 
-text{*The Hypernaturals Form A comm_semiring_1_cancel*}
+text{*The hypernaturals form a @{text comm_semiring_1_cancel}: *}
 instance hypnat :: comm_semiring_1_cancel
 proof
   fix i j k :: hypnat
@@ -349,7 +349,7 @@ apply (auto simp add: hypnat_le, ultra)
 done
 
 
-subsection{*The Hypernaturals Form an Ordered comm_semiring_1_cancel*}
+subsection{*The Hypernaturals Form an Ordered @{text comm_semiring_1_cancel} *}
 
 instance hypnat :: ordered_semidom
 proof
@@ -453,8 +453,8 @@ next
 qed
 
 
-subsection{*The Embedding @{term hypnat_of_nat} Preserves comm_ring_1 and 
-      Order Properties*}
+subsection{*The Embedding @{term hypnat_of_nat} Preserves @{text
+comm_ring_1} and Order Properties*}
 
 constdefs
 

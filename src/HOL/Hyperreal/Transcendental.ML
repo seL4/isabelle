@@ -394,8 +394,6 @@ qed_spec_mp "lemma_realpow_diff";
 (* Properties of power series                                               *)
 (*--------------------------------------------------------------------------*)
 
-Delsimps [thm"atLeast0LessThan"];
-
 Goal "sumr 0 (Suc n) (%p. (x ^ p) * y ^ ((Suc n) - p)) = \
 \     y * sumr 0 (Suc n) (%p. (x ^ p) * (y ^ (n - p)))";
 by (auto_tac (claset(),simpset() addsimps [sumr_mult] delsimps [sumr_Suc]));
