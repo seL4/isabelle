@@ -200,8 +200,7 @@ qed "hrealpow_sum_square_expand";
    using induction: proof is much simpler this way!
  ---------------------------------------------------------------*)
 Goal "[|(#0::hypreal) <= x; #0 <= y;x ^ Suc n <= y ^ Suc n |] ==> x <= y";
-by (full_simp_tac
-    (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (full_simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
@@ -238,14 +237,14 @@ by (Fuf_tac 1);
 qed "hyperpow";
 
 Goalw [hypnat_one_def] "(#0::hypreal) pow (n + 1hn) = #0";
-by (simp_tac (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [hyperpow,hypnat_add]));
 qed "hyperpow_zero";
 Addsimps [hyperpow_zero];
 
 Goal "r ~= (#0::hypreal) --> r pow n ~= #0";
-by (simp_tac (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset(), simpset() addsimps [hyperpow]));
@@ -255,7 +254,7 @@ by (fuf_empty_tac (claset() addIs [realpow_not_zero RS notE],
 qed_spec_mp "hyperpow_not_zero";
 
 Goal "r ~= (#0::hypreal) --> inverse(r pow n) = (inverse r) pow n";
-by (simp_tac (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_Compl_mem],
@@ -288,41 +287,38 @@ qed "hyperpow_one";
 Addsimps [hyperpow_one];
 
 Goalw [hypnat_one_def] 
-      "r pow (1hn + 1hn) = r * r";
+     "r pow (1hn + 1hn) = r * r";
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
-           simpset() addsimps [hyperpow,hypnat_add, hypreal_mult,realpow_two]));
+              simpset() addsimps [hyperpow,hypnat_add, hypreal_mult]));
 qed "hyperpow_two";
 
 Goal "(#0::hypreal) < r --> #0 < r pow n";
-by (simp_tac (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset, realpow_gt_zero],
               simpset() addsimps [hyperpow,hypreal_less, hypreal_le]));
 qed_spec_mp "hyperpow_gt_zero";
 
-Goal "(#0::hypreal) < r --> #0 <= r pow n";
-by (blast_tac (claset() addSIs [hyperpow_gt_zero, order_less_imp_le]) 1);
-qed_spec_mp "hyperpow_ge_zero";
-
 Goal "(#0::hypreal) <= r --> #0 <= r pow n";
-by (simp_tac (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
-by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset, realpow_ge_zero2],
+by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset, realpow_ge_zero],
               simpset() addsimps [hyperpow,hypreal_le]));
-qed "hyperpow_ge_zero2";
+qed "hyperpow_ge_zero";
 
 Goal "(#0::hypreal) < x & x <= y --> x pow n <= y pow n";
-by (full_simp_tac
-    (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1);
+by (full_simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
-by (auto_tac (claset() addIs [realpow_le,
-    (FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset)],
-    simpset() addsimps [hyperpow,hypreal_le,hypreal_less]));
+by (auto_tac (claset(),
+              simpset() addsimps [hyperpow,hypreal_le,hypreal_less]));
+by (etac (FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset) 1
+    THEN assume_tac 1);
+by (auto_tac (claset() addIs [realpow_le], simpset()));
 qed_spec_mp "hyperpow_le";
 
 Goal "#1 pow n = (#1::hypreal)";

@@ -207,8 +207,7 @@ by (asm_full_simp_tac
     (simpset() addsimps [linorder_not_less, real_inverse_eq_divide]) 2); 
 by (Clarify_tac 2);
 by (dres_inst_tac [("x","n")] spec 2); 
-by (dres_inst_tac [("z","real_of_nat (Suc n)")] 
-    (rotate_prems 1 real_mult_le_le_mono1) 2); 
+by (dres_inst_tac [("k","real_of_nat (Suc n)")] (real_mult_le_mono1) 2); 
 by (rtac real_of_nat_ge_zero 2);
 by (asm_full_simp_tac (simpset()  
 	 addsimps [real_of_nat_Suc_gt_zero RS real_not_refl2 RS not_sym, 

@@ -53,30 +53,35 @@ by (auto_tac (claset(),simpset() addsimps [real_of_int,
     preal_of_prat_add RS sym,prat_of_pnat_add RS sym,
     zadd,real_add,pnat_of_nat_add] @ pnat_add_ac));
 qed "real_of_int_add";
+Addsimps [real_of_int_add RS sym];
 
 Goal "-real_of_int x = real_of_int (-x)";
 by (res_inst_tac [("z","x")] eq_Abs_Integ 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_int, real_minus,zminus]));
 qed "real_of_int_minus";
+Addsimps [real_of_int_minus RS sym];
 
 Goalw [zdiff_def,real_diff_def]
   "real_of_int x - real_of_int y = real_of_int (x - y)";
-by (simp_tac (simpset() addsimps [real_of_int_add, real_of_int_minus]) 1);
+by (simp_tac (HOL_ss addsimps [real_of_int_add, real_of_int_minus]) 1);
 qed "real_of_int_diff";
+Addsimps [real_of_int_diff RS sym];
 
 Goal "real_of_int x * real_of_int y = real_of_int (x * y)";
 by (res_inst_tac [("z","x")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","y")] eq_Abs_Integ 1);
-by (auto_tac (claset(),simpset() addsimps [real_of_int,
-    real_mult,zmult,preal_of_prat_mult RS sym,pnat_of_nat_mult,
-    prat_of_pnat_mult RS sym,preal_of_prat_add RS sym,
-    prat_of_pnat_add RS sym,pnat_of_nat_add] @ mult_ac @add_ac 
-    @ pnat_add_ac));
+by (auto_tac (claset(),
+   simpset() addsimps [real_of_int, real_mult,zmult,
+           preal_of_prat_mult RS sym,pnat_of_nat_mult,
+           prat_of_pnat_mult RS sym,preal_of_prat_add RS sym,
+           prat_of_pnat_add RS sym,pnat_of_nat_add] @ mult_ac @add_ac 
+           @ pnat_add_ac));
 qed "real_of_int_mult";
+Addsimps [real_of_int_mult RS sym];
 
 Goal "real_of_int (int (Suc n)) = real_of_int (int n) + 1r";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym,
-				  real_of_int_add,zadd_int] @ zadd_ac) 1);
+				  zadd_int] @ zadd_ac) 1);
 qed "real_of_int_Suc";
 
 (* relating two of the embeddings *)

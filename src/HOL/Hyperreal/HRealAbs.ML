@@ -210,10 +210,15 @@ qed "hypreal_of_real_hrabs";
              Embedding of the naturals in the hyperreals
  ----------------------------------------------------------------------------*)
 
-Goalw [hypreal_of_nat_def]
-     "hypreal_of_nat n1 + hypreal_of_nat n2 = hypreal_of_nat (n1 + n2)";
-by (simp_tac (simpset() addsimps [hypreal_of_real_add, real_of_nat_add]) 1);
+Goal "hypreal_of_nat (m + n) = hypreal_of_nat m + hypreal_of_nat n";
+by (simp_tac (simpset() addsimps [hypreal_of_nat_def]) 1);
 qed "hypreal_of_nat_add";
+Addsimps [hypreal_of_nat_add];
+
+Goal "hypreal_of_nat (m * n) = hypreal_of_nat m * hypreal_of_nat n";
+by (simp_tac (simpset() addsimps [hypreal_of_nat_def]) 1);
+qed "hypreal_of_nat_mult";
+Addsimps [hypreal_of_nat_mult];
 
 Goalw [hypreal_of_nat_def] 
       "(n < m) = (hypreal_of_nat n < hypreal_of_nat m)";

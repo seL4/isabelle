@@ -130,32 +130,15 @@ by (auto_tac (claset(),
                                   hypreal_mult_less_mono2]));
 qed "hypreal_mult_less_mono2_neg";
 
-Goal "[| i <= j;  (0::hypreal) <= k |] ==> i*k <= j*k";
-by (auto_tac (claset(), 
-              simpset() addsimps [order_le_less, hypreal_mult_less_mono1]));  
-qed "hypreal_mult_le_mono1";
-
 Goal "[| i <= j;  k <= (0::hypreal) |] ==> j*k <= i*k";
 by (auto_tac (claset(), 
           simpset() addsimps [order_le_less, hypreal_mult_less_mono1_neg]));  
 qed "hypreal_mult_le_mono1_neg";
 
-Goal "[| i <= j;  (0::hypreal) <= k |] ==> k*i <= k*j";
-by (dtac hypreal_mult_le_mono1 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [hypreal_mult_commute])));
-qed "hypreal_mult_le_mono2";
-
 Goal "[| i <= j;  k <= (0::hypreal) |] ==> k*j <= k*i";
 by (dtac hypreal_mult_le_mono1_neg 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [hypreal_mult_commute])));
 qed "hypreal_mult_le_mono2_neg";
-
-Goal "[| u <= v;  x <= y;  0 <= v;  (0::hypreal) <= x |] ==> u * x <= v * y";
-by (etac (hypreal_mult_le_mono1 RS order_trans) 1);
-by (assume_tac 1);
-by (etac hypreal_mult_le_mono2 1);
-by (assume_tac 1);
-qed "hypreal_mult_le_mono";
 
 Goal "(m*k < n*k) = (((#0::hypreal) < k & m<n) | (k < #0 & n<m))";
 by (case_tac "k = (0::hypreal)" 1);

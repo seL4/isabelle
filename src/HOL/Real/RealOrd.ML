@@ -130,18 +130,6 @@ by (dtac real_mult_order 1 THEN assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed "real_mult_less_zero1";
 
-Goal "[| 0 <= x; 0 <= y |] ==> (0::real) <= x * y";
-by (REPEAT(dtac order_le_imp_less_or_eq 1));
-by (auto_tac (claset() addIs [real_mult_order, order_less_imp_le],
-	      simpset()));
-qed "real_le_mult_order";
-
-Goal "[| 0 < x; 0 <= y |] ==> (0::real) <= x * y";
-by (dtac order_le_imp_less_or_eq 1);
-by (auto_tac (claset() addIs [real_mult_order, order_less_imp_le], 
-              simpset()));
-qed "real_less_le_mult_order";
-
 Goal "[| 0 < x; y < 0 |] ==> x*y < (0::real)";
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (dtac real_mult_order 1 THEN assume_tac 1);
@@ -328,6 +316,7 @@ Goalw [real_of_nat_def]
 by (simp_tac (simpset() addsimps 
               [real_of_posnat_add,real_add_assoc RS sym]) 1);
 qed "real_of_nat_add";
+Addsimps [real_of_nat_add];
 
 (*Not for addsimps: often the LHS is used to represent a positive natural*)
 Goalw [real_of_nat_def] "real_of_nat (Suc n) = real_of_nat n + 1r";
@@ -364,9 +353,10 @@ AddIffs [real_of_nat_ge_zero];
 Goal "real_of_nat (m * n) = real_of_nat m * real_of_nat n";
 by (induct_tac "m" 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_of_nat_add, real_of_nat_Suc,
+	      simpset() addsimps [real_of_nat_Suc,
 				  real_add_mult_distrib, real_add_commute]));
 qed "real_of_nat_mult";
+Addsimps [real_of_nat_mult];
 
 Goal "(real_of_nat n = real_of_nat m) = (n = m)";
 by (auto_tac (claset() addDs [inj_real_of_nat RS injD], simpset()));
@@ -393,7 +383,6 @@ qed "real_of_nat_diff2";
 Goal "(real_of_nat n = 0) = (n = 0)";
 by (auto_tac (claset() addIs [inj_real_of_nat RS injD], simpset()));
 qed "real_of_nat_zero_iff";
-Addsimps [real_of_nat_zero_iff];
 
 Goal "neg z ==> real_of_nat (nat z) = 0";
 by (asm_simp_tac (simpset() addsimps [neg_nat, real_of_nat_zero]) 1);
@@ -479,15 +468,6 @@ by (EVERY1 [rtac real_less_or_eq_imp_le, dtac order_le_imp_less_or_eq]);
 by (auto_tac (claset() addIs [real_mult_less_mono1],simpset()));
 qed "real_mult_le_less_mono1";
 
-Goal "[| (0::real) <= z; x < y |] ==> z*x <= z*y";
-by (asm_simp_tac (simpset() addsimps [real_mult_commute,real_mult_le_less_mono1]) 1);
-qed "real_mult_le_less_mono2";
-
-Goal "[| (0::real) <= z; x <= y |] ==> z*x <= z*y";
-by (dres_inst_tac [("x","x")] order_le_imp_less_or_eq 1);
-by (auto_tac (claset() addIs [real_mult_le_less_mono2], simpset()));
-qed "real_mult_le_le_mono1";
-
 Goal "[| u<v;  x<y;  (0::real) < v;  0 < x |] ==> u*x < v* y";
 by (etac (real_mult_less_mono1 RS order_less_trans) 1);
 by (assume_tac 1);
@@ -495,6 +475,7 @@ by (etac real_mult_less_mono2 1);
 by (assume_tac 1);
 qed "real_mult_less_mono";
 
+(*Variant of the theorem above; sometimes it's stronger*)
 Goal "[| x < y;  r1 < r2;  (0::real) <= r1;  0 <= x|] ==> r1 * x < r2 * y";
 by (subgoal_tac "0<r2" 1);
 by (blast_tac (claset() addIs [order_le_less_trans]) 2); 
@@ -503,32 +484,6 @@ by (auto_tac (claset() addSDs [order_le_imp_less_or_eq]
 	               addIs [real_mult_less_mono, real_mult_order],
 	      simpset()));
 qed "real_mult_less_mono'";
-
-Goal "[| r1 <= r2;  x <= y;  (0::real) < r1;  0 <= x |] ==> r1 * x <= r2 * y";
-by (subgoal_tac "0<r2" 1);
-by (blast_tac (claset() addIs [order_less_le_trans]) 2); 
-by (rtac real_less_or_eq_imp_le 1);
-by (REPEAT(dtac order_le_imp_less_or_eq 1));
-by (auto_tac (claset() addIs [real_mult_less_mono, real_mult_order],
-	      simpset()));
-qed "real_mult_le_mono";
-
-Goal "[| (0::real) < r1; r1 < r2;  0 <= x; x <= y |] ==> r1 * x <= r2 * y";
-by (blast_tac (claset() addIs [real_mult_le_mono, order_less_imp_le]) 1); 
-qed "real_mult_le_mono2";
-
-Goal "[| (0::real) <= r1; r1 < r2;  0 <= x; x <= y |] ==> r1 * x <= r2 * y";
-by (dtac order_le_imp_less_or_eq 1);
-by (auto_tac (claset() addIs [real_mult_le_mono2],simpset()));
-by (dtac order_trans 1 THEN assume_tac 1);
-by (auto_tac (claset() addIs [real_less_le_mult_order], simpset()));
-qed "real_mult_le_mono3";
-
-Goal "[| (0::real) <= r1; r1 <= r2;  0 <= x; x <= y |] ==> r1 * x <= r2 * y";
-by (dres_inst_tac [("x","r1")] order_le_imp_less_or_eq 1);
-by (auto_tac (claset() addIs [real_mult_le_mono3, real_mult_le_le_mono1],
-	      simpset()));
-qed "real_mult_le_mono4";
 
 Goal "1r <= x ==> 0 < x";
 by (rtac ccontr 1 THEN dtac real_leI 1);

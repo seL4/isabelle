@@ -137,7 +137,9 @@ Addsimps (map rename_numerals
 	   real_mult_minus_1_right, real_mult_minus_1, real_inverse_1,
 	   real_minus_zero_less_iff]);
 
-AddIffs (map rename_numerals [real_mult_is_0]);
+AddIffs 
+ (map rename_numerals
+      [real_mult_is_0, real_of_nat_zero_iff, real_le_square]);
 
 bind_thm ("real_0_less_mult_iff", 
 	  rename_numerals real_zero_less_mult_iff);
@@ -151,14 +153,22 @@ bind_thm ("real_mult_le_0_iff",
 bind_thm ("real_inverse_less_0", rename_numerals real_inverse_less_zero);
 bind_thm ("real_inverse_gt_0", rename_numerals real_inverse_gt_zero);
 
-Addsimps [rename_numerals real_le_square];
-
-
-(*Perhaps add some theorems that aren't in the default simpset, as
-  done in Integ/NatBin.ML*)
-
-
 Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
+
+
+(** real_of_nat **)
+
+Goal "(#0 < real_of_nat n) = (0<n)";
+by (simp_tac (HOL_ss addsimps [real_of_nat_less_iff, 
+                         rename_numerals real_of_nat_zero RS sym]) 1);
+qed "zero_less_real_of_nat_iff";
+AddIffs [zero_less_real_of_nat_iff];
+
+Goal "(#0 <= real_of_nat n) = (0<=n)";
+by (simp_tac (HOL_ss addsimps [real_of_nat_le_iff, 
+                         rename_numerals real_of_nat_zero RS sym]) 1);
+qed "zero_le_real_of_nat_iff";
+AddIffs [zero_le_real_of_nat_iff];
 
 
 (** Simplification of arithmetic when nested to the right **)
@@ -594,3 +604,22 @@ Addsimprocs [Real_Times_Assoc.conv];
 AddIffs [real_less_iff_diff_less_0 RS sym];
 AddIffs [real_eq_iff_diff_eq_0 RS sym];
 AddIffs [real_le_iff_diff_le_0 RS sym];
+
+(** <= monotonicity results: needed for arithmetic **)
+
+Goal "[| i <= j;  (0::real) <= k |] ==> i*k <= j*k";
+by (auto_tac (claset(), 
+              simpset() addsimps [order_le_less, real_mult_less_mono1]));  
+qed "real_mult_le_mono1";
+
+Goal "[| i <= j;  (0::real) <= k |] ==> k*i <= k*j";
+by (dtac real_mult_le_mono1 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [real_mult_commute])));
+qed "real_mult_le_mono2";
+
+Goal "[| (i::real) <= j;  k <= l;  0 <= j;  0 <= k |] ==> i*k <= j*l";
+by (etac (real_mult_le_mono1 RS order_trans) 1);
+by (assume_tac 1);
+by (etac real_mult_le_mono2 1);
+by (assume_tac 1);
+qed "real_mult_le_mono";

@@ -6,8 +6,6 @@
 Instantiation of the generic linear arithmetic package for type hypreal.
 *)
 
-val hypreal_mult_le_mono2 = rotate_prems 1 hypreal_mult_le_le_mono1;
-
 local
 
 (* reduce contradictory <= to False *)

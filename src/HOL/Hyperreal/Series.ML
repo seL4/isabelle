@@ -568,7 +568,6 @@ by (res_inst_tac [("x","Suc N")] exI 1 THEN Step_tac 1);
 by (dtac Suc_le_imp_diff_ge2 1 THEN Auto_tac);
 qed "ratio_test_lemma2";
 
-
 Goal "[| c < #1; ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
 \     ==> summable f";
 by (forward_tac [ratio_test_lemma2] 1);
@@ -581,8 +580,8 @@ by (auto_tac (claset(),simpset() addsimps [realpow_add,
     rename_numerals realpow_not_zero]));
 by (induct_tac "na" 1 THEN Auto_tac);
 by (res_inst_tac [("y","c*abs(f(N + n))")] order_trans 1);
-by (auto_tac (claset() addIs [real_mult_le_le_mono1],
-    simpset() addsimps [summable_def]));
+by (auto_tac (claset() addIs [real_mult_le_mono1],
+              simpset() addsimps [summable_def]));
 by (asm_full_simp_tac (simpset() addsimps real_mult_ac) 1);
 by (res_inst_tac [("x","abs(f N) * (#1/(#1 - c)) / (c ^ N)")] exI 1);
 by (rtac sums_divide 1); 

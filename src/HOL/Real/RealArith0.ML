@@ -118,20 +118,10 @@ by (auto_tac (claset(),
                             addsimps [real_minus_mult_eq1]));;
 qed "real_mult_less_mono2_neg";
 
-Goal "[| i <= j;  (0::real) <= k |] ==> i*k <= j*k";
-by (auto_tac (claset(), 
-              simpset() addsimps [order_le_less, real_mult_less_mono1]));  
-qed "real_mult_le_mono1";
-
 Goal "[| i <= j;  k <= (0::real) |] ==> j*k <= i*k";
 by (auto_tac (claset(), 
               simpset() addsimps [order_le_less, real_mult_less_mono1_neg]));  
 qed "real_mult_le_mono1_neg";
-
-Goal "[| i <= j;  (0::real) <= k |] ==> k*i <= k*j";
-by (dtac real_mult_le_mono1 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [real_mult_commute])));
-qed "real_mult_le_mono2";
 
 Goal "[| i <= j;  k <= (0::real) |] ==> k*j <= k*i";
 by (dtac real_mult_le_mono1_neg 1);

@@ -1196,8 +1196,8 @@ by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [bspec] addIs [lemma_hyprel_refl],
               simpset() addsimps [hypreal_add]));
 by (Ultra_tac 1);
-by (dres_inst_tac [("t","Y xb")] sym 1);
-by (auto_tac (claset(),simpset() addsimps [real_of_nat_add RS sym]));
+by (res_inst_tac [("x","no+noa")] exI 1);
+by Auto_tac;
 qed "HNat_add";
 
 Goalw [HNat_def,starset_def]
@@ -1205,10 +1205,10 @@ Goalw [HNat_def,starset_def]
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [bspec] addIs [lemma_hyprel_refl],
-    simpset() addsimps [hypreal_mult]));
+              simpset() addsimps [hypreal_mult]));
 by (Ultra_tac 1);
-by (dres_inst_tac [("t","Y xb")] sym 1);
-by (auto_tac (claset(),simpset() addsimps [real_of_nat_mult RS sym]));
+by (res_inst_tac [("x","no*noa")] exI 1);
+by Auto_tac;
 qed "HNat_mult";
 
 (*---------------------------------------------------------------
@@ -1224,9 +1224,9 @@ Goalw [hypreal_of_hypnat_def]
       "hypreal_of_hypnat (Abs_hypnat(hypnatrel^^{%n. X n})) = \
 \         Abs_hypreal(hyprel ^^ {%n. real_of_nat (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
-by (auto_tac (claset() addEs [FreeUltrafilterNat_Int RS
-    FreeUltrafilterNat_subset],simpset() addsimps 
-    [lemma_hyprel_FUFN]));
+by (auto_tac (claset()
+                  addEs [FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset],
+              simpset() addsimps [lemma_hyprel_FUFN]));
 qed "hypreal_of_hypnat";
 
 Goal "inj(hypreal_of_hypnat)";
@@ -1261,19 +1261,21 @@ by (simp_tac (HOL_ss addsimps
 by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_one]) 1);
 qed "hypreal_of_hypnat_one";
 
-Goal "hypreal_of_hypnat n1 + hypreal_of_hypnat n2 = hypreal_of_hypnat (n1 + n2)";
-by (res_inst_tac [("z","n1")] eq_Abs_hypnat 1);
-by (res_inst_tac [("z","n2")] eq_Abs_hypnat 1);
-by (asm_simp_tac (simpset() addsimps [hypreal_of_hypnat,
-        hypreal_add,hypnat_add,real_of_nat_add]) 1);
+Goal "hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (asm_simp_tac (simpset() addsimps
+           [hypreal_of_hypnat, hypreal_add,hypnat_add,real_of_nat_add]) 1);
 qed "hypreal_of_hypnat_add";
+Addsimps [hypreal_of_hypnat_add];
 
-Goal "hypreal_of_hypnat n1 * hypreal_of_hypnat n2 = hypreal_of_hypnat (n1 * n2)";
-by (res_inst_tac [("z","n1")] eq_Abs_hypnat 1);
-by (res_inst_tac [("z","n2")] eq_Abs_hypnat 1);
-by (asm_simp_tac (simpset() addsimps [hypreal_of_hypnat,
-        hypreal_mult,hypnat_mult,real_of_nat_mult]) 1);
+Goal "hypreal_of_hypnat (m * n) = hypreal_of_hypnat m * hypreal_of_hypnat n";
+by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (asm_simp_tac (simpset() addsimps
+           [hypreal_of_hypnat, hypreal_mult,hypnat_mult,real_of_nat_mult]) 1);
 qed "hypreal_of_hypnat_mult";
+Addsimps [hypreal_of_hypnat_mult];
 
 Goal "(hypreal_of_hypnat n < hypreal_of_hypnat m) = (n < m)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);

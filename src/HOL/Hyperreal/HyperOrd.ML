@@ -289,11 +289,6 @@ by (asm_simp_tac (simpset() addsimps [hypreal_mult_commute,
 				      hypreal_mult_le_less_mono1]) 1);
 qed "hypreal_mult_le_less_mono2";
 
-Goal "[| (0::hypreal)<=z; x<=y |] ==> z*x<=z*y";
-by (dres_inst_tac [("x","x")] order_le_imp_less_or_eq 1);
-by (auto_tac (claset() addIs [hypreal_mult_le_less_mono2], simpset()));
-qed "hypreal_mult_le_le_mono1";
-
 val prem1::prem2::prem3::rest = goal thy
      "[| (0::hypreal)<y; x<r; y*r<t*s |] ==> y*x<t*s";
 by (rtac ([[prem1,prem2] MRS hypreal_mult_less_mono2, prem3] 

@@ -416,15 +416,13 @@ by (assume_tac 1);
 qed "BseqD";
 
 Goalw [Bseq_def]
-      "[| #0 < K; ALL n. abs(X n) <= K |] \
-\           ==> Bseq X";
+      "[| #0 < K; ALL n. abs(X n) <= K |] ==> Bseq X";
 by (Blast_tac 1);
 qed "BseqI";
 
 Goal "(EX K. #0 < K & (ALL n. abs(X n) <= K)) = \
 \     (EX N. ALL n. abs(X n) <= real_of_nat(Suc N))";
 by Auto_tac;
-by (Force_tac 2); 
 by (cut_inst_tac [("x","K")] reals_Archimedean2 1);
 by (Clarify_tac 1); 
 by (res_inst_tac [("x","n")] exI 1); 
@@ -1255,12 +1253,11 @@ qed "LIMSEQ_pow";
   Proof will use (NS) Cauchy equivalence for convergence and
   also fact that bounded and monotonic sequence converges.  
  ---------------------------------------------------------------*)
-Goalw [Bseq_def] 
-      "[| #0 <= x; x < #1 |] ==> Bseq (%n. x ^ n)";
+Goalw [Bseq_def] "[| #0 <= x; x < #1 |] ==> Bseq (%n. x ^ n)";
 by (res_inst_tac [("x","#1")] exI 1);
-by (auto_tac (claset() addDs [conjI RS realpow_le2] 
+by (auto_tac (claset() addDs [conjI RS realpow_le] 
                        addIs [order_less_imp_le], 
-       simpset() addsimps [real_zero_less_one,abs_eqI1,realpow_abs RS sym] ));
+              simpset() addsimps [abs_eqI1, realpow_abs RS sym] ));
 qed "Bseq_realpow";
 
 Goal "[| #0 <= x; x < #1 |] ==> monoseq (%n. x ^ n)";
