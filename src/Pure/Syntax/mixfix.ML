@@ -144,7 +144,7 @@ fun syn_ext_consts logtypes const_decls =
     val xconsts = map name_of const_decls;
     val binders = mapfilter binder const_decls;
     val binder_trs = map mk_binder_tr binders;
-    val binder_trs' = map (mk_binder_tr' o swap) binders;
+    val binder_trs' = map (apsnd fix_tr' o mk_binder_tr' o swap) binders;
   in
     syn_ext logtypes mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
   end;
