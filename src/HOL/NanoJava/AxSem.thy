@@ -100,9 +100,9 @@ lemma Union: "A |\<turnstile> (\<Union>z. C z) = (\<forall>z. A |\<turnstile> C 
 by (auto intro: hoare.ConjI hoare.ConjE)
 
 lemma Impl': 
- "\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
+  "\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
                 (\<lambda>(C,m). (P z C m, body C m, Q (z::state) C m))`ms ==>
-      A     ||- (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms"
+       A    ||- (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms"
 apply (drule Union[THEN iffD2])
 apply (drule hoare.Impl)
 apply (drule Union[THEN iffD1])
@@ -110,10 +110,10 @@ apply (erule spec)
 done
 
 lemma Impl1: 
- "\<lbrakk>\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
+   "\<lbrakk>\<forall>z. A\<union> (\<Union>z. (\<lambda>(C,m). (P z C m, Impl C m, Q (z::state) C m))`ms) ||- 
                  (\<lambda>(C,m). (P z C m, body C m, Q (z::state) C m))`ms; 
-  (C,m)\<in> ms\<rbrakk> \<Longrightarrow> 
-       A    \<turnstile> {P z C m} Impl C m {Q (z::state) C m}"
+    (C,m)\<in> ms\<rbrakk> \<Longrightarrow> 
+         A             |- {P z C m} Impl C m {Q (z::state) C m}"
 apply (drule Impl')
 apply (erule Weaken)
 apply (auto del: image_eqI intro: rev_image_eqI)
