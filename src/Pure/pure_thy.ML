@@ -243,13 +243,16 @@ fun gen_names j len name =
 
 fun name_multi name xs = gen_names 0 (length xs) name ~~ xs;
 
-fun name_thms name [x] = [Thm.name_thm (name, x)]
-  | name_thms name xs = map Thm.name_thm (name_multi name xs);
+fun name_thm pre (p as (_, thm)) =
+  if Thm.name_of_thm thm <> "" andalso pre then thm else Thm.name_thm p;
+
+fun name_thms pre name [x] = [name_thm pre (name, x)]
+  | name_thms pre name xs = map (name_thm pre) (name_multi name xs);
 
 fun name_thmss name xs = (case filter_out (null o fst) xs of
-    [([x], z)] => [([Thm.name_thm (name, x)], z)]
+    [([x], z)] => [([name_thm true (name, x)], z)]
   | _ => snd (foldl_map (fn (i, (ys, z)) => (i + length ys,
-  (map Thm.name_thm (gen_names i (length ys) name ~~ ys), z))) (0, xs)));
+  (map (name_thm true) (gen_names i (length ys) name ~~ ys), z))) (0, xs)));
 
 
 (* enter_thms *)
@@ -286,7 +289,7 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) thy =
-  enter_thms (Theory.sign_of thy) pre_name name_thms
+  enter_thms (Theory.sign_of thy) pre_name (name_thms false)
     (Thm.applys_attributes o rpair atts) thy (bname, thms);
 
 fun gen_add_thmss pre_name args theory =
@@ -295,8 +298,8 @@ fun gen_add_thmss pre_name args theory =
 fun gen_add_thms pre_name args =
   apsnd (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
 
-val add_thmss = gen_add_thmss name_thms;
-val add_thms = gen_add_thms name_thms;
+val add_thmss = gen_add_thmss (name_thms true);
+val add_thms = gen_add_thms (name_thms true);
 
 
 (* have_thmss(_i) *)
@@ -307,7 +310,7 @@ fun gen_have_thss get kind_att (thy, ((bname, more_atts), ths_atts)) =
   let
     fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
     val (thy', thms) = enter_thms (Theory.sign_of thy)
-      name_thmss name_thms (apsnd flat o foldl_map app) thy
+      name_thmss (name_thms false) (apsnd flat o foldl_map app) thy
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
   in (thy', (bname, thms)) end;
 
@@ -325,7 +328,7 @@ end;
 (* store_thm *)
 
 fun store_thm ((bname, thm), atts) thy =
-  let val (thy', [th']) = add_thms_atts name_thms ((bname, [thm]), atts) thy
+  let val (thy', [th']) = add_thms_atts (name_thms true) ((bname, [thm]), atts) thy
   in (thy', th') end;
 
 
@@ -334,15 +337,18 @@ fun store_thm ((bname, thm), atts) thy =
 fun gen_smart_store_thms _ (name, []) =
       error ("Cannot store empty list of theorems: " ^ quote name)
   | gen_smart_store_thms name_thm (name, [thm]) =
-      snd (enter_thms (Thm.sign_of_thm thm) name_thm name_thm I () (name, [thm]))
+      snd (enter_thms (Thm.sign_of_thm thm) (name_thm true) (name_thm false)
+        I () (name, [thm]))
   | gen_smart_store_thms name_thm (name, thms) =
       let
         val merge_sg = Sign.merge_refs o apsnd (Sign.self_ref o Thm.sign_of_thm);
         val sg_ref = foldl merge_sg (Sign.self_ref (Thm.sign_of_thm (hd thms)), tl thms);
-      in snd (enter_thms (Sign.deref sg_ref) name_thm name_thm I () (name, thms)) end;
+      in snd (enter_thms (Sign.deref sg_ref) (name_thm true) (name_thm false)
+        I () (name, thms))
+      end;
 
 val smart_store_thms = gen_smart_store_thms name_thms;
-val smart_store_thms_open = gen_smart_store_thms (K I);
+val smart_store_thms_open = gen_smart_store_thms (K (K I));
 
 
 (* forall_elim_vars (belongs to drule.ML) *)
