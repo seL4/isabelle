@@ -71,16 +71,9 @@ qed_spec_mp "binomial_eq_0";
 Addsimps [binomial_n_0, binomial_0_Suc, binomial_Suc_Suc];
 Delsimps [binomial_0, binomial_Suc];
 
-
-Goal "!k. n<k --> (n choose k) = 0";
-by (induct_tac "n" 1);
-by (ALLGOALS (rtac allI THEN' exhaust_tac "k"));
-by (ALLGOALS Asm_simp_tac);
-qed_spec_mp "less_imp_binomial_eq_0";
-
 Goal "(n choose n) = 1";
 by (induct_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_imp_binomial_eq_0])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [binomial_eq_0])));
 qed "binomial_n_n";
 Addsimps [binomial_n_n];
 
