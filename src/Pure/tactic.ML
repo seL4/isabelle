@@ -24,8 +24,6 @@ signature TACTIC =
       (bool*thm)list -> (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net
   val compose_inst_tac: (string*string)list -> (bool*thm*int) -> int -> tactic
   val compose_tac: (bool * thm * int) -> int -> tactic 
-  val cterm_lift_inst_rule:
-      thm * int * (indexname*ctyp)list * (term*cterm)list  * thm -> thm
   val cut_facts_tac: thm list -> int -> tactic
   val cut_inst_tac: (string*string)list -> thm -> int -> tactic   
   val dmatch_tac: thm list -> int -> tactic
@@ -79,6 +77,9 @@ signature TACTIC =
   val subgoal_tac: string -> int -> tactic
   val subgoals_tac: string list -> int -> tactic
   val subgoals_of_brl: bool * thm -> int
+  val term_lift_inst_rule:
+      thm * int * (indexname*typ)list * ((indexname*typ)*term)list  * thm
+      -> thm
   val thin_tac: string -> int -> tactic
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
   end;
@@ -204,21 +205,17 @@ end;
   The cterms must be functions of the parameters of the subgoal,
   i.e. they are assumed to be lifted already!
   Also: types of Vars must be fully instantiated already *)
-fun cterm_lift_inst_rule (st, i, Tinsts, insts, rule) =
+fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
 let val {maxidx,sign,...} = rep_thm st
     val (_, _, Bi, _) = dest_state(st,i)
     val params = Logic.strip_params Bi          (*params of subgoal i*)
     val paramTs = map #2 params
     and inc = maxidx+1
-    fun liftvar (Var ((a,j), T)) =
-          cterm_of sign (Var((a, j+inc), paramTs---> incr_tvar inc T))
-      | liftvar t = raise TERM("Variable expected", [t]);
-    (*lift only Var, not cterm! Must to be lifted already*)
-    fun liftpair (v,ct) = (liftvar v, ct)
-    fun lifttvar((a,i),ctyp) =
-        let val {T,sign} = rep_ctyp ctyp
-        in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
-in instantiate (map lifttvar Tinsts, map liftpair insts)
+    fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> incr_tvar inc T)
+    (*lift only Var, not term, which must be lifted already*)
+    fun liftpair (v,t) = (cterm_of sign (liftvar v), cterm_of sign t)
+    fun liftTpair((a,i),T) = ((a,i+inc), ctyp_of sign (incr_tvar inc T))
+in instantiate (map liftTpair Tinsts, map liftpair insts)
                (lift_rule (st,i) rule)
 end;
 
