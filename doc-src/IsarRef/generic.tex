@@ -206,47 +206,40 @@ may be used in advanced case analysis later.
 
 \indexisarcmd{obtain}
 \begin{matharray}{rcl}
-  \isarcmd{obtain} & : & \isartrans{proof(prove)}{proof(state)} \\
+  \isarcmd{obtain} & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
 
-Generalized existence reasoning means that additional elements with certain
-properties are introduced, together with a soundness proof of that context
-change (the rest of the main goal is left unchanged).
-
-Syntactically, the $\OBTAINNAME$ language element is like an initial proof
-method to the present goal, followed by a proof of its additional claim,
-followed by the actual context commands (using the syntax of $\FIXNAME$ and
-$\ASSUMENAME$, see \S\ref{sec:proof-context}).
+Generalized existence means that additional elements with certain properties
+may introduced in the current context.  Technically, the $\OBTAINNAME$
+language element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see
+also see \S\ref{sec:proof-context}), together with a soundness proof of its
+additional claim.  According to the nature of existential reasoning,
+assumptions get eliminated from any result exported from the context later,
+provided that the corresponding parameters do \emph{not} occur in the
+conclusion.
 
 \begin{rail}
   'obtain' (vars + 'and') comment? \\ 'where' (assm comment? + 'and')
   ;
 \end{rail}
 
-$\OBTAINNAME$ is defined as a derived Isar command as follows; here the
-preceding goal shall be $\psi$, with (optional) facts $\vec b$ indicated for
-forward chaining.
+$\OBTAINNAME$ is defined as a derived Isar command as follows, where $\vec b$
+shall refer to (optional) facts indicated for forward chaining.
 \begin{matharray}{l}
-  \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[0.5ex]
-  \quad \PROOF{succeed} \\
-  \qquad \DEF{}{thesis \equiv \psi} \\
-  \qquad \PRESUME{that}{\All{\vec x} \vec\phi \Imp thesis} \\
-  \qquad \FROM{\vec b}~\SHOW{}{thesis}~~\langle proof\rangle \\
-  \quad \NEXT \\
-  \qquad \FIX{\vec x}~\ASSUME{a}{\vec\phi} \\
+  \langle facts~\vec b\rangle \\
+  \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[1ex]
+  \quad \BG \\
+  \qquad \FIX{thesis} \\
+  \qquad \ASSUME{that [simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
+  \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
+  \quad \EN \\
+  \quad \FIX{\vec x}~\ASSUMENAME^{obtained}~{a}~{\vec\phi} \\
 \end{matharray}
 
 Typically, the soundness proof is relatively straight-forward, often just by
 canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
-$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Note that the ``$that$''
-presumption above is usually declared as simplification and (unsafe)
-introduction rule, depending on the object-logic's policy,
-though.\footnote{HOL and HOLCF do this already.}
-
-The original goal statement is wrapped into a local definition in order to
-avoid any automated tools descending into it.  Usually, any statement would
-admit the intended reduction anyway; only in very rare cases $thesis_def$ has
-to be expanded to complete the soundness proof.
+$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Accordingly, the ``$that$''
+reduction above is declared as simplification and introduction rule.
 
 \medskip
 
@@ -255,6 +248,8 @@ meta-logical existential quantifiers and conjunctions.  This concept has a
 broad range of useful applications, ranging from plain elimination (or even
 introduction) of object-level existentials and conjunctions, to elimination
 over results of symbolic evaluation of recursive definitions, for example.
+Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
+where the result is treated as an assumption.
 
 
 \section{Miscellaneous methods and attributes}
