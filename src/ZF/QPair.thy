@@ -14,8 +14,8 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 QPair = Sum + "simpdata" +
 consts
   QPair     :: "[i, i] => i"               	("<(_;/ _)>")
-  qsplit    :: "[[i,i] => i, i] => i"
-  qfsplit   :: "[[i,i] => o, i] => o"
+  qfst,qsnd :: "i => i"
+  qsplit    :: "[[i, i] => 'a, i] => 'a::logic"  (*for pattern-matching*)
   qconverse :: "i => i"
   QSigma    :: "[i, i => i] => i"
 
@@ -33,8 +33,10 @@ translations
 
 defs
   QPair_def       "<a;b> == a+b"
-  qsplit_def      "qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)"
-  qfsplit_def     "qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)"
+  qfst_def        "qfst(p) == THE a. EX b. p=<a;b>"
+  qsnd_def        "qsnd(p) == THE b. EX a. p=<a;b>"
+  qsplit_def      "qsplit(c,p) == c(qfst(p), qsnd(p))"
+
   qconverse_def   "qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}"
   QSigma_def      "QSigma(A,B)  ==  UN x:A. UN y:B(x). {<x;y>}"
 
