@@ -85,7 +85,7 @@ Goal "[| (0::real) < a; 0 < n; \
 \    isLub (UNIV::real set) \
 \    {x. x ^ n <= a & 0 < x} u |] ==> a <= u ^ n";
 by (ftac lemma_nth_realpow_isLub_ge 1 THEN Step_tac 1);
-by (rtac (LIMSEQ_inverse_real_of_posnat_add RS LIMSEQ_pow 
+by (rtac (LIMSEQ_inverse_real_of_nat_add RS LIMSEQ_pow 
     RS LIMSEQ_le_const) 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_def,
     real_of_posnat_Suc]));
@@ -133,7 +133,7 @@ Goal "[| (0::real) < a; 0 < n; \
 \    isLub (UNIV::real set) \
 \    {x. x ^ n <= a & 0 < x} u |] ==> u ^ n <= a";
 by (ftac lemma_nth_realpow_isLub_le 1 THEN Step_tac 1);
-by (rtac (LIMSEQ_inverse_real_of_posnat_add_minus_mult RS LIMSEQ_pow 
+by (rtac (LIMSEQ_inverse_real_of_nat_add_minus_mult RS LIMSEQ_pow 
     RS LIMSEQ_le_const2) 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_def,real_of_posnat_Suc]));
 qed "realpow_nth_le";

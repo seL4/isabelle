@@ -1168,12 +1168,12 @@ Goal "(%n. r + inverse(real(Suc n))) ----> r";
 by (cut_facts_tac
     [ [LIMSEQ_const,LIMSEQ_inverse_real_of_nat] MRS LIMSEQ_add ] 1);
 by Auto_tac;
-qed "LIMSEQ_inverse_real_of_posnat_add";
+qed "LIMSEQ_inverse_real_of_nat_add";
 
 Goal "(%n. r + inverse(real(Suc n))) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_inverse_real_of_posnat_add]) 1);
-qed "NSLIMSEQ_inverse_real_of_posnat_add";
+    LIMSEQ_inverse_real_of_nat_add]) 1);
+qed "NSLIMSEQ_inverse_real_of_nat_add";
 
 (*--------------
     Also...
@@ -1183,23 +1183,23 @@ Goal "(%n. r + -inverse(real(Suc n))) ----> r";
 by (cut_facts_tac [[LIMSEQ_const,LIMSEQ_inverse_real_of_nat]
                    MRS LIMSEQ_add_minus] 1);
 by (Auto_tac);
-qed "LIMSEQ_inverse_real_of_posnat_add_minus";
+qed "LIMSEQ_inverse_real_of_nat_add_minus";
 
 Goal "(%n. r + -inverse(real(Suc n))) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_inverse_real_of_posnat_add_minus]) 1);
-qed "NSLIMSEQ_inverse_real_of_posnat_add_minus";
+    LIMSEQ_inverse_real_of_nat_add_minus]) 1);
+qed "NSLIMSEQ_inverse_real_of_nat_add_minus";
 
 Goal "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r";
 by (cut_inst_tac [("b","1")] ([LIMSEQ_const,
-    LIMSEQ_inverse_real_of_posnat_add_minus] MRS LIMSEQ_mult) 1);
+    LIMSEQ_inverse_real_of_nat_add_minus] MRS LIMSEQ_mult) 1);
 by (Auto_tac);
-qed "LIMSEQ_inverse_real_of_posnat_add_minus_mult";
+qed "LIMSEQ_inverse_real_of_nat_add_minus_mult";
 
 Goal "(%n. r*( 1 + -inverse(real(Suc n)))) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
-    LIMSEQ_inverse_real_of_posnat_add_minus_mult]) 1);
-qed "NSLIMSEQ_inverse_real_of_posnat_add_minus_mult";
+    LIMSEQ_inverse_real_of_nat_add_minus_mult]) 1);
+qed "NSLIMSEQ_inverse_real_of_nat_add_minus_mult";
 
 (*---------------------------------------------------------------
                           Real Powers
