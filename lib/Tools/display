@@ -76,8 +76,8 @@ FILE="$1"; shift
 [ -f "$FILE" ] || fail "Bad file: $FILE"
 
 if [ -n "$CLEAN" ]; then
-  PRIVATE_FILE="$ISABELLE_TMP_PREFIX/"$$"$FILE"
-  mv "$FILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
+  PRIVATE_FILE="$ISABELLE_TMP/"$(basename "$FILE")
+  mv "$FILE" "$PRIVATE_FILE" ##|| fail "Cannot move file: $FILE"
   view "$PRIVATE_FILE"
   rm -f "$PRIVATE_FILE"
 else
