@@ -227,15 +227,9 @@ qed_spec_mp "subject_reduction";
 
 (**** additional lemmas ****)
 
-Goal "ALL t. (t $$ ts) $ u = t $$ (ts @ [u])";
-by (induct_tac "ts" 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed_spec_mp "app_last";
-
-Goal "ALL ys. xs : lists S --> ys : lists S --> xs @ ys : lists S";
-by (induct_tac "xs" 1);
-by (ALLGOALS (fast_tac (claset() addss simpset())));
-qed_spec_mp "append_lists";
+Goal "(t $$ ts) $ u = t $$ (ts @ [u])";
+by (Simp_tac 1);
+qed "app_last";
 
 Goal "r : IT ==> ALL i j. r[Var i/j] : IT";
 by (etac IT.induct 1);
@@ -273,7 +267,6 @@ Goal "t : IT ==> t $ Var i : IT";
 by (etac IT.induct 1);
 by (stac app_last 1);
 by (rtac IT.VarI 1);
-by (rtac append_lists 1);
 by (Asm_full_simp_tac 1);
 by (rtac lists.Cons 1);
 by (rtac Var_IT 1);
