@@ -15,7 +15,6 @@ goals_limit:=1;
 
 loadpath := ["meta_theory"];
 
-use_thy"IOA";
 use_thy"Abstraction";
 use_thy"TrivEx";
 use_thy"TrivEx2";

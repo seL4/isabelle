@@ -6,7 +6,7 @@
 Trivial Abstraction Example
 *)
 
-TrivEx = Abstraction + TLS + IOA +
+TrivEx = Abstraction + 
 
 datatype action = INC
 

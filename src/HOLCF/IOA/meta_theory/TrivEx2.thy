@@ -6,7 +6,7 @@
 Trivial Abstraction Example with fairness
 *)
 
-TrivEx2 = Abstraction + TLS + IOA +
+TrivEx2 = Abstraction + IOA +
 
 datatype action = INC
 

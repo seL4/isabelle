@@ -6,7 +6,7 @@
 The main correctness proof: Impl implements Spec
 *)
 
-Correctness = IOA + Impl + Spec +
+Correctness = Impl + Spec +
 
 constdefs
 

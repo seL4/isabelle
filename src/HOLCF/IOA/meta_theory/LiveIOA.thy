@@ -7,7 +7,7 @@ Live I/O automata -- specified by temproal formulas
 
 *) 
   
-LiveIOA = IOA + TLS + 
+LiveIOA = TLS + 
 
 default term
 

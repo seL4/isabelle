@@ -7,7 +7,7 @@ Abstraction Theory -- tailored for I/O automata
 *)   
 
 		       
-Abstraction = LiveIOA + TLS + 
+Abstraction = LiveIOA + 
 
 default term
 

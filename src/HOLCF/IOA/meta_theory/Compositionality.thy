@@ -6,4 +6,4 @@
 Compositionality of I/O automata
 *) 
 
-Compositionality = Automata + Traces + CompoTraces
+Compositionality = CompoTraces
