@@ -50,7 +50,7 @@ datatype term =
   | Var   of indexname * typ
   | Bound of int
   | Abs   of string*typ*term
-  | $     of term*term;
+  | op $  of term*term;
 
 
 (*For errors involving type mismatches*)
