@@ -256,3 +256,31 @@ by (REPEAT (ares_tac [congt] 1
      ORELSE etac (equivA RS equiv_type RS subsetD RS SigmaE2) 1));
 qed "congruent2_commuteI";
 
+
+(*** Cardinality results suggested by Florian Kammüller ***)
+
+(*Recall that  equiv A r  implies  r <= A Times A   (equiv_type) *)
+goal thy "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";
+by (rtac finite_subset 1);
+by (etac (finite_Pow_iff RS iffD2) 2);
+by (rewrite_goals_tac [quotient_def]);
+by (Blast_tac 1);
+qed "finite_quotient";
+
+goalw thy [quotient_def]
+    "!!A. [| finite A;  r <= A Times A;  X : A/r |] ==> finite X";
+by (rtac finite_subset 1);
+ba 2;
+by (Blast_tac 1);
+qed "finite_equiv_class";
+
+goal thy "!!A. [| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
+\              ==> k dvd card(A)";
+by (rtac (Union_quotient RS subst) 1);
+by (assume_tac 1);
+by (rtac dvd_partition 1);
+by (blast_tac (!claset delrules [equalityI] addEs [quotient_disj RS disjE]) 4);
+by (ALLGOALS 
+    (asm_simp_tac (!simpset addsimps [Union_quotient, equiv_type, 
+				      finite_quotient])));
+qed "equiv_imp_dvd_card";
