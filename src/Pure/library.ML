@@ -1,7 +1,7 @@
 (*  Title:      Pure/library.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:	Markus Wenzel, TU Munich
+    Author:     Markus Wenzel, TU Munich
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic library: functions, options, pairs, booleans, lists, integers,
@@ -211,14 +211,12 @@ sig
   val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
 
-  (*generic tables*)
-  val generic_extend: ('a * 'a -> bool)
-    -> ('b -> 'a list) -> ('a list -> 'b) -> 'b -> 'a list -> 'b
-  val generic_merge: ('a * 'a -> bool) -> ('b -> 'a list) -> ('a list -> 'b) -> 'b -> 'b -> 'b
-  val extend_list: ''a list -> ''a list -> ''a list
+  (*lists as tables*)
+  val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
+  val gen_merge_lists': ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val merge_lists: ''a list -> ''a list -> ''a list
+  val merge_lists': ''a list -> ''a list -> ''a list
   val merge_alists: (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
-  val merge_rev_lists: ''a list -> ''a list -> ''a list
 
   (*balanced trees*)
   exception Balance
@@ -880,9 +878,9 @@ fun ([]:string list) inter_string ys = []
 
 (*generalized intersection*)
 fun gen_inter eq ([], ys) = []
-  | gen_inter eq (x::xs, ys) = 
+  | gen_inter eq (x::xs, ys) =
       if gen_mem eq (x,ys) then x :: gen_inter eq (xs, ys)
-	                   else      gen_inter eq (xs, ys);
+                           else      gen_inter eq (xs, ys);
 
 
 (*subset*)
@@ -1013,46 +1011,19 @@ fun gen_overwrite eq (al, p as (key, _)) =
   in over al end;
 
 
+(* lists as tables *)
 
-(** generic tables **)
+fun gen_merge_lists _ xs [] = xs
+  | gen_merge_lists _ [] ys = ys
+  | gen_merge_lists eq xs ys = xs @ gen_rems eq (ys, xs);
 
-(*Tables are supposed to be 'efficient' encodings of lists of elements distinct
-  wrt. an equality "eq". The extend and merge operations below are optimized
-  for long-term space efficiency.*)
+fun gen_merge_lists' _ xs [] = xs
+  | gen_merge_lists' _ [] ys = ys
+  | gen_merge_lists' eq xs ys = gen_rems eq (xs, ys) @ ys;
 
-(*append (new) elements to a table*)
-fun generic_extend _ _ _ tab [] = tab
-  | generic_extend eq dest_tab mk_tab tab1 lst2 =
-      let
-        val lst1 = dest_tab tab1;
-        val new_lst2 = gen_rems eq (lst2, lst1);
-      in
-        if null new_lst2 then tab1
-        else mk_tab (lst1 @ new_lst2)
-      end;
-
-(*append (new) elements of 2nd table to 1st table*)
-fun generic_merge eq dest_tab mk_tab tab1 tab2 =
-  let
-    val lst1 = dest_tab tab1;
-    val lst2 = dest_tab tab2;
-    val new_lst2 = gen_rems eq (lst2, lst1);
-  in
-    if null new_lst2 then tab1
-    else if gen_subset eq (lst1, lst2) then tab2
-    else mk_tab (lst1 @ new_lst2)
-  end;
-
-
-(*lists as tables*)
-fun extend_list tab = generic_extend (op =) I I tab;
-fun merge_lists tab = generic_merge (op =) I I tab;
-fun merge_alists tab = generic_merge eq_fst I I tab;
-
-fun merge_rev_lists xs [] = xs
-  | merge_rev_lists [] ys = ys
-  | merge_rev_lists xs (y :: ys) =
-      (if y mem xs then I else cons y) (merge_rev_lists xs ys);
+fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
+fun merge_lists' xs ys = gen_merge_lists' (op =) xs ys;
+fun merge_alists al = gen_merge_lists eq_fst al;
 
 
 
