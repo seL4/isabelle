@@ -100,6 +100,12 @@ qed "uv_prop_finite";
 
 (*** guarantees ***)
 
+(*This equation is more intuitive than the official definition*)
+Goalw [guarantees_def, component_def]
+      "(F : A guarantees B) = (ALL G. F Join G : A --> F Join G : B)";
+by (Blast_tac 1);
+qed "guarantees_eq";
+
 Goalw [guarantees_def] "X <= Y ==> X guarantees Y = UNIV";
 by (Blast_tac 1);
 qed "subset_imp_guarantees";
@@ -147,11 +153,6 @@ Goalw [guarantees_def]
      "EX z:I. F : A guarantees (B z) ==> F : A guarantees (UN z:I. B z)";
 by (Blast_tac 1);
 qed "ex_guarantees";
-
-Goalw [guarantees_def, component_def]
-      "(F : A guarantees B) = (ALL G. F Join G : A --> F Join G : B)";
-by (Blast_tac 1);
-qed "guarantees_eq";
 
 val prems = Goalw [guarantees_def, component_def]
       "(!!G. F Join G : A ==> F Join G : B) ==> F : A guarantees B";
