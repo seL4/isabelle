@@ -114,9 +114,9 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
      [(name, setT, NoSyn),
       (Rep_name, newT --> oldT, NoSyn),
       (Abs_name, oldT --> newT, NoSyn)]
-    |> Theory.add_defs_i
+    |> PureThy.add_store_defs_i
      [(name ^ "_def", Logic.mk_equals (setC, set))]
-    |> Theory.add_axioms_i
+    |> PureThy.add_store_axioms_i
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
       (Abs_name ^ "_inverse", abs_type_inv)]
