@@ -19,14 +19,14 @@ more information.
 
 Here are brief instructions.  For more detail, read further.
 
-1.  Create a directory to hold the Isabelle executable images, and 
-    set the environment variable ISABELLEBIN to its pathname.
+1.  Create a directory to hold the Isabelle executable images.
+    Set the environment variable ISABELLEBIN to its full (absolute) pathname.
 
 2.  Set the environment variable ISABELLECOMP to the command to execute your
     Standard ML compiler.
 
-3.  If using Poly/ML, set the environment variable ML_DBASE to the pathname
-    of the empty Poly/ML database.
+3.  If using Poly/ML, set the environment variable ML_DBASE to the full 
+    pathname of the empty Poly/ML database.
 
 4.  Change your working directory to that containing this file.
 
@@ -49,10 +49,10 @@ You can use two different Standard ML compilers: Poly/ML version 2.03 or later
 (from Abstract Hardware Ltd) and Standard ML of New Jersey (Version 0.93 or
 later).  Poly/ML is a commercial product and costs money, but it is stable and
 efficient; moreover its database system is convenient for interactive work.
-SML/NJ needs lots of store and disc space, but it is free.  Recent versions of
-SML/NJ are significantly faster than 0.93, but beware of many
+SML/NJ needs lots of store and disc space, but it is free.  Some recent
+versions of SML/NJ are significantly faster than 0.93, but beware of many
 incompatibilities among them; you might be forced to edit the file
-Pure/NJ1xx.ML.
+Pure/NJ1xx.ML.  VERSIONS BETWEEN 109.16 AND 109.21 ARE VERY SLOW.
 
 To obtain Poly/ML, contact Abstract Hardware Ltd, The Howell Building, Brunel
 University, Uxbridge UB8 3PH, England, email lambda@ahl.co.uk.
@@ -70,8 +70,7 @@ example using the Bourne shell, sh.
 
 ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
 images.  This directory *must* be different from the Isabelle source
-directory.  When using Poly/ML, ISABELLEBIN must be an absolute pathname
-(one starting with "/").
+directory.  ISABELLEBIN must be an absolute pathname (one starting with "/").
 
 ML_DBASE is an *absolute* pathname to the initial Poly/ML database.  It is not
 required for New Jersey ML.
@@ -79,7 +78,9 @@ required for New Jersey ML.
 ISABELLECOMP is the command to run ML compiler, typically "/bin/sml" or "poly
 -noDisplay -h 15000".  (The -h switch to Poly specifies an initial heap
 allocation, which you should consider increasing if a command fails with the
-message "Run out of store".)
+message "Run out of store".)  Please DO NOT use a command such as
+"sml @SMLdebug=/dev/null", since the pathname after "sml" will confuse the
+Makefiles. 
 
 If, after stripping a leading pathname, the compiler begins with the letters
 "poly" then the Makefiles assume Poly/ML.  If it begins with the letters "sml"
