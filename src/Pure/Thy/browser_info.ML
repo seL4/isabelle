@@ -6,7 +6,6 @@ Theory browsing information (HTML and graph files).
 
 TODO:
   - href parent theories (this vs. ancestor session!?);
-  - include 'README';
   - usedir: exclude arrow gifs;
   - symlink ".parent", ".top" (URLs!?);
 *)
@@ -113,10 +112,14 @@ fun make_session_info (name, parent, session, path, html_prefix, graph_prefix) =
   {name = name, parent = parent, session = session, path = path,
     html_prefix = html_prefix, graph_prefix = graph_prefix}: session_info;
 
+
+(* state *)
+
 val session_info = ref (None: session_info option);
 
-fun in_context f = f (PureThy.get_name (Context.the_context ()));
-fun conditional f = (case ! session_info of None => () | Some info => f info);
+fun with_session f = (case ! session_info of None => () | Some info => f info);
+fun with_context f = f (PureThy.get_name (Context.the_context ()));
+
 
 
 
@@ -142,7 +145,7 @@ fun create_index dir =
 
 fun update_index dir name =
   (case try get_entries dir of
-    None => ()
+    None => warning ("Browser info: cannot access session index in " ^ quote (Path.pack dir))
   | Some es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
 
 
@@ -150,32 +153,43 @@ fun update_index dir name =
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
+fun could_copy inpath outpath =
+  if File.exists inpath then (File.copy inpath outpath; true)
+  else false;
+
 fun init false _ _ = (browser_info := empty_browser_info; session_info := None)
   | init true path name =
       let
-        val parent_name = name_of_session (path \ name);
+        val parent_name = name_of_session (take (length path - 1, path));
         val session_name = name_of_session path;
         val sess_prefix = Path.make path;
-
         val out_path = Path.expand output_path;
         val html_prefix = Path.append out_path sess_prefix;
         val graph_prefix = Path.appends [out_path, Path.unpack "graph/data", sess_prefix];
+
+        val _ = (File.mkdir html_prefix; File.mkdir graph_prefix);
+        fun prep_readme readme =
+          let val readme_path = Path.basic readme in
+            if could_copy readme_path (Path.append html_prefix readme_path) then Some readme_path
+            else None
+          end;
+        val opt_readme =
+          (case prep_readme "README.html" of None => prep_readme "README" | some => some);
+        val index_text = HTML.begin_index (Path.append Path.parent index_path, parent_name)
+          (index_path, session_name) opt_readme;
       in
-        File.mkdir html_prefix;
-        File.mkdir graph_prefix;
         File.mkdir (Path.append html_prefix session_path);
         File.write (Path.append html_prefix session_entries_path) "";
         session_info := Some (make_session_info (name, parent_name, session_name, path,
           html_prefix, graph_prefix));
         browser_info := empty_browser_info;
-        add_index							(* FIXME 'README' *)
-          (HTML.begin_index (Path.append Path.parent index_path, parent_name) (index_path, session_name) None)
+        add_index index_text
       end;
 
 
 (* finish session *)
 
-fun finish () = conditional (fn {html_prefix, graph_prefix, name, ...} =>
+fun finish () = with_session (fn {name, html_prefix, graph_prefix, ...} =>
   let
     val {theories, index} = ! browser_info;
 
@@ -194,42 +208,45 @@ fun finish () = conditional (fn {html_prefix, graph_prefix, name, ...} =>
 
 (* theory elements *)
 
-fun theory_source name src = conditional (fn _ =>
+fun theory_source name src = with_session (fn _ =>
   (init_theory_info name empty_theory_info; add_source name (HTML.source src)));
 
 
 (* FIXME clean *)
 
-fun begin_theory name parents orig_files = conditional (fn {session, html_prefix, ...} =>
+fun begin_theory name parents orig_files = with_session (fn {session, html_prefix, ...} =>
   let
     val ml_path = ThyLoad.ml_path name;
     val files = orig_files @		(* FIXME improve!? *)
       (if is_some (ThyLoad.check_file ml_path) then [(ml_path, true)] else []);
-    val files_html = map (fn (p, loadit) => ((p, html_ext p), loadit)) files;
 
-    fun prep_file raw_path =
+    fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_file raw_path of
         Some (path, _) =>
-          let val base = Path.base path in
-            File.write (Path.append html_prefix (html_ext base))
-              (HTML.ml_file base (File.read path))
+          let
+            val base = Path.base path;
+            val base_html = html_ext base;
+          in
+            File.write (Path.append html_prefix base_html) (HTML.ml_file base (File.read path));
+            (Some base_html, raw_path, loadit)
           end
-      | None => warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path)));
+      | None => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
+          (None, raw_path, loadit)));
 
+    val files_html = map prep_file files;
     fun prep_source (source, html, graph) =
       let val txt =
         HTML.begin_theory (index_path, session) name parents files_html (Buffer.content source)
-        in (Buffer.empty, Buffer.add txt html, graph) end;
+      in (Buffer.empty, Buffer.add txt html, graph) end;
   in
-    seq (prep_file o #1) files;
     change_theory_info name prep_source;
     add_index (HTML.theory_entry (html_path name, name))
   end);
 
 fun end_theory _ = ();
 
-fun theorem name thm = conditional (fn _ => in_context add_html (HTML.theorem name thm));
-fun section s = conditional (fn _ => in_context add_html (HTML.section s));
+fun theorem name thm = with_session (fn _ => with_context add_html (HTML.theorem name thm));
+fun section s = with_session (fn _ => with_context add_html (HTML.section s));
 
 
 end;
