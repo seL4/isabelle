@@ -1,0 +1,51 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# DESCRIPTION: view Isabelle documentation
+#
+# TODO:
+#  - other formats than dvi (??)
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [DOC]"
+  echo
+  echo "  View Isabelle documentation DOC, or show list of available documents."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## args
+
+DOC=""
+[ $# -ge 1 ] && { DOC="$1"; shift }
+
+[ $# -ne 0 -o "$DOC" = "-?" ] && usage
+
+
+## main
+
+if [ -z "$DOC" ]; then
+  for DIR in $ISABELLE_DOCS
+  do
+    [ -f $DIR/Contents ] && cat $DIR/Contents
+  done
+else
+  for DIR in $ISABELLE_DOCS
+  do
+    [ -f $DIR/$DOC.dvi ] && exec $DVI_VIEWER $DIR/$DOC.dvi
+  done
+  fail "Unknown Isabelle document: $DOC"  
+fi
