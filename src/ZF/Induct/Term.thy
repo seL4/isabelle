@@ -167,7 +167,7 @@ text {*
 *}
 
 lemma term_map [simp]:
-    "ts \<in> list(A) \<Longrightarrow> term_map(f, Apply(a, ts)) = Apply(f(a), map(term_map(f), ts))"
+    "ts \<in> list(A) ==> term_map(f, Apply(a, ts)) = Apply(f(a), map(term_map(f), ts))"
   by (rule term_map_def [THEN def_term_rec])
 
 lemma term_map_type [TC]:
@@ -188,7 +188,7 @@ text {*
 *}
 
 lemma term_size [simp]:
-    "ts \<in> list(A) \<Longrightarrow> term_size(Apply(a, ts)) = succ(list_add(map(term_size, ts)))"
+    "ts \<in> list(A) ==> term_size(Apply(a, ts)) = succ(list_add(map(term_size, ts)))"
   by (rule term_size_def [THEN def_term_rec])
 
 lemma term_size_type [TC]: "t \<in> term(A) ==> term_size(t) \<in> nat"
@@ -200,7 +200,7 @@ text {*
 *}
 
 lemma reflect [simp]:
-    "ts \<in> list(A) \<Longrightarrow> reflect(Apply(a, ts)) = Apply(a, rev(map(reflect, ts)))"
+    "ts \<in> list(A) ==> reflect(Apply(a, ts)) = Apply(a, rev(map(reflect, ts)))"
   by (rule reflect_def [THEN def_term_rec])
 
 lemma reflect_type [TC]: "t \<in> term(A) ==> reflect(t) \<in> term(A)"
@@ -212,7 +212,7 @@ text {*
 *}
 
 lemma preorder [simp]:
-    "ts \<in> list(A) \<Longrightarrow> preorder(Apply(a, ts)) = Cons(a, flat(map(preorder, ts)))"
+    "ts \<in> list(A) ==> preorder(Apply(a, ts)) = Cons(a, flat(map(preorder, ts)))"
   by (rule preorder_def [THEN def_term_rec])
 
 lemma preorder_type [TC]: "t \<in> term(A) ==> preorder(t) \<in> list(A)"
@@ -224,7 +224,7 @@ text {*
 *}
 
 lemma postorder [simp]:
-    "ts \<in> list(A) \<Longrightarrow> postorder(Apply(a, ts)) = flat(map(postorder, ts)) @ [a]"
+    "ts \<in> list(A) ==> postorder(Apply(a, ts)) = flat(map(postorder, ts)) @ [a]"
   by (rule postorder_def [THEN def_term_rec])
 
 lemma postorder_type [TC]: "t \<in> term(A) ==> postorder(t) \<in> list(A)"

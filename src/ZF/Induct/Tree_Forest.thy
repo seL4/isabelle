@@ -20,10 +20,10 @@ datatype "tree(A)" = Tcons ("a \<in> A", "f \<in> forest(A)")
 
 declare tree_forest.intros [simp, TC]
 
-lemma tree_def: "tree(A) \<equiv> Part(tree_forest(A), Inl)"
+lemma tree_def: "tree(A) == Part(tree_forest(A), Inl)"
   by (simp only: tree_forest.defs)
 
-lemma forest_def: "forest(A) \<equiv> Part(tree_forest(A), Inr)"
+lemma forest_def: "forest(A) == Part(tree_forest(A), Inr)"
   by (simp only: tree_forest.defs)
 
 
@@ -234,7 +234,8 @@ lemma map_ident: "z \<in> tree_forest(A) ==> map(\<lambda>u. u, z) = z"
     apply simp_all
   done
 
-lemma map_compose: "z \<in> tree_forest(A) ==> map(h, map(j,z)) = map(\<lambda>u. h(j(u)), z)"
+lemma map_compose:
+    "z \<in> tree_forest(A) ==> map(h, map(j,z)) = map(\<lambda>u. h(j(u)), z)"
   apply (erule tree_forest.induct)
     apply simp_all
   done
