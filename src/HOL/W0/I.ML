@@ -58,10 +58,12 @@ by (eres_inst_tac [("x","n2")] allE 1);
 (** LEVEL 34 **)
 by (rtac conjI 1);
  by (strip_tac 1);
- by (mp_tac 1);
+ by (rtac notI 1);
+ by (Asm_full_simp_tac 1);
+(* by (mp_tac 1);
  by (mp_tac 1);
  by (etac exE 1);
- by (etac conjE 1);
+ by (etac conjE 1);*)
  by (etac impE 1);
   by ((ftac new_tv_subst_tel 1) THEN (atac 1)); 
   by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));
@@ -73,10 +75,13 @@ by (strip_tac 1);
 by (rename_tac "s2 t2' n2'" 1);
 by (rtac conjI 1);
  by (strip_tac 1);
+ by (rtac notI 1);
+ by (Asm_full_simp_tac 1);
+(*
  by (mp_tac 1);
  by (mp_tac 1);
  by (etac exE 1);
- by (etac conjE 1);
+ by (etac conjE 1);*)
  by (etac impE 1);
   by ((ftac new_tv_subst_tel 1) THEN (atac 1)); 
   by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));

@@ -396,7 +396,7 @@ Goal
 \  (? u v. w = u@v & (? r. (p,r) : steps L u & fin L r & \
 \          (? s. (start R,s) : steps R v & q = False#s))))";
 by (blast_tac (claset() addDs [True_steps_concD]
-     addIs [True_True_steps_concI,in_steps_epsclosure,r_into_rtrancl]) 1);
+     addIs [True_True_steps_concI,in_steps_epsclosure]) 1);
 qed "True_steps_conc";
 
 (** starting from the start **)
@@ -537,7 +537,7 @@ Goalw [accepts_def]
 by (induct_tac "us" 1);
  by (Simp_tac 1);
 by (Simp_tac 1);
-by (blast_tac (claset() addIs [True_True_steps_starI,True_start_eps_starI,r_into_rtrancl,in_epsclosure_steps]) 1);
+by (blast_tac (claset() addIs [True_True_steps_starI,True_start_eps_starI,in_epsclosure_steps]) 1);
 qed_spec_mp "steps_star_cycle";
 
 (* Better stated directly with start(star A)? Loop in star A back to start(star A)?*)
@@ -578,7 +578,7 @@ by (rtac iffI 1);
  by (Blast_tac 1);
 by (etac disjE 1);
  by (Asm_simp_tac 1);
-by (blast_tac (claset() addIs [in_steps_epsclosure,r_into_rtrancl]) 1);
+by (blast_tac (claset() addIs [in_steps_epsclosure]) 1);
 qed "start_steps_star";
 
 Goalw [star_def] "!A. fin (star A) (True#p) = fin A p";

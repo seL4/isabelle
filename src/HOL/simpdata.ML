@@ -66,9 +66,12 @@ val simp_thms = [not_not] @ map prover
    "(P | ~P) = True",    "(~P | P) = True",
    "((~P) = (~Q)) = (P=Q)",
    "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x",
-(*two needed for the one-point-rule quantifier simplification procs*)
-   "(? x. x=t & P(x)) = P(t)",          (*essential for termination!!*)
-   "(! x. t=x --> P(x)) = P(t)" ];      (*covers a stray case*)
+(* needed for the one-point-rule quantifier simplification procs*)
+(*essential for termination!!*)
+   "(? x. x=t & P(x)) = P(t)",
+   "(? x. t=x & P(x)) = P(t)",
+   "(! x. x=t --> P(x)) = P(t)",
+   "(! x. t=x --> P(x)) = P(t)" ];
 
 val imp_cong = standard(impI RSN
     (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
@@ -256,6 +259,14 @@ by (stac split_if 1);
 by (Blast_tac 1);
 qed "if_bool_eq_disj";
 
+local
+val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
+              (fn prems => [cut_facts_tac prems 1, Blast_tac 1]);
+
+val iff_allI = allI RS
+    prove_goal (the_context()) "!x. P x = Q x ==> (!x. P x) = (!x. Q x)"
+               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
+in
 
 (*** make simplification procedures for quantifier elimination ***)
 
@@ -266,28 +277,30 @@ structure Quantifier1 = Quantifier1Fun
     | dest_eq _ = None;
   fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
     | dest_conj _ = None;
+  fun dest_imp((c as Const("op -->",_)) $ s $ t) = Some(c,s,t)
+    | dest_imp _ = None;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
   (*rules*)
   val iff_reflection = eq_reflection
   val iffI = iffI
-  val sym  = sym
   val conjI= conjI
   val conjE= conjE
   val impI = impI
-  val impE = impE
   val mp   = mp
+  val uncurry = uncurry
   val exI  = exI
   val exE  = exE
-  val allI = allI
-  val allE = allE
+  val iff_allI = iff_allI
 end);
+
+end;
 
 local
 val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
     ("EX x. P(x) & Q(x)",HOLogic.boolT)
 val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
-    ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+    ("ALL x. P(x) --> Q(x)",HOLogic.boolT)
 in
 val defEX_regroup = mk_simproc "defined EX" [ex_pattern]
       Quantifier1.rearrange_ex

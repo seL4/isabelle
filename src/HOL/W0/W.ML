@@ -50,7 +50,7 @@ by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1);
-by (rename_tac "s t na sa ta nb sb sc tb m" 1);
+by (rename_tac "s t na sa ta nb sb" 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (eres_inst_tac [("x","$ s a")] allE 1);
@@ -59,7 +59,6 @@ by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
-by (etac conjE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
 by (eres_inst_tac [("x","ta")] allE 1);
 by (eres_inst_tac [("x","nb")] allE 1);
@@ -99,7 +98,7 @@ by (induct_tac "e" 1);
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1);
-by (rename_tac "s t na sa ta nb sb sc tb m" 1);
+by (rename_tac "s t na sa ta nb sb" 1);
 by (eres_inst_tac [("x","n")] allE 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (eres_inst_tac [("x","s")] allE 1);

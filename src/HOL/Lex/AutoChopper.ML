@@ -93,7 +93,6 @@ Goal
 by (Simp_tac 1);
 by (induct_tac "xs" 1);
  by (simp_tac (simpset() addcongs [conj_cong]) 1);
- by (Fast_tac 1);
 by (asm_simp_tac (simpset() addcongs [conj_cong]) 1);
 by (res_inst_tac [("p","acc A (start A) ([],list) [] list []")] PairE 1);
 by (rename_tac "vss lrst" 1);  
@@ -116,7 +115,6 @@ Goal
 by (Simp_tac 1);
 by (induct_tac "xs" 1);
  by (simp_tac (simpset() addcongs [conj_cong]) 1);
- by (Fast_tac 1);
 by (asm_simp_tac (simpset() addcongs [conj_cong]) 1);
 by (strip_tac 1);
 by (rtac conjI 1);
@@ -155,7 +153,6 @@ Goal
 by (Simp_tac 1);
 by (induct_tac "xs" 1);
  by (simp_tac (simpset() addcongs [conj_cong]) 1);
- by (Fast_tac 1);
 by (asm_simp_tac (simpset() addcongs [conj_cong]) 1);
 by (res_inst_tac [("p","acc A (start A) ([],list) [] list []")] PairE 1);
 by (rename_tac "vss lrst" 1);  
@@ -193,7 +190,6 @@ Goal
 by (Simp_tac 1);
 by (induct_tac "xs" 1);
  by (simp_tac (simpset() addcongs [conj_cong]) 1);
- by (Fast_tac 1);
 by (asm_simp_tac (simpset() addcongs [conj_cong]) 1);
 by (strip_tac 1);
 by (case_tac "acc_prefix A list (next A a st)" 1);
