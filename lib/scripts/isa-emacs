@@ -18,4 +18,15 @@ function fail()
 
 ## main
 
-exec emacs -name "isabelle" $ISABELLE_INTERFACE_OPTIONS -l "$ISAMODE_HOME/elisp/isa-site.el" -l "$ISABELLE_HOME_USER/etc/isa-settings.el" -l "$ISAMODE_HOME/elisp/isa-start.el"
+if [ -f "$ISABELLE_HOME_USER/etc/isa-settings.el" ]; then
+  USER_SETTINGS="--load $ISABELLE_HOME_USER/etc/isa-settings.el"
+else
+  USER_SETTINGS=""
+fi
+
+exec emacs -name "isabelle" \
+  --no-init-file $ISABELLE_INTERFACE_OPTIONS \
+  --load "$ISAMODE_HOME/elisp/isa-site.el" \
+  $USER_SETTINGS \
+  --load $HOME/.emacs \
+  --funcall isabelle

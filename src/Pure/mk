@@ -26,7 +26,7 @@ COMPAT=""
 [ -f "ML-Systems/$ML_SYSTEM.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM.ML"
 [ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
 
-$ISABELLE_HOME/bin/isabelle \
+$ISABELLE \
   -e "val ml_system = \"$ML_SYSTEM\";" \
   -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
   -cq SYSTEM Pure
