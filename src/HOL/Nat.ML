@@ -215,7 +215,7 @@ qed "less_trans";
 goalw Nat.thy [less_def] "n < Suc(n)";
 by (rtac (pred_natI RS r_into_trancl) 1);
 qed "lessI";
-Addsimps [lessI];
+AddIffs [lessI];
 
 (* i<j ==> i<Suc(j) *)
 val less_SucI = lessI RSN (2, less_trans);
