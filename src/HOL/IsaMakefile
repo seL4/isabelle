@@ -65,7 +65,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   SVC_Oracle.ML SVC_Oracle.thy Sum.ML Sum.thy Tools/datatype_aux.ML     \
   Tools/datatype_abs_proofs.ML Tools/datatype_package.ML Tools/datatype_prop.ML	\
   Tools/datatype_rep_proofs.ML Tools/induct_method.ML			\
-  Tools/inductive_package.ML Tools/numeral_syntax.ML			\
+  Tools/inductive_package.ML Tools/meson.ML Tools/numeral_syntax.ML     \
   Tools/primrec_package.ML Tools/recdef_package.ML			\
   Tools/record_package.ML Tools/svc_funcs.ML Tools/typedef_package.ML	\
   Trancl.ML Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML	\
@@ -436,7 +436,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL  ex/AVL.ML ex/AVL.thy ex/BT.ML ex/BT.thy \
   ex/Factorization.ML ex/Factorization.thy \
   ex/Primrec.ML ex/Primrec.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
-  ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML ex/meson.ML \
+  ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML \
   ex/mesontest.ML ex/mesontest2.ML ex/set.thy ex/set.ML \
   ex/Group.ML ex/Group.thy ex/IntRing.ML ex/IntRing.thy \
   ex/Lagrange.ML ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
