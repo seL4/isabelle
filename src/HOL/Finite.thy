@@ -6,7 +6,7 @@
 Finite sets and their cardinality
 *)
 
-Finite = Divides + Power + 
+Finite = Divides + Power + Inductive +
 
 consts Finites :: 'a set set
 

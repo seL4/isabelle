@@ -6,7 +6,7 @@
 S-expressions, general binary trees for defining recursive data structures
 *)
 
-Sexp = Univ +
+Sexp = Univ + Inductive +
 consts
   sexp      :: 'a item set
 
