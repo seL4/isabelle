@@ -11,7 +11,7 @@ if ( "$*" == "" ) then
 endif
 
 rcp index.html www4:.html-data/isabelle
-rcp Tools/*.gif www4:.html-data/isabelle/Tools
+rcp ../Tools/*.gif www4:.html-data/isabelle/Tools
 
 if ( "$*" == "" ) then
   rcp -r CCL CTT Cube FOL FOLP HOL HOLCF LCF Sequents ZF \
