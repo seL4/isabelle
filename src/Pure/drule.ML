@@ -41,6 +41,8 @@ signature DRULE =
   val print_ctyp: ctyp -> unit
   val print_goals: int -> thm -> unit
   val print_goals_ref: (int -> thm -> unit) ref
+  val print_sign: theory -> unit
+  val print_axioms: theory -> unit
   val print_theory: theory -> unit
   val print_thm: thm -> unit
   val prth: thm -> thm
@@ -182,19 +184,20 @@ val print_cterm = writeln o string_of_cterm;
 
 val pprint_theory = Sign.pprint_sg o sign_of;
 
-fun print_theory thy =
-  let
-    fun prt_thm (name, thm) = Pretty.block
-      [Pretty.str (name ^ ":"), Pretty.brk 1, Pretty.quote (pretty_thm thm)];
+val print_sign = Sign.print_sg o sign_of;
 
-    val sg = sign_of thy;
-    val axioms =        (* FIXME should rather fix axioms_of *)
-      sort (fn ((x, _), (y, _)) => x <= y)
-        (gen_distinct eq_fst (axioms_of thy));
+fun print_axioms thy =
+  let
+    val {sign, ext_axtab, ...} = rep_theory thy;
+    val axioms = Symtab.dest ext_axtab;
+
+    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
+      Pretty.quote (Sign.pretty_term sign t)];
   in
-    Sign.print_sg sg;
-    Pretty.writeln (Pretty.big_list "axioms:" (map prt_thm axioms))
+    Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms))
   end;
+
+fun print_theory thy = (print_sign thy; print_axioms thy);
 
 
 
@@ -428,7 +431,7 @@ val size_of_thm = size_of_term o #prop o rep_thm;
 
 
 val reflexive_thm =
-  let val cx = cterm_of Sign.pure (Var(("x",0),TVar(("'a",0),["logic"])))
+  let val cx = cterm_of Sign.pure (Var(("x",0),TVar(("'a",0),logicS)))
   in Thm.reflexive cx end;
 
 val symmetric_thm =
@@ -542,7 +545,7 @@ val revcut_rl =
 val triv_forall_equality =
   let val V  = read_cterm Sign.pure ("PROP V", propT)
       and QV = read_cterm Sign.pure ("!!x::'a. PROP V", propT)
-      and x  = read_cterm Sign.pure ("x", TFree("'a",["logic"]));
+      and x  = read_cterm Sign.pure ("x", TFree("'a",logicS));
   in  standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
                            (implies_intr V  (forall_intr x (assume V))))
   end;
