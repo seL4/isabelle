@@ -530,10 +530,7 @@ by(asm_simp_tac (!simpset addsimps [butlast_append]
 by(Clarify_tac 1);
 by(Full_simp_tac 1);
 qed "in_set_butlast_appendI2";
-(* FIXME
-Addsimps [in_set_butlast_appendI1,in_set_butlast_appendI2];
-AddIs    [in_set_butlast_appendI1,in_set_butlast_appendI2];
-*)
+
 (** take  & drop **)
 section "take & drop";
 
