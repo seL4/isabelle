@@ -417,8 +417,10 @@ Note that there is no separate $split$ method.  The effect of
 
 \subsection{Declaring rules}
 
+\indexisarcmd{print-simpset}
 \indexisaratt{simp}\indexisaratt{split}\indexisaratt{cong}
 \begin{matharray}{rcl}
+  print_simpset & : & \isarkeep{theory~|~proof} \\
   simp & : & \isaratt \\
   split & : & \isaratt \\
   cong & : & \isaratt \\
@@ -430,6 +432,9 @@ Note that there is no separate $split$ method.  The effect of
 \end{rail}
 
 \begin{descr}
+\item [$print_simpset$] prints the collection of rules declared to the
+  Simplifier, which is also known as ``simpset'' internally
+  \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
 \item [$simp$] declares simplification rules.
 \item [$split$] declares split rules.
 \item [$cong$] declares congruence rules.
@@ -572,9 +577,11 @@ This is slightly less hazardous than for the Simplifier (see
 
 \subsection{Declaring rules}\label{sec:classical-mod}
 
+\indexisarcmd{print-claset}
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
 \indexisaratt{iff}\indexisaratt{delrule}
 \begin{matharray}{rcl}
+  print_claset & : & \isarkeep{theory~|~proof} \\
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
@@ -589,6 +596,9 @@ This is slightly less hazardous than for the Simplifier (see
 \end{rail}
 
 \begin{descr}
+\item [$print_claset$] prints the collection of rules declared to the
+  Classical Reasoner, which is also known as ``simpset'' internally
+  \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruct rules, respectively.  By default, rules are considered as
   \emph{safe}, while a single ``?'' classifies as \emph{unsafe}, and ``??'' as

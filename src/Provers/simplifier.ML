@@ -550,6 +550,17 @@ fun easy_setup reflect trivs =
   in setup @ method_setup [] @ [init_ss] end;
 
 
+
+(** outer syntax **)
+
+val print_simpsetP =
+  OuterSyntax.improper_command "print_simpset" "print context of Simplifier"
+    OuterSyntax.Keyword.diag
+    (Scan.succeed (Toplevel.keep
+      (Toplevel.node_case print_simpset (print_local_simpset o Proof.context_of))));
+
+val _ = OuterSyntax.add_parsers [print_simpsetP];
+
 end;
 
 
