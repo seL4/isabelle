@@ -289,10 +289,10 @@ fun thyfile2html tname thy_path = if not (!make_html) then () else
         val (ancestors, body) =
           let
             fun make_links l result =
-              let val (pre, letter) = take_prefix (not o is_letter) l;
+              let val (pre, letter) = take_prefix (not o Symbol.is_letter) l;
 
                   val (id, rest) =
-                    take_prefix (is_quasi_letter orf is_digit) letter;
+                    take_prefix (Symbol.is_quasi_letter orf Symbol.is_digit) letter;
 
                   val id = implode id;
 
