@@ -112,17 +112,13 @@ sig
   val implies_intr_goals: cterm list -> thm -> thm
   val freeze_all: thm -> thm
   val mk_triv_goal: cterm -> thm
-  val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
-  val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
-  val add_vars: (indexname * typ) list * term -> (indexname * typ) list
-  val add_frees: (string * typ) list * term -> (string * typ) list
   val tvars_of_terms: term list -> (indexname * sort) list
   val vars_of_terms: term list -> (indexname * typ) list
   val tvars_of: thm -> (indexname * sort) list
   val vars_of: thm -> (indexname * typ) list
   val unvarifyT: thm -> thm
   val unvarify: thm -> thm
-  val tvars_intr_list: string list -> thm -> thm
+  val tvars_intr_list: string list -> thm -> thm * (string * indexname) list
   val remdups_rl: thm
   val conj_intr: thm -> thm -> thm
   val conj_intr_list: thm list -> thm
@@ -794,15 +790,10 @@ fun implies_intr_goals cprops thm =
 fun inst x t = read_instantiate_sg (sign_of (the_context())) [(x,t)];
 
 
-(* collect vars *)
+(* collect vars in left-to-right order *)
 
-val add_tvarsT = foldl_atyps (fn (vs, TVar v) => v ins vs | (vs, _) => vs);
-val add_tvars = foldl_types add_tvarsT;
-val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
-val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
-
-fun tvars_of_terms ts = rev (foldl add_tvars ([], ts));
-fun vars_of_terms ts = rev (foldl add_vars ([], ts));
+fun tvars_of_terms ts = rev (foldl Term.add_tvars ([], ts));
+fun vars_of_terms ts = rev (foldl Term.add_vars ([], ts));
 
 fun tvars_of thm = tvars_of_terms [#prop (Thm.rep_thm thm)];
 fun vars_of thm = vars_of_terms [#prop (Thm.rep_thm thm)];
