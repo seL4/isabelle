@@ -379,7 +379,9 @@ locale (open) M_datatypes = M_wfrank +
                (\<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
                is_wfrec(M, iterates_MH(M,is_formula_functor(M), 0), 
                         msn, n, y)))"
-
+  and nth_replacement:
+   "M(l) ==> iterates_replacement(M, %l t. is_tl(M,l,t), l)"
+        
 
 subsubsection{*Absoluteness of the List Construction*}
 
@@ -649,14 +651,13 @@ constdefs
        is_hd(M,X,Z)"
  
 lemma (in M_datatypes) nth_abs [simp]:
-     "[|iterates_replacement(M, %l t. is_tl(M,l,t), l);
-        M(A); n \<in> nat; l \<in> list(A); M(Z)|] 
+     "[|M(A); n \<in> nat; l \<in> list(A); M(Z)|] 
       ==> is_nth(M,n,l,Z) <-> Z = nth(n,l)"
 apply (subgoal_tac "M(l)") 
  prefer 2 apply (blast intro: transM)
 apply (simp add: is_nth_def nth_eq_hd_iterates_tl nat_into_M
                  tl'_closed iterates_tl'_closed 
-                 iterates_abs [OF _ relativize1_tl])
+                 iterates_abs [OF _ relativize1_tl] nth_replacement)
 done
 
 

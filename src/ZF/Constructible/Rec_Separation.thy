@@ -996,134 +996,6 @@ text{*NB The proofs for type @{term formula} are virtually identical to those
 for @{term "list(A)"}.  It was a cut-and-paste job! *}
 
 
-subsubsection{*Instantiating the locale @{text M_datatypes}*}
-ML
-{*
-val list_replacement1 = thm "list_replacement1"; 
-val list_replacement2 = thm "list_replacement2";
-val formula_replacement1 = thm "formula_replacement1";
-val formula_replacement2 = thm "formula_replacement2";
-
-val m_datatypes = [list_replacement1, list_replacement2, 
-                   formula_replacement1, formula_replacement2];
-
-fun datatypes_L th =
-    kill_flex_triv_prems (m_datatypes MRS (wfrank_L th));
-
-bind_thm ("list_closed", datatypes_L (thm "M_datatypes.list_closed"));
-bind_thm ("formula_closed", datatypes_L (thm "M_datatypes.formula_closed"));
-bind_thm ("list_abs", datatypes_L (thm "M_datatypes.list_abs"));
-bind_thm ("formula_abs", datatypes_L (thm "M_datatypes.formula_abs"));
-*}
-
-declare list_closed [intro,simp]
-declare formula_closed [intro,simp]
-declare list_abs [intro,simp]
-declare formula_abs [intro,simp]
-
-
-
-subsection{*@{term L} is Closed Under the Operator @{term eclose}*} 
-
-subsubsection{*Instances of Replacement for @{term eclose}*}
-
-lemma eclose_replacement1_Reflects:
- "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
-         is_wfrec(L, iterates_MH(L, big_union(L), A), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
-         is_wfrec(**Lset(i), 
-                  iterates_MH(**Lset(i), big_union(**Lset(i)), A), 
-                  memsn, u, y))]"
-by (intro FOL_reflections function_reflections is_wfrec_reflection 
-          iterates_MH_reflection) 
-
-lemma eclose_replacement1: 
-   "L(A) ==> iterates_replacement(L, big_union(L), A)"
-apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)   
-apply (rule separation_CollectI) 
-apply (subgoal_tac "L(Memrel(succ(n)))") 
-apply (rule_tac A="{B,A,n,z,Memrel(succ(n))}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF eclose_replacement1_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2 Memrel_closed)
-apply (elim conjE) 
-apply (rule DPow_LsetI)
-apply (rename_tac v) 
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
-done
-
-
-lemma eclose_replacement2_Reflects:
- "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
-           is_wfrec (L, iterates_MH (L, big_union(L), A),
-                              msn, u, x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i). 
-          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
-           is_wfrec (**Lset(i), 
-                 iterates_MH (**Lset(i), big_union(**Lset(i)), A),
-                     msn, u, x))]"
-by (intro FOL_reflections function_reflections is_wfrec_reflection 
-          iterates_MH_reflection) 
-
-
-lemma eclose_replacement2: 
-   "L(A) ==> strong_replacement(L, 
-         \<lambda>n y. n\<in>nat & 
-               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
-               is_wfrec(L, iterates_MH(L,big_union(L), A), 
-                        msn, n, y)))"
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)   
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,B,z,nat}" in subset_LsetE) 
-apply (blast intro: L_nat) 
-apply (rule ReflectsE [OF eclose_replacement2_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (rule DPow_LsetI)
-apply (rename_tac v) 
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,B,nat]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
-done
-
-
-subsubsection{*Instantiating the locale @{text M_eclose}*}
-ML
-{*
-val eclose_replacement1 = thm "eclose_replacement1"; 
-val eclose_replacement2 = thm "eclose_replacement2";
-
-val m_eclose = [eclose_replacement1, eclose_replacement2];
-
-fun eclose_L th =
-    kill_flex_triv_prems (m_eclose MRS (datatypes_L th));
-
-bind_thm ("eclose_closed", eclose_L (thm "M_eclose.eclose_closed"));
-bind_thm ("eclose_abs", eclose_L (thm "M_eclose.eclose_abs"));
-*}
-
-declare eclose_closed [intro,simp]
-declare eclose_abs [intro,simp]
-
-
 subsection{*Internalized Forms of Data Structuring Operators*}
 
 subsubsection{*The Formula @{term is_Inl}, Internalized*}
@@ -1212,7 +1084,7 @@ apply (intro FOL_reflections function_reflections Inl_reflection)
 done
 
 
-subsubsection{*The Formula @{term is_Nil}, Internalized*}
+subsubsection{*The Formula @{term is_Cons}, Internalized*}
 
 
 (*  "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)" *)
@@ -1346,17 +1218,138 @@ apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
 apply (rule sep_rules quasinat_iff_sats tl_iff_sats | simp)+
 done
 
+
+
+subsubsection{*Instantiating the locale @{text M_datatypes}*}
 ML
 {*
-bind_thm ("nth_abs_lemma", datatypes_L (thm "M_datatypes.nth_abs"));
+val list_replacement1 = thm "list_replacement1"; 
+val list_replacement2 = thm "list_replacement2";
+val formula_replacement1 = thm "formula_replacement1";
+val formula_replacement2 = thm "formula_replacement2";
+val nth_replacement = thm "nth_replacement";
+
+val m_datatypes = [list_replacement1, list_replacement2, 
+                   formula_replacement1, formula_replacement2, 
+                   nth_replacement];
+
+fun datatypes_L th =
+    kill_flex_triv_prems (m_datatypes MRS (wfrank_L th));
+
+bind_thm ("list_closed", datatypes_L (thm "M_datatypes.list_closed"));
+bind_thm ("formula_closed", datatypes_L (thm "M_datatypes.formula_closed"));
+bind_thm ("list_abs", datatypes_L (thm "M_datatypes.list_abs"));
+bind_thm ("formula_abs", datatypes_L (thm "M_datatypes.formula_abs"));
+bind_thm ("nth_abs", datatypes_L (thm "M_datatypes.nth_abs"));
 *}
 
-text{*Instantiating theorem @{text nth_abs} for @{term L}*}
-lemma nth_abs [simp]:
-     "[|L(A); n \<in> nat; l \<in> list(A); L(Z)|] 
-      ==> is_nth(L,n,l,Z) <-> Z = nth(n,l)"
-apply (rule nth_abs_lemma)
-apply (blast intro: nth_replacement transL list_closed, assumption+)
+declare list_closed [intro,simp]
+declare formula_closed [intro,simp]
+declare list_abs [simp]
+declare formula_abs [simp]
+declare nth_abs [simp]
+
+
+
+subsection{*@{term L} is Closed Under the Operator @{term eclose}*} 
+
+subsubsection{*Instances of Replacement for @{term eclose}*}
+
+lemma eclose_replacement1_Reflects:
+ "REFLECTS
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+         is_wfrec(L, iterates_MH(L, big_union(L), A), memsn, u, y)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+         is_wfrec(**Lset(i), 
+                  iterates_MH(**Lset(i), big_union(**Lset(i)), A), 
+                  memsn, u, y))]"
+by (intro FOL_reflections function_reflections is_wfrec_reflection 
+          iterates_MH_reflection) 
+
+lemma eclose_replacement1: 
+   "L(A) ==> iterates_replacement(L, big_union(L), A)"
+apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)   
+apply (rule separation_CollectI) 
+apply (subgoal_tac "L(Memrel(succ(n)))") 
+apply (rule_tac A="{B,A,n,z,Memrel(succ(n))}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF eclose_replacement1_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (elim conjE) 
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
+txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
+apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
+apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
 done
+
+
+lemma eclose_replacement2_Reflects:
+ "REFLECTS
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
+         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
+           is_wfrec (L, iterates_MH (L, big_union(L), A),
+                              msn, u, x)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
+         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i). 
+          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
+           is_wfrec (**Lset(i), 
+                 iterates_MH (**Lset(i), big_union(**Lset(i)), A),
+                     msn, u, x))]"
+by (intro FOL_reflections function_reflections is_wfrec_reflection 
+          iterates_MH_reflection) 
+
+
+lemma eclose_replacement2: 
+   "L(A) ==> strong_replacement(L, 
+         \<lambda>n y. n\<in>nat & 
+               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
+               is_wfrec(L, iterates_MH(L,big_union(L), A), 
+                        msn, n, y)))"
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)   
+apply (rule separation_CollectI) 
+apply (rule_tac A="{A,B,z,nat}" in subset_LsetE) 
+apply (blast intro: L_nat) 
+apply (rule ReflectsE [OF eclose_replacement2_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,A,B,nat]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
+apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
+apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
+done
+
+
+subsubsection{*Instantiating the locale @{text M_eclose}*}
+ML
+{*
+val eclose_replacement1 = thm "eclose_replacement1"; 
+val eclose_replacement2 = thm "eclose_replacement2";
+
+val m_eclose = [eclose_replacement1, eclose_replacement2];
+
+fun eclose_L th =
+    kill_flex_triv_prems (m_eclose MRS (datatypes_L th));
+
+bind_thm ("eclose_closed", eclose_L (thm "M_eclose.eclose_closed"));
+bind_thm ("eclose_abs", eclose_L (thm "M_eclose.eclose_abs"));
+*}
+
+declare eclose_closed [intro,simp]
+declare eclose_abs [intro,simp]
+
 
 end
