@@ -32,6 +32,7 @@ sig
   val stamp_names_of: sg -> string list
   val exists_stamp: string -> sg -> bool
   val tsig_of: sg -> Type.tsig
+  val is_logtype: sg -> string -> bool
   val deref: sg_ref -> sg
   val self_ref: sg -> sg_ref
   val subsig: sg * sg -> bool
@@ -108,7 +109,7 @@ sig
   val infer_types_simult: Pretty.pp -> sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> (xterm list * typ) list -> term list * (indexname * typ) list
-  val read_def_terms': Pretty.pp -> Syntax.syntax ->
+  val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax ->
     sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
@@ -230,6 +231,7 @@ val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
 
 val tsig_of = #tsig o rep_sg;
+fun is_logtype sg c = c mem_string Type.logical_types (tsig_of sg);
 fun const_type (Sg (_, {consts, ...})) c = apsome #1 (Symtab.lookup (consts, c));
 
 
@@ -865,16 +867,16 @@ fun infer_types pp sg def_type def_sort used freeze tsT =
 (** read_def_terms **)
 
 (*read terms, infer types*)
-fun read_def_terms' pp syn (sign, types, sorts) used freeze sTs =
+fun read_def_terms' pp is_logtype syn (sign, types, sorts) used freeze sTs =
   let
     fun read (s, T) =
       let val T' = certify_typ sign T handle TYPE (msg, _, _) => error msg
-      in (Syntax.read syn T' s, T') end;
+      in (Syntax.read is_logtype syn T' s, T') end;
     val tsTs = map read sTs;
   in infer_types_simult pp sign types sorts used freeze tsTs end;
 
 fun read_def_terms (sign, types, sorts) =
-  read_def_terms' (pp sign) (syn_of sign) (sign, types, sorts);
+  read_def_terms' (pp sign) (is_logtype sign) (syn_of sign) (sign, types, sorts);
 
 fun simple_read_term sign T s =
   (read_def_terms (sign, K None, K None) [] true [(s, T)]
@@ -904,15 +906,12 @@ fun ext_defsort_i arg = ext_defS cert_sort arg;
 
 (* add type constructors *)
 
-fun ext_types _ (syn, tsig, ctab, (path, spaces), data) types =
+fun ext_types sg (syn, tsig, ctab, (path, spaces), data) types =
   let
     val decls = decls_of path Syntax.type_name types;
+    val syn' = map_syntax (Syntax.extend_type_gram types) syn;
     val tsig' = Type.add_types decls tsig;
-    val log_types = Type.logical_types tsig';
-  in
-    (map_syntax (Syntax.extend_log_types log_types o Syntax.extend_type_gram types) syn,
-      tsig', ctab, (path, add_names spaces typeK (map fst decls)), data)
-  end;
+  in (syn', tsig', ctab, (path, add_names spaces typeK (map fst decls)), data) end;
 
 
 (* add type abbreviations *)
@@ -924,16 +923,14 @@ fun read_abbr sg syn tsig spaces (t, vs, rhs_src) =
 fun ext_abbrs rd_abbr sg (syn, tsig, ctab, (path, spaces), data) abbrs =
   let
     fun mfix_of (t, vs, _, mx) = (t, length vs, mx);
-    val syn' = map_syntax (Syntax.extend_type_gram (map mfix_of abbrs)) syn;
+    val syn' = syn |> map_syntax (Syntax.extend_type_gram (map mfix_of abbrs));
 
     val abbrs' =
       map (fn (t, vs, rhs, mx) =>
         (full path (Syntax.type_name t mx), vs, rhs)) abbrs;
     val spaces' = add_names spaces typeK (map #1 abbrs');
     val decls = map (rd_abbr sg syn' tsig spaces') abbrs';
-  in
-    (syn', Type.add_abbrs decls tsig, ctab, (path, spaces'), data)
-  end;
+  in (syn', Type.add_abbrs decls tsig, ctab, (path, spaces'), data) end;
 
 fun ext_tyabbrs abbrs = ext_abbrs read_abbr abbrs;
 fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
@@ -992,16 +989,16 @@ fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data
       if syn_only then []
       else decls_of path Syntax.const_name consts;
   in
-    (map_syntax (Syntax.extend_const_gram prmode consts) syn, tsig,
+    (map_syntax (Syntax.extend_const_gram (is_logtype sg) prmode consts) syn, tsig,
       Symtab.extend (ctab, map (fn (c, T) => (c, (T, stamp ()))) decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
       (path, add_names spaces constK (map fst decls)), data)
   end;
 
-fun ext_consts_i x = ext_cnsts no_read false ("", true) x;
-fun ext_consts x = ext_cnsts read_const false ("", true) x;
-fun ext_syntax_i x = ext_cnsts no_read true ("", true) x;
-fun ext_syntax x = ext_cnsts read_const true ("", true) x;
+fun ext_consts_i x = ext_cnsts no_read false Syntax.default_mode x;
+fun ext_consts x = ext_cnsts read_const false Syntax.default_mode x;
+fun ext_syntax_i x = ext_cnsts no_read true Syntax.default_mode x;
+fun ext_syntax x = ext_cnsts read_const true Syntax.default_mode x;
 fun ext_modesyntax_i x y (prmode, consts) = ext_cnsts no_read true prmode x y consts;
 fun ext_modesyntax x y (prmode, consts) = ext_cnsts read_const true prmode x y consts;
 
@@ -1071,7 +1068,7 @@ fun ext_tokentrfuns sg (syn, tsig, ctab, names, data) args =
 (* add translation rules *)
 
 fun ext_trrules sg (syn, tsig, ctab, (path, spaces), data) args =
-  (syn |> map_syntax (Syntax.extend_trrules (make_syntax sg syn)
+  (syn |> map_syntax (Syntax.extend_trrules (is_logtype sg) (make_syntax sg syn)
       (map (Syntax.map_trrule (fn (root, str) => (intrn spaces typeK root, str))) args)),
     tsig, ctab, (path, spaces), data);
 
@@ -1212,14 +1209,9 @@ fun nontriv_merge (sg1, sg2) =
           {self = _, tsig = tsig2, consts = consts2,
             path = _, spaces = spaces2, data = data2}) = sg2;
 
-      val id = ref "";
-      val self_ref = ref dummy_sg;
-      val self = SgRef (Some self_ref);
-
       val stamps = merge_stamps stamps1 stamps2;
       val syntax = Syntax.merge_syntaxes syntax1 syntax2;
       val trfuns = merge_trfuns trfuns1 trfuns2;
-      val tsig = Type.merge_tsigs (pp sg1) (tsig1, tsig2);   (* FIXME improve pp *)
       val consts = Symtab.merge eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
 
@@ -1232,7 +1224,13 @@ fun nontriv_merge (sg1, sg2) =
 
       val data = merge_data (data1, data2);
 
-      val sign = make_sign (id, self, tsig, consts, Syn (syntax, trfuns),
+      val pre_sign = make_sign (ref "", SgRef (Some (ref dummy_sg)),
+        tsig1, consts, Syn (syntax, trfuns), path, spaces, data, ref "#" :: stamps1);
+      val tsig = Type.merge_tsigs (pp pre_sign) (tsig1, tsig2);
+
+      val self_ref = ref dummy_sg;
+      val self = SgRef (Some self_ref);
+      val sign = make_sign (ref "", self, tsig, consts, Syn (syntax, trfuns),
         path, spaces, data, stamps);
     in self_ref := sign; syn_of sign; sign end;
 
