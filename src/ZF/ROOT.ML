@@ -22,7 +22,6 @@ use "~~/src/Provers/Arith/cancel_numerals.ML";
 use "~~/src/Provers/Arith/combine_numerals.ML";
 
 with_path "Integ" use_thy "Main_ZFC";
-simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
 
 print_depth 8;
 
