@@ -37,6 +37,8 @@ sig
   val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
+  val multi_resolveq: thm list -> thm Seq.seq -> thm Seq.seq
+  val resolveq_tac: thm Seq.seq -> int -> tactic
   val rule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
@@ -245,21 +247,24 @@ fun multi_res _ [] rule = Seq.single rule
 in
 
 val multi_resolve = multi_res 1;
-fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+fun multi_resolveq facts rules = Seq.flat (Seq.map (multi_resolve facts) rules);
+fun multi_resolves facts = multi_resolveq facts o Seq.of_list;
 
 end;
 
 
 (* rule *)
 
+fun gen_resolveq_tac tac rules i st =
+  Seq.flat (Seq.map (fn rule => tac [rule] i st) rules);
+
+val resolveq_tac = gen_resolveq_tac Tactic.resolve_tac;
+
+
 local
 
 fun gen_rule_tac tac rules [] = tac rules
-  | gen_rule_tac tac erules facts =
-      let
-        val rules = multi_resolves facts erules;
-        fun tactic i state = Seq.flat (Seq.map (fn rule => tac [rule] i state) rules);
-      in tactic end;
+  | gen_rule_tac tac erules facts = gen_resolveq_tac tac (multi_resolves facts erules);
 
 fun gen_rule tac rules = METHOD (FINDGOAL o tac rules);
 
