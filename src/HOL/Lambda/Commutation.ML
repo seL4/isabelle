@@ -78,8 +78,8 @@ by (blast_tac (claset() addDs [diamond_Un] addIs [diamond_confluent]) 1);
 qed "confluent_Un";
 
 Goal "[| diamond(R); T <= R; R <= T^* |] ==> confluent(T)";
-by (fast_tac (claset() addIs [diamond_confluent] addDs [rtrancl_subset RS sym] 
-		       addss simpset()) 1);
+by (force_tac (claset() addIs [diamond_confluent] 
+                        addDs [rtrancl_subset RS sym], simpset()) 1);
 qed "diamond_to_confluence";
 
 (*** Church_Rosser ***)
