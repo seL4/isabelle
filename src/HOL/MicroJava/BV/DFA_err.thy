@@ -40,7 +40,6 @@ proof (unfold non_empty_def)
     by auto
 qed
 
-text_raw {* \newpage *}
 lemma dynamic_imp_static:
   "[| bounded succs (size ts); non_empty succs;
       dynamic_wt r (err_step app step) succs ts |] 
@@ -113,6 +112,35 @@ proof (unfold static_wt_def, intro strip, rule conjI)
     show "step p (map ok_val ts ! p) <=_r map ok_val ts ! q"
       by (simp add: err_step_def lift_def)
   qed
+qed
+
+
+lemma static_imp_dynamic:
+  "[| static_wt r app step succs ts; bounded succs (size ts) |] 
+  ==> dynamic_wt r (err_step app step) succs (map OK ts)"
+proof (unfold dynamic_wt_def welltyping_def, intro strip, rule conjI)
+  assume bounded: "bounded succs (size ts)"
+  assume static:  "static_wt r app step succs ts"
+  fix p assume "p < length (map OK ts)" 
+  hence p: "p < length ts" by simp
+  thus "map OK ts ! p \<noteq> Err" by simp
+  { fix q
+    assume q: "q : set (succs p)"
+    with p static obtain 
+      "app p (ts ! p)" "step p (ts ! p) <=_r ts ! q"
+      by (unfold static_wt_def) blast
+    moreover
+    from q p bounded
+    have "q < size ts" by (unfold bounded_def) blast
+    hence "map OK ts ! q = OK (ts!q)" by simp
+    moreover
+    have "p < size ts" by (rule p)
+    ultimately     
+    have "err_step app step p (map OK ts ! p) <=_(Err.le r) map OK ts ! q"
+      by (simp add: err_step_def lift_def)
+  }
+  thus "stable (Err.le r) (err_step app step) succs (map OK ts) p"
+    by (unfold stable_def) blast
 qed
 
 end
