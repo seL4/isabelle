@@ -15,6 +15,10 @@ sig
   val prove_conv: string -> tactic list -> Sign.sg -> 
                   thm list -> term * term -> thm option
   val simplify_meta_eq: thm list -> thm -> thm
+  (*debugging*)
+  structure EqCancelNumeralsData   : CANCEL_NUMERALS_DATA
+  structure LessCancelNumeralsData : CANCEL_NUMERALS_DATA
+  structure DiffCancelNumeralsData : CANCEL_NUMERALS_DATA
 end;
 
 
@@ -57,15 +61,17 @@ fun mk_eq_iff(t,u) =
   if fastype_of t = iT then FOLogic.mk_eq(t,u)
                        else FOLogic.mk_iff(t,u);
 
-
-fun is_eq_thm th = can FOLogic.dest_eq (#prop (rep_thm th));
+(*We remove equality assumptions because they confuse the simplifier and
+  because only type-checking assumptions are necessary.*)
+fun is_eq_thm th = 
+    can FOLogic.dest_eq (FOLogic.dest_Trueprop (#prop (rep_thm th)));
 
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
 fun prove_conv name tacs sg hyps (t,u) =
   if t aconv u then None
   else
-  let val hyps' = filter is_eq_thm hyps
+  let val hyps' = filter (not o is_eq_thm) hyps
       val ct = add_chyps hyps'
                   (cterm_of sg (FOLogic.mk_Trueprop (mk_eq_iff(t, u))))
   in Some
@@ -153,36 +159,47 @@ structure CancelNumeralsCommon =
   val simplify_meta_eq  = simplify_meta_eq final_rules
   end;
 
+(** The functor argumnets are declared as separate structures
+    so that they can be exported to ease debugging. **)
 
-structure EqCancelNumerals = CancelNumeralsFun
- (open CancelNumeralsCommon
+structure EqCancelNumeralsData = 
+  struct
+  open CancelNumeralsCommon
   val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
   val bal_add1 = eq_add_iff RS iff_trans
   val bal_add2 = eq_add_iff RS iff_trans
   val trans_tac = gen_trans_tac iff_trans
-);
+  end;
 
-structure LessCancelNumerals = CancelNumeralsFun
- (open CancelNumeralsCommon
+structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
+
+structure LessCancelNumeralsData = 
+  struct
+  open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel "Ordinal.op <"
   val dest_bal = FOLogic.dest_bin "Ordinal.op <" iT
   val bal_add1 = less_add_iff RS iff_trans
   val bal_add2 = less_add_iff RS iff_trans
   val trans_tac = gen_trans_tac iff_trans
-);
+  end;
 
-structure DiffCancelNumerals = CancelNumeralsFun
- (open CancelNumeralsCommon
+structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
+
+structure DiffCancelNumeralsData = 
+  struct
+  open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
   val mk_bal   = FOLogic.mk_binop "Arith.diff"
   val dest_bal = FOLogic.dest_bin "Arith.diff" iT
   val bal_add1 = diff_add_eq RS trans
   val bal_add2 = diff_add_eq RS trans
   val trans_tac = gen_trans_tac trans
-);
+  end;
+
+structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
 
 val nat_cancel =
