@@ -14,10 +14,25 @@
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x, 4.0, 4.1, 4.1.1, 4.1.2
-if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
-  #maybe a shrink-wrapped polyml on x86-linux ...
 
+# try finding the poly packages from the Isabelle site in the usual places
+POLYML_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/polyml" \
+  "$ISABELLE_HOME/../polyml" \
+  "/usr/share/polyml" \
+  "/usr/local/polyml" \
+  "/opt/polyml")
+
+if [ -n "$POLYML_HOME" -a -e "$POLYML_HOME/bin/polyml-version" ]; then
+  # looks like Isabelle poly packages
+  ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
+  ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo unknown-platform)
+  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+  ML_OPTIONS="-h 15000"
+elif [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
+  # maybe a shrink-wrapped polyml on x86-linux ...
+
+  # Poly/ML 3.x, 4.0, 4.1, 4.1.x
   # include version number, needed for choosing right options
   ML_SYSTEM=polyml-4.1.3    
   # processor/OS type
@@ -27,18 +42,6 @@ if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
   # where to find the standard database
   ML_DBASE=/usr/lib/poly/ML_dbase
   # options to pass to poly
-  ML_OPTIONS="-h 15000"
-else
-  #... or rather a self-contained multi-platform installation
-  POLYML_HOME=$(choosefrom \
-    "$ISABELLE_HOME/contrib/polyml" \
-    "$ISABELLE_HOME/../polyml" \
-    "/usr/share/polyml" \
-    "/usr/local/polyml" \
-    "/opt/polyml")
-  ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
-  ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo unknown-platform)
-  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-h 15000"
 fi
 
