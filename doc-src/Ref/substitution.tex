@@ -57,6 +57,13 @@ To replace $u$ by~$t$ or $t$ by~$u$ in subgoal~$i$, use
 eresolve_tac [subst] \(i\)    {\rm or}    eresolve_tac [ssubst] \(i\){\it.}
 \end{ttbox}
 
+Logics HOL, FOL and ZF define the tactic \ttindexbold{stac} by
+\begin{ttbox} 
+fun stac eqth = CHANGED o rtac (eqth RS ssubst);
+\end{ttbox}
+Now {\tt stac~eqth} is like {\tt resolve_tac [eqth RS ssubst]} but with the
+valuable property of failing if the substitution has no effect.
+
 
 \section{Substitution in the hypotheses}
 \index{assumptions!substitution in}
@@ -92,8 +99,10 @@ theorems.  For instance, the best way to use the assumption $0=1$ is to
 contradict a theorem that states $0\not=1$, rather than to replace 0 by~1
 in the subgoal!
 
-Substitution for free variables is also unhelpful if they appear in the
-premises of a rule being derived --- the substitution affects object-level
+Substitution for unknowns, such as $\Var{x}=0$, is a bad idea: we might prove
+the subgoal more easily by instantiating~$\Var{x}$ to~1.
+Substitution for free variables is unhelpful if they appear in the
+premises of a rule being derived: the substitution affects object-level
 assumptions, not meta-level assumptions.  For instance, replacing~$a$
 by~$b$ could make the premise~$P(a)$ worthless.  To avoid this problem, use
 {\tt bound_hyp_subst_tac}; alternatively, call \ttindex{cut_facts_tac} to
@@ -111,24 +120,26 @@ argument signature~{\tt HYPSUBST_DATA}:
 \begin{ttbox} 
 signature HYPSUBST_DATA =
   sig
-  val subst      : thm
-  val sym        : thm
-  val rev_cut_eq : thm
-  val imp_intr   : thm
-  val rev_mp     : thm
-  val dest_eq    : term -> term*term
+  structure Simplifier : SIMPLIFIER
+  val dest_eq          : term -> term*term
+  val eq_reflection    : thm               (* a=b ==> a==b *)
+  val imp_intr         : thm               (* (P ==> Q) ==> P-->Q *)
+  val rev_mp           : thm               (* [| P;  P-->Q |] ==> Q *)
+  val subst            : thm               (* [| a=b;  P(a) |] ==> P(b) *)
+  val sym              : thm               (* a=b ==> b=a *)
   end;
 \end{ttbox}
 Thus, the functor requires the following items:
 \begin{ttdescription}
-\item[\tdxbold{subst}] should be the substitution rule
-$\List{\Var{a}=\Var{b};\; \Var{P}(\Var{a})} \Imp \Var{P}(\Var{b})$.
+\item[Simplifier] should be an instance of the simplifier (see
+  Chapter~\ref{simp-chap}).
 
-\item[\tdxbold{sym}] should be the symmetry rule
-$\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}$.
+\item[\ttindexbold{dest_eq}] should return the pair~$(t,u)$ when
+applied to the \ML{} term that represents~$t=u$.  For other terms, it
+should raise exception~\xdx{Match}.
 
-\item[\tdxbold{rev_cut_eq}] should have the form
-$\List{\Var{a}=\Var{b};\; \Var{a}=\Var{b}\Imp\Var{R}} \Imp \Var{R}$.
+\item[\tdxbold{eq_reflection}] is the theorem discussed
+  in~\S\ref{sec:setting-up-simp}. 
 
 \item[\tdxbold{imp_intr}] should be the implies introduction
 rule $(\Var{P}\Imp\Var{Q})\Imp \Var{P}\imp\Var{Q}$.
@@ -136,10 +147,13 @@ rule $(\Var{P}\Imp\Var{Q})\Imp \Var{P}\imp\Var{Q}$.
 \item[\tdxbold{rev_mp}] should be the `reversed' implies elimination
 rule $\List{\Var{P};  \;\Var{P}\imp\Var{Q}} \Imp \Var{Q}$.
 
-\item[\ttindexbold{dest_eq}] should return the pair~$(t,u)$ when
-applied to the \ML{} term that represents~$t=u$.  For other terms, it
-should raise exception~\xdx{Match}.
+\item[\tdxbold{subst}] should be the substitution rule
+$\List{\Var{a}=\Var{b};\; \Var{P}(\Var{a})} \Imp \Var{P}(\Var{b})$.
+
+\item[\tdxbold{sym}] should be the symmetry rule
+$\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}$.
 \end{ttdescription}
+%
 The functor resides in file {\tt Provers/hypsubst.ML} in the Isabelle
 distribution directory.  It is not sensitive to the precise formalization
 of the object-logic.  It is not concerned with the names of the equality
@@ -154,17 +168,13 @@ Here {\tt Trueprop} is the coercion from type~$o$ to type~$prop$, while
 Pattern-matching expresses the function concisely, using wildcards~({\tt_})
 for the types.
 
-Here is how {\tt hyp_subst_tac} works.  Given a subgoal of the form
-\[ \List{P@1; \cdots ; t=u; \cdots ; P@n} \Imp Q, \] it locates a suitable
-equality assumption and moves it to the last position using elim-resolution
-on {\tt rev_cut_eq} (possibly re-orienting it using~{\tt sym}):
-\[ \List{P@1; \cdots ; P@n; t=u} \Imp Q \]
-Using $n$ calls of {\tt eresolve_tac\ts[rev_mp]}, it creates the subgoal
-\[ \List{t=u} \Imp P@1\imp \cdots \imp P@n \imp Q \]
-By {\tt eresolve_tac\ts[ssubst]}, it replaces~$t$ by~$u$ throughout:
-\[ P'@1\imp \cdots \imp P'@n \imp Q' \]
-Finally, using $n$ calls of \hbox{\tt resolve_tac\ts[imp_intr]}, it restores
-$P'@1$, \ldots, $P'@n$ as assumptions:
-\[ \List{P'@n; \cdots ; P'@1} \Imp Q' \]
+The tactic {\tt hyp_subst_tac} works as follows.  First, it identifies a
+suitable equality assumption, possibly re-orienting it using~{\tt sym}.  Then
+it moves other assumptions into the conclusion of the goal, by repeatedly
+caling {\tt eresolve_tac\ts[rev_mp]}.  Then, it uses {\tt asm_full_simp_tac}
+or {\tt ssubst} to substitute throughout the subgoal.  (If the equality
+involves unknowns then it must use {\tt ssubst}.)  Then, it deletes the
+equality.  Finally, it moves the assumptions back to their original positions
+by calling \hbox{\tt resolve_tac\ts[imp_intr]}.
 
 \index{equality|)}\index{tactics!substitution|)}
