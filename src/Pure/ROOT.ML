@@ -74,8 +74,10 @@ end;
 
 use "install_pp.ML";
 
-val use = ThyInfo.load_file o Path.unpack;
+val use = ThyInfo.use;
 val cd = File.cd o Path.unpack;
 
 print_depth 8;
 (*ml_prompts "ML> " "ML# ";*)
+
+Session.finish ();
