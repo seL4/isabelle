@@ -19,7 +19,6 @@ use "method.ML";
 use "local_defs.ML";
 use "calculation.ML";
 use "skip_proof.ML";
-use "obtain.ML";
 
 (*outer syntax*)
 use "comment.ML";
@@ -30,7 +29,7 @@ use "outer_parse.ML";
 use "toplevel.ML";
 use "session.ML";
 
-(*theory operations*)
+(*theory and proof operations*)
 use "isar_thy.ML";
 use "isar_cmd.ML";
 
@@ -38,7 +37,8 @@ use "isar_cmd.ML";
 use "outer_syntax.ML";
 use "isar_syn.ML";
 
-(*main ML interface*)
+(*main ML interfaces*)
+use "obtain.ML";
 use "isar.ML";
 
 structure PureIsar =
@@ -53,7 +53,6 @@ struct
   structure LocalDefs = LocalDefs;
   structure Calculation = Calculation;
   structure SkipProof = SkipProof;
-  structure Obtain = Obtain;
   structure Comment = Comment;
   structure OuterLex = OuterLex;
   structure OuterParse = OuterParse;
