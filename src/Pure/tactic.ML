@@ -635,7 +635,7 @@ fun prove sign xs asms prop tac =
     fun err msg = error (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
       Sign.string_of_term sign (Term.list_all_free (params, statement)));
 
-    fun cert_safe t = Thm.cterm_of sign t
+    fun cert_safe t = Thm.cterm_of sign (Envir.beta_norm t)
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
     val _ = cert_safe statement;
