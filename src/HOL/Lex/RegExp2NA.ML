@@ -424,6 +424,6 @@ by (induct_tac "r" 1);
     by (simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
    by (simp_tac(simpset() addsimps [accepts_atom]) 1);
   by (Asm_simp_tac 1);
- by (asm_simp_tac (simpset() addsimps [accepts_conc,RegSet.conc_def]) 1);
-by (asm_simp_tac (simpset() addsimps [accepts_star,in_star]) 1);
+ by (asm_simp_tac (simpset() addsimps [accepts_conc,thm"RegSet.conc_def"]) 1);
+by (asm_simp_tac (simpset() addsimps [accepts_star,thm"in_star"]) 1);
 qed_spec_mp "accepts_rexp2na";
