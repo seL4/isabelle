@@ -77,9 +77,9 @@ consts
   divide        :: "['a::inverse, 'a] => 'a"        (infixl "'/" 70)
 
 syntax (xsymbols)
-  abs :: "'a::minus => 'a"    ("\\<bar>_\\<bar>")
+  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
 syntax (HTML output)
-  abs :: "'a::minus => 'a"    ("\\<bar>_\\<bar>")
+  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
 
 axclass plus_ac0 < plus, zero
   commute: "x + y = y + x"
@@ -118,29 +118,29 @@ translations
   "let x = a in e"        == "Let a (%x. e)"
 
 syntax ("" output)
-  "op ="        :: "['a, 'a] => bool"                    ("(_ =/ _)" [51, 51] 50)
-  "op ~="       :: "['a, 'a] => bool"                    ("(_ ~=/ _)" [51, 51] 50)
+  "="           :: "['a, 'a] => bool"                    (infix 50)
+  "~="          :: "['a, 'a] => bool"                    (infix 50)
 
 syntax (symbols)
-  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
-  "op &"        :: "[bool, bool] => bool"                (infixr "\\<and>" 35)
-  "op |"        :: "[bool, bool] => bool"                (infixr "\\<or>" 30)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<midarrow>\\<rightarrow>" 25)
-  "op ~="       :: "['a, 'a] => bool"                    (infixl "\\<noteq>" 50)
-  "ALL "        :: "[idts, bool] => bool"                ("(3\\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3\\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \\<Rightarrow>/ _)" 10)
+  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
+  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
+  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\<midarrow>\<rightarrow>" 25)
+  "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
+  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
 syntax (symbols output)
-  "op ~="       :: "['a, 'a] => bool"                    ("(_ \\<noteq>/ _)" [51, 51] 50)
+  "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
 
 syntax (xsymbols)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<longrightarrow>" 25)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
 
 syntax (HTML output)
-  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
+  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
 
 syntax (HOL)
   "ALL "        :: "[idts, bool] => bool"                ("(3! _./ _)" [0, 10] 10)
@@ -201,6 +201,7 @@ defs
 (* theory and package setup *)
 
 use "HOL_lemmas.ML"
+theorems case_split = case_split_thm [case_names True False]
 
 declare trans [trans]  (*overridden in theory Calculation*)
 
