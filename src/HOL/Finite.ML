@@ -820,31 +820,24 @@ by Auto_tac;
 qed "constr_bij";
 
 (* Main theorem: combinatorial theorem about number of subsets of a set *)
-Goal "ALL m. k <= m --> (ALL A. finite A --> card A = m --> \
-\              card {s. s <= A & card s = k} = (m choose k))";
+Goal "(ALL A. finite A --> card {s. s <= A & card s = k} = (card A choose k))";
 by (induct_tac "k" 1);
 by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
 (* first 0 case finished *)
-by (rtac allI 1);
-(* second induction *)
-by (induct_tac "m" 1);
-by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
-(* snd 0 case finished *)
 (* prepare finite set induction *)
-by (rtac impI 1 THEN rtac allI 1 THEN rtac impI 1);
-(* third induction, finite sets *)
+by (rtac allI 1 THEN rtac impI 1);
+(* second induction *)
 by (etac finite_induct 1);
-by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
-(** LEVEL 10 **)
-by (Clarify_tac 1);
-(* case analysis: n < na *)
-by (case_tac "n < na" 1);
-(* n < na *)
+by (ALLGOALS
+    (simp_tac (simpset() addcongs [conj_cong] addsimps [card_s_0_eq_empty])));
 by (stac choose_deconstruct 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (stac card_Un_disjoint 1);
 by (Force_tac 3);
+(** LEVEL 10 **)
+(* use bijection *)
+by (force_tac (claset(), simpset() addsimps [constr_bij]) 3);
 (* finite goal *)
 by (res_inst_tac [("B","Pow F")] finite_subset 1);
 by (Blast_tac 1);
@@ -853,24 +846,8 @@ by (etac (finite_Pow_iff RS iffD2) 1);
 by (res_inst_tac [("B","Pow (insert x F)")] finite_subset 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addIs [finite_Pow_iff RS iffD2]) 1);
-(** LEVEL 21 **)
-(* use bijection *)
-by (force_tac (claset(), simpset() addsimps [constr_bij]) 1);
-(* The remaining odd cases *)
-(* case ~ n < na: 1. na < n contradiction and 2. n = na trivial solution *)
-by (dtac (leI RS (le_eq_less_or_eq RS iffD1)) 1);
-by (etac disjE 1);
-(* contradiction for case na < n *)
-by (Force_tac 1);
-(* Second case na = n: substitution and evaluation *)
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "{s. s <= insert x F & card s = Suc n} = {insert x F}" 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [card_seteq RS equalityD2 RS subsetD]));
 qed "n_sub_lemma";
 
-Goal "[| finite M; card(M) = n; k <= n |]\
-\     ==> card {s. s <= M & card(s) = k} = (n choose k)";
+Goal "finite M ==> card {s. s <= M & card(s) = k} = ((card M) choose k)";
 by (asm_simp_tac (simpset() addsimps [n_sub_lemma]) 1);
 qed "n_subsets";
-
