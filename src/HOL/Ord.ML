@@ -108,12 +108,15 @@ by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "max_le_iff_conj";
+Addsimps [max_le_iff_conj];
 
 Goalw [min_def] "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)";
 by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "le_min_iff_conj";
+Addsimps [le_min_iff_conj];
+(* AddIffs screws up a blast_tac in MiniML *)
 
 Goalw [min_def] "!!z::'a::linorder. (min x y <= z) = (x <= z | y <= z)";
 by (Simp_tac 1);
