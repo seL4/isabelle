@@ -139,9 +139,7 @@ Robin Milner and Mads Tofte.
 \bibitem{nazareth-nipkow}
 Dieter Nazareth and Tobias Nipkow.
 \newblock Formal verification of algorithm {W}: The monomorphic case.
-\newblock In J.~von Wright, J.~Grundy, and J.~Harrison, editors, {\em Theorem
-  Proving in Higher Order Logics: {TPHOLs} '96}, LNCS 1125, pages 331--345,
-  1996.
+\newblock In von Wright et~al. \cite{tphols96}, pages 331--345.
 
 \bibitem{Nipkow-CR}
 Tobias Nipkow.
@@ -214,9 +212,8 @@ Lawrence~C. Paulson.
 \bibitem{paulson-security}
 Lawrence~C. Paulson.
 \newblock Proving properties of security protocols by induction.
-\newblock In {\em 10th Computer Security Foundations Workshop}. IEEE Computer
-  Society Press, 1997.
-\newblock In press.
+\newblock In {\em 10th Computer Security Foundations Workshop}, pages 70--83.
+  IEEE Computer Society Press, 1997.
 
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.
@@ -248,6 +245,11 @@ Art Quaife.
 \newblock Automated deduction in {von Neumann-Bernays-G\"{o}del} set theory.
 \newblock {\em Journal of Automated Reasoning}, 8(1):91--147, 1992.
 
+\bibitem{slind-tfl}
+Konrad Slind.
+\newblock Function definition in higher-order logic.
+\newblock In von Wright et~al. \cite{tphols96}.
+
 \bibitem{suppes72}
 Patrick Suppes.
 \newblock {\em Axiomatic Set Theory}.
@@ -262,6 +264,11 @@ G.~Takeuti.
 Simon Thompson.
 \newblock {\em Type Theory and Functional Programming}.
 \newblock Addison-Wesley, 1991.
+
+\bibitem{tphols96}
+J.~von Wright, J.~Grundy, and J.~Harrison, editors.
+\newblock {\em Theorem Proving in Higher Order Logics: {TPHOLs} '96}, LNCS
+  1125, 1996.
 
 \bibitem{principia}
 A.~N. Whitehead and B.~Russell.
