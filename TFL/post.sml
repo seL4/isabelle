@@ -185,11 +185,8 @@ struct
  (*Strip off the outer !P*)
  val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
- fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
-    let val dummy = deny (id mem (Sign.stamp_names_of (Theory.sign_of thy)))
-			 ("Recursive definition " ^ id ^ 
-			  " would clash with the theory of the same name!")	(* FIXME !? *)
-	val def = freezeT(get_def thy id)   RS   meta_eq_to_obj_eq
+ fun simplify_defn thy (ss, tflCongs) id pats def0 =
+    let	val def = freezeT def0 RS meta_eq_to_obj_eq
 	val {theory,rules,rows,TCs,full_pats_TCs} = 
 		 Prim.post_definition (Prim.congs thy tflCongs)
 		    (thy, (def,pats))
@@ -216,9 +213,8 @@ struct
  *---------------------------------------------------------------------------*)
  fun define_i thy fid R ss_congs eqs = 
    let val {functional,pats} = Prim.mk_functional thy eqs
-       val thy = Prim.wfrec_definition0 thy (Sign.base_name fid) R functional
-   in (thy, simplify_defn ss_congs (thy, (fid, pats)))
-   end;
+       val (thy, def) = Prim.wfrec_definition0 thy (Sign.base_name fid) R functional
+   in (thy, simplify_defn thy ss_congs fid pats def) end;
 
  fun define thy fid R ss_congs seqs = 
    define_i thy fid (read_term thy R) ss_congs (map (read_term thy) seqs)

@@ -439,7 +439,8 @@ fun wfrec_definition0 thy fid R (functional as Abs(Name, Ty, _)) =
                           (wfrec $ map_term_types poly_tvars R)
                       $ functional
      val def_term = mk_const_def (Theory.sign_of thy) (Name, Ty, wfrec_R_M)
-  in  #1 (PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy)  end
+     val (thy', [def]) = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
+ in (thy', def) end;
 end;
 
 
