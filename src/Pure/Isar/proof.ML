@@ -524,10 +524,13 @@ end;
 (* invoke_case *)
 
 fun invoke_case (name, atts) state =
-  let val (vars, props) = get_case state name in
+  let
+    val (vars, props) = get_case state name;
+    val bind_skolem = ProofContext.bind_skolem (context_of state) (map #1 vars);
+  in
     state
     |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
-    |> assume_i [(name, atts, map (fn t => (t, ([], []))) props)]
+    |> assume_i [(name, atts, map (fn t => (t, ([], []))) (map bind_skolem props))]
   end;
 
 
@@ -565,7 +568,7 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   in
     state'
     |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
-    |> map_context (ProofContext.add_cases (RuleCases.make goal [antN]))
+    |> map_context (ProofContext.add_cases (RuleCases.make false goal [antN]))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
