@@ -14,12 +14,8 @@ working environment on common Unix platforms.
 A <em>minimal</em> Isabelle installation requires only <tt>bash</tt>
 and <tt>perl</tt> (usually provided by the operating system), and a
 suitable implementation of Standard ML (e.g. Poly/ML as provided
-below).
-
-<p>
-
-A <em>comfortable</em> Isabelle working environment demands further
-user interface support, as provided by <a
+below).  A <em>comfortable</em> Isabelle working environment demands
+further user interface support, as provided by <a
 href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a>
 together with the (optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
@@ -28,20 +24,24 @@ href="http://www.xemacs.org">XEmacs</a> (e.g. version 21.1).
 
 <p>
 
-Below we offer tuned distributions of Proof General and X-Symbol, such
-that <em>no manual configuration</em> is required when used with
-Isabelle.  (In case that the original distributions are used instead,
-refer to their included instructions for the installation details.)
-Note that XEmacs-21 is not included here -- most operating system
+We provide ready-to-go packages for Isabelle, Proof General and
+X-Symbol.  While XEmacs-21 is not included here, most operating system
 distributions already provide suitable packages, although not
 installed by default.
+
+<p>
+
+Following the example installation procedures below, there is
+<em>no</em> separate configuration required of any of these
+components.  After installation, users may invoke the Isabelle
+executables without further ado.
 
 <p>
 
 
 <h2>(1) Linux/x86 systems with RPM</h2>
 
-This version of the <!-- _GP_ distname --> distribution is for
+This version of the <!-- _GP_ distname --> distribution is for generic
 Linux/x86 systems with RPM package management, as used by most Linux
 distributions.  Note that <tt>rpm</tt> requires root user access for
 installation.
@@ -84,11 +84,11 @@ rpm -e xsymbol proofgeneral isabelle-HOL isabelle polyml
 <p>
 
 
-<h2>(2) Generic Linux/x86 or Solaris/Sparc systems</h2>
+<h2>(2) Other Linux/x86 or Solaris/Sparc systems</h2>
 
 The following <!-- _GP_ distname --> distribution works for any
 Linux/x86 or Solaris/Sparc system.  Installation does not rely on
-package management.
+package management at all.
 
 <p>
 
