@@ -318,7 +318,7 @@ fun print_current_goals_default n max th =
       val ngoals = nprems_of th in
     writeln (begin_state ^ "Level " ^ string_of_int n ^ 
 	" (" ^ string_of_int ngoals ^ " subgoal" ^ 
-	   (if ngoals > 1 then "s" else "") ^ ")");
+	   (if ngoals <> 1 then "s" else "") ^ ")");
     Locale.print_goals_marker begin_goal max th;
     if end_state = "" then () else writeln end_state
   end;
