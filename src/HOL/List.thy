@@ -993,6 +993,10 @@ lemma list_all2_rev [iff]:
 "list_all2 P (rev xs) (rev ys) = list_all2 P xs ys"
 by (simp add: list_all2_def zip_rev cong: conj_cong)
 
+lemma list_all2_rev1:
+"list_all2 P (rev xs) ys = list_all2 P xs (rev ys)"
+by (subst list_all2_rev [symmetric]) simp
+
 lemma list_all2_append1:
 "list_all2 P (xs @ ys) zs =
 (EX us vs. zs = us @ vs \<and> length us = length xs \<and> length vs = length ys \<and>
@@ -1019,10 +1023,39 @@ apply clarify
 apply (simp add: ball_Un)
 done
 
+lemma list_all2_append:
+  "\<And>b. length a = length b \<Longrightarrow>
+  list_all2 P (a@c) (b@d) = (list_all2 P a b \<and> list_all2 P c d)"
+  apply (induct a)
+   apply simp
+  apply (case_tac b)
+  apply auto
+  done
+
+lemma list_all2_appendI [intro?, trans]:
+  "\<lbrakk> list_all2 P a b; list_all2 P c d \<rbrakk> \<Longrightarrow> list_all2 P (a@c) (b@d)"
+  by (simp add: list_all2_append list_all2_lengthD)
+
 lemma list_all2_conv_all_nth:
 "list_all2 P xs ys =
 (length xs = length ys \<and> (\<forall>i < length xs. P (xs!i) (ys!i)))"
 by (force simp add: list_all2_def set_zip)
+
+lemma list_all2_all_nthI [intro?]:
+  "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
+  by (simp add: list_all2_conv_all_nth)
+
+lemma list_all2_nthD [dest?]:
+  "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
+  by (simp add: list_all2_conv_all_nth)
+
+lemma list_all2_map1: 
+  "list_all2 P (map f as) bs = list_all2 (\<lambda>x y. P (f x) y) as bs"
+  by (simp add: list_all2_conv_all_nth)
+
+lemma list_all2_map2: 
+  "list_all2 P as (map f bs) = list_all2 (\<lambda>x y. P x (f y)) as bs"
+  by (auto simp add: list_all2_conv_all_nth)
 
 lemma list_all2_trans[rule_format]:
 "\<forall>a b c. P1 a b --> P2 b c --> P3 a c ==>
@@ -1036,6 +1069,36 @@ apply(rule allI)
 apply(induct_tac cs)
  apply auto
 done
+
+lemma list_all2_refl:
+  "(\<And>x. P x x) \<Longrightarrow> list_all2 P xs xs"
+  by (simp add: list_all2_conv_all_nth)
+
+lemma list_all2_update_cong:
+  "\<lbrakk> i<size xs; list_all2 P xs ys; P x y \<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
+  by (simp add: list_all2_conv_all_nth nth_list_update)
+
+lemma list_all2_update_cong2:
+  "\<lbrakk>list_all2 P xs ys; P x y; i < length ys\<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
+  by (simp add: list_all2_lengthD list_all2_update_cong)
+
+lemma list_all2_dropI [intro?]:
+  "\<And>n bs. list_all2 P as bs \<Longrightarrow> list_all2 P (drop n as) (drop n bs)"
+  apply (induct as)
+   apply simp
+  apply (clarsimp simp add: list_all2_Cons1)
+  apply (case_tac n)
+   apply simp
+  apply simp
+  done
+
+lemma list_all2_mono [intro?]:
+  "\<And>y. list_all2 P x y \<Longrightarrow> (\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> list_all2 Q x y"
+  apply (induct x)
+   apply simp
+  apply (case_tac y)
+  apply auto
+  done
 
 
 subsection {* @{text foldl} *}
@@ -1134,6 +1197,16 @@ lemma nth_equalityI:
 apply (frule nth_take_lemma [OF le_refl eq_imp_le])
 apply (simp_all add: take_all)
 done
+
+(* needs nth_equalityI *)
+lemma list_all2_antisym:
+  "\<lbrakk> (\<And>x y. \<lbrakk>P x y; Q y x\<rbrakk> \<Longrightarrow> x = y); list_all2 P xs ys; list_all2 Q ys xs \<rbrakk> 
+  \<Longrightarrow> xs = ys"
+  apply (simp add: list_all2_conv_all_nth) 
+  apply (rule nth_equalityI)
+   apply blast
+  apply simp
+  done
 
 lemma take_equalityI: "(\<forall>i. take i xs = take i ys) ==> xs = ys"
 -- {* The famous take-lemma. *}
