@@ -1086,6 +1086,8 @@ translated to \texttt{succ(0)}.
 \end{figure}
 
 
+\subsection{Disjoint unions}
+
 Theory \thydx{Sum} defines the disjoint union of two sets, with
 injections and a case analysis operator (Fig.\ts\ref{zf-sum}).  Disjoint
 unions play a role in datatype definitions, particularly when there is
@@ -1106,6 +1108,9 @@ mutual recursion~\cite{paulson-set-II}.
 \end{ttbox}
 \caption{Non-standard pairs, products and sums} \label{zf-qpair}
 \end{figure}
+
+
+\subsection{Non-standard ordered pairs}
 
 Theory \thydx{QPair} defines a notion of ordered pair that admits
 non-well-founded tupling (Fig.\ts\ref{zf-qpair}).  Such pairs are written
@@ -1165,6 +1170,9 @@ definitions, for example of infinite lists~\cite{paulson-mscs}.
 \caption{Least and greatest fixedpoints} \label{zf-fixedpt}
 \end{figure}
 
+
+\subsection{Least and greatest fixedpoints}
+
 The Knaster-Tarski Theorem states that every monotone function over a
 complete lattice has a fixedpoint.  Theory \thydx{Fixedpt} proves the
 Theorem only for a particular lattice, namely the lattice of subsets of a
@@ -1184,143 +1192,7 @@ themselves are trivial applications of Isabelle's classical reasoner.  See
 file \texttt{ZF/mono.ML}.
 
 
-\begin{figure}
-\begin{constants} 
-  \it symbol  & \it meta-type & \it priority & \it description \\ 
-  \sdx{O}       & $[i,i]\To i$  &  Right 60     & composition ($\circ$) \\
-  \cdx{id}      & $i\To i$      &       & identity function \\
-  \cdx{inj}     & $[i,i]\To i$  &       & injective function space\\
-  \cdx{surj}    & $[i,i]\To i$  &       & surjective function space\\
-  \cdx{bij}     & $[i,i]\To i$  &       & bijective function space
-\end{constants}
-
-\begin{ttbox}
-\tdx{comp_def}  r O s     == {\ttlbrace}xz : domain(s)*range(r) . 
-                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r{\ttrbrace}
-\tdx{id_def}    id(A)     == (lam x:A. x)
-\tdx{inj_def}   inj(A,B)  == {\ttlbrace} f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x {\ttrbrace}
-\tdx{surj_def}  surj(A,B) == {\ttlbrace} f: A->B . ALL y:B. EX x:A. f`x=y {\ttrbrace}
-\tdx{bij_def}   bij(A,B)  == inj(A,B) Int surj(A,B)
-
-
-\tdx{left_inverse}     [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a
-\tdx{right_inverse}    [| f: inj(A,B);  b: range(f) |] ==> 
-                 f`(converse(f)`b) = b
-
-\tdx{inj_converse_inj} f: inj(A,B) ==> converse(f): inj(range(f), A)
-\tdx{bij_converse_bij} f: bij(A,B) ==> converse(f): bij(B,A)
-
-\tdx{comp_type}        [| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C
-\tdx{comp_assoc}       (r O s) O t = r O (s O t)
-
-\tdx{left_comp_id}     r<=A*B ==> id(B) O r = r
-\tdx{right_comp_id}    r<=A*B ==> r O id(A) = r
-
-\tdx{comp_func}        [| g:A->B; f:B->C |] ==> (f O g):A->C
-\tdx{comp_func_apply}  [| g:A->B; f:B->C; a:A |] ==> (f O g)`a = f`(g`a)
-
-\tdx{comp_inj}         [| g:inj(A,B);  f:inj(B,C)  |] ==> (f O g):inj(A,C)
-\tdx{comp_surj}        [| g:surj(A,B); f:surj(B,C) |] ==> (f O g):surj(A,C)
-\tdx{comp_bij}         [| g:bij(A,B); f:bij(B,C) |] ==> (f O g):bij(A,C)
-
-\tdx{left_comp_inverse}     f: inj(A,B) ==> converse(f) O f = id(A)
-\tdx{right_comp_inverse}    f: surj(A,B) ==> f O converse(f) = id(B)
-
-\tdx{bij_disjoint_Un}   
-    [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
-    (f Un g) : bij(A Un C, B Un D)
-
-\tdx{restrict_bij}  [| f:inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)
-\end{ttbox}
-\caption{Permutations} \label{zf-perm}
-\end{figure}
-
-The theory \thydx{Perm} is concerned with permutations (bijections) and
-related concepts.  These include composition of relations, the identity
-relation, and three specialized function spaces: injective, surjective and
-bijective.  Figure~\ref{zf-perm} displays many of their properties that
-have been proved.  These results are fundamental to a treatment of
-equipollence and cardinality.
-
-\begin{figure}\small
-\index{#*@{\tt\#*} symbol}
-\index{*div symbol}
-\index{*mod symbol}
-\index{#+@{\tt\#+} symbol}
-\index{#-@{\tt\#-} symbol}
-\begin{constants}
-  \it symbol  & \it meta-type & \it priority & \it description \\ 
-  \cdx{nat}     & $i$                   &       & set of natural numbers \\
-  \cdx{nat_case}& $[i,i\To i,i]\To i$     &     & conditional for $nat$\\
-  \tt \#*       & $[i,i]\To i$  &  Left 70      & multiplication \\
-  \tt div       & $[i,i]\To i$  &  Left 70      & division\\
-  \tt mod       & $[i,i]\To i$  &  Left 70      & modulus\\
-  \tt \#+       & $[i,i]\To i$  &  Left 65      & addition\\
-  \tt \#-       & $[i,i]\To i$  &  Left 65      & subtraction
-\end{constants}
-
-\begin{ttbox}
-\tdx{nat_def}  nat == lfp(lam r: Pow(Inf). {\ttlbrace}0{\ttrbrace} Un {\ttlbrace}succ(x). x:r{\ttrbrace}
-
-\tdx{mod_def}  m mod n == transrec(m, \%j f. if j:n then j else f`(j#-n))
-\tdx{div_def}  m div n == transrec(m, \%j f. if j:n then 0 
-                                       else succ(f`(j#-n)))
-
-\tdx{nat_case_def}  nat_case(a,b,k) == 
-              THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
-
-\tdx{nat_0I}        0 : nat
-\tdx{nat_succI}     n : nat ==> succ(n) : nat
-
-\tdx{nat_induct}        
-    [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
-    |] ==> P(n)
-
-\tdx{nat_case_0}    nat_case(a,b,0) = a
-\tdx{nat_case_succ} nat_case(a,b,succ(m)) = b(m)
-
-\tdx{add_0}        0 #+ n = n
-\tdx{add_succ}     succ(m) #+ n = succ(m #+ n)
-
-\tdx{mult_type}     [| m:nat;  n:nat |] ==> m #* n : nat
-\tdx{mult_0}        0 #* n = 0
-\tdx{mult_succ}     succ(m) #* n = n #+ (m #* n)
-\tdx{mult_commute}  [| m:nat; n:nat |] ==> m #* n = n #* m
-\tdx{add_mult_dist} [| m:nat; k:nat |] ==> 
-              (m #+ n) #* k = (m #* k) #+ (n #* k)
-\tdx{mult_assoc}
-    [| m:nat;  n:nat;  k:nat |] ==> (m #* n) #* k = m #* (n #* k)
-\tdx{mod_quo_equality}
-    [| 0:n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m
-\end{ttbox}
-\caption{The natural numbers} \label{zf-nat}
-\end{figure}
-
-Theory \thydx{Nat} defines the natural numbers and mathematical
-induction, along with a case analysis operator.  The set of natural
-numbers, here called \texttt{nat}, is known in set theory as the ordinal~$\omega$.
-
-Theory \thydx{Arith} develops arithmetic on the natural numbers
-(Fig.\ts\ref{zf-nat}).  Addition, multiplication and subtraction are defined
-by primitive recursion.  Division and remainder are defined by repeated
-subtraction, which requires well-founded recursion; the termination argument
-relies on the divisor's being non-zero.  Many properties are proved:
-commutative, associative and distributive laws, identity and cancellation
-laws, etc.  The most interesting result is perhaps the theorem $a \bmod b +
-(a/b)\times b = a$.
-
-Theory \thydx{Univ} defines a `universe' $\texttt{univ}(A)$, which is used by
-the datatype package.  This set contains $A$ and the
-natural numbers.  Vitally, it is closed under finite products: ${\tt
-  univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This theory also
-defines the cumulative hierarchy of axiomatic set theory, which
-traditionally is written $V@\alpha$ for an ordinal~$\alpha$.  The
-`universe' is a simple generalization of~$V@\omega$.
-
-Theory \thydx{QUniv} defines a `universe' ${\tt quniv}(A)$, which is used by
-the datatype package to construct codatatypes such as streams.  It is
-analogous to ${\tt univ}(A)$ (and is defined in terms of it) but is closed
-under the non-standard product and sum.
+\subsection{Finite sets and lists}
 
 Theory \texttt{Finite} (Figure~\ref{zf-fin}) defines the finite set operator;
 ${\tt Fin}(A)$ is the set of all finite sets over~$A$.  The theory employs
@@ -1393,6 +1265,80 @@ definition employs Isabelle's datatype package, which defines the introduction
 and induction rules automatically, as well as the constructors, case operator
 (\verb|list_case|) and recursion operator.  The theory then defines the usual
 list functions by primitive recursion.  See theory \texttt{List}.
+
+
+\subsection{Miscellaneous}
+
+\begin{figure}
+\begin{constants} 
+  \it symbol  & \it meta-type & \it priority & \it description \\ 
+  \sdx{O}       & $[i,i]\To i$  &  Right 60     & composition ($\circ$) \\
+  \cdx{id}      & $i\To i$      &       & identity function \\
+  \cdx{inj}     & $[i,i]\To i$  &       & injective function space\\
+  \cdx{surj}    & $[i,i]\To i$  &       & surjective function space\\
+  \cdx{bij}     & $[i,i]\To i$  &       & bijective function space
+\end{constants}
+
+\begin{ttbox}
+\tdx{comp_def}  r O s     == {\ttlbrace}xz : domain(s)*range(r) . 
+                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r{\ttrbrace}
+\tdx{id_def}    id(A)     == (lam x:A. x)
+\tdx{inj_def}   inj(A,B)  == {\ttlbrace} f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x {\ttrbrace}
+\tdx{surj_def}  surj(A,B) == {\ttlbrace} f: A->B . ALL y:B. EX x:A. f`x=y {\ttrbrace}
+\tdx{bij_def}   bij(A,B)  == inj(A,B) Int surj(A,B)
+
+
+\tdx{left_inverse}     [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a
+\tdx{right_inverse}    [| f: inj(A,B);  b: range(f) |] ==> 
+                 f`(converse(f)`b) = b
+
+\tdx{inj_converse_inj} f: inj(A,B) ==> converse(f): inj(range(f), A)
+\tdx{bij_converse_bij} f: bij(A,B) ==> converse(f): bij(B,A)
+
+\tdx{comp_type}        [| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C
+\tdx{comp_assoc}       (r O s) O t = r O (s O t)
+
+\tdx{left_comp_id}     r<=A*B ==> id(B) O r = r
+\tdx{right_comp_id}    r<=A*B ==> r O id(A) = r
+
+\tdx{comp_func}        [| g:A->B; f:B->C |] ==> (f O g):A->C
+\tdx{comp_func_apply}  [| g:A->B; f:B->C; a:A |] ==> (f O g)`a = f`(g`a)
+
+\tdx{comp_inj}         [| g:inj(A,B);  f:inj(B,C)  |] ==> (f O g):inj(A,C)
+\tdx{comp_surj}        [| g:surj(A,B); f:surj(B,C) |] ==> (f O g):surj(A,C)
+\tdx{comp_bij}         [| g:bij(A,B); f:bij(B,C) |] ==> (f O g):bij(A,C)
+
+\tdx{left_comp_inverse}     f: inj(A,B) ==> converse(f) O f = id(A)
+\tdx{right_comp_inverse}    f: surj(A,B) ==> f O converse(f) = id(B)
+
+\tdx{bij_disjoint_Un}   
+    [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
+    (f Un g) : bij(A Un C, B Un D)
+
+\tdx{restrict_bij}  [| f:inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)
+\end{ttbox}
+\caption{Permutations} \label{zf-perm}
+\end{figure}
+
+The theory \thydx{Perm} is concerned with permutations (bijections) and
+related concepts.  These include composition of relations, the identity
+relation, and three specialized function spaces: injective, surjective and
+bijective.  Figure~\ref{zf-perm} displays many of their properties that
+have been proved.  These results are fundamental to a treatment of
+equipollence and cardinality.
+
+Theory \thydx{Univ} defines a `universe' $\texttt{univ}(A)$, which is used by
+the datatype package.  This set contains $A$ and the
+natural numbers.  Vitally, it is closed under finite products: ${\tt
+  univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This theory also
+defines the cumulative hierarchy of axiomatic set theory, which
+traditionally is written $V@\alpha$ for an ordinal~$\alpha$.  The
+`universe' is a simple generalization of~$V@\omega$.
+
+Theory \thydx{QUniv} defines a `universe' ${\tt quniv}(A)$, which is used by
+the datatype package to construct codatatypes such as streams.  It is
+analogous to ${\tt univ}(A)$ (and is defined in terms of it) but is closed
+under the non-standard product and sum.
 
 
 \section{Automatic Tools}
@@ -1516,6 +1462,152 @@ by (asm_simp_tac
      (simpset() setSolver type_solver_tac (tcset() addTCs prems)) 2);
 \end{ttbox}
 
+
+\section{Natural number and integer arithmetic}
+
+\index{arithmetic|(}
+
+\begin{figure}\small
+\index{#*@{\tt\#*} symbol}
+\index{*div symbol}
+\index{*mod symbol}
+\index{#+@{\tt\#+} symbol}
+\index{#-@{\tt\#-} symbol}
+\begin{constants}
+  \it symbol  & \it meta-type & \it priority & \it description \\ 
+  \cdx{nat}     & $i$                   &       & set of natural numbers \\
+  \cdx{nat_case}& $[i,i\To i,i]\To i$     &     & conditional for $nat$\\
+  \tt \#*       & $[i,i]\To i$  &  Left 70      & multiplication \\
+  \tt div       & $[i,i]\To i$  &  Left 70      & division\\
+  \tt mod       & $[i,i]\To i$  &  Left 70      & modulus\\
+  \tt \#+       & $[i,i]\To i$  &  Left 65      & addition\\
+  \tt \#-       & $[i,i]\To i$  &  Left 65      & subtraction
+\end{constants}
+
+\begin{ttbox}
+\tdx{nat_def}  nat == lfp(lam r: Pow(Inf). {\ttlbrace}0{\ttrbrace} Un {\ttlbrace}succ(x). x:r{\ttrbrace}
+
+\tdx{nat_case_def}  nat_case(a,b,k) == 
+              THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
+
+\tdx{nat_0I}           0 : nat
+\tdx{nat_succI}        n : nat ==> succ(n) : nat
+
+\tdx{nat_induct}        
+    [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
+    |] ==> P(n)
+
+\tdx{nat_case_0}      nat_case(a,b,0) = a
+\tdx{nat_case_succ}   nat_case(a,b,succ(m)) = b(m)
+
+\tdx{add_0_natify}     0 #+ n = natify(n)
+\tdx{add_succ}         succ(m) #+ n = succ(m #+ n)
+
+\tdx{mult_type}        m #* n : nat
+\tdx{mult_0}           0 #* n = 0
+\tdx{mult_succ}        succ(m) #* n = n #+ (m #* n)
+\tdx{mult_commute}     m #* n = n #* m
+\tdx{add_mult_dist}    (m #+ n) #* k = (m #* k) #+ (n #* k)
+\tdx{mult_assoc}       (m #* n) #* k = m #* (n #* k)
+\tdx{mod_div_equality} m: nat ==> (m div n)#*n #+ m mod n = m
+\end{ttbox}
+\caption{The natural numbers} \label{zf-nat}
+\end{figure}
+
+\index{natural numbers}
+
+Theory \thydx{Nat} defines the natural numbers and mathematical
+induction, along with a case analysis operator.  The set of natural
+numbers, here called \texttt{nat}, is known in set theory as the ordinal~$\omega$.
+
+Theory \thydx{Arith} develops arithmetic on the natural numbers
+(Fig.\ts\ref{zf-nat}).  Addition, multiplication and subtraction are defined
+by primitive recursion.  Division and remainder are defined by repeated
+subtraction, which requires well-founded recursion; the termination argument
+relies on the divisor's being non-zero.  Many properties are proved:
+commutative, associative and distributive laws, identity and cancellation
+laws, etc.  The most interesting result is perhaps the theorem $a \bmod b +
+(a/b)\times b = a$.
+
+To minimize the need for tedious proofs of $t\in\texttt{nat}$, the arithmetic
+operators coerce their arguments to be natural numbers.  The function
+\cdx{natify} is defined such that $\texttt{natify}(n) = n$ if $n$ is a natural
+number, $\texttt{natify}(\texttt{succ}(x)) =
+\texttt{succ}(\texttt{natify}(x))$ for all $x$, and finally
+$\texttt{natify}(x)=0$ in all other cases.  The benefit is that the addition,
+subtraction, multiplication, division and remainder operators always return
+natural numbers, regardless of their arguments.  Algebraic laws (commutative,
+associative, distributive) are unconditional.  Occurrences of \texttt{natify}
+as operands of those operators are simplified away.  Any remaining occurrences
+can either be tolerated or else eliminated by proving that the argument is a
+natural number.
+
+The simplifier automatically cancels common terms on the opposite sides of
+subtraction and of relations ($=$, $<$ and $\le$).  Here is an example:
+\begin{ttbox}
+ 1. i #+ j #+ k #- j < k #+ l
+> by (Simp_tac 1);
+ 1. natify(i) < natify(l)
+\end{ttbox}
+Given the assumptions \texttt{i:nat} and \texttt{l:nat}, both occurrences of
+\cdx{natify} would be simplified away.
+
+
+\begin{figure}\small
+\index{$*@{\tt\$*} symbol}
+\index{$+@{\tt\$+} symbol}
+\index{$-@{\tt\$-} symbol}
+\begin{constants}
+  \it symbol  & \it meta-type & \it priority & \it description \\ 
+  \cdx{int}     & $i$                   &       & set of integers \\
+  \tt \$*       & $[i,i]\To i$  &  Left 70      & multiplication \\
+  \tt \$+       & $[i,i]\To i$  &  Left 65      & addition\\
+  \tt \$-       & $[i,i]\To i$  &  Left 65      & subtraction\\
+  \tt \$<       & $[i,i]\To o$  &  Left 50      & $<$ on integers\\
+  \tt \$<=      & $[i,i]\To o$  &  Left 50      & $\le$ on integers
+\end{constants}
+
+\begin{ttbox}
+\tdx{zadd_0_intify}     0 $+ n = intify(n)
+
+\tdx{zmult_type}        m $* n : int
+\tdx{zmult_0}           0 $* n = 0
+\tdx{zmult_commute}     m $* n = n $* m
+\tdx{zadd_zmult_dist}    (m $+ n) $* k = (m $* k) $+ (n $* k)
+\tdx{zmult_assoc}       (m $* n) $* k = m $* (n $* k)
+\end{ttbox}
+\caption{The integers} \label{zf-int}
+\end{figure}
+
+
+\index{integers}
+
+Theory \thydx{Int} defines the integers, as equivalence classes of natural
+numbers.   Figure~\ref{zf-int} presents a tidy collection of laws.  In
+fact, a large library of facts is proved, including monotonicity laws for
+addition and multiplication, covering both positive and negative operands.  
+
+As with the natural numbers, the need for typing proofs is minimized.  All the
+operators defined in Fig.\ts\ref{zf-int} coerce their operands to integers by
+applying the function \cdx{intify}.  This function is the identity on integers
+and maps other operands to zero.
+
+Decimal notation is provided for the integers.  Numbers, written as
+\texttt{\#$nnn$} or \texttt{\#-$nnn$}, are represented internally in
+two's-complement binary.  Expressions involving addition, subtraction and
+multiplication of numeral constants are evaluated (with acceptable efficiency)
+by simplification.  The simplifier also collects similar terms, multiplying
+them by a numerical coefficient.  It also cancels occurrences of the same
+terms on the other side of the relational operators.  Example:
+\begin{ttbox}
+ 1. y $+ z $+ #-3 $* x $+ y $<= x $* #2 $+ z
+> by (Simp_tac 1);
+ 1. #2 $* y $<= #5 $* x
+\end{ttbox}
+For more information on the integers, please see the theories on directory
+\texttt{ZF/Integ}. 
+
+\index{arithmetic|)}
 
 
 \section{Datatype definitions}
