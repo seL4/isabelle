@@ -1,7 +1,8 @@
 \message{pdfsetup.sty v0.1 11/7/2001}
 \@ifundefined{pdfoutput}{\message{No PDF output}\usepackage{../url}}
 {\message{Generating PDF output}%
-  \usepackage[pdftex,a4paper,colorlinks=true]{hyperref}
+  \usepackage[pdftex,colorlinks=true]{hyperref}%
+              %no a4paper because overall style sets this (not for Springer!)
   \gdef\fnote#1{\hyperpage{#1}n}
   \gdef\bold#1{\textbf{\hyperpage{#1}}}}
 
