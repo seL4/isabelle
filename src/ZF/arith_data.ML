@@ -58,16 +58,19 @@ fun mk_eq_iff(t,u) =
                        else FOLogic.mk_iff(t,u);
 
 
+fun is_eq_thm th = can FOLogic.dest_eq (#prop (rep_thm th));
+
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
 fun prove_conv name tacs sg hyps (t,u) =
   if t aconv u then None
   else
-  let val ct = add_chyps hyps
+  let val hyps' = filter is_eq_thm hyps
+      val ct = add_chyps hyps'
                   (cterm_of sg (FOLogic.mk_Trueprop (mk_eq_iff(t, u))))
   in Some
-      (hyps MRS 
-       (prove_goalw_cterm_nocheck [] ct 
+      (hyps' MRS 
+       (prove_goalw_cterm [] ct 
 	(fn prems => cut_facts_tac prems 1 :: tacs)))
       handle ERROR => 
 	(warning 
@@ -155,7 +158,7 @@ structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
-  val dest_bal = FOLogic.dest_bin "op =" iT
+  val dest_bal = FOLogic.dest_eq
   val bal_add1 = eq_add_iff RS iff_trans
   val bal_add2 = eq_add_iff RS iff_trans
   val trans_tac = gen_trans_tac iff_trans
