@@ -18,7 +18,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-NAMES = HOL Ord Set Fun subset equalities Prod Trancl Sum WF \
+NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
        mono Lfp Gfp Nat Inductive Finite Arith Sexp Univ List 
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
@@ -64,7 +64,7 @@ IMP:    $(BIN)/CHOL  $(IMP_FILES)
 	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
 ##The integers in CHOL
-INTEG_NAMES = Relation Equiv Integ 
+INTEG_NAMES = Equiv Integ 
 
 INTEG_FILES = Integ/ROOT.ML \
               $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
