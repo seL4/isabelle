@@ -119,6 +119,9 @@ subsection {* Lemmas and proof tools *}
 
 setup Simplifier.setup
 use "IFOL_lemmas.ML"
+
+declare impE [Pure.elim]  iffD1 [Pure.elim]  iffD2 [Pure.elim]
+
 use "fologic.ML"
 use "hypsubstdata.ML"
 setup hypsubst_setup
