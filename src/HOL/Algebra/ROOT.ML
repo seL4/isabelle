@@ -6,8 +6,9 @@
 
 (* New development, based on explicit structures *)
 
+no_document use_thy "FuncSet";
 use_thy "Sylow";		(* Groups *)
-(* use_thy "UnivPoly"; *)	(* Rings and polynomials *)
+use_thy "UnivPoly";		(* Rings and polynomials *)
 
 (* Old development, based on axiomatic type classes.
    Will be withdrawn in future. *)

@@ -468,7 +468,7 @@ lemma (in coset) setrcos_inv_mult_group_eq:
      "[|H <| G; M \<in> rcosets G H|] ==> set_inv G M <#> M = H"
 by (auto simp add: setrcos_eq rcos_inv rcos_sum normal_imp_subgroup 
                    subgroup.subset)
-
+(*
 lemma (in group) factorgroup_is_magma:
   "H <| G ==> magma (G Mod H)"
   by rule (simp add: FactGroup_def coset.setmult_closed [OF is_coset])
@@ -477,7 +477,7 @@ lemma (in group) factorgroup_semigroup_axioms:
   "H <| G ==> semigroup_axioms (G Mod H)"
   by rule (simp add: FactGroup_def coset.setrcos_assoc [OF is_coset]
     coset.setmult_closed [OF is_coset])
-
+*)
 theorem (in group) factorgroup_is_group:
   "H <| G ==> group (G Mod H)"
 apply (insert is_coset) 

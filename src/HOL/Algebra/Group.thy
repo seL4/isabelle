@@ -93,6 +93,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in monoid) Units_one_closed [intro, simp]:
+  "\<one> \<in> Units G"
+  by (unfold Units_def) auto
+
 lemma (in monoid) Units_inv_closed [intro, simp]:
   "x \<in> Units G ==> inv x \<in> carrier G"
   apply (unfold Units_def m_inv_def)
@@ -160,6 +164,15 @@ proof (rule inj_onI)
   assume G: "x \<in> Units G" "y \<in> Units G" and eq: "inv x = inv y"
   then have "inv (inv x) = inv (inv y)" by simp
   with G show "x = y" by simp
+qed
+
+lemma (in monoid) Units_inv_comm:
+  assumes inv: "x \<otimes> y = \<one>"
+    and G: "x \<in> Units G" "y \<in> Units G"
+  shows "y \<otimes> x = \<one>"
+proof -
+  from G have "x \<otimes> y \<otimes> x = x \<otimes> \<one>" by (auto simp add: inv Units_closed)
+  with G show ?thesis by (simp del: r_one add: m_assoc Units_closed)
 qed
 
 text {* Power *}
@@ -287,16 +300,7 @@ lemma (in group) l_cancel [simp]:
   "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
    (x \<otimes> y = x \<otimes> z) = (y = z)"
   using Units_l_inv by simp
-(*
-lemma (in group) r_one [simp]:  
-  "x \<in> carrier G ==> x \<otimes> \<one> = x"
-proof -
-  assume x: "x \<in> carrier G"
-  then have "inv x \<otimes> (x \<otimes> \<one>) = inv x \<otimes> x"
-    by (simp add: m_assoc [symmetric] l_inv)
-  with x show ?thesis by simp 
-qed
-*)
+
 lemma (in group) r_inv:
   "x \<in> carrier G ==> x \<otimes> inv x = \<one>"
 proof -
@@ -345,6 +349,10 @@ proof -
     by (simp add: m_assoc l_inv) (simp add: m_assoc [symmetric] l_inv)
   with G show ?thesis by simp
 qed
+
+lemma (in group) inv_comm:
+  "[| x \<otimes> y = \<one>; x \<in> carrier G; y \<in> carrier G |] ==> y \<otimes> x = \<one>"
+  by (rule Units_inv_comm) auto                          
 
 text {* Power *}
 
