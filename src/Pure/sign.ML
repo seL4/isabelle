@@ -671,8 +671,8 @@ fun read_raw_typ (sg, def_sort) = read_raw_typ' (syn_of sg) (sg, def_sort);
 (*read and certify typ wrt a signature*)
 local
   fun read_typ_aux rd cert (sg, def_sort) str =
-    (#1 (cert (tsig_of sg) (rd (sg, def_sort) str))
-      handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
+    cert (tsig_of sg) (rd (sg, def_sort) str)
+      handle TYPE (msg, _, _) => (error_msg msg; err_in_type str);
 in
   val read_typ          = read_typ_aux read_raw_typ Type.cert_typ;
   val read_typ_raw      = read_typ_aux read_raw_typ Type.cert_typ_raw;
@@ -686,8 +686,8 @@ end;
 
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
-val certify_typ = #1 oo (Type.cert_typ o tsig_of);
-val certify_typ_raw = #1 oo (Type.cert_typ_raw o tsig_of);
+val certify_typ = Type.cert_typ o tsig_of;
+val certify_typ_raw = Type.cert_typ_raw o tsig_of;
 
 fun certify_tyname sg c =
   if is_some (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c)) then c
@@ -701,22 +701,6 @@ fun certify_const sg c =
 (* certify_term *)
 
 local
-
-(*certify types of term and compute maxidx*)
-fun cert_term_types certT =
-  let
-    fun cert (Const (a, T)) = let val (T', i) = certT T in (Const (a, T'), i) end
-      | cert (Free (a, T)) = let val (T', i) = certT T in (Free (a, T'), i) end
-      | cert (Var (xi as (_, i), T)) =
-          let val (T', j) = certT T in (Var (xi, T'), Int.max (i, j)) end
-      | cert (t as Bound _) = (t, ~1)
-      | cert (Abs (a, T, t)) =
-          let val (T', i) = certT T and (t', j) = cert t
-          in (Abs (a, T', t'), Int.max (i, j)) end
-      | cert (t $ u) =
-          let val (t', i) = cert t and (u', j) =  cert u
-          in (t' $ u', Int.max (i, j)) end;
-  in cert end;
 
 (*compute and check type of the term*)
 fun type_check pp sg tm =
@@ -797,7 +781,7 @@ fun certify_term pp sg tm =
   let
     val _ = check_stale sg;
 
-    val (tm', maxidx) = cert_term_types (Type.cert_typ (tsig_of sg)) tm;
+    val tm' = map_term_types (Type.cert_typ (tsig_of sg)) tm;
     val tm' = if tm = tm' then tm else tm';  (*avoid copying of already normal term*)
 
     fun err msg = raise TYPE (msg, [], [tm']);
@@ -818,7 +802,7 @@ fun certify_term pp sg tm =
   in
     check_atoms tm';
     nodup_vars tm';
-    (tm', type_check pp sg tm', maxidx)
+    (tm', type_check pp sg tm', maxidx_of_term tm')
   end;
 
 end;
@@ -1001,8 +985,7 @@ fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data
     raw_consts =
   let
     val prep_typ = compress_type o Type.varifyT o Type.no_tvars o
-     (if syn_only then #1 o Type.cert_typ_syntax tsig
-      else Term.no_dummyT o #1 o Type.cert_typ tsig);
+     (if syn_only then Type.cert_typ_syntax tsig else Term.no_dummyT o Type.cert_typ tsig);
     fun prep_const (c, ty, mx) = (c, prep_typ ty, mx) handle TYPE (msg, _, _) =>
       (error_msg msg; err_in_const (const_name path c mx));
 

@@ -32,9 +32,9 @@ sig
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
   val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
-  val cert_typ: tsig -> typ -> typ * int
-  val cert_typ_syntax: tsig -> typ -> typ * int
-  val cert_typ_raw: tsig -> typ -> typ * int
+  val cert_typ: tsig -> typ -> typ
+  val cert_typ_syntax: tsig -> typ -> typ
+  val cert_typ_raw: tsig -> typ -> typ
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -144,20 +144,15 @@ fun witness_sorts (tsig as TSig {classes, arities, log_types, ...}) =
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
-local
-
-fun inst_typ env = Term.map_type_tvar (fn (var as (v, _)) =>
-  (case Library.assoc_string_int (env, v) of
-    Some U => inst_typ env U
-  | None => TVar var));
-
 fun certify_typ normalize syntax tsig ty =
   let
     val TSig {classes, types, ...} = tsig;
     fun err msg = raise TYPE (msg, [ty], []);
 
-    val maxidx = Term.maxidx_of_typ ty;
-    val idx = maxidx + 1;
+    fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
+      | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
+      | inst_typ _ T = T;
+
 
     val check_syntax =
       if syntax then K ()
@@ -172,28 +167,24 @@ fun certify_typ normalize syntax tsig ty =
               Some (LogicalType n, _) => (nargs n; Type (c, Ts'))
             | Some (Abbreviation (vs, U, syn), _) => (nargs (length vs);
                 if syn then check_syntax c else ();
-                if normalize then
-                  inst_typ (map (rpair idx) vs ~~ Ts') (Term.incr_tvar idx U)
+                if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
             | Some (Nonterminal, _) => (nargs 0; check_syntax c; T)
             | None => err (undecl_type c))
           end
       | cert (TFree (x, S)) = TFree (x, Sorts.certify_sort classes S)
       | cert (TVar (xi as (_, i), S)) =
-          if i < 0 then err ("Malformed type variable: " ^ quote (Term.string_of_vname xi))
+          if i < 0 then
+            err ("Malformed type variable: " ^ quote (Term.string_of_vname xi))
           else TVar (xi, Sorts.certify_sort classes S);
 
     val ty' = cert ty;
-    val ty' = if ty = ty' then ty else ty';  (*avoid copying of already normal type*)
-  in (ty', maxidx) end;  
-
-in
+  in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
 
 val cert_typ         = certify_typ true false;
 val cert_typ_syntax  = certify_typ true true;
 val cert_typ_raw     = certify_typ false true;
 
-end;
 
 
 (** special treatment of type vars **)
@@ -279,15 +270,13 @@ end;
 
 (* instantiation *)
 
-fun type_of_sort pp tsig (T, S) =
-  if of_sort tsig (T, S) then T
-  else raise TYPE ("Type not of sort " ^ Pretty.string_of_sort pp S, [T], []);
-
 fun inst_typ_tvars pp tsig tye =
   let
     fun inst (var as (v, S)) =
       (case assoc_string_int (tye, v) of
-        Some U => type_of_sort pp tsig (U, S)
+        Some U =>
+          if of_sort tsig (U, S) then U
+          else raise TYPE ("Type not of sort " ^ Pretty.string_of_sort pp S, [U], [])
       | None => TVar var);
   in map_type_tvar inst end;
 
@@ -303,8 +292,9 @@ fun typ_match tsig =
   let
     fun match (subs, (TVar (v, S), T)) =
           (case Vartab.lookup (subs, v) of
-            None => (Vartab.update_new ((v, type_of_sort Pretty.pp_undef tsig (T, S)), subs)
-              handle TYPE _ => raise TYPE_MATCH)
+            None =>
+              if of_sort tsig (T, S) then Vartab.update ((v, T), subs)
+              else raise TYPE_MATCH
           | Some U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
           if a <> b then raise TYPE_MATCH
@@ -552,7 +542,7 @@ fun add_abbr (a, vs, rhs) tsig = tsig |> change_types (fn types =>
   let
     fun err msg =
       error (msg ^ "\nThe error(s) above occurred in type abbreviation: " ^ quote a);
-    val rhs' = strip_sorts (varifyT (no_tvars (#1 (cert_typ_syntax tsig rhs))))
+    val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
   in
     (case duplicates vs of

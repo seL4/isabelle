@@ -477,7 +477,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
-    val certT = #1 o Type.cert_typ tsig o map_type;
+    val certT = Type.cert_typ tsig o map_type;
     fun decodeT t = certT (Syntax.typ_of_term sort_of map_sort t);
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
@@ -518,7 +518,7 @@ fun infer_types pp tsig const_type def_type def_sort
     map_const map_type map_sort used freeze pat_Ts raw_ts =
   let
     val {classes, arities, ...} = Type.rep_tsig tsig;
-    val pat_Ts' = map (#1 o Type.cert_typ tsig) pat_Ts;
+    val pat_Ts' = map (Type.cert_typ tsig) pat_Ts;
     val is_const = is_some o const_type;
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
