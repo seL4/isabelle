@@ -56,8 +56,6 @@ infix 0 :== ===;
 val (op :==) = Logic.mk_defpair;
 val (op ===) = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
-fun get_defs thy specs = map (PureThy.get_thm thy o fst) specs;
-
 
 (* proof by simplification *)
 
@@ -613,15 +611,11 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* 2nd stage: defs_thy *)
 
-    val defs_thy =
+    val (defs_thy, (field_defs, dest_defs)) =
       types_thy
-       |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base))
-         (field_decls @ dest_decls)
-       |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal])))
-         (field_specs @ dest_specs);
-
-    val field_defs = get_defs defs_thy field_specs;
-    val dest_defs = get_defs defs_thy dest_specs;
+       |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base)) (field_decls @ dest_decls)
+       |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) field_specs
+       |>>> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) dest_specs;
 
 
     (* 3rd stage: thms_thy *)
@@ -639,7 +633,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     val thms_thy =
       defs_thy
-      |> (PureThy.add_thmss o map Thm.no_attributes)
+      |> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
         [("field_defs", field_defs),
           ("dest_defs", dest_defs),
           ("dest_convs", dest_convs),
@@ -782,7 +776,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* 2nd stage: defs_thy *)
 
-    val defs_thy =
+    val (defs_thy, ((sel_defs, update_defs), make_defs)) =
       fields_thy
       |> Theory.parent_path
       |> Theory.add_tyabbrs_i recordT_specs     (*not made part of record name space!*)
@@ -790,13 +784,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
-      |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal])))
-        (sel_specs @ update_specs)
-      |> (PureThy.add_defs_i o map Thm.no_attributes) make_specs;
-
-    val sel_defs = get_defs defs_thy sel_specs;
-    val update_defs = get_defs defs_thy update_specs;
-    val make_defs = get_defs defs_thy make_specs;
+      |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) sel_specs
+      |>>> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) update_specs
+      |>>> (PureThy.add_defs_i o map Thm.no_attributes) make_specs;
 
 
     (* 3rd stage: thms_thy *)
@@ -812,13 +802,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val thms_thy =
       defs_thy
-      |> (PureThy.add_thmss o map Thm.no_attributes)
+      |> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
         [("select_defs", sel_defs),
           ("update_defs", update_defs),
           ("make_defs", make_defs),
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
-      |> PureThy.add_thmss
+      |> (#1 oo PureThy.add_thmss)
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", iffs), [iff_add_global])];
 

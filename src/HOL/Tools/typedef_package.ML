@@ -140,9 +140,9 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
        ((if no_def then [] else [(name, setT, NoSyn)]) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
-      |> (if no_def then I else (PureThy.add_defs_i o map Thm.no_attributes)
+      |> (if no_def then I else (#1 oo (PureThy.add_defs_i o map Thm.no_attributes))
        [Logic.mk_defpair (setC, set)])
-      |> (PureThy.add_axioms_i o map Thm.no_attributes)
+      |> (#1 oo (PureThy.add_axioms_i o map Thm.no_attributes))
        [(Rep_name, rep_type),
         (Rep_name ^ "_inverse", rep_type_inv),
         (Abs_name ^ "_inverse", abs_type_inv)]

@@ -216,10 +216,10 @@ val add_judgment_i = AutoBind.add_judgment_i o Comment.ignore;
 fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.global_attribute thy) srcs)) args) thy;
 
-val add_axioms = add_axms PureThy.add_axioms o map Comment.ignore;
-val add_axioms_i = PureThy.add_axioms_i o map Comment.ignore;
-val add_defs = add_axms PureThy.add_defs o map Comment.ignore;
-val add_defs_i = PureThy.add_defs_i o map Comment.ignore;
+val add_axioms = add_axms (#1 oo PureThy.add_axioms) o map Comment.ignore;
+val add_axioms_i = (#1 oo PureThy.add_axioms_i) o map Comment.ignore;
+val add_defs = add_axms (#1 oo PureThy.add_defs) o map Comment.ignore;
+val add_defs_i = (#1 oo PureThy.add_defs_i) o map Comment.ignore;
 
 
 (* constdefs *)
