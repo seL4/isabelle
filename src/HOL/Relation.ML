@@ -242,3 +242,15 @@ qed_goalw "UnivalentI" Relation.thy [Univalent_def]
 
 qed_goalw "UnivalentD" Relation.thy [Univalent_def] 
 	"!!r. [| Univalent r; (x,y):r; (x,z):r|] ==> y=z" (K [Auto_tac]);
+
+
+(** Graphs of partial functions **)
+
+Goal "Domain{(x,y). y = f x & P x} = {x. P x}";
+by (Blast_tac 1);
+qed "Domain_partial_func";
+
+Goal "Range{(x,y). y = f x & P x} = f``{x. P x}";
+by (Blast_tac 1);
+qed "Range_partial_func";
+
