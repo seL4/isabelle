@@ -20,7 +20,6 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
-  echo "    -m BOOL      multi line output (default false)"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -37,7 +36,6 @@ function usage()
 
 BUILD=""
 INFO=false
-MULTI=false
 RESET=false
 SESSION=""
 RPATH=""
@@ -45,7 +43,7 @@ RPATH=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "BP:bi:m:rs:" OPT
+  while getopts "BP:bi:rs:" OPT
   do
     case "$OPT" in
       B)
@@ -57,9 +55,6 @@ function getoptions()
         ;;
       i)
         INFO="$OPTARG"
-        ;;
-      m)
-        MULTI="$OPTARG"
         ;;
       r)
         RESET=true
