@@ -18,28 +18,14 @@ text {*
 
 consts
   zfact :: "int => int"
-  setprod :: "int set => int"
   d22set :: "int => int set"
 
 recdef zfact  "measure ((\<lambda>n. nat n) :: int => nat)"
   "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
 
-defs
-  setprod_def: "setprod A == (if finite A then fold (op *) 1 A else 1)"
-
 recdef d22set  "measure ((\<lambda>a. nat a) :: int => nat)"
   "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
 
-
-text {* \medskip @{term setprod} --- product of finite set *}
-
-lemma setprod_empty [simp]: "setprod {} = 1"
-  apply (simp add: setprod_def)
-  done
-
-lemma setprod_insert [simp]:
-    "finite A ==> a \<notin> A ==> setprod (insert a A) = a * setprod A"
-  by (simp add: setprod_def mult_left_commute LC.fold_insert [OF LC.intro])
 
 text {*
   \medskip @{term d22set} --- recursively defined set including all
@@ -100,7 +86,7 @@ lemma d22set_fin: "finite (d22set a)"
 
 declare zfact.simps [simp del]
 
-lemma d22set_prod_zfact: "setprod (d22set a) = zfact a"
+lemma d22set_prod_zfact: "\<Prod>(d22set a) = zfact a"
   apply (induct a rule: d22set.induct)
   apply safe
    apply (simp add: d22set.simps zfact.simps)

@@ -255,8 +255,8 @@ lemma Bnor_prod_power_aux: "a \<notin> A ==> inj f ==> f a \<notin> f ` A"
 by (unfold inj_on_def, auto)
 
 lemma Bnor_prod_power [rule_format]:
-  "x \<noteq> 0 ==> a < m --> setprod ((\<lambda>a. a * x) ` BnorRset (a, m)) =
-      setprod (BnorRset(a, m)) * x^card (BnorRset (a, m))"
+  "x \<noteq> 0 ==> a < m --> \<Prod>((\<lambda>a. a * x) ` BnorRset (a, m)) =
+      \<Prod>(BnorRset(a, m)) * x^card (BnorRset (a, m))"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
@@ -273,7 +273,7 @@ lemma Bnor_prod_power [rule_format]:
 subsection {* Fermat *}
 
 lemma bijzcong_zcong_prod:
-    "(A, B) \<in> bijR (zcongm m) ==> [setprod A = setprod B] (mod m)"
+    "(A, B) \<in> bijR (zcongm m) ==> [\<Prod>A = \<Prod>B] (mod m)"
   apply (unfold zcongm_def)
   apply (erule bijR.induct)
    apply (subgoal_tac [2] "a \<notin> A \<and> b \<notin> B \<and> finite A \<and> finite B")
@@ -281,7 +281,7 @@ lemma bijzcong_zcong_prod:
   done
 
 lemma Bnor_prod_zgcd [rule_format]:
-    "a < m --> zgcd (setprod (BnorRset (a, m)), m) = 1"
+    "a < m --> zgcd (\<Prod>(BnorRset(a, m)), m) = 1"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
@@ -296,7 +296,7 @@ theorem Euler_Fermat:
   apply (case_tac "x = 0")
    apply (case_tac [2] "m = 1")
     apply (rule_tac [3] iffD1)
-     apply (rule_tac [3] k = "setprod (BnorRset (m - 1, m))"
+     apply (rule_tac [3] k = "\<Prod>(BnorRset(m - 1, m))"
        in zcong_cancel2)
       prefer 5
       apply (subst Bnor_prod_power [symmetric])

@@ -261,7 +261,7 @@ lemma wset_fin: "finite (wset (a, p))"
 
 lemma wset_zcong_prod_1 [rule_format]:
   "p \<in> zprime -->
-    5 \<le> p --> a < p - 1 --> [setprod (wset (a, p)) = 1] (mod p)"
+    5 \<le> p --> a < p - 1 --> [(\<Prod>x\<in>wset(a, p). x) = 1] (mod p)"
   apply (induct a p rule: wset_induct)
    prefer 2
    apply (subst wset.simps)
@@ -269,7 +269,7 @@ lemma wset_zcong_prod_1 [rule_format]:
   apply (subst setprod_insert)
     apply (tactic {* stac (thm "setprod_insert") 3 *})
       apply (subgoal_tac [5]
-	"zcong (a * inv p a * setprod (wset (a - 1, p))) (1 * 1) p")
+	"zcong (a * inv p a * (\<Prod>x\<in> wset(a - 1, p). x)) (1 * 1) p")
        prefer 5
        apply (simp add: zmult_assoc)
       apply (rule_tac [5] zcong_zmult)

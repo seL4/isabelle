@@ -168,7 +168,7 @@ lemma mod_mod_is_mod: "[x = x mod m](mod m)";
   by (auto simp add: zcong_zmod)
 
 lemma StandardRes_prod: "[| finite X; 0 < m |] 
-     ==> [gsetprod f X = gsetprod (StandardRes m o f) X] (mod m)";
+     ==> [setprod f X = setprod (StandardRes m o f) X] (mod m)";
   apply (rule_tac F = X in finite_induct)
 by (auto intro!: zcong_zmult simp add: StandardRes_prop1)
 

@@ -274,7 +274,7 @@ lemma (in GAUSS) all_A_relprime: "\<forall>x \<in> A. zgcd(x,p) = 1";
   apply (insert p_prime p_minus_one_l)
 by (auto simp add: A_def zless_zprime_imp_zrelprime)
 
-lemma (in GAUSS) A_prod_relprime: "zgcd((gsetprod id A),p) = 1";
+lemma (in GAUSS) A_prod_relprime: "zgcd((setprod id A),p) = 1";
   by (insert all_A_relprime finite_A, simp add: all_relprime_prod_relprime)
 
 subsection {* Relationships Between Gauss Sets *}
@@ -303,17 +303,16 @@ lemma (in GAUSS) D_E_disj: "D \<inter> E = {}";
 lemma (in GAUSS) C_card_eq_D_plus_E: "card C = card D + card E";
   by (auto simp add: C_eq card_Un_disjoint D_E_disj finite_D finite_E)
 
-lemma (in GAUSS) C_prod_eq_D_times_E: "gsetprod id E * gsetprod id D = gsetprod id C";
+lemma (in GAUSS) C_prod_eq_D_times_E: "setprod id E * setprod id D = setprod id C";
   apply (insert D_E_disj finite_D finite_E C_eq)
-  apply (frule gsetprod_Un_disjoint [of D E id])
+  apply (frule setprod_Un_disjoint [of D E id])
 by auto
 
-lemma (in GAUSS) C_B_zcong_prod: "[gsetprod id C = gsetprod id B] (mod p)";
-thm gsetprod_same_function_zcong;  
+lemma (in GAUSS) C_B_zcong_prod: "[setprod id C = setprod id B] (mod p)";
   apply (auto simp add: C_def)
   apply (insert finite_B SR_B_inj) 
-  apply (frule_tac f = "StandardRes p" in prod_prop_id, auto) 
-  apply (rule gsetprod_same_function_zcong)
+  apply (frule_tac f1 = "StandardRes p" in setprod_reindex_id[THEN sym], auto)
+  apply (rule setprod_same_function_zcong)
 by (auto simp add: StandardRes_prop1 zcong_sym p_g_0)
 
 lemma (in GAUSS) F_Un_D_subset: "(F \<union> D) \<subseteq> A";
@@ -384,127 +383,127 @@ lemma (in GAUSS) F_Un_D_eq_A: "F \<union> D = A";
 by (auto simp add: card_seteq)
 
 lemma (in GAUSS) prod_D_F_eq_prod_A: 
-    "(gsetprod id D) * (gsetprod id F) = gsetprod id A";
+    "(setprod id D) * (setprod id F) = setprod id A";
   apply (insert F_D_disj finite_D finite_F)
-  apply (frule gsetprod_Un_disjoint [of F D id])
+  apply (frule setprod_Un_disjoint [of F D id])
 by (auto simp add: F_Un_D_eq_A)
 
 lemma (in GAUSS) prod_F_zcong:
-    "[gsetprod id F = ((-1) ^ (card E)) * (gsetprod id E)] (mod p)";
-  proof -;
-    have "gsetprod id F = gsetprod id (op - p ` E)";
+    "[setprod id F = ((-1) ^ (card E)) * (setprod id E)] (mod p)"
+  proof -
+    have "setprod id F = setprod id (op - p ` E)"
       by (auto simp add: F_def)
-    then have "gsetprod id F = gsetprod (op - p) E";
+    then have "setprod id F = setprod (op - p) E"
       apply simp
       apply (insert finite_E inj_on_pminusx_E)
-      by (frule_tac f = "op - p" in prod_prop_id, auto)
+      by (frule_tac f = "op - p" in setprod_reindex_id, auto)
     then have one: 
-      "[gsetprod id F = gsetprod (StandardRes p o (op - p)) E] (mod p)";
+      "[setprod id F = setprod (StandardRes p o (op - p)) E] (mod p)"
       apply simp
       apply (insert p_g_0 finite_E)
       by (auto simp add: StandardRes_prod)
-    moreover have a: "\<forall>x \<in> E. [p - x = 0 - x] (mod p)";
+    moreover have a: "\<forall>x \<in> E. [p - x = 0 - x] (mod p)"
       apply clarify
       apply (insert zcong_id [of p])
       by (rule_tac a = p and m = p and c = x and d = x in zcong_zdiff, auto)
-    moreover have b: "\<forall>x \<in> E. [StandardRes p (p - x) = p - x](mod p)";
+    moreover have b: "\<forall>x \<in> E. [StandardRes p (p - x) = p - x](mod p)"
       apply clarify
       by (simp add: StandardRes_prop1 zcong_sym)
-    moreover have "\<forall>x \<in> E. [StandardRes p (p - x) = - x](mod p)";
+    moreover have "\<forall>x \<in> E. [StandardRes p (p - x) = - x](mod p)"
       apply clarify
       apply (insert a b)
       by (rule_tac b = "p - x" in zcong_trans, auto)
     ultimately have c:
-      "[gsetprod (StandardRes p o (op - p)) E = gsetprod (uminus) E](mod p)";
+      "[setprod (StandardRes p o (op - p)) E = setprod (uminus) E](mod p)"
       apply simp
       apply (insert finite_E p_g_0)
-      by (frule gsetprod_same_function_zcong [of E "StandardRes p o (op - p)"
-                                                     uminus p], auto);
-    then have two: "[gsetprod id F = gsetprod (uminus) E](mod p)";
+      by (rule setprod_same_function_zcong [of E "StandardRes p o (op - p)"
+                                                     uminus p], auto)
+    then have two: "[setprod id F = setprod (uminus) E](mod p)"
       apply (insert one c)
-      by (rule zcong_trans [of "gsetprod id F" 
-                               "gsetprod (StandardRes p o op - p) E" p
-                               "gsetprod uminus E"], auto); 
-    also have "gsetprod uminus E = (gsetprod id E) * (-1)^(card E)"; 
+      by (rule zcong_trans [of "setprod id F" 
+                               "setprod (StandardRes p o op - p) E" p
+                               "setprod uminus E"], auto) 
+    also have "setprod uminus E = (setprod id E) * (-1)^(card E)" 
       apply (insert finite_E)
       by (induct set: Finites, auto)
-    then have "gsetprod uminus E = (-1) ^ (card E) * (gsetprod id E)";
+    then have "setprod uminus E = (-1) ^ (card E) * (setprod id E)"
       by (simp add: zmult_commute)
     with two show ?thesis
       by simp
-qed;
+qed
 
 subsection {* Gauss' Lemma *}
 
-lemma (in GAUSS) aux: "gsetprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = gsetprod id A * a ^ card A";
+lemma (in GAUSS) aux: "setprod id A * -1 ^ card E * a ^ card A * -1 ^ card E = setprod id A * a ^ card A"
   by (auto simp add: finite_E neg_one_special)
 
 theorem (in GAUSS) pre_gauss_lemma:
-    "[a ^ nat((p - 1) div 2) = (-1) ^ (card E)] (mod p)";
-  proof -;
-    have "[gsetprod id A = gsetprod id F * gsetprod id D](mod p)";
+    "[a ^ nat((p - 1) div 2) = (-1) ^ (card E)] (mod p)"
+  proof -
+    have "[setprod id A = setprod id F * setprod id D](mod p)"
       by (auto simp add: prod_D_F_eq_prod_A zmult_commute)
-    then have "[gsetprod id A = ((-1)^(card E) * gsetprod id E) * 
-        gsetprod id D] (mod p)";
+    then have "[setprod id A = ((-1)^(card E) * setprod id E) * 
+        setprod id D] (mod p)"
       apply (rule zcong_trans)
       by (auto simp add: prod_F_zcong zcong_scalar)
-    then have "[gsetprod id A = ((-1)^(card E) * gsetprod id C)] (mod p)";
+    then have "[setprod id A = ((-1)^(card E) * setprod id C)] (mod p)"
       apply (rule zcong_trans)
       apply (insert C_prod_eq_D_times_E, erule subst)
       by (subst zmult_assoc, auto)
-    then have "[gsetprod id A = ((-1)^(card E) * gsetprod id B)] (mod p)"
+    then have "[setprod id A = ((-1)^(card E) * setprod id B)] (mod p)"
       apply (rule zcong_trans)
       by (simp add: C_B_zcong_prod zcong_scalar2)
-    then have "[gsetprod id A = ((-1)^(card E) *
-        (gsetprod id ((%x. x * a) ` A)))] (mod p)";
+    then have "[setprod id A = ((-1)^(card E) *
+        (setprod id ((%x. x * a) ` A)))] (mod p)"
       by (simp add: B_def)
-    then have "[gsetprod id A = ((-1)^(card E) * (gsetprod (%x. x * a) A))] 
-        (mod p)";
+    then have "[setprod id A = ((-1)^(card E) * (setprod (%x. x * a) A))] 
+        (mod p)"
       apply (rule zcong_trans)
-      by (simp add: finite_A inj_on_xa_A prod_prop_id zcong_scalar2)
-    moreover have "gsetprod (%x. x * a) A = 
-        gsetprod (%x. a) A * gsetprod id A";
+      by (simp add: finite_A inj_on_xa_A setprod_reindex_id zcong_scalar2)
+    moreover have "setprod (%x. x * a) A = 
+        setprod (%x. a) A * setprod id A"
       by (insert finite_A, induct set: Finites, auto)
-    ultimately have "[gsetprod id A = ((-1)^(card E) * (gsetprod (%x. a) A * 
-        gsetprod id A))] (mod p)";
+    ultimately have "[setprod id A = ((-1)^(card E) * (setprod (%x. a) A * 
+        setprod id A))] (mod p)"
       by simp 
-    then have "[gsetprod id A = ((-1)^(card E) * a^(card A) * 
-        gsetprod id A)](mod p)";
+    then have "[setprod id A = ((-1)^(card E) * a^(card A) * 
+        setprod id A)](mod p)"
       apply (rule zcong_trans)
-      by (simp add: zcong_scalar2 zcong_scalar finite_A gsetprod_const
+      by (simp add: zcong_scalar2 zcong_scalar finite_A setprod_constant
         zmult_assoc)
-    then have a: "[gsetprod id A * (-1)^(card E) = 
-        ((-1)^(card E) * a^(card A) * gsetprod id A * (-1)^(card E))](mod p)";
+    then have a: "[setprod id A * (-1)^(card E) = 
+        ((-1)^(card E) * a^(card A) * setprod id A * (-1)^(card E))](mod p)"
       by (rule zcong_scalar)
-    then have "[gsetprod id A * (-1)^(card E) = gsetprod id A * 
-        (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)";
+    then have "[setprod id A * (-1)^(card E) = setprod id A * 
+        (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
       apply (rule zcong_trans)
       by (simp add: a mult_commute mult_left_commute)
-    then have "[gsetprod id A * (-1)^(card E) = gsetprod id A * 
-        a^(card A)](mod p)";
+    then have "[setprod id A * (-1)^(card E) = setprod id A * 
+        a^(card A)](mod p)"
       apply (rule zcong_trans)
       by (simp add: aux)
-    with this zcong_cancel2 [of p "gsetprod id A" "-1 ^ card E" "a ^ card A"]
-         p_g_0 A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)";
+    with this zcong_cancel2 [of p "setprod id A" "-1 ^ card E" "a ^ card A"]
+         p_g_0 A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)"
        by (simp add: order_less_imp_le)
     from this show ?thesis
       by (simp add: A_card_eq zcong_sym)
-qed;
+qed
 
-theorem (in GAUSS) gauss_lemma: "(Legendre a p) = (-1) ^ (card E)";
-proof -;
+theorem (in GAUSS) gauss_lemma: "(Legendre a p) = (-1) ^ (card E)"
+proof -
   from Euler_Criterion p_prime p_g_2 have
-    "[(Legendre a p) = a^(nat (((p) - 1) div 2))] (mod p)";
+    "[(Legendre a p) = a^(nat (((p) - 1) div 2))] (mod p)"
     by auto
-  moreover note pre_gauss_lemma;
-  ultimately have "[(Legendre a p) = (-1) ^ (card E)] (mod p)";
+  moreover note pre_gauss_lemma
+  ultimately have "[(Legendre a p) = (-1) ^ (card E)] (mod p)"
     by (rule zcong_trans)
-  moreover from p_a_relprime have "(Legendre a p) = 1 | (Legendre a p) = (-1)";
+  moreover from p_a_relprime have "(Legendre a p) = 1 | (Legendre a p) = (-1)"
     by (auto simp add: Legendre_def)
-  moreover have "(-1::int) ^ (card E) = 1 | (-1::int) ^ (card E) = -1";
+  moreover have "(-1::int) ^ (card E) = 1 | (-1::int) ^ (card E) = -1"
     by (rule neg_one_power)
-  ultimately show ?thesis;
+  ultimately show ?thesis
     by (auto simp add: p_g_2 one_not_neg_one_mod_m zcong_sym)
-qed;
+qed
 
-end;
+end

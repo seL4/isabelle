@@ -13,7 +13,7 @@ datatype 'a list =
     Nil    ("[]")
   | Cons 'a  "'a list"    (infixr "#" 65)
 
-section{*Basic list processing functions*}
+subsection{*Basic list processing functions*}
 
 consts
   "@" :: "'a list => 'a list => 'a list"    (infixr 65)
@@ -237,7 +237,7 @@ lemma length_induct:
 by (rule measure_induct [of length]) rules
 
 
-subsection {* @{text length} *}
+subsubsection {* @{text length} *}
 
 text {*
 Needs to come before @{text "@"} because of theorem @{text
@@ -289,7 +289,7 @@ apply(case_tac ys)
 apply(simp)
 done
 
-subsection {* @{text "@"} -- append *}
+subsubsection {* @{text "@"} -- append *}
 
 lemma append_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
 by (induct xs) auto
@@ -444,7 +444,7 @@ Addsimprocs [list_eq_simproc];
 *}
 
 
-subsection {* @{text map} *}
+subsubsection {* @{text map} *}
 
 lemma map_ext: "(!!x. x : set xs --> f x = g x) ==> map f xs = map g xs"
 by (induct xs) simp_all
@@ -553,7 +553,7 @@ lemma map_snd_zip[simp]:
 by (induct rule:list_induct2, simp_all)
 
 
-subsection {* @{text rev} *}
+subsubsection {* @{text rev} *}
 
 lemma rev_append [simp]: "rev (xs @ ys) = rev ys @ rev xs"
 by (induct xs) auto
@@ -587,7 +587,7 @@ by (induct xs rule: rev_induct) auto
 lemmas rev_cases = rev_exhaust
 
 
-subsection {* @{text set} *}
+subsubsection {* @{text set} *}
 
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto
@@ -650,7 +650,7 @@ lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
 
 
-subsection {* @{text mem} *}
+subsubsection {* @{text mem} *}
 
 text{* Only use @{text mem} for generating executable code.  Otherwise
 use @{prop"x : set xs"} instead --- it is much easier to reason
@@ -660,7 +660,7 @@ lemma set_mem_eq: "(x mem xs) = (x : set xs)"
 by (induct xs) auto
 
 
-subsection {* @{text list_all} *}
+subsubsection {* @{text list_all} *}
 
 lemma list_all_conv: "list_all P xs = (\<forall>x \<in> set xs. P x)"
 by (induct xs) auto
@@ -670,7 +670,7 @@ lemma list_all_append [simp]:
 by (induct xs) auto
 
 
-subsection {* @{text filter} *}
+subsubsection {* @{text filter} *}
 
 lemma filter_append [simp]: "filter P (xs @ ys) = filter P xs @ filter P ys"
 by (induct xs) auto
@@ -739,7 +739,7 @@ next
 qed
 
 
-subsection {* @{text concat} *}
+subsubsection {* @{text concat} *}
 
 lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
 by (induct xs) auto
@@ -763,7 +763,7 @@ lemma rev_concat: "rev (concat xs) = concat (map rev (rev xs))"
 by (induct xs) auto
 
 
-subsection {* @{text nth} *}
+subsubsection {* @{text nth} *}
 
 lemma nth_Cons_0 [simp]: "(x # xs)!0 = x"
 by auto
@@ -815,7 +815,7 @@ lemma all_set_conv_all_nth:
 by (auto simp add: set_conv_nth)
 
 
-subsection {* @{text list_update} *}
+subsubsection {* @{text list_update} *}
 
 lemma length_list_update [simp]: "!!i. length(xs[i:=x]) = length xs"
 by (induct xs) (auto split: nat.split)
@@ -865,7 +865,7 @@ lemma set_update_subsetI: "[| set xs <= A; x:A |] ==> set(xs[i := x]) <= A"
 by (blast dest!: set_update_subset_insert [THEN subsetD])
 
 
-subsection {* @{text last} and @{text butlast} *}
+subsubsection {* @{text last} and @{text butlast} *}
 
 lemma last_snoc [simp]: "last (xs @ [x]) = x"
 by (induct xs) auto
@@ -908,7 +908,7 @@ lemma in_set_butlast_appendI:
 by (auto dest: in_set_butlastD simp add: butlast_append)
 
 
-subsection {* @{text take} and @{text drop} *}
+subsubsection {* @{text take} and @{text drop} *}
 
 lemma take_0 [simp]: "take 0 xs = []"
 by (induct xs) auto
@@ -1084,7 +1084,7 @@ apply(simp add:drop_Cons split:nat.split)
 done
 
 
-subsection {* @{text takeWhile} and @{text dropWhile} *}
+subsubsection {* @{text takeWhile} and @{text dropWhile} *}
 
 lemma takeWhile_dropWhile_id [simp]: "takeWhile P xs @ dropWhile P xs = xs"
 by (induct xs) auto
@@ -1124,7 +1124,7 @@ lemma dropWhile_eq_Cons_conv:
 by(induct xs, auto)
 
 
-subsection {* @{text zip} *}
+subsubsection {* @{text zip} *}
 
 lemma zip_Nil [simp]: "zip [] ys = []"
 by (induct ys) auto
@@ -1189,7 +1189,7 @@ apply (case_tac j, auto)
 done
 
 
-subsection {* @{text list_all2} *}
+subsubsection {* @{text list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
   "list_all2 P xs ys ==> length xs = length ys"
@@ -1332,7 +1332,7 @@ lemma list_all2_mono [intro?]:
   done
 
 
-subsection {* @{text foldl} and @{text foldr} *}
+subsubsection {* @{text foldl} and @{text foldr} *}
 
 lemma foldl_append [simp]:
 "!!a. foldl f a (xs @ ys) = foldl f (foldl f a xs) ys"
@@ -1363,7 +1363,7 @@ lemma sum_eq_0_conv [iff]:
 by (induct ns) auto
 
 
-subsection {* @{text upto} *}
+subsubsection {* @{text upto} *}
 
 lemma upt_rec: "[i..j(] = (if i<j then i#[Suc i..j(] else [])"
 -- {* Does not terminate! *}
@@ -1474,7 +1474,7 @@ lemmas [simp] = take_Cons'[of "number_of v",standard]
                 nth_Cons'[of _ _ "number_of v",standard]
 
 
-subsection {* @{text "distinct"} and @{text remdups} *}
+subsubsection {* @{text "distinct"} and @{text remdups} *}
 
 lemma distinct_append [simp]:
 "distinct (xs @ ys) = (distinct xs \<and> distinct ys \<and> set xs \<inter> set ys = {})"
@@ -1572,7 +1572,7 @@ apply fastsimp
 done
 
 
-subsection {* @{text remove1} *}
+subsubsection {* @{text remove1} *}
 
 lemma set_remove1_subset: "set(remove1 x xs) <= set xs"
 apply(induct xs)
@@ -1597,7 +1597,7 @@ lemma distinct_remove1[simp]: "distinct xs ==> distinct(remove1 x xs)"
 by (induct xs) simp_all
 
 
-subsection {* @{text replicate} *}
+subsubsection {* @{text replicate} *}
 
 lemma length_replicate [simp]: "length (replicate n x) = n"
 by (induct n) auto
@@ -1644,7 +1644,7 @@ lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
 by (simp add: set_replicate_conv_if split: split_if_asm)
 
 
-subsection{*@{text rotate1} and @{text rotate}*}
+subsubsection{*@{text rotate1} and @{text rotate}*}
 
 lemma rotate_simps[simp]: "rotate1 [] = [] \<and> rotate1 (x#xs) = xs @ [x]"
 by(simp add:rotate1_def)
@@ -1722,7 +1722,7 @@ lemma rotate_is_Nil_conv[simp]: "(rotate n xs = []) = (xs = [])"
 by (induct n) (simp_all add:rotate_def)
 
 
-subsection {* @{text sublist} --- a generalization of @{text nth} to sets *}
+subsubsection {* @{text sublist} --- a generalization of @{text nth} to sets *}
 
 lemma sublist_empty [simp]: "sublist xs {} = []"
 by (auto simp add: sublist_def)
@@ -1800,9 +1800,9 @@ apply (simp split: nat_diff_split add: sublist_append)
 done
 
 
-subsection{*Sets of Lists*}
+subsubsection{*Sets of Lists*}
 
-subsection {* @{text lists}: the list-forming operator over sets *}
+subsubsection {* @{text lists}: the list-forming operator over sets *}
 
 consts lists :: "'a set => 'a list set"
 inductive "lists A"
@@ -1842,7 +1842,7 @@ by (rule in_lists_conv_set [THEN iffD2])
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
 
-subsection{*Lists as Cartesian products*}
+subsubsection{*Lists as Cartesian products*}
 
 text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 @{term A} and tail drawn from @{term Xs}.*}
@@ -1863,9 +1863,9 @@ primrec
    "listset(A#As) = set_Cons A (listset As)"
 
 
-section{*Relations on lists*}
+subsection{*Relations on lists*}
 
-subsection {* Lexicographic orderings on lists *}
+subsubsection {* Lexicographic orderings on lists *}
 
 consts
 lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
@@ -1946,7 +1946,7 @@ apply blast
 done
 
 
-subsection{*Lifting a Relation on List Elements to the Lists*}
+subsubsection{*Lifting a Relation on List Elements to the Lists*}
 
 consts  listrel :: "('a * 'a)set => ('a list * 'a list)set"
 
@@ -2004,9 +2004,9 @@ lemma listrel_Cons:
 by (auto simp add: set_Cons_def intro: listrel.intros) 
 
 
-section{*Miscellany*}
+subsection{*Miscellany*}
 
-subsection {* Characters and strings *}
+subsubsection {* Characters and strings *}
 
 datatype nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
@@ -2084,7 +2084,7 @@ print_ast_translation {*
   in [("Char", char_ast_tr'), ("@list", list_ast_tr')] end;
 *}
 
-subsection {* Code generator setup *}
+subsubsection {* Code generator setup *}
 
 ML {*
 local

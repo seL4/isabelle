@@ -150,7 +150,7 @@ qed;
 
 lemma SetS_setprod_prop: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p));
                               ~(QuadRes p a); x \<in> (SetS a p) |] ==> 
-                          [setprod x = a] (mod p)";
+                          [\<Prod>x = a] (mod p)";
   apply (auto simp add: SetS_def MultInvPair_def)
   apply (frule StandardRes_SRStar_prop1a)
   apply (subgoal_tac "StandardRes p x \<noteq> StandardRes p (a * MultInv p x)");
@@ -186,49 +186,49 @@ lemma SRStar_d22set_prop [rule_format]: "2 < p --> (SRStar p) = {1} \<union>
 done
 
 lemma Union_SetS_setprod_prop1: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
-                                 [setprod (Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)";
-proof -;
-  assume "p \<in> zprime" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)";
-  then have "[setprod (Union (SetS a p)) = 
-      gsetprod setprod (SetS a p)] (mod p)";
+                                 [\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
+proof -
+  assume "p \<in> zprime" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)"
+  then have "[\<Prod>(Union (SetS a p)) = 
+      setprod (setprod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
-                       MultInvPair_prop1c setprod_disj_sets)
-  also; have "[gsetprod setprod (SetS a p) = 
-      gsetprod (%x. a) (SetS a p)] (mod p)";
-    apply (rule gsetprod_same_function_zcong)
+                       MultInvPair_prop1c setprod_Union_disjoint)
+  also have "[setprod (setprod (%x. x)) (SetS a p) = 
+      setprod (%x. a) (SetS a p)] (mod p)"
+    apply (rule setprod_same_function_zcong)
     by (auto simp add: prems SetS_setprod_prop SetS_finite)
-  also (zcong_trans) have "[gsetprod (%x. a) (SetS a p) = 
-      a^(card (SetS a p))] (mod p)";
-    by (auto simp add: prems SetS_finite gsetprod_const)
-  finally (zcong_trans) show ?thesis;
+  also (zcong_trans) have "[setprod (%x. a) (SetS a p) = 
+      a^(card (SetS a p))] (mod p)"
+    by (auto simp add: prems SetS_finite setprod_constant)
+  finally (zcong_trans) show ?thesis
     apply (rule zcong_trans)
-    apply (subgoal_tac "card(SetS a p) = nat((p - 1) div 2)", auto);
-    apply (subgoal_tac "nat(int(card(SetS a p))) = nat((p - 1) div 2)", force);
+    apply (subgoal_tac "card(SetS a p) = nat((p - 1) div 2)", auto)
+    apply (subgoal_tac "nat(int(card(SetS a p))) = nat((p - 1) div 2)", force)
     apply (auto simp add: prems SetS_card)
   done
-qed;
+qed
 
 lemma Union_SetS_setprod_prop2: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)) |] ==> 
-                                    setprod (Union (SetS a p)) = zfact (p - 1)";
+                                    \<Prod>(Union (SetS a p)) = zfact (p - 1)";
 proof -;
   assume "p \<in> zprime" and "2 < p" and "~([a = 0](mod p))";
-  then have "setprod (Union (SetS a p)) = setprod (SRStar p)";
+  then have "\<Prod>(Union (SetS a p)) = \<Prod>(SRStar p)"
     by (auto simp add: MultInvPair_prop2)
-  also have "... = setprod ({1} \<union> (d22set (p - 1)))";
+  also have "... = \<Prod>({1} \<union> (d22set (p - 1)))"
     by (auto simp add: prems SRStar_d22set_prop)
-  also have "... = zfact(p - 1)";
-  proof -;
-     have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))";
+  also have "... = zfact(p - 1)"
+  proof -
+     have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))"
       apply (insert prems, auto)
       apply (drule d22set_g_1)
       apply (auto simp add: d22set_fin)
      done
-     then have "setprod({1} \<union> (d22set (p - 1))) = setprod (d22set (p - 1))";
+     then have "\<Prod>({1} \<union> (d22set (p - 1))) = \<Prod>(d22set (p - 1))";
        by auto
      then show ?thesis
        by (auto simp add: d22set_prod_zfact)
   qed;
-  finally show ?thesis .;
+  finally show ?thesis .
 qed;
 
 lemma zfact_prop: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>

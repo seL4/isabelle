@@ -316,8 +316,8 @@ lemma equiv_imp_dvd_card:
   apply (rule Union_quotient [THEN subst])
    apply assumption
   apply (rule dvd_partition)
-     prefer 4 apply (blast dest: quotient_disj)
-    apply (simp_all add: Union_quotient equiv_type finite_quotient)
+     prefer 3 apply (blast dest: quotient_disj)
+    apply (simp_all add: Union_quotient equiv_type)
   done
 
 lemma card_quotient_disjoint:

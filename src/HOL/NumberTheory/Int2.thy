@@ -178,7 +178,7 @@ lemma zcong_zero: "[| 0 \<le> x; x < m; [x = 0](mod m) |] ==> x = 0";
 by (frule_tac m = m in zcong_not_zero, auto)
 
 lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. (zgcd(x,y) = 1) |]
-    ==> zgcd (gsetprod id A,y) = 1";
+    ==> zgcd (setprod id A,y) = 1";
   by (induct set: Finites, auto simp add: zgcd_zgcd_zmult)
 
 (*****************************************************************)

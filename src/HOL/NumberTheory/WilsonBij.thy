@@ -229,7 +229,7 @@ lemma bijER_d22set: "p \<in> zprime ==> d22set (p - 2) \<in> bijER (reciR p)"
 subsection {* Wilson *}
 
 lemma bijER_zcong_prod_1:
-    "p \<in> zprime ==> A \<in> bijER (reciR p) ==> [setprod A = 1] (mod p)"
+    "p \<in> zprime ==> A \<in> bijER (reciR p) ==> [\<Prod>A = 1] (mod p)"
   apply (unfold reciR_def)
   apply (erule bijER.induct)
     apply (subgoal_tac [2] "a = 1 \<or> a = p - 1")
@@ -239,7 +239,7 @@ lemma bijER_zcong_prod_1:
     prefer 3
     apply (subst setprod_insert)
       apply (auto simp add: fin_bijER)
-  apply (subgoal_tac "zcong ((a * b) * setprod A) (1 * 1) p")
+  apply (subgoal_tac "zcong ((a * b) * \<Prod>A) (1 * 1) p")
    apply (simp add: zmult_assoc)
   apply (rule zcong_zmult)
    apply auto

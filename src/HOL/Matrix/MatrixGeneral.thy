@@ -41,7 +41,8 @@ next
   from hyp have d: "Max (?S) < m" by (simp add: a nrows_def)
   have "m \<notin> ?S"
     proof -
-      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add: Max[OF c b])
+      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add:Max_le[OF
+  c b])
       moreover from d have "~(m <= Max ?S)" by (simp)
       ultimately show "m \<notin> ?S" by (auto)
     qed
