@@ -39,8 +39,8 @@ $(BIN)/CHOL:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/CHOL"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/CHOL ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/CHOL" banner;' | $(BIN)/Pure ;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/CHOL ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/CHOL" banner;' | $(BIN)/Pure ;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml; exit 1;;\
 	esac
@@ -63,7 +63,7 @@ IMP_THYS = IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy IMP/Properties.thy
 IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
 
 IMP:    $(BIN)/CHOL  $(IMP_FILES)
-	echo 'use"IMP/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
 ##The integers in CHOL
 INTEG_THYS = Integ/Relation.thy Integ/Equiv.thy Integ/Integ.thy 
@@ -71,7 +71,7 @@ INTEG_THYS = Integ/Relation.thy Integ/Equiv.thy Integ/Integ.thy
 INTEG_FILES = Integ/ROOT.ML $(INTEG_THYS) $(INTEG_THYS:.thy=.ML)
 
 Integ:  $(BIN)/CHOL  $(INTEG_FILES)
-	echo 'use"Integ/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"Integ/ROOT.ML";quit();' | $(LOGIC)
 
 ##I/O Automata
 IOA_THYS = IOA/example/Action.thy IOA/example/Channels.thy\
@@ -85,7 +85,7 @@ IOA_FILES = IOA/ROOT.ML IOA/example/Packet.thy IOA/example/Spec.thy\
 	    $(IOA_THYS) $(IOA_THYS:.thy=.ML)
 
 IOA:    $(BIN)/CHOL  $(IOA_FILES)
-	echo 'use"IOA/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"IOA/ROOT.ML";quit();' | $(LOGIC)
 
 ##Properties of substitutions
 SUBST_THYS = Subst/AList.thy Subst/Setplus.thy\
@@ -95,7 +95,7 @@ SUBST_THYS = Subst/AList.thy Subst/Setplus.thy\
 SUBST_FILES = Subst/ROOT.ML $(SUBST_THYS) $(SUBST_THYS:.thy=.ML)
 
 Subst:  $(BIN)/CHOL  $(SUBST_FILES)
-	echo 'use"Subst/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
 EX_THYS = ex/LexProd.thy ex/MT.thy ex/Acc.thy \
@@ -106,7 +106,7 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 ex:     $(BIN)/CHOL  $(EX_FILES)
-	echo 'use"ex/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
 test:   $(BIN)/CHOL IMP Integ IOA Subst ex

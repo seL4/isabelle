@@ -24,8 +24,8 @@ FILES =  ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 $(BIN)/LCF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/LCF ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/LCF ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -35,8 +35,8 @@ $(BIN)/LCF:   $(BIN)/FOL  $(FILES)
 
 test:   ex.ML  $(BIN)/LCF
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
-	sml*)	echo 'use"ex.ML";' | $(BIN)/LCF;;\
+	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
+	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/LCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -25,8 +25,8 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/Cube"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/Cube ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/Cube" banner;' | $(BIN)/Pure ;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/Cube ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/Cube" banner;' | $(BIN)/Pure ;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -36,8 +36,8 @@ $(BIN)/Pure:
 
 test:   ex.ML $(BIN)/Cube
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
-	sml*)	echo 'use"ex.ML";' | $(BIN)/Cube;;\
+	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
+	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/Cube;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -25,8 +25,8 @@ $(BIN)/LK:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/LK"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/LK ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/LK" banner;' | $(BIN)/Pure ;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/LK ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/LK" banner;' | $(BIN)/Pure ;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -36,8 +36,8 @@ $(BIN)/Pure:
 
 test:   ex/ROOT.ML  $(BIN)/LK  $(EX_FILES)
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/LK ;;\
-	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/LK;;\
+	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/LK ;;\
+	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/LK;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -32,8 +32,8 @@ $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES)
 	case "$(COMP)" in \
 	poly*)  echo 'make_database"$(BIN)/HOLCF"; quit();'  \
 		     | $(COMP) $(BIN)/HOL ;\
-		echo 'use"ROOT";' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL ;;\
+		echo 'exit_use"ROOT";' | $(COMP) $(BIN)/HOLCF ;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL ;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -48,8 +48,8 @@ EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'use"ex/ROOT.ML"' | $(BIN)/HOLCF;;\
+	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
+	sml*)	echo 'exit_use"ex/ROOT.ML"' | $(BIN)/HOLCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -19,8 +19,8 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =  ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
-	../Provers/hypsubst.ML ../Provers/classical.ML \
-        ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
+	 ../Provers/hypsubst.ML ../Provers/classical.ML \
+	 ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
 	   ex/intro.ML ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy\
@@ -36,8 +36,8 @@ $(BIN)/FOL:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/FOL"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/FOL;;\
-	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;;\
+		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/FOL;;\
+	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -47,8 +47,8 @@ $(BIN)/Pure:
 
 test:   ex/ROOT.ML  $(BIN)/FOL  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/FOL ;;\
-	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/FOL;;\
+	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/FOL ;;\
+	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/FOL;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
