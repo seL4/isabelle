@@ -3,7 +3,7 @@
 # $Id$
 #
 # Isabelle tool starter -- provides settings environment,
-#   also keeps your PATH name space clean.
+#   and keeps your PATH name space clean.
 
 
 ## settings
@@ -17,24 +17,29 @@ ISABELLE_HOME=$(dirname $0)/..
 
 ## diagnostics
 
+TOOLDIRS=$(echo $ISABELLE_TOOLS | tr : " ")
+
 function usage()
 {
   echo
   echo "Usage: $PRG TOOL [ARGS ...]"
   echo
   echo "  Start Isabelle utility program TOOL with ARGS. Pass \"-?\" to TOOL"
-  echo "  for specific help."
+  echo "  for more specific help."
   echo
   echo "  Availabe tools are:"
-  echo
   (
-    cd "$ISABELLE_HOME/lib/Tools"
-    for T in *
+    for DIR in $TOOLDIRS
     do
-      if [ -f "$T" -a -x "$T" ]; then
-        DESCRLINE=$(grep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
-        echo "    $T - $DESCRLINE"
-      fi
+      cd $DIR
+      echo
+      for T in *
+      do
+        if [ -f "$T" -a -x "$T" ]; then
+          DESCRLINE=$(grep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
+          echo "    $T - $DESCRLINE"
+        fi
+      done
     done
   )
   echo
@@ -48,14 +53,20 @@ function fail()
 }
 
 
-## main
+## args
 
 [ $# -lt 1 -o "$1" = "-?" ] && usage
 
-TOOL_BASE="$1"
-TOOL="$ISABELLE_HOME/lib/Tools/$1"
+TOOLNAME="$1"
 shift
 
-[ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
 
-fail "Tool not found: $TOOL_BASE"
+## main
+
+for DIR in $TOOLDIRS
+do
+  TOOL=$DIR/$TOOLNAME
+  [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
+done
+
+fail "Unknown isabelle tool: $TOOLNAME"
