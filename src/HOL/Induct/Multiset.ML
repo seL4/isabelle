@@ -120,6 +120,12 @@ by(Simp_tac 1);
 qed "count_union";
 Addsimps [count_union];
 
+Goalw [count_def,diff_def]
+ "count (M-N) a = count M a - count N a";
+by(Simp_tac 1);
+qed "count_diff";
+Addsimps [count_diff];
+
 (* set_of *)
 
 Goalw [set_of_def] "set_of {#} = {}";
@@ -158,6 +164,10 @@ Goalw [size_def]
 *)
 
 (* equalities *)
+
+Goalw [count_def] "(M = N) = (!a. count M a = count N a)";
+by(Simp_tac 1);
+qed "multiset_eq_conv_count_eq";
 
 Goalw [single_def,empty_def] "{#a#} ~= {#}  &  {#} ~= {#a#}";
 by(Simp_tac 1);
@@ -432,15 +442,48 @@ Goalw [mult_def] "wf(r) ==> wf(mult r)";
 by(blast_tac (claset() addIs [wf_trancl,wf_mult1]) 1);
 qed "wf_mult";
 
-Goalw [mult_def,set_of_def]
- "(M,N) : mult r = (? I J K. N = I+J & M = I+K & \
+(** Equivalence of mult with the usual (closure-free) def **)
+
+(* Badly needed: a linear arithmetic tactic for multisets *)
+
+Goal "elem J a ==> I+J - {#a#} = I + (J-{#a#})";
+by(asm_simp_tac (simpset() addsimps [multiset_eq_conv_count_eq]) 1);
+qed "diff_union_single_conv";
+
+(* One direction *)
+Goalw [mult_def,mult1_def,set_of_def]
+ "trans r ==> \
+\ (M,N) : mult r ==> (? I J K. N = I+J & M = I+K & J ~= {#} & \
 \                            (!k : set_of K. ? j : set_of J. (k,j) : r))";
-br iffI 1;
-
-be trancl_induct 1;
-by(asm_full_simp_tac (simpset() addsimps [mult1_def]) 1);
-
+be converse_trancl_induct 1;
+ by(Clarify_tac 1);
+ by(res_inst_tac [("x","M0")] exI 1);
+ by(Simp_tac 1);
 by(Clarify_tac 1);
-by(res_inst_tac [("x","M0")] exI 1);
+by(case_tac "elem K a" 1);
+ by(res_inst_tac [("x","I")] exI 1);
+ by(Simp_tac 1);
+ by(res_inst_tac [("x","(K - {#a#}) + Ka")] exI 1);
+ by(asm_simp_tac (simpset() addsimps [union_assoc RS sym]) 1);
+ by(dres_inst_tac[("f","%M. M-{#a#}")] arg_cong 1);
+ by(asm_full_simp_tac (simpset() addsimps [diff_union_single_conv]) 1);
+ by(full_simp_tac (simpset() addsimps [trans_def]) 1);
+ by(Blast_tac 1);
+by(subgoal_tac "elem I a" 1);
+ by(res_inst_tac [("x","I-{#a#}")] exI 1);
+ by(res_inst_tac [("x","J+{#a#}")] exI 1);
+ by(res_inst_tac [("x","K + Ka")] exI 1);
+ br conjI 1;
+  by(asm_simp_tac (simpset() addsimps [multiset_eq_conv_count_eq]
+                             addsplits [nat_diff_split]) 1);
+ br conjI 1;
+  by(dres_inst_tac[("f","%M. M-{#a#}")] arg_cong 1);
+  by(Asm_full_simp_tac 1);
+  by(asm_simp_tac (simpset() addsimps [multiset_eq_conv_count_eq]
+                             addsplits [nat_diff_split]) 1);
+ by(full_simp_tac (simpset() addsimps [trans_def]) 1);
+ by(Blast_tac 1);
+by(subgoal_tac "elem (M0 +{#a#}) a" 1);
+ by(Asm_full_simp_tac 1);
 by(Simp_tac 1);
-
+qed "mult_implies_one_step";
