@@ -98,11 +98,11 @@ Addsimps [QSigma_empty1, QSigma_empty2];
 
 qed_goalw "qfst_conv" thy [qfst_def] "qfst(<a;b>) = a"
  (fn _=> 
-  [ (blast_tac (claset() addIs [the_equality]) 1) ]);
+  [ (Blast_tac 1) ]);
 
 qed_goalw "qsnd_conv" thy [qsnd_def] "qsnd(<a;b>) = b"
  (fn _=> 
-  [ (blast_tac (claset() addIs [the_equality]) 1) ]);
+  [ (Blast_tac 1) ]);
 
 Addsimps [qfst_conv, qsnd_conv];
 

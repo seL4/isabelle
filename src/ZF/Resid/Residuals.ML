@@ -5,14 +5,12 @@
     Logic Image: ZF
 *)
 
-open Residuals;
-
 (* ------------------------------------------------------------------------- *)
 (*       Setting up rule lists                                               *)
 (* ------------------------------------------------------------------------- *)
 
-AddIs (Sres.intrs@redexes.intrs@Sreg.intrs@
-       [subst_type]@nat_typechecks); 
+AddIs (Sres.intrs @ redexes.intrs @ Sreg.intrs @ 
+       [subst_type] @ nat_typechecks); 
 AddSEs (redexes.free_SEs @
 	(map (Sres.mk_cases redexes.con_defs) 
 	     ["residuals(Var(n),Var(n),v)",
@@ -53,14 +51,14 @@ by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed "residuals_intro";
 
-val prems = goal  Residuals.thy 
-    "[|u~v; residuals(u,v,THE w. residuals(u, v, w))==> R; \
-\      regular(v)|] ==> R";
+val prems = 
+Goal "[| u~v;  residuals(u,v,THE w. residuals(u, v, w))==> R; \
+\        regular(v) |] ==> R";
 by (cut_facts_tac prems 1);
 by (resolve_tac prems 1);
 by (resolve_tac [residuals_intro RS mp RS exE] 1);
-by (resolve_tac [the_equality RS ssubst] 3);
-by (ALLGOALS (fast_tac (claset() addIs [residuals_function])));
+by (stac the_equality 3);
+by (ALLGOALS (blast_tac (claset() addIs [residuals_function])));
 qed "comp_resfuncE";
 
 
@@ -68,29 +66,29 @@ qed "comp_resfuncE";
 (*               Residual function                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val resfunc_cs = (claset() addIs  [the_equality,residuals_function] 
-                          addSEs [comp_resfuncE]);
-
 Goalw [res_func_def]
     "n:nat ==> Var(n) |> Var(n) = Var(n)";
-by (fast_tac resfunc_cs 1);
+by (Blast_tac 1);
 qed "res_Var";
 
 Goalw [res_func_def]
     "[|s~t; regular(t)|]==> Fun(s) |> Fun(t) = Fun(s |> t)";
-by (fast_tac resfunc_cs 1);
+by (blast_tac (claset() addSEs [comp_resfuncE]
+			addIs [residuals_function]) 1);
 qed "res_Fun";
 
 Goalw [res_func_def]
     "[|s~u; regular(u); t~v; regular(v); b:bool|]==> \
 \           App(b,s,t) |> App(0,u,v) = App(b, s |> u, t |> v)";
-by (fast_tac resfunc_cs 1);
+by (blast_tac (claset() addSEs [comp_resfuncE]
+			addIs [residuals_function]) 1);
 qed "res_App";
 
 Goalw [res_func_def]
     "[|s~u; regular(u); t~v; regular(v); b:bool|]==> \
 \           App(b,Fun(s),t) |> App(1,Fun(u),v) = (t |> v)/ (s |> u)";
-by (fast_tac resfunc_cs 1);
+by (blast_tac (claset() addSEs [comp_resfuncE]
+			addIs [residuals_function]) 1);
 qed "res_redex";
 
 Goal "[|s~t; regular(t)|]==> regular(t) --> s |> t:redexes";

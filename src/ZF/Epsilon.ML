@@ -289,8 +289,7 @@ by (rtac ([Transset_eclose, subset_refl] MRS eclose_least) 1);
 by (rtac arg_subset_eclose 1);
 qed "eclose_idem";
 
-(*Transfinite recursion for definitions based on the three cases of ordinals.
-*)
+(*Transfinite recursion for definitions based on the three cases of ordinals*)
 
 Goal "transrec2(0,a,b) = a";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
@@ -298,7 +297,7 @@ by (Simp_tac 1);
 qed "transrec2_0";
 
 Goal "(THE j. i=j) = i";
-by (blast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "THE_eq";
 
 Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";

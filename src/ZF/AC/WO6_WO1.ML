@@ -396,7 +396,7 @@ by (res_inst_tac [("d","%i. THE x. x:f`i")] lam_injective 1);
 by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [Least_le RS lt_trans1 RS ltD, lt_Ord]) 1);
 by (resolve_tac [lemma2 RS ssubst] 1 THEN REPEAT (assume_tac 1));
-by (fast_tac (claset() addSIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "NN_imp_ex_inj";
 
 Goal "[| y*y <= y; 1 : NN(y) |] ==> EX r. well_ord(y, r)";

@@ -114,10 +114,10 @@ qed "Sigma_empty_iff";
 (*** Projections: fst, snd ***)
 
 qed_goalw "fst_conv" thy [fst_def] "fst(<a,b>) = a"
- (fn _=> [ (blast_tac (claset() addIs [the_equality]) 1) ]);
+ (fn _=> [ (Blast_tac 1) ]);
 
 qed_goalw "snd_conv" thy [snd_def] "snd(<a,b>) = b"
- (fn _=> [ (blast_tac (claset() addIs [the_equality]) 1) ]);
+ (fn _=> [ (Blast_tac 1) ]);
 
 Addsimps [fst_conv,snd_conv];
 

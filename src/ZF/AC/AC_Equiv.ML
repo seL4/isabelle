@@ -95,8 +95,7 @@ by (asm_simp_tac (simpset() addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 qed "Inf_Card_is_InfCard";
 
 Goal "(THE z. {x}={z}) = x";
-by (fast_tac (claset() addSIs [the_equality]
-                addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
+by (fast_tac (claset() addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
 qed "the_element";
 
 Goal "(lam x:A. {x}) : bij(A, {{x}. x:A})";

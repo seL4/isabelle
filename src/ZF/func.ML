@@ -70,14 +70,12 @@ Addsimps [empty_fun, singleton_fun];
 
 (*** Function Application ***)
 
-Goalw [Pi_def, function_def]
-     "[| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
+Goalw [Pi_def, function_def] "[| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
 by (Blast_tac 1);
 qed "apply_equality2";
 
-Goalw [apply_def, function_def]
-     "[| <a,b>: f;  function(f) |] ==> f`a = b";
-by (blast_tac (claset() addIs [the_equality]) 1);
+Goalw [apply_def, function_def] "[| <a,b>: f;  function(f) |] ==> f`a = b";
+by (Blast_tac 1);
 qed "function_apply_equality";
 
 Goalw [Pi_def] "[| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
@@ -85,8 +83,7 @@ by (blast_tac (claset() addIs [function_apply_equality]) 1);
 qed "apply_equality";
 
 (*Applying a function outside its domain yields 0*)
-Goalw [apply_def]
-    "a ~: domain(f) ==> f`a = 0";
+Goalw [apply_def] "a ~: domain(f) ==> f`a = 0";
 by (rtac the_0 1);
 by (Blast_tac 1);
 qed "apply_0";

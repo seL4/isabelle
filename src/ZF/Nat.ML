@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For nat.thy.  Natural numbers in Zermelo-Fraenkel Set Theory 
+Natural numbers in Zermelo-Fraenkel Set Theory 
 *)
 
 open Nat;
@@ -193,11 +193,11 @@ qed "succ_lt_induct";
 (** nat_case **)
 
 Goalw [nat_case_def] "nat_case(a,b,0) = a";
-by (blast_tac (claset() addIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "nat_case_0";
 
 Goalw [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
-by (blast_tac (claset() addIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "nat_case_succ";
 
 Addsimps [nat_case_0, nat_case_succ];

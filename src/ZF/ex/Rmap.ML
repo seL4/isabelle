@@ -48,7 +48,7 @@ by (asm_full_simp_tac
 qed "rmap_fun_type";
 
 Goalw [apply_def] "rmap(f)`Nil = Nil";
-by (fast_tac (claset() addIs [the_equality]) 1);
+by (Blast_tac 1);
 qed "rmap_Nil";
 
 Goal "[| f: A->B;  x: A;  xs: list(A) |] ==> \
