@@ -68,16 +68,18 @@ fun warn_ml name =
   else if name = "" then true
   else (warning ("Cannot bind theorem(s) " ^ quote name ^ " as ML value"); true);
 
+val use_text_verbose = use_text writeln true;
+
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
     if warn_ml name then ()
-    else (qed_thms := [thm']; use_text true ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
+    else (qed_thms := [thm']; use_text_verbose ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
   end;
 
 fun ml_store_thms (name, thms) =
   let val thms' = store_thms (name, thms) in
     if warn_ml name then ()
-    else (qed_thms := thms'; use_text true ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
+    else (qed_thms := thms'; use_text_verbose ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
   end;
 
 fun bind_thm (name, thm) = ml_store_thm (name, standard thm);
