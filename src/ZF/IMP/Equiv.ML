@@ -65,17 +65,16 @@ val com1 = result();
 
 AddSIs [aexp2,bexp2,B_type,A_type];
 AddIs  evalc.intrs;
-AddEs  [C_type,C_type_fst];
 
 
 Goal "c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
 by (etac com.induct 1);
-(* skip *)
-by (fast_tac (claset() addss (simpset())) 1);
-(* assign *)
-by (fast_tac (claset() addss (simpset())) 1);
 (* comp *)
-by (best_tac (claset() addss (simpset())) 1);
+by (Force_tac 3); 
+(* assign *)
+by (Force_tac 2); 
+(* skip *)
+by (Force_tac 1); 
 (* while *)
 by Safe_tac;
 by (ALLGOALS Asm_full_simp_tac);
