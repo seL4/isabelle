@@ -66,9 +66,10 @@ next
     moreover    
     from R wf ty
     have "R \<noteq> ClassT Object \<Longrightarrow> ?thesis"
-      by (auto simp add: is_ty_def subcls1_def is_class_def
+     by (auto simp add: is_ty_def is_class_def split_tupled_all
+               elim!: subcls1.elims
                elim: converse_rtranclE
-               split: ref_ty.splits)    
+               split: ref_ty.splits)
     ultimately    
     show ?thesis by blast
   qed
@@ -282,7 +283,8 @@ qed
 
 lemma single_valued_subcls1:
   "wf_prog wf_mb G ==> single_valued (subcls1 G)"
-  by (unfold wf_prog_def unique_def single_valued_def subcls1_def) auto
+  by (auto simp add: wf_prog_def unique_def single_valued_def
+    intro: subcls1I elim!: subcls1.elims)
 
 theorem err_semilat_JType_esl:
   "wf_prog wf_mb G ==> err_semilat (esl G)"

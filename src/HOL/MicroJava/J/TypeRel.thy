@@ -31,27 +31,20 @@ translations
   "G\<turnstile>S \<preceq>   T" == "(S,T) \<in> widen   G"
   "G\<turnstile>C \<preceq>?  D" == "(C,D) \<in> cast    G"
 
-defs
+inductive "subcls1 G" intros
 
   (* direct subclass, cf. 8.1.3 *)
- subcls1_def: "subcls1 G \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class G C=Some c \<and> fst c=D)}"
+  subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>C1D"
   
 lemma subcls1D: 
   "G\<turnstile>C\<prec>C1D \<Longrightarrow> C \<noteq> Object \<and> (\<exists>fs ms. class G C = Some (D,fs,ms))"
-apply (unfold subcls1_def)
-apply auto
-done
-
-lemma subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>C1D"
-apply (unfold subcls1_def)
+apply (erule subcls1.elims)
 apply auto
 done
 
 lemma subcls1_def2: 
 "subcls1 G = (\<Sigma>C\<in>{C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D})"
-apply (unfold subcls1_def is_class_def)
-apply auto
-done
+  by (auto simp add: is_class_def dest: subcls1D intro: subcls1I)
 
 lemma finite_subcls1: "finite (subcls1 G)"
 apply(subst subcls1_def2)
