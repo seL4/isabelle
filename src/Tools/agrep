@@ -1,2 +1,3 @@
 #! /bin/csh
-grep "$*" */*.ML */*/*.ML 
+grep "$*" */*.ML */*/*.ML TFL/*.sml TFL/*.sig TFL/examples/Subst/*.ML
+
