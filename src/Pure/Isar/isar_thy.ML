@@ -188,7 +188,7 @@ sig
   val token_translation: string * Comment.text -> theory -> theory
   val method_setup: (bstring * string * string) * Comment.text -> theory -> theory
   val add_oracle: (bstring * string) * Comment.text -> theory -> theory
-  val add_locale: bstring * xstring list * (Args.src Locale.element * Comment.text) list
+  val add_locale: bstring * Locale.expr * (Args.src Locale.element * Comment.text) list
     -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
