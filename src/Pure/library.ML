@@ -157,6 +157,7 @@ sig
   val untabify: string list -> string list
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
+  val replicate_string: int -> string -> string
 
   (*lists as sets*)
   val mem: ''a * ''a list -> bool
@@ -770,6 +771,12 @@ fun unsuffix sfx s =
       implode (take (prfx_len, cs))
     else raise LIST "unsuffix"
   end;
+
+fun replicate_string 0 _ = ""
+  | replicate_string 1 a = a
+  | replicate_string k a =
+      if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
+      else replicate_string (k div 2) (a ^ a) ^ a;
 
 
 
