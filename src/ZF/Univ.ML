@@ -156,26 +156,6 @@ by (stac Vfrom 1);
 by (Blast_tac 1);
 qed "Vfrom_Union";
 
-val [prem] = goal (the_context ()) "y:X ==> Vfrom(A,Union(X)) = (UN y:X. Vfrom(A,y))";
-by (stac Vfrom 1);
-by (rtac equalityI 1);
-(*first inclusion*)
-by (rtac Un_least 1);
-by (rtac (A_subset_Vfrom RS subset_trans) 1);
-
-by (rtac (prem RS UN_upper) 1);
-by (rtac UN_least 1);
-by (etac UnionE 1);
-by (rtac subset_trans 1);
-by (etac UN_upper 2);
-by (stac Vfrom 1);
-by (etac ([UN_upper, Un_upper2] MRS subset_trans) 1);
-(*opposite inclusion*)
-by (rtac UN_least 1);
-by (stac Vfrom 1);
-by (Blast_tac 1);
-qed "Vfrom_Union";
-
 (*** Vfrom applied to Limit ordinals ***)
 
 (*NB. limit ordinals are non-empty;
