@@ -7,6 +7,8 @@ by Auto_tac;
 qed "domD";
 AddSDs [domD];
 
+val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl];
+
 Goalw [body_def] "finite (dom body)";
 br finite_dom_map_of 1;
 qed "finite_dom_body";
