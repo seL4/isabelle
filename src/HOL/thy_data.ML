@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-HOL theory data: simpset, claset, records, datatypes.
+HOL theory data: records, datatypes.
 *)
 
 (*for records*)
