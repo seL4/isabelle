@@ -26,7 +26,9 @@ sig
   val apply: ('a * tthm) * 'a attribute list -> ('a * tthm)
   val applys: ('a * tthm list) * 'a attribute list -> ('a * tthm list)
   val pretty_tthm: tthm -> Pretty.T
+  val pretty_tthms: tthm list -> Pretty.T
   val print_tthm: tthm -> unit
+  val print_tthms: tthm list -> unit
   val tag: tag -> 'a attribute
   val untag: tag -> 'a attribute
   val lemma: tag
@@ -62,15 +64,8 @@ fun no_attrss (x, ys) = ((x, map (rpair []) ys), []);
 
 (* apply attributes *)
 
-fun apply (x_th, []) = x_th
-  | apply (x_th, f :: fs) = apply (f x_th, fs);
-
-fun applys ((x, []), _) = (x, [])
-  | applys ((x, th :: ths), atts) =
-      let
-        val (x', th') = apply ((x, th), atts);
-        val (x'', ths') = applys ((x', ths), atts);
-      in (x'', th' :: ths') end;
+fun apply (x_th, atts) = Library.apply atts x_th;
+fun applys (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
 
 (* display tagged theorems *)
@@ -82,7 +77,11 @@ fun pretty_tthm (thm, []) = Pretty.quote (Display.pretty_thm thm)
   | pretty_tthm (thm, tags) = Pretty.block
       [Pretty.quote (Display.pretty_thm thm), Pretty.brk 1, pretty_tags tags];
 
+fun pretty_tthms [th] = pretty_tthm th
+  | pretty_tthms ths = Pretty.block (Pretty.fbreaks (map pretty_tthm ths));
+
 val print_tthm = Pretty.writeln o pretty_tthm;
+val print_tthms = Pretty.writeln o pretty_tthms;
 
 
 (* basic attributes *)
