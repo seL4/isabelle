@@ -26,7 +26,9 @@ sig
   val assumption: Proof.method
   val forward_chain: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
+  val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
+  val erule: thm list -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
@@ -137,14 +139,18 @@ fun multi_resolve facts rule =
 
 fun forward_chain facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
 
-fun rule_tac rules [] = resolve_tac rules
-  | rule_tac erules facts =
+fun gen_rule_tac tac rules [] = tac rules
+  | gen_rule_tac tac erules facts =
       let
         val rules = forward_chain facts erules;
-        fun tac i state = Seq.flat (Seq.map (fn rule => Tactic.rtac rule i state) rules);
-      in tac end;
+        fun tactic i state = Seq.flat (Seq.map (fn rule => tac [rule] i state) rules);
+      in tactic end;
+
+val rule_tac = gen_rule_tac Tactic.resolve_tac;
+val erule_tac = gen_rule_tac Tactic.eresolve_tac;
 
 fun rule rules = METHOD (FIRSTGOAL o rule_tac rules);
+fun erule rules = METHOD (FIRSTGOAL o erule_tac rules);
 
 
 
@@ -350,12 +356,13 @@ val global_default_proof = global_terminal_proof (default_text, None);
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("same", no_args same, "insert facts, nothing else"),
+  ("-", no_args same, "insert facts, nothing else"),
   ("assumption", no_args assumption, "proof by assumption"),
   ("finish", no_args asm_finish, "finish proof by assumption"),
   ("fold", thms_args fold, "fold definitions"),
   ("unfold", thms_args unfold, "unfold definitions"),
-  ("rule", thms_args rule, "apply some rule")];
+  ("rule", thms_args rule, "apply some rule"),
+  ("erule", thms_args erule, "apply some erule (improper!)")];
 
 
 (* setup *)
