@@ -10,7 +10,6 @@ sig
   type tag
   type tthm
   type 'a attribute
-  val print_attributes: theory -> unit
 end;
 
 signature ATTRIBUTE =
@@ -31,11 +30,6 @@ sig
   val assumption: tag
   val tag_lemma: 'a attribute
   val tag_assumption: 'a attribute
-  val setup: (theory -> theory) list
-  val global_attr: theory -> (xstring * string list) -> theory attribute
-  val local_attr: theory -> (xstring * string list) -> local_theory attribute
-  val add_attributes: (bstring * (string list -> theory attribute) *
-      (string list -> local_theory attribute) * string) list -> theory -> theory
 end;
 
 structure Attribute: ATTRIBUTE =
@@ -62,6 +56,7 @@ exception FAIL of string * string;
 
 fun fail name msg = raise FAIL (name, msg);
 
+(* FIXME error (!!?), push up the warning (??) *)
 fun warn_failed (name, msg) =
   warning ("Failed invocation of " ^ quote name ^ " attribute: " ^ msg);
 
@@ -98,80 +93,6 @@ val lemma = ("lemma", []);
 val assumption = ("assumption", []);
 fun tag_lemma x = tag lemma x;
 fun tag_assumption x = tag assumption x;
-
-
-
-(** theory data **)
-
-(* data kind 'Pure/attributes' *)
-
-structure AttributesDataArgs =
-struct
-  val name = "Pure/attributes";
-  type T =
-    {space: NameSpace.T,
-     attrs:
-       ((((string list -> theory attribute) * (string list -> local_theory attribute))
-         * string) * stamp) Symtab.table};
-
-  val empty = {space = NameSpace.empty, attrs = Symtab.empty};
-  val prep_ext = I;
-
-  fun merge ({space = space1, attrs = attrs1}, {space = space2, attrs = attrs2}) =
-    {space = NameSpace.merge (space1, space2),
-      attrs = Symtab.merge eq_snd (attrs1, attrs2) handle Symtab.DUPS dups =>
-        error ("Attempt to merge different versions of attributes " ^ commas_quote dups)};
-
-  fun pretty_attr (name, ((_, comment), _)) = Pretty.block
-    [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-
-  fun print _ ({space, attrs}) =
-   (Pretty.writeln (Display.pretty_name_space ("attribute name space", space));
-    Pretty.writeln (Pretty.big_list "attributes:" (map pretty_attr (Symtab.dest attrs))));
-end;
-
-structure AttributesData = TheoryDataFun(AttributesDataArgs);
-val print_attributes = AttributesData.print;
-
-
-(* get global / local attributes *)
-
-fun gen_attr which thy =
-  let
-    val {space, attrs} = AttributesData.get thy;
-    val intern = NameSpace.intern space;
-
-    fun attr (raw_name, args) x_th =
-      (case Symtab.lookup (attrs, intern raw_name) of
-        None => raise FAIL (intern raw_name, "unknown attribute")
-      | Some ((p, _), _) => which p args x_th);
-  in attr end;
-
-val global_attr = gen_attr fst;
-val local_attr = gen_attr snd;
-
-
-(* add_attributes *)
-
-fun add_attributes raw_attrs thy =
-  let
-    val full = Sign.full_name (Theory.sign_of thy);
-    val new_attrs =
-      map (fn (name, f, g, comment) => (full name, (((f, g), comment), stamp ()))) raw_attrs;
-
-    val {space, attrs} = AttributesData.get thy;
-    val space' = NameSpace.extend (space, map fst new_attrs);
-    val attrs' = Symtab.extend (attrs, new_attrs) handle Symtab.DUPS dups =>
-      error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
-  in
-    thy |> AttributesData.put {space = space', attrs = attrs'}
-  end;
-
-
-(* setup *)	(* FIXME add_attributes: lemma etc. *)
-
-val setup =
- [AttributesData.init];
 
 
 end;
