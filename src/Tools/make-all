@@ -55,7 +55,7 @@ echo Log files will be called make$$.log.gz
 
 case $FORCE.$EXEC in
   on.on) (cd $ISABELLEBIN;
-          for f in Pure FOL ZF CCL LCF CTT LK Modal HOL HOLCF Cube FOLP
+          for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP
 	  do 
 	   rm -f $f $f.heap
 	  done)
@@ -121,21 +121,12 @@ esac
 
 echo
 echo
-echo '*****Classical Sequent Calculus (LK)*****'
-(cd LK;  make $NO $TEST > make$$.log)
-tail LK/make$$.log
-gzip LK/make$$.log
-#cannot delete LK yet... it is needed for Modal!
-
-echo
-echo
-echo '*****Modal logic (Modal)*****'
-(cd Modal;  make $NO $TEST > make$$.log)
-tail Modal/make$$.log
-gzip Modal/make$$.log
+echo '*****Sequent Calculi (Sequents)*****'
+(cd Sequents;  make $NO $TEST > make$$.log)
+tail Sequents/make$$.log
+gzip Sequents/make$$.log
 case $CLEAN.$EXEC in
-  on.on)	rm -f $ISABELLEBIN/LK $ISABELLEBIN/LK.heap \
-                      $ISABELLEBIN/Modal $ISABELLEBIN/Modal.heap
+    on.on)	rm -f $ISABELLEBIN/Sequents $ISABELLEBIN/Sequents.heap
 esac
 
 echo
@@ -181,7 +172,7 @@ case $TEST.$EXEC in
     test.on)	echo
 	        echo '***** Now check the dates on the "test" files *****'
         	ls -lrt FOL/test ZF/test CCL/test LCF/test CTT/test\
-              	        LK/test Modal/test HOL/test HOLCF/test\
+              	        Sequents/test HOL/test HOLCF/test\
                         Cube/test FOLP/test
 esac
 echo Finished at `date`
