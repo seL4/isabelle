@@ -34,12 +34,6 @@ DISCGARB=$ML_HOME/discgarb
 check_mlhome_file "$POLY"
 check_mlhome_file "$DISCGARB"
 
-case "$ML_SYSTEM" in
-  polyml-3.*)
-    DISCGARB="$DISCGARB -c"
-    ;;
-esac
-
 
 ## prepare databases
 
@@ -85,7 +79,7 @@ $ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" $FEEDER_OPTS | \
 RC=$?
 
 NEW_DB_INFO=$(ls -l "$DB")
-[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB "$OUTFILE"
+[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB -c "$OUTFILE"
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit $RC
