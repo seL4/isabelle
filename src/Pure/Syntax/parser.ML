@@ -2,10 +2,7 @@
     ID:         $Id$
     Author:     Sonia Mahjoub, Markus Wenzel and Carsten Clasohm, TU Muenchen
 
-Isabelle's main parser (used for terms and typs).
-
-TODO:
-  extend_gram: remove 'roots' arg
+Isabelle's main parser (used for terms and types).
 *)
 
 signature PARSER =
@@ -15,7 +12,7 @@ sig
   local open Lexicon SynExt SynExt.Ast in
     type gram
     val empty_gram: gram
-    val extend_gram: gram -> string list -> xprod list -> gram
+    val extend_gram: gram -> xprod list -> gram
     val merge_grams: gram -> gram -> gram
     val pretty_gram: gram -> Pretty.T list
     datatype parsetree =
@@ -26,7 +23,7 @@ sig
 end;
 
 functor ParserFun(structure Symtab: SYMTAB and Lexicon: LEXICON
-  and SynExt: SYN_EXT) =
+  and SynExt: SYN_EXT): PARSER =
 struct
 
 structure Pretty = SynExt.Ast.Pretty;
@@ -260,7 +257,7 @@ fun mk_gram prods =
 
 val empty_gram = mk_gram [];
 
-fun extend_gram (gram1 as Gram (prods1, _)) _ xprods2 =
+fun extend_gram (gram1 as Gram (prods1, _)) xprods2 =
   let
     fun symb_of (Delim s) = Some (Terminal (Token s))
       | symb_of (Argument (s, p)) =
