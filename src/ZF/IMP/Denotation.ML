@@ -6,43 +6,37 @@
 
 open Denotation;
 
-(**** Rewrite Rules for A,B,C ****)
+(** Rewrite Rules for A,B,C **)
+Addsimps [A_nat_def,A_loc_def,A_op1_def,A_op2_def];
+Addsimps [B_true_def,B_false_def,B_op_def,B_not_def,B_and_def,B_or_def];
+Addsimps [C_skip_def,C_assign_def,C_comp_def,C_if_def,C_while_def]; 
 
-val A_rewrite_rules =
-     [A_nat_def,A_loc_def,A_op1_def,A_op2_def];
-
-val B_rewrite_rules =
-     [B_true_def,B_false_def,B_op_def,B_not_def,B_and_def,B_or_def]
-
-val C_rewrite_rules = 
-     [C_skip_def,C_assign_def,C_comp_def,C_if_def,C_while_def]; 
-
-(**** Type_intr for A ****)
+(** Type_intr for A **)
 
 val A_type = prove_goal Denotation.thy
         "!!a.[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat"
    (fn _ => [(etac aexp.induct 1),
-             (rewrite_goals_tac A_rewrite_rules),
+             (ALLGOALS Asm_simp_tac),
              (ALLGOALS (fast_tac (claset() addSIs [apply_type])))]);
 
-(**** Type_intr for B ****)
+(** Type_intr for B **)
 
 val B_type = prove_goal Denotation.thy
         "!!b. [|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool"
    (fn _ => [(etac bexp.induct 1),
-             (rewrite_goals_tac B_rewrite_rules),
+             (ALLGOALS Asm_simp_tac),
              (ALLGOALS (fast_tac (claset() 
                           addSIs [apply_type,A_type]@bool_typechecks)))]);
 
-(**** C_subset ****)
+(** C_subset **)
 
 val C_subset = prove_goal Denotation.thy 
         "!!c. c:com ==> C(c) <= (loc->nat)*(loc->nat)"
    (fn _ => [(etac com.induct 1),
-             (rewrite_tac C_rewrite_rules),
+             (ALLGOALS Asm_simp_tac),
              (ALLGOALS (fast_tac (claset() addDs [lfp_subset RS subsetD])))]);
 
-(**** Type_elims for C ****)
+(** Type_elims for C **)
 
 val C_type = prove_goal Denotation.thy
         "[| <x,y>:C(c); c:com;                                  \
@@ -64,10 +58,10 @@ val C_type_fst = prove_goal Denotation.thy
                    (Asm_simp_tac 1)]);
 
 
-(**** bnd_mono (nat->nat*nat->nat,Gamma(b,c) ****)
+(** bnd_mono (nat->nat*nat->nat,Gamma(b,c) **)
 
 val Gamma_bnd_mono = prove_goalw Denotation.thy [bnd_mono_def,Gamma_def]
         "!!c. c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))"
      (fn prems => [(best_tac (claset() addEs [C_type]) 1)]);
 
-(**** End ***)
+(** End ***)
