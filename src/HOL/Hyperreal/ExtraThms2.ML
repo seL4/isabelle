@@ -1,9 +1,3 @@
-(*lcp: lemmas needed now because 2 is a binary numeral!*)
-
-Goal "m+m = m*(2::nat)";
-by Auto_tac; 
-qed "m_add_m_eq2";
-
 (*lcp: needed for binary 2 MOVE UP???*)
 
 Goal "(0::real) <= x^2";

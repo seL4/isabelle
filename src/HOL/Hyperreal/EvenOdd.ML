@@ -103,29 +103,22 @@ qed "even_mult_even";
 Addsimps [even_mult_even];
 
 Goal "(m + m) div 2 = (m::nat)";
-by (asm_full_simp_tac (simpset() addsimps [m_add_m_eq2]) 1); 
+by (arith_tac 1);
 qed "div_add_self_two_is_m";
 Addsimps [div_add_self_two_is_m];
 
-Goal "((m + m) + 2) div 2 = Suc m";
-by (stac div_add_self2 1);
-by (Auto_tac);
-qed "div_add_self_two";
-
 Goal "Suc(Suc(m*2)) div 2 = Suc m";
-by (cut_inst_tac [("m","m")] div_add_self_two 1);
-by (auto_tac (claset(),simpset() addsimps [m_add_m_eq2, mult_commute]));
+by (arith_tac 1);
 qed "div_mult_self_Suc_Suc";
 Addsimps [div_mult_self_Suc_Suc];
 
 Goal "Suc(Suc(2*m)) div 2 = Suc m";
-by (auto_tac (claset(),simpset() addsimps [mult_commute]));
+by (arith_tac 1);
 qed "div_mult_self_Suc_Suc2";
 Addsimps [div_mult_self_Suc_Suc2];
 
 Goal "Suc(Suc(m + m)) div 2 = Suc m";
-by (cut_inst_tac [("m","m")] div_mult_self_Suc_Suc 1);
-by (auto_tac (claset(),simpset() addsimps [m_add_m_eq2, mult_commute]));
+by (arith_tac 1);
 qed "div_add_self_Suc_Suc";
 Addsimps [div_add_self_Suc_Suc];
 
@@ -182,7 +175,7 @@ qed "mod_two_Suc_2m";
 Addsimps [mod_two_Suc_2m];
 
 Goal "(Suc (Suc (2 * m)) div 2) = Suc m";
-by (stac div_if 1 THEN Auto_tac);
+by (arith_tac 1);
 qed "div_two_Suc_Suc_2m";
 Addsimps [div_two_Suc_Suc_2m];
 
@@ -199,15 +192,12 @@ qed "lemma_not_even_div";
 Addsimps [lemma_not_even_div];
 
 Goal "Suc n div 2 <= Suc (Suc n) div 2";
-by (auto_tac (claset(),simpset() addsimps [div_le_mono]));
+by (arith_tac 1);
 qed "Suc_n_le_Suc_Suc_n_div_2";
 Addsimps [Suc_n_le_Suc_Suc_n_div_2];
 
 Goal "(0::nat) < n --> 0 < (n + 1) div 2";
-by (induct_tac "n" 1);
-by Auto_tac;
-by (rtac (Suc_n_le_Suc_Suc_n_div_2 RSN (2,less_le_trans)) 1);
-by Auto_tac;
+by (arith_tac 1);
 qed_spec_mp "Suc_n_div_2_gt_zero";
 Addsimps [Suc_n_div_2_gt_zero];
 
@@ -219,16 +209,12 @@ bind_thm ("even_gt_zero_gt_one",conjI RS even_gt_zero_gt_one);
 
 (* more general *)
 Goal "n div 2 <= (Suc n) div 2";
-by (auto_tac (claset(),simpset() addsimps [div_le_mono]));
+by (arith_tac 1);
 qed "le_Suc_n_div_2";
 Addsimps [le_Suc_n_div_2];
 
 Goal "(1::nat) < n --> 0 < n div 2";
-by (induct_tac "n" 1);
-by Auto_tac;
-by (dtac (CLAIM "[|0 < n; ~ 1 < n |] ==> n = (1::nat)") 1);
-by (rtac (le_Suc_n_div_2 RSN (2,less_le_trans)) 3);
-by Auto_tac;
+by (arith_tac 1);
 qed_spec_mp "div_2_gt_zero";
 Addsimps [div_2_gt_zero];
 
@@ -342,21 +328,17 @@ qed "even_realpow_minus_one";
 Addsimps [even_realpow_minus_one];
 
 Goal "((4 * n) + 2) div 2 = (2::nat) * n + 1";
-by (rtac (CLAIM_SIMP "4*n + (2::nat) = 2 * (2*n + 1)" 
-          [add_mult_distrib2] RS ssubst) 1);
-by Auto_tac;
+by (arith_tac 1);
 qed "lemma_4n_add_2_div_2_eq";
 Addsimps [lemma_4n_add_2_div_2_eq];
 
 Goal "(Suc(Suc(4 * n))) div 2 = (2::nat) * n + 1";
-by Auto_tac;
+by (arith_tac 1);
 qed "lemma_Suc_Suc_4n_div_2_eq";
 Addsimps [lemma_Suc_Suc_4n_div_2_eq];
 
 Goal "(Suc(Suc(n * 4))) div 2 = (2::nat) * n + 1";
-by (cut_inst_tac [("n","n")] lemma_Suc_Suc_4n_div_2_eq 1);
-by (auto_tac (claset(),simpset() addsimps [mult_commute] 
-    delsimps [lemma_Suc_Suc_4n_div_2_eq]));
+by (arith_tac 1);
 qed "lemma_Suc_Suc_4n_div_2_eq2";
 Addsimps [lemma_Suc_Suc_4n_div_2_eq2];
 
@@ -366,12 +348,12 @@ by (asm_full_simp_tac (simpset() addsimps [odd_num_iff]) 1);
 val lemma_odd_mod_4_div_2 = result();
 
 Goal "(4 * n) div 2 = (2::nat) * n";
-by Auto_tac;
+by (arith_tac 1);
 qed "lemma_4n_div_2_eq";
 Addsimps [lemma_4n_div_2_eq];
 
 Goal "(n  * 4) div 2 = (2::nat) * n";
-by Auto_tac;
+by (arith_tac 1);
 qed "lemma_4n_div_2_eq2";
 Addsimps [lemma_4n_div_2_eq2];
 
