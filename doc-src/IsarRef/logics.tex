@@ -1,5 +1,5 @@
 
-\chapter{Object-logic specific elements}\label{ch:logics}
+\chapter{Object-logic Specific Elements}\label{ch:logics}
 
 \section{General logic setup}\label{sec:object-logic}
 
@@ -82,7 +82,7 @@ Reasoner \S\ref{sec:classical}).
 
 \section{HOL}
 
-\subsection{Primitive types}\label{sec:typedef}
+\subsection{Primitive types}\label{sec:hol-typedef}
 
 \indexisarcmdof{HOL}{typedecl}\indexisarcmdof{HOL}{typedef}
 \begin{matharray}{rcl}
@@ -167,7 +167,7 @@ $\isarkeyword{datatype}$ (see \S\ref{sec:hol-datatype}).
 \end{descr}
 
 
-\section{Records}\label{sec:hol-record}
+\subsection{Records}\label{sec:hol-record}
 
 In principle, records merely generalize the concept of tuples where components
 may be addressed by labels instead of just position.  The logical
@@ -178,7 +178,7 @@ effects like (single) inheritance.  See also \cite{NaraschewskiW-TPHOLs98} for
 more details on object-oriented verification and record subtyping in HOL.
 
 
-\subsection{Basic concepts}
+\subsubsection{Basic concepts}
 
 Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records at the
 level of terms and types.  The notation is as follows:
@@ -235,7 +235,7 @@ for various generic proof tools enable succinct reasoning patterns (see
 practice.
 
 
-\subsection{Record specifications}\label{sec:hol-record-def}
+\subsubsection{Record specifications}\label{sec:hol-record-def}
 
 \indexisarcmdof{HOL}{record}
 \begin{matharray}{rcl}
@@ -271,7 +271,7 @@ practice.
 
 \end{descr}
 
-\subsection{Record operations}\label{sec:hol-record-ops}
+\subsubsection{Record operations}\label{sec:hol-record-ops}
 
 Any record definition of the form presented above produces certain standard
 operations.  Selectors and updates are provided for any field, including the
@@ -339,7 +339,7 @@ $truncate$ restricts a record scheme to a fixed record.
 \noindent Note that $t{\dtt}make$ and $t{\dtt}fields$ are actually coincide for root records.
 
 
-\subsection{Derived rules and proof tools}\label{sec:hol-record-thms}
+\subsubsection{Derived rules and proof tools}\label{sec:hol-record-thms}
 
 The record package proves several results internally, declaring these facts to
 appropriate proof tools.  This enables users to reason about record structures
@@ -642,7 +642,7 @@ Isar.  These should be never used in proper proof texts!
 \end{descr}
 
 
-\subsection{Generating executable code}
+\subsection{Executable code}
 
 Isabelle/Pure provides a generic infrastructure to support code generation
 from executable specifications, both functional and relational programs.

@@ -14,24 +14,25 @@ In contrast \emph{Isar} provides an interpreted language environment of its
 own, which has been specifically tailored for the needs of theory and proof
 development.  Compared to raw ML, the Isabelle/Isar top-level provides a more
 robust and comfortable development platform, with proper support for theory
-development graphs, single-step evaluation with unlimited undo, etc.  The
+development graphs, single-step transactions with unlimited undo, etc.  The
 Isabelle/Isar version of the \emph{Proof~General} user interface
 \cite{proofgeneral,Aspinall:TACAS:2000} provides an adequate front-end for
-interactive theory and proof development.
+interactive theory and proof development in this advanced theorem proving
+environment.
 
-\medskip Apart from these technical advances over bare-bones ML programming,
-the main intention of Isar is to provide a conceptually different view on
-machine-checked proofs \cite{Wenzel:1999:TPHOL,Wenzel-PhD} --- ``Isar'' stands
-for ``Intelligible semi-automated reasoning''.  Drawing from both the
+\medskip Apart from the technical advances over bare-bones ML programming, the
+main purpose of the Isar language is to provide a conceptually different view
+on machine-checked proofs \cite{Wenzel:1999:TPHOL,Wenzel-PhD}.  ``Isar''
+stands for ``Intelligible semi-automated reasoning''.  Drawing from both the
 traditions of informal mathematical proof texts and high-level programming
-languages, Isar provides a versatile environment for structured formal proof
-documents.  Thus properly written Isar proof texts become accessible to a
-broader audience than unstructured tactic scripts (which typically only
-provide operational information for the machine).  Writing human-readable
-proof texts certainly requires some additional efforts by the writer in order
-to achieve a good presentation --- both of formal and informal parts of the
-text.  On the other hand, human-readable formal texts gain some value in their
-own right, independently of the mechanic proof-checking process.
+languages, Isar offers a versatile environment for structured formal proof
+documents.  Thus properly written Isar proofs become accessible to a broader
+audience than unstructured tactic scripts (which typically only provide
+operational information for the machine).  Writing human-readable proof texts
+certainly requires some additional efforts by the writer to achieve a good
+presentation, both of formal and informal parts of the text.  On the other
+hand, human-readable formal texts gain some value in their own right,
+independently of the mechanic proof-checking process.
 
 Despite its grand design of structured proof texts, Isar is able to assimilate
 the old tactical style as an ``improper'' sub-language.  This provides an easy
@@ -87,7 +88,7 @@ canonical working environment for Isabelle/Isar, both for getting acquainted
 \subsubsection{Proof~General as default Isabelle interface}
 
 The Isabelle interface wrapper script provides an easy way to invoke
-Proof~General (and XEmacs or GNU Emacs).  The default configuration of
+Proof~General (including XEmacs or GNU Emacs).  The default configuration of
 Isabelle is smart enough to detect the Proof~General distribution in several
 canonical places (e.g.\ \texttt{\$ISABELLE_HOME/contrib/ProofGeneral}).  Thus
 the capital \texttt{Isabelle} executable would already refer to the
@@ -101,8 +102,8 @@ visiting appropriate theory files, e.g.\
 \begin{ttbox}
 Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/Summation.thy
 \end{ttbox}
-Users may note the tool bar for navigating forward and backward through the
-text (this depends on the local Emacs installation).  Consult the
+Beginners may note the tool bar for navigating forward and backward through
+the text (this depends on the local Emacs installation).  Consult the
 Proof~General documentation \cite{proofgeneral} for further basic command
 sequences, in particular ``\texttt{C-c C-return}'' and ``\texttt{C-c u}''.
 
@@ -164,16 +165,21 @@ capabilities of Emacs and X-Symbol.
 
 Isabelle/Isar offers the following main improvements over classic Isabelle.
 \begin{enumerate}
+  
 \item A new \emph{theory format}, occasionally referred to as ``new-style
   theories'', supporting interactive development and unlimited undo operation.
+  
 \item A \emph{formal proof document language} designed to support intelligible
   semi-automated reasoning.  Instead of putting together unreadable tactic
   scripts, the author is enabled to express the reasoning in way that is close
-  to usual mathematical practice.
+  to usual mathematical practice.  The old tactical style has been assimilated
+  as ``improper'' language elements.
+  
 \item A simple document preparation system, for typesetting formal
   developments together with informal text.  The resulting hyper-linked PDF
   documents are equally well suited for WWW presentation and as printed
   copies.
+
 \end{enumerate}
 
 The Isar proof language is embedded into the new theory format as a proper
@@ -186,11 +192,11 @@ of the representing sets.
 New-style theory files may still be associated with separate ML files
 consisting of plain old tactic scripts.  There is no longer any ML binding
 generated for the theory and theorems, though.  ML functions \texttt{theory},
-\texttt{thm}, and \texttt{thms} retrieve this information \cite{isabelle-ref}.
-Nevertheless, migration between classic Isabelle and Isabelle/Isar is
-relatively easy.  Thus users may start to benefit from interactive theory
-development and document preparation, even before they have any idea of the
-Isar proof language at all.
+\texttt{thm}, and \texttt{thms} retrieve this information from the context
+\cite{isabelle-ref}.  Nevertheless, migration between classic Isabelle and
+Isabelle/Isar is relatively easy.  Thus users may start to benefit from
+interactive theory development and document preparation, even before they have
+any idea of the Isar proof language at all.
 
 \begin{warn}
   Proof~General does \emph{not} support mixed interactive development of
@@ -210,9 +216,9 @@ new-style theories, see appendix~\ref{ap:conv} for more information.
 \subsection{Document preparation}\label{sec:document-prep}
 
 Isabelle/Isar provides a simple document preparation system based on existing
-PDF-\LaTeX technology, with full support of hyper-links (both local references
-and URLs), bookmarks, and thumbnails.  Thus the results are equally well
-suited for WWW browsing and as printed copies.
+{PDF-\LaTeX} technology, with full support of hyper-links (both local
+references and URLs), bookmarks, and thumbnails.  Thus the results are equally
+well suited for WWW browsing and as printed copies.
 
 \medskip
 
@@ -245,8 +251,8 @@ reported by the batch job in verbose mode.
 
 You may also consider to tune the \texttt{usedir} options in
 \texttt{IsaMakefile}, for example to change the output format from
-\texttt{pdf} to \texttt{dvi}, or activate the \texttt{-D generated} option in
-order to keep a second copy of the generated {\LaTeX} sources.
+\texttt{pdf} to \texttt{dvi}, or activate the \texttt{-D} option to retain a
+second copy of the generated {\LaTeX} sources.
 
 \medskip
 
@@ -260,13 +266,13 @@ on Isabelle logic sessions and theory presentation.  The Isabelle/HOL tutorial
 This is one of the key questions, of course.  First of all, the tactic script
 emulation of Isabelle/Isar essentially provides a clarified version of the
 very same unstructured proof style of classic Isabelle.  Old-time users should
-quickly become acquainted with that (degenerative) view of Isar at the least.
+quickly become acquainted with that (slightly degenerative) view of Isar.
 
 Writing \emph{proper} Isar proof texts targeted at human readers is quite
 different, though.  Experienced users of the unstructured style may even have
 to unlearn some of their habits to master proof composition in Isar.  In
 contrast, new users with less experience in old-style tactical proving, but a
-good understanding of mathematical proof in general often get started easier.
+good understanding of mathematical proof in general, often get started easier.
 
 \medskip The present text really is only a reference manual on Isabelle/Isar,
 not a tutorial.  Nevertheless, we will attempt to give some clues of how the

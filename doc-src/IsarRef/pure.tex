@@ -1,8 +1,8 @@
 
 \chapter{Basic Language Elements}\label{ch:pure-syntax}
 
-Subsequently, we introduce the main part of Pure Isar theory and proof
-commands, together with fundamental proof methods and attributes.
+Subsequently, we introduce the main part of Pure theory and proof commands,
+together with fundamental proof methods and attributes.
 Chapter~\ref{ch:gen-tools} describes further Isar elements provided by generic
 tools and packages (such as the Simplifier) that are either part of Pure
 Isabelle or pre-installed in most object logics.  Chapter~\ref{ch:logics}
@@ -14,9 +14,10 @@ Isar commands may be either \emph{proper} document constructors, or
 \emph{improper commands}.  Some proof methods and attributes introduced later
 are classified as improper as well.  Improper Isar language elements, which
 are subsequently marked by ``$^*$'', are often helpful when developing proof
-documents, while their use is discouraged for the final outcome.  Typical
-examples are diagnostic commands that print terms or theorems according to the
-current context; other commands emulate old-style tactical theorem proving.
+documents, while their use is discouraged for the final human-readable
+outcome.  Typical examples are diagnostic commands that print terms or
+theorems according to the current context; other commands emulate old-style
+tactical theorem proving.
 
 
 \section{Theory commands}
@@ -42,8 +43,8 @@ new theory based on the merge of existing ones.  Just preceding $\THEORY$,
 there may be an optional $\isarkeyword{header}$ declaration, which is relevant
 to document preparation only; it acts very much like a special pre-theory
 markup command (cf.\ \S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The
-$\END$ commands concludes a theory development; it has to be the very last
-command of any theory file to loaded in batch-mode.  The theory context may be
+$\END$ command concludes a theory development; it has to be the very last
+command of any theory file loaded in batch-mode.  The theory context may be
 also changed interactively by $\CONTEXT$ without creating a new theory.
 
 \begin{rail}
@@ -206,21 +207,27 @@ preceding the actual theory definition.
 \end{rail}
 
 \begin{descr}
+
 \item [$\TYPES~(\vec\alpha)t = \tau$] introduces \emph{type synonym}
   $(\vec\alpha)t$ for existing type $\tau$.  Unlike actual type definitions,
   as are available in Isabelle/HOL for example, type synonyms are just purely
   syntactic abbreviations without any logical significance.  Internally, type
   synonyms are fully expanded.
+  
 \item [$\isarkeyword{typedecl}~(\vec\alpha)t$] declares a new type constructor
-  $t$, intended as an actual logical type.  Note that object-logics such as
-  Isabelle/HOL override $\isarkeyword{typedecl}$ by their own version.
+  $t$, intended as an actual logical type.  Note that the Isabelle/HOL
+  object-logic overrides $\isarkeyword{typedecl}$ by its own version
+  (\S\ref{sec:hol-typedef}).
+
 \item [$\isarkeyword{nonterminals}~\vec c$] declares $0$-ary type constructors
   $\vec c$ to act as purely syntactic types, i.e.\ nonterminal symbols of
   Isabelle's inner syntax of terms or types.
+
 \item [$\isarkeyword{arities}~t::(\vec s)s$] augments Isabelle's order-sorted
   signature of types by new type constructor arities.  This is done
   axiomatically!  The $\INSTANCE$ command (see \S\ref{sec:axclass}) provides a
   way to introduce proven type arities.
+
 \end{descr}
 
 
@@ -332,7 +339,7 @@ preceding the actual theory definition.
   
   Axioms are usually only introduced when declaring new logical systems.
   Everyday work is typically done the hard way, with proper definitions and
-  actual proven theorems.
+  proven theorems.
   
 \item [$\isarkeyword{lemmas}~a = \vec b$] retrieves and stores existing facts
   in the theory context, or the specified locale (see also
@@ -454,11 +461,11 @@ following commands provide some way to do so.
 }
 
 Note that mere tactic emulations may ignore the \texttt{facts} parameter
-above.  Proper proof methods would do something ``appropriate'' with the list
-of current facts, though.  Single-rule methods usually do strict
-forward-chaining (e.g.\ by using \texttt{Method.multi_resolves}), while
-automatic ones just insert the facts using \texttt{Method.insert_tac} before
-applying the main tactic.
+above.  Proper proof methods would do something appropriate with the list of
+current facts, though.  Single-rule methods usually do strict forward-chaining
+(e.g.\ by using \texttt{Method.multi_resolves}), while automatic ones just
+insert the facts using \texttt{Method.insert_tac} before applying the main
+tactic.
 \end{descr}
 
 
@@ -564,8 +571,8 @@ The proof mode indicator may be read as a verb telling the writer what kind of
 operation may be performed next.  The corresponding typings of proof commands
 restricts the shape of well-formed proof texts to particular command
 sequences.  So dynamic arrangements of commands eventually turn out as static
-texts.  Appendix~\ref{ap:refcard} gives a simplified grammar of the overall
-(extensible) language emerging that way.
+texts of a certain structure.  Appendix~\ref{ap:refcard} gives a simplified
+grammar of the overall (extensible) language emerging that way.
 
 
 \subsection{Markup commands}\label{sec:markup-prf}
@@ -605,11 +612,11 @@ mode (see \S\ref{sec:markup-thy}).
 The logical proof context consists of fixed variables and assumptions.  The
 former closely correspond to Skolem constants, or meta-level universal
 quantification as provided by the Isabelle/Pure logical framework.
-Introducing some \emph{arbitrary, but fixed} variable via $\FIX x$ results in
-a local value that may be used in the subsequent proof as any other variable
-or constant.  Furthermore, any result $\edrv \phi[x]$ exported from the
-context will be universally closed wrt.\ $x$ at the outermost level: $\edrv
-\All x \phi$ (this is expressed using Isabelle's meta-variables).
+Introducing some \emph{arbitrary, but fixed} variable via ``$\FIX x$'' results
+in a local value that may be used in the subsequent proof as any other
+variable or constant.  Furthermore, any result $\edrv \phi[x]$ exported from
+the context will be universally closed wrt.\ $x$ at the outermost level:
+$\edrv \All x \phi$ (this is expressed using Isabelle's meta-variables).
 
 Similarly, introducing some assumption $\chi$ has two effects.  On the one
 hand, a local theorem is created that may be used as a fact in subsequent
@@ -622,8 +629,8 @@ insists on solving the subgoal by unification with some premise of the goal,
 $\PRESUMENAME$ leaves the subgoal unchanged in order to be proved later by the
 user.
 
-Local definitions, introduced by $\DEF{}{x \equiv t}$, are achieved by
-combining $\FIX x$ with another version of assumption that causes any
+Local definitions, introduced by ``$\DEF{}{x \equiv t}$'', are achieved by
+combining ``$\FIX x$'' with another version of assumption that causes any
 hypothetical equation $x \equiv t$ to be eliminated by the reflexivity rule.
 Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 
@@ -640,8 +647,10 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 \end{rail}
 
 \begin{descr}
+  
 \item [$\FIX{\vec x}$] introduces local \emph{arbitrary, but fixed} variables
   $\vec x$.
+  
 \item [$\ASSUME{a}{\vec\phi}$ and $\PRESUME{a}{\vec\phi}$] introduce local
   theorems $\vec\phi$ by assumption.  Subsequent results applied to an
   enclosing goal (e.g.\ by $\SHOWNAME$) are handled as follows: $\ASSUMENAME$
@@ -651,12 +660,14 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   Several lists of assumptions may be given (separated by
   $\isarkeyword{and}$); the resulting list of current facts consists of all of
   these concatenated.
+  
 \item [$\DEF{a}{x \equiv t}$] introduces a local (non-polymorphic) definition.
   In results exported from the context, $x$ is replaced by $t$.  Basically,
-  $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\ASSUME{}{x \equiv t}$, with the
-  resulting hypothetical equation solved by reflexivity.
+  ``$\DEF{}{x \equiv t}$'' abbreviates ``$\FIX{x}~\ASSUME{}{x \equiv t}$'',
+  with the resulting hypothetical equation solved by reflexivity.
   
   The default name for the definitional equation is $x_def$.
+
 \end{descr}
 
 The special name $prems$\indexisarthm{prems} refers to all assumptions of the
@@ -679,10 +690,10 @@ New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
 arguments of proof methods, or when forward chaining towards the next goal via
 $\THEN$ (and variants); $\FROMNAME$ and $\WITHNAME$ are composite forms
-involving $\NOTE$.  The $\USINGNAME$ elements allows to augment the collection
-of used facts \emph{after} a goal has been stated.  Note that the special
-theorem name $this$\indexisarthm{this} refers to the most recently established
-facts, but only \emph{before} issuing a follow-up claim.
+involving $\NOTENAME$.  The $\USINGNAME$ elements augments the collection of
+used facts \emph{after} a goal has been stated.  Note that the special theorem
+name $this$\indexisarthm{this} refers to the most recently established facts,
+but only \emph{before} issuing a follow-up claim.
 
 \begin{rail}
   'note' (thmdef? thmrefs + 'and')
@@ -692,28 +703,35 @@ facts, but only \emph{before} issuing a follow-up claim.
 \end{rail}
 
 \begin{descr}
+
 \item [$\NOTE{a}{\vec b}$] recalls existing facts $\vec b$, binding the result
   as $a$.  Note that attributes may be involved as well, both on the left and
   right hand sides.
+
 \item [$\THEN$] indicates forward chaining by the current facts in order to
   establish the goal to be claimed next.  The initial proof method invoked to
-  refine that will be offered the facts to do ``anything appropriate'' (cf.\ 
+  refine that will be offered the facts to do ``anything appropriate'' (see
   also \S\ref{sec:proof-steps}).  For example, method $rule$ (see
   \S\ref{sec:pure-meth-att}) would typically do an elimination rather than an
   introduction.  Automatic methods usually insert the facts into the goal
   state before operation.  This provides a simple scheme to control relevance
   of facts in automated proof search.
-\item [$\FROM{\vec b}$] abbreviates $\NOTE{}{\vec b}~\THEN$; thus $\THEN$ is
-  equivalent to $\FROM{this}$.
-\item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~this}$; thus the forward
-  chaining is from earlier facts together with the current ones.
+  
+\item [$\FROM{\vec b}$] abbreviates ``$\NOTE{}{\vec b}~\THEN$''; thus $\THEN$
+  is equivalent to ``$\FROM{this}$''.
+  
+\item [$\WITH{\vec b}$] abbreviates ``$\FROM{\vec b~\AND~this}$''; thus the
+  forward chaining is from earlier facts together with the current ones.
+  
 \item [$\USING{\vec b}$] augments the facts being currently indicated for use
-  in a subsequent refinement step (such as $\APPLYNAME$ or $\PROOFNAME$).
+  by a subsequent refinement step (such as $\APPLYNAME$ or $\PROOFNAME$).
+
 \end{descr}
 
-Forward chaining with an empty list of theorems is the same as not chaining.
-Thus $\FROM{nothing}$ has no effect apart from entering $prove(chain)$ mode,
-since $nothing$\indexisarthm{nothing} is bound to the empty list of theorems.
+Forward chaining with an empty list of theorems is the same as not chaining at
+all.  Thus ``$\FROM{nothing}$'' has no effect apart from entering
+$prove(chain)$ mode, since $nothing$\indexisarthm{nothing} is bound to the
+empty list of theorems.
 
 Basic proof methods (such as $rule$) expect multiple facts to be given in
 their proper order, corresponding to a prefix of the premises of the rule
@@ -742,18 +760,18 @@ the order of facts is less significant here.
 \end{matharray}
 
 From a theory context, proof mode is entered by an initial goal command such
-as $\LEMMANAME$, $\THEOREMNAME$, $\COROLLARYNAME$.  Within a proof, new claims
-may be introduced locally as well; four variants are available here to
+as $\LEMMANAME$, $\THEOREMNAME$, or $\COROLLARYNAME$.  Within a proof, new
+claims may be introduced locally as well; four variants are available here to
 indicate whether forward chaining of facts should be performed initially (via
-$\THEN$), and whether the emerging result is meant to solve some pending goal.
+$\THEN$), and whether the final result is meant to solve some pending goal.
 
 Goals may consist of multiple statements, resulting in a list of facts
 eventually.  A pending multi-goal is internally represented as a meta-level
-conjunction (printed as \verb,&&,), which is automatically split into the
-corresponding number of sub-goals prior to any initial method application, via
+conjunction (printed as \verb,&&,), which is usually split into the
+corresponding number of sub-goals prior to an initial method application, via
 $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
-(\S\ref{sec:tactic-commands}).\footnote{The $induct$ method covered in
-  \S\ref{sec:cases-induct-meth} acts on multiple claims simultaneously.}
+(\S\ref{sec:tactic-commands}).  The $induct$ method covered in
+\S\ref{sec:cases-induct-meth} acts on multiple claims simultaneously.
 
 Claims at the theory level may be either in short or long form.  A short goal
 merely consists of several simultaneous propositions (often just one).  A long
@@ -775,13 +793,13 @@ statement is explicitly marked by separate keywords (see also
 \end{rail}
 
 \begin{descr}
+  
 \item [$\LEMMA{a}{\vec\phi}$] enters proof mode with $\vec\phi$ as main goal,
   eventually resulting in some fact $\turn \vec\phi$ to be put back into the
-  theory context, and optionally into the specified locale, cf.\ 
-  \S\ref{sec:locale}.  An additional \railnonterm{context} specification may
-  build an initial proof context for the subsequent claim; this may include
-  local definitions and syntax as well, see the definition of $contextelem$ in
-  \S\ref{sec:locale}.
+  theory context, or into the specified locale (cf.\ \S\ref{sec:locale}).  An
+  additional \railnonterm{context} specification may build up an initial proof
+  context for the subsequent claim; this includes local definitions and syntax
+  as well, see the definition of $contextelem$ in \S\ref{sec:locale}.
   
 \item [$\THEOREM{a}{\vec\phi}$ and $\COROLLARY{a}{\vec\phi}$] are essentially
   the same as $\LEMMA{a}{\vec\phi}$, but the facts are internally marked as
@@ -796,27 +814,29 @@ statement is explicitly marked by separate keywords (see also
 \item [$\SHOW{a}{\vec\phi}$] is like $\HAVE{a}{\vec\phi}$ plus a second stage
   to refine some pending sub-goal for each one of the finished result, after
   having been exported into the corresponding context (at the head of the
-  sub-proof that the $\SHOWNAME$ command belongs to).
+  sub-proof of this $\SHOWNAME$ command).
   
   To accommodate interactive debugging, resulting rules are printed before
   being applied internally.  Even more, interactive execution of $\SHOWNAME$
-  predicts potential failure after finishing its proof, and displays the
-  resulting error message as a warning beforehand, adding this header:
+  predicts potential failure and displays the resulting error as a warning
+  beforehand.  Watch out for the following message:
 
   \begin{ttbox}
   Problem! Local statement will fail to solve any pending goal
   \end{ttbox}
+  
+\item [$\HENCENAME$] abbreviates ``$\THEN~\HAVENAME$'', i.e.\ claims a local
+  goal to be proven by forward chaining the current facts.  Note that
+  $\HENCENAME$ is also equivalent to ``$\FROM{this}~\HAVENAME$''.
+  
+\item [$\THUSNAME$] abbreviates ``$\THEN~\SHOWNAME$''.  Note that $\THUSNAME$
+  is also equivalent to ``$\FROM{this}~\SHOWNAME$''.
 
-\item [$\HENCENAME$] abbreviates $\THEN~\HAVENAME$, i.e.\ claims a local goal
-  to be proven by forward chaining the current facts.  Note that $\HENCENAME$
-  is also equivalent to $\FROM{this}~\HAVENAME$.
-\item [$\THUSNAME$] abbreviates $\THEN~\SHOWNAME$.  Note that $\THUSNAME$ is
-  also equivalent to $\FROM{this}~\SHOWNAME$.
 \end{descr}
 
-Any goal statement causes some term abbreviations (such as $\Var{thesis}$,
-$\dots$) to be bound automatically, see also \S\ref{sec:term-abbrev}.
-Furthermore, the local context of a (non-atomic) goal is provided via the
+Any goal statement causes some term abbreviations (such as $\Var{thesis}$) to
+be bound automatically, see also \S\ref{sec:term-abbrev}.  Furthermore, the
+local context of a (non-atomic) goal is provided via the
 $rule_context$\indexisarcase{rule-context} case, see also
 \S\ref{sec:rule-cases}.
 
@@ -827,7 +847,7 @@ $rule_context$\indexisarcase{rule-context} case, see also
     schematic variables}, although this does not conform to the aim of
   human-readable proof documents!  The main problem with schematic goals is
   that the actual outcome is usually hard to predict, depending on the
-  behavior of the actual proof methods applied during the reasoning.  Note
+  behavior of the proof methods applied during the course of reasoning.  Note
   that most semi-automated methods heavily depend on several kinds of implicit
   rule declarations within the current theory context.  As this would also
   result in non-compositional checking of sub-proofs, \emph{local goals} are
@@ -863,7 +883,7 @@ Isar framework admits proof methods to be invoked in two places only.
   remaining goals.  No facts are passed to $m@2$.
 \end{enumerate}
 
-The only other proper way to affect pending goals in a proof body is by
+The only other (proper) way to affect pending goals in a proof body is by
 $\SHOWNAME$, which involves an explicit statement of what is to be solved
 eventually.  Thus we avoid the fundamental problem of unstructured tactic
 scripts that consist of numerous consecutive goal transformations, with
@@ -875,7 +895,7 @@ As a general rule of thumb for good proof style, initial proof methods should
 either solve the goal completely, or constitute some well-understood reduction
 to new sub-goals.  Arbitrary automatic proof tools that are prone leave a
 large number of badly structured sub-goals are no help in continuing the proof
-document in any intelligible way.
+document in an intelligible manner.
 
 Unless given explicitly by the user, the default initial method is ``$rule$'',
 which applies a single standard elimination or introduction rule according to
@@ -894,8 +914,10 @@ Any remaining goals are always solved by assumption in the very last step.
 \end{rail}
 
 \begin{descr}
+  
 \item [$\PROOF{m@1}$] refines the goal by proof method $m@1$; facts for
   forward chaining are passed if so indicated by $proof(chain)$ mode.
+  
 \item [$\QED{m@2}$] refines any remaining goals by proof method $m@2$ and
   concludes the sub-proof by assumption.  If the goal had been $\SHOWNAME$ (or
   $\THUSNAME$), some pending sub-goal is solved as well by the rule resulting
@@ -905,25 +927,29 @@ Any remaining goals are always solved by assumption in the very last step.
     ``strong'' assumptions as introduced by $\ASSUMENAME$.} of the enclosing
   context.  Debugging such a situation might involve temporarily changing
   $\SHOWNAME$ into $\HAVENAME$, or weakening the local context by replacing
-  some occurrences of $\ASSUMENAME$ by $\PRESUMENAME$.
+  occurrences of $\ASSUMENAME$ by $\PRESUMENAME$.
+  
 \item [$\BYY{m@1}{m@2}$] is a \emph{terminal proof}\index{proof!terminal}; it
-  abbreviates $\PROOF{m@1}~\QED{m@2}$, with backtracking across both methods,
-  though.  Debugging an unsuccessful $\BYY{m@1}{m@2}$ commands might be done
-  by expanding its definition; in many cases $\PROOF{m@1}$ is already
-  sufficient to see what is going wrong.
+  abbreviates $\PROOF{m@1}~\QED{m@2}$, but with backtracking across both
+  methods.  Debugging an unsuccessful $\BYY{m@1}{m@2}$ commands might be done
+  by expanding its definition; in many cases $\PROOF{m@1}$ (or even
+  $\APPLY{m@1}$) is already sufficient to see the problem.
+
 \item [``$\DDOT$''] is a \emph{default proof}\index{proof!default}; it
   abbreviates $\BY{rule}$.
+
 \item [``$\DOT$''] is a \emph{trivial proof}\index{proof!trivial}; it
   abbreviates $\BY{this}$.
+  
 \item [$\SORRY$] is a \emph{fake proof}\index{proof!fake} pretending to solve
   the pending claim without further ado.  This only works in interactive
-  development, or if the \texttt{quick_and_dirty} flag is enabled.  Certainly,
-  any facts emerging from fake proofs are not the real thing.  Internally,
-  each theorem container is tainted by an oracle invocation, which is
-  indicated as ``$[!]$'' in the printed result.
+  development, or if the \texttt{quick_and_dirty} flag is enabled.  Facts
+  emerging from fake proofs are not the real thing.  Internally, each theorem
+  container is tainted by an oracle invocation, which is indicated as
+  ``$[!]$'' in the printed result.
   
   The most important application of $\SORRY$ is to support experimentation and
-  top-down proof development in a simple manner.
+  top-down proof development.
 \end{descr}
 
 
@@ -975,22 +1001,23 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \item [``$-$''] does nothing but insert the forward chaining facts as premises
   into the goal.  Note that command $\PROOFNAME$ without any method actually
   performs a single reduction step using the $rule$ method; thus a plain
-  \emph{do-nothing} proof step would be $\PROOF{-}$ rather than $\PROOFNAME$
-  alone.
+  \emph{do-nothing} proof step would be ``$\PROOF{-}$'' rather than
+  $\PROOFNAME$ alone.
   
-\item [$assumption$] solves some goal by a single assumption step.  Any facts
-  given (${} \le 1$) are guaranteed to participate in the refinement.  Recall
-  that $\QEDNAME$ (see \S\ref{sec:proof-steps}) already concludes any
-  remaining sub-goals by assumption, so structured proofs usually need not
-  quote the $assumption$ method at all.
+\item [$assumption$] solves some goal by a single assumption step.  All given
+  facts are guaranteed to participate in the refinement; this means there may
+  be only $0$ or $1$ in the first place.  Recall that $\QEDNAME$ (see
+  \S\ref{sec:proof-steps}) already concludes any remaining sub-goals by
+  assumption, so structured proofs usually need not quote the $assumption$
+  method at all.
   
 \item [$this$] applies all of the current facts directly as rules.  Recall
-  that ``$\DOT$'' (dot) abbreviates $\BY{this}$.
+  that ``$\DOT$'' (dot) abbreviates ``$\BY{this}$''.
   
 \item [$rule~\vec a$] applies some rule given as argument in backward manner;
   facts are used to reduce the rule before applying it to the goal.  Thus
-  $rule$ without facts is plain \emph{introduction}, while with facts it
-  becomes \emph{elimination}.
+  $rule$ without facts is plain introduction, while with facts it becomes
+  elimination.
   
   When no arguments are given, the $rule$ method tries to pick appropriate
   rules automatically, as declared in the current context using the $intro$,
@@ -1001,18 +1028,18 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \item [$rules$] performs intuitionistic proof search, depending on
   specifically declared rules from the context, or given as explicit
   arguments.  Chained facts are inserted into the goal before commencing proof
-  search; $rules!$ means to include the current $prems$ as well.
+  search; ``$rules!$'' means to include the current $prems$ as well.
   
   Rules need to be classified as $intro$, $elim$, or $dest$; here the ``$!$''
   indicator refers to ``safe'' rules, which may be applied aggressively
   (without considering back-tracking later).  Rules declared with ``$?$'' are
   ignored in proof search (the single-step $rule$ method still observes
   these).  An explicit weight annotation may be given as well; otherwise the
-  number of rule premises will be taken into account.
-
+  number of rule premises will be taken into account here.
+  
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruct rules, to be used with the $rule$ and $rules$ methods.  Note that
-  the latter will ignore rules declare with ``$?$'', while ``$!$'' are used
+  the latter will ignore rules declared with ``$?$'', while ``$!$'' are used
   most aggressively.
   
   The classical reasoner (see \S\ref{sec:classical-basic}) introduces its own
@@ -1024,7 +1051,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \item [$OF~\vec a$] applies some theorem to given rules $\vec a$ (in
   parallel).  This corresponds to the \texttt{MRS} operator in ML
   \cite[\S5]{isabelle-ref}, but note the reversed order.  Positions may be
-  skipped by including ``$\_$'' (underscore) as argument.
+  effectively skipped by including ``$\_$'' (underscore) as argument.
   
 \item [$of~\vec t$] performs positional instantiation.  The terms $\vec t$ are
   substituted for any schematic variables occurring in a theorem from left to
@@ -1045,8 +1072,8 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 
 Abbreviations may be either bound by explicit $\LET{p \equiv t}$ statements,
 or by annotating assumptions or goal statements with a list of patterns
-$\ISS{p@1\;\dots}{p@n}$.  In both cases, higher-order matching is invoked to
-bind extra-logical term variables, which may be either named schematic
+``$\ISS{p@1\;\dots}{p@n}$''.  In both cases, higher-order matching is invoked
+to bind extra-logical term variables, which may be either named schematic
 variables of the form $\Var{x}$, or nameless dummies ``\texttt{_}''
 (underscore).\indexisarvar{_@\texttt{_}} Note that in the $\LETNAME$ form the
 patterns occur on the left-hand side, while the $\ISNAME$ patterns are in
@@ -1058,15 +1085,15 @@ ML.  Type variables referring to local assumptions or open goal statements are
 in \emph{arbitrary} instances later.  Even though actual polymorphism should
 be rarely used in practice, this mechanism is essential to achieve proper
 incremental type-inference, as the user proceeds to build up the Isar proof
-text.
+text from left to right.
 
 \medskip
 
-Term abbreviations are quite different from actual local definitions as
-introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
-visible within the logic as actual equations, while abbreviations disappear
-during the input process just after type checking.  Also note that $\DEFNAME$
-does not support polymorphism.
+Term abbreviations are quite different from local definitions as introduced
+via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are visible within
+the logic as actual equations, while abbreviations disappear during the input
+process just after type checking.  Also note that $\DEFNAME$ does not support
+polymorphism.
 
 \begin{rail}
   'let' ((term + 'and') '=' term + 'and')
@@ -1110,9 +1137,8 @@ mostly handled rather casually, with little explicit user-intervention.  Any
 local goal statement automatically opens \emph{two} blocks, which are closed
 again when concluding the sub-proof (by $\QEDNAME$ etc.).  Sections of
 different context within a sub-proof may be switched via $\NEXT$, which is
-just a single block-close followed by block-open again.  Thus the effect of
-$\NEXT$ to reset the local proof context. There is no goal focus involved
-here!
+just a single block-close followed by block-open again.  The effect of $\NEXT$
+is to reset the local proof context; there is no goal focus involved here!
 
 For slightly more advanced applications, there are explicit block parentheses
 as well.  These typically achieve a stronger forward style of reasoning.
@@ -1183,20 +1209,19 @@ used in scripts, too.
   No facts are passed to $m$.  Furthermore, the static context is that of the
   enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
   refer to any assumptions introduced in the current body, for example.
-
+  
 \item [$\isarkeyword{done}$] completes a proof script, provided that the
-  current goal state is already solved completely.  Note that actual
-  structured proof commands (e.g.\ ``$\DOT$'' or $\SORRY$) may be used to
-  conclude proof scripts as well.
+  current goal state is solved completely.  Note that actual structured proof
+  commands (e.g.\ ``$\DOT$'' or $\SORRY$) may be used to conclude proof
+  scripts as well.
 
 \item [$\isarkeyword{defer}~n$ and $\isarkeyword{prefer}~n$] shuffle the list
   of pending goals: $defer$ puts off goal $n$ to the end of the list ($n = 1$
   by default), while $prefer$ brings goal $n$ to the top.
-
+  
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
-  the latest proof command.\footnote{Unlike the ML function \texttt{back}
-    \cite{isabelle-ref}, the Isar command does not search upwards for further
-    branch points.} Basically, any proof command may return multiple results.
+  the latest proof command.  Basically, any proof command may return multiple
+  results.
   
 \item [$\isarkeyword{declare}~thms$] declares theorems to the current theory
   context (or the specified locale, see also \S\ref{sec:locale}).  No theorem
@@ -1223,8 +1248,8 @@ the partial proof text as properly processed.  This is conceptually quite
 different from ``faking'' actual proofs via $\SORRY$ (see
 \S\ref{sec:proof-steps}): $\OOPS$ does not observe the proof structure at all,
 but goes back right to the theory level.  Furthermore, $\OOPS$ does not
-produce any result theorem --- there is no claim to be able to complete the
-proof anyhow.
+produce any result theorem --- there is no intended claim to be able to
+complete the proof anyhow.
 
 A typical application of $\OOPS$ is to explain Isar proofs \emph{within} the
 system itself, in conjunction with the document preparation tools of Isabelle
@@ -1234,8 +1259,8 @@ macros can be easily adapted to print something like ``$\dots$'' instead of an
 ``$\OOPS$'' keyword.
 
 \medskip The $\OOPS$ command is undo-able, unlike $\isarkeyword{kill}$ (see
-\S\ref{sec:history}).  The effect is to get back to the theory \emph{before}
-the opening of the proof.
+\S\ref{sec:history}).  The effect is to get back to the theory just before the
+opening of the proof.
 
 
 \section{Other commands}
@@ -1340,30 +1365,42 @@ there are some further ones available, such as for the set of rules declared
 for simplifications.
 
 \begin{descr}
+  
 \item [$\isarkeyword{print_commands}$] prints Isabelle's outer theory syntax,
   including keywords and command.
+  
 \item [$\isarkeyword{print_syntax}$] prints the inner syntax of types and
   terms, depending on the current context.  The output can be very verbose,
   including grammar tables and syntax translation rules.  See \cite[\S7,
   \S8]{isabelle-ref} for further information on Isabelle's inner syntax.
+  
 \item [$\isarkeyword{print_methods}$] prints all proof methods available in
   the current theory context.
+  
 \item [$\isarkeyword{print_attributes}$] prints all attributes available in
   the current theory context.
+  
 \item [$\isarkeyword{print_theorems}$] prints theorems available in the
-  current theory context.  In interactive mode this actually refers to the
-  theorems left by the last transaction; this allows to inspect the result of
-  advanced definitional packages, such as $\isarkeyword{datatype}$.
+  current theory context.
+  
+  In interactive mode this actually refers to the theorems left by the last
+  transaction; this allows to inspect the result of advanced definitional
+  packages, such as $\isarkeyword{datatype}$.
+  
 \item [$\isarkeyword{thms_containing}~\vec t$] retrieves theorems from the
   theory context containing all of the constants occurring in the terms $\vec
   t$.  Note that giving the empty list yields \emph{all} theorems of the
   current theory.
+  
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
+  
 \item [$\isarkeyword{print_facts}$] prints any named facts of the current
   context, including assumptions and local results.
+  
 \item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
   the context.
+
 \end{descr}
 
 
@@ -1421,8 +1458,7 @@ undo-able.
 \end{descr}
 
 These system commands are scarcely used when working with the Proof~General
-interface, since loading of theories is done fully transparently.
-
+interface, since loading of theories is done transparently.
 
 %%% Local Variables: 
 %%% mode: latex

@@ -1,5 +1,5 @@
 
-\chapter{Syntax primitives}
+\chapter{Syntax Primitives}
 
 The rather generic framework of Isabelle/Isar syntax emerges from three main
 syntactic categories: \emph{commands} of the top-level Isar engine (covering
@@ -40,7 +40,7 @@ Isabelle/Isar input may contain any number of input termination characters
 particularly useful in interactive shell sessions to make clear where the
 current command is intended to end.  Otherwise, the interpreter loop will
 continue to issue a secondary prompt ``\verb,#,'' until an end-of-command is
-clearly indicated from the input syntax, e.g.\ encounter of the next command
+clearly recognized from the input syntax, e.g.\ encounter of the next command
 keyword.
 
 Advanced interfaces such as Proof~General \cite{proofgeneral} do not require
@@ -92,12 +92,11 @@ syntax as presented in \cite{isabelle-ref}.
   symbol & = & {\forall} ~|~ {\exists} ~|~ {\land} ~|~ {\lor} ~|~ \dots
 \end{matharray}
 
-The syntax of \railtoken{string} admits any characters, including newlines;
-``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) need to be escaped by
-a backslash.  Note that ML-style control characters are \emph{not} supported.
-The body of \railtoken{verbatim} may consist of any text not containing
-``\verb|*}|''; this allows handsome inclusion of quotes without further
-escapes.
+The syntax of $string$ admits any characters, including newlines; ``\verb|"|''
+(double-quote) and ``\verb|\|'' (backslash) need to be escaped by a backslash.
+Note that ML-style control characters are \emph{not} supported.  The body of
+$verbatim$ may consist of any text not containing ``\verb|*}|''; this allows
+convenient inclusion of quotes without further escapes.
 
 Comments take the form \texttt{(*~\dots~*)} and may in principle be nested,
 just as in ML.  Note that these are \emph{source} comments only, which are
@@ -109,7 +108,8 @@ provides \emph{formal comments} that are considered as part of the text (see
   Proof~General does not handle nested comments properly; it is also unable to
   keep \verb,(*,\,/\,\verb,{*, and \verb,*),\,/\,\verb,*}, apart, despite
   their rather different meaning.  These are inherent problems of Emacs
-  legacy.
+  legacy.  Users should not be overly aggressive about nesting or alternating
+  these delimiters.
 \end{warn}
 
 \medskip
@@ -209,8 +209,8 @@ too sophisticated in order to be modelled explicitly at the outer theory
 level.  Basically, any such entity has to be quoted to turn it into a single
 token (the parsing and type-checking is performed internally later).  For
 convenience, a slightly more liberal convention is adopted: quotes may be
-omitted for any type or term that is already \emph{atomic} at the outer level.
-For example, one may just write \texttt{x} instead of \texttt{"x"}.  Note that
+omitted for any type or term that is already atomic at the outer level.  For
+example, one may just write \texttt{x} instead of \texttt{"x"}.  Note that
 symbolic identifiers (e.g.\ \texttt{++} or $\forall$) are available as well,
 provided these have not been superseded by commands or other keywords already
 (e.g.\ \texttt{=} or \texttt{+}).
@@ -338,9 +338,9 @@ statements, while \railnonterm{thmdef} collects lists of existing theorems.
 Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs},
 the former requires an actual singleton result.  Any of these theorem
 specifications may include lists of attributes both on the left and right hand
-sides; attributes are applied to any immediately preceding theorem.  If names
-are omitted, the theorems are not stored within the theorem database of the
-theory or proof context; any given attributes are still applied, though.
+sides; attributes are applied to any immediately preceding fact.  If names are
+omitted, the theorems are not stored within the theorem database of the theory
+or proof context; any given attributes are still applied, though.
 
 \indexouternonterm{thmdecl}\indexouternonterm{axmdecl}
 \indexouternonterm{thmdef}\indexouternonterm{thmrefs}
@@ -365,9 +365,9 @@ theory or proof context; any given attributes are still applied, though.
 
 Wherever explicit propositions (or term fragments) occur in a proof text,
 casual binding of schematic term variables may be given specified via patterns
-of the form $\ISS{p@1\;\dots}{p@n}$.  There are separate versions available
-for \railqtoken{term}s and \railqtoken{prop}s.  The latter provides a
-$\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
+of the form ``$\ISS{p@1\;\dots}{p@n}$''.  There are separate versions
+available for \railqtoken{term}s and \railqtoken{prop}s.  The latter provides
+a $\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
 
 \indexouternonterm{termpat}\indexouternonterm{proppat}
 \begin{rail}
@@ -380,8 +380,8 @@ $\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
 Declarations of local variables $x :: \tau$ and logical propositions $a :
 \phi$ represent different views on the same principle of introducing a local
 scope.  In practice, one may usually omit the typing of $vars$ (due to
-type-inference), and the naming of propositions (due to implicit chaining of
-emerging facts).  In any case, Isar proof elements usually admit to introduce
+type-inference), and the naming of propositions (due to implicit references of
+current facts).  In any case, Isar proof elements usually admit to introduce
 multiple such items simultaneously.
 
 \indexouternonterm{vars}\indexouternonterm{props}
@@ -419,8 +419,8 @@ are to be presented in the final output produced by the Isabelle document
 preparation system (see also \S\ref{sec:document-prep}).
 
 Thus embedding of
-\texttt{{\at}{\ttlbrace}term~[show_types]~"f(x)~=~a~+~x"{\ttrbrace}} within a
-text block would cause
+``\texttt{{\at}{\ttlbrace}term~[show_types]~"f(x)~=~a~+~x"{\ttrbrace}}''
+within a text block would cause
 \isa{(f{\isasymColon}'a~{\isasymRightarrow}~'a)~(x{\isasymColon}'a)~=~(a{\isasymColon}'a)~+~x}
 to appear in the final {\LaTeX} document.  Also note that theorem
 antiquotations may involve attributes as well.  For example,
@@ -453,25 +453,32 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \texttt{(*~\dots~*)} or verbatim text \verb|{*|~\dots~\verb|*}|.
 
 \begin{descr}
+  
 \item [$\at\{thm~\vec a\}$] prints theorems $\vec a$. Note that attribute
   specifications may be included as well (see also \S\ref{sec:syn-att}); the
   $no_vars$ operation (see \S\ref{sec:misc-meth-att}) would be particularly
   useful to suppress printing of schematic variables.
+
 \item [$\at\{prop~\phi\}$] prints a well-typed proposition $\phi$.
+
 \item [$\at\{term~t\}$] prints a well-typed term $t$.
+
 \item [$\at\{typ~\tau\}$] prints a well-formed type $\tau$.
+  
 \item [$\at\{text~s\}$] prints uninterpreted source text $s$.  This is
   particularly useful to print portions of text according to the Isabelle
   {\LaTeX} output style, without demanding well-formedness (e.g.\ small pieces
-  of terms that cannot be parsed or type-checked yet).
-\item [$\at\{goals\}$] prints the current \emph{dynamic} goal state.  This is
-  only for support of tactic-emulation scripts within Isar --- presentation of
-  goal states does not conform to actual human-readable proof documents.
+  of terms that should not be parsed or type-checked yet).
   
+\item [$\at\{goals\}$] prints the current \emph{dynamic} goal state.  This is
+  mainly for support of tactic-emulation scripts within Isar --- presentation
+  of goal states does not conform to actual human-readable proof documents.
   Please do not include goal states into document output unless you really
   know what you are doing!
+
 \item [$\at\{subgoals\}$] behaves almost like $goals$, except that it does not
   print the main goal.
+
 \end{descr}
 
 \medskip
@@ -507,9 +514,10 @@ For boolean flags, ``$name = true$'' may be abbreviated as ``$name$''.  All of
 the above flags are disabled by default, unless changed from ML.
 
 \medskip Note that antiquotations do not only spare the author from tedious
-typing, but also achieve some degree of consistency-checking of informal
-explanations with formal developments, since well-formedness of terms and
-types with respect to the current theory or proof context can be ensured.
+typing of logical entities, but also achieve some degree of
+consistency-checking of informal explanations with formal developments:
+well-formedness of terms and types with respect to the current theory or proof
+context is ensured here.
 
 %%% Local Variables: 
 %%% mode: latex
