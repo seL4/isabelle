@@ -123,7 +123,7 @@ fun add_axioms (comp_dname, eqs : eq list) thy' = let
     in foldr' mk_conj (mapn one_comp 0 eqs)end ));
   val thy_axs = flat (mapn (calc_axioms comp_dname eqs) 0 eqs) @
 		(if length eqs>1 then [ax_copy_def] else []) @ [ax_bisim_def];
-in thy' |> add_axioms_i (infer_types thy' thy_axs) end;
+in thy' |> Theory.add_axioms_i (infer_types thy' thy_axs) end;
 
 
 fun add_induct ((tname,finite),(typs,cnstrs)) thy' = let
@@ -143,7 +143,7 @@ fun add_induct ((tname,finite),(typs,cnstrs)) thy' = let
   val concl = mk_trp(foldr' mk_conj (map one_conc typs));
   val induct = (tname^"_induct",lift_adm(lift_pred_UU(
 			foldr (op ===>) (map one_cnstr cnstrs,concl))));
-in thy' |> add_axioms_i (infer_types thy' [induct]) end;
+in thy' |> Theory.add_axioms_i (infer_types thy' [induct]) end;
 
 end; (* local *)
 end; (* struct *)

@@ -115,11 +115,11 @@ let
   val const_bisim  = (comp_dname^"_bisim" ,relprod --> HOLogic.boolT, NoSyn');
   val ctt           = map (calc_syntax funprod) eqs';
   val add_cur_ops_i = ThyOps.add_ops_i {curried=true, strict=false, total=false};
-in thy'' |> add_types      thy_types
-	 |> add_arities    thy_arities
+in thy'' |> Theory.add_types      thy_types
+	 |> Theory.add_arities    thy_arities
 	 |> add_cur_ops_i (flat(map fst ctt))
 	 |> add_cur_ops_i ((if length eqs'>1 then [const_copy] else[])@[const_bisim])
-	 |> add_trrules_i (flat(map snd ctt))
+	 |> Theory.add_trrules_i (flat(map snd ctt))
 end; (* let *)
 
 end; (* local *)

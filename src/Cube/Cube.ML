@@ -12,11 +12,11 @@ val simple = [s_b,strip_s,strip_b,app,lam_ss,pi_ss];
 
 val L2_thy =
   Cube.thy
-  |> add_axioms
+  |> Theory.add_axioms
    [("pi_bs",  "[| A:[]; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"),
     ("lam_bs", "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |] \
      \  ==> Abs(A,f) : Prod(A,B)")]
-  |> add_thyname "L2";
+  |> Theory.add_name "L2";
 
 val lam_bs = get_axiom L2_thy "lam_bs";
 val pi_bs = get_axiom L2_thy "pi_bs";
@@ -25,11 +25,11 @@ val L2 = simple @ [lam_bs,pi_bs];
 
 val Lomega_thy =
   Cube.thy
-  |> add_axioms
+  |> Theory.add_axioms
    [("pi_bb",  "[| A:[]; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
     ("lam_bb", "[| A:[]; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |] \
      \  ==> Abs(A,f) : Prod(A,B)")]
-  |> add_thyname "Lomega";
+  |> Theory.add_name "Lomega";
 
 val lam_bb = get_axiom Lomega_thy "lam_bb";
 val pi_bb = get_axiom Lomega_thy "pi_bb";
@@ -40,11 +40,11 @@ val LOmega = simple @ [lam_bs,pi_bs,lam_bb,pi_bb];
 
 val LP_thy =
   Cube.thy
-  |> add_axioms
+  |> Theory.add_axioms
    [("pi_sb",  "[| A:*; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"),
     ("lam_sb", "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):[] |] \
      \  ==> Abs(A,f) : Prod(A,B)")]
-  |> add_thyname "LP";
+  |> Theory.add_name "LP";
 
 val lam_sb = get_axiom LP_thy "lam_sb";
 val pi_sb = get_axiom LP_thy "pi_sb";

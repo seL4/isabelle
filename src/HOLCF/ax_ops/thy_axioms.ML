@@ -148,7 +148,7 @@ in
   let val {sign, ...} = rep_theory theory;
       val constraints = get_constraints_of_str sign (defvarlist@varlist)
   in
-    add_axioms_i (map (apsnd 
+    Theory.add_axioms_i (map (apsnd 
      (check_and_extend sign (map fst defvarlist) (map fst varlist)) o
                (read_ext_axm sign constraints)) axioms) theory
   end 
@@ -157,7 +157,7 @@ in
   let val {sign, ...} = rep_theory theory;
       val constraints = get_constraints_of_typ sign (defvarlist@varlist)
   in
-    add_axioms_i (map (apsnd (check_and_extend sign 
+    Theory.add_axioms_i (map (apsnd (check_and_extend sign 
                                (map fst defvarlist) (map fst varlist)) o
                    (read_ext_axm_terms sign constraints)) axiom_terms) theory
   end
