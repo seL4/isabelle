@@ -20,6 +20,7 @@ sig
                   -> string list -> (string*string)list
                   -> (indexname*ctyp)list * (cterm*cterm)list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
+  val strip_shyps_warning : thm -> thm
   val forall_intr_list	: cterm list -> thm -> thm
   val forall_intr_frees	: thm -> thm
   val forall_intr_vars	: thm -> thm
@@ -197,7 +198,20 @@ fun types_sorts thm =
         fun sort(a,i) = if i<0 then assoc(tfrees,a) else assoc(tvars,(a,i));
     in (typ,sort) end;
 
+
 (** Standardization of rules **)
+
+(*Strip extraneous shyps as far as possible*)
+fun strip_shyps_warning thm =
+  let
+    val str_of_sort = Sign.str_of_sort (Thm.sign_of_thm thm);
+    val thm' = Thm.strip_shyps thm;
+    val xshyps = Thm.extra_shyps thm';
+  in
+    if null xshyps then ()
+    else warning ("Pending sort hypotheses: " ^ commas (map str_of_sort xshyps));
+    thm'
+  end;
 
 (*Generalization over a list of variables, IGNORING bad ones*)
 fun forall_intr_list [] th = th
@@ -264,7 +278,7 @@ fun standard th =
   in
     th |> implies_intr_hyps
        |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-       |> Thm.strip_shyps |> Thm.implies_intr_shyps
+       |> strip_shyps_warning
        |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
