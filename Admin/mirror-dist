@@ -6,12 +6,14 @@
 HOST=$(hostname)
 
 case  ${HOST} in
+  sunbroy79)
+    #test
+    DEST=/tmp/isabelle-dist
+    mkdir -p $DEST
+    ;;
   *.cl.cam.ac.uk)
     USER=paulson
     DEST=/anfs/www/html/Research/HVG/Isabelle/dist
-    ;;
-  sunbroy79)
-    DEST=/tmp/isabelle-dist
     ;;
   *)
     echo "Unknown destination directory for ${HOST}"
