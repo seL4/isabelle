@@ -31,11 +31,11 @@ sig
   val assumption: tag
   val tag_lemma: 'a attribute
   val tag_assumption: 'a attribute
-  val setup: theory -> theory
+  val setup: (theory -> theory) list
   val global_attr: theory -> (xstring * string list) -> theory attribute
   val local_attr: theory -> (xstring * string list) -> local_theory attribute
-  val add_attrs: (bstring * ((string list -> theory attribute) *
-      (string list -> local_theory attribute))) list -> theory -> theory
+  val add_attributes: (bstring * (string list -> theory attribute) *
+      (string list -> local_theory attribute) * string) list -> theory -> theory
 end;
 
 structure Attribute: ATTRIBUTE =
@@ -105,20 +105,16 @@ fun tag_assumption x = tag assumption x;
 
 (* data kind 'attributes' *)
 
-val attributesK = "Pure/attributes";
-
-exception Attributes of
-  {space: NameSpace.T,
-   attrs:
-    ((string list -> theory attribute) *
-     (string list -> local_theory attribute)) Symtab.table};
-
-fun print_attributes thy = Display.print_data thy attributesK;
-
-
-(* setup *)
-
 local
+  val attributesK = Object.kind "Pure/attributes";
+
+  exception Attributes of
+    {space: NameSpace.T,
+     attrs:
+       ((((string list -> theory attribute) * (string list -> local_theory attribute))
+         * string) * stamp) Symtab.table};
+
+
   val empty = Attributes {space = NameSpace.empty, attrs = Symtab.empty};
 
   fun prep_ext (x as Attributes _) = x;
@@ -127,24 +123,21 @@ local
       Attributes {space = space2, attrs = attrs2}) =
     Attributes {
       space = NameSpace.merge (space1, space2),
-      attrs = Symtab.merge (K true) (attrs1, attrs2)};
+      attrs = Symtab.merge eq_snd (attrs1, attrs2) handle Symtab.DUPS dups =>
+        error ("Attempt to merge different versions of attributes " ^ commas_quote dups)};
+
+  fun pretty_attr (name, ((_, comment), _)) = Pretty.block
+    [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
 
   fun print _ (Attributes {space, attrs}) =
    (Pretty.writeln (Display.pretty_name_space ("attribute name space", space));
-    Pretty.writeln (Pretty.strs ("attributes:" :: map fst (Symtab.dest attrs))));
+    Pretty.writeln (Pretty.big_list "attributes:" (map pretty_attr (Symtab.dest attrs))));
 in
-  val setup = Theory.init_data [(attributesK, (empty, prep_ext, merge, print))];
+  val init_attributes = Theory.init_data attributesK (empty, prep_ext, merge, print);
+  val print_attributes = Theory.print_data attributesK;
+  val get_attributes = Theory.get_data attributesK (fn Attributes x => x);
+  val put_attributes = Theory.put_data attributesK Attributes;
 end;
-
-
-(* get data record *)
-
-fun get_attributes_sg sg =
-  (case Sign.get_data sg attributesK of
-    Attributes x => x
-  | _ => type_error attributesK);
-
-val get_attributes = get_attributes_sg o Theory.sign_of;
 
 
 (* get global / local attributes *)
@@ -157,28 +150,34 @@ fun gen_attr which thy =
     fun attr (raw_name, args) x_th =
       (case Symtab.lookup (attrs, intern raw_name) of
         None => raise FAIL (intern raw_name, "unknown attribute")
-      | Some p => which p args x_th);
+      | Some ((p, _), _) => which p args x_th);
   in attr end;
 
 val global_attr = gen_attr fst;
 val local_attr = gen_attr snd;
 
 
-(* add_attrs *)
+(* add_attributes *)
 
-fun add_attrs raw_attrs thy =
+fun add_attributes raw_attrs thy =
   let
     val full = Sign.full_name (Theory.sign_of thy);
-    val new_attrs = map (apfst full) raw_attrs;
+    val new_attrs =
+      map (fn (name, f, g, comment) => (full name, (((f, g), comment), stamp ()))) raw_attrs;
 
     val {space, attrs} = get_attributes thy;
     val space' = NameSpace.extend (space, map fst new_attrs);
-    val attrs' = Symtab.extend (attrs, new_attrs)
-      handle Symtab.DUPS dups =>
-        error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
+    val attrs' = Symtab.extend (attrs, new_attrs) handle Symtab.DUPS dups =>
+      error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in
-    Theory.put_data (attributesK, Attributes {space = space', attrs = attrs'}) thy
+    thy |> put_attributes {space = space', attrs = attrs'}
   end;
+
+
+(* setup *)	(* FIXME add_attributes: lemma etc. *)
+
+val setup =
+ [init_attributes];
 
 
 end;
