@@ -721,15 +721,30 @@ fun accesses_bal (f, g, x) n =
 
 datatype order = LESS | EQUAL | GREATER;
 
-fun intord (i, j: int) =
+fun int_ord (i, j: int) =
   if i < j then LESS
   else if i = j then EQUAL
   else GREATER;
 
-fun stringord (a, b: string) =
+fun string_ord (a, b: string) =
   if a < b then LESS
   else if a = b then EQUAL
   else GREATER;
+
+(*lexicographic product*)
+fun prod_ord a_ord b_ord ((x, y), (x', y')) =
+  (case a_ord (x, x') of EQUAL => b_ord (y, y') | ord => ord);
+
+(*dictionary order -- in general NOT well-founded!*)
+fun dict_ord _ ([], []) = EQUAL
+  | dict_ord _ ([], _ :: _) = LESS
+  | dict_ord _ (_ :: _, []) = GREATER
+  | dict_ord elem_ord (x :: xs, y :: ys) =
+      (case elem_ord (x, y) of EQUAL => dict_ord elem_ord (xs, ys) | ord => ord);
+
+(*lexicographic product of lists*)
+fun list_ord elem_ord (xs, ys) =
+  prod_ord int_ord (dict_ord elem_ord) ((length xs, xs), (length ys, ys));
 
 
 
