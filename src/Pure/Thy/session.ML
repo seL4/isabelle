@@ -9,7 +9,8 @@ signature SESSION =
 sig
   val path: unit -> string list
   val welcome: unit -> string
-  val use_dir: bool -> bool -> string -> unit
+  val use_dir: bool -> bool -> string -> string -> unit
+  val finish: unit -> unit
 end;
 
 structure Session: SESSION =
@@ -17,9 +18,11 @@ struct
 
 (* session state *)
 
-val session = ref ([]: string list);
+val pure = "Pure";
+
+val session = ref ([pure]: string list);
 val session_path = ref ([]: string list);
-val session_finished = ref true;
+val session_finished = ref false;
 
 fun path () = ! session_path;
 
@@ -29,33 +32,31 @@ fun add_path reset s =
 
 (* diagnostics *)
 
-fun str_of [] = "Pure"
-  | str_of ids = space_implode "/" ids;
+fun str_of [id] = id
+  | str_of ids = space_implode "/" (tl ids);
 
 fun welcome () = "Welcome to Isabelle/" ^ str_of (! session) ^ " (" ^ version ^ ")";
 
 
 (* init *)
 
-fun init reset name =
-  if not (! session_finished) then
-    error ("Unfinished session " ^ quote (str_of (! session)) ^ " for logic " ^ quote name)
+fun init reset parent name =
+  if not (parent mem_string (! session)) orelse not (! session_finished) then
+    error ("Unfinished parent session " ^ quote (str_of (! session)) ^ " for " ^ quote name)
   else (add_path reset name; session_finished := false);
 
 
 (* finish *)
 
-fun finish () = (ThyInfo.finish_all (); session_finished := true);
+fun finish () = (ThyInfo.finalize_all (); session_finished := true);
 
 
 (* use_dir *)
 
 val root_file = ThyLoad.ml_path "ROOT";
 
-fun use_dir reset info name =
-  (init reset name;
-    Symbol.use root_file handle _ => exit 1;
-    finish ());
+fun use_dir reset info parent name =
+  (init reset parent name; Symbol.use root_file; finish ()) handle _ => exit 1;
 
 
 end;
