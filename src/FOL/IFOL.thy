@@ -112,3 +112,6 @@ rules
   iff_reflection  "(P<->Q) ==> (P==Q)"
 
 end
+
+
+ML val thy_data = [Simplifier.simpset_thy_data];
