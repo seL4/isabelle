@@ -319,6 +319,8 @@ goal thy "Compl(INT x:A. B(x)) = (UN x:A. Compl(B(x)))";
 by (Blast_tac 1);
 qed "Compl_INT";
 
+Addsimps [Compl_Un, Compl_Int, Compl_UN, Compl_INT];
+
 (*Halmos, Naive Set Theory, page 16.*)
 
 goal thy "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
