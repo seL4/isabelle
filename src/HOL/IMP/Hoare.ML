@@ -9,7 +9,8 @@ wrt denotational semantics
 
 Goal "[| !s. P' s --> P s; |- {P}c{Q} |] ==> |- {P'}c{Q}";
 by (etac hoare.conseq 1);
-by  (ALLGOALS Fast_tac);
+by  (atac 1);
+by (Fast_tac 1);
 qed "hoare_conseq1";
 
 Goal "[| |- {P}c{Q}; !s. Q s --> Q' s |] ==> |- {P}c{Q'}";
