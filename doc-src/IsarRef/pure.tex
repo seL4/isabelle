@@ -498,7 +498,7 @@ exporting some result $\phi[x]$ simply yields $\phi[t]$.
   resulting hypothetical equation solved by reflexivity.
 \end{descr}
 
-The special theorem name $prems$\indexisarreg{prems} refers to all current
+The special theorem name $prems$\indexisarthm{prems} refers to all current
 assumptions.
 
 
@@ -516,7 +516,7 @@ New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
 arguments of proof methods or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
-$facts$.\indexisarreg{facts} refers to the most recently established facts.
+$facts$.\indexisarthm{facts} refers to the most recently established facts.
 \begin{rail}
   'note' thmdef? thmrefs comment?
   ;
@@ -540,6 +540,13 @@ $facts$.\indexisarreg{facts} refers to the most recently established facts.
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
   chaining is from earlier facts together with the current ones.
 \end{descr}
+
+Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth}) expect
+multiple facts to be given in proper order, corresponding to a prefix of the
+premises of the rule involved.  Note that positions may be easily skipped
+using a form like $\FROM{_~a~b}$, for example.  This involves the rule
+$PROP~\psi \Imp PROP~\psi$, which is bound in Isabelle/Pure as ``_''
+(underscore).\indexisarthm{_@\texttt{_}}
 
 
 \subsection{Goal statements}
@@ -702,8 +709,9 @@ come in handy for exploring and debugging.
 \item [$\isarkeyword{then_apply}~(m)$] is similar to $\isarkeyword{apply}$,
   but observes the goal's facts.
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
-  the last proof command.  Basically, any proof command may return multiple
-  results.
+  the latest proof command.\footnote{Unlike the ML function \texttt{back}
+    \cite{isabelle-ref}, the Isar command does not search upwards for further
+    branch points.} Basically, any proof command may return multiple results.
 \end{descr}
 
 
