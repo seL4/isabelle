@@ -146,9 +146,7 @@ by (cut_inst_tac [("m","ma"),("n","n")] less_linear 1);
 by (fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
 qed "new_tv_subst";
 
-Goal 
-  "new_tv n  = list_all (new_tv n)";
-by (rtac ext 1);
+Goal "new_tv n x = list_all (new_tv n) x";
 by (induct_tac "x" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "new_tv_list";
@@ -207,27 +205,23 @@ Goal
 by (asm_full_simp_tac (simpset() addsimps [new_tv_subst]) 1);
 qed "new_tv_subst_var";
 
-Goal
-  "new_tv n s --> new_tv n (t::typ) --> new_tv n ($ s t)";
+Goal "new_tv n s --> new_tv n (t::typ) --> new_tv n ($ s t)";
 by (induct_tac "t" 1);
 by (ALLGOALS(fast_tac (HOL_cs addss (simpset() addsimps [new_tv_subst]))));
 qed_spec_mp "new_tv_subst_te";
 Addsimps [new_tv_subst_te];
 
-Goal
-  "new_tv n s --> new_tv n (ts::typ list) --> new_tv n ($ s ts)";
+Goal "new_tv n s --> new_tv n (ts::typ list) --> new_tv n ($ s ts)";
 by (simp_tac (simpset() addsimps [new_tv_list]) 1);
 by (induct_tac "ts" 1);
-by (ALLGOALS(fast_tac (HOL_cs addss (simpset() addsimps [new_tv_subst]))));
+by (Safe_tac);
+by    (ALLGOALS(fast_tac (HOL_cs addss (simpset() addsimps [new_tv_subst]))));
 qed_spec_mp "new_tv_subst_tel";
 Addsimps [new_tv_subst_tel];
 
 (* auxilliary lemma *)
-Goal
-  "new_tv n ts --> new_tv (Suc n) ((TVar n)#ts)";
+Goal "new_tv n ts --> new_tv (Suc n) ((TVar n)#ts)";
 by (simp_tac (simpset() addsimps [new_tv_list]) 1);
-by (induct_tac "ts" 1);
-by (ALLGOALS Asm_full_simp_tac);
 qed "new_tv_Suc_list";
 
 

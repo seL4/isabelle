@@ -348,8 +348,6 @@ Addsimps [free_tv_of_substitutions_extend_to_scheme_lists];
 Goal "!!sch::type_scheme. (n : free_tv sch) = (n mem free_tv_ML sch)";
 by (induct_tac "sch" 1);
 by (ALLGOALS Asm_simp_tac);
-by (strip_tac 1);
-by (Fast_tac 1);
 qed "free_tv_ML_scheme";
 
 Goal "!!A::type_scheme list. (n : free_tv A) = (n mem free_tv_ML A)";
@@ -407,9 +405,7 @@ by (cut_inst_tac [("m","ma"),("n","n")] less_linear 1);
 by (fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
 qed "new_tv_subst";
 
-Goal 
-  "new_tv n  = list_all (new_tv n)";
-by (rtac ext 1);
+Goal "new_tv n x = list_all (new_tv n) x";
 by (induct_tac "x" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "new_tv_list";
@@ -495,8 +491,6 @@ Addsimps [new_tv_subst_scheme_list];
 Goal
   "new_tv n A --> new_tv (Suc n) ((TVar n)#A)";
 by (simp_tac (simpset() addsimps [new_tv_list]) 1);
-by (induct_tac "A" 1);
-by (ALLGOALS Asm_full_simp_tac);
 qed "new_tv_Suc_list";
 
 Goalw [new_tv_def] "!!sch::type_scheme. (free_tv sch) = (free_tv sch') --> (new_tv n sch --> new_tv n sch')";
