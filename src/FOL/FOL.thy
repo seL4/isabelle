@@ -79,6 +79,7 @@ lemmas trans_rules [trans] =
   rev_mp
   mp
   trans
+  transitive
 
 lemmas [elim?] = sym
 

@@ -186,6 +186,7 @@ lemmas trans_rules [trans] =
   ord_less_eq_trans
   ord_eq_less_trans
   trans
+  transitive
 
 lemmas [elim?] = sym
 
