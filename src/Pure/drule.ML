@@ -305,7 +305,7 @@ fun rotate_prems k rl =
   Example is [| ALL x:?A. ?P(x) |] ==> [| ?P(?a) |]
              [ !(A,P,a)[| ALL x:A. P(x) |] ==> [| P(a) |] ]    *)
 fun assume_ax thy sP =
-    let val sign = sign_of thy
+    let val sign = Theory.sign_of thy
         val prop = Logic.close_form (term_of (read_cterm sign (sP, propT)))
     in forall_elim_vars 0 (assume (cterm_of sign prop))  end;
 
@@ -420,7 +420,7 @@ fun weak_eq_thm (tha,thb) =
 
 (*** Meta-Rewriting Rules ***)
 
-val proto_sign = sign_of ProtoPure.thy;
+val proto_sign = Theory.sign_of ProtoPure.thy;
 
 fun read_prop s = read_cterm proto_sign (s, propT);
 

@@ -128,7 +128,7 @@ fun prep_thm_axm thy thm =
 
     val {sign, hyps, prop, ...} = rep_thm thm;
   in
-    if not (Sign.subsig (sign, sign_of thy)) then
+    if not (Sign.subsig (sign, Theory.sign_of thy)) then
       err "theorem not of same theory"
     else if not (null (extra_shyps thm)) orelse not (null hyps) then
       err "theorem may not contain hypotheses"
@@ -287,8 +287,8 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
 
 (* external interfaces *)
 
-val add_axclass = ext_axclass Sign.intern_class read_axm Attrib.global_attribute;
-val add_axclass_i = ext_axclass (K I) cert_axm (K I);
+val add_axclass = ext_axclass Sign.intern_class Theory.read_axm Attrib.global_attribute;
+val add_axclass_i = ext_axclass (K I) Theory.cert_axm (K I);
 
 
 
@@ -335,14 +335,14 @@ fun axclass_tac thms =
 
 fun prove mk_prop str_of thy sig_prop thms usr_tac =
   let
-    val sign = sign_of thy;
+    val sign = Theory.sign_of thy;
     val goal = Thm.cterm_of sign (mk_prop sig_prop);
     val tac = axclass_tac thms THEN (if_none usr_tac all_tac);
   in
     prove_goalw_cterm [] goal (K [tac])
   end
   handle ERROR => error ("The error(s) above occurred while trying to prove "
-    ^ quote (str_of (sign_of thy, sig_prop)));
+    ^ quote (str_of (Theory.sign_of thy, sig_prop)));
 
 val prove_subclass =
   prove mk_classrel (fn (sg, c1_c2) => Sign.str_of_classrel sg c1_c2);
@@ -364,7 +364,7 @@ fun intrn_arity intrn sg (t, Ss, x) =
 fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
   let val c1_c2 = prep_classrel (Theory.sign_of thy) raw_c1_c2 in
     message ("Proving class inclusion " ^
-      quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
+      quote (Sign.str_of_classrel (Theory.sign_of thy) c1_c2) ^ " ...");
     thy |> add_classrel_thms [prove_subclass thy c1_c2 (witnesses thy names thms) usr_tac]
   end;
 

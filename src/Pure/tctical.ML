@@ -357,7 +357,7 @@ fun (tac1 THEN_ALL_NEW tac2) i st =
 (*SELECT_GOAL optimization: replace the conclusion by a variable X,
   to avoid copying.  Proof states have X==concl as an assuption.*)
 
-val prop_equals = cterm_of (sign_of ProtoPure.thy) 
+val prop_equals = cterm_of (Theory.sign_of ProtoPure.thy) 
                     (Const("==", propT-->propT-->propT));
 
 fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
@@ -367,7 +367,7 @@ fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
   Vars then it returns ct==>ct.*)
 
 fun eq_trivial ct =
-  let val xfree = cterm_of (sign_of ProtoPure.thy)
+  let val xfree = cterm_of (Theory.sign_of ProtoPure.thy)
                            (Free (gensym"EQ_TRIVIAL_", propT))
       val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
@@ -391,7 +391,7 @@ fun select tac st i =
 	  let val np' = nprems_of st'
               (*rename the ?A in rev_triv_goal*)
 	      val {maxidx,...} = rep_thm st'
-              val ct = cterm_of (sign_of ProtoPure.thy)
+              val ct = cterm_of (Theory.sign_of ProtoPure.thy)
 		                (Var(("A",maxidx+1), propT))
 	      val rev_triv_goal' = instantiate' [] [Some ct] Drule.rev_triv_goal
               fun bic th = bicompose false (false, th, np')

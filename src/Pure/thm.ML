@@ -460,7 +460,7 @@ fun transfer_sg sign' thm =
     else raise THM ("transfer: not a super theory", 0, [thm])
   end;
 
-val transfer = transfer_sg o sign_of;
+val transfer = transfer_sg o Theory.sign_of;
 
 (*maps object-rule to tpairs*)
 fun tpairs_of (Thm {prop, ...}) = #1 (Logic.strip_flexpairs prop);
@@ -627,7 +627,7 @@ fun get_def thy = get_axiom thy o def_name;
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
   map (fn (s, _) => (s, get_axiom thy s))
-    (Symtab.dest (#axioms (rep_theory thy)));
+    (Symtab.dest (#axioms (Theory.rep_theory thy)));
 
 
 (* name and tags -- make proof objects more readable *)
@@ -2296,7 +2296,7 @@ fun rewrite_cterm mode mss prover ct =
 
 fun invoke_oracle thy raw_name =
   let
-    val {sign = sg, oracles, ...} = rep_theory thy;
+    val {sign = sg, oracles, ...} = Theory.rep_theory thy;
     val name = Sign.intern sg Theory.oracleK raw_name;
     val oracle =
       (case Symtab.lookup (oracles, name) of

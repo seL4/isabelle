@@ -121,10 +121,10 @@ val print_cterm = writeln o string_of_cterm;
 
 (** print theory **)
 
-val pretty_theory = Sign.pretty_sg o sign_of;
-val pprint_theory = Sign.pprint_sg o sign_of;
+val pretty_theory = Sign.pretty_sg o Theory.sign_of;
+val pprint_theory = Sign.pprint_sg o Theory.sign_of;
 
-val print_syntax = Syntax.print_syntax o syn_of;
+val print_syntax = Syntax.print_syntax o Theory.syn_of;
 
 
 (* pretty_name_space  *)
@@ -201,7 +201,7 @@ fun print_sign sg =
 
 fun print_thy thy =
   let
-    val {sign, axioms, oracles, ...} = rep_theory thy;
+    val {sign, axioms, oracles, ...} = Theory.rep_theory thy;
     val axioms = Symtab.dest axioms;
     val oras = map fst (Symtab.dest oracles);
 
@@ -213,7 +213,7 @@ fun print_thy thy =
     Pretty.writeln (Pretty.strs ("oracles:" :: oras))
   end;
 
-fun print_theory thy = (print_sign (sign_of thy); print_thy thy);
+fun print_theory thy = (print_sign (Theory.sign_of thy); print_thy thy);
 
 (*also show consts in case of showing types?*)
 val show_consts = ref false;

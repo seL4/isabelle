@@ -104,7 +104,7 @@ val curr_mkresult =
     ref((fn _=> error"No goal has been supplied in subgoal module") 
        : bool*thm->thm);
 
-val dummy = trivial(read_cterm (sign_of ProtoPure.thy)
+val dummy = trivial(read_cterm (Theory.sign_of ProtoPure.thy)
     ("PROP No_goal_has_been_supplied",propT));
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate. 
@@ -150,14 +150,14 @@ fun varify th =
     export_thy just goes one up. **)
 
 fun get_top_scope_thms thy = 
-   let val sc = (Locale.get_scope_sg (sign_of thy))
+   let val sc = (Locale.get_scope_sg (Theory.sign_of thy))
    in if (null sc) then (warning "No locale in theory"; [])
       else map (#prop o rep_thm) (map #2 (#thms(snd(hd sc))))
    end;
 
 fun implies_intr_some_hyps thy A_set th = 
    let 
-       val sign = sign_of thy;
+       val sign = Theory.sign_of thy;
        val used_As = A_set inter #hyps(rep_thm(th));
        val ctl = map (cterm_of sign) used_As
    in foldl (fn (x, y) => Thm.implies_intr y x) (th, ctl)
@@ -288,7 +288,7 @@ and prove_goalw_cterm_nocheck rths chorn =
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
-  let val sign = sign_of thy
+  let val sign = Theory.sign_of thy
       val chorn = read_cterm sign (agoal,propT)
   in  prove_goalw_cterm_general true rths chorn tacsf end
   handle ERROR => error (*from read_cterm?*)
@@ -390,7 +390,7 @@ fun prlim n = (goals_limit:=n; pr());
     Initial subgoal and premises are rewritten using rths. **)
 
 (*Version taking the goal as a cterm; if you have a term t and theory thy, use
-    goalw_cterm rths (cterm_of (sign_of thy) t);      *)
+    goalw_cterm rths (cterm_of (Theory.sign_of thy) t);      *)
 fun agoalw_cterm atomic rths chorn = 
   let val (prems, st0, mkresult) = prepare_proof atomic rths chorn
   in  undo_list := [];
@@ -404,7 +404,7 @@ val goalw_cterm = agoalw_cterm false;
 
 (*Version taking the goal as a string*)
 fun agoalw atomic thy rths agoal = 
-    agoalw_cterm atomic rths (Locale.read_cterm(sign_of thy)(agoal,propT))
+    agoalw_cterm atomic rths (Locale.read_cterm(Theory.sign_of thy)(agoal,propT))
     handle ERROR => error (*from type_assign, etc via prepare_proof*)
 	("The error(s) above occurred for " ^ quote agoal);
 

@@ -15,7 +15,7 @@ fun mk_frees a [] = []
 
 
 (*Read an assumption in the given theory*)
-fun assume_read thy a = Thm.assume (read_cterm (sign_of thy) (a,propT));
+fun assume_read thy a = Thm.assume (read_cterm (Theory.sign_of thy) (a,propT));
 
 (*Read a term from string "b", with expected type T*)
 fun readtm sign T b = 
