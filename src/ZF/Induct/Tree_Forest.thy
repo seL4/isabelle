@@ -28,7 +28,7 @@ lemma forest_def: "forest(A) \<equiv> Part(tree_forest(A), Inr)"
 
 
 text {*
-  \medskip @{term "tree_forest(A)" as the union of @{term "tree(A)"}
+  \medskip @{term "tree_forest(A)"} as the union of @{term "tree(A)"}
   and @{term "forest(A)"}.
 *}
 

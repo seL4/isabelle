@@ -9,7 +9,7 @@ Inductive definitions.
 time_use_thy "Datatypes";
 time_use_thy "Binary_Trees";
 time_use_thy "Term";            (*recursion over the list functor*)
-time_use_thy "Tree_Forest"      (*mutual recursion*)
+time_use_thy "Tree_Forest";     (*mutual recursion*)
 time_use_thy "Mutil";           (*mutilated chess board*)
 
 (*by Sidi Ehmety: Multisets.  A parent is FoldSet, the "fold" function for
