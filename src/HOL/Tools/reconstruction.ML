@@ -97,43 +97,20 @@ fun factor x = syntax ((Scan.lift (Args.nat -- Args.nat)) >> factor_syntax) x;
 
 (** Paramodulation **)
 
+(*subst with premises exchanged: that way, side literals of the equality will appear
+  as the second to last premises of the result.*)
+val rev_subst = rotate_prems 1 subst;
+
 (*Get rid of a Not if it is present*)
 fun maybe_dest_not (Const ("Not", _) $ t) = t
   | maybe_dest_not t = t;
 
 fun paramod_rule ((cl1, lit1), (cl2 , lit2)) =
-    let val prems1 = prems_of cl1
-	val prems2 = prems_of cl2
-        val sign = Sign.merge (sign_of_thm cl1, sign_of_thm cl2)
-	(* want to get first element of equality *)
-
-	val fac1 = List.nth (prems1,lit1) 
-	val (lhs, rhs) = HOLogic.dest_eq(maybe_dest_not
-					     (HOLogic.dest_Trueprop fac1))
-	(* get other literal involved in the paramodulation *)
-	val fac2 = List.nth (prems2,lit2) 
-
-       (* get bit of th2 to unify with lhs of cl1 *)
-	val unif_lit = get_unif_lit (HOLogic.dest_Trueprop fac2) lhs
-	val unif_env = Unify.unifiers (sign, Envir.empty 0, [(unif_lit, lhs)])
-	val newenv = getnewenv unif_env
-	val envlist = Envir.alist_of newenv
-       (* instantiate cl2 with unifiers *)
-
-	val newth1 = inst_subst sign (mksubstlist envlist []) cl1
-       (*rewrite cl2 with the equality bit of cl2 i.e. lit2 *)
-	  val facthm' = select_literal (lit1 + 1) newth1
-	  val equal_lit = concl_of facthm'
-	  val cterm_eq = cterm_of sign equal_lit
-	  val eq_thm = assume cterm_eq
-	  val meta_eq_thm = mk_meta_eq eq_thm
-	  val newth2= rewrite_rule [meta_eq_thm] cl2
-       (*thin lit2 from cl2 *)
-       (* get cl1 with lit1 as concl, then resolve with thin_rl *)
-	  val thm' = facthm' RS thin_rl
-       (* now resolve cl2 with last premise of thm' *)
-	  val newthm = newth2  RSN ((length prems1), thm')
-     in newthm end
+    let  val eq_lit_th = select_literal (lit1+1) cl1
+         val mod_lit_th = select_literal (lit2+1) cl2
+         val eqsubst = eq_lit_th RSN (2,rev_subst)
+         val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
+    in negated_asm_of_head newth end
 
 
 fun paramod_syntax ((i, B), j) (x, A) = (x, paramod_rule ((A,i), (B,j)));
@@ -144,21 +121,23 @@ val paramod_global = gen_paramod global_thm;
 val paramod_local = gen_paramod local_thm;
 
 
-(** Demodulation, i.e. rewriting **)
+(** Demodulation: rewriting of a single literal (Non-Unit Rewriting, SPASS) **)
 
-fun demod_rule (cl1,lit1,cl2) =
+(*currently identical to paramod_rule: the "match" argument of biresolution cannot be used
+  to prevent instantiation of the rewritten literal, in mod_lit_th: it could only prevent
+  instantiation of eq_lit_th, which we do not want.*)
+fun demod_rule ((cl1, lit1), (cl2 , lit2)) = 
     let  val eq_lit_th = select_literal (lit1+1) cl1
-	 val equal_lit = concl_of eq_lit_th
-         val sign = Sign.merge (sign_of_thm cl1, sign_of_thm cl2)
-	 val cterm_eq = cterm_of sign equal_lit
-	 val eq_thm = assume cterm_eq
-	 val meta_eq_thm = mk_meta_eq eq_thm
-	 val newth2= rewrite_rule [meta_eq_thm] cl2
-    in newth2 end;
+         val mod_lit_th = select_literal (lit2+1) cl2
+         val eqsubst = eq_lit_th RSN (2,rev_subst)
+         val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
+    in negated_asm_of_head newth end
+    handle _ => raise THM ("select_literal", lit1, [cl1,cl2]);
 
-fun demod_syntax (i, B) (x, A) = (x, demod_rule (A,i,B));
+fun demod_syntax ((i, B), j) (x, A) = (x, demod_rule ((A,i), (B,j)));
 
-fun gen_demod thm = syntax ((Scan.lift Args.nat -- thm) >> demod_syntax);
+fun gen_demod thm = syntax
+      ((Scan.lift Args.nat -- thm -- Scan.lift Args.nat) >> demod_syntax);
 val demod_global = gen_demod global_thm;
 val demod_local = gen_demod local_thm;
 
