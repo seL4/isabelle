@@ -5,7 +5,7 @@
   License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   Default font metrics which is used when no graphics context
-  is available.
+  is available (batch mode).
 ***************************************************************************/
 
 package GraphBrowser;

@@ -1,3 +1,14 @@
+/***************************************************************************
+  Title:      GraphBrowser/AWTFontMetrics.java
+  ID:         $Id$
+  Author:     Gerwin Klein, TU Muenchen
+  Copyright   2003  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
+  AbstractFontMetrics from the AWT for graphics mode.
+  
+***************************************************************************/
+
 package GraphBrowser;
 
 import java.awt.FontMetrics;
