@@ -46,6 +46,7 @@ sig
   val resolveq_cases_tac: bool -> (thm * string list) Seq.seq
     -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
+  val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
   val drule: thm list -> Proof.method
@@ -621,7 +622,7 @@ val rename_meth = goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac;
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("-", no_args insert_facts, "do nothing, inserting current facts only"),
+  ("-", no_args insert_facts, "do nothing (insert current facts only)"),
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
