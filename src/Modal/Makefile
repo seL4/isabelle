@@ -35,7 +35,8 @@ $(BIN)/Modal:   $(BIN)/LK  $(FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Modal;\
                 else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Modal;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/Modal;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Modal" banner;' | $(BIN)/LK;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

@@ -44,7 +44,8 @@ $(BIN)/ZF:   $(BIN)/FOL  $(FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/ZF;\
                 else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/ZF;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/ZF;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

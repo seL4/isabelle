@@ -43,7 +43,8 @@ $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/CCL;\
                 else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CCL;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/CCL;;\
 	sml*)   if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CCL" banner;' | $(BIN)/FOL;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

@@ -39,7 +39,8 @@ $(BIN)/FOLP:   $(BIN)/Pure  $(FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/FOLP;\
                 else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/FOLP;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/FOLP;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

@@ -35,7 +35,8 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Cube;\
                 else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Cube;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/Cube;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Cube" banner;' | $(BIN)/Pure;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

@@ -24,7 +24,8 @@ $(BIN)/Auth:   $(BIN)/HOL  $(FILES)
                 then echo 'open PolyML; init_html(); exit_use"DB-ROOT.ML";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
                 else echo 'open PolyML; exit_use"DB-ROOT.ML";' \
                        | $(COMP) $(BIN)/Auth;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/Auth;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'init_html(); exit_use"DB-ROOT.ML";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\

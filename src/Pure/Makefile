@@ -41,7 +41,8 @@ $(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
 	poly*)	echo database=$${ML_DBASE:?'No Poly/ML database specified'};\
 		cp $(ML_DBASE) $(BIN)/Pure; chmod u+w $(BIN)/Pure;\
 		echo 'PolyML.use"POLY";use"ROOT" handle _=> exit 1;' \
-                  | $(COMP) $(BIN)/Pure;;\
+                  | $(COMP) $(BIN)/Pure;\
+		discgarb -c $(BIN)/Pure;;\
 	sml*)	if [ ! '(' -d $${ISABELLEBIN:?} -a -w $${ISABELLEBIN:?} ')' ];\
            	then echo Bad value for ISABELLEBIN: \
                 	$(BIN) is not a writable directory; \

@@ -42,7 +42,8 @@ $(BIN)/CTT:   $(BIN)/Pure  $(FILES)
                 then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/CTT;\
                 else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CTT;\
-                fi;;\
+                fi;\
+		discgarb -c $(BIN)/CTT;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CTT" banner;' | $(BIN)/Pure;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
