@@ -49,7 +49,7 @@ Addsimps [fib_Suc_gr_0];
 
 (*Concrete Mathematics, page 278: Cassini's identity*)
 goal thy "fib (Suc (Suc n)) * fib n = \
-\              (if n mod 2 = 0 then pred(fib(Suc n) * fib(Suc n)) \
+\              (if n mod 2 = 0 then (fib(Suc n) * fib(Suc n)) - 1 \
 \                              else Suc (fib(Suc n) * fib(Suc n)))";
 by (res_inst_tac [("u","n")] fib.induct 1);
 by (res_inst_tac [("P", "%z. ?ff(x) * z = ?kk(x)")] (fib_Suc_Suc RS ssubst) 3);

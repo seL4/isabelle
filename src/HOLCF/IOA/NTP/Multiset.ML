@@ -25,7 +25,7 @@ goal Multiset.thy "count M y <= count (addm M x) y";
 qed "count_leq_addm";
 
 goalw Multiset.thy [Multiset.count_def] 
-     "count (delm M x) y = (if y=x then pred(count M y) else count M y)";
+     "count (delm M x) y = (if y=x then count M y - 1 else count M y)";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (asm_simp_tac (simpset() 
                    addsimps [Multiset.delm_empty_def,Multiset.countm_empty_def]
@@ -67,7 +67,7 @@ goal Multiset.thy "!!P. P(x) ==> 0<count M x --> 0<countm M P";
 qed_spec_mp "pos_count_imp_pos_countm";
 
 goal Multiset.thy
-   "!!P. P(x) ==> 0<count M x --> countm (delm M x) P = pred (countm M P)";
+   "!!P. P(x) ==> 0<count M x --> countm (delm M x) P = countm M P - 1";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (simp_tac (simpset() addsimps 
                           [Multiset.delm_empty_def,

@@ -59,7 +59,7 @@ goal thy
 \           b:=b div 2   \
 \      END;   \
 \      c:=c*a;   \
-\      b:=pred b \
+\      b:= b - 1 \
 \ END   \
 \ {c = A^B}";
 
