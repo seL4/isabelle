@@ -86,8 +86,8 @@ sub process_tac {
   s/Asm_simp_tac 1/simp (no_asm_simp)/g;
   s/Simp_tac 1/simp (no_asm)/g;
   s/ALLGOALS Asm_full_simp_tac/simp_all/g;
-  s/ALLGOALS Full_simp_tac 1/simp_all (no_asm_use)/g;
-  s/ALLGOALS Asm_simp_tac 1/simp_all (no_asm_simp)/g;
+  s/ALLGOALS Full_simp_tac/simp_all (no_asm_use)/g;
+  s/ALLGOALS Asm_simp_tac/simp_all (no_asm_simp)/g;
   s/ALLGOALS Simp_tac/simp_all (no_asm)/g;
 
   s/asm_full_simp_tac \(simpset\(\) (.*?)\) 1/simp $1/g;
@@ -119,6 +119,8 @@ sub process_tac {
   s/case_tac (\".*?\") (\d+)/case_tac [$2] $1/g;
   s/induct_tac (\".*?\") 1/induct_tac $1/g;
   s/induct_tac (\".*?\") (\d+)/induct_tac [$2] $1/g;
+  s/induct_thm_tac ([\w\'\. \[,\]]+?) (\".*?\") 1/induct_tac $2 rule: $1/g;
+  s/induct_thm_tac ([\w\'\. \[,\]]+?) (\".*?\") (\d+)/induct_tac [$3] $2 rule: $1/g;
   s/subgoal_tac (\".*?\") 1/subgoal_tac $1/g;
   s/subgoal_tac (\".*?\") (\d+)/subgoal_tac [$2] $1/g;
   s/thin_tac (\".*?\") *1/erule_tac V = $1 in thin_rl/g;
@@ -241,8 +243,7 @@ while (<>) { # main loop
   s/^qed *\"(.*?)\"/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
-  s/^val *\( *\"(.*?)\" *= *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
-  s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply$1".process_tac($1,$2).$3/se;
+  s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply".$1.process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
   s/^Addsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"simp")/seg;
