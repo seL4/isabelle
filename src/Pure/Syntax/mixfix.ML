@@ -26,7 +26,7 @@ sig
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val mixfix_args: mixfix -> int
-  val pure_types: (string * int * mixfix) list
+  val pure_nonterms: string list
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
@@ -165,10 +165,9 @@ fun syn_ext_consts logtypes const_decls =
 
 (** Pure syntax **)
 
-val pure_types =
-  map (fn t => (t, 0, NoSyn))
-    (terminals @ [logic, "type", "types", "sort", "classes", args, cargs,
-      "pttrn", "pttrns", "idt", "idts", "aprop", "asms", any, sprop, "dummy"]);
+val pure_nonterms =
+  (terminals @ [logic, "type", "types", "sort", "classes", args, cargs,
+    "pttrn", "pttrns", "idt", "idts", "aprop", "asms", any, sprop]);
 
 val pure_syntax =
  [("_lambda",      "[pttrns, 'a] => logic",         Mixfix ("(3%_./ _)", [0, 3], 3)),
