@@ -9,6 +9,7 @@ Characteristic properties of datatypes
 signature DATATYPE_PROP =
 sig
   val dtK : int ref
+  val indexify_names: string list -> string list
   val make_injs : (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       term list list
@@ -48,28 +49,24 @@ open DatatypeAux;
 (*the kind of distinctiveness axioms depends on number of constructors*)
 val dtK = ref 7;
 
+fun indexify_names names =
+  let
+    fun index (x :: xs) tab =
+      (case assoc (tab, x) of
+        None => if x mem xs then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
+      | Some i => (x ^ Library.string_of_int i) :: index xs ((x, i + 1) :: tab))
+    | index [] _ = [];
+  in index names [] end;
+
 fun make_tnames Ts =
   let
     fun type_name (TFree (name, _)) = implode (tl (explode name))
       | type_name (Type (name, _)) = 
           let val name' = Sign.base_name name
-          in if Syntax.is_identifier name' then name' else "x"
-          end;
+          in if Syntax.is_identifier name' then name' else "x" end;
+  in indexify_names (map type_name Ts) end;
 
-    fun index_vnames (vn::vns) tab =
-          (case assoc (tab, vn) of
-             None => if vn mem vns
-                     then (vn ^ "1") :: index_vnames vns ((vn, 2)::tab)
-                     else vn :: index_vnames vns tab
-           | Some i => (vn ^ (string_of_int i))::
-                     index_vnames vns ((vn, i + 1)::tab))
-      | index_vnames [] _ = []
 
-  in index_vnames (map type_name Ts) []
-  end;
-
-(** FIXME: move to hologic.ML ? **)
-val Not = Const ("Not", HOLogic.boolT --> HOLogic.boolT);
 
 (************************* injectivity of constructors ************************)
 
@@ -303,8 +300,8 @@ fun make_distincts new_type_names descr sorts thy =
                       (make_tnames Ts')) ~~ Ts');
                     val t' = list_comb (Const (cname', Ts' ---> T), frees')
                   in
-                    (HOLogic.mk_Trueprop (Not $ HOLogic.mk_eq (t, t')))::
-                    (HOLogic.mk_Trueprop (Not $ HOLogic.mk_eq (t', t)))::
+                    (HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t, t')))::
+                    (HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t', t)))::
                       (make_distincts' constrs')
                   end
 
@@ -343,14 +340,14 @@ fun make_splits new_type_names descr sorts thy =
           in ((foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
                 (frees, HOLogic.imp $ eqn $ P'))::t1s,
               (foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
-                (frees, HOLogic.conj $ eqn $ (Not $ P')))::t2s)
+                (frees, HOLogic.conj $ eqn $ (HOLogic.Not $ P')))::t2s)
           end;
 
         val (t1s, t2s) = foldr process_constr (constrs ~~ fs, ([], []));
         val lhs = P $ (comb_t $ Free ("x", T))
       in
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, mk_conj t1s)),
-         HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, Not $ mk_disj t2s)))
+         HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, HOLogic.Not $ mk_disj t2s)))
       end
 
   in map make_split ((hd descr) ~~ newTs ~~
