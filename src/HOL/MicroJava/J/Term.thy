@@ -6,7 +6,7 @@
 Java expressions and statements
 *)
 
-Term = Value + 
+Term = Value +
 
 datatype binop = Eq | Add    (* function codes for binary operation *)
 
@@ -23,7 +23,7 @@ datatype expr
   | Call expr mname 
     (ty list) (expr list)    (* method call*) ("_.._'({_}_')" [90,99,10,10] 90)
 
-and stmt
+datatype stmt
   = Skip                     (* empty statement *)
   | Expr expr                (* expression statement *)
   | Comp stmt stmt       ("_;; _"             [61,60]60)
