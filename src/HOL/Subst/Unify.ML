@@ -127,7 +127,8 @@ qed "var_elimR";
 (*---------------------------------------------------------------------------
  * Eliminate tc0 from the recursion equations and the induction theorem.
  *---------------------------------------------------------------------------*)
-val [wfr,tc] = Prim.Rules.CONJUNCTS tc0;
+val wfr = tc0 RS conjunct1
+and tc  = tc0 RS conjunct2;
 val unifyRules0 = map (normalize_thm [fn th => wfr RS th, fn th => tc RS th]) 
                      unify.rules;
 
