@@ -287,7 +287,7 @@ and flexrigid (params as (env,binders,F,is,t)) =
             in Envir.update((F,mkabs(binders,is,u)),env') end
             handle Unif => (proj_fail params; raise Unif));
 
-fun unify(sg,env,tus) = (sgr := sg; tsgr := #tsig(Sign.rep_sg sg);
+fun unify(sg,env,tus) = (sgr := sg; tsgr := Sign.tsig_of sg;
                          foldl (unif []) (env,tus));
 
 

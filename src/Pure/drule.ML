@@ -748,7 +748,7 @@ fun read_instantiate_sg sg sinsts th =
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
-    read_instantiate_sg (#sign (rep_thm th)) sinsts th;
+    read_instantiate_sg (Thm.sign_of_thm th) sinsts th;
 
 
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
@@ -759,12 +759,12 @@ local
         and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
-        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) (tye, maxi) (T, U)
+        val (tye',maxi') = Type.unify (Sign.tsig_of sign') (tye, maxi) (T, U)
           handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
     in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th), Vartab.empty, 0))
+  let val (sign,tye,_) = foldr add_types (ctpairs0, (Thm.sign_of_thm th, Vartab.empty, 0))
       fun instT(ct,cu) = 
         let val inst = cterm_of sign o subst_TVars_Vartab tye o term_of
         in (inst ct, inst cu) end

@@ -75,7 +75,6 @@ in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
 fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
 fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
-val tsig_of = #tsig o Sign.rep_sg;
 
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
 fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;

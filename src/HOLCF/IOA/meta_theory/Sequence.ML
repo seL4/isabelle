@@ -1012,7 +1012,7 @@ in
 (*Generalizes over all free variables, with the named var outermost.*)
 fun all_frees_tac x i thm =
   let
-    val tsig = #tsig (Sign.rep_sg (#sign (rep_thm thm)));
+    val tsig = Sign.tsig_of (Thm.sign_of_thm thm);
     val frees = add_frees tsig (nth_elem (i - 1, prems_of thm), [x]);
     val frees' = sort (op >) (frees \ x) @ [x];
   in

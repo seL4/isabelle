@@ -307,7 +307,7 @@ fun GEN v th =
    let val gth = forall_intr v th
        val {prop=Const("all",_)$Abs(x,ty,rst),sign,...} = rep_thm gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
-       val tsig = #tsig(Sign.rep_sg sign)
+       val tsig = Sign.tsig_of sign
        val theta = Pattern.match tsig (P,P')
        val allI2 = instantiate (certify sign theta) allI
        val thm = Thm.implies_elim allI2 gth
@@ -712,7 +712,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val mss' = MetaSimplifier.add_prems(mss, map ASSUME ants1)
                   val Q1eeqQ2 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used') mss' Q1
                                 handle U.ERR _ => Thm.reflexive Q1
-                  val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
+                  val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
                   val Q2eeqQ3 = Thm.symmetric(pbeta_reduce Q3 RS eq_reflection)
                   val thA = Thm.transitive(QeqQ1 RS eq_reflection) Q1eeqQ2
@@ -778,7 +778,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               fun is_func (Const (name,_)) = (name = func_name)
                 | is_func _                = false
               val rcontext = rev cntxt
-              val cncl = HOLogic.dest_Trueprop o #prop o rep_thm
+              val cncl = HOLogic.dest_Trueprop o Thm.prop_of
               val antl = case rcontext of [] => []
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))

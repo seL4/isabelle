@@ -707,7 +707,7 @@ fun varify th =
 fun get_top_scope_thms thy = 
    let val sc = (get_scope_sg (Theory.sign_of thy))
    in if (null sc) then (warning "No locale in theory"; [])
-      else map (#prop o rep_thm) (map #2 (#thms(snd(hd sc))))
+      else map Thm.prop_of (map #2 (#thms(snd(hd sc))))
    end;
 
 fun implies_intr_some_hyps thy A_set th = 
@@ -778,16 +778,16 @@ fun prepare_proof atomic rths chorn =
 		    (map (Sign.string_of_term sign) 
 		     (filter (fn x => (not (in_locale [x] sign))) 
 		      hyps)))
-	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
+	    else if Pattern.matches (Sign.tsig_of sign)
 			            (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
 		 then final_th
 	    else  !result_error_fn state "proved a different theorem"
         end
   in
-     if Sign.eq_sg(sign, #sign(rep_thm st0))
+     if Sign.eq_sg(sign, Thm.sign_of_thm st0)
      then (prems, st0, mkresult)
      else error ("Definitions would change the proof state's signature" ^
-		 sign_error (sign, #sign(rep_thm st0)))
+		 sign_error (sign, Thm.sign_of_thm st0))
   end
   handle THM(s,_,_) => error("prepare_proof: exception THM was raised!\n" ^ s);
 
@@ -994,7 +994,7 @@ fun by_com tac ((th,ths), pairs) : gstack =
 	  then warning "Warning: same as previous level"
 	  else if eq_thm_sg(th,th2) then ()
 	  else warning ("Warning: signature of proof state has changed" ^
-		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
+		       sign_error (Thm.sign_of_thm th, Thm.sign_of_thm th2));
        ((th2,ths2)::(th,ths)::pairs)));
 
 fun by tac = cond_timeit (!Library.timing) 
@@ -1096,7 +1096,7 @@ fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 (** Reading and printing terms wrt the current theory **)
 
-fun top_sg() = #sign(rep_thm(topthm()));
+fun top_sg() = Thm.sign_of_thm (topthm());
 
 fun read s = term_of (read_cterm (top_sg()) (s, TypeInfer.logicT));
 

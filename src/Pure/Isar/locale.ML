@@ -635,7 +635,8 @@ fun export_axioms axs _ hyps th =
   |> Drule.implies_intr_list (Library.drop (length axs, hyps))
   |> Seq.single;
 
-fun activate_elem _ ((ctxt, axs), Fixes fixes) = ((ctxt |> ProofContext.add_fixes fixes, axs), [])
+fun activate_elem _ ((ctxt, axs), Fixes fixes) =
+      ((ctxt |> ProofContext.add_fixes fixes, axs), [])
   | activate_elem _ ((ctxt, axs), Assumes asms) =
       let
         val ts = flat (map (map #1 o #2) asms);

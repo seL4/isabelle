@@ -178,7 +178,7 @@ fun coind_prefix true = "co"
   same type in all introduction rules*)
 fun unify_consts sign cs intr_ts =
   (let
-    val {tsig, ...} = Sign.rep_sg sign;
+    val tsig = Sign.tsig_of sign;
     val add_term_consts_2 =
       foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
     fun varify (t, (i, ts)) =
@@ -264,7 +264,7 @@ fun mk_tuple p ps (Type ("*", [T1, T2])) (tms as t::_) =
 fun split_rule_var' ((t as Var (v, Type ("fun", [T1, T2])), ps), rl) =
       let val T' = prodT_factors [] ps T1 ---> T2
           val newt = ap_split [] ps T1 T2 (Var (v, T'))
-          val cterm = Thm.cterm_of (#sign (rep_thm rl))
+          val cterm = Thm.cterm_of (Thm.sign_of_thm rl)
       in
           instantiate ([], [(cterm t, cterm newt)]) rl
       end
@@ -273,11 +273,11 @@ fun split_rule_var' ((t as Var (v, Type ("fun", [T1, T2])), ps), rl) =
 val remove_split = rewrite_rule [split_conv RS eq_reflection];
 
 fun split_rule_vars vs rl = standard (remove_split (foldr split_rule_var'
-  (mg_prod_factors vs ([], #prop (rep_thm rl)), rl)));
+  (mg_prod_factors vs ([], Thm.prop_of rl), rl)));
 
 fun split_rule vs rl = standard (remove_split (foldr split_rule_var'
   (mapfilter (fn (t as Var ((a, _), _)) =>
-    apsome (pair t) (assoc (vs, a))) (term_vars (#prop (rep_thm rl))), rl)));
+    apsome (pair t) (assoc (vs, a))) (term_vars (Thm.prop_of rl)), rl)));
 
 
 (** process rules **)

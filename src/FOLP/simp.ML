@@ -556,7 +556,7 @@ let fun find (thm::thms) =
 in find subst_thms end;
 
 fun mk_cong sg (f,aTs,rT) (refl,eq) =
-let val tsig = #tsig(Sign.rep_sg sg);
+let val tsig = Sign.tsig_of sg;
     val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
         let val ca = cterm_of sg va
@@ -578,7 +578,7 @@ in mk(refl,rev aTs,k-1,[]) end;
 
 fun mk_cong_type sg (f,T) =
 let val (aTs,rT) = strip_type T;
-    val tsig = #tsig(Sign.rep_sg sg);
+    val tsig = Sign.tsig_of sg;
     fun find_refl(r::rs) =
         let val (Const(eq,eqT),_,_) = dest_red(concl_of r)
         in if Type.typ_instance(tsig, rT, hd(binder_types eqT))

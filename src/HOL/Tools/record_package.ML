@@ -107,7 +107,7 @@ fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps 
 
 fun try_param_tac s rule i st =
   let
-    val cert = cterm_of (#sign (rep_thm st));
+    val cert = cterm_of (Thm.sign_of_thm st);
     val g = nth_elem (i - 1, prems_of st);
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
@@ -364,8 +364,8 @@ fun record_type_abbr_tr' sg abbr alphas zeta lastF rec_schemeT tm =
                              Some s => s 
                            | None => Sign.defaultS sg);
 
-      val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm) 
-      val {tsig,...} = Sign.rep_sg sg
+      val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm);
+      val tsig = Sign.tsig_of sg;
 
       fun mk_type_abbr subst name alphas = 
           let val abbrT = Type (name, map (fn a => TVar ((a,0),logicS)) alphas);

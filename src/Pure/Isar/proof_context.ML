@@ -19,7 +19,6 @@ sig
   val prems_of: context -> thm list
   val print_proof_data: theory -> unit
   val init: theory -> context
-  val add_syntax: (string * typ option * mixfix option) list -> context -> context
   val is_fixed: context -> string -> bool
   val default_type: context -> string -> typ option
   val used_types: context -> string list
@@ -105,7 +104,7 @@ sig
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
   val fix_direct: (string list * typ option) list -> context -> context
-  val add_fixes: (string * typ option * mixfix option) list -> context -> context
+  val add_fixes: (string * typ option * Syntax.mixfix option) list -> context -> context
   val fix_frees: term list -> context -> context
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
@@ -1222,8 +1221,6 @@ val fix_direct = gen_fix cert_vars add_vars_direct;
 fun add_fixes decls = add_syntax decls o fix_direct (map prep_type decls);
 
 end;
-
-(* CB: fix free variables occuring in ts, unless already fixed. *)
 
 fun fix_frees ts ctxt =
   let

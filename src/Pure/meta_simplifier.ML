@@ -283,7 +283,7 @@ fun reorient sign prems lhs rhs =
    (exists (apl (lhs, Logic.occs)) (rhs :: prems))
   orelse
    (null prems andalso
-    Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
+    Pattern.matches (Sign.tsig_of sign) (lhs, rhs))
     (*the condition "null prems" is necessary because conditional rewrites
       with extra variables in the conditions may terminate although
       the rhs is an instance of the lhs. Example: ?m < ?n ==> f(?n) == f(?m)*)
@@ -630,7 +630,7 @@ fun rewritec (prover, signt, maxt)
         val insts = if fo then Thm.cterm_first_order_match (elhs', eta_t')
                           else Thm.cterm_match (elhs', eta_t');
         val thm' = Thm.instantiate insts (Thm.rename_boundvars lhs eta_t rthm);
-        val prop' = #prop (rep_thm thm');
+        val prop' = Thm.prop_of thm';
         val unconditional = (Logic.count_prems (prop',0) = 0);
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop')
       in
@@ -666,7 +666,7 @@ fun rewritec (prover, signt, maxt)
           in case opt of None => rews rrules | some => some end;
 
     fun sort_rrules rrs = let
-      fun is_simple({thm, ...}:rrule) = case #prop (rep_thm thm) of
+      fun is_simple({thm, ...}:rrule) = case Thm.prop_of thm of
                                       Const("==",_) $ _ $ _ => true
                                       | _                   => false
       fun sort []        (re1,re2) = re1 @ re2
@@ -701,7 +701,7 @@ fun rewritec (prover, signt, maxt)
 (* conversion to apply a congruence rule to a term *)
 
 fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
-  let val {sign, ...} = rep_thm cong
+  let val sign = Thm.sign_of_thm cong
       val _ = if Sign.subsig (sign, signt) then ()
                  else error("Congruence rule from different theory")
       val rthm = if maxt = ~1 then cong else Thm.incr_indexes (maxt+1) cong;
