@@ -27,6 +27,7 @@
 \newcommand{\I@optname}[1]{\ifthenelse{\equal{}{#1}}{}{~#1\colon}}
 \newcommand{\I@optmeth}[1]{\ifthenelse{\equal{}{#1}}{}{~(#1)}}
 
+\newcommand{\AND}{\isarkeyword{and}}
 \newcommand{\LEMMANAME}{\isarkeyword{lemma}}
 \newcommand{\THEOREMNAME}{\isarkeyword{theorem}}
 \newcommand{\NOTENAME}{\isarkeyword{note}}
@@ -49,7 +50,7 @@
 \newcommand{\LETNAME}{\isarkeyword{let}}
 \newcommand{\DEFNAME}{\isarkeyword{def}}
 \newcommand{\OBTAINNAME}{\isarkeyword{obtain}}
-\newcommand{\CMTNAME}{\isarkeyword{-{}-}}
+\newcommand{\CMTNAME}{\textbf{---}}
 
 \newcommand{\THEORY}{\isarkeyword{theory}}
 \newcommand{\CONTEXT}{\isarkeyword{context}}
@@ -91,7 +92,7 @@
 \newcommand{\LET}[1]{\LETNAME~#1}
 \newcommand{\DEF}[2]{\DEFNAME\I@optname{#1}~#2}
 \newcommand{\ATT}[1]{\ap [#1]}
-\newcommand{\CMT}[1]{\CMTNAME~\text{#1}}
+\newcommand{\CMT}[1]{\CMTNAME~\Text{#1}}
 \newcommand{\ALSO}{\isarkeyword{also}}
 \newcommand{\FINALLY}{\isarkeyword{finally}}
 \newcommand{\MOREOVER}{\isarkeyword{moreover}}
