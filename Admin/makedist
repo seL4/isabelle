@@ -76,6 +76,7 @@ shift
 # dist version
 
 DATE=$(date "+%d-%b-%Y")
+DISTDATE=$(date "+%B %Y")
 
 if [ "$VERSION" = "-" ]; then
   DISTNAME=Isabelle_$DATE
@@ -146,6 +147,8 @@ if [ -n "$UNOFFICIAL" ]; then
   } >UNOFFICIAL
 fi
 
+perl -pi -e "s/Internal working version of Isabelle/$DISTNAME: $DISTDATE/" src/Pure/ROOT.ML
+perl -pi -e "s/an internal working version of Isabelle/$DISTNAME: $DISTDATE/" README.html
 lynx -dump README.html >README
 
 
