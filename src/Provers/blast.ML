@@ -91,6 +91,7 @@ signature BLAST =
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
   val overloaded 	: string * (Term.typ -> Term.typ) -> unit
+  val get_overloads	: unit -> (string * (Term.typ -> Term.typ)) list
   val setup		: (theory -> theory) list
   (*debugging tools*)
   val stats	        : bool ref
@@ -193,6 +194,8 @@ val overloads = ref ([]: (string * (Term.typ -> Term.typ)) list)
 in
 
 fun overloaded arg = (overloads := arg :: (!overloads));
+
+fun get_overloads() = !overloads;
 
 (*Convert a possibly overloaded Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.*)
