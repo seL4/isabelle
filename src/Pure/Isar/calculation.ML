@@ -21,24 +21,22 @@ end;
 structure Calculation: CALCULATION =
 struct
 
-
 (** global and local calculation data **)
 
-fun print_rules ths =
-  Pretty.writeln (Pretty.big_list "calculation rules:" (map Display.pretty_thm ths));
-
-
 (* theory data kind 'Isar/calculation' *)
+
+fun print_rules rs = Pretty.writeln (Pretty.big_list "calculation rules:"
+  (map Display.pretty_thm (NetRules.rules rs)));
 
 structure GlobalCalculationArgs =
 struct
   val name = "Isar/calculation";
-  type T = thm list;
+  type T = thm NetRules.T
 
-  val empty = [];
+  val empty = NetRules.init_elim;
   val copy = I;
   val prep_ext = I;
-  fun merge (ths1, ths2) = Library.generic_merge Thm.eq_thm I I ths1 ths2;
+  val merge = NetRules.merge;
   fun print _ = print_rules;
 end;
 
@@ -51,10 +49,10 @@ val print_global_rules = GlobalCalculation.print;
 structure LocalCalculationArgs =
 struct
   val name = "Isar/calculation";
-  type T = thm list * (thm list * int) option;
+  type T = thm NetRules.T * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, None);
-  fun print _ (ths, _) = print_rules ths;
+  fun print _ (rs, _) = print_rules rs;
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
@@ -81,21 +79,12 @@ fun reset_calculation state =
 
 (* trans add/del *)
 
-local
-
-fun add_trans thm rules = Library.gen_ins Thm.eq_thm (thm, rules);
-fun del_trans thm rules = Library.gen_rem Thm.eq_thm (rules, thm);
-
 fun mk_att f g (x, thm) = (f (g thm) x, thm);
 
-in
-
-val trans_add_global = mk_att GlobalCalculation.map add_trans;
-val trans_del_global = mk_att GlobalCalculation.map del_trans;
-val trans_add_local = mk_att LocalCalculation.map (Library.apfst o add_trans);
-val trans_del_local = mk_att LocalCalculation.map (Library.apfst o del_trans);
-
-end;
+val trans_add_global = mk_att GlobalCalculation.map NetRules.insert;
+val trans_del_global = mk_att GlobalCalculation.map NetRules.delete;
+val trans_add_local = mk_att LocalCalculation.map (Library.apfst o NetRules.insert);
+val trans_del_local = mk_att LocalCalculation.map (Library.apfst o NetRules.delete);
 
 
 (* concrete syntax *)
@@ -120,12 +109,19 @@ fun calculate final opt_rules print state =
   let
     fun err_if b msg = if b then raise Proof.STATE (msg, state) else ();
     val facts = Proof.the_facts state;
-    val rules = Seq.of_list (if_none opt_rules [] @ get_local_rules state);
 
     val eq_prop = op aconv o pairself (#prop o Thm.rep_thm);
     fun differ thms thms' = not (Library.equal_lists eq_prop (thms, thms'));
+
     fun combine thms =
-      Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve (thms @ facts)) rules));
+      let
+        val ths = thms @ facts;
+        val rs = NetRules.inserts (if_none opt_rules []) (get_local_rules state);
+        val rules =
+          (case ths of [] => NetRules.rules rs
+          | th :: _ => NetRules.may_unify rs (Logic.strip_assums_concl (#prop (Thm.rep_thm th))));
+        val ruleq = Seq.of_list rules;
+      in Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve ths) ruleq)) end;
 
     val (initial, calculations) =
       (case get_calculation state of
