@@ -529,7 +529,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (#1 o PureThy.add_thmss [(("simps", simps), []),
         (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
         (("", flat (inject @ distinct)), [iff_add_global]),
-        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
+        (("", weak_case_congs), [cong_add_global])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
