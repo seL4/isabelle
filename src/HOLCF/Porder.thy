@@ -7,16 +7,18 @@ Definition of class porder (partial order).
 Conservative extension of theory Porder0 by constant definitions 
 *)
 
-header {* Type class of partial orders *}
+header {* Partial orders *}
 
 theory Porder
 imports Main
 begin
 
-	(* introduce a (syntactic) class for the constant << *)
+subsection {* Type class for partial orders *}
+
+	-- {* introduce a (syntactic) class for the constant @{text "<<"} *}
 axclass sq_ord < type
 
-	(* characteristic constant << for po *)
+	-- {* characteristic constant @{text "<<"} for po *}
 consts
   "<<"          :: "['a,'a::sq_ord] => bool"        (infixl 55)
 
@@ -24,7 +26,7 @@ syntax (xsymbols)
   "op <<"       :: "['a,'a::sq_ord] => bool"        (infixl "\<sqsubseteq>" 55)
 
 axclass po < sq_ord
-        (* class axioms: *)
+        -- {* class axioms: *}
 refl_less [iff]: "x << x"        
 antisym_less:    "[|x << y; y << x |] ==> x = y"    
 trans_less:      "[|x << y; y << z |] ==> x << z"
@@ -51,7 +53,7 @@ lemma po_eq_conv: "((x::'a::po)=y) = (x << y & y << x)"
 apply (fast elim!: antisym_less_inverse intro!: antisym_less)
 done
 
-subsection {* Constant definitions *}
+subsection {* Chains and least upper bounds *}
 
 consts  
         "<|"    ::      "['a set,'a::po] => bool"       (infixl 55)
@@ -73,17 +75,17 @@ syntax (xsymbols)
 
 defs
 
-(* class definitions *)
+-- {* class definitions *}
 is_ub_def:       "S  <| x == ! y. y:S --> y<<x"
 is_lub_def:      "S <<| x == S <| x & (!u. S <| u  --> x << u)"
 
-(* Arbitrary chains are total orders    *)                  
+-- {* Arbitrary chains are total orders *}
 tord_def:     "tord S == !x y. x:S & y:S --> (x<<y | y<<x)"
 
-(* Here we use countable chains and I prefer to code them as functions! *)
+-- {* Here we use countable chains and I prefer to code them as functions! *}
 chain_def:        "chain F == !i. F i << F (Suc i)"
 
-(* finite chains, needed for monotony of continouous functions *)
+-- {* finite chains, needed for monotony of continouous functions *}
 max_in_chain_def: "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 
 finite_chain_def: "finite_chain C == chain(C) & (? i. max_in_chain i C)"
 
@@ -187,7 +189,7 @@ apply blast
 done
 
 lemmas is_ub_lub = is_lubD1 [THEN ub_rangeD, standard]
-(* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1                                    *)
+  -- {* @{thm is_ub_lub} *} (* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1 *)
 
 text {* results about finite chains *}
 
