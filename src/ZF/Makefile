@@ -21,7 +21,7 @@ COMP = $(ISABELLECOMP)
 FILES = ROOT.ML zf.thy zf.ML upair.ML subset.ML pair.ML domrange.ML \
 	func.ML simpdata.ML bool.thy bool.ML \
 	sum.thy sum.ML qpair.thy qpair.ML mono.ML fixedpt.thy fixedpt.ML \
-	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML co_inductive.ML \
+	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
 	equalities.ML perm.thy perm.ML trancl.thy trancl.ML \
 	wf.thy wf.ML ord.thy ord.ML nat.thy nat.ML \
 	epsilon.thy epsilon.ML arith.thy arith.ML univ.thy univ.ML \
