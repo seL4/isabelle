@@ -12,7 +12,6 @@ sig
    val CUT_LEMMA       :thm
    val SELECT_AX       :thm
    
-   val COND_CONG :thm
    val LET_CONG  :thm
 
    val eqT       :thm
