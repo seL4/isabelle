@@ -7,7 +7,7 @@ Primitive Recursive Functions: preliminary definitions
 *)
 
 (*Theory TF redeclares map_type*)
-val map_type = Context.thm "List.map_type";
+val map_type = thm "List.map_type";
 
 (** Useful special cases of evaluation ***)
 
