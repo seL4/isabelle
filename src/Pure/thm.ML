@@ -986,7 +986,8 @@ fun bottomc prover =
             val unit = seq (trace_thm "Adding rewrite rule:") rthms
             val mss' = add_simps(mss,rthms)
             val ((sg2,hyps2),u') = botc mss' (sghy1,u)
-        in ((sg2,hyps2\s'), Logic.mk_implies(s',u')) end
+            val hyps2' = if s' mem hyps1 then hyps2 else hyps2\s'
+        in ((sg2,hyps2'), Logic.mk_implies(s',u')) end
 
   in botc end;
 
