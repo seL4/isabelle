@@ -105,11 +105,11 @@ bind_thm ("imp_cong", imp_cong);
 
 (* Elimination of True from asumptions: *)
 
-val True_implies_equals = prove_goal (the_context ())
- "(True ==> PROP P) == PROP P"
-(fn _ => [rtac equal_intr_rule 1, atac 2,
-          METAHYPS (fn prems => resolve_tac prems 1) 1,
-          rtac TrueI 1]);
+local fun rd s = read_cterm (sign_of (the_context())) (s, propT);
+in val True_implies_equals = standard' (equal_intr
+  (implies_intr_hyps (implies_elim (assume (rd "True ==> PROP P")) TrueI))
+  (implies_intr_hyps (implies_intr (rd "True") (assume (rd "PROP P")))));
+end;
 
 fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
 
