@@ -264,7 +264,7 @@ fun of_sort (Sg (_, {tsig, ...})) =
 fun of_theory sg = "\nof theory " ^ str_of_sg sg;
 
 fun err_method name kind =
-  error ("Error while invoking " ^ quote kind ^ " method " ^ name);
+  error ("Error while invoking " ^ quote kind ^ " " ^ name ^ " method");
 
 fun err_dup_init sg kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
