@@ -31,7 +31,7 @@ sig
   val add_recdef_old: xstring -> string -> ((bstring * string) * Args.src list) list ->
     simpset * thm list -> theory ->
     theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (xstring * Args.src list) list
+  val defer_recdef: xstring -> string list -> (thmref * Args.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
     -> theory -> theory * {induct_rules: thm}
