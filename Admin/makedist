@@ -9,7 +9,15 @@
 
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
-export CVSROOT=/usr/proj/isabelle-repository/archive
+case ${HOST} in
+  *broy*)
+    export CVSROOT=/usr/proj/isabelle-repository/archive
+    ;;
+  *.cl.cam.ac.uk)
+    export CVSROOT=sunbroy1.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive
+    ;;
+esac
+
 DISTPREFIX=~/tmp/isadist
 
 umask 022
