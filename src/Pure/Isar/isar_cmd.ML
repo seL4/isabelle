@@ -8,15 +8,18 @@ Non-logical toplevel commands.
 signature ISAR_CMD =
 sig
   val exit: Toplevel.transition -> Toplevel.transition
-  val restart: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
+  val init_toplevel: Toplevel.transition -> Toplevel.transition
+  val touch_all_thys: Toplevel.transition -> Toplevel.transition
+  val touch_thy: string -> Toplevel.transition -> Toplevel.transition
+  val remove_thy: string -> Toplevel.transition -> Toplevel.transition
+  val kill_theory: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undo: Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
   val kill_proof: Toplevel.transition -> Toplevel.transition
   val undo_theory: Toplevel.transition -> Toplevel.transition
-  val kill_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
@@ -27,6 +30,7 @@ sig
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
   val use_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
+  val update_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
@@ -51,8 +55,17 @@ val exit = Toplevel.keep (fn state =>
     writeln "Leaving the Isar loop.  Invoke 'loop();' to restart.";
     raise Toplevel.TERMINATE));
 
-val restart = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val quit = Toplevel.imperative quit;
+
+val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
+
+
+(* touch theories *)
+
+val touch_all_thys = Toplevel.imperative ThyInfo.touch_all_thys;
+fun touch_thy name = Toplevel.imperative (fn () => ThyInfo.touch_thy name);
+fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
+val kill_theory = Toplevel.imperative (fn () => warning "Nothing to kill.") o Toplevel.kill;
 
 
 (* history commands *)
@@ -72,7 +85,6 @@ val kill_proof = Toplevel.history (fn hist =>
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
-val kill_theory = Toplevel.imperative (fn () => warning "Nothing to kill.") o Toplevel.kill;
 val undo = kill_theory o undo_theory o undos_proof 1;
 
 
@@ -105,6 +117,7 @@ val pwd = Toplevel.imperative print_cd;
 fun use_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy name);
 fun use_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy_only name);
 fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
+fun update_thy_only name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy_only name);
 
 
 (* print theory contents *)
