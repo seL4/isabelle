@@ -229,6 +229,9 @@ done
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
 by blast
 
+lemma atLeast0LessThan [simp]: "{0::nat..n(} = {..n(}"
+by(simp add:lessThan_def atLeastLessThan_def)
+
 text {* Intervals of nats with @{text Suc} *}
 
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..Suc u(} = {l..u}"
@@ -478,16 +481,30 @@ lemma ivl_disj_int_two:
 lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
 
 
-subsection {* Summation indexed over natural numbers *}
+subsection {* Summation indexed over intervals *}
 
-text{* Legacy, only used in HoareParallel and Isar-Examples. Really
-needed? Probably better to replace it with a more generic operator
-like ``SUM i = m..n. b''. *}
+text{* We introduce the obvious syntax @{text"\<Sum>x=a..b. e"} for
+@{term"\<Sum>x\<in>{a..b}. e"}. *}
 
 syntax
-  "_Summation" :: "id => nat => 'a => nat"    ("\<Sum>_<_. _" [0, 51, 10] 10)
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
+syntax (xsymbols)
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
+syntax (HTML output)
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
+
+translations "\<Sum>x=a..b. t" == "setsum (%x. t) {a..b}"
+
+
+subsection {* Summation up to *}
+
+text{* Legacy, only used in HoareParallel and Isar-Examples. Really
+needed? Probably better to replace it with above syntax. *}
+
+syntax
+  "_Summation" :: "idt => 'a => 'b => 'b"    ("\<Sum>_<_. _" [0, 51, 10] 10)
 translations
-  "\<Sum>i < n. b" == "setsum (\<lambda>i::nat. b) {..n(}"
+  "\<Sum>i < n. b" == "setsum (\<lambda>i. b) {..n(}"
 
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)

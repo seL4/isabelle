@@ -761,6 +761,9 @@ constdefs
   setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
   "setsum f A == if finite A then fold (op + o f) 0 A else 0"
 
+text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
+written @{text"\<Sum>x\<in>A. e"}. *}
+
 syntax
   "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
@@ -769,6 +772,34 @@ syntax (HTML output)
   "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 translations
   "\<Sum>i:A. b" == "setsum (%i. b) A"  -- {* Beware of argument permutation! *}
+
+text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
+ @{text"\<Sum>x|P. e"}. *}
+
+syntax
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ | / _./ _)" [0,0,10] 10)
+syntax (xsymbols)
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+syntax (HTML output)
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+
+translations "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
+
+print_translation {*
+let
+  fun setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
+    (if x<>y then raise Match
+     else let val x' = Syntax.mark_bound x
+              val t' = subst_bound(x',t)
+              val P' = subst_bound(x',P)
+          in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end)
+in
+[("setsum", setsum_tr')]
+end
+*}
+
+text{* As Jeremy Avigad notes: ultimately the analogous
+   thing should be done for setprod as well \dots *}
 
 
 lemma setsum_empty [simp]: "setsum f {} = 0"
