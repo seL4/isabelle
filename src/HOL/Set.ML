@@ -645,6 +645,22 @@ AddSEs [rangeE];
 (*** Set reasoning tools ***)
 
 
+(** Rewrite rules for boolean case-splitting: faster than 
+	setloop split_tac[expand_if]
+**)
+
+bind_thm ("expand_if_eq1", read_instantiate [("P", "%x. x = ?b")] expand_if);
+bind_thm ("expand_if_eq2", read_instantiate [("P", "%x. ?a = x")] expand_if);
+
+bind_thm ("expand_if_mem1", 
+    read_instantiate_sg (sign_of Set.thy) [("P", "%x. x : ?b")] expand_if);
+bind_thm ("expand_if_mem2", 
+    read_instantiate_sg (sign_of Set.thy) [("P", "%x. ?a : x")] expand_if);
+
+val expand_ifs = [if_bool_eq, expand_if_eq1, expand_if_eq2,
+		  expand_if_mem1, expand_if_mem2];
+
+
 (*Each of these has ALREADY been added to !simpset above.*)
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
                  mem_Collect_eq, 
