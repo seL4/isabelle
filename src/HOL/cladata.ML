@@ -55,7 +55,8 @@ structure Classical_Data =
 
 structure Classical = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Classical; open BasicClassical;
-structure Obtain = ObtainFun(val that_atts = [Simplifier.simp_add_local, Classical.haz_intro_local]);
+structure Obtain = ObtainFun(val atomic_thesis = HOLogic.atomic_Trueprop and
+  that_atts = [Simplifier.simp_add_local, Classical.haz_intro_local]);
 
 (*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
