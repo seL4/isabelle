@@ -177,8 +177,8 @@ lemma Ap_reduce2: "[| p ---> q;  r \<in> comb |] ==> r#p ---> r#q"
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
    apply (blast intro: reduction_rls)
-  apply (erule trans_rtrancl [THEN transD])
-  apply (blast intro: contract_combD2 reduction_rls)
+  apply (blast intro: trans_rtrancl [THEN transD] 
+                      contract_combD2 reduction_rls)
   done
 
 text {* Counterexample to the diamond property for @{text "-1->"}. *}
