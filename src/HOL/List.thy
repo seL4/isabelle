@@ -181,11 +181,14 @@ primrec
                   {(xs,ys). length xs = Suc n & length ys = Suc n}"
 
 constdefs
- lex :: "('a * 'a)set => ('a list * 'a list)set"
-"lex r == UN n. lexn r n"
+  lex :: "('a * 'a)set => ('a list * 'a list)set"
+    "lex r == UN n. lexn r n"
 
- lexico :: "('a * 'a)set => ('a list * 'a list)set"
-"lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+  lexico :: "('a * 'a)set => ('a list * 'a list)set"
+    "lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+
+  sublist :: "['a list, nat set] => 'a list"
+    "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..size xs(]))"
 
 end
 

@@ -24,10 +24,6 @@ primrec
   "tokens [] = 0"
   "tokens (x#xs) = x + tokens xs"
 
-constdefs sublist :: "['a list, nat set] => 'a list"
-    "sublist l A == map fst (filter (%p. snd p : A) (zip l [0..size l(]))"
-
-
 consts
   bag_of :: 'a list => 'a multiset
 

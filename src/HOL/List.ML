@@ -1439,6 +1439,55 @@ qed "Cons_in_lex";
 AddIffs [Cons_in_lex];
 
 
+(*** sublist (a generalization of nth to sets) ***)
+
+Goalw [sublist_def] "sublist l {} = []";
+by Auto_tac;
+qed "sublist_empty";
+
+Goalw [sublist_def] "sublist [] A = []";
+by Auto_tac;
+qed "sublist_nil";
+
+Goal "map fst [p:zip xs [i..i + length xs(] . snd p : A] =     \
+\     map fst [p:zip xs [0..length xs(] . snd p + i : A]";
+by (res_inst_tac [("xs","xs")] rev_induct 1);
+ by (asm_simp_tac (simpset() addsimps [add_commute]) 2);
+by (Simp_tac 1);
+qed "sublist_shift_lemma";
+
+Goalw [sublist_def]
+     "sublist (l@l') A = sublist l A @ sublist l' {j. j + length l : A}";
+by (res_inst_tac [("xs","l'")] rev_induct 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [inst "i" "0" upt_add_eq_append, 
+	                              zip_append, sublist_shift_lemma]) 1);
+by (asm_simp_tac (simpset() addsimps [add_commute]) 1);
+qed "sublist_append";
+
+Addsimps [sublist_empty, sublist_nil];
+
+Goal "sublist (x#l) A = (if 0:A then [x] else []) @ sublist l {j. Suc j : A}";
+by (res_inst_tac [("xs","l")] rev_induct 1);
+ by (asm_simp_tac (simpset() delsimps [append_Cons]
+	 		     addsimps [append_Cons RS sym, sublist_append]) 2);
+by (simp_tac (simpset() addsimps [sublist_def]) 1);
+qed "sublist_Cons";
+
+Goal "sublist [x] A = (if 0 : A then [x] else [])";
+by (simp_tac (simpset() addsimps [sublist_Cons]) 1);
+qed "sublist_singleton";
+Addsimps [sublist_singleton];
+
+Goal "sublist l {..n(} = take n l";
+by (res_inst_tac [("xs","l")] rev_induct 1);
+ by (asm_simp_tac (simpset() addsplits [nat_diff_split]
+                             addsimps [sublist_append]) 2);
+by (Simp_tac 1);
+qed "sublist_upt_eq_take";
+Addsimps [sublist_upt_eq_take];
+
+
 (*** Versions of some theorems above using binary numerals ***)
 
 AddIffs (map (rename_numerals thy) 
