@@ -10,10 +10,13 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/Auth";
 proof_timing := true;
+goals_limit := 1;
 
 use_thy "Shared";
 use_thy "NS_Shared";
 use_thy "OtwayRees";
 use_thy "OtwayRees_AN";
+use_thy "OtwayRees_Bad";
 use_thy "Yahalom";
+use_thy "Yahalom2";
 
