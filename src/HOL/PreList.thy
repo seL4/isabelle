@@ -7,7 +7,7 @@
 header{*A Basis for Building the Theory of Lists*}
 
 theory PreList
-imports Wellfounded_Relations Presburger Recdef Relation_Power Parity
+imports Wellfounded_Relations Barith Recdef Relation_Power Parity
 begin
 
 text {*
