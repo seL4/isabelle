@@ -76,8 +76,8 @@ sig
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: ((string list * string option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val fix_i: ((string list * typ option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val let_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val let_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val invoke_case: (string * Args.src list) * Comment.text -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
@@ -288,8 +288,8 @@ fun chain comment_ignore = ProofHistory.apply Proof.chain;
 
 val fix = ProofHistory.apply o Proof.fix o map Comment.ignore;
 val fix_i = ProofHistory.apply o Proof.fix_i o map Comment.ignore;
-val match_bind = ProofHistory.apply o Proof.match_bind o map Comment.ignore;
-val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
+val let_bind = ProofHistory.apply o Proof.let_bind o map Comment.ignore;
+val let_bind_i = ProofHistory.apply o Proof.let_bind_i o map Comment.ignore;
 
 fun invoke_case ((name, src), comment_ignore) = ProofHistory.apply (fn state =>
   Proof.invoke_case (name, map (Attrib.local_attribute (Proof.theory_of state)) src) state);

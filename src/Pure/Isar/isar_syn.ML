@@ -333,7 +333,7 @@ val fixP =
 val letP =
   OuterSyntax.command "let" "bind text variables" K.prf_decl
     (P.and_list1 (P.enum1 "as" P.term -- (P.$$$ "=" |-- P.term) -- P.marg_comment)
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.match_bind)));
+      >> (Toplevel.print oo (Toplevel.proof o IsarThy.let_bind)));
 
 val caseP =
   OuterSyntax.command "case" "invoke local context" K.prf_asm
