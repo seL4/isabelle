@@ -325,10 +325,10 @@ qed "Hash_imp_body";
 **)
 
 goal thy 
- "!!evs. [| evs : recur lost; A ~: lost |]               \
-\ ==> EX B' P'. ALL B P.    \
-\        Hash {|Key(shrK A), Agent A, Agent B, Nonce NA, P|} \
-\          : parts (sees lost Spy evs)  -->  B=B' & P=P'";
+ "!!evs. [| evs : recur lost; A ~: lost |]                   \
+\ ==> EX B' P'. ALL B P.                                     \
+\        Hash {|Key(shrK A), Agent A, B, NA, P|} : parts (sees lost Spy evs) \
+\          -->  B=B' & P=P'";
 by (parts_induct_tac 1);
 by (etac responses.induct 3);
 by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
@@ -341,11 +341,9 @@ by (REPEAT (best_tac (!claset addSDs [Hash_imp_body]
 val lemma = result();
 
 goalw thy [HPair_def]
- "!!evs.[| Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|}   \
-\            : parts (sees lost Spy evs);                          \
-\          Hash[Key(shrK A)] {|Agent A, Agent B', Nonce NA, P'|} \
-\            : parts (sees lost Spy evs);                          \
-\          evs : recur lost;  A ~: lost |]                         \
+ "!!evs.[| Hash[Key(shrK A)] {|Agent A,B,NA,P|} : parts (sees lost Spy evs);  \
+\          Hash[Key(shrK A)] {|Agent A,B',NA,P'|} : parts (sees lost Spy evs);\
+\          evs : recur lost;  A ~: lost |]                                    \
 \        ==> B=B' & P=P'";
 by (REPEAT (eresolve_tac partsEs 1));
 by (prove_unique_tac lemma 1);
@@ -412,8 +410,8 @@ qed "respond_certificate";
 
 
 goal thy 
- "!!K'. (PB,RB,KXY) : respond evs               \
-\  ==> EX A' B'. ALL A B N.              \
+ "!!K'. (PB,RB,KXY) : respond evs                          \
+\  ==> EX A' B'. ALL A B N.                                \
 \        Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB} \
 \          -->   (A'=A & B'=B) | (A'=B & B'=A)";
 by (etac respond.induct 1);
@@ -434,11 +432,11 @@ by (Fast_tac 1);
 val lemma = result();
 
 goal thy 
- "!!RB. [| Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB};    \
+ "!!RB. [| Crypt (shrK A) {|Key K, Agent B, N|} : parts {RB};      \
 \          Crypt (shrK A') {|Key K, Agent B', N'|} : parts {RB};   \
-\          (PB,RB,KXY) : respond evs |]               \
+\          (PB,RB,KXY) : respond evs |]                            \
 \ ==>   (A'=A & B'=B) | (A'=B & B'=A)";
-by (prove_unique_tac lemma 1);  (*50 seconds??, due to the disjunctions*)
+by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
 
