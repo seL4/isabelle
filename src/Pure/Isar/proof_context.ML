@@ -66,8 +66,9 @@ sig
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
   val reset_thms: string -> context -> context
-  val have_thmss: thm list -> string -> context attribute list
-    -> (thm list * context attribute list) list -> context -> context * (string * thm list)
+  val have_thmss:
+    ((string * context attribute list) * (thm list * context attribute list) list) list ->
+      context -> context * (string * thm list) list
   val assume: ((int -> tactic) * (int -> tactic))
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
@@ -864,14 +865,16 @@ fun reset_thms name = map_context (fn (thy, data, asms, binds, thms, cases, defs
 
 (* have_thmss *)
 
-fun have_thmss more_ths name more_attrs ths_attrs ctxt =
+fun have_thss (ctxt, ((name, more_attrs), ths_attrs)) =
   let
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, th), attrs @ more_attrs)
       in (ct', th' :: ths) end
     val (ctxt', rev_thms) = foldl app ((ctxt, []), ths_attrs);
-    val thms = flat (rev rev_thms) @ more_ths;
+    val thms = flat (rev rev_thms);
   in (ctxt' |> put_thms (name, thms), (name, thms)) end;
+
+fun have_thmss args ctxt = foldl_map have_thss (ctxt, args);
 
 
 
@@ -890,10 +893,10 @@ fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
     val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
-    val (ctxt'', (_, thms)) =
+    val (ctxt'', [(_, thms)]) =
       ctxt'
       |> auto_bind_facts name props
-      |> have_thmss [] name (attrs @ [Drule.tag_assumption]) ths;
+      |> have_thmss [((name, attrs @ [Drule.tag_assumption]), ths)];
 
     val ctxt''' =
       ctxt''

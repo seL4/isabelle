@@ -50,9 +50,11 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
-  val have_thmss: thm list -> string -> context attribute list ->
-    (thm list * context attribute list) list -> state -> state
   val simple_have_thms: string -> thm list -> state -> state
+  val have_thmss: ((string * context attribute list) *
+    (thm list * context attribute list) list) list -> state -> state
+  val with_thmss: ((string * context attribute list) *
+    (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
   val assm: (int -> tactic) * (int -> tactic)
@@ -218,12 +220,10 @@ fun put_facts facts state =
 
 val reset_facts = put_facts None;
 
-fun have_facts (name, facts) state =
+fun these_factss (state, named_factss) =
   state
-  |> put_facts (Some facts)
-  |> put_thms (name, facts);
-
-fun these_facts (state, ths) = have_facts ths state;
+  |> put_thmss named_factss
+  |> put_facts (Some (flat (map #2 named_factss)));
 
 
 (* goal *)
@@ -268,7 +268,7 @@ val enter_backward = put_mode Backward;
 fun assert_mode pred state =
   let val mode = get_mode state in
     if pred mode then state
-    else raise STATE ("Illegal application of proof command in " ^ mode_name mode ^ " mode", state)
+    else raise STATE ("Illegal application of proof command in " ^ quote (mode_name mode) ^ " mode", state)
   end;
 
 fun is_chain state = get_mode state = ForwardChain;
@@ -466,15 +466,19 @@ val let_bind = gen_bind (ProofContext.match_bind true);
 val let_bind_i = gen_bind (ProofContext.match_bind_i true);
 
 
-(* have_thmss *)
+(* have_thmss etc. *)
 
-fun have_thmss ths name atts ths_atts state =
+fun have_thmss args state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_thmss ths name atts ths_atts)
-  |> these_facts;
+  |> map_context_result (ProofContext.have_thmss args)
+  |> these_factss;
 
-fun simple_have_thms name thms = have_thmss [] name [] [(thms, [])];
+fun simple_have_thms name thms = have_thmss [((name, []), [(thms, [])])];
+
+fun with_thmss args state =
+  let val state' = state |> have_thmss args
+  in state' |> simple_have_thms "" (the_facts state' @ the_facts state) end;
 
 
 (* fix *)
@@ -498,9 +502,8 @@ fun gen_assume f tac args state =
   |> assert_forward
   |> map_context_result (f tac args)
   |> (fn (st, (factss, prems)) =>
-    foldl these_facts (st, factss)
-    |> put_thms ("prems", prems)
-    |> put_facts (Some (flat (map #2 factss))));
+    these_factss (st, factss)
+    |> put_thms ("prems", prems));
 
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
 val soft_asm_tac = Tactic.rtac Drule.triv_goal
@@ -641,8 +644,8 @@ fun finish_local (print_result, print_rule) state =
     print_result {kind = kind_name kind, name = name, thm = result};
     outer_state
     |> auto_bind_facts name [ProofContext.generalize goal_ctxt outer_ctxt t]
-    |> have_thmss [] name atts [Thm.no_attributes
-        [#1 (ProofContext.export_wrt goal_ctxt (Some outer_ctxt)) result]]
+    |> have_thmss [((name, atts), [Thm.no_attributes
+        [#1 (ProofContext.export_wrt goal_ctxt (Some outer_ctxt)) result]])]
     |> opt_solve
     |> (Seq.flat o Seq.map after_qed)
   end;
