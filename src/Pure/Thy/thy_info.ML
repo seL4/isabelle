@@ -152,7 +152,10 @@ fun get_preds name =
 
 (* access theory *)
 
-fun lookup_theory name = #2 (get_thy name);
+fun lookup_theory name =
+  (case lookup_thy name of
+    Some (_, Some thy) => Some thy
+  | _ => None);
 
 fun get_theory name =
   (case lookup_theory name of
