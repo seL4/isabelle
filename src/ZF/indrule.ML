@@ -61,7 +61,7 @@ fun induct_prem ind_alist intr =
 
 (*Avoids backtracking by delivering the correct premise to each goal*)
 fun ind_tac [] 0 = all_tac
-  | ind_tac(prem::prems) i = REPEAT (ares_tac [Part_eqI,prem] i) THEN
+  | ind_tac(prem::prems) i = REPEAT (ares_tac [Part_eqI, prem, refl] i) THEN
 			     ind_tac prems (i-1);
 
 val pred = Free(pred_name, iT-->oT);
@@ -75,7 +75,8 @@ val quant_induct =
       (fn prems =>
        [rtac (impI RS allI) 1,
 	etac raw_induct 1,
-	REPEAT (FIRSTGOAL (eresolve_tac [CollectE,exE,conjE,disjE,ssubst])),
+	REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE, disjE] ORELSE'
+			   hyp_subst_tac)),
 	REPEAT (FIRSTGOAL (eresolve_tac [PartE,CollectE])),
 	ind_tac (rev prems) (length prems) ]);
 
