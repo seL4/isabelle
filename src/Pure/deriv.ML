@@ -142,7 +142,8 @@ fun tree der = tree_aux (der,[]);
 (*Currently declared at end, to avoid conflicting with library's drop
   Can put it after "size" once we switch to List.drop*)
 fun drop (der,0) = der
-  | drop (Join (_, der::_), n) = drop (der, n-1);
+  | drop (Join (_, der::_), n) = drop (der, n-1)
+  | drop (der,_) = der;
 
 end;
 
