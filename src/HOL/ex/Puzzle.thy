@@ -6,7 +6,7 @@
 A question from "Bundeswettbewerb Mathematik"
 *)
 
-Puzzle = Nat +
+Puzzle = Main +
 consts f :: nat => nat
 rules  f_ax "f(f(n)) < f(Suc(n))"
 end
