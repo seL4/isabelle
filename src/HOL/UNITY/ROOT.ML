@@ -7,8 +7,7 @@ Root file for UNITY proofs.
 *)
 
 (*Basic meta-theory*)
-time_use_thy "FP";
-time_use_thy "WFair";
+time_use_thy "UNITY_Main";
 
 (*Simple examples: no composition*)
 time_use_thy "Simple/Deadlock";

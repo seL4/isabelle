@@ -9,58 +9,120 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 *)
 
 
-Token = WFair + 
+theory Token = WFair:
 
 (*process states*)
 datatype pstate = Hungry | Eating | Thinking
 
 record state =
-  token :: nat
-  proc  :: nat => pstate
+  token :: "nat"
+  proc  :: "nat => pstate"
 
 
 constdefs
-  HasTok :: nat => state set
+  HasTok :: "nat => state set"
     "HasTok i == {s. token s = i}"
 
-  H :: nat => state set
+  H :: "nat => state set"
     "H i == {s. proc s i = Hungry}"
 
-  E :: nat => state set
+  E :: "nat => state set"
     "E i == {s. proc s i = Eating}"
 
-  T :: nat => state set
+  T :: "nat => state set"
     "T i == {s. proc s i = Thinking}"
 
 
 locale Token =
-  fixes
-    N         :: nat	 (*number of nodes in the ring*)
-    F         :: state program
-    nodeOrder :: "nat => (nat*nat)set"
-    next      :: nat => nat
+  fixes N and F and nodeOrder and "next"   
+  defines nodeOrder_def:
+       "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
+	 	       (lessThan N <*> lessThan N)"
+      and next_def:
+       "next i == (Suc i) mod N"
+  assumes N_positive [iff]: "0<N"
+      and TR2:  "F : (T i) co (T i Un H i)"
+      and TR3:  "F : (H i) co (H i Un E i)"
+      and TR4:  "F : (H i - HasTok i) co (H i)"
+      and TR5:  "F : (HasTok i) co (HasTok i Un -(E i))"
+      and TR6:  "F : (H i Int HasTok i) leadsTo (E i)"
+      and TR7:  "F : (HasTok i) leadsTo (HasTok (next i))"
 
-  assumes
-    N_positive "0<N"
 
-    TR2  "F : (T i) co (T i Un H i)"
+lemma HasToK_partition: "[| s: HasTok i; s: HasTok j |] ==> i=j"
+by (unfold HasTok_def, auto)
 
-    TR3  "F : (H i) co (H i Un E i)"
+lemma not_E_eq: "(s ~: E i) = (s : H i | s : T i)"
+apply (simp add: H_def E_def T_def)
+apply (case_tac "proc s i", auto)
+done
 
-    TR4  "F : (H i - HasTok i) co (H i)"
+lemma (in Token) token_stable: "F : stable (-(E i) Un (HasTok i))"
+apply (unfold stable_def)
+apply (rule constrains_weaken)
+apply (rule constrains_Un [OF constrains_Un [OF TR2 TR4] TR5])
+apply (auto simp add: not_E_eq)
+apply (simp_all add: H_def E_def T_def)
+done
 
-    TR5  "F : (HasTok i) co (HasTok i Un -(E i))"
 
-    TR6  "F : (H i Int HasTok i) leadsTo (E i)"
+(*** Progress under weak fairness ***)
 
-    TR7  "F : (HasTok i) leadsTo (HasTok (next i))"
+lemma (in Token) wf_nodeOrder: "wf(nodeOrder j)"
+apply (unfold nodeOrder_def)
+apply (rule wf_less_than [THEN wf_inv_image, THEN wf_subset], blast)
+done
 
-  defines
-    nodeOrder_def
-      "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
-		      (lessThan N <*> lessThan N)"
+lemma (in Token) nodeOrder_eq: 
+     "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)"
+apply (unfold nodeOrder_def next_def inv_image_def)
+apply (auto simp add: mod_Suc mod_geq)
+apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
+done
 
-    next_def
-      "next i == (Suc i) mod N"
+(*From "A Logic for Concurrent Programming", but not used in Chapter 4.
+  Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
+lemma (in Token) TR7_nodeOrder:
+     "[| i<N; j<N |] ==>    
+      F : (HasTok i) leadsTo ({s. (token s, i) : nodeOrder j} Un HasTok j)"
+apply (case_tac "i=j")
+apply (blast intro: subset_imp_leadsTo)
+apply (rule TR7 [THEN leadsTo_weaken_R])
+apply (auto simp add: HasTok_def nodeOrder_eq)
+done
+
+
+(*Chapter 4 variant, the one actually used below.*)
+lemma (in Token) TR7_aux: "[| i<N; j<N; i~=j |]     
+      ==> F : (HasTok i) leadsTo {s. (token s, i) : nodeOrder j}"
+apply (rule TR7 [THEN leadsTo_weaken_R])
+apply (auto simp add: HasTok_def nodeOrder_eq)
+done
+
+lemma (in Token) token_lemma:
+     "({s. token s < N} Int token -` {m}) = (if m<N then token -` {m} else {})"
+by auto
+
+
+(*Misra's TR9: the token reaches an arbitrary node*)
+lemma  (in Token) leadsTo_j: "j<N ==> F : {s. token s < N} leadsTo (HasTok j)"
+apply (rule leadsTo_weaken_R)
+apply (rule_tac I = "-{j}" and f = token and B = "{}" 
+       in wf_nodeOrder [THEN bounded_induct])
+apply (simp_all (no_asm_simp) add: token_lemma vimage_Diff HasTok_def)
+ prefer 2 apply blast
+apply clarify
+apply (rule TR7_aux [THEN leadsTo_weaken])
+apply (auto simp add: HasTok_def nodeOrder_def)
+done
+
+(*Misra's TR8: a hungry process eventually eats*)
+lemma (in Token) token_progress:
+     "j<N ==> F : ({s. token s < N} Int H j) leadsTo (E j)"
+apply (rule leadsTo_cancel1 [THEN leadsTo_Un_duplicate])
+apply (rule_tac [2] TR6)
+apply (rule psp [OF leadsTo_j TR3, THEN leadsTo_weaken], blast+)
+done
+
 
 end

@@ -381,8 +381,8 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event_lemmas.ML Auth/Event.thy \
 HOL-UNITY: HOL $(LOG)/HOL-UNITY.gz
 
 $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
-  UNITY/Comp.ML UNITY/Comp.thy \
-  UNITY/Detects.ML UNITY/Detects.thy \
+  UNITY/UNITY_Main.thy UNITY/Comp.ML UNITY/Comp.thy \
+  UNITY/Detects.thy \
   UNITY/ELT.ML UNITY/ELT.thy UNITY/Extend.ML \
   UNITY/Extend.thy UNITY/FP.ML UNITY/FP.thy UNITY/Follows.ML \
   UNITY/Follows.thy UNITY/GenPrefix.ML UNITY/GenPrefix.thy \
@@ -395,16 +395,16 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/UNITY.ML \
   UNITY/UNITY.thy UNITY/Union.ML UNITY/Union.thy UNITY/WFair.ML \
   UNITY/WFair.thy \
-  UNITY/Simple/Channel.ML UNITY/Simple/Channel.thy  \
-  UNITY/Simple/Common.ML UNITY/Simple/Common.thy  \
-  UNITY/Simple/Deadlock.ML UNITY/Simple/Deadlock.thy  \
-  UNITY/Simple/Lift.ML UNITY/Simple/Lift.thy  \
-  UNITY/Simple/Mutex.ML UNITY/Simple/Mutex.thy  \
+  UNITY/Simple/Channel.thy  \
+  UNITY/Simple/Common.thy  \
+  UNITY/Simple/Deadlock.thy  \
+  UNITY/Simple/Lift.thy  \
+  UNITY/Simple/Mutex.thy  \
   UNITY/Simple/NSP_Bad.ML UNITY/Simple/NSP_Bad.thy  \
-  UNITY/Simple/Network.ML UNITY/Simple/Network.thy  \
-  UNITY/Simple/Reach.ML UNITY/Simple/Reach.thy   \
-  UNITY/Simple/Reachability.ML UNITY/Simple/Reachability.thy   \
-  UNITY/Simple/Token.ML UNITY/Simple/Token.thy \
+  UNITY/Simple/Network.thy  \
+  UNITY/Simple/Reach.thy   \
+  UNITY/Simple/Reachability.thy   \
+  UNITY/Simple/Token.thy \
   UNITY/Comp/Alloc.ML UNITY/Comp/Alloc.thy \
   UNITY/Comp/AllocBase.ML UNITY/Comp/AllocBase.thy \
   UNITY/Comp/Client.ML UNITY/Comp/Client.thy \
