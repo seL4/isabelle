@@ -1053,12 +1053,12 @@ fun get_ok (OK x) = Some x
 
 fun handle_error f x =
   let
-    val buffer = ref "";
-    fun capture s = buffer := ! buffer ^ s ^ "\n";
+    val buffer = ref ([]: string list);
+    fun capture s = buffer := ! buffer @ [s];
     val result = Some (setmp error_fn capture f x) handle ERROR => None;
   in
     (case result of
-      None => Error (! buffer)
+      None => Error (cat_lines (! buffer))
     | Some y => OK y)
   end;
 
