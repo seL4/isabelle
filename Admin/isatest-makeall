@@ -5,21 +5,20 @@
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: Run isatool makeall from specified distribution and settings.
-#              Send email if it fails.
-
-# canoncical home for all platforms
-HOME=/usr/stud/isatest
 
 ## global settings
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
+# canoncical home for all platforms 
+HOME=/usr/stud/isatest
+
+# where the log files are
 LOGPREFIX=$HOME/log
-
 MASTERLOG=$LOGPREFIX/isatest.log
+ERRORLOG=$HOME/var/error.log
 
-TMP=/tmp/isatest-makeall.$$
+# where to put test-is-running files
+RUNNING=$HOME/var/running
 
-MAIL=$HOME/bin/pmail
 
 ## diagnostics
 
@@ -30,8 +29,8 @@ function usage()
   echo
   echo "Usage: $PRG distributionpath settings1 [settings2 ...]"
   echo
-  echo "  Run isatool makeall from specified distribution and settings."
-  echo "  Send email if it fails."
+  echo "  Runs isatool makeall from specified distribution and settings."
+  echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
   exit 1
 }
@@ -54,44 +53,45 @@ shift
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
-NICE=nice
-
+# make file flags and nice setup for different target platforms
 case $HOSTNAME in
-        atbroy51)
-	MFLAGS="-j 2"
-	# MFLAGS=""
-  NICE=""
-	;;
+    atbroy51)
+        # 2 processors
+        MFLAGS="-j 2"
+        # MFLAGS=""
+        NICE=""
+        ;;
 
-        atbroy31)
+    atbroy31)
+        # cluster
         MFLAGS="-j 5"
         ;;
-	
-	atbroy12)
-	MFLAGS="-j 5"
-	;;
+  
+    sunbroy2)
+        MFLAGS="-j 4"
+        ;;
 
-	sunbroy2)
-	MFLAGS="-j 4"
-	;;
+    sunbroy1)
+        MFLAGS="-j 2"
+        ;;
 
-	sunbroy1)
-	MFLAGS="-j 2"
-	;;
+    macbroy*)
+        MFLAGS=""
+        NICE=""
+        ;;
 
-   	*)
-	MFLAGS=""
+    *)
+        MFLAGS=""
+        # be nice by default
+        NICE=nice
         ;;
 esac
 
-
-
-LOGS=""
+# main test loop
 
 for SETTINGS in $@; do
 
     [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
-    
 
     # logfile setup
 
@@ -101,6 +101,8 @@ for SETTINGS in $@; do
 
     # the test
 
+    touch $RUNNING/$SHORT
+
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
@@ -108,41 +110,35 @@ for SETTINGS in $@; do
 
     if [ $? -eq 0 ]
     then
+        # test log and cleanup
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
         gzip -f $TESTLOG
-	rm -rf $HOME/isabelle-$SHORT
+        rm -rf $HOME/isabelle-$SHORT
     else
+        # test log
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
-	FAIL="$FAIL$SHORT "
-	LOGS="${LOGS}$TESTLOG "
+
+        # error log
+        echo "Test for platform ${SHORT}failed. Log file available at" >> $ERRORLOG
+        echo "$HOSTNAME:$TESTLOG" >> $ERRORLOG
+        echo "[...]" >> $ERRORLOG
+        tail -3 $L >> $ERRORLOG
+        echo >> $ERRORLOG
+
+        FAIL="$FAIL$SHORT "
     fi
 
+    rm -f $RUNNING/$SHORT
 done
 
+# time and success/failure to master log
 ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
 
-if [ "$FAIL" != "" ]; then
-	echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
-	
-	echo "Test for platform(s) ${FAIL}failed. Log file(s) available at" > $TMP
-	for L in $LOGS; do 
-		echo "$HOSTNAME:$L" >> $TMP 
-		echo "[...]" >> $TMP
-		tail -3 $L >> $TMP
-		echo >> $TMP
-	done
-	echo "Have a nice day," >> $TMP
-	echo "  isatest" >> $TMP
-
-        for R in $MAILTO; do
-	    $MAIL "isabelle test failed" $R $TMP
-	done
-
-	rm $TMP
-
-	exit 1
+if [ -z "$FAIL" ]; then
+    echo "$(date) $HOSTNAME $PRG: all tests successful, elapsed time $ELAPSED." >> $MASTERLOG
 else
-        echo "$(date) $HOSTNAME $PRG: all tests successful, elapsed time $ELAPSED." >> $MASTERLOG
+    echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
+    exit 1
 fi
 
 # end
