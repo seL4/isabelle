@@ -57,9 +57,15 @@ qed "unique_remainder";
 
 (*** Correctness of posDivAlg, the division algorithm for a>=0 and b>0 ***)
 
-Goal "adjust a b (q,r) = (if #0 <= r-b then (#2*q + #1, r-b)  \
-\                         else (#2*q, r))";
-by (simp_tac (simpset() addsimps [adjust_def]) 1);
+(*Unfold all "let"s involving constants*)
+Addsimps [read_instantiate_sg (sign_of IntDiv.thy)
+	          [("s", "number_of ?v")] Let_def];
+
+
+Goal "adjust a b (q,r) = (let diff = r-b in \
+\                         if #0 <= diff then (#2*q + #1, diff)  \
+\                                       else (#2*q, r))";
+by (simp_tac (simpset() addsimps [Let_def,adjust_def]) 1);
 qed "adjust_eq";
 Addsimps [adjust_eq];
 
@@ -90,14 +96,14 @@ by (res_inst_tac [("u", "a"), ("v", "b")] posDivAlg_induct 1);
 by Auto_tac;
 by (ALLGOALS 
     (asm_full_simp_tac (simpset() addsimps [quorem_def,
-					    pos_times_pos_is_pos])));
+					    pos_imp_zmult_pos_iff])));
 (*base case: a<b*)
 by (asm_full_simp_tac (simpset() addsimps [posDivAlg_eqn]) 1);
 (*main argument*)
 by (stac posDivAlg_eqn 1);
 by (ALLGOALS Asm_simp_tac);
 by (etac splitE 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [Let_def]));
 (*the "add one" case*)
 by (asm_full_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
 (*the "just double" case*)
@@ -135,14 +141,14 @@ by (res_inst_tac [("u", "a"), ("v", "b")] negDivAlg_induct 1);
 by Auto_tac;
 by (ALLGOALS 
     (asm_full_simp_tac (simpset() addsimps [quorem_def,
-					    pos_times_pos_is_pos])));
+					    pos_imp_zmult_pos_iff])));
 (*base case: 0<=a+b*)
 by (asm_full_simp_tac (simpset() addsimps [negDivAlg_eqn]) 1);
 (*main argument*)
 by (stac negDivAlg_eqn 1);
 by (ALLGOALS Asm_simp_tac);
 by (etac splitE 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [Let_def]));
 (*the "add one" case*)
 by (asm_full_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
 (*the "just double" case*)
@@ -299,8 +305,7 @@ qed "zdiv_minus1";
 Addsimps [zdiv_minus1];
 
 
-(** Monotonicity results **)
-
+(*** Monotonicity in the first argument (divisor) ***)
 
 Goal "[| a <= a';  #0 < (b::int) |] ==> a div b <= a' div b";
 by (cut_inst_tac [("a","a"),("b","b")] zmod_zdiv_equality 1);
@@ -321,6 +326,73 @@ by (etac subst 1);
 by (etac subst 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [neg_mod_sign,neg_mod_bound])));
 qed "zdiv_mono1_neg";
+
+
+
+(*** Monotonicity in the second argument (dividend) ***)
+
+Goal "[| r + b*q = r' + b'*q';  #0 <= r' + b'*q';  \
+\        r' < b';  #0 <= r;  #0 < b';  b' <= b |]  \
+\     ==> q <= (q'::int)";
+by (subgoal_tac "#0 <= q'" 1);
+ by (subgoal_tac "#0 < b'*(q' + #1)" 2);
+  by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 3);
+ by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_pos_iff]) 2);
+by (subgoal_tac "b*q < b*(q' + #1)" 1);
+ by (Asm_full_simp_tac 1);
+by (subgoal_tac "b*q = r' - r + b'*q'" 1);
+ by (simp_tac (simpset() addsimps zcompare_rls) 2);
+by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
+by (res_inst_tac [("z1","b'*q'")] (zadd_commute RS ssubst) 1);
+by (rtac zadd_zless_mono 1);
+by (arith_tac 1);
+by (rtac zmult_zle_mono1 1);
+by Auto_tac;
+qed "zdiv_mono2_lemma";
+
+
+Goal "[| (#0::int) <= a;  #0 < b';  b' <= b |]  \
+\     ==> a div b <= a div b'";
+by (subgoal_tac "b ~= #0" 1);
+by (arith_tac 2);
+by (cut_inst_tac [("a","a"),("b","b")] zmod_zdiv_equality 1);
+by (cut_inst_tac [("a","a"),("b","b'")] zmod_zdiv_equality 2);
+by Auto_tac;
+by (rtac zdiv_mono2_lemma 1);
+by (etac subst 1);
+by (etac subst 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [pos_mod_sign,pos_mod_bound])));
+qed "zdiv_mono2";
+
+Goal "[| r + b*q = r' + b'*q';  r' + b'*q' < #0;  \
+\        r < b;  #0 <= r';  #0 < b';  b' <= b |]  \
+\     ==> q' <= (q::int)";
+by (subgoal_tac "q' < #0" 1);
+ by (subgoal_tac "b'*q' < #0" 2);
+  by (arith_tac 3);
+ by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_neg_iff]) 2);
+by (subgoal_tac "b*q' < b*(q + #1)" 1);
+ by (Asm_full_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
+by (subgoal_tac "b*q' <= b'*q'" 1);
+ by (asm_simp_tac (simpset() addsimps [zmult_zle_mono1_neg]) 2);
+by (subgoal_tac "b'*q' < b + b*q" 1);
+ by (Asm_simp_tac 2);
+by (arith_tac 1);
+qed "zdiv_mono2_neg_lemma";
+
+Goal "[| a < (#0::int);  #0 < b';  b' <= b |]  \
+\     ==> a div b' <= a div b";
+by (subgoal_tac "b ~= #0" 1);
+by (arith_tac 2);
+by (cut_inst_tac [("a","a"),("b","b")] zmod_zdiv_equality 1);
+by (cut_inst_tac [("a","a"),("b","b'")] zmod_zdiv_equality 2);
+by Auto_tac;
+by (rtac zdiv_mono2_neg_lemma 1);
+by (etac subst 1);
+by (etac subst 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [pos_mod_sign,pos_mod_bound])));
+qed "zdiv_mono2_neg";
 
 
 
