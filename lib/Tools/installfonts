@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# DESCRIPTION: install Isabelle symbol fonts
+# $Id$
 #
+# DESCRIPTION: install Isabelle symbol fonts
+
 
 PRG=$(basename $0)
 
@@ -22,7 +24,7 @@ function usage()
 [ $# -ne 0 ] && usage
 
 
-RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1)
+RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1) || exit 1
 
 case "$RESULT" in
   xlsfonts:*)
