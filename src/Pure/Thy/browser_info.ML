@@ -3,6 +3,8 @@
     Author:     Stefan Berghofer and Carsten Clasohm
     Copyright   1994, 1997 TU Muenchen
 
+The first design of the text-based html browser is due to Mateja Jamnik.
+
 Functions for generating theory browsing information
 (i.e. *.html and *.graph - files).
 *)
