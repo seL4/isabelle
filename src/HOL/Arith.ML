@@ -374,6 +374,7 @@ goal Arith.thy "!!m::nat. m - n <= m";
 by (res_inst_tac [("m","m"), ("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_le_self";
+Addsimps [diff_le_self];
 
 goal Arith.thy "!!i::nat. i-j-k = i - (j+k)";
 by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
@@ -604,9 +605,9 @@ by (asm_full_simp_tac
 qed "Suc_diff_Suc";
 
 goal Arith.thy "!! i::nat. i <= n ==> n - (n - i) = i";
-by (subgoal_tac "(n-i) + (n - (n-i)) = (n-i) + i" 1);
-by (Full_simp_tac 1);
-by (asm_simp_tac (!simpset addsimps [diff_le_self, add_commute]) 1);
+by (etac rev_mp 1);
+by (res_inst_tac [("m","n"),("n","i")] diff_induct 1);
+by (ALLGOALS (asm_simp_tac  (!simpset addsimps [Suc_diff_le])));
 qed "diff_diff_cancel";
 Addsimps [diff_diff_cancel];
 
