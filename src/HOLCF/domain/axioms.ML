@@ -26,11 +26,12 @@ let
   val dc_rep = %%(dname^"_rep");
   val x_name'= "x";
   val x_name = idx_name eqs x_name' (n+1);
+  val dnam = Sign.base_name dname;
 
- val ax_abs_iso=(dname^"_abs_iso",mk_trp(dc_rep`(dc_abs`%x_name')=== %x_name'));
- val ax_rep_iso=(dname^"_rep_iso",mk_trp(dc_abs`(dc_rep`%x_name')=== %x_name'));
+ val ax_abs_iso=(dnam^"_abs_iso",mk_trp(dc_rep`(dc_abs`%x_name')=== %x_name'));
+ val ax_rep_iso=(dnam^"_rep_iso",mk_trp(dc_abs`(dc_rep`%x_name')=== %x_name'));
 
-  val ax_when_def = (dname^"_when_def",%%(dname^"_when") == 
+  val ax_when_def = (dnam^"_when_def",%%(dname^"_when") == 
      foldr (uncurry /\ ) (when_funs cons, /\x_name'((when_body cons (fn (x,y) =>
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))));
 
@@ -45,7 +46,7 @@ let
      |   inj y i j = %%"sinr"`(inj y (i-1) (j-1));
   in foldr /\# (args, outer (inj (parms args) m n)) end;
 
-  val ax_copy_def = (dname^"_copy_def", %%(dname^"_copy") == /\"f" (dc_abs oo 
+  val ax_copy_def = (dnam^"_copy_def", %%(dname^"_copy") == /\"f" (dc_abs oo 
 	foldl (op `) (%%(dname^"_when") , 
 	              mapn (con_def Id true (length cons)) 0 cons)));
 
@@ -72,11 +73,11 @@ let
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
   fun cproj' T = cproj T (length eqs) n;
-  val ax_reach = (dname^"_reach", mk_trp(cproj'(%%"fix"`%%(comp_dname^"_copy"))
+  val ax_reach = (dnam^"_reach", mk_trp(cproj'(%%"fix"`%%(comp_dname^"_copy"))
 					`%x_name === %x_name));
-  val ax_take_def = (dname^"_take_def",%%(dname^"_take") == mk_lam("n",cproj'
+  val ax_take_def = (dnam^"_take_def",%%(dname^"_take") == mk_lam("n",cproj'
 		    (%%"iterate" $ Bound 0 $ %%(comp_dname^"_copy") $ %%"UU")));
-  val ax_finite_def = (dname^"_finite_def",%%(dname^"_finite") == mk_lam(x_name,
+  val ax_finite_def = (dnam^"_finite_def",%%(dname^"_finite") == mk_lam(x_name,
 	mk_ex("n",(%%(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 
 in [ax_abs_iso, ax_rep_iso, ax_when_def, ax_copy_def] @
@@ -87,13 +88,14 @@ end; (* let *)
 
 in (* local *)
 
-fun add_axioms (comp_dname, eqs : eq list) thy' = let
+fun add_axioms (comp_dnam, eqs : eq list) thy' = let
+  val comp_dname = Sign.full_name (sign_of thy') comp_dnam;
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%(dname^"_copy")`Bound 0;
-  val ax_copy_def =(comp_dname^"_copy_def" , %%(comp_dname^"_copy") ==
+  val ax_copy_def =(comp_dnam^"_copy_def" , %%(comp_dname^"_copy") ==
 				    /\"f"(foldr' cpair (map copy_app dnames)));
-  val ax_bisim_def=(comp_dname^"_bisim_def",%%(comp_dname^"_bisim")==mk_lam("R",
+  val ax_bisim_def=(comp_dnam^"_bisim_def",%%(comp_dname^"_bisim")==mk_lam("R",
     let
       fun one_con (con,args) = let
 	val nonrec_args = filter_out is_rec args;

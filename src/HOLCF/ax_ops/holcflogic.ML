@@ -20,6 +20,7 @@ sig
  val mkNotEqUU : term -> term;            (* Trueprop(x ~= UU) *)
  val mkNotEqUU_in : term -> term -> term; (* "v~=UU ==> t" *)
  val ==>     : typ * typ -> typ;          (* Infix operation typ constructor *)
+ val cfun_arrow : string                  (* internalized "->" *)
  val mkOpApp : term -> term -> term;      (* Ops application (f ` x) *)
  val mkCPair : term -> term -> term;      (* cpair constructor *)
 end;
@@ -44,12 +45,16 @@ fun mkNotEqUU v = mk_Trueprop(mkNot(mk_eq(v,Const("UU",fastype_of v))));
 fun mkNotEqUU_in vterm term = 
    mk_implies(mkNotEqUU vterm,term)
 
+val HOLCF_sg = sign_of HOLCF.thy;
+fun mk_typ t (S,T) = Sign.intern_typ HOLCF_sg (Type(t,[S,T]));
+fun rep_Type  (Type  x) = x| rep_Type _ = error "Internal error: rep_Type";
 
 infixr 6 ==>; (* the analogon to --> for operations *)
-fun a ==> b = Type("->",[a,b]);
+val op ==> = mk_typ "->";
+val cfun_arrow = fst (rep_Type (dummyT ==> dummyT));
 
 (* Ops application (f ` x) *)
-fun mkOpApp (f as Const(_,ft as Type("->",[xt,rt]))) x =
+fun mkOpApp (f as Const(_,ft as Type(_(*"->"*),[xt,rt]))) x =
      Const("fapp",ft --> xt --> rt) $ f $ x
   | mkOpApp f x = (error("Internal error: mkOpApp: wrong args"));
 

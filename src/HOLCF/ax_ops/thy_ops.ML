@@ -106,14 +106,13 @@ end;
 
 (* Changing a->b->c res. a*b->c to a=>b=>c. Called by syn_decls. *) 
 (*####*)
-fun op_to_fun true  sign (Type("->" ,[larg,t]))=
-                                         Type("fun",[larg,op_to_fun true sign t])
-  | op_to_fun false sign (Type("->",[args,res])) = let
+fun op_to_fun true  sign (ty as Type(name ,[larg,t]))= if name = cfun_arrow
+                  then Type("fun",[larg,op_to_fun true sign t]) else ty
+  | op_to_fun false sign (ty as Type(name,[args,res])) = let
                 fun otf (Type("*",[larg,rargs])) = Type("fun",[larg,otf rargs])
                 |   otf t                        = Type("fun",[t,res]);
-                in otf args end
-  | op_to_fun _     sign t = t(*error("Wrong type for cinfix/cmixfix : "^
-                              (Sign.string_of_typ sign t))*);
+                in if name = cfun_arrow then otf args else ty end
+  | op_to_fun _     sign t = t;
 (*####*)
 
 (* oldstyle is called by add_ext_axioms(_i) *)
@@ -140,9 +139,6 @@ fun syn_decls curried sign ((name,typ,CInfixl(i))::tl) =
      (name,op_to_fun curried sign typ,Mixfix.Infixr(i))::
       (syn_decls curried sign tl)
   | syn_decls curried sign ((name,typ,CMixfix(x))::tl) =
-(*####
-     ("@"^name,op_to_fun curried sign typ,Mixfix.Mixfix(x))::
-####**)
      (name,op_to_fun curried sign typ,Mixfix.Mixfix(x))::
 
       (syn_decls curried sign tl)
@@ -170,7 +166,8 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
     ::xrules_of true tail
 (*####*)
   | xrules_of true ((name,typ,CMixfix(_))::tail) = 
-        let fun argnames n (Type("->" ,[_,t]))= chr n :: argnames (n+1) t
+        let fun argnames n (Type(name ,[_,t]))= if name = cfun_arrow then
+					chr n :: argnames (n+1) t else []
             |   argnames _ _ = [];
             val names = argnames (ord"A") typ;
         in if names = [] then [] else 
@@ -200,7 +197,8 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
 	      in  itr l end;
 	    fun argnames n (Type("*" ,[_,t]))= chr n :: argnames (n+1) t
 	    |   argnames n _ = [chr n];
-	    val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
+	    val vars = map Variable (case typ of (Type(name ,[t,_])) =>
+			if name = cfun_arrow then argnames (ord"A") t else []
 						 | _ => []);
         in if vars = [] then [] else 
 	    [Syntax.ParsePrintRule 
@@ -241,19 +239,19 @@ local
  
  (* A1->...->An->R goes to [(A1,B1),...,(An,Bn)] where Bi=Ai->...->An->R 
     Bi is the Type of the function that is applied to an Ai type argument *)
- fun args_of_curried (typ as (Type("->",[S,T]))) = 
-      (S,typ) :: args_of_curried T
+ fun args_of_curried (typ as (Type(name,[S,T]))) = if name = cfun_arrow then
+      (S,typ) :: args_of_curried T else []
    | args_of_curried _ = [];
 in
  fun args_of_op true typ = Curried_args(rev(args_of_curried typ))
-   | args_of_op false (typ as (Type("->",[S,T]))) = 
-      Tupeled_args(args_of_tupel S)
+   | args_of_op false (typ as (Type(name,[S,T]))) = if name = cfun_arrow then
+      Tupeled_args(args_of_tupel S) else Tupeled_args([])
    | args_of_op false _ = Tupeled_args([]);
 end;
 
 (* generates for the type t the type of the fapp constant 
    that will be applied to t *)
-fun mk_fapp_typ (typ as Type("->",argl)) = Type("fun",[typ,Type("fun",argl)]) 
+fun mk_fapp_typ (typ as Type(_(*"->"*),argl)) = Type("fun",[typ,Type("fun",argl)]) 
   | mk_fapp_typ t = (
                     error("Internal error:mk_fapp_typ: wrong argument\n"));
                     

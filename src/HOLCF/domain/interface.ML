@@ -40,45 +40,36 @@ local
       (if num > 1 then "val rews = " ^rews1 ^";\n" else "")
     end;
 
-  fun mk_domain (eqs'') = let
-    val dtnvs  = map (rep_Type o fst) eqs'';
+  fun mk_domain eqs'' = let
+    val num    = length eqs'';
+    val dtnvs  = map fst eqs'';
     val dnames = map fst dtnvs;
-    val num = length dnames;
     val comp_dname = implode (separate "_" dnames);
     val conss' = ListPair.map 
-	(fn (dname,cons'') =>
-	  let fun sel n m = upd_second 
+	(fn (dname,cons'') => let fun sel n m = upd_second 
 			      (fn None   => dname^"_sel_"^(string_of_int n)^
-						 "_"^(string_of_int m)
+						      "_"^(string_of_int m)
 				| Some s => s)
 	      fun fill_sels n con = upd_third (mapn (sel n) 1) con;
 	  in mapn fill_sels 1 cons'' end)
-	(dnames, map #2 eqs'');
+	(dnames, map snd eqs'');
     val eqs' = dtnvs~~conss';
 
 (* ----- string for calling add_domain -------------------------------------- *)
 
     val thy_ext_string = let
-      fun mk_tnv (n,v) = mk_pair (quote n, mk_list (map mk_typ v))
-      and mk_typ (TFree(name,sort))= "TFree" ^ 
-			 mk_pair (quote name, mk_list (map quote sort))
-      |   mk_typ (Type (name,args))= "Type" ^mk_tnv(name,args)
-      |   mk_typ _                 = Imposs "interface:mk_typ";
       fun mk_conslist cons' = 
-	  mk_list (map 
-		   (fn (c,syn,ts)=>
-		    mk_triple(quote c, syn, 
-			      mk_list
-			      (map (fn (b,s ,tp) =>
-				    mk_triple(Bool.toString b, quote s,
-					      mk_typ tp)) ts))) cons');
+	  mk_list (map (fn (c,syn,ts)=>
+		    mk_triple(quote c, syn, mk_list (map (fn (b,s ,tp) =>
+		    mk_triple(Bool.toString b, quote s, tp)) ts))) cons');
     in "val (thy, "^comp_dname^"_equations) = thy |> Domain_Extender.add_domain \n"
-       ^ mk_pair(quote comp_dname,
-		 mk_list(map (fn (t,cs)=> mk_pair (mk_tnv t,mk_conslist cs)) eqs'))
+       ^ mk_pair(quote comp_dname, mk_list(map (fn ((n,vs),cs) => 
+				   mk_pair (mk_pair (quote n, mk_list vs), 
+					    mk_conslist cs)) eqs'))
        ^ ";\nval thy = thy"
     end;
 
-(* ----- string for calling (comp_)theorems and producing the structures ---------- *)
+(* ----- string for calling (comp_)theorems and producing the structures ---- *)
 
     val val_gen_string =  let
       fun plural s = if num > 1 then s^"s" else "["^s^"]";
@@ -126,29 +117,29 @@ local
 
   val name' = name >> strip_quotes;
   val type_var' = type_var >> strip_quotes;
-  val sort = name' >> (fn s => [s])
-	  || "{" $$-- !! (list name' --$$ "}");
-  val tvar = (type_var' --(optional("::" $$-- !! sort)["_default"])) >>TFree;
-(*val tvar = type_var >> (fn tv => TFree(strip_quotes tv,["pcpo"]));*)
-  fun type_args l = ("(" $$-- !! (list1 typ --$$ ")")
-	         || tvar  >> (fn x => [x])
-	         || empty >> K []) l
-  and con_typ l   = (type_args -- name' >> (fn (x,y) => Type(y,x))) l
-			(* here ident may be used instead of name' 
-			   to avoid ambiguity with standard mixfix option *)
-  and typ l       = (con_typ 
-		   || tvar) l;
+  fun esc_quote s = let fun esc [] = []
+			|   esc ("\""::xs) = esc xs
+			|   esc ("[" ::xs) = "{"::esc xs
+			|   esc ("]" ::xs) = "}"::esc xs
+			|   esc (x   ::xs) = x  ::esc xs
+		    in implode (esc (explode s)) end;
+  val tvar = (type_var' ^^ optional ($$ "::" ^^ (sort >> esc_quote)) "") >> quote;
+  fun type_args l = (tvar >> (fn x => [x])
+                 ||  "(" $$-- !! (list1 tvar --$$ ")")
+                 ||  empty >> K []) l
+  fun con_typ l   = (type_args -- name' >> (fn (x,y) => (y,x))) l
+                      (* here ident may be used instead of name' 
+                         to avoid ambiguity with standard mixfix option *)
   val domain_arg  = "(" $$-- (optional ($$ "lazy" >> K true) false)
 			  -- (optional ((name' >> Some) --$$ "::") None)
 			  -- typ --$$ ")" >> (fn ((lazy,sel),tp) => (lazy,sel,tp))
-		 || name' >> (fn x => (false,None,Type(x,[]))) 
-		 || tvar  >> (fn x => (false,None,x));
+		 || typ >> (fn x => (false,None,x)) 
   val domain_cons = name' -- !! (repeat domain_arg) 
 		    -- ThyOps.opt_cmixfix
 		    >> (fn ((con,args),syn) => (con,syn,args));
 in
   val domain_decl = (enum1 "," (con_typ --$$ "="  -- !! 
-			       (enum1 "|" domain_cons))) 	    >> mk_domain;
+			       (enum1 "|" domain_cons))) >> mk_domain;
   val gen_by_decl = (optional ($$ "finite" >> K true) false) -- 
 		    (enum1 "," (name'   --$$ "by" -- !!
 			       (enum1 "|" name'))) >> mk_gen_by;

@@ -60,9 +60,9 @@ fun dis_name_ con = "is_"^ (strip_esc   con);
    forbidding "o", "x..","f..","P.." as names *)
 (* a number string is added if necessary *)
 fun mk_var_names types : string list = let
-    fun typid (Type  (id,_)   ) = hd     (explode id)
-      | typid (TFree (id,_)   ) = hd (tl (explode id))
-      | typid (TVar ((id,_),_)) = hd (tl (explode id));
+    fun typid (Type  (id,_)   ) = hd     (explode (Sign.base_name id))
+      | typid (TFree (id,_)   ) = hd (tl (explode (Sign.base_name id)))
+      | typid (TVar ((id,_),_)) = hd (tl (explode (Sign.base_name id)));
     fun nonreserved s = if s mem ["x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
           (case assoc(occupied,vn) of
@@ -76,11 +76,12 @@ in index_vnames(map (nonreserved o typid) types,[("O",0),("o",0)]) end;
 
 fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
 fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
-val tsig_of = #tsig o Sign.rep_sg o sign_of;
-fun pcpo_type thy t = Type.of_sort (tsig_of thy) 
-			(Sign.certify_typ (sign_of thy) t,["pcpo"]);
-fun string_of_typ thy t = let val sg = sign_of thy in
-			  Sign.string_of_typ sg (Sign.certify_typ sg t) end;
+val tsig_of = #tsig o Sign.rep_sg;
+val HOLCF_sg = sign_of HOLCF.thy;
+val pcpoS = Sign.intern_sort HOLCF_sg ["pcpo"];
+fun pcpo_type sg t = Type.of_sort (tsig_of sg) (Sign.certify_typ sg t, pcpoS);
+fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;
+fun str2typ sg = typ_of o read_ctyp sg;
 
 (* ----- constructor list handling ----- *)
 
@@ -105,8 +106,8 @@ fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 (* ----- support for type and mixfix expressions ----- *)
 
-fun mk_tvar s = TFree("'"^s,["pcpo"]);
-fun mk_typ t (S,T) = Type(t,[S,T]);
+fun mk_tvar s = TFree("'"^s,pcpoS);
+fun mk_typ t (S,T) = Sign.intern_typ HOLCF_sg (Type(t,[S,T]));
 infixr 5 -->;
 infixr 6 ~>; val op ~> = mk_typ "->";
 val NoSyn' = ThyOps.Mixfix NoSyn;

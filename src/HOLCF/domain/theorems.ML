@@ -62,7 +62,7 @@ in
 fun theorems thy (((dname,_),cons) : eq, eqs :eq list) =
 let
 
-val dummy = writeln ("Proving isomorphism properties of domain "^dname^"...");
+val dummy = writeln ("Proving isomorphism   properties of domain "^dname^"...");
 val pg = pg' thy;
 (*
 infixr 0 y;
@@ -328,14 +328,15 @@ in     (iso_rews, exhaust, cases, when_rews,
 end; (* let *)
 
 
-fun comp_theorems thy (comp_dname, eqs: eq list, casess, con_rews, copy_rews) =
+fun comp_theorems thy (comp_dnam, eqs: eq list, casess, con_rews, copy_rews) =
 let
-
-val dummy = writeln("Proving induction properties of domain "^comp_dname^"...");
-val pg = pg' thy;
 
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
+val comp_dname = Sign.full_name (sign_of thy) comp_dnam;
+
+val dummy = writeln("Proving induction properties of domain "^comp_dname^"...");
+val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 

@@ -26,11 +26,12 @@ local
 in
   val dtype  = Type(dname,typevars);
   val dtype2 = foldr' (mk_typ "++") (map prod cons');
-  val const_rep  = (dname^"_rep" ,              dtype  ~> dtype2, NoSyn');
-  val const_abs  = (dname^"_abs" ,              dtype2 ~> dtype , NoSyn');
-  val const_when = (dname^"_when", foldr (op ~>) ((map when_type cons'),
-						 dtype ~> freetvar "t"), NoSyn');
-  val const_copy = (dname^"_copy", dtypeprod ~> dtype  ~> dtype , NoSyn');
+  val dnam = Sign.base_name dname;
+  val const_rep  = (dnam^"_rep" ,              dtype  ~> dtype2, NoSyn');
+  val const_abs  = (dnam^"_abs" ,              dtype2 ~> dtype , NoSyn');
+  val const_when = (dnam^"_when", foldr (op ~>) ((map when_type cons'),
+					       	 dtype ~> freetvar "t"), NoSyn');
+  val const_copy = (dnam^"_copy", dtypeprod ~> dtype  ~> dtype , NoSyn');
 end;
 
 (* ----- constants concerning the constructors, discriminators and selectors ------ *)
@@ -60,8 +61,8 @@ end;
 
 (* ----- constants concerning induction ------------------------------------------- *)
 
-  val const_take   = (dname^"_take"  , Type("nat",[]) --> dtype ~> dtype, NoSyn');
-  val const_finite = (dname^"_finite", dtype-->HOLogic.boolT	        , NoSyn');
+  val const_take   = (dnam^"_take"  , Type("nat",[]) --> dtype ~> dtype, NoSyn');
+  val const_finite = (dnam^"_finite", dtype-->HOLogic.boolT	        , NoSyn');
 
 (* ----- case translation --------------------------------------------------------- *)
 
@@ -86,7 +87,7 @@ local open Syntax in
 				 (mapn case1 1 cons')],
        mk_appl (Constant "@fapp") [foldl 
 				 (fn (w,a ) => mk_appl (Constant "@fapp" ) [w,a ])
-				 (Constant (dname^"_when"),mapn arg1 1 cons'),
+				 (Constant (dnam^"_when"),mapn arg1 1 cons'),
 				 Variable "x"])
   end;
 end;
@@ -101,23 +102,17 @@ end; (* let *)
 
 in (* local *)
 
-fun add_syntax (comp_dname,eqs': ((string * typ list) *
+fun add_syntax (comp_dnam,eqs': ((string * typ list) *
 		(string * ThyOps.cmixfix * (bool*string*typ) list) list) list) thy'' =
 let
-  fun thy_type  (dname,tvars)  = (dname, length tvars, NoSyn);
-  fun thy_arity (dname,tvars)  = (dname, map (snd o rep_TFree) tvars, ["pcpo"]);
-  val thy_types   = map (thy_type  o fst) eqs';
-  val thy_arities = map (thy_arity o fst) eqs';
-  val dtypes      = map (Type      o fst) eqs';
+  val dtypes  = map (Type      o fst) eqs';
   val funprod = foldr' (mk_typ "*") (map (fn tp => tp ~> tp                  )dtypes);
   val relprod = foldr' (mk_typ "*") (map (fn tp => tp--> tp --> HOLogic.boolT)dtypes);
-  val const_copy   = (comp_dname^"_copy"  ,funprod ~> funprod       , NoSyn');
-  val const_bisim  = (comp_dname^"_bisim" ,relprod --> HOLogic.boolT, NoSyn');
+  val const_copy   = (comp_dnam^"_copy"  ,funprod ~> funprod       , NoSyn');
+  val const_bisim  = (comp_dnam^"_bisim" ,relprod --> HOLogic.boolT, NoSyn');
   val ctt           = map (calc_syntax funprod) eqs';
   val add_cur_ops_i = ThyOps.add_ops_i {curried=true, strict=false, total=false};
-in thy'' |> Theory.add_types      thy_types
-	 |> Theory.add_arities_i  thy_arities
-	 |> add_cur_ops_i (flat(map fst ctt))
+in thy'' |> add_cur_ops_i (flat(map fst ctt))
 	 |> add_cur_ops_i ((if length eqs'>1 then [const_copy] else[])@[const_bisim])
 	 |> Theory.add_trrules_i (flat(map snd ctt))
 end; (* let *)

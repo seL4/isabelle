@@ -16,70 +16,61 @@ open Domain_Library;
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
 
-  fun check_and_sort_domain (eqs'':((string * typ list) *
-     (string * ThyOps.cmixfix * (bool*string*typ) list) list) list) thy'' = let
-    val dtnvs = map fst eqs'';
-    val cons' = flat (map snd eqs'');
+  fun check_and_sort_domain (dtnvs: (string * typ list) list, cons'' :
+     ((string * ThyOps.cmixfix * (bool*string*typ) list) list) list) sg =
+  let
+    val defaultS = Type.defaultS (tsig_of sg);
     val test_dupl_typs = (case duplicates (map fst dtnvs) of 
 	[] => false | dups => error ("Duplicate types: " ^ commas_quote dups));
-    val test_dupl_cons = (case duplicates (map first cons') of 
-	[] => false | dups => error ("Duplicate constructors: " ^ commas_quote dups));
-    val test_dupl_sels = (case duplicates(map second (flat(map third cons'))) of
+    val test_dupl_cons = (case duplicates (map first (flat cons'')) of 
+	[] => false | dups => error ("Duplicate constructors: " 
+							 ^ commas_quote dups));
+    val test_dupl_sels = (case duplicates 
+			       (map second (flat (map third (flat cons'')))) of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
     val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o rep_TFree)s)of
 	[] => false | dups => error("Duplicate type arguments: " 
-							   ^commas_quote dups))
-	(map snd dtnvs);
-    val default = ["_default"];
-    (*test for free type variables, Inconsistent sort constraints,
-	       non-pcpo-types and invalid use of recursive type*)
-    in map (fn ((dname,typevars),cons') => let
-      val tvars = ref (map rep_TFree typevars) : (string * sort) list ref;
-      fun newsort (TFree(v,s)) = TFree(v,case assoc_string (!tvars,v) of
-		None   => Imposs "extender:newsort"
-	      | Some s => if s=default then Type.defaultS(tsig_of thy'') else s)
-      |   newsort (Type(s,typl)) = Type(s,map newsort typl)
-      |   newsort (TVar _) = Imposs "extender:newsort 2";
-      val analyse_cons = forall (fn con' => let
-	  val types = map third (third con');
-	  fun rm_sorts (TFree(s,_)) = TFree(s,[])
-	  |   rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
-	  |   rm_sorts (TVar(s,_))  = TVar(s,[])
-	  and remove_sorts l = map rm_sorts l;
-          fun analyse(TFree(v,s)) = (case assoc_string(!tvars,v) of 
-			None =>	error ("Free type variable " ^ v ^ " on rhs.")
-		      | Some sort => s = default orelse
-				     if sort = default 
-					then (tvars:= (v,s):: !tvars;true)
-					else eq_set_string (s,sort) orelse
-					error ("Inconsistent sort constraints "^
-					       "for type variable "^quote v))
-	    | analyse(Type(s,typl)) = (case assoc_string (dtnvs,s) of 
-			None => forall analyse typl
-		      | Some tvs => remove_sorts tvs = remove_sorts typl orelse 
-		       		    error ("Recursion of type " ^ s ^ 
-					   " with different arguments"))
-	    | analyse(TVar _) = Imposs "extender:analyse";
-	  in forall analyse types end) cons';
-      fun check_pcpo t = (pcpo_type thy'' t orelse 
-			  error("Not a pcpo type: "^string_of_typ thy'' t); t);
-      fun check_type (t as Type(s,typl)) = (case assoc_string (dtnvs,s) of 
-			None => check_pcpo t | Some _ => t)
-      |   check_type t = check_pcpo t;
-      in ((dname,map newsort typevars),
-	  map (upd_third (map (upd_third (check_type o newsort)))) cons')
-      end) eqs''
-    end; (* let *)
-  fun check_gen_by thy' (typs': string list,cnstrss': string list list) = let
+		   ^commas_quote dups)) (map snd dtnvs);
+    (* test for free type variables, illegal sort constraints on rhs,
+	       non-pcpo-types and invalid use of recursive type;
+       replace sorts in type variables on rhs *)
+    fun analyse_equation ((dname,typevars),cons') = 
+      let
+	val tvars = map rep_TFree typevars;
+	fun rm_sorts (TFree(s,_)) = TFree(s,[])
+	|   rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
+	|   rm_sorts (TVar(s,_))  = TVar(s,[])
+	and remove_sorts l = map rm_sorts l;
+	fun analyse(TFree(v,s)) = (case assoc_string(tvars,v) of 
+		    None      => error ("Free type variable " ^ v ^ " on rhs.")
+	          | Some sort => if eq_set_string (s,defaultS) orelse
+				    eq_set_string (s,sort    ) then TFree(v,sort)
+				 else error ("Additional constraint on rhs "^
+					     "for type variable "^quote v))
+        |    analyse(Type(s,typl)) = (case assoc_string (dtnvs,s) of 
+		    None     =>      Type(s,map analyse typl)
+	          | Some tvs => if remove_sorts tvs = remove_sorts typl 
+				then Type(s,map analyse typl) 
+				else error ("Recursion of type " ^ s ^ 
+					    " with different arguments"))
+        | analyse(TVar _) = Imposs "extender:analyse";
+	fun check_pcpo t = (pcpo_type sg t orelse 
+			   error("Not a pcpo type: "^string_of_typ sg t); t);
+	val analyse_con = upd_third (map (upd_third (check_pcpo o analyse)));
+      in ((dname,typevars), map analyse_con cons') end; 
+  in ListPair.map analyse_equation (dtnvs,cons'')
+  end; (* let *)
+
+  fun check_gen_by sg' (typs': string list,cnstrss': string list list) = let
     val test_dupl_typs = (case duplicates typs' of [] => false
 	  | dups => error ("Duplicate types: " ^ commas_quote dups));
     val test_dupl_cnstrs = map (fn cs => (case duplicates cs of [] => false 
 	| ds => error ("Duplicate constructors: " ^ commas_quote ds))) cnstrss';
-    val tycons = map fst (#tycons(Type.rep_tsig (tsig_of thy')));
+    val tycons = map fst (#tycons(Type.rep_tsig (tsig_of sg')));
     val test_types = forall (fn t => t mem tycons orelse 
 				     error("Unknown type: "^t)) typs';
     val cnstrss = let
-	fun type_of c = case (Sign.const_type(sign_of thy') c) of Some t => t
+	fun type_of c = case (Sign.const_type sg' c) of Some t => t
 				| None => error ("Unknown constructor: "^c);
 	fun args_result_type (t as (Type(tn,[arg,rest]))) = 
 		if tn = "->" orelse tn = "=>"
@@ -95,15 +86,15 @@ open Domain_Library;
 	  list list end;
     fun test_equal_type tn (cn,_,(_,rt)) = fst (rep_Type rt) = tn orelse
 		      error("Inappropriate result type for constructor "^cn);
-    val typs = map (fn (tn, cnstrs) => (map (test_equal_type tn) cnstrs; 
-				snd(third(hd(cnstrs)))))  (typs'~~cnstrss);
-    val test_typs = map (fn (typ,cnstrs) => 
-			if not (pcpo_type thy' typ)
-			then error("Not a pcpo type: "^string_of_typ thy' typ)
+    val typs = ListPair.map (fn (tn, cnstrs) => (map (test_equal_type tn) cnstrs;
+				snd(third(hd(cnstrs)))))  (typs',cnstrss);
+    val test_typs = ListPair.map (fn (typ,cnstrs) => 
+			if not (pcpo_type sg' typ)
+			then error("Not a pcpo type: "^string_of_typ sg' typ)
 			else map (fn (cn,_,(_,rt)) => rt=typ orelse error(
 				"Non-identical result types for constructors "^
 			        first(hd cnstrs)^" and "^ cn ))  cnstrs)
-		    (typs~~cnstrss);
+		    (typs,cnstrss);
     val proper_args = let
 	fun occurs tn (Type(tn',ts)) = (tn'=tn) orelse exists (occurs tn) ts
 	|   occurs _  _              = false;
@@ -120,23 +111,34 @@ open Domain_Library;
 
 in
 
-  fun add_domain (comp_dname,eqs'') thy'' = let
-    val eqs' = check_and_sort_domain eqs'' thy'';
-    val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dname,eqs');
+  fun add_domain (comp_dnam,eqs''') thy''' = let
+    val sg''' = sign_of thy''';
+    val dtnvs = map ((fn (dname,vs) => 
+			 (Sign.full_name sg''' dname,map (str2typ sg''') vs))
+                   o fst) eqs''';
+    val cons''' = map snd eqs''';
+    fun thy_type  (dname,tvars)  = (Sign.base_name dname, length tvars, NoSyn);
+    fun thy_arity (dname,tvars)  = (dname, map (snd o rep_TFree) tvars, pcpoS);
+    val thy'' = thy''' |> Theory.add_types     (map thy_type  dtnvs)
+		       |> Theory.add_arities_i (map thy_arity dtnvs);
+    val sg'' = sign_of thy'';
+    val cons''=map (map (upd_third (map (upd_third (str2typ sg''))))) cons''';
+    val eqs' = check_and_sort_domain (dtnvs,cons'') sg'';
+    val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
     fun cons cons' = (map (fn (con,syn,args) =>
-	(ThyOps.const_name con syn,
-	 map (fn ((lazy,sel,tp),vn) => ((lazy,
+	((ThyOps.const_name con syn),
+	 ListPair.map (fn ((lazy,sel,tp),vn) => ((lazy,
 					 find (tp,dts) handle LIST "find" => ~1),
 					sel,vn))
-	     (args~~(mk_var_names(map third args)))
+	     (args,(mk_var_names(map third args)))
 	 )) cons') : cons list;
     val eqs = map (fn (dtnvs,cons') => (dtnvs,cons cons')) eqs' : eq list;
-    val thy         = thy' |> Domain_Axioms.add_axioms (comp_dname,eqs);
+    val thy         = thy' |> Domain_Axioms.add_axioms (comp_dnam,eqs);
   in (thy,eqs) end;
 
   fun add_gen_by ((tname,finite),(typs',cnstrss')) thy' = let
-   val (typs,cnstrs) = check_gen_by thy' (typs',cnstrss');
+   val (typs,cnstrs) = check_gen_by (sign_of thy') (typs',cnstrss');
   in
    Domain_Axioms.add_induct ((tname,finite),(typs,cnstrs)) thy' end;
 
