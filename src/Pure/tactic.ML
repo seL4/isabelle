@@ -123,9 +123,9 @@ end;
 fun defer_tac i state = 
     let val (state',thaw) = freeze_thaw state
 	val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
-	val hyp::hyps' = drop(i-1,hyps)
+	val hyp::hyps' = List.drop(hyps, i-1)
     in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
-        |> implies_intr_list (take(i-1,hyps) @ hyps')
+        |> implies_intr_list (List.take(hyps, i-1) @ hyps')
         |> thaw
         |> Sequence.single
     end

@@ -294,10 +294,9 @@ fun loose_bvar(Bound i,k) = i >= k
 fun subst_bounds (args: term list, t) : term = 
   let val n = length args;
       fun subst (t as Bound i, lev) =
- 	    if i<lev then  t    (*var is locally bound*)
-	    else  (case (drop (i-lev,args)) of
-		  []     => Bound(i-n)  (*loose: change it*)
-	        | arg::_ => incr_boundvars lev arg)
+ 	   (if i<lev then  t    (*var is locally bound*)
+	    else  incr_boundvars lev (List.nth(args, i-lev))
+		    handle Subscript => Bound(i-n)  (*loose: change it*))
 	| subst (Abs(a,T,body), lev) = Abs(a, T,  subst(body,lev+1))
 	| subst (f$t, lev) =  subst(f,lev)  $  subst(t,lev)
 	| subst (t,lev) = t

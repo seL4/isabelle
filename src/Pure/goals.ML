@@ -42,6 +42,7 @@ signature GOALS =
   val goalw_cterm	: thm list -> cterm -> thm list
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
+  val prlev		: int -> unit
   val prlim		: int -> unit
   val pr_latex		: unit -> unit
   val printgoal_latex	: int -> unit
@@ -52,7 +53,6 @@ signature GOALS =
   val pprint_typ	: typ -> pprint_args -> unit
   val print_exn		: exn -> 'a
   val print_sign_exn	: Sign.sg -> exn -> 'a
-  val prlev		: int -> unit
   val proof_timing	: bool ref
   val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
@@ -260,10 +260,8 @@ fun result () = !curr_mkresult (true, topthm());
 fun uresult () = !curr_mkresult (false, topthm());
 
 (*Get subgoal i from goal stack*)
-fun getgoal i = 
-      (case  drop (i-1, prems_of (topthm()))  of
-	    [] => error"getgoal: Goal number out of range"
-	  | Q::_ => Q);
+fun getgoal i = List.nth (prems_of (topthm()), i-1)
+                handle Subscript => error"getgoal: Goal number out of range";
 
 (*Return subgoal i's hypotheses as meta-level assumptions.
   For debugging uses of METAHYPS*)
@@ -281,9 +279,9 @@ fun filter_goal could ths i = filter_thms could (999, getgoal i, ths);
 fun chop_level n (pair,pairs) = 
   let val level = length pairs
   in  if n<0 andalso ~n <= level
-      then  drop (~n, pair::pairs) 
+      then  List.drop (pair::pairs, ~n) 
       else if 0<=n andalso n<= level
-      then  drop (level - n, pair::pairs) 
+      then  List.drop (pair::pairs, level - n) 
       else  error ("Level number must lie between 0 and " ^ 
 		   string_of_int level)
   end;

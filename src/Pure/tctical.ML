@@ -304,10 +304,8 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 
 
 (*Make a tactic for subgoal i, if there is one.  *)
-fun SUBGOAL goalfun i st = 
-  case drop(i-1, prems_of st) of
-      [] => Sequence.null
-    | prem::_ => goalfun (prem,i) st;
+fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
+                             handle Subscript => Sequence.null;
 
 
 (*** SELECT_GOAL ***)
@@ -346,9 +344,8 @@ fun eq_trivial ct =
 
 (*Does the work of SELECT_GOAL. *)
 fun select tac st0 i =
-  let val cprem::_ = drop(i-1, cprems_of st0)
-      val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
-                                eq_trivial (adjust_maxidx cprem)
+  let val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
+	  eq_trivial (adjust_maxidx (List.nth(cprems_of st0, i-1)))
       fun next st = bicompose false (false, restore st, nprems_of st) i st0
   in  Sequence.flats (Sequence.maps next (tac eq_cprem))
   end;
@@ -365,7 +362,7 @@ fun protect_subgoal st i =
         handle _ => error"SELECT_GOAL -- impossible error???";
 
 fun SELECT_GOAL tac i st = 
-  case (i, drop(i-1, prems_of st)) of
+  case (i, List.drop(prems_of st, i-1)) of
       (_,[]) => Sequence.null
     | (1,[_]) => tac st         (*If i=1 and only one subgoal do nothing!*)
     | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal st i) i
