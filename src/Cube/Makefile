@@ -52,10 +52,10 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:	ex.ML $(BIN)/Cube
+test:	ex/ROOT.ML ex/ex.ML $(BIN)/Cube
 	@case `basename "$(COMP)"` in \
-	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
-	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/Cube;;\
+	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/Cube ;;\
+	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/Cube;;\
 	*)	echo Bad value for ISABELLECOMP: \
 			\"$(COMP)\" is not poly or sml;;\
 	esac
