@@ -63,6 +63,10 @@ Goal "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
 by (Blast_tac 1);
 qed "vimage_UN";
 
+Goal "f-``(INT x:A. B x) = (INT x:A. f -`` B x)";
+by (Blast_tac 1);
+qed "vimage_INT";
+
 bind_thm ("vimage_Collect", allI RS prove_goalw thy [vimage_def]
   "! x. P (f x) = Q x ==> f -`` (Collect P) = Collect Q"
     (fn prems => [cut_facts_tac prems 1, Fast_tac 1]));
@@ -82,11 +86,6 @@ Goal "f-``UNIV = UNIV";
 by (Blast_tac 1);
 qed "vimage_UNIV";
 Addsimps [vimage_UNIV];
-
-Goal "(UN x:A. f -`` B x) = f -`` (UN x:A. B x)";
-by (Blast_tac 1);
-qed "UN_vimage";
-Addsimps [UN_vimage];
 
 (*NOT suitable for rewriting*)
 Goal "f-``B = (UN y: B. f-``{y})";
