@@ -259,13 +259,8 @@ fun use_thy name =
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
-         let val outstream = open_out ".tmp.ML"
-         in
-             output (outstream, "store_theory " ^ quote thy_name ^ " "
-                                ^ thy_name ^ ".thy;\n");
-             close_out outstream 
-         end;
-         use ".tmp.ML";
+         use_string ("store_theory " ^ quote thy_name ^ " " 
+                     ^ thy_name ^ ".thy");
 
          (*Now set the correct info*)
          set_info (file_info thy_file) (file_info ml_file) thy_name;
@@ -277,8 +272,7 @@ fun use_thy name =
          (*Remove temporary files*)
          if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate 
            then ()
-         else delete_file (out_name thy_name);
-         delete_file ".tmp.ML"
+         else delete_file (out_name thy_name)
         )
     end;
 
@@ -455,5 +449,4 @@ fun store_theory thy_name thy =
                       theory = Some thy}]
   in loaded_thys := make_change (!loaded_thys) end;
 
-end
-
+end;
