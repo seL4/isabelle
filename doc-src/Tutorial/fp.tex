@@ -1356,7 +1356,7 @@ theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:
 \begin{quote}\small
 \verbatiminput{Datatype/abgoalind.ML}
-\end{quote}\indexbold{*mutual_induct_tac}
+\end{quote}
 The resulting 8 goals (one for each constructor) are proved in one fell swoop
 \texttt{by Auto_tac;}.
 
@@ -1365,7 +1365,7 @@ Isabelle expects an inductive proof to start with a goal of the form
 \[ P@1(x@1)\ \texttt{\&}\ \dots\ \texttt{\&}\ P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{ttbox}
-by(mutual_induct_tac ["\(x@1\)",\(\dots\),"\(x@n\)"] \(k\));
+by(induct_tac "\(x@1\) \(\dots\) \(x@n\)" \(k\));
 \end{ttbox}
 
 \begin{exercise}
