@@ -183,10 +183,6 @@ fun get_tab prtabs mode =
 fun tabs_of prtabs modes =
   mapfilter (fn mode => assoc (prtabs, mode)) (modes @ [""]);
 
-(*find formats in tab hierarchy*)
-fun get_fmts [] _ = []
-  | get_fmts (tab :: tabs) a = Symtab.lookup_multi (tab, a) @ get_fmts tabs a;
-
 
 (* xprod_to_fmt *)
 
@@ -325,28 +321,26 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
         val nargs = length args;
 
         (*find matching table entry, or print as prefix / postfix*)
-        fun prnt [] = prefixT tup
-          | prnt ((pr, n, p') :: prnps) =
+        fun prnt ([], []) = prefixT tup
+          | prnt ([], tb :: tbs) = prnt (Symtab.lookup_multi (tb, a), tbs)
+          | prnt ((pr, n, p') :: prnps, tbs) =
               if nargs = n then parT (pr, args, p, p')
               else if nargs > n andalso not type_mode then
                 astT (appT (splitT n ([c], args)), p)
-              else prnt prnps;
+              else prnt (prnps, tbs);
       in
         (case token_trans a args of     (*try token translation function*)
           Some (s, len) => [Pretty.strlen s len]	(* FIXME Pretty.sym (!?) *)
         | None =>			(*try print translation functions*)
-            astT (trans a (trf a) args, p) handle Match => prnt (get_fmts tabs a))
+            astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
       | astT (Ast.Variable x, _) = [Pretty.sym x]
-      | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) =
-          combT (c, a, args, p)
+      | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
-  in
-    astT (ast0, p0)
-  end;
+  in astT (ast0, p0) end;
 
 
 (* pretty_term_ast *)
