@@ -22,8 +22,6 @@ sig
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
-  val begin_document: string -> text
-  val end_document: text
   val begin_index: Path.T * string -> Path.T * string -> Path.T option -> text
   val end_index: text
   val theory_entry: Path.T * string -> text
@@ -132,19 +130,15 @@ val verbatim = preform o output;
 (* document *)
 
 fun begin_document title =
-  let val txt = plain title in
-    "<html>\n\
-    \<head>\n\
-    \<title>" ^ txt ^ "</title>\n\
-    \</head>\n\
-    \\n\
-    \<body>\n\
-    \<h1>" ^ txt ^ "</h1>\n"
-  end;
+  "<html>\n\
+  \<head>\n\
+  \<title>" ^ plain (title ^ " (" ^ version ^ ")") ^ "</title>\n\
+  \</head>\n\
+  \\n\
+  \<body>\n\
+  \<h1>" ^ plain title ^ "</h1>\n"
 
-val end_document =
-  "</body>\n\
-  \</html>\n";
+val end_document = "\n</body>\n</html>\n";
 
 fun up_link (up_path, up_name) =
   para (href_path up_path "Up" ^ " to index of " ^ plain up_name);
@@ -154,16 +148,18 @@ fun up_link (up_path, up_name) =
 
 fun begin_index up (index_path, session) opt_readme =
   begin_document ("Index of " ^ session) ^ up_link up ^
-  (case opt_readme of None => "" | Some p => href_path p "README" ^ " file") ^
-  "\n<hr>\n\n<h2>Theories</h2>\n";
+  (case opt_readme of None => "" | Some p => href_path p "README") ^
+  "\n<hr>\n\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
 
-fun entry (p, s) = href_path p (plain s) ^ "<br>\n";
+fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "\n";
+
 val theory_entry = entry;
 
-fun session_entries [] = ""
-  | session_entries es = "\n<hr>\n\n<h2>Sessions</h2>\n" ^ cat_lines (map entry es);
+fun session_entries [] = "</ul>"
+  | session_entries es =
+      "</ul>\n<hr>\n\n<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
 
 
 (* theory *)
