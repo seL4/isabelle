@@ -25,7 +25,6 @@ struct
 local open Ind_Data in
 
 val _$(_$Var(a_ixname,aT)) = concl_of spec;
-val a_name = implode(tl(explode(Syntax.string_of_vname a_ixname)));
 
 fun add_term_frees tsig =
 let fun add(tm, vars) = case tm of
@@ -37,7 +36,7 @@ let fun add(tm, vars) = case tm of
 in add end;
 
 
-fun qnt_tac i = fn (tac,var) => tac THEN res_inst_tac [(a_name,var)] spec i;
+fun qnt_tac i = fn (tac,var) => tac THEN Tactic.res_inst_tac' [(a_ixname,var)] spec i;
 
 (*Generalizes over all free variables, with the named var outermost.*)
 fun all_frees_tac (var:string) i thm = 

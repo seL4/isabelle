@@ -13,8 +13,8 @@ sig
   val induct_tac: string -> int -> tactic
   val exhaust_tac: string -> int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
-  val rep_datatype: xstring * Args.src list -> xstring * Args.src list ->
-    (xstring * Args.src list) list -> (xstring * Args.src list) list -> theory -> theory
+  val rep_datatype: thmref * Args.src list -> thmref * Args.src list ->
+    (thmref * Args.src list) list -> (thmref * Args.src list) list -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
@@ -115,11 +115,8 @@ fun exhaust_induct_tac exh var i state =
         (case prems_of rule of
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
-    val ind_vname = Syntax.string_of_vname ixn
-    val vname' = (*delete leading question mark*)
-        String.substring (ind_vname, 1, size ind_vname-1)
   in
-    eres_inst_tac [(vname',var)] rule i state
+    Tactic.eres_inst_tac' [(ixn, var)] rule i state
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)
