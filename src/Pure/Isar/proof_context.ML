@@ -833,8 +833,12 @@ fun get_case (ctxt as Context {cases, ...}) name =
     None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
   | Some c => c);
 
+
+fun add_case (tab, ("", _)) = tab
+  | add_case (tab, name_c) = Symtab.update (name_c, tab);
+
 fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
-  (thy, data, asms, binds, thms, foldl (Symtab.update o swap) (cases, xs), defs));
+  (thy, data, asms, binds, thms, foldl add_case (cases, xs), defs));
 
 
 
