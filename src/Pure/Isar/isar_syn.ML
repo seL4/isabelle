@@ -353,9 +353,9 @@ val then_refineP =
 val proofP = gen_stepP (Scan.option method) false "proof" "backward proof" IsarThy.proof;
 val terminal_proofP = stepP false "by" "terminal backward proof" IsarThy.terminal_proof;
 
-val trivial_proofP =
-  OuterSyntax.parser false "." "trivial proof"
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.trivial_proof));
+val immediate_proofP =
+  OuterSyntax.parser false "." "immediate proof"
+    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.immediate_proof));
 
 val default_proofP =
   OuterSyntax.parser false ".." "default proof"
@@ -524,7 +524,7 @@ val parsers = [
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
   factsP, beginP, nextP, qedP, qed_withP, kill_proofP, refineP,
-  then_refineP, proofP, terminal_proofP, trivial_proofP,
+  then_refineP, proofP, terminal_proofP, immediate_proofP,
   default_proofP, clear_undoP, undoP, redoP, undosP, redosP, backP,
   prevP, upP, topP,
   (*diagnostic commands*)

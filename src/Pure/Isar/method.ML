@@ -19,7 +19,7 @@ sig
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
-  val trivial: Proof.method
+  val same: Proof.method
   val assumption: Proof.method
   val forward_chain: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
@@ -56,7 +56,7 @@ sig
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val end_block: Proof.state -> Proof.state Seq.seq
   val terminal_proof: text -> Proof.state -> Proof.state Seq.seq
-  val trivial_proof: Proof.state -> Proof.state Seq.seq
+  val immediate_proof: Proof.state -> Proof.state Seq.seq
   val default_proof: Proof.state -> Proof.state Seq.seq
   val qed: bstring option -> theory attribute list option -> Proof.state
     -> theory * (string * string * thm)
@@ -82,15 +82,15 @@ val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
 
 
-(* trivial, assumption *)
+(* same, assumption *)
 
-fun trivial_tac [] = K all_tac
-  | trivial_tac facts =
+fun same_tac [] = K all_tac
+  | same_tac facts =
       let val r = ~ (length facts);
       in metacuts_tac facts THEN' rotate_tac r end;
 
-val trivial = METHOD (ALLGOALS o trivial_tac);
-val assumption = METHOD (fn facts => FIRSTGOAL (trivial_tac facts THEN' assume_tac));
+val same = METHOD (ALLGOALS o same_tac);
+val assumption = METHOD (fn facts => FIRSTGOAL (same_tac facts THEN' assume_tac));
 
 val asm_finish = METHOD (K (FILTER (equal 0 o Thm.nprems_of) (ALLGOALS assume_tac)));
 
@@ -293,7 +293,7 @@ fun proof opt_text state =
 val end_block = Proof.end_block (dynamic_method finishN);
 
 fun terminal_proof text = Seq.THEN (proof (Some text), end_block);
-val trivial_proof = terminal_proof (Basic (K trivial));
+val immediate_proof = terminal_proof (Basic (K same));
 val default_proof = terminal_proof default_txt;
 
 val qed = Proof.qed (dynamic_method finishN);
@@ -307,7 +307,7 @@ val qed = Proof.qed (dynamic_method finishN);
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("trivial", no_args trivial, "proof all goals trivially"),
+  ("same", no_args same, "insert facts, nothing else"),
   ("assumption", no_args assumption, "proof by assumption"),
   ("finish", no_args asm_finish, "finish proof by assumption"),
   ("rule", thms_args rule, "apply primitive rule")];

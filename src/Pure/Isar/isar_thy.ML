@@ -45,7 +45,7 @@ sig
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
   val terminal_proof: Method.text -> ProofHistory.T -> ProofHistory.T
-  val trivial_proof: ProofHistory.T -> ProofHistory.T
+  val immediate_proof: ProofHistory.T -> ProofHistory.T
   val default_proof: ProofHistory.T -> ProofHistory.T
   val use_mltext: string -> theory option -> theory option
   val use_mltext_theory: string -> theory -> theory
@@ -167,7 +167,7 @@ val then_tac = ProofHistory.applys o Method.then_tac;
 val proof = ProofHistory.applys o Method.proof;
 val end_block = ProofHistory.applys_close Method.end_block;
 val terminal_proof = ProofHistory.applys_close o Method.terminal_proof;
-val trivial_proof = ProofHistory.applys_close Method.trivial_proof;
+val immediate_proof = ProofHistory.applys_close Method.immediate_proof;
 val default_proof = ProofHistory.applys_close Method.default_proof;
 
 
