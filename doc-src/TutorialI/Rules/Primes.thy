@@ -2,9 +2,9 @@
 
 theory Primes = Main:
 consts
-  gcd     :: "nat*nat=>nat"               (*Euclid's algorithm *)
+  gcd     :: "nat*nat \<Rightarrow> nat"               (*Euclid's algorithm *)
 
-recdef gcd "measure ((\<lambda>(m,n).n) ::nat*nat=>nat)"
+recdef gcd "measure ((\<lambda>(m,n).n) ::nat*nat \<Rightarrow> nat)"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
 
@@ -89,7 +89,7 @@ theorem gcd_greatest_iff [iff]:
 
 
 constdefs
-  is_gcd  :: "[nat,nat,nat]=>bool"        (*gcd as a relation*)
+  is_gcd  :: "[nat,nat,nat] \<Rightarrow> bool"        (*gcd as a relation*)
     "is_gcd p m n == p dvd m  \<and>  p dvd n  \<and>
                      (ALL d. d dvd m \<and> d dvd n \<longrightarrow> d dvd p)"
 
