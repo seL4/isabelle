@@ -61,13 +61,13 @@ val output_chr = fn
   "|" => "{\\isacharbar}" |
   "}" => "{\\isacharbraceright}" |
   "~" => "{\\isachartilde}" |
-  c => if Symbol.is_digit c then enclose "\\isadigit{" "}" c else c;
+  c => if Symbol.is_digit c then enclose "{\\isadigit{" "}}" c else c;
 
 fun output_sym s =
   if size s = 1 then output_chr s
   else
     (case explode s of
-      cs as "\\" :: "<" :: "^" :: _ => implode (map output_chr cs)
+      "\\" :: "<" :: "^" :: cs => "\\isactrl" ^ implode (#1 (Library.split_last cs)) ^ " "
     | "\\" :: "<" :: cs => "{\\isasym" ^ implode (#1 (Library.split_last cs)) ^ "}"
     | _ => sys_error "output_sym");
 
