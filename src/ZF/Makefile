@@ -96,8 +96,8 @@ Resid:  $(BIN)/ZF  $(RESID_FILES)
 	echo 'exit_use"Resid/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
-EX_NAMES = Ramsey Integ twos_compl Bin BT Term TF Ntree Brouwer Data Enum \
-	   Rmap PropLog ListN Acc Comb Primrec LList CoUnit 
+EX_NAMES = Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
+           Data Enum Rmap PropLog ListN Acc Comb Primrec LList CoUnit 
 
 EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 

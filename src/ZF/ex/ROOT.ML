@@ -15,6 +15,7 @@ loadpath := [".", "ex"];
 
 time_use     "ex/misc.ML";
 time_use_thy "ex/Ramsey";
+time_use_thy "ex/Limit";
 
 (*Integers & Binary integer arithmetic*)
 time_use_thy "ex/Bin";
