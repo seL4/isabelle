@@ -8,9 +8,7 @@
 
 (* ---------------------------- Data lemmas ---------------------------- *)
 
-goal List.thy "xs ~= [] --> tl(xs @ ys) = (tl xs) @ ys";
-by (auto_tac (!claset, !simpset addsimps [tl_append,neq_Nil_conv]));
-qed_spec_mp "tl_append2";
+(* "xs ~= [] --> tl(xs @ ys) = (tl xs) @ ys" *)
 Addsimps [tl_append2];
 
 goal List.thy "xs ~= [] --> tl xs ~= xs";
@@ -18,15 +16,7 @@ by (auto_tac (!claset, !simpset addsimps [neq_Nil_conv]));
 qed_spec_mp "tl_not_self";
 Addsimps [tl_not_self];
 
-goal List.thy "!ys zs. (ys @ xs = zs @ xs) = (ys=zs)";
-by (induct_tac "xs" 1);
-by (Simp_tac 1);
-by (REPEAT (rtac allI 1));
-by (subgoal_tac "((ys @ [a]) @ list = (zs @ [a]) @ list) = (ys=zs)" 1);
-by (Asm_full_simp_tac 1);
-by (Blast_tac 1);
-qed_spec_mp "append_same_eq";
-AddIffs [append_same_eq];
+(* "!ys zs. (ys @ xs = zs @ xs) = (ys=zs)" has been subsumed *)
 
 (* ---------------------------- Action lemmas ---------------------------- *)
 
