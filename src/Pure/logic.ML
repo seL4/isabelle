@@ -10,12 +10,6 @@ infix occs;
 
 signature LOGIC = 
 sig
-  val indexname_ord	: indexname * indexname -> order
-  val typ_ord		: typ * typ -> order
-  val typs_ord		: typ list * typ list -> order
-  val term_ord		: term * term -> order
-  val terms_ord		: term list * term list -> order
-  val termless		: term * term -> bool
   val assum_pairs	: term -> (term*term)list
   val auto_rename	: bool ref   
   val close_form	: term -> term   
@@ -58,58 +52,6 @@ end;
 
 structure Logic : LOGIC =
 struct
-
-
-(** type and term orders **)
-
-fun indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
-
-
-(* typ_ord *)
-
-(*assumes that TFrees / TVars with the same name have same sorts*)
-fun typ_ord (Type (a, Ts), Type (b, Us)) =
-      (case string_ord (a, b) of EQUAL => typs_ord (Ts, Us) | ord => ord)
-  | typ_ord (Type _, _) = GREATER
-  | typ_ord (TFree _, Type _) = LESS
-  | typ_ord (TFree (a, _), TFree (b, _)) = string_ord (a, b)
-  | typ_ord (TFree _, TVar _) = GREATER
-  | typ_ord (TVar _, Type _) = LESS
-  | typ_ord (TVar _, TFree _) = LESS
-  | typ_ord (TVar (xi, _), TVar (yj, _)) = indexname_ord (xi, yj)
-and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
-
-
-(* term_ord *)
-
-(*a linear well-founded AC-compatible ordering for terms:
-  s < t <=> 1. size(s) < size(t) or
-            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
-            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
-               (s1..sn) < (t1..tn) (lexicographically)*)
-
-fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
-  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
-  | dest_hd (Var v) = (v, 2)
-  | dest_hd (Bound i) = ((("", i), dummyT), 3)
-  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
-
-fun term_ord (Abs (_, T, t), Abs(_, U, u)) =
-      (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
-  | term_ord (t, u) =
-      (case int_ord (size_of_term t, size_of_term u) of
-        EQUAL =>
-          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
-            (case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord)
-          end
-      | ord => ord)
-and hd_ord (f, g) =
-  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
-and terms_ord (ts, us) = list_ord term_ord (ts, us);
-
-fun termless tu = (term_ord tu = LESS);
-
 
 
 (*** Abstract syntax operations on the meta-connectives ***)
@@ -227,8 +169,7 @@ fun t occs u = (t aconv u) orelse
 
 (*Close up a formula over all free variables by quantification*)
 fun close_form A =
-    list_all_free (map dest_Free (sort atless (term_frees A)),   
-		   A);
+  list_all_free (sort_wrt fst (map dest_Free (term_frees A)), A);
 
 
 (*** Specialized operations for resolution... ***)
