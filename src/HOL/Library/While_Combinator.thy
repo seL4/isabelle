@@ -54,7 +54,7 @@ text {*
  The recursion equation for @{term while}: directly executable!
 *}
 
-theorem while_unfold:
+theorem while_unfold [code]:
     "while b c s = (if b s then while b c (c s) else s)"
   apply (unfold while_def)
   apply (rule while_aux_unfold [THEN trans])
