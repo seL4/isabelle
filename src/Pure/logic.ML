@@ -314,16 +314,34 @@ fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
 
 (*** term order ***)
 
-(* NB: non-linearity of the ordering is not a soundness problem *)
+fun dest_hd(Const(a,T)) = (a,T,0)
+  | dest_hd(Free(a,T))  = (a,T,1)
+  | dest_hd(Var(v,T))   = (Syntax.string_of_vname v, T, 2)
+  | dest_hd(Bound i)    = (string_of_int i,dummyT,3)
+  | dest_hd(Abs(x,T,_)) = (x,T,4);
 
-(* FIXME: "***ABSTRACTION***" is a hack and makes the ordering non-linear *)
-fun string_of_hd(Const(a,_)) = a
-  | string_of_hd(Free(a,_))  = a
-  | string_of_hd(Var(v,_))   = Syntax.string_of_vname v
-  | string_of_hd(Bound i)    = string_of_int i
-  | string_of_hd(Abs _)      = "***ABSTRACTION***";
+(* assumes that vars/frees with the same name have same classes *)
+fun typord(T,U) = if T=U then EQUAL else
+ (case (T,U) of
+    (Type(a,Ts),Type(b,Us)) =>
+      (case stringord(a,b) of EQUAL => lextypord(Ts,Us) | ord => ord)
+  | (Type _, _) => GREATER
+  | (TFree _,Type _) => LESS
+  | (TFree(a,_),TFree(b,_)) => stringord(a,b)
+  | (TFree _, TVar _) => GREATER
+  | (TVar _,Type _) => LESS
+  | (TVar _,TFree _) => LESS
+  | (TVar(va,_),TVar(vb,_)) =>
+      stringord(Syntax.string_of_vname va,Syntax.string_of_vname vb))
+and lextypord(T::Ts,U::Us) =
+      (case typord(T,U) of
+         EQUAL => lextypord(Ts,Us)
+       | ord   => ord)
+  | lextypord([],[]) = EQUAL
+  | lextypord _ = error("lextypord");
 
-(* a strict (not reflexive) linear well-founded AC-compatible ordering
+
+(* a linear well-founded AC-compatible ordering
  * for terms:
  * s < t <=> 1. size(s) < size(t) or
              2. size(s) = size(t) and s=f(...) and t = g(...) and f<g or
@@ -331,14 +349,18 @@ fun string_of_hd(Const(a,_)) = a
                 (s1..sn) < (t1..tn) (lexicographically)
  *)
 
-(* FIXME: should really take types into account as well.
- * Otherwise non-linear *)
-fun termord(Abs(_,_,t),Abs(_,_,u)) = termord(t,u)
+fun termord(Abs(x,T,t),Abs(y,U,u)) =
+      (case termord(t,u) of EQUAL => typord(T,U) | ord => ord)
   | termord(t,u) =
       (case intord(size_of_term t,size_of_term u) of
          EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
-                  in case stringord(string_of_hd f, string_of_hd g) of
-                       EQUAL => lextermord(ts,us)
+                      val (a,T,i) = dest_hd f and (b,U,j) = dest_hd g
+                  in case stringord(a,b) of
+                       EQUAL => (case typord(T,U) of
+                                   EQUAL => (case intord(i,j) of
+                                               EQUAL => lextermord(ts,us)
+                                             | ord => ord)
+                                 | ord => ord)
                      | ord   => ord
                   end
        | ord => ord)
