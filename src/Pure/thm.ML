@@ -1603,12 +1603,21 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
         | rews (rrule::rrules) =
             let val opt = rew rrule handle Pattern.MATCH => None
             in case opt of None => rews rrules | some => some end;
-
+      fun sort_rrules rrs = let
+	fun is_simple {thm as Thm{prop,...}, lhs, perm} = case prop of 
+					Const("==",_) $ _ $ _ => true
+					| _		      => false 
+	fun sort []        (re1,re2) = re1 @ re2
+	|   sort (rr::rrs) (re1,re2) = if is_simple rr 
+				       then sort rrs (rr::re1,re2)
+				       else sort rrs (re1,rr::re2)
+      in sort rrs ([],[]) 
+      end
   in case etat of
        Abs(_,_,body) $ u => Some(shypst, hypst, maxidxt, 
 				 subst_bounds([u], body),
 				 ders)
-     | _                 => rews(Net.match_term net etat)
+     | _                 => rews (sort_rrules (Net.match_term net etat))
   end;
 
 (*Conversion to apply a congruence rule to a term*)
