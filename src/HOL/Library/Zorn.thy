@@ -1,8 +1,7 @@
-(*  Title       \<in> Zorn.thy
-    ID          \<in> $Id$
-    Author      \<in> Jacques D. Fleuriot
-    Copyright   \<in> 1998  University of Cambridge
-    Description \<in> Zorn's Lemma -- See Larry Paulson's Zorn.thy in ZF
+(*  Title       : Zorn.thy
+    ID          : $Id$
+    Author      : Jacques D. Fleuriot
+    Description : Zorn's Lemma -- See Larry Paulson's Zorn.thy in ZF
 *) 
 
 header {*Zorn's Lemma*}
@@ -14,21 +13,21 @@ the Mechanization of the Proofs of Some Classical Theorems of Set Theory,'' by
 Abrial and Laffitte.  *}
 
 constdefs
-  chain     ::  "'a::ord set => 'a set set"
+  chain     ::  "'a set set => 'a set set set"
     "chain S  == {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}" 
 
-  super     ::  "['a::ord set,'a set] => 'a set set"
+  super     ::  "['a set set,'a set set] => 'a set set set"
     "super S c == {d. d \<in> chain(S) & c < d}"
 
-  maxchain  ::  "'a::ord set => 'a set set"
+  maxchain  ::  "'a set set => 'a set set set"
     "maxchain S == {c. c \<in> chain S & super S c = {}}"
 
-  succ      ::  "['a::ord set,'a set] => 'a set"
+  succ      ::  "['a set set,'a set set] => 'a set set"
     "succ S c == if (c \<notin> chain S| c \<in> maxchain S) 
                  then c else (@c'. c': (super S c))" 
 
 consts 
-  "TFin" ::  "'a::ord set => 'a set set"
+  "TFin" ::  "'a set set => 'a set set set"
 
 inductive "TFin(S)"
   intros
