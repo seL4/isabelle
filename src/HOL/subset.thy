@@ -27,6 +27,13 @@ constdefs
     (\<forall>y \<in> A. Rep (Abs y) = y)"
   -- {* This will be stated as an axiom for each typedef! *}
 
+lemma type_definitionI [intro]:
+  "(\<And>x. Rep x \<in> A) \<Longrightarrow>
+    (\<And>x. Abs (Rep x) = x) \<Longrightarrow>
+    (\<And>y. y \<in> A \<Longrightarrow> Rep (Abs y) = y) \<Longrightarrow>
+    type_definition Rep Abs A"
+  by (unfold type_definition_def) blast
+
 theorem Rep: "type_definition Rep Abs A ==> Rep x \<in> A"
   by (unfold type_definition_def) blast
 
