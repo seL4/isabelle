@@ -4,16 +4,17 @@ Isabelle NEWS -- history user-relevant changes
 
 *** Overview of INCOMPATIBILITIES ***
 
-* HOL/Real: "rinv" and "hrinv" replaced by overloaded "inverse"
-operation;
-
-* HOL: induct renamed to lfp_induct;
+* HOL: induct renamed to lfp_induct, lfp_Tarski to lfp_unfold,
+gfp_Tarski to gfp_unfold;
 
 * HOL: contrapos, contrapos2 renamed to contrapos_nn, contrapos_pp;
 
 * HOL: infix "dvd" now has priority 50 rather than 70 (because it is a
 relation); infix "^^" has been renamed "``"; infix "``" has been
 renamed "`"; "univalent" has been renamed "single_valued";
+
+* HOL/Real: "rinv" and "hrinv" replaced by overloaded "inverse"
+operation;
 
 * HOLCF: infix "`" has been renamed "$"; the symbol syntax is \<cdot>;
 
@@ -29,10 +30,6 @@ consequence, it is no longer monotonic wrt. the local goal context
 
 *** Document preparation ***
 
-* improved isabelle style files; more abstract symbol implementation
-(should now use \isamath{...} and \isatext{...} in custom symbol
-definitions);
-
 * \isabellestyle{NAME} selects version of Isabelle output (currently
 available: are "it" for near math-mode best-style output, "sl" for
 slanted text style, and "tt" for plain type-writer; if no
@@ -44,6 +41,10 @@ like this: "A\<^sup>*" or "A\<^sup>\<star>";
 
 * some more standard symbols; see Appendix A of the system manual for
 the complete list;
+
+* improved isabelle style files; more abstract symbol implementation
+(should now use \isamath{...} and \isatext{...} in custom symbol
+definitions);
 
 * antiquotation @{goals} and @{subgoals} for output of *dynamic* goals
 state; Note that presentation of goal states does not conform to
