@@ -64,7 +64,7 @@ val FOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
 
 val ex1_functional = prove_goal FOL.thy
     "!!a b c. [| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
- (fn _ => [ (deepen_tac FOL_cs 1 1) ]);
+ (fn _ => [ (deepen_tac FOL_cs 0 1) ]);
 
 use "simpdata.ML";
 
