@@ -12,7 +12,6 @@ goals_limit := 1;
 add_path "meta_theory";
 
 use_thy "Abstraction";
-use_thy "TrivEx";
-use_thy "TrivEx2";
 
-reset_path ();
+use"~/isabelle/src/HOLCF/IOA/meta_theory/ioa_package.ML";
+use"~/isabelle/src/HOLCF/IOA/meta_theory/ioa_syn.ML";
