@@ -232,6 +232,7 @@ sig
   val sort: ('a * 'a -> order) -> 'a list -> 'a list
   val sort_strings: string list -> string list
   val sort_wrt: ('a -> string) -> 'a list -> 'a list
+  val unique_strings: string list -> string list
 
   (*I/O and diagnostics*)
   val cd: string -> unit
@@ -1127,6 +1128,11 @@ fun sort ord =
 val sort_strings = sort string_ord;
 fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 
+fun unique_strings ([]: string list) = []
+  | unique_strings [x] = [x]
+  | unique_strings (x :: y :: ys) =
+      if x = y then unique_strings (y :: ys)
+      else x :: unique_strings (y :: ys);
 
 
 (** input / output and diagnostics **)
