@@ -75,10 +75,10 @@ lemma "\<lbrakk> \<not> m < n; m < n + (1::nat) \<rbrakk> \<Longrightarrow> m = 
 text{*\noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
 logical connectives, and all arithmetic operations apart from addition.
-In consequence, @{text auto} cannot prove this slightly more complex goal:
+In consequence, @{text auto} and @{text simp} cannot prove this slightly more complex goal:
 *}
 
-lemma "\<not> m < n \<and> m < n + (1::nat) \<Longrightarrow> m = n";
+lemma "m \<noteq> (n::nat) \<Longrightarrow> m < n \<or> n < m"
 (*<*)by(arith)(*>*)
 
 text{*\noindent
