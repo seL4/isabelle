@@ -25,8 +25,8 @@ which is also implemented by Gordon's~{\sc hol} system~\cite{mgordon-hol}.
 This object-logic should not be confused with Isabelle's meta-logic, which is
 also a form of higher-order logic.
 
-\item[\thydx{HOLCF}] is an alternative version of {\sc lcf}, defined
-  as an extension of {\tt HOL}\@.
+\item[\thydx{HOLCF}] is a version of {\sc lcf}, defined as an
+  extension of {\tt HOL}\@.
  
 \item[\thydx{CTT}] is a version of Martin-L\"of's Constructive Type
 Theory~\cite{nordstrom90}, with extensional equality.  Universes are not
@@ -79,17 +79,18 @@ $(\exists x.P)\disj Q$.  Note especially that $P\disj(\exists x.Q)$
 becomes syntactically invalid if the brackets are removed.
 
 A {\bf binder} is a symbol associated with a constant of type
-$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as a
-binder for the constant~$All$, which has type $(\alpha\To o)\To o$.  This
-defines the syntax $\forall x.t$ to mean $All(\lambda x.t)$.  We can
-also write $\forall x@1\ldots x@m.t$ to abbreviate $\forall x@1.  \ldots
-\forall x@m.t$; this is possible for any constant provided that $\tau$ and
-$\tau'$ are the same type.  \HOL's description operator $\epsilon x.P(x)$
-has type $(\alpha\To bool)\To\alpha$ and can bind only one variable, except
-when $\alpha$ is $bool$.  \ZF's bounded quantifier $\forall x\in A.P(x)$
-cannot be declared as a binder because it has type $[i, i\To o]\To o$.  The
-syntax for binders allows type constraints on bound variables, as in
-\[ \forall (x{::}\alpha) \; (y{::}\beta). R(x,y) \]
+$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as
+a binder for the constant~$All$, which has type $(\alpha\To o)\To o$.
+This defines the syntax $\forall x.t$ to mean $All(\lambda x.t)$.  We
+can also write $\forall x@1\ldots x@m.t$ to abbreviate $\forall x@1.
+\ldots \forall x@m.t$; this is possible for any constant provided that
+$\tau$ and $\tau'$ are the same type.  \HOL's description operator
+$\varepsilon x.P\,x$ has type $(\alpha\To bool)\To\alpha$ and can bind
+only one variable, except when $\alpha$ is $bool$.  \ZF's bounded
+quantifier $\forall x\in A.P(x)$ cannot be declared as a binder
+because it has type $[i, i\To o]\To o$.  The syntax for binders allows
+type constraints on bound variables, as in
+\[ \forall (x{::}\alpha) \; y{::}\beta. R(x,y) \]
 
 To avoid excess detail, the logic descriptions adopt a semi-formal style.
 Infix operators and binding operators are listed in separate tables, which
