@@ -209,14 +209,14 @@ val arity_decls = repeat1 (names1 --$$ "::" -- !! arity)
 
 (* mixfix annotations *)
 
-val infxl = "infixl" $$-- !! nat >> cat "Infixl";
-val infxr = "infixr" $$-- !! nat >> cat "Infixr";
+val infxl =
+  "infixl" $$-- !! (nat >> cat "Infixl" || string -- nat >> (cat "InfixlName" o mk_pair));
+val infxr =
+  "infixr" $$-- !! (nat >> cat "Infixr" || string -- nat >> (cat "InfixrName" o mk_pair));
 
 val binder = "binder" $$--
-  !! (string -- ( ("[" $$-- nat --$$ "]") -- nat
-                || nat >> (fn n => (n,n))
-     )          )
-  >> (cat "Binder" o mk_triple2);
+  !! (string -- (("[" $$-- nat --$$ "]") -- nat || nat >> (fn n => (n, n))))
+    >> (cat "Binder" o mk_triple2);
 
 val opt_pris = optional ("[" $$-- !! (list nat --$$ "]")) [] >> mk_list;
 
@@ -304,6 +304,10 @@ val const_decls = repeat1 (names1 --$$ "::" -- !!
                     ((string || const_type false >> quote) -- opt_mixfix)) >>
                   (mk_big_list o map mk_triple2 o split_decls);
 
+val syntax_decls =
+  optional ("(" $$-- !! (name --$$ ")")) "\"\"" -- const_decls
+    >> (fn (mode, txt) => mode ^ "\n" ^ txt);
+
 
 (* translations *)
 
@@ -316,8 +320,8 @@ val trans_arrow =
   $$ "==" >> K "Syntax.<-> ";
 
 val trans_line =
-    trans_pat -- !! (trans_arrow -- trans_pat) >>
-        (fn (left, (arr, right)) => arr ^ "(" ^ left ^ ",\t" ^ right ^ ")");
+  trans_pat -- !! (trans_arrow -- trans_pat)
+    >> (fn (left, (arr, right)) => arr ^ mk_pair (left, right));
 
 val trans_decls = repeat1 trans_line >> mk_big_list;
 
@@ -529,7 +533,7 @@ val pure_sections =
   section "types" "" type_decls,
   section "arities" "|> add_arities" arity_decls,
   section "consts" "|> add_consts" const_decls,
-  section "syntax" "|> add_syntax" const_decls,
+  section "syntax" "|> add_modesyntax" syntax_decls,
   section "translations" "|> add_trrules" trans_decls,
   section "MLtrans" "|> add_trfuns" mltrans,
   section "MLtext" "" verbatim,
