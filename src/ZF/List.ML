@@ -47,7 +47,7 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 qed "list_univ";
 
 (*These two theorems are unused -- useful??*)
-val list_subset_univ = standard ([list_mono, list_univ] MRS subset_trans);
+bind_thm ("list_subset_univ", ([list_mono, list_univ] MRS subset_trans));
 
 goal List.thy "!!l A B. [| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
 by (REPEAT (ares_tac [list_subset_univ RS subsetD] 1));
@@ -272,7 +272,7 @@ qed "list_rec_map";
 (** theorems about list(Collect(A,P)) -- used in ex/term.ML **)
 
 (* c : list(Collect(B,P)) ==> c : list(B) *)
-val list_CollectD = standard (Collect_subset RS list_mono RS subsetD);
+bind_thm ("list_CollectD", (Collect_subset RS list_mono RS subsetD));
 
 val prems = goal List.thy
     "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)";
@@ -320,7 +320,7 @@ by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps [drop_0,drop_succ_Cons])));
 by (fast_tac ZF_cs 1);
 qed "drop_length_Cons_lemma";
-val drop_length_Cons = standard (drop_length_Cons_lemma RS spec);
+bind_thm ("drop_length_Cons", (drop_length_Cons_lemma RS spec));
 
 goal List.thy
     "!!l. l: list(A) ==> ALL i: length(l).  EX z zs. drop(i,l) = Cons(z,zs)";
@@ -339,7 +339,7 @@ by (dtac bspec 1);
 by (fast_tac ZF_cs 2);
 by (fast_tac (ZF_cs addEs [succ_in_naturalD,length_type]) 1);
 qed "drop_length_lemma";
-val drop_length = standard (drop_length_lemma RS bspec);
+bind_thm ("drop_length", (drop_length_lemma RS bspec));
 
 
 (*** theorems about app ***)

@@ -18,12 +18,12 @@ open Acc;
 val prems = goal Acc.thy
     "[| !!b. <b,a>:r ==> b: acc(r);  a: field(r) |] ==> a: acc(r)";
 by (fast_tac (ZF_cs addIs (prems@acc.intrs)) 1);
-val accI = result();
+qed "accI";
 
 goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (fast_tac ZF_cs 1);
-val acc_downward = result();
+qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
     "[| a : acc(r);						\
@@ -35,13 +35,13 @@ by (fast_tac ZF_cs 2);
 by (resolve_tac acc.intrs 1);
 by (assume_tac 2);
 be (Collect_subset RS Pow_mono RS subsetD) 1;
-val acc_induct = result();
+qed "acc_induct";
 
 goal Acc.thy "wf[acc(r)](r)";
 by (rtac wf_onI2 1);
 by (etac acc_induct 1);
 by (fast_tac ZF_cs 1);
-val wf_on_acc = result();
+qed "wf_on_acc";
 
 (* field(r) <= acc(r) ==> wf(r) *)
 val acc_wfI = wf_on_acc RS wf_on_subset_A RS wf_on_field_imp_wf;
@@ -53,8 +53,8 @@ by (rtac subset_refl 1);
 by (resolve_tac [accI] 1);
 by (assume_tac 2);
 by (fast_tac ZF_cs 1);
-val acc_wfD = result();
+qed "acc_wfD";
 
 goal Acc.thy "wf(r) <-> field(r) <= acc(r)";
 by (EVERY1 [rtac iffI, etac acc_wfD, etac acc_wfI]);
-val wf_acc_iff = result();
+qed "wf_acc_iff";

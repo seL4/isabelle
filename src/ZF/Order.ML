@@ -83,7 +83,7 @@ goalw Order.thy [ord_iso_def]
     "!!f. f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
 by (safe_tac ZF_cs);
 by (ALLGOALS (asm_full_simp_tac bij_ss));
-val ord_iso_sym = result();
+qed "ord_iso_sym";
 
 val major::premx::premy::prems = goalw Order.thy [linear_def]
     "[| linear(A,r);  x:A;  y:A;  \

@@ -37,7 +37,7 @@ by (rtac (arg_subset_eclose RS univ_mono RS subset_trans) 1);
 by (rtac univ_eclose_subset_quniv 1);
 qed "univ_subset_quniv";
 
-val univ_into_quniv = standard (univ_subset_quniv RS subsetD);
+bind_thm ("univ_into_quniv", (univ_subset_quniv RS subsetD));
 
 goalw QUniv.thy [quniv_def] "Pow(univ(A)) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS Pow_mono) 1);
@@ -46,9 +46,9 @@ qed "Pow_univ_subset_quniv";
 val univ_subset_into_quniv = standard
 	(PowI RS (Pow_univ_subset_quniv RS subsetD));
 
-val zero_in_quniv = standard (zero_in_univ RS univ_into_quniv);
-val one_in_quniv = standard (one_in_univ RS univ_into_quniv);
-val two_in_quniv = standard (two_in_univ RS univ_into_quniv);
+bind_thm ("zero_in_quniv", (zero_in_univ RS univ_into_quniv));
+bind_thm ("one_in_quniv", (one_in_univ RS univ_into_quniv));
+bind_thm ("two_in_quniv", (two_in_univ RS univ_into_quniv));
 
 val A_subset_quniv = standard
 	([A_subset_univ, univ_subset_quniv] MRS subset_trans);
@@ -105,7 +105,7 @@ by (etac ([Transset_eclose RS Transset_univ, PowD] MRS
 by (REPEAT (ares_tac [conjI,PowI] 1));
 qed "quniv_QPair_D";
 
-val quniv_QPair_E = standard (quniv_QPair_D RS conjE);
+bind_thm ("quniv_QPair_E", (quniv_QPair_D RS conjE));
 
 goal QUniv.thy "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)";
 by (REPEAT (ares_tac [iffI, QPair_in_quniv, quniv_QPair_D] 1
@@ -137,12 +137,12 @@ val nat_subset_quniv = standard
 	([nat_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 (* n:nat ==> n:quniv(A) *)
-val nat_into_quniv = standard (nat_subset_quniv RS subsetD);
+bind_thm ("nat_into_quniv", (nat_subset_quniv RS subsetD));
 
 val bool_subset_quniv = standard
 	([bool_subset_univ, univ_subset_quniv] MRS subset_trans);
 
-val bool_into_quniv = standard (bool_subset_quniv RS subsetD);
+bind_thm ("bool_into_quniv", (bool_subset_quniv RS subsetD));
 
 
 (**** Properties of Vfrom analogous to the "take-lemma" ****)
@@ -159,7 +159,7 @@ by (fast_tac ZF_cs 1);
 qed "doubleton_in_Vfrom_D";
 
 (*This weaker version says a, b exist at the same level*)
-val Vfrom_doubleton_D = standard (Transset_Vfrom RS Transset_doubleton_D);
+bind_thm ("Vfrom_doubleton_D", (Transset_Vfrom RS Transset_doubleton_D));
 
 (** Using only the weaker theorem would prove <a,b> : Vfrom(X,i)
       implies a, b : Vfrom(X,i), which is useless for induction.

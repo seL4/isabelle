@@ -224,7 +224,7 @@ goalw OrderType.thy [pred_def, lt_def]
     "!!i j. j<i ==> j = pred(i, j, Memrel(i))";
 by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
 by (fast_tac (eq_cs addEs [Ord_trans]) 1);
-val lt_eq_pred = result();
+qed "lt_eq_pred";
 
 goal OrderType.thy
     "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j))	\
@@ -239,7 +239,7 @@ by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
 by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
 by (fast_tac (ZF_cs addSEs [bij_is_fun RS apply_type]  
                     addEs  [Ord_trans]) 1);
-val Ord_iso_implies_eq_lemma = result();
+qed "Ord_iso_implies_eq_lemma";
 
 (*Kunen's Theorem 7.3 (ii), page 16.  Isomorphic ordinals are equal*)
 goal OrderType.thy
@@ -247,4 +247,4 @@ goal OrderType.thy
 \         |] ==> i=j";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
 by (REPEAT (eresolve_tac [asm_rl, ord_iso_sym, Ord_iso_implies_eq_lemma] 1));
-val Ord_iso_implies_eq = result();
+qed "Ord_iso_implies_eq";

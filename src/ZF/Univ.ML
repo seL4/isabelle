@@ -31,7 +31,7 @@ by (rtac subset_refl 1);
 qed "Vfrom_mono_lemma";
 
 (*  [| A<=B; i<=x |] ==> Vfrom(A,i) <= Vfrom(B,x)  *)
-val Vfrom_mono = standard (Vfrom_mono_lemma RS spec RS mp);
+bind_thm ("Vfrom_mono", (Vfrom_mono_lemma RS spec RS mp));
 
 
 (** A fundamental equality: Vfrom does not require ordinals! **)
@@ -424,7 +424,7 @@ by (REPEAT (ares_tac [ltI] 1));
 qed "Vset_rank_imp1";
 
 (*  [| Ord(i); x : Vset(i) |] ==> rank(x) < i  *)
-val VsetD = standard (Vset_rank_imp1 RS spec RS mp);
+bind_thm ("VsetD", (Vset_rank_imp1 RS spec RS mp));
 
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
 by (rtac (ordi RS trans_induct) 1);
@@ -584,7 +584,7 @@ by (rtac i_subset_Vfrom 1);
 qed "nat_subset_univ";
 
 (* n:nat ==> n:univ(A) *)
-val nat_into_univ = standard (nat_subset_univ RS subsetD);
+bind_thm ("nat_into_univ", (nat_subset_univ RS subsetD));
 
 (** instances for 1 and 2 **)
 
@@ -601,7 +601,7 @@ goalw Univ.thy [bool_def] "bool <= univ(A)";
 by (fast_tac (ZF_cs addSIs [zero_in_univ,one_in_univ]) 1);
 qed "bool_subset_univ";
 
-val bool_into_univ = standard (bool_subset_univ RS subsetD);
+bind_thm ("bool_into_univ", (bool_subset_univ RS subsetD));
 
 
 (** Closure under disjoint union **)

@@ -85,10 +85,10 @@ qed "Inr_Inl_iff";
 
 (*Injection and freeness rules*)
 
-val Inl_inject = standard (Inl_iff RS iffD1);
-val Inr_inject = standard (Inr_iff RS iffD1);
-val Inl_neq_Inr = standard (Inl_Inr_iff RS iffD1 RS FalseE);
-val Inr_neq_Inl = standard (Inr_Inl_iff RS iffD1 RS FalseE);
+bind_thm ("Inl_inject", (Inl_iff RS iffD1));
+bind_thm ("Inr_inject", (Inr_iff RS iffD1));
+bind_thm ("Inl_neq_Inr", (Inl_Inr_iff RS iffD1 RS FalseE));
+bind_thm ("Inr_neq_Inl", (Inr_Inl_iff RS iffD1 RS FalseE));
 
 val sum_cs = ZF_cs addSIs [PartI, InlI, InrI] 
                    addSEs [PartE, sumE, Inl_neq_Inr, Inr_neq_Inl]

@@ -25,7 +25,7 @@ val rtrancl_unfold = rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (** The relation rtrancl **)
 
-val rtrancl_type = standard (rtrancl_def RS def_lfp_subset);
+bind_thm ("rtrancl_type", (rtrancl_def RS def_lfp_subset));
 
 (*Reflexivity of rtrancl*)
 val [prem] = goal Trancl.thy "[| a: field(r) |] ==> <a,a> : r^*";

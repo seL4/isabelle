@@ -92,7 +92,7 @@ by (etac IntD2 1);
 qed "bij_is_surj";
 
 (* f: bij(A,B) ==> f: A->B *)
-val bij_is_fun = standard (bij_is_inj RS inj_is_fun);
+bind_thm ("bij_is_fun", (bij_is_inj RS inj_is_fun));
 
 val prems = goalw Perm.thy [bij_def]
     "[| !!x. x:A ==> c(x): B;		\

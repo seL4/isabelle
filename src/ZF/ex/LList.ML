@@ -20,7 +20,7 @@ let open llist;  val rew = rewrite_rule con_defs in
 by (fast_tac (qsum_cs addSIs (equalityI :: map rew intrs)
                       addEs [rew elim]) 1)
 end;
-val llist_unfold = result();
+qed "llist_unfold";
 
 (*** Lemmas to justify using "llist" in other recursive type definitions ***)
 
@@ -28,7 +28,7 @@ goalw LList.thy llist.defs "!!A B. A<=B ==> llist(A) <= llist(B)";
 by (rtac gfp_mono 1);
 by (REPEAT (rtac llist.bnd_mono 1));
 by (REPEAT (ares_tac (quniv_mono::basic_monos) 1));
-val llist_mono = result();
+qed "llist_mono";
 
 (** Closure of quniv(A) under llist -- why so complex?  Its a gfp... **)
 
@@ -50,16 +50,16 @@ by (fast_tac quniv_cs 1);
 (*LCons case*)
 by (safe_tac quniv_cs);
 by (ALLGOALS (fast_tac (quniv_cs addSEs [Ord_trans, make_elim bspec])));
-val llist_quniv_lemma = result();
+qed "llist_quniv_lemma";
 
 goal LList.thy "llist(quniv(A)) <= quniv(A)";
 by (rtac (qunivI RS subsetI) 1);
 by (rtac Int_Vset_subset 1);
 by (REPEAT (ares_tac [llist_quniv_lemma RS bspec] 1));
-val llist_quniv = result();
+qed "llist_quniv";
 
-val llist_subset_quniv = standard
-    (llist_mono RS (llist_quniv RSN (2,subset_trans)));
+bind_thm ("llist_subset_quniv",
+    (llist_mono RS (llist_quniv RSN (2,subset_trans))));
 
 
 (*** Lazy List Equality: lleq ***)
@@ -77,10 +77,10 @@ by (etac lleq.elim 1);
 by (rewrite_goals_tac (QInr_def::llist.con_defs));
 by (safe_tac lleq_cs);
 by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
-val lleq_Int_Vset_subset_lemma = result();
+qed "lleq_Int_Vset_subset_lemma";
 
-val lleq_Int_Vset_subset = standard
-	(lleq_Int_Vset_subset_lemma RS spec RS spec RS mp);
+bind_thm ("lleq_Int_Vset_subset",
+	(lleq_Int_Vset_subset_lemma RS spec RS spec RS mp));
 
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
@@ -90,13 +90,13 @@ by (rtac (lleq.dom_subset RS converse_type) 1);
 by (safe_tac converse_cs);
 by (etac lleq.elim 1);
 by (ALLGOALS (fast_tac qconverse_cs));
-val lleq_symmetric = result();
+qed "lleq_symmetric";
 
 goal LList.thy "!!l l'. <l,l'> : lleq(A) ==> l=l'";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [lleq_Int_Vset_subset RS Int_Vset_subset] 1
      ORELSE etac lleq_symmetric 1));
-val lleq_implies_equal = result();
+qed "lleq_implies_equal";
 
 val [eqprem,lprem] = goal LList.thy
     "[| l=l';  l: llist(A) |] ==> <l,l'> : lleq(A)";
@@ -105,7 +105,7 @@ by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
 by (safe_tac qpair_cs);
 by (etac llist.elim 1);
 by (ALLGOALS (fast_tac pair_cs));
-val equal_llist_implies_leq = result();
+qed "equal_llist_implies_leq";
 
 
 (*** Lazy List Functions ***)
@@ -119,26 +119,26 @@ by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, QInr_mono, QPair_mono] 2));
 by (REPEAT (ares_tac [subset_refl, A_subset_univ, 
 		      QInr_subset_univ, QPair_subset_univ] 1));
-val lconst_fun_bnd_mono = result();
+qed "lconst_fun_bnd_mono";
 
 (* lconst(a) = LCons(a,lconst(a)) *)
-val lconst = standard 
-    ([lconst_def, lconst_fun_bnd_mono] MRS def_lfp_Tarski);
+bind_thm ("lconst",
+    ([lconst_def, lconst_fun_bnd_mono] MRS def_lfp_Tarski));
 
 val lconst_subset = lconst_def RS def_lfp_subset;
 
-val member_subset_Union_eclose = standard (arg_into_eclose RS Union_upper);
+bind_thm ("member_subset_Union_eclose", (arg_into_eclose RS Union_upper));
 
 goal LList.thy "!!a A. a : A ==> lconst(a) : quniv(A)";
 by (rtac (lconst_subset RS subset_trans RS qunivI) 1);
 by (etac (arg_into_eclose RS eclose_subset RS univ_mono) 1);
-val lconst_in_quniv = result();
+qed "lconst_in_quniv";
 
 goal LList.thy "!!a A. a:A ==> lconst(a): llist(A)";
 by (rtac (singletonI RS llist.coinduct) 1);
 by (etac (lconst_in_quniv RS singleton_subsetI) 1);
 by (fast_tac (ZF_cs addSIs [lconst]) 1);
-val lconst_type = result();
+qed "lconst_type";
 
 (*** flip --- equations merely assumed; certain consequences proved ***)
 
@@ -146,7 +146,7 @@ val flip_ss = ZF_ss addsimps [flip_LNil, flip_LCons, not_type];
 
 goal QUniv.thy "!!b. b:bool ==> b Int X <= univ(eclose(A))";
 by (fast_tac (quniv_cs addSEs [boolE]) 1);
-val bool_Int_subset_univ = result();
+qed "bool_Int_subset_univ";
 
 val flip_cs = quniv_cs addSIs [not_type]
                        addIs  [bool_Int_subset_univ];
@@ -167,12 +167,12 @@ by (fast_tac flip_cs 1);
 (*LCons case*)
 by (safe_tac flip_cs);
 by (ALLGOALS (fast_tac (flip_cs addSEs [Ord_trans, make_elim bspec])));
-val flip_llist_quniv_lemma = result();
+qed "flip_llist_quniv_lemma";
 
 goal LList.thy "!!l. l: llist(bool) ==> flip(l) : quniv(bool)";
 by (rtac (flip_llist_quniv_lemma RS bspec RS Int_Vset_subset RS qunivI) 1);
 by (REPEAT (assume_tac 1));
-val flip_in_quniv = result();
+qed "flip_in_quniv";
 
 val [prem] = goal LList.thy "l : llist(bool) ==> flip(l): llist(bool)";
 by (res_inst_tac [("X", "{flip(l) . l:llist(bool)}")]
@@ -197,4 +197,4 @@ by (etac llist.elim 1);
 by (asm_simp_tac flip_ss 1);
 by (asm_simp_tac (flip_ss addsimps [flip_type, not_not]) 1);
 by (fast_tac (ZF_cs addSIs [not_type]) 1);
-val flip_flip = result();
+qed "flip_flip";

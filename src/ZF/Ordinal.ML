@@ -216,7 +216,7 @@ by (fast_tac ZF_cs 1);
 qed "not_lt0";
 
 (* i<0 ==> R *)
-val lt0E = standard (not_lt0 RS notE);
+bind_thm ("lt0E", not_lt0 RS notE);
 
 goal Ordinal.thy "!!i j k. [| i<j;  j<k |] ==> i<k";
 by (fast_tac (ZF_cs addSIs [ltI] addSEs [ltE, Ord_trans]) 1);
@@ -269,7 +269,7 @@ goal Ordinal.thy "i le 0 <-> i=0";
 by (fast_tac (ZF_cs addSIs [Ord_0 RS le_refl] addSEs [leE, lt0E]) 1);
 qed "le0_iff";
 
-val le0D = standard (le0_iff RS iffD1);
+bind_thm ("le0D", le0_iff RS iffD1);
 
 val lt_cs = 
     ZF_cs addSIs [le_refl, leCI]
@@ -372,7 +372,7 @@ by (rtac (impI RS allI) 1);
 by (trans_ind_tac "j" [] 1);
 by (DEPTH_SOLVE (step_tac eq_cs 1 ORELSE Ord_trans_tac 1));
 qed "Ord_linear_lemma";
-val Ord_linear = standard (Ord_linear_lemma RS spec RS mp);
+bind_thm ("Ord_linear", Ord_linear_lemma RS spec RS mp);
 
 (*The trichotomy law for ordinals!*)
 val ordi::ordj::prems = goalw Ordinal.thy [lt_def]

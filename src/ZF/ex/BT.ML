@@ -21,27 +21,27 @@ goalw BT.thy bt.defs "!!A B. A<=B ==> bt(A) <= bt(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac bt.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
-val bt_mono = result();
+qed "bt_mono";
 
 goalw BT.thy (bt.defs@bt.con_defs) "bt(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 			    Pair_in_univ]) 1);
-val bt_univ = result();
+qed "bt_univ";
 
-val bt_subset_univ = standard ([bt_mono, bt_univ] MRS subset_trans);
+bind_thm ("bt_subset_univ", ([bt_mono, bt_univ] MRS subset_trans));
 
 
 (** bt_rec -- by Vset recursion **)
 
 goalw BT.thy bt.con_defs "rank(l) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
-val rank_Br1 = result();
+qed "rank_Br1";
 
 goalw BT.thy bt.con_defs "rank(r) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
-val rank_Br2 = result();
+qed "rank_Br2";
 
 goal BT.thy "bt_rec(Lf,c,h) = c";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
@@ -71,13 +71,13 @@ qed "bt_rec_type";
 val [rew] = goal BT.thy "[| !!t. j(t)==bt_rec(t, c, h) |] ==> j(Lf) = c";
 by (rewtac rew);
 by (rtac bt_rec_Lf 1);
-val def_bt_rec_Lf = result();
+qed "def_bt_rec_Lf";
 
 val [rew] = goal BT.thy
     "[| !!t. j(t)==bt_rec(t, c, h) |] ==> j(Br(a,l,r)) = h(a,l,r,j(l),j(r))";
 by (rewtac rew);
 by (rtac bt_rec_Br 1);
-val def_bt_rec_Br = result();
+qed "def_bt_rec_Br";
 
 fun bt_recs def = map standard ([def] RL [def_bt_rec_Lf, def_bt_rec_Br]);
 
@@ -88,7 +88,7 @@ val [n_nodes_Lf,n_nodes_Br] = bt_recs n_nodes_def;
 val prems = goalw BT.thy [n_nodes_def] 
     "xs: bt(A) ==> n_nodes(xs) : nat";
 by (REPEAT (ares_tac (prems @ [bt_rec_type, nat_0I, nat_succI, add_type]) 1));
-val n_nodes_type = result();
+qed "n_nodes_type";
 
 
 (** n_leaves **)
@@ -106,7 +106,7 @@ val [bt_reflect_Lf, bt_reflect_Br] = bt_recs bt_reflect_def;
 
 goalw BT.thy [bt_reflect_def] "!!xs. xs: bt(A) ==> bt_reflect(xs) : bt(A)";
 by (REPEAT (ares_tac (bt.intrs @ [bt_rec_type]) 1));
-val bt_reflect_type = result();
+qed "bt_reflect_type";
 
 
 (** BT simplification **)
@@ -131,13 +131,13 @@ val prems = goal BT.thy
 by (bt_ind_tac "t" prems 1);
 by (ALLGOALS (asm_simp_tac bt_ss));
 by (REPEAT (ares_tac [add_commute, n_leaves_type] 1));
-val n_leaves_reflect = result();
+qed "n_leaves_reflect";
 
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(t) = succ(n_nodes(t))";
 by (bt_ind_tac "t" prems 1);
 by (ALLGOALS (asm_simp_tac (bt_ss addsimps [add_succ_right])));
-val n_leaves_nodes = result();
+qed "n_leaves_nodes";
 
 (*** theorems about bt_reflect ***)
 
@@ -145,6 +145,6 @@ val prems = goal BT.thy
     "t: bt(A) ==> bt_reflect(bt_reflect(t))=t";
 by (bt_ind_tac "t" prems 1);
 by (ALLGOALS (asm_simp_tac bt_ss));
-val bt_reflect_bt_reflect_ident = result();
+qed "bt_reflect_bt_reflect_ident";
 
 

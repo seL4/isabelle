@@ -53,7 +53,7 @@ by (rewtac hom_def);
 by (safe_tac ZF_cs);
 by (asm_simp_tac hom_ss 1);
 by (asm_simp_tac hom_ss 1);
-val comp_homs = result();
+qed "comp_homs";
 
 
 (** A characterization of functions, suggested by Tobias Nipkow **)
@@ -98,7 +98,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): surj(C,C); 	\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre1 = result();
+qed "pastre1";
 
 val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);		\
@@ -106,7 +106,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): surj(C,C); 	\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre2 = result();
+qed "pastre2";
 
 val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);		\
@@ -114,7 +114,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): inj(C,C); 		\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre3 = result();
+qed "pastre3";
 
 val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): surj(A,A);		\
@@ -122,7 +122,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): inj(C,C); 		\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre4 = result();
+qed "pastre4";
 
 val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): inj(A,A);		\
@@ -130,7 +130,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): inj(C,C); 		\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre5 = result();
+qed "pastre5";
 
 val prems = goalw Perm.thy [bij_def]
     "[| (h O g O f): inj(A,A);		\
@@ -138,7 +138,7 @@ val prems = goalw Perm.thy [bij_def]
 \       (g O f O h): surj(C,C); 	\
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
-val pastre6 = result();
+qed "pastre6";
 
 (** Yet another example... **)
 

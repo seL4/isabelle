@@ -219,7 +219,7 @@ qed "Card_is_Ord";
 
 goal Cardinal.thy "!!K. Card(K) ==> K le |K|";
 by (asm_simp_tac (ZF_ss addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
-val Card_cardinal_le = result();
+qed "Card_cardinal_le";
 
 goalw Cardinal.thy [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);

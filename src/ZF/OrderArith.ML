@@ -58,7 +58,7 @@ goalw OrderArith.thy [radd_def] "radd(A,r,B,s) <= (A+B) * (A+B)";
 by (rtac Collect_subset 1);
 qed "radd_type";
 
-val field_radd = standard (radd_type RS field_rel_subset);
+bind_thm ("field_radd", (radd_type RS field_rel_subset));
 
 (** Linearity **)
 
@@ -137,7 +137,7 @@ goalw OrderArith.thy [rmult_def] "rmult(A,r,B,s) <= (A*B) * (A*B)";
 by (rtac Collect_subset 1);
 qed "rmult_type";
 
-val field_rmult = standard (rmult_type RS field_rel_subset);
+bind_thm ("field_rmult", (rmult_type RS field_rel_subset));
 
 (** Linearity **)
 
@@ -202,7 +202,7 @@ goalw OrderArith.thy [rvimage_def] "rvimage(A,f,r) <= A*A";
 by (rtac Collect_subset 1);
 qed "rvimage_type";
 
-val field_rvimage = standard (rvimage_type RS field_rel_subset);
+bind_thm ("field_rvimage", (rvimage_type RS field_rel_subset));
 
 
 (** Linearity **)

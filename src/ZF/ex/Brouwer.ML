@@ -17,7 +17,7 @@ let open brouwer;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val brouwer_unfold = result();
+qed "brouwer_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
@@ -31,7 +31,7 @@ by (rtac (major RS brouwer.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
 by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
 by (fast_tac (ZF_cs addDs [apply_type]) 1);
-val brouwer_induct2 = result();
+qed "brouwer_induct2";
 
 
 (** The Martin-Löf wellordering type **)
@@ -41,7 +41,7 @@ let open Well;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val Well_unfold = result();
+qed "Well_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
@@ -53,7 +53,7 @@ by (rtac (major RS Well.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
 by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
 by (fast_tac (ZF_cs addDs [apply_type]) 1);
-val Well_induct2 = result();
+qed "Well_induct2";
 
 
 (*In fact it's isomorphic to nat, but we need a recursion operator for
@@ -61,4 +61,4 @@ val Well_induct2 = result();
 goal Brouwer.thy "Well(bool, %x.x) = 1 + (1 -> Well(bool, %x.x))";
 by (resolve_tac [Well_unfold RS trans] 1);
 by (simp_tac (ZF_ss addsimps [Sigma_bool, Pi_empty1, succ_def]) 1);
-val Well_bool_unfold = result();
+qed "Well_bool_unfold";

@@ -24,7 +24,7 @@ qed_goal "cons_subset_iff" ZF.thy "cons(a,B)<=C <-> a:C & B<=C"
 
 (*A safe special case of subset elimination, adding no new variables 
   [| cons(a,B) <= C; [| a : C; B <= C |] ==> R |] ==> R *)
-val cons_subsetE = standard (cons_subset_iff RS iffD1 RS conjE);
+bind_thm ("cons_subsetE", (cons_subset_iff RS iffD1 RS conjE));
 
 qed_goal "subset_empty_iff" ZF.thy "A<=0 <-> A=0"
  (fn _=> [ (fast_tac (upair_cs addIs [equalityI]) 1) ]);

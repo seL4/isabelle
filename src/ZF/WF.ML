@@ -200,8 +200,8 @@ qed "wf_trancl";
 
 (** r-``{a} is the set of everything under a in r **)
 
-val underI = standard (vimage_singleton_iff RS iffD2);
-val underD = standard (vimage_singleton_iff RS iffD1);
+bind_thm ("underI", (vimage_singleton_iff RS iffD2));
+bind_thm ("underD", (vimage_singleton_iff RS iffD1));
 
 (** is_recfun **)
 
@@ -238,7 +238,7 @@ by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (rewtac restrict_def);
 by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
 qed "is_recfun_equal_lemma";
-val is_recfun_equal = standard (is_recfun_equal_lemma RS mp RS mp);
+bind_thm ("is_recfun_equal", (is_recfun_equal_lemma RS mp RS mp));
 
 val prems as [wfr,transr,recf,recg,_] = goal WF.thy
     "[| wf(r);  trans(r);       \

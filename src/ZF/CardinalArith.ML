@@ -96,7 +96,7 @@ qed "cadd_0";
 goalw CardinalArith.thy [lepoll_def, inj_def] "A lepoll A+B";
 by (res_inst_tac [("x", "lam x:A. Inl(x)")] exI 1);
 by (asm_simp_tac (sum_ss addsimps [lam_type]) 1);
-val sum_lepoll_self = result();
+qed "sum_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 goalw CardinalArith.thy [cadd_def]
@@ -104,7 +104,7 @@ goalw CardinalArith.thy [cadd_def]
 by (rtac ([Card_cardinal_le, well_ord_lepoll_imp_Card_le] MRS le_trans) 1);
 by (rtac sum_lepoll_self 3);
 by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel, Card_is_Ord] 1));
-val cadd_le_self = result();
+qed "cadd_le_self";
 
 (** Monotonicity of addition **)
 
@@ -119,7 +119,7 @@ by (res_inst_tac
 by (typechk_tac ([inj_is_fun,case_type, InlI, InrI] @ ZF_typechecks));
 by (eresolve_tac [sumE] 1);
 by (ALLGOALS (asm_simp_tac (sum_ss addsimps [left_inverse])));
-val sum_lepoll_mono = result();
+qed "sum_lepoll_mono";
 
 goalw CardinalArith.thy [cadd_def]
     "!!K. [| K' le K;  L' le L |] ==> (K' |+| L') le (K |+| L)";
@@ -127,7 +127,7 @@ by (safe_tac (ZF_cs addSDs [le_subset_iff RS iffD1]));
 by (resolve_tac [well_ord_lepoll_imp_Card_le] 1);
 by (REPEAT (ares_tac [sum_lepoll_mono, subset_imp_lepoll] 2));
 by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel] 1));
-val cadd_le_mono = result();
+qed "cadd_le_mono";
 
 (** Addition of finite cardinals is "ordinary" addition **)
 
@@ -262,7 +262,7 @@ qed "cmult_square_le";
 goalw CardinalArith.thy [lepoll_def, inj_def] "!!b. b: B ==> A lepoll A*B";
 by (res_inst_tac [("x", "lam x:A. <x,b>")] exI 1);
 by (asm_simp_tac (ZF_ss addsimps [lam_type]) 1);
-val prod_lepoll_self = result();
+qed "prod_lepoll_self";
 
 (*Could probably weaken the premises to well_ord(K,r), or removing using AC*)
 goalw CardinalArith.thy [cmult_def]
@@ -270,7 +270,7 @@ goalw CardinalArith.thy [cmult_def]
 by (rtac ([Card_cardinal_le, well_ord_lepoll_imp_Card_le] MRS le_trans) 1);
 by (rtac prod_lepoll_self 3);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel, Card_is_Ord, ltD] 1));
-val cmult_le_self = result();
+qed "cmult_le_self";
 
 (** Monotonicity of multiplication **)
 
@@ -284,7 +284,7 @@ by (res_inst_tac [("d", "split(%w y.<converse(f)`w, converse(fa)`y>)")]
 by (typechk_tac (inj_is_fun::ZF_typechecks));
 by (eresolve_tac [SigmaE] 1);
 by (asm_simp_tac (ZF_ss addsimps [left_inverse]) 1);
-val prod_lepoll_mono = result();
+qed "prod_lepoll_mono";
 
 goalw CardinalArith.thy [cmult_def]
     "!!K. [| K' le K;  L' le L |] ==> (K' |*| L') le (K |*| L)";
@@ -292,7 +292,7 @@ by (safe_tac (ZF_cs addSDs [le_subset_iff RS iffD1]));
 by (resolve_tac [well_ord_lepoll_imp_Card_le] 1);
 by (REPEAT (ares_tac [prod_lepoll_mono, subset_imp_lepoll] 2));
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
-val cmult_le_mono = result();
+qed "cmult_le_mono";
 
 (*** Multiplication of finite cardinals is "ordinary" multiplication ***)
 
@@ -329,7 +329,7 @@ goal CardinalArith.thy "!!m n. Card(n) ==> succ(1) |*| n = n |+| n";
 by (asm_simp_tac 
     (ZF_ss addsimps [Ord_0, Ord_succ, cmult_0, cmult_succ_lemma, Card_is_Ord,
 		     read_instantiate [("j","0")] cadd_commute, cadd_0]) 1);
-val cmult_2 = result();
+qed "cmult_2";
 
 
 (*** Infinite Cardinals are Limit Ordinals ***)
@@ -591,7 +591,7 @@ by (eresolve_tac [ltE] 2 THEN
 by (forward_tac [InfCard_is_Card RS Card_is_Ord RS le_refl] 1);
 by (resolve_tac [cmult_le_mono RS le_trans] 1 THEN REPEAT (assume_tac 1));
 by (asm_simp_tac (ZF_ss addsimps [InfCard_csquare_eq]) 1);
-val InfCard_le_cmult_eq = result();
+qed "InfCard_le_cmult_eq";
 
 (*Corollary 10.13 (1), for cardinal multiplication*)
 goal CardinalArith.thy
@@ -604,7 +604,7 @@ by (ALLGOALS
     (asm_simp_tac 
      (ZF_ss addsimps [InfCard_is_Limit RS Limit_has_0, InfCard_le_cmult_eq,
 		      subset_Un_iff2 RS iffD1, le_imp_subset])));
-val InfCard_cmult_eq = result();
+qed "InfCard_cmult_eq";
 
 (*This proof appear to be the simplest!*)
 goal CardinalArith.thy "!!K. InfCard(K) ==> K |+| K = K";
@@ -613,7 +613,7 @@ by (asm_simp_tac
 by (resolve_tac [InfCard_le_cmult_eq] 1);
 by (typechk_tac [Ord_0, le_refl, leI]);
 by (typechk_tac [InfCard_is_Limit, Limit_has_0, Limit_has_succ]);
-val InfCard_cdouble_eq = result();
+qed "InfCard_cdouble_eq";
 
 (*Corollary 10.13 (1), for cardinal addition*)
 goal CardinalArith.thy "!!K. [| InfCard(K);  L le K |] ==> K |+| L = K";
@@ -623,7 +623,7 @@ by (eresolve_tac [ltE] 2 THEN
 by (forward_tac [InfCard_is_Card RS Card_is_Ord RS le_refl] 1);
 by (resolve_tac [cadd_le_mono RS le_trans] 1 THEN REPEAT (assume_tac 1));
 by (asm_simp_tac (ZF_ss addsimps [InfCard_cdouble_eq]) 1);
-val InfCard_le_cadd_eq = result();
+qed "InfCard_le_cadd_eq";
 
 goal CardinalArith.thy
     "!!K. [| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L";
@@ -635,7 +635,7 @@ by (ALLGOALS
     (asm_simp_tac 
      (ZF_ss addsimps [InfCard_le_cadd_eq,
 		      subset_Un_iff2 RS iffD1, le_imp_subset])));
-val InfCard_cadd_eq = result();
+qed "InfCard_cadd_eq";
 
 (*The other part, Corollary 10.13 (2), refers to the cardinality of the set
   of all n-tuples of elements of K.  A better version for the Isabelle theory

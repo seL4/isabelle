@@ -29,7 +29,7 @@ qed_goalw "QPair_iff" QPair.thy [QPair_def]
     "<a;b> = <c;d> <-> a=c & b=d"
  (fn _=> [rtac sum_equal_iff 1]);
 
-val QPair_inject = standard (QPair_iff RS iffD1 RS conjE);
+bind_thm ("QPair_inject", (QPair_iff RS iffD1 RS conjE));
 
 qed_goal "QPair_inject1" QPair.thy "<a;b> = <c;d> ==> a=c"
  (fn [major]=>
@@ -203,10 +203,10 @@ qed "QInr_QInl_iff";
 
 (*Injection and freeness rules*)
 
-val QInl_inject = standard (QInl_iff RS iffD1);
-val QInr_inject = standard (QInr_iff RS iffD1);
-val QInl_neq_QInr = standard (QInl_QInr_iff RS iffD1 RS FalseE);
-val QInr_neq_QInl = standard (QInr_QInl_iff RS iffD1 RS FalseE);
+bind_thm ("QInl_inject", (QInl_iff RS iffD1));
+bind_thm ("QInr_inject", (QInr_iff RS iffD1));
+bind_thm ("QInl_neq_QInr", (QInl_QInr_iff RS iffD1 RS FalseE));
+bind_thm ("QInr_neq_QInl", (QInr_QInl_iff RS iffD1 RS FalseE));
 
 val qsum_cs = 
     qpair_cs addSIs [PartI, QInlI, QInrI] 

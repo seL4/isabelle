@@ -24,21 +24,21 @@ open Ramsey;
 
 goalw Ramsey.thy [Clique_def] "Clique(0,V,E)";
 by (fast_tac ZF_cs 1);
-val Clique0 = result();
+qed "Clique0";
 
 goalw Ramsey.thy [Clique_def]
     "!!C V E. [| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
 by (fast_tac ZF_cs 1);
-val Clique_superset = result();
+qed "Clique_superset";
 
 goalw Ramsey.thy [Indept_def] "Indept(0,V,E)";
 by (fast_tac ZF_cs 1);
-val Indept0 = result();
+qed "Indept0";
 
 val prems = goalw Ramsey.thy [Indept_def]
     "!!I V E. [| Indept(I,V',E);  V'<=V |] ==> Indept(I,V,E)";
 by (fast_tac ZF_cs 1);
-val Indept_superset = result();
+qed "Indept_superset";
 
 (*** Atleast ***)
 
@@ -118,11 +118,11 @@ by (REPEAT (eresolve_tac [asm_rl, Atleast_Diff_succI, notE] 2));
 (*proving the condition*)
 by (asm_simp_tac (arith_ss addsimps [add_succ_right]) 1);
 by (etac Atleast_superset 1 THEN fast_tac ZF_cs 1);
-val pigeon2_lemma = result();
+qed "pigeon2_lemma";
 
 (* [| m:nat;  n:nat;  Atleast(m #+ n #- succ(0), A Un B) |] ==> 
    Atleast(m,A) | Atleast(n,B) *)
-val pigeon2 = standard (pigeon2_lemma RS bspec RS spec RS spec RS mp);
+bind_thm ("pigeon2", (pigeon2_lemma RS bspec RS spec RS spec RS mp));
 
 
 (**** Ramsey's Theorem ****)
@@ -131,11 +131,11 @@ val pigeon2 = standard (pigeon2_lemma RS bspec RS spec RS spec RS mp);
 
 goalw Ramsey.thy [Ramsey_def] "Ramsey(n,0,j)";
 by (fast_tac (ZF_cs addIs [Clique0,Atleast0]) 1);
-val Ramsey0j = result();
+qed "Ramsey0j";
 
 goalw Ramsey.thy [Ramsey_def] "Ramsey(n,i,0)";
 by (fast_tac (ZF_cs addIs [Indept0,Atleast0]) 1);
-val Ramseyi0 = result();
+qed "Ramseyi0";
 
 (** Lemmas for induction step **)
 
@@ -149,7 +149,7 @@ by (simp_tac (arith_ss addsimps prems) 3);
 by (rtac Atleast_superset 3);
 by (REPEAT (resolve_tac prems 1));
 by (fast_tac ZF_cs 1);
-val Atleast_partition = result();
+qed "Atleast_partition";
 
 (*For the Atleast part, proves ~(a:I) from the second premise!*)
 val prems = goalw Ramsey.thy [Symmetric_def,Indept_def]
@@ -158,7 +158,7 @@ val prems = goalw Ramsey.thy [Symmetric_def,Indept_def]
 \    Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))";
 by (cut_facts_tac prems 1);
 by (fast_tac (ZF_cs addSEs [Atleast_succI]) 1);	 (*34 secs*)
-val Indept_succ = result();
+qed "Indept_succ";
 
 val prems = goalw Ramsey.thy [Symmetric_def,Clique_def]
     "[| Symmetric(E);  Clique(C, {z: V-{a}. <a,z>:E}, E);  a: V;  \
@@ -166,7 +166,7 @@ val prems = goalw Ramsey.thy [Symmetric_def,Clique_def]
 \    Clique(cons(a,C), V, E) & Atleast(succ(j), cons(a,C))";
 by (cut_facts_tac prems 1);
 by (fast_tac (ZF_cs addSEs [Atleast_succI]) 1);  (*41 secs*)
-val Clique_succ = result();
+qed "Clique_succ";
 
 (** Induction step **)
 
@@ -193,7 +193,7 @@ by (safe_tac ZF_cs);
 by (rtac exI 1);
 by (REPEAT (ares_tac [Clique_succ] 1));  	 (*make a bigger Clique*)
 by (fast_tac (ZF_cs addEs [Indept_superset]) 1); (*easy -- given an Indept*)
-val Ramsey_step_lemma = result();
+qed "Ramsey_step_lemma";
 
 
 (** The actual proof **)
@@ -211,7 +211,7 @@ by (REPEAT (eresolve_tac [nat_succI,bexE] 1));
 by (rtac bexI 1);
 by (rtac Ramsey_step_lemma 1);
 by (REPEAT (ares_tac [nat_succI,add_type] 1));
-val ramsey_lemma = result();
+qed "ramsey_lemma";
 
 (*Final statement in a tidy form, without succ(...) *)
 val prems = goal Ramsey.thy
@@ -219,7 +219,7 @@ val prems = goal Ramsey.thy
 by (rtac (ramsey_lemma RS bspec RS bexE) 1);
 by (etac bexI 3);
 by (REPEAT (ares_tac (prems@[nat_succI]) 1));
-val ramsey = result();
+qed "ramsey";
 
 (*Compute Ramsey numbers according to proof above -- which, actually,
   does not constrain the base case values at all!*)

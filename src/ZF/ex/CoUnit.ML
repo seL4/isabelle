@@ -26,7 +26,7 @@ by (etac counit.coinduct 1);
 by (rtac subset_refl 1);
 by (rewrite_goals_tac counit.con_defs);
 by (fast_tac ZF_cs 1);
-val counit_eq_univ = result();
+qed "counit_eq_univ";
 
 
 (*A similar example, but the constructor is non-degenerate and it works!
@@ -41,7 +41,7 @@ val Con2_iff = counit2.mk_free "Con2(x,y)=Con2(x',y') <-> x=x' & y=y'";
 goalw CoUnit.thy counit2.con_defs "bnd_mono(univ(0), %x. Con2(x,x))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, QPair_subset_univ, QPair_mono] 1));
-val Con2_bnd_mono = result();
+qed "Con2_bnd_mono";
 
 goal CoUnit.thy "lfp(univ(0), %x. Con2(x,x)) : counit2";
 by (rtac (singletonI RS counit2.coinduct) 1);
@@ -62,7 +62,7 @@ val lleq_cs = subset_cs
 	addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
         addSEs [Ord_in_Ord, Pair_inject];
 by (fast_tac lleq_cs 1);
-val counit2_Int_Vset_subset_lemma = result();
+qed "counit2_Int_Vset_subset_lemma";
 
 val counit2_Int_Vset_subset = standard
 	(counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
@@ -70,7 +70,7 @@ val counit2_Int_Vset_subset = standard
 goal CoUnit.thy "!!x y. [| x: counit2;  y: counit2 |] ==> x=y";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [conjI, counit2_Int_Vset_subset RS Int_Vset_subset] 1));
-val counit2_implies_equal = result();
+qed "counit2_implies_equal";
 
 goal CoUnit.thy "counit2 = {lfp(univ(0), %x. Con2(x,x))}";
 by (rtac equalityI 1);
@@ -79,4 +79,4 @@ by (rtac subsetI 1);
 by (dtac (lfp_Con2_in_counit2 RS counit2_implies_equal) 1);
 by (etac subst 1);
 by (rtac singletonI 1);
-val counit2_eq_univ = result();
+qed "counit2_eq_univ";

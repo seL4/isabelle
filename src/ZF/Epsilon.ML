@@ -28,11 +28,11 @@ by (assume_tac 1);
 qed "Transset_eclose";
 
 (* x : eclose(A) ==> x <= eclose(A) *)
-val eclose_subset = 
-    standard (rewrite_rule [Transset_def] Transset_eclose RS bspec);
+bind_thm ("eclose_subset",
+    rewrite_rule [Transset_def] Transset_eclose RS bspec);
 
 (* [| A : eclose(B); c : A |] ==> c : eclose(B) *)
-val ecloseD = standard (eclose_subset RS subsetD);
+bind_thm ("ecloseD", eclose_subset RS subsetD);
 
 val arg_in_eclose_sing = arg_subset_eclose RS singleton_subsetD;
 val arg_into_eclose_sing = arg_in_eclose_sing RS ecloseD;
@@ -41,7 +41,7 @@ val arg_into_eclose_sing = arg_in_eclose_sing RS ecloseD;
    [| a: eclose(A);  !!x. [| x: eclose(A); ALL y:x. P(y) |] ==> P(x) 
    |] ==> P(a) 
 *)
-val eclose_induct = standard (Transset_eclose RSN (2, Transset_induct));
+bind_thm ("eclose_induct", Transset_eclose RSN (2, Transset_induct));
 
 (*Epsilon induction*)
 val prems = goal Epsilon.thy
@@ -118,7 +118,7 @@ qed "under_Memrel";
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
 val under_Memrel_eclose = Transset_eclose RS under_Memrel;
 
-val wfrec_ssubst = standard (wf_Memrel RS wfrec RS ssubst);
+bind_thm ("wfrec_ssubst", wf_Memrel RS wfrec RS ssubst);
 
 val [kmemj,jmemi] = goal Epsilon.thy
     "[| k:eclose({j});  j:eclose({i}) |] ==> \

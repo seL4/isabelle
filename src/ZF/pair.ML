@@ -18,7 +18,7 @@ qed_goalw "Pair_iff" ZF.thy [Pair_def]
  (fn _=> [ (simp_tac (FOL_ss addsimps [doubleton_iff]) 1),
            (fast_tac FOL_cs 1) ]);
 
-val Pair_inject = standard (Pair_iff RS iffD1 RS conjE);
+bind_thm ("Pair_inject", (Pair_iff RS iffD1 RS conjE));
 
 qed_goal "Pair_inject1" ZF.thy "<a,b> = <c,d> ==> a=c"
  (fn [major]=>

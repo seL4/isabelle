@@ -18,7 +18,7 @@ let open ntree;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val ntree_unfold = result();
+qed "ntree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
@@ -31,7 +31,7 @@ by (etac UN_E 1);
 by (REPEAT_SOME (ares_tac prems));
 by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
 by (fast_tac (ZF_cs addDs [apply_type]) 1);
-val ntree_induct = result();
+qed "ntree_induct";
 
 (*Induction on ntree(A) to prove an equation*)
 val major::prems = goal Ntree.thy
@@ -45,7 +45,7 @@ by (cut_facts_tac prems 1);
 br fun_extension 1;
 by (REPEAT_SOME (ares_tac [comp_fun]));
 by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
-val ntree_induct_eqn = result();
+qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
 
@@ -53,7 +53,7 @@ goalw Ntree.thy ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac ntree.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
-val ntree_mono = result();
+qed "ntree_mono";
 
 (*Easily provable by induction also*)
 goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
@@ -61,7 +61,7 @@ by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (safe_tac ZF_cs);
 by (REPEAT (ares_tac [Pair_in_univ, nat_fun_univ RS subsetD] 1));
-val ntree_univ = result();
+qed "ntree_univ";
 
 val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 
@@ -73,7 +73,7 @@ let open maptree;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val maptree_unfold = result();
+qed "maptree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
@@ -88,7 +88,7 @@ by (eresolve_tac [Collect_subset RS FiniteFun_mono1 RS subsetD] 1);
 by (dresolve_tac [FiniteFun.dom_subset RS subsetD] 1);
 by (dresolve_tac [Fin.dom_subset RS subsetD] 1);
 by (fast_tac ZF_cs 1);
-val maptree_induct = result();
+qed "maptree_induct";
 
 
 (** maptree2 **)
@@ -98,7 +98,7 @@ let open maptree2;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val maptree2_unfold = result();
+qed "maptree2_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
@@ -113,5 +113,5 @@ by (eresolve_tac [[subset_refl, Collect_subset] MRS
 by (dresolve_tac [FiniteFun.dom_subset RS subsetD] 1);
 by (dresolve_tac [Fin.dom_subset RS subsetD] 1);
 by (fast_tac ZF_cs 1);
-val maptree2_induct = result();
+qed "maptree2_induct";
 

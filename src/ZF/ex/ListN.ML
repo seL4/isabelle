@@ -18,32 +18,32 @@ goal ListN.thy "!!l. l:list(A) ==> <length(l),l> : listn(A)";
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac list_ss));
 by (REPEAT (ares_tac listn.intrs 1));
-val list_into_listn = result();
+qed "list_into_listn";
 
 goal ListN.thy "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (etac listn_induct 1);
 by (safe_tac (ZF_cs addSIs (list_typechecks @
 			    [length_Nil, length_Cons, list_into_listn])));
-val listn_iff = result();
+qed "listn_iff";
 
 goal ListN.thy "listn(A)``{n} = {l:list(A). length(l)=n}";
 by (rtac equality_iffI 1);
 by (simp_tac (list_ss addsimps [listn_iff,separation,image_singleton_iff]) 1);
-val listn_image_eq = result();
+qed "listn_image_eq";
 
 goalw ListN.thy listn.defs "!!A B. A<=B ==> listn(A) <= listn(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac listn.bnd_mono 1));
 by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));
-val listn_mono = result();
+qed "listn_mono";
 
 goal ListN.thy
     "!!n l. [| <n,l> : listn(A);  <n',l'> : listn(A) |] ==> \
 \           <n#+n', l@l'> : listn(A)";
 by (etac listn_induct 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps listn.intrs)));
-val listn_append = result();
+qed "listn_append";
 
 val Nil_listn_case = listn.mk_cases list.con_defs "<i,Nil> : listn(A)"
 and Cons_listn_case = listn.mk_cases list.con_defs "<i,Cons(x,l)> : listn(A)";

@@ -14,7 +14,7 @@ let open term;  val rew = rewrite_rule con_defs in
 by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
-val term_unfold = result();
+qed "term_unfold";
 
 (*Induction on term(A) followed by induction on List *)
 val major::prems = goal Term.thy
@@ -27,7 +27,7 @@ by (rtac (major RS term.induct) 1);
 by (etac list.induct 1);
 by (etac CollectE 2);
 by (REPEAT (ares_tac (prems@[list_CollectD]) 1));
-val term_induct2 = result();
+qed "term_induct2";
 
 (*Induction on term(A) to prove an equation*)
 val major::prems = goal Term.thy
@@ -46,7 +46,7 @@ goalw Term.thy term.defs "!!A B. A<=B ==> term(A) <= term(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac term.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
-val term_mono = result();
+qed "term_mono";
 
 (*Easily provable by induction also*)
 goalw Term.thy (term.defs@term.con_defs) "term(univ(A)) <= univ(A)";
@@ -54,14 +54,14 @@ by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (safe_tac ZF_cs);
 by (REPEAT (ares_tac [Pair_in_univ, list_univ RS subsetD] 1));
-val term_univ = result();
+qed "term_univ";
 
 val term_subset_univ = 
     term_mono RS (term_univ RSN (2,subset_trans)) |> standard;
 
 goal Term.thy "!!t A B. [| t: term(A);  A <= univ(B) |] ==> t: univ(B)";
 by (REPEAT (ares_tac [term_subset_univ RS subsetD] 1));
-val term_into_univ = result();
+qed "term_into_univ";
 
 
 (*** term_rec -- by Vset recursion ***)
@@ -76,7 +76,7 @@ by (rtac impI 1);
 by (forward_tac [rank_Cons1 RS lt_trans] 1);
 by (dtac (rank_Cons2 RS lt_trans) 1);
 by (asm_simp_tac (list_ss addsimps [ordi, VsetI]) 1);
-val map_lemma = result();
+qed "map_lemma";
 
 (*Typing premise is necessary to invoke map_lemma*)
 val [prem] = goal Term.thy
@@ -103,7 +103,7 @@ by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps [term_rec])));
 by (etac CollectE 1);
 by (REPEAT (ares_tac [list.Cons_I, UN_I] 1));
-val term_rec_type = result();
+qed "term_rec_type";
 
 val [rew,tslist] = goal Term.thy
     "[| !!t. j(t)==term_rec(t,d);  ts: list(A) |] ==> \
@@ -124,7 +124,7 @@ qed "term_rec_simple_type";
 
 (** term_map **)
 
-val term_map = standard (term_map_def RS def_term_rec);
+bind_thm ("term_map", (term_map_def RS def_term_rec));
 
 val prems = goalw Term.thy [term_map_def]
     "[| t: term(A);  !!x. x: A ==> f(x): B |] ==> term_map(f,t) : term(B)";
@@ -140,29 +140,29 @@ qed "term_map_type2";
 
 (** term_size **)
 
-val term_size = standard (term_size_def RS def_term_rec);
+bind_thm ("term_size", (term_size_def RS def_term_rec));
 
 goalw Term.thy [term_size_def] "!!t A. t: term(A) ==> term_size(t) : nat";
 by (REPEAT (ares_tac [term_rec_simple_type, list_add_type, nat_succI] 1));
-val term_size_type = result();
+qed "term_size_type";
 
 
 (** reflect **)
 
-val reflect = standard (reflect_def RS def_term_rec);
+bind_thm ("reflect", (reflect_def RS def_term_rec));
 
 goalw Term.thy [reflect_def] "!!t A. t: term(A) ==> reflect(t) : term(A)";
 by (REPEAT (ares_tac [term_rec_simple_type, rev_type, term.Apply_I] 1));
-val reflect_type = result();
+qed "reflect_type";
 
 (** preorder **)
 
-val preorder = standard (preorder_def RS def_term_rec);
+bind_thm ("preorder", (preorder_def RS def_term_rec));
 
 goalw Term.thy [preorder_def]
     "!!t A. t: term(A) ==> preorder(t) : list(A)";
 by (REPEAT (ares_tac [term_rec_simple_type, list.Cons_I, flat_type] 1));
-val preorder_type = result();
+qed "preorder_type";
 
 
 (** Term simplification **)
@@ -182,19 +182,19 @@ val term_ss = list_ss
 goal Term.thy "!!t A. t: term(A) ==> term_map(%u.u, t) = t";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [map_ident]) 1);
-val term_map_ident = result();
+qed "term_map_ident";
 
 goal Term.thy
   "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u.f(g(u)), t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
-val term_map_compose = result();
+qed "term_map_compose";
 
 goal Term.thy
     "!!t A. t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose]) 1);
-val term_map_reflect = result();
+qed "term_map_reflect";
 
 
 (** theorems about term_size **)
@@ -203,18 +203,18 @@ goal Term.thy
     "!!t A. t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
-val term_size_term_map = result();
+qed "term_size_term_map";
 
 goal Term.thy "!!t A. t: term(A) ==> term_size(reflect(t)) = term_size(t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose,
 				    list_add_rev]) 1);
-val term_size_reflect = result();
+qed "term_size_reflect";
 
 goal Term.thy "!!t A. t: term(A) ==> term_size(t) = length(preorder(t))";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [length_flat, map_compose]) 1);
-val term_size_length = result();
+qed "term_size_length";
 
 
 (** theorems about reflect **)
@@ -223,7 +223,7 @@ goal Term.thy "!!t A. t: term(A) ==> reflect(reflect(t)) = t";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [rev_map_distrib, map_compose,
 				    map_ident, rev_rev_ident]) 1);
-val reflect_reflect_ident = result();
+qed "reflect_reflect_ident";
 
 
 (** theorems about preorder **)
@@ -232,7 +232,7 @@ goal Term.thy
     "!!t A. t: term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [map_compose, map_flat]) 1);
-val preorder_term_map = result();
+qed "preorder_term_map";
 
 (** preorder(reflect(t)) = rev(postorder(t)) **)
 
