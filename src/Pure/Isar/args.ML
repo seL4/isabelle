@@ -23,6 +23,7 @@ sig
   val $$$ : string -> T list -> string * T list
   val colon: T list -> string * T list
   val parens: (T list -> 'a * T list) -> T list -> 'a * T list
+  val mode: string -> 'a * T list -> bool * ('a * T list)
   val name: T list -> string * T list
   val name_dummy: T list -> string option * T list
   val nat: T list -> int * T list
@@ -117,6 +118,7 @@ fun $$$ x = $$$$ x >> val_of;
 
 val colon = $$$ ":";
 fun parens scan = $$$ "(" |-- scan --| $$$ ")";
+fun mode s = Scan.lift (Scan.optional (parens ($$$$ s) >> K true) false);
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
 val name_dummy = $$$ "_" >> K None || name >> Some;
