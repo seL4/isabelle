@@ -554,17 +554,18 @@ fun test_term thy sz i t =
       "Term to be tested contains schematic variables";
     val sg = sign_of thy;
     val frees = map dest_Free (term_frees t);
+    val szname = variant (map fst frees) "i";
     val s = "structure TestTerm =\nstruct\n\n" ^
       setmp mode ["term_of", "test"] (generate_code_i thy)
         [("testf", list_abs_free (frees, t))] ^
       "\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
-          Pretty.brk 1, Pretty.str "(fn i =>", Pretty.brk 1,
+          Pretty.brk 1, Pretty.str ("(fn " ^ szname ^ " =>"), Pretty.brk 1,
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
             Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
               Pretty.block [Pretty.str ("val " ^ s ^ " ="), Pretty.brk 1,
               mk_gen sg false [] "" T, Pretty.brk 1,
-              Pretty.str "i;"]) frees)),
+              Pretty.str (szname ^ ";")]) frees)),
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
               mk_app false (Pretty.str "testf") (map (Pretty.str o fst) frees),
