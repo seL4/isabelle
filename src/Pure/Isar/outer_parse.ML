@@ -38,6 +38,7 @@ sig
   val comment: token list -> string * token list
   val sort: token list -> xsort * token list
   val arity: token list -> (xsort list * xsort) * token list
+  val simple_arity: token list -> (xsort list * xclass) * token list
   val type_args: token list -> string list * token list
   val typ: token list -> string * token list
   val opt_infix: token list -> Syntax.mixfix * token list
@@ -49,6 +50,8 @@ sig
   val opt_attribs: token list -> Args.src list * token list
   val thm_name: string -> token list -> (bstring * Args.src list) * token list
   val opt_thm_name: string -> token list -> (bstring * Args.src list) * token list
+  val spec_name: token list -> ((bstring * string) * Args.src list) * token list
+  val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
   val xthm: token list -> (xstring * Args.src list) * token list
   val xthms1: token list -> (xstring * Args.src list) list * token list
   val method: token list -> Method.text * token list
@@ -147,13 +150,16 @@ val text = group "text" (short_ident || long_ident || string || verbatim);
 val comment = Scan.optional ($$$ "--" |-- text) "";
 
 
-(* sorts *)
+(* sorts and arities *)
 
 val sort =
   xname >> single || $$$ "{" |-- !!! (list xname --| $$$ "}");
 
-val arity =
-  Scan.optional ($$$ "(" |-- !!! (Scan.repeat1 sort --| $$$ ")")) [] -- sort;
+fun gen_arity cod =
+  Scan.optional ($$$ "(" |-- !!! (Scan.repeat1 sort --| $$$ ")")) [] -- cod;
+
+val arity = gen_arity sort;
+val simple_arity = gen_arity name;
 
 
 (* types *)
@@ -229,17 +235,20 @@ and args1 blk x =
       paren_args "[" "]" args)) >> flat) x;
 
 
-(* theorem names *)
+(* theorem specifications *)
 
 val attrib = position (xname -- !!! (args false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
-fun thm_name s = name -- opt_attribs --| $$$ s;
+fun thm_name s = name -- (!!! (opt_attribs --| $$$ s));
 fun opt_thm_name s = Scan.optional (thm_name s) ("", []);
 
+val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
+val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
+
 val xthm = xname -- opt_attribs;
-val xthms1 = and_list1 xthm;
+val xthms1 = Scan.repeat1 xthm;
 
 
 (* proof methods *)
