@@ -488,6 +488,10 @@ by (asm_simp_tac (simpset() addsimps [lt_nat_in_nat RS nat_eqpoll_iff]) 1);
 by (blast_tac (claset() addSEs [lt_irrefl]) 1);
 qed "nat_into_Card";
 
+bind_thm ("cardinal_0", nat_0I RS nat_into_Card RS Card_cardinal_eq);
+bind_thm ("cardinal_1", nat_1I RS nat_into_Card RS Card_cardinal_eq);
+AddIffs [cardinal_0, cardinal_1];
+
 (*Part of Kunen's Lemma 10.6*)
 Goal "[| succ(n) lepoll n;  n:nat |] ==> P";
 by (rtac (nat_lepoll_imp_le RS lt_irrefl) 1);
@@ -623,6 +627,15 @@ Goal "|{a}| = 1";
 by (resolve_tac [singleton_eqpoll_1 RS cardinal_cong RS trans] 1);
 by (simp_tac (simpset() addsimps [nat_into_Card RS Card_cardinal_eq]) 1);
 qed "cardinal_singleton";
+
+Goal "A ~= 0 ==> 1 lepoll A";
+by (etac not_emptyE 1);
+by (res_inst_tac [("a", "cons(x, A-{x})")] subst 1);
+by (res_inst_tac [("a", "cons(0,0)"), 
+                  ("P", "%y. y lepoll cons(x, A-{x})")] subst 2);
+by (blast_tac (claset() addIs [cons_lepoll_cong, subset_imp_lepoll]) 3);
+by Auto_tac;
+qed "not_0_is_lepoll_1";
 
 (*Congruence law for  succ  under equipollence*)
 Goalw [succ_def]
@@ -823,3 +836,5 @@ qed "Finite_well_ord_converse";
 Goalw [Finite_def] "n:nat ==> Finite(n)";
 by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
 qed "nat_into_Finite";
+
+
