@@ -25,7 +25,11 @@ New in Isabelle??? (FIXME)
 
 * added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
 
-* HOL/Arithmetic: removed 'pred' (predecessor) function;
+* HOL/Arithmetic: removed 'pred' (predecessor) function; and generalized
+  some theorems about n-1
+
+* HOL/Relation: renamed the relational operatotr r^-1 "converse" instead of
+  "inverse"
 
 * Simplifier:
 
