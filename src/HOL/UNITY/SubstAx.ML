@@ -401,22 +401,9 @@ by (asm_full_simp_tac (simpset() addsimps [Completion]) 1);
 qed "Finite_completion";
 
 
-(** Constrains/Ensures tactics 
-    main_def defines the main program as a set;
+(** main_def defines the main program as a set;
     cmd_defs defines the separate commands
 **)
-
-(*proves "constrains" properties when the program is specified*)
-fun constrains_tac (main_def::cmd_defs) = 
-   SELECT_GOAL
-      (EVERY [REPEAT (resolve_tac [StableI, stableI,
-				   constrains_imp_Constrains] 1),
-	      rtac constrainsI 1,
-	      full_simp_tac (simpset() addsimps [main_def]) 1,
-	      REPEAT_FIRST (etac disjE ),
-	      rewrite_goals_tac cmd_defs,
-	      ALLGOALS (SELECT_GOAL Auto_tac)]);
-
 
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac (main_def::cmd_defs) sact = 
@@ -433,6 +420,6 @@ fun ensures_tac (main_def::cmd_defs) sact =
 	      constrains_tac (main_def::cmd_defs) 1,
 	      rewrite_goals_tac cmd_defs,
 	      ALLGOALS Clarify_tac,
-	      Auto_tac]);
+	      ALLGOALS Asm_full_simp_tac]);
 
 

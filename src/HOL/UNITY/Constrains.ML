@@ -252,4 +252,19 @@ val Invariant_Int_tac = dtac Invariant_Int THEN'
 val Invariant_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Invariant_Int);
 
 
+(** main_def defines the main program as a set;
+    cmd_defs defines the separate commands
+**)
+
+(*proves "constrains" properties when the program is specified*)
+fun constrains_tac (main_def::cmd_defs) = 
+   SELECT_GOAL
+      (EVERY [REPEAT (resolve_tac [StableI, stableI,
+				   constrains_imp_Constrains] 1),
+	      rtac constrainsI 1,
+	      full_simp_tac (simpset() addsimps [main_def]) 1,
+	      REPEAT_FIRST (etac disjE),
+	      ALLGOALS Clarify_tac,
+	      ALLGOALS (asm_full_simp_tac (simpset() addsimps cmd_defs))]);
+
 
