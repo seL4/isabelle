@@ -66,10 +66,7 @@ fun bin_of (Const ("Pls", _)) = []
   | bin_of (Const ("Numeral.bin.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of _ = raise Match;
 
-fun int_of [] = 0
-  | int_of (b :: bs) = b + 2 * int_of bs;
-
-val dest_bin = int_of o bin_of;
+val dest_bin = HOLogic.int_of o bin_of;
 
 fun dest_bin_str tm =
   let
@@ -78,7 +75,7 @@ fun dest_bin_str tm =
       (case rev rev_digs of
         ~1 :: bs => ("-", prefix_len (equal 1) bs)
       | bs => ("", prefix_len (equal 0) bs));
-    val num = string_of_int (abs (int_of rev_digs));
+    val num = string_of_int (abs (HOLogic.int_of rev_digs));
   in "#" ^ sign ^ implode (replicate zs "0") ^ num end;
 
 
