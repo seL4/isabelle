@@ -203,7 +203,7 @@ fun matching unif t (net,nets) =
 	     | _ => rands t (net, var::nets)	(*var could match also*)
   end;
 
-val extract_leaves = flat o map (fn Leaf(xs) => xs);
+fun extract_leaves l = flat (map (fn Leaf(xs) => xs) l);
 
 (*return items whose key could match t, WHICH MUST BE BETA-ETA NORMAL*)
 fun match_term net t = 

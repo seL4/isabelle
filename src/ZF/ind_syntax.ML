@@ -97,7 +97,7 @@ fun mk_intr_tms (rec_tm, constructs) =
                mk_tprop (mem_const $ list_comb(Const(name,T), args) $ rec_tm)) 
   in  map mk_intr constructs  end;
 
-val mk_all_intr_tms = flat o map mk_intr_tms o op ~~;
+fun mk_all_intr_tms arg = flat (map mk_intr_tms (op ~~ arg));
 
 val Un          = Const("op Un", [iT,iT]--->iT)
 and empty       = Const("0", iT)

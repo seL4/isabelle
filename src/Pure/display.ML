@@ -131,7 +131,7 @@ local
     | add_sort_env (TFree (x, S), env) = ins_entry (S, x) env
     | add_sort_env (TVar (xi, S), env) = ins_entry (S, string_of_vname xi) env;
 
-  val sort = map (apsnd sort_strings);
+  fun sort l = map (apsnd sort_strings) l;
 in
   fun type_env t = sort (add_type_env (t, []));
   fun sort_env t = rev (sort (it_term_types add_sort_env (t, [])));
