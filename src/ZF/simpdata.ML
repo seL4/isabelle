@@ -24,7 +24,8 @@ fun typechk_step_tac tyrls =
 
 fun typechk_tac tyrls = REPEAT (typechk_step_tac tyrls);
 
-val ZF_typechecks = [if_type,lam_type,SigmaI,apply_type,split_type];
+val ZF_typechecks =
+    [if_type, lam_type, SigmaI, apply_type, split_type, consI1];
 
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)
@@ -68,9 +69,10 @@ fun atomize th =
      | _                       => [th]
   end;
 
-val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
-		beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff,
-		triv_RepFun, subset_refl];
+val ZF_simps = 
+    [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
+     beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff, singleton_iff,
+     Sigma_empty1, Sigma_empty2, triv_RepFun, subset_refl];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause
   flex-flex pairs and the "Check your prover" error -- because most
@@ -80,5 +82,6 @@ val ZF_congs =
 
 val ZF_ss = FOL_ss 
       setmksimps (map mk_meta_eq o atomize o gen_all)
-      addsimps (ZF_simps @ mem_simps @ bquant_simps)
+      addsimps (ZF_simps @ mem_simps @ bquant_simps @ 
+		Collect_simps @ UnInt_simps)
       addcongs ZF_congs;
