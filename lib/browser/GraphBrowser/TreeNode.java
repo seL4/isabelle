@@ -143,10 +143,10 @@ public class TreeNode
 		FontMetrics fm=g.getFontMetrics(f);
 		g.setFont(f);
 		int h=fm.getHeight();
-		int down_x[]={x,x+h,x+(int)(h/2)};
-		int down_y[]={y,y,y+h};
-		int right_x[]={x,x+h,x};
-		int right_y[]={y,y+(int)(h/2),y+h};
+		int down_x[]={x, x + h, x + (int)(h / 2)};
+		int down_y[]={y, y, y + (int)(3 * h / 4)};
+		int right_x[]={2 + x, 2 + x + (int)(3 * h / 4), 2 + x};
+		int right_y[]={y, y + (int)(h / 2), y + h};
 		int dx=0;
 
 		if (unfold)
@@ -154,13 +154,13 @@ public class TreeNode
 			g.setColor(Color.green);
 			g.fillPolygon(down_x,down_y,3);
 			g.setColor(Color.black);
-			g.drawString(name,x+h+10,y+fm.getAscent());
+			g.drawString(name,x+h+4,y+fm.getAscent());
 			starty=y;endy=y+h;
-			dx=Math.max(dx,x+h+10+fm.stringWidth(name));
+			dx=Math.max(dx,x+h+4+fm.stringWidth(name));
 			y+=h+5;
 			for(int i=0;i<leaves.size();i++)
 			{
-				Dimension d=((TreeNode)leaves.elementAt(i)).draw(g,x+h+10,y,t);
+				Dimension d=((TreeNode)leaves.elementAt(i)).draw(g,x+h+4,y,t);
 				y=d.height;
 				dx=Math.max(dx,d.width);
 			}
@@ -172,12 +172,12 @@ public class TreeNode
 			if (this==t && leaves.isEmpty())
 			{
 				g.setColor(Color.white);
-				g.fillRect(x+h+10,y,fm.stringWidth(name),h);
+				g.fillRect(x+h+4,y,fm.stringWidth(name),h);
 			}
 			g.setColor(Color.black);
-			g.drawString(name,x+h+10,y+fm.getAscent());
+			g.drawString(name,x+h+4,y+fm.getAscent());
 			starty=y;endy=y+h;
-			dx=Math.max(dx,x+h+10+fm.stringWidth(name));
+			dx=Math.max(dx,x+h+4+fm.stringWidth(name));
 			y+=h+5;
 		}
 		return new Dimension(dx,y);
