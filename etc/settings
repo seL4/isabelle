@@ -8,18 +8,23 @@
 ### ML compiler settings (ESSENTIAL!)
 ###
 
-## Uncomment and adapt one of the sections below.
-
 # Note that ML_HOME specifies the location of the actual compiler
 # binaries.  Do not invent new ML system names unless you know what
-# you are doing.
+# you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x or later
+# Poly/ML 3.x and 4.0
 POLYML_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/polyml-4.0" \
+  "$ISABELLE_HOME/contrib/polyml-3.x" \
   "$ISABELLE_HOME/contrib/polyml" \
-  "$ISABELLE_HOME/../polyml")
+  "$ISABELLE_HOME/../polyml-4.0" \
+  "$ISABELLE_HOME/../polyml-3.x" \
+  "$ISABELLE_HOME/../polyml" \
+  "/usr/share/polyml-4.0" \
+  "/usr/share/polyml-3.x" \
+  "/usr/share/polyml")
+ML_SYSTEM=$($POLYML_HOME/bin/polyml-version 2>/dev/null || echo polyml)
 ML_PLATFORM=$($POLYML_HOME/bin/polyml-platform 2>/dev/null)
-ML_SYSTEM=$($POLYML_HOME/bin/polyml-version 2>/dev/null)
 ML_HOME=$POLYML_HOME/$ML_PLATFORM
 ML_OPTIONS="-h 30000"
 
@@ -151,7 +156,7 @@ ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 
-# X-Symbol mode
+# X-Symbol mode for Proof General
 XSYMBOL_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/x-symbol" \
   "$ISABELLE_HOME/../x-symbol" \
