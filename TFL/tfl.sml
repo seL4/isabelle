@@ -11,6 +11,8 @@ struct
 
 val trace = ref false;
 
+open BasisLibrary; (*restore original structures*)
+
 (* Abbreviations *)
 structure R = Rules;
 structure S = USyntax;
@@ -146,11 +148,11 @@ fun fresh_constr ty_match colty gv c =
  * pattern with constructor = Name.
  *---------------------------------------------------------------------------*)
 fun mk_group Name rows =
-  U.itlist (fn (row as ((prefix, p::rst), rhs)) =>
+  U.itlist (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
                let val (pc,args) = S.strip_comb p
                in if ((#1(dest_Const pc) = Name) handle _ => false)
-                  then (((prefix,args@rst), rhs)::in_group, not_in_group)
+                  then (((prfx,args@rst), rhs)::in_group, not_in_group)
                   else (in_group, row::not_in_group) end)
       rows ([],[]);
 
@@ -159,7 +161,7 @@ fun mk_group Name rows =
  *---------------------------------------------------------------------------*)
 fun partition _ _ (_,_,_,[]) = raise TFL_ERR{func="partition", mesg="no rows"}
   | partition gv ty_match
-              (constructors, colty, res_ty, rows as (((prefix,_),_)::_)) =
+              (constructors, colty, res_ty, rows as (((prfx,_),_)::_)) =
 let val fresh = fresh_constr ty_match colty gv
      fun part {constrs = [],      rows, A} = rev A
        | part {constrs = c::crst, rows, A} =
@@ -168,7 +170,7 @@ let val fresh = fresh_constr ty_match colty gv
              val (in_group, not_in_group) = mk_group Name rows
              val in_group' =
                  if (null in_group)  (* Constructor not given *)
-                 then [((prefix, #2(fresh c)), OMITTED (S.ARB res_ty, ~1))]
+                 then [((prfx, #2(fresh c)), OMITTED (S.ARB res_ty, ~1))]
                  else in_group
          in 
          part{constrs = crst, 
@@ -186,16 +188,16 @@ end;
 
 fun mk_pat (c,l) =
   let val L = length (binder_types (type_of c))
-      fun build (prefix,tag,plist) =
+      fun build (prfx,tag,plist) =
           let val args   = take (L,plist)
               and plist' = drop(L,plist)
-          in (prefix,tag,list_comb(c,args)::plist') end
+          in (prfx,tag,list_comb(c,args)::plist') end
   in map build l end;
 
-fun v_to_prefix (prefix, v::pats) = (v::prefix,pats)
-  | v_to_prefix _ = raise TFL_ERR{func="mk_case", mesg="v_to_prefix"};
+fun v_to_prfx (prfx, v::pats) = (v::prfx,pats)
+  | v_to_prfx _ = raise TFL_ERR{func="mk_case", mesg="v_to_prfx"};
 
-fun v_to_pats (v::prefix,tag, pats) = (prefix, tag, v::pats)
+fun v_to_pats (v::prfx,tag, pats) = (prfx, tag, v::pats)
   | v_to_pats _ = raise TFL_ERR{func="mk_case", mesg="v_to_pats"};
  
 
@@ -213,24 +215,24 @@ fun mk_case ty_info ty_match usednames range_ty =
  val fresh_var = gvvariant usednames 
  val divide = partition fresh_var ty_match
  fun expand constructors ty ((_,[]), _) = mk_case_fail"expand_var_row"
-   | expand constructors ty (row as ((prefix, p::rst), rhs)) = 
+   | expand constructors ty (row as ((prfx, p::rst), rhs)) = 
        if (is_Free p) 
        then let val fresh = fresh_constr ty_match ty fresh_var
                 fun expnd (c,gvs) = 
                   let val capp = list_comb(c,gvs)
-                  in ((prefix, capp::rst), pattern_subst[(p,capp)] rhs)
+                  in ((prfx, capp::rst), pattern_subst[(p,capp)] rhs)
                   end
             in map expnd (map fresh constructors)  end
        else [row]
  fun mk{rows=[],...} = mk_case_fail"no rows"
-   | mk{path=[], rows = ((prefix, []), rhs)::_} =  (* Done *)
+   | mk{path=[], rows = ((prfx, []), rhs)::_} =  (* Done *)
         let val (tag,tm) = dest_pattern rhs
-        in ([(prefix,tag,[])], tm)
+        in ([(prfx,tag,[])], tm)
         end
    | mk{path=[], rows = _::_} = mk_case_fail"blunder"
-   | mk{path as u::rstp, rows as ((prefix, []), rhs)::rst} = 
+   | mk{path as u::rstp, rows as ((prfx, []), rhs)::rst} = 
         mk{path = path, 
-           rows = ((prefix, [fresh_var(type_of u)]), rhs)::rst}
+           rows = ((prfx, [fresh_var(type_of u)]), rhs)::rst}
    | mk{path = u::rstp, rows as ((_, p::_), _)::_} =
      let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map(hd o #2) pat_rectangle
@@ -238,7 +240,7 @@ fun mk_case ty_info ty_match usednames range_ty =
      if (forall is_Free col0) 
      then let val rights' = map (fn(v,e) => pattern_subst[(v,u)] e)
                                 (ListPair.zip (col0, rights))
-              val pat_rectangle' = map v_to_prefix pat_rectangle
+              val pat_rectangle' = map v_to_prfx pat_rectangle
               val (pref_patl,tm) = mk{path = rstp,
                                       rows = ListPair.zip (pat_rectangle',
                                                            rights')}
@@ -250,7 +252,7 @@ fun mk_case ty_info ty_match usednames range_ty =
      case (ty_info ty_name)
      of None => mk_case_fail("Not a known datatype: "^ty_name)
       | Some{case_const,constructors} =>
-        let open BasisLibrary (*restore original List*)
+        let
 	    val case_const_name = #1(dest_Const case_const)
             val nrows = List.concat (map (expand constructors pty) rows)
             val subproblems = divide(constructors, pty, range_ty, nrows)
