@@ -21,8 +21,8 @@ sig
   val insert_tac: thm list -> int -> tactic
   val insert: thm list -> Proof.method
   val insert_facts: Proof.method
-  val fold: thm list -> Proof.method
   val unfold: thm list -> Proof.method
+  val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
@@ -40,13 +40,14 @@ sig
   val ctxt_args: (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
   type modifier
-  val sectioned_args: ((Args.T list -> modifier * Args.T list) list ->
-      Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
+  val sectioned_args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
     ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val bang_sectioned_args: (Args.T list -> modifier * Args.T list) list ->
+  val bang_sectioned_args:
+    (Args.T list -> modifier * Args.T list) list ->
     (thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val only_sectioned_args: (Args.T list -> modifier * Args.T list) list ->
+  val only_sectioned_args:
+    (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
@@ -116,10 +117,10 @@ fun insert thms = METHOD (fn facts => ALLGOALS (insert_tac (thms @ facts)));
 end;
 
 
-(* fold / unfold definitions *)
+(* unfold / fold definitions *)
 
-fun fold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN fold_goals_tac thms);
 fun unfold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN rewrite_goals_tac thms);
+fun fold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN fold_goals_tac thms);
 
 
 (* multi_resolve *)
@@ -283,7 +284,7 @@ fun apply (f, att) (ctxt, ths) = Thm.applys_attributes ((f ctxt, ths), [att]);
 fun section ss = (sect ss -- thmss ss) :-- (fn (m, ths) => Scan.depend (fn ctxt =>
   Scan.succeed (apply m (ctxt, ths)))) >> #2;
 
-fun sectioned args ss = args ss -- Scan.repeat (section ss);
+fun sectioned args ss = args -- Scan.repeat (section ss);
 
 in
 
@@ -291,10 +292,10 @@ fun sectioned_args args ss f src ctxt =
   let val (ctxt', (x, _)) = syntax (sectioned args ss) ctxt src
   in f x ctxt' end;
 
-fun bang_sectioned_args ss f = sectioned_args (K Args.bang_facts) ss f;
-fun only_sectioned_args ss f = sectioned_args (K (Scan.succeed ())) ss (fn () => f);
+fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
+fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
 
-fun thms_args f = sectioned_args thmss [] (fn ths => fn _ => f ths);
+fun thms_args f = sectioned_args (thmss []) [] (fn ths => fn _ => f ths);
 
 end;
 
@@ -382,8 +383,8 @@ val pure_methods =
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing, inserting current facts only"),
   ("insert", thms_args insert, "insert facts (improper!)"),
-  ("fold", thms_args fold, "fold definitions, ignoring facts"),
-  ("unfold", thms_args unfold, "unfold definitions, ignoring facts"),
+  ("unfold", thms_args unfold, "unfold definitions"),
+  ("fold", thms_args fold, "fold definitions"),
   ("rule", thms_args rule, "apply some rule"),
   ("erule", thms_args erule, "apply some erule (improper!)"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
