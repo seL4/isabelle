@@ -84,10 +84,10 @@ sig
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
   val reset_thms: string -> context -> context
-  val have_thmss:
+  val note_thmss:
     ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
       context -> context * (bstring * thm list) list
-  val have_thmss_i:
+  val note_thmss_i:
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
       context -> context * (bstring * thm list) list
   val export_assume: exporter
@@ -1035,11 +1035,11 @@ fun reset_thms name =
       cases, defs));
 
 
-(* have_thmss *)
+(* note_thmss *)
 
 local
 
-fun gen_have_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
+fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
   let
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
@@ -1048,12 +1048,12 @@ fun gen_have_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
     val thms = flat (rev rev_thms);
   in (ctxt' |> put_thms (name, thms), (name, thms)) end;
 
-fun gen_have_thmss get args ctxt = foldl_map (gen_have_thss get) (ctxt, args);
+fun gen_note_thmss get args ctxt = foldl_map (gen_note_thss get) (ctxt, args);
 
 in
 
-val have_thmss = gen_have_thmss get_thms;
-val have_thmss_i = gen_have_thmss (K I);
+val note_thmss = gen_note_thmss get_thms;
+val note_thmss_i = gen_note_thmss (K I);
 
 end;
 
@@ -1119,7 +1119,7 @@ fun add_assm (ctxt, ((name, attrs), props)) =
     val (ctxt', [(_, thms)]) =
       ctxt
       |> auto_bind_facts props
-      |> have_thmss_i [((name, attrs), ths)];
+      |> note_thmss_i [((name, attrs), ths)];
   in (ctxt', (cprops, (name, asms), (name, thms))) end;
 
 fun gen_assms prepp exp args ctxt =

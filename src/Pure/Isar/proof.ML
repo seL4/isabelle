@@ -53,10 +53,10 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
-  val simple_have_thms: string -> thm list -> state -> state
-  val have_thmss: ((bstring * context attribute list) *
+  val simple_note_thms: string -> thm list -> state -> state
+  val note_thmss: ((bstring * context attribute list) *
     (xstring * context attribute list) list) list -> state -> state
-  val have_thmss_i: ((bstring * context attribute list) *
+  val note_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
   val with_thmss: ((bstring * context attribute list) *
     (xstring * context attribute list) list) list -> state -> state
@@ -511,12 +511,11 @@ val let_bind = gen_bind (ProofContext.match_bind true);
 val let_bind_i = gen_bind (ProofContext.match_bind_i true);
 
 
-(* have_thmss *)
-(* CB: this implements "note" of the Isar/VM *)
+(* note_thmss *)
 
 local
 
-fun gen_have_thmss f args state =
+fun gen_note_thmss f args state =
   state
   |> assert_forward
   |> map_context_result (f args)
@@ -524,10 +523,10 @@ fun gen_have_thmss f args state =
 
 in
 
-val have_thmss = gen_have_thmss ProofContext.have_thmss;
-val have_thmss_i = gen_have_thmss ProofContext.have_thmss_i;
+val note_thmss = gen_note_thmss ProofContext.note_thmss;
+val note_thmss_i = gen_note_thmss ProofContext.note_thmss_i;
 
-fun simple_have_thms name thms = have_thmss_i [((name, []), [(thms, [])])];
+fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
 
 end;
 
@@ -538,12 +537,12 @@ local
 
 fun gen_with_thmss f args state =
   let val state' = state |> f args
-  in state' |> simple_have_thms "" (the_facts state' @ the_facts state) end;
+  in state' |> simple_note_thms "" (the_facts state' @ the_facts state) end;
 
 in
 
-val with_thmss = gen_with_thmss have_thmss;
-val with_thmss_i = gen_with_thmss have_thmss_i;
+val with_thmss = gen_with_thmss note_thmss;
+val with_thmss_i = gen_with_thmss note_thmss_i;
 
 end;
 
@@ -562,8 +561,8 @@ fun gen_using_thmss f args state =
 
 in
 
-val using_thmss = gen_using_thmss ProofContext.have_thmss;
-val using_thmss_i = gen_using_thmss ProofContext.have_thmss_i;
+val using_thmss = gen_using_thmss ProofContext.note_thmss;
+val using_thmss_i = gen_using_thmss ProofContext.note_thmss_i;
 
 end;
 
@@ -650,7 +649,7 @@ fun invoke_case (name, xs, atts) state =
     |> map_context (ProofContext.qualified true)
     |> assume_i assumptions
     |> map_context (ProofContext.hide_thms false qnames)
-    |> (fn st => simple_have_thms name (the_facts st) st)
+    |> (fn st => simple_note_thms name (the_facts st) st)
     |> map_context (ProofContext.restore_qualified (context_of state))
   end;
 
@@ -811,7 +810,7 @@ fun finish_local (print_result, print_rule) state =
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
     |> (fn st => Seq.map (fn res =>
-      have_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
+      note_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
     |> (Seq.flat o Seq.map opt_solve)
     |> (Seq.flat o Seq.map after_qed)
   end;
@@ -855,10 +854,10 @@ fun finish_global state =
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
               |> (#1 o #1 o Locale.add_thmss loc [((name, flat (map #2 res)), loc_atts)])))
-      |> Locale.smart_have_thmss k locale_spec
+      |> Locale.smart_note_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
-          |>> (#1 o Locale.smart_have_thmss k locale_spec
+          |>> (#1 o Locale.smart_note_thmss k locale_spec
             [((name, atts), [(flat (map #2 res), [])])]));
   in (theory', ((k, name), results')) end;
 

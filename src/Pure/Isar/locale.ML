@@ -53,13 +53,13 @@ sig
   val add_locale: bool -> bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> context attribute element_i list
     -> theory -> theory
-  val smart_have_thmss: string -> (string * 'a) Library.option ->
+  val smart_note_thmss: string -> (string * 'a) Library.option ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
-  val have_thmss: string -> xstring ->
+  val note_thmss: string -> xstring ->
     ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
-  val have_thmss_i: string -> string ->
+  val note_thmss_i: string -> string ->
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
   val add_thmss: string -> ((string * thm list) * context attribute list) list ->
@@ -652,7 +652,7 @@ fun activate_elem _ ((ctxt, axs), Fixes fixes) = ((ctxt |> ProofContext.add_fixe
             in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end))
       in ((ctxt', axs), []) end
   | activate_elem is_ext ((ctxt, axs), Notes facts) =
-      let val (ctxt', res) = ctxt |> ProofContext.have_thmss_i facts
+      let val (ctxt', res) = ctxt |> ProofContext.note_thmss_i facts
       in ((ctxt', axs), if is_ext then res else []) end;
 
 fun activate_elems ((name, ps), elems) (ctxt, axs) =
@@ -1195,7 +1195,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
               val facts'' = map (apfst (apfst prefix_fact)) facts'
               (* add attributes *)
               val facts''' = map (apfst (apsnd (fn atts => atts @ attribs))) facts''
-          in fst (ProofContext.have_thmss_i facts''' ctxt)
+          in fst (ProofContext.note_thmss_i facts''' ctxt)
           end
       | inst_elem (ctxt, (Int _)) = ctxt;
 
@@ -1260,15 +1260,15 @@ fun hide_bound_names names thy =
 
 in
 
-fun have_thmss_qualified kind name args thy =
+fun note_thmss_qualified kind name args thy =
   thy
   |> Theory.add_path (Sign.base_name name)
-  |> PureThy.have_thmss_i (Drule.kind kind) args
+  |> PureThy.note_thmss_i (Drule.kind kind) args
   |>> hide_bound_names (map (#1 o #1) args)
   |>> Theory.parent_path;
 
-fun smart_have_thmss kind None = PureThy.have_thmss_i (Drule.kind kind)
-  | smart_have_thmss kind (Some (loc, _)) = have_thmss_qualified kind loc;
+fun smart_note_thmss kind None = PureThy.note_thmss_i (Drule.kind kind)
+  | smart_note_thmss kind (Some (loc, _)) = note_thmss_qualified kind loc;
   (* CB: only used in Proof.finish_global. *)
 
 end;
@@ -1282,26 +1282,26 @@ fun put_facts loc args thy =
       ((a, more_atts), map (apfst (map (curry Thm.name_thm a))) th_atts)) args);
   in thy |> put_locale loc (make_locale view import (elems @ [(note, stamp ())]) params) end;
 
-fun gen_have_thmss prep_locale get_thms kind raw_loc raw_args thy =
+fun gen_note_thmss prep_locale get_thms kind raw_loc raw_args thy =
   let
     val thy_ctxt = ProofContext.init thy;
     val loc = prep_locale (Theory.sign_of thy) raw_loc;
     val (_, view, loc_ctxt, _, _) = cert_context_statement (Some loc) [] [] thy_ctxt;
     val args = map (apsnd (map (apfst (get_thms loc_ctxt)))) raw_args;
     val export = ProofContext.export_standard view loc_ctxt thy_ctxt;
-    val results = map (map export o #2) (#2 (ProofContext.have_thmss_i args loc_ctxt));
+    val results = map (map export o #2) (#2 (ProofContext.note_thmss_i args loc_ctxt));
     val args' = map (rpair [] o #1 o #1) args ~~ map (single o Thm.no_attributes) results;
   in
     thy
     |> put_facts loc args
-    |> have_thmss_qualified kind loc args'
+    |> note_thmss_qualified kind loc args'
   end;
 
 in
 
-val have_thmss = gen_have_thmss intern ProofContext.get_thms;
-val have_thmss_i = gen_have_thmss (K I) (K I);
-  (* CB: have_thmss(_i) is the base for the Isar commands
+val note_thmss = gen_note_thmss intern ProofContext.get_thms;
+val note_thmss_i = gen_note_thmss (K I) (K I);
+  (* CB: note_thmss(_i) is the base for the Isar commands
      "theorems (in loc)" and "declare (in loc)". *)
 
 fun add_thmss loc args (thy, ctxt) =
@@ -1405,7 +1405,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val elemss' = change_elemss axioms elemss @
             [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
         in
-          def_thy |> have_thmss_qualified "" aname
+          def_thy |> note_thmss_qualified "" aname
             [((introN, []), [([intro], [])])]
           |> #1 |> rpair (elemss', [statement])
         end;
@@ -1417,7 +1417,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy' |> def_pred bname parms defs (ints @ more_ts) (ints' @ more_ts);
           val cstatement = Thm.cterm_of (Theory.sign_of def_thy) statement;
         in
-          def_thy |> have_thmss_qualified "" bname
+          def_thy |> note_thmss_qualified "" bname
             [((introN, []), [([intro], [])]),
              ((axiomsN, []), [(map Drule.standard axioms, [])])]
           |> #1 |> rpair ([cstatement], axioms)
@@ -1455,7 +1455,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
   in
     pred_thy
-    |> have_thmss_qualified "" name facts' |> #1
+    |> note_thmss_qualified "" name facts' |> #1
     |> declare_locale name
     |> put_locale name (make_locale view (prep_expr sign raw_import)
         (map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))))

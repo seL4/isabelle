@@ -150,7 +150,7 @@ fun maintain_calculation false calc state =
       state
       |> reset_calculation
       |> Proof.reset_thms calculationN
-      |> Proof.simple_have_thms "" calc
+      |> Proof.simple_note_thms "" calc
       |> Proof.chain;
 
 

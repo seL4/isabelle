@@ -244,21 +244,21 @@ fun present_thmss kind (thy, named_thmss) =
 
 in
 
-fun theorems_i k = present_thmss k oo PureThy.have_thmss_i (Drule.kind k);
-fun locale_theorems_i k loc = present_thmss k oo Locale.have_thmss_i k loc;
+fun theorems_i k = present_thmss k oo PureThy.note_thmss_i (Drule.kind k);
+fun locale_theorems_i k loc = present_thmss k oo Locale.note_thmss_i k loc;
 
 fun theorems k args thy = thy
-  |> PureThy.have_thmss (Drule.kind k) (global_attribs thy args)
+  |> PureThy.note_thmss (Drule.kind k) (global_attribs thy args)
   |> present_thmss k;
 
 fun locale_theorems k loc args thy = thy
-  |> Locale.have_thmss k loc (local_attribs thy args)
+  |> Locale.note_thmss k loc (local_attribs thy args)
   |> present_thmss k;
 
 fun smart_theorems k opt_loc args thy = thy
   |> (case opt_loc of
-    None => PureThy.have_thmss (Drule.kind k) (global_attribs thy args)
-  | Some loc => Locale.have_thmss k loc (local_attribs thy args))
+    None => PureThy.note_thmss (Drule.kind k) (global_attribs thy args)
+  | Some loc => Locale.note_thmss k loc (local_attribs thy args))
   |> present_thmss k;
 
 fun declare_theorems opt_loc args = #1 o smart_theorems "" opt_loc [(("", []), args)];
@@ -277,10 +277,10 @@ fun local_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
 
 fun chain_thmss f args = ProofHistory.apply (Proof.chain o f (map (pair ("", [])) args));
 
-val have_facts = ProofHistory.apply o local_thmss Proof.have_thmss;
-val have_facts_i = ProofHistory.apply o local_thmss_i Proof.have_thmss_i;
-val from_facts = chain_thmss (local_thmss Proof.have_thmss);
-val from_facts_i = chain_thmss (local_thmss_i Proof.have_thmss_i);
+val have_facts = ProofHistory.apply o local_thmss Proof.note_thmss;
+val have_facts_i = ProofHistory.apply o local_thmss_i Proof.note_thmss_i;
+val from_facts = chain_thmss (local_thmss Proof.note_thmss);
+val from_facts_i = chain_thmss (local_thmss_i Proof.note_thmss_i);
 val with_facts = chain_thmss (local_thmss Proof.with_thmss);
 val with_facts_i = chain_thmss (local_thmss_i Proof.with_thmss_i);
 
@@ -517,7 +517,7 @@ fun gen_calc get f args prt state =
 
 in
 
-fun get_thmss srcs = Proof.the_facts o local_thmss Proof.have_thmss [(("", []), srcs)];
+fun get_thmss srcs = Proof.the_facts o local_thmss Proof.note_thmss [(("", []), srcs)];
 fun get_thmss_i thms _ = thms;
 
 fun also x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.also x);
