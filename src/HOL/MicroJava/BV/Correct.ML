@@ -41,7 +41,7 @@ Goal
 "\\<lbrakk> wf_prog wt G \\<rbrakk> \
 \\\<Longrightarrow> approx_val G hp v (Some T) \\<longrightarrow> G\\<turnstile> T\\<preceq>T' \\<longrightarrow> approx_val G hp v (Some T')";
 by (case_tac "T" 1);
- by (Asm_simp_tac 1);
+ by (fast_tac (claset() addIs [conf_widen] addss (simpset()addsimps[approx_val_def])) 1);
 by (fast_tac (claset() addIs [conf_widen] addss (simpset()addsimps[approx_val_def])) 1);
 qed_spec_mp "approx_val_imp_approx_val_assConvertible";
 
@@ -63,7 +63,7 @@ qed_spec_mp "approx_val_imp_approx_val_heap_update";
 
 Goal
 "wf_prog wt G \\<Longrightarrow> approx_val G h val us \\<longrightarrow> G \\<turnstile> us <=o us' \\<longrightarrow> approx_val G h val us'";
-by (asm_simp_tac (simpset() addsimps [sup_PTS_eq,approx_val_def] addsplits [option.split,val_.split,ty.split]) 1);
+by (asm_simp_tac (simpset() addsimps [thm "sup_PTS_eq",approx_val_def] addsplits [option.split,val_.split,ty.split]) 1);
 by(blast_tac (claset() addIs [conf_widen]) 1);
 qed_spec_mp "approx_val_imp_approx_val_sup";
 
@@ -104,7 +104,7 @@ by (force_tac (claset() addIs [approx_val_imp_approx_val_sup_heap],
 qed_spec_mp "approx_loc_imp_approx_loc_sup_heap";
 
 
-Goalw [sup_loc_def,approx_loc_def,list_all2_def]
+Goalw [thm "sup_loc_def",approx_loc_def,list_all2_def]
 "wf_prog wt G \\<Longrightarrow> approx_loc G hp lvars lt \\<longrightarrow> G \\<turnstile> lt <=l lt' \\<longrightarrow> approx_loc G hp lvars lt'";
 by (auto_tac (claset() , simpset() addsimps [all_set_conv_all_nth,split_def]));
 by (auto_tac (claset() addEs [approx_val_imp_approx_val_sup] , simpset()));

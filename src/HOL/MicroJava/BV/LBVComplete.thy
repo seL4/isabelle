@@ -475,13 +475,15 @@ qed
   
 
 lemma fits_imp_wtl_method_complete:
-"\<lbrakk>wt_method G C pTs rT mxl ins phi; fits ins cert phi; wf_prog wf_mb G\<rbrakk> \<Longrightarrow> wtl_method G C pTs rT mxl ins cert"
-by (simp add: wt_method_def wtl_method_def del: split_paired_Ex)
-   (rule wt_imp_wtl_inst_list [rulify, elimify], auto simp add: wt_start_def simp del: split_paired_Ex) 
+"\<lbrakk>wt_method G C pTs rT mxl ins phi; fits ins cert phi; wf_prog wf_mb G\<rbrakk> 
+  \<Longrightarrow> wtl_method G C pTs rT mxl ins cert"
+by (simp add: wt_method_def wtl_method_def)
+   (rule wt_imp_wtl_inst_list [rulify, elimify], auto simp add: wt_start_def) 
 
 
 lemma wtl_method_complete:
-"\<lbrakk>wt_method G C pTs rT mxl ins phi; wf_prog wf_mb G\<rbrakk> \<Longrightarrow> wtl_method G C pTs rT mxl ins (make_cert ins phi)"
+"\<lbrakk>wt_method G C pTs rT mxl ins phi; wf_prog wf_mb G\<rbrakk> 
+  \<Longrightarrow> wtl_method G C pTs rT mxl ins (make_cert ins phi)"
 proof -
   assume * : "wt_method G C pTs rT mxl ins phi" "wf_prog wf_mb G"
   

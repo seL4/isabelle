@@ -4,34 +4,13 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Monotonicity of \texttt{step} and \texttt{app} *}
+header {* Monotonicity of step and app *}
 
-theory StepMono = Step :
+theory StepMono = Step:
 
-
-lemmas [trans] = sup_state_trans sup_loc_trans widen_trans
-
-
-lemma sup_state_length:
-"G \<turnstile> s2 <=s s1 \<Longrightarrow> length (fst s2) = length (fst s1) \<and> length (snd s2) = length (snd s1)"
-  by (cases s1, cases s2, simp add: sup_state_length_fst sup_state_length_snd)
-  
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
-proof
-  show "xb = PrimT p \<Longrightarrow> G \<turnstile> xb \<preceq> PrimT p" by blast
-
-  show "G\<turnstile> xb \<preceq> PrimT p \<Longrightarrow> xb = PrimT p"
-  proof (cases xb)
-    fix prim
-    assume "xb = PrimT prim" "G\<turnstile>xb\<preceq>PrimT p"
-    thus ?thesis by simp
-  next
-    fix ref
-    assume "G\<turnstile>xb\<preceq>PrimT p" "xb = RefT ref"
-    thus ?thesis by simp (rule widen_RefT [elimify], auto)
-  qed
-qed
+  by (auto elim: widen.elims)
 
 
 lemma sup_loc_some [rulify]:
@@ -50,7 +29,7 @@ proof (induct "?P" b)
     show "(\<exists>t. (a # list) ! n = Some t) \<and> G \<turnstile>(a # list) ! n <=o Some t" 
     proof (cases n) 
       case 0
-      with * show ?thesis by (simp add: sup_ty_opt_some)
+      with * show ?thesis by (simp add: sup_ty_opt_Some)
     next
       case Suc
       with Cons *
@@ -159,7 +138,7 @@ proof -
     with G app
     show ?thesis
       by - (cases s2,
-            auto dest: map_hd_tl simp add: sup_loc_Cons2 sup_loc_length sup_state_def)
+            auto simp add: map_eq_Cons sup_loc_Cons2 sup_loc_length sup_state_def)
   next
     case Bipush
     thus ?thesis by simp 

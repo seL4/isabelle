@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-val defs1 = exec.simps@[split_def,sup_state_def,correct_state_def,
+val defs1 = exec.simps@[split_def,thm "sup_state_def",correct_state_def,
 		correct_frame_def, thm "wt_instr_def"];
 
 Goalw [correct_state_def,Let_def,correct_frame_def,split_def]
@@ -66,7 +66,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (case_tac "phi C sig ! pc" 1);
 by (fast_tac (claset()addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
-	addss (simpset() addsimps [approx_val_def,sup_PTS_eq,map_eq_Cons]@defs1)) 1);
+	addss (simpset() addsimps [approx_val_def,thm "sup_PTS_eq",map_eq_Cons]@defs1)) 1);
 qed "Bipush_correct";
 
 Goal "G \\<turnstile> T' \\<preceq> T \\<Longrightarrow> T' = NT \\<longrightarrow> (T=NT | (\\<exists>C. T = Class C))";
@@ -133,7 +133,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [sup_state_def,map_eq_Cons]) 1);
+by (asm_full_simp_tac (simpset() addsimps [thm "sup_state_def",map_eq_Cons]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
 
@@ -164,7 +164,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [sup_state_def,map_eq_Cons]) 1);
+by (asm_full_simp_tac (simpset() addsimps [thm "sup_state_def",map_eq_Cons]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
 
@@ -267,7 +267,7 @@ by (asm_full_simp_tac (simpset() addsimps defs1) 1);
 by (forward_tac [thm "wt_jvm_prog_impl_wt_start"] 1);
  ba 1;
  back();
-by (asm_full_simp_tac (simpset() addsimps [thm "wt_start_def",sup_state_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [thm "wt_start_def",thm "sup_state_def"]) 1);
 by (Clarify_tac 1);
 
 (** approx_loc **)

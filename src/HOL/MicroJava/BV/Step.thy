@@ -10,7 +10,7 @@ header {* Effect of instructions on the state type *}
 theory Step = Convert :
 
 
-text "Effect of instruction on the state type"
+text "Effect of instruction on the state type:"
 consts 
 step :: "instr \<times> jvm_prog \<times> state_type \<Rightarrow> state_type option"
 
@@ -39,7 +39,7 @@ recdef step "{}"
 "step (i,G,s)                           = None"
 
 
-text "Conditions under which step is applicable"
+text "Conditions under which step is applicable:"
 consts
 app :: "instr \<times> jvm_prog \<times> ty \<times> state_type \<Rightarrow> bool"
 
@@ -84,7 +84,7 @@ app_invoke:
 "app (i,G,rT,s)                            = False"
 
 
-text {* \verb,p_count, of successor instructions *}
+text {* program counter of successor instructions: *}
 
 consts
 succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count set"
@@ -134,10 +134,8 @@ qed
 
 text {* 
 \medskip
-simp rules for @{term app} without patterns, better suited for proofs
-\medskip
+simp rules for \isa{app} without patterns, better suited for proofs:
 *}
-
 lemma appStore[simp]:
 "app (Store idx, G, rT, s) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
 by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
