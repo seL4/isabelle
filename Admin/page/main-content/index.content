@@ -45,6 +45,8 @@ New features in <strong><!-- _GP_ distname --></strong> include
 
 <li>Type <code>rat</code> of the rational numbers available in HOL-Complex.</li>
 
+<li>New theory of matrices with an application to linear programming in HOL-Matrix.</li>
+
 <li>Improved locales (named proof contexts), instantiation of locales.</li>
 
 <li>Improved handling of linear and partial orders in simplifier.</li>
