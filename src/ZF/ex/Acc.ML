@@ -18,37 +18,34 @@ structure Acc = Inductive_Fun
   val type_intrs = []
   val type_elims = []);
 
+(*The introduction rule must require  a:field(r)  
+  Otherwise acc(r) would be a proper class!    *)
+
 goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
 by (etac Acc.elim 1);
 by (fast_tac ZF_cs 1);
 val acc_downward = result();
 
-val [major] = goal Acc.thy "field(r) <= acc(r) ==> wf(r)";
-by (rtac (major RS wfI2) 1);
-by (rtac subsetI 1);
-by (etac Acc.induct 1);
-by (etac (bspec RS mp) 1);
+val [major,indhyp] = goal Acc.thy
+    "[| a : acc(r);						\
+\       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x)	\
+\    |] ==> P(a)";
+br (major RS Acc.induct) 1;
+br indhyp 1;
+by (fast_tac ZF_cs 2);
 by (resolve_tac Acc.intrs 1);
-by (assume_tac 2);
-by (ALLGOALS (fast_tac ZF_cs));
-val acc_wfI = result();
-
-goal ZF.thy "!!r A. field(r Int A*A) <= field(r) Int A";
+ba 2;
 by (fast_tac ZF_cs 1);
-val field_Int_prodself = result();
+val acc_induct = result();
 
-goal Acc.thy "wf(r Int (acc(r)*acc(r)))";
-by (rtac (field_Int_prodself RS wfI2) 1);
-by (rtac subsetI 1);
-by (etac IntE 1);
-by (etac Acc.induct 1);
-by (etac (bspec RS mp) 1);
-by (rtac IntI 1);
-by (assume_tac 1);
-by (resolve_tac Acc.intrs 1);
-by (assume_tac 2);
-by (ALLGOALS (fast_tac ZF_cs));
-val wf_acc_Int = result();
+goal Acc.thy "wf[acc(r)](r)";
+br wf_onI2 1;
+be acc_induct 1;
+by (fast_tac ZF_cs 1);
+val wf_on_acc = result();
+
+(* field(r) <= acc(r) ==> wf(r) *)
+val acc_wfI = wf_on_acc RS wf_on_subset_A RS wf_on_field_imp_wf;
 
 val [major] = goal Acc.thy "wf(r) ==> field(r) <= acc(r)";
 by (rtac subsetI 1);

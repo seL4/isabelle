@@ -45,50 +45,6 @@ by (fast_tac ZF_cs 1);
 result();
 
 
-(**** The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 ****)
-
-val SB_thy = merge_theories (Fixedpt.thy, Perm.thy);
-
-(** Lemma: Banach's Decomposition Theorem **)
-
-goal SB_thy "bnd_mono(X, %W. X - g``(Y - f``W))";
-by (rtac bnd_monoI 1);
-by (REPEAT (ares_tac [Diff_subset, subset_refl, Diff_mono, image_mono] 1));
-val decomp_bnd_mono = result();
-
-val [gfun] = goal SB_thy
-    "g: Y->X ==>   					\
-\    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) = 	\
-\    X - lfp(X, %W. X - g``(Y - f``W)) ";
-by (res_inst_tac [("P", "%u. ?v = X-u")] 
-     (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
-by (simp_tac (ZF_ss addsimps [subset_refl, double_complement,
-			     gfun RS fun_is_rel RS image_subset]) 1);
-val Banach_last_equation = result();
-
-val prems = goal SB_thy
-    "[| f: X->Y;  g: Y->X |] ==>   \
-\    EX XA XB YA YB. (XA Int XB = 0) & (XA Un XB = X) &    \
-\                    (YA Int YB = 0) & (YA Un YB = Y) &    \
-\                    f``XA=YA & g``YB=XB";
-by (REPEAT 
-    (FIRSTGOAL
-     (resolve_tac [refl, exI, conjI, Diff_disjoint, Diff_partition])));
-by (rtac Banach_last_equation 3);
-by (REPEAT (resolve_tac (prems@[fun_is_rel, image_subset, lfp_subset]) 1));
-val decomposition = result();
-
-val prems = goal SB_thy
-    "[| f: inj(X,Y);  g: inj(Y,X) |] ==> EX h. h: bij(X,Y)";
-by (cut_facts_tac prems 1);
-by (cut_facts_tac [(prems RL [inj_is_fun]) MRS decomposition] 1);
-by (fast_tac (ZF_cs addSIs [restrict_bij,bij_disjoint_Un]
-                    addIs [bij_converse_bij]) 1);
-(* The instantiation of exI to "restrict(f,XA) Un converse(restrict(g,YB))"
-   is forced by the context!! *)
-val schroeder_bernstein = result();
-
-
 (*** Composition of homomorphisms is a homomorphism ***)
 
 (*Given as a challenge problem in
@@ -98,9 +54,9 @@ val schroeder_bernstein = result();
 *)
 
 (*collecting the relevant lemmas*)
-val hom_ss = ZF_ss addsimps [comp_func,comp_func_apply,SigmaI,apply_funtype];
+val hom_ss = ZF_ss addsimps [comp_fun,comp_fun_apply,SigmaI,apply_funtype];
 
-(*The problem below is proving conditions of rewrites such as comp_func_apply;
+(*The problem below is proving conditions of rewrites such as comp_fun_apply;
   rewriting does not instantiate Vars; we must prove the conditions
   explicitly.*)
 fun hom_tac hyps =
@@ -166,7 +122,7 @@ val pastre_rls =
     [comp_mem_injD1, comp_mem_surjD1, comp_mem_injD2, comp_mem_surjD2];
 
 fun pastre_facts (fact1::fact2::fact3::prems) = 
-    forw_iterate (prems @ [comp_surj, comp_inj, comp_func])
+    forw_iterate (prems @ [comp_surj, comp_inj, comp_fun])
                pastre_rls [fact1,fact2,fact3] 4;
 
 val prems = goalw Perm.thy [bij_def]

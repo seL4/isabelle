@@ -1,9 +1,9 @@
-(*  Title: 	ZF/ex/equiv.ML
+(*  Title: 	ZF/ex/Equiv.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1994  University of Cambridge
 
-For equiv.thy.  Equivalence relations in Zermelo-Fraenkel Set Theory 
+For Equiv.thy.  Equivalence relations in Zermelo-Fraenkel Set Theory 
 *)
 
 val RSLIST = curry (op MRS);
@@ -20,7 +20,7 @@ by (fast_tac (ZF_cs addSEs [converseD,compE]) 1);
 val sym_trans_comp_subset = result();
 
 goalw Equiv.thy [refl_def]
-    "!!A r. refl(A,r) ==> r <= converse(r) O r";
+    "!!A r. [| refl(A,r); r <= A*A |] ==> r <= converse(r) O r";
 by (fast_tac (ZF_cs addSIs [converseI] addIs [compI]) 1);
 val refl_comp_subset = result();
 
@@ -80,9 +80,8 @@ goalw Equiv.thy [equiv_def,trans_def,sym_def]
 by (fast_tac ZF_cs 1);
 val equiv_class_nondisjoint = result();
 
-val [major] = goalw Equiv.thy [equiv_def,refl_def]
-    "equiv(A,r) ==> r <= A*A";
-by (rtac (major RS conjunct1 RS conjunct1) 1);
+goalw Equiv.thy [equiv_def] "!!A r. equiv(A,r) ==> r <= A*A";
+by (safe_tac ZF_cs);
 val equiv_type = result();
 
 goal Equiv.thy
@@ -137,9 +136,9 @@ val quotient_disj = result();
 val prems as [equivA,bcong,_] = goal Equiv.thy
     "[| equiv(A,r);  congruent(r,b);  a: A |] ==> (UN x:r``{a}. b(x)) = b(a)";
 by (cut_facts_tac prems 1);
-by (rtac UN_singleton 1);
-by (etac equiv_class_self 1);
-by (assume_tac 1);
+by (rtac ([refl RS UN_cong, UN_constant] MRS trans) 1);
+by (etac equiv_class_self 2);
+by (assume_tac 2);
 by (rewrite_goals_tac [equiv_def,sym_def,congruent_def]);
 by (fast_tac ZF_cs 1);
 val UN_equiv_class = result();

@@ -21,6 +21,15 @@ structure Term = Datatype_Fun
 
 val [ApplyI] = Term.intrs;
 
+(*Note that Apply is the identity function*)
+goal Term.thy "term(A) = A * list(term(A))";
+by (rtac (Term.unfold RS trans) 1);
+bws Term.con_defs;
+by (fast_tac (sum_cs addIs ([equalityI] @ datatype_intrs)
+ 	             addDs [Term.dom_subset RS subsetD]
+ 	             addEs [A_into_univ, list_into_univ]) 1);
+val term_unfold = result();
+
 (*Induction on term(A) followed by induction on List *)
 val major::prems = goal Term.thy
     "[| t: term(A);  \
@@ -61,6 +70,9 @@ by (safe_tac ZF_cs);
 by (REPEAT (ares_tac [Pair_in_univ, list_univ RS subsetD] 1));
 val term_univ = result();
 
-val term_subset_univ = standard
-    (term_mono RS (term_univ RSN (2,subset_trans)));
+val term_subset_univ = 
+    term_mono RS (term_univ RSN (2,subset_trans)) |> standard;
 
+goal Term.thy "!!t A B. [| t: term(A);  A <= univ(B) |] ==> t: univ(B)";
+by (REPEAT (ares_tac [term_subset_univ RS subsetD] 1));
+val term_into_univ = result();

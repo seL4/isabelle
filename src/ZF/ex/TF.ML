@@ -47,19 +47,27 @@ val unfold_cs = sum_cs addSIs [PartI, refl RS conjI RS exI RS exI]
                     addDs [TF.dom_subset RS subsetD]
 	            addSEs ([PartE] @ datatype_elims @ TF.free_SEs);
 
-goalw TF.thy (tl TF.defs) "tree(A) = {Inl(x). x: A*forest(A)}";
-by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (TF.unfold RS ssubst) 1);
+goalw TF.thy (tl TF.defs)
+    "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
+by (rtac (TF.unfold RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
 by (rtac equalityI 1);
 by (fast_tac unfold_cs 1);
 by (fast_tac unfold_cs 1);
+val tree_forest_unfold = result();
+
+val tree_forest_unfold' = rewrite_rule (tl TF.defs) tree_forest_unfold;
+
+
+goalw TF.thy (tl TF.defs) "tree(A) = {Inl(x). x: A*forest(A)}";
+br (Part_Inl RS subst) 1;
+br (tree_forest_unfold' RS subst_context) 1;
 val tree_unfold = result();
 
 goalw TF.thy (tl TF.defs) "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
-by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (TF.unfold RS ssubst) 1);
-by (rewrite_goals_tac TF.con_defs);
-by (rtac equalityI 1);
-by (fast_tac unfold_cs 1);
-by (fast_tac unfold_cs 1);
+br (Part_Inr RS subst) 1;
+br (tree_forest_unfold' RS subst_context) 1;
 val forest_unfold = result();
+
+
 

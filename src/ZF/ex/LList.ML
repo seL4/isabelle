@@ -28,6 +28,15 @@ val LConsE = LList.mk_cases LList.con_defs "LCons(a,l) : llist(A)";
 val LCons_iff      = LList.mk_free "LCons(a,l)=LCons(a',l') <-> a=a' & l=l'";
 val LNil_LCons_iff = LList.mk_free "~ LNil=LCons(a,l)";
 
+goal LList.thy "llist(A) = {0} <+> (A <*> llist(A))";
+by (rtac (LList.unfold RS trans) 1);
+bws LList.con_defs;
+by (fast_tac (qsum_cs addIs ([equalityI] @ codatatype_intrs)
+		      addDs [LList.dom_subset RS subsetD]
+ 	              addEs [A_into_quniv]
+                      addSEs [QSigmaE]) 1);
+val llist_unfold = result();
+
 (*** Lemmas to justify using "llist" in other recursive type definitions ***)
 
 goalw LList.thy LList.defs "!!A B. A<=B ==> llist(A) <= llist(B)";

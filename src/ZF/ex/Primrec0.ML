@@ -92,7 +92,7 @@ val ACK_in_primrec = result();
 
 val ack_typechecks =
     [ACK_in_primrec, primrec_into_fun RS apply_type,
-     add_type, list_add_type, naturals_are_ordinals] @ 
+     add_type, list_add_type, nat_into_Ord] @ 
     nat_typechecks @ List.intrs @ Primrec.intrs;
 
 (*strict typechecking for the Ackermann proof; instantiates no vars*)
@@ -127,7 +127,7 @@ val ack_succ_succ = result();
 
 val ack_ss = 
     pr_ss addsimps [ack_0, ack_succ_0, ack_succ_succ, 
-		    ack_type, naturals_are_ordinals];
+		    ack_type, nat_into_Ord];
 
 (*PROPERTY A 4*)
 goal Primrec.thy "!!i. i:nat ==> ALL j:nat. j < ack(i,j)";
@@ -161,7 +161,7 @@ val ack_lt_mono2 = result();
 goal Primrec.thy
     "!!i j k. [| j le k;  i: nat;  k:nat |] ==> ack(i,j) le ack(i,k)";
 by (res_inst_tac [("f", "%j.ack(i,j)")] Ord_lt_mono_imp_le_mono 1);
-by (REPEAT (ares_tac [ack_lt_mono2, ack_type RS naturals_are_ordinals] 1));
+by (REPEAT (ares_tac [ack_lt_mono2, ack_type RS nat_into_Ord] 1));
 val ack_le_mono2 = result();
 
 (*PROPERTY A 6*)
@@ -194,7 +194,7 @@ val ack_lt_mono1 = result();
 goal Primrec.thy
     "!!i j k. [| i le j; j:nat; k:nat |] ==> ack(i,k) le ack(j,k)";
 by (res_inst_tac [("f", "%j.ack(j,k)")] Ord_lt_mono_imp_le_mono 1);
-by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS naturals_are_ordinals] 1));
+by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS nat_into_Ord] 1));
 val ack_le_mono1 = result();
 
 (*PROPERTY A 8*)
@@ -247,8 +247,7 @@ val ack_add_bound2 = result();
 (*** MAIN RESULT ***)
 
 val ack2_ss =
-    ack_ss addsimps [list_add_Nil, list_add_Cons, list_add_type, 
-		     naturals_are_ordinals];
+    ack_ss addsimps [list_add_Nil, list_add_Cons, list_add_type, nat_into_Ord];
 
 goalw Primrec.thy [SC_def]
     "!!l. l: list(nat) ==> SC ` l < ack(1, list_add(l))";

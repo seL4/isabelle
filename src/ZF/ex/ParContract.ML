@@ -22,7 +22,8 @@ structure ParContract = Inductive_Fun
   val type_intrs = Comb.intrs@[SigmaI];
   val type_elims = [SigmaE2]);
 
-val [parcontract_refl,K_parcontract,S_parcontract,Ap_parcontract] = ParContract.intrs;
+val [parcontract_refl,K_parcontract,S_parcontract,Ap_parcontract] = 
+    ParContract.intrs;
 
 val parcontract_induct = standard
     (ParContract.mutual_induct RS spec RS spec RSN (2,rev_mp));

@@ -19,7 +19,8 @@ structure Comb = Datatype_Fun
 	  [(["K","S"],	"i"),
 	   (["op #"],	"[i,i]=>i")])];
   val rec_styp = "i";
-  val ext = Some (Syntax.simple_sext [OldMixfix.Infixl("#", "[i,i] => i", 90)]);
+  val ext = Some (Syntax.simple_sext
+		  [OldMixfix.Infixl("#", "[i,i] => i", 90)]);
   val sintrs = 
 	  ["K : comb",
 	   "S : comb",
