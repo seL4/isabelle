@@ -1,12 +1,14 @@
-(*  Title:      Subst/AList.thy
-    ID:         $Id$
+(*  ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Association lists.
 *)
 
-AList = Main +
+header{*Association Lists*}
+
+theory AList
+imports Main
+begin
 
 consts
   alist_rec  :: "[('a*'b)list, 'c, ['a, 'b, ('a*'b)list, 'c]=>'c] => 'c"
@@ -19,5 +21,11 @@ primrec
 primrec
   "assoc v d [] = d"
   "assoc v d (p # al) = (if v = fst p then snd p else assoc v d al)"
+
+
+lemma alist_induct:
+    "[| P([]);    
+        !!x y xs. P(xs) ==> P((x,y)#xs) |]  ==> P(l)"
+by (induct_tac "l", auto)
 
 end

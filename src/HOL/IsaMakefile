@@ -191,9 +191,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
 
 HOL-Subst: HOL $(LOG)/HOL-Subst.gz
 
-$(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.ML Subst/AList.thy \
-  Subst/ROOT.ML Subst/Subst.ML Subst/Subst.thy Subst/UTerm.ML \
-  Subst/UTerm.thy Subst/Unifier.ML Subst/Unifier.thy Subst/Unify.ML \
+$(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy \
+  Subst/ROOT.ML Subst/Subst.thy Subst/UTerm.thy Subst/Unifier.thy \
   Subst/Unify.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Subst
 
