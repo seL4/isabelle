@@ -132,21 +132,9 @@ Goal "(UN m::nat. atMost m) = UNIV";
 by (Blast_tac 1);
 qed "UN_atMost_UNIV";
 
-Goalw [atMost_def, le_def]
-    "!!k:: 'a::linorder. -atMost k = greaterThan k";
-by Auto_tac;
-by (blast_tac (claset() addIs [linorder_not_less RS iffD1]) 1);
-by (blast_tac (claset() addIs [order_le_less_trans RS 
-	                       (order_less_irrefl RS notE)]) 1);
-qed "Compl_atMost";
-Addsimps [Compl_atMost];
-
 
 (*** Combined properties ***)
 
 Goal "!!n:: 'a::order. atMost n Int atLeast n = {n}";
 by (blast_tac (claset() addIs [order_antisym]) 1);
 qed "atMost_Int_atLeast";
-
-
-
