@@ -1,4 +1,5 @@
 (*  Title:      Pure/Syntax/parser.ML
+    ID:         $Id$
     Author:     Sonia Mahjoub and Markus Wenzel, TU Muenchen
 
 Isabelle's main parser (used for terms and typs).
