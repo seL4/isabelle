@@ -154,9 +154,9 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
     val typedef_prop = HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set');
 
     (*theory extender*)
-    fun do_typedef theory =
+    fun do_typedef super_theory theory =
       theory
-      |> Theory.assert_super thy
+      |> Theory.assert_super super_theory
       |> add_typedecls [(t, vs, mx)]
       |> Theory.add_consts_i
        ((if no_def then [] else [(name, setT, NoSyn)]) @
@@ -219,7 +219,7 @@ fun gen_add_typedef prep_term no_def name typ set names thms tac thy =
   let
     val (cset, _, do_typedef) = prepare_typedef prep_term no_def name typ set thy;
     val result = prove_nonempty thy cset (names, thms, tac);
-  in check_nonempty cset result; thy |> do_typedef |> #1 end;
+  in check_nonempty cset result; thy |> do_typedef thy |> #1 end;
 
 val add_typedef = gen_add_typedef read_term false;
 val add_typedef_i = gen_add_typedef cert_term false;
@@ -236,9 +236,10 @@ fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
     val (cset, cset_pat, do_typedef) = prepare_typedef prep_term false name typ set thy;
     val goal = Thm.term_of (goal_nonempty true cset);
     val goal_pat = Thm.term_of (goal_nonempty true cset_pat);
+    val test_thy = Theory.copy thy;
   in
-    thy
-    |> IsarThy.theorem_i ((("", [typedef_attribute cset do_typedef]),
+    test_thy |> do_typedef test_thy;  (*preview errors!*)
+    thy |> IsarThy.theorem_i ((("", [typedef_attribute cset (do_typedef thy)]),
       (goal, ([goal_pat], []))), comment) int
   end;
 
