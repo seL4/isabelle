@@ -15,7 +15,7 @@ open ThyParse;
 fun mk_typedef_decl (((((opt_name, vs), t), mx), rhs), wt) =
   let
     val name' = if_none opt_name t;
-    val name = strip_quotes name';
+    val name = unenclose name';
   in
     (cat_lines [name', mk_triple (t, mk_list vs, mx), rhs, wt],
       [name ^ "_def", "Rep_" ^ name, "Rep_" ^ name ^ "_inverse",
@@ -47,7 +47,7 @@ fun inductive_decl coind =
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
       if Syntax.is_identifier s then "op " ^ s else "_";
     fun mk_params (((recs, ipairs), monos), con_defs) =
-      let val big_rec_name = space_implode "_" (map (scan_to_id o strip_quotes) recs)
+      let val big_rec_name = space_implode "_" (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (no_atts (map (mk_pair o apfst quote) ipairs))
       in
@@ -126,7 +126,7 @@ local
   fun mk_dt_string dts =
     let
       val names = map (fn ((((alt_name, _), name), _), _) =>
-        strip_quotes (if_none alt_name name)) dts;
+        unenclose (if_none alt_name name)) dts;
 
       val add_datatype_args = brackets (commas (map quote names)) ^ " " ^
         brackets (commas (map (fn ((((_, vs), name), mx), cs) =>
@@ -160,7 +160,7 @@ local
 
   (*** parsers ***)
 
-  val simple_typ = ident || (type_var >> strip_quotes);
+  val simple_typ = ident || (type_var >> unenclose);
 
   fun complex_typ toks =
     let val typ = simple_typ || "(" $$-- complex_typ --$$ ")";
@@ -171,7 +171,7 @@ local
         (repeat1 ident >> (cat "" o space_implode " "))) toks
     end;
 
-  val opt_typs = repeat ((string >> strip_quotes) ||
+  val opt_typs = repeat ((string >> unenclose) ||
     simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
     parens (n ^ ", " ^ brackets (commas_quote Ts) ^ ", " ^ mx));
@@ -184,7 +184,7 @@ in
     enum1 "and" (opt_name -- type_args -- name -- opt_infix --$$ "=" --
       enum1 "|" constructor) >> mk_dt_string;
   val rep_datatype_decl =
-    ((optional ((repeat1 (name >> strip_quotes)) >> Some) None) --
+    ((optional ((repeat1 (name >> unenclose)) >> Some) None) --
       optlistlist "distinct" -- optlistlist "inject" --
         ("induct" $$-- name)) >> mk_rep_dt_string;
 end;
@@ -215,7 +215,7 @@ val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
 (*fname: name of function being defined; rel: well-founded relation*)
 fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
   let
-    val fid = strip_quotes fname;
+    val fid = unenclose fname;
     val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
     val axms_text = mk_big_list axms;
   in
@@ -236,7 +236,7 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
 val recdef_decl =
   (name -- string --
     optional ("congs" $$-- list1 name) [] --
-    optional ("simpset" $$-- string >> strip_quotes) "simpset()" --
+    optional ("simpset" $$-- string >> unenclose) "simpset()" --
     repeat1 string >> mk_recdef_decl);
 
 
@@ -245,7 +245,7 @@ val recdef_decl =
 (*fname: name of function being defined; rel: well-founded relation*)
 fun mk_defer_recdef_decl ((fname, congs), axms) =
   let
-    val fid = strip_quotes fname;
+    val fid = unenclose fname;
     val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
     val axms_text = mk_big_list axms;
   in

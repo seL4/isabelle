@@ -70,7 +70,6 @@ sig
   val mk_triple: string * string * string -> string
   val mk_triple1: (string * string) * string -> string
   val mk_triple2: string * (string * string) -> string
-  val strip_quotes: string -> string
 end;
 
 
@@ -177,10 +176,6 @@ fun mk_triple1 ((x, y), z) = mk_triple (x, y, z);
 fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 
 fun split_decls l = flat (map (fn (xs, y) => map (rpair y) xs) l);
-
-(*Remove the leading and trailing chararacters.  Actually called to
-  remove quotation marks.*)
-fun strip_quotes s = String.substring (s, 1, size s - 2);
 
 
 (* names *)
@@ -393,8 +388,7 @@ val constaxiom_decls =
 (* axclass *)
 
 fun mk_axclass_decl ((c, cs), axms) =
-  (mk_pair (c, cs) ^ "\n" ^ mk_axms' axms,
-    strip_quotes c ^ "I" :: map fst axms);
+  (mk_pair (c, cs) ^ "\n" ^ mk_axms' axms, unenclose c ^ "I" :: map fst axms);
 
 val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 

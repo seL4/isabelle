@@ -127,6 +127,7 @@ sig
   val foldl_string: ('a * string -> 'a) -> 'a * string -> 'a
   val exists_string: (string -> bool) -> string -> bool
   val enclose: string -> string -> string -> string
+  val unenclose: string -> string
   val quote: string -> string
   val space_implode: string -> string list -> string
   val commas: string list -> string
@@ -673,6 +674,7 @@ fun exists_string pred str = foldl_string (fn (b, s) => b orelse pred s) (false,
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
+fun unenclose str = String.substring (str, 1, size str - 2);
 
 (*simple quoting (does not escape special chars)*)
 val quote = enclose "\"" "\"";

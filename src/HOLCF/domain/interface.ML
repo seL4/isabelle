@@ -102,8 +102,8 @@ local
 
 (* ----- parser for domain declaration equation ----------------------------- *)
 
-  val name' = name >> strip_quotes;
-  val type_var' = type_var >> strip_quotes;
+  val name' = name >> unenclose;
+  val type_var' = type_var >> unenclose;
   fun esc_quote s = let fun esc [] = []
 			|   esc ("\""::xs) = esc xs
 			|   esc ("[" ::xs) = "{"::esc xs

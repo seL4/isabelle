@@ -23,8 +23,8 @@ fun mk_intr_name suffix s =
   a list of identifiers.*)
 fun optlist s = 
     optional (s $$-- 
-	      (string >> strip_quotes
-	       || list1 (name>>strip_quotes) >> mk_list)) 
+	      (string >> unenclose
+	       || list1 (name>>unenclose) >> mk_list)) 
     "[]";
 
 
@@ -34,7 +34,7 @@ fun inductive_decl coind =
     fun mk_params ((((((recs, sdom_sum), ipairs), 
                       monos), con_defs), type_intrs), type_elims) =
       let val big_rec_name = space_implode "_" 
-                           (map (scan_to_id o strip_quotes) recs)
+                           (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (map snd ipairs)
           and inames   = mk_list (map (mk_intr_name "" o fst) ipairs)
@@ -80,11 +80,11 @@ fun datatype_decl coind =
     val mk_data = mk_list o map mk_const o snd
     val mk_scons = mk_big_list o map mk_data
     fun mk_params ((((sdom, rec_pairs), monos), type_intrs), type_elims) =
-      let val rec_names = map (scan_to_id o strip_quotes o fst) rec_pairs
+      let val rec_names = map (scan_to_id o unenclose o fst) rec_pairs
 	  val big_rec_name = space_implode "_" rec_names
 	  and srec_tms = mk_list (map fst rec_pairs)
 	  and scons    = mk_scons rec_pairs
-	  val con_names = flat (map (map (strip_quotes o #1 o #1) o snd)
+	  val con_names = flat (map (map (unenclose o #1 o #1) o snd)
 				rec_pairs)
           val inames = mk_list (map (mk_intr_name "_I") con_names)
       in
