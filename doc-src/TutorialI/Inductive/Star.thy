@@ -3,14 +3,12 @@
 section{*The reflexive transitive closure*}
 
 text{*\label{sec:rtc}
-{\bf Say something about inductive relations as opposed to sets? Or has that
-been said already? If not, explain induction!}
-
-A perfect example of an inductive definition is the reflexive transitive
-closure of a relation. This concept was already introduced in
-\S\ref{sec:Relations}, where the operator @{text"^*"} was
-defined as a least fixed point because
-inductive definitions were not yet available. But now they are:
+Many inductive definitions define proper relations rather than merely set
+like @{term even}. A perfect example is the
+reflexive transitive closure of a relation. This concept was already
+introduced in \S\ref{sec:Relations}, where the operator @{text"^*"} was
+defined as a least fixed point because inductive definitions were not yet
+available. But now they are:
 *}
 
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
@@ -21,13 +19,13 @@ rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightar
 
 text{*\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
-@{text"rtc r"} we can read and write {term"r*"}. The actual definition
-consists of two rules. Reflexivity is obvious and is immediately declared an
-equivalence rule.  Thus the automatic tools will apply it automatically. The
+@{text"rtc r"} we can read and write @{term"r*"}. The actual definition
+consists of two rules. Reflexivity is obvious and is immediately given the
+@{text iff} attribute to increase automation. The
 second rule, @{thm[source]rtc_step}, says that we can always add one more
 @{term r}-step to the left. Although we could make @{thm[source]rtc_step} an
-introduction rule, this is dangerous: the recursion slows down and may
-even kill the automatic tactics.
+introduction rule, this is dangerous: the recursion in the second premise
+slows down and may even kill the automatic tactics.
 
 The above definition of the concept of reflexive transitive closure may
 be sufficiently intuitive but it is certainly not the only possible one:
@@ -45,38 +43,44 @@ it has the advantage that it can be declared an introduction rule without the
 danger of killing the automatic tactics because @{term"r*"} occurs only in
 the conclusion and not in the premise. Thus some proofs that would otherwise
 need @{thm[source]rtc_step} can now be found automatically. The proof also
-shows that @{term blast} is quite able to handle @{thm[source]rtc_step}. But
+shows that @{text blast} is quite able to handle @{thm[source]rtc_step}. But
 some of the other automatic tactics are more sensitive, and even @{text
 blast} can be lead astray in the presence of large numbers of rules.
 
-Let us now turn to transitivity. It should be a consequence of the definition.
+To prove transitivity, we need rule induction, i.e.\ theorem
+@{thm[source]rtc.induct}:
+@{thm[display]rtc.induct}
+It says that @{text"?P"} holds for an arbitrary pair @{text"(?xb,?xa) \<in>
+?r*"} if @{text"?P"} is preserved by all rules of the inductive definition,
+i.e.\ if @{text"?P"} holds for the conclusion provided it holds for the
+premises. In general, rule induction for an $n$-ary inductive relation $R$
+expects a premise of the form $(x@1,\dots,x@n) \in R$.
+
+Now we turn to the inductive proof of transitivity:
 *}
 
-lemma rtc_trans:
-  "\<lbrakk> (x,y) \<in> r*; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
-
-txt{*\noindent
-The proof starts canonically by rule induction:
-*}
-
+lemma rtc_trans: "\<lbrakk> (x,y) \<in> r*; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 apply(erule rtc.induct)
 
 txt{*\noindent
-However, even the resulting base case is a problem
+Unfortunately, even the resulting base case is a problem
 @{subgoals[display,indent=0,goals_limit=1]}
 and maybe not what you had expected. We have to abandon this proof attempt.
-To understand what is going on,
-let us look at the induction rule @{thm[source]rtc.induct}:
-\[ \frac{(x,y) \in r^* \qquad \bigwedge x.~P~x~x \quad \dots}{P~x~y} \]
-When applying this rule, $x$ becomes @{term x}, $y$ becomes
-@{term y} and $P~x~y$ becomes @{prop"(x,z) : r*"}, thus
+To understand what is going on, let us look again at @{thm[source]rtc.induct}.
+In the above application of @{text erule}, the first premise of
+@{thm[source]rtc.induct} is unified with the first suitable assumption, which
+is @{term"(x,y) \<in> r*"} rather than @{term"(y,z) \<in> r*"}. Although that
+is what we want, it is merely due to the order in which the assumptions occur
+in the subgoal, which it is not good practice to rely on. As a result,
+@{text"?xb"} becomes @{term x}, @{text"?xa"} becomes
+@{term y} and @{text"?P"} becomes @{term"%u v. (u,z) : r*"}, thus
 yielding the above subgoal. So what went wrong?
 
-When looking at the instantiation of $P~x~y$ we see
-that $P$ does not depend on its second parameter at
-all. The reason is that in our original goal, of the pair @{term"(x,y)"} only
-@{term x} appears also in the conclusion, but not @{term y}. Thus our
-induction statement is too weak. Fortunately, it can easily be strengthened:
+When looking at the instantiation of @{text"?P"} we see that it does not
+depend on its second parameter at all. The reason is that in our original
+goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
+conclusion, but not @{term y}. Thus our induction statement is too
+weak. Fortunately, it can easily be strengthened:
 transfer the additional premise @{prop"(y,z):r*"} into the conclusion:*}
 (*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
@@ -145,9 +149,14 @@ transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
 certainly pick the simplest induction schema available for any concept.
 Hence @{term rtc} is the definition of choice.
 
-\begin{exercise}
+\begin{exercise}\label{ex:converse-rtc-step}
 Show that the converse of @{thm[source]rtc_step} also holds:
 @{prop[display]"[| (x,y) : r*; (y,z) : r |] ==> (x,z) : r*"}
+\end{exercise}
+\begin{exercise}
+Repeat the development of this section, but starting with a definition of
+@{term rtc} where @{thm[source]rtc_step} is replaced by its converse as shown
+in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}
 *}
 (*<*)

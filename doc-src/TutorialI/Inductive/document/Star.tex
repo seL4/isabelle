@@ -7,14 +7,12 @@
 %
 \begin{isamarkuptext}%
 \label{sec:rtc}
-{\bf Say something about inductive relations as opposed to sets? Or has that
-been said already? If not, explain induction!}
-
-A perfect example of an inductive definition is the reflexive transitive
-closure of a relation. This concept was already introduced in
-\S\ref{sec:Relations}, where the operator \isa{{\isacharcircum}{\isacharasterisk}} was
-defined as a least fixed point because
-inductive definitions were not yet available. But now they are:%
+Many inductive definitions define proper relations rather than merely set
+like \isa{even}. A perfect example is the
+reflexive transitive closure of a relation. This concept was already
+introduced in \S\ref{sec:Relations}, where the operator \isa{{\isacharcircum}{\isacharasterisk}} was
+defined as a least fixed point because inductive definitions were not yet
+available. But now they are:%
 \end{isamarkuptext}%
 \isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
 \isacommand{inductive}\ {\isachardoublequote}r{\isacharasterisk}{\isachardoublequote}\isanewline
@@ -24,13 +22,13 @@ rtc{\isacharunderscore}step{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequote}{\i
 \begin{isamarkuptext}%
 \noindent
 The function \isa{rtc} is annotated with concrete syntax: instead of
-\isa{rtc\ r} we can read and write {term"r*"}. The actual definition
-consists of two rules. Reflexivity is obvious and is immediately declared an
-equivalence rule.  Thus the automatic tools will apply it automatically. The
+\isa{rtc\ r} we can read and write \isa{r{\isacharasterisk}}. The actual definition
+consists of two rules. Reflexivity is obvious and is immediately given the
+\isa{iff} attribute to increase automation. The
 second rule, \isa{rtc{\isacharunderscore}step}, says that we can always add one more
 \isa{r}-step to the left. Although we could make \isa{rtc{\isacharunderscore}step} an
-introduction rule, this is dangerous: the recursion slows down and may
-even kill the automatic tactics.
+introduction rule, this is dangerous: the recursion in the second premise
+slows down and may even kill the automatic tactics.
 
 The above definition of the concept of reflexive transitive closure may
 be sufficiently intuitive but it is certainly not the only possible one:
@@ -50,34 +48,44 @@ need \isa{rtc{\isacharunderscore}step} can now be found automatically. The proof
 shows that \isa{blast} is quite able to handle \isa{rtc{\isacharunderscore}step}. But
 some of the other automatic tactics are more sensitive, and even \isa{blast} can be lead astray in the presence of large numbers of rules.
 
-Let us now turn to transitivity. It should be a consequence of the definition.%
+To prove transitivity, we need rule induction, i.e.\ theorem
+\isa{rtc{\isachardot}induct}:
+\begin{isabelle}%
+\ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}{\isacharquery}xb{\isacharcomma}\ {\isacharquery}xa{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ x{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ {\isasymAnd}x\ y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}{\isacharsemicolon}\ {\isacharquery}P\ y\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ z{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}xb\ {\isacharquery}xa%
+\end{isabelle}
+It says that \isa{{\isacharquery}P} holds for an arbitrary pair \isa{{\isacharparenleft}{\isacharquery}xb{\isacharcomma}{\isacharquery}xa{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}} if \isa{{\isacharquery}P} is preserved by all rules of the inductive definition,
+i.e.\ if \isa{{\isacharquery}P} holds for the conclusion provided it holds for the
+premises. In general, rule induction for an $n$-ary inductive relation $R$
+expects a premise of the form $(x@1,\dots,x@n) \in R$.
+
+Now we turn to the inductive proof of transitivity:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}%
-\begin{isamarkuptxt}%
-\noindent
-The proof starts canonically by rule induction:%
-\end{isamarkuptxt}%
+\isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-However, even the resulting base case is a problem
+Unfortunately, even the resulting base case is a problem
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}
 and maybe not what you had expected. We have to abandon this proof attempt.
-To understand what is going on,
-let us look at the induction rule \isa{rtc{\isachardot}induct}:
-\[ \frac{(x,y) \in r^* \qquad \bigwedge x.~P~x~x \quad \dots}{P~x~y} \]
-When applying this rule, $x$ becomes \isa{x}, $y$ becomes
-\isa{y} and $P~x~y$ becomes \isa{{\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}}, thus
+To understand what is going on, let us look again at \isa{rtc{\isachardot}induct}.
+In the above application of \isa{erule}, the first premise of
+\isa{rtc{\isachardot}induct} is unified with the first suitable assumption, which
+is \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} rather than \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}}. Although that
+is what we want, it is merely due to the order in which the assumptions occur
+in the subgoal, which it is not good practice to rely on. As a result,
+\isa{{\isacharquery}xb} becomes \isa{x}, \isa{{\isacharquery}xa} becomes
+\isa{y} and \isa{{\isacharquery}P} becomes \isa{{\isasymlambda}u\ v{\isachardot}\ {\isacharparenleft}u{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}}, thus
 yielding the above subgoal. So what went wrong?
 
-When looking at the instantiation of $P~x~y$ we see
-that $P$ does not depend on its second parameter at
-all. The reason is that in our original goal, of the pair \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}} only
-\isa{x} appears also in the conclusion, but not \isa{y}. Thus our
-induction statement is too weak. Fortunately, it can easily be strengthened:
+When looking at the instantiation of \isa{{\isacharquery}P} we see that it does not
+depend on its second parameter at all. The reason is that in our original
+goal, of the pair \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}} only \isa{x} appears also in the
+conclusion, but not \isa{y}. Thus our induction statement is too
+weak. Fortunately, it can easily be strengthened:
 transfer the additional premise \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} into the conclusion:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
@@ -145,11 +153,16 @@ transitivity.  As a consequence, \isa{rtc{\isachardot}induct} is simpler than
 certainly pick the simplest induction schema available for any concept.
 Hence \isa{rtc} is the definition of choice.
 
-\begin{exercise}
+\begin{exercise}\label{ex:converse-rtc-step}
 Show that the converse of \isa{rtc{\isacharunderscore}step} also holds:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}
+\end{exercise}
+\begin{exercise}
+Repeat the development of this section, but starting with a definition of
+\isa{rtc} where \isa{rtc{\isacharunderscore}step} is replaced by its converse as shown
+in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}%
 \end{isamarkuptext}%
 \end{isabellebody}%
