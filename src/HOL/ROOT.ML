@@ -42,3 +42,5 @@ path_add "~~/src/HOL/Library";
 print_depth 8;
 
 Goal "True";  (*leave subgoal package empty*)
+
+val HOL_proofs = !proofs;

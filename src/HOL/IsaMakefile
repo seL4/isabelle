@@ -17,6 +17,7 @@ test: \
   HOL-AxClasses \
   HOL-Bali \
   HOL-CTL \
+  HOL-Extraction \
   HOL-GroupTheory \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
@@ -80,7 +81,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides_lemmas.ML \
-  Divides.thy Finite_Set.ML Finite_Set.thy Fun.ML Fun.thy Gfp.ML Gfp.thy \
+  Divides.thy Extraction.thy Finite_Set.ML Finite_Set.thy \
+  Fun.ML Fun.thy Gfp.ML Gfp.thy \
   Hilbert_Choice.thy Hilbert_Choice_lemmas.ML HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
   Integ/Equiv.ML Integ/Equiv.thy Integ/Int.ML Integ/Int.thy \
@@ -99,7 +101,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
-  Tools/record_package.ML Tools/split_rule.ML Tools/typedef_package.ML \
+  Tools/record_package.ML Tools/rewrite_hol_proof.ML \
+  Tools/split_rule.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
   Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
@@ -535,6 +538,17 @@ HOL-CTL: HOL $(LOG)/HOL-CTL.gz
 $(LOG)/HOL-CTL.gz: $(OUT)/HOL \
   CTL/CTL.thy CTL/ROOT.ML CTL/document/root.tex CTL/document/root.bib
 	@$(ISATOOL) usedir $(OUT)/HOL CTL
+
+
+## HOL-Extraction
+
+HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
+
+$(LOG)/HOL-Extraction.gz: $(OUT)/HOL \
+  Extraction/Higman.thy Extraction/ROOT.ML Extraction/QuotRem.thy \
+  Extraction/Warshall.thy Extraction/document/root.tex \
+  Extraction/document/root.bib
+	@$(ISATOOL) usedir $(OUT)/HOL Extraction
 
 
 ## HOL-IOA
