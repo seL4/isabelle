@@ -42,11 +42,12 @@ this:
 
   [ISABELLE_HOME]/bin/isatool install -k
 
-Clicking on that icon will invoke the interface wrapper script
-(capital Isabelle), which may be configured to run your favorite
-Isabelle user interface via the ISABELLE_INTERFACE setting.
-Additional options may be passed by editing the application's command
-line (by using the standard KDE desktop functionality).
+You may have to refresh the KDE desktop in order to see the new icon.
+Clicking on Isabelle will invoke the interface wrapper script (capital
+Isabelle), which is usually configured to run Proof General (see also
+the ISABELLE_INTERFACE setting).  Additional options may be passed to
+Isabelle by editing the application's command line using the standard
+KDE desktop functionality.
 
 
 2) System installation
@@ -64,17 +65,25 @@ later, too.
 
 Ready-to-go RPM packages are provided for the ML compiler and runtime
 system, the Isabelle sources, and some major object-logics.  These
-packages should work on any major RPM-based Linux/x86 platform (such
-as SuSE, RedHat etc.).  A typical installation procedure would be like
-this (executed as root):
+packages should work on any major Linux/x86 platform based on RPM
+package management.
 
-  rpm -i --prefix /usr/share polyml.i386.rpm
-  rpm -i --prefix /usr/share isabelle.rpm
-  rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
+A minimal installation would work like this (executed as root):
+
+  rpm -i --force --prefix /usr/share polyml.i386.rpm
+  rpm -i --force --prefix /usr/share isabelle.rpm
+  rpm -i --force --prefix /usr/share isabelle-HOL.i386.rpm
 
 The install prefix may be changed as indicated.  By default the ML
-system is expected to be at the same directory level as Isabelle
-itself; see [ISABELLE_HOME]/etc/settings of how to change this.
+system (and other contributed packages) are expected in either of the
+following three locations:
+
+  1) [ISABELLE_HOME]/contrib
+  2) [ISABELLE_HOME]/..
+  3) /usr/share
+  4) /usr/local
+
+This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
 
 Note that isabelle.rpm and isabelle-pdfdocs.rpm already contain all of
 Isabelle as platform independent sources.  Precompiled object-logics
@@ -85,10 +94,10 @@ Recompiling logics
 ------------------
 
 Some people prefer to be able to reconstruct the full system from the
-sources, rather than installing RPM packages blindly.  We do not
-provide source RPMs, yet any parts of Isabelle may be recompiled after
-installation of the main isabelle.rpm package (which contains only
-sources anyway).
+sources, rather than installing precompiled packages blindly.  We do
+not provide source RPMs, yet any parts of Isabelle may be recompiled
+after installation of the main isabelle.rpm package (which contains
+only sources anyway).
 
 Assuming proper configuration of the underlying ML system, Isabelle
 object-logics may be recompiled like this:
@@ -100,19 +109,16 @@ Source installation
 -------------------
 
 Traditional tar.gz archives are provided for the full Isabelle sources
-and documentation as well.  Make sure your ML system (SML/NJ, Poly/ML
+and documentation as well.  Make sure your ML system (e.g. Poly/ML
 etc.) has already been installed properly; then proceed as follows.
 
 * Unpacking the archives.  After unpacking the Isabelle distribution
 archives (using tar and gzip) you are left with some directory
-IsabelleYY-X.  Basically, this may be installed anywhere --- just note
-that ~/isabelle would be a really bad idea, though.  The place where
-you put the contents of IsabelleYY-X will be referred to as
-[ISABELLE_HOME] subsequently.
+IsabelleYY-X.
 
 * Auto configuration.  There are some minor adaptions to be made of
-the Isabelle distribution to your system environment (mostly locations
-of bash and perl).  Simply do it like this:
+the Isabelle distribution to your system environment (locations of
+bash and perl).  Simply do it like this:
 
   cd [ISABELLE_HOME]
   ./configure
