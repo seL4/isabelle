@@ -1168,8 +1168,11 @@ fun process_pgip_element pgipxml = (case pgipxml of
      (* properfilecmd: proper theory-level script commands *)
      | "opentheory"     => isarscript data
      | "theoryitem"     => isarscript data
-     | "closetheory"    => (isarscript data;
-			    writeln ("Theory "^(topthy_name())^" completed."))
+     | "closetheory"    => let 
+			      val thyname = topthy_name()
+			   in (isarscript data;
+			       writeln ("Theory "^thyname^" completed."))
+			   end
      (* improperfilecmd: theory-level commands not in script *)
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
