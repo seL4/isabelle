@@ -39,6 +39,7 @@ sig
   val is_draft: sg -> bool
   val const_type: sg -> string -> typ option
   val classes: sg -> class list
+  val defaultS: sg -> sort
   val subsort: sg -> sort * sort -> bool
   val nodup_Vars: term -> unit
   val norm_sort: sg -> sort -> sort
@@ -49,6 +50,7 @@ sig
   val typeK: string
   val constK: string
   val full_name: sg -> bstring -> string
+  val full_name_path: sg -> string -> bstring -> string
   val base_name: string -> bstring
   val intern: sg -> string -> xstring -> string
   val extern: sg -> string -> string -> xstring
@@ -93,6 +95,7 @@ sig
   val add_defsort: xsort -> sg -> sg
   val add_defsort_i: sort -> sg -> sg
   val add_types: (bstring * int * mixfix) list -> sg -> sg
+  val add_nonterminals: bstring list -> sg -> sg
   val add_tyabbrs: (bstring * string list * string * mixfix) list -> sg -> sg
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> sg -> sg
   val add_arities: (xstring * xsort list * xsort) list -> sg -> sg
@@ -196,7 +199,7 @@ fun deref (SgRef (Some (ref sg))) = sg
   | deref (SgRef None) = sys_error "Sign.deref";
 
 fun name_of (sg as Sg ({id = ref name, ...}, _)) =
-  if name = "" orelse name = "#" then
+  if name = "" orelse ord name = ord "#" then
     raise TERM ("Nameless signature " ^ str_of_sg sg, [])
   else name;
 
@@ -237,14 +240,14 @@ fun same_sg (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _
   eq_sg (sg1, sg2) orelse eq_set_string (pairself (map (op !)) (s1, s2));
 
 (*test for drafts*)
-fun is_draft (Sg ({stamps = ref "#" :: _, ...}, _)) = true
-  | is_draft _ = false;
+fun is_draft (Sg ({stamps = ref name :: _, ...}, _)) = name = "" orelse ord name = ord "#";
 
 
 (* classes and sorts *)
 
 val classes = #classes o Type.rep_tsig o tsig_of;
 
+val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
@@ -452,6 +455,8 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   val full_name = full o #path o rep_sg;
+  fun full_name_path sg elems name =		(* FIXME "..", "/" semantics (!?) *)
+    full (#path (rep_sg sg) @ NameSpace.unpack elems) name;
 end;
 
 
@@ -681,6 +686,9 @@ fun ext_types (syn, tsig, ctab, (path, spaces), data) types =
       (path, add_names spaces typeK (map fst decls)), data)
   end;
 
+fun ext_nonterminals sg nonterms =
+  ext_types sg (map (fn n => (n, 0, Syntax.NoSyn)) nonterms);
+
 
 (* add type abbreviations *)
 
@@ -818,12 +826,12 @@ fun ext_syn extfun (syn, tsig, ctab, names, data) args =
 
 (* add to path *)
 
-fun ext_path (syn, tsig, ctab, (path, spaces), data) elem =
+fun ext_path (syn, tsig, ctab, (path, spaces), data) elems =
   let
     val path' =
-      if elem = ".." andalso not (null path) then fst (split_last path)
-      else if elem = "/" then []
-      else path @ NameSpace.unpack elem;
+      if elems = ".." andalso not (null path) then fst (split_last path)
+      else if elems = "/" then []
+      else path @ NameSpace.unpack elems;
   in
     (syn, tsig, ctab, (path', spaces), data)
   end;      
@@ -853,6 +861,7 @@ val add_classrel_i   = extend_sign true (ext_classrel false) "#";
 val add_defsort      = extend_sign true (ext_defsort true) "#";
 val add_defsort_i    = extend_sign true (ext_defsort false) "#";
 val add_types        = extend_sign true ext_types "#";
+val add_nonterminals = extend_sign true ext_nonterminals "#";
 val add_tyabbrs      = extend_sign true ext_tyabbrs "#";
 val add_tyabbrs_i    = extend_sign true ext_tyabbrs_i "#";
 val add_arities      = extend_sign true (ext_arities true) "#";
