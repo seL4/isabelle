@@ -7,7 +7,6 @@ Final setup of the Pure theories.
 
 local
   val common_setup =
-    ObjectLogic.setup @
     Locale.setup @
     HTML.setup @
     ProofContext.setup @
