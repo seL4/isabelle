@@ -269,8 +269,8 @@ fun inst_typ tye =
 
 
 fun check_has_sort (TySg {classrel, arities, ...}, T, S) =
-  if Sorts.sort_le classrel ((Sorts.least_sort classrel arities T), S) then ()
-  else raise TYPE ("Type not of sort " ^ Sorts.str_of_sort S, [T], []);
+  if Sorts.of_sort classrel arities (T, S) then ()
+  else raise_type ("Type not of sort " ^ Sorts.str_of_sort S) [T] [];
 
 
 (*Instantiation of type variables in types *)
@@ -287,18 +287,19 @@ fun inst_term_tvars (_,[]) t = t
 
 (* norm_typ *)
 
-fun norm_typ (TySg {abbrs, ...}) ty =
+(*expand abbreviations and normalize sorts*)
+fun norm_typ (tsig as TySg {abbrs, ...}) ty =
   let
     val idx = maxidx_of_typ ty + 1;
 
-    fun expand (Type (a, Ts)) =
+    fun norm (Type (a, Ts)) =
           (case assoc (abbrs, a) of
-            Some (vs, U) =>
-              expand (inst_typ (map (rpair idx) vs ~~ Ts) (incr_tvar idx U))
-          | None => Type (a, map expand Ts))
-      | expand T = T
+            Some (vs, U) => norm (inst_typ (map (rpair idx) vs ~~ Ts) (incr_tvar idx U))
+          | None => Type (a, map norm Ts))
+      | norm (TFree (x, S)) = TFree (x, norm_sort tsig S)
+      | norm (TVar (xi, S)) = TVar (xi, norm_sort tsig S);
   in
-    expand ty
+    norm ty
   end;
 
 
