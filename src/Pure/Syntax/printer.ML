@@ -115,7 +115,7 @@ fun ast_of_term trf show_types show_sorts tm =
 (* term_to_ast *)
 
 fun term_to_ast trf tm =
-  ast_of_term trf (! show_types) (! show_sorts) tm;
+  ast_of_term trf (!show_types orelse !show_sorts) (!show_sorts) tm;
 
 
 (* typ_to_ast *)
