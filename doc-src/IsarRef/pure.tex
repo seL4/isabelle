@@ -370,9 +370,10 @@ following commands provide some way to do so.
   afterwards.  Thus $text$ may actually change the theory as a side effect.
   
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
-  applying $text$, which refers to an ML expression of type $(theory \to
-  theory)~list$.  The $\isarkeyword{setup}$ command is the canonical way to
-  initialize object-logic specific tools and packages written in ML.
+  applying $text$, which refers to an ML expression of type
+  \texttt{(theory~->~theory)~list}.  The $\isarkeyword{setup}$ command is the
+  canonical way to initialize object-logic specific tools and packages written
+  in ML.
 \end{descr}
 
 
@@ -393,8 +394,19 @@ following commands provide some way to do so.
 Syntax translation functions written in ML admit almost arbitrary
 manipulations of Isabelle's inner syntax.  Any of the above commands have a
 single \railqtoken{text} argument that refers to an ML expression of
-appropriate type.  See \cite[\S8]{isabelle-ref} for more information on syntax
-transformations.
+appropriate type.
+
+\begin{ttbox}
+val parse_ast_translation   : (string * (ast list -> ast)) list
+val parse_translation       : (string * (term list -> term)) list
+val print_translation       : (string * (term list -> term)) list
+val typed_print_translation :
+  (string * (bool -> typ -> term list -> term)) list
+val print_ast_translation   : (string * (ast list -> ast)) list
+val token_translation       :
+  (string * string * (string -> string * real)) list
+\end{ttbox}
+See \cite[\S8]{isabelle-ref} for more information on syntax transformations.
 
 
 \subsection{Oracles}
@@ -415,8 +427,8 @@ oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
 
 \begin{descr}
 \item [$\isarkeyword{oracle}~name=text$] declares oracle $name$ to be ML
-  function $text$, which has to be of type $Sign\mathord.sg \times
-  Object\mathord.T \to term$.
+  function $text$, which has to be of type
+  \texttt{Sign.sg~*~Object.T~->~term}.
 \end{descr}
 
 
@@ -469,11 +481,13 @@ special in the same way as $\isarkeyword{text_raw}$.
 \subsection{Proof context}\label{sec:proof-context}
 
 \indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}
+\indexisarcmd{case}
 \begin{matharray}{rcl}
   \isarcmd{fix} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{assume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{presume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{def} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
 The logical proof context consists of fixed variables and assumptions.  The
@@ -501,12 +515,30 @@ combining $\FIX x$ with another version of assumption that causes any
 hypothetical equation $x \equiv t$ to be eliminated by the reflexivity rule.
 Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 
+\medskip Basically, Isar proof contexts have to be built up explicitly using
+any of the above commands.  In typical verification tasks this can become hard
+to manage, though, with a large number of local contexts emerging from case
+analysis or induction, for example.  The $\CASENAME$ command provides a
+shorthand to refer to certain parts of logical context symbolically.  Proof
+methods may provide an environment of named ``cases'' of the form $c\colon
+\vec x, \vec \chi$.  Then the effect of $\CASE{c}$ is exactly the same as
+$\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
+
+It is important to note that $\CASENAME$ does \emph{not} provide means to peek
+at the current goal state, which is considered strictly non-observable in
+Isar.  Instead, the cases considered here typically emerge in a canonical way
+from certain pieces of specification that appears in the theory somewhere,
+such as an inductive definition, or recursive function.  See \S\ref{sec:FIXME}
+for more details of how this works in HOL.
+
 \begin{rail}
   'fix' (vars + 'and') comment?
   ;
   ('assume' | 'presume') (assm comment? + 'and')
   ;
   'def' thmdecl? \\ var '==' term termpat? comment?
+  ;
+  'case' name
   ;
 
   var: name ('::' type)?
@@ -534,6 +566,9 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   resulting hypothetical equation solved by reflexivity.
   
   The default name for the definitional equation is $x_def$.
+\item [$\CASE{c}$] invokes local context $c\colon \vec x, \vec \chi$, as
+  provided by an appropriate proof method.  This abbreviates $\FIX{\vec
+    x}~\ASSUME{c}{\vec\chi}$.
 \end{descr}
 
 The special name $prems$\indexisarthm{prems} refers to all assumptions of the
@@ -718,50 +753,12 @@ solved by assumption as the very last step.
   abbreviates $\BY{default}$.
 \item [``$\DOT$''] is a \emph{trivial proof}\index{proof!trivial}; it
   abbreviates $\BY{this}$.
-\item [$\isarkeyword{sorry}$] is a \emph{fake proof}\index{proof!fake};
-  provided that the \texttt{quick_and_dirty} flag is enabled,
-  $\isarkeyword{sorry}$ pretends to solve the goal without further ado.  Of
-  course, the result is a fake theorem only, involving some oracle in its
-  internal derivation object (this is indicated as ``$[!]$'' in the printed
-  result).  The main application of $\isarkeyword{sorry}$ is to support
-  experimentation and top-down proof development.
-\end{descr}
-
-
-\subsection{Improper proof steps}
-
-The following commands emulate unstructured tactic scripts to some extent.
-While these are anathema for writing proper Isar proof documents, they might
-come in handy for interactive exploration and debugging.
-
-\indexisarcmd{apply}\indexisarcmd{then-apply}\indexisarcmd{back}
-\begin{matharray}{rcl}
-  \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{then_apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
-\end{matharray}
-
-\railalias{thenapply}{then\_apply}
-\railterm{thenapply}
-
-\begin{rail}
-  'apply' method
-  ;
-  thenapply method
-  ;
-  'back'
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in the plain old
-  tactic sense.  Facts for forward chaining are reset.
-\item [$\isarkeyword{then_apply}~(m)$] is similar to $\isarkeyword{apply}$,
-  but keeps the goal's facts.
-\item [$\isarkeyword{back}$] does back-tracking over the result sequence of
-  the latest proof command.\footnote{Unlike the ML function \texttt{back}
-    \cite{isabelle-ref}, the Isar command does not search upwards for further
-    branch points.} Basically, any proof command may return multiple results.
+\item [$\SORRY$] is a \emph{fake proof}\index{proof!fake}; provided that the
+  \texttt{quick_and_dirty} flag is enabled, $\SORRY$ pretends to solve the
+  goal without further ado.  Of course, the result is a fake theorem only,
+  involving some oracle in its internal derivation object (this is indicated
+  as ``$[!]$'' in the printed result).  The main application of $\SORRY$ is to
+  support experimentation and top-down proof development.
 \end{descr}
 
 
@@ -861,11 +858,15 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \subsection{Diagnostics}
 
 \indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
+\indexisarcmd{print-facts}\indexisarcmd{print-binds}\indexisarcmd{print-cases}
 \begin{matharray}{rcl}
   \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{typ} & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_facts} & : & \isarkeep{proof} \\
+  \isarcmd{print_binds} & : & \isarkeep{proof} \\
+  \isarcmd{print_cases} & : & \isarkeep{proof} \\
 \end{matharray}
 
 These commands are not part of the actual Isabelle/Isar syntax, but assist
@@ -896,7 +897,36 @@ theory or proof configuration is not changed.
   abbreviations.
 \item [$\isarkeyword{typ}~\tau$] reads and prints types of the meta-logic
   according to the current theory or proof context.
+\item [$\isarkeyword{print_facts}$] prints any named facts of the current
+  context, including assumptions and local results.
+\item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
+  the context.
+\item [$\isarkeyword{print_cases}$] prints all local contexts (also known as
+  ``cases'') of the current goal context.
 \end{descr}
+
+
+\subsection{Meta-linguistic features}
+
+\indexisarcmd{oops}
+\begin{matharray}{rcl}
+  \isarcmd{oops}^* & : & \isartrans{proof}{theory} \\
+\end{matharray}
+
+The $\OOPS$ command discontinues the current proof attempt, while considering
+the partial proof text as properly processed.  This is conceptually quite
+different from ``faking'' actual proofs via $\SORRY$ (see
+\S\ref{sec:proof-steps}): $\OOPS$ does not observe the proof structure at all,
+but goes back right to the theory level.  Furthermore, $\OOPS$ does not
+produce any result theorem --- there is no claim to be able to complete the
+proof anyhow.
+
+A typical application of $\OOPS$ is to explain Isar proofs \emph{within} the
+system itself, in conjunction with the document preparation tools of Isabelle
+described in \cite{isabelle-sys}.  Thus partial or even wrong proof attempts
+can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
+macros can be easily adapted to print something like ``$\dots$'' instead of an
+``$\OOPS$'' keyword.
 
 
 \subsection{System operations}
@@ -927,6 +957,73 @@ theory or proof configuration is not changed.
 
 These system commands are scarcely used when working with the Proof~General
 interface, since loading of theories is done fully transparently.
+
+
+\subsection{Emulating tactic scripts}
+
+The following elements emulate unstructured tactic scripts to some extent.
+While these are anathema for writing proper Isar proof documents, they might
+come in handy for interactive exploration and debugging.
+
+\indexisarcmd{apply}\indexisarcmd{apply-end}\indexisarcmd{back}\indexisarmeth{tactic}
+\begin{matharray}{rcl}
+  \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
+  \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
+  tactic & : & \isarmeth \\
+  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
+\end{matharray}
+
+\railalias{applyend}{apply\_end}
+\railterm{applyend}
+
+\begin{rail}
+  'apply' method
+  ;
+  applyend method
+  ;
+  'tactic' text
+  ;
+  'back'
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in an initial
+  position, but retains ``$prove$'' mode (unlike $\PROOFNAME$).  Thus
+  consecutive method applications may be given just as in tactic scripts.  In
+  order to complete the proof properly, any of the actual structured proof
+  commands (e.g.\ ``$\DOT$'') has to be given eventually.
+  
+  Facts are passed to $m$ as indicated by the goal's forward-chain mode.
+  Common use of $\isarkeyword{apply}$ would be in a purely backward manner,
+  though.
+\item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
+  terminal position.  Basically, this simulates a multi-step tactic script for
+  $\QEDNAME$, but may be given anywhere within the proof body.
+  
+  No facts are passed to $m$.  Furthermore, the static context is that of the
+  enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
+  refer to any assumptions introduced in the current body, for example.
+\item [$tactic~text$] produces a proof method from any ML text of type
+  \texttt{tactic}.  Apart from the usual ML environment, and the current
+  implicit theory context, the ML code may refer to the following locally
+  bound values:
+  \begin{ttbox}
+val ctxt  : Proof.context
+val facts : thm list
+val thm   : string -> thm
+val thms  : string -> thm list
+  \end{ttbox}
+  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
+  indicates any current facts for forward-chaining, and
+  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
+  theorems) from the context.
+\item [$\isarkeyword{back}$] does back-tracking over the result sequence of
+  the latest proof command.\footnote{Unlike the ML function \texttt{back}
+    \cite{isabelle-ref}, the Isar command does not search upwards for further
+    branch points.} Basically, any proof command may return multiple results.
+\end{descr}
+
 
 %%% Local Variables: 
 %%% mode: latex
