@@ -11,6 +11,8 @@ sig
   val termS: sort
   val termTVar: typ
   val boolT: typ
+  val false_const: term
+  val true_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
   val mk_Trueprop: term -> term
@@ -52,6 +54,11 @@ sig
   val dest_Suc: term -> term
   val mk_nat: int -> term
   val dest_nat: term -> int
+  val intT: typ
+  val binT: typ
+  val pls_const: term
+  val min_const: term
+  val bit_const: term
 end;
 
 
@@ -70,11 +77,15 @@ val termTVar = TVar (("'a", 0), termS);
 
 val boolT = Type ("bool", []);
 
+val true_const =  Const ("True", boolT)
+and false_const = Const ("False", boolT);
+
 fun mk_setT T = Type ("set", [T]);
 
 fun dest_setT (Type ("set", [T])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
+(* logic *)
 
 val Trueprop = Const ("Trueprop", boolT --> propT);
 
@@ -204,5 +215,16 @@ fun dest_nat (Const ("0", _)) = 0
   | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
+
+val intT = Type ("IntDef.int", []);
+
+
+(* binary numerals *)
+
+val binT = Type ("Numeral.bin", []);
+
+val pls_const =  Const ("Numeral.bin.Pls", binT)
+and min_const = Const ("Numeral.bin.Min", binT)
+and bit_const = Const ("Numeral.bin.Bit", [binT, boolT] ---> binT);
 
 end;
