@@ -155,7 +155,7 @@ by (Fast_tac 1);
 qed "sees_subset_sees_Says";
 
 (*Pushing Unions into parts.  One of the agents A is B, and thus sees Y.
-  Used to prove new_keys_not_seen.*)
+  Once used to prove new_keys_not_seen; now obsolete.*)
 goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 \         parts {Y} Un (UN A. parts (sees lost A evs))";
 by (Step_tac 1);
@@ -202,7 +202,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [mem_if])));
 by (ALLGOALS Fast_tac);
 qed_spec_mp "seesD";
 
-Addsimps [UN_parts_sees_Says, sees_own, sees_Server, sees_Friend, sees_Spy];
+Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];
 Delsimps [sees_Cons];   (**** NOTE REMOVAL -- laws above are cleaner ****)
 
 

@@ -119,30 +119,19 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*** Future keys can't be seen or used! ***)
 
-(*Nobody can have SEEN keys that will be generated in the future.
-  This has to be proved anew for each protocol description,
-  but should go by similar reasoning every time.  Hardest case is the
-  standard Fake rule.  
-      The Union over C is essential for the induction! *)
+(*Nobody can have SEEN keys that will be generated in the future. *)
 goal thy "!!evs. evs : otway lost ==> \
 \                length evs <= length evs' --> \
-\                Key (newK evs') ~: (UN C. parts (sees lost C evs))";
+\                Key (newK evs') ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (best_tac (!claset addDs [impOfSubs analz_subset_parts,
                                            impOfSubs parts_insert_subset_Un,
                                            Suc_leD]
                                     addss (!simpset))));
-val lemma = result();
-
-(*Variant needed for the main theorem below*)
-goal thy 
- "!!evs. [| evs : otway lost;  length evs <= length evs' |]    \
-\        ==> Key (newK evs') ~: parts (sees lost C evs)";
-by (fast_tac (!claset addDs [lemma]) 1);
-qed "new_keys_not_seen";
+qed_spec_mp "new_keys_not_seen";
 Addsimps [new_keys_not_seen];
 
-(*Another variant: old messages must contain old keys!*)
+(*Variant: old messages must contain old keys!*)
 goal thy 
  "!!evs. [| Says A B X : set_of_list evs;  \
 \           Key (newK evt) : parts {X};    \
@@ -155,15 +144,12 @@ by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
 qed "Says_imp_old_keys";
 
 
-(*** Future nonces can't be seen or used! [proofs resemble those above] ***)
+(*** Future nonces can't be seen or used! ***)
 
 goal thy "!!evs. evs : otway lost ==> \
 \                length evs <= length evt --> \
-\                Nonce (newN evt) ~: (UN C. parts (sees lost C evs))";
-by (etac otway.induct 1);
-(*auto_tac does not work here, as it performs safe_tac first*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert2]
-                                     addcongs [disj_cong])));
+\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
+by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs
                               addSDs  [Says_imp_sees_Spy RS parts.Inj]
@@ -171,14 +157,7 @@ by (REPEAT_FIRST (fast_tac (!claset
                                       impOfSubs parts_insert_subset_Un,
                                       Suc_leD]
                               addss (!simpset))));
-val lemma = result();
-
-(*Variant needed for the main theorem below*)
-goal thy 
- "!!evs. [| evs : otway lost;  length evs <= length evs' |]    \
-\        ==> Nonce (newN evs') ~: parts (sees lost C evs)";
-by (fast_tac (!claset addDs [lemma]) 1);
-qed "new_nonces_not_seen";
+qed_spec_mp "new_nonces_not_seen";
 Addsimps [new_nonces_not_seen];
 
 
@@ -186,7 +165,7 @@ Addsimps [new_nonces_not_seen];
   ...very like new_keys_not_seen*)
 goal thy "!!evs. evs : otway lost ==> \
 \                length evs <= length evs' --> \
-\                newK evs' ~: keysFor (UN C. parts (sees lost C evs))";
+\                newK evs' ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
 (*OR1 and OR3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
@@ -198,13 +177,7 @@ by (REPEAT
                       Suc_leD]
                addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
                addss (!simpset)) 1));
-val lemma = result();
-
-goal thy 
- "!!evs. [| evs : otway lost;  length evs <= length evs' |]    \
-\        ==> newK evs' ~: keysFor (parts (sees lost C evs))";
-by (fast_tac (!claset addSDs [lemma] addss (!simpset)) 1);
-qed "new_keys_not_used";
+qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
           [analz_subset_parts RS keysFor_mono,
