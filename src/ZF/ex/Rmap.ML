@@ -31,33 +31,24 @@ by (REPEAT (ares_tac [domain_rel_subset, range_rel_subset,
 val rmap_rel_type = result();
 
 goal Rmap.thy
-    "!!r. [| ALL x:A. EX y. <x,y>: r;  xs: list(A) |] ==> \
-\         EX y. <xs, y> : rmap(r)";
+    "!!r. A <= domain(r) ==> list(A) <= domain(rmap(r))";
+by (resolve_tac [subsetI] 1);
 by (etac list.induct 1);
 by (ALLGOALS (fast_tac rmap_cs));
 val rmap_total = result();
 
-goal Rmap.thy
-    "!!r. [| ALL x y z. <x,y>: r --> <x,z>: r --> y=z;    \
-\            <xs, ys> : rmap(r) |] ==>                    \
-\          ALL zs. <xs, zs> : rmap(r) --> ys=zs";
+goalw Rmap.thy [function_def] "!!r. function(r) ==> function(rmap(r))";
+by (rtac (impI RS allI RS allI) 1);
 by (etac rmap_induct 1);
 by (ALLGOALS (fast_tac rmap_cs));
-val rmap_functional_lemma = result();
-val rmap_functional = standard (rmap_functional_lemma RS spec RS mp);
+val rmap_functional = result();
+
 
 (** If f is a function then rmap(f) behaves as expected. **)
 
 goal Rmap.thy "!!f. f: A->B ==> rmap(f): list(A)->list(B)";
-by (etac PiE 1);
-by (rtac PiI 1);
-by (etac rmap_rel_type 1);
-by (rtac (rmap_total RS ex_ex1I) 1);
-by (assume_tac 2);
-by (fast_tac (ZF_cs addSEs [bspec RS ex1E]) 1);
-by (rtac rmap_functional 1);
-by (REPEAT (assume_tac 2));
-by (fast_tac (ZF_cs addSEs [bspec RS ex1_equalsE]) 1);
+by (asm_full_simp_tac 
+    (ZF_ss addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
 val rmap_fun_type = result();
 
 goalw Rmap.thy [apply_def] "rmap(f)`Nil = Nil";

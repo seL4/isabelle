@@ -42,8 +42,8 @@ val Indept_superset = result();
 
 (*** Atleast ***)
 
-goalw Ramsey.thy [Atleast_def,inj_def] "Atleast(0,A)";
-by (fast_tac (ZF_cs addIs [PiI]) 1);
+goalw Ramsey.thy [Atleast_def, inj_def, Pi_def, function_def] "Atleast(0,A)";
+by (fast_tac ZF_cs 1);
 val Atleast0 = result();
 
 val [major] = goalw Ramsey.thy [Atleast_def]
