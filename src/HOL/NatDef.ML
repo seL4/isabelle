@@ -667,7 +667,7 @@ fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
   | negate None = None;
 
 fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp2(rel,T,lhs,rhs)
-  | decomp(_$(Const("not",_)$(Const(rel,T)$lhs$rhs))) =
+  | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
       negate(decomp2(rel,T,lhs,rhs))
   | decomp _ = None
 

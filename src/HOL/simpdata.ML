@@ -22,7 +22,7 @@ local
 
   fun addIff th = 
       (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-                (Const("not",_) $ A) =>
+                (Const("Not",_) $ A) =>
                     AddSEs [zero_var_indexes (th RS notE)]
               | (con $ _ $ _) =>
                     if con=iff_const
@@ -36,7 +36,7 @@ local
 
   fun delIff th = 
       (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
-                (Const("not",_) $ A) =>
+                (Const("Not",_) $ A) =>
                     Delrules [zero_var_indexes (th RS notE)]
               | (con $ _ $ _) =>
                     if con=iff_const
@@ -83,7 +83,7 @@ in
   fun mk_meta_eq r = case concl_of r of
           Const("==",_)$_$_ => r
       |   _$(Const("op =",_)$_$_) => r RS eq_reflection
-      |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
+      |   _$(Const("Not",_)$_) => r RS not_P_imp_P_eq_False
       |   _ => r RS P_imp_P_eq_True;
   (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
