@@ -9,9 +9,7 @@ Package for defining constants by specification.
 signature SPECIFICATION_PACKAGE =
 sig
     val quiet_mode: bool ref
-    val add_specification: (bstring * xstring * bool) list -> bstring * Args.src list
-			   -> theory * thm -> theory * thm
-    val add_specification_i: (bstring * xstring * bool) list -> bstring * theory attribute list
+    val add_specification_i: (bstring * xstring * bool) list
 			     -> theory * thm -> theory * thm
 end
 
@@ -55,24 +53,10 @@ fun proc_exprop [] arg = arg
 	end
       | _ => raise THM ("Internal error: Bad specification theorem",0,[thm])
 
-fun add_specification_i cos (name,atts) arg =
-    let
-	fun apply_attributes arg = Thm.apply_attributes(arg,atts)
-	fun add_final (arg as (thy,thm)) =
-	    if name = ""
-	    then arg
-	    else (writeln ("specification " ^ name ^ ": " ^ (string_of_thm thm));
-		  PureThy.store_thm((name,thm),[]) thy)
-    in
-	arg |> apsnd freezeT
-	    |> proc_exprop cos
-	    |> apsnd standard
-	    |> apply_attributes
-	    |> add_final
-    end
-
-fun add_specification cos (name,atts) arg =
-    add_specification_i cos (name,map (Attrib.global_attribute thy) atts) arg
+fun add_specification_i cos arg =
+    arg |> apsnd freezeT
+	|> proc_exprop cos
+	|> apsnd standard
 
 (* Collect all intances of constants in term *)
 
@@ -126,6 +110,11 @@ fun process_spec cos alt_name sprop int thy =
 		  | [cf] => unvarify cf vmap
 		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
 	    end
+	val frees = Term.term_frees prop
+	val tsig = Sign.tsig_of (sign_of thy)
+	val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
+		"Only free variables of sort 'type' allowed in specifications"
+	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
 	val proc_consts = map proc_const consts
 	fun mk_exist (c,prop) =
 	    let
@@ -133,14 +122,38 @@ fun process_spec cos alt_name sprop int thy =
 	    in
 		HOLogic.exists_const T $ Abs("x",T,Term.abstract_over (c,prop))
 	    end
-	val ex_prop = foldr mk_exist (proc_consts,prop)
+	val ex_prop = foldr mk_exist (proc_consts,prop_closed)
 	val cnames = map (fst o dest_Const) proc_consts
 	fun zip3 [] [] [] = []
 	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
 	  | zip3 _ _ _ = error "Internal error: Bad specification syntax"
+	val (name,atts) = alt_name
+	fun add_final (arg as (thy,thm)) =
+	    if name = ""
+	    then arg
+	    else (writeln ("specification " ^ name ^ ": " ^ (string_of_thm thm));
+		  PureThy.store_thm((name,thm),[]) thy)
+	fun post_process (arg as (thy,thm)) =
+	    let
+		fun inst_all sg (thm,v) =
+		    let
+			val cv = cterm_of sg v
+			val cT = ctyp_of_term cv
+			val spec' = instantiate' [Some cT] [None,Some cv] spec
+		    in
+			thm RS spec'
+		    end
+		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
+		fun apply_atts arg = Thm.apply_attributes (arg,map (Attrib.global_attribute thy) atts)
+	    in
+		arg |> apsnd (remove_alls frees)
+		    |> apsnd standard
+		    |> apply_atts
+		    |> add_final
+	    end
     in
 	IsarThy.theorem_i Drule.internalK
-	    (("",[add_specification (zip3 (names:string list) (cnames:string list) (overloaded:bool list)) alt_name]),
+	    (("",[add_specification_i (zip3 (names:string list) (cnames:string list) (overloaded:bool list)),post_process]),
 	     (HOLogic.mk_Trueprop ex_prop,([],[]))) int thy
     end
 
