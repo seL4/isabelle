@@ -25,6 +25,7 @@ sig
   val compose_inst_tac: (string*string)list -> (bool*thm*int) -> int -> tactic
   val compose_tac: (bool * thm * int) -> int -> tactic 
   val cut_facts_tac: thm list -> int -> tactic
+  val cut_inst_tac: (string*string)list -> thm -> int -> tactic   
   val dmatch_tac: thm list -> int -> tactic
   val dresolve_tac: thm list -> int -> tactic
   val dres_inst_tac: (string*string)list -> thm -> int -> tactic   
@@ -216,23 +217,29 @@ fun res_inst_tac sinsts rule i =
 fun eres_inst_tac sinsts rule i =
     compose_inst_tac sinsts (true, rule, nprems_of rule) i;
 
-(*For forw_inst_tac and dres_inst_tac: preserve Var indexes of rl.
-  Fails if rl's major premise contains !! or ==> ; it should not anyway!*)
+(*For forw_inst_tac and dres_inst_tac.  Preserve Var indexes of rl;
+  increment revcut_rl instead.*)
 fun make_elim_preserve rl = 
-  let val revcut_rl' = lift_rule (rl,1) revcut_rl
+  let val {maxidx,...} = rep_thm rl
+      fun cvar ixn = cterm_of Sign.pure (Var(ixn,propT));
+      val revcut_rl' = 
+	  instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
+			     (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
       val arg = (false, rl, nprems_of rl)
       val [th] = Sequence.list_of_s (bicompose false arg 1 revcut_rl')
   in  th  end
   handle Bind => raise THM("make_elim_preserve", 1, [rl]);
 
-(*forward version*)
-fun forw_inst_tac sinsts rule =
-    res_inst_tac sinsts (make_elim_preserve rule) THEN' assume_tac;
+(*instantiate and cut -- for a FACT, anyway...*)
+fun cut_inst_tac sinsts rule = res_inst_tac sinsts (make_elim_preserve rule);
 
-(*dresolve version*)
+(*forward tactic applies a RULE to an assumption without deleting it*)
+fun forw_inst_tac sinsts rule = cut_inst_tac sinsts rule THEN' assume_tac;
+
+(*dresolve tactic applies a RULE to replace an assumption*)
 fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
 
-(*** Applications of cut_rl -- forward reasoning ***)
+(*** Applications of cut_rl ***)
 
 (*Used by metacut_tac*)
 fun bires_cut_tac arg i =
