@@ -12,6 +12,7 @@ sig
   val add_path: string -> unit
   val del_path: string -> unit
   val with_path: string -> ('a -> 'b) -> 'a -> 'b
+  val with_paths: string list -> ('a -> 'b) -> 'a -> 'b
   val reset_path: unit -> unit
 end;
 
@@ -52,6 +53,7 @@ fun add_path s = change_path (cons (Path.unpack s));
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
 fun with_path s f x = Library.setmp load_path (Path.unpack s :: ! load_path) f x;
+fun with_paths ss f x = Library.setmp load_path (map Path.unpack ss @ ! load_path) f x;
 
 fun cond_with_path path f x =
   if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
