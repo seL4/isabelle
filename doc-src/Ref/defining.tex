@@ -32,7 +32,7 @@ start symbol by applying productions as rewrite rules.
 The syntax of an Isabelle logic is specified by a {\bf priority
   grammar}.\index{priorities} Each nonterminal is decorated by an integer
 priority, as in~$A^{(p)}$.  A nonterminal $A^{(p)}$ in a derivation may be
-rewritten using a production $A^{(q)} = \gamma$ only if~$p \le q$.  Any
+rewritten using a production $A^{(q)} = \gamma$ only if~$p \leq q$.  Any
 priority grammar can be translated into a normal context free grammar by
 introducing new nonterminals and productions.
 
@@ -40,7 +40,7 @@ Formally, a set of context free productions $G$ induces a derivation
 relation $\longrightarrow@G$.  Let $\alpha$ and $\beta$ denote strings of
 terminal or nonterminal symbols.  Then
 \[ \alpha\, A^{(p)}\, \beta ~\longrightarrow@G~ \alpha\,\gamma\,\beta \]
-if and only if $G$ contains some production $A^{(q)}=\gamma$ for~$p \le q$.
+if and only if $G$ contains some production $A^{(q)}=\gamma$ for~$p \leq q$.
 
 The following simple grammar for arithmetic expressions demonstrates how
 binding power and associativity of operators can be enforced by priorities.
@@ -172,7 +172,7 @@ nonterminals:
     
   \item[\ndxbold{pttrn}, \ndxbold{pttrns}] denote patterns for
     abstraction, cases etc.  Initially the same as $idt$ and $idts$,
-    these are indetended to be augmented by user extensions.
+    these are intended to be augmented by user extensions.
 
   \item[\ndxbold{type}] denotes types of the meta-logic.
 
