@@ -146,4 +146,12 @@ method_setup spy_analz = {*
     Method.no_args (Method.METHOD (fn facts => spy_analz_tac 1)) *}
     "for proving the Fake case when analz is involved"
 
+method_setup atomic_spy_analz = {*
+    Method.no_args (Method.METHOD (fn facts => atomic_spy_analz_tac 1)) *}
+    "for debugging spy_analz"
+
+method_setup Fake_insert_simp = {*
+    Method.no_args (Method.METHOD (fn facts => Fake_insert_simp_tac 1)) *}
+    "for debugging spy_analz"
+
 end

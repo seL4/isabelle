@@ -158,7 +158,7 @@ Goal "H \\<subseteq> parts(H)";
 by (Blast_tac 1);
 qed "parts_increasing";
 
-val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
+bind_thm ("parts_insertI", impOfSubs (subset_insertI RS parts_mono));
 
 Goal "parts{} = {}";
 by Safe_tac;
