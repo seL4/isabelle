@@ -4,7 +4,9 @@ For Isabelle2005:
 
 - modular generation of ML code with structures (Stefan)
 
-- finding rewrite rules based on PG subterm selection (Tobias)
+> Unfortunately when ?s are switched off during building Isabelle this 
+> broke something inside the datatype package (for Isar I think)
+  (Stefan)
 
 - a global "disprove" menu item both as an action and (if it can be done)
   as a setting (Stefan & Tjark)
@@ -13,7 +15,7 @@ For Isabelle2005:
   language specification (cf. http://validator.w3.org/) (Tjark, or anyone
   who is interested)
   
-- update or remove ex/MT (Larry? Tobias?)  
+- update or remove ex/MT (Larry)  
 
 - Include IsaPlanner? (Larry to co-ordinate)
 
