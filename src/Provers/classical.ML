@@ -6,7 +6,7 @@
 Theorem prover for classical reasoning, including predicate calculus, set
 theory, etc.
 
-Rules must be classified as intr, elim, safe, hazardous (unsafe).
+Rules must be classified as intro, elim, safe, hazardous (unsafe).
 
 A rule is unsafe unless it can be applied blindly without harmful results.
 For a rule to be safe, its premises and conclusion should be logically
@@ -346,7 +346,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	   th)  =
   if mem_thm (th, safeIs) then 
-	 (warning ("Ignoring duplicate Safe Intr\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate safe introduction (intro!)\n" ^ string_of_thm th);
 	  cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
@@ -373,7 +373,7 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	   th)  =
   if mem_thm (th, safeEs) then 
-	 (warning ("Ignoring duplicate Safe Elim\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate safe elimination (elim!)\n" ^ string_of_thm th);
 	  cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
@@ -410,7 +410,7 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwra
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th)=
   if mem_thm (th, hazIs) then 
-	 (warning ("Ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate unsafe introduction (intro)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs + 1
@@ -435,7 +435,7 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwra
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th) =
   if mem_thm (th, hazEs) then 
-	 (warning ("Ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate unsafe elimination (elim)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs 
@@ -468,7 +468,7 @@ fun addXI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th)=
   if mem_thm (th, xtraIs) then 
-	 (warning ("Ignoring duplicate extra Intr\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate extra introduction (intro?)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length xtraIs + 1
@@ -493,7 +493,7 @@ fun addXE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th) =
   if mem_thm (th, xtraEs) then
-	 (warning ("Ignoring duplicate extra Elim\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate extra elimination (elim?)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length xtraIs 
@@ -1035,7 +1035,7 @@ val query_colon = Args.$$$ "?:";
 val bang_colon = Args.$$$ "!:";
 
 fun cla_att change xtra haz safe = Attrib.syntax
-  (Scan.lift ((query >> K xtra || bang >> K haz || Scan.succeed safe) >> change));
+  (Scan.lift ((query >> K xtra || bang >> K safe || Scan.succeed haz) >> change));
 
 fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
@@ -1147,14 +1147,14 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 
 val cla_modifiers =
  [Args.$$$ destN -- query_colon >> K ((I, xtra_dest_local):Method.modifier),
-  Args.$$$ destN -- bang_colon >> K (I, haz_dest_local),
-  Args.$$$ destN -- colon >> K (I, safe_dest_local),
+  Args.$$$ destN -- bang_colon >> K (I, safe_dest_local),
+  Args.$$$ destN -- colon >> K (I, haz_dest_local),
   Args.$$$ elimN -- query_colon >> K (I, xtra_elim_local),
-  Args.$$$ elimN -- bang_colon >> K (I, haz_elim_local),
-  Args.$$$ elimN -- colon >> K (I, safe_elim_local),
+  Args.$$$ elimN -- bang_colon >> K (I, safe_elim_local),
+  Args.$$$ elimN -- colon >> K (I, haz_elim_local),
   Args.$$$ introN -- query_colon >> K (I, xtra_intro_local),
-  Args.$$$ introN -- bang_colon >> K (I, haz_intro_local),
-  Args.$$$ introN -- colon >> K (I, safe_intro_local),
+  Args.$$$ introN -- bang_colon >> K (I, safe_intro_local),
+  Args.$$$ introN -- colon >> K (I, haz_intro_local),
   Args.$$$ delN -- colon >> K (I, delrule_local)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
