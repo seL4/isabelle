@@ -1233,6 +1233,302 @@ I have written a paper discussing the treatment of lazy lists; it also
 covers finite lists~\cite{paulson-coind}.
 
 
+\section{Datatype declarations}
+\index{*datatype|(}
+
+\underscoreon
+
+It is often necessary to extend a theory with \ML-like datatypes.  This
+extension consists of the new type, declarations of its constructors and
+rules that describe the new type. The theory definition section {\tt
+  datatype} represents a compact way of doing this.
+
+
+\subsection{Foundations}
+
+A datatype declaration has the following general structure:
+\[ \mbox{\tt datatype}~ (\alpha_1,\dots,\alpha_n)t ~=~
+      c_1(\tau_{11},\dots,\tau_{1k_1}) ~\mid~ \dots ~\mid~
+      c_m(\tau_{m1},\dots,\tau_{mk_m}) 
+\]
+where $\alpha_i$ are type variables, $c_i$ are distinct constructor names and
+$\tau_{ij}$ are one of the following:
+\begin{itemize}
+\item type variables $\alpha_1,\dots,\alpha_n$,
+\item types $(\beta_1,\dots,\beta_l)s$ where $s$ is a previously declared
+  type or type synonym and $\{\beta_1,\dots,\beta_l\} \subseteq
+  \{\alpha_1,\dots,\alpha_n\}$,
+\item the newly defined type $(\alpha_1,\dots,\alpha_n)t$ \footnote{This
+    makes it a recursive type. To ensure that the new type is not empty at
+    least one constructor must consist of only non-recursive type
+    components.}
+\end{itemize}
+The constructors are automatically defined as functions of their respective
+type:
+\[ c_j : [\tau_{j1},\dots,\tau_{jk_j}] \To (\alpha_1,\dots,\alpha_n)t \]
+These functions have certain {\em freeness} properties:
+\begin{description}
+\item[\tt inject] They are injective:
+\[ (c_j(x_1,\dots,x_{k_j}) = c_j(y_1,\dots,y_{k_j})) =
+   (x_1 = y_1 \land \dots \land x_{k_j} = y_{k_j})
+\]
+\item[\tt ineq] They are distinct:
+\[ c_i(x_1,\dots,x_{k_i}) \neq c_j(y_1,\dots,y_{k_j}) \qquad
+   \mbox{for all}~ i \neq j.
+\]
+\end{description}
+Because the number of inequalities is quadratic in the number of
+constructors, a different method is used if their number exceeds
+a certain value, currently 4. In that case every constructor is mapped to a
+natural number
+\[
+\begin{array}{lcl}
+\mbox{\it t\_ord}(c_1(x_1,\dots,x_{k_1})) & = & 0 \\
+& \vdots & \\
+\mbox{\it t\_ord}(c_m(x_1,\dots,x_{k_m})) & = & m-1
+\end{array}
+\]
+and inequality of constructors is expressed by:
+\[
+\mbox{\it t\_ord}(x) \neq \mbox{\it t\_ord}(y) \Imp x \neq y.
+\]
+In addition a structural induction axiom {\tt induct} is provided: 
+\[
+\infer{P(x)}
+{\begin{array}{lcl}
+\Forall x_1\dots x_{k_1}.
+  \List{P(x_{r_{11}}); \dots; P(x_{r_{1l_1}})} &
+  \Imp  & P(c_1(x_1,\dots,x_{k_1})) \\
+ & \vdots & \\
+\Forall x_1\dots x_{k_m}.
+  \List{P(x_{r_{m1}}); \dots; P(x_{r_{ml_m}})} &
+  \Imp & P(c_m(x_1,\dots,x_{k_m}))
+\end{array}}
+\]
+where $\{r_{j1},\dots,r_{jl_j}\} = \{i \in \{1,\dots k_j\} ~\mid~ \tau_{ji}
+= (\alpha_1,\dots,\alpha_n)t \}$, i.e.\ the property $P$ can be assumed for
+all arguments of the recursive type.
+
+The type also comes with an \ML-like {\tt case}-construct:
+\[
+\begin{array}{rrcl}
+\mbox{\tt case}~e~\mbox{\tt of} & c_1(y_{11},\dots,y_{1k_1}) & \To & e_1 \\
+                           \vdots \\
+                           \mid & c_m(y_{m1},\dots,y_{mk_m}) & \To & e_m
+\end{array}
+\]
+In contrast to \ML, {\em all} constructors must be present, their order is
+fixed, and nested patterns are not supported.
+
+
+\subsection{Defining datatypes}
+
+A datatype is defined in a theory definition file using the keyword {\tt
+  datatype}. The definition following {\tt datatype} must conform to the
+syntax of {\em typedecl} specified in Fig.~\ref{datatype-grammar} and must
+obey the rules in the previous section. As a result the theory is extended
+with the new type, the constructors, and the theorems listed in the previous
+section.
+
+\begin{figure}
+\begin{rail}
+typedecl : typevarlist id '=' (cons + '|')
+         ;
+cons     : (id | string) ( () | '(' (typ + ',') ')' ) ( () | mixfix )
+         ;
+typ      : typevarlist id
+           | tid
+	 ;
+typevarlist : () | tid | '(' (tid + ',') ')'
+         ;
+\end{rail}
+\caption{Syntax of datatype declarations}
+\label{datatype-grammar}
+\end{figure}
+
+Reading the theory file produces a structure which, in addtion to the usual
+components, contains a structure named $t$ for each datatype $t$ defined in
+the file\footnote{Otherwise multiple datatypes in the same theory file would
+  lead to name clashes.}. Each structure $t$ contains the following elements:
+\begin{ttbox}
+val induct : thm
+val inject : thm list
+val ineq : thm list
+val cases : thm list
+val simps : thm list
+val induct_tac : string -> int -> tactic
+\end{ttbox}
+{\tt induct}, {\tt inject} and {\tt ineq} contain the theorems described
+above. For convenience {\tt ineq} contains inequalities in both directions.
+\begin{warn}
+  If there are five or more constructors, the {\em t\_ord} scheme is used for
+  {\tt ineq}.  In this case the theory {\tt Arith} must be contained
+  in the current theory, if necessary by adding it explicitly.
+\end{warn}
+The reduction rules of the {\tt case}-construct can be found in {\tt cases}.
+All theorems from {\tt inject}, {\tt ineq} and {\tt cases} are combined in
+{\tt simps} for use with the simplifier. The tactic ``{\verb$induct_tac$~{\em
+    var i}\/}'' applies structural induction over variable {\em var} to
+subgoal {\em i}.
+
+
+\subsection{Examples}
+
+\subsubsection{The datatype $\alpha~list$}
+
+We want to define the type $\alpha~list$.\footnote{Of course there is
+a list type in HOL already. But for now let us assume that we have to define
+a new type.} To do this we have to build a new theory that contains the
+type definition. We start from {\tt HOL}.
+\begin{ttbox}
+MyList = HOL +
+  datatype 'a list = Nil | Cons ('a, 'a list)
+end
+\end{ttbox}
+After loading the theory with \verb$use_thy "MyList"$, we can prove
+$Cons(x,xs)\neq xs$ using the new theory.  First we build a suitable simpset
+for the simplifier:
+
+\begin{ttbox}
+val mylist_ss = HOL_ss addsimps MyList.list.simps;
+goal MyList.thy "!x. Cons(x,xs) ~= xs";
+{\out Level 0}
+{\out ! x. Cons(x, xs) ~= xs}
+{\out  1. ! x. Cons(x, xs) ~= xs}
+\end{ttbox}
+This can be proved by the structural induction tactic:
+\begin{ttbox}
+by (MyList.list.induct_tac "xs" 1);
+{\out Level 1}
+{\out ! x. Cons(x, xs) ~= xs}
+{\out  1. ! x. Cons(x, Nil) ~= Nil}
+{\out  2. !!a list.}
+{\out        ! x. Cons(x, list) ~= list ==>}
+{\out        ! x. Cons(x, Cons(a, list)) ~= Cons(a, list)}
+\end{ttbox}
+The first subgoal can be proved with the simplifier and the {\tt ineq} axiom
+that is part of \verb$mylist_ss$.
+\begin{ttbox}
+by (simp_tac mylist_ss 1);
+{\out Level 2}
+{\out ! x. Cons(x, xs) ~= xs}
+{\out  1. !!a list.}
+{\out        ! x. Cons(x, list) ~= list ==>}
+{\out        ! x. Cons(x, Cons(a, list)) ~= Cons(a, list)}
+\end{ttbox}
+Using the {\tt inject} axiom we can quickly prove the remaining goal.
+\begin{ttbox}
+by (asm_simp_tac mylist_ss 1);
+{\out Level 3}
+{\out ! x. Cons(x, xs) ~= xs}
+{\out No subgoals!}
+\end{ttbox}
+Because both subgoals were proved by almost the same tactic we could have
+done that in one step using
+\begin{ttbox}
+by (ALLGOALS (asm_simp_tac mylist_ss));
+\end{ttbox}
+
+
+\subsubsection{The datatype $\alpha~list$ with mixfix syntax}
+
+In this example we define the type $\alpha~list$ again but this time we want
+to write {\tt []} instead of {\tt Nil} and we want to use the infix operator
+\verb|#| instead of {\tt Cons}. To do this we simply add mixfix annotations
+after the constructor declarations as follows:
+\begin{ttbox}
+MyList = HOL +
+  datatype 'a list = "[]" ("[]") 
+                   | "#" ('a, 'a list) (infixr 70)
+end
+\end{ttbox}
+Now the theorem in the previous example can be written \verb|x#xs ~= xs|. The
+proof is the same.
+
+\subsubsection{Defining functions on datatypes}
+
+Normally one wants to define functions dealing with a newly defined type and
+prove properties of these functions. As an example let us define \verb|@| for
+concatenation and {\tt ttl} for the (total) tail of a list, i.e.\ the list
+without its first element. We do this in theory \verb|List_fun| which is an
+extension of {\tt MyList}:
+\begin{ttbox}
+List_fun = MyList +
+consts ttl  :: "'a list => 'a list"
+       "@"  :: "['a list,'a list] => 'a list"  (infixr 60)
+rules 
+       ttl_def   "ttl (l)  == case l of [] => []  |  y#ys => ys"
+
+       app_Nil   "[] @ ys = ys"
+       app_Cons  "(x#xs) @ ys = x#(xs @ ys)"
+end
+\end{ttbox}
+Let us have a look at the use of {\tt case} in the definition of {\tt ttl}.
+The expression {\tt case e of [] => [] | y\#ys => ys} evaluates to {\tt []}
+if \verb|e=[]| and to {\tt ys} if \verb|e=y#ys|. These properties are
+trivial to derive by simplification:
+\begin{ttbox}
+val mylist_ss = HOL_ss addsimps MyList.list.simps;
+
+goalw List_fun.thy [List_fun.ttl_def] "ttl([]) = []";
+by (simp_tac mylist_ss 1);
+val ttl_Nil = result();
+
+goalw List_fun.thy [List_fun.ttl_def] "ttl(y#ys) = ys";
+by (simp_tac mylist_ss 1);
+val ttl_Cons = result();
+
+val list_fun_ss = mylist_ss addsimps
+      [ttl_Nil, ttl_Cons, List_fun.app_Nil, List_fun.app_Cons];
+\end{ttbox}
+Note that we include the derived properties in our simpset, not the original
+definition of {\tt ttl}. The former are better behaved because they only
+apply if the argument is already a constructor.
+
+One could have defined \verb$@$ with a single {\tt case}-construct
+\begin{ttbox}
+app_def "x @ y == case x of [] => y  |  z#zs => z # (zs @ y)"
+\end{ttbox}  
+and derived \verb$app_Nil$ and \verb$app_Cons$ from it. But \verb$app_def$ is
+not easy to work with: the left-hand side matches a subterm of the right-hand
+side, which causes the simplifier to loop.
+
+Here is a simple proof of the associativity of \verb$@$:
+\begin{ttbox}
+goal List_fun.thy "(x @ y) @ z = x @ (y @ z)";
+by (MyList.list.induct_tac "x" 1);
+by (simp_tac list_fun_ss 1);
+by (asm_simp_tac list_fun_ss 1);
+\end{ttbox}
+The last two steps can again be combined using {\tt ALLGOALS}.
+
+
+\subsubsection{A datatype for weekdays}
+
+This example shows a datatype that consists of more than four constructors:
+\begin{ttbox}
+Days = Arith +
+  datatype days = Mo | Tu | We | Th | Fr | Sa | So
+end
+\end{ttbox}
+Because there are more than four constructors, the theory must be based on
+{\tt Arith}. Inequality is defined via a function \verb|days_ord|. Although
+the expression \verb|Mo ~= Tu| is not directly contained in {\tt ineq}, it
+can be proved by the simplifier if \verb$arith_ss$ is used:
+\begin{ttbox}
+val days_ss = arith_ss addsimps Days.days.simps;
+
+goal Days.thy "Mo ~= Tu";
+by (simp_tac days_ss 1);
+\end{ttbox}
+Note that usually it is not necessary to derive these inequalities explicitly
+because the simplifier will dispose of them automatically.
+
+\index{*datatype|)}
+\underscoreoff
+
+
+
 \section{The examples directories}
 Directory {\tt HOL/Subst} contains Martin Coen's mechanisation of a theory of
 substitutions and unifiers.  It is based on Paulson's previous
