@@ -3,8 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
 
-Adds Classical Higher-order Logic to a database containing Pure Isabelle.
-Should be executed in the subdirectory HOL.
+Classical Higher-order Logic.
 *)
 
 val banner = "Higher-Order Logic";
