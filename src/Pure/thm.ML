@@ -1031,15 +1031,18 @@ fun var_perm(t,u) = vperm(t,u) andalso
 fun loops sign prems (lhs,rhs) =
   is_Var(lhs) orelse
   (null(prems) andalso
-   Pattern.eta_matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
+   Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
 
 fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
   let val prems = Logic.strip_imp_prems prop
-      val concl = Pattern.eta_contract (Logic.strip_imp_concl prop)
-      val (lhs,rhs) = Logic.dest_equals concl handle TERM _ =>
+      val concl = Logic.strip_imp_concl prop
+      val (lhs,_) = Logic.dest_equals concl handle TERM _ =>
                       raise SIMPLIFIER("Rewrite rule not a meta-equality",thm)
-      val perm = var_perm(lhs,rhs) andalso not(lhs=rhs orelse is_Var(lhs))
-  in if not perm andalso loops sign prems (lhs,rhs)
+      val econcl = Pattern.eta_contract concl
+      val (elhs,erhs) = Logic.dest_equals econcl
+      val perm = var_perm(elhs,erhs) andalso not(elhs aconv erhs)
+                                     andalso not(is_Var(elhs))
+  in if not perm andalso loops sign prems (elhs,erhs)
      then (prtm "Warning: ignoring looping rewrite rule" sign prop; None)
      else Some{thm=thm,lhs=lhs,perm=perm}
   end;
@@ -1082,7 +1085,7 @@ fun mss_of thms = add_simps(empty_mss,thms);
 fun add_cong(Mss{net,congs,bounds,prems,mk_rews},thm) =
   let val (lhs,_) = Logic.dest_equals(concl_of thm) handle TERM _ =>
                     raise SIMPLIFIER("Congruence not a meta-equality",thm)
-      val lhs = Pattern.eta_contract lhs
+(*      val lhs = Pattern.eta_contract lhs*)
       val (a,_) = dest_Const (head_of lhs) handle TERM _ =>
                   raise SIMPLIFIER("Congruence must start with a constant",thm)
   in Mss{net=net, congs=(a,{lhs=lhs,thm=thm})::congs, bounds=bounds,
@@ -1169,9 +1172,6 @@ fun check_conv(thm as Thm{hyps,prop,sign,...}, prop0) =
      | _ => err()
   end;
 
-(* This code doesn't help at the moment because many bound vars in rewrite
-   rules are eliminated by eta-contraction. Thus the names of bound vars are
-   lost upon rewriting.
 fun ren_inst(insts,prop,pat,obj) =
   let val ren = match_bvs(pat,obj,[])
       fun renAbs(Abs(x,T,b)) =
@@ -1179,18 +1179,17 @@ fun ren_inst(insts,prop,pat,obj) =
         | renAbs(f$t) = renAbs(f) $ renAbs(t)
         | renAbs(t) = t
   in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;
-*)
-fun ren_inst(insts,prop,_,_) = subst_vars insts prop;
+
 
 (*Conversion to apply the meta simpset to a term*)
 fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
-  let val t = Pattern.eta_contract t;
+  let val etat = Pattern.eta_contract t;
       fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (trace_thm"Warning: rewrite rule from different theory"
                           thm;
                         raise Pattern.MATCH)
-            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,t)
+            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,etat)
             val prop' = ren_inst(insts,prop,lhs,t);
             val hyps' = hyps union hypst;
             val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
@@ -1209,9 +1208,9 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
             let val opt = rew rrule handle Pattern.MATCH => None
             in case opt of None => rews rrules | some => some end;
 
-  in case t of
+  in case etat of
        Abs(_,_,body) $ u => Some(hypst,subst_bounds([u], body))
-     | _                 => rews(Net.match_term net t)
+     | _                 => rews(Net.match_term net etat)
   end;
 
 (*Conversion to apply a congruence rule to a term*)

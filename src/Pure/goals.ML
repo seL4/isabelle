@@ -151,13 +151,13 @@ fun prepare_proof rths chorn =
             else if not (null hyps) then result_error state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
-	    else if Pattern.eta_matches (#tsig(Sign.rep_sg sign)) 
-			                (term_of chorn, prop)
+	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
+			            (term_of chorn, prop)
 		 then  standard th 
 	    else  result_error state "proved a different theorem"
         end
-  in  
-     if Sign.eq_sg(sign, #sign(rep_thm st0)) 
+  in
+     if Sign.eq_sg(sign, #sign(rep_thm st0))
      then (prems, st0, mkresult)
      else error ("Definitions would change the proof state's signature" ^
 		 sign_error (sign, #sign(rep_thm st0)))
