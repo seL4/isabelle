@@ -1,0 +1,223 @@
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym,pdfsetup}
+
+%for best-style documents ...
+\urlstyle{rm}
+\isabellestyle{it}
+
+\renewcommand{\isabeginpar}{\par\smallskip}
+\renewcommand{\isamarkupcmt}[1]{{\isastylecmt---~~#1}}
+
+\newcommand{\secref}[1]{\S\ref{#1}}
+
+
+\begin{document}
+
+\title{Some aspects of Unix file-system security}
+\author{Markus Wenzel \\ TU M\"unchen}
+\maketitle
+
+\begin{abstract}
+  Unix is a simple but powerful system where everything is either a process or
+  a file.  Access to system resources works mainly via the file-system,
+  including special files and devices.  Most Unix security issues are
+  reflected directly within the file-system.  We give a mathematical model of
+  the main aspects of the Unix file-system including its security model, but
+  ignoring processes.  Within this formal model we discuss some aspects of
+  Unix security, including a few odd effects caused by the general
+  ``worse-is-better'' approach followed in Unix.
+  
+  Our formal specifications will be giving in simply-typed classical
+  set-theory as provided by Isabelle/HOL.  Formal proofs are expressed in a
+  human-readable fashion using the structured proof language of Isabelle/Isar,
+  which is a system intended to support intelligible semi-automated reasoning
+  over a wide range of application domains.  Thus the present development also
+  demonstrates that Isabelle/Isar is sufficiently flexible to cover typical
+  abstract verification tasks as well.  So far this has been the classical
+  domain of interactive theorem proving systems based on unstructured tactic
+  languages.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\parindent 0pt\parskip 0.5ex
+
+
+\section{Introduction}\label{sec:unix-intro}
+
+\subsection{The Unix philosophy}
+
+Over the last 2 or 3 decades the Unix community has collected a certain amount
+of folklore wisdom on building systems that actually work, see
+\cite{Unix-heritage} for further historical background information.  Here is a
+recent account of the philosophical principles behind the Unix way of software
+and systems engineering.\footnote{This has appeared on \emph{Slashdot} on
+  25-March-2000, see \url{http://slashdot.com}, as well as
+  \url{http://www.cix.co.uk/~dunnp/unix-philosophy.html}.}
+
+{\small
+\begin{verbatim}
+The UNIX Philosophy (Score:2, Insightful)
+by yebb on Saturday March 25, @11:06AM EST (#69)
+(User Info) 
+
+The philosophy is a result of more than twenty years of software
+development and has grown from the UNIX community instead of being
+enforced upon it. It is a defacto-style of software development. The
+nine major tenets of the UNIX Philosophy are:
+
+  1. small is beautiful 
+  2. make each program do one thing well 
+  3. build a prototype as soon as possible 
+  4. choose portability over efficiency 
+  5. store numerical data in flat files 
+  6. use software leverage to your advantage 
+  7. use shell scripts to increase leverage and portability 
+  8. avoid captive user interfaces 
+  9. make every program a filter 
+
+The Ten Lesser Tenets 
+
+  1. allow the user to tailor the environment 
+  2. make operating system kernels small and lightweight 
+  3. use lower case and keep it short 
+  4. save trees 
+  5. silence is golden 
+  6. think parallel 
+  7. the sum of the parts if greater than the whole 
+  8. look for the ninety percent solution 
+  9. worse is better 
+ 10. think hierarchically 
+\end{verbatim}
+}
+
+The ``worse-is-better'' approach quoted above is particularly interesting.  It
+basically means that \emph{relevant} concepts have to be implemented in the
+right way, while \emph{irrelevant} issues are simply ignored in order to avoid
+unnecessary complication of the design and implementation.  Certainly, the
+overall quality of the resulting system heavily depends on the virtue of
+distinction between the two categories of ``relevant'' and ``irrelevant''.
+
+
+\subsection{Unix security}
+
+The main entities of a Unix system are \emph{files} and \emph{processes}
+\cite{Tanenbaum:1992}.  Files subsume any persistent ``static'' entity managed
+by the system --- ranging from plain files and directories, to more special
+ones such device nodes, pipes etc.  On the other hand, processes are
+``dynamic'' entities that may perform certain operations while being run by
+the system.
+
+The security model of classic Unix systems is centered around the file system.
+The operations permitted by a process that is run by a certain user are
+determined from information stored within the file system.  This includes any
+kind of access control, such as read/write access to some plain file, or
+read-only access to a certain global device node etc.  Thus proper arrangement
+of the main Unix file-system is very critical for overall
+security.\footnote{Incidently, this is why the operation of mounting new
+  volumes into the existing file space is usually restricted to the
+  super-user.}
+
+\medskip Generally speaking, the Unix security model is a very simplistic one.
+The original designers did not have maximum security in mind, but wanted to
+get a decent system working for typical multi-user environments.  Contemporary
+Unix implementations still follow the basic security model of the original
+versions from the early 1970's \cite{Unix-heritage}.  Even back then there
+would have been better approaches available, albeit with more complexity
+involved both for implementers and users.
+
+On the other hand, even in the 2000's many computer systems are run with
+little or no file-system security at all, even though virtually any system is
+exposed to the net in one way or the other.  Even ``personal'' computer
+systems have long left the comfortable home environment and entered the
+wilderness of the open net sphere.
+
+\medskip This treatment of file-system security is a typical example of the
+``worse-is-better'' principle introduced above.  The simplistic security model
+of Unix got widely accepted within a large user community, while the more
+innovative (and cumbersome) ones are only used very reluctantly and even tend
+to be disabled by default in order to avoid confusion of beginners.
+
+
+\subsection{Odd effects}
+
+Simplistic systems usually work very well in typical situations, but tend to
+exhibit some odd features in non-typical ones.  As far as Unix file-system
+security is concerned, there are many such features that are well-known to
+experts, but may surprise naive users.
+
+Subsequently, we consider an example that is not so exotic after all.  As may
+be easily experienced on a running Unix system, the following sequence of
+commands may put a user's file-system into an uncouth state.  Below we assume
+that \texttt{user1} and \texttt{user2} are working within the same directory
+(e.g.\ somewhere within the home of \texttt{user1}).
+
+{\small
+\begin{verbatim}
+  user1> umask 000; mkdir foo; umask 022
+  user2> mkdir foo/bar
+  user2> touch foo/bar/baz
+\end{verbatim}
+}
+  
+That is, \texttt{user1} creates a directory that is writable for everyone, and
+\texttt{user2} puts there a non-empty directory without write-access for
+others.
+
+In this situation it has become impossible for \texttt{user1} to remove his
+very own directory \texttt{foo} without the cooperation of either
+\texttt{user2}, since \texttt{foo} contains another non-empty and non-writable
+directory, which cannot be removed.
+
+{\small
+\begin{verbatim}
+  user1> rmdir foo
+  rmdir: directory "foo": Directory not empty
+  user1> rmdir foo/bar
+  rmdir: directory "bar": Directory not empty
+  user1> rm foo/bar/baz
+  rm not removed: Permission denied
+\end{verbatim}
+}
+
+Only after \texttt{user2} has cleaned up his directory \texttt{bar}, is
+\texttt{user1} enabled to remove both \texttt{foo/bar} and \texttt{foo}.
+Alternatively \texttt{user2} could remove \texttt{foo/bar} as well.  In the
+unfortunate case that \texttt{user2} does not cooperate or is presently
+unavailable, \texttt{user1} would have to find the super user (\texttt{root})
+to clean up the situation.  In Unix \texttt{root} may perform any file-system
+operation without any access control limitations.\footnote{This is the typical
+  Unix way of handling abnormal situations: while it is easy to run into odd
+  cases due to simplistic policies it as well quite easy to get out.  There
+  are other well-known systems that make it somewhat harder to get into a fix,
+  but almost impossible to get out again!}
+
+\bigskip Is there really no other way out for \texttt{user1} in the above
+situation?  Experiments can only show possible ways, but never demonstrate the
+absence of other means exhaustively.  This is a typical situation where
+(formal) proof may help.  Subsequently, we model the main aspects Unix
+file-system security within Isabelle/HOL \cite{Nipkow-et-al:2000:HOL} and
+prove that there is indeed no way for \texttt{user1} to get rid of his
+directory \texttt{foo} without help by others (see
+\secref{sec:unix-main-result} for the main theorem stating this).
+
+\medskip The formal techniques employed in this development are the typical
+ones for abstract ``verification'' tasks, namely induction and case analysis
+over the structure of file-systems and possible system transitions.
+Isabelle/HOL \cite{Nipkow-et-al:2000:HOL} is particularly well-suited for this
+kind of application.  By the present development we also demonstrate that the
+Isabelle/Isar environment \cite{Wenzel:1999:TPHOL,Wenzel:2000:isar-ref} for
+readable formal proofs is sufficiently flexible to cover non-trivial
+verification tasks as well.  So far this has been the classical domain of
+``interactive'' theorem proving systems based on unstructured tactic
+languages.
+
+
+\input{Unix}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

@@ -102,6 +102,10 @@ by default; the following existing theories have been moved here:
 HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 (as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
 
+* HOL/Unix: "Some aspects of Unix file-system security", a typical
+modelling and verification task performed in Isabelle/HOL +
+Isabelle/Isar + Isabelle document preparation (by Markus Wenzel).
+
 * HOL basics: added overloaded operations "inverse" and "divide"
 (infix "/"), syntax for generic "abs" operation, generic summation
 operator;

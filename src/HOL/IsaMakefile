@@ -37,6 +37,7 @@ test: \
       TLA-Inc \
       TLA-Memory \
   HOL-UNITY \
+  HOL-Unix \
   HOL-W0 \
   HOL-ex
     # ^ this is the sort position
@@ -345,6 +346,16 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/UNITY.thy UNITY/Union.ML UNITY/Union.thy UNITY/WFair.ML \
   UNITY/WFair.thy
 	@$(ISATOOL) usedir $(OUT)/HOL UNITY
+
+
+## HOL-Unix
+
+HOL-Unix: HOL $(LOG)/HOL-Unix.gz
+
+$(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy \
+  Library/List_Prefix.thy Unix/ROOT.ML Unix/Unix.thy \
+  Unix/document/root.bib Unix/document/root.tex
+	@$(ISATOOL) usedir $(OUT)/HOL Unix
 
 
 ## HOL-Modelcheck
