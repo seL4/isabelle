@@ -166,8 +166,6 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
 fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : datatype_info, thy) =
   let
     val sg = sign_of thy;
-    val sorts = map (rpair HOLogic.typeS) (distinct (flat (map
-      (fn (_, (_, ds, _)) => mapfilter (try dest_DtTFree) ds) descr)));
     val cert = cterm_of sg;
     val rT = TFree ("'P", HOLogic.typeS);
     val rT' = TVar (("'P", 0), HOLogic.typeS);
