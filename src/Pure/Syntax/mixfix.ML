@@ -31,6 +31,7 @@ sig
   val mixfix_args: mixfix -> int
   val pure_nonterms: string list
   val pure_syntax: (string * string * mixfix) list
+  val pure_syntax_output: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
   val pure_xsym_syntax: (string * string * mixfix) list
@@ -239,6 +240,10 @@ val pure_syntax =
   ("_indexvar",    "index",                         Delimfix "\\<index>"),
   ("_noindex",     "index",                         Delimfix ""),
   ("_struct",      "index => logic",                Delimfix "\\<struct>_")];
+
+val pure_syntax_output =
+ [("Goal", "prop => prop", Mixfix ("_", [0], 0)),
+  ("_meta_conjunction", "prop => prop => prop", InfixrName ("&&", 2))];
 
 val pure_appl_syntax =
  [("_appl", "[('b => 'a), args] => logic", Mixfix ("(1_/(1'(_')))", [SynExt.max_pri, 0], SynExt.max_pri)),
