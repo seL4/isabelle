@@ -102,6 +102,10 @@ qed_goalw "converseE" Relation.thy [converse_def]
 val converse_cs = comp_cs addSIs [converseI] 
                           addSEs [converseD,converseE];
 
+goalw Relation.thy [converse_def] "converse(converse R) = R";
+by(fast_tac (prod_cs addSIs [equalityI]) 1);
+qed "converse_converse";
+
 (** Domain **)
 
 qed_goalw "Domain_iff" Relation.thy [Domain_def]
