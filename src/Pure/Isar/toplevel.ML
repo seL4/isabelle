@@ -53,6 +53,9 @@ sig
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
+  val unknown_theory: transition -> transition
+  val unknown_proof: transition -> transition
+  val unknown_context: transition -> transition
   val quiet: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
@@ -346,6 +349,10 @@ fun theory_to_proof f =
 fun proof' f = map_current (fn int => (fn Proof prf => Proof (f int prf) | _ => raise UNDEF));
 val proof = proof' o K;
 fun proof_to_theory f = map_current (fn _ => (fn Proof prf => Theory (f prf) | _ => raise UNDEF));
+
+val unknown_theory = imperative (fn () => warning "Unknown theory context");
+val unknown_proof = imperative (fn () => warning "Unknown proof context");
+val unknown_context = imperative (fn () => warning "Unknown context");
 
 
 
