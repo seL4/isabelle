@@ -22,25 +22,31 @@ dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => 
-	    ('a ~=> 'b)"		 ("_/'(_[|->]_/')" [900,0,0]900)
+	    ('a ~=> 'b)"
 map_upd_s::"('a ~=> 'b) => 'a set => 'b => 
 	    ('a ~=> 'b)"			 ("_/'(_{|->}_/')" [900,0,0]900)
 map_subst::"('a ~=> 'b) => 'b => 'b => 
 	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
 
+nonterminals
+  maplets maplet
+
 syntax
-empty	::  "'a ~=> 'b"
-map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
-					 ("_/'(_/|->_')"   [900,0,0]900)
+  empty	    ::  "'a ~=> 'b"
+  "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")
+  "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
+  ""         :: "maplet => maplets"             ("_")
+  "_Maplets" :: "[maplet, maplets] => maplets" ("_,/ _")
+  "_MapUpd"  :: "['a ~=> 'b, maplets] => 'a ~=> 'b" ("_/'(_')" [900,0]900)
+  "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
 
 syntax (xsymbols)
+  "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
+  "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
+
   "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
   restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<lfloor>_" [90, 91] 90)
-  map_upd   :: "('a ~=> 'b) => 'a      => 'b      => ('a ~=> 'b)"
-					  ("_/'(_/\<mapsto>/_')"  [900,0,0]900)
-  map_upds  :: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
-				         ("_/'(_/[\<mapsto>]/_')" [900,0,0]900)
   map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
 				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
   map_subst :: "('a ~=> 'b) => 'b => 'b => 
@@ -52,8 +58,14 @@ translations
   "empty"    => "_K None"
   "empty"    <= "%x. None"
 
-  "m(a|->b)" == "m(a:=Some b)"
   "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"
+
+  "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
+  "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
+  "_MapUpd m (_maplets x y)"    == "map_upds m x y"
+  "_Map ms"                     == "_MapUpd empty ms"
+  "_Map (_Maplets ms1 ms2)"     <= "_MapUpd (_Map ms1) ms2"
+  "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
 
 defs
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
