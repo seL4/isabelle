@@ -59,7 +59,7 @@ while getopts "Ie:m:qruw" OPT
 do
   case "$OPT" in
     I)
-      MLTEXT="$MLTEXT OuterSyntax.main();"
+      MLTEXT="$MLTEXT Isar.main();"
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
