@@ -31,6 +31,13 @@ sig
   val dest_Trueprop : Term.term -> Term.term
   val mk_Trueprop : Term.term -> Term.term
   val read_cterm : Sign.sg -> string -> Thm.cterm
+
+  val localize : Thm.thm list
+  val local_impI : Thm.thm
+  val atomize : Thm.thm list
+  val rulify1 : Thm.thm list
+  val rulify2 : Thm.thm list
+
 end;
 
 (* for HOL *)
@@ -39,6 +46,13 @@ struct
 val dest_Trueprop = HOLogic.dest_Trueprop;
 val mk_Trueprop = HOLogic.mk_Trueprop;
 val read_cterm = HOLogic.read_cterm;
+
+val localize = [Thm.symmetric (thm "induct_implies_def")];
+val local_impI = thm "induct_impliesI";
+val atomize = thms "induct_atomize";
+val rulify1 = thms "induct_rulify1";
+val rulify2 = thms "induct_rulify2";
+
 end;
 
 
@@ -75,6 +89,23 @@ end;
 
 functor CaseSplitFUN(Data : CASE_SPLIT_DATA) =
 struct
+
+val rulify_goals = Tactic.rewrite_goals_rule Data.rulify1;
+val atomize_goals = Tactic.rewrite_goals_rule Data.atomize;
+
+(* 
+val localize = Tactic.norm_hhf_rule o Tactic.simplify false Data.localize;
+fun atomize_term sg =
+  ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize [];
+val rulify_tac =  Tactic.rewrite_goal_tac Data.rulify1;
+val atomize_tac =  Tactic.rewrite_goal_tac Data.atomize;
+Tactic.simplify_goal
+val rulify_tac =
+  Tactic.rewrite_goal_tac Data.rulify1 THEN'
+  Tactic.rewrite_goal_tac Data.rulify2 THEN'
+  Tactic.norm_hhf_tac;
+val atomize = Tactic.norm_hhf_rule o Tactic.simplify true Data.atomize;
+*)
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm = 
@@ -148,26 +179,49 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
 (* does a case split on the given variable (Free fv) *)
 fun casesplit_free fv i th = 
     let 
-      val gt = Data.dest_Trueprop (nth_elem( i - 1, Thm.prems_of th));
+      val (subgoalth, exp) = IsaND.fix_alls i th;
+      val subgoalth' = atomize_goals subgoalth;
+      val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
       val sgn = Thm.sign_of_thm th;
+
+      val splitter_thm = mk_casesplit_goal_thm sgn fv gt;
+      val nsplits = Thm.nprems_of splitter_thm;
+
+      val split_goal_th = splitter_thm RS subgoalth';
+      val rulified_split_goal_th = rulify_goals split_goal_th;
     in 
-      Tactic.rtac (mk_casesplit_goal_thm sgn fv gt) i th
+      IsaND.export_back exp rulified_split_goal_th
     end;
+
 
 (* for use when there are no prems to the subgoal *)
 (* does a case split on the given variable *)
 fun casesplit_name vstr i th = 
     let 
-      val gt = Data.dest_Trueprop (nth_elem( i - 1, Thm.prems_of th));
+      val (subgoalth, exp) = IsaND.fix_alls i th;
+      val subgoalth' = atomize_goals subgoalth;
+      val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
+
       val freets = Term.term_frees gt;
-      fun getter x = let val (n,ty) = Term.dest_Free x in 
-                       if vstr = n then Some (n,ty) else None end;
+      fun getter x = 
+          let val (n,ty) = Term.dest_Free x in 
+            (if vstr = n orelse vstr = Syntax.dest_skolem n 
+             then Some (n,ty) else None )
+            handle LIST _ => None
+          end;
       val (n,ty) = case Library.get_first getter freets 
                 of Some (n, ty) => (n, ty)
                  | _ => raise ERROR_MESSAGE ("no such variable " ^ vstr);
       val sgn = Thm.sign_of_thm th;
+
+      val splitter_thm = mk_casesplit_goal_thm sgn (n,ty) gt;
+      val nsplits = Thm.nprems_of splitter_thm;
+
+      val split_goal_th = splitter_thm RS subgoalth';
+
+      val rulified_split_goal_th = rulify_goals split_goal_th;
     in 
-      Tactic.rtac (mk_casesplit_goal_thm sgn (n,ty) gt) i th
+      IsaND.export_back exp rulified_split_goal_th
     end;
 
 
@@ -196,6 +250,7 @@ exception find_split_exp of string
 fun find_term_split (Free v, _ $ _) = Some v
   | find_term_split (Free v, Const _) = Some v
   | find_term_split (Free v, Abs _) = Some v (* do we really want this case? *)
+  | find_term_split (Free v, Var _) = None (* keep searching *)
   | find_term_split (a $ b, a2 $ b2) = 
     (case find_term_split (a, a2) of 
        None => find_term_split (b,b2)  
@@ -229,9 +284,9 @@ fun find_thms_split splitths i genth =
 (* split the subgoal i of "genth" until we get to a member of
 splitths. Assumes that genth will be a general form of splitths, that
 can be case-split, as needed. Otherwise fails. Note: We assume that
-all of "splitths" are aplit to the same level, and thus it doesn't
+all of "splitths" are split to the same level, and thus it doesn't
 matter which one we choose to look for the next split. Simply add
-search on splitthms and plit variable, to change this.  *)
+search on splitthms and split variable, to change this.  *)
 (* Note: possible efficiency measure: when a case theorem is no longer
 useful, drop it? *)
 (* Note: This should not be a separate tactic but integrated into the
@@ -244,11 +299,16 @@ fun splitto splitths genth =
 
       (* check if we are a member of splitths - FIXME: quicker and 
       more flexible with discrim net. *)
-      fun solve_by_splitth th split = biresolution false [(false,split)] 1 th;
+      fun solve_by_splitth th split = 
+          Thm.biresolution false [(false,split)] 1 th;
 
       fun split th = 
           (case find_thms_split splitths 1 th of 
-             None => raise ERROR_MESSAGE "splitto: cannot find variable to split on"
+             None => 
+             (writeln "th:";
+              print th; writeln "split ths:";
+             print splitths; writeln "\n--";
+             raise ERROR_MESSAGE "splitto: cannot find variable to split on")
             | Some v => 
              let 
                val gt = Data.dest_Trueprop (nth_elem(0, Thm.prems_of th));
