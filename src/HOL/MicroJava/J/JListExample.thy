@@ -91,7 +91,7 @@ fun new_addr p none hp =
 *}
 
 generate_code
-  test = "query (example_prg\<turnstile>Norm (Map.empty, Map.empty)
+  test = "example_prg\<turnstile>Norm (Map.empty, Map.empty)
     -(Expr (l1_name::=NewC list_name);;
       Expr ({list_name}(LAcc l1_name)..val_name:=Lit (Intg 1));;
       Expr (l2_name::=NewC list_name);;
@@ -105,7 +105,7 @@ generate_code
       Expr ({list_name}(LAcc l1_name)..
         append_name({[RefT (ClassT list_name)]}[LAcc l3_name]));;
       Expr ({list_name}(LAcc l1_name)..
-        append_name({[RefT (ClassT list_name)]}[LAcc l4_name])))-> s1)"
+        append_name({[RefT (ClassT list_name)]}[LAcc l4_name])))-> _"
 
 subsection {* Big step execution *}
 

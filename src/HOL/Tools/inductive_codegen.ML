@@ -482,8 +482,8 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
        None => None
      | Some (names, intrs) =>
          let
-          fun mk_mode (((ts, mode), i), Var _) = ((ts, mode), i+1)
-            | mk_mode (((ts, mode), i), Free _) = ((ts, mode), i+1)
+          fun mk_mode (((ts, mode), i), Const ("dummy_pattern", _)) =
+                ((ts, mode), i+1)
             | mk_mode (((ts, mode), i), t) = ((ts @ [t], mode @ [i]), i+1);
 
            val gr1 = mk_extra_defs thy
@@ -508,12 +508,11 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
   | _ => None);
 
 fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
-      (case mk_ind_call thy gr dep t u false of
+      ((case mk_ind_call thy gr dep (Term.no_dummy_patterns t) u false of
          None => None
        | Some (gr', call_p) => Some (gr', (if brack then parens else I)
            (Pretty.block [Pretty.str "?! (", call_p, Pretty.str ")"])))
-  | inductive_codegen thy gr dep brack (Free ("query", _) $ (Const ("op :", _) $ t $ u)) =
-      mk_ind_call thy gr dep t u true
+        handle TERM _ => mk_ind_call thy gr dep t u true)
   | inductive_codegen thy gr dep brack _ = None;
 
 val setup =
