@@ -528,7 +528,8 @@ qed "nonempty_has_least";
   Conditional rewrite rules are tried after unconditional ones.
 **)
 
-Goal "True ==> (0 = x) = (x = (0::nat))";
+(*Polymorphic, not just for "nat"*)
+Goal "True ==> (0 = x) = (x = 0)";
 by Auto_tac;  
 qed "zero_reorient";
 Addsimps [zero_reorient];
