@@ -176,7 +176,7 @@ struct
   for resolution.*)
 type indexname = string*int;
 
-(* Types are classified by classes. *)
+(* Types are classified by sorts. *)
 type class = string;
 type sort  = class list;
 
@@ -193,7 +193,7 @@ val op ---> = foldr (op -->);
 
 (*terms.  Bound variables are indicated by depth number.
   Free variables, (scheme) variables and constants have names.
-  An term is "closed" if there every bound variable of level "lev"
+  An term is "closed" if every bound variable of level "lev"
   is enclosed by at least "lev" abstractions. 
 
   It is possible to create meaningless terms containing loose bound vars
@@ -446,7 +446,7 @@ fun loose_bvar1(Bound i,k) = i = k
 
 (*Substitute arguments for loose bound variables.
   Beta-reduction of arg(n-1)...arg0 into t replacing (Bound i) with (argi).
-  Note that for ((x,y)c)(a,b), the bound vars in c are x=1 and y=0
+  Note that for ((%x y. c) a b), the bound vars in c are x=1 and y=0
 	and the appropriate call is  subst_bounds([b,a], c) .
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
@@ -490,7 +490,7 @@ fun mem_ix (_, []) = false
 fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
 
 (*Tests whether 2 terms are alpha-convertible and have same type.
-  Note that constants and Vars may have more than one type.*)
+  Note that constants may have more than one type.*)
 fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
   | (Free(a,T))  aconv (Free(b,U))  = a=b  andalso  T=U
   | (Var(v,T))   aconv (Var(w,U))   = eq_ix(v,w)  andalso  T=U
@@ -670,7 +670,7 @@ fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
 (**** Syntax-related declarations ****)
 
 
-(*Dummy type for parsing.  Will be replaced during type inference. *)
+(*Dummy type for parsing and printing.  Will be replaced during type inference. *)
 val dummyT = Type("dummy",[]);
 
 (*scan a numeral of the given radix, normally 10*)
