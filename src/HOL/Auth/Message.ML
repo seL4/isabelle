@@ -185,7 +185,7 @@ by (Fast_tac 1);
 qed "parts_trans";
 
 (*Cut*)
-goal thy "!!H. [| X: parts H;  Y: parts (insert X H) |] ==> Y: parts H";
+goal thy "!!H. [| Y: parts (insert X H);  X: parts H |] ==> Y: parts H";
 be parts_trans 1;
 by (Fast_tac 1);
 qed "parts_cut";
@@ -432,7 +432,7 @@ by (Fast_tac 1);
 qed "analz_trans";
 
 (*Cut; Lemma 2 of Lowe*)
-goal thy "!!H. [| X: analz H;  Y: analz (insert X H) |] ==> Y: analz H";
+goal thy "!!H. [| Y: analz (insert X H);  X: analz H |] ==> Y: analz H";
 be analz_trans 1;
 by (Fast_tac 1);
 qed "analz_cut";
@@ -528,7 +528,7 @@ by (Fast_tac 1);
 qed "synth_trans";
 
 (*Cut; Lemma 2 of Lowe*)
-goal thy "!!H. [| X: synth H;  Y: synth (insert X H) |] ==> Y: synth H";
+goal thy "!!H. [| Y: synth (insert X H);  X: synth H |] ==> Y: synth H";
 be synth_trans 1;
 by (Fast_tac 1);
 qed "synth_cut";
@@ -634,6 +634,14 @@ by (Full_simp_tac 1);
 by (Fast_tac 1);
 qed "Fake_analz_insert";
 
+(*Without this equation, other rules for synth and analz would yield
+  redundant cases*)
+goal thy "({|X,Y|} : synth (analz H)) = \
+\         (X : synth (analz H) & Y : synth (analz H))";
+by (Fast_tac 1);
+qed "MPair_synth_analz";
+
+AddIffs [MPair_synth_analz];
 
 
 (*We do NOT want Crypt... messages broken up in protocols!!*)
