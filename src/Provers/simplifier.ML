@@ -240,7 +240,7 @@ fun merge_ss
              subgoal_tac, finish_tac, unsafe_finish_tac},
     Simpset {mss = mss2, loop_tacs = loop_tacs2, ...}) =
   make_ss (Thm.merge_mss (mss1, mss2), subgoal_tac,
-           foldl overwrite (loop_tacs1,loop_tacs2),
+           merge_alists loop_tacs1 loop_tacs2,
            finish_tac, unsafe_finish_tac);
 
 
