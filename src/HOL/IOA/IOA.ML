@@ -82,12 +82,10 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
   by (nat_ind_tac "n" 1);
   by (fast_tac (!claset addIs [p1,reachable_0]) 1);
   by (eres_inst_tac[("x","n")]allE 1);
-  by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n")] optionE 1);
-  by (Asm_simp_tac 1);
+  by (option_case_tac "fst ex n" 1);
   by (safe_tac (!claset));
   by (etac (p2 RS mp) 1);
-  by (ALLGOALS(fast_tac(!claset addDs [hd Option.option.inject RS iffD1,
-                                      reachable_n])));
+  by (ALLGOALS(fast_tac(!claset addDs [reachable_n])));
 qed "invariantI";
 
 val [p1,p2] = goal IOA.thy
