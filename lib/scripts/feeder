@@ -9,8 +9,8 @@
 
 ## diagnostics
 
-PRG=$(basename "$0")
-DIR=$(dirname "$0")
+PRG="$(basename "$0")"
+DIR="$(dirname "$0")"
 
 function usage()
 {

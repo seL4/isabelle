@@ -131,9 +131,9 @@ lemma parallelE [elim]:
 
 theorem prefix_cases:
   "(xs \<le> ys ==> C) ==>
-    (ys \<le> xs ==> C) ==>
+    (ys < xs ==> C) ==>
     (xs \<parallel> ys ==> C) ==> C"
-  by (unfold parallel_def) blast
+  by (unfold parallel_def strict_prefix_def) blast
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
@@ -164,7 +164,7 @@ next
       ultimately show ?thesis by blast
     qed
   next
-    assume "ys \<le> xs" hence "ys \<le> xs @ [x]" by simp
+    assume "ys < xs" hence "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
     with asm have False by blast
     thus ?thesis ..
   next

@@ -1,4 +1,4 @@
-#
+# -*- shell-script -*-
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
