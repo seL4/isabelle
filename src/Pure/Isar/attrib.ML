@@ -175,14 +175,6 @@ fun gen_tag x = syntax (tag >> Drule.tag) x;
 fun gen_untag x = syntax (Scan.lift Args.name >> Drule.untag) x;
 
 
-(* transfer *)
-
-fun gen_transfer theory_of = no_args (Drule.rule_attribute (fn st => Thm.transfer (theory_of st)));
-
-val global_transfer = gen_transfer I;
-val local_transfer = gen_transfer ProofContext.theory_of;
-
-
 (* COMP *)
 
 fun comp (i, B) (x, A) = (x, Drule.compose_single (A, i, B));
@@ -308,7 +300,6 @@ val pure_attributes =
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
   ("case_names", (case_names, case_names), "name rule cases"),
   ("params", (params, params), "name rule parameters"),
-  ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory"),
   ("export", (global_export, local_export), "export theorem from context")];
 
 
