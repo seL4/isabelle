@@ -26,7 +26,7 @@ constdefs
   "wtl_inst i G rT s cert maxs max_pc pc == 
      if app i G maxs rT s \<and> check_cert i G s cert pc max_pc then 
        if pc+1 mem (succs i pc) then OK (step i G s) else OK (cert!(pc+1))
-     else Err";
+     else Err"
 
 constdefs
   wtl_cert :: "[instr,jvm_prog,ty,state_type option,certificate,nat,p_count,p_count] 
@@ -45,7 +45,7 @@ primrec
   "wtl_inst_list []     G rT cert maxs max_pc pc s = OK s"
   "wtl_inst_list (i#is) G rT cert maxs max_pc pc s = 
     (let s' = wtl_cert i G rT s cert maxs max_pc pc in
-     strict (wtl_inst_list is G rT cert maxs max_pc (pc+1)) s')";
+     strict (wtl_inst_list is G rT cert maxs max_pc (pc+1)) s')"
               
 
 constdefs
@@ -68,7 +68,7 @@ lemma wtl_inst_OK:
  (app i G maxs rT s \<and> (\<forall>pc' \<in> set (succs i pc). 
                        pc' < max_pc \<and> (pc' \<noteq> pc+1 --> G \<turnstile> step i G s <=' cert!pc')) \<and> 
  (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
-  by (auto simp add: wtl_inst_def check_cert_def set_mem_eq);
+  by (auto simp add: wtl_inst_def check_cert_def set_mem_eq)
 
 lemma strict_Some [simp]: 
 "(strict f x = OK y) = (\<exists> z. x = OK z \<and> f z = OK y)"
@@ -190,24 +190,41 @@ proof -
     by (auto simp add: wtl_append min_def)
 qed
 
-lemma unique_set:
-"(a,b,c,d)\<in>set l --> unique l --> (a',b',c',d') \<in> set l --> 
-  a = a' --> b=b' \<and> c=c' \<and> d=d'"
-  by (induct "l") auto
 
-lemma unique_epsilon:
-  "(a,b,c,d)\<in>set l --> unique l --> 
-  (SOME (a',b',c',d'). (a',b',c',d') \<in> set l \<and> a'=a) = (a,b,c,d)"
-  by (auto simp add: unique_set)
+lemma methd:
+  "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls |]
+  ==> method (G,C) sig = Some(C,rT,code) \<and> is_class G C"
+proof -
+  assume wf: "wf_prog wf_mb G" 
+  assume C:  "(C,S,fs,mdecls) \<in> set G"
 
-lemma unique_set':
-"(a,b,c,d,e)\<in>set l --> unique l --> (a',b',c',d',e') \<in> set l --> 
-  a = a' --> b=b' \<and> c=c' \<and> d=d' \<and> e=e'"
-  by (induct "l") auto
+  assume m: "(sig,rT,code) \<in> set mdecls"
+  moreover
+  from wf
+  have "class G Object = Some (arbitrary, [], [])"
+    by simp 
+  moreover
+  from wf C
+  have c: "class G C = Some (S,fs,mdecls)"
+    by (auto simp add: wf_prog_def intro: map_of_SomeI)
+  ultimately
+  have O: "C \<noteq> Object"
+    by auto
+      
+  from wf C
+  have "unique mdecls"
+    by (unfold wf_prog_def wf_cdecl_def) auto
 
-lemma unique_epsilon':
-  "(a,b,c,d,e)\<in>set l --> unique l --> 
-  (SOME (a',b',c',d',e'). (a',b',c',d',e') \<in> set l \<and> a'=a) = (a,b,c,d,e)"
-  by (auto simp add: unique_set')
+  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)"
+    by - (induct mdecls, auto)
+
+  with m
+  have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
+    by (force intro: map_of_SomeI)
+
+  with wf C m c O
+  show ?thesis
+    by (auto dest: method_rec [of _ _ C])
+qed
 
 end

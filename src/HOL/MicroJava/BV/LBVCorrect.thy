@@ -281,58 +281,36 @@ qed
 
 
 theorem wtl_correct:
-"wtl_jvm_prog G cert ==> \<exists> Phi. wt_jvm_prog G Phi"
-(*
-proof (clarsimp simp add: wt_jvm_prog_def wf_prog_def, intro conjI)
+  "wtl_jvm_prog G cert ==> \<exists> Phi. wt_jvm_prog G Phi"
+proof -
+  
+  assume wtl: "wtl_jvm_prog G cert"
 
-  assume wtl_prog: "wtl_jvm_prog G cert"
-  thus "ObjectC \<in> set G" by (simp add: wtl_jvm_prog_def wf_prog_def)
+  let ?Phi = "\<lambda>C sig. let (C,rT,(maxs,maxl,ins)) = the (method (G,C) sig) in 
+              SOME phi. wt_method G C (snd sig) rT maxs maxl ins phi"
+   
+  { fix C S fs mdecls sig rT code
+    assume "(C,S,fs,mdecls) \<in> set G" "(sig,rT,code) \<in> set mdecls"
+    moreover
+    from wtl obtain wf_mb where "wf_prog wf_mb G" 
+      by (auto simp add: wtl_jvm_prog_def)
+    ultimately
+    have "method (G,C) sig = Some (C,rT,code)"
+      by (simp add: methd)
+  } note this [simp]
+ 
+  from wtl
+  have "wt_jvm_prog G ?Phi"
+    apply (clarsimp simp add: wt_jvm_prog_def wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
+    apply (drule bspec, assumption)
+    apply (clarsimp simp add: wf_mdecl_def)
+    apply (drule bspec, assumption)
+    apply (clarsimp dest!: wtl_method_correct)
+    apply (rule someI, assumption)
+    done
 
-  from wtl_prog 
-  show uniqueG: "unique G" by (simp add: wtl_jvm_prog_def wf_prog_def)
-
-  show "\<exists>Phi. Ball (set G) (wf_cdecl (\<lambda>G C (sig,rT,maxs,maxl,b). 
-              wt_method G C (snd sig) rT maxs maxl b (Phi C sig)) G)"
-    (is "\<exists>Phi. ?Q Phi")
-  proof (intro exI)
-    let "?Phi" = "\<lambda> C sig. 
-      let (C,x,y,mdecls) = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-          (sig,rT,maxs,maxl,b) = SOME (sg,rT,maxs,maxl,b). (sg,rT,maxs,maxl,b) \<in> set mdecls \<and> sg = sig
-      in SOME phi. wt_method G C (snd sig) rT maxs maxl b phi"
-    from wtl_prog
-    show "?Q ?Phi"
-*)
-sorry
-(*
-DvO: hier beginnt die Maschine wie blöd zu swappen
-    proof (unfold wf_cdecl_def, intro)
-      fix x a b aa ba ab bb m
-      assume 1: "x \<in> set G" "x = (a, b)" "b = (aa, ba)" "ba = (ab, bb)" "m \<in> set bb"
-      with wtl_prog
-      show "wf_mdecl (\<lambda>G C (sig,rT,maxs,maxl,b). 
-            wt_method G C (snd sig) rT maxs maxl b (?Phi C sig)) G a m"
-      proof (simp add: wf_mdecl_def wtl_jvm_prog_def wf_prog_def wf_cdecl_def, 
-             elim conjE)
-        apply_end (drule bspec, assumption, simp, elim conjE)
-        assume "\<forall>(sig,rT,mb)\<in>set bb. wf_mhead G sig rT \<and> 
-                 (\<lambda>(maxs,maxl,b). wtl_method G a (snd sig) rT maxs maxl b (cert a sig)) mb"
-               "unique bb"
-        with 1 uniqueG
-        show "(\<lambda>(sig,rT,mb).
-          wf_mhead G sig rT \<and>
-          (\<lambda>(maxs,maxl,b).
-              wt_method G a (snd sig) rT maxs maxl b 
-               ((\<lambda>(C,x,y,mdecls).
-                    (\<lambda>(sig,rT,maxs,maxl,b). Eps (wt_method G C (snd sig) rT maxs maxl b))
-                     (SOME (sg,rT,maxs,maxl,b). (sg, rT, maxs, maxl, b) \<in> set mdecls \<and> sg = sig))
-                 (SOME (Cl,x,y,mdecls). (Cl, x, y, mdecls) \<in> set G \<and> Cl = a))) mb) m"
-          by -  (drule bspec, assumption,
-                clarsimp dest!: wtl_method_correct,
-                clarsimp intro!: someI simp add: unique_epsilon unique_epsilon') 
-      qed
-    qed (auto simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
-  qed
-qed
-*)    
-
+  thus ?thesis
+    by blast
+qed   
+      
 end

@@ -30,10 +30,8 @@ constdefs
      map (\<lambda>pc. if is_target ins pc then phi!pc else None) [0..length ins(]"
 
   make_Cert :: "[jvm_prog, prog_type] => prog_certificate"
-  "make_Cert G Phi ==  \<lambda> C sig.
-     let (C,x,y,mdecls)     = SOME (Cl,x,y,mdecls). (Cl,x,y,mdecls) \<in> set G \<and> Cl = C;
-         (sig,rT,mxs,mxl,b) = SOME (sg,rT,mxs,mxl,b). (sg,rT,mxs,mxl,b) \<in> set mdecls \<and> sg = sig
-     in make_cert b (Phi C sig)"
+  "make_Cert G Phi ==  \<lambda> C sig. let (C,rT,(maxs,maxl,b)) = the (method (G,C) sig)
+                                in make_cert b (Phi C sig)"
   
 
 lemmas [simp del] = split_paired_Ex
@@ -420,53 +418,33 @@ proof -
 qed
 
 
-theorem wtl_complete: 
+theorem wtl_complete:
   "wt_jvm_prog G Phi ==> wtl_jvm_prog G (make_Cert G Phi)"
-proof (unfold wt_jvm_prog_def)
-
-  assume wfprog: 
-    "wf_prog (\<lambda>G C (sig,rT,mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) G"
-
-  thus ?thesis (* DvO: braucht ewig :-( *)
-  proof (simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def wf_mdecl_def, auto)
-    fix a aa ab b ac ba ad ae af bb 
-    assume 1 : "\<forall>(C,D,fs,ms)\<in>set G.
-             Ball (set fs) (wf_fdecl G) \<and> unique fs \<and>
-             (\<forall>(sig,rT,mb)\<in>set ms. wf_mhead G sig rT \<and> 
-               (\<lambda>(mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) mb) \<and>
-             unique ms \<and>
-             (C \<noteq> Object \<longrightarrow>
-                  is_class G D \<and>
-                  (D, C) \<notin> (subcls1 G)^* \<and>
-                  (\<forall>(sig,rT,b)\<in>set ms. 
-                   \<forall>D' rT' b'. method (G, D) sig = Some (D', rT', b') --> G\<turnstile>rT\<preceq>rT'))"
-             "(a, aa, ab, b) \<in> set G"
-
-    assume uG : "unique G" 
-    assume b  : "((ac, ba), ad, ae, af, bb) \<in> set b"
+proof -
+  assume wt: "wt_jvm_prog G Phi"
    
-    from 1
-    show "wtl_method G a ba ad ae af bb (make_Cert G Phi a (ac, ba))"
-    proof (rule bspec [elim_format], clarsimp)
-      assume ub : "unique b"
-      assume m: "\<forall>(sig,rT,mb)\<in>set b. wf_mhead G sig rT \<and> 
-                  (\<lambda>(mxs,mxl,b). wt_method G a (snd sig) rT mxs mxl b (Phi a sig)) mb" 
-      from m b
-      show ?thesis
-      proof (rule bspec [elim_format], clarsimp)
-        assume "wt_method G a ba ad ae af bb (Phi a (ac, ba))"
-        with wfprog uG ub b 1
-        show ?thesis
-          by - (rule wtl_method_complete [elim_format], assumption+, 
-                simp add: make_Cert_def unique_epsilon unique_epsilon')
-      qed 
-oops
-(*
-    qed
-  qed
-qed
-*)
+  { fix C S fs mdecls sig rT code
+    assume "(C,S,fs,mdecls) \<in> set G" "(sig,rT,code) \<in> set mdecls"
+    moreover
+    from wt obtain wf_mb where "wf_prog wf_mb G" 
+      by (blast dest: wt_jvm_progD)
+    ultimately
+    have "method (G,C) sig = Some (C,rT,code)"
+      by (simp add: methd)
+  } note this [simp]
+ 
+  from wt
+  show ?thesis
+    apply (clarsimp simp add: wt_jvm_prog_def wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
+    apply (drule bspec, assumption)
+    apply (clarsimp simp add: wf_mdecl_def)
+    apply (drule bspec, assumption)
+    apply (clarsimp simp add: make_Cert_def)
+    apply (clarsimp dest!: wtl_method_complete)    
+    done
 
+qed   
+      
 lemmas [simp] = split_paired_Ex
 
 end
