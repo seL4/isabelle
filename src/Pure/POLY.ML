@@ -36,7 +36,7 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
     fn () => brk (99999, 0), en);
 
 
-(*** File information ***)
+(*** File handling ***)
 
 (*Get a string containing the time of last modification, attributes, owner
   and size of file (but not the path) *)
@@ -54,8 +54,10 @@ fun file_info "" = ""
           val (is, os) = ExtendedIO.execute ("ls -l " ^ name)
           val (result, _) = take_suffix (apr(op<>," ")) 
                               (explode (ExtendedIO.input_line is))
-                (*Remove the part after the last " " (i.e. the path/filename) *)
+             (*Remove the part after the last " " (i.e. the path/filename) *)
         in close_in is;
            close_out os;
            implode result
         end;
+
+fun delete_file name = ExtendedIO.execute ("rm " ^ name);

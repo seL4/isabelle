@@ -79,7 +79,7 @@ fun cond_timeit flag f =
   else f();
 
 
-(*** File information ***)
+(*** File handling ***)
 
 (*Get time of last modification.*)
 local
@@ -89,4 +89,6 @@ in
   fun file_info "" = ""
     | file_info name = makestring (mtime (PATH name));
 end;
+
+fun delete_file name = System.system ("rm " ^ name);
 
