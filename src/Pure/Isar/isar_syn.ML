@@ -284,10 +284,14 @@ val locale_val =
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.locale_element)) [] ||
   Scan.repeat1 P.locale_element >> pair Locale.empty);
 
+val locale_pred =
+  P.$$$ "(" |-- P.!!! ((P.$$$ "open" >> K None || P.name >> Some) --| P.$$$ ")");
+
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (P.name -- (P.$$$ "=" |-- P.!!! locale_val || Scan.succeed (Locale.empty, []))
-      >> (Toplevel.theory o IsarThy.add_locale o P.triple2));
+    (Scan.option locale_pred -- P.name --
+      (P.$$$ "=" |-- P.!!! locale_val || Scan.succeed (Locale.empty, []))
+      >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
 
 
@@ -720,9 +724,10 @@ val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "assumes", "binder",
   "concl", "defines", "files", "fixes", "in", "includes", "infix",
-  "infixl", "infixr", "is", "notes", "output", "overloaded", "shows",
-  "structure", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
+  "infixl", "infixr", "is", "notes", "open", "output", "overloaded",
+  "shows", "structure", "where", "|", "\\<equiv>",
+  "\\<leftharpoondown>", "\\<rightharpoonup>",
+  "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
   (*theory structure*)
