@@ -452,9 +452,9 @@ fun struct_trfuns structs =
 
 
 
-exception TRANSLATION of string * exn
-
 (** pts_to_asts **)
+
+exception TRANSLATION of string * exn;
 
 fun pts_to_asts trf pts =
   let
@@ -467,17 +467,14 @@ fun pts_to_asts trf pts =
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
 
-    val exn_results =
-      map (fn pt => Result (ast_of pt) handle exn => Exn exn) pts;
+    val exn_results = map (capture ast_of) pts;
     val exns = mapfilter get_exn exn_results;
     val results = mapfilter get_result exn_results
   in
-    case results of
-      [] => (case exns of
-        TRANSLATION (a, exn) :: _ =>
-          (writeln ("Error in parse ast translation for " ^ quote a); raise exn)
-      | _ => [])
-    | _ => results
+    (case (results, exns) of
+      ([], TRANSLATION (a, exn) :: _) =>
+        (writeln ("Error in parse ast translation for " ^ quote a); raise exn)
+    | _ => results)
   end;
 
 
@@ -499,17 +496,14 @@ fun asts_to_terms trf asts =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
 
-    val exn_results =
-      map (fn t => Result (term_of t) handle exn => Exn exn) asts;
+    val exn_results = map (capture term_of) asts;
     val exns = mapfilter get_exn exn_results;
     val results = mapfilter get_result exn_results
   in
-    case results of
-      [] => (case exns of
-        TRANSLATION (a, exn) :: _ =>
-          (writeln ("Error in parse translation for " ^ quote a); raise exn)
-      | _ => [])
-    | _ => results
+    (case (results, exns) of
+      ([], TRANSLATION (a, exn) :: _) =>
+        (writeln ("Error in parse translation for " ^ quote a); raise exn)
+    | _ => results)
   end;
 
 end;

@@ -47,6 +47,11 @@ sig
   exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
+  datatype 'a result = Result of 'a | Exn of exn
+  val capture: ('a -> 'b) -> 'a -> 'b result
+  val release: 'a result -> 'a
+  val get_result: 'a result -> 'a option
+  val get_exn: 'a result -> exn option
 
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
@@ -336,6 +341,22 @@ fun try f x = Some (f x)
   handle Interrupt => raise Interrupt | ERROR => raise ERROR | _ => None;
 
 fun can f x = is_some (try f x);
+
+
+datatype 'a result =
+  Result of 'a |
+  Exn of exn;
+
+fun capture f x = Result (f x) handle e => Exn e;
+
+fun release (Result y) = y
+  | release (Exn e) = raise e;
+
+fun get_result (Result x) = Some x
+  | get_result _ = None;
+
+fun get_exn (Exn exn) = Some exn
+  | get_exn _ = None;
 
 
 
