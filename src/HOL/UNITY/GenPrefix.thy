@@ -44,12 +44,12 @@ constdefs
     "Ge == {(x,y). y <= x}"
 
 syntax
-  pfixLe :: [nat list, nat list] => bool               (infixl "pfix'_le" 50)
-  pfixGe :: [nat list, nat list] => bool               (infixl "pfix'_ge" 50)
+  pfixLe :: [nat list, nat list] => bool               (infixl "pfixLe" 50)
+  pfixGe :: [nat list, nat list] => bool               (infixl "pfixGe" 50)
 
 translations
-  "xs pfix_le ys" == "(xs,ys) : genPrefix Le"
+  "xs pfixLe ys" == "(xs,ys) : genPrefix Le"
 
-  "xs pfix_ge ys" == "(xs,ys) : genPrefix Ge"
+  "xs pfixGe ys" == "(xs,ys) : genPrefix Ge"
 
 end

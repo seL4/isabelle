@@ -281,7 +281,7 @@ Goalw [prefix_def] "(xs <= zs) = (EX ys. zs = xs@ys)";
 by (auto_tac (claset(),
 	      simpset() addsimps [genPrefix_iff_nth, nth_append]));
 by (res_inst_tac [("x", "drop (length xs) zs")] exI 1);
-br nth_equalityI 1;
+by (rtac nth_equalityI 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [nth_append])));
 qed "prefix_iff";
 
@@ -308,81 +308,32 @@ by (Force_tac 1);
 qed "prefix_append_iff";
 
 
-(*** pfix_le: partial ordering, etc. ***)
+(*** pfixLe, pfixGe: properties inherited from the translations ***)
 
 Goalw [refl_def, Le_def] "reflexive Le";
-auto();
+by Auto_tac;
 qed "reflexive_Le";
 
 Goalw [antisym_def, Le_def] "antisym Le";
-auto();
+by Auto_tac;
 qed "antisym_Le";
 
 Goalw [trans_def, Le_def] "trans Le";
-auto();
+by Auto_tac;
 qed "trans_Le";
 
 AddIffs [reflexive_Le, antisym_Le, trans_Le];
 
-Goal "xs pfix_le xs";
-by (Simp_tac 1);
-qed "pfix_le_refl";
-AddIffs[pfix_le_refl];
-
-Goal "[| xs pfix_le ys; ys pfix_le zs |] ==> xs pfix_le zs";
-by (blast_tac (claset() addIs [genPrefix_trans]) 1);
-qed "pfix_le_trans";
-
-Goal "[| xs pfix_le ys; ys pfix_le xs |] ==> xs = ys";
-by (blast_tac (claset() addIs [genPrefix_antisym]) 1);
-qed "pfix_le_antisym";
-
-Goal "(xs@ys pfix_le xs@zs) = (ys pfix_le zs)";
-by (Simp_tac 1);
-qed "same_pfix_le_pfix_le";
-Addsimps [same_pfix_le_pfix_le];
-
-Goal "[| xs pfix_le ys; length xs < length ys |] \
-\     ==> xs @ [ys ! length xs] pfix_le ys";
-by (asm_simp_tac (simpset() addsimps [append_one_genPrefix]) 1);
-qed "append_one_pfix_le";
-
-
-(*** pfix_ge: partial ordering, etc. ***)
-
 Goalw [refl_def, Ge_def] "reflexive Ge";
-auto();
+by Auto_tac;
 qed "reflexive_Ge";
 
 Goalw [antisym_def, Ge_def] "antisym Ge";
-auto();
+by Auto_tac;
 qed "antisym_Ge";
 
 Goalw [trans_def, Ge_def] "trans Ge";
-auto();
+by Auto_tac;
 qed "trans_Ge";
 
 AddIffs [reflexive_Ge, antisym_Ge, trans_Ge];
-
-Goal "xs pfix_ge xs";
-by (Simp_tac 1);
-qed "pfix_ge_refl";
-AddIffs[pfix_ge_refl];
-
-Goal "[| xs pfix_ge ys; ys pfix_ge zs |] ==> xs pfix_ge zs";
-by (blast_tac (claset() addIs [genPrefix_trans]) 1);
-qed "pfix_ge_trans";
-
-Goal "[| xs pfix_ge ys; ys pfix_ge xs |] ==> xs = ys";
-by (blast_tac (claset() addIs [genPrefix_antisym]) 1);
-qed "pfix_ge_antisym";
-
-Goal "(xs@ys pfix_ge xs@zs) = (ys pfix_ge zs)";
-by (Simp_tac 1);
-qed "same_pfix_ge_pfix_ge";
-Addsimps [same_pfix_ge_pfix_ge];
-
-Goal "[| xs pfix_ge ys; length xs < length ys |] \
-\     ==> xs @ [ys ! length xs] pfix_ge ys";
-by (asm_simp_tac (simpset() addsimps [append_one_genPrefix]) 1);
-qed "append_one_pfix_ge";
