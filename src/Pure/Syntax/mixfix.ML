@@ -88,7 +88,7 @@ fun const_name c (InfixlName _) = c
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = mfix_args sy
   | mixfix_args (Delimfix sy) = mfix_args sy
-  | mixfix_args _ = 2 		(*infix or binder*);
+  | mixfix_args (*infix or binder*) _ = 2;
 
 
 (* syn_ext_types *)
@@ -189,7 +189,7 @@ val pure_syntax =
   ("_bigimpl",     "[asms, prop] => prop",          Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
   ("_ofclass",     "[type, logic] => prop",         Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_mk_ofclass",  "_",                             NoSyn),
-  ("_mk_ofclassS", "_",                             NoSyn),
+  ("_TYPE",        "type => logic",                 Delimfix "(1TYPE/(1'(_')))"),
   ("_K",           "_",                             NoSyn),
   ("",             "id => logic",                   Delimfix "_"),
   ("",             "longid => logic",               Delimfix "_"),
