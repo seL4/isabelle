@@ -42,7 +42,7 @@ sig
   val classes: sg -> class list
   val defaultS: sg -> sort
   val subsort: sg -> sort * sort -> bool
-  val nodup_Vars: term -> unit
+  val nodup_vars: term -> term
   val norm_sort: sg -> sort -> sort
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
@@ -563,44 +563,50 @@ val certify_typ = Type.cert_typ o tsig_of;
 
 (* certify_term *)
 
-(*check for duplicate TVars with distinct sorts*)
-fun nodup_TVars (tvars, T) =
-  (case T of
-    Type (_, Ts) => nodup_TVars_list (tvars, Ts)
-  | TFree _ => tvars
-  | TVar (v as (a, S)) =>
+(*check for duplicate occurrences of TFree/TVar with distinct sorts*)
+fun nodup_tvars (env, Type (_, Ts)) = nodup_tvars_list (env, Ts)
+  | nodup_tvars (env as (tfrees, tvars), T as TFree (v as (a, S))) =
+      (case assoc_string (tfrees, a) of
+        Some S' =>
+          if S = S' then env
+          else raise TYPE ("Type variable " ^ quote a ^
+            " has two distinct sorts", [TFree (a, S'), T], [])
+      | None => (v :: tfrees, tvars))
+  | nodup_tvars (env as (tfrees, tvars), T as TVar (v as (a, S))) =
       (case assoc_string_int (tvars, a) of
         Some S' =>
-          if S = S' then tvars
-          else raise TYPE ("Type variable " ^ Syntax.string_of_vname a ^
+          if S = S' then env
+          else raise TYPE ("Type variable " ^ quote (Syntax.string_of_vname a) ^
             " has two distinct sorts", [TVar (a, S'), T], [])
-      | None => v :: tvars))
-(*equivalent to foldl nodup_TVars_list, but 3X faster under Poly/ML*)
-and nodup_TVars_list (tvars, []) = tvars
-  | nodup_TVars_list (tvars, T :: Ts) =
-      nodup_TVars_list (nodup_TVars (tvars, T), Ts);
+      | None => (tfrees, v :: tvars))
+(*equivalent to foldl nodup_tvars_list, but 3X faster under Poly/ML*)
+and nodup_tvars_list (env, []) = env
+  | nodup_tvars_list (env, T :: Ts) = nodup_tvars_list (nodup_tvars (env, T), Ts);
 
-(*check for duplicate Vars with distinct types*)
-fun nodup_Vars tm =
+(*check for duplicate occurrences of Free/Var with distinct types*)
+fun nodup_vars tm =
   let
-    fun nodups vars tvars tm =
+    fun nodups (envs as (env as (frees, vars), envT)) tm =
       (case tm of
-        Const (c, T) => (vars, nodup_TVars (tvars, T))
-      | Free (a, T) => (vars, nodup_TVars (tvars, T))
+        Const (c, T) => (env, nodup_tvars (envT, T))
+      | Free (v as (a, T)) =>
+          (case assoc_string (frees, a) of
+            Some T' =>
+              if T = T' then (env, nodup_tvars (envT, T))
+              else raise TYPE ("Variable " ^ quote a ^
+                " has two distinct types", [T', T], [])
+          | None => ((v :: frees, vars), nodup_tvars (envT, T)))
       | Var (v as (ixn, T)) =>
           (case assoc_string_int (vars, ixn) of
             Some T' =>
-              if T = T' then (vars, nodup_TVars (tvars, T))
-              else raise TYPE ("Variable " ^ Syntax.string_of_vname ixn ^
+              if T = T' then (env, nodup_tvars (envT, T))
+              else raise TYPE ("Variable " ^ quote (Syntax.string_of_vname ixn) ^
                 " has two distinct types", [T', T], [])
-          | None => (v :: vars, tvars))
-      | Bound _ => (vars, tvars)
-      | Abs (_, T, t) => nodups vars (nodup_TVars (tvars, T)) t
-      | s $ t =>
-          let val (vars',tvars') = nodups vars tvars s in
-            nodups vars' tvars' t
-          end);
-  in nodups [] [] tm; () end;
+          | None => ((frees, v :: vars), nodup_tvars (envT, T)))
+      | Bound _ => envs
+      | Abs (_, T, t) => nodups (env, nodup_tvars (envT, T)) t
+      | s $ t => nodups (nodups envs s) t)
+  in nodups (([], []), ([], [])) tm; tm end;
 
 (*compute and check type of the term*)
 fun type_check sg tm =
@@ -656,7 +662,7 @@ fun certify_term sg tm =
       (case it_term_types (Type.typ_errors tsig) (tm, []) of
         [] => Type.norm_term tsig tm
       | errs => raise TYPE (cat_lines errs, [], [tm]));
-    val _ = nodup_Vars norm_tm;
+    val _ = nodup_vars norm_tm;
   in
     (case foldl_aterms atom_err ([], norm_tm) of
       [] => (norm_tm, type_check sg norm_tm, maxidx_of_term norm_tm)
