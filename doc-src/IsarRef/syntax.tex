@@ -294,6 +294,18 @@ may be dropped for single method specifications (with no arguments).
   ;
 \end{rail}
 
+Proper use of Isar proof methods does \emph{not} involve goal addressing.
+Nevertheless, specifying goal ranges may occasionally come in handy in
+emulating tactic scripts.  Note that $[n-]$ refers to all goals, starting from
+$n$.  In particular, $[1-]$ corresponds to the ML tactical \texttt{ALLGOALS}
+\cite{isabelle-ref}.
+
+\indexouternonterm{goalspec}
+\begin{rail}
+  goalspec: '[' (nat '-' nat | nat '-' | nat) ']'
+  ;
+\end{rail}
+
 
 %%% Local Variables: 
 %%% mode: latex
