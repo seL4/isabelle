@@ -627,6 +627,17 @@ fun use_thy name =
           use (out_name tname);
           save_thy_ss ();
 
+          (*Store axioms of theory
+            (but only if it's not a copy of an older theory)*)
+          let val parents = parents_of tname;
+              val this_thy = theory_of tname;
+              val axioms =
+                if length parents = 1
+                   andalso Sign.eq_sg (sign_of (theory_of (hd parents)),
+                                       sign_of this_thy) then []
+                else axioms_of this_thy;
+          in map store_thm_db axioms end;
+
           if not (!delete_tmpfiles) then ()
           else delete_file (out_name tname);
 
@@ -645,17 +656,6 @@ fun use_thy name =
        (*Store theory again because it could have been redefined*)
        use_string
          ["val _ = store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"];
-
-       (*Store axioms of theory
-         (but only if it's not a copy of an older theory)*)
-       let val parents = parents_of tname;
-           val this_thy = theory_of tname;
-           val axioms =
-             if length parents = 1
-                andalso Sign.eq_sg (sign_of (theory_of (hd parents)),
-                                    sign_of this_thy) then []
-             else axioms_of this_thy;
-       in map store_thm_db axioms end;
 
        (*Add theory to list of all loaded theories (for 00-chart.html)
          and add it to its parents' sub-charts*)

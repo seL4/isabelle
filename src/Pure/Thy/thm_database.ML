@@ -80,10 +80,7 @@ fun store_thm_db (named_thm as (name, thm)) =
                 else case find_first (fn (_, (n, _)) => n = name) old_thms of
                        Some (_, (_, t)) => eq_thm (t, thm)
                      | None => false
-            in if duplicate then
-                 (writeln ("Warning: Theorem database already contains copy of\
-                           \ theorem " ^ quote name);
-                  None)
+            in if duplicate then None
                else update_db true
                       cs (Symtab.update ((c, tagged_thm :: old_thms), result))
             end;
