@@ -64,7 +64,7 @@ ML
 
 fun name_in_term (name,Const (s,t))     =(name=s)
   | name_in_term (name,Free (s,t))      =(name=s)
-  | name_in_term (name,Var ((s,i),t))   =(name=s ^ makestring i)
+  | name_in_term (name,Var ((s,i),t))   =(name=s ^ Int.toString i)
   | name_in_term (name,Abs (s,t,trm))   =(name=s) orelse (name_in_term (name,trm))
   | name_in_term (name,trm1 $ trm2)     =(name_in_term (name,trm1)) orelse (name_in_term (name,trm2))
   | name_in_term (_,_)                  =false;
