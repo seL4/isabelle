@@ -53,6 +53,7 @@ indicate their scope%
 }
 %
 \begin{isamarkuptext}%
+\label{sec:struct-ind-case}
 \indexbold{structural induction}
 \indexbold{induction!structural}
 \indexbold{case distinction}
@@ -77,7 +78,20 @@ which is solved automatically:%
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptext}%
 Note that we do not need to give a lemma a name if we do not intend to refer
-to it explicitly in the future.%
+to it explicitly in the future.
+
+\begin{warn}
+  Induction is only allowed on free (or \isasymAnd-bound) variables that
+  should not occur among the assumptions of the subgoal; see
+  \S\ref{sec:ind-var-in-prems} for details. Case distinction
+  (\isa{case{\isacharunderscore}tac}) works for arbitrary terms, which need to be
+  quoted if they are non-atomic. However, apart from \isa{{\isasymAnd}}-bound
+  variables, the terms must not contain variables that are bound outside.
+  For example, given the goal \isa{{\isasymforall}xs{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}y\ ys{\isachardot}\ xs\ {\isacharequal}\ y\ {\isacharhash}\ ys{\isacharparenright}},
+  \isa{case{\isacharunderscore}tac\ xs} will not work as expected because Isabelle interprets
+  the \isa{xs} as a new free variable distinct from the bound
+  \isa{xs} in the goal.
+\end{warn}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

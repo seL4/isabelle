@@ -83,16 +83,20 @@ apply(split split_split);
 
 txt{*
 @{subgoals[display,indent=0]}
-This subgoal is easily proved by simplification. The @{text"only:"} above
-merely serves to show the effect of splitting and to avoid solving the goal
-outright.
+This subgoal is easily proved by simplification. Thus we could have combined
+simplification and splitting in one command that proves the goal outright:
+*}
+(*<*)
+by simp
+lemma "(\<lambda>(x,y).y) p = snd p"(*>*)
+by(simp split: split_split)
 
+text{*
 Let us look at a second example:
 *}
 
-(*<*)by simp(*>*)
 lemma "let (x,y) = p in fst p = x";
-apply(simp only:Let_def)
+apply(simp only: Let_def)
 
 txt{*
 @{subgoals[display,indent=0]}
@@ -147,6 +151,10 @@ txt{*\noindent
 @{subgoals[display,indent=0]}
 Again, @{text case_tac} is applicable because @{text"\<times>"} is a datatype.
 The subgoal is easily proved by @{text simp}.
+
+Splitting by @{text case_tac} also solves the previous examples and may thus
+appear preferable to the more arcane methods introduced first. However, see
+the warning about @{text case_tac} in \S\ref{sec:struct-ind-case}.
 
 In case the term to be split is a quantified variable, there are more options.
 You can split \emph{all} @{text"\<And>"}-quantified variables in a goal

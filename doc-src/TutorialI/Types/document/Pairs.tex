@@ -86,14 +86,15 @@ rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
 \end{isabelle}
-This subgoal is easily proved by simplification. The \isa{only{\isacharcolon}} above
-merely serves to show the effect of splitting and to avoid solving the goal
-outright.
-
-Let us look at a second example:%
+This subgoal is easily proved by simplification. Thus we could have combined
+simplification and splitting in one command that proves the goal outright:%
 \end{isamarkuptxt}%
+\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}%
+\begin{isamarkuptext}%
+Let us look at a second example:%
+\end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}let\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ p\ in\ fst\ p\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}Let{\isacharunderscore}def{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ fst\ p\ {\isacharequal}\ x{\isacharparenright}\ p%
@@ -145,6 +146,10 @@ is to split the term by hand:%
 \end{isabelle}
 Again, \isa{case{\isacharunderscore}tac} is applicable because \isa{{\isasymtimes}} is a datatype.
 The subgoal is easily proved by \isa{simp}.
+
+Splitting by \isa{case{\isacharunderscore}tac} also solves the previous examples and may thus
+appear preferable to the more arcane methods introduced first. However, see
+the warning about \isa{case{\isacharunderscore}tac} in \S\ref{sec:struct-ind-case}.
 
 In case the term to be split is a quantified variable, there are more options.
 You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal

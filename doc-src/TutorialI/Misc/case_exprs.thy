@@ -42,7 +42,7 @@ indicate their scope
 
 subsection{*Structural induction and case distinction*}
 
-text{*
+text{*\label{sec:struct-ind-case}
 \indexbold{structural induction}
 \indexbold{induction!structural}
 \indexbold{case distinction}
@@ -67,6 +67,19 @@ apply(auto)
 text{*
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.
+
+\begin{warn}
+  Induction is only allowed on free (or \isasymAnd-bound) variables that
+  should not occur among the assumptions of the subgoal; see
+  \S\ref{sec:ind-var-in-prems} for details. Case distinction
+  (@{text"case_tac"}) works for arbitrary terms, which need to be
+  quoted if they are non-atomic. However, apart from @{text"\<And>"}-bound
+  variables, the terms must not contain variables that are bound outside.
+  For example, given the goal @{prop"\<forall>xs. xs = [] \<or> (\<exists>y ys. xs = y#ys)"},
+  @{text"case_tac xs"} will not work as expected because Isabelle interprets
+  the @{term xs} as a new free variable distinct from the bound
+  @{term xs} in the goal.
+\end{warn}
 *}
 
 (*<*)
