@@ -57,6 +57,7 @@ sig
   val frule: int -> thm list -> Proof.method
   val this: Proof.method
   val assumption: Proof.context -> Proof.method
+  val impose_hyps_tac: Proof.context -> tactic
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
   val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
@@ -170,6 +171,7 @@ struct
 
   val empty = [NetRules.intro, NetRules.elim, NetRules.intro, NetRules.elim];
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   fun merge x = map2 NetRules.merge x;
   val print = print_rules Display.pretty_thm_sg;
@@ -394,12 +396,16 @@ fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 
 (* res_inst_tac etc. *)
 
+(*robustify instantiation by imposing (part of) the present static context*)
+val impose_hyps_tac =
+  PRIMITIVE o Drule.impose_hyps o flat o map #1 o ProofContext.assumptions_of;
+
 (*Note: insts refer to the implicit (!!) goal context; use at your own risk*)
-fun gen_res_inst _ tac (quant, ([], thms)) =
+fun gen_res_inst _ tac _ (quant, ([], thms)) =
       METHOD (fn facts => (quant (insert_tac facts THEN' tac thms)))
-  | gen_res_inst tac _ (quant, (insts, [thm])) =
-      METHOD (fn facts => (quant (insert_tac facts THEN' tac insts thm)))
-  | gen_res_inst _ _ _ = error "Cannot have instantiations with multiple rules";
+  | gen_res_inst tac _ ctxt (quant, (insts, [thm])) =
+      METHOD (fn facts => (impose_hyps_tac ctxt THEN quant (insert_tac facts THEN' tac insts thm)))
+  | gen_res_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
 
 val res_inst = gen_res_inst Tactic.res_inst_tac Tactic.resolve_tac;
 val eres_inst = gen_res_inst Tactic.eres_inst_tac Tactic.eresolve_tac;
@@ -446,6 +452,7 @@ struct
 
   val empty = {space = NameSpace.empty, meths = Symtab.empty};
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   fun merge ({space = space1, meths = meths1}, {space = space2, meths = meths2}) =
     {space = NameSpace.merge (space1, space2),
@@ -570,11 +577,11 @@ val insts =
     (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
       Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
 
-fun inst_args f = f oo (#2 oo syntax (Args.goal_spec HEADGOAL -- insts));
+fun inst_args f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
 
-fun goal_args' args tac = #2 oo syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => SIMPLE_METHOD' quant (tac s)));
+fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
+  (fn (quant, s) => SIMPLE_METHOD' quant (K (impose_hyps_tac ctxt) THEN' tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
