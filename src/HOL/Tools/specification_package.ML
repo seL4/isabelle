@@ -99,7 +99,21 @@ fun process_spec cos alt_props int thy =
 	val ss = empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]
 	val rew_imps = map (Simplifier.full_rewrite ss) cprops
 	val props' = map (HOLogic.dest_Trueprop o term_of o snd o dest_equals o cprop_of) rew_imps
-	val prop  = myfoldr HOLogic.mk_conj props'
+
+	fun proc_single prop =
+	    let
+		val frees = Term.term_frees prop
+		val tsig = Sign.tsig_of (sign_of thy)
+		val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
+			       "Only free variables of sort 'type' allowed in specifications"
+		val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
+	    in
+		(prop_closed,frees)
+	    end
+
+	val props'' = map proc_single props'
+	val frees = map snd props''
+	val prop  = myfoldr HOLogic.mk_conj (map fst props'')
 	val cprop = cterm_of sg (HOLogic.mk_Trueprop prop)
 
 	val (prop_thawed,vmap) = Type.varify (prop,[])
@@ -109,6 +123,7 @@ fun process_spec cos alt_props int thy =
 	val consts = map (term_of o Thm.read_cterm sg o rpair TypeInfer.logicT) sconsts
 	val _ = assert (not (Library.exists (not o Term.is_Const) consts))
 		       "Non-constant found as parameter"
+
 	fun proc_const c =
 	    let
 		val c' = fst (Type.varify (c,[]))
@@ -121,19 +136,18 @@ fun process_spec cos alt_props int thy =
 		  | [cf] => unvarify cf vmap
 		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
 	    end
-	val frees = Term.term_frees prop
-	val tsig = Sign.tsig_of (sign_of thy)
-	val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
-		"Only free variables of sort 'type' allowed in specifications"
-	val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
 	val proc_consts = map proc_const consts
 	fun mk_exist (c,prop) =
 	    let
 		val T = type_of c
+		val cname = Sign.base_name (fst (dest_Const c))
+		val vname = if Syntax.is_identifier cname
+			    then cname
+			    else "x"
 	    in
-		HOLogic.exists_const T $ Abs("x",T,Term.abstract_over (c,prop))
+		HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
 	    end
-	val ex_prop = foldr mk_exist (proc_consts,prop_closed)
+	val ex_prop = foldr mk_exist (proc_consts,prop)
 	val cnames = map (fst o dest_Const) proc_consts
 	fun zip3 [] [] [] = []
 	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
@@ -149,7 +163,7 @@ fun process_spec cos alt_props int thy =
 			thm RS spec'
 		    end
 		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
-		fun process_single (name,atts) rew_imp args =
+		fun process_single (name,atts) rew_imp frees args =
 		    let
 			fun undo_imps thm =
 			    equal_elim (symmetric rew_imp) thm
@@ -161,31 +175,31 @@ fun process_spec cos alt_props int thy =
 			    else (writeln ("  " ^ name ^ ": " ^ (string_of_thm thm));
 				  PureThy.store_thm((name,thm),[]) thy)
 		    in
-			args |> apsnd (undo_imps)
+			args |> apsnd (remove_alls frees)
+			     |> apsnd (undo_imps)
 			     |> apsnd standard
 			     |> apply_atts
 			     |> add_final
 		    end
 
-		fun process_all [alt_name] [rew_imp] args =
-		    process_single alt_name rew_imp args
-		  | process_all (alt_name::rest_alt) (rew_imp::rest_imp) (thy,thm) = 
+		fun process_all [alt_name] [rew_imp] [frees] args =
+		    process_single alt_name rew_imp frees args
+		  | process_all (alt_name::rest_alt) (rew_imp::rest_imp) (frees::rest_frees) (thy,thm) = 
 		    let
 			val single_th = thm RS conjunct1
 			val rest_th   = thm RS conjunct2
-			val (thy',_)  = process_single alt_name rew_imp (thy,single_th)
+			val (thy',_)  = process_single alt_name rew_imp frees (thy,single_th)
 		    in
-			process_all rest_alt rest_imp (thy',rest_th)
+			process_all rest_alt rest_imp rest_frees (thy',rest_th)
 		    end
-		  | process_all _ _ _ = error "SpecificationPackage.process_spec internal error"
+		  | process_all _ _ _ _ = error "SpecificationPackage.process_spec internal error"
 		val alt_names = map fst alt_props
 		val _ = if exists (fn(name,_) => not (name = "")) alt_names
 			then writeln "specification"
 			else ()
 	    in
 		arg |> apsnd freezeT
-		    |> apsnd (remove_alls frees)
-		    |> process_all alt_names rew_imps
+		    |> process_all alt_names rew_imps frees
 	    end
     in
 	IsarThy.theorem_i Drule.internalK
