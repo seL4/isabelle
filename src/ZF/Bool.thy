@@ -11,11 +11,11 @@ Booleans in Zermelo-Fraenkel Set Theory
 Bool = pair + 
 consts
     bool        :: i
-    cond        :: [i,i,i]=>i
-    not         :: i=>i
-    "and"       :: [i,i]=>i      (infixl 70)
-    or          :: [i,i]=>i      (infixl 65)
-    xor         :: [i,i]=>i      (infixl 65)
+    cond        :: "[i,i,i]=>i"
+    not         :: "i=>i"
+    "and"       :: "[i,i]=>i"      (infixl 70)
+    or          :: "[i,i]=>i"      (infixl 65)
+    xor         :: "[i,i]=>i"      (infixl 65)
 
 syntax
     "1"         :: i             ("1")

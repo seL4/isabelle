@@ -12,10 +12,11 @@ Sum = Bool + equalities +
 global
 
 consts
-    "+"         :: [i,i]=>i                     (infixr 65)
-    Inl,Inr     :: i=>i
-    case        :: [i=>i, i=>i, i]=>i
-    Part        :: [i,i=>i] => i
+    "+"     :: "[i,i]=>i"                     (infixr 65)
+    Inl     :: "i=>i"
+    Inr     :: "i=>i"
+    "case"  :: "[i=>i, i=>i, i]=>i"
+    Part    :: "[i,i=>i] => i"
 
 local
 

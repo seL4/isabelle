@@ -21,7 +21,7 @@ rep_datatype
   case_eqns	qcase_QInl, qcase_QInr
 
 constdefs
-  quniv :: i => i
+  quniv :: "i => i"
    "quniv(A) == Pow(univ(eclose(A)))"
 
 end

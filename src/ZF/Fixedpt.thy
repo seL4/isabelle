@@ -49,6 +49,18 @@ apply (unfold bnd_mono_def)
 apply (rule Un_least, blast+)
 done
 
+(*unused*)
+lemma bnd_mono_UN:
+     "[| bnd_mono(D,h);  \<forall>i\<in>I. A(i) <= D |] 
+      ==> (\<Union>i\<in>I. h(A(i))) <= h((\<Union>i\<in>I. A(i)))"
+apply (unfold bnd_mono_def) 
+apply (rule UN_least)
+apply (elim conjE) 
+apply (drule_tac x="A(i)" in spec)
+apply (drule_tac x="(\<Union>i\<in>I. A(i))" in spec) 
+apply blast 
+done
+
 (*Useful??*)
 lemma bnd_mono_Int:
      "[| bnd_mono(D,h);  A <= D;  B <= D |] ==> h(A Int B) <= h(A) Int h(B)"

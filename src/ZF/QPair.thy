@@ -14,19 +14,19 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 QPair = Sum +
 
 consts
-  QPair     :: [i, i] => i                      ("<(_;/ _)>")
-  qfst,qsnd :: i => i
-  qsplit    :: [[i, i] => 'a, i] => 'a::logic  (*for pattern-matching*)
-  qconverse :: i => i
-  QSigma    :: [i, i => i] => i
+  QPair     :: "[i, i] => i"                      ("<(_;/ _)>")
+  qfst,qsnd :: "i => i"
+  qsplit    :: "[[i, i] => 'a, i] => 'a::logic"  (*for pattern-matching*)
+  qconverse :: "i => i"
+  QSigma    :: "[i, i => i] => i"
 
-  "<+>"     :: [i,i]=>i                         (infixr 65)
-  QInl,QInr :: i=>i
-  qcase     :: [i=>i, i=>i, i]=>i
+  "<+>"     :: "[i,i]=>i"                         (infixr 65)
+  QInl,QInr :: "i=>i"
+  qcase     :: "[i=>i, i=>i, i]=>i"
 
 syntax
-  "@QSUM"   :: [idt, i, i] => i               ("(3QSUM _:_./ _)" 10)
-  "<*>"     :: [i, i] => i                      (infixr 80)
+  "@QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
+  "<*>"     :: "[i, i] => i"                      (infixr 80)
 
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"

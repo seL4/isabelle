@@ -8,9 +8,14 @@ Relations in Zermelo-Fraenkel Set Theory
 
 Rel = equalities +
 consts
-    refl,irrefl,equiv      :: [i,i]=>o
-    sym,asym,antisym,trans :: i=>o
-    trans_on               :: [i,i]=>o  ("trans[_]'(_')")
+    refl     :: "[i,i]=>o"
+    irrefl   :: "[i,i]=>o"
+    equiv    :: "[i,i]=>o"
+    sym      :: "i=>o"
+    asym     :: "i=>o"
+    antisym  :: "i=>o"
+    trans    :: "i=>o"
+    trans_on :: "[i,i]=>o"  ("trans[_]'(_')")
 
 defs
   refl_def     "refl(A,r) == (ALL x: A. <x,x> : r)"
