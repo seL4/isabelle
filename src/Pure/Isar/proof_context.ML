@@ -499,7 +499,7 @@ fun cert_prop_sg sg tm =
 
 fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
-  in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) maxidx Vartab.empty (T, U)) end;
+  in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
 
 fun norm_term (ctxt as Context {binds, ...}) schematic =
   let
@@ -602,7 +602,6 @@ val ins_sorts = foldl_types (foldl_atyps
 
 val ins_used = foldl_term_types (fn t => foldl_atyps
   (fn (used, TFree (x, _)) => x ins_string used
-    | (used, TVar ((x, _), _)) => x ins_string used
     | (used, _) => used));
 
 val ins_occs = foldl_term_types (fn t => foldl_atyps
