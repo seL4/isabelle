@@ -9,5 +9,8 @@ Prefix = List +
 arities list :: (term)ord
 
 defs
-        prefix_def     "xs <= zs  ==  ? ys. zs = xs@ys"
+        prefix_def        "xs <= zs  ==  ? ys. zs = xs@ys"
+
+        strict_prefix_def "xs < zs  ==  xs <= zs & xs ~= (zs::'a list)"
+  
 end

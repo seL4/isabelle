@@ -21,6 +21,11 @@ by (Clarify_tac 1);
 by (Asm_full_simp_tac 1);
 qed "prefix_antisym";
 
+Goalw [strict_prefix_def] "!!xs::'a list. (xs < zs) = (xs <= zs & xs ~= zs)";
+by Auto_tac;
+qed "prefix_less_le";
+
+
 (** recursion equations **)
 
 Goalw [prefix_def] "[] <= xs";
@@ -98,3 +103,7 @@ qed "append_one_prefix";
 Goalw [prefix_def] "xs <= ys ==> length xs <= length ys";
 by Auto_tac;
 qed "prefix_length_le";
+
+Goal "mono length";
+by (blast_tac (claset() addIs [monoI, prefix_length_le]) 1);
+qed "mono_length";
