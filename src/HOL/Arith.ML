@@ -7,8 +7,6 @@ Proofs about elementary arithmetic: addition, multiplication, etc.
 Some from the Hoare example from Norbert Galm
 *)
 
-open Arith;
-
 (*** Basic rewrite rules for the arithmetic operators ***)
 
 goalw Arith.thy [pred_def] "pred 0 = 0";
@@ -29,6 +27,16 @@ by (cut_facts_tac prems 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "Suc_pred";
 Addsimps [Suc_pred];
+
+goal Arith.thy "pred(n) <= (n::nat)";
+by (res_inst_tac [("n","n")] natE 1);
+by (ALLGOALS Asm_simp_tac);
+qed "pred_le";
+AddIffs [pred_le];
+
+goalw Arith.thy [pred_def] "m<=n --> pred(m) <= pred(n)";
+by(simp_tac (!simpset setloop (split_tac[expand_nat_case])) 1);
+qed_spec_mp "pred_le_mono";
 
 (** Difference **)
 
@@ -605,3 +613,28 @@ by (Simp_tac 1);
 qed "le_add_diff";
 
 
+(** (Anti)Monotonicity of subtraction -- by Stefan Merz **)
+
+(* Monotonicity of subtraction in first argument *)
+goal Arith.thy "!!n::nat. m<=n --> (m-l) <= (n-l)";
+by (induct_tac "n" 1);
+by (Simp_tac 1);
+by (simp_tac (!simpset addsimps [le_Suc_eq]) 1);
+by (rtac impI 1);
+by (etac impE 1);
+by (atac 1);
+by (etac le_trans 1);
+by (res_inst_tac [("m1","n")] (pred_Suc_diff RS subst) 1);
+by (rtac pred_le 1);
+qed_spec_mp "diff_le_mono";
+
+goal Arith.thy "!!n::nat. m<=n ==> (l-n) <= (l-m)";
+by (induct_tac "l" 1);
+by (Simp_tac 1);
+by (case_tac "n <= l" 1);
+by (subgoal_tac "m <= l" 1);
+by (asm_simp_tac (!simpset addsimps [Suc_diff_le]) 1);
+by (fast_tac (!claset addEs [le_trans]) 1);
+by (dtac not_leE 1);
+by (asm_simp_tac (!simpset addsimps [if_Suc_diff_n]) 1);
+qed_spec_mp "diff_le_mono2";

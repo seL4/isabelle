@@ -289,6 +289,11 @@ goal thy "(m < Suc(n)) = (m < n | m = n)";
 by (blast_tac (!claset addSEs [less_SucE] addIs [less_trans]) 1);
 qed "less_Suc_eq";
 
+goal thy "(n<1) = (n=0)";
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+qed "less_one";
+AddIffs [less_one];
+
 val prems = goal thy "m<n ==> n ~= 0";
 by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac prems 1);

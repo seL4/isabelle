@@ -92,7 +92,7 @@ goalw thy [finite_psubset_def] "wf(finite_psubset)";
 by (rtac (wf_measure RS wf_subset) 1);
 by (simp_tac (!simpset addsimps [measure_def, inv_image_def, less_than_def,
 				 symmetric less_def])1);
-by (fast_tac (!claset addIs [psubset_card]) 1);
+by (fast_tac (!claset addSIs [psubset_card]) 1);
 qed "wf_finite_psubset";
 
 goalw thy [finite_psubset_def, trans_def] "trans finite_psubset";
