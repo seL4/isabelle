@@ -1057,23 +1057,26 @@ fun trace_term a sign t = if !trace_simp then prtm a sign t else ();
 
 fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
-fun var_perm(Var _, Var _) = true
-  | var_perm(Abs(_,_,s), Abs(_,_,t)) = var_perm(s,t)
-  | var_perm(t1$t2, u1$u2) = var_perm(t1,u1) andalso var_perm(t2,u2)
-  | var_perm(t,u) = (t=u);
+fun vperm(Var _, Var _) = true
+  | vperm(Abs(_,_,s), Abs(_,_,t)) = vperm(s,t)
+  | vperm(t1$t2, u1$u2) = vperm(t1,u1) andalso vperm(t2,u2)
+  | vperm(t,u) = (t=u);
 
+fun var_perm(t,u) = vperm(t,u) andalso
+                    eq_set(add_term_vars(t,[]), add_term_vars(u,[]))
 
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =
-  null(prems) andalso
-  Pattern.eta_matches (#tsig(Sign.rep_sg sign)) (lhs,rhs);
+  is_Var(lhs) orelse
+  (null(prems) andalso
+   Pattern.eta_matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
 
 fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
   let val prems = Logic.strip_imp_prems prop
       val concl = Pattern.eta_contract (Logic.strip_imp_concl prop)
       val (lhs,rhs) = Logic.dest_equals concl handle TERM _ =>
                       raise SIMPLIFIER("Rewrite rule not a meta-equality",thm)
-      val perm = var_perm(lhs,rhs) andalso not(lhs=rhs)
+      val perm = var_perm(lhs,rhs) andalso not(lhs=rhs orelse is_Var(lhs))
   in if not perm andalso loops sign prems (lhs,rhs)
      then (prtm "Warning: ignoring looping rewrite rule" sign prop; None)
      else Some{thm=thm,lhs=lhs,perm=perm}
@@ -1153,6 +1156,8 @@ fun stringord(a,b:string) = if a<b then LESS  else
 fun intord(i,j:int) = if i<j then LESS  else
                       if i=j then EQUAL else GREATER;
 
+(* NB: non-linearity of the ordering is not a soundness problem *)
+
 (* FIXME: "***ABSTRACTION***" is a hack and makes the ordering non-linear *)
 fun string_of_hd(Const(a,_)) = a
   | string_of_hd(Free(a,_))  = a
@@ -1169,7 +1174,7 @@ fun string_of_hd(Const(a,_)) = a
  *)
 
 (* FIXME: should really take types into account as well.
- * Otherwise not linear *)
+ * Otherwise non-linear *)
 fun termord(t,u) =
       (case intord(size_of_term t,size_of_term u) of
          EQUAL => let val (f,ts) = strip_comb t and (g,us) = strip_comb u
@@ -1193,7 +1198,7 @@ fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
   in case prop of
        Const("==",_) $ lhs $ rhs =>
          if (lhs = lhs0) orelse
-            (lhs aconv (Envir.norm_term (Envir.empty 0) lhs0))
+            (lhs aconv Envir.norm_term (Envir.empty 0) lhs0)
          then (trace_thm "SUCCEEDED" thm; Some(hyps,rhs))
          else err()
      | _ => err()
@@ -1210,10 +1215,10 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
             val prop' = subst_vars insts prop;
             val hyps' = hyps union hypst;
             val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
-        in if nprems_of thm' = 0
-           then let val (_,rhs) = Logic.dest_equals prop'
-                in if perm andalso not(termless(rhs,t)) then None
-                   else (trace_thm "Rewriting:" thm'; Some(hyps',rhs)) end
+            val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
+        in if perm andalso not(termless(rhs',lhs')) then None else
+           if Logic.count_prems(prop',0) = 0
+           then (trace_thm "Rewriting:" thm'; Some(hyps',rhs'))
            else (trace_thm "Trying to rewrite:" thm';
                  case prover mss thm' of
                    None       => (trace_thm "FAILED" thm'; None)
