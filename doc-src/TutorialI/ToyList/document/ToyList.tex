@@ -18,8 +18,8 @@ ambiguities caused by defining lists twice.%
 %
 \begin{isamarkuptext}%
 \noindent
-\index{datatype@\isacommand {datatype} (command)}
-The datatype \tydx{list} introduces two
+The datatype\index{datatype@\isacommand {datatype} (command)}
+\tydx{list} introduces two
 constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
@@ -150,7 +150,7 @@ simplification will replace occurrences of \isa{rev\ {\isacharparenleft}rev\ xs{
 \isa{xs}.
 \end{itemize}
 The name and the simplification attribute are optional.
-Isabelle's response is to print
+Isabelle's response is to print the initial proof state
 \begin{isabelle}
 proof(prove):~step~0\isanewline
 \isanewline
@@ -200,7 +200,7 @@ two subgoals, namely the base case (\isa{Nil}) and the induction step
 
 The induction step is an example of the general format of a subgoal:\index{subgoals}
 \begin{isabelle}
-~$i$.~{\isasymAnd}$x\sb{1}$~\dots~$x\sb{n}$.~{\it assumptions}~{\isasymLongrightarrow}~{\it conclusion}
+~$i$.~{\isasymAnd}$x\sb{1}$~\dots$x\sb{n}$.~{\it assumptions}~{\isasymLongrightarrow}~{\it conclusion}
 \end{isabelle}\index{$IsaAnd@\isasymAnd|bold}
 The prefix of bound variables \isasymAnd$x\sb{1}$~\dots~$x\sb{n}$ can be
 ignored most of the time, or simply treated as a list of variables local to

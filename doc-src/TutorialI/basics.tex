@@ -35,7 +35,8 @@ A tutorial is by definition incomplete.  Currently the tutorial only
 introduces the rudiments of Isar's proof language. To fully exploit the power
 of Isar, in particular the ability to write readable and structured proofs,
 you need to consult the Isabelle/Isar Reference
-Manual~\cite{isabelle-isar-ref}. If you want to use Isabelle's ML level
+Manual~\cite{isabelle-isar-ref} and Wenzel's PhD thesis~\cite{Wenzel-PhD}
+which discusses many proof patterns. If you want to use Isabelle's ML level
 directly (for example for writing your own proof procedures) see the Isabelle
 Reference Manual~\cite{isabelle-ref}; for details relating to HOL see the
 Isabelle/HOL manual~\cite{isabelle-HOL}. All manuals have a comprehensive
@@ -70,7 +71,8 @@ reside in a \textbf{theory file}\index{theory files} named \texttt{T.thy}.
 This tutorial is concerned with introducing you to the different linguistic
 constructs that can fill the \textit{declarations, definitions, and
     proofs} above.  A complete grammar of the basic
-constructs is found in the Isabelle/Isar Reference Manual.
+constructs is found in the Isabelle/Isar Reference
+Manual~\cite{isabelle-isar-ref}.
 
 HOL's theory collection is available online at
 \begin{center}\small
@@ -244,11 +246,10 @@ in \isa{(\isasymlambda{}x.~x) = f}.  This includes
 \isa{\isasymlambda}, and quantifiers.
 \item
 Never write \isa{\isasymlambda{}x.x} or \isa{\isasymforall{}x.x=x}
-because \isa{x.x} is always taken as a single qualified identifier that
-refers to an item \isa{x} in theory \isa{x}. Write
+because \isa{x.x} is always taken as a single qualified identifier. Write
 \isa{\isasymlambda{}x.~x} and \isa{\isasymforall{}x.~x=x} instead.
 \item Identifiers\indexbold{identifiers} may contain the characters \isa{_} 
-and~\isa{'}.
+and~\isa{'}, except at the beginning.
 \end{itemize}
 
 For the sake of readability, we use the usual mathematical symbols throughout

@@ -28,37 +28,40 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
 \indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = 0"} if
+\ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = (0::nat)"} if
 @{prop"m<n"}. There is even a least number operation
-\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 1 < n) = 2"}. 
-\REMARK{Isabelle CAN prove it automatically, using \isa{auto intro: Least_equality}.
- The following needs changing with our new system of numbers.}
-Note that @{term 1}
-and @{term 2} are available as abbreviations for the corresponding
-@{term Suc}-expressions. If you need the full set of numerals,
-see~\S\ref{sec:numerals}.
-
+\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 0 < n) = Suc 0"}.
 \begin{warn}\index{overloading}
-  The constant \cdx{0} and the operations
+  The constants \cdx{0} and \cdx{1} and the operations
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
   \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
   \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
   not just for natural numbers but at other types as well.
-  For example, given the goal @{prop"x+0 = x"},
-  there is nothing to indicate that you are talking about natural numbers.
-  Hence Isabelle can only infer that @{term x} is of some arbitrary type where
-  @{term 0} and @{text"+"} are declared. As a consequence, you will be unable
-  to prove the goal (although it may take you some time to realize what has
-  happened if @{text show_types} is not set).  In this particular example,
-  you need to include an explicit type constraint, for example
-  @{text"x+0 = (x::nat)"}. If there is enough contextual information this
-  may not be necessary: @{prop"Suc x = x"} automatically implies
-  @{text"x::nat"} because @{term Suc} is not overloaded.
+  For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
+  that you are talking about natural numbers. Hence Isabelle can only infer
+  that @{term x} is of some arbitrary type where @{text 0} and @{text"+"} are
+  declared. As a consequence, you will be unable to prove the
+  goal. To alert you to such pitfalls, Isabelle flags numerals without a
+  fixed type in its output: @{prop"x+0 = x"}. (In the absence of a numeral,
+  it may take you some time to realize what has happened if @{text
+  show_types} is not set).  In this particular example, you need to include
+  an explicit type constraint, for example @{text"x+0 = (x::nat)"}. If there
+  is enough contextual information this may not be necessary: @{prop"Suc x =
+  x"} automatically implies @{text"x::nat"} because @{term Suc} is not
+  overloaded.
 
-  For details see \S\ref{sec:numbers} and \S\ref{sec:overloading};
-  Table~\ref{tab:overloading} in the appendix shows the most important overloaded
-  operations.
+  For details on overloading see \S\ref{sec:overloading}.
+  Table~\ref{tab:overloading} in the appendix shows the most important
+  overloaded operations.
+\end{warn}
+\begin{warn}
+  Constant @{text"1::nat"} is defined to be @{term"Suc 0"}. This definition
+  (see \S\ref{sec:ConstDefinitions}) is unfolded automatically by some
+  tactics (like @{text auto}, @{text simp} and @{text arith}) but not by
+  others (especially the single step tactics in Chapter~\ref{chap:rules}).
+  If you need the full set of numerals, see~\S\ref{sec:numerals}.
+  \emph{Novices are advised to stick to @{term"0::nat"} and @{term Suc}.}
 \end{warn}
 
 Both @{text auto} and @{text simp}

@@ -1,7 +1,7 @@
 (*<*)theory "types" = Main:(*>*)
 types number       = nat
       gate         = "bool \<Rightarrow> bool \<Rightarrow> bool"
-      ('a,'b)alist = "('a \<times> 'b)list";
+      ('a,'b)alist = "('a \<times> 'b)list"
 
 text{*\noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
@@ -11,7 +11,7 @@ type.  Here, we declare two constants of type \isa{gate}:
 *}
 
 consts nand :: gate
-       xor  :: gate;
+       xor  :: gate
 
 subsection{*Constant Definitions*}
 
@@ -21,7 +21,7 @@ be defined directly:
 *}
 
 defs nand_def: "nand A B \<equiv> \<not>(A \<and> B)"
-     xor_def:  "xor A B  \<equiv> A \<and> \<not>B \<or> \<not>A \<and> B";
+     xor_def:  "xor A B  \<equiv> A \<and> \<not>B \<or> \<not>A \<and> B"
 
 text{*\noindent%
 Here \commdx{defs} is a keyword and
@@ -41,7 +41,7 @@ single command:
 constdefs nor :: gate
          "nor A B \<equiv> \<not>(A \<or> B)"
           xor2 :: gate
-         "xor2 A B \<equiv> (A \<or> B) \<and> (\<not>A \<or> \<not>B)";
+         "xor2 A B \<equiv> (A \<or> B) \<and> (\<not>A \<or> \<not>B)"
 
 text{*\noindent
 The default name of each definition is $f$@{text"_def"}, where

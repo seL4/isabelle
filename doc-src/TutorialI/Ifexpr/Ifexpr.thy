@@ -162,7 +162,7 @@ Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
 normality of @{term"normif"}:
 *}
 
-lemma[simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)";
+lemma [simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)";
 (*<*)
 apply(induct_tac b);
 by(auto);

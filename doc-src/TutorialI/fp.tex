@@ -37,8 +37,9 @@ We will now examine it line by line.
 The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
 concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
 constitutes the complete theory \texttt{ToyList} and should reside in file
-\texttt{ToyList.thy}. It is good practice to present all declarations and
-definitions at the beginning of a theory to facilitate browsing.%
+\texttt{ToyList.thy}.
+% It is good practice to present all declarations and
+%definitions at the beginning of a theory to facilitate browsing.%
 \index{*ToyList example|)}
 
 \begin{figure}[htbp]
@@ -70,7 +71,7 @@ and can be skipped by casual readers.
 There are two kinds of commands used during a proof: the actual proof
 commands and auxiliary commands for examining the proof state and controlling
 the display. Simple proof commands are of the form
-\commdx{apply}\isa{(\textit{method})}, where \textit{method} is typically 
+\commdx{apply}(\textit{method}), where \textit{method} is typically 
 \isa{induct_tac} or \isa{auto}.  All such theorem proving operations
 are referred to as \bfindex{methods}, and further ones are
 introduced throughout the tutorial.  Unless stated otherwise, you may
@@ -144,7 +145,8 @@ would have alerted us because of the unexpected variable \isa{re}.
 %  theory itself. This you can do by typing
 %  \isa{\commdx{use\_thy}~"T"}.
 \end{description}
-Further commands are found in the Isabelle/Isar Reference Manual.
+Further commands are found in the Isabelle/Isar Reference
+Manual~\cite{isabelle-isar-ref}.
 
 We now examine Isabelle's functional programming constructs systematically,
 starting with inductive datatypes.
@@ -175,7 +177,7 @@ Also available are higher-order functions like \isa{map} and \isa{filter}.
 Theory \isa{List} also contains
 more syntactic sugar: \isa{[}$x@1$\isa{,}\dots\isa{,}$x@n$\isa{]} abbreviates
 $x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
-always use HOL's predefined lists.
+always use HOL's predefined lists by building on theory \isa{Main}.
 
 
 \subsection{The General Format}
@@ -198,10 +200,12 @@ Laws about datatypes, such as \isa{[] \isasymnoteq~x\#xs} and
 during proofs by simplification.  The same is true for the equations in
 primitive recursive function definitions.
 
-Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
-the natural numbers (see~{\S}\ref{sec:nat} below). For lists, \isa{size} is
-just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
-  1}.  In general, \cdx{size} returns 
+Every\footnote{Except for advanced datatypes where the recursion involves
+``\isasymRightarrow'' as in {\S}\ref{sec:nested-fun-datatype}.} datatype $t$
+comes equipped with a \isa{size} function from $t$ into the natural numbers
+(see~{\S}\ref{sec:nat} below). For lists, \isa{size} is just the length, i.e.\
+\isa{size [] = 0} and \isa{size(x \# xs) = size xs + 1}.  In general,
+\cdx{size} returns
 \begin{itemize}
 \item zero for all constructors
 that do not have an argument of type $t$\\
@@ -275,12 +279,11 @@ definitions.
 
 \subsection{Type Synonyms}
 
-\index{type synonyms|(}%
+\index{type synonyms}%
 Type synonyms are similar to those found in ML\@. They are created by a 
 \commdx{types} command:
 
-\input{Misc/document/types.tex}%
-\index{type synonyms|)}
+\input{Misc/document/types.tex}
 
 \input{Misc/document/prime_def.tex}
 
@@ -397,6 +400,7 @@ data structure.
 
 
 \subsection{The Limits of Nested Recursion}
+\label{sec:nested-fun-datatype}
 
 How far can we push nested recursion? By the unfolding argument above, we can
 reduce nested to mutual recursion provided the nested recursion only involves
