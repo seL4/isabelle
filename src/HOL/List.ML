@@ -1026,6 +1026,55 @@ qed_spec_mp "nodups_filter";
 (** replicate **)
 section "replicate";
 
+Goal "length(replicate n x) = n";
+by(induct_tac "n" 1);
+by(Auto_tac);
+qed "length_replicate";
+Addsimps [length_replicate];
+
+Goal "map f (replicate n x) = replicate n (f x)";
+by (induct_tac "n" 1);
+by(Auto_tac);
+qed "map_replicate";
+Addsimps [map_replicate];
+
+Goal "(replicate n x) @ (x#xs) = x # replicate n x @ xs";
+by (induct_tac "n" 1);
+by(Auto_tac);
+qed "replicate_app_Cons_same";
+
+Goal "rev(replicate n x) = replicate n x";
+by (induct_tac "n" 1);
+ by(Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [replicate_app_Cons_same]) 1);
+qed "rev_replicate";
+Addsimps [rev_replicate];
+
+Goal"n ~= 0 --> hd(replicate n x) = x";
+by (induct_tac "n" 1);
+by(Auto_tac);
+qed_spec_mp "hd_replicate";
+Addsimps [hd_replicate];
+
+Goal "n ~= 0 --> tl(replicate n x) = replicate (n-1) x";
+by (induct_tac "n" 1);
+by(Auto_tac);
+qed_spec_mp "tl_replicate";
+Addsimps [tl_replicate];
+
+Goal "n ~= 0 --> last(replicate n x) = x";
+by (induct_tac "n" 1);
+by(Auto_tac);
+qed_spec_mp "last_replicate";
+Addsimps [last_replicate];
+
+Goal "!i. i<n --> (replicate n x)!i = x";
+by(induct_tac "n" 1);
+ by(Simp_tac 1);
+by(asm_simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+qed_spec_mp "nth_replicate";
+Addsimps [nth_replicate];
+
 Goal "set(replicate (Suc n) x) = {x}";
 by (induct_tac "n" 1);
 by Auto_tac;
@@ -1036,6 +1085,10 @@ by (fast_tac (claset() addSDs [not0_implies_Suc] addSIs [lemma]) 1);
 qed "set_replicate";
 Addsimps [set_replicate];
 
+Goal "replicate (n+m) x = replicate n x @ replicate m x";
+by (induct_tac "n" 1);
+by Auto_tac;
+qed "replicate_add";
 
 (*** Lexcicographic orderings on lists ***)
 section"Lexcicographic orderings on lists";
