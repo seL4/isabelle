@@ -361,6 +361,14 @@ by (Blast_tac 1);
 qed "mem_Sigma_iff";
 AddIffs [mem_Sigma_iff]; 
 
+Goal "x:C ==> (A Times C <= B Times C) = (A <= B)";
+by (Blast_tac 1);
+qed "Times_subset_cancel2";
+
+Goal "x:C ==> (A Times C = B Times C) = (A = B)";
+by (blast_tac (claset() addEs [equalityE]) 1);
+qed "Times_eq_cancel2";
+
 
 (*** Complex rules for Sigma ***)
 
@@ -373,17 +381,15 @@ Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
 qed "UNION_Times_distrib";
 
-
-Goal "(ALL z: A Times B. P z) = (ALL x:A. ALL y: B. P(x,y))";
+Goal "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))";
 by (Fast_tac 1);
-qed "split_paired_Ball_Times";
-Addsimps [split_paired_Ball_Times];
+qed "split_paired_Ball_Sigma";
+Addsimps [split_paired_Ball_Sigma];
 
-Goal "(EX z: A Times B. P z) = (EX x:A. EX y: B. P(x,y))";
+Goal "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))";
 by (Fast_tac 1);
-qed "split_paired_Bex_Times";
-Addsimps [split_paired_Bex_Times];
-
+qed "split_paired_Bex_Sigma";
+Addsimps [split_paired_Bex_Sigma];
 
 Goal "(SIGMA i:I Un J. C(i)) = (SIGMA i:I. C(i)) Un (SIGMA j:J. C(j))";
 by (Blast_tac 1);
@@ -408,6 +414,10 @@ qed "Sigma_Diff_distrib1";
 Goal "(SIGMA i:I. A(i) - B(i)) = (SIGMA i:I. A(i)) - (SIGMA i:I. B(i))";
 by (Blast_tac 1);
 qed "Sigma_Diff_distrib2";
+
+Goal "Sigma (Union X) B = (UN A:X. Sigma A B)";
+by (Blast_tac 1);
+qed "Sigma_Union";
 
 
 (** Exhaustion rule for unit -- a degenerate form of induction **)
