@@ -46,6 +46,8 @@ sig
   val frule: thm list -> Proof.method
   val this: Proof.method
   val assumption: Proof.context -> Proof.method
+  val set_tactic: (Proof.context -> thm list -> tactic) -> unit
+  val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val help_methods: theory option -> unit
   val method: theory -> Args.src -> Proof.context -> Proof.method
@@ -53,6 +55,8 @@ sig
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     Args.src -> Proof.context -> Proof.context * 'a
+  val simple_args: (Args.T list -> 'a * Args.T list)
+    -> ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val ctxt_args: (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
   type modifier
@@ -326,6 +330,18 @@ fun prolog_tac rules facts =
 val prolog = METHOD o prolog_tac;
 
 
+(* ML tactics *)
+
+val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
+fun set_tactic f = tactic_ref := f;
+
+fun tactic txt ctxt = METHOD (fn facts =>
+  (Context.use_mltext
+    ("let fun (tactic: Proof.context -> thm list -> tactic) ctxt facts = " ^ txt ^
+     "in Method.set_tactic tactic end")
+    false (Some (ProofContext.theory_of ctxt)); ! tactic_ref ctxt facts));
+
+
 
 (** methods theory data **)
 
@@ -415,10 +431,14 @@ fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
 fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
   Args.syntax "method" scan;
 
+fun simple_args scan f src ctxt : Proof.method =
+  #2 (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
+
 fun ctxt_args (f: Proof.context -> Proof.method) src ctxt =
   #2 (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 fun no_args m = ctxt_args (K m);
+
 
 
 (* sections *)
@@ -561,7 +581,8 @@ val pure_methods =
   ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (beware!)"),
   ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (beware!)"),
   ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (beware!)"),
-  ("prolog", thms_args prolog, "simple prolog interpreter")];
+  ("prolog", thms_args prolog, "simple prolog interpreter"),
+  ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
 
 (* setup *)
