@@ -84,7 +84,7 @@ fun prep_case open_parms thm name i =
       |> map (if open_parms then I else apfst Syntax.internal);
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
     val concl_bind = ((case_conclN, 0),
-      Some (Term.list_abs (xs, AutoBind.drop_judgment (Logic.strip_assums_concl Bi))));
+      Some (Term.list_abs (xs, Logic.strip_assums_concl Bi)));
   in (name, {fixes = xs, assumes = asms, binds = [concl_bind]}) end;
 
 fun make open_parms raw_thm names =
