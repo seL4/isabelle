@@ -311,29 +311,33 @@ They may perform a form of Modus Ponens: if there are assumptions $P\imp Q$
 and~$P$, then replace $P\imp Q$ by~$Q$.
 
 The classical reasoning tactics --- except \texttt{blast_tac}! --- allow
-you to modify this basic proof strategy by applying two arbitrary {\bf
-  wrapper tacticals} to it.  This affects each step of the search.
-Usually they are the identity tacticals, but they could apply another
-tactic before or after the step tactic.  The first one, which is
-considered to be safe, affects \ttindex{safe_step_tac} and all the
-tactics that call it.  The the second one, which may be unsafe, affects
-\ttindex{step_tac}, \ttindex{slow_step_tac} and the tactics that call
-them.
+you to modify this basic proof strategy by applying two lists of arbitrary 
+{\bf wrapper tacticals} to it. 
+The first wrapper list, which is considered to contain safe wrappers only, 
+affects \ttindex{safe_step_tac} and all the tactics that call it.  
+The second one, which may contain unsafe wrappers, affects \ttindex{step_tac}, 
+\ttindex{slow_step_tac} and the tactics that call them.
+A wrapper transforms each step of the search, for example 
+by invoking other tactics before or alternatively to the original step tactic. 
+All members of a wrapper list are applied in turn to the respective step tactic.
+
+Initially the two wrapper lists are empty, which means no modification of the
+step tactics. Safe and unsafe wrappers are added to a claset 
+with the functions given below, supplying them with wrapper names. 
+These names may be used to selectively delete wrappers.
 
 \begin{ttbox} 
+type wrapper = (int -> tactic) -> (int -> tactic);
+addSbefore   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addSaltern   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addSWrapper  : claset * (string * wrapper        ) -> claset \hfill{\bf infix 4}
+delSWrapper  : claset *  string                    -> claset \hfill{\bf infix 4}
+addbefore    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addaltern    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addWrapper   : claset * (string * wrapper        ) -> claset \hfill{\bf infix 4}
+delWrapper   : claset *  string                    -> claset \hfill{\bf infix 4}
+
 addss        : claset * simpset -> claset                 \hfill{\bf infix 4}
-addSbefore   : claset *  (int -> tactic)  -> claset       \hfill{\bf infix 4}
-addSaltern   : claset *  (int -> tactic)  -> claset       \hfill{\bf infix 4}
-setSWrapper  : claset * ((int -> tactic) -> 
-                         (int -> tactic)) -> claset       \hfill{\bf infix 4}
-compSWrapper : claset * ((int -> tactic) -> 
-                         (int -> tactic)) -> claset       \hfill{\bf infix 4}
-addbefore    : claset *  (int -> tactic)  -> claset       \hfill{\bf infix 4}
-addaltern    : claset *  (int -> tactic)  -> claset       \hfill{\bf infix 4}
-setWrapper   : claset * ((int -> tactic) -> 
-                         (int -> tactic)) -> claset       \hfill{\bf infix 4}
-compWrapper  : claset * ((int -> tactic) -> 
-                         (int -> tactic)) -> claset       \hfill{\bf infix 4}
 \end{ttbox}
 %
 \index{simplification!from classical reasoner} The wrapper tacticals
@@ -343,7 +347,7 @@ classical reasoner.  It should be defined when the simplifier is
 installed:
 \begin{ttbox}
 infix 4 addss;
-fun cs addss  ss = cs  addbefore  asm_full_simp_tac ss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss;
 \end{ttbox}
 
 \begin{ttdescription}

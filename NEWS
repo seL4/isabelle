@@ -1,6 +1,22 @@
 
+
+
 Isabelle NEWS -- history of user-visible changes
 ================================================
+
+New in Isabelle98? (???)
+-----------------------
+
+* changed wrapper mechanism for the classical reasoner now allows for selected
+  deletion of wrappers, by introduction of names for wrapper functionals.
+  This implies that addbefore, addSbefore, addaltern, and addSaltern now take
+  a pair (name, tactic) as argument, and that adding two tactics with the same
+  name overwrites the first one (emitting a warning).
+  setWrapper, setSWrapper, compWrapper and compSWrapper are replaced by
+  addWrapper, addSWrapper: claset * wrapper -> claset
+  delWrapper, delSWrapper: claset *  string -> claset
+  getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
+
 
 New in Isabelle98 (January 1998)
 --------------------------------

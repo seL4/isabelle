@@ -334,8 +334,9 @@ fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN'
 
 (*Add a simpset to a classical set!*)
 infix 4 addSss addss;
-fun cs addSss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
-fun cs addss  ss = cs addbefore                        asm_full_simp_tac ss;
+fun cs addSss ss = cs addSaltern ("safe_asm_more_full_simp_tac",
+				  CHANGED o (safe_asm_more_full_simp_tac ss));
+fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", asm_full_simp_tac ss);
 
 fun Addss ss = (claset_ref() := claset() addss ss);
 
