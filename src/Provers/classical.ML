@@ -325,17 +325,17 @@ and rem_thm = gen_rem eq_thm;
   is still allowed.*)
 fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) = 
        if mem_thm (th, safeIs) then 
-	 warning ("Rule already in claset as Safe Intr\n" ^ string_of_thm th)
+	 warning ("Rule already declared as safe introduction (intro)\n" ^ string_of_thm th)
   else if mem_thm (th, safeEs) then
-         warning ("Rule already in claset as Safe Elim\n" ^ string_of_thm th)
+         warning ("Rule already declared as safe elimination (elim)\n" ^ string_of_thm th)
   else if mem_thm (th, hazIs) then 
-         warning ("Rule already in claset as unsafe Intr\n" ^ string_of_thm th)
+         warning ("Rule already declared as unsafe introduction (intro?)\n" ^ string_of_thm th)
   else if mem_thm (th, hazEs) then 
-         warning ("Rule already in claset as unsafe Elim\n" ^ string_of_thm th)
+         warning ("Rule already declared as unsafe elimination (elim?)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraIs) then 
-         warning ("Rule already in claset as extra Intr\n" ^ string_of_thm th)
+         warning ("Rule already declared as extra introduction (intro??)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraEs) then 
-         warning ("Rule already in claset as extra Elim\n" ^ string_of_thm th)
+         warning ("Rule already declared as extra elimination (elim??)\n" ^ string_of_thm th)
   else ();
 
 (*** Safe rules ***)
@@ -653,7 +653,7 @@ fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}, th) =
 	  mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) orelse
           mem_thm (th, xtraIs)  orelse mem_thm (th, xtraEs) 
        then delSI th (delSE th (delI th (delE th (delXI th (delXE th cs)))))
-       else (warning ("Rule not in claset\n" ^ (string_of_thm th)); 
+       else (warning ("Undeclared classical rule\n" ^ (string_of_thm th)); 
 	     cs);
 
 val op delrules = foldl delrule;

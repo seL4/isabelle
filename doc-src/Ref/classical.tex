@@ -257,7 +257,7 @@ addDs    : claset * thm list -> claset                 \hfill{\bf infix 4}
 delrules : claset * thm list -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
 The add operations ignore any rule already present in the claset with the same
-classification (such as Safe Introduction).  They print a warning if the rule
+classification (such as safe introduction).  They print a warning if the rule
 has already been added with some other classification, but add the rule
 anyway.  Calling \texttt{delrules} deletes all occurrences of a rule from the
 claset, but see the warning below concerning destruction rules.
