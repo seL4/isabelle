@@ -104,6 +104,7 @@ cd $DISTBASE
 
 export CVSROOT
 cvs -f -q $EXPORT -d $DISTNAME isabelle
+find . -name CVS -exec rm -rf {} \;
 
 
 # make docs
@@ -121,8 +122,6 @@ done
 # prepare dist dir for release
 
 cd $DISTBASE/$DISTNAME
-
-find . -name CVS -exec rm -rf {} \;
 
 find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) \) \
   -exec mv -f {} Distribution/doc \;
