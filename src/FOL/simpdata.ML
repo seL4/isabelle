@@ -130,5 +130,7 @@ val FOL_ss = IFOL_ss addsimps cla_rews;
 qed_goal "meta_iffD" FOL.thy "[| P==Q; Q |] ==> P"
         (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1]);
 
-fun split_tac splits =
-    mk_case_split_tac meta_iffD (map mk_meta_eq splits);
+local val mktac = mk_case_split_tac meta_iffD
+in
+fun split_tac splits = mktac (map mk_meta_eq splits)
+end;
