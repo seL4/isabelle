@@ -34,13 +34,13 @@ val enc_vector =
   "eta", "theta", "kappa", "lambda", "mu", "nu", "xi", "pi",
   "rho", "sigma", "tau", "phi", "chi", "psi", "omega", "not",
   "and", "or", "forall", "exists", "And", "lceil", "rceil", "lfloor",
-  "rfloor", "lparr", "rparr", "lbrakk", "rbrakk", "empty", "in", "subseteq",
+  "rfloor", "turnstile", "Turnstile", "lbrakk", "rbrakk", "cdot", "in", "subseteq",
   "inter", "union", "Inter", "Union", "sqinter", "squnion", "Sqinter", "Squnion",
   "bottom", "doteq", "equiv", "noteq", "sqsubset", "sqsubseteq", "prec", "preceq",
-  "succ", "succeq", "sim", "simeq", "le", "ge", "leftarrow", "midarrow",
-  "rightarrow", "Leftarrow", "Midarrow", "Rightarrow", "rrightarrow", "mapsto", "leadsto", "up",
+  "succ", "approx", "sim", "simeq", "le", "Colon", "leftarrow", "midarrow",
+  "rightarrow", "Leftarrow", "Midarrow", "Rightarrow", "bow", "mapsto", "leadsto", "up",
   "down", "notin", "times", "oplus", "ominus", "otimes", "oslash", "subset",
-  "infinity", "box", "diamond", "circ", "bullet", "parallel", "tick", "copyright"
+  "infinity", "box", "diamond", "circ", "bullet", "parallel", "surd", "copyright"
 ];
 
 val enc_rel = enc_vector ~~ (map chr (enc_start upto enc_end));
