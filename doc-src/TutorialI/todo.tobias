@@ -48,7 +48,8 @@ Explain typographic conventions?
 
 an example of induction: !y. A --> B --> C ??
 
-Advanced Ind expects rulify, mp and spec. How much really?
+Advanced Ind expects rule_format incl (no_asm) (which it currently explains!
+Where explained?
 
 Appendix: Lexical: long ids.
 
@@ -57,9 +58,6 @@ Warning: infixes automatically become reserved words!
 Forward ref from blast proof of Puzzle (AdvancedInd) to Isar proof?
 
 mention split_split in advanced pair section.
-
-Advanced:
-rule induction where premise not atomic (x1...xn) : R.
 
 recdef with nested recursion: either an example or at least a pointer to the
 literature. In Recdef/termination.thy, at the end.

@@ -9,10 +9,9 @@ proposition to be proved is not directly amenable to induction, and how to
 utilize and even derive new induction schemas.
 *};
 
-subsection{*Massaging the proposition\label{sec:ind-var-in-prems}*};
+subsection{*Massaging the proposition*};
 
-text{*
-\noindent
+text{*\label{sec:ind-var-in-prems}
 So far we have assumed that the theorem we want to prove is already in a form
 that is amenable to induction, but this is not always the case:
 *};
@@ -115,15 +114,25 @@ text{*
 
 A second reason why your proposition may not be amenable to induction is that
 you want to induct on a whole term, rather than an individual variable. In
-general, when inducting on some term $t$ you must rephrase the conclusion as
-\[ \forall y@1 \dots y@n.~ x = t \longrightarrow C \] where $y@1 \dots y@n$
-are the free variables in $t$ and $x$ is new, and perform induction on $x$
-afterwards. An example appears below.
+general, when inducting on some term $t$ you must rephrase the conclusion $C$
+as
+\[ \forall y@1 \dots y@n.~ x = t \longrightarrow C \]
+where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is new, and
+perform induction on $x$ afterwards. An example appears in
+\S\ref{sec:complete-ind} below.
+
+The very same problem may occur in connection with rule induction. Remember
+that it requires a premise of the form $(x@1,\dots,x@k) \in R$, where $R$ is
+some inductively defined set and the $x@i$ are variables.  If instead we have
+a premise $t \in R$, where $t$ is not just an $n$-tuple of variables, we
+replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
+\[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C \]
+For an example see \S\ref{sec:CTL-revisited} below.
 *};
 
 subsection{*Beyond structural and recursion induction*};
 
-text{*
+text{*\label{sec:complete-ind}
 So far, inductive proofs where by structural induction for
 primitive recursive functions and recursion induction for total recursive
 functions. But sometimes structural induction is awkward and there is no

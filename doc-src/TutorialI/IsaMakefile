@@ -4,7 +4,7 @@
 
 ## targets
 
-default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-CTL HOL-Misc styles
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Advanced HOL-CTL HOL-Inductive HOL-Misc styles
 images:
 test:
 all: default
@@ -110,6 +110,14 @@ $(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.th
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CTL
 	@rm -f tutorial.dvi
 
+## HOL-Inductive
+
+HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
+
+$(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/AB.thy Inductive/ROOT.ML
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Inductive
+	@rm -f tutorial.dvi
+
 ## HOL-Misc
 
 HOL-Misc: HOL $(LOG)/HOL-Misc.gz
@@ -126,4 +134,4 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
 ## clean
 
 clean:
-	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-CTL.gz
+	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz

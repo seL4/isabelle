@@ -5,6 +5,7 @@
 \isamarkupsubsection{Computation tree logic---CTL}
 %
 \begin{isamarkuptext}%
+\label{sec:CTL}
 The semantics of PDL only needs transitive reflexive closure.
 Let us now be a bit more adventurous and introduce a new temporal operator
 that goes beyond transitive reflexive closure. We extend the datatype
@@ -265,9 +266,13 @@ Both are solved automatically:%
 \ \isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
-The main theorem is proved as for PDL, except that we also derive the necessary equality
-\isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isacharequal}\ {\isachardot}{\isachardot}{\isachardot}} by combining \isa{AF{\isacharunderscore}lemma{\isadigit{1}}} and \isa{AF{\isacharunderscore}lemma{\isadigit{2}}}
-on the spot:%
+If you found the above proofs somewhat complicated we recommend you read
+\S\ref{sec:CTL-revisited} where we shown how inductive definitions lead to
+simpler arguments.
+
+The main theorem is proved as for PDL, except that we also derive the
+necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isacharequal}\ {\isachardot}{\isachardot}{\isachardot}} by combining
+\isa{AF{\isacharunderscore}lemma{\isadigit{1}}} and \isa{AF{\isacharunderscore}lemma{\isadigit{2}}} on the spot:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline

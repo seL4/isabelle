@@ -364,9 +364,13 @@ Both are solved automatically:
 done;
 
 text{*
-The main theorem is proved as for PDL, except that we also derive the necessary equality
-@{text"lfp(af A) = ..."} by combining @{thm[source]AF_lemma1} and @{thm[source]AF_lemma2}
-on the spot:
+If you found the above proofs somewhat complicated we recommend you read
+\S\ref{sec:CTL-revisited} where we shown how inductive definitions lead to
+simpler arguments.
+
+The main theorem is proved as for PDL, except that we also derive the
+necessary equality @{text"lfp(af A) = ..."} by combining
+@{thm[source]AF_lemma1} and @{thm[source]AF_lemma2} on the spot:
 *}
 
 theorem "mc f = {s. s \<Turnstile> f}";
