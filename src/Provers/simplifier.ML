@@ -210,8 +210,7 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     setmksimps mk_simps =
-  make_ss (Thm.set_mk_rews (mss, map (Thm.strip_shyps o Drule.zero_var_indexes) o mk_simps),
-    subgoal_tac, loop_tacs, unsafe_solvers, solvers);
+  make_ss (Thm.set_mk_rews (mss, mk_simps), subgoal_tac, loop_tacs, unsafe_solvers, solvers);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
     setmkeqTrue mk_eq_True =
