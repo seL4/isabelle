@@ -1,0 +1,14 @@
+
+Note on fonts and remote X11
+============================
+
+You may want to install this directory on any machine that is used as
+X11 terminal for Isabelle sessions, but does not mount the full
+distribution.
+
+In case the fonts directory does not appear on both the client and
+server side at the same location, the ISABELLE_INSTALLFONTS setting
+has to be adapted, though.
+
+
+$Id$
