@@ -4,20 +4,27 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2002 is now available.
 
-This release clarifies long-standing issues at large, providing of
-more comfortable and robust environment.
+In this release many important aspects of Isabelle have been reworked
+to improve robustness and usability (this occasionally causes
+incompatibility with earlier versions).
 
-In this release a lot of important issues of existing concepts 
+The most prominent highlights of Isabelle2002 are as follows; see the
+NEWS of the distribution for more details.
 
-The most prominent highlights of Isabelle2001 are as follows.  See the
-NEWS file distributed with Isabelle for more details.
+  * The Isabelle/HOL tutorial has been published as LNCS 2283;
+    Isabelle2002 is the official version to go along with that book.
 
-  * Specific support for Poly/ML 4.1.1
-    Faster, manages large heaps.
+  * Explicit proof terms for Isabelle/Pure (Stefan Berghofer);
+    all object-logics, proof tools etc. will automatically benefit.
 
-  * Meta-level proof terms (Stefan Berghofer)
+  * Interation of locales
 
-You may get Isabelle2001 from any of the following mirror sites:
+  * Specific support for Poly/ML 4.1.1 and PolyML/4.1.2
+    (manage larger heaps, slightly faster).
+
+
+
+You may get Isabelle2002 from any of the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/

@@ -87,7 +87,9 @@ multi-step methods like 'auto', 'simp_all', 'blast+' etc.;
 version by Florian Kammüller, Isar locales package high-level proof
 contexts rather than raw logical ones (e.g. we admit to include
 attributes everywhere); operations on locales include merge and
-rename; e.g. see HOL/ex/Locales.thy;
+rename; support for implicit arguments (``structures''); simultaneous
+type-inference over imports and text; see also HOL/ex/Locales.thy for
+some examples;
 
 * Pure: the following commands have been ``localized'', supporting a
 target locale specification "(in name)": 'lemma', 'theorem',
@@ -95,11 +97,23 @@ target locale specification "(in name)": 'lemma', 'theorem',
 stored both within the locale and at the theory level (exported and
 qualified by the locale name);
 
-* Pure: theory goals now support ad-hoc contexts, which are discharged
-in the result, as in ``lemma (assumes A and B) K: A .''; syntax
-coincides with that of a locale body;
+* Pure: theory goals may now be specified in ``long'' form, with
+ad-hoc contexts consisting of arbitrary locale elements. for example
+``lemma foo: fixes x assumes "A x" shows "B x"'' (local syntax and
+definitions may be given, too); the result is a meta-level rule with
+the context elements being discharged in the obvious way;
+
+* Pure: new proof command 'using' allows to augment currently used
+facts after a goal statement ('using' is syntactically analogous to
+'apply', but acts on the goal's facts only); this allows chained facts
+to be separated into parts given before and after a claim, as in
+``from a and b have C using d and e <proof>'';
 
 * Pure: renamed "antecedent" case to "rule_context";
+
+* Pure: new 'judgment' command records explicit information about the
+object-logic embedding (used by several tools internally); no longer
+use hard-wired "Trueprop";
 
 * Pure: added 'corollary' command;
 
