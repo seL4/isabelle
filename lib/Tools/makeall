@@ -30,7 +30,9 @@ function usage()
 
 
 SECONDS=0
-echo -n "Started at "; date
+DATE=$(date)
+HOST=$(hostname)
+echo "Started at $DATE ($HOST)"
 
 for L in $ALL_LOGICS
 do

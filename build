@@ -106,6 +106,7 @@ if [ -z "$BATCH" ]; then
   echo "  ML_SYSTEM=$ML_SYSTEM"
   echo "  ML_HOME=$ML_HOME"
   echo "  ML_OPTIONS=$ML_OPTIONS"
+  echo "  ML_PLATFORM=$ML_PLATFORM"
   echo
   echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
 fi
@@ -154,7 +155,9 @@ fi
 # build it
 
 SECONDS=0
-echo -n "Started at "; date
+DATE=$(date)
+HOST=$(hostname)
+echo "Started at $DATE ($HOST)"
 
 export THIS_IS_ISABELLE_BUILD=true
 
