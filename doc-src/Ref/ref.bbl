@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{bm88book}
 Robert~S. Boyer and J~Strother Moore.
@@ -27,6 +27,12 @@ Ursula Martin and Tobias Nipkow.
 \newblock In M.~E. Stickel, editor, {\em 10th International Conference on
   Automated Deduction}, pages 366--380. Springer, 1990.
 \newblock LNCS 449.
+
+\bibitem{Nipkow-LICS-93}
+Tobias Nipkow.
+\newblock Functional unification of higher-order patterns.
+\newblock In M.~Vardi, editor, {\em Eighth Annual Symposium on Logic in
+  Computer Science}, pages 64--74. {\sc ieee} Computer Society Press, 1993.
 
 \bibitem{nipkow-prehofer}
 Tobias Nipkow and Christian Prehofer.
