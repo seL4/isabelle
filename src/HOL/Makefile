@@ -47,7 +47,7 @@ $(BIN)/HOL:   $(BIN)/Pure  $(FILES)
                        | $(COMP) $(BIN)/HOL;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html (); exit_use_dir".";                                                 xML"$(BIN)/HOL" banner;' | $(BIN)/Pure;\
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/HOL" banner;' | $(BIN)/Pure;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/HOL" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
