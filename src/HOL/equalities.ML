@@ -795,6 +795,11 @@ by Auto_tac;
 qed "Diff_Compl";
 Addsimps [Diff_Compl];
 
+Goal "- (A-B) = -A Un B";
+by (blast_tac (claset() addIs []) 1); 
+qed "Compl_Diff_eq";
+Addsimps [Compl_Diff_eq];
+
 
 section "Quantification over type \"bool\"";
 
