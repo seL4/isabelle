@@ -11,6 +11,10 @@ qed_goal "not_None_eq" thy "(x ~= None) = (? y. x = Some y)"
 	(K [induct_tac "x" 1, Auto_tac]);
 AddIffs[not_None_eq];
 
+qed_goal "not_Some_eq" thy "(!y. x ~= Some y) = (x = None)"
+	(K [induct_tac "x" 1, Auto_tac]);
+AddIffs[not_Some_eq];
+
 
 section "case analysis in premises";
 
@@ -63,8 +67,8 @@ section "o2s";
 
 qed_goal "ospec" thy 
 	"!!x. [| !x:o2s A. P x; A = Some x |] ==> P x" (K [Auto_tac]);
-claset_ref() := claset() addSaltern ("ospec", 
-				dmatch_tac [ospec] THEN' eq_assume_tac);
+AddDs[ospec];
+claset_ref() := claset() addSD2 ("ospec", ospec);
 
 
 val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
