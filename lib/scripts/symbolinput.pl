@@ -13,7 +13,7 @@
   "\x95", "\\<tturnstile>",
   "\x96", "\\<langle>",
   "\x97", "\\<rangle>",
-  "\x98", "\\<choice>",
+  "\x98", "\\<orelse>",
   "\x99", "\\<top>",
   "\x9a", "\\<Or>",
   "\x9b", "\\<ocdot>",

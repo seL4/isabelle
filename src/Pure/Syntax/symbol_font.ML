@@ -39,7 +39,7 @@ val enc_vector =
   "tturnstile",
   "langle",
   "rangle",
-  "choice",
+  "orelse",
   "top",
   "Or",
   "ocdot",
