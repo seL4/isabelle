@@ -67,23 +67,49 @@ qed "genPrefix_refl";
 
 Addsimps [genPrefix_refl];
 
+Goal "r<=s ==> genPrefix r <= genPrefix s";
+by (Clarify_tac 1);
+by (etac genPrefix.induct 1);
+by (auto_tac (claset() addIs [genPrefix.append], simpset()));
+qed "genPrefix_mono";
+
 
 (** Transitivity **)
 
-(*Merely a lemma for proving transitivity*)
+(*A lemma for proving genPrefix_trans_O*)
 Goal "ALL zs. (xs @ ys, zs) : genPrefix r --> (xs, zs) : genPrefix r";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed_spec_mp "append_genPrefix";
 
-Goalw [trans_def]
-     "[| (x, y) : genPrefix r; trans r |] \
-\     ==> ALL z. (y, z) : genPrefix r --> (x, z) : genPrefix r";
+(*Lemma proving transitivity and more*)
+Goalw [prefix_def]
+     "(x, y) : genPrefix r \
+\     ==> ALL z. (y,z) : genPrefix s --> (x, z) : genPrefix (s O r)";
 by (etac genPrefix.induct 1);
-by (blast_tac (claset() addDs [append_genPrefix]) 3);
-by (blast_tac (claset() addIs [genPrefix.prepend]) 2);
+  by (blast_tac (claset() addDs [append_genPrefix]) 3);
+ by (blast_tac (claset() addIs [genPrefix.prepend]) 2);
 by (Blast_tac 1);
+qed_spec_mp "genPrefix_trans_O";
+
+Goal "[| (x,y) : genPrefix r;  (y,z) : genPrefix r;  trans r |] \
+\     ==> (x,z) : genPrefix r"; 
+by (rtac (impOfSubs (trans_O_subset RS genPrefix_mono)) 1);
+ by (assume_tac 2);
+by (blast_tac (claset() addIs [genPrefix_trans_O]) 1);
 qed_spec_mp "genPrefix_trans";
+
+Goalw [prefix_def]
+     "[| x<=y;  (y,z) : genPrefix r |] ==> (x, z) : genPrefix r";
+by (stac (R_O_Id RS sym) 1 THEN etac genPrefix_trans_O 1);
+by (assume_tac 1);
+qed_spec_mp "prefix_genPrefix_trans";
+
+Goalw [prefix_def]
+     "[| (x,y) : genPrefix r;  y<=z |] ==> (x,z) : genPrefix r";
+by (stac (Id_O_R RS sym) 1 THEN etac genPrefix_trans_O 1);
+by (assume_tac 1);
+qed_spec_mp "genPrefix_prefix_trans";
 
 Goal "trans r ==> trans (genPrefix r)";
 by (blast_tac (claset() addIs [transI, genPrefix_trans]) 1);
@@ -328,12 +354,6 @@ Goal "!!zs::'a list. xs <= zs --> ys <= zs --> xs <= ys | ys <= xs";
 by (rev_induct_tac "zs" 1);
 by Auto_tac;
 qed_spec_mp "common_prefix_linear";
-
-Goal "r<=s ==> genPrefix r <= genPrefix s";
-by (Clarify_tac 1);
-by (etac genPrefix.induct 1);
-by (auto_tac (claset() addIs [genPrefix.append], simpset()));
-qed "genPrefix_mono";
 
 
 (*** pfixLe, pfixGe: properties inherited from the translations ***)
