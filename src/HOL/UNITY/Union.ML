@@ -30,6 +30,23 @@ qed "reachable_SKIP";
 
 Addsimps [reachable_SKIP];
 
+(** SKIP and safety properties **)
+
+Goalw [constrains_def] "(SKIP : A co B) = (A<=B)";
+by Auto_tac;
+qed "SKIP_in_constrains_iff";
+AddIffs [SKIP_in_constrains_iff];
+
+Goalw [Constrains_def] "(SKIP : A Co B) = (A<=B)";
+by Auto_tac;
+qed "SKIP_in_Constrains_iff";
+AddIffs [SKIP_in_Constrains_iff];
+
+Goalw [stable_def] "SKIP : stable A";
+by Auto_tac;
+qed "SKIP_in_stable";
+AddIffs [SKIP_in_stable, SKIP_in_stable RS stable_imp_Stable];
+
 
 (** Join **)
 
@@ -120,7 +137,7 @@ by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN, Acts_Join]));
 qed "JN_Un";
 
-Goal "i: I ==> (JN i:I. c) = c";
+Goal "(JN i:I. c) = (if I={} then SKIP else c)";
 by (auto_tac (claset() addSIs [program_equalityI],
 	      simpset() addsimps [Acts_JN]));
 qed "JN_constant";
@@ -132,6 +149,7 @@ qed "JN_Join_distrib";
 
 Goal "i : I ==> (JN i:I. F i Join G) = ((JN i:I. F i) Join G)";
 by (asm_simp_tac (simpset() addsimps [JN_Join_distrib, JN_constant]) 1);
+by Auto_tac;
 qed "JN_Join_miniscope";
 
 
