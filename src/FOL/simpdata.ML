@@ -124,9 +124,8 @@ val FOL_ss = IFOL_ss addsimps cla_rews;
 
 (*** case splitting ***)
 
-val meta_iffD = 
-    prove_goal FOL.thy "[| P==Q; Q |] ==> P"
-        (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1])
+qed_goal "meta_iffD" FOL.thy "[| P==Q; Q |] ==> P"
+        (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1]);
 
 fun split_tac splits =
     mk_case_split_tac meta_iffD (map mk_meta_eq splits);
