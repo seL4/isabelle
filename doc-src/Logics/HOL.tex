@@ -209,13 +209,13 @@ example \verb$datatype nat = Z | S nat$ declares a translation between
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{refl}           t = (t::'a)
-\tdx{subst}          [| s=t; P s |] ==> P(t::'a)
-\tdx{ext}            (!!x::'a. (f x::'b) = g x) ==> (\%x.f x) = (\%x.g x)
+\tdx{refl}           t = t
+\tdx{subst}          [| s=t; P s |] ==> P t
+\tdx{ext}            (!!x. f x = g x) ==> (\%x.f x) = (\%x.g x)
 \tdx{impI}           (P ==> Q) ==> P-->Q
 \tdx{mp}             [| P-->Q;  P |] ==> Q
 \tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
-\tdx{selectI}        P(x::'a) ==> P(@x.P x)
+\tdx{selectI}        P(x) ==> P(@x.P x)
 \tdx{True_or_False}  (P=True) | (P=False)
 \end{ttbox}
 \caption{The {\tt HOL} rules} \label{hol-rules}
@@ -233,9 +233,9 @@ example \verb$datatype nat = Z | S nat$ declares a translation between
 \tdx{or_def}     op |     == (\%P Q. !R. (P-->R) --> (Q-->R) --> R)
 \tdx{Ex1_def}    Ex1      == (\%P. ? x. P x & (! y. P y --> y=x))
 
-\tdx{Inv_def}    Inv      == (\%(f::'a=>'b) y. @x. f x=y)
-\tdx{o_def}      op o     == (\%(f::'b=>'c) g (x::'a). f(g x))
-\tdx{if_def}     If P x y == (\%P x y.@z::'a.(P=True --> z=x) & (P=False --> z=y))
+\tdx{Inv_def}    Inv      == (\%f y. @x. f x = y)
+\tdx{o_def}      op o     == (\%f g x. f(g x))
+\tdx{if_def}     If P x y == (\%P x y.@z.(P=True --> z=x) & (P=False --> z=y))
 \tdx{Let_def}    Let s f  == f s
 \end{ttbox}
 \caption{The {\tt HOL} definitions} \label{hol-defs}
@@ -295,10 +295,12 @@ with confusing results.
 \begin{ttbox}
 \tdx{sym}         s=t ==> t=s
 \tdx{trans}       [| r=s; s=t |] ==> r=t
-\tdx{ssubst}      [| t=s; P s |] ==> P(t::'a)
+\tdx{ssubst}      [| t=s; P s |] ==> P t
 \tdx{box_equals}  [| a=b;  a=c;  b=d |] ==> c=d  
-\tdx{arg_cong}    x=y ==> f x=f y
-\tdx{fun_cong}    f=g ==> f x=g x
+\tdx{arg_cong}    x = y ==> f x = f y
+\tdx{fun_cong}    f = g ==> f x = g x
+\tdx{cong}        [| f = g; x = y |] ==> f x = g y
+\tdx{not_sym}     t ~= s ==> s ~= t
 \subcaption{Equality}
 
 \tdx{TrueI}       True 
@@ -322,9 +324,9 @@ with confusing results.
 \tdx{iffD1}       [| P=Q; P |] ==> Q
 \tdx{iffD2}       [| P=Q; Q |] ==> P
 \tdx{iffE}        [| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R
-
-\tdx{eqTrueI}     P ==> P=True 
-\tdx{eqTrueE}     P=True ==> P 
+%
+%\tdx{eqTrueI}     P ==> P=True 
+%\tdx{eqTrueE}     P=True ==> P 
 \subcaption{Logical equivalence}
 
 \end{ttbox}
@@ -334,13 +336,13 @@ with confusing results.
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{allI}      (!!x::'a. P x) ==> !x. P x
-\tdx{spec}      !x::'a.P x ==> P x
+\tdx{allI}      (!!x. P x) ==> !x. P x
+\tdx{spec}      !x.P x ==> P x
 \tdx{allE}      [| !x.P x;  P x ==> R |] ==> R
 \tdx{all_dupE}  [| !x.P x;  [| P x; !x.P x |] ==> R |] ==> R
 
-\tdx{exI}       P x ==> ? x::'a.P x
-\tdx{exE}       [| ? x::'a.P x; !!x. P x ==> Q |] ==> Q
+\tdx{exI}       P x ==> ? x. P x
+\tdx{exE}       [| ? x. P x; !!x. P x ==> Q |] ==> Q
 
 \tdx{ex1I}      [| P a;  !!x. P x ==> x=a |] ==> ?! x. P x
 \tdx{ex1E}      [| ?! x.P x;  !!x. [| P x;  ! y. P y --> y=x |] ==> R 
@@ -361,8 +363,8 @@ with confusing results.
 \tdx{swap}            ~P ==> (~Q ==> P) ==> Q
 \subcaption{Classical logic}
 
-\tdx{if_True}         (if True then x else y) = x
-\tdx{if_False}        (if False then x else y) = y
+%\tdx{if_True}         (if True then x else y) = x
+%\tdx{if_False}        (if False then x else y) = y
 \tdx{if_P}            P ==> (if P then x else y) = x
 \tdx{if_not_P}        ~ P ==> (if P then x else y) = y
 \tdx{expand_if}       P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
@@ -380,6 +382,16 @@ conjunctions, implications, and universal quantifiers.
 Note the equality rules: \tdx{ssubst} performs substitution in
 backward proofs, while \tdx{box_equals} supports reasoning by
 simplifying both sides of an equation.
+
+The following simple tactics are occasionally useful:
+\begin{ttdescription}
+\item[\ttindexbold{strip_tac} $i$] applies {\tt allI} and {\tt impI}
+  repeatedly to remove all outermost universal quantifiers and implications
+  from subgoal $i$.
+\item[\ttindexbold{case_tac} {\tt"}$P${\tt"} $i$] performs case distinction
+  on $P$ for subgoal $i$: the latter is replaced by two identical subgoals
+  with the added assumptions $P$ and $\neg P$, respectively.
+\end{ttdescription}
 
 
 \begin{figure} 
@@ -852,6 +864,17 @@ and simplification.
   down rewriting and is therefore not included by default.
 \end{warn}
 
+In case a rewrite rule cannot be dealt with by the simplifier (either because
+of nontermination or because its left-hand side is too flexible), HOL
+provides {\tt stac}:
+\begin{ttdescription}
+\item[\ttindexbold{stac} $thm$ $i,$] where $thm$ is of the form $lhs = rhs$,
+  replaces in subgoal $i$ instances of $lhs$ by corresponding instances of
+  $rhs$. In case of multiple instances of $lhs$ in subgoal $i$, backtracking
+  may be necessary to select the desired ones.
+\end{ttdescription}
+
+
 \subsection{Classical reasoning}
 
 \HOL\ derives classical introduction rules for $\disj$ and~$\exists$, as
@@ -1018,12 +1041,12 @@ The constructions are fairly standard and can be found in the respective {\tt
 \tdx{inj_Inl}        inj Inl
 \tdx{inj_Inr}        inj Inr
 
-\tdx{sumE}           [| !!x::'a. P(Inl x);  !!y::'b. P(Inr y) |] ==> P s
+\tdx{sumE}           [| !!x. P(Inl x);  !!y. P(Inr y) |] ==> P s
 
 \tdx{sum_case_Inl}   sum_case f g (Inl x) = f x
 \tdx{sum_case_Inr}   sum_case f g (Inr x) = g x
 
-\tdx{surjective_sum} sum_case (\%x::'a. f(Inl x)) (\%y::'b. f(Inr y)) s = f s
+\tdx{surjective_sum} sum_case (\%x. f(Inl x)) (\%y. f(Inr y)) s = f s
 \tdx{expand_sum_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
                                      (! y. s = Inr(y) --> R(g(y))))
 \end{ttbox}
@@ -1253,8 +1276,6 @@ are shown in Fig.\ts\ref{fig:HOL:list-simps}.
 
 
 \subsection{Introducing new types}
-%FIXME: syntax of typedef: subtype -> typedef; name -> id
-%FIXME: typevarlist and infix/mixfix in Ref manual and in sec:datatype
 
 The \HOL-methodology dictates that all extension to a theory should be
 conservative and thus preserve consistency. There are two basic type
