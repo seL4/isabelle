@@ -1174,7 +1174,7 @@ val setup_methods = Method.add_methods
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("intro", Method.thms_ctxt_args intro, "repeatedly apply introduction rules"),
   ("elim", Method.thms_ctxt_args elim, "repeatedly apply elimination rules"),
-  ("clarify", cla_method' clarify_tac, "repeatedly apply safe steps"),
+  ("clarify", cla_method' (CHANGED oo clarify_tac), "repeatedly apply safe steps"),
   ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
   ("slow", cla_method' slow_tac, "classical prover (slow depth-first)"),
   ("best", cla_method' best_tac, "classical prover (best-first)"),
