@@ -61,8 +61,7 @@ AddSIs [ballI];
 AddEs  [ballE];
 AddXDs [bspec];
 (* gives better instantiation for bound: *)
-claset_ref() := claset() addWrapper ("bspec", fn tac2 =>
-			 (dtac bspec THEN' atac) APPEND' tac2);
+claset_ref() := claset() addbefore ("bspec", datac bspec 1);
 
 (*Normally the best argument order: P(x) constrains the choice of x:A*)
 Goalw [Bex_def] "[| P(x);  x:A |] ==> EX x:A. P(x)";
