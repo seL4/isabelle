@@ -168,6 +168,11 @@ Goalw [projecting_def]
 by Auto_tac;
 qed "projecting_weaken";
 
+Goalw [projecting_def]
+     "[| projecting C h F X' X;  U'<=X' |] ==> projecting C h F U' X";
+by Auto_tac;
+qed "projecting_weaken_L";
+
 Goalw [extending_def]
      "[| extending v C h F YA' YA;  extending v C h F YB' YB |] \
 \     ==> extending v C h F (YA' Int YB') (YA Int YB)";
@@ -198,6 +203,11 @@ Goalw [extending_def]
 \     ==> extending w C h F V' V";
 by Auto_tac;
 qed "extending_weaken";
+
+Goalw [extending_def]
+     "[| extending v C h F Y' Y;  Y'<=V' |] ==> extending v C h F V' Y";
+by Auto_tac;
+qed "extending_weaken_L";
 
 Goal "projecting C h F X' UNIV";
 by (simp_tac (simpset() addsimps [projecting_def]) 1);
