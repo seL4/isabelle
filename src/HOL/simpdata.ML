@@ -454,10 +454,7 @@ val simpsetup =
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Classical and Blast = Blast
-  val dest_Trueprop = HOLogic.dest_Trueprop
-  val iff_const = HOLogic.eq_const HOLogic.boolT
-  val not_const = HOLogic.not_const
-  val notE = notE val iffD1 = iffD1 val iffD2 = iffD2
+  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE
   val cla_make_elim = cla_make_elim);
 open Clasimp;
 

@@ -359,9 +359,7 @@ val simpsetup = [fn thy => (simpset_ref_of thy := FOL_ss; thy)];
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Cla and Blast = Blast
-  val dest_Trueprop = FOLogic.dest_Trueprop
-  val iff_const = FOLogic.iff val not_const = FOLogic.not
-  val notE = notE val iffD1 = iffD1 val iffD2 = iffD2
+  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE
   val cla_make_elim = cla_make_elim);
 open Clasimp;
 

@@ -16,9 +16,6 @@ sig
   structure Classical: CLASSICAL
   structure Blast: BLAST
   sharing type Classical.claset = Blast.claset
-  val dest_Trueprop: term -> term
-  val not_const: term
-  val iff_const: term
   val notE: thm
   val iffD1: thm
   val iffD2: thm
@@ -116,39 +113,30 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
 
-(*Takes UNCONDITIONAL theorems of the form A<->B to
+(*Takes (possibly conditional) theorems of the form A<->B to
         the Safe Intr     rule B==>A and
         the Safe Destruct rule A==>B.
   Also ~A goes to the Safe Elim rule A ==> ?R
-  Failing other cases, A is added as a Safe Intr rule*)
+  Failing other cases, A is added as a Safe Intr rule and a warning is issued *)
 local
 
 fun addIff dest elim intro simp ((cs, ss), th) =
-  (case dest_Trueprop (#prop (Thm.rep_thm th)) of
-    con $ _ $ _ =>
-      if con = Data.iff_const then
-        dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
-          [zero_var_indexes (th RS Data.iffD1)])
-      else intro (cs, [th])
-  | con $ A =>
-      if con = Data.not_const then elim (cs, [zero_var_indexes (th RS Data.notE)])
-      else intro (cs, [th])
-  | _ => intro (cs, [th]), simp (ss, [th]))
-  handle TERM _ => error ("iff add: theorem must be unconditional\n" ^ Display.string_of_thm th);
+  (          dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
+                              [zero_var_indexes (th RS Data.iffD1)])
+   handle THM _ => (warning ("iff add: theorem is not an equivalence\n" 
+                  ^ Display.string_of_thm th);
+                    elim (cs, [zero_var_indexes (th RS Data.notE )])
+   handle THM _ => intro (cs, [th])),
+   simp (ss, [th]));
 
 fun delIff ((cs, ss), th) =
-  (case dest_Trueprop (#prop (Thm.rep_thm th)) of
-    con $ _ $ _ =>
-      if con = Data.iff_const then
-        Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
-          Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
-      else Classical.delrules (cs, [th])
-  | con $ A =>
-      if con = Data.not_const then Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
-      else Classical.delrules (cs, [th])
-  | _ => Classical.delrules (cs, [th]), Simplifier.delsimps (ss, [th]))
-  handle TERM _ =>
-    (warning ("iff del: ignoring conditional theorem\n" ^ string_of_thm th); (cs, ss));
+(                Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
+                      Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
+ handle THM _ => (warning ("iff del: theorem is not an equivalence\n" 
+                  ^ Display.string_of_thm th);
+                 Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
+ handle THM _ => Classical.delrules (cs, [th])), 
+ Simplifier.delsimps (ss, [th]));
 
 fun store_clasimp (cs, ss) =
   (Classical.claset_ref () := cs; Simplifier.simpset_ref () := ss);
