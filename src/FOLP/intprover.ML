@@ -40,13 +40,13 @@ val safe_brls = sort lessb
       (false,impI), (false,notI), (false,allI),
       (true,conjE), (true,exE),
       (false,conjI), (true,conj_impE),
-      (true,disj_impE), (true,ex_impE),
-      (true,disjE), (false,iffI), (true,iffE), (true,not_to_imp) ];
+      (true,disj_impE), (true,disjE), 
+      (false,iffI), (true,iffE), (true,not_to_imp) ];
 
 val haz_brls =
     [ (false,disjI1), (false,disjI2), (false,exI), 
       (true,allE), (true,not_impE), (true,imp_impE), (true,iff_impE),
-      (true,all_impE), (true,impE) ];
+      (true,all_impE), (true,ex_impE), (true,impE) ];
 
 (*0 subgoals vs 1 or more: the p in safep is for positive*)
 val (safe0_brls, safep_brls) =
