@@ -8,7 +8,7 @@ basis for theory ToyList in the documentation.
 *)
 
 theory PreList =
-  Wellfounded_Relations + NatSimprocs + Recdef + Relation_Power:
+  Wellfounded_Relations + Presburger + Recdef + Relation_Power:
 
 (*belongs to theory Divides*)
 declare dvdI [intro?]  dvdE [elim?]  dvd_trans [trans]
