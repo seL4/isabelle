@@ -699,10 +699,10 @@ proof -
     thus "(x,z) \<in> r*" .
   next
     fix x' x y
-    assume step: "(x',x) \<in> r" and
+    assume 1: "(x',x) \<in> r" and
            IH: "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" and
            B:  "(y,z) \<in> r*"
-    from step IH[OF B] show "(x',z) \<in> r*" by(rule rtc.step)
+    from 1 IH[OF B] show "(x',z) \<in> r*" by(rule rtc.step)
   qed
 qed
 
