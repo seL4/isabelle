@@ -1,7 +1,6 @@
 (*  Title:      Provers/simplifier.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   1993  TU Munich
+    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Generic simplifier, suitable for most logics.
 *)
@@ -17,7 +16,7 @@ sig
   type simproc
   val mk_simproc: string -> cterm list -> (Sign.sg -> term -> thm option) -> simproc
   val conv_prover: (term * term -> term) -> thm -> (thm -> thm)
-    -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm	(* FIXME move?, rename? *)
+    -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm
   type simpset
   val empty_ss: simpset
   val rep_ss: simpset ->
@@ -58,6 +57,10 @@ sig
   val           Asm_simp_tac:            int -> tactic
   val          Full_simp_tac:            int -> tactic
   val      Asm_full_simp_tac:            int -> tactic
+  val          simplify: simpset -> thm -> thm
+  val      asm_simplify: simpset -> thm -> thm
+  val     full_simplify: simpset -> thm -> thm
+  val asm_full_simplify: simpset -> thm -> thm
 end;
 
 
@@ -72,7 +75,9 @@ struct
 datatype simproc =
   Simproc of string * cterm list * (Sign.sg -> term -> thm option) * stamp;
 
-fun mk_simproc name lhss proc = Simproc (name, lhss, proc, stamp ());
+fun mk_simproc name lhss proc =
+  Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
+
 fun rep_simproc (Simproc args) = args;
 
 
@@ -224,7 +229,8 @@ fun merge_ss
     subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
 
 
-(* the current simpset *)
+
+(** the current simpset **)
 
 val simpset = ref empty_ss;
 
@@ -235,26 +241,29 @@ fun Addsimprocs procs = (simpset := ! simpset addsimprocs procs);
 fun Delsimprocs procs = (simpset := ! simpset delsimprocs procs);
 
 
+
 (** simplification tactics **)
 
 fun NEWSUBGOALS tac tacf st0 =
   st0 |> (tac THEN (fn st1 => tacf (nprems_of st1 - nprems_of st0) st1));
 
+fun solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac) mss =
+  let
+    val ss =
+      make_ss (mss, subgoal_tac, loop_tac, unsafe_finish_tac, unsafe_finish_tac);
+    val solve1_tac =
+      NEWSUBGOALS (subgoal_tac ss 1) (fn n => if n < 0 then all_tac else no_tac);
+  in DEPTH_SOLVE solve1_tac end;
+
+
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 fun basic_gen_simp_tac mode =
   fn (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) =>
     let
-      fun solve_all_tac mss =
-        let
-          val ss =
-            make_ss (mss, subgoal_tac, loop_tac, unsafe_finish_tac, unsafe_finish_tac);
-          val solve1_tac =
-            NEWSUBGOALS (subgoal_tac ss 1) (fn n => if n < 0 then all_tac else no_tac)
-        in DEPTH_SOLVE solve1_tac end;
-
       fun simp_loop_tac i thm =
-        (asm_rewrite_goal_tac mode solve_all_tac mss i THEN
-          (finish_tac (prems_of_mss mss) i ORELSE looper i)) thm
+        (asm_rewrite_goal_tac mode
+          (solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac)) mss i
+        THEN (finish_tac (prems_of_mss mss) i ORELSE looper i)) thm
       and allsimp i n = EVERY (map (fn j => simp_loop_tac (i + j)) (n downto 0))
       and looper i = TRY (NEWSUBGOALS (loop_tac i) (allsimp i));
   in simp_loop_tac end;
@@ -275,5 +284,23 @@ fun          Simp_tac i =          simp_tac (! simpset) i;
 fun      Asm_simp_tac i =      asm_simp_tac (! simpset) i;
 fun     Full_simp_tac i =     full_simp_tac (! simpset) i;
 fun Asm_full_simp_tac i = asm_full_simp_tac (! simpset) i;
+
+
+
+(** simplification meta rules **)
+
+fun simp mode (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) thm =
+  let
+    val tacf = solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+    fun prover m th = apsome fst (Sequence.pull (tacf m th));
+  in
+    Drule.rewrite_thm mode prover mss thm
+  end;
+
+val          simplify = simp (false, false);
+val      asm_simplify = simp (false, true);
+val     full_simplify = simp (true, false);
+val asm_full_simplify = simp (true, true);
+
 
 end;
