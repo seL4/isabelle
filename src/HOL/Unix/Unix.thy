@@ -1064,7 +1064,7 @@ proof -
         with tr uid inv4 changed obtain file where
             "root' = update (path_of x) (Some file) root"
           by cases auto
-        with parent lookup have "lookup root' path = Some (Env att (dir(y\<mapsto>file)))"
+        with lookup parent have "lookup root' path = Some (Env att (dir(y\<mapsto>file)))"
           by (simp only: update_append_some update_cons_nil_env)
         moreover have "dir(y\<mapsto>file) \<noteq> empty" by simp
         ultimately show ?thesis ..
