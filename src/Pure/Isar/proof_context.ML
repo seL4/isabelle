@@ -565,6 +565,8 @@ val cert_prop_pats = map o gen_cert cert_prop_sg true;
 
 (* declare terms *)
 
+local
+
 val ins_types = foldl_aterms
   (fn (types, Free (x, T)) => Vartab.update (((x, ~1), T), types)
     | (types, Var v) => Vartab.update (v, types)
@@ -588,17 +590,24 @@ fun ins_skolem def_ty = foldr
 fun map_defaults f = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
   (thy, data, asms, binds, thms, cases, f defs));
 
-fun declare (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
+fun declare_syn (ctxt, t) =
   ctxt
   |> map_defaults (fn (types, sorts, used) => (ins_types (types, t), sorts, used))
-  |> map_defaults (fn (types, sorts, used) => (types, ins_sorts (sorts, t), used))
+  |> map_defaults (fn (types, sorts, used) => (types, ins_sorts (sorts, t), used));
+
+fun declare_occ (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
+  declare_syn (ctxt, t)
   |> map_defaults (fn (types, sorts, used) => (types, sorts, ins_used (used, t)))
   |> map_defaults (fn (types, sorts, used) =>
       (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, used));
 
+in
 
-fun declare_term t ctxt = declare (ctxt, t);
-fun declare_terms ts ctxt = foldl declare (ctxt, ts);
+fun declare_term t ctxt = declare_occ (ctxt, t);
+fun declare_terms ts ctxt = foldl declare_occ (ctxt, ts);
+fun predeclare_terms ts ctxt = foldl declare_syn (ctxt, ts);
+
+end;
 
 
 
@@ -946,6 +955,8 @@ end;
 
 (* variables *)
 
+local
+
 fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
   let
     val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem false ctxt) xs) of
@@ -953,11 +964,15 @@ fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
 
     val opt_T = apsome (prep_typ ctxt) raw_T;
     val T = if_none opt_T TypeInfer.logicT;
-    val ctxt' = ctxt |> declare_terms (map (fn x => Free (x, T)) xs);
+    val ctxt' = ctxt |> predeclare_terms (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
+
+in
 
 val read_vars = prep_vars read_typ;
 val cert_vars = prep_vars cert_typ;
+
+end;
 
 
 (* fix *)
