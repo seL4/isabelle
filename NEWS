@@ -16,6 +16,11 @@ Isabelle NEWS -- history user-relevant changes
 definitions);
 
 
+*** Isar ***
+
+* HOL: default proof step now includes 'intro_classes';
+
+
 *** HOL ***
 
 * HOL/Library: a collection of generic theories to be used together
