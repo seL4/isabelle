@@ -87,7 +87,7 @@ signature BASIC_THM =
   val trivial           : cterm -> thm
   val class_triv        : Sign.sg -> class -> thm
   val varifyT           : thm -> thm
-  val varifyT'          : string list -> thm -> thm
+  val varifyT'          : string list -> thm -> thm * (string * indexname) list
   val freezeT           : thm -> thm
   val dest_state        : thm * int ->
     (term * term) list * term list * term * term
@@ -989,20 +989,22 @@ fun class_triv sign c =
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
-  let val tfrees = foldr add_term_tfree_names (hyps,fixed)
+  let
+    val tfrees = foldr add_term_tfree_names (hyps, fixed);
+    val (prop', al) = Type.varify (prop, tfrees);
   in let val thm = (*no fix_shyps*)
     Thm{sign_ref = sign_ref, 
         der = Pt.infer_derivs' (Pt.varify_proof prop tfrees) der,
         maxidx = Int.max(0,maxidx), 
         shyps = shyps, 
         hyps = hyps,
-        prop = Type.varify(prop,tfrees)}
-     in nodup_vars thm "varifyT" end
+        prop = prop'}
+     in (nodup_vars thm "varifyT", al) end
 (* this nodup_vars check can be removed if thms are guaranteed not to contain
 duplicate TVars with different sorts *)
   end;
 
-val varifyT = varifyT' [];
+val varifyT = #1 o varifyT' [];
 
 (* Replace all TVars by new TFrees *)
 fun freezeT(Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
