@@ -12,6 +12,7 @@ sig
   val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
+  val tcs_of: theory -> xstring -> term list
   val simp_add_global: theory attribute
   val simp_del_global: theory attribute
   val cong_add_global: theory attribute
@@ -136,6 +137,14 @@ fun put_recdef name info thy =
 
 val get_global_hints = #2 o GlobalRecdefData.get;
 val map_global_hints = GlobalRecdefData.map o apsnd;
+
+
+fun tcs_of thy raw_name =
+  let val name = Sign.intern_const (Theory.sign_of thy) raw_name in
+    (case get_recdef thy name of
+      None => error ("No recdef definition of constant: " ^ quote name)
+    | Some {tcs, ...} => tcs)
+  end;
 
 
 (* proof data kind 'HOL/recdef' *)
