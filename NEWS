@@ -20,15 +20,21 @@ New in this Isabelle release
 *** Isar ***
 
 * Tactic emulation methods ?rule_tac, cut_tac, subgoal_tac and thin_tac:
-
   - Now understand static (Isar) contexts.  As a consequence, users of Isar
     locales are no longer forced to write Isar proof scripts.
     For details see Isar Reference Manual, paragraph 4.3.2: Further tactic
     emulations.
   - INCOMPATIBILITY: names of variables to be instantiated may no
-    longer be enclosed in quotes.  Instead, precede variable names containing
-    dots with `?'.  This is consistent with the instantiation attribute
-    "where".
+    longer be enclosed in quotes.  Instead, precede variable name with `?'.
+    This is consistent with the instantiation attribute "where".
+
+* Locales:
+  - Goal statements involving the context element "includes" no longer
+    generate theorems with internal delta predicates (those ending on
+    "_axioms") in the premise.
+    Resolve particular premise with <locale>.intro to obtain old form.
+  - Fixed bug in type inference ("unify_frozen") that prevented mix of target
+    specification and "includes" elements in goal statement.
 
 * HOL: Tactic emulation methods induct_tac and case_tac understand static
   (Isar) contexts.
