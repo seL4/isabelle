@@ -2174,7 +2174,7 @@ by (auto_tac (claset() addSIs [FreeUltrafilterNat_HInfinite],
 by (rtac bexI 1);
 by (rtac lemma_hyprel_refl 2);
 by Auto_tac;
-by (simp_tac (simpset() addsimps [real_of_nat_Suc, real_diff_less_eq RS sym,
+by (simp_tac (simpset() addsimps [real_of_nat_Suc, diff_less_eq RS sym,
                                   FreeUltrafilterNat_omega]) 1);
 qed "HInfinite_omega";
 Addsimps [HInfinite_omega];
@@ -2218,7 +2218,7 @@ qed "real_of_nat_less_inverse_iff";
 Goal "0 < u ==> finite {n. u < inverse(real(Suc n))}";
 by (asm_simp_tac (simpset() addsimps [real_of_nat_less_inverse_iff]) 1);
 by (asm_simp_tac (simpset() addsimps [real_of_nat_Suc,
-                         real_less_diff_eq RS sym]) 1);
+                         less_diff_eq RS sym]) 1);
 by (rtac finite_real_of_nat_less_real 1);
 qed "finite_inverse_real_of_posnat_gt_real";
 
@@ -2246,7 +2246,7 @@ Goal "finite {n::nat. u = inverse(real(Suc n))}";
 by (asm_simp_tac (simpset() addsimps [real_of_nat_inverse_eq_iff]) 1);
 by (cut_inst_tac [("x","inverse u - 1")] lemma_finite_omega_set 1);
 by (asm_full_simp_tac (simpset() addsimps [real_of_nat_Suc,
-                         real_diff_eq_eq RS sym, eq_commute]) 1);
+                         diff_eq_eq RS sym, eq_commute]) 1);
 qed "lemma_finite_omega_set2";
 
 Goal "0 < u ==> finite {n. u <= inverse(real(Suc n))}";

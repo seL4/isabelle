@@ -503,7 +503,7 @@ by (res_inst_tac [("B","{n. real(Suc n) < abs(X 0)}")] finite_subset 1);
 by (Force_tac 1); 
 by (rtac (lemma_finite_NSBseq RS finite_subset) 2);
 by (auto_tac (claset() addIs [finite_real_of_nat_less_real], 
-              simpset() addsimps [real_of_nat_Suc, real_less_diff_eq RS sym]));
+              simpset() addsimps [real_of_nat_Suc, less_diff_eq RS sym]));
 val lemma_finite_NSBseq2 = result();
 
 Goal "ALL N. real(Suc N) < abs (X (f N)) \
@@ -1130,7 +1130,7 @@ by (forw_inst_tac [("x","f n")] real_inverse_gt_0 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
 by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD2], 
-              simpset() delsimps [real_inverse_inverse]));
+            simpset() delsimps [thm"Ring_and_Field.inverse_inverse_eq"]));
 qed "LIMSEQ_inverse_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \

@@ -50,7 +50,7 @@ axclass division_by_zero \<subseteq> zero, inverse
   divide_zero [simp]: "a / 0 = 0"
 
 
-subsection {* Derived rules for addition *}
+subsection {* Derived Rules for Addition *}
 
 lemma right_zero [simp]: "a + 0 = (a::'a::semiring)"
 proof -
@@ -81,9 +81,6 @@ next
   thus "a - b = 0" by (simp add: diff_minus)
 qed
 
-lemma diff_self [simp]: "a - (a::'a::ring) = 0"
-  by (simp add: diff_minus)
-
 lemma add_left_cancel [simp]:
      "(a + b = a + c) = (b = (c::'a::ring))"
 proof
@@ -113,6 +110,15 @@ done
 
 lemma minus_zero [simp]: "- 0 = (0::'a::ring)"
 by (simp add: equals_zero_I)
+
+lemma diff_self [simp]: "a - (a::'a::ring) = 0"
+  by (simp add: diff_minus)
+
+lemma diff_0 [simp]: "(0::'a::ring) - a = -a"
+by (simp add: diff_minus)
+
+lemma diff_0_right [simp]: "a - (0::'a::ring) = a" 
+by (simp add: diff_minus)
 
 lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ring))" 
   proof 
@@ -147,7 +153,7 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 lemma right_inverse [simp]:
-      assumes not0: "a ~= 0" shows "a * inverse (a::'a::field) = 1"
+      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
 proof -
   have "a * inverse a = inverse a * a" by (simp add: mult_ac)
   also have "... = 1" using not0 by simp
@@ -215,8 +221,11 @@ lemma right_diff_distrib: "a * (b - c) = a * b - a * (c::'a::ring)"
 by (simp add: right_distrib diff_minus 
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
 
+lemma minus_diff_eq [simp]: "- (a - b) = b - (a::'a::ring)"
+by (simp add: diff_minus add_commute) 
 
-subsection {* Ordering rules *}
+
+subsection {* Ordering Rules for Addition *}
 
 lemma add_right_mono: "a \<le> (b::'a::ordered_semiring) ==> a + c \<le> b + c"
 by (simp add: add_commute [of _ c] add_left_mono)
@@ -240,6 +249,47 @@ lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::ordered_ring)"
 apply (erule add_strict_right_mono [THEN order_less_trans])
 apply (erule add_strict_left_mono)
 done
+
+lemma add_less_imp_less_left:
+      assumes less: "c + a < c + b"  shows "a < (b::'a::ordered_ring)"
+  proof -
+  have "-c + (c + a) < -c + (c + b)"
+    by (rule add_strict_left_mono [OF less])
+  thus "a < b" by (simp add: add_assoc [symmetric])
+  qed
+
+lemma add_less_imp_less_right:
+      "a + c < b + c ==> a < (b::'a::ordered_ring)"
+apply (rule add_less_imp_less_left [of c])
+apply (simp add: add_commute)  
+done
+
+lemma add_less_cancel_left [simp]:
+    "(c+a < c+b) = (a < (b::'a::ordered_ring))"
+by (blast intro: add_less_imp_less_left add_strict_left_mono) 
+
+lemma add_less_cancel_right [simp]:
+    "(a+c < b+c) = (a < (b::'a::ordered_ring))"
+by (blast intro: add_less_imp_less_right add_strict_right_mono)
+
+lemma add_le_cancel_left [simp]:
+    "(c+a \<le> c+b) = (a \<le> (b::'a::ordered_ring))"
+by (simp add: linorder_not_less [symmetric]) 
+
+lemma add_le_cancel_right [simp]:
+    "(a+c \<le> b+c) = (a \<le> (b::'a::ordered_ring))"
+by (simp add: linorder_not_less [symmetric]) 
+
+lemma add_le_imp_le_left:
+      "c + a \<le> c + b ==> a \<le> (b::'a::ordered_ring)"
+by simp
+
+lemma add_le_imp_le_right:
+      "a + c \<le> b + c ==> a \<le> (b::'a::ordered_ring)"
+by simp
+
+
+subsection {* Ordering Rules for Unary Minus *}
 
 lemma le_imp_neg_le:
       assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
@@ -279,6 +329,67 @@ by (subst neg_less_iff_less [symmetric], simp)
 
 lemma neg_0_less_iff_less [simp]: "(0 < -a) = (a < (0::'a::ordered_ring))"
 by (subst neg_less_iff_less [symmetric], simp)
+
+
+subsection{*Subtraction Laws*}
+
+lemma add_diff_eq: "a + (b - c) = (a + b) - (c::'a::ring)"
+by (simp add: diff_minus add_ac)
+
+lemma diff_add_eq: "(a - b) + c = (a + c) - (b::'a::ring)"
+by (simp add: diff_minus add_ac)
+
+lemma diff_eq_eq: "(a-b = c) = (a = c + (b::'a::ring))"
+by (auto simp add: diff_minus add_assoc)
+
+lemma eq_diff_eq: "(a = c-b) = (a + (b::'a::ring) = c)"
+by (auto simp add: diff_minus add_assoc)
+
+lemma diff_diff_eq: "(a - b) - c = a - (b + (c::'a::ring))"
+by (simp add: diff_minus add_ac)
+
+lemma diff_diff_eq2: "a - (b - c) = (a + c) - (b::'a::ring)"
+by (simp add: diff_minus add_ac)
+
+text{*Further subtraction laws for ordered rings*}
+
+lemma less_eq_diff: "(a < b) = (a - b < (0::'a::ordered_ring))"
+proof -
+  have  "(a < b) = (a + (- b) < b + (-b))"  
+    by (simp only: add_less_cancel_right)
+  also have "... =  (a - b < 0)" by (simp add: diff_minus)
+  finally show ?thesis .
+qed
+
+lemma diff_less_eq: "(a-b < c) = (a < c + (b::'a::ordered_ring))"
+apply (subst less_eq_diff)
+apply (rule less_eq_diff [of _ c, THEN ssubst])
+apply (simp add: diff_minus add_ac)
+done
+
+lemma less_diff_eq: "(a < c-b) = (a + (b::'a::ordered_ring) < c)"
+apply (subst less_eq_diff)
+apply (rule less_eq_diff [of _ "c-b", THEN ssubst])
+apply (simp add: diff_minus add_ac)
+done
+
+lemma diff_le_eq: "(a-b \<le> c) = (a \<le> c + (b::'a::ordered_ring))"
+by (simp add: linorder_not_less [symmetric] less_diff_eq)
+
+lemma le_diff_eq: "(a \<le> c-b) = (a + (b::'a::ordered_ring) \<le> c)"
+by (simp add: linorder_not_less [symmetric] diff_less_eq)
+
+text{*This list of rewrites simplifies (in)equalities by bringing subtractions
+  to the top and then moving negative terms to the other side.
+  Use with @{text add_ac}*}
+lemmas compare_rls =
+       diff_minus [symmetric]
+       add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
+       diff_less_eq less_diff_eq diff_le_eq le_diff_eq
+       diff_eq_eq eq_diff_eq
+
+
+subsection {* Ordering Rules for Multiplication *}
 
 lemma mult_strict_right_mono:
      "[|a < b; 0 < c|] ==> a * c < b * (c::'a::ordered_semiring)"
@@ -484,6 +595,21 @@ by (simp add: abs_if linorder_neq_iff)
 
 subsection {* Fields *}
 
+text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
+      of an ordering.*}
+lemma field_mult_eq_0_iff: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
+  proof cases
+    assume "a=0" thus ?thesis by simp
+  next
+    assume anz [simp]: "a\<noteq>0"
+    thus ?thesis
+    proof auto
+      assume "a * b = 0"
+      hence "inverse a * (a * b) = 0" by simp
+      thus "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])
+    qed
+  qed
+
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
       assumes cnz: "c \<noteq> (0::'a::field)"
@@ -577,6 +703,67 @@ done
 lemma inverse_eq_iff_eq [simp]:
      "(inverse a = inverse b) = (a = (b::'a::{field,division_by_zero}))"
 by (force dest!: inverse_eq_imp_eq) 
+
+lemma nonzero_inverse_inverse_eq:
+      assumes [simp]: "a \<noteq> 0"  shows "inverse(inverse (a::'a::field)) = a"
+  proof -
+  have "(inverse (inverse a) * inverse a) * a = a" 
+    by (simp add: nonzero_imp_inverse_nonzero)
+  thus ?thesis
+    by (simp add: mult_assoc)
+  qed
+
+lemma inverse_inverse_eq [simp]:
+     "inverse(inverse (a::'a::{field,division_by_zero})) = a"
+  proof cases
+    assume "a=0" thus ?thesis by simp
+  next
+    assume "a\<noteq>0" 
+    thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
+  qed
+
+lemma inverse_1 [simp]: "inverse 1 = (1::'a::field)"
+  proof -
+  have "inverse 1 * 1 = (1::'a::field)" 
+    by (rule left_inverse [OF zero_neq_one [symmetric]])
+  thus ?thesis  by simp
+  qed
+
+lemma nonzero_inverse_mult_distrib: 
+      assumes anz: "a \<noteq> 0"
+          and bnz: "b \<noteq> 0"
+      shows "inverse(a*b) = inverse(b) * inverse(a::'a::field)"
+  proof -
+  have "inverse(a*b) * (a * b) * inverse(b) = inverse(b)" 
+    by (simp add: field_mult_eq_0_iff anz bnz)
+  hence "inverse(a*b) * a = inverse(b)" 
+    by (simp add: mult_assoc bnz)
+  hence "inverse(a*b) * a * inverse(a) = inverse(b) * inverse(a)" 
+    by simp
+  thus ?thesis
+    by (simp add: mult_assoc anz)
+  qed
+
+text{*This version builds in division by zero while also re-orienting
+      the right-hand side.*}
+lemma inverse_mult_distrib [simp]:
+     "inverse(a*b) = inverse(a) * inverse(b::'a::{field,division_by_zero})"
+  proof cases
+    assume "a \<noteq> 0 & b \<noteq> 0" 
+    thus ?thesis  by (simp add: nonzero_inverse_mult_distrib mult_commute)
+  next
+    assume "~ (a \<noteq> 0 & b \<noteq> 0)" 
+    thus ?thesis  by force
+  qed
+
+text{*There is no slick version using division by zero.*}
+lemma inverse_add:
+     "[|a \<noteq> 0;  b \<noteq> 0|]
+      ==> inverse a + inverse b = (a+b) * inverse a * inverse (b::'a::field)"
+apply (simp add: left_distrib mult_assoc)
+apply (simp add: mult_commute [of "inverse a"]) 
+apply (simp add: mult_assoc [symmetric] add_commute)
+done
 
 
 subsection {* Ordered Fields *}

@@ -161,7 +161,7 @@ by (subgoal_tac "isUb (UNIV:: real set) ({z. EX x: S. z = x + (-X) + 1} \
 by (dres_inst_tac [("y","(y + (- X) + 1)")] isLub_le_isUb 2 
       THEN assume_tac 2);
 by (full_simp_tac
-    (simpset() addsimps [real_diff_def, real_diff_le_eq RS sym] @
+    (simpset() addsimps [real_diff_def, diff_le_eq RS sym] @
                         real_add_ac) 2);
 by (rtac (setleI RS isUbI) 1);
 by (Step_tac 1);
@@ -217,7 +217,7 @@ by (asm_full_simp_tac (simpset() addsimps
                        [real_of_nat_Suc, real_add_mult_distrib2]) 1);
 by (blast_tac (claset() addIs [isLubD2]) 2);
 by (asm_full_simp_tac
-    (simpset() addsimps [real_le_diff_eq RS sym, real_diff_def]) 1);
+    (simpset() addsimps [le_diff_eq RS sym, real_diff_def]) 1);
 by (subgoal_tac "isUb (UNIV::real set) \
 \                  {z. EX n. z = x*(real (Suc n))} (t + (-x))" 1);
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);

@@ -382,7 +382,7 @@ qed "lemma_finite_omega_set";
 Goalw [omega_def,hypreal_of_real_def] 
       "~ (EX x. hypreal_of_real x = omega)";
 by (auto_tac (claset(),
-    simpset() addsimps [real_of_nat_Suc, real_diff_eq_eq RS sym, 
+    simpset() addsimps [real_of_nat_Suc, diff_eq_eq RS sym, 
                     lemma_finite_omega_set RS FreeUltrafilterNat_finite]));
 qed "not_ex_hypreal_of_real_eq_omega";
 

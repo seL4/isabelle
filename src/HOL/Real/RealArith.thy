@@ -181,7 +181,8 @@ declare abs_add_one_not_less_self [simp]
  
 (* used in vector theory *)
 lemma abs_triangle_ineq_three: "abs(w + x + (y::real)) <= abs(w) + abs(x) + abs(y)"
-by (auto intro!: abs_triangle_ineq [THEN order_trans] real_add_left_le_mono1 simp add: real_add_assoc)
+by (auto intro!: abs_triangle_ineq [THEN order_trans] real_add_left_mono
+                 simp add: real_add_assoc)
 
 lemma abs_diff_less_imp_gt_zero: "abs(x - y) < y ==> (0::real) < y"
 apply (unfold real_abs_def)

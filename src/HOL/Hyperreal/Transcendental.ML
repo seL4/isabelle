@@ -680,7 +680,7 @@ by (res_inst_tac [("g","%h. suminf(%n. ((c(n) * ((x + h) ^ n)) - \
 by (asm_full_simp_tac (simpset() addsimps [LIM_def]) 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","abs K - abs x")] exI 1);
-by (auto_tac (claset(),simpset() addsimps [real_less_diff_eq]));
+by (auto_tac (claset(),simpset() addsimps [less_diff_eq]));
 by (dtac (abs_triangle_ineq RS order_le_less_trans) 1);
 by (res_inst_tac [("y","0")] order_le_less_trans 1);
 by Auto_tac;
@@ -703,7 +703,7 @@ by (res_inst_tac [("g","%h. suminf (%n. c(n) * (((((x + h) ^ n) - \
 by (asm_full_simp_tac (simpset() addsimps [LIM_def]) 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","abs K - abs x")] exI 1);
-by (auto_tac (claset(),simpset() addsimps [real_less_diff_eq]));
+by (auto_tac (claset(),simpset() addsimps [less_diff_eq]));
 by (dtac (abs_triangle_ineq RS order_le_less_trans) 1);
 by (res_inst_tac [("y","0")] order_le_less_trans 1);
 by Auto_tac;
@@ -1097,9 +1097,9 @@ AddIffs [exp_inj_iff];
 
 Goal "1 <= y ==> EX x. 0 <= x & x <= y - 1 & exp(x) = y";
 by (rtac IVT 1);
-by (auto_tac (claset() addIs [DERIV_exp RS DERIV_isCont],simpset() 
-     addsimps [real_le_diff_eq]));
-by (dtac (CLAIM_SIMP "x <= y ==> (0::real) <= y - x" [real_le_diff_eq]) 1);
+by (auto_tac (claset() addIs [DERIV_exp RS DERIV_isCont],
+              simpset() addsimps [le_diff_eq]));
+by (dtac (CLAIM_SIMP "x <= y ==> (0::real) <= y - x" [le_diff_eq]) 1);
 by (dtac exp_ge_add_one_self 1);
 by (Asm_full_simp_tac 1);
 qed "lemma_exp_total";
@@ -2051,10 +2051,13 @@ Addsimps [tan_periodic];
 Goalw [tan_def,real_divide_def] 
       "[| cos x ~= 0; cos y ~= 0 |] \
 \       ==> 1 - tan(x)*tan(y) = cos (x + y)/(cos x * cos y)";
-by (auto_tac (claset(),simpset() addsimps [real_inverse_distrib RS sym] 
-    @ real_mult_ac));
+by (auto_tac (claset(),
+   simpset() delsimps [thm"Ring_and_Field.inverse_mult_distrib"]
+	     addsimps [real_inverse_distrib RS sym] @ real_mult_ac));
 by (res_inst_tac [("c1","cos x * cos y")] (real_mult_right_cancel RS subst) 1);
-by (auto_tac (claset(), simpset() addsimps [real_mult_assoc, 
+by (auto_tac (claset(), 
+    simpset() delsimps [thm"Ring_and_Field.inverse_mult_distrib"]
+	      addsimps [real_mult_assoc, 
     real_mult_not_zero,real_diff_mult_distrib,cos_add]));
 val lemma_tan_add1 = result();
 Addsimps [lemma_tan_add1];

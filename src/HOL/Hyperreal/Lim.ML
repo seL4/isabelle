@@ -1791,7 +1791,7 @@ by (REPEAT(Blast_tac 2));
 by (subgoal_tac "\\<forall>x. a \\<le> x & x \\<le> b --> isCont (%x. inverse(M - f x)) x" 1);
 by Safe_tac;
 by (EVERY[rtac isCont_inverse 2, rtac isCont_diff 2, rtac notI 4]);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [real_diff_eq_eq])));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [diff_eq_eq])));
 by (Blast_tac 2);
 by (subgoal_tac 
     "\\<exists>k. \\<forall>x. a \\<le> x & x \\<le> b --> (%x. inverse(M - (f x))) x \\<le> k" 1);
@@ -1800,7 +1800,7 @@ by Safe_tac;
 by (subgoal_tac "\\<forall>x. a \\<le> x & x \\<le> b --> 0 < inverse(M - f(x))" 1);
 by (Asm_full_simp_tac 1); 
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [real_less_diff_eq]) 2);
+by (asm_full_simp_tac (simpset() addsimps [less_diff_eq]) 2);
 by (subgoal_tac 
     "\\<forall>x. a \\<le> x & x \\<le> b --> (%x. inverse(M - (f x))) x < (k + 1)" 1);
 by Safe_tac;
@@ -1815,7 +1815,7 @@ by (ALLGOALS Asm_full_simp_tac);
 by (dres_inst_tac [("P", "%N. N<M --> ?Q N"),
                    ("x","M - inverse(k + 1)")] spec 1);
 by (Step_tac 1 THEN dtac real_leI 1);
-by (dtac (real_le_diff_eq RS iffD1) 1);
+by (dtac (le_diff_eq RS iffD1) 1);
 by (REPEAT(dres_inst_tac [("x","a")] spec 1));
 by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac 
@@ -1956,7 +1956,7 @@ by Safe_tac;
 by (res_inst_tac [("x","x - a")] exI 1);
 by (res_inst_tac [("x","b - x")] exI 2);
 by Auto_tac;
-by (auto_tac (claset(),simpset() addsimps [real_less_diff_eq]));
+by (auto_tac (claset(),simpset() addsimps [less_diff_eq]));
 qed "lemma_interval_lt";
 
 Goal "[| a < x;  x < b |] ==> \
@@ -2098,7 +2098,7 @@ Goal "[| a < b; \
 by (dtac MVT 1 THEN assume_tac 1);
 by (blast_tac (claset() addIs [differentiableI]) 1);
 by (auto_tac (claset() addSDs [DERIV_unique],simpset() 
-    addsimps [real_diff_eq_eq]));
+    addsimps [diff_eq_eq]));
 qed "DERIV_isconst_end";
 
 Goal "[| a < b; \
