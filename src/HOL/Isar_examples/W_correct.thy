@@ -113,7 +113,7 @@ proof -;
       fix a s t m n;
       assume "Ok (s, t, m) = W (Abs e) a n";
       thus "$ s a |- Abs e :: t";
-	obtain t' in "t = s n -> t'" "Ok (s, t', m) = W e (TVar n # a) (Suc n)";
+	obtain t' where "t = s n -> t'" "Ok (s, t', m) = W e (TVar n # a) (Suc n)";
 	  by (rule rev_mp) simp;
 	with hyp; show ?thesis; by (force intro: has_type.AbsI);
       qed;
@@ -124,7 +124,7 @@ proof -;
     proof (intro allI impI);
       fix a s t m n; assume "Ok (s, t, m) = W (App e1 e2) a n";
       thus "$ s a |- App e1 e2 :: t";
-	obtain s1 t1 n1 s2 t2 n2 u in
+	obtain s1 t1 n1 s2 t2 n2 u where
           s: "s = $ u o $ s2 o s1"
           and t: "t = u n2"
           and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"

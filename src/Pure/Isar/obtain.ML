@@ -137,10 +137,11 @@ val obtainP =
     K.prf_asm_goal
     (Scan.optional
       (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
-        --| P.$$$ "in") [] --
+        --| P.$$$ "where") [] --
       P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
     >> (Toplevel.print oo (Toplevel.proof o obtain)));
 
+val _ = OuterSyntax.add_keywords ["where"];
 val _ = OuterSyntax.add_parsers [obtainP];
 
 end;

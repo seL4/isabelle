@@ -109,7 +109,7 @@ txt {* We take this maximal element $g$.  *};
       $E$, which is a superspace of $F$. $h$ is an extension of $f$
       and $h$ is again bounded by $p$. *};
 
-      obtain H h in "graph H h = g" and "is_linearform H h" 
+      obtain H h where "graph H h = g" "is_linearform H h" 
         "is_subspace H E" "is_subspace F H" "graph F f <= graph H h" 
         "ALL x:H. h x <= p x";
       proof -;
@@ -136,7 +136,7 @@ txt {* Then show that $h$ can be extended in a norm-preserving way to a function
 
 	  txt {* Consider $x_0 \in E \setminus H$. *};
 
-          obtain x0 in "x0:E" "x0~:H"; 
+          obtain x0 where "x0:E" "x0~:H"; 
           proof -;
             have "EX x0:E. x0~:H";
             proof (rule set_less_imp_diff_not_empty);
@@ -161,7 +161,7 @@ txt {* Define $H_0$ as the direct sum of $H$ and the linear closure of $x_0$.  *
 	    inequations, which will be used to establish that $h_0$ is
 	    a norm-preserving extension of $h$. *};
 
-            obtain xi in "ALL y:H. - p (y + x0) - h y <= xi 
+            obtain xi where "ALL y:H. - p (y + x0) - h y <= xi 
                               & xi <= p (y + x0) - h y";
             proof -;
 	      from h; have "EX xi. ALL y:H. - p (y + x0) - h y <= xi 
