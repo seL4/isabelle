@@ -10,13 +10,12 @@ define constants for categorical reasoning
 ccc1 = Cprod3 + Sprod3 + Ssum3 + Lift3 + Fix +
 
 consts
+	ID 	:: "'a -> 'a"
+	cfcomp	:: "('b->'c)->('a->'b)->'a->'c"
 
-	ID 		:: "'a -> 'a"
-
-	"@oo"		:: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
-	"cop @oo"	:: "('b->'c)->('a->'b)->'a->'c" ("cfcomp")
-
-translations "f1 oo f2" => "cfcomp[f1][f2]"
+syntax	"@oo"	:: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
+     
+translations 	"f1 oo f2" == "cfcomp[f1][f2]"
 
 rules
 

@@ -20,7 +20,7 @@ FILES = ROOT.ML Holcfb.thy Holcfb.ML Void.thy Void.ML \
 	Porder0.thy Porder.thy Porder.ML  Pcpo.thy \
 	Pcpo.ML Fun1.thy Fun1.ML Fun2.thy Fun2.ML Fun3.thy Fun3.ML \
 	Cfun1.thy Cfun1.ML Cfun2.thy Cfun2.ML Cfun3.thy Cfun3.ML \
-	Cont.thy Cont.ML cinfix.ML\
+	Cont.thy Cont.ML \
 	Cprod1.thy Cprod1.ML Cprod2.thy Cprod2.ML Cprod3.thy Cprod3.ML \
 	Sprod0.thy Sprod0.ML Sprod1.thy Sprod1.ML Sprod2.thy Sprod2.ML\
 	Sprod3.thy Sprod3.ML\

@@ -172,8 +172,7 @@ val contX2contlub = prove_goalw Cont.thy [contlub]
 (* ------------------------------------------------------------------------ *)
 
 val ch2ch_MF2L = prove_goal Cont.thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::po));\
-\	is_chain(F)|] ==> is_chain(%i. MF2(F(i),x))"
+"[|monofun(MF2); is_chain(F)|] ==> is_chain(%i. MF2(F(i),x))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -182,8 +181,8 @@ val ch2ch_MF2L = prove_goal Cont.thy
 	]);
 
 
-val ch2ch_MF2R = prove_goal Cont.thy "[|monofun(MF2(f)::('b::po=>'c::po));\
-\	is_chain(Y)|] ==> is_chain(%i. MF2(f,Y(i)))"
+val ch2ch_MF2R = prove_goal Cont.thy 
+"[|monofun(MF2(f)); is_chain(Y)|] ==> is_chain(%i. MF2(f,Y(i)))"
 (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -192,11 +191,9 @@ val ch2ch_MF2R = prove_goal Cont.thy "[|monofun(MF2(f)::('b::po=>'c::po));\
 	]);
 
 val ch2ch_MF2LR = prove_goal Cont.thy 
-"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
-\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
-\	is_chain(F); is_chain(Y)|] ==> \
+"[|monofun(MF2); !f.monofun(MF2(f)); is_chain(F); is_chain(Y)|] ==> \
 \  is_chain(%i. MF2(F(i))(Y(i)))"
-(fn prems =>
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac is_chainI 1),
@@ -207,6 +204,7 @@ val ch2ch_MF2LR = prove_goal Cont.thy
 	((rtac (monofunE RS spec RS spec RS mp) 1) THEN (etac spec 1)),
 	(etac (is_chainE RS spec) 1)
 	]);
+
 
 val ch2ch_lubMF2R = prove_goal Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
@@ -268,161 +266,112 @@ val lub_MF2_mono = prove_goal Cont.thy
 	(atac 1)
 	]);
 
-
 val ex_lubMF2 = prove_goal Cont.thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
 \  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
 \	is_chain(F); is_chain(Y)|] ==> \
 \		lub(range(%j. lub(range(%i. MF2(F(j),Y(i)))))) =\
 \		lub(range(%i. lub(range(%j. MF2(F(j),Y(i))))))"
-(fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(rtac antisym_less 1),
-	(rtac is_lub_thelub 1),
-	(etac ch2ch_lubMF2R 1),
-	(atac 1),(atac 1),(atac 1),
-	(rtac ub_rangeI 1),
-	(strip_tac 1),
-	(rtac lub_mono 1),
-	((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
-	(atac 1),
-	(etac ch2ch_lubMF2L 1),
-	(atac 1),(atac 1),(atac 1),
-	(strip_tac 1),
-	(rtac is_ub_thelub 1),
-	(etac ch2ch_MF2L 1),(atac 1),
-	(rtac is_lub_thelub 1),
-	(etac ch2ch_lubMF2L 1),
-	(atac 1),(atac 1),(atac 1),
-	(rtac ub_rangeI 1),
-	(strip_tac 1),
-	(rtac lub_mono 1),
-	(etac ch2ch_MF2L 1),(atac 1),
-	(etac ch2ch_lubMF2R 1),
-	(atac 1),(atac 1),(atac 1),
-	(strip_tac 1),
-	(rtac is_ub_thelub 1),
-	((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
-	(atac 1)
-	]);
-
-(* ------------------------------------------------------------------------ *)
-(* The following results are about a curried function that is continuous    *)
-(* in both arguments                                                        *)
-(* ------------------------------------------------------------------------ *)
-
-val diag_lemma1 = prove_goal Cont.thy 
-"[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
-\ is_chain(%i. lub(range(%j. CF2(FY(j), TY(i)))))"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(rtac ch2ch_lubMF2L 1),
-	(rtac contX2mono 1),
-	(atac 1),
-	(rtac allI 1),
-	(rtac contX2mono 1),
-	(etac spec 1),
-	(atac 1),
-	(atac 1)
-	]);
-
-val diag_lemma2 = prove_goal Cont.thy 
-"[|contX(CF2);is_chain(FY); is_chain(TY) |] ==>\
-\ is_chain(%m. CF2(FY(m), TY(n::nat)))"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(etac (contX2mono RS ch2ch_MF2L) 1),
-	(atac 1)
-	]);
-
-val diag_lemma3 = prove_goal Cont.thy 
-"[|!f.contX(CF2(f));is_chain(FY); is_chain(TY) |] ==>\
-\ is_chain(%m. CF2(FY(n), TY(m)))"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(etac allE 1),
-	(etac (contX2mono RS ch2ch_MF2R) 1),
-	(atac 1)
-	]);
-
-val diag_lemma4 = prove_goal Cont.thy 
-"[|contX(CF2);!f.contX(CF2(f));is_chain(FY); is_chain(TY) |] ==>\
-\ is_chain(%m. CF2(FY(m), TY(m)))"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(etac (contX2mono RS ch2ch_MF2LR) 1),
-	(rtac allI 1),
-	(etac allE 1),
-	(etac contX2mono 1),
-	(atac 1),
-	(atac 1)
-	]);
-
-
-val diag_lubCF2_1 = prove_goal Cont.thy 
-"[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
-\ lub(range(%i. lub(range(%j. CF2(FY(j))(TY(i)))))) =\
-\ lub(range(%i. CF2(FY(i))(TY(i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac antisym_less 1),
-	(rtac is_lub_thelub 1),
-	(etac diag_lemma1 1),
+	(rtac (ub_rangeI RSN (2,is_lub_thelub)) 1),
+	(etac ch2ch_lubMF2R 1),
 	(REPEAT (atac 1)),
-	(rtac ub_rangeI 1),
+	(strip_tac 1),
+	(rtac lub_mono 1),
+	((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
+	(atac 1),
+	(etac ch2ch_lubMF2L 1),
+	(REPEAT (atac 1)),
+	(strip_tac 1),
+	(rtac is_ub_thelub 1),
+	(etac ch2ch_MF2L 1),
+	(atac 1),
+	(rtac (ub_rangeI RSN (2,is_lub_thelub)) 1),
+	(etac ch2ch_lubMF2L 1),
+	(REPEAT (atac 1)),
+	(strip_tac 1),
+	(rtac lub_mono 1),
+	(etac ch2ch_MF2L 1),
+	(atac 1),
+	(etac ch2ch_lubMF2R 1),
+	(REPEAT (atac 1)),
+	(strip_tac 1),
+	(rtac is_ub_thelub 1),
+	((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
+	(atac 1)
+	]);
+
+
+val diag_lubMF2_1 = prove_goal Cont.thy 
+"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+\  is_chain(FY);is_chain(TY)|] ==>\
+\ lub(range(%i. lub(range(%j. MF2(FY(j))(TY(i)))))) =\
+\ lub(range(%i. MF2(FY(i))(TY(i))))"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(rtac antisym_less 1),
+	(rtac (ub_rangeI RSN (2,is_lub_thelub)) 1),
+	(etac ch2ch_lubMF2L 1),
+	(REPEAT (atac 1)),
 	(strip_tac 1 ),
 	(rtac lub_mono3 1),
-	(etac diag_lemma2 1),
+	(etac ch2ch_MF2L 1),
 	(REPEAT (atac 1)),
-	(etac diag_lemma4 1),
+	(etac ch2ch_MF2LR 1),
 	(REPEAT (atac 1)),
 	(rtac allI 1),
 	(res_inst_tac [("m","i"),("n","ia")] nat_less_cases 1),
 	(res_inst_tac [("x","ia")] exI 1),
 	(rtac (chain_mono RS mp) 1),
-	(etac diag_lemma3 1),
+	(etac allE 1),
+	(etac ch2ch_MF2R 1),
 	(REPEAT (atac 1)),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("x","ia")] exI 1),
 	(rtac refl_less 1),
 	(res_inst_tac [("x","i")] exI 1),
 	(rtac (chain_mono RS mp) 1),
-	(etac diag_lemma2 1),
+	(etac ch2ch_MF2L 1),
 	(REPEAT (atac 1)),
 	(rtac lub_mono 1),
-	(etac diag_lemma4 1),
-	(REPEAT (atac 1)),
-	(etac diag_lemma1 1),
+	(etac ch2ch_MF2LR 1),
+	(REPEAT(atac 1)),
+	(etac ch2ch_lubMF2L 1),
 	(REPEAT (atac 1)),
 	(strip_tac 1 ),
 	(rtac is_ub_thelub 1),
-	(etac diag_lemma2 1),
-	(REPEAT (atac 1))
+	(etac ch2ch_MF2L 1),
+	(atac 1)
 	]);
 
-val diag_lubCF2_2 = prove_goal Cont.thy 
-"[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
-\ lub(range(%j. lub(range(%i. CF2(FY(j))(TY(i)))))) =\
-\ lub(range(%i. CF2(FY(i))(TY(i))))"
+val diag_lubMF2_2 = prove_goal Cont.thy 
+"[|monofun(MF2::('a::po=>'b::po=>'c::pcpo));\
+\  !f.monofun(MF2(f)::('b::po=>'c::pcpo));\
+\  is_chain(FY);is_chain(TY)|] ==>\
+\ lub(range(%j. lub(range(%i. MF2(FY(j))(TY(i)))))) =\
+\ lub(range(%i. MF2(FY(i))(TY(i))))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac trans 1),
 	(rtac ex_lubMF2 1),
-	(etac contX2mono 1),
-	(rtac allI 1),
-	(etac allE 1),
-	(etac contX2mono 1),
 	(REPEAT (atac 1)),
-	(rtac diag_lubCF2_1 1),
+	(etac diag_lubMF2_1 1),
 	(REPEAT (atac 1))
 	]);
+
+
+
+
+(* ------------------------------------------------------------------------ *)
+(* The following results are about a curried function that is continuous    *)
+(* in both arguments                                                        *)
+(* ------------------------------------------------------------------------ *)
 
 val contlub_CF2 = prove_goal Cont.thy 
 "[|contX(CF2);!f.contX(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
@@ -436,13 +385,16 @@ val contlub_CF2 = prove_goal Cont.thy
 	(rtac ((hd prems) RS contX2mono RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac trans 1),
-	(rtac (((hd (tl prems)) RS spec RS contX2contlub) RS contlubE RS 
-               spec RS mp RS ext RS arg_cong RS arg_cong) 1),
+	(rtac (((hd (tl prems)) RS spec RS contX2contlub) RS contlubE RS                spec RS mp RS ext RS arg_cong RS arg_cong) 1),
 	(atac 1),
-	(rtac diag_lubCF2_2 1),
+	(rtac diag_lubMF2_2 1),
+	(etac contX2mono 1),
+	(rtac allI 1),
+	(etac allE 1),
+	(etac contX2mono 1),
 	(REPEAT (atac 1))
 	]);
- 
+
 (* ------------------------------------------------------------------------ *)
 (* The following results are about application for functions in 'a=>'b      *)
 (* ------------------------------------------------------------------------ *)

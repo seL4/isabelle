@@ -9,20 +9,19 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 Tr2 = Tr1 +
 
 consts
-	"@cifte"	:: "tr=>'c=>'c=>'c"
+	Icifte		:: "tr -> 'c -> 'c -> 'c"
+	trand		:: "tr -> tr -> tr"
+	tror		:: "tr -> tr -> tr"
+        neg		:: "tr -> tr"
+
+syntax 	"@cifte"	:: "tr=>'c=>'c=>'c"
                              ("(3If _/ (then _/ else _) fi)" 60)
-	"Icifte"        :: "tr->'c->'c->'c"
-
 	"@andalso"	:: "tr => tr => tr" ("_ andalso _" [36,35] 35)
-	"cop @andalso"	:: "tr -> tr -> tr" ("trand")
 	"@orelse"	:: "tr => tr => tr" ("_ orelse _"  [31,30] 30)
-	"cop @orelse"	:: "tr -> tr -> tr" ("tror")
-
-        "neg"           :: "tr -> tr"
-
-translations "x andalso y" => "trand[x][y]"
-             "x orelse y"  => "tror[x][y]"
-             "If b then e1 else e2 fi" => "Icifte[b][e1][e2]"
+ 
+translations "x andalso y" == "trand[x][y]"
+             "x orelse y"  == "tror[x][y]"
+             "If b then e1 else e2 fi" == "Icifte[b][e1][e2]"
               
 rules
 

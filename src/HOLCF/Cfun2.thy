@@ -28,12 +28,3 @@ UU_cfun_def	"UU_cfun == fabs(% x.UU)"
 
 end
 
-ML
-
-(* ----------------------------------------------------------------------*)
-(* unique setup of print translation for fapp                            *)
-(* ----------------------------------------------------------------------*)
-
-val print_translation = [("fapp",fapptr')];
-
-

@@ -4,12 +4,13 @@ HOLCF: A higher order version of LCF based on Isabelle HOL
 Author:     Franz Regensburger
 Copyright   1993,1994 Technische Universitaet Muenchen
 
-Version: 1.4
-Date: 06.10.94
+Version: 1.5
+Date: 14.10.94
 
 A detailed description of the entire development can be found in 
 
 [Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
                      Dissertation, Technische Universit"at M"unchen, 1994
 
-
+Changes:
+14.10. New translation mechanism for continuous infixes

@@ -13,14 +13,14 @@ Cprod3 = Cprod2 +
 arities "*" :: (pcpo,pcpo)pcpo			(* Witness cprod2.ML *)
 
 consts  
-	"@cpair"     :: "'a => 'b => ('a*'b)" ("_#_" [101,100] 100)
-	"cop @cpair" :: "'a -> 'b -> ('a*'b)" ("cpair")
-					(* continuous  pairing *)
+	cpair        :: "'a -> 'b -> ('a*'b)" (* continuous  pairing *)
 	cfst         :: "('a*'b)->'a"
 	csnd         :: "('a*'b)->'b"
 	csplit       :: "('a->'b->'c)->('a*'b)->'c"
 
-translations "x#y" => "cpair[x][y]"
+syntax	"@cpair"     :: "'a => 'b => ('a*'b)" ("_#_" [101,100] 100)
+
+translations "x#y" == "cpair[x][y]"
 
 rules 
 
