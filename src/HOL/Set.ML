@@ -152,14 +152,6 @@ AddXIs [rev_subsetD];
 (*Converts A<=B to x:A ==> x:B*)
 fun impOfSubs th = th RSN (2, rev_subsetD);
 
-Goal "[| A <= B; c ~: B |] ==> c ~: A";
-by (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ;
-qed "contra_subsetD";
-
-Goal "[| c ~: B;  A <= B |] ==> c ~: A";
-by (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ;
-qed "rev_contra_subsetD";
-
 (*Classical elimination rule*)
 val major::prems = Goalw [subset_def] 
     "[| A <= B;  c~:A ==> P;  c:B ==> P |] ==> P";
@@ -173,9 +165,13 @@ fun set_mp_tac i = etac subsetCE i  THEN  mp_tac i;
 AddSIs [subsetI];
 AddEs  [subsetD, subsetCE];
 
+Goal "[| A <= B; c ~: B |] ==> c ~: A";
+by (Blast_tac 1);
+qed "contra_subsetD";
+
 Goal "A <= (A::'a set)";
 by (Fast_tac 1);
-qed "subset_refl";		(*Blast_tac would try order_refl and fail*)
+qed "subset_refl";
 
 Goal "[| A<=B;  B<=C |] ==> A<=(C::'a set)";
 by (Blast_tac 1);
