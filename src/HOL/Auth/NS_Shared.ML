@@ -298,17 +298,10 @@ by (EVERY (map spy_analz_tac [4,1]));
 by (fast_tac (!claset addSEs sees_Spy_partsEs
                       addIs [parts_insertI, impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
-(*NS3 and Oops subcases*) (**LEVEL 5 **)
-by (step_tac (!claset delrules [impCE]) 1);
-by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
-by (etac conjE 2);
-by (mp_tac 2);
-(**LEVEL 9 **)
-by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 2);
-by (assume_tac 3);
-by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 2);
+(*Oops*)
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 2);
-(*NS3*)
+(*NS3*) (**LEVEL 6 **)
+by (step_tac (!claset delrules [impCE]) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 1);
