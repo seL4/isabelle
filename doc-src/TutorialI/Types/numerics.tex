@@ -12,9 +12,10 @@ recursive function definitions.  HOL also provides the type
 \isa{int} of \textbf{integers}, which lack induction but support true
 subtraction.  The integers are preferable to the natural numbers for reasoning about
 complicated arithmetic expressions, even for some expressions whose
-value is non-negative.  The logic HOL-Real also has the type
-\isa{real} of real numbers.  Isabelle has no subtyping,  so the numeric
-types are distinct and there are  functions to convert between them.
+value is non-negative.  The logic HOL-Complex also has the types
+\isa{real} and \isa{complex}: the real and complex numbers.  Isabelle has no 
+subtyping,  so the numeric
+types are distinct and there are functions to convert between them.
 Fortunately most numeric operations are overloaded: the same symbol can be
 used at all numeric types. Table~\ref{tab:overloading} in the appendix
 shows the most important operations, together with the priorities of the
@@ -363,7 +364,7 @@ $\isa{a} = 7$, $\isa{b} = 2$ and $\isa{c} = -3$, when the left-hand side of
 \isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.%
 \index{integers|)}\index{*int (type)|)}
 
-Induction is less important for integers than it is for the natural numbers, but it can be valuable if the range of integers has a lower or upper bound.  There are four rules for integer induction, corresponding to the possible relations of the bound ($\ge$, $>$, $\le$ and $<$):
+Induction is less important for integers than it is for the natural numbers, but it can be valuable if the range of integers has a lower or upper bound.  There are four rules for integer induction, corresponding to the possible relations of the bound ($\geq$, $>$, $\leq$ and $<$):
 \begin{isabelle}
 \isasymlbrakk k\ \isasymle \ i;\ P\ k;\ \isasymAnd i.\ \isasymlbrakk k\ \isasymle \ i;\ P\ i\isasymrbrakk \ \isasymLongrightarrow \ P(i+1)\isasymrbrakk \ \isasymLongrightarrow \ P\ i%
 \rulename{int_ge_induct}\isanewline
