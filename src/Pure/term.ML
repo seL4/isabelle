@@ -133,6 +133,7 @@ sig
   val maxidx_of_terms: term list -> int
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
+        (* note reversed order of args wrt. variant! *)
   val variant_abs: string * typ * term -> string * term
   val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
   val add_new_id: string list * string -> string list

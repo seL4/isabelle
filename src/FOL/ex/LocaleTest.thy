@@ -10,19 +10,19 @@ header {* Test of Locale instantiation *}
 
 theory LocaleTest = FOL:
 
-(* registration input syntax *)
+(* interpretation input syntax *)
 
 locale L
 locale M = fixes a and b and c
 
-registration test [simp]: L + M a b c [x y z] .
+interpretation test [simp]: L + M a b c [x y z] .
 
-print_registrations L
-print_registrations M
+print_interps L
+print_interps M
 
-registration test [simp]: L .
+interpretation test [simp]: L .
 
-registration L .
+interpretation L .
 
 (* processing of locale expression *)
 
@@ -44,33 +44,47 @@ arities i :: "term"
 
 ML {* set Toplevel.debug *}
 
-registration p1: C ["X::'b" "Y"] by (auto intro: A.intro C_axioms.intro)
+ML {* set show_hyps *}
+
+interpretation p1: C ["X::'b" "Y::'b"] by (auto intro: A.intro C_axioms.intro)
   (* both X and Y get type 'b since 'b is the internal type of parameter b,
      not wanted, but put up with for now. *)
 
-ML {* set show_hyps *}
-
-print_registrations A
-
-(* thm asm_A a.asm_A p1.a.asm_A *)
+print_interps A
 
 (*
-registration p2: D [X Y Z] sorry
-
-print_registrations D
+thm asm_A a.asm_A p1.a.asm_A
 *)
 
-registration p3: D [X Y] by (auto intro: A.intro)
+interpretation p2: D [X Y "Y = X"] by (auto intro: A.intro simp: eq_commute)
 
-print_registrations A
-print_registrations B
-print_registrations C
-print_registrations D
+print_interps D
 
-(* not permitted
-registration p4: A ["?x10"] apply (rule A.intro) apply rule done
+(*
+thm p2.a.asm_A
+*)
 
-print_registrations A
+interpretation p3: D [X Y] by (auto intro: A.intro)
+
+(* duplicate: not registered *)
+(*
+thm p3.a.asm_A
+*)
+
+print_interps A
+print_interps B
+print_interps C
+print_interps D
+
+(* not permitted *)
+(*
+interpretation p4: A ["x::?'a1"] apply (rule A.intro) apply rule done
+*)
+print_interps A
+
+(* without a prefix *)
+(* TODO!!!
+interpretation A [Z] apply - apply (auto intro: A.intro) done
 *)
 
 end

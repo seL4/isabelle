@@ -90,7 +90,7 @@ sig
   val prep_registration:
     string * theory attribute list -> expr -> string option list -> theory ->
     theory * ((string * term list) * term list) list * (theory -> theory)
-  val global_activate_thm:
+  val global_add_witness:
     string * term list -> thm -> theory -> theory
 
   val setup: (theory -> theory) list
@@ -218,10 +218,10 @@ fun global_put_registration (name, ps) attn =
           regs)
       end handle Termlisttab.DUP _ => regs));
 
-(* add theorem to registration in theory,
+(* add witness theorem to registration in theory,
    ignored if registration not present *)
 
-fun global_put_registration_thm (name, ps) thm =
+fun global_add_witness (name, ps) thm =
   LocalesData.map (fn (space, locs, regs) =>
     (space, locs, let
         val tab = valOf (Symtab.lookup (regs, name));
@@ -271,8 +271,8 @@ end;
     val loc_regs = Symtab.lookup (regs, loc_int);
   in
     (case loc_regs of
-        NONE => Pretty.str "No registrations."
-      | SOME r => Pretty.big_list "registrations:"
+        NONE => Pretty.str "No interpretations."
+      | SOME r => Pretty.big_list "interpretations:"
           (map prt_inst (Termlisttab.dest r)))
     |> Pretty.writeln
   end;
@@ -1610,7 +1610,7 @@ end;
 
 
 
-(** Registration commands **)
+(** Interpretation commands **)
 
 local
 
@@ -1761,10 +1761,12 @@ fun activate_facts_elem _ _ (thy, Fixes _) = thy
       let
         (* extract theory attributes *)
         val (Notes facts) = map_attrib_element_i fst (Notes facts);
+        (* add attributs from registration *)
         val facts' = map (apfst (apsnd (fn a => a @ atts))) facts;
-        val facts'' = map (apsnd (map (apfst (map disch)))) facts';
+        (* discharge hyps and varify *)
+        val facts'' = map (apsnd (map (apfst (map (Drule.standard o disch))))) facts';
       in
-        fst (note_thmss_qualified' "" prfx facts thy)
+        fst (note_thmss_qualified' "" prfx facts'' thy)
       end;
 
 fun activate_facts_elems disch (thy, (id, elems)) =
@@ -1782,9 +1784,8 @@ fun activate_facts_elemss all_elemss new_elemss thy =
               Option.map snd (global_get_registration thy id)
                 handle Option => error ("(internal) unknown registration of " ^
                   quote (fst id) ^ " while activating facts.")) all_elemss);
-        fun disch thm = let
-          in Drule.satisfy_hyps prems thm end;
-      in Library.foldl (activate_facts_elems disch) (thy, new_elemss) end;
+      in Library.foldl (activate_facts_elems (Drule.satisfy_hyps prems))
+        (thy, new_elemss) end;
 
 in
 
@@ -1803,23 +1804,34 @@ fun prep_registration attn expr insts thy =
 
     (** compute instantiation **)
 
-    (* user input *)
+    (* check user input *)
     val insts = if length parms < length insts
          then error "More arguments than parameters in instantiation."
          else insts @ replicate (length parms - length insts) NONE;
+
     val (ps, pTs) = split_list parms;
     val pvTs = map Type.varifyT pTs;
+
+    (* instantiations given by user *)
     val given = List.mapPartial (fn (_, (NONE, _)) => NONE
          | (x, (SOME inst, T)) => SOME (x, (inst, T))) (ps ~~ (insts ~~ pvTs));
     val (given_ps, given_insts) = split_list given;
     val tvars = foldr Term.add_typ_tvars [] pvTs;
     val used = foldr Term.add_typ_varnames [] pvTs;
     fun sorts (a, i) = assoc (tvars, (a, i));
-    val (tvs, tvinst) = Sign.read_def_terms (sign, K NONE, sorts) used true
+    val (vs, vinst) = Sign.read_def_terms (sign, K NONE, sorts) used true
          given_insts;
-    val tinst = Symtab.make (map (fn ((x, 0), T) => (x, Type.unvarifyT T)
-                  | ((_, n), _) => error "Var in prep_registration") tvinst);
-    val inst = Symtab.make (given_ps ~~ map Logic.unvarify tvs);
+    (* replace new types (which are TFrees) by ones with new names *)
+    val new_Tnames = foldr Term.add_term_tfree_names [] vs;
+    val new_Tnames' = Term.invent_names used "'a" (length new_Tnames);
+    val renameT = Term.map_type_tfree (fn (a, s) =>
+          TFree (valOf (assoc (new_Tnames ~~ new_Tnames', a)), s));
+    val rename = Term.map_term_types renameT;
+
+    val tinst = Symtab.make (map
+                (fn ((x, 0), T) => (x, T |> renameT |> Type.unvarifyT)
+                  | ((_, n), _) => error "Var in prep_registration") vinst);
+    val inst = Symtab.make (given_ps ~~ map (Logic.unvarify o rename) vs);
 
     (* defined params without user input *)
     val not_given = List.mapPartial (fn (x, (NONE, T)) => SOME (x, T)
@@ -1836,7 +1848,7 @@ fun prep_registration attn expr insts thy =
 
     (** compute proof obligations **)
 
-    (* restore small ids *)
+    (* restore "small" ids *)
     val ids' = map (fn ((n, ps), _) =>
           (n, map (fn p => Free (p, valOf (assoc (parms, p)))) ps)) ids;
 
@@ -1846,16 +1858,9 @@ fun prep_registration attn expr insts thy =
             map (fn Int e => e) elems)) 
           (ids' ~~ all_elemss);
 
-(*
-    (* varify ids, props are varified after they are proved *)
-    val inst_elemss' = map (fn ((n, ps), elems) =>
-          ((n, map Logic.varify ps), elems)) inst_elemss;
-*)
-
     (* remove fragments already registered with theory *)
     val new_inst_elemss = List.filter (fn (id, _) =>
           is_none (global_get_registration thy id)) inst_elemss;
-
 
     val propss = extract_asms_elemss new_inst_elemss;
 
@@ -1866,11 +1871,6 @@ fun prep_registration attn expr insts thy =
     val thy' = Library.foldl (prep_reg_global attn) (thy, new_inst_elemss);
 
   in (thy', propss, activate_facts_elemss inst_elemss new_inst_elemss) end;
-
-
-(* Add registrations and theorems to theory context *)
-
-val global_activate_thm = global_put_registration_thm
 
 end;  (* local *)
 

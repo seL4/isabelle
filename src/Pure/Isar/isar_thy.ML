@@ -625,21 +625,20 @@ fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (
 val context = init_context (ThyInfo.quiet_update_thy true);
 
 
-(* global locale registration *)
+(* global registration of locale interpretation *)
 
 fun register_globally (((prfx, atts), expr), insts) b (* bool *) thy =
   let
-    val (thy', propss, activate) =
-          Locale.prep_registration (prfx, []) expr insts thy;
-(* TODO: convert atts *)
-    fun register id (thy, thm) = let
+    val (thy', propss, activate) = Locale.prep_registration
+          (prfx, map (Attrib.global_attribute thy) atts) expr insts thy;
+    fun witness id (thy, thm) = let
         val thm' = Drule.freeze_all thm;
       in
-        (Locale.global_activate_thm id thm' thy, thm')
+        (Locale.global_add_witness id thm' thy, thm')
       end;
   in
     multi_theorem_i Drule.internalK activate ("", []) [] 
-      (map (fn (id as (n, _), props) => ((NameSpace.base n, [register id]), 
+      (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]), 
         map (fn prop => (prop, ([], []))) props)) propss) b thy'
   end;
 

@@ -315,9 +315,9 @@ val uterm = P.underscore >> K NONE || P.term >> SOME;
 val view_val =
   Scan.optional (P.$$$ "[" |-- Scan.repeat1 uterm --| P.$$$ "]") [];
 
-val registrationP =
-  OuterSyntax.command "registration"
-  "prove and register instance of locale expression" K.thy_goal
+val interpretationP =
+  OuterSyntax.command "interpretation"
+  "prove and register interpretation of locale expression" K.thy_goal
   ((P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
      >> IsarThy.register_globally)
    >> (Toplevel.print oo Toplevel.theory_to_proof));
@@ -594,8 +594,8 @@ val print_localeP =
     (locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_registrationsP =
-  OuterSyntax.improper_command "print_registrations"
-    "print registrations of named locale in this theory" K.diag
+  OuterSyntax.improper_command "print_interps"
+    "print interpretations of named locale in this theory" K.diag
     (P.xname >> (Toplevel.no_timing oo IsarCmd.print_registrations));
 
 val print_attributesP =
@@ -800,7 +800,7 @@ val parsers = [
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
-  redoP, undos_proofP, undoP, killP, registrationP, instantiateP,
+  redoP, undos_proofP, undoP, killP, interpretationP, instantiateP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,

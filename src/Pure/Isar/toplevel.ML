@@ -471,6 +471,8 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))
   | exn_message Option = raised "Option"
   | exn_message UnequalLengths = raised "UnequalLengths"
+  | exn_message Empty = raised "Empty"
+  | exn_message Subscript = raised "Subscript"
   | exn_message exn = General.exnMessage exn
 and fail_message kind ((name, pos), exn) =
   "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
