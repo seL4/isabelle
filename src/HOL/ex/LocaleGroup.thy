@@ -15,24 +15,27 @@ record 'a grouptype =
 
 constdefs
   Group :: "('a, 'more) grouptype_scheme set"
-  "Group == {G. (bin_op G): carrier G -> carrier G -> carrier G & inverse G : carrier G -> carrier G 
+  "Group == {G. (bin_op G): carrier G -> carrier G -> carrier G &
+	        inverse G : carrier G -> carrier G 
              & unit G : carrier G &
              (! x: carrier G. ! y: carrier G. !z: carrier G.
                        (bin_op G (inverse G x) x = unit G) 
                      & (bin_op G (unit G) x = x) 
-                     & (bin_op G (bin_op G x y) z = bin_op G (x) (bin_op G y z)))}"
+                     & (bin_op G (bin_op G x y) z =
+			bin_op G (x) (bin_op G y z)))}"
 
 locale groups =
   fixes 
     G        ::"('a, 'more :: more) grouptype_scheme"
     e        :: "'a"
     binop    :: "'a => 'a => 'a" 	(infixr "#" 80)
-    inv  :: "'a => 'a"              ("_ -|"      [90]91)
+	(*INV renamed from inv temporarily to avoid clash with Fun.inv*)
+    INV      :: "'a => 'a"              ("_ -|"      [90]91)
   assumes
     Group_G   "G: Group"
   defines
-    e_def  "e == unit G"
-    binop_def "x # y == bin_op G x y"
-    inv_def "x -| == inverse G x"
+    e_def      "e == unit G"
+    binop_def  "x # y == bin_op G x y"
+    inv_def    "INV == inverse G"
 
 end
