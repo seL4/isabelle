@@ -9,7 +9,7 @@ Generic inductive cases facility for (co)inductive definitions.
 signature IND_CASES =
 sig
   val declare: string -> (simpset -> cterm -> thm) -> theory -> theory
-  val inductive_cases: ((bstring * Args.src list) * string list) -> theory -> theory
+  val inductive_cases: ((bstring * Args.src list) * string list) list -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
@@ -50,15 +50,14 @@ fun smart_cases thy ss read_prop s =
 
 (* inductive_cases command *)
 
-fun inductive_cases ((name, srcs), props) thy =
+fun inductive_cases args thy =
   let
     val read_prop = ProofContext.read_prop (ProofContext.init thy);
-    val ths = map (smart_cases thy (Simplifier.simpset_of thy) read_prop) props;
-    val atts = map (Attrib.global_attribute thy) srcs;
-  in
-    thy |> IsarThy.have_theorems_i Drule.lemmaK
-      [(((name, atts), map Thm.no_attributes ths), Comment.none)]
-  end;
+    val mk_cases = smart_cases thy (Simplifier.simpset_of thy) read_prop;
+    val facts = args |> map (fn ((name, srcs), props) =>
+      (((name, map (Attrib.global_attribute thy) srcs), map (Thm.no_attributes o mk_cases) props),
+        Comment.none));
+  in thy |> IsarThy.have_theorems_i Drule.lemmaK facts end;
 
 
 (* ind_cases method *)
@@ -85,7 +84,7 @@ val setup =
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val ind_cases =
-  P.opt_thm_name ":" -- Scan.repeat1 P.prop --| P.marg_comment
+  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop --| P.marg_comment)
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =

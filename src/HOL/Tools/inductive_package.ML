@@ -44,9 +44,9 @@ sig
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: ((bstring * Args.src list) * string list) * Comment.text
+  val inductive_cases: (((bstring * Args.src list) * string list) * Comment.text) list
     -> theory -> theory
-  val inductive_cases_i: ((bstring * theory attribute list) * term list) * Comment.text
+  val inductive_cases_i: (((bstring * theory attribute list) * term list) * Comment.text) list
     -> theory -> theory
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     ((bstring * term) * theory attribute list) list -> thm list -> theory -> theory *
@@ -582,17 +582,14 @@ end;
 
 (* inductive_cases(_i) *)
 
-fun gen_inductive_cases prep_att prep_prop (((name, raw_atts), raw_props), comment) thy =
+fun gen_inductive_cases prep_att prep_prop args thy =
   let
-    val ss = Simplifier.simpset_of thy;
-    val sign = Theory.sign_of thy;
-    val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
-    val atts = map (prep_att thy) raw_atts;
-    val thms = map (smart_mk_cases thy ss) cprops;
-  in
-    thy |>
-    IsarThy.have_theorems_i Drule.lemmaK [(((name, atts), map Thm.no_attributes thms), comment)]
-  end;
+    val cert_prop = Thm.cterm_of (Theory.sign_of thy) o prep_prop (ProofContext.init thy);
+    val mk_cases = smart_mk_cases thy (Simplifier.simpset_of thy) o cert_prop;
+
+    val facts = args |> map (fn (((name, atts), props), comment) =>
+      (((name, map (prep_att thy) atts), map (Thm.no_attributes o mk_cases) props), comment));
+  in thy |> IsarThy.have_theorems_i Drule.lemmaK facts end;
 
 val inductive_cases = gen_inductive_cases Attrib.global_attribute ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
@@ -891,7 +888,7 @@ val coinductiveP =
 
 
 val ind_cases =
-  P.opt_thm_name ":" -- Scan.repeat1 P.prop -- P.marg_comment
+  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop -- P.marg_comment)
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =
