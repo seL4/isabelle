@@ -135,6 +135,12 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val finally_i: (thm list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
+  val obtain: ((string list * string option) * Comment.text) list
+    * ((string * Args.src list * (string * (string list * string list)) list)
+      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val obtain_i: ((string list * typ option) * Comment.text) list
+    * ((string * Proof.context attribute list * (term * (term list * term list)) list)
+      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_setup: string -> theory -> theory
@@ -281,6 +287,9 @@ val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
 
 (* statements *)
 
+fun multi_local_attribute state (name, src, s) =
+  (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s);
+
 local
 
 fun global_statement f (name, src, s) int thy =
@@ -296,8 +305,7 @@ fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
 fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
 
 fun multi_statement f args = ProofHistory.apply (fn state =>
-  f (map (fn (name, src, s) =>
-      (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s)) args) state);
+  f (map (multi_local_attribute state) args) state);
 
 fun multi_statement_i f args = ProofHistory.apply (f args);
 
@@ -431,6 +439,17 @@ fun finally x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.f
 fun finally_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.finally x);
 
 end;
+
+
+(* obtain *)
+
+fun obtain (xs, asms) = ProofHistory.applys (fn state =>
+  Obtain.obtain (map Comment.ignore xs)
+    (map (multi_local_attribute state o Comment.ignore) asms) state);
+
+fun obtain_i (xs, asms) = ProofHistory.applys
+  (Obtain.obtain_i (map Comment.ignore xs) (map Comment.ignore asms));
+
 
 
 (* use ML text *)
