@@ -15,6 +15,11 @@ by(fast_tac HOL_cs 1);
 qed "square_sym";
 
 goalw Commutation.thy [square_def]
+  "!!R. [| square R S T U; T <= T' |] ==> square R S T' U";
+by(fast_tac set_cs 1);
+qed "square_subset";
+
+goalw Commutation.thy [square_def]
   "!!R. [| square R S T (R^=); S <= T |] ==> square (R^=) S T (R^=)";
 by(fast_tac rel_cs 1);
 qed "square_reflcl";
@@ -65,6 +70,12 @@ qed "diamond_Un";
 goalw Commutation.thy [diamond_def] "!!R. diamond R ==> confluent (R)";
 be commute_rtrancl 1;
 qed "diamond_confluent";
+
+goalw Commutation.thy [diamond_def]
+  "!!R. square R R (R^=) (R^=) ==> confluent R";
+by(fast_tac (trancl_cs addIs [square_rtrancl_reflcl_commute,r_into_rtrancl]
+                       addEs [square_subset]) 1);
+qed "square_reflcl_confluent";
 
 goal Commutation.thy
  "!!R. [| confluent R; confluent S; commute (R^*) (S^*) |] \

@@ -118,22 +118,16 @@ qed "eta_decr";
 
 (*** Confluence of eta ***)
 
-goalw Eta.thy [id_def]
-  "!x y. x-e> y --> (!z. x-e>z --> (? u. y -e>= u & z -e>= u))";
+goalw Eta.thy [square_def,id_def]  "square eta eta (eta^=) (eta^=)";
 br eta.mutual_induct 1;
 by(ALLGOALS(fast_tac (eta_cs addSEs [eta_decr,not_free_eta] addss !simpset)));
-val lemma = result() RS spec RS spec RS mp RS spec RS mp;
-
-goalw Eta.thy [diamond_def,commute_def,square_def] "diamond(eta^=)";
-by(fast_tac (eta_cs addEs [lemma]) 1);
-qed "diamond_refl_eta";
+val lemma = result();
 
 goal Eta.thy "confluent(eta)";
-by(stac (rtrancl_reflcl RS sym) 1);
-by(rtac (diamond_refl_eta RS diamond_confluent) 1);
+by(rtac (lemma RS square_reflcl_confluent) 1);
 qed "eta_confluent";
 
-(*** Congruence rules for ->> ***)
+(*** Congruence rules for -e>> ***)
 
 goal Eta.thy "!!s. s -e>> s' ==> Fun s -e>> Fun s'";
 be rtrancl_induct 1;
@@ -157,10 +151,10 @@ qed "rtrancl_eta_App";
 
 (*** Commutation of beta and eta ***)
 
-goal Eta.thy "!!s. s -> t ==> !i. free t i --> free s i";
-be (beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1;
+goal Eta.thy "!s t. s -> t --> (!i. free t i --> free s i)";
+br beta.mutual_induct 1;
 by(ALLGOALS(Asm_full_simp_tac));
-bind_thm("free_beta", result() RS spec RS mp);
+bind_thm("free_beta", result() RS spec RS spec RS mp RS spec RS mp);
 
 goalw Eta.thy [decr_def] "!s t. s -> t --> (!i. decr s i -> decr t i)";
 br beta.mutual_induct 1;

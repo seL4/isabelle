@@ -32,16 +32,14 @@ Addsimps [par_beta_refl];
 
 goal ParRed.thy "beta <= par_beta";
 br subsetI 1;
-by (res_inst_tac[("p","x")]PairE 1);
-by (hyp_subst_tac 1);
+by (split_all_tac 1);
 be (beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1;
 by (ALLGOALS(fast_tac (parred_cs addSIs [par_beta_refl])));
 qed "beta_subset_par_beta";
 
 goal ParRed.thy "par_beta <= beta^*";
 br subsetI 1;
-by (res_inst_tac[("p","x")]PairE 1);
-by (hyp_subst_tac 1);
+by (split_all_tac 1);
 be (par_beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1;
 by (ALLGOALS(fast_tac (parred_cs addIs
        [rtrancl_beta_Fun,rtrancl_beta_App,rtrancl_refl,
