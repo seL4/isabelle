@@ -72,7 +72,7 @@ fun antiquotes_of (s, pos) =
       (pos, Symbol.explode s) of
     (xs, (_, [])) => xs
   | (_, (pos', ss)) => error ("Malformed quotation/antiquotation text at: " ^
-      quote (Symbol.beginning ss) ^ Position.str_of pos'));
+      quote (Symbol.beginning 10 ss) ^ Position.str_of pos'));
 
 
 end;

@@ -264,7 +264,7 @@ fun scan (lex1, lex2) =
             Syntax.scan_nat >> token Nat ||
             scan_symid >> token SymIdent))
       end) >> #2;
-  in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning cs))) scanner end;
+  in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning 10 cs))) scanner end;
 
 
 (* token sources *)
