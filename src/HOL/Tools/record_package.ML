@@ -29,8 +29,11 @@ sig
   val ext_typeN: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
+  val get_extT_fields:  Sign.sg -> typ -> (string * typ) list
+  val get_recT_fields:  Sign.sg -> typ -> (string * typ) list
   val get_extension: Sign.sg -> Symtab.key -> (string * typ list) option
   val get_extinjects: Sign.sg -> thm list
+  val get_simpset: Sign.sg -> simpset
   val print_records: theory -> unit
   val add_record: string list * string -> string option -> (string * string * mixfix) list 
                   -> theory -> theory
@@ -398,6 +401,20 @@ fun add_extfields name fields thy =
 
 fun get_extfields sg name =
   Symtab.lookup (#extfields (RecordsData.get_sg sg), name);
+
+fun get_extT_fields sg T = 
+  let val {extfields,...} = RecordsData.get_sg sg;
+  in Symtab.lookup_multi (extfields,fst (fst (dest_recT T)))
+  end; 
+
+fun get_fields extfields T = 
+     foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
+             ([],(dest_recTs T));
+
+fun get_recT_fields sg T = 
+  let val {extfields,...} = RecordsData.get_sg sg;
+  in get_fields extfields T
+  end;
 
 (* access 'fieldext' *)
 
@@ -786,11 +803,7 @@ fun prove_split_simp sg T prop =
 
 
 
-local
-fun get_fields extfields T = 
-     foldl (fn (xs,(eN,_))=>xs@(map fst (Symtab.lookup_multi (extfields,eN))))
-             ([],(dest_recTs T));
-in
+
 (* record_simproc *)
 (* Simplifies selections of an record update:
  *  (1)  S (r(|S:=k|)) = k respectively
@@ -824,8 +837,8 @@ val record_simproc =
                                val kv = mk_abs_var "k" k
                                val kb = Bound 1 
                              in Some (upd$kb$rb,kb,[kv,rv],true) end
-                        else if u_name mem (get_fields extfields rangeS)
-                             orelse s mem (get_fields extfields updT)
+                        else if u_name mem (map fst (get_fields extfields rangeS))
+                             orelse s mem (map fst (get_fields extfields updT))
                              then None
 			     else (case mk_eq_terms r of 
                                      Some (trm,trm',vars,update_s) 
@@ -875,7 +888,7 @@ val record_upd_simproc =
              fun sel_name u = NameSpace.base (unsuffix updateN u);
 
              fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
-                  if s mem (get_fields extfields mT) then upd else seed s r
+                  if s mem (map fst (get_fields extfields mT)) then upd else seed s r
                | seed _ r = r;
 
              fun grow u uT k vars (sprout,skeleton) = 
@@ -961,7 +974,6 @@ val record_upd_simproc =
              | _ => None)
 	 end
        | _ => None));
-end
 
 (* record_eq_simproc *)
 (* looks up the most specific record-equality.
@@ -1429,7 +1441,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
 
-    val zeta = variant alphas "'z";
+    val zeta = variant alphas "'z"; 
     val moreT = TFree (zeta, HOLogic.typeS);
     val more = Free (moreN, moreT);
     val full_moreN = full moreN;
