@@ -41,10 +41,13 @@ or
 forall
 exists
 And
-lceil
-rceil
-lfloor
-rfloor
+
+#lceil
+#rceil
+#lfloor
+#rfloor
+
+201:
 turnstile
 Turnstile
 lbrakk
