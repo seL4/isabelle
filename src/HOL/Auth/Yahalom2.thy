@@ -42,7 +42,7 @@ inductive "yahalom"
 
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a certificate for forwarding to Bob.
-           Fields are reversed in the 2nd certificate to prevent attacks!! *)
+           Both agents are quoted in the 2nd certificate to prevent attacks!*)
     YM3  "[| evs3: yahalom;  A ~= B;  A ~= Server;  Key KAB ~: used evs3;
              Says B' Server {|Agent B, Nonce NB,
 			      Crypt (shrK B) {|Agent A, Nonce NA|}|}
@@ -50,7 +50,7 @@ inductive "yahalom"
           ==> Says Server A
                {|Nonce NB, 
                  Crypt (shrK A) {|Agent B, Key KAB, Nonce NA|},
-                 Crypt (shrK B) {|Nonce NB, Key KAB, Agent A|}|}
+                 Crypt (shrK B) {|Agent A, Agent B, Key KAB, Nonce NB|}|}
                  # evs3 : yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
