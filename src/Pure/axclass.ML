@@ -7,6 +7,7 @@ Higher level user interfaces for axiomatic type classes.
 TODO:
   remove add_sigclass (?)
   remove goal_... (?)
+  clean signature
 *)
 
 signature AX_CLASS =
@@ -33,11 +34,21 @@ sig
       -> tactic option -> theory -> theory
     val add_inst_arity: string * sort list * class list -> string list
       -> thm list -> tactic option -> theory -> theory
+    val add_defns: (string * string) list -> theory -> theory  (* FIXME *)
+    val add_defns_i: (string * term) list -> theory -> theory  (* FIXME *)
+    val mk_classrel: class * class -> term
+    val dest_classrel: term -> class * class
+    val mk_arity: string * sort list * class -> term
+    val dest_arity: term -> string * sort list * class
+    val class_axms: theory -> thm list
+    val axclass_tac: theory -> thm list -> tactic
+    val goal_subclass: theory -> class * class -> thm list
+    val goal_arity: theory -> string * sort list * class -> thm list
   end
 end;
 
 functor AxClassFun(structure Logic: LOGIC and Goals: GOALS and Tactic: TACTIC
-  sharing Goals.Tactical = Tactic.Tactical)(*: AX_CLASS *) = (* FIXME *)
+  sharing Goals.Tactical = Tactic.Tactical): AX_CLASS =
 struct
 
 structure Tactical = Goals.Tactical;
@@ -273,7 +284,7 @@ fun class_axms thy =
 
 (* axclass_tac *)
 
-(*(1) repeatedly resolve goals of form "(| ty : c_class |)",
+(*(1) repeatedly resolve goals of form "(| ty : c_class |)",  (* FIXME rename (| |) *)
       try "cI" axioms first and use class_triv as last resort
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
