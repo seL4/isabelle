@@ -122,7 +122,7 @@ fun init isar =
   setup_state ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
-  if isar then Isar.main () else ());
+  if isar then Isar.sync_main () else ());
 
 
 end;
