@@ -114,7 +114,7 @@ fun mapbnd f =
           | mpb _ atom           = atom
     in mpb 0 end;
 
-fun idx [] j     = ~10000
+fun idx [] j     = raise Unif
   | idx(i::is) j = if i=j then length is else idx is j;
 
 fun at xs i = nth_elem (i,xs);
@@ -162,7 +162,7 @@ fun mknewhnf(env,binders,is,F as (a,_),T,js) =
 
 (* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
 fun mk_proj_list is =
-    let fun mk(i::is,j) = if i >= 0 then j :: mk(is,j-1) else mk(is,j-1)
+    let fun mk(i::is,j) = if is_some i then j :: mk(is,j-1) else mk(is,j-1)
           | mk([],_)    = []
     in mk(is,length is - 1) end;
 
@@ -180,15 +180,13 @@ fun proj(s,env,binders,is) =
                          in (list_comb(f,ts'),env') end
                  | (Bound(i),ts) =>
                          let val j = trans d i
-                         in if j < 0 then raise Unif
-                            else let val (ts',env') = prs(ts,env,d,binders)
-                                 in (list_comb(Bound j,ts'),env') end
-                         end
+                             val (ts',env') = prs(ts,env,d,binders)
+                         in (list_comb(Bound j,ts'),env') end
                  | (Var(F as (a,_),Fty),ts) =>
                       let val js = ints_of' env ts;
-                          val js' = map (trans d) js;
+                          val js' = map (try (trans d)) js;
                           val ks = mk_proj_list js';
-                          val ls = filter (fn i => i >= 0) js'
+                          val ls = mapfilter I js'
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
