@@ -35,9 +35,9 @@ exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
 Some intuitionistic derived rules are shown in
 Fig.\ts\ref{fol-int-derived}, again with their \ML\ names.  These include
 rules for the defined symbols $\neg$, $\bimp$ and $\exists!$.  Natural
-deduction typically involves a combination of forwards and backwards
+deduction typically involves a combination of forward and backward
 reasoning, particularly with the destruction rules $(\conj E)$,
-$({\imp}E)$, and~$(\forall E)$.  Isabelle's backwards style handles these
+$({\imp}E)$, and~$(\forall E)$.  Isabelle's backward style handles these
 rules badly, so sequent-style rules are derived to eliminate conjunctions,
 implications, and universal quantifiers.  Used with elim-resolution,
 \tdx{allE} eliminates a universal quantifier while \tdx{all_dupE}
@@ -45,7 +45,7 @@ re-inserts the quantified formula for later use.  The rules {\tt
 conj_impE}, etc., support the intuitionistic proof procedure
 (see~\S\ref{fol-int-prover}).
 
-See the files {\tt FOL/ifol.thy}, {\tt FOL/ifol.ML} and
+See the files {\tt FOL/IFOL.thy}, {\tt FOL/IFOL.ML} and
 {\tt FOL/intprover.ML} for complete listings of the rules and
 derived rules.
 
@@ -360,7 +360,7 @@ formulae may be duplicated --- but frequently fails to terminate.  It is
 generally unsuitable for depth-first search.
 \end{ttdescription}
 \noindent
-See the file {\tt FOL/fol.ML} for derivations of the
+See the file {\tt FOL/FOL.ML} for derivations of the
 classical rules, and 
 \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
         {Chap.\ts\ref{chap:classical}} 
@@ -582,7 +582,7 @@ by (resolve_tac [impI] 1);
 {\out  1. !!x. [| ALL y. ~ (ALL x. P(y) --> P(x)); P(?a) |] ==> P(x)}
 \end{ttbox}
 By the duality between $\exists$ and~$\forall$, applying~$(\forall E)$
-effectively applies~$(\exists I)$ again.
+in effect applies~$(\exists I)$ again.
 \begin{ttbox}
 by (eresolve_tac [allE] 1);
 {\out Level 4}
@@ -622,7 +622,7 @@ by (assume_tac 1);
 {\out EX y. ALL x. P(y) --> P(x)}
 {\out No subgoals!}
 \end{ttbox}
-The civilized way to prove this theorem is through \ttindex{best_tac},
+The civilised way to prove this theorem is through \ttindex{best_tac},
 supplying the classical version of~$(\exists I)$:
 \begin{ttbox}
 goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
@@ -778,8 +778,8 @@ by (eresolve_tac [ifE] 1);
 {\out  3. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
 {\out  4. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
 \end{ttbox}
-
-In the first two subgoals, all formulae have been reduced to atoms.  Now
+%
+In the first two subgoals, all assumptions have been reduced to atoms.  Now
 $if$-introduction can be applied.  Observe how the $if$-rules break down
 occurrences of $if$ when they become the outermost connective.
 \begin{ttbox}

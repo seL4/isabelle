@@ -395,8 +395,8 @@ the suffix~{\tt F}\@.  Introduction rules have the suffix~{\tt I}\@.
 Elimination rules have the suffix~{\tt E}\@.  Computation rules, which
 describe the reduction of eliminators, have the suffix~{\tt C}\@.  The
 equality versions of the rules (which permit reductions on subterms) are
-called {\em long} rules; their names have the suffix~{\tt L}\@.
-Introduction and computation rules often are further suffixed with
+called {\bf long} rules; their names have the suffix~{\tt L}\@.
+Introduction and computation rules are often further suffixed with
 constructor names.
 
 Figure~\ref{ctt-equality} presents the equality rules.  Most of them are
@@ -514,12 +514,12 @@ intr_tac        : thm list -> tactic
 \end{ttbox}
 Blind application of {\CTT} rules seldom leads to a proof.  The elimination
 rules, especially, create subgoals containing new unknowns.  These subgoals
-unify with anything, causing an undirectional search.  The standard tactic
+unify with anything, creating a huge search space.  The standard tactic
 \ttindex{filt_resolve_tac} 
 (see \iflabelundefined{filt_resolve_tac}{the {\em Reference Manual\/}}%
         {\S\ref{filt_resolve_tac}})
 %
-can reject overly flexible goals; so does the {\CTT} tactic {\tt
+fails for goals that are too flexible; so does the {\CTT} tactic {\tt
   test_assume_tac}.  Used with the tactical \ttindex{REPEAT_FIRST} they
 achieve a simple kind of subgoal reordering: the less flexible subgoals are
 attempted first.  Do some single step proofs, or study the examples below,
@@ -623,7 +623,7 @@ avoids information loss but obviously loops if repeated.
 
 \item[\ttindexbold{safestep_tac} $thms$ $i$]
 attacks subgoal~$i$ using formation rules and certain other `safe' rules
-(tdx{FE}, tdx{ProdI}, tdx{SumE}, tdx{PlusE}), calling
+(\tdx{FE}, \tdx{ProdI}, \tdx{SumE}, \tdx{PlusE}), calling
 {\tt mp_tac} when appropriate.  It also uses~$thms$,
 which are typically premises of the rule being derived.
 
@@ -708,7 +708,6 @@ remainder, culminating in the theorem
 \[ a \bmod b + (a/b)\times b = a. \]
 Figure~\ref{ctt-arith} presents the definitions and some of the key
 theorems, including commutative, distributive, and associative laws.
-All proofs are on the file {\tt CTT/arith.ML}.
 
 The operators~\verb'#+', \verb'-', \verb'|-|', \verb'#*', \verb'mod'
 and~\verb'div' stand for sum, difference, absolute difference, product,
@@ -1065,7 +1064,7 @@ $C(x,f{\tt`}x)$ for all $x\in A$, where the latter property is witnessed by a
 function $g\in \prod@{x\in A}C(x,f{\tt`}x)$.
 
 In principle, the Axiom of Choice is simple to derive in Constructive Type
-Theory \cite[page~50]{martinlof84}.  The following definitions work:
+Theory.  The following definitions work:
 \begin{eqnarray*}
     f & \equiv & {\tt fst} \circ h \\
     g & \equiv & {\tt snd} \circ h

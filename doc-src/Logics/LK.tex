@@ -222,7 +222,7 @@ contraction rule, which in backward proof duplicates a formula.  The tactic
 {\tt res_inst_tac} can instantiate the variable~{\tt?P} in these rules,
 specifying the formula to duplicate.
 
-See the files {\tt LK/lk.thy} and {\tt LK/lk.ML}
+See the files {\tt LK/LK.thy} and {\tt LK/LK.ML}
 for complete listings of the rules and derived rules.
 
 
@@ -296,7 +296,7 @@ filseq_resolve_tac : thm list -> int -> int -> tactic
 \end{ttbox}
 Associative unification is not as efficient as it might be, in part because
 the representation of lists defeats some of Isabelle's internal
-optimizations.  The following operations implement faster rule application,
+optimisations.  The following operations implement faster rule application,
 and may have other uses.
 \begin{ttdescription}
 \item[\ttindexbold{forms_of_seq} {\it t}] 
