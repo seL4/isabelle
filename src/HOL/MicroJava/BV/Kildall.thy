@@ -19,7 +19,7 @@ constdefs
  !s p t. s : A & p < n & s <=_r t --> step p s <=_r step p t"
 
 consts
- iter :: "'s sl \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> nat list) \<Rightarrow>
+ iter :: "'s binop \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> (nat \<Rightarrow> nat list) \<Rightarrow>
           's list \<Rightarrow> nat set \<Rightarrow> 's list"
  propa :: "'s binop => nat list => 's => 's list => nat set => 's list * nat set"
 
@@ -30,12 +30,10 @@ primrec
                           in propa f qs t (ss[q := u]) w')"
 
 defs iter_def:
-"\<lbrakk> semilat Arf; acc(fst(snd Arf)); !p:w. p < size ss; bounded succs (size ss);
-   set ss <= fst Arf; pres_type step (size ss) (fst Arf) \<rbrakk> \<Longrightarrow>
- iter Arf step succs ss w ==
+"iter f step succs ss w ==
  fst(while (%(ss,w). w \<noteq> {})
            (%(ss,w). let p = SOME p. p : w
-                     in propa (snd(snd Arf)) (succs p) (step p (ss!p)) ss (w-{p}))
+                     in propa f (succs p) (step p (ss!p)) ss (w-{p}))
            (ss,w))"
 
 constdefs
@@ -44,10 +42,9 @@ constdefs
 "unstables f step succs ss ==
  {p. p < size ss & (? q:set(succs p). step p (ss!p) +_f ss!q ~= ss!q)}"
 
- kildall :: "'s sl => (nat => 's => 's) => (nat => nat list)
+ kildall :: "'s binop => (nat => 's => 's) => (nat => nat list)
              => 's list => 's list"
-"kildall Arf step succs ss ==
- iter Arf step succs ss (unstables (snd(snd Arf)) step succs ss)"
+"kildall f step succs ss == iter f step succs ss (unstables f step succs ss)"
 
 consts merges :: "'s binop => 's => nat list => 's list => 's list"
 primrec
@@ -249,13 +246,6 @@ lemma merges_bounded_lemma [rule_format]:
                dest: pres_typeD boundedD)
   done
 
-(*
-ML_setup {*
-Unify.trace_bound := 80;
-Unify.search_bound := 90;
-*}
-*)
-
 lemma termination_lemma:  
   "[| semilat(A,r,f); ss : list n A; t:A; ! q:set qs. q < n; p:w |] ==> 
       ss <[r] merges f t qs ss | 
@@ -345,21 +335,20 @@ lemma iter_properties:
   "\<lbrakk> semilat(A,r,f); acc r ; pres_type step n A; mono r step n A;
      bounded succs n; \<forall>p\<in>w0. p < n; ss0 \<in> list n A;
      \<forall>p<n. p \<notin> w0 \<longrightarrow> stable r step succs ss0 p \<rbrakk> \<Longrightarrow>
-  iter (A,r,f) step succs ss0 w0 : list n A \<and>
-  stables r step succs (iter (A,r,f) step succs ss0 w0) \<and>
-  ss0 <=[r] iter (A,r,f) step succs ss0 w0 \<and>
+  iter f step succs ss0 w0 : list n A \<and>
+  stables r step succs (iter f step succs ss0 w0) \<and>
+  ss0 <=[r] iter f step succs ss0 w0 \<and>
   (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step succs ts \<longrightarrow>
-                 iter (A,r,f) step succs ss0 w0 <=[r] ts)"
-apply(simp add:iter_def listE_set del:Let_def)
+                 iter f step succs ss0 w0 <=[r] ts)"
+apply(simp add:iter_def del:Let_def)
 by(rule while_properties[THEN mp,OF _ _ _ _ _ _ _ _ refl])
 
 lemma is_dfa_kildall:
   "[| semilat(A,r,f); acc r; pres_type step n A; 
      mono r step n A; bounded succs n|] 
-  ==> is_dfa r (kildall (A,r,f) step succs) step succs n A"
+  ==> is_dfa r (kildall f step succs) step succs n A"
   apply (unfold is_dfa_def kildall_def)
   apply clarify
-  apply simp
   apply (rule iter_properties)
   apply (simp_all add: unstables_def stable_def)
   apply (blast intro!: le_iff_plus_unchanged [THEN iffD2] listE_nth_in
@@ -370,7 +359,7 @@ lemma is_bcv_kildall:
   "[| semilat(A,r,f); acc r; top r T; 
       pres_type step n A; bounded succs n; 
       mono r step n A |]
-  ==> is_bcv r T step succs n A (kildall (A,r,f) step succs)"
+  ==> is_bcv r T step succs n A (kildall f step succs)"
   apply (intro is_bcv_dfa is_dfa_kildall semilatDorderI)
   apply assumption+
   done
