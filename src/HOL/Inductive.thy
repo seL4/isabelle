@@ -9,11 +9,14 @@ header {* Support for inductive sets and types *}
 theory Inductive = Gfp + Sum_Type + Relation
 files
   ("Tools/inductive_package.ML")
+  ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
   ("Tools/datatype_prop.ML")
   ("Tools/datatype_rep_proofs.ML")
   ("Tools/datatype_abs_proofs.ML")
   ("Tools/datatype_package.ML")
+  ("Tools/datatype_codegen.ML")
+  ("Tools/recfun_codegen.ML")
   ("Tools/primrec_package.ML"):
 
 
@@ -69,6 +72,9 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
+use "Tools/recfun_codegen.ML"
+setup RecfunCodegen.setup
+
 use "Tools/datatype_aux.ML"
 use "Tools/datatype_prop.ML"
 use "Tools/datatype_rep_proofs.ML"
@@ -76,7 +82,12 @@ use "Tools/datatype_abs_proofs.ML"
 use "Tools/datatype_package.ML"
 setup DatatypePackage.setup
 
+use "Tools/datatype_codegen.ML"
+setup DatatypeCodegen.setup
+
+use "Tools/inductive_codegen.ML"
+setup InductiveCodegen.setup
+
 use "Tools/primrec_package.ML"
-setup PrimrecPackage.setup
 
 end
