@@ -25,9 +25,9 @@ local
 in
   val pr_rews = map (int_rewrite o prover)
     [ "|- (#c)` = #c",
-      "|- f<x>` = f<x`>",
-      "|- f<x,y>` = f<x`,y`>",
-      "|- f<x,y,z>` = f<x`,y`,z`>",
+      "|- f<x>` = f<x` >",
+      "|- f<x,y>` = f<x`,y` >",
+      "|- f<x,y,z>` = f<x`,y`,z` >",
       "|- (! x. P x)` = (! x. (P x)`)",
       "|- (? x. P x)` = (? x. (P x)`)"
     ]

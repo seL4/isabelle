@@ -11,15 +11,22 @@ header {* Maps *}
 theory Map = List:
 
 types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
+translations (type) "a ~=> b " <= (type) "a => b option"
 
 consts
 chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
-map_add:: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
+map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
+map_image::"('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixr "`>" 90)
+restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_|'__" [90, 91] 90)
 dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => 
 	    ('a ~=> 'b)"		 ("_/'(_[|->]_/')" [900,0,0]900)
+map_upd_s::"('a ~=> 'b) => 'a set => 'b => 
+	    ('a ~=> 'b)"			 ("_/'(_{|->}_/')" [900,0,0]900)
+map_subst::"('a ~=> 'b) => 'b => 'b => 
+	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
 
 syntax
@@ -29,23 +36,35 @@ map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
 
 syntax (xsymbols)
   "~=>"     :: "[type, type] => type"    (infixr "\<leadsto>" 0)
+  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<lfloor>_" [90, 91] 90)
   map_upd   :: "('a ~=> 'b) => 'a      => 'b      => ('a ~=> 'b)"
 					  ("_/'(_/\<mapsto>/_')"  [900,0,0]900)
   map_upds  :: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
 				         ("_/'(_/[\<mapsto>]/_')" [900,0,0]900)
+  map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
+				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
+  map_subst :: "('a ~=> 'b) => 'b => 'b => 
+	        ('a ~=> 'b)"			 ("_/'(_\<leadsto>_/')"    [900,0,0]900)
+ "@chg_map" :: "('a ~=> 'b) => 'a => ('b => 'b) => ('a ~=> 'b)"
+					  ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
 
 translations
   "empty"    => "_K None"
   "empty"    <= "%x. None"
 
   "m(a|->b)" == "m(a:=Some b)"
+  "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"
 
 defs
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
-map_add_def: "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
+map_add_def:   "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
+map_image_def: "f`>m == option_map f o m"
+restrict_map_def: "m|_A == %x. if x : A then m x else None"
 
 map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
+map_upd_s_def: "m(as{|->}b) == %x. if x : as then Some b else m x"
+map_subst_def: "m(a~>b)     == %x. if m x = Some a then Some b else m x"
 
 dom_def: "dom(m) == {a. m a ~= None}"
 ran_def: "ran(m) == {b. EX a. m a = Some b}"
@@ -57,7 +76,7 @@ primrec
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
 
 
-subsection {* empty *}
+subsection {* @{term empty} *}
 
 lemma empty_upd_none[simp]: "empty(x := None) = empty"
 apply (rule ext)
@@ -71,7 +90,7 @@ apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
 
-subsection {* map\_upd *}
+subsection {* @{term map_upd} *}
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
 apply (rule ext)
@@ -84,6 +103,13 @@ apply (drule_tac x = "k" in fun_cong)
 apply (simp (no_asm_use))
 done
 
+lemma map_upd_eqD1: "m(a\<mapsto>x) = n(a\<mapsto>y) \<Longrightarrow> x = y"
+by (drule fun_cong [of _ _ a], auto)
+
+lemma map_upd_Some_unfold: 
+  "((m(a|->b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
+by auto
+
 lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
 apply (unfold image_def)
 apply (simp (no_asm_use) add: full_SetCompr_eq)
@@ -94,7 +120,7 @@ done
 
 
 (* FIXME: what is this sum_case nonsense?? *)
-subsection {* sum\_case and empty/map\_upd *}
+subsection {* @{term sum_case} and @{term empty}/@{term map_upd} *}
 
 lemma sum_case_map_upd_empty[simp]:
  "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
@@ -115,7 +141,7 @@ apply (simp (no_asm) split add: sum.split)
 done
 
 
-subsection {* chg\_map *}
+subsection {* @{term chg_map} *}
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
 apply (unfold chg_map_def)
@@ -128,7 +154,7 @@ apply auto
 done
 
 
-subsection {* map\_of *}
+subsection {* @{term map_of} *}
 
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
 apply (induct_tac "xs")
@@ -169,7 +195,7 @@ apply auto
 done
 
 
-subsection {* option\_map related *}
+subsection {* @{term option_map} related *}
 
 lemma option_map_o_empty[simp]: "option_map f o empty = empty"
 apply (rule ext)
@@ -183,7 +209,7 @@ apply (simp (no_asm))
 done
 
 
-subsection {* ++ *}
+subsection {* @{text "++"} *}
 
 lemma map_add_empty[simp]: "m ++ empty = m"
 apply (unfold map_add_def)
@@ -243,8 +269,37 @@ apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
 
+subsection {* @{term map_image} *}
 
-subsection {* map\_upds *}
+lemma map_image_empty [simp]: "f`>empty = empty" 
+by (auto simp: map_image_def empty_def)
+
+lemma map_image_upd [simp]: "f`>m(a|->b) = (f`>m)(a|->f b)" 
+apply (auto simp: map_image_def fun_upd_def)
+by (rule ext, auto)
+
+subsection {* @{term restrict_map} *}
+
+lemma restrict_in [simp]: "x \<in> A \<Longrightarrow> (m\<lfloor>A) x = m x"
+by (auto simp: restrict_map_def)
+
+lemma restrict_out [simp]: "x \<notin> A \<Longrightarrow> (m\<lfloor>A) x = None"
+by (auto simp: restrict_map_def)
+
+lemma ran_restrictD: "y \<in> ran (m\<lfloor>A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
+by (auto simp: restrict_map_def ran_def split: split_if_asm)
+
+lemma dom_valF_restrict [simp]: "dom (m\<lfloor>A) = dom m \<inter> A"
+by (auto simp: restrict_map_def dom_def split: split_if_asm)
+
+lemma restrict_upd_same [simp]: "m(x\<mapsto>y)\<lfloor>(-{x}) = m\<lfloor>(-{x})"
+by (rule ext, auto simp: restrict_map_def)
+
+lemma restrict_restrict [simp]: "m\<lfloor>A\<lfloor>B = m\<lfloor>(A\<inter>B)"
+by (rule ext, auto simp: restrict_map_def)
+
+
+subsection {* @{term map_upds} *}
 
 lemma map_upds_Nil1[simp]: "m([] [|->] bs) = m"
 by(simp add:map_upds_def)
@@ -280,12 +335,23 @@ apply(case_tac ys)
  apply(auto simp: map_upd_upds_conv_if)
 done
 
-subsection {* dom *}
+subsection {* @{term map_upd_s} *}
+
+lemma map_upd_s_apply [simp]: 
+  "(m(as{|->}b)) x = (if x : as then Some b else m x)"
+by (simp add: map_upd_s_def)
+
+lemma map_subst_apply [simp]: 
+  "(m(a~>b)) x = (if m x = Some a then Some b else m x)" 
+by (simp add: map_subst_def)
+
+subsection {* @{term dom} *}
 
 lemma domI: "m a = Some b ==> a : dom m"
 apply (unfold dom_def)
 apply auto
 done
+(* declare domI [intro]? *)
 
 lemma domD: "a : dom m ==> ? b. m a = Some b"
 apply (unfold dom_def)
@@ -340,7 +406,11 @@ apply(rule ext)
 apply(fastsimp simp:map_add_def split:option.split)
 done
 
-subsection {* ran *}
+subsection {* @{term ran} *}
+
+lemma ranI: "m a = Some b ==> b : ran m" 
+by (auto simp add: ran_def)
+(* declare ranI [intro]? *)
 
 lemma ran_empty[simp]: "ran empty = {}"
 apply (unfold ran_def)
@@ -354,7 +424,7 @@ apply (subgoal_tac "~ (aa = a) ")
 apply auto
 done
 
-subsection {* map\_le *}
+subsection {* @{text "map_le"} *}
 
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by(simp add:map_le_def)
