@@ -6,6 +6,11 @@ New in this Isabelle release
 
 *** General ***
 
+* Pure: Simplification procedures can now take the current simpset as
+  an additional argument; This is useful for calling the simplifier
+  recursively.  See the functions MetaSimplifier.full_{mk_simproc,
+  simproc,simproc_i}.
+
 * Pure: considerably improved version of 'constdefs' command.  Now
   performs automatic type-inference of declared constants; additional
   support for local structure declarations (cf. locales and HOL

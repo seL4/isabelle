@@ -498,7 +498,7 @@ val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
 fun rewrite_goal_tac rews =
-  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
+  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.ss_of rews);
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
