@@ -10,7 +10,7 @@ bind_thm ("UN1_I", UNIV_I RS UN_I);
 
 (** Simplification **)
 
-simpset_ref() := simpset() addsplits [split_split, split_sum_case];
+simpset_ref() := simpset() addsplits [split_split, split_sum_case] delsimprocs [unit_eq_proc];
 
 
 (*This justifies using llist in other recursive type definitions*)
