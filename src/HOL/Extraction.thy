@@ -19,7 +19,8 @@ ML_setup {*
         ([], ("HOL/elim_cong", RewriteHOLProof.elim_cong) ::
           ProofRewriteRules.rprocs true) o
       Proofterm.rewrite_proof (Sign.tsig_of sg)
-        (RewriteHOLProof.rews, ProofRewriteRules.rprocs true)))
+        (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
+      ProofRewriteRules.elim_vars (curry Const "arbitrary")))
 *}
 
 lemmas [extraction_expand] =
