@@ -200,7 +200,8 @@ val pure_syntax =
   ("_K",           "_",                             NoSyn),
   ("",             "id => logic",                   Delimfix "_"),
   ("",             "longid => logic",               Delimfix "_"),
-  ("",             "var => logic",                  Delimfix "_")];
+  ("",             "var => logic",                  Delimfix "_"),
+  ("_BIND",        "id => logic",                   Delimfix "??_")];
 
 val pure_appl_syntax =
  [("_appl", "[('b => 'a), args] => logic", Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
