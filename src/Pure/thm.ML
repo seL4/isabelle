@@ -38,11 +38,13 @@ signature THM =
   (*theories*)
 
   (*proof terms [must duplicate declaration as a specification]*)
-  val full_deriv	: bool ref
+  datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
+  val keep_derivs	: deriv_kind ref
   datatype rule = 
       MinProof				
+    | Oracle of theory * Sign.sg * exn
     | Axiom		of theory * string
-    | Theorem		of theory * string	
+    | Theorem		of string	
     | Assume		of cterm
     | Implies_intr	of cterm
     | Implies_intr_shyps
@@ -73,8 +75,7 @@ signature THM =
     | Rewrite_cterm	of cterm
     | Rename_params_rule of string list * int;
 
-  datatype deriv = Infer  of rule * deriv list
-		 | Oracle of theory * Sign.sg * exn;
+  type deriv   (* = rule mtree *)
 
   (*meta theorems*)
   type thm
@@ -96,7 +97,7 @@ signature THM =
   val strip_shyps       : thm -> thm
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> string -> thm
-  val name_thm          : theory * string * thm -> thm
+  val name_thm          : string * thm -> thm
   val axioms_of         : theory -> (string * thm) list
 
   (*meta rules*)
@@ -280,9 +281,10 @@ fun read_cterms sign (bs, Ts) =
   executed in ML.*)
 datatype rule = 
     MinProof				(*for building minimal proof terms*)
+  | Oracle   	        of theory * Sign.sg * exn	(*oracles*)
 (*Axioms/theorems*)
   | Axiom		of theory * string
-  | Theorem		of theory * string	(*via theorem db*)
+  | Theorem		of string
 (*primitive inferences and compound versions of them*)
   | Assume		of cterm
   | Implies_intr	of cterm
@@ -321,29 +323,40 @@ datatype rule =
   | Rename_params_rule	of string list * int;
 
 
-datatype deriv = Infer	of rule * deriv list
-	       | Oracle	of theory * Sign.sg * exn;
+type deriv = rule mtree;
+
+datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
+
+val keep_derivs = ref MinDeriv;
 
 
-val full_deriv = ref false;
+(*Build a minimal derivation.  Keep oracles; suppress atomic inferences;
+  retain Theorems or their underlying links; keep anything else*)
+fun squash_derivs [] = []
+  | squash_derivs (der::ders) =
+     (case der of
+	  Join (Oracle _, _) => der :: squash_derivs ders
+	| Join (Theorem _, [der']) => if !keep_derivs=ThmDeriv 
+				      then der :: squash_derivs ders
+				      else squash_derivs (der'::ders)
+	| Join (Axiom _, _) => if !keep_derivs=ThmDeriv 
+			       then der :: squash_derivs ders
+			       else squash_derivs ders
+	| Join (_, [])      => squash_derivs ders
+	| _                 => der :: squash_derivs ders);
 
-
-(*Suppress all atomic inferences, if using minimal derivations*)
-fun squash_derivs (Infer (_, []) :: drvs) =        squash_derivs drvs
-  | squash_derivs (der :: ders)           = der :: squash_derivs ders
-  | squash_derivs []                      = [];
 
 (*Ensure sharing of the most likely derivation, the empty one!*)
-val min_infer = Infer (MinProof, []);
+val min_infer = Join (MinProof, []);
 
 (*Make a minimal inference*)
 fun make_min_infer []    = min_infer
   | make_min_infer [der] = der
-  | make_min_infer ders  = Infer (MinProof, ders);
+  | make_min_infer ders  = Join (MinProof, ders);
 
-fun infer_derivs (rl, [])   = Infer (rl, [])
+fun infer_derivs (rl, [])   = Join (rl, [])
   | infer_derivs (rl, ders) =
-    if !full_deriv then Infer (rl, ders)
+    if !keep_derivs=FullDeriv then Join (rl, ders)
     else make_min_infer (squash_derivs ders);
 
 
@@ -371,12 +384,11 @@ fun crep_thm (Thm {sign, der, maxidx, shyps, hyps, prop}) =
 exception THM of string * int * thm list;
 
 
-val sign_of_thm = #sign o rep_thm;
-val stamps_of_thm = #stamps o Sign.rep_sg o sign_of_thm;
+val stamps_of_thm = #stamps o Sign.rep_sg o #sign o rep_thm;
 
 (*merge signatures of two theorems; raise exception if incompatible*)
 fun merge_thm_sgs (th1, th2) =
-  Sign.merge (pairself sign_of_thm (th1, th2))
+  Sign.merge (pairself (#sign o rep_thm) (th1, th2))
     handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
 
@@ -539,15 +551,14 @@ fun axioms_of thy =
   map (fn (s, _) => (s, get_axiom thy s))
     (Symtab.dest (#new_axioms (rep_theory thy)));
 
-fun name_thm (thy, name, th as Thm {sign, der, maxidx, shyps, hyps, prop}) = 
-    if Sign.eq_sg (sign, sign_of thy) then
-	Thm {sign = sign, 
-	     der = Infer (Theorem(thy,name), [der]),
-	     maxidx = maxidx,
-	     shyps = shyps, 
-	     hyps = hyps, 
-	     prop = prop}
-    else raise THM ("name_thm", 0, [th]);
+(*Attach a label to a theorem to make proof objects more readable*)
+fun name_thm (name, th as Thm {sign, der, maxidx, shyps, hyps, prop}) = 
+    Thm {sign = sign, 
+	 der = Join (Theorem name, [der]),
+	 maxidx = maxidx,
+	 shyps = shyps, 
+	 hyps = hyps, 
+	 prop = prop};
 
 
 (*Compression of theorems -- a separate rule, not integrated with the others,
@@ -685,7 +696,7 @@ fun forall_elim ct (th as Thm{sign,der,maxidx,hyps,prop,...}) : thm =
 (* Definition of the relation =?= *)
 val flexpair_def = fix_shyps [] []
   (Thm{sign= Sign.proto_pure, 
-       der = Infer(Axiom(pure_thy, "flexpair_def"), []),
+       der = Join(Axiom(pure_thy, "flexpair_def"), []),
        shyps = [], 
        hyps = [], 
        maxidx = 0,
@@ -1754,7 +1765,7 @@ fun invoke_oracle (thy, sign, exn) =
                   raise THM("Oracle's result must have type prop", 0, [])
 	       else fix_shyps [] []
 		     (Thm {sign = sign', 
-			   der = Oracle(thy,sign,exn),
+			   der = Join (Oracle(thy,sign,exn), []),
 			   maxidx = maxidx,
 			   shyps = [], 
 			   hyps = [], 
