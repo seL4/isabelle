@@ -13,7 +13,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -d DISTDIR   use DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
+  echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
   echo "    -k           install KDE application icon on Desktop"
   echo "    -p DIR       install standalone binaries in DIR"
   echo
@@ -71,7 +71,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-echo "distribution at $DISTDIR"
+echo "referring to distribution at $DISTDIR"
 
 
 # standalone binaries
@@ -104,7 +104,7 @@ if [ "$KDE" = true ]; then
   mkdir -p $KDEHOME/share/icons || fail "Bad directory: $KDEHOME/share/icons"
 
   ICON=$KDEHOME/share/icons/isabelle.xpm
-  [ -f $ICON ] || cp $DISTDIR/lib/logo/isabelle-tiny.xpm $ICON || fail "Cannot write file: $ICON"
+  [ -f $ICON ] || cp $ISABELLE_HOME/lib/logo/isabelle-tiny.xpm $ICON || fail "Cannot write file: $ICON"
 
   echo "installing $KDEAPP"
   echo "# KDE Config File" >$KDEAPP || fail "Cannot write file: $KDEAPP"
