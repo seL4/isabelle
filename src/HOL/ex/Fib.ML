@@ -47,24 +47,19 @@ by (rtac (not0_implies_Suc RS exE) 1);
 by Auto_tac;
 qed "fib_gr_0";
 
-
-(*Concrete Mathematics, page 278: Cassini's identity*)
-Goal "fib (Suc (Suc n)) * fib n = \
-\     (if n mod 2 = 0 then (fib(Suc n) * fib(Suc n)) - 1 \
-\                     else Suc (fib(Suc n) * fib(Suc n)))";
+(*Concrete Mathematics, page 278: Cassini's identity.
+  It is much easier to prove using integers!*)
+Goal "int (fib (Suc (Suc n)) * fib n) = \
+\     (if n mod 2 = 0 then int (fib(Suc n) * fib(Suc n)) - #1 \
+\                     else int (fib(Suc n) * fib(Suc n)) + #1)";
 by (res_inst_tac [("u","n")] fib.induct 1);
-by (res_inst_tac [("P", "%z. ?ff(x) * z = ?kk(x)")] (fib_Suc_Suc RS ssubst) 3);
-by (stac (read_instantiate [("x", "Suc(Suc ?n)")] fib_Suc_Suc) 3);
-by (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 3);
-by (stac fib_Suc3 3);
-by (ALLGOALS  (*using [fib_Suc_Suc] here results in a longer proof!*)
-    (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
-				       mod_Suc])));
+by (simp_tac (simpset() addsimps [fib_Suc_Suc, mod_Suc]) 2);
+by (simp_tac (simpset() addsimps [fib_Suc_Suc]) 1);
 by (asm_full_simp_tac
      (simpset() addsimps [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
-			  mod_Suc]) 2);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [fib_Suc_Suc])));
+			  mod_Suc, zmult_int RS sym] @ zmult_ac) 1);
 qed "fib_Cassini";
+
 
 
 (** Towards Law 6.111 of Concrete Mathematics **)
