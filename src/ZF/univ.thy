@@ -17,7 +17,6 @@ consts
     univ        ::      "i=>i"
 
 translations
-  (*Apparently a bug prevents using "Vset" == "Vfrom(0)" *)
     "Vset(x)"   == 	"Vfrom(0,x)"
 
 rules
