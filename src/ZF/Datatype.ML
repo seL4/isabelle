@@ -97,7 +97,8 @@ struct
 
 
  val conv = 
-     Simplifier.simproc (Theory.sign_of ZF.thy) "data_free" ["(x::i) = y"] proc;
+     Simplifier.simproc (Theory.sign_of (theory "ZF")) "data_free" 
+                        ["(x::i) = y"] proc;
 end;
 
 

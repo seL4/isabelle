@@ -50,9 +50,7 @@ subsection{*Well-Founded Relations*}
 subsubsection{*Equivalences between @{term wf} and @{term wf_on}*}
 
 lemma wf_imp_wf_on: "wf(r) ==> wf[A](r)"
-apply (unfold wf_def wf_on_def, clarify) (*needed for blast's efficiency*)
-apply blast
-done
+by (unfold wf_def wf_on_def, force) 
 
 lemma wf_on_imp_wf: "[|wf[A](r); r <= A*A|] ==> wf(r)";
 by (simp add: wf_on_def subset_Int_iff)

@@ -16,13 +16,10 @@ theory upair = ZF
 files "Tools/typechk":
 
 setup TypeCheck.setup
-declare atomize_ball [symmetric, rulify]
 
-(*belongs to theory ZF*)
-declare bspec [dest?]
-
-lemmas Pow_bottom = empty_subsetI [THEN PowI] (* 0 : Pow(B) *)
-lemmas Pow_top = subset_refl [THEN PowI] (* A : Pow(A) *)
+lemma atomize_ball [symmetric, rulify]:
+     "(!!x. x:A ==> P(x)) == Trueprop (ALL x:A. P(x))"
+by (simp add: Ball_def atomize_all atomize_imp)
 
 
 subsection{*Unordered Pairs: constant @{term Upair}*}
@@ -36,11 +33,8 @@ by simp
 lemma UpairI2: "b : Upair(a,b)"
 by simp
 
-lemma UpairE:
-    "[| a : Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
-apply simp
-apply blast 
-done
+lemma UpairE: "[| a : Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
+by (simp, blast)
 
 subsection{*Rules for Binary Union, Defined via @{term Upair}*}
 
@@ -58,22 +52,15 @@ by simp
 declare UnI1 [elim?]  UnI2 [elim?]
 
 lemma UnE [elim!]: "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P"
-apply simp 
-apply blast 
-done
+by (simp, blast)
 
 (*Stronger version of the rule above*)
 lemma UnE': "[| c : A Un B;  c:A ==> P;  [| c:B;  c~:A |] ==> P |] ==> P"
-apply simp 
-apply blast 
-done
+by (simp, blast)
 
 (*Classical introduction rule: no commitment to A vs B*)
 lemma UnCI [intro!]: "(c ~: B ==> c : A) ==> c : A Un B"
-apply simp
-apply blast
-done
-
+by (simp, blast)
 
 subsection{*Rules for Binary Intersection, Defined via @{term Upair}*}
 
@@ -129,24 +116,17 @@ by simp
 lemma consI2: "a : B ==> a : cons(b,B)"
 by simp
 
-lemma consE [elim!]:
-    "[| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P"
-apply simp 
-apply blast 
-done
+lemma consE [elim!]: "[| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P"
+by (simp, blast)
 
 (*Stronger version of the rule above*)
 lemma consE':
     "[| a : cons(b,A);  a=b ==> P;  [| a:A;  a~=b |] ==> P |] ==> P"
-apply simp 
-apply blast 
-done
+by (simp, blast)
 
 (*Classical introduction rule*)
 lemma consCI [intro!]: "(a~:B ==> a=b) ==> a: cons(b,B)"
-apply simp
-apply blast
-done
+by (simp, blast)
 
 lemma cons_not_0 [simp]: "cons(a,B) ~= 0"
 by (blast elim: equalityE)
@@ -213,6 +193,7 @@ by blast
 lemma the_eq_trivial2 [simp]: "(THE x. a = x) = a"
 by blast
 
+
 subsection{*Conditional Terms: @{text "if-then-else"}*}
 
 lemma if_true [simp]: "(if True then a else b) = a"
@@ -240,10 +221,10 @@ by (unfold if_def, blast)
 lemma if_not_P: "~P ==> (if P then a else b) = b"
 by (unfold if_def, blast)
 
-lemma split_if: "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
+lemma split_if [split]:
+     "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
 (*no case_tac yet!*)
-apply (rule_tac P=Q in case_split_thm, simp_all)
-done
+by (rule_tac P=Q in case_split_thm, simp_all)
 
 (** Rewrite rules for boolean case-splitting: faster than 
 	addsplits[split_if]
@@ -259,11 +240,18 @@ lemmas split_ifs = split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
 (*Logically equivalent to split_if_mem2*)
 lemma if_iff: "a: (if P then x else y) <-> P & a:x | ~P & a:y"
-by (simp split add: split_if)
+by simp
 
 lemma if_type [TC]:
     "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A"
-by (simp split add: split_if)
+by simp
+
+(** Splitting IFs in the assumptions **)
+
+lemma split_if_asm: "P(if Q then x else y) <-> (~((Q & ~P(x)) | (~Q & ~P(y))))"
+by simp
+
+lemmas if_splits = split_if split_if_asm
 
 
 subsection{*Consequences of Foundation*}
@@ -333,10 +321,214 @@ by (blast elim: mem_asym elim!: equalityE)
 
 lemmas succ_inject = succ_inject_iff [THEN iffD1, standard, dest!]
 
+
+subsection{*Miniscoping of the Bounded Universal Quantifier*}
+
+lemma ball_simps1:
+     "(ALL x:A. P(x) & Q)   <-> (ALL x:A. P(x)) & (A=0 | Q)"
+     "(ALL x:A. P(x) | Q)   <-> ((ALL x:A. P(x)) | Q)"
+     "(ALL x:A. P(x) --> Q) <-> ((EX x:A. P(x)) --> Q)"
+     "(~(ALL x:A. P(x))) <-> (EX x:A. ~P(x))"
+     "(ALL x:0.P(x)) <-> True"
+     "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i. P(x))"
+     "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B. P(x))"
+     "(ALL x:RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))"
+     "(ALL x:Union(A).P(x)) <-> (ALL y:A. ALL x:y. P(x))" 
+by blast+
+
+lemma ball_simps2:
+     "(ALL x:A. P & Q(x))   <-> (A=0 | P) & (ALL x:A. Q(x))"
+     "(ALL x:A. P | Q(x))   <-> (P | (ALL x:A. Q(x)))"
+     "(ALL x:A. P --> Q(x)) <-> (P --> (ALL x:A. Q(x)))"
+by blast+
+
+lemma ball_simps3:
+     "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))"
+by blast+
+
+lemmas ball_simps [simp] = ball_simps1 ball_simps2 ball_simps3
+
+lemma ball_conj_distrib:
+    "(ALL x:A. P(x) & Q(x)) <-> ((ALL x:A. P(x)) & (ALL x:A. Q(x)))"
+by blast
+
+
+subsection{*Miniscoping of the Bounded Existential Quantifier*}
+
+lemma bex_simps1:
+     "(EX x:A. P(x) & Q) <-> ((EX x:A. P(x)) & Q)"
+     "(EX x:A. P(x) | Q) <-> (EX x:A. P(x)) | (A~=0 & Q)"
+     "(EX x:A. P(x) --> Q) <-> ((ALL x:A. P(x)) --> (A~=0 & Q))"
+     "(EX x:0.P(x)) <-> False"
+     "(EX x:succ(i).P(x)) <-> P(i) | (EX x:i. P(x))"
+     "(EX x:cons(a,B).P(x)) <-> P(a) | (EX x:B. P(x))"
+     "(EX x:RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))"
+     "(EX x:Union(A).P(x)) <-> (EX y:A. EX x:y.  P(x))"
+     "(~(EX x:A. P(x))) <-> (ALL x:A. ~P(x))"
+by blast+
+
+lemma bex_simps2:
+     "(EX x:A. P & Q(x)) <-> (P & (EX x:A. Q(x)))"
+     "(EX x:A. P | Q(x)) <-> (A~=0 & P) | (EX x:A. Q(x))"
+     "(EX x:A. P --> Q(x)) <-> ((A=0 | P) --> (EX x:A. Q(x)))"
+by blast+
+
+lemma bex_simps3:
+     "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))"
+by blast
+
+lemmas bex_simps [simp] = bex_simps1 bex_simps2 bex_simps3
+
+lemma bex_disj_distrib:
+    "(EX x:A. P(x) | Q(x)) <-> ((EX x:A. P(x)) | (EX x:A. Q(x)))"
+by blast
+
+
+(** One-point rule for bounded quantifiers: see HOL/Set.ML **)
+
+lemma bex_triv_one_point1 [simp]: "(EX x:A. x=a) <-> (a:A)"
+by blast
+
+lemma bex_triv_one_point2 [simp]: "(EX x:A. a=x) <-> (a:A)"
+by blast
+
+lemma bex_one_point1 [simp]: "(EX x:A. x=a & P(x)) <-> (a:A & P(a))"
+by blast
+
+lemma bex_one_point2 [simp]: "(EX x:A. a=x & P(x)) <-> (a:A & P(a))"
+by blast
+
+lemma ball_one_point1 [simp]: "(ALL x:A. x=a --> P(x)) <-> (a:A --> P(a))"
+by blast
+
+lemma ball_one_point2 [simp]: "(ALL x:A. a=x --> P(x)) <-> (a:A --> P(a))"
+by blast
+
+
+subsection{*Miniscoping of the Replacement Operator*}
+
+text{*These cover both @{term Replace} and @{term Collect}*}
+lemma Rep_simps [simp]:
+     "{x. y:0, R(x,y)} = 0"
+     "{x:0. P(x)} = 0"
+     "{x:A. Q} = (if Q then A else 0)"
+     "RepFun(0,f) = 0"
+     "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))"
+     "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"
+by (simp_all, blast+)
+
+
+subsection{*Miniscoping of Unions*}
+
+lemma UN_simps1:
+     "(UN x:C. cons(a, B(x))) = (if C=0 then 0 else cons(a, UN x:C. B(x)))"
+     "(UN x:C. A(x) Un B')   = (if C=0 then 0 else (UN x:C. A(x)) Un B')"
+     "(UN x:C. A' Un B(x))   = (if C=0 then 0 else A' Un (UN x:C. B(x)))"
+     "(UN x:C. A(x) Int B')  = ((UN x:C. A(x)) Int B')"
+     "(UN x:C. A' Int B(x))  = (A' Int (UN x:C. B(x)))"
+     "(UN x:C. A(x) - B')    = ((UN x:C. A(x)) - B')"
+     "(UN x:C. A' - B(x))    = (if C=0 then 0 else A' - (INT x:C. B(x)))"
+apply (simp_all add: Inter_def) 
+apply (blast intro!: equalityI )+
+done
+
+lemma UN_simps2:
+      "(UN x: Union(A). B(x)) = (UN y:A. UN x:y. B(x))"
+      "(UN z: (UN x:A. B(x)). C(z)) = (UN  x:A. UN z: B(x). C(z))"
+      "(UN x: RepFun(A,f). B(x))     = (UN a:A. B(f(a)))"
+by blast+
+
+lemmas UN_simps [simp] = UN_simps1 UN_simps2
+
+text{*Opposite of miniscoping: pull the operator out*}
+
+lemma UN_extend_simps1:
+     "(UN x:C. A(x)) Un B   = (if C=0 then B else (UN x:C. A(x) Un B))"
+     "((UN x:C. A(x)) Int B) = (UN x:C. A(x) Int B)"
+     "((UN x:C. A(x)) - B) = (UN x:C. A(x) - B)"
+apply simp_all 
+apply blast+
+done
+
+lemma UN_extend_simps2:
+     "cons(a, UN x:C. B(x)) = (if C=0 then {a} else (UN x:C. cons(a, B(x))))"
+     "A Un (UN x:C. B(x))   = (if C=0 then A else (UN x:C. A Un B(x)))"
+     "(A Int (UN x:C. B(x))) = (UN x:C. A Int B(x))"
+     "A - (INT x:C. B(x))    = (if C=0 then A else (UN x:C. A - B(x)))"
+     "(UN y:A. UN x:y. B(x)) = (UN x: Union(A). B(x))"
+     "(UN a:A. B(f(a))) = (UN x: RepFun(A,f). B(x))"
+apply (simp_all add: Inter_def) 
+apply (blast intro!: equalityI)+
+done
+
+lemma UN_UN_extend:
+     "(UN  x:A. UN z: B(x). C(z)) = (UN z: (UN x:A. B(x)). C(z))"
+by blast
+
+lemmas UN_extend_simps = UN_extend_simps1 UN_extend_simps2 UN_UN_extend
+
+
+subsection{*Miniscoping of Intersections*}
+
+lemma INT_simps1:
+     "(INT x:C. A(x) Int B) = (INT x:C. A(x)) Int B"
+     "(INT x:C. A(x) - B)   = (INT x:C. A(x)) - B"
+     "(INT x:C. A(x) Un B)  = (if C=0 then 0 else (INT x:C. A(x)) Un B)"
+by (simp_all add: Inter_def, blast+)
+
+lemma INT_simps2:
+     "(INT x:C. A Int B(x)) = A Int (INT x:C. B(x))"
+     "(INT x:C. A - B(x))   = (if C=0 then 0 else A - (UN x:C. B(x)))"
+     "(INT x:C. cons(a, B(x))) = (if C=0 then 0 else cons(a, INT x:C. B(x)))"
+     "(INT x:C. A Un B(x))  = (if C=0 then 0 else A Un (INT x:C. B(x)))"
+apply (simp_all add: Inter_def) 
+apply (blast intro!: equalityI)+
+done
+
+lemmas INT_simps [simp] = INT_simps1 INT_simps2
+
+text{*Opposite of miniscoping: pull the operator out*}
+
+
+lemma INT_extend_simps1:
+     "(INT x:C. A(x)) Int B = (INT x:C. A(x) Int B)"
+     "(INT x:C. A(x)) - B = (INT x:C. A(x) - B)"
+     "(INT x:C. A(x)) Un B  = (if C=0 then B else (INT x:C. A(x) Un B))"
+apply (simp_all add: Inter_def, blast+)
+done
+
+lemma INT_extend_simps2:
+     "A Int (INT x:C. B(x)) = (INT x:C. A Int B(x))"
+     "A - (UN x:C. B(x))   = (if C=0 then A else (INT x:C. A - B(x)))"
+     "cons(a, INT x:C. B(x)) = (if C=0 then {a} else (INT x:C. cons(a, B(x))))"
+     "A Un (INT x:C. B(x))  = (if C=0 then A else (INT x:C. A Un B(x)))"
+apply (simp_all add: Inter_def) 
+apply (blast intro!: equalityI)+
+done
+
+lemmas INT_extend_simps = INT_extend_simps1 INT_extend_simps2
+
+
+subsection{*Other simprules*}
+
+
+(*** Miniscoping: pushing in big Unions, Intersections, quantifiers, etc. ***)
+
+lemma misc_simps [simp]:
+     "0 Un A = A"
+     "A Un 0 = A"
+     "0 Int A = 0"
+     "A Int 0 = 0"
+     "0 - A = 0"
+     "A - 0 = A"
+     "Union(0) = 0"
+     "Union(cons(b,A)) = b Un Union(A)"
+     "Inter({b}) = b"
+by blast+
+
+
 ML
 {*
-val Pow_bottom = thm "Pow_bottom";
-val Pow_top = thm "Pow_top";
 val Upair_iff = thm "Upair_iff";
 val UpairI1 = thm "UpairI1";
 val UpairI2 = thm "UpairI2";
@@ -403,6 +595,26 @@ val succ_inject_iff = thm "succ_inject_iff";
 val succ_inject = thm "succ_inject";
 
 val split_ifs = thms "split_ifs";
+val ball_simps = thms "ball_simps";
+val bex_simps = thms "bex_simps";
+
+val ball_conj_distrib = thm "ball_conj_distrib";
+val bex_disj_distrib = thm "bex_disj_distrib";
+val bex_triv_one_point1 = thm "bex_triv_one_point1";
+val bex_triv_one_point2 = thm "bex_triv_one_point2";
+val bex_one_point1 = thm "bex_one_point1";
+val bex_one_point2 = thm "bex_one_point2";
+val ball_one_point1 = thm "ball_one_point1";
+val ball_one_point2 = thm "ball_one_point2";
+
+val Rep_simps = thms "Rep_simps";
+val misc_simps = thms "misc_simps";
+
+val UN_simps = thms "UN_simps";
+val INT_simps = thms "INT_simps";
+
+val UN_extend_simps = thms "UN_extend_simps";
+val INT_extend_simps = thms "INT_extend_simps";
 *}
 
 end

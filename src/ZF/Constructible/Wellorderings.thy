@@ -84,7 +84,7 @@ subsubsection {*Well-founded relations*}
 lemma  (in M_basic) wellfounded_on_iff_wellfounded:
      "wellfounded_on(M,A,r) <-> wellfounded(M, r \<inter> A*A)"
 apply (simp add: wellfounded_on_def wellfounded_def, safe)
- apply blast 
+ apply force
 apply (drule_tac x=x in rspec, assumption, blast) 
 done
 

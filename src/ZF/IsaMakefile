@@ -36,7 +36,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
   InfDatatype.thy Integ/Bin.thy \
   Integ/EquivClass.thy Integ/Int.thy Integ/IntArith.thy	\
   Integ/IntDiv.thy Integ/int_arith.ML			\
-  Let.ML Let.thy List.thy Main.ML Main.thy	\
+  List.thy Main.ML Main.thy	\
   Main_ZFC.ML Main_ZFC.thy Nat.thy Order.thy OrderArith.thy	\
   OrderType.thy Ordinal.thy OrdQuant.thy Perm.thy	\
   QPair.thy QUniv.thy ROOT.ML	\
@@ -44,7 +44,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
   Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
   Trancl.thy Univ.thy \
-  WF.thy ZF.ML ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
+  WF.thy ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
   ind_syntax.ML pair.thy simpdata.ML		\
   thy_syntax.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
