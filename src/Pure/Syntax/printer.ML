@@ -287,26 +287,6 @@ fun pretty tabs trf type_mode curried ast0 p0 =
         | Some f => (astT (trans a f args, p) handle Match => prnt (get_fmts tabs a)))
       end
 
-(* FIXME old
-    and combT (tup as (c, a, args, p)) =
-      let
-        val nargs = length args;
-
-        fun prnt (pr, n, p') =
-          if nargs = n then parT (pr, args, p, p')
-          else if nargs < n orelse type_mode then prefixT tup
-          else astT (appT (splitT n ([c], args)), p);
-      in
-        (case (trf a, get_fmt tabs a) of
-          (None, None) => prefixT tup
-        | (None, Some prnp) => prnt prnp
-        | (Some f, None) =>
-            (astT (trans a f args, p) handle Match => prefixT tup)
-        | (Some f, Some prnp) =>
-            (astT (trans a f args, p) handle Match => prnt prnp))
-      end
-*)
-
     and astT (c as Constant a, p) = combT (c, a, [], p)
       | astT (Variable x, _) = [Pretty.str x]
       | astT (Appl ((c as Constant a) :: (args as _ :: _)), p) =
