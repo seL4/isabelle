@@ -1855,21 +1855,24 @@ The record package provides the following proof rules for any record type $t$.
   terms, make function definitions) are part of the standard simpset (via
   \texttt{addsimps}).
   
+\item Selectors applied to updated records are automatically reduced by
+  simplification procedure \ttindex{record_simproc}, which is part of the
+  default simpset.
+  
 \item Inject equations of a form analogous to $((x, y) = (x', y')) \equiv x=x'
   \conj y=y'$ are made part of the standard simpset and claset (via
   \texttt{addIffs}).
   
-\item A tactic for record field splitting (\ttindex{record_split_tac}) is made
-  part of the standard claset (via \texttt{addSWrapper}).  This tactic is
-  based on rules analogous to $(\All x PROP~P~x) \equiv (\All{a~b} PROP~P(a,
-  b))$ for any field.
+\item A tactic for record field splitting (\ttindex{record_split_tac}) may be
+  made part of the claset (via \texttt{addSWrapper}).  This tactic is based on
+  rules analogous to $(\All x PROP~P~x) \equiv (\All{a~b} PROP~P(a, b))$ for
+  any field.
 \end{enumerate}
 
 The first two kinds of rules are stored within the theory as $t\dtt simps$ and
 $t\dtt iffs$, respectively.  In some situations it might be appropriate to
-expand the definitions of updates: $t\dtt updates$.  Following a new trend in
-Isabelle system architecture, these names are \emph{not} bound at the {\ML}
-level, though.
+expand the definitions of updates: $t\dtt update_defs$.  Note that these names
+are \emph{not} bound at the {\ML} level.
 
 \medskip
 
@@ -1878,7 +1881,8 @@ concerning records.  The basic idea is to make \ttindex{record_split_tac}
 expand quantified record variables and then simplify by the conversion rules.
 By using a combination of the simplifier and classical prover together with
 the default simpset and claset, record problems should be solved with a single
-stroke of \texttt{Auto_tac} or \texttt{Force_tac}.
+stroke of \texttt{Auto_tac} or \texttt{Force_tac}.  Most of the time, plain
+\texttt{Simp_tac} should be sufficient, though.
 
 
 \section{Datatype definitions}
