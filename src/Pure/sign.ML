@@ -5,7 +5,10 @@
 The abstract type "sg" of signatures.
 *)
 
-(*external forms*)
+(*raw base names*)
+type rstring = string;
+type rclass = class;
+(*external pruned forms*)
 type xstring = string;
 type xclass = class;
 type xsort = sort;
@@ -37,20 +40,18 @@ sig
   val classK: string
   val typeK: string
   val constK: string
+  val full_name: sg -> rstring -> string
+  val base_name: string -> rstring
   val intern: sg -> string -> xstring -> string
   val extern: sg -> string -> string -> xstring
-  val full_name: sg -> xstring -> string
+  val cond_extern: sg -> string -> string -> xstring
   val intern_class: sg -> xclass -> class
-  val extern_class: sg -> class -> xclass
-  val intern_sort: sg -> xsort -> sort
-  val extern_sort: sg -> sort -> xsort
-  val intern_typ: sg -> xtyp -> typ
-  val extern_typ: sg -> typ -> xtyp
-  val intern_term: sg -> xterm -> term
-  val extern_term: sg -> term -> xterm
-  val intern_tycons: sg -> xtyp -> typ
   val intern_tycon: sg -> xstring -> string
   val intern_const: sg -> xstring -> string
+  val intern_sort: sg -> xsort -> sort
+  val intern_typ: sg -> xtyp -> typ
+  val intern_term: sg -> xterm -> term
+  val intern_tycons: sg -> xtyp -> typ
   val print_sg: sg -> unit
   val pretty_sg: sg -> Pretty.T
   val pprint_sg: sg -> pprint_args -> unit
@@ -71,23 +72,23 @@ sig
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> int * term * (indexname * typ) list
-  val add_classes: (xclass * xclass list) list -> sg -> sg
-  val add_classes_i: (xclass * class list) list -> sg -> sg
+  val add_classes: (rclass * xclass list) list -> sg -> sg
+  val add_classes_i: (rclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
   val add_classrel_i: (class * class) list -> sg -> sg
   val add_defsort: xsort -> sg -> sg
   val add_defsort_i: sort -> sg -> sg
-  val add_types: (xstring * int * mixfix) list -> sg -> sg
-  val add_tyabbrs: (xstring * string list * string * mixfix) list -> sg -> sg
-  val add_tyabbrs_i: (xstring * string list * typ * mixfix) list -> sg -> sg
+  val add_types: (rstring * int * mixfix) list -> sg -> sg
+  val add_tyabbrs: (rstring * string list * string * mixfix) list -> sg -> sg
+  val add_tyabbrs_i: (rstring * string list * typ * mixfix) list -> sg -> sg
   val add_arities: (xstring * xsort list * xsort) list -> sg -> sg
   val add_arities_i: (string * sort list * sort) list -> sg -> sg
-  val add_consts: (xstring * string * mixfix) list -> sg -> sg
-  val add_consts_i: (xstring * typ * mixfix) list -> sg -> sg
-  val add_syntax: (xstring * string * mixfix) list -> sg -> sg
-  val add_syntax_i: (xstring * typ * mixfix) list -> sg -> sg
-  val add_modesyntax: (string * bool) * (xstring * string * mixfix) list -> sg -> sg
-  val add_modesyntax_i: (string * bool) * (xstring * typ * mixfix) list -> sg -> sg
+  val add_consts: (rstring * string * mixfix) list -> sg -> sg
+  val add_consts_i: (rstring * typ * mixfix) list -> sg -> sg
+  val add_syntax: (rstring * string * mixfix) list -> sg -> sg
+  val add_syntax_i: (rstring * typ * mixfix) list -> sg -> sg
+  val add_modesyntax: (string * bool) * (rstring * string * mixfix) list -> sg -> sg
+  val add_modesyntax_i: (string * bool) * (rstring * typ * mixfix) list -> sg -> sg
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -222,7 +223,13 @@ fun add_names spaces kind names =
   end;
 
 (*make full names*)
-fun full path name = NameSpace.pack (path @ NameSpace.unpack name);
+fun full path name =
+  if NameSpace.qualified name then
+    error ("Attempt to declare qualified name " ^ quote name)
+  else NameSpace.pack (path @ [name]);
+
+(*base name*)
+val base_name = NameSpace.base;
 
 
 (* intern / extern names *)
@@ -286,11 +293,13 @@ in
 
   fun intrn_class spaces = intrn spaces classK;
   fun extrn_class spaces = extrn spaces classK;
+
   val intrn_sort = map o intrn_class;
-  val extrn_sort = map o extrn_class;
   val intrn_typ = trn_typ o intrn;
-  val extrn_typ = trn_typ o extrn;
   val intrn_term = trn_term o intrn;
+
+  val extrn_sort = map o extrn_class;
+  val extrn_typ = trn_typ o extrn;
   val extrn_term = trn_term o extrn;
 
   fun intrn_tycons spaces T =
@@ -298,21 +307,62 @@ in
 
   val intern = intrn o spaces_of;
   val extern = extrn o spaces_of;
+  fun cond_extern sg kind = if ! long_names then I else extern sg kind;
+
   val intern_class = intrn_class o spaces_of;
-  val extern_class = extrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
-  val extern_sort = extrn_sort o spaces_of;
   val intern_typ = intrn_typ o spaces_of;
-  val extern_typ = extrn_typ o spaces_of;
   val intern_term = intrn_term o spaces_of;
-  val extern_term = extrn_term o spaces_of;
 
   fun intern_tycon sg = intrn (spaces_of sg) typeK;
   fun intern_const sg = intrn (spaces_of sg) constK;
+
   val intern_tycons = intrn_tycons o spaces_of;
 
   fun full_name (Sg {path, ...}) = full path;
 end;
+
+
+
+(** pretty printing of terms and types **)
+
+fun pretty_term (Sg {syn, spaces, stamps, ...}) t =
+  Syntax.pretty_term syn
+    ("CPure" mem_string (map ! stamps))
+    (if ! long_names then t else extrn_term spaces t);
+
+fun pretty_typ (Sg {syn, spaces, ...}) T =
+  Syntax.pretty_typ syn
+    (if ! long_names then T else extrn_typ spaces T);
+
+fun pretty_sort (Sg {syn, spaces, ...}) S =
+  Syntax.pretty_sort syn
+    (if ! long_names then S else extrn_sort spaces S);
+
+fun pretty_classrel sg (c1, c2) = Pretty.block
+  [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
+
+fun pretty_arity sg (t, Ss, S) =
+  let
+    val t' = cond_extern sg typeK t;
+    val dom =
+      if null Ss then []
+      else [Pretty.list "(" ")" (map (pretty_sort sg) Ss), Pretty.brk 1];
+  in
+    Pretty.block
+      ([Pretty.str (t' ^ " ::"), Pretty.brk 1] @ dom @ [pretty_sort sg S])
+  end;
+
+fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
+fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
+fun string_of_sort sg S = Pretty.string_of (pretty_sort sg S);
+
+fun str_of_sort sg S = Pretty.str_of (pretty_sort sg S);
+fun str_of_classrel sg c1_c2 = Pretty.str_of (pretty_classrel sg c1_c2);
+fun str_of_arity sg ar = Pretty.str_of (pretty_arity sg ar);
+
+fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
+fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
 
 
@@ -322,10 +372,13 @@ fun stamp_names stamps = rev (map ! stamps);
 
 fun print_sg sg =
   let
-    val Sg {syn, ...} = sg;
+    fun prt_cls c = pretty_sort sg [c];
+    fun prt_sort S = pretty_sort sg S;
+    fun prt_tycon t = Pretty.str (cond_extern sg typeK t);
+    fun prt_arity t (c, Ss) = pretty_arity sg (t, Ss, [c]);
+    fun prt_typ ty = Pretty.quote (pretty_typ sg ty);
+    fun prt_const c = Pretty.quote (Pretty.str (cond_extern sg constK c));
 
-    fun prt_typ ty = Pretty.quote (Syntax.pretty_typ syn ty);
-    fun prt_cls c = Syntax.pretty_sort syn [c];
 
     fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
       (map Pretty.str (kind ^ ":" :: map quote (NameSpace.dest space))));
@@ -338,25 +391,19 @@ fun print_sg sg =
         Pretty.commas (map prt_cls cs));
 
     fun pretty_default S = Pretty.block
-      [Pretty.str "default:", Pretty.brk 1, Syntax.pretty_sort syn S];
+      [Pretty.str "default:", Pretty.brk 1, pretty_sort sg S];
 
-    fun pretty_ty (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
+    fun pretty_ty (t, n) = Pretty.block
+      [prt_tycon t, Pretty.str (" " ^ string_of_int n)];
 
-    fun pretty_abbr (ty, (vs, rhs)) = Pretty.block
-      [prt_typ (Type (ty, map (fn v => TVar ((v, 0), [])) vs)),
+    fun pretty_abbr (t, (vs, rhs)) = Pretty.block
+      [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
         Pretty.str " =", Pretty.brk 1, prt_typ rhs];
 
-    fun pretty_arity ty (c, []) = Pretty.block
-          [Pretty.str (ty ^ " ::"), Pretty.brk 1, prt_cls c]
-      | pretty_arity ty (c, Ss) = Pretty.block
-          [Pretty.str (ty ^ " ::"), Pretty.brk 1,
-            Pretty.list "(" ")" (map (Syntax.pretty_sort syn) Ss),
-            Pretty.brk 1, prt_cls c];
-
-    fun pretty_arities (ty, ars) = map (pretty_arity ty) ars;
+    fun pretty_arities (t, ars) = map (prt_arity t) ars;
 
     fun pretty_const (c, ty) = Pretty.block
-      [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ ty];
+      [prt_const c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
     val Sg {tsig, const_tab, syn = _, path, spaces, data, stamps} = sg;
     val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
@@ -381,48 +428,6 @@ fun pretty_sg (Sg {stamps, ...}) =
   Pretty.str_list "{" "}" (stamp_names stamps);
 
 val pprint_sg = Pretty.pprint o pretty_sg;
-
-
-
-(** pretty printing of terms and types **)
-
-fun pretty_term (Sg {syn, spaces, stamps, ...}) t =
-  Syntax.pretty_term syn
-    ("CPure" mem_string (map ! stamps))
-    (if ! long_names then t else extrn_term spaces t);
-
-fun pretty_typ (Sg {syn, spaces, ...}) T =
-  Syntax.pretty_typ syn
-    (if ! long_names then T else extrn_typ spaces T);
-
-fun pretty_sort (Sg {syn, spaces, ...}) S =
-  Syntax.pretty_sort syn
-    (if ! long_names then S else extrn_sort spaces S);
-
-fun pretty_classrel sg (c1, c2) = Pretty.block
-  [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
-
-fun pretty_arity sg (t, Ss, S) =
-  let
-    val t' = if ! long_names then t else intern_tycon sg t;
-    val dom =
-      if null Ss then []
-      else [Pretty.list "(" ")" (map (pretty_sort sg) Ss), Pretty.brk 1];
-  in
-    Pretty.block
-      ([Pretty.str (t ^ " ::"), Pretty.brk 1] @ dom @ [pretty_sort sg S])
-  end;
-
-fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
-fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
-fun string_of_sort sg S = Pretty.string_of (pretty_sort sg S);
-
-fun str_of_sort sg S = Pretty.str_of (pretty_sort sg S);
-fun str_of_classrel sg c1_c2 = Pretty.str_of (pretty_classrel sg c1_c2);
-fun str_of_arity sg ar = Pretty.str_of (pretty_arity sg ar);
-
-fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
-fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 
 
 
@@ -888,7 +893,7 @@ val proto_pure =
     ("prop", 0, NoSyn) ::
     ("itself", 1, NoSyn) ::
     Syntax.pure_types)
-  |> add_classes_i [(NameSpace.base logicC, [])]
+  |> add_classes_i [(logicC, [])]
   |> add_defsort_i logicS
   |> add_arities_i
    [("fun", [logicS, logicS], logicS),
