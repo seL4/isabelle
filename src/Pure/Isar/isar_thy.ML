@@ -144,6 +144,7 @@ sig
   val finally_i: (thm list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val moreover: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val ultimately: Comment.text -> Toplevel.transition -> Toplevel.transition
   val parse_ast_translation: string -> theory -> theory
   val parse_translation: string -> theory -> theory
   val print_translation: string -> theory -> theory
@@ -456,6 +457,7 @@ fun also_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.
 fun finally x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.finally x);
 fun finally_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.finally x);
 fun moreover comment = proof''' (ProofHistory.apply o Calculation.moreover);
+fun ultimately comment = proof''' (ProofHistory.apply o Calculation.ultimately);
 
 end;
 

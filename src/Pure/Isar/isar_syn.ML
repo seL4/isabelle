@@ -425,6 +425,10 @@ val moreoverP =
   OuterSyntax.command "moreover" "augment calculation by current facts" K.prf_decl
     (P.marg_comment >> IsarThy.moreover);
 
+val ultimatelyP =
+  OuterSyntax.command "ultimately" "augment calculation by current facts, exhibit result"
+    K.prf_chain (P.marg_comment >> IsarThy.ultimately);
+
 
 (* proof navigation *)
 
@@ -642,8 +646,8 @@ val parsers = [
   defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
-  proofP, alsoP, finallyP, moreoverP, backP, cannot_undoP,
-  clear_undosP, redoP, undos_proofP, undoP, killP,
+  proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
+  cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,

@@ -16,6 +16,7 @@ sig
   val also: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
   val finally: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
   val moreover: (thm list -> unit) -> Proof.state -> Proof.state
+  val ultimately: (thm list -> unit) -> Proof.state -> Proof.state
   val setup: (theory -> theory) list
 end;
 
@@ -104,22 +105,29 @@ val trans_attr =
 
 (** proof commands **)
 
-(* maintain calculation *)
+(* maintain calculation register *)
 
 val calculationN = "calculation";
 
-fun maintain_calculation calc state =
-  state
-  |> put_calculation calc
-  |> Proof.simple_have_thms calculationN calc
-  |> Proof.reset_facts;
+fun maintain_calculation false calc state =
+      state
+      |> put_calculation calc
+      |> Proof.simple_have_thms calculationN calc
+      |> Proof.reset_facts
+  | maintain_calculation true calc state =
+      state
+      |> reset_calculation
+      |> Proof.reset_thms calculationN
+      |> Proof.simple_have_thms "" calc
+      |> Proof.chain;
 
 
 (* 'also' and 'finally' *)
 
+fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
+
 fun calculate final opt_rules print state =
   let
-    fun err_if b msg = if b then raise Proof.STATE (msg, state) else ();
     val facts = Proof.the_facts state;
 
     val eq_prop = op aconv o pairself (#prop o Thm.rep_thm);
@@ -140,30 +148,33 @@ fun calculate final opt_rules print state =
         None => (true, Seq.single facts)
       | Some thms => (false, Seq.filter (differ thms) (combine thms)))
   in
-    err_if (initial andalso final) "No calculation yet";
-    err_if (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
-    calculations |> Seq.map (fn calc =>
-      (print calc;
-        (if final then
-          state
-          |> reset_calculation
-          |> Proof.reset_thms calculationN
-          |> Proof.simple_have_thms "" calc
-          |> Proof.chain
-        else
-          state
-          |> maintain_calculation calc)))
+    err_if state (initial andalso final) "No calculation yet";
+    err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
+    calculations |> Seq.map (fn calc => (print calc; state |> maintain_calculation final calc))
   end;
 
 fun also print = calculate false print;
 fun finally print = calculate true print;
 
 
-(* 'moreover' *)
+(* 'moreover' and 'ultimately' *)
 
-fun moreover print state =
-  let val calc = if_none (get_calculation state) [] @ Proof.the_facts state
-  in print calc; state |> maintain_calculation calc end;
+fun collect final print state =
+  let
+    val facts = Proof.the_facts state;
+    val (initial, thms) =
+      (case get_calculation state of
+        None => (true, [])
+      | Some thms => (false, thms));
+    val calc = thms @ facts;
+  in
+    err_if state (initial andalso final) "No calculation yet";
+    print calc;
+    state |> maintain_calculation final calc
+  end;
+
+fun moreover print = collect false print;
+fun ultimately print = collect true print;
 
 
 
