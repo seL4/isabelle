@@ -11,9 +11,7 @@ val banner = "Higher-order Logic of Computable Functions";
 writeln banner;
 print_depth 1;
 
-structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
-Readthy.loaded_thys := !loaded_thys;
-open Readthy;
+init_thy_reader();
 
 use_thy "Holcfb";
 use_thy "Void";

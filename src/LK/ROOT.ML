@@ -10,8 +10,7 @@ Should be executed in the subdirectory LK.
 val banner = "Classical First-Order Sequent Calculus";
 writeln banner;
 
-structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
-open Readthy;
+init_thy_reader();
 
 print_depth 1;  
 

@@ -12,8 +12,7 @@ writeln banner;
 
 print_depth 1;  
 
-structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
-open Readthy;
+init_thy_reader();
 
 use_thy "CTT";
 use "../Provers/typedsimp.ML";
