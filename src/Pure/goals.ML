@@ -120,10 +120,10 @@ fun sign_error (sign,sign') =
 
 (*Default action is to print an error message; could be suppressed for
   special applications.*)
-fun result_error_default state msg : thm = 
-  (writeln ("Bad final proof state:");
-   !print_goals_ref (!goals_limit) state;
-   writeln msg; raise ERROR);
+fun result_error_default state msg : thm =
+ (writeln "Bad final proof state:";
+  print_goals (!goals_limit) state;
+  writeln msg; raise ERROR);
 
 val result_error_fn = ref result_error_default;
 
@@ -235,7 +235,7 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
 
 (*Print goals of current level*)
 fun print_current_goals_default n max th =
-  (writeln ("Level " ^ string_of_int n); !print_goals_ref max th);
+  (writeln ("Level " ^ string_of_int n); print_goals max th);
 
 val print_current_goals_fn = ref print_current_goals_default;
 

@@ -192,7 +192,7 @@ val goals_limit = ref 10;
 (*Print the current proof state and pass it on.*)
 val print_tac = 
     (fn st => 
-     (!print_goals_ref (!goals_limit) st;   Sequence.single st));
+     (print_goals (!goals_limit) st; Sequence.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
@@ -229,7 +229,7 @@ fun exec_trace_command flag (tac, st) =
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
-           then (!print_goals_ref (!goals_limit) st;  
+           then (print_goals (!goals_limit) st;
                  prs"** Press RETURN to continue: ";
                  exec_trace_command flag (tac,st))
   else tac st;

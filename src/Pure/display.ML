@@ -17,7 +17,6 @@ signature DISPLAY =
   val print_cterm	: cterm -> unit
   val print_ctyp	: ctyp -> unit
   val print_goals	: int -> thm -> unit
-  val print_goals_ref	: (int -> thm -> unit) ref
   val print_syntax	: theory -> unit
   val print_theory	: theory -> unit
   val print_thm		: thm -> unit
@@ -208,9 +207,6 @@ fun print_goals maxgoals state =
     restore ()
   end;
 
-
-(*"hook" for user interfaces: allows print_goals to be replaced*)	(* FIXME remove!? *)
-val print_goals_ref = ref print_goals;
 
 end;
 
