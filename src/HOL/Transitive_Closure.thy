@@ -462,19 +462,7 @@ structure Trancl_Tac = Trancl_Tac_Fun (
     val rtrancl_trancl_trancl = thm "rtrancl_trancl_trancl";
     val trancl_rtrancl_trancl = thm "trancl_rtrancl_trancl";
     val rtrancl_trans = thm "rtrancl_trans";
-(*
-  fun decomp (Trueprop $ t) = 
-    let fun dec (Const ("op :", _) $ t1 $ t2 ) = 
-	let fun dec1  (Const ("Pair", _) $ a $ b) =  (a,b);
-	    fun dec2 (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
-	      | dec2 (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
-	      | dec2 r = (r,"r");
-	    val (a,b) = dec1 t1;
-	    val (rel,r) = dec2 t2;
-	in Some (a,b,rel,r) end
-      | dec _ =  None 
-    in dec t end;
-*)
+
   fun decomp (Trueprop $ t) = 
     let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) = 
 	let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
