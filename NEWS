@@ -64,6 +64,14 @@ HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 HOL/subset.thy);
 
 
+*** CTT ***
+
+* CTT: x-symbol support for Pi, Sigma, -->, : (membership)
+  note that "lam" is displayed as TWO lambda-symbols
+
+* CTT: theory Main now available, containing everything
+(that is, Bool and Arith) 
+
 *** General ***
 
 * Provers: fast_tac (and friends) now handle actual object-logic rules
