@@ -56,7 +56,7 @@ axioms
   ext [intro]: "(\<And>x. f x = g x) \<Longrightarrow> f = g"
   iff [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A = B"
 
-theorem sym [elim]: "x = y \<Longrightarrow> y = x"
+theorem sym [sym]: "x = y \<Longrightarrow> y = x"
 proof -
   assume "x = y"
   thus "y = x" by (rule subst) (rule refl)
