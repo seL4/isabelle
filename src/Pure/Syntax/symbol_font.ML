@@ -51,7 +51,10 @@ val dec_tab = Symtab.make (map swap enc_rel);
 (* chars and names *)
 
 fun char name = Symtab.lookup (enc_tab, name);
-fun name char = Symtab.lookup (dec_tab, char);
+
+fun name char =
+  if ord char < enc_start then None
+  else Symtab.lookup (dec_tab, char);
 
 
 
@@ -71,7 +74,9 @@ local
         in (c, cs') end
     | scan_symbol _ = raise LEXICAL_ERROR;
 in
-  val read_charnames = #1 o repeat (scan_symbol || scan_one (K true));
+  fun read_charnames chs =
+    if forall (not_equal "\\") chs then chs
+    else #1 (repeat (scan_symbol || scan_one (K true)) chs);
 end;
 
 
@@ -82,8 +87,12 @@ fun write_char prfx ch =
     None => ch
   | Some nm => prfx ^ "\\<" ^ nm ^ ">");
 
-val write_charnames = map (write_char "");
-val write_charnames' = map (write_char "\\");
+fun write_chars prfx chs =
+  if forall (fn ch => ord ch < enc_start) chs then chs
+  else map (write_char prfx) chs;
+
+val write_charnames = write_chars "";
+val write_charnames' = write_chars "\\";
 
 
 end;
