@@ -46,11 +46,13 @@ defs
 consts
         free_tv :: ['a::type_struct] => nat set
 
-rules
-        free_tv_TVar    "free_tv (TVar m) = {m}"
-        free_tv_Fun     "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
-        free_tv_Nil     "free_tv [] = {}"
-        free_tv_Cons    "free_tv (x#l) = (free_tv x) Un (free_tv l)"
+primrec free_tv typ
+  free_tv_TVar    "free_tv (TVar m) = {m}"
+  free_tv_Fun     "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
+
+primrec free_tv List.list
+  free_tv_Nil     "free_tv [] = {}"
+  free_tv_Cons    "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
 (* domain of a substitution *)
 constdefs
@@ -59,8 +61,8 @@ constdefs
 
 (* codomain of a substitutions: the introduced variables *)
 constdefs
-     cod :: subst => nat set
-     "cod s == (UN m:dom s. free_tv (s m))"
+        cod :: subst => nat set
+        "cod s == (UN m:dom s. free_tv (s m))"
 
 defs
         free_tv_subst   "free_tv s == (dom s) Un (cod s)"
