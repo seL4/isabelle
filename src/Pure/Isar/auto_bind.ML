@@ -11,8 +11,8 @@ fine with common object-logics (HOL, FOL, ZF etc.).
 
 signature AUTO_BIND =
 sig
-  val goal: Sign.sg -> term -> (indexname * term option) list
-  val facts: Sign.sg -> string -> term list -> (indexname * term option) list
+  val goal: Sign.sg -> term list -> (indexname * term option) list
+  val facts: Sign.sg -> term list -> (indexname * term option) list
   val thesisN: string
 end;
 
@@ -32,7 +32,7 @@ fun statement_binds sg name prop =
 
 (* goal *)
 
-fun goal sg prop = statement_binds sg thesisN prop;
+fun goal sg props = statement_binds sg thesisN (Library.last_elem props);
 
 
 (* facts *)
@@ -42,8 +42,8 @@ fun get_arg sg prop =
     _ $ t => Some (Term.list_abs (Logic.strip_params prop, t))
   | _ => None);
 
-fun facts _ _ [] = []
-  | facts sg name props =
+fun facts _ [] = []
+  | facts sg props =
       let val prop = Library.last_elem props
       in [(Syntax.dddot_indexname, get_arg sg prop)] @ statement_binds sg thisN prop end;
 
