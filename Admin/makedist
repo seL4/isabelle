@@ -142,10 +142,10 @@ fi
 
 cd $DISTBASE
 
-#FIXME doesn't work!?
-#chown -R $LOGNAME:isabelle $DISTNAME
-#chmod -R u+w $DISTNAME
-#chmod -R g-w $DISTNAME
+#FIXME sometimes doesn't work!?
+chown -R $LOGNAME:isabelle $DISTNAME
+chmod -R u+w $DISTNAME
+chmod -R g+w $DISTNAME
 
 tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
 
