@@ -297,7 +297,7 @@ proof;
         by (rule real_mult_diff_distrib);
       also; from lz vs y; have "- a * (p (rinv a (*) y + x0)) 
                                = p (a (*) (rinv a (*) y + x0))";
-        by (simp add: seminorm_rabs_homogenous rabs_minus_eqI2);
+        by (simp add: seminorm_abs_homogenous abs_minus_eqI2);
       also; from nz vs y; have "... = p (y + a (*) x0)";
         by (simp add: vs_add_mult_distrib1);
       also; from nz vs y; have "a * (h (rinv a (*) y)) =  h y";
@@ -329,7 +329,7 @@ proof;
       also; from gz vs y; 
       have "a * p (rinv a (*) y + x0) 
            = p (a (*) (rinv a (*) y + x0))";
-        by (simp add: seminorm_rabs_homogenous rabs_eqI2);
+        by (simp add: seminorm_abs_homogenous abs_eqI2);
       also; from nz vs y; 
       have "... = p (y + a (*) x0)";
         by (simp add: vs_add_mult_distrib1);

@@ -19,12 +19,12 @@ constdefs
   is_seminorm :: "['a::{plus, minus} set, 'a => real] => bool"
   "is_seminorm V norm == ALL x: V. ALL y:V. ALL a. 
         0r <= norm x 
-      & norm (a (*) x) = (rabs a) * (norm x)
+      & norm (a (*) x) = (abs a) * (norm x)
       & norm (x + y) <= norm x + norm y";
 
 lemma is_seminormI [intro]: 
   "[| !! x y a. [| x:V; y:V|] ==> 0r <= norm x;
-  !! x a. x:V ==> norm (a (*) x) = (rabs a) * (norm x);
+  !! x a. x:V ==> norm (a (*) x) = (abs a) * (norm x);
   !! x y. [|x:V; y:V |] ==> norm (x + y) <= norm x + norm y |] 
   ==> is_seminorm V norm";
   by (unfold is_seminorm_def, force);
@@ -33,9 +33,9 @@ lemma seminorm_ge_zero [intro??]:
   "[| is_seminorm V norm; x:V |] ==> 0r <= norm x";
   by (unfold is_seminorm_def, force);
 
-lemma seminorm_rabs_homogenous: 
+lemma seminorm_abs_homogenous: 
   "[| is_seminorm V norm; x:V |] 
-  ==> norm (a (*) x) = (rabs a) * (norm x)";
+  ==> norm (a (*) x) = (abs a) * (norm x)";
   by (unfold is_seminorm_def, force);
 
 lemma seminorm_subadditive: 
@@ -52,9 +52,9 @@ proof -;
     by (simp! add: diff_eq2 negate_eq2);
   also; have "... <= norm x + norm  (- 1r (*) y)"; 
     by (simp! add: seminorm_subadditive);
-  also; have "norm (- 1r (*) y) = rabs (- 1r) * norm y"; 
-    by (rule seminorm_rabs_homogenous);
-  also; have "rabs (- 1r) = 1r"; by (rule rabs_minus_one);
+  also; have "norm (- 1r (*) y) = abs (- 1r) * norm y"; 
+    by (rule seminorm_abs_homogenous);
+  also; have "abs (- 1r) = 1r"; by (rule abs_minus_one);
   finally; show "norm (x - y) <= norm x + norm y"; by simp;
 qed;
 
@@ -64,9 +64,9 @@ lemma seminorm_minus:
 proof -;
   assume "is_seminorm V norm" "x:V" "is_vectorspace V";
   have "norm (- x) = norm (- 1r (*) x)"; by (simp! only: negate_eq1);
-  also; have "... = rabs (- 1r) * norm x"; 
-    by (rule seminorm_rabs_homogenous);
-  also; have "rabs (- 1r) = 1r"; by (rule rabs_minus_one);
+  also; have "... = abs (- 1r) * norm x"; 
+    by (rule seminorm_abs_homogenous);
+  also; have "abs (- 1r) = 1r"; by (rule abs_minus_one);
   finally; show "norm (- x) = norm x"; by simp;
 qed;
 
@@ -142,10 +142,10 @@ proof (unfold is_normed_vectorspace_def, elim conjE);
   finally; show "0r < norm x"; .;
 qed;
 
-lemma normed_vs_norm_rabs_homogenous [intro??]: 
+lemma normed_vs_norm_abs_homogenous [intro??]: 
   "[| is_normed_vectorspace V norm; x:V |] 
-  ==> norm (a (*) x) = (rabs a) * (norm x)";
-  by (rule seminorm_rabs_homogenous, rule norm_is_seminorm, 
+  ==> norm (a (*) x) = (abs a) * (norm x)";
+  by (rule seminorm_abs_homogenous, rule norm_is_seminorm, 
       rule normed_vs_norm);
 
 lemma normed_vs_norm_subadditive [intro??]: 
@@ -170,7 +170,7 @@ proof (rule normed_vsI);
     proof;
       fix x y a; presume "x : E";
       show "0r <= norm x"; ..;
-      show "norm (a (*) x) = rabs a * norm x"; ..;
+      show "norm (a (*) x) = abs a * norm x"; ..;
       presume "y : E";
       show "norm (x + y) <= norm x + norm y"; ..;
     qed (simp!)+;

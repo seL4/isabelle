@@ -638,7 +638,7 @@ qed;
 
 text{* \medskip The following lemma is a property of linear forms on 
 real vector spaces. It will be used for the lemma 
-$\idt{rabs{\dsh}HahnBanach}$ (see page \pageref{rabs-HahnBanach}). \label{rabs-ineq-iff}
+$\idt{abs{\dsh}HahnBanach}$ (see page \pageref{abs-HahnBanach}). \label{abs-ineq-iff}
 For real vector spaces the following inequations are equivalent:
 \begin{matharray}{ll} 
 \forall x\in H.\ap |h\ap x|\leq p\ap x& {\rm and}\\ 
@@ -646,10 +646,10 @@ For real vector spaces the following inequations are equivalent:
 \end{matharray}
 *};
 
-lemma rabs_ineq_iff: 
+lemma abs_ineq_iff: 
   "[| is_subspace H E; is_vectorspace E; is_seminorm E p; 
   is_linearform H h |] 
-  ==> (ALL x:H. rabs (h x) <= p x) = (ALL x:H. h x <= p x)" 
+  ==> (ALL x:H. abs (h x) <= p x) = (ALL x:H. h x <= p x)" 
   (concl is "?L = ?R");
 proof -;
   assume "is_subspace H E" "is_vectorspace E" "is_seminorm E p" 
@@ -661,7 +661,7 @@ proof -;
     show ?R;
     proof;
       fix x; assume x: "x:H";
-      have "h x <= rabs (h x)"; by (rule rabs_ge_self);
+      have "h x <= abs (h x)"; by (rule abs_ge_self);
       also; from l; have "... <= p x"; ..;
       finally; show "h x <= p x"; .;
     qed;
@@ -670,7 +670,7 @@ proof -;
     show ?L;
     proof; 
       fix x; assume "x:H";
-      show "!! a b. [| - a <= b; b <= a |] ==> rabs b <= a";
+      show "!! a b::real. [| - a <= b; b <= a |] ==> abs b <= a";
         by arith;
       show "- p x <= h x";
       proof (rule real_minus_le);

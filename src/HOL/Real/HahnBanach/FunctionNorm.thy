@@ -20,14 +20,14 @@ constdefs
   is_continuous ::
   "['a::{minus, plus} set, 'a => real, 'a => real] => bool" 
   "is_continuous V norm f == 
-    is_linearform V f & (EX c. ALL x:V. rabs (f x) <= c * norm x)";
+    is_linearform V f & (EX c. ALL x:V. abs (f x) <= c * norm x)";
 
 lemma continuousI [intro]: 
-  "[| is_linearform V f; !! x. x:V ==> rabs (f x) <= c * norm x |] 
+  "[| is_linearform V f; !! x. x:V ==> abs (f x) <= c * norm x |] 
   ==> is_continuous V norm f";
 proof (unfold is_continuous_def, intro exI conjI ballI);
-  assume r: "!! x. x:V ==> rabs (f x) <= c * norm x"; 
-  fix x; assume "x:V"; show "rabs (f x) <= c * norm x"; by (rule r);
+  assume r: "!! x. x:V ==> abs (f x) <= c * norm x"; 
+  fix x; assume "x:V"; show "abs (f x) <= c * norm x"; by (rule r);
 qed;
   
 lemma continuous_linearform [intro??]: 
@@ -36,7 +36,7 @@ lemma continuous_linearform [intro??]:
 
 lemma continuous_bounded [intro??]:
   "is_continuous V norm f 
-  ==> EX c. ALL x:V. rabs (f x) <= c * norm x";
+  ==> EX c. ALL x:V. abs (f x) <= c * norm x";
   by (unfold is_continuous_def) force;
 
 subsection{* The norm of a linear form *};
@@ -66,7 +66,7 @@ Thus we define the set $B$ the supremum is taken from as
 constdefs
   B :: "[ 'a set, 'a => real, 'a => real ] => real set"
   "B V norm f == 
-  {0r} \Un {rabs (f x) * rinv (norm x) | x. x ~= 00 & x:V}";
+  {0r} \Un {abs (f x) * rinv (norm x) | x. x ~= 00 & x:V}";
 
 text{* $n$ is the function norm of $f$, iff 
 $n$ is the supremum of $B$. 
@@ -97,7 +97,7 @@ proof (unfold function_norm_def is_function_norm_def
   is_continuous_def Sup_def, elim conjE, rule selectI2EX);
   assume "is_normed_vectorspace V norm";
   assume "is_linearform V f" 
-  and e: "EX c. ALL x:V. rabs (f x) <= c * norm x";
+  and e: "EX c. ALL x:V. abs (f x) <= c * norm x";
 
   txt {* The existence of the supremum is shown using the 
   completeness of the reals. Completeness means, that
@@ -120,7 +120,7 @@ proof (unfold function_norm_def is_function_norm_def
 
       txt {* We know that $f$ is bounded by some value $c$. *};  
   
-      fix c; assume a: "ALL x:V. rabs (f x) <= c * norm x";
+      fix c; assume a: "ALL x:V. abs (f x) <= c * norm x";
       def b == "max c 0r";
 
       show "?thesis";
@@ -165,13 +165,13 @@ proof (unfold function_norm_def is_function_norm_def
         txt {* The thesis follows by a short calculation using the 
         fact that $f$ is bounded. *};
     
-        assume "y = rabs (f x) * rinv (norm x)";
+        assume "y = abs (f x) * rinv (norm x)";
         also; have "... <= c * norm x * rinv (norm x)";
         proof (rule real_mult_le_le_mono2);
           show "0r <= rinv (norm x)";
             by (rule real_less_imp_le, rule real_rinv_gt_zero, 
                 rule normed_vs_norm_gt_zero);
-          from a; show "rabs (f x) <= c * norm x"; ..;
+          from a; show "abs (f x) <= c * norm x"; ..;
         qed;
         also; have "... = c * (norm x * rinv (norm x))"; 
           by (rule real_mult_assoc);
@@ -208,9 +208,9 @@ proof -;
            elim UnE singletonE CollectE exE conjE); 
       fix x r;
       assume "x : V" "x ~= 00" 
-        and r: "r = rabs (f x) * rinv (norm x)";
+        and r: "r = abs (f x) * rinv (norm x)";
 
-      have ge: "0r <= rabs (f x)"; by (simp! only: rabs_ge_zero);
+      have ge: "0r <= abs (f x)"; by (simp! only: abs_ge_zero);
       have "0r <= rinv (norm x)"; 
         by (rule real_less_imp_le, rule real_rinv_gt_zero, rule);(***
         proof (rule real_less_imp_le);
@@ -243,7 +243,7 @@ text{* \medskip The fundamental property of function norms is:
 
 lemma norm_fx_le_norm_f_norm_x: 
   "[| is_normed_vectorspace V norm; x:V; is_continuous V norm f |] 
-    ==> rabs (f x) <= function_norm V norm f * norm x"; 
+    ==> abs (f x) <= function_norm V norm f * norm x"; 
 proof -; 
   assume "is_normed_vectorspace V norm" "x:V" 
   and c: "is_continuous V norm f";
@@ -260,16 +260,16 @@ proof -;
     holds $f\ap \zero = 0$. *};
 
     assume "x = 00";
-    have "rabs (f x) = rabs (f 00)"; by (simp!);
+    have "abs (f x) = abs (f 00)"; by (simp!);
     also; from v continuous_linearform; have "f 00 = 0r"; ..;
-    also; note rabs_zero;
+    also; note abs_zero;
     also; have "0r <= function_norm V norm f * norm x";
     proof (rule real_le_mult_order);
       show "0r <= function_norm V norm f"; ..;
       show "0r <= norm x"; ..;
     qed;
     finally; 
-    show "rabs (f x) <= function_norm V norm f * norm x"; .;
+    show "abs (f x) <= function_norm V norm f * norm x"; .;
 
   next;
     assume "x ~= 00";
@@ -282,28 +282,28 @@ proof -;
     txt {* For the case $x\neq \zero$ we derive the following
     fact from the definition of the function norm:*};
 
-    have l: "rabs (f x) * rinv (norm x) <= function_norm V norm f";
+    have l: "abs (f x) * rinv (norm x) <= function_norm V norm f";
     proof (unfold function_norm_def, rule sup_ub);
       from ex_fnorm [OF _ c];
       show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))";
          by (simp! add: is_function_norm_def function_norm_def);
-      show "rabs (f x) * rinv (norm x) : B V norm f"; 
+      show "abs (f x) * rinv (norm x) : B V norm f"; 
         by (unfold B_def, intro UnI2 CollectI exI [of _ x]
             conjI, simp);
     qed;
 
     txt {* The thesis now follows by a short calculation: *};
 
-    have "rabs (f x) = rabs (f x) * 1r"; by (simp!);
+    have "abs (f x) = abs (f x) * 1r"; by (simp!);
     also; from nz; have "1r = rinv (norm x) * norm x"; 
       by (rule real_mult_inv_left [RS sym]);
     also; 
-    have "rabs (f x) * ... = rabs (f x) * rinv (norm x) * norm x";
-      by (simp! add: real_mult_assoc [of "rabs (f x)"]);
+    have "abs (f x) * ... = abs (f x) * rinv (norm x) * norm x";
+      by (simp! add: real_mult_assoc [of "abs (f x)"]);
     also; have "... <= function_norm V norm f * norm x"; 
       by (rule real_mult_le_le_mono2 [OF n l]);
     finally; 
-    show "rabs (f x) <= function_norm V norm f * norm x"; .;
+    show "abs (f x) <= function_norm V norm f * norm x"; .;
   qed;
 qed;
 
@@ -316,12 +316,12 @@ which the following inequation holds:
 
 lemma fnorm_le_ub: 
   "[| is_normed_vectorspace V norm; is_continuous V norm f;
-     ALL x:V. rabs (f x) <= c * norm x; 0r <= c |]
+     ALL x:V. abs (f x) <= c * norm x; 0r <= c |]
   ==> function_norm V norm f <= c";
 proof (unfold function_norm_def);
   assume "is_normed_vectorspace V norm"; 
   assume c: "is_continuous V norm f";
-  assume fb: "ALL x:V. rabs (f x) <= c * norm x"
+  assume fb: "ALL x:V. abs (f x) <= c * norm x"
          and "0r <= c";
 
   txt {* Suppose the inequation holds for some $c\geq 0$.
@@ -372,10 +372,10 @@ proof (unfold function_norm_def);
 	hence rinv_gez: "0r <= rinv (norm x)";
           by (rule real_less_imp_le);
 
-	assume "y = rabs (f x) * rinv (norm x)"; 
+	assume "y = abs (f x) * rinv (norm x)"; 
 	also; from rinv_gez; have "... <= c * norm x * rinv (norm x)";
 	  proof (rule real_mult_le_le_mono2);
-	    show "rabs (f x) <= c * norm x"; by (rule bspec);
+	    show "abs (f x) <= c * norm x"; by (rule bspec);
 	  qed;
 	also; have "... <= c"; by (simp add: nz real_mult_assoc);
 	finally; show ?thesis; .;

@@ -596,25 +596,25 @@ qed;
 subsection  {* Alternative formulation *};
 
 text {* The following alternative formulation of the Hahn-Banach
-Theorem\label{rabs-HahnBanach} uses the fact that for a real linear form
+Theorem\label{abs-HahnBanach} uses the fact that for a real linear form
 $f$ and a seminorm $p$ the
 following inequations are equivalent:\footnote{This was shown in lemma
-$\idt{rabs{\dsh}ineq{\dsh}iff}$ (see page \pageref{rabs-ineq-iff}).}
+$\idt{abs{\dsh}ineq{\dsh}iff}$ (see page \pageref{abs-ineq-iff}).}
 \begin{matharray}{ll}
 \forall x\in H.\ap |h\ap x|\leq p\ap x& {\rm and}\\
 \forall x\in H.\ap h\ap x\leq p\ap x\\
 \end{matharray}
 *};
 
-theorem rabs_HahnBanach:
+theorem abs_HahnBanach:
   "[| is_vectorspace E; is_subspace F E; is_linearform F f; 
-  is_seminorm E p; ALL x:F. rabs (f x) <= p x |]
+  is_seminorm E p; ALL x:F. abs (f x) <= p x |]
   ==> EX g. is_linearform E g & (ALL x:F. g x = f x)
-   & (ALL x:E. rabs (g x) <= p x)";
+   & (ALL x:E. abs (g x) <= p x)";
 proof -;
   assume "is_vectorspace E" "is_subspace F E" "is_seminorm E p" 
-    "is_linearform F f"  "ALL x:F. rabs (f x) <= p x";
-  have "ALL x:F. f x <= p x";  by (rule rabs_ineq_iff [RS iffD1]);
+    "is_linearform F f"  "ALL x:F. abs (f x) <= p x";
+  have "ALL x:F. f x <= p x";  by (rule abs_ineq_iff [RS iffD1]);
   hence "EX g. is_linearform E g & (ALL x:F. g x = f x) 
               & (ALL x:E. g x <= p x)";
     by (simp! only: HahnBanach);
@@ -622,8 +622,8 @@ proof -;
   proof (elim exE conjE);
     fix g; assume "is_linearform E g" "ALL x:F. g x = f x" 
                   "ALL x:E. g x <= p x";
-    hence "ALL x:E. rabs (g x) <= p x";
-      by (simp! add: rabs_ineq_iff [OF subspace_refl]);
+    hence "ALL x:E. abs (g x) <= p x";
+      by (simp! add: abs_ineq_iff [OF subspace_refl]);
     thus ?thesis; by (intro exI conjI);
   qed;
 qed;
@@ -672,16 +672,16 @@ proof -;
 
     txt{* $p$ is absolutely homogenous: *};
 
-    show "p (a (*) x) = rabs a * p x";
+    show "p (a (*) x) = abs a * p x";
     proof -; 
       have "p (a (*) x) = function_norm F norm f * norm (a (*) x)";
         by (simp!);
-      also; have "norm (a (*) x) = rabs a * norm x"; 
-        by (rule normed_vs_norm_rabs_homogenous);
-      also; have "function_norm F norm f * (rabs a * norm x) 
-        = rabs a * (function_norm F norm f * norm x)";
+      also; have "norm (a (*) x) = abs a * norm x"; 
+        by (rule normed_vs_norm_abs_homogenous);
+      also; have "function_norm F norm f * (abs a * norm x) 
+        = abs a * (function_norm F norm f * norm x)";
         by (simp! only: real_mult_left_commute);
-      also; have "... = rabs a * p x"; by (simp!);
+      also; have "... = abs a * p x"; by (simp!);
       finally; show ?thesis; .;
     qed;
 
@@ -706,10 +706,10 @@ proof -;
 
   txt{* $f$ is bounded by $p$. *}; 
 
-  have "ALL x:F. rabs (f x) <= p x";
+  have "ALL x:F. abs (f x) <= p x";
   proof;
     fix x; assume "x:F";
-     from f_norm; show "rabs (f x) <= p x"; 
+     from f_norm; show "abs (f x) <= p x"; 
        by (simp! add: norm_fx_le_norm_f_norm_x);
   qed;
 
@@ -721,14 +721,14 @@ proof -;
 
   with e f q; 
   have "EX g. is_linearform E g & (ALL x:F. g x = f x) 
-            & (ALL x:E. rabs (g x) <= p x)";
-    by (simp! add: rabs_HahnBanach);
+            & (ALL x:E. abs (g x) <= p x)";
+    by (simp! add: abs_HahnBanach);
 
   thus ?thesis;
   proof (elim exE conjE); 
     fix g;
     assume "is_linearform E g" and a: "ALL x:F. g x = f x" 
-       and b: "ALL x:E. rabs (g x) <= p x";
+       and b: "ALL x:E. abs (g x) <= p x";
 
     show "EX g. is_linearform E g 
             & is_continuous E norm g 
@@ -743,7 +743,7 @@ proof -;
       proof;
         fix x; assume "x:E";
         from b [RS bspec, OF this]; 
-        show "rabs (g x) <= function_norm F norm f * norm x";
+        show "abs (g x) <= function_norm F norm f * norm x";
           by (unfold p_def);
       qed; 
 
@@ -765,10 +765,10 @@ proof -;
         \end{matharray}
         *};
  
-        have "ALL x:E. rabs (g x) <= function_norm F norm f * norm x";
+        have "ALL x:E. abs (g x) <= function_norm F norm f * norm x";
         proof;
           fix x; assume "x:E"; 
-          show "rabs (g x) <= function_norm F norm f * norm x";
+          show "abs (g x) <= function_norm F norm f * norm x";
             by (simp!);
         qed;
 
@@ -780,17 +780,17 @@ proof -;
         txt{* The other direction is achieved by a similar 
         argument. *};
 
-        have "ALL x:F. rabs (f x) <= function_norm E norm g * norm x";
+        have "ALL x:F. abs (f x) <= function_norm E norm g * norm x";
         proof;
           fix x; assume "x : F"; 
           from a; have "g x = f x"; ..;
-          hence "rabs (f x) = rabs (g x)"; by simp;
+          hence "abs (f x) = abs (g x)"; by simp;
           also; from _ _ g_cont;
           have "... <= function_norm E norm g * norm x";
           proof (rule norm_fx_le_norm_f_norm_x);
             show "x:E"; ..;
           qed;
-          finally; show "rabs (f x) <= function_norm E norm g * norm x"; .;
+          finally; show "abs (f x) <= function_norm E norm g * norm x"; .;
         qed; 
         thus "?R <= ?L"; 
         proof (rule fnorm_le_ub [OF f_norm f_cont]);

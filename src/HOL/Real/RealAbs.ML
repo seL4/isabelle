@@ -9,62 +9,62 @@
        Properties of the absolute value function over the reals
        (adapted version of previously proved theorems about abs)
  ----------------------------------------------------------------------------*)
-Goalw [rabs_def] "rabs r = (if 0r<=r then r else -r)";
+Goalw [abs_real_def] "abs r = (if 0r<=r then r else -r)";
 by Auto_tac;
-qed "rabs_iff";
+qed "abs_iff";
 
-Goalw [rabs_def] "rabs 0r = 0r";
+Goalw [abs_real_def] "abs 0r = 0r";
 by (rtac (real_le_refl RS if_P) 1);
-qed "rabs_zero";
+qed "abs_zero";
 
-Addsimps [rabs_zero];
+Addsimps [abs_zero];
 
-Goalw [rabs_def] "rabs 0r = -0r";
+Goalw [abs_real_def] "abs 0r = -0r";
 by (Simp_tac 1);
-qed "rabs_minus_zero";
+qed "abs_minus_zero";
 
-Goalw [rabs_def] "0r<=x ==> rabs x = x";
+Goalw [abs_real_def] "0r<=x ==> abs x = x";
 by (Asm_simp_tac 1);
-qed "rabs_eqI1";
+qed "abs_eqI1";
 
-Goalw [rabs_def] "0r<x ==> rabs x = x";
+Goalw [abs_real_def] "0r<x ==> abs x = x";
 by (Asm_simp_tac 1);
-qed "rabs_eqI2";
+qed "abs_eqI2";
 
-Goalw [rabs_def,real_le_def] "x<0r ==> rabs x = -x";
+Goalw [abs_real_def,real_le_def] "x<0r ==> abs x = -x";
 by (Asm_simp_tac 1);
-qed "rabs_minus_eqI2";
+qed "abs_minus_eqI2";
 
-Goalw [rabs_def] "x<=0r ==> rabs x = -x";
+Goalw [abs_real_def] "x<=0r ==> abs x = -x";
 by (asm_full_simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_minus_eqI1";
+qed "abs_minus_eqI1";
 
-Goalw [rabs_def] "0r<= rabs x";
+Goalw [abs_real_def] "0r<= abs x";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_ge_zero";
+qed "abs_ge_zero";
 
-Goalw [rabs_def] "rabs(rabs x)=rabs x";
+Goalw [abs_real_def] "abs(abs x)=abs (x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_idempotent";
+qed "abs_idempotent";
 
-Goalw [rabs_def] "(x=0r) = (rabs x = 0r)";
+Goalw [abs_real_def] "(x=0r) = (abs x = 0r)";
 by (Full_simp_tac 1);
-qed "rabs_zero_iff";
+qed "abs_zero_iff";
 
-Goal  "(x ~= 0r) = (rabs x ~= 0r)";
-by (full_simp_tac (simpset() addsimps [rabs_zero_iff RS sym]) 1);
-qed "rabs_not_zero_iff";
+Goal  "(x ~= 0r) = (abs x ~= 0r)";
+by (full_simp_tac (simpset() addsimps [abs_zero_iff RS sym]) 1);
+qed "abs_not_zero_iff";
 
-Goalw [rabs_def] "x<=rabs x";
+Goalw [abs_real_def] "x<=abs (x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_ge_self";
+qed "abs_ge_self";
 
-Goalw [rabs_def] "-x<=rabs x";
+Goalw [abs_real_def] "-x<=abs (x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_ge_minus_self";
+qed "abs_ge_minus_self";
 
 (* case splits nightmare *)
-Goalw [rabs_def] "rabs(x*y) = (rabs x)*(rabs y)";
+Goalw [abs_real_def] "abs (x * y) = abs x * abs (y::real)";
 by (auto_tac (claset(),
 	      simpset() addsimps [real_minus_mult_eq1, real_minus_mult_commute,
 				  real_minus_mult_eq2]));
@@ -75,9 +75,9 @@ by (EVERY[dtac real_mult_le_zero 3, assume_tac 3, dtac real_le_anti_sym 3]);
 by (dtac real_mult_less_zero1 5 THEN assume_tac 5);
 by (auto_tac (claset() addDs [real_less_asym,sym],
 	      simpset() addsimps [real_minus_mult_eq2 RS sym] @real_mult_ac));
-qed "rabs_mult";
+qed "abs_mult";
 
-Goalw [rabs_def] "x~= 0r ==> rabs(rinv(x)) = rinv(rabs(x))";
+Goalw [abs_real_def] "x~= 0r ==> abs(rinv(x)) = rinv(abs(x))";
 by (auto_tac (claset(), simpset() addsimps [real_minus_rinv]));
 by (ALLGOALS(dtac not_real_leE));
 by (etac real_less_asym 1);
@@ -86,40 +86,40 @@ by (dtac (rinv_not_zero RS not_sym) 1);
 by (rtac (real_rinv_less_zero RSN (2,real_less_asym)) 1);
 by (assume_tac 2);
 by (blast_tac (claset() addSDs [real_le_imp_less_or_eq]) 1);
-qed "rabs_rinv";
+qed "abs_rinv";
 
-Goal "y ~= 0r ==> rabs(x*rinv(y)) = rabs(x)*rinv(rabs(y))";
-by (asm_simp_tac (simpset() addsimps [rabs_mult, rabs_rinv]) 1);
-qed "rabs_mult_rinv";
+Goal "y ~= 0r ==> abs(x*rinv(y)) = abs(x)*rinv(abs(y))";
+by (asm_simp_tac (simpset() addsimps [abs_mult, abs_rinv]) 1);
+qed "abs_mult_rinv";
 
-Goalw [rabs_def] "rabs(x+y) <= rabs x + rabs y";
+Goalw [abs_real_def] "abs(x+y) <= abs x + abs (y::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_triangle_ineq";
+qed "abs_triangle_ineq";
 
 (*Unused, but perhaps interesting as an example*)
-Goal "rabs(w + x + y + z) <= rabs(w) + rabs(x) + rabs(y) + rabs(z)";
-by (simp_tac (simpset() addsimps [rabs_triangle_ineq RS order_trans]) 1);
-qed "rabs_triangle_ineq_four";
+Goal "abs(w + x + y + z) <= abs(w) + abs(x) + abs(y) + abs(z::real)";
+by (simp_tac (simpset() addsimps [abs_triangle_ineq RS order_trans]) 1);
+qed "abs_triangle_ineq_four";
 
-Goalw [rabs_def] "rabs(-x)=rabs(x)";
+Goalw [abs_real_def] "abs(-x)=abs(x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_minus_cancel";
+qed "abs_minus_cancel";
 
-Goalw [rabs_def] "rabs(x + (-y)) = rabs (y + (-x))";
+Goalw [abs_real_def] "abs(x + (-y)) = abs (y + (-(x::real)))";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_minus_add_cancel";
+qed "abs_minus_add_cancel";
 
-Goalw [rabs_def] "rabs(x + (-y)) <= rabs x + rabs y";
+Goalw [abs_real_def] "abs(x + (-y)) <= abs x + abs (y::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_triangle_minus_ineq";
+qed "abs_triangle_minus_ineq";
 
-Goalw [rabs_def] "rabs x < r --> rabs y < s --> rabs(x+y) < r+s";
+Goalw [abs_real_def] "abs x < r --> abs y < s --> abs(x+y) < r+(s::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed_spec_mp "rabs_add_less";
+qed_spec_mp "abs_add_less";
 
-Goalw [rabs_def] "rabs x < r --> rabs y < s --> rabs(x+ (-y)) < r+s";
+Goalw [abs_real_def] "abs x < r --> abs y < s --> abs(x+ (-y)) < r+(s::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);
-qed "rabs_add_minus_less";
+qed "abs_add_minus_less";
 
 (* lemmas manipulating terms *)
 Goal "(0r*x<r)=(0r<r)";
@@ -139,69 +139,68 @@ qed "real_mult_le_less_trans";
 
 (* proofs lifted from previous older version
    FIXME: use a stronger version of real_mult_less_mono *)
-Goal "[| rabs x<r; rabs y<s |] ==> rabs(x*y)<r*s";
-by (simp_tac (simpset() addsimps [rabs_mult]) 1);
+Goal "[| abs x<r; abs y<s |] ==> abs(x*y)<r*(s::real)";
+by (simp_tac (simpset() addsimps [abs_mult]) 1);
 by (rtac real_mult_le_less_trans 1);
-by (rtac rabs_ge_zero 1);
+by (rtac abs_ge_zero 1);
 by (assume_tac 1);
-by (blast_tac (HOL_cs addIs [rabs_ge_zero, real_mult_less_mono1, 
+by (blast_tac (HOL_cs addIs [abs_ge_zero, real_mult_less_mono1, 
 			     real_le_less_trans]) 1);
-by (blast_tac (HOL_cs addIs [rabs_ge_zero, real_mult_order, 
+by (blast_tac (HOL_cs addIs [abs_ge_zero, real_mult_order, 
 			     real_le_less_trans]) 1);
-qed "rabs_mult_less";
+qed "abs_mult_less";
 
-Goal "[| rabs x < r; rabs y < s |] ==> rabs(x)*rabs(y)<r*s";
-by (auto_tac (claset() addIs [rabs_mult_less],
-              simpset() addsimps [rabs_mult RS sym]));
-qed "rabs_mult_less2";
+Goal "[| abs x < r; abs y < s |] ==> abs(x)*abs(y)<r*(s::real)";
+by (auto_tac (claset() addIs [abs_mult_less],
+              simpset() addsimps [abs_mult RS sym]));
+qed "abs_mult_less2";
 
-Goal "1r < rabs x ==> rabs y <= rabs(x*y)";
-by (cut_inst_tac [("x1","y")] (rabs_ge_zero RS real_le_imp_less_or_eq) 1);
+Goal "1r < abs x ==> abs y <= abs(x*y)";
+by (cut_inst_tac [("x1","y")] (abs_ge_zero RS real_le_imp_less_or_eq) 1);
 by (EVERY1[etac disjE,rtac real_less_imp_le]);
 by (dres_inst_tac [("W","1r")]  real_less_sum_gt_zero 1);
-by (forw_inst_tac [("y","rabs x + (-1r)")] real_mult_order 1);
+by (forw_inst_tac [("y","abs x + (-1r)")] real_mult_order 1);
 by (assume_tac 1);
 by (rtac real_sum_gt_zero_less 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib2,
-					   real_mult_commute, rabs_mult]) 1);
+					   real_mult_commute, abs_mult]) 1);
 by (dtac sym 1);
-by (asm_full_simp_tac (simpset() addsimps [rabs_mult]) 1);
-qed "rabs_mult_le";
+by (asm_full_simp_tac (simpset() addsimps [abs_mult]) 1);
+qed "abs_mult_le";
 
-Goal "[| 1r < rabs x; r < rabs y|] ==> r < rabs(x*y)";
-by (blast_tac (HOL_cs addIs [rabs_mult_le, real_less_le_trans]) 1);
-qed "rabs_mult_gt";
+Goal "[| 1r < abs x; r < abs y|] ==> r < abs(x*y)";
+by (blast_tac (HOL_cs addIs [abs_mult_le, real_less_le_trans]) 1);
+qed "abs_mult_gt";
 
-Goal "rabs(x)<r ==> 0r<r";
-by (blast_tac (claset() addSIs [real_le_less_trans,rabs_ge_zero]) 1);
-qed "rabs_less_gt_zero";
+Goal "abs(x)<r ==> 0r<r";
+by (blast_tac (claset() addSIs [real_le_less_trans,abs_ge_zero]) 1);
+qed "abs_less_gt_zero";
 
-Goalw [rabs_def] "rabs 1r = 1r";
+Goalw [abs_real_def] "abs 1r = 1r";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0, one_eq_numeral_1]) 1);
-qed "rabs_one";
+qed "abs_one";
 
-Goalw [rabs_def] "rabs x =x | rabs x = -x";
+Goalw [abs_real_def] "abs x =x | abs x = -(x::real)";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_disj";
+qed "abs_disj";
 
-Goalw [rabs_def] "(rabs x < r) = (-r<x & x<r)";
+Goalw [abs_real_def] "(abs x < r) = (-r<x & x<(r::real))";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_interval_iff";
+qed "abs_interval_iff";
 
-Goalw [rabs_def] "(rabs x <= r) = (-r<=x & x<=r)";
+Goalw [abs_real_def] "(abs x <= r) = (-r<=x & x<=(r::real))";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_le_interval_iff";
+qed "abs_le_interval_iff";
 
-Goalw [rabs_def] "(rabs (x + (-y)) < r) = (y + (-r) < x & x < y + r)";
+Goalw [abs_real_def] "(abs (x + (-y)) < r) = (y + (-r) < x & x < y + (r::real))";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_add_minus_interval_iff";
+qed "abs_add_minus_interval_iff";
 
-Goalw [rabs_def] "0r < k ==> 0r < k + rabs(x)";
+Goalw [abs_real_def] "0r < k ==> 0r < k + abs(x)";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_add_pos_gt_zero";
+qed "abs_add_pos_gt_zero";
 
-Goalw [rabs_def] "0r < 1r + rabs(x)";
+Goalw [abs_real_def] "0r < 1r + abs(x)";
 by (auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0, one_eq_numeral_1]));
-qed "rabs_add_one_gt_zero";
-Addsimps [rabs_add_one_gt_zero];
-
+qed "abs_add_one_gt_zero";
+Addsimps [abs_add_one_gt_zero];

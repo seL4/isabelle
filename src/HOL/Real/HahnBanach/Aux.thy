@@ -62,13 +62,13 @@ proof -;
   finally; show "?thesis"; .;
 qed;
 
-lemma rabs_minus_one: "rabs (- 1r) = 1r"; 
+lemma abs_minus_one: "abs (- 1r) = 1r"; 
 proof -; 
   have "-1r < 0r"; 
     by (rule real_minus_zero_less_iff[RS iffD1], simp, 
         rule real_zero_less_one);
-  hence "rabs (- 1r) = - (- 1r)"; 
-    by (rule rabs_minus_eqI2);
+  hence "abs (- 1r) = - (- 1r)"; 
+    by (rule abs_minus_eqI2);
   also; have "... = 1r"; by simp; 
   finally; show ?thesis; .;
 qed;

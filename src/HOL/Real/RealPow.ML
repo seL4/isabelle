@@ -30,11 +30,11 @@ by (auto_tac (claset() addDs [real_rinv_distrib],
     simpset()));
 qed_spec_mp "realpow_rinv";
 
-Goal "rabs r ^ n = rabs (r ^ n)";
+Goal "abs (r::real) ^ n = abs (r ^ n)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset() addsimps 
-    [rabs_mult,rabs_one]));
-qed "realpow_rabs";
+    [abs_mult,abs_one]));
+qed "realpow_abs";
 
 Goal "(r::real) ^ (n + m) = (r ^ n) * (r ^ m)";
 by (induct_tac "n" 1);
@@ -100,18 +100,18 @@ Addsimps [realpow_eq_one];
 Addsimps (map (rename_numerals thy) [realpow_zero, realpow_eq_one]);
 
 
-Goal "rabs(-(1r ^ n)) = 1r";
+Goal "abs(-(1r ^ n)) = 1r";
 by (simp_tac (simpset() addsimps 
-    [rabs_minus_cancel,rabs_one]) 1);
-qed "rabs_minus_realpow_one";
-Addsimps [rabs_minus_realpow_one];
+    [abs_minus_cancel,abs_one]) 1);
+qed "abs_minus_realpow_one";
+Addsimps [abs_minus_realpow_one];
 
-Goal "rabs((-1r) ^ n) = 1r";
+Goal "abs((-1r) ^ n) = 1r";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps [rabs_mult,
-         rabs_minus_cancel,rabs_one]));
-qed "rabs_realpow_minus_one";
-Addsimps [rabs_realpow_minus_one];
+by (auto_tac (claset(),simpset() addsimps [abs_mult,
+         abs_minus_cancel,abs_one]));
+qed "abs_realpow_minus_one";
+Addsimps [abs_realpow_minus_one];
 
 Goal "((r::real) * s) ^ n = (r ^ n) * (s ^ n)";
 by (induct_tac "n" 1);
@@ -123,16 +123,16 @@ by (simp_tac (simpset() addsimps [realpow_two]) 1);
 qed "realpow_two_le";
 Addsimps [realpow_two_le];
 
-Goal "rabs(x ^ 2) = x ^ 2";
-by (simp_tac (simpset() addsimps [rabs_eqI1]) 1);
-qed "rabs_realpow_two";
-Addsimps [rabs_realpow_two];
+Goal "abs((x::real) ^ 2) = x ^ 2";
+by (simp_tac (simpset() addsimps [abs_eqI1]) 1);
+qed "abs_realpow_two";
+Addsimps [abs_realpow_two];
 
-Goal "rabs(x) ^ 2 = x ^ 2";
+Goal "abs(x::real) ^ 2 = x ^ 2";
 by (simp_tac (simpset() addsimps 
-    [realpow_rabs,rabs_eqI1] delsimps [realpow_Suc]) 1);
-qed "realpow_two_rabs";
-Addsimps [realpow_two_rabs];
+    [realpow_abs,abs_eqI1] delsimps [realpow_Suc]) 1);
+qed "realpow_two_abs";
+Addsimps [realpow_two_abs];
 
 Goal "1r < r ==> 1r < r ^ 2";
 by (auto_tac (claset(),simpset() addsimps [realpow_two]));
@@ -373,5 +373,5 @@ Addsimps [realpow_two_mult_rinv];
 
 Addsimps (map (rename_numerals thy) 
 	  [realpow_two_le, realpow_zero_le,
-	   rabs_minus_realpow_one, rabs_realpow_minus_one,
+	   abs_minus_realpow_one, abs_realpow_minus_one,
 	   realpow_minus_one, realpow_minus_one2, realpow_minus_one_odd]);

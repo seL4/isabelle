@@ -110,10 +110,10 @@ qed "le_real_number_of_eq_not_less";
 Addsimps [le_real_number_of_eq_not_less];
 
 
-(** rabs (absolute value) **)
+(** abs (absolute value) **)
 
-Goalw [rabs_def]
-     "rabs (number_of v :: real) = \
+Goalw [abs_real_def]
+     "abs (number_of v :: real) = \
 \       (if neg (number_of v) then number_of (bin_minus v) \
 \        else number_of v)";
 by (simp_tac
@@ -121,9 +121,9 @@ by (simp_tac
       bin_arith_simps@
       [minus_real_number_of, zero_eq_numeral_0, le_real_number_of_eq_not_less,
        less_real_number_of, real_of_int_le_iff]) 1);
-qed "rabs_nat_number_of";
+qed "abs_nat_number_of";
 
-Addsimps [rabs_nat_number_of];
+Addsimps [abs_nat_number_of];
 
 
 (*** New versions of existing theorems involving 0r, 1r ***)
@@ -210,10 +210,10 @@ in
 Addsimprocs [fast_real_arith_simproc]
 end;
 
-Goalw [rabs_def]
-  "P(rabs x) = ((#0 <= x --> P x) & (x < #0 --> P(-x)))";
+Goalw [abs_real_def]
+  "P(abs (x::real)) = ((#0 <= x --> P x) & (x < #0 --> P(-x)))";
 by(auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "rabs_split";
+qed "abs_split";
 
-arith_tac_split_thms := !arith_tac_split_thms @ [rabs_split];
+arith_tac_split_thms := !arith_tac_split_thms @ [abs_split];
 
