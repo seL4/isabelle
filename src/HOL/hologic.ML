@@ -42,6 +42,7 @@ sig
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
   val unitT: typ
+  val is_unitT: typ -> bool
   val unit: term
   val is_unit: term -> bool
   val mk_prodT: typ * typ -> typ
@@ -167,6 +168,9 @@ fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
 
 val unitT = Type ("unit", []);
 
+fun is_unitT (Type ("unit", [])) = true
+  | is_unitT _ = false;
+
 val unit = Const ("()", unitT);
 
 fun is_unit (Const ("()", _)) = true
@@ -211,6 +215,25 @@ fun mk_tuple (Type ("*", [T1, T2])) tms =
                  mk_tuple T2 (drop (length (prodT_factors T1), tms)))
   | mk_tuple T (t::_) = t;
 
+
+
+(* proper tuples *)
+
+local  (*currently unused*)
+
+fun mk_tupleT Ts = foldr mk_prodT (Ts, unitT);
+
+fun dest_tupleT (Type ("unit", [])) = []
+  | dest_tupleT (Type ("*", [T, U])) = T :: dest_tupleT U
+  | dest_tupleT T = raise TYPE ("dest_tupleT", [T], []);
+
+fun mk_tuple ts = foldr mk_prod (ts, unit);
+
+fun dest_tuple (Const ("()", _)) = []
+  | dest_tuple (Const ("Pair", _) $ t $ u) = t :: dest_tuple u
+  | dest_tuple t = raise TERM ("dest_tuple", [t]);
+
+in val _ = unit end;
 
 
 (* nat *)
