@@ -3,7 +3,7 @@
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
-# fixsome.pl - fix references to implicit claset and simpset
+# fixsome.pl - fix theorem names related to SOME (Eps) in HOL
 #
 
 sub fixsome {
