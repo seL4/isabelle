@@ -296,7 +296,7 @@ goal thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
 \         trans_of(restrict ioa acts) = trans_of(ioa) & \
 \         reachable (restrict ioa acts) s = reachable ioa s & \
 \         act (restrict A acts) = act A";
-by (simp_tac (!simpset addsimps [cancel_restrict_a,cancel_restrict_b,acts_restrict]) 1);
+  by (simp_tac (!simpset addsimps [cancel_restrict_a,cancel_restrict_b,acts_restrict]) 1);
 qed"cancel_restrict";
 
 (* ---------------------------------------------------------------------------------- *)

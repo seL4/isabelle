@@ -7,9 +7,6 @@ Theorems about Sequences over flat domains with lifted elements
 
 *)
 
-(* re-add extended adm_tactic, as it has been lost during theory merge *) 
-simpset := !simpset addSolver(fn thms =>
-            (adm_tac (cut_facts_tac thms THEN' cont_tacRs)));
 
 Addsimps [andalso_and,andalso_or];
 
