@@ -84,6 +84,7 @@ signature DRULE =
 sig
   include BASIC_DRULE
   val strip_comb: cterm -> cterm * cterm list
+  val strip_type: ctyp -> ctyp list * ctyp
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
@@ -196,6 +197,15 @@ fun strip_comb ct =
       let val (ct1, ct2) = Thm.dest_comb ct
       in stripc (ct1, ct2 :: cts) end handle CTERM _ => p
   in stripc (ct, []) end;
+
+(* cterm version of strip_type: maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T) *)
+fun strip_type cT = (case Thm.typ_of cT of
+    Type ("fun", _) =>
+      let
+        val [cT1, cT2] = Thm.dest_ctyp cT;
+        val (cTs, cT') = strip_type cT2
+      in (cT1 :: cTs, cT') end
+  | _ => ([], cT));
 
 
 (** reading of instantiations **)
