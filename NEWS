@@ -15,6 +15,11 @@ New in Isabelle??? (FIXME)
   delWrapper, delSWrapper: claset *  string -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
+*** HOL ***
+
+* New theory Vimage (inverse image of a function, syntax f-``B)
+
+* Many new identities for unions, intersections, etc.
 
 
 New in Isabelle98 (January 1998)
