@@ -123,7 +123,7 @@ datatype term =
   | Var    of term option ref
   | Bound  of int
   | Abs    of string*term
-  | $      of term*term;
+  | op $   of term*term;
 
 
 (** Basic syntactic operations **)
