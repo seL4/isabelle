@@ -6,7 +6,7 @@
 header {* Main HOL *}
 
 theory Main
-    imports Map Infinite_Set Extraction Refute Reconstruction
+    imports Extraction Refute Reconstruction
 
 begin
 
