@@ -64,7 +64,7 @@ sig
   val add_simps		: meta_simpset * thm list -> meta_simpset
   val assume		: cterm -> thm
   val assumption	: int -> thm -> thm Sequence.seq
-  val axioms_of		: theory -> (string * term) list
+  val axioms_of		: theory -> (string * thm) list
   val beta_conversion	: cterm -> thm
   val bicompose		: bool -> bool * thm * int -> int -> thm -> 
                           thm Sequence.seq
@@ -265,9 +265,6 @@ val syn_of = #syn o Sign.rep_sg o sign_of;
 (*stamps associated with a theory*)
 val stamps_of_thy = #stamps o Sign.rep_sg o sign_of;
 
-(*return additional axioms of this theory node*)
-val axioms_of = Symtab.dest o #new_axioms o rep_theory;
-
 (*return the immediate ancestors*)
 val parents_of = #parents o rep_theory;
 
@@ -290,6 +287,11 @@ fun get_axiom theory name =
     get_ax [theory] handle Match
       => raise THEORY ("get_axiom: no axiom " ^ quote name, [theory])
   end;
+
+(*return additional axioms of this theory node*)
+fun axioms_of thy =
+  map (fn (s, _) => (s, get_axiom thy s))
+    (Symtab.dest (#new_axioms (rep_theory thy)));
 
 
 (* the Pure theory *)

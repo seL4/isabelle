@@ -110,7 +110,8 @@ in
 fun ancestry_of thy =
   thy :: flat (map ancestry_of (parents_of thy));
 
-val all_axioms_of = flat o map axioms_of o ancestry_of;
+val all_axioms_of = 
+  flat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
 
 
 (* clash_types, clash_consts *)
