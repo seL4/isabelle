@@ -5,7 +5,7 @@
 *) 
 
 (*--------------------------------------------------------
-   Preamble - Pulling "?" over "!"
+   Preamble - Pulling "EX" over "ALL"
  ---------------------------------------------------------*)
  
 (* This proof does not need AC and was suggested by the 
