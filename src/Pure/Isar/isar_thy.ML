@@ -72,7 +72,7 @@ sig
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val export_chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: ((string list * string option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val fix_i: ((string list * typ) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val fix_i: ((string list * typ option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val theorem: (bstring * Args.src list * (string * (string list * string list)))
@@ -93,7 +93,7 @@ sig
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val local_def: (string * Args.src list * ((string * string option) * (string * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val local_def_i: (string * Args.src list * ((string * typ) * (term * term list)))
+  val local_def_i: (string * Args.src list * ((string * typ option) * (term * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val show: (string * Args.src list * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
