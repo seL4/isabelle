@@ -86,7 +86,7 @@ qed "Init_Join";
 
 Goal "Acts(F Join G) = Acts(F) Un Acts(G)";
 by (simp_tac (simpset() 
-     addsimps [Int_Un_distrib,cons_absorb,Join_def]) 1);
+     addsimps [Int_Un_distrib2,cons_absorb,Join_def]) 1);
 qed "Acts_Join";
 
 Goal "AllowedActs(F Join G) = \
@@ -105,12 +105,12 @@ qed "Join_commute";
 
 Goal "A Join (B Join C) = B Join (A Join C)";
 by (asm_simp_tac (simpset() addsimps  
-       Un_ac@Int_ac@[Join_def,Int_Un_distrib, cons_absorb]) 1);
+       Un_ac@Int_ac@[Join_def,Int_Un_distrib2, cons_absorb]) 1);
 qed "Join_left_commute";
 
 Goal "(F Join G) Join H = F Join (G Join H)";
 by (asm_simp_tac (simpset() addsimps 
-          Un_ac@[Join_def, cons_absorb, Int_assoc, Int_Un_distrib]) 1);
+          Un_ac@[Join_def, cons_absorb, Int_assoc, Int_Un_distrib2]) 1);
 qed "Join_assoc";
 
 (* Needed below *)
@@ -168,21 +168,23 @@ Addsimps [Inter_0];
 
 Goalw [JOIN_def]
    "Init(JN i:I. F(i)) = (if I=0 then state else (INT i:I. Init(F(i))))";
-by (auto_tac (claset(), simpset() addsimps [INT_Int_distrib2]));
+by (auto_tac (claset(), simpset() addsimps [INT_Int_distrib]));
 qed "Init_JN";
 
 Goalw [JOIN_def]
 "Acts(JOIN(I,F)) = cons(id(state), UN i:I.  Acts(F(i)))";
-by (auto_tac (claset(), simpset() addsimps [ UN_Int_distrib]));
+by (auto_tac (claset(), simpset() delsimps (INT_simps@UN_simps)));
+by (rtac equalityI 1);
+by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "Acts_JN";
 
 Goalw [JOIN_def]
 "AllowedActs(JN i:I. F(i)) = (if I=0 then Pow(state*state) else (INT i:I. AllowedActs(F(i))))";
-by (auto_tac (claset(), 
-              simpset() addsimps [INT_cons RS sym, INT_Int_distrib2]));
+by Auto_tac;
+by (rtac equalityI 1);
+by (auto_tac (claset() addDs [AllowedActs_type RS subsetD], simpset()));
 qed "AllowedActs_JN";
 AddIffs [Init_JN, Acts_JN, AllowedActs_JN];
-
 
 Goal "(JN i:cons(a,I). F(i)) = F(a) Join (JN i:I. F(i))";
 by (rtac program_equalityI 1);
@@ -216,11 +218,11 @@ Goal "(JN i: I Un J. F(i)) = ((JN i: I. F(i)) Join (JN i:J. F(i)))";
 by (rtac program_equalityI 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by Safe_tac;
-by (ALLGOALS(asm_full_simp_tac (simpset() 
-        addsimps [Int_absorb, INT_Int_distrib2, 
-                 Int_INT_distrib, UN_cons, INT_cons])));
-by (ALLGOALS(Clarify_tac));
-by (REPEAT(Blast_tac 1));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [Int_absorb])));
+by (ALLGOALS(rtac equalityI));
+by (auto_tac (claset() addDs [Init_type RS subsetD,
+                              Acts_type RS subsetD,
+                              AllowedActs_type RS subsetD], simpset()));
 qed "JN_Un";
 
 Goal "(JN i:I. c) = (if I=0 then SKIP else programify(c))";
@@ -375,15 +377,16 @@ Goal "i:I==>(JN i:I. F(i)) : transient(A) <-> \
 \  (EX i:I. programify(F(i)) : transient(A))";
 by (auto_tac (claset(),
               simpset() addsimps [transient_def, JOIN_def]));
-by (auto_tac (claset(), simpset() addsimps 
-            [st_set_def,UN_Int_distrib, INT_Int_distrib]));
+by (rewrite_goals_tac [st_set_def]);
+by (dres_inst_tac [("x", "xb")] bspec 2);
+by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "JN_transient";
 
 Goal "F Join G : transient(A) <-> \
 \     (programify(F) : transient(A) | programify(G):transient(A))";
 by (auto_tac (claset(),
               simpset() addsimps [transient_def,
-                                  Join_def, Int_Un_distrib]));
+                                  Join_def, Int_Un_distrib2]));
 qed "Join_transient";
 
 AddIffs [Join_transient];
@@ -485,7 +488,7 @@ bind_thm ("ok_sym", ok_commute RS iffD1);
 Goal "OK({<0,F>,<1,G>,<2,H>}, snd) <-> (F ok G & (F Join G) ok H)";
 by (asm_full_simp_tac
     (simpset() addsimps [ok_def, Join_def,  OK_def,
-                        Int_assoc, cons_absorb, Int_Un_distrib, Ball_def]) 1);
+                        Int_assoc, cons_absorb, Int_Un_distrib2, Ball_def]) 1);
 by (rtac iffI 1);
 by Safe_tac; 
 by (REPEAT(Force_tac 1));
@@ -582,8 +585,13 @@ qed "safety_prop_AllowedActs_iff_Allowed";
 
 
 Goal "safety_prop(X) ==> Allowed(mk_program(init, acts, UN F:X. Acts(F))) = X";
-by (asm_full_simp_tac (simpset() addsimps [Allowed_def, 
-               UN_Int_distrib, safety_prop_Acts_iff]) 1);
+by (subgoal_tac "cons(id(state), Union(RepFun(X, Acts)) Int Pow(state * state)) = \
+\                   Union(RepFun(X, Acts))" 1);
+by (rtac equalityI 2);
+by (REPEAT(force_tac (claset() addDs [Acts_type RS subsetD],
+               simpset() addsimps [safety_prop_def]) 2));
+by (asm_full_simp_tac (simpset() delsimps UN_simps
+                   addsimps [Allowed_def, safety_prop_Acts_iff]) 1);
 by (rewrite_goals_tac [safety_prop_def]);
 by Auto_tac;
 qed "Allowed_eq";
@@ -596,7 +604,7 @@ qed "def_prg_Allowed";
 (*For safety_prop to hold, the property must be satisfiable!*)
 Goal "safety_prop(A co B) <-> (A <= B & st_set(A))";
 by (simp_tac (simpset() addsimps [safety_prop_def, constrains_def, st_set_def]) 1);
-by Auto_tac;
+by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 by (REPEAT(Blast_tac 1));
 qed "safety_prop_constrains";
 AddIffs [safety_prop_constrains];
@@ -643,10 +651,14 @@ by (dres_inst_tac [("B", "Union(RepFun(Inter(RepFun(I, X)), Acts))"),
 by (REPEAT(Blast_tac 1));
 qed "safety_prop_Inter";
 
-Goal "[| F == mk_program(init,acts, UN G:X. Acts(G)); safety_prop(X) |] \
+Goalw [ok_def]
+"[| F == mk_program(init,acts, UN G:X. Acts(G)); safety_prop(X) |] \
 \     ==> F ok G <-> (programify(G):X & acts Int Pow(state*state) <= AllowedActs(G))";
-by (auto_tac (claset(),
-       simpset() addsimps [ok_def, safety_prop_Acts_iff, UN_Int_distrib]));
+by (dres_inst_tac [("G", "G")] safety_prop_Acts_iff 1);
+by Safe_tac;
+by (ALLGOALS(cut_inst_tac [("F", "G")] AllowedActs_type));
+by (ALLGOALS(cut_inst_tac [("F", "G")] Acts_type));
+by Auto_tac;
 qed "def_UNION_ok_iff";
 
 

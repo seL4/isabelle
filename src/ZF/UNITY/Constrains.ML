@@ -137,10 +137,10 @@ by (blast_tac (claset() addIs [constrains_weaken, st_set_subset]) 1);
 qed "Constrains_weaken";
 
 (** Union **)
-Goalw [Constrains_def2]
+Goalw [Constrains_def2] 
 "[| F : A Co A'; F : B Co B' |] ==> F : (A Un B) Co (A' Un B')";
 by Auto_tac;
-by (asm_full_simp_tac (simpset() addsimps [Int_Un_distrib2 RS sym]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Int_Un_distrib]) 1);
 by (blast_tac (claset() addIs [constrains_Un]) 1);
 qed "Constrains_Un";
 
@@ -149,7 +149,7 @@ val [major, minor] = Goalw [Constrains_def2]
 by (cut_facts_tac [minor] 1);
 by (auto_tac (claset() addDs [major]
                        addIs [constrains_UN],
-              simpset() addsimps [Int_UN_distrib]));
+              simpset() delsimps UN_simps addsimps [Int_UN_distrib]));
 qed "Constrains_UN";
 
 (** Intersection **)
@@ -170,6 +170,9 @@ by (asm_full_simp_tac (simpset() addsimps [Inter_def]) 1);
 by (subgoal_tac "reachable(F) Int Inter(RepFun(I, A)) = (INT i:I. reachable(F) Int A(i))" 1);
 by (force_tac (claset(), simpset() addsimps [Inter_def]) 2);
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
+by (subgoal_tac "reachable(F) Int Inter(RepFun(I, A)) = (INT i:I. reachable(F) Int A(i))" 1);
+by (Force_tac 2);
+by (asm_simp_tac (simpset() delsimps INT_simps) 1);
 by (rtac constrains_INT 1);
 by (etac not_emptyE 1);
 by (dresolve_tac [major] 1);
@@ -188,7 +191,7 @@ qed "Constrains_trans";
 
 Goalw [Constrains_def2]
 "[| F : A Co (A' Un B); F : B Co B' |] ==> F : A Co (A' Un B')";
-by (full_simp_tac (simpset() addsimps [Int_Un_distrib2 RS sym]) 1);
+by (full_simp_tac (simpset() addsimps [Int_Un_distrib]) 1);
 by (blast_tac (claset() addIs [constrains_cancel]) 1);
 qed "Constrains_cancel";
 

@@ -37,7 +37,6 @@ by Auto_tac;
 qed "greaterThan_iff";
 
 
-
 (** Needed for WF reasoning in WFair.ML **)
 
 Goal "k:A ==>less_than(A)``{k} = greaterThan(k, A)";
@@ -57,38 +56,6 @@ Addsimps [Image_less_than, Image_inverse_less_than];
 
 (** Ad-hoc set-theory rules **)
 
-Goal "(C Int A) Un (C Int B) = C Int (A Un B)";
-by (Blast_tac 1);
-qed "Int_Un_distrib2";
-
-Goal "C Int (A - B) = (C Int A) - (C Int B)";
-by (Blast_tac 1);
-qed "Diff_Int_distrib";
-
-Goal "(A - B) Int C = (A Int C) - (B Int C)";
-by (Blast_tac 1);
-qed "Diff_Int_distrib2";
-
-Goal "A Un (A Un B) = A Un B";
-by (Blast_tac 1);
-qed "double_Un";
-
-Goal "A Un (B Un C) = B Un (A Un C)";
-by (Blast_tac 1);
-qed "Un_assoc2";
-
-
-val Un_ac = [Un_assoc, double_Un, Un_commute, Un_assoc2, Un_absorb];
-
-Goal "A Un B = Union({A, B})";
-by (Blast_tac 1);
-qed "Un_eq_Union";
-
-Goal "(UN x:A. {x}) = A";
-by (Blast_tac 1);
-qed "UN_singleton";
-
-
 Goal "Union(B) Int A = (UN b:B. b Int A)";
 by Auto_tac;
 qed "Int_Union_Union";
@@ -97,82 +64,11 @@ Goal "A Int Union(B) = (UN b:B. A Int b)";
 by Auto_tac;
 qed "Int_Union_Union2";
 
-(** Intersection **)
-Goal "A Int (A Int B) = A Int B";
-by (Blast_tac 1);
-qed "double_Int";
-
-Goal "A Int (B Int C) = B Int (A Int C)";
-by (Blast_tac 1);
-qed "Int_assoc2";
-
-val Int_ac = [Int_assoc, double_Int, Int_commute, Int_assoc2];
-  
-Goal "A  Int B = 0 ==> A - B = A";
-by (Blast_tac 1);
-qed "Diff_triv";
-
-Goal "A Int B - C = A Int (B - C)";
-by (Blast_tac 1);
-qed "Int_Diff";
-
-Goal "f -``B = (UN y:B. f-``{y})";
-by (Blast_tac 1);
-qed "vimage_eq_UN";
-
 Goal "A Un B - (A - B) = B";
 by (Blast_tac 1);
 qed "Un_Diff_Diff";
 AddIffs [Un_Diff_Diff];
 
-(*** INT simps ***)
-
-Goal 
-"i:I ==> (INT i:I. A(i)) Un B = (INT i:I. A(i) Un B)";
-by Auto_tac;
-qed "INT_Un_distrib";
-
-Goal
- "!!C. c: C ==> (INT x:C. cons(a, B(x))) = cons(a, (INT x:C. B(x)))";
-by Auto_tac;
-qed "INT_cons";
-
-Goal 
-"i:I ==> (INT i:I. A(i)) Int B = (INT i:I. A(i) Int B)";
-by Auto_tac;
-qed "INT_Int_distrib2";
-
-Goal 
-"i:I ==> B Int (INT i:I. A(i)) = (INT i:I. B Int A(i))";
-by Auto_tac;
-qed "Int_INT_distrib";
-
-val INT_simps = [Un_INT_distrib, Un_INT_distrib2, 
-                 INT_constant, INT_Int_distrib, Diff_INT, 
-                 INT_Un_distrib,INT_cons, INT_Int_distrib2, Int_INT_distrib, Inter_0];
-
-
-(*** UN ***)
-Goal
-"!!C. c: C ==> cons(a, (UN x:C. B(x))) = (UN x:C. cons(a, B(x)))";
-by Auto_tac;
-qed "UN_cons";
-
-Goal
- "!!C. c: C ==> B Un (UN x:C. A(x)) = (UN x:C. B  Un A(x))";
-by Auto_tac;
-qed "Un_UN_distrib";
-
-Goal
-"!!C. c: C ==> (UN x:C. B(x)) Un A   =  (UN x:C. B(x) Un A)";
-by Auto_tac;
-qed "UN_Un_distrib2";
-
-Goal "(UN x:C. B(x)) Int A  = (UN x:C. B(x) Int A)";
-by Auto_tac;
-qed "UN_Int_distrib";
-
-val UN_simps = [UN_cons, Un_UN_distrib, UN_Un_distrib2, UN_Un_distrib, UN_Int_distrib, UN_0];
 
 (** Needed in State theory for the current definition of variables 
 where they are indexed by lists  **)

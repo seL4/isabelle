@@ -100,12 +100,11 @@ by (blast_tac (claset()
           addIs [transient_strengthen, constrains_weaken]) 1);
 qed "ensures_weaken_R";
 
-(*The L-version (precondition strengthening) fails, but we have this*)
+(*The L-version (precondition strengthening) fails, but we have this*) 
 Goalw [ensures_def] "[| F:stable(C);  F:A ensures B |] ==> F:(C Int A) ensures (C Int B)";
-by (asm_full_simp_tac (simpset() addsimps [ensures_def,
-                                  Int_Un_distrib2,
-                                  Diff_Int_distrib RS sym]) 1);
-by (Clarify_tac 1);
+by (simp_tac (simpset() addsimps [ensures_def,
+                                 Int_Un_distrib RS sym,
+                                 Diff_Int_distrib RS sym]) 1);
 by (blast_tac (claset() 
         addIs [transient_strengthen, 
                stable_constrains_Int, constrains_weaken]) 1); 
@@ -185,11 +184,12 @@ by (ALLGOALS(dtac major));
 by (auto_tac (claset() addDs [leads_left], simpset()));
 qed "leadsTo_Union";
 
-val [major,program,B] = Goalw [leadsTo_def, st_set_def]
-"[|(!!A. A:S ==>F:(A Int C) leadsTo B); F:program; st_set(B)|]==>F:(Union(S)Int C)leadsTo B";
+val [major,program,B] = Goalw [leadsTo_def, st_set_def] 
+"[|(!!A. A:S ==>F:(A Int C) leadsTo B); F:program; st_set(B)|] \
+\  ==>F:(Union(S)Int C)leadsTo B";
 by (cut_facts_tac [program, B] 1);
-by (asm_simp_tac (simpset()  addsimps [Int_Union_Union]) 1);
-by (rtac leads.Union 1);
+by (asm_simp_tac (simpset() delsimps UN_simps  addsimps [Int_Union_Union]) 1);
+by (resolve_tac [leads.Union] 1);
 by Auto_tac;
 by (ALLGOALS(dtac major));
 by (auto_tac (claset() addDs [leads_left], simpset()));
@@ -432,8 +432,7 @@ by (REPEAT(blast_tac (claset() addDs [constrainsD2]) 3));
 by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
 by (rtac leadsTo_Basis 1);
 by (asm_full_simp_tac (simpset() 
-         addsimps [ensures_def, Diff_Int_distrib RS sym, 
-                   Diff_Int_distrib2 RS sym, Int_Un_distrib RS sym]) 1);
+         addsimps [ensures_def, Diff_Int_distrib2 RS sym, Int_Un_distrib2 RS sym]) 1);
 by (REPEAT(blast_tac (claset() 
                addIs [transient_strengthen,constrains_Int]
                addDs [constrainsD2]) 1));
@@ -498,9 +497,10 @@ by (eres_inst_tac [("a","m")] wf_induct2 1);
 by (ALLGOALS(Asm_simp_tac));
 by (subgoal_tac "F : (A Int (f-``(converse(r)``{x}))) leadsTo B" 1);
 by (stac vimage_eq_UN 2);
-by (asm_simp_tac (simpset() addsimps [Int_UN_distrib]) 2);
+by (asm_simp_tac (simpset() delsimps UN_simps addsimps [Int_UN_distrib]) 2);
 by (blast_tac (claset() addIs [leadsTo_cancel1, leadsTo_Un_duplicate]) 1);
-by (auto_tac (claset() addIs [leadsTo_UN], simpset()));
+by (auto_tac (claset() addIs [leadsTo_UN], 
+              simpset()  delsimps UN_simps addsimps [Int_UN_distrib]));
 qed "lemma1";
 
 (** Meta or object quantifier ? **)
@@ -703,7 +703,7 @@ by (Asm_simp_tac 1);
 by (rtac completion 1);
 by (subgoal_tac "Inter(RepFun(y, A')) Un C = (INT x:RepFun(y, A'). x Un C)" 4);
 by (Blast_tac 5);
-by (Asm_simp_tac 4);
+by (asm_simp_tac (simpset() delsimps INT_simps) 4);
 by (rtac constrains_INT 4);
 by (REPEAT(Blast_tac 1));
 qed "lemma";

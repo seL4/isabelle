@@ -86,10 +86,9 @@ by (asm_full_simp_tac (simpset() addsimps Un_ac) 1);
 qed "LeadsTo_Un_duplicate2";
 
 val [major, program] = Goalw [LeadsTo_def] 
-"[|(!!i. i:I ==> F : A(i) LeadsTo B); F:program|] \
-\  ==> F : (UN i:I. A(i)) LeadsTo B";
+"[|(!!i. i:I ==> F : A(i) LeadsTo B); F:program|]==>F:(UN i:I. A(i)) LeadsTo B";
 by (cut_facts_tac [program] 1);
-by (asm_simp_tac (simpset() addsimps [Int_Union_Union2]) 1);
+by (asm_simp_tac (simpset() delsimps UN_simps addsimps [Int_UN_distrib]) 1);
 by (rtac leadsTo_UN 1);
 by (dtac major 1);
 by Auto_tac;
@@ -342,7 +341,7 @@ Goal "[| F : A LeadsTo (A' Un C);  F : A' Co (A' Un C); \
 \     ==> F : (A Int B) LeadsTo ((A' Int B') Un C)";
 by (full_simp_tac
     (simpset() addsimps [LeadsTo_def, Constrains_eq_constrains, 
-                         Int_Un_distrib2 RS sym]) 1);
+                         Int_Un_distrib]) 1);
 by Safe_tac;
 by (REPEAT(Blast_tac 2));
 by (blast_tac (claset() addIs [completion, leadsTo_weaken]) 1);
@@ -363,7 +362,7 @@ by (Blast_tac 2);
 by (Asm_simp_tac 1);
 by (rtac Completion 1);
 by (subgoal_tac "Inter(RepFun(y, A')) Un C = (INT x:RepFun(y, A'). x Un C)" 4);
-by (Asm_simp_tac 4);
+by (asm_simp_tac (simpset() delsimps INT_simps) 4);
 by (rtac Constrains_INT 4);
 by (REPEAT(Blast_tac 1));
 val lemma = result();
