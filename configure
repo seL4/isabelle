@@ -6,7 +6,7 @@
 
 ## patch scripts
 
-if bash -c ""
+if bash -c :
 then
   bash lib/scripts/patch-scripts.bash
 else
