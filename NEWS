@@ -38,6 +38,10 @@ decision procedure for linear arithmetic. Currently it is used for
 types `nat' and `int' in HOL (see below) but can, should and will be
 instantiated for other types and logics as well.
 
+* The simplifier now accepts rewrite rules with flexible heads, eg
+     hom ?f ==> ?f(?x+?y) = ?f ?x + ?f ?y
+  They are applied like any rule with a non-pattern lhs, i.e. by first-order
+  matching.
 
 *** General ***
 
