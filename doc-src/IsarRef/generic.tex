@@ -27,7 +27,7 @@ Isabelle documentation.
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\AXCLASS~c \subseteq \vec c~~axms$] defines an axiomatic type class as
   the intersection of existing classes, with additional axioms holding.  Class
   axioms may not contain more than one type variable.  The class axioms (with
@@ -35,18 +35,18 @@ Isabelle documentation.
   a class introduction rule is generated (being bound as $c{.}intro$); this
   rule is employed by method $intro_classes$ to support instantiation proofs
   of this class.
-  
+
   The ``axioms'' are stored as theorems according to the given name
   specifications, adding the class name $c$ as name space prefix; the same
   facts are also stored collectively as $c{\dtt}axioms$.
-  
+
 \item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)c$] setup a
   goal stating a class relation or type arity.  The proof would usually
   proceed by $intro_classes$, and then establish the characteristic theorems
   of the type classes involved.  After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the resulting
   theorem.
-  
+
 \item [$intro_classes$] repeatedly expands all class introduction rules of
   this theory.  Note that this method usually needs not be named explicitly,
   as it is already included in the default proof step (of $\PROOFNAME$ etc.).
@@ -59,7 +59,7 @@ Isabelle documentation.
 \subsection{Locales and local contexts}\label{sec:locale}
 
 Locales are named local contexts, consisting of a list of declaration elements
-that are modeled after the Isar proof context commands (cf.\ 
+that are modeled after the Isar proof context commands (cf.\
 \S\ref{sec:proof-context}).
 
 \subsubsection{Localized commands}
@@ -83,12 +83,12 @@ For example, ``$\LEMMAS~(\IN~loc)~a = \vec b$'' retrieves facts $\vec b$ from
 the locale context of $loc$ and augments its body by an appropriate
 ``$\isarkeyword{notes}$'' element (see below).  The exported view of $a$,
 after discharging the locale context, is stored as $loc{.}a$ within the global
-theory.  A localized goal ``$\LEMMANAME~(\IN~loc)~a:~\phi$'' work similarly,
-only that the fact emerges through the subsequent proof,
-which may refer to the full infrastructure of the locale context (including
-local parameters with typing and concrete syntax, assumptions, definitions
-etc.).  Most notably, fact declarations of the locale are active during the
-proof, too (e.g.\ local $simp$ rules).
+theory.  A localized goal ``$\LEMMANAME~(\IN~loc)~a:~\phi$'' works similarly,
+only that the fact emerges through the subsequent proof, which may refer to
+the full infrastructure of the locale context (covering local parameters with
+typing and concrete syntax, assumptions, definitions etc.).  Most notably,
+fact declarations of the locale are active during the proof as well (e.g.\
+local $simp$ rules).
 
 
 \subsubsection{Locale specifications}
@@ -131,7 +131,7 @@ proof, too (e.g.\ local $simp$ rules).
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\LOCALE~loc~=~import~+~body$] defines new locale $loc$ as a context
   consisting of a certain view of existing locales ($import$) plus some
   additional elements ($body$).  Both $import$ and $body$ are optional; the
@@ -139,57 +139,59 @@ proof, too (e.g.\ local $simp$ rules).
   useful to collect declarations of facts later on.  Type-inference on locale
   expressions automatically takes care of the most general typing that the
   combined context elements may acquire.
-  
+
   The $import$ consists of a structured context expression, consisting of
   references to existing locales, renamed contexts, or merged contexts.
   Renaming uses positional notation: $c~\vec x$ means that (a prefix) the
   fixed parameters of context $c$ are named according to $\vec x$; a
   ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}} means to skip that
   position.  Also note that concrete syntax only works with the original name.
-  Merging proceeds from left-to-right, suppressing any duplicates emerging
-  from different paths through an import hierarchy.
-  
+  Merging proceeds from left-to-right, suppressing any duplicates stemming
+  from different paths through the import hierarchy.
+
   The $body$ consists of basic context elements, further context expressions
   may be included as well.
 
   \begin{descr}
-    
+
   \item [$\FIXES{~x::\tau~(mx)}$] declares a local parameter of type $\tau$
     and mixfix annotation $mx$ (both are optional).  The special syntax
     declaration ``$(structure)$'' means that $x$ may be referenced
     implicitly in this context.
-    
+
   \item [$\ASSUMES{a}{\vec\phi}$] introduces local premises, similar to
     $\ASSUMENAME$ within a proof (cf.\ \S\ref{sec:proof-context}).
-    
+
   \item [$\DEFINES{a}{x \equiv t}$] defines a previously declared parameter.
-    This is close to $\DEFNAME$ within a proof (cf.\ 
+    This is close to $\DEFNAME$ within a proof (cf.\
     \S\ref{sec:proof-context}), but $\DEFINESNAME$ takes an equational
-    proposition instead of variable-term.  The left-hand side of the equation
-    may have additional arguments, e.g.\ $\DEFINES{}{f~\vec x \equiv t}$.
-    
+    proposition instead of variable-term pair.  The left-hand side of the
+    equation may have additional arguments, e.g.\ ``$\DEFINES{}{f~\vec x
+      \equiv t}$''.
+
   \item [$\NOTES{a}{\vec b}$] reconsiders facts within a local context.  Most
     notably, this may include arbitrary declarations in any attribute
     specifications included here, e.g.\ a local $simp$ rule.
-    
+
   \item [$\INCLUDES{c}$] copies the specified context in a statically scoped
     manner.
-    
+
     In contrast, the initial $import$ specification of a locale expression
     maintains a dynamic relation to the locales being referenced (benefiting
     from any later fact declarations in the obvious manner).
   \end{descr}
-  
-  Note that $\IS{p}$ patterns given in the syntax of $\ASSUMESNAME$ and
-  $\DEFINESNAME$ above is actually illegal in locale definitions.  In the long
-  goal format of \S\ref{sec:goals}, term bindings may be included as expected.
+
+  Note that ``$\IS{p}$'' patterns given in the syntax of $\ASSUMESNAME$ and
+  $\DEFINESNAME$ above are actually illegal in locale definitions.  In the
+  long goal format of \S\ref{sec:goals}, term bindings may be included as
+  expected, though.
 
 \item [$\isarkeyword{print_locale}~import~+~body$] prints the specified locale
   expression in a flattened form.  The notable special case
   $\isarkeyword{print_locale}~loc$ just prints the contents of the named
   locale, but keep in mind that type-inference will normalize type variables
   according to the usual alphabetical order.
-  
+
 \item [$\isarkeyword{print_locales}$] prints the names of all locales of the
   current theory.
 
@@ -206,7 +208,7 @@ proof, too (e.g.\ local $simp$ rules).
 \end{matharray}
 
 Generalized elimination means that additional elements with certain properties
-may introduced in the current context, by virtue of a locally proven
+may be introduced in the current context, by virtue of a locally proven
 ``soundness statement''.  Technically speaking, the $\OBTAINNAME$ language
 element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see also see
 \S\ref{sec:proof-context}), together with a soundness proof of its additional
@@ -224,28 +226,32 @@ shall refer to (optional) facts indicated for forward chaining.
 \begin{matharray}{l}
   \langle facts~\vec b\rangle \\
   \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[1ex]
-  \quad \BG \\
+  \quad \HAVE{}{\All{thesis} (\All{\vec x} \vec\phi \Imp thesis) \Imp thesis} \\
+  \quad \PROOF{succeed} \\
   \qquad \FIX{thesis} \\
-  \qquad \ASSUME{that~[simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
-  \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
-  \quad \EN \\
+  \qquad \ASSUME{that~[intro?]}{\All{\vec x} \vec\phi \Imp thesis} \\
+  \qquad \SHOW{}{thesis} \\
+  \quad\qquad \APPLY{insert~that} \\
+  \quad\qquad \USING{\vec b}~~\langle proof\rangle \\
+  \quad \QED{} \\
   \quad \FIX{\vec x}~\ASSUMENAME^\ast~a\colon~\vec\phi \\
 \end{matharray}
 
 Typically, the soundness proof is relatively straight-forward, often just by
-canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
-$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Accordingly, the ``$that$''
-reduction above is declared as simplification and introduction rule.
+canonical automated tools such as ``$\BY{simp}$'' (see \S\ref{sec:simp}) or
+``$\BY{blast}$'' (see \S\ref{sec:classical-auto}).  Accordingly, the
+``$that$'' reduction above is declared as simplification and introduction
+rule.
 
 \medskip
 
 In a sense, $\OBTAINNAME$ represents at the level of Isar proofs what would be
 meta-logical existential quantifiers and conjunctions.  This concept has a
-broad range of useful applications, ranging from plain elimination (or even
+broad range of useful applications, ranging from plain elimination (or
 introduction) of object-level existentials and conjunctions, to elimination
 over results of symbolic evaluation of recursive definitions, for example.
 Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
-where the result is treated as an assumption.
+where the result is treated as a genuine assumption.
 
 
 \subsection{Calculational reasoning}\label{sec:calculation}
@@ -277,10 +283,10 @@ $\HAVENAME$, $\SHOWNAME$ etc.  The $\MOREOVER$ and $\ULTIMATELY$ commands are
 similar to $\ALSO$ and $\FINALLY$, but only collect further results in
 $calculation$ without applying any rules yet.
 
-Also note that the automatic term abbreviation ``$\dots$'' has its canonical
-application with calculational proofs.  It refers to the argument\footnote{The
-  argument of a curried infix expression is its right-hand side.} of the
-preceding statement.
+Also note that the implicit term abbreviation ``$\dots$'' has its canonical
+application with calculational proofs.  It refers to the argument of the
+preceding statement. (The argument of a curried infix expression happens to be
+its right-hand side.)
 
 Isabelle/Isar calculations are implicitly subject to block structure in the
 sense that new threads of calculational reasoning are commenced for any new
@@ -290,9 +296,8 @@ command required.
 
 \medskip
 
-The Isar calculation proof commands may be defined as
-follows:\footnote{Internal bookkeeping such as proper handling of
-  block-structure has been suppressed.}
+The Isar calculation proof commands may be defined as follows:\footnote{We
+  suppress internal bookkeeping such as proper handling of block-structure.}
 \begin{matharray}{rcl}
   \ALSO@0 & \equiv & \NOTE{calculation}{this} \\
   \ALSO@{n+1} & \equiv & \NOTE{calculation}{trans~[OF~calculation~this]} \\[0.5ex]
@@ -309,7 +314,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\ALSO~(\vec a)$] maintains the auxiliary $calculation$ register as
   follows.  The first occurrence of $\ALSO$ in some calculational thread
   initializes $calculation$ by $this$. Any subsequent $\ALSO$ on the same
@@ -328,29 +333,29 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 
 \item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
   but collect results only, without applying rules.
-  
+
 \item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity
   rules (for calculational commands $\ALSO$ and $\FINALLY$) and symmetry rules
   (for the $symmetric$ operation and single step elimination patters) of the
   current context.
-  
+
 \item [$trans$] declares theorems as transitivity rules.
-  
+
 \item [$sym$] declares symmetry rules.
-  
+
 \item [$symmetric$] resolves a theorem with some rule declared as $sym$ in the
   current context.  For example, ``$\ASSUME{[symmetric]}{x = y}$'' produces a
   swapped fact derived from that assumption.
-  
+
   In structured proof texts it is often more appropriate to use an explicit
   single-step elimination proof, such as ``$\ASSUME{}{x = y}~\HENCE{}{y =
-    x}~\DDOT$''.  Note that the very same rules known to $symmetric$ are
-  declared as $elim$ at the same time.
+    x}~\DDOT$''.  The very same rules known to $symmetric$ are declared as
+  $elim?$ as well.
 
 \end{descr}
 
 
-\section{Specific proof tools}
+\section{Proof tools}
 
 \subsection{Miscellaneous methods and attributes}\label{sec:misc-meth-att}
 
@@ -376,11 +381,11 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$unfold~\vec a$ and $fold~\vec a$] expand (or fold back again) the
   given meta-level definitions throughout all goals; any chained facts
   provided are inserted into the goal and subject to rewriting as well.
-  
+
 \item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
   state.  Note that current facts indicated for forward chaining are ignored.
 
@@ -388,13 +393,13 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   basic $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
   elim-resolution, destruct-resolution, and forward-resolution, respectively
   \cite{isabelle-ref}.  The optional natural number argument (default $0$)
-  specifies additional assumption steps to be performed.
-  
+  specifies additional assumption steps to be performed here.
+
   Note that these methods are improper ones, mainly serving for
   experimentation and tactic script emulation.  Different modes of basic rule
   application are usually expressed in Isar at the proof language level,
   rather than via implicit proof state manipulations.  For example, a proper
-  single-step elimination would be done using the basic $rule$ method, with
+  single-step elimination would be done using the plain $rule$ method, with
   forward chaining of current facts.
 
 \item [$succeed$] yields a single (unchanged) result; it is the identity of
@@ -418,8 +423,8 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   where & : & \isaratt \\[0.5ex]
   unfolded & : & \isaratt \\
   folded & : & \isaratt \\[0.5ex]
-  standard & : & \isaratt \\
   elim_format & : & \isaratt \\
+  standard^* & : & \isaratt \\
   no_vars^* & : & \isaratt \\
 \end{matharray}
 
@@ -437,36 +442,38 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$tagged~name~args$ and $untagged~name$] add and remove $tags$ of some
   theorem.  Tags may be any list of strings that serve as comment for some
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
   result).  The first string is considered the tag name, the rest its
   arguments.  Note that untag removes any tags of the same name.
-  
-\item [$THEN~n~a$ and $COMP~n~a$] compose rules.  $THEN$ resolves with the
-  $n$-th premise of $a$; the $COMP$ version skips the automatic lifting
-  process that is normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
+
+\item [$THEN~a$ and $COMP~a$] compose rules by resolution.  $THEN$ resolves
+  with the first premise of $a$ (an alternative position may be also
+  specified); the $COMP$ version skips the automatic lifting process that is
+  normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
-  
+
 \item [$where~\vec x = \vec t$] perform named instantiation of schematic
   variables occurring in a theorem.  Unlike instantiation tactics such as
   $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
-  have to be specified (e.g.\ $\Var{x@3}$).
-  
+  have to be specified on the left-hand side (e.g.\ $\Var{x@3}$).
+
 \item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back again the
   given meta-level definitions throughout a rule.
-  
-\item [$standard$] puts a theorem into the standard form of object-rules, just
-  as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-  
+
 \item [$elim_format$] turns a destruction rule into elimination rule format,
   by resolving with the rule $\PROP A \Imp (\PROP A \Imp \PROP B) \Imp \PROP
   B$.
-  
+
   Note that the Classical Reasoner (\S\ref{sec:classical-att}) provides its
   own version of this operation.
-  
+
+\item [$standard$] puts a theorem into the standard form of object-rules at
+  the outermost theory level.  Note that this operation violates the local
+  proof context (including active locales).
+
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
 
@@ -554,37 +561,37 @@ named $foo_tac$.
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$rule_tac$ etc.] do resolution of rules with explicit instantiation.
   This works the same way as the ML tactics \texttt{res_inst_tac} etc. (see
   \cite[\S3]{isabelle-ref}).
-  
-  Note that multiple rules may be only given there is no instantiation.  Then
+
+  Multiple rules may be only given if there is no instantiation; then
   $rule_tac$ is the same as \texttt{resolve_tac} in ML (see
   \cite[\S3]{isabelle-ref}).
-  
+
 \item [$cut_tac$] inserts facts into the proof state as assumption of a
   subgoal, see also \texttt{cut_facts_tac} in \cite[\S3]{isabelle-ref}.  Note
   that the scope of schematic variables is spread over the main goal
   statement.  Instantiations may be given as well, see also ML tactic
   \texttt{cut_inst_tac} in \cite[\S3]{isabelle-ref}.
-  
+
 \item [$thin_tac~\phi$] deletes the specified assumption from a subgoal; note
   that $\phi$ may contain schematic variables.  See also \texttt{thin_tac} in
   \cite[\S3]{isabelle-ref}.
-  
+
 \item [$subgoal_tac~\phi$] adds $\phi$ as an assumption to a subgoal.  See
   also \texttt{subgoal_tac} and \texttt{subgoals_tac} in
   \cite[\S3]{isabelle-ref}.
-  
+
 \item [$rename_tac~\vec x$] renames parameters of a goal according to the list
   $\vec x$, which refers to the \emph{suffix} of variables.
-  
+
 \item [$rotate_tac~n$] rotates the assumptions of a goal by $n$ positions:
   from right to left if $n$ is positive, and from left to right if $n$ is
   negative; the default value is $1$.  See also \texttt{rotate_tac} in
   \cite[\S3]{isabelle-ref}.
-  
+
 \item [$tactic~text$] produces a proof method from any ML text of type
   \texttt{tactic}.  Apart from the usual ML environment and the current
   implicit theory context, the ML code may refer to the following locally
@@ -643,15 +650,15 @@ val thms  : string -> thm list
   according to the arguments given.  Note that the \railtterm{only} modifier
   first removes all other rewrite rules, congruences, and looper tactics
   (including splits), and then behaves like \railtterm{add}.
-  
+
   \medskip The \railtterm{cong} modifiers add or delete Simplifier congruence
   rules (see also \cite{isabelle-ref}), the default is to add.
-  
+
   \medskip The \railtterm{split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.  This works
   only if the Simplifier method has been properly setup to include the
   Splitter (all major object logics such HOL, HOLCF, FOL, ZF do this already).
-  
+
 \item [$simp_all$] is similar to $simp$, but acts on all goals (backwards from
   the last to the first one).
 
@@ -662,24 +669,25 @@ using equational assumptions in the subsequent normalization process, or
 simplifying assumptions themselves (cf.\ \texttt{asm_full_simp_tac} in
 \cite[\S10]{isabelle-ref}).  In structured proofs this is usually quite well
 behaved in practice: just the local premises of the actual goal are involved,
-additional facts may inserted via explicit forward-chaining (using $\THEN$,
+additional facts may be inserted via explicit forward-chaining (using $\THEN$,
 $\FROMNAME$ etc.).  The full context of assumptions is only included if the
 ``$!$'' (bang) argument is given, which should be used with some care, though.
 
 Additional Simplifier options may be specified to tune the behavior further
-(mostly for unstructured scripts with many accidental local facts): $(no_asm)$
-means assumptions are ignored completely (cf.\ \texttt{simp_tac}),
-$(no_asm_simp)$ means assumptions are used in the simplification of the
-conclusion but are not themselves simplified (cf.\ \texttt{asm_simp_tac}), and
-$(no_asm_use)$ means assumptions are simplified but are not used in the
-simplification of each other or the conclusion (cf.  \texttt{full_simp_tac}).
+(mostly for unstructured scripts with many accidental local facts):
+``$(no_asm)$'' means assumptions are ignored completely (cf.\
+\texttt{simp_tac}), ``$(no_asm_simp)$'' means assumptions are used in the
+simplification of the conclusion but are not themselves simplified (cf.\
+\texttt{asm_simp_tac}), and ``$(no_asm_use)$'' means assumptions are
+simplified but are not used in the simplification of each other or the
+conclusion (cf.\ \texttt{full_simp_tac}).
 
 \medskip
 
 The Splitter package is usually configured to work as part of the Simplifier.
 The effect of repeatedly applying \texttt{split_tac} can be simulated by
-$(simp~only\colon~split\colon~\vec a)$.  There is also a separate $split$
-method available for single-step case splitting, see \S\ref{sec:basic-eq}.
+``$(simp~only\colon~split\colon~\vec a)$''.  There is also a separate $split$
+method available for single-step case splitting.
 
 
 \subsubsection{Declaring rules}
@@ -729,14 +737,14 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$simplified~\vec a$] causes a theorem to be simplified, either by
   exactly the specified rules $\vec a$, or the implicit Simplifier context if
   no arguments are given.  The result is fully simplified by default,
   including assumptions and conclusion; the options $no_asm$ etc.\ tune the
   Simplifier in the same way as the for the $simp$ method (see
   \S\ref{sec:simp}).
-  
+
   Note that forward simplification restricts the simplifier to its most basic
   operation of term rewriting; solver and looper tactics \cite{isabelle-ref}
   are \emph{not} involved here.  The $simplified$ attribute should be only
@@ -768,18 +776,18 @@ calculations would be performed in a structured text (see also
 way for automated normalization (see \S\ref{sec:simplifier}).
 
 \begin{descr}
-  
-\item [$subst~thm$] performs a single substitution step using rule $thm$,
-  which may be either a meta or object equality.
-  
-\item [$hypsubst$] performs substitution using some assumption.  Note that
-  this only works for equations of the form $x = t$ where $x$ is a free or
-  bound variable!
-  
-\item [$split~thms$] performs single-step case splitting using rules $thms$.
+
+\item [$subst~a$] performs a single substitution step using rule $a$, which
+  may be either a meta or object equality.
+
+\item [$hypsubst$] performs substitution using some assumption; this only
+  works for equations of the form $x = t$ where $x$ is a free or bound
+  variable.
+
+\item [$split~\vec a$] performs single-step case splitting using rules $thms$.
   By default, splitting is performed in the conclusion of a goal; the $asm$
   option indicates to operate on assumptions instead.
-  
+
   Note that the $simp$ method already involves repeated application of split
   rules as declared in the current context (see \S\ref{sec:simp}).
 \end{descr}
@@ -804,29 +812,26 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$rule$] as offered by the classical reasoner is a refinement over the
   primitive one (see \S\ref{sec:pure-meth-att}).  Both versions essentially
   work the same, but the classical version observes the classical rule context
-  in addition to the Isabelle/Pure one.
-  
-  The library of common object logics (HOL, ZF, etc.) usually declare a rich
-  collection of classical rules (even if these perfectly OK from the
-  intuitionistic viewpoint), but only few declarations to the rule context of
-  Isabelle/Pure (\S\ref{sec:pure-meth-att}).
-  
+  in addition to that of Isabelle/Pure.
+
+  Common object logics (HOL, ZF, etc.) declare a rich collection of classical
+  rules (even if these would qualify as intuitionistic ones), but only few
+  declarations to the rule context of Isabelle/Pure
+  (\S\ref{sec:pure-meth-att}).
+
 \item [$contradiction$] solves some goal by contradiction, deriving any result
-  from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
-  appear in either order.
+  from both $\neg A$ and $A$.  Chained facts, which are guaranteed to
+  participate, may appear in either order.
 
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
-  elim-resolution, after having inserted any facts.  Omitting the arguments
-  refers to any suitable rules declared in the context, otherwise only the
-  explicitly given ones may be applied.  The latter form admits better control
-  of what actually happens, thus it is very appropriate as an initial method
-  for $\PROOFNAME$ that splits up certain connectives of the goal, before
-  entering the actual sub-proof.
-  
+  elim-resolution, after having inserted any chained facts.  Exactly the rules
+  given as arguments are taken into account; this allows fine-tuned
+  decomposition of a proof problem, in contrast to common automated tools.
+
 \end{descr}
 
 
@@ -864,14 +869,11 @@ way for automated normalization (see \S\ref{sec:simplifier}).
   \cite[\S11]{isabelle-ref} for more information.
 \end{descr}
 
-Any of above methods support additional modifiers of the context of classical
-rules.  Their semantics is analogous to the attributes given in
-\S\ref{sec:classical-mod}.  Facts provided by forward chaining are
-inserted\footnote{These methods usually cannot make proper use of actual rules
-  inserted that way, though.} into the goal before doing the search.  The
-``!''~argument causes the full context of assumptions to be included as well.
-This is slightly less hazardous than for the Simplifier (see
-\S\ref{sec:simp}).
+Any of the above methods support additional modifiers of the context of
+classical rules.  Their semantics is analogous to the attributes given before.
+Facts provided by forward chaining are inserted into the goal before
+commencing proof search.  The ``!''~argument causes the full context of
+assumptions to be included as well.
 
 
 \subsubsection{Combined automated methods}\label{sec:clasimp}
@@ -948,23 +950,22 @@ This is slightly less hazardous than for the Simplifier (see
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruction rules, respectively.  By default, rules are considered as
   \emph{unsafe} (i.e.\ not applied blindly without backtracking), while a
-  single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
-  applied in the search-oriented automated methods, but only in single-step
-  methods such as $rule$).
+  single ``!'' classifies as \emph{safe}.  Rule declarations marked by ``?''
+  coincide with those of Isabelle/Pure, cf.\ \S\ref{sec:pure-meth-att} (i.e.\
+  are only applied in single steps of the $rule$ method).
 
 \item [$rule~del$] deletes introduction, elimination, or destruction rules from
   the context.
-  
-\item [$iff$] declares a logical equivalences to the Simplifier and the
+
+\item [$iff$] declares logical equivalences to the Simplifier and the
   Classical reasoner at the same time.  Non-conditional rules result in a
   ``safe'' introduction and elimination pair; conditional ones are considered
   ``unsafe''.  Rules with negative conclusion are automatically inverted
-  (using $\neg$-elimination).
-  
-  The ``?'' version of $iff$ declares rules to the Pure context only, and
-  omits the Simplifier declaration.  Thus the declaration does not have any
-  effect on automated proof tools, but only on the single-step $rule$ method
-  (see \S\ref{sec:misc-meth-att}).
+  (using $\neg$ elimination internally).
+
+  The ``?'' version of $iff$ declares rules to the Isabelle/Pure context only,
+  and omits the Simplifier declaration.
+
 \end{descr}
 
 
@@ -978,13 +979,13 @@ This is slightly less hazardous than for the Simplifier (see
 \end{matharray}
 
 \begin{descr}
-  
+
 \item [$elim_format$] turns a destruction rule into elimination rule format;
   this operation is similar to the the intuitionistic version
   (\S\ref{sec:misc-meth-att}), but each premise of the resulting rule acquires
-  an additional local fact of the negated main thesis -- according to the
+  an additional local fact of the negated main thesis; according to the
   classical principle $(\neg A \Imp A) \Imp A$.
-  
+
 \item [$swapped$] turns an introduction rule into an elimination, by resolving
   with the classical swap principle $(\neg B \Imp A) \Imp (\neg A \Imp B)$.
 
@@ -1016,13 +1017,13 @@ inductive sets and types.
 The $\CASENAME$ command provides a shorthand to refer to certain parts of
 logical context symbolically.  Proof methods may provide an environment of
 named ``cases'' of the form $c\colon \vec x, \vec \phi$.  Then the effect of
-``$\CASE{c}$'' is that of ``$\FIX{\vec x}~\ASSUME{c}{\vec\phi}$''; term
-bindings may be covered as well, such as $\Var{case}$.
+``$\CASE{c}$'' is that of ``$\FIX{\vec x}~\ASSUME{c}{\vec\phi}$''.  Term
+bindings may be covered as well, such as $\Var{case}$ for the intended
+conclusion.
 
 Normally the ``terminology'' of a case value (i.e.\ the parameters $\vec x$)
-are marked as hidden.  Using the alternative form ``$(\CASE{c}~\vec x)$''
-enables proof writers to choose their own naming for the subsequent proof
-text.
+are marked as hidden.  Using the explicit form ``$\CASE{(c~\vec x)}$'' enables
+proof writers to choose their own names for the subsequent proof text.
 
 \medskip
 
@@ -1030,7 +1031,8 @@ It is important to note that $\CASENAME$ does \emph{not} provide direct means
 to peek at the current goal state, which is generally considered
 non-observable in Isar.  The text of the cases basically emerge from standard
 elimination or induction rules, which in turn are derived from previous theory
-specifications in a canonical way (say via $\isarkeyword{inductive}$).
+specifications in a canonical way (say from $\isarkeyword{inductive}$
+definitions).
 
 Named cases may be exhibited in the current proof context only if both the
 proof method and the rules involved support this.  Case names and parameters
@@ -1042,7 +1044,7 @@ may be used in advanced case analysis later.
 \railterm{casenames}
 
 \begin{rail}
-  'case' caseref | ('(' caseref ((name | underscore) +) ')')
+  'case' (caseref | '(' caseref ((name | underscore) +) ')')
   ;
   caseref: nameref attributes?
   ;
@@ -1056,35 +1058,35 @@ may be used in advanced case analysis later.
 \end{rail}
 
 \begin{descr}
-  
-\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
-  as provided by an appropriate proof method (such as $cases$ and $induct$,
-  see \S\ref{sec:cases-induct-meth}).  The command $\CASE{c}$ abbreviates
-  $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
-  
+
+\item [$\CASE{(c~\vec x)}$] invokes a named local context $c\colon \vec x,
+  \vec \phi$, as provided by an appropriate proof method (such as $cases$ and
+  $induct$, see \S\ref{sec:cases-induct-meth}).  The command ``$\CASE{(c~\vec
+    x)}$'' abbreviates ``$\FIX{\vec x}~\ASSUME{c}{\vec\phi}$''.
+
 \item [$\isarkeyword{print_cases}$] prints all local contexts of the current
   state, using Isar proof language notation.  This is a diagnostic command;
   $undo$ does not apply.
-  
+
 \item [$case_names~\vec c$] declares names for the local contexts of premises
   of some theorem; $\vec c$ refers to the \emph{suffix} of the list of
   premises.
-  
+
 \item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
   premises $1, \dots, n$ of some theorem.  An empty list of names may be given
   to skip positions, leaving the present parameters unchanged.
-  
+
   Note that the default usage of case rules does \emph{not} directly expose
   parameters to the proof context (see also \S\ref{sec:cases-induct-meth}).
-  
+
 \item [$consumes~n$] declares the number of ``major premises'' of a rule,
   i.e.\ the number of facts to be consumed when it is applied by an
   appropriate proof method (cf.\ \S\ref{sec:cases-induct-meth}).  The default
   value of $consumes$ is $n = 1$, which is appropriate for the usual kind of
-  cases and induction rules for inductive sets (cf.\ 
+  cases and induction rules for inductive sets (cf.\
   \S\ref{sec:hol-inductive}).  Rules without any $consumes$ declaration given
   are treated as if $consumes~0$ had been specified.
-  
+
   Note that explicit $consumes$ declarations are only rarely needed; this is
   already taken care of automatically by the higher-level $cases$ and $induct$
   declarations, see also \S\ref{sec:cases-induct-att}.
@@ -1104,14 +1106,9 @@ The $cases$ and $induct$ methods provide a uniform interface to case analysis
 and induction over datatypes, inductive sets, and recursive functions.  The
 corresponding rules may be specified and instantiated in a casual manner.
 Furthermore, these methods provide named local contexts that may be invoked
-via the $\CASENAME$ proof command within the subsequent proof text (cf.\ 
+via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 \S\ref{sec:rule-cases}).  This accommodates compact proof texts even when
 reasoning about large specifications.
-
-Note that the full spectrum of this generic functionality is currently only
-supported by Isabelle/HOL, when used in conjunction with advanced definitional
-packages (see especially \S\ref{sec:hol-datatype} and
-\S\ref{sec:hol-inductive}).
 
 \begin{rail}
   'cases' spec
@@ -1119,24 +1116,22 @@ packages (see especially \S\ref{sec:hol-datatype} and
   'induct' spec
   ;
 
-  spec: open? args rule? params?
+  spec: open? args rule?
   ;
   open: '(' 'open' ')'
   ;
-  args: (insts * 'and') 
+  args: (insts * 'and')
   ;
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
-  ;
-  params: 'of' ':' insts
   ;
 \end{rail}
 
 \begin{descr}
-  
-\item [$cases~insts~R~ps$] applies method $rule$ with an appropriate case
+
+\item [$cases~insts~R$] applies method $rule$ with an appropriate case
   distinction theorem, instantiated to the subjects $insts$.  Symbolic case
   names are bound according to the rule's local contexts.
-  
+
   The rule is determined as follows, according to the facts and arguments
   passed to the $cases$ method:
   \begin{matharray}{llll}
@@ -1146,28 +1141,21 @@ packages (see especially \S\ref{sec:hol-datatype} and
     \edrv a \in A   & cases & \dots     & \Text{inductive set elimination (of $A$)} \\
     \dots           & cases & \dots ~ R & \Text{explicit rule $R$} \\
   \end{matharray}
-  
+
   Several instantiations may be given, referring to the \emph{suffix} of
   premises of the case rule; within each premise, the \emph{prefix} of
   variables is instantiated.  In most situations, only a single term needs to
   be specified; this refers to the first variable of the last premise (it is
   usually the same for all cases).
-  
-  Additional parameters may be specified as $ps$; these are applied after the
-  primary instantiation in the same manner as by the $of$ attribute (cf.\ 
-  \S\ref{sec:pure-meth-att}).  This feature is rarely needed in practice; a
-  typical application would be to specify additional arguments for rules
-  stemming from parameterized inductive definitions (see also
-  \S\ref{sec:hol-inductive}).
-  
-  The $open$ option causes the parameters of the new local contexts to be
-  exposed to the current proof context.  Thus local variables stemming from
+
+  The ``$(open)$'' option causes the parameters of the new local contexts to
+  be exposed to the current proof context.  Thus local variables stemming from
   distant parts of the theory development may be introduced in an implicit
   manner, which can be quite confusing to the reader.  Furthermore, this
   option may cause unwanted hiding of existing local variables, resulting in
   less robust proof texts.
-  
-\item [$induct~insts~R~ps$] is analogous to the $cases$ method, but refers to
+
+\item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
     \Text{facts}    &        & \Text{arguments} & \Text{rule} \\\hline
@@ -1175,30 +1163,25 @@ packages (see especially \S\ref{sec:hol-datatype} and
     \edrv x \in A   & induct & \dots         & \Text{set induction (of $A$)} \\
     \dots           & induct & \dots ~ R     & \Text{explicit rule $R$} \\
   \end{matharray}
-  
+
   Several instantiations may be given, each referring to some part of a mutual
   inductive definition or datatype --- only related partial induction rules
   may be used together, though.  Any of the lists of terms $P, x, \dots$
   refers to the \emph{suffix} of variables present in the induction rule.
   This enables the writer to specify only induction variables, or both
   predicates and variables, for example.
-  
-  Additional parameters (including the $open$ option) may be given in the same
-  way as for $cases$, see above.
+
+  The ``$(open)$'' option works the same way as for $cases$.
 
 \end{descr}
 
 Above methods produce named local contexts (cf.\ \S\ref{sec:rule-cases}), as
-determined by the instantiated rule \emph{before} it has been applied to the
-internal proof state.\footnote{As a general principle, Isar proof text may
-  never refer to parts of proof states directly.} Thus proper use of symbolic
-cases usually require the rule to be instantiated fully, as far as the
-emerging local contexts and subgoals are concerned.  In particular, for
-induction both the predicates and variables have to be specified.  Otherwise
-the $\CASENAME$ command would refuse to invoke cases containing schematic
-variables.  Furthermore the resulting local goal statement is bound to the
-term variable $\Var{case}$\indexisarvar{case} --- for each case where it is
-fully specified.
+determined by the instantiated rule as specified in the text.  Beyond that,
+the $induct$ method guesses further instantiations from the goal specification
+itself.  Any persisting unresolved schematic variables of the resulting rule
+will render the the corresponding case invalid.  The term binding
+$\Var{case}$\indexisarvar{case} for the conclusion will be provided with each
+case, provided that term is fully specified.
 
 The $\isarkeyword{print_cases}$ command (\S\ref{sec:rule-cases}) prints all
 named cases present in the current proof state.
@@ -1224,16 +1207,10 @@ $\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
 
 Facts presented to either method are consumed according to the number of
 ``major premises'' of the rule involved (see also \S\ref{sec:cases-induct}),
-which is usually $0$ for plain cases and induction rules of datatypes etc.\ 
+which is usually $0$ for plain cases and induction rules of datatypes etc.\
 and $1$ for rules of inductive sets and the like.  The remaining facts are
 inserted into the goal verbatim before the actual $cases$ or $induct$ rule is
 applied (thus facts may be even passed through an induction).
-
-Note that whenever facts are present, the default rule selection scheme would
-provide a ``set'' rule only, with the first fact consumed and the rest
-inserted into the goal.  In order to pass all facts into a ``type'' rule
-instead, one would have to specify this explicitly, e.g.\ by appending
-``$type: name$'' to the method argument.
 
 
 \subsubsection{Declaring rules}\label{sec:cases-induct-att}
@@ -1256,22 +1233,22 @@ instead, one would have to specify this explicitly, e.g.\ by appending
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\isarkeyword{print_induct_rules}$] prints cases and induct rules for
   sets and types of the current context.
-  
+
 \item [$cases$ and $induct$] (as attributes) augment the corresponding context
   of rules for reasoning about inductive sets and types, using the
   corresponding methods of the same name.  Certain definitional packages of
   object-logics usually declare emerging cases and induction rules as
   expected, so users rarely need to intervene.
-  
+
   Manual rule declarations usually include the the $case_names$ and $ps$
   attributes to adjust names of cases and parameters of a rule (see
   \S\ref{sec:rule-cases}); the $consumes$ declaration is taken care of
   automatically: $consumes~0$ is specified for ``type'' rules and $consumes~1$
   for ``set'' rules.
-  
+
 \end{descr}
 
 %%% Local Variables:

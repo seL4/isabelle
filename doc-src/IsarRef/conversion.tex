@@ -69,14 +69,17 @@ bind_thms  : string * thm list -> unit
 
 ML proof scripts have to be well-behaved by storing theorems properly within
 the current theory context, in order to enable new-style theories to retrieve
-these these later.
+these later.
 
 \begin{descr}
+  
 \item [$\mathtt{qed}~name$] is the canonical way to conclude a proof script in
   ML.  This already manages entry in the theorem database of the current
   theory context.
+  
 \item [$\mathtt{bind_thm}~(name, thm)$ and $\mathtt{bind_thms}~(name, thms)$]
   store theorems that have been produced in ML in an ad-hoc manner.
+
 \end{descr}
 
 Note that the original ``LCF-system'' approach of binding theorem values on
@@ -197,7 +200,7 @@ into the atomic conclusion and a list of assumptions, which are exhibited as
 ML values of type \texttt{thm}.  After the proof is finished, these premises
 are discharged again, resulting in the original rule statement.  The ``long
 format'' of Isabelle/Isar goal statements admits to emulate this technique
-closely.  The general ML goal statement for derived rules looks like this:
+nicely.  The general ML goal statement for derived rules looks like this:
 \begin{ttbox}
  val [\(prem@1\), \dots] = goal "\(\phi@1 \Imp \dots \Imp \psi\)";
  by \(tac@1\);
@@ -218,12 +221,10 @@ This form may be turned into a tactic-emulation script as follows:
 corresponding atomic statements, typically stemming from the definition of a
 new concept.  In that case, the general scheme for deriving rules may be
 greatly simplified, using one of the standard automated proof tools, such as
-$simp$, $blast$, or $auto$.  This would work as follows:
+$simp$, $blast$, or $auto$.  This could work as follows:
 \begin{matharray}{l}
   \LEMMA{}{\texttt"{\phi@1 \Imp \dots \Imp \psi}\texttt"} \\
-  \quad \APPLY{unfold~defs} \\
-  \quad \APPLY{blast} \\
-  \quad \DONE \\
+  \quad \BYY{unfold~defs}{blast} \\
 \end{matharray}
 Note that classic Isabelle would support this form only in the special case
 where $\phi@1$, \dots are atomic statements (when using the standard
@@ -270,6 +271,9 @@ $atomize$ method indicated below.  The remaining script is unchanged.
   \quad \DONE \\
 \end{matharray}
 
+In many situations the $atomize$ step above is actually unnecessary,
+especially if the subsequent script mainly consists of automated tools.
+
 
 \subsection{Tactics}\label{sec:conv-tac}
 
@@ -287,7 +291,7 @@ variant forms by a single method with separate options to tune the behavior.
 For example, method $simp$ replaces all of \texttt{simp_tac}~/
 \texttt{asm_simp_tac}~/ \texttt{full_simp_tac}~/ \texttt{asm_full_simp_tac},
 there is also concrete syntax for augmenting the Simplifier context (the
-current ``simpset'') in a handsome way.
+current ``simpset'') in a convenient way.
 
 
 \subsubsection{Resolution tactics}
@@ -458,19 +462,19 @@ expressions with \emph{attributes}.
 
 \medskip Theorem operations may be attached as attributes in the very place
 where theorems are referenced, say within a method argument.  The subsequent
-common ML combinators may be expressed directly in Isar as follows.
+ML combinators may be expressed directly in Isar as follows.
 \begin{matharray}{lll}
   thm@1~\texttt{RS}~thm@2 & & thm@1~[THEN~thm@2] \\
   thm@1~\texttt{RSN}~(i, thm@2) & & thm@1~[THEN~[i]~thm@2] \\
   thm@1~\texttt{COMP}~thm@2 & & thm@1~[COMP~thm@2] \\
   \relax[thm@1, \dots]~\texttt{MRS}~thm & & thm~[OF~thm@1~\dots] \\
   \texttt{read_instantiate}~[(x@1, t@1), \dots]~thm & & thm~[where~x@1 = t@1~and~\dots] \\
-  \texttt{standard}~thm & & thm~[standard] \\
   \texttt{make_elim}~thm & & thm~[elim_format] \\
+  \texttt{standard}~thm & & thm~[standard] \\
 \end{matharray}
 
 Note that $OF$ is often more readable as $THEN$; likewise positional
-instantiation with $of$ is more handsome than $where$.
+instantiation with $of$ is often more appropriate than $where$.
 
 The special ML command \texttt{qed_spec_mp} of Isabelle/HOL and FOL may be
 replaced by passing the result of a proof through $rule_format$.
@@ -491,8 +495,8 @@ most common ones are as follows.
   \texttt{AddSDs}~[thm] & & \DECLARE~thm~[dest!] \\[0.5ex]
   \texttt{AddIffs}~[thm] & & \DECLARE~thm~[iff] \\
 \end{matharray}
-Note that explicit $\DECLARE$ commands are actually needed only very rarely;
-Isar admits to declare theorems on-the-fly wherever they emerge.  Consider the
+Note that explicit $\DECLARE$ commands are rarely needed in practice; Isar
+admits to declare theorems on-the-fly wherever they emerge.  Consider the
 following ML idiom:
 \begin{ttbox}
 Goal "\(\phi\)";
@@ -500,7 +504,7 @@ Goal "\(\phi\)";
 qed "name";
 Addsimps [name];
 \end{ttbox}
-This may be expressed more concisely in Isar like this:
+This may be expressed more succinctly in Isar like this:
 \begin{matharray}{l}
   \LEMMA{name~[simp]}{\phi} \\
   \quad\vdots
@@ -525,26 +529,32 @@ language, as well an understanding of the \emph{original} idea of the piece of
 code expressed in the low-level language.
 
 As far as Isar proofs are concerned, it is usually much easier to re-use only
-definitions and the main statements directly, while following the arrangement
-of proof scripts only very loosely.  Ideally, one would also have some
-\emph{informal} proof outlines available for guidance as well.  In the worst
-case, obscure proof scripts would have to be re-engineered by tracing forth
-and backwards, and by educated guessing!
+definitions and the main statements, while following the arrangement of proof
+scripts only very loosely.  Ideally, one would also have some \emph{informal}
+proof outlines available for guidance as well.  In the worst case, obscure
+proof scripts would have to be re-engineered by tracing forth and backwards,
+and by educated guessing!
 
 \medskip This is a possible schedule to embark on actual conversion of legacy
 proof scripts into Isar proof texts.
+
 \begin{enumerate}
+
 \item Port ML scripts to Isar tactic emulation scripts (see
   \S\ref{sec:port-scripts}).
+
 \item Get sufficiently acquainted with Isabelle/Isar proof
   development.\footnote{As there is still no Isar tutorial around, it is best
     to look at existing Isar examples, see also \S\ref{sec:isar-howto}.}
+
 \item Recover the proof structure of a few important theorems.
+
 \item Rephrase the original intention of the course of reasoning in terms of
   Isar proof language elements.
+
 \end{enumerate}
 
-Certainly, rewriting formal reasoning in Isar requires much additional effort.
+Certainly, rewriting formal reasoning in Isar requires some additional effort.
 On the other hand, one gains a human-readable representation of
 machine-checked formal proof.  Depending on the context of application, this
 might be even indispensable to start with!

@@ -48,7 +48,7 @@
   \HENCENAME & \equiv & \THEN~\HAVENAME \\
   \THUSNAME & \equiv & \THEN~\SHOWNAME \\
   \FROM{\vec a} & \equiv & \NOTE{this}{\vec a}~\THEN \\
-  \WITH{\vec a} & \equiv & \FROM{\vec a~this} \\[1ex]
+  \WITH{\vec a} & \equiv & \FROM{\vec a~\AND~this} \\[1ex]
   \FROM{this} & \equiv & \THEN \\
   \FROM{this}~\HAVENAME & \equiv & \HENCENAME \\
   \FROM{this}~\SHOWNAME & \equiv & \THUSNAME \\
@@ -120,18 +120,18 @@
   \multicolumn{2}{l}{\textbf{Operations}} \\[0.5ex]
   $OF~\vec a$ & rule applied to facts (skipping ``$_$'') \\
   $of~\vec t$ & rule applied to terms (skipping ``$_$'') \\
-  $symmetric$ & resolution with symmetry of equality \\
-  $THEN~b$ & resolution with other rule \\
+  $symmetric$ & resolution with symmetry rule \\
+  $THEN~b$ & resolution with another rule \\
   $rule_format$ & result put into standard rule format \\
-  $elim_format$ & destruct rule turned into elimination rule format \\
-  $standard$ & result put into standard form \\[1ex]
+  $elim_format$ & destruct rule turned into elimination rule format \\[1ex]
 
   \multicolumn{2}{l}{\textbf{Declarations}} \\[0.5ex]
   $simp$ & Simplifier rule \\
-  $intro$, $elim$, $dest$ & Classical Reasoner rule \\
+  $intro$, $elim$, $dest$ & Pure or Classical Reasoner rule \\
   $iff$ & Simplifier + Classical Reasoner rule \\
   $split$ & case split rule \\
   $trans$ & transitivity rule \\
+  $sym$ & symmetry rule \\
 \end{tabular}
 
 
