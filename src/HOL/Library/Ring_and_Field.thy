@@ -17,7 +17,7 @@ axclass ring < zero, plus, minus, times, number
   add_commute: "a + b = b + a"
   left_zero [simp]: "0 + a = a"
   left_minus [simp]: "- a + a = 0"
-  diff_minus [simp]: "a - b = a + (-b)"
+  diff_minus: "a - b = a + (-b)"
   zero_number: "0 = #0"
 
   mult_assoc: "(a * b) * c = a * (b * c)"
@@ -33,9 +33,13 @@ axclass ordered_ring < ring, linorder
 
 axclass field < ring, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = #1"
-  divides_inverse [simp]: "b \<noteq> 0 ==> a / b = a * inverse b" (* FIXME unconditional ?? *)
+  divide_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
 
 axclass ordered_field < ordered_ring, field
+
+axclass division_by_zero < zero, inverse
+  inverse_zero: "inverse 0 = 0"
+  divide_zero: "a / 0 = 0"
 
 
 
@@ -66,16 +70,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma right_minus_eq [simp]: "(a - b = 0) = (a = (b::'a::ring))"
+lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::ring))"
 proof 
-  have "a = a - b + b" by (simp add: ring_add_ac)
+  have "a = a - b + b" by (simp add: diff_minus ring_add_ac)
   also assume "a - b = 0"
   finally show "a = b" by simp
-qed simp
+next
+  assume "a = b"
+  thus "a - b = 0" by (simp add: diff_minus)
+qed
 
 lemma diff_self [simp]: "a - (a::'a::ring) = 0"
-  by simp
-
+  by (simp add: diff_minus)
 
 
 subsubsection {* Derived rules for multiplication *}
@@ -104,17 +110,21 @@ proof -
   finally show ?thesis .
 qed
 
-lemma right_inverse_eq [simp]: "b \<noteq> 0 \<Longrightarrow> (a / b = #1) = (a = (b::'a::field))"
+lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> (a / b = #1) = (a = (b::'a::field))"
 proof 
-  assume "b \<noteq> 0"
-  hence "a = (a / b) * b" by (simp add: ring_mult_ac)
-  also assume "a / b = #1"
-  finally show "a = b" by simp
-qed simp
+  assume neq: "b \<noteq> 0"
+  {
+    hence "a = (a / b) * b" by (simp add: divide_inverse ring_mult_ac)
+    also assume "a / b = #1"
+    finally show "a = b" by simp
+  next
+    assume "a = b"
+    with neq show "a / b = #1" by (simp add: divide_inverse)
+  }
+qed
 
 lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / (a::'a::field) = #1"
-  by simp
-
+  by (simp add: divide_inverse)
 
 
 subsubsection {* Distribution rules *}
@@ -124,7 +134,7 @@ proof -
   have "a * (b + c) = (b + c) * a" by (simp add: ring_mult_ac)
   also have "\<dots> = b * a + c * a" by (simp only: left_distrib)
   also have "\<dots> = a * b + a * c" by (simp add: ring_mult_ac)
-  finally show "?thesis" .
+  finally show ?thesis .
 qed
 
 theorems ring_distrib = right_distrib left_distrib
