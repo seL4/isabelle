@@ -92,6 +92,16 @@ Auth:	$(OUT)/HOL $(AUTH_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOL Auth
 
 
+## Modelchecker invocation
+
+MC_FILES = Modelcheck/CTL.thy Modelcheck/Example.ML \
+  Modelcheck/Example.thy Modelcheck/MCSyn.ML Modelcheck/MCSyn.thy \
+  Modelcheck/MuCalculus.ML Modelcheck/MuCalculus.thy Modelcheck/ROOT.ML
+
+Modelcheck: $(OUT)/HOL $(MC_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
+
+
 ## Properties of substitutions
 
 SUBST_NAMES = AList Subst Unifier UTerm Unify
@@ -197,7 +207,7 @@ ex:	$(OUT)/HOL $(EX_FILES)
 ## Full test
 
 test:	$(OUT)/HOL \
-		Subst Induct IMP Hoare Lex Integ Auth Lambda  \
+		Subst Induct IMP Hoare Lex Integ Auth Modelcheck Lambda  \
 		W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
