@@ -33,7 +33,7 @@ instances of its declared type @{typ"'a \<Rightarrow> 'a"} --- this merely supre
 warnings to that effect.
 
 However, there is nothing to prevent the user from forming terms such as
-@{text"inverse []"} and proving theorems as @{text"inverse []
+@{text"inverse []"} and proving theorems such as @{text"inverse []
 = inverse []"}, although we never defined inverse on lists. We hasten to say
 that there is nothing wrong with such terms and theorems. But it would be
 nice if we could prevent their formation, simply because it is very likely

@@ -20,16 +20,19 @@ programming is just one particularly simple and ubiquitous instance.
 Isabelle~\cite{paulson-isa-book} is implemented in ML~\cite{SML}.  This has
 influenced some of Isabelle/HOL's concrete syntax but is otherwise irrelevant
 for us because this tutorial is based on
-Isabelle/Isar~\cite{isabelle-isar-ref}, an extension of Isabelle with
-structured proofs. Thus the full name of the system should be
-Isabelle/Isar/HOL, but that is a bit of a mouthful. There are other
-implementations of HOL, in particular the one by Mike Gordon \emph{et al.},
-which is usually referred to as ``the HOL system'' \cite{mgordon-hol}. For us,
-HOL refers to the logical system, and sometimes its incarnation Isabelle/HOL.
+Isabelle/Isar~\cite{isabelle-isar-ref}, an extension of Isabelle which hides
+the implementation language almost completely.  Thus the full name of the
+system should be Isabelle/Isar/HOL, but that is a bit of a mouthful.
+
+There are other implementations of HOL, in particular the one by Mike Gordon
+\emph{et al.}, which is usually referred to as ``the HOL system''
+\cite{mgordon-hol}. For us, HOL refers to the logical system, and sometimes
+its incarnation Isabelle/HOL.
 
 A tutorial is by definition incomplete.  Currently the tutorial only
 introduces the rudiments of Isar's proof language. To fully exploit the power
-of Isar you need to consult the Isabelle/Isar Reference
+of Isar, in particular the ability to write readable and structured proofs,
+you need to consult the Isabelle/Isar Reference
 Manual~\cite{isabelle-isar-ref}. If you want to use Isabelle's ML level
 directly (for example for writing your own proof procedures) see the Isabelle
 Reference Manual~\cite{isabelle-ref}; for details relating to HOL see the
