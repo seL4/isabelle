@@ -148,7 +148,7 @@ fun select_match(obj,signobj,named_thms,extract) =
             let val {prop,sign,...} = rep_thm thm
             in select(named_thms,
                       if Sign.subsig(sign,signobj) andalso
-                         matches(prop,#tsig(Sign.rep_sg sign))
+                         matches(prop,#tsig(Sign.rep_sg signobj))
                       then p::sels else sels)
             end
         | select([],sels) = sels
@@ -171,8 +171,10 @@ fun find_elims sign prop =
 fun findI i = find_intros(concl_of_goal i,#sign(rep_thm(topthm())));
 
 fun findEs i =
-  let val sign = #sign(rep_thm(topthm()))
-  in flat(map (find_elims sign) (prems_of_goal i)) end;
+  let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
+      val sign = #sign(rep_thm(topthm()))
+      val thmss = map (find_elims sign) (prems_of_goal i)
+  in foldl (gen_union eq_nth) ([],thmss) end;
 
 fun findE i j =
   let val sign = #sign(rep_thm(topthm()))
