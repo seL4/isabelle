@@ -465,4 +465,15 @@ apply (rule equalityI)
 apply (erule ssubst, erule single_subset_wens_set) 
 done
 
+text{*Generalizing Misra's Fixed Point Union Theorem (4.41)*}
+
+lemma fp_leadsTo_Union:
+    "[|T-B \<subseteq> awp F T; T-B \<subseteq> FP G; F \<in> A leadsTo B|] ==> F\<squnion>G \<in> T\<inter>A leadsTo B"
+apply (rule leadsTo_Union) 
+apply assumption; 
+ apply (simp add: FP_def awp_iff stable_def constrains_def) 
+ apply (blast intro: elim:); 
+apply assumption; 
+done
+
 end

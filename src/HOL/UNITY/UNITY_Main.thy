@@ -6,7 +6,7 @@
 
 header{*Comprehensive UNITY Theory*}
 
-theory UNITY_Main = Detects + PPROD + Follows + Transformers
+theory UNITY_Main = Detects + PPROD + Follows + ProgressSets
 files "UNITY_tactics.ML":
 
 method_setup constrains = {*
