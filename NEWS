@@ -28,6 +28,8 @@ X-Symbol;
 
 * Pure: renamed "antecedent" case to "rule_context";
 
+* Pure: added 'corollary' command;
+
 * Pure: fixed 'token_translation' command;
 
 * HOL: 'recdef' now fails on unfinished automated proofs, use
