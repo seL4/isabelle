@@ -150,8 +150,8 @@ local
 
   fun less_idx ((x, i):indexname, (y, j):indexname) =
     x < y orelse x = y andalso i < j;
-  val sort_idxs = map (apsnd (sort less_idx));
-  val sort_strs = map (apsnd sort_strings);
+  fun sort_idxs l = map (apsnd (sort less_idx)) l;
+  fun sort_strs l = map (apsnd sort_strings) l;
 
 
   (* prepare atoms *)
