@@ -1072,6 +1072,11 @@ fun loops sign prems (lhs,rhs) =
   orelse
    (null(prems) andalso
     Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
+(* the condition "null(prems)" in the last case is necessary because
+   conditional rewrites with extra variables in the conditions may terminate
+   although the rhs is an instance of the lhs. Example:
+   ?m < ?n ==> f(?n) == f(?m)
+*)
 
 fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
   let val prems = Logic.strip_imp_prems prop
