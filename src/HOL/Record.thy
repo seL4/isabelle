@@ -56,25 +56,6 @@ syntax (xsymbols)
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
 
-(* 
-
-  "_structure"             :: "fields => 'a"          ("(3{| _ |})")
-  "_structure_scheme"      :: "[fields, 'a] => 'a"    ("(3{| _,/ (2... =/ _) |})")
-  
-  "_structure_update_name":: idt
-  "_structure_update"  :: "['a, updates] \<Rightarrow> 'b"    ("_/(3{| _ |})" [900,0] 900)
-
-  "_structure_type"        :: "field_types => type"    ("(3{| _ |})")
-  "_structure_type_scheme" :: "[field_types, type] => type" 
-                                      ("(3{| _,/ (2... ::/ _) |})")
-syntax (xsymbols)
-
- "_structure_scheme"   :: "[fields, 'a] => 'a"       ("(3{|_,/ (2\<dots> =/ _)|})")
-
-  "_structure_type_scheme" :: "[field_types, type] => type"        
-                                      ("(3{|_,/ (2\<dots> ::/ _)|})")
-
-*)
 use "Tools/record_package.ML";
 setup RecordPackage.setup;
 
