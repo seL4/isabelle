@@ -419,15 +419,15 @@ val print_thmsP =
   OuterSyntax.parser true "thm" "print theorems" (xthm >> IsarCmd.print_thms);
 
 val print_propP =
-  OuterSyntax.parser true "print_prop" "read and print proposition"
+  OuterSyntax.parser true "prop" "read and print proposition"
     (term >> IsarCmd.print_prop);
 
 val print_termP =
-  OuterSyntax.parser true "print_term" "read and print term"
+  OuterSyntax.parser true "term" "read and print term"
     (term >> IsarCmd.print_term);
 
 val print_typeP =
-  OuterSyntax.parser true "print_type" "read and print type"
+  OuterSyntax.parser true "typ" "read and print type"
     (typ >> IsarCmd.print_type);
 
 
