@@ -1,56 +1,28 @@
 (*  Title:      HOL/ex/qsort.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
+    Author:     Tobias Nipkow (tidied by lcp)
     Copyright   1994 TU Muenchen
 
-Two verifications of Quicksort
+The verification of Quicksort
 *)
 
-Addsimps [ball_Un];
+Addsimps qsort.rules;
 
-(* Towards a proof of qsort_ind
-
-A short proof of Konrad's wf_minimal in WF1.ML:
-
-val [p1] = goalw WF.thy [wf_def]
-"wf(R) ==> (!Q. (? x. Q x) --> (? min. Q min & (!b. (b,min):R --> (~ Q b))))";
-by (rtac allI 1);
-by (cut_inst_tac[("x","%u.~Q u")](p1 RS spec) 1);
-by (fast_tac HOL_cs 1);
-val wf_minimal = result();
-
-*)
-
-
-Addsimps ([Qsort.qsort_Nil,Qsort.qsort_Cons]@conj_comms);
-
-Goal "!x. mset (qsort le xs) x = mset xs x";
-by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (ALLGOALS Asm_simp_tac);
+Goal "multiset (qsort(le,xs)) x = multiset xs x";
+by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
+by Auto_tac;
 qed "qsort_permutes";
+Addsimps [qsort_permutes];
 
-Goal "set(qsort le xs) = set xs";
-by (simp_tac (simpset() addsimps [set_via_mset,qsort_permutes]) 1);
+(*Also provable by induction*)
+Goal "set (qsort(le,xs)) = set xs";
+by (simp_tac (simpset() addsimps [set_via_multiset]) 1);
 qed "set_qsort";
 Addsimps [set_qsort];
 
-goal List.thy
-  "(!x:set[x:xs. P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed"Ball_set_filter";
-Addsimps [Ball_set_filter];
-
-Goal "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
-\                     (!x:set xs. !y:set ys. le x y))";
-by (induct_tac "xs" 1);
+Goal "total(le) & transf(le) --> sorted le (qsort(le,xs))";
+by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
 by (ALLGOALS Asm_simp_tac);
-qed "sorted_append";
-Addsimps [sorted_append];
-
-Goal "[| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
-by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (ALLGOALS Asm_simp_tac);
-by (rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);
-by (Fast_tac 1);
-qed "sorted_qsort";
+by (rewrite_goals_tac [Sorting.total_def, Sorting.transf_def]);
+by (Blast_tac 1);
+qed_spec_mp "sorted_qsort";
