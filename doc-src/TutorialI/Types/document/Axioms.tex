@@ -12,7 +12,7 @@ just as in axiomatic mathematics. These ideas are demonstrated by means of
 our above ordering relations.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Partial orders%
+\isamarkupsubsubsection{Partial Orders%
 }
 %
 \begin{isamarkuptext}%
@@ -30,7 +30,7 @@ The first three axioms are the familiar ones, and the final one
 requires that \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} are related as expected.
 Note that behind the scenes, Isabelle has restricted the axioms to class
 \isa{parord}. For example, this is what \isa{refl} really looks like:
-\isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
+\isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isasymColon}parord{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
 
 We have not made \isa{less{\isacharunderscore}le} a global definition because it would
 fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}}.
@@ -88,14 +88,14 @@ We can now apply our single lemma above in the context of booleans:%
 \isacommand{by}\ simp%
 \begin{isamarkuptext}%
 \noindent
-The effect is not stunning but demonstrates the principle.  It also shows
+The effect is not stunning, but it demonstrates the principle.  It also shows
 that tools like the simplifier can deal with generic rules as well. Moreover,
 it should be clear that the main advantage of the axiomatic method is that
 theorems can be proved in the abstract and one does not need to repeat the
 proof for each instance.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Linear orders%
+\isamarkupsubsubsection{Linear Orders%
 }
 %
 \begin{isamarkuptext}%
@@ -122,7 +122,7 @@ later on, i.e.\ subclassing by proof. This is the topic of the following
 paragraph.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Strict orders%
+\isamarkupsubsubsection{Strict Orders%
 }
 %
 \begin{isamarkuptext}%
@@ -150,7 +150,7 @@ The subclass relation must always be acyclic. Therefore Isabelle will
 complain if you also prove the relationship \isa{strord\ {\isacharless}\ parord}.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Multiple inheritance and sorts%
+\isamarkupsubsubsection{Multiple Inheritance and Sorts%
 }
 %
 \begin{isamarkuptext}%
@@ -184,7 +184,7 @@ Figure~\ref{fig:subclass}.
 & & \isa{wellord}
 \end{array}
 \]
-\caption{Subclass diagramm}
+\caption{Subclass Diagram}
 \label{fig:subclass}
 \end{figure}
 

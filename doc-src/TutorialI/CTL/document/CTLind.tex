@@ -2,7 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{CTLind}%
 %
-\isamarkupsubsection{CTL revisited%
+\isamarkupsubsection{CTL Revisited%
 }
 %
 \begin{isamarkuptext}%
@@ -55,9 +55,8 @@ In the induction step, we have an infinite \isa{A}-avoiding path \isa{f}
 starting from \isa{u}, a successor of \isa{t}. Now we simply instantiate
 the \isa{{\isasymforall}f{\isasymin}Paths\ t} in the induction hypothesis by the path starting with
 \isa{t} and continuing with \isa{f}. That is what the above $\lambda$-term
-expresses. That fact that this is a path starting with \isa{t} and that
-the instantiated induction hypothesis implies the conclusion is shown by
-simplification.
+expresses.  Simplification shows that this is a path starting with \isa{t} 
+and that the instantiated induction hypothesis implies the conclusion.
 
 Now we come to the key lemma. It says that if \isa{t} can be reached by a
 finite \isa{A}-avoiding path from \isa{s}, then \isa{t\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}},
@@ -67,10 +66,11 @@ provided there is no infinite \isa{A}-avoiding path starting from \isa{s}.%
 \ \ {\isachardoublequote}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ t\ {\isasymin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-The trick is not to induct on \isa{t\ {\isasymin}\ Avoid\ s\ A}, as already the base
-case would be a problem, but to proceed by well-founded induction \isa{t}. Hence \isa{t\ {\isasymin}\ Avoid\ s\ A} needs to be brought into the conclusion as
+The trick is not to induct on \isa{t\ {\isasymin}\ Avoid\ s\ A}, as even the base
+case would be a problem, but to proceed by well-founded induction on~\isa{t}. Hence\hbox{ \isa{t\ {\isasymin}\ Avoid\ s\ A}} must be brought into the conclusion as
 well, which the directive \isa{rule{\isacharunderscore}format} undoes at the end (see below).
-But induction with respect to which well-founded relation? The restriction
+But induction with respect to which well-founded relation? The
+one we want is the restriction
 of \isa{M} to \isa{Avoid\ s\ A}:
 \begin{isabelle}%
 \ \ \ \ \ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
@@ -85,7 +85,19 @@ moment we assume this and proceed with the induction:%
 \ \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-Now can assume additionally (induction hypothesis) that if \isa{t\ {\isasymnotin}\ A}
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymlbrakk}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharsemicolon}\ x\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}y{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A\ {\isasymlongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\isanewline
+\ \ \ \ \ \ \ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
+\end{isabelle}
+\REMARK{I put in this proof state but I wonder if readers will be able to
+follow this proof. You could prove that your relation is WF in a 
+lemma beforehand, maybe omitting that proof.}
+Now the induction hypothesis states that if \isa{t\ {\isasymnotin}\ A}
 then all successors of \isa{t} that are in \isa{Avoid\ s\ A} are in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. To prove the actual goal we unfold \isa{lfp} once. Now
 we have to prove that \isa{t} is in \isa{A} or all successors of \isa{t} are in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. If \isa{t} is not in \isa{A}, the second
@@ -99,15 +111,14 @@ hence, by the induction hypothesis, all successors of \isa{t} are indeed in
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}%
 \begin{isamarkuptxt}%
 Having proved the main goal we return to the proof obligation that the above
-relation is indeed well-founded. This is proved by contraposition: we assume
-the relation is not well-founded. Thus there exists an infinite \isa{A}-avoiding path all in \isa{Avoid\ s\ A}, by theorem
+relation is indeed well-founded. This is proved by contradiction: if
+the relation is not well-founded then there exists an infinite \isa{A}-avoiding path all in \isa{Avoid\ s\ A}, by theorem
 \isa{wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain}:
 \begin{isabelle}%
 \ \ \ \ \ wf\ r\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ {\isacharparenleft}{\isasymexists}f{\isachardot}\ {\isasymforall}i{\isachardot}\ {\isacharparenleft}f\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharcomma}\ f\ i{\isacharparenright}\ {\isasymin}\ r{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 From lemma \isa{ex{\isacharunderscore}infinite{\isacharunderscore}path} the existence of an infinite
-\isa{A}-avoiding path starting in \isa{s} follows, just as required for
-the contraposition.%
+\isa{A}-avoiding path starting in \isa{s} follows, contradiction.%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain{\isacharparenright}\isanewline

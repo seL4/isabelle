@@ -2,7 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{AB}%
 %
-\isamarkupsection{Case study: A context free grammar%
+\isamarkupsection{Case Study: A Context Free Grammar%
 }
 %
 \begin{isamarkuptext}%
@@ -11,19 +11,19 @@ Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
 $A \to B c$ is short for
 \[ w \in B \Longrightarrow wc \in A \]
-This section demonstrates this idea with a standard example
-\cite[p.\ 81]{HopcroftUllman}, a grammar for generating all words with an
-equal number of $a$'s and $b$'s:
+This section demonstrates this idea with an example
+due to Hopcroft and Ullman, a grammar for generating all words with an
+equal number of $a$'s and~$b$'s:
 \begin{eqnarray}
 S &\to& \epsilon \mid b A \mid a B \nonumber\\
 A &\to& a S \mid b A A \nonumber\\
 B &\to& b S \mid a B B \nonumber
 \end{eqnarray}
-At the end we say a few words about the relationship of the formalization
-and the text in the book~\cite[p.\ 81]{HopcroftUllman}.
+At the end we say a few words about the relationship between
+the original proof \cite[p.\ts81]{HopcroftUllman} and our formal version.
 
 We start by fixing the alphabet, which consists only of \isa{a}'s
-and \isa{b}'s:%
+and~\isa{b}'s:%
 \end{isamarkuptext}%
 \isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b%
 \begin{isamarkuptext}%
@@ -31,21 +31,20 @@ and \isa{b}'s:%
 For convenience we include the following easy lemmas as simplification rules:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}x\ {\isasymnoteq}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\isacommand{by}\ {\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Words over this alphabet are of type \isa{alfa\ list}, and
-the three nonterminals are declare as sets of such words:%
+the three nonterminals are declared as sets of such words:%
 \end{isamarkuptext}%
 \isacommand{consts}\ S\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The above productions are recast as a \emph{simultaneous} inductive
+The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
-of \isa{S}, \isa{A} and \isa{B}:%
+of \isa{S}, \isa{A} and~\isa{B}:%
 \end{isamarkuptext}%
 \isacommand{inductive}\ S\ A\ B\isanewline
 \isakeyword{intros}\isanewline
@@ -60,8 +59,8 @@ of \isa{S}, \isa{A} and \isa{B}:%
 \ \ {\isachardoublequote}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-First we show that all words in \isa{S} contain the same number of \isa{a}'s and \isa{b}'s. Since the definition of \isa{S} is by simultaneous
-induction, so is this proof: we show at the same time that all words in
+First we show that all words in \isa{S} contain the same number of \isa{a}'s and \isa{b}'s. Since the definition of \isa{S} is by mutual
+induction, so is the proof: we show at the same time that all words in
 \isa{A} contain one more \isa{a} than \isa{b} and all words in \isa{B} contains one more \isa{b} than \isa{a}.%
 \end{isamarkuptext}%
 \isacommand{lemma}\ correctness{\isacharcolon}\isanewline
@@ -71,24 +70,23 @@ induction, so is this proof: we show at the same time that all words in
 \begin{isamarkuptxt}%
 \noindent
 These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{{\isacharbrackleft}x{\isasymin}xs{\isachardot}\ P\ x{\isacharbrackright}}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
-holds. Remember that on lists \isa{size} and \isa{size} are synonymous.
+holds. Remember that on lists \isa{size} and \isa{length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}auto{\isacharparenright}%
+\isacommand{by}\ {\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 This may seem surprising at first, and is indeed an indication of the power
 of inductive definitions. But it is also quite straightforward. For example,
 consider the production $A \to b A A$: if $v,w \in A$ and the elements of $A$
-contain one more $a$ than $b$'s, then $bvw$ must again contain one more $a$
-than $b$'s.
+contain one more $a$ than~$b$'s, then $bvw$ must again contain one more $a$
+than~$b$'s.
 
 As usual, the correctness of syntactic descriptions is easy, but completeness
 is hard: does \isa{S} contain \emph{all} words with an equal number of
 \isa{a}'s and \isa{b}'s? It turns out that this proof requires the
-following little lemma: every string with two more \isa{a}'s than \isa{b}'s can be cut somehwere such that each half has one more \isa{a} than
+following lemma: every string with two more \isa{a}'s than \isa{b}'s can be cut somewhere such that each half has one more \isa{a} than
 \isa{b}. This is best seen by imagining counting the difference between the
 number of \isa{a}'s and \isa{b}'s starting at the left end of the
 word. We start with 0 and end (at the right end) with 2. Since each move to the
@@ -117,9 +115,9 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \noindent
 The lemma is a bit hard to read because of the coercion function
 \isa{{\isachardoublequote}int\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ int{\isachardoublequote}}. It is required because \isa{size} returns
-a natural number, but \isa{{\isacharminus}} on \isa{nat} will do the wrong thing.
+a natural number, but subtraction on type~\isa{nat} will do the wrong thing.
 Function \isa{take} is predefined and \isa{take\ i\ xs} is the prefix of
-length \isa{i} of \isa{xs}; below we als need \isa{drop\ i\ xs}, which
+length \isa{i} of \isa{xs}; below we also need \isa{drop\ i\ xs}, which
 is what remains after that prefix has been dropped from \isa{xs}.
 
 The proof is by induction on \isa{w}, with a trivial base case, and a not
@@ -130,15 +128,15 @@ discuss it.%
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}%
 \begin{isamarkuptext}%
-Finally we come to the above mentioned lemma about cutting a word with two
-more elements of one sort than of the other sort into two halves:%
+Finally we come to the above mentioned lemma about cutting in half a word with two
+more elements of one sort than of the other sort:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ part{\isadigit{1}}{\isacharcolon}\isanewline
 \ {\isachardoublequote}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
 \ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-This is proved by force with the help of the intermediate value theorem,
+This is proved by \isa{force} with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 \isa{step{\isadigit{1}}}:%
 \end{isamarkuptxt}%
@@ -148,7 +146,7 @@ instantiated appropriately and with its first premise disposed of by lemma
 \noindent
 
 Lemma \isa{part{\isadigit{1}}} tells us only about the prefix \isa{take\ i\ w}.
-The suffix \isa{drop\ i\ w} is dealt with in the following easy lemma:%
+An easy lemma deals with the suffix \isa{drop\ i\ w}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ part{\isadigit{2}}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymlbrakk}size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\isanewline
@@ -158,8 +156,11 @@ The suffix \isa{drop\ i\ w} is dealt with in the following easy lemma:%
 \isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-Lemma \isa{append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id}, \isa{take\ n\ xs\ {\isacharat}\ drop\ n\ xs\ {\isacharequal}\ xs},
-which is generally useful, needs to be disabled for once.
+In the proof, we have had to disable a normally useful lemma:
+\begin{isabelle}
+\isa{take\ n\ xs\ {\isacharat}\ drop\ n\ xs\ {\isacharequal}\ xs}
+\rulename{append_take_drop_id}
+\end{isabelle}
 
 To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:%
@@ -170,8 +171,8 @@ definition are declared simplification rules:%
 This could have been done earlier but was not necessary so far.
 
 The completeness theorem tells us that if a word has the same number of
-\isa{a}'s and \isa{b}'s, then it is in \isa{S}, and similarly and
-simultaneously for \isa{A} and \isa{B}:%
+\isa{a}'s and \isa{b}'s, then it is in \isa{S}, and similarly 
+for \isa{A} and \isa{B}:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ completeness{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
@@ -201,7 +202,9 @@ i.e.\ if \isa{w} is empty or not.%
 \noindent
 Simplification disposes of the base case and leaves only two step
 cases to be proved:
-if \isa{w\ {\isacharequal}\ a\ {\isacharhash}\ v} and \isa{length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{2}}} then
+if \isa{w\ {\isacharequal}\ a\ {\isacharhash}\ v} and \begin{isabelle}%
+\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{2}}%
+\end{isabelle} then
 \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}, and similarly for \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v}.
 We only consider the first case in detail.
 
@@ -216,9 +219,13 @@ After breaking the conjuction up into two cases, we can apply
 \begin{isamarkuptxt}%
 \noindent
 This yields an index \isa{i\ {\isasymle}\ length\ v} such that
-\isa{length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}}.
+\begin{isabelle}%
+\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
+\end{isabelle}
 With the help of \isa{part{\isadigit{1}}} it follows that
-\isa{length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}}.%
+\begin{isabelle}%
+\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
+\end{isabelle}%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}%
@@ -242,7 +249,7 @@ Both subgoals follow from the induction hypothesis because both \isa{take\ i\ v}
 Note that the variables \isa{n{\isadigit{1}}} and \isa{t} referred to in the
 substitution step above come from the derived theorem \isa{subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}}.
 
-The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved completely analogously:%
+The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
@@ -255,9 +262,9 @@ The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved completely ana
 \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}%
 \begin{isamarkuptext}%
-We conclude this section with a comparison of the above proof and the one
-in the textbook \cite[p.\ 81]{HopcroftUllman}. For a start, the texbook
-grammar, for no good reason, excludes the empty word, which complicates
+We conclude this section with a comparison of our proof with 
+Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
+grammar, for no good reason, excludes the empty word.  That complicates
 matters just a little bit because we now have 8 instead of our 7 productions.
 
 More importantly, the proof itself is different: rather than separating the

@@ -15,27 +15,28 @@ section is concerned with introducing some syntactic sugar to overcome this
 problem: pattern matching with tuples.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Pattern matching with tuples%
+\isamarkupsubsection{Pattern Matching with Tuples%
 }
 %
 \begin{isamarkuptext}%
-It is possible to use (nested) tuples as patterns in $\lambda$-abstractions,
+Tuples may be used as patterns in $\lambda$-abstractions,
 for example \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z} and \isa{{\isasymlambda}{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z}. In fact,
-tuple patterns can be used in most variable binding constructs. Here are
+tuple patterns can be used in most variable binding constructs,
+and they can be nested. Here are
 some typical examples:
 \begin{quote}
 \isa{let\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ f\ z\ in\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}}\\
 \isa{case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{0}}\ {\isacharbar}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharhash}\ zs\ {\isasymRightarrow}\ x\ {\isacharplus}\ y}\\
 \isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isasymin}A{\isachardot}\ x{\isacharequal}y}\\
-\isa{{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}}\\
+\isa{{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharcomma}z{\isacharparenright}{\isachardot}\ x{\isacharequal}z{\isacharbraceright}}\\
 \isa{{\isasymUnion}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A{\isachardot}\ {\isacharbraceleft}x\ {\isacharplus}\ y{\isacharbraceright}}
 \end{quote}%
 \end{isamarkuptext}%
 %
 \begin{isamarkuptext}%
-The intuitive meaning of this notations should be pretty obvious.
+The intuitive meanings of these expressions should be obvious.
 Unfortunately, we need to know in more detail what the notation really stands
-for once we have to reason about it. The fact of the matter is that abstraction
+for once we have to reason about it.  Abstraction
 over pairs and tuples is merely a convenient shorthand for a more complex
 internal representation.  Thus the internal and external form of a term may
 differ, which can affect proofs. If you want to avoid this complication,
@@ -55,7 +56,7 @@ other variable binding constructs is translated similarly. Thus we need to
 understand how to reason about such constructs.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Theorem proving%
+\isamarkupsubsection{Theorem Proving%
 }
 %
 \begin{isamarkuptext}%
@@ -65,7 +66,7 @@ The most obvious approach is the brute force expansion of \isa{split}:%
 \isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
-proof, as in the above lemma. But if it doesn't, you end up with exactly what
+proof, as it does above.  But if it doesn't, you end up with exactly what
 we are trying to avoid: nests of \isa{fst} and \isa{snd}. Thus this
 approach is neither elegant nor very practical in large examples, although it
 can be effective in small ones.

@@ -34,7 +34,7 @@ partial recursive functions by other means that non-exhaustive pattern
 matching.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Guarded recursion%
+\isamarkupsubsubsection{Guarded Recursion%
 }
 %
 \begin{isamarkuptext}%
@@ -61,8 +61,8 @@ As a simple example we define division on \isa{nat}:%
 \noindent Of course we could also have defined
 \isa{divi\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}} to be some specific number, for example 0. The
 latter option is chosen for the predefined \isa{div} function, which
-simplifies proofs at the expense of moving further away from the
-standard mathematical divison function.
+simplifies proofs at the expense of deviating from the
+standard mathematical division function.
 
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function (\isa{f}) of
@@ -135,13 +135,13 @@ recursive function. Here is a simple example of recursion induction:%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}find{\isachardot}induct{\isacharparenright}\isanewline
 \isacommand{apply}\ simp\isanewline
 \isacommand{done}%
-\isamarkupsubsubsection{The {\tt\slshape while} combinator%
+\isamarkupsubsubsection{The {\tt\slshape while} Combinator%
 }
 %
 \begin{isamarkuptext}%
 If the recursive function happens to be tail recursive, its
 definition becomes a triviality if based on the predefined \isaindexbold{while}
-combinator.  The latter lives in the library theory
+combinator.  The latter lives in the Library theory
 \isa{While_Combinator}, which is not part of \isa{Main} but needs to
 be included explicitly among the ancestor theories.
 
@@ -179,18 +179,18 @@ correctness of loops expressed with \isa{while}:
 \ \ \ \ \ {\isasymLongrightarrow}\ Q\ {\isacharparenleft}while\ b\ c\ s{\isacharparenright}%
 \end{isabelle} \isa{P} needs to be
 true of the initial state \isa{s} and invariant under \isa{c}
-(premises 1 and 2).The post-condition \isa{Q} must become true when
-leaving the loop (premise 3). And each loop iteration must descend
-along a well-founded relation \isa{r} (premises 4 and 5).
+(premises 1 and~2). The post-condition \isa{Q} must become true when
+leaving the loop (premise~3). And each loop iteration must descend
+along a well-founded relation \isa{r} (premises 4 and~5).
 
 Let us now prove that \isa{find{\isadigit{2}}} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
 Only the final premise of \isa{while{\isacharunderscore}rule} is left unproved
 by \isa{auto} but falls to \isa{simp}:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharsemicolon}\ x{\isacharprime}\ {\isacharequal}\ f\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}y\ y{\isacharprime}{\isachardot}\isanewline
-\ \ \ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharprime}{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ y{\isacharprime}\ {\isacharequal}\ y\ {\isasymand}\ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
+\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharsemicolon}\ x{\isacharprime}\ {\isacharequal}\ f\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ \isanewline
+\ \ \ {\isasymexists}y{\isachardot}\ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ \ \ \ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequote}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequote}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline
 \isacommand{apply}\ auto\isanewline
@@ -214,8 +214,8 @@ equation for \isa{while} is a directly executable functional
 program. This is in stark contrast to guarded recursion as introduced
 above which requires an explicit test \isa{x\ {\isasymin}\ dom\ f} in the
 function body.  Unless \isa{dom} is trivial, this leads to a
-definition which is either not at all executable or prohibitively
-expensive. Thus, if you are aiming for an efficiently executable definition
+definition that is impossible to execute (or prohibitively slow).
+Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need \isa{while}.%
 \end{isamarkuptext}%
 \end{isabellebody}%

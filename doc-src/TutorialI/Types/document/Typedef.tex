@@ -2,7 +2,7 @@
 \begin{isabellebody}%
 \def\isabellecontext{Typedef}%
 %
-\isamarkupsection{Introducing new types%
+\isamarkupsection{Introducing New Types%
 }
 %
 \begin{isamarkuptext}%
@@ -10,8 +10,8 @@
 By now we have seen a number of ways for introducing new types, for example
 type synonyms, recursive datatypes and records. For most applications, this
 repertoire should be quite sufficient. Very occasionally you may feel the
-need for a more advanced type. If you cannot avoid that type, and you are
-quite certain that it is not definable by any of the standard means,
+need for a more advanced type. If you cannot do without that type, and you are
+certain that it is not definable by any of the standard means,
 then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
@@ -19,7 +19,7 @@ then read on.
 \end{warn}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Declaring new types%
+\isamarkupsubsection{Declaring New Types%
 }
 %
 \begin{isamarkuptext}%
@@ -54,11 +54,11 @@ just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymexists}
 However, we strongly discourage this approach, except at explorative stages
 of your development. It is extremely easy to write down contradictory sets of
 axioms, in which case you will be able to prove everything but it will mean
-nothing.  In the above case it also turns out that the axiomatic approach is
+nothing.  Here the axiomatic approach is
 unnecessary: a one-element type called \isa{unit} is already defined in HOL.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Defining new types%
+\isamarkupsubsection{Defining New Types%
 }
 %
 \begin{isamarkuptext}%
@@ -131,16 +131,16 @@ surjective on the subset \isa{three} and \isa{Abs{\isacharunderscore}three} and 
 \isa{y\ {\isasymin}\ three\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ y} &~~ (\isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse})
 \end{tabular}
 \end{center}
-
-From the above example it should be clear what \isacommand{typedef} does
-in general: simply replace the name \isa{three} and the set
-\isa{{\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}} by the respective arguments.
+%
+From this example it should be clear what \isacommand{typedef} does
+in general given a name (here \isa{three}) and a set
+(here \isa{{\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}}).
 
 Our next step is to define the basic functions expected on the new type.
 Although this depends on the type at hand, the following strategy works well:
 \begin{itemize}
-\item define a small kernel of basic functions such that all further
-functions you anticipate can be defined on top of that kernel.
+\item define a small kernel of basic functions that can express all other
+functions you anticipate.
 \item define the kernel in terms of corresponding functions on the
 representing type using \isa{Abs} and \isa{Rep} to convert between the
 two levels.
@@ -170,9 +170,13 @@ representing subset:%
 \ {\isachardoublequote}{\isasymlbrakk}\ x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x{\isacharequal}y{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-We prove both directions separately. From \isa{Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y}
-we derive \isa{Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}} (via
-\isa{arg{\isacharunderscore}cong}: \isa{{\isacharquery}x\ {\isacharequal}\ {\isacharquery}y\ {\isasymLongrightarrow}\ {\isacharquery}f\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}f\ {\isacharquery}y}), and thus the required \isa{x\ {\isacharequal}\ y} by simplification with \isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse}. The other direction
+We prove each direction separately. From \isa{Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y}
+we use \isa{arg{\isacharunderscore}cong} to apply \isa{Rep{\isacharunderscore}three} to both sides,
+deriving \begin{isabelle}%
+Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%
+\end{isabelle}
+Thus we get the required \isa{x\ {\isacharequal}\ y} by simplification with \isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse}. 
+The other direction
 is trivial by simplification:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ iffI{\isacharparenright}\isanewline
@@ -226,7 +230,7 @@ We start by replacing the \isa{x} by \isa{Abs{\isacharunderscore}three\ {\isacha
 \noindent
 This substitution step worked nicely because there was just a single
 occurrence of a term of type \isa{three}, namely \isa{x}.
-When we now apply the above lemma, \isa{Q} becomes \isa{{\isasymlambda}n{\isachardot}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ n{\isacharparenright}} because \isa{Rep{\isacharunderscore}three\ x} is the only term of type \isa{nat}:%
+When we now apply the lemma, \isa{Q} becomes \isa{{\isasymlambda}n{\isachardot}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ n{\isacharparenright}} because \isa{Rep{\isacharunderscore}three\ x} is the only term of type \isa{nat}:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ cases{\isacharunderscore}lemma{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -259,7 +263,7 @@ Although \isa{three} could be defined in one line, we have chosen this
 example to demonstrate \isacommand{typedef} because its simplicity makes the
 key concepts particularly easy to grasp. If you would like to see a
 nontrivial example that cannot be defined more directly, we recommend the
-definition of \emph{finite multisets} in the HOL library.
+definition of \emph{finite multisets} in the HOL Library.
 
 Let us conclude by summarizing the above procedure for defining a new type.
 Given some abstract axiomatic description $P$ of a type $ty$ in terms of a

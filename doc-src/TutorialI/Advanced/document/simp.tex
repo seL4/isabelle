@@ -13,10 +13,10 @@ is helpful to understand why a particular rule does or does not apply in some
 situation.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{Advanced features%
+\isamarkupsubsection{Advanced Features%
 }
 %
-\isamarkupsubsubsection{Congruence rules%
+\isamarkupsubsubsection{Congruence Rules%
 }
 %
 \begin{isamarkuptext}%
@@ -58,7 +58,7 @@ strategy in programming languages, which is why this is the default
 congruence rule for \isa{if}. Analogous rules control the evaluaton of
 \isa{case} expressions.
 
-You can delare your own congruence rules with the attribute \isa{cong},
+You can declare your own congruence rules with the attribute \isa{cong},
 either globally, in the usual manner,
 \begin{quote}
 \isacommand{declare} \textit{theorem-name} \isa{{\isacharbrackleft}cong{\isacharbrackright}}
@@ -74,11 +74,12 @@ The congruence rule \isa{conj{\isacharunderscore}cong}
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}P\ {\isacharequal}\ P{\isacharprime}{\isacharsemicolon}\ P{\isacharprime}\ {\isasymLongrightarrow}\ Q\ {\isacharequal}\ Q{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymand}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymand}\ Q{\isacharprime}{\isacharparenright}%
 \end{isabelle}
-is occasionally useful but not a default rule; you have to use it explicitly.
+\par\noindent
+is occasionally useful but is not a default rule; you have to declare it explicitly.
 \end{warn}%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Permutative rewrite rules%
+\isamarkupsubsubsection{Permutative Rewrite Rules%
 }
 %
 \begin{isamarkuptext}%
@@ -120,11 +121,11 @@ lexicographically:
  f(f(b,c),a) \maps{A} f(b,f(c,a)) \maps{C} f(b,f(a,c)) \maps{LC} f(a,f(b,c)) \]
 
 Note that ordered rewriting for \isa{{\isacharplus}} and \isa{{\isacharasterisk}} on numbers is rarely
-necessary because the builtin arithmetic capabilities often take care of
-this.%
+necessary because the built-in arithmetic prover often succeeds without
+such hints.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsection{How it works%
+\isamarkupsubsection{How It Works%
 }
 %
 \begin{isamarkuptext}%
@@ -134,7 +135,7 @@ first) and a conditional equation is only applied if its condition could be
 proved (again by simplification). Below we explain some special features of the rewriting process.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{Higher-order patterns%
+\isamarkupsubsubsection{Higher-Order Patterns%
 }
 %
 \begin{isamarkuptext}%
@@ -158,7 +159,7 @@ both directions: all arguments of the unknowns \isa{{\isacharquery}P} and
 
 If the left-hand side is not a higher-order pattern, not all is lost
 and the simplifier will still try to apply the rule, but only if it
-matches ``directly'', i.e.\ without much $\lambda$-calculus hocus
+matches \emph{directly}, i.e.\ without much $\lambda$-calculus hocus
 pocus. For example, \isa{{\isacharquery}f\ {\isacharquery}x\ {\isasymin}\ range\ {\isacharquery}f\ {\isacharequal}\ True} rewrites
 \isa{g\ a\ {\isasymin}\ range\ g} to \isa{True}, but will fail to match
 \isa{g{\isacharparenleft}h\ b{\isacharparenright}\ {\isasymin}\ range{\isacharparenleft}{\isasymlambda}x{\isachardot}\ g{\isacharparenleft}h\ x{\isacharparenright}{\isacharparenright}}.  However, you can
@@ -166,25 +167,25 @@ replace the offending subterms (in our case \isa{{\isacharquery}f\ {\isacharquer
 is not a pattern) by adding new variables and conditions: \isa{{\isacharquery}y\ {\isacharequal}\ {\isacharquery}f\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isacharquery}y\ {\isasymin}\ range\ {\isacharquery}f\ {\isacharequal}\ True} is fine
 as a conditional rewrite rule since conditions can be arbitrary
 terms. However, this trick is not a panacea because the newly
-introduced conditions may be hard to prove, which has to take place
+introduced conditions may be hard to prove, as they must be
 before the rule can actually be applied.
   
-There is basically no restriction on the form of the right-hand
+There is no restriction on the form of the right-hand
 sides.  They may not contain extraneous term or type variables, though.%
 \end{isamarkuptext}%
 %
-\isamarkupsubsubsection{The preprocessor%
+\isamarkupsubsubsection{The Preprocessor%
 }
 %
 \begin{isamarkuptext}%
 \label{sec:simp-preprocessor}
-When some theorem is declared a simplification rule, it need not be a
+When a theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
-conditional equations automatically.  For example, given \isa{f\ x\ {\isacharequal}\ g\ x\ {\isasymand}\ h\ x\ {\isacharequal}\ k\ x} the simplifier will turn this into the two separate
-simplifiction rules \isa{f\ x\ {\isacharequal}\ g\ x} and \isa{h\ x\ {\isacharequal}\ k\ x}. In
+conditional equations automatically.  For example, \isa{f\ x\ {\isacharequal}\ g\ x\ {\isasymand}\ h\ x\ {\isacharequal}\ k\ x} becomes the two separate
+simplification rules \isa{f\ x\ {\isacharequal}\ g\ x} and \isa{h\ x\ {\isacharequal}\ k\ x}. In
 general, the input theorem is converted as follows:
 \begin{eqnarray}
-\neg P &\mapsto& P = False \nonumber\\
+\neg P &\mapsto& P = \hbox{\isa{False}} \nonumber\\
 P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
 P \land Q &\mapsto& P,\ Q \nonumber\\
 \forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
@@ -193,11 +194,12 @@ P \land Q &\mapsto& P,\ Q \nonumber\\
  P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations
-$P$ are turned into trivial equations $P = True$.
-For example, the formula \begin{center}\isa{{\isacharparenleft}p\ {\isasymlongrightarrow}\ q\ {\isasymand}\ r{\isacharparenright}\ {\isasymand}\ s}\end{center}
+$P$ are turned into trivial equations $P =\isa{True}$.
+For example, the formula 
+\begin{center}\isa{{\isacharparenleft}p\ {\isasymlongrightarrow}\ t\ {\isacharequal}\ u\ {\isasymand}\ {\isasymnot}\ r{\isacharparenright}\ {\isasymand}\ s}\end{center}
 is converted into the three rules
 \begin{center}
-\isa{p\ {\isasymLongrightarrow}\ q\ {\isacharequal}\ True},\quad  \isa{p\ {\isasymLongrightarrow}\ r\ {\isacharequal}\ True},\quad  \isa{s\ {\isacharequal}\ True}.
+\isa{p\ {\isasymLongrightarrow}\ t\ {\isacharequal}\ u},\quad  \isa{p\ {\isasymLongrightarrow}\ r\ {\isacharequal}\ False},\quad  \isa{s\ {\isacharequal}\ True}.
 \end{center}
 \index{simplification rule|)}
 \index{simplification|)}%

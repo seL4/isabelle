@@ -5,7 +5,7 @@
 \begin{isamarkuptext}%
 \noindent
 Although the definition of \isa{trev} is quite natural, we will have
-overcome a minor difficulty in convincing Isabelle of is termination.
+to overcome a minor difficulty in convincing Isabelle of its termination.
 It is precisely this difficulty that is the \textit{raison d'\^etre} of
 this subsection.
 
@@ -27,12 +27,13 @@ unproved termination condition
 where \isa{set} returns the set of elements of a list
 and \isa{term{\isacharunderscore}list{\isacharunderscore}size\ {\isacharcolon}{\isacharcolon}\ term\ list\ {\isasymRightarrow}\ nat} is an auxiliary
 function automatically defined by Isabelle
-(when \isa{term} was defined).  First we have to understand why the
+(while processing the declaration of \isa{term}).  First we have to understand why the
 recursive call of \isa{trev} underneath \isa{map} leads to the above
 condition. The reason is that \isacommand{recdef} ``knows'' that \isa{map}
-will apply \isa{trev} only to elements of \isa{ts}. Thus the above
+will apply \isa{trev} only to elements of \isa{ts}. Thus the 
 condition expresses that the size of the argument \isa{t\ {\isasymin}\ set\ ts} of any
-recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}.  We will now prove the termination condition and
+recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ f\ ts{\isacharparenright}},
+which equals \isa{Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} ``knows'' about \isa{map}.%
 \end{isamarkuptext}%

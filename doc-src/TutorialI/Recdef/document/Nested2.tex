@@ -11,10 +11,10 @@ The termintion condition is easily proved by induction:%
 \begin{isamarkuptext}%
 \noindent
 By making this theorem a simplification rule, \isacommand{recdef}
-applies it automatically and the above definition of \isa{trev}
+applies it automatically and the definition of \isa{trev}
 succeeds now. As a reward for our effort, we can now prove the desired
-lemma directly. The key is the fact that we no longer need the verbose
-induction schema for type \isa{term} but the simpler one arising from
+lemma directly.  We no longer need the verbose
+induction schema for type \isa{term} and can use the simpler one arising from
 \isa{trev}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
@@ -31,7 +31,7 @@ both of which are solved by simplification:%
 \isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}map{\isacharunderscore}cong{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-If the proof of the induction step mystifies you, we recommend to go through
+If the proof of the induction step mystifies you, we recommend that you go through
 the chain of simplification steps in detail; you will probably need the help of
 \isa{trace{\isacharunderscore}simp}. Theorem \isa{map{\isacharunderscore}cong} is discussed below.
 %\begin{quote}
@@ -44,9 +44,9 @@ the chain of simplification steps in detail; you will probably need the help of
 %{term[display]"App f ts"}
 %\end{quote}
 
-The above definition of \isa{trev} is superior to the one in
-\S\ref{sec:nested-datatype} because it brings \isa{rev} into play, about
-which already know a lot, in particular \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.
+The definition of \isa{trev} above is superior to the one in
+\S\ref{sec:nested-datatype} because it uses \isa{rev}
+and lets us use existing facts such as \hbox{\isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}}.
 Thus this proof is a good example of an important principle:
 \begin{quote}
 \emph{Chose your definitions carefully\\
