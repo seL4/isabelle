@@ -60,23 +60,49 @@ DIR="."
 
 ## main
 
-#prepare document
+# check format
+
+case "$OUTFORMAT" in
+  dvi | dvi.gz | ps | ps.gz | pdf)
+    ;;
+  *)
+    fail "Bad output format '$OUTFORMAT'"
+    ;;
+esac
+
+
+# prepare document
 
 cd "$DIR" || fail "Bad directory '$DIR'"
+
+function pre_latex ()
+{
+  local FMT="$1"
+  if [ -f root.bib ]
+  then
+    $ISATOOL latex -o "$FMT" && \
+    $ISATOOL latex -o bbl && \
+    $ISATOOL latex -o "$FMT"
+  else
+    $ISATOOL latex -o "$FMT"
+  fi
+}
 
 if [ -f IsaMakefile ]; then
   $ISATOOL make "$OUTFORMAT"
   RC=$?   #FIXME !??
 elif [ "$OUTFORMAT" = pdf ]; then
-  $ISATOOL latex -o pdf && $ISATOOL latex -o pdf
+  pre_latex pdf && \
+  $ISATOOL latex -o pdf
   RC=$?
 else
-  $ISATOOL latex -o dvi && $ISATOOL latex -o "$OUTFORMAT"
+  pre_latex dvi && \
+  $ISATOOL latex -o "$OUTFORMAT"
   RC=$?
 fi
 
 
-#install
+# install
 
 [ "$RC" -gt 0 -o ! -f "root.$OUTFORMAT" ] && fail "Failed to prepare document in directory '$DIR'"
 cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
