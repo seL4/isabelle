@@ -129,6 +129,7 @@ signature HYPSUBST_DATA =
   val dest_eq          : term -> term*term*typ
   val dest_imp         : term -> term*term
   val eq_reflection    : thm         (* a=b ==> a==b *)
+  val rev_eq_reflection: thm         (* a==b ==> a=b *)
   val imp_intr         : thm         (*(P ==> Q) ==> P-->Q *)
   val rev_mp           : thm         (* [| P;  P-->Q |] ==> Q *)
   val subst            : thm         (* [| a=b;  P(a) |] ==> P(b) *)
@@ -154,7 +155,9 @@ Thus, the functor requires the following items:
   it should raise an exception.
 
 \item[\tdxbold{eq_reflection}] is the theorem discussed
-  in~\S\ref{sec:setting-up-simp}. 
+  in~\S\ref{sec:setting-up-simp}.
+  
+\item[\tdxbold{rev_eq_reflection}] is the reverse of \texttt{eq_reflection}.
 
 \item[\tdxbold{imp_intr}] should be the implies introduction
 rule $(\Var{P}\Imp\Var{Q})\Imp \Var{P}\imp\Var{Q}$.
