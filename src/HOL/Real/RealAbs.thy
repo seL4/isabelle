@@ -5,7 +5,7 @@
     Description : Absolute value function for the reals
 *) 
 
-RealAbs = RealBin +
+RealAbs = RealArith +
 
 
 defs
