@@ -10,7 +10,6 @@ injectivity / distinctness of constructors and induction)
  - case distinction (exhaustion) theorems
  - characteristic equations for primrec combinators
  - characteristic equations for case combinators
- - distinctness of constructors (external version)
  - equations for splitting "P (case ...)" expressions
  - datatype size function
  - "nchotomy" and "case_cong" theorems for TFL

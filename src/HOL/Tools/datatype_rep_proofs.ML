@@ -7,7 +7,7 @@ Definitional introduction of datatypes
 Proof of characteristic theorems:
 
  - injectivity of constructors
- - distinctness of constructors (internal version)
+ - distinctness of constructors
  - induction theorem
 
 *)
