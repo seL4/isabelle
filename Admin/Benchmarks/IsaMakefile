@@ -27,7 +27,7 @@ HOL-datatype: HOL $(LOG)/HOL-datatype.gz
 $(LOG)/HOL-datatype.gz: $(OUT)/HOL HOL-datatype/Brackin.thy \
   HOL-datatype/Instructions.thy HOL-datatype/SML.thy \
   HOL-datatype/Verilog.thy
-	$(ISATOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
+	@$(ISATOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
 
 
 ## clean
