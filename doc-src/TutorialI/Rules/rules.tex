@@ -758,7 +758,7 @@ cases it can be fooled.) When we apply substitution,  Isabelle replaces every
 resulting subgoal is trivial by assumption, so the \isacommand{by} command
 proves it implicitly. 
 
-We are using the \isa{erule} method it in a novel way. Hitherto, 
+We are using the \isa{erule} method in a novel way. Hitherto, 
 the conclusion of the rule was just a variable such as~\isa{?R}, but it may
 be any term. The conclusion is unified with the subgoal just as 
 it would be with the \isa{rule} method. At the same time \isa{erule} looks 
@@ -1425,7 +1425,7 @@ existential destruction rule:
 \[ \infer{P[(\varepsilon x. P) / \, x]}{\exists x.\,P} \]
 This rule is seldom used for that purpose --- it can cause exponential
 blow-up --- but it is occasionally used as an introduction rule
-for~$\varepsilon$-operator.  Its name in HOL is \tdxbold{someI_ex}.%%
+for the~$\varepsilon$-operator.  Its name in HOL is \tdxbold{someI_ex}.%%
 \index{description operators|)}
 
 
