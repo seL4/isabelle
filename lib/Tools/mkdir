@@ -198,6 +198,8 @@ if [ -n "$DOCUMENT" ]; then
 \isabellestyle{it}
 
 \begin{document}
+\title{$NAME}\maketitle
+\tableofcontents
 \input{session}
 \end{document}
 
