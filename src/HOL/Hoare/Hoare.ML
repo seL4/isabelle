@@ -87,7 +87,7 @@ fun mk_abstupleC []     body = absfree ("x", unitT, body)
           $ absfree (n, T, z) end end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
-fun mk_bodyC []      = Const ("()", unitT) 
+fun mk_bodyC []      = HOLogic.unit
   | mk_bodyC (x::xs) = if xs=[] then x 
                else let val (n, T) = dest_Free x ;
                         val z = mk_bodyC xs;
