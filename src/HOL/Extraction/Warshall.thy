@@ -14,14 +14,6 @@ text {*
 
 datatype b = T | F
 
-theorem b_ind_realizer:
-  "R x T \<Longrightarrow> R y F \<Longrightarrow> R (case b of T \<Rightarrow> x | F \<Rightarrow> y) b"
-  by (induct b, simp_all)
-
-realizers
-  b.induct (P): "\<lambda>P b x y. (case b of T \<Rightarrow> x | F \<Rightarrow> y)"
-    "\<Lambda>P b x (h: _) y. b_ind_realizer \<cdot> (\<lambda>x b. realizes x (P b)) \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> h"
-
 consts
   is_path' :: "('a \<Rightarrow> 'a \<Rightarrow> b) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
 
