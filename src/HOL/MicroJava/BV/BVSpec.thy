@@ -50,7 +50,7 @@ lemma wt_jvm_prog_impl_wt_start:
 by (unfold wt_jvm_prog_def, drule method_wf_mdecl, 
     simp, simp add: wf_mdecl_def wt_method_def)
 
-text "for most instructions wt_instr collapses:"
+text {* for most instructions wt\_instr collapses: *}
 lemma  
 "succs i pc = [pc+1] ==> wt_instr i G rT phi mxs max_pc pc = 
  (app i G mxs rT (phi!pc) \<and> pc+1 < max_pc \<and> (G \<turnstile> step i G (phi!pc) <=' phi!(pc+1)))"
