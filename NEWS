@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -10,6 +9,9 @@ function;
 * HOL: induct renamed to lfp_induct;
 
 * HOL: contrapos, contrapos2 renamed to contrapos_nn, contrapos_pp;
+
+* HOL: infix "dvd" now has priority 50 rather than 70
+ (because it is a relation)
 
 * Isar: 'obtain' no longer declares "that" fact as simp/intro;
 
