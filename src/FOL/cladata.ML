@@ -8,14 +8,26 @@ Setting up the classical reasoner.
 
 section "Classical Reasoner";
 
+(*** Applying Make_Elim_Fun to create a classical "make_elim" rule ***)
+structure Make_Elim_Data =
+struct
+  val classical = classical
+end;
+
+structure Make_Elim = Make_Elim_Fun (Make_Elim_Data);
+
+(*we don't redeclare the original make_elim (Tactic.make_elim) for 
+  compatibliity with strange things done in many existing proofs *)
+val cla_make_elim = Make_Elim.make_elim;
 
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val sizef     = size_of_thm
+  val make_elim = cla_make_elim
   val mp        = mp
   val not_elim  = notE
   val classical = classical
+  val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
   end;
 
