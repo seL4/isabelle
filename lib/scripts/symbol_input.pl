@@ -1,11 +1,9 @@
+# Title:	Distribution/lib/scripts/symbol_input.pl
+# ID:		$Id$
+# Author:	Markus Wenzel, David von Oheimb
+# Copyright	1996 Technische Universitaet Muenchen
 #
-# $Id$
-#
-# symbol_input.pl - translate symbols into \<...> sequences.
-#
-
-$SIG{INT} = "IGNORE";
-$| = 1;
+# translate symbols into \<...> sequences.
 
 %tab = (
   "\xa1", "\\\\<Gamma>",
@@ -103,6 +101,9 @@ $| = 1;
   "\xfd", "\\\\<parallel>",
   "\xfe", "\\\\<tick>",
   "\xff", "\\\\<copyright>");
+
+$SIG{INT} = "IGNORE";
+$| = 1;
 
 while (<ARGV>) {
   s/([\xa1-\xff])/$tab{$1}/g;
