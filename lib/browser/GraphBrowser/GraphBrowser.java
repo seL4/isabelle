@@ -56,10 +56,17 @@ public class GraphBrowser extends Applet {
 				getAppletContext().showDocument(new URL(getDocumentBase(), fname), "_blank");
 			else {
 				String path = gfname.substring(0, gfname.lastIndexOf('/') + 1);
+				Reader rd;
 				BufferedReader br;
 				String line, text = "";
 
-				br = new BufferedReader(new FileReader(path + fname));
+				try {
+					rd = new BufferedReader(new InputStreamReader((new URL(fname)).openConnection().getInputStream()));
+				} catch (Exception exn) {
+					rd = new FileReader(path + fname);
+				}
+				br = new BufferedReader(rd);
+
 				while ((line = br.readLine()) != null)
 					text += line + "\n";
 
