@@ -67,11 +67,11 @@ local
 
   (* strings *)
 
-  fun mk_string [] = Syntax.const Syntax.constrainC $ Syntax.const "[]" $ Syntax.const "string"
-    | mk_string (t :: ts) = Syntax.const "op #" $ t $ mk_string ts;
+  fun mk_string [] = Syntax.const Syntax.constrainC $ Syntax.const "Nil" $ Syntax.const "string"
+    | mk_string (t :: ts) = Syntax.const "Cons" $ t $ mk_string ts;
 
-  fun dest_string (Const ("[]", _)) = []
-    | dest_string (Const ("op #", _) $ c $ cs) = dest_char c :: dest_string cs
+  fun dest_string (Const ("Nil", _)) = []
+    | dest_string (Const ("Cons", _) $ c $ cs) = dest_char c :: dest_string cs
     | dest_string _ = raise Match;
 
 
@@ -79,12 +79,12 @@ local
         mk_string (map mk_char (Syntax.explode_xstr xstr))
     | string_tr (*"_String"*) ts = raise TERM ("string_tr", ts);
 
-  fun cons_tr' (*"op #"*) [c, cs] =
+  fun cons_tr' (*"Cons"*) [c, cs] =
         Syntax.const "_String" $
           syntax_xstr (Syntax.implode_xstr (dest_char c :: dest_string cs))
-    | cons_tr' (*"op #"*) ts = raise Match;
+    | cons_tr' (*"Cons"*) ts = raise Match;
 
 in
   val parse_translation = [("_Char", char_tr), ("_String", string_tr)];
-  val print_translation = [("Char", char_tr'), ("op #", cons_tr')];
+  val print_translation = [("Char", char_tr'), ("Cons", cons_tr')];
 end;

@@ -8,7 +8,7 @@ The datatype of finite lists.
 
 List = Datatype + WF_Rel + NatBin +
 
-datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
+datatype 'a list = Nil ("[]") | Cons 'a ('a list) (infixr "#" 65)
 
 consts
   "@"         :: ['a list, 'a list] => 'a list            (infixr 65)

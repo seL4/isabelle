@@ -130,7 +130,7 @@ translations
   "_liftFinset x" == "_lift2 insert x (_const {})"
   "_liftPair x (_liftargs y z)"       == "_liftPair x (_liftPair y z)"
   "_liftPair"     == "_lift2 Pair"
-  "_liftCons"     == "lift2 (op #)"
+  "_liftCons"     == "lift2 Cons"
   "_liftApp"      == "lift2 (op @)"
   "_liftList (_liftargs x xs)"  == "_liftCons x (_liftList xs)"
   "_liftList x"   == "_liftCons x (_const [])"

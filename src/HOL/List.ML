@@ -253,18 +253,18 @@ local
 val list_eq_pattern =
   Thm.read_cterm (Theory.sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
 
-fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
-      (case xs of Const("List.list.[]",_) => cons | _ => last xs)
+fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =
+      (case xs of Const("List.list.Nil",_) => cons | _ => last xs)
   | last (Const("List.op @",_) $ _ $ ys) = last ys
   | last t = t;
 
-fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
+fun list1 (Const("List.list.Cons",_) $ _ $ Const("List.list.Nil",_)) = true
   | list1 _ = false;
 
-fun butlast ((cons as Const("List.list.op #",_) $ x) $ xs) =
-      (case xs of Const("List.list.[]",_) => xs | _ => cons $ butlast xs)
+fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
+      (case xs of Const("List.list.Nil",_) => xs | _ => cons $ butlast xs)
   | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const("List.list.[]",fastype_of xs);
+  | butlast xs = Const("List.list.Nil",fastype_of xs);
 
 val rearr_tac =
   simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
