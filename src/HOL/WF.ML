@@ -8,8 +8,7 @@ For wf.thy.  Well-founded Recursion
 
 open WF;
 
-val H_cong = read_instantiate [("f","H::[?'a, ?'a=>?'b]=>?'b")]
-               (standard(refl RS cong RS cong));
+val H_cong = read_instantiate [("f","H")] (standard(refl RS cong RS cong));
 val H_cong1 = refl RS H_cong;
 
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
