@@ -247,8 +247,8 @@ fun gen_typedef_proof prep_term ((name, typ, set, opt_morphs), comment) int thy 
       prepare_typedef prep_term true name typ set opt_morphs thy;
     val att = #1 o att_result;
   in
-    thy |> IsarThy.theorem_i Drule.internalK (None, [])
-      ((("", [att]), (goal, ([goal_pat], []))), comment) int
+    thy
+    |> IsarThy.theorem_i Drule.internalK ((("", [att]), (goal, ([goal_pat], []))), comment) int
   end;
 
 val typedef_proof = gen_typedef_proof read_term;
