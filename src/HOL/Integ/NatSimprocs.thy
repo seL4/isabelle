@@ -1,0 +1,2 @@
+theory NatSimprocs = NatBin:
+end
