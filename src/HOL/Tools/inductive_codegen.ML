@@ -157,6 +157,15 @@ fun is_eqT (Type (s, Ts)) = s <> "fun" andalso forall is_eqT Ts
 
 (**** mode inference ****)
 
+fun string_of_mode (iss, is) = space_implode " -> " (map
+  (fn None => "X"
+    | Some js => enclose "[" "]" (commas (map string_of_int js)))
+       (iss @ [Some is]));
+
+fun print_modes modes = message ("Inferred modes:\n" ^
+  space_implode "\n" (map (fn (s, ms) => s ^ ": " ^ commas (map
+    string_of_mode ms)) modes));
+
 val term_vs = map (fst o fst o dest_Var) o term_vars;
 val terms_vs = distinct o flat o (map term_vs);
 
@@ -235,12 +244,12 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
         | Some (x, _) => check_mode_prems
             (case x of Prem (us, _) => vs union terms_vs us | _ => vs)
             (filter_out (equal x) ps));
-    val (in_ts', _) = get_args is 1 ts;
-    val in_ts = filter (is_constrt thy) in_ts';
+    val (in_ts, in_ts') = partition (is_constrt thy) (fst (get_args is 1 ts));
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
   in
     forall is_eqT (map snd (duplicates (flat (map term_vTs in_ts)))) andalso
+    forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
        None => false
      | Some vs => concl_vs subset vs)
@@ -248,7 +257,12 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
   let val Some rs = assoc (preds, p)
-  in (p, filter (fn m => forall (check_mode_clause thy arg_vs modes m) rs) ms) end
+  in (p, filter (fn m => case find_index
+    (not o check_mode_clause thy arg_vs modes m) rs of
+      ~1 => true
+    | i => (message ("Clause " ^ string_of_int (i+1) ^ " of " ^
+      p ^ " violates mode " ^ string_of_mode m); false)) ms)
+  end;
 
 fun fixp f x =
   let val y = f x
@@ -491,15 +505,6 @@ exception Modes of
 fun lookup_modes gr dep = apfst flat (apsnd flat (ListPair.unzip
   (map ((fn (Some (Modes x), _) => x | _ => ([], [])) o Graph.get_node gr)
     (Graph.all_preds gr [dep]))));
-
-fun string_of_mode (iss, is) = space_implode " -> " (map
-  (fn None => "X"
-    | Some js => enclose "[" "]" (commas (map string_of_int js)))
-       (iss @ [Some is]));
-
-fun print_modes modes = message ("Inferred modes:\n" ^
-  space_implode "\n" (map (fn (s, ms) => s ^ ": " ^ commas (map
-    string_of_mode ms)) modes));
 
 fun print_factors factors = message ("Factors:\n" ^
   space_implode "\n" (map (fn (s, (fs, f)) => s ^ ": " ^
