@@ -350,6 +350,19 @@ by (ALLGOALS Asm_simp_tac);
 qed "set_map";
 Addsimps [set_map];
 
+goal thy "set(map f xs) = f``(set xs)";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "set_map";
+Addsimps [set_map];
+
+goal thy "(x : set(filter P xs)) = (x : set xs & P x)";
+by (induct_tac "xs" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+by(Blast_tac 1);
+qed "in_set_filter";
+Addsimps [in_set_filter];
+
 
 (** list_all **)
 
@@ -384,10 +397,22 @@ by (induct_tac "xs" 1);
 qed "filter_append";
 Addsimps [filter_append];
 
-goal thy "size (filter P xs) <= size xs";
+goal thy "filter (%x. True) xs = xs";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "filter_True";
+Addsimps [filter_True];
+
+goal thy "filter (%x. False) xs = []";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "filter_False";
+Addsimps [filter_False];
+
+goal thy "length (filter P xs) <= length xs";
 by (induct_tac "xs" 1);
  by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
-qed "filter_size";
+qed "length_filter";
 
 
 (** concat **)
@@ -715,6 +740,30 @@ qed_spec_mp"set_take_whileD";
 qed_goal "zip_Nil_Nil"   thy "zip []     []     = []" (K [Simp_tac 1]);
 qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys" 
 						      (K [Simp_tac 1]);
+
+(** nodups & remdups **)
+section "nodups & remdups";
+
+goal thy "set(remdups xs) = set xs";
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [insert_absorb]
+                                 addsplits [expand_if]) 1);
+qed "set_remdups";
+Addsimps [set_remdups];
+
+goal thy "nodups(remdups xs)";
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsplits [expand_if]) 1);
+qed "nodups_remdups";
+
+goal thy "nodups xs --> nodups (filter P xs)";
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_full_simp_tac (simpset() addsplits [expand_if]) 1);
+qed_spec_mp "nodups_filter";
+
 (** replicate **)
 section "replicate";
 

@@ -27,7 +27,8 @@ consts
   tl, butlast :: 'a list => 'a list
   rev         :: 'a list => 'a list
   zip	      :: "'a list => 'b list => ('a * 'b) list"
-  nodup	      :: "'a list => bool"
+  remdups     :: 'a list => 'a list
+  nodups      :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
 
 syntax
@@ -117,9 +118,12 @@ primrec dropWhile list
 primrec zip list
   "zip xs []     = []"
   "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
-primrec nodup list
-  "nodup []     = True"
-  "nodup (x#xs) = (x ~: set xs & nodup xs)"
+primrec nodups list
+  "nodups []     = True"
+  "nodups (x#xs) = (x ~: set xs & nodups xs)"
+primrec remdups list
+  "remdups [] = []"
+  "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
 primrec replicate nat
 replicate_0   "replicate 0 x       = []"
 replicate_Suc "replicate (Suc n) x = x # replicate n x"

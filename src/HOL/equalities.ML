@@ -45,6 +45,9 @@ Addsimps[empty_not_insert];
 goal thy "!!a. a:A ==> insert a A = A";
 by (Blast_tac 1);
 qed "insert_absorb";
+(* Addsimps [insert_absorb] causes recursive (ie quadtratic) calls
+   in case of nested inserts!
+*)
 
 goal thy "insert x (insert x A) = insert x A";
 by (Blast_tac 1);
