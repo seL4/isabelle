@@ -65,24 +65,24 @@ lemma gcd_dvd_both: "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)"
   apply (blast dest: dvd_mod_imp_dvd)
   done
 
-lemmas gcd_dvd1 = gcd_dvd_both [THEN conjunct1];
-lemmas gcd_dvd2 = gcd_dvd_both [THEN conjunct2];
+lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1]
+lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2];
 
 
-(*Maximality: for all m,n,f naturals, 
-                if f divides m and f divides n then f divides gcd(m,n)*)
-lemma gcd_greatest [rulified]: "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
+(*Maximality: for all m,n,k naturals, 
+                if k divides m and k divides n then k divides gcd(m,n)*)
+lemma gcd_greatest [rulified]: "(k dvd m) --> (k dvd n) --> k dvd gcd(m,n)"
   apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 dvd_mod);
   done;
 
-lemma gcd_greatest_iff [iff]: "f dvd gcd(m,n) = (f dvd m & f dvd n)"
-  apply (blast intro!: gcd_dvd1 gcd_dvd2 intro: dvd_trans gcd_greatest);
+lemma gcd_greatest_iff [iff]: "k dvd gcd(m,n) = (k dvd m & k dvd n)"
+  apply (blast intro!: gcd_greatest intro: dvd_trans);
   done;
 
 (*Function gcd yields the Greatest Common Divisor*)
 lemma is_gcd: "is_gcd (gcd(m,n)) m n"
-  apply (simp add: is_gcd_def gcd_greatest gcd_dvd_both);
+  apply (simp add: is_gcd_def gcd_greatest)
   done
 
 (*uniqueness of GCDs*)
@@ -112,7 +112,7 @@ lemma gcd_assoc: "gcd(gcd(k,m),n) = gcd(k,gcd(m,n))"
   apply (rule is_gcd_unique)
   apply (rule is_gcd)
   apply (simp add: is_gcd_def);
-  apply (blast intro!: gcd_dvd1 gcd_dvd2 intro: dvd_trans);
+  apply (blast intro: dvd_trans);
   done 
 
 lemma gcd_0_left [simp]: "gcd(0,m) = m"
@@ -135,22 +135,12 @@ lemma gcd_mult_distrib2: "k * gcd(m,n) = gcd(k*m, k*n)"
   done
 
 lemma gcd_self [simp]: "gcd(m,m) = m"
-  apply (cut_tac k="m" and m="1" and n="1" in gcd_mult_distrib2)
-  apply (simp)
-(*alternative:
-proof -;
-  note gcd_mult_distrib2 [of m 1 1, simplify, THEN sym];
-      thus ?thesis; by assumption; qed; *)
-done
+  apply (rule gcd_mult_distrib2 [of m 1 1, simplified, THEN sym])
+  done
 
 lemma gcd_mult [simp]: "gcd(k, k*n) = k"
-  apply (cut_tac k="k" and m="1" and n="n" in gcd_mult_distrib2)
-  apply (simp)
-(*alternative:
-proof -;
-  note gcd_mult_distrib2 [of k 1 n, simplify, THEN sym];
-      thus ?thesis; by assumption; qed; *)
-done
+  apply (rule gcd_mult_distrib2 [of k 1 n, simplified, THEN sym])
+  done
 
 lemma relprime_dvd_mult: "[| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
    apply (subgoal_tac "gcd(m*k, m*n) = m")
@@ -164,9 +154,11 @@ lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> k dvd (m*n) = k dvd m
   done
 
 lemma prime_imp_relprime: "[| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1"
-  apply (simp add: prime_def);
-  apply (cut_tac m="p" and n="n" in gcd_dvd_both)
+  apply (auto simp add: prime_def)
+  apply (drule_tac x="gcd(p,n)" in spec)
   apply auto
+  apply (insert gcd_dvd2 [of p n])
+  apply (simp)
   done
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.

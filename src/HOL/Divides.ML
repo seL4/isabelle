@@ -168,8 +168,8 @@ qed "mod_div_equality";
 (* a simple rearrangement of mod_div_equality: *)
 Goal "(n::nat) * (m div n) = m - (m mod n)";
 by (cut_inst_tac [("m","m"),("n","n")] mod_div_equality 1);
-by (EVERY1[etac subst, simp_tac (simpset() addsimps mult_ac),
-           K(IF_UNSOLVED no_tac)]);
+by (full_simp_tac (simpset() addsimps mult_ac) 1);
+by (arith_tac 1);
 qed "mult_div_cancel";
 
 Goal "m div 1 = m";
@@ -310,7 +310,7 @@ Addsimps [mod_less_divisor];
 
 Goal "0<n ==> (m*n) div n = (m::nat)";
 by (cut_inst_tac [("m", "m*n"),("n","n")] mod_div_equality 1);
-by (asm_full_simp_tac (simpset() addsimps [mod_mult_self_is_0]) 1);
+by Auto_tac;
 qed "div_mult_self_is_m";
 
 Goal "0<n ==> (n*m) div n = (m::nat)";
