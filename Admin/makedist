@@ -11,13 +11,13 @@ LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
 case $(hostname) in
   *lapbroy*)
-    export CVSROOT=sunbroy1:/usr/proj/isabelle-repository/archive
+    export CVSROOT=sunbroy2:/usr/proj/isabelle-repository/archive
     ;;
   *broy*)
     export CVSROOT=/usr/proj/isabelle-repository/archive
     ;;
   *.cl.cam.ac.uk)
-    export CVSROOT=sunbroy1.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive
+    export CVSROOT=sunbroy2.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive
     ;;
 esac
 
