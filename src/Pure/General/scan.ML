@@ -32,6 +32,7 @@ sig
   val $$ : ''a -> ''a list -> ''a * ''a list
   (*literal list*)
   val this: ''a list -> ''a list -> ''a list * ''a list
+  val this_string: string -> string list -> string * string list
 end;
 
 signature SCAN =
@@ -158,6 +159,8 @@ fun this ys xs =
       | drop_prefix (y :: ys) (x :: xs) =
           if y = x then drop_prefix ys xs else raise FAIL None;
   in (ys, drop_prefix ys xs) end;
+
+fun this_string s = this (explode s) >> (K s);
 
 fun any _ [] = raise MORE None
   | any pred (lst as x :: xs) =
