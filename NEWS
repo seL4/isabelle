@@ -24,6 +24,9 @@ New in this Isabelle version
 * Algebra: new theory of rings and univariate polynomials, by Clemens
 Ballarin;
 
+* HOL/record: fixed select-update simplification procedure to handle
+extended records as well;
+
 
 
 New in Isabelle99 (October 1999)
