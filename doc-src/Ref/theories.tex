@@ -5,22 +5,22 @@
 \index{reading!axioms|see{{\tt extend_theory} and {\tt assume_ax}}}
 Theories organize the syntax, declarations and axioms of a mathematical
 development.  They are built, starting from the Pure theory, by extending
-and merging existing theories.  They have the \ML{} type \ttindex{theory}.
+and merging existing theories.  They have the \ML\ type \ttindex{theory}.
 Theory operations signal errors by raising exception \ttindex{THEORY},
 returning a message and a list of theories.
 
 Signatures, which contain information about sorts, types, constants and
-syntax, have the \ML{} type~\ttindexbold{Sign.sg}.  For identification,
-each signature carries a unique list of {\bf stamps}, which are~\ML{}
+syntax, have the \ML\ type~\ttindexbold{Sign.sg}.  For identification,
+each signature carries a unique list of {\bf stamps}, which are \ML\
 references (to strings).  The strings serve as human-readable names; the
 references serve as unique identifiers.  Each primitive signature has a
 single stamp.  When two signatures are merged, their lists of stamps are
 also merged.  Every theory carries a unique signature.
 
 Terms and types are the underlying representation of logical syntax.  Their
-\ML{} definitions are irrelevant to naive Isabelle users.  Programmers who wish
-to extend Isabelle may need to know such details, say to code a tactic that
-looks for subgoals of a particular form.  Terms and types may be
+\ML\ definitions are irrelevant to naive Isabelle users.  Programmers who
+wish to extend Isabelle may need to know such details, say to code a tactic
+that looks for subgoals of a particular form.  Terms and types may be
 `certified' to be well-formed with respect to a given signature.
 
 \section{Defining Theories}
@@ -28,32 +28,25 @@ looks for subgoals of a particular form.  Terms and types may be
 
 Theories can be defined either using concrete syntax or by calling certain
 \ML-functions (see \S\ref{BuildingATheory}).  Appendix~\ref{TheorySyntax}
-presents the concrete syntax for theories.
-This grammar employs the
-following conventions: 
+presents the concrete syntax for theories following convention that
 \begin{itemize}
-\item Identifiers such as {\it theoryDef} denote nonterminal symbols.
-\item Text in {\tt typewriter font} denotes terminal symbols.
-\item $id$ is an Isabelle identifier.
-\item $string$ is an ML string, with its quotation marks.
-\item $nat$ is for a natural number.
-\item $tfree$ is an Isabelle type variable, i.e.\ an identifier starting with
-  a prime.
-\item $text$ stands for arbitrary ML text.
+\item {\tt typewriter font} denotes terminal symbols;
+\item $id$, $tid$, $nat$, $string$ and $text$ are the lexical classes of
+  identifiers, type identifiers, natural numbers, \ML\ strings (with their
+  quotation marks) and arbitrary \ML\ text. The first three are fully defined
+  in the {\it Defining Logics} chapter of {\it Isabelle's Object Logics}.
 \end{itemize}
 The different parts of a theory definition are interpreted as follows:
 \begin{description} 
 \item[{\it theoryDef}] A theory has a name $id$ and is an extension of the
-  union of theories {\it name}, the {\em parent theories}, with new classes,
-  types, constants, syntax and axioms.  The basic theory, which contains only
-  the meta-logic, is called {\tt Pure}.
+  union of theories with name {\it name}, the {\bf parent
+    theories}\indexbold{theories!parent}, with new classes, types, constants,
+  syntax and axioms.  The basic theory, which contains only the meta-logic,
+  is called {\tt Pure}.
 
-  If {\it name} is a string, then theory {\it name} is {\em not} used in
-  building the base of theory $id$. Strings stand for ML-files rather than
-  theory-files and document the dependence of $id$ on additional files. This
-  enables all required files, namely those corresponding to {\it name}s, to
-  be loaded automatically when theory $id$ is (re)built. See
-  Chapter~\ref{LoadingTheories} for details.
+  Normally each {\it name\/} is an identifier, the precise name of the parent
+  theory. Strings can be used to document additional dependencies; see
+  \S\ref{LoadingTheories} for details.
 \item[$classes$] {\tt$id$ < $id@1$ \dots\ $id@n$} declares $id$ as a subclass
   of existing classes $id@1\dots id@n$.  This rules out cyclic class
   structures.  Isabelle automatically computes the transitive closure of
@@ -68,54 +61,56 @@ The different parts of a theory definition are interpreted as follows:
   singleton set {\tt\{}$id${\tt\}}.
 \item[$type$] is either the declaration of a new type (constructor) or type
   synonym $name$. Only binary type constructors can have infix status and
-  symbolic names, e.g.\ {\tt ('a,'b)"+"}. Type constructors of $n$ arguments
-  are declared by {\tt ($\alpha@1$,\dots,$\alpha@n$)$name$}.  Type
-  synonyms\indexbold{type!synonym} are defined as in ML, except that the
-  right-hand side must be enclosed in quotation marks.
+  symbolic names, e.g.\ {\tt ('a,'b)"*"}. Type constructors of $n$ arguments
+  are declared by $(\alpha@1,\dots,\alpha@n)name$.  A {\bf type
+    synonym}\indexbold{type!synonym} is simply an abbreviation
+  $(\alpha@1,\dots,\alpha@n)name = \mbox{\tt"}\tau\mbox{\tt"}$ and follows
+  the same rules as in \ML, except that $name$ can be a string and $\tau$
+  must be enclosed in quotation marks.
 \item[$infix$] declares a type or constant to be an infix operator of
   precedence $nat$ associating to the left ({\tt infixl}) or right ({\tt
     infixr}).
 \item[$arities$] Each $name$ must be an existing type constructor which is
   given the additional arity $arity$.
 \item[$constDecl$] Each new constant $name$ is declared to be of type
-  $string$.  For display purposes they can be annotated with $mixfix$
-  declarations.
+  $string$.  For display purposes $mixfix$ annotations can be attached.
 \item[$mixfix$] There are three forms of syntactic annotations:
   \begin{itemize}
   \item A mixfix template given as a $string$ of the form
     {\tt"}\dots{\tt\_}\dots{\tt\_}\dots{\tt"} where the $i$-th underscore
     indicates the position where the $i$-th argument should go. The minimal
     precedence of each argument is given by a list of natural numbers, the
-    precedence of the construct by the following natural number; precedences
-    are optional.
+    precedence of the whole construct by the following natural number;
+    precedences are optional.
 
   \item Binary constants can be given infix status.
 
   \item A constant $f$ {\tt::} $(\tau@1\To\tau@2)\To\tau@3$ can be given {\em
-    binder} status: {\tt binder} $Q$ $p$ causes $Q\,x.F(x)$ to be treated
+    binder\/} status: {\tt binder} $Q$ $p$ causes $Q\,x.F(x)$ to be treated
   like $f(F)$; $p$ is the precedence of the construct.
   \end{itemize}
 \item[$trans$] Specifies syntactic translation rules, that is parse 
   rules ({\tt =>}), print rules ({\tt <=}), or both ({\tt ==}).
 \item[$rule$] A rule consists of a name $id$ and a formula $string$.  Rule
   names must be distinct.
-\item[$ml$] This final part of a theory consists of ML code, 
+\item[$ml$] This final part of a theory consists of \ML\ code, 
   typically for parse and print translations.
 \end{description}
 The $mixfix$, $trans$ and $ml$ sections are explained in more detail in 
-the {\it Defining Logics} chapter of the {\it Logics} manual.
+the {\it Defining Logics} chapter of {\it Isabelle's Object Logics}.
 
 
-\subsection{Classes and types}
+\subsection{*Classes and arities}
+\index{*classes!context conditions}
 \index{*arities!context conditions}
 
-Type declarations are subject to the following two well-formedness
+Classes and arities are subject to the following two well-formedness
 conditions:
 \begin{itemize}
 \item There are no two declarations $ty :: (\vec{r})c$ and $ty :: (\vec{s})c$
   with $\vec{r} \neq \vec{s}$.  For example
 \begin{ttbox}
-types ty 1
+types 'a ty
 arities ty :: ({\ttlbrace}logic{\ttrbrace}) logic
         ty :: ({\ttlbrace}{\ttrbrace})logic
 \end{ttbox}
@@ -128,7 +123,7 @@ expresses that the set of types represented by $s'$ is a subset of the set of
 types represented by $s$.  For example
 \begin{ttbox}
 classes term < logic
-types ty 1
+types 'a ty
 arities ty :: ({\ttlbrace}logic{\ttrbrace})logic
         ty :: ({\ttlbrace}{\ttrbrace})term
 \end{ttbox}
@@ -139,48 +134,54 @@ These conditions guarantee principal types~\cite{nipkow-prehofer}.
 
 \section{Loading Theories}
 \label{LoadingTheories}
+\index{theories!loading|(}
+
 \subsection{Reading a new theory}
 
 Each theory definition must reside in a separate file.  Let the file {\it
   tf}{\tt.thy} contain the definition of a theory called $TF$ with parent
 theories $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it
-  TF\/}{\tt"} reads file {\it tf}{\tt.thy}, writes an intermediate {\ML}-file
-{\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file. \indexbold{automatic
-loading}  Any of the parent theories that have not been loaded yet are read now
-by recursive {\tt use_thy} calls until either an already loaded theory or {\tt
-  Pure} is reached.  Therefore one can read a complete logic by just one {\tt
-use_thy} call if all theories are linked appropriately.  Afterwards an {\ML}
+  TF\/}{\tt"} reads file {\it tf}{\tt.thy}, writes an intermediate \ML-file
+{\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file. Any of the parent
+theories that have not been loaded yet are read now by recursive {\tt
+  use_thy} calls until either an already loaded theory or {\tt Pure} is
+reached.  Therefore one can read a complete logic by just one {\tt use_thy}
+call if all theories are linked appropriately.  Afterwards an \ML\ 
 structure~$TF$ containing a component {\tt thy} for the new theory and
 components $r@1$ \dots $r@n$ for the rules is declared; it also contains the
 definitions of the {\tt ML} section if any. Unless
-\ttindexbold{delete_tmpfiles} is set to {\tt false}, {\tt.}{\it tf}{\tt.thy.ML}
-is deleted if no errors occurred. Finally the file {\it tf}{\tt.ML} is read, if
-it exists; this file normally contains proofs involving the new theory.
+\ttindexbold{delete_tmpfiles} is set to {\tt false}, {\tt.}{\it
+  tf}{\tt.thy.ML} is deleted if no errors occurred. Finally the file {\it
+  tf}{\tt.ML} is read, if it exists; this file normally contains proofs
+involving the new theory.
 
 
-\subsection{Filenames and paths}
-\indexbold{filenames}
+\subsection{Theory names, file names and search paths}
+\indexbold{theories!names of}
+\indexbold{files!names of}
+\indexbold{search path}
 
 \begin{warn}
   The files defining the theory must have the lower case name of the theory
-  with {\tt".thy"} or {\tt".ML"} appended.  On the other hand
-  \ttindex{use_thy}'s parameter has to be the exact theory name.
+  with {\tt.thy} or {\tt.ML} appended.  On the other hand \ttindex{use_thy}'s
+  parameter has to be the exact theory name.
 \end{warn}
 Optionally the name can be preceded by a path to specify the directory where
 the files can be found.  If no path is provided the reference variable
 \ttindexbold{loadpath} is used which contains a list of paths that are
-searched in the given order.  After the {\tt".thy"}-file for a theory has
-been found, the same path is used to locate the (optional) {\tt".ML"}-file.
+searched in the given order.  After the {\tt.thy}-file for a theory has
+been found, the same path is used to locate the (optional) {\tt.ML}-file.
 
-It is also possible to provide only a {\tt".ML"}-file, with no
-{\tt".thy"}-file.  In this case the {\tt".ML"}-file must declare an \ML{}
-structure having the theory's name.  If both the {\tt".thy"}-file and a
-structure declaration in the {\tt".ML"}-file exist, then the latter
+It is also possible to provide only a {\tt.ML}-file, with no
+{\tt.thy}-file.  In this case the {\tt.ML}-file must declare an \ML\
+structure having the theory's name.  If both the {\tt.thy}-file and a
+structure declaration in the {\tt.ML}-file exist, then the latter
 declaration is used.  See {\tt ZF/ex/llist.ML} for an example.
 
 
 \subsection{Reloading a theory}
-\index{reloading a theory}
+\indexbold{theories!reloading}
+\index{*update|(}
 
 \ttindex{use_thy} keeps track of all loaded theories and stores information
 about their files.  If it finds that the theory to be loaded was already read
@@ -190,75 +191,77 @@ their time of last modification is compared to the internal data and {\tt
   use_thy} stops if they are equal. In case the files have been moved, {\tt
   use_thy} searches them the same way a new theory would be searched for.
 After all these tests have been passed, the theory is reloaded and all
-theories that depend on it (those that have its name in their {\it
-  theoryDef}) are marked as out-of-date.
+its children are marked as out-of-date.
 \begin{warn}
   Changing a theory on disk often makes it necessary to reload all theories
-  that (indirectly) depend on it. However, {\tt use_thy} reads only one
-  theory, even if some of the parents are out of date. In this case
-  \ttindexbold{update}{\tt()} should be used.  This function reloads {\em all}
+  that directly or indirectly depend on it. However, {\tt use_thy} reads only
+  one theory, even if some of the parent theories are out of date. In this
+  case {\tt update()} should be used.  This function reloads {\em all\/}
   modified theories and their descendants in the correct order.
 \end{warn}
 
 
-\subsection{Pseudo theories}
-\indexbold{pseudo theories}
+\subsection{*Pseudo theories}
+\indexbold{theories!pseudo}
 
-There is a problem with \ttindex{update}: objects created in \ML-files that
-do not belong to a theory (see explanation of {\it theoryDef} in
-\ref{DefiningTheories}).  These files are read manually between {\tt use_thy}
-calls and define objects used in different theories.  As {\tt update} only
-knows about the theories there still exist objects with references to the old
-theory version after the new one has been read.  This (most probably) will
-produce the fatal error
-\begin{center} \tt
-Attempt to merge different versions of theory: $T$
-\end{center}
-
-Therefore there is a way to link theories and the $orphaned$ \ML-files. The
-link from a theory to an \ML-file has been mentioned in
-Chapter~\ref{DefiningTheories} (strings in {\it theoryDef}).  But to make this
-work and to establish a link in the opposite direction we need to create a
-{\it pseudo theory}.  Let's assume we have an \ML-file named {\tt orphan.ML}
-that depends on theory $A$ and is itself used in theory $B$.  To link the
-three we have to create the file {\tt orphan.thy} containing the line
+Any automatic reloading facility requires complete knowledge of all
+dependencies. Sometimes theories depend on objects created in \ML-files
+without associated {\tt.thy}-file. Unless such dependencies are documented,
+{\tt update} fails to reload these \ML-files and the system is left in a
+state where some objects, e.g.\ theorems, still refer to old versions of
+theories. This may lead to the error
 \begin{ttbox}
-orphan = A
+Attempt to merge different versions of theory: \(T\)
 \end{ttbox}
-and add {\tt "orphan"} to the list of $B$'s parents.
-% Creating {\tt orphan.thy} is necessary because of two reasons: First it
-% enables automatic loading of $orphan$'s parents and second it creates the
-% \ML{}-object {\tt orphan} that is needed by {\tt use_thy} (though it is not
-% added to the base of theory $B$).
-Creating {\tt orphan.thy} enables automatic loading of $orphan$'s parents.
-If {\tt orphan.ML} depended on no theory then {\tt Pure} should have been
-used instead of {\tt A}.
+Therefore there is a way to link theories and {\em orphaned\/} \ML-files,
+i.e.\ those without associated {\tt.thy}-file.
+
+Let us assume we have an orphaned \ML-file named {\tt orphan.ML} and a theory
+$B$ which depends on {\tt orphan.ML} (for example, {\tt b.ML} uses theorems
+that are proved in {\tt orphan.ML}). Then {\tt b.thy} should mention this
+dependence:
+\begin{ttbox}
+B = ... + "orphan" + ...
+\end{ttbox}
+Although {\tt orphan} is {\em not\/} used in building the base of theory $B$
+(strings stand for \ML-files rather than {\tt.thy}-files and merely document
+additional dependencies), {\tt orphan.ML} is loaded automatically when $B$ is
+(re)built.
+
+If {\tt orphan.ML} depends on theories $A@1\dots A@n$, this should be recorded
+by creating a {\bf pseudo theory} in the file {\tt orphan.thy}:
+\begin{ttbox}
+orphan = A1 + \(...\) + An
+\end{ttbox}
+The resulting theory is never used but guarantees that {\tt update} reloads
+theory {\it orphan} whenever it reloads one of the $A@i$.
 
 For an extensive example of how this technique can be used to link over 30
-files and read them by just two {\tt use_thy} calls have a look at the ZF
-logic.
+files and load them by just two {\tt use_thy} calls, consult the ZF source
+files.
+\index{theories!loading|)}
 
 
 \subsection{Removing a theory}
-\index{removing theories}
+\indexbold{theories!removing}
 
-If a previously read file is removed the \ttindex{update} function will keep
-on complaining about a missing file.  The theory is not automatically removed
-from the internal list to preserve the links to other theories in case one
-forgot to adjust the {\tt loadpath} after moving a file.  To manually remove a
-theory use \ttindexbold{unlink_thy}.
+If a previously read file is removed, {\tt update} will keep on complaining
+about a missing file.  The theory is not automatically removed from the
+internal list to preserve the links to other theories in case one forgot to
+adjust the {\tt loadpath} after moving a file.  To remove a theory manually
+use \ttindexbold{unlink_thy}.  \index{*update|)}
 
 
 \subsection{Using Poly/\ML}
 \index{Poly/\ML}
 \index{reference variables}
 
-As the functions for reading theories depend on reference variables one has to
-take into consideration the way Poly/\ML{} handles them.  They are only saved
-together with the state if they were declared in the current database.  E.g.
-changes made to a reference variable declared in the $Pure$ database are $not$
-saved if made while using a child database.  Therefore a new {\tt Readthy}
-structure has to be created by
+As the functions for reading theories depend on reference variables one has
+to take into account the way Poly/\ML\ handles them.  They are only saved
+together with the state if they were declared in the current database.  For
+example, changes made to a reference variable declared in the {\tt Pure}
+database are {\em not\/} saved if made while using a child database.
+Therefore a new {\tt Readthy} structure has to be created by
 \begin{ttbox}
 structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 Readthy.loaded_thys := !loaded_thys;
@@ -295,22 +298,83 @@ For example, if {\it formula} is
 \hbox{\tt\frenchspacing ?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]}
 \end{description}
 
+%\subsection{Building a theory}
+%\label{BuildingATheory}
+%\index{theories!constructing|bold}
+%\begin{ttbox} 
+%pure_thy: theory
+%merge_theories: theory * theory -> theory
+%extend_theory: theory -> string
+%        -> (class * class list) list 
+%           * sort
+%           * (string list * int)list
+%           * (string list * (sort list * class))list
+%           * (string list * string)list * sext option
+%        -> (string*string)list -> theory
+%\end{ttbox}
+%Type \ttindex{class} is a synonym for {\tt string}; type \ttindex{sort} is
+%a synonym for \hbox{\tt class list}.
+%\begin{description}
+%\item[\ttindexbold{pure_thy}] contains just the types, constants, and syntax
+%  of the meta-logic.  There are no axioms: meta-level inferences are carried
+%  out by \ML\ functions.
+%\item[\ttindexbold{merge_theories} ($thy@1$, $thy@2$)] merges the two
+%  theories $thy@1$ and $thy@2$.  The resulting theory contains all types,
+%  constants and axioms of the constituent theories; its default sort is the
+%  union of the default sorts of the constituent theories.
+%\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"}
+%      ($classes$, $default$, $types$, $arities$, $consts$, $sextopt$) $rules$]
+%\hfill\break   %%% include if line is just too short
+%is the \ML-equivalent of the following theory definition:
+%\begin{ttbox}
+%\(T\) = \(thy\) +
+%classes \(c\) < \(c@1\),\(\dots\),\(c@m\)
+%        \dots
+%default {\(d@1,\dots,d@r\)}
+%types   \(tycon@1\),\dots,\(tycon@i\) \(n\)
+%        \dots
+%arities \(tycon@1'\),\dots,\(tycon@j'\) :: (\(s@1\),\dots,\(s@n\))\(c\)
+%        \dots
+%consts  \(b@1\),\dots,\(b@k\) :: \(\tau\)
+%        \dots
+%rules   \(name\) \(rule\)
+%        \dots
+%end
+%\end{ttbox}
+%where
+%\begin{tabular}[t]{l@{~=~}l}
+%$classes$ & \tt[("$c$",["$c@1$",\dots,"$c@m$"]),\dots] \\
+%$default$ & \tt["$d@1$",\dots,"$d@r$"]\\
+%$types$   & \tt[([$tycon@1$,\dots,$tycon@i$], $n$),\dots] \\
+%$arities$ & \tt[([$tycon'@1$,\dots,$tycon'@j$], ([$s@1$,\dots,$s@n$],$c$)),\dots]
+%\\
+%$consts$  & \tt[([$b@1$,\dots,$b@k$],$\tau$),\dots] \\
+%$rules$   & \tt[("$name$",$rule$),\dots]
+%\end{tabular}
+%
+%If theories are defined as in \S\ref{DefiningTheories}, new syntax is added
+%as mixfix annotations to constants.  Using {\tt extend_theory}, new syntax can
+%be added via $sextopt$ which is either {\tt None}, or {\tt Some($sext$)}.  The
+%latter case is not documented.
+%
+%$T$ identifies the theory internally.  When a theory is redeclared, say to
+%change an incorrect axiom, bindings to the old axiom may persist.  Isabelle
+%ensures that the old and new theories are not involved in the same proof.
+%Attempting to combine different theories having the same name $T$ yields the
+%fatal error
+%\begin{ttbox}
+%Attempt to merge different versions of theory: \(T\)
+%\end{ttbox}
+%\end{description}
+
 \subsection{Building a theory}
 \label{BuildingATheory}
 \index{theories!constructing|bold}
 \begin{ttbox} 
 pure_thy: theory
 merge_theories: theory * theory -> theory
-extend_theory: theory -> string
-        -> (class * class list) list 
-           * sort
-           * (string list * int)list
-           * (string list * (sort list * class))list
-           * (string list * string)list * sext option
-        -> (string*string)list -> theory
+extend_theory: theory -> string -> \(\cdots\) -> theory
 \end{ttbox}
-Type \ttindex{class} is a synonym for {\tt string}; type \ttindex{sort} is
-a synonym for \hbox{\tt class list}.
 \begin{description}
 \item[\ttindexbold{pure_thy}] contains just the types, constants, and syntax
   of the meta-logic.  There are no axioms: meta-level inferences are carried
@@ -319,49 +383,15 @@ a synonym for \hbox{\tt class list}.
   theories $thy@1$ and $thy@2$.  The resulting theory contains all types,
   constants and axioms of the constituent theories; its default sort is the
   union of the default sorts of the constituent theories.
-\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"}
-      ($classes$, $default$, $types$, $arities$, $consts$, $sextopt$) $rules$]
-\hfill\break   %%% include if line is just too short
-is the \ML-equivalent of the following theory definition:
+\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
+  the theory $thy$ with new types, constants, etc.  $T$ identifies the theory
+  internally.  When a theory is redeclared, say to change an incorrect axiom,
+  bindings to the old axiom may persist.  Isabelle ensures that the old and
+  new theories are not involved in the same proof.  Attempting to combine
+  different theories having the same name $T$ yields the fatal error
 \begin{ttbox}
-\(T\) = \(thy\) +
-classes \(c\) < \(c@1\),\(\dots\),\(c@m\)
-        \dots
-default {\(d@1,\dots,d@r\)}
-types   \(tycon@1\),\dots,\(tycon@i\) \(n\)
-        \dots
-arities \(tycon@1'\),\dots,\(tycon@j'\) :: (\(s@1\),\dots,\(s@n\))\(c\)
-        \dots
-consts  \(b@1\),\dots,\(b@k\) :: \(\tau\)
-        \dots
-rules   \(name\) \(rule\)
-        \dots
-end
+Attempt to merge different versions of theory: \(T\)
 \end{ttbox}
-where
-\begin{tabular}[t]{l@{~=~}l}
-$classes$ & \tt[("$c$",["$c@1$",\dots,"$c@m$"]),\dots] \\
-$default$ & \tt["$d@1$",\dots,"$d@r$"]\\
-$types$   & \tt[([$tycon@1$,\dots,$tycon@i$], $n$),\dots] \\
-$arities$ & \tt[([$tycon'@1$,\dots,$tycon'@j$], ([$s@1$,\dots,$s@n$],$c$)),\dots]
-\\
-$consts$  & \tt[([$b@1$,\dots,$b@k$],$\tau$),\dots] \\
-$rules$   & \tt[("$name$",$rule$),\dots]
-\end{tabular}
-
-If theories are defined as in \S\ref{DefiningTheories}, new syntax is added
-as mixfix annotations to constants.  Using {\tt extend_theory}, new syntax can
-be added via $sextopt$ which is either {\tt None}, or {\tt Some($sext$)}.  The
-latter case is not documented.
-
-$T$ identifies the theory internally.  When a theory is redeclared, say to
-change an incorrect axiom, bindings to the old axiom may persist.  Isabelle
-ensures that the old and new theories are not involved in the same proof.
-Attempting to combine different theories having the same name $T$ yields the
-fatal error
-\begin{center} \tt
-Attempt to merge different versions of theory: $T$
-\end{center}
 \end{description}
 
 
@@ -400,7 +430,7 @@ like {\tt read_instantiate_sg}, which take a signature as an argument.
 
 \section{Terms}
 \index{terms|bold}
-Terms belong to the \ML{} type \ttindexbold{term}, which is a concrete datatype
+Terms belong to the \ML\ type \ttindexbold{term}, which is a concrete datatype
 with six constructors: there are six kinds of term.
 \begin{ttbox}
 type indexname = string * int;
@@ -445,7 +475,7 @@ has no logical significance.
 is the {\bf application} of~$t$ to~$u$.  
 \end{description}
 Application is written as an infix operator in order to aid readability.
-For example, here is an \ML{} pattern to recognize first-order formula of
+For example, here is an \ML\ pattern to recognize first-order formula of
 the form~$A\imp B$, binding the subformulae to~$A$ and~$B$:
 \begin{ttbox} 
 Const("Trueprop",_) $ (Const("op -->",_) $ A $ B)
@@ -462,18 +492,18 @@ references.\footnote{This concerns the internal representation of variable
 binding using de Bruijn indexes.} Meta-rules such as {\tt forall_elim} take
 certified terms as arguments.
 
-Certified terms belong to the abstract type \ttindexbold{Sign.cterm}.
+Certified terms belong to the abstract type \ttindexbold{cterm}.
 Elements of the type can only be created through the certification process.
 In case of error, Isabelle raises exception~\ttindex{TERM}\@.
 
 \subsection{Printing terms}
 \index{printing!terms|bold}
 \begin{ttbox} 
-Sign.string_of_cterm :      Sign.cterm -> string
+     string_of_cterm :           cterm -> string
 Sign.string_of_term  : Sign.sg -> term -> string
 \end{ttbox}
 \begin{description}
-\item[\ttindexbold{Sign.string_of_cterm} $ct$] 
+\item[\ttindexbold{string_of_cterm} $ct$] 
 displays $ct$ as a string.
 
 \item[\ttindexbold{Sign.string_of_term} $sign$ $t$] 
@@ -482,21 +512,20 @@ displays $t$ as a string, using the syntax of~$sign$.
 
 \subsection{Making and inspecting certified terms}
 \begin{ttbox} 
-Sign.cterm_of   : Sign.sg -> term -> Sign.cterm
-Sign.read_cterm : Sign.sg -> string * typ -> Sign.cterm
-Sign.rep_cterm  : Sign.cterm -> \{T:typ, t:term, 
-                                 sign: Sign.sg, maxidx:int\}
+cterm_of   : Sign.sg -> term -> cterm
+read_cterm : Sign.sg -> string * typ -> cterm
+rep_cterm  : cterm -> \{T:typ, t:term, sign:Sign.sg, maxidx:int\}
 \end{ttbox}
 \begin{description}
-\item[\ttindexbold{Sign.cterm_of} $sign$ $t$] \index{signatures}
+\item[\ttindexbold{cterm_of} $sign$ $t$] \index{signatures}
 certifies $t$ with respect to signature~$sign$.
 
-\item[\ttindexbold{Sign.read_cterm} $sign$ ($s$, $T$)] 
+\item[\ttindexbold{read_cterm} $sign$ ($s$, $T$)] 
 reads the string~$s$ using the syntax of~$sign$, creating a certified term.
 The term is checked to have type~$T$; this type also tells the parser what
 kind of phrase to parse.
 
-\item[\ttindexbold{Sign.rep_cterm} $ct$] 
+\item[\ttindexbold{rep_cterm} $ct$] 
 decomposes $ct$ as a record containing its type, the term itself, its
 signature, and the maximum subscript of its unknowns.  The type and maximum
 subscript are computed during certification.
@@ -505,7 +534,7 @@ subscript are computed during certification.
 
 \section{Types}
 \index{types|bold}
-Types belong to the \ML{} type \ttindexbold{typ}, which is a concrete
+Types belong to the \ML\ type \ttindexbold{typ}, which is a concrete
 datatype with three constructors.  Types are classified by sorts, which are
 lists of classes.  A class is represented by a string.
 \begin{ttbox}
@@ -541,16 +570,16 @@ during unification.
 \section{Certified types}
 \index{types!certified|bold}
 Certified types, which are analogous to certified terms, have type 
-\ttindexbold{Sign.ctyp}.
+\ttindexbold{ctyp}.
 
 \subsection{Printing types}
 \index{printing!types|bold}
 \begin{ttbox} 
-Sign.string_of_ctyp :      Sign.ctyp -> string
+     string_of_ctyp :           ctyp -> string
 Sign.string_of_typ  : Sign.sg -> typ -> string
 \end{ttbox}
 \begin{description}
-\item[\ttindexbold{Sign.string_of_ctyp} $cT$] 
+\item[\ttindexbold{string_of_ctyp} $cT$] 
 displays $cT$ as a string.
 
 \item[\ttindexbold{Sign.string_of_typ} $sign$ $T$] 
@@ -560,14 +589,14 @@ displays $T$ as a string, using the syntax of~$sign$.
 
 \subsection{Making and inspecting certified types}
 \begin{ttbox} 
-Sign.ctyp_of  : Sign.sg -> typ -> Sign.ctyp
-Sign.rep_ctyp : Sign.ctyp -> \{T: typ, sign: Sign.sg\}
+ctyp_of  : Sign.sg -> typ -> ctyp
+rep_ctyp : ctyp -> \{T: typ, sign: Sign.sg\}
 \end{ttbox}
 \begin{description}
-\item[\ttindexbold{Sign.ctyp_of} $sign$ $T$] \index{signatures}
+\item[\ttindexbold{ctyp_of} $sign$ $T$] \index{signatures}
 certifies $T$ with respect to signature~$sign$.
 
-\item[\ttindexbold{Sign.rep_ctyp} $cT$] 
+\item[\ttindexbold{rep_ctyp} $cT$] 
 decomposes $cT$ as a record containing the type itself and its signature.
 \end{description}
 
