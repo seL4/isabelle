@@ -217,7 +217,6 @@ text {*
 *}
 
 syntax
-  "_update_name" :: idt
   "_quote"       :: "'b => ('a => 'b)"        ("(.'(_').)" [0] 1000)
   "_antiquote"   :: "('a => 'b) => 'b"        ("`_" [1000] 1000)
   "_Assert"      :: "'a => 'a set"            ("(.{_}.)" [0] 1000)
@@ -241,19 +240,9 @@ translations
 
 parse_translation {*
   let
-    fun update_name_tr (Free (x, T) :: ts) =
-          Term.list_comb (Free (suffix RecordPackage.updateN x, T), ts)
-      | update_name_tr (Const (x, T) :: ts) =
-          Term.list_comb (Const (suffix RecordPackage.updateN x, T), ts)
-      | update_name_tr
-          (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-            Term.list_comb (c $ update_name_tr [t] $
-              (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
-      | update_name_tr ts = raise TERM ("update_name_tr", ts);
-
     fun quote_tr [t] = Syntax.quote_tr "_antiquote" t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [("_update_name", update_name_tr), ("_quote", quote_tr)] end
+  in [("_quote", quote_tr)] end
 *}
 
 text {*
