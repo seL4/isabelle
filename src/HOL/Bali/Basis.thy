@@ -256,7 +256,7 @@ fun sum3_instantiate thm = map (fn s => simplify(simpset()delsimps[not_None_eq])
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
 translations
-  "option"<= (type) "Option.option"
+  "option"<= (type) "Datatype.option"
   "list"  <= (type) "List.list"
   "sum3"  <= (type) "Basis.sum3"
 

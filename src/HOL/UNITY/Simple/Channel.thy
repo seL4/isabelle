@@ -8,7 +8,7 @@ Unordered Channel
 From Misra, "A Logic for Concurrent Programming" (1994), section 13.3
 *)
 
-Channel = WFair + Option + 
+Channel = WFair +
 
 types state = nat set
 

@@ -7,7 +7,7 @@ The I/O automata of Lynch and Tuttle in HOLCF.
 *)   
 
 		       
-Automata = Option + Asig + Inductive +
+Automata = Asig +
 
 default type
  

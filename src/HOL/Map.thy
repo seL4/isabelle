@@ -6,7 +6,7 @@
 The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
 *)
 
-Map = List + Option +
+Map = List +
 
 types ('a,'b) "~=>" = 'a => 'b option (infixr 0)
 

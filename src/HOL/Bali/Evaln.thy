@@ -323,7 +323,7 @@ done
 
 ML {*
 local
-  fun is_Some (Const ("Pair",_) $ (Const ("Option.option.Some",_) $ _)$ _) =true
+  fun is_Some (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _) =true
     | is_Some _ = false
   fun pred (_ $ (Const ("Pair",_) $
      _ $ (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ _ $

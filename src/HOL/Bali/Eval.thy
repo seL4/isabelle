@@ -779,7 +779,7 @@ done
 
 ML {*
 local
-  fun is_None (Const ("Option.option.None",_)) = true
+  fun is_None (Const ("Datatype.option.None",_)) = true
     | is_None _ = false
   fun pred (t as (_ $ (Const ("Pair",_) $
      (Const ("Pair", _) $ x $ _) $ _ ) $ _)) = is_None x
@@ -806,7 +806,7 @@ done
 
 ML {*
 local
-  fun is_Some (Const ("Pair",_) $ (Const ("Option.option.Some",_) $ _)$ _) =true
+  fun is_Some (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _) =true
     | is_Some _ = false
   fun pred (_ $ (Const ("Pair",_) $
      _ $ (Const ("Pair", _) $ _ $ (Const ("Pair", _) $ _ $

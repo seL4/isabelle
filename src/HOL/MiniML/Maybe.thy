@@ -6,7 +6,7 @@
 Universal error monad.
 *)
 
-Maybe = Option + List +
+Maybe = Main +
 
 constdefs
   option_bind :: ['a option, 'a => 'b option] => 'b option
