@@ -690,8 +690,7 @@ is the first rule above:
 \begin{ttbox}
 by (simp_tac (simpset() addloop ("split if",split_tac [split_if])) 1);
 \end{ttbox}
-Users would usually prefer the following shortcut using
-\ttindex{addsplits}:
+Users would usually prefer the following shortcut using \texttt{addsplits}:
 \begin{ttbox}
 by (simp_tac (simpset() addsplits [split_if]) 1);
 \end{ttbox}
