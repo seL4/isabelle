@@ -220,7 +220,7 @@ qed_goal "empty_subsetI" Set.thy "{} <= A"
 
 qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
  (fn [prem]=>
-  [ (fast_tac (!claset addIs [prem RS FalseE]) 1) ]);
+  [ (blast_tac (!claset addIs [prem RS FalseE]) 1) ]);
 
 qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
@@ -418,7 +418,7 @@ qed_goal "singleton_iff" thy "(b : {a}) = (b=a)"
 (fn _ => [Blast_tac 1]);
 
 goal Set.thy "!!a b. {a}={b} ==> a=b";
-by (fast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (!claset addEs [equalityE]) 1);
 qed "singleton_inject";
 
 (*Redundant? But unlike insertCI, it proves the subgoal immediately!*)
@@ -622,11 +622,11 @@ AddIs  [image_eqI];
 AddSEs [imageE]; 
 
 goalw thy [o_def] "(f o g)``r = f``(g``r)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "image_compose";
 
 goal thy "f``(A Un B) = f``A Un f``B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "image_Un";
 
 

@@ -35,7 +35,7 @@ val [major,minor] = goal RelPow.thy
   "[| (x,z) : R^(Suc n);  !!y. [| (x,y) : R^n; (y,z) : R |] ==> P |] ==> P";
 by (cut_facts_tac [major] 1);
 by (Asm_full_simp_tac  1);
-by (fast_tac (!claset addIs [minor]) 1);
+by (blast_tac (!claset addIs [minor]) 1);
 qed "rel_pow_Suc_E";
 
 val [p1,p2,p3] = goal RelPow.thy
@@ -102,7 +102,7 @@ by (etac lemma 1);
 qed "rel_pow_imp_rtrancl";
 
 goal RelPow.thy "R^* = (UN n. R^n)";
-by (fast_tac (!claset addIs [rtrancl_imp_UN_rel_pow,rel_pow_imp_rtrancl]) 1);
+by (fast_tac (!claset addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
 qed "rtrancl_is_UN_rel_pow";
 
 

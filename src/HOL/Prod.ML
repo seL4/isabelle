@@ -33,15 +33,15 @@ qed "Pair_inject";
 AddSEs [Pair_inject];
 
 goal Prod.thy "((a,b) = (a',b')) = (a=a' & b=b')";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Pair_eq";
 
 goalw Prod.thy [fst_def] "fst((a,b)) = a";
-by (fast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (!claset addIs [select_equality]) 1);
 qed "fst_conv";
 
 goalw Prod.thy [snd_def] "snd((a,b)) = b";
-by (fast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (!claset addIs [select_equality]) 1);
 qed "snd_conv";
 
 goalw Prod.thy [Pair_def] "? x y. p = (x,y)";
@@ -119,12 +119,12 @@ qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
 goal Prod.thy "R(split c p) = (! x y. p = (x,y) --> R(c x y))";
 by (stac surjective_pairing 1);
 by (stac split 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "expand_split";
 
 (** split used as a logical connective or set former **)
 
-(*These rules are for use with fast_tac.
+(*These rules are for use with blast_tac.
   Could instead call simp_tac/asm_full_simp_tac using split as rewrite.*)
 
 goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> c a b |] ==> split c p";
@@ -193,8 +193,8 @@ val major::prems = goal Prod.thy
 by (rtac (major RS imageE) 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by (resolve_tac prems 1);
-by (Fast_tac 2);
-by (fast_tac (!claset addIs [prod_fun]) 1);
+by (Blast_tac 2);
+by (blast_tac (!claset addIs [prod_fun]) 1);
 qed "prod_fun_imageE";
 
 (*** Disjoint union of a family of sets - Sigma ***)
@@ -239,19 +239,19 @@ AddSEs [SigmaE2, SigmaE];
 val prems = goal Prod.thy
     "[| A<=C;  !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D";
 by (cut_facts_tac prems 1);
-by (fast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
 qed "Sigma_mono";
 
 qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "Sigma_empty2" Prod.thy "A Times {} = {}"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Sigma_empty1,Sigma_empty2]; 
 
 goal Prod.thy "((a,b): Sigma A B) = (a:A & b:B(a))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "mem_Sigma_iff";
 Addsimps [mem_Sigma_iff]; 
 
@@ -259,7 +259,7 @@ Addsimps [mem_Sigma_iff];
 (*Suggested by Pierre Chartier*)
 goal Prod.thy
      "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UNION_Times_distrib";
 
 (*** Domain of a relation ***)

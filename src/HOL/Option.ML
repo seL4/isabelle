@@ -11,7 +11,7 @@ open Option;
 val [prem] = goal Option.thy "P(opt) ==> P(None) | (? x. P(Some(x)))";
  br (prem RS rev_mp) 1;
  by (option.induct_tac "opt" 1);
- by (ALLGOALS(Fast_tac));
+ by (ALLGOALS Blast_tac);
 bind_thm("optionE", standard(result() RS disjE));
 (*
 goal Option.thy "opt=None | (? x.opt=Some(x))"; 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/univ
+(*  Title:      HOL/Univ
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -147,7 +147,7 @@ by (blast_tac (!claset addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
 goalw Univ.thy [Scons_def] "!!M. M$N <= M'$N' ==> N<=N'";
-by (fast_tac (!claset addSDs [Push_Node_inject]) 1);
+by (blast_tac (!claset addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
 val [major] = goal Univ.thy "M$N = M'$N' ==> M=M'";

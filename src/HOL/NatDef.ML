@@ -278,7 +278,7 @@ by (Blast_tac 1);
 qed "less_SucE";
 
 goal thy "(m < Suc(n)) = (m < n | m = n)";
-by (fast_tac (!claset addEs [less_trans, less_SucE]) 1);
+by (blast_tac (!claset addSEs [less_SucE] addIs [less_trans]) 1);
 qed "less_Suc_eq";
 
 val prems = goal thy "m<n ==> n ~= 0";
@@ -348,18 +348,18 @@ by (nat_ind_tac "m" 1);
 by (nat_ind_tac "n" 1);
 by (rtac (refl RS disjI1 RS disjI2) 1);
 by (rtac (zero_less_Suc RS disjI1) 1);
-by (fast_tac (!claset addIs [Suc_mono, less_SucI] addEs [lessE]) 1);
+by (blast_tac (!claset addIs [Suc_mono, less_SucI] addEs [lessE]) 1);
 qed "less_linear";
 
 qed_goal "nat_less_cases" thy 
    "[| (m::nat)<n ==> P n m; m=n ==> P n m; n<m ==> P n m |] ==> P n m"
-( fn prems =>
+( fn [major,eqCase,lessCase] =>
         [
-        (res_inst_tac [("m1","n"),("n1","m")] (less_linear RS disjE) 1),
+        (rtac (less_linear RS disjE) 1),
         (etac disjE 2),
-        (etac (hd (tl (tl prems))) 1),
-        (etac (sym RS hd (tl prems)) 1),
-        (etac (hd prems) 1)
+        (etac lessCase 1),
+        (etac (sym RS eqCase) 1),
+        (etac major 1)
         ]);
 
 (*Can be used with less_Suc_eq to get n=m | n<m *)
@@ -511,19 +511,19 @@ qed "le_refl";
 
 val prems = goal thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
 by (dtac le_imp_less_or_eq 1);
-by (fast_tac (!claset addIs [less_trans]) 1);
+by (blast_tac (!claset addIs [less_trans]) 1);
 qed "le_less_trans";
 
 goal thy "!!i. [| i < j; j <= k |] ==> i < (k::nat)";
 by (dtac le_imp_less_or_eq 1);
-by (fast_tac (!claset addIs [less_trans]) 1);
+by (blast_tac (!claset addIs [less_trans]) 1);
 qed "less_le_trans";
 
 goal thy "!!i. [| i <= j; j <= k |] ==> i <= (k::nat)";
 by (EVERY1[dtac le_imp_less_or_eq, 
 	   dtac le_imp_less_or_eq,
 	   rtac less_or_eq_imp_le, 
-	   fast_tac (!claset addIs [less_trans])]);
+	   blast_tac (!claset addIs [less_trans])]);
 qed "le_trans";
 
 goal thy "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
@@ -634,9 +634,9 @@ val not_leI = prove_goal thy "!!m::nat. n < m ==> ~ m <= n"
   (fn _ => [etac swap2 1, etac leD 1]);
 val eqI = prove_goal thy "!!m. [| m < Suc n; n < Suc m |] ==> m=n"
   (fn _ => [etac less_SucE 1,
-            fast_tac (!claset addSDs [Suc_less_SucD] addSEs [less_irrefl]
+            blast_tac (!claset addSDs [Suc_less_SucD] addSEs [less_irrefl]
                               addDs [less_trans_Suc]) 1,
-            atac 1]);
+            assume_tac 1]);
 val leD = le_eq_less_Suc RS iffD1;
 val not_lessD = nat_leI RS leD;
 val not_leD = not_leE

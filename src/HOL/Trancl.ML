@@ -52,7 +52,7 @@ val major::prems = goal Trancl.thy
 \     !!x y z.[| P((x,y)); (x,y): r^*; (y,z): r |]  ==>  P((x,z)) |] \
 \  ==>  P((a,b))";
 by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_induct) 1);
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule*)
@@ -67,8 +67,8 @@ by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
 by (Blast_tac 1);
 (*now do the induction*)
 by (resolve_tac [major RS rtrancl_full_induct] 1);
-by (fast_tac (!claset addIs prems) 1);
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "rtrancl_induct";
 
 bind_thm
@@ -93,8 +93,8 @@ val major::prems = goal Trancl.thy
 \    |] ==> P";
 by (subgoal_tac "(a::'a) = b  | (? y. (a,y) : r^* & (y,b) : r)" 1);
 by (rtac (major RS rtrancl_induct) 2);
-by (fast_tac (!claset addIs prems) 2);
-by (fast_tac (!claset addIs prems) 2);
+by (blast_tac (!claset addIs prems) 2);
+by (blast_tac (!claset addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE";
 
@@ -165,7 +165,7 @@ val major::prems = goal Trancl.thy
 \     ==> P(a)";
 by (rtac ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1);
 by (resolve_tac prems 1);
-by (fast_tac (!claset addIs prems addSDs[rtrancl_converseD])1);
+by (blast_tac (!claset addIs prems addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
 val prems = goal Trancl.thy
@@ -227,7 +227,7 @@ by (subgoal_tac "ALL z. (y,z) : r --> P(z)" 1);
 (*now solve first subgoal: this formula is sufficient*)
 by (Blast_tac 1);
 by (etac rtrancl_induct 1);
-by (ALLGOALS (fast_tac (!claset addIs (rtrancl_into_trancl1::prems))));
+by (ALLGOALS (blast_tac (!claset addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
 
 (*elimination of r^+ -- NOT an induction rule*)

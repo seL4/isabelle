@@ -43,19 +43,18 @@ by (best_tac (!claset addSEs [equalityCE]) 1);
 
 (*** The Schroder-Berstein Theorem ***)
 
-val prems = goalw Lfp.thy [image_def] "inj(f) ==> inv(f)``(f``X) = X";
-by (cut_facts_tac prems 1);
+goalw Lfp.thy [image_def] "!!f. inj(f) ==> inv(f)``(f``X) = X";
 by (rtac equalityI 1);
 by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
 by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
 goal Set.thy "!!f. f(a) ~: (f``X) ==> a~:X";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "contra_imageI";
 
 goal Lfp.thy "(a ~: Compl(X)) = (a:X)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "not_Compl";
 
 (*Lots of backtracking in this proof...*)
@@ -69,11 +68,11 @@ qed "disj_lemma";
 goalw Lfp.thy [image_def]
     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "range_if_then_else";
 
 goal Lfp.thy "a : X Un Compl(X)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "X_Un_Compl";
 
 goalw Lfp.thy [surj_def] "surj(f) = (!a. a : range(f))";

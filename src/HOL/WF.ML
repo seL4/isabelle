@@ -27,7 +27,7 @@ val major::prems = goalw WF.thy [wf_def]
 \       !!x.[| ! y. (y,x): r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
 by (rtac (major RS spec RS mp RS spec) 1);
-by (fast_tac (!claset addEs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "wf_induct";
 
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
@@ -38,9 +38,9 @@ fun wf_ind_tac a prems i =
 
 val prems = goal WF.thy "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
 by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 by (wf_ind_tac "a" prems 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_asym";
 
 val prems = goal WF.thy "[| wf(r);  (a,a): r |] ==> P";
@@ -58,8 +58,8 @@ by (etac mp 1);
 by (res_inst_tac [("a","x")] (prem RS wf_induct) 1);
 by (rtac (impI RS allI) 1);
 by (etac tranclE 1);
-by (Fast_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
 qed "wf_trancl";
 
 
