@@ -34,7 +34,7 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 1.09
 #ML_SYSTEM=smlnj-1.09
-#ML_HOME=~wenzelm/tmp/109/bin
+#ML_HOME=/usr/local/sml109/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
 
@@ -67,7 +67,7 @@ ISABELLE_DOCS=$ISABELLE_HOME/doc
 DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 
-# How to install the isabelle X11 fonts
+# How to install the isabelle X11 fonts.
 ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 #ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv:7100"
 
@@ -80,7 +80,7 @@ ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 #ISABELLE_INTERFACE=none
 #ISABELLE_INTERFACE_OPTIONS=""
 
-# XTerm
+# XTerm.
 ISABELLE_INTERFACE=xterm
 ISABELLE_INTERFACE_OPTIONS=""
 
