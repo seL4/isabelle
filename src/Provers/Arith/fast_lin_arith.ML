@@ -25,6 +25,7 @@ sig
   val ccontr:           thm (* (~ P ==> False) ==> P *)
   val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
   val notI:             thm (* (P ==> False) ==> ~ P *)
+  val not_lessD:        thm (* ~(m < n) ==> n <= m *)
   val sym:		thm (* x = y ==> y = x *)
   val mk_Eq: thm -> thm
   val mk_Trueprop: term -> term
@@ -47,7 +48,6 @@ sig
                             (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
   val lessD:            thm (* m < n ==> Suc m <= n *)
   val not_leD:          thm (* ~(m <= n) ==> Suc n <= m *)
-  val not_lessD:        thm (* ~(m < n) ==> n < m *)
   val decomp: term ->
              ((term * int)list * int * string * (term * int)list * int)option
   val simp: thm -> thm
@@ -289,7 +289,7 @@ fun mklineq atoms =
         "<="   => Some(Lineq(c,Le,diff,just))
        | "~<=" => Some(Lineq(1-c,Le,map (op ~) diff,Fwd(just,LA_Data.not_leD)))
        | "<"   => Some(Lineq(c+1,Le,diff,Fwd(just,LA_Data.lessD)))
-       | "~<"  => Some(Lineq(~c,Le,map (op~) diff,Fwd(just,LA_Data.not_lessD)))
+       | "~<"  => Some(Lineq(~c,Le,map (op~) diff,Fwd(just,LA_Logic.not_lessD)))
        | "="   => Some(Lineq(c,Eq,diff,just))
        | "~="  => None
        | _     => sys_error("mklineq" ^ rel)   
