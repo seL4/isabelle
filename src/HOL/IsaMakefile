@@ -18,7 +18,6 @@ test: \
   HOL-CTL \
   HOL-GroupTheory \
       HOL-Real-HahnBanach \
-      HOL-Real-Hyperreal \
       HOL-Real-ex \
   HOL-Hoare \
   HOL-IMP \
@@ -101,7 +100,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
   Tools/record_package.ML Tools/split_rule.ML \
   Tools/svc_funcs.ML Tools/typedef_package.ML \
-  Transitive_Closure.thy Transitive_Closure_lemmas.ML Typedef.thy \
+  Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
   Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
   document/root.tex equalities.ML hologic.ML meson_lemmas.ML mono.ML \
