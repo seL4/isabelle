@@ -252,8 +252,9 @@ text{*
   \cite{isabelle-ref}.
 
   \medskip A typical example of syntax translations is to decorate
-  relational expressions with nice symbolic notation, such as @{text
-  "(x, y) \<in> sim"} versus @{text "x \<approx> y"}.
+  relational expressions (i.e.\ set-membership of tuples) with
+  handsome symbolic notation, such as @{text "(x, y) \<in> sim"} versus
+  @{text "x \<approx> y"}.
 *}
 
 consts
