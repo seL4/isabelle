@@ -249,12 +249,7 @@ fun use_thy1 tmp_loadpath_valid name =
 	     (writeln ("Reading \"" ^ name ^ ".thy\"");
 	      init_thyinfo ();
 	      read_thy tname thy_file;
-              let val old_pt = ! Goals.proof_timing;
-	      in  (*suppress annoying messages during theory loading*)
-		  proof_timing := false;
-		  Use.use (out_name tname);
-                  proof_timing := old_pt
-                  end;
+	      Use.use (out_name tname);
 	      if not (!delete_tmpfiles) then ()
 	      else OS.FileSys.remove (out_name tname);
 	      thyfile2html tname abs_path)
@@ -294,7 +289,7 @@ val use_thy = use_thy1 false;
 
 fun time_use_thy tname = timeit(fn()=>
    (writeln("\n**** Starting Theory " ^ tname ^ " ****");
-    use_thy tname;
+    setmp Goals.proof_timing true use_thy tname;
     writeln("\n**** Finished Theory " ^ tname ^ " ****"))
    );
 
