@@ -36,6 +36,9 @@ sig
     {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
       induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val print_inductives: theory -> unit
+  val mono_add_global: theory attribute
+  val mono_del_global: theory attribute
+  val get_monos: theory -> thm list
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     theory attribute list -> ((bstring * term) * theory attribute list) list ->
       thm list -> thm list -> theory -> theory *
@@ -55,6 +58,102 @@ end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
 struct
+
+(*** theory data ***)
+
+(* data kind 'HOL/inductive' *)
+
+type inductive_info =
+  {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
+    induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
+
+structure InductiveArgs =
+struct
+  val name = "HOL/inductive";
+  type T = inductive_info Symtab.table * thm list;
+
+  val empty = (Symtab.empty, []);
+  val copy = I;
+  val prep_ext = I;
+  fun merge ((tab1, monos1), (tab2, monos2)) = (Symtab.merge (K true) (tab1, tab2),
+    Library.generic_merge Thm.eq_thm I I monos1 monos2);
+
+  fun print sg (tab, monos) =
+    (Pretty.writeln (Pretty.strs ("(co)inductives:" ::
+       map #1 (Sign.cond_extern_table sg Sign.constK tab)));
+     Pretty.writeln (Pretty.big_list "monotonicity rules:" (map Display.pretty_thm monos)));
+end;
+
+structure InductiveData = TheoryDataFun(InductiveArgs);
+val print_inductives = InductiveData.print;
+
+
+(* get and put data *)
+
+fun get_inductive thy name =
+  (case Symtab.lookup (fst (InductiveData.get thy), name) of
+    Some info => info
+  | None => error ("Unknown (co)inductive set " ^ quote name));
+
+fun put_inductives names info thy =
+  let
+    fun upd ((tab, monos), name) = (Symtab.update_new ((name, info), tab), monos);
+    val tab_monos = foldl upd (InductiveData.get thy, names)
+      handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
+  in InductiveData.put tab_monos thy end;
+
+val get_monos = snd o InductiveData.get;
+
+fun put_monos thms thy = InductiveData.put (fst (InductiveData.get thy), thms) thy;
+
+(** monotonicity rules **)
+
+fun mk_mono thm =
+  let
+    fun eq2mono thm' = [standard (thm' RS (thm' RS eq_to_mono))] @
+      (case concl_of thm of
+          (_ $ (_ $ (Const ("Not", _) $ _) $ _)) => []
+        | _ => [standard (thm' RS (thm' RS eq_to_mono2))]);
+    val concl = concl_of thm
+  in
+    if Logic.is_equals concl then
+      eq2mono (thm RS meta_eq_to_obj_eq)
+    else if can (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl then
+      eq2mono thm
+    else [thm]
+  end;
+
+(* mono add/del *)
+
+local
+
+fun map_rules_global f thy = put_monos (f (get_monos thy)) thy;
+
+fun add_mono thm rules = Library.gen_union Thm.eq_thm (mk_mono thm, rules);
+fun del_mono thm rules = Library.gen_rems Thm.eq_thm (rules, mk_mono thm);
+
+fun mk_att f g (x, thm) = (f (g thm) x, thm);
+
+in
+
+val mono_add_global = mk_att map_rules_global add_mono;
+val mono_del_global = mk_att map_rules_global del_mono;
+
+end;
+
+
+(* concrete syntax *)
+
+val monoN = "mono";
+val addN = "add";
+val delN = "del";
+
+fun mono_att add del =
+  Attrib.syntax (Scan.lift (Args.$$$ addN >> K add || Args.$$$ delN >> K del || Scan.succeed add));
+
+val mono_attr =
+  (mono_att mono_add_global mono_del_global, mono_att Attrib.undef_local_attribute Attrib.undef_local_attribute);
+
 
 
 (** utilities **)
@@ -100,9 +199,6 @@ fun unify_consts sign cs intr_ts =
 
 
 (* misc *)
-
-(*for proving monotonicity of recursion operator*)
-val default_monos = basic_monos @ [vimage_mono];
 
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (concl_of vimageD);
 
@@ -157,24 +253,21 @@ fun err_in_prem sign t p msg = error ("Ill-formed premise\n" ^
 
 val msg1 = "Conclusion of introduction rule must have form\
           \ ' t : S_i '";
-val msg2 = "Premises mentioning recursive sets must have form\
-          \ ' t : M S_i '";
+val msg2 = "Non-atomic premise";
 val msg3 = "Recursion term on left of member symbol";
 
 fun check_rule sign cs r =
   let
-    fun check_prem prem = if exists (Logic.occs o (rpair prem)) cs then
-         (case prem of
-           (Const ("op :", _) $ t $ u) =>
-             if exists (Logic.occs o (rpair t)) cs then
-               err_in_prem sign r prem msg3 else ()
-         | _ => err_in_prem sign r prem msg2)
-        else ()
+    fun check_prem prem = if can HOLogic.dest_Trueprop prem then ()
+      else err_in_prem sign r prem msg2;
 
-  in (case (HOLogic.dest_Trueprop o Logic.strip_imp_concl) r of
-        (Const ("op :", _) $ _ $ u) =>
-          if u mem cs then seq (check_prem o HOLogic.dest_Trueprop)
-            (Logic.strip_imp_prems r)
+  in (case HOLogic.dest_Trueprop (Logic.strip_imp_concl r) of
+        (Const ("op :", _) $ t $ u) =>
+          if u mem cs then
+            if exists (Logic.occs o (rpair t)) cs then
+              err_in_rule sign r msg3
+            else
+              seq check_prem (Logic.strip_imp_prems r)
           else err_in_rule sign r msg1
       | _ => err_in_rule sign r msg1)
   end;
@@ -182,49 +275,6 @@ fun check_rule sign cs r =
 fun try' f msg sign t = (case (try f t) of
       Some x => x
     | None => error (msg ^ Sign.string_of_term sign t));
-
-
-
-(*** theory data ***)
-
-(* data kind 'HOL/inductive' *)
-
-type inductive_info =
-  {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
-    induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
-
-structure InductiveArgs =
-struct
-  val name = "HOL/inductive";
-  type T = inductive_info Symtab.table;
-
-  val empty = Symtab.empty;
-  val copy = I;
-  val prep_ext = I;
-  val merge: T * T -> T = Symtab.merge (K true);
-
-  fun print sg tab =
-    Pretty.writeln (Pretty.strs ("(co)inductives:" ::
-      map #1 (Sign.cond_extern_table sg Sign.constK tab)));
-end;
-
-structure InductiveData = TheoryDataFun(InductiveArgs);
-val print_inductives = InductiveData.print;
-
-
-(* get and put data *)
-
-fun get_inductive thy name =
-  (case Symtab.lookup (InductiveData.get thy, name) of
-    Some info => info
-  | None => error ("Unknown (co)inductive set " ^ quote name));
-
-fun put_inductives names info thy =
-  let
-    fun upd (tab, name) = Symtab.update_new ((name, info), tab);
-    val tab = foldl upd (InductiveData.get thy, names)
-      handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
-  in InductiveData.put tab thy end;
 
 
 
@@ -280,22 +330,33 @@ fun mk_indrule cs cTs params intr_ts =
       let
         val frees = map dest_Free ((add_term_frees (r, [])) \\ params);
 
-        fun subst (prem as (Const ("op :", T) $ t $ u), prems) =
-              let val n = find_index_eq u cs in
-                if n >= 0 then prem :: (nth_elem (n, preds)) $ t :: prems else
-                  (subst_free (map (fn (c, P) => (c, HOLogic.mk_binop "op Int"
-                    (c, HOLogic.Collect_const (HOLogic.dest_setT
-                      (fastype_of c)) $ P))) (cs ~~ preds)) prem)::prems
-              end
-          | subst (prem, prems) = prem::prems;
+        val pred_of = curry (Library.gen_assoc (op aconv)) (cs ~~ preds);
 
+        fun subst (s as ((m as Const ("op :", T)) $ t $ u)) =
+              (case pred_of u of
+                  None => (m $ fst (subst t) $ fst (subst u), None)
+                | Some P => (HOLogic.conj $ s $ (P $ t), Some (s, P $ t)))
+          | subst s =
+              (case pred_of s of
+                  Some P => (HOLogic.mk_binop "op Int"
+                    (s, HOLogic.Collect_const (HOLogic.dest_setT
+                      (fastype_of s)) $ P), None)
+                | None => (case s of
+                     (t $ u) => (fst (subst t) $ fst (subst u), None)
+                   | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), None)
+                   | _ => (s, None)));
+
+        fun mk_prem (s, prems) = (case subst s of
+              (_, Some (t, u)) => t :: u :: prems
+            | (t, _) => t :: prems);
+          
         val Const ("op :", _) $ t $ u =
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
       in list_all_free (frees,
-           Logic.list_implies (map HOLogic.mk_Trueprop (foldr subst
+           Logic.list_implies (map HOLogic.mk_Trueprop (foldr mk_prem
              (map HOLogic.dest_Trueprop (Logic.strip_imp_prems r), [])),
-               HOLogic.mk_Trueprop (nth_elem (find_index_eq u cs, preds) $ t)))
+               HOLogic.mk_Trueprop (the (pred_of u) $ t)))
       end;
 
     val ind_prems = map mk_ind_prem intr_ts;
@@ -312,7 +373,7 @@ fun mk_indrule cs cTs params intr_ts =
         (HOLogic.mk_mem (tuple, c), P $ tuple))::ts, x')
       end;
 
-    val mutual_ind_concl = HOLogic.mk_Trueprop (foldr1 (app HOLogic.conj)
+    val mutual_ind_concl = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
         (fst (foldr mk_ind_concl (cs ~~ preds, ([], "xa")))))
 
   in (preds, ind_prems, mutual_ind_concl)
@@ -330,7 +391,7 @@ fun prove_mono setT fp_fun monos thy =
 
     val mono = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
-        (fn _ => [rtac monoI 1, REPEAT (ares_tac (default_monos @ monos) 1)])
+        (fn _ => [rtac monoI 1, REPEAT (ares_tac (get_monos thy @ flat (map mk_mono monos)) 1)])
 
   in mono end;
 
@@ -374,8 +435,8 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
   let
     val _ = message "  Proving the elimination rules ...";
 
-    val rules1 = [CollectE, disjE, make_elim vimageD];
-    val rules2 = [exE, conjE, Inl_neq_Inr, Inr_neq_Inl] @
+    val rules1 = [CollectE, disjE, make_elim vimageD, exE];
+    val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @
       map make_elim [Inl_inject, Inr_inject];
 
     val elims = map (fn t => prove_goalw_cterm rec_sets_defs
@@ -493,14 +554,13 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
       (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
         [rtac (impI RS allI) 1,
          DETERM (etac (mono RS (fp_def RS def_induct)) 1),
-         rewrite_goals_tac (map mk_meta_eq (vimage_Int::vimage_simps)),
+         rewrite_goals_tac (map mk_meta_eq (vimage_Int::Int_Collect::vimage_simps)),
          fold_goals_tac rec_sets_defs,
          (*This CollectE and disjE separates out the introduction rules*)
-         REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
+         REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE, exE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
-         REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE] 
-                     ORELSE' hyp_subst_tac)),
+         REPEAT (FIRSTGOAL (etac conjE ORELSE' hyp_subst_tac)),
          rewrite_goals_tac sum_case_rewrites,
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
@@ -554,7 +614,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
       in foldr (fn ((x, T), P) => HOLogic.mk_exists (x, T, P))
-        (frees, foldr1 (app HOLogic.conj)
+        (frees, foldr1 HOLogic.mk_conj
           (((HOLogic.eq_const sumT) $ Free (xname, sumT) $ (mk_inj cs sumT u t))::
             (map (subst o HOLogic.dest_Trueprop)
               (Logic.strip_imp_prems r))))
@@ -563,7 +623,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     (* make a disjunction of all introduction rules *)
 
     val fp_fun = absfree (sname, setT, (HOLogic.Collect_const sumT) $
-      absfree (xname, sumT, foldr1 (app HOLogic.disj) (map transform_rule intr_ts)));
+      absfree (xname, sumT, foldr1 HOLogic.mk_disj (map transform_rule intr_ts)));
 
     (* add definiton of recursive sets to theory *)
 
@@ -651,12 +711,12 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
          else I)
       |> Theory.add_path rec_name
       |> PureThy.add_axiomss_i [(("intrs", intr_ts), atts), (("elims", elim_ts), [])]
-      |> (if coind then I else PureThy.add_axioms_i [(("internal_induct", ind_t), [])]);
+      |> (if coind then I else
+            PureThy.add_axioms_i [(("raw_induct", ind_t), [apsnd (standard o split_rule)])]);
 
     val intrs = PureThy.get_thms thy' "intrs";
     val elims = PureThy.get_thms thy' "elims";
-    val raw_induct = if coind then TrueI else
-      standard (split_rule (PureThy.get_thm thy' "internal_induct"));
+    val raw_induct = if coind then TrueI else PureThy.get_thm thy' "raw_induct";
     val induct = if coind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
 
@@ -698,8 +758,6 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
       "Recursive set not previously declared as constant: " sign) cs;
     val cnames = map Sign.base_name full_cnames;
 
-    val _ = assert_all Syntax.is_identifier cnames	(* FIXME why? *)
-       (fn a => "Base name of recursive set not an identifier: " ^ a);
     val _ = seq (check_rule sign cs o snd o fst) intros;
 
     val (thy1, result) =
@@ -716,11 +774,11 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
 fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs thy =
   let
     val sign = Theory.sign_of thy;
-    val cs = map (readtm (Theory.sign_of thy) HOLogic.termTVar) c_strings;
+    val cs = map (term_of o Thm.read_cterm sign o rpair HOLogic.termTVar) c_strings;
 
     val atts = map (Attrib.global_attribute thy) srcs;
     val intr_names = map (fst o fst) intro_srcs;
-    val intr_ts = map (readtm (Theory.sign_of thy) propT o snd o fst) intro_srcs;
+    val intr_ts = map (term_of o Thm.read_cterm sign o rpair propT o snd o fst) intro_srcs;
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts sign cs intr_ts;
 
@@ -738,7 +796,8 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
 
 (* setup theory *)
 
-val setup = [InductiveData.init];
+val setup = [InductiveData.init,
+             Attrib.add_attributes [(monoN, mono_attr, "monotonicity rule")]];
 
 
 (* outer syntax *)
