@@ -75,7 +75,8 @@ New in this Isabelle release
   bypassing the standard channels (writeln etc.), or in token
   translations to produce properly formatted results; Output.raw is
   required when capturing already output material that will eventually
-  be presented to the user a second time.
+  be presented to the user a second time.  For the default print mode,
+  both Output.output and Output.raw have no effect.
 
 
 *** HOL ***

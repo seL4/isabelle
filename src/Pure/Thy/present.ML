@@ -327,11 +327,12 @@ fun isatool_document verbose doc_format path =
   let
     val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
       File.quote_sysify_path path ^ " 2>&1" ^ (if verbose then "" else " >/dev/null");
+    val doc_path = Path.ext doc_format path;
   in
     if verbose then writeln s else ();
     system s;
-    if File.exists (Path.ext doc_format path) then ()
-    else error "Failed to build document"
+    if File.exists doc_path then ()
+    else error ("No document: " ^ quote (Path.pack (Path.expand doc_path)))
   end;
 
 fun isatool_browser graph =
@@ -499,7 +500,8 @@ fun drafts doc_format src_paths =
     fun prep_draft (tex_index, path) =
       let
         val base = Path.base path;
-        val name = Path.pack (#1 (Path.split_ext base));
+        val name =
+          (case Path.pack (#1 (Path.split_ext base)) of "" => gensym "DUMMY" | s => s);
       in
         if File.exists path then
           (Buffer.add (Latex.theory_entry name) tex_index, (name, base, File.read path))

@@ -54,8 +54,7 @@ sig
   val setmargin: int -> unit
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   type pp
-  val pp: (term -> T) -> (typ -> T) -> (sort -> T) ->
-    (class list -> T) -> (arity -> T)  -> pp
+  val pp: (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T) -> pp
   val pp_undef: pp
   val term: pp -> term -> T
   val typ: pp -> typ -> T
@@ -279,7 +278,7 @@ fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
 datatype pp =
   PP of (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T);
 
-fun pp f1 f2 f3 f4 f5 = PP (f1, f2, f3, f4, f5);
+val pp = PP;
 
 fun pp_fun f (PP x) = f x;
 
@@ -297,6 +296,6 @@ val string_of_arity    = string_of oo arity;
 
 fun undef kind _ = str ("*** UNABLE TO PRINT " ^ kind ^ " ***");
 val pp_undef =
-  pp (undef "term") (undef "typ") (undef "sort") (undef "classrel") (undef "arity");
+  pp (undef "term", undef "typ", undef "sort", undef "classrel", undef "arity");
 
 end;
