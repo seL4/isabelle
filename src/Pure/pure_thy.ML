@@ -29,7 +29,7 @@ sig
   val get_thms_closure: theory -> xstring -> thm list
   val single_thm: string -> thm list -> thm
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
-  val thms_containing: theory -> string list -> (string * thm) list
+  val thms_containing: theory -> string list * string list -> (string * thm list) list
   val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
@@ -82,17 +82,17 @@ struct
   type T =
     {space: NameSpace.T,
       thms_tab: thm list Symtab.table,
-      const_idx: int * (int * thm) list Symtab.table} ref;
+      index: FactIndex.T} ref;
 
   fun mk_empty _ =
-    ref {space = NameSpace.empty, thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)} : T;
+    ref {space = NameSpace.empty, thms_tab = Symtab.empty, index = FactIndex.empty}: T;
 
   val empty = mk_empty ();
   fun copy (ref x) = ref x;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
-  fun pretty sg (ref {space, thms_tab, const_idx = _}) =
+  fun pretty sg (ref {space, thms_tab, index = _}) =
     let
       val prt_thm = Display.pretty_thm_sg sg;
       fun prt_thms (name, [th]) =
@@ -169,59 +169,25 @@ fun get_thm thy name = single_thm name (get_thms thy name);
 
 (* thms_of *)
 
-fun attach_name thm = (Thm.name_of_thm thm, thm);
-
 fun thms_of thy =
   let val ref {thms_tab, ...} = get_theorems thy in
-    map attach_name (flat (map snd (Symtab.dest thms_tab)))
+    map (fn th => (Thm.name_of_thm th, th)) (flat (map snd (Symtab.dest thms_tab)))
   end;
 
 
+(* thms_containing *)
 
-(** theorems indexed by constants **)
-
-(* make index *)
-
-fun add_const_idx ((next, table), thm) =
+fun thms_containing thy idx =
   let
-    val {hyps, prop, ...} = Thm.rep_thm thm;
-    val consts =
-      foldr add_term_consts (hyps, add_term_consts (prop, []));
-
-    fun add (tab, c) =
-      Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
-  in (next + 1, foldl add (table, consts)) end;
-
-fun make_const_idx thm_tab =
-  Symtab.foldl (fn (x, (_, ths)) => foldl add_const_idx (x, ths)) ((0, Symtab.empty), thm_tab);
-
-
-(* lookup index *)
-
-(*search locally*)
-fun containing [] thy = thms_of thy
-  | containing consts thy =
-      let
-        fun int ([], _) = []
-          | int (_, []) = []
-          | int (xxs as ((x as (i:int, _)) :: xs), yys as ((y as (j, _)) :: ys)) =
-              if i = j then x :: int (xs, ys)
-              else if i > j then int (xs, yys)
-              else int (xxs, ys);
-
-        fun ints [xs] = xs
-          | ints xss = if exists null xss then [] else foldl int (hd xss, tl xss);
-
-        val ref {const_idx = (_, ctab), ...} = get_theorems thy;
-        val ithmss = map (fn c => Symtab.lookup_multi (ctab, c)) consts;
-      in map (attach_name o snd) (ints ithmss) end;
-
-(*search globally*)
-fun thms_containing thy consts =
-  (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
-    [] => flat (map (containing consts) (thy :: Theory.ancestors_of thy))
-  | cs => raise THEORY ("thms_containing: undeclared consts " ^ commas_quote cs, [thy]))
-  |> map (apsnd (Thm.transfer thy));
+    fun valid (name, ths) =
+      (case try (transform_error (get_thms thy)) name of
+        None => false
+      | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+  in
+    (thy :: Theory.ancestors_of thy)
+    |> map (gen_distinct eq_fst o filter valid o FactIndex.find idx o #index o ! o get_theorems)
+    |> flat
+  end;
 
 
 
@@ -231,9 +197,9 @@ fun thms_containing thy consts =
 
 fun hide_thms b names thy =
   let
-    val r as ref {space, thms_tab, const_idx} = get_theorems thy;
+    val r as ref {space, thms_tab, index} = get_theorems thy;
     val space' = NameSpace.hide b (space, names);
-  in r := {space = space', thms_tab = thms_tab, const_idx = const_idx}; thy end;
+  in r := {space = space', thms_tab = thms_tab, index = index}; thy end;
 
 
 (* naming *)
@@ -267,21 +233,17 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         val (thy', thms') = app_att (thy, pre_name name thms);
         val named_thms = post_name name thms';
 
-        val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
-
-        val overwrite =
-          (case Symtab.lookup (thms_tab, name) of
-            None => false
-          | Some thms' =>
-              if Library.equal_lists Thm.eq_thm (thms', named_thms) then (warn_same name; false)
-              else (warn_overwrite name; true));
-
+        val r as ref {space, thms_tab, index} = get_theorems_sg sg;
         val space' = NameSpace.extend (space, [name]);
         val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
-        val const_idx' =
-          if overwrite then make_const_idx thms_tab'
-          else foldl add_const_idx (const_idx, named_thms);
-      in r := {space = space', thms_tab = thms_tab', const_idx = const_idx'};
+        val index' = FactIndex.add (K false) (index, (name, named_thms));
+      in
+        (case Symtab.lookup (thms_tab, name) of
+          None => ()
+        | Some thms' =>
+            if Library.equal_lists Thm.eq_thm (thms', named_thms) then warn_same name
+            else warn_overwrite name);
+        r := {space = space', thms_tab = thms_tab', index = index'};
         (thy', named_thms)
       end;
 
