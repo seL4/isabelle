@@ -102,13 +102,6 @@ lemma special_ex_swap_lemma [iff]:
 
 lemmas [iff del] = not_None_eq
 
-lemma non_empty_succs: "succs i pc \<noteq> []"
-  by (cases i) auto
-
-lemma non_empty:
-  "non_empty (\<lambda>pc. eff (bs!pc) G pc et)" 
-  by (simp add: non_empty_def eff_def non_empty_succs)
-
 theorem exec_pres_type:
   "wf_prog wf_mb S \<Longrightarrow> 
   pres_type (exec S maxs rT et bs) (size bs) (states S maxs maxr)"
@@ -391,12 +384,14 @@ proof -
     by (clarsimp simp add: not_Err_eq)
 
   from l bounded 
-  have bounded': "bounded (\<lambda>pc. eff (bs!pc) G pc et) (length phi')"
+  have "bounded (\<lambda>pc. eff (bs!pc) G pc et) (length phi')"
     by (simp add: exec_def check_bounded_is_bounded)  
+  hence bounded': "bounded (exec G maxs rT et bs) (length bs)"
+    by (auto intro: bounded_lift simp add: exec_def l)
   with wt_err_step
   have "wt_app_eff (sup_state_opt G) (\<lambda>pc. app (bs!pc) G maxs rT pc et) 
                    (\<lambda>pc. eff (bs!pc) G pc et) (map ok_val phi')"
-    by (auto intro: wt_err_imp_wt_app_eff simp add: l exec_def non_empty)
+    by (auto intro: wt_err_imp_wt_app_eff simp add: l exec_def)
   with instrs l le bounded'
   have "wt_method G C pTs rT maxs mxl bs et (map ok_val phi')"
     apply (unfold wt_method_def wt_app_eff_def)
@@ -409,8 +404,9 @@ proof -
     apply (erule allE, erule impE, assumption)
     apply (elim conjE)
     apply (clarsimp simp add: lesub_def wt_instr_def)
-    apply (unfold bounded_def)
-    apply blast    
+    apply (simp add: exec_def)
+    apply (drule bounded_err_stepD, assumption+)
+    apply blast
     done
 
   thus ?thesis by blast

@@ -11,12 +11,6 @@ constdefs
 "app_mono r app n A ==
  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> app p s"
 
-
-lemma in_map_sndD: "(a,b) \<in> set (map_snd f xs) \<Longrightarrow> \<exists>b'. (a,b') \<in> set xs"
-  apply (induct xs)
-  apply (auto simp add: map_snd_def)
-  done
-
 lemma bounded_lift:
   "bounded step n \<Longrightarrow> bounded (err_step n app step) n"
   apply (unfold bounded_def err_step_def error_def)
@@ -24,18 +18,6 @@ lemma bounded_lift:
   apply (erule allE, erule impE, assumption)
   apply (case_tac s)
   apply (auto simp add: map_snd_def split: split_if_asm)
-  done
-
-lemma boundedD2:
-  "bounded (err_step n app step) n \<Longrightarrow> 
-  p < n \<Longrightarrow>  app p a \<Longrightarrow> (q,b) \<in> set (step p a) \<Longrightarrow> 
-  q < n"
-  apply (simp add: bounded_def err_step_def)
-  apply (erule allE, erule impE, assumption)
-  apply (erule_tac x = "OK a" in allE, drule bspec)
-   apply (simp add: map_snd_def)
-   apply fast
-  apply simp
   done
 
 lemma le_list_map_OK [simp]:
@@ -73,7 +55,7 @@ apply (case_tac t)
  apply clarify
  apply (drule in_map_sndD)
  apply clarify
- apply (drule boundedD2, assumption+)
+ apply (drule bounded_err_stepD, assumption+)
  apply (rule exI [of _ Err])
  apply simp
 apply simp
@@ -94,7 +76,7 @@ apply (simp add: lesubstep_type_def error_def)
 apply clarify
 apply (drule in_map_sndD)
 apply clarify
-apply (drule boundedD2, assumption+)
+apply (drule bounded_err_stepD, assumption+)
 apply (rule exI [of _ Err])
 apply simp
 done

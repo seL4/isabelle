@@ -18,11 +18,13 @@ wt_app_eff :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<
 "wt_app_eff r app step ts \<equiv>
   \<forall>p < size ts. app p (ts!p) \<and> (\<forall>(q,t) \<in> set (step p (ts!p)). t <=_r ts!q)"
 
+
 map_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'c) list"
 "map_snd f \<equiv> map (\<lambda>(x,y). (x, f y))"
 
 error :: "nat \<Rightarrow> (nat \<times> 'a err) list"
 "error n \<equiv> map (\<lambda>x. (x,Err)) [0..n(]"
+
 
 err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's err step_type"
 "err_step n app step p t \<equiv> 
@@ -30,58 +32,79 @@ err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Right
     Err   \<Rightarrow> error n
   | OK t' \<Rightarrow> if app p t' then map_snd OK (step p t') else error n"
 
-non_empty :: "'s step_type \<Rightarrow> bool"
-"non_empty step \<equiv> \<forall>p t. step p t \<noteq> []"
-
-
 lemmas err_step_defs = err_step_def map_snd_def error_def
 
-lemma non_emptyD:
-  "non_empty step \<Longrightarrow> \<exists>q t'. (q,t') \<in> set(step p t)"
-proof (unfold non_empty_def)
-  assume "\<forall>p t. step p t \<noteq> []"
-  hence "step p t \<noteq> []" by blast
-  then obtain x xs where "step p t = x#xs"
-    by (auto simp add: neq_Nil_conv)
-  hence "x \<in> set(step p t)" by simp
-  thus ?thesis by (cases x) blast
-qed
+lemma bounded_err_stepD:
+  "bounded (err_step n app step) n \<Longrightarrow> 
+  p < n \<Longrightarrow>  app p a \<Longrightarrow> (q,b) \<in> set (step p a) \<Longrightarrow> 
+  q < n"
+  apply (simp add: bounded_def err_step_def)
+  apply (erule allE, erule impE, assumption)
+  apply (erule_tac x = "OK a" in allE, drule bspec)
+   apply (simp add: map_snd_def)
+   apply fast
+  apply simp
+  done
 
 
+lemma in_map_sndD: "(a,b) \<in> set (map_snd f xs) \<Longrightarrow> \<exists>b'. (a,b') \<in> set xs"
+  apply (induct xs)
+  apply (auto simp add: map_snd_def)
+  done
+
+
+lemma bounded_err_stepI:
+  "\<forall>p. p < n \<longrightarrow> (\<forall>s. ap p s \<longrightarrow> (\<forall>(q,s') \<in> set (step p s). q < n))
+  \<Longrightarrow> bounded (err_step n ap step) n"
+apply (unfold bounded_def)
+apply clarify
+apply (simp add: err_step_def split: err.splits)
+apply (simp add: error_def)
+ apply blast
+apply (simp split: split_if_asm) 
+ apply (blast dest: in_map_sndD)
+apply (simp add: error_def)
+apply blast
+done
+
+
+text {*
+  There used to be a condition here that each instruction must have a
+  successor. This is not needed any more, because the definition of
+  @{term error} trivially ensures that there is a successor for
+  the critical case where @{term app} does not hold. 
+*}
 lemma wt_err_imp_wt_app_eff:
-  assumes b:  "bounded step (size ts)"
-  assumes n:  "non_empty step"
   assumes wt: "wt_err_step r (err_step (size ts) app step) ts"
+  assumes b:  "bounded (err_step (size ts) app step) (size ts)"
   shows "wt_app_eff r app step (map ok_val ts)"
 proof (unfold wt_app_eff_def, intro strip, rule conjI)
   fix p assume "p < size (map ok_val ts)"
   hence lp: "p < size ts" by simp
+  hence ts: "0 < size ts" by (cases p) auto
+  hence err: "(0,Err) \<in> set (error (size ts))" by (simp add: error_def)
 
   from wt lp
   have [intro?]: "\<And>p. p < size ts \<Longrightarrow> ts ! p \<noteq> Err" 
     by (unfold wt_err_step_def wt_step_def) simp
 
   show app: "app p (map ok_val ts ! p)"
-  proof -
-    from wt lp 
-    obtain s where
+  proof (rule ccontr)
+    from wt lp obtain s where
       OKp:  "ts ! p = OK s" and
       less: "\<forall>(q,t) \<in> set (err_step (size ts) app step p (ts!p)). t <=_(Err.le r) ts!q"
       by (unfold wt_err_step_def wt_step_def stable_def) 
          (auto iff: not_Err_eq)
-    
-    from n obtain q t where q: "(q,t) \<in> set(step p s)"
-      by (blast dest: non_emptyD) 
-    
-    from lp b q
-    have lq: "q < size ts" by (unfold bounded_def) blast
-    hence "ts!q \<noteq> Err" ..
-    then obtain s' where OKq: "ts ! q = OK s'" by (auto iff: not_Err_eq)      
-
-    with OKp less q lp have "app p s"
-      by (auto simp add: err_step_defs split: err.split_asm split_if_asm)      
-
-    with lp OKp show ?thesis by simp
+    assume "\<not> app p (map ok_val ts ! p)"
+    with OKp lp have "\<not> app p s" by simp
+    with OKp have "err_step (size ts) app step p (ts!p) = error (size ts)" 
+      by (simp add: err_step_def)    
+    with err ts obtain q where 
+      "(q,Err) \<in> set (err_step (size ts) app step p (ts!p))" and
+      q: "q < size ts" by auto    
+    with less have "ts!q = Err" by auto
+    moreover from q have "ts!q \<noteq> Err" ..
+    ultimately show False by blast
   qed
   
   show "\<forall>(q,t)\<in>set(step p (map ok_val ts ! p)). t <=_r map ok_val ts ! q" 
@@ -95,8 +118,7 @@ proof (unfold wt_app_eff_def, intro strip, rule conjI)
       by (unfold wt_err_step_def wt_step_def stable_def) 
          (auto iff: not_Err_eq)
 
-    from lp b q
-    have lq: "q < size ts" by (unfold bounded_def) blast
+    from b lp app q have lq: "q < size ts" by (rule bounded_err_stepD)
     hence "ts!q \<noteq> Err" ..
     then obtain s' where OKq: "ts ! q = OK s'" by (auto iff: not_Err_eq)
 
