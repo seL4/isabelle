@@ -118,7 +118,7 @@ by (Asm_full_simp_tac 1);
 qed_spec_mp "finite_acyclic_wf";
 
 qed_goal "finite_acyclic_wf_converse" thy 
- "ÄX. Ëfinite r; acyclic rÌ êë wf (r^-1)" (K [
+ "!!X. [|finite r; acyclic r|] ==> wf (r^-1)" (K [
 	etac (finite_converse RS iffD2 RS finite_acyclic_wf) 1,
 	etac (acyclic_converse RS iffD2) 1]);
 
