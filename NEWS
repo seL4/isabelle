@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -45,8 +46,8 @@ long arrows);
 * new flag show_tags controls display of tags of theorems (which are
 basically just comments that may be attached by some tools);
 
-* improved isatool install: -k creates KDE application icon, -p DIR
-installs binaries in path;
+* improved isatool install: option -k creates KDE application icon,
+option -p DIR installs standalone binaries;
 
 * added ML_PLATFORM setting (useful for cross-platform installations);
 
