@@ -88,7 +88,7 @@ fun intro_tacsf disjIn prems =
    rtac disjIn 1,
    (*Not ares_tac, since refl must be tried before any equality assumptions;
      backtracking may occur if the premises have extra variables!*)
-   DEPTH_SOLVE_1 (resolve_tac [refl,exI,conjI] 1 ORELSE assume_tac 1),
+   DEPTH_SOLVE_1 (resolve_tac [refl,exI,conjI] 1 APPEND assume_tac 1),
    (*Now solve the equations like Inl 0 = Inl ?b2*)
    rewrite_goals_tac Inductive.con_defs,
    REPEAT (rtac refl 1)];
