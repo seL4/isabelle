@@ -6,11 +6,11 @@ Combination of classical reasoner and simplifier
 to be used after installing both of them
 *)
 
+type clasimpset = claset * simpset;
+
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
 	addsimps2 delsimps2 addcongs2 delcongs2;
 infix 4 addSss addss;
-
-type clasimpset = claset * simpset;
 
 signature CLASIMP =
 sig
@@ -28,11 +28,17 @@ sig
   val auto_tac	: clasimpset -> tactic
   val Auto_tac	: tactic
   val auto	: unit -> unit
+  val smart_tac	: clasimpset  -> int -> tactic
+  val Smart_tac	: int -> tactic
+  val smart	: int -> unit
 end;
 
 structure Clasimp: CLASIMP =
 struct
 
+(* this interface for updating a clasimpset is rudimentary and just for 
+   convenience for the most common cases. 
+   In other cases a clasimpset may be dealt with componentwise. *)
 local 
   fun pair_upd1 f ((a,b),x) = (f(a,x), b);
   fun pair_upd2 f ((a,b),x) = (a, f(b,x));
@@ -106,5 +112,13 @@ fun auto_tac (cs,ss) = mk_auto_tac (cs,ss) 4 2;
 fun Auto_tac st = auto_tac (claset(), simpset()) st;
 
 fun auto () = by Auto_tac;
+
+(* aimed to solve the given subgoal totally, using whatever tools possible *)
+fun smart_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
+	clarify_tac cs' 1,
+	IF_UNSOLVED (asm_full_simp_tac ss 1),
+	IF_UNSOLVED (fast_tac cs' 1)]) end;
+fun Smart_tac i = smart_tac (claset(), simpset()) i;
+fun smart i = by (Smart_tac i);
 
 end;
