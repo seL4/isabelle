@@ -21,7 +21,7 @@ if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
   ML_PLATFORM=x86-linux
   ML_HOME=/usr/bin
   ML_DBASE=/usr/lib/poly/ML_dbase
-  ML_OPTIONS="-h 30000"
+  ML_OPTIONS="-h 15000"
 else
   #... or rather a self-contained multi-platform installation
   POLYML_HOME=$(choosefrom \
@@ -33,7 +33,7 @@ else
   ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
   ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo unknown-platform)
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-h 30000"
+  ML_OPTIONS="-h 15000"
 fi
 
 # Standard ML of New Jersey 110 or later
