@@ -126,39 +126,31 @@ by (case_tac "na<k" 1);
 (* 1  case n<k *)
 by (subgoal_tac "m<k" 1);
 by (asm_simp_tac (!simpset addsimps [div_less]) 1);
-by (etac le_less_trans 1);
-by (atac 1);
+by (trans_tac 1);
 (* 2  case n >= k *)
 by (case_tac "m<k" 1);
 (* 2.1  case m<k *)
 by (asm_simp_tac (!simpset addsimps [div_less]) 1);
 (* 2.2  case m>=k *)
-by (asm_simp_tac (!simpset addsimps [div_geq]) 1);
-by (REPEAT (eresolve_tac [allE,impE] 1));
-by (REPEAT (eresolve_tac [allE,impE] 2));
-by (atac 3);
-by (asm_simp_tac (!simpset addsimps [diff_less]) 1);
-by (etac diff_le_mono 1);
+by (asm_simp_tac (!simpset addsimps [div_geq, diff_less, diff_le_mono]) 1);
 qed_spec_mp "div_le_mono";
 
 
 (* Antimonotonicity of div in second argument *)
 goal thy "!!k m n. [| 0<m; m<=n |] ==> (k div n) <= (k div m)";
 by (subgoal_tac "0<n" 1);
- by(trans_tac 2);
+ by (trans_tac 2);
 by (res_inst_tac [("n","k")] less_induct 1);
-by(Simp_tac 1);
-by(rename_tac "k" 1);
+by (Simp_tac 1);
+by (rename_tac "k" 1);
 by (case_tac "k<n" 1);
  by (asm_simp_tac (!simpset addsimps [div_less]) 1);
 by (subgoal_tac "~(k<m)" 1);
- by(trans_tac 2);
+ by (trans_tac 2);
 by (asm_simp_tac (!simpset addsimps [div_geq]) 1);
 by (subgoal_tac "(k-n) div n <= (k-m) div n" 1);
- by (etac le_trans 1);
- by (REPEAT (eresolve_tac [allE,impE] 1));
-  by (atac 2);
- by (asm_simp_tac (!simpset addsimps [diff_less]) 1);
+ by (best_tac (!claset addIs [le_trans] 
+                       addss (!simpset addsimps [diff_less])) 1);
 by (REPEAT (eresolve_tac [div_le_mono,diff_le_mono2] 1));
 qed "div_le_mono2";
 
@@ -173,12 +165,12 @@ Addsimps [div_le_dividend];
 (* Similar for "less than" *)
 goal thy "!!m n. 1<n ==> (0 < m) --> (m div n < m)";
 by (res_inst_tac [("n","m")] less_induct 1);
-by(Simp_tac 1);
-by(rename_tac "m" 1);
+by (Simp_tac 1);
+by (rename_tac "m" 1);
 by (case_tac "m<n" 1);
  by (asm_full_simp_tac (!simpset addsimps [div_less]) 1);
 by (subgoal_tac "0<n" 1);
- by(trans_tac 2);
+ by (trans_tac 2);
 by (asm_full_simp_tac (!simpset addsimps [div_geq]) 1);
 by (case_tac "n<m" 1);
  by (subgoal_tac "(m-n) div n < (m-n)" 1);
@@ -188,7 +180,7 @@ by (case_tac "n<m" 1);
  by (asm_full_simp_tac (!simpset addsimps [diff_less]) 1);
 (* case n=m *)
 by (subgoal_tac "m=n" 1);
- by(trans_tac 2);
+ by (trans_tac 2);
 by (asm_simp_tac (!simpset addsimps [div_less]) 1);
 qed_spec_mp "div_less_dividend";
 Addsimps [div_less_dividend];
