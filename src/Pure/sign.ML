@@ -277,8 +277,8 @@ fun of_theory sg = "\nof theory " ^ str_of_sg sg;
 fun err_inconsistent kinds =
   error ("Attempt to merge different versions of " ^ commas_quote kinds ^ " data");
 
-fun err_method name kind =
-  error ("Error while invoking " ^ quote kind ^ " " ^ name ^ " method");
+fun err_method name kind e =
+  (writeln ("Error while invoking " ^ quote kind ^ " " ^ name ^ " method"); raise e);
 
 fun err_dup_init sg kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
@@ -310,9 +310,10 @@ fun merge_data (Data tab1, Data tab2) =
      | Some x => [(kind, x)]);
 
     fun merge_entries [(kind, (e, mths as (_, ext, _, _)))] =
-          (kind, (ext e handle _ => err_method "prep_ext" (Object.name_of_kind kind), mths))
+          (kind, (ext e handle exn => err_method "prep_ext" (Object.name_of_kind kind) exn, mths))
       | merge_entries [(kind, (e1, mths as (_, _, mrg, _))), (_, (e2, _))] =
-          (kind, (mrg (e1, e2) handle _ => err_method "merge" (Object.name_of_kind kind), mths))
+          (kind, (mrg (e1, e2)
+            handle exn => err_method "merge" (Object.name_of_kind kind) exn, mths))
       | merge_entries _ = sys_error "merge_entries";
 
     val data = map (fn k => merge_entries (entry data1 k @ entry data2 k)) kinds;
@@ -350,7 +351,7 @@ fun get_data kind f (sg as Sg (_, {data = Data tab, ...})) =
 
 fun print_data kind (sg as Sg (_, {data = Data tab, ...})) =
   let val (e, (_, _, _, prt)) = lookup_data sg tab kind
-  in prt sg e handle _ => err_method ("print" ^ of_theory sg) (Object.name_of_kind kind) end;
+  in prt sg e handle exn => err_method ("print" ^ of_theory sg) (Object.name_of_kind kind) exn end;
 
 fun put_data_sg sg (Data tab) kind f x =
   Data (Symtab.update ((Object.name_of_kind kind,
@@ -916,7 +917,7 @@ fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, f, x) =
 
 
 fun copy_data (k, (e, mths as (cp, _, _, _))) =
-  (k, (cp e handle _ => err_method "copy" (Object.name_of_kind k), mths));
+  (k, (cp e handle exn => err_method "copy" (Object.name_of_kind k) exn, mths));
 
 fun copy (sg as Sg ({id = _, stamps}, {self, tsig, const_tab, syn, path, spaces, data})) =
   let
@@ -989,9 +990,9 @@ fun merge_refs (sgr1 as SgRef (Some (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
 val merge = deref o merge_refs o pairself self_ref;
 
 
-(* proper merge *)
+(* proper merge *)		(*exception TERM/ERROR*)
 
-fun merge_aux (sg1, sg2) =
+fun nontriv_merge (sg1, sg2) =
   if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
@@ -1028,11 +1029,6 @@ fun merge_aux (sg1, sg2) =
     in
       self_ref := sign; sign
     end;
-
-fun nontriv_merge sg1_sg2 =
-  (case handle_error merge_aux sg1_sg2 of
-    OK sg => sg
-  | Error msg => raise TERM (msg, []));
 
 
 
