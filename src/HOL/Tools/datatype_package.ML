@@ -40,8 +40,9 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val rep_datatype_i : string list option -> (thm * theory attribute list) list list ->
-    (thm * theory attribute list) list list -> (thm * theory attribute list) -> theory -> theory *
+  val rep_datatype_i : string list option -> (thm list * theory attribute list) list list ->
+    (thm list * theory attribute list) list list -> (thm list * theory attribute list) ->
+    theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,

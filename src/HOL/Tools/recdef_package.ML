@@ -34,7 +34,7 @@ sig
     theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (xstring * Args.src list) list
     -> theory -> theory * {induct_rules: thm}
-  val defer_recdef_i: xstring -> term list -> (thm * theory attribute list) list
+  val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
     -> theory -> theory * {induct_rules: thm}
   val recdef_tc: bstring * Args.src list -> xstring -> int option
     -> bool -> theory -> ProofHistory.T
