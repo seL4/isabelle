@@ -133,6 +133,15 @@ for case-analysis and induction, there are also emulations of ML tactics
 %  \isarcmd{defer_recdef} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
+\railalias{recdefsimp}{recdef\_simp}
+\railterm{recdefsimp}
+
+\railalias{recdefcong}{recdef\_cong}
+\railterm{recdefcong}
+
+\railalias{recdefwf}{recdef\_wf}
+\railterm{recdefwf}
+
 \begin{rail}
   'primrec' parname? (equation + )
   ;
@@ -145,7 +154,7 @@ for case-analysis and induction, there are also emulations of ML tactics
   ;
   hints: '(' 'hints' (recdefmod * ) ')'
   ;
-  recdefmod: (('simp' | 'cong' | 'wf' | 'split' | 'iff') (() | 'add' | 'del') ':' thmrefs) | clamod
+  recdefmod: ((recdefsimp | recdefcong | recdefwf) (() | 'add' | 'del') ':' thmrefs) | clasimpmod
   ;
 \end{rail}
 
@@ -154,10 +163,11 @@ for case-analysis and induction, there are also emulations of ML tactics
   datatypes, see also \cite{isabelle-HOL}.
 \item [$\isarkeyword{recdef}$] defines general well-founded recursive
   functions (using the TFL package), see also \cite{isabelle-HOL}.  The
-  $simp$, $cong$, and $wf$ hints refer to auxiliary rules to be used in the
-  internal automated proof process of TFL; the other declarations refer to the
-  Simplifier and Classical reasoner (\S\ref{sec:simplifier},
-  \S\ref{sec:classical}, \S\ref{sec:clasimp}) that are used internally.
+  $recdef_simp$, $recdef_cong$, and $recdef_wf$ hints refer to auxiliary rules
+  to be used in the internal automated proof process of TFL.  Additional
+  $clasimpmod$ declarations (cf.\ \S\ref{sec:clasimp}) may be given to tune
+  the context of the Simplifier (cf.\ \S\ref{sec:simplifier}) and Classical
+  reasoner (cf.\ \S\ref{sec:classical}).
 \end{descr}
 
 Both kinds of recursive definitions accommodate reasoning by induction (cf.\ 

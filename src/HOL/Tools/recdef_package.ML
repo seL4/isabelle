@@ -180,32 +180,27 @@ val wf_attr = mk_attr (wf_add_global, wf_add_local) (wf_del_global, wf_del_local
 end;
 
 
+(* modifiers *)
 
-(** prepare_hints(_i) **)
-
-local
-
-val simpN = "simp";
-val congN = "cong";
-val wfN = "wf";
-val addN = "add";
-val delN = "del";
+val recdef_simpN = "recdef_simp";
+val recdef_congN = "recdef_cong";
+val recdef_wfN = "recdef_wf";
 
 val recdef_modifiers =
- [Args.$$$ simpN -- Args.colon >> K ((I, simp_add_local): Method.modifier),
-  Args.$$$ simpN -- Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ congN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ congN -- Args.$$$ addN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ congN -- Args.$$$ delN -- Args.colon >> K (I, cong_del_local),
-  Args.$$$ wfN -- Args.colon >> K (I, wf_add_local),
-  Args.$$$ wfN -- Args.$$$ addN -- Args.colon >> K (I, wf_add_local),
-  Args.$$$ wfN -- Args.$$$ delN -- Args.colon >> K (I, wf_del_local)];
+ [Args.$$$ recdef_simpN -- Args.colon >> K ((I, simp_add_local): Method.modifier),
+  Args.$$$ recdef_simpN -- Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ recdef_simpN -- Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ recdef_congN -- Args.colon >> K (I, cong_add_local),
+  Args.$$$ recdef_congN -- Args.$$$ Args.addN -- Args.colon >> K (I, cong_add_local),
+  Args.$$$ recdef_congN -- Args.$$$ Args.delN -- Args.colon >> K (I, cong_del_local),
+  Args.$$$ recdef_wfN -- Args.colon >> K (I, wf_add_local),
+  Args.$$$ recdef_wfN -- Args.$$$ Args.addN -- Args.colon >> K (I, wf_add_local),
+  Args.$$$ recdef_wfN -- Args.$$$ Args.delN -- Args.colon >> K (I, wf_del_local)] @
+  Clasimp.clasimp_modifiers;
 
-val modifiers =  (* FIXME include 'simp cong' (!?) *)
-  recdef_modifiers @ Splitter.split_modifiers @ Classical.cla_modifiers @ Clasimp.iff_modifiers;
 
-in
+
+(** prepare_hints(_i) **)
 
 fun prepare_hints thy opt_src =
   let
@@ -213,7 +208,7 @@ fun prepare_hints thy opt_src =
     val ctxt =
       (case opt_src of
         None => ctxt0
-      | Some src => Method.only_sectioned_args modifiers I src ctxt0);
+      | Some src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
     val {simps, congs, wfs} = get_local_hints ctxt;
     val cs = Classical.get_local_claset ctxt;
     val ss = Simplifier.get_local_simpset ctxt addsimps simps;
@@ -222,8 +217,6 @@ fun prepare_hints thy opt_src =
 fun prepare_hints_i thy () =
   let val {simps, congs, wfs} = get_global_hints thy
   in (Classical.claset_of thy, Simplifier.simpset_of thy addsimps simps, map #2 congs, wfs) end;
-
-end;
 
 
 
@@ -305,9 +298,9 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 val setup =
  [GlobalRecdefData.init, LocalRecdefData.init,
   Attrib.add_attributes
-   [("recdef_simp", simp_attr, "declaration of recdef simp rule"),
-    ("recdef_cong", cong_attr, "declaration of recdef cong rule"),
-    ("recdef_wf", wf_attr, "declaration of recdef wf rule")]];
+   [(recdef_simpN, simp_attr, "declaration of recdef simp rule"),
+    (recdef_congN, cong_attr, "declaration of recdef cong rule"),
+    (recdef_wfN, wf_attr, "declaration of recdef wf rule")]];
 
 
 (* outer syntax *)
@@ -336,7 +329,6 @@ val defer_recdefP =
   OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
-val _ = OuterSyntax.add_keywords ["hints"];
 val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP];
 
 end;
