@@ -23,8 +23,8 @@ use "thy_read.ML";
 
 structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
 structure ThmDB = ThmDBFun();
-structure Readthy = ReadthyFun(structure ThySyn = ThySyn and ThmDB = ThmDB);
-open ThmDB Readthy;
+structure ReadThy = ReadthyFun(structure ThySyn = ThySyn and ThmDB = ThmDB);
+open ThmDB ReadThy;
 
 (* hide functors; saves space in PolyML *)
 functor ThyScanFun() = struct end;
@@ -34,8 +34,11 @@ functor SimplifierFun() = struct end;
 fun init_thy_reader () =
   use_string
    ["structure ThmDB = ThmDBFun();",
-    "structure Readthy = ReadthyFun(structure ThySyn = ThySyn \
+    "structure ReadThy = ReadthyFun(structure ThySyn = ThySyn \
                                    \and ThmDB = ThmDB);",
-    "Readthy.loaded_thys := !loaded_thys;",
+    "ReadThy.loaded_thys := !loaded_thys;",
+    "ReadThy.gif_path := !gif_path;",
+    "ReadThy.chart00_path := !chart00_path;",
+    "ReadThy.make_html := !make_html;",
     "ThmDB.thm_db := !thm_db;",
-    "open ThmDB Readthy;"];
+    "open ThmDB ReadThy;"];
