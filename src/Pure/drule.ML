@@ -99,6 +99,8 @@ sig
   val tag_internal      : 'a attribute
   val has_internal	: tag list -> bool
   val compose_single    : thm * int * thm -> thm
+  val add_rules		: thm list -> thm list -> thm list
+  val del_rules		: thm list -> thm list -> thm list
   val merge_rules	: thm list * thm list -> thm list
   val norm_hhf_eq	: thm
   val triv_goal         : thm
@@ -426,10 +428,14 @@ fun tha COMP thb =
 
 (*Do the two theorems have the same signature?*)
 fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
-fun merge_rules (ths1, ths2) = Library.generic_merge Thm.eq_thm I I ths1 ths2;
 
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o #prop o rep_thm;
+
+(*maintain lists of theorems --- preserving canonical order*)
+val add_rules = Library.generic_extend Thm.eq_thm I I;
+fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
+fun merge_rules (rules1, rules2) = Library.generic_merge Thm.eq_thm I I rules1 rules2;
 
 
 (** Mark Staples's weaker version of eq_thm: ignores variable renaming and
