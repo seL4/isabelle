@@ -1,5 +1,5 @@
 (*  Title:      ZF/UNITY/Monotonicity.ML
-    ID:         $Id$
+    ID:         $Id \\<in> Monotonicity.ML,v 1.2 2003/06/26 13:48:33 paulson Exp $
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
@@ -12,12 +12,12 @@ Addsimps [append_left_is_Nil_iff,append_left_is_Nil_iff2];
 *)
 
 Goalw [mono1_def]
-  "[| mono1(A, r, B, s, f); <x, y>:r; x:A; y:A |] ==> <f(x), f(y)>:s";
+  "[| mono1(A, r, B, s, f); <x, y>:r; x \\<in> A; y \\<in> A |] ==> <f(x), f(y)>:s";
 by Auto_tac;
 qed "mono1D";
 
 Goalw [mono2_def]
-"[| mono2(A, r, B, s, C, t, f);  <x, y>:r; <u,v>:s; x:A; y:A; u:B; v:B |] ==> \
+"[| mono2(A, r, B, s, C, t, f);  <x, y>:r; <u,v>:s; x \\<in> A; y \\<in> A; u \\<in> B; v \\<in> B |] ==> \
 \  <f(x, u), f(y,v)>:t";
 by Auto_tac;
 qed "mono2D";
@@ -26,7 +26,7 @@ qed "mono2D";
 (** Monotonicity of take **)
 
 (*????premises too strong*)
-Goal "[| i le j; xs:list(A); i:nat; j:nat |] ==> <take(i, xs), take(j, xs)>:prefix(A)";
+Goal "[| i le j; xs \\<in> list(A); i \\<in> nat; j \\<in> nat |] ==> <take(i, xs), take(j, xs)>:prefix(A)";
 by (case_tac "length(xs) le i" 1);
 by (subgoal_tac "length(xs) le j" 1);
 by (blast_tac (claset() addIs [le_trans]) 2);
@@ -44,11 +44,11 @@ by (blast_tac (claset() addIs [leI]) 2);
 by (asm_full_simp_tac (simpset() addsimps [take_add, prefix_iff, take_type, drop_type]) 1);
 qed "take_mono_left";
 
-Goal "[| <xs, ys>:prefix(A); i:nat |] ==> <take(i, xs), take(i, ys)>:prefix(A)"; 
+Goal "[| <xs, ys>:prefix(A); i \\<in> nat |] ==> <take(i, xs), take(i, ys)>:prefix(A)"; 
 by (auto_tac (claset(), simpset() addsimps [prefix_iff]));
 qed "take_mono_right";
 
-Goal "[| i le j; <xs, ys>:prefix(A); i:nat; j:nat |] ==> <take(i, xs), take(j, ys)>:prefix(A)";
+Goal "[| i le j; <xs, ys>:prefix(A); i \\<in> nat; j \\<in> nat |] ==> <take(i, xs), take(j, ys)>:prefix(A)";
 by (res_inst_tac [("b", "take(j, xs)")] prefix_trans 1);
 by (auto_tac (claset() addDs [prefix_type RS subsetD]
                        addIs [take_mono_left, take_mono_right], simpset()));

@@ -1,5 +1,5 @@
 (*  Title:      ZF/UNITY/Comp.ML
-    ID:         $Id$
+    ID:         $Id \\<in> Comp.ML,v 1.8 2003/06/27 16:40:25 paulson Exp $
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   1998  University of Cambridge
 Composition
@@ -20,7 +20,7 @@ by (auto_tac (claset(), simpset() addsimps Join_ac));
 qed "componentI";
 
 Goalw [component_def]
-     "G:program ==> (F component G) <-> \
+     "G \\<in> program ==> (F component G) <-> \
 \  (Init(G) <= Init(F) & Acts(F) <= Acts(G) & AllowedActs(G) <= AllowedActs(F))";
 by Auto_tac;
 by (rtac exI 1);
@@ -29,13 +29,13 @@ by Auto_tac;
 qed "component_eq_subset";
 
 Goalw [component_def] 
-   "F:program ==> SKIP component F";
+   "F \\<in> program ==> SKIP component F";
 by (res_inst_tac [("x", "F")] exI 1);
 by (force_tac (claset() addIs [Join_SKIP_left], simpset()) 1);
 qed "component_SKIP";
 
 Goalw [component_def] 
-"F:program ==> F component F";
+"F \\<in> program ==> F component F";
 by (res_inst_tac  [("x", "F")] exI 1);
 by (force_tac (claset() addIs [Join_SKIP_right], simpset()) 1);
 qed "component_refl";
@@ -66,7 +66,7 @@ Goal "G component F ==> F Join G = F";
 by (auto_tac (claset(), simpset() addsimps Join_ac@[component_def]));
 qed "Join_absorb2";
 
-Goal "H:program==>(JOIN(I,F) component H) <-> (ALL i:I. F(i) component H)";
+Goal "H \\<in> program==>(JOIN(I,F) component H) <-> (\\<forall>i \\<in> I. F(i) component H)";
 by (case_tac "I=0" 1);
 by (Force_tac 1);
 by (asm_simp_tac (simpset() addsimps [component_eq_subset]) 1);
@@ -77,7 +77,7 @@ by (dres_inst_tac [("c", "y"), ("A", "AllowedActs(H)")] subsetD 1);
 by (REPEAT(blast_tac (claset() addSEs [not_emptyE]) 1));
 qed "JN_component_iff";
 
-Goalw [component_def] "i:I ==> F(i) component (JN i:I. (F(i)))";
+Goalw [component_def] "i \\<in> I ==> F(i) component (\\<Squnion>i \\<in> I. (F(i)))";
 by (blast_tac (claset() addIs [JN_absorb]) 1);
 qed "component_JN";
 
@@ -85,19 +85,19 @@ Goalw [component_def] "[| F component G; G component H |] ==> F component H";
 by (blast_tac (claset() addIs [Join_assoc RS sym]) 1);
 qed "component_trans";
 
-Goal "[| F:program; G:program |] ==>(F component G & G  component F) --> F = G";
+Goal "[| F \\<in> program; G \\<in> program |] ==>(F component G & G  component F) --> F = G";
 by (asm_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by (Clarify_tac 1);
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "component_antisym";
 
-Goal "H:program ==> ((F Join G) component H) <-> (F component H & G component H)";
+Goal "H \\<in> program ==> ((F Join G) component H) <-> (F component H & G component H)";
 by (asm_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by (Blast_tac 1);
 qed "Join_component_iff";
 
-Goal "[| F component G; G:A co B; F:program |] ==> F : A co B";
+Goal "[| F component G; G \\<in> A co B; F \\<in> program |] ==> F \\<in> A co B";
 by (ftac constrainsD2 1);
 by (rotate_tac ~1 1);
 by (auto_tac (claset(), 
@@ -119,15 +119,15 @@ Addsimps [preserves_is_safety_prop];
 
 
 val prems = Goalw [preserves_def] 
-"ALL z. F:stable({s:state. f(s) = z})  ==> F:preserves(f)";
+"\\<forall>z. F \\<in> stable({s \\<in> state. f(s) = z})  ==> F \\<in> preserves(f)";
 by Auto_tac;
 by (blast_tac (claset() addDs [stableD2]) 1);
 qed "preserves_aux";
 bind_thm("preservesI", allI RS preserves_aux);
 
 Goalw [preserves_def, stable_def, constrains_def]
-     "[| F:preserves(f);  act : Acts(F);  <s,t> : act |] ==> f(s) = f(t)";
-by (subgoal_tac "s:state & t:state" 1);
+     "[| F \\<in> preserves(f);  act \\<in> Acts(F);  <s,t> \\<in> act |] ==> f(s) = f(t)";
+by (subgoal_tac "s \\<in> state & t \\<in> state" 1);
 by (blast_tac (claset() addSDs [Acts_type RS subsetD]) 2);
 by Auto_tac;
 by (dres_inst_tac [("x", "f(s)")] spec 1);
@@ -136,16 +136,16 @@ by Auto_tac;
 qed "preserves_imp_eq";
 
 Goalw [preserves_def]
-"(F Join G : preserves(v)) <->  \
-\     (programify(F) : preserves(v) & programify(G) : preserves(v))";
+"(F Join G \\<in> preserves(v)) <->  \
+\     (programify(F) \\<in> preserves(v) & programify(G) \\<in> preserves(v))";
 by (auto_tac (claset(), simpset() addsimps [INT_iff]));
 qed "Join_preserves";
  
-Goal "(JOIN(I,F): preserves(v)) <-> (ALL i:I. programify(F(i)):preserves(v))";
+Goal "(JOIN(I,F): preserves(v)) <-> (\\<forall>i \\<in> I. programify(F(i)):preserves(v))";
 by (auto_tac (claset(), simpset() addsimps [JN_stable, preserves_def, INT_iff]));
 qed "JN_preserves";
 
-Goal "SKIP : preserves(v)";
+Goal "SKIP \\<in> preserves(v)";
 by (auto_tac (claset(), simpset() addsimps [preserves_def, INT_iff]));
 qed "SKIP_preserves";
 
@@ -163,7 +163,7 @@ by (auto_tac (claset(),
 by (REPEAT(Blast_tac 1));
 qed "preserves_fun_pair";
 
-Goal "F:preserves(fun_pair(v, w))  <-> F:preserves(v) Int preserves(w)";
+Goal "F \\<in> preserves(fun_pair(v, w))  <-> F \\<in> preserves(v) Int preserves(w)";
 by (simp_tac (simpset() addsimps [preserves_fun_pair]) 1);
 qed "preserves_fun_pair_iff";
 AddIffs [preserves_fun_pair_iff];
@@ -182,7 +182,7 @@ Goalw [preserves_def]
 by Auto_tac;
 qed "preserves_type";
 
-Goal "F:preserves(f) ==> F:program";
+Goal "F \\<in> preserves(f) ==> F \\<in> program";
 by (blast_tac (claset() addIs [preserves_type RS subsetD]) 1);
 qed "preserves_into_program";
 AddTCs [preserves_into_program];
@@ -195,11 +195,11 @@ by (dres_inst_tac [("x", "act")] bspec 1);
 by Auto_tac;
 qed "subset_preserves_comp";
 
-Goal "F:preserves(f) ==> F:preserves(g comp f)";
+Goal "F \\<in> preserves(f) ==> F \\<in> preserves(g comp f)";
 by (blast_tac (claset() addIs [subset_preserves_comp RS subsetD]) 1);
 qed "imp_preserves_comp";
 
-Goal "preserves(f) <= stable({s:state. P(f(s))})";
+Goal "preserves(f) <= stable({s \\<in> state. P(f(s))})";
 by (auto_tac (claset(),
               simpset() addsimps [preserves_def, stable_def, constrains_def]));
 by (rename_tac "s' s" 1);
@@ -207,12 +207,12 @@ by (subgoal_tac "f(s) = f(s')" 1);
 by (ALLGOALS Force_tac);
 qed "preserves_subset_stable";
 
-Goal "F:preserves(f) ==> F:stable({s:state. P(f(s))})";
+Goal "F \\<in> preserves(f) ==> F \\<in> stable({s \\<in> state. P(f(s))})";
 by (blast_tac (claset() addIs [preserves_subset_stable RS subsetD]) 1);
 qed "preserves_imp_stable";
 
 Goalw  [increasing_def]
- "[| F:preserves(f); ALL x:state. f(x):A |] ==> F:Increasing.increasing(A, r, f)";
+ "[| F \\<in> preserves(f); \\<forall>x \\<in> state. f(x):A |] ==> F \\<in> Increasing.increasing(A, r, f)";
 by (auto_tac (claset() addIs [preserves_into_program],
               simpset()));
 by (res_inst_tac [("P", "%x. <k, x>:r")]  preserves_imp_stable 1);
@@ -227,7 +227,7 @@ by (dres_inst_tac [("x", "act")] bspec 1);
 by (auto_tac (claset() addDs [ActsD], simpset()));
 qed "preserves_id_subset_stable";
 
-Goal "[| F:preserves(%x. x); st_set(A) |] ==> F:stable(A)";
+Goal "[| F \\<in> preserves(%x. x); st_set(A) |] ==> F \\<in> stable(A)";
 by (blast_tac (claset() addIs [preserves_id_subset_stable RS subsetD]) 1);
 qed "preserves_id_imp_stable";
 
@@ -242,13 +242,13 @@ qed "component_of_imp_component";
 
 (* component_of satisfies many of component's properties *)
 Goalw [component_of_def]
-"F:program ==> F component_of F";
+"F \\<in> program ==> F component_of F";
 by (res_inst_tac [("x", "SKIP")] exI 1);
 by Auto_tac;
 qed "component_of_refl";
 
 Goalw [component_of_def]
-"F:program ==>SKIP component_of F";
+"F \\<in> program ==>SKIP component_of F";
 by Auto_tac;
 by (res_inst_tac [("x", "F")] exI 1);
 by Auto_tac;
@@ -272,7 +272,7 @@ by (Simp_tac 1);
 qed "localize_Acts_eq";
 
 Goalw [localize_def]
- "AllowedActs(localize(v,F)) = AllowedActs(F) Int (UN G:preserves(v). Acts(G))";
+ "AllowedActs(localize(v,F)) = AllowedActs(F) Int (\\<Union>G \\<in> preserves(v). Acts(G))";
 by (rtac equalityI 1);
 by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "localize_AllowedActs_eq";
@@ -282,21 +282,21 @@ AddIffs [localize_Init_eq, localize_Acts_eq, localize_AllowedActs_eq];
 (** Theorems used in ClientImpl **)
 
 Goal
- "[| F:stable({s:state. P(f(s), g(s))});  G:preserves(f);  G:preserves(g) |] \
-\     ==> F Join G : stable({s:state. P(f(s), g(s))})";
+ "[| F \\<in> stable({s \\<in> state. P(f(s), g(s))});  G \\<in> preserves(f);  G \\<in> preserves(g) |] \
+\     ==> F Join G \\<in> stable({s \\<in> state. P(f(s), g(s))})";
 by (auto_tac (claset() addDs [ActsD, preserves_into_program], 
               simpset() addsimps [stable_def, constrains_def]));
-by (case_tac "act:Acts(F)" 1);
+by (case_tac "act \\<in> Acts(F)" 1);
 by Auto_tac;
 by (dtac preserves_imp_eq 1);
 by (dtac preserves_imp_eq 3);
 by Auto_tac;
 qed "stable_localTo_stable2";
 
-Goal "[| F : stable({s:state. <f(s), g(s)>:r});  G:preserves(f);   \
-\        F Join G : Increasing(A, r, g); \
-\        ALL x:state. f(x):A & g(x):A |]     \
-\     ==> F Join G : Stable({s:state. <f(s), g(s)>:r})";
+Goal "[| F \\<in> stable({s \\<in> state. <f(s), g(s)>:r});  G \\<in> preserves(f);   \
+\        F Join G \\<in> Increasing(A, r, g); \
+\        \\<forall>x \\<in> state. f(x):A & g(x):A |]     \
+\     ==> F Join G \\<in> Stable({s \\<in> state. <f(s), g(s)>:r})";
 by (auto_tac (claset(), 
               simpset() addsimps [stable_def, Stable_def, Increasing_def, 
                                   Constrains_def, all_conj_distrib]));
@@ -308,8 +308,8 @@ by (auto_tac (claset() addDs [ActsD],
               simpset() addsimps [preserves_def, stable_def, constrains_def,
                                   ball_conj_distrib, all_conj_distrib]));
 (*We have a G-action, so delete assumptions about F-actions*)
-by (thin_tac "ALL act:Acts(F). ?P(act)" 1);
-by (thin_tac "\\<forall>k\\<in>A. ALL act:Acts(F). ?P(k,act)" 1);
+by (thin_tac "\\<forall>act \\<in> Acts(F). ?P(act)" 1);
+by (thin_tac "\\<forall>k\\<in>A. \\<forall>act \\<in> Acts(F). ?P(k,act)" 1);
 by (subgoal_tac "f(x) = f(xa)" 1);
 by (auto_tac (claset() addSDs [bspec], simpset())); 
 qed "Increasing_preserves_Stable";
@@ -318,24 +318,24 @@ qed "Increasing_preserves_Stable";
 (** Lemma used in AllocImpl **)
 
 Goalw [Constrains_def, constrains_def] 
-"[| ALL x:I. F: A(x) Co B; F:program |] ==> F:(UN x:I. A(x)) Co B";
+"[| \\<forall>x \\<in> I. F \\<in> A(x) Co B; F \\<in> program |] ==> F:(\\<Union>x \\<in> I. A(x)) Co B";
 by Auto_tac;
 qed "Constrains_UN_left";
 
 Goalw [stable_def, Stable_def, preserves_def]
- "[| F:stable({s:state. P(f(s), g(s))}); \
-\    ALL k:A. F Join G: Stable({s:state. P(k, g(s))}); \
-\   G:preserves(f); ALL s:state. f(s):A|] ==> \
-\   F Join G : Stable({s:state. P(f(s), g(s))})";
-by (res_inst_tac [("A", "(UN k:A. {s:state. f(s)=k} Int {s:state. P(f(s), g(s))})")]
+ "[| F \\<in> stable({s \\<in> state. P(f(s), g(s))}); \
+\    \\<forall>k \\<in> A. F Join G \\<in> Stable({s \\<in> state. P(k, g(s))}); \
+\   G \\<in> preserves(f); \\<forall>s \\<in> state. f(s):A|] ==> \
+\   F Join G \\<in> Stable({s \\<in> state. P(f(s), g(s))})";
+by (res_inst_tac [("A", "(\\<Union>k \\<in> A. {s \\<in> state. f(s)=k} Int {s \\<in> state. P(f(s), g(s))})")]
                Constrains_weaken_L 1);
 by (Blast_tac 2);
 by (rtac Constrains_UN_left 1);
 by Auto_tac;
-by (res_inst_tac [("A", "{s:state. f(s)=k} Int {s:state. P(f(s), g(s))} Int \
-\                        {s:state. P(k, g(s))}"),
-                  ("A'", "({s:state. f(s)=k} Un {s:state. P(f(s), g(s))}) \
-\                           Int {s:state. P(k, g(s))}")] Constrains_weaken 1);
+by (res_inst_tac [("A", "{s \\<in> state. f(s)=k} Int {s \\<in> state. P(f(s), g(s))} Int \
+\                        {s \\<in> state. P(k, g(s))}"),
+                  ("A'", "({s \\<in> state. f(s)=k} Un {s \\<in> state. P(f(s), g(s))}) \
+\                           Int {s \\<in> state. P(k, g(s))}")] Constrains_weaken 1);
 by (REPEAT(Blast_tac 2));
 by (rtac Constrains_Int 1);
 by (rtac constrains_imp_Constrains 1);

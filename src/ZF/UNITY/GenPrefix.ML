@@ -1,5 +1,5 @@
 (*  Title:      ZF/UNITY/GenPrefix.ML
-    ID:         $Id$
+    ID:         $Id \\<in> GenPrefix.ML,v 1.8 2003/06/20 16:13:16 paulson Exp $
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 
@@ -224,14 +224,14 @@ qed "same_gen_prefix_gen_prefix";
 Addsimps [same_gen_prefix_gen_prefix];
 
 Goal "[| xs \\<in> list(A); ys \\<in> list(A); y \\<in> A |] ==> \
-\   <xs, Cons(y,ys)> : gen_prefix(A,r)  <-> \
+\   <xs, Cons(y,ys)> \\<in> gen_prefix(A,r)  <-> \
 \     (xs=[] | (\\<exists>z zs. xs=Cons(z,zs) & z \\<in> A & <z,y>:r & <zs,ys> \\<in> gen_prefix(A,r)))";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "gen_prefix_Cons";
 
 Goal "[| refl(A,r);  <xs,ys> \\<in> gen_prefix(A, r); zs \\<in> list(A) |] \
-\     ==>  <xs@zs, take(length(xs), ys) @ zs> : gen_prefix(A, r)";
+\     ==>  <xs@zs, take(length(xs), ys) @ zs> \\<in> gen_prefix(A, r)";
 by (etac gen_prefix.induct 1);
 by (Asm_simp_tac 1);
 by (ALLGOALS(forward_tac [gen_prefix.dom_subset RS subsetD]));
@@ -244,7 +244,7 @@ qed "gen_prefix_take_append";
 
 Goal "[| refl(A, r);  <xs,ys> \\<in> gen_prefix(A,r);   \
 \        length(xs) = length(ys); zs \\<in> list(A) |] \
-\     ==>  <xs@zs, ys @ zs> : gen_prefix(A, r)";
+\     ==>  <xs@zs, ys @ zs> \\<in> gen_prefix(A, r)";
 by (dres_inst_tac [("zs", "zs")]  gen_prefix_take_append 1);
 by (REPEAT(assume_tac 1));
 by (subgoal_tac "take(length(xs), ys)=ys" 1);
@@ -326,7 +326,7 @@ by (asm_full_simp_tac (simpset() addsimps []) 1);
 by (force_tac (claset() addSIs [nat_0_le], simpset() addsimps [lt_nat_in_nat]) 1); 
 qed_spec_mp "nth_imp_gen_prefix";
 
-Goal "(<xs,ys> : gen_prefix(A,r)) <-> \
+Goal "(<xs,ys> \\<in> gen_prefix(A,r)) <-> \
 \     (xs \\<in> list(A) & ys \\<in> list(A) & length(xs) \\<le> length(ys) & \
 \     (\\<forall>i. i < length(xs) --> <nth(i,xs), nth(i, ys)>: r))";
 by (rtac iffI 1);
@@ -436,7 +436,7 @@ by (blast_tac (claset() addDs [gen_prefix_length_le]) 1);
 qed "prefix_length_le";
 
 Goalw [prefix_def] 
-"<xs,ys> \\<in> prefix(A) ==> xs~=ys --> length(xs) < length(ys)";
+"<xs,ys> \\<in> prefix(A) ==> xs\\<noteq>ys --> length(xs) < length(ys)";
 by (etac gen_prefix.induct 1);
 by (Clarify_tac 1);
 by (ALLGOALS(subgoal_tac "ys \\<in> list(A)&xs \\<in> list(A)"));
@@ -532,7 +532,7 @@ by (blast_tac (claset() delrules [disjCI] addIs [common_prefix_linear_lemma]) 1)
 qed "common_prefix_linear";
 
 
-(*** pfixLe, pfixGe: properties inherited from the translations ***)
+(*** pfixLe, pfixGe \\<in> properties inherited from the translations ***)
 
 
 
@@ -618,7 +618,7 @@ Goalw [prefix_def, Ge_def]
 by (rtac (gen_prefix_mono RS subsetD) 1);
 by Auto_tac;
 qed "prefix_imp_pfixGe";
-(* Added by Sidi: prefix and take *)
+(* Added by Sidi \\<in> prefix and take *)
 
 Goalw [prefix_def]
 "<xs, ys> \\<in> prefix(A) ==> xs = take(length(xs), ys)";
