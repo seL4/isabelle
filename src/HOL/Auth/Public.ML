@@ -115,8 +115,7 @@ by (Full_simp_tac 1);
 (*Inductive step*)
 by (induct_tac "a" 1);
 by (ALLGOALS (full_simp_tac 
-	      (!simpset delsimps [sees_Notes]
-		        addsimps [UN_parts_sees_Says,
+	      (!simpset addsimps [UN_parts_sees_Says,
 				  UN_parts_sees_Notes])));
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
@@ -152,6 +151,7 @@ qed "insert_Key_image";
 val analz_image_keys_ss = 
      !simpset addcongs [if_weak_cong]
 	      delsimps [image_insert, image_Un]
+              delsimps [imp_disjL]    (*reduces blow-up*)
               addsimps [image_insert RS sym, image_Un RS sym,
 			rangeI, 
 			insert_Key_singleton, 
