@@ -1,0 +1,71 @@
+
+***************************************************************************
+
+IMPORTANT NOTE: This file describes the *new* installation procedure
+using various scripts that are still supposed beta for Isabelle94-8.
+If you encounter any problems, you may want to try compiling Isabelle
+the olden way as described in README.
+
+***************************************************************************
+
+
+Isabelle installation notes
+===========================
+
+1. Unpacking
+------------
+
+Unpacking the Isabelle distribution archive (using tar and gzip)
+leaves you with some directory IsabelleYY-X. You may install this
+anywhere, but please just *not* as ~/isabelle!
+
+The place where you put the contents of IsabelleYY-X will be referred
+to as [ISABELLE_HOME] subsequently.
+
+
+2. Auto configuration
+---------------------
+
+There are some minor adaptions to be made of the Isabelle distribution
+to your system environment. Simply type:
+
+  cd [ISABELLE_HOME]
+  ./configure
+
+
+3. ML system settings and compilation
+-------------------------------------
+
+Before actual compilation you have to tell Isabelle about your
+Standard ML system.  These settings reside in ./etc/settings, which
+may be also overridden by ~/isabelle/etc/settings. There are already
+various sample configurations in ./etc/settings commented out.
+
+To build the core Isabelle/Pure, now just type:
+
+  ./build
+
+Objects logics can be made similarly, e.g.:
+
+  ./build FOL HOL
+
+
+4. Running the system
+---------------------
+
+Provided that compilation was succesful, you can now run something
+like:
+
+  [ISABELLE_HOME]/bin/isabelle FOL
+
+to start and interactive Isabelle session within your current
+terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
+PATH. Please do *not* copy (or link) the Isabelle scripts somewhere
+else -- or they just won't work!
+
+Other users may directly run your Isabelle installation without
+additional configuration, provided that no globally required settings
+reside in your ~/isabelle/etc/settings.
+
+
+$Id$
