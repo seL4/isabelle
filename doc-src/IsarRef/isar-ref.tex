@@ -1,13 +1,24 @@
 
 %% $Id$
 
-\documentclass[12pt]{report}
-\usepackage{graphicx,a4,../iman,../extra,../proof,../rail,../isar,../pdfsetup}
+\documentclass[12pt,fleqn]{report}
+\usepackage{graphicx,a4,../iman,../extra,../proof,../rail,../railsetup,../isar,../pdfsetup}
 
 \title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
 \author{\emph{Markus Wenzel} \\ TU M\"unchen}
 
 \makeindex
+
+\railterm{lbrace,rbrace,llbrace,rrbrace}
+\railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim}
+
+\railalias{name}{\railqtoken{name}}
+\railalias{nameref}{\railqtoken{nameref}}
+\railalias{text}{\railqtoken{text}}
+\railalias{type}{\railqtoken{type}}
+\railalias{term}{\railqtoken{term}}
+\railalias{prop}{\railqtoken{prop}}
+\railalias{atom}{\railqtoken{atom}}
 
 
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
@@ -16,20 +27,8 @@
 \sloppy
 \binperiod     %%%treat . like a binary operator
 
-\railalias{lbrace}{\ttlbrace}
-\railalias{rbrace}{\ttrbrace}
-\railterm{lbrace,rbrace}
+\renewcommand{\phi}{\varphi}
 
-\railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim}
-\railterm{name,nameref,text,type,term,prop,atom}
-
-\makeatletter
-\newcommand{\railtoken}[1]{{\rail@termfont{#1}}}
-\newcommand{\railnonterm}[1]{{\rail@nontfont{#1}}}
-\makeatother
-
-\newcommand\indexoutertoken[1]{\index{#1@\railtoken{#1} (outer syntax)|bold}}
-\newcommand\indexouternonterm[1]{\index{#1@\railnonterm{#1} (outer syntax)|bold}}
 
 \begin{document}
 
@@ -57,8 +56,7 @@
 \include{basics}
 \include{syntax}
 \include{pure}
-\include{simplifier}
-\include{classical}
+\include{clasimp}
 \include{hol}
 
 \begingroup

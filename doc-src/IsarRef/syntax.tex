@@ -5,6 +5,8 @@
 
 \chapter{Isar document syntax}
 
+FIXME shortcut
+
 FIXME important note: inner versus outer syntax
 
 \section{Lexical matters}
@@ -12,22 +14,26 @@ FIXME important note: inner versus outer syntax
 \section{Common syntax entities}
 
 The Isar proof and theory language syntax has been carefully designed with
-orthogonality in mind.  Many common syntax entities such that those for names,
-terms, types etc.\ have been factored out.  Some of these basic syntactic
-entities usually represent the level of abstraction for error messages: e.g.\ 
-some higher syntax element such as $\CONSTS$ referring to \railtoken{name} or
-\railtoken{type}, would really report a missing \railtoken{name} or
-\railtoken{type} rather than any of its constituent primitive tokens (as
-defined below).  These quasi-tokens are represented in the syntax diagrams
-below using the same font as actual tokens (such as \railtoken{string}).
+orthogonality in mind.  Subsequently, we introduce several basic syntactic
+entities, such as names, terms, theorem specifications, which have been
+factored out of the actual Isar language elements described later.
+
+Some of the basic syntactic entities introduced below act much like tokens
+rather than nonterminals, in particular for error messages are concerned.
+E.g.\ syntax elements such as $\CONSTS$ referring to \railqtoken{name} or
+\railqtoken{type} would really report a missing \railqtoken{name} or
+\railqtoken{type} rather than any of its constituent primitive tokens
+(\railtoken{ident}, \railtoken{string} etc.).
 
 
 \subsection{Names}
 
-Entity \railtoken{name} usually refers to any name of types, constants,
+Entity \railqtoken{name} usually refers to any name of types, constants,
 theorems, etc.\ to be \emph{declared} or \emph{defined} (so qualified
-identifiers are excluded).  Already existing objects are typically referenced
-by \railtoken{nameref}.
+identifiers are excluded).  Quoted strings provide an escape for
+non-identifier names or those ruled out by outer syntax keywords (e.g.\ 
+\verb|"let"|).  Already existing objects are usually referenced by
+\railqtoken{nameref}.
 
 \indexoutertoken{name}\indexoutertoken{nameref}
 \begin{rail}
@@ -40,23 +46,23 @@ by \railtoken{nameref}.
 
 \subsection{Comments}
 
-Large chunks of verbatim \railtoken{text} are usually given
-\railtoken{verbatim}, i.e.\ enclosed in \verb|{*|~\verb|*}|; for convenience,
-any of the smaller text entities (\railtoken{ident}, \railtoken{string} etc.)
-are admitted as well.  Almost any of the Isar commands may be annotated by a
-marginal comment: \texttt{--} \railtoken{text}.  Note that this kind of
-comment is actually part of the language, while source level comments
-\verb|(*|~\verb|*)| are already stripped at the lexical level.  A few commands
-such as $\PROOFNAME$ admit some parts to be mark with a ``level of interest'':
-currently only \texttt{\%} for ``boring, don't read this''.
+Large chunks of plain \railqtoken{text} are usually given \railtoken{verbatim},
+i.e.\ enclosed in \verb|{*|\dots\verb|*}|.  For convenience, any of the
+smaller text entities (\railtoken{ident}, \railtoken{string} etc.)  are
+admitted as well.  Almost any of the Isar commands may be annotated by a
+marginal \railnonterm{comment}: \texttt{--} \railqtoken{text}.  Note that this
+kind of comment is actually part of the language, while source level comments
+\verb|(*|\dots\verb|*)| are already stripped at the lexical level.  A few
+commands such as $\PROOFNAME$ admit additional markup with a ``level of
+interest'', currently only \texttt{\%} for ``boring, don't read this''.
 
 \indexoutertoken{text}\indexouternonterm{comment}\indexouternonterm{interest}
 \begin{rail}
   text : verbatim | nameref
   ;
-  comment : (() | '--' text)
+  comment : '--' text
   ;
-  interest : (() | '\%')
+  interest : '\%'
   ;
 \end{rail}
 
@@ -84,16 +90,16 @@ The actual inner Isabelle syntax, i.e.\ that of types and terms, is far too
 flexible in order to be modeled explicitly at the outer theory level.
 Basically, any such entity would have to be quoted at the outer level to turn
 it into a single token, with the actual parsing deferred to some functions
-that read and type-check terms etc.\ (note that \railtoken{prop}s will be
-handled differently from plain \railtoken{term}s here).  For convenience, the
+that read and type-check terms etc.\ (note that \railqtoken{prop}s will be
+handled differently from plain \railqtoken{term}s here).  For convenience, the
 quotes may be omitted for any \emph{atomic} term or type (e.g.\ a single
 variable).
 
 \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
 \begin{rail}
-  type : ident | longident | symident | typefree | typevar | string
+  type : nameref | typefree | typevar
   ;
-  term : ident | longident | symident | var | textvar | nat | string
+  term : nameref | var | textvar | nat
   ;
   prop : term
   ;
@@ -116,7 +122,7 @@ infixes.
 Statements like $\SHOWNAME$ involve propositions, some others like $\DEFNAME$
 plain terms.  Any of these usually admit automatic binding of schematic text
 variables by giving (optional) patterns $\IS{p@1 \dots p@n}$.  For
-\railtoken{prop}s the $\CONCLNAME$ part refers to the conclusion only, in case
+\railqtoken{prop}s the $\CONCLNAME$ part refers to the conclusion only, in case
 actual rules are involved, rather than atomic propositions.
 
 \indexouternonterm{termpat}\indexouternonterm{proppat}
@@ -130,9 +136,9 @@ actual rules are involved, rather than atomic propositions.
 
 \subsection{Mixfix annotations}
 
-Mixfix annotations specify concrete \emph{inner} syntax.  Some commands such
-as $\TYPES$ admit infixes only, while $\CONSTS$ etc.\ support the full range
-of general mixfixes and binders.
+Mixfix annotations specify concrete \emph{inner} syntax of Isabelle types and
+terms.  Some commands such as $\TYPES$ admit infixes only, while $\CONSTS$
+etc.\ support the full range of general mixfixes and binders.
 
 \indexouternonterm{infix}\indexouternonterm{mixfix}
 \begin{rail}
@@ -145,39 +151,45 @@ of general mixfixes and binders.
 \end{rail}
 
 
-\subsection{Attributes and theorem specifications}\label{sec:syn-att}
+\subsection{Attributes and theorems}\label{sec:syn-att}
 
 Attributes (and proof methods, see \S\ref{sec:syn-meth}) have their own
 ``semi-inner'' syntax, which does not have to be atomic at the outer level
 unlike that of types and terms.  Instead, the attribute argument
 specifications may be any sequence of atomic entities (identifiers, strings
-etc.), or properly bracketed argument lists.  Below \railtoken{atom} refers to
+etc.), or properly bracketed argument lists.  Below \railqtoken{atom} refers to
 any atomic entity (\railtoken{ident}, \railtoken{longident},
 \railtoken{symident} etc.), including keywords that conform to
 \railtoken{symident}, but do not coincide with actual command names.
 
 \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
 \begin{rail}
-  args : (atom | '(' (args *) ')' | '[' (args *) ']' | lbrace (args *) rbrace) *
+  atom : nameref | typefree | typevar | var | textvar | nat
   ;
-  attributes : '[' (name args + ',') ']'
+  arg : atom | '(' args ')' | '[' args ']' | lbrace args rbrace
+  ;
+  args : arg *
+  ;
+  attributes : '[' (nameref args * ',') ']'
   ;
 \end{rail}
 
-Theorem specifications come in three flavours: \railnonterm{thmdecl} usually
-refers to the result of a goal statement (such as $\SHOWNAME$),
+Theorem specifications come in three flavors: \railnonterm{thmdecl} usually
+refers to the result of an assumption or goal statement (e.g.\ $\SHOWNAME$),
 \railnonterm{thmdef} collects lists of existing theorems (as in $\NOTENAME$),
-\railnonterm{thmref} refers to any list of existing theorems (e.g.\ occurring
+\railnonterm{thmrefs} refers to any list of existing theorems (e.g.\ occurring
 as proof method arguments).  Any of these may include lists of attributes,
 which are applied to the preceding theorem or list of theorems.
 
-\indexouternonterm{thmdecl}\indexouternonterm{thmdef}\indexouternonterm{thmref}
+\indexouternonterm{thmdecl}\indexouternonterm{thmdef}\indexouternonterm{thmrefs}
 \begin{rail}
-  thmdecl : (() | name) (() | attributes) ':'
+  thmname : name attributes | name | attributes
   ;
-  thmdef : (() | name) (() | attributes) '='
+  thmdecl : thmname ':'
   ;
-  thmref : (name (() | attributes) +)
+  thmdef : thmname '='
+  ;
+  thmrefs : nameref (() | attributes) +
   ;
 \end{rail}
 
@@ -187,15 +199,18 @@ which are applied to the preceding theorem or list of theorems.
 Proof methods are either basic ones, or expressions composed of methods via
 ``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternatives),
 ``\texttt{?}'' (try), ``\texttt{*}'' (repeat, ${} \ge 0$ times),
-``\texttt{+}'' (repeat, ${} > 0$ times).  In practice, proof methods are
-typically just a comma separeted list of \railtoken{name}~\railtoken{args}
+``\texttt{+}'' (repeat, ${} > 0$ times).  In practice, proof methods are very
+often just a comma separated list of \railqtoken{nameref}~\railnonterm{args}
 specifications.  Thus the syntax is similar to that of attributes, with plain
 parentheses instead of square brackets (see also \S\ref{sec:syn-att}).  Note
-that parentheses may be dropped for methods without arguments.
+that parentheses may be dropped for single method specifications without
+arguments.
 
 \indexouternonterm{method}
 \begin{rail}
-  method : (name args | (name | '(' method ')') (() | '?' | '*' | '+')) + (',' | '|')
+  method : (nameref | '(' methods ')') (() | '?' | '*' | '+')
+  ;
+  methods : (nameref args | method) + (',' | '|')
   ;
 \end{rail}
 
