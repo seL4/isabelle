@@ -83,8 +83,8 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Acc.ML Induct/Acc.thy \
   Induct/Multiset0.ML Induct/Multiset0.thy \
   Induct/Multiset.ML Induct/Multiset.thy \
   Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML Induct/PropLog.thy \
-  Induct/ROOT.ML Induct/SList.ML Induct/SList.thy Induct/Simult.ML \
-  Induct/Simult.thy Induct/Term.ML Induct/Term.thy
+  Induct/ROOT.ML Induct/SList.ML Induct/SList.thy Induct/ABexp.ML \
+  Induct/ABexp.thy Induct/Term.ML Induct/Term.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Induct
 
 
