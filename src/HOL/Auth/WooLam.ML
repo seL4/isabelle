@@ -14,7 +14,6 @@ open WooLam;
 
 proof_timing:=true;
 HOL_quantifiers := false;
-Pretty.setdepth 20;
 
 
 (*A "possibility property": there are traces that reach the end*)
@@ -25,9 +24,7 @@ goal thy
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
           woolam.WL4 RS woolam.WL5) 2);
-by (ALLGOALS (simp_tac (!simpset setSolver safe_solver)));
-by (REPEAT_FIRST (resolve_tac [refl, conjI]));
-by (REPEAT_FIRST (blast_tac (!claset addSEs [Nonce_supply RS notE])));
+by possibility_tac;
 result();
 
 
@@ -56,7 +53,7 @@ bind_thm ("WL4_parts_sees_Spy",
 val parts_induct_tac = 
     etac woolam.induct 1  THEN 
     forward_tac [WL4_parts_sees_Spy] 6  THEN
-    prove_simple_subgoals_tac  1;
+    prove_simple_subgoals_tac 1;
 
 
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
