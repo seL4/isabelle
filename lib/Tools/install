@@ -15,8 +15,8 @@ function usage()
   echo "  Options are:"
   echo "    -d DISTDIR   use DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
   echo
-  echo "  Install binaries in directory BINDIR with absolute references to"
-  echo "  DISTDIR/bin, which basically becomes non-relocatable this way."
+  echo "  Install standalone Isabelle binaries in directory BINDIR with absolute"
+  echo "  references to DISTDIR/bin, which becomes non-relocatable this way."
   echo
   exit 1
 }
@@ -37,7 +37,7 @@ DISTDIR="$ISABELLE_HOME"
 while getopts "d:" OPT
 do
   case "$OPT" in
-    h)
+    d)
       DISTDIR="$OPTARG"
       ;;
     \?)
