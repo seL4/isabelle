@@ -269,9 +269,9 @@ fun copy_files path1 path2 =
   system ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));  (*FIXME: quote!?*)
 
 fun copy_all path1 path2 =
- (File.mkdir path2;
-  system ("cp -r " ^ File.quote_sysify_path path1 ^ " " ^
-    File.quote_sysify_path (Path.append path2 Path.parent)));
+ (File.mkdir path2;  
+  system ("cp -r " ^ File.quote_sysify_path path1 ^ "/. " ^
+    File.quote_sysify_path path2));
 
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
