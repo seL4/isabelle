@@ -387,13 +387,6 @@ qed "zless_not_refl";
 bind_thm ("zless_irrefl", zless_not_refl RS notE);
 AddSEs [zless_irrefl];
 
-Goal "z<w ==> w ~= (z::int)";
-by (Blast_tac 1);
-qed "zless_not_refl2";
-
-(* s < t ==> s ~= t *)
-bind_thm ("zless_not_refl3", zless_not_refl2 RS not_sym);
-
 
 (*"Less than" is a linear ordering*)
 Goalw [zless_def, neg_def, zdiff_def] 
@@ -452,10 +445,6 @@ Goal "w <= (w::int)";
 by (simp_tac (simpset() addsimps [int_le_less]) 1);
 qed "zle_refl";
 
-Goalw [zle_def] "z < w ==> z <= (w::int)";
-by (blast_tac (claset() addEs [zless_asym]) 1);
-qed "zless_imp_zle";
-
 (* Axiom 'linorder_linear' of class 'linorder': *)
 Goal "(z::int) <= w | w <= z";
 by (simp_tac (simpset() addsimps [int_le_less]) 1);
@@ -463,16 +452,7 @@ by (cut_facts_tac [zless_linear] 1);
 by (Blast_tac 1);
 qed "zle_linear";
 
-Goal "[| i <= j; j < k |] ==> i < (k::int)";
-by (dtac zle_imp_zless_or_eq 1);
-by (blast_tac (claset() addIs [zless_trans]) 1);
-qed "zle_zless_trans";
-
-Goal "[| i < j; j <= k |] ==> i < (k::int)";
-by (dtac zle_imp_zless_or_eq 1);
-by (blast_tac (claset() addIs [zless_trans]) 1);
-qed "zless_zle_trans";
-
+(* Axiom 'order_trans of class 'order': *)
 Goal "[| i <= j; j <= k |] ==> i <= (k::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
             rtac zless_or_eq_imp_zle, 
@@ -489,10 +469,6 @@ Goal "(w::int) < z = (w <= z & w ~= z)";
 by (simp_tac (simpset() addsimps [zle_def, int_neq_iff]) 1);
 by (blast_tac (claset() addSEs [zless_asym]) 1);
 qed "int_less_le";
-
-(* [| w <= z; w ~= z |] ==> w < z *)
-bind_thm ("zle_neq_implies_zless", [int_less_le, conjI] MRS iffD2);
-
 
 
 (*** Subtraction laws ***)
