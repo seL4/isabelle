@@ -76,7 +76,6 @@ sig
   val list_mk_imp    : (term list * term) -> term
   val list_mk_forall : (term list * term) -> term
   val list_mk_conj   : term list -> term
-  val list_mk_disj   : term list -> term
 
   (* Destructing a term to a list of Preterms *)
   val strip_comb     : term -> (term * term list)

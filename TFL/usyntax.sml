@@ -239,7 +239,6 @@ fun list_mk_abs(L,tm) = itlist (fn v => fn M => mk_abs{Bvar=v, Body=M}) L tm;
 fun list_mk_imp(A,c) = itlist(fn a => fn tm => mk_imp{ant=a,conseq=tm}) A c;
 fun list_mk_forall(V,t) = itlist(fn v => fn b => mk_forall{Bvar=v, Body=b})V t;
 val list_mk_conj = end_itlist(fn c1 => fn tm => mk_conj{conj1=c1, conj2=tm})
-val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj{disj1=d1, disj2=tm})
 
 
 (* Need to reverse? *)
