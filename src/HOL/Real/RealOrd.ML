@@ -360,8 +360,8 @@ Addsimps [real_of_nat_mult];
 
 Goal "(real (n::nat) = real m) = (n = m)";
 by (auto_tac (claset() addDs [inj_real_of_nat RS injD], simpset()));
-qed "real_of_nat_eq_cancel";
-Addsimps [real_of_nat_eq_cancel];
+qed "real_of_nat_inject";
+AddIffs [real_of_nat_inject];
 
 Goal "n <= m --> real (m - n) = real (m::nat) - real n";
 by (induct_tac "m" 1);
@@ -371,7 +371,7 @@ by (auto_tac (claset(),
 qed_spec_mp "real_of_nat_diff";
 
 Goal "(real (n::nat) = 0) = (n = 0)";
-by (auto_tac (claset() addIs [inj_real_of_nat RS injD], simpset()));
+by (auto_tac ((claset() addIs [inj_real_of_nat RS injD], simpset()) delIffs [real_of_nat_inject]));
 qed "real_of_nat_zero_iff";
 
 Goal "neg z ==> real (nat z) = 0";
