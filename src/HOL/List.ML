@@ -825,6 +825,29 @@ by Auto_tac;
 qed_spec_mp "sum_eq_0_conv";
 AddIffs [sum_eq_0_conv];
 
+(** upto **)
+
+Goal "!i j. ~ j < i --> j - i < Suc j - i";
+by(strip_tac 1);
+br diff_less_Suc_diff 1;
+be leI 1;
+val lemma = result();
+
+Goalw [upto_def] "j<i ==> [i..j] = []";
+br trans 1;
+brs paired_upto.rules 1;
+br lemma 1;
+by(Asm_simp_tac 1);
+qed "upto_conv_Nil";
+
+Goalw [upto_def] "i<=j ==> [i..j] = i#[Suc i..j]";
+br trans 1;
+brs paired_upto.rules 1;
+br lemma 1;
+by(asm_simp_tac (simpset() addsimps [leD]) 1);
+qed "upto_conv_Cons";
+
+Addsimps [upto_conv_Nil,upto_conv_Cons];
 
 (** nodups & remdups **)
 section "nodups & remdups";

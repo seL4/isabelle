@@ -52,21 +52,20 @@ use "Tools/datatype_rep_proofs.ML";
 use "Tools/datatype_abs_proofs.ML";
 use "Tools/datatype_package.ML";
 use "Tools/primrec_package.ML";
+use_thy"Datatype";
 
 use_thy "Arith";
 use "arith_data.ML";
 
-use_thy "Finite";
-use_thy "Map";
-
-cd "Integ";
-use_thy "Bin";
-cd "..";
-
+use_thy "Recdef";
 (*TFL: recursive function definitions*)
 cd "$ISABELLE_HOME/src/TFL";
 use "sys.sml";
 cd "$ISABELLE_HOME/src/HOL";
+
+cd "Integ";
+use_thy "Bin";
+cd "..";
 
 (*the all-in-one theory*)
 use_thy "Main";

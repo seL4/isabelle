@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = WF_Rel + Datatype +
+List = Datatype + Recdef +
 
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
@@ -28,6 +28,8 @@ consts
   tl, butlast :: 'a list => 'a list
   rev         :: 'a list => 'a list
   zip	      :: "'a list => 'b list => ('a * 'b) list"
+  upto        :: nat => nat => nat list                   ("(1[_../_])")
+  paired_upto :: "nat * nat => nat list"
   remdups     :: 'a list => 'a list
   nodups      :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
@@ -135,6 +137,9 @@ primrec
 primrec
   "zip xs []     = []"
   "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
+recdef paired_upto "measure(%(i,j). (Suc j)-i)"
+  "paired_upto(i,j) = (if j<i then [] else i#paired_upto(Suc i,j))"
+defs upto_def  "[i..j] == paired_upto(i,j)"
 primrec
   "nodups []     = True"
   "nodups (x#xs) = (x ~: set xs & nodups xs)"
