@@ -17,8 +17,8 @@ consts  loc  :: i
 datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
   "aexp" = N ("n: nat")
          | X ("x: loc")
-         | Op1 ("f: nat -> nat", "a : aexp")
-         | Op2 ("f: (nat*nat) -> nat", "a0 : aexp", "a1 : aexp")
+         | Op1 ("f : nat -> nat", "a : aexp")
+         | Op2 ("f : (nat*nat) -> nat", "a0 : aexp", "a1 : aexp")
 
 
 (** Evaluation of arithmetic expressions **)
@@ -29,7 +29,7 @@ translations
 inductive
   domains "evala" <= "aexp * (loc -> nat) * nat"
   intrs 
-    N   "[| n:nat ; sigma:loc->nat |] ==> <N(n),sigma> -a-> n"
+    N   "[| n:nat;  sigma:loc->nat |] ==> <N(n),sigma> -a-> n"
     X   "[| x:loc;  sigma:loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
     Op1 "[| <e,sigma> -a-> n;  f: nat -> nat |] ==> <Op1(f,e),sigma> -a-> f`n"
     Op2 "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f: (nat*nat) -> nat |] 
@@ -44,7 +44,7 @@ consts  bexp :: i
 datatype <= "univ(aexp Un ((nat*nat)->bool) )"
   "bexp" = true
          | false
-         | ROp  ("f: (nat*nat)->bool", "a0 : aexp", "a1 : aexp")
+         | ROp  ("f : (nat*nat)->bool", "a0 : aexp", "a1 : aexp")
          | noti ("b : bexp")
          | andi ("b0 : bexp", "b1 : bexp")      (infixl 60)
          | ori  ("b0 : bexp", "b1 : bexp")      (infixl 60)
