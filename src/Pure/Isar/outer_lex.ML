@@ -144,13 +144,13 @@ val scan_string =
 
 val scan_verb =
   scan_blank ||
-  keep_line ($$ "|" --| Scan.ahead (Scan.one (not_equal "}"))) ||
-  keep_line (Scan.one (not_equal "|" andf Symbol.not_eof));
+  keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal "}"))) ||
+  keep_line (Scan.one (not_equal "*" andf Symbol.not_eof));
 
 val scan_verbatim =
-  keep_line ($$ "{" -- $$ "|") |--
+  keep_line ($$ "{" -- $$ "*") |--
     !! (lex_err (K "missing end of verbatim text"))
-      (change_prompt ((Scan.repeat scan_verb >> implode) --| keep_line ($$ "|" -- $$ "}")));
+      (change_prompt ((Scan.repeat scan_verb >> implode) --| keep_line ($$ "*" -- $$ "}")));
 
 
 (* scan space *)
