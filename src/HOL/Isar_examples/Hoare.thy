@@ -218,9 +218,9 @@ text {*
 
 syntax
   "_quote"       :: "'b => ('a => 'b)"        ("(.'(_').)" [0] 1000)
-  "_antiquote"   :: "('a => 'b) => 'b"        ("`_" [1000] 1000)
+  "_antiquote"   :: "('a => 'b) => 'b"        ("\<acute>_" [1000] 1000)
   "_Assert"      :: "'a => 'a set"            ("(.{_}.)" [0] 1000)
-  "_Assign"      :: "idt => 'b => 'a com"     ("(`_ :=/ _)" [70, 65] 61)
+  "_Assign"      :: "idt => 'b => 'a com"     ("(\<acute>_ :=/ _)" [70, 65] 61)
   "_Cond"        :: "'a bexp => 'a com => 'a com => 'a com"
         ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
   "_While_inv"   :: "'a bexp => 'a assn => 'a com => 'a com"
@@ -233,7 +233,7 @@ syntax (xsymbols)
 
 translations
   ".{b}."                   => "Collect .(b)."
-  "`x := a"                 => "Basic .(`(_update_name x a))."
+  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x a))."
   "IF b THEN c1 ELSE c2 FI" => "Cond (Collect .(b).) c1 c2"
   "WHILE b INV i DO c OD"   => "While (Collect .(b).) i c"
   "WHILE b DO c OD"         == "WHILE b INV arbitrary DO c OD"
@@ -308,17 +308,17 @@ lemma [trans]: "|- P c Q ==> Q <= Q' ==> |- P c Q'"
   by (unfold Valid_def) blast
 
 lemma [trans]:
-    "|- .{`P}. c Q ==> (!!s. P' s --> P s) ==> |- .{`P'}. c Q"
+    "|- .{\<acute>P}. c Q ==> (!!s. P' s --> P s) ==> |- .{\<acute>P'}. c Q"
   by (simp add: Valid_def)
 lemma [trans]:
-    "(!!s. P' s --> P s) ==> |- .{`P}. c Q ==> |- .{`P'}. c Q"
+    "(!!s. P' s --> P s) ==> |- .{\<acute>P}. c Q ==> |- .{\<acute>P'}. c Q"
   by (simp add: Valid_def)
 
 lemma [trans]:
-    "|- P c .{`Q}. ==> (!!s. Q s --> Q' s) ==> |- P c .{`Q'}."
+    "|- P c .{\<acute>Q}. ==> (!!s. Q s --> Q' s) ==> |- P c .{\<acute>Q'}."
   by (simp add: Valid_def)
 lemma [trans]:
-    "(!!s. Q s --> Q' s) ==> |- P c .{`Q}. ==> |- P c .{`Q'}."
+    "(!!s. Q s --> Q' s) ==> |- P c .{\<acute>Q}. ==> |- P c .{\<acute>Q'}."
   by (simp add: Valid_def)
 
 
@@ -335,7 +335,7 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma assign: "|- .{`(x_update `a) : P}. `x := `a P"
+lemma assign: "|- .{\<acute>(x_update \<acute>a) : P}. \<acute>x := \<acute>a P"
   by (rule basic)
 
 text {*
@@ -345,7 +345,7 @@ text {*
  $x$, Isabelle/HOL provides a functions $x$ (selector) and
  $\idt{x{\dsh}update}$ (update).  Above, there is only a place-holder
  appearing for the latter kind of function: due to concrete syntax
- \isa{`x := `a} also contains \isa{x\_update}.\footnote{Note that due
+ \isa{\'x := \'a} also contains \isa{x\_update}.\footnote{Note that due
  to the external nature of HOL record fields, we could not even state
  a general theorem relating selector and update functions (if this
  were required here); this would only work for any particular instance
@@ -369,9 +369,9 @@ text {*
 lemmas [trans, intro?] = cond
 
 lemma [trans, intro?]:
-  "|- .{`P & `b}. c1 Q
-      ==> |- .{`P & ~ `b}. c2 Q
-      ==> |- .{`P}. IF `b THEN c1 ELSE c2 FI Q"
+  "|- .{\<acute>P & \<acute>b}. c1 Q
+      ==> |- .{\<acute>P & ~ \<acute>b}. c2 Q
+      ==> |- .{\<acute>P}. IF \<acute>b THEN c1 ELSE c2 FI Q"
     by (rule cond) (simp_all add: Valid_def)
 
 text {*
@@ -388,13 +388,13 @@ lemma [intro?]:
 
 
 lemma [intro?]:
-  "|- .{`P & `b}. c .{`P}.
-    ==> |- .{`P}. WHILE `b INV .{`P}. DO c OD .{`P & ~ `b}."
+  "|- .{\<acute>P & \<acute>b}. c .{\<acute>P}.
+    ==> |- .{\<acute>P}. WHILE \<acute>b INV .{\<acute>P}. DO c OD .{\<acute>P & ~ \<acute>b}."
   by (simp add: while Collect_conj_eq Collect_neg_eq)
 
 lemma [intro?]:
-  "|- .{`P & `b}. c .{`P}.
-    ==> |- .{`P}. WHILE `b DO c OD .{`P & ~ `b}."
+  "|- .{\<acute>P & \<acute>b}. c .{\<acute>P}.
+    ==> |- .{\<acute>P}. WHILE \<acute>b DO c OD .{\<acute>P & ~ \<acute>b}."
   by (simp add: while Collect_conj_eq Collect_neg_eq)
 
 

@@ -39,7 +39,7 @@ text {*
 *}
 
 lemma
-  "|- .{`(N_update (2 * `N)) : .{`N = #10}.}. `N := 2 * `N .{`N = #10}."
+  "|- .{\<acute>(N_update (2 * \<acute>N)) : .{\<acute>N = #10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
   by (rule assign)
 
 text {*
@@ -49,31 +49,31 @@ text {*
  ``obvious'' consequences as well.
 *}
 
-lemma "|- .{True}. `N := #10 .{`N = #10}."
+lemma "|- .{True}. \<acute>N := #10 .{\<acute>N = #10}."
   by hoare
 
-lemma "|- .{2 * `N = #10}. `N := 2 * `N .{`N = #10}."
+lemma "|- .{2 * \<acute>N = #10}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
   by hoare
 
-lemma "|- .{`N = #5}. `N := 2 * `N .{`N = #10}."
+lemma "|- .{\<acute>N = #5}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
   by hoare simp
 
-lemma "|- .{`N + 1 = a + 1}. `N := `N + 1 .{`N = a + 1}."
+lemma "|- .{\<acute>N + 1 = a + 1}. \<acute>N := \<acute>N + 1 .{\<acute>N = a + 1}."
   by hoare
 
-lemma "|- .{`N = a}. `N := `N + 1 .{`N = a + 1}."
+lemma "|- .{\<acute>N = a}. \<acute>N := \<acute>N + 1 .{\<acute>N = a + 1}."
   by hoare simp
 
-lemma "|- .{a = a & b = b}. `M := a; `N := b .{`M = a & `N = b}."
+lemma "|- .{a = a & b = b}. \<acute>M := a; \<acute>N := b .{\<acute>M = a & \<acute>N = b}."
   by hoare
 
-lemma "|- .{True}. `M := a; `N := b .{`M = a & `N = b}."
+lemma "|- .{True}. \<acute>M := a; \<acute>N := b .{\<acute>M = a & \<acute>N = b}."
   by hoare simp
 
 lemma
-"|- .{`M = a & `N = b}.
-    `I := `M; `M := `N; `N := `I
-    .{`M = b & `N = a}."
+"|- .{\<acute>M = a & \<acute>N = b}.
+    \<acute>I := \<acute>M; \<acute>M := \<acute>N; \<acute>N := \<acute>I
+    .{\<acute>M = b & \<acute>N = a}."
   by hoare simp
 
 text {*
@@ -83,10 +83,10 @@ text {*
  relating record selectors and updates schematically.
 *}
 
-lemma "|- .{`N = a}. `N := `N .{`N = a}."
+lemma "|- .{\<acute>N = a}. \<acute>N := \<acute>N .{\<acute>N = a}."
   by hoare
 
-lemma "|- .{`x = a}. `x := `x .{`x = a}."
+lemma "|- .{\<acute>x = a}. \<acute>x := \<acute>x .{\<acute>x = a}."
   oops
 
 lemma
@@ -101,27 +101,27 @@ text {*
  \name{hoare} method is able to handle this case, too.
 *}
 
-lemma "|- .{`M = `N}. `M := `M + 1 .{`M ~= `N}."
+lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
 proof -
-  have ".{`M = `N}. <= .{`M + 1 ~= `N}."
+  have ".{\<acute>M = \<acute>N}. <= .{\<acute>M + 1 ~= \<acute>N}."
     by auto
-  also have "|- ... `M := `M + 1 .{`M ~= `N}."
+  also have "|- ... \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
     by hoare
   finally show ?thesis .
 qed
 
-lemma "|- .{`M = `N}. `M := `M + 1 .{`M ~= `N}."
+lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
 proof -
   have "!!m n. m = n --> m + 1 ~= n"
       -- {* inclusion of assertions expressed in ``pure'' logic, *}
       -- {* without mentioning the state space *}
     by simp
-  also have "|- .{`M + 1 ~= `N}. `M := `M + 1 .{`M ~= `N}."
+  also have "|- .{\<acute>M + 1 ~= \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
     by hoare
   finally show ?thesis .
 qed
 
-lemma "|- .{`M = `N}. `M := `M + 1 .{`M ~= `N}."
+lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
   by hoare simp
 
 
@@ -135,24 +135,24 @@ text {*
 *}
 
 lemma
-  "|- .{`M = 0 & `S = 0}.
-      WHILE `M ~= a
-      DO `S := `S + b; `M := `M + 1 OD
-      .{`S = a * b}."
+  "|- .{\<acute>M = 0 & \<acute>S = 0}.
+      WHILE \<acute>M ~= a
+      DO \<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1 OD
+      .{\<acute>S = a * b}."
 proof -
   let "|- _ ?while _" = ?thesis
-  let ".{`?inv}." = ".{`S = `M * b}."
+  let ".{\<acute>?inv}." = ".{\<acute>S = \<acute>M * b}."
 
-  have ".{`M = 0 & `S = 0}. <= .{`?inv}." by auto
-  also have "|- ... ?while .{`?inv & ~ (`M ~= a)}."
+  have ".{\<acute>M = 0 & \<acute>S = 0}. <= .{\<acute>?inv}." by auto
+  also have "|- ... ?while .{\<acute>?inv & ~ (\<acute>M ~= a)}."
   proof
-    let ?c = "`S := `S + b; `M := `M + 1"
-    have ".{`?inv & `M ~= a}. <= .{`S + b = (`M + 1) * b}."
+    let ?c = "\<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1"
+    have ".{\<acute>?inv & \<acute>M ~= a}. <= .{\<acute>S + b = (\<acute>M + 1) * b}."
       by auto
-    also have "|- ... ?c .{`?inv}." by hoare
-    finally show "|- .{`?inv & `M ~= a}. ?c .{`?inv}." .
+    also have "|- ... ?c .{\<acute>?inv}." by hoare
+    finally show "|- .{\<acute>?inv & \<acute>M ~= a}. ?c .{\<acute>?inv}." .
   qed
-  also have "... <= .{`S = a * b}." by auto
+  also have "... <= .{\<acute>S = a * b}." by auto
   finally show ?thesis .
 qed
 
@@ -164,11 +164,11 @@ text {*
 *}
 
 lemma
-  "|- .{`M = 0 & `S = 0}.
-      WHILE `M ~= a
-      INV .{`S = `M * b}.
-      DO `S := `S + b; `M := `M + 1 OD
-      .{`S = a * b}."
+  "|- .{\<acute>M = 0 & \<acute>S = 0}.
+      WHILE \<acute>M ~= a
+      INV .{\<acute>S = \<acute>M * b}.
+      DO \<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1 OD
+      .{\<acute>S = a * b}."
   by hoare auto
 
 
@@ -202,34 +202,34 @@ text {*
 
 theorem
   "|- .{True}.
-      `S := 0; `I := 1;
-      WHILE `I ~= n
+      \<acute>S := 0; \<acute>I := 1;
+      WHILE \<acute>I ~= n
       DO
-        `S := `S + `I;
-        `I := `I + 1
+        \<acute>S := \<acute>S + \<acute>I;
+        \<acute>I := \<acute>I + 1
       OD
-      .{`S = (SUM j<n. j)}."
+      .{\<acute>S = (SUM j<n. j)}."
   (is "|- _ (_; ?while) _")
 proof -
   let ?sum = "\<lambda>k. SUM j<k. j"
   let ?inv = "\<lambda>s i. s = ?sum i"
 
-  have "|- .{True}. `S := 0; `I := 1 .{?inv `S `I}."
+  have "|- .{True}. \<acute>S := 0; \<acute>I := 1 .{?inv \<acute>S \<acute>I}."
   proof -
     have "True --> 0 = ?sum 1"
       by simp
-    also have "|- .{...}. `S := 0; `I := 1 .{?inv `S `I}."
+    also have "|- .{...}. \<acute>S := 0; \<acute>I := 1 .{?inv \<acute>S \<acute>I}."
       by hoare
     finally show ?thesis .
   qed
-  also have "|- ... ?while .{?inv `S `I & ~ `I ~= n}."
+  also have "|- ... ?while .{?inv \<acute>S \<acute>I & ~ \<acute>I ~= n}."
   proof
-    let ?body = "`S := `S + `I; `I := `I + 1"
+    let ?body = "\<acute>S := \<acute>S + \<acute>I; \<acute>I := \<acute>I + 1"
     have "!!s i. ?inv s i & i ~= n -->  ?inv (s + i) (i + 1)"
       by simp
-    also have "|- .{`S + `I = ?sum (`I + 1)}. ?body .{?inv `S `I}."
+    also have "|- .{\<acute>S + \<acute>I = ?sum (\<acute>I + 1)}. ?body .{?inv \<acute>S \<acute>I}."
       by hoare
-    finally show "|- .{?inv `S `I & `I ~= n}. ?body .{?inv `S `I}." .
+    finally show "|- .{?inv \<acute>S \<acute>I & \<acute>I ~= n}. ?body .{?inv \<acute>S \<acute>I}." .
   qed
   also have "!!s i. s = ?sum i & ~ i ~= n --> s = ?sum n"
     by simp
@@ -243,14 +243,14 @@ text {*
 
 theorem
   "|- .{True}.
-      `S := 0; `I := 1;
-      WHILE `I ~= n
-      INV .{`S = (SUM j<`I. j)}.
+      \<acute>S := 0; \<acute>I := 1;
+      WHILE \<acute>I ~= n
+      INV .{\<acute>S = (SUM j<\<acute>I. j)}.
       DO
-        `S := `S + `I;
-        `I := `I + 1
+        \<acute>S := \<acute>S + \<acute>I;
+        \<acute>I := \<acute>I + 1
       OD
-      .{`S = (SUM j<n. j)}."
+      .{\<acute>S = (SUM j<n. j)}."
 proof -
   let ?sum = "\<lambda>k. SUM j<k. j"
   let ?inv = "\<lambda>s i. s = ?sum i"
@@ -274,14 +274,14 @@ text {*
 
 theorem
   "|- .{True}.
-      `S := 0; `I := 1;
-      WHILE `I ~= n
-      INV .{`S = (SUM j<`I. j)}.
+      \<acute>S := 0; \<acute>I := 1;
+      WHILE \<acute>I ~= n
+      INV .{\<acute>S = (SUM j<\<acute>I. j)}.
       DO
-        `S := `S + `I;
-        `I := `I + 1
+        \<acute>S := \<acute>S + \<acute>I;
+        \<acute>I := \<acute>I + 1
       OD
-      .{`S = (SUM j<n. j)}."
+      .{\<acute>S = (SUM j<n. j)}."
   by hoare auto
 
 end
