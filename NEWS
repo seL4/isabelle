@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
@@ -56,11 +55,14 @@ to auto_tac, but is aimed to solve the given subgoal totally;
 
 * added option_map_eq_Some to simpset() and claset()
 
+* New directory HOL/UNITY: Chandy and Misra's UNITY formalism
+
 * New theory HOL/Update of function updates:
   f(a:=b) == %x. if x=a then b else f x
   May also be iterated as in f(a:=b,c:=d,...).
 
-* New directory HOL/UNITY: Chandy and Misra's UNITY formalism
+* HOL/List: new function list_update written xs[i:=v] that updates the i-th
+  list position. May also be iterated as in xs[i:=a,j:=b,...].
 
 * split_all_tac is now much faster and fails if there is nothing to
 split.  Existing (fragile) proofs may require adaption because the

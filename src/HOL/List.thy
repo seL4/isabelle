@@ -21,6 +21,7 @@ consts
   map         :: ('a=>'b) => ('a list => 'b list)
   mem         :: ['a, 'a list] => bool                    (infixl 55)
   nth         :: ['a list, nat] => 'a			  (infixl "!" 100)
+  list_update :: 'a list => nat => 'a => 'a list
   take, drop  :: [nat, 'a list] => 'a list
   takeWhile,
   dropWhile   :: ('a => bool) => 'a list => 'a list
@@ -31,6 +32,9 @@ consts
   nodups      :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
 
+nonterminals
+  lupdbinds  lupdbind
+
 syntax
   (* list Enumeration *)
   "@list"     :: args => 'a list                          ("[(_)]")
@@ -38,10 +42,19 @@ syntax
   (* Special syntax for filter *)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_:_ ./ _])")
 
+  (* list update *)
+  "_lupdbind"      :: ['a, 'a] => lupdbind            ("(2_ :=/ _)")
+  ""               :: lupdbind => lupdbinds           ("_")
+  "_lupdbinds"     :: [lupdbind, lupdbinds] => lupdbinds ("_,/ _")
+  "_LUpdate"       :: ['a, lupdbinds] => 'a           ("_/[(_)]" [900,0] 900)
+
 translations
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
   "[x:xs . P]"  == "filter (%x. P) xs"
+
+  "_LUpdate xs (_lupdbinds b bs)"  == "_LUpdate (_LUpdate xs b) bs"
+  "xs[i:=x]"                       == "list_update xs i x"
 
 syntax (symbols)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
@@ -109,6 +122,10 @@ primrec take list
 primrec nth nat
   "xs!0 = hd xs"
   "xs!(Suc n) = (tl xs)!n"
+primrec list_update list
+ "    [][i:=v] = []"
+ "(x#xs)[i:=v] = (case i of 0     => v # xs 
+			  | Suc j => x # xs[j:=v])"
 primrec takeWhile list
   "takeWhile P [] = []"
   "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
