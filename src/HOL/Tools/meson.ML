@@ -356,11 +356,11 @@ val meson_tac = CLASET' meson_claset_tac;
 val notEfalse = read_instantiate [("R","False")] notE;
 val notEfalse' = rotate_prems 1 notEfalse;
 
-fun negate_nead th = 
+fun negated_asm_of_head th = 
     th RS notEfalse handle THM _ => th RS notEfalse';
 
 (*Converting one clause*)
-fun make_meta_clause th = negate_nead (make_horn resolution_clause_rules th);
+fun make_meta_clause th = negated_asm_of_head (make_horn resolution_clause_rules th);
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
