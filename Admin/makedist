@@ -32,7 +32,7 @@ function usage()
 
   Checklist for official releases (before running this script):
 
-    * Check that README files are up to date (should have \$Id$ lines).
+    * Check that README files are up to date (should have Id: lines).
     * Check that Pure/ROOT.ML/version is up to date!
     * Make sure that the repository version of Doc is consistent
       (watch out for *.bbl, *.rao, *.ind)!
