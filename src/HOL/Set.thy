@@ -779,8 +779,7 @@ lemma image_subset_iff: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
 lemma subset_image_iff: "(B \<subseteq> f`A) = (EX AA. AA \<subseteq> A & B = f`AA)"
   apply safe
    prefer 2 apply fast
-  apply (rule_tac x = "{a. a : A & f a : B}" in exI)
-  apply fast
+  apply (rule_tac x = "{a. a : A & f a : B}" in exI, fast)
   done
 
 lemma image_subsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f`A \<subseteq> B"
@@ -1044,8 +1043,7 @@ lemma insert_subset [simp]: "(insert x A \<subseteq> B) = (x \<in> B & A \<subse
 
 lemma mk_disjoint_insert: "a \<in> A ==> \<exists>B. A = insert a B & a \<notin> B"
   -- {* use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding *}
-  apply (rule_tac x = "A - {a}" in exI)
-  apply blast
+  apply (rule_tac x = "A - {a}" in exI, blast)
   done
 
 lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
@@ -1103,9 +1101,7 @@ lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
   by auto
 
 lemma range_composition [simp]: "range (\<lambda>x. f (g x)) = f`range g"
-  apply (subst image_image)
-  apply simp
-  done
+by (subst image_image, simp)
 
 
 text {* \medskip @{text Int} *}
@@ -1345,7 +1341,7 @@ lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
 lemma Inter_UNIV_conv [iff]:
   "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
   "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
-  by(blast)+
+  by blast+
 
 
 text {*
@@ -1578,8 +1574,7 @@ text {* \medskip Quantification over type @{typ bool}. *}
 
 lemma all_bool_eq: "(\<forall>b::bool. P b) = (P True & P False)"
   apply auto
-  apply (tactic {* case_tac "b" 1 *})
-   apply auto
+  apply (tactic {* case_tac "b" 1 *}, auto)
   done
 
 lemma bool_induct: "P True \<Longrightarrow> P False \<Longrightarrow> P x"
@@ -1587,8 +1582,7 @@ lemma bool_induct: "P True \<Longrightarrow> P False \<Longrightarrow> P x"
 
 lemma ex_bool_eq: "(\<exists>b::bool. P b) = (P True | P False)"
   apply auto
-  apply (tactic {* case_tac "b" 1 *})
-   apply auto
+  apply (tactic {* case_tac "b" 1 *}, auto)
   done
 
 lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
@@ -1596,14 +1590,12 @@ lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
 
 lemma UN_bool_eq: "(\<Union>b::bool. A b) = (A True \<union> A False)"
   apply auto
-  apply (tactic {* case_tac "b" 1 *})
-   apply auto
+  apply (tactic {* case_tac "b" 1 *}, auto)
   done
 
 lemma INT_bool_eq: "(\<Inter>b::bool. A b) = (A True \<inter> A False)"
   apply auto
-  apply (tactic {* case_tac "b" 1 *})
-  apply auto
+  apply (tactic {* case_tac "b" 1 *}, auto)
   done
 
 
@@ -1800,8 +1792,7 @@ text {* \medskip Monotonicity of implications. *}
 
 lemma in_mono: "A \<subseteq> B ==> x \<in> A --> x \<in> B"
   apply (rule impI)
-  apply (erule subsetD)
-  apply assumption
+  apply (erule subsetD, assumption)
   done
 
 lemma conj_mono: "P1 --> Q1 ==> P2 --> Q2 ==> (P1 & P2) --> (Q1 & Q2)"
@@ -1843,8 +1834,7 @@ lemma Least_mono:
     ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
     -- {* Courtesy of Stephan Merz *}
   apply clarify
-  apply (erule_tac P = "%x. x : S" in LeastI2)
-   apply fast
+  apply (erule_tac P = "%x. x : S" in LeastI2, fast)
   apply (rule LeastI2)
   apply (auto elim: monoD intro!: order_antisym)
   done

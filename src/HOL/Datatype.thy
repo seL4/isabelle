@@ -55,11 +55,9 @@ proof -
   show P
     apply (rule r)
      apply (rule ext)
-     apply (cut_tac x = "Inl x" in a [THEN fun_cong])
-     apply simp
+     apply (cut_tac x = "Inl x" in a [THEN fun_cong], simp)
     apply (rule ext)
-    apply (cut_tac x = "Inr x" in a [THEN fun_cong])
-    apply simp
+    apply (cut_tac x = "Inr x" in a [THEN fun_cong], simp)
     done
 qed
 
@@ -89,8 +87,7 @@ subsection {* Further cases/induct rules for tuples *}
 lemma prod_cases3 [case_names fields, cases type]:
     "(!!a b c. y = (a, b, c) ==> P) ==> P"
   apply (cases y)
-  apply (case_tac b)
-  apply blast
+  apply (case_tac b, blast)
   done
 
 lemma prod_induct3 [case_names fields, induct type]:
@@ -100,8 +97,7 @@ lemma prod_induct3 [case_names fields, induct type]:
 lemma prod_cases4 [case_names fields, cases type]:
     "(!!a b c d. y = (a, b, c, d) ==> P) ==> P"
   apply (cases y)
-  apply (case_tac c)
-  apply blast
+  apply (case_tac c, blast)
   done
 
 lemma prod_induct4 [case_names fields, induct type]:
@@ -111,8 +107,7 @@ lemma prod_induct4 [case_names fields, induct type]:
 lemma prod_cases5 [case_names fields, cases type]:
     "(!!a b c d e. y = (a, b, c, d, e) ==> P) ==> P"
   apply (cases y)
-  apply (case_tac d)
-  apply blast
+  apply (case_tac d, blast)
   done
 
 lemma prod_induct5 [case_names fields, induct type]:
@@ -122,8 +117,7 @@ lemma prod_induct5 [case_names fields, induct type]:
 lemma prod_cases6 [case_names fields, cases type]:
     "(!!a b c d e f. y = (a, b, c, d, e, f) ==> P) ==> P"
   apply (cases y)
-  apply (case_tac e)
-  apply blast
+  apply (case_tac e, blast)
   done
 
 lemma prod_induct6 [case_names fields, induct type]:
@@ -133,8 +127,7 @@ lemma prod_induct6 [case_names fields, induct type]:
 lemma prod_cases7 [case_names fields, cases type]:
     "(!!a b c d e f g. y = (a, b, c, d, e, f, g) ==> P) ==> P"
   apply (cases y)
-  apply (case_tac f)
-  apply blast
+  apply (case_tac f, blast)
   done
 
 lemma prod_induct7 [case_names fields, induct type]:

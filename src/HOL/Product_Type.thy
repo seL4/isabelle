@@ -154,8 +154,7 @@ lemma ProdI: "Pair_Rep a b : Prod"
 
 lemma Pair_Rep_inject: "Pair_Rep a b = Pair_Rep a' b' ==> a = a' & b = b'"
   apply (unfold Pair_Rep_def)
-  apply (drule fun_cong [THEN fun_cong])
-  apply blast
+  apply (drule fun_cong [THEN fun_cong], blast)
   done
 
 lemma inj_on_Abs_Prod: "inj_on Abs_Prod Prod"
@@ -302,8 +301,7 @@ lemmas splitD = split_conv [THEN iffD1, standard]
 lemma split_Pair_apply: "split (%x y. f (x, y)) = f"
   -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
   apply (rule ext)
-  apply (tactic {* pair_tac "x" 1 *})
-  apply simp
+  apply (tactic {* pair_tac "x" 1 *}, simp)
   done
 
 lemma split_paired_The: "(THE x. P x) = (THE (a, b). P (a, b))"
@@ -314,9 +312,7 @@ lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: split_def)
 
 lemma Pair_fst_snd_eq: "!!s t. (s = t) = (fst s = fst t & snd s = snd t)"
-  apply (simp only: split_tupled_all)
-  apply simp
-  done
+by (simp only: split_tupled_all, simp)
 
 lemma prod_eqI [intro?]: "fst p = fst q ==> snd p = snd q ==> p = q"
   by (simp add: Pair_fst_snd_eq)
@@ -396,8 +392,7 @@ lemma split_beta: "(%(x, y). P x y) z = P (fst z) (snd z)"
 lemma split_split: "R (split c p) = (ALL x y. p = (x, y) --> R (c x y))"
   -- {* For use with @{text split} and the Simplifier. *}
   apply (subst surjective_pairing)
-  apply (subst split_conv)
-  apply blast
+  apply (subst split_conv, blast)
   done
 
 text {*
@@ -408,9 +403,7 @@ text {*
 *}
 
 lemma split_split_asm: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
-  apply (subst split_split)
-  apply simp
-  done
+by (subst split_split, simp)
 
 
 text {*
@@ -453,9 +446,7 @@ lemma mem_splitI: "z: c a b ==> z: split c (a, b)"
   by simp
 
 lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: split c p"
-  apply (simp only: split_tupled_all)
-  apply simp
-  done
+by (simp only: split_tupled_all, simp)
 
 lemma mem_splitE: "[| z: split c p; !!x y. [| p = (x,y); z: c x y |] ==> Q |] ==> Q"
 proof -
@@ -483,19 +474,14 @@ claset_ref() := claset() addSbefore (\"split_conv_tac\", split_conv_tac);
 "
 
 lemma split_eta_SetCompr [simp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
-  apply (rule ext)
-  apply fast
-  done
+by (rule ext, fast)
 
 lemma split_eta_SetCompr2 [simp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
-  apply (rule ext)
-  apply fast
-  done
+by (rule ext, fast)
 
 lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
   -- {* Allows simplifications of nested splits in case of independent predicates. *}
-  apply (rule ext)
-  apply blast
+  apply (rule ext, blast)
   done
 
 lemma split_comp_eq [simp]: 
@@ -511,10 +497,10 @@ but cannot be used as rewrite rule:
 ### Cannot add premise as rewrite rule because it contains (type) unknowns:
 ### ?y = .x
 Goal "[| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)"
-by (rtac some_equality 1);
-by ( Simp_tac 1);
-by (split_all_tac 1);
-by (Asm_full_simp_tac 1);
+by (rtac some_equality 1)
+by ( Simp_tac 1)
+by (split_all_tac 1)
+by (Asm_full_simp_tac 1)
 qed "The_split_eq";
 *)
 
@@ -532,20 +518,17 @@ lemma prod_fun [simp]: "prod_fun f g (a, b) = (f a, g b)"
 
 lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
   apply (rule ext)
-  apply (tactic {* pair_tac "x" 1 *})
-  apply simp
+  apply (tactic {* pair_tac "x" 1 *}, simp)
   done
 
 lemma prod_fun_ident [simp]: "prod_fun (%x. x) (%y. y) = (%z. z)"
   apply (rule ext)
-  apply (tactic {* pair_tac "z" 1 *})
-  apply simp
+  apply (tactic {* pair_tac "z" 1 *}, simp)
   done
 
 lemma prod_fun_imageI [intro]: "(a, b) : r ==> (f a, g b) : prod_fun f g ` r"
   apply (rule image_eqI)
-  apply (rule prod_fun [symmetric])
-  apply assumption
+  apply (rule prod_fun [symmetric], assumption)
   done
 
 lemma prod_fun_imageE [elim!]:
@@ -599,14 +582,10 @@ text {*
 *}
 
 lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
-  apply (erule SigmaE)
-  apply blast
-  done
+by (erule SigmaE, blast)
 
 lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
-  apply (erule SigmaE)
-  apply blast
-  done
+by (erule SigmaE, blast)
 
 lemma SigmaE2:
     "[| (a, b) : Sigma A B;

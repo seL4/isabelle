@@ -282,16 +282,13 @@ by (induct xs) auto
 
 lemma Suc_length_conv:
 "(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
-apply (induct xs)
- apply simp
-apply simp
+apply (induct xs, simp, simp)
 apply blast
 done
 
 lemma impossible_Cons [rule_format]: 
   "length xs <= length ys --> xs = x # ys = False"
-apply (induct xs)
-apply auto
+apply (induct xs, auto)
 done
 
 
@@ -319,12 +316,8 @@ lemma append_eq_append_conv [simp]:
  "!!ys. length xs = length ys \<or> length us = length vs
  ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
 apply (induct xs)
- apply (case_tac ys)
-apply simp
- apply force
-apply (case_tac ys)
- apply force
-apply simp
+ apply (case_tac ys, simp, force)
+apply (case_tac ys, force, simp)
 done
 
 lemma same_append_eq [iff]: "(xs @ ys = xs @ zs) = (ys = zs)"
@@ -486,12 +479,9 @@ lemma inj_mapI: "inj f ==> inj (map f)"
 by (rules dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) ==> inj f"
-apply (unfold inj_on_def)
-apply clarify
+apply (unfold inj_on_def, clarify)
 apply (erule_tac x = "[x]" in ballE)
- apply (erule_tac x = "[y]" in ballE)
-apply simp
- apply blast
+ apply (erule_tac x = "[y]" in ballE, simp, blast)
 apply blast
 done
 
@@ -514,11 +504,8 @@ lemma Nil_is_rev_conv [iff]: "([] = rev xs) = (xs = [])"
 by (induct xs) auto
 
 lemma rev_is_rev_conv [iff]: "!!ys. (rev xs = rev ys) = (xs = ys)"
-apply (induct xs)
- apply force
-apply (case_tac ys)
- apply simp
-apply force
+apply (induct xs, force)
+apply (case_tac ys, simp, force)
 done
 
 lemma rev_induct [case_names Nil snoc]:
@@ -545,9 +532,7 @@ lemma set_append [simp]: "set (xs @ ys) = (set xs \<union> set ys)"
 by (induct xs) auto
 
 lemma hd_in_set: "l = x#xs \<Longrightarrow> x\<in>set l"
-apply (case_tac l)
-apply auto
-done
+by (case_tac l, auto)
 
 lemma set_subset_Cons: "set xs \<subseteq> set (x # xs)"
 by auto
@@ -568,21 +553,16 @@ lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
 
 lemma set_upt [simp]: "set[i..j(] = {k. i \<le> k \<and> k < j}"
-apply (induct j)
- apply simp_all
-apply(erule ssubst)
-apply auto
+apply (induct j, simp_all)
+apply (erule ssubst, auto)
 done
 
 lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
-apply (induct xs)
- apply simp
-apply simp
+apply (induct xs, simp, simp)
 apply (rule iffI)
  apply (blast intro: eq_Nil_appendI Cons_eq_appendI)
 apply (erule exE)+
-apply (case_tac ys)
-apply auto
+apply (case_tac ys, auto)
 done
 
 lemma in_lists_conv_set: "(xs : lists A) = (\<forall>x \<in> set xs. x : A)"
@@ -674,33 +654,23 @@ declare nth.simps [simp del]
 
 lemma nth_append:
 "!!n. (xs @ ys)!n = (if n < length xs then xs!n else ys!(n - length xs))"
-apply(induct "xs")
- apply simp
-apply (case_tac n)
- apply auto
+apply (induct "xs", simp)
+apply (case_tac n, auto)
 done
 
 lemma nth_map [simp]: "!!n. n < length xs ==> (map f xs)!n = f(xs!n)"
-apply(induct xs)
- apply simp
-apply (case_tac n)
- apply auto
+apply (induct xs, simp)
+apply (case_tac n, auto)
 done
 
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
-apply (induct_tac xs)
- apply simp
-apply simp
+apply (induct_tac xs, simp, simp)
 apply safe
-apply (rule_tac x = 0 in exI)
-apply simp
- apply (rule_tac x = "Suc i" in exI)
- apply simp
-apply (case_tac i)
- apply simp
+apply (rule_tac x = 0 in exI, simp)
+ apply (rule_tac x = "Suc i" in exI, simp)
+apply (case_tac i, simp)
 apply (rename_tac j)
-apply (rule_tac x = j in exI)
-apply simp
+apply (rule_tac x = j in exI, simp)
 done
 
 lemma list_ball_nth: "[| n < length xs; !x : set xs. P x|] ==> P(xs!n)"
@@ -738,8 +708,7 @@ lemma list_update_overwrite [simp]:
 by (induct xs) (auto split: nat.split)
 
 lemma list_update_id[simp]: "!!i. i < length xs \<Longrightarrow> xs[i := xs!i] = xs"
-apply(induct xs)
- apply simp
+apply (induct xs, simp)
 apply(simp split:nat.splits)
 done
 
@@ -749,8 +718,7 @@ by (induct xs) (auto split: nat.split)
 
 lemma list_update_append1:
  "!!i. i < size xs \<Longrightarrow> (xs @ ys)[i:=x] = xs[i:=x] @ ys"
-apply(induct xs)
- apply simp
+apply (induct xs, simp)
 apply(simp split:nat.split)
 done
 
@@ -816,17 +784,14 @@ lemma drop_tl: "!!n. drop n (tl xs) = tl(drop n xs)"
 by(induct xs, simp_all add:drop_Cons drop_Suc split:nat.split)
 
 lemma nth_via_drop: "!!n. drop n xs = y#ys \<Longrightarrow> xs!n = y"
-apply(induct xs)
- apply simp
+apply (induct xs, simp)
 apply(simp add:drop_Cons nth_Cons split:nat.splits)
 done
 
 lemma take_Suc_conv_app_nth:
  "!!i. i < length xs \<Longrightarrow> take (Suc i) xs = take i xs @ [xs!i]"
-apply(induct xs)
- apply simp
-apply(case_tac i)
-apply auto
+apply (induct xs, simp)
+apply (case_tac i, auto)
 done
 
 lemma length_take [simp]: "!!xs. length (take n xs) = min (length xs) n"
@@ -850,78 +815,56 @@ lemma drop_append [simp]:
 by (induct n) (auto, case_tac xs, auto)
 
 lemma take_take [simp]: "!!xs n. take n (take m xs) = take (min n m) xs"
-apply (induct m)
- apply auto
-apply (case_tac xs)
- apply auto
-apply (case_tac na)
- apply auto
+apply (induct m, auto)
+apply (case_tac xs, auto)
+apply (case_tac na, auto)
 done
 
 lemma drop_drop [simp]: "!!xs. drop n (drop m xs) = drop (n + m) xs"
-apply (induct m)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct m, auto)
+apply (case_tac xs, auto)
 done
 
 lemma take_drop: "!!xs n. take n (drop m xs) = drop m (take (n + m) xs)"
-apply (induct m)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct m, auto)
+apply (case_tac xs, auto)
 done
 
 lemma append_take_drop_id [simp]: "!!xs. take n xs @ drop n xs = xs"
-apply (induct n)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct n, auto)
+apply (case_tac xs, auto)
 done
 
 lemma take_map: "!!xs. take n (map f xs) = map f (take n xs)"
-apply (induct n)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct n, auto)
+apply (case_tac xs, auto)
 done
 
 lemma drop_map: "!!xs. drop n (map f xs) = map f (drop n xs)"
-apply (induct n)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct n, auto)
+apply (case_tac xs, auto)
 done
 
 lemma rev_take: "!!i. rev (take i xs) = drop (length xs - i) (rev xs)"
-apply (induct xs)
- apply auto
-apply (case_tac i)
- apply auto
+apply (induct xs, auto)
+apply (case_tac i, auto)
 done
 
 lemma rev_drop: "!!i. rev (drop i xs) = take (length xs - i) (rev xs)"
-apply (induct xs)
- apply auto
-apply (case_tac i)
- apply auto
+apply (induct xs, auto)
+apply (case_tac i, auto)
 done
 
 lemma nth_take [simp]: "!!n i. i < n ==> (take n xs)!i = xs!i"
-apply (induct xs)
- apply auto
-apply (case_tac n)
- apply(blast )
-apply (case_tac i)
- apply auto
+apply (induct xs, auto)
+apply (case_tac n, blast)
+apply (case_tac i, auto)
 done
 
 lemma nth_drop [simp]:
 "!!xs i. n + i <= length xs ==> (drop n xs)!i = xs!(n + i)"
-apply (induct n)
- apply auto
-apply (case_tac xs)
- apply auto
+apply (induct n, auto)
+apply (case_tac xs, auto)
 done
 
 lemma set_take_subset: "\<And>n. set(take n xs) \<subseteq> set xs"
@@ -938,11 +881,8 @@ using set_drop_subset by fast
 
 lemma append_eq_conv_conj:
 "!!zs. (xs @ ys = zs) = (xs = take (length xs) zs \<and> ys = drop (length xs) zs)"
-apply(induct xs)
- apply simp
-apply clarsimp
-apply (case_tac zs)
-apply auto
+apply (induct xs, simp, clarsimp)
+apply (case_tac zs, auto)
 done
 
 lemma take_add [rule_format]: 
@@ -1004,28 +944,22 @@ declare zip_Cons [simp del]
 
 lemma length_zip [simp]:
 "!!xs. length (zip xs ys) = min (length xs) (length ys)"
-apply(induct ys)
- apply simp
-apply (case_tac xs)
- apply auto
+apply (induct ys, simp)
+apply (case_tac xs, auto)
 done
 
 lemma zip_append1:
 "!!xs. zip (xs @ ys) zs =
 zip xs (take (length xs) zs) @ zip ys (drop (length xs) zs)"
-apply (induct zs)
- apply simp
-apply (case_tac xs)
- apply simp_all
+apply (induct zs, simp)
+apply (case_tac xs, simp_all)
 done
 
 lemma zip_append2:
 "!!ys. zip xs (ys @ zs) =
 zip (take (length ys) xs) ys @ zip (drop (length ys) xs) zs"
-apply (induct xs)
- apply simp
-apply (case_tac ys)
- apply simp_all
+apply (induct xs, simp)
+apply (case_tac ys, simp_all)
 done
 
 lemma zip_append [simp]:
@@ -1035,16 +969,13 @@ by (simp add: zip_append1)
 
 lemma zip_rev:
 "!!xs. length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
-apply(induct ys)
- apply simp
-apply (case_tac xs)
- apply simp_all
+apply (induct ys, simp)
+apply (case_tac xs, simp_all)
 done
 
 lemma nth_zip [simp]:
 "!!i xs. [| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
-apply (induct ys)
- apply simp
+apply (induct ys, simp)
 apply (case_tac xs)
  apply (simp_all add: nth.simps split: nat.split)
 done
@@ -1059,10 +990,8 @@ by (rule sym, simp add: update_zip)
 
 lemma zip_replicate [simp]:
 "!!j. zip (replicate i x) (replicate j y) = replicate (min i j) (x,y)"
-apply (induct i)
- apply auto
-apply (case_tac j)
- apply auto
+apply (induct i, auto)
+apply (case_tac j, auto)
 done
 
 
@@ -1105,8 +1034,7 @@ apply (simp add: list_all2_def zip_append1)
 apply (rule iffI)
  apply (rule_tac x = "take (length xs) zs" in exI)
  apply (rule_tac x = "drop (length xs) zs" in exI)
- apply (force split: nat_diff_split simp add: min_def)
-apply clarify
+ apply (force split: nat_diff_split simp add: min_def, clarify)
 apply (simp add: ball_Un)
 done
 
@@ -1118,18 +1046,15 @@ apply (simp add: list_all2_def zip_append2)
 apply (rule iffI)
  apply (rule_tac x = "take (length ys) xs" in exI)
  apply (rule_tac x = "drop (length ys) xs" in exI)
- apply (force split: nat_diff_split simp add: min_def)
-apply clarify
+ apply (force split: nat_diff_split simp add: min_def, clarify)
 apply (simp add: ball_Un)
 done
 
 lemma list_all2_append:
   "\<And>b. length a = length b \<Longrightarrow>
   list_all2 P (a@c) (b@d) = (list_all2 P a b \<and> list_all2 P c d)"
-  apply (induct a)
-   apply simp
-  apply (case_tac b)
-  apply auto
+  apply (induct a, simp)
+  apply (case_tac b, auto)
   done
 
 lemma list_all2_appendI [intro?, trans]:
@@ -1185,20 +1110,15 @@ lemma list_all2_update_cong2:
 
 lemma list_all2_dropI [intro?]:
   "\<And>n bs. list_all2 P as bs \<Longrightarrow> list_all2 P (drop n as) (drop n bs)"
-  apply (induct as)
-   apply simp
+  apply (induct as, simp)
   apply (clarsimp simp add: list_all2_Cons1)
-  apply (case_tac n)
-   apply simp
-  apply simp
+  apply (case_tac n, simp, simp)
   done
 
 lemma list_all2_mono [intro?]:
   "\<And>y. list_all2 P x y \<Longrightarrow> (\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> list_all2 Q x y"
-  apply (induct x)
-   apply simp
-  apply (case_tac y)
-  apply auto
+  apply (induct x, simp)
+  apply (case_tac y, auto)
   done
 
 
@@ -1231,7 +1151,7 @@ inductive "fold_rel R" intros
   Nil:  "(a, [],a) : fold_rel R"
   Cons: "[|(a,x,b) : R; (b,xs,c) : fold_rel R|] ==> (a,x#xs,c) : fold_rel R"
 inductive_cases fold_rel_elim_case [elim!]:
-   "(a, []  , b) : fold_rel R"
+   "(a, [] , b) : fold_rel R"
    "(a, x#xs, b) : fold_rel R"
 
 lemma fold_rel_Nil [intro!]: "a = b ==> (a, [], b) : fold_rel R" 
@@ -1255,8 +1175,7 @@ by simp
 lemma upt_conv_Cons: "i < j ==> [i..j(] = i # [Suc i..j(]"
 apply(rule trans)
 apply(subst upt_rec)
- prefer 2 apply(rule refl)
-apply simp
+ prefer 2 apply (rule refl, simp)
 done
 
 lemma upt_add_eq_append: "i<=j ==> [i..j+k(] = [i..j(]@[j..j+k(]"
@@ -1272,8 +1191,7 @@ apply (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
 done
 
 lemma take_upt [simp]: "!!i. i+m <= n ==> take m [i..n(] = [i..i+m(]"
-apply (induct m)
- apply simp
+apply (induct m, simp)
 apply (subst upt_rec)
 apply (rule sym)
 apply (subst upt_rec)
@@ -1293,13 +1211,10 @@ lemma nth_take_lemma:
   "!!xs ys. k <= length xs ==> k <= length ys ==>
      (!!i. i < k --> xs!i = ys!i) ==> take k xs = take k ys"
 apply (atomize, induct k)
-apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib)
-apply clarify
+apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib, clarify)
 txt {* Both lists must be non-empty *}
-apply (case_tac xs)
- apply simp
-apply (case_tac ys)
- apply clarify
+apply (case_tac xs, simp)
+apply (case_tac ys, clarify)
  apply (simp (no_asm_use))
 apply clarify
 txt {* prenexing's needed, not miniscoping *}
@@ -1318,9 +1233,7 @@ lemma list_all2_antisym:
   "\<lbrakk> (\<And>x y. \<lbrakk>P x y; Q y x\<rbrakk> \<Longrightarrow> x = y); list_all2 P xs ys; list_all2 Q ys xs \<rbrakk> 
   \<Longrightarrow> xs = ys"
   apply (simp add: list_all2_conv_all_nth) 
-  apply (rule nth_equalityI)
-   apply blast
-  apply simp
+  apply (rule nth_equalityI, blast, simp)
   done
 
 lemma take_equalityI: "(\<forall>i. take i xs = take i ys) ==> xs = ys"
@@ -1350,27 +1263,19 @@ It is best to avoid this indexed version of distinct, but sometimes
 it is useful. *}
 lemma distinct_conv_nth:
 "distinct xs = (\<forall>i j. i < size xs \<and> j < size xs \<and> i \<noteq> j --> xs!i \<noteq> xs!j)"
-apply (induct_tac xs)
- apply simp
-apply simp
-apply (rule iffI)
- apply clarsimp
+apply (induct_tac xs, simp, simp)
+apply (rule iffI, clarsimp)
  apply (case_tac i)
-apply (case_tac j)
- apply simp
+apply (case_tac j, simp)
 apply (simp add: set_conv_nth)
  apply (case_tac j)
-apply (clarsimp simp add: set_conv_nth)
- apply simp
+apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
  apply (clarsimp simp add: set_conv_nth)
  apply (erule_tac x = 0 in allE)
- apply (erule_tac x = "Suc i" in allE)
- apply simp
-apply clarsimp
+ apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
 apply (erule_tac x = "Suc i" in allE)
-apply (erule_tac x = "Suc j" in allE)
-apply simp
+apply (erule_tac x = "Suc j" in allE, simp)
 done
 
 
@@ -1387,8 +1292,7 @@ lemma replicate_app_Cons_same:
 by (induct n) auto
 
 lemma rev_replicate [simp]: "rev (replicate n x) = replicate n x"
-apply(induct n)
- apply simp
+apply (induct n, simp)
 apply (simp add: replicate_app_Cons_same)
 done
 
@@ -1405,8 +1309,7 @@ lemma last_replicate [simp]: "n \<noteq> 0 ==> last (replicate n x) = x"
 by (atomize (full), induct n) auto
 
 lemma nth_replicate[simp]: "!!i. i < n ==> (replicate n x)!i = x"
-apply(induct n)
- apply simp
+apply (induct n, simp)
 apply (simp add: nth_Cons split: nat.split)
 done
 
@@ -1451,14 +1354,11 @@ by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
 subsection {* Lexicographic orderings on lists *}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
-apply (induct_tac n)
- apply simp
-apply simp
+apply (induct_tac n, simp, simp)
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
 apply(rule wf_prod_fun_image)
- prefer 2 apply (rule inj_onI)
-apply auto
+ prefer 2 apply (rule inj_onI, auto)
 done
 
 lemma lexn_length:
@@ -1468,8 +1368,7 @@ by (induct n) auto
 lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
 apply (unfold lex_def)
 apply (rule wf_UN)
-apply (blast intro: wf_lexn)
-apply clarify
+apply (blast intro: wf_lexn, clarify)
 apply (rename_tac m n)
 apply (subgoal_tac "m \<noteq> n")
  prefer 2 apply blast
@@ -1480,17 +1379,10 @@ lemma lexn_conv:
 "lexn r n =
 {(xs,ys). length xs = n \<and> length ys = n \<and>
 (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
-apply (induct_tac n)
- apply simp
- apply blast
-apply (simp add: image_Collect lex_prod_def)
-apply safe
-apply blast
- apply (rule_tac x = "ab # xys" in exI)
- apply simp
-apply (case_tac xys)
- apply simp_all
-apply blast
+apply (induct_tac n, simp, blast)
+apply (simp add: image_Collect lex_prod_def, safe, blast)
+ apply (rule_tac x = "ab # xys" in exI, simp)
+apply (case_tac xys, simp_all, blast)
 done
 
 lemma lex_conv:
@@ -1518,11 +1410,8 @@ lemma Cons_in_lex [iff]:
 ((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
 apply (simp add: lex_conv)
 apply (rule iffI)
- prefer 2 apply (blast intro: Cons_eq_appendI)
-apply clarify
-apply (case_tac xys)
- apply simp
-apply simp
+ prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
+apply (case_tac xys, simp, simp)
 apply blast
 done
 
@@ -1543,8 +1432,7 @@ by (induct xs rule: rev_induct) (simp_all add: add_commute)
 lemma sublist_append:
 "sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
 apply (unfold sublist_def)
-apply (induct l' rule: rev_induct)
- apply simp
+apply (induct l' rule: rev_induct, simp)
 apply (simp add: upt_add_eq_append[of 0] zip_append sublist_shift_lemma)
 apply (simp add: add_commute)
 done
@@ -1560,8 +1448,7 @@ lemma sublist_singleton [simp]: "sublist [x] A = (if 0 : A then [x] else [])"
 by (simp add: sublist_Cons)
 
 lemma sublist_upt_eq_take [simp]: "sublist l {..n(} = take n l"
-apply (induct l rule: rev_induct)
- apply simp
+apply (induct l rule: rev_induct, simp)
 apply (simp split: nat_diff_split add: sublist_append)
 done
 

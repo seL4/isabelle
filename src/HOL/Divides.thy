@@ -90,8 +90,7 @@ lemma split_div_lemma:
   "0 < n \<Longrightarrow> (n * q <= m \<and> m < n * (Suc q)) = (q = ((m::nat) div n))"
   apply (rule iffI)
   apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
-  apply (simp_all add: quorem_def)
-  apply arith
+  apply (simp_all add: quorem_def, arith)
   apply (rule conjI)
   apply (rule_tac P="%x. n * (m div n) \<le> x" in
     subst [OF mod_div_equality [of _ n]])
@@ -99,8 +98,7 @@ lemma split_div_lemma:
   apply (rule_tac P="%x. x < n + n * (m div n)" in
     subst [OF mod_div_equality [of _ n]])
   apply (simp only: add: mult_ac add_ac)
-  apply (rule add_less_mono1)
-  apply simp
+  apply (rule add_less_mono1, simp)
   done
 
 theorem split_div':

@@ -489,14 +489,11 @@ lemma if_not_P: "~P ==> (if P then x else y) = y"
 lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
   apply (rule case_split [of Q])
    apply (subst if_P)
-    prefer 3 apply (subst if_not_P)
-     apply blast+
+    prefer 3 apply (subst if_not_P, blast+)
   done
 
 lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
-  apply (subst split_if)
-  apply blast
-  done
+by (subst split_if, blast)
 
 lemmas if_splits = split_if split_if_asm
 
@@ -504,14 +501,10 @@ lemma if_def2: "(if Q then x else y) = ((Q --> x) & (~ Q --> y))"
   by (rule split_if)
 
 lemma if_cancel: "(if c then x else x) = x"
-  apply (subst split_if)
-  apply blast
-  done
+by (subst split_if, blast)
 
 lemma if_eq_cancel: "(if x = y then y else x) = x"
-  apply (subst split_if)
-  apply blast
-  done
+by (subst split_if, blast)
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
   -- {* This form is useful for expanding @{text if}s on the RIGHT of the @{text "==>"} symbol. *}
@@ -519,8 +512,7 @@ lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
   -- {* And this form is useful for expanding @{text if}s on the LEFT. *}
-  apply (subst split_if)
-  apply blast
+  apply (subst split_if, blast)
   done
 
 lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
@@ -552,8 +544,7 @@ theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (erule impE)
   apply (rule allI)
   apply (rule_tac P = "xa = x" in case_split_thm)
-  apply (drule_tac [3] x = x in fun_cong)
-  apply simp_all
+  apply (drule_tac [3] x = x in fun_cong, simp_all)
   done
 
 text{*Needs only HOL-lemmas:*}
@@ -706,8 +697,7 @@ lemma order_less_irrefl [iff]: "~ x < (x::'a::order)"
 
 lemma order_le_less: "((x::'a::order) <= y) = (x < y | x = y)"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
-  apply (simp add: order_less_le)
-  apply blast
+  apply (simp add: order_less_le, blast)
   done
 
 lemmas order_le_imp_less_or_eq = order_le_less [THEN iffD1, standard]
@@ -723,8 +713,7 @@ lemma order_less_not_sym: "(x::'a::order) < y ==> ~ (y < x)"
 
 lemma order_less_asym: "x < (y::'a::order) ==> (~P ==> y < x) ==> P"
   apply (drule order_less_not_sym)
-  apply (erule contrapos_np)
-  apply simp
+  apply (erule contrapos_np, simp)
   done
 
 
@@ -806,14 +795,12 @@ axclass linorder < order
 
 lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
   apply (simp add: order_less_le)
-  apply (insert linorder_linear)
-  apply blast
+  apply (insert linorder_linear, blast)
   done
 
 lemma linorder_cases [case_names less equal greater]:
     "((x::'a::linorder) < y ==> P) ==> (x = y ==> P) ==> (y < x ==> P) ==> P"
-  apply (insert linorder_less_linear)
-  apply blast
+  apply (insert linorder_less_linear, blast)
   done
 
 lemma linorder_not_less: "!!x::'a::linorder. (~ x < y) = (y <= x)"
@@ -829,14 +816,10 @@ lemma linorder_not_le: "!!x::'a::linorder. (~ x <= y) = (y < x)"
   done
 
 lemma linorder_neq_iff: "!!x::'a::linorder. (x ~= y) = (x<y | y<x)"
-  apply (cut_tac x = x and y = y in linorder_less_linear)
-  apply auto
-  done
+by (cut_tac x = x and y = y in linorder_less_linear, auto)
 
 lemma linorder_neqE: "x ~= (y::'a::linorder) ==> (x < y ==> R) ==> (y < x ==> R) ==> R"
-  apply (simp add: linorder_neq_iff)
-  apply blast
-  done
+by (simp add: linorder_neq_iff, blast)
 
 
 subsubsection "Min and max on (linear) orders"

@@ -111,7 +111,7 @@ done
 
 lemma map_upd_nonempty[simp]: "t(k|->x) ~= empty"
 apply safe
-apply (drule_tac x = "k" in fun_cong)
+apply (drule_tac x = k in fun_cong)
 apply (simp (no_asm_use))
 done
 
@@ -126,7 +126,7 @@ lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
 apply (unfold image_def)
 apply (simp (no_asm_use) add: full_SetCompr_eq)
 apply (rule finite_subset)
-prefer 2 apply (assumption)
+prefer 2 apply assumption
 apply auto
 done
 
@@ -156,22 +156,16 @@ done
 subsection {* @{term chg_map} *}
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
-apply (unfold chg_map_def)
-apply auto
-done
+by (unfold chg_map_def, auto)
 
 lemma chg_map_upd[simp]: "m a = Some b ==> chg_map f a m = m(a|->f b)"
-apply (unfold chg_map_def)
-apply auto
-done
+by (unfold chg_map_def, auto)
 
 
 subsection {* @{term map_of} *}
 
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
-apply (induct_tac "xs")
-apply  auto
-done
+by (induct_tac "xs", auto)
 
 lemma map_of_mapk_SomeI [rule_format (no_asm)]: "inj f ==> map_of t k = Some x -->  
    map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
@@ -180,31 +174,26 @@ apply  (auto simp add: inj_eq)
 done
 
 lemma weak_map_of_SomeI [rule_format (no_asm)]: "(k, x) : set l --> (? x. map_of l k = Some x)"
-apply (induct_tac "l")
-apply  auto
-done
+by (induct_tac "l", auto)
 
 lemma map_of_filter_in: 
 "[| map_of xs k = Some z; P k z |] ==> map_of (filter (split P) xs) k = Some z"
 apply (rule mp)
-prefer 2 apply (assumption)
+prefer 2 apply assumption
 apply (erule thin_rl)
-apply (induct_tac "xs")
-apply  auto
+apply (induct_tac "xs", auto)
 done
 
 lemma finite_range_map_of: "finite (range (map_of l))"
 apply (induct_tac "l")
 apply  (simp_all (no_asm) add: image_constant)
 apply (rule finite_subset)
-prefer 2 apply (assumption)
+prefer 2 apply assumption
 apply auto
 done
 
 lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)"
-apply (induct_tac "xs")
-apply auto
-done
+by (induct_tac "xs", auto)
 
 
 subsection {* @{term option_map} related *}
@@ -249,9 +238,7 @@ lemmas map_add_SomeD = map_add_Some_iff [THEN iffD1, standard]
 declare map_add_SomeD [dest!]
 
 lemma map_add_find_right[simp]: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
-apply (subst map_add_Some_iff)
-apply fast
-done
+by (subst map_add_Some_iff, fast)
 
 lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
 apply (unfold map_add_def)
@@ -260,8 +247,7 @@ done
 
 lemma map_add_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
 apply (unfold map_add_def)
-apply (rule ext)
-apply auto
+apply (rule ext, auto)
 done
 
 lemma map_add_upds[simp]: "m1 ++ (m2(xs[\<mapsto>]ys)) = (m1++m2)(xs[\<mapsto>]ys)"
@@ -278,8 +264,7 @@ done
 declare fun_upd_apply [simp del]
 lemma finite_range_map_of_map_add:
  "finite (range f) ==> finite (range (f ++ map_of l))"
-apply (induct_tac "l")
-apply  auto
+apply (induct_tac "l", auto)
 apply (erule finite_range_updI)
 done
 declare fun_upd_apply [simp]
@@ -351,18 +336,14 @@ lemma map_upds_append1[simp]: "\<And>ys m. size xs < size ys \<Longrightarrow>
   m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys)(x \<mapsto> ys!size xs)"
 apply(induct xs)
  apply(clarsimp simp add:neq_Nil_conv)
-apply(case_tac ys)
- apply simp
-apply simp
+apply (case_tac ys, simp, simp)
 done
 
 lemma map_upds_list_update2_drop[simp]:
  "\<And>m ys i. \<lbrakk>size xs \<le> i; i < size ys\<rbrakk>
      \<Longrightarrow> m(xs[\<mapsto>]ys[i:=y]) = m(xs[\<mapsto>]ys)"
-apply(induct xs)
- apply simp
-apply(case_tac ys)
- apply simp
+apply (induct xs, simp)
+apply (case_tac ys, simp)
 apply(simp split:nat.split)
 done
 
@@ -370,8 +351,7 @@ lemma map_upd_upds_conv_if: "!!x y ys f.
  (f(x|->y))(xs [|->] ys) =
  (if x : set(take (length ys) xs) then f(xs [|->] ys)
                                   else (f(xs [|->] ys))(x|->y))"
-apply(induct xs)
- apply simp
+apply (induct xs, simp)
 apply(case_tac ys)
  apply(auto split:split_if simp:fun_upd_twist)
 done
@@ -384,8 +364,7 @@ done
 
 lemma map_upds_apply_nontin[simp]:
  "!!ys. x ~: set xs ==> (f(xs[|->]ys)) x = f x"
-apply(induct xs)
- apply simp
+apply (induct xs, simp)
 apply(case_tac ys)
  apply(auto simp: map_upd_upds_conv_if)
 done
@@ -393,10 +372,8 @@ done
 lemma restrict_map_upds[simp]: "!!m ys.
  \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
  \<Longrightarrow> m(xs [\<mapsto>] ys)\<lfloor>D = (m\<lfloor>(D - set xs))(xs [\<mapsto>] ys)"
-apply(induct xs)
- apply simp
-apply(case_tac ys)
- apply simp
+apply (induct xs, simp)
+apply (case_tac ys, simp)
 apply(simp add:Diff_insert[symmetric] insert_absorb)
 apply(simp add: map_upd_upds_conv_if)
 done
@@ -415,20 +392,14 @@ by (simp add: map_subst_def)
 subsection {* @{term dom} *}
 
 lemma domI: "m a = Some b ==> a : dom m"
-apply (unfold dom_def)
-apply auto
-done
+by (unfold dom_def, auto)
 (* declare domI [intro]? *)
 
 lemma domD: "a : dom m ==> ? b. m a = Some b"
-apply (unfold dom_def)
-apply auto
-done
+by (unfold dom_def, auto)
 
 lemma domIff[iff]: "(a : dom m) = (m a ~= None)"
-apply (unfold dom_def)
-apply auto
-done
+by (unfold dom_def, auto)
 declare domIff [simp del]
 
 lemma dom_empty[simp]: "dom empty = {}"
@@ -453,16 +424,12 @@ done
 
 lemma dom_map_upds[simp]:
  "!!m ys. dom(m(xs[|->]ys)) = set(take (length ys) xs) Un dom m"
-apply(induct xs)
- apply simp
-apply(case_tac ys)
- apply auto
+apply (induct xs, simp)
+apply (case_tac ys, auto)
 done
 
 lemma dom_map_add[simp]: "dom(m++n) = dom n Un dom m"
-apply (unfold dom_def)
-apply auto
-done
+by (unfold dom_def, auto)
 
 lemma dom_overwrite[simp]:
  "dom(f(g|A)) = (dom f  - {a. a : A - dom g}) Un {a. a : A Int dom g}"
@@ -485,8 +452,7 @@ apply (simp (no_asm))
 done
 
 lemma ran_map_upd[simp]: "m a = None ==> ran(m(a|->b)) = insert b (ran m)"
-apply (unfold ran_def)
-apply auto
+apply (unfold ran_def, auto)
 apply (subgoal_tac "~ (aa = a) ")
 apply auto
 done
@@ -507,10 +473,8 @@ by(force simp add:map_le_def)
 
 lemma map_le_upds[simp]:
  "!!f g bs. f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
-apply(induct as)
- apply simp
-apply(case_tac bs)
- apply auto
+apply (induct as, simp)
+apply (case_tac bs, auto)
 done
 
 lemma map_le_implies_dom_le: "(f \<subseteq>\<^sub>m g) \<Longrightarrow> (dom f \<subseteq> dom g)"
@@ -525,11 +489,8 @@ by(force simp add:map_le_def)
 lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m f \<rbrakk> \<Longrightarrow> f = g"
   apply (unfold map_le_def)
   apply (rule ext)
-  apply (case_tac "x \<in> dom f")
-    apply simp
-  apply (case_tac "x \<in> dom g")
-    apply simp
-  apply fastsimp
+  apply (case_tac "x \<in> dom f", simp)
+  apply (case_tac "x \<in> dom g", simp, fastsimp)
 done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"

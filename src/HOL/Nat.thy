@@ -39,7 +39,7 @@ intros
 global
 
 typedef (open Nat)
-  nat = "Nat" by (rule exI, rule Nat.Zero_RepI)
+  nat = Nat by (rule exI, rule Nat.Zero_RepI)
 
 instance nat :: ord ..
 instance nat :: zero ..
@@ -148,27 +148,23 @@ text {* A special form of induction for reasoning
 
 theorem diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
     (!!x y. P x y ==> P (Suc x) (Suc y)) ==> P m n"
-  apply (rule_tac x = "m" in spec)
+  apply (rule_tac x = m in spec)
   apply (induct_tac n)
   prefer 2
   apply (rule allI)
-  apply (induct_tac x)
-  apply rules+
+  apply (induct_tac x, rules+)
   done
 
 subsection {* Basic properties of "less than" *}
 
 lemma wf_pred_nat: "wf pred_nat"
-  apply (unfold wf_def pred_nat_def)
-  apply clarify
-  apply (induct_tac x)
-  apply blast+
+  apply (unfold wf_def pred_nat_def, clarify)
+  apply (induct_tac x, blast+)
   done
 
 lemma wf_less: "wf {(x, y::nat). x < y}"
   apply (unfold less_def)
-  apply (rule wf_pred_nat [THEN wf_trancl, THEN wf_subset])
-  apply blast
+  apply (rule wf_pred_nat [THEN wf_trancl, THEN wf_subset], blast)
   done
 
 lemma less_eq: "((m, n) : pred_nat^+) = (m < n)"
@@ -180,8 +176,7 @@ subsubsection {* Introduction properties *}
 
 lemma less_trans: "i < j ==> j < k ==> i < (k::nat)"
   apply (unfold less_def)
-  apply (rule trans_trancl [THEN transD])
-  apply assumption+
+  apply (rule trans_trancl [THEN transD], assumption+)
   done
 
 lemma lessI [iff]: "n < Suc n"
@@ -190,8 +185,7 @@ lemma lessI [iff]: "n < Suc n"
   done
 
 lemma less_SucI: "i < j ==> i < Suc j"
-  apply (rule less_trans)
-  apply assumption
+  apply (rule less_trans, assumption)
   apply (rule lessI)
   done
 
@@ -234,12 +228,10 @@ lemma lessE:
   assumes major: "i < k"
   and p1: "k = Suc i ==> P" and p2: "!!j. i < j ==> k = Suc j ==> P"
   shows P
-  apply (rule major [unfolded less_def pred_nat_def, THEN tranclE])
-  apply simp_all
+  apply (rule major [unfolded less_def pred_nat_def, THEN tranclE], simp_all)
   apply (erule p1)
   apply (rule p2)
-  apply (simp add: less_def pred_nat_def)
-  apply assumption
+  apply (simp add: less_def pred_nat_def, assumption)
   done
 
 lemma not_less0 [iff]: "~ n < (0::nat)"
@@ -251,10 +243,8 @@ lemma less_zeroE: "(n::nat) < 0 ==> R"
 lemma less_SucE: assumes major: "m < Suc n"
   and less: "m < n ==> P" and eq: "m = n ==> P" shows P
   apply (rule major [THEN lessE])
-  apply (rule eq)
-  apply blast
-  apply (rule less)
-  apply blast
+  apply (rule eq, blast)
+  apply (rule less, blast)
   done
 
 lemma less_Suc_eq: "(m < Suc n) = (m < n | m = n)"
@@ -308,8 +298,7 @@ lemma Suc_lessE: assumes major: "Suc i < k"
   and minor: "!!j. i < j ==> k = Suc j ==> P" shows P
   apply (rule major [THEN lessE])
   apply (erule lessI [THEN minor])
-  apply (erule Suc_lessD [THEN minor])
-  apply assumption
+  apply (erule Suc_lessD [THEN minor], assumption)
   done
 
 lemma Suc_less_SucD: "Suc m < Suc n ==> m < n"
@@ -323,8 +312,7 @@ lemma Suc_less_eq [iff]: "(Suc m < Suc n) = (m < n)"
 
 lemma less_trans_Suc:
   assumes le: "i < j" shows "j < k ==> Suc i < k"
-  apply (induct k)
-  apply simp_all
+  apply (induct k, simp_all)
   apply (insert le)
   apply (simp add: less_Suc_eq)
   apply (blast dest: Suc_lessD)
@@ -332,9 +320,7 @@ lemma less_trans_Suc:
 
 text {* Can be used with @{text less_Suc_eq} to get @{term "n = m | n < m"} *}
 lemma not_less_eq: "(~ m < n) = (n < Suc m)"
-  apply (rule_tac m = "m" and n = "n" in diff_induct)
-  apply simp_all
-  done
+by (rule_tac m = m and n = n in diff_induct, simp_all)
 
 text {* Complete induction, aka course-of-values induction *}
 lemma nat_less_induct:
@@ -342,8 +328,7 @@ lemma nat_less_induct:
   apply (rule_tac a=n in wf_induct)
   apply (rule wf_pred_nat [THEN wf_trancl])
   apply (rule prem)
-  apply (unfold less_def)
-  apply assumption
+  apply (unfold less_def, assumption)
   done
 
 lemmas less_induct = nat_less_induct [rule_format, case_names less]
@@ -559,8 +544,7 @@ lemma gr0_conv_Suc: "(0 < n) = (EX m. n = Suc m)"
 
 lemma not_gr0 [iff]: "!!n::nat. (~ (0 < n)) = (n = 0)"
   apply (rule iffI)
-  apply (rule ccontr)
-  apply simp_all
+  apply (rule ccontr, simp_all)
   done
 
 lemma Suc_le_D: "(Suc n <= m') ==> (? m. m' = Suc m)"
@@ -584,14 +568,12 @@ lemmas Least_le = wellorder_Least_le
 lemmas not_less_Least = wellorder_not_less_Least
 
 lemma Least_Suc: "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
-  apply (case_tac "n")
-  apply auto
+  apply (case_tac "n", auto)
   apply (frule LeastI)
   apply (drule_tac P = "%x. P (Suc x) " in LeastI)
   apply (subgoal_tac " (LEAST x. P x) <= Suc (LEAST x. P (Suc x))")
   apply (erule_tac [2] Least_le)
-  apply (case_tac "LEAST x. P x")
-  apply auto
+  apply (case_tac "LEAST x. P x", auto)
   apply (drule_tac P = "%x. P (Suc x) " in Least_le)
   apply (blast intro: order_antisym)
   done
@@ -714,8 +696,7 @@ lemma less_imp_Suc_add: "m < n ==> (EX k. n = Suc (m + k))"
   done
 
 lemma le_add2: "n <= ((m + n)::nat)"
-  apply (induct m)
-  apply simp_all
+  apply (induct m, simp_all)
   apply (erule le_SucI)
   done
 
@@ -747,8 +728,7 @@ lemma trans_less_add2: "(i::nat) < j ==> i < m + j"
   by (rule less_le_trans, assumption, rule le_add2)
 
 lemma add_lessD1: "i + j < (k::nat) ==> i < k"
-  apply (induct j)
-  apply simp_all
+  apply (induct j, simp_all)
   apply (blast dest: Suc_lessD)
   done
 
@@ -785,10 +765,8 @@ lemma add_less_mono1: "i < j ==> i + k < j + (k::nat)"
 
 text {* strict, in both arguments *}
 lemma add_less_mono: "[|i < j; k < l|] ==> i + k < j + (l::nat)"
-  apply (rule add_less_mono1 [THEN less_trans])
-  apply assumption+
-  apply (induct_tac j)
-  apply simp_all
+  apply (rule add_less_mono1 [THEN less_trans], assumption+)
+  apply (induct_tac j, simp_all)
   done
 
 text {* A [clumsy] way of lifting @{text "<"}
@@ -803,8 +781,7 @@ lemma less_mono_imp_le_mono:
 text {* non-strict, in 1st argument *}
 lemma add_le_mono1: "i <= j ==> i + k <= j + (k::nat)"
   apply (rule_tac f = "%j. j + k" in less_mono_imp_le_mono)
-  apply (erule add_less_mono1)
-  apply assumption
+  apply (erule add_less_mono1, assumption)
   done
 
 text {* non-strict, in both arguments *}
@@ -853,8 +830,7 @@ lemmas mult_ac = mult_assoc mult_commute mult_left_commute
 
 lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
   apply (induct_tac m)
-  apply (induct_tac [2] n)
-  apply simp_all
+  apply (induct_tac [2] n, simp_all)
   done
 
 
@@ -899,8 +875,7 @@ lemma Suc_diff_diff [simp]: "(Suc m - n) - Suc k = m - n - k"
   by (simp add: diff_diff_left)
 
 lemma diff_Suc_less [simp]: "0<n ==> n - Suc i < n"
-  apply (case_tac "n")
-  apply safe
+  apply (case_tac "n", safe)
   apply (simp add: le_simps)
   done
 
@@ -947,8 +922,7 @@ lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
 
 lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
   apply (rule diff_self_eq_0 [THEN subst])
-  apply (rule zero_induct_lemma)
-  apply rules+
+  apply (rule zero_induct_lemma, rules+)
   done
 
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
@@ -992,8 +966,7 @@ lemma mult_le_mono: "i <= (j::nat) ==> k <= l ==> i * k <= j * l"
 
 text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
 lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
-  apply (erule_tac m1 = "0" in less_imp_Suc_add [THEN exE])
-  apply simp
+  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
   apply (induct_tac x)
   apply (simp_all add: add_less_mono)
   done
@@ -1003,34 +976,27 @@ lemma mult_less_mono1: "(i::nat) < j ==> 0 < k ==> i * k < j * k"
 
 lemma zero_less_mult_iff [simp]: "(0 < (m::nat) * n) = (0 < m & 0 < n)"
   apply (induct m)
-  apply (case_tac [2] n)
-  apply simp_all
+  apply (case_tac [2] n, simp_all)
   done
 
 lemma one_le_mult_iff [simp]: "(Suc 0 <= m * n) = (1 <= m & 1 <= n)"
   apply (induct m)
-  apply (case_tac [2] n)
-  apply simp_all
+  apply (case_tac [2] n, simp_all)
   done
 
 lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = 1 & n = 1)"
-  apply (induct_tac m)
-  apply simp
-  apply (induct_tac n)
-  apply simp
-  apply fastsimp
+  apply (induct_tac m, simp)
+  apply (induct_tac n, simp, fastsimp)
   done
 
 lemma one_eq_mult_iff [simp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"
   apply (rule trans)
-  apply (rule_tac [2] mult_eq_1_iff)
-  apply fastsimp
+  apply (rule_tac [2] mult_eq_1_iff, fastsimp)
   done
 
 lemma mult_less_cancel2: "((m::nat) * k < n * k) = (0 < k & m < n)"
   apply (safe intro!: mult_less_mono1)
-  apply (case_tac k)
-  apply auto
+  apply (case_tac k, auto)
   apply (simp del: le_0_eq add: linorder_not_le [symmetric])
   apply (blast intro: mult_le_mono1)
   done
@@ -1041,19 +1007,13 @@ lemma mult_less_cancel1 [simp]: "(k * (m::nat) < k * n) = (0 < k & m < n)"
 declare mult_less_cancel2 [simp]
 
 lemma mult_le_cancel1 [simp]: "(k * (m::nat) <= k * n) = (0 < k --> m <= n)"
-  apply (simp add: linorder_not_less [symmetric])
-  apply auto
-  done
+by (simp add: linorder_not_less [symmetric], auto)
 
 lemma mult_le_cancel2 [simp]: "((m::nat) * k <= n * k) = (0 < k --> m <= n)"
-  apply (simp add: linorder_not_less [symmetric])
-  apply auto
-  done
+by (simp add: linorder_not_less [symmetric], auto)
 
 lemma mult_cancel2: "(m * k = n * k) = (m = n | (k = (0::nat)))"
-  apply (cut_tac less_linear)
-  apply safe
-  apply auto
+  apply (cut_tac less_linear, safe, auto)
   apply (drule mult_less_mono1, assumption, simp)+
   done
 

@@ -115,8 +115,7 @@ lemma finite_Int [simp, intro]: "finite F | finite G ==> finite (F Int G)"
 
 lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (subst insert_is_Un)
-  apply (simp only: finite_Un)
-  apply blast
+  apply (simp only: finite_Un, blast)
   done
 
 lemma finite_empty_induct:
@@ -158,8 +157,7 @@ lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
   apply (subst Diff_insert)
   apply (case_tac "a : A - B")
    apply (rule finite_insert [symmetric, THEN trans])
-   apply (subst insert_Diff)
-    apply simp_all
+   apply (subst insert_Diff, simp_all)
   done
 
 
@@ -171,8 +169,7 @@ lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
 
 lemma finite_range_imageI:
     "finite (range g) ==> finite (range (%x. f (g x)))"
-  apply (drule finite_imageI)
-  apply simp
+  apply (drule finite_imageI, simp)
   done
 
 lemma finite_imageD: "finite (f`A) ==> inj_on f A ==> finite A"
@@ -186,11 +183,9 @@ proof -
     apply (subgoal_tac "EX y:A. f y = x & F = f ` (A - {y})")
      apply clarify
      apply (simp (no_asm_use) add: inj_on_def)
-     apply (blast dest!: aux [THEN iffD1])
-    apply atomize
+     apply (blast dest!: aux [THEN iffD1], atomize)
     apply (erule_tac V = "ALL A. ?PP (A)" in thin_rl)
-    apply (frule subsetD [OF equalityD2 insertI1])
-    apply clarify
+    apply (frule subsetD [OF equalityD2 insertI1], clarify)
     apply (rule_tac x = xa in bexI)
      apply (simp_all add: inj_on_image_set_diff)
     done
@@ -240,8 +235,7 @@ lemma finite_Prod_UNIV:
     "finite (UNIV::'a set) ==> finite (UNIV::'b set) ==> finite (UNIV::('a * 'b) set)"
   apply (subgoal_tac "(UNIV:: ('a * 'b) set) = Sigma UNIV (%x. UNIV)")
    apply (erule ssubst)
-   apply (erule finite_SigmaI)
-   apply auto
+   apply (erule finite_SigmaI, auto)
   done
 
 instance unit :: finite
@@ -281,8 +275,7 @@ lemma finite_converse [iff]: "finite (r^-1) = finite r"
     apply (erule finite_imageD [unfolded inj_on_def])
     apply (simp split add: split_split)
    apply (erule finite_imageI)
-  apply (simp add: converse_def image_def)
-  apply auto
+  apply (simp add: converse_def image_def, auto)
   apply (rule bexI)
    prefer 2 apply assumption
   apply simp
@@ -314,8 +307,7 @@ lemma bounded_nat_set_is_finite:
     "(ALL i:N. i < (n::nat)) ==> finite N"
   -- {* A bounded set of natural numbers is finite. *}
   apply (rule finite_subset)
-   apply (rule_tac [2] finite_lessThan)
-  apply auto
+   apply (rule_tac [2] finite_lessThan, auto)
   done
 
 
@@ -373,10 +365,8 @@ lemma cardR_SucD: "(A, n) : cardR ==> a : A --> (EX m. n = Suc m)"
 
 lemma cardR_determ_aux1:
     "(A, m): cardR ==> (!!n a. m = Suc n ==> a:A ==> (A - {a}, n) : cardR)"
-  apply (induct set: cardR)
-   apply auto
-  apply (simp add: insert_Diff_if)
-  apply auto
+  apply (induct set: cardR, auto)
+  apply (simp add: insert_Diff_if, auto)
   apply (drule cardR_SucD)
   apply (blast intro!: cardR.intros)
   done
@@ -390,8 +380,7 @@ lemma cardR_determ: "(A, m): cardR ==> (!!n. (A, n) : cardR ==> n = m)"
   apply (rename_tac B b m)
   apply (case_tac "a = b")
    apply (subgoal_tac "A = B")
-    prefer 2 apply (blast elim: equalityE)
-   apply blast
+    prefer 2 apply (blast elim: equalityE, blast)
   apply (subgoal_tac "EX C. A = insert b C & B = insert a C")
    prefer 2
    apply (rule_tac x = "A Int B" in exI)
@@ -433,10 +422,8 @@ qed
 
 lemma card_0_eq [simp]: "finite A ==> (card A = 0) = (A = {})"
   apply auto
-  apply (drule_tac a = x in mk_disjoint_insert)
-  apply clarify
-  apply (rotate_tac -1)
-  apply auto
+  apply (drule_tac a = x in mk_disjoint_insert, clarify)
+  apply (rotate_tac -1, auto)
   done
 
 lemma card_insert_if:
@@ -444,10 +431,7 @@ lemma card_insert_if:
   by (simp add: insert_absorb)
 
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
-  apply (rule_tac t = A in insert_Diff [THEN subst])
-   apply assumption
-  apply simp
-  done
+by (rule_tac t = A in insert_Diff [THEN subst], assumption, simp)
 
 lemma card_Diff_singleton:
     "finite A ==> x: A ==> card (A - {x}) = card A - 1"
@@ -464,16 +448,12 @@ lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
   by (simp add: card_insert_if)
 
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
-  apply (induct set: Finites)
-   apply simp
-  apply clarify
+  apply (induct set: Finites, simp, clarify)
   apply (subgoal_tac "finite A & A - {x} <= F")
-   prefer 2 apply (blast intro: finite_subset)
-  apply atomize
+   prefer 2 apply (blast intro: finite_subset, atomize)
   apply (drule_tac x = "A - {x}" in spec)
   apply (simp add: card_Diff_singleton_if split add: split_if_asm)
-  apply (case_tac "card A")
-   apply auto
+  apply (case_tac "card A", auto)
   done
 
 lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
@@ -482,16 +462,14 @@ lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
   done
 
 lemma card_mono: "finite B ==> A <= B ==> card A <= card B"
-  apply (case_tac "A = B")
-   apply simp
+  apply (case_tac "A = B", simp)
   apply (simp add: linorder_not_less [symmetric])
   apply (blast dest: card_seteq intro: order_less_imp_le)
   done
 
 lemma card_Un_Int: "finite A ==> finite B
     ==> card A + card B = card (A Un B) + card (A Int B)"
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: insert_absorb Int_insert_left)
   done
 
@@ -530,30 +508,22 @@ lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
   done
 
 lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
-  apply (erule psubsetI)
-  apply blast
-  done
+by (erule psubsetI, blast)
 
 
 subsubsection {* Cardinality of image *}
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: le_SucI finite_imageI card_insert_if)
   done
 
 lemma card_image: "finite A ==> inj_on f A ==> card (f ` A) = card A"
-  apply (induct set: Finites)
-   apply simp_all
-  apply atomize
+  apply (induct set: Finites, simp_all, atomize)
   apply safe
-   apply (unfold inj_on_def)
-   apply blast
+   apply (unfold inj_on_def, blast)
   apply (subst card_insert_disjoint)
-    apply (erule finite_imageI)
-   apply blast
-  apply blast
+    apply (erule finite_imageI, blast, blast)
   done
 
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
@@ -565,10 +535,8 @@ subsubsection {* Cardinality of the Powerset *}
 lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
   apply (induct set: Finites)
    apply (simp_all add: Pow_insert)
-  apply (subst card_Un_disjoint)
-     apply blast
-    apply (blast intro: finite_imageI)
-   apply blast
+  apply (subst card_Un_disjoint, blast)
+    apply (blast intro: finite_imageI, blast)
   apply (subgoal_tac "inj_on (insert x) (Pow F)")
    apply (simp add: card_image Pow_insert)
   apply (unfold inj_on_def)
@@ -585,9 +553,7 @@ lemma dvd_partition:
     ALL c : C. k dvd card c ==>
     (ALL c1: C. ALL c2: C. c1 ~= c2 --> c1 Int c2 = {}) ==>
   k dvd card (Union C)"
-  apply (induct set: Finites)
-   apply simp_all
-  apply clarify
+  apply (induct set: Finites, simp_all, clarify)
   apply (subst card_Un_disjoint)
   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
   done
@@ -615,9 +581,7 @@ constdefs
   "fold f e A == THE x. (A, x) : foldSet f e"
 
 lemma Diff1_foldSet: "(A - {x}, y) : foldSet f e ==> x: A ==> (A, f x y) : foldSet f e"
-  apply (erule insert_Diff [THEN subst], rule foldSet.intros)
-   apply auto
-  done
+by (erule insert_Diff [THEN subst], rule foldSet.intros, auto)
 
 lemma foldSet_imp_finite [simp]: "(A, x) : foldSet f e ==> finite A"
   by (induct set: foldSet) auto
@@ -637,23 +601,18 @@ lemma (in LC) foldSet_determ_aux:
     (ALL y. (A, y) : foldSet f e --> y = x)"
   apply (induct n)
    apply (auto simp add: less_Suc_eq)
-  apply (erule foldSet.cases)
-   apply blast
-  apply (erule foldSet.cases)
-   apply blast
-  apply clarify
+  apply (erule foldSet.cases, blast)
+  apply (erule foldSet.cases, blast, clarify)
   txt {* force simplification of @{text "card A < card (insert ...)"}. *}
   apply (erule rev_mp)
   apply (simp add: less_Suc_eq_le)
   apply (rule impI)
   apply (rename_tac Aa xa ya Ab xb yb, case_tac "xa = xb")
    apply (subgoal_tac "Aa = Ab")
-    prefer 2 apply (blast elim!: equalityE)
-   apply blast
+    prefer 2 apply (blast elim!: equalityE, blast)
   txt {* case @{prop "xa \<notin> xb"}. *}
   apply (subgoal_tac "Aa - {xb} = Ab - {xa} & xb : Aa & xa : Ab")
-   prefer 2 apply (blast elim!: equalityE)
-  apply clarify
+   prefer 2 apply (blast elim!: equalityE, clarify)
   apply (subgoal_tac "Aa = insert xb Ab - {xa}")
    prefer 2 apply blast
   apply (subgoal_tac "card Aa <= card Ab")
@@ -700,16 +659,14 @@ lemma (in LC) fold_insert:
   done
 
 lemma (in LC) fold_commute: "finite A ==> (!!e. f x (fold f e A) = fold f (f x e) A)"
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: left_commute fold_insert)
   done
 
 lemma (in LC) fold_nest_Un_Int:
   "finite A ==> finite B
     ==> fold f (fold f e B) A = fold f (fold f e (A Int B)) (A Un B)"
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: fold_insert fold_commute Int_insert_left insert_absorb)
   done
 
@@ -757,8 +714,7 @@ qed
 lemma (in ACe) fold_Un_Int:
   "finite A ==> finite B ==>
     fold f e A \<cdot> fold f e B = fold f e (A Un B) \<cdot> fold f e (A Int B)"
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: AC insert_absorb Int_insert_left
     LC.fold_insert [OF LC.intro])
   done
@@ -823,8 +779,7 @@ lemma setsum_insert [simp]:
 lemma setsum_0: "setsum (\<lambda>i. 0) A = 0"
   apply (case_tac "finite A")
    prefer 2 apply (simp add: setsum_def)
-  apply (erule finite_induct)
-   apply auto
+  apply (erule finite_induct, auto)
   done
 
 lemma setsum_eq_0_iff [simp]:
@@ -835,8 +790,7 @@ lemma setsum_SucD: "setsum f A = Suc n ==> EX a:A. 0 < f a"
   apply (case_tac "finite A")
    prefer 2 apply (simp add: setsum_def)
   apply (erule rev_mp)
-  apply (erule finite_induct)
-   apply auto
+  apply (erule finite_induct, auto)
   done
 
 lemma card_eq_setsum: "finite A ==> card A = setsum (\<lambda>x. 1) A"
@@ -846,15 +800,13 @@ lemma card_eq_setsum: "finite A ==> card A = setsum (\<lambda>x. 1) A"
 lemma setsum_Un_Int: "finite A ==> finite B
     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-  apply (induct set: Finites)
-   apply simp
+  apply (induct set: Finites, simp)
   apply (simp add: plus_ac0 Int_insert_left insert_absorb)
   done
 
 lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
-  apply (subst setsum_Un_Int [symmetric])
-    apply auto
+  apply (subst setsum_Un_Int [symmetric], auto)
   done
 
 lemma setsum_UN_disjoint:
@@ -863,9 +815,7 @@ lemma setsum_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setsum f (UNION I A) = setsum (\<lambda>i. setsum f (A i)) I"
-  apply (induct set: Finites)
-   apply simp
-  apply atomize
+  apply (induct set: Finites, simp, atomize)
   apply (subgoal_tac "ALL i:F. x \<noteq> i")
    prefer 2 apply blast
   apply (subgoal_tac "A x Int UNION F A = {}")
@@ -876,16 +826,14 @@ lemma setsum_UN_disjoint:
 lemma setsum_addf: "setsum (\<lambda>x. f x + g x) A = (setsum f A + setsum g A)"
   apply (case_tac "finite A")
    prefer 2 apply (simp add: setsum_def)
-  apply (erule finite_induct)
-   apply auto
+  apply (erule finite_induct, auto)
   apply (simp add: plus_ac0)
   done
 
 lemma setsum_Un: "finite A ==> finite B ==>
     (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
-  apply (subst setsum_Un_Int [symmetric])
-    apply auto
+  apply (subst setsum_Un_Int [symmetric], auto)
   done
 
 lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
@@ -894,21 +842,17 @@ lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
    prefer 2 apply (simp add: setsum_def)
   apply (erule finite_induct)
    apply (auto simp add: insert_Diff_if)
-  apply (drule_tac a = a in mk_disjoint_insert)
-  apply auto
+  apply (drule_tac a = a in mk_disjoint_insert, auto)
   done
 
 lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
   apply (case_tac "finite B")
-   prefer 2 apply (simp add: setsum_def)
-  apply simp
+   prefer 2 apply (simp add: setsum_def, simp)
   apply (subgoal_tac "ALL C. C <= B --> (ALL x:C. f x = g x) --> setsum f C = setsum g C")
    apply simp
-  apply (erule finite_induct)
-  apply simp
-  apply (simp add: subset_insert_iff)
-  apply clarify
+  apply (erule finite_induct, simp)
+  apply (simp add: subset_insert_iff, clarify)
   apply (subgoal_tac "finite C")
    prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
   apply (subgoal_tac "C = insert x (C - {x})")
@@ -1019,8 +963,7 @@ lemma choose_deconstruct: "finite M ==> x \<notin> M
   apply safe
    apply (auto intro: finite_subset [THEN card_insert_disjoint])
   apply (drule_tac x = "xa - {x}" in spec)
-  apply (subgoal_tac "x ~: xa")
-   apply auto
+  apply (subgoal_tac "x ~: xa", auto)
   apply (erule rev_mp, subst card_Diff_singleton)
   apply (auto intro: finite_subset)
   done
@@ -1057,8 +1000,7 @@ text {*
 lemma n_sub_lemma:
   "!!A. finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
   apply (induct k)
-   apply (simp add: card_s_0_eq_empty)
-  apply atomize
+   apply (simp add: card_s_0_eq_empty, atomize)
   apply (rotate_tac -1, erule finite_induct)
    apply (simp_all (no_asm_simp) cong add: conj_cong
      add: card_s_0_eq_empty choose_deconstruct)

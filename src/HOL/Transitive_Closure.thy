@@ -57,8 +57,7 @@ lemma rtrancl_mono: "r \<subseteq> s ==> r^* \<subseteq> s^*"
   apply (rule subsetI)
   apply (simp only: split_tupled_all)
   apply (erule rtrancl.induct)
-   apply (rule_tac [2] rtrancl_into_rtrancl)
-    apply blast+
+   apply (rule_tac [2] rtrancl_into_rtrancl, blast+)
   done
 
 theorem rtrancl_induct [consumes 1, induct set: rtrancl]:
@@ -126,15 +125,11 @@ lemma rtrancl_idemp_self_comp [simp]: "R^* O R^* = R^*"
   done
 
 lemma rtrancl_subset_rtrancl: "r \<subseteq> s^* ==> r^* \<subseteq> s^*"
-  apply (drule rtrancl_mono)
-  apply simp
-  done
+by (drule rtrancl_mono, simp)
 
 lemma rtrancl_subset: "R \<subseteq> S ==> S \<subseteq> R^* ==> S^* = R^*"
   apply (drule rtrancl_mono)
-  apply (drule rtrancl_mono)
-  apply simp
-  apply blast
+  apply (drule rtrancl_mono, simp, blast)
   done
 
 lemma rtrancl_Un_rtrancl: "(R^* \<union> S^*)^* = (R \<union> S)^*"
@@ -145,12 +140,9 @@ lemma rtrancl_reflcl [simp]: "(R^=)^* = R^*"
 
 lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (rule sym)
-  apply (rule rtrancl_subset)
-   apply blast
-  apply clarify
+  apply (rule rtrancl_subset, blast, clarify)
   apply (rename_tac a b)
-  apply (case_tac "a = b")
-   apply blast
+  apply (case_tac "a = b", blast)
   apply (blast intro!: r_into_rtrancl)
   done
 
@@ -239,8 +231,7 @@ lemma rtrancl_into_trancl1: assumes r: "(a, b) \<in> r^*"
 
 lemma rtrancl_into_trancl2: "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+"
   -- {* intro rule from @{text r} and @{text rtrancl} *}
-  apply (erule rtranclE)
-   apply rules
+  apply (erule rtranclE, rules)
   apply (rule rtrancl_trans [THEN rtrancl_into_trancl1])
    apply (assumption | rule r_into_rtrancl)+
   done
@@ -296,8 +287,7 @@ lemma trancl_insert:
   apply (rule equalityI)
    apply (rule subsetI)
    apply (simp only: split_tupled_all)
-   apply (erule trancl_induct)
-    apply blast
+   apply (erule trancl_induct, blast)
    apply (blast intro: rtrancl_into_trancl1 trancl_into_rtrancl r_into_trancl trancl_trans)
   apply (rule subsetI)
   apply (blast intro: trancl_mono rtrancl_mono
@@ -336,8 +326,7 @@ proof -
 qed
 
 lemma tranclD: "(x, y) \<in> R^+ ==> EX z. (x, z) \<in> R \<and> (z, y) \<in> R^*"
-  apply (erule converse_trancl_induct)
-   apply auto
+  apply (erule converse_trancl_induct, auto)
   apply (blast intro: rtrancl_trans)
   done
 
@@ -349,8 +338,7 @@ lemma irrefl_trancl_rD: "!!X. ALL x. (x, x) \<notin> r^+ ==> (x, y) \<in> r ==> 
 
 lemma trancl_subset_Sigma_aux:
     "(a, b) \<in> r^* ==> r \<subseteq> A \<times> A ==> a = b \<or> a \<in> A"
-  apply (erule rtrancl_induct)
-   apply auto
+  apply (erule rtrancl_induct, auto)
   done
 
 lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<times> A"
@@ -368,15 +356,11 @@ lemma reflcl_trancl [simp]: "(r^+)^= = r^*"
 
 lemma trancl_reflcl [simp]: "(r^=)^+ = r^*"
   apply safe
-   apply (drule trancl_into_rtrancl)
-   apply simp
-  apply (erule rtranclE)
-   apply safe
-   apply (rule r_into_trancl)
-   apply simp
+   apply (drule trancl_into_rtrancl, simp)
+  apply (erule rtranclE, safe)
+   apply (rule r_into_trancl, simp)
   apply (rule rtrancl_into_trancl1)
-   apply (erule rtrancl_reflcl [THEN equalityD2, THEN subsetD])
-  apply fast
+   apply (erule rtrancl_reflcl [THEN equalityD2, THEN subsetD], fast)
   done
 
 lemma trancl_empty [simp]: "{}^+ = {}"
@@ -433,8 +417,7 @@ lemma trancl_rtrancl_trancl:
   apply (drule tranclD)
   apply (erule exE, erule conjE)
   apply (drule rtrancl_trans, assumption)
-  apply (drule rtrancl_into_trancl2, assumption)
-  apply assumption
+  apply (drule rtrancl_into_trancl2, assumption, assumption)
   done
 
 lemmas transitive_closure_trans [trans] =

@@ -72,17 +72,13 @@ lemma LeastMI2:
     ==> (!!x. P x ==> \<forall>y. P y --> m x \<le> m y ==> Q x)
     ==> Q (LeastM m P)"
   apply (unfold LeastM_def)
-  apply (rule someI2_ex)
-   apply blast
-  apply blast
+  apply (rule someI2_ex, blast, blast)
   done
 
 lemma LeastM_equality:
   "P k ==> (!!x. P x ==> m k <= m x)
     ==> m (LEAST x WRT m. P x) = (m k::'a::order)"
-  apply (rule LeastMI2)
-    apply assumption
-   apply blast
+  apply (rule LeastMI2, assumption, blast)
   apply (blast intro!: order_antisym)
   done
 
@@ -90,16 +86,14 @@ lemma wf_linord_ex_has_least:
   "wf r ==> ALL x y. ((x,y):r^+) = ((y,x)~:r^*) ==> P k
     ==> EX x. P x & (!y. P y --> (m x,m y):r^*)"
   apply (drule wf_trancl [THEN wf_eq_minimal [THEN iffD1]])
-  apply (drule_tac x = "m`Collect P" in spec)
-  apply force
+  apply (drule_tac x = "m`Collect P" in spec, force)
   done
 
 lemma ex_has_least_nat:
     "P k ==> EX x. P x & (ALL y. P y --> m x <= (m y::nat))"
   apply (simp only: pred_nat_trancl_eq_le [symmetric])
   apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
-   apply (simp add: less_eq not_le_iff_less pred_nat_trancl_eq_le)
-  apply assumption
+   apply (simp add: less_eq not_le_iff_less pred_nat_trancl_eq_le, assumption)
   done
 
 lemma LeastM_nat_lemma:
@@ -112,10 +106,7 @@ lemma LeastM_nat_lemma:
 lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1, standard]
 
 lemma LeastM_nat_le: "P x ==> m (LeastM m P) <= (m x::nat)"
-  apply (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp])
-   apply assumption
-  apply assumption
-  done
+by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp], assumption, assumption)
 
 
 subsection {* Greatest value operator *}
@@ -139,32 +130,26 @@ lemma GreatestMI2:
     ==> (!!x. P x ==> \<forall>y. P y --> m y \<le> m x ==> Q x)
     ==> Q (GreatestM m P)"
   apply (unfold GreatestM_def)
-  apply (rule someI2_ex)
-   apply blast
-  apply blast
+  apply (rule someI2_ex, blast, blast)
   done
 
 lemma GreatestM_equality:
  "P k ==> (!!x. P x ==> m x <= m k)
     ==> m (GREATEST x WRT m. P x) = (m k::'a::order)"
-  apply (rule_tac m = m in GreatestMI2)
-    apply assumption
-   apply blast
+  apply (rule_tac m = m in GreatestMI2, assumption, blast)
   apply (blast intro!: order_antisym)
   done
 
 lemma Greatest_equality:
   "P (k::'a::order) ==> (!!x. P x ==> x <= k) ==> (GREATEST x. P x) = k"
   apply (unfold Greatest_def)
-  apply (erule GreatestM_equality)
-  apply blast
+  apply (erule GreatestM_equality, blast)
   done
 
 lemma ex_has_greatest_nat_lemma:
   "P k ==> ALL x. P x --> (EX y. P y & ~ ((m y::nat) <= m x))
     ==> EX y. P y & ~ (m y < m k + n)"
-  apply (induct_tac n)
-   apply force
+  apply (induct_tac n, force)
   apply (force simp add: le_Suc_eq)
   done
 
@@ -173,8 +158,7 @@ lemma ex_has_greatest_nat:
     ==> EX x. P x & (ALL y. P y --> (m y::nat) <= m x)"
   apply (rule ccontr)
   apply (cut_tac P = P and n = "b - m k" in ex_has_greatest_nat_lemma)
-    apply (subgoal_tac [3] "m k <= b")
-     apply auto
+    apply (subgoal_tac [3] "m k <= b", auto)
   done
 
 lemma GreatestM_nat_lemma:
@@ -182,8 +166,7 @@ lemma GreatestM_nat_lemma:
     ==> P (GreatestM m P) & (ALL y. P y --> (m y::nat) <= m (GreatestM m P))"
   apply (unfold GreatestM_def)
   apply (rule someI_ex)
-  apply (erule ex_has_greatest_nat)
-  apply assumption
+  apply (erule ex_has_greatest_nat, assumption)
   done
 
 lemmas GreatestM_natI = GreatestM_nat_lemma [THEN conjunct1, standard]
@@ -199,15 +182,13 @@ text {* \medskip Specialization to @{text GREATEST}. *}
 
 lemma GreatestI: "P (k::nat) ==> ALL y. P y --> y < b ==> P (GREATEST x. P x)"
   apply (unfold Greatest_def)
-  apply (rule GreatestM_natI)
-   apply auto
+  apply (rule GreatestM_natI, auto)
   done
 
 lemma Greatest_le:
     "P x ==> ALL y. P y --> y < b ==> (x::nat) <= (GREATEST x. P x)"
   apply (unfold Greatest_def)
-  apply (rule GreatestM_nat_le)
-   apply auto
+  apply (rule GreatestM_nat_le, auto)
   done
 
 
