@@ -440,34 +440,42 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
 
     val ((envS1, envT1, used1), loc_rules) =
       foldl_map prep_axiom ((envS0, loc_consts, map fst envS0), raw_rules);
-    val (defaults, loc_defs) = foldl_map prep_axiom ((envS1, envT1, used1), raw_defs);
+    val (defaults, loc_defs) = 
+	foldl_map prep_axiom ((envS1, envT1, used1), raw_defs);
 
     val old_loc_consts = collect_consts syntax_sign;
     val new_loc_consts = (map #1 loc_consts);
     val all_loc_consts = old_loc_consts @ new_loc_consts;
 
-    val (defaults, loc_defs_terms) = foldl_map (abs_over_free all_loc_consts) (defaults, loc_defs);
-    val loc_defs_thms = map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) loc_defs_terms;
-    val (defaults, loc_thms_terms) = foldl_map (abs_over_free all_loc_consts) (defaults, loc_rules);
-    val loc_thms = (map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) (loc_thms_terms)) 
+    val (defaults, loc_defs_terms) = 
+	foldl_map (abs_over_free all_loc_consts) (defaults, loc_defs);
+    val loc_defs_thms = 
+	map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) loc_defs_terms;
+    val (defaults, loc_thms_terms) = 
+	foldl_map (abs_over_free all_loc_consts) (defaults, loc_rules);
+    val loc_thms = map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign))
+		       (loc_thms_terms)
                    @ loc_defs_thms;
 
 
-    (* error messages *)        (* FIXME improve *)
+    (* error messages *) 
+
+    fun locale_error msg = error (msg ^ "\nFor locale " ^ quote name);
 
     val err_dup_locale =
       if is_none (get_locale thy name) then []
       else ["Duplicate definition of locale " ^ quote name];
 
-    (* check if definientes are locale constants (in the same locale, so no redefining!) *)
+    (* check if definientes are locale constants 
+       (in the same locale, so no redefining!) *)
     val err_def_head =
       let fun peal_appl t = 
             case t of 
                  t1 $ t2 => peal_appl t1
                | Free(t) => t
-               | _ => error ("a bad locale definition");
+               | _ => locale_error ("Bad form of LHS in locale definition");
 	  fun lhs (_, Const ("==" , _) $  d1 $ d2) = peal_appl d1
-	    | lhs _ = error ("an illegal definition");
+	    | lhs _ = locale_error ("Definitions must use the == relation");
           val defs = map lhs loc_defs;
           val check = defs subset loc_consts
       in if check then [] 
@@ -477,14 +485,15 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
     (* check that variables on rhs of definitions are either fixed or on lhs *)
     val err_var_rhs = 
       let fun compare_var_sides (t, (_, Const ("==", _) $ d1 $ d2)) = 
-            let val varl1 = difflist d1 all_loc_consts;
-                val varl2 = difflist d2 all_loc_consts
-            in t andalso (varl2 subset varl1)
-            end
-            | compare_var_sides (_,_) = error ("an illegal definition");
+		let val varl1 = difflist d1 all_loc_consts;
+		    val varl2 = difflist d2 all_loc_consts
+		in t andalso (varl2 subset varl1)
+		end
+            | compare_var_sides (_,_) = 
+		locale_error ("Definitions must use the == relation")
           val check = foldl compare_var_sides (true, loc_defs)
       in if check then []
-         else ["nonfixed variable on right hand side of a locale definition in locale" ^ quote name]
+         else ["nonfixed variable on right hand side of a locale definition in locale " ^ quote name]
       end;
 
     val errs = err_dup_locale @ err_def_head @ err_var_rhs;
