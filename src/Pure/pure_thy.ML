@@ -27,12 +27,11 @@ sig
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_closure: theory -> xstring -> thm list option
   val thms_containing: theory -> string list -> (string * thm) list
-  val default_name: string -> string
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
-  val have_thmss: bstring option -> theory attribute list ->
+  val have_thmss: bstring -> theory attribute list ->
     (thm list * theory attribute list) list -> theory -> theory * thm list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
@@ -203,50 +202,39 @@ fun thms_containing thy consts =
 
 (* naming *)
 
-val defaultN = "it";
-val default_name = fn "" => defaultN | name => name;
-
 fun gen_names len name =
   map (fn i => name ^ "_" ^ string_of_int i) (1 upto len);
 
-fun name_single name x = [(default_name name, x)];
-fun name_multi name xs = gen_names (length xs) (default_name name) ~~ xs;
+fun name_single name x = [(name, x)];
+fun name_multi name xs = gen_names (length xs) name ~~ xs;
 
 
 (* enter_thmx *)
 
-fun cond_warning name msg = if Sign.base_name name = defaultN then () else warning msg;
+fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name);
+fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
 
-fun warn_overwrite name =
-  cond_warning name ("Replaced old copy of theorems " ^ quote name);
+fun enter_thmx _ app_name ("", thmx) = map #2 (app_name "" thmx)
+  | enter_thmx sg app_name (bname, thmx) =
+      let
+        val name = Sign.full_name sg bname;
+        val named_thms = map Thm.name_thm (app_name name thmx);
 
-fun warn_same name =
-  cond_warning name ("Theorem database already contains a copy of " ^ quote name);
+        val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
 
-fun enter_thmx sg app_name (bname, thmx) =
-  let
-    val name = Sign.full_name sg (default_name bname);
-    val named_thms = map Thm.name_thm (app_name name thmx);
+        val overwrite =
+          (case Symtab.lookup (thms_tab, name) of
+            None => false
+          | Some thms' =>
+              if Library.equal_lists Thm.eq_thm (thms', named_thms) then (warn_same name; false)
+              else (warn_overwrite name; true));
 
-    val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
-
-    val overwrite =
-      (case Symtab.lookup (thms_tab, name) of
-        None => false
-      | Some thms' =>
-          if length thms' = length named_thms andalso forall2 Thm.eq_thm (thms', named_thms) then
-            (warn_same name; false)
-          else (warn_overwrite name; true));
-
-    val space' = NameSpace.extend (space, [name]);
-    val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
-    val const_idx' =
-      if overwrite then make_const_idx thms_tab'
-      else foldl add_const_idx (const_idx, named_thms);
-  in
-    r := {space = space', thms_tab = thms_tab', const_idx = const_idx'};
-    named_thms
-  end;
+        val space' = NameSpace.extend (space, [name]);
+        val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
+        val const_idx' =
+          if overwrite then make_const_idx thms_tab'
+          else foldl add_const_idx (const_idx, named_thms);
+      in r := {space = space', thms_tab = thms_tab', const_idx = const_idx'}; named_thms end;
 
 
 (* add_thms(s) *)
@@ -265,16 +253,13 @@ val add_thmss = add_thmxs name_multi Thm.applys_attributes;
 
 (* have_thmss *)
 
-fun have_thmss opt_bname more_atts ths_atts thy =
+fun have_thmss bname more_atts ths_atts thy =
   let
     fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
     val (thy', thmss') =
       foldl_map app (thy, map (fn (ths, atts) => (ths, atts @ more_atts)) ths_atts);
     val thms' = flat thmss';
-    val thms'' =
-      (case opt_bname of
-        None => thms'
-      | Some bname => enter_thmx (Theory.sign_of thy') name_multi (bname, thms'));
+    val thms'' = enter_thmx (Theory.sign_of thy') name_multi (bname, thms');
   in (thy', thms'') end;
 
 
