@@ -349,9 +349,9 @@ qed "add_less_mono1";
 (*strict, in both arguments*)
 goal Arith.thy "!!i j k::nat. [|i < j; k < l|] ==> i + k < j + l";
 by (rtac (add_less_mono1 RS less_trans) 1);
-by (REPEAT (etac asm_rl 1));
+by (REPEAT (assume_tac 1));
 by (nat_ind_tac "j" 1);
-by (ALLGOALS(asm_simp_tac arith_ss));
+by (ALLGOALS (asm_simp_tac arith_ss));
 qed "add_less_mono";
 
 (*A [clumsy] way of lifting < monotonicity to <= monotonicity *)
