@@ -1,7 +1,7 @@
 (** Generalized elimination rules **)
 
 (*Generalized elimination for two conclusions*)
-val prems = goal pure_thy 
+val prems = goal proto_pure_thy 
      "[| PROP U ==> PROP VA;  \
 \        PROP U ==> PROP VB;  \
 \        PROP U;              \

@@ -19,9 +19,10 @@ where splits = [P(elim(...)) == rhs, ...]
 fun mk_case_split_tac iffD =
 let
 
-val lift = prove_goal Pure.thy
-  "[| !!x::'b::logic. Q(x) == R(x) |] ==> P(%x.Q(x)) == P(%x.R(x))::'a::logic"
-  (fn [prem] => [rewtac prem, rtac reflexive_thm 1]);
+val lift = prove_goalw_cterm [] (cterm_of (sign_of (theory_of_thm iffD))
+             (read "[| !!x::'b::logic. Q(x) == R(x) |] ==> \
+                   \P(%x.Q(x)) == P(%x.R(x))::'a::logic"))
+             (fn [prem] => [rewtac prem, rtac reflexive_thm 1]);
 
 val trlift = lift RS transitive_thm;
 val _ $ (Var(P,PT)$_) $ _ = concl_of trlift;
