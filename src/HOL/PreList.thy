@@ -11,71 +11,8 @@ theory PreList =
   Option + Wellfounded_Relations + NatSimprocs + Recdef + Record +
   Relation_Power + Calculation + SVC_Oracle:
 
-(*belongs to theory Datatype*)
-declare case_split [cases type: bool]
-
 (*belongs to theory Wellfounded_Recursion*)
 declare wf_induct [induct set: wf]
-
-(*belongs to theory Datatype_Universe; hides popular names *)
-hide const Node Atom Leaf Numb Lim Funs Split Case
-hide type node item
-
-(*belongs to theory Datatype; canonical case/induct rules for 3-7 tuples*)
-lemma prod_cases3 [cases type]: "(!!a b c. y = (a, b, c) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac b)
-  apply blast
-  done
-
-lemma prod_induct3 [induct type]: "(!!a b c. P (a, b, c)) ==> P x"
-  apply (cases x)
-  apply blast
-  done
-
-lemma prod_cases4 [cases type]: "(!!a b c d. y = (a, b, c, d) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac c)
-  apply blast
-  done
-
-lemma prod_induct4 [induct type]: "(!!a b c d. P (a, b, c, d)) ==> P x"
-  apply (cases x)
-  apply blast
-  done
-
-lemma prod_cases5 [cases type]: "(!!a b c d e. y = (a, b, c, d, e) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac d)
-  apply blast
-  done
-
-lemma prod_induct5 [induct type]: "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
-  apply (cases x)
-  apply blast
-  done
-
-lemma prod_cases6 [cases type]: "(!!a b c d e f. y = (a, b, c, d, e, f) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac e)
-  apply blast
-  done
-
-lemma prod_induct6 [induct type]: "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
-  apply (cases x)
-  apply blast
-  done
-
-lemma prod_cases7 [cases type]: "(!!a b c d e f g. y = (a, b, c, d, e, f, g) ==> P) ==> P"
-  apply (cases y)
-  apply (case_tac f)
-  apply blast
-  done
-
-lemma prod_induct7 [induct type]: "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
-  apply (cases x)
-  apply blast
-  done
 
 
 (* generic summation indexed over nat *)
