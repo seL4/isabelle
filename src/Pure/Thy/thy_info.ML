@@ -246,7 +246,7 @@ fun load_file time path =
     let val name = Path.pack path in
       timeit (fn () =>
        (writeln ("\n**** Starting file " ^ quote name ^ " ****");
-        setmp Library.timing true run_file path;
+        run_file path;
         writeln ("**** Finished file " ^ quote name ^ " ****\n")))
     end
   else run_file path;
@@ -307,11 +307,10 @@ fun current_deps ml strict dir name =
               end)
       end);
 
-fun require_thy ml time_arg strict keep_strict initiators prfx (visited, str) =
+fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
   let
     val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
-    val time = time_arg orelse ! Library.timing;
   in
     if name mem_string initiators then error (cycle_msg name initiators) else ();
     if known_thy name andalso is_finished name orelse name mem_string visited then
@@ -333,7 +332,7 @@ fun require_thy ml time_arg strict keep_strict initiators prfx (visited, str) =
             ((case new_deps of
               Some deps => change_thys (update_node name parents (deps, None))
             | None => ());
-             load_thy ml time initiators dir name parents;
+             load_thy ml (time orelse ! Library.timing) initiators dir name parents;
              false);
       in (visited', (result, name)) end
   end;

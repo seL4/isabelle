@@ -443,7 +443,7 @@ fun load_thy name ml time path =
  (if time then
     timeit (fn () =>
      (writeln ("\n**** Starting theory " ^ quote name ^ " ****");
-      setmp Library.timing true (run_thy name) path;
+      run_thy name path;
       writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
   else run_thy name path;
   Context.context (ThyInfo.get_theory name);
