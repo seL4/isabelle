@@ -6,21 +6,23 @@
 # by the Master Makefile. You should configure them there.
 ###############################################
 
-#keycode for Super_L       26 on SUN, 64  on Linux box 
+#keycode for Super_L (= Alt   )      26 on SUN, 64  on Linux box 
 SUPER_L=26
 
-#keycode for Hyper_R       20 on SUN, 113 on Linux box 
+#keycode for Hyper_R (= Alt Gr)      20 on SUN, 113 on Linux box 
 HYPER_R=20
 
+
 # define modifier keys for Isabelle keystrokes
-# map super-key onto alt-key
+# map super-key onto MetaL-key
 xmodmap -e "keycode $SUPER_L = Super_L"
 
-# map hyper-key onto altgraph-key
+# map hyper-key onto MetaR-key
 xmodmap -e "keycode $HYPER_R = Hyper_R"
 
-# define new keysyms as Mod2 and Mod4
-xmodmap -e "add Mod2 = Super_L" -e "add Mod4 = Hyper_R"
+# define new keysyms to generate Mod1 and Mod5
+xmodmap -e "clear Mod3" -e "clear Mod1" -e "add Mod1 = Super_L"
+xmodmap -e "clear Mod2" -e "clear Mod5" -e "add Mod5 = Hyper_R"
 
 # make bash, axe, and vim accept 8 bit input 
 #export LANG=iso_8859_1
