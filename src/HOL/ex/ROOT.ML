@@ -14,6 +14,7 @@ proof_timing := true;
 (**Some examples of recursive function definitions: the TFL package**)
 time_use_thy "Fib";
 time_use_thy "Primes";
+time_use_thy "Primrec";
 
 time_use_thy "NatSum";
 time_use     "cla.ML";
