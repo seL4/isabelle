@@ -232,6 +232,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/Union.ML UNITY/Union.thy UNITY/Handshake.ML UNITY/Handshake.thy\
   UNITY/TimerArray.ML UNITY/TimerArray.thy\
   UNITY/Extend.ML UNITY/Extend.thy UNITY/Project.ML UNITY/Project.thy\
+  UNITY/ELT.ML UNITY/ELT.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
   UNITY/GenPrefix.thy UNITY/GenPrefix.ML \
   UNITY/LessThan.ML UNITY/LessThan.thy \
