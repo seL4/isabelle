@@ -95,6 +95,8 @@ Goalw [leadsTo_def] "F : A ensures B ==> F : A leadsTo B";
 by (blast_tac (claset() addIs [leads.Basis]) 1);
 qed "leadsTo_Basis";
 
+AddIs [leadsTo_Basis];
+
 Goalw [leadsTo_def]
      "[| F : A leadsTo B;  F : B leadsTo C |] ==> F : A leadsTo C";
 by (blast_tac (claset() addIs [leads.Trans]) 1);
@@ -202,7 +204,7 @@ by (subgoal_tac "F : za leadsTo zb & P za" 1);
 by (etac conjunct2 1);
 by (rtac (major RS lemma) 1);
 by (blast_tac (claset() addIs [leadsTo_Union]@prems) 3);
-by (blast_tac (claset() addIs [leadsTo_Basis,leadsTo_Trans]@prems) 2);
+by (blast_tac (claset() addIs [leadsTo_Trans]@prems) 2);
 by (blast_tac (claset() addIs [leadsTo_refl]@prems) 1);
 qed "leadsTo_induct_pre";
 
@@ -336,7 +338,7 @@ by (asm_full_simp_tac (simpset() addsimps [Int_Diff, Diff_triv]) 2);
 by (blast_tac (claset() addIs [leadsTo_weaken_L] 
                         addDs [constrains_imp_subset]) 2);
 (*Basis case*)
-by (blast_tac (claset() addIs [leadsTo_Basis, psp_ensures]) 1);
+by (blast_tac (claset() addIs [psp_ensures]) 1);
 qed "psp";
 
 Goal "[| F : A leadsTo A'; F : B co B' |] \
@@ -467,7 +469,7 @@ Goal "F : A leadsTo A' \
 \     ==> EX B. A<=B & F : B leadsTo A' & F : (B-A') co (B Un A')";
 by (etac leadsTo_induct 1);
 (*Basis*)
-by (blast_tac (claset() addIs [leadsTo_Basis] addDs [ensuresD]) 1);
+by (blast_tac (claset() addDs [ensuresD]) 1);
 (*Trans*)
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "Ba Un Bb")] exI 1);

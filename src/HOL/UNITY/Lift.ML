@@ -10,34 +10,6 @@ Goal "[| x ~: A;  y : A |] ==> x ~= y";
 by (Blast_tac 1);
 qed "not_mem_distinct";
 
-fun distinct_tac i =
-    dtac zle_neq_implies_zless i THEN
-    eresolve_tac [not_mem_distinct, not_mem_distinct RS not_sym] i THEN
-    assume_tac i;
-
-
-(** Rules to move "metric n s" out of the assumptions, for case splitting **)
-val mov_metric1 = read_instantiate_sg (sign_of thy) 
-                   [("P", "?x < metric ?n ?s")] rev_mp;
-
-val mov_metric2 = read_instantiate_sg (sign_of thy) 
-                   [("P", "?x = metric ?n ?s")] rev_mp;
-
-val mov_metric3 = read_instantiate_sg (sign_of thy) 
-                   [("P", "~ (?x < metric ?n ?s)")] rev_mp;
-
-val mov_metric4 = read_instantiate_sg (sign_of thy) 
-                   [("P", "(?x <= metric ?n ?s)")] rev_mp;
-
-val mov_metric5 = read_instantiate_sg (sign_of thy) 
-                   [("P", "?x ~= metric ?n ?s")] rev_mp;
-
-(*The order in which they are applied seems to be critical...*)
-val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4,
-		   mov_metric5];
-
-val metric_simps = [metric_def, vimage_def];
-
 
 Addsimps [Lift_def RS def_prg_Init];
 program_defs_ref := [Lift_def];
@@ -51,12 +23,10 @@ Addsimps (map simp_of_act
 Addsimps (map simp_of_set [above_def, below_def, queueing_def, 
 			   goingup_def, goingdown_def, ready_def]);
 
-
 Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
 	  moving_up_def, moving_down_def];
 
 AddIffs [Min_le_Max];
-
 
 Goal "Lift : Always open_stop";
 by (always_tac 1);
@@ -86,9 +56,9 @@ qed "moving_down";
 Goal "Lift : Always bounded";
 by (cut_facts_tac [moving_up, moving_down] 1);
 by (always_tac 1);
-by (ALLGOALS Clarify_tac);
-by (REPEAT_FIRST distinct_tac);
 by Auto_tac;
+by (ALLGOALS (dtac not_mem_distinct THEN' assume_tac));
+by (ALLGOALS arith_tac);
 qed "bounded";
 
 
@@ -167,6 +137,9 @@ qed "lift_2";
 
 (** Towards lift_4 ***)
  
+val metric_ss = simpset() addsplits [split_if_asm] 
+                          addsimps  [metric_def, vimage_def];
+
 
 (*lem_lift_4_1 *)
 Goal "#0 < N ==> \
@@ -179,9 +152,7 @@ by (ensures_tac "move_up" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
 by (etac (linorder_leI RS order_antisym RS sym) 1);
-by (REPEAT_FIRST (eresolve_tac mov_metrics ORELSE' distinct_tac));
-(** LEVEL 6 **)
-by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
+by (auto_tac (claset(), metric_ss));
 qed "E_thm12a";
 
 
@@ -195,9 +166,7 @@ by (ensures_tac "move_down" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
 by (etac (linorder_leI RS order_antisym RS sym) 1);
-by (REPEAT_FIRST (eresolve_tac mov_metrics ORELSE' distinct_tac));
-(** LEVEL 6 **)
-by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
+by (auto_tac (claset(), metric_ss));
 qed "E_thm12b";
 
 (*lift_4*)
@@ -214,17 +183,12 @@ qed "lift_4";
 
 (*lem_lift_5_3*)
 Goal "#0<N   \
-\     ==> Lift : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo \
-\                      (moving Int Req n Int {s. metric n s < N})";
+\ ==> Lift : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo \
+\            (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "req_up" 1);
-by Auto_tac;
-by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
-by (Blast_tac 1);
+by (auto_tac (claset(), metric_ss));
 qed "E_thm16a";
-
-val metric_ss = simpset() addsimps metric_simps;
 
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
@@ -233,18 +197,15 @@ Goal "#0<N ==>   \
 \                  (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "req_down" 1);
-by Auto_tac;
-by (REPEAT_FIRST (eresolve_tac mov_metrics));
-by (ALLGOALS (asm_simp_tac (metric_ss addsimps zcompare_rls)));
-by (Blast_tac 1);
+by (auto_tac (claset(), metric_ss));
 qed "E_thm16b";
 
 
 (*lem_lift_5_0 proves an intersection involving ~goingup and goingup,
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
 Goal "#0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown";
-by (asm_simp_tac metric_ss 1);
-by (Force_tac 1);
+by (Clarify_tac 1);
+by (auto_tac (claset(), metric_ss));
 qed "E_thm16c";
 
 
@@ -262,9 +223,7 @@ qed "lift_5";
 
 (*lemma used to prove lem_lift_3_1*)
 Goal "[| metric n s = #0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
-by (etac rev_mp 1);
-(*force simplification of "metric..." while in conclusion part*)
-by (asm_simp_tac metric_ss 1);
+by (auto_tac (claset(), metric_ss));
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
@@ -278,15 +237,12 @@ by (ensures_tac "request_act" 1);
 by Auto_tac;
 qed "E_thm11";
 
-val metric_tac = REPEAT (FIRSTGOAL (eresolve_tac mov_metrics))
-                 THEN auto_tac (claset(), metric_ss);
-
 (*lem_lift_3_5*)
 Goal
   "Lift : (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \ LeadsTo (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s})";
 by (ensures_tac "request_act" 1);
-by metric_tac;
+by (auto_tac (claset(), metric_ss));
 qed "E_thm13";
 
 (*lem_lift_3_6*)
@@ -295,14 +251,14 @@ Goal "#0 < N ==> \
 \       (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \       LeadsTo (opened Int Req n Int {s. metric n s = N})";
 by (ensures_tac "open_act" 1);
-by metric_tac;
+by (auto_tac (claset(), metric_ss));
 qed "E_thm14";
 
 (*lem_lift_3_7*)
 Goal "Lift : (opened Int Req n Int {s. metric n s = N})  \
 \            LeadsTo (closed Int Req n Int {s. metric n s = N})";
 by (ensures_tac "close_act" 1);
-by metric_tac;
+by (auto_tac (claset(), metric_ss));
 qed "E_thm15";
 
 
@@ -320,7 +276,7 @@ qed "lift_3_Req";
 (*Now we observe that our integer metric is really a natural number*)
 Goal "Lift : Always {s. #0 <= metric n s}";
 by (rtac (bounded RS Always_weaken) 1);
-by metric_tac;
+by (auto_tac (claset(), metric_ss));
 qed "Always_nonneg";
 
 val R_thm11 = [Always_nonneg, E_thm11] MRS Always_LeadsTo_weaken;
