@@ -495,6 +495,17 @@ fun subsubsection s = with_session () (fn _ => with_context add_html (HTML.subsu
 
 fun drafts doc_format src_paths =
   let
+    fun prep_draft (tex_index, path) =
+      let
+        val base = Path.base path;
+        val name = Path.pack (#1 (Path.split_ext base));
+      in
+        if File.exists path then
+          (Buffer.add (Latex.theory_entry name) tex_index, (name, base, File.read path))
+        else error ("Bad file: " ^ quote (Path.pack path))
+      end;
+    val (tex_index, srcs) = foldl_map prep_draft (Buffer.empty, src_paths);
+
     val doc_path = File.tmp_path (Path.basic "document");
     val _ = File.mkdir doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
@@ -510,18 +521,10 @@ fun drafts doc_format src_paths =
     val known_syms = known "syms.lst";
     val known_ctrls = known "ctrls.lst";
 
-    fun write_draft (tex_index, path) =
-      let
-        val base = Path.base path;
-        val name = Path.pack (#1 (Path.split_ext base));
-      in
-        Symbol.explode (File.read path)
-        |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
-        |> File.write (Path.append doc_path (tex_path name));
-        Buffer.add (Latex.theory_entry name) tex_index
-      end;
-
-    val tex_index = foldl write_draft (Buffer.empty, src_paths);
+    val _ = srcs |> seq (fn (name, base, txt) =>
+      Symbol.explode txt
+      |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
+      |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
     val _ = isatool_document doc_format doc_path;
   in Path.ext doc_format doc_path end;
