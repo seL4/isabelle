@@ -45,33 +45,6 @@ by (Simp_tac 1);
 qed "evnodd_empty";
 
 
-(*** Evens and Odds ***)
-
-val less_cs = set_cs addSEs [less_zeroE, less_SucE];
-
-goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
-by (subgoal_tac "k mod 2 < 2" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (fast_tac less_cs 1);
-qed "mod2_cases";
-
-goal thy "Suc(Suc(m)) mod 2 = m mod 2";
-by (subgoal_tac "m mod 2 < 2" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (safe_tac less_cs);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
-qed "mod2_Suc_Suc";
-Addsimps [mod2_Suc_Suc];
-
-goal thy "(m+m) mod 2 = 0";
-by (nat_ind_tac "m" 1);
-by (simp_tac (!simpset addsimps [mod_less]) 1);
-by (asm_simp_tac (!simpset addsimps [mod2_Suc_Suc, add_Suc_right]) 1);
-qed "mod2_add_self";
-Addsimps [mod2_add_self];
-
-
 (*** Dominoes ***)
 
 goal thy "!!d. d:domino ==> finite d";
@@ -85,8 +58,7 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
 by (REPEAT (asm_simp_tac (!simpset addsimps
-                          [evnodd_insert, evnodd_empty, mod_Suc,
-                           Suc_n_not_n] 
+                          [evnodd_insert, evnodd_empty, mod_Suc] 
                           setloop split_tac [expand_if]) 1
            THEN fast_tac less_cs 1));
 qed "domino_singleton";
@@ -138,8 +110,7 @@ qed "tiling_domino_0_1";
 
 val [below_0, below_Suc] = nat_recs below_def;
 Addsimps [below_0];
-(*Strangely, below_Suc should NOT be added as rewrites -- 
-  or Sigma_Suc1,2 cannot be used*)
+(*below_Suc should NOT be added, or Sigma_Suc1,2 cannot be used*)
 
 goal thy "(i: below k) = (i<k)";
 by (res_inst_tac [("x", "i")] spec 1);
@@ -185,8 +156,7 @@ by (fast_tac (prod_cs addIs [equalityI, tiling_UnI, dominoes_tile_row]
 qed "dominoes_tile_matrix";
 
 
-goal thy "!!m n. [| m: nat;  n: nat;  \
-\                   t = Sigma (below (Suc m + Suc m))\
+goal thy "!!m n. [| t = Sigma (below (Suc m + Suc m))\
 \                             (%x. below (Suc n + Suc n));          \
 \                   t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}       \
 \                |] ==> t' ~: tiling domino";

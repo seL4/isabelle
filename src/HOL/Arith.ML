@@ -315,6 +315,33 @@ by (asm_full_simp_tac (!simpset addsimps [mod_geq, diff_less]) 1);
 qed "mod_less_divisor";
 
 
+(** Evens and Odds **)
+
+val less_cs = set_cs addSEs [less_zeroE, less_SucE];
+
+goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
+by (subgoal_tac "k mod 2 < 2" 1);
+by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
+by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (fast_tac less_cs 1);
+qed "mod2_cases";
+
+goal thy "Suc(Suc(m)) mod 2 = m mod 2";
+by (subgoal_tac "m mod 2 < 2" 1);
+by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
+by (safe_tac less_cs);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
+qed "mod2_Suc_Suc";
+Addsimps [mod2_Suc_Suc];
+
+goal thy "(m+m) mod 2 = 0";
+by (nat_ind_tac "m" 1);
+by (simp_tac (!simpset addsimps [mod_less]) 1);
+by (asm_simp_tac (!simpset addsimps [mod2_Suc_Suc, add_Suc_right]) 1);
+qed "mod2_add_self";
+Addsimps [mod2_add_self];
+
+
 (**** Additional theorems about "less than" ****)
 
 goal Arith.thy "!!m. m<n --> (? k. n=Suc(m+k))";
