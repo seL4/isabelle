@@ -13,6 +13,8 @@ time_use_thy "Nat";
 time_use     "foundn.ML";
 time_use_thy "Prolog";
 
+time_use_thy "LocaleInst";
+
 writeln"\n** Intuitionistic examples **\n";
 time_use_thy "Intuitionistic";
 
