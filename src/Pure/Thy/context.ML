@@ -13,6 +13,8 @@ sig
   val thms: xstring -> thm list
   val Goal: string -> thm list
   val Goalw: thm list -> string -> thm list
+  val Open_locale: xstring -> unit
+  val Close_locale: unit -> unit
 end;
 
 signature CONTEXT =
@@ -73,14 +75,20 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* retrieve thms *)
 
-fun thm name = PureThy.get_thm (the_context ()) name;
-fun thms name = PureThy.get_thms (the_context ()) name;
+fun thm name = Locale.get_thm (the_context ()) name;
+fun thms name = Locale.get_thms (the_context ()) name;
 
 
 (* shortcut goal commands *)
 
 fun Goal s = Goals.atomic_goal (the_context ()) s;
 fun Goalw thms s = Goals.atomic_goalw (the_context ()) thms s;
+
+
+(* scope manipulation *)
+
+fun Open_locale xname = (Locale.open_locale xname (the_context ()); ());
+fun Close_locale () = (Locale.close_locale (the_context ()); ());
 
 
 end;
