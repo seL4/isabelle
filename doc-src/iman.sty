@@ -12,6 +12,9 @@
 
 
 %%%INDEXING  use sedindex to process the index
+
+\usepackage{makeidx}
+
 %index, putting page numbers of definitions in boldface
 \def\bold#1{\textbf{#1}}
 \newcommand\fnote[1]{#1n}
@@ -36,10 +39,6 @@
 
 \newcommand\tooldx[1]{{\tt#1}\index{#1@{\tt#1} tool}}
 \newcommand\settdx[1]{{\tt#1}\index{#1@{\tt#1} setting}}
-
-%for cross-references: 2nd argument (page number) is ignored
-\newcommand\see[2]{{\it see \/}{#1}}
-\newcommand\seealso[2]{{\it see also \/}{#1}}
 
 %set argument in \tt font; at the same time, index using * prefix
 \newcommand\rmindex[1]{{#1}\index{#1}\@}
