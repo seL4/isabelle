@@ -265,11 +265,9 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 fun FILTER pred tac st = Sequence.filters pred (tac st);
 
 (*Returns all changed states*)
-fun CHANGED tac  = 
-  (fn st => 
-    let fun diff st = not (eq_thm(st,st))
-    in  Sequence.filters diff (tac st)
-    end );
+fun CHANGED tac st = 
+    let fun diff st' = not (eq_thm(st,st'))
+    in  Sequence.filters diff (tac st)  end;
 
 
 (*** Tacticals based on subgoal numbering ***)
