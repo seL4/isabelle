@@ -184,8 +184,7 @@ lemma (in group) subgroupI:
 apply (insert prems) 
 apply (simp add: group_def subgroup_def)
 apply (simp add: semigroup_def group_axioms_def, clarify) 
-apply (intro conjI ballI)
-apply (simp_all add: funcsetI subsetD [of H "carrier G"])
+apply (simp add: funcsetI subsetD [of H "carrier G"])
 apply (blast intro: zero_in_subset)  
 done
 
