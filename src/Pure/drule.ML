@@ -615,16 +615,17 @@ fun read_instantiate sinsts th =
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms, inferring type instantiations. *)
 local
-  fun add_types ((ct,cu), (sign,tye)) =
-    let val {sign=signt, t=t, T= T, ...} = rep_cterm ct
-        and {sign=signu, t=u, T= U, ...} = rep_cterm cu
+  fun add_types ((ct,cu), (sign,tye,maxidx)) =
+    let val {sign=signt, t=t, T= T, maxidx=maxidxt,...} = rep_cterm ct
+        and {sign=signu, t=u, T= U, maxidx=maxidxu,...} = rep_cterm cu;
+        val maxi = max[maxidx,maxidxt,maxidxu];
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
-        val tye' = Type.unify (#tsig(Sign.rep_sg sign')) ((T,U), tye)
+        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
           handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
-    in  (sign', tye')  end;
+    in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye) = foldr add_types (ctpairs0, (#sign(rep_thm th),[]))
+  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th),[],0))
       val tsig = #tsig(Sign.rep_sg sign);
       fun instT(ct,cu) = let val inst = subst_TVars tye
                          in (cterm_fun inst ct, cterm_fun inst cu) end

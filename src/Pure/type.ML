@@ -54,8 +54,8 @@ sig
   val typ_instance: type_sig * typ * typ -> bool
   val typ_match: type_sig -> (indexname * typ) list * (typ * typ)
     -> (indexname * typ) list
-  val unify: type_sig -> (typ * typ) * (indexname * typ) list
-    -> (indexname * typ) list
+  val unify: type_sig -> int -> (indexname * typ) list -> (typ * typ)
+    -> (indexname * typ) list * int
   val raw_unify: typ * typ -> bool
   exception TUNIFY
   exception TYPE_MATCH
@@ -779,32 +779,32 @@ fun ext_tsig_arities tsig sarities =
     - the substitution needed to unify the actual type of the term with its
       expected type; only the TVars in the expected type are included.
 
-  During type inference all TVars in the term have negative index. This keeps
-  them apart from normal TVars, which is essential, because at the end the
-  type of the term is unified with the expected type, which contains normal
-  TVars.
+  During type inference all TVars in the term have index > maxidx, where
+  maxidx is the max. index in the expected type of the term (T). This keeps
+  them apart, because at the end the type of the term is unified with T.
 
   1. Add initial type information to the term (attach_types).
      This freezes (freeze_vars) TVars in explicitly provided types (eg
      constraints or defaults) by turning them into TFrees.
-  2. Carry out type inference, possibly introducing new negative TVars.
+  2. Carry out type inference.
   3. Unify actual and expected type.
-  4. Turn all (negative) TVars into unique new TFrees (freeze).
+  4. Turn all local (i.e. > maxidx) TVars into unique new TFrees (freeze).
   5. Thaw all TVars frozen in step 1 (thaw_vars).
 *)
 
 (*Raised if types are not unifiable*)
 exception TUNIFY;
 
-val tyvar_count = ref ~1;
+val tyvar_count = ref 0;
 
-fun tyinit() = (tyvar_count := ~1);
+fun tyinit(i) = (tyvar_count := i);
 
-fun new_tvar_inx () = (tyvar_count := ! tyvar_count - 1; ! tyvar_count)
+fun new_tvar_inx () = (tyvar_count := !tyvar_count + 1; !tyvar_count)
 
 (*
-Generate new TVar.  Index is < ~1 to distinguish it from TVars generated from
-variable names (see id_type).  Name is arbitrary because index is new.
+Generate new TVar.  Index is > maxidx+1 to distinguish it from TVars
+generated from variable names (see id_type).
+Name is arbitrary because index is new.
 *)
 
 fun gen_tyvar(S) = TVar(("'a", new_tvar_inx()), S);
@@ -862,7 +862,7 @@ fun W ((T, S), tsig as TySg{subclass, arities, ...}, tye) =
 (* Order-sorted Unification of Types (U)  *)
 
 (* Precondition: both types are well-formed w.r.t. type constructor arities *)
-fun unify (tsig as TySg{subclass, arities, ...}) =
+fun unify1 (tsig as TySg{subclass, arities, ...}) =
   let fun unif ((T, U), tye) =
         case (devar(T, tye), devar(U, tye)) of
           (T as TVar(v, S1), U as TVar(w, S2)) =>
@@ -880,11 +880,13 @@ fun unify (tsig as TySg{subclass, arities, ...}) =
         | (T, U) => if T=U then tye else raise TUNIFY
   in unif end;
 
+fun unify tsig maxidx tye TU =
+  (tyinit maxidx; (unify1 tsig (TU,tye), !tyvar_count) );
 
 (* raw_unify (ignores sorts) *)
 
 fun raw_unify (ty1, ty2) =
-  (unify tsig0 ((rem_sorts ty1, rem_sorts ty2), []); true)
+  (unify tsig0 0 [] (rem_sorts ty1, rem_sorts ty2); true)
     handle TUNIFY => false;
 
 
@@ -905,11 +907,11 @@ fun infer tsig =
 		val msg = "function type is incompatible with argument type"
             in case T of
                  Type("fun", [T1, T2]) =>
-                   ( (T2, unify tsig ((T1, U), tyeT))
+                   ( (T2, unify1 tsig ((T1, U), tyeT))
                      handle TUNIFY => err msg)
                | TVar _ =>
                    let val T2 = gen_tyvar([])
-                   in (T2, unify tsig ((T, U-->T2), tyeT))
+                   in (T2, unify1 tsig ((T, U-->T2), tyeT))
                       handle TUNIFY => err msg
                    end
                | _ => err"function type is expected in application"
@@ -925,8 +927,10 @@ fun type_const (a, T) = Const(a, incr_tvar (new_tvar_inx()) T);
 (*Find type of ident.  If not in table then use ident's name for tyvar
   to get consistent typing.*)
 fun new_id_type a = TVar(("'"^a, new_tvar_inx()), []);
-fun type_of_ixn(types, ixn as (a, _)) =
-  case types ixn of Some T => freeze_vars T | None => TVar(("'"^a, ~1), []);
+
+fun type_of_ixn(types, ixn as (a, _),maxidx1) =
+  case types ixn of Some T => freeze_vars T
+                  | None   => TVar(("'"^a, maxidx1), []);
 
 fun constrain (term, T) = Const (Syntax.constrainC, T --> T) $ term;
 
@@ -944,12 +948,11 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
   The atoms in the resulting term satisfy the following spec:
 
   Const (a, T):
-    T is a renamed copy of the generic type of a; renaming decreases index of
-    all TVars by new_tvar_inx(), which is less than ~1. The index of all
-    TVars in the generic type must be 0 for this to work!
+    T is a renamed copy of the generic type of a; renaming increases index of
+    all TVars by new_tvar_inx(), which is > maxidx+1.
 
   Free (a, T), Var (ixn, T):
-    T is either the frozen default type of a or TVar (("'"^a, ~1), [])
+    T is either the frozen default type of a or TVar (("'"^a, maxidx+1), [])
 
   Abs (a, T, _):
     T is either a type constraint or TVar (("'" ^ a, i), []), where i is
@@ -959,7 +962,7 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
 
 (* FIXME consistency of sort_env / sorts (!?) *)
 
-fun attach_types (tsig, const_type, types, sorts) tm =
+fun attach_types (tsig, const_type, types, sorts, maxidx1) tm =
   let
     val sort_env = Syntax.raw_term_sorts tm;
     fun def_sort xi = if_none (sorts xi) (defaultS tsig);
@@ -974,8 +977,8 @@ fun attach_types (tsig, const_type, types, sorts) tm =
       | add (Free (a, _)) =
           (case const_type a of
             Some T => type_const (a, T)
-          | None => Free (a, type_of_ixn (types, (a, ~1))))
-      | add (Var (ixn, _)) = Var (ixn, type_of_ixn (types, ixn))
+          | None => Free (a, type_of_ixn (types,(a,~1),maxidx1)))
+      | add (Var (ixn, _)) = Var (ixn, type_of_ixn (types, ixn, maxidx1))
       | add (Bound i) = Bound i
       | add (Abs (a, _, body)) = Abs (a, new_id_type a, add body)
       | add ((f as Const (a, _) $ t1) $ t2) =
@@ -1039,9 +1042,9 @@ val thaw_vars =
   in map_type_tfree thaw end;
 
 
-fun restrict tye =
+fun restrict maxidx1 tye =
   let fun clean(tye1, ((a, i), T)) =
-        if i < 0 then tye1 else ((a, i), inst_typ tye T) :: tye1
+        if i >= maxidx1 then tye1 else ((a, i), inst_typ tye T) :: tye1
   in foldl clean ([], tye) end
 
 
@@ -1051,24 +1054,23 @@ fun restrict tye =
   sorts is a partial map from indexnames to sorts (constrains TFree, TVar).
   used is the list of already used type variables.
   If freeze then internal TVars are turned into TFrees, else TVars.*)
-fun infer_terms (tsig, const_type, types, sorts, used, freeze, Ts, ts) =
+fun infer_types (tsig, const_type, types, sorts, used, freeze, Ts, ts) =
   let
-    val us = map (attach_types (tsig, const_type, types, sorts)) ts;
+    val maxidx1 = max(map maxidx_of_typ Ts)+1;
+    val () = tyinit(maxidx1+1);
+    val us = map (attach_types (tsig, const_type, types, sorts, maxidx1)) ts;
     val u = list_comb(Const("",Ts ---> propT),us)
     val (_, tye) = infer tsig ([], u, []);
     val uu = unconstrain u;
-    val Ttye = restrict tye (*restriction to TVars in Ts*)
+    val Ttye = restrict maxidx1 tye (*restriction to TVars in Ts*)
     val all = Const("", Type("", map snd Ttye)) $ (inst_types tye uu)
       (*all is a dummy term which contains all exported TVars*)
     val Const(_, Type(_, Us)) $ u'' =
-      map_term_types thaw_vars (convert used freeze (fn (_, i) => i < 0) all)
+      map_term_types thaw_vars (convert used freeze (fn (_,i) => i >= maxidx1) all)
       (*convert all internally generated TVars into TFrees or TVars
         and thaw all initially frozen TVars*)
   in
     (snd(strip_comb u''), (map fst Ttye) ~~ Us)
   end;
-
-fun infer_types args = (tyinit (); infer_terms args);
-
 
 end;

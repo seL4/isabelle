@@ -184,8 +184,8 @@ val tsgr = ref(Type.tsig0);
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val iTs' = Type.unify (!tsgr) ((U,T),iTs)
-       in Envir.Envir{asol=asol,maxidx=maxidx,iTs=iTs'} end
+  else let val (iTs',maxidx') = Type.unify (!tsgr) maxidx iTs (U,T)
+       in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise Unif;
 
 fun unif binders (env,(s,t)) = case (devar env s,devar env t) of

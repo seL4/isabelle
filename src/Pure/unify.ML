@@ -242,10 +242,11 @@ exception ASSIGN;	(*Raised if not an assignment*)
 
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
-	if T=U then env else
-	let val iTs' = Sign.Type.unify (#tsig(Sign.rep_sg (!sgr))) ((U,T),iTs)
-	in Envir.Envir{asol=asol,maxidx=maxidx,iTs=iTs'}
-	end handle Sign.Type.TUNIFY => raise CANTUNIFY;
+  if T=U then env
+  else let val (iTs',maxidx') = Sign.Type.unify (#tsig(Sign.rep_sg (!sgr)))
+                                                maxidx iTs (U,T)
+       in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
+       handle Sign.Type.TUNIFY => raise CANTUNIFY;
 
 fun test_unify_types(args as (T,U,_)) =
 let val sot = Sign.string_of_typ (!sgr);
