@@ -6,7 +6,7 @@
 Unification algorithm
 *)
 
-Unify = Unifier + Recdef + Option +
+Unify = Unifier +
 
 consts
 

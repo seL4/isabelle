@@ -7,7 +7,7 @@ Simple term structure for unification.
 Binary trees with leaves that are constants or variables.
 *)
 
-UTerm = Finite + Datatype +
+UTerm = Main +
 
 datatype 'a uterm = Var ('a) 
                   | Const ('a)

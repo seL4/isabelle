@@ -6,7 +6,7 @@
 Association lists.
 *)
 
-AList = List + 
+AList = Main +
 
 consts
   alist_rec  :: "[('a*'b)list, 'c, ['a, 'b, ('a*'b)list, 'c]=>'c] => 'c"
