@@ -136,22 +136,18 @@ br impI 1;
 be swap 1;
 be exE 1;
 by(rename_tac "x" 1);
-by(subgoal_tac
- "!i. nat_rec x (%i y. @z. z:Q & (z,y):r) (Suc i) : Q & \
-\     (nat_rec x (%i y. @z. z:Q & (z,y):r) (Suc i),\
-\      nat_rec x (%i y. @z. z:Q & (z,y):r) i): r" 1);
+by(subgoal_tac "!n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
+ by (res_inst_tac[("x","nat_rec x (%i y. @z. z:Q & (z,y):r)")]exI 1);
+ br allI 1;
+ by(Simp_tac 1);
+ br selectI2EX 1;
+  by(Blast_tac 1);
  by(Blast_tac 1);
 br allI 1;
-by(induct_tac "i" 1);
+by(induct_tac "n" 1);
  by(Asm_simp_tac 1);
- by(subgoal_tac "? y. y : Q & (y,x):r" 1);
-  by(Blast_tac 2);
- be exE 1;
- be selectI 1;
-by(subgoal_tac "? y.y:Q & (y,nat_rec x (%i y. @z. z:Q & (z,y):r)(Suc i)):r" 1);
- by(Blast_tac 2);
-by(Asm_full_simp_tac 1);
-be exE 1;
-(* `be selectI 1' takes a long time; hence the instantiation: *)
-by (eres_inst_tac[("P","%u.u:Q & (u,?v):r")]selectI 1);
+by(Simp_tac 1);
+br selectI2EX 1;
+ by(Blast_tac 1);
+by(Blast_tac 1);
 qed "wf_iff_no_infinite_down_chain";
