@@ -181,10 +181,6 @@ val rel_cs = converse_cs addSIs [converseI]
                          addIs  [ImageI, DomainI, RangeI]
                          addSEs [ImageE, DomainE, RangeE];
 
-AddSIs [equalityI];
-
-val rel_eq_cs = rel_cs addSIs [equalityI];
-
 goal Relation.thy "R O id = R";
 by(fast_tac (!claset addIs [set_ext] addbefore (split_all_tac 1)) 1);
 qed "R_O_id";
