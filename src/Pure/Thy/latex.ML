@@ -17,7 +17,6 @@ sig
   val old_symbol_source: string -> Symbol.symbol list -> string
   val theory_entry: string -> string
   val modes: string list
-  val setup: (theory -> theory) list
 end;
 
 structure Latex: LATEX =
@@ -149,11 +148,7 @@ fun latex_output str =
 fun latex_indent "" = ""
   | latex_indent s = enclose "\\isaindent{" "}" s;
 
-val token_translation =
-  map (fn s => (latexN, s, latex_output)) Syntax.standard_token_classes;
-
 val _ = Output.add_mode latexN (latex_output, latex_indent o #1, Symbol.default_raw);
-val setup = [Theory.add_tokentrfuns token_translation];
 
 
 end;

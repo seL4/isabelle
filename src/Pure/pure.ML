@@ -19,7 +19,6 @@ local
     Calculation.setup @
     SkipProof.setup @
     AxClass.setup @
-    Latex.setup @
     Present.setup @
     ProofGeneral.setup @
     Codegen.setup @
