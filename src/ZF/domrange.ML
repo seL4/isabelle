@@ -33,14 +33,14 @@ qed_goalw "converseE" ZF.thy [converse_def]
 val converse_cs = pair_cs addSIs [converseI] 
 			  addSEs [converseD,converseE];
 
-qed_goal "converse_of_converse" ZF.thy
+qed_goal "converse_converse" ZF.thy
     "!!A B r. r<=Sigma(A,B) ==> converse(converse(r)) = r"
  (fn _ => [ (fast_tac (converse_cs addSIs [equalityI]) 1) ]);
 
 qed_goal "converse_type" ZF.thy "!!A B r. r<=A*B ==> converse(r)<=B*A"
  (fn _ => [ (fast_tac converse_cs 1) ]);
 
-qed_goal "converse_of_prod" ZF.thy "converse(A*B) = B*A"
+qed_goal "converse_prod" ZF.thy "converse(A*B) = B*A"
  (fn _ => [ (fast_tac (converse_cs addSIs [equalityI]) 1) ]);
 
 qed_goal "converse_empty" ZF.thy "converse(0) = 0"
@@ -79,7 +79,7 @@ qed_goalw "rangeE" ZF.thy [range_def]
 
 qed_goalw "range_subset" ZF.thy [range_def] "range(A*B) <= B"
  (fn _ =>
-  [ (rtac (converse_of_prod RS ssubst) 1),
+  [ (rtac (converse_prod RS ssubst) 1),
     (rtac domain_subset 1) ]);
 
 
