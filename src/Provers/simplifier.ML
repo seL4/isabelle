@@ -463,6 +463,9 @@ val congN = "cong";
 val addN = "add";
 val delN = "del";
 val onlyN = "only";
+val no_asmN = "no_asm";
+val no_asm_useN = "no_asm_use";
+val no_asm_simpN = "no_asm_simp";
 
 val simp_attr =
  (Attrib.add_del_args simp_add_global simp_del_global,
@@ -475,20 +478,31 @@ val cong_attr =
 
 (* conversions *)
 
-fun conv_attr f =
-  (Attrib.no_args (Drule.rule_attribute (f o simpset_of)),
-    Attrib.no_args (Drule.rule_attribute (f o get_local_simpset)));
+local
+
+fun conv_mode x =
+  ((Args.parens (Args.$$$ no_asmN) >> K simplify ||
+    Args.parens (Args.$$$ no_asm_simpN) >> K asm_simplify ||
+    Args.parens (Args.$$$ no_asm_useN) >> K full_simplify ||
+    Scan.succeed asm_full_simplify) |> Scan.lift) x;
+
+fun simplified_att get =
+  Attrib.syntax (conv_mode >> (fn f => Drule.rule_attribute (f o get)));
+
+in
+
+val simplified_attr =
+  (simplified_att simpset_of, simplified_att get_local_simpset);
+
+end;
 
 
 (* setup_attrs *)
 
 val setup_attrs = Attrib.add_attributes
- [(simpN,               simp_attr, "declare simplification rule"),
-  (congN,               cong_attr, "declare Simplifier congruence rule"),
-  ("simplify",          conv_attr simplify, "simplify rule"),
-  ("asm_simplify",      conv_attr asm_simplify, "simplify rule, using assumptions"),
-  ("full_simplify",     conv_attr full_simplify, "fully simplify rule"),
-  ("asm_full_simplify", conv_attr asm_full_simplify, "fully simplify rule, using assumptions")];
+ [(simpN, simp_attr, "declaration of simplification rule"),
+  (congN, cong_attr, "declaration of Simplifier congruence rule"),
+  ("simplified", simplified_attr, "simplified rule")];
 
 
 
@@ -497,9 +511,9 @@ val setup_attrs = Attrib.add_attributes
 (* simplification *)
 
 val simp_options =
- (Args.parens (Args.$$$ "no_asm") >> K simp_tac ||
-  Args.parens (Args.$$$ "no_asm_simp") >> K asm_simp_tac ||
-  Args.parens (Args.$$$ "no_asm_use") >> K full_simp_tac ||
+ (Args.parens (Args.$$$ no_asmN) >> K simp_tac ||
+  Args.parens (Args.$$$ no_asm_simpN) >> K asm_simp_tac ||
+  Args.parens (Args.$$$ no_asm_useN) >> K full_simp_tac ||
   Scan.succeed asm_full_simp_tac);
 
 val cong_modifiers =
