@@ -488,13 +488,15 @@ fun conv_mode x =
     Args.parens (Args.$$$ no_asm_useN) >> K full_simplify ||
     Scan.succeed asm_full_simplify) |> Scan.lift) x;
 
-fun simplified_att get =
-  Attrib.syntax (conv_mode >> (fn f => Drule.rule_attribute (f o get)));
+fun simplified_att get args =
+  Attrib.syntax (conv_mode -- args >> (fn (f, ths) =>
+    Drule.rule_attribute (fn x => f ((if null ths then I else clear_ss) (get x) addsimps ths))));
 
 in
 
 val simplified_attr =
-  (simplified_att simpset_of, simplified_att get_local_simpset);
+ (simplified_att simpset_of Attrib.global_thmss,
+  simplified_att get_local_simpset Attrib.local_thmss);
 
 end;
 
