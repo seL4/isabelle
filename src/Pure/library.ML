@@ -1046,21 +1046,21 @@ fun std_output s =
   (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 
 fun prefix_lines prfx txt =
-  txt |> split_lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
+  txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
 
 (*hooks for output channels: normal, warning, error*)
-val prs_fn = ref (fn s => std_output s);
-val warning_fn = ref (fn s => std_output (prefix_lines "### " s));
-val error_fn = ref (fn s => std_output (prefix_lines "*** " s));
+val prs_fn = ref std_output;
+val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
+val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 
-fun prs s = !prs_fn s;
+fun prs s = ! prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
 fun warning s = ! warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
-fun error_msg s = !error_fn s;
+fun error_msg s = ! error_fn s;
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
 
