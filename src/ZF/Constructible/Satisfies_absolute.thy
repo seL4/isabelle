@@ -403,11 +403,9 @@ constdefs
                               h ` succ(depth(v)) ` v),
                 \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
 
-  is_formula_rec :: "[i=>o, [i,i,i]=>o, 
-                      [i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, 
-                      i, i] => o"
+  is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
     --{* predicate to relative the functional @{term formula_rec}*}
-   "is_formula_rec(M,MH,a,b,c,d,p,z)  ==
+   "is_formula_rec(M,MH,p,z)  ==
     \<exists>i[M]. \<exists>f[M]. i = succ(depth(p)) & fun_apply(M,f,p,z) &
                   is_transrec(M,MH,i,f)"
 
@@ -445,8 +443,9 @@ locale M_formula_rec = M_eclose +
   fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
   defines
       "MH(u::i,f,z) ==
-	is_lambda
-	 (M, formula, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
+	\<forall>fml[M]. is_formula(M,fml) -->
+             is_lambda
+	 (M, fml, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
 
   assumes a_closed: "[|x\<in>nat; y\<in>nat|] ==> M(a(x,y))"
       and a_rel:    "Relativize2(M, nat, nat, is_a, a)"
@@ -502,7 +501,7 @@ by (simp add: formula_rec_eq2 fr_transrec_closed
 
 theorem (in M_formula_rec) formula_rec_abs:
   "[| p \<in> formula; M(z)|] 
-   ==> is_formula_rec(M,MH,a,b,c,d,p,z) <-> z = formula_rec(a,b,c,d,p)" 
+   ==> is_formula_rec(M,MH,p,z) <-> z = formula_rec(a,b,c,d,p)" 
 by (simp add: is_formula_rec_def formula_rec_eq2 transM [OF _ formula_closed]
               transrec_abs [OF fr_replace MH_rel2] 
               fr_transrec_closed formula_rec_lam_closed eq_commute)
@@ -559,7 +558,7 @@ constdefs
                 zz)"
  
   satisfies_c :: "[i,i,i,i,i]=>i"
-   "satisfies_c(A,p,q,rp,rq) == \<lambda>env \<in> list(A). not(rp ` env and rq ` env)"
+   "satisfies_c(A) == \<lambda>p q rp rq. \<lambda>env \<in> list(A). not(rp ` env and rq ` env)"
 
   satisfies_is_c :: "[i=>o,i,i,i,i,i]=>o"
    "satisfies_is_c(M,A,h) == 
@@ -590,19 +589,40 @@ constdefs
     --{*The variable @{term u} is unused, but gives @{term satisfies_MH} 
         the correct arity.*}
    "satisfies_MH == 
-    \<lambda>M A u f zz. 
+    \<lambda>M A u f z. 
          \<forall>fml[M]. is_formula(M,fml) -->
              is_lambda (M, fml, 
                is_formula_case (M, satisfies_is_a(M,A), 
                                 satisfies_is_b(M,A), 
                                 satisfies_is_c(M,A,f), satisfies_is_d(M,A,f)),
-               zz)"
+               z)"
 
+  is_satisfies :: "[i=>o,i,i,i]=>o"
+   "is_satisfies(M,A) == 
+      is_formula_rec (M, \<lambda>u f z.
+        \<forall>fml[M].
+           is_formula(M,fml) \<longrightarrow>
+           is_lambda
+            (M, fml,
+             is_formula_case
+              (M, satisfies_is_a(M,A), satisfies_is_b(M,A),
+               satisfies_is_c(M,A,f), satisfies_is_d(M,A,f)), z))"
+
+
+text{*This lemma relates the fragments defined above to the original primitive
+      recursion in @{term satisfies}.
+      Induction is not required: the definitions are directly equal!*}
+lemma satisfies_eq:
+  "satisfies(A,p) = 
+   formula_rec (satisfies_a(A), satisfies_b(A), 
+                satisfies_c(A), satisfies_d(A), p)"
+by (simp add: satisfies_formula_def satisfies_a_def satisfies_b_def 
+              satisfies_c_def satisfies_d_def) 
 
 text{*Further constraints on the class @{term M} in order to prove
       absoluteness for the constants defined above.  The ultimate goal
       is the absoluteness of the function @{term satisfies}. *}
-locale M_satisfies = M_datatypes +
+locale M_satisfies = M_eclose +
  assumes 
    Member_replacement:
     "[|M(A); x \<in> nat; y \<in> nat|]
@@ -643,17 +663,17 @@ locale M_satisfies = M_datatypes +
   formula_rec_replacement: 
       --{*For the @{term transrec}*}
    "[|n \<in> nat; M(A)|] ==> transrec_replacement(M, satisfies_MH(M,A), n)"
-(*NEEDS RELATIVIZATION?*)
  and
   formula_rec_lambda_replacement:  
       --{*For the @{text "\<lambda>-abstraction"} in the @{term transrec} body*}
-   "M(g) ==>
-    strong_replacement (M, \<lambda>x y. x \<in> formula &
-            y = \<langle>x, 
-                 formula_rec_case(satisfies_a(A),
-                                  satisfies_b(A),
-                                  satisfies_c(A),
-                                  satisfies_d(A), g, x)\<rangle>)"
+   "[|M(g); M(A)|] ==>
+    strong_replacement (M, 
+       \<lambda>x y. mem_formula(M,x) &
+             (\<exists>c[M]. is_formula_case(M, satisfies_is_a(M,A),
+                                  satisfies_is_b(M,A),
+                                  satisfies_is_c(M,A,g),
+                                  satisfies_is_d(M,A,g), x, c) &
+             pair(M, x, c, y)))"
 
 
 lemma (in M_satisfies) Member_replacement':
@@ -751,198 +771,76 @@ lemma (in M_satisfies) fr_replace:
       "[|n \<in> nat; M(A)|] ==> transrec_replacement(M,satisfies_MH(M,A),n)" 
 by (blast intro: formula_rec_replacement) 
 
+lemma (in M_satisfies) formula_case_satisfies_closed:
+ "[|M(g); M(A); x \<in> formula|] ==>
+  M(formula_case (satisfies_a(A), satisfies_b(A),
+       \<lambda>u v. satisfies_c(A, u, v, 
+                         g ` succ(depth(u)) ` u, g ` succ(depth(v)) ` v),
+       \<lambda>u. satisfies_d (A, u, g ` succ(depth(u)) ` u),
+       x))"
+by (blast intro: formula_case_closed a_closed b_closed c_closed d_closed) 
+
 lemma (in M_satisfies) fr_lam_replace:
-   "M(g) ==>
+   "[|M(g); M(A)|] ==>
     strong_replacement (M, \<lambda>x y. x \<in> formula &
             y = \<langle>x, 
                  formula_rec_case(satisfies_a(A),
                                   satisfies_b(A),
                                   satisfies_c(A),
                                   satisfies_d(A), g, x)\<rangle>)"
-by (blast intro: formula_rec_lambda_replacement)
-
-
-
-subsection{*Instantiating the Locale @{text "M_satisfies"}*}
-
-
-subsubsection{*The @{term "Member"} Case*}
-
-lemma Member_Reflects:
- "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
-          v \<in> lstA \<and> is_nth(L,x,v,nx) \<and> is_nth(L,y,v,ny) \<and>
-          is_bool_of_o(L, nx \<in> ny, bo) \<and> pair(L,v,bo,u)),
-   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B \<and> (\<exists>bo \<in> Lset(i). \<exists>nx \<in> Lset(i). \<exists>ny \<in> Lset(i).
-             v \<in> lstA \<and> is_nth(**Lset(i), x, v, nx) \<and> 
-             is_nth(**Lset(i), y, v, ny) \<and>
-          is_bool_of_o(**Lset(i), nx \<in> ny, bo) \<and> pair(**Lset(i), v, bo, u))]"
-by (intro FOL_reflections function_reflections nth_reflection 
-          bool_of_o_reflection)
-
-
-lemma Member_replacement:
-    "[|L(A); x \<in> nat; y \<in> nat|]
-     ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
-              env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
-              is_bool_of_o(L, nx \<in> ny, bo) &
-              pair(L, env, bo, z))"
-apply (frule list_closed) 
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)  
-apply (rule separation_CollectI) 
-apply (rule_tac A="{list(A),B,x,y,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Member_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (simp add: is_nth_def is_wfrec_def is_bool_of_o_def)
-apply (rule DPow_LsetI)
-apply (rename_tac u) 
-apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,list(A),B,x,y,z]" in mem_iff_sats) 
-apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
-            is_recfun_iff_sats hd_iff_sats tl_iff_sats quasinat_iff_sats
-     | simp)+
+apply (insert formula_rec_lambda_replacement) 
+apply (simp add: formula_rec_case_def formula_case_satisfies_closed
+                 formula_case_abs [OF a_rel b_rel c_rel d_rel]) 
 done
 
 
-subsubsection{*The @{term "Equal"} Case*}
 
-lemma Equal_Reflects:
- "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
-          v \<in> lstA \<and> is_nth(L, x, v, nx) \<and> is_nth(L, y, v, ny) \<and>
-          is_bool_of_o(L, nx = ny, bo) \<and> pair(L, v, bo, u)),
-   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B \<and> (\<exists>bo \<in> Lset(i). \<exists>nx \<in> Lset(i). \<exists>ny \<in> Lset(i).
-             v \<in> lstA \<and> is_nth(**Lset(i), x, v, nx) \<and> 
-             is_nth(**Lset(i), y, v, ny) \<and>
-          is_bool_of_o(**Lset(i), nx = ny, bo) \<and> pair(**Lset(i), v, bo, u))]"
-by (intro FOL_reflections function_reflections nth_reflection 
-          bool_of_o_reflection)
+text{*Instantiate locale @{text M_formula_rec} for the 
+      Function @{term satisfies}*}
 
-
-lemma Equal_replacement:
-    "[|L(A); x \<in> nat; y \<in> nat|]
-     ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
-              env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
-              is_bool_of_o(L, nx = ny, bo) &
-              pair(L, env, bo, z))"
-apply (frule list_closed) 
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)  
-apply (rule separation_CollectI) 
-apply (rule_tac A="{list(A),B,x,y,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Equal_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (simp add: is_nth_def is_wfrec_def is_bool_of_o_def)
-apply (rule DPow_LsetI)
-apply (rename_tac u) 
-apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,list(A),B,x,y,z]" in mem_iff_sats) 
-apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
-            is_recfun_iff_sats hd_iff_sats tl_iff_sats quasinat_iff_sats
-     | simp)+
-done
-
-subsubsection{*The @{term "Nand"} Case*}
-
-lemma Nand_Reflects:
-    "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and>
-	       (\<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L].
-		 fun_apply(L, rp, u, rpe) \<and> fun_apply(L, rq, u, rqe) \<and>
-		 is_and(L, rpe, rqe, andpq) \<and> is_not(L, andpq, notpq) \<and>
-		 u \<in> list(A) \<and> pair(L, u, notpq, x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and>
-     (\<exists>rpe \<in> Lset(i). \<exists>rqe \<in> Lset(i). \<exists>andpq \<in> Lset(i). \<exists>notpq \<in> Lset(i).
-       fun_apply(**Lset(i), rp, u, rpe) \<and> fun_apply(**Lset(i), rq, u, rqe) \<and>
-       is_and(**Lset(i), rpe, rqe, andpq) \<and> is_not(**Lset(i), andpq, notpq) \<and>
-       u \<in> list(A) \<and> pair(**Lset(i), u, notpq, x))]"
-apply (unfold is_and_def is_not_def) 
-apply (intro FOL_reflections function_reflections)
-done
-
-lemma Nand_replacement:
-    "[|L(A); L(rp); L(rq)|]
-     ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L]. 
-               fun_apply(L,rp,env,rpe) & fun_apply(L,rq,env,rqe) & 
-               is_and(L,rpe,rqe,andpq) & is_not(L,andpq,notpq) & 
-               env \<in> list(A) & pair(L, env, notpq, z))"
-apply (frule list_closed) 
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)  
-apply (rule separation_CollectI) 
-apply (rule_tac A="{list(A),B,rp,rq,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Nand_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (simp add: is_and_def is_not_def)
-apply (rule DPow_LsetI)
-apply (rename_tac v) 
-apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,list(A),B,rp,rq,z]" in mem_iff_sats) 
-apply (rule sep_rules | simp)+
+lemma (in M_satisfies) M_formula_rec_axioms_M:
+   "M(A) ==>
+    M_formula_rec_axioms(M, satisfies_a(A), satisfies_is_a(M,A), 
+                            satisfies_b(A), satisfies_is_b(M,A), 
+                            satisfies_c(A), satisfies_is_c(M,A), 
+                            satisfies_d(A), satisfies_is_d(M,A))"
+apply (rule M_formula_rec_axioms.intro)
+apply (assumption | 
+       rule a_closed a_rel b_closed b_rel c_closed c_rel d_closed d_rel
+       fr_replace [unfolded satisfies_MH_def]
+       fr_lam_replace) +
 done
 
 
-subsubsection{*The @{term "Forall"} Case*}
-
-lemma Forall_Reflects:
- "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>bo[L]. u \<in> list(A) \<and>
-                 is_bool_of_o (L,
-     \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. a \<in> A \<longrightarrow>
-                is_Cons(L,a,u,co) \<longrightarrow> fun_apply(L,rp,co,rpco) \<longrightarrow> 
-                number1(L,rpco),
-                           bo) \<and> pair(L,u,bo,x)),
- \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>bo \<in> Lset(i). u \<in> list(A) \<and>
-        is_bool_of_o (**Lset(i),
- \<forall>a \<in> Lset(i). \<forall>co \<in> Lset(i). \<forall>rpco \<in> Lset(i). a \<in> A \<longrightarrow>
-	    is_Cons(**Lset(i),a,u,co) \<longrightarrow> fun_apply(**Lset(i),rp,co,rpco) \<longrightarrow> 
-	    number1(**Lset(i),rpco),
-		       bo) \<and> pair(**Lset(i),u,bo,x))]"
-apply (unfold is_bool_of_o_def) 
-apply (intro FOL_reflections function_reflections Cons_reflection)
+theorem (in M_satisfies) M_formula_rec_M: 
+    "M(A) ==>
+     PROP M_formula_rec(M, satisfies_a(A), satisfies_is_a(M,A), 
+                            satisfies_b(A), satisfies_is_b(M,A), 
+                            satisfies_c(A), satisfies_is_c(M,A), 
+                            satisfies_d(A), satisfies_is_d(M,A))"
+apply (rule M_formula_rec.intro, assumption+)
+apply (erule M_formula_rec_axioms_M) 
 done
 
-lemma Forall_replacement:
-   "[|L(A); L(rp)|]
-    ==> strong_replacement
-	(L, \<lambda>env z. \<exists>bo[L]. 
-	      env \<in> list(A) & 
-	      is_bool_of_o (L, 
-			    \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. 
-			       a\<in>A --> is_Cons(L,a,env,co) -->
-			       fun_apply(L,rp,co,rpco) --> number1(L, rpco), 
-                            bo) &
-	      pair(L,env,bo,z))"
-apply (frule list_closed) 
-apply (rule strong_replacementI) 
-apply (rule rallI)
-apply (rename_tac B)  
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,list(A),B,rp,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Forall_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (simp add: is_bool_of_o_def)
-apply (rule DPow_LsetI)
-apply (rename_tac v) 
-apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,v,A,list(A),B,rp,z]" in mem_iff_sats)
-apply (rule sep_rules Cons_iff_sats | simp)+
-done
-
-subsubsection{*The @{term "transrec_replacement"} Case*}
+lemmas (in M_satisfies) 
+   satisfies_closed = M_formula_rec.formula_rec_closed [OF M_formula_rec_M]
+and
+   satisfies_abs = M_formula_rec.formula_rec_abs [OF M_formula_rec_M];
 
 
+lemma (in M_satisfies) satisfies_closed:
+  "[|M(A); p \<in> formula|] ==> M(satisfies(A,p))"
+by (simp add: M_formula_rec.formula_rec_closed [OF M_formula_rec_M]  
+              satisfies_eq) 
+
+lemma (in M_satisfies) satisfies_abs:
+  "[|M(A); M(z); p \<in> formula|] 
+   ==> is_satisfies(M,A,p,z) <-> z = satisfies(A,p)"
+by (simp only: M_formula_rec.formula_rec_abs [OF M_formula_rec_M]  
+               satisfies_eq is_satisfies_def)
+
+
+subsection{*Internalizations Needed to Instantiate @{text "M_satisfies"}*}
 
 subsubsection{*The Operator @{term is_depth_apply}, Internalized*}
 
@@ -1246,6 +1144,185 @@ apply (intro FOL_reflections satisfies_reflections)
 done
 
 
+subsection{*Lemmas for Instantiating the Locale @{text "M_satisfies"}*}
+
+
+subsubsection{*The @{term "Member"} Case*}
+
+lemma Member_Reflects:
+ "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
+          v \<in> lstA \<and> is_nth(L,x,v,nx) \<and> is_nth(L,y,v,ny) \<and>
+          is_bool_of_o(L, nx \<in> ny, bo) \<and> pair(L,v,bo,u)),
+   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B \<and> (\<exists>bo \<in> Lset(i). \<exists>nx \<in> Lset(i). \<exists>ny \<in> Lset(i).
+             v \<in> lstA \<and> is_nth(**Lset(i), x, v, nx) \<and> 
+             is_nth(**Lset(i), y, v, ny) \<and>
+          is_bool_of_o(**Lset(i), nx \<in> ny, bo) \<and> pair(**Lset(i), v, bo, u))]"
+by (intro FOL_reflections function_reflections nth_reflection 
+          bool_of_o_reflection)
+
+
+lemma Member_replacement:
+    "[|L(A); x \<in> nat; y \<in> nat|]
+     ==> strong_replacement
+	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
+              env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
+              is_bool_of_o(L, nx \<in> ny, bo) &
+              pair(L, env, bo, z))"
+apply (frule list_closed) 
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{list(A),B,x,y,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Member_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (simp add: is_nth_def is_wfrec_def is_bool_of_o_def)
+apply (rule DPow_LsetI)
+apply (rename_tac u) 
+apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[v,u,list(A),B,x,y,z]" in mem_iff_sats) 
+apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
+            is_recfun_iff_sats hd_iff_sats tl_iff_sats quasinat_iff_sats
+     | simp)+
+done
+
+
+subsubsection{*The @{term "Equal"} Case*}
+
+lemma Equal_Reflects:
+ "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
+          v \<in> lstA \<and> is_nth(L, x, v, nx) \<and> is_nth(L, y, v, ny) \<and>
+          is_bool_of_o(L, nx = ny, bo) \<and> pair(L, v, bo, u)),
+   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B \<and> (\<exists>bo \<in> Lset(i). \<exists>nx \<in> Lset(i). \<exists>ny \<in> Lset(i).
+             v \<in> lstA \<and> is_nth(**Lset(i), x, v, nx) \<and> 
+             is_nth(**Lset(i), y, v, ny) \<and>
+          is_bool_of_o(**Lset(i), nx = ny, bo) \<and> pair(**Lset(i), v, bo, u))]"
+by (intro FOL_reflections function_reflections nth_reflection 
+          bool_of_o_reflection)
+
+
+lemma Equal_replacement:
+    "[|L(A); x \<in> nat; y \<in> nat|]
+     ==> strong_replacement
+	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
+              env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
+              is_bool_of_o(L, nx = ny, bo) &
+              pair(L, env, bo, z))"
+apply (frule list_closed) 
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{list(A),B,x,y,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Equal_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (simp add: is_nth_def is_wfrec_def is_bool_of_o_def)
+apply (rule DPow_LsetI)
+apply (rename_tac u) 
+apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[v,u,list(A),B,x,y,z]" in mem_iff_sats) 
+apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
+            is_recfun_iff_sats hd_iff_sats tl_iff_sats quasinat_iff_sats
+     | simp)+
+done
+
+subsubsection{*The @{term "Nand"} Case*}
+
+lemma Nand_Reflects:
+    "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and>
+	       (\<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L].
+		 fun_apply(L, rp, u, rpe) \<and> fun_apply(L, rq, u, rqe) \<and>
+		 is_and(L, rpe, rqe, andpq) \<and> is_not(L, andpq, notpq) \<and>
+		 u \<in> list(A) \<and> pair(L, u, notpq, x)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and>
+     (\<exists>rpe \<in> Lset(i). \<exists>rqe \<in> Lset(i). \<exists>andpq \<in> Lset(i). \<exists>notpq \<in> Lset(i).
+       fun_apply(**Lset(i), rp, u, rpe) \<and> fun_apply(**Lset(i), rq, u, rqe) \<and>
+       is_and(**Lset(i), rpe, rqe, andpq) \<and> is_not(**Lset(i), andpq, notpq) \<and>
+       u \<in> list(A) \<and> pair(**Lset(i), u, notpq, x))]"
+apply (unfold is_and_def is_not_def) 
+apply (intro FOL_reflections function_reflections)
+done
+
+lemma Nand_replacement:
+    "[|L(A); L(rp); L(rq)|]
+     ==> strong_replacement
+	 (L, \<lambda>env z. \<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L]. 
+               fun_apply(L,rp,env,rpe) & fun_apply(L,rq,env,rqe) & 
+               is_and(L,rpe,rqe,andpq) & is_not(L,andpq,notpq) & 
+               env \<in> list(A) & pair(L, env, notpq, z))"
+apply (frule list_closed) 
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{list(A),B,rp,rq,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Nand_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (simp add: is_and_def is_not_def)
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,list(A),B,rp,rq,z]" in mem_iff_sats) 
+apply (rule sep_rules | simp)+
+done
+
+
+subsubsection{*The @{term "Forall"} Case*}
+
+lemma Forall_Reflects:
+ "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>bo[L]. u \<in> list(A) \<and>
+                 is_bool_of_o (L,
+     \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. a \<in> A \<longrightarrow>
+                is_Cons(L,a,u,co) \<longrightarrow> fun_apply(L,rp,co,rpco) \<longrightarrow> 
+                number1(L,rpco),
+                           bo) \<and> pair(L,u,bo,x)),
+ \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>bo \<in> Lset(i). u \<in> list(A) \<and>
+        is_bool_of_o (**Lset(i),
+ \<forall>a \<in> Lset(i). \<forall>co \<in> Lset(i). \<forall>rpco \<in> Lset(i). a \<in> A \<longrightarrow>
+	    is_Cons(**Lset(i),a,u,co) \<longrightarrow> fun_apply(**Lset(i),rp,co,rpco) \<longrightarrow> 
+	    number1(**Lset(i),rpco),
+		       bo) \<and> pair(**Lset(i),u,bo,x))]"
+apply (unfold is_bool_of_o_def) 
+apply (intro FOL_reflections function_reflections Cons_reflection)
+done
+
+lemma Forall_replacement:
+   "[|L(A); L(rp)|]
+    ==> strong_replacement
+	(L, \<lambda>env z. \<exists>bo[L]. 
+	      env \<in> list(A) & 
+	      is_bool_of_o (L, 
+			    \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. 
+			       a\<in>A --> is_Cons(L,a,env,co) -->
+			       fun_apply(L,rp,co,rpco) --> number1(L, rpco), 
+                            bo) &
+	      pair(L,env,bo,z))"
+apply (frule list_closed) 
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{A,list(A),B,rp,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Forall_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (simp add: is_bool_of_o_def)
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,A,list(A),B,rp,z]" in mem_iff_sats)
+apply (rule sep_rules Cons_iff_sats | simp)+
+done
+
+subsubsection{*The @{term "transrec_replacement"} Case*}
+
 lemma formula_rec_replacement_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L, u, y, x) \<and>
              is_wfrec (L, satisfies_MH(L,A), mesa, u, y)),
@@ -1275,8 +1352,78 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,Memrel(eclose({n}))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
 apply (rule sep_rules satisfies_MH_iff_sats is_wfrec_iff_sats | simp)+
+done
+
+
+subsubsection{*The Lambda Replacement Case*}
+
+lemma formula_rec_lambda_replacement_Reflects:
+ "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B &
+     mem_formula(L,u) &
+     (\<exists>c[L].
+	 is_formula_case
+	  (L, satisfies_is_a(L,A), satisfies_is_b(L,A),
+	   satisfies_is_c(L,A,g), satisfies_is_d(L,A,g),
+	   u, c) &
+	 pair(L,u,c,x)),
+  \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & mem_formula(**Lset(i),u) &
+     (\<exists>c \<in> Lset(i).
+	 is_formula_case
+	  (**Lset(i), satisfies_is_a(**Lset(i),A), satisfies_is_b(**Lset(i),A),
+	   satisfies_is_c(**Lset(i),A,g), satisfies_is_d(**Lset(i),A,g),
+	   u, c) &
+	 pair(**Lset(i),u,c,x))]"
+by (intro FOL_reflections function_reflections mem_formula_reflection
+          is_formula_case_reflection satisfies_is_a_reflection
+          satisfies_is_b_reflection satisfies_is_c_reflection
+          satisfies_is_d_reflection)  
+
+lemma formula_rec_lambda_replacement: 
+      --{*For the @{term transrec}*}
+   "[|L(g); L(A)|] ==>
+    strong_replacement (L, 
+       \<lambda>x y. mem_formula(L,x) &
+             (\<exists>c[L]. is_formula_case(L, satisfies_is_a(L,A),
+                                  satisfies_is_b(L,A),
+                                  satisfies_is_c(L,A,g),
+                                  satisfies_is_d(L,A,g), x, c) &
+             pair(L, x, c, y)))" 
+apply (rule strong_replacementI)
+apply (rule rallI)
+apply (rename_tac B)
+apply (rule separation_CollectI)
+apply (rule_tac A="{B,A,g,z}" in subset_LsetE, blast)
+apply (rule ReflectsE [OF formula_rec_lambda_replacement_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption)
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (elim conjE)
+apply (rule DPow_LsetI)
+apply (rename_tac v)
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,A,g,B]" in mem_iff_sats)
+apply (rule sep_rules mem_formula_iff_sats
+          formula_case_iff_sats satisfies_is_a_iff_sats
+          satisfies_is_b_iff_sats satisfies_is_c_iff_sats
+          satisfies_is_d_iff_sats | simp)+
+done
+
+
+subsection{*Instantiating @{text M_satisfies}*}
+
+lemma M_satisfies_axioms_L: "M_satisfies_axioms(L)"
+  apply (rule M_satisfies_axioms.intro)
+       apply (assumption | rule
+	 Member_replacement Equal_replacement 
+         Nand_replacement Forall_replacement
+         formula_rec_replacement formula_rec_lambda_replacement)+
+  done
+
+theorem M_satisfies_L: "PROP M_satisfies(L)"
+apply (rule M_satisfies.intro) 
+     apply (rule M_eclose.axioms [OF M_eclose_L])+
+apply (rule M_satisfies_axioms_L) 
 done
 
 end
