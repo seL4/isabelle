@@ -55,6 +55,7 @@ sig
   val mk_nat: int -> term
   val dest_nat: term -> int
   val intT: typ
+  val realT: typ
   val binT: typ
   val pls_const: term
   val min_const: term
@@ -217,6 +218,8 @@ fun dest_nat (Const ("0", _)) = 0
 
 
 val intT = Type ("IntDef.int", []);
+
+val realT = Type("RealDef.real",[]);
 
 
 (* binary numerals *)
