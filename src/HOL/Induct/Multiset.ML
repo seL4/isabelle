@@ -84,7 +84,7 @@ qed_goal "union_lcomm" thy "M+(N+K) = N+((M+K)::'a multiset)"
  (fn _ => [rtac (union_comm RS trans) 1, rtac (union_assoc RS trans) 1,
            rtac (union_comm RS arg_cong) 1]);
 
-val union_ac = [union_assoc, union_comm, union_lcomm];
+bind_thms ("union_ac", [union_assoc, union_comm, union_lcomm]);
 
 (* diff *)
 
@@ -254,6 +254,7 @@ by (etac allE 1);
 by (etac impE 1);
  by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [psubset_card]) 1);
+no_qed();
 val lemma = result();
 
 val prems = Goal
@@ -276,6 +277,7 @@ Addsimps [setsum_0];
 Goal "finite F ==> setsum f F = Suc n --> (? a:F. 0 < f a)";
 by (etac finite_induct 1);
 by (Auto_tac);
+no_qed();
 val lemma = result();
 
 Goal "[| setsum f F = Suc n; finite F |] ==> ? a:F. 0 < f a";
@@ -328,6 +330,7 @@ by (subgoal_tac "{x. x ~= a & 0 < f x} = {x. 0 < f x} - {a}" 1);
  by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [le_imp_diff_is_add,setsum_diff1]
                            addcongs [conj_cong]) 1);
+no_qed();
 val lemma = result();
 
 val major::prems = Goal
