@@ -655,7 +655,7 @@ fun certify_term sg tm =
 
     val norm_tm =
       (case it_term_types (Type.typ_errors tsig) (tm, []) of
-        [] => map_term_types (Type.norm_typ tsig) tm
+        [] => Type.norm_term tsig tm
       | errs => raise TYPE (cat_lines errs, [], [tm]));
     val _ = nodup_Vars norm_tm;
   in
