@@ -8,13 +8,17 @@ Theory system operations.
 use "thy_load.ML";
 use "thy_info.ML";
 
-(*theory presentation*)
-use "html.ML";
-use "browser_info.ML";
-use "present.ML";
-use "thm_database.ML";
-
-(*theory syntax (old format)*)
+(*theory syntax -- old format*)
 use "thy_scan.ML";
 use "thy_parse.ML";
 use "thy_syn.ML";
+
+(*theory syntax -- new format*)
+use "../Isar/outer_lex.ML";
+
+(*theory presentation*)
+use "html.ML";
+use "latex.ML";
+use "present.ML";
+
+use "thm_database.ML";
