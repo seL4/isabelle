@@ -309,6 +309,21 @@ fun the_struct structs i =
   else raise ERROR_MESSAGE ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 
+(* parse translations *)
+
+fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
+
+fun index_tr struct_ (Const ("_noindex", _)) = Syntax.free (struct_ 1)
+  | index_tr struct_ (t as (Const ("_index", _) $ Const (s, _))) =
+      Syntax.free (struct_
+        (case Syntax.read_nat s of Some n => n | None => raise TERM ("index_tr", [t])))
+  | index_tr _ (Const ("_indexlogic", _) $ t) = t
+  | index_tr _ t = raise TERM ("index_tr", [t]);
+
+fun struct_tr structs [idx] = index_tr (the_struct structs) idx
+  | struct_tr _ ts = raise TERM ("struct_tr", ts);
+
+
 (* print (ast) translations *)
 
 fun index_tr' 1 = Syntax.const "_noindex"
@@ -339,19 +354,6 @@ fun struct_ast_tr' structs [Syntax.Constant "_noindex"] =
   | struct_ast_tr' structs [Syntax.Appl [Syntax.Constant "_index", Syntax.Constant s]] =
       index_ast_tr' structs s
   | struct_ast_tr' _ _ = raise Match;
-
-
-(* parse translations *)
-
-fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
-
-fun index_tr (Const ("_noindex", _)) = 1
-  | index_tr (t as (Const ("_index", _) $ Const (s, _))) =
-      (case Syntax.read_nat s of Some n => n | None => raise TERM ("index_tr", [t]))
-  | index_tr t = raise TERM ("index_tr", [t]);
-
-fun struct_tr structs (idx :: ts) = Syntax.free (the_struct structs (index_tr idx))
-  | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
 (* add syntax *)
