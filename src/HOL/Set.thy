@@ -1251,7 +1251,10 @@ lemma Compl_disjoint [simp]: "A \<inter> -A = {}"
 lemma Compl_disjoint2 [simp]: "-A \<inter> A = {}"
   by blast
 
-lemma Compl_partition: "A \<union> (-A) = UNIV"
+lemma Compl_partition: "A \<union> -A = UNIV"
+  by blast
+
+lemma Compl_partition2: "-A \<union> A = UNIV"
   by blast
 
 lemma double_complement [simp]: "- (-A) = (A::'a set)"
