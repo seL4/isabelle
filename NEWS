@@ -72,7 +72,8 @@ HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 (as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
 
 * HOL basics: added overloaded operations "inverse" and "divide"
-(infix "/"), syntax for generic "abs" operation;
+(infix "/"), syntax for generic "abs" operation, generic summation
+operator;
 
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
