@@ -365,16 +365,16 @@ over results of symbolic evaluation of recursive definitions, for example.
 
 \begin{descr}
 \item [$simp$] invokes Isabelle's simplifier, after declaring additional rules
-  according to the arguments given.  Note that the \railtoken{only} modifier
+  according to the arguments given.  Note that the \railtterm{only} modifier
   first removes all other rewrite rules, congruences, and looper tactics
-  (including splits), and then behaves like \railtoken{add}.
+  (including splits), and then behaves like \railtterm{add}.
   
-  The \railtoken{split} modifiers add or delete rules for the Splitter (see
+  The \railtterm{split} modifiers add or delete rules for the Splitter (see
   also \cite{isabelle-ref}), the default is to add.  This works only if the
   Simplifier method has been properly setup to include the Splitter (all major
   object logics such HOL, HOLCF, FOL, ZF do this already).
   
-  The \railtoken{other} modifier ignores its arguments.  Nevertheless,
+  The \railtterm{other} modifier ignores its arguments.  Nevertheless,
   additional kinds of rules may be declared by including appropriate
   attributes in the specification.
 \item [$simp_all$] is similar to $simp$, but acts on all goals.
@@ -536,7 +536,7 @@ This is slightly less hazardous than for the Simplifier (see
   \texttt{auto_tac} in \cite[\S11]{isabelle-ref} for more information.  The
   modifier arguments correspond to those given in \S\ref{sec:simp} and
   \S\ref{sec:classical-auto}.  Just note that the ones related to the
-  Simplifier are prefixed by \railtoken{simp} here.
+  Simplifier are prefixed by \railtterm{simp} here.
   
   Facts provided by forward chaining are inserted into the goal before doing
   the search.  The ``!''~argument causes the full context of assumptions to be
