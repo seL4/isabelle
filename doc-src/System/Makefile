@@ -12,9 +12,6 @@ FILES =  system.tex \
 system.dvi.gz:   $(FILES) 
 	-rm system.dvi*
 	latex system
-	rail system
-	bibtex system
-	latex system
 	latex system
 	../sedindex system
 	latex system
