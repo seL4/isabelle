@@ -37,7 +37,7 @@ Goal "r * sumc m n f = sumc m n (%n. r * f n)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (auto_tac (claset(),simpset() addsimps 
-    [complex_add_mult_distrib2]));
+    [right_distrib]));
 qed "sumc_mult";
 
 Goal "n < p --> sumc 0 n f + sumc n p f = sumc 0 p f";
@@ -49,7 +49,7 @@ qed_spec_mp "sumc_split_add";
 Goal "n < p ==> sumc 0 p f + \
 \                - sumc 0 n f = sumc n p f";
 by (dres_inst_tac [("f1","f")] (sumc_split_add RS sym) 1);
-by (asm_simp_tac (simpset() addsimps complex_add_ac) 1);
+by (asm_simp_tac (simpset() addsimps add_ac) 1);
 qed "sumc_split_add_minus";
 
 Goal "cmod(sumc m n f) <= sumr m n (%i. cmod(f i))";
@@ -67,7 +67,7 @@ qed_spec_mp "sumc_fun_eq";
 Goal "sumc 0 n (%i. r) = complex_of_real (real n) * r";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
-              simpset() addsimps [complex_add_mult_distrib,
+              simpset() addsimps [left_distrib,
                                   complex_of_real_add RS sym,
                                   real_of_nat_Suc]));
 qed "sumc_const";
@@ -109,7 +109,7 @@ Goal "(ALL n. m <= Suc n --> f n = r) & m <= na \
 by (induct_tac "na" 1);
 by (auto_tac (claset(),simpset() addsimps [left_distrib, Suc_diff_n,
                                       real_of_nat_Suc,complex_of_real_add RS sym,
-                                      complex_add_mult_distrib]));
+                                      left_distrib]));
 qed_spec_mp "sumc_interval_const";
 
 Goal "(ALL n. m <= n --> f n = r) & m <= na \
@@ -117,7 +117,7 @@ Goal "(ALL n. m <= n --> f n = r) & m <= na \
 by (induct_tac "na" 1);
 by (auto_tac (claset(),simpset() addsimps [left_distrib, Suc_diff_n,
                                       real_of_nat_Suc,complex_of_real_add RS sym,
-                                      complex_add_mult_distrib]));
+                                      left_distrib]));
 qed_spec_mp "sumc_interval_const2";
 
 (*** 

@@ -284,7 +284,7 @@ qed "CLIM_inverse";
 (*** NSCLIM_zero, CLIM_zero, etc. ***)
 
 Goal "f -- a --NSC> l ==> (%x. f(x) - l) -- a --NSC> 0";
-by (res_inst_tac [("z1","l")] (complex_add_minus_right_zero RS subst) 1);
+by (res_inst_tac [("a1","l")] (right_minus RS subst) 1);
 by (rewtac complex_diff_def);
 by (rtac NSCLIM_add 1 THEN Auto_tac);
 qed "NSCLIM_zero";
@@ -701,7 +701,7 @@ by (ALLGOALS(res_inst_tac [("x","s")] exI));
 by (Step_tac 1);
 by (dres_inst_tac [("x","x - a")] spec 1);
 by (dres_inst_tac [("x","x + a")] spec 2);
-by (auto_tac (claset(), simpset() addsimps complex_add_ac));
+by (auto_tac (claset(), simpset() addsimps add_ac));
 qed "CDERIV_CLIM_iff";
 
 Goalw [cderiv_def] "(CDERIV f x :> D) = \
@@ -755,10 +755,10 @@ by (auto_tac (claset(),simpset() addsimps
     [mem_cinfmal_iff RS sym,hcomplex_add_commute]));
 by (dres_inst_tac [("c","xa + - hcomplex_of_complex x")] capprox_mult1 1);
 by (auto_tac (claset() addIs [CInfinitesimal_subset_CFinite
-    RS subsetD],simpset() addsimps [hcomplex_mult_assoc]));
+    RS subsetD],simpset() addsimps [mult_assoc]));
 by (dres_inst_tac [("x3","D")] (CFinite_hcomplex_of_complex RSN
     (2,CInfinitesimal_CFinite_mult) RS (mem_cinfmal_iff RS iffD1)) 1);
-by (blast_tac (claset() addIs [capprox_trans,hcomplex_mult_commute RS subst,
+by (blast_tac (claset() addIs [capprox_trans,mult_commute RS subst,
     (capprox_minus_iff RS iffD2)]) 1);
 qed "NSCDERIV_isNSContc";
 
@@ -833,10 +833,9 @@ by (rewtac hcomplex_diff_def);
 by (dres_inst_tac [("D","Db")] lemma_nscderiv2 1);
 by (dtac (capprox_minus_iff RS iffD2 RS (bex_CInfinitesimal_iff2 RS iffD2)) 4);
 by (auto_tac (claset() addSIs [capprox_add_mono1],
-      simpset() addsimps [hcomplex_add_mult_distrib, right_distrib, 
-			  hcomplex_mult_commute, hcomplex_add_assoc]));
-by (res_inst_tac [("w1","hcomplex_of_complex Db * hcomplex_of_complex (f x)")]
-    (hcomplex_add_commute RS subst) 1);
+     simpset() addsimps [left_distrib, right_distrib, mult_commute, add_assoc]));
+by (res_inst_tac [("b1","hcomplex_of_complex Db * hcomplex_of_complex (f x)")]
+    (add_commute RS subst) 1);
 by (auto_tac (claset() addSIs [CInfinitesimal_add_capprox_self2 RS capprox_sym,
 			       CInfinitesimal_add, CInfinitesimal_mult,
 			       CInfinitesimal_hcomplex_of_complex_mult,
@@ -853,7 +852,7 @@ qed "CDERIV_mult";
 Goal "NSCDERIV f x :> D ==> NSCDERIV (%x. c * f x) x :> c*D";
 by (asm_full_simp_tac 
     (simpset() addsimps [times_divide_eq_right RS sym, NSCDERIV_NSCLIM_iff,
-                         minus_mult_right, complex_add_mult_distrib2 RS sym,
+                         minus_mult_right, right_distrib RS sym,
                          complex_diff_def] 
              delsimps [times_divide_eq_right, minus_mult_right RS sym]) 1);
 by (etac (NSCLIM_const RS NSCLIM_mult) 1);
@@ -866,9 +865,8 @@ qed "CDERIV_cmult";
 
 Goal "NSCDERIV f x :> D ==> NSCDERIV (%x. -(f x)) x :> -D";
 by (asm_full_simp_tac (simpset() addsimps [NSCDERIV_NSCLIM_iff,complex_diff_def]) 1);
-by (res_inst_tac [("t","f x")] (complex_minus_minus RS subst) 1);
-by (asm_simp_tac (simpset() addsimps [complex_minus_add_distrib RS sym] 
-                   delsimps [complex_minus_add_distrib, complex_minus_minus]
+by (res_inst_tac [("t","f x")] (minus_minus RS subst) 1);
+by (asm_simp_tac (simpset() addsimps [minus_add_distrib RS sym] 
                    delsimps [minus_add_distrib, minus_minus]
 
 ) 1);
@@ -1032,12 +1030,12 @@ by (induct_tac "n" 1);
 by (dtac (CDERIV_Id RS CDERIV_mult) 2);
 by (auto_tac (claset(), 
               simpset() addsimps [complex_of_real_add RS sym,
-                        complex_add_mult_distrib,real_of_nat_Suc] 
+                        left_distrib,real_of_nat_Suc] 
                  delsimps [complex_of_real_add]));
 by (case_tac "n" 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [complex_mult_assoc, complex_add_commute]));
-by (auto_tac (claset(),simpset() addsimps [complex_mult_commute]));
+              simpset() addsimps [mult_assoc, add_commute]));
+by (auto_tac (claset(),simpset() addsimps [mult_commute]));
 qed "CDERIV_pow";
 Addsimps [CDERIV_pow,simplify (simpset()) CDERIV_pow];
 
@@ -1095,10 +1093,9 @@ qed "CDERIV_inverse";
 
 Goal "[| CDERIV f x :> d; f(x) ~= 0 |] \
 \     ==> CDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))";
-by (rtac (complex_mult_commute RS subst) 1);
-by (asm_simp_tac (simpset() addsimps [complex_minus_mult_eq1,
-    power_inverse] delsimps [complexpow_Suc, minus_mult_left RS sym,
-complex_minus_mult_eq1 RS sym]) 1);
+by (rtac (mult_commute RS subst) 1);
+by (asm_simp_tac (simpset() addsimps [minus_mult_left,
+    power_inverse] delsimps [complexpow_Suc, minus_mult_left RS sym]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [CDERIV_chain,CDERIV_inverse]) 1);
 qed "CDERIV_inverse_fun";
@@ -1126,8 +1123,8 @@ by (dres_inst_tac [("f","g")] CDERIV_inverse_fun 1);
 by (dtac CDERIV_mult 2);
 by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
-    (simpset() addsimps [complex_divide_def, complex_add_mult_distrib2,
-                         power_inverse,complex_minus_mult_eq1] @ complex_mult_ac 
+    (simpset() addsimps [complex_divide_def, right_distrib,
+                         power_inverse,minus_mult_left] @ mult_ac 
        delsimps [complexpow_Suc, minus_mult_right RS sym, minus_mult_left RS sym]) 1);
 qed "CDERIV_quotient";
 
@@ -1161,7 +1158,7 @@ Goal "(CDERIV f x :> l) = \
 by (Step_tac 1);
 by (res_inst_tac 
     [("x","%z. if  z = x then l else (f(z) - f(x)) / (z - x)")] exI 1);
-by (auto_tac (claset(),simpset() addsimps [complex_mult_assoc,
+by (auto_tac (claset(),simpset() addsimps [mult_assoc,
     CLAIM "z ~= x ==> z - x ~= (0::complex)"]));
 by (auto_tac (claset(),simpset() addsimps [isContc_iff,CDERIV_iff]));
 by (ALLGOALS(rtac (CLIM_equal RS iffD1)));

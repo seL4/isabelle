@@ -19,7 +19,7 @@ structure CancelNumeralFactorCommon =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac =  ALLGOALS (simp_tac (HOL_ss addsimps complex_minus_from_mult_simps @ mult_1s)) 
                   THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@complex_mult_minus_simps))
-                  THEN ALLGOALS (simp_tac (HOL_ss addsimps complex_mult_ac))
+                  THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac	=  ALLGOALS (simp_tac (HOL_ss addsimps rel_complex_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end
@@ -105,7 +105,7 @@ structure CancelFactorCommon =
   val dest_coeff	= dest_coeff
   val find_first	= find_first []
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@complex_mult_ac))
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
 
@@ -173,13 +173,13 @@ qed "complex_minus1_divide";
 Addsimps [complex_minus1_divide];
 
 Goal "(x + - a = (0::complex)) = (x=a)";
-by (simp_tac (simpset() addsimps [complex_diff_eq_eq,symmetric complex_diff_def]) 1);
+by (simp_tac (simpset() addsimps [diff_eq_eq,symmetric complex_diff_def]) 1);
 qed "complex_add_minus_iff";
 Addsimps [complex_add_minus_iff];
 
 Goal "(x+y = (0::complex)) = (y = -x)";
 by Auto_tac;
-by (dtac (sym RS (complex_diff_eq_eq RS iffD2)) 1);
+by (dtac (sym RS (diff_eq_eq RS iffD2)) 1);
 by Auto_tac;  
 qed "complex_add_eq_0_iff";
 AddIffs [complex_add_eq_0_iff];

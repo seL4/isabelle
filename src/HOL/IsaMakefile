@@ -138,7 +138,7 @@ HOL-Complex: HOL $(OUT)/HOL-Complex
 
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Library/Zorn.thy\
-  Real/Complex_Numbers.thy Real/Lubs.thy Real/rat_arith.ML Real/RatArith.thy\
+  Real/Lubs.thy Real/rat_arith.ML Real/RatArith.thy\
   Real/Rational.thy Real/PReal.thy Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy \
   Real/RealArith.thy Real/real_arith.ML Real/RealDef.thy \

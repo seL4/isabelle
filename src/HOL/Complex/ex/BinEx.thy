@@ -381,8 +381,7 @@ lemma "- (65745 + -47371*ii) = -65745 + 47371*ii"
 text{*Multiplication requires distributive laws.  Perhaps versions instantiated
 to literal constants should be added to the simpset.*}
 
-lemmas distrib = complex_add_mult_distrib complex_add_mult_distrib2
-                 complex_diff_mult_distrib complex_diff_mult_distrib2
+lemmas distrib = left_distrib right_distrib left_diff_distrib right_diff_distrib
 
 lemma "(1 + ii) * (1 - ii) = 2"
 by (simp add: distrib)
@@ -393,10 +392,8 @@ by (simp add: distrib)
 lemma "(-84 + 255*ii) + (51 * 255*ii) = -84 + 13260 * ii"
 by (simp add: distrib)
 
-text{*No inequalities: we have no ordering on the complex numbers.*}
+text{*No inequalities or linear arithmetic: the complex numbers are unordered!*}
 
 text{*No powers (not supported yet)*}
-
-text{*No linear arithmetic*}
 
 end

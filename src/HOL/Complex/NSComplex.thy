@@ -372,7 +372,7 @@ lemma hcomplex_add_mult_distrib:
 apply (rule_tac z = "z1" in eq_Abs_hcomplex)
 apply (rule_tac z = "z2" in eq_Abs_hcomplex)
 apply (rule_tac z = "w" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_mult hcomplex_add complex_add_mult_distrib)
+apply (auto simp add: hcomplex_mult hcomplex_add left_distrib)
 done
 
 lemma hcomplex_zero_not_eq_one: "(0::hcomplex) \<noteq> (1::hcomplex)"
@@ -400,7 +400,7 @@ apply (rule_tac z = "z" in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_inverse hcomplex_mult)
 apply (ultra)
 apply (rule ccontr)
-apply (drule complex_mult_inv_left)
+apply (drule left_inverse)
 apply auto
 done
 
@@ -743,24 +743,6 @@ apply (unfold hcomplex_one_def)
 apply (simp (no_asm) add: hcnj)
 done
 declare hcnj_one [simp]
-
-
-(* MOVE to NSComplexBin
-Goal "z + hcnj z =
-      hcomplex_of_hypreal (2 * hRe(z))"
-by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
-by (auto_tac (claset(),HOL_ss addsimps [hRe,hcnj,hcomplex_add,
-    hypreal_mult,hcomplex_of_hypreal,complex_add_cnj]));
-qed "hcomplex_add_hcnj";
-
-Goal "z - hcnj z = \
-\     hcomplex_of_hypreal (hypreal_of_real 2 * hIm(z)) * iii";
-by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
-by (auto_tac (claset(),simpset() addsimps [hIm,hcnj,hcomplex_diff,
-    hypreal_of_real_def,hypreal_mult,hcomplex_of_hypreal,
-    complex_diff_cnj,iii_def,hcomplex_mult]));
-qed "hcomplex_diff_hcnj";
-*)
 
 lemma hcomplex_hcnj_zero:
       "hcnj 0 = 0"

@@ -4,6 +4,9 @@
     Description : Infinite, infinitesimal complex number etc! 
 *)
 
+val complex_induct = thm"complex.induct";
+
+
 (*--------------------------------------------------------------------------------------*)
 (* Closure laws for members of (embedded) set standard complex SComplex                 *)
 (* -------------------------------------------------------------------------------------*)
@@ -785,8 +788,8 @@ by (auto_tac (claset(),simpset() addsimps [hcomplex_minus,hcomplex_add,
 by (dres_inst_tac [("x","m")] spec 1);
 by (Ultra_tac 1);
 by (rename_tac "Z x" 1);
-by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
+by (case_tac "X x" 1);
+by (case_tac "Y x" 1);
 by (auto_tac (claset(),simpset() addsimps [complex_minus,complex_add,
     complex_mod] delsimps [realpow_Suc]));
 by (rtac order_le_less_trans 1 THEN assume_tac 2);
@@ -806,8 +809,8 @@ by (auto_tac (claset(),simpset() addsimps [hcomplex_minus,hcomplex_add,
 by (dres_inst_tac [("x","m")] spec 1);
 by (Ultra_tac 1);
 by (rename_tac "Z x" 1);
-by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
+by (case_tac "X x" 1);
+by (case_tac "Y x" 1);
 by (auto_tac (claset(),simpset() addsimps [complex_minus,complex_add,
     complex_mod] delsimps [realpow_Suc]));
 by (rtac order_le_less_trans 1 THEN assume_tac 2);
@@ -836,12 +839,13 @@ by Safe_tac;
 by (TRYALL(Force_tac));
 by (ultra_tac (claset(),HOL_ss) 1);
 by (dtac sym 1 THEN dtac sym 1); 
-by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
+by (case_tac "X x" 1);
+by (case_tac "Y x" 1);
 by (auto_tac (claset(),
     HOL_ss addsimps [complex_minus,complex_add,
     complex_mod, snd_conv, fst_conv,numeral_2_eq_2]));
-by (subgoal_tac "sqrt (abs(xa + - xb) ^ 2 + abs(y + - ya) ^ 2) < u" 1);
+by (rename_tac "a b c d" 1);
+by (subgoal_tac "sqrt (abs(a + - c) ^ 2 + abs(b + - d) ^ 2) < u" 1);
 by (rtac lemma_sqrt_hcomplex_capprox 2);
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [power2_eq_square]) 1); 
@@ -868,7 +872,7 @@ by (auto_tac (claset(),
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
-by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
+by (dtac sym 1 THEN case_tac "X x" 1);
 by (auto_tac (claset(),
     simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
@@ -884,7 +888,7 @@ by (auto_tac (claset(),simpset() addsimps [CFinite_hcmod_iff,
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
-by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
+by (dtac sym 1 THEN case_tac "X x" 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod] delsimps [realpow_Suc]));
 by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
@@ -901,7 +905,7 @@ by (rename_tac "Y Z u v" 1);
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","2*(u + v)")] exI 1);
 by (Ultra_tac 1);
-by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
+by (dtac sym 1 THEN case_tac "X x" 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (subgoal_tac "0 < u" 1 THEN arith_tac 2);
 by (subgoal_tac "0 < v" 1 THEN arith_tac 2);
@@ -941,7 +945,7 @@ by (auto_tac (claset(),simpset() addsimps [SComplex_def,
     hcomplex_of_complex_def,SReal_def,hypreal_of_real_def]));
 by (res_inst_tac [("x","complex_of_real r + ii  * complex_of_real ra")] exI 1);
 by (Ultra_tac 1);
-by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
+by (case_tac "X x" 1);
 by (auto_tac (claset(),simpset() addsimps [complex_of_real_def,i_def,
     complex_add,complex_mult]));
 qed "Reals_Re_Im_SComplex";

@@ -161,49 +161,6 @@ Addsimps [hcomplex_add_number_of_left, hcomplex_mult_number_of_left,
 
 (**** Simprocs for numeric literals ****)
 
-(** Combining of literal coefficients in sums of products **)
-
-Goal "(x = y) = (x-y = (0::hcomplex))";
-by (simp_tac (simpset() addsimps [hcomplex_diff_eq_eq]) 1);   
-qed "hcomplex_eq_iff_diff_eq_0";
-
-(** For combine_numerals **)
-
-Goal "i*u + (j*u + k) = (i+j)*u + (k::hcomplex)";
-by (asm_simp_tac (simpset() addsimps [hcomplex_add_mult_distrib]
-    @ add_ac) 1);
-qed "left_hcomplex_add_mult_distrib";
-
-(** For cancel_numerals **)
-
-Goal "((x::hcomplex) = u + v) = (x - (u + v) = 0)";
-by (auto_tac (claset(),simpset() addsimps [hcomplex_diff_eq_eq]));
-qed "hcomplex_eq_add_diff_eq_0";
-
-Goal "((x::hcomplex) = n) = (x - n = 0)";
-by (auto_tac (claset(),simpset() addsimps [hcomplex_diff_eq_eq]));
-qed "hcomplex_eq_diff_eq_0";
-
-val hcomplex_rel_iff_rel_0_rls = [hcomplex_eq_diff_eq_0,hcomplex_eq_add_diff_eq_0];
-
-Goal "!!i::hcomplex. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
-by (auto_tac (claset(), simpset() addsimps [hcomplex_add_mult_distrib,
-    hcomplex_diff_def] @ add_ac));
-by (asm_simp_tac (simpset() addsimps [hcomplex_add_assoc RS sym]) 1);
-by (simp_tac (simpset() addsimps [hcomplex_add_assoc]) 1);
-qed "hcomplex_eq_add_iff1";
-
-Goal "!!i::hcomplex. (i*u + m = j*u + n) = (m = (j-i)*u + n)";
-by (res_inst_tac [("z","i")] eq_Abs_hcomplex 1);
-by (res_inst_tac [("z","j")] eq_Abs_hcomplex 1);
-by (res_inst_tac [("z","u")] eq_Abs_hcomplex 1);
-by (res_inst_tac [("z","m")] eq_Abs_hcomplex 1);
-by (res_inst_tac [("z","n")] eq_Abs_hcomplex 1);
-by (auto_tac (claset(), simpset() addsimps [hcomplex_diff,hcomplex_add,
-    hcomplex_mult,complex_eq_add_iff2]));
-qed "hcomplex_eq_add_iff2";
-
-
 structure HComplex_Numeral_Simprocs =
 struct
 
@@ -358,8 +315,8 @@ structure EqCancelNumerals = CancelNumeralsFun
   val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" hcomplexT
-  val bal_add1 = hcomplex_eq_add_iff1 RS trans
-  val bal_add2 = hcomplex_eq_add_iff2 RS trans
+  val bal_add1 = eq_add_iff1 RS trans
+  val bal_add2 = eq_add_iff2 RS trans
 );
 
 
@@ -378,7 +335,7 @@ structure CombineNumeralsData =
   val dest_sum		= dest_sum
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
-  val left_distrib	= left_hcomplex_add_mult_distrib RS trans
+  val left_distrib	= combine_common_factor RS trans
   val prove_conv	= Bin_Simprocs.prove_conv_nohyps
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = 
@@ -507,9 +464,6 @@ Addsimprocs [HComplex_Times_Assoc.conv];
 
 Addsimps [hcomplex_of_complex_zero_iff];
 
-(*Simplification of  x-y = 0 *)
-
-AddIffs [hcomplex_eq_iff_diff_eq_0 RS sym];
 
 (** extra thms **)
 
