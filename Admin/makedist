@@ -51,7 +51,7 @@ EOF
 
   After the distribution has been created succesfully, you might want
   to run some makeall tests using different ML systems.
-  
+
 EOF
   exit 1
 }
@@ -185,7 +185,9 @@ perl -pi -e \
   s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
   s/{AUTHOR}/$LOGNAME/g; \
   s/{DATE}/$DATE/g;" \
-    $DISTBASE/index.html $DISTNAME/lib/html/index1.html $DISTNAME/lib/html/index2.html
+    $DISTBASE/index.html \
+    $DISTBASE/$DISTNAME/lib/html/index1.html \
+    $DISTBASE/$DISTNAME/lib/html/index2.html
 
 
 # final note
