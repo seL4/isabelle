@@ -324,7 +324,7 @@ fun check_rule sg cs ((name, rule), att) =
   end;
 
 val rulify =
-  standard o Tactic.norm_hhf_rule o
+  standard o
   hol_simplify inductive_rulify2 o hol_simplify inductive_rulify1 o
   hol_simplify inductive_conj;
 
@@ -805,7 +805,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     {defs = fp_def :: rec_sets_defs,
      mono = mono,
      unfold = unfold,
-     intrs = intrs'',
+     intrs = intrs',
      elims = elims',
      mk_cases = mk_cases elims',
      raw_induct = rulify raw_induct,
