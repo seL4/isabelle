@@ -33,7 +33,7 @@ time_use_thy "Puzzle";
 no_document use_thy "List_Prefix";
 time_use_thy "Exceptions";
 
-time_use_thy "IntRing";
+time_use_thy "Lagrange";
 
 time_use_thy "set";
 time_use_thy "MT";

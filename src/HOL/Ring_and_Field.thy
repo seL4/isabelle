@@ -19,10 +19,7 @@ axclass plus_ac0 \<subseteq> plus, zero
   zero [simp]: "0 + x = x"
 
 lemma plus_ac0_left_commute: "x + (y+z) = y + ((x+z)::'a::plus_ac0)"
-apply (rule plus_ac0.commute [THEN trans])
-apply (rule plus_ac0.assoc [THEN trans])
-apply (rule plus_ac0.commute [THEN arg_cong])
-done
+by(rule mk_left_commute[of "op +",OF plus_ac0.assoc plus_ac0.commute])
 
 lemma plus_ac0_zero_right [simp]: "x + 0 = (x ::'a::plus_ac0)"
 apply (rule plus_ac0.commute [THEN trans])
@@ -39,15 +36,7 @@ axclass times_ac1 \<subseteq> times, one
 
 theorem times_ac1_left_commute: "(x::'a::times_ac1) * ((y::'a) * z) =
   y * (x * z)"
-proof -
-  have "(x::'a::times_ac1) * (y * z) = (x * y) * z"
-    by (rule times_ac1.assoc [THEN sym])
-  also have "x * y = y * x"
-    by (rule times_ac1.commute)
-  also have "(y * x) * z = y * (x * z)"
-    by (rule times_ac1.assoc)
-  finally show ?thesis .
-qed
+by(rule mk_left_commute[of "op *",OF times_ac1.assoc times_ac1.commute])
 
 theorem times_ac1_one_right [simp]: "(x::'a::times_ac1) * 1 = x"
 proof -
@@ -525,6 +514,13 @@ lemmas compare_rls =
        diff_less_eq less_diff_eq diff_le_eq le_diff_eq
        diff_eq_eq eq_diff_eq
 
+text{*This list of rewrites decides ring equalities by ordered rewriting.*}
+lemmas ring_eq_simps =
+  times_ac1.assoc times_ac1.commute times_ac1_left_commute
+  left_distrib right_distrib left_diff_distrib right_diff_distrib
+  plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
+  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
+  diff_eq_eq eq_diff_eq
 
 subsection{*Lemmas for the @{text cancel_numerals} simproc*}
 
