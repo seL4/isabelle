@@ -21,6 +21,6 @@ structure Evala = Inductive_Fun
 
   val monos = [];
   val con_defs = [];
-  val type_intrs = Aexp.intrs@[SigmaI,apply_funtype];
-  val type_elims = [SigmaE2]
+  val type_intrs = Aexp.intrs@[apply_funtype];
+  val type_elims = []
  );

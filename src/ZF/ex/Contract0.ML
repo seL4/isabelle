@@ -9,18 +9,18 @@ For ex/contract.thy.
 open Contract0;
 
 structure Contract = Inductive_Fun
- (val thy = Contract0.thy;
-  val thy_name = "Contract";
-  val rec_doms = [("contract","comb*comb")];
-  val sintrs = 
+ (val thy 	= Contract0.thy;
+  val thy_name 	= "Contract";
+  val rec_doms 	= [("contract","comb*comb")];
+  val sintrs 	= 
       ["[| p:comb;  q:comb |] ==> K#p#q -1-> p",
        "[| p:comb;  q:comb;  r:comb |] ==> S#p#q#r -1-> (p#r)#(q#r)",
        "[| p-1->q;  r:comb |] ==> p#r -1-> q#r",
        "[| p-1->q;  r:comb |] ==> r#p -1-> r#q"];
-  val monos = [];
-  val con_defs = [];
-  val type_intrs = Comb.intrs@[SigmaI];
-  val type_elims = [SigmaE2]);
+  val monos 	= [];
+  val con_defs 	= [];
+  val type_intrs = Comb.intrs;
+  val type_elims = []);
 
 val [K_contract,S_contract,Ap_contract1,Ap_contract2] = Contract.intrs;
 

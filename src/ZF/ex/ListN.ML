@@ -18,8 +18,8 @@ structure ListN = Inductive_Fun
            "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"]
   val monos      = []
   val con_defs   = []
-  val type_intrs = nat_typechecks @ List.intrs @ [SigmaI]
-  val type_elims = [SigmaE2]);
+  val type_intrs = nat_typechecks @ List.intrs 
+  val type_elims = []);
 
 val listn_induct = standard 
     (ListN.mutual_induct RS spec RS spec RSN (2,rev_mp));

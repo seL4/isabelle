@@ -25,7 +25,7 @@ structure Evalb = Inductive_Fun
 
   val monos = [];
   val con_defs = [];
-  val type_intrs = Bexp.intrs@[SigmaI,apply_funtype,and_type,or_type,
+  val type_intrs = Bexp.intrs@[apply_funtype,and_type,or_type,
 		   bool_1I,bool_0I,not_type];
-  val type_elims = [SigmaE2,make_elim(Evala.dom_subset RS subsetD) ];
+  val type_elims = [make_elim(Evala.dom_subset RS subsetD) ];
  );

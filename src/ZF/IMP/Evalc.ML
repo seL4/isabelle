@@ -28,6 +28,6 @@ structure Evalc = Inductive_Fun
 
   val monos = [];
   val con_defs = [assign_def];
-  val type_intrs = Bexp.intrs@Com.intrs@[SigmaI,if_type,lam_type,apply_type];
-  val type_elims = [SigmaE2,make_elim(Evala.dom_subset RS subsetD),
-                            make_elim(Evalb.dom_subset RS subsetD) ]);
+  val type_intrs = Bexp.intrs@Com.intrs@[if_type,lam_type,apply_type];
+  val type_elims = [make_elim(Evala.dom_subset RS subsetD),
+		    make_elim(Evalb.dom_subset RS subsetD) ]);

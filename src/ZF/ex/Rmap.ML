@@ -7,18 +7,18 @@ Inductive definition of an operator to "map" a relation over a list
 *)
 
 structure Rmap = Inductive_Fun
- (val thy = List.thy |> add_consts [("rmap","i=>i",NoSyn)];
-  val thy_name = "Rmap";
-  val rec_doms = [("rmap", "list(domain(r))*list(range(r))")];
-  val sintrs = 
+ (val thy 	 = List.thy |> add_consts [("rmap","i=>i",NoSyn)];
+  val thy_name	 = "Rmap";
+  val rec_doms	 = [("rmap", "list(domain(r))*list(range(r))")];
+  val sintrs	 = 
       ["<Nil,Nil> : rmap(r)",
 
        "[| <x,y>: r;  <xs,ys> : rmap(r) |] ==> \
 \       <Cons(x,xs), Cons(y,ys)> : rmap(r)"];
-  val monos = [];
-  val con_defs = [];
-  val type_intrs = [domainI,rangeI] @ List.intrs @ [SigmaI]
-  val type_elims = [SigmaE2]);
+  val monos	 = [];
+  val con_defs	 = [];
+  val type_intrs = [domainI,rangeI] @ List.intrs
+  val type_elims = []);
 
 goalw Rmap.thy Rmap.defs "!!r s. r<=s ==> rmap(r) <= rmap(s)";
 by (rtac lfp_mono 1);

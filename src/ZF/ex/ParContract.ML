@@ -10,18 +10,18 @@ HOL system proofs may be found in
 *)
 
 structure ParContract = Inductive_Fun
- (val thy = Contract.thy;
-  val thy_name = "ParContract";
-  val rec_doms = [("parcontract","comb*comb")];
-  val sintrs = 
+ (val thy	 = Contract.thy;
+  val thy_name	 = "ParContract";
+  val rec_doms	 = [("parcontract","comb*comb")];
+  val sintrs	 = 
       ["[| p:comb |] ==> p =1=> p",
        "[| p:comb;  q:comb |] ==> K#p#q =1=> p",
        "[| p:comb;  q:comb;  r:comb |] ==> S#p#q#r =1=> (p#r)#(q#r)",
        "[| p=1=>q;  r=1=>s |] ==> p#r =1=> q#s"];
-  val monos = [];
-  val con_defs = [];
-  val type_intrs = Comb.intrs@[SigmaI];
-  val type_elims = [SigmaE2]);
+  val monos	 = [];
+  val con_defs	 = [];
+  val type_intrs = Comb.intrs;
+  val type_elims = []);
 
 val [parcontract_refl,K_parcontract,S_parcontract,Ap_parcontract] = 
     ParContract.intrs;
