@@ -1,18 +1,17 @@
-(*  Title:      HOL/Tools/datatype_package.ML
+(*  Title:      HOL/Tools/primrec_package.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
+    Author:     Stefan Berghofer and Norbert Voelker
     Copyright   1998  TU Muenchen
 
-Package for defining functions on datatypes
-by primitive recursion
+Package for defining functions on datatypes by primitive recursion
 *)
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec_i : string option -> string list ->
-    term list -> theory -> theory * thm list
-  val add_primrec : string option -> string list ->
-    string list -> theory -> theory * thm list
+  val add_primrec_i : string -> (string * term) list ->
+    theory -> theory * thm list
+  val add_primrec : string -> (string * string) list ->
+    theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -198,11 +197,11 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
-fun add_primrec_i alt_name eqn_names eqns thy =
+fun add_primrec_i alt_name eqns thy =
   let
     val sg = sign_of thy;
     val dt_info = DatatypePackage.get_datatypes thy;
-    val rec_eqns = foldr (process_eqn sg) (eqns, []);
+    val rec_eqns = foldr (process_eqn sg) (map snd eqns, []);
     val tnames = distinct (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
@@ -216,27 +215,27 @@ fun add_primrec_i alt_name eqn_names eqns thy =
     val names1 = map snd fnames;
     val names2 = map fst rec_eqns;
     val thy' = thy |>
-      Theory.add_path (if_none alt_name (space_implode "_"
-        (map (Sign.base_name o #1) defs))) |>
+      Theory.add_path (if alt_name = "" then (space_implode "_"
+        (map (Sign.base_name o #1) defs)) else alt_name) |>
       (if eq_set (names1, names2) then Theory.add_defs_i defs'
        else primrec_err ("functions " ^ commas names2 ^
          "\nare not mutually recursive"));
     val rewrites = (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
     val _ = writeln ("Proving equations for primrec function(s)\n" ^
       commas names1 ^ " ...");
-    val char_thms = map (fn t => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)
+    val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
     val tsimps = map Attribute.tthm_of char_thms;
     val thy'' = thy' |>
       PureThy.add_tthmss [(("simps", tsimps), [Simplifier.simp_add_global])] |>
-      (if null eqn_names then I
-       else PureThy.add_tthms (map (rpair []) (eqn_names ~~ tsimps))) |>
+      PureThy.add_tthms (map (rpair [])
+         (filter_out (equal "" o fst) (map fst eqns ~~ tsimps))) |>
       Theory.parent_path;
   in
     (thy'', char_thms)
   end;
 
-fun add_primrec alt_name eqn_names eqns thy =
-  add_primrec_i alt_name eqn_names (map (readtm (sign_of thy) propT) eqns) thy;
+fun add_primrec alt_name eqns thy =
+  add_primrec_i alt_name (map (apsnd (readtm (sign_of thy) propT)) eqns) thy;
 
 end;
