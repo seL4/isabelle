@@ -14,12 +14,10 @@ text_raw {*
  \url{http://isabelle.in.tum.de/library/HOL/Induct/Multiset.html}),
  based on a pen-and-paper proof due to Wilfried Buchholz.}\isanewline
 *}
-
-(* FIXME move? *)
-theorems [induct type: multiset] = multiset_induct
-theorems [induct set: wf] = wf_induct
-theorems [induct set: acc] = acc_induct
-
+(*<*)(* FIXME move? *)
+declare multiset_induct [induct type: multiset]
+declare wf_induct [induct set: wf]
+declare acc_induct [induct set: acc](*>*)
 
 subsection {* A technical lemma *}
 
