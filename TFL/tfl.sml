@@ -302,13 +302,20 @@ fun dest_atom (Free p) = p
   | dest_atom  _ = raise TFL_ERR {func="dest_atom", 
 				  mesg="function name not an identifier"};
 
+fun same_name (p,q) = #1(dest_atom p) = #1(dest_atom q);
 
 local fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
       fun single [_$_] = 
 	      mk_functional_err "recdef does not allow currying"
         | single [f] = f
-        | single fs  = mk_functional_err (Int.toString (length fs) ^ 
-                                          " distinct function names!")
+        | single fs  = 
+	      (*multiple function names?*)
+	      if length (gen_distinct same_name fs) < length fs
+              then mk_functional_err
+		   "the function being declared appears with multiple types"
+	      else mk_functional_err 
+		   (Int.toString (length fs) ^ 
+		    " distinct function names being declared")
 in
 fun mk_functional thy clauses =
  let val (L,R) = ListPair.unzip (map HOLogic.dest_eq clauses)
