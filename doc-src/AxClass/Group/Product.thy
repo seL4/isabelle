@@ -54,7 +54,7 @@ text {*
 
 instance bool :: product
   by intro_classes
-defs
+defs (overloaded)
   product_bool_def: "x \\<Otimes> y \\<equiv> x \\<and> y"
 
 text {*

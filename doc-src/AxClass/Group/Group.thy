@@ -231,7 +231,7 @@ text {*
  $False$ as $1$ forms an Abelian group.
 *}
 
-defs
+defs (overloaded)
   times_bool_def:   "x \<Otimes> y \\<equiv> x \\<noteq> (y\\<Colon>bool)"
   inverse_bool_def: "x\<inv> \\<equiv> x\\<Colon>bool"
   unit_bool_def:    "\<unit> \\<equiv> False"
@@ -291,7 +291,7 @@ text {*
  $\TIMES$ component-wise to binary products $\alpha \times \beta$.
 *}
 
-defs
+defs (overloaded)
   times_prod_def: "p \<Otimes> q \\<equiv> (fst p \<Otimes> fst q, snd p \<Otimes> snd q)"
 
 text {*
