@@ -15,6 +15,7 @@ consts
   filter      :: ['a => bool, 'a list] => 'a list
   concat      :: 'a list list => 'a list
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
+  foldr       :: [['a,'b] => 'b, 'a list, 'b] => 'b
   hd, last    :: 'a list => 'a
   set         :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
@@ -116,6 +117,9 @@ primrec
 primrec
   foldl_Nil  "foldl f a [] = a"
   foldl_Cons "foldl f a (x#xs) = foldl f (f a x) xs"
+primrec
+  "foldr f [] a = a"
+  "foldr f (x#xs) a = f x (foldr f xs a)"
 primrec
   "concat([]) = []"
   "concat(x#xs) = x @ concat(xs)"
