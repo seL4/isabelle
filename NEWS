@@ -52,8 +52,7 @@ New in this Isabelle release
 * Document preparation: antiquotations now provide the option
   'locale=NAME' to specify an alternative context used for evaluating
   and printing the subsequent argument, as in @{thm [locale=LC]
-  fold_commute}, for example.  Note that a proof context is escaped to
-  the enclosing theory context first.
+  fold_commute}, for example.
 
 * ML: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary
