@@ -6,6 +6,8 @@ Isabelle NEWS -- history user-relevant changes
 
 * HOL: induct renamed to lfp_induct;
 
+* HOL: contrapos, contrapos2 renamed to contrapos_nn, contrapos_pp;
+
 
 *** Document preparation ***
 
