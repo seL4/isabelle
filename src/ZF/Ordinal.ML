@@ -238,6 +238,7 @@ goalw Ordinal.thy [lt_def] "i le j <-> i<j | (i=j & Ord(j))";
 by (fast_tac (ZF_cs addSIs [Ord_succ] addSDs [Ord_succD]) 1);
 qed "le_iff";
 
+(*Equivalently, i<j ==> i < succ(j)*)
 goal Ordinal.thy "!!i j. i<j ==> i le j";
 by (asm_simp_tac (ZF_ss addsimps [le_iff]) 1);
 qed "leI";
