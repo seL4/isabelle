@@ -5,10 +5,6 @@
 The parser for theory files.
 *)
 
-(* FIXME tmp *)
-val global_names = ref false;
-
-
 infix 5 -- --$$ $$-- ^^;
 infix 3 >>;
 infix 0 ||;
