@@ -198,7 +198,7 @@ fun run_file path =
           if exists (equal path o #1) files then
             Some (make_deps present outdated master (overwrite (files, (path, Some info))))
           else (warning (loader_msg "undeclared dependency of theory" [name] ^
-            "on file: " ^ quote (Path.pack path)); deps)
+            " on file: " ^ quote (Path.pack path)); deps)
       | provide _ _ None = None;
   in
     (case apsome PureThy.get_name (Context.get_context ()) of
