@@ -81,8 +81,14 @@ Addsimps [zadd_right_cancel_zle, zadd_left_cancel_zle];
 (*"v<=w ==> v+z <= w+z"*)
 bind_thm ("zadd_zless_mono1", zadd_right_cancel_zless RS iffD2);
 
+(*"v<=w ==> z+v <= z+w"*)
+bind_thm ("zadd_zless_mono2", zadd_left_cancel_zless RS iffD2);
+
 (*"v<=w ==> v+z <= w+z"*)
 bind_thm ("zadd_zle_mono1", zadd_right_cancel_zle RS iffD2);
+
+(*"v<=w ==> z+v <= z+w"*)
+bind_thm ("zadd_zle_mono2", zadd_left_cancel_zle RS iffD2);
 
 Goal "!!z z'::int. [| w'<=w; z'<=z |] ==> w' + z' <= w + z";
 by (etac (zadd_zle_mono1 RS zle_trans) 1);
