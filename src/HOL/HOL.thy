@@ -25,6 +25,10 @@ arities
   bool :: term
 
 
+syntax ("" output)
+  "op ="        :: ['a, 'a] => bool                 ("(_ =/ _)" [51, 51] 50)
+  "op ~="       :: ['a, 'a] => bool                 ("(_ ~=/ _)" [51, 51] 50)
+
 consts
 
   (* Constants *)
@@ -110,6 +114,8 @@ translations
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 
+syntax (symbols output)
+  "op ~="       :: ['a, 'a] => bool                 ("(_ \\<noteq>/ _)" [51, 51] 50)
 
 syntax (symbols)
   Not           :: bool => bool                     ("\\<not> _" [40] 40)
