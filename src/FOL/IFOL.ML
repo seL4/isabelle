@@ -358,8 +358,24 @@ qed_goal "ex_impE" IFOL.thy
  (fn major::prems=>
   [ (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ]);
 
-(*Courtesy Krzysztof Grabczewski*)
+(*** Courtesy of Krzysztof Grabczewski ***)
+
 val major::prems = goal IFOL.thy "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
 by (rtac (major RS disjE) 1);
 by (REPEAT (eresolve_tac (prems RL [disjI1, disjI2]) 1));
 qed "disj_imp_disj";
+
+(* The following two theorms are useful when rewriting only one instance  *) 
+(* of a definition                                                        *)
+(* first one for definitions of formulae and the second for terms         *)
+
+val prems = goal IFOL.thy "(A == B) ==> A <-> B";
+by (rewrite_goals_tac prems);
+by (rtac iff_refl 1);
+qed "def_imp_iff";
+
+val prems = goal IFOL.thy "(A == B) ==> A = B";
+by (rewrite_goals_tac prems);
+by (rtac refl 1);
+qed "def_imp_eq";
+
