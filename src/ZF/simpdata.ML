@@ -45,10 +45,12 @@ val ZF_mem_pairs =
 
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 
-simpset_ref() := simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
-                           addcongs [if_weak_cong]
-		           addsplits [split_if]
-                           setSolver (mk_solver "types" Type_solver_tac);
+simpset_ref() :=
+  simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
+  addcongs [if_weak_cong]
+  addsplits [split_if]
+  setSolver (mk_solver "types" (fn prems => TCSET' (fn tcset => type_solver_tac tcset prems)));
+
 
 (** Splitting IFs in the assumptions **)
 
