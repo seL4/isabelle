@@ -21,6 +21,11 @@ time_use_thy "Lift";
 time_use_thy "Comp";
 time_use_thy "Reachability";
 
+(*Universal properties examples*)
+time_use_thy "Counter";
+time_use_thy "Counterc";
+time_use_thy "Priority";
+
 (*Allocator example*)
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
