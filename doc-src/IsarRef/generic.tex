@@ -59,7 +59,7 @@ Isabelle documentation.
   \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
   \isarcmd{moreover} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{ultimately} & : & \isartrans{proof(state)}{proof(chain)} \\
-  \isarcmd{print_trans_rules} & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_trans_rules}^* & : & \isarkeep{theory~|~proof} \\
   trans & : & \isaratt \\
 \end{matharray}
 
@@ -241,7 +241,7 @@ shall refer to (optional) facts indicated for forward chaining.
   \qquad \ASSUME{that [simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
   \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
   \quad \EN \\
-  \quad \FIX{\vec x}~\ASSUMENAME^{\ast}~{a}~{\vec\phi} \\
+  \quad \FIX{\vec x}~\ASSUMENAME^\ast~a\colon~\vec\phi \\
 \end{matharray}
 
 Typically, the soundness proof is relatively straight-forward, often just by
@@ -330,7 +330,7 @@ where the result is treated as an assumption.
   ;
   'untagged' name
   ;
-  ('THEN' | 'COMP') nat? thmref
+  ('THEN' | 'COMP') ('[' nat ']')? thmref
   ;
   'where' (name '=' term * 'and')
   ;
@@ -570,7 +570,7 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \indexisarcmd{print-simpset}
 \indexisaratt{simp}\indexisaratt{split}\indexisaratt{cong}
 \begin{matharray}{rcl}
-  print_simpset & : & \isarkeep{theory~|~proof} \\
+  print_simpset^* & : & \isarkeep{theory~|~proof} \\
   simp & : & \isaratt \\
   cong & : & \isaratt \\
   split & : & \isaratt \\
@@ -790,7 +790,7 @@ This is slightly less hazardous than for the Simplifier (see
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
 \indexisaratt{iff}\indexisaratt{rule}
 \begin{matharray}{rcl}
-  print_claset & : & \isarkeep{theory~|~proof} \\
+  print_claset^* & : & \isarkeep{theory~|~proof} \\
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
