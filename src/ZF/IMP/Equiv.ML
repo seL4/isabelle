@@ -52,7 +52,7 @@ val bexp2 = bexp_iff RS iffD2;
 goal Equiv.thy "!!c. <c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
 
 (* start with rule induction *)
-be (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;
+by (etac (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1);
 
 by (rewrite_tac (Gamma_def::C_rewrite_rules));
 (* skip *)
@@ -89,7 +89,7 @@ val com_cs = ZF_cs addSIs [aexp2,bexp2,B_type,A_type]
 
 val [prem] = goal Equiv.thy
     "c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
-br (prem RS com.induct) 1;
+by (rtac (prem RS com.induct) 1);
 by (rewrite_tac C_rewrite_rules);
 by (safe_tac com_cs);
 by (ALLGOALS (asm_full_simp_tac ZF_ss));
@@ -107,7 +107,7 @@ by (fast_tac com_cs 1);
 
 (* while *)
 by (EVERY1 [forward_tac [Gamma_bnd_mono], etac induct, atac]);
-by (rewrite_goals_tac [Gamma_def]);  
+by (rewtac Gamma_def);  
 by (safe_tac com_cs);
 by (EVERY1 [dtac bspec, atac]);
 by (ALLGOALS (asm_full_simp_tac ZF_ss));
