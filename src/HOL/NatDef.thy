@@ -35,8 +35,16 @@ rules
 
 (* type definition *)
 
+consts
+  Nat' :: "ind set"
+
+inductive Nat'
+intrs
+  Zero_RepI "Zero_Rep : Nat'"
+  Suc_RepI  "i : Nat' ==> Suc_Rep i : Nat'"
+
 typedef (Nat)
-  nat = "lfp(%X. {Zero_Rep} Un (Suc_Rep`X))"   (lfp_def)
+  nat = "Nat'"   (Nat'.Zero_RepI)
 
 instance
   nat :: {ord, zero}

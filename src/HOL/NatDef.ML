@@ -4,38 +4,15 @@
     Copyright   1991  University of Cambridge
 *)
 
-Goal "mono(%X. {Zero_Rep} Un Suc_Rep`X)";
-by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
-qed "Nat_fun_mono";
-
-bind_thm ("Nat_unfold", Nat_fun_mono RS (Nat_def RS def_lfp_unfold));
-
-(* Zero is a natural number -- this also justifies the type definition*)
-Goal "Zero_Rep: Nat";
-by (stac Nat_unfold 1);
-by (rtac (singletonI RS UnI1) 1);
-qed "Zero_RepI";
-
-Goal "i: Nat ==> Suc_Rep(i) : Nat";
-by (stac Nat_unfold 1);
-by (rtac (imageI RS UnI2) 1);
-by (assume_tac 1);
-qed "Suc_RepI";
+val rew = rewrite_rule [symmetric Nat_def];
 
 (*** Induction ***)
-
-val major::prems = Goal
-    "[| i: Nat;  P(Zero_Rep);   \
-\       !!j. [| j: Nat; P(j) |] ==> P(Suc_Rep(j)) |]  ==> P(i)";
-by (rtac ([Nat_def, Nat_fun_mono, major] MRS def_lfp_induct) 1);
-by (blast_tac (claset() addIs prems) 1);
-qed "Nat_induct";
 
 val prems = Goalw [Zero_def,Suc_def]
     "[| P(0);   \
 \       !!n. P(n) ==> P(Suc(n)) |]  ==> P(n)";
 by (rtac (Rep_Nat_inverse RS subst) 1);   (*types force good instantiation*)
-by (rtac (Rep_Nat RS Nat_induct) 1);
+by (rtac (Rep_Nat RS rew Nat'.induct) 1);
 by (REPEAT (ares_tac prems 1
      ORELSE eresolve_tac [Abs_Nat_inverse RS subst] 1));
 qed "nat_induct";
@@ -77,7 +54,7 @@ qed "inj_on_Abs_Nat";
 Goalw [Zero_def,Suc_def] "Suc(m) ~= 0";
 by (rtac (inj_on_Abs_Nat RS inj_on_contraD) 1);
 by (rtac Suc_Rep_not_Zero_Rep 1);
-by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI, Zero_RepI] 1));
+by (REPEAT (resolve_tac [Rep_Nat, rew Nat'.Suc_RepI, rew Nat'.Zero_RepI] 1));
 qed "Suc_not_Zero";
 
 bind_thm ("Zero_not_Suc", Suc_not_Zero RS not_sym);
@@ -92,7 +69,7 @@ bind_thm ("Zero_neq_Suc", sym RS Suc_neq_Zero);
 Goalw [Suc_def] "inj(Suc)";
 by (rtac injI 1);
 by (dtac (inj_on_Abs_Nat RS inj_onD) 1);
-by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI] 1));
+by (REPEAT (resolve_tac [Rep_Nat, rew Nat'.Suc_RepI] 1));
 by (dtac (inj_Suc_Rep RS injD) 1);
 by (etac (inj_Rep_Nat RS injD) 1);
 qed "inj_Suc";
