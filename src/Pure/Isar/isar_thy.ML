@@ -326,8 +326,8 @@ val end_block = ProofHistory.applys Proof.end_block;
 
 (* backward steps *)
 
-val tac = ProofHistory.applys o Method.tac;
-val then_tac = ProofHistory.applys o Method.then_tac;
+val tac = ProofHistory.applys o Method.refine_no_facts;
+val then_tac = ProofHistory.applys o Method.refine;
 
 val proof = ProofHistory.applys o Method.proof o
   apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;

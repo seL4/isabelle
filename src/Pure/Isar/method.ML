@@ -56,8 +56,7 @@ sig
     Try of text |
     Repeat1 of text
   val refine: text -> Proof.state -> Proof.state Seq.seq
-  val tac: text -> Proof.state -> Proof.state Seq.seq
-  val then_tac: text -> Proof.state -> Proof.state Seq.seq
+  val refine_no_facts: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val local_qed: text option
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
@@ -321,38 +320,25 @@ fun refine text state =
       | eval (Repeat1 txt) = Seq.REPEAT1 (eval txt);
   in eval text state end;
 
-fun named_method name = Source (Args.src ((name, []), Position.none));
+fun refine_no_facts text state =
+  state
+  |> Proof.goal_facts (K [])
+  |> refine text;
 
 
 (* finish *)
-
-local
 
 val FINISHED = FILTER (equal 0 o Thm.nprems_of);
 val finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
 val basic_finish = Basic (K finish);
 
-in
-
 fun finish_text None = basic_finish
   | finish_text (Some txt) = Then [txt, basic_finish];
-
-end;
-
-
-(* unstructured steps *)
-
-fun tac text state =
-  state
-  |> Proof.goal_facts (K [])
-  |> refine text;
-
-val then_tac = refine;
 
 
 (* structured proof steps *)
 
-val default_text = named_method "default";
+val default_text = Source (Args.src (("default", []), Position.none));
 val assumption_text = Basic (K assumption);
 
 fun proof opt_text state =
