@@ -295,9 +295,6 @@ fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
 fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
-fun exported_global x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
-fun exported_local x = no_args (Drule.rule_attribute Proof.export_thm) x;
-
 
 
 (** theory setup **)
@@ -320,7 +317,6 @@ val pure_attributes =
   ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),
-  ("exported", (exported_global, exported_local), "theorem exported from context"),
   ("atomize", (no_args ObjectLogic.declare_atomize, no_args undef_local_attribute),
     "declaration of atomize rule"),
   ("rulify", (no_args ObjectLogic.declare_rulify, no_args undef_local_attribute),
