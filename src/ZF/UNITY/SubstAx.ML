@@ -352,17 +352,10 @@ Goal "[| I:Fin(X);F:program |] \
 \         (ALL i:I. F : (A'(i)) Co (A'(i) Un C)) --> \
 \         F : (INT i:I. A(i)) LeadsTo ((INT i:I. A'(i)) Un C)";
 by (etac Fin_induct 1);
-by (auto_tac (claset(), simpset() addsimps [Inter_0]));
-by (case_tac "y=0" 1);
-by Auto_tac;
-by (etac not_emptyE 1);
-by (subgoal_tac "Inter(cons(A(x), RepFun(y, A)))= A(x) Int Inter(RepFun(y,A)) &\
-               \ Inter(cons(A'(x), RepFun(y, A')))= A'(x) Int Inter(RepFun(y,A'))" 1);
-by (Blast_tac 2);
-by (Asm_simp_tac 1);
+by (auto_tac (claset(), simpset() delsimps INT_simps
+                                  addsimps [Inter_0]));
 by (rtac Completion 1);
-by (subgoal_tac "Inter(RepFun(y, A')) Un C = (INT x:RepFun(y, A'). x Un C)" 4);
-by (asm_simp_tac (simpset() delsimps INT_simps) 4);
+by (asm_simp_tac (simpset() delsimps INT_simps addsimps INT_extend_simps) 4);
 by (rtac Constrains_INT 4);
 by (REPEAT(Blast_tac 1));
 val lemma = result();

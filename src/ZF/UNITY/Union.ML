@@ -85,8 +85,7 @@ by (simp_tac (simpset()
 qed "Init_Join";
 
 Goal "Acts(F Join G) = Acts(F) Un Acts(G)";
-by (simp_tac (simpset() 
-     addsimps [Int_Un_distrib2,cons_absorb,Join_def]) 1);
+by (simp_tac (simpset() addsimps [Int_Un_distrib2, cons_absorb, Join_def]) 1);
 qed "Acts_Join";
 
 Goal "AllowedActs(F Join G) = \
@@ -104,8 +103,8 @@ by (simp_tac (simpset() addsimps
 qed "Join_commute";
 
 Goal "A Join (B Join C) = B Join (A Join C)";
-by (asm_simp_tac (simpset() addsimps  
-       Un_ac@Int_ac@[Join_def,Int_Un_distrib2, cons_absorb]) 1);
+by (asm_simp_tac (simpset() addsimps 
+     Un_ac@Int_ac@[Join_def,Int_Un_distrib2, cons_absorb]) 1);
 qed "Join_left_commute";
 
 Goal "(F Join G) Join H = F Join (G Join H)";
@@ -166,13 +165,13 @@ AddIffs [JN_empty];
 AddSEs [not_emptyE];
 Addsimps [Inter_0];
 
-Goalw [JOIN_def]
-   "Init(JN i:I. F(i)) = (if I=0 then state else (INT i:I. Init(F(i))))";
+Goal "Init(JN i:I. F(i)) = (if I=0 then state else (INT i:I. Init(F(i))))";
+by (simp_tac (simpset() addsimps [JOIN_def]) 1);
 by (auto_tac (claset(), simpset() addsimps [INT_Int_distrib]));
 qed "Init_JN";
 
 Goalw [JOIN_def]
-"Acts(JOIN(I,F)) = cons(id(state), UN i:I.  Acts(F(i)))";
+     "Acts(JOIN(I,F)) = cons(id(state), UN i:I.  Acts(F(i)))";
 by (auto_tac (claset(), simpset() delsimps (INT_simps@UN_simps)));
 by (rtac equalityI 1);
 by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
@@ -208,21 +207,12 @@ by (auto_tac (claset(),
            simpset() addsimps [cons_absorb]));
 qed "JN_absorb";
 
-Goalw [Inter_def] "[| i:I; j:J |] ==> \
-\  (INT i:I Un J. A(i)) = ((INT i:I. A(i)) Int  (INT j:J. A(j)))";
-by Auto_tac;
-by (Blast_tac 1);
-qed "INT_Un";
-  
 Goal "(JN i: I Un J. F(i)) = ((JN i: I. F(i)) Join (JN i:J. F(i)))";
 by (rtac program_equalityI 1);
-by (ALLGOALS(Asm_full_simp_tac));
-by Safe_tac;
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [Int_absorb])));
-by (ALLGOALS(rtac equalityI));
-by (auto_tac (claset() addDs [Init_type RS subsetD,
-                              Acts_type RS subsetD,
-                              AllowedActs_type RS subsetD], simpset()));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [UN_Un,INT_Un])));
+by (ALLGOALS(asm_full_simp_tac (simpset() delsimps INT_simps
+		                          addsimps INT_extend_simps)));
+by (Blast_tac 1); 
 qed "JN_Un";
 
 Goal "(JN i:I. c) = (if I=0 then SKIP else programify(c))";
@@ -230,8 +220,7 @@ by (rtac program_equalityI 1);
 by Auto_tac;
 qed "JN_constant";
 
-Goal 
-"(JN i:I. F(i) Join G(i)) = (JN i:I. F(i))  Join  (JN i:I. G(i))";
+Goal "(JN i:I. F(i) Join G(i)) = (JN i:I. F(i))  Join  (JN i:I. G(i))";
 by (rtac program_equalityI 1);
 by (ALLGOALS(simp_tac (simpset() addsimps [Int_absorb])));
 by Safe_tac;
@@ -240,8 +229,7 @@ by (ALLGOALS(asm_full_simp_tac (simpset() addsimps
 by (Force_tac 1);
 qed "JN_Join_distrib";
 
-Goal 
-"(JN i:I. F(i) Join G) = ((JN i:I. F(i) Join G))";
+Goal "(JN i:I. F(i) Join G) = ((JN i:I. F(i) Join G))";
 by (asm_simp_tac (simpset() 
     addsimps [JN_Join_distrib, JN_constant]) 1);
 qed "JN_Join_miniscope";
@@ -385,8 +373,7 @@ qed "JN_transient";
 Goal "F Join G : transient(A) <-> \
 \     (programify(F) : transient(A) | programify(G):transient(A))";
 by (auto_tac (claset(),
-              simpset() addsimps [transient_def,
-                                  Join_def, Int_Un_distrib2]));
+              simpset() addsimps [transient_def, Join_def, Int_Un_distrib2]));
 qed "Join_transient";
 
 AddIffs [Join_transient];

@@ -66,8 +66,7 @@ Goal "G component F ==> F Join G = F";
 by (auto_tac (claset(), simpset() addsimps Join_ac@[component_def]));
 qed "Join_absorb2";
 
-Goal 
-"H:program==>(JOIN(I,F) component H) <-> (ALL i:I. F(i) component H)";
+Goal "H:program==>(JOIN(I,F) component H) <-> (ALL i:I. F(i) component H)";
 by (case_tac "I=0" 1);
 by (Force_tac 1);
 by (asm_simp_tac (simpset() addsimps [component_eq_subset]) 1);

@@ -165,19 +165,11 @@ val [major,minor] = Goal
 "[| (!!i. i:I ==>F: A(i) Co A'(i)); F:program  |] \
 \  ==> F:(INT i:I. A(i)) Co (INT i:I. A'(i))";
 by (cut_facts_tac [minor] 1);
-by (case_tac "I=0" 1);
-by (asm_full_simp_tac (simpset() addsimps [Inter_def]) 1);
-by (subgoal_tac "reachable(F) Int Inter(RepFun(I, A)) = (INT i:I. reachable(F) Int A(i))" 1);
-by (force_tac (claset(), simpset() addsimps [Inter_def]) 2);
-by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
-by (subgoal_tac "reachable(F) Int Inter(RepFun(I, A)) = (INT i:I. reachable(F) Int A(i))" 1);
-by (Force_tac 2);
-by (asm_simp_tac (simpset() delsimps INT_simps) 1);
+by (asm_simp_tac (simpset() delsimps INT_simps
+	  	 	    addsimps [Constrains_def]@INT_extend_simps) 1);
 by (rtac constrains_INT 1);
-by (etac not_emptyE 1);
 by (dresolve_tac [major] 1);
-by (rewrite_goal_tac [Constrains_def] 1);
-by (ALLGOALS(Asm_full_simp_tac));
+by (auto_tac (claset(), simpset() addsimps [Constrains_def])); 
 qed "Constrains_INT";
 
 Goalw [Constrains_def] "F : A Co A' ==> reachable(F) Int A <= A'";
@@ -461,8 +453,7 @@ by (asm_full_simp_tac (simpset() addsimps [INT_iff]) 1);
 by (blast_tac (claset() addIs [stable_imp_Stable]) 1);
 qed "increasing_imp_Increasing";
 
-Goal
-"F:Increasing(A, r, lam x:state. c) <-> F:program & (EX a. a:A)";
+Goal "F:Increasing(A, r, lam x:state. c) <-> F:program & (EX a. a:A)";
 by (auto_tac (claset() addDs [IncreasingD2]
                        addIs [increasing_imp_Increasing], simpset()));
 qed "Increasing_constant";
