@@ -6,7 +6,7 @@
 Nondeterministic automata
 *)
 
-NA = List + AutoProj +
+NA = AutoProj +
 
 types ('a,'s)na = "'s * ('a => 's => 's set) * ('s => bool)"
 

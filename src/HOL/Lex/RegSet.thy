@@ -6,7 +6,7 @@
 Regular sets
 *)
 
-RegSet = List +
+RegSet = Main +
 
 constdefs
  conc :: 'a list set => 'a list set => 'a list set

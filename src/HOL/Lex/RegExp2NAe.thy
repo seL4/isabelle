@@ -7,7 +7,7 @@ Conversion of regular expressions
 into nondeterministic automata with epsilon transitions
 *)
 
-RegExp2NAe = NAe + RegExp +
+RegExp2NAe = RegExp + NAe +
 
 types 'a bitsNAe = ('a,bool list)nae
 

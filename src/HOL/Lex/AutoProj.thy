@@ -9,7 +9,7 @@ Otherwise we could have `acceps A == fin A o delta A (start A)'
 and use foldl instead of foldl2.
 *)
 
-AutoProj = Prod +
+AutoProj = Main +
 
 constdefs
  start :: "'a * 'b * 'c => 'a"

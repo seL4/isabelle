@@ -6,7 +6,7 @@
 Deterministic automata
 *)
 
-DA = List + AutoProj +
+DA = AutoProj +
 
 types ('a,'s)da = "'s * ('a => 's => 's) * ('s => bool)"
 

@@ -4,7 +4,7 @@
     Copyright   1998 TUM
 *)
 
-MaxChop = MaxPrefix + Recdef +
+MaxChop = MaxPrefix +
 
 types   'a chopper = "'a list => 'a list list * 'a list"
 

@@ -6,7 +6,7 @@
 Nondeterministic automata with epsilon transitions
 *)
 
-NAe = List + Option + NA +
+NAe = NA +
 
 types ('a,'s)nae = ('a option,'s)na
 
