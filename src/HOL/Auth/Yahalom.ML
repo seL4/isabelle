@@ -138,7 +138,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.*)
 goal thy 
- "!!evs. [| Says Server A {|Crypt (shrK A) {|Agent B, Key K, NA, NB|}, X|} \
+ "!!evs. [| Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|} \
 \             : set evs;                                                   \
 \           evs : yahalom lost |]                                          \
 \        ==> K ~: range shrK";
@@ -466,7 +466,7 @@ qed "single_Nonce_secrecy";
 goal thy 
  "!!evs. evs : yahalom lost ==>                                            \
 \   EX NA' A' B'. ALL NA A B.                                              \
-\      Crypt (shrK B) {|Agent A, Nonce NA, NB|} : parts(sees lost Spy evs) \
+\      Crypt (shrK B) {|Agent A, Nonce NA, nb|} : parts(sees lost Spy evs) \
 \      --> B ~: lost --> NA = NA' & A = A' & B = B'";
 by parts_induct_tac;
 (*Fake*)
@@ -474,15 +474,15 @@ by (REPEAT (etac (exI RSN (2,exE)) 1)   (*stripping EXs makes proof faster*)
     THEN Fake_parts_insert_tac 1);
 by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*YM2: creation of new Nonce.  Move assertion into global context*)
-by (expand_case_tac "NB = ?y" 1);
+by (expand_case_tac "nb = ?y" 1);
 by (REPEAT (resolve_tac [exI, conjI, impI, refl] 1));
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 val lemma = result();
 
 goal thy 
- "!!evs.[| Crypt (shrK B) {|Agent A, Nonce NA, NB|}        \
+ "!!evs.[| Crypt (shrK B) {|Agent A, Nonce NA, nb|}        \
 \                  : parts (sees lost Spy evs);            \
-\          Crypt (shrK B') {|Agent A', Nonce NA', NB|}     \
+\          Crypt (shrK B') {|Agent A', Nonce NA', nb|}     \
 \                  : parts (sees lost Spy evs);            \
 \          evs : yahalom lost;  B ~: lost;  B' ~: lost |]  \
 \        ==> NA' = NA & A' = A & B' = B";
@@ -493,11 +493,11 @@ qed "unique_NB";
 (*Variant useful for proving secrecy of NB: the Says... form allows 
   not_lost_tac to remove the assumption B' ~: lost.*)
 goal thy 
- "!!evs.[| Says C D   {|X,  Crypt (shrK B) {|Agent A, Nonce NA, NB|}|}    \
+ "!!evs.[| Says C D   {|X,  Crypt (shrK B) {|Agent A, Nonce NA, nb|}|}    \
 \            : set evs;          B ~: lost;                               \
-\          Says C' D' {|X', Crypt (shrK B') {|Agent A', Nonce NA', NB|}|} \
+\          Says C' D' {|X', Crypt (shrK B') {|Agent A', Nonce NA', nb|}|} \
 \            : set evs;                                                   \
-\          NB ~: analz (sees lost Spy evs);  evs : yahalom lost |]        \
+\          nb ~: analz (sees lost Spy evs);  evs : yahalom lost |]        \
 \        ==> NA' = NA & A' = A & B' = B";
 by (not_lost_tac "B'" 1);
 by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
@@ -513,7 +513,7 @@ val Says_unique_NB' = read_instantiate [("lost","lost")] Says_unique_NB;
 goal thy 
  "!!evs. [| B ~: lost;  evs : yahalom lost  |]       \
 \ ==> Nonce NB ~: analz (sees lost Spy evs) -->      \
-\     Crypt (shrK B') {|Agent A', Nonce NB, NB'|}    \
+\     Crypt (shrK B') {|Agent A', Nonce NB, nb'|}    \
 \       : parts(sees lost Spy evs)                   \
 \ --> Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|} \
 \       ~: parts(sees lost Spy evs)";

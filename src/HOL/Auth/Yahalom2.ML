@@ -138,7 +138,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.*)
 goal thy 
- "!!evs. [| Says Server A {|NB', Crypt (shrK A) {|Agent B, Key K, NA|}, X|} \
+ "!!evs. [| Says Server A {|nb', Crypt (shrK A) {|Agent B, Key K, na|}, X|} \
 \            : set evs;                                                 \
 \           evs : yahalom lost |]                                       \
 \        ==> K ~: range shrK & A ~= B";
