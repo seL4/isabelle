@@ -36,11 +36,14 @@ workshops and courses.
 
 <h2>Obtaining Isabelle</h2>
 
-The current version is <strong>{ISABELLE}</strong>.  Several mirror
-sites provide the Isabelle <a href="dist/">distribution</a>, which
-includes <a href="dist/source.html">sources</a>, 
-<a href="dist/binary.html">binary packages</a>, and 
-<a href="dist/docs.html">documentation</a>.
+Visit the <a href="dist/">download page</a>.
+<p>
+  Several mirror sites provide the Isabelle <a
+  href="dist/">distribution</a>, which includes <a
+  href="dist/source.html">sources</a>, <a
+  href="dist/binary.html">binary packages</a>, and <a
+  href="dist/docs.html">documentation</a>. 
+  The current version is <strong>{ISABELLE}</strong>.
 
 <p>
 &nbsp;
