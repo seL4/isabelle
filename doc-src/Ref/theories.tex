@@ -44,7 +44,7 @@ following conventions:
 \begin{figure}[hp]
 \begin{center}
 \begin{tabular}{rclc}
-$theoryDef$ &=& $id$ {\tt=} $id@1$ {\tt+} \dots {\tt+} $id@n$
+$theoryDef$ &=& $id$ {\tt=} $name@1$ {\tt+} \dots {\tt+} $name@n$
                             [{\tt+} $extension$]\\\\
 $extension$ &=& [$classes$] [$default$] [$types$] [$arities$] [$consts$]
                 [$rules$] {\tt end} [$ml$]\\\\
@@ -77,11 +77,19 @@ $ml$ &=& \ttindex{ML} $text$
 \end{figure}
 
 The different parts of a theory definition are interpreted as follows:
-\begin{description}
-\item[$theoryDef$] A theory has a name $id$ and is an extension of the union
-  of existing theories $id@1$ \dots $id@n$ with new classes, types,
-  constants, syntax and axioms.  The basic theory, which contains only the
-  meta-logic, is called {\tt Pure}.
+\begin{description} 
+\item[$theoryDef$] A theory has a name $id$ and is an
+  extension of the union of theories $id@1$ \dots $id@n$ with new
+  classes, types, constants, syntax and axioms. The basic theory, which 
+  contains only the meta-logic, is called {\tt Pure}.
+
+  If $name@i$ is a string the theory $name@i$ is {\em not} used in building
+  the base of theory $id$.  The reason for using strings in $theoryDef$ is that
+  many theories use objects created in a \ML-file that does not belong to a
+  theory itself.  Because $name@1$ \dots $name@n$ are loaded automatically a
+  string can be used to specify a file that is needed as a series of 
+  \ML{}-declarations but not as a parent for theory $id$.  See
+  Chapter~\ref{LoadingTheories} for details.
 \item[$class$] The new class $id$ is declared as a subclass of existing
   classes $id@1$ \dots $id@n$.  This rules out cyclic class structures.
   Isabelle automatically computes the transitive closure of subclass
@@ -125,19 +133,128 @@ The different parts of a theory definition are interpreted as follows:
 The $mixfix$ and $ml$ sections are explained in more detail in the {\it
 Defining Logics} chapter of the {\it Logics} manual.
 
+\section{Loading Theories}
+\label{LoadingTheories}
+\subsection{Reading a new theory}
+
 \begin{ttbox} 
 use_thy: string -> unit
 \end{ttbox}
+
 Each theory definition must reside in a separate file.  Let the file {\it
-  tf}{\tt.thy} contain the definition of a theory called $TF$ with rules named
-$r@1$ \dots $r@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it tf\/}{\tt"} reads
-file {\it tf}{\tt.thy}, writes an intermediate {\ML}-file {\tt.}{\it
-  tf}{\tt.thy.ML}, and reads the latter file.  This declares an {\ML}
-structure~$TF$ containing a component {\tt thy} for the new theory
-and components $r@1$ \dots $r@n$ for the rules; it also contains the
-definitions of the {\tt ML} section if any.  Then {\tt use_thy}
-reads the file {\it tf}{\tt.ML}, if it exists; this file normally contains
-proofs involving the new theory.
+tf}{\tt.thy} contain the definition of a theory called $TF$ with parent
+theories $TB@1$ \dots $TB@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it
+TF\/}{\tt"} reads file {\it tf}{\tt.thy}, writes an intermediate {\ML}-file
+{\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file.  Any of the parent
+theories that have not been loaded yet are read now by recursive {\tt use_thy}
+calls until either an already loaded theory or {\tt Pure} is reached.
+Therefore one can read a complete logic by just one {\tt use_thy} call if all
+theories are linked appropriatly.  Afterwards an {\ML} structure~$TF$
+containing a component {\tt thy} for the new theory and components $r@1$ \dots
+$r@n$ for the rules is declared; it also contains the definitions of the {\tt
+ML} section if any. (Normally {\tt.}{\it tf}{\tt.thy.ML} is deleted now if
+there have occured no errors. In case one wants to have a look at it,
+{\tt delete_tmpfiles := false} can be set before calling {\tt use_thy}.)  
+Finally the file {\it tf}{\tt.ML} is read, if it exists; this file normally
+contains proofs involving the new theory.
+
+
+\subsection{Filenames and paths}
+
+The files the theory definition resides in must have the lower case name of
+the theory with ".thy" or ".ML" appended.  On the other hand {\tt use_thy}'s
+parameter has to be the exact theory name.  Optionally the name can be
+preceeded by a path to specify the directory where the files can be found.  If
+no path is provided the reference variable {\tt loadpath} is used which
+contains a list of paths that are searched in the given order.  After the
+".thy"-file for a theory has been found the same path is used to locate the
+(optional) ".ML"-file.  (You might note that it is also possible to only
+provide a ".ML"- but no ".thy"-file.  In this case a \ML{} structure with the
+theory's name has to be created in the ".ML" file.  If both the ".thy"-file
+and a structure declaration in the ".ML"-file exist the declaration in the
+latter file is used.  See {\tt ZF/ex/llist.ML} for an example.)
+
+
+\subsection{Reloading a theory}
+
+{\tt use_thy} keeps track of all loaded theories and stores information about
+their files.  If it finds that the theory to be loaded was already read before
+the following happens:  First the theory's files are searched at the place
+they were located at the last time they were read. If they are found their
+time of last modification is compared to the internal data and {\tt use_thy}
+stops if they are equal. In case the files have been moved, {\tt use_thy}
+searches them the same way as a new theory would be searched for.  After all
+these tests have been passed the theory is reloaded and all theories that
+depend on it (i.e. that have its name in their $theoryDef$) are marked as
+out-of-date.
+
+As changing a theory often makes it necessary to reload all theories that
+(indirectly) depend on it, {\tt update} should be used instead of {\tt
+use_thy} to read a modified theory.  This function reloads all changed
+theories and their descendants in the correct order.
+
+
+\subsection{Pseudo theories}
+
+There is a problem with {\tt update}: objects created in \ML-files that do not
+belong to a theory (see explanation of $theoryDef$ in \ref{DefiningTheories}).
+These files are read manually between {\tt use_thy} calls and define objects
+used in different theories.  As {\tt update} only knows about the
+theories there still exist objects with references to the old theory version
+after the new one has been read.  This (most probably) will produce the fatal
+error
+\begin{center} \tt
+Attempt to merge different versions of theory: $T$
+\end{center}
+
+Therefore there is a way to link theories and the $orphaned$ \ML-files. The
+link from a theory to a \ML-file has been mentioned in
+Chapter~\ref{DefiningTheories} (strings in $theoryDef$).  But to make this
+work and to establish a link in the opposite direction we need to create a
+{\it pseudo theory}.  Let's assume we have a \ML-file named {\tt orphan.ML} that
+depends on theory $A$ and itself is used in theory $B$.  To link the three we
+have to create the file {\tt orphan.thy} containing the line
+\begin{ttbox}
+orphan = A
+\end{ttbox}
+and add {\tt "orphan"} to theory $B$'s $theoryDef$.  Creating {\tt orphan.thy}
+is necessary because of two reasons: First it enables automatic loading of
+$orphan$'s parents and second it creates the \ML{}-object {\tt orphan} that
+is needed by {\tt use_thy} (though it is not added to the base of theory $B$). 
+If {\tt orphan.ML} depended on no theory then {\tt Pure} would have been used
+instead of {\tt A}.
+
+For an extensive example of how this technique can be used to link over 30
+files and read them by just two {\tt use_thy} calls have a look at the ZF logic.
+
+
+\subsection{Removing a theory}
+
+If a previously read file is removed the {\tt update} function will keep
+on complaining about a missing file.  The theory is not automatically removed
+from the internal list to preserve the links to other theories in case one
+forgot to adjust the {\tt loadpath} after moving a file.  To manually remove a
+theory use {\tt unlink_thy}.
+
+
+\subsection{Using Poly/\ML}
+
+As the functions for reading theories depend on reference variables one has to
+take into consideration the way Poly/\ML{} handles them.  They are only saved
+together with the state if they were declared in the current database.  E.g.
+changes made to a reference variable declared in the $Pure$ database are $not$
+saved if made while using a child database.  Therefore a new {\tt Readthy}
+structure has to be declared by
+\begin{ttbox}
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
+open Readthy;
+\end{ttbox}
+in every newly created database.  This is not necessary if the database is
+created by copying an existent one.
+
+The above declarations are contained in the $Pure$ database, so one could
+simply use e.g. {\tt use_thy} if saving of the reference variables is not
+needed.  Also Standard ML of New Jersey does not have this behaviour.
 
 
 \section{Basic operations on theories}

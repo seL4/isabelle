@@ -88,11 +88,15 @@ private database.  New Jersey \ML{} will discard the state!
 \section{Reading files of proofs and theories}
 \index{files, reading|bold}
 \begin{ttbox} 
-cd           : string -> unit
-use          : string -> unit
-use_thy      : string -> unit
-time_use     : string -> unit
-time_use_thy : string -> unit
+cd              : string -> unit
+use             : string -> unit
+use_thy         : string -> unit
+time_use        : string -> unit
+time_use_thy    : string -> unit
+update          : unit -> unit
+unlink_thy      : string -> unit
+loadpath        : string list ref
+delete_tmpfiles : bool ref
 \end{ttbox}
 \begin{description}
 \item[\ttindexbold{cd} \tt"{\it dir}";]  changes to {\it dir\/} the default
@@ -104,14 +108,33 @@ of Isabelle commands is the usual way of replaying a proof.
 
 \item[\ttindexbold{use_thy} \tt"$tname$";]  
 reads a theory definition from file {\it tname}{\tt.thy} and also reads
-{\ML} commands from the file {\it tname}{\tt.ML}, if it exists.  See
-Chapter~\ref{theories} for details.
+{\ML} commands from the file {\it tname}{\tt.ML}, if it exists.  If theory
+{\it tname} depends on theories that haven't been read already these are
+loaded automatically.
+See Chapter~\ref{theories} for details.
 
 \item[\ttindexbold{time_use} \tt"$file$";]  
 performs {\tt use~"$file$"} and prints the total execution time.
 
 \item[\ttindexbold{time_use_thy} \tt"$tname$";]  
 performs {\tt use_thy "$tname$"} and prints the total execution time.
+
+\item[\ttindexbold{update} \tt();]  
+reads all theories that have changed since the last time they have been read.
+See Chapter~\ref{theories} for details.
+
+\item[\ttindexbold{unlink_thy} \tt"$tname$";]  
+removes theory {\it tname} from internal list of theory dependencies and has to
+be used after removing a theory's files. Else {\tt update} would keep on
+searching for them. See Chapter~\ref{theories} for details.
+
+\item[\ttindexbold{loadpath}] contains a list of paths that is used by 
+{\tt use_thy} and {\tt update} to find {\it tname}{\tt.ML} and {\it tname}
+{\tt.thy}. See Chapter~\ref{theories} for details.
+
+\item[\ttindexbold{delete_tmpfiles}] is used by use_thy and controls the
+removal of temporary files created during the reading of {\it tname}{\tt.thy}.
+See Chapter~\ref{theories} for details.
 \end{description}
 
 

@@ -2,13 +2,13 @@
 \contentsline {section}{\numberline {1.1}Basic interaction with Isabelle}{1}
 \contentsline {section}{\numberline {1.2}Ending a session}{2}
 \contentsline {section}{\numberline {1.3}Reading files of proofs and theories}{2}
-\contentsline {section}{\numberline {1.4}Printing of terms and theorems}{2}
+\contentsline {section}{\numberline {1.4}Printing of terms and theorems}{3}
 \contentsline {subsection}{Printing limits}{3}
 \contentsline {subsection}{Printing of meta-level hypotheses}{3}
-\contentsline {subsection}{Printing of types and sorts}{3}
-\contentsline {subsection}{$\eta $-contraction before printing}{3}
+\contentsline {subsection}{Printing of types and sorts}{4}
+\contentsline {subsection}{$\eta $-contraction before printing}{4}
 \contentsline {section}{\numberline {1.5}Displaying exceptions as error messages}{4}
-\contentsline {section}{\numberline {1.6}Shell scripts}{4}
+\contentsline {section}{\numberline {1.6}Shell scripts}{5}
 \contentsline {chapter}{\numberline {2}Proof Management: The Subgoal Module}{6}
 \contentsline {section}{\numberline {2.1}Basic commands}{6}
 \contentsline {subsection}{Starting a backward proof}{6}
@@ -105,39 +105,46 @@
 \contentsline {subsection}{Other meta-rules}{42}
 \contentsline {chapter}{\numberline {6}Theories, Terms and Types}{44}
 \contentsline {section}{\numberline {6.1}Defining Theories}{44}
-\contentsline {section}{\numberline {6.2}Basic operations on theories}{47}
-\contentsline {subsection}{Extracting an axiom from a theory}{47}
-\contentsline {subsection}{Building a theory}{47}
-\contentsline {subsection}{Inspecting a theory}{48}
-\contentsline {section}{\numberline {6.3}Terms}{49}
-\contentsline {section}{\numberline {6.4}Certified terms}{50}
-\contentsline {subsection}{Printing terms}{50}
-\contentsline {subsection}{Making and inspecting certified terms}{50}
-\contentsline {section}{\numberline {6.5}Types}{51}
-\contentsline {section}{\numberline {6.6}Certified types}{51}
-\contentsline {subsection}{Printing types}{51}
-\contentsline {subsection}{Making and inspecting certified types}{51}
-\contentsline {chapter}{\numberline {7}Substitution Tactics}{53}
-\contentsline {section}{\numberline {7.1}Simple substitution}{53}
-\contentsline {section}{\numberline {7.2}Substitution in the hypotheses}{54}
-\contentsline {section}{\numberline {7.3}Setting up {\ptt hyp_subst_tac}}{54}
-\contentsline {chapter}{\numberline {8}Simplification}{57}
-\contentsline {section}{\numberline {8.1}Simplification sets}{57}
-\contentsline {subsection}{Rewrite rules}{57}
-\contentsline {subsection}{Congruence rules}{58}
-\contentsline {subsection}{The subgoaler}{58}
-\contentsline {subsection}{The solver}{59}
-\contentsline {subsection}{The looper}{59}
-\contentsline {section}{\numberline {8.2}The simplification tactics}{59}
-\contentsline {section}{\numberline {8.3}Example: using the simplifier}{60}
-\contentsline {chapter}{\numberline {9}The classical theorem prover}{64}
-\contentsline {section}{\numberline {9.1}The sequent calculus}{64}
-\contentsline {section}{\numberline {9.2}Simulating sequents by natural deduction}{65}
-\contentsline {section}{\numberline {9.3}Extra rules for the sequent calculus}{66}
-\contentsline {section}{\numberline {9.4}Classical rule sets}{67}
-\contentsline {section}{\numberline {9.5}The classical tactics}{68}
-\contentsline {subsection}{Single-step tactics}{69}
-\contentsline {subsection}{The automatic tactics}{69}
-\contentsline {subsection}{Other useful tactics}{69}
-\contentsline {subsection}{Creating swapped rules}{70}
-\contentsline {section}{\numberline {9.6}Setting up the classical prover}{70}
+\contentsline {section}{\numberline {6.2}Loading Theories}{47}
+\contentsline {subsection}{Reading a new theory}{47}
+\contentsline {subsection}{Filenames and paths}{47}
+\contentsline {subsection}{Reloading a theory}{47}
+\contentsline {subsection}{Pseudo theories}{48}
+\contentsline {subsection}{Removing a theory}{48}
+\contentsline {subsection}{Using Poly/{\psc ml}}{48}
+\contentsline {section}{\numberline {6.3}Basic operations on theories}{49}
+\contentsline {subsection}{Extracting an axiom from a theory}{49}
+\contentsline {subsection}{Building a theory}{49}
+\contentsline {subsection}{Inspecting a theory}{50}
+\contentsline {section}{\numberline {6.4}Terms}{51}
+\contentsline {section}{\numberline {6.5}Certified terms}{52}
+\contentsline {subsection}{Printing terms}{52}
+\contentsline {subsection}{Making and inspecting certified terms}{52}
+\contentsline {section}{\numberline {6.6}Types}{53}
+\contentsline {section}{\numberline {6.7}Certified types}{53}
+\contentsline {subsection}{Printing types}{53}
+\contentsline {subsection}{Making and inspecting certified types}{53}
+\contentsline {chapter}{\numberline {7}Substitution Tactics}{55}
+\contentsline {section}{\numberline {7.1}Simple substitution}{55}
+\contentsline {section}{\numberline {7.2}Substitution in the hypotheses}{56}
+\contentsline {section}{\numberline {7.3}Setting up {\ptt hyp_subst_tac}}{56}
+\contentsline {chapter}{\numberline {8}Simplification}{59}
+\contentsline {section}{\numberline {8.1}Simplification sets}{59}
+\contentsline {subsection}{Rewrite rules}{59}
+\contentsline {subsection}{Congruence rules}{60}
+\contentsline {subsection}{The subgoaler}{60}
+\contentsline {subsection}{The solver}{61}
+\contentsline {subsection}{The looper}{61}
+\contentsline {section}{\numberline {8.2}The simplification tactics}{62}
+\contentsline {section}{\numberline {8.3}Example: using the simplifier}{63}
+\contentsline {chapter}{\numberline {9}The classical theorem prover}{66}
+\contentsline {section}{\numberline {9.1}The sequent calculus}{66}
+\contentsline {section}{\numberline {9.2}Simulating sequents by natural deduction}{67}
+\contentsline {section}{\numberline {9.3}Extra rules for the sequent calculus}{68}
+\contentsline {section}{\numberline {9.4}Classical rule sets}{69}
+\contentsline {section}{\numberline {9.5}The classical tactics}{70}
+\contentsline {subsection}{Single-step tactics}{71}
+\contentsline {subsection}{The automatic tactics}{71}
+\contentsline {subsection}{Other useful tactics}{71}
+\contentsline {subsection}{Creating swapped rules}{72}
+\contentsline {section}{\numberline {9.6}Setting up the classical prover}{72}
