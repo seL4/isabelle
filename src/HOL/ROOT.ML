@@ -75,9 +75,6 @@ use_thy "NatBin";
 use "bin_simprocs.ML";
 cd "..";
 
-use "Tools/svc_funcs.ML";
-use_thy "SVC_Oracle";
-
 (*the all-in-one theory*)
 use_thy "Main";
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/SVC_Oracle
+(*  Title:      HOL/SVC_Oracle.ML
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
@@ -11,15 +11,19 @@ Based upon the work of Søren T. Heilmann
 (*Present the entire subgoal to the oracle, assumptions and all, but possibly
   abstracted.  Use via compose_tac, which performs no lifting but will
   instantiate variables.*)
+local val svc_thy = the_context () in
+
 fun svc_tac i st = 
-  let val prem = List.nth (prems_of st, i-1)
-      val th = invoke_oracle thy "svc_oracle" 
+  let val prem = BasisLibrary.List.nth (prems_of st, i-1)
+      val th = invoke_oracle svc_thy "svc_oracle"
 	             (#sign (rep_thm st), Svc.OracleExn prem)
    in 
       compose_tac (false, th, 0) i st
    end 
    handle Svc.OracleExn _ => Seq.empty
 	| Subscript       => Seq.empty;
+
+end;
 
 
 (*True if SVC appears to exist*)
