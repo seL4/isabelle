@@ -155,6 +155,7 @@ sig
   val add_term_consts: term * string list -> string list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
+  val add_term_free_names: term * string list -> string list
   val add_term_names: term * string list -> string list
   val add_term_tfree_names: term * string list -> string list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
@@ -803,6 +804,12 @@ fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
 
 (*maps  (bs,v)  to   v'::bs    this reverses the identifiers bs*)
 fun add_new_id (bs, c) : string list =  variant bs c  ::  bs;
+
+(*Accumulates the names of Frees in the term, suppressing duplicates.*)
+fun add_term_free_names (Free(a,_), bs) = a ins_string bs
+  | add_term_free_names (f$u, bs) = add_term_free_names (f, add_term_free_names(u, bs))
+  | add_term_free_names (Abs(_,_,t), bs) = add_term_free_names(t,bs)
+  | add_term_free_names (_, bs) = bs;
 
 (*Accumulates the names in the term, suppressing duplicates.
   Includes Frees and Consts.  For choosing unambiguous bound var names.*)
