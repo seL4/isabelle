@@ -499,6 +499,14 @@ qed_goal "fix_ind"  Fix.thy
         (atac 1)
         ]);
 
+qed_goal "def_fix_ind" Fix.thy "[| f == fix`F; adm(P); \
+\       P(UU);!!x. P(x) ==> P(F`x)|] ==> P f" (fn prems => [
+        (cut_facts_tac prems 1),
+	(asm_simp_tac HOL_ss 1),
+	(etac fix_ind 1),
+	(atac 1),
+	(eresolve_tac prems 1)]);
+	
 (* ------------------------------------------------------------------------ *)
 (* computational induction for weak admissible formulae                     *)
 (* ------------------------------------------------------------------------ *)
@@ -514,6 +522,13 @@ qed_goal "wfix_ind"  Fix.thy
         (rtac allI 1),
         (etac spec 1)
         ]);
+
+qed_goal "def_wfix_ind" Fix.thy "[| f == fix`F; admw(P); \
+\       !n. P(iterate n F UU) |] ==> P f" (fn prems => [
+        (cut_facts_tac prems 1),
+	(asm_simp_tac HOL_ss 1),
+	(etac wfix_ind 1),
+	(atac 1)]);
 
 (* ------------------------------------------------------------------------ *)
 (* for chain-finite (easy) types every formula is admissible                *)
