@@ -41,7 +41,7 @@ sig
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val resolveq_tac: thm Seq.seq -> int -> tactic
-  val resolveq_cases_tac: (thm * string list) Seq.seq
+  val resolveq_cases_tac: bool -> (thm * string list) Seq.seq
     -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
@@ -273,8 +273,8 @@ fun gen_resolveq_tac tac rules i st =
 
 val resolveq_tac = gen_resolveq_tac Tactic.rtac;
 
-val resolveq_cases_tac = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
-  Seq.map (rpair (RuleCases.make rule cases)) (Tactic.rtac rule i st));
+fun resolveq_cases_tac opaq = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
+  Seq.map (rpair (RuleCases.make opaq rule cases)) (Tactic.rtac rule i st));
 
 
 (* simple rule *)
