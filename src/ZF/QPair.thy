@@ -17,13 +17,15 @@ consts
   qsplit    :: "[[i,i] => i, i] => i"
   qfsplit   :: "[[i,i] => o, i] => o"
   qconverse :: "i => i"
-  "@QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
-  "<*>"     :: "[i, i] => i"         		("(_ <*>/ _)" [81, 80] 80)
   QSigma    :: "[i, i => i] => i"
 
   "<+>"     :: "[i,i]=>i"      			(infixr 65)
   QInl,QInr :: "i=>i"
   qcase     :: "[i=>i, i=>i, i]=>i"
+
+syntax
+  "@QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
+  "<*>"     :: "[i, i] => i"         		(infixr 80)
 
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
@@ -45,4 +47,4 @@ end
 ML
 
 val print_translation =
-  [("QSigma", dependent_tr' ("@QSUM", "<*>"))];
+  [("QSigma", dependent_tr' ("@QSUM", "op <*>"))];
