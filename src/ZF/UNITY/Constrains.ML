@@ -434,7 +434,7 @@ val program_defs_ref = ref ([] : thm list);
 
 (*proves "co" properties when the program is specified*)
 
-fun constrains_tac i = 
+fun gen_constrains_tac(cs,ss) i = 
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               REPEAT (etac Always_ConstrainsI 1
@@ -445,14 +445,16 @@ fun constrains_tac i =
               (* Three subgoals *)
               rewrite_goal_tac [st_set_def] 3,
               REPEAT (Force_tac 2),
-              full_simp_tac (simpset() addsimps !program_defs_ref) 1,
-              ALLGOALS Clarify_tac,
+              full_simp_tac (ss addsimps !program_defs_ref) 1,
+              ALLGOALS (clarify_tac cs),
               REPEAT (FIRSTGOAL (etac disjE)),
               ALLGOALS Clarify_tac,
               REPEAT (FIRSTGOAL (etac disjE)),
-              ALLGOALS Clarify_tac,
-              ALLGOALS Asm_full_simp_tac,
-              ALLGOALS Clarify_tac]) i;
+              ALLGOALS (clarify_tac cs),
+              ALLGOALS (asm_full_simp_tac ss),
+              ALLGOALS (clarify_tac cs)]) i;
+
+fun constrains_tac st = gen_constrains_tac (claset(), simpset()) st;
 
 (*For proving invariants*)
 fun always_tac i = 

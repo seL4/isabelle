@@ -191,7 +191,7 @@ by (ALLGOALS(asm_simp_tac (simpset() addsimps [prefix_type RS subsetD RS SigmaD1
 by (auto_tac (claset(), 
               simpset() addsimps [prefix_def, Ge_def]));
 by (dtac strict_prefix_length_lt 1);
-by (dres_inst_tac [("x", "length(x`rel)")] bspec 1);
+by (dres_inst_tac [("x", "length(x`rel)")] spec 1);
 by Auto_tac;
 by (full_simp_tac (simpset() addsimps [gen_prefix_iff_nth]) 1);
 by (auto_tac (claset(), simpset() addsimps [id_def, lam_def]));

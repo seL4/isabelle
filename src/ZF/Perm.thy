@@ -195,8 +195,13 @@ apply (unfold id_def)
 apply (force intro!: lam_type dest: apply_type)
 done
 
+text{*@{term id} as the identity relation*}
+lemma id_iff [simp]: "<x,y> \<in> id(A) <-> x=y & y \<in> A"
+by auto
 
-(*** Converse of a function ***)
+
+
+subsection{*Converse of a Function*}
 
 lemma inj_converse_fun: "f: inj(A,B) ==> converse(f) : range(f)->A"
 apply (unfold inj_def)
@@ -208,7 +213,7 @@ done
 
 (** Equations for converse(f) **)
 
-(*The premises are equivalent to saying that f is injective...*) 
+text{*The premises are equivalent to saying that f is injective...*}
 lemma left_inverse_lemma:
      "[| f: A->B;  converse(f): C->A;  a: A |] ==> converse(f)`(f`a) = a"
 by (blast intro: apply_Pair apply_equality converseI)

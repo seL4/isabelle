@@ -39,8 +39,6 @@ declare bexp_iff [THEN iffD1, simp]
 lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
         apply (simp_all (no_asm_simp))
-      txt {* @{text skip} *}
-      apply fast
      txt {* @{text assign} *}
      apply (simp add: update_type)
     txt {* @{text comp} *}
@@ -48,7 +46,6 @@ lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
    txt {* @{text while} *}
    apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
    apply (simp add: Gamma_def)
-   apply force
   txt {* recursive case of @{text while} *}
   apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
   apply (auto simp add: Gamma_def)

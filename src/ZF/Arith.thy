@@ -78,12 +78,12 @@ declare rec_type [simp]
         nat_0_le [simp]
 
 
-lemma zero_lt_lemma: "[| 0<k; k: nat |] ==> EX j: nat. k = succ(j)"
+lemma zero_lt_lemma: "[| 0<k; k \<in> nat |] ==> \<exists>j\<in>nat. k = succ(j)"
 apply (erule rev_mp)
 apply (induct_tac "k", auto)
 done
 
-(* [| 0 < k; k: nat; !!j. [| j: nat; k = succ(j) |] ==> Q |] ==> Q *)
+(* [| 0 < k; k \<in> nat; !!j. [| j \<in> nat; k = succ(j) |] ==> Q |] ==> Q *)
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE, standard]
 
 
@@ -98,21 +98,21 @@ by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 lemma natify_0 [simp]: "natify(0) = 0"
 by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 
-lemma natify_non_succ: "ALL z. x ~= succ(z) ==> natify(x) = 0"
+lemma natify_non_succ: "\<forall>z. x ~= succ(z) ==> natify(x) = 0"
 by (rule natify_def [THEN def_Vrecursor, THEN trans], auto)
 
-lemma natify_in_nat [iff,TC]: "natify(x) : nat"
+lemma natify_in_nat [iff,TC]: "natify(x) \<in> nat"
 apply (rule_tac a=x in eps_induct)
-apply (case_tac "EX z. x = succ(z)")
+apply (case_tac "\<exists>z. x = succ(z)")
 apply (auto simp add: natify_succ natify_non_succ)
 done
 
-lemma natify_ident [simp]: "n : nat ==> natify(n) = n"
+lemma natify_ident [simp]: "n \<in> nat ==> natify(n) = n"
 apply (induct_tac "n")
 apply (auto simp add: natify_succ)
 done
 
-lemma natify_eqE: "[|natify(x) = y;  x: nat|] ==> x=y"
+lemma natify_eqE: "[|natify(x) = y;  x \<in> nat|] ==> x=y"
 by auto
 
 
@@ -167,29 +167,29 @@ subsection{*Typing rules*}
 
 (** Addition **)
 
-lemma raw_add_type: "[| m:nat;  n:nat |] ==> raw_add (m, n) : nat"
+lemma raw_add_type: "[| m\<in>nat;  n\<in>nat |] ==> raw_add (m, n) \<in> nat"
 by (induct_tac "m", auto)
 
-lemma add_type [iff,TC]: "m #+ n : nat"
+lemma add_type [iff,TC]: "m #+ n \<in> nat"
 by (simp add: add_def raw_add_type)
 
 (** Multiplication **)
 
-lemma raw_mult_type: "[| m:nat;  n:nat |] ==> raw_mult (m, n) : nat"
+lemma raw_mult_type: "[| m\<in>nat;  n\<in>nat |] ==> raw_mult (m, n) \<in> nat"
 apply (induct_tac "m")
 apply (simp_all add: raw_add_type)
 done
 
-lemma mult_type [iff,TC]: "m #* n : nat"
+lemma mult_type [iff,TC]: "m #* n \<in> nat"
 by (simp add: mult_def raw_mult_type)
 
 
 (** Difference **)
 
-lemma raw_diff_type: "[| m:nat;  n:nat |] ==> raw_diff (m, n) : nat"
+lemma raw_diff_type: "[| m\<in>nat;  n\<in>nat |] ==> raw_diff (m, n) \<in> nat"
 by (induct_tac "n", auto)
 
-lemma diff_type [iff,TC]: "m #- n : nat"
+lemma diff_type [iff,TC]: "m #- n \<in> nat"
 by (simp add: diff_def raw_diff_type)
 
 lemma diff_0_eq_0 [simp]: "0 #- n = 0"
@@ -210,7 +210,7 @@ declare raw_diff_succ [simp del]
 lemma diff_0 [simp]: "m #- 0 = natify(m)"
 by (simp add: diff_def)
 
-lemma diff_le_self: "m:nat ==> (m #- n) le m"
+lemma diff_le_self: "m\<in>nat ==> (m #- n) le m"
 apply (subgoal_tac " (m #- natify (n)) le m")
 apply (rule_tac [2] m = m and n = "natify (n) " in diff_induct)
 apply (erule_tac [6] leE)
@@ -227,7 +227,7 @@ by (simp add: add_def)
 lemma add_succ [simp]: "succ(m) #+ n = succ(m #+ n)"
 by (simp add: natify_succ add_def)
 
-lemma add_0: "m: nat ==> 0 #+ m = m"
+lemma add_0: "m \<in> nat ==> 0 #+ m = m"
 by simp
 
 (*Associative law for addition*)
@@ -252,7 +252,7 @@ apply (rule_tac n = "natify(m) " in nat_induct)
 apply (auto simp add: natify_succ)
 done
 
-lemma add_0_right: "m: nat ==> m #+ 0 = m"
+lemma add_0_right: "m \<in> nat ==> m #+ 0 = m"
 by auto
 
 (*Commutative law for addition*)
@@ -274,7 +274,7 @@ lemmas add_ac = add_assoc add_commute add_left_commute
 
 (*Cancellation law on the left*)
 lemma raw_add_left_cancel:
-     "[| raw_add(k, m) = raw_add(k, n);  k:nat |] ==> m=n"
+     "[| raw_add(k, m) = raw_add(k, n);  k\<in>nat |] ==> m=n"
 apply (erule rev_mp)
 apply (induct_tac "k", auto)
 done
@@ -285,7 +285,7 @@ apply (drule raw_add_left_cancel, auto)
 done
 
 lemma add_left_cancel:
-     "[| i = j;  i #+ m = j #+ n;  m:nat;  n:nat |] ==> m = n"
+     "[| i = j;  i #+ m = j #+ n;  m\<in>nat;  n\<in>nat |] ==> m = n"
 by (force dest!: add_left_cancel_natify)
 
 (*Thanks to Sten Agerholm*)
@@ -295,7 +295,7 @@ apply (rule_tac [2] n = "natify(k) " in nat_induct)
 apply auto
 done
 
-lemma add_le_elim1: "[| k#+m le k#+n; m: nat; n: nat |] ==> m le n"
+lemma add_le_elim1: "[| k#+m le k#+n; m \<in> nat; n \<in> nat |] ==> m le n"
 by (drule add_le_elim1_natify, auto)
 
 lemma add_lt_elim1_natify: "k#+m < k#+n ==> natify(m) < natify(n)"
@@ -304,29 +304,26 @@ apply (rule_tac [2] n = "natify(k) " in nat_induct)
 apply auto
 done
 
-lemma add_lt_elim1: "[| k#+m < k#+n; m: nat; n: nat |] ==> m < n"
+lemma add_lt_elim1: "[| k#+m < k#+n; m \<in> nat; n \<in> nat |] ==> m < n"
 by (drule add_lt_elim1_natify, auto)
 
 
 subsection{*Monotonicity of Addition*}
 
 (*strict, in 1st argument; proof is by rule induction on 'less than'.
-  Still need j:nat, for consider j = omega.  Then we can have i<omega,
-  which is the same as i:nat, but natify(j)=0, so the conclusion fails.*)
-lemma add_lt_mono1: "[| i<j; j:nat |] ==> i#+k < j#+k"
+  Still need j\<in>nat, for consider j = omega.  Then we can have i<omega,
+  which is the same as i\<in>nat, but natify(j)=0, so the conclusion fails.*)
+lemma add_lt_mono1: "[| i<j; j\<in>nat |] ==> i#+k < j#+k"
 apply (frule lt_nat_in_nat, assumption)
 apply (erule succ_lt_induct)
 apply (simp_all add: leI)
 done
 
-(*strict, in both arguments*)
-lemma add_lt_mono:
- "[| i<j; k<l; j:nat; l:nat |] ==> i#+k < j#+l"
-apply (rule add_lt_mono1 [THEN lt_trans], assumption+)
-apply (subst add_commute, subst add_commute, rule add_lt_mono1, assumption+)
-done
+text{*strict, in second argument*}
+lemma add_lt_mono2: "[| i<j; j\<in>nat |] ==> k#+i < k#+j"
+by (simp add: add_commute [of k] add_lt_mono1)
 
-(*A [clumsy] way of lifting < monotonicity to le monotonicity *)
+text{*A [clumsy] way of lifting < monotonicity to @{text "\<le>"} monotonicity*}
 lemma Ord_lt_mono_imp_le_mono:
   assumes lt_mono: "!!i j. [| i<j; j:k |] ==> f(i) < f(j)"
       and ford:    "!!i. i:k ==> Ord(f(i))"
@@ -337,16 +334,32 @@ apply (insert leij jink)
 apply (blast intro!: leCI lt_mono ford elim!: leE)
 done
 
-(*le monotonicity, 1st argument*)
-lemma add_le_mono1: "[| i le j; j:nat |] ==> i#+k le j#+k"
+text{*@{text "\<le>"} monotonicity, 1st argument*}
+lemma add_le_mono1: "[| i le j; j\<in>nat |] ==> i#+k le j#+k"
 apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck) 
 apply (blast intro: add_lt_mono1 add_type [THEN nat_into_Ord])+
 done
 
-(* le monotonicity, BOTH arguments*)
-lemma add_le_mono: "[| i le j; k le l; j:nat; l:nat |] ==> i#+k le j#+l"
+text{*@{text "\<le>"} monotonicity, both arguments*}
+lemma add_le_mono: "[| i le j; k le l; j\<in>nat; l\<in>nat |] ==> i#+k le j#+l"
 apply (rule add_le_mono1 [THEN le_trans], assumption+)
 apply (subst add_commute, subst add_commute, rule add_le_mono1, assumption+)
+done
+
+text{*Combinations of less-than and less-than-or-equals*}
+
+lemma add_lt_le_mono: "[| i<j; k\<le>l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
+apply (rule add_lt_mono1 [THEN lt_trans2], assumption+)
+apply (subst add_commute, subst add_commute, rule add_le_mono1, assumption+)
+done
+
+lemma add_le_lt_mono: "[| i\<le>j; k<l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
+by (subst add_commute, subst add_commute, erule add_lt_le_mono, assumption+)
+
+text{*Less-than: in other words, strict in both arguments*}
+lemma add_lt_mono: "[| i<j; k<l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
+apply (rule add_lt_le_mono) 
+apply (auto intro: leI) 
 done
 
 (** Subtraction is the inverse of addition. **)
@@ -474,10 +487,10 @@ by auto
 lemma mult_1_right_natify [simp]: "n #* 1 = natify(n)"
 by auto
 
-lemma mult_1: "n : nat ==> 1 #* n = n"
+lemma mult_1: "n \<in> nat ==> 1 #* n = n"
 by simp
 
-lemma mult_1_right: "n : nat ==> n #* 1 = n"
+lemma mult_1_right: "n \<in> nat ==> n #* 1 = n"
 by simp
 
 (*Commutative law for multiplication*)
@@ -522,12 +535,12 @@ lemmas mult_ac = mult_assoc mult_commute mult_left_commute
 
 
 lemma lt_succ_eq_0_disj:
-     "[| m:nat; n:nat |]
-      ==> (m < succ(n)) <-> (m = 0 | (EX j:nat. m = succ(j) & j < n))"
+     "[| m\<in>nat; n\<in>nat |]
+      ==> (m < succ(n)) <-> (m = 0 | (\<exists>j\<in>nat. m = succ(j) & j < n))"
 by (induct_tac "m", auto)
 
 lemma less_diff_conv [rule_format]:
-     "[| j:nat; k:nat |] ==> ALL i:nat. (i < j #- k) <-> (i #+ k < j)"
+     "[| j\<in>nat; k\<in>nat |] ==> \<forall>i\<in>nat. (i < j #- k) <-> (i #+ k < j)"
 by (erule_tac m = k in diff_induct, auto)
 
 lemmas nat_typechecks = rec_type nat_0I nat_1I nat_succI Ord_nat
@@ -586,6 +599,7 @@ val add_le_elim1 = thm "add_le_elim1";
 val add_lt_elim1_natify = thm "add_lt_elim1_natify";
 val add_lt_elim1 = thm "add_lt_elim1";
 val add_lt_mono1 = thm "add_lt_mono1";
+val add_lt_mono2 = thm "add_lt_mono2";
 val add_lt_mono = thm "add_lt_mono";
 val Ord_lt_mono_imp_le_mono = thm "Ord_lt_mono_imp_le_mono";
 val add_le_mono1 = thm "add_le_mono1";

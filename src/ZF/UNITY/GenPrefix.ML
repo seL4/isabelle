@@ -12,13 +12,13 @@ Based on Lex/Prefix
 *)
 
 Goalw [refl_def]
- "[| refl(A, r); x:A |] ==> <x,x>:r";
+ "[| refl(A, r); x \\<in> A |] ==> <x,x>:r";
 by Auto_tac;
 qed "reflD";
 
 (*** preliminary lemmas ***)
 
-Goal "xs:list(A) ==> <[], xs>:gen_prefix(A, r)";
+Goal "xs \\<in> list(A) ==> <[], xs> \\<in> gen_prefix(A, r)";
 by (dtac (rotate_prems  1 gen_prefix.append) 1);
 by (rtac gen_prefix.Nil 1);
 by Auto_tac;
@@ -26,19 +26,19 @@ qed "Nil_gen_prefix";
 Addsimps [Nil_gen_prefix];
 
 
-Goal "<xs,ys>:gen_prefix(A, r) ==> length(xs) le length(ys)";
+Goal "<xs,ys> \\<in> gen_prefix(A, r) ==> length(xs) \\<le> length(ys)";
 by (etac gen_prefix.induct 1);
-by (subgoal_tac "ys:list(A)" 3);
+by (subgoal_tac "ys \\<in> list(A)" 3);
 by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD]
                        addIs [le_trans], 
               simpset() addsimps [length_app]));
 qed "gen_prefix_length_le";
 
 
-Goal "[| <xs', ys'>:gen_prefix(A, r) |] \
-\  ==> (ALL x xs. x:A --> xs'= Cons(x,xs) --> \
-\      (EX y ys. y:A & ys' = Cons(y,ys) &\
-\      <x,y>:r & <xs, ys>:gen_prefix(A, r)))";
+Goal "[| <xs', ys'> \\<in> gen_prefix(A, r) |] \
+\  ==> (\\<forall>x xs. x \\<in> A --> xs'= Cons(x,xs) --> \
+\      (\\<exists>y ys. y \\<in> A & ys' = Cons(y,ys) &\
+\      <x,y>:r & <xs, ys> \\<in> gen_prefix(A, r)))";
 by (etac gen_prefix.induct 1);
 by (force_tac (claset() addIs [gen_prefix.append],
                simpset()) 3);
@@ -47,9 +47,9 @@ val lemma = result();
 
 (*As usual converting it to an elimination rule is tiresome*)
 val major::prems = 
-Goal "[| <Cons(x,xs), zs>:gen_prefix(A, r); \
-\   !!y ys. [|zs = Cons(y, ys); y:A; x:A; <x,y>:r; \
-\     <xs,ys>:gen_prefix(A, r) |] ==> P \
+Goal "[| <Cons(x,xs), zs> \\<in> gen_prefix(A, r); \
+\   !!y ys. [|zs = Cons(y, ys); y \\<in> A; x \\<in> A; <x,y>:r; \
+\     <xs,ys> \\<in> gen_prefix(A, r) |] ==> P \
 \     |] ==> P";
 by (cut_facts_tac [major] 1);
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
@@ -65,8 +65,8 @@ qed "Cons_gen_prefixE";
 AddSEs [Cons_gen_prefixE];
 
 Goal 
-"(<Cons(x,xs),Cons(y,ys)>:gen_prefix(A, r)) \
-\ <-> (x:A & y:A & <x,y>:r & <xs,ys>:gen_prefix(A, r))";
+"(<Cons(x,xs),Cons(y,ys)> \\<in> gen_prefix(A, r)) \
+\ <-> (x \\<in> A & y \\<in> A & <x,y>:r & <xs,ys> \\<in> gen_prefix(A, r))";
 by (auto_tac (claset() addIs [gen_prefix.prepend], simpset()));
 qed"Cons_gen_prefix_Cons";
 AddIffs [Cons_gen_prefix_Cons];
@@ -88,8 +88,8 @@ by (Clarify_tac 1);
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
 by (Clarify_tac 1);
 by (etac rev_mp 1);
-by (eres_inst_tac [("P", "y:list(A)")] rev_mp 1);
-by (eres_inst_tac [("P", "xa:list(A)")] rev_mp 1);
+by (eres_inst_tac [("P", "y \\<in> list(A)")] rev_mp 1);
+by (eres_inst_tac [("P", "xa \\<in> list(A)")] rev_mp 1);
 by (etac gen_prefix.induct 1);
 by (Asm_simp_tac 1);
 by (Clarify_tac 1);
@@ -119,8 +119,8 @@ Addsimps [refl_gen_prefix RS reflD];
 (* Transitivity *)
 (* A lemma for proving gen_prefix_trans_comp *)
 
-Goal "xs:list(A) ==> \
-\  ALL zs. <xs @ ys, zs>:gen_prefix(A, r) --> <xs, zs>: gen_prefix(A, r)";
+Goal "xs \\<in> list(A) ==> \
+\  \\<forall>zs. <xs @ ys, zs> \\<in> gen_prefix(A, r) --> <xs, zs>: gen_prefix(A, r)";
 by (etac list.induct 1);
 by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD], simpset()));
 qed_spec_mp "append_gen_prefix";
@@ -128,10 +128,10 @@ qed_spec_mp "append_gen_prefix";
 (* Lemma proving transitivity and more*)
 
 Goal "<x, y>: gen_prefix(A, r) ==> \
-\  (ALL z:list(A). <y,z>:gen_prefix(A, s)--><x, z>:gen_prefix(A, s O r))";
+\  (\\<forall>z \\<in> list(A). <y,z> \\<in> gen_prefix(A, s)--><x, z> \\<in> gen_prefix(A, s O r))";
 by (etac gen_prefix.induct 1);
 by (auto_tac (claset() addEs [ConsE], simpset() addsimps [Nil_gen_prefix]));
-by (subgoal_tac "ys:list(A)" 1);
+by (subgoal_tac "ys \\<in> list(A)" 1);
 by (blast_tac (claset() addDs [gen_prefix.dom_subset RS subsetD]) 2);
 by (dres_inst_tac [("xs", "ys"), ("r", "s")] append_gen_prefix 1);
 by Auto_tac;
@@ -158,9 +158,9 @@ by (Blast_tac 1);
 qed "trans_on_gen_prefix";
 
 Goalw [prefix_def]
-"[| <x,y>:prefix(A); <y, z>:gen_prefix(A, r); r<=A*A |] \
-\ ==>  <x, z>:gen_prefix(A, r)";
-by (res_inst_tac [("P", "%r. <x,z>:gen_prefix(A, r)")]
+"[| <x,y> \\<in> prefix(A); <y, z> \\<in> gen_prefix(A, r); r<=A*A |] \
+\ ==>  <x, z> \\<in> gen_prefix(A, r)";
+by (res_inst_tac [("P", "%r. <x,z> \\<in> gen_prefix(A, r)")]
              (right_comp_id RS subst) 1);
 by (REPEAT(blast_tac (claset() addDs [gen_prefix_trans_comp, 
                   gen_prefix.dom_subset RS subsetD]) 1));
@@ -168,16 +168,16 @@ qed_spec_mp "prefix_gen_prefix_trans";
 
 
 Goalw [prefix_def]
-"[| <x,y>:gen_prefix(A,r); <y, z>:prefix(A); r<=A*A |] \
-\ ==>  <x, z>:gen_prefix(A, r)";
-by (res_inst_tac [("P", "%r. <x,z>:gen_prefix(A, r)")] (left_comp_id RS subst) 1);
+"[| <x,y> \\<in> gen_prefix(A,r); <y, z> \\<in> prefix(A); r<=A*A |] \
+\ ==>  <x, z> \\<in> gen_prefix(A, r)";
+by (res_inst_tac [("P", "%r. <x,z> \\<in> gen_prefix(A, r)")] (left_comp_id RS subst) 1);
 by (REPEAT(blast_tac (claset() addDs [gen_prefix_trans_comp, 
                                       gen_prefix.dom_subset RS subsetD]) 1));
 qed_spec_mp "gen_prefix_prefix_trans";
 
 (** Antisymmetry **)
 
-Goal "n:nat ==> ALL b:nat. n #+ b le n --> b = 0";
+Goal "n \\<in> nat ==> \\<forall>b \\<in> nat. n #+ b \\<le> n --> b = 0";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed_spec_mp "nat_le_lemma";
@@ -192,11 +192,11 @@ by (Blast_tac 1);
 (*append case is hardest*)
 by (Clarify_tac 1);
 by (subgoal_tac "length(zs) = 0" 1);
-by (subgoal_tac "ys:list(A)" 1);
+by (subgoal_tac "ys \\<in> list(A)" 1);
 by (blast_tac (claset() addDs [gen_prefix.dom_subset RS subsetD]) 2);
-by (dres_inst_tac [("psi", "<ys @ zs, xs>:gen_prefix(A,r)")] asm_rl 1);
+by (dres_inst_tac [("psi", "<ys @ zs, xs> \\<in> gen_prefix(A,r)")] asm_rl 1);
 by (Asm_full_simp_tac 1);
-by (subgoal_tac "length(ys @ zs)  = length(ys) #+ length(zs) &ys:list(A)&xs:list(A)" 1);
+by (subgoal_tac "length(ys @ zs)  = length(ys) #+ length(zs) &ys \\<in> list(A)&xs \\<in> list(A)" 1);
 by (blast_tac (claset() addIs [length_app] 
                         addDs [gen_prefix.dom_subset RS subsetD]) 2);
 by (REPEAT (dtac gen_prefix_length_le 1));
@@ -209,41 +209,41 @@ qed_spec_mp "antisym_gen_prefix";
 
 (*** recursion equations ***)
 
-Goal "xs:list(A) ==> <xs, []>:gen_prefix(A,r) <-> (xs = [])";
+Goal "xs \\<in> list(A) ==> <xs, []> \\<in> gen_prefix(A,r) <-> (xs = [])";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "gen_prefix_Nil";
 Addsimps [gen_prefix_Nil];
 
 Goalw [refl_def]
- "[| refl(A, r);  xs:list(A) |] ==> \
-\   <xs@ys, xs@zs>: gen_prefix(A, r) <-> <ys,zs>:gen_prefix(A, r)";
+ "[| refl(A, r);  xs \\<in> list(A) |] ==> \
+\   <xs@ys, xs@zs>: gen_prefix(A, r) <-> <ys,zs> \\<in> gen_prefix(A, r)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "same_gen_prefix_gen_prefix";
 Addsimps [same_gen_prefix_gen_prefix];
 
-Goal "[| xs:list(A); ys:list(A); y:A |] ==> \
+Goal "[| xs \\<in> list(A); ys \\<in> list(A); y \\<in> A |] ==> \
 \   <xs, Cons(y,ys)> : gen_prefix(A,r)  <-> \
-\     (xs=[] | (EX z zs. xs=Cons(z,zs) & z:A & <z,y>:r & <zs,ys>:gen_prefix(A,r)))";
+\     (xs=[] | (\\<exists>z zs. xs=Cons(z,zs) & z \\<in> A & <z,y>:r & <zs,ys> \\<in> gen_prefix(A,r)))";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "gen_prefix_Cons";
 
-Goal "[| refl(A,r);  <xs,ys>:gen_prefix(A, r); zs:list(A) |] \
+Goal "[| refl(A,r);  <xs,ys> \\<in> gen_prefix(A, r); zs \\<in> list(A) |] \
 \     ==>  <xs@zs, take(length(xs), ys) @ zs> : gen_prefix(A, r)";
 by (etac gen_prefix.induct 1);
 by (Asm_simp_tac 1);
 by (ALLGOALS(forward_tac [gen_prefix.dom_subset RS subsetD]));
 by Auto_tac;
 by (ftac gen_prefix_length_le 1);
-by (subgoal_tac "take(length(xs), ys):list(A)" 1);
+by (subgoal_tac "take(length(xs), ys) \\<in> list(A)" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps 
          [diff_is_0_iff RS iffD2, take_type ])));
 qed "gen_prefix_take_append";
 
-Goal "[| refl(A, r);  <xs,ys>:gen_prefix(A,r);   \
-\        length(xs) = length(ys); zs:list(A) |] \
+Goal "[| refl(A, r);  <xs,ys> \\<in> gen_prefix(A,r);   \
+\        length(xs) = length(ys); zs \\<in> list(A) |] \
 \     ==>  <xs@zs, ys @ zs> : gen_prefix(A, r)";
 by (dres_inst_tac [("zs", "zs")]  gen_prefix_take_append 1);
 by (REPEAT(assume_tac 1));
@@ -254,13 +254,13 @@ by (auto_tac (claset() addSIs [take_all]
 qed "gen_prefix_append_both";
 
 (*NOT suitable for rewriting since [y] has the form y#ys*)
-Goal "xs:list(A) ==> xs @ Cons(y, ys) = (xs @ [y]) @ ys";
+Goal "xs \\<in> list(A) ==> xs @ Cons(y, ys) = (xs @ [y]) @ ys";
 by (auto_tac (claset(), simpset() addsimps [app_assoc]));
 qed "append_cons_conv";
 
-Goal "[| <xs,ys>:gen_prefix(A, r);  refl(A, r) |] \
+Goal "[| <xs,ys> \\<in> gen_prefix(A, r);  refl(A, r) |] \
 \     ==> length(xs) < length(ys) --> \
-\         <xs @ [nth(length(xs), ys)], ys>:gen_prefix(A, r)";
+\         <xs @ [nth(length(xs), ys)], ys> \\<in> gen_prefix(A, r)";
 by (etac gen_prefix.induct 1);
 by (Blast_tac 1);
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
@@ -290,51 +290,52 @@ by (auto_tac (claset() addEs [ConsE],
 val append_one_gen_prefix_lemma = result() RS mp;
 
 Goal "[| <xs,ys>: gen_prefix(A, r);  length(xs) < length(ys);  refl(A, r) |] \
-\     ==> <xs @ [nth(length(xs), ys)], ys>:gen_prefix(A, r)";
+\     ==> <xs @ [nth(length(xs), ys)], ys> \\<in> gen_prefix(A, r)";
 by (blast_tac (claset() addIs [append_one_gen_prefix_lemma]) 1);
 qed "append_one_gen_prefix";
 
 
 (** Proving the equivalence with Charpentier's definition **)
 
-Goal "xs:list(A) ==>  \
-\ ALL ys:list(A). ALL i:nat. i < length(xs) \
+Goal "xs \\<in> list(A) ==>  \
+\ \\<forall>ys \\<in> list(A). \\<forall>i \\<in> nat. i < length(xs) \
 \         --> <xs, ys>: gen_prefix(A, r) --> <nth(i, xs), nth(i, ys)>:r";
 by (induct_tac "xs" 1);
 by (ALLGOALS(Clarify_tac));
 by (ALLGOALS(Asm_full_simp_tac));
 by (etac natE 1);
 by (ALLGOALS(Asm_full_simp_tac));
-qed_spec_mp "gen_prefix_imp_nth";
+qed_spec_mp "gen_prefix_imp_nth_lemma";
 
-Goal "xs:list(A) ==> \
-\ ALL ys:list(A). length(xs) le length(ys)  \
-\     --> (ALL i:nat. i < length(xs)--> <nth(i, xs), nth(i,ys)>:r)  \
-\     --> <xs, ys> : gen_prefix(A, r)";
+Goal "[| <xs,ys> \\<in> gen_prefix(A,r); i < length(xs)|] \
+\     ==> <nth(i, xs), nth(i, ys)>:r";
+by (cut_inst_tac [("A","A")] gen_prefix.dom_subset 1); 
+by (rtac gen_prefix_imp_nth_lemma 1);
+by (auto_tac (claset(), simpset() addsimps [lt_nat_in_nat]));  
+qed "gen_prefix_imp_nth";
+
+Goal "xs \\<in> list(A) ==> \
+\ \\<forall>ys \\<in> list(A). length(xs) \\<le> length(ys)  \
+\     --> (\\<forall>i. i < length(xs) --> <nth(i, xs), nth(i,ys)>:r)  \
+\     --> <xs, ys> \\<in> gen_prefix(A, r)";
 by (induct_tac "xs" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_succ_eq_0_disj]))); 
+by (ALLGOALS Asm_simp_tac); 
 by (Clarify_tac 1);
-by (eres_inst_tac [("a","ys")] list.elim 1); 
-by (ALLGOALS Asm_full_simp_tac);
-by (Clarify_tac 1);
-by (rename_tac "zs" 1);
-by (dres_inst_tac [("x", "zs")] bspec 1);
-by (ALLGOALS(Clarify_tac));
-(*Faster than Auto_tac*)
-by (rtac conjI 1); 
-by (REPEAT (Force_tac 1));
+by (eres_inst_tac [("a","ys")] list.elim 1);
+by (asm_full_simp_tac (simpset() addsimps []) 1);  
+by (force_tac (claset() addSIs [nat_0_le], simpset() addsimps [lt_nat_in_nat]) 1); 
 qed_spec_mp "nth_imp_gen_prefix";
 
-Goal "(<xs,ys>: gen_prefix(A,r)) <-> \
-\ (xs:list(A) & ys:list(A) & length(xs) le length(ys) & \
-\ (ALL i:nat. i < length(xs) --> <nth(i,xs), nth(i, ys)>: r))";
+Goal "(<xs,ys> : gen_prefix(A,r)) <-> \
+\     (xs \\<in> list(A) & ys \\<in> list(A) & length(xs) \\<le> length(ys) & \
+\     (\\<forall>i. i < length(xs) --> <nth(i,xs), nth(i, ys)>: r))";
 by (rtac iffI 1);
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
 by (ftac gen_prefix_length_le 1);
 by (ALLGOALS(Clarify_tac));
 by (rtac nth_imp_gen_prefix 2);
-by (dtac (rotate_prems 4 gen_prefix_imp_nth) 1);
-by Auto_tac;
+by (dtac gen_prefix_imp_nth 1);
+by (auto_tac (claset(), simpset() addsimps [lt_nat_in_nat])); 
 qed "gen_prefix_iff_nth";
 
 (** prefix is a partial order: **)
@@ -363,44 +364,44 @@ bind_thm("prefix_trans_on", trans_on_prefix RS trans_onD);
 (* Monotonicity of "set" operator WRT prefix *)
 
 Goalw [prefix_def] 
-"<xs,ys>:prefix(A) ==> set_of_list(xs) <= set_of_list(ys)";
+"<xs,ys> \\<in> prefix(A) ==> set_of_list(xs) <= set_of_list(ys)";
 by (etac gen_prefix.induct 1);
-by (subgoal_tac "xs:list(A)&ys:list(A)" 3);
+by (subgoal_tac "xs \\<in> list(A)&ys \\<in> list(A)" 3);
 by (blast_tac (claset() addDs [gen_prefix.dom_subset RS subsetD]) 4);
 by (auto_tac (claset(), simpset() addsimps [set_of_list_append]));
 qed "set_of_list_prefix_mono";  
 
 (** recursion equations **)
 
-Goalw [prefix_def] "xs:list(A) ==> <[],xs>:prefix(A)";
+Goalw [prefix_def] "xs \\<in> list(A) ==> <[],xs> \\<in> prefix(A)";
 by (asm_simp_tac (simpset() addsimps [Nil_gen_prefix]) 1);
 qed "Nil_prefix";
 Addsimps[Nil_prefix];
 
 
-Goalw [prefix_def] "<xs, []>:prefix(A) <-> (xs = [])";
+Goalw [prefix_def] "<xs, []> \\<in> prefix(A) <-> (xs = [])";
 by Auto_tac;
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
-by (dres_inst_tac [("psi", "<xs, []>:gen_prefix(A, id(A))")] asm_rl 1);
+by (dres_inst_tac [("psi", "<xs, []> \\<in> gen_prefix(A, id(A))")] asm_rl 1);
 by (asm_full_simp_tac (simpset() addsimps [gen_prefix_Nil]) 1);
 qed "prefix_Nil";
 AddIffs [prefix_Nil];
 
 Goalw [prefix_def] 
-"<Cons(x,xs), Cons(y,ys)>:prefix(A) <-> (x=y & <xs,ys>:prefix(A) & y:A)";
+"<Cons(x,xs), Cons(y,ys)> \\<in> prefix(A) <-> (x=y & <xs,ys> \\<in> prefix(A) & y \\<in> A)";
 by Auto_tac;
 qed"Cons_prefix_Cons";
 AddIffs [Cons_prefix_Cons];
 
 Goalw [prefix_def] 
-"xs:list(A)==> <xs@ys,xs@zs>:prefix(A) <-> (<ys,zs>:prefix(A))";
+"xs \\<in> list(A)==> <xs@ys,xs@zs> \\<in> prefix(A) <-> (<ys,zs> \\<in> prefix(A))";
 by (subgoal_tac "refl(A,id(A))" 1);
 by (Asm_simp_tac 1);
 by (auto_tac (claset(), simpset() addsimps[refl_def]));
 qed "same_prefix_prefix";
 Addsimps [same_prefix_prefix];
 
-Goal "xs:list(A) ==> <xs@ys,xs>:prefix(A) <-> (<ys,[]>:prefix(A))";
+Goal "xs \\<in> list(A) ==> <xs@ys,xs> \\<in> prefix(A) <-> (<ys,[]> \\<in> prefix(A))";
 by (res_inst_tac [("P", "%x. <?u, x>:?v <-> ?w(x)")] (app_right_Nil RS subst) 1);
 by (rtac same_prefix_prefix 2);
 by Auto_tac;
@@ -408,37 +409,37 @@ qed "same_prefix_prefix_Nil";
 Addsimps [same_prefix_prefix_Nil];
 
 Goalw [prefix_def] 
-"[| <xs,ys>:prefix(A); zs:list(A) |] ==> <xs,ys@zs>:prefix(A)";
+"[| <xs,ys> \\<in> prefix(A); zs \\<in> list(A) |] ==> <xs,ys@zs> \\<in> prefix(A)";
 by (etac gen_prefix.append 1);
 by (assume_tac 1);
 qed "prefix_appendI";
 Addsimps [prefix_appendI];
 
 Goalw [prefix_def] 
-"[| xs:list(A); ys:list(A); y:A |] ==> \
-\ <xs,Cons(y,ys)>:prefix(A) <-> \
-\ (xs=[] | (EX zs. xs=Cons(y,zs) & <zs,ys>:prefix(A)))";
+"[| xs \\<in> list(A); ys \\<in> list(A); y \\<in> A |] ==> \
+\ <xs,Cons(y,ys)> \\<in> prefix(A) <-> \
+\ (xs=[] | (\\<exists>zs. xs=Cons(y,zs) & <zs,ys> \\<in> prefix(A)))";
 by (auto_tac (claset(), simpset() addsimps [gen_prefix_Cons]));
 qed "prefix_Cons";
 
 Goalw [prefix_def]
-  "[| <xs,ys>:prefix(A); length(xs) < length(ys) |] \
-\ ==> <xs @ [nth(length(xs),ys)], ys>:prefix(A)";
+  "[| <xs,ys> \\<in> prefix(A); length(xs) < length(ys) |] \
+\ ==> <xs @ [nth(length(xs),ys)], ys> \\<in> prefix(A)";
 by (subgoal_tac "refl(A, id(A))" 1);
 by (asm_simp_tac (simpset() addsimps [append_one_gen_prefix]) 1);
 by (auto_tac (claset(), simpset() addsimps [refl_def]));
 qed "append_one_prefix";
 
 Goalw [prefix_def] 
-"<xs,ys>:prefix(A) ==> length(xs) le length(ys)";
+"<xs,ys> \\<in> prefix(A) ==> length(xs) \\<le> length(ys)";
 by (blast_tac (claset() addDs [gen_prefix_length_le]) 1);
 qed "prefix_length_le";
 
 Goalw [prefix_def] 
-"<xs,ys>:prefix(A) ==> xs~=ys --> length(xs) < length(ys)";
+"<xs,ys> \\<in> prefix(A) ==> xs~=ys --> length(xs) < length(ys)";
 by (etac gen_prefix.induct 1);
 by (Clarify_tac 1);
-by (ALLGOALS(subgoal_tac "ys:list(A)&xs:list(A)"));
+by (ALLGOALS(subgoal_tac "ys \\<in> list(A)&xs \\<in> list(A)"));
 by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD], 
              simpset() addsimps [length_app, length_type]));
 by (subgoal_tac "length(zs)=0" 1);
@@ -465,12 +466,11 @@ qed "strict_prefix_length_lt";
 
 (*Equivalence to the definition used in Lex/Prefix.thy*)
 Goalw [prefix_def]
-"<xs,zs>:prefix(A) <-> (EX ys:list(A). zs = xs@ys) & xs:list(A)";
+    "<xs,zs> \\<in> prefix(A) <-> (\\<exists>ys \\<in> list(A). zs = xs@ys) & xs \\<in> list(A)";
 by (auto_tac (claset(),
-       simpset() addsimps [gen_prefix_iff_nth, 
+       simpset() addsimps [gen_prefix_iff_nth, lt_nat_in_nat,
                            nth_append, nth_type, app_type, length_app]));
-by (subgoal_tac "length(xs):nat&length(zs):nat & \
-\                drop(length(xs), zs):list(A)" 1);
+by (subgoal_tac "drop(length(xs), zs) \\<in> list(A)" 1);
 by (res_inst_tac [("x", "drop(length(xs), zs)")] bexI 1);
 by (ALLGOALS(Clarify_tac));
 by (asm_simp_tac (simpset() addsimps [length_type, drop_type]) 2);
@@ -483,17 +483,14 @@ by (Clarify_tac 1);
 by (dres_inst_tac [("i", "length(zs)")] leI 1);
 by (force_tac (claset(), simpset() addsimps [le_subset_iff]) 1);
 by Safe_tac;
-by (Blast_tac 1);
 by (subgoal_tac "length(xs) #+ (i #- length(xs)) = i" 1);
 by (stac nth_drop 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [leI])));
-by (rtac (nat_diff_split RS iffD2) 1);
-by Auto_tac;
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [leI] addsplits [nat_diff_split])));
 qed "prefix_iff";
 
 Goal 
-"[|xs:list(A); ys:list(A); y:A |] ==> \
-\  <xs, ys@[y]>:prefix(A) <-> (xs = ys@[y] | <xs,ys>:prefix(A))";
+"[|xs \\<in> list(A); ys \\<in> list(A); y \\<in> A |] ==> \
+\  <xs, ys@[y]> \\<in> prefix(A) <-> (xs = ys@[y] | <xs,ys> \\<in> prefix(A))";
 by (simp_tac (simpset() addsimps [prefix_iff]) 1);
 by (rtac iffI 1);
 by (Clarify_tac 1);
@@ -504,9 +501,9 @@ by (auto_tac (claset(), simpset() addsimps [app_assoc, app_type]));
 qed "prefix_snoc";
 Addsimps [prefix_snoc];
 
-Goal "zs:list(A) ==> ALL xs:list(A). ALL ys:list(A). \
-\  (<xs, ys@zs>:prefix(A)) <-> \
-\ (<xs,ys>:prefix(A) | (EX us. xs = ys@us & <us,zs>:prefix(A)))";
+Goal "zs \\<in> list(A) ==> \\<forall>xs \\<in> list(A). \\<forall>ys \\<in> list(A). \
+\  (<xs, ys@zs> \\<in> prefix(A)) <-> \
+\ (<xs,ys> \\<in> prefix(A) | (\\<exists>us. xs = ys@us & <us,zs> \\<in> prefix(A)))";
 by (etac list_append_induct 1);
 by (Clarify_tac 2);
 by (rtac iffI 2);
@@ -521,9 +518,9 @@ qed_spec_mp "prefix_append_iff";
 
 (*Although the prefix ordering is not linear, the prefixes of a list
   are linearly ordered.*)
-Goal "[| zs:list(A); xs:list(A); ys:list(A) |] \
-\  ==> <xs, zs>:prefix(A) --> <ys,zs>:prefix(A) \
-\ --><xs,ys>:prefix(A) | <ys,xs>:prefix(A)";
+Goal "[| zs \\<in> list(A); xs \\<in> list(A); ys \\<in> list(A) |] \
+\  ==> <xs, zs> \\<in> prefix(A) --> <ys,zs> \\<in> prefix(A) \
+\ --><xs,ys> \\<in> prefix(A) | <ys,xs> \\<in> prefix(A)";
 by (etac list_append_induct 1);
 by Auto_tac;
 qed_spec_mp "common_prefix_linear";
@@ -562,7 +559,7 @@ by Auto_tac;
 qed "part_order_Le";
 Addsimps [part_order_Le];
 
-Goal "x:list(nat) ==> x pfixLe x";
+Goal "x \\<in> list(nat) ==> x pfixLe x";
 by (blast_tac (claset() addIs [refl_gen_prefix RS reflD, refl_Le]) 1);
 qed "pfixLe_refl";
 Addsimps[pfixLe_refl];
@@ -597,7 +594,7 @@ by (auto_tac (claset() addIs [le_trans], simpset()));
 qed "trans_Ge";
 AddIffs [trans_Ge];
 
-Goal "x:list(nat) ==> x pfixGe x";
+Goal "x \\<in> list(nat) ==> x pfixGe x";
 by (blast_tac (claset() addIs [refl_gen_prefix RS reflD]) 1);
 qed "pfixGe_refl";
 Addsimps[pfixGe_refl];
@@ -618,7 +615,7 @@ qed "prefix_imp_pfixGe";
 (* Added by Sidi: prefix and take *)
 
 Goalw [prefix_def]
-"<xs, ys>:prefix(A) ==> xs=take(length(xs), ys)";
+"<xs, ys> \\<in> prefix(A) ==> xs = take(length(xs), ys)";
 by (etac gen_prefix.induct 1);
 by (subgoal_tac "length(xs):nat" 3);
 by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD],
@@ -630,8 +627,20 @@ by (subgoal_tac "length(xs) #- length(ys)=0" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_is_0_iff])));
 qed "prefix_imp_take";
 
-Goalw [prefix_def]
-"xs:list(A) ==> ALL n:nat. <take(n, xs), xs>:prefix(A)";
+Goal "[|<xs,ys> \\<in> prefix(A); length(xs)=length(ys)|] ==> xs = ys";
+by (cut_inst_tac [("A","A")] prefix_type 1);
+by (dtac subsetD 1);
+by Auto_tac;  
+by (dtac prefix_imp_take 1); 
+by (etac trans 1); 
+by (Asm_full_simp_tac 1); 
+qed "prefix_length_equal";
+
+Goal "[|<xs,ys> \\<in> prefix(A); length(ys) \\<le> length(xs)|] ==> xs = ys";
+by (blast_tac (claset() addIs [prefix_length_equal, le_anti_sym, prefix_length_le]) 1); 
+qed "prefix_length_le_equal";
+
+Goalw [prefix_def] "xs \\<in> list(A) ==> \\<forall>n \\<in> nat. <take(n, xs), xs> \\<in> prefix(A)";
 by (etac list.induct 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1); 
@@ -639,7 +648,7 @@ by (etac natE 1);
 by Auto_tac;
 qed_spec_mp "take_prefix";
 
-Goal "<xs, ys>:prefix(A) <-> (xs=take(length(xs), ys) & xs:list(A) & ys:list(A))";
+Goal "<xs,ys> \\<in> prefix(A) <-> (xs=take(length(xs), ys) & xs \\<in> list(A) & ys \\<in> list(A))";
 by (rtac iffI 1);
 by (forward_tac [prefix_type RS subsetD] 1);
 by (blast_tac (claset() addIs [prefix_imp_take]) 1);
@@ -647,3 +656,29 @@ by (Clarify_tac 1);
 by (etac ssubst 1);
 by (blast_tac (claset() addIs [take_prefix, length_type]) 1);
 qed "prefix_take_iff";
+
+Goal "[| <xs,ys> \\<in> prefix(A); i < length(xs)|] ==> nth(i,xs) = nth(i,ys)";
+by (auto_tac (claset() addSDs [gen_prefix_imp_nth],
+              simpset() addsimps [prefix_def])); 
+qed "prefix_imp_nth";
+
+val prems = Goal "[|xs \\<in> list(A); ys \\<in> list(A); length(xs) \\<le> length(ys);  \
+\       !!i. i < length(xs) ==> nth(i, xs) = nth(i,ys)|]  \
+\     ==> <xs,ys> \\<in> prefix(A)";
+by (auto_tac (claset(), simpset() addsimps prems@[prefix_def, nth_imp_gen_prefix]));
+by (auto_tac (claset() addSIs [nth_imp_gen_prefix], simpset() addsimps prems@[prefix_def]));
+by (blast_tac (claset() addIs prems@[nth_type, lt_trans2]) 1); 
+qed "nth_imp_prefix";
+
+
+Goal "[|length(xs) \\<le> length(ys); \
+\       <xs,zs> \\<in> prefix(A); <ys,zs> \\<in> prefix(A)|] ==> <xs,ys> \\<in> prefix(A)";
+by (cut_inst_tac [("A","A")] prefix_type 1); 
+by (rtac nth_imp_prefix 1); 
+   by (blast_tac (claset() addIs []) 1); 
+  by (blast_tac (claset() addIs []) 1); 
+ by (assume_tac 1); 
+by (res_inst_tac [("b","nth(i,zs)")] trans 1); 
+ by (blast_tac (claset() addIs [prefix_imp_nth]) 1); 
+by (blast_tac (claset() addIs [sym, prefix_imp_nth, prefix_length_le, lt_trans2]) 1); 
+qed "length_le_prefix_imp_prefix";

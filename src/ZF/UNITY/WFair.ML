@@ -19,14 +19,12 @@ Goalw [transient_def]
 by Auto_tac;
 qed "transientD2";
 
-Goalw [stable_def, constrains_def, transient_def]
-    "[| F : stable(A); F : transient(A) |] ==> A = 0";
-by (Asm_full_simp_tac 1);
-by (Blast.depth_tac (claset()) 10 1);
+Goal "[| F : stable(A); F : transient(A) |] ==> A = 0";
+by (asm_full_simp_tac (simpset() addsimps [stable_def, constrains_def, transient_def]) 1); 
+by (Fast_tac 1); 
 qed "stable_transient_empty";
 
-Goalw [transient_def, st_set_def] 
-"[|F:transient(A); B<=A|] ==> F:transient(B)";
+Goalw [transient_def, st_set_def] "[|F:transient(A); B<=A|] ==> F:transient(B)";
 by Safe_tac;
 by (res_inst_tac [("x", "act")] bexI 1);
 by (ALLGOALS(Asm_full_simp_tac));
@@ -609,7 +607,6 @@ Goalw [constrains_def, st_set_def]
 \      F : (A1 - B) co (A1 Un B); \
 \      F : (A2 - C) co (A2 Un C) |] \
 \   ==> F : (A1 Un A2 - C) co (A1 Un A2 Un C)";
-by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "leadsTo_123_aux";
 

@@ -20,3 +20,4 @@ time_use_thy "GenPrefix";
 time_use_thy "Distributor";
 time_use_thy "Merge";
 time_use_thy "ClientImpl";
+time_use_thy "AllocImpl";

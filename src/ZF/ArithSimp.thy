@@ -534,6 +534,34 @@ apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
 apply simp_all
 done
 
+text{*Difference and less-than*}
+
+lemma diff_lt_imp_lt: "[|(k#-i) < (k#-j); i\<in>nat; j\<in>nat; k\<in>nat|] ==> j<i"
+apply (erule rev_mp)
+apply (simp split add: nat_diff_split, auto)
+ apply (blast intro: add_le_self lt_trans1)
+apply (rule not_le_iff_lt [THEN iffD1], auto)
+apply (subgoal_tac "i #+ da < j #+ d", force)
+apply (blast intro: add_le_lt_mono) 
+done
+
+lemma lt_imp_diff_lt: "[|j<i; i\<le>k; k\<in>nat|] ==> (k#-i) < (k#-j)" 
+apply (frule le_in_nat, assumption)
+apply (frule lt_nat_in_nat, assumption)
+apply (simp split add: nat_diff_split, auto)
+  apply (blast intro: lt_asym lt_trans2)
+ apply (blast intro: lt_irrefl lt_trans2)
+apply (rule not_le_iff_lt [THEN iffD1], auto)
+apply (subgoal_tac "j #+ d < i #+ da", force)
+apply (blast intro: add_lt_le_mono) 
+done
+
+
+lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) <-> j<i"
+apply (frule le_in_nat, assumption)
+apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt) 
+done
+
 
 ML
 {*
@@ -607,6 +635,8 @@ val nat_diff_split = thm "nat_diff_split";
 
 val add_lt_elim2 = thm "add_lt_elim2";
 val add_le_elim2 = thm "add_le_elim2";
+
+val diff_lt_iff_lt = thm "diff_lt_iff_lt";
 *}
 
 end

@@ -51,6 +51,8 @@ qed "Collect_Int3";
 AddIffs [Collect_Int2, Collect_Int3];
 
 
+(*for main ZF????*)
+
 Goal "{x:A. P(x) | Q(x)} = Collect(A, P) Un Collect(A, Q)";
 by Auto_tac;
 qed "Collect_disj_eq";
@@ -70,3 +72,8 @@ qed "Int_cons_right";
 Goal "A Int succ(k) = (if k : A then cons(k, A Int k) else A Int k)";
 by Auto_tac;
 qed "Int_succ_right";
+
+Goal "cons(a,B) Int A = (if a : A then cons(a, A Int B) else A Int B)";
+by Auto_tac;
+qed "Int_cons_left";
+

@@ -15,20 +15,20 @@ by (auto_tac (claset() addIs [Ord_0_lt], simpset()));
 qed "Nclients_NbT_gt_0";
 Addsimps [Nclients_NbT_gt_0 RS conjunct1, Nclients_NbT_gt_0 RS conjunct2];
 
-Goal "Nclients ~= 0 & NbT ~= 0";
+Goal "Nclients \\<noteq> 0 & NbT \\<noteq> 0";
 by (cut_facts_tac [Nclients_pos, NbT_pos] 1);
 by Auto_tac;
 qed "Nclients_NbT_not_0";
 Addsimps [Nclients_NbT_not_0 RS conjunct1, Nclients_NbT_not_0  RS conjunct2];
 
-Goal "Nclients:nat & NbT:nat";
+Goal "Nclients\\<in>nat & NbT\\<in>nat";
 by (cut_facts_tac [Nclients_pos, NbT_pos] 1);
 by Auto_tac;
 qed "Nclients_NbT_type";
 Addsimps [Nclients_NbT_type RS conjunct1, Nclients_NbT_type RS conjunct2];
 AddTCs [Nclients_NbT_type RS conjunct1, Nclients_NbT_type RS conjunct2];
 
-Goal "b:Inter(RepFun(Nclients, B)) <-> (ALL x:Nclients. b:B(x))";
+Goal "b\\<in>Inter(RepFun(Nclients, B)) <-> (\\<forall>x\\<in>Nclients. b\\<in>B(x))";
 by (auto_tac (claset(), simpset() addsimps [INT_iff]));
 by (res_inst_tac [("x", "0")] exI 1);
 by (rtac ltD 1); 
@@ -38,15 +38,15 @@ AddIffs [INT_Nclient_iff];
 
 val succ_def = thm "succ_def";
 
-Goal "n:nat ==> \
-\     (ALL i:nat. i<n --> f(i) $<= g(i)) --> \
+Goal "n\\<in>nat ==> \
+\     (\\<forall>i\\<in>nat. i<n --> f(i) $<= g(i)) --> \
 \     setsum(f, n) $<= setsum(g,n)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_full_simp_tac);
-by (subgoal_tac "succ(x)=cons(x, x) & Finite(x) & x~:x" 1);
+by (subgoal_tac "succ(x)=cons(x, x) & Finite(x) & x\\<notin>x" 1);
 by (Clarify_tac 1);
 by (Asm_simp_tac 1);
-by (subgoal_tac "ALL i:nat. i<x--> f(i) $<= g(i)" 1);
+by (subgoal_tac "\\<forall>i\\<in>nat. i<x--> f(i) $<= g(i)" 1);
 by (resolve_tac [zadd_zle_mono] 1);
 by (thin_tac "succ(x)=cons(x,x)" 1);
 by (ALLGOALS(Asm_simp_tac));
@@ -57,22 +57,22 @@ by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Finite, mem_not_refl, succ_def]) 1);
 qed_spec_mp "setsum_fun_mono";
 
-Goal "l:list(A) ==> tokens(l):nat";
+Goal "l\\<in>list(A) ==> tokens(l)\\<in>nat";
 by (etac list.induct 1);
 by Auto_tac;
 qed "tokens_type";
 AddTCs [tokens_type];
 Addsimps [tokens_type];
 
-Goal "xs:list(A) ==> ALL ys:list(A). <xs, ys>:prefix(A) \
-\  --> tokens(xs) le tokens(ys)";
+Goal "xs\\<in>list(A) ==> \\<forall>ys\\<in>list(A). <xs, ys>\\<in>prefix(A) \
+\  --> tokens(xs) \\<le> tokens(ys)";
 by (induct_tac "xs" 1);
 by (auto_tac (claset() addDs [gen_prefix.dom_subset RS subsetD], 
               simpset() addsimps [prefix_def]));
 qed_spec_mp "tokens_mono_aux";
 
-Goal "[| <xs, ys>:prefix(A); xs:list(A); ys:list(A) |] ==> \
-\     tokens(xs) le tokens(ys)";
+Goal "<xs, ys>\\<in>prefix(A) ==> tokens(xs) \\<le> tokens(ys)";
+by (cut_facts_tac [prefix_type] 1);
 by (blast_tac (claset() addIs [tokens_mono_aux]) 1);
 qed "tokens_mono";
 
@@ -84,13 +84,13 @@ Addsimps [mono_tokens];
 AddIs [mono_tokens];
 
 Goal 
-"[| xs:list(A); ys:list(A) |] ==> tokens(xs@ys) = tokens(xs) #+ tokens(ys)";
+"[| xs\\<in>list(A); ys\\<in>list(A) |] ==> tokens(xs@ys) = tokens(xs) #+ tokens(ys)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "tokens_append";
 Addsimps [tokens_append];
 
-Goal "l:list(A) ==> ALL n:nat. length(take(n, l))=min(n, length(l))";
+Goal "l\\<in>list(A) ==> \\<forall>n\\<in>nat. length(take(n, l))=min(n, length(l))";
 by (induct_tac "l" 1);
 by Safe_tac;
 by (ALLGOALS(Asm_simp_tac));
@@ -100,27 +100,27 @@ qed "length_take";
 
 (** bag_of **)
 
-Goal "l:list(A) ==>bag_of(l):Mult(A)";
+Goal "l\\<in>list(A) ==>bag_of(l)\\<in>Mult(A)";
 by (induct_tac "l" 1);
 by (auto_tac (claset(), simpset() addsimps [Mult_iff_multiset]));
 qed "bag_of_type";
 AddTCs [bag_of_type];
 Addsimps [bag_of_type];
 
-Goal "l:list(A) ==> multiset(bag_of(l)) & mset_of(bag_of(l))<=A";
+Goal "l\\<in>list(A) ==> multiset(bag_of(l)) & mset_of(bag_of(l))<=A";
 by (dtac bag_of_type 1);
 by (auto_tac (claset(), simpset() addsimps [Mult_iff_multiset]));
 qed "bag_of_multiset";
 
-Goal "[| xs:list(A); ys:list(A)|] ==> bag_of(xs@ys) = bag_of(xs) +# bag_of(ys)";
+Goal "[| xs\\<in>list(A); ys\\<in>list(A)|] ==> bag_of(xs@ys) = bag_of(xs) +# bag_of(ys)";
 by (induct_tac "xs" 1);
 by (auto_tac (claset(), simpset() 
        addsimps [bag_of_multiset, munion_assoc]));
 qed "bag_of_append";
 Addsimps [bag_of_append];
 
-Goal "xs:list(A) ==> ALL ys:list(A). <xs, ys>:prefix(A) \
-\  --> <bag_of(xs), bag_of(ys)>:MultLe(A, r)";
+Goal "xs\\<in>list(A) ==> \\<forall>ys\\<in>list(A). <xs, ys>\\<in>prefix(A) \
+\  --> <bag_of(xs), bag_of(ys)>\\<in>MultLe(A, r)";
 by (induct_tac "xs" 1);
 by (ALLGOALS(Clarify_tac));
 by (ftac bag_of_multiset 1);
@@ -133,8 +133,8 @@ by (force_tac (claset(), simpset() addsimps
 by (blast_tac (claset() addDs [gen_prefix.dom_subset RS subsetD]) 1);
 qed_spec_mp "bag_of_mono_aux";
 
-Goal "[|  <xs, ys>:prefix(A); xs:list(A); ys:list(A) |] ==> \
-\  <bag_of(xs), bag_of(ys)>:MultLe(A, r)";
+Goal "[|  <xs, ys>\\<in>prefix(A); xs\\<in>list(A); ys\\<in>list(A) |] ==> \
+\  <bag_of(xs), bag_of(ys)>\\<in>MultLe(A, r)";
 by (blast_tac (claset() addIs [bag_of_mono_aux]) 1);
 qed "bag_of_mono";
 AddIs [bag_of_mono];
@@ -150,7 +150,7 @@ Addsimps [mono_bag_of];
 
 bind_thm("nat_into_Fin", eqpoll_refl RSN (2,thm"Fin_lemma"));
 
-Goal "l : list(A) ==> C Int length(l) : Fin(length(l))";
+Goal "l \\<in> list(A) ==> C Int length(l) \\<in> Fin(length(l))";
 by (dtac length_type 1); 
 by (rtac Fin_subset 1); 
 by (rtac Int_lower2 1);
@@ -182,7 +182,7 @@ by (blast_tac (claset() addIs [nat_into_Ord, ltI, length_type]) 1);
 by (asm_full_simp_tac (simpset() addsimps [lt_not_refl, mem_Int_imp_lt_length] addcongs [msetsum_cong]) 1); 
 qed "bag_of_sublist_lemma";
 
-Goal "l:list(A) ==> \
+Goal "l\\<in>list(A) ==> \
 \ C <= nat ==> \
 \ bag_of(sublist(l, C)) = \
 \     msetsum(%i. {#nth(i, l)#}, C Int length(l), A)";
@@ -201,7 +201,7 @@ by Auto_tac;
 qed "nat_Int_length_eq";
 
 (*eliminating the assumption C<=nat*)
-Goal "l:list(A) ==> \
+Goal "l\\<in>list(A) ==> \
 \ bag_of(sublist(l, C)) = msetsum(%i. {#nth(i, l)#}, C Int length(l), A)";
 by (subgoal_tac
       " bag_of(sublist(l, C Int nat)) = \
@@ -211,7 +211,7 @@ by (asm_full_simp_tac (simpset() addsimps [bag_of_sublist_lemma2, Int_lower2, In
 qed "bag_of_sublist";
 
 Goal 
-"l:list(A) ==> \
+"l\\<in>list(A) ==> \
 \ bag_of(sublist(l, B Un C)) +# bag_of(sublist(l, B Int C)) = \
 \     bag_of(sublist(l, B)) +# bag_of(sublist(l, C))";
 by (subgoal_tac
@@ -226,16 +226,16 @@ by (REPEAT (etac list_Int_length_Fin 1));
 qed "bag_of_sublist_Un_Int";
 
 
-Goal "[| l:list(A); B Int C = 0  |]\
+Goal "[| l\\<in>list(A); B Int C = 0  |]\
 \     ==> bag_of(sublist(l, B Un C)) = \
 \         bag_of(sublist(l, B)) +# bag_of(sublist(l, C))"; 
 by (asm_simp_tac (simpset() addsimps [bag_of_sublist_Un_Int RS sym, 
                   sublist_type,  bag_of_multiset]) 1);
 qed "bag_of_sublist_Un_disjoint";
 
-Goal "[| Finite(I); ALL i:I. ALL j:I. i~=j --> A(i) Int A(j) = 0; \
-\ l:list(B) |] \
-\     ==> bag_of(sublist(l, UN i:I. A(i))) =  \
+Goal "[|Finite(I); \\<forall>i\\<in>I. \\<forall>j\\<in>I. i\\<noteq>j --> A(i) \\<inter> A(j) = 0; \
+\       l\\<in>list(B) |] \
+\     ==> bag_of(sublist(l, \\<Union>i\\<in>I. A(i))) =  \
 \         (msetsum(%i. bag_of(sublist(l, A(i))), I, B)) ";  
 by (asm_simp_tac (simpset() delsimps UN_simps addsimps (UN_simps RL [sym])
                             addsimps [bag_of_sublist]) 1);
@@ -263,13 +263,13 @@ qed "all_distinct_Nil";
 
 Goalw [all_distinct_def] 
 "all_distinct(Cons(a, l)) <-> \
-\ (a:set_of_list(l) --> False) & (a ~: set_of_list(l) --> all_distinct(l))";
+\ (a\\<in>set_of_list(l) --> False) & (a \\<notin> set_of_list(l) --> all_distinct(l))";
 by (auto_tac (claset() addEs [list.elim], simpset()));
 qed "all_distinct_Cons";
 Addsimps [all_distinct_Nil, all_distinct_Cons];
 
 (** state_of **)
-Goalw [state_of_def] "s:state ==> state_of(s)=s";
+Goalw [state_of_def] "s\\<in>state ==> state_of(s)=s";
 by Auto_tac;
 qed "state_of_state";
 Addsimps [state_of_state];
@@ -281,7 +281,7 @@ qed "state_of_idem";
 Addsimps [state_of_idem];
 
 
-Goalw [state_of_def] "state_of(s):state";
+Goalw [state_of_def] "state_of(s)\\<in>state";
 by Auto_tac;
 qed "state_of_type";
 Addsimps [state_of_type];
@@ -329,25 +329,25 @@ fun normalize th =
                 handle THM _ => th RS (guarantees_INT_right_iff RS iffD1))
      handle THM _ => th;
 
-Goal "n:nat ==> nat_list_inj(n):list(nat)";
+Goal "n\\<in>nat ==> nat_list_inj(n)\\<in>list(nat)";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed "nat_list_inj_type";
 
-Goal "n:nat ==> length(nat_list_inj(n)) = n";
+Goal "n\\<in>nat ==> length(nat_list_inj(n)) = n";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed "length_nat_list_inj";
 
 Goalw [nat_var_inj_def]
-  "(lam x:nat. nat_var_inj(x)):inj(nat, var)";
+  "(\\<lambda>x\\<in>nat. nat_var_inj(x))\\<in>inj(nat, var)";
 by (res_inst_tac [("d", "var_inj")] lam_injective 1); 
 by (asm_simp_tac (simpset() addsimps [length_nat_list_inj]) 2);
 by (auto_tac (claset(), simpset() addsimps var.intrs@[nat_list_inj_type]));
 qed "var_infinite_lemma";
 
 Goalw [lepoll_def] "nat lepoll var";
-by (res_inst_tac [("x", "(lam x:nat. nat_var_inj(x))")] exI 1);
+by (res_inst_tac [("x", "(\\<lambda>x\\<in>nat. nat_var_inj(x))")] exI 1);
 by (rtac var_infinite_lemma 1);
 qed "nat_lepoll_var";
 
@@ -369,15 +369,15 @@ by (auto_tac (claset(), simpset() addsimps [Card_nat]));
 by (blast_tac (claset() addEs [mem_irrefl]) 1);
 qed "var_not_Finite";
 
-Goal "~Finite(A) ==> EX x. x:A";
+Goal "~Finite(A) ==> \\<exists>x. x\\<in>A";
 by (etac swap 1);
 by Auto_tac;
 by (subgoal_tac "A=0" 1);
 by (auto_tac (claset(), simpset() addsimps [Finite_0]));
 qed "not_Finite_imp_exist";
 
-Goal "Finite(A) ==> b:(Inter(RepFun(var-A, B))) <-> (ALL x:var-A. b:B(x))";
-by (subgoal_tac "EX x. x:var-A" 1);
+Goal "Finite(A) ==> b\\<in>(Inter(RepFun(var-A, B))) <-> (\\<forall>x\\<in>var-A. b\\<in>B(x))";
+by (subgoal_tac "\\<exists>x. x\\<in>var-A" 1);
 by Auto_tac;
 by (subgoal_tac "~Finite(var-A)" 1);
 by (dtac not_Finite_imp_exist 1);
@@ -388,38 +388,39 @@ by (res_inst_tac [("B", "A")] Diff_Finite 1);
 by Auto_tac;
 qed "Inter_Diff_var_iff";
 
-Goal "[| b:Inter(RepFun(var-A, B)); Finite(A); x:var-A |] ==> b:B(x)";
+Goal "[| b\\<in>Inter(RepFun(var-A, B)); Finite(A); x\\<in>var-A |] ==> b\\<in>B(x)";
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [Inter_Diff_var_iff]) 1);
 qed "Inter_var_DiffD";
 
-(* [| Finite(A); (ALL x:var-A. b:B(x)) |] ==> b:Inter(RepFun(var-A, B)) *)
+(* [| Finite(A); (\\<forall>x\\<in>var-A. b\\<in>B(x)) |] ==> b\\<in>Inter(RepFun(var-A, B)) *)
 bind_thm("Inter_var_DiffI", Inter_Diff_var_iff RS iffD2);
 
 AddSIs [Inter_var_DiffI];
 Addsimps [Finite_0, Finite_cons];
 
-Goal "Acts(F)<= A Int Pow(state*state)  <-> Acts(F)<=A";
+Goal "Acts(F)<= A \\<inter> Pow(state*state)  <-> Acts(F)<=A";
 by (cut_facts_tac [inst "F" "F" Acts_type] 1);
 by Auto_tac;
 qed "Acts_subset_Int_Pow_simp";
 Addsimps [Acts_subset_Int_Pow_simp];
 
-Goal "cons(x, A Int B) = cons(x, A) Int cons(x, B)";
+(*for main zf?????*)
+Goal "cons(x, A \\<inter> B) = cons(x, A) \\<inter> cons(x, B)";
 by Auto_tac;
 qed "cons_Int_distrib";
 
 
 (* Currently not used, but of potential interest *)
 Goal 
-"[| Finite(A); ALL x:A. g(x):nat |] ==> \
+"[| Finite(A); \\<forall>x\\<in>A. g(x)\\<in>nat |] ==> \
 \ setsum(%x. $#(g(x)), A) = $# nsetsum(%x. g(x), A)";
 by (etac Finite_induct 1);
 by (auto_tac (claset(), simpset() addsimps [int_of_add]));
 qed "setsum_nsetsum_eq";
 
 Goal 
-"[| A=B;  ALL x:A. f(x)=g(x);  ALL x:A. g(x):nat; \
+"[| A=B;  \\<forall>x\\<in>A. f(x)=g(x);  \\<forall>x\\<in>A. g(x)\\<in>nat; \
 \     Finite(A) |]  ==> nsetsum(f, A) = nsetsum(g, B)";
 by (subgoal_tac "$# nsetsum(f, A) = $# nsetsum(g, B)" 1);
 by (rtac trans 2);

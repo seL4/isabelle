@@ -511,9 +511,9 @@ qed "constrains_All";
 
 Goalw [constrains_def, st_set_def] 
   "[| F:A co A' |] ==> A <= A'";
-by Auto_tac;
-by (Blast_tac 1);
+by (Force_tac 1); 
 qed "constrains_imp_subset";
+
 (*The reasoning is by subsets since "co" refers to single actions
   only.  So this rule isn't that useful.*)
 
