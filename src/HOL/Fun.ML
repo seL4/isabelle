@@ -67,6 +67,10 @@ Goalw [o_def] "(f o g)``r = f``(g``r)";
 by (Blast_tac 1);
 qed "image_compose";
 
+Goal "f``g``A = (UN x:A. {f (g x)})";
+by (Blast_tac 1);
+qed "image_image_eq_UN";
+
 Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
 by (Blast_tac 1);
 qed "UN_o";
