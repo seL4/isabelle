@@ -11,7 +11,7 @@ sig
   type 'a T
   exception UNDEFINED of key
   val empty: 'a T
-  val get_nodes: 'a T -> (key * 'a) list
+  val keys: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
@@ -22,6 +22,7 @@ sig
   val find_paths: 'a T -> key * key -> key list list
   exception DUPLICATE of key
   val new_node: key * 'a -> 'a T -> 'a T
+  val del_nodes: key list -> 'a T -> 'a T
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
   exception CYCLES of key list list
@@ -47,6 +48,9 @@ val op ins_key = gen_ins eq_key;
 infix del_key;
 fun xs del_key x = if x mem_key xs then gen_rem eq_key (xs, x) else xs;
 
+infix del_keys;
+val op del_keys = foldl (op del_key);
+
 
 (* tables and sets of keys *)
 
@@ -61,8 +65,6 @@ fun x mem_keys tab = is_some (Table.lookup (tab: keys, x));
 infix ins_keys;
 fun x ins_keys tab = if x mem_keys tab then tab else Table.update ((x, ()), tab);
 
-fun dest_keys tab = rev (Table.foldl (fn (xs, (x, ())) => x :: xs) ([], tab: keys));
-
 
 (* graphs *)
 
@@ -71,6 +73,7 @@ datatype 'a T = Graph of ('a * (key list * key list)) Table.table;
 exception UNDEFINED of key;
 
 val empty = Graph Table.empty;
+fun keys (Graph tab) = Table.keys tab;
 
 fun get_entry (Graph tab) x =
   (case Table.lookup (tab, x) of
@@ -82,9 +85,6 @@ fun map_entry x f (G as Graph tab) = Graph (Table.update ((x, f (get_entry G x))
 
 (* nodes *)
 
-fun get_nodes (Graph tab) =
-  rev (Table.foldl (fn (nodes, (x, (i, _))) => (x, i) :: nodes) ([], tab));
-
 fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
 
 fun get_node G = #1 o get_entry G;
@@ -93,28 +93,29 @@ fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 
 (* reachability *)
 
+(*nodes reachable from xs -- topologically sorted for acyclic graphs*)
 fun reachable next xs =
   let
-    fun reach (R, x) =
-      if x mem_keys R then R
-      else reachs (x ins_keys R, next x)
+    fun reach ((rs, R), x) =
+      if x mem_keys R then (rs, R)
+      else apfst (cons x) (reachs ((rs, x ins_keys R), next x))
     and reachs R_xs = foldl reach R_xs;
-  in reachs (empty_keys, xs) end;
+  in reachs (([], empty_keys), xs) end;
 
 (*immediate*)
 fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = dest_keys o reachable (imm_preds G);
-fun all_succs G = dest_keys o reachable (imm_succs G);
+fun all_preds G = #1 o reachable (imm_preds G);
+fun all_succs G = #1 o reachable (imm_succs G);
 
 
 (* paths *)
 
 fun find_paths G (x, y) =
   let
-    val X = reachable (imm_succs G) [x];
+    val (_, X) = reachable (imm_succs G) [x];
     fun paths ps p =
       if eq_key (p, x) then [p :: ps]
       else flat (map (paths (p :: ps))
@@ -129,6 +130,13 @@ exception DUPLICATE of key;
 fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new ((x, (info, ([], []))), tab)
     handle Table.DUP key => raise DUPLICATE key);
+
+fun del_nodes xs (Graph tab) =
+  let
+    fun del (x, (i, (preds, succs))) =
+      if x mem_key xs then None
+      else Some (x, (i, (preds del_keys xs, succs del_keys xs)));
+  in Graph (Table.make (mapfilter del (Table.dest tab))) end;
 
 
 fun add_edge (x, y) =
