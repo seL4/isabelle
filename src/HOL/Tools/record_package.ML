@@ -827,7 +827,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val final_thy =
       thms_thy
       |> put_record name {args = args, parent = parent, fields = fields, simps = simps}
-      |> put_sel_upd names (simps @ update_defs)
+      |> put_sel_upd names (field_simps @ sel_defs @ update_defs)
       |> add_record_splits named_splits
       |> Theory.parent_path;
 
