@@ -48,6 +48,7 @@ sig
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
+  val export_single: context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -737,6 +738,11 @@ fun export is_goal inner outer =
         |> (#1 o Drule.tvars_intr_list tfrees)
       end)
   end;
+
+fun export_single inner outer th =
+  (case Seq.pull (export false inner outer th) of
+    Some (th', _) => th'
+  | None => raise CONTEXT ("Internal failure while exporting theorem", inner));
 
 
 
