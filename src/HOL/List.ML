@@ -941,6 +941,11 @@ by Auto_tac;
 bind_thm("takeWhile_append2", ballI RS (result() RS mp));
 Addsimps [takeWhile_append2];
 
+Goal "~P(x) ==> takeWhile P (xs @ (x#l)) = takeWhile P xs";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed "takeWhile_tail";
+
 Goal "x:set xs & ~P(x) --> dropWhile P (xs @ ys) = (dropWhile P xs)@ys";
 by (induct_tac "xs" 1);
 by Auto_tac;
