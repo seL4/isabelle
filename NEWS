@@ -184,6 +184,9 @@ are some hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
+* HOL: simp rules nat_number_of expand numerals on nat to Suc/0
+representation (depends on bin_arith_simps in the default context);
+
 * HOL: symbolic syntax for x^2 (numeral 2);
 
 * HOL: the class of all HOL types is now called "type" rather than
