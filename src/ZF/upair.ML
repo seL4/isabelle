@@ -241,11 +241,13 @@ qed_goal "expand_if" ZF.thy
 	   (asm_simp_tac if_ss 1),
 	   (asm_simp_tac if_ss 1) ]);
 
-val prems = goal ZF.thy
-    "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A";
-by (excluded_middle_tac "P" 1);
-by (ALLGOALS (asm_simp_tac (if_ss addsimps prems)));
-qed "if_type";
+qed_goal "if_iff" ZF.thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
+ (fn _=> [ (simp_tac (if_ss setloop split_tac [expand_if]) 1) ]);
+
+qed_goal "if_type" ZF.thy
+    "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A"
+ (fn prems=> [ (simp_tac 
+		(if_ss addsimps prems setloop split_tac [expand_if]) 1) ]);
 
 
 (*** Foundation lemmas ***)
