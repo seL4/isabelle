@@ -23,7 +23,7 @@ datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
 
 (** Evaluation of arithmetic expressions **)
 consts  evala    :: "i"
-       "@evala"  :: "[i,i,i] => o"	("<_,_>/ -a-> _")
+       "@evala"  :: "[i,i,i] => o"		("<_,_>/ -a-> _"  [0,0,50] 50)
 translations
     "<ae,sig> -a-> n" == "<ae,sig,n> : evala"
 inductive
@@ -52,7 +52,7 @@ datatype <= "univ(aexp Un ((nat*nat)->bool) )"
 
 (** Evaluation of boolean expressions **)
 consts evalb	:: "i"	
-       "@evalb" :: "[i,i,i] => o"	("<_,_>/ -b-> _")
+       "@evalb" :: "[i,i,i] => o"		("<_,_>/ -b-> _" [0,0,50] 50)
 
 translations
     "<be,sig> -b-> b" == "<be,sig,b> : evalb"
@@ -81,16 +81,18 @@ consts  com :: "i"
 datatype <= "univ(loc Un aexp Un bexp)"
   "com" = skip
         | ":="  ("x:loc", "a:aexp")		(infixl 60)
-        | ";"   ("c0:com", "c1:com")		(infixl 60)
-	| while ("b:bexp", "c:com")		("while _ do _" 60)
-	| ifc   ("b:bexp", "c0:com", "c1:com")	("ifc _ then _ else _" 60)
+        | semic ("c0:com", "c1:com")		("_; _"  [60, 60] 10)
+	| while ("b:bexp", "c:com")		("while _ do _"  60)
+	| ifc   ("b:bexp", "c0:com", "c1:com")	("ifc _ then _ else _"  60)
   type_intrs "aexp.intrs"
 
+(*Constructor ";" has low precedence to avoid syntactic ambiguities
+  with [| m: nat; x: loc; ... |] ==> ...  It usually will need parentheses.*)
 
 (** Execution of commands **)
 consts  evalc    :: "i"
-        "@evalc" :: "[i,i,i] => o"   ("<_,_>/ -c-> _")
-	"assign" :: "[i,i,i] => i"	("_[_'/_]" [900,0,0] 900)
+        "@evalc" :: "[i,i,i] => o"   		("<_,_>/ -c-> _" [0,0,50] 50)
+	"assign" :: "[i,i,i] => i"   		("_[_'/_]"       [95,0,0] 95)
 
 translations
        "<ce,sig> -c-> s" == "<ce,sig,s> : evalc"
