@@ -11,6 +11,9 @@ val banner = "First-Order Logic with Natural Deduction";
 
 writeln banner;
 
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
+open Readthy;
+
 print_depth 1;  
 use_thy "ifol";
 use_thy "fol";

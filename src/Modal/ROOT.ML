@@ -7,6 +7,8 @@
 val banner = "Modal Logic (over LK)";
 writeln banner;
 
+set_loadpath [".", "../LK"];
+
 use_thy "modal0";
 
 structure Modal0_rls = 

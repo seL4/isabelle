@@ -12,6 +12,9 @@ val banner = "First-Order Logic with Natural Deduction with Proof Terms";
 
 writeln banner;
 
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
+open Readthy;
+
 print_depth 1;  
 use_thy "ifolp";
 use_thy "folp";

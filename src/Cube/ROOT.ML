@@ -9,6 +9,9 @@ The Lambda-Cube a la Barendregt
 val banner = "Barendregt's Lambda-Cube";
 writeln banner;
 
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
+open Readthy;
+
 print_depth 1;  
 use_thy "cube";
 

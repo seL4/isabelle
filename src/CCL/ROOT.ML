@@ -11,7 +11,7 @@ val banner = "Classical Computational Logic (in FOL)";
 (* Higher-Order Set Theory Extension to FOL *)
 (*      used as basis for CCL               *)
 
-(*set_load_path [".", "../FOL"]; wait for new Readthy*)
+set_loadpath [".", "../FOL"];
 
 use_thy "set";
 use     "subset.ML";

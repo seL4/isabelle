@@ -12,6 +12,9 @@ writeln banner;
 
 print_depth 1;  
 
+structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
+open Readthy;
+
 use_thy"ctt";
 use "../Provers/typedsimp.ML";
 use "rew.ML";
