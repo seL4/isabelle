@@ -379,10 +379,21 @@ over results of symbolic evaluation of recursive definitions, for example.
 \railalias{simpall}{simp\_all}
 \railterm{simpall}
 
+\railalias{noasm}{no\_asm}
+\railterm{noasm}
+
+\railalias{noasmsimp}{no\_asm\_simp}
+\railterm{noasmsimp}
+
+\railalias{noasmuse}{no\_asm\_use}
+\railterm{noasmuse}
+
 \begin{rail}
-  ('simp' | simpall) ('!' ?) (simpmod * )
+  ('simp' | simpall) ('!' ?) simpopt? (simpmod * )
   ;
 
+  simpopt: (noasm | noasmsimp | noasmuse) ':'
+  ;
   simpmod: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') | 'other') ':' thmrefs
   ;
 \end{rail}
@@ -404,15 +415,28 @@ over results of symbolic evaluation of recursive definitions, for example.
 \item [$simp_all$] is similar to $simp$, but acts on all goals.
 \end{descr}
 
-Internally, the $simp$ method is based on \texttt{asm_full_simp_tac}
-\cite[\S10]{isabelle-ref}, but is much better behaved in practice.  Just the
-local premises of the actual goal are involved by default.  Additional facts
-may be inserted via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The
-full context of assumptions is only included in the $simp!$ version, which
-should be used with some care, though.
+By default, the Simplifier methods are based on \texttt{asm_full_simp_tac}
+internally \cite[\S10]{isabelle-ref}.  In structured proofs this is usually
+quite well behaved in practice: just the local premises of the actual goal are
+involved, additional facts may inserted via explicit forward-chaining (using
+$\THEN$, $\FROMNAME$ etc.).  The full context of assumptions is only included
+if the ``$!$'' (bang) argument is given, which should be used with some care,
+though.
 
-Note that there is no separate $split$ method.  The effect of
-\texttt{split_tac} can be simulated by $(simp~only\colon~split\colon~\vec a)$.
+Additional Simplifier options may be specified to tune the behavior even
+further: $no_asm$ means assumptions are ignored completely (cf.\ 
+\texttt{simp_tac}), $no_asm_simp$ means assumptions are used in the
+simplification of the conclusion but are not themselves simplified (cf.\ 
+\texttt{asm_simp_tac}), and $no_asm_use$ means assumptions are simplified but
+are not used in the simplification of each other or the conclusion (cf.
+\texttt{full_simp_tac}).
+
+\medskip
+
+The Splitter package is usually configured to work as part of the Simplifier.
+There is no separate $split$ method available.  The effect of repeatedly
+applying \texttt{split_tac} can be simulated by
+$(simp~only\colon~split\colon~\vec a)$.
 
 
 \subsection{Declaring rules}
