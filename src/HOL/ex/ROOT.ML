@@ -27,6 +27,7 @@ time_use_thy "BT";
 time_use_thy "AVL";
 time_use_thy "InSort";
 time_use_thy "Qsort";
+time_use_thy "MergeSort";
 time_use_thy "Puzzle";
 
 time_use_thy "IntRing";

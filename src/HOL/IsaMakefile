@@ -571,7 +571,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy ex/Higher_Order_Logic.thy \
   ex/Hilbert_Classical.thy ex/InSort.thy ex/IntRing.ML \
   ex/IntRing.thy ex/Intuitionistic.thy \
-  ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy \
+  ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy ex/MergeSort.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/Primrec.thy ex/Puzzle.thy \
   ex/Qsort.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy \
