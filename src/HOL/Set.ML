@@ -501,8 +501,8 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 (*** Set reasoning tools ***)
 
 
-val mem_simps = [ Un_iff, Int_iff, Compl_iff, Diff_iff, singleton_iff,
-		  mem_Collect_eq];
+val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
+		 mem_Collect_eq];
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";

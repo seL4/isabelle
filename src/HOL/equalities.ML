@@ -22,18 +22,6 @@ by (Fast_tac 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
-section ":";
-
-goal Set.thy "x ~: {}";
-by (Fast_tac 1);
-qed "in_empty";
-Addsimps[in_empty];
-
-goal Set.thy "x : insert y A = (x=y | x:A)";
-by (Fast_tac 1);
-qed "in_insert";
-Addsimps[in_insert];
-
 section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
