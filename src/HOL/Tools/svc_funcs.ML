@@ -90,8 +90,9 @@ struct
 			"> /dev/null 2>&1"))
       val svc_output = File.read svc_output_file
 	               handle _ => error "SVC returned no output"
-      val _ = if !trace then writeln ("SVC Returns:\n" ^ svc_output) else ()
   in
+      if ! trace then writeln ("SVC Returns:\n" ^ svc_output) else ();
+      if not (! trace) then (File.rm svc_input_file; File.rm svc_output_file) else ();
       String.isPrefix "VALID" svc_output
   end
 
