@@ -9,7 +9,6 @@ required).
 
 signature USE =
 sig
-  val use_text: string -> string -> unit
   val use: string -> unit
   val exit_use: string -> unit
   val time_use: string -> unit
@@ -18,22 +17,6 @@ end;
 
 structure Use: USE =
 struct
-
-
-(* use_text *)
-
-val use_orig = use;
-
-fun use_text name txt =
-  let
-    val tmp_name = File.tmp_name ("." ^ Path.base_name name);
-    val _ = File.write tmp_name txt;
-    val rm = OS.FileSys.remove;
-  in
-    use_orig tmp_name handle exn => (rm tmp_name; raise exn);
-    rm tmp_name
-  end;
-
 
 (* generate suffix *)
 
@@ -48,6 +31,8 @@ fun append_suffix name =
 
 (* input filtering *)
 
+val use_orig = use;
+
 val use_filter =
   if not needs_filtered_use then use_orig
   else
@@ -57,7 +42,15 @@ val use_filter =
         val txt_out = Symbol.input txt;
       in
         if txt = txt_out then use_orig name
-        else use_text name txt_out
+        else
+          let
+            val tmp_name = File.tmp_name ("." ^ Path.base_name name);
+            val _ = File.write tmp_name txt_out;
+            val rm = OS.FileSys.remove;
+          in
+            use_orig tmp_name handle exn => (rm tmp_name; raise exn);
+            rm tmp_name
+          end
       end;
 
 
