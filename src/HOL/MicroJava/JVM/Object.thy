@@ -39,8 +39,8 @@ primrec
  "exec_mo (Getfield F C) hp stk pc = 
 	(let oref	= hd stk;
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
-	     (oc,fs)	= hp !! (the_Addr oref);
-	     stk'	= if xp'=None then (fs!!(F,C))#(tl stk) else tl stk
+	     (oc,fs)	= the(hp(the_Addr oref));
+	     stk'	= if xp'=None then the(fs(F,C))#(tl stk) else tl stk
 	 in
          (xp' , hp , stk' , pc+1))"
 
@@ -48,7 +48,7 @@ primrec
 	(let (fval,oref)= (hd stk, hd(tl stk));
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
 	     a		= the_Addr oref;
-	     (oc,fs)	= hp !! a;
+	     (oc,fs)	= the(hp a);
 	     hp'	= if xp'=None then hp(a \\<mapsto> (oc, fs((F,C) \\<mapsto> fval))) else hp
 	 in
          (xp' , hp' , tl (tl stk), pc+1))"				
