@@ -245,20 +245,6 @@ by (dres_inst_tac [("t", "op `(converse(f))")] subst_context 1);
 by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
 qed "linear_ord_iso";
 
-(*FOR FOL/IFOL.ML*)
-fun iff_tac prems i =
-    resolve_tac (prems RL [iffE]) i THEN
-    REPEAT1 (eresolve_tac [asm_rl,mp] i);
-
-(*Reversed congruence rule!*)
-val conj_cong2 = prove_goal IFOL.thy 
-    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (Q&P) <-> (Q'&P')"
- (fn prems =>
-  [ (cut_facts_tac prems 1),
-    (REPEAT  (ares_tac [iffI,conjI] 1
-      ORELSE  eresolve_tac [iffE,conjE,mp] 1
-      ORELSE  iff_tac prems 1)) ]);
-
 goalw Order.thy [wf_on_def, wf_def, ord_iso_def]
     "!!A B r. [| wf[B](s);  f: ord_iso(A,r,B,s) |] ==> wf[A](r)";
 (*reversed &-congruence rule handles context of membership in A*)
