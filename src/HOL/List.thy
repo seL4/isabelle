@@ -20,6 +20,7 @@ consts
   list_all  :: "('a => bool) => ('a list => bool)"
   map       :: "('a=>'b) => ('a list => 'b list)"
   "@"	    :: "['a list, 'a list] => 'a list"		(infixr 65)
+  rev       :: "'a list => 'a list"
   filter    :: "['a => bool, 'a list] => 'a list"
   foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b"
   length    :: "'a list => nat"
@@ -66,6 +67,9 @@ primrec map list
 primrec "op @" list
   append_Nil  "[] @ ys = ys"
   append_Cons "(x#xs)@ys = x#(xs@ys)"
+primrec rev list
+  rev_Nil  "rev([]) = []"
+  rev_Cons "rev(x#xs) = rev(xs) @ [x]"
 primrec filter list
   filter_Nil  "filter P [] = []"
   filter_Cons "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
