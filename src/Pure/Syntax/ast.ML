@@ -165,16 +165,6 @@ val trace_norm_ast = ref false;
 val stat_norm_ast = ref false;
 
 
-(* simple env *)
-
-structure Env =
-struct
-  val empty = [];
-  val add = op ::;
-  fun get (alist,x) = the (assoc (alist,x));
-end;
-
-
 (* match *)
 
 fun match ast pat =
@@ -185,7 +175,7 @@ fun match ast pat =
           if a = b then env else raise NO_MATCH
       | mtch (Variable a) (Constant b) env =
           if a = b then env else raise NO_MATCH
-      | mtch ast (Variable x) env = Env.add ((x, ast), env)
+      | mtch ast (Variable x) env = Symtab.update ((x, ast), env)
       | mtch (Appl asts) (Appl pats) env = mtch_lst asts pats env
       | mtch _ _ _ = raise NO_MATCH
     and mtch_lst (ast :: asts) (pat :: pats) env =
@@ -202,7 +192,7 @@ fun match ast pat =
           end
       | _ => (ast, []));
   in
-    Some (mtch head pat Env.empty, args) handle NO_MATCH => None
+    Some (mtch head pat Symtab.empty, args) handle NO_MATCH => None
   end;
 
 
@@ -218,7 +208,7 @@ fun normalize trace stat get_rules pre_ast =
     val changes = ref 0;
 
     fun subst _ (ast as Constant _) = ast
-      | subst env (Variable x) = Env.get (env, x)
+      | subst env (Variable x) = the (Symtab.lookup (env, x))
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
     fun try_rules ast ((lhs, rhs) :: pats) =
