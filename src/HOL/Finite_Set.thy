@@ -444,7 +444,6 @@ lemma finite_imp_foldSet: "finite A ==> EX x. (A, x) : foldSet f g e"
 
 
 subsubsection {* Commutative monoids *}
-
 locale ACf =
   fixes f :: "'a => 'a => 'a"    (infixl "\<cdot>" 70)
   assumes commute: "x \<cdot> y = y \<cdot> x"
@@ -1546,6 +1545,13 @@ lemma card_Union_disjoint:
   done
 
 subsubsection {* Cardinality of image *}
+
+text{*The image of a finite set can be expressed using @{term fold}.*}
+lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
+  apply (erule finite_induct, simp)
+  apply (subst ACf.fold_insert) 
+  apply (auto simp add: ACf_def) 
+  done
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
   apply (induct set: Finites, simp)
