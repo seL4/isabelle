@@ -52,7 +52,10 @@ specification (publicKey)
     "publicKey b A = publicKey c A' ==> b=c & A=A'"
    apply (rule exI [of _ "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + (if b then 1 else 0)"]) 
    apply (auto simp add: inj_on_def split: agent.split) 
+   apply presburger+
+(*faster would be this:
    apply (drule_tac f="%x. x mod 2" in arg_cong, simp add: mod_Suc)+
+*)
    done                       
 
 
