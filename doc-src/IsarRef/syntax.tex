@@ -345,14 +345,15 @@ text block would cause
 \isa{(f{\isasymColon}'a~{\isasymRightarrow}~'a)~(x{\isasymColon}'a)~=~(a{\isasymColon}'a)~+~x}
 to appear in the final {\LaTeX} document.
 
-\medskip
-
 Antiquotations do not only spare the author from tedious typing, but also
 achieve some degree of consistency-checking of informal explanations with
 formal developments, since well-formedness of terms and types with respect to
-the current theory or proof context can be ensured.
+the current theory or proof context can be ensured.  The \texttt{name}
+antiquotation is an exception to this rule: it prints an uninterpreted text
+argument that is not checked in any way.
 
-\indexisarant{thm}\indexisarant{prop}\indexisarant{term}\indexisarant{typ}
+\indexisarant{thm}\indexisarant{prop}\indexisarant{term}
+\indexisarant{typ}\indexisarant{name}
 \begin{rail}
   atsign lbrace antiquotation rbrace
   ;
@@ -361,7 +362,8 @@ the current theory or proof context can be ensured.
     'thm' options thmrefs |
     'prop' options prop |
     'term' options term |
-    'typ' options type
+    'typ' options type |
+    'name' options name
   ;
   options: '[' (option * ',') ']'
   ;
@@ -391,8 +393,8 @@ these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
   (see also \cite{isabelle-ref}).  Note that the standard setup for {\LaTeX}
   output is already present by default, including the modes ``$latex$'',
   ``$xsymbols$'', ``$symbols$''.
-\item[$margin = nat$] changes the margin for pretty printing of display
-  material.
+\item[$margin = nat$ and $indent = nat$] change the margin or indentation for
+  pretty printing of display material.
 \end{descr}
 
 For boolean flags, ``$name = true$'' may be abbreviated as ``$name$''.  All of
