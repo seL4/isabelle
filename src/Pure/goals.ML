@@ -447,6 +447,12 @@ fun pprint_term t = Sign.pprint_term (top_sg()) t;
 
 fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
 
+(* FIXME !? *)
+(* output to LaTeX / xdvi *)
+fun latex s =
+  execute ("( cd /tmp ; echo \"" ^ s ^
+    "\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &");
+
 (* Redirect output of function f:unit->unit to LaTeX *)
 fun redirect_to_latex f =
 	let
