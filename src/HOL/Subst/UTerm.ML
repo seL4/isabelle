@@ -13,8 +13,8 @@ val uterm_con_defs = [VAR_def, CONST_def, COMB_def];
 
 goal UTerm.thy "uterm(A) = A <+> A <+> (uterm(A) <*> uterm(A))";
 let val rew = rewrite_rule uterm_con_defs in  
-by (fast_tac (univ_cs addSIs (equalityI :: map rew uterm.intrs)
-                      addEs [rew uterm.elim]) 1)
+by (fast_tac (!claset addSIs (map rew uterm.intrs)
+                      addEs  [rew uterm.elim]) 1)
 end;
 qed "uterm_unfold";
 
@@ -29,7 +29,7 @@ qed "uterm_mono";
 
 goalw UTerm.thy (uterm_con_defs @ uterm.defs) "uterm(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
-by (fast_tac (univ_cs addIs sexp.intrs@[sexp_In0I,sexp_In1I]) 1);
+by (fast_tac (!claset addIs sexp.intrs@[sexp_In0I,sexp_In1I]) 1);
 qed "uterm_sexp";
 
 (* A <= sexp ==> uterm(A) <= sexp *)
