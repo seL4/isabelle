@@ -234,9 +234,22 @@ done
 lemma image_lam: "C <= A ==> (lam x:A. b(x)) `` C = {b(x). x:C}"
 by (unfold lam_def, blast)
 
+lemma Repfun_function_if:
+     "function(f) 
+      ==> {f`x. x:C} = (if C <= domain(f) then f``C else cons(0,f``C))";
+apply simp
+apply (intro conjI impI)  
+ apply (blast dest: function_apply_equality intro: function_apply_Pair) 
+apply (rule equalityI)
+ apply (blast intro!: function_apply_Pair apply_0) 
+apply (blast dest: function_apply_equality intro: apply_0 [symmetric]) 
+done
+
+(*For this lemma and the next, the right-hand side could equivalently 
+  be written UN x:C. {f`x} *)
 lemma image_function:
      "[| function(f);  C <= domain(f) |] ==> f``C = {f`x. x:C}";
-by (blast dest: function_apply_equality intro: function_apply_Pair) 
+by (simp add: Repfun_function_if) 
 
 lemma image_fun: "[| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}"
 apply (simp add: Pi_iff) 
@@ -250,11 +263,8 @@ by (blast dest: apply_equality apply_Pair)
 
 (*** properties of "restrict" ***)
 
-lemma restrict_subset:
-    "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) <= f"
-apply (unfold restrict_def)
-apply (blast intro: apply_Pair)
-done
+lemma restrict_subset: "restrict(f,A) <= f"
+by (unfold restrict_def, blast)
 
 lemma function_restrictI:
     "function(f) ==> function(restrict(f,A))"
@@ -263,19 +273,14 @@ by (unfold restrict_def function_def, blast)
 lemma restrict_type2: "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)"
 by (simp add: Pi_iff function_def restrict_def, blast)
 
-lemma restrict: "a : A ==> restrict(f,A) ` a = f`a"
+lemma restrict: "restrict(f,A) ` a = (if a : A then f`a else 0)"
 by (simp add: apply_def restrict_def, blast)
 
 lemma restrict_empty [simp]: "restrict(f,0) = 0"
-apply (unfold restrict_def)
-apply (simp (no_asm))
-done
+by (unfold restrict_def, simp)
 
 lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
 by (simp add: restrict_def) 
-
-lemma image_is_UN: "[|function(g); x <= domain(g)|] ==> g``x = (UN k:x. {g`k})"
-by (blast intro: function_apply_equality [THEN sym] function_apply_Pair) 
 
 lemma domain_restrict_lam [simp]: "domain(restrict(Lambda(A,f),C)) = A Int C"
 apply (unfold restrict_def lam_def)
@@ -347,19 +352,11 @@ apply (simp add: Pi_iff extension Un_rls)
 apply (unfold function_def, blast)
 done
 
-lemma fun_disjoint_apply1:
-     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |]
-      ==> (f Un g)`a = f`a"
-apply (rule apply_Pair [THEN UnI1, THEN apply_equality], assumption+)
-apply (blast intro: fun_disjoint_Un ) 
-done
+lemma fun_disjoint_apply1: "a \<notin> domain(g) ==> (f Un g)`a = f`a"
+by (simp add: apply_def, blast) 
 
-lemma fun_disjoint_apply2:
-     "[| c:C;  f: A->B;  g: C->D;  A Int C = 0 |]
-      ==> (f Un g)`c = g`c"
-apply (rule apply_Pair [THEN UnI2, THEN apply_equality], assumption+)
-apply (blast intro: fun_disjoint_Un ) 
-done
+lemma fun_disjoint_apply2: "c \<notin> domain(f) ==> (f Un g)`c = g`c"
+by (simp add: apply_def, blast) 
 
 (** Domain and range of a function/relation **)
 
