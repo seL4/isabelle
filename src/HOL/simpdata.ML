@@ -298,8 +298,7 @@ val HOL_ss = empty_ss
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, if_cancel,
-		 o_apply, imp_disjL, conj_assoc, disj_assoc,
+      addsimps ([if_True, if_False, o_apply, imp_disjL, conj_assoc, disj_assoc,
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
@@ -331,7 +330,7 @@ qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
 
 (*** Install simpsets and datatypes in theory structure ***)
 
-simpset := HOL_ss;
+simpset := HOL_ss addsimps [if_cancel];
 
 exception SS_DATA of simpset;
 
