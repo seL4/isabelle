@@ -145,12 +145,13 @@ fun datatype_codegen thy gr dep brack t = (case strip_comb t of
         | Some (tname, {index, descr, ...}) =>
            if is_some (get_assoc_code thy s T) then None else
            let val Some (_, _, constrs) = assoc (descr, index)
-           in (case assoc (constrs, s) of
-               None => Some (pretty_case thy gr dep brack
+           in (case (assoc (constrs, s), strip_type T) of
+               (None, _) => Some (pretty_case thy gr dep brack
                  (#3 (the (assoc (descr, index)))) c ts)
-             | Some args => Some (pretty_constr thy
+             | (Some args, (_, Type _)) => Some (pretty_constr thy
                  (fst (invoke_tycodegen thy dep false (gr, snd (strip_type T))))
-                 dep brack args c ts))
+                 dep brack args c ts)
+             | _ => None)
            end)
  |  _ => None);
 
