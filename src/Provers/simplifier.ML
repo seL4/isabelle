@@ -480,6 +480,12 @@ val setup_attrs = Attrib.add_attributes
 
 val colon = Args.$$$ ":";
 
+val simp_options =
+ (Args.$$$ "no_asm" -- colon >> K simp_tac ||
+  Args.$$$ "no_asm_simp" -- colon >> K asm_simp_tac ||
+  Args.$$$ "no_asm_use" -- colon >> K full_simp_tac ||
+  Scan.succeed asm_full_simp_tac);
+
 val simp_modifiers =
  [Args.$$$ simpN -- colon >> K (I, simp_add_local),
   Args.$$$ simpN -- Args.$$$ addN -- colon >> K (I, simp_add_local),
@@ -493,29 +499,23 @@ val simp_modifiers' =
   Args.$$$ onlyN -- colon >> K (map_local_simpset clear_ss, simp_add_local),
   Args.$$$ otherN -- colon >> K (I, I)];
 
-fun simp_method more_mods tac =
-  (fn prems => fn ctxt => Method.METHOD (fn facts =>
-    ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_simpset ctxt)))
-  |> Method.bang_sectioned_args (more_mods @ simp_modifiers');
+fun simp_args more_mods =
+  Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options) (more_mods @ simp_modifiers');
 
-fun simp_method' more_mods tac =
-  (fn prems => fn ctxt => Method.METHOD (fn facts =>
-    HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_simpset ctxt))))
-  |> Method.bang_sectioned_args (more_mods @ simp_modifiers');
+
+fun simp_method (prems, tac) ctxt = Method.METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN
+    (CHANGED o ALLGOALS o tac) (get_local_simpset ctxt));
+
+fun simp_method' (prems, tac) ctxt = Method.METHOD (fn facts =>
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' (CHANGED oo tac) (get_local_simpset ctxt)));
   
 
 (* setup_methods *)
 
 fun setup_methods more_mods = Method.add_methods
- [(simpN,               simp_method' more_mods
-    (CHANGED oo asm_full_simp_tac), "full simplification"),
-  ("simp_all",          simp_method  more_mods (CHANGED o ALLGOALS o asm_full_simp_tac),
-    "full simplification (all goals)"),
-  ("simp_tac",          simp_method' more_mods simp_tac, "simp_tac (improper!)"),
-  ("asm_simp_tac",      simp_method' more_mods asm_simp_tac, "asm_simp_tac (improper!)"),
-  ("full_simp_tac",     simp_method' more_mods full_simp_tac, "full_simp_tac (improper!)"),
-  ("asm_full_simp_tac", simp_method' more_mods asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
-  ("asm_lr_simp_tac",   simp_method' more_mods asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
+ [(simpN, simp_args more_mods simp_method', "simplification"),
+  ("simp_all", simp_args more_mods simp_method, "simplification (all goals)")];
 
 
 
