@@ -18,7 +18,6 @@ FILES = logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle_zf.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
@@ -30,7 +29,6 @@ $(NAME).dvi: $(FILES) isabelle_zf.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_zf.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)

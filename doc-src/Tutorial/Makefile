@@ -18,7 +18,6 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle_hol.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -29,7 +28,6 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_hol.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)

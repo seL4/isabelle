@@ -18,7 +18,6 @@ FILES = system.tex basics.tex misc.tex fonts.tex present.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -29,7 +28,6 @@ $(NAME).dvi: $(FILES) isabelle.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)

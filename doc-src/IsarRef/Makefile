@@ -20,7 +20,6 @@ FILES = isar-ref.tex intro.tex basics.tex syntax.tex pure.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle_isar.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
@@ -32,7 +31,6 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_isar.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)

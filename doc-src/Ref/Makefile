@@ -20,7 +20,6 @@ FILES = ref.tex introduction.tex goals.tex tactic.tex tctical.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
@@ -32,7 +31,6 @@ $(NAME).dvi: $(FILES) isabelle.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)

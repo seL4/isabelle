@@ -18,7 +18,6 @@ FILES = logics-HOL.tex ../Logics/syntax.tex HOL.tex \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle_hol.eps
-	touch $(NAME).ind
 	$(LATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
@@ -30,7 +29,6 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_hol.pdf
-	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
