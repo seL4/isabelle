@@ -89,7 +89,7 @@ fun find_casesT ctxt ((Some t :: _) :: _) = InductAttrib.find_casesT ctxt (fasty
 fun find_casesS ctxt (fact :: _) = InductAttrib.find_casesS ctxt fact
   | find_casesS _ _ = [];
 
-fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
+fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -111,7 +111,7 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
     fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
       (Method.multi_resolves (take (n, facts)) [th]);
-  in resolveq_cases_tac (RuleCases.make open_parms None) (Seq.flat (Seq.map prep_rule ruleq)) end;
+  in resolveq_cases_tac (RuleCases.make (if is_open then None else Some 0) None) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
 in
 
@@ -225,15 +225,24 @@ fun divinate_inst rule i st =
 
 fun internalize k th = if k > 0 then internalize (k - 1) (imp_intr k th) else th;
 
-fun resolveq_cases_tac' make ruleq i st =
+fun nof_params i st =
+  let val Bi = RuleCases.hhf_nth_subgoal (sign_of_thm st) (i,prop_of st)
+  in length(Logic.strip_params Bi) end
+  handle TERM("strip_prems",_) => 0 (* in case i is out of range *)
+
+fun resolveq_cases_tac' make is_open ruleq i st =
+  let val n = nof_params i st
+      val mk = make (if is_open then None else Some n)
+  in
   ruleq |> Seq.map (fn (rule, (cases, k, more_facts)) => st
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
           st' |> Tactic.rtac rule' i
-          |> Seq.map (rpair (make (Some (Thm.prop_of rule')) (rulified_term rule') cases)))
+          |> Seq.map (rpair (mk (Some (Thm.prop_of rule')) (rulified_term rule') cases)))
       |> Seq.flat)
     |> Seq.flat)
-  |> Seq.flat;
+  |> Seq.flat
+  end;
 
 infix 1 THEN_ALL_NEW_CASES;
 
@@ -255,7 +264,7 @@ fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
 
 (* main tactic *)
 
-fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
+fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -284,7 +293,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, n - length facts, drop (n, facts)))
         (Method.multi_resolves (take (n, facts)) [th]);
-    val tac = resolveq_cases_tac' (RuleCases.make open_parms) (Seq.flat (Seq.map prep_rule ruleq));
+    val tac = resolveq_cases_tac' RuleCases.make is_open (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 
 in
