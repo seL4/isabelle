@@ -17,7 +17,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -D PATH      dump generated document sources into PATH"
-  echo "    -H BOOL      hide proofs and some other commands in document (default false)"
+  echo "    -H BOOL      hide proofs and some other commands in document (default true)"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
@@ -65,7 +65,7 @@ RPATH=""
 BUILD=""
 COMPRESS=true
 DOCUMENT=false
-HIDE=false
+HIDE=true
 ROOT_FILE=ROOT.ML
 DOCUMENT_GRAPH=false
 INFO=false
