@@ -56,16 +56,17 @@ fun is_old src_pos =
 
 (* scan old/new headers *)
 
-val header_lexicon =
-  T.make_lexicon ["(", ")", "+", ":", ";", "=", "files", headerN, theoryN];
+val header_lexicon = T.make_lexicon
+  ["(", ")", "+", ":", ";", "=", "begin", "files", headerN, "import", theoryN];
 
 val file_name =
   (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
 
-
 val args =
-  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
-    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|  P.$$$ ":")
+  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name ||
+              P.$$$ "import" |-- Scan.repeat1 P.name) --
+    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|
+  (P.$$$ ":" || P.$$$ "begin"))
   >> (fn ((A, Bs), files) => (A, Bs, files));
 
 
