@@ -151,13 +151,19 @@ val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
                         resolve_tac [allI, impI, conjI, Part_eqI],
                         dresolve_tac [spec, mp, Pr.fsplitD]];
 
+val need_mutual = length Intr_elim.rec_names > 1;
+
 val lemma = (*makes the link between the two induction rules*)
-    prove_goalw_cterm part_rec_defs 
-          (cterm_of sign (Logic.mk_implies (induct_concl,mutual_induct_concl)))
-          (fn prems =>
-           [cut_facts_tac prems 1, 
-            REPEAT (rewrite_goals_tac [Pr.split_eq] THEN
-                    lemma_tac 1)]);
+  if need_mutual then
+     (writeln "  Proving the mutual induction rule...";
+      prove_goalw_cterm part_rec_defs 
+	    (cterm_of sign (Logic.mk_implies (induct_concl,
+					      mutual_induct_concl)))
+	    (fn prems =>
+	     [cut_facts_tac prems 1, 
+	      REPEAT (rewrite_goals_tac [Pr.split_eq] THEN
+		      lemma_tac 1)]))
+  else TrueI;
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
@@ -203,9 +209,8 @@ fun mutual_ind_tac [] 0 = all_tac
           ) i)
        THEN mutual_ind_tac prems (i-1);
 
-val _ = writeln "  Proving the mutual induction rule...";
-
 val mutual_induct_fsplit = 
+  if need_mutual then
     prove_goalw_cterm []
           (cterm_of sign
            (Logic.list_implies 
@@ -213,9 +218,8 @@ val mutual_induct_fsplit =
                mutual_induct_concl)))
           (fn prems =>
            [rtac (quant_induct RS lemma) 1,
-            mutual_ind_tac (rev prems) (length prems)]);
-
-
+            mutual_ind_tac (rev prems) (length prems)])
+  else TrueI;
 
 (** Uncurrying the predicate in the ordinary induction rule **)
 
@@ -240,9 +244,6 @@ in
                      induct0));
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
-  val mutual_induct = 
-      if length Intr_elim.rec_names > 1 
-      then CP.remove_split mutual_induct_fsplit
-      else TrueI;
+  val mutual_induct = CP.remove_split mutual_induct_fsplit
   end
 end;
