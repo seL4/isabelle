@@ -32,7 +32,7 @@ val rpath = ref (None: Url.T option);
 
 fun path () = ! session_path;
 
-fun str_of [] = "Pure"
+fun str_of [] = pure
   | str_of elems = space_implode "/" elems;
 
 fun welcome () = "Welcome to Isabelle/" ^ str_of (path ()) ^ " (" ^ version ^ ")";
