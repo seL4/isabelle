@@ -100,7 +100,7 @@ done
 (** Well-founded Induction **)
 
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
-lemma wf_induct:
+lemma wf_induct [induct set: wf]:
     "[| wf(r);
         !!x.[| ALL y. <y,x>: r --> P(y) |] ==> P(x)
      |]  ==>  P(a)"
@@ -109,9 +109,7 @@ apply (erule_tac x = "{z : domain(r). ~ P(z)}" in allE)
 apply blast 
 done
 
-(*fixed up for induct method*)
-lemmas wf_induct = wf_induct [induct set: wf]
-  and wf_induct_rule = wf_induct [rule_format, induct set: wf]
+lemmas wf_induct_rule = wf_induct [rule_format, induct set: wf]
 
 (*The form of this rule is designed to match wfI*)
 lemma wf_induct2:
@@ -125,7 +123,7 @@ done
 lemma field_Int_square: "field(r Int A*A) <= A"
 by blast
 
-lemma wf_on_induct:
+lemma wf_on_induct [consumes 2, induct set: wf_on]:
     "[| wf[A](r);  a:A;
         !!x.[| x: A;  ALL y:A. <y,x>: r --> P(y) |] ==> P(x)
      |]  ==>  P(a)"
@@ -134,10 +132,8 @@ apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
 
-(*fixed up for induct method*)
-lemmas wf_on_induct = wf_on_induct [consumes 2, induct set: wf_on]
-   and wf_on_induct_rule = 
-	 wf_on_induct [rule_format, consumes 2, induct set: wf_on]
+lemmas wf_on_induct_rule =
+  wf_on_induct [rule_format, consumes 2, induct set: wf_on]
 
 
 (*If r allows well-founded induction then wf(r)*)

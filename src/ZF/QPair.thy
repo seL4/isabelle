@@ -93,13 +93,6 @@ lemma QSigmaI [intro!]: "[| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
 by (simp add: QSigma_def)
 
 
-(*The general elimination rule*)
-lemma QSigmaE:
-    "[| c: QSigma(A,B);   
-        !!x y.[| x:A;  y:B(x);  c=<x;y> |] ==> P  
-     |] ==> P"
-by (simp add: QSigma_def, blast) 
-
 (** Elimination rules for <a;b>:A*B -- introducing no eigenvariables **)
 
 lemma QSigmaE [elim!]:

@@ -49,7 +49,7 @@ lemma irreflI:
     "[| !!x. x:A ==> <x,x> ~: r |] ==> irrefl(A,r)"
 by (simp add: irrefl_def) 
 
-lemma symI: "[| irrefl(A,r);  x:A |] ==>  <x,x> ~: r"
+lemma irreflE: "[| irrefl(A,r);  x:A |] ==>  <x,x> ~: r"
 by (simp add: irrefl_def)
 
 subsubsection{*symmetry*}
@@ -58,7 +58,7 @@ lemma symI:
      "[| !!x y.<x,y>: r ==> <y,x>: r |] ==> sym(r)"
 by (unfold sym_def, blast) 
 
-lemma antisymI: "[| sym(r); <x,y>: r |]  ==>  <y,x>: r"
+lemma symE: "[| sym(r); <x,y>: r |]  ==>  <y,x>: r"
 by (unfold sym_def, blast)
 
 subsubsection{*antisymmetry*}
@@ -139,7 +139,7 @@ by (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
 
 (** standard induction rule **)
 
-lemma rtrancl_full_induct:
+lemma rtrancl_full_induct [case_names initial step, consumes 1]:
   "[| <a,b> : r^*;  
       !!x. x: field(r) ==> P(<x,x>);  
       !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |]  
@@ -149,7 +149,7 @@ by (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast)
 (*nice induction rule.
   Tried adding the typing hypotheses y,z:field(r), but these
   caused expensive case splits!*)
-lemma rtrancl_induct:
+lemma rtrancl_induct [case_names initial step, induct set: rtrancl]:
   "[| <a,b> : r^*;                                               
       P(a);                                                      
       !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z)        
@@ -228,7 +228,7 @@ apply (blast intro: r_into_trancl trancl_trans)
 done
 
 (*Nice induction rule for trancl*)
-lemma trancl_induct:
+lemma trancl_induct [case_names initial step, induct set: trancl]:
   "[| <a,b> : r^+;                                       
       !!y.  [| <a,y> : r |] ==> P(y);                    
       !!y z.[| <a,y> : r^+;  <y,z> : r;  P(y) |] ==> P(z)        
@@ -353,7 +353,7 @@ apply (frule trancl_type [THEN subsetD])
 apply (safe dest!: trancl_converseD intro!: trancl_converseI)
 done
 
-lemma converse_trancl_induct:
+lemma converse_trancl_induct [case_names initial step, consumes 1]:
 "[| <a, b>:r^+; !!y. <y, b> :r ==> P(y);  
       !!y z. [| <y, z> : r; <z, b> : r^+; P(z) |] ==> P(y) |]  
        ==> P(a)"
@@ -362,12 +362,6 @@ apply (simp (no_asm_use) add: trancl_converse [symmetric])
 apply (erule trancl_induct)
 apply (auto simp add: trancl_converse)
 done
-
-lemmas rtrancl_induct = rtrancl_induct [case_names initial step, induct set: rtrancl]
-  and trancl_induct = trancl_induct [case_names initial step, induct set: trancl]
-  and converse_trancl_induct = converse_trancl_induct [case_names initial step, consumes 1]
-  and rtrancl_full_induct = rtrancl_full_induct [case_names initial step, consumes 1]
-
 
 ML
 {*

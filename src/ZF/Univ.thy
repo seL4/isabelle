@@ -192,8 +192,6 @@ apply (rule Limit_Vfrom_eq [THEN equalityD1, THEN subsetD, THEN UN_E])
 apply (blast intro: ltI Limit_is_Ord)
 done
 
-lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom, standard]
-
 lemma singleton_in_VLimit:
     "[| a \<in> Vfrom(A,i);  Limit(i) |] ==> {a} \<in> Vfrom(A,i)"
 apply (erule Limit_VfromE, assumption)

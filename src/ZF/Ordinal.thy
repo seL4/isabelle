@@ -328,17 +328,20 @@ apply (erule wf_Memrel [THEN wf_induct2], blast+)
 done
 
 (*Induction over an ordinal*)
-lemmas Ord_induct = Transset_induct [OF _ Ord_is_Transset]
+lemmas Ord_induct [consumes 2] = Transset_induct [OF _ Ord_is_Transset]
+lemmas Ord_induct_rule = Ord_induct [rule_format, consumes 2]
 
 (*Induction over the class of ordinals -- a useful corollary of Ord_induct*)
 
-lemma trans_induct:
+lemma trans_induct [consumes 1]:
     "[| Ord(i);  
         !!x.[| Ord(x);  ALL y:x. P(y) |] ==> P(x) |]
      ==>  P(i)"
 apply (rule Ord_succ [THEN succI1 [THEN Ord_induct]], assumption)
 apply (blast intro: Ord_succ [THEN Ord_in_Ord]) 
 done
+
+lemmas trans_induct_rule = trans_induct [rule_format, consumes 1]
 
 
 (*** Fundamental properties of the epsilon ordering (< on ordinals) ***)
@@ -684,7 +687,7 @@ lemma Ord_cases:
      |] ==> P"
 by (drule Ord_cases_disj, blast)  
 
-lemma trans_induct3:
+lemma trans_induct3 [case_names 0 succ limit, consumes 1]:
      "[| Ord(i);                 
          P(0);                   
          !!x. [| Ord(x);  P(x) |] ==> P(succ(x));        
@@ -693,6 +696,8 @@ lemma trans_induct3:
 apply (erule trans_induct)
 apply (erule Ord_cases, blast+)
 done
+
+lemmas trans_induct3_rule = trans_induct3 [rule_format, case_names 0 succ limit, consumes 1]
 
 text{*A set of ordinals is either empty, contains its own union, or its
 union is a limit ordinal.*}
@@ -720,14 +725,6 @@ lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |
 apply (simp add: Limit_def lt_def)
 apply (blast intro!: equalityI)
 done
-
-(*special induction rules for the "induct" method*)
-lemmas Ord_induct = Ord_induct [consumes 2]
-  and Ord_induct_rule = Ord_induct [rule_format, consumes 2]
-  and trans_induct = trans_induct [consumes 1]
-  and trans_induct_rule = trans_induct [rule_format, consumes 1]
-  and trans_induct3 = trans_induct3 [case_names 0 succ limit, consumes 1]
-  and trans_induct3_rule = trans_induct3 [rule_format, case_names 0 succ limit, consumes 1]
 
 ML 
 {*
