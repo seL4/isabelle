@@ -707,7 +707,7 @@ qed "InfCard_csucc";
 
 Goal "n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
 by (induct_tac "n" 1);
-by (simp_tac (simpset() addsimps eqpoll_0_iff::Fin.intrs) 1);
+by (simp_tac (simpset() addsimps [eqpoll_0_iff]) 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX u. u:A" 1);
 by (etac exE 1);
@@ -716,7 +716,7 @@ by (assume_tac 2);
 by (assume_tac 1);
 by (res_inst_tac [("b", "A")] (cons_Diff RS subst) 1);
 by (assume_tac 1);
-by (resolve_tac [Fin.consI] 1);
+by (resolve_tac [thm "Fin.consI"] 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addIs [subset_consI  RS Fin_mono RS subsetD]) 1); 
 (*Now for the lemma assumed above*)
@@ -729,7 +729,7 @@ by (blast_tac (claset() addIs [lemma RS spec RS mp]) 1);
 qed "Finite_into_Fin";
 
 Goal "A : Fin(U) ==> Finite(A)";
-by (fast_tac (claset() addSIs [Finite_0, Finite_cons] addEs [Fin.induct]) 1);
+by (fast_tac (claset() addSIs [Finite_0, Finite_cons] addEs [Fin_induct]) 1);
 qed "Fin_into_Finite";
 
 Goal "Finite(A) <-> A : Fin(A)";
@@ -746,9 +746,9 @@ qed "Finite_Un";
 Goal "[| ALL y:X. Finite(y);  Finite(X) |] ==> Finite(Union(X))";
 by (asm_full_simp_tac (simpset() addsimps [Finite_Fin_iff]) 1);
 by (rtac Fin_UnionI 1);
-by (etac Fin.induct 1);
+by (etac Fin_induct 1);
 by (Simp_tac 1);
-by (blast_tac (claset() addIs [Fin.consI, impOfSubs Fin_mono]) 1);
+by (blast_tac (claset() addIs [thm "Fin.consI", impOfSubs Fin_mono]) 1);
 qed "Finite_Union";
 
 (* Induction principle for Finite(A), by Sidi Ehmety *)

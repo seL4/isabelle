@@ -18,7 +18,7 @@ inductive
   emptyI   "e:B ==> <0, e>:fold_set(A, B, f,e)"
   consI  "[| x:A; x ~:C;  <C,y> : fold_set(A, B,f,e); f(x,y):B |]
               ==>  <cons(x,C), f(x,y)>:fold_set(A, B, f, e)"
-   type_intrs "Fin.intrs"
+   type_intrs "Fin_intros"
   
 constdefs
   

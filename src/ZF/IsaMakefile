@@ -31,7 +31,7 @@ FOL:
 $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.ML	\
   ArithSimp.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy		\
   CardinalArith.ML CardinalArith.thy Cardinal_AC.thy \
-  Datatype.ML Datatype.thy Epsilon.thy Finite.ML Finite.thy	\
+  Datatype.ML Datatype.thy Epsilon.thy Finite.thy	\
   Fixedpt.ML Fixedpt.thy Inductive.ML Inductive.thy 	\
   InfDatatype.thy Integ/Bin.ML Integ/Bin.thy Integ/EquivClass.ML	\
   Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy Integ/IntArith.thy	\

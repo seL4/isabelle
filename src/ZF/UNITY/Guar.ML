@@ -417,7 +417,7 @@ Goal
 by (Clarify_tac 1);
 by (subgoal_tac "F component_of (JN F:FF. F)" 1);
 by (dres_inst_tac [("X", "X")] component_of_wg 1);
-by (force_tac (claset() addSDs [Fin.dom_subset RS subsetD RS PowD],
+by (force_tac (claset() addSDs [thm"Fin.dom_subset" RS subsetD RS PowD],
                simpset()) 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [component_of_def])));
 by (res_inst_tac [("x", "JN F:(FF-{F}). F")] exI 1);

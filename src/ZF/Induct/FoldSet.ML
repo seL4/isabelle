@@ -106,7 +106,7 @@ by (hyp_subst_tac 2);
 by (subgoal_tac "Finite(cons(xb, Cb)) & x:cons(xb, Cb) " 2);
 by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
                        Fin_into_Finite RS Finite_imp_cardinal_cons]) 2);
-by (asm_simp_tac (simpset() addsimps [Fin.consI RS Fin_into_Finite]) 2);
+by (asm_simp_tac (simpset() addsimps [thm "Fin.consI" RS Fin_into_Finite]) 2);
 by (res_inst_tac [("C1", "Ca-{xb}"), ("e1","e"), ("A1", "A"), ("f1", "f")] 
     (Fin_imp_fold_set RS exE) 1);
 by (blast_tac (claset() addIs [Diff_subset RS Fin_subset]) 1);
@@ -175,7 +175,7 @@ Goal
 \    ==> <cons(c, C), v> : fold_set(cons(c, C), B, f, e) <->  \
 \         (EX y. <C, y> : fold_set(C, B, f, e) & v = f(c, y))";
 by Auto_tac;
-by (forward_tac [inst "a" "c" Fin.consI RS FinD RS fold_set_mono RS subsetD] 1);
+by (forward_tac [inst "a" "c" (thm"Fin.consI") RS FinD RS fold_set_mono RS subsetD] 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (forward_tac [FinD RS fold_set_mono RS subsetD] 2);

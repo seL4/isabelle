@@ -104,7 +104,7 @@ qed "multiset_iff_Mult_mset_of";
 (* the empty multiset is 0 *)
 
 Goal "multiset(0)";
-by (auto_tac (claset() addIs FiniteFun.intrs, 
+by (auto_tac (claset() addIs (thms"FiniteFun.intros"), 
         simpset()  addsimps [multiset_iff_Mult_mset_of]));
 qed "multiset_0";
 Addsimps [multiset_0];
