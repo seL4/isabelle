@@ -9,23 +9,27 @@ rtrancl is reflexive/transitive closure;
 trancl  is transitive closure
 reflcl  is reflexive closure
 
-These postfix operators have MAXIMUM PRIORITY, forcing their operands to be
-      atomic.
+These postfix operators have MAXIMUM PRIORITY, forcing their operands
+to be atomic.
 *)
 
 Transitive_Closure = Lfp + Relation + 
 
 constdefs
-  rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [1000] 999)
-  "r^*  ==  lfp(%s. Id Un (r O s))"
+  rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_^*)" [1000] 999)
+  "r^* == lfp (%s. Id Un (r O s))"
 
-  trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [1000] 999)
-  "r^+  ==  r O rtrancl(r)"
+  trancl :: "('a * 'a) set => ('a * 'a) set"    ("(_^+)" [1000] 999)
+  "r^+ ==  r O rtrancl r"
 
 syntax
-  "_reflcl"  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 999)
-
+  "_reflcl" :: "('a * 'a) set => ('a * 'a) set"    ("(_^=)" [1000] 999)
 translations
   "r^=" == "r Un Id"
+
+syntax (xsymbols)
+  rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>*)" [1000] 999)
+  trancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>+)" [1000] 999)
+  "_reflcl" :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>=)" [1000] 999)
 
 end

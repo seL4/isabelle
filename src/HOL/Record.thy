@@ -40,7 +40,7 @@ syntax
   "_updates"            :: "[update, updates] => updates"               ("_,/ _")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3'(| _ |'))" [900,0] 900)
 
-syntax (input)   (* FIXME (xsymbols) *)
+syntax (xsymbols)
   "_record_type"        :: "field_types => type"                        ("(3\<lparr>_\<rparr>)")
   "_record_type_scheme" :: "[field_types, type] => type"        ("(3\<lparr>_,/ (2\<dots> ::/ _)\<rparr>)")
   "_record"             :: "fields => 'a"                               ("(3\<lparr>_\<rparr>)")
