@@ -401,18 +401,10 @@ include rules for turning multiplication with constants into addition.
 
 structure Int_LA_Data: LIN_ARITH_DATA =
 struct
-val ccontr = ccontr;
-val conjI = conjI;
+
 val lessD = add1_zle_eq RS iffD2;
-val neqE = int_neqE;
-val notI = notI;
 val not_leD = not_zleE RS lessD;
 val not_lessD = zleI;
-val sym = sym;
-
-val mk_Trueprop = Nat_LA_Data.mk_Trueprop;
-val neg_prop = Nat_LA_Data.neg_prop;
-val mk_Eq = Nat_LA_Data.mk_Eq;
 
 val intT = Type("IntDef.int",[]);
 
@@ -483,17 +475,14 @@ val add_mono_thms = map (fn s => prove_goal Int.thy s
  "(i  = j) & (k  = l) ==> i + k  = j + (l::int)"
 ];
 
-fun is_False thm =
-  let val _ $ t = #prop(rep_thm thm)
-  in t = Const("False",HOLogic.boolT) end;
-
 fun is_nat(t) = false;
 
 fun mk_nat_thm sg t = sys_error "Int/mk_nat_thm";
 
 end;
 
-structure Fast_Int_Arith = Fast_Lin_Arith(Int_LA_Data);
+structure Fast_Int_Arith =
+  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=Int_LA_Data);
 
 val fast_int_arith_tac = Fast_Int_Arith.lin_arith_tac;
 

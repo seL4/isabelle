@@ -843,16 +843,14 @@ Addsimprocs nat_cancel;
 (* 2. Linear arithmetic                                                      *)
 (*---------------------------------------------------------------------------*)
 
-(* Parameter data for general linear arithmetic functor *)
-structure Nat_LA_Data: LIN_ARITH_DATA =
+(* Parameters data for general linear arithmetic functor *)
+
+structure LA_Logic: LIN_ARITH_LOGIC =
 struct
 val ccontr = ccontr;
 val conjI = conjI;
-val lessD = Suc_leI;
-val neqE = nat_neqE;
+val neqE = linorder_neqE;
 val notI = notI;
-val not_leD = not_leE RS Suc_leI;
-val not_lessD = leI;
 val sym = sym;
 
 val mk_Eq = mk_eq;
@@ -860,6 +858,19 @@ val mk_Trueprop = HOLogic.mk_Trueprop;
 
 fun neg_prop(TP$(Const("Not",_)$t)) = TP$t
   | neg_prop(TP$t) = TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t);
+
+fun is_False thm =
+  let val _ $ t = #prop(rep_thm thm)
+  in t = Const("False",HOLogic.boolT) end;
+
+end;
+
+structure Nat_LA_Data: LIN_ARITH_DATA =
+struct
+
+val lessD = Suc_leI;
+val not_leD = not_leE RS Suc_leI;
+val not_lessD = leI;
 
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
@@ -908,10 +919,6 @@ val add_mono_thms = map (fn s => prove_goal Arith.thy s
  "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
 ];
 
-fun is_False thm =
-  let val _ $ t = #prop(rep_thm thm)
-  in t = Const("False",HOLogic.boolT) end;
-
 fun is_nat(t) = fastype_of1 t = HOLogic.natT;
 
 fun mk_nat_thm sg t =
@@ -920,7 +927,8 @@ fun mk_nat_thm sg t =
 
 end;
 
-structure Fast_Nat_Arith = Fast_Lin_Arith(Nat_LA_Data);
+structure Fast_Nat_Arith =
+  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=Nat_LA_Data);
 
 val fast_nat_arith_tac = Fast_Nat_Arith.lin_arith_tac;
 
