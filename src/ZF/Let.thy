@@ -3,10 +3,10 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-Let expressions -- borrowed from HOL
+Let expressions, and tuple pattern-matching (borrowed from HOL)
 *)
 
-Let = ZF +
+Let = FOL +
 
 types
   letbinds  letbind
@@ -15,7 +15,7 @@ consts
   Let           :: "['a, 'a => 'b] => 'b"
 
 syntax
-  "_bind"       :: "[idt, 'a] => letbind"             ("(2_ =/ _)" 10)
+  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
   ""            :: "letbind => letbinds"              ("_")
   "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
   "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
