@@ -33,7 +33,7 @@ structure Hypsubst_Data =
 
   (*etac rev_cut_eq moves an equality to be the last premise. *)
   val rev_cut_eq = prove_goal IFOLP.thy 
-                "[| p:a=b;  !!x.x:a=b ==> f(x):R |] ==> ?p:R"
+                "[| p:a=b;  !!x. x:a=b ==> f(x):R |] ==> ?p:R"
    (fn prems => [ REPEAT(resolve_tac prems 1) ]);
 
   val rev_mp = rev_mp

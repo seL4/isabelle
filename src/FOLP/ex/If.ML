@@ -10,7 +10,7 @@ open If;
 open Cla;    (*in case structure Int is open!*)
 
 val prems = goalw If.thy [if_def]
-    "[| !!x.x:P ==> f(x):Q; !!x.x:~P ==> g(x):R |] ==> ?p:if(P,Q,R)";
+    "[| !!x. x:P ==> f(x):Q; !!x. x:~P ==> g(x):R |] ==> ?p:if(P,Q,R)";
 by (fast_tac (FOLP_cs addIs prems) 1);
 val ifI = result();
 

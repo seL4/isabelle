@@ -41,17 +41,17 @@ val iff_rews = map int_prove_fun
   "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
 val quant_rews = map int_prove_fun
- ["(ALL x.P) <-> P",    "(EX x.P) <-> P"];
+ ["(ALL x. P) <-> P",    "(EX x. P) <-> P"];
 
 (*These are NOT supplied by default!*)
 val distrib_rews  = map int_prove_fun
  ["~(P|Q) <-> ~P & ~Q",
   "P & (Q | R) <-> P&Q | P&R", "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)",
-  "~(EX x.NORM(P(x))) <-> (ALL x. ~NORM(P(x)))",
-  "((EX x.NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)",
-  "(EX x.NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))",
-  "NORM(Q) & (EX x.NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"];
+  "~(EX x. NORM(P(x))) <-> (ALL x. ~NORM(P(x)))",
+  "((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)",
+  "(EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))",
+  "NORM(Q) & (EX x. NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"];
 
 val P_Imp_P_iff_T = int_prove_fun_raw "p:P ==> ?p:(P <-> True)";
 

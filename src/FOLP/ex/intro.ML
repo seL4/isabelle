@@ -32,7 +32,7 @@ by (REPEAT (assume_tac 1));
 result();
 
 (*Correct version, delaying use of "spec" until last*)
-goal FOLP.thy "?p:(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
+goal FOLP.thy "?p:(ALL x y. P(x,y))  -->  (ALL z w. P(w,z))";
 by (rtac impI 1);
 by (rtac allI 1);
 by (rtac allI 1);
@@ -69,7 +69,7 @@ result();
 
 (** Derivation of negation introduction **)
 
-val prems = goal FOLP.thy "(!!x.x:P ==> f(x):False) ==> ?p:~P";
+val prems = goal FOLP.thy "(!!x. x:P ==> f(x):False) ==> ?p:~P";
 by (rewtac not_def);
 by (rtac impI 1);
 by (resolve_tac prems 1);

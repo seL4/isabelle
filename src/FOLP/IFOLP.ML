@@ -82,23 +82,23 @@ val conjE = prove_goal IFOLP.thy
               resolve_tac prems 1))) ]);
 
 val impE = prove_goal IFOLP.thy 
-    "[| p:P-->Q;  q:P;  !!x.x:Q ==> r(x):R |] ==> ?p:R"
+    "[| p:P-->Q;  q:P;  !!x. x:Q ==> r(x):R |] ==> ?p:R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
 
 val allE = prove_goal IFOLP.thy 
-    "[| p:ALL x.P(x); !!y.y:P(x) ==> q(y):R |] ==> ?p:R"
+    "[| p:ALL x. P(x); !!y. y:P(x) ==> q(y):R |] ==> ?p:R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
 
 (*Duplicates the quantifier; for use with eresolve_tac*)
 val all_dupE = prove_goal IFOLP.thy 
-    "[| p:ALL x.P(x);  !!y z.[| y:P(x); z:ALL x.P(x) |] ==> q(y,z):R \
+    "[| p:ALL x. P(x);  !!y z.[| y:P(x); z:ALL x. P(x) |] ==> q(y,z):R \
 \    |] ==> ?p:R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
 
 
 (*** Negation rules, which translate between ~P and P-->False ***)
 
-val notI = prove_goalw IFOLP.thy [not_def]  "(!!x.x:P ==> q(x):False) ==> ?p:~P"
+val notI = prove_goalw IFOLP.thy [not_def]  "(!!x. x:P ==> q(x):False) ==> ?p:~P"
  (fn prems=> [ (REPEAT (ares_tac (prems@[impI]) 1)) ]);
 
 val notE = prove_goalw IFOLP.thy [not_def] "[| p:~P;  q:P |] ==> ?p:R"
@@ -108,7 +108,7 @@ val notE = prove_goalw IFOLP.thy [not_def] "[| p:~P;  q:P |] ==> ?p:R"
 
 (*This is useful with the special implication rules for each kind of P. *)
 val not_to_imp = prove_goal IFOLP.thy 
-    "[| p:~P;  !!x.x:(P-->False) ==> q(x):Q |] ==> ?p:Q"
+    "[| p:~P;  !!x. x:(P-->False) ==> q(x):Q |] ==> ?p:Q"
  (fn prems=> [ (REPEAT (ares_tac (prems@[impI,notE]) 1)) ]);
 
 
@@ -121,7 +121,7 @@ val rev_mp = prove_goal IFOLP.thy "[| p:P;  q:P --> Q |] ==> ?p:Q"
 
 
 (*Contrapositive of an inference rule*)
-val contrapos = prove_goal IFOLP.thy "[| p:~Q;  !!y.y:P==>q(y):Q |] ==> ?a:~P"
+val contrapos = prove_goal IFOLP.thy "[| p:~Q;  !!y. y:P==>q(y):Q |] ==> ?a:~P"
  (fn [major,minor]=> 
   [ (rtac (major RS notE RS notI) 1), 
     (etac minor 1) ]);
@@ -161,7 +161,7 @@ fun uniq_mp_tac i = eresolve_tac [notE,impE] i  THEN  uniq_assume_tac i;
 (*** If-and-only-if ***)
 
 val iffI = prove_goalw IFOLP.thy [iff_def]
-   "[| !!x.x:P ==> q(x):Q;  !!x.x:Q ==> r(x):P |] ==> ?p:P<->Q"
+   "[| !!x. x:P ==> q(x):Q;  !!x. x:Q ==> r(x):P |] ==> ?p:P<->Q"
  (fn prems=> [ (REPEAT (ares_tac (prems@[conjI, impI]) 1)) ]);
 
 
@@ -201,11 +201,11 @@ val iff_trans = prove_goal IFOLP.thy "[| p:P <-> Q; q:Q<-> R |] ==> ?p:P <-> R"
 ***)
 
 val ex1I = prove_goalw IFOLP.thy [ex1_def]
-    "[| p:P(a);  !!x u.u:P(x) ==> f(u) : x=a |] ==> ?p:EX! x. P(x)"
+    "[| p:P(a);  !!x u. u:P(x) ==> f(u) : x=a |] ==> ?p:EX! x. P(x)"
  (fn prems => [ (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ]);
 
 val ex1E = prove_goalw IFOLP.thy [ex1_def]
-    "[| p:EX! x.P(x);  \
+    "[| p:EX! x. P(x);  \
 \       !!x u v. [| u:P(x);  v:ALL y. P(y) --> y=x |] ==> f(x,u,v):R |] ==>\
 \    ?a : R"
  (fn prems =>
@@ -221,7 +221,7 @@ fun iff_tac prems i =
     REPEAT1 (eresolve_tac [asm_rl,mp] i);
 
 val conj_cong = prove_goal IFOLP.thy 
-    "[| p:P <-> P';  !!x.x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P&Q) <-> (P'&Q')"
+    "[| p:P <-> P';  !!x. x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P&Q) <-> (P'&Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT  (ares_tac [iffI,conjI] 1
@@ -237,7 +237,7 @@ val disj_cong = prove_goal IFOLP.thy
       ORELSE  mp_tac 1)) ]);
 
 val imp_cong = prove_goal IFOLP.thy 
-    "[| p:P <-> P';  !!x.x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P-->Q) <-> (P'-->Q')"
+    "[| p:P <-> P';  !!x. x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P-->Q) <-> (P'-->Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (ares_tac [iffI,impI] 1
@@ -261,14 +261,14 @@ val not_cong = prove_goal IFOLP.thy
       ORELSE  eresolve_tac [iffE,notE] 1)) ]);
 
 val all_cong = prove_goal IFOLP.thy 
-    "(!!x.f(x):P(x) <-> Q(x)) ==> ?p:(ALL x.P(x)) <-> (ALL x.Q(x))"
+    "(!!x. f(x):P(x) <-> Q(x)) ==> ?p:(ALL x. P(x)) <-> (ALL x. Q(x))"
  (fn prems =>
   [ (REPEAT   (ares_tac [iffI,allI] 1
       ORELSE   mp_tac 1
       ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
 
 val ex_cong = prove_goal IFOLP.thy 
-    "(!!x.f(x):P(x) <-> Q(x)) ==> ?p:(EX x.P(x)) <-> (EX x.Q(x))"
+    "(!!x. f(x):P(x) <-> Q(x)) ==> ?p:(EX x. P(x)) <-> (EX x. Q(x))"
  (fn prems =>
   [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
       ORELSE   mp_tac 1
@@ -306,7 +306,7 @@ val ssubst = standard (sym RS subst);
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 val ex1_equalsE = prove_goal IFOLP.thy
-    "[| p:EX! x.P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
+    "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (etac ex1E 1),
@@ -395,7 +395,7 @@ val eq_cong = read_instantiate [("P","op =")] pred2_cong;
     (preprint, University of St Andrews, 1991)  ***)
 
 val conj_impE = prove_goal IFOLP.thy 
-    "[| p:(P&Q)-->S;  !!x.x:P-->(Q-->S) ==> q(x):R |] ==> ?p:R"
+    "[| p:(P&Q)-->S;  !!x. x:P-->(Q-->S) ==> q(x):R |] ==> ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([conjI, impI, major RS mp]@prems) 1)) ]);
 
@@ -407,7 +407,7 @@ val disj_impE = prove_goal IFOLP.thy
 (*Simplifies the implication.  Classical version is stronger. 
   Still UNSAFE since Q must be provable -- backtracking needed.  *)
 val imp_impE = prove_goal IFOLP.thy 
-    "[| p:(P-->Q)-->S;  !!x y.[| x:P; y:Q-->S |] ==> q(x,y):Q;  !!x.x:S ==> r(x):R |] ==> \
+    "[| p:(P-->Q)-->S;  !!x y.[| x:P; y:Q-->S |] ==> q(x,y):Q;  !!x. x:S ==> r(x):R |] ==> \
 \    ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([impI, major RS mp]@prems) 1)) ]);
@@ -415,26 +415,26 @@ val imp_impE = prove_goal IFOLP.thy
 (*Simplifies the implication.  Classical version is stronger. 
   Still UNSAFE since ~P must be provable -- backtracking needed.  *)
 val not_impE = prove_goal IFOLP.thy
-    "[| p:~P --> S;  !!y.y:P ==> q(y):False;  !!y.y:S ==> r(y):R |] ==> ?p:R"
+    "[| p:~P --> S;  !!y. y:P ==> q(y):False;  !!y. y:S ==> r(y):R |] ==> ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([notI, impI, major RS mp]@prems) 1)) ]);
 
 (*Simplifies the implication.   UNSAFE.  *)
 val iff_impE = prove_goal IFOLP.thy 
     "[| p:(P<->Q)-->S;  !!x y.[| x:P; y:Q-->S |] ==> q(x,y):Q;  \
-\       !!x y.[| x:Q; y:P-->S |] ==> r(x,y):P;  !!x.x:S ==> s(x):R |] ==> ?p:R"
+\       !!x y.[| x:Q; y:P-->S |] ==> r(x,y):P;  !!x. x:S ==> s(x):R |] ==> ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([iffI, impI, major RS mp]@prems) 1)) ]);
 
 (*What if (ALL x.~~P(x)) --> ~~(ALL x.P(x)) is an assumption? UNSAFE*)
 val all_impE = prove_goal IFOLP.thy 
-    "[| p:(ALL x.P(x))-->S;  !!x.q:P(x);  !!y.y:S ==> r(y):R |] ==> ?p:R"
+    "[| p:(ALL x. P(x))-->S;  !!x. q:P(x);  !!y. y:S ==> r(y):R |] ==> ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([allI, impI, major RS mp]@prems) 1)) ]);
 
 (*Unsafe: (EX x.P(x))-->S  is equivalent to  ALL x.P(x)-->S.  *)
 val ex_impE = prove_goal IFOLP.thy 
-    "[| p:(EX x.P(x))-->S;  !!y.y:P(a)-->S ==> q(y):R |] ==> ?p:R"
+    "[| p:(EX x. P(x))-->S;  !!y. y:P(a)-->S ==> q(y):R |] ==> ?p:R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ]);
 

@@ -27,7 +27,7 @@ struct
 (*** Classical introduction rules for | and EX ***)
 
 val disjCI = prove_goal FOLP.thy 
-   "(!!x.x:~Q ==> f(x):P) ==> ?p : P|Q"
+   "(!!x. x:~Q ==> f(x):P) ==> ?p : P|Q"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[disjI1,notI]) 1)),
@@ -35,14 +35,14 @@ val disjCI = prove_goal FOLP.thy
 
 (*introduction rule involving only EX*)
 val ex_classical = prove_goal FOLP.thy 
-   "( !!u.u:~(EX x. P(x)) ==> f(u):P(a)) ==> ?p : EX x.P(x)"
+   "( !!u. u:~(EX x. P(x)) ==> f(u):P(a)) ==> ?p : EX x. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (eresolve_tac (prems RL [exI]) 1) ]);
 
 (*version of above, simplifying ~EX to ALL~ *)
 val exCI = prove_goal FOLP.thy 
-   "(!!u.u:ALL x. ~P(x) ==> f(u):P(a)) ==> ?p : EX x.P(x)"
+   "(!!u. u:ALL x. ~P(x) ==> f(u):P(a)) ==> ?p : EX x. P(x)"
  (fn [prem]=>
   [ (rtac ex_classical 1),
     (resolve_tac [notI RS allI RS prem] 1),
@@ -58,7 +58,7 @@ val excluded_middle = prove_goal FOLP.thy "?p : ~P | P"
 
 (*Classical implies (-->) elimination. *)
 val impCE = prove_goal FOLP.thy 
-    "[| p:P-->Q;  !!x.x:~P ==> f(x):R;  !!y.y:Q ==> g(y):R |] ==> ?p : R"
+    "[| p:P-->Q;  !!x. x:~P ==> f(x):R;  !!y. y:Q ==> g(y):R |] ==> ?p : R"
  (fn major::prems=>
   [ (resolve_tac [excluded_middle RS disjE] 1),
     (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
@@ -84,7 +84,7 @@ val iffCE = prove_goalw FOLP.thy [iff_def]
 
 (*Should be used as swap since ~P becomes redundant*)
 val swap = prove_goal FOLP.thy 
-   "p:~P ==> (!!x.x:~Q ==> f(x):P) ==> ?p : Q"
+   "p:~P ==> (!!x. x:~Q ==> f(x):P) ==> ?p : Q"
  (fn major::prems=>
   [ (rtac classical 1),
     (rtac (major RS notE) 1),

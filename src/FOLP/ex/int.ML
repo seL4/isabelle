@@ -180,11 +180,11 @@ writeln"** Examples with quantifiers **";
 
 writeln"The converse is classical in the following implications...";
 
-goal IFOLP.thy "?p : (EX x.P(x)-->Q)  -->  (ALL x.P(x)) --> Q";
+goal IFOLP.thy "?p : (EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : ((ALL x.P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
+goal IFOLP.thy "?p : ((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
@@ -192,7 +192,7 @@ goal IFOLP.thy "?p : ((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : (ALL x.P(x)) | Q  -->  (ALL x. P(x) | Q)";
+goal IFOLP.thy "?p : (ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
@@ -206,15 +206,15 @@ result();
 writeln"The following are not constructively valid!";
 (*The attempt to prove them terminates quickly!*)
 
-goal IFOLP.thy "?p : ((ALL x.P(x))-->Q) --> (EX x.P(x)-->Q)";
+goal IFOLP.thy "?p : ((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOLP.thy "?p : (P --> (EX x.Q(x))) --> (EX x. P-->Q(x))";
+goal IFOLP.thy "?p : (P --> (EX x. Q(x))) --> (EX x. P-->Q(x))";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOLP.thy "?p : (ALL x. P(x) | Q) --> ((ALL x.P(x)) | Q)";
+goal IFOLP.thy "?p : (ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
@@ -264,7 +264,7 @@ result();
 
 writeln"Problem 24";
 goal IFOLP.thy "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> ~~(EX x. P(x)&R(x))";
 (*Not clear why fast_tac, best_tac, ASTAR and ITER_DEEPEN all take forever*)
 by IntPr.safe_tac; 
@@ -297,7 +297,7 @@ by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 31";
-goal IFOLP.thy "?p : ~(EX x.P(x) & (Q(x) | R(x))) & \
+goal IFOLP.thy "?p : ~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";

@@ -127,15 +127,15 @@ goal FOLP.thy "?p : (ALL x. P(x) & Q(x)) <-> (ALL x. P(x))  &  (ALL x. Q(x))";
 by (fast_tac FOLP_cs 1);
 result(); 
 
-goal FOLP.thy "?p : (EX x. P-->Q(x))  <->  (P --> (EX x.Q(x)))";
+goal FOLP.thy "?p : (EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))";
 by (fast_tac FOLP_cs 1);
 result(); 
 
-goal FOLP.thy "?p : (EX x.P(x)-->Q)  <->  (ALL x.P(x)) --> Q";
+goal FOLP.thy "?p : (EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q";
 by (fast_tac FOLP_cs 1);
 result(); 
 
-goal FOLP.thy "?p : (ALL x.P(x)) | Q  <->  (ALL x. P(x) | Q)";
+goal FOLP.thy "?p : (ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (fast_tac FOLP_cs 1);
 result(); 
 
@@ -192,7 +192,7 @@ result();
 
 writeln"Problem 24";
 goal FOLP.thy "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (fast_tac FOLP_cs 1); 
 result();
@@ -225,7 +225,7 @@ result();
 writeln"Problem 28.  AMENDED";
 goal FOLP.thy "?p : (ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       ((ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
-\       ((EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
+\       ((EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (fast_tac FOLP_cs 1);  
 result();
@@ -245,7 +245,7 @@ by (fast_tac FOLP_cs 1);
 result();
 
 writeln"Problem 31";
-goal FOLP.thy "?p : ~(EX x.P(x) & (Q(x) | R(x))) & \
+goal FOLP.thy "?p : ~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
@@ -282,7 +282,7 @@ result();
 
 writeln"Problem 37";
 goal FOLP.thy "?p : (ALL z. EX w. ALL x. EX y. \
-\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u.Q(u,w)))) & \
+\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) & \
 \       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
 \       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> (ALL x. EX y. R(x,y))";
@@ -323,7 +323,7 @@ result();
 
 writeln"Problem 50";  
 (*What has this to do with equality?*)
-goal FOLP.thy "?p : (ALL x. P(a,x) | (ALL y.P(x,y))) --> (EX x. ALL y.P(x,y))";
+goal FOLP.thy "?p : (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))";
 by (best_tac FOLP_dup_cs 1);
 result();
 

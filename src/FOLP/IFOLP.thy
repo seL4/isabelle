@@ -67,7 +67,7 @@ rules
 (* Like Intensional Equality in MLTT - but proofs distinct from terms *)
 
 ieqI      "ideq(a) : a=a"
-ieqE      "[| p : a=b;  !!x.f(x) : P(x,x) |] ==> idpeel(p,f) : P(a,b)"
+ieqE      "[| p : a=b;  !!x. f(x) : P(x,x) |] ==> idpeel(p,f) : P(a,b)"
 
 (* Truth and Falsity *)
 
@@ -84,21 +84,21 @@ conjunct2 "p:P&Q ==> snd(p):Q"
 
 disjI1    "a:P ==> inl(a):P|Q"
 disjI2    "b:Q ==> inr(b):P|Q"
-disjE     "[| a:P|Q;  !!x.x:P ==> f(x):R;  !!x.x:Q ==> g(x):R 
+disjE     "[| a:P|Q;  !!x. x:P ==> f(x):R;  !!x. x:Q ==> g(x):R 
           |] ==> when(a,f,g):R"
 
 (* Implication *)
 
-impI      "(!!x.x:P ==> f(x):Q) ==> lam x.f(x):P-->Q"
+impI      "(!!x. x:P ==> f(x):Q) ==> lam x. f(x):P-->Q"
 mp        "[| f:P-->Q;  a:P |] ==> f`a:Q"
 
 (*Quantifiers*)
 
-allI      "(!!x. f(x) : P(x)) ==> all x.f(x) : ALL x.P(x)"
-spec      "(f:ALL x.P(x)) ==> f^x : P(x)"
+allI      "(!!x. f(x) : P(x)) ==> all x. f(x) : ALL x. P(x)"
+spec      "(f:ALL x. P(x)) ==> f^x : P(x)"
 
-exI       "p : P(x) ==> [x,p] : EX x.P(x)"
-exE       "[| p: EX x.P(x);  !!x u. u:P(x) ==> f(x,u) : R |] ==> xsplit(p,f):R"
+exI       "p : P(x) ==> [x,p] : EX x. P(x)"
+exE       "[| p: EX x. P(x);  !!x u. u:P(x) ==> f(x,u) : R |] ==> xsplit(p,f):R"
 
 (**** Equality between proofs ****)
 
@@ -106,20 +106,20 @@ prefl     "a : P ==> a = a : P"
 psym      "a = b : P ==> b = a : P"
 ptrans    "[| a = b : P;  b = c : P |] ==> a = c : P"
 
-idpeelB   "[| !!x.f(x) : P(x,x) |] ==> idpeel(ideq(a),f) = f(a) : P(a,a)"
+idpeelB   "[| !!x. f(x) : P(x,x) |] ==> idpeel(ideq(a),f) = f(a) : P(a,a)"
 
 fstB      "a:P ==> fst(<a,b>) = a : P"
 sndB      "b:Q ==> snd(<a,b>) = b : Q"
 pairEC    "p:P&Q ==> p = <fst(p),snd(p)> : P&Q"
 
-whenBinl  "[| a:P;  !!x.x:P ==> f(x) : Q |] ==> when(inl(a),f,g) = f(a) : Q"
-whenBinr  "[| b:P;  !!x.x:P ==> g(x) : Q |] ==> when(inr(b),f,g) = g(b) : Q"
-plusEC    "a:P|Q ==> when(a,%x.inl(x),%y.inr(y)) = p : P|Q"
+whenBinl  "[| a:P;  !!x. x:P ==> f(x) : Q |] ==> when(inl(a),f,g) = f(a) : Q"
+whenBinr  "[| b:P;  !!x. x:P ==> g(x) : Q |] ==> when(inr(b),f,g) = g(b) : Q"
+plusEC    "a:P|Q ==> when(a,%x. inl(x),%y. inr(y)) = p : P|Q"
 
-applyB     "[| a:P;  !!x.x:P ==> b(x) : Q |] ==> (lam x.b(x)) ` a = b(a) : Q"
-funEC      "f:P ==> f = lam x.f`x : P"
+applyB     "[| a:P;  !!x. x:P ==> b(x) : Q |] ==> (lam x. b(x)) ` a = b(a) : Q"
+funEC      "f:P ==> f = lam x. f`x : P"
 
-specB      "[| !!x.f(x) : P(x) |] ==> (all x.f(x)) ^ a = f(a) : P(a)"
+specB      "[| !!x. f(x) : P(x) |] ==> (all x. f(x)) ^ a = f(a) : P(a)"
 
 
 (**** Definitions ****)
