@@ -1168,7 +1168,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "spuriouscmd"    => isarscript data
      | "badcmd"		=> isarscript data
      (* improperproofcmd: improper commands which *do not* belong in script *)
-     | "undostep"       => isarcmd "undos_proof 1" (* ProofGeneral.undo" *)
+     | "undostep"       => isarcmd "undos_proof 1"
      | "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
      | "forget"         => error "Not implemented" 
      | "restoregoal"    => error "Not implemented"  (* could just treat as forget? *)
@@ -1190,6 +1190,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
 			       writeln ("Theory \""^thyname^"\" completed."))
 			   end
      (* improperfilecmd: theory-level commands not in script *)
+     | "undoitem"       => isarcmd "ProofGeneral.undo"
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
      | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
