@@ -39,12 +39,6 @@ val contextP =
 
 (** formal comments **)
 
-val txtP = OuterSyntax.command "txt" "formal comment (proof)" K.prf_decl
-  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
-
-val textP = OuterSyntax.command "text" "formal comment (theory)" K.thy_decl
-  (P.comment >> (Toplevel.theory o IsarThy.add_text));
-
 val titleP = OuterSyntax.command "title" "document title" K.thy_heading
   ((P.comment -- Scan.optional P.comment Comment.none -- Scan.optional P.comment Comment.none)
     >> (fn ((x, y), z) => Toplevel.theory (IsarThy.add_title x y z)));
@@ -60,6 +54,22 @@ val subsectionP = OuterSyntax.command "subsection" "subsection heading" K.thy_he
 
 val subsubsectionP = OuterSyntax.command "subsubsection" "subsubsection heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
+
+val textP = OuterSyntax.command "text" "formal comment (theory)" K.thy_decl
+  (P.comment >> (Toplevel.theory o IsarThy.add_text));
+
+
+val sectP = OuterSyntax.command "sect" "formal comment (proof)" K.prf_decl
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
+
+val subsectP = OuterSyntax.command "subsect" "formal comment (proof)" K.prf_decl
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
+
+val subsubsectP = OuterSyntax.command "subsubsect" "formal comment (proof)" K.prf_decl
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
+
+val txtP = OuterSyntax.command "txt" "formal comment (proof)" K.prf_decl
+  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
 
 
@@ -181,10 +191,6 @@ val globalP =
 val localP =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
     (Scan.succeed (Toplevel.theory PureThy.local_path));
-
-val pathP =
-  OuterSyntax.command "path" "modify name-space entry path" K.thy_decl
-    (P.xname >> (Toplevel.theory o Theory.add_path));
 
 
 (* use ML text *)
@@ -355,7 +361,7 @@ val default_proofP =
     (P.marg_comment >> IsarThy.default_proof);
 
 val skip_proofP =
-  OuterSyntax.command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
+  OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
     (P.marg_comment >> IsarThy.skip_proof);
 
 
@@ -548,22 +554,24 @@ val init_toplevelP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["!", "!!", "%", "(", ")", "*", "+", ",", "--", ":", "::", ";", "<",
-  "<=", "=", "==", "=>", "?", "[", "]", "and", "as", "binder",
+ ["!", "!!", "%", "%%", "(", ")", "*", "+", ",", "--", ":", "::", ";",
+  "<", "<=", "=", "==", "=>", "?", "[", "]", "and", "as", "binder",
   "concl", "files", "infixl", "infixr", "is", "output", "{", "|",
   "}"];
 
 val parsers = [
   (*theory structure*)
   theoryP, end_excursionP, kill_excursionP, contextP,
+  (*formal comments*)
+  titleP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
+  sectP, subsectP, subsubsectP, txtP,
   (*theory sections*)
-  txtP, textP, titleP, chapterP, sectionP, subsectionP,
-  subsubsectionP, classesP, classrelP, defaultsortP, typedeclP,
-  typeabbrP, nontermP, aritiesP, constsP, syntaxP, translationsP,
-  axiomsP, defsP, constdefsP, theoremsP, lemmasP, globalP, localP,
-  pathP, useP, mlP, setupP, parse_ast_translationP,
-  parse_translationP, print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP,
+  classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
+  aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
+  constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP, setupP,
+  parse_ast_translationP, parse_translationP, print_translationP,
+  typed_print_translationP, print_ast_translationP,
+  token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,

@@ -7,13 +7,16 @@ Pure/Isar derived theory operations.
 
 signature ISAR_THY =
 sig
-  val add_txt: Comment.text -> ProofHistory.T -> ProofHistory.T
-  val add_text: Comment.text -> theory -> theory
   val add_title: Comment.text -> Comment.text -> Comment.text -> theory -> theory
   val add_chapter: Comment.text -> theory -> theory
   val add_section: Comment.text -> theory -> theory
   val add_subsection: Comment.text -> theory -> theory
   val add_subsubsection: Comment.text -> theory -> theory
+  val add_text: Comment.text -> theory -> theory
+  val add_sect: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val add_subsect: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val add_subsubsect: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val add_txt: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_classes: (bclass * xclass list) list * Comment.text -> theory -> theory
   val add_classes_i: (bclass * class list) list * Comment.text  -> theory -> theory
   val add_classrel: (xclass * xclass) * Comment.text -> theory -> theory
@@ -157,13 +160,17 @@ struct
 
 (* formal comments *)
 
-fun add_txt comment = ProofHistory.apply Proof.assert_forward;
 fun add_text comment thy = thy;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
 val add_section = add_text;
 val add_subsection = add_text;
 val add_subsubsection = add_text;
+
+fun add_txt comment = ProofHistory.apply Proof.assert_forward;
+val add_sect = add_text;
+val add_subsect = add_text;
+val add_subsubsect = add_text;
 
 
 (* signature and syntax *)
