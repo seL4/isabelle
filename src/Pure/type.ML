@@ -64,6 +64,7 @@ sig
   val get_sort: type_sig -> (indexname -> sort option) -> (sort -> sort)
     -> (indexname * sort) list -> indexname -> sort
   val constrain: term -> typ -> term
+  val param: string list -> string * sort -> typ
   val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
     -> type_sig -> (string -> typ option) -> (indexname -> typ option)
     -> (indexname -> sort option) -> (string -> string) -> (typ -> typ)
@@ -817,6 +818,12 @@ fun constrain t T =
   else Const ("_type_constraint_", T) $ t;
 
 
+(* user parameters *)
+
+fun is_param (x, _) = size x > 0 andalso ord x = ord "?";
+fun param used (x, S) = TVar (("?" ^ variant used x, 0), S);
+
+
 (* decode_types *)
 
 (*transform parse tree into raw term*)
@@ -866,12 +873,6 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
   freeze: if true then generated parameters are turned into TFrees, else TVars
 *)
 
-(*user-supplied inference parameters: ??x.i *)
-fun q_is_param (x, _) =
-  (case explode x of
-    "?" :: _ => true
-  | _ => false);
-
 fun infer_types prt prT tsig const_type def_type def_sort
     map_const map_type map_sort used freeze pat_Ts raw_ts =
   let
@@ -882,7 +883,7 @@ fun infer_types prt prT tsig const_type def_type def_sort
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
     val (ts, Ts, unifier) =
       TypeInfer.infer_types prt prT const_type classrel arities used freeze
-        q_is_param raw_ts' pat_Ts';
+        is_param raw_ts' pat_Ts';
   in
     (ts, unifier)
   end;
