@@ -53,6 +53,10 @@ local
 
 structure T = OuterLex;
 
+fun strip_blanks s =
+  implode (#1 (Library.take_suffix Symbol.is_blank
+    (#2 (Library.take_prefix Symbol.is_blank (explode s)))));
+
 fun output_tok tok =
   let
     val out = output_symbol;
@@ -61,7 +65,7 @@ fun output_tok tok =
     if T.is_kind T.Command tok then "\\isacommand{" ^ out s ^ "}"
     else if T.is_kind T.Keyword tok then "\\isakeyword{" ^ out s ^ "}"
     else if T.is_kind T.String tok then out (quote s)
-    else if T.is_kind T.Verbatim tok then "\\isatext{" ^ s ^ "}"
+    else if T.is_kind T.Verbatim tok then "\\isatext{" ^ strip_blanks s ^ "}"
     else out s
   end;
 
