@@ -46,8 +46,8 @@ sig
   val freeze_vars: typ -> typ
   val infer_types: type_sig * (string -> typ option) *
                    (indexname -> typ option) * (indexname -> sort option) *
-                   string list * bool * typ * term
-                   -> term * (indexname * typ) list
+                   string list * bool * typ list * term list
+                   -> term list * (indexname * typ) list
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
   val thaw_vars: typ -> typ
   val typ_errors: type_sig -> typ * string list -> string list
@@ -902,16 +902,17 @@ fun infer tsig =
                 val (T, tyeT) = inf(Ts, f, tyeU);
                 fun err s =
                   raise TYPE(s, [inst_typ tyeT T, inst_typ tyeT U], [f$u])
+		val msg = "function type is incompatible with argument type"
             in case T of
                  Type("fun", [T1, T2]) =>
                    ( (T2, unify tsig ((T1, U), tyeT))
-                     handle TUNIFY => err"type mismatch in application" )
+                     handle TUNIFY => err msg)
                | TVar _ =>
                    let val T2 = gen_tyvar([])
                    in (T2, unify tsig ((T, U-->T2), tyeT))
-                      handle TUNIFY => err"type mismatch in application"
+                      handle TUNIFY => err msg
                    end
-               | _ => err"rator must have function type"
+               | _ => err"function type is expected in application"
            end
   in inf end;
 
@@ -1044,27 +1045,30 @@ fun restrict tye =
   in foldl clean ([], tye) end
 
 
-(*Infer types for term t using tables. Check that t's type and T unify *)
-(*freeze determines if internal TVars are turned into TFrees or TVars*)
-fun infer_term (tsig, const_type, types, sorts, used, freeze, T, t) =
+(*Infer types for terms.  Given Ts=[T1,...,Tn] and ts=[t1,...,tn], ensure that
+	the type of ti unifies with Ti (i=1,...,n).
+  types is a partial map from indexnames to types (constrains Free, Var).
+  sorts is a partial map from indexnames to sorts (constrains TFree, TVar).
+  used is the list of already used type variables.
+  If freeze then internal TVars are turned into TFrees, else TVars.*)
+fun infer_terms (tsig, const_type, types, sorts, used, freeze, Ts, ts) =
   let
-    val u = attach_types (tsig, const_type, types, sorts) t;
-    val (U, tye) = infer tsig ([], u, []);
+    val us = map (attach_types (tsig, const_type, types, sorts)) ts;
+    val u = list_comb(Const("",Ts ---> propT),us)
+    val (_, tye) = infer tsig ([], u, []);
     val uu = unconstrain u;
-    val tye' = unify tsig ((T, U), tye) handle TUNIFY => raise TYPE
-      ("Term does not have expected type", [T, U], [inst_types tye uu])
-    val Ttye = restrict tye' (*restriction to TVars in T*)
-    val all = Const("", Type("", map snd Ttye)) $ (inst_types tye' uu)
+    val Ttye = restrict tye (*restriction to TVars in Ts*)
+    val all = Const("", Type("", map snd Ttye)) $ (inst_types tye uu)
       (*all is a dummy term which contains all exported TVars*)
-    val Const(_, Type(_, Ts)) $ u'' =
+    val Const(_, Type(_, Us)) $ u'' =
       map_term_types thaw_vars (convert used freeze (fn (_, i) => i < 0) all)
       (*convert all internally generated TVars into TFrees or TVars
         and thaw all initially frozen TVars*)
   in
-    (u'', (map fst Ttye) ~~ Ts)
+    (snd(strip_comb u''), (map fst Ttye) ~~ Us)
   end;
 
-fun infer_types args = (tyinit (); infer_term args);
+fun infer_types args = (tyinit (); infer_terms args);
 
 
 end;
