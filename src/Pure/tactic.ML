@@ -66,8 +66,9 @@ sig
   val rewtac: thm -> tactic
   val rtac: thm -> int -> tactic
   val rule_by_tactic: tactic -> thm -> thm
-  val subgoals_of_brl: bool * thm -> int
   val subgoal_tac: string -> int -> tactic
+  val subgoals_tac: string list -> int -> tactic
+  val subgoals_of_brl: bool * thm -> int
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
   end
 end;
@@ -260,6 +261,9 @@ fun cut_facts_tac ths i =
 
 (*Introduce the given proposition as a lemma and subgoal*)
 fun subgoal_tac sprop = res_inst_tac [("psi", sprop)] cut_rl;
+
+(*Introduce a list of lemmas and subgoals*)
+fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
 
 
 (**** Indexing and filtering of theorems ****)
