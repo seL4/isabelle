@@ -186,7 +186,7 @@ during proofs by simplification.  The same is true for the equations in
 primitive recursive function definitions.
 
 Every datatype $t$ comes equipped with a \isa{size} function from $t$ into
-the natural numbers (see~\S\ref{sec:nat} below). For lists, \isa{size} is
+the natural numbers (see~{\S}\ref{sec:nat} below). For lists, \isa{size} is
 just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
   1}.  In general, \isaindexbold{size} returns \isa{0} for all constructors
 that do not have an argument of type $t$, and for all other constructors
@@ -209,7 +209,7 @@ Isabelle immediately sees that $f$ terminates because one (fixed!) argument
 becomes smaller with every recursive call. There must be exactly one equation
 for each constructor.  Their order is immaterial.
 A more general method for defining total recursive functions is introduced in
-\S\ref{sec:recdef}.
+{\S}\ref{sec:recdef}.
 
 \begin{exercise}\label{ex:Tree}
 \input{Misc/document/Tree.tex}%
@@ -220,7 +220,7 @@ A more general method for defining total recursive functions is introduced in
 \begin{warn}
   Induction is only allowed on free (or \isasymAnd-bound) variables that
   should not occur among the assumptions of the subgoal; see
-  \S\ref{sec:ind-var-in-prems} for details. Case distinction
+  {\S}\ref{sec:ind-var-in-prems} for details. Case distinction
   (\isa{case_tac}) works for arbitrary terms, which need to be
   quoted if they are non-atomic.
 \end{warn}
@@ -238,93 +238,11 @@ A more general method for defining total recursive functions is introduced in
 \input{Misc/document/fakenat.tex}
 \input{Misc/document/natsum.tex}
 
-The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
-\ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{*}{$HOL2arithfun},
-\isaindexbold{div}, \isaindexbold{mod}, \isaindexbold{min} and
-\isaindexbold{max} are predefined, as are the relations
-\indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. There is even a least number operation
-\isaindexbold{LEAST}. For example, \isa{(LEAST n.$\,$1 < n) = 2}, although
-Isabelle does not prove this completely automatically. Note that \isa{1} and
-\isa{2} are available as abbreviations for the corresponding
-\isa{Suc}-expressions. If you need the full set of numerals,
-see~\S\ref{nat-numerals}.
-
-\begin{warn}
-  The constant \ttindexbold{0} and the operations
-  \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
-  \ttindexboldpos{*}{$HOL2arithfun}, \isaindexbold{min}, \isaindexbold{max},
-  \indexboldpos{\isasymle}{$HOL2arithrel} and
-  \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
-  not just for natural numbers but at other types as well (see
-  \S\ref{sec:overloading}). For example, given the goal \isa{x+0 = x}, there
-  is nothing to indicate that you are talking about natural numbers.  Hence
-  Isabelle can only infer that \isa{x} is of some arbitrary type where
-  \isa{0} and \isa{+} are declared. As a consequence, you will be unable to
-  prove the goal (although it may take you some time to realize what has
-  happened if \texttt{show_types} is not set).  In this particular example,
-  you need to include an explicit type constraint, for example \isa{x+0 =
-    (x::nat)}.  If there is enough contextual information this may not be
-  necessary: \isa{Suc x = x} automatically implies \isa{x::nat} because
-  \isa{Suc} is not overloaded.
-\end{warn}
-
-Simple arithmetic goals are proved automatically by both \isa{auto}
-and the simplification methods introduced in \S\ref{sec:Simplification}.  For
-example,
-
-\input{Misc/document/arith1.tex}%
-is proved automatically. The main restriction is that only addition is taken
-into account; other arithmetic operations and quantified formulae are ignored.
-
-For more complex goals, there is the special method
-\isaindexbold{arith} (which attacks the first subgoal). It proves
-arithmetic goals involving the usual logical connectives (\isasymnot,
-\isasymand, \isasymor, \isasymimp), the relations \isasymle\ and \isa{<}, and
-the operations \isa{+}, \isa{-}, \isa{min} and \isa{max}. For example,
-
-\input{Misc/document/arith2.tex}%
-succeeds because \isa{k*k} can be treated as atomic.
-In contrast,
-
-\input{Misc/document/arith3.tex}%
-is not even proved by \isa{arith} because the proof relies essentially
-on properties of multiplication.
-
-\begin{warn}
-  The running time of \isa{arith} is exponential in the number of occurrences
-  of \ttindexboldpos{-}{$HOL2arithfun}, \isaindexbold{min} and
-  \isaindexbold{max} because they are first eliminated by case distinctions.
-
-  \isa{arith} is incomplete even for the restricted class of formulae
-  described above (known as ``linear arithmetic''). If divisibility plays a
-  role, it may fail to prove a valid formula, for example $m+m \neq n+n+1$.
-  Fortunately, such examples are rare in practice.
-\end{warn}
-
 \index{arithmetic|)}
 
 
 \subsection{Pairs}
 \input{Misc/document/pairs.tex}
-
-%FIXME move stuff below into section on proofs about products?
-\begin{warn}
-  Abstraction over pairs and tuples is merely a convenient shorthand for a
-  more complex internal representation.  Thus the internal and external form
-  of a term may differ, which can affect proofs. If you want to avoid this
-  complication, use \isa{fst} and \isa{snd}, i.e.\ write
-  \isa{\isasymlambda{}p.~fst p + snd p} instead of
-  \isa{\isasymlambda(x,y).~x + y}.  See~\S\ref{sec:products} for
-  theorem proving with tuple patterns.
-\end{warn}
-
-Note that products, like type \isa{nat}, are datatypes, which means
-in particular that \isa{induct_tac} and \isa{case_tac} are applicable to
-products (see \S\ref{sec:products}).
-
-Instead of tuples with many components (where ``many'' is not much above 2),
-it is far preferable to use records (see \S\ref{sec:records}).
 
 \section{Definitions}
 \label{sec:Definitions}
@@ -346,7 +264,7 @@ explanatory:
 
 Note that pattern-matching is not allowed, i.e.\ each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
-Section~\S\ref{sec:Simplification} explains how definitions are used
+Section~{\S}\ref{sec:Simplification} explains how definitions are used
 in proofs.
 
 \input{Misc/document/prime_def.tex}
@@ -357,15 +275,15 @@ in proofs.
 The purpose of this chapter is to deepen the reader's understanding of the
 concepts encountered so far and to introduce advanced forms of datatypes and
 recursive functions. The first two sections give a structured presentation of
-theorem proving by simplification (\S\ref{sec:Simplification}) and discuss
-important heuristics for induction (\S\ref{sec:InductionHeuristics}). They can
+theorem proving by simplification ({\S}\ref{sec:Simplification}) and discuss
+important heuristics for induction ({\S}\ref{sec:InductionHeuristics}). They can
 be skipped by readers less interested in proofs. They are followed by a case
-study, a compiler for expressions (\S\ref{sec:ExprCompiler}). Advanced
+study, a compiler for expressions ({\S}\ref{sec:ExprCompiler}). Advanced
 datatypes, including those involving function spaces, are covered in
-\S\ref{sec:advanced-datatypes}, which closes with another case study, search
+{\S}\ref{sec:advanced-datatypes}, which closes with another case study, search
 trees (``tries'').  Finally we introduce \isacommand{recdef}, a very general
 form of recursive function definition which goes well beyond what
-\isacommand{primrec} allows (\S\ref{sec:recdef}).
+\isacommand{primrec} allows ({\S}\ref{sec:recdef}).
 
 
 \section{Simplification}
@@ -382,7 +300,7 @@ Simplification is one of the central theorem proving tools in Isabelle and
 many other systems. The tool itself is called the \bfindex{simplifier}. The
 purpose of this section is introduce the many features of the simplifier.
 Anybody intending to use HOL should read this section. Later on
-(\S\ref{sec:simplification-II}) we explain some more advanced features and a
+({\S}\ref{sec:simplification-II}) we explain some more advanced features and a
 little bit of how the simplifier works. The serious student should read that
 section as well, in particular in order to understand what happened if things
 do not simplify as expected.
@@ -550,7 +468,7 @@ defined by means of \isacommand{recdef}: you can use full pattern-matching,
 recursion need not involve datatypes, and termination is proved by showing
 that the arguments of all recursive calls are smaller in a suitable (user
 supplied) sense. In this section we ristrict ourselves to measure functions;
-more advanced termination proofs are discussed in \S\ref{sec:beyond-measure}.
+more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 
 \subsection{Defining recursive functions}
 

@@ -102,7 +102,7 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   which abbreviates \isa{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
     \isasymFun~$\tau$}.
 \item[type variables,]\indexbold{type variable}\indexbold{variable!type}
-  denoted by \isaindexbold{'a}, \isa{'b} etc., just like in ML. They give rise
+  denoted by \ttindexboldpos{'a}{$Isatype}, \isa{'b} etc., just like in ML. They give rise
   to polymorphic types like \isa{'a \isasymFun~'a}, the type of the identity
   function.
 \end{description}
@@ -183,10 +183,10 @@ quantifications can be abbreviated: \isa{\isasymforall{}x~y~z.~$P$} means
 Despite type inference, it is sometimes necessary to attach explicit
 \textbf{type constraints}\indexbold{type constraint} to a term.  The syntax is
 \isa{$t$::$\tau$} as in \isa{x < (y::nat)}. Note that
-\ttindexboldpos{::}{$Isalamtc} binds weakly and should therefore be enclosed
+\ttindexboldpos{::}{$Isatype} binds weakly and should therefore be enclosed
 in parentheses: \isa{x < y::nat} is ill-typed because it is interpreted as
 \isa{(x < y)::nat}. The main reason for type constraints are overloaded
-functions like \isa{+}, \isa{*} and \isa{<}. See \S\ref{sec:overloading} for
+functions like \isa{+}, \isa{*} and \isa{<}. See {\S}\ref{sec:overloading} for
 a full discussion of overloading.
 
 \begin{warn}

@@ -1,4 +1,5 @@
 use "../settings.ML";
+use_thy "Pairs";
 use_thy "Typedef";
 use_thy "Overloading0";
 use_thy "Overloading2";
