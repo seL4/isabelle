@@ -27,6 +27,7 @@ sig
   val skolem: string -> string
   val dest_skolem: string -> string
   val read_nat: string -> int option
+  val read_idents: string -> string list
 end;
 
 signature LEXICON =
@@ -334,6 +335,21 @@ val dest_skolem = unsuffix "__";
 
 fun read_nat str =
   apsome (#1 o Term.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
+
+
+(* read_ident(s) *)
+
+fun read_idents str =
+  let
+    val blanks = Scan.any Symbol.is_blank;
+    val junk = Scan.any Symbol.not_eof;
+    val idents = Scan.repeat1 (blanks |-- scan_id --| blanks) -- junk;
+  in
+    (case Scan.read Symbol.stopper idents (Symbol.explode str) of
+      Some (ids, []) => ids
+    | Some (_, bad) => error ("Bad identifier: " ^ quote (implode bad))
+    | None => error ("No identifier found in: " ^ quote str))
+  end;
 
 
 end;
