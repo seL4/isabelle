@@ -181,7 +181,6 @@ sig
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
   val invent_names: string list -> string -> int -> string list
-  val invent_type_names: string list -> int -> string list
   val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
   val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
   val add_vars: (indexname * typ) list * term -> (indexname * typ) list
@@ -773,8 +772,13 @@ fun variantlist ([], used) = []
       let val b' = variant used b
       in  b' :: variantlist (bs, b'::used)  end;
 
-fun invent_names used prfx n = variantlist (Library.replicate n prfx, prfx :: used);
-fun invent_type_names used = invent_names used "'";
+(*Invent fresh names*)
+fun invent_names _ _ 0 = []
+  | invent_names used a n =
+      let val b = Symbol.bump_string a in
+        if a mem_string used then invent_names used b n
+        else a :: invent_names used b (n - 1)
+      end;
 
 
 

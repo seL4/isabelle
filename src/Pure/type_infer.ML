@@ -227,11 +227,6 @@ fun simple_term_of (PConst (c, T)) = Const (c, simple_typ_of T)
 
 (* typs_terms_of *)                             (*DESTRUCTIVE*)
 
-fun gen_names 0 _ _ = []
-  | gen_names i s used = if s mem used
-      then gen_names i (Symbol.bump_string s) used
-      else s :: gen_names (i-1) (Symbol.bump_string s) used;
-
 fun typs_terms_of used mk_var prfx (Ts, ts) =
   let
     fun elim (r as ref (Param S), x) = r := mk_var (x, S)
@@ -239,7 +234,7 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 
     val used' = foldl add_names (foldl add_namesT (used, Ts), ts);
     val parms = rev (foldl add_parms (foldl add_parmsT ([], Ts), ts));
-    val names = gen_names (length parms) (prfx ^ "'a") used';
+    val names = Term.invent_names used' (prfx ^ "'a") (length parms);
   in
     seq2 elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)

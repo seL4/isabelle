@@ -476,7 +476,7 @@ fun frozen_tvars ctxt Ts =
   let
     val tvars = rev (foldl Term.add_tvarsT ([], Ts));
     val tfrees = map TFree
-      (Term.invent_type_names (ProofContext.used_types ctxt) (length tvars) ~~ map #2 tvars);
+      (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
   in map #1 tvars ~~ tfrees end;
 
 fun unify_frozen ctxt maxidx Ts Us =
