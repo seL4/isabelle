@@ -1682,6 +1682,9 @@ fun mss_of thms =
 fun extract_safe_rrules(mss,thm) =
   flat (map (orient_rrule mss) (extract_rews(mss,[thm])));
 
+fun add_safe_simp(mss,thm) =
+  foldl insert_rrule (mss, extract_safe_rrules(mss,thm))
+
 (* del_simps *)
 
 fun del_rrule(mss as Mss {rules,...},
@@ -2000,7 +2003,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                 | None => None
              end
          | t$u => (case t of
-             Const("==>",_)$s  => Some(snd(impc([],s,u,mss,etc)))
+             Const("==>",_)$s  => Some(impc(s,u,mss,etc))
            | Abs(_,_,body) =>
                let val trec = (subst_bound(u,body), etc)
                in case subc mss trec of
@@ -2030,28 +2033,32 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                end)
          | _ => None)
 
-    and impc(prems, prem, conc, mss, etc) =
-      let val (prem1,etc1) = if simprem then try_botc mss (prem,etc)
-                             else (prem,etc)
-      in impc1(prems, prem1, conc, mss, etc1) end
+    and impc args =
+      if mutsimp
+      then let val (prem, conc, mss, etc) = args
+           in snd(mut_impc([], prem, conc, mss, etc)) end
+      else nonmut_impc args
 
-    and impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
+    and mut_impc (prems, prem, conc, mss, etc) =
+      let val (prem1,etc1) = try_botc mss (prem,etc)
+      in mut_impc1(prems, prem1, conc, mss, etc1) end
+
+    and mut_impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
       let
         fun uncond({thm,lhs,...}:rrule) =
           if nprems_of thm = 0 then Some lhs else None
 
-        val (rrules1,lhss1,mss1) =
-          if not useprem then ([],[],mss) else
+        val (lhss1,mss1) =
           if maxidx_of_term prem1 <> ~1
           then (trace_term true "Cannot add premise as rewrite rule because it contains (type) unknowns:"
                            (Sign.deref sign_ref) prem1;
-                ([],[],mss))
+                ([],mss))
           else let val thm = assume (Cterm{sign_ref=sign_ref, t=prem1, 
                                            T=propT, maxidx= ~1})
                    val rrules1 = extract_safe_rrules(mss,thm)
-                   val lhss1 = if mutsimp then mapfilter uncond rrules1 else []
+                   val lhss1 = mapfilter uncond rrules1
                    val mss1 = foldl insert_rrule (add_prems(mss,[thm]),rrules1)
-               in (rrules1, lhss1, mss1) end
+               in (lhss1, mss1) end
 
         fun disch1(conc2,(shyps2,hyps2,ders2)) =
           let val hyps2' = if gen_mem (op aconv) (prem1, hyps1)
@@ -2063,24 +2070,23 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
           in case rewritec (prover,sign_ref,maxidx) mss trec of
                None => (None,trec)
              | Some(Const("==>",_)$prem$conc,etc) =>
-                 impc(prems,prem,conc,mss,etc)
+                 mut_impc(prems,prem,conc,mss,etc)
              | Some(trec') => (None,trec')
           end
 
         fun simpconc() =
           case conc of
             Const("==>",_)$s$t =>
-              (case impc(prems@[prem1],s,t,mss1,etc1) of
+              (case mut_impc(prems@[prem1],s,t,mss1,etc1) of
                  (Some(i,prem),trec2) =>
                     let val trec2' = disch1 trec2
-                    in if i=0 then impc1(prems,prem,fst trec2',mss,snd trec2')
+                    in if i=0 then mut_impc1(prems,prem,fst trec2',mss,snd trec2')
                        else (Some(i-1,prem),trec2')
                     end
                | (None,trec) => rebuild(trec))
           | _ => rebuild(try_botc mss1 (conc,etc1))
 
-      in if mutsimp
-         then let val sg = Sign.deref sign_ref
+      in let val sg = Sign.deref sign_ref
                   val tsig = #tsig(Sign.rep_sg sg)
                   fun reducible t =
                     exists (fn lhs => Pattern.matches_subterm tsig (lhs,t))
@@ -2091,8 +2097,25 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                                             red;
                                  (Some(length rest,prem1),(conc,etc1)))
               end
-         else simpconc()
       end
+
+     (* legacy code - only for backwards compatibility *)
+     and nonmut_impc(prem, conc, mss, etc as (_,hyps1,_)) =
+       let val (prem1,etc1) = if simprem then try_botc mss (prem,etc)
+                              else (prem,etc)
+           val maxidx1 = maxidx_of_term prem1
+           val mss1 =
+             if not useprem then mss else
+             if maxidx1 <> ~1
+             then (trace_term true "Cannot add premise as rewrite rule because it contains (type) unknowns:"
+                              (Sign.deref sign_ref) prem1;
+                   mss)
+             else let val thm = assume (Cterm{sign_ref=sign_ref, t=prem1, 
+                                              T=propT, maxidx= ~1})
+                  in add_safe_simp(add_prems(mss,[thm]), thm) end
+           val (conc2,(shyps2,hyps2,ders2)) = try_botc mss1 (conc,etc1)
+           val hyps2' = if prem1 mem hyps1 then hyps2 else hyps2\prem1
+       in (Logic.mk_implies(prem1,conc2), (shyps2, hyps2', ders2)) end
 
  in try_botc end;
 
