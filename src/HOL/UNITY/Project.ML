@@ -570,32 +570,6 @@ by (ALLGOALS Blast_tac);
 qed "transient_extend_set_imp_project_transient";
 
 
-(*UNUSED.  WHY??
-  Converse of the above...it requires a strong assumption about actions
-  being enabled for all possible values of the new variables.*)
-Goalw [transient_def]
-     "[| project h C F : transient A;  \
-\        ALL act: Acts F. project_act h (Restrict C act) ^^ A <= - A --> \
-\                         Domain act <= C \
-\             & extend_set h (project_set h (Domain act)) <= Domain act |]  \
-\     ==> F : transient (extend_set h A)";
-by (auto_tac (claset() delrules [ballE],
-	      simpset() addsimps [Domain_project_act]));
-by (ball_tac 1);
-by (rtac bexI 1);
-by (assume_tac 2);
-by Auto_tac;
-by (eres_inst_tac [("P", "A <= ?B")] rev_mp 1);
-by (force_tac (claset(), simpset() addsimps [Int_absorb1]) 1);
-(*The Domain requirement's proved; must prove the Image requirement*)
-by (res_inst_tac [("y1", "x")] (surj_h RS surjD RS exE) 1);
-by (res_inst_tac [("y1", "xa")] (surj_h RS surjD RS exE) 1);
-by Auto_tac;
-by (thin_tac "A <= ?B" 1);
-by (force_tac (claset() addSIs [ImageI, project_act_I], simpset()) 1);
-qed "project_transient_imp_transient_extend_set";
-
-
 (** ensures **)
 
 (*For simplicity, the complicated condition on C is eliminated
@@ -610,21 +584,16 @@ by (asm_full_simp_tac
 by (Blast_tac 1);
 qed "ensures_extend_set_imp_project_ensures";
 
-(*A strong condition: F can do anything that project G can.*)
-Goal "[| ALL D. project h C G : transient D --> F : transient D;  \
+Goal "[| project h C G : transient (A-B) --> F : transient (A-B);  \
 \        extend h F Join G : stable C;  \
 \        F Join project h C G : A ensures B |] \
 \     ==> extend h F Join G : (C Int extend_set h A) ensures (extend_set h B)";
-by (case_tac "A <= B" 1);
-by (blast_tac (claset() addIs [subset_imp_ensures] addDs [extend_set_mono]) 1);
-by (full_simp_tac (simpset() addsimps [ensures_def, Join_constrains,
-				       Join_stable, Join_transient]) 1);
-by (REPEAT_FIRST (rtac conjI));
-by (blast_tac (claset() addDs [extend_transient RS iffD2] 
-                        addIs [transient_strengthen]) 3);
-by (REPEAT (force_tac (claset() addIs [project_unless RS unlessD, unlessI, 
-				       project_extend_constrains_I], 
-		       simpset()) 1));
+by (auto_tac (claset() addDs [extend_transient RS iffD2] 
+                       addIs [transient_strengthen, 
+			      project_unless RS unlessD, unlessI, 
+			      project_extend_constrains_I], 
+	      simpset() addsimps [ensures_def, Join_constrains,
+				  Join_stable, Join_transient]));
 qed_spec_mp "Join_project_ensures";
 
 (** Lemma useful for both STRONG and WEAK progress*)
