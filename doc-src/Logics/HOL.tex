@@ -1659,15 +1659,15 @@ inequalities in both directions.  The reduction rules of the {\tt
 
 \subsection{Examples}
 
-\subsubsection{The datatype $\alpha~list$}
+\subsubsection{The datatype $\alpha~mylist$}
 
-We want to define the type $\alpha~list$.\footnote{This is just an
+We want to define the type $\alpha~mylist$.\footnote{This is just an
   example, there is already a list type in \HOL, of course.} To do
 this we have to build a new theory that contains the type definition.
 We start from the basic {\tt HOL} theory.
 \begin{ttbox}
 MyList = HOL +
-  datatype 'a list = Nil | Cons 'a ('a list)
+  datatype 'a mylist = Nil | Cons 'a ('a mylist)
 end
 \end{ttbox}
 After loading the theory (with \verb$use_thy "MyList"$), we can prove
@@ -1686,9 +1686,9 @@ by (induct_tac "xs" 1);
 {\out Level 1}
 {\out ! x. Cons x xs ~= xs}
 {\out  1. ! x. Cons x Nil ~= Nil}
-{\out  2. !!a list.}
-{\out        ! x. Cons x list ~= list ==>}
-{\out        ! x. Cons x (Cons a list) ~= Cons a list}
+{\out  2. !!a mylist.}
+{\out        ! x. Cons x mylist ~= mylist ==>}
+{\out        ! x. Cons x (Cons a mylist) ~= Cons a mylist}
 \end{ttbox}
 The first subgoal can be proved using the simplifier.
 Isabelle has already added the freeness properties of lists to the 
@@ -1697,9 +1697,9 @@ default simplification set.
 by (Simp_tac 1);
 {\out Level 2}
 {\out ! x. Cons x xs ~= xs}
-{\out  1. !!a list.}
-{\out        ! x. Cons x list ~= list ==>}
-{\out        ! x. Cons x (Cons a list) ~= Cons a list}
+{\out  1. !!a mylist.}
+{\out        ! x. Cons x mylist ~= mylist ==>}
+{\out        ! x. Cons x (Cons a mylist) ~= Cons a mylist}
 \end{ttbox}
 Similarly, we prove the remaining goal.
 \begin{ttbox}
@@ -1718,17 +1718,17 @@ by (ALLGOALS Asm_simp_tac);
 \end{ttbox}
 
 
-\subsubsection{The datatype $\alpha~list$ with mixfix syntax}
+\subsubsection{The datatype $\alpha~mylist$ with mixfix syntax}
 
-In this example we define the type $\alpha~list$ again but this time we want
+In this example we define the type $\alpha~mylist$ again but this time we want
 to write {\tt []} instead of {\tt Nil} and we want to use the infix operator
 \verb|#| instead of {\tt Cons}. To do this we simply add mixfix annotations
 after the constructor declarations as follows:
 \begin{ttbox}
 MyList = HOL +
-  datatype 'a list =
+  datatype 'a mylist =
     Nil ("[]")  |
-    Cons 'a ('a list)  (infixr "#" 70)
+    Cons 'a ('a mylist)  (infixr "#" 70)
 end
 \end{ttbox}
 Now the theorem in the previous example can be written \verb|x#xs ~= xs|. The
@@ -1767,7 +1767,7 @@ primitive recursive functions by asserting their reduction rules as
 new axioms, e.g.\
 \begin{ttbox}
 Append = MyList +
-consts app :: ['a list, 'a list] => 'a list
+consts app :: ['a mylist, 'a mylist] => 'a mylist
 rules 
    app_Nil   "app [] ys = ys"
    app_Cons  "app (x#xs) ys = x#app xs ys"
@@ -1780,8 +1780,8 @@ inconsistency, as in \verb$app [] ys = us$, though.
 functions on datatypes --- \ttindex{primrec}:
 \begin{ttbox}
 Append = MyList +
-consts app :: ['a list, 'a list] => 'a list
-primrec app MyList.list
+consts app :: ['a mylist, 'a mylist] => 'a mylist
+primrec app MyList.mylist
    "app [] ys = ys"
    "app (x#xs) ys = x#app xs ys"
 end
@@ -1790,7 +1790,7 @@ Isabelle will now check that the two rules do indeed form a primitive
 recursive definition, thus ensuring that consistency is maintained. For
 example
 \begin{ttbox}
-primrec app MyList.list
+primrec app MyList.mylist
     "app [] ys = us"
 \end{ttbox}
 is rejected with an error message \texttt{Extra variables on rhs}.
@@ -1831,8 +1831,8 @@ intermixed with other declarations.
 The primitive recursive function can have infix or mixfix syntax:
 \begin{ttbox}\underscoreon
 Append = MyList +
-consts "@"  :: ['a list, 'a list] => 'a list  (infixr 60)
-primrec "op @" MyList.list
+consts "@"  :: ['a mylist, 'a mylist] => 'a mylist  (infixr 60)
+primrec "op @" MyList.mylist
    "[] @ ys = ys"
    "(x#xs) @ ys = x#(xs @ ys)"
 end
@@ -1849,8 +1849,8 @@ by (ALLGOALS Asm\_simp\_tac);
 %Note that underdefined primitive recursive functions are allowed:
 %\begin{ttbox}
 %Tl = MyList +
-%consts tl  :: 'a list => 'a list
-%primrec tl MyList.list
+%consts tl  :: 'a mylist => 'a mylist
+%primrec tl MyList.mylist
 %   tl_Cons "tl(x#xs) = xs"
 %end
 %\end{ttbox}
