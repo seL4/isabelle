@@ -294,7 +294,7 @@ Goal "Id ^^ A = A";
 by (Blast_tac 1);
 qed "Image_Id";
 
-Goal "B<=A ==> diag A ^^ B = B";
+Goal "diag A ^^ B = A Int B";
 by (Blast_tac 1);
 qed "Image_diag";
 
