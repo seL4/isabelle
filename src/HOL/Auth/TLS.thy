@@ -12,20 +12,12 @@ global signing authority.
 A is the client and B is the server, not to be confused with the constant
 Server, who is in charge of all public keys.
 
-The model assumes that no fraudulent certificates are present.
+The model assumes that no fraudulent certificates are present, but it does
+assume that some private keys are lost to the spy.
 
-Protocol goals: 
-* M, serverK(NA,NB,M) and clientK(NA,NB,M) will be known only to the two
-     parties (though A is not necessarily authenticated).
-
-* B upon receiving CERTIFICATE VERIFY knows that A is present (But this
-    message is optional!)
-
-* A upon receiving SERVER FINISHED knows that B is present
-
-* Each party who has received a FINISHED message can trust that the other
-  party agrees on all message components, including XA and XB (thus foiling
-  rollback attacks).
+Abstracted from "The TLS Protocol, Version 1.0" by Tim Dierks and Christopher
+Allen, Transport Layer Security Working Group, 21 May 1997,
+INTERNET-DRAFT draft-ietf-tls-protocol-03.txt
 *)
 
 TLS = Public + 
@@ -39,8 +31,12 @@ rules
   inj_clientK   "inj clientK"	
   isSym_clientK "isSymKey (clientK x)"	(*client write keys are symmetric*)
 
+  (*serverK is similar*)
   inj_serverK   "inj serverK"	
   isSym_serverK "isSymKey (serverK x)"	(*server write keys are symmetric*)
+
+  (*Clashes with pubK and priK are impossible, but this axiom is needed.*)
+  clientK_range "range clientK <= Compl (range serverK)"
 
   (*Spy has access to his own key for spoof messages, but Server is secure*)
   Spy_in_lost     "Spy: lost"
@@ -58,7 +54,13 @@ inductive tls
     Fake (*The spy, an active attacker, MAY say anything he CAN say.*)
          "[| evs: tls;  B ~= Spy;  
              X: synth (analz (sees lost Spy evs)) |]
-          ==> Says Spy B X  # evs : tls"
+          ==> Says Spy B X # evs : tls"
+
+    SpyKeys (*The spy may apply clientK & serverK to nonces he's found*)
+         "[| evs: tls;
+	     Says Spy B {|Nonce NA, Nonce NB, Nonce M|} : set evs |]
+          ==> Says Spy B {| Key (clientK(NA,NB,M)),
+			    Key (serverK(NA,NB,M)) |} # evs : tls"
 
     ClientHello
 	 (*XA represents CLIENT_VERSION, CIPHER_SUITES and COMPRESSION_METHODS.
