@@ -47,10 +47,14 @@ documentation.
 
 \section{Calculational proof}\label{sec:calculation}
 
-\indexisarcmd{also}\indexisarcmd{finally}\indexisaratt{trans}
+\indexisarcmd{also}\indexisarcmd{finally}
+\indexisarcmd{moreover}\indexisarcmd{ultimately}
+\indexisaratt{trans}
 \begin{matharray}{rcl}
   \isarcmd{also} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
+  \isarcmd{moreover} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{ultimately} & : & \isartrans{proof(state)}{proof(chain)} \\
   trans & : & \isaratt \\
 \end{matharray}
 
@@ -62,12 +66,14 @@ $\ALSO$ updates $calculation$ involving $this$, while $\FINALLY$ exhibits the
 final $calculation$ by forward chaining towards the next goal statement.  Both
 commands require valid current facts, i.e.\ may occur only after commands that
 produce theorems such as $\ASSUMENAME$, $\NOTENAME$, or some finished proof of
-$\HAVENAME$, $\SHOWNAME$ etc.
+$\HAVENAME$, $\SHOWNAME$ etc.  The $\MOREOVER$ and $\ULTIMATELY$ commands are
+similar to $\ALSO$ and $\FINALLY$, but only collect further results in
+$calculation$ without applying any rules yet.
 
 Also note that the automatic term abbreviation ``$\dots$'' has its canonical
-application with calculational proofs.  It automatically refers to the
-argument\footnote{The argument of a curried infix expression is its right-hand
-  side.} of the preceding statement.
+application with calculational proofs.  It refers to the argument\footnote{The
+  argument of a curried infix expression is its right-hand side.} of the
+preceding statement.
 
 Isabelle/Isar calculations are implicitly subject to block structure in the
 sense that new threads of calculational reasoning are commenced for any new
@@ -75,8 +81,23 @@ block (as opened by a local goal, for example).  This means that, apart from
 being able to nest calculations, there is no separate \emph{begin-calculation}
 command required.
 
+\medskip
+
+The Isar calculation proof commands may be defined as
+follows:\footnote{Internal bookkeeping such as proper handling of
+  block-structure has been suppressed.}
+\begin{matharray}{rcl}
+  \ALSO@0 & \equiv & \NOTE{calculation}{this} \\
+  \ALSO@{n+1} & \equiv & \NOTE{calculation}{trans~[OF~calculation~this]} \\
+  \FINALLY & \equiv & \ALSO~\FROM{calculation} \\
+  \MOREOVER & \equiv & \NOTE{calculation}{calculation~this} \\
+  \ULTIMATELY & \equiv & \MOREOVER~\FROM{calculation} \\
+\end{matharray}
+
 \begin{rail}
   ('also' | 'finally') transrules? comment?
+  ;
+  ('moreover' | 'ultimately') comment?
   ;
   'trans' (() | 'add' | 'del')
   ;
@@ -101,6 +122,9 @@ command required.
   ``$\FINALLY~\SHOW{}{\Var{thesis}}~\DOT$'' and
   ``$\FINALLY~\HAVE{}{\phi}~\DOT$'' are typical idioms for concluding
   calculational proofs.
+  
+\item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
+  but collect results only, without applying rules.
   
 \item [$trans$] declares theorems as transitivity rules.
 \end{descr}
