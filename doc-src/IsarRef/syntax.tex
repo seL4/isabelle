@@ -360,7 +360,7 @@ is an exception to this rule: it prints an uninterpreted text argument that is
 not checked in any way.
 
 \indexisarant{thm}\indexisarant{prop}\indexisarant{term}
-\indexisarant{typ}\indexisarant{name}
+\indexisarant{typ}\indexisarant{text}\indexisarant{goals}
 \begin{rail}
   atsign lbrace antiquotation rbrace
   ;
@@ -370,7 +370,8 @@ not checked in any way.
     'prop' options prop |
     'term' options term |
     'typ' options type |
-    'text' options name
+    'text' options name |
+    'goals' options name
   ;
   options: '[' (option * ',') ']'
   ;
@@ -380,6 +381,31 @@ not checked in any way.
 
 Note that the syntax of antiquotations may \emph{not} include source comments
 \texttt{(*~\dots~*)} or verbatim text \verb|{*|~\dots~\verb|*}|.
+
+\begin{descr}
+\item [\texttt{{\at}{\ttlbrace}thm~$\vec a${\ttrbrace}}] prints theorems $\vec
+  a$. Note that attribute specifications may be included as well (see also
+  \S\ref{sec:syn-att}); the $no_vars$ operation (see \S\ref{sec:misc-methods})
+  would be particularly useful to suppress printing of schematic variables.
+\item [\texttt{{\at}{\ttlbrace}prop~$\phi${\ttrbrace}}] prints a well-typed
+  proposition $\phi$.
+\item [\texttt{{\at}{\ttlbrace}term~$t${\ttrbrace}}] prints a well-typed term
+  $t$.
+\item [\texttt{{\at}{\ttlbrace}typ~$\tau${\ttrbrace}}] prints a well-formed
+  type $\tau$.
+\item [\texttt{{\at}{\ttlbrace}text~$s${\ttrbrace}}] prints uninterpreted
+  source text $s$.  This is particularly useful to print portions of text
+  according to the Isabelle {\LaTeX} output style, without demanding
+  well-formedness (e.g.\ small pieces of terms that cannot be parsed or
+  type-checked yet).
+\item [\texttt{{\at}{\ttlbrace}goals{\ttrbrace}}] prints the current
+  \emph{dynamic} goal state.  This is only for support of tactic-emulation
+  scripts within Isar --- presentation of goal states does not conform to
+  actual human-readable proof documents.
+  
+  Please do not include goal states into document output unless you really
+  know what you are doing!
+\end{descr}
 
 \medskip
 
@@ -406,6 +432,8 @@ these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
   rather than the actual value.  Note that this does not affect
   well-formedness checks of $thm$, $term$, etc. (only the $text$ antiquotation
   admits arbitrary output).
+\item[$goals_limit = nat$] determines the maximum number of goals to be
+  printed.
 \end{descr}
 
 For boolean flags, ``$name = true$'' may be abbreviated as ``$name$''.  All of
