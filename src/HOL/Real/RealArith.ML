@@ -383,3 +383,7 @@ by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
                                       real_inverse_less_iff]) 1); 
 qed "real_inverse_le_iff";
 
+Goal "[| (#0::real) < d1; #0 < d2 |] ==> EX e. #0 < e & e < d1 & e < d2";
+by (res_inst_tac [("x","(min d1 d2)/#2")] exI 1); 
+by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
+qed "real_lbound_gt_zero";
