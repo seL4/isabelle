@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Isabelle within an xterm.
+# Simple Isabelle interface based on xterm.
 
 
 ## diagnostics
@@ -16,6 +16,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -g GEOM      main window geometry (default 80x60)"
+  echo "    -h MODE      highlight mode, may be false, bold (default), color"
   echo "    -p TEXT      pass text (options etc.) to isabelle session"
   echo "    -s BOOL      symbolic font output? (default true)"
   echo
@@ -37,14 +38,18 @@ function fail()
 # options
 
 MAINGEOM="80x60"
+HILITE=bold
 PASS=""
 SYMBOLS="true"
 
-while getopts "g:p:s:" OPT
+while getopts "g:h:p:s:" OPT
 do
   case "$OPT" in
     g)
       MAINGEOM="$OPTARG"
+      ;;
+    h)
+      HILITE="$OPTARG"
       ;;
     p)
       PASS="$PASS $OPTARG"
@@ -62,6 +67,14 @@ shift $(($OPTIND - 1))
 
 
 ## main
+
+if [ "$HILITE" = bold ]; then
+  PASS="-m xterm $PASS"
+elif [ "$HILITE" = color ]; then
+  PASS="-m xterm_color $PASS"
+elif [ -n "$HILITE" -a "$HILITE" != false ]; then
+  echo "WARNING: unknown highlight mode '$HILITE'" >&2
+fi
 
 if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
   exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
