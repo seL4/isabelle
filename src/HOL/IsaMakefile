@@ -123,9 +123,20 @@ Lambda:	 $(OUT)/HOL $(LAMBDA_FILES)
 	@$(ISATOOL) testdir $(OUT)/HOL Lambda
 
 
-## Type inference for MiniML
+## Type inference without let
 
-MINIML_NAMES = I Maybe MiniML Type W
+W0_NAMES = I Maybe MiniML Type W
+
+W0_FILES = W0/ROOT.ML \
+	      $(W0_NAMES:%=W0/%.thy) $(W0_NAMES:%=W0/%.ML)
+
+W0: $(OUT)/HOL $(W0_FILES)
+	@$(ISATOOL) testdir $(OUT)/HOL W0
+
+
+## Type inference with let
+
+MINIML_NAMES = Generalize Instance Maybe MiniML Type W
 
 MINIML_FILES = MiniML/ROOT.ML \
 	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
@@ -159,7 +170,7 @@ ex:	$(OUT)/HOL $(EX_FILES)
 
 ## Full test
 
-test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
+test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 
