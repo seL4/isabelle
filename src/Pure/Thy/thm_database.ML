@@ -1,6 +1,6 @@
 (*  Title:      Pure/Thy/thm_database.ML
     ID:         $Id$
-    Author:     Carsten Clasohm
+    Author:     Carsten Clasohm and Tobias Nipkow
     Copyright   1995 TU Muenchen
 *)
 
@@ -11,13 +11,23 @@ sig
   val thm_db: thm_db_type
   val store_thm_db: string * thm -> thm
   val thms_containing: string list -> (string * thm) list
-(*val thms_resolving_with: term * Sign.sg -> (string * thm) list*)
+  val findI:         int -> (string * thm)list
+  val findEs:        int -> (string * thm)list
+  val findE:  int -> int -> (string * thm)list
 end;
 
-
-functor ThmdbFUN(val ignore: string list): THMDB =
-               (*ignore: constants that must not be used for theorem indexing*)
+functor ThmDBFun(): THMDB =
 struct
+
+(*** ignore and top_const could be turned into functor-parameters, but are
+currently identical for all object logics ***)
+
+(* Constants not to be used for theorem indexing *)
+val ignore = ["Trueprop", "all", "==>", "=="];
+
+(* top_const: main constant, ignoring Trueprop *)
+fun top_const (_ $ t) = (case head_of t of Const(c,_) => Some c
+                                         | _          => None);
 
 type thm_db_type = (int * ((int * (string * thm)) list) Symtab.table) ref;
 
@@ -86,28 +96,86 @@ fun thms_containing constants =
      else ();
      collect look_for true [] end;
 
-(*This will probably be changed or removed:
-(*get all theorems which can be unified with term t*)
-fun thms_unifying_with(t:term, signt:Sign.sg, thms:(string*thm) list) =
-  let val maxt = maxidx_of_term t
-      fun select((named_thm as (name,thm))::thms,sels) =
-            let val {prop,maxidx,sign,...} = rep_thm thm
-                val u = Logic.incr_indexes([],maxidx+1) t
-                val env = Envir.empty(max[maxt,maxidx]+1)
-                val seq = Unify.unifiers(sign,env,[(u,prop)])
-            in select(thms,
-                 if Sign.subsig(signt,sign)
-                 then case Sequence.pull(seq) of
-                        None => sels
-                      | Some _ => named_thm::sels
-                 else sels)
+val intro_const = top_const o concl_of;
+
+fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const(p);
+
+(* In case faster access is necessary, the thm db should provide special
+functions
+
+index_intros, index_elims: string -> (string * thm) list
+
+where thm [| A1 ; ...; An |] ==> B is returned by
+- index_intros c if B  is of the form c t1 ... tn
+- index_elims c  if A1 is of the form c t1 ... tn
+*)
+
+(* could be provided by thm db *)
+fun index_intros c =
+  let fun topc(_,thm) = intro_const thm = Some(c);
+      val named_thms = thms_containing [c]
+  in filter topc named_thms end;
+
+(* could be provided by thm db *)
+fun index_elims c =
+  let fun topc(_,thm) = elim_const thm = Some(c);
+      val named_thms = thms_containing [c]
+  in filter topc named_thms end;
+
+(*assume that parameters have unique names*)
+fun goal_params i =
+  let val gi = getgoal i
+      val frees = map Free (Logic.strip_params gi)
+  in (gi,frees) end;
+
+fun concl_of_goal i =
+  let val (gi,frees) = goal_params i
+      val B = Logic.strip_assums_concl gi
+  in subst_bounds(frees,B) end;
+
+fun prems_of_goal i =
+  let val (gi,frees) = goal_params i
+      val As = Logic.strip_assums_hyp gi
+  in map (fn A => subst_bounds(frees,A)) As end;
+
+fun select_match(obj,signobj,named_thms,extract) =
+  let fun matches(prop,tsig) =
+            case extract prop of
+              None => false
+            | Some pat => Pattern.matches tsig (pat,obj);
+
+      fun select((p as (_,thm))::named_thms,sels) =
+            let val {prop,sign,...} = rep_thm thm
+            in select(named_thms,
+                      if Sign.subsig(sign,signobj) andalso
+                         matches(prop,#tsig(Sign.rep_sg sign))
+                      then p::sels else sels)
             end
         | select([],sels) = sels
-  in select(thms,[]) end;
 
-(*get all theorems which resolve to a given term*)
-fun thms_resolving_with (t, sg) =
-  let val thms = thms_containing (list_consts t);
-  in thms_unifying_with (t, sg, thms) end;
-*)
+  in select(named_thms,[]) end;
+
+fun find_matching(prop,sign,index,extract) =
+  (case top_const prop of
+     Some c => select_match(prop,sign,index c,extract)
+   | _      => []);
+
+fun find_intros(prop,sign) =
+  find_matching(prop,sign,index_intros,Some o Logic.strip_imp_concl);
+
+fun find_elims sign prop =
+  let fun major prop = case Logic.strip_imp_prems prop of
+                         [] => None | p::_ => Some p
+  in find_matching(prop,sign,index_elims,major) end;
+
+fun findI i = find_intros(concl_of_goal i,#sign(rep_thm(topthm())));
+
+fun findEs i =
+  let val sign = #sign(rep_thm(topthm()))
+  in flat(map (find_elims sign) (prems_of_goal i)) end;
+
+fun findE i j =
+  let val sign = #sign(rep_thm(topthm()))
+  in find_elims sign (nth_elem(j-1, prems_of_goal i)) end;
+
 end;

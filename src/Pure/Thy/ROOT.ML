@@ -18,7 +18,7 @@ use "thm_database.ML";
 use "thy_read.ML";
 
 structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
-structure ThmDB = ThmdbFUN(val ignore = ["Trueprop", "all", "==>", "=="]);
+structure ThmDB = ThmDBFun();
 structure Readthy = ReadthyFUN(structure ThySyn = ThySyn and ThmDB = ThmDB);
 open ThmDB Readthy;
 
@@ -28,8 +28,7 @@ functor ThyParseFun() = struct end;
 
 fun init_thy_reader () =
   use_string
-   ["structure ThmDB = \
-    \ThmdbFUN(val ignore = [\"Trueprop\",\"all\",\"==>\",\"==\"]);",
+   ["structure ThmDB = ThmDBFun();",
     "structure Readthy = ReadthyFUN(structure ThySyn = ThySyn \
                                    \and ThmDB = ThmDB);",
     "Readthy.loaded_thys := !loaded_thys;",
