@@ -18,12 +18,15 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
-	func.ML AC.thy AC.ML simpdata.ML Bool.thy Bool.ML \
+FILES = ROOT.ML ZF.thy ZF.ML upair.thy upair.ML subset.thy subset.ML \
+	pair.thy pair.ML domrange.thy domrange.ML \
+	func.thy func.ML AC.thy AC.ML simpdata.thy simpdata.ML\
+	equalities.thy equalities.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
-	ind_syntax.ML add_ind_def.thy add_ind_def.ML \
-\       intr_elim.ML indrule.ML inductive.ML \
-	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
+	ind_syntax.thy ind_syntax.ML add_ind_def.thy add_ind_def.ML \
+\       intr_elim.thy intr_elim.ML indrule.thy indrule.ML \
+	inductive.thy inductive.ML \
+	Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.thy Datatype.ML  \
