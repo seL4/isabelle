@@ -317,7 +317,8 @@ fun sort_clauses ths = sort fewerlits (filter (not o is_taut) ths);
 (*Convert all suitable free variables to schematic variables*)
 fun generalize th = forall_elim_vars 0 (forall_intr_frees th);
 
-(*Make clauses from a list of theorems.  These are HOL disjunctions.*)
+(*Make clauses from a list of theorems, previously Skolemized and put into nnf.
+  The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths = 
     sort_clauses (map (generalize o nodups) (foldr cnf (ths,[])));
 
