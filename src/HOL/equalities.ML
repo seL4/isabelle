@@ -82,6 +82,9 @@ by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Blast_tac 1);
 qed "mk_disjoint_insert";
 
+bind_thm ("insert_Collect", prove_goal thy 
+	"insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
+
 goal thy
     "!!A. A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
