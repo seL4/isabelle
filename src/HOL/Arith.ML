@@ -409,12 +409,6 @@ Goal "!!i::nat. i-j-k = i-k-j";
 by (simp_tac (simpset() addsimps [diff_diff_left, add_commute]) 1);
 qed "diff_commute";
 
-Goal "k<=j --> j<=i --> i - (j - k) = i - j + (k::nat)";
-by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_Suc_eq]) 1);
-qed_spec_mp "diff_diff_right";
-
 Goal "k <= (j::nat) --> (i + j) - k = i + (j - k)";
 by (res_inst_tac [("m","j"),("n","k")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -428,16 +422,14 @@ Goal "(n+m) - n = (m::nat)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_inverse";
-Addsimps [diff_add_inverse];
 
 Goal "(m+n) - n = (m::nat)";
 by (simp_tac (simpset() addsimps [diff_add_assoc]) 1);
 qed "diff_add_inverse2";
-Addsimps [diff_add_inverse2];
 
 Goal "i <= (j::nat) ==> (j-i=k) = (j=k+i)";
 by Safe_tac;
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_add_inverse2])));
 qed "le_imp_diff_is_add";
 
 Goal "(m-n = 0) = (m <= n)";
@@ -477,26 +469,23 @@ Goal "(k+m) - (k+n) = m - (n::nat)";
 by (induct_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_cancel";
-Addsimps [diff_cancel];
 
 Goal "(m+k) - (n+k) = m - (n::nat)";
-val add_commute_k = read_instantiate [("n","k")] add_commute;
-by (asm_simp_tac (simpset() addsimps [add_commute_k]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [diff_cancel, inst "n" "k" add_commute]) 1);
 qed "diff_cancel2";
-Addsimps [diff_cancel2];
 
 Goal "n - (n+m) = 0";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_0";
-Addsimps [diff_add_0];
 
 
 (** Difference distributes over multiplication **)
 
 Goal "!!m::nat. (m - n) * k = (m * k) - (n * k)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_cancel])));
 qed "diff_mult_distrib" ;
 
 Goal "!!m::nat. k * (m - n) = (k * m) - (k * n)";
@@ -539,10 +528,17 @@ qed "mult_less_mono1";
 
 Goal "(0 < m*n) = (0<m & 0<n)";
 by (induct_tac "m" 1);
-by (induct_tac "n" 2);
+by (case_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "zero_less_mult_iff";
 Addsimps [zero_less_mult_iff];
+
+Goal "(1 <= m*n) = (1<=m & 1<=n)";
+by (induct_tac "m" 1);
+by (case_tac "n" 2);
+by (ALLGOALS Asm_simp_tac);
+qed "one_le_mult_iff";
+Addsimps [one_le_mult_iff];
 
 Goal "(m*n = 1) = (m=1 & n=1)";
 by (induct_tac "m" 1);
@@ -999,19 +995,13 @@ solver all the time rather than add the additional check. *)
 simpset_ref () := (simpset() addSolver
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac));
 
-(*Elimination of `-' on nat due to John Harrison. *)
-Goal "P(a - b::nat) = (ALL d. (b = a + d --> P 0) & (a = b + d --> P d))";
-by (case_tac "a <= b" 1);
-by Auto_tac;
-by (eres_inst_tac [("x","b-a")] allE 1);
-by (asm_simp_tac (simpset() addsimps [diff_is_0_eq RS iffD2]) 1);
+(*Elimination of `-' on nat*)
+Goal "P(a - b::nat) = (ALL d. (a<b --> P 0) & (a = b + d --> P d))";
+by (case_tac "a < b" 1);
+by (auto_tac (claset(), simpset() addsimps [diff_is_0_eq RS iffD2]));
 qed "nat_diff_split";
 
-(*LCP's version, replacing b=a+d by a<b, which sometimes works better*)
-Goal "P(a - b::nat) = (ALL d. (a<b --> P 0) & (a = b + d --> P d))";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
-qed "nat_diff_split'";
-
+val nat_diff_split = nat_diff_split;
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved;
@@ -1113,7 +1103,7 @@ by (arith_tac 1);
 qed "diff_less";
 
 Goal "j <= (k::nat) ==> (j+i)-k = i-(k-j)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_add_assoc_diff";
 
 
@@ -1138,19 +1128,19 @@ qed "diff_Suc_le_Suc_diff";
 (** Simplification of relational expressions involving subtraction **)
 
 Goal "[| k <= m;  k <= (n::nat) |] ==> ((m-k) - (n-k)) = (m-n)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
+by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_diff_eq";
 
 Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k = n-k) = (m=n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
 qed "eq_diff_iff";
 
 Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k < n-k) = (m<n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
 qed "less_diff_iff";
 
 Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k <= n-k) = (m<=n)";
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
 qed "le_diff_iff";
 
 
@@ -1189,3 +1179,26 @@ Goal "[| 1<n; 1<m |] ==> n<n*m";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "n_less_n_mult_m"; 
+
+
+(** Rewriting to pull differences out **)
+
+Goal "k<=j --> i - (j - k) = i + (k::nat) - j";
+by (arith_tac 1);
+qed "diff_diff_right";
+
+Goal "k <= j ==> m - Suc (j - k) = m + k - Suc j";
+by (arith_tac 1);
+qed "diff_Suc_diff_eq1"; 
+
+Goal "k <= j ==> Suc (j - k) - m = Suc j - (k + m)";
+by (arith_tac 1);
+qed "diff_Suc_diff_eq2"; 
+
+(*The others are
+      i - j - k = i - (j + k),
+      k <= j ==> j - k + i = j + i - k,
+      k <= j ==> i + (j - k) = i + j - k *)
+Addsimps [diff_diff_left, diff_diff_right, diff_add_assoc2 RS sym, 
+	  diff_add_assoc RS sym, diff_Suc_diff_eq1, diff_Suc_diff_eq2];
+
