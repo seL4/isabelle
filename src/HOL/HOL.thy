@@ -540,7 +540,6 @@ theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (rule allI)
   apply (rule ex1I)
   apply (erule spec)
-  apply (rule ccontr)
   apply (erule_tac x = "%z. if z = x then y else f z" in allE)
   apply (erule impE)
   apply (rule allI)
