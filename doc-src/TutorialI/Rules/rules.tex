@@ -1085,17 +1085,16 @@ description) and proceed to prove other facts.
 A more challenging example illustrates how Isabelle/HOL defines the least-number
 operator, which denotes the least \isa{x} satisfying~\isa{P}:
 \begin{isabelle}
-(LEAST\ x.\ P\ x)\ \isasymequiv \ SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
+(LEAST\ x.\ P\ x)\ = \ SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
 P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y)
-\rulename{Least_def}
 \end{isabelle}
 
 Let us prove the counterpart of \isa{some_equality} for this operator.
-The first step merely unfolds the definition:
+The first step merely unfolds the definitions:
 \begin{isabelle}
 \isacommand{theorem}\ Least_equality:\isanewline
 \ \ \ \ \ "\isasymlbrakk \ P\ (k::nat);\ \ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x\ \isasymrbrakk \ \isasymLongrightarrow \ (LEAST\ x.\ P\ x)\ =\ k"\isanewline
-\isacommand{apply}\ (simp\ add:\ Least_def)\isanewline
+\isacommand{apply}\ (simp\ add:\ Least_def\ LeastM_def)\isanewline
 %\ 1.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\
 %\isasymle \ x\isasymrbrakk \isanewline
 %\ \ \ \ \isasymLongrightarrow \ (SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\ P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))\ =\ k%
