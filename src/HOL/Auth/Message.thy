@@ -48,7 +48,12 @@ translations
   "{|x, y|}"      == "MPair x y"
 
 
-constdefs  (*Keys useful to decrypt elements of a message set*)
+constdefs
+  (*Message Y, paired with a MAC computed with the help of X*)
+  HPair :: "[msg,msg]=>msg"
+    "HPair X Y == {| Hash{|X,Y|}, Y|}"
+
+  (*Keys useful to decrypt elements of a message set*)
   keysFor :: msg set => key set
   "keysFor H == invKey `` {K. EX X. Crypt K X : H}"
 

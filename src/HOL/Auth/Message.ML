@@ -44,6 +44,49 @@ qed "invKey_eq";
 Addsimps [invKey, invKey_eq];
 
 
+(**** Freeness laws for HPair ****)
+
+goalw thy [HPair_def] "Agent A ~= HPair X Y";
+by (Simp_tac 1);
+qed "Agent_neq_HPair";
+
+goalw thy [HPair_def] "Nonce N ~= HPair X Y";
+by (Simp_tac 1);
+qed "Nonce_neq_HPair";
+
+goalw thy [HPair_def] "Key K ~= HPair X Y";
+by (Simp_tac 1);
+qed "Key_neq_HPair";
+
+goalw thy [HPair_def] "Hash Z ~= HPair X Y";
+by (Simp_tac 1);
+qed "Hash_neq_HPair";
+
+goalw thy [HPair_def] "Crypt K X' ~= HPair X Y";
+by (Simp_tac 1);
+qed "Crypt_neq_HPair";
+
+val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, 
+		  Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
+
+AddIffs HPair_neqs;
+AddIffs (HPair_neqs RL [not_sym]);
+
+goalw thy [HPair_def] "(HPair X' Y' = HPair X Y) = (X' = X & Y'=Y)";
+by (Simp_tac 1);
+qed "HPair_eq";
+
+goalw thy [HPair_def] "({|X',Y'|} = HPair X Y) = (X' = Hash{|X,Y|} & Y'=Y)";
+by (Simp_tac 1);
+qed "MPair_eq_HPair";
+
+goalw thy [HPair_def] "(HPair X Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
+by (Auto_tac());
+qed "HPair_eq_MPair";
+
+AddIffs [HPair_eq, MPair_eq_HPair, HPair_eq_MPair];
+
+
 (**** keysFor operator ****)
 
 goalw thy [keysFor_def] "keysFor {} = {}";
@@ -752,6 +795,80 @@ qed "Hash_synth_analz";
 Addsimps [Hash_synth_analz];
 
 
+(**** HPair: a combination of Hash and MPair ****)
+
+(*** Freeness ***)
+
+goalw thy [HPair_def] "Agent A ~= HPair X Y";
+by (Simp_tac 1);
+qed "Agent_neq_HPair";
+
+goalw thy [HPair_def] "Nonce N ~= HPair X Y";
+by (Simp_tac 1);
+qed "Nonce_neq_HPair";
+
+goalw thy [HPair_def] "Key K ~= HPair X Y";
+by (Simp_tac 1);
+qed "Key_neq_HPair";
+
+goalw thy [HPair_def] "Hash Z ~= HPair X Y";
+by (Simp_tac 1);
+qed "Hash_neq_HPair";
+
+goalw thy [HPair_def] "Crypt K X' ~= HPair X Y";
+by (Simp_tac 1);
+qed "Crypt_neq_HPair";
+
+val HPair_neqs = [Agent_neq_HPair, Nonce_neq_HPair, 
+		  Key_neq_HPair, Hash_neq_HPair, Crypt_neq_HPair];
+
+AddIffs HPair_neqs;
+AddIffs (HPair_neqs RL [not_sym]);
+
+goalw thy [HPair_def] "(HPair X' Y' = HPair X Y) = (X' = X & Y'=Y)";
+by (Simp_tac 1);
+qed "HPair_eq";
+
+goalw thy [HPair_def] "({|X',Y'|} = HPair X Y) = (X' = Hash{|X,Y|} & Y'=Y)";
+by (Simp_tac 1);
+qed "MPair_eq_HPair";
+
+goalw thy [HPair_def] "(HPair X Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
+by (Auto_tac());
+qed "HPair_eq_MPair";
+
+AddIffs [HPair_eq, MPair_eq_HPair, HPair_eq_MPair];
+
+
+(*** Specialized laws, proved in terms of those for Hash and MPair ***)
+
+goalw thy [HPair_def] "keysFor (insert (HPair X Y) H) = keysFor H";
+by (Simp_tac 1);
+qed "keysFor_insert_HPair";
+
+goalw thy [HPair_def]
+    "parts (insert (HPair X Y) H) = \
+\    insert (HPair X Y) (insert (Hash{|X,Y|}) (parts (insert Y H)))";
+by (Simp_tac 1);
+qed "parts_insert_HPair";
+
+goalw thy [HPair_def]
+    "analz (insert (HPair X Y) H) = \
+\    insert (HPair X Y) (insert (Hash{|X,Y|}) (analz (insert Y H)))";
+by (Simp_tac 1);
+qed "analz_insert_HPair";
+
+goalw thy [HPair_def] "!!H. X ~: synth (analz H) \
+\   ==> (HPair X Y : synth (analz H)) = \
+\       (Hash {|X, Y|} : analz H & Y : synth (analz H))";
+by (Simp_tac 1);
+by (Fast_tac 1);
+qed "HPair_synth_analz";
+
+Addsimps [keysFor_insert_HPair, parts_insert_HPair, analz_insert_HPair, 
+	  HPair_synth_analz, HPair_synth_analz];
+
+
 (*We do NOT want Crypt... messages broken up in protocols!!*)
 Delrules partsEs;
 
@@ -773,7 +890,8 @@ val pushCrypts = map (insComm thy "Crypt ?X ?K")
 val pushes = pushKeys@pushCrypts;
 
 
-(*No premature instantiation of variables.  For proving weak liveness.*)
+(*No premature instantiation of variables during simplification.
+  For proving "possibility" properties.*)
 fun safe_solver prems =
     match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
     ORELSE' etac FalseE;
