@@ -27,7 +27,7 @@
 #   Must be delimited by "
 #
 
-CONV_SOURCE_DIR "/home/proj/bali/isabelle/src/Tools/8bit/c-sources/isa2latex"
+CONV_SOURCE_DIR "../c-sources/isa2latex"
 
 # End of  general setup
 ############################################################ 
@@ -143,7 +143,7 @@ BEGIN_LOW_TABLE
 >  "Y"
 >  "Z"
 >  "\mbox{$[$}"
->  "\ttbackslash{}"
+>  "\ttbackslash{}" #?????
 >  "\mbox{$]$}"
 >  "\^{}"			
 >  "{\_\hspace{.344ex}}"
@@ -287,15 +287,15 @@ BEGIN_HI_TABLE
 >  "\|="		"|="		"\mbox{$\models$}"
 >  "\[\|"		"[|"		"\mbox{$[\![\hspace{.32ex}$}"#\llbracket
 >  "\|\]"		"|]"		"\mbox{$\hspace{.32ex}]\!]$}"#\rrbracket
->  "\\cdot"		"\cdot"		"\mbox{$\hspace{.28ex}\cdot\hspace{.28ex}$}"
+>  "\\cdot"		"."		"\mbox{$\hspace{.28ex}\cdot\hspace{.28ex}$}"
 
 # set theory, HOL
 >  "\ :\ "		":"		"\hspace{.1ex}\mbox{$\in$}\hspace{.1ex}"#"\mbox{$\in$}"
 >  "\ \subseteq\ "	" \subseteq "	"\mbox{$\subseteq$}" 
 >  "\ Int\ "		" Int "		"\mbox{$\cap$}" 
 >  "\ Un\ "		" Un "		"\mbox{$\cup$}" 
->  "Inter\ "		"Inter "	"\mbox{$\bigcap$}"
->  "Union\ "		"Union "	"\mbox{$\bigcup$}" 
+>  "Inter\ "		"INT "		"\mbox{$\bigcap$}"
+>  "Union\ "		"UN "		"\mbox{$\bigcup$}" 
 
 # domain theory, HOLCF
 >  "\\sqcap"		"\sqcap"	"\mbox{$\hspace{.29ex}\sqcap\hspace{.29ex}$}" 
@@ -317,7 +317,7 @@ BEGIN_HI_TABLE
 >  "\\sim\ "		"\sim "		"\mbox{$\hspace{.29ex}\sim\hspace{.29ex}$}\ " 
 >  "\\simeq"		"\simeq"	"\mbox{$\hspace{.29ex}\simeq\hspace{.29ex}$}" 
 >  "<="			"<="		"\mbox{$\hspace{.29ex}\le\hspace{.29ex}$}" 
->  "::"			"::"		"\mbox{$\hspace{-.1ex}:\hspace{-.07ex}:\hspace{.1ex}$}" 
+>  "::"			"::"		"\mbox{$:\hspace{-.07ex}:$}" #"\mbox{$\hspace{-.1ex}:\hspace{-.07ex}:\hspace{.1ex}$}" 
 
 # arrows, Pure, HOL
 >  "<-"		"<-"		"\mbox{$\leftarrow$}" 
@@ -405,7 +405,7 @@ BEGIN_SEQ_TABLE
 >  "йк"		"<=="		"<=="		"\mbox{$\Longleftarrow$}"
 >  "йл"		"<=>"		"<=>"		"\mbox{$\Leftrightarrow$}"
 >  "жз"		"<--"		"<--"		"\mbox{$\longleftarrow$}"
->  "жи"		"<->"		"<->""\mbox{$\leftrightarrow$}"
+>  "жи"		"<->"		"<->"		"\mbox{$\leftrightarrow$}"
 >  "\^-1"	"\^-1"		"^-1"		"\mbox{$^{\tt -1}$}" 
 
 #Isabelle
