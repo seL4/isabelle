@@ -37,6 +37,7 @@ function usage()
     * Make sure that encoding info is consistent (fixencoding)!
     * Make sure that the repository version of Doc is consistent
       (watch out for *.bbl, *.rao, *.ind)!
+    * Check ML_SYSTEM defaults!
 EOF
   #Wicked! We just won't tell other users ...
   if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm ]; then
