@@ -257,7 +257,7 @@ in
 fun parse_thy markup lex trs src =
   let
     val text = P.position P.text;
-    val token = Scan.depend (fn i =>
+    val token = Scan.peek (fn i =>
      (improper |-- markup Markup -- P.!!!! (improper |-- text --| improper_end)
         >> (fn (x, y) => (true, (SOME true, ((Latex.Markup (T.val_of x), y), i)))) ||
       improper |-- markup MarkupEnv -- P.!!!! (improper |-- text --| improper_end)
@@ -267,8 +267,7 @@ fun parse_thy markup lex trs src =
       (improper -- markup Verbatim) |-- P.!!!! (improper |-- text --| improper_end)
         >> (fn y => (true, (NONE, ((Latex.Verbatim, y), i)))) ||
       P.position (Scan.one T.not_eof)
-        >> (fn (x, pos) => (T.is_kind T.Command x, (SOME false, ((Latex.Basic x, ("", pos)), i)))))
-      >> pair i);
+        >> (fn (x, pos) => (T.is_kind T.Command x, (SOME false, ((Latex.Basic x, ("", pos)), i))))));
 
     val body = Scan.any (not o fst andf not o #2 stopper);
     val section = body -- Scan.one fst -- body
