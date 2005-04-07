@@ -86,6 +86,7 @@ sig
   include BASIC_DRULE
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
+  val add_used: thm -> string list -> string list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
@@ -252,8 +253,9 @@ end;
 ***)
 
 fun types_sorts thm =
-    let val {prop,hyps,...} = rep_thm thm;
-        val big = list_comb(prop,hyps); (* bogus term! *)
+    let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm;
+        (* bogus term! *)
+        val big = list_comb (list_comb (prop, hyps), Thm.terms_of_tpairs tpairs);
         val vars = map dest_Var (term_vars big);
         val frees = map dest_Free (term_frees big);
         val tvars = term_tvars big;
@@ -261,6 +263,13 @@ fun types_sorts thm =
         fun typ(a,i) = if i<0 then assoc(frees,a) else assoc(vars,(a,i));
         fun sort(a,i) = if i<0 then assoc(tfrees,a) else assoc(tvars,(a,i));
     in (typ,sort) end;
+
+fun add_used thm used =
+  let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm in
+    add_term_tvarnames (prop, used)
+    |> fold (curry add_term_tvarnames) hyps
+    |> fold (curry add_term_tvarnames) (Thm.terms_of_tpairs tpairs)
+  end;
 
 
 
@@ -681,7 +690,7 @@ fun forall_conv cv ct =
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
-(*** SOME useful meta-theorems ***)
+(*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
 val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
@@ -813,7 +822,7 @@ fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
 
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
-        val used = add_term_tvarnames (prop_of th, []);
+        val used = add_used th [];
         val sinsts' = map (apfst Syntax.indexname) sinsts
     in  instantiate (read_insts sg ts ts used sinsts') th  end;
 
