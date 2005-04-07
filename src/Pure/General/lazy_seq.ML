@@ -1,3 +1,10 @@
+(*  Title:      Pure/General/lazy_seq.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg, TU Muenchen
+
+Alternative version of lazy sequences.
+*)
+
 signature LAZY_SEQ =
 sig
 

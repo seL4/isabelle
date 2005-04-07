@@ -1,4 +1,9 @@
-(* $Id$ *)
+(*  Title:      Pure/General/lazy_scan.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg, TU Muenchen
+
+Scanner combinators for lazy sequences.
+*)
 
 signature LAZY_SCAN =
 sig
