@@ -8,8 +8,6 @@ ATPs with TPTP format input.
 (*Jia: changed: isar_atp now processes entire proof context.  fetch thms from delta simpset/claset*)
 (*Claire: changed: added actual watcher calls *)
 
-val traceflag = ref true;
-
 signature RES_ATP = 
 sig
 val trace_res : bool ref
@@ -256,7 +254,7 @@ let val _ = (warning ("in atp_tac_tfrees "))
    
    in
 SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac, tracify traceflag skolemize_tac, 
+  (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
   METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees with negs"^(concat_with_and (map  string_of_thm negs) "")));call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
 end;
 
