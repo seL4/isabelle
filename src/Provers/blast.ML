@@ -24,7 +24,7 @@ Known problems:
   "Recursive" chains of rules can sometimes exclude other unsafe formulae
 	from expansion.  This happens because newly-created formulae always
 	have priority over existing ones.  But obviously recursive rules 
-	such as transitivity are treated specially to prevent this.  SOMEtimes
+	such as transitivity are treated specially to prevent this.  Sometimes
 	the formulae get into the wrong order (see WRONG below).
 
   With substition for equalities (hyp_subst_tac):

@@ -945,7 +945,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
-      if err then error ("NONEmptiness check failed for datatype " ^ s)
+      if err then error ("Nonemptiness check failed for datatype " ^ s)
       else raise exn;
 
     val descr' = List.concat descr;

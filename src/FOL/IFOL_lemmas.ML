@@ -204,7 +204,7 @@ val prems = Goalw [ex1_def]
 by (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ;
 qed "ex1I";
 
-(*SOMEtimes easier to use: the premises have no shared variables.  Safe!*)
+(*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 val [ex,eq] = Goal
     "[| EX x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)";
 by (rtac (ex RS exE) 1);

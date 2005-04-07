@@ -73,7 +73,7 @@ fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
 
 fun term_typed_consts t = add_term_typed_consts(t,[]);
 
-(* SOME Types*)
+(* Some Types*)
 val bT = HOLogic.boolT;
 val bitT = HOLogic.bitT;
 val iT = HOLogic.intT;
@@ -249,7 +249,7 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     val g' = if a then abstract_pres sg g else g
     (* Transform the term*)
     val (t,np,nh) = prepare_for_presburger sg q g'
-    (* SOME simpsets for dealing with mod div abs and nat*)
+    (* Some simpsets for dealing with mod div abs and nat*)
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
       addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]

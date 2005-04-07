@@ -92,7 +92,7 @@ fun mk_numeral 0 = Const("0",HOLogic.intT)
 fun dest_numeral (Const("0",Type ("IntDef.int", []))) = 0
    |dest_numeral (Const("1",Type ("IntDef.int", []))) = 1
    |dest_numeral (Const ("Numeral.number_of",_) $ n)= HOLogic.dest_binum n; 
-(*SOME terms often used for pattern matching*) 
+(*Some terms often used for pattern matching*) 
  
 val zero = mk_numeral 0; 
 val one = mk_numeral 1; 

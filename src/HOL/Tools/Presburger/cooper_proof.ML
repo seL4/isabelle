@@ -380,7 +380,7 @@ fun proof_of_adjustcoeffeq sg x l = thm_of sg (decomp_adjustcoeffeq sg x l);
 (*==================================================*)
 fun rho_for_modd_minf x dlcm sg fm1 =
 let
-    (*SOME certified Terms*)
+    (*Some certified Terms*)
     
    val ctrue = cterm_of sg HOLogic.true_const
    val cfalse = cterm_of sg HOLogic.false_const
@@ -476,7 +476,7 @@ fun decomp_minf_modd x dlcm sg t = case t of
 (* -------------------------------------------------------------*)
 fun rho_for_modd_pinf x dlcm sg fm1 = 
 let
-    (*SOME certified Terms*)
+    (*Some certified Terms*)
     
   val ctrue = cterm_of sg HOLogic.true_const
   val cfalse = cterm_of sg HOLogic.false_const

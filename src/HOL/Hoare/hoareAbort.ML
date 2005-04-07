@@ -90,7 +90,7 @@ end;
 
 (*****************************************************************************)
 (** Simplifying:                                                            **)
-(** SOME useful lemmata, lists and simplification tactics to control which  **)
+(** Some useful lemmata, lists and simplification tactics to control which  **)
 (** theorems are used to simplify at each moment, so that the original      **)
 (** input does not suffer any unexpected transformation                     **)
 (*****************************************************************************)

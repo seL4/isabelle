@@ -304,7 +304,7 @@ fun eta_contract sg assumes origt =
 		val lhs = #1 (Logic.dest_equals (prop_of (final init)))
 	    in
 		if not (lhs aconv origt)
-		then (writeln "SOMEthing is utterly wrong: (orig,lhs,frozen type,t,tinst)";
+		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
 		      writeln (string_of_cterm (cterm_of sg origt));
 		      writeln (string_of_cterm (cterm_of sg lhs));
 		      writeln (string_of_cterm (cterm_of sg typet));
@@ -359,7 +359,7 @@ fun eta_expand sg assumes origt =
 		val lhs = #1 (Logic.dest_equals (prop_of (final init)))
 	    in
 		if not (lhs aconv origt)
-		then (writeln "SOMEthing is utterly wrong: (orig,lhs,frozen type,t,tinst)";
+		then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
 		      writeln (string_of_cterm (cterm_of sg origt));
 		      writeln (string_of_cterm (cterm_of sg lhs));
 		      writeln (string_of_cterm (cterm_of sg typet));

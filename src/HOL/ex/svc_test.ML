@@ -18,7 +18,7 @@ Goal "P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=
 by (svc_tac 1);
 qed "";
 
-(** SOME big tautologies supplied by John Harrison **)
+(** Some big tautologies supplied by John Harrison **)
 
 (*Tautology name: puz013_1.  Auto_tac manages; Blast_tac and Fast_tac take
   a minute or more.*)

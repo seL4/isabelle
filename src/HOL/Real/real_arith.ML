@@ -136,7 +136,7 @@ real_of_nat_add
 end;
 
 
-(* SOME test data [omitting examples that assume the ordering to be discrete!]
+(* Some test data [omitting examples that assume the ordering to be discrete!]
 Goal "!!a::real. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
 by (fast_arith_tac 1);
 qed "";

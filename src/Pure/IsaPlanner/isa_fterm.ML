@@ -97,7 +97,7 @@ struct
 open BasicIsaFTerm;
 
 
-(* SOME general search within a focus term... *)
+(* Some general search within a focus term... *)
 
 (* Note: only upterms with a free or constant are going to yeald a
 match, thus if we get anything else (bound or var) skip it! This is

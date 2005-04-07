@@ -193,7 +193,7 @@ set timing;
 (*
  * Original timings for John Harrison's MESON_TAC.
  * Timings below on a 600MHz Pentium III (perch)
- * SOME timings below refer to griffon, which is a dual 2.5GHz Power Mac G5.
+ * Some timings below refer to griffon, which is a dual 2.5GHz Power Mac G5.
  * 
  * A few variable names have been changed to avoid clashing with constants.
  *

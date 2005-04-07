@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Stefan Berghofer, David von Oheimb, and Markus Wenzel, TU Muenchen
 
-SOME tools for managing tupled arguments and abstractions in rules.
+Some tools for managing tupled arguments and abstractions in rules.
 *)
 
 signature BASIC_SPLIT_RULE =
@@ -129,6 +129,8 @@ fun split_rule_goal xss rl =
 
 
 (* attribute syntax *)
+
+(* FIXME dynamically scoped due to Args.name/pair_tac *)
 
 fun split_format x = Attrib.syntax
   (Scan.lift (Args.parens (Args.$$$ "complete"))

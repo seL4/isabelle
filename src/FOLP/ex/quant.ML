@@ -34,7 +34,7 @@ by tac;
 result();  
 
 
-writeln"SOME harder ones";
+writeln"Some harder ones";
 
 Goal "?p : (EX x. P(x) | Q(x)) <-> (EX x. P(x)) | (EX x. Q(x))";
 by tac;
@@ -104,7 +104,7 @@ by tac;
 result();  
 
 
-writeln"SOME slow ones";
+writeln"Some slow ones";
 
 
 (*Principia Mathematica *11.53  *)

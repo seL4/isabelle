@@ -538,7 +538,7 @@ val fast_int_arith_simproc =
 Addsimprocs [fast_int_arith_simproc]
 
 
-(* SOME test data
+(* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a-d+ 2 <= b+(-c)";

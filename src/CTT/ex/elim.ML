@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-SOME examples taken from P. Martin-L\"of, Intuitionistic type theory
+Some examples taken from P. Martin-L\"of, Intuitionistic type theory
         (Bibliopolis, 1984).
 
 by (safe_tac prems 1);

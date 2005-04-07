@@ -1,7 +1,7 @@
 (*  Title:      Admin/Benchmarks/HOL-datatype/ROOT.ML
     ID:         $Id$
 
-SOME rather large datatype examples (from John Harrison).
+Some rather large datatype examples (from John Harrison).
 *)
 
 val tests = ["Brackin", "Instructions", "SML", "Verilog"];
