@@ -514,6 +514,9 @@ New in Isabelle2004 (April 2004)
   also an x-symbol version with subscripts "\<Union>\<^bsub>i <= n\<^esub>. A"
   like in normal math, and corresponding versions for < and for intersection.
 
+* HOL/List: Ordering "lexico" is renamed "lenlex" and the standard
+  lexicographic dictonary ordering has been added as "lexord".
+
 * ML: the legacy theory structures Int and List have been removed. They had
   conflicted with ML Basis Library structures having the same names.
 
