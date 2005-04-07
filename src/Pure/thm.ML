@@ -61,6 +61,7 @@ signature BASIC_THM =
   val cprop_of          : thm -> cterm
   val extra_shyps       : thm -> sort list
   val strip_shyps       : thm -> thm
+  val get_axiom_i       : theory -> string -> thm
   val get_axiom         : theory -> xstring -> thm
   val def_name		: string -> string
   val get_def           : theory -> xstring -> thm
@@ -104,6 +105,7 @@ signature BASIC_THM =
     int -> thm -> thm Seq.seq
   val biresolution      : bool -> (bool * thm) list ->
     int -> thm -> thm Seq.seq
+  val invoke_oracle_i   : theory -> string -> Sign.sg * Object.T -> thm
   val invoke_oracle     : theory -> xstring -> Sign.sg * Object.T -> thm
 end;
 
@@ -475,10 +477,8 @@ fun strip_shyps (thm as Thm {shyps = [], ...}) = thm
 (** Axioms **)
 
 (*look up the named axiom in the theory*)
-fun get_axiom theory raw_name =
+fun get_axiom_i theory name =
   let
-    val name = Sign.intern (Theory.sign_of theory) Theory.axiomK raw_name;
-
     fun get_ax [] = NONE
       | get_ax (thy :: thys) =
           let val {sign, axioms, ...} = Theory.rep_theory thy in
@@ -500,6 +500,8 @@ fun get_axiom theory raw_name =
       SOME thm => thm
     | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
+
+fun get_axiom thy = get_axiom_i thy o Sign.intern (Theory.sign_of thy) Theory.axiomK;
 
 fun def_name name = name ^ "_def";
 fun get_def thy = get_axiom thy o def_name;
@@ -1454,10 +1456,9 @@ fun biresolution match brules i state =
 
 (*** Oracles ***)
 
-fun invoke_oracle thy raw_name =
+fun invoke_oracle_i thy name =
   let
     val {sign = sg, oracles, ...} = Theory.rep_theory thy;
-    val name = Sign.intern sg Theory.oracleK raw_name;
     val oracle =
       (case Symtab.lookup (oracles, name) of
         NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
@@ -1482,6 +1483,9 @@ fun invoke_oracle thy raw_name =
             prop = prop})
       end
   end;
+
+fun invoke_oracle thy =
+  invoke_oracle_i thy o Sign.intern (Theory.sign_of thy) Theory.oracleK;
 
 
 end;
