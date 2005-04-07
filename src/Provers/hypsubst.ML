@@ -3,7 +3,7 @@
     Authors:    Martin D Coen, Tobias Nipkow and Lawrence C Paulson
     Copyright   1995  University of Cambridge
 
-Basic equational reasoning: (hyp_)subst method and symmetric attribute.
+Basic equational reasoning: hyp_subst_tac and methods "hypsubst", "subst".
 
 Tactic to substitute using (at least) the assumption x=t in the rest
 of the subgoal, and to delete (at least) that assumption.  Original
