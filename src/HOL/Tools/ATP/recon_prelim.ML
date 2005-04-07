@@ -7,7 +7,7 @@ open Envir;
 open Tfl;
 open Rules;
 
-goal Main.thy "A -->A";
+Goal "A -->A";
 by Auto_tac;
 qed "foo";
 
