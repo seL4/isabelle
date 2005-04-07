@@ -71,7 +71,7 @@ fun cabs a t = Thm.cabs a t
 
 
 (*---------------------------------------------------------------------------
- * SOME simple constructor functions.
+ * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
 val mk_hol_const = Thm.cterm_of (Theory.sign_of HOL.thy) o Const;
