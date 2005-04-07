@@ -11,6 +11,28 @@ files ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("eqrule_HOL_data.ML")
       ("~~/src/Provers/eqsubst.ML")
 begin
 
+subsection {* Rules That Belong in Pure *}
+
+text{*These meta-level elimination rules facilitate the use of assumptions
+that contain !! and ==>, especially in linear scripts. *}
+
+lemma meta_mp:
+  assumes major: "PROP P ==> PROP Q" and minor: "PROP P"
+  shows "PROP Q"
+proof -
+  show "PROP Q" by (rule major [OF minor])
+qed
+
+lemma meta_spec:
+  assumes major: "!!x. PROP P x"
+  shows "PROP P x"
+proof -
+  show "PROP P x" by (rule major)
+qed
+
+lemmas meta_allE = meta_spec [CPure.elim_format]
+
+
 subsection {* Primitive logic *}
 
 subsubsection {* Core syntax *}
