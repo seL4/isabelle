@@ -229,8 +229,7 @@ fun read_insts_in_state (st, i, sinsts, rule) =
 	    and rts = types_sorts rule and (types,sorts) = types_sorts st
 	    fun types'(a,~1) = (case assoc(params,a) of NONE => types(a,~1) | sm => sm)
 	      | types'(ixn) = types ixn;
-	    val used = add_term_tvarnames
-	                  (prop_of st $ prop_of rule,[])
+	    val used = Drule.add_used rule (Drule.add_used st []);
 	in read_insts sign rts (types',sorts) used sinsts end;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
