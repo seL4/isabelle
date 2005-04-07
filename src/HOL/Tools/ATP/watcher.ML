@@ -110,7 +110,7 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                                                          val exec_tptp2x = Unix.execute("/usr/groups/theory/tptp/TPTP-v2.6.0/TPTP2X/tptp2X", ["-fdfg "^probfile^" -d "^dfg_path])
                                                        (*val _ = Posix.Process.wait ()*)
                                                        (*val _ =Unix.reap exec_tptp2x*)
-                                                         val newfile = dfg_path^"/prob"^(probID)^".dfg"
+                                                         val newfile = dfg_path^"/prob"^"_"^(probID)^".dfg"
                                        
                                                       in   
                                                          goals_being_watched := (!goals_being_watched) + 1;
