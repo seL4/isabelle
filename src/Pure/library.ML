@@ -37,6 +37,11 @@ sig
 
   (*options*)
   val is_none: 'a option -> bool
+
+  (*old options -- invalidated*)
+  datatype invalid = None of invalid
+  exception OPTION of invalid
+
   exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
@@ -317,15 +322,14 @@ val stamp: unit -> stamp = ref;
 (** options **)
 
 val the = valOf;
-
-(*strict!*)
-fun if_none opt a = getOpt(opt,a);
-
+fun if_none opt a = getOpt (opt, a);
 val is_some = isSome;
-
 fun is_none opt = not (isSome opt);
-
 val apsome = Option.map;
+
+(*invalidate former constructors to prevent accidental use as match-all patterns!*)
+datatype invalid = None of invalid;
+exception OPTION of invalid;
 
 
 (* exception handling *)
@@ -586,9 +590,7 @@ fun product _ [] = []
 
 (*copy the list preserving elements that satisfy the predicate*)
 val filter = List.filter;
-
 fun filter_out f = filter (not o f);
-
 val mapfilter = List.mapPartial;
 
 
