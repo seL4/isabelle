@@ -37,9 +37,10 @@ sig
   val fail: 'a -> 'b
   val fail_with: ('a -> string) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
+  val some: ('a -> 'b option) -> 'a list -> 'b * 'a list
+  val one: ('a -> bool) -> 'a list -> 'a * 'a list
   val this: ''a list -> ''a list -> ''a list * ''a list
   val this_string: string -> string list -> string * string list
-  val one: ('a -> bool) -> 'a list -> 'a * 'a list
   val any: ('a -> bool) -> 'a list -> 'a list * 'a list
   val any1: ('a -> bool) -> 'a list -> 'a list * 'a list
   val optional: ('a -> 'b * 'a) -> 'b -> 'a -> 'b * 'a
@@ -50,11 +51,14 @@ sig
   val ahead: ('a -> 'b * 'c) -> 'a -> 'b * 'a
   val unless: ('a -> 'b * 'a) -> ('a -> 'c * 'd) -> 'a -> 'c * 'd
   val first: ('a -> 'b) list -> 'a -> 'b
-  val trace: ('a list -> 'b * 'c list) -> 'a list -> ('b * 'a list) * 'c list
   val state: 'a * 'b -> 'a * ('a * 'b)
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
-  val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
+  val peek: ('a -> 'b -> 'c * 'd) -> 'a * 'b -> 'c * ('a * 'd)
   val pass: 'a -> ('a * 'b -> 'c * ('d * 'e)) -> 'b -> 'c * 'e
+  val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
+  val trace': ('a * 'b list -> 'c * ('d * 'e list)) -> 'a * 'b list ->
+    ('c * 'b list) * ('d * 'e list)
+  val trace: ('a list -> 'b * 'c list) -> 'a list -> ('b * 'a list) * 'c list
   val try: ('a -> 'b) -> 'a -> 'b
   val force: ('a -> 'b) -> 'a -> 'b
   val prompt: string -> ('a -> 'b) -> 'a -> 'b
@@ -96,45 +100,45 @@ exception ABORT of string;              (*dead end*)
 (* scanner combinators *)
 
 (*dependent pairing*)
-fun (sc1 :-- sc2) toks =
+fun (scan1 :-- scan2) toks =
   let
-    val (x, toks2) = sc1 toks
-    val (y, toks3) = sc2 x toks2
+    val (x, toks2) = scan1 toks;
+    val (y, toks3) = scan2 x toks2;
   in ((x, y), toks3) end;
 
 (*sequential pairing*)
-fun (sc1 -- sc2) toks =
+fun (scan1 -- scan2) toks =
   let
-    val (x, toks2) = sc1 toks
-    val (y, toks3) = sc2 toks2
+    val (x, toks2) = scan1 toks;
+    val (y, toks3) = scan2 toks2;
   in ((x, y), toks3) end;
 
 (*application*)
-fun (sc >> f) toks =
-  let val (x, toks2) = sc toks
+fun (scan >> f) toks =
+  let val (x, toks2) = scan toks;
   in (f x, toks2) end;
 
 (*forget snd*)
-fun (sc1 --| sc2) toks =
+fun (scan1 --| scan2) toks =
   let
-    val (x, toks2) = sc1 toks
-    val (_, toks3) = sc2 toks2
+    val (x, toks2) = scan1 toks;
+    val (_, toks3) = scan2 toks2;
   in (x, toks3) end;
 
 (*forget fst*)
-fun (sc1 |-- sc2) toks =
-  let val (_, toks2) = sc1 toks
-  in sc2 toks2 end;
+fun (scan1 |-- scan2) toks =
+  let val (_, toks2) = scan1 toks;
+  in scan2 toks2 end;
 
 (*concatenation*)
-fun (sc1 ^^ sc2) toks =
+fun (scan1 ^^ scan2) toks =
   let
-    val (x, toks2) = sc1 toks
-    val (y, toks3) = sc2 toks2
+    val (x, toks2) = scan1 toks;
+    val (y, toks3) = scan2 toks2;
   in (x ^ y, toks3) end;
 
 (*alternative*)
-fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
+fun (scan1 || scan2) toks = scan1 toks handle FAIL _ => scan2 toks;
 
 
 (* generic scanners *)
@@ -142,6 +146,10 @@ fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 fun fail _ = raise FAIL NONE;
 fun fail_with msg_of xs = raise FAIL (SOME (msg_of xs));
 fun succeed y xs = (y, xs);
+
+fun some _ [] = raise MORE NONE
+  | some f (x :: xs) =
+      (case f x of SOME y => (y, xs) | _ => raise FAIL NONE);
 
 fun one _ [] = raise MORE NONE
   | one pred (x :: xs) =
@@ -159,32 +167,27 @@ fun this ys xs =
           if y = x then drop_prefix ys xs else raise FAIL NONE;
   in (ys, drop_prefix ys xs) end;
 
-fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols yet!*)
+fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols here!*)
 
 fun any _ [] = raise MORE NONE
   | any pred (lst as x :: xs) =
       if pred x then apfst (cons x) (any pred xs)
       else ([], lst);
 
-fun any1 p toks =
-  let
-    val (x, toks2) = one p toks
-    val (xs,toks3) = any p toks2
-  in (x :: xs, toks3) end;
+fun any1 pred = one pred -- any pred >> op ::;
 
-fun optional scan def =  scan || succeed def
-fun option scan = (scan >> SOME) || succeed NONE
+fun optional scan def = scan || succeed def;
+fun option scan = (scan >> SOME) || succeed NONE;
 
 fun repeat scan =
-  let fun rep ys xs = (case (SOME (scan xs) handle FAIL _ => NONE) of
-    NONE => (rev ys, xs) | SOME (y, xs') => rep (y :: ys) xs')
+  let
+    fun rep ys xs =
+      (case (SOME (scan xs) handle FAIL _ => NONE) of
+        NONE => (rev ys, xs)
+      | SOME (y, xs') => rep (y :: ys) xs');
   in rep [] end;
 
-fun repeat1 scan toks =
-  let
-    val (x, toks2) = scan toks
-    val (xs, toks3) = repeat scan toks2
-  in (x :: xs, toks3) end;
+fun repeat1 scan = scan -- repeat scan >> op ::;
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
@@ -202,10 +205,6 @@ fun unless test scan =
 fun first [] = fail
   | first (scan :: scans) = scan || first scans;
 
-fun trace scan toks =
-  let val (x, toks') = scan toks
-  in ((x, Library.take (length toks - length toks', toks)), toks') end;
-
 
 (* state based scanners *)
 
@@ -215,13 +214,26 @@ fun depend scan (st, xs) =
   let val ((st', y), xs') = scan st xs
   in (y, (st', xs')) end;
 
-fun lift scan (st, xs) =
-  let val (y, xs') = scan xs
-  in (y, (st, xs')) end;
+fun peek scan = depend (fn st => scan st >> pair st);
 
 fun pass st scan xs =
   let val (y, (_, xs')) = scan (st, xs)
   in (y, xs') end;
+
+fun lift scan (st, xs) =
+  let val (y, xs') = scan xs
+  in (y, (st, xs')) end;
+
+fun unlift scan = pass () scan;
+
+
+(* trace input *)
+
+fun trace' scan (st, xs) =
+  let val (y, (st', xs')) = scan (st, xs)
+  in ((y, Library.take (length xs - length xs', xs)), (st', xs')) end;
+
+fun trace scan = unlift (trace' (lift scan));
 
 
 (* exception handling *)
@@ -247,12 +259,10 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (force scan --| lift stop) (state, List.revAppend (rev input,[stopper]))
+    else (force scan --| lift stop) (state, List.revAppend (rev input, [stopper]))
   end;
 
-fun finite stopper scan xs =
-  let val (y, ((), xs')) = finite' stopper (lift scan) ((), xs)
-  in (y, xs') end;
+fun finite stopper scan = unlift (finite' stopper (lift scan));
 
 fun read stopper scan xs =
   (case error (finite stopper (option scan)) xs of
@@ -264,7 +274,7 @@ fun read stopper scan xs =
 
 fun drain def_prmpt get stopper scan ((state, xs), src) =
   (scan (state, xs), src) handle MORE prmpt =>
-    (case get (getOpt (prmpt,def_prmpt)) src of
+    (case get (getOpt (prmpt, def_prmpt)) src of
       ([], _) => (finite' stopper scan (state, xs), src)
     | (xs', src') => drain def_prmpt get stopper scan ((state, xs @ xs'), src'));
 
@@ -274,7 +284,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (error_msg (getOpt (msg,"Syntax error.")); drain_with recover inp);
+        (error_msg (getOpt (msg, "Syntax error.")); drain_with recover inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
@@ -283,10 +293,8 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
       | ((xs, s), SOME r) => drain_loop (unless (lift (one (#2 stopper))) r) ((state, xs), s));
   in (ys, (state', unget (xs', src'))) end;
 
-fun source def_prmpt get unget stopper scan opt_recover src =
-  let val (ys, ((), src')) =
-    source' def_prmpt get unget stopper (lift scan) (Option.map lift opt_recover) ((), src)
-  in (ys, src') end;
+fun source def_prmpt get unget stopper scan opt_recover =
+  unlift (source' def_prmpt get unget stopper (lift scan) (Option.map lift opt_recover));
 
 fun single scan = scan >> (fn x => [x]);
 fun bulk scan = scan -- repeat (try scan) >> (op ::);

@@ -225,8 +225,8 @@ fun add_attribute name att thy =
 fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
 
 val code_attr =
-  Attrib.syntax (Scan.depend (fn thy => foldr op || Scan.fail (map mk_parser
-    (#attrs (CodegenData.get thy))) >> pair thy));
+  Attrib.syntax (Scan.peek (fn thy => foldr op || Scan.fail (map mk_parser
+    (#attrs (CodegenData.get thy)))));
 
 
 (**** preprocessors ****)
