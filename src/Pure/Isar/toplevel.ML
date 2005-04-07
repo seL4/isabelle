@@ -176,6 +176,7 @@ val proof_of = node_case (fn _ => raise UNDEF) I;
 val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
 
 
+
 (** toplevel transitions **)
 
 exception TERMINATE;
@@ -366,36 +367,45 @@ fun init_theory f exit kill =
     (fn Theory thy => exit thy | _ => raise UNDEF)
     (fn Theory thy => kill thy | _ => raise UNDEF);
 
-(*
-The skip_proofs flag allows proof scripts to be skipped during interactive
-proof in order to speed up processing of large theories. While in skipping
-mode, states are represented as SkipProof (h, thy), where h contains a
-counter for the number of open proof blocks.
-*)
+
+(* typed transitions *)
+
+(*The skip_proofs flag allows proof scripts to be skipped during
+  interactive proof in order to speed up processing of large
+  theories. While in skipping mode, states are represented as
+  SkipProof (h, thy), where h contains a counter for the number of
+  open proof blocks.*)
 
 val skip_proofs = ref false;
 
 fun theory f = app_current (fn _ => (fn Theory thy => Theory (f thy) | _ => raise UNDEF));
 fun theory' f = app_current (fn int => (fn Theory thy => Theory (f int thy) | _ => raise UNDEF));
+
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory thy =>
-        if !skip_proofs then SkipProof (History.init (undo_limit int) 0,
+        if ! skip_proofs then SkipProof (History.init (undo_limit int) 0,
           fst (SkipProof.global_skip_proof int (ProofHistory.current (f int thy))))
         else Proof (f int thy)
     | _ => raise UNDEF));
+
 fun proof''' b f = map_current (fn int => (fn Proof prf => Proof (f int prf)
   | SkipProof (h, thy) => if b then SkipProof (History.apply I h, thy) else raise UNDEF
   | _ => raise UNDEF));
+
 val proof' = proof''' true;
 val proof = proof' o K;
 val proof'' = proof''' false o K;
+
 fun proof_to_theory' f =
   map_current (fn int => (fn Proof prf => Theory (f int prf)
     | SkipProof (h, thy) => if History.current h = 0 then Theory thy else raise UNDEF
     | _ => raise UNDEF));
+
 val proof_to_theory = proof_to_theory' o K;
+
 fun skip_proof f = map_current (fn int =>
   (fn SkipProof (h, thy) => SkipProof (f h, thy) | _ => raise UNDEF));
+
 fun skip_proof_to_theory p = map_current (fn int =>
   (fn SkipProof (h, thy) => if p h then Theory thy else raise UNDEF | _ => raise UNDEF));
 
@@ -408,80 +418,72 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 (** toplevel transactions **)
 
 val quiet = ref false;
-val debug = ref false;  (* Verbose messages for core exceptions. *)
+val debug = ref false;
+
 
 (* print exceptions *)
 
-fun raised name = "exception " ^ name ^ " raised";
-fun raised_msg name msg = raised name ^ ": " ^ msg;
+local
 
-fun msg_on_debug (THM (msg, i, thms)) =
-     if !debug
-     then raised_msg ("THM " ^ string_of_int i)
-       (cat_lines ("" :: msg :: map Display.string_of_thm thms))
-     else raised_msg "THM" msg
-  | msg_on_debug (THEORY (msg, thys)) =
-     if !debug
-     then raised_msg "THEORY" (cat_lines ("" :: msg ::
-       map (Pretty.string_of o Display.pretty_theory) thys))
-     else msg
-  | msg_on_debug (AST (msg, asts)) =
-     if !debug
-     then raised_msg "AST" (cat_lines ("" :: msg ::
-       map (Pretty.string_of o Syntax.pretty_ast) asts))
-     else msg
-  | msg_on_debug (TERM (msg, ts)) =
-     (case (!debug, Context.get_context ()) of
-         (true, SOME thy) =>
-           let val sg = Theory.sign_of thy in
-             raised_msg "TERM"
-               (cat_lines
-                 ("" :: msg :: map (Sign.string_of_term sg) ts))
-           end
-       | _ => raised_msg "TERM" msg)
-  | msg_on_debug (TYPE (msg, Ts, ts)) =
-     (case (!debug, Context.get_context ()) of
-         (true, SOME thy) =>
-           let val sg = Theory.sign_of thy in
-             raised_msg "TYPE"
-               (cat_lines
-                 ("" :: msg :: map (Sign.string_of_typ sg) Ts @
-                  map (Sign.string_of_term sg) ts))
-           end
-       | _ => raised_msg "TYPE" msg)
+fun with_context f xs =
+  (case Context.get_context () of NONE => []
+  | SOME thy => map (f (Theory.sign_of thy)) xs);
 
-fun exn_message TERMINATE = "Exit."
-  | exn_message RESTART = "Restart."
-  | exn_message (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
-  | exn_message Interrupt = "Interrupt."
-  | exn_message ERROR = "ERROR."
-  | exn_message (ERROR_MESSAGE msg) = msg
-  | exn_message (THEORY (msg, thys)) = msg_on_debug (THEORY (msg, thys))
-  | exn_message (ProofContext.CONTEXT (msg, _)) = msg
-  | exn_message (Proof.STATE (msg, _)) = msg
-  | exn_message (ProofHistory.FAIL msg) = msg
-  | exn_message (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
-      fail_message "simproc" ((name, Position.none), exn)
-  | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
-  | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
-  | exn_message (Antiquote.ANTIQUOTE_FAIL info) = fail_message "antiquotation" info
-  | exn_message (Syntax.AST (msg, asts)) = msg_on_debug (AST (msg, asts))
-  | exn_message (TYPE (msg, Ts, ts)) = msg_on_debug (TYPE (msg, Ts, ts))
-  | exn_message (TERM (msg, ts)) = msg_on_debug (TERM (msg, ts))
-  | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))
-  | exn_message Option = raised "Option"
-  | exn_message UnequalLengths = raised "UnequalLengths"
-  | exn_message Empty = raised "Empty"
-  | exn_message Subscript = raised "Subscript"
-  | exn_message exn = General.exnMessage exn
-and fail_message kind ((name, pos), exn) =
-  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
+fun raised name [] = "exception " ^ name ^ " raised"
+  | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
+  | raised name msgs = cat_lines (("exception " ^ name ^ " raised:") :: msgs);
+
+fun exn_msg _ TERMINATE = "Exit."
+  | exn_msg _ RESTART = "Restart."
+  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
+  | exn_msg _ Interrupt = "Interrupt."
+  | exn_msg _ ERROR = "ERROR."
+  | exn_msg _ (ERROR_MESSAGE msg) = msg
+  | exn_msg false (THEORY (msg, _)) = msg
+  | exn_msg true (THEORY (msg, thys)) =
+     raised "THEORY" (msg :: map (Pretty.string_of o Display.pretty_theory) thys)
+  | exn_msg _ (ProofContext.CONTEXT (msg, _)) = msg
+  | exn_msg _ (Proof.STATE (msg, _)) = msg
+  | exn_msg _ (ProofHistory.FAIL msg) = msg
+  | exn_msg detailed (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
+      fail_msg detailed "simproc" ((name, Position.none), exn)
+  | exn_msg detailed (Attrib.ATTRIB_FAIL info) = fail_msg detailed "attribute" info
+  | exn_msg detailed (Method.METHOD_FAIL info) = fail_msg detailed "method" info
+  | exn_msg detailed (Antiquote.ANTIQUOTE_FAIL info) = fail_msg detailed "antiquotation" info
+  | exn_msg false (Syntax.AST (msg, _)) = raised "AST" [msg]
+  | exn_msg true (Syntax.AST (msg, asts)) =
+      raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
+  | exn_msg false (TYPE (msg, _, _)) = raised "TYPE" [msg]
+  | exn_msg true (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
+        with_context Sign.string_of_typ Ts @ with_context Sign.string_of_term ts)
+  | exn_msg false (TERM (msg, _)) = raised "TERM" [msg]
+  | exn_msg true (TERM (msg, ts)) = raised "TERM" (msg :: with_context Sign.string_of_term ts)
+  | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
+  | exn_msg true (THM (msg, i, thms)) =
+      raised ("THM " ^ string_of_int i) (msg :: map Display.string_of_thm thms)
+  | exn_msg _ Option = raised "Option" []
+  | exn_msg _ UnequalLengths = raised "UnequalLengths" []
+  | exn_msg _ Empty = raised "Empty" []
+  | exn_msg _ Subscript = raised "Subscript" []
+  | exn_msg _ exn = General.exnMessage exn
+and fail_msg detailed kind ((name, pos), exn) =
+  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_msg detailed exn;
+
+in
+
+val debug = ref false;
+
+fun exn_message exn = exn_msg (! debug) exn;
 
 fun print_exn NONE = ()
   | print_exn (SOME (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
 
+end;
+
 
 (* apply transitions *)
+
+val quiet = ref false;
 
 local
 
