@@ -8,6 +8,8 @@ ATPs with TPTP format input.
 (*Jia: changed: isar_atp now processes entire proof context.  fetch thms from delta simpset/claset*)
 (*Claire: changed: added actual watcher calls *)
 
+val traceflag = ref true;
+
 signature RES_ATP = 
 sig
 val trace_res : bool ref
@@ -175,7 +177,7 @@ fun call_resolve_tac thms sg_term (childin, childout,pid) n  = let
                              val thmstr = implode no_returns
                             
                              val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
-                             val outfile = TextIO.openOut("/home/clq20/Jia_Code/hellofile")
+                             val outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "hellofile")))
                              val _ = TextIO.output(outfile, "prob file path is "^probfile^" thmstring is "^thmstr^" goalstring is "^goalstring);
                              val _ = TextIO.flushOut outfile;
                              val _ =  TextIO.closeOut outfile
@@ -223,25 +225,45 @@ fun resolve_tac sg_term  (childin, childout,pid) =
 (**********************************************************)
 (* should call call_res_tac here, not resolve_tac *)
 (* if we take tptpinputs out it gets into call_res_tac then falls over as usual after printing out goalstring. but if we leave it in it falls over here *)
+
+(* dummy tac vs.  Doesn't call resolve_tac *)
+
 fun call_atp_tac_tfrees thms n tfrees sg_term (childin, childout,pid) = 
-
-                                         ( (warning("in call_atp_tac_tfrees"));
+                                         ( (warning("ths for tptp: "^(concat_with_and (map string_of_thm thms) "")));
+                                           (warning("in call_atp_tac_tfrees"));
+                                           
                                            tptp_inputs_tfrees (make_clauses thms) n tfrees;
-                                          call_resolve_tac thms sg_term (childin, childout, pid) n;
-  					  dummy_tac);
+                                           call_resolve_tac thms sg_term (childin, childout, pid) n;
+  					   dummy_tac);
 
+
+(*
 fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n  = 
 let val _ = (warning ("in atp_tac_tfrees "))
    in
-SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac,(*skolemize_tac, *)
-  METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees"));call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
+SELECT_GOAL (EVERY1 [rtac ccontr,atomize_tac,(*skolemize_tac,*) METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees with negs"^(concat_with_and (map  string_of_thm negs) "")));(*make_clauses negs;*)dummy_tac)) ])1
 end;
 
 
-fun isar_atp_g tfrees sg_term (childin, childout, pid)  = 
+
+METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees with negs"^(concat_with_and (map  string_of_thm negs) ""))));make_clauses negs;dummy_tac)) 1;
+*)
+
+
+fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n  = 
+let val _ = (warning ("in atp_tac_tfrees "))
+    val _ = (warning ("sg_term :"^((Sign.string_of_term Mainsign) sg_term)))
+   
+   in
+SELECT_GOAL
+  (EVERY1 [rtac ccontr,atomize_tac, tracify traceflag skolemize_tac, 
+  METAHYPS(fn negs => ((warning("calling  call_atp_tac_tfrees with negs"^(concat_with_and (map  string_of_thm negs) "")));call_atp_tac_tfrees (negs) n tfrees sg_term (childin, childout,pid) ))]) n
+end;
+
+
+fun isar_atp_g tfrees sg_term (childin, childout, pid) n = 
                                         
-(	(warning("in isar_atp_g"));atp_tac_tfrees tfrees sg_term (childin, childout, pid));
+((warning("in isar_atp_g"));atp_tac_tfrees tfrees sg_term (childin, childout, pid) n);
 
 
 
@@ -257,9 +279,11 @@ fun isar_atp_goal' thm k n tfree_lits  (childin, childout, pid) =
 	  		else 
                            (let val  prems = prems_of thm 
                                 val sg_term = get_nth n prems
+                                val thmstring = string_of_thm thm
                             in   
                                  
                 		(warning("in isar_atp_goal'"));
+                                (warning("thmstring in isar_atp_goal: "^thmstring));
  				 isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; 
                                  isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) 
                             end);
@@ -270,7 +294,8 @@ fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = (if (!d
 (**************************************************)
 (* convert clauses from "assume" to conjecture.   *)
 (* i.e. apply make_clauses and then get tptp for  *)
-(* any hypotheses in the goal                     *)
+(* any hypotheses in the goal produced by assume  *)
+(* statements;                                    *)
 (* write to file "hyps"                           *)
 (**************************************************)
 
@@ -375,13 +400,15 @@ fun isar_local_thms (delta_cs, delta_ss_thms) =
 
 
 (* called in Isar automatically *)
+
 fun isar_atp (ctxt,thm) =
     let val prems = ProofContext.prems_of ctxt
         val d_cs = Classical.get_delta_claset ctxt 
         val d_ss_thms = Simplifier.get_delta_simpset ctxt
         val thmstring = string_of_thm thm
-        val prem_no = length prems
-        val prems_string = concat_with_and (map string_of_thm prems) ""
+        val sg_prems = prems_of thm
+        val prem_no = length sg_prems
+        val prems_string =  concat_with_and (map (Sign.string_of_term Mainsign) sg_prems) ""
     in
          
           (warning ("initial thm in isar_atp: "^thmstring));

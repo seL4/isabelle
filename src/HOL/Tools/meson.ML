@@ -86,6 +86,13 @@ fun has_consts bs =
 	| has _ = false
   in  has  end;
 
+(* for tracing statements *)
+ 
+fun concat_with_and [] str = str
+|   concat_with_and (x::[]) str = str^" ("^x^")"
+|   concat_with_and (x::xs) str = (concat_with_and xs (str^"("^x^")"^" & "))
+
+
 
 (**** Clause handling ****)
 
@@ -124,7 +131,7 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 (*Conjunctive normal form, detecting tautologies early.
   Strips universal quantifiers and breaks up conjunctions. *)
 fun cnf_aux seen (th,ths) =
- let val _= (warning ("in cnf_aux"))
+ let val _= (warning ("in cnf_aux, th : "^(string_of_thm th)))
  in if taut_lits (literals(prop_of th) @ seen)  
   then ths     (*tautology ignored*)
   else if not (has_consts ["All","op &"] (prop_of th))  
@@ -310,8 +317,8 @@ fun make_nnf th = make_nnf1 (check_no_bool th);
 (*Pull existential quantifiers (Skolemization)*)
 fun skolemize th =
   if not (has_consts ["Ex"] (prop_of th)) then th
-  else skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
-                              disj_exD, disj_exD1, disj_exD2]))
+  else ((warning("in meson.skolemize with th: "^(string_of_thm th)));skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
+                              disj_exD, disj_exD1, disj_exD2])))
     handle THM _ =>
         skolemize (forward_res skolemize
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
@@ -321,7 +328,7 @@ fun skolemize th =
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths =
-    sort_clauses (map (generalize o nodups) (foldr cnf [] ths));
+   ( (warning("in make_clauses ths are:"^(concat_with_and (map string_of_thm ths) ""))); sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
 fun make_horns ths =
@@ -448,9 +455,14 @@ val skolemize_tac =
   SUBGOAL
     (fn (prop,_) =>
      let val ts = Logic.strip_assums_hyp prop
+         val _ = (warning("in meson.skolemize_tac "))
+         val outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "skolem")))
+         val _ = TextIO.output(outfile, "in skolemize_tac ");
+         val _ = TextIO.flushOut outfile;
+         val _ =  TextIO.closeOut outfile
      in EVERY1 
 	 [METAHYPS
-	    (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
+	    (fn hyps => ((warning("in meson.skolemize_tac hyps are: "^(string_of_thm (hd hyps))));cut_facts_tac (map (skolemize o make_nnf) hyps) 1
                          THEN REPEAT (etac exE 1))),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
