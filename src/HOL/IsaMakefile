@@ -107,13 +107,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/primrec_package.ML Tools/prop_logic.ML \
   Tools/recdef_package.ML Tools/recfun_codegen.ML Tools/record_package.ML \
   Tools/reconstruction.ML Tools/refute.ML Tools/refute_isar.ML \
-  Tools/res_lib.ML Tools/res_clause.ML Tools/res_skolem_function.ML\
-  Tools/res_axioms.ML Tools/res_types_sorts.ML \
   Tools/rewrite_hol_proof.ML Tools/sat_solver.ML Tools/specification_package.ML \
   Tools/split_rule.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
   Wellfounded_Recursion.thy Wellfounded_Relations.thy arith_data.ML antisym_setup.ML \
   blastdata.ML cladata.ML \
+  Tools/res_lib.ML Tools/res_clause.ML Tools/res_skolem_function.ML\
+  Tools/res_axioms.ML Tools/res_types_sorts.ML \
   Tools/ATP/recon_prelim.ML  Tools/ATP/recon_gandalf_base.ML  Tools/ATP/recon_order_clauses.ML\
   Tools/ATP/recon_translate_proof.ML   Tools/ATP/recon_parse.ML   Tools/ATP/recon_reconstruct_proof.ML \
   Tools/ATP/recon_transfer_proof.ML  Tools/ATP/myres_axioms.ML   Tools/ATP/res_clasimpset.ML \
