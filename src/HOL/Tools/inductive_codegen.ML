@@ -229,7 +229,7 @@ fun select_mode_prem thy modes vs ps =
             term_vs t subset vs andalso
             forall is_eqT dupTs
           end)
-            (modes_of modes t handle OPTION => [Mode (([], []), [])])
+            (modes_of modes t handle Option => [Mode (([], []), [])])
       | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), []))
           else NONE) ps);
 
@@ -590,7 +590,7 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
   end;
 
 fun find_mode s u modes is = (case find_first (fn Mode ((_, js), _) => is=js)
-  (modes_of modes u handle OPTION => []) of
+  (modes_of modes u handle Option => []) of
      NONE => error ("No such mode for " ^ s ^ ": " ^ string_of_mode ([], is))
    | mode => mode);
 

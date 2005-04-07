@@ -439,7 +439,7 @@ fun mkthm sg asms just =
         case add2 thm1 thm2 of
           NONE => (case try_add ([thm1] RL inj_thms) thm2 of
                      NONE => ( valOf(try_add ([thm2] RL inj_thms) thm1)
-                               handle OPTION =>
+                               handle Option =>
                                (trace_thm "" thm1; trace_thm "" thm2;
                                 sys_error "Lin.arith. failed to add thms")
                              )
