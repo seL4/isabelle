@@ -38,14 +38,14 @@ fun skip_proof (_, SkipProof t) =
   if ! quick_and_dirty then t
   else error "Proof may be skipped in quick_and_dirty mode only!";
 
-val setup = [Theory.add_oracle (skip_proofN, skip_proof)];
+val setup =
+  [PureThy.global_path, Theory.add_oracle (skip_proofN, skip_proof), PureThy.local_path];
 
 
 (* basic cheating *)
 
 fun make_thm thy t =
-  (*dynamic scoping of the oracle, cannot even qualify the name due to Pure/CPure!*)
-  Thm.invoke_oracle thy skip_proofN (Theory.sign_of thy, SkipProof t);
+  Thm.invoke_oracle_i thy skip_proofN (Theory.sign_of thy, SkipProof t);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
