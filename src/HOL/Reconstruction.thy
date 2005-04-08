@@ -14,6 +14,7 @@ theory Reconstruction
 	  "Tools/res_axioms.ML"
 	  "Tools/res_types_sorts.ML"
 
+(*
           "Tools/ATP/recon_prelim.ML"
 	  "Tools/ATP/recon_gandalf_base.ML"
  	  "Tools/ATP/recon_order_clauses.ML"
@@ -26,6 +27,7 @@ theory Reconstruction
 	  "Tools/ATP/watcher.sig"
 	  "Tools/ATP/watcher.ML"
 	  "Tools/res_atp.ML"
+*)
 
           "Tools/reconstruction.ML"
 
