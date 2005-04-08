@@ -32,8 +32,8 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
 			 in 
                             if (thisLine = "--------------------------SPASS-STOP------------------------------\n" )
 			    then ( 
-                                    let val proofextract = extract_proof (currentString^thisLine)
-                                        val reconstr = spassString_to_reconString (currentString^thisLine) thmstring
+                                    let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
+                                        val reconstr = Recon_Transfer.spassString_to_reconString (currentString^thisLine) thmstring
                                         val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar2")));
                                in
                                          TextIO.output(foo,(reconstr^thmstring));TextIO.closeOut foo;

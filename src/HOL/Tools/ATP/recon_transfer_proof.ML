@@ -2,6 +2,12 @@
 (* complete later *)
 (******************)
 
+structure Recon_Transfer =
+struct
+
+open Recon_Parse
+infixr 8 ++; infixr 7 >>; infixr 6 ||;
+
 fun not_newline ch = not (ch = "\n");
 
 
@@ -19,7 +25,7 @@ fun string_of_thm thm = let val _ = set show_sorts
 
 fun thm_of_string str = let val _ = set show_sorts
                                 val term = read str
-                                val propterm = mk_Trueprop term
+                                val propterm = HOLogic.mk_Trueprop term
                                 val cterm = cterm_of Mainsign propterm
                                 val _ = reset show_sorts
                             in
@@ -113,7 +119,7 @@ fun get_init_axioms xs = List.filter (is_axiom) ( xs)
 fun get_step_nums [] nums = nums
 |   get_step_nums (( num:int,Axiom, str)::xs) nums = get_step_nums xs (nums@[num])
 
-fun assoc_snd a [] = raise Noassoc
+fun assoc_snd a [] = raise Recon_Base.Noassoc
   | assoc_snd a ((x, y)::t) = if a = y then x else assoc_snd a t;
 
 (* change to be something using check_order  instead of a = y --> returns true if ASSERTION not raised in checkorder, false otherwise *)
@@ -129,7 +135,7 @@ fun there_out_of_order xs ys = let val foo = (checkorder xs ys [] ([],[],[]))
                               end
                               handle EXCEP => false
 
-fun assoc_out_of_order a [] = raise Noassoc
+fun assoc_out_of_order a [] = raise Recon_Base.Noassoc
 |   assoc_out_of_order a ((b,c)::t) = if there_out_of_order a c then b else assoc_out_of_order a t;
 
 fun get_assoc_snds [] xs assocs= assocs
@@ -276,7 +282,7 @@ fun select_literal i cl = negate_head (make_last i cl);
                                             val distfrees = distinct frees
 
                                             val metas = map make_meta_clause clauses
-                                            val ax_strs = map (three_of_three ) axioms
+                                            val ax_strs = map #3 axioms
 
                                             (* literals of -all- axioms, not just those used by spass *)
                                             val meta_strs = map get_meta_lits metas
@@ -618,9 +624,6 @@ val reconstr ="[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][
 (************************************************************)
 (* want to assume all axioms, then do haves for the other clauses*)
 (* then show for the last step *)
-fun one_of_three (a,b,c) = a;
-fun two_of_three (a,b,c) = b;
-fun three_of_three (a,b,c) = c;
 
 (* replace ~ by not here *)
 fun change_nots [] = []
@@ -809,3 +812,4 @@ fun apply_res_thm str goalstring  = let val tokens = fst (lex str);
                                end 
 
 
+end;

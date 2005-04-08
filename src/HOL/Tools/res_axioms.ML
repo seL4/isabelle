@@ -147,17 +147,48 @@ Goal "(P==True) ==> P";
 by(Blast_tac 1);
 qed "Eq_TrueD1";
 
-Goal "(P=True) ==> P";
+Goal "(True==P) ==> P";
 by(Blast_tac 1);
 qed "Eq_TrueD2";
+
+Goal "(P=True) ==> P";
+by(Blast_tac 1);
+qed "Eq_TrueD3";
 
 Goal "(P==False) ==> ~P";
 by(Blast_tac 1);
 qed "Eq_FalseD1";
 
-Goal "(P=False) ==> ~P";
+Goal "(False==P) ==> ~P";
 by(Blast_tac 1);
 qed "Eq_FalseD2";
+
+Goal "(P=False) ==> ~P";
+by(Blast_tac 1);
+qed "Eq_FalseD3";
+
+
+Goal "[|u == (if P then x else y); P|] ==> u==x";
+by Auto_tac;
+qed "eq_if_elim1";
+
+
+Goal "[|u == (if P then x else y); ~P|] ==> u==y";
+by Auto_tac;
+qed"eq_if_elim2";
+
+
+
+fun resolve_or_id ths th =
+     case [th] RL ths of
+         []   => [th]
+       | ths2 => ths2;
+
+
+
+val remove_bool_ths = [eq_if_elim1,eq_if_elim2,Eq_TrueD1,Eq_TrueD2,Eq_FalseD1,Eq_FalseD2];
+
+
 
 local 
 
@@ -169,7 +200,10 @@ val small_simps =
     "(P & True) == P", "(True & P) == P",
     "(False | P) == P", "(P | False) == P",
     "(False & P) == False", "(P & False) == False",
-    "~True == False", "~False == True"];
+    "~True == False", "~False == True"(*,
+    "(False = P) == ~P", "(P = False) == ~P",
+    "(True = P) == P",  "(P = True) == P"*)
+    (*"(True ==> PROP P) == PROP P"*)];
 in
 
 val small_simpset = empty_ss addsimps small_simps
@@ -194,6 +228,11 @@ val clausify_simpset_rules_thy
 : Theory.theory -> ResClause.clause list list * Thm.thm list
 val rm_Eps 
 : (Term.term * Term.term) list -> Thm.thm list -> Term.term list
+val claset_rules_of_thy : Theory.theory -> Thm.thm list
+val simpset_rules_of_thy : Theory.theory -> Thm.thm list
+val clausify_simpset_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
+val clausify_classical_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
+
 end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -408,8 +447,9 @@ fun cnf_classical_rules_thy thy =
 fun cnf_simpset_rules [] err_list = ([],err_list)
   | cnf_simpset_rules (thm::thms) err_list =
     let val (ts,es) = cnf_simpset_rules thms err_list
+	val thm' = resolve_or_id remove_bool_ths thm
     in
-	((cnf_axiom thm)::ts,es) handle _ => (ts,(thm::es))
+	((map cnf_axiom thm')@ts,es) handle _ => (ts,(thm::es))
     end;
 
 
@@ -458,27 +498,7 @@ fun clausify_simpset_rules_thy thy =
 	clausify_simpset_rules thms []
     end;
 
-(* lcp-modified code *)
-(*
-fun retr_thms ([]:MetaSimplifier.rrule list) = []
-	  | retr_thms (r::rs) = (#name r, #thm r)::(retr_thms rs);
-
-fun snds [] = []
-   | snds ((x,y)::l) = y::(snds l);
-
-fun simpset_rules_of_thy thy =
-     let val simpset = simpset_of thy
-	val rules = #rules(fst (rep_ss simpset))
-	val thms = retr_thms (snds(Net.dest rules))
-     in	thms  end;
-
-print_depth 200;
-simpset_rules_of_thy Main.thy;
 
 
-
-
-
-*)
 
 end; 

@@ -624,7 +624,7 @@ fun spass_proofHandler (n:int) = (
                                                          
                                                           in
                                                              Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                             apply_res_thm reconstr goalstring;
+                                                             Recon_Transfer.apply_res_thm reconstr goalstring;
                                                              Pretty.writeln(Pretty.str  (oct_char "361"));
                                                              killWatcher childpid; () 
                                                           end
@@ -651,7 +651,7 @@ fun spass_proofHandler (n:int) = (
 
                                                             (
                                                                  Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                 apply_res_thm reconstr goalstring;
+                                                                 Recon_Transfer.apply_res_thm reconstr goalstring;
                                                                  Pretty.writeln(Pretty.str  (oct_char "361"));
                                                                  
                                                                  goals_being_watched := ((!goals_being_watched) - 1);

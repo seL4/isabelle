@@ -3,6 +3,9 @@
 
 (* Auxiliary functions *)
 
+structure Recon_Parse =
+struct
+
 exception ASSERTION of string;
 
 exception NOPARSE_WORD
@@ -100,7 +103,7 @@ datatype token = Word of string
       fun cut_after t s = let val (a, b) = cut t s in (a ^ t, b) end
     
 
-    fun kill_lines 0 = id
+    fun kill_lines 0 = Library.I
       | kill_lines n = kill_lines (n - 1) o snd o cut_after "\n";
 
     (*fun extract_proof s
@@ -140,7 +143,7 @@ fun extract_proof s
 
 
 fun several p = many (some p)
-      fun collect (h, t) = h ^ (itlist (fn s1 => fn s2 => s1 ^ s2) t "")
+      fun collect (h, t) = h ^ (Utils.itlist (fn s1 => fn s2 => s1 ^ s2) t "")
   
       fun lower_letter s = ("a" <= s) andalso (s <= "z")
       fun upper_letter s = ("A" <= s) andalso (s <= "Z")
@@ -464,19 +467,4 @@ fun change_space []  = []
                                                         (clausenum, step, P_info, newstrs)::(change_space xs) 
                                                  end
 
-
-
-
-
-
-(*
-    fun gandalf_parse s =
-      let
-        val e = extract_proof;
-        val t = fst(lex e)
-        val r = parse t
-      in
-        r
-      end
-  
-*)
+end;

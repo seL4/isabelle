@@ -23,23 +23,6 @@ fun mksubstlist [] sublist = sublist
       in mksubstlist rest newlist end;
 
 
-fun get_unif_comb t eqterm =
-    if ((type_of t) = (type_of eqterm))
-    then t
-    else
-        let val _ $ rand = t
-        in get_unif_comb rand eqterm end;
-
-fun get_unif_lit t eqterm =
-    if (can HOLogic.dest_eq t)
-    then
-	let val (lhs,rhs) = HOLogic.dest_eq(HOLogic.dest_Trueprop eqterm)
-	in lhs end
-    else
-	get_unif_comb t eqterm;
-
-
-
 (**** attributes ****)
 
 (** Binary resolution **)

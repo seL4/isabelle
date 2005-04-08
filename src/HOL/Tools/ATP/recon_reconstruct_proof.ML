@@ -53,7 +53,7 @@ fun reconstruct_factor (clause,  lit1, lit2) thml (numlist, symlist, nsymlist )=
                             val prems = prems_of th
                             val fac1 = get_nth (lit1+1) prems
                             val fac2 = get_nth (lit2+1) prems
-                            val unif_env = unifiers (Mainsign,myenv, [(fac1, fac2)])
+                            val unif_env = unifiers (Mainsign,Envir.empty 0, [(fac1, fac2)])
                             val newenv = getnewenv unif_env
                             val envlist = alist_of newenv
                             
@@ -140,7 +140,7 @@ fun reconstruct_standard_para_right ((clause1, lit1), (clause2 , lit2)) thml (nu
 
                            (* get bit of th2 to unify with lhs of th1 *)
                             val unif_lit = get_unif_lit (dest_Trueprop fac2) lhs
-                            val unif_env = unifiers (Mainsign,myenv, [(unif_lit, lhs)])
+                            val unif_env = unifiers (Mainsign,Envir.empty 0, [(unif_lit, lhs)])
                             val newenv = getnewenv unif_env
                             val envlist = alist_of newenv
                             val newsubsts = mksubstlist envlist []
@@ -295,10 +295,6 @@ fun reconstruct clauses [] thml  = ((snd( hd thml)))
 fun first_pair (a,b,c) = (a,b);
 
 fun second_pair (a,b,c) = (b,c);
-
-fun one_of_three (a,b,c) = a;
-fun two_of_three (a,b,c) = b;
-fun three_of_three (a,b,c) = c;
 
 (*************************)
 (* reconstruct res proof *)

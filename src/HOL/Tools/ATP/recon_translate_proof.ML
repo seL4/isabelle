@@ -25,7 +25,7 @@ fun add_once x [] = [x]
                         else
                             add_in_order x (y::ys)
      
-fun thm_vars thm = map getindexstring (map fst (Drule.vars_of thm));
+fun thm_vars thm = map (fn ((name,ix),_) => name) (Drule.vars_of thm);
 
 Goal "False ==> False";
 by Auto_tac;
@@ -81,7 +81,7 @@ fun lit_string_with_nums t = let val termstr = (Sign.string_of_term Mainsign) t
 (****************************************)
 
  fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
-                                     let val this_axiom =(assoc  clausenum clauses)
+                                     let val this_axiom =(Recon_Base.assoc  clausenum clauses)
                                          val (res, numlist, symlist, nsymlist) = (rearrange_clause this_axiom clause_strs allvars)         
                                          val thmvars = thm_vars res
                                      in
@@ -95,8 +95,8 @@ fun lit_string_with_nums t = let val termstr = (Sign.string_of_term Mainsign) t
                  (* numbers of clauses and literals*) (*vars*) (*list of current thms*) (* literal strings as parsed from spass *)
 fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs 
         = let
-              val thm1 =  select_literal (lit1 + 1) (assoc  clause1 thml)
-              val thm2 =  assoc  clause2 thml
+              val thm1 =  select_literal (lit1 + 1) (Recon_Base.assoc  clause1 thml)
+              val thm2 =  Recon_Base.assoc  clause2 thml
               val res =   thm1 RSN ((lit2 +1), thm2)
               val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
               val thmvars = thm_vars res
@@ -113,8 +113,8 @@ fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs
 
 fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs 
         = let
-              val thm1 =  select_literal (lit1 + 1) (assoc  clause1 thml)
-              val thm2 =  assoc  clause2 thml
+              val thm1 =  select_literal (lit1 + 1) (Recon_Base.assoc  clause1 thml)
+              val thm2 =  Recon_Base.assoc  clause2 thml
               val res =   thm1 RSN ((lit2 +1), thm2)
               val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
               val thmvars = thm_vars res
@@ -156,13 +156,13 @@ fun delete_assump_tac state lit =
 
 fun follow_factor clause lit1 lit2 allvars thml clause_strs= 
                           let 
-                            val th =  assoc clause thml
+                            val th =  Recon_Base.assoc clause thml
                             val prems = prems_of th
                             val fac1 = get_nth (lit1+1) prems
                             val fac2 = get_nth (lit2+1) prems
-                            val unif_env = unifiers (Mainsign,myenv, [(fac1, fac2)])
+                            val unif_env = Unify.unifiers (Mainsign,Envir.empty 0, [(fac1, fac2)])
                             val newenv = getnewenv unif_env
-                            val envlist = alist_of newenv
+                            val envlist = Envir.alist_of newenv
                             
                             val newsubsts = mksubstlist envlist []
                           in 
@@ -201,32 +201,21 @@ qed "merge";
 
 
 
-fun get_unif_comb t eqterm = if ((type_of t ) = (type_of eqterm))
-                             then 
-                                  t
-                             else 
-                                 let val {Rand, Rator} = dest_comb t
-                                 in
-                                     get_unif_comb Rand eqterm
-                                 end
+fun get_unif_comb t eqterm =
+    if ((type_of t) = (type_of eqterm))
+    then t
+    else
+        let val _ $ rand = t
+        in get_unif_comb rand eqterm end;
 
-fun get_rhs_unif_lit t eqterm = if (can dest_eq t)
-                            then 
-                                let val {lhs, rhs} = dest_eq( t)
-                                in
-                                    rhs
-                                end
-                            else
-                                get_unif_comb t eqterm
-                         
-fun get_lhs_unif_lit t eqterm = if (can dest_eq t)
-                            then 
-                                let val {lhs, rhs} = dest_eq( t)
-                                in
-                                    lhs
-                                end
-                            else
-                                get_unif_comb t eqterm
+fun get_unif_lit t eqterm =
+    if (can HOLogic.dest_eq t)
+    then
+	let val (lhs,rhs) = HOLogic.dest_eq(HOLogic.dest_Trueprop eqterm)
+	in lhs end
+    else
+	get_unif_comb t eqterm;
+
 
 
 (*************************************)
@@ -240,8 +229,8 @@ val rev_ssubst = rotate_prems 1 ssubst;
 (* have changed from negate_nead to negate_head.  God knows if this will actually work *)
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
                           let 
-                            val th1 =  assoc clause1 thml
-                            val th2 =  assoc clause2 thml 
+                            val th1 =  Recon_Base.assoc clause1 thml
+                            val th2 =  Recon_Base.assoc clause2 thml 
                             val eq_lit_th = select_literal (lit1+1) th1
                             val mod_lit_th = select_literal (lit2+1) th2
                             val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -263,8 +252,8 @@ fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause
 (*              
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
                           let 
-                            val th1 =  assoc clause1 thml
-                            val th2 =  assoc clause2 thml 
+                            val th1 =  Recon_Base.assoc clause1 thml
+                            val th2 =  Recon_Base.assoc clause2 thml 
                             val eq_lit_th = select_literal (lit1+1) th1
                             val mod_lit_th = select_literal (lit2+1) th2
                             val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -315,8 +304,8 @@ fun delete_assumps 0 th = th
                     (* clause1, lit1 is thing to rewrite with *)
 fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs= 
 
-                          let val th1 =  assoc clause1 thml
-                              val th2 = assoc clause2 thml
+                          let val th1 =  Recon_Base.assoc clause1 thml
+                              val th2 = Recon_Base.assoc clause2 thml
                               val eq_lit_th = select_literal (lit1+1) th1
                               val mod_lit_th = select_literal (lit2+1) th2
                               val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -341,7 +330,7 @@ eqsubst)
 
 
 fun follow_obvious  (clause1, lit1)  allvars thml clause_strs= 
-                           let val th1 =  assoc clause1 thml
+                           let val th1 =  Recon_Base.assoc clause1 thml
                                val prems1 = prems_of th1
                                val newthm = refl RSN ((lit1+ 1), th1)
                                                handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
@@ -490,11 +479,6 @@ fun follow clauses [] allvars thml recons =
 fun first_pair (a,b,c) = (a,b);
 
 fun second_pair (a,b,c) = (b,c);
-
-fun one_of_three (a,b,c) = a;
-fun two_of_three (a,b,c) = b;
-fun three_of_three (a,b,c) = c;
-
 
 (* takes original axioms, proof_steps parsed from spass, variables *)
 

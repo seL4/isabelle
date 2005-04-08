@@ -150,25 +150,6 @@ fun numlist 0 = []
 |   numlist n = (numlist (n - 1))@[n]
 
 
-fun is_abs t = can dest_abs t;
-fun is_comb t = can dest_comb t;
-
-fun iscomb a = if is_Free a then
-			false
-	      else if is_Var a then
-			false
-		else if is_conj a then
-			false
-		else if is_disj a then
-			false
-		else if is_forall a then
-			false
-		else if is_exists a then
-			false
-		else
-			true;
-
-
 
 
 fun last(x::xs) = if xs=[] then x else last xs
@@ -219,25 +200,6 @@ fun numlist 0 = []
 |   numlist n = (numlist (n - 1))@[n]
 
 
-fun is_abs t = can dest_abs t;
-fun is_comb t = can dest_comb t;
-
-fun iscomb a = if is_Free a then
-			false
-	      else if is_Var a then
-			false
-		else if is_conj a then
-			false
-		else if is_disj a then
-			false
-		else if is_forall a then
-			false
-		else if is_exists a then
-			false
-		else
-			true;
-
-
 
 
 fun last(x::xs) = if xs=[] then x else last xs
@@ -250,7 +212,7 @@ fun minus a b = b - a;
 
 (* code to rearrange clauses so that they're the same as the parsed in SPASS version *)
 
-fun assoc3 a [] = raise Noassoc
+fun assoc3 a [] = raise Recon_Base.Noassoc
   | assoc3 a ((x, y, z)::t) = if a = x then z else assoc3 a t;
 
 

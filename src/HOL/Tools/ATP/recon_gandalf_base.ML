@@ -1,12 +1,12 @@
+structure Recon_Base =
+struct
+
 (* Auxiliary functions *)
 
 exception Assertion of string;
 
 val DEBUG = ref true;
 fun TRACE s = if !DEBUG then print s else ();
-
-fun id x = x;
-fun K x y = x;
 
 exception Noassoc;
 fun assoc a [] = raise Noassoc
@@ -36,3 +36,4 @@ fun set_add x l = if is_mem x l then l else x::l;
 fun iter f a [] = a
   | iter f a (h::t) = f h (iter f a t);
 
+end;
