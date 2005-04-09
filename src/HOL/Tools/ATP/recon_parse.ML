@@ -26,7 +26,7 @@ fun string2int s =
 exception Noparse;
 exception SPASSError of string;
 
-fun ++ (parser1, parser2) input =
+fun (parser1 ++ parser2) input =
       let
         val (result1, rest1) = parser1 input
         val (result2, rest2) = parser2 rest1
@@ -47,14 +47,14 @@ fun many parser input =
 
 
 
-fun >> (parser, treatment) input =
+fun (parser >> treatment) input =
       let
         val (result, rest) = parser input
       in
         (treatment result, rest)
       end;
 
-fun || (parser1, parser2) input = parser1 input
+fun (parser1 || parser2) input = parser1 input
 handle Noparse => parser2 input;
 
 infixr 8 ++; infixr 7 >>; infixr 6 ||;
