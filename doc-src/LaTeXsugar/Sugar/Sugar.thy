@@ -96,22 +96,43 @@ line breaking behaviour:
 
 section "Printing theorems"
 
+subsection "Question marks"
+
+text{* If you print anything, especially theorems, containing
+schematic variables they are prefixed with a question mark:
+\verb!@!\verb!{thm conjI}! results in @{thm conjI}. Most of the time
+you would rather not see the question marks. There is an attribute
+\verb!no_vars! that you can attach to the theorem that turns its
+schematic into ordinary free variables: \verb!@!\verb!{thm conjI[no_vars]}!
+results in @{thm conjI[no_vars]}.
+
+This \verb!no_vars! business can become a bit tedious.
+If you would rather never see question marks, simply put
+\begin{verbatim}
+reset show_var_qmarks;
+\end{verbatim}
+at the beginning of your file \texttt{ROOT.ML}.
+The rest of this document is produced with this flag reset.
+*}
+
+(*<*)ML"reset show_var_qmarks"(*>*)
+
 subsection "Inference rules"
 
 text{* To print theorems as inference rules you need to include Didier
 R\'emy's \texttt{mathpartir} package~\cite{mathpartir}
 for typesetting inference rules in your \LaTeX\ file.
 
-Writing \verb!@!\verb!{thm[mode=Rule] conjI[no_vars]}! produces
-@{thm[mode=Rule] conjI[no_vars]}, even in the middle of a sentence.
+Writing \verb!@!\verb!{thm[mode=Rule] conjI}! produces
+@{thm[mode=Rule] conjI}, even in the middle of a sentence.
 If you prefer your inference rule on a separate line, maybe with a name,
 \begin{center}
-@{thm[mode=Rule] conjI[no_vars]} {\sc conjI}
+@{thm[mode=Rule] conjI} {\sc conjI}
 \end{center}
 is produced by
 \begin{quote}
 \verb!\begin{center}!\\
-\verb!@!\verb!{thm[mode=Rule] conjI[no_vars]} {\sc conjI}!\\
+\verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI}!\\
 \verb!\end{center}!
 \end{quote}
 It is not recommended to use the standard \texttt{display} attribute
@@ -122,16 +143,16 @@ clash.
 Of course you can display multiple rules in this fashion:
 \begin{quote}
 \verb!\begin{center}\isastyle!\\
-\verb!@!\verb!{thm[mode=Rule] conjI[no_vars]} {\sc conjI} \\[1ex]!\\
-\verb!@!\verb!{thm[mode=Rule] conjE[no_vars]} {\sc disjI$_1$} \qquad!\\
-\verb!@!\verb!{thm[mode=Rule] disjE[no_vars]} {\sc disjI$_2$}!\\
+\verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI} \\[1ex]!\\
+\verb!@!\verb!{thm[mode=Rule] conjE} {\sc disjI$_1$} \qquad!\\
+\verb!@!\verb!{thm[mode=Rule] disjE} {\sc disjI$_2$}!\\
 \verb!\end{center}!
 \end{quote}
 yields
 \begin{center}\isastyle
-@{thm[mode=Rule] conjI[no_vars]} {\sc conjI} \\[1ex]
-@{thm[mode=Rule] disjI1[no_vars]} {\sc disjI$_1$} \qquad
-@{thm[mode=Rule] disjI2[no_vars]} {\sc disjI$_2$}
+@{thm[mode=Rule] conjI} {\sc conjI} \\[1ex]
+@{thm[mode=Rule] disjI1} {\sc disjI$_1$} \qquad
+@{thm[mode=Rule] disjI2} {\sc disjI$_2$}
 \end{center}
 Note that we included \verb!\isastyle! to obtain
 the smaller font that otherwise comes only with \texttt{display}.
@@ -155,11 +176,11 @@ text{* If you prefer a fake ``natural language'' style you can produce
 the body of
 \newtheorem{theorem}{Theorem}
 \begin{theorem}
-@{thm[mode=IfThen] zle_trans[no_vars]}
+@{thm[mode=IfThen] le_trans}
 \end{theorem}
 by typing
 \begin{quote}
-\verb!@!\verb!{thm[mode=IfThen] le_trans[no_vars]}!
+\verb!@!\verb!{thm[mode=IfThen] le_trans}!
 \end{quote}
 
 In order to prevent odd line breaks, the premises are put into boxes.
@@ -187,8 +208,8 @@ text {*
 
   \begin{center}
   \begin{tabular}{l@ {~~@{text "="}~~}l}
-  @{lhs foldl_Nil[no_vars]} & @{rhs foldl_Nil[no_vars]}\\
-  @{lhs foldl_Cons[no_vars]} & @{rhs foldl_Cons[no_vars]}
+  @{lhs foldl_Nil} & @{rhs foldl_Nil}\\
+  @{lhs foldl_Cons} & @{rhs foldl_Cons}
   \end{tabular}
   \end{center}
 
@@ -198,8 +219,8 @@ text {*
 \begin{quote}
   \verb!\begin{center}!\\
   \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-  \verb!@!\verb!{lhs foldl_Nil[no_vars]} & @!\verb!{rhs foldl_Nil[no_vars]}!\\
-  \verb!@!\verb!{lhs foldl_Cons[no_vars]} & @!\verb!{rhs foldl_Cons[no_vars]}!\\
+  \verb!@!\verb!{lhs foldl_Nil} & @!\verb!{rhs foldl_Nil}!\\
+  \verb!@!\verb!{lhs foldl_Cons} & @!\verb!{rhs foldl_Cons}!\\
   \verb!\end{tabular}!\\
   \verb!\end{center}!
 \end{quote}
@@ -218,12 +239,12 @@ subsection "Patterns"
 text {*
   Sometimes functions ignore one or more of their
   arguments and some functional languages have nice 
-  syntax for that as in @{thm hd.simps [where xs=DUMMY,no_vars]}.
+  syntax for that as in @{thm hd.simps [where xs=DUMMY]}.
 
   You can simulate this in Isabelle by instantiating the @{term xs} in
-  definition \mbox{@{thm hd.simps[no_vars]}} with a constant @{text DUMMY} that
+  definition \mbox{@{thm hd.simps}} with a constant @{text DUMMY} that
   is printed as @{term DUMMY}. The code for the pattern above is 
-  \verb!@!\verb!{thm hd.simps [where xs=DUMMY,no_vars]}!.
+  \verb!@!\verb!{thm hd.simps [where xs=DUMMY]}!.
 
   You can drive this game even further and extend the syntax of let
   bindings such that certain functions like @{term fst}, @{term hd}, 
