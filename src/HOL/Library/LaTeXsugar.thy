@@ -31,6 +31,7 @@ translations
 (* insert *)
 translations 
   "{x} \<union> A" <= "insert x A"
+  "{x,y}" <= "{x} \<union> {y}"
   "{x,y} \<union> A" <= "{x} \<union> ({y} \<union> A)"
   "{x}" <= "{x} \<union> _emptyset"
 
@@ -39,6 +40,7 @@ syntax (latex output)
   "_Collect" :: "pttrn => bool => 'a set"              ("(1{_ | _})")
 translations
   "_Collect p P"      <= "{p. P}"
+  "_Collect p P"      <= "{p|xs. P}"
 
 (* LISTS *)
 
