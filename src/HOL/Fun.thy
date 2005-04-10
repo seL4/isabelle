@@ -39,9 +39,8 @@ translations
 *)
 
 constdefs
- overwrite :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
-              ("_/'(_|/_')"  [900,0,0]900)
-"f(g|A) == %a. if a : A then g a else f a"
+ override_on :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
+"override_on f g A == %a. if a : A then g a else f a"
 
  id :: "'a => 'a"
 "id == %x. x"
@@ -392,16 +391,16 @@ lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
 by auto
 
-subsection{* overwrite *}
+subsection{* @{text override_on} *}
 
-lemma overwrite_emptyset[simp]: "f(g|{}) = f"
-by(simp add:overwrite_def)
+lemma override_on_emptyset[simp]: "override_on f g {} = f"
+by(simp add:override_on_def)
 
-lemma overwrite_apply_notin[simp]: "a ~: A ==> (f(g|A)) a = f a"
-by(simp add:overwrite_def)
+lemma override_on_apply_notin[simp]: "a ~: A ==> (override_on f g A) a = f a"
+by(simp add:override_on_def)
 
-lemma overwrite_apply_in[simp]: "a : A ==> (f(g|A)) a = g a"
-by(simp add:overwrite_def)
+lemma override_on_apply_in[simp]: "a : A ==> (override_on f g A) a = g a"
+by(simp add:override_on_def)
 
 subsection{* swap *}
 
@@ -410,7 +409,7 @@ constdefs
    "swap a b f == f(a := f b, b:= f a)"
 
 lemma swap_self: "swap a a f = f"
-by (simp add: swap_def) 
+by (simp add: swap_def)
 
 lemma swap_commute: "swap a b f = swap b a f"
 by (rule ext, simp add: fun_upd_def swap_def)
