@@ -3,8 +3,6 @@
 (*----------------------------------------------*)
 (* Reorder clauses for use in binary resolution *)
 (*----------------------------------------------*)
-fun take n [] = []
-|   take n (x::xs) = (if n = 0 then [] else (x::(take (n - 1) xs)))
 
 fun drop n [] = []
 |   drop n (x::xs) = (if n = 0 then (x::xs) else drop (n-1) xs)
@@ -13,7 +11,7 @@ fun remove n [] = []
 |   remove n (x::xs) = List.filter (not_equal n) (x::xs);
 
 fun remove_nth n [] = []
-|   remove_nth n (x::xs) = (take (n -1) (x::xs))@(drop n (x::xs))
+|   remove_nth n xs = (List.take (xs, n-1)) @ (List.drop (xs, n))
 
 fun get_nth n (x::xs) = hd (drop (n-1) (x::xs))
 
@@ -28,21 +26,6 @@ fun get_nth n (x::xs) = hd (drop (n-1) (x::xs))
      
 exception Not_in_list;  
 
-
-
-
-   (* get the literals from a disjunctive clause *)
-
-(*fun get_disj_literals t = if is_disj t then
-			           let 
-                                      val {disj1, disj2} = dest_disj t  
-                                   in 
-                                      disj1::(get_disj_literals disj2)
-                                   end
-                                else
-                                    ([t])
-   
-*)
              
 (*
 (* gives horn clause with kth disj as concl (starting at 1) *)
@@ -99,22 +82,6 @@ qed "rem_dup_disj";
 exception Not_in_list;  
 
 
-(*Permute a rule's premises to move the i-th premise to the last position.*)
-fun make_last i th =
-  let val n = nprems_of th 
-  in  if 1 <= i andalso i <= n 
-      then Thm.permute_prems (i-1) 1 th
-      else raise THM("make_last", i, [th])
-  end;
-
-(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
-  double-negations.*)
-val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
-
-(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
-fun select_literal i cl = negate_head (make_last i cl);
-
-
 (* get a meta-clause for resolution with correct order of literals *)
 fun get_meta_cl  (th,n) = let val lits = nliterals(prop_of th)
                               val contra =  if lits = 1 
@@ -130,10 +97,6 @@ fun get_meta_cl  (th,n) = let val lits = nliterals(prop_of th)
                                else
                                   rotate_prems (lits - n) contra
                           end
-
-
-
-
 
 
 
@@ -379,14 +342,6 @@ fun  pos_in_list a [] allvars (pos_num, symlist, nsymlist) =  raise Not_in_list
                                  end   
 
                                 *)
-
-
-
-
-
-
-
-
 
 
 (* checkorder Spass Isabelle [] *)

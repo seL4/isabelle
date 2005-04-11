@@ -1,17 +1,4 @@
 
-fun take n [] = []
-|   take n (x::xs) = (if n = 0 then [] else (x::(take (n - 1) xs)))
-
-fun drop n [] = []
-|   drop n (x::xs) = (if n = 0 then (x::xs) else drop (n-1) xs)
-
-fun remove n [] = []
-|   remove n (x::xs) = List.filter (not_equal n) (x::xs);
-
-fun remove_nth n [] = []
-|   remove_nth n (x::xs) = (take (n -1) (x::xs))@(drop n (x::xs))
-
-fun get_nth n (x::xs) = hd (drop (n-1) (x::xs))
 
 fun add_in_order (x:string) [] = [x]
 |   add_in_order (x:string) ((y:string)::ys) = if (x < y) 
@@ -69,7 +56,7 @@ fun is_alpha_space_digit_or_neg ch = (ch = "~") orelse (is_alpha ch) orelse (is_
 
 
 
-fun lit_string_with_nums t = let val termstr = (Sign.string_of_term Mainsign) t
+fun lit_string_with_nums t = let val termstr = Term.string_of_term t
                                  val exp_term = explode termstr
                              in
                                  implode(List.filter is_alpha_space_digit_or_neg exp_term)
@@ -158,19 +145,20 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs=
                           let 
                             val th =  Recon_Base.assoc clause thml
                             val prems = prems_of th
+                            val sign = sign_of_thm th
                             val fac1 = get_nth (lit1+1) prems
                             val fac2 = get_nth (lit2+1) prems
                             val unif_env = Unify.unifiers (Mainsign,Envir.empty 0, [(fac1, fac2)])
                             val newenv = getnewenv unif_env
                             val envlist = Envir.alist_of newenv
                             
-                            val newsubsts = mksubstlist envlist []
+                            val (t1,t2)::_ = mksubstlist envlist []
                           in 
-                            if (is_Var (fst(hd(newsubsts))))
+                            if (is_Var t1)
                             then
                                 let 
-                                   val str1 = lit_string_with_nums (fst (hd newsubsts));
-                                   val str2 = lit_string_with_nums (snd (hd newsubsts));
+                                   val str1 = lit_string_with_nums t1;
+                                   val str2 = lit_string_with_nums t2;
                                    val facthm = read_instantiate [(str1,str2)] th;
                                    val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
                                    val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
@@ -180,8 +168,8 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs=
                                 end
                             else
                                 let
-                                   val str2 = lit_string_with_nums (fst (hd newsubsts));
-                                   val str1 = lit_string_with_nums (snd (hd newsubsts));
+                                   val str2 = lit_string_with_nums t1;
+                                   val str1 = lit_string_with_nums t2;
                                    val facthm = read_instantiate [(str1,str2)] th;
                                    val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
                                    val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
@@ -282,7 +270,7 @@ fun paramod_rule ((cl1, lit1), (cl2 , lit2)) =
           val eqsubst = eq_lit_th RSN (2,rev_subst)
           val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 
 eqsubst)
-     in negated_asm_of_head newth end;
+     in Meson.negated_asm_of_head newth end;
 
 val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 
 eqsubst)

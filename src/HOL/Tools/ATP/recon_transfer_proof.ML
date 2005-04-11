@@ -15,7 +15,7 @@ fun not_newline ch = not (ch = "\n");
 (* Versions that include type information *)
  
 fun string_of_thm thm = let val _ = set show_sorts
-                                val str = Sign.string_of_term Mainsign (prop_of thm)
+                                val str = string_of_thm thm
                                 val no_returns =List.filter not_newline (explode str)
                                 val _ = reset show_sorts
                             in 
@@ -149,28 +149,6 @@ fun add_if_not_inlist [] xs newlist = newlist
                                       add_if_not_inlist ys xs (y::newlist)
                                         else add_if_not_inlist ys xs (newlist)
 
-(*
-fun is_alpha_space_neg_eq_colon ch = (ch = "~") orelse (is_alpha ch) orelse ( ch = " ")orelse  ( ch = ";") orelse( ch = "=")
-
-(* replace | by ; here *)
-fun change_or [] = []
-|   change_or (x::xs) = if x = "|" 
-                          then 
-                             [";"]@(change_or xs)
-                          else (x::(change_or xs))
-
-
-fun clause_lit_string t = let val termstr = (Sign.string_of_term Mainsign ) t
-                              val exp_term = explode termstr
-                              val colon_term = change_or exp_term
-                   in
-                             implode(List.filter is_alpha_space_neg_eq_colon colon_term)
-                   end
-
-fun get_clause_lits thm =  clause_lit_string (prop_of thm)
-*)
-
-
 fun onestr [] str = str
 |   onestr (x::xs) str = onestr xs (str^(concat x))
 
@@ -181,83 +159,10 @@ fun onelist [] newlist = newlist
 |   onelist (x::xs) newlist = onelist xs (newlist@x)
 
 
-(**** Code to support ordinary resolution, rather than Model Elimination ****)
-
-(*Convert a list of clauses (disjunctions) to meta-level clauses (==>), 
-  with no contrapositives, for ordinary resolution.*)
-
-(*raises exception if no rules apply -- unlike RL*)
-fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
-  | tryres (th, []) = raise THM("tryres", 0, [th]);
 
 val prop_of = #prop o rep_thm;
 
 
-(*For ordinary resolution. *)
-val resolution_clause_rules = [disj_assoc, make_neg_rule', make_pos_rule'];
-(*Use "theorem naming" to label the clauses*)
-fun name_thms label =
-    let fun name1 (th, (k,ths)) =
-	  (k-1, Thm.name_thm (label ^ string_of_int k, th) :: ths)
-
-    in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
-
-(*Find an all-negative support clause*)
-fun is_negative th = forall (not o #1) (literals (prop_of th));
-
-val neg_clauses = List.filter is_negative;
-
-
-
-(*True if the given type contains bool anywhere*)
-fun has_bool (Type("bool",_)) = true
-  | has_bool (Type(_, Ts)) = exists has_bool Ts
-  | has_bool _ = false;
-  
-
-(*Create a meta-level Horn clause*)
-fun make_horn crules th = make_horn crules (tryres(th,crules))
-			  handle THM _ => th;
-
-
-(*Raises an exception if any Vars in the theorem mention type bool. That would mean
-  they are higher-order, and in addition, they could cause make_horn to loop!*)
-fun check_no_bool th =
-  if exists (has_bool o fastype_of) (term_vars (#prop (rep_thm th)))
-  then raise THM ("check_no_bool", 0, [th]) else th;
-
-
-(*Rules to convert the head literal into a negated assumption. If the head
-  literal is already negated, then using notEfalse instead of notEfalse'
-  prevents a double negation.*)
-val notEfalse = read_instantiate [("R","False")] notE;
-val notEfalse' = rotate_prems 1 notEfalse;
-
-fun negated_asm_of_head th = 
-    th RS notEfalse handle THM _ => th RS notEfalse';
-
-(*Converting one clause*)
-fun make_meta_clause th = 
-	negated_asm_of_head (make_horn resolution_clause_rules (check_no_bool th));
-
-fun make_meta_clauses ths =
-    name_thms "MClause#"
-      (gen_distinct Drule.eq_thm_prop (map make_meta_clause ths));
-
-(*Permute a rule's premises to move the i-th premise to the last position.*)
-fun make_last i th =
-  let val n = nprems_of th 
-  in  if 1 <= i andalso i <= n 
-      then Thm.permute_prems (i-1) 1 th
-      else raise THM("select_literal", i, [th])
-  end;
-
-(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
-  double-negations.*)
-val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
-
-(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
-fun select_literal i cl = negate_head (make_last i cl);
 
  fun get_axioms_used proof_steps thmstring = let 
                                              val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
@@ -281,7 +186,7 @@ fun select_literal i cl = negate_head (make_last i cl);
 
                                             val distfrees = distinct frees
 
-                                            val metas = map make_meta_clause clauses
+                                            val metas = map Meson.make_meta_clause clauses
                                             val ax_strs = map #3 axioms
 
                                             (* literals of -all- axioms, not just those used by spass *)
