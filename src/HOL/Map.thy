@@ -63,7 +63,8 @@ syntax (xsymbols)
 					  ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
 
 syntax (latex output)
-  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110) --"requires amssymb!"
+  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
+  --"requires amssymb!"
 
 translations
   "empty"    => "_K None"
