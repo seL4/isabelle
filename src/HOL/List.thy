@@ -1909,8 +1909,8 @@ constdefs
     "lex r == \<Union>n. lexn r n"
         --{*Holds only between lists of the same length*}
 
-  lexico :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-    "lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+  lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
+    "lenlex r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
         --{*Compares lists by their length and then lexicographically*}
 
 
@@ -1952,13 +1952,13 @@ lemma lex_conv:
     (\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y):r)}"
 by (force simp add: lex_def lexn_conv)
 
-lemma wf_lexico [intro!]: "wf r ==> wf (lexico r)"
-by (unfold lexico_def) blast
+lemma wf_lenlex [intro!]: "wf r ==> wf (lenlex r)"
+by (unfold lenlex_def) blast
 
-lemma lexico_conv:
-    "lexico r = {(xs,ys). length xs < length ys |
+lemma lenlex_conv:
+    "lenlex r = {(xs,ys). length xs < length ys |
                  length xs = length ys \<and> (xs, ys) : lex r}"
-by (simp add: lexico_def diag_def lex_prod_def measure_def inv_image_def)
+by (simp add: lenlex_def diag_def lex_prod_def measure_def inv_image_def)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)

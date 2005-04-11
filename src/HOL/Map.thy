@@ -18,7 +18,7 @@ translations (type) "a ~=> b " <= (type) "a => b option"
 consts
 chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
 map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
-restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" (infixl "|^"  110)
+restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" (infixl "|`"  110)
 dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
@@ -55,13 +55,15 @@ syntax (xsymbols)
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
 
-  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" (infixl "\<upharpoonright>" 110) --"requires amssymb!"
   map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
 				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
   map_subst :: "('a ~=> 'b) => 'b => 'b => 
 	        ('a ~=> 'b)"			 ("_/'(_\<leadsto>_/')"    [900,0,0]900)
  "@chg_map" :: "('a ~=> 'b) => 'a => ('b => 'b) => ('a ~=> 'b)"
 					  ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
+
+syntax (latex output)
+  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110) --"requires amssymb!"
 
 translations
   "empty"    => "_K None"
@@ -80,7 +82,7 @@ defs
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
 map_add_def:   "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
-restrict_map_def: "m|^A == %x. if x : A then m x else None"
+restrict_map_def: "m|`A == %x. if x : A then m x else None"
 
 map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 map_upd_s_def: "m(as{|->}b) == %x. if x : as then Some b else m x"
@@ -324,44 +326,44 @@ by(fastsimp simp add:map_add_def dom_def inj_on_def split:option.splits)
 
 subsection {* @{term restrict_map} *}
 
-lemma restrict_map_to_empty[simp]: "m|^{} = empty"
+lemma restrict_map_to_empty[simp]: "m|`{} = empty"
 by(simp add: restrict_map_def)
 
-lemma restrict_map_empty[simp]: "empty|^D = empty"
+lemma restrict_map_empty[simp]: "empty|`D = empty"
 by(simp add: restrict_map_def)
 
-lemma restrict_in [simp]: "x \<in> A \<Longrightarrow> (m|^A) x = m x"
+lemma restrict_in [simp]: "x \<in> A \<Longrightarrow> (m|`A) x = m x"
 by (auto simp: restrict_map_def)
 
-lemma restrict_out [simp]: "x \<notin> A \<Longrightarrow> (m|^A) x = None"
+lemma restrict_out [simp]: "x \<notin> A \<Longrightarrow> (m|`A) x = None"
 by (auto simp: restrict_map_def)
 
-lemma ran_restrictD: "y \<in> ran (m|^A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
+lemma ran_restrictD: "y \<in> ran (m|`A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
 by (auto simp: restrict_map_def ran_def split: split_if_asm)
 
-lemma dom_restrict [simp]: "dom (m|^A) = dom m \<inter> A"
+lemma dom_restrict [simp]: "dom (m|`A) = dom m \<inter> A"
 by (auto simp: restrict_map_def dom_def split: split_if_asm)
 
-lemma restrict_upd_same [simp]: "m(x\<mapsto>y)|^(-{x}) = m|^(-{x})"
+lemma restrict_upd_same [simp]: "m(x\<mapsto>y)|`(-{x}) = m|`(-{x})"
 by (rule ext, auto simp: restrict_map_def)
 
-lemma restrict_restrict [simp]: "m|^A|^B = m|^(A\<inter>B)"
+lemma restrict_restrict [simp]: "m|`A|`B = m|`(A\<inter>B)"
 by (rule ext, auto simp: restrict_map_def)
 
 lemma restrict_fun_upd[simp]:
- "m(x := y)|^D = (if x \<in> D then (m|^(D-{x}))(x := y) else m|^D)"
+ "m(x := y)|`D = (if x \<in> D then (m|`(D-{x}))(x := y) else m|`D)"
 by(simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_None_restrict[simp]:
-  "(m|^D)(x := None) = (if x:D then m|^(D - {x}) else m|^D)"
+  "(m|`D)(x := None) = (if x:D then m|`(D - {x}) else m|`D)"
 by(simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_restrict:
- "(m|^D)(x := y) = (m|^(D-{x}))(x := y)"
+ "(m|`D)(x := y) = (m|`(D-{x}))(x := y)"
 by(simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_restrict_conv[simp]:
- "x \<in> D \<Longrightarrow> (m|^D)(x := y) = (m|^(D-{x}))(x := y)"
+ "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
 by(simp add: restrict_map_def expand_fun_eq)
 
 
@@ -432,7 +434,7 @@ done
 
 lemma restrict_map_upds[simp]: "!!m ys.
  \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
- \<Longrightarrow> m(xs [\<mapsto>] ys)|^D = (m|^(D - set xs))(xs [\<mapsto>] ys)"
+ \<Longrightarrow> m(xs [\<mapsto>] ys)|`D = (m|`(D - set xs))(xs [\<mapsto>] ys)"
 apply (induct xs, simp)
 apply (case_tac ys, simp)
 apply(simp add:Diff_insert[symmetric] insert_absorb)
