@@ -58,11 +58,17 @@ sig
     -> bool -> theory -> ProofHistory.T
   val theorem_i: string -> (bstring * theory attribute list) *
     (term * (term list * term list)) -> bool -> theory -> ProofHistory.T
-  val multi_theorem: string -> (theory -> theory) -> bstring * Args.src list
+  val multi_theorem:
+    string -> (theory -> theory) -> 
+    (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
+    bstring * Args.src list
     -> Args.src Locale.element Locale.elem_expr list
     -> ((bstring * Args.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
-  val multi_theorem_i: string -> (theory -> theory) -> bstring * theory attribute list
+  val multi_theorem_i:
+    string -> (theory -> theory) ->  
+    (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
+    bstring * theory attribute list
     -> Locale.multi_attribute Locale.element_i Locale.elem_expr list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> bool -> theory -> ProofHistory.T
@@ -378,28 +384,33 @@ fun local_statement_i f g args = local_statement_i' (K o f) g args ();
 
 in
 
-fun multi_theorem k thy_mod a elems concl int thy =
-  global_statement (Proof.multi_theorem k thy_mod NONE (apsnd (map (Attrib.global_attribute thy)) a)
+fun multi_theorem k thy_mod export a elems concl int thy =
+  global_statement (Proof.multi_theorem k thy_mod export NONE (apsnd (map (Attrib.global_attribute thy)) a)
     (map (Locale.map_attrib_elem_or_expr (Attrib.multi_attribute thy)) elems)) concl int thy;
 
-fun multi_theorem_i k thy_mod a = global_statement_i o Proof.multi_theorem_i k thy_mod NONE a;
+fun multi_theorem_i k thy_mod export a = global_statement_i o Proof.multi_theorem_i k thy_mod export NONE a;
 
 fun locale_multi_theorem k locale (name, atts) elems concl int thy =
-  global_statement (Proof.multi_theorem k I
+  global_statement (Proof.multi_theorem k I ProofContext.export_standard
       (SOME (locale, (map (Attrib.multi_attribute thy) atts,
           map (map (Attrib.multi_attribute thy) o snd o fst) concl)))
       (name, []) (map (Locale.map_attrib_elem_or_expr (Attrib.multi_attribute thy)) elems))
       (map (apfst (apsnd (K []))) concl) int thy;
 
 fun locale_multi_theorem_i k locale (name, atts) elems concl =
-  global_statement_i (Proof.multi_theorem_i k I (SOME (locale, (atts, map (snd o fst) concl)))
+  global_statement_i (Proof.multi_theorem_i k I ProofContext.export_standard
+      (SOME (locale, (atts, map (snd o fst) concl)))
       (name, []) elems) (map (apfst (apsnd (K []))) concl);
 
-fun theorem k (a, t) = multi_theorem k I a [] [(("", []), [t])];
-fun theorem_i k (a, t) = multi_theorem_i k I a [] [(("", []), [t])];
+fun theorem k (a, t) = multi_theorem k I ProofContext.export_standard
+       a [] [(("", []), [t])];
+fun theorem_i k (a, t) = multi_theorem_i k I ProofContext.export_standard
+       a [] [(("", []), [t])];
 
-fun smart_multi_theorem k NONE a elems = multi_theorem k I a elems
-  | smart_multi_theorem k (SOME locale) a elems = locale_multi_theorem k locale a elems;
+fun smart_multi_theorem k NONE a elems =
+      multi_theorem k I ProofContext.export_standard a elems
+  | smart_multi_theorem k (SOME locale) a elems =
+      locale_multi_theorem k locale a elems;
 
 val assume      = local_statement Proof.assume I;
 val assume_i    = local_statement_i Proof.assume_i I;
@@ -640,8 +651,10 @@ fun register_globally (((prfx, atts), expr), insts) b thy =
         (Locale.add_global_witness id thm' thy, thm')
       end;
   in
-    multi_theorem_i Drule.internalK activate ("", []) [] 
-      (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]), 
+    multi_theorem_i Drule.internalK activate ProofContext.export_plain
+      ("", []) [] 
+      (map (fn ((n, ps), props) => 
+          ((NameSpace.base n, [witness (n, map Logic.varify ps)]), 
         map (fn prop => (prop, ([], []))) props)) propss) b thy'
   end;
 

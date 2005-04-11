@@ -1466,12 +1466,15 @@ lemma (in UP_univ_prop) eval_monom:
   eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
   assume S: "s \<in> carrier S" and R: "r \<in> carrier R"
+  from ring_hom_cring_P_S [OF S] interpret ring_hom_cring [P S "eval R S h s"]
+    by - (rule ring_hom_cring.axioms, assumption)+
+    (* why is simplifier invoked --- in done ??? *)
   from R S have "eval R S h s (monom P r n) =
     eval R S h s (monom P r 0 \<otimes>\<^bsub>P\<^esub> (monom P \<one> 1) (^)\<^bsub>P\<^esub> n)"
     by (simp del: monom_mult (* eval.hom_mult eval.hom_pow, delayed inst! *)
       add: monom_mult [THEN sym] monom_pow)
   also
-  from ring_hom_cring_P_S [OF S] instantiate eval: ring_hom_cring
+  (*  from ring_hom_cring_P_S [OF S] instantiate eval: ring_hom_cring *)
   from R S eval_monom1 have "... = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
     by (simp add: eval_const)
   finally show ?thesis .
@@ -1482,7 +1485,11 @@ lemma (in UP_univ_prop) eval_smult:
   eval R S h s (r \<odot>\<^bsub>P\<^esub> p) = h r \<otimes>\<^bsub>S\<^esub> eval R S h s p"
 proof -
   assume S: "s \<in> carrier S" and R: "r \<in> carrier R" and P: "p \<in> carrier P"
+  from ring_hom_cring_P_S [OF S] interpret ring_hom_cring [P S "eval R S h s"]
+    by - (rule ring_hom_cring.axioms, assumption)+
+(*
   from ring_hom_cring_P_S [OF S] instantiate eval: ring_hom_cring
+*)
   from S R P show ?thesis
     by (simp add: monom_mult_is_smult [THEN sym] eval_const)
 qed
@@ -1503,20 +1510,20 @@ lemma (in UP_univ_prop) UP_hom_unique:
     and S: "s \<in> carrier S" and P: "p \<in> carrier P"
   shows "Phi p = Psi p"
 proof -
-  have Phi_hom: "ring_hom_cring P S Phi"
-    by (auto intro: ring_hom_cringI UP_cring S.cring Phi)
-  have Psi_hom: "ring_hom_cring P S Psi"
-    by (auto intro: ring_hom_cringI UP_cring S.cring Psi)
+  from UP_cring interpret cring [P] by - (rule cring.axioms, assumption)+
+  interpret Phi: ring_hom_cring [P S Phi]
+    by (auto intro: ring_hom_cring.axioms ring_hom_cringI UP_cring S.cring Phi)
+  interpret Psi: ring_hom_cring [P S Psi]
+    by (auto intro: ring_hom_cring.axioms ring_hom_cringI UP_cring S.cring Psi)
+
   have "Phi p =
       Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
     by (simp add: up_repr P S monom_mult [THEN sym] monom_pow del: monom_mult)
-  also 
-    from Phi_hom instantiate Phi: ring_hom_cring
-    from Psi_hom instantiate Psi: ring_hom_cring
-    have "... =
+  also
+  have "... =
       Psi (\<Oplus>\<^bsub>P \<^esub>i\<in>{..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
     by (simp add: Phi Psi P S Pi_def comp_def)
-(* Without instantiate, the following command would have been necessary.
+(* Without interpret, the following command would have been necessary.
     by (simp add: ring_hom_cring.hom_finsum [OF Phi_hom]
       ring_hom_cring.hom_mult [OF Phi_hom]
       ring_hom_cring.hom_pow [OF Phi_hom] Phi

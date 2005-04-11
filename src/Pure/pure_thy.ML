@@ -53,12 +53,12 @@ sig
     theory attribute -> ((bstring * theory attribute list) *
     (thm list * theory attribute list) list) list -> theory ->
     theory * (bstring * thm list) list
-  val note_thmss_qualified:
+  val note_thmss_accesses:
     (string -> string list) ->
     theory attribute -> ((bstring * theory attribute list) *
     (thmref * theory attribute list) list) list -> theory ->
     theory * (bstring * thm list) list
-  val note_thmss_qualified_i:
+  val note_thmss_accesses_i:
     (string -> string list) ->
     theory attribute -> ((bstring * theory attribute list) *
     (thm list * theory attribute list) list) list -> theory ->
@@ -387,9 +387,9 @@ val note_thmss_i = gen_note_thmss enter_thms (K I);
 (* always permit qualified names,
    clients may specify non-standard access policy *)
 
-fun note_thmss_qualified acc =
+fun note_thmss_accesses acc =
   gen_note_thmss (gen_enter_thms Sign.full_name' acc) get_thms;
-fun note_thmss_qualified_i acc =
+fun note_thmss_accesses_i acc =
   gen_note_thmss (gen_enter_thms Sign.full_name' acc) (K I);
 
 end;

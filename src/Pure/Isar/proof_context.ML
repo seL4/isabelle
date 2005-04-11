@@ -67,6 +67,7 @@ sig
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
   val export_standard: cterm list -> context -> context -> thm -> thm
+  val export_plain: cterm list -> context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -103,11 +104,23 @@ sig
   val put_thmss: (string * thm list) list -> context -> context
   val reset_thms: string -> context -> context
   val note_thmss:
-    ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
-      context -> context * (bstring * thm list) list
+    ((bstring * context attribute list) *
+      (thmref * context attribute list) list) list ->
+    context -> context * (bstring * thm list) list
   val note_thmss_i:
-    ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
-      context -> context * (bstring * thm list) list
+    ((bstring * context attribute list) *
+      (thm list * context attribute list) list) list ->
+    context -> context * (bstring * thm list) list
+  val note_thmss_accesses:
+    (string -> string list) ->
+    ((bstring * context attribute list) *
+      (thmref * context attribute list) list) list ->
+    context -> context * (bstring * thm list) list
+  val note_thmss_accesses_i:
+    (string -> string list) ->
+    ((bstring * context attribute list) *
+      (thm list * context attribute list) list) list ->
+    context -> context * (bstring * thm list) list
   val export_assume: exporter
   val export_presume: exporter
   val cert_def: context -> term -> string * term
@@ -812,16 +825,31 @@ fun export_view view is_goal inner outer =
       end)
   end;
 
+(* without varification *)
+
+fun export_view' view is_goal inner outer =
+  let
+    val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
+    val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
+  in fn thm =>thm
+    |> Tactic.norm_hhf_plain
+    |> Seq.EVERY (rev exp_asms)
+    |> Seq.map (Drule.implies_intr_list view)
+    |> Seq.map Tactic.norm_hhf_plain
+  end;
+
 val export = export_view [];
 
-fun export_standard view inner outer =
-  let val exp = export_view view false inner outer in
+fun gen_export_std exp_view view inner outer =
+  let val exp = exp_view view false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
         SOME (th', _) => th' |> Drule.local_standard
       | NONE => raise CONTEXT ("Internal failure while exporting theorem", inner))
   end;
 
+val export_standard = gen_export_std export_view;
+val export_plain = gen_export_std export_view';
 
 
 (** bindings **)
@@ -1022,20 +1050,24 @@ fun hide_thms fully names =
 
 (* put_thm(s) *)
 
-fun put_thms ("", _) ctxt = ctxt
-  | put_thms (name, ths) ctxt = ctxt |> map_context
+fun gen_put_thms _ _ ("", _) ctxt = ctxt
+  | gen_put_thms override_q acc (name, ths) ctxt = ctxt |> map_context
       (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count) =>
-        if not q andalso NameSpace.is_qualified name then
+        if not override_q andalso not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
-        else (thy, syntax, data, asms, binds, (q, NameSpace.extend (space, [name]),
+        else (thy, syntax, data, asms, binds, (q, NameSpace.extend' acc (space, [name]),
           Symtab.update ((name, SOME ths), tab),
             FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs, delta, delta_count));
 
-fun put_thm (name, th) = put_thms (name, [th]);
+fun gen_put_thm q acc (name, th) = gen_put_thms q acc (name, [th]);
 
-fun put_thmss [] ctxt = ctxt
-  | put_thmss (th :: ths) ctxt = ctxt |> put_thms th |> put_thmss ths;
+fun gen_put_thmss q acc [] ctxt = ctxt
+  | gen_put_thmss q acc (th :: ths) ctxt =
+      ctxt |> gen_put_thms q acc th |> gen_put_thmss q acc ths;
 
+val put_thm = gen_put_thm false NameSpace.accesses;
+val put_thms = gen_put_thms false NameSpace.accesses;
+val put_thmss = gen_put_thmss false NameSpace.accesses;
 
 (* reset_thms *)
 
@@ -1049,21 +1081,25 @@ fun reset_thms name =
 
 local
 
-fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
+fun gen_note_thss get acc (ctxt, ((name, more_attrs), ths_attrs)) =
   let
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = Library.foldl app ((ctxt, []), ths_attrs);
     val thms = List.concat (rev rev_thms);
-  in (ctxt' |> put_thms (name, thms), (name, thms)) end;
+  in (ctxt' |> gen_put_thms true acc (name, thms), (name, thms)) end;
 
-fun gen_note_thmss get args ctxt = foldl_map (gen_note_thss get) (ctxt, args);
+fun gen_note_thmss get acc args ctxt =
+  foldl_map (gen_note_thss get acc) (ctxt, args);
 
 in
 
-val note_thmss = gen_note_thmss get_thms;
-val note_thmss_i = gen_note_thmss (K I);
+val note_thmss = gen_note_thmss get_thms NameSpace.accesses;
+val note_thmss_i = gen_note_thmss (K I) NameSpace.accesses;
+
+val note_thmss_accesses = gen_note_thmss get_thms;
+val note_thmss_accesses_i = gen_note_thmss (K I);
 
 end;
 

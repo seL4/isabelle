@@ -574,10 +574,28 @@ lemma ring_hom_one:
 
 locale ring_hom_cring = cring R + cring S + var h +
   assumes homh [simp, intro]: "h \<in> ring_hom R S"
+(*
   notes hom_closed [simp, intro] = ring_hom_closed [OF homh]
     and hom_mult [simp] = ring_hom_mult [OF homh]
     and hom_add [simp] = ring_hom_add [OF homh]
     and hom_one [simp] = ring_hom_one [OF homh]
+*)
+
+lemma (in ring_hom_cring) hom_closed [simp, intro]:
+  "x \<in> carrier R ==> h x \<in> carrier S"
+  by (simp add: ring_hom_closed [OF homh])
+
+lemma (in ring_hom_cring) hom_mult [simp]:
+  "[| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
+  by (simp add: ring_hom_mult [OF homh])
+
+lemma (in ring_hom_cring) hom_add [simp]:
+  "[| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
+  by (simp add: ring_hom_add [OF homh])
+
+lemma (in ring_hom_cring) hom_one [simp]:
+  "h \<one> = \<one>\<^bsub>S\<^esub>"
+  by (simp add: ring_hom_one [OF homh])
 
 lemma (in ring_hom_cring) hom_zero [simp]:
   "h \<zero> = \<zero>\<^bsub>S\<^esub>"

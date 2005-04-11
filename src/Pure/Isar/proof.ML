@@ -90,13 +90,17 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val multi_theorem: string -> (theory -> theory)
-    -> (xstring * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
+  val multi_theorem:
+    string -> (theory -> theory) ->
+    (cterm list -> context -> context -> thm -> thm) ->
+    (xstring * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
     -> bstring * theory attribute list -> Locale.multi_attribute Locale.element Locale.elem_expr list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
-  val multi_theorem_i: string -> (theory -> theory)
-    -> (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
+  val multi_theorem_i:
+    string -> (theory -> theory)  ->
+    (cterm list -> context -> context -> thm -> thm) ->
+    (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
     -> bstring * theory attribute list
     -> Locale.multi_attribute Locale.element_i Locale.elem_expr list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
@@ -162,10 +166,12 @@ datatype kind =
     theory_spec: (bstring * theory attribute list) * theory attribute list list,
     locale_spec: (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option,
     view: cterm list * cterm list, (* target view and includes view *)
-    thy_mod: theory -> theory} |   (* used in finish_global to modify final
+    thy_mod: theory -> theory,     (* used in finish_global to modify final
                                       theory, normally set to I; used by
                                       registration command to activate
                                       registrations *)
+    export: cterm list -> context -> context -> thm -> thm } |
+                                   (* exporter to be used in finish_global *)
   Show of context attribute list list |
   Have of context attribute list list |
   Interpret of {attss: context attribute list list,
@@ -796,7 +802,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
   end;
 
 (*global goals*)
-fun global_goal prep kind thy_mod raw_locale a elems concl thy =
+fun global_goal prep kind thy_mod export raw_locale a elems concl thy =
   let
     val init = init_state thy;
     val (opt_name, view, locale_ctxt, elems_ctxt, propp) =
@@ -814,7 +820,8 @@ fun global_goal prep kind thy_mod raw_locale a elems concl thy =
         theory_spec = (a, map (snd o fst) concl),
         locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (valOf opt_name, x)),
         view = view,
-        thy_mod = thy_mod})
+        thy_mod = thy_mod,
+        export = export})
       Seq.single true (map (fst o fst) concl) propp
   end;
 
@@ -927,27 +934,28 @@ fun finish_global state =
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
-    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view = (target_view, elems_view), thy_mod} =
+    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view = (target_view, elems_view), thy_mod, export} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
     val ts = List.concat tss;
-    val locale_results = map (ProofContext.export_standard elems_view goal_ctxt locale_ctxt)
+    val locale_results = map (export elems_view goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
 
     val results = map (Drule.strip_shyps_warning o
-      ProofContext.export_standard target_view locale_ctxt theory_ctxt) locale_results;
+      export target_view locale_ctxt theory_ctxt) locale_results;
 
     val (theory', results') =
       theory_of state
-      |> (case locale_spec of NONE => I | SOME (loc, (loc_atts, loc_attss)) => fn thy =>
+      |> (case locale_spec of NONE => I
+                            | SOME (loc, (loc_atts, loc_attss)) => fn thy =>
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
         else (thy, locale_ctxt)
-          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
+          |> Locale.add_thmss k loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
           |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
-              |> (#1 o #1 o Locale.add_thmss loc [((name, List.concat (map #2 res)), loc_atts)])))
+              |> (#1 o #1 o Locale.add_thmss k loc [((name, List.concat (map #2 res)), loc_atts)])))
       |> Locale.smart_note_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)

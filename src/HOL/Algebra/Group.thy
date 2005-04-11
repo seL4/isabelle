@@ -469,7 +469,7 @@ lemma inv_DirProd [simp]:
   apply (simp_all add: prems group_def group.l_inv)
   done
 
-text{*This alternative proof of the previous result demonstrates instantiate.
+text{*This alternative proof of the previous result demonstrates interpret.
    It uses @{text Prod.inv_equality} (available after instantiation) instead of
    @{text "group.inv_equality [OF DirProd_group]"}. *}
 lemma
@@ -478,9 +478,8 @@ lemma
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
 proof -
-  have "group (G \<times>\<times> H)"
-    by (blast intro: DirProd_group group.intro prems)
-  then instantiate Prod: group
+  interpret Prod: group ["G \<times>\<times> H"]
+    by (auto intro: DirProd_group group.intro group.axioms prems)
   show ?thesis by (simp add: Prod.inv_equality g h)
 qed
   
@@ -543,8 +542,19 @@ text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @{term H}, with a homomorphism @{term h} between them*}
 locale group_hom = group G + group H + var h +
   assumes homh: "h \<in> hom G H"
+(*
   notes hom_mult [simp] = hom_mult [OF homh]
     and hom_closed [simp] = hom_closed [OF homh]
+CB: late binding problem?
+*)
+
+lemma (in group_hom) hom_mult [simp]:
+  "[| x \<in> carrier G; y \<in> carrier G |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
+  by (simp add: hom_mult [OF homh])
+
+lemma (in group_hom) hom_closed [simp]:
+  "x \<in> carrier G ==> h x \<in> carrier H"
+  by (simp add: hom_closed [OF homh])
 
 lemma (in group_hom) one_closed [simp]:
   "h \<one> \<in> carrier H"

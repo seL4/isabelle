@@ -128,6 +128,7 @@ sig
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
   val string_of_indexname: string * int -> string
+    (* CB: note alternative Syntax.string_of_vname has nicer syntax *)
   val read_radixint: int * string list -> int * string list
   val read_int: string list -> int * string list
   val oct_char: string -> string

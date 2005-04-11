@@ -100,6 +100,10 @@ theorem M_trivial_L: "PROP M_trivial(L)"
   apply (rule L_nat)
   done
 
+interpretation M_trivial ["L"] by (rule M_trivial_L)
+
+(* Replaces the following code.
+
 lemmas rall_abs = M_trivial.rall_abs [OF M_trivial_L]
   and rex_abs = M_trivial.rex_abs [OF M_trivial_L]
   and ball_iff_equiv = M_trivial.ball_iff_equiv [OF M_trivial_L]
@@ -182,7 +186,7 @@ declare omega_abs [simp]
 declare number1_abs [simp]
 declare number2_abs [simp]
 declare number3_abs [simp]
-
+*)
 
 subsection{*Instantiation of the locale @{text reflection}*}
 

@@ -70,6 +70,7 @@ sig
   val net_biresolve_tac : (bool*thm) list -> int -> tactic
   val net_match_tac     : thm list -> int -> tactic
   val net_resolve_tac   : thm list -> int -> tactic
+  val norm_hhf_plain    : thm -> thm
   val norm_hhf_rule     : thm -> thm
   val norm_hhf_tac      : int -> tactic
   val prune_params_tac  : tactic
@@ -532,9 +533,12 @@ fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
+fun norm_hhf_plain th =
+  if Drule.is_norm_hhf (prop_of th) then th
+  else rewrite_rule [Drule.norm_hhf_eq] th;
+
 fun norm_hhf_rule th =
- (if Drule.is_norm_hhf (prop_of th) then th
-  else rewrite_rule [Drule.norm_hhf_eq] th) |> Drule.gen_all;
+  th |> norm_hhf_plain |> Drule.gen_all;
 
 val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)

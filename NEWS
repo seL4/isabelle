@@ -222,6 +222,16 @@ New in this Isabelle release
   - Fixed parameter management in theorem generation for goals with "includes".
     INCOMPATIBILITY: rarely, the generated theorem statement is different.
 
+* Locales:  new commands for the interpretation of locale expressions
+  in theories (interpretation) and proof contexts (interpret).  These take an
+  instantiation of the locale parameters and compute proof obligations from
+  the instantiated specification.  After the obligations have been discharged,
+  the instantiated theorems of the locale are added to the theory or proof
+  context.  Interpretation is smart in that already active interpretations
+  do not occur in proof obligations, neither are instantiated theorems stored
+  in duplicate.
+  Use print_interps to inspect active interpretations of a particular locale.
+
 * New syntax
 
     <theorem_name> (<index>, ..., <index>-<index>, ...)
