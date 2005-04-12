@@ -67,8 +67,6 @@ val disj_FalseD2 = thm "meson_disj_FalseD2";
 fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
   | tryres (th, []) = raise THM("tryres", 0, [th]);
 
-val prop_of = #prop o rep_thm;
-
 (*Permits forward proof from rules that discharge assumptions*)
 fun forward_res nf st =
   case Seq.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)

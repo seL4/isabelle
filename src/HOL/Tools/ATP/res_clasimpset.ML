@@ -109,8 +109,8 @@ fun write_out_clasimp filename = let
                                    (****************************************)
                                    (* add claset rules to array and write out as strings *)
                                    (****************************************)
-                                   val claset_rules =claset_rules_of_thy Main.thy
-                                   val claset = clausify_classical_rules_thy Main.thy
+                                   val claset_rules = ResAxioms.claset_rules_of_thy (the_context())
+                                   val claset = ResAxioms.clausify_classical_rules_thy (the_context())
                                    val (claset_clauses,badthms) =  claset;
                                    val clausifiable_rules = remove_all badthms claset_rules;
                                    val named_claset = List.filter has_name clausifiable_rules;
@@ -124,7 +124,7 @@ fun write_out_clasimp filename = let
 
                                    val names_rules = zip good_names name_fol_cs;
                                    
-                                   val new_clasrls = (fst(clausify_classical_rules name_fol_cs[]));
+                                   val new_clasrls = (fst(ResAxioms.clausify_classical_rules name_fol_cs[]));
 
                                    val claset_tptp_strs = map ( map ResClause.tptp_clause) new_clasrls;
 
@@ -161,13 +161,13 @@ fun write_out_clasimp filename = let
                                   (*********************)
                                   (* Get simpset rules *)
                                   (*********************)
-                                  val (simpset_name_rules) =simpset_rules_of_thy Main.thy;
+                                  val (simpset_name_rules) =simpset_rules_of_thy (the_context());
                                   val named_simps = List.filter has_name_pair simpset_name_rules;
 
                                   val simp_names = map fst named_simps;
                                   val simp_rules = map snd named_simps;
                               
-                                  val (simpset_cls,badthms) = clausify_simpset_rules simp_rules [];
+                                  val (simpset_cls,badthms) = ResAxioms.clausify_simpset_rules simp_rules [];
                                  (* 1137 clausif simps *)
                                   val clausifiable_simps = remove_all_simps badthms named_simps;
                                    
@@ -179,7 +179,7 @@ fun write_out_clasimp filename = let
                                     (* need to get names of claset_cluases so we can make sure we've*)
                                     (* got the same ones (ie. the named ones ) as the claset rules *)
                                     (* length 1374*)
-                                    val new_simps = fst(clausify_simpset_rules simp_rules []);
+                                    val new_simps = fst(ResAxioms.clausify_simpset_rules simp_rules []);
                                     val simpset_tptp_strs = map (map ResClause.tptp_clause) new_simps;
 
                                     val stick_strs = map stick simpset_tptp_strs;

@@ -29,7 +29,6 @@ end;
 
 structure CodegenData = TheoryDataFun(CodegenArgs);
 
-val prop_of = #prop o rep_thm;
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
 val lhs_of = fst o dest_eqn o prop_of;
 val const_of = dest_Const o head_of o fst o dest_eqn;

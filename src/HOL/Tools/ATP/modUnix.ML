@@ -8,33 +8,7 @@ datatype exit_status = datatype Posix.Process.exit_status
 
 val fromStatus = Posix.Process.fromStatus
 
-
-
-(* Internal function - inverse of Posix.Process.fromStatus. *)
-local
-	val doCall = RunCall.run_call2 RuntimeCalls.POLY_SYS_os_specific
-	in
-		fun toStatus W_EXITED: OS.Process.status = doCall(16, (1, 0))
-		 |  toStatus(W_EXITSTATUS w) = doCall(16, (1, Word8.toInt w))
-		 |  toStatus(W_SIGNALED s) =
-		 	doCall(16, (2, SysWord.toInt(Posix.Signal.toWord s)))
-		 |  toStatus(W_STOPPED s) = 
-		 	doCall(16, (3, SysWord.toInt(Posix.Signal.toWord s)))
-	end
-
-(*	fun reap{pid, infd, outfd} =
-	let
-		val u = Posix.IO.close infd;
-		val u = Posix.IO.close outfd;
-		val (_, status) =
-			Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
-	in
-		toStatus status
-	end
-
-*)
-
-	fun reap(pid, instr, outstr) =
+fun reap(pid, instr, outstr) =
 	let
 		val u = TextIO.closeIn instr;
 	        val u = TextIO.closeOut outstr;
@@ -42,14 +16,14 @@ local
 		val (_, status) =
 			Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
 	in
-		toStatus status
+		status
 	end
 
 fun fdReader (name : string, fd : Posix.IO.file_desc) =
-	  Posix.IO.mkReader {initBlkMode = true,name = name,fd = fd };
+	  Posix.IO.mkTextReader {initBlkMode = true,name = name,fd = fd };
 
 fun fdWriter (name, fd) =
-          Posix.IO.mkWriter {
+          Posix.IO.mkTextWriter {
 	      appendMode = false,
               initBlkMode = true,
               name = name,  

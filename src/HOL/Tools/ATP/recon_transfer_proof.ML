@@ -149,19 +149,14 @@ fun add_if_not_inlist [] xs newlist = newlist
                                       add_if_not_inlist ys xs (y::newlist)
                                         else add_if_not_inlist ys xs (newlist)
 
-fun onestr [] str = str
-|   onestr (x::xs) str = onestr xs (str^(concat x))
+(*Flattens a list of list of strings to one string*)
+fun onestr ls = String.concat (map String.concat ls);
 
 fun thmstrings [] str = str
 |   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
 
 fun onelist [] newlist = newlist
 |   onelist (x::xs) newlist = onelist xs (newlist@x)
-
-
-
-val prop_of = #prop o rep_thm;
-
 
 
  fun get_axioms_used proof_steps thmstring = let 
@@ -194,11 +189,11 @@ val prop_of = #prop o rep_thm;
                                            
                                             val metas_and_strs = zip  metas meta_strs
                                              val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_clauses")));                                                                       
-                                             val _ = TextIO.output (outfile, (onestr ax_strs ""))
+                                             val _ = TextIO.output (outfile, onestr ax_strs)
                                              
                                              val _ =  TextIO.closeOut outfile
                                              val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metastrs")));                                                                       
-                                             val _ = TextIO.output (outfile, (onestr meta_strs ""))
+                                             val _ = TextIO.output (outfile, onestr meta_strs)
                                              val _ =  TextIO.closeOut outfile
 
                                             (* get list of axioms as thms with their variables *)

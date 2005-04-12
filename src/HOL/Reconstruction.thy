@@ -25,6 +25,7 @@ theory Reconstruction
 	  "Tools/ATP/modUnix.ML"
 	  "Tools/ATP/watcher.sig"
 	  "Tools/ATP/watcher.ML"
+	  "Tools/ATP/res_clasimpset.ML"
 	  "Tools/res_atp.ML"
 
           "Tools/reconstruction.ML"

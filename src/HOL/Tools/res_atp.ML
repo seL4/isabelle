@@ -309,7 +309,7 @@ fun isar_atp' (thms, thm) =
         val thmstring = string_of_thm thm
         val prems_string = concat_with_and (map (Sign.string_of_term sign) prems) ""
         (* set up variables for writing out the clasimps to a tptp file *)
-        (* val _ = write_out_clasimp (File.sysify_path axiom_file)*)
+        val _ = write_out_clasimp (File.sysify_path axiom_file)
         (* cq: add write out clasimps to file *)
         (* cq:create watcher and pass to isar_atp_aux *)                    
         val (childin,childout,pid) = Watcher.createWatcher()
