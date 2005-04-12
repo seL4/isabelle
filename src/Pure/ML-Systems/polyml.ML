@@ -165,3 +165,17 @@ ML{*profiling 0*}
 
 val profiling: int->unit =
      RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler;
+
+structure OriginalPosix = Posix;
+structure OriginalIO = Posix.IO;
+
+structure Posix =
+struct
+  open OriginalPosix
+  structure IO =
+  struct
+  open OriginalIO
+  val mkTextReader = mkReader 
+  val mkTextWriter = mkWriter 
+  end;
+end;
