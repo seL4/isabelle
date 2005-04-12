@@ -27,4 +27,8 @@ For Isabelle2005:
 
 - ball, bex and setsum congruence rules (Tobias & Stefan)
 
+- html generation: somtimes lemma names and whole lemmas are missing.
+  See http://afp.sourceforge.net/browser_info/current/HOL/HOL-Complex/Integration/SetsumThms.html
+  (Markus?)
+
 - remove this file (Tobias)
