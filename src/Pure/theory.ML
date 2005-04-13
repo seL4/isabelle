@@ -572,3 +572,4 @@ end;
 
 structure BasicTheory: BASIC_THEORY = Theory;
 open BasicTheory;
+
