@@ -825,3 +825,4 @@ end;
 
 structure BasicMethod: BASIC_METHOD = Method;
 open BasicMethod;
+
