@@ -239,3 +239,4 @@ XSYMBOL_HOME=$(choosefrom \
 
 # Jerusat 1.3 (SAT Solver)
 #JERUSAT_HOME=/usr/local/bin
+
