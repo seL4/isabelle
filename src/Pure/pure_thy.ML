@@ -629,3 +629,4 @@ end;
 
 structure BasicPureThy: BASIC_PURE_THY = PureThy;
 open BasicPureThy;
+
