@@ -916,3 +916,4 @@ val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 end;
 
 end;
+

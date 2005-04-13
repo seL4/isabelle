@@ -232,3 +232,4 @@ end;
 
 val exhaust_tac = DatatypeTactics.exhaust_tac;
 val induct_tac  = DatatypeTactics.induct_tac;
+

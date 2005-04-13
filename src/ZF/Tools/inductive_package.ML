@@ -622,3 +622,4 @@ val _ = OuterSyntax.add_parsers [inductiveP];
 end;
 
 end;
+

@@ -83,3 +83,4 @@ val add_constdefs_i = gen_constdefs ProofContext.cert_vars_liberal
   ProofContext.cert_typ ProofContext.cert_term (K I);
 
 end;
+
