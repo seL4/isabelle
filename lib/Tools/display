@@ -79,3 +79,4 @@ if [ -n "$CLEAN" ]; then
 else
   exec $VIEWER "$FILE"
 fi
+
