@@ -161,6 +161,27 @@ New in this Isabelle release
   in duplicate.
   Use print_interps to inspect active interpretations of a particular locale.
 
+* Locales: proper static binding of attribute syntax -- i.e. types /
+  terms / facts mentioned as arguments are always those of the locale
+  definition context, independently of the context of later
+  invocations.  Moreover, locale operations (renaming and type / term
+  instantiation) are applied to attribute arguments as expected.
+
+  INCOMPATIBILITY of the ML interface: always pass Attrib.src instead
+  of actual attributes; rare situations may require Attrib.attribute
+  to embed those attributes into Attrib.src that lack concrete syntax.
+
+  Attribute implementations need to cooperate properly with the static
+  binding mechanism.  Basic parsers Args.XXX_typ/term/prop and
+  Attrib.XXX_thm etc. already do the right thing without further
+  intervention.  Only unusual applications -- such as "where" or "of"
+  (cf. src/Pure/Isar/attrib.ML), which process arguments depending
+  both on the context and the facts involved -- may have to assign
+  parsed values to argument tokens explicitly.
+
+* Attributes 'induct' and 'cases': type or set names may now be
+  locally fixed variables as well.
+
 * Isar: new syntax 'name(i-j, i-, i, ...)' for referring to specific
   selections of theorems in named facts via indices.
 
@@ -2985,4 +3006,3 @@ types;
 
 
 $Id$
-
