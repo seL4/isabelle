@@ -480,3 +480,4 @@ val setup = [Attrib.add_attributes [("ind_realizer",
   "add realizers for inductive set")]];
 
 end;
+
