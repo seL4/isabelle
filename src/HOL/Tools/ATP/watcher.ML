@@ -19,26 +19,11 @@ use "SpassCommunication";
 use "modUnix";*)
 (*use "/homes/clq20/Jia_Code/TransStartIsar";*)
 
-use "~~/src/HOL/Tools/ATP/VampireCommunication.ML";
-use "~~/src/HOL/Tools/ATP/SpassCommunication.ML";
-
-
-use "~~/src/HOL/Tools/ATP/modUnix.ML";
-
 
 structure Watcher: WATCHER =
   struct
 
-fun fst (a,b) = a;
-fun snd (a,b) = b;
-
 val goals_being_watched = ref 0;
-
-fun remove y [] = []
-|   remove y (x::xs) = (if y = x 
-                       then 
-                           remove y xs 
-                       else ((x::(remove y  xs))))
 
 
 
@@ -230,7 +215,7 @@ fun getCmds (toParentStr,fromParentStr, cmdList) =
 
 fun getInIoDesc someInstr = 
     let val (rd, buf) = TextIO.StreamIO.getReader(TextIO.getInstream someInstr)
-        val _ = print (TextIO.stdOut, buf)
+        val _ = TextIO.output (TextIO.stdOut, buf)
         val ioDesc = 
 	    case rd
 	      of TextPrimIO.RD{ioDesc = SOME iod, ...} =>SOME iod
@@ -584,7 +569,7 @@ fun createWatcher () = let val mychild = childInfo (setupWatcher())
                            val childout = snd streams
                            val childpid = fst mychild
                            
-                           fun vampire_proofHandler (n:int) =
+                           fun vampire_proofHandler (n) =
                            (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
                            getVampInput childin; Pretty.writeln(Pretty.str  (oct_char "361"));() )                   
                           
@@ -636,7 +621,7 @@ fun spass_proofHandler (n:int) = (
                                                       end )
 *)
 
-fun spass_proofHandler (n:int) = (
+fun spass_proofHandler (n) = (
                                  let  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal1")));
                                       val _ = TextIO.output (outfile, ("In signal handler now\n"))
                                       val _ =  TextIO.closeOut outfile
@@ -715,8 +700,8 @@ fun spass_proofHandler (n:int) = (
 
                         
                        in 
-                          Signal.signal (Posix.Signal.usr1, Signal.SIG_HANDLE vampire_proofHandler);
-                          Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE spass_proofHandler);
+                          IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
+                          IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE spass_proofHandler);
                           (childin, childout, childpid)
 
                        end

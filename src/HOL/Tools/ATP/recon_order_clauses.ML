@@ -1,14 +1,9 @@
-
-
 (*----------------------------------------------*)
 (* Reorder clauses for use in binary resolution *)
 (*----------------------------------------------*)
 
 fun drop n [] = []
 |   drop n (x::xs) = (if n = 0 then (x::xs) else drop (n-1) xs)
-
-fun remove n [] = []
-|   remove n (x::xs) = List.filter (not_equal n) (x::xs);
 
 fun remove_nth n [] = []
 |   remove_nth n xs = (List.take (xs, n-1)) @ (List.drop (xs, n))
