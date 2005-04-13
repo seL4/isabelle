@@ -14,9 +14,7 @@ sig
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
-  val $$$ : string -> token list -> string * token list
-  val semicolon: token list -> string * token list
-  val underscore: token list -> string * token list
+  val not_eof: token list -> token * token list
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
   val command: token list -> string * token list
   val keyword: token list -> string * token list
@@ -31,7 +29,10 @@ sig
   val verbatim: token list -> string * token list
   val sync: token list -> string * token list
   val eof: token list -> string * token list
-  val not_eof: token list -> token * token list
+  val $$$ : string -> token list -> string * token list
+  val semicolon: token list -> string * token list
+  val underscore: token list -> string * token list
+  val maybe: (token list -> 'a * token list) -> token list -> 'a option * token list
   val opt_unit: token list -> unit * token list
   val opt_keyword: string -> token list -> bool * token list
   val nat: token list -> int * token list
@@ -45,7 +46,6 @@ sig
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
   val path: token list -> Path.T * token list
-  val uname: token list -> string option * token list
   val sort: token list -> string * token list
   val arity: token list -> (string list * string) * token list
   val type_args: token list -> string list * token list
@@ -61,19 +61,19 @@ sig
   val propp: token list -> (string * (string list * string list)) * token list
   val termp: token list -> (string * string list) * token list
   val arguments: token list -> Args.T list * token list
-  val attribs: token list -> Args.src list * token list
-  val opt_attribs: token list -> Args.src list * token list
-  val thm_name: string -> token list -> (bstring * Args.src list) * token list
-  val opt_thm_name: string -> token list -> (bstring * Args.src list) * token list
-  val spec_name: token list -> ((bstring * string) * Args.src list) * token list
-  val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
-  val xthm: token list -> (thmref * Args.src list) * token list
-  val xthms1: token list -> (thmref * Args.src list) list * token list
+  val attribs: token list -> Attrib.src list * token list
+  val opt_attribs: token list -> Attrib.src list * token list
+  val thm_name: string -> token list -> (bstring * Attrib.src list) * token list
+  val opt_thm_name: string -> token list -> (bstring * Attrib.src list) * token list
+  val spec_name: token list -> ((bstring * string) * Attrib.src list) * token list
+  val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
+  val xthm: token list -> (thmref * Attrib.src list) * token list
+  val xthms1: token list -> (thmref * Attrib.src list) list * token list
   val locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
-  val locale_element: token list -> Args.src Locale.element * token list
-  val locale_elem_or_expr: token list -> Args.src Locale.element Locale.elem_expr * token list
+  val locale_element: token list -> Locale.element * token list
+  val locale_elem_or_expr: token list -> Locale.element Locale.elem_expr * token list
   val method: token list -> Method.text * token list
 end;
 
@@ -122,8 +122,9 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 
 (* tokens *)
 
-fun position scan =
-  (Scan.ahead (Scan.one T.not_eof) >> T.position_of) -- scan >> Library.swap;
+val not_eof = Scan.one T.not_eof;
+
+fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
 
 fun kind k =
   group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
@@ -148,12 +149,11 @@ fun $$$ x =
 
 val semicolon = $$$ ";";
 
-val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
 val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
+val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
+fun maybe scan = underscore >> K NONE || scan >> SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
-
-val not_eof = Scan.one T.not_eof;
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 
@@ -178,8 +178,6 @@ val name = group "name declaration" (short_ident || sym_ident || string || numbe
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.unpack;
-
-val uname = underscore >> K NONE || name >> SOME;
 
 
 (* sorts and arities *)
@@ -265,13 +263,13 @@ val keyword_sid = keyword_symid T.is_sid;
 fun atom_arg is_symid blk =
   group "argument"
     (position (short_ident || long_ident || sym_ident || term_var ||
-        type_ident || type_var || number) >> Args.ident ||
-      position (keyword_symid is_symid) >> Args.keyword ||
-      position (string || verbatim) >> Args.string ||
-      position (if blk then $$$ "," else Scan.fail) >> Args.keyword);
+        type_ident || type_var || number) >> Args.mk_ident ||
+      position (keyword_symid is_symid) >> Args.mk_keyword ||
+      position (string || verbatim) >> Args.mk_string ||
+      position (if blk then $$$ "," else Scan.fail) >> Args.mk_keyword);
 
 fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
-  >> (fn (x, (ys, z)) => Args.keyword x :: ys @ [Args.keyword z]);
+  >> (fn (x, (ys, z)) => Args.mk_keyword x :: ys @ [Args.mk_keyword z]);
 
 fun args is_symid blk x = Scan.optional (args1 is_symid blk) [] x
 and args1 is_symid blk x =
@@ -297,8 +295,9 @@ val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 
 val thm_sel = $$$ "(" |-- list1
-  (   nat --| minus -- nat >> op upto
-   || nat >> single) --| $$$ ")" >> List.concat;
+ (nat --| minus -- nat >> PureThy.FromTo ||
+  nat --| minus >> PureThy.From ||
+  nat >> PureThy.Single) --| $$$ ")";
 
 val xthm = xname -- Scan.option thm_sel -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
@@ -325,7 +324,7 @@ fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
 
 fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
-and expr1 x = (expr2 -- Scan.repeat1 uname >> Locale.Rename || expr2) x
+and expr1 x = (expr2 -- Scan.repeat1 (maybe name) >> Locale.Rename || expr2) x
 and expr0 x = (plus1 expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
 
 in

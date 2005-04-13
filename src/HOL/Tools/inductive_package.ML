@@ -44,14 +44,14 @@ sig
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: ((bstring * Args.src list) * string list) list -> theory -> theory
+  val inductive_cases: ((bstring * Attrib.src list) * string list) list -> theory -> theory
   val inductive_cases_i: ((bstring * theory attribute list) * term list) list -> theory -> theory
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     ((bstring * term) * theory attribute list) list -> thm list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val add_inductive: bool -> bool -> string list ->
-    ((bstring * string) * Args.src list) list -> (thmref * Args.src list) list ->
+    ((bstring * string) * Attrib.src list) list -> (thmref * Attrib.src list) list ->
     theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}

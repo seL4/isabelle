@@ -11,7 +11,7 @@ sig
   val print_axclasses: theory -> unit
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
-  val add_axclass: bclass * xclass list -> ((bstring * string) * Args.src list) list
+  val add_axclass: bclass * xclass list -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * {intro: thm, axioms: thm list}
   val add_axclass_i: bclass * class list -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * {intro: thm, axioms: thm list}

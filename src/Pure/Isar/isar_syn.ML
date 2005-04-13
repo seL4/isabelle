@@ -310,24 +310,22 @@ val localeP =
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
-val uterm = P.underscore >> K NONE || P.term >> SOME;
-
 val view_val =
-  Scan.optional (P.$$$ "[" |-- Scan.repeat1 uterm --| P.$$$ "]") [];
+  Scan.optional (P.$$$ "[" |-- Scan.repeat1 (P.maybe P.term) --| P.$$$ "]") [];
 
 val interpretationP =
   OuterSyntax.command "interpretation"
-  "prove and register interpretation of locale expression in theory" K.thy_goal
-  ((P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
-     >> IsarThy.register_globally)
-   >> (Toplevel.print oo Toplevel.theory_to_proof));
+    "prove and register interpretation of locale expression in theory" K.thy_goal
+    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
+      >> ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_globally));
 
 val interpretP =
   OuterSyntax.command "interpret"
-    "prove and register interpretation of locale expression in context"
-    K.prf_goal
-    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val >>
-      ((Toplevel.print oo Toplevel.proof) o IsarThy.register_locally));
+    "prove and register interpretation of locale expression in context" K.prf_goal
+    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
+      >> ((Toplevel.print oo Toplevel.proof) o IsarThy.register_locally));
+
+
 
 (** proof commands **)
 
@@ -427,7 +425,7 @@ val letP =
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.let_bind)));
 
 val case_spec =
-  (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 P.uname --| P.$$$ ")") ||
+  (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.maybe P.name) --| P.$$$ ")") ||
     P.xname >> rpair []) -- P.opt_attribs >> P.triple1;
 
 val caseP =

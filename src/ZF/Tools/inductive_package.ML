@@ -34,9 +34,9 @@ sig
   val add_inductive_x: string list * string -> ((bstring * string) * theory attribute list) list
     -> thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((bstring * string) * Args.src list) list ->
-    (thmref * Args.src list) list * (thmref * Args.src list) list *
-    (thmref * Args.src list) list * (thmref * Args.src list) list ->
+    ((bstring * string) * Attrib.src list) list ->
+    (thmref * Attrib.src list) list * (thmref * Attrib.src list) list *
+    (thmref * Attrib.src list) list * (thmref * Attrib.src list) list ->
     theory -> theory * inductive_result
 end;
 

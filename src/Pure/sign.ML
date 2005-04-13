@@ -42,6 +42,8 @@ sig
   val is_stale: sg -> bool
   val syn_of: sg -> Syntax.syntax
   val const_type: sg -> string -> typ option
+  val declared_tyname: sg -> string -> bool
+  val declared_const: sg -> string -> bool
   val classes: sg -> class list
   val defaultS: sg -> sort
   val subsort: sg -> sort * sort -> bool
@@ -93,14 +95,14 @@ sig
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
   val certify_typ_raw: sg -> typ -> typ
-  val certify_tyname: sg -> string -> string
-  val certify_const: sg -> string -> string
   val certify_term: Pretty.pp -> sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val read_typ_raw': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
+  val read_tyname: sg -> string -> typ
+  val read_const: sg -> string -> term
   val inst_typ_tvars: sg -> (indexname * typ) list -> typ -> typ
   val inst_term_tvars: sg -> (indexname * typ) list -> term -> term
   val infer_types: Pretty.pp -> sg -> (indexname -> typ option) ->
@@ -164,7 +166,7 @@ sig
   val merge: sg * sg -> sg
   val copy: sg -> sg
   val prep_ext: sg -> sg
-  val nontriv_merge: sg * sg -> sg
+  val prep_ext_merge: sg list -> sg
 end;
 
 signature PRIVATE_SIGN =
@@ -234,6 +236,9 @@ val tsig_of = #tsig o rep_sg;
 fun is_logtype sg c = c mem_string Type.logical_types (tsig_of sg);
 fun const_type (Sg (_, {consts, ...})) c = Option.map #1 (Symtab.lookup (consts, c));
 
+fun declared_tyname sg c = isSome (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c));
+fun declared_const sg c = isSome (const_type sg c);
+
 
 (* id and self *)
 
@@ -266,22 +271,15 @@ local
   fun subset_stamp ([], ys) = true
     | subset_stamp (x :: xs, ys) =
         mem_stamp (x, ys) andalso subset_stamp (xs, ys);
-
-  (*fast partial test*)
-  fun fast_sub ([]: string ref list, _) = true
-    | fast_sub (_, []) = false
-    | fast_sub (x :: xs, y :: ys) =
-        if x = y then fast_sub (xs, ys)
-        else fast_sub (x :: xs, ys);
 in
   fun eq_sg (sg1 as Sg ({id = id1, ...}, _), sg2 as Sg ({id = id2, ...}, _)) =
     (check_stale sg1; check_stale sg2; id1 = id2);
 
   fun subsig (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
-    eq_sg (sg1, sg2) orelse subset_stamp (s1, s2);
+    eq_sg (sg1, sg2) orelse mem_stamp (hd s1, s2);
 
-  fun fast_subsig (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
-    eq_sg (sg1, sg2) orelse fast_sub (s1, s2);
+  fun subsig_internal (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
+    eq_sg (sg1, sg2) orelse subset_stamp (s1, s2);
 end;
 
 
@@ -703,14 +701,6 @@ val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
 val certify_typ_raw = Type.cert_typ_raw o tsig_of;
 
-fun certify_tyname sg c =
-  if isSome (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c)) then c
-  else raise TYPE ("Undeclared type constructor: " ^ quote c, [], []);
-
-fun certify_const sg c =
-  if isSome (const_type sg c) then c
-  else raise TYPE ("Undeclared constant: " ^ quote c, [], []);
-
 
 (* certify_term *)
 
@@ -820,6 +810,22 @@ fun certify_term pp sg tm =
   end;
 
 end;
+
+
+(* type and constant names *)
+
+fun read_tyname sg raw_c =
+  let val c = intern_tycon sg raw_c in
+    (case Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c) of
+      SOME (Type.LogicalType n, _) => Type (c, replicate n dummyT)
+    | NONE => raise TYPE ("Undeclared type constructor: " ^ quote c, [], []))
+  end;
+
+fun read_const sg raw_c =
+  let val c = intern_const sg raw_c in
+    if isSome (const_type sg c) then Const (c, dummyT)
+    else raise TYPE ("Undeclared constant: " ^ quote c, [], [])
+  end;
 
 
 
@@ -991,7 +997,7 @@ fun err_dup_consts cs =
   error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
 
 
-fun read_const sg syn tsig (path, spaces) (c, ty_src, mx) =
+fun read_cnst sg syn tsig (path, spaces) (c, ty_src, mx) =
   (c, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) ty_src, mx)
     handle ERROR => err_in_const (const_name path c mx);
 
@@ -1015,11 +1021,11 @@ fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data
   end;
 
 fun ext_consts_i x = ext_cnsts no_read false Syntax.default_mode x;
-fun ext_consts x = ext_cnsts read_const false Syntax.default_mode x;
+fun ext_consts x = ext_cnsts read_cnst false Syntax.default_mode x;
 fun ext_syntax_i x = ext_cnsts no_read true Syntax.default_mode x;
-fun ext_syntax x = ext_cnsts read_const true Syntax.default_mode x;
+fun ext_syntax x = ext_cnsts read_cnst true Syntax.default_mode x;
 fun ext_modesyntax_i x y (prmode, consts) = ext_cnsts no_read true prmode x y consts;
-fun ext_modesyntax x y (prmode, consts) = ext_cnsts read_const true prmode x y consts;
+fun ext_modesyntax x y (prmode, consts) = ext_cnsts read_cnst true prmode x y consts;
 
 
 (* add type classes *)
@@ -1198,9 +1204,7 @@ fun merge_stamps stamps1 stamps2 =
 
 fun merge_refs (sgr1 as SgRef (SOME (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
         sgr2 as SgRef (SOME (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
-      if fast_subsig (sg2, sg1) then sgr1
-      else if fast_subsig (sg1, sg2) then sgr2
-      else if subsig (sg2, sg1) then sgr1
+      if subsig (sg2, sg1) then sgr1
       else if subsig (sg1, sg2) then sgr2
       else (merge_stamps s1 s2; (*check for different versions*)
         raise TERM ("Attempt to do non-trivial merge of signatures", []))
@@ -1209,16 +1213,17 @@ fun merge_refs (sgr1 as SgRef (SOME (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
 val merge = deref o merge_refs o pairself self_ref;
 
 
-(* non-trivial merge *)              (*exception TERM/ERROR*)
+(* merge_list *)              (*exception TERM/ERROR*)
+
+local
 
 fun nontriv_merge (sg1, sg2) =
-  if subsig (sg2, sg1) then sg1
-  else if subsig (sg1, sg2) then sg2
-  else if is_draft sg1 orelse is_draft sg2 then
-    raise TERM ("Attempt to merge draft signatures", [])
-  else if exists_stamp PureN sg1 andalso exists_stamp CPureN sg2 orelse
-      exists_stamp CPureN sg1 andalso exists_stamp PureN sg2 then
-    raise TERM ("Cannot merge Pure and CPure signatures", [])
+  if subsig_internal (sg2, sg1) then sg1
+  else if subsig_internal (sg1, sg2) then sg2
+  else
+    if exists_stamp PureN sg1 andalso exists_stamp CPureN sg2 orelse
+      exists_stamp CPureN sg1 andalso exists_stamp PureN sg2
+    then error "Cannot merge Pure and CPure signatures"
   else
     let
       val Sg ({id = _, stamps = stamps1, syn = Syn (syntax1, trfuns1)},
@@ -1252,5 +1257,19 @@ fun nontriv_merge (sg1, sg2) =
       val sign = make_sign (ref "", self, tsig, consts, Syn (syntax, trfuns),
         path, spaces, data, stamps);
     in self_ref := sign; syn_of sign; sign end;
+
+in
+
+fun prep_ext_merge sgs =
+  if null sgs then
+    error "Merge: no parent theories"
+  else if exists is_draft sgs then
+    error "Attempt to merge draft theories"
+  else
+    Library.foldl nontriv_merge (hd sgs, tl sgs)
+    |> prep_ext
+    |> add_path "/";
+
+end;
 
 end;

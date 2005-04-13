@@ -90,19 +90,17 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val multi_theorem:
-    string -> (theory -> theory) ->
+  val multi_theorem: string -> (theory -> theory) ->
     (cterm list -> context -> context -> thm -> thm) ->
-    (xstring * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
-    -> bstring * theory attribute list -> Locale.multi_attribute Locale.element Locale.elem_expr list
+    (xstring * (Attrib.src list * Attrib.src list list)) option ->
+    bstring * theory attribute list -> Locale.element Locale.elem_expr list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
-  val multi_theorem_i:
-    string -> (theory -> theory)  ->
+  val multi_theorem_i: string -> (theory -> theory) ->
     (cterm list -> context -> context -> thm -> thm) ->
-    (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option
+    (string * (Attrib.src list * Attrib.src list list)) option
     -> bstring * theory attribute list
-    -> Locale.multi_attribute Locale.element_i Locale.elem_expr list
+    -> Locale.element_i Locale.elem_expr list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> theory -> state
   val chain: state -> state
@@ -119,12 +117,6 @@ sig
   val have_i: (state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
-  val interpret: (context -> context) -> (state -> state Seq.seq) -> bool
-    -> ((string * context attribute list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val interpret_i: (context -> context) -> (state -> state Seq.seq) -> bool
-    -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq)
     -> (context -> string * (string * thm list) list -> unit) * (context -> thm -> unit)
@@ -136,8 +128,6 @@ sig
   val next_block: state -> state
   val thisN: string
   val call_atp: bool ref;
-
-
 end;
 
 structure Proof: PROOF =
@@ -153,33 +143,15 @@ type context = ProofContext.context;
 
 (* type goal *)
 
-(* CB: four kinds of Isar goals are distinguished:
-   - Theorem: global goal in a theory, corresponds to Isar commands theorem,
-     lemma and corollary,
-   - Have: local goal in a proof, Isar command have
-   - Show: local goal in a proof, Isar command show
-   - Interpret: local goal in a proof, Isar command interpret
-*)
-
 datatype kind =
   Theorem of {kind: string,
     theory_spec: (bstring * theory attribute list) * theory attribute list list,
-    locale_spec: (string * (Locale.multi_attribute list * Locale.multi_attribute list list)) option,
-    view: cterm list * cterm list, (* target view and includes view *)
-    thy_mod: theory -> theory,     (* used in finish_global to modify final
-                                      theory, normally set to I; used by
-                                      registration command to activate
-                                      registrations *)
-    export: cterm list -> context -> context -> thm -> thm } |
+    locale_spec: (string * (Attrib.src list * Attrib.src list list)) option,
+    view: cterm list * cterm list,  (* target view and includes view *)
+    export: cterm list -> context -> context -> thm -> thm} |
                                    (* exporter to be used in finish_global *)
   Show of context attribute list list |
-  Have of context attribute list list |
-  Interpret of {attss: context attribute list list,
-    ctxt_mod: context -> context}; (* used in finish_local to modify final
-                                      context *)
-
-(* CB: this function prints the goal kind (Isar command), name and target in
-   the proof state *)
+  Have of context attribute list list;
 
 fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = NONE, ...}) = s ^ (if a = "" then "" else " " ^ a)
@@ -187,8 +159,7 @@ fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = SOME (name, _), ...}) =
       s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
-  | kind_name _ (Have _) = "have"
-  | kind_name _ (Interpret _) = "interpret";
+  | kind_name _ (Have _) = "have";
 
 type goal =
  (kind *             (*result kind*)
@@ -211,11 +182,13 @@ datatype node =
    {context: context,
     facts: thm list option,
     mode: mode,
-    goal: (goal * ((state -> state Seq.seq) * bool)) option}
+    goal: (goal * (after_qed * bool)) option}
 and state =
   State of
     node *              (*current*)
-    node list;          (*parents wrt. block structure*)
+    node list           (*parents wrt. block structure*)
+and after_qed =
+  AfterQed of (state -> state Seq.seq) * (theory -> theory);
 
 fun make_node (context, facts, mode, goal) =
   Node {context = context, facts = facts, mode = mode, goal = goal};
@@ -658,7 +631,8 @@ end;
 
 (* locale instantiation *)
 
-fun instantiate_locale (loc_name, prfx_attribs) state = let
+fun instantiate_locale (loc_name, prfx_attribs) state =
+  let
     val facts = if is_chain state then get_facts state else NONE;
   in
     state
@@ -667,6 +641,7 @@ fun instantiate_locale (loc_name, prfx_attribs) state = let
     |> reset_facts
     |> map_context (Locale.instantiate loc_name prfx_attribs facts)
   end;
+
 
 (* fix *)
 
@@ -774,6 +749,9 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
     val sign' = sign_of state';
 
+    val AfterQed (after_local, after_global) = after_qed;
+    val after_qed' = AfterQed (after_local o map_context gen_binds, after_global);
+
     val props = List.concat propss;
     val cprop = Thm.cterm_of sign' (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
@@ -789,8 +767,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       commas (map (ProofContext.string_of_term (context_of state')) vars));
     state'
     |> map_context (autofix props)
-    |> put_goal (SOME (((kind, names, propss), ([], goal)),
-      (after_qed o map_context gen_binds, pr)))
+    |> put_goal (SOME (((kind, names, propss), ([], goal)), (after_qed', pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
       RuleCases.make true NONE (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
@@ -802,7 +779,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
   end;
 
 (*global goals*)
-fun global_goal prep kind thy_mod export raw_locale a elems concl thy =
+fun global_goal prep kind after_global export raw_locale a elems concl thy =
   let
     val init = init_state thy;
     val (opt_name, view, locale_ctxt, elems_ctxt, propp) =
@@ -813,16 +790,14 @@ fun global_goal prep kind thy_mod export raw_locale a elems concl thy =
     |> map_context (K locale_ctxt)
     |> open_block
     |> map_context (K elems_ctxt)
-(* CB: elems_ctxt is an extension of locale_ctxt, see prep_context_statement
-   in locale.ML, naming there: ctxt and import_ctxt. *)
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind,
         theory_spec = (a, map (snd o fst) concl),
         locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (valOf opt_name, x)),
         view = view,
-        thy_mod = thy_mod,
         export = export})
-      Seq.single true (map (fst o fst) concl) propp
+      (AfterQed (Seq.single, after_global))
+      true (map (fst o fst) concl) propp
   end;
 
 val multi_theorem = global_goal Locale.read_context_statement;
@@ -830,10 +805,10 @@ val multi_theorem_i = global_goal Locale.cert_context_statement;
 
 
 (*local goals*)
-fun local_goal' prepp kind (check: bool -> state -> state) f pr args int state =
+fun local_goal' prepp kind (check: bool -> state -> state) after_local pr args int state =
   state
   |> setup_goal open_block prepp (K I) (kind (map (snd o fst) args))
-    f pr (map (fst o fst) args) (map snd args)
+    (AfterQed (after_local, I)) pr (map (fst o fst) args) (map snd args)
   |> warn_extra_tfrees state
   |> check int;
 
@@ -843,10 +818,7 @@ val show = local_goal' ProofContext.bind_propp Show;
 val show_i = local_goal' ProofContext.bind_propp_i Show;
 val have = local_goal ProofContext.bind_propp Have;
 val have_i = local_goal ProofContext.bind_propp_i Have;
-fun interpret ctxt_mod = local_goal ProofContext.bind_propp
-  (fn attss => Interpret {attss = attss, ctxt_mod = ctxt_mod});
-fun interpret_i ctxt_mod = local_goal ProofContext.bind_propp_i
-  (fn attss => Interpret {attss = attss, ctxt_mod = ctxt_mod});
+
 
 
 (** conclusions **)
@@ -884,7 +856,8 @@ fun end_proof bot state =
 
 fun finish_local (print_result, print_rule) state =
   let
-    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (after_qed, pr))) = current_goal state;
+    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (AfterQed (after_local, _), pr))) =
+      current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
@@ -894,30 +867,21 @@ fun finish_local (print_result, print_rule) state =
       results |> map (ProofContext.export false goal_ctxt outer_ctxt)
       |> Seq.commute |> Seq.map (Library.unflat tss);
 
-    val (attss, opt_solve, ctxt_mod) =
+    val (attss, opt_solve) =
       (case kind of
         Show attss => (attss,
-          export_goals goal_ctxt (if pr then print_rule else (K (K ())))
-            results, I)
-      | Have attss => (attss, Seq.single, I)
-      | Interpret {attss, ctxt_mod} => (attss, Seq.single, ctxt_mod)
+          export_goals goal_ctxt (if pr then print_rule else (K (K ()))) results)
+      | Have attss => (attss, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
     conditional pr (fn () => print_result goal_ctxt
       (kind_name (sign_of state) kind, names ~~ Library.unflat tss results));
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
-(* original version
     |> (fn st => Seq.map (fn res =>
-      note_thmss_i ((names ~~ attss) ~~
-          map (single o Thm.no_attributes) res) st) resultq)
-*)
-    |> (fn st => Seq.map (fn res =>
-      st |> note_thmss_i ((names ~~ attss) ~~
-              map (single o Thm.no_attributes) res)
-         |> map_context ctxt_mod) resultq)
+      note_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
     |> (Seq.flat o Seq.map opt_solve)
-    |> (Seq.flat o Seq.map after_qed)
+    |> (Seq.flat o Seq.map after_local)
   end;
 
 fun local_qed finalize print state =
@@ -931,11 +895,14 @@ fun local_qed finalize print state =
 
 fun finish_global state =
   let
-    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
+    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (AfterQed (_, after_global), _))) =
+      current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
-    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view = (target_view, elems_view), thy_mod, export} =
+    val {kind = k, theory_spec = ((name, atts), attss),
+        locale_spec, view = (target_view, elems_view), export} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
+    val locale_name = Option.map fst locale_spec;
 
     val ts = List.concat tss;
     val locale_results = map (export elems_view goal_ctxt locale_ctxt)
@@ -956,12 +923,12 @@ fun finish_global state =
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
               |> (#1 o #1 o Locale.add_thmss k loc [((name, List.concat (map #2 res)), loc_atts)])))
-      |> Locale.smart_note_thmss k locale_spec
+      |> Locale.smart_note_thmss k locale_name
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
-          |>> (#1 o Locale.smart_note_thmss k locale_spec
+          |>> (#1 o Locale.smart_note_thmss k locale_name
             [((name, atts), [(List.concat (map #2 res), [])])]));
-  in (thy_mod theory', ((k, name), results')) end;
+  in (after_global theory', ((k, name), results')) end;
 
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)

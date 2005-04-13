@@ -23,19 +23,19 @@ sig
   val cong_del_local: Proof.context attribute
   val wf_add_local: Proof.context attribute
   val wf_del_local: Proof.context attribute
-  val add_recdef: bool -> xstring -> string -> ((bstring * string) * Args.src list) list ->
-    Args.src option -> theory -> theory
+  val add_recdef: bool -> xstring -> string -> ((bstring * string) * Attrib.src list) list ->
+    Attrib.src option -> theory -> theory
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * theory attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val add_recdef_old: xstring -> string -> ((bstring * string) * Args.src list) list ->
+  val add_recdef_old: xstring -> string -> ((bstring * string) * Attrib.src list) list ->
     simpset * thm list -> theory ->
     theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (thmref * Args.src list) list
+  val defer_recdef: xstring -> string list -> (thmref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
     -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Args.src list -> xstring -> int option
+  val recdef_tc: bstring * Attrib.src list -> xstring -> int option
     -> bool -> theory -> ProofHistory.T
   val recdef_tc_i: bstring * theory attribute list -> string -> int option
     -> bool -> theory -> ProofHistory.T

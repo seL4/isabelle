@@ -7,7 +7,6 @@
 
 (defconst isar-keywords-major
   '("\\."
-    "\\.\\."
     "ML"
     "ML_command"
     "ML_setup"
@@ -19,6 +18,7 @@
     "ProofGeneral\\.restart"
     "ProofGeneral\\.try_context_thy_only"
     "ProofGeneral\\.undo"
+    "\\.\\."
     "also"
     "apply"
     "apply_end"
@@ -90,6 +90,7 @@
     "method_setup"
     "moreover"
     "next"
+    "no_syntax"
     "nonterminals"
     "note"
     "obtain"
@@ -362,6 +363,7 @@
     "local"
     "locale"
     "method_setup"
+    "no_syntax"
     "nonterminals"
     "oracle"
     "parse_ast_translation"

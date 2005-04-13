@@ -24,6 +24,7 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  datatype interval = FromTo of int * int | From of int | Single of int
   val get_thm_closure: theory -> thmref -> thm
   val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
@@ -145,20 +146,42 @@ fun print_theory thy =
 
 (** retrieve theorems **)
 
-type thmref = xstring * int list option;
-
-(* selections *)
-
 fun the_thms _ (SOME thms) = thms
   | the_thms name NONE = error ("Unknown theorem(s) " ^ quote name);
 
 fun single_thm _ [thm] = thm
   | single_thm name _ = error ("Single theorem expected " ^ quote name);
 
-fun select_thm (s, NONE) xs = xs
-  | select_thm (s, SOME is) xs = map
-      (fn i => (if i < 1 then raise Subscript else List.nth (xs, i-1)) handle Subscript =>
-         error ("Bad subscript " ^ string_of_int i ^ " for " ^ quote s)) is;
+
+(* selections *)
+
+datatype interval =
+  FromTo of int * int |
+  From of int |
+  Single of int;
+
+type thmref = xstring * interval list option;
+
+local
+
+fun interval _ (FromTo (i, j)) = i upto j
+  | interval n (From i) = i upto n
+  | interval _ (Single i) = [i];
+
+fun select name thms n i =
+  if i < 1 orelse i > n then
+    error ("Bad subscript " ^ string_of_int i ^ " for " ^
+      quote name ^ " (length " ^ string_of_int n ^ ")")
+  else List.nth (thms, i - 1);
+
+in
+
+fun select_thm (_, NONE) thms = thms
+  | select_thm (name, SOME is) thms =
+      let val n = length thms
+      in map (select name thms n) (List.concat (map (interval n) is)) end;
+
+end;
 
 
 (* get_thm(s)_closure -- statically scoped versions *)
@@ -221,6 +244,7 @@ fun thms_containing thy idx =
 fun thms_containing_consts thy consts =
   thms_containing thy (consts, []) |> map #2 |> List.concat
   |> map (fn th => (Thm.name_of_thm th, th))
+
 
 (* intro/elim theorems *)
 

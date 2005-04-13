@@ -145,6 +145,9 @@ ISABELLE_LOGIC=HOL
 #Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
+#Preferred document format
+ISABELLE_DOC_FORMAT=pdf
+
 #The dvi file viewer
 DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"

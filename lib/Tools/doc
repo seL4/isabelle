@@ -40,6 +40,7 @@ if [ -z "$DOC" ]; then
   IFS=":"
   for DIR in $ISABELLE_DOCS
   do
+    [ -d "$DIR" ] || fail "Bad document directory: $DIR"
     [ -f "$DIR/Contents" ] && grep -v "^>>" "$DIR/Contents"
   done
   IFS="$ORIG_IFS"
@@ -48,7 +49,12 @@ else
   IFS=":"
   for DIR in $ISABELLE_DOCS
   do
-    [ -f "$DIR/$DOC.dvi" ] && { cd "$DIR"; IFS="$ORIG_IFS"; exec $DVI_VIEWER "$DOC.dvi"; }
+    IFS="$ORIG_IFS"
+    [ -d "$DIR" ] || fail "Bad document directory: $DIR"
+    for FMT in "$ISABELLE_DOC_FORMAT" dvi
+    do
+      [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISATOOL" display "$DOC.$FMT"; }
+    done
   done
   IFS="$ORIG_IFS"
   fail "Unknown Isabelle document: $DOC"  

@@ -11,7 +11,7 @@ signature CONSTDEFS =
 sig
   val add_constdefs: (string list * string option) list *
     ((bstring * string option * Syntax.mixfix) option *
-      ((bstring * Args.src list) * string)) list
+      ((bstring * Attrib.src list) * string)) list
     -> theory -> theory
   val add_constdefs_i: (string list * typ option) list *
     ((bstring * typ option * Syntax.mixfix) option *

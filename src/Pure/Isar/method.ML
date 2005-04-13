@@ -15,6 +15,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  type src
   val trace: Proof.context -> thm list -> unit
   val RAW_METHOD: (thm list -> tactic) -> Proof.method
   val RAW_METHOD_CASES:
@@ -48,37 +49,37 @@ sig
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
   val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
-  val method: theory -> Args.src -> Proof.context -> Proof.method
-  val add_method: bstring * (Args.src -> Proof.context -> Proof.method) * string
+  val method: theory -> src -> Proof.context -> Proof.method
+  val add_method: bstring * (src -> Proof.context -> Proof.method) * string
     -> theory -> theory
-  val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
+  val add_methods: (bstring * (src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    Args.src -> Proof.context -> Proof.context * 'a
+    src -> Proof.context -> Proof.context * 'a
   val simple_args: (Args.T list -> 'a * Args.T list)
-    -> ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val ctxt_args: (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
+    -> ('a -> Proof.context -> Proof.method) -> src -> Proof.context -> Proof.method
+  val ctxt_args: (Proof.context -> Proof.method) -> src -> Proof.context -> Proof.method
+  val no_args: Proof.method -> src -> Proof.context -> Proof.method
   type modifier
   val sectioned_args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
-    ('a -> Proof.context -> 'b) -> Args.src -> Proof.context -> 'b
+    ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
   val bang_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (thm list -> Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
+    (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
   val bang_sectioned_args':
     (Args.T list -> modifier * Args.T list) list ->
     (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    ('a -> thm list -> Proof.context -> 'b) -> Args.src -> Proof.context -> 'b
+    ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
-  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> Args.src -> Proof.context -> 'a
-  val thms_args: (thm list -> 'a) -> Args.src -> Proof.context -> 'a
-  val thm_args: (thm -> 'a) -> Args.src -> Proof.context -> 'a
+    (Proof.context -> 'a) -> src -> Proof.context -> 'a
+  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
+  val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
+  val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
   datatype text =
     Basic of (Proof.context -> Proof.method) |
-    Source of Args.src |
+    Source of src |
     Then of text list |
     Orelse of text list |
     Try of text |
@@ -107,18 +108,20 @@ sig
     theory * ((string * string) * (string * thm list) list)
   val global_done_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
-    -> Args.src -> Proof.context -> Proof.method
+    -> src -> Proof.context -> Proof.method
   val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
-    -> ('a -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
+    -> ('a -> int -> tactic) -> src -> Proof.context -> Proof.method
   val goal_args_ctxt: (Args.T list -> 'a * Args.T list) -> (Proof.context -> 'a -> int -> tactic)
-    -> Args.src -> Proof.context -> Proof.method
+    -> src -> Proof.context -> Proof.method
   val goal_args_ctxt': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
-    -> (Proof.context -> 'a -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
+    -> (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
 end;
 
 structure Method: METHOD =
 struct
+
+type src = Args.src;
 
 
 (** proof methods **)
@@ -374,7 +377,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               | some => some)
           | types' xi = types xi;
         fun internal x = isSome (types' (x, ~1));
-        val used = Term.add_term_tvarnames (Thm.prop_of st $ Thm.prop_of thm, []);
+        val used = Drule.add_used thm (Drule.add_used st []);
         val (ts, envT) =
           ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
         val cenvT = map (apsnd (Thm.ctyp_of sign)) (envT @ Tinsts_env);
@@ -505,7 +508,7 @@ struct
   val name = "Isar/methods";
   type T =
     {space: NameSpace.T,
-     meths: (((Args.src -> Proof.context -> Proof.method) * string) * stamp) Symtab.table};
+     meths: (((src -> Proof.context -> Proof.method) * string) * stamp) Symtab.table};
 
   val empty = {space = NameSpace.empty, meths = Symtab.empty};
   val copy = I;
@@ -692,7 +695,7 @@ fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
 datatype text =
   Basic of (Proof.context -> Proof.method) |
-  Source of Args.src |
+  Source of src |
   Then of text list |
   Orelse of text list |
   Try of text |

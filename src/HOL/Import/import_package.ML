@@ -5,7 +5,7 @@
 
 signature IMPORT_PACKAGE =
 sig
-    val import_meth: Args.src -> Proof.context -> Proof.method
+    val import_meth: Method.src -> Proof.context -> Proof.method
     val setup      : (theory -> theory) list
     val debug      : bool ref
 end

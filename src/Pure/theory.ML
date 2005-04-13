@@ -540,43 +540,32 @@ fun put_data kind f = ext_sign (Sign.put_data kind f);
 
 (** merge theories **)          (*exception ERROR*)
 
-fun merge_sign (sg, thy) =
-  Sign.nontriv_merge (sg, sign_of thy) handle TERM (msg, _) => error msg;
-
 (*merge list of theories from left to right, preparing extend*)
 fun prep_ext_merge thys =
-  if null thys then
-    error "Merge: no parent theories"
-  else if exists is_draft thys then
-    error "Attempt to merge draft theories"
-  else
-    let
-      val sign' =
-        Library.foldl merge_sign (sign_of (hd thys), tl thys)
-        |> Sign.prep_ext
-        |> Sign.add_path "/";
+  let
+    val sign' = Sign.prep_ext_merge (map sign_of thys)
 
-      val depss = map (#const_deps o rep_theory) thys;
-      val deps' = Library.foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
-        handle Graph.CYCLES namess => error (cycle_msg namess);
+    val depss = map (#const_deps o rep_theory) thys;
+    val deps' = Library.foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
+      handle Graph.CYCLES namess => error (cycle_msg namess);
 
-      val final_constss = map (#final_consts o rep_theory) thys;
-      val final_consts' = Library.foldl (Symtab.join (merge_final sign')) (hd final_constss,
-								   tl final_constss);
-      val axioms' = Symtab.empty;
+    val final_constss = map (#final_consts o rep_theory) thys;
+    val final_consts' =
+      Library.foldl (Symtab.join (merge_final sign')) (hd final_constss, tl final_constss);
+    val axioms' = Symtab.empty;
 
-      fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
-      val oracles' =
-        Symtab.make (gen_distinct eq_ora
-          (List.concat (map (Symtab.dest o #oracles o rep_theory) thys)))
-        handle Symtab.DUPS names => err_dup_oras names;
+    fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
+    val oracles' =
+      Symtab.make (gen_distinct eq_ora
+        (List.concat (map (Symtab.dest o #oracles o rep_theory) thys)))
+      handle Symtab.DUPS names => err_dup_oras names;
 
-      val parents' = gen_distinct eq_thy thys;
-      val ancestors' =
-        gen_distinct eq_thy (parents' @ List.concat (map ancestors_of thys));
-    in
-      make_theory sign' deps' final_consts' axioms' oracles' parents' ancestors'
-    end;
+    val parents' = gen_distinct eq_thy thys;
+    val ancestors' =
+      gen_distinct eq_thy (parents' @ List.concat (map ancestors_of thys));
+  in
+    make_theory sign' deps' final_consts' axioms' oracles' parents' ancestors'
+  end;
 
 
 end;

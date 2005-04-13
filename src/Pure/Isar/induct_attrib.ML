@@ -204,25 +204,22 @@ val setN = "set";
 
 local
 
-fun spec k cert =
-  (Args.$$$ k -- Args.colon) |-- Args.!!! (Args.name >> cert) ||
-  Args.$$$ k >> K "";
+fun spec k arg =
+  Scan.lift (Args.$$$ k -- Args.colon) |-- arg ||
+  Scan.lift (Args.$$$ k) >> K "";
 
-fun attrib sign_of add_type add_set = Scan.depend (fn x =>
-  let val sg = sign_of x in
-    spec typeN (Sign.certify_tyname sg o Sign.intern_tycon sg) >> add_type ||
-    spec setN (Sign.certify_const sg o Sign.intern_const sg) >> add_set
-  end >> pair x);
+fun attrib tyname const add_type add_set =
+  Attrib.syntax (spec typeN tyname >> add_type || spec setN const >> add_set);
 
 in
 
 val cases_attr =
-  (Attrib.syntax (attrib Theory.sign_of cases_type_global cases_set_global),
-   Attrib.syntax (attrib ProofContext.sign_of cases_type_local cases_set_local));
+ (attrib Args.global_tyname Args.global_const cases_type_global cases_set_global,
+  attrib Args.local_tyname Args.local_const cases_type_local cases_set_local);
 
 val induct_attr =
-  (Attrib.syntax (attrib Theory.sign_of induct_type_global induct_set_global),
-   Attrib.syntax (attrib ProofContext.sign_of induct_type_local induct_set_local));
+ (attrib Args.global_tyname Args.global_const induct_type_global induct_set_global,
+  attrib Args.local_tyname Args.local_const induct_type_local induct_set_local);
 
 end;
 

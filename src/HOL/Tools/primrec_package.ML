@@ -8,7 +8,7 @@ Package for defining functions on datatypes by primitive recursion.
 signature PRIMREC_PACKAGE =
 sig
   val quiet_mode: bool ref
-  val add_primrec: string -> ((bstring * string) * Args.src list) list
+  val add_primrec: string -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * thm list
   val add_primrec_i: string -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * thm list

@@ -466,13 +466,14 @@ fun rlz_attrib arg (thy, thm) =
   in 
     (add_ind_realizers (hd sets) (case arg of
         NONE => sets | SOME NONE => []
-      | SOME (SOME sets') => sets \\ map (Sign.intern_const (sign_of thy)) sets')
+      | SOME (SOME sets') => sets \\ sets')
       thy, thm)
   end;
 
-val rlz_attrib_global = Attrib.syntax (Scan.lift
-  (Scan.option (Args.$$$ "irrelevant" |--
-    Scan.option (Args.colon |-- Scan.repeat1 Args.name))) >> rlz_attrib);
+val rlz_attrib_global = Attrib.syntax
+ ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
+    Scan.option (Scan.lift (Args.colon) |--
+      Scan.repeat1 Args.global_const))) >> rlz_attrib);
 
 val setup = [Attrib.add_attributes [("ind_realizer",
   (rlz_attrib_global, K Attrib.undef_local_attribute),

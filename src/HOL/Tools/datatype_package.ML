@@ -51,8 +51,8 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val rep_datatype : string list option -> (thmref * Args.src list) list list ->
-    (thmref * Args.src list) list list -> thmref * Args.src list -> theory -> theory *
+  val rep_datatype : string list option -> (thmref * Attrib.src list) list list ->
+    (thmref * Attrib.src list) list list -> thmref * Attrib.src list -> theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -244,7 +244,8 @@ local
 val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.$$$ ":");
 val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
 
-val varss = Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift Args.name_dummy)));
+val varss =
+  Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));
 
 val inst_tac = Method.bires_inst_tac false;
 

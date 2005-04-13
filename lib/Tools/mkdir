@@ -137,7 +137,7 @@ else
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
     echo
-    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d pdf  ## -D generated"
+    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d $ISABELLE_DOC_FORMAT  ## -D generated"
     echo
     echo
     echo "## $NAME"

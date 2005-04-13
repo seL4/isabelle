@@ -47,7 +47,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: Locale.expr * Args.src Locale.element list
+  val print_locale: Locale.expr * Locale.element list
     -> Toplevel.transition -> Toplevel.transition
   val print_registrations: string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
@@ -58,14 +58,14 @@ sig
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val print_thms_containing: int option * string list
     -> Toplevel.transition -> Toplevel.transition
-  val thm_deps: (thmref * Args.src list) list -> Toplevel.transition -> Toplevel.transition
+  val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_intros: Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (thmref * Args.src list) list
+  val print_thms: string list * (thmref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> string list * (thmref * Args.src list) list option
+  val print_prfs: bool -> string list * (thmref * Attrib.src list) list option
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
@@ -187,7 +187,7 @@ fun update_thy_only name =
 (* present draft files *)
 
 fun display_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts "pdf" files)
+  let val outfile = File.quote_sysify_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
   in system ("\"$ISATOOL\" display -c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
@@ -218,9 +218,7 @@ val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
 
 fun print_locale (import, body) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let val thy = Toplevel.theory_of state in
-    Locale.print_locale thy import (map (Locale.map_attrib_element (Attrib.multi_attribute thy)) body)
-  end);
+  Locale.print_locale (Toplevel.theory_of state) import body);
 
 fun print_registrations name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case (Locale.print_global_registrations name)

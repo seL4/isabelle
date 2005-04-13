@@ -13,11 +13,11 @@ use "proof_context.ML";
 use "proof_data.ML";
 use "delta_data.ML"; (*for delta_{claset,simpset}, part of SPASS interface*)
 use "context_rules.ML";
+use "args.ML";
+use "attrib.ML";
 use "locale.ML";
 use "proof.ML";
 use "proof_history.ML";
-use "args.ML";
-use "attrib.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 use "method.ML";
@@ -54,13 +54,16 @@ structure PureIsar =
 struct
   structure ObjectLogic = ObjectLogic;
   structure AutoBind = AutoBind;
+  structure RuleCases = RuleCases;
   structure ProofContext = ProofContext;
+  structure ContextRules = ContextRules;
+  structure Args = Args;
+  structure Attrib = Attrib;
   structure Locale = Locale;
   structure Proof = Proof;
   structure ProofHistory = ProofHistory;
-  structure Args = Args;
-  structure Attrib = Attrib;
-  structure ContextRules = ContextRules;
+  structure NetRules = NetRules;
+  structure InductAttrib = InductAttrib;
   structure Method = Method;
   structure Calculation = Calculation;
   structure Obtain = Obtain;

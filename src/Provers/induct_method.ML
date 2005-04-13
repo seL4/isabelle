@@ -326,20 +326,14 @@ val ofN = "of";
 
 local
 
-fun check k get name =
-  (case get name of SOME x => x
-  | NONE => error ("No rule for " ^ k ^ " " ^ quote name));
-
-fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
+fun named_rule k arg get =
+  Scan.lift (Args.$$$ k -- Args.colon) |-- arg :-- (fn name => Scan.peek (fn ctxt =>
+    (case get ctxt name of SOME x => Scan.succeed x
+    | NONE => error ("No rule for " ^ k ^ " " ^ quote name)))) >> #2;
 
 fun rule get_type get_set =
-  Scan.depend (fn ctxt =>
-    let val sg = ProofContext.sign_of ctxt in
-      spec InductAttrib.typeN >> (check InductAttrib.typeN (get_type ctxt) o
-        Sign.certify_tyname sg o Sign.intern_tycon sg) ||
-      spec InductAttrib.setN >> (check InductAttrib.setN (get_set ctxt) o
-        Sign.certify_const sg o Sign.intern_const sg)
-    end >> pair ctxt) ||
+  named_rule InductAttrib.typeN Args.local_tyname get_type ||
+  named_rule InductAttrib.setN Args.local_const get_set ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thm;
 
 val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS;

@@ -13,8 +13,8 @@ sig
   val induct_tac: string -> int -> tactic
   val exhaust_tac: string -> int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
-  val rep_datatype: thmref * Args.src list -> thmref * Args.src list ->
-    (thmref * Args.src list) list -> (thmref * Args.src list) list -> theory -> theory
+  val rep_datatype: thmref * Attrib.src list -> thmref * Attrib.src list ->
+    (thmref * Attrib.src list) list -> (thmref * Attrib.src list) list -> theory -> theory
   val setup: (theory -> theory) list
 end;
 

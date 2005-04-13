@@ -8,7 +8,7 @@ Proof context information.
 (*Jia: changed: datatype context
        affected files:  make_context, map_context, init, put_data, add_syntax, map_defaults, del_bind, upd_bind, qualified, hide_thms, put_thms, reset_thms, gen_assms, map_fixes, add_cases
 
-       added: put_delta, get_delta 
+       added: put_delta, get_delta
        06/01/05
 *)
 
@@ -62,6 +62,8 @@ sig
   val cert_prop_pats: context -> term list -> term list
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
+  val read_tyname: context -> string -> typ
+  val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
@@ -163,7 +165,7 @@ sig
   val setup: (theory -> theory) list
 
   val get_delta: context -> Object.T Symtab.table (* Jia: (claset, simpset) *)
-  val put_delta: Object.T Symtab.table -> context -> context 
+  val put_delta: Object.T Symtab.table -> context -> context
   val get_delta_count_incr: context -> int
 
 end;
@@ -648,10 +650,7 @@ fun gen_read read app pattern dummies schematic ctxt =
 
 in
 
-(* CB: for attribute where.  See attrib.ML. *)
 val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false false;
-
-(* CB: for rule_tac etc.  See method.ML. *)
 val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false false true;
 
 fun read_term_pats T ctxt =
@@ -741,6 +740,19 @@ fun declare_terms ts ctxt = Library.foldl declare_occ (ctxt, ts);
 fun declare_terms_syntax ts ctxt = Library.foldl declare_syn (ctxt, ts);
 
 end;
+
+
+(* type and constant names *)
+
+fun read_tyname ctxt c =
+  if c mem_string used_types ctxt then
+    TFree (c, getOpt (def_sort ctxt (c, ~1), Sign.defaultS (sign_of ctxt)))
+  else Sign.read_tyname (sign_of ctxt) c;
+
+fun read_const ctxt c =
+  (case lookup_skolem ctxt c of
+    SOME c' => Free (c', dummyT)
+  | NONE => Sign.read_const (sign_of ctxt) c);
 
 
 

@@ -28,21 +28,6 @@ function fail()
 }
 
 
-function view()
-{
-  if [ "${1%%.dvi}.dvi" == "$1" ]; then
-    exec $DVI_VIEWER "$1"
-    return
-  fi
-
-  if [ "${1%%.pdf}.pdf" == "$1" ]; then
-    exec $PDF_VIEWER "$1"
-    return
-  fi
-
-  fail "Unknown file type: $FILE";
-}
-
 ## process command line
 
 # options
@@ -75,11 +60,22 @@ FILE="$1"; shift
 
 [ -f "$FILE" ] || fail "Bad file: $FILE"
 
+case "$FILE" in
+    *.dvi)
+      VIEWER="$DVI_VIEWER"
+      ;;
+    *.pdf)
+      VIEWER="$PDF_VIEWER"
+      ;;
+    *)
+      fail "Unknown file type: $FILE";
+esac
+
 if [ -n "$CLEAN" ]; then
-  PRIVATE_FILE="$ISABELLE_TMP/"$(basename "$FILE")
-  mv "$FILE" "$PRIVATE_FILE" ##|| fail "Cannot move file: $FILE"
-  view "$PRIVATE_FILE"
+  PRIVATE_FILE="$ISABELLE_TMP/$$"$(basename "$FILE")
+  mv "$FILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
+  $VIEWER "$PRIVATE_FILE"
   rm -f "$PRIVATE_FILE"
 else
-  view "$FILE"
+  exec $VIEWER "$FILE"
 fi

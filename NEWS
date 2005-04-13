@@ -6,13 +6,13 @@ New in this Isabelle release
 
 *** General ***
 
-* The type Library.option is no more, along with the exception
+* ML: The type Library.option is no more, along with the exception
   Library.OPTION: Isabelle now uses the standard option type.  The
   functions the, is_some, is_none, etc. are still in Library, but
   the constructors are now SOME and NONE instead of Some and None.
-  They throw the exception Option.
+  They raise the exception Option.
 
-* The exception LIST is no more, the standard exceptions Empty and
+* ML: The exception LIST is no more, the standard exceptions Empty and
   Subscript, as well as Library.UnequalLengths are used instead.  This
   means that function like Library.hd and Library.tl are gone, as the
   standard hd and tl functions suffice.
@@ -41,12 +41,6 @@ New in this Isabelle release
 
   A simple solution to broken code is to include "open Library" at the
   beginning of a structure.  Everything after that will be as before.
-
-* Document preparation: new antiquotations @{lhs thm} and @{rhs thm}
-  printing the lhs/rhs of definitions, equations, inequations etc. 
-
-* isatool usedir: new option -f that allows specification of the ML
-  file to be used by Isabelle; default is ROOT.ML.
 
 * Theory headers: the new header syntax for Isar theories is
 
@@ -145,76 +139,11 @@ New in this Isabelle release
   internally, to allow for use in a context of fixed variables.
 
 * Pure/Simplifier: Command "find_rewrites" takes a string and lists all
-  equality theorems (not just those with attribute simp!) whose left-hand
+  equality theorems (not just those declared as simp!) whose left-hand
   side matches the term given via the string. In PG the command can be
   activated via Isabelle -> Show me -> matching rewrites.
 
-* Provers: Simplifier and Classical Reasoner now support proof context
-  dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
-  components are stored in the theory and patched into the
-  simpset/claset when used in an Isar proof context.  Context
-  dependent components are maintained by the following theory
-  operations:
-
-    Simplifier.add_context_simprocs
-    Simplifier.del_context_simprocs
-    Simplifier.set_context_subgoaler
-    Simplifier.reset_context_subgoaler
-    Simplifier.add_context_looper
-    Simplifier.del_context_looper
-    Simplifier.add_context_unsafe_solver
-    Simplifier.add_context_safe_solver
-
-    Classical.add_context_safe_wrapper
-    Classical.del_context_safe_wrapper
-    Classical.add_context_unsafe_wrapper
-    Classical.del_context_unsafe_wrapper
-
-  IMPORTANT NOTE: proof tools (methods etc.) need to use
-  local_simpset_of and local_claset_of to instead of the primitive
-  Simplifier.get_local_simpset and Classical.get_local_claset,
-  respectively, in order to see the context dependent fields!
-
-* Document preparation: antiquotations now provide the option
-  'locale=NAME' to specify an alternative context used for evaluating
-  and printing the subsequent argument, as in @{thm [locale=LC]
-  fold_commute}, for example.
-
-* Document preparation: commands 'display_drafts' and 'print_drafts'
-  perform simple output of raw sources.  Only those symbols that do
-  not require additional LaTeX packages (depending on comments in
-  isabellesym.sty) are displayed properly, everything else is left
-  verbatim.  We use isatool display and isatool print as front ends;
-  these are subject to the DVI_VIEWER and PRINT_COMMAND settings,
-  respectively.
-
-* Document preparation: Proof scripts as well as some other commands
-  such as ML or parse/print_translation can now be hidden in the document.
-  Hiding is enabled by default, and can be disabled either via the option
-  '-H false' of isatool usedir or by resetting the reference variable
-  IsarOutput.hide_commands. Additional commands to be hidden may be
-  declared using IsarOutput.add_hidden_commands.
-
-* ML: output via the Isabelle channels of writeln/warning/error
-  etc. is now passed through Output.output, with a hook for arbitrary
-  transformations depending on the print_mode (cf. Output.add_mode --
-  the first active mode that provides a output function wins).
-  Already formatted output may be embedded into further text via
-  Output.raw; the result of Pretty.string_of/str_of and derived
-  functions (string_of_term/cterm/thm etc.) is already marked raw to
-  accommodate easy composition of diagnostic messages etc.
-  Programmers rarely need to care about Output.output or Output.raw at
-  all, with some notable exceptions: Output.output is required when
-  bypassing the standard channels (writeln etc.), or in token
-  translations to produce properly formatted results; Output.raw is
-  required when capturing already output material that will eventually
-  be presented to the user a second time.  For the default print mode,
-  both Output.output and Output.raw have no effect.
-
-
-*** Isar ***
-
-* Debugging: new reference Toplevel.debug; default false.
+* Isar debugging: new reference Toplevel.debug; default false.
   Set to make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
   
 * Locales:
@@ -232,12 +161,33 @@ New in this Isabelle release
   in duplicate.
   Use print_interps to inspect active interpretations of a particular locale.
 
-* New syntax
+* Isar: new syntax 'name(i-j, i-, i, ...)' for referring to specific
+  selections of theorems in named facts via indices.
 
-    <theorem_name> (<index>, ..., <index>-<index>, ...)
 
-  for referring to specific theorems in a named list of theorems via
-  indices.
+*** Document preparation ***
+
+* New antiquotations @{lhs thm} and @{rhs thm} printing the lhs/rhs of
+  definitions, equations, inequations etc.
+
+* Antiquotations now provide the option 'locale=NAME' to specify an
+  alternative context used for evaluating and printing the subsequent
+  argument, as in @{thm [locale=LC] fold_commute}, for example.
+
+* Commands 'display_drafts' and 'print_drafts' perform simple output
+  of raw sources.  Only those symbols that do not require additional
+  LaTeX packages (depending on comments in isabellesym.sty) are
+  displayed properly, everything else is left verbatim.  We use
+  isatool display and isatool print as front ends; these are subject
+  to the DVI/PDF_VIEWER and PRINT_COMMAND settings, respectively.
+
+* Proof scripts as well as some other commands such as ML or
+  parse/print_translation can now be hidden in the document.  Hiding
+  is enabled by default, and can be disabled either via the option '-H
+  false' of isatool usedir or by resetting the reference variable
+  IsarOutput.hide_commands. Additional commands to be hidden may be
+  declared using IsarOutput.add_hidden_commands.
+
 
 *** HOL ***
 
@@ -337,9 +287,6 @@ New in this Isabelle release
   enabled/disabled by the reference use_let_simproc. Potential
   INCOMPATIBILITY since simplification is more powerful by default.
  
-* HOL: new 'isatool dimacs2hol' to convert files in DIMACS CNF format
-  (containing Boolean satisfiability problems) into Isabelle/HOL theories.
-
 
 *** HOLCF ***
 
@@ -357,6 +304,64 @@ New in this Isabelle release
 * ZF/Simplifier: install second copy of type solver that actually
   makes use of TC rules declared to Isar proof contexts (or locales);
   the old version is still required for ML proof scripts.
+
+
+*** System ***
+
+* HOL: isatool dimacs2hol converts files in DIMACS CNF format
+  (containing Boolean satisfiability problems) into Isabelle/HOL
+  theories.
+
+* isatool usedir: option -f allows specification of the ML file to be
+  used by Isabelle; default is ROOT.ML.
+
+* ISABELLE_DOC_FORMAT setting specifies preferred document format (for
+  isatool doc, isatool mkdir, display_drafts etc.).
+
+
+*** ML ***
+
+* Pure: output via the Isabelle channels of writeln/warning/error
+  etc. is now passed through Output.output, with a hook for arbitrary
+  transformations depending on the print_mode (cf. Output.add_mode --
+  the first active mode that provides a output function wins).
+  Already formatted output may be embedded into further text via
+  Output.raw; the result of Pretty.string_of/str_of and derived
+  functions (string_of_term/cterm/thm etc.) is already marked raw to
+  accommodate easy composition of diagnostic messages etc.
+  Programmers rarely need to care about Output.output or Output.raw at
+  all, with some notable exceptions: Output.output is required when
+  bypassing the standard channels (writeln etc.), or in token
+  translations to produce properly formatted results; Output.raw is
+  required when capturing already output material that will eventually
+  be presented to the user a second time.  For the default print mode,
+  both Output.output and Output.raw have no effect.
+
+* Provers: Simplifier and Classical Reasoner now support proof context
+  dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
+  components are stored in the theory and patched into the
+  simpset/claset when used in an Isar proof context.  Context
+  dependent components are maintained by the following theory
+  operations:
+
+    Simplifier.add_context_simprocs
+    Simplifier.del_context_simprocs
+    Simplifier.set_context_subgoaler
+    Simplifier.reset_context_subgoaler
+    Simplifier.add_context_looper
+    Simplifier.del_context_looper
+    Simplifier.add_context_unsafe_solver
+    Simplifier.add_context_safe_solver
+
+    Classical.add_context_safe_wrapper
+    Classical.del_context_safe_wrapper
+    Classical.add_context_unsafe_wrapper
+    Classical.del_context_unsafe_wrapper
+
+  IMPORTANT NOTE: proof tools (methods etc.) need to use
+  local_simpset_of and local_claset_of to instead of the primitive
+  Simplifier.get_local_simpset and Classical.get_local_claset,
+  respectively, in order to see the context dependent fields!
 
 
 

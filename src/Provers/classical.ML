@@ -168,8 +168,8 @@ sig
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
-  val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
-  val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
+  val cla_method: (claset -> tactic) -> Method.src -> Proof.context -> Proof.method
+  val cla_method': (claset -> int -> tactic) -> Method.src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
 
   val get_delta_claset: ProofContext.context -> claset

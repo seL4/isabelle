@@ -8,36 +8,45 @@ Symbolic theorem attributes.
 signature BASIC_ATTRIB =
 sig
   val print_attributes: theory -> unit
-  val Attribute: bstring -> (Args.src -> theory attribute) * (Args.src -> Proof.context attribute)
+  val Attribute: bstring -> (Args.src -> theory attribute) * (Args.src -> ProofContext.context attribute)
     -> string -> unit
 end;
 
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
+  type src
   exception ATTRIB_FAIL of (string * Position.T) * exn
-  val global_attribute: theory -> Args.src -> theory attribute
-  val local_attribute: theory -> Args.src -> Proof.context attribute
-  val multi_attribute: theory -> Args.src -> Locale.multi_attribute
-  val local_attribute': Proof.context -> Args.src -> Proof.context attribute
+  val intern: Sign.sg -> xstring -> string
+  val intern_src: Sign.sg -> src -> src
+  val global_attribute_i: theory -> src -> theory attribute
+  val global_attribute: theory -> src -> theory attribute
+  val local_attribute_i: theory -> src -> ProofContext.context attribute
+  val local_attribute: theory -> src -> ProofContext.context attribute
+  val context_attribute_i: ProofContext.context -> Args.src -> ProofContext.context attribute
+  val context_attribute: ProofContext.context -> Args.src -> ProofContext.context attribute
   val undef_global_attribute: theory attribute
-  val undef_local_attribute: Proof.context attribute
-  val add_attributes: (bstring * ((Args.src -> theory attribute) *
-      (Args.src -> Proof.context attribute)) * string) list -> theory -> theory
+  val undef_local_attribute: ProofContext.context attribute
+  val crude_closure: ProofContext.context -> src -> src
+  val add_attributes: (bstring * ((src -> theory attribute) *
+      (src -> ProofContext.context attribute)) * string) list -> theory -> theory
   val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
   val global_thms: theory * Args.T list -> thm list * (theory * Args.T list)
   val global_thmss: theory * Args.T list -> thm list * (theory * Args.T list)
-  val local_thm: Proof.context * Args.T list -> thm * (Proof.context * Args.T list)
-  val local_thms: Proof.context * Args.T list -> thm list * (Proof.context * Args.T list)
-  val local_thmss: Proof.context * Args.T list -> thm list * (Proof.context * Args.T list)
-  val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> Args.src -> 'a attribute
-  val no_args: 'a attribute -> Args.src -> 'a attribute
-  val add_del_args: 'a attribute -> 'a attribute -> Args.src -> 'a attribute
+  val local_thm: ProofContext.context * Args.T list -> thm * (ProofContext.context * Args.T list)
+  val local_thms: ProofContext.context * Args.T list -> thm list * (ProofContext.context * Args.T list)
+  val local_thmss: ProofContext.context * Args.T list -> thm list * (ProofContext.context * Args.T list)
+  val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> src -> 'a attribute
+  val no_args: 'a attribute -> src -> 'a attribute
+  val add_del_args: 'a attribute -> 'a attribute -> src -> 'a attribute
+  val attribute: (theory attribute * ProofContext.context attribute) -> src
   val setup: (theory -> theory) list
 end;
 
 structure Attrib: ATTRIB =
 struct
+
+type src = Args.src;
 
 
 (** attributes theory data **)
@@ -50,7 +59,7 @@ struct
   type T =
     {space: NameSpace.T,
      attrs:
-       ((((Args.src -> theory attribute) * (Args.src -> Proof.context attribute))
+       ((((src -> theory attribute) * (src -> ProofContext.context attribute))
          * string) * stamp) Symtab.table};
 
   val empty = {space = NameSpace.empty, attrs = Symtab.empty};
@@ -76,18 +85,23 @@ structure AttributesData = TheoryDataFun(AttributesDataArgs);
 val print_attributes = AttributesData.print;
 
 
+(* interning *)
+
+val intern = NameSpace.intern o #space o AttributesData.get_sg;
+val intern_src = Args.map_name o intern;
+
+
 (* get global / local attributes *)
 
 exception ATTRIB_FAIL of (string * Position.T) * exn;
 
 fun gen_attribute which thy =
   let
-    val {space, attrs} = AttributesData.get thy;
+    val {attrs, ...} = AttributesData.get thy;
 
     fun attr src =
       let
-        val ((raw_name, _), pos) = Args.dest_src src;
-        val name = NameSpace.intern space raw_name;
+        val ((name, _), pos) = Args.dest_src src;
       in
         (case Symtab.lookup (attrs, name) of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
@@ -95,17 +109,31 @@ fun gen_attribute which thy =
       end;
   in attr end;
 
-val global_attribute = gen_attribute fst;
-val local_attribute = gen_attribute snd;
-fun multi_attribute thy src =
-      (global_attribute thy src, local_attribute thy src);
-val local_attribute' = local_attribute o ProofContext.theory_of;
+val global_attribute_i = gen_attribute fst;
+fun global_attribute thy = global_attribute_i thy o intern_src (Theory.sign_of thy);
+
+val local_attribute_i = gen_attribute snd;
+fun local_attribute thy = local_attribute_i thy o intern_src (Theory.sign_of thy);
+
+val context_attribute_i = local_attribute_i o ProofContext.theory_of;
+val context_attribute = local_attribute o ProofContext.theory_of;
 
 val undef_global_attribute: theory attribute =
   fn _ => error "attribute undefined in theory context";
 
-val undef_local_attribute: Proof.context attribute =
+val undef_local_attribute: ProofContext.context attribute =
   fn _ => error "attribute undefined in proof context";
+
+
+(* crude_closure *)
+
+(*Produce closure without knowing facts in advance! The following
+  should work reasonably well for attribute parsers that do not peek
+  at the thm structure.*)
+
+fun crude_closure ctxt src =
+ (try (transform_error (fn () => context_attribute_i ctxt src (ctxt, Drule.asm_rl))) ();
+  Args.closure src);
 
 
 (* add_attributes *)
@@ -136,20 +164,24 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 (* theorems *)
 
-val thm_sel = Args.parens (Scan.pass () (Args.enum1 "," (Scan.lift
-  (   Args.nat --| Args.$$$ "-" -- Args.nat >> op upto
-   || Args.nat >> single)) >> List.concat));
+fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
+  Scan.ahead Args.name -- Args.named_fact (fn name => get st (name, NONE)) --
+  Scan.option Args.thm_sel -- Args.opt_attribs (intern (Theory.sign_of (theory_of st)))
+  >> (fn (((name, fact), sel), srcs) =>
+    let
+      val ths = PureThy.select_thm (name, sel) fact;
+      val atts = map (attrib (theory_of st)) srcs;
+      val (st', ths') = Thm.applys_attributes ((st, ths), atts);
+    in (st', pick name ths') end));
 
-fun gen_thm get attrib app =
-  Scan.depend (fn st => Args.name -- Scan.option thm_sel -- Args.opt_attribs >>
-    (fn (name, srcs) => app ((st, get st name), map (attrib st) srcs)));
-
-val global_thm = gen_thm PureThy.get_thm global_attribute Thm.apply_attributes;
-val global_thms = gen_thm PureThy.get_thms global_attribute Thm.applys_attributes;
+val global_thm = gen_thm I global_attribute_i PureThy.get_thms PureThy.single_thm;
+val global_thms = gen_thm I global_attribute_i PureThy.get_thms (K I);
 val global_thmss = Scan.repeat global_thms >> List.concat;
 
-val local_thm = gen_thm ProofContext.get_thm local_attribute' Thm.apply_attributes;
-val local_thms = gen_thm ProofContext.get_thms local_attribute' Thm.applys_attributes;
+val local_thm =
+  gen_thm ProofContext.theory_of local_attribute_i ProofContext.get_thms PureThy.single_thm;
+val local_thms =
+  gen_thm ProofContext.theory_of local_attribute_i ProofContext.get_thms (K I);
 val local_thmss = Scan.repeat local_thms >> List.concat;
 
 
@@ -201,119 +233,186 @@ val OF_global = syntax (global_thmss >> apply);
 val OF_local = syntax (local_thmss >> apply);
 
 
-(* where *)
+(* read_instantiate: named instantiation of type and term variables *)
 
-(*named instantiations; permits instantiation of type and term variables*)
+local
 
-fun read_instantiate _ [] _ thm = thm
-  | read_instantiate context_of insts x thm =
+fun is_tvar (x, _) = (case Symbol.explode x of "'" :: _ => true | _ => false);
+
+fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
+
+fun the_sort sorts xi = valOf (sorts xi)
+  handle Option.Option => error_var "No such type variable in theorem: " xi;
+
+fun the_type types xi = valOf (types xi)
+  handle Option.Option => error_var "No such variable in theorem: " xi;
+
+fun unify_types sign types ((unifier, maxidx), (xi, u)) =
+  let
+    val T = the_type types xi;
+    val U = Term.fastype_of u;
+    val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
+  in
+    Type.unify (Sign.tsig_of sign) (unifier, maxidx') (T, U)
+      handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
+  end;
+
+fun typ_subst env = apsnd (Term.typ_subst_TVars env);
+fun subst env = apsnd (Term.subst_TVars env);
+
+fun instantiate sign envT env =
+  let
+    fun prepT (a, T) = (a, Thm.ctyp_of sign T);
+    fun prep (xi, t) = pairself (Thm.cterm_of sign) (Var (xi, Term.fastype_of t), t);
+  in
+    Drule.instantiate (map prepT (distinct envT),
+      map prep (gen_distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env))
+  end;
+
+in
+
+fun read_instantiate init mixed_insts (context, thm) =
+  let
+    val ctxt = init context;
+    val sign = ProofContext.sign_of ctxt;
+
+    val (type_insts, term_insts) = List.partition (is_tvar o #1) (map #2 mixed_insts);
+    val internal_insts = term_insts |> List.mapPartial
+      (fn (xi, Args.Term t) => SOME (xi, t)
+      | (_, Args.Name _) => NONE
+      | (xi, _) => error_var "Term argument expected for " xi);
+    val external_insts = term_insts |> List.mapPartial
+      (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
+
+
+    (* type instantiations *)
+
+    val sorts = #2 (Drule.types_sorts thm);
+
+    fun readT (xi, arg) =
       let
-        val ctxt = context_of x;
-        val sign = ProofContext.sign_of ctxt;
-
-        (* Separate type and term insts,
-           type insts must occur strictly before term insts *)
-        fun has_type_var ((x, _), _) = (case Symbol.explode x of
-             "'"::cs => true | cs => false);
-        val (Tinst, tinsts) = take_prefix has_type_var insts;
-        val _ = if exists has_type_var tinsts
-              then error
-                "Type instantiations must occur before term instantiations."
-              else ();
-
-        val Tinsts = List.filter has_type_var insts;
-        val tinsts = filter_out has_type_var insts;
-
-        (* Type instantiations first *)
-        (* Process type insts: Tinsts_env *)
-        fun absent xi = error
-              ("No such type variable in theorem: " ^
-               Syntax.string_of_vname xi);
-        val (rtypes, rsorts) = types_sorts thm;
-        fun readT (xi, s) =
-            let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-                val T = ProofContext.read_typ ctxt s;
-            in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
-               else error
-                 ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
-            end;
-        val Tinsts_env = map readT Tinsts;
-        val cenvT = map (apsnd (Thm.ctyp_of sign)) (Tinsts_env);
-        val thm' = Thm.instantiate (cenvT, []) thm;
-           (* Instantiate, but don't normalise: *)
-           (* this happens after term insts anyway. *)
-
-        (* Term instantiations *)
-        val vars = Drule.vars_of thm';
-        fun get_typ xi =
-          (case assoc (vars, xi) of
-            SOME T => T
-          | NONE => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
-
-        val (xs, ss) = Library.split_list tinsts;
-        val Ts = map get_typ xs;
-
-        val used = add_term_tvarnames (prop_of thm',[])
-        (* Names of TVars occuring in thm'.  read_def_termTs ensures
-           that new TVars introduced when reading the instantiation string
-           are distinct from those occuring in the theorem. *)
-
-        val (ts, envT) =
-          ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) used (ss ~~ Ts);
-
-        val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
-        val cenv =
-          map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
-            (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
+        val S = the_sort sorts xi;
+        val T =
+          (case arg of
+            Args.Name s => ProofContext.read_typ ctxt s
+          | Args.Typ T => T
+          | _ => error_var "Type argument expected for " xi);
       in
-        thm'
-        |> Drule.instantiate (cenvT, cenv)
-        |> RuleCases.save thm
+        if Sign.of_sort sign (T, S) then (xi, T)
+        else error_var "Incompatible sort for typ instantiation of " xi
       end;
 
-fun insts x = Args.and_list (Scan.lift (Args.var --| Args.$$$ "=" -- Args.name)) x;
+    val type_insts' = map readT type_insts;
+    val thm' = instantiate sign type_insts' [] thm;
 
-fun gen_where context_of = syntax (insts >> (Drule.rule_attribute o read_instantiate context_of));
+
+    (* internal term instantiations *)
+
+    val types' = #1 (Drule.types_sorts thm');
+    val unifier = Vartab.dest (#1
+      (Library.foldl (unify_types sign types') ((Vartab.empty, 0), internal_insts)));
+
+    val type_insts'' = map (typ_subst unifier) type_insts';
+    val internal_insts'' = map (subst unifier) internal_insts;
+    val thm'' = instantiate sign unifier internal_insts'' thm';
+
+
+    (* external term instantiations *)
+
+    val types'' = #1 (Drule.types_sorts thm'');
+
+    val (xs, ss) = split_list external_insts;
+    val Ts = map (the_type types'') xs;
+    val (ts, inferred) = ProofContext.read_termTs ctxt (K false)
+        (K NONE) (K NONE) (Drule.add_used thm'' []) (ss ~~ Ts);
+
+    val type_insts''' = map (typ_subst inferred) type_insts'';
+    val internal_insts''' = map (subst inferred) internal_insts'';
+
+    val external_insts''' = xs ~~ ts;
+    val term_insts''' = internal_insts''' @ external_insts''';
+    val thm''' = instantiate sign inferred external_insts''' thm'';
+  in
+
+    (* assign internalized values *)
+
+    mixed_insts |> List.app (fn (arg, (xi, _)) =>
+      if is_tvar xi then
+        Args.assign (SOME (Args.Typ (valOf (assoc (type_insts''', xi))))) arg
+      else
+        Args.assign (SOME (Args.Term (valOf (assoc (term_insts''', xi))))) arg);
+
+    (context, thm''' |> RuleCases.save thm)
+  end;
+
+end;
+
+
+(* where: named instantiation *)
+
+local
+
+val value =
+  Args.internal_typ >> Args.Typ ||
+  Args.internal_term >> Args.Term ||
+  Args.name >> Args.Name;
+
+val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
+  >> (fn (xi, (a, v)) => (a, (xi, v)));
+
+fun gen_where init =
+  syntax (Args.and_list (Scan.lift inst) >> read_instantiate init);
+
+in
 
 val where_global = gen_where ProofContext.init;
 val where_local = gen_where I;
 
+end;
 
-(* of: positional instantiations *)
-(*        permits instantiation of term variables only *)
 
-fun read_instantiate' _ ([], []) _ thm = thm
-  | read_instantiate' context_of (args, concl_args) x thm =
-      let
-        fun zip_vars _ [] = []
-          | zip_vars (_ :: xs) (NONE :: opt_ts) = zip_vars xs opt_ts
-          | zip_vars ((x, _) :: xs) (SOME t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
-          | zip_vars [] _ = error "More instantiations than variables in theorem";
-        val insts =
-          zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @
-          zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
-      in
-        thm
-        |> read_instantiate context_of insts x
-        |> RuleCases.save thm
-      end;
+(* of: positional instantiation (term arguments only) *)
 
+local
+
+fun read_instantiate' init (args, concl_args) (context, thm) =
+  let
+    fun zip_vars _ [] = []
+      | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
+      | zip_vars ((x, _) :: xs) ((a, SOME t) :: rest) = (a, (x, t)) :: zip_vars xs rest
+      | zip_vars [] _ = error "More instantiations than variables in theorem";
+    val insts =
+      zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @
+      zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
+  in
+    read_instantiate init insts (context, thm)
+  end;
+
+val value =
+  Args.internal_term >> Args.Term ||
+  Args.name >> Args.Name;
+
+val inst = Args.ahead -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;
-val inst_arg = Scan.unless concl Args.name_dummy;
-val inst_args = Scan.repeat inst_arg;
-fun insts' x = (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
 
-fun gen_of context_of =
-  syntax (Scan.lift insts' >> (Drule.rule_attribute o read_instantiate' context_of));
+val insts =
+  Scan.repeat (Scan.unless concl inst) --
+  Scan.optional (concl |-- Scan.repeat inst) [];
+
+fun gen_of init = syntax (Scan.lift insts >> read_instantiate' init);
+
+in
 
 val of_global = gen_of ProofContext.init;
 val of_local = gen_of I;
+
+end;
 
 
 (* rename_abs *)
 
 fun rename_abs src = syntax
-  (Scan.lift (Scan.repeat Args.name_dummy >> (apsnd o Drule.rename_bvars'))) src;
+  (Scan.lift (Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars'))) src;
 
 
 (* unfold / fold definitions *)
@@ -335,9 +434,8 @@ fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> Rul
 
 (* rule_format *)
 
-fun rule_format_att x = syntax
-  (Scan.lift (Args.parens (Args.$$$ "no_asm")
-  >> K ObjectLogic.rule_format_no_asm || Scan.succeed ObjectLogic.rule_format)) x;
+fun rule_format_att x = syntax (Args.mode "no_asm"
+  >> (fn true => ObjectLogic.rule_format_no_asm | false => ObjectLogic.rule_format)) x;
 
 
 (* misc rules *)
@@ -380,6 +478,20 @@ val rule_atts =
 end;
 
 
+(* internal attribute *)
+
+val attributeN = "attribute";
+fun attribute att = Args.src ((attributeN, [Args.mk_attribute att]), Position.none);
+
+fun attribute_global x = (syntax (Scan.lift Args.internal_attribute >> #1)) x;
+fun attribute_local x = (syntax (Scan.lift Args.internal_attribute >> #2)) x;
+
+val setup_internal_attribute =
+ [PureThy.global_path,
+  add_attributes [(attributeN, (attribute_global, attribute_local), "internal attribute")],
+  PureThy.local_path];
+
+
 
 (** theory setup **)
 
@@ -412,7 +524,8 @@ val pure_attributes =
 
 (* setup *)
 
-val setup = [AttributesData.init, add_attributes pure_attributes];
+val setup =
+ AttributesData.init :: setup_internal_attribute @ [add_attributes pure_attributes];
 
 end;
 

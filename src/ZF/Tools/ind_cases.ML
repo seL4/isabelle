@@ -8,7 +8,7 @@ Generic inductive cases facility for (co)inductive definitions.
 signature IND_CASES =
 sig
   val declare: string -> (simpset -> cterm -> thm) -> theory -> theory
-  val inductive_cases: ((bstring * Args.src list) * string list) list -> theory -> theory
+  val inductive_cases: ((bstring * Attrib.src list) * string list) list -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
