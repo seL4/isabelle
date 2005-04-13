@@ -234,3 +234,4 @@ val setup =
      (inductN, induct_attr, "declaration of induction rule for type or set")]];
 
 end;
+
