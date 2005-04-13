@@ -2113,3 +2113,4 @@ val setup =
   add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, NONE)]]];
 
 end;
+
