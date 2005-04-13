@@ -80,3 +80,4 @@ val import_meth = Method.simple_args (Args.name -- Args.name)
 
 val setup = [Method.add_method("import",import_meth,"Import HOL4 theorem"),ImportData.init]
 end
+
