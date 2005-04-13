@@ -365,3 +365,4 @@ val setup =
      (InductAttrib.inductN, induct_meth oo induct_args, "induction on types or sets")]];
 
 end;
+
