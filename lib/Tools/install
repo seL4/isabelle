@@ -16,6 +16,9 @@ function usage()
   echo "  Options are:"
   echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution"
   echo "                 (default ISABELLE_HOME)"
+  echo "    -a RDISTDIR  refer to RDISTDIR as Isabelle distribution"
+  echo "                 in installed files, for packaging scripts"
+  echo "                 (default to same value as -d)"
   echo "    -k VERSION   install KDE application icon on desktop"
   echo "                 (for KDE VERSION 1 or 2)"
   echo "    -p DIR       install standalone binaries in DIR"
@@ -42,8 +45,9 @@ NO_OPTS=true
 DISTDIR="$ISABELLE_HOME"
 KDE=""
 BINDIR=""
+RDISTDIR=""
 
-while getopts "d:k:p:" OPT
+while getopts "d:k:p:a:" OPT
 do
   case "$OPT" in
     d)
@@ -56,6 +60,10 @@ do
       ;;
     p)
       BINDIR="$OPTARG"
+      NO_OPTS=""
+      ;;
+    a)
+      RDISTDIR="$OPTARG"
       NO_OPTS=""
       ;;
     \?)
@@ -71,6 +79,9 @@ shift $(($OPTIND - 1))
 
 [ "$#" -ne 0 -o -n "$NO_OPTS" ] && usage
 
+if [ -z "$RDISTDIR" ]; then
+  RDISTDIR=$DISTDIR
+fi
 
 ## main
 
@@ -97,7 +108,7 @@ if [ -n "$BINDIR" ]; then
   for NAME in isatool isabelle-process isabelle-interface
   do
     BIN="$BINDIR/$NAME"
-    DIST="$DISTDIR/bin/$NAME"
+    DIST="$RDISTDIR/bin/$NAME"
     echo "installing $BIN"
     echo "#!$BASH" > "$BIN" || fail "Cannot write file: $BIN"
     echo >> "$BIN"
@@ -145,7 +156,7 @@ if [ -n "$KDE" ]; then
   echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
   echo "[KDE Desktop Entry]" >> "$KDEAPP"
   echo "Type=Application" >> "$KDEAPP"
-  echo "Exec=\"$DISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
+  echo "Exec=\"$RDISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
   echo "Icon=isabelle.xpm" >> "$KDEAPP"
   echo "TerminalOptions=" >> "$KDEAPP"
   echo "Path=" >> "$KDEAPP"
