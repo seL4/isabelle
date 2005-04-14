@@ -20,6 +20,10 @@ FILES = Sugar/generated/root.tex Sugar/generated/root.bib \
 	      Sugar/generated/mathpartir.sty Sugar/generated/LaTeXsugar.tex \
         Sugar/generated/OptionalSugar.tex
 
+GARBAGE = Sugar/generated/*.aux Sugar/generated/*.log Sugar/generated/*.toc \
+          Sugar/generated/*.idx Sugar/generated/*.bbl Sugar/generated/*.blg \
+          Sugar/generated/*.out
+
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES)
