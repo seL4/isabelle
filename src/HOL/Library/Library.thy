@@ -5,7 +5,6 @@ imports
   Continuity
   EfficientNat
   FuncSet
-  List_Prefix
   Multiset
   NatPair
   Nat_Infinity
@@ -17,6 +16,9 @@ imports
   While_Combinator
   Word
   Zorn
+  List_Prefix
+  Char_ord
+  List_lexord
 begin
 end
 (*>*)
