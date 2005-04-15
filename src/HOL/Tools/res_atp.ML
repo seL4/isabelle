@@ -64,12 +64,6 @@ val prob_file = File.tmp_path (Path.basic "prob");
 val dummy_tac = PRIMITIVE(fn thm => thm );
 
  
-fun concat_with_and [] str = str
-|   concat_with_and (x::[]) str = str^" ("^x^")"
-|   concat_with_and (x::xs) str = (concat_with_and xs (str^"("^x^")"^" & "))
-
-
-
 (**** for Isabelle/ML interface  ****)
 
 fun is_proof_char ch = ((33 <= (ord ch)) andalso ((ord ch ) <= 126) andalso (not ((ord ch ) = 63))) orelse (ch = " ")
@@ -147,7 +141,7 @@ fun tptp_inputs_tfrees thms n tfrees =
 (*********************************************************************)
 
 fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
-                             val thmstring = concat_with_and (map string_of_thm thms) ""
+                             val thmstring = Meson.concat_with_and (map string_of_thm thms)
                              val thm_no = length thms
                              val _ = warning ("number of thms is : "^(string_of_int thm_no))
                              val _ = warning ("thmstring in call_res is: "^thmstring)
@@ -163,7 +157,7 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                              val clauses = make_clauses thms
                              val _ =( warning ("called make_clauses "))*)
                              (*val _ = tptp_inputs clauses prob_file*)
-                             val thmstring = concat_with_and (map string_of_thm thms) ""
+                             val thmstring = Meson.concat_with_and (map string_of_thm thms)
                            
                              val goalstr = Sign.string_of_term sign sg_term 
                              val goalproofstring = proofstring goalstr
@@ -227,7 +221,8 @@ fun resolve_tac sg_term  (childin, childout,pid) =
 (* dummy tac vs.  Doesn't call resolve_tac *)
 
 fun call_atp_tac_tfrees sign thms n tfrees sg_term (childin, childout,pid) = 
-                                         ( warning("ths for tptp: " ^ (concat_with_and (map string_of_thm thms) ""));
+                                         ( warning("ths for tptp: " ^ 
+                                                   Meson.concat_with_and (map string_of_thm thms));
                                            warning("in call_atp_tac_tfrees");
                                            
                                            tptp_inputs_tfrees (make_clauses thms) n tfrees;
@@ -243,7 +238,7 @@ let val sign = sign_of_thm st
 SELECT_GOAL
   (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
   METAHYPS(fn negs => (warning("calling  call_atp_tac_tfrees with negs"
-                               ^ (concat_with_and (map string_of_thm negs) ""));
+                               ^ Meson.concat_with_and (map string_of_thm negs));
            call_atp_tac_tfrees sign negs n tfrees sg_term (childin, childout,pid) ))]) n st
 end;
 
@@ -305,9 +300,9 @@ fun isar_atp' (thms, thm) =
         val _= (warning ("in isar_atp'"))
         val prems = prems_of thm
         val sign = sign_of_thm thm
-        val thms_string =concat_with_and (map  string_of_thm thms) ""
+        val thms_string = Meson.concat_with_and (map string_of_thm thms)
         val thmstring = string_of_thm thm
-        val prems_string = concat_with_and (map (Sign.string_of_term sign) prems) ""
+        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems)
         (* set up variables for writing out the clasimps to a tptp file *)
         val _ = write_out_clasimp (File.sysify_path axiom_file)
         (* cq: add write out clasimps to file *)
@@ -397,9 +392,8 @@ fun isar_atp (ctxt,thm) =
         val sg_prems = prems_of thm
         val sign = sign_of_thm thm
         val prem_no = length sg_prems
-        val prems_string =  concat_with_and (map (Sign.string_of_term sign) sg_prems) ""
+        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) sg_prems)
     in
-         
           (warning ("initial thm in isar_atp: "^thmstring));
           (warning ("subgoals in isar_atp: "^prems_string));
     	   (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));

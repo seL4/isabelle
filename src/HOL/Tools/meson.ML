@@ -84,12 +84,10 @@ fun has_consts bs =
 	| has _ = false
   in  has  end;
 
-(* for tracing statements *)
- 
-fun concat_with_and [] str = str
-|   concat_with_and (x::[]) str = str^" ("^x^")"
-|   concat_with_and (x::xs) str = (concat_with_and xs (str^"("^x^")"^" & "))
-
+(* for tracing: encloses each string element in brackets. *)
+fun concat_with_and [] = ""
+  | concat_with_and [x] = "(" ^ x ^ ")"
+  | concat_with_and (x::xs) = "(" ^ x ^ ")" ^ " & " ^ concat_with_and xs;
 
 
 (**** Clause handling ****)
@@ -326,7 +324,8 @@ fun skolemize th =
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths =
-   ( (warning("in make_clauses ths are:"^(concat_with_and (map string_of_thm ths) ""))); sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
+   (warning("in make_clauses ths = " ^ concat_with_and (map string_of_thm ths)); 
+    sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
 fun make_horns ths =

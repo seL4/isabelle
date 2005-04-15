@@ -62,20 +62,6 @@ fun memo_find_clause name = case Symtab.lookup (!nc,name) of
                 |SOME cls  => cls ;
       	        	
 
-fun retr_thms ([]:MetaSimplifier.rrule list) = []
-	  | retr_thms (r::rs) = (#name r, #thm r)::(retr_thms rs);
-
-fun snds [] = []
-   | snds ((x,y)::l) = y::(snds l);
-
-fun simpset_rules_of_thy thy =
-     let val simpset = simpset_of thy
-	val rules = #rules(fst (rep_ss simpset))
-	val thms = retr_thms (snds(Net.dest rules))
-     in	thms  end;
-
-
-
 
 
 fun not_second c (a,b)  = not_equal b c;
@@ -124,7 +110,7 @@ fun write_out_clasimp filename = let
 
                                    val names_rules = zip good_names name_fol_cs;
                                    
-                                   val new_clasrls = (fst(ResAxioms.clausify_classical_rules name_fol_cs[]));
+                                   val new_clasrls = #1(ResAxioms.clausify_classical_rules name_fol_cs[])
 
                                    val claset_tptp_strs = map ( map ResClause.tptp_clause) new_clasrls;
 
@@ -161,25 +147,25 @@ fun write_out_clasimp filename = let
                                   (*********************)
                                   (* Get simpset rules *)
                                   (*********************)
-                                  val (simpset_name_rules) =simpset_rules_of_thy (the_context());
+                                  val (simpset_name_rules) = ResAxioms.simpset_rules_of_thy (the_context());
                                   val named_simps = List.filter has_name_pair simpset_name_rules;
 
-                                  val simp_names = map fst named_simps;
-                                  val simp_rules = map snd named_simps;
+                                  val simp_names = map #1 named_simps;
+                                  val simp_rules = map #2 named_simps;
                               
                                   val (simpset_cls,badthms) = ResAxioms.clausify_simpset_rules simp_rules [];
                                  (* 1137 clausif simps *)
                                   val clausifiable_simps = remove_all_simps badthms named_simps;
                                    
                                     val name_fol_simps = List.filter thm_is_fol clausifiable_simps ;
-                                    val simp_names = map fst name_fol_simps;
-                                    val simp_rules = map snd name_fol_simps;
+                                    val simp_names = map #1 name_fol_simps;
+                                    val simp_rules = map #2 name_fol_simps;
                                     
                                      (* 995 of these *)
                                     (* need to get names of claset_cluases so we can make sure we've*)
                                     (* got the same ones (ie. the named ones ) as the claset rules *)
                                     (* length 1374*)
-                                    val new_simps = fst(ResAxioms.clausify_simpset_rules simp_rules []);
+                                    val new_simps = #1(ResAxioms.clausify_simpset_rules simp_rules []);
                                     val simpset_tptp_strs = map (map ResClause.tptp_clause) new_simps;
 
                                     val stick_strs = map stick simpset_tptp_strs;

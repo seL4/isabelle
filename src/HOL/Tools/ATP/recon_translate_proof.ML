@@ -214,7 +214,6 @@ val rev_subst = rotate_prems 1 subst;
 val rev_ssubst = rotate_prems 1 ssubst;
 
 
-(* have changed from negate_nead to negate_head.  God knows if this will actually work *)
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
                           let 
                             val th1 =  Recon_Base.assoc clause1 thml
@@ -403,14 +402,11 @@ fun proofstring x = let val exp = explode x
 
 fun not_newline ch = not (ch = "\n");
 
-fun concat_with_and [] str = str
-|   concat_with_and (x::[]) str = str^"("^x^")"
-|   concat_with_and (x::xs) str = (concat_with_and xs (str^"("^x^")"^" & "))
 (*
 
 fun follow clauses [] allvars thml recons = 
                              let (* val _ = reset show_sorts*)
-                              val thmstring = concat_with_and (map string_of_thm (map snd thml)) ""
+                              val thmstring = Meson.concat_with_and (map string_of_thm (map snd thml))
                               val thmproofstring = proofstring ( thmstring)
                             val no_returns =List.filter  not_newline ( thmproofstring)
                             val thmstr = implode no_returns

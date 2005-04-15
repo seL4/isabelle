@@ -229,7 +229,7 @@ val clausify_simpset_rules_thy
 val rm_Eps 
 : (Term.term * Term.term) list -> Thm.thm list -> Term.term list
 val claset_rules_of_thy : Theory.theory -> Thm.thm list
-val simpset_rules_of_thy : Theory.theory -> Thm.thm list
+val simpset_rules_of_thy : Theory.theory -> (string * Thm.thm) list
 val clausify_simpset_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
 val clausify_classical_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
 
@@ -391,17 +391,8 @@ fun clausify_axiom thm =
 (******** Extracting and CNF/Clausify theorems from a classical reasoner and simpset of a given theory ******)
 
 
-local
-
 fun retr_thms ([]:MetaSimplifier.rrule list) = []
-	  | retr_thms (r::rs) = (#thm r)::(retr_thms rs);
-
-
-fun snds [] = []
-  |   snds ((x,y)::l) = y::(snds l);
-
-in
-
+	  | retr_thms (r::rs) = (#name r, #thm r)::(retr_thms rs);
 
 fun claset_rules_of_thy thy =
     let val clsset = rep_cs (claset_of thy)
@@ -416,12 +407,10 @@ fun claset_rules_of_thy thy =
 fun simpset_rules_of_thy thy =
     let val simpset = simpset_of thy
 	val rules = #rules(fst (rep_ss simpset))
-	val thms = retr_thms (snds(Net.dest rules))
+	val thms = retr_thms (map #2 (Net.dest rules))
     in
 	thms
     end;
-
-end;
 
 
 (**** Translate a set of classical rules or simplifier rules into CNF (still as type "thm") from a given theory ****)
@@ -455,7 +444,7 @@ fun cnf_simpset_rules [] err_list = ([],err_list)
 
 (* CNF all simplifier rules from a given theory's simpset *)
 fun cnf_simpset_rules_thy thy =
-    let val thms = simpset_rules_of_thy thy
+    let val thms = map #2 (simpset_rules_of_thy thy)
     in
 	cnf_simpset_rules thms []
     end;
@@ -474,7 +463,7 @@ fun clausify_classical_rules [] err_list = ([],err_list)
 
 
 
-(* convert all classical rules from a given theory's classical reasoner into Clause.clause format. *)
+(* convert all classical rules from a given theory into Clause.clause format. *)
 fun clausify_classical_rules_thy thy =
     let val rules = claset_rules_of_thy thy
     in
@@ -491,9 +480,9 @@ fun clausify_simpset_rules [] err_list = ([],err_list)
     end;
 
 
-(* convert all simplifier rules from a given theory's simplifier into Clause.clause format. *)
+(* convert all simplifier rules from a given theory into Clause.clause format. *)
 fun clausify_simpset_rules_thy thy =
-    let val thms = simpset_rules_of_thy thy
+    let val thms = map #2 (simpset_rules_of_thy thy)
     in
 	clausify_simpset_rules thms []
     end;
