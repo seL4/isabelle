@@ -236,10 +236,6 @@ txt{*
 *};
 oops
 
-lemma "(3/4) * (10^15) < (x :: real)"
-apply simp 
-oops
-
 text{*
 Ring and Field
 
