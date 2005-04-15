@@ -228,28 +228,27 @@ fun is_alpha ch =
 
 fun is_alpha_space_or_neg_or_eq ch = (ch = "~") orelse (is_alpha ch) orelse ( ch = " ")orelse ( ch = "=")
 
-fun lit_string t = let val termstr = (Sign.string_of_term Mainsign ) t
+fun lit_string sg t = 
+                   let val termstr = Sign.string_of_term sg t
                        val exp_term = explode termstr
                    in
                        implode(List.filter is_alpha_space_or_neg_or_eq exp_term)
                    end
 
-fun get_meta_lits thm = map lit_string (prems_of thm)
+fun get_meta_lits thm = map (lit_string (sign_of_thm thm)) (prems_of thm)
 
 
+fun is_alpha_space_or_neg_or_eq_or_bracket ch = is_alpha_space_or_neg_or_eq ch orelse (ch= "(") orelse (ch = ")")
 
-
-fun is_alpha_space_or_neg_or_eq_or_bracket ch = (ch = "~") orelse (is_alpha ch) orelse ( ch = " ")orelse ( ch = "=") orelse (ch= "(") orelse (ch = ")")
-
-fun lit_string_bracket  t = let val termstr = (Sign.string_of_term Mainsign ) t
+fun lit_string_bracket sg t = 
+                   let val termstr = Sign.string_of_term sg t
                        val exp_term = explode termstr
                    in
                        implode(List.filter  is_alpha_space_or_neg_or_eq_or_bracket exp_term)
                    end
 
-fun get_meta_lits_bracket thm = map lit_string_bracket (prems_of thm)
-
-
+fun get_meta_lits_bracket thm = 
+    map (lit_string_bracket (sign_of_thm thm)) (prems_of thm)
 
       
 fun apply_rule rule [] thm = thm

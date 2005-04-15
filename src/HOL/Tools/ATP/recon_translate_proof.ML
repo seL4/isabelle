@@ -141,6 +141,7 @@ fun delete_assump_tac state lit =
 (* Reconstruct a factoring step      *)
 (*************************************)
 
+(*FIXME: share code with that in Tools/reconstruction.ML*)
 fun follow_factor clause lit1 lit2 allvars thml clause_strs= 
                           let 
                             val th =  Recon_Base.assoc clause thml
@@ -148,7 +149,7 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs=
                             val sign = sign_of_thm th
                             val fac1 = get_nth (lit1+1) prems
                             val fac2 = get_nth (lit2+1) prems
-                            val unif_env = Unify.unifiers (Mainsign,Envir.empty 0, [(fac1, fac2)])
+                            val unif_env = Unify.unifiers (sign,Envir.empty 0, [(fac1, fac2)])
                             val newenv = getnewenv unif_env
                             val envlist = Envir.alist_of newenv
                             

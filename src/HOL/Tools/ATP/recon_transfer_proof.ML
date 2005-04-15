@@ -108,9 +108,6 @@ fun  extraAxs_to_string [] str = str
 
 
 
-
-
-
 fun is_axiom ( num:int,Axiom, str) = true
 |   is_axiom (num, _,_) = false
 
@@ -128,8 +125,7 @@ fun assoc_snd a [] = raise Recon_Base.Noassoc
 |   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_snd x ys))])
 *)
 (*FIX - should this have vars in it? *)
-fun there_out_of_order xs ys = let val foo = (checkorder xs ys [] ([],[],[])) 
-                                   
+fun there_out_of_order xs ys = let val foo = (checkorder xs ys [] ([],[],[]))                        
                                in 
                                    true
                               end
@@ -155,9 +151,6 @@ fun onestr ls = String.concat (map String.concat ls);
 fun thmstrings [] str = str
 |   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
 
-fun onelist [] newlist = newlist
-|   onelist (x::xs) newlist = onelist xs (newlist@x)
-
 
  fun get_axioms_used proof_steps thmstring = let 
                                              val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
@@ -175,7 +168,7 @@ fun onelist [] newlist = newlist
                                            
                                             val distvars = distinct (fold append vars [])
                                             val clause_terms = map prop_of clauses  
-                                            val clause_frees = onelist (map term_frees clause_terms) []
+                                            val clause_frees = List.concat (map term_frees clause_terms)
 
                                             val frees = map lit_string_with_nums clause_frees;
 
@@ -313,7 +306,7 @@ fun spassString_to_reconString proofstr thmstring =
                                                   val _ = TextIO.output (outfile, (thmstring))
                                                   val _ =  TextIO.closeOut outfile
                                                   val proofextract = extract_proof proofstr
-                                                  val tokens = fst(lex proofextract)
+                                                  val tokens = #1(lex proofextract)
                                                      
                                               (***********************************)
                                               (* parse spass proof into datatype *)
@@ -352,8 +345,8 @@ fun spassString_to_reconString proofstr thmstring =
                                                   (* turn the proof into a string *)
                                                   val reconProofStr = proofs_to_string proof ""
                                                   (* do the bit for the Isabelle ordered axioms at the top *)
-                                                  val ax_nums = map fst numcls
-                                                  val ax_strs = map get_meta_lits_bracket (map snd numcls)
+                                                  val ax_nums = map #1 numcls
+                                                  val ax_strs = map get_meta_lits_bracket (map #2 numcls)
                                                   val numcls_strs = zip ax_nums ax_strs
                                                   val num_cls_vars =  map (addvars vars) numcls_strs;
                                                   val reconIsaAxStr = origAxs_to_string (zip ax_nums ax_with_vars) ""
@@ -449,7 +442,7 @@ val obviousstep = (a (Word "Obvious")) ++ (a (Other "("))
 
 
  val number_list_step =
-        ( number ++ many ((a (Other ",") ++ number)>> snd))
+        ( number ++ many ((a (Other ",") ++ number)>> #2))
         >> (fn (a,b) => (a::b))
         
  val numberlist_step = a (Other "[")  ++ a (Other "]")
@@ -510,9 +503,9 @@ fun goalstring_step input= (anytoken_step ++ many (anytoken_step )
     
  val lines_step = many linestep
 
- val alllines_step = (term_lists_step ++ lines_step ) ++ finished >> fst
+ val alllines_step = (term_lists_step ++ lines_step ) ++ finished >> #1
     
- val parse_step = fst o alllines_step
+ val parse_step = #1 o alllines_step
 
 
  (*
@@ -702,7 +695,7 @@ val reconstr = "[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%]
 val thmstring = " (ALL xa::'a::type.   (~ (P::'a::type => bool) (x::'a::type) | P xa) & (~ P xa | P x)) & (((P::'a::type => bool) (xa::'a::type) | (ALL x::'a::type. P x)) &((ALL x::'a::type. ~ P x) | ~ P (xb::'a::type)))";
 *)
 
-fun apply_res_thm str goalstring  = let val tokens = fst (lex str);
+fun apply_res_thm str goalstring  = let val tokens = #1 (lex str);
 
                                    val (frees,recon_steps) = parse_step tokens 
                                    val isar_str = to_isar_proof (frees, recon_steps, goalstring)
