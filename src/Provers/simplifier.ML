@@ -321,32 +321,38 @@ fun local_simpset_of ctxt =
 
 (* Jia: added DeltaSimpsetArgs and DeltaSimpset for delta_simpset
 	also added methods to retrieve them. *)
+(* CB: changed "delta simpsets" to context data,
+       moved counter to here, it is no longer a ref *)
 
 structure DeltaSimpsetArgs =
 struct
-  val name = "delta_simpset";
-  type T = Thm.thm list; (*the type is thm list*)
-  val empty = [];
+  val name = "Provers/delta_simpset";
+  type T = Thm.thm list * int;  (*the type is thm list * int*)
+  fun init _ = ([], 0);
+  fun print ctxt thms = ();
 end;
 
-structure DeltaSimpset = DeltaDataFun(DeltaSimpsetArgs);
-val get_delta_simpset = DeltaSimpset.get;
-val put_delta_simpset = DeltaSimpset.put;
+structure DeltaSimpsetData = ProofDataFun(DeltaSimpsetArgs);
 
-val get_new_thm_id = ProofContext.get_delta_count_incr;
+val get_delta_simpset = #1 o DeltaSimpsetData.get;
+fun put_delta_simpset ss = DeltaSimpsetData.map (fn (_, i) => (ss, i));
+fun delta_increment ctxt =
+  let val ctxt' = DeltaSimpsetData.map (fn (ss, i) => (ss, i+1)) ctxt
+  in (ctxt', #2 (DeltaSimpsetData.get ctxt'))
+  end;
 
 (* Jia: added to rename a local thm if necessary *) 
 local 
 fun rename_thm' (ctxt,thm) =
-  let val new_id = get_new_thm_id ctxt
-      val new_name = "anon_" ^ (string_of_int new_id)
+  let val (new_ctxt, new_id) = delta_increment ctxt
+      val new_name = "anon_simp_" ^ (string_of_int new_id)
   in
-  Thm.name_thm(new_name,thm)
+    (new_ctxt, Thm.name_thm(new_name,thm))
 end;
 
 in
 
-fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else thm;
+fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else (ctxt, thm);
 
 end
 
@@ -371,11 +377,12 @@ val simp_del_global = change_global_ss (op delsimps);
 fun simp_add_local (ctxt,th) = 
     let val delta_ss = get_delta_simpset ctxt
 	val thm_name = Thm.name_of_thm th
-        val th' = if (thm_name = "") then rename_thm (ctxt,th)  else th
+        val (ctxt', th') =
+          if (thm_name = "") then rename_thm (ctxt,th)  else (ctxt, th)
 	val new_dss = th'::delta_ss
-	val ctxt' = put_delta_simpset new_dss ctxt 
+	val ctxt'' = put_delta_simpset new_dss ctxt' 
     in
-	change_local_ss (op addsimps) (ctxt',th)
+	change_local_ss (op addsimps) (ctxt'',th)
     end;
 
 val simp_del_local = change_local_ss (op delsimps);
@@ -523,7 +530,8 @@ fun setup_methods more_mods = Method.add_methods
 
 (** theory setup **)
 
-val setup = [GlobalSimpset.init, LocalSimpset.init, setup_attrs];
+val setup = [GlobalSimpset.init, LocalSimpset.init, DeltaSimpsetData.init,
+  setup_attrs];
 fun method_setup mods = [setup_methods mods];
 
 fun easy_setup reflect trivs =
