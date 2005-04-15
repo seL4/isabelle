@@ -1,6 +1,7 @@
 (*  Title:      HOLCF/domain/theorems.ML
     ID:         $Id$
     Author:     David von Oheimb
+                New proofs/tactics by Brian Huffman
 
 Proof generator for domain section.
 *)
@@ -26,8 +27,6 @@ fun pg'' thy defs t = let val sg = sign_of thy;
 fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf 
                                 | prems=> (cut_facts_tac prems 1)::tacsf);
 
-local val trueI2 = prove_goal HOL.thy"f~=x ==> True"(fn _ => [rtac TrueI 1]) in
-val kill_neq_tac = dtac trueI2 end;
 fun case_UU_tac rews i v =      case_tac (v^"=UU") i THEN
                                 asm_simp_tac (HOLCF_ss addsimps rews) i;
 
@@ -62,7 +61,6 @@ let
 val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
 val pg = pg' thy;
 
-
 (* ----- getting the axioms and definitions --------------------------------- *)
 
 local fun ga s dn = get_thm thy (dn ^ "." ^ s, NONE) in
@@ -84,89 +82,117 @@ val dc_rep  = %%:(dname^"_rep");
 val dc_copy = %%:(dname^"_copy");
 val x_name = "x";
 
-val (rep_strict, abs_strict) = let 
-         val r = ax_rep_iso RS (ax_abs_iso RS (allI  RSN(2,allI RS iso_strict)))
-               in (r RS conjunct1, r RS conjunct2) end;
-val abs_defin' = pg [] ((dc_abs`%x_name === UU) ==> (%:x_name === UU)) [
-                           res_inst_tac [("t",x_name)] (ax_abs_iso RS subst) 1,
-                                etac ssubst 1, rtac rep_strict 1];
-val rep_defin' = pg [] ((dc_rep`%x_name === UU) ==> (%:x_name === UU)) [
-                           res_inst_tac [("t",x_name)] (ax_rep_iso RS subst) 1,
-                                etac ssubst 1, rtac abs_strict 1];
+val iso_locale = iso_intro OF [ax_abs_iso, ax_rep_iso];
+val abs_strict = iso_locale RS iso_abs_strict;
+val rep_strict = iso_locale RS iso_rep_strict;
+val abs_defin' = iso_locale RS iso_abs_defin';
+val rep_defin' = iso_locale RS iso_rep_defin';
 val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
 
-local 
-val iso_swap = pg [] (dc_rep`%"x" === %:"y" ==> %:"x" === dc_abs`%"y") [
-                            dres_inst_tac [("f",dname^"_abs")] cfun_arg_cong 1,
-                            etac (ax_rep_iso RS subst) 1];
-fun exh foldr1 cn quant foldr2 var = let
-  fun one_con (con,args) = let val vns = map vname args in
-    Library.foldr quant (vns, foldr2 ((%:x_name === con_app2 con (var vns) vns)::
-                              map (defined o (var vns)) (nonlazy args))) end
-  in foldr1 ((cn(%:x_name===UU))::map one_con cons) end;
+(* ----- generating beta reduction rules from definitions-------------------- *)
+
+local
+  fun k NONE = cont_const | k (SOME x) = x;
+  
+  fun ap NONE NONE = NONE
+  |   ap x    y    = SOME (standard (cont2cont_Rep_CFun OF [k x, k y]));
+
+  fun var 0 = [SOME cont_id]
+  |   var n = NONE :: var (n-1);
+
+  fun zip []      []      = []
+  |   zip []      (y::ys) = (ap NONE y   ) :: zip [] ys
+  |   zip (x::xs) []      = (ap x    NONE) :: zip xs []
+  |   zip (x::xs) (y::ys) = (ap x    y   ) :: zip xs ys
+
+  fun lam [] = ([], cont_const)
+  |   lam (x::ys) = let val x' = k x
+                        val Lx = x' RS cont2cont_LAM
+                    in  (map (fn y => SOME (k y RS Lx)) ys, x')
+                    end;
+
+  fun term_conts (Bound n) = (var n, [])
+  |   term_conts (Const _) = ([],[])
+  |   term_conts (Const _ $ Abs (_,_,t)) = let
+          val (cs,ls) = term_conts t
+          val (cs',l) = lam cs
+          in  (cs',l::ls)
+          end
+  |   term_conts (Const _ $ f $ t)
+         = (zip (fst (term_conts f)) (fst (term_conts t)), [])
+  |   term_conts t = let val dummy = prin t in ([],[]) end;
+
+  fun arglist (Const _ $ Abs (s,_,t)) = let
+        val (vars,body) = arglist t
+        in  (s :: vars, body) end
+  |   arglist t = ([],t);
+  fun bind_fun vars t = Library.foldr mk_All (vars,t);
+  fun bound_vars 0 = [] | bound_vars i = (Bound (i-1) :: bound_vars (i-1));
 in
-val casedist = let 
-            fun common_tac thm = rtac thm 1 THEN contr_tac 1;
-            fun unit_tac true = common_tac upE1
-            |   unit_tac _    = all_tac;
-            fun prod_tac []          = common_tac oneE
-            |   prod_tac [arg]       = unit_tac (is_lazy arg)
-            |   prod_tac (arg::args) = 
-                                common_tac sprodE THEN
-                                kill_neq_tac 1 THEN
-                                unit_tac (is_lazy arg) THEN
-                                prod_tac args;
-            fun sum_rest_tac p = SELECT_GOAL(EVERY[
-                                rtac p 1,
-                                rewrite_goals_tac axs_con_def,
-                                dtac iso_swap 1,
-                                simp_tac HOLCF_ss 1,
-                                DETERM_UNTIL_SOLVED(fast_tac HOL_cs 1)]) 1;
-            fun sum_tac [(_,args)]       [p]        = 
-                                prod_tac args THEN sum_rest_tac p
-            |   sum_tac ((_,args)::cons') (p::prems) = DETERM(
-                                common_tac ssumE THEN
-                                kill_neq_tac 1 THEN kill_neq_tac 2 THEN
-                                prod_tac args THEN sum_rest_tac p) THEN
-                                sum_tac cons' prems
-            |   sum_tac _ _ = Imposs "theorems:sum_tac";
-          in pg'' thy [] (exh (fn l => Library.foldr (op ===>) (l,mk_trp(%:"P")))
-                              (fn T => T ==> %:"P") mk_All
-                              (fn l => Library.foldr (op ===>) (map mk_trp l,
-                                                            mk_trp(%:"P")))
-                              bound_arg)
-                             (fn prems => [
-                                cut_facts_tac [excluded_middle] 1,
-                                etac disjE 1,
-                                rtac (hd prems) 2,
-                                etac rep_defin' 2,
-                                if length cons = 1 andalso 
-                                   length (snd(hd cons)) = 1 andalso 
-                                   not(is_lazy(hd(snd(hd cons))))
-                                then rtac (hd (tl prems)) 1 THEN atac 2 THEN
-                                     rewrite_goals_tac axs_con_def THEN
-                                     simp_tac (HOLCF_ss addsimps [ax_rep_iso]) 1
-                                else sum_tac cons (tl prems)])end;
-val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %:)))[
-                                rtac casedist 1,
-                                DETERM_UNTIL_SOLVED(fast_tac HOL_cs 1)];
+  fun appl_of_def def = let
+        val (_ $ con $ lam) = concl_of def
+        val (vars, rhs) = arglist lam
+        val lhs = Library.foldl (op `) (con, bound_vars (length vars));
+        val appl = bind_fun vars (lhs == rhs)
+        val ([],cs) = term_conts lam
+        val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs
+        in pg (def::betas) appl [rtac reflexive_thm 1] end;
+end;
+
+val when_appl = appl_of_def ax_when_def;
+val con_appls = map appl_of_def axs_con_def;
+
+local
+  fun arg2typ n arg = let val t = TVar (("'a",n),["Pcpo.pcpo"])
+                      in (n+1, if is_lazy arg then mk_uT t else t) end;
+  fun args2typ n [] = (n,oneT)
+  |   args2typ n [arg] = arg2typ n arg
+  |   args2typ n (arg::args) = let val (n1,t1) = arg2typ n arg;
+                                   val (n2,t2) = args2typ n1 args
+			       in  (n2, mk_sprodT (t1, t2)) end;
+  fun cons2typ n [] = (n,oneT)
+  |   cons2typ n [con] = args2typ n (snd con)
+  |   cons2typ n (con::cons) = let val (n1,t1) = args2typ n (snd con);
+                                   val (n2,t2) = cons2typ n1 cons
+			       in  (n2, mk_ssumT (t1, t2)) end;
+in
+  fun cons2ctyp cons = ctyp_of (sign_of thy) (snd (cons2typ 1 cons));
+end;
+
+local 
+  val iso_swap = iso_locale RS iso_iso_swap;
+  fun one_con (con,args) = let val vns = map vname args in
+    Library.foldr mk_ex (vns, foldr' mk_conj ((%:x_name === con_app2 con %: vns)::
+                              map (defined o %:) (nonlazy args))) end;
+  val exh = foldr' mk_disj ((%:x_name===UU)::map one_con cons);
+  val my_ctyp = cons2ctyp cons;
+  val thm1 = instantiate' [SOME my_ctyp] [] exh_start;
+  val thm2 = rewrite_rule (map mk_meta_eq ex_defined_iffs) thm1;
+  val thm3 = rewrite_rule [mk_meta_eq conj_assoc] thm2;
+in
+val exhaust = pg con_appls (mk_trp exh)[
+(* first 3 rules replace "x = UU \/ P" with "rep$x = UU \/ P" *)
+			rtac disjE 1,
+			etac (rep_defin' RS disjI1) 2,
+			etac disjI2 2,
+			rewrite_goals_tac [mk_meta_eq iso_swap],
+			rtac thm3 1];
+val casedist = standard (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
 end;
 
 local 
   fun bind_fun t = Library.foldr mk_All (when_funs cons,t);
   fun bound_fun i _ = Bound (length cons - i);
   val when_app  = Library.foldl (op `) (%%:(dname^"_when"), mapn bound_fun 1 cons);
-  val when_appl = pg [ax_when_def] (bind_fun(mk_trp(when_app`%x_name ===
-             when_body cons (fn (m,n)=> bound_fun (n-m) 0)`(dc_rep`%x_name))))[
-                                simp_tac HOLCF_ss 1];
 in
-val when_strict = pg [] (bind_fun(mk_trp(strict when_app))) [
-                        simp_tac(HOLCF_ss addsimps [when_appl,rep_strict]) 1];
-val when_apps = let fun one_when n (con,args) = pg axs_con_def 
+val when_strict = pg [when_appl, mk_meta_eq rep_strict]
+			(bind_fun(mk_trp(strict when_app)))
+			[resolve_tac [sscase1,ssplit1,strictify1] 1];
+val when_apps = let fun one_when n (con,args) = pg (when_appl :: con_appls)
                 (bind_fun (lift_defined %: (nonlazy args, 
                 mk_trp(when_app`(con_app con args) ===
                        mk_cRep_CFun(bound_fun n 0,map %# args)))))[
-                asm_simp_tac (HOLCF_ss addsimps [when_appl,ax_abs_iso]) 1];
+                asm_simp_tac (HOLCF_ss addsimps [ax_abs_iso]) 1];
         in mapn one_when 1 cons end;
 end;
 val when_rews = when_strict::when_apps;
@@ -176,7 +202,7 @@ val when_rews = when_strict::when_apps;
 val dis_rews = let
   val dis_stricts = map (fn (con,_) => pg axs_dis_def (mk_trp(
                              strict(%%:(dis_name con)))) [
-                                simp_tac (HOLCF_ss addsimps when_rews) 1]) cons;
+                                rtac when_strict 1]) cons;
   val dis_apps = let fun one_dis c (con,args)= pg axs_dis_def
                    (lift_defined %: (nonlazy args,
                         (mk_trp((%%:(dis_name c))`(con_app con args) ===
@@ -192,7 +218,7 @@ val dis_rews = let
 in dis_stricts @ dis_defins @ dis_apps end;
 
 val con_stricts = List.concat(map (fn (con,args) => map (fn vn =>
-                        pg (axs_con_def) 
+                        pg con_appls
                            (mk_trp(con_app2 con (fn arg => if vname arg = vn 
                                         then UU else %# arg) args === UU))[
                                 asm_simp_tac (HOLCF_ss addsimps [abs_strict]) 1]
@@ -304,7 +330,7 @@ val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                                  1 o vname)
                          (List.filter (fn a => not (is_rec a orelse is_lazy a)) args)
                         @[asm_simp_tac (HOLCF_ss addsimps when_apps) 1,
-                          simp_tac (HOLCF_ss addsimps axs_con_def) 1]))cons;
+                          simp_tac (HOLCF_ss addsimps con_appls) 1]))cons;
 val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                                         (con_app con args) ===UU))
      (let val rews = cfst_strict::csnd_strict::copy_strict::copy_apps@con_rews
@@ -586,7 +612,6 @@ val coind = pg [] (mk_trp(%%:(comp_dname^"_bisim") $ %:"R") ===>
                                   fast_tac HOL_cs 1])
                                 take_lemmas));
 end; (* local *)
-
 
 in thy |> Theory.add_path comp_dnam
        |> (#1 o (PureThy.add_thmss (map Thm.no_attributes [
