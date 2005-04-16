@@ -537,17 +537,9 @@ fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
                  (map (Thm.assume o cert o tinst_tab_term tinst) hyps))
         end;
 
-fun tinst_tab_elem _ tinst (Fixes fixes) =
-      Fixes (map (fn (x, T, mx) => (x, Option.map (tinst_tab_type tinst) T, mx)) fixes)
-  | tinst_tab_elem _ tinst (Assumes asms) =
-      Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
-        (tinst_tab_term tinst t,
-          (map (tinst_tab_term tinst) ps, map (tinst_tab_term tinst) qs))))) asms)
-  | tinst_tab_elem _ tinst (Defines defs) =
-      Defines (map (apsnd (fn (t, ps) =>
-        (tinst_tab_term tinst t, map (tinst_tab_term tinst) ps))) defs)
-  | tinst_tab_elem sg tinst (Notes facts) =
-      Notes (map (apsnd (map (apfst (map (tinst_tab_thm sg tinst))))) facts);
+fun tinst_tab_elem sg tinst =
+  map_values (tinst_tab_type tinst) (tinst_tab_term tinst) (tinst_tab_thm sg tinst);
+
 
 (* instantiate TFrees and Frees *)
 
@@ -597,17 +589,8 @@ fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
                  (map (Thm.assume o cert o inst_tab_term (inst, tinst)) hyps))
         end;
 
-fun inst_tab_elem _ (_, tinst) (Fixes fixes) =
-      Fixes (map (fn (x, T, mx) => (x, Option.map (tinst_tab_type tinst) T, mx)) fixes)
-  | inst_tab_elem _ inst (Assumes asms) =
-      Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
-        (inst_tab_term inst t,
-          (map (inst_tab_term inst) ps, map (inst_tab_term inst) qs))))) asms)
-  | inst_tab_elem _ inst (Defines defs) =
-      Defines (map (apsnd (fn (t, ps) =>
-        (inst_tab_term inst t, map (inst_tab_term inst) ps))) defs)
-  | inst_tab_elem sg inst (Notes facts) =
-      Notes (map (apsnd (map (apfst (map (inst_tab_thm sg inst))))) facts);
+fun inst_tab_elem sg inst =
+  map_values (tinst_tab_type (#2 inst)) (inst_tab_term inst) (inst_tab_thm sg inst);
 
 fun inst_tab_elems sign inst ((n, ps), elems) =
       ((n, map (inst_tab_term inst) ps), map (inst_tab_elem sign inst) elems);
@@ -1905,8 +1888,6 @@ end;
 (** Interpretation commands **)
 
 local
-
-(** instantiate free vars **)
 
 (* extract proof obligations (assms and defs) from elements *)
 
