@@ -138,6 +138,8 @@ sig
   val add_syntax_i: (bstring * typ * mixfix) list -> sg -> sg
   val add_modesyntax: (string * bool) * (bstring * string * mixfix) list -> sg -> sg
   val add_modesyntax_i: (string * bool) * (bstring * typ * mixfix) list -> sg -> sg
+  val del_modesyntax: (string * bool) * (bstring * string * mixfix) list -> sg -> sg
+  val del_modesyntax_i: (string * bool) * (bstring * typ * mixfix) list -> sg -> sg
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -162,6 +164,7 @@ sig
   val hide_space_i: bool -> string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val data_kinds: data -> string list
+  val print_all_data: sg -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val merge: sg * sg -> sg
   val copy: sg -> sg
@@ -302,7 +305,7 @@ fun map_syntax f (Syn (syntax, trfuns)) = Syn (f syntax, trfuns);
 
 fun make_syntax sg (Syn (syntax, (atrs, trs, tr's, atr's))) =
   let
-    fun apply (s, (f, _: stamp)) = (s, f sg);
+    fun apply (c, (f, s)) = (c, (f sg, s));
     fun prep tab = map apply (Symtab.dest tab);
     fun prep' tab = map apply (Symtab.dest_multi tab);
   in syntax |> Syntax.extend_trfuns (prep atrs, prep trs, prep' tr's, prep' atr's) end;
@@ -314,16 +317,16 @@ fun syn_of (sg as Sg ({syn, ...}, _)) = make_syntax sg syn;
 
 fun extend_trfuns (atrs, trs, tr's, atr's)
     (Syn (syn, (parse_ast_trtab, parse_trtab, print_trtab, print_ast_trtab))) =
-  Syn (syn, (Syntax.extend_trtab parse_ast_trtab atrs "parse ast translation",
-    Syntax.extend_trtab parse_trtab trs "parse translation",
-    Syntax.extend_tr'tab print_trtab tr's,
-    Syntax.extend_tr'tab print_ast_trtab atr's));
+  Syn (syn, (Syntax.extend_trtab "parse ast translation" atrs parse_ast_trtab,
+    Syntax.extend_trtab "parse translation" trs parse_trtab,
+    Syntax.extend_tr'tab tr's print_trtab,
+    Syntax.extend_tr'tab atr's print_ast_trtab));
 
 fun merge_trfuns
     (parse_ast_trtab1, parse_trtab1, print_trtab1, print_ast_trtab1)
     (parse_ast_trtab2, parse_trtab2, print_trtab2, print_ast_trtab2) =
-  (Syntax.merge_trtabs parse_ast_trtab1 parse_ast_trtab2 "parse ast translation",
-    Syntax.merge_trtabs parse_trtab1 parse_trtab2 "parse translation",
+  (Syntax.merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,
+    Syntax.merge_trtabs "parse translation" parse_trtab1 parse_trtab2,
     Syntax.merge_tr'tabs print_trtab1 print_trtab2,
     Syntax.merge_tr'tabs print_ast_trtab1 print_ast_trtab2);
 
@@ -423,6 +426,9 @@ fun get_data kind f (sg as Sg (_, {data = Data tab, ...})) =
 fun print_data kind (sg as Sg (_, {data = Data tab, ...})) =
   let val (e, (_, _, _, prt)) = lookup_data sg tab kind
   in prt sg e handle exn => err_method ("print" ^ of_theory sg) (Object.name_of_kind kind) exn end;
+
+fun print_all_data (sg as Sg (_, {data = Data tab, ...})) =
+  app (fn kind => print_data kind sg) (map (#1 o #2) (Symtab.dest tab));
 
 fun put_data_sg sg (Data tab) kind f x =
   Data (Symtab.update ((Object.name_of_kind kind,
@@ -1001,7 +1007,7 @@ fun read_cnst sg syn tsig (path, spaces) (c, ty_src, mx) =
   (c, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) ty_src, mx)
     handle ERROR => err_in_const (const_name path c mx);
 
-fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data)
+fun change_cnsts change_gram rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data)
     raw_consts =
   let
     val prep_typ = compress_type o Type.varifyT o Type.no_tvars o
@@ -1014,18 +1020,24 @@ fun ext_cnsts rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data
       if syn_only then []
       else decls_of path Syntax.const_name consts;
   in
-    (map_syntax (Syntax.extend_const_gram (is_logtype sg) prmode consts) syn, tsig,
+    (map_syntax (change_gram (is_logtype sg) prmode consts) syn, tsig,
       Symtab.extend (ctab, map (fn (c, T) => (c, (T, stamp ()))) decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
       (path, add_names spaces constK (map fst decls)), data)
   end;
 
+fun ext_cnsts rd = change_cnsts Syntax.extend_const_gram rd;
+fun rem_cnsts rd = change_cnsts Syntax.remove_const_gram rd;
+
 fun ext_consts_i x = ext_cnsts no_read false Syntax.default_mode x;
-fun ext_consts x = ext_cnsts read_cnst false Syntax.default_mode x;
+fun ext_consts x   = ext_cnsts read_cnst false Syntax.default_mode x;
 fun ext_syntax_i x = ext_cnsts no_read true Syntax.default_mode x;
-fun ext_syntax x = ext_cnsts read_cnst true Syntax.default_mode x;
-fun ext_modesyntax_i x y (prmode, consts) = ext_cnsts no_read true prmode x y consts;
-fun ext_modesyntax x y (prmode, consts) = ext_cnsts read_cnst true prmode x y consts;
+fun ext_syntax x   = ext_cnsts read_cnst true Syntax.default_mode x;
+
+fun ext_modesyntax_i x y (m, cs) = ext_cnsts no_read true m x y cs;
+fun ext_modesyntax x y (m, cs)   = ext_cnsts read_cnst true m x y cs;
+fun rem_modesyntax_i x y (m, cs) = rem_cnsts no_read true m x y cs;
+fun rem_modesyntax x y (m, cs)   = rem_cnsts read_cnst true m x y cs;
 
 
 (* add type classes *)
@@ -1070,18 +1082,26 @@ fun ext_classrel int sg (syn, tsig, ctab, (path, spaces), data) pairs =
 
 (* add translation functions *)
 
+local
+
+fun mk trs = map Syntax.mk_trfun trs;
+
 fun ext_trfs ext non_typed sg (syn, tsig, ctab, names, data) (atrs, trs, tr's, atr's) =
-  let val syn' = syn |> ext (atrs, trs, map (apsnd non_typed) tr's, atr's)
+  let val syn' = syn |> ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's)
   in make_syntax sg syn'; (syn', tsig, ctab, names, data) end;
 
 fun ext_trfsT ext sg (syn, tsig, ctab, names, data) tr's =
-  let val syn' = syn |> ext ([], [], tr's, [])
+  let val syn' = syn |> ext ([], [], mk tr's, [])
   in make_syntax sg syn'; (syn', tsig, ctab, names, data) end;
+
+in
 
 fun ext_trfuns sg = ext_trfs (map_syntax o Syntax.extend_trfuns) Syntax.non_typed_tr' sg;
 fun ext_trfunsT sg = ext_trfsT (map_syntax o Syntax.extend_trfuns) sg;
 fun ext_advanced_trfuns sg = ext_trfs extend_trfuns Syntax.non_typed_tr'' sg;
 fun ext_advanced_trfunsT sg = ext_trfsT extend_trfuns sg;
+
+end;
 
 
 (* add token translation functions *)
@@ -1169,6 +1189,8 @@ val add_syntax           = extend_sign true ext_syntax "#";
 val add_syntax_i         = extend_sign true ext_syntax_i "#";
 val add_modesyntax       = extend_sign true ext_modesyntax "#";
 val add_modesyntax_i     = extend_sign true ext_modesyntax_i "#";
+val del_modesyntax       = extend_sign true rem_modesyntax "#";
+val del_modesyntax_i     = extend_sign true rem_modesyntax_i "#";
 val add_trfuns           = extend_sign true ext_trfuns "#";
 val add_trfunsT          = extend_sign true ext_trfunsT "#";
 val add_advanced_trfuns  = extend_sign true ext_advanced_trfuns "#";
