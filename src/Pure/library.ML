@@ -14,7 +14,7 @@ infix |> |>> |>>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
 
 infix 3 oo ooo oooo;
 
-signature LIBRARY =
+signature BASIC_LIBRARY =
 sig
   (*functions*)
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
@@ -192,6 +192,8 @@ sig
   val \\ : ''a list * ''a list -> ''a list
   val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
   val gen_rems: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
+  val gen_remove: ('a * 'b -> bool) -> 'b -> 'a list -> 'a list
+  val remove: ''a -> ''a list -> ''a list
   val gen_distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val distinct: ''a list -> ''a list
   val findrep: ''a list -> ''a list
@@ -256,9 +258,9 @@ sig
   val scanwords: (string -> bool) -> string list -> string list
 end;
 
-signature LIBRARY_CLOSED =
+signature LIBRARY =
 sig
-  include LIBRARY
+  include BASIC_LIBRARY
 
   val the: 'a option -> 'a
   val if_none: 'a option -> 'a -> 'a
@@ -279,7 +281,7 @@ sig
   val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
 end;
 
-structure Library: LIBRARY_CLOSED =
+structure Library: LIBRARY =
 struct
 
 
@@ -933,6 +935,8 @@ fun ys \\ xs = foldl (op \) (ys,xs);
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
 fun gen_rems eq (xs, ys) = filter_out (fn x => gen_mem eq (x, ys)) xs;
 
+fun gen_remove eq x xs = gen_rem eq (xs, x);
+fun remove x xs = gen_rem (op =) (xs, x);
 
 (*makes a list of the distinct members of the input; preserves order, takes
   first of equal elements*)
@@ -1289,5 +1293,5 @@ fun scanwords is_let cs =
 
 end;
 
-structure OpenLibrary: LIBRARY = Library;
-open OpenLibrary;
+structure BasicLibrary: BASIC_LIBRARY = Library;
+open BasicLibrary;
