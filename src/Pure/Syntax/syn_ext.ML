@@ -11,6 +11,9 @@ sig
   val constrainC: string
   val typeT: typ
   val max_pri: int
+  val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
+  val mk_trfun: string * 'a -> string * ('a * stamp)
+  val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
 end;
 
 signature SYN_EXT =
@@ -36,38 +39,41 @@ sig
       xprods: xprod list,
       consts: string list,
       prmodes: string list,
-      parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
+      parse_ast_translation: (string * ((Ast.ast list -> Ast.ast) * stamp)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
-      parse_translation: (string * (term list -> term)) list,
-      print_translation: (string * (bool -> typ -> term list -> term)) list,
+      parse_translation: (string * ((term list -> term) * stamp)) list,
+      print_translation: (string * ((bool -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
-      print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
+      print_ast_translation: (string * ((Ast.ast list -> Ast.ast) * stamp)) list,
       token_translation: (string * string * (string -> string * real)) list}
   val mfix_args: string -> int
   val escape_mfix: string -> string
   val syn_ext': bool -> (string -> bool) -> mfix list ->
-    string list -> (string * (Ast.ast list -> Ast.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    string list -> (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((term list -> term) * stamp)) list *
+    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: mfix list -> string list ->
-    (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
-    (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((term list -> term) * stamp)) list *
+    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (string -> string * real)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_const_names: string list -> syn_ext
   val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_trfuns:
-    (string * (Ast.ast list -> Ast.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (bool -> typ -> term list -> term)) list *
-    (string * (Ast.ast list -> Ast.ast)) list -> syn_ext
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * ((term list -> term) * stamp)) list *
+    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_tokentrfuns: (string * string * (string -> string * real)) list -> syn_ext
   val pure_ext: syn_ext
 end;
 
-structure SynExt : SYN_EXT =
+structure SynExt: SYN_EXT =
 struct
 
 
@@ -313,13 +319,13 @@ datatype syn_ext =
     xprods: xprod list,
     consts: string list,
     prmodes: string list,
-    parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
+    parse_ast_translation: (string * ((Ast.ast list -> Ast.ast) * stamp)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
-    parse_translation: (string * (term list -> term)) list,
-    print_translation: (string * (bool -> typ -> term list -> term)) list,
+    parse_translation: (string * ((term list -> term) * stamp)) list,
+    print_translation: (string * ((bool -> typ -> term list -> term) * stamp)) list,
     print_rules: (Ast.ast * Ast.ast) list,
-    print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
-    token_translation: (string * string * (string -> string * real)) list}
+    print_ast_translation: (string * ((Ast.ast list -> Ast.ast) * stamp)) list,
+    token_translation: (string * string * (string -> string * real)) list};
 
 
 (* syn_ext *)
@@ -353,6 +359,10 @@ fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) [] ([], []);
 fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) [] rules;
 fun syn_ext_trfuns trfuns = syn_ext [] [] trfuns [] ([], []);
 fun syn_ext_tokentrfuns trfuns = syn_ext [] [] ([], [], [], []) trfuns ([], []);
+
+fun stamp_trfun s (c, f) = (c, (f, s));
+fun mk_trfun tr = stamp_trfun (stamp ()) tr;
+fun eq_trfun ((_, s1:stamp), (_, s2)) = s1 = s2;
 
 
 (* pure_ext *)
