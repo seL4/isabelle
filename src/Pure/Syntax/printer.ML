@@ -23,7 +23,8 @@ sig
   val sort_to_ast: (string -> (bool -> typ -> term list -> term) list) -> sort -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
-  val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
+  val extend_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
+  val remove_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: bool -> prtabs
     -> (string -> (Ast.ast list -> Ast.ast) list)
@@ -242,12 +243,14 @@ fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
 
 val empty_prtabs = [];
 
-fun extend_prtabs prtabs mode xprods =
+fun change_prtabs f mode xprods prtabs =
   let
     val fmts = List.mapPartial xprod_to_fmt xprods;
-    val tab = get_tab prtabs mode;
-    val new_tab = foldr Symtab.update_multi tab (rev fmts);
-  in overwrite (prtabs, (mode, new_tab)) end;
+    val tab = fold f fmts (get_tab prtabs mode);
+  in overwrite (prtabs, (mode, tab)) end;
+
+fun extend_prtabs m = change_prtabs (curry Symtab.update_multi) m;
+fun remove_prtabs m = change_prtabs (fn (c, prnp) => Symtab.map_entry c (remove prnp)) m;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
