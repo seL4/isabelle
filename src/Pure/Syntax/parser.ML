@@ -6,10 +6,11 @@ Isabelle's main parser (used for terms and types).
 *)
 
 signature PARSER =
-  sig
+sig
   type gram
   val empty_gram: gram
   val extend_gram: gram -> SynExt.xprod list -> gram
+  val make_gram: SynExt.xprod list -> gram
   val merge_grams: gram -> gram -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
@@ -17,12 +18,13 @@ signature PARSER =
     Tip of Lexicon.token
   val parse: gram -> string -> Lexicon.token list -> parsetree list
   val branching_level: int ref
-  end;
+end;
 
-
-structure Parser : PARSER =
+structure Parser: PARSER =
 struct
+
 open Lexicon SynExt;
+
 
 (** datatype gram **)
 
@@ -54,7 +56,7 @@ datatype gram =
 val UnknownStart = EndToken;       (*productions for which no starting token is
                                      known yet are associated with this token*)
 
-(* get all NTs that are connected with a list of NTs 
+(* get all NTs that are connected with a list of NTs
    (used for expanding chain list)*)
 fun connected_with _ [] relatives = relatives
   | connected_with chains (root :: roots) relatives =
@@ -68,18 +70,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
   | add_prods prods chains lambdas prod_count
               ((lhs, new_prod as (rhs, name, pri)) :: ps) =
     let
-      (*test if new_prod is a chain production*)
-      val (new_chain, chains') =
-        let (*store chain if it does not already exist*)
-            fun store_chain from =
-              let val old_tos = assocs chains from;
-              in if lhs mem old_tos then (NONE, chains)
-                 else (SOME from, overwrite (chains, (from, lhs ins old_tos)))
-              end;
-        in if pri = ~1 then
-             case rhs of [Nonterminal (id, ~1)] => store_chain id
-                       | _ => (NONE, chains)
-           else (NONE, chains)
+      val chain_from = case (pri, rhs) of (~1, [Nonterminal (id, ~1)]) => SOME id | _ => NONE;
+
+      (*store chain if it does not already exist*)
+      val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from =>
+        let val old_tos = assocs chains from in
+          if lhs mem old_tos then (NONE, chains)
+          else (SOME from, overwrite (chains, (from, lhs ins old_tos)))
         end;
 
       (*propagate new chain in lookahead and lambda lists;
@@ -140,7 +137,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 (*get lookahead for lambda NT*)
                 val ((dependent, l_starts), _) = Array.sub (prods, l);
 
-                (*check productions whose lookahead may depend on lamdba NT*)
+                (*check productions whose lookahead may depend on lambda NT*)
                 fun examine_prods [] add_lambda nt_dependencies added_tks
                                   nt_prods =
                       (add_lambda, nt_dependencies, added_tks, nt_prods)
@@ -155,7 +152,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         val new_tks = (if isSome tk then [valOf tk] else []) @
                           Library.foldl token_union ([], map starts_for_nt nts) \\
                           l_starts;
-  
+
                         val added_tks' = token_union (new_tks, added_tks);
 
                         val nt_dependencies' = nts union nt_dependencies;
@@ -168,7 +165,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 val prods' = p :: old_prods;
                             in copy tks (overwrite (nt_prods, (tk, prods')))
                             end;
-  
+
                         val nt_prods' =
                           let val new_opt_tks = map SOME new_tks;
                           in copy ((if new_lambda then [NONE] else []) @
@@ -231,8 +228,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
       (*insert production into grammar*)
       val (added_starts', prod_count') =
-        if isSome new_chain then (added_starts', prod_count)
-                                               (*don't store chain production*)
+        if isSome chain_from then (added_starts', prod_count)  (*don't store chain production*)
         else let
           (*lookahead tokens of new production and on which
             NTs lookahead depends*)
@@ -419,7 +415,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
           Library.foldl (op union) ([], map snd (snd (Array.sub (prods, tag)))) @
           map prod_of_chain (assocs chains tag);
       in map (pretty_prod name) nt_prods end;
-        
+
   in List.concat (map pretty_nt taglist) end;
 
 
@@ -506,6 +502,8 @@ fun extend_gram gram [] = gram
            chains = chains', lambdas = lambdas', prods = prods'}
   end;
 
+val make_gram = extend_gram empty_gram;
+
 
 (*Merge two grammars*)
 fun merge_grams gram_a gram_b =
@@ -542,7 +540,7 @@ fun merge_grams gram_a gram_b =
                  store_tag nt_count' tags' (tag-1)
               end;
       in (store_tag nt_count1 tags1 (nt_count2-1), table) end;
-    
+
     (*convert grammar2 tag to grammar1 tag*)
     fun convert_tag tag = Array.sub (tag_table, tag);
 
@@ -556,7 +554,7 @@ fun merge_grams gram_a gram_b =
             | make (from :: froms) result = make froms ((to_tag,
                 ([Nonterminal (convert_tag from, ~1)], "", ~1)) :: result);
         in mk_chain_prods cs (make froms [] @ result) end;
-        
+
     val chain_prods = mk_chain_prods chains2 [];
 
     (*convert prods2 array to productions*)
@@ -627,12 +625,12 @@ fun mkStates i minPrec lhsID rhss =
   let fun mkState (rhs, id, prodPrec) = (lhsID, prodPrec, [], rhs, id, i);
   in map mkState rhss end;
 
-(*Add parse tree to list and eliminate duplicates 
+(*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
 fun conc (t, prec:int) [] = (NONE, [(t, prec)])
   | conc (t, prec) ((t', prec') :: ts) =
       if t = t' then
-        (SOME prec', if prec' >= prec then (t', prec') :: ts 
+        (SOME prec', if prec' >= prec then (t', prec') :: ts
                      else (t, prec) :: ts)
       else
         let val (n, ts') = conc (t, prec) ts
@@ -702,7 +700,7 @@ let (*similar to token_assoc but does not automatically include 'NONE' key*)
       let fun assoc [] result = result
             | assoc ((keyi, pi) :: pairs) result =
                 if isSome keyi andalso matching_tokens (valOf keyi, key)
-                   orelse include_none andalso is_none keyi then 
+                   orelse include_none andalso is_none keyi then
                   assoc pairs (pi @ result)
                 else assoc pairs result;
       in assoc list [] end;
@@ -732,10 +730,10 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                   else            (*wanted precedence hasn't been parsed yet*)
                     let
                       val tk_prods = all_prods_for nt;
-                      
+
                       val States' = mkStates i minPrec nt
                                       (getRHS' minPrec usedPrec tk_prods);
-                    in (update_prec (nt, minPrec) used, 
+                    in (update_prec (nt, minPrec) used,
                         movedot_lambda S l @ States')
                     end
 
@@ -776,7 +774,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                       let val Slist = getS' A prec n Si;
                           val States' = map (movedot_nonterm tt) Slist;
                       in processS used' (States' @ States) (S :: Si, Sii) end
-              end 
+              end
             else
               let val Slist = getStates Estate i j A prec
               in processS used (map (movedot_nonterm tt) Slist @ States)
@@ -793,7 +791,7 @@ fun syntax_error toks allowed =
       else
         Pretty.block (Pretty.str "Inner syntax error at: \"" ::
           Pretty.breaks (map (Pretty.str o str_of_token)
-		 (rev (tl (rev toks)))) @
+                 (rev (tl (rev toks)))) @
           [Pretty.str "\""]);
     val expected =
       Pretty.strs ("Expected tokens: " :: map (quote o str_of_token) allowed);
@@ -810,7 +808,7 @@ fun produce prods chains stateset i indata prev_token =
               fun reduction _ minPrec _ (Terminal _ :: _, _, prec:int) =
                     if prec >= minPrec then true
                     else false
-                | reduction tk minPrec checked 
+                | reduction tk minPrec checked
                             (Nonterminal (nt, nt_prec) :: _, _, prec) =
                   if prec >= minPrec andalso not (nt mem checked) then
                     let val chained = connected_with chains [nt] [nt];
@@ -820,7 +818,7 @@ fun produce prods chains stateset i indata prev_token =
                     end
                   else false;
 
-              (*compute a list of allowed starting tokens 
+              (*compute a list of allowed starting tokens
                 for a list of nonterminals considering precedence*)
               fun get_starts [] result = result
                 | get_starts ((nt, minPrec:int) :: nts) result =
@@ -841,7 +839,7 @@ fun produce prods chains stateset i indata prev_token =
                   end;
 
               val nts =
-                List.mapPartial (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) => 
+                List.mapPartial (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) =>
                            SOME (a, prec) | _ => NONE)
                           (Array.sub (stateset, i-1));
               val allowed =
@@ -863,14 +861,14 @@ fun produce prods chains stateset i indata prev_token =
        end));
 
 
-fun get_trees l = List.mapPartial (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) 
+fun get_trees l = List.mapPartial (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE)
                             l;
 
 fun earley prods tags chains startsymbol indata =
   let
     val start_tag = case Symtab.lookup (tags, startsymbol) of
                        SOME tag => tag
-                     | NONE   => error ("parse: Unknown startsymbol " ^ 
+                     | NONE   => error ("parse: Unknown startsymbol " ^
                                         quote startsymbol);
     val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal EndToken],
                "", 0)];
