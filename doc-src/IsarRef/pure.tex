@@ -295,9 +295,10 @@ preceding the actual theory definition.
 
 \subsection{Syntax and translations}\label{sec:syn-trans}
 
-\indexisarcmd{syntax}\indexisarcmd{translations}
+\indexisarcmd{syntax}\indexisarcmd{no-syntax}\indexisarcmd{translations}
 \begin{matharray}{rcl}
   \isarcmd{syntax} & : & \isartrans{theory}{theory} \\
+  \isarcmd{no_syntax} & : & \isartrans{theory}{theory} \\
   \isarcmd{translations} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
@@ -310,10 +311,16 @@ preceding the actual theory definition.
 \railalias{leftharpoondown}{\isasymleftharpoondown}
 \railterm{leftharpoondown}
 
+\railalias{nosyntax}{no\_syntax}
+\railterm{nosyntax}
+
 \begin{rail}
-  'syntax' ('(' ( name | 'output' | name 'output' ) ')')? (constdecl +)
+  ('syntax' | nosyntax) mode? (constdecl +)
   ;
   'translations' (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
+  ;
+
+  mode: ('(' ( name | 'output' | name 'output' ) ')')
   ;
   transpat: ('(' nameref ')')? string
   ;
@@ -328,6 +335,10 @@ preceding the actual theory definition.
   the print mode that the grammar rules belong; unless the
   $\isarkeyword{output}$ indicator is given, all productions are added both to
   the input and output grammar.
+  
+\item [$\isarkeyword{no_syntax}~(mode)~decls$] removes grammar declarations
+  (and translations) resulting from $decls$, which are interpreted in the same
+  manner as for $\isarkeyword{syntax}$ above.
   
 \item [$\isarkeyword{translations}~rules$] specifies syntactic translation
   rules (i.e.\ macros): parse~/ print rules (\isasymrightleftharpoons), parse

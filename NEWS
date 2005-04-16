@@ -17,10 +17,9 @@ New in this Isabelle release
   means that function like Library.hd and Library.tl are gone, as the
   standard hd and tl functions suffice.
 
-  A number of functions, specifically those in the LIBRARY_CLOSED
-  signature, are now no longer exported to the top ML level, as they
-  are variants of standard functions.  The following suggests how
-  one can translate existing code:
+  A number of basic functions are now no longer exported to the top ML
+  level, as they are variants of standard functions.  The following
+  suggests how one can translate existing code:
 
     the x = valOf x
     if_none x y = getOpt(x,y)
@@ -107,6 +106,10 @@ New in this Isabelle release
   instead.  Note that non-logical types should be declared as
   'nonterminals' rather than 'types'.  INCOMPATIBILITY for new
   object-logic specifications.
+
+* Pure: command 'no_syntax' removes grammar declarations (and
+  translations) resulting from the given syntax specification, which
+  is interpreted in the same manner as for the 'syntax' command.
 
 * Pure: print_tac now outputs the goal through the trace channel.
 
