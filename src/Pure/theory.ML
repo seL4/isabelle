@@ -57,6 +57,8 @@ sig
   val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
   val add_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
   val add_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
+  val del_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
+  val del_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
   val add_trfuns:
     (string * (Syntax.ast list -> Syntax.ast)) list *
     (string * (term list -> term)) list *
@@ -219,6 +221,8 @@ val add_syntax             = ext_sign Sign.add_syntax;
 val add_syntax_i           = ext_sign Sign.add_syntax_i;
 val add_modesyntax         = curry (ext_sign Sign.add_modesyntax);
 val add_modesyntax_i       = curry (ext_sign Sign.add_modesyntax_i);
+val del_modesyntax         = curry (ext_sign Sign.del_modesyntax);
+val del_modesyntax_i       = curry (ext_sign Sign.del_modesyntax_i);
 val add_trfuns             = ext_sign Sign.add_trfuns;
 val add_trfunsT            = ext_sign Sign.add_trfunsT;
 val add_advanced_trfuns    = ext_sign Sign.add_advanced_trfuns;
