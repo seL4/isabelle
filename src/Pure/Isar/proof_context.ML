@@ -371,6 +371,8 @@ fun prep_mixfix' (_, _, NONE) = NONE
 fun prep_struct (x, _, NONE) = SOME x
   | prep_struct _ = NONE;
 
+fun mk trs = map Syntax.mk_trfun trs;
+
 in
 
 fun add_syntax decls =
@@ -384,11 +386,12 @@ fun add_syntax decls =
       val syn' = syn
         |> Syntax.extend_const_gram is_logtype ("", false) mxs_output
         |> Syntax.extend_const_gram is_logtype ("", true) mxs
-        |> Syntax.extend_trfuns ([], trs, [], []);
-    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
+        |> Syntax.extend_trfuns ([], mk trs, [], []);
+    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end);
 
 fun syn_of (Context {syntax = (syn, structs, _), ...}) =
-  syn |> Syntax.extend_trfuns (Syntax.struct_trfuns structs);
+  let val (atrs, trs, trs', atrs') = Syntax.struct_trfuns structs
+  in syn |> Syntax.extend_trfuns (mk atrs, mk trs, mk trs', mk atrs') end;
 
 end;
 
@@ -454,8 +457,6 @@ fun cert_typ_aux cert ctxt raw_T =
     handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
 in
-
-(* Read/certify type, using default sort information from context. *)
 
 val read_typ     = read_typ_aux Sign.read_typ';
 val read_typ_raw = read_typ_aux Sign.read_typ_raw';
@@ -1512,4 +1513,3 @@ fun print_thms_containing ctxt opt_limit ss =
 val setup = [ProofDataData.init];
 
 end;
-

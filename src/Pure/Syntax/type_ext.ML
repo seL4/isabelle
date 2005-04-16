@@ -24,7 +24,7 @@ sig
   val type_ext: SynExt.syn_ext
 end;
 
-structure TypeExt : TYPE_EXT =
+structure TypeExt: TYPE_EXT =
 struct
 
 
@@ -215,10 +215,11 @@ val type_ext = syn_ext' false (K false)
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "dummy", [], max_pri)]
   []
-  ([("_tapp", tapp_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
+  (map SynExt.mk_trfun
+   [("_tapp", tapp_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
    [],
    [],
-   [("fun", fun_ast_tr')])
+   map SynExt.mk_trfun [("fun", fun_ast_tr')])
   TokenTrans.token_translation
   ([], []);
 
