@@ -147,6 +147,10 @@ val syntaxP =
   OuterSyntax.command "syntax" "declare syntactic constants" K.thy_decl
     (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Theory.add_modesyntax));
 
+val no_syntaxP =
+  OuterSyntax.command "no_syntax" "delete syntax declarations" K.thy_decl
+    (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Theory.del_modesyntax));
+
 
 (* translations *)
 
@@ -791,10 +795,10 @@ val parsers = [
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
-  aritiesP, judgmentP, constsP, finalconstsP, syntaxP, translationsP,
-  axiomsP, defsP, constdefsP, theoremsP, lemmasP, declareP, globalP,
-  localP, hideP, useP, mlP, ml_commandP, ml_setupP, setupP,
-  method_setupP, parse_ast_translationP, parse_translationP,
+  aritiesP, judgmentP, constsP, finalconstsP, syntaxP, no_syntaxP,
+  translationsP, axiomsP, defsP, constdefsP, theoremsP, lemmasP,
+  declareP, globalP, localP, hideP, useP, mlP, ml_commandP, ml_setupP,
+  setupP, method_setupP, parse_ast_translationP, parse_translationP,
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
