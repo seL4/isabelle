@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof states and methods.
+The Isar/VM proof language interpreter.
 *)
 
 
