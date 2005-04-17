@@ -7,6 +7,7 @@
 
 (defconst isar-keywords-major
   '("\\."
+    "\\.\\."
     "ML"
     "ML_command"
     "ML_setup"
@@ -15,10 +16,10 @@
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
     "ProofGeneral\\.process_pgip"
+    "ProofGeneral\\.redo"
     "ProofGeneral\\.restart"
     "ProofGeneral\\.try_context_thy_only"
     "ProofGeneral\\.undo"
-    "\\.\\."
     "also"
     "apply"
     "apply_end"
@@ -250,6 +251,7 @@
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
     "ProofGeneral\\.process_pgip"
+    "ProofGeneral\\.redo"
     "ProofGeneral\\.restart"
     "ProofGeneral\\.try_context_thy_only"
     "ProofGeneral\\.undo"
