@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof context information.
+The key concept of Isar proof contexts.
 *)
 
 val show_structs = ref false;
@@ -176,7 +176,6 @@ struct
 
 type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 
-(* note: another field added to context. *)
 datatype context =
   Context of
    {thy: theory,                                              (*current theory*)
@@ -186,8 +185,8 @@ datatype context =
       ((cterm list * exporter) list *                         (*assumes: A ==> _*)
         (string * thm list) list) *                           (*prems: A |- A *)
       (string * string) list,                                 (*fixes: !!x. _*)
-    binds: (term * typ) option Vartab.table,                  (*term bindings*)
-    thms: bool * NameSpace.T * thm list option Symtab.table
+    binds: (term * typ) Vartab.table,                         (*term bindings*)
+    thms: bool * NameSpace.T * thm list Symtab.table
       * FactIndex.T,                                          (*local thms*)
     (*thms is of the form (q, n, t, i) where
        q: indicates whether theorems with qualified names may be stored;
@@ -433,10 +432,8 @@ fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts,
 fun def_type (Context {binds, defs = (types, _, _, _), ...}) pattern xi =
   (case Vartab.lookup (types, xi) of
     NONE =>
-      if pattern then NONE else
-        (case Vartab.lookup (binds, xi) of
-          SOME (SOME (_, T)) => SOME (TypeInfer.polymorphicT T)
-        | _ => NONE)
+      if pattern then NONE
+      else Vartab.lookup (binds, xi) |> Option.map (TypeInfer.polymorphicT o #2)
   | some => some);
 
 fun default_type (Context {defs = (types, _, _, _), ...}) x = Vartab.lookup (types, (x, ~1));
@@ -561,13 +558,13 @@ fun norm_term (ctxt as Context {binds, ...}) schematic =
 
     fun norm (t as Var (xi, T)) =
           (case Vartab.lookup (binds, xi) of
-            SOME (SOME (u, U)) =>
+            SOME (u, U) =>
               let
                 val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
                   raise TYPE ("norm_term: ill-typed variable assignment", [T, U], [t, u]);
                 val u' = Term.subst_TVars_Vartab env u;
               in norm u' handle SAME => u' end
-          | _ =>
+          | NONE =>
             if schematic then raise SAME
             else raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
@@ -802,8 +799,7 @@ fun export_view view is_goal inner outer =
       end)
   end;
 
-(* without varification *)
-
+(*without varification*)
 fun export_view' view is_goal inner outer =
   let
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
@@ -829,33 +825,36 @@ val export_standard = gen_export_std export_view;
 val export_plain = gen_export_std export_view';
 
 
+
 (** bindings **)
 
-(* update_binds *)
+(* delete_update_binds *)
 
-fun del_bind (ctxt, xi) =
-  ctxt
-  |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-      (thy, syntax, data, asms, Vartab.update ((xi, NONE), binds), thms, cases, defs));
+local
 
-fun upd_bind (ctxt, ((x, i), t)) =
+fun del_bind xi = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+  (thy, syntax, data, asms, Vartab.delete_safe xi binds, thms, cases, defs));
+
+fun upd_bind ((x, i), t) =
   let
     val T = Term.fastype_of t;
     val t' =
       if null (Term.term_tvars t \\ Term.typ_tvars T) then t
       else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
   in
-    ctxt
-    |> declare_term t'
-    |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-      (thy, syntax, data, asms, Vartab.update (((x, i), SOME (t', T)), binds), thms, cases, defs))
+    map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+      (thy, syntax, data, asms, Vartab.update (((x, i), (t', T)), binds), thms, cases, defs))
+    o declare_term t'
   end;
 
-fun del_upd_bind (ctxt, (xi, NONE)) = del_bind (ctxt, xi)
-  | del_upd_bind (ctxt, (xi, SOME t)) = upd_bind (ctxt, (xi, t));
+fun del_upd_bind (xi, NONE) = del_bind xi
+  | del_upd_bind (xi, SOME t) = upd_bind (xi, t);
 
-fun update_binds bs ctxt = Library.foldl upd_bind (ctxt, bs);
-fun delete_update_binds bs ctxt = Library.foldl del_upd_bind (ctxt, bs);
+in
+
+val delete_update_binds = fold del_upd_bind;
+
+end;
 
 
 (* simult_matches *)
@@ -998,8 +997,7 @@ fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab, _), ...}) =
   in
     fn xnamei as (xname, _) =>
       (case Symtab.lookup (tab, NameSpace.intern space xname) of
-        SOME (SOME ths) => map (Thm.transfer_sg (Sign.deref sg_ref))
-          (PureThy.select_thm xnamei ths)
+        SOME ths => map (Thm.transfer_sg (Sign.deref sg_ref)) (PureThy.select_thm xnamei ths)
       | _ => get_from_thy xnamei) |> g xname
   end;
 
@@ -1033,24 +1031,22 @@ fun gen_put_thms _ _ ("", _) ctxt = ctxt
         if not override_q andalso not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
         else (thy, syntax, data, asms, binds, (q, NameSpace.extend' acc (space, [name]),
-          Symtab.update ((name, SOME ths), tab),
+          Symtab.update ((name, ths), tab),
             FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs));
 
 fun gen_put_thm q acc (name, th) = gen_put_thms q acc (name, [th]);
-
-fun gen_put_thmss q acc [] ctxt = ctxt
-  | gen_put_thmss q acc (th :: ths) ctxt =
-      ctxt |> gen_put_thms q acc th |> gen_put_thmss q acc ths;
+fun gen_put_thmss q acc = fold (gen_put_thms q acc);
 
 val put_thm = gen_put_thm false NameSpace.accesses;
 val put_thms = gen_put_thms false NameSpace.accesses;
 val put_thmss = gen_put_thmss false NameSpace.accesses;
 
+
 (* reset_thms *)
 
 fun reset_thms name =
   map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
-    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, NONE), tab), index),
+    (thy, syntax, data, asms, binds, (q, space, Symtab.delete_safe name tab, index),
       cases, defs));
 
 
@@ -1325,15 +1321,12 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 (* term bindings *)
 
-val smash_option = fn (_, NONE) => NONE | (xi, SOME b) => SOME (xi, b);
-
 fun pretty_binds (ctxt as Context {binds, ...}) =
   let
     fun prt_bind (xi, (t, T)) = pretty_term ctxt (Logic.mk_equals (Var (xi, T), t));
-    val bs = List.mapPartial smash_option (Vartab.dest binds);
   in
-    if null bs andalso not (! verbose) then []
-    else [Pretty.big_list "term bindings:" (map prt_bind bs)]
+    if Vartab.is_empty binds andalso not (! verbose) then []
+    else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
   end;
 
 val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
@@ -1342,8 +1335,7 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 (* local theorems *)
 
 fun pretty_lthms (ctxt as Context {thms = (_, space, tab, _), ...}) =
-  pretty_items (pretty_thm ctxt) "facts:"
-    (List.mapPartial smash_option (NameSpace.cond_extern_table space tab));
+  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.cond_extern_table space tab);
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
