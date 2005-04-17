@@ -37,14 +37,18 @@ sig
   val join: ('a * 'a -> 'a option) -> 'a table * 'a table -> 'a table  (*exception DUPS*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
+  val delete_safe: key -> 'a table -> 'a table
+  val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
+  val remove: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table
   val lookup_multi: 'a list table * key -> 'a list
   val update_multi: (key * 'a) * 'a list table -> 'a list table
+  val remove_multi: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
   val merge_multi: ('a * 'a -> bool) ->
-    'a list table * 'a list table -> 'a list table    (*exception DUPS*)
+    'a list table * 'a list table -> 'a list table                     (*exception DUPS*)
   val merge_multi': ('a * 'a -> bool) ->
-    'a list table * 'a list table -> 'a list table    (*exception DUPS*)
+    'a list table * 'a list table -> 'a list table                     (*exception DUPS*)
 end;
 
 functor TableFun(Key: KEY): TABLE =
@@ -120,13 +124,11 @@ fun lookup (Empty, _) = NONE
 
 (* updates *)
 
-local
-
-exception SAME;
-
 datatype 'a growth =
   Stay of 'a table |
   Sprout of 'a table * (key * 'a) * 'a table;
+
+exception SAME;
 
 fun modify key f tab =
   let
@@ -172,25 +174,20 @@ fun modify key f tab =
     handle SAME => tab
   end;
 
-in
-
-fun update ((k, x), tab) = modify k (fn _ => x) tab;
-fun update_new ((k, x), tab) = modify k (fn NONE => x | SOME _ => raise DUP k) tab;
-fun map_entry k f = modify k (fn NONE => raise SAME | SOME x => f x);
-
-end;
+fun update ((key, x), tab) = modify key (fn _ => x) tab;
+fun update_new ((key, x), tab) = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
+fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
 
 
 (* extend and make *)
 
-fun extend (table, pairs) =
+fun extend (table, args) =
   let
-    fun add ((tab, dups), (key, x)) =
-      (case lookup (tab, key) of
-        NONE => (update ((key, x), tab), dups)
-      | _ => (tab, key :: dups));
+    fun add (key, x) (tab, dups) =
+      if isSome (lookup (tab, key)) then (tab, key :: dups)
+      else (update ((key, x), tab), dups);
   in
-    (case Library.foldl add ((table, []), pairs) of
+    (case fold add args (table, []) of
       (table', []) => table'
     | (_, dups) => raise DUPS (rev dups))
   end;
@@ -275,9 +272,21 @@ fun del (SOME k) Empty = raise UNDEF k
 
 in
 
-fun delete k t = snd (snd (del (SOME k) t));
+fun delete key tab = snd (snd (del (SOME key) tab));
+fun delete_safe key tab = delete key tab handle UNDEF _ => tab;
 
 end;
+
+
+(* insert and remove *)
+
+fun insert eq (key, x) =
+  modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
+
+fun remove eq (key, x) tab =
+  (case lookup (tab, key) of
+    NONE => tab
+  | SOME y => if eq (x, y) then delete key tab else tab);
 
 
 (* join and merge *)
@@ -300,13 +309,18 @@ fun join f (table1, table2) =
 fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 
 
-(* tables with multiple entries per key (preserving order) *)
+(* tables with multiple entries per key *)
 
-fun lookup_multi tab_key = getOpt (lookup tab_key,[]);
-fun update_multi ((key, x), tab) = update ((key, x :: lookup_multi (tab, key)), tab);
+fun lookup_multi arg = getOpt (lookup arg, []);
 
-fun make_multi pairs = foldr update_multi empty pairs;
-fun dest_multi tab = List.concat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
+fun update_multi ((key, x), tab) = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
+
+fun remove_multi eq (key, x) tab =
+  map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
+  handle UNDEF _ => delete key tab;
+
+fun make_multi args = foldr update_multi empty args;
+fun dest_multi tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
 fun merge_multi eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists eq xs xs')) tabs;
 fun merge_multi' eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists' eq xs xs')) tabs;
 
