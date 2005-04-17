@@ -83,10 +83,10 @@ sig
   val single: 'a -> 'a list
   val append: 'a list -> 'a list -> 'a list
   val apply: ('a -> 'a) list -> 'a -> 'a
-  val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
+  val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
@@ -174,6 +174,8 @@ sig
   val ins_int: int * int list -> int list
   val ins_string: string * string list -> string list
   val gen_ins: ('a * 'a -> bool) -> 'a * 'a list -> 'a list
+  val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
+  val remove: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val union: ''a list * ''a list -> ''a list
   val union_int: int list * int list -> int list
   val union_string: string list * string list -> string list
@@ -192,8 +194,6 @@ sig
   val \\ : ''a list * ''a list -> ''a list
   val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
   val gen_rems: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
-  val gen_remove: ('a * 'b -> bool) -> 'b -> 'a list -> 'a list
-  val remove: ''a -> ''a list -> ''a list
   val gen_distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val distinct: ''a list -> ''a list
   val findrep: ''a list -> ''a list
@@ -445,14 +445,26 @@ fun single x = [x];
 
 fun append xs ys = xs @ ys;
 
-(* tail recursive version *)
-fun rev_append xs ys = List.revAppend(xs,ys);
+fun rev_append xs ys = List.revAppend (xs, ys);
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
 
 
 (* fold *)
+
+fun fold _ [] y = y
+  | fold f (x :: xs) y = fold f xs (f x y);
+
+fun fold_rev _ [] y = y
+  | fold_rev f (x :: xs) y = f x (fold_rev f xs y);
+
+fun foldl_map _ (x, []) = (x, [])
+  | foldl_map f (x, y :: ys) =
+      let
+        val (x', y') = f (x, y);
+        val (x'', ys') = foldl_map f (x', ys);
+      in (x'', y' :: ys') end;
 
 (*the following versions of fold are designed to fit nicely with infixes*)
 
@@ -477,17 +489,8 @@ fun foldr1 f l =
         | itr (x::l) = f(x, itr l)
   in  itr l  end;
 
-fun fold f xs y = foldl (fn (y', x) => f x y') (y, xs);
-fun fold_rev f xs y = foldr (fn (x, y') => f x y') (xs, y);
-
-fun foldl_map _ (x, []) = (x, [])
-  | foldl_map f (x, y :: ys) =
-      let
-        val (x', y') = f (x, y);
-        val (x'', ys') = foldl_map f (x', ys);
-      in (x'', y' :: ys') end;
-
 fun foldln f xs e = fst (foldl (fn ((e,i), x) => (f (x,i) e, i+1)) ((e,1),xs));
+
 
 (* basic list functions *)
 
@@ -845,6 +848,9 @@ fun (x:string) mem_string [] = false
 fun gen_mem eq (x, []) = false
   | gen_mem eq (x, y :: ys) = eq (x, y) orelse gen_mem eq (x, ys);
 
+(*insert and remove*)
+fun insert eq x xs = if gen_mem eq (x, xs) then xs else x :: xs;
+fun remove eq x xs = if gen_mem eq (x, xs) then filter_out (fn y => eq (x, y)) xs else xs;
 
 (*insertion into list if not already there*)
 fun (x ins xs) = if x mem xs then xs else x :: xs;
@@ -856,8 +862,7 @@ fun (x ins_int xs) = if x mem_int xs then xs else x :: xs;
 fun (x ins_string xs) = if x mem_string xs then xs else x :: xs;
 
 (*generalized insertion*)
-fun gen_ins eq (x, xs) = if gen_mem eq (x, xs) then xs else x :: xs;
-
+fun gen_ins eq (x, xs) = insert eq x xs;
 
 (*union of sets represented as lists: no repetitions*)
 fun xs union [] = xs
@@ -934,9 +939,6 @@ fun ys \\ xs = foldl (op \) (ys,xs);
 (*removing an element from a list -- possibly WITH duplicates*)
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
 fun gen_rems eq (xs, ys) = filter_out (fn x => gen_mem eq (x, ys)) xs;
-
-fun gen_remove eq x xs = gen_rem eq (xs, x);
-fun remove x xs = gen_rem (op =) (xs, x);
 
 (*makes a list of the distinct members of the input; preserves order, takes
   first of equal elements*)
