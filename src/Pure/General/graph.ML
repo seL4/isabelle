@@ -1,6 +1,6 @@
 (*  Title:      Pure/General/graph.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Directed graphs.
 *)
@@ -18,7 +18,7 @@ sig
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
-  val get_node: 'a T -> key -> 'a (* UNDEF *)
+  val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val imm_preds: 'a T -> key -> key list
   val imm_succs: 'a T -> key -> key list
@@ -26,18 +26,18 @@ sig
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
   val find_paths: 'a T -> key * key -> key list list
-  val new_node: key * 'a -> 'a T -> 'a T (* DUP *)
-  val del_nodes: key list -> 'a T -> 'a T
+  val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
+  val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
-  val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
+  val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUPS*)
   exception CYCLES of key list list
-  val add_edge_acyclic: key * key -> 'a T -> 'a T
-  val add_deps_acyclic: key * key list -> 'a T -> 'a T
-  val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
-  val add_edge_trans_acyclic: key * key -> 'a T -> 'a T
-  val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
+  val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
+  val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
+  val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T         (*exception CYCLES*)
+  val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
+  val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
 end;
 
 functor GraphFun(Key: KEY): GRAPH =
@@ -52,11 +52,7 @@ val eq_key = equal EQUAL o Key.ord;
 infix mem_key;
 val op mem_key = gen_mem eq_key;
 
-infix ins_key;
-val op ins_key = gen_ins eq_key;
-
-infix del_key;
-fun xs del_key x = if x mem_key xs then gen_rem eq_key (xs, x) else xs;
+val remove_key = remove eq_key;
 
 
 (* tables and sets of keys *)
@@ -70,7 +66,7 @@ infix mem_keys;
 fun x mem_keys tab = isSome (Table.lookup (tab: keys, x));
 
 infix ins_keys;
-fun x ins_keys tab = if x mem_keys tab then tab else Table.update ((x, ()), tab);
+fun x ins_keys tab = Table.insert (K true) (x, ()) (tab: keys);
 
 
 (* graphs *)
@@ -146,17 +142,14 @@ fun find_paths G (x, y) =
 
 (* nodes *)
 
-exception DUPLICATE of key;
-
 fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new ((x, (info, ([], []))), tab));
 
 fun del_nodes xs (Graph tab) =
-  let
-    fun del (x, (i, (preds, succs))) =
-      if x mem_key xs then NONE
-      else SOME (x, (i, (Library.foldl op del_key (preds, xs), Library.foldl op del_key (succs, xs))));
-  in Graph (Table.make (List.mapPartial del (Table.dest tab))) end;
+  Graph (tab
+    |> fold Table.delete xs
+    |> Table.map (fn (i, (preds, succs)) =>
+      (i, (fold remove_key xs preds, fold remove_key xs succs))));
 
 
 (* edges *)
@@ -171,8 +164,8 @@ fun add_edge (x, y) G =
 
 fun del_edge (x, y) G =
   if is_edge G (x, y) then
-    G |> map_entry y (fn (i, (preds, succs)) => (i, (preds del_key x, succs)))
-      |> map_entry x (fn (i, (preds, succs)) => (i, (preds, succs del_key y)))
+    G |> map_entry y (fn (i, (preds, succs)) => (i, (remove_key x preds, succs)))
+      |> map_entry x (fn (i, (preds, succs)) => (i, (preds, remove_key y succs)))
   else G;
 
 fun diff_edges G1 G2 =
@@ -204,8 +197,7 @@ fun add_edge_acyclic (x, y) G =
       [] => add_edge (x, y) G
     | cycles => raise CYCLES (map (cons x) cycles));
 
-fun add_deps_acyclic (y, xs) G =
-  Library.foldl (fn (H, x) => add_edge_acyclic (x, y) H) (G, xs);
+fun add_deps_acyclic (y, xs) = fold (fn x => add_edge_acyclic (x, y)) xs;
 
 fun merge_acyclic eq GG = gen_merge add_edge_acyclic eq GG;
 

@@ -87,10 +87,7 @@ fun err_dup_trfuns name cs =
 fun extend_trtab name trfuns tab = Symtab.extend (tab, trfuns)
   handle Symtab.DUPS cs => err_dup_trfuns name cs;
 
-fun remove_trtab trfuns = trfuns |> fold (fn (c, (_, s: stamp)) => fn tab =>
-  if Option.map snd (Symtab.lookup (tab, c)) = SOME s
-  then Symtab.delete c tab
-  else tab);
+fun remove_trtab trfuns = fold (Symtab.remove SynExt.eq_trfun) trfuns;
 
 fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
   handle Symtab.DUPS cs => err_dup_trfuns name cs;
@@ -99,12 +96,8 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
 (* print (ast) translations *)
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
-
-fun extend_tr'tab trfuns tab = foldr Symtab.update_multi tab trfuns;
-
-fun remove_tr'tab trfuns = trfuns |> fold (fn (c, tr) =>
-  Symtab.map_entry c (gen_remove SynExt.eq_trfun tr));
-
+fun extend_tr'tab trfuns = fold_rev (curry Symtab.update_multi) trfuns;
+fun remove_tr'tab trfuns = fold (Symtab.remove_multi SynExt.eq_trfun) trfuns;
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' SynExt.eq_trfun (tab1, tab2);
 
 
@@ -138,11 +131,9 @@ fun merge_tokentrtabs tabs1 tabs2 =
 
 fun extend_tokentrtab tokentrs tabs =
   let
-    fun ins_tokentr (ts, (m, c, f)) =
+    fun ins_tokentr (m, c, f) ts =
       overwrite (ts, (m, ("_" ^ c, (f, stamp ())) :: assocs ts m));
-  in
-    merge_tokentrtabs tabs (Library.foldl ins_tokentr ([], tokentrs))
-  end;
+  in merge_tokentrtabs tabs (fold ins_tokentr tokentrs []) end;
 
 
 
@@ -156,10 +147,10 @@ fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 
 (* empty, extend, merge ruletabs *)
 
-fun extend_ruletab rules tab =
-  foldr Symtab.update_multi tab (map (fn r => (Ast.head_of_rule r, r)) rules);
+val extend_ruletab =
+  fold_rev (fn r => fn tab => Symtab.update_multi ((Ast.head_of_rule r, r), tab));
 
-val remove_ruletab = fold (fn r => Symtab.map_entry (Ast.head_of_rule r) (remove r));
+val remove_ruletab = fold (fn r => Symtab.remove_multi (op =) (Ast.head_of_rule r, r));
 
 fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 
@@ -246,7 +237,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax tabs) =
     val {input, lexicon, gram, consts, prmodes,
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
-    val input' = if inout then fold remove xprods input else input;
+    val input' = if inout then fold (remove (op =)) xprods input else input;
   in
     Syntax {
       input = input',
@@ -306,15 +297,14 @@ val pure_syn = type_syn |> extend_syntax default_mode SynExt.pure_ext;
 
 
 
-(** inspect syntax **)
+(** print syntax **)
+
+local
 
 fun pretty_strs_qs name strs =
   Pretty.strs (name :: map Library.quote (sort_strings strs));
 
-
-(* print_gram *)
-
-fun print_gram (Syntax tabs) =
+fun pretty_gram (Syntax tabs) =
   let
     val {lexicon, prmodes, gram, prtabs, ...} = tabs;
     val prmodes' = sort_strings (filter_out (equal "") prmodes);
@@ -322,13 +312,9 @@ fun print_gram (Syntax tabs) =
     [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
       Pretty.big_list "prods:" (Parser.pretty_gram gram),
       pretty_strs_qs "print modes:" prmodes']
-    |> Pretty.chunks |> Pretty.writeln
   end;
 
-
-(* print_trans *)
-
-fun print_trans (Syntax tabs) =
+fun pretty_trans (Syntax tabs) =
   let
     fun pretty_trtab name tab =
       pretty_strs_qs name (Symtab.keys tab);
@@ -349,13 +335,15 @@ fun print_trans (Syntax tabs) =
       pretty_ruletab "print_rules:" print_ruletab,
       pretty_trtab "print_ast_translation:" print_ast_trtab,
       Pretty.big_list "token_translation:" (map pretty_tokentr tokentrtab)]
-    |> Pretty.chunks |> Pretty.writeln
   end;
 
+in
 
-(* print_syntax *)
+fun print_gram syn = Pretty.writeln (Pretty.chunks (pretty_gram syn));
+fun print_trans syn = Pretty.writeln (Pretty.chunks (pretty_trans syn));
+fun print_syntax syn = Pretty.writeln (Pretty.chunks (pretty_gram syn @ pretty_trans syn));
 
-fun print_syntax syn = (print_gram syn; print_trans syn);
+end;
 
 
 

@@ -250,7 +250,7 @@ fun change_prtabs f mode xprods prtabs =
   in overwrite (prtabs, (mode, tab)) end;
 
 fun extend_prtabs m = change_prtabs (curry Symtab.update_multi) m;
-fun remove_prtabs m = change_prtabs (fn (c, prnp) => Symtab.map_entry c (remove prnp)) m;
+fun remove_prtabs m = change_prtabs (Symtab.remove_multi (op =)) m;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
