@@ -184,11 +184,7 @@ theorem M_trancl_L: "PROP M_trancl(L)"
 by (rule M_trancl.intro
          [OF M_trivial_L M_basic_axioms_L M_trancl_axioms_L])
 
-lemmas iterates_abs = M_trancl.iterates_abs [OF M_trancl_L]
-  and rtran_closure_rtrancl = M_trancl.rtran_closure_rtrancl [OF M_trancl_L]
-  and trans_wfrec_abs = M_trancl.trans_wfrec_abs [OF M_trancl_L]
-  and eq_pair_wfrec_iff = M_trancl.eq_pair_wfrec_iff [OF M_trancl_L]
-
+interpretation M_trancl [L] by (rule M_trancl_axioms_L)
 
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*}
@@ -374,17 +370,7 @@ theorem M_datatypes_L: "PROP M_datatypes(L)"
  apply (rule M_datatypes_axioms_L) 
  done
 
-lemmas list_closed = M_datatypes.list_closed [OF M_datatypes_L]
-  and formula_closed = M_datatypes.formula_closed [OF M_datatypes_L]
-  and list_abs = M_datatypes.list_abs [OF M_datatypes_L]
-  and formula_abs = M_datatypes.formula_abs [OF M_datatypes_L]
-  and nth_abs = M_datatypes.nth_abs [OF M_datatypes_L]
-
-declare list_closed [intro,simp]
-declare formula_closed [intro,simp]
-declare list_abs [simp]
-declare formula_abs [simp]
-declare nth_abs [simp]
+interpretation M_datatypes [L] by (rule M_datatypes_axioms_L)
 
 
 subsection{*@{term L} is Closed Under the Operator @{term eclose}*}
@@ -447,8 +433,7 @@ theorem M_eclose_L: "PROP M_eclose(L)"
   apply (rule M_eclose_axioms_L)
   done
 
-lemmas eclose_closed [intro, simp] = M_eclose.eclose_closed [OF M_eclose_L]
-  and eclose_abs [intro, simp] = M_eclose.eclose_abs [OF M_eclose_L]
-  and transrec_replacementI = M_eclose.transrec_replacementI [OF M_eclose_L]
+interpretation M_eclose [L] by (rule M_eclose_axioms_L)
+
 
 end
