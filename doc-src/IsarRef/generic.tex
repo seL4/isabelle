@@ -180,7 +180,7 @@ specifications.
     specifications included here, e.g.\ a local $simp$ rule.
 
   \item [$\INCLUDES{c}$] copies the specified context in a statically scoped
-    manner.
+    manner.  Only available in the long goal format of \S\ref{sec:goals}.
 
     In contrast, the initial $import$ specification of a locale expression
     maintains a dynamic relation to the locales being referenced (benefiting
@@ -221,6 +221,79 @@ specifications.
 \item [$\isarkeyword{print_locales}$] prints the names of all locales of the
   current theory.
 
+\end{descr}
+
+
+\subsubsection{Interpretation of locales}
+
+Locale expressions (more precisely, \emph{context expressions}) may be
+instantiated, and the instantiated facts added to the current context.
+This requires a proof of the instantiated specification and is called
+\emph{locale interpretation}.  Interpretation is possible in theories
+($\isarcmd{interpretation}$) and proof contexts
+($\isarcmd{interpret}$).
+
+\indexisarcmd{interpretation}\indexisarcmd{interpret}
+\indexisarcmd{print-interps}
+\begin{matharray}{rcl}
+  \isarcmd{interpretation} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{interpret} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+  \isarcmd{print_interps}^* & : &  \isarkeep{theory~|~proof} \\
+\end{matharray}
+
+\indexouternonterm{interp}
+
+\railalias{printinterps}{print\_interps}
+\railterm{printinterps}
+
+\begin{rail}
+  'interpretation' interp
+  ;
+  'interpret' interp
+  ;
+  printinterps name
+  ;
+  interp: thmdecl? contextexpr ('[' (inst+) ']')?
+  ;
+\end{rail}
+
+\begin{descr}
+
+\item [$\isarcmd{interpretation}~expr~insts$]
+  interprets $expr$ in the theory.  The instantiation is positional.
+  All parameters must receive an instantiation term --- with the
+  exception of defined parameters.  These are, if omitted, derived
+  from the defining equation and other instantiations.  Use ``\_'' to
+  omit an instantiation term.  Free variables are automatically
+  generalized.
+
+  The context expression may be preceded by a name and/or attributes.
+  These take effect in the post-processing of facts.  The name is used
+  to prefix fact names, for example to avoid accidental hiding of
+  other facts.  Attributes are applied after attributes of the
+  interpreted facts.
+
+  The command is aware of interpretations already active in the
+  theory.  No proof obligations are generated for those, neither is
+  post-processing applied to their facts.  This avoids duplication of
+  interpreted facts, in particular.  Note that, in the case of a
+  locale with import, parts of the interpretation may already be
+  active.  The command will only generate proof obligations and add
+  facts for new parts.
+
+  Adding facts to locales has the
+  effect of adding interpreted facts to the theory for all active
+  interpretations also.
+  
+\item [$\isarcmd{interpret}~expr~insts$]
+  interprets $expr$ in the proof context and is otherwise similar to
+  the previous command.  Free variables in instantiations are not
+  generalized, however.
+
+\item [$\isarcmd{print_interps}~loc$]
+  prints the interpretations of a particular locale $loc$ that are
+  active in the current context, either theory or proof context.
+  
 \end{descr}
 
 

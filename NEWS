@@ -163,6 +163,7 @@ New in this Isabelle release
   do not occur in proof obligations, neither are instantiated theorems stored
   in duplicate.
   Use print_interps to inspect active interpretations of a particular locale.
+  For details, see the Isar Reference manual.
 
 * Locales: proper static binding of attribute syntax -- i.e. types /
   terms / facts mentioned as arguments are always those of the locale

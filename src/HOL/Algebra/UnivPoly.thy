@@ -1474,7 +1474,6 @@ proof -
     by (simp del: monom_mult (* eval.hom_mult eval.hom_pow, delayed inst! *)
       add: monom_mult [THEN sym] monom_pow)
   also
-  (*  from ring_hom_cring_P_S [OF S] instantiate eval: ring_hom_cring *)
   from R S eval_monom1 have "... = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
     by (simp add: eval_const)
   finally show ?thesis .
@@ -1487,9 +1486,6 @@ proof -
   assume S: "s \<in> carrier S" and R: "r \<in> carrier R" and P: "p \<in> carrier P"
   from ring_hom_cring_P_S [OF S] interpret ring_hom_cring [P S "eval R S h s"]
     by - (rule ring_hom_cring.axioms, assumption)+
-(*
-  from ring_hom_cring_P_S [OF S] instantiate eval: ring_hom_cring
-*)
   from S R P show ?thesis
     by (simp add: monom_mult_is_smult [THEN sym] eval_const)
 qed
@@ -1571,10 +1567,14 @@ lemma INTEG_id_eval:
   by (fast intro: UP_univ_propI INTEG_cring id_ring_hom)
 
 text {*
-  An instantiation mechanism would now import all theorems and lemmas
+  Interpretation allows now to import all theorems and lemmas
   valid in the context of homomorphisms between @{term INTEG} and @{term
   "UP INTEG"} globally.
 *}
+
+interpretation INTEG: UP_univ_prop [INTEG INTEG id]
+  using INTEG_id_eval
+  by - (rule UP_univ_prop.axioms, assumption)+
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"
@@ -1589,6 +1589,6 @@ lemma INTEG_pow [simp]:
   by (induct n) (simp_all add: INTEG_def nat_pow_def)
 
 lemma "eval INTEG INTEG id 10 (monom (UP INTEG) 5 2) = 500"
-  by (simp add: UP_univ_prop.eval_monom [OF INTEG_id_eval])
+  by (simp add: INTEG.eval_monom)
 
 end

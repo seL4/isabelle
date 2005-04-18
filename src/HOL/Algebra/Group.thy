@@ -470,8 +470,8 @@ lemma inv_DirProd [simp]:
   done
 
 text{*This alternative proof of the previous result demonstrates interpret.
-   It uses @{text Prod.inv_equality} (available after instantiation) instead of
-   @{text "group.inv_equality [OF DirProd_group]"}. *}
+   It uses @{text Prod.inv_equality} (available after @{text interpret})
+   instead of @{text "group.inv_equality [OF DirProd_group]"}. *}
 lemma
   includes group G + group H
   assumes g: "g \<in> carrier G"
@@ -542,19 +542,8 @@ text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @{term H}, with a homomorphism @{term h} between them*}
 locale group_hom = group G + group H + var h +
   assumes homh: "h \<in> hom G H"
-(*
   notes hom_mult [simp] = hom_mult [OF homh]
     and hom_closed [simp] = hom_closed [OF homh]
-CB: late binding problem?
-*)
-
-lemma (in group_hom) hom_mult [simp]:
-  "[| x \<in> carrier G; y \<in> carrier G |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
-  by (simp add: hom_mult [OF homh])
-
-lemma (in group_hom) hom_closed [simp]:
-  "x \<in> carrier G ==> h x \<in> carrier H"
-  by (simp add: hom_closed [OF homh])
 
 lemma (in group_hom) one_closed [simp]:
   "h \<one> \<in> carrier H"

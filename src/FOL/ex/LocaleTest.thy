@@ -53,14 +53,12 @@ arities i :: "term"
 
 
 interpretation p1: C ["X::'b" "Y::'b"] by (auto intro: A.intro C_axioms.intro)
-  (* both X and Y get type 'b since 'b is the internal type of parameter b,
-     not wanted, but put up with for now. *)
 
 print_interps A
 
 (* possible accesses *)
 thm p1.a.asm_A thm LocaleTest.p1.a.asm_A
-thm LocaleTest.asm_A thm p1.asm_A
+thm p1.asm_A thm LocaleTest.p1.asm_A
 
 
 (* without prefix *)

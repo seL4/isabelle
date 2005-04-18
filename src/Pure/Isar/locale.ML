@@ -351,8 +351,12 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
   in
     (case loc_regs of
         NONE => Pretty.str ("No interpretations in " ^ msg ^ ".")
-      | SOME r => Pretty.big_list ("Interpretations in " ^ msg ^ ":")
-          (map prt_inst (Termlisttab.dest r)))
+      | SOME r => let
+            val r' = Termlisttab.dest r;
+            val r'' = Library.sort_wrt (fn (_, ((prfx, _), _)) => prfx) r';
+          in Pretty.big_list ("Interpretations in " ^ msg ^ ":")
+            (map prt_inst r'')
+          end)
     |> Pretty.writeln
   end;
 
@@ -540,7 +544,6 @@ fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
 fun tinst_tab_elem sg tinst =
   map_values (tinst_tab_type tinst) (tinst_tab_term tinst) (tinst_tab_thm sg tinst);
 
-
 (* instantiate TFrees and Frees *)
 
 fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
@@ -589,8 +592,8 @@ fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
                  (map (Thm.assume o cert o inst_tab_term (inst, tinst)) hyps))
         end;
 
-fun inst_tab_elem sg inst =
-  map_values (tinst_tab_type (#2 inst)) (inst_tab_term inst) (inst_tab_thm sg inst);
+fun inst_tab_elem sg (inst as (_, tinst)) =
+  map_values (tinst_tab_type tinst) (inst_tab_term inst) (inst_tab_thm sg inst);
 
 fun inst_tab_elems sign inst ((n, ps), elems) =
       ((n, map (inst_tab_term inst) ps), map (inst_tab_elem sign inst) elems);
@@ -1923,7 +1926,8 @@ fun activate_facts_elem _ _ _ _ (thy_ctxt, Fixes _) = thy_ctxt
         disch (prfx, atts) (thy_ctxt, Notes facts) =
       let
         val reg_atts = map (attrib thy_ctxt) atts;
-        val facts = map_attrib_facts (attrib thy_ctxt) facts;
+        (* discharge hyps in attributes *)
+        val facts = map_attrib_facts (attrib thy_ctxt o Args.map_values I I I disch) facts;
         val facts' = map (apfst (apsnd (fn a => a @ reg_atts))) facts;
         (* discharge hyps *)
         val facts'' = map (apsnd (map (apfst (map disch)))) facts';
