@@ -1945,9 +1945,6 @@ struct
 												(#1 o interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True})
 													(Const (cname, map (typ_of_dtyp descr typ_assoc) cargs ---> c_return_typ))) cs)
 										end) descr
-									val _ = writeln (makestring index)
-									val _ = writeln (makestring descr)
-									val _ = writeln (makestring mc_intrs)
 									(* the recursion operator is a function that maps every element of *)
 									(* the inductive datatype (and of mutually recursive types) to an  *)
 									(* element of some result type                                     *)
@@ -2046,22 +2043,10 @@ struct
 												result
 											end
 									(* compute all entries in INTRS for the current datatype (given by 'index') *)
-									val size = (Array.length o valOf o assoc) (INTRS, index)
-									(* int -> unit *)
-									fun compute_loop elem =
-										if elem=size then
-											(* terminate *)
-											()
-										else (  (* elem < size *)
-											compute_array_entry index elem;
-											compute_loop (elem+1)
-										)
-									val _ = compute_loop 0
-									val _ = Array.modifyi ... ((valOf o assoc) (INTRS, index))
+									val _ = Array.modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((valOf o assoc) (INTRS, index), 0, NONE)
 									(* 'a Array.array -> 'a list *)
 									fun toList arr =
 										Array.foldr op:: [] arr
-									val _ = writeln (makestring INTRS)
 								in
 									(* return the part of 'INTRS' that corresponds to the current datatype *)
 									SOME ((Node o (map valOf) o toList o valOf o assoc) (INTRS, index), model', args')
