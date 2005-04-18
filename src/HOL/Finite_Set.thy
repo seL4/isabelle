@@ -509,21 +509,30 @@ qed
 
 lemmas (in ACIf) ACI = AC idem idem2
 
-text{* Instantiation of locales: *}
+text{* Interpretation of locales: *}
 
+interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
+by(auto intro: ACf.intro ACe_axioms.intro add_assoc add_commute)
+
+interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
+  apply -
+   apply (fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
+  apply (fastsimp intro: ACe_axioms.intro mult_assoc ab_semigroup_mult.mult_commute)
+  done
+
+(*
 lemma ACf_add: "ACf (op + :: 'a::comm_monoid_add \<Rightarrow> 'a \<Rightarrow> 'a)"
 by(fastsimp intro: ACf.intro add_assoc add_commute)
 
 lemma ACe_add: "ACe (op +) (0::'a::comm_monoid_add)"
 by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_add)
 
-
 lemma ACf_mult: "ACf (op * :: 'a::comm_monoid_mult \<Rightarrow> 'a \<Rightarrow> 'a)"
 by(fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
 
-lemma ACe_mult: "ACe (op *) (1::'a::comm_monoid_mult)"
+lemma ACe_mult: "ACe (op * ) (1::'a::comm_monoid_mult)"
 by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
-
+*)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
@@ -878,14 +887,14 @@ lemma setsum_empty [simp]: "setsum f {} = 0"
 
 lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-  by (simp add: setsum_def ACf.fold_insert [OF ACf_add])
+  by (simp add: setsum_def)
 
 lemma setsum_infinite [simp]: "~ finite A ==> setsum f A = 0"
   by (simp add: setsum_def)
 
 lemma setsum_reindex:
      "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
-by(auto simp add: setsum_def ACf.fold_reindex[OF ACf_add] dest!:finite_imageD)
+by(auto simp add: setsum_def AC_add.fold_reindex dest!:finite_imageD)
 
 lemma setsum_reindex_id:
      "inj_on f B ==> setsum f B = setsum id (f ` B)"
@@ -893,7 +902,7 @@ by (auto simp add: setsum_reindex)
 
 lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-by(fastsimp simp: setsum_def intro: ACf.fold_cong[OF ACf_add])
+by(fastsimp simp: setsum_def intro: AC_add.fold_cong)
 
 lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
   by (rule setsum_cong[OF refl], auto);
@@ -905,7 +914,7 @@ lemma setsum_reindex_cong:
 
 lemma setsum_0[simp]: "setsum (%i. 0) A = 0"
 apply (clarsimp simp: setsum_def)
-apply (erule finite_induct, auto simp:ACf.fold_insert [OF ACf_add])
+apply (erule finite_induct, auto)
 done
 
 lemma setsum_0': "ALL a:A. f a = 0 ==> setsum f A = 0"
@@ -914,7 +923,7 @@ by(simp add:setsum_cong)
 lemma setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-by(simp add: setsum_def ACe.fold_Un_Int[OF ACe_add,symmetric])
+by(simp add: setsum_def AC_add.fold_Un_Int [symmetric])
 
 lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
@@ -926,7 +935,7 @@ lemma setsum_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
-by(simp add: setsum_def ACe.fold_UN_disjoint[OF ACe_add] cong: setsum_cong)
+by(simp add: setsum_def AC_add.fold_UN_disjoint cong: setsum_cong)
 
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
 directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
@@ -945,7 +954,7 @@ done
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
     (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
-by(simp add:setsum_def ACe.fold_Sigma[OF ACe_add] split_def cong:setsum_cong)
+by(simp add:setsum_def AC_add.fold_Sigma split_def cong:setsum_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setsum_cartesian_product: 
@@ -960,7 +969,7 @@ apply (auto simp add: setsum_def
 done
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-by(simp add:setsum_def ACe.fold_distrib[OF ACe_add])
+by(simp add:setsum_def AC_add.fold_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1241,21 +1250,21 @@ lemma setprod_empty [simp]: "setprod f {} = 1"
 
 lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
-by (simp add: setprod_def ACf.fold_insert [OF ACf_mult])
+by (simp add: setprod_def)
 
 lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
   by (simp add: setprod_def)
 
 lemma setprod_reindex:
      "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
-by(auto simp: setprod_def ACf.fold_reindex[OF ACf_mult] dest!:finite_imageD)
+by(auto simp: setprod_def AC_mult.fold_reindex dest!:finite_imageD)
 
 lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
 by (auto simp add: setprod_reindex)
 
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: setprod_def intro: ACf.fold_cong[OF ACf_mult])
+by(fastsimp simp: setprod_def intro: AC_mult.fold_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
@@ -1275,7 +1284,7 @@ lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
 
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
-by(simp add: setprod_def ACe.fold_Un_Int[OF ACe_mult,symmetric])
+by(simp add: setprod_def AC_mult.fold_Un_Int[symmetric])
 
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
@@ -1285,7 +1294,7 @@ lemma setprod_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
-by(simp add: setprod_def ACe.fold_UN_disjoint[OF ACe_mult] cong: setprod_cong)
+by(simp add: setprod_def AC_mult.fold_UN_disjoint cong: setprod_cong)
 
 lemma setprod_Union_disjoint:
   "[| (ALL A:C. finite A);
@@ -1300,7 +1309,7 @@ done
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
     (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
-by(simp add:setprod_def ACe.fold_Sigma[OF ACe_mult] split_def cong:setprod_cong)
+by(simp add:setprod_def AC_mult.fold_Sigma split_def cong:setprod_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
@@ -1316,7 +1325,7 @@ done
 
 lemma setprod_timesf:
      "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
-by(simp add:setprod_def ACe.fold_distrib[OF ACe_mult])
+by(simp add:setprod_def AC_mult.fold_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1434,7 +1443,7 @@ by (simp add: card_def)
 
 lemma card_insert_disjoint [simp]:
   "finite A ==> x \<notin> A ==> card (insert x A) = Suc(card A)"
-by(simp add: card_def ACf.fold_insert[OF ACf_add])
+by(simp add: card_def)
 
 lemma card_insert_if:
     "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
@@ -2231,70 +2240,54 @@ constdefs
 text{* Before we can do anything, we need to show that @{text min} and
 @{text max} are ACI and the ordering is linear: *}
 
-lemma ACf_min: "ACf(min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+interpretation AC_min [rule del]: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:min_def)
 done
 
-lemma ACIf_min: "ACIf(min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule ACIf.intro[OF ACf_min])
+interpretation AC_min [rule del]: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:min_def)
 done
 
-lemma ACf_max: "ACf(max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+interpretation AC_max [rule del]: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:max_def)
 done
 
-lemma ACIf_max: "ACIf(max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule ACIf.intro[OF ACf_max])
+interpretation AC_max [rule del]: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma ACIfSL_min: "ACIfSL(min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) (op \<le>)"
-apply(rule ACIfSL.intro)
-apply(rule ACf_min)
-apply(rule ACIf.axioms[OF ACIf_min])
+interpretation AC_min [rule del]: ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:min_def)
 done
 
-lemma ACIfSLlin_min: "ACIfSLlin(min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) (op \<le>)"
-apply(rule ACIfSLlin.intro)
-apply(rule ACf_min)
-apply(rule ACIf.axioms[OF ACIf_min])
-apply(rule ACIfSL.axioms[OF ACIfSL_min])
+interpretation AC_min [rule del]: ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:min_def)
 done
 
-lemma ACIfSL_max: "ACIfSL(max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) (%x y. y\<le>x)"
-apply(rule ACIfSL.intro)
-apply(rule ACf_max)
-apply(rule ACIf.axioms[OF ACIf_max])
+interpretation AC_max [rule del]: ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma ACIfSLlin_max: "ACIfSLlin(max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) (%x y. y\<le>x)"
-apply(rule ACIfSLlin.intro)
-apply(rule ACf_max)
-apply(rule ACIf.axioms[OF ACIf_max])
-apply(rule ACIfSL.axioms[OF ACIfSL_max])
+interpretation AC_max [rule del]: ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
+lemma Lattice_min_max [rule del]: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
 apply(rule Lattice.intro)
 apply(rule partial_order_order)
 apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
 apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
 done
 
-lemma Distrib_Lattice_min_max:
+lemma Distrib_Lattice_min_max [rule del]:
  "Distrib_Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
 apply(rule Distrib_Lattice.intro)
 apply(rule partial_order_order)
@@ -2303,56 +2296,73 @@ apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
 apply(rule distrib_lattice.axioms[OF distrib_lattice_min_max])
 done
 
+interpretation Lattice_min_max [rule del]:
+  Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
+using Lattice_min_max
+by (auto dest: Lattice.axioms)
+
+interpretation Lattice_min_max [rule del]:
+  Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
+using Distrib_Lattice_min_max
+by (fast dest: Distrib_Lattice.axioms)
+
+text {* Classical rules from the locales are deleted in the above
+  interpretations, since they interfere with the claset setup for
+  {text "op \<le>"}. *)
+
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}
 
+(* Making Min (resp. Max) a defined parameter of a locale suitably
+  extending ACIf could make the following interpretations more automatic. *)
+
 declare
   fold1_singleton_def[OF Min_def, simp]
-  ACIf.fold1_insert_idem_def[OF ACIf_min Min_def, simp]
+  AC_min.fold1_insert_idem_def[OF Min_def, simp]
   fold1_singleton_def[OF Max_def, simp]
-  ACIf.fold1_insert_idem_def[OF ACIf_max Max_def, simp]
+  AC_max.fold1_insert_idem_def[OF Max_def, simp]
 
 text{* Now we instantiate some @{text fold1} properties: *}
 
 lemma Min_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
-using ACf.fold1_in[OF ACf_min]
+using AC_min.fold1_in
 by(fastsimp simp: Min_def min_def)
 
 lemma Max_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
-using ACf.fold1_in[OF ACf_max]
+using AC_max.fold1_in
 by(fastsimp simp: Max_def max_def)
 
 lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
-by(simp add: Min_def ACIfSL.fold1_belowI[OF ACIfSL_min])
+by(simp add: Min_def AC_min.fold1_belowI)
 
 lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
-by(simp add: Max_def ACIfSL.fold1_belowI[OF ACIfSL_max])
+by(simp add: Max_def AC_max.fold1_belowI)
 
 lemma Min_ge_iff[simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Min A) = (\<forall>a\<in>A. x \<le> a)"
-by(simp add: Min_def ACIfSL.below_fold1_iff[OF ACIfSL_min])
+by(simp add: Min_def AC_min.below_fold1_iff)
 
 lemma Max_le_iff[simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A \<le> x) = (\<forall>a\<in>A. a \<le> x)"
-by(simp add: Max_def ACIfSL.below_fold1_iff[OF ACIfSL_max])
+by(simp add: Max_def AC_max.below_fold1_iff)
 
 lemma Min_le_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A \<le> x) = (\<exists>a\<in>A. a \<le> x)"
-by(simp add: Min_def ACIfSLlin.fold1_below_iff[OF ACIfSLlin_min])
+by(simp add: Min_def AC_min.fold1_below_iff)
 
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
-by(simp add: Max_def ACIfSLlin.fold1_below_iff[OF ACIfSLlin_max])
+by(simp add: Max_def AC_max.fold1_below_iff)
 
 lemma Min_le_Max:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> Max A"
-by(simp add: Min_def Max_def Lattice.Inf_le_Sup[OF Lattice_min_max])
+by(simp add: Min_def Max_def Lattice_min_max.Inf_le_Sup)
 
 lemma max_Min2_distrib:
   "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow>
   max (Min A) (Min B) = Min{ max a b |a b. a \<in> A \<and> b \<in> B}"
-by(simp add: Min_def Distrib_Lattice.sup_Inf2_distrib[OF Distrib_Lattice_min_max])
+by(simp add: Min_def Lattice_min_max.sup_Inf2_distrib)
 
 end
