@@ -102,90 +102,13 @@ theorem M_trivial_L: "PROP M_trivial(L)"
 
 interpretation M_trivial ["L"] by (rule M_trivial_L)
 
-(* Replaces the following code.
-
+(* Replaces the following declarations...
 lemmas rall_abs = M_trivial.rall_abs [OF M_trivial_L]
   and rex_abs = M_trivial.rex_abs [OF M_trivial_L]
-  and ball_iff_equiv = M_trivial.ball_iff_equiv [OF M_trivial_L]
-  and M_equalityI = M_trivial.M_equalityI [OF M_trivial_L]
-  and empty_abs = M_trivial.empty_abs [OF M_trivial_L]
-  and subset_abs = M_trivial.subset_abs [OF M_trivial_L]
-  and upair_abs = M_trivial.upair_abs [OF M_trivial_L]
-  and upair_in_M_iff = M_trivial.upair_in_M_iff [OF M_trivial_L]
-  and singleton_in_M_iff = M_trivial.singleton_in_M_iff [OF M_trivial_L]
-  and pair_abs = M_trivial.pair_abs [OF M_trivial_L]
-  and pair_in_M_iff = M_trivial.pair_in_M_iff [OF M_trivial_L]
-  and pair_components_in_M = M_trivial.pair_components_in_M [OF M_trivial_L]
-  and cartprod_abs = M_trivial.cartprod_abs [OF M_trivial_L]
-  and union_abs = M_trivial.union_abs [OF M_trivial_L]
-  and inter_abs = M_trivial.inter_abs [OF M_trivial_L]
-  and setdiff_abs = M_trivial.setdiff_abs [OF M_trivial_L]
-  and Union_abs = M_trivial.Union_abs [OF M_trivial_L]
-  and Union_closed = M_trivial.Union_closed [OF M_trivial_L]
-  and Un_closed = M_trivial.Un_closed [OF M_trivial_L]
-  and cons_closed = M_trivial.cons_closed [OF M_trivial_L]
-  and successor_abs = M_trivial.successor_abs [OF M_trivial_L]
-  and succ_in_M_iff = M_trivial.succ_in_M_iff [OF M_trivial_L]
-  and separation_closed = M_trivial.separation_closed [OF M_trivial_L]
-  and strong_replacementI = 
-      M_trivial.strong_replacementI [OF M_trivial_L, rule_format]
-  and strong_replacement_closed = M_trivial.strong_replacement_closed [OF M_trivial_L]
-  and RepFun_closed = M_trivial.RepFun_closed [OF M_trivial_L]
-  and lam_closed = M_trivial.lam_closed [OF M_trivial_L]
-  and image_abs = M_trivial.image_abs [OF M_trivial_L]
-  and powerset_Pow = M_trivial.powerset_Pow [OF M_trivial_L]
-  and powerset_imp_subset_Pow = M_trivial.powerset_imp_subset_Pow [OF M_trivial_L]
-  and nat_into_M = M_trivial.nat_into_M [OF M_trivial_L]
-  and nat_case_closed = M_trivial.nat_case_closed [OF M_trivial_L]
-  and Inl_in_M_iff = M_trivial.Inl_in_M_iff [OF M_trivial_L]
-  and Inr_in_M_iff = M_trivial.Inr_in_M_iff [OF M_trivial_L]
-  and lt_closed = M_trivial.lt_closed [OF M_trivial_L]
-  and transitive_set_abs = M_trivial.transitive_set_abs [OF M_trivial_L]
-  and ordinal_abs = M_trivial.ordinal_abs [OF M_trivial_L]
-  and limit_ordinal_abs = M_trivial.limit_ordinal_abs [OF M_trivial_L]
-  and successor_ordinal_abs = M_trivial.successor_ordinal_abs [OF M_trivial_L]
-  and finite_ordinal_abs = M_trivial.finite_ordinal_abs [OF M_trivial_L]
-  and omega_abs = M_trivial.omega_abs [OF M_trivial_L]
-  and number1_abs = M_trivial.number1_abs [OF M_trivial_L]
-  and number2_abs = M_trivial.number2_abs [OF M_trivial_L]
-  and number3_abs = M_trivial.number3_abs [OF M_trivial_L]
-
+...
 declare rall_abs [simp]
 declare rex_abs [simp]
-declare empty_abs [simp]
-declare subset_abs [simp]
-declare upair_abs [simp]
-declare upair_in_M_iff [iff]
-declare singleton_in_M_iff [iff]
-declare pair_abs [simp]
-declare pair_in_M_iff [iff]
-declare cartprod_abs [simp]
-declare union_abs [simp]
-declare inter_abs [simp]
-declare setdiff_abs [simp]
-declare Union_abs [simp]
-declare Union_closed [intro, simp]
-declare Un_closed [intro, simp]
-declare cons_closed [intro, simp]
-declare successor_abs [simp]
-declare succ_in_M_iff [iff]
-declare separation_closed [intro, simp]
-declare strong_replacement_closed [intro, simp]
-declare RepFun_closed [intro, simp]
-declare lam_closed [intro, simp]
-declare image_abs [simp]
-declare nat_into_M [intro]
-declare Inl_in_M_iff [iff]
-declare Inr_in_M_iff [iff]
-declare transitive_set_abs [simp]
-declare ordinal_abs [simp]
-declare limit_ordinal_abs [simp]
-declare successor_ordinal_abs [simp]
-declare finite_ordinal_abs [simp]
-declare omega_abs [simp]
-declare number1_abs [simp]
-declare number2_abs [simp]
-declare number3_abs [simp]
+...and dozens of similar ones.
 *)
 
 subsection{*Instantiation of the locale @{text reflection}*}
@@ -332,8 +255,7 @@ lemma ReflectsE:
      "[| REFLECTS[P,Q]; Ord(i);
          !!j. [|i<j;  \<forall>x \<in> Lset(j). P(x) <-> Q(j,x)|] ==> R |]
       ==> R"
-apply (drule ReflectsD, assumption, blast)
-done
+by (drule ReflectsD, assumption, blast)
 
 lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B"
 by blast
