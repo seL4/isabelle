@@ -161,7 +161,8 @@ lemma "a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d
 oops
 
 lemma "\<forall>a b c d e f. a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d=e | d=f | e=f"
-  refute
+  refute  -- {* quantification causes an expansion of the formula; the
+                previous version with free variables is refuted much faster *}
 oops
 
 text {* "Every reflexive and symmetric relation is transitive." *}
@@ -451,6 +452,8 @@ lemma "Ex P \<longrightarrow> P (Eps P)"
   apply (auto simp add: someI)
 done
 
+(******************************************************************************)
+
 subsection {* Subtypes (typedef), typedecl *}
 
 text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
@@ -471,15 +474,15 @@ lemma "P (f::(myTdecl myTdef) T_bij)"
   refute
 oops
 
+(******************************************************************************)
+
 subsection {* Inductive datatypes *}
 
-text {* This is necessary because with quick\_and\_dirty set, the datatype
-package does not generate certain axioms for recursion operators.  Without
-these axioms, refute may find spurious countermodels. *}
+text {* With quick\_and\_dirty set, the datatype package does not generate
+  certain axioms for recursion operators.  Without these axioms, refute may
+  find spurious countermodels. *}
 
 ML {* reset quick_and_dirty; *}
-
-(*TODO*) ML {* set show_consts; set show_types; *}
 
 subsubsection {* unit *}
 
@@ -777,11 +780,11 @@ lemma "P (case x of Number a \<Rightarrow> number a | ITE b a1 a2 \<Rightarrow> 
 oops
 
 lemma "P (aexp_bexp_rec_2 number ite equal x)"
-  (*TODO refute*)
+  refute
 oops
 
 lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
-  (*TODO: refute*)
+  refute
 oops
 
 subsubsection {* Other datatype examples *}
@@ -800,7 +803,11 @@ lemma "P (TR [TR []])"
   refute
 oops
 
-lemma "P (Trie_rec tr x)"
+lemma "P (Trie_rec_1 a b c x)"
+  refute
+oops
+
+lemma "P (Trie_rec_2 a b c x)"
   refute
 oops
 
@@ -840,14 +847,106 @@ lemma "P (lambda_rec v a l x)"
   refute
 oops
 
-subsubsection {* Examples involving certain functions *}
+text {* Taken from "Inductive datatypes in HOL", p.8: *}
+
+datatype ('a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
+datatype 'c U = E "('c, 'c U) T"
+
+lemma "P (x::'c U)"
+  refute
+oops
+
+lemma "\<forall>x::'c U. P x"
+  refute
+oops
+
+lemma "P (E (C (\<lambda>a. True)))"
+  refute
+oops
+
+lemma "P (U_rec_1 e f g h i x)"
+  refute
+oops
+
+lemma "P (U_rec_2 e f g h i x)"
+  refute
+oops
+
+lemma "P (U_rec_3 e f g h i x)"
+  refute
+oops
+
+(******************************************************************************)
+
+subsection {* Records *}
+
+(*TODO: make use of pair types, rather than typedef, for record types*)
+
+record ('a, 'b) point =
+  xpos :: 'a
+  ypos :: 'b
+
+lemma "(x::('a, 'b) point) = y"
+  refute
+oops
+
+record ('a, 'b, 'c) extpoint = "('a, 'b) point" +
+  ext :: 'c
+
+lemma "(x::('a, 'b, 'c) extpoint) = y"
+  refute
+oops
+
+(******************************************************************************)
+
+subsection {* Inductively defined sets *}
+
+(*TODO: can we implement lfp/gfp more efficiently? *)
+
+consts
+  arbitrarySet :: "'a set"
+inductive arbitrarySet
+intros
+  "arbitrary : arbitrarySet"
+
+lemma "x : arbitrarySet"
+  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+oops
+
+consts
+  evenCard :: "'a set set"
+inductive evenCard
+intros
+  "{} : evenCard"
+  "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
+
+lemma "S : evenCard"
+  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+oops
+
+consts
+  even :: "nat set"
+  odd  :: "nat set"
+inductive even odd
+intros
+  "0 : even"
+  "n : even \<Longrightarrow> Suc n : odd"
+  "n : odd \<Longrightarrow> Suc n : even"
+
+lemma "n : odd"
+  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+oops
+
+(******************************************************************************)
+
+subsection {* Examples involving special functions *}
 
 lemma "card x = 0"
   refute
 oops
 
-lemma "P nat_rec"
-  refute
+lemma "finite x"
+  refute  -- {* no finite countermodel exists *}
 oops
 
 lemma "(x::nat) + y = 0"
@@ -874,17 +973,13 @@ lemma "a @ [] = b @ []"
   refute
 oops
 
-lemma "P (xs::'a list)"
-  refute ["List.list"=4, "'a"=2]
+lemma "a @ b = b @ a"
+  refute
 oops
 
-lemma "a @ b = b @ a"
-  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
-oops
+(******************************************************************************)
 
 subsection {* Axiomatic type classes and overloading *}
-
-ML {* set show_consts; set show_types; set show_sorts; *}
 
 text {* A type class without axioms: *}
 
