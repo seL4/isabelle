@@ -311,7 +311,11 @@ New in this Isabelle release
   otherwise we unfold the let and arrive at g. The simproc can be 
   enabled/disabled by the reference use_let_simproc. Potential
   INCOMPATIBILITY since simplification is more powerful by default.
- 
+
+* HOL: The 'refute' command has been extended to support a much larger
+  fragment of HOL, including axiomatic type classes, constdefs and typedefs,
+  inductive datatypes and recursion.
+
 
 *** HOLCF ***
 
