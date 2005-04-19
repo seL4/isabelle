@@ -2308,7 +2308,7 @@ by (fast dest: Distrib_Lattice.axioms)
 
 text {* Classical rules from the locales are deleted in the above
   interpretations, since they interfere with the claset setup for
-  {text "op \<le>"}. *)
+  @{text "op \<le>"}. *}
 
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}
