@@ -38,11 +38,12 @@ workshops and courses.
 <h2>Isabelle 2005 - Preview</h2>
 
 <ul>
+<li>New commands for instantiating locales</li>
 <li>New command for finding matching rewrite rules</li>
-<li>New syntax to allow &gt; and &gt;=</li>
 <li>New automatic transitivity reasoner</li>
 <li>New command for ad-hoc theory viewing and printing</li>
 <li>Much extended and improved theory of finite sets</li>
+<li>New syntax that will allow &gt; and &gt;= in addition to &lt; and &lt;=</li>
 </ul>
 
 <h2>Contributing</h2> 
