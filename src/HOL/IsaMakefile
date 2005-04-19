@@ -15,6 +15,7 @@ test: \
   HOL-AxClasses \
   HOL-Bali \
   HOL-Complex-ex \
+  HOL-Complex-Import \
   HOL-CTL \
   HOL-Extraction \
       HOL-Complex-HahnBanach \
@@ -43,7 +44,6 @@ test: \
   HOL-W0 \
   HOL-ex
     # ^ this is the sort position
-      ####lcp temporary####HOL-Complex-Import \
 
 all: test images
 
