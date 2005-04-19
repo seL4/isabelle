@@ -32,7 +32,7 @@ fun clause_numbering (name:string, cls) = let val num_of_cls = length cls
                                               val numbers = 0 upto (num_of_cls -1)
                                               val multi_name = multi name num_of_cls []
                                           in 
-                                              zip multi_name numbers
+                                              ListPair.zip (multi_name,numbers)
                                           end;
 
 fun stick []  = []
@@ -108,7 +108,7 @@ fun write_out_clasimp filename = let
                                     (* get (name, thm) pairs for claset rules *)
                                    (*******************************************)
 
-                                   val names_rules = zip good_names name_fol_cs;
+                                   val names_rules = ListPair.zip (good_names,name_fol_cs);
                                    
                                    val new_clasrls = #1(ResAxioms.clausify_classical_rules name_fol_cs[])
 
@@ -118,7 +118,7 @@ fun write_out_clasimp filename = let
                                    val stick_clasrls =  map stick claset_tptp_strs;
                                    (* stick stick_clasrls length is 172*)
 
-                                   val name_stick = zip good_names stick_clasrls;
+                                   val name_stick = ListPair.zip (good_names,stick_clasrls);
 
                                    val cl_name_nums =map clause_numbering name_stick;
                                        
@@ -169,7 +169,7 @@ fun write_out_clasimp filename = let
                                     val simpset_tptp_strs = map (map ResClause.tptp_clause) new_simps;
 
                                     val stick_strs = map stick simpset_tptp_strs;
-                                    val name_stick = zip simp_names stick_strs;
+                                    val name_stick = ListPair.zip (simp_names,stick_strs);
 
                                     val name_nums =map clause_numbering name_stick;
                                     (* length 2409*)

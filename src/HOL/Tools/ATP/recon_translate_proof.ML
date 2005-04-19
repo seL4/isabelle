@@ -62,18 +62,20 @@ fun lit_string_with_nums t = let val termstr = Term.string_of_term t
                                  implode(List.filter is_alpha_space_digit_or_neg exp_term)
                              end
 
+fun reconstruction_failed fname = error (fname ^ ": reconstruction failed")
 
 (****************************************)
 (* Reconstruct an axiom resolution step *)
 (****************************************)
 
- fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
-                                     let val this_axiom =(Recon_Base.assoc  clausenum clauses)
+fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
+                                     let val this_axiom = valOf (assoc (clauses,clausenum))
                                          val (res, numlist, symlist, nsymlist) = (rearrange_clause this_axiom clause_strs allvars)         
                                          val thmvars = thm_vars res
                                      in
                                          (res, (Axiom,clause_strs,thmvars )  )
                                      end
+                                     handle Option => reconstruction_failed "follow_axiom"
 
 (****************************************)
 (* Reconstruct a binary resolution step *)
@@ -82,14 +84,15 @@ fun lit_string_with_nums t = let val termstr = Term.string_of_term t
                  (* numbers of clauses and literals*) (*vars*) (*list of current thms*) (* literal strings as parsed from spass *)
 fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs 
         = let
-              val thm1 =  select_literal (lit1 + 1) (Recon_Base.assoc  clause1 thml)
-              val thm2 =  Recon_Base.assoc  clause2 thml
+              val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
+              val thm2 =  valOf (assoc (thml,clause2))
               val res =   thm1 RSN ((lit2 +1), thm2)
               val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
               val thmvars = thm_vars res
           in
              (res',  ((Binary ((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars) )
           end
+	  handle Option => reconstruction_failed "follow_binary"
 
 
 
@@ -100,14 +103,15 @@ fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs
 
 fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs 
         = let
-              val thm1 =  select_literal (lit1 + 1) (Recon_Base.assoc  clause1 thml)
-              val thm2 =  Recon_Base.assoc  clause2 thml
+              val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
+              val thm2 =  valOf (assoc (thml,clause2))
               val res =   thm1 RSN ((lit2 +1), thm2)
               val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
               val thmvars = thm_vars res
           in
              (res',  ((MRR ((clause1, lit1), (clause2 , lit2))) ,clause_strs,thmvars))
           end
+	  handle Option => reconstruction_failed "follow_mrr"
 
 
 (*******************************************)
@@ -144,7 +148,7 @@ fun delete_assump_tac state lit =
 (*FIXME: share code with that in Tools/reconstruction.ML*)
 fun follow_factor clause lit1 lit2 allvars thml clause_strs= 
                           let 
-                            val th =  Recon_Base.assoc clause thml
+                            val th =  valOf (assoc (thml,clause))
                             val prems = prems_of th
                             val sign = sign_of_thm th
                             val fac1 = get_nth (lit1+1) prems
@@ -178,15 +182,8 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs=
                                 in 
                                        (res', ((Factor (clause,  lit1, lit2)),clause_strs, thmvars))         
                                 end
-                         end;
-
-
-
-Goal "[| [|Q |] ==> False; [|P|] ==> False; Q; P|] ==> False";
-val prems = it;
-br (hd prems) 1;
-br (hd(tl(tl prems))) 1;
-qed "merge";
+                         end
+                         handle Option => reconstruction_failed "follow_factor"
 
 
 
@@ -217,8 +214,8 @@ val rev_ssubst = rotate_prems 1 ssubst;
 
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
                           let 
-                            val th1 =  Recon_Base.assoc clause1 thml
-                            val th2 =  Recon_Base.assoc clause2 thml 
+                            val th1 =  valOf (assoc (thml,clause1))
+                            val th2 =  valOf (assoc (thml,clause2)) 
                             val eq_lit_th = select_literal (lit1+1) th1
                             val mod_lit_th = select_literal (lit2+1) th2
                             val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -236,12 +233,13 @@ fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause
                          in 
                            (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
                          end
+			 handle Option => reconstruction_failed "follow_standard_para"
 
 (*              
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
                           let 
-                            val th1 =  Recon_Base.assoc clause1 thml
-                            val th2 =  Recon_Base.assoc clause2 thml 
+                            val th1 =  valOf (assoc (thml,clause1))
+                            val th2 =  valOf (assoc (thml,clause2)) 
                             val eq_lit_th = select_literal (lit1+1) th1
                             val mod_lit_th = select_literal (lit2+1) th2
                             val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -252,6 +250,7 @@ fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause
                          in 
                            (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
                          end
+			 handle Option => reconstruction_failed "follow_standard_para"
 
 *)
 
@@ -292,8 +291,8 @@ fun delete_assumps 0 th = th
                     (* clause1, lit1 is thing to rewrite with *)
 fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs= 
 
-                          let val th1 =  Recon_Base.assoc clause1 thml
-                              val th2 = Recon_Base.assoc clause2 thml
+                          let val th1 =  valOf (assoc (thml,clause1))
+                              val th2 = valOf (assoc (thml,clause2))
                               val eq_lit_th = select_literal (lit1+1) th1
                               val mod_lit_th = select_literal (lit2+1) th2
                               val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -309,6 +308,7 @@ eqsubst)
                            in
                                (res, ((Rewrite ((clause1, lit1),  (clause2, lit2))),clause_strs,thmvars))
                            end
+			   handle Option => reconstruction_failed "follow_rewrite"
 
 
 
@@ -318,7 +318,7 @@ eqsubst)
 
 
 fun follow_obvious  (clause1, lit1)  allvars thml clause_strs= 
-                           let val th1 =  Recon_Base.assoc clause1 thml
+                           let val th1 =  valOf (assoc (thml,clause1))
                                val prems1 = prems_of th1
                                val newthm = refl RSN ((lit1+ 1), th1)
                                                handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
@@ -327,6 +327,7 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs=
                            in 
                                (res, ((Obvious (clause1, lit1)),clause_strs,thmvars))
                            end
+  	 		   handle Option => reconstruction_failed "follow_obvious"
 
 (**************************************************************************************)
 (* reconstruct a single line of the res. proof - depending on what sort of proof step it was*)

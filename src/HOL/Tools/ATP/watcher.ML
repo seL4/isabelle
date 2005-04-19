@@ -605,7 +605,7 @@ fun spass_proofHandler (n:int) = (
 
                                                           let val thm = thm_of_string thmstring
                                                               val clauses = make_clauses [thm]
-                                                              val numcls =  zip  (numlist (length clauses)) (map make_meta_clause clauses)
+                                                              val numcls =  ListPair.zip  (numlist (length clauses), map make_meta_clause clauses)
                                                          
                                                           in
                                                              Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));

@@ -212,7 +212,7 @@ fun make_clause (clause_id,axiom_name,kind,literals,types_sorts,tvar_type_litera
 fun type_of (Type (a, [])) = (make_fixed_type_const a,[]) 
   | type_of (Type (a, Ts)) = 
     let val foltyps_ts = map type_of Ts
-        val (folTyps,ts) = ResLib.unzip foltyps_ts
+        val (folTyps,ts) = ListPair.unzip foltyps_ts
         val ts' = ResLib.flat_noDup ts
     in    
         (((make_fixed_type_const a) ^ (ResLib.list_to_string folTyps)),ts') 
@@ -279,14 +279,14 @@ fun term_of (Var(ind_nm,T)) =
     let val (f,args) = strip_comb app
         fun term_of_aux () = 
             let val (funName,(funType,ts1)) = fun_name_type f
-                 val (args',ts2) = ResLib.unzip (map term_of args)
+                 val (args',ts2) = ListPair.unzip (map term_of args)
                  val ts3 = ResLib.flat_noDup (ts1::ts2)
             in
 		(Fun(funName,funType,args'),ts3)
             end
 	fun term_of_eq ((Const ("op =", typ)),args) =
 	    let val arg_typ = eq_arg_type typ
-		val (args',ts) = ResLib.unzip (map term_of args)
+		val (args',ts) = ListPair.unzip (map term_of args)
 		val equal_name = lookup_const ("op =")
 	    in
 		(Fun(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
@@ -304,7 +304,7 @@ fun term_of (Var(ind_nm,T)) =
 
 fun pred_of_eq ((Const ("op =", typ)),args) =
     let val arg_typ = eq_arg_type typ 
-	val (args',ts) = ResLib.unzip (map term_of args)
+	val (args',ts) = ListPair.unzip (map term_of args)
 	val equal_name = lookup_const "op ="
     in
 	(Predicate(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
@@ -315,7 +315,7 @@ fun pred_of_eq ((Const ("op =", typ)),args) =
 (* The input "pred" cannot be an equality *)
 fun pred_of_nonEq (pred,args) = 
     let val (predName,(predType,ts1)) = pred_name_type pred
-	val (args',ts2) = ResLib.unzip (map term_of args)
+	val (args',ts2) = ListPair.unzip (map term_of args)
 	val ts3 = ResLib.flat_noDup (ts1::ts2)
     in
 	(Predicate(predName,predType,args'),ts3)
@@ -507,7 +507,7 @@ fun make_axiom_arity_clause (tcons,(res,args)) =
 	 val nargs = length args
 	 val tvars = get_TVars nargs
 	 val conclLit = make_TConsLit(true,(res,tcons,tvars))
-         val tvars_srts = ResLib.zip tvars args
+         val tvars_srts = ListPair.zip (tvars,args)
 	 val tvars_srts' = ResLib.flat_noDup(map pack_sort tvars_srts)
          val false_tvars_srts' = ResLib.pair_ins false tvars_srts'
 	 val premLits = map make_TVarLit false_tvars_srts'

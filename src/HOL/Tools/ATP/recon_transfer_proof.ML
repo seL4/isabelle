@@ -116,7 +116,9 @@ fun get_init_axioms xs = List.filter (is_axiom) ( xs)
 fun get_step_nums [] nums = nums
 |   get_step_nums (( num:int,Axiom, str)::xs) nums = get_step_nums xs (nums@[num])
 
-fun assoc_snd a [] = raise Recon_Base.Noassoc
+exception Noassoc;
+
+fun assoc_snd a [] = raise Noassoc
   | assoc_snd a ((x, y)::t) = if a = y then x else assoc_snd a t;
 
 (* change to be something using check_order  instead of a = y --> returns true if ASSERTION not raised in checkorder, false otherwise *)
@@ -125,13 +127,10 @@ fun assoc_snd a [] = raise Recon_Base.Noassoc
 |   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_snd x ys))])
 *)
 (*FIX - should this have vars in it? *)
-fun there_out_of_order xs ys = let val foo = (checkorder xs ys [] ([],[],[]))                        
-                               in 
-                                   true
-                              end
-                              handle EXCEP => false
+fun there_out_of_order xs ys = (checkorder xs ys [] ([],[],[]); true) 
+                               handle _ => false
 
-fun assoc_out_of_order a [] = raise Recon_Base.Noassoc
+fun assoc_out_of_order a [] = raise Noassoc
 |   assoc_out_of_order a ((b,c)::t) = if there_out_of_order a c then b else assoc_out_of_order a t;
 
 fun get_assoc_snds [] xs assocs= assocs
@@ -180,7 +179,7 @@ fun thmstrings [] str = str
                                             (* literals of -all- axioms, not just those used by spass *)
                                             val meta_strs = map get_meta_lits metas
                                            
-                                            val metas_and_strs = zip  metas meta_strs
+                                            val metas_and_strs = ListPair.zip (metas,meta_strs)
                                              val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_clauses")));                                                                       
                                              val _ = TextIO.output (outfile, onestr ax_strs)
                                              
@@ -193,14 +192,14 @@ fun thmstrings [] str = str
 
                                             val ax_metas = get_assoc_snds ax_strs metas_and_strs []
                                             val ax_vars = map thm_vars ax_metas
-                                            val ax_with_vars = zip ax_metas ax_vars
+                                            val ax_with_vars = ListPair.zip (ax_metas,ax_vars)
 
                                             (* get list of extra axioms as thms with their variables *)
                                             val extra_metas = add_if_not_inlist metas ax_metas []
                                             val extra_vars = map thm_vars extra_metas
                                             val extra_with_vars = if (not (extra_metas = []) ) 
                                                                   then
- 									 zip extra_metas extra_vars
+ 									 ListPair.zip (extra_metas,extra_vars)
                                                                   else
                                                                          []
 
@@ -218,7 +217,7 @@ fun thmstrings [] str = str
                                            val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
                                            
                                          in
-                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (zip step_nums ax_metas))
+                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (ListPair.zip (step_nums,ax_metas)))
                                          end
                                         
 fun thmstrings [] str = str
@@ -347,12 +346,12 @@ fun spassString_to_reconString proofstr thmstring =
                                                   (* do the bit for the Isabelle ordered axioms at the top *)
                                                   val ax_nums = map #1 numcls
                                                   val ax_strs = map get_meta_lits_bracket (map #2 numcls)
-                                                  val numcls_strs = zip ax_nums ax_strs
+                                                  val numcls_strs = ListPair.zip (ax_nums,ax_strs)
                                                   val num_cls_vars =  map (addvars vars) numcls_strs;
-                                                  val reconIsaAxStr = origAxs_to_string (zip ax_nums ax_with_vars) ""
+                                                  val reconIsaAxStr = origAxs_to_string (ListPair.zip (ax_nums,ax_with_vars)) ""
                                                   
                                                   val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars)) else []
-                                                  val reconExtraAxStr = extraAxs_to_string ( zip extra_nums extra_with_vars) ""
+                                                  val reconExtraAxStr = extraAxs_to_string ( ListPair.zip (extra_nums,extra_with_vars)) ""
                                                   val frees_str = "["^(thmvars_to_string frees "")^"]"
                                                   val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "reconstringfile")));
 
@@ -640,15 +639,15 @@ fun last_isar_line (numb,( step, clstrs,thmstrs)) = "show \"False\"\n"^(by_isar_
 
 fun to_isar_proof (frees, xs, goalstring) = let val extraaxioms = get_extraaxioms xs
                            val extraax_num = length extraaxioms
-                           val origaxioms_and_steps = drop (extraax_num) xs  
+                           val origaxioms_and_steps = Library.drop (extraax_num, xs)  
                           
   
                            val origaxioms = get_origaxioms origaxioms_and_steps
                            val origax_num = length origaxioms
-                           val axioms_and_steps = drop (origax_num + extraax_num) xs  
+                           val axioms_and_steps = Library.drop (origax_num + extraax_num, xs)  
                            val axioms = get_axioms axioms_and_steps
                            
-                           val steps = drop origax_num axioms_and_steps
+                           val steps = Library.drop (origax_num, axioms_and_steps)
                            val firststeps = butlast steps
                            val laststep = last steps
                            val goalstring = implode(butlast(explode goalstring))

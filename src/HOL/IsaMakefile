@@ -114,10 +114,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   blastdata.ML cladata.ML \
  Tools/res_lib.ML Tools/res_clause.ML Tools/res_skolem_function.ML\
  Tools/res_axioms.ML Tools/res_types_sorts.ML \
- Tools/ATP/recon_prelim.ML Tools/ATP/recon_gandalf_base.ML Tools/ATP/recon_order_clauses.ML\
+ Tools/ATP/recon_prelim.ML Tools/ATP/recon_order_clauses.ML\
  Tools/ATP/recon_translate_proof.ML Tools/ATP/recon_parse.ML \
  Tools/ATP/recon_transfer_proof.ML Tools/ATP/res_clasimpset.ML \
- Tools/ATP/VampireCommunication.ML Tools/ATP/SpassCommunication.ML   Tools/ATP/modUnix.ML  \
+ Tools/ATP/VampireCommunication.ML Tools/ATP/SpassCommunication.ML Tools/ATP/modUnix.ML  \
  Tools/ATP/watcher.sig Tools/ATP/watcher.ML   Tools/res_atp.ML\
   document/root.tex hologic.ML simpdata.ML thy_syntax.ML
 	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL

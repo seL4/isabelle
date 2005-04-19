@@ -22,10 +22,8 @@ sig
 	val no_rep_app : ''a list -> ''a list -> ''a list
 	val pair_ins : 'a -> 'b list -> ('a * 'b) list
 	val rm_rep : ''a list -> ''a list
-	val unzip : ('a * 'b) list -> 'a list * 'b list
 	val write_strs : TextIO.outstream -> TextIO.vector list -> unit
 	val writeln_strs : TextIO.outstream -> TextIO.vector list -> unit
-	val zip : 'a list -> 'b list -> ('a * 'b) list
 
 end;
 
@@ -79,18 +77,6 @@ struct
 
 	fun rm_rep []     = []
 	  | rm_rep (x::y) = if x mem y then rm_rep y else x::(rm_rep y);
-
-	fun unzip []             =
-		([], [])
-	  | unzip ((x1, y1)::zs) =
-		let
-			val (xs, ys) = unzip zs
-		in
-			(x1::xs, y1::ys)
-		end;
-
-	fun zip []      []      = []
-	  | zip (x::xs) (y::ys) = (x, y)::(zip xs ys);
 
 	fun flat_noDup []     = []
 	  | flat_noDup (x::y) = no_rep_app x (flat_noDup y);

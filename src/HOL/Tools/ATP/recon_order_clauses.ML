@@ -2,26 +2,15 @@
 (* Reorder clauses for use in binary resolution *)
 (*----------------------------------------------*)
 
-fun drop n [] = []
-|   drop n (x::xs) = (if n = 0 then (x::xs) else drop (n-1) xs)
-
 fun remove_nth n [] = []
 |   remove_nth n xs = (List.take (xs, n-1)) @ (List.drop (xs, n))
 
-fun get_nth n (x::xs) = hd (drop (n-1) (x::xs))
+(*Differs from List.nth: it counts from 1 rather than from 0*)
+fun get_nth n (x::xs) = hd (Library.drop (n-1, x::xs))
 
 
 exception Not_in_list;  
 
-
-fun zip xs [] = []
-|   zip xs (y::ys) = (case xs of [] => [] | (z::zs) => ((z,y)::zip zs ys))
-
-
-fun unzip [] = ([],[])
-    | unzip((x,y)::pairs) =
-	  let val (xs,ys) = unzip pairs
-	  in  (x::xs, y::ys)  end;
 
 fun numlist 0 = []
 |   numlist n = (numlist (n - 1))@[n]
@@ -38,13 +27,6 @@ fun minus a b = b - a;
 
 
 (* code to rearrange clauses so that they're the same as the parsed in SPASS version *)
-
-fun assoc3 a [] = raise Recon_Base.Noassoc
-  | assoc3 a ((x, y, z)::t) = if a = x then z else assoc3 a t;
-
-
-fun third (a,b,c) = c;
-
 
  fun takeUntil ch [] res  = (res, [])
  |   takeUntil ch (x::xs) res = if   x = ch 
@@ -70,12 +52,12 @@ fun get_eq_strs str =  if eq_not_neq  str   (*not an inequality *)
                        then 
                            let val (left, right) = takeUntil "=" str []
                            in
-                               ((butlast left), (drop 1 right))
+                               (butlast left, tl right)
                            end
                        else                  (* is an inequality *)
                            let val (left, right) = takeUntil "~" str []
                            in 
-                              ((butlast left), (drop 2 right))
+                              (butlast left, tl (tl right))
                            end
                 
 
@@ -101,21 +83,14 @@ fun all_true [] = false
 
 
 
-fun var_pos_eq vars x y = let val xs = explode x
+fun var_pos_eq vars x y = String.size x = String.size y andalso
+			  let val xs = explode x
                               val ys = explode y
+                              val xsys = ListPair.zip (xs,ys)
+                              val are_var_pairs = map (var_equiv vars) xsys
                           in
-                              if not_equal (length xs) (length ys)
-                              then 
-                                  false
-                              else
-                                  let val xsys = zip xs ys
-                                      val are_var_pairs = map (var_equiv vars) xsys
-                                  in
-                                      all_true are_var_pairs 
-                                  end
+                              all_true are_var_pairs 
                           end
-
-
 
 
 fun  pos_in_list a [] allvars (pos_num, symlist, nsymlist) =  raise Not_in_list
