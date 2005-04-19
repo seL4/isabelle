@@ -31,7 +31,6 @@ axclass semiring_0 \<subseteq> semiring, comm_monoid_add
 axclass semiring_0_cancel \<subseteq> semiring_0, cancel_ab_semigroup_add
 
 axclass comm_semiring \<subseteq> ab_semigroup_add, ab_semigroup_mult  
-  mult_commute: "a * b = b * a"
   distrib: "(a + b) * c = a * c + b * c"
 
 instance comm_semiring \<subseteq> semiring
