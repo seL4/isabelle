@@ -516,23 +516,10 @@ by(auto intro: ACf.intro ACe_axioms.intro add_assoc add_commute)
 
 interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
   apply -
-   apply (fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
-  apply (fastsimp intro: ACe_axioms.intro mult_assoc ab_semigroup_mult.mult_commute)
+   apply (fast intro: ACf.intro mult_assoc mult_commute)
+  apply (fastsimp intro: ACe_axioms.intro mult_assoc mult_commute)
   done
 
-(*
-lemma ACf_add: "ACf (op + :: 'a::comm_monoid_add \<Rightarrow> 'a \<Rightarrow> 'a)"
-by(fastsimp intro: ACf.intro add_assoc add_commute)
-
-lemma ACe_add: "ACe (op +) (0::'a::comm_monoid_add)"
-by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_add)
-
-lemma ACf_mult: "ACf (op * :: 'a::comm_monoid_mult \<Rightarrow> 'a \<Rightarrow> 'a)"
-by(fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
-
-lemma ACe_mult: "ACe (op * ) (1::'a::comm_monoid_mult)"
-by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
-*)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
@@ -2149,7 +2136,7 @@ done
 
 subsubsection{* Fold laws in lattices *}
 
-lemma (in Lattice) Inf_le_Sup: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
+lemma (in Lattice) Inf_le_Sup[simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
 apply(unfold Sup_def Inf_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
@@ -2159,13 +2146,13 @@ apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_inf])
 apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
 done
 
-lemma (in Lattice) sup_Inf_absorb:
+lemma (in Lattice) sup_Inf_absorb[simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>A) = a"
 apply(subst sup_commute)
 apply(simp add:Inf_def sup_absorb ACIfSL.fold1_belowI[OF ACIfSL_inf])
 done
 
-lemma (in Lattice) inf_Sup_absorb:
+lemma (in Lattice) inf_Sup_absorb[simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>A) = a"
 by(simp add:Sup_def inf_absorb ACIfSL.fold1_belowI[OF ACIfSL_sup])
 
@@ -2260,51 +2247,41 @@ apply(rule ACIf_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation AC_min [rule del]: ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
+interpretation AC_min [rule del]:
+  ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_min [rule del]: ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
+interpretation AC_min [rule del]:
+  ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_max [rule del]: ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
+interpretation AC_max [rule del]:
+  ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation AC_max [rule del]: ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
+interpretation AC_max [rule del]:
+  ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma Lattice_min_max [rule del]: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule Lattice.intro)
-apply(rule partial_order_order)
-apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
+interpretation min_max [rule del]:
+  Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
+apply -
+apply(rule Min_def)
+apply(rule Max_def)
 done
 
-lemma Distrib_Lattice_min_max [rule del]:
- "Distrib_Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule Distrib_Lattice.intro)
-apply(rule partial_order_order)
-apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
-apply(rule distrib_lattice.axioms[OF distrib_lattice_min_max])
-done
 
-interpretation Lattice_min_max [rule del]:
-  Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-using Lattice_min_max
-by (auto dest: Lattice.axioms)
-
-interpretation Lattice_min_max [rule del]:
-  Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-using Distrib_Lattice_min_max
-by (fast dest: Distrib_Lattice.axioms)
+interpretation min_max [rule del]:
+  Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
+.
 
 text {* Classical rules from the locales are deleted in the above
   interpretations, since they interfere with the claset setup for
@@ -2355,14 +2332,5 @@ by(simp add: Min_def AC_min.fold1_below_iff)
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
 by(simp add: Max_def AC_max.fold1_below_iff)
-
-lemma Min_le_Max:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> Max A"
-by(simp add: Min_def Max_def Lattice_min_max.Inf_le_Sup)
-
-lemma max_Min2_distrib:
-  "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow>
-  max (Min A) (Min B) = Min{ max a b |a b. a \<in> A \<and> b \<in> B}"
-by(simp add: Min_def Lattice_min_max.sup_Inf2_distrib)
 
 end

@@ -93,8 +93,8 @@ axclass order < ord
 
 text{* Connection to locale: *}
 
-lemma partial_order_order:
- "partial_order (op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
+interpretation order[rule del]:
+  partial_order["op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool"]
 apply(rule partial_order.intro)
 apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym)
 done
@@ -225,6 +225,16 @@ subsection "Linear / total orders"
 
 axclass linorder < order
   linorder_linear: "x <= y | y <= x"
+
+(* Could (should?) follow automatically from the interpretation of
+   partial_order by class order. rule del is needed because two copies
+   of refl with classes order and linorder confuse blast (and are pointless)*)
+interpretation order[rule del]:
+  partial_order["op \<le> :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> bool"]
+apply(rule partial_order.intro)
+apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym)
+done
+
 
 lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
   apply (simp add: order_less_le)
@@ -388,39 +398,30 @@ lemma max_same [simp]: "max (x::'a::order) x = x"
 
 text{* Instantiate locales: *}
 
-lemma lower_semilattice_lin_min:
-  "lower_semilattice(op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule lower_semilattice.intro)
-apply(rule partial_order_order)
+interpretation min_max [rule del]:
+  lower_semilattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+apply -
 apply(rule lower_semilattice_axioms.intro)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 done
 
-lemma upper_semilattice_lin_max:
-  "upper_semilattice(op \<le>) (max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
-apply(rule upper_semilattice.intro)
-apply(rule partial_order_order)
+interpretation min_max [rule del]:
+  upper_semilattice["op \<le>" "max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+apply -
 apply(rule upper_semilattice_axioms.intro)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 done
 
-lemma lattice_min_max: "lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule lattice.intro)
-apply(rule partial_order_order)
-apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
-done
+interpretation min_max [rule del]:
+  lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
+.
 
-lemma distrib_lattice_min_max:
- "distrib_lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule distrib_lattice.intro)
-apply(rule partial_order_order)
-apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
-apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_max])
+interpretation min_max [rule del]:
+  distrib_lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
 apply(rule distrib_lattice_axioms.intro)
 apply(rule_tac x=x and y=y in linorder_le_cases)
 apply(rule_tac x=x and y=z in linorder_le_cases)
@@ -445,12 +446,8 @@ lemma le_max_iff_disj: "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)"
   apply (blast intro: order_trans)
   done
 
-lemma le_maxI1: "(x::'a::linorder) <= max x y"
-by(rule upper_semilattice.sup_ge1[OF upper_semilattice_lin_max])
-
-lemma le_maxI2: "(y::'a::linorder) <= max x y"
-    -- {* CANNOT use with @{text "[intro!]"} because blast will give PROOF FAILED. *}
-by(rule upper_semilattice.sup_ge2[OF upper_semilattice_lin_max])
+lemmas le_maxI1 = min_max.sup_ge1
+lemmas le_maxI2 = min_max.sup_ge2
 
 lemma less_max_iff_disj: "!!z::'a::linorder. (z < max x y) = (z < x | z < y)"
   apply (simp add: max_def order_le_less)
@@ -458,22 +455,18 @@ lemma less_max_iff_disj: "!!z::'a::linorder. (z < max x y) = (z < x | z < y)"
   apply (blast intro: order_less_trans)
   done
 
-lemma max_le_iff_conj [simp]:
-    "!!z::'a::linorder. (max x y <= z) = (x <= z & y <= z)"
-by (rule upper_semilattice.above_sup_conv[OF upper_semilattice_lin_max])
-
 lemma max_less_iff_conj [simp]:
     "!!z::'a::linorder. (max x y < z) = (x < z & y < z)"
   apply (simp add: order_le_less max_def)
   apply (insert linorder_less_linear)
   apply (blast intro: order_less_trans)
   done
-
+(*
 lemma le_min_iff_conj [simp]:
     "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)"
     -- {* @{text "[iff]"} screws up a @{text blast} in MiniML *}
 by (rule lower_semilattice.below_inf_conv[OF lower_semilattice_lin_min])
-
+*)
 lemma min_less_iff_conj [simp]:
     "!!z::'a::linorder. (z < min x y) = (z < x & z < y)"
   apply (simp add: order_le_less min_def)
@@ -492,24 +485,24 @@ lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
   apply (insert linorder_less_linear)
   apply (blast intro: order_less_trans)
   done
-
+(*
 lemma max_assoc: "!!x::'a::linorder. max (max x y) z = max x (max y z)"
 by (rule upper_semilattice.sup_assoc[OF upper_semilattice_lin_max])
 
 lemma max_commute: "!!x::'a::linorder. max x y = max y x"
 by (rule upper_semilattice.sup_commute[OF upper_semilattice_lin_max])
-
-lemmas max_ac = max_assoc max_commute
-                mk_left_commute[of max,OF max_assoc max_commute]
-
+*)
+lemmas max_ac = min_max.sup_assoc min_max.sup_commute
+               mk_left_commute[of max,OF min_max.sup_assoc min_max.sup_commute]
+(*
 lemma min_assoc: "!!x::'a::linorder. min (min x y) z = min x (min y z)"
 by (rule lower_semilattice.inf_assoc[OF lower_semilattice_lin_min])
 
 lemma min_commute: "!!x::'a::linorder. min x y = min y x"
 by (rule lower_semilattice.inf_commute[OF lower_semilattice_lin_min])
-
-lemmas min_ac = min_assoc min_commute
-                mk_left_commute[of min,OF min_assoc min_commute]
+*)
+lemmas min_ac = min_max.inf_assoc min_max.inf_commute
+               mk_left_commute[of min,OF min_max.inf_assoc min_max.inf_commute]
 
 lemma split_min:
     "P (min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))"
