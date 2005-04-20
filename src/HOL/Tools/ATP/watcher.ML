@@ -75,32 +75,43 @@ fun callResProver (toWatcherStr,  arg) = (sendOutput (toWatcherStr, arg^"\n");
 (*  Send request to Watcher for multiple provers to be called for filenames in arg      *)
 (*****************************************************************************************)
 
+
+
 (* need to modify to send over hyps file too *)
 fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of calls\n"); 
                                      TextIO.flushOut toWatcherStr)
-|   callResProvers (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings,probfile)::args) =
-                                                     let 
-                                                        val dfg_dir = File.tmp_path (Path.basic "dfg");
-                                                        (* need to check here if the directory exists and, if not, create it*)
-                                                         val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic"thmstring_in_watcher")));                                                                                    
-                                                         val _ = TextIO.output (outfile, (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^"\n"))
+|   callResProvers (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings,clasimpfile, axfile, hypsfile,probfile)::args) =
+                                                     let val dfg_dir = File.tmp_path (Path.basic "dfg"); 
+                                                        (*** need to check here if the directory exists and, if not, create it***)
+                                                         val  outfile = TextIO.openAppend(File.sysify_path
+                                                                               (File.tmp_path (Path.basic"thmstring_in_watcher")));                                                                         val _ = TextIO.output (outfile, 
+                                                                       (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^"\n"))
                                                          val _ =  TextIO.closeOut outfile
+                                                        (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
+							val probID = last(explode probfile)
+                                                         val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
+                                                         (*** only include problem and clasimp for the moment, not sure how to refer to ***)
+                                                         (*** hyps/local axioms just now                                                ***)
+                                                         val whole_prob_file = Unix.execute("/bin/cat", [(*clasimpfile, axfile, hypsfile,*)probfile,  ">", (File.sysify_path wholefile)])
                                                          val dfg_create =if File.exists dfg_dir 
                                                                          then
-                                                                             ()
+                                                                             ((warning("dfg dir exists"));())
                                                                          else
                                                                                File.mkdir dfg_dir; 
-                                                         val probID = last(explode probfile)
+                                                         
                                                          val dfg_path = File.sysify_path dfg_dir;
-                                                         val exec_tptp2x = Unix.execute("/usr/groups/theory/tptp/TPTP-v2.6.0/TPTP2X/tptp2X", ["-fdfg "^probfile^" -d "^dfg_path])
+                                                         val exec_tptp2x = Unix.execute("/usr/groups/theory/tptp/TPTP-v3.0.1/TPTP2X/tptp2X",
+                                                                                       ["-fdfg ",(File.sysify_path wholefile)," -d ",dfg_path])
                                                        (*val _ = Posix.Process.wait ()*)
                                                        (*val _ =Unix.reap exec_tptp2x*)
-                                                         val newfile = dfg_path^"/prob"^"_"^(probID)^".dfg"
+                                                         val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
                                        
                                                       in   
                                                          goals_being_watched := (!goals_being_watched) + 1;
                                                          OS.Process.sleep(Time.fromSeconds 1); 
+                     					(warning ("probfile is: "^probfile));
                                                          (warning("dfg file is: "^newfile));
+                                                         (warning ("wholefile is: "^(File.sysify_path wholefile)));
                                                          sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^newfile^"\n"));
                                                          TextIO.flushOut toWatcherStr;
                                                          Unix.reap exec_tptp2x; 
@@ -108,13 +119,13 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                                                          callResProvers (toWatcherStr,args)
                                            
                                                      end
-
+(*
 fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 
                                      
-|   callResProversStr (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings, file)::args) =
-                                            ((prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^file^"\n")
+|   callResProversStr (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings,clasimpfile, axfile, hypsfile, probfile)::args) =
+                                            ((prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^clasimpfile^"*"^axfile^"*"^hypsfile^"*"^probfile^"\n")
                                             
-                                           )
+     *)                                      
  
 (**************************************************************)
 (* Send message to watcher to kill currently running vampires *)
@@ -233,7 +244,7 @@ fun getInIoDesc someInstr =
 
 
 
-fun setupWatcher () = let
+fun setupWatcher (thm) = let
           (** pipes for communication between parent and watcher **)
           val p1 = Posix.IO.pipe ()
           val p2 = Posix.IO.pipe ()
@@ -260,6 +271,10 @@ fun setupWatcher () = let
                       val fromParentIOD = Posix.FileSys.fdToIOD fromParent
                       val fromParentStr = openInFD ("_exec_in_parent", fromParent)
                       val toParentStr = openOutFD ("_exec_out_parent", toParent)
+                      val sign = sign_of_thm thm
+                      val prems = prems_of thm
+                      val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+                      val _ = (warning ("subgoals forked to startWatcher: "^prems_string));
                       (*val goalstr = string_of_thm (the_goal)
                        val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "goal_in_watcher")));  
                       val _ = TextIO.output (outfile,goalstr )
@@ -333,12 +348,20 @@ fun setupWatcher () = let
                     |   checkChildren ((childProc::otherChildren), toParentStr) = 
                                             let val (childInput,childOutput) =  cmdstreamsOf childProc
                                                 val childPid = cmdchildPid childProc
+                                                (* childCmd is the .dfg file that the problem is in *)
                                                 val childCmd = fst(snd (cmdchildInfo childProc))
+                                                (* now get the number of the subgoal from the filename *)
+                                                val sg_num = int_of_string(get_nth 5 (rev(explode childCmd)))
                                                 val childIncoming = pollChildInput childInput
                                                 val parentID = Posix.ProcEnv.getppid()
                                                 val prover = cmdProver childProc
                                                 val thmstring = cmdThm childProc
+                                                val sign = sign_of_thm thm
+                                                val prems = prems_of thm
+                                                val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+                                                val _ = (warning ("subgoals forked to checkChildren: "^prems_string));
                                                 val goalstring = cmdGoal childProc
+                                                                                                       
                                                 val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "child_comms")));  
                                                 val _ = TextIO.output (outfile,(prover^thmstring^goalstring^childCmd) )
                                                 val _ =  TextIO.closeOut outfile
@@ -348,10 +371,10 @@ fun setupWatcher () = let
                                                   (* check here for prover label on child*)
                                                    
                                                   let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "child_incoming")));  
-                                                val _ = TextIO.output (outfile,(prover^thmstring^goalstring^childCmd) )
+                                                val _ = TextIO.output (outfile,(("subgoals forked to checkChildren: "^prems_string)^prover^thmstring^goalstring^childCmd) )
                                                 val _ =  TextIO.closeOut outfile
                                               val childDone = (case prover of
-                                    (* "vampire" => startVampireTransfer(childInput, toParentStr, parentID, childCmd)                                               |*)"spass" => (checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd)     ) )
+                                    (* "vampire" => startVampireTransfer(childInput, toParentStr, parentID, childCmd)                                               |*)"spass" => (checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num)     ) )
                                                    in
                                                     if childDone      (**********************************************)
                                                     then              (* child has found a proof and transferred it *)
@@ -386,6 +409,7 @@ fun setupWatcher () = let
                 (* takes list of (string, string, string list, string)list proclist *)
                 (********************************************************************)
 
+           (*** add subgoal id num to this *)
                    fun execCmds  [] procList = procList
                    |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  = 
                                                      if (prover = "spass") 
@@ -563,63 +587,19 @@ fun setupWatcher () = let
 (**********************************************************)
 fun killWatcher pid= killChild pid;
 
-fun createWatcher () = let val mychild = childInfo (setupWatcher())
+fun createWatcher (thm) = let val mychild = childInfo (setupWatcher(thm))
 			   val streams =snd mychild
                            val childin = fst streams
                            val childout = snd streams
                            val childpid = fst mychild
-                           
+                           val sign = sign_of_thm thm
+                           val prems = prems_of thm
+                           val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+                           val _ = (warning ("subgoals forked to createWatcher: "^prems_string));
                            fun vampire_proofHandler (n) =
                            (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                           getVampInput childin; Pretty.writeln(Pretty.str  (oct_char "361"));() )                   
+                           getVampInput childin; Pretty.writeln(Pretty.str  (oct_char "361"));() )               
                           
-                          (* fun spass_proofHandler (n:int) = (
-                                                      let val (reconstr, thmstring, goalstring) = getSpassInput childin
-                                                          val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal")));
-
-                                                         val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^"  "^thmstring))
-                                                         val _ =  TextIO.closeOut outfile
-                                                      in
-                                                         Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                          Pretty.writeln(Pretty.str reconstr) ;
-                                                         Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                         (*killWatcher childpid;*) () 
-                                                      end)*)
-
-
-(*
-
-fun spass_proofHandler (n:int) = (
-                                                      let  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal1")));
-
-                                                         val _ = TextIO.output (outfile, ("In signal handler now\n"))
-                                                         val _ =  TextIO.closeOut outfile
-                                                          val (reconstr, thmstring, goalstring) = getSpassInput childin
-                                                         val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal")));
-
-                                                         val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^"  "^thmstring^goalstring))
-                                                         val _ =  TextIO.closeOut outfile
-                                                       in
-                                                        if ( (substring (reconstr, 0,1))= "[")
-                                                         then 
-
-                                                          let val thm = thm_of_string thmstring
-                                                              val clauses = make_clauses [thm]
-                                                              val numcls =  ListPair.zip  (numlist (length clauses), map make_meta_clause clauses)
-                                                         
-                                                          in
-                                                             Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                             Recon_Transfer.apply_res_thm reconstr goalstring;
-                                                             Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                             killWatcher childpid; () 
-                                                          end
-                                                       else
-                                                           Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                              Pretty.writeln(Pretty.str (goalstring^reconstr));
-                                                             Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                             (*killWatcher childpid; *) reap (childpid,childin, childout);()   
-                                                      end )
-*)
 
 fun spass_proofHandler (n) = (
                                  let  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal1")));
@@ -699,8 +679,7 @@ fun spass_proofHandler (n) = (
 
 
                         
-                       in 
-                          IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
+                       in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
                           IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE spass_proofHandler);
                           (childin, childout, childpid)
 

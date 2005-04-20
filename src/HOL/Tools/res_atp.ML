@@ -291,8 +291,8 @@ fun isar_atp' (thms, thm) =
         val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
         (* set up variables for writing out the clasimps to a tptp file *)
 
-        (* val clause_arr = write_out_clasimp (File.sysify_path clasimp_file) clause_arr*)
-        (*val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  *)
+         val clause_arr = write_out_clasimp (File.sysify_path clasimp_file) clause_arr
+        val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  
         (* cq: add write out clasimps to file *)
         (* cq:create watcher and pass to isar_atp_aux *) 
         (*val tenth_ax = fst( Array.sub(clause_arr, 10))  

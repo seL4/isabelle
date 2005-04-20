@@ -1,5 +1,7 @@
 (* Get claset rules *)
 
+
+
 fun remove_all [] rules = rules
 |   remove_all (x::xs) rules = let val rules' = List.filter (not_equal x) rules
                               in
@@ -21,6 +23,94 @@ fun good_pair c (a,b) = not_equal b c;
 
 val num_of_clauses = ref 0;
 val clause_arr = Array.array(3500, ("empty", 0));
+
+
+val foo_arr = Array.array(20, ("a",0));
+
+
+(*
+
+fill_cls_array foo_arr 0 [("b",1), ("c",2), ("d", 3), ("e", 4), ("f",5)];
+
+
+
+
+fun setupFork () = let
+          (** pipes for communication between parent and watcher **)
+          val p1 = Posix.IO.pipe ()
+          val p2 = Posix.IO.pipe ()
+	  fun closep () = (
+                Posix.IO.close (#outfd p1); 
+                Posix.IO.close (#infd p1);
+                Posix.IO.close (#outfd p2); 
+                Posix.IO.close (#infd p2)
+              )
+          (***********************************************************)
+          (****** fork a watcher process and get it set up and going *)
+          (***********************************************************)
+          fun startFork () =
+                   (case  Posix.Process.fork() (***************************************)
+		 of SOME pid =>  pid           (* parent - i.e. main Isabelle process *)
+                                               (***************************************)
+ 
+                                                 (*************************)
+                  | NONE => let                  (* child - i.e. watcher  *)
+		      val oldchildin = #infd p1  (*************************)
+		      val fromParent = Posix.FileSys.wordToFD 0w0
+		      val oldchildout = #outfd p2
+		      val toParent = Posix.FileSys.wordToFD 0w1
+                      val fromParentIOD = Posix.FileSys.fdToIOD fromParent
+                      val fromParentStr = openInFD ("_exec_in_parent", fromParent)
+                      val toParentStr = openOutFD ("_exec_out_parent", toParent)
+                      val fooax = fst(Array.sub(foo_arr, 3))
+                      val  outfile = TextIO.openOut("/homes/clq20/Jia_Code/fork");  
+                      val _ = TextIO.output (outfile, ("fooax 3 is: "^fooax))
+                      val _ =  TextIO.closeOut outfile
+                     in
+                       (***************************)
+                       (*** Sort out pipes ********)
+                       (***************************)
+
+			Posix.IO.close (#outfd p1);
+			Posix.IO.close (#infd p2);
+			Posix.IO.dup2{old = oldchildin, new = fromParent};
+                        Posix.IO.close oldchildin;
+			Posix.IO.dup2{old = oldchildout, new = toParent};
+                        Posix.IO.close oldchildout;
+
+                        (***************************)
+                        (* start the watcher loop  *)
+                        (***************************)
+                        
+                        (****************************************************************************)
+                        (* fake return value - actually want the watcher to loop until killed       *)
+                        (****************************************************************************)
+                        Posix.Process.wordToPid 0w0
+			
+		      end)
+            val start = startFork()
+       in
+
+
+ (*******************************)
+           (* close the child-side fds    *)
+           (*******************************)
+            Posix.IO.close (#outfd p2);
+            Posix.IO.close (#infd p1);
+            (* set the fds close on exec *)
+            Posix.IO.setfd (#infd p2, Posix.IO.FD.flags [Posix.IO.FD.cloexec]);
+            Posix.IO.setfd (#outfd p1, Posix.IO.FD.flags [Posix.IO.FD.cloexec]);
+             
+           (*******************************)
+           (* return value                *)
+           (*******************************)
+          ()
+         end;
+
+
+
+*)
+
 
 
 
@@ -91,7 +181,10 @@ fun get_simp_metas [] = [[]]
 val clause_arr = Array.array(3500, ("empty", 0));
                                
 
-fun write_out_clasimp filename = let 
+fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let 
+                                  val  outfile = TextIO.openOut("wibble");                                  val _ = TextIO.output (outfile, ("in write_out_clasimpset"))
+                                  val _ =  TextIO.closeOut outfile
+                                   val _= (warning ("in writeoutclasimp"))
                                    (****************************************)
                                    (* add claset rules to array and write out as strings *)
                                    (****************************************)
@@ -127,9 +220,7 @@ fun write_out_clasimp filename = let
                                   (* create array and put clausename, number pairs into it *)
                                    (*******************************************)
 
-                                        val _ = fill_cls_array clause_arr 1 cl_long_name_nums;
-                                 
-
+                                   val _ = fill_cls_array clause_arr 1 cl_long_name_nums;
                                    val _= num_of_clauses := (List.length cl_long_name_nums);
                                    
                                    (*************************************)
@@ -147,7 +238,9 @@ fun write_out_clasimp filename = let
                                   (*********************)
                                   (* Get simpset rules *)
                                   (*********************)
+
                                   val (simpset_name_rules) = ResAxioms.simpset_rules_of_thy (the_context());
+
                                   val named_simps = List.filter has_name_pair simpset_name_rules;
 
                                   val simp_names = map #1 named_simps;
@@ -183,11 +276,11 @@ fun write_out_clasimp filename = let
 
                                     val tptplist =  (stick stick_strs) 
 
-
                               in 
                                    ResLib.writeln_strs out tptplist;
                                    TextIO.flushOut out;
-                                   TextIO.closeOut out
+                                   TextIO.closeOut out;
+                                   clause_arr
                               end;
 
 (*

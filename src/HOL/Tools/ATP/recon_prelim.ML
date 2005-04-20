@@ -1,4 +1,5 @@
 
+
 Goal "A -->A";
 by Auto_tac;
 qed "foo";
@@ -194,7 +195,31 @@ fun getnewsubsts thisseq =  let val seqlist = Seq.list_of thisseq
 fun prover s = prove_goal HOL.thy s (fn _ => [blast_tac HOL_cs 1]);
 
 
+exception  powerError;
 
+fun power (x, n) =  if x = 0 andalso n = 0 
+                    then raise powerError
+                    else  if n = 0 
+                          then 1
+                          else x * power (x, n-1);
+
+
+fun get_tens n = power(10, (n-1))
+
+
+fun digits_to_int [] posn  n = n
+|   digits_to_int (x::xs) posn  n = let 
+				        val digit_val = ((ord x) - 48)*(get_tens posn)
+          		            in
+                                        digits_to_int xs (posn -1 )(n + digit_val) 
+         		            end;
+
+fun int_of_string str = let 
+			   val digits = explode str
+                           val posn   = length digits
+                        in 
+		            digits_to_int digits posn 0
+                        end
                 	
  
 exception ASSERTION of string;

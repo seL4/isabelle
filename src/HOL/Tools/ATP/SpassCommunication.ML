@@ -26,14 +26,57 @@ fun logSpassInput (instr, fd) = let val thisLine = TextIO.inputLine instr
 (**********************************************************************)
 
 
+val atomize_tac =
+    SUBGOAL
+     (fn (prop,_) =>
+	 let val ts = Logic.strip_assums_hyp prop
+	 in EVERY1 
+		[METAHYPS
+		     (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
+	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+     end);
 
-fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString) = let 
+
+fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num = 
+ let val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar3")));
+ in
+SELECT_GOAL
+  (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+  METAHYPS(fn negs => (Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring toParent ppid negs))]) sg_num
+ end ;
+
+
+fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num) = let 
                          val thisLine = TextIO.inputLine fromChild 
 			 in 
                             if (thisLine = "--------------------------SPASS-STOP------------------------------\n" )
 			    then ( 
                                     let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
-                                        val reconstr = Recon_Transfer.spassString_to_reconString (currentString^thisLine) thmstring
+                                        val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar2")));
+                                
+			            in 
+
+                                        TextIO.output(foo,(proofextract));TextIO.closeOut foo;
+                                        reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num thm
+                                               
+                                    end
+                                  )
+      			    else (
+				
+                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num)
+                                )
+ 			 end;
+
+
+(*
+
+fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num) = let 
+                         val thisLine = TextIO.inputLine fromChild 
+			 in 
+                            if (thisLine = "--------------------------SPASS-STOP------------------------------\n" )
+			    then ( 
+                                    let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
+                                        val reconstr = Recon_Transfer.spassString_to_reconString (currentString^thisLine) thmstring thm sg_num
                                         val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar2")));
                                in
                                          TextIO.output(foo,(reconstr^thmstring));TextIO.closeOut foo;
@@ -54,11 +97,11 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
                                   )
       			    else (
 				
-                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine))
+                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num)
                                 )
  			 end;
 
-
+*)
 
 (*********************************************************************************)
 (*  Inspect the output of a Spass   process to see if it has found a proof,      *)
@@ -66,9 +109,10 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
 (*********************************************************************************)
 
  
-fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd) = 
+fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,thm, sg_num) = 
                                       (*let val _ = Posix.Process.wait ()
                                       in*)
+                                       
                                        if (isSome (TextIO.canInput(fromChild, 5)))
                                        then
                                        (
@@ -77,24 +121,28 @@ fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd
                                              if (String.isPrefix "Here is a proof" thisLine )
                                              then     
                                               ( 
-                                                 
-                                                
-                                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine);
-                                                true)
+                                                 let 
+                                               val outfile =  TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "foo_transfer")));
+                                               val _=  TextIO.output (outfile, "about to transfer proof, thm is: "^(string_of_thm thm));
+                                               val _ =  TextIO.closeOut outfile;
+                                               in
+                                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, thm, sg_num);
+                                                true
+                                               end)
                                              
                                              else 
                                                 (
-                                                 startSpassTransfer (fromChild, toParent, ppid, thmstring, goalstring,childCmd)
+                                                 startSpassTransfer (fromChild, toParent, ppid, thmstring, goalstring,childCmd, thm, sg_num)
                                                 )
                                             end
                                            )
                                          else (false)
                                      (*  end*)
 
-fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd) = 
+fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num) = 
                                        let val spass_proof_file =  TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "spass_proof")))
                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_checkspass")));                                                                            
-                                            val _ = TextIO.output (outfile, "checking proof found")
+                                            val _ = TextIO.output (outfile, "checking proof found, thm is: "^(string_of_thm thm))
                                              
                                             val _ =  TextIO.closeOut outfile
                                        in 
@@ -105,19 +153,19 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                            in if ( thisLine = "SPASS beiseite: Proof found.\n" )
                                               then      
                                               (  
-                                                 let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                                                (*val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
+                                                 let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                      (*val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
                                                      val _ = TextIO.output (outfile, (thisLine))
                                              
                                                      val _ =  TextIO.closeOut outfile
                                                  in 
-                                                    startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd) 
+                                                    startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num) 
                                                  end
                                                )   
                                                else if (thisLine= "SPASS beiseite: Completion found.\n" )
                                                    then  
 
                                                  (
-                                                      let    val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
+                                                      let    val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                       (* val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
                                                              val _ = TextIO.output (outfile, (thisLine))
                                              
                                                              val _ =  TextIO.closeOut outfile
@@ -166,7 +214,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                                     else
                                                        (TextIO.output (spass_proof_file, (thisLine));
                                                        TextIO.flushOut spass_proof_file;
-                                                       checkSpassProofFound  (fromChild, toParent, ppid, thmstring,goalstring,childCmd))
+                                                       checkSpassProofFound  (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num))
 
                                               end
                                           )
@@ -255,6 +303,6 @@ fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                                             
  			        end
                           else 
-                              ("No output from Spass.\n","","")
+                              ("No output from reconstruction process.\n","","")
 
 

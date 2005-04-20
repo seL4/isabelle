@@ -21,7 +21,7 @@ signature WATCHER =
 (*  callResProvers (outstreamtoWatcher, prover name,prover-command, (settings,file) list             *)
 (*****************************************************************************************)
 
-val callResProvers : TextIO.outstream *(string* string*string *string*string*string) list -> unit
+val callResProvers : TextIO.outstream *(string* string*string *string*string*string*string*string*string) list -> unit
 
 
 
@@ -37,7 +37,7 @@ val callSlayer : TextIO.outstream -> unit
 (* Start a watcher and set up signal handlers             *)
 (**********************************************************)
 
-val createWatcher : unit -> TextIO.instream * TextIO.outstream * Posix.Process.pid
+val createWatcher : Thm.thm -> TextIO.instream * TextIO.outstream * Posix.Process.pid
 
 
 

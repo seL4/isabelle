@@ -151,17 +151,19 @@ fun thmstrings [] str = str
 |   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
 
 
- fun get_axioms_used proof_steps thmstring = let 
-                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
+ fun get_axioms_used proof_steps thms = let 
+                                             (*val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
                                              val _ = TextIO.output (outfile, thmstring)
                                              
-                                             val _ =  TextIO.closeOut outfile
+                                             val _ =  TextIO.closeOut outfile*)
                                             (* not sure why this is necessary again, but seems to be *)
+
                                             val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
                                             val axioms = get_init_axioms proof_steps
                                             val step_nums = get_step_nums axioms []
-                                            val thm = thm_of_string thmstring
-                                            val clauses = make_clauses [thm]
+                                      
+                                           
+                                            val clauses = make_clauses thms
                                             
                                             val vars = map thm_vars clauses
                                            
@@ -298,14 +300,20 @@ val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
 
 *)
 
+val dummy_tac = PRIMITIVE(fn thm => thm );
 
-fun spassString_to_reconString proofstr thmstring = 
-                                              let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                                                                      val _= warning("proofstr is: "^proofstr);
-                                                  val _ = warning ("thmstring is: "^thmstring);
-                                                  val _ = TextIO.output (outfile, (thmstring))
+fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms= 
+                                              let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                        
+                                                  (* val sign = sign_of_thm thm
+                                                 val prems = prems_of thm
+                                                 val prems_string =  concat_with_and (map (Sign.string_of_term sign) prems) "" 
+                                                  val _ = warning ("thmstring is: "^thmstring);(*("thm in spassStrtoRec: "^(concat_with_and (map string_of_thm thms) "")^*)*)
+                                                  val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr))
+             (*val _ = TextIO.output (outfile, (("in spassStrto Reconstr")));*)
                                                   val _ =  TextIO.closeOut outfile
-                                                  val proofextract = extract_proof proofstr
-                                                  val tokens = #1(lex proofextract)
+
+                                                  val tokens = #1(lex proofstr)
+
                                                      
                                               (***********************************)
                                               (* parse spass proof into datatype *)
@@ -324,7 +332,9 @@ fun spassString_to_reconString proofstr thmstring =
                                               (************************************)
                                                 
                                                   (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
-                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps thmstring
+                                                  (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
+                                                  (* subgoal this is, and turn it into meta_clauses *)
+                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms
                                                   
                                                   (*val numcls_string = numclstr ( vars, numcls) ""*)
                                                   val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_axiom")));                                                                            val _ = TextIO.output (outfile,"got axioms")
@@ -357,15 +367,29 @@ fun spassString_to_reconString proofstr thmstring =
 
                                                   val _ = TextIO.output (outfile, (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr))
                                                   val _ =  TextIO.closeOut outfile
+    						  val reconstr = (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
                                               in 
-                                                   (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
+                                                   TextIO.output (toParent, reconstr^"\n");
+                                                   TextIO.flushOut toParent;
+                                        	   TextIO.output (toParent, thmstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                         	   TextIO.output (toParent, goalstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                          
+                                         	   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
+                                         	   OS.Process.sleep(Time.fromSeconds 1) ; dummy_tac
                                               end
                                               handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
 
                                                   val _ = TextIO.output (outfile, ("In exception handler"));
                                                   val _ =  TextIO.closeOut outfile
                                               in 
-                                                 "Proof found but translation failed!"
+                                                  TextIO.output (toParent,"Proof found but translation failed!" ^"\n");
+                                                  TextIO.flushOut toParent;
+            					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
+                                         	  OS.Process.sleep(Time.fromSeconds 1) ;dummy_tac
                                               end)
 
 

@@ -8,8 +8,9 @@ datatype exit_status = datatype Posix.Process.exit_status
 
 val fromStatus = Posix.Process.fromStatus
 
+
 fun reap(pid, instr, outstr) =
-	let
+        let
 		val u = TextIO.closeIn instr;
 	        val u = TextIO.closeOut outstr;
 	
@@ -20,10 +21,10 @@ fun reap(pid, instr, outstr) =
 	end
 
 fun fdReader (name : string, fd : Posix.IO.file_desc) =
-	  Posix.IO.mkTextReader {initBlkMode = true,name = name,fd = fd };
+	  Posix.IO.mkReader {initBlkMode = true,name = name,fd = fd };
 
 fun fdWriter (name, fd) =
-          Posix.IO.mkTextWriter {
+          Posix.IO.mkWriter {
 	      appendMode = false,
               initBlkMode = true,
               name = name,  
