@@ -77,7 +77,7 @@ signature BLAST =
     | Var   of term option ref
     | Bound of int
     | Abs   of string*term
-    | $  of term*term;
+    | op $  of term*term;
   type branch
   val depth_tac 	: claset -> int -> int -> tactic
   val depth_limit : int ref
