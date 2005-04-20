@@ -9,7 +9,7 @@ THIS="$0"
 while [ -L "$THIS" ]; do
     THIS="$(dirname "$THIS")/$(LC_ALL=C ls -l "$THIS" | sed 's/.* -> //')"
 done
-THIS="$(cd "$(dirname "$(readlink -f "$THIS")")"; pwd)"
+THIS="$(cd "$(dirname "$THIS")"; pwd)"
 NAME="$(basename "$0")"
 
 case "$NAME" in

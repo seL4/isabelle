@@ -17,7 +17,7 @@ THIS="$0"
 while [ -L "$THIS" ]; do
     THIS="$(dirname "$THIS")/$(LC_ALL=C ls -l "$THIS" | sed 's/.* -> //')"
 done
-ISABELLE_HOME="$(cd "$(dirname "$(readlink -f "$THIS")")/.."; pwd)"
+ISABELLE_HOME="$(cd "$(dirname "$THIS")/.."; pwd)"
 . "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
 
