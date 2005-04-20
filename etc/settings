@@ -34,7 +34,7 @@ elif [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
   # Poly/ML 4.0, 4.1, 4.1.x
   # include version number, needed for choosing right options
   # If automatic setting doesn't work, use e.g. ML_VERSION=4.1.3
-  ML_VERSION=$(echo "OS.Process.exit OS.Process.success;" | /usr/bin/poly --version  | sed -n 's,Poly/ML[ ]*\([^ ]*\)[ ]*Release,\1,p')
+  ML_VERSION=$(echo "OS.Process.exit OS.Process.success;" | /usr/bin/poly --version  | sed -n 's,.*Poly/ML[ ]*\([^ ]*\)[ ]*Release,\1,p')
   ML_SYSTEM=polyml-${ML_VERSION}
   # processor/OS type
   ML_PLATFORM=x86-linux
