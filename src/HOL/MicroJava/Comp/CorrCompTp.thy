@@ -908,7 +908,7 @@ lemma check_type_lower:
 by (simp add: check_type_def states_lower)
 
 lemma max_same_iter [simp]: "max (x::'a::linorder) (max x y) = max x y"
-by (simp del: max_assoc add: max_assoc [THEN sym])
+by (simp add: AC_max.assoc [THEN sym])
 
   (* ******************************************************************* *)
 
