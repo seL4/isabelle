@@ -8,9 +8,12 @@ ATPs with TPTP format input.
 (*Jia: changed: isar_atp now processes entire proof context.  fetch thms from delta simpset/claset*)
 (*Claire: changed: added actual watcher calls *)
 
+
 signature RES_ATP = 
 sig
 val trace_res : bool ref
+val subgoals: Thm.thm list
+val traceflag : bool ref
 val axiom_file : Path.T
 val hyps_file : Path.T
 val isar_atp : ProofContext.context * Thm.thm -> unit
@@ -25,8 +28,9 @@ structure ResAtp : RES_ATP =
 
 struct
 
+val subgoals = [];
 
-
+val traceflag = ref true;
 (* used for debug *)
 val debug = ref false;
 
@@ -141,7 +145,7 @@ fun tptp_inputs_tfrees thms n tfrees =
 (*********************************************************************)
 
 fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
-                             val thmstring = Meson.concat_with_and (map string_of_thm thms)
+                             val thmstring = Meson.concat_with_and (map string_of_thm thms) 
                              val thm_no = length thms
                              val _ = warning ("number of thms is : "^(string_of_int thm_no))
                              val _ = warning ("thmstring in call_res is: "^thmstring)
@@ -157,7 +161,7 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                              val clauses = make_clauses thms
                              val _ =( warning ("called make_clauses "))*)
                              (*val _ = tptp_inputs clauses prob_file*)
-                             val thmstring = Meson.concat_with_and (map string_of_thm thms)
+                             val thmstring = Meson.concat_with_and (map string_of_thm thms) 
                            
                              val goalstr = Sign.string_of_term sign sg_term 
                              val goalproofstring = proofstring goalstr
@@ -169,6 +173,9 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                              val thmstr = implode no_returns
                             
                              val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
+                             val axfile = (File.sysify_path axiom_file)
+                             val hypsfile = (File.sysify_path hyps_file)
+                             val clasimpfile = (File.sysify_path clasimp_file)
                              val outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "hellofile")))
                              val _ = TextIO.output(outfile, "prob file path is "^probfile^" thmstring is "^thmstr^" goalstring is "^goalstring);
                              val _ = TextIO.flushOut outfile;
@@ -180,7 +187,7 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                             Watcher.callResProvers(childout,
                             [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",  
                              "-FullRed=0%-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
-                             probfile)]);
+                             clasimpfile, axfile, hypsfile, probfile)]);
 
                            (* with paramodulation *)
                            (*Watcher.callResProvers(childout,
@@ -193,36 +200,14 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                            dummy_tac
                          end
 
-(************************************************)
-(* pass in subgoal as a term and watcher info   *)
-(* process subgoal into skolemized, negated form*)
-(* then call call_resolve_tac to send to ATP    *)
-(************************************************)
-(*
-fun resolve_tac sg_term  (childin, childout,pid) = 
-   let val _ = warning ("in resolve_tac ")
-   in
-   SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac,skolemize_tac,  METAHYPS(fn negs => (warning ("calling call_resolve_tac next ");dummy_tac (*call_resolve_tac negs sg_term (childin, childout,pid)*)))])
-   end;
-
-*)
-
-
-(* Need to replace call_atp_tac_tfrees with call res_provers as it's the dummy one *)
-
 (**********************************************************)
 (* write out the current subgoal as a tptp file, probN,   *)
 (* then call dummy_tac - should be call_res_tac           *)
 (**********************************************************)
-(* should call call_res_tac here, not resolve_tac *)
-(* if we take tptpinputs out it gets into call_res_tac then falls over as usual after printing out goalstring. but if we leave it in it falls over here *)
 
-(* dummy tac vs.  Doesn't call resolve_tac *)
 
 fun call_atp_tac_tfrees sign thms n tfrees sg_term (childin, childout,pid) = 
-                                         ( warning("ths for tptp: " ^ 
-                                                   Meson.concat_with_and (map string_of_thm thms));
+                                         (
                                            warning("in call_atp_tac_tfrees");
                                            
                                            tptp_inputs_tfrees (make_clauses thms) n tfrees;
@@ -235,16 +220,14 @@ let val sign = sign_of_thm st
     val _ = warning ("sg_term :" ^ (Sign.string_of_term sign sg_term))
    
    in
+
 SELECT_GOAL
   (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (warning("calling  call_atp_tac_tfrees with negs"
-                               ^ Meson.concat_with_and (map string_of_thm negs));
-           call_atp_tac_tfrees sign negs n tfrees sg_term (childin, childout,pid) ))]) n st
+  METAHYPS(fn negs => ( call_atp_tac_tfrees sign negs n tfrees sg_term (childin, childout,pid) ))]) n st
 end;
 
 
-fun isar_atp_g tfrees sg_term (childin, childout, pid) n = 
-                                        
+fun isar_atp_g tfrees sg_term (childin, childout, pid) n =       
 ((warning("in isar_atp_g"));atp_tac_tfrees tfrees sg_term (childin, childout, pid) n);
 
 
@@ -265,13 +248,15 @@ fun isar_atp_goal' thm k n tfree_lits  (childin, childout, pid) =
                             in   
                                  
                 		(warning("in isar_atp_goal'"));
-                                (warning("thmstring in isar_atp_goal: "^thmstring));
+                                (warning("thmstring in isar_atp_goal': "^thmstring));
  				 isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; 
                                  isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) 
                             end);
 
 
-fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = (if (!debug) then warning (string_of_thm thm) else (isar_atp_goal' thm 1 n_subgoals tfree_lits  (childin, childout, pid) ));
+fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = 
+              (if (!debug) then warning (string_of_thm thm) 
+               else (isar_atp_goal' thm 1 n_subgoals tfree_lits  (childin, childout, pid) ));
 
 (**************************************************)
 (* convert clauses from "assume" to conjecture.   *)
@@ -285,7 +270,8 @@ fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = (if (!d
 fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) = 
     let val tfree_lits = isar_atp_h thms 
     in
-	(warning("in isar_atp_aux"));isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid)
+	(warning("in isar_atp_aux"));
+         isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid)
     end;
 
 (******************************************************************)
@@ -294,20 +280,26 @@ fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
 (* passes all subgoals on to isar_atp_aux for further processing  *)
 (* turns off xsymbol at start of function, restoring it at end    *)
 (******************************************************************)
-
+(*FIX changed to clasimp_file *)
 fun isar_atp' (thms, thm) =
     let val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
         val _= (warning ("in isar_atp'"))
-        val prems = prems_of thm
+        val prems  = prems_of thm
         val sign = sign_of_thm thm
-        val thms_string = Meson.concat_with_and (map string_of_thm thms)
+        val thms_string = Meson.concat_with_and (map string_of_thm thms) 
         val thmstring = string_of_thm thm
-        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems)
+        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
         (* set up variables for writing out the clasimps to a tptp file *)
-        val _ = write_out_clasimp (File.sysify_path axiom_file)
+
+        (* val clause_arr = write_out_clasimp (File.sysify_path clasimp_file) clause_arr*)
+        (*val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  *)
         (* cq: add write out clasimps to file *)
-        (* cq:create watcher and pass to isar_atp_aux *)                    
-        val (childin,childout,pid) = Watcher.createWatcher()
+        (* cq:create watcher and pass to isar_atp_aux *) 
+        (*val tenth_ax = fst( Array.sub(clause_arr, 10))  
+        val _ = (warning ("tenth axiom in array is: "^tenth_ax))         
+        val _ = (warning ("num_of_clauses is: "^(string_of_int (!num_of_clauses))) )  *)      
+                               
+        val (childin,childout,pid) = Watcher.createWatcher(thm)
         val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
     in
 	case prems of [] => () 
@@ -367,6 +359,7 @@ in
 (* what about clasimpset - it should already be in the ax file - perhaps append to ax file rather than just *)
 (* write out ? Or keep as a separate file and then cat them all together in the watcher, like we do with the *)
 (*claset file and prob file*)
+(* FIX*)
 fun isar_local_thms (delta_cs, delta_ss_thms) =
     let val thms_cs = get_thms_cs delta_cs
 	val thms_ss = get_thms_ss delta_ss_thms
@@ -392,11 +385,11 @@ fun isar_atp (ctxt,thm) =
         val sg_prems = prems_of thm
         val sign = sign_of_thm thm
         val prem_no = length sg_prems
-        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) sg_prems)
+        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) sg_prems) 
     in
           (warning ("initial thm in isar_atp: "^thmstring));
           (warning ("subgoals in isar_atp: "^prems_string));
-    	   (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
+    	  (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
           (isar_local_thms (d_cs,d_ss_thms); (warning("about to call isar_atp'"));
            isar_atp' (prems, thm))
     end;

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
+
 # $Id$
+
 # Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Isabelle process startup script.
 
@@ -30,7 +33,6 @@ function usage()
   echo "    -C           tell ML system to copy output image"
   echo "    -I           startup Isar interaction mode"
   echo "    -P           startup Proof General interaction mode"
-  echo "    -X           startup PGIP interaction mode"
   echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -f           pass 'Session.finish();' to the ML session"
@@ -69,7 +71,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "XCIPce:fm:qruw" OPT
+while getopts "CIPce:fm:qruw" OPT
 do
   case "$OPT" in
     C)
@@ -80,9 +82,6 @@ do
       ;;
     P)
       PROOFGENERAL=true
-      ;;
-    X)
-      PGIP=true
       ;;
     c)
       COMPRESS=true
@@ -209,9 +208,7 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
-if [ -n "$PGIP" ]; then
-  MLTEXT="$MLTEXT; ProofGeneral.init_pgip $ISAR;"
-elif [ -n "$PROOFGENERAL" ]; then
+if [ -n "$PROOFGENERAL" ]; then
   MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then
   MLTEXT="$MLTEXT; Isar.main();"

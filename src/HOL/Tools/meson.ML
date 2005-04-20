@@ -451,11 +451,6 @@ val skolemize_tac =
   SUBGOAL
     (fn (prop,_) =>
      let val ts = Logic.strip_assums_hyp prop
-         
-         val outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "skolem")))
-         val _ = TextIO.output(outfile, "in skolemize_tac ");
-         val _ = TextIO.flushOut outfile;
-         val _ =  TextIO.closeOut outfile
      in EVERY1 
 	 [METAHYPS
 	    (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1

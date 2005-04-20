@@ -87,6 +87,9 @@ SECONDS=0
 if [ -z "$RAW" ]; then
   ITEM="Pure"
   echo "Building $ITEM ..."
+
+  echo "raw is $RAW item is $ITEM isabelle is $ISABELLE"
+
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" $COPY \

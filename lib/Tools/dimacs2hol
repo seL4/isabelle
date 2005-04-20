@@ -46,6 +46,6 @@ function usage()
 ## main
 
 #set by configure
-AUTO_PERL=perl
+AUTO_PERL=/usr/bin/perl
 
 "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/dimacs2hol.pl" "$@"
