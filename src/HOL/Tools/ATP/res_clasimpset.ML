@@ -1,3 +1,8 @@
+(*  ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
+*)
+
 (* Get claset rules *)
 
 

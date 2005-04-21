@@ -1,7 +1,7 @@
-
- (*  Title:      Watcher.ML
-     Author:     Claire Quigley
-     Copyright   2004  University of Cambridge
+(*  Title:      Watcher.ML
+    ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
  *)
 
  (***************************************************************************)

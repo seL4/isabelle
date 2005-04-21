@@ -1,5 +1,4 @@
-
-(*  Title:      Watcher.ML
+(*  ID:         $Id$
     Author:     Claire Quigley
     Copyright   2004  University of Cambridge
 *)
@@ -14,7 +13,7 @@
 
 
 signature WATCHER =
-  sig
+sig
 
 (*****************************************************************************************)
 (*  Send request to Watcher for multiple spasses to be called for filenames in arg       *)

@@ -1,13 +1,7 @@
-
-
-Goal "A -->A";
-by Auto_tac;
-qed "foo";
-
-
-val Mainsign = #sign (rep_thm foo);
-
-
+(*  ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
+*)
 
 val gcounter = ref 0; 
 
@@ -34,19 +28,6 @@ fun iscomb a = if is_Free a then
 			true;
 fun getstring (Var (v,T)) = fst v
    |getstring (Free (v,T))= v;
-
-
-
-fun alltrue [] = true
-   |alltrue (true::xs) = true andalso (alltrue xs)
-   |alltrue (false::xs) = false;
-
-fun allfalse [] = true
-   |allfalse (false::xs) = true andalso (allfalse xs)
-   |allfalse (true::xs) = false;
-
-fun not_empty [] = false 
-    | not_empty _ = true;
 
 fun twoisvar (a,b) = is_Var b;
 fun twoisfree (a,b) = is_Free b;
@@ -86,7 +67,7 @@ fun is_hol_tm t =
                         true
                 else 
                         let val (f, args) = strip_comb t in
-                            if ((is_Free f) orelse (is_Var f)) andalso (alltrue (map is_hol_tm args)) then 
+                            if ((is_Free f) orelse (is_Var f)) andalso (forall is_hol_tm args) then 
                                 true            (* should be is_const *)
                             else 
                                 false
@@ -115,7 +96,7 @@ fun is_hol_fm f =  if USyntax.is_neg f then
                         end
                else if (iscomb f) then
                         let val (P, args) = strip_comb f in
-                            ((is_hol_tm P)) andalso (alltrue (map is_hol_fm args))
+                            ((is_hol_tm P)) andalso (forall is_hol_fm args)
                         end
                 else
                         is_hol_tm f;                              (* should be is_const, nee
@@ -195,31 +176,9 @@ fun getnewsubsts thisseq =  let val seqlist = Seq.list_of thisseq
 fun prover s = prove_goal HOL.thy s (fn _ => [blast_tac HOL_cs 1]);
 
 
-exception  powerError;
 
-fun power (x, n) =  if x = 0 andalso n = 0 
-                    then raise powerError
-                    else  if n = 0 
-                          then 1
-                          else x * power (x, n-1);
-
-
-fun get_tens n = power(10, (n-1))
-
-
-fun digits_to_int [] posn  n = n
-|   digits_to_int (x::xs) posn  n = let 
-				        val digit_val = ((ord x) - 48)*(get_tens posn)
-          		            in
-                                        digits_to_int xs (posn -1 )(n + digit_val) 
-         		            end;
-
-fun int_of_string str = let 
-			   val digits = explode str
-                           val posn   = length digits
-                        in 
-		            digits_to_int digits posn 0
-                        end
-                	
- 
+fun int_of_string str = valOf (Int.fromString str)
+                        handle Option => error ("int_of_string: " ^ str);
+    
+                	 
 exception ASSERTION of string;

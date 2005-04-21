@@ -1,4 +1,7 @@
-
+(*  ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
+*)
 
 fun add_in_order (x:string) [] = [x]
 |   add_in_order (x:string) ((y:string)::ys) = if (x < y) 

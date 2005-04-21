@@ -1,3 +1,8 @@
+(*  ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
+*)
+
 (******************)
 (* complete later *)
 (******************)
@@ -22,15 +27,6 @@ fun string_of_thm thm = let val _ = set show_sorts
                                 implode no_returns
                             end
 
-
-fun thm_of_string str = let val _ = set show_sorts
-                                val term = read str
-                                val propterm = HOLogic.mk_Trueprop term
-                                val cterm = cterm_of Mainsign propterm
-                                val _ = reset show_sorts
-                            in
-                                assume cterm
-                            end
 
 (* check separate args in the watcher program for separating strings with a * or ; or something *)
 

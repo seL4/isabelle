@@ -1,3 +1,7 @@
+(*  ID:         $Id$
+    Author:     Claire Quigley
+    Copyright   2004  University of Cambridge
+*)
 
 (****************************************************************)
 (****** Slightly modified version of sml Unix structure *********)
@@ -21,10 +25,10 @@ fun reap(pid, instr, outstr) =
 	end
 
 fun fdReader (name : string, fd : Posix.IO.file_desc) =
-	  Posix.IO.mkReader {initBlkMode = true,name = name,fd = fd };
+	  Posix.IO.mkTextReader {initBlkMode = true,name = name,fd = fd };
 
 fun fdWriter (name, fd) =
-          Posix.IO.mkWriter {
+          Posix.IO.mkTextWriter {
 	      appendMode = false,
               initBlkMode = true,
               name = name,  
