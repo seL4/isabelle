@@ -268,12 +268,14 @@ fun inst_tfrees sg [] thm = thm
   | inst_tfrees sg ((name,U)::rest) thm = 
     let
 	val cU = ctyp_of sg U
-	val tfree_names = add_term_tfree_names (prop_of thm,[])
-	val (thm',rens) = varifyT' (tfree_names \ name) thm
+	val tfrees = add_term_tfrees (prop_of thm,[])
+	val (thm',rens) = varifyT'
+    (gen_rem (op = o apfst fst) (tfrees, name)) thm
 	val mid = 
 	    case rens of
 		[] => thm'
-	      | [(_,idx)] => instantiate ([(idx,cU)],[]) thm'
+	      | [((_, S), idx)] => instantiate
+            ([(ctyp_of sg (TVar (idx, S)), cU)], []) thm'
 	      | _ => error "Shuffler.inst_tfrees internal error"
     in
 	inst_tfrees sg rest mid

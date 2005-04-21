@@ -122,7 +122,7 @@ fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs
 (*******************************************)
 
 fun mksubstlist [] sublist = sublist
-   |mksubstlist ((a,b)::rest) sublist = let val vartype = type_of b 
+   |mksubstlist ((a, (_, b)) :: rest) sublist = let val vartype = type_of b 
                                           val avar = Var(a,vartype)
                                           val newlist = ((avar,b)::sublist) in
                                           mksubstlist rest newlist

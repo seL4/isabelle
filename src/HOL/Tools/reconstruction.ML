@@ -16,7 +16,7 @@ struct
 (**************************************************************)
 
 fun mksubstlist [] sublist = sublist
-  | mksubstlist ((a,b)::rest) sublist = 
+  | mksubstlist ((a, (_, b)) :: rest) sublist = 
       let val vartype = type_of b
           val avar = Var(a,vartype)
           val newlist = ((avar,b)::sublist) 

@@ -448,8 +448,8 @@ struct
 		in
 			map_term_types
 				(map_type_tvar
-					(fn (v,_) =>
-						case Vartab.lookup (typeSubs, v) of
+					(fn v =>
+						case Type.lookup (typeSubs, v) of
 						  NONE =>
 							(* schematic type variable not instantiated *)
 							raise REFUTE ("collect_axioms", "term " ^ Sign.string_of_term (sign_of thy) t ^ " still has a polymorphic type (after instantiating type of " ^ quote s ^ ")")
@@ -459,11 +459,11 @@ struct
 		end
 		(* applies a type substitution 'typeSubs' for all type variables in a  *)
 		(* term 't'                                                            *)
-		(* Term.typ Term.Vartab.table -> Term.term -> Term.term *)
+		(* (Term.sort * Term.typ) Term.Vartab.table -> Term.term -> Term.term *)
 		fun monomorphic_term typeSubs t =
 			map_term_types (map_type_tvar
-				(fn (v, _) =>
-					case Vartab.lookup (typeSubs, v) of
+				(fn v =>
+					case Type.lookup (typeSubs, v) of
 					  NONE =>
 						(* schematic type variable not instantiated *)
 						raise ERROR
@@ -483,11 +483,11 @@ struct
 						(* (string * Term.term) list *)
 						val monomorphic_class_axioms = map (fn (axname, ax) =>
 							let
-								val (idx, _) = (case term_tvars ax of
+								val (idx, S) = (case term_tvars ax of
 									  [is] => is
 									| _    => raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^ Sign.string_of_term (sign_of thy) ax ^ ") does not contain exactly one type variable"))
 							in
-								(axname, monomorphic_term (Vartab.make [(idx, T)]) ax)
+								(axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
 							end) class_axioms
 						(* Term.term list * (string * Term.term) list -> Term.term list *)
 						fun collect_axiom (axs, (axname, ax)) =

@@ -1362,10 +1362,10 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
 	val tys_before = add_term_tfrees (prop_of th,[])
 	val th1 = varifyT th
 	val tys_after = add_term_tvars (prop_of th1,[])
-	val tyinst = map (fn (bef,(i,_)) =>
+	val tyinst = map (fn (bef, iS) =>
 			     (case try (Lib.assoc (TFree bef)) lambda of
-				  SOME ty => (i,ctyp_of sg ty)
-				| NONE => (i,ctyp_of sg (TFree bef))
+				  SOME ty => (ctyp_of sg (TVar iS), ctyp_of sg ty)
+				| NONE => (ctyp_of sg (TVar iS), ctyp_of sg (TFree bef))
 			     ))
 			 (zip tys_before tys_after)
 	val res = Drule.instantiate (tyinst,[]) th1

@@ -193,10 +193,8 @@ fun unify_consts sign cs intr_ts =
           (env, (replicate (length consts) cT) ~~ consts)
       end;
     val (env, _) = Library.foldl unify ((Vartab.empty, i'), rec_consts);
-    fun typ_subst_TVars_2 env T = let val T' = typ_subst_TVars_Vartab env T
-      in if T = T' then T else typ_subst_TVars_2 env T' end;
     val subst = fst o Type.freeze_thaw o
-      (map_term_types (typ_subst_TVars_2 env))
+      (map_term_types (Envir.norm_type env))
 
   in (map subst cs', map subst intr_ts')
   end) handle Type.TUNIFY =>

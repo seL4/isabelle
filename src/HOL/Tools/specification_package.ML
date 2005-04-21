@@ -110,7 +110,7 @@ fun unvarify t fmap =
 	fun unthaw (f as (a,S)) =
 	    (case assoc (fmap',a) of
 		 NONE => TVar f
-	       | SOME b => TFree (b,S))
+	       | SOME (b, _) => TFree (b,S))
     in
 	map_term_types (map_type_tvar unthaw) t
     end

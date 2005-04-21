@@ -191,12 +191,13 @@ fun join_rules [] = []
 
 (* divinate rule instantiation (cannot handle pending goal parameters) *)
 
-fun dest_env sign (env as Envir.Envir {asol, iTs, ...}) =
+fun dest_env sign (env as Envir.Envir {iTs, ...}) =
   let
-    val pairs = Vartab.dest asol;
-    val ts = map (Thm.cterm_of sign o Envir.norm_term env o #2) pairs;
+    val pairs = Envir.alist_of env;
+    val ts = map (Thm.cterm_of sign o Envir.norm_term env o #2 o #2) pairs;
     val xs = map2 (Thm.cterm_of sign o Var) (map #1 pairs, map (#T o Thm.rep_cterm) ts);
-  in (map (apsnd (Thm.ctyp_of sign)) (Vartab.dest iTs), xs ~~ ts) end;
+    val cert = Thm.ctyp_of sign;
+  in (map (fn (ixn, (S, T)) => (cert (TVar (ixn, S)), cert T)) (Vartab.dest iTs), xs ~~ ts) end;
 
 fun divinate_inst rule i st =
   let
