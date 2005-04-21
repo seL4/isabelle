@@ -47,7 +47,6 @@ sig
   val classes: sg -> class list
   val defaultS: sg -> sort
   val subsort: sg -> sort * sort -> bool
-  val nodup_vars: term -> term
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
   val universal_witness: sg -> (typ * sort) option
@@ -103,8 +102,6 @@ sig
   val read_typ_raw': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val read_tyname: sg -> string -> typ
   val read_const: sg -> string -> term
-  val inst_typ_tvars: sg -> (indexname * typ) list -> typ -> typ
-  val inst_term_tvars: sg -> (indexname * typ) list -> term -> term
   val infer_types: Pretty.pp -> sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> term * (indexname * typ) list
@@ -740,52 +737,7 @@ fun type_check pp sg tm =
 
   in typ_of ([], tm) end;
 
-(*check for duplicate occurrences of TFree/TVar with distinct sorts*)
-fun nodup_tvars (env, Type (_, Ts)) = nodup_tvars_list (env, Ts)
-  | nodup_tvars (env as (tfrees, tvars), T as TFree (v as (a, S))) =
-      (case assoc_string (tfrees, a) of
-        SOME S' =>
-          if S = S' then env
-          else raise TYPE ("Type variable " ^ quote a ^
-            " has two distinct sorts", [TFree (a, S'), T], [])
-      | NONE => (v :: tfrees, tvars))
-  | nodup_tvars (env as (tfrees, tvars), T as TVar (v as (a, S))) =
-      (case assoc_string_int (tvars, a) of
-        SOME S' =>
-          if S = S' then env
-          else raise TYPE ("Type variable " ^ quote (Syntax.string_of_vname a) ^
-            " has two distinct sorts", [TVar (a, S'), T], [])
-      | NONE => (tfrees, v :: tvars))
-(*equivalent to foldl nodup_tvars_list, but 3X faster under Poly/ML*)
-and nodup_tvars_list (env, []) = env
-  | nodup_tvars_list (env, T :: Ts) = nodup_tvars_list (nodup_tvars (env, T), Ts);
-
 in
-
-(*check for duplicate occurrences of Free/Var with distinct types*)
-fun nodup_vars tm =
-  let
-    fun nodups (envs as (env as (frees, vars), envT)) tm =
-      (case tm of
-        Const (c, T) => (env, nodup_tvars (envT, T))
-      | Free (v as (a, T)) =>
-          (case assoc_string (frees, a) of
-            SOME T' =>
-              if T = T' then (env, nodup_tvars (envT, T))
-              else raise TYPE ("Variable " ^ quote a ^
-                " has two distinct types", [T', T], [])
-          | NONE => ((v :: frees, vars), nodup_tvars (envT, T)))
-      | Var (v as (ixn, T)) =>
-          (case assoc_string_int (vars, ixn) of
-            SOME T' =>
-              if T = T' then (env, nodup_tvars (envT, T))
-              else raise TYPE ("Variable " ^ quote (Syntax.string_of_vname ixn) ^
-                " has two distinct types", [T', T], [])
-          | NONE => ((frees, v :: vars), nodup_tvars (envT, T)))
-      | Bound _ => envs
-      | Abs (_, T, t) => nodups (env, nodup_tvars (envT, T)) t
-      | s $ t => nodups (nodups envs s) t)
-  in nodups (([], []), ([], [])) tm; tm end;
 
 fun certify_term pp sg tm =
   let
@@ -811,7 +763,6 @@ fun certify_term pp sg tm =
       | check_atoms _ = ();
   in
     check_atoms tm';
-    nodup_vars tm';
     (tm', type_check pp sg tm', maxidx_of_term tm')
   end;
 
@@ -832,13 +783,6 @@ fun read_const sg raw_c =
     if isSome (const_type sg c) then Const (c, dummyT)
     else raise TYPE ("Undeclared constant: " ^ quote c, [], [])
   end;
-
-
-
-(** instantiation **)
-
-fun inst_typ_tvars sg = Type.inst_typ_tvars (pp sg) (tsig_of sg);
-fun inst_term_tvars sg = Type.inst_term_tvars (pp sg) (tsig_of sg);
 
 
 

@@ -97,7 +97,6 @@ sig
   val subst_bounds: term list * term -> term
   val subst_bound: term * term -> term
   val subst_TVars: (indexname * typ) list -> term -> term
-  val subst_TVars_Vartab: typ Vartab.table -> term -> term
   val betapply: term * term -> term
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
@@ -113,9 +112,9 @@ sig
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
   val subst_atomic: (term * term) list -> term -> term
+  val typ_subst_atomic: (typ * typ) list -> typ -> typ
   val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
   val typ_subst_TVars: (indexname * typ) list -> typ -> typ
-  val typ_subst_TVars_Vartab : typ Vartab.table -> typ -> typ
   val subst_Vars: (indexname * term) list -> term -> term
   val incr_tvar: int -> typ -> typ
   val xless: (string * int) * indexname -> bool
@@ -656,6 +655,12 @@ fun subst_atomic [] t = t : term
             | subst t = getOpt (assoc(instl,t),t)
       in  subst t  end;
 
+(*Replace the ATOMIC type Ti by Ui;    instl = [(T1,U1), ..., (Tn,Un)].*)
+fun typ_subst_atomic [] T = T
+  | typ_subst_atomic instl (Type (s, Ts)) =
+      Type (s, map (typ_subst_atomic instl) Ts)
+  | typ_subst_atomic instl T = getOpt (assoc (instl, T), T);
+
 (*Substitute for type Vars in a type*)
 fun typ_subst_TVars iTs T = if null iTs then T else
   let fun subst(Type(a,Ts)) = Type(a, map subst Ts)
@@ -1033,17 +1038,6 @@ fun termless tu = (term_ord tu = LESS);
 structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
 structure Typtab = TableFun(type key = typ val ord = typ_ord);
 structure Termtab = TableFun(type key = term val ord = term_ord);
-
-(*Substitute for type Vars in a type, version using Vartab*)
-fun typ_subst_TVars_Vartab iTs T = if Vartab.is_empty iTs then T else
-  let fun subst(Type(a, Ts)) = Type(a, map subst Ts)
-        | subst(T as TFree _) = T
-        | subst(T as TVar(ixn, _)) =
-            (case Vartab.lookup (iTs, ixn) of NONE => T | SOME(U) => U)
-  in subst T end;
-
-(*Substitute for type Vars in a term, version using Vartab*)
-val subst_TVars_Vartab = map_term_types o typ_subst_TVars_Vartab;
 
 
 (*** Compression of terms and types by sharing common subtrees.

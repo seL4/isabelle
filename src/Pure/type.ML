@@ -41,18 +41,18 @@ sig
   val no_tvars: typ -> typ
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
-  val varify: term * string list -> term * (string * indexname) list
+  val varify: term * (string * sort) list -> term * ((string * sort) * indexname) list
   val freeze_thaw_type : typ -> typ * (typ -> typ)
   val freeze_thaw : term -> term * (term -> term)
 
   (*matching and unification*)
-  val inst_typ_tvars: Pretty.pp -> tsig -> (indexname * typ) list -> typ -> typ
-  val inst_term_tvars: Pretty.pp -> tsig -> (indexname * typ) list -> term -> term
   exception TYPE_MATCH
-  val typ_match: tsig -> typ Vartab.table * (typ * typ) -> typ Vartab.table
+  type tyenv
+  val lookup: tyenv * (indexname * sort) -> typ option
+  val typ_match: tsig -> tyenv * (typ * typ) -> tyenv
   val typ_instance: tsig -> typ * typ -> bool
   exception TUNIFY
-  val unify: tsig -> typ Vartab.table * int -> typ * typ -> typ Vartab.table * int
+  val unify: tsig -> tyenv * int -> typ * typ -> tyenv * int
   val raw_unify: typ * typ -> bool
 
   (*extend and merge type signatures*)
@@ -219,11 +219,11 @@ fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
 
 fun varify (t, fixed) =
   let
-    val fs = add_term_tfree_names (t, []) \\ fixed;
+    val fs = add_term_tfrees (t, []) \\ fixed;
     val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ map (rpair 0) (variantlist (fs, map #1 ixns))
+    val fmap = fs ~~ map (rpair 0) (variantlist (map fst fs, map #1 ixns))
     fun thaw (f as (a, S)) =
-      (case assoc (fmap, a) of
+      (case assoc (fmap, f) of
         NONE => TFree f
       | SOME b => TVar (b, S));
   in (map_term_types (map_type_tfree thaw) t, fmap) end;
@@ -273,21 +273,15 @@ end;
 
 (** matching and unification of types **)
 
-(* instantiation *)
+type tyenv = (sort * typ) Vartab.table;
 
-fun inst_typ_tvars pp tsig tye =
-  let
-    fun inst (var as (v, S)) =
-      (case assoc_string_int (tye, v) of
-        SOME U =>
-          if of_sort tsig (U, S) then U
-          else raise TYPE ("Type not of sort " ^ Pretty.string_of_sort pp S, [U], [])
-      | NONE => TVar var);
-  in map_type_tvar inst end;
+fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
+  quote (Term.string_of_vname ixn) ^ " has two distinct sorts",
+  [TVar (ixn, S), TVar (ixn, S')], []);
 
-fun inst_term_tvars _ _ [] t = t
-  | inst_term_tvars pp tsig tye t = map_term_types (inst_typ_tvars pp tsig tye) t;
-
+fun lookup (tye, (ixn, S)) = case Vartab.lookup (tye, ixn) of
+    NONE => NONE
+  | SOME (S', T) => if S = S' then SOME T else tvar_clash ixn S S';
 
 (* matching *)
 
@@ -296,9 +290,9 @@ exception TYPE_MATCH;
 fun typ_match tsig =
   let
     fun match (subs, (TVar (v, S), T)) =
-          (case Vartab.lookup (subs, v) of
+          (case lookup (subs, (v, S)) of
             NONE =>
-              if of_sort tsig (T, S) then Vartab.update ((v, T), subs)
+              if of_sort tsig (T, S) then Vartab.update_new ((v, (S, T)), subs)
               else raise TYPE_MATCH
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
@@ -322,16 +316,16 @@ fun occurs v tye =
   let
     fun occ (Type (_, Ts)) = exists occ Ts
       | occ (TFree _) = false
-      | occ (TVar (w, _)) =
+      | occ (TVar (w, S)) =
           eq_ix (v, w) orelse
-            (case Vartab.lookup (tye, w) of
+            (case lookup (tye, (w, S)) of
               NONE => false
             | SOME U => occ U);
   in occ end;
 
 (*chase variable assignments; if devar returns a type var then it must be unassigned*)
-fun devar (T as TVar (v, _), tye) =
-      (case  Vartab.lookup (tye, v) of
+fun devar (T as TVar v, tye) =
+      (case  lookup (tye, v) of
         SOME U => devar (U, tye)
       | NONE => T)
   | devar (T, tye) = T;
@@ -347,8 +341,8 @@ fun unify (tsig as TSig {classes, arities, ...}) (tyenv, maxidx) TU =
     fun meet ((_, []), tye) = tye
       | meet ((TVar (xi, S'), S), tye) =
           if Sorts.sort_le classes (S', S) then tye
-          else Vartab.update_new ((xi,
-            gen_tyvar (Sorts.inter_sort classes (S', S))), tye)
+          else Vartab.update_new ((xi, (S',
+            gen_tyvar (Sorts.inter_sort classes (S', S)))), tye)
       | meet ((TFree (_, S'), S), tye) =
           if Sorts.sort_le classes (S', S) then tye
           else raise TUNIFY
@@ -361,21 +355,22 @@ fun unify (tsig as TSig {classes, arities, ...}) (tyenv, maxidx) TU =
     fun unif ((ty1, ty2), tye) =
       (case (devar (ty1, tye), devar (ty2, tye)) of
         (T as TVar (v, S1), U as TVar (w, S2)) =>
-          if eq_ix (v, w) then tye
+          if eq_ix (v, w) then
+            if S1 = S2 then tye else tvar_clash v S1 S2
           else if Sorts.sort_le classes (S1, S2) then
-            Vartab.update_new ((w, T), tye)
+            Vartab.update_new ((w, (S2, T)), tye)
           else if Sorts.sort_le classes (S2, S1) then
-            Vartab.update_new ((v, U), tye)
+            Vartab.update_new ((v, (S1, U)), tye)
           else
             let val S = gen_tyvar (Sorts.inter_sort classes (S1, S2)) in
-              Vartab.update_new ((v, S), Vartab.update_new ((w, S), tye))
+              Vartab.update_new ((v, (S1, S)), Vartab.update_new ((w, (S2, S)), tye))
             end
       | (TVar (v, S), T) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), Vartab.update_new ((v, T), tye))
+          else meet ((T, S), Vartab.update_new ((v, (S, T)), tye))
       | (T, TVar (v, S)) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), Vartab.update_new ((v, T), tye))
+          else meet ((T, S), Vartab.update_new ((v, (S, T)), tye))
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
           else foldr unif tye (Ts ~~ Us)

@@ -273,7 +273,8 @@ fun select_match(c,obj, signobj, named_thms, (extract_thms,extract_term)) =
       fun substsize prop =
             let val pat = extract_term prop
                 val (_,subst) = Pattern.match tsig (pat,obj)
-            in Library.foldl op+ (0, map (size_of_term o snd) subst) end
+            in Vartab.foldl (op + o apsnd (size_of_term o snd o snd)) (0, subst)
+            end
 
       fun thm_ord ((p0,s0,_),(p1,s1,_)) =
             prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));

@@ -69,11 +69,11 @@ sig
   (** proof terms for specific inference rules **)
   val implies_intr_proof : term -> proof -> proof
   val forall_intr_proof : term -> string -> proof -> proof
-  val varify_proof : term -> string list -> proof -> proof
+  val varify_proof : term -> (string * sort) list -> proof -> proof
   val freezeT : term -> proof -> proof
   val rotate_proof : term list -> term -> int -> proof -> proof
   val permute_prems_prf : term list -> int -> int -> proof -> proof
-  val instantiate : (indexname * typ) list -> (term * term) list -> proof -> proof
+  val instantiate : (typ * typ) list -> (term * term) list -> proof -> proof
   val lift_proof : term -> int -> term -> proof -> proof
   val assumption_proof : term list -> term -> int -> proof -> proof
   val bicompose_proof : term list -> term list -> term list -> term option ->
@@ -401,7 +401,8 @@ fun remove_types (Abs (s, _, t)) = Abs (s, dummyT, remove_types t)
   | remove_types t = t;
 
 fun remove_types_env (Envir.Envir {iTs, asol, maxidx}) =
-  Envir.Envir {iTs = iTs, asol = Vartab.map remove_types asol, maxidx = maxidx};
+  Envir.Envir {iTs = iTs, asol = Vartab.map (apsnd remove_types) asol,
+    maxidx = maxidx};
 
 fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
 
@@ -530,11 +531,11 @@ fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
 
 fun varify_proof t fixed prf =
   let
-    val fs = add_term_tfree_names (t, []) \\ fixed;
+    val fs = add_term_tfrees (t, []) \\ fixed;
     val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ variantlist (fs, map #1 ixns)
+    val fmap = fs ~~ variantlist (map fst fs, map #1 ixns)
     fun thaw (f as (a, S)) =
-      (case assoc (fmap, a) of
+      (case assoc (fmap, f) of
         NONE => TFree f
       | SOME b => TVar ((b, 0), S));
   in map_proof_terms (map_term_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
@@ -598,7 +599,7 @@ fun permute_prems_prf prems j k prf =
 
 fun instantiate vTs tpairs prf =
   map_proof_terms (subst_atomic (map (apsnd remove_types) tpairs) o
-    subst_TVars vTs) (typ_subst_TVars vTs) prf;
+    map_term_types (typ_subst_atomic vTs)) (typ_subst_atomic vTs) prf;
 
 
 (***** lifting *****)
@@ -955,7 +956,7 @@ fun match_proof Ts tymatch =
 
 fun prf_subst (pinst, (tyinsts, insts)) =
   let
-    val substT = typ_subst_TVars_Vartab tyinsts;
+    val substT = Envir.typ_subst_TVars tyinsts;
 
     fun subst' lev (t as Var (ixn, _)) = (case assoc (insts, ixn) of
           NONE => t

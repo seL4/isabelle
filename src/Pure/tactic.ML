@@ -94,7 +94,7 @@ sig
   val subgoals_tac      : string list -> int -> tactic
   val subgoals_of_brl   : bool * thm -> int
   val term_lift_inst_rule       :
-      thm * int * (indexname*typ)list * ((indexname*typ)*term)list  * thm
+      thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm
       -> thm
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
@@ -117,6 +117,7 @@ sig
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
   val eres_inst_tac'    : (indexname * string) list -> thm -> int -> tactic
   val res_inst_tac'     : (indexname * string) list -> thm -> int -> tactic
+  val instantiate_tac'  : (indexname * string) list -> tactic
 end;
 
 structure Tactic: TACTIC =
@@ -246,9 +247,7 @@ let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
                                     Logic.incr_indexes(paramTs,inc) t)
     (*Lifts instantiation pair over params*)
     fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
-    fun lifttvar((a,i),ctyp) =
-        let val {T,sign} = rep_ctyp ctyp
-        in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+    val lifttvar = pairself (ctyp_fun (incr_tvar inc))
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
@@ -278,7 +277,9 @@ let val {maxidx,sign,...} = rep_thm st
     fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> incr_tvar inc T)
     (*lift only Var, not term, which must be lifted already*)
     fun liftpair (v,t) = (cterm_of sign (liftvar v), cterm_of sign t)
-    fun liftTpair((a,i),T) = ((a,i+inc), ctyp_of sign (incr_tvar inc T))
+    fun liftTpair (((a, i), S), T) =
+      (ctyp_of sign (TVar ((a, i + inc), S)),
+       ctyp_of sign (incr_tvar inc T))
 in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
@@ -343,6 +344,8 @@ fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
 
 (*instantiate variables in the whole state*)
 val instantiate_tac = PRIMITIVE o read_instantiate;
+
+val instantiate_tac' = PRIMITIVE o Drule.read_instantiate';
 
 (*Deletion of an assumption*)
 fun thin_tac s = eres_inst_tac [("V",s)] thin_rl;
@@ -647,7 +650,7 @@ fun prove sign xs asms prop tac =
     val statement = Logic.list_implies (asms, prop);
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
-    val fixed_tfrees = foldr Term.add_typ_tfree_names [] (map #2 fixed_frees);
+    val fixed_tfrees = foldr Term.add_typ_tfrees [] (map #2 fixed_frees);
     val params = List.mapPartial (fn x => Option.map (pair x) (assoc_string (frees, x))) xs;
 
     fun err msg = raise ERROR_MESSAGE

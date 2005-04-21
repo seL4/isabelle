@@ -1,12 +1,9 @@
-(*  Title: 	unify
+(*  Title:      Pure/unify.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
 Higher-Order Unification
-
-Potential problem: type of Vars is often ignored, so two Vars with same
-indexname but different types can cause errors!
 
 Types as well as terms are unified.  The outermost functions assume the
 terms to be unified already have the same type.  In resolution, this is
@@ -49,14 +46,14 @@ type dpair = binderlist * term * term;
 
 fun body_type(Envir.Envir{iTs,...}) = 
 let fun bT(Type("fun",[_,T])) = bT T
-      | bT(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
+      | bT(T as TVar ixnS) = (case Type.lookup (iTs, ixnS) of
 		NONE => T | SOME(T') => bT T')
       | bT T = T
 in bT end;
 
 fun binder_types(Envir.Envir{iTs,...}) = 
 let fun bTs(Type("fun",[T,U])) = T :: bTs U
-      | bTs(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
+      | bTs(T as TVar ixnS) = (case Type.lookup (iTs, ixnS) of
 		NONE => [] | SOME(T') => bTs T')
       | bTs _ = []
 in bTs end;
@@ -70,8 +67,8 @@ fun fastype env (Ts, t) = Envir.fastype env (map snd Ts) t;
 fun eta_norm(env as Envir.Envir{iTs,...}) =
   let fun etif (Type("fun",[T,U]), t) =
 	    Abs("", T, etif(U, incr_boundvars 1 t $ Bound 0))
-	| etif (TVar(ixn,_),t) = 
-	    (case Vartab.lookup (iTs,ixn) of
+	| etif (TVar ixnS, t) = 
+	    (case Type.lookup (iTs, ixnS) of
 		  NONE => t | SOME(T) => etif(T,t))
 	| etif (_,t) = t;
       fun eta_nm (rbinder, Abs(a,T,body)) =
@@ -84,7 +81,11 @@ fun eta_norm(env as Envir.Envir{iTs,...}) =
   Does the uvar occur in the term t?  
   two forms of search, for whether there is a rigid path to the current term.
   "seen" is list of variables passed thru, is a memo variable for sharing.
-  This version searches for nonrigid occurrence, returns true if found. *)
+  This version searches for nonrigid occurrence, returns true if found.
+  Since terms may contain variables with same name and different types,
+  the occurs check must ignore the types of variables. This avoids
+  that ?x::?'a is unified with f(?x::T), which may lead to a cyclic
+  substitution when ?'a is instantiated with T later. *)
 fun occurs_terms (seen: (indexname list) ref,
  		  env: Envir.env, v: indexname, ts: term list): bool =
   let fun occurs [] = false
@@ -92,12 +93,12 @@ fun occurs_terms (seen: (indexname list) ref,
       and occur (Const _)  = false
 	| occur (Bound _)  = false
 	| occur (Free _)  = false
-	| occur (Var (w,_))  = 
+	| occur (Var (w, T))  = 
 	    if mem_ix (w, !seen) then false
 	    else if eq_ix(v,w) then true
 	      (*no need to lookup: v has no assignment*)
 	    else (seen := w:: !seen;  
-	          case  Envir.lookup(env,w)  of
+	          case Envir.lookup (env, (w, T)) of
 		      NONE    => false
 		    | SOME t => occur t)
 	| occur (Abs(_,_,body)) = occur body
@@ -109,7 +110,7 @@ fun occurs_terms (seen: (indexname list) ref,
 (* f(a1,...,an)  ---->   (f,  [a1,...,an])  using the assignments*)
 fun head_of_in (env,t) : term = case t of
     f$_ => head_of_in(env,f)
-  | Var (v,_) => (case  Envir.lookup(env,v)  of  
+  | Var vT => (case Envir.lookup (env, vT) of  
 			SOME u => head_of_in(env,u)  |  NONE   => t)
   | _ => t;
 
@@ -155,11 +156,11 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
       and occur (Const _)  = NoOcc
 	| occur (Bound _)  = NoOcc
 	| occur (Free _)  = NoOcc
-	| occur (Var (w,_))  = 
+	| occur (Var (w, T))  = 
 	    if mem_ix (w, !seen) then NoOcc
 	    else if eq_ix(v,w) then Rigid
 	    else (seen := w:: !seen;  
-	          case  Envir.lookup(env,w)  of
+	          case Envir.lookup (env, (w, T)) of
 		      NONE    => NoOcc
 		    | SOME t => occur t)
 	| occur (Abs(_,_,body)) = occur body
@@ -210,11 +211,11 @@ fun rlist_abs ([], body) = body
   If v occurs rigidly then nonunifiable.
   If v occurs nonrigidly then must use full algorithm. *)
 fun assignment (env, rbinder, t, u) =
-    let val (v,T) = get_eta_var(rbinder,0,t)
-    in  case rigid_occurs_term (ref[], env, v, u) of
+    let val vT as (v,T) = get_eta_var (rbinder, 0, t)
+    in  case rigid_occurs_term (ref [], env, v, u) of
 	      NoOcc => let val env = unify_types(body_type env T,
 						 fastype env (rbinder,u),env)
-		in Envir.update ((v, rlist_abs(rbinder,u)), env) end
+		in Envir.update ((vT, rlist_abs (rbinder, u)), env) end
 	    | Nonrigid =>  raise ASSIGN
 	    | Rigid =>  raise CANTUNIFY
     end;
@@ -282,7 +283,7 @@ fun SIMPL0 (dp0, (env,flexflex,flexrigid))
 
 (* changed(env,t) checks whether the head of t is a variable assigned in env*)
 fun changed (env, f$_) = changed (env,f)
-  | changed (env, Var (v,_)) =
+  | changed (env, Var v) =
       (case Envir.lookup(env,v) of NONE=>false  |  _ => true)
   | changed _ = false;
 
@@ -395,12 +396,12 @@ in mc end;
 (*Call matchcopy to produce assignments to the variable in the dpair*)
 fun MATCH (env, (rbinder,t,u), dpairs)
 	: (Envir.env * dpair list)Seq.seq = 
-  let val (Var(v,T), targs) = strip_comb t;
+  let val (Var (vT as (v, T)), targs) = strip_comb t;
       val Ts = binder_types env T;
       fun new_dset (u', (env',dpairs')) =
 	  (*if v was updated to s, must unify s with u' *)
-	  case Envir.lookup(env',v) of
-	      NONE => (Envir.update ((v, types_abs(Ts, u')), env'),  dpairs')
+	  case Envir.lookup (env', vT) of
+	      NONE => (Envir.update ((vT, types_abs(Ts, u')), env'),  dpairs')
 	    | SOME s => (env', ([], s, types_abs(Ts, u'))::dpairs')
   in Seq.map new_dset
          (matchcopy (#1 v) (rbinder, targs, u, (env,dpairs)))
@@ -413,12 +414,12 @@ fun MATCH (env, (rbinder,t,u), dpairs)
 (*At end of unification, do flex-flex assignments like ?a -> ?f(?b) 
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign(env, rbinder, t, u) : Envir.env = 
-let val (v,T) = get_eta_var(rbinder,0,t)
-in if occurs_terms (ref[], env, v, [u]) then raise ASSIGN
+let val vT as (v,T) = get_eta_var(rbinder,0,t)
+in if occurs_terms (ref [], env, v, [u]) then raise ASSIGN
    else let val env = unify_types(body_type env T,
 				  fastype env (rbinder,u),
 				  env)
-	in Envir.vupdate ((v, rlist_abs(rbinder, u)), env) end
+	in Envir.vupdate ((vT, rlist_abs (rbinder, u)), env) end
 end;
 
 
@@ -494,7 +495,7 @@ fun clean_term banned (env,t) =
     if decreasing (length Ts) args then (env, (list_comb(Var(v,T), ts')))
     else let val (env',v') = Envir.genvar (#1v) (env, map (#T) args ---> U)
 	     val body = list_comb(v', map (Bound o #j) args)
-	     val env2 = Envir.vupdate (((v, types_abs(Ts, body)),   env'))
+	     val env2 = Envir.vupdate ((((v, T), types_abs(Ts, body)),   env'))
 	     (*the vupdate affects ts' if they contain v*)
 	 in  
 	     (env2, Envir.norm_term env2 (list_comb(v',ts')))
@@ -615,12 +616,12 @@ fun var_head_of (env,t) : indexname * typ =
     requires more work yet gives a less general unifier (fewer variables).
   Handles ?f(t1...rm) with ?f(u1...um) to avoid multiple updates. *)
 fun smash_flexflex1 ((t,u), env) : Envir.env =
-  let val (v,T) = var_head_of (env,t)
-      and (w,U) = var_head_of (env,u);
+  let val vT as (v,T) = var_head_of (env,t)
+      and wU as (w,U) = var_head_of (env,u);
       val (env', var) = Envir.genvar (#1v) (env, body_type env T)
-      val env'' = Envir.vupdate((w, type_abs(env',U,var)),  env')
-  in  if (v,T)=(w,U) then env''  (*the other update would be identical*)
-      else Envir.vupdate((v, type_abs(env',T,var)), env'')
+      val env'' = Envir.vupdate ((wU, type_abs (env', U, var)), env')
+  in  if vT = wU then env''  (*the other update would be identical*)
+      else Envir.vupdate ((vT, type_abs (env', T, var)), env'')
   end;
 
 

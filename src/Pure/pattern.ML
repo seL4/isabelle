@@ -22,9 +22,9 @@ sig
   val beta_eta_contract : term -> term
   val eta_contract_atom : term -> term
   val match             : Type.tsig -> term * term
-                          -> (indexname*typ)list * (indexname*term)list
+                          -> Type.tyenv * Envir.tenv
   val first_order_match : Type.tsig -> term * term
-                          -> (indexname*typ)list * (indexname*term)list
+                          -> Type.tyenv * Envir.tenv
   val matches           : Type.tsig -> term * term -> bool
   val matches_subterm   : Type.tsig -> term * term -> bool
   val unify             : Sign.sg * Envir.env * (term * term)list -> Envir.env
@@ -72,7 +72,7 @@ fun clashB binders i s =
   if !trace_unify_fail then clash (boundVar binders i) s
   else ()
 
-fun proj_fail sg (env,binders,F,is,t) =
+fun proj_fail sg (env,binders,F,_,is,t) =
   if !trace_unify_fail
   then let val f = Syntax.string_of_vname F
            val xs = bnames binders is
@@ -94,7 +94,7 @@ fun ocheck_fail sg (F,t,binders,env) =
   else ()
 
 fun occurs(F,t,env) =
-    let fun occ(Var(G,_))   = (case Envir.lookup(env,G) of
+    let fun occ(Var (G, T))   = (case Envir.lookup (env, (G, T)) of
                                  SOME(t) => occ t
                                | NONE    => F=G)
           | occ(t1$t2)      = occ t1 orelse occ t2
@@ -153,7 +153,7 @@ fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 
 fun mknewhnf(env,binders,is,F as (a,_),T,js) =
   let val (env',G) = Envir.genvar a (env,type_of_G env (T,length is,js))
-  in Envir.update((F,mkhnf(binders,is,G,js)),env') end;
+  in Envir.update (((F, T), mkhnf (binders, is, G, js)), env') end;
 
 
 (* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
@@ -186,7 +186,7 @@ fun proj(s,env,binders,is) =
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
-                                Envir.update((F,mkhnf(binders,js,H,ks)),env')
+                            Envir.update (((F, Fty), mkhnf (binders, js, H, ks)), env')
                       in (app(H,ls),env'') end
                  | _  => raise Pattern))
         and prs(s::ss,env,d,binders) =
@@ -216,12 +216,12 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
             if js subset_int is
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
-                 in Envir.update((F,t),env) end
+                 in Envir.update (((F, Fty), t), env) end
             else let val ks = is inter_int js
                      val Hty = type_of_G env (Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
-                 in Envir.update((G,lam js), Envir.update((F,lam is),env'))
+                 in Envir.update (((G, Gty), lam js), Envir.update (((F, Fty), lam is), env'))
                  end;
   in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
@@ -243,8 +243,8 @@ and cases sg (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
        ((Var(F,Fty),ss),(Var(G,Gty),ts)) =>
          if F = G then flexflex1(env,binders,F,Fty,ints_of' env ss,ints_of' env ts)
                   else flexflex2(env,binders,F,Fty,ints_of' env ss,G,Gty,ints_of' env ts)
-      | ((Var(F,_),ss),_)             => flexrigid sg (env,binders,F,ints_of' env ss,t)
-      | (_,(Var(F,_),ts))             => flexrigid sg (env,binders,F,ints_of' env ts,s)
+      | ((Var(F,Fty),ss),_)           => flexrigid sg (env,binders,F,Fty,ints_of' env ss,t)
+      | (_,(Var(F,Fty),ts))           => flexrigid sg (env,binders,F,Fty,ints_of' env ts,s)
       | ((Const c,ss),(Const d,ts))   => rigidrigid sg (env,binders,c,d,ss,ts)
       | ((Free(f),ss),(Free(g),ts))   => rigidrigid sg (env,binders,f,g,ss,ts)
       | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB sg (env,binders,i,j,ss,ts)
@@ -266,10 +266,10 @@ and rigidrigidB sg (env,binders,i,j,ss,ts) =
      if i <> j then (clashBB binders i j; raise Unif)
      else Library.foldl (unif sg binders) (env ,ss~~ts)
 
-and flexrigid sg (params as (env,binders,F,is,t)) =
+and flexrigid sg (params as (env,binders,F,Fty,is,t)) =
       if occurs(F,t,env) then (ocheck_fail sg (F,t,binders,env); raise Unif)
       else (let val (u,env') = proj(t,env,binders,is)
-            in Envir.update((F,mkabs(binders,is,u)),env') end
+            in Envir.update (((F, Fty), mkabs (binders, is, u)), env') end
             handle Unif => (proj_fail sg params; raise Unif));
 
 fun unify(sg,env,tus) = Library.foldl (unif sg []) (env,tus);
@@ -358,9 +358,9 @@ fun fomatch tsig =
     fun mtch (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
           if loose_bvar(t,0) then raise MATCH
-          else (case assoc_string_int(insts,ixn) of
+          else (case Envir.lookup' (instsp, (ixn, T)) of
                   NONE => (typ_match tsig (tyinsts, (T, fastype_of t)),
-                           (ixn,t)::insts)
+                           Vartab.update_new ((ixn, (T, t)), insts))
                 | SOME u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
           if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
@@ -374,18 +374,18 @@ fun fomatch tsig =
       | _ => raise MATCH
   in mtch end;
 
-fun first_order_match tsig = apfst Vartab.dest o fomatch tsig (Vartab.empty, []);
+fun first_order_match tsig = fomatch tsig (Vartab.empty, Vartab.empty);
 
 (* Matching of higher-order patterns *)
 
-fun match_bind(itms,binders,ixn,is,t) =
+fun match_bind(itms,binders,ixn,T,is,t) =
   let val js = loose_bnos t
   in if null is
-     then if null js then (ixn,t)::itms else raise MATCH
+     then if null js then Vartab.update_new ((ixn, (T, t)), itms) else raise MATCH
      else if js subset_int is
           then let val t' = if downto0(is,length binders - 1) then t
                             else mapbnd (idx is) t
-               in (ixn, mkabs(binders,is,t')) :: itms end
+               in Vartab.update_new ((ixn, (T, mkabs (binders, is, t'))), itms) end
           else raise MATCH
   end;
 
@@ -397,7 +397,7 @@ let
       Abs(ns,Ts,ts) =>
         (case obj of
            Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (env,(ts,tt))
-         | _ => let val Tt = typ_subst_TVars_Vartab iTs Ts
+         | _ => let val Tt = Envir.typ_subst_TVars iTs Ts
                 in mtch((ns,Tt)::binders)(env,(ts,(incr obj)$Bound(0))) end)
     | _ => (case obj of
               Abs(nt,Tt,tt) =>
@@ -412,10 +412,10 @@ let
               if a<> b then raise MATCH
               else rigrig1(typ_match tsg (iTs,(Ta,Tb)), oargs)
     in case ph of
-         Var(ixn,_) =>
+         Var(ixn,T) =>
            let val is = ints_of pargs
-           in case assoc_string_int(itms,ixn) of
-                NONE => (iTs,match_bind(itms,binders,ixn,is,obj))
+           in case Envir.lookup' (env, (ixn, T)) of
+                NONE => (iTs,match_bind(itms,binders,ixn,T,is,obj))
               | SOME u => if obj aeconv (red u is []) then env
                           else raise MATCH
            end
@@ -435,10 +435,10 @@ let
   val pT = fastype_of pat
   and oT = fastype_of obj
   val iTs = typ_match tsg (Vartab.empty, (pT,oT))
-  val insts2 = (iTs,[])
+  val insts2 = (iTs, Vartab.empty)
 
-in apfst Vartab.dest (mtch [] (insts2, po)
-   handle Pattern => fomatch tsg insts2 po)
+in mtch [] (insts2, po)
+   handle Pattern => fomatch tsg insts2 po
 end;
 
 (*Predicate: does the pattern match the object?*)
@@ -486,7 +486,7 @@ fun rewrite_term tsig rules procs tm =
 
     fun match_rew tm (tm1, tm2) =
       let val rtm = getOpt (Term.rename_abs tm1 tm tm2, tm2)
-      in SOME (subst_vars (match tsig (tm1, tm)) rtm, rtm)
+      in SOME (Envir.subst_vars (match tsig (tm1, tm)) rtm, rtm)
         handle MATCH => NONE
       end;
 

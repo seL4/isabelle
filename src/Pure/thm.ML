@@ -26,7 +26,6 @@ signature BASIC_THM =
   val cterm_of          : Sign.sg -> term -> cterm
   val ctyp_of_term      : cterm -> ctyp
   val read_cterm        : Sign.sg -> string * typ -> cterm
-  val cterm_fun         : (term -> term) -> (cterm -> cterm)
   val adjust_maxidx     : cterm -> cterm
   val read_def_cterm    :
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
@@ -86,11 +85,11 @@ signature BASIC_THM =
   val implies_intr_hyps : thm -> thm
   val flexflex_rule     : thm -> thm Seq.seq
   val instantiate       :
-    (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
+    (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial           : cterm -> thm
   val class_triv        : Sign.sg -> class -> thm
   val varifyT           : thm -> thm
-  val varifyT'          : string list -> thm -> thm * (string * indexname) list
+  val varifyT'          : (string * sort) list -> thm -> thm * ((string * sort) * indexname) list
   val freezeT           : thm -> thm
   val dest_state        : thm * int ->
     (term * term) list * term list * term * term
@@ -129,9 +128,9 @@ sig
   val name_thm		: string * thm -> thm
   val rename_boundvars  : term -> term -> thm -> thm
   val cterm_match       : cterm * cterm ->
-    (indexname * ctyp) list * (cterm * cterm) list
+    (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_first_order_match : cterm * cterm ->
-    (indexname * ctyp) list * (cterm * cterm) list
+    (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_incr_indexes : int -> cterm -> cterm
   val terms_of_tpairs   : (term * term) list -> term list
 end;
@@ -187,8 +186,6 @@ fun cterm_of sign tm =
   in  Cterm {sign_ref = Sign.self_ref sign, t = t, T = T, maxidx = maxidx}
   end;
 
-fun cterm_fun f (Cterm {sign_ref, t, ...}) = cterm_of (Sign.deref sign_ref) (f t);
-
 
 exception CTERM of string;
 
@@ -221,8 +218,7 @@ fun adjust_maxidx (ct as Cterm {sign_ref, T, t, maxidx, ...}) =
 fun capply (Cterm {t=f, sign_ref=sign_ref1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
            (Cterm {t=x, sign_ref=sign_ref2, T, maxidx=maxidx2}) =
       if T = dty then
-        Cterm{t = if maxidx1 >= 0 andalso maxidx2 >= 0 then Sign.nodup_vars (f $ x)
-            else f $ x,  (*no new Vars: no expensive check!*)
+        Cterm{t = f $ x,
           sign_ref=Sign.merge_refs(sign_ref1,sign_ref2), T=rty,
           maxidx=Int.max(maxidx1, maxidx2)}
       else raise CTERM "capply: types don't agree"
@@ -230,7 +226,7 @@ fun capply (Cterm {t=f, sign_ref=sign_ref1, T=Type("fun",[dty,rty]), maxidx=maxi
 
 fun cabs (Cterm {t=t1, sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
          (Cterm {t=t2, sign_ref=sign_ref2, T=T2, maxidx=maxidx2}) =
-      Cterm {t=Sign.nodup_vars (lambda t1 t2), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2),
+      Cterm {t = lambda t1 t2, sign_ref = Sign.merge_refs (sign_ref1,sign_ref2),
              T = T1 --> T2, maxidx=Int.max(maxidx1, maxidx2)}
       handle TERM _ => raise CTERM "cabs: first arg is not a variable";
 
@@ -243,15 +239,18 @@ fun gen_cterm_match mtch
     val tsig = Sign.tsig_of (Sign.deref sign_ref);
     val (Tinsts, tinsts) = mtch tsig (t1, t2);
     val maxidx = Int.max (maxidx1, maxidx2);
-    val vars = map dest_Var (term_vars t1);
-    fun mk_cTinsts (ixn, T) = (ixn, Ctyp {sign_ref = sign_ref, T = T});
-    fun mk_ctinsts (ixn, t) =
-      let val T = typ_subst_TVars Tinsts (valOf (assoc (vars, ixn)))
+    fun mk_cTinsts (ixn, (S, T)) =
+      (Ctyp {sign_ref = sign_ref, T = TVar (ixn, S)},
+       Ctyp {sign_ref = sign_ref, T = T});
+    fun mk_ctinsts (ixn, (T, t)) =
+      let val T = Envir.typ_subst_TVars Tinsts T
       in
         (Cterm {sign_ref = sign_ref, maxidx = maxidx, T = T, t = Var (ixn, T)},
          Cterm {sign_ref = sign_ref, maxidx = maxidx, T = T, t = t})
       end;
-  in (map mk_cTinsts Tinsts, map mk_ctinsts tinsts) end;
+  in (map mk_cTinsts (Vartab.dest Tinsts),
+    map mk_ctinsts (Vartab.dest tinsts))
+  end;
 
 val cterm_match = gen_cterm_match Pattern.match;
 val cterm_first_order_match = gen_cterm_match Pattern.first_order_match;
@@ -417,11 +416,11 @@ fun add_term_sorts (Const (_, T), Ss) = add_typ_sorts (T, Ss)
 fun add_terms_sorts ([], Ss) = Ss
   | add_terms_sorts (t::ts, Ss) = add_terms_sorts (ts, add_term_sorts (t,Ss));
 
-fun env_codT (Envir.Envir {iTs, ...}) = map snd (Vartab.dest iTs);
+fun env_codT (Envir.Envir {iTs, ...}) = map (snd o snd) (Vartab.dest iTs);
 
 fun add_env_sorts (Envir.Envir {iTs, asol, ...}, Ss) =
-  Vartab.foldl (add_term_sorts o swap o apsnd snd)
-    (Vartab.foldl (add_typ_sorts o swap o apsnd snd) (Ss, iTs), asol);
+  Vartab.foldl (add_term_sorts o swap o apsnd (snd o snd))
+    (Vartab.foldl (add_typ_sorts o swap o apsnd (snd o snd)) (Ss, iTs), asol);
 
 fun add_insts_sorts ((iTs, is), Ss) =
   add_typs_sorts (map snd iTs, add_terms_sorts (map snd is, Ss));
@@ -546,23 +545,6 @@ fun compress (Thm {sign_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
 
 (*** Meta rules ***)
 
-(*Check that term does not contain same var with different typing/sorting.
-  If this check must be made, recalculate maxidx in hope of preventing its
-  recurrence.*)
-fun nodup_vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, tpairs, prop}) s =
-  let
-    val prop' = attach_tpairs tpairs prop;
-    val _ = Sign.nodup_vars prop'
-  in Thm {sign_ref = sign_ref,
-          der = der,
-          maxidx = maxidx_of_term prop',
-          shyps = shyps,
-          hyps = hyps,
-          tpairs = tpairs,
-          prop = prop}
-  end handle TYPE(msg,Ts,ts) => raise TYPE(s^": "^msg,Ts,ts);
-
-
 (** 'primitive' rules **)
 
 (*discharge all assumptions t from ts*)
@@ -669,7 +651,7 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,tpairs,prop,...}) : thm =
         Const("all",Type("fun",[Type("fun",[qary,_]),_])) $ A =>
           if T<>qary then
               raise THM("forall_elim: type mismatch", 0, [th])
-          else let val thm = fix_shyps [th] []
+          else fix_shyps [th] []
                     (Thm{sign_ref= Sign.merge_refs(sign_ref,sign_reft),
                          der = Pt.infer_derivs' (Pt.% o rpair (SOME t)) der,
                          maxidx = Int.max(maxidx, maxt),
@@ -677,10 +659,6 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,tpairs,prop,...}) : thm =
                          hyps = hyps,  
                          tpairs = tpairs,
                          prop = betapply(A,t)})
-               in if maxt >= 0 andalso maxidx >= 0
-                  then nodup_vars thm "forall_elim" 
-                  else thm (*no new Vars: no expensive check!*)
-               end
       | _ => raise THM("forall_elim: not quantified", 0, [th])
   end
   handle TERM _ =>
@@ -731,7 +709,7 @@ fun transitive th1 th2 =
   in case (prop1,prop2) of
        ((eq as Const("==", Type (_, [T, _]))) $ t1 $ u, Const("==",_) $ u' $ t2) =>
           if not (u aconv u') then err"middle term"
-          else let val thm =      
+          else
                  Thm{sign_ref= merge_thm_sgs(th1,th2), 
                      der = Pt.infer_derivs (Pt.transitive u T) der1 der2,
                      maxidx = Int.max(max1,max2), 
@@ -739,10 +717,6 @@ fun transitive th1 th2 =
                      hyps = union_term(hyps1,hyps2),
                      tpairs = tpairs1 @ tpairs2,
                      prop = eq$t1$t2}
-                 in if max1 >= 0 andalso max2 >= 0
-                    then nodup_vars thm "transitive" 
-                    else thm (*no new Vars: no expensive check!*)
-                 end
      | _ =>  err"premises"
   end;
 
@@ -827,8 +801,8 @@ fun combination th1 th2 =
   in case (prop1,prop2)  of
        (Const ("==", Type ("fun", [fT, _])) $ f $ g,
         Const ("==", Type ("fun", [tT, _])) $ t $ u) =>
-          let val _   = chktypes fT tT
-              val thm = (*no fix_shyps*)
+          (chktypes fT tT;
+                        (*no fix_shyps*)
                         Thm{sign_ref = merge_thm_sgs(th1,th2), 
                             der = Pt.infer_derivs
                               (Pt.combination f g t u fT) der1 der2,
@@ -836,11 +810,7 @@ fun combination th1 th2 =
                             shyps = Sorts.union_sort(shyps1,shyps2),
                             hyps = union_term(hyps1,hyps2),
                             tpairs = tpairs1 @ tpairs2,
-                            prop = Logic.mk_equals(f$t, g$u)}
-          in if max1 >= 0 andalso max2 >= 0
-             then nodup_vars thm "combination" 
-             else thm (*no new Vars: no expensive check!*)  
-          end
+                            prop = Logic.mk_equals(f$t, g$u)})
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
 
@@ -955,6 +925,8 @@ fun prt_typing sg_ref t T =
     Pretty.block [Sign.pretty_term sg t, Pretty.str " ::", Pretty.brk 1, Sign.pretty_typ sg T]
   end;
 
+fun prt_type sg_ref T = Sign.pretty_typ (Sign.deref sg_ref) T;
+
 (*For instantiate: process pair of cterms, merge theories*)
 fun add_ctpair ((ct,cu), (sign_ref,tpairs)) =
   let
@@ -968,9 +940,22 @@ fun add_ctpair ((ct,cu), (sign_ref,tpairs)) =
       Pretty.fbrk, prt_typing sign_ref_merged u U]), [T,U], [t,u])
   end;
 
-fun add_ctyp ((v,ctyp), (sign_ref',vTs)) =
-  let val Ctyp {T,sign_ref} = ctyp
-  in (Sign.merge_refs(sign_ref,sign_ref'), (v,T)::vTs) end;
+fun add_ctyp ((Ctyp {T = T as TVar (_, S), sign_ref = sign_refT},
+      Ctyp {T = U, sign_ref = sign_refU}), (sign_ref, vTs)) =
+      let
+        val sign_ref_merged = Sign.merge_refs
+          (sign_ref, Sign.merge_refs (sign_refT, sign_refU));
+        val sign = Sign.deref sign_ref_merged
+      in
+        if Type.of_sort (Sign.tsig_of sign) (U, S) then
+          (sign_ref_merged, (T, U) :: vTs)
+        else raise TYPE ("Type not of sort " ^
+          Sign.string_of_sort sign S, [U], [])
+      end
+  | add_ctyp ((Ctyp {T, sign_ref}, _), _) =
+      raise TYPE (Pretty.string_of (Pretty.block
+        [Pretty.str "instantiate: not a type variable",
+         Pretty.fbrk, prt_type sign_ref T]), [T], []);
 
 in
 
@@ -982,7 +967,7 @@ fun instantiate ([], []) th = th
   let val (newsign_ref,tpairs) = foldr add_ctpair (sign_ref,[]) ctpairs;
       val (newsign_ref,vTs) = foldr add_ctyp (newsign_ref,[]) vcTs;
       fun subst t =
-        subst_atomic tpairs (Sign.inst_term_tvars (Sign.deref newsign_ref) vTs t);
+        subst_atomic tpairs (map_term_types (typ_subst_atomic vTs) t);
       val newprop = subst prop;
       val newdpairs = map (pairself subst) dpairs;
       val newth =
@@ -998,7 +983,7 @@ fun instantiate ([], []) th = th
       then raise THM("instantiate: variables not distinct", 0, [th])
       else if not(null(findrep(map #1 vTs)))
       then raise THM("instantiate: type variables not distinct", 0, [th])
-      else nodup_vars newth "instantiate"
+      else newth
   end
   handle TERM _ => raise THM("instantiate: incompatible signatures", 0, [th])
        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
@@ -1043,21 +1028,18 @@ fun class_triv sign c =
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,tpairs,prop}) =
   let
-    val tfrees = foldr add_term_tfree_names fixed hyps;
+    val tfrees = foldr add_term_tfrees fixed hyps;
     val prop1 = attach_tpairs tpairs prop;
     val (prop2, al) = Type.varify (prop1, tfrees);
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2)
-  in let val thm = (*no fix_shyps*)
-    Thm{sign_ref = sign_ref, 
+  in (*no fix_shyps*)
+   (Thm{sign_ref = sign_ref, 
         der = Pt.infer_derivs' (Pt.varify_proof prop tfrees) der,
         maxidx = Int.max(0,maxidx), 
         shyps = shyps, 
         hyps = hyps,
         tpairs = rev (map Logic.dest_equals ts),
-        prop = prop3}
-     in (nodup_vars thm "varifyT", al) end
-(* this nodup_vars check can be removed if thms are guaranteed not to contain
-duplicate TVars with different sorts *)
+        prop = prop3}, al)
   end;
 
 val varifyT = #1 o varifyT' [];
@@ -1324,7 +1306,7 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
 fun norm_term_skip env 0 t = Envir.norm_term env t
   | norm_term_skip env n (Const("all",_)$Abs(a,T,t)) =
         let val Envir.Envir{iTs, ...} = env
-            val T' = typ_subst_TVars_Vartab iTs T
+            val T' = Envir.typ_subst_TVars iTs T
             (*Must instantiate types of parameters because they are flattened;
               this could be a NEW parameter*)
         in  all T' $ Abs(a, T', norm_term_skip env n t)  end
