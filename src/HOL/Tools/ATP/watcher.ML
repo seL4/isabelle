@@ -108,7 +108,7 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                                        
                                                       in   
                                                          goals_being_watched := (!goals_being_watched) + 1;
-                                                         OS.Process.sleep(Time.fromSeconds 1); 
+                                                         Posix.Process.sleep(Time.fromSeconds 1); 
                      					(warning ("probfile is: "^probfile));
                                                          (warning("dfg file is: "^newfile));
                                                          (warning ("wholefile is: "^(File.sysify_path wholefile)));
@@ -483,7 +483,7 @@ fun setupWatcher (thm) = let
                                                     val parentID = Posix.ProcEnv.getppid()
                                                     val newProcList' =checkChildren (newProcList, toParentStr) 
                                                   in
-                                                    (*OS.Process.sleep (Time.fromSeconds 1);*)
+                                                    (*Posix.Process.sleep (Time.fromSeconds 1);*)
                                                     loop (newProcList') 
                                                   end
                                                   )
@@ -495,7 +495,7 @@ fun setupWatcher (thm) = let
                                                     val parentID = Posix.ProcEnv.getppid()
                                                     val newProcList' =checkChildren (newProcList, toParentStr) 
                                                   in
-                                                    (*OS.Process.sleep (Time.fromSeconds 1);*)
+                                                    (*Posix.Process.sleep (Time.fromSeconds 1);*)
                                                     loop (newProcList') 
                                                   end
                                                   )
@@ -508,7 +508,7 @@ fun setupWatcher (thm) = let
                                                                                           (******************************)
                                         (    let val newProcList = checkChildren ((procList), toParentStr)
                                              in
-                                               OS.Process.sleep (Time.fromSeconds 1);
+                                               Posix.Process.sleep (Time.fromSeconds 1);
                                                loop (newProcList)
                                              end
                                          

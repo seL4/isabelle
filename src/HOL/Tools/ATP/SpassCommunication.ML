@@ -90,7 +90,7 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
                                           
                                          Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                          (* Attempt to prevent several signals from turning up simultaneously *)
-                                         OS.Process.sleep(Time.fromSeconds 1)
+                                         Posix.Process.sleep(Time.fromSeconds 1); ()
                                                
                                     end
                                       
@@ -153,7 +153,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                            in if ( thisLine = "SPASS beiseite: Proof found.\n" )
                                               then      
                                               (  
-                                                 let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                      (*val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
+                                                 let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                                                (*val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
                                                      val _ = TextIO.output (outfile, (thisLine))
                                              
                                                      val _ =  TextIO.closeOut outfile
@@ -165,7 +165,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                                    then  
 
                                                  (
-                                                      let    val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                       (* val _ =  OS.Process.sleep(Time.fromSeconds 3 );*)
+                                                      let    val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
                                                              val _ = TextIO.output (outfile, (thisLine))
                                              
                                                              val _ =  TextIO.closeOut outfile
@@ -189,7 +189,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                                        TextIO.flushOut toParent;
                                                        Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                                        (* Attempt to prevent several signals from turning up simultaneously *)
-                                                       OS.Process.sleep(Time.fromSeconds 1);
+                                                       Posix.Process.sleep(Time.fromSeconds 1);
                                                         true  
                                                       end) 
                                                      else if ( thisLine = "SPASS beiseite: Ran out of time.\n" ) 

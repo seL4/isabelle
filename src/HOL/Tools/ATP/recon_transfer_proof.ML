@@ -15,7 +15,7 @@ fun not_newline ch = not (ch = "\n");
 (* Versions that include type information *)
  
 fun string_of_thm thm = let val _ = set show_sorts
-                                val str = string_of_thm thm
+                                val str = Display.string_of_thm thm
                                 val no_returns =List.filter not_newline (explode str)
                                 val _ = reset show_sorts
                             in 
@@ -222,9 +222,6 @@ fun thmstrings [] str = str
                                             (distfrees,distvars, extra_with_vars,ax_with_vars, (ListPair.zip (step_nums,ax_metas)))
                                          end
                                         
-fun thmstrings [] str = str
-|   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
-
 fun numclstr (vars, []) str = str
 |   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
                                in
