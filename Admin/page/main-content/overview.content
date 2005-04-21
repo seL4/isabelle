@@ -38,6 +38,11 @@ href="http://proofgeneral.inf.ed.ac.uk/">Proof
 General</a> user interface, which eases the task of writing and
 maintaining proof scripts. </p>
 
+A hyperlinked <a href="PG-preview.mov">preview</a> demonstrating Isabelle and Proof
+General is provided in 
+<a href="http://www.apple.com/quicktime/download/">QuickTime format</a>, 
+and also as a non-hyperlinked <a href="PG-preview.pdf">PDF file</a>.
+
 <p>Isabelle comes with large theories of formally verified
 mathematics, including elementary number theory (for example, Gauss's
 law of quadratic reciprocity), analysis (basic properties of limits,
