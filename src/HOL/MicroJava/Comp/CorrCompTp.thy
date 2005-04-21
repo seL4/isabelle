@@ -907,9 +907,6 @@ lemma check_type_lower:
   \<Longrightarrow>check_type cG (length ST) mxr (OK (Some (ST, LT)))"
 by (simp add: check_type_def states_lower)
 
-lemma max_same_iter [simp]: "max (x::'a::linorder) (max x y) = max x y"
-by (simp add: AC_max.assoc [THEN sym])
-
   (* ******************************************************************* *)
 
 constdefs
