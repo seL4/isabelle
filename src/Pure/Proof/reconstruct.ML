@@ -42,7 +42,7 @@ fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf prf
 
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
   (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =
-    Envir.Envir {asol=Vartab.merge (op aconv) (asol1, asol2),
+    Envir.Envir {asol=Vartab.merge (op =) (asol1, asol2),
                  iTs=Vartab.merge (op =) (iTs1, iTs2),
                  maxidx=Int.max (maxidx1, maxidx2)};
 
@@ -67,8 +67,8 @@ fun unifyT sg env T U =
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
     Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);
 
-fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar (ixn, _)) =
-      (case Vartab.lookup (iTs, ixn) of NONE => T | SOME T' => chaseT env T')
+fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
+      (case Type.lookup (iTs, ixnS) of NONE => T | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
 fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
@@ -247,8 +247,8 @@ fun upd_constrs env cs =
     val Envir.Envir {asol, iTs, ...} = env;
     val dom = Vartab.foldl (uncurry (cons o fst) o Library.swap)
       (Vartab.foldl (uncurry (cons o fst) o Library.swap) ([], asol), iTs); 
-    val vran = Vartab.foldl (add_typ_ixns o apsnd snd)
-      (Vartab.foldl (add_term_ixns o apsnd snd) ([], asol), iTs);
+    val vran = Vartab.foldl (add_typ_ixns o apsnd (snd o snd))
+      (Vartab.foldl (add_term_ixns o apsnd (snd o snd)) ([], asol), iTs);
     fun check_cs [] = []
       | check_cs ((u, p, vs)::ps) =
           let val vs' = vs \\ dom;

@@ -26,17 +26,23 @@ fun THRY_ERR func mesg = Utils.ERR {module = "Thry", func = func, mesg = mesg};
  *    Matching
  *---------------------------------------------------------------------------*)
 
-local fun tybind (x,y) = (TVar (x, HOLogic.typeS) , y)
-      fun tmbind (x,y) = (Var  (x, Term.type_of y), y)
-in
- fun match_term thry pat ob =
-    let val tsig = Sign.tsig_of (Theory.sign_of thry)
-        val (ty_theta,tm_theta) = Pattern.match tsig (pat,ob)
-    in (map tmbind tm_theta, map tybind ty_theta)
-    end
+local
 
- fun match_type thry pat ob = map tybind (Vartab.dest
-   (Type.typ_match (Sign.tsig_of (Theory.sign_of thry)) (Vartab.empty, (pat,ob))))
+fun tybind (ixn, (S, T)) = (TVar (ixn, S), T);
+
+in
+
+fun match_term thry pat ob =
+  let
+    val tsig = Sign.tsig_of (Theory.sign_of thry)
+    val (ty_theta, tm_theta) = Pattern.match tsig (pat,ob)
+    fun tmbind (ixn, (T, t)) = (Var (ixn, Envir.typ_subst_TVars ty_theta T), t)
+  in (map tmbind (Vartab.dest tm_theta), map tybind (Vartab.dest ty_theta))
+  end;
+
+fun match_type thry pat ob = map tybind (Vartab.dest
+  (Type.typ_match (Sign.tsig_of (Theory.sign_of thry)) (Vartab.empty, (pat, ob))));
+
 end;
 
 

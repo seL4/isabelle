@@ -108,11 +108,11 @@ fun condrew sign rules procs =
           fun ren t = getOpt (Term.rename_abs tm1 tm t, t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
           val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
-          val prems' = map (pairself (subst_vars env o inc o ren)) prems;
+          val prems' = map (pairself (Envir.subst_vars env o inc o ren)) prems;
           val env' = Envir.Envir
             {maxidx = Library.foldl Int.max
               (~1, map (Int.max o pairself maxidx_of_term) prems'),
-             iTs = Vartab.make Tenv, asol = Vartab.make tenv};
+             iTs = Tenv, asol = tenv};
           val env'' = Library.foldl (fn (env, p) =>
             Pattern.unify (sign, env, [pairself (lookup rew) p])) (env', prems')
         in SOME (Envir.norm_term env'' (inc (ren tm2)))

@@ -562,7 +562,7 @@ fun norm_term (ctxt as Context {binds, ...}) schematic =
               let
                 val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
                   raise TYPE ("norm_term: ill-typed variable assignment", [T, U], [t, u]);
-                val u' = Term.subst_TVars_Vartab env u;
+                val u' = Envir.subst_TVars env u;
               in norm u' handle SAME => u' end
           | NONE =>
             if schematic then raise SAME
@@ -877,7 +877,7 @@ fun simult_matches ctxt [] = []
         val _ =    (*may not assign variables from text*)
           if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
           then () else fail ();
-        fun norm_bind (xi, t) = if xi mem domain then SOME (xi, Envir.norm_term env t) else NONE;
+        fun norm_bind (xi, (_, t)) = if xi mem domain then SOME (xi, Envir.norm_term env t) else NONE;
       in List.mapPartial norm_bind (Envir.alist_of env) end;
 
 

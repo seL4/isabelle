@@ -276,12 +276,12 @@ fun DISJ_CASESL disjth thl =
 local (* this is fragile *)
       val {prop,sign,...} = rep_thm spec
       val x = hd (tl (term_vars prop))
-      val (TVar (indx,_)) = type_of x
+      val cTV = ctyp_of sign (type_of x)
       val gspec = forall_intr (cterm_of sign x) spec
 in
 fun SPEC tm thm =
    let val {sign,T,...} = rep_cterm tm
-       val gspec' = instantiate([(indx,ctyp_of sign T)],[]) gspec
+       val gspec' = instantiate ([(cTV, ctyp_of sign T)], []) gspec
    in
       thm RS (forall_elim tm gspec')
    end
@@ -295,13 +295,14 @@ val ISPECL = U.rev_itlist ISPEC;
 (* Not optimized! Too complicated. *)
 local val {prop,sign,...} = rep_thm allI
       val [P] = add_term_vars (prop, [])
-      fun cty_theta s = map (fn (i,ty) => (i, ctyp_of s ty))
-      fun ctm_theta s = map (fn (i,tm2) =>
+      fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
+      fun ctm_theta s = map (fn (i, (_, tm2)) =>
                              let val ctm2 = cterm_of s tm2
                              in (cterm_of s (Var(i,#T(rep_cterm ctm2))), ctm2)
                              end)
-      fun certify s (ty_theta,tm_theta) = (cty_theta s ty_theta,
-                                           ctm_theta s tm_theta)
+      fun certify s (ty_theta,tm_theta) =
+        (cty_theta s (Vartab.dest ty_theta),
+         ctm_theta s (Vartab.dest tm_theta))
 in
 fun GEN v th =
    let val gth = forall_intr v th

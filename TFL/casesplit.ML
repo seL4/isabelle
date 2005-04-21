@@ -162,11 +162,12 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
           case (Thm.concl_of case_thm) of 
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) => 
             (Pv, Dv, 
-             Vartab.dest (Type.typ_match tsig (Vartab.empty, (Dty, ty))))
+             Type.typ_match tsig (Vartab.empty, (Dty, ty)))
           | _ => raise ERROR_MESSAGE ("not a valid case thm");
-      val type_cinsts = map (apsnd ctypify) type_insts;
-      val cPv = ctermify (Sign.inst_term_tvars sgn type_insts Pv);
-      val cDv = ctermify (Sign.inst_term_tvars sgn type_insts Dv);
+      val type_cinsts = map (fn (ixn, (S, T)) => (ctypify (TVar (ixn, S)), ctypify T))
+        (Vartab.dest type_insts);
+      val cPv = ctermify (Envir.subst_TVars type_insts Pv);
+      val cDv = ctermify (Envir.subst_TVars type_insts Dv);
     in
       (beta_eta_contract 
          (case_thm

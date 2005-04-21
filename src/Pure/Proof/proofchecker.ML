@@ -40,7 +40,8 @@ fun thm_of_proof thy prf =
       let
         val tvars = term_tvars (prop_of thm);
         val (thm', fmap) = Thm.varifyT' [] thm;
-        val ctye = map fst tvars @ map snd fmap ~~ map (Thm.ctyp_of sg) Ts
+        val ctye = map (pairself (Thm.ctyp_of sg))
+          (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
       in
         Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
       end;

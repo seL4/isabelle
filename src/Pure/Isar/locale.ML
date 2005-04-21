@@ -499,7 +499,8 @@ fun inst_thm _ [] th = th
           |> Drule.implies_intr_list (map cert hyps)
           |> Drule.tvars_intr_list (map (#1 o #1) env')
           |> (fn (th', al) => th' |>
-            Thm.instantiate ((map (fn ((a, _), T) => (valOf (assoc (al, a)), certT T)) env'), []))
+            Thm.instantiate ((map (fn ((a, _), T) =>
+              (certT (TVar (valOf (assoc (al, a)))), certT T)) env'), []))
           |> (fn th'' => Drule.implies_elim_list th''
               (map (Thm.assume o cert o inst_term env') hyps))
       end;
@@ -535,7 +536,7 @@ fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
           else thm |> Drule.implies_intr_list (map cert hyps)
             |> Drule.tvars_intr_list (map #1 tinst')
             |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (valOf (assoc (al, a)), certT T)) tinst'),
+                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
                   []))
             |> (fn th => Drule.implies_elim_list th
                  (map (Thm.assume o cert o tinst_tab_term tinst) hyps))
@@ -584,7 +585,7 @@ fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
           else thm |> Drule.implies_intr_list (map cert hyps)
             |> Drule.tvars_intr_list (map #1 tinst')
             |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (valOf (assoc (al, a)), certT T)) tinst'),
+                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
                   []))
             |> Drule.forall_intr_list (map (cert o #1) inst')
             |> Drule.forall_elim_list (map (cert o #2) inst') 
@@ -604,14 +605,14 @@ fun inst_tab_elems sign inst ((n, ps), elems) =
 (* parameter types *)
 
 (* CB: frozen_tvars has the following type:
-  ProofContext.context -> Term.typ list -> (Term.indexname * Term.typ) list *)
+  ProofContext.context -> Term.typ list -> (Term.indexname * (sort * Term.typ)) list *)
 
 fun frozen_tvars ctxt Ts =
   let
     val tvars = rev (Library.foldl Term.add_tvarsT ([], Ts));
     val tfrees = map TFree
       (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
-  in map #1 tvars ~~ tfrees end;
+  in map (fn ((x, S), y) => (x, (S, y))) (tvars ~~ tfrees) end;
 
 fun unify_frozen ctxt maxidx Ts Us =
   let
@@ -1382,7 +1383,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
     (* get their sorts *)
     val tfrees = foldr Term.add_typ_tfrees [] param_types
     val Tenv' = map
-          (fn ((a, i), T) => ((a, valOf (assoc_string (tfrees, a))), T))
+          (fn ((a, i), (S, T)) => ((a, S), T))
           (Vartab.dest Tenv);
 
     (* process (internal) elements *)
@@ -1417,7 +1418,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
 	      |> Drule.tvars_intr_list (map (#1 o #1) Tenv')
 	      |> (fn (th', al) => th' |>
 		Thm.instantiate ((map (fn ((a, _), T) =>
-                  (valOf (assoc (al, a)), certT T)) Tenv'), []))
+                  (certT (TVar (valOf (assoc (al, a)))), certT T)) Tenv'), []))
 	      |> (fn th'' => Drule.implies_elim_list th''
 		  (map (Thm.assume o cert o inst_term Tenv') hyps))
 	  end;
@@ -1623,7 +1624,7 @@ fun note_thmss_registrations kind target args thy =
         (* type instantiation *)
         val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of sign))
              (Vartab.empty, (parmvTs ~~ map Term.fastype_of ts));
-        val tinst = Vartab.dest vtinst |> map (fn ((x, 0), T) => (x, T))
+        val tinst = Vartab.dest vtinst |> map (fn ((x, 0), (_, T)) => (x, T))
              |> Symtab.make;            
         (* replace parameter names in ids by instantiations *)
         val vinst = Symtab.make (parms ~~ vts);

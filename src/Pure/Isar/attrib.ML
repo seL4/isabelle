@@ -260,13 +260,14 @@ fun unify_types sign types ((unifier, maxidx), (xi, u)) =
 fun typ_subst env = apsnd (Term.typ_subst_TVars env);
 fun subst env = apsnd (Term.subst_TVars env);
 
-fun instantiate sign envT env =
+fun instantiate sign envT env thm =
   let
-    fun prepT (a, T) = (a, Thm.ctyp_of sign T);
+    val (_, sorts) = Drule.types_sorts thm;
+    fun prepT (a, T) = (Thm.ctyp_of sign (TVar (a, the_sort sorts a)), Thm.ctyp_of sign T);
     fun prep (xi, t) = pairself (Thm.cterm_of sign) (Var (xi, Term.fastype_of t), t);
   in
     Drule.instantiate (map prepT (distinct envT),
-      map prep (gen_distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env))
+      map prep (gen_distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
   end;
 
 in
@@ -309,8 +310,8 @@ fun read_instantiate init mixed_insts (context, thm) =
     (* internal term instantiations *)
 
     val types' = #1 (Drule.types_sorts thm');
-    val unifier = Vartab.dest (#1
-      (Library.foldl (unify_types sign types') ((Vartab.empty, 0), internal_insts)));
+    val unifier = map (apsnd snd) (Vartab.dest (#1
+      (Library.foldl (unify_types sign types') ((Vartab.empty, 0), internal_insts))));
 
     val type_insts'' = map (typ_subst unifier) type_insts';
     val internal_insts'' = map (subst unifier) internal_insts;

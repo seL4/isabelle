@@ -354,7 +354,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     fun readT (xi, s) =
         let val S = case rsorts xi of SOME S => S | NONE => absent xi;
             val T = Sign.read_typ (sign, sorts) s;
-        in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
+            val U = TVar (xi, S);
+        in if Sign.typ_instance sign (T, U) then (U, T)
            else error
              ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
         end;
@@ -362,7 +363,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     (* Preprocess rule: extract vars and their types, apply Tinsts *)
     fun get_typ xi =
       (case rtypes xi of
-           SOME T => typ_subst_TVars Tinsts_env T
+           SOME T => typ_subst_atomic Tinsts_env T
          | NONE => absent xi);
     val (xis, ss) = Library.split_list tinsts;
     val Ts = map get_typ xis;
@@ -380,7 +381,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val used = Drule.add_used thm (Drule.add_used st []);
         val (ts, envT) =
           ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
-        val cenvT = map (apsnd (Thm.ctyp_of sign)) (envT @ Tinsts_env);
+        val envT' = map (fn (ixn, T) =>
+          (TVar (ixn, valOf (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =
           map
             (fn (xi, t) =>
@@ -399,11 +401,9 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               (params, Logic.incr_indexes(paramTs,inc) t)
         fun liftpair (cv,ct) =
               (cterm_fun liftvar cv, cterm_fun liftterm ct)
-        fun lifttvar((a,i),ctyp) =
-            let val {T,sign} = rep_ctyp ctyp
-            in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+        val lifttvar = pairself (ctyp_of sign o incr_tvar inc);
         val rule = Drule.instantiate
-              (map lifttvar cenvT, map liftpair cenv)
+              (map lifttvar envT', map liftpair cenv)
               (lift_rule (st, i) thm)
       in
         if i > nprems_of st then no_tac st

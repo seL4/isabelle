@@ -143,7 +143,10 @@ fun ho_term_height  (a $ b) =
 (* Higher order matching with exception handled *)
 (* returns optional instantiation *)
 fun clean_match tsig (a as (pat, t)) = 
-    SOME (Pattern.match tsig a) handle Pattern.MATCH => NONE;
+  let val (tyenv, tenv) = Pattern.match tsig a
+  in SOME (map (apsnd snd) (Vartab.dest tyenv),
+    map (apsnd snd) (Vartab.dest tenv))
+  end handle Pattern.MATCH => NONE;
 (* Higher order unification with exception handled, return the instantiations *)
 (* given Signature, max var index, pat, tgt *)
 (* returns Seq of instantiations *)
@@ -166,7 +169,8 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       (* is it right to throw away the flexes? 
          or should I be using them somehow? *)
           fun mk_insts (env,flexflexes) = 
-              (Vartab.dest (Envir.type_env env),  Envir.alist_of env);
+            (map (apsnd snd) (Vartab.dest (Envir.type_env env)),
+             map (apsnd snd) (Envir.alist_of env));
           val initenv = Envir.Envir {asol = Vartab.empty, 
                                      iTs = typinsttab, maxidx = ix2};
           val useq = (Unify.unifiers (sgn,initenv,[a]))

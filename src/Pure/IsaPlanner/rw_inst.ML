@@ -33,7 +33,7 @@ sig
       (string * Term.typ) list -> Thm.thm -> Thm.cterm list * Thm.thm
   val mk_fixtvar_tyinsts :
       Term.indexname list ->
-      Term.term list -> ((string * int) * Term.typ) list * string list
+      Term.term list -> ((string * int) * Term.typ) list * (string * sort) list
   val mk_renamings :
       Term.term -> Thm.thm -> (((string * int) * Term.typ) * Term.term) list
   val new_tfree :
@@ -151,14 +151,14 @@ fun new_tfree (tv as (ix,sort), (pairs,used)) =
 (* make instantiations to fix type variables that are not 
    already instantiated (in ignore_ixs) from the list of terms. *)
 fun mk_fixtvar_tyinsts ignore_ixs ts = 
-    let val (tvars, tfreenames) = 
-            foldr (fn (t, (varixs, tfreenames)) => 
+    let val (tvars, tfrees) = 
+            foldr (fn (t, (varixs, tfrees)) => 
                       (Term.add_term_tvars (t,varixs),
-                       Term.add_term_tfree_names (t,tfreenames)))
+                       Term.add_term_tfrees (t,tfrees)))
                   ([],[]) ts;
         val unfixed_tvars = List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
-        val (fixtyinsts, _) = foldr new_tfree ([], tfreenames) unfixed_tvars
-    in (fixtyinsts, tfreenames) end;
+        val (fixtyinsts, _) = foldr new_tfree ([], map fst tfrees) unfixed_tvars
+    in (fixtyinsts, tfrees) end;
 
 
 (* cross-instantiate the instantiations - ie for each instantiation
@@ -212,10 +212,13 @@ fun rw ((nonfixed_typinsts, unprepinsts), Ts, outerterm) rule target_thm =
       val ctyp_insts = map (apsnd ctypeify) typinsts;
 
       (* type instantiated versions *)
-      val tgt_th_tyinst = 
-          Thm.instantiate (ctyp_insts, []) target_thm;
-      val rule_tyinst = 
-          Thm.instantiate (ctyp_insts, []) rule;
+      fun tyinst insts rule =
+        let val (_, rsorts) = types_sorts rule
+        in Thm.instantiate (List.mapPartial (fn (ixn, cT) => Option.map
+          (fn S => (ctypeify (TVar (ixn, S)), cT)) (rsorts ixn)) insts, []) rule
+        end;
+      val tgt_th_tyinst = tyinst ctyp_insts target_thm;
+      val rule_tyinst = tyinst ctyp_insts rule;
 
       (* type instanitated outer term *)
       val outerterm_tyinst = 
