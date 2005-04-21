@@ -125,7 +125,7 @@ open Data;
 
  val sum_conv =
      Simplifier.mk_simproc "cancel_sums"
-       (map (Thm.cterm_fun Logic.varify o Thm.read_cterm (Sign.deref sg_ref))
+       (map (Drule.cterm_fun Logic.varify o Thm.read_cterm (Sign.deref sg_ref))
         [("x + y", Data.T), ("x - y", Data.T)])  (* FIXME depends on concrete syntax !???!!??! *)
        sum_proc;
 
