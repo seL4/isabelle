@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: adapt theories and ML files to new CPure/Pure arrangement
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [FILES|DIRS...]"
+  echo
+  echo "  Recursively find .thy/.ML files, adapting them to"
+  echo "  the new CPure/Pure arrangement"
+  echo
+  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift "$#"
+
+
+## main
+
+#set by configure
+AUTO_PERL=/usr/bin/perl
+
+find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
+  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixcpure.pl"
