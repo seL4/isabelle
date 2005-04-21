@@ -1058,7 +1058,7 @@ proof -
     apply (induct n)
     apply (simp add: foldmatrix_def foldmatrix_transposed_def prems)+
     apply (auto)
-    by (drule_tac x1="(% j i. A j (Suc i))" in forall, simp)
+    by (drule_tac x3="(% j i. A j (Suc i))" in forall, simp)
   show "foldmatrix f g A m n = foldmatrix_transposed g f (transpose_infmatrix A) n m"
     apply (simp add: foldmatrix_def foldmatrix_transposed_def)
     apply (induct m, simp)
