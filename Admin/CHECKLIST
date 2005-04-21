@@ -19,9 +19,11 @@ up-to-date; in ML use ``ProofGeneral.write_keywords ""'' and
     Admin/makedist
     Distribution/build
     Distribution/lib/Tools/makeall
-    Distribution/lib/html/index1.html
-    Distribution/lib/html/index2.html
+    Distribution/lib/html/index.html
     Doc/Logics/intro.tex
     Doc/Logics/logics.tex
+
+- after release: 
+  update Admin/page/DISTNAME and Admin/page/Contents in CVS
 
 $Id$
