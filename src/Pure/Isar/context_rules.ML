@@ -49,7 +49,6 @@ sig
   val addXEs_local: ProofContext.context * thm list -> ProofContext.context
   val addXDs_local: ProofContext.context * thm list -> ProofContext.context
   val delrules_local: ProofContext.context * thm list -> ProofContext.context
-  val setup: (theory -> theory) list
 end;
 
 structure ContextRules: CONTEXT_RULES =
@@ -145,6 +144,7 @@ struct
 end;
 
 structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
+val _ = Context.add_setup [GlobalRules.init];
 val print_global_rules = GlobalRules.print;
 
 structure LocalRulesArgs =
@@ -156,6 +156,7 @@ struct
 end;
 
 structure LocalRules = ProofDataFun(LocalRulesArgs);
+val _ = Context.add_setup [LocalRules.init];
 val print_local_rules = LocalRules.print;
 
 
@@ -248,6 +249,9 @@ val rule_del_local     = del LocalRules.map;
 
 end;
 
+val _ = Context.add_setup
+  [#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query_global NONE])]];
+
 
 (* low-level modifiers *)
 
@@ -263,13 +267,6 @@ val addXIs_local = modifier (intro_query_local NONE);
 val addXEs_local = modifier (elim_query_local NONE);
 val addXDs_local = modifier (dest_query_local NONE);
 val delrules_local = modifier rule_del_local;
-
-
-
-(** theory setup **)
-
-val setup =
- [GlobalRules.init, LocalRules.init];
 
 
 end;

@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-LaTeX presentation primitives (based on outer lexical syntax).
+LaTeX presentation elements -- based on outer lexical syntax.
 *)
 
 signature LATEX =

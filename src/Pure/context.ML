@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Global theory context.
+Theory contexts.
 *)
 
 signature BASIC_CONTEXT =
@@ -26,14 +26,15 @@ sig
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_let: string -> string -> string -> theory -> theory
-  val use_setup: string -> theory -> theory
+  val add_setup: (theory -> theory) list -> unit
+  val setup: unit -> (theory -> theory) list
 end;
 
 structure Context: CONTEXT =
 struct
 
 
-(* theory context *)
+(** implicit theory context in ML **)
 
 local
   val current_theory = ref (NONE: theory option);
@@ -82,8 +83,16 @@ fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 fun use_let bind body txt =
   use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
 
-val use_setup =
-  use_let "val setup: (theory -> theory) list" "Library.apply setup";
+
+
+(** delayed theory setup **)
+
+local
+  val setup_fns = ref ([]: (theory -> theory) list);
+in
+  fun add_setup fns = setup_fns := ! setup_fns @ fns;
+  fun setup () = let val fns = ! setup_fns in setup_fns := []; fns end;
+end;
 
 
 end;

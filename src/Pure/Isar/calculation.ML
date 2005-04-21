@@ -25,7 +25,6 @@ sig
     -> Proof.state -> Proof.state Seq.seq
   val moreover: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
   val ultimately: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
-  val setup: (theory -> theory) list
 end;
 
 structure Calculation: CALCULATION =
@@ -54,6 +53,7 @@ struct
 end;
 
 structure GlobalCalculation = TheoryDataFun(GlobalCalculationArgs);
+val _ = Context.add_setup [GlobalCalculation.init];
 val print_global_rules = GlobalCalculation.print;
 
 
@@ -69,6 +69,7 @@ struct
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
+val _ = Context.add_setup [LocalCalculation.init];
 val get_local_rules = #1 o LocalCalculation.get o Proof.context_of;
 val print_local_rules = LocalCalculation.print;
 
@@ -128,6 +129,16 @@ val trans_attr =
 val sym_attr =
  (Attrib.add_del_args sym_add_global sym_del_global,
   Attrib.add_del_args sym_add_local sym_del_local);
+
+val _ = Context.add_setup
+ [Attrib.add_attributes
+   [("trans", trans_attr, "declaration of transitivity rule"),
+    ("sym", sym_attr, "declaration of symmetry rule"),
+    ("symmetric", (Attrib.no_args symmetric_global, Attrib.no_args symmetric_local),
+      "resolution with symmetry rule")],
+  #1 o PureThy.add_thms
+   [(("", transitive_thm), [trans_add_global]),
+    (("", symmetric_thm), [sym_add_global])]];
 
 
 
@@ -206,19 +217,5 @@ fun collect final print state =
 fun moreover print = collect false print;
 fun ultimately print = collect true print;
 
-
-
-(** theory setup **)
-
-val setup =
- [GlobalCalculation.init, LocalCalculation.init,
-  Attrib.add_attributes
-   [("trans", trans_attr, "declaration of transitivity rule"),
-    ("sym", sym_attr, "declaration of symmetry rule"),
-    ("symmetric", (Attrib.no_args symmetric_global, Attrib.no_args symmetric_local),
-      "resolution with symmetry rule")],
-  #1 o PureThy.add_thms
-   [(("", transitive_thm), [trans_add_global]),
-    (("", symmetric_thm), [sym_add_global])]];
 
 end;

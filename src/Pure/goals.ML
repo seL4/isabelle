@@ -116,7 +116,6 @@ sig
   val close_locale: xstring -> theory -> theory
   val print_scope: theory -> unit
   val read_cterm: Sign.sg -> string * typ -> cterm
-  val setup: (theory -> theory) list
 end;
 
 structure Goals: GOALS =
@@ -216,6 +215,7 @@ end;
 
 
 structure LocalesData = TheoryDataFun(LocalesArgs);
+val _ = Context.add_setup [LocalesData.init];
 val print_locales = LocalesData.print;
 
 
@@ -625,12 +625,6 @@ fun pretty_term sign =
         in Sign.pretty_term sign o (const_ssubst_list str_list)
         end
     else Sign.pretty_term sign;
-
-
-(** locale theory setup **)
-
-val setup =
- [LocalesData.init];
 
 
 

@@ -6,6 +6,7 @@ The key concept of Isar proof contexts.
 *)
 
 val show_structs = ref false;
+val thms_containing_limit = ref 40;
 
 signature PROOF_CONTEXT =
 sig
@@ -153,9 +154,7 @@ sig
   val prems_limit: int ref
   val pretty_asms: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
-  val thms_containing_limit: int ref
   val print_thms_containing: context -> int option -> string list -> unit
-  val setup: (theory -> theory) list
 end;
 
 signature PRIVATE_PROOF_CONTEXT =
@@ -268,6 +267,7 @@ struct
 end;
 
 structure ProofDataData = TheoryDataFun(ProofDataDataArgs);
+val _ = Context.add_setup [ProofDataData.init];
 val print_proof_data = ProofDataData.print;
 
 
@@ -1464,8 +1464,6 @@ fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
   in gen_distinct eq_fst (List.filter valid (FactIndex.find idx index)) end;
 
 
-val thms_containing_limit = ref 40;
-
 fun print_thms_containing ctxt opt_limit ss =
   let
     val prt_term = pretty_term ctxt;
@@ -1498,10 +1496,5 @@ fun print_thms_containing ctxt opt_limit ss =
         map prt_fact (Library.drop (len - limit, facts))) |> Pretty.chunks |> Pretty.writeln
   end;
 
-
-
-(** theory setup **)
-
-val setup = [ProofDataData.init];
 
 end;

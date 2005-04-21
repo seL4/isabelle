@@ -226,8 +226,10 @@ fun make_sign (id, self, tsig, consts, syn, path, spaces, data, stamps) =
 
 fun rep_sg (Sg (_, args)) = args;
 
-fun stamp_names_of (Sg ({stamps, ...}, _)) = rev (map ! stamps);
-fun exists_stamp name (Sg ({stamps, ...}, _)) = exists (equal name o !) stamps;
+fun stamps_of (Sg ({stamps, ...}, _)) = stamps;
+val stamp_names_of = rev o map ! o stamps_of;
+fun exists_stamp name = exists (equal name o !) o stamps_of;
+
 fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
 val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
@@ -275,11 +277,11 @@ in
   fun eq_sg (sg1 as Sg ({id = id1, ...}, _), sg2 as Sg ({id = id2, ...}, _)) =
     (check_stale sg1; check_stale sg2; id1 = id2);
 
-  fun subsig (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
-    eq_sg (sg1, sg2) orelse mem_stamp (hd s1, s2);
+  fun subsig (sg1, sg2) =
+    eq_sg (sg1, sg2) orelse mem_stamp (hd (stamps_of sg1), stamps_of sg2);
 
-  fun subsig_internal (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
-    eq_sg (sg1, sg2) orelse subset_stamp (s1, s2);
+  fun subsig_internal (sg1, sg2) =
+    eq_sg (sg1, sg2) orelse subset_stamp (stamps_of sg1, stamps_of sg2);
 end;
 
 
@@ -288,8 +290,8 @@ fun joinable (sg1, sg2) = subsig (sg1, sg2) orelse subsig (sg2, sg1);
 (*test if same theory names are contained in signatures' stamps,
   i.e. if signatures belong to same theory but not necessarily to the
   same version of it*)
-fun same_sg (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
-  eq_sg (sg1, sg2) orelse eq_set_string (pairself (map (op !)) (s1, s2));
+fun same_sg (sg1, sg2) =
+  eq_sg (sg1, sg2) orelse eq_set_string (pairself (map ! o stamps_of) (sg1, sg2));
 
 (*test for drafts*)
 fun is_draft (Sg ({stamps = ref name :: _, ...}, _)) =
@@ -1187,9 +1189,8 @@ fun nontriv_merge (sg1, sg2) =
   if subsig_internal (sg2, sg1) then sg1
   else if subsig_internal (sg1, sg2) then sg2
   else
-    if exists_stamp PureN sg1 andalso exists_stamp CPureN sg2 orelse
-      exists_stamp CPureN sg1 andalso exists_stamp PureN sg2
-    then error "Cannot merge Pure and CPure signatures"
+    if exists_stamp CPureN sg1 <> exists_stamp CPureN sg2
+    then error "Cannot merge Pure and CPure developments"
   else
     let
       val Sg ({id = _, stamps = stamps1, syn = Syn (syntax1, trfuns1)},
@@ -1239,4 +1240,3 @@ fun prep_ext_merge sgs =
 end;
 
 end;
-

@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theory loader database, including theory and file dependencies.
+Main part of theory loader database, including handling of theory and
+file dependencies.
 *)
 
 signature BASIC_THY_INFO =
@@ -471,6 +472,8 @@ fun register_theory theory =
     else if not (null variants) then err "different versions of parent theories" variants
     else (change_thys register; perform Update name)
   end;
+
+val _ = register_theory ProtoPure.thy;
 
 
 (*final declarations of this structure*)

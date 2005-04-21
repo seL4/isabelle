@@ -257,7 +257,7 @@ val ml_setupP =
 
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" K.thy_decl
-    (P.text >> (Toplevel.theory o Context.use_setup));
+    (P.text >> (Toplevel.theory o IsarThy.generic_setup));
 
 val method_setupP =
   OuterSyntax.command "method_setup" "define proof method in ML" K.thy_decl

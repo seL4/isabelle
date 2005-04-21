@@ -15,7 +15,6 @@ sig
     (Proof.context -> thm -> unit) -> bool -> Proof.state -> Proof.state Seq.seq
   val global_skip_proof:
     bool -> Proof.state -> theory * ((string * string) * (string * thm list) list)
-  val setup: (theory -> theory) list
 end;
 
 structure SkipProof: SKIP_PROOF =
@@ -38,8 +37,8 @@ fun skip_proof (_, SkipProof t) =
   if ! quick_and_dirty then t
   else error "Proof may be skipped in quick_and_dirty mode only!";
 
-val setup =
-  [PureThy.global_path, Theory.add_oracle (skip_proofN, skip_proof), PureThy.local_path];
+val _ = Context.add_setup
+ [PureThy.global_path, Theory.add_oracle (skip_proofN, skip_proof), PureThy.local_path];
 
 
 (* basic cheating *)

@@ -591,6 +591,7 @@ val proto_pure =
     ("dummy", 0, NoSyn)]
   |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
+  |> Theory.add_syntax Syntax.pure_appl_syntax
   |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
   |> Theory.add_syntax
    [("==>", "[prop, prop] => prop", Delimfix "op ==>"),

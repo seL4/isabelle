@@ -1346,7 +1346,7 @@ lemma da_weaken:
               subseteq_B_B': "B \<subseteq> B'" 
         shows "\<exists> A'. Env \<turnstile> B' \<guillemotright>t\<guillemotright> A'"
 proof -
-  note assigned.select_convs [CPure.intro]
+  note assigned.select_convs [Pure.intro]
   from da  
   show "\<And> B'. B \<subseteq> B' \<Longrightarrow> \<exists> A'. Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" (is "PROP ?Hyp Env B t")
   proof (induct) 

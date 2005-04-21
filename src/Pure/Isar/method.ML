@@ -115,7 +115,6 @@ sig
     -> src -> Proof.context -> Proof.method
   val goal_args_ctxt': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
     -> (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> Proof.method
-  val setup: (theory -> theory) list
 end;
 
 structure Method: METHOD =
@@ -529,6 +528,7 @@ struct
 end;
 
 structure MethodsData = TheoryDataFun(MethodsDataArgs);
+val _ = Context.add_setup [MethodsData.init];
 val print_methods = MethodsData.print;
 
 
@@ -769,9 +769,6 @@ val global_immediate_proof = global_terminal_proof (this_text, NONE);
 val global_done_proof = global_term_proof false (done_text, NONE);
 
 
-
-(** theory setup **)
-
 (* misc tactic emulations *)
 
 val subgoal_meth = goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac;
@@ -812,17 +809,10 @@ val pure_methods =
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
-
-(* setup *)
-
-val setup =
- [MethodsData.init, add_methods pure_methods,
-  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [ContextRules.intro_query_global NONE])])];
+val _ = Context.add_setup [add_methods pure_methods];
 
 
 end;
 
-
 structure BasicMethod: BASIC_METHOD = Method;
 open BasicMethod;
-

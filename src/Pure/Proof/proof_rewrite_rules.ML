@@ -12,7 +12,6 @@ sig
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : Sign.sg -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
-  val setup : (theory -> theory) list
 end;
 
 structure ProofRewriteRules : PROOF_REWRITE_RULES =
@@ -182,7 +181,7 @@ fun rew b =
   in rew' end;
 
 fun rprocs b = [("Pure/meta_equality", rew b)];
-val setup = [Proofterm.add_prf_rprocs (rprocs false)];
+val _ = Context.add_setup [Proofterm.add_prf_rprocs (rprocs false)];
 
 
 (**** apply rewriting function to all terms in proof ****)

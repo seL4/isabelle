@@ -36,7 +36,6 @@ sig
   val inductN: string
   val typeN: string
   val setN: string
-  val setup: (theory -> theory) list
 end;
 
 structure InductAttrib: INDUCT_ATTRIB =
@@ -126,6 +125,7 @@ struct
 end;
 
 structure GlobalInduct = TheoryDataFun(GlobalInductArgs);
+val _ = Context.add_setup [GlobalInduct.init];
 val print_global_rules = GlobalInduct.print;
 val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
 
@@ -142,6 +142,7 @@ struct
 end;
 
 structure LocalInduct = ProofDataFun(LocalInductArgs);
+val _ = Context.add_setup [LocalInduct.init];
 val print_local_rules = LocalInduct.print;
 val dest_local_rules = GlobalInductArgs.dest o LocalInduct.get;
 
@@ -223,15 +224,10 @@ val induct_attr =
 
 end;
 
+val _ = Context.add_setup
+ [Attrib.add_attributes
+  [(casesN, cases_attr, "declaration of cases rule for type or set"),
+   (inductN, induct_attr, "declaration of induction rule for type or set")]];
 
-
-(** theory setup **)
-
-val setup =
-  [GlobalInduct.init, LocalInduct.init,
-   Attrib.add_attributes
-    [(casesN, cases_attr, "declaration of cases rule for type or set"),
-     (inductN, induct_attr, "declaration of induction rule for type or set")]];
 
 end;
-

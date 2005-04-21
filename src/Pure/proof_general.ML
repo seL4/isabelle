@@ -21,7 +21,6 @@ STATUS: this version is an experimental version that supports PGIP 2.X.
 
 signature PROOF_GENERAL =
 sig
-  val setup: (theory -> theory) list
   val update_thy_only: string -> unit
   val try_update_thy_only: string -> unit
   val inform_file_retracted: string -> unit
@@ -156,7 +155,11 @@ val proof_general_trans =
    ("bound", tagit bound_tag),
    ("var", var_or_skolem)];
 
-in val setup = [Theory.add_tokentrfuns proof_general_trans] end;
+in
+
+val _ = Context.add_setup [Theory.add_tokentrfuns proof_general_trans];
+
+end;
 
 
 (* assembling PGIP packets *)

@@ -29,10 +29,9 @@ sig
   val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
   val instance_arity_proof: xstring * string list * string -> bool -> theory -> ProofHistory.T
   val instance_arity_proof_i: string * sort list * sort -> bool -> theory -> ProofHistory.T
-  val setup: (theory -> theory) list
 end;
 
-structure AxClass : AX_CLASS =
+structure AxClass: AX_CLASS =
 struct
 
 
@@ -192,6 +191,7 @@ struct
 end;
 
 structure AxclassesData = TheoryDataFun(AxclassesArgs);
+val _ = Context.add_setup [AxclassesData.init];
 val print_axclasses = AxclassesData.print;
 
 
@@ -292,19 +292,12 @@ fun class_axms sign =
   end;
 
 
-(* intro_classes *)
+(* proof methods *)
 
 fun intro_classes_tac facts st =
   (ALLGOALS (Method.insert_tac facts THEN'
       REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st))))
     THEN Tactic.distinct_subgoals_tac) st;
-
-val intro_classes_method =
-  ("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-    "back-chain introduction rules of axiomatic type classes");
-
-
-(* default method *)
 
 fun default_intro_classes_tac [] = intro_classes_tac []
   | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
@@ -313,8 +306,10 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_classes_tac facts;
 
-val default_method =
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule");
+val _ = Context.add_setup [Method.add_methods
+ [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+   "back-chain introduction rules of axiomatic type classes"),
+  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule")]];
 
 
 (* old-style axclass_tac *)
@@ -419,16 +414,6 @@ val instance_arity_proof = inst_proof (mk_arities oo read_arity) add_arity_thms;
 val instance_arity_proof_i = inst_proof (mk_arities oo cert_arity) add_arity_thms;
 
 
-
-(** package setup **)
-
-(* setup theory *)
-
-val setup =
- [AxclassesData.init,
-  Method.add_methods [intro_classes_method, default_method]];
-
-
 (* outer syntax *)
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
@@ -450,4 +435,3 @@ val _ = OuterSyntax.add_parsers [axclassP, instanceP];
 end;
 
 end;
-

@@ -40,7 +40,6 @@ sig
   val no_args: 'a attribute -> src -> 'a attribute
   val add_del_args: 'a attribute -> 'a attribute -> src -> 'a attribute
   val attribute: (theory attribute * ProofContext.context attribute) -> src
-  val setup: (theory -> theory) list
 end;
 
 structure Attrib: ATTRIB =
@@ -82,6 +81,7 @@ struct
 end;
 
 structure AttributesData = TheoryDataFun(AttributesDataArgs);
+val _ = Context.add_setup [AttributesData.init];
 val print_attributes = AttributesData.print;
 
 
@@ -487,14 +487,11 @@ fun attribute att = Args.src ((attributeN, [Args.mk_attribute att]), Position.no
 fun attribute_global x = (syntax (Scan.lift Args.internal_attribute >> #1)) x;
 fun attribute_local x = (syntax (Scan.lift Args.internal_attribute >> #2)) x;
 
-val setup_internal_attribute =
+val _ = Context.add_setup
  [PureThy.global_path,
   add_attributes [(attributeN, (attribute_global, attribute_local), "internal attribute")],
   PureThy.local_path];
 
-
-
-(** theory setup **)
 
 (* pure_attributes *)
 
@@ -522,14 +519,10 @@ val pure_attributes =
   ("rule_format", (rule_format_att, rule_format_att), "result put into standard rule format")] @
   rule_atts;
 
+val _ = Context.add_setup [add_attributes pure_attributes];
 
-(* setup *)
-
-val setup =
- AttributesData.init :: setup_internal_attribute @ [add_attributes pure_attributes];
 
 end;
 
 structure BasicAttrib: BASIC_ATTRIB = Attrib;
 open BasicAttrib;
-

@@ -38,7 +38,6 @@ sig
   val section: string -> text
   val subsection: string -> text
   val subsubsection: string -> text
-  val setup: (theory -> theory) list
 end;
 
 structure HTML: HTML =
@@ -254,6 +253,8 @@ val html_trans =
   ("var",   style "var"),
   ("xstr",  style "xstr")];
 
+val _ = Context.add_setup [Theory.add_mode_tokentrfuns htmlN html_trans];
+
 
 
 (** HTML markup **)
@@ -425,12 +426,6 @@ fun chapter heading = "\n\n<h1>" ^ plain heading ^ "</h1>\n";
 fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
 fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
 fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
-
-
-(** theory setup **)
-
-val setup =
- [Theory.add_mode_tokentrfuns htmlN html_trans];
 
 
 end;

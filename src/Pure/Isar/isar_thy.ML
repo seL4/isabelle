@@ -151,6 +151,7 @@ sig
   val typed_print_translation: bool * string -> theory -> theory
   val print_ast_translation: bool * string -> theory -> theory
   val token_translation: string -> theory -> theory
+  val generic_setup: string -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
   val add_oracle: bstring * string -> theory -> theory
   val add_locale: bool * bstring * Locale.expr * Locale.element list -> theory -> theory
@@ -581,7 +582,13 @@ val token_translation =
     "Theory.add_tokentrfuns token_translation";
 
 
-(* add method *)
+(* generic_setup *)
+
+val generic_setup =
+  Context.use_let "val setup: (theory -> theory) list" "Library.apply setup";
+
+
+(* method_setup *)
 
 fun method_setup (name, txt, cmt) =
   Context.use_let

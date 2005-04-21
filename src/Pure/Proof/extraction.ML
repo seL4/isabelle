@@ -25,8 +25,6 @@ sig
   val mk_typ : typ -> term
   val etype_of : theory -> string list -> typ list -> term -> typ
   val realizes_of: theory -> string list -> term -> term -> term
-  val parsers: OuterSyntax.parser list
-  val setup: (theory -> theory) list
 end;
 
 structure Extraction : EXTRACTION =
@@ -226,6 +224,7 @@ struct
 end;
 
 structure ExtractionData = TheoryDataFun(ExtractionArgs);
+val _ = Context.add_setup [ExtractionData.init];
 
 fun read_condeq thy =
   let val sg = sign_of (add_syntax thy)
@@ -404,6 +403,7 @@ fun add_expand_thm (thy, thm) =
 
 fun add_expand_thms thms thy = Library.foldl (fst o add_expand_thm) (thy, thms);
 
+
 (** types with computational content **)
 
 fun add_types tys thy =
@@ -415,6 +415,58 @@ fun add_types tys thy =
        types = map (apfst (Sign.intern_tycon (sign_of thy))) tys @ types,
        realizers = realizers, defs = defs, expand = expand, prep = prep} thy
   end;
+
+
+(** Pure setup **)
+
+val _ = Context.add_setup
+  [add_types [("prop", ([], NONE))],
+
+   add_typeof_eqns
+     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
+    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
+    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('Q)))",
+
+      "(typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
+    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE(Null)))",
+
+      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
+    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
+    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('P => 'Q)))",
+
+      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
+    \    (typeof (!!x. PROP P (x))) == (Type (TYPE(Null)))",
+
+      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE('P))) ==>  \
+    \    (typeof (!!x::'a. PROP P (x))) == (Type (TYPE('a => 'P)))",
+
+      "(%x. typeof (f (x))) == (%x. Type (TYPE('f))) ==>  \
+    \    (typeof (f)) == (Type (TYPE('f)))"],
+
+   add_realizes_eqns
+     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
+    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
+    \    (PROP realizes (Null) (PROP P) ==> PROP realizes (r) (PROP Q))",
+
+      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
+    \  (typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
+    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
+    \    (!!x::'P. PROP realizes (x) (PROP P) ==> PROP realizes (Null) (PROP Q))",
+
+      "(realizes (r) (PROP P ==> PROP Q)) ==  \
+    \  (!!x. PROP realizes (x) (PROP P) ==> PROP realizes (r (x)) (PROP Q))",
+
+      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
+    \    (realizes (r) (!!x. PROP P (x))) ==  \
+    \    (!!x. PROP realizes (Null) (PROP P (x)))",
+
+      "(realizes (r) (!!x. PROP P (x))) ==  \
+    \  (!!x. PROP realizes (r (x)) (PROP P (x)))"],
+
+   Attrib.add_attributes
+     [("extraction_expand",
+       (Attrib.no_args add_expand_thm, K Attrib.undef_local_attribute),
+       "specify theorems / definitions to be expanded during extraction")]];
 
 
 (**** extract program ****)
@@ -753,61 +805,8 @@ val extractP =
     (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
       (fn thy => extract (map (apfst (PureThy.get_thm thy o rpair NONE)) xs) thy)));
 
-val parsers = [realizersP, realizabilityP, typeofP, extractP];
-
-val setup =
-  [ExtractionData.init,
-
-   add_types [("prop", ([], NONE))],
-
-   add_typeof_eqns
-     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('Q)))",
-
-      "(typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE(Null)))",
-
-      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('P => 'Q)))",
-
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
-    \    (typeof (!!x. PROP P (x))) == (Type (TYPE(Null)))",
-
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE('P))) ==>  \
-    \    (typeof (!!x::'a. PROP P (x))) == (Type (TYPE('a => 'P)))",
-
-      "(%x. typeof (f (x))) == (%x. Type (TYPE('f))) ==>  \
-    \    (typeof (f)) == (Type (TYPE('f)))"],
-
-   add_realizes_eqns
-     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
-    \    (PROP realizes (Null) (PROP P) ==> PROP realizes (r) (PROP Q))",
-
-      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
-    \    (!!x::'P. PROP realizes (x) (PROP P) ==> PROP realizes (Null) (PROP Q))",
-
-      "(realizes (r) (PROP P ==> PROP Q)) ==  \
-    \  (!!x. PROP realizes (x) (PROP P) ==> PROP realizes (r (x)) (PROP Q))",
-
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (!!x. PROP P (x))) ==  \
-    \    (!!x. PROP realizes (Null) (PROP P (x)))",
-
-      "(realizes (r) (!!x. PROP P (x))) ==  \
-    \  (!!x. PROP realizes (r (x)) (PROP P (x)))"],
-
-   Attrib.add_attributes
-     [("extraction_expand",
-       (Attrib.no_args add_expand_thm, K Attrib.undef_local_attribute),
-       "specify theorems / definitions to be expanded during extraction")]];
+val _ = OuterSyntax.add_parsers [realizersP, realizabilityP, typeofP, extractP];
 
 val etype_of = etype_of o sign_of o add_syntax;
 
 end;
-
-OuterSyntax.add_parsers Extraction.parsers;

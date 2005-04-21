@@ -55,8 +55,6 @@ sig
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> int -> int -> term -> (string * term) list option
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
-  val parsers: OuterSyntax.parser list
-  val setup: (theory -> theory) list
 end;
 
 structure Codegen : CODEGEN =
@@ -169,6 +167,7 @@ struct
 end;
 
 structure CodegenData = TheoryDataFun(CodegenArgs);
+val _ = Context.add_setup [CodegenData.init];
 val print_codegens = CodegenData.print;
 
 
@@ -228,6 +227,11 @@ val code_attr =
   Attrib.syntax (Scan.peek (fn thy => foldr op || Scan.fail (map mk_parser
     (#attrs (CodegenData.get thy)))));
 
+val _ = Context.add_setup
+ [Attrib.add_attributes
+  [("code", (code_attr, K Attrib.undef_local_attribute),
+     "declare theorems for code generation")]];
+
 
 (**** preprocessors ****)
 
@@ -253,6 +257,8 @@ fun unfold_attr (thy, eqn) =
         rewrite_rule [eqn] (Thm.transfer thy th)
       else th)
   in (add_preprocessor prep thy, eqn) end;
+
+val _ = Context.add_setup [add_attribute "unfold" (Scan.succeed unfold_attr)];
 
 
 (**** associate constants with target language code ****)
@@ -286,6 +292,7 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
 
 val assoc_consts_i = gen_assoc_consts (K I);
 val assoc_consts = gen_assoc_consts (fn sg => typ_of o read_ctyp sg);
+
 
 (**** associate types with target language types ****)
 
@@ -553,6 +560,10 @@ fun default_tycodegen thy gr dep brack (TVar ((s, i), _)) =
                (invoke_tycodegen thy dep false) (gr', quotes_of ms)
            in SOME (gr'', Pretty.block (pretty_mixfix ms ps qs)) end);
 
+val _ = Context.add_setup
+ [add_codegen "default" default_codegen,
+  add_tycodegen "default" default_tycodegen];
+
 
 fun output_code gr xs = implode (map (snd o Graph.get_node gr)
   (rev (Graph.all_preds gr xs)));
@@ -698,6 +709,10 @@ fun parse_mixfix rd s =
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
 
+val _ = Context.add_setup
+  [assoc_types [("fun", parse_mixfix (K dummyT) "(_ ->/ _)")]];
+
+
 structure P = OuterParse and K = OuterSyntax.Keyword;
 
 val assoc_typeP =
@@ -761,18 +776,7 @@ val testP =
           (map (fn f => f (Toplevel.sign_of st))) ps, []))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
 
-val parsers = [assoc_typeP, assoc_constP, generate_codeP, test_paramsP, testP];
-
-val setup =
-  [CodegenData.init,
-   add_codegen "default" default_codegen,
-   add_tycodegen "default" default_tycodegen,
-   assoc_types [("fun", parse_mixfix (K dummyT) "(_ ->/ _)")],
-   Attrib.add_attributes [("code",
-     (code_attr, K Attrib.undef_local_attribute),
-     "declare theorems for code generation")],
-   add_attribute "unfold" (Scan.succeed unfold_attr)];
+val _ = OuterSyntax.add_parsers
+  [assoc_typeP, assoc_constP, generate_codeP, test_paramsP, testP];
 
 end;
-
-OuterSyntax.add_parsers Codegen.parsers;

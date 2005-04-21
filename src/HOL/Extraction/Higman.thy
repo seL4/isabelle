@@ -20,50 +20,50 @@ consts
 
 inductive emb
 intros
-  emb0 [CPure.intro]: "([], bs) \<in> emb"
-  emb1 [CPure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (as, b # bs) \<in> emb"
-  emb2 [CPure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (a # as, a # bs) \<in> emb"
+  emb0 [Pure.intro]: "([], bs) \<in> emb"
+  emb1 [Pure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (as, b # bs) \<in> emb"
+  emb2 [Pure.intro]: "(as, bs) \<in> emb \<Longrightarrow> (a # as, a # bs) \<in> emb"
 
 consts
   L :: "letter list \<Rightarrow> letter list list set"
 
 inductive "L v"
 intros
-  L0 [CPure.intro]: "(w, v) \<in> emb \<Longrightarrow> w # ws \<in> L v"
-  L1 [CPure.intro]: "ws \<in> L v \<Longrightarrow> w # ws \<in> L v"
+  L0 [Pure.intro]: "(w, v) \<in> emb \<Longrightarrow> w # ws \<in> L v"
+  L1 [Pure.intro]: "ws \<in> L v \<Longrightarrow> w # ws \<in> L v"
 
 consts
   good :: "letter list list set"
 
 inductive good
 intros
-  good0 [CPure.intro]: "ws \<in> L w \<Longrightarrow> w # ws \<in> good"
-  good1 [CPure.intro]: "ws \<in> good \<Longrightarrow> w # ws \<in> good"
+  good0 [Pure.intro]: "ws \<in> L w \<Longrightarrow> w # ws \<in> good"
+  good1 [Pure.intro]: "ws \<in> good \<Longrightarrow> w # ws \<in> good"
 
 consts
   R :: "letter \<Rightarrow> (letter list list \<times> letter list list) set"
 
 inductive "R a"
 intros
-  R0 [CPure.intro]: "([], []) \<in> R a"
-  R1 [CPure.intro]: "(vs, ws) \<in> R a \<Longrightarrow> (w # vs, (a # w) # ws) \<in> R a"
+  R0 [Pure.intro]: "([], []) \<in> R a"
+  R1 [Pure.intro]: "(vs, ws) \<in> R a \<Longrightarrow> (w # vs, (a # w) # ws) \<in> R a"
 
 consts
   T :: "letter \<Rightarrow> (letter list list \<times> letter list list) set"
 
 inductive "T a"
 intros
-  T0 [CPure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> R b \<Longrightarrow> (w # zs, (a # w) # zs) \<in> T a"
-  T1 [CPure.intro]: "(ws, zs) \<in> T a \<Longrightarrow> (w # ws, (a # w) # zs) \<in> T a"
-  T2 [CPure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> T a \<Longrightarrow> (ws, (b # w) # zs) \<in> T a"
+  T0 [Pure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> R b \<Longrightarrow> (w # zs, (a # w) # zs) \<in> T a"
+  T1 [Pure.intro]: "(ws, zs) \<in> T a \<Longrightarrow> (w # ws, (a # w) # zs) \<in> T a"
+  T2 [Pure.intro]: "a \<noteq> b \<Longrightarrow> (ws, zs) \<in> T a \<Longrightarrow> (ws, (b # w) # zs) \<in> T a"
 
 consts
   bar :: "letter list list set"
 
 inductive bar
 intros
-  bar1 [CPure.intro]: "ws \<in> good \<Longrightarrow> ws \<in> bar"
-  bar2 [CPure.intro]: "(\<And>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
+  bar1 [Pure.intro]: "ws \<in> good \<Longrightarrow> ws \<in> bar"
+  bar2 [Pure.intro]: "(\<And>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
 
 theorem prop1: "([] # ws) \<in> bar" by rules
 

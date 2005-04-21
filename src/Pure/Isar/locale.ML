@@ -90,9 +90,6 @@ sig
     string * term list -> thm -> theory -> theory
   val add_local_witness:
     string * term list -> thm -> context -> context
-
-  (* Theory setup for locales *)
-  val setup: (theory -> theory) list
 end;
 
 structure Locale: LOCALE =
@@ -183,6 +180,9 @@ struct
 end;
 
 structure GlobalLocalesData = TheoryDataFun(GlobalLocalesArgs);
+val _ = Context.add_setup [GlobalLocalesData.init];
+
+
 
 (** context data **)
 
@@ -199,6 +199,7 @@ struct
 end;
 
 structure LocalLocalesData = ProofDataFun(LocalLocalesArgs);
+val _ = Context.add_setup [LocalLocalesData.init];
 
 
 (* access locales *)
@@ -1882,10 +1883,13 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
 in
 
 val add_locale = gen_add_locale read_context intern_expr;
-
 val add_locale_i = gen_add_locale cert_context (K I);
 
 end;
+
+val _ = Context.add_setup
+ [add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, SOME Syntax.NoSyn)]],
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, NONE)]]];
 
 
 
@@ -2090,13 +2094,4 @@ val prep_local_registration = gen_prep_registration
 end;  (* local *)
 
 
-
-(** locale theory setup **)
-
-val setup =
- [GlobalLocalesData.init, LocalLocalesData.init,
-  add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, SOME Syntax.NoSyn)]],
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, NONE)]]];
-
 end;
-

@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theory loader primitives.
+Theory loader primitives, including load path.
 *)
 
 signature BASIC_THY_LOAD =

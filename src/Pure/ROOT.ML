@@ -63,7 +63,7 @@ use "axclass.ML";
 use "codegen.ML";
 use "Proof/extraction.ML";
 
-(*old-style goal package*)
+(*old goal package -- obsolete*)
 use "goals.ML";
 
 (*the IsaPlanner subsystem*)
@@ -72,8 +72,10 @@ cd "IsaPlanner"; use "ROOT.ML"; cd "..";
 (*configuration for Proof General*)
 use "proof_general.ML";
 
-(*final Pure theory setup*)
-use "pure.ML";
+(*the Pure theories*)
+use_thy "Pure"; structure Pure = struct val thy = theory "Pure" end;
+use_thy "CPure"; structure CPure = struct val thy = theory "CPure" end;
+
 
 (*several object-logics declare theories that hide basis library structures*)
 structure BasisLibrary =

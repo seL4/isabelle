@@ -26,7 +26,6 @@ sig
   val rulify_no_asm: thm -> thm
   val rule_format: 'a attribute
   val rule_format_no_asm: 'a attribute
-  val setup: (theory -> theory) list
 end;
 
 structure ObjectLogic: OBJECT_LOGIC =
@@ -58,6 +57,8 @@ struct
 end;
 
 structure ObjectLogicData = TheoryDataFun(ObjectLogicDataArgs);
+val _ = Context.add_setup [ObjectLogicData.init];
+
 
 
 (** generic treatment of judgments -- with a single argument only **)
@@ -180,12 +181,6 @@ val rulify_no_asm = gen_rulify false;
 
 fun rule_format x = Drule.rule_attribute (fn _ => rulify) x;
 fun rule_format_no_asm x = Drule.rule_attribute (fn _ => rulify_no_asm) x;
-
-
-
-(** theory setup **)
-
-val setup = [ObjectLogicData.init];
 
 
 end;

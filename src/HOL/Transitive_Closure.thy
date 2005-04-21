@@ -25,16 +25,16 @@ consts
 
 inductive "r^*"
   intros
-    rtrancl_refl [intro!, CPure.intro!, simp]: "(a, a) : r^*"
-    rtrancl_into_rtrancl [CPure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
+    rtrancl_refl [intro!, Pure.intro!, simp]: "(a, a) : r^*"
+    rtrancl_into_rtrancl [Pure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
 
 consts
   trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^+)" [1000] 999)
 
 inductive "r^+"
   intros
-    r_into_trancl [intro, CPure.intro]: "(a, b) : r ==> (a, b) : r^+"
-    trancl_into_trancl [CPure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a,c) : r^+"
+    r_into_trancl [intro, Pure.intro]: "(a, b) : r ==> (a, b) : r^+"
+    trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a,c) : r^+"
 
 syntax
   "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)

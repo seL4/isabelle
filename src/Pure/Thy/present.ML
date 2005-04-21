@@ -34,7 +34,6 @@ sig
   val subsection: string -> unit
   val subsubsection: string -> unit
   val drafts: string -> Path.T list -> Path.T
-  val setup: (theory -> theory) list
 end;
 
 structure Present: PRESENT =
@@ -86,6 +85,7 @@ struct
 end;
 
 structure BrowserInfoData = TheoryDataFun(BrowserInfoArgs);
+val _ = Context.add_setup [BrowserInfoData.init];
 
 fun get_info thy =
   if Theory.eq_thy (thy, ProtoPure.thy) then BrowserInfoArgs.empty
@@ -532,11 +532,6 @@ fun drafts doc_format src_paths =
     val _ = isatool_document false doc_format doc_path;
   in Path.ext doc_format doc_path end;
 
-
-
-(** theory setup **)
-
-val setup = [BrowserInfoData.init];
 
 end;
 
