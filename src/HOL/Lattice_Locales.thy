@@ -52,6 +52,12 @@ by(blast intro: antisym inf_le1 inf_le2 inf_least refl)
 lemma (in upper_semilattice) sup_idem[simp]: "x \<squnion> x = x"
 by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl)
 
+lemma (in lower_semilattice) inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+by (simp add: inf_assoc[symmetric])
+
+lemma (in upper_semilattice) sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
+by (simp add: sup_assoc[symmetric])
+
 lemma (in lattice) inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
 by(blast intro: antisym inf_le1 inf_least sup_ge1)
 

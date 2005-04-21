@@ -2227,45 +2227,45 @@ constdefs
 text{* Before we can do anything, we need to show that @{text min} and
 @{text max} are ACI and the ordering is linear: *}
 
-interpretation AC_min [rule del]: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation min [rule del]: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_min [rule del]: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation min [rule del]: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_max [rule del]: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation max [rule del]: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:max_def)
 done
 
-interpretation AC_max [rule del]: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation max [rule del]: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation AC_min [rule del]:
+interpretation min [rule del]:
   ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_min [rule del]:
+interpretation min [rule del]:
   ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation AC_max [rule del]:
+interpretation max [rule del]:
   ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation AC_max [rule del]:
+interpretation max [rule del]:
   ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
@@ -2295,42 +2295,42 @@ simplification rules: *}
 
 declare
   fold1_singleton_def[OF Min_def, simp]
-  AC_min.fold1_insert_idem_def[OF Min_def, simp]
+  min.fold1_insert_idem_def[OF Min_def, simp]
   fold1_singleton_def[OF Max_def, simp]
-  AC_max.fold1_insert_idem_def[OF Max_def, simp]
+  max.fold1_insert_idem_def[OF Max_def, simp]
 
 text{* Now we instantiate some @{text fold1} properties: *}
 
 lemma Min_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
-using AC_min.fold1_in
+using min.fold1_in
 by(fastsimp simp: Min_def min_def)
 
 lemma Max_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
-using AC_max.fold1_in
+using max.fold1_in
 by(fastsimp simp: Max_def max_def)
 
 lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
-by(simp add: Min_def AC_min.fold1_belowI)
+by(simp add: Min_def min.fold1_belowI)
 
 lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
-by(simp add: Max_def AC_max.fold1_belowI)
+by(simp add: Max_def max.fold1_belowI)
 
 lemma Min_ge_iff[simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Min A) = (\<forall>a\<in>A. x \<le> a)"
-by(simp add: Min_def AC_min.below_fold1_iff)
+by(simp add: Min_def min.below_fold1_iff)
 
 lemma Max_le_iff[simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A \<le> x) = (\<forall>a\<in>A. a \<le> x)"
-by(simp add: Max_def AC_max.below_fold1_iff)
+by(simp add: Max_def max.below_fold1_iff)
 
 lemma Min_le_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A \<le> x) = (\<exists>a\<in>A. a \<le> x)"
-by(simp add: Min_def AC_min.fold1_below_iff)
+by(simp add: Min_def min.fold1_below_iff)
 
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
-by(simp add: Max_def AC_max.fold1_below_iff)
+by(simp add: Max_def max.fold1_below_iff)
 
 end

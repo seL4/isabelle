@@ -33,8 +33,10 @@ val linorder_not_less = thm "linorder_not_less";
 val linorder_not_le = thm "linorder_not_le";
 val linorder_neq_iff = thm "linorder_neq_iff";
 val linorder_neqE = thm "linorder_neqE";
+(*
 val min_same = thm "min_same";
 val max_same = thm "max_same";
+*)
 val le_max_iff_disj = thm "le_max_iff_disj";
 val le_maxI1 = thm "le_maxI1";
 val le_maxI2 = thm "le_maxI2";

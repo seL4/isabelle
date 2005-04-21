@@ -390,12 +390,6 @@ can currently not be removed, abel_cancel relies on it.
 
 subsection "Min and max on (linear) orders"
 
-lemma min_same [simp]: "min (x::'a::order) x = x"
-  by (simp add: min_def)
-
-lemma max_same [simp]: "max (x::'a::order) x = x"
-  by (simp add: max_def)
-
 text{* Instantiate locales: *}
 
 interpretation min_max [rule del]:
@@ -461,12 +455,7 @@ lemma max_less_iff_conj [simp]:
   apply (insert linorder_less_linear)
   apply (blast intro: order_less_trans)
   done
-(*
-lemma le_min_iff_conj [simp]:
-    "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)"
-    -- {* @{text "[iff]"} screws up a @{text blast} in MiniML *}
-by (rule lower_semilattice.below_inf_conv[OF lower_semilattice_lin_min])
-*)
+
 lemma min_less_iff_conj [simp]:
     "!!z::'a::linorder. (z < min x y) = (z < x & z < y)"
   apply (simp add: order_le_less min_def)
@@ -485,22 +474,10 @@ lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
   apply (insert linorder_less_linear)
   apply (blast intro: order_less_trans)
   done
-(*
-lemma max_assoc: "!!x::'a::linorder. max (max x y) z = max x (max y z)"
-by (rule upper_semilattice.sup_assoc[OF upper_semilattice_lin_max])
 
-lemma max_commute: "!!x::'a::linorder. max x y = max y x"
-by (rule upper_semilattice.sup_commute[OF upper_semilattice_lin_max])
-*)
 lemmas max_ac = min_max.sup_assoc min_max.sup_commute
                mk_left_commute[of max,OF min_max.sup_assoc min_max.sup_commute]
-(*
-lemma min_assoc: "!!x::'a::linorder. min (min x y) z = min x (min y z)"
-by (rule lower_semilattice.inf_assoc[OF lower_semilattice_lin_min])
 
-lemma min_commute: "!!x::'a::linorder. min x y = min y x"
-by (rule lower_semilattice.inf_commute[OF lower_semilattice_lin_min])
-*)
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
                mk_left_commute[of min,OF min_max.inf_assoc min_max.inf_commute]
 
