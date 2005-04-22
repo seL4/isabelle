@@ -20,28 +20,40 @@ signature ISA_ENCODE_TERM =
 (* signature BASIC_ISA_FTERM = 
 FOCUS_TERM_SIG where type Term = ISA_ENCODE_TERM.Term *)
 
-(* 
 signature ISA_FTERM =
-sig
-  include F_ENCODE_TERM_SIG
-
+  sig
+    type Term = EncodeIsaFTerm.TermT
+    type Type = Term.typ
+    type UpTerm
+    datatype FcTerm = focus of Term * UpTerm
+    structure MinTermS : F_ENCODE_TERM_SIG
+    val add_upterm :
+       UpTerm -> FcTerm -> FcTerm
     val clean_match_ft :
        Type.tsig ->
-       FcTerm ->
        Term.term ->
+       FcTerm ->
        (
        ((Term.indexname * Term.typ) list * (Term.indexname * Term.term) list)
-       * (string * Type) list * Term.term) option
+       * (string * Term.typ) list * (string * Term.typ) list * Term.term)
+       option
     val clean_unify_ft :
        Sign.sg ->
        int ->
-       FcTerm ->
        Term.term ->
+       FcTerm ->
        (
        ((Term.indexname * Term.typ) list * (Term.indexname * Term.term) list)
-       * (string * Type) list * Term.term) Seq.seq
-    val fakefree_badbounds :
-       (string * Term.typ) list -> int -> Term.term -> Term.term
+       * (string * Term.typ) list * (string * Term.typ) list * Term.term)
+       Seq.seq
+    val enc_appl :
+       EncodeIsaFTerm.term * UpTerm -> UpTerm
+    val enc_appr :
+       EncodeIsaFTerm.term * UpTerm -> UpTerm
+    val fakefree_badbounds : 
+       (string * Term.typ) list -> Term.term ->
+       (string * Term.typ) list * (string * Term.typ) list * Term.term
+    val fcterm_of_term : EncodeIsaFTerm.term -> FcTerm
     val find_fcterm_matches :
        ((FcTerm -> 'a) -> FcTerm -> 'b) ->
        (FcTerm -> 'a) -> FcTerm -> 'b
@@ -57,38 +69,98 @@ sig
     val find_sg_thm_matches :
        ((FcTerm -> 'a) -> FcTerm -> 'b) ->
        (FcTerm -> 'a) -> int -> Thm.thm -> 'b
+    val focus_abs : FcTerm -> FcTerm
+    val focus_bot_left_leaf : FcTerm -> FcTerm
+    val focus_bot_left_nonabs_leaf :
+       FcTerm -> FcTerm
+    val focus_fake_abs : FcTerm -> FcTerm
+    val focus_left : FcTerm -> FcTerm
+    val focus_of_fcterm : FcTerm -> EncodeIsaFTerm.term
+    val focus_right : FcTerm -> FcTerm
+    val focus_strict_left : FcTerm -> FcTerm
+    exception focus_term_exp of string
     val focus_to_concl : FcTerm -> FcTerm
     val focus_to_concl_of_term : EncodeIsaFTerm.term -> FcTerm
+    val focus_to_dest_impl :
+       FcTerm -> FcTerm * FcTerm
     val focus_to_subgoal :
        int -> FcTerm -> FcTerm
     val focus_to_subgoal_of_term :
        int -> EncodeIsaFTerm.term -> FcTerm
     val focus_to_term_goal_prem :
        int * int -> EncodeIsaFTerm.term -> FcTerm
+    val focus_to_top : FcTerm -> FcTerm
+    val focus_up : FcTerm -> FcTerm
+    val focus_up_abs : FcTerm -> FcTerm option
+    val focus_up_abs_or_appr :
+       FcTerm -> FcTerm option
+    val focus_up_appl : FcTerm -> FcTerm option
+    val focus_up_appr : FcTerm -> FcTerm option
+    val focus_up_right : FcTerm -> FcTerm
+    val focus_up_right1 : FcTerm -> FcTerm
     val focuseq_to_subgoals :
        FcTerm -> FcTerm Seq.seq
     exception isa_focus_term_exp of string
+    val leaf_seq_of_fcterm :
+       FcTerm -> FcTerm Seq.seq
     val mk_foo_match :
        (Term.term -> Term.term) ->
        ('a * Term.typ) list -> Term.term -> Term.term
+    val mk_term_of_upterm :
+       EncodeIsaFTerm.term * UpTerm -> EncodeIsaFTerm.term
+    val mk_termf_of_upterm :
+       UpTerm ->
+       (string * Type) list *
+       (EncodeIsaFTerm.term -> EncodeIsaFTerm.term)
+    val next_leaf_fcterm : FcTerm -> FcTerm
+    val next_leaf_of_fcterm_seq :
+       FcTerm -> FcTerm Seq.seq
+    exception out_of_term_exception of string
     val prepmatch :
        FcTerm ->
-       Term.term * ((string * Type) list * Term.term)
-    val search_bl_ru_f :
+       Term.term *
+       ((string * Term.typ) list * (string * Term.typ) list * Term.term)
+    val pretty_fcterm : FcTerm -> Pretty.T
+    val pure_mk_termf_of_upterm :
+       (EncodeIsaFTerm.term, Type) UpTermLib.T ->
+       (string * Type) list *
+       (EncodeIsaFTerm.term -> EncodeIsaFTerm.term)
+    val search_all_bl_ru_f :
        (FcTerm -> 'a Seq.seq) ->
        FcTerm -> 'a Seq.seq
-    val search_bl_ur_f :
+    val search_all_bl_ur_f :
        (FcTerm -> 'a Seq.seq) ->
        FcTerm -> 'a Seq.seq
+    val search_tlr_all_f :
+       (FcTerm -> 'a Seq.seq) ->
+       FcTerm -> 'a Seq.seq
+    val search_tlr_valid_f :
+       (FcTerm -> 'a Seq.seq) ->
+       FcTerm -> 'a Seq.seq
+    val search_valid_bl_ru_f :
+       (FcTerm -> 'a Seq.seq) ->
+       FcTerm -> 'a Seq.seq
+    val search_valid_bl_ur_f :
+       (FcTerm -> 'a Seq.seq) ->
+       FcTerm -> 'a Seq.seq
+    val set_focus_of_fcterm :
+       FcTerm -> EncodeIsaFTerm.term -> FcTerm
+    val term_of_fcterm : FcTerm -> EncodeIsaFTerm.term
+    val tyenv_of_focus :
+       FcTerm -> (string * Type) list
+    val tyenv_of_focus' : FcTerm -> Type list
+    val upsize_of_fcterm : FcTerm -> int
+    val upterm_of : FcTerm -> UpTerm
     val valid_match_start : FcTerm -> bool
+  end
 
-end *)
+
 
 structure BasicIsaFTerm = 
 FocusTermFUN( structure EncodeTerm = EncodeIsaFTerm);
 
 (* HOL Dependent *)
-structure IsaFTerm =
+structure IsaFTerm : ISA_FTERM=
 struct 
 
 (* include BasicIsaFTerm *)
@@ -107,32 +179,38 @@ vars. *)
 fun valid_match_start ft =
     (case TermLib.bot_left_leaf_of (focus_of_fcterm ft) of 
        Const _ => true
-     | Free _ =>  true
-     | Abs _ =>  true
-     | _ => false);
+     | Free _ => true
+     | Abs _ => true (* allowed to look inside abs... search decides if we actually consider the abstraction itself *)
+     | _ => false); (* avoid vars - always suceeds uninterestingly. *)
 
 (* match starting at the bottom left, moving up to top of the term,
    then moving right to the next leaf and up again etc *)
 (* FIXME: make properly lazy! *)
-fun search_nonvar_bl_ur_f f ft = 
+fun search_valid_bl_ur_f f ft = 
     let 
       val fts = 
           Seq.filter valid_match_start
                      (leaf_seq_of_fcterm ft)
 
       fun mk_match_up_seq ft =
-          case focus_up_abs_or_appr ft of 
-            SOME ft' => Seq.append(f ft, mk_match_up_seq ft')
-          | NONE => f ft
+          (* avoid abstractions? - possibly infinite unifiers? *)
+          let val hereseq = case (focus_of_fcterm ft) of 
+                              Abs _ => Seq.empty
+                            | _ => f ft
+          in
+            case focus_up_abs_or_appr ft of 
+              SOME ft' => Seq.append(hereseq, mk_match_up_seq ft')
+            | NONE => hereseq
+          end
     in
       Seq.flat (Seq.map mk_match_up_seq fts)
     end;
 
-fun search_bl_ur_f f ft = 
+fun search_all_bl_ur_f f ft = 
     let 
       val fts = (leaf_seq_of_fcterm ft)
 
-      fun mk_match_up_seq ft =
+      fun mk_match_up_seq ft =            
           case focus_up_abs_or_appr ft of 
             SOME ft' => Seq.append(f ft, mk_match_up_seq ft')
           | NONE => f ft
@@ -143,7 +221,7 @@ fun search_bl_ur_f f ft =
 
 (* FIXME: make properly lazy! *)
 (* FIXME: make faking of bound vars local - for speeeeed *)
-fun search_nonvar_bl_ru_f f ft = 
+fun search_valid_bl_ru_f f ft = 
     let
       fun mauxtop ft = 
           if (valid_match_start ft)
@@ -156,15 +234,14 @@ fun search_nonvar_bl_ru_f f ft =
             (_ $ _) => Seq.append (maux (focus_left ft), 
                          Seq.append(mauxtop (focus_right ft), 
                                     f ft))
-          | (Abs _) => Seq.append (maux (focus_abs ft), 
-                                   f ft)
+          | (Abs _) => maux (focus_abs ft)
           | leaf => f ft) end
     in
       mauxtop ft
     end;
 
 
-fun search_bl_ru_f f ft = 
+fun search_all_bl_ru_f f ft = 
     let
       fun maux ft = 
           let val t' = (focus_of_fcterm ft) 
@@ -177,6 +254,40 @@ fun search_bl_ru_f f ft =
           | (Abs _) => Seq.append (maux (focus_abs ft), 
                                    f ft)
           | leaf => f ft) end
+    in maux ft end;
+
+(* search from top, left to right, then down *)
+fun search_tlr_all_f f ft = 
+    let
+      fun maux ft = 
+          let val t' = (focus_of_fcterm ft) 
+            (* val _ = 
+                if !trace_subst_search then 
+                  (writeln ("Examining: " ^ (TermLib.string_of_term t'));
+                   TermLib.writeterm t'; ())
+                else (); *)
+          in 
+          (case t' of 
+            (_ $ _) => Seq.append(maux (focus_left ft), 
+                       Seq.append(f ft, 
+                                  maux (focus_right ft)))
+          | (Abs _) => Seq.append(f ft, maux (focus_abs ft))
+          | leaf => f ft) end
+    in maux ft end;
+
+fun search_tlr_valid_f f ft = 
+    let
+      fun maux ft = 
+          let 
+            val hereseq = if valid_match_start ft then f ft else Seq.empty
+          in 
+          (case (focus_of_fcterm ft) of 
+            (_ $ _) => Seq.append(maux (focus_left ft), 
+                       Seq.append(hereseq, 
+                                  maux (focus_right ft)))
+          | (Abs _) => Seq.append(hereseq, maux (focus_abs ft))
+          | leaf => hereseq)
+          end
     in maux ft end;
 
 
@@ -240,21 +351,39 @@ fun focus_to_term_goal_prem (premid,gaolid) t =
     focus_to_subgoal premid (focus_to_subgoal_of_term gaolid t);
 
 
-
+(* FIXME: make a sturcture for holding free variable names and making
+them distinct --- ? maybe part of the new prooftree datatype ?
+Alos: use this to fix below... *)
 
 (* T is outer bound vars, n is number of locally bound vars *)
-fun fakefree_badbounds T n (a $ b) = 
-    (fakefree_badbounds T n a) $ (fakefree_badbounds T n b)
-  | fakefree_badbounds T n (Abs(s,ty,t)) =  
-    Abs(s,ty, fakefree_badbounds T (n + 1) t)
-  | fakefree_badbounds T n (b as Bound i) = 
-    let fun mkfake_bound j [] = 
-            raise ERROR_MESSAGE "fakefree_badbounds: bound is outside of the known types!"
-          | mkfake_bound 0 ((s,ty)::Ts) = 
-            Free (RWTools.mk_fake_bound_name s,ty)
-          | mkfake_bound j (d::Ts) = mkfake_bound (j - 1) Ts
-    in if n <= i then mkfake_bound (i - n) T else b end
-  | fakefree_badbounds T n t = t;
+(* THINK: is order of Ts correct...? or reversed? *)
+fun fakefree_badbounds Ts t = 
+    let val (FakeTs,Ts,newnames) = 
+            List.foldr (fn ((n,ty),(FakeTs,Ts,usednames)) => 
+                           let val newname = Term.variant usednames n
+                           in ((RWTools.mk_fake_bound_name newname,ty)::FakeTs,
+                               (newname,ty)::Ts, 
+                               newname::usednames) end)
+                       ([],[],[])
+                       Ts
+    in (FakeTs, Ts, Term.subst_bounds (map Free FakeTs, t)) end;
+
+(* fun fakefree_badbounds usednames T n (a $ b) =  *)
+(*     let val (usednames', T', a') = fakefree_badbounds usednames T n a *)
+(*       val (usednames'', T'', b') = fakefree_badbounds usednames' T n b in  *)
+(*       (usednames'', T'', a' $ b') end *)
+(*   | fakefree_badbounds usednames T n (Abs(s,ty,t)) =  *)
+(*     let val (usednames', T', t') = fakefree_badbounds usednames T (n + 1) t in *)
+(*     (usednames', T', Abs(s,ty, t')) *)
+(*   | fakefree_badbounds usednames T n (b as Bound i) =  *)
+(*     let fun mkfake_bound j [] =  *)
+(*             raise ERROR_MESSAGE "fakefree_badbounds: bound is outside of the known types!" *)
+(*           | mkfake_bound 0 ((s,ty)::Ts) =  *)
+(*             let val newname = Term.variant s usednames in *)
+(*             usednames, (newname,ty) :: T,  Free (newname,ty) *)
+(*           | mkfake_bound j (d::Ts) = mkfake_bound (j - 1) Ts *)
+(*     in if n <= i then mkfake_bound (i - n) T else b end *)
+(*   | fakefree_badbounds usednames T t = t; *)
 
 
 (* note: outerterm is the taget with the match replaced by a bound 
@@ -274,7 +403,7 @@ fun mk_foo_match mkuptermfunc Ts t =
       val foo_term = mk_foo num_of_bnds (Bound num_of_bnds)
     in Abs("fooabs", bigtype, mkuptermfunc foo_term) end;
 
-(* before matching we need to fake the bound vars that missing an
+(* before matching we need to fake the bound vars that are missing an
 abstraction. In this function we additionally construct the
 abstraction environment, and an outer context term (with the focus
 abstracted out) for use in rewriting with RWInst.rw *)
@@ -282,24 +411,29 @@ fun prepmatch ft =
     let 
       val t = focus_of_fcterm ft  
       val Ts = tyenv_of_focus ft
-      val t' = fakefree_badbounds Ts 0 t
+      val (FakeTs', Ts', t') = fakefree_badbounds Ts t
       fun mktermf t = 
           term_of_fcterm (set_focus_of_fcterm ft t)
-      val absterm = mk_foo_match mktermf Ts t'
+      val absterm = mk_foo_match mktermf Ts' t'
     in
-      (t', (Ts, absterm))
+      (t', (FakeTs', Ts', absterm))
     end;
 
 (* matching and unification for a focus term's focus *)
+
+(* Note: Ts is a modified version of the original names of the outer
+bound variables. New names have been introduced to make sure they are
+unique w.r.t all names in the term and each other. usednames' is
+oldnames + new names. *)
 fun clean_match_ft tsig pat ft = 
-    let val (t, (Ts,absterm)) = prepmatch ft in
+    let val (t, (FakeTs,Ts,absterm)) = prepmatch ft in
       case TermLib.clean_match tsig (pat, t) of 
         NONE => NONE 
-      | SOME insts => SOME (insts, Ts, absterm) end;
+      | SOME insts => SOME (insts, FakeTs, Ts, absterm) end;
 (* ix = max var index *)
 fun clean_unify_ft sgn ix pat ft = 
-    let val (t, (Ts,absterm)) = prepmatch ft in
-    Seq.map (fn insts => (insts, Ts, absterm)) 
+    let val (t, (FakeTs, Ts,absterm)) = prepmatch ft in
+    Seq.map (fn insts => (insts, FakeTs, Ts, absterm)) 
             (TermLib.clean_unify sgn ix (t, pat)) end;
 
 
@@ -327,7 +461,8 @@ i.e. wenzel style val foofunc = x o y;
 
 (* find the matches inside subgoal i of th *)
 fun find_sg_matches searchf matcher i t = 
-    let val subgoal_fcterm = focus_to_subgoal_of_term i t
+    let 
+      val subgoal_fcterm = focus_to_subgoal_of_term i t
     in find_fcterm_matches searchf matcher subgoal_fcterm end;
 
 (* find the matches inside subgoal i of th *)

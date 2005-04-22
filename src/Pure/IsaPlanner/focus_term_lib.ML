@@ -90,7 +90,9 @@ sig
 
      (* focusing, throws exceptions *)
      val focus_bot_left_leaf : FcTerm -> FcTerm
+     val focus_bot_left_nonabs_leaf : FcTerm -> FcTerm
      val focus_left : FcTerm -> FcTerm
+     val focus_strict_left : FcTerm -> FcTerm
      val focus_right : FcTerm -> FcTerm
      val focus_abs : FcTerm -> FcTerm
      val focus_fake_abs : FcTerm -> FcTerm
@@ -215,6 +217,9 @@ local open MinTermS open UpTermLib in
     | focus_left (focus(Abs(s,ty,t), m)) = focus_left (focus(t, abs(s,ty,m)))
     | focus_left (focus(l, m)) = raise out_of_term_exception "focus_left";
 
+  fun focus_strict_left (focus(a $ b, m)) = focus(a, appr(b, m))
+    | focus_strict_left (focus(l, m)) = raise out_of_term_exception "focus_left";
+
 (* Note: ":" is standard for faked bound vars... see: EQStepTacTermTools *)
   fun focus_fake_abs (focus(Abs(s,ty,t), m)) = 
       let val t' = MinTermS.encode (fakebounds (s,ty) (MinTermS.decode t))
@@ -257,9 +262,14 @@ local open MinTermS open UpTermLib in
     | focus_up_right1 (focus(t, root)) = 
       raise out_of_term_exception "focus_up_right1";
 
-  (* move focus to the bottom left *)
+  (* move focus to the bottom left through abstractions *)
   fun focus_bot_left_leaf (ft as focus(t, _)) = 
         focus_bot_left_leaf (focus_left ft) 
+        handle out_of_term_exception  _=> ft;
+
+  (* move focus to the bottom left, but not into abstractions *)
+  fun focus_bot_left_nonabs_leaf (ft as focus(t, _)) = 
+        focus_bot_left_nonabs_leaf (focus_strict_left ft) 
         handle out_of_term_exception  _=> ft;
 
   (* focus tools for working directly with the focus representation *)

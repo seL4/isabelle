@@ -28,12 +28,18 @@ fun join_lists ([],[]) = []
 
 (* fake free variable names for locally bound variables - these work
 as placeholders. *)
+
+(* don't use dest_fake.. - we should instead be working with numbers
+and a list... else we rely on naming conventions which can break, or
+be violated - in contrast list locations are correct by
+construction/definition. *)
+(*
 fun dest_fake_bound_name n = 
     case (explode n) of 
       (":" :: realchars) => implode realchars
-    | _ => n;
+    | _ => n; *)
 fun is_fake_bound_name n = (hd (explode n) = ":");
-fun mk_fake_bound_name n = ":" ^ n;
+fun mk_fake_bound_name n = ":b_" ^ n;
 
 
 
@@ -65,8 +71,9 @@ variable is a faked local bound then we change it to being a meta
 variable so that it can later be instantiated *)
 (* FIXME: rename this - avoid the word fix! *)
 (* note we are not really "fix"'ing the free, more like making it variable! *)
-fun trymkvar_of_fakefree (Ns, Ts) Ys (n,ty) = 
-    if (dest_fake_bound_name n) mem Ns then Var((n,0),ty) else Free (n,ty);
+(* fun trymkvar_of_fakefree (Ns, Ts) Ys (n,ty) = 
+    if n mem Ns then Var((n,0),ty) else Free (n,ty);
+*)
 
 (* make a var into a fixed free (ie prefixed with "@") *)
 fun mk_fakefixvar Ts ((n,i),ty) = Free(mk_fake_fix_name n, ty);

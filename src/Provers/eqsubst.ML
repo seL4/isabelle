@@ -29,9 +29,10 @@ sig
 
   type match = 
        ((Term.indexname * Term.typ) list (* type instantiations *)
-         * (Term.indexname * Term.term) list) (* term instantiations *)
-        * (string * Term.typ) list (* type abs env *)
-        * Term.term (* outer term *)
+        * (Term.indexname * Term.term) list) (* term instantiations *)
+       * (string * Term.typ) list (* fake named type abs env *)
+       * (string * Term.typ) list (* type abs env *)
+       * Term.term (* outer term *)
 
   val prep_subst_in_asm :
       (Sign.sg (* sign for matching *)
@@ -86,13 +87,32 @@ sig
         -> match
         -> Thm.thm Seq.seq (* substituted goal *)
 
+  val searchf_tlr_unify_all : 
+      (Sign.sg -> int ->
+       Term.term ->
+       BasicIsaFTerm.FcTerm ->
+       match Seq.seq)
+  val searchf_tlr_unify_valid : 
+      (Sign.sg -> int ->
+       Term.term ->
+       BasicIsaFTerm.FcTerm ->
+       match Seq.seq)
+
   val eqsubst_asm_meth : Thm.thm list -> Proof.method
   val eqsubst_asm_tac : Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
-  val eqsubst_asm_tac' : Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+  val eqsubst_asm_tac' : 
+      (Sign.sg -> int ->
+       Term.term ->
+       BasicIsaFTerm.FcTerm ->
+       match Seq.seq) -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
 
   val eqsubst_meth : Thm.thm list -> Proof.method
   val eqsubst_tac : Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
-  val eqsubst_tac' : Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+  val eqsubst_tac' : 
+      (Sign.sg -> int ->
+       Term.term ->
+       BasicIsaFTerm.FcTerm ->
+       match Seq.seq) -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
 
   val meth : bool * Thm.thm list -> Proof.context -> Proof.method
   val setup : (Theory.theory -> Theory.theory) list
@@ -106,6 +126,7 @@ functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA)
   type match = 
        ((Term.indexname * Term.typ) list (* type instantiations *)
          * (Term.indexname * Term.term) list) (* term instantiations *)
+        * (string * Term.typ) list (* fake named type abs env *)
         * (string * Term.typ) list (* type abs env *)
         * Term.term (* outer term *)
 
@@ -132,8 +153,8 @@ exception trace_subst_exp of trace_subst_errT;
 infix 5 :->;
 fun s :-> f = Seq.flat (Seq.map f s);
 
-(* search from the top to bottom, left to right *)
-fun search_lr_f f ft = 
+(* search from top, left to right, then down *)
+fun search_tlr_all_f f ft = 
     let
       fun maux ft = 
           let val t' = (IsaFTerm.focus_of_fcterm ft) 
@@ -147,14 +168,38 @@ fun search_lr_f f ft =
             (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft), 
                        Seq.append(f ft, 
                                   maux (IsaFTerm.focus_right ft)))
-          | (Abs _) => Seq.append (f ft, maux (IsaFTerm.focus_abs ft))
+          | (Abs _) => Seq.append(f ft, maux (IsaFTerm.focus_abs ft))
           | leaf => f ft) end
     in maux ft end;
 
-fun search_for_match sgn maxidx lhs  = 
+(* search from top, left to right, then down *)
+fun search_tlr_valid_f f ft = 
+    let
+      fun maux ft = 
+          let 
+            val hereseq = if IsaFTerm.valid_match_start ft then f ft else Seq.empty
+          in 
+          (case (IsaFTerm.focus_of_fcterm ft) of 
+            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft), 
+                       Seq.append(hereseq, 
+                                  maux (IsaFTerm.focus_right ft)))
+          | (Abs _) => Seq.append(hereseq, maux (IsaFTerm.focus_abs ft))
+          | leaf => hereseq)
+          end
+    in maux ft end;
+
+(* search all unifications *)
+fun searchf_tlr_unify_all sgn maxidx lhs  = 
     IsaFTerm.find_fcterm_matches 
-      search_lr_f 
+      search_tlr_all_f 
       (IsaFTerm.clean_unify_ft sgn maxidx lhs);
+
+(* search only for 'valid' unifiers (non abs subterms and non vars) *)
+fun searchf_tlr_unify_valid sgn maxidx lhs  = 
+    IsaFTerm.find_fcterm_matches 
+      search_tlr_valid_f 
+      (IsaFTerm.clean_unify_ft sgn maxidx lhs);
+
 
 (* apply a substitution in the conclusion of the theorem th *)
 (* cfvs are certified free var placeholders for goal params *)
@@ -168,9 +213,7 @@ fun apply_subst_in_concl i th (cfvs, conclthm) rule m =
       |> (fn r => Tactic.rtac r i th);
 
 (*
-? is the following equivalent to rtac ? 
 
- |> Thm.lift_rule (th, i)
  |> (fn r => Thm.bicompose false (false, r, Thm.nprems_of r) i th)
 
 *)
@@ -203,10 +246,10 @@ fun prep_concl_subst searchf i gth =
 
 
 (* substitute using an object or meta level equality *)
-fun eqsubst_tac' instepthm i th = 
+fun eqsubst_tac' searchf instepthm i th = 
     let 
       val (cvfsconclthm, findmatchf) = 
-          prep_concl_subst search_for_match i th;
+          prep_concl_subst searchf i th;
 
       val stepthms = 
           Seq.map Drule.zero_var_indexes 
@@ -223,7 +266,8 @@ fun eqsubst_tac' instepthm i th =
 (* substitute using one of the given theorems *)
 fun eqsubst_tac instepthms i th = 
     if Thm.nprems_of th < i then Seq.empty else
-    (Seq.of_list instepthms) :-> (fn r => eqsubst_tac' r i th);
+    (Seq.of_list instepthms) 
+    :-> (fn r => eqsubst_tac' searchf_tlr_unify_valid r i th);
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
@@ -293,9 +337,9 @@ fun prep_subst_in_asms searchf i gth =
 
 
 (* substitute in an assumption using an object or meta level equality *)
-fun eqsubst_asm_tac' instepthm i th = 
+fun eqsubst_asm_tac' searchf instepthm i th = 
     let 
-      val asmpreps = prep_subst_in_asms search_for_match i th;
+      val asmpreps = prep_subst_in_asms searchf i th;
       val stepthms = 
           Seq.map Drule.zero_var_indexes 
                   (Seq.of_list (EqRuleData.prep_meta_eq instepthm))
@@ -311,7 +355,8 @@ fun eqsubst_asm_tac' instepthm i th =
 (* substitute using one of the given theorems *)
 fun eqsubst_asm_tac instepthms i th = 
     if Thm.nprems_of th < i then Seq.empty else
-    (Seq.of_list instepthms) :-> (fn r => eqsubst_asm_tac' r i th);
+    (Seq.of_list instepthms) 
+    :-> (fn r => eqsubst_asm_tac' searchf_tlr_unify_valid r i th);
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)

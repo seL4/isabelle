@@ -18,19 +18,22 @@ sig
   (* Rewrite: give it instantiation infromation, a rule, and the
   target thm, and it will return the rewritten target thm *)
   val rw :
-      ((Term.indexname * Term.typ) list *    (* type var instantiations *)
-       (Term.indexname * Term.term) list)    (* schematic var instantiations *)
-       * (string * Term.typ) list *          (* bound types *)
-      Term.term ->                           (* outer term for instantiation *)
-      Thm.thm ->                             (* rule with indexies lifted *)
-      Thm.thm ->                             (* target thm *)
-      Thm.thm                                (* rewritten theorem possibly 
-                                                with additional premises for 
-                                                rule conditions *)
+      ((Term.indexname * Term.typ) list *  (* type var instantiations *)
+       (Term.indexname * Term.term) list)  (* schematic var instantiations *)
+      * (string * Term.typ) list           (* Fake named bounds + types *)
+      * (string * Term.typ) list           (* names of bound + types *)
+      * Term.term ->                       (* outer term for instantiation *)
+      Thm.thm ->                           (* rule with indexies lifted *)
+      Thm.thm ->                           (* target thm *)
+      Thm.thm                              (* rewritten theorem possibly 
+                                              with additional premises for 
+                                              rule conditions *)
 
   (* used tools *)
   val mk_abstractedrule :
-      (string * Term.typ) list -> Thm.thm -> Thm.cterm list * Thm.thm
+      (string * Term.typ) list (* faked outer bound *)
+      -> (string * Term.typ) list (* hopeful name of outer bounds *)
+      -> Thm.thm -> Thm.cterm list * Thm.thm
   val mk_fixtvar_tyinsts :
       Term.indexname list ->
       Term.term list -> ((string * int) * Term.typ) list * (string * sort) list
@@ -80,25 +83,26 @@ results in:
 note: assumes rule is instantiated
 *)
 (* Note, we take abstraction in the order of last abstraction first *)
-fun mk_abstractedrule Ts rule = 
+fun mk_abstractedrule TsFake Ts rule = 
     let 
       val ctermify = Thm.cterm_of (Thm.sign_of_thm rule);
 
-      (* now we change the names the temporary free vars that represent 
+      (* now we change the names of temporary free vars that represent 
          bound vars with binders outside the redex *)
       val prop = Thm.prop_of rule;
-      val names = Term.add_term_names (prop, []);
+      val names = TermLib.usednames_of_thm rule;
       val (fromnames,tonames,names2,Ts') = 
-          Library.foldl (fn ((rnf,rnt,names, Ts'),(n,ty)) => 
+          Library.foldl (fn ((rnf,rnt,names, Ts''),((faken,_),(n,ty))) => 
                     let val n2 = Term.variant names n in
-                      (ctermify (Free(RWTools.mk_fake_bound_name n,
-                                      ty)) :: rnf,
+                      (ctermify (Free(faken,ty)) :: rnf,
                        ctermify (Free(n2,ty)) :: rnt, 
                        n2 :: names,
-                       (n2,ty) :: Ts')
+                       (n2,ty) :: Ts'')
                     end)
-                (([],[],names, []), Ts);
+                (([],[],names, []), TsFake~~Ts);
 
+      (* rename conflicting free's in the rule to avoid cconflicts
+      with introduced vars from bounds outside in redex *)
       val rule' = rule |> Drule.forall_intr_list fromnames
                        |> Drule.forall_elim_list tonames;
       
@@ -194,7 +198,7 @@ introduced vars, and rule vars, for quicker instantiation? *)
 (* Note: we take Ts in the upterm order, ie last abstraction first.,
 and with an outeterm where the abstracted subterm has the arguments in
 the revered order, ie first abstraction first. *)
-fun rw ((nonfixed_typinsts, unprepinsts), Ts, outerterm) rule target_thm = 
+fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm = 
     let 
       (* general signature info *)
       val target_sign = (Thm.sign_of_thm target_thm);
@@ -258,7 +262,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), Ts, outerterm) rule target_thm =
       val couter_inst = Thm.reflexive (ctermify outerterm_inst);
       val (cprems, abstract_rule_inst) = 
           rule_inst |> Thm.instantiate ([], cterm_renamings)
-                    |> mk_abstractedrule Ts;
+                    |> mk_abstractedrule FakeTs Ts;
       val specific_tgt_rule = 
           beta_eta_contract_tac
             (Thm.combination couter_inst abstract_rule_inst);

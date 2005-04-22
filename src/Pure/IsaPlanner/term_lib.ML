@@ -63,6 +63,7 @@ sig
     val try_dest_Trueprop : Term.term -> Term.term
 
     val bot_left_leaf_of : Term.term -> Term.term
+    val bot_left_leaf_noabs_of : Term.term -> Term.term
 
     (* term containing another term - an embedding check *)
     val term_contains : Term.term -> Term.term -> bool
@@ -93,6 +94,10 @@ sig
     (* get the frees in a term that are of atomic type, ie non-functions *)
     val atomic_frees_of_term : Term.term -> (string * Term.typ) list
 
+    (* get used names in a theorem to avoid upon instantiation. *)
+    val usednames_of_term : Term.term -> string list
+    val usednames_of_thm : Thm.thm -> string list
+
     (* Isar term skolemisationm and unsolemisation *)
     (* I think this is written also in IsarRTechn and also in somewhere else *)
     (* val skolemise_term : (string,Term.typ) list -> Term.term -> Term.term
@@ -113,9 +118,11 @@ sig
     val pretty_print_typelist :
        Term.typ list -> (Term.typ -> string) -> string
  
+    (* for debugging: quickly get a string of a term w.r.t the_context() *)
     val string_of_term : Term.term -> string
 
-    (* these are perhaps redundent, check the standard basis 
+    (* Pretty printing in a way that allows them to be parsed by ML.
+       these are perhaps redundent, check the standard basis 
        lib for generic versions for any datatype? *)
     val writesort : string list -> unit
     val writeterm : Term.term -> unit
@@ -387,6 +394,15 @@ val atomic_frees_of_term =
      o map Term.dest_Free 
      o Term.term_frees;
 
+fun usednames_of_term t = Term.add_term_names (t,[]);
+fun usednames_of_thm th = 
+    let val rep = Thm.rep_thm th
+      val hyps = #hyps rep
+      val (tpairl,tpairr) = Library.split_list (#tpairs rep)
+      val prop = #prop rep 
+    in
+      List.foldr Term.add_term_names [] (prop :: (tpairl @ (tpairr @ hyps)))
+    end;
 
 (* read in a string and a top-level type and this will give back a term *) 
 fun readwty tstr tystr = 
@@ -460,11 +476,12 @@ fun readwty tstr tystr =
 (* FIXME: we should really check that there is a subterm on the lhs
 which embeds into the rhs, this would be much closer to the normal
 notion of valid wave rule - ie there exists at least one case where it
-is a valid wave rule... *)                                        
+is a valid wave rule... *)
 	fun is_not_valid_rwrule tysig (lhs, rhs) = 
-			(Pattern.matches_subterm tysig (lhs, rhs)) orelse
-			has_new_vars (lhs,rhs) orelse
-      has_new_typ_vars (lhs,rhs);
+      Term.is_Var (Term.head_of lhs) (* if lhs is essentially just a var *)
+      orelse has_new_vars (lhs,rhs) 
+      orelse has_new_typ_vars (lhs,rhs) 
+      orelse Pattern.matches_subterm tysig (lhs, rhs);
 
 
   (* first term contains the second in some name convertable way... *)
@@ -739,6 +756,8 @@ fun thms_of_prems_in_goal i tm=
     | bot_left_leaf_of (Abs(s,ty,t)) = bot_left_leaf_of t
     | bot_left_leaf_of x = x;
 
+  fun bot_left_leaf_noabs_of (l $ r) = bot_left_leaf_noabs_of l
+    | bot_left_leaf_noabs_of x = x;
 
 (* cleaned up normal form version of the subgoal terms conclusion *)
 fun cleaned_term_conc t = 
