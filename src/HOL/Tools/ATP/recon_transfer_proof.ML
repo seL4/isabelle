@@ -371,7 +371,7 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms=
                                           
                                          	   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
-                                         	   OS.Process.sleep(Time.fromSeconds 1) ; dummy_tac
+                                         	   Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
                                               end
                                               handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
 
@@ -382,7 +382,7 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms=
                                                   TextIO.flushOut toParent;
             					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
-                                         	  OS.Process.sleep(Time.fromSeconds 1) ;dummy_tac
+                                         	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
                                               end)
 
 
