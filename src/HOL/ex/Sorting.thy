@@ -2,11 +2,13 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
-
-Specification of sorting
 *)
 
-theory Sorting = Main + Multiset:
+header{*Sorting: Basic Theory*}
+
+theory Sorting
+imports Main Multiset
+begin
 
 consts
   sorted1:: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -19,22 +21,21 @@ primrec
 
 primrec
   "sorted le [] = True"
-  "sorted le (x#xs) = ((!y:set xs. le x y) & sorted le xs)"
+  "sorted le (x#xs) = ((\<forall>y \<in> set xs. le x y) & sorted le xs)"
 
 
 constdefs
   total  :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
-   "total r == (ALL x y. r x y | r y x)"
+   "total r == (\<forall>x y. r x y | r y x)"
   
   transf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
-   "transf f == (ALL x y z. f x y & f y z --> f x z)"
+   "transf f == (\<forall>x y z. f x y & f y z --> f x z)"
 
 
 
 (* Equivalence of two definitions of `sorted' *)
 
-lemma sorted1_is_sorted:
- "transf(le) ==> sorted1 le xs = sorted le xs";
+lemma sorted1_is_sorted: "transf(le) ==> sorted1 le xs = sorted le xs";
 apply(induct xs)
  apply simp
 apply(simp split: list.split)
@@ -42,9 +43,9 @@ apply(unfold transf_def);
 apply(blast)
 done
 
-lemma sorted_append[simp]:
- "sorted le (xs@ys) = (sorted le xs \<and> sorted le ys \<and>
-                       (\<forall>x \<in> set xs. \<forall>y \<in> set ys. le x y))"
+lemma sorted_append [simp]:
+ "sorted le (xs@ys) = 
+  (sorted le xs & sorted le ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. le x y))"
 by (induct xs, auto)
 
 end
