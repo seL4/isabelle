@@ -39,6 +39,9 @@ translations
   "x -1-> y" == "(x,y) \<in> contract"
   "x ---> y" == "(x,y) \<in> contract^*"
 
+syntax (xsymbols)
+  "op ##" :: "[comb,comb] => comb"  (infixl "\<bullet>" 90)
+
 inductive contract
   intros
     K:     "K##x##y -1-> x"
