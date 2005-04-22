@@ -34,6 +34,11 @@ DOC_CONTENT_FILE = Contents
 DOC_CONTENTS_MAIN = docu-contents.main
 DOC_CONTENTS_DIST = docu-contents.dist
 
+# --- target directories for publishing to web site
+MAIN_PUB_MIRROR_SRC=sunbroy2.informatik.tu-muenchen.de:/home/proj/isabelle-repository/www/
+MAIN_PUB_DEST=sunbroy2.informatik.tu-muenchen.de:/home/html/isabelle/html-data/
+DIST_PUB_DEST=sunbroy2.informatik.tu-muenchen.de:/home/html/isabelle/html-data/dist/
+
 # ---
 # --- begin rules
 
@@ -44,10 +49,19 @@ main:
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
 
+pub-main: main
+	@echo "Publishing main pages."
+	scp main/* $(MAIN_PUB_MIRROR_SRC)
+	scp main/* $(MAIN_PUB_DEST)
+
 dist:
 	@$(MKCONTENT) -p `cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
+
+pub-dist: dist
+	@echo "Publishing dist pages."
+	scp dist/*.html $(DIST_PUB_DEST)
 
 install: main dist
 	@cp -R dist/. ..
