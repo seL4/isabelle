@@ -1,6 +1,40 @@
 This file describes how to change and regenerate the Isabelle web pages.
+See the bottom of the file for a short overview of the setup.
 
-= Overview =
+== Changes to main ==
+
+To make changes to the content of the main pages:
+
+ * Edit or add the appropriate Admin/page/main-content/*.content files
+ * Run "make clean main" in Admin/page/
+ * Check generated html in Admin/page/main/
+ * Check changes in main-content into cvs
+ * Run "make pub-main" to publish to the Munich web site
+ * Run "mirror-main" in Cambridge to synchronize
+
+
+== Changes to dist ==
+
+These should be rare and are a bit more involved at the moment. The
+principle is the same as for the main pages, but the script needs
+access to the distribution files to calculate sizes etc:
+
+ * Edit or add the appropriate Admin/page/dist-content/*.content files
+ * Make sure the Isabelle package files are available in directory Admin/page.
+   On sunbroy2, the following does the trick (in directory Admin/page):
+   
+   ln -s /home/html/isabelle/html-data/dist/contrib
+   for f in /home/html/isabelle/html-data/dist/*.tar.gz; do ln -s $f; done
+ 
+ * Run "make clean dist" in Admin/page/
+ * Check generated html in Admin/page/dist/
+ * Check changes in dist-content into cvs
+ * Run "make pub-dist" to publish to the Munich web site 
+   (will only copy *.html files, will not update other distribution files)
+ * Run "mirror-dist" in Cambridge and notify other mirrors to synchronize
+
+
+== Overview ==
 
 The pages are separated into two sets:
  * main, for the main home page in Munich and Cambridge, and 
@@ -11,9 +45,9 @@ puts them into a common template.
 
 This is supposed to achieve the following:
  * separation of layout and content
- * automtic consistency between contents of distribution and web page,
-   including name of the distribution, file sizes of download packages, 
-   and documentation generated from isabelle/Doc
+ * automatic consistency between contents of distribution and web
+   page, including name of the distribution, file sizes of download
+   packages, and documentation generated from isabelle/Doc
 
 For this the web page generation script needs access to the following
 support files:
@@ -27,36 +61,3 @@ the Isabelle distribution is generated and maintained manually in
 between releases by the release manager in Admin/page in CVS. (In
 between releases Admin/page/Contents can be different from
 Distribution/doc/Contents)
-
-
-= Changes to main =
-
-To make changes to the content of the main pages:
-
- * Edit or add the appropriate Admin/page/main-content/*.content files
- * Run "make clean main"
- * Check generated html in Admin/page/main/
- * Check into cvs
- * Run "make pub-main" to publish to the Munich web site
- * Run "mirror-main" in Cambridge to synchronize
-
-
-= Changes to dist =
-
-These should be rare and is a bit more involved at the moment. The
-principle is the same as for the main pages, but the script needs
-access to the distribution files to calculate sizes etc:
-
- * Edit or add the appropriate Admin/page/dist-content/*.content files
- * Make sure the Isabelle package files are available in directory Admin/page.
-   On sunbroy2, the following does the trick:
-   
-   ln -s /home/html/isabelle/html-data/dist/contrib
-   for f in /home/html/isabelle/html-data/dist/*.tar.gz; do ln -s $f; done
- 
- * Run "make clean dist"
- * Check generated html in Admin/page/dist/
- * Check into cvs
- * Run "make pub-dist" to publish to the Munich web site 
-   (will only copy *.html files, will not update other distribution files)
- * Run "mirror-dist" in Cambridge and notify other mirrors to synchronize
