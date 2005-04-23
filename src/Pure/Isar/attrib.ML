@@ -481,16 +481,13 @@ end;
 
 (* internal attribute *)
 
-val attributeN = "attribute";
-fun attribute att = Args.src ((attributeN, [Args.mk_attribute att]), Position.none);
+fun attribute att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
 
 fun attribute_global x = (syntax (Scan.lift Args.internal_attribute >> #1)) x;
 fun attribute_local x = (syntax (Scan.lift Args.internal_attribute >> #2)) x;
 
 val _ = Context.add_setup
- [PureThy.global_path,
-  add_attributes [(attributeN, (attribute_global, attribute_local), "internal attribute")],
-  PureThy.local_path];
+ [add_attributes [("attribute", (attribute_global, attribute_local), "internal attribute")]];
 
 
 (* pure_attributes *)
