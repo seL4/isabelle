@@ -57,15 +57,13 @@ fun drop_last [] = []
   | drop_last [x] = []
   | drop_last (x :: xs) = x :: drop_last xs;
 
-val drop_last_char = implode o drop_last o explode;
-
 in
 
 fun use_text (print, err) verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
-    fun output () = drop_last_char (implode (rev (! out_buffer)));
+    fun output () = implode (drop_last (rev (! out_buffer)));
 
     fun get () =
       (case ! in_buffer of
@@ -82,6 +80,16 @@ fun use_text (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
+end;
+
+
+(*eval command line arguments*)
+local
+  fun println s =
+    (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
+  val eval = use_text (println, println) false;
+in
+  val _ = PolyML.onEntry (fn () => app eval (CommandLine.arguments ()));
 end;
 
 
