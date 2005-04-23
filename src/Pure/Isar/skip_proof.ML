@@ -29,22 +29,19 @@ val quick_and_dirty = ref false;
 
 (* oracle setup *)
 
-val skip_proofN = "skip_proof";
-
 exception SkipProof of term;
 
 fun skip_proof (_, SkipProof t) =
   if ! quick_and_dirty then t
   else error "Proof may be skipped in quick_and_dirty mode only!";
 
-val _ = Context.add_setup
- [PureThy.global_path, Theory.add_oracle (skip_proofN, skip_proof), PureThy.local_path];
+val _ = Context.add_setup [Theory.add_oracle ("skip_proof", skip_proof)];
 
 
 (* basic cheating *)
 
 fun make_thm thy t =
-  Thm.invoke_oracle_i thy skip_proofN (Theory.sign_of thy, SkipProof t);
+  Thm.invoke_oracle_i thy "Pure.skip_proof" (Theory.sign_of thy, SkipProof t);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
