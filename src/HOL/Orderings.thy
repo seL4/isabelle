@@ -39,7 +39,7 @@ syntax (HTML output)
 
 text{* Syntactic sugar: *}
 
-consts
+syntax
   "_gt" :: "'a::ord => 'a => bool"             (infixl ">" 50)
   "_ge" :: "'a::ord => 'a => bool"             (infixl ">=" 50)
 translations
