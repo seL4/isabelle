@@ -7,10 +7,13 @@ The global Isabelle/Isar outer syntax.
 
 signature BASIC_OUTER_SYNTAX =
 sig
-  val main: unit -> unit
-  val loop: unit -> unit
-  val sync_main: unit -> unit
-  val sync_loop: unit -> unit
+  structure Isar:
+    sig
+      val main: unit -> unit
+      val loop: unit -> unit
+      val sync_main: unit -> unit
+      val sync_loop: unit -> unit
+    end;
 end;
 
 signature OUTER_SYNTAX =
@@ -376,17 +379,19 @@ fun gen_main term no_pos =
   writeln (Session.welcome ());
   gen_loop term no_pos);
 
-fun main () = gen_main false false;
-fun loop () = gen_loop false false;
-fun sync_main () = gen_main true true;
-fun sync_loop () = gen_loop true true;
+structure Isar =
+struct
+  fun main () = gen_main false false;
+  fun loop () = gen_loop false false;
+  fun sync_main () = gen_main true true;
+  fun sync_loop () = gen_loop true true;
+end;
 
 
 (*final declarations of this structure!*)
 val command = parser false NONE;
 val markup_command = parser false o SOME;
 val improper_command = parser true NONE;
-
 
 end;
 
@@ -397,3 +402,4 @@ structure ThyLoad: THY_LOAD = ThyLoad;
 
 structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
 open BasicOuterSyntax;
+open Isar;
