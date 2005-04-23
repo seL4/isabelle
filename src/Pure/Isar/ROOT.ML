@@ -27,7 +27,6 @@ use "obtain.ML";
 use "skip_proof.ML";
 
 (*outer syntax*)
-(*use "outer_lex.ML";*)   (*see ../Thy/ROOT.ML*)
 use "antiquote.ML";
 use "outer_parse.ML";
 
@@ -45,40 +44,3 @@ use "isar_thy.ML";
 use "constdefs.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
-
-(*main ML interfaces*)
-use "isar.ML";
-
-structure PureIsar =
-struct
-  structure ObjectLogic = ObjectLogic;
-  structure AutoBind = AutoBind;
-  structure RuleCases = RuleCases;
-  structure ProofContext = ProofContext;
-  structure ContextRules = ContextRules;
-  structure Args = Args;
-  structure Attrib = Attrib;
-  structure Locale = Locale;
-  structure Proof = Proof;
-  structure ProofHistory = ProofHistory;
-  structure NetRules = NetRules;
-  structure InductAttrib = InductAttrib;
-  structure Method = Method;
-  structure Calculation = Calculation;
-  structure Obtain = Obtain;
-  structure SkipProof = SkipProof;
-  structure OuterLex = OuterLex;
-  structure Antiquote = Antiquote;
-  structure OuterParse = OuterParse;
-  structure Toplevel = Toplevel;
-  structure Session = Session;
-  structure IsarOutput = IsarOutput;
-  structure ThyHeader = ThyHeader;
-  structure OuterSyntax = OuterSyntax;
-  structure IsarThy = IsarThy;
-  structure Constdefs = Constdefs;
-  structure IsarCmd = IsarCmd;
-  structure IsarSyn = IsarSyn;
-  structure Isar = Isar;
-end;
-
