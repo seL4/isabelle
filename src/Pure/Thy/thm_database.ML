@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Interface to the theorem database.
+Theorem database ML interface.
 *)
 
 signature BASIC_THM_DATABASE =
