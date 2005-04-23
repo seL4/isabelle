@@ -14,6 +14,9 @@ sig
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
+  val tokentrans_mode: string -> (string * (string -> string * real)) list ->
+    (string * string * (string -> string * real)) list
+  val standard_token_classes: string list
 end;
 
 signature SYN_EXT =
@@ -70,6 +73,7 @@ sig
     (string * ((bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_tokentrfuns: (string * string * (string -> string * real)) list -> syn_ext
+  val standard_token_markers: string list
   val pure_ext: syn_ext
 end;
 
@@ -363,6 +367,16 @@ fun syn_ext_tokentrfuns trfuns = syn_ext [] [] ([], [], [], []) trfuns ([], []);
 fun stamp_trfun s (c, f) = (c, (f, s));
 fun mk_trfun tr = stamp_trfun (stamp ()) tr;
 fun eq_trfun ((_, s1:stamp), (_, s2)) = s1 = s2;
+
+
+(* token translations *)
+
+fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
+
+val standard_token_classes =
+  ["class", "tfree", "tvar", "free", "bound", "var", "num", "xnum", "xstr"];
+
+val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
 
 
 (* pure_ext *)
