@@ -595,7 +595,7 @@ fun method_setup (name, txt, cmt) =
     "val thm = PureThy.get_thm_closure (Context.the_context ());\n\
     \val thms = PureThy.get_thms_closure (Context.the_context ());\n\
     \val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
-    "PureIsar.Method.add_method method"
+    "Method.add_method method"
     ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
 
 

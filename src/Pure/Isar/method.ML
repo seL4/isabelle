@@ -488,11 +488,11 @@ fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
   (Context.use_mltext
-    ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
-     \let val thm = PureIsar.ProofContext.get_thm_closure ctxt o rpair NONE\n\
-     \  and thms = PureIsar.ProofContext.get_thms_closure ctxt o rpair NONE in\n"
+    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
+     \let val thm = ProofContext.get_thm_closure ctxt o rpair NONE\n\
+     \  and thms = ProofContext.get_thms_closure ctxt o rpair NONE in\n"
      ^ txt ^
-     "\nend in PureIsar.Method.set_tactic tactic end")
+     "\nend in Method.set_tactic tactic end")
     false NONE;
     Context.setmp (SOME (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
 
