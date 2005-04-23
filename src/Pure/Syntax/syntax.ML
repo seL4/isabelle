@@ -15,7 +15,6 @@ end;
 
 signature SYNTAX =
 sig
-  include TOKEN_TRANS0
   include AST1
   include LEXICON0
   include SYN_EXT0
@@ -500,9 +499,8 @@ fun remove_const_gram is_logtype prmode decls =
 
 
 
-(** export parts of internal Syntax structures **)
-
-open TokenTrans Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
+(*export parts of internal Syntax structures*)
+open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 end;
 

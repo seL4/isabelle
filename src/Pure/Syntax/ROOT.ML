@@ -6,7 +6,6 @@ This file builds the syntax module.
 *)
 
 use "lexicon.ML";
-use "token_trans.ML";
 use "ast.ML";
 use "syn_ext.ML";
 use "parser.ML";
@@ -18,7 +17,6 @@ use "syntax.ML";
 
 (*hiding private stuff*)
 structure Lexicon = Hidden;
-structure TokenTrans = Hidden;
 structure Ast = Hidden;
 structure SynExt = Hidden;
 structure Parser = Hidden;

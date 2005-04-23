@@ -220,7 +220,7 @@ val type_ext = syn_ext' false (K false)
    [],
    [],
    map SynExt.mk_trfun [("fun", fun_ast_tr')])
-  TokenTrans.token_translation
+  (map (fn s => ("", s, Output.output_width)) SynExt.standard_token_classes)
   ([], []);
 
 end;
