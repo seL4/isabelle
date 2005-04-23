@@ -18,16 +18,12 @@ that contain !! and ==>, especially in linear scripts. *}
 lemma meta_mp:
   assumes major: "PROP P ==> PROP Q" and minor: "PROP P"
   shows "PROP Q"
-proof -
-  show "PROP Q" by (rule major [OF minor])
-qed
+    by (rule major [OF minor])
 
 lemma meta_spec:
   assumes major: "!!x. PROP P(x)"
   shows "PROP P(x)"
-proof -
-  show "PROP P(x)" by (rule major)
-qed
+    by (rule major)
 
 lemmas meta_allE = meta_spec [elim_format]
 
