@@ -777,7 +777,7 @@ fun read_tyname sg raw_c =
   let val c = intern_tycon sg raw_c in
     (case Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c) of
       SOME (Type.LogicalType n, _) => Type (c, replicate n dummyT)
-    | NONE => raise TYPE ("Undeclared type constructor: " ^ quote c, [], []))
+    | _ => raise TYPE ("Undeclared type constructor: " ^ quote c, [], []))
   end;
 
 fun read_const sg raw_c =
@@ -1163,8 +1163,7 @@ fun merge_stamps stamps1 stamps2 =
   let val stamps = merge_lists' stamps1 stamps2 in
     (case duplicates (map ! stamps) of
       [] => stamps
-    | dups => raise TERM ("Attempt to merge different versions of theories "
-        ^ commas_quote dups, []))
+    | dups => error ("Attempt to merge different versions of theories " ^ commas_quote dups))
   end;
 
 
@@ -1175,7 +1174,7 @@ fun merge_refs (sgr1 as SgRef (SOME (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
       if subsig (sg2, sg1) then sgr1
       else if subsig (sg1, sg2) then sgr2
       else (merge_stamps s1 s2; (*check for different versions*)
-        raise TERM ("Attempt to do non-trivial merge of signatures", []))
+        error "Attempt to do non-trivial merge of signatures")
   | merge_refs _ = sys_error "Sign.merge_refs";
 
 val merge = deref o merge_refs o pairself self_ref;
