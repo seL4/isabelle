@@ -28,7 +28,7 @@ use "type.ML";
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
 
-(*core system*)
+(*core of tactical proof system*)
 use "type_infer.ML";
 use "sign.ML";
 use "envir.ML";
@@ -51,10 +51,31 @@ use "meta_simplifier.ML";
 use "tactic.ML";
 
 (*proof term operations*)
-cd "Proof"; use "ROOT.ML"; cd "..";
+use "Proof/reconstruct.ML";
+use "Proof/proof_syntax.ML";
+use "Proof/proof_rewrite_rules.ML";
+use "Proof/proofchecker.ML";
 
-(*theory system operations*)
-cd "Thy"; use "ROOT.ML"; cd "..";
+(*theory auto loader database*)
+use "Thy/thy_load.ML";
+use "Thy/thy_info.ML";
+
+(*theory syntax -- old format*)
+use "Thy/thy_scan.ML";
+use "Thy/thy_parse.ML";
+use "Thy/thy_syn.ML";
+
+(*theory syntax -- new format*)
+use "Isar/outer_lex.ML";
+
+(*theory presentation*)
+use "Thy/html.ML";
+use "Thy/latex.ML";
+use "Thy/present.ML";
+use "Thy/thm_deps.ML";
+
+(*theorem database ML interface*)
+use "Thy/thm_database.ML";
 
 (*the Isar subsystem*)
 cd "Isar"; use "ROOT.ML"; cd "..";
