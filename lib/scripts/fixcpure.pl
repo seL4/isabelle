@@ -15,7 +15,7 @@ sub fixcpure {
     $_ = $text;
 
     s/\bCPure\.thy\b/-THE-CPURE-THEORY-/sg;
-    s/\bCPure\.([A-Za-z])/Pure.$1/sg;
+    s/\bCPure\.([A-Za-z_\-])/Pure.$1/sg;
     s/-THE-CPURE-THEORY-/CPure.thy/sg;
 
     $result = $_;
