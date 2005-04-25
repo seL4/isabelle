@@ -1132,6 +1132,8 @@ proof -
   finally show ?thesis .
 qed
 
+(* FIXME: this is distributitivty, name as such! *)
+
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
@@ -2227,51 +2229,51 @@ constdefs
 text{* Before we can do anything, we need to show that @{text min} and
 @{text max} are ACI and the ordering is linear: *}
 
-interpretation min [rule del]: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation min: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:min_def)
 done
 
-interpretation min [rule del]: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation min: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation max [rule del]: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation max: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACf.intro)
 apply(auto simp:max_def)
 done
 
-interpretation max [rule del]: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
+interpretation max: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply(rule ACIf_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation min [rule del]:
+interpretation min:
   ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation min [rule del]:
+interpretation min:
   ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:min_def)
 done
 
-interpretation max [rule del]:
+interpretation max:
   ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation max [rule del]:
+interpretation max:
   ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
-interpretation min_max [rule del]:
+interpretation min_max:
   Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
 apply -
 apply(rule Min_def)
@@ -2279,13 +2281,9 @@ apply(rule Max_def)
 done
 
 
-interpretation min_max [rule del]:
+interpretation min_max:
   Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
 .
-
-text {* Classical rules from the locales are deleted in the above
-  interpretations, since they interfere with the claset setup for
-  @{text "op \<le>"}. *}
 
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}

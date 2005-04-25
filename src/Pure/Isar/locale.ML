@@ -141,22 +141,186 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 
 
 
-(** theory data **)
+(** term and type instantiation, using symbol tables **)
 
-structure Termlisttab = TableFun(type key = term list
-  val ord = Library.list_ord Term.term_ord);
+(* instantiate TFrees *)
+
+fun tinst_tab_type tinst T = if Symtab.is_empty tinst
+      then T
+      else Term.map_type_tfree
+        (fn (v as (x, _)) => getOpt (Symtab.lookup (tinst, x), (TFree v))) T;
+
+fun tinst_tab_term tinst t = if Symtab.is_empty tinst
+      then t
+      else Term.map_term_types (tinst_tab_type tinst) t;
+
+fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
+      then thm
+      else let
+          val cert = Thm.cterm_of sg;
+          val certT = Thm.ctyp_of sg;
+          val {hyps, prop, ...} = Thm.rep_thm thm;
+          val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
+          val tinst' = Symtab.dest tinst |>
+                List.filter (fn (a, _) => a mem_string tfrees);
+        in
+          if null tinst' then thm
+          else thm |> Drule.implies_intr_list (map cert hyps)
+            |> Drule.tvars_intr_list (map #1 tinst')
+            |> (fn (th, al) => th |> Thm.instantiate
+                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
+                  []))
+            |> (fn th => Drule.implies_elim_list th
+                 (map (Thm.assume o cert o tinst_tab_term tinst) hyps))
+        end;
+
+
+(* instantiate TFrees and Frees *)
+
+fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
+      then tinst_tab_term tinst
+      else (* instantiate terms and types simultaneously *)
+        let
+          fun instf (Const (x, T)) = Const (x, tinst_tab_type tinst T)
+            | instf (Free (x, T)) = (case Symtab.lookup (inst, x) of
+                 NONE => Free (x, tinst_tab_type tinst T)
+               | SOME t => t)
+            | instf (Var (xi, T)) = Var (xi, tinst_tab_type tinst T)
+            | instf (b as Bound _) = b
+            | instf (Abs (x, T, t)) = Abs (x, tinst_tab_type tinst T, instf t)
+            | instf (s $ t) = instf s $ instf t
+        in instf end;
+
+fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
+      then tinst_tab_thm sg tinst thm
+      else let
+          val cert = Thm.cterm_of sg;
+          val certT = Thm.ctyp_of sg;
+          val {hyps, prop, ...} = Thm.rep_thm thm;
+          (* type instantiations *)
+          val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
+          val tinst' = Symtab.dest tinst |>
+                List.filter (fn (a, _) => a mem_string tfrees);
+          (* term instantiations;
+             note: lhss are type instantiated, because
+                   type insts will be done first*)
+          val frees = foldr Term.add_term_frees [] (prop :: hyps);
+          val inst' = Symtab.dest inst |>
+                List.mapPartial (fn (a, t) =>
+                  get_first (fn (Free (x, T)) => 
+                    if a = x then SOME (Free (x, tinst_tab_type tinst T), t)
+                    else NONE) frees);
+        in
+          if null tinst' andalso null inst' then tinst_tab_thm sg tinst thm
+          else thm |> Drule.implies_intr_list (map cert hyps)
+            |> Drule.tvars_intr_list (map #1 tinst')
+            |> (fn (th, al) => th |> Thm.instantiate
+                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
+                  []))
+            |> Drule.forall_intr_list (map (cert o #1) inst')
+            |> Drule.forall_elim_list (map (cert o #2) inst') 
+            |> (fn th => Drule.implies_elim_list th
+                 (map (Thm.assume o cert o inst_tab_term (inst, tinst)) hyps))
+        end;
+
+
+(** registration management **)
+
+structure Registrations :
+  sig
+    type T
+    val empty: T
+    val join: T * T -> T
+    val dest: T -> (term list * ((string * Attrib.src list) * thm list)) list
+    val lookup: Sign.sg -> T * term list ->
+      ((string * Attrib.src list) * thm list) option
+    val insert: Sign.sg -> term list * (string * Attrib.src list) -> T ->
+      T * (term list * ((string * Attrib.src list) * thm list)) list
+    val add_witness: term list -> thm -> T -> T
+  end =
+struct
+  (* a registration consists of theorems instantiating locale assumptions
+     and prefix and attributes, indexed by parameter instantiation *)
+  type T = ((string * Attrib.src list) * thm list) Termtab.table;
+
+  val empty = Termtab.empty;
+
+  (* term list represented as single term, for simultaneous matching *)
+  fun termify ts =
+    Library.foldl (op $) (Const ("", map fastype_of ts ---> propT), ts);
+  fun untermify t =
+    let fun ut (Const _) ts = ts
+          | ut (s $ t) ts = ut s (t::ts)
+    in ut t [] end;
+
+  (* joining of registrations: prefix and attributs of left theory,
+     thms are equal, no attempt to subsumption testing *)
+  val join = Termtab.join (fn (reg, _) => SOME reg);
+
+  fun dest regs = map (apfst untermify) (Termtab.dest regs);
+
+  (* registrations that subsume t *)
+  fun subsumers tsig t regs =
+    List.filter (fn (t', _) => Pattern.matches tsig (t', t)) (Termtab.dest regs);
+
+  (* look up registration, pick one that subsumes the query *)
+  fun lookup sign (regs, ts) =
+    let
+      val tsig = Sign.tsig_of sign;
+      val t = termify ts;
+      val subs = subsumers tsig t regs;
+    in (case subs of
+        [] => NONE
+      | ((t', (attn, thms)) :: _) => let
+            val (tinst, inst) = Pattern.match tsig (t', t);
+            (* thms contain Frees, not Vars *)
+            val tinst' = tinst |> Vartab.dest
+                 |> map (fn ((x, 0), (_, T)) => (x, Type.unvarifyT T))
+                 |> Symtab.make;
+            val inst' = inst |> Vartab.dest
+                 |> map (fn ((x, 0), (_, t)) => (x, Logic.unvarify t))
+                 |> Symtab.make;
+          in
+            SOME (attn, map (inst_tab_thm sign (inst', tinst')) thms)
+          end)
+    end;
+
+  (* add registration if not subsumed by ones already present,
+     additionally returns registrations that are strictly subsumed *)
+  fun insert sign (ts, attn) regs =
+    let
+      val tsig = Sign.tsig_of sign;
+      val t = termify ts;
+      val subs = subsumers tsig t regs ;
+    in (case subs of
+        [] => let
+                val sups =
+                  List.filter (fn (t', _) => Pattern.matches tsig (t, t')) (Termtab.dest regs);
+                val sups' = map (apfst untermify) sups
+              in (Termtab.update ((t, (attn, [])), regs), sups') end
+      | _ => (regs, []))
+    end;
+
+  (* add witness theorem to registration,
+     only if instantiation is exact, otherwise excpetion Option raised *)
+  fun add_witness ts thm regs =
+    let
+      val t = termify ts;
+      val (x, thms) = valOf (Termtab.lookup (regs, t));
+    in
+      Termtab.update ((t, (x, thm::thms)), regs)
+    end;
+end;
+
+(** theory data **)
 
 structure GlobalLocalesArgs =
 struct
   val name = "Isar/locales";
-  type T = NameSpace.T * locale Symtab.table *
-      ((string * Attrib.src list) * thm list) Termlisttab.table
-        Symtab.table;
+  type T = NameSpace.T * locale Symtab.table * Registrations.T Symtab.table;
     (* 1st entry: locale namespace,
        2nd entry: locales of the theory,
-       3rd entry: registrations: theorems instantiating locale assumptions,
-         with prefix and attributes, indexed by locale name and parameter
-         instantiation *)
+       3rd entry: registrations, indexed by locale name *)
 
   val empty = (NameSpace.empty, Symtab.empty, Symtab.empty);
   val copy = I;
@@ -167,12 +331,9 @@ struct
     SOME {predicate = predicate, import = import,
       elems = gen_merge_lists eq_snd elems elems',
       params = params};
-  (* joining of registrations: prefix and attributes of left theory,
-     thmsss are equal *)
-  fun join_regs (reg, _) = SOME reg;
   fun merge ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
-     Symtab.join (SOME o Termlisttab.join join_regs) (regs1, regs2));
+     Symtab.join (SOME o Registrations.join) (regs1, regs2));
 
   fun print _ (space, locs, _) =
     Pretty.strs ("locales:" :: map (NameSpace.cond_extern space o #1) (Symtab.dest locs))
@@ -189,11 +350,8 @@ val _ = Context.add_setup [GlobalLocalesData.init];
 structure LocalLocalesArgs =
 struct
   val name = "Isar/locales";
-  type T = ((string * Args.src list) * thm list) Termlisttab.table
-           Symtab.table;
-    (* registrations: theorems instantiating locale assumptions,
-         with prefix and attributes, indexed by locale name and parameter
-         instantiation *)
+  type T = Registrations.T Symtab.table;
+    (* registrations, indexed by locale name *)
   fun init _ = Symtab.empty;
   fun print _ _ = ();
 end;
@@ -236,22 +394,22 @@ fun the_locale thy name =
 fun gen_get_registrations get thy_ctxt name =
   case Symtab.lookup (get thy_ctxt, name) of
       NONE => []
-    | SOME tab => Termlisttab.dest tab;
+    | SOME reg => Registrations.dest reg;
 
 val get_global_registrations =
      gen_get_registrations (#3 o GlobalLocalesData.get);
 val get_local_registrations =
      gen_get_registrations LocalLocalesData.get;
 
-fun gen_get_registration get thy_ctxt (name, ps) =
+fun gen_get_registration get get_sg thy_ctxt (name, ps) =
   case Symtab.lookup (get thy_ctxt, name) of
       NONE => NONE
-    | SOME tab => Termlisttab.lookup (tab, ps);
+    | SOME reg => Registrations.lookup (get_sg thy_ctxt) (reg, ps);
 
 val get_global_registration =
-     gen_get_registration (#3 o GlobalLocalesData.get);
+     gen_get_registration (#3 o GlobalLocalesData.get) Theory.sign_of;
 val get_local_registration =
-     gen_get_registration LocalLocalesData.get;
+     gen_get_registration LocalLocalesData.get ProofContext.sign_of;
 
 val test_global_registration = isSome oo get_global_registration;
 val test_local_registration = isSome oo get_local_registration;
@@ -263,24 +421,31 @@ fun smart_test_registration ctxt id =
   end;
 
 
-(* add registration to theory or context, ignored if already present *)
+(* add registration to theory or context, ignored if subsumed *)
 
-fun gen_put_registration map (name, ps) attn =
-  map (fn regs =>
-      let
-        val tab = getOpt (Symtab.lookup (regs, name), Termlisttab.empty);
-      in
-        Symtab.update ((name, Termlisttab.update_new ((ps, (attn, [])), tab)),
-          regs)
-      end handle Termlisttab.DUP _ => regs);
+fun gen_put_registration map_data get_sg (name, ps) attn thy_ctxt =
+  map_data (fn regs =>
+    let
+      val sg = get_sg thy_ctxt;
+      val reg = getOpt (Symtab.lookup (regs, name), Registrations.empty);
+      val (reg', sups) = Registrations.insert sg (ps, attn) reg;
+      val _ = if not (null sups) then warning
+                ("Subsumed interpretation(s) of locale " ^
+                 quote (cond_extern sg name) ^
+                 "\nby interpretation(s) with the following prefix(es):\n" ^
+                  commas_quote (map (fn (_, ((s, _), _)) => s) sups))
+              else ();
+    in Symtab.update ((name, reg'), regs) end) thy_ctxt;
 
 val put_global_registration =
      gen_put_registration (fn f =>
        GlobalLocalesData.map (fn (space, locs, regs) =>
-         (space, locs, f regs)));
-val put_local_registration = gen_put_registration LocalLocalesData.map;
+         (space, locs, f regs))) Theory.sign_of;
+val put_local_registration =
+     gen_put_registration LocalLocalesData.map ProofContext.sign_of;
 
 (* TODO: needed? *)
+(*
 fun smart_put_registration id attn ctxt =
   (* ignore registration if already present in theory *)
      let
@@ -289,7 +454,7 @@ fun smart_put_registration id attn ctxt =
           NONE => put_local_registration id attn ctxt
         | SOME _ => ctxt
      end;
-
+*)
 
 (* add witness theorem to registration in theory or context,
    ignored if registration not present *)
@@ -297,11 +462,9 @@ fun smart_put_registration id attn ctxt =
 fun gen_add_witness map (name, ps) thm =
   map (fn regs =>
       let
-        val tab = valOf (Symtab.lookup (regs, name));
-        val (x, thms) = valOf (Termlisttab.lookup (tab, ps));
+        val reg = valOf (Symtab.lookup (regs, name));
       in
-        Symtab.update ((name, Termlisttab.update ((ps, (x, thm::thms)), tab)),
-          regs)
+        Symtab.update ((name, Registrations.add_witness ps thm reg), regs)
       end handle Option => regs);
 
 val add_global_witness =
@@ -342,9 +505,10 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
     fun prt_inst (ts, (("", []), thms)) =
           Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))
       | prt_inst (ts, ((prfx, atts), thms)) =
-          Pretty.block (Pretty.breaks
-            (Pretty.str prfx :: prt_atts atts @ [Pretty.str ":", Pretty.brk 1,
-              Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))]));
+          Pretty.block (
+            (Pretty.breaks (Pretty.str prfx :: prt_atts atts) @
+              [Pretty.str ":", Pretty.brk 1,
+                Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))]));
 
     val loc_int = intern sg loc;
     val regs = get_regs thy_ctxt;
@@ -353,7 +517,7 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
     (case loc_regs of
         NONE => Pretty.str ("No interpretations in " ^ msg ^ ".")
       | SOME r => let
-            val r' = Termlisttab.dest r;
+            val r' = Registrations.dest r;
             val r'' = Library.sort_wrt (fn (_, ((prfx, _), _)) => prfx) r';
           in Pretty.big_list ("Interpretations in " ^ msg ^ ":")
             (map prt_inst r'')
@@ -514,85 +678,10 @@ fun inst_elem ctxt env =
 
 (* instantiate TFrees *)
 
-fun tinst_tab_type tinst T = if Symtab.is_empty tinst
-      then T
-      else Term.map_type_tfree
-        (fn (v as (x, _)) => getOpt (Symtab.lookup (tinst, x), (TFree v))) T;
-
-fun tinst_tab_term tinst t = if Symtab.is_empty tinst
-      then t
-      else Term.map_term_types (tinst_tab_type tinst) t;
-
-fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
-      then thm
-      else let
-          val cert = Thm.cterm_of sg;
-          val certT = Thm.ctyp_of sg;
-          val {hyps, prop, ...} = Thm.rep_thm thm;
-          val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
-          val tinst' = Symtab.dest tinst |>
-                List.filter (fn (a, _) => a mem_string tfrees);
-        in
-          if null tinst' then thm
-          else thm |> Drule.implies_intr_list (map cert hyps)
-            |> Drule.tvars_intr_list (map #1 tinst')
-            |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
-                  []))
-            |> (fn th => Drule.implies_elim_list th
-                 (map (Thm.assume o cert o tinst_tab_term tinst) hyps))
-        end;
-
 fun tinst_tab_elem sg tinst =
   map_values (tinst_tab_type tinst) (tinst_tab_term tinst) (tinst_tab_thm sg tinst);
 
 (* instantiate TFrees and Frees *)
-
-fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
-      then tinst_tab_term tinst
-      else (* instantiate terms and types simultaneously *)
-        let
-          fun instf (Const (x, T)) = Const (x, tinst_tab_type tinst T)
-            | instf (Free (x, T)) = (case Symtab.lookup (inst, x) of
-                 NONE => Free (x, tinst_tab_type tinst T)
-               | SOME t => t)
-            | instf (Var (xi, T)) = Var (xi, tinst_tab_type tinst T)
-            | instf (b as Bound _) = b
-            | instf (Abs (x, T, t)) = Abs (x, tinst_tab_type tinst T, instf t)
-            | instf (s $ t) = instf s $ instf t
-        in instf end;
-
-fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
-      then tinst_tab_thm sg tinst thm
-      else let
-          val cert = Thm.cterm_of sg;
-          val certT = Thm.ctyp_of sg;
-          val {hyps, prop, ...} = Thm.rep_thm thm;
-          (* type instantiations *)
-          val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
-          val tinst' = Symtab.dest tinst |>
-                List.filter (fn (a, _) => a mem_string tfrees);
-          (* term instantiations;
-             note: lhss are type instantiated, because
-                   type insts will be done first*)
-          val frees = foldr Term.add_term_frees [] (prop :: hyps);
-          val inst' = Symtab.dest inst |>
-                List.mapPartial (fn (a, t) =>
-                  get_first (fn (Free (x, T)) => 
-                    if a = x then SOME (Free (x, tinst_tab_type tinst T), t)
-                    else NONE) frees);
-        in
-          if null tinst' andalso null inst' then tinst_tab_thm sg tinst thm
-          else thm |> Drule.implies_intr_list (map cert hyps)
-            |> Drule.tvars_intr_list (map #1 tinst')
-            |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
-                  []))
-            |> Drule.forall_intr_list (map (cert o #1) inst')
-            |> Drule.forall_elim_list (map (cert o #2) inst') 
-            |> (fn th => Drule.implies_elim_list th
-                 (map (Thm.assume o cert o inst_tab_term (inst, tinst)) hyps))
-        end;
 
 fun inst_tab_elem sg (inst as (_, tinst)) =
   map_values (tinst_tab_type tinst) (inst_tab_term inst) (inst_tab_thm sg inst);
@@ -1963,7 +2052,8 @@ fun gen_activate_facts_elemss get_reg note_thmss attrib standard
                 handle Option => error ("(internal) unknown registration of " ^
                   quote (fst id) ^ " while activating facts.")) all_elemss);
       in Library.foldl (activate_facts_elems get_reg note_thmss attrib
-        (standard o Drule.satisfy_hyps prems)) (thy_ctxt, new_elemss) end;
+        (Drule.standard o Drule.fconv_rule (Thm.beta_conversion true) o
+          Drule.satisfy_hyps prems)) (thy_ctxt, new_elemss) end;
 
 val global_activate_facts_elemss = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>

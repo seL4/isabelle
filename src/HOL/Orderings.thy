@@ -93,7 +93,7 @@ axclass order < ord
 
 text{* Connection to locale: *}
 
-interpretation order[rule del]:
+interpretation order:
   partial_order["op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool"]
 apply(rule partial_order.intro)
 apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym)
@@ -225,16 +225,6 @@ subsection "Linear / total orders"
 
 axclass linorder < order
   linorder_linear: "x <= y | y <= x"
-
-(* Could (should?) follow automatically from the interpretation of
-   partial_order by class order. rule del is needed because two copies
-   of refl with classes order and linorder confuse blast (and are pointless)*)
-interpretation order[rule del]:
-  partial_order["op \<le> :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> bool"]
-apply(rule partial_order.intro)
-apply(rule order_refl, erule (1) order_trans, erule (1) order_antisym)
-done
-
 
 lemma linorder_less_linear: "!!x::'a::linorder. x<y | x=y | y<x"
   apply (simp add: order_less_le)
@@ -392,7 +382,7 @@ subsection "Min and max on (linear) orders"
 
 text{* Instantiate locales: *}
 
-interpretation min_max [rule del]:
+interpretation min_max:
   lower_semilattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply -
 apply(rule lower_semilattice_axioms.intro)
@@ -401,7 +391,7 @@ apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 done
 
-interpretation min_max [rule del]:
+interpretation min_max:
   upper_semilattice["op \<le>" "max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
 apply -
 apply(rule upper_semilattice_axioms.intro)
@@ -410,11 +400,11 @@ apply(simp add: max_def linorder_not_le order_less_imp_le)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 done
 
-interpretation min_max [rule del]:
+interpretation min_max:
   lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
 .
 
-interpretation min_max [rule del]:
+interpretation min_max:
   distrib_lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
 apply(rule distrib_lattice_axioms.intro)
 apply(rule_tac x=x and y=y in linorder_le_cases)

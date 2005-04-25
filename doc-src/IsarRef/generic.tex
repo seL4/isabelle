@@ -296,6 +296,12 @@ This requires a proof of the instantiated specification and is called
   
 \end{descr}
 
+\begin{warn}
+  Since attributes are applied to interpreted theorems, interpretation
+  may modify the current simpset and claset.  Take this into
+  account when choosing attributes for local theorems.
+\end{warn}
+
 
 \section{Derived proof schemes}
 

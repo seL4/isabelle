@@ -24,8 +24,8 @@ locale M = fixes a and b and c
 
 interpretation test [simp]: L + M a b c [x y z] .
 
-print_interps L
-print_interps M
+print_interps L    (* output: test *)
+print_interps M    (* output: test *)
 
 interpretation test [simp]: L print_interps M .
 
@@ -52,9 +52,9 @@ typedecl i
 arities i :: "term"
 
 
-interpretation p1: C ["X::'b" "Y::'b"] by (auto intro: A.intro C_axioms.intro)
+interpretation p1: C ["X::i" "Y::i"] by (auto intro: A.intro C_axioms.intro)
 
-print_interps A
+print_interps A  (* output: p1 *)
 
 (* possible accesses *)
 thm p1.a.asm_A thm LocaleTest.p1.a.asm_A
@@ -63,70 +63,69 @@ thm p1.asm_A thm LocaleTest.p1.asm_A
 
 (* without prefix *)
 
-interpretation C ["W::'b" "Z::'b"] by (auto intro: A.intro C_axioms.intro)
+interpretation C ["W::i" "Z::i"] .  (* subsumed by p1: C *)
+interpretation C ["W::'a" "Z::i"] by (auto intro: A.intro C_axioms.intro)
+  (* subsumes p1: A and p1: C *)
 
-print_interps A
+
+print_interps A  (* output: <no prefix>, p1 *)
 
 (* possible accesses *)
-thm a.asm_A thm asm_A thm LocaleTest.a.asm_A thm LocaleTest.asm_A
+thm asm_C thm a_b.asm_C thm LocaleTest.a_b.asm_C thm LocaleTest.a_b.asm_C
 
 
-interpretation p2: D [X Y "Y = X"] by (auto intro: A.intro simp: eq_commute)
+interpretation p2: D [X "Y::i" "Y = X"] by (simp add: eq_commute)
 
-print_interps D
+print_interps A  (* output: <no prefix>, p1 *)
+print_interps D  (* output: p2 *)
 
-thm p2.a.asm_A
 
-
-interpretation p3: D [X Y] .
+interpretation p3: D [X "Y::i"] .
 
 (* duplicate: not registered *)
 
 (* thm p3.a.asm_A *)
 
 
-print_interps A
-print_interps B
-print_interps C
-print_interps D
+print_interps A  (* output: <no prefix>, p1 *)
+print_interps B  (* output: p1 *)
+print_interps C  (* output: <no name>, p1 *)
+print_interps D  (* output: p2, p3 *)
 
-(* not permitted
-
+(* schematic vars in instantiation not permitted *)
+(*
 interpretation p4: A ["?x::?'a1"] apply (rule A.intro) apply rule done
-
 print_interps A
 *)
 
-interpretation p10: D + D a' b' d' [X Y _ U V _] by (auto intro: A.intro)
+interpretation p10: D + D a' b' d' [X "Y::i" _ U "V::i" _] .
 
 corollary (in D) th_x: True ..
 
 (* possible accesses: for each registration *)
 
-thm p2.th_x thm p3.th_x thm p10.th_x
+thm p2.th_x thm p3.th_x
 
 lemma (in D) th_y: "d == (a = b)" .
 
-thm p2.th_y thm p3.th_y thm p10.th_y
+thm p2.th_y thm p3.th_y
 
 lemmas (in D) th_z = th_y
 
 thm p2.th_z
 
-thm asm_A
-
 section {* Interpretation in proof contexts *}
 
 theorem True
 proof -
-  fix alpha::i and beta::i and gamma::i
+  fix alpha::i and beta::'a and gamma::i
+  (* FIXME: omitting type of beta leads to error later at interpret p6 *)
   have alpha_A: "A(alpha)" by (auto intro: A.intro)
-  then interpret p5: A [alpha] .
-  print_interps A
-  thm p5.asm_A
+  interpret p5: A [alpha] .  (* subsumed *)
+  print_interps A  (* output: <no prefix>, p1 *)
   interpret p6: C [alpha beta] by (auto intro: C_axioms.intro)
-  print_interps A   (* p6 not added! *)
-  print_interps C
+  print_interps A   (* output: <no prefix>, p1 *)
+  print_interps C   (* output: <no prefix>, p1, p6 *)
 qed rule
 
 theorem (in A) True
