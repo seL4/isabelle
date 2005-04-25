@@ -33,4 +33,7 @@ For Isabelle2005:
   See http://afp.sourceforge.net/browser_info/current/HOL/HOL-Complex/Integration/SetsumThms.html
   (Markus?)
 
+- Allow sorts in typedef:  typedef ('a::mysort)t = ...
+  (low priority)
+
 - remove this file (Tobias)
