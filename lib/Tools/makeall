@@ -7,7 +7,7 @@
 
 ## global settings
 
-ALL_LOGICS="Pure CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
+ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
 
 
 ## diagnostics
