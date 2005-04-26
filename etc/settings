@@ -48,13 +48,13 @@ fi
 
 # Standard ML of New Jersey 110 or later
 #ML_SYSTEM=smlnj-110
-#ML_HOME="/usr/local/smlnj/bin"
+#ML_HOME="$ISABELLE_HOME/contrib/smlnj/bin"
 #ML_OPTIONS="@SMLdebug=/dev/null"
 #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 
 # Moscow ML 2.00 or later (experimental!)
 #ML_SYSTEM=mosml
-#ML_HOME="$ISABELLE_HOME/../mosml/bin"
+#ML_HOME="$ISABELLE_HOME/contrib/mosml/bin"
 #ML_PLATFORM=""
 #ML_OPTIONS=""
 
@@ -120,14 +120,14 @@ ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 
 # Heap output location. ML system identifier is appended automatically later on.
-#if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
-#  Isabelle build tells us to store heaps etc. within the distribution.
- # ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
- # ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
-#else
+if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
+  #Isabelle build tells us to store heaps etc. within the distribution.
+  ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
+  ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
+else
   ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
-#fi
+fi
 
 # Site settings check -- just to make it a little bit harder to copy this file!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
@@ -182,7 +182,6 @@ ISAMODE_OPTIONS=""
 
 # Proof General path, look in a variety of places
 ISABELLE_INTERFACE=$(choosefrom\
-  "/homes/clq20/IsabelleCVS/isabelle/ProofGeneral/isar/interface"\
   "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
   "/usr/share/ProofGeneral/isar/interface" \
