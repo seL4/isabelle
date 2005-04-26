@@ -23,6 +23,7 @@ sig
     -> thm list -> tactic option -> theory -> theory
   val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
+  val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
   val axclass_tac: thm list -> tactic
   val instance_subclass_proof: xclass * xclass -> bool -> theory -> ProofHistory.T
