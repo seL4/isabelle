@@ -255,7 +255,7 @@ struct
 
   (* joining of registrations: prefix and attributs of left theory,
      thms are equal, no attempt to subsumption testing *)
-  val join = Termtab.join (fn (reg, _) => SOME reg);
+  fun join x = Termtab.join (fn (reg, _) => SOME reg) x;
 
   fun dest regs = map (apfst untermify) (Termtab.dest regs);
 
