@@ -28,6 +28,7 @@ function check_file()
 
 ## Poly/ML programs
 
+FEEDER=""
 ML_DBASE_PREFIX=""
 POLY="$ML_HOME/poly"
 check_file "$POLY"
@@ -53,6 +54,8 @@ case "$ML_SYSTEM" in
     EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
     ;;
   *)
+    FEEDER=true
+
     if [ -z "$ML_DBASE" ]; then
       ML_DBASE="$ML_HOME/ML_dbase"
     fi
@@ -69,11 +72,12 @@ esac
 ## prepare databases
 
 if [ -z "$INFILE" ]; then
+  FEEDER=true
   check_file "$ML_DBASE_PREFIX$ML_DBASE"
   INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
   [ "$ML_SYSTEM" = polyml-4.1.3 ] && \
-    DISCGARB_OPTIONS="$DISCGARB_OPTIONS -Smax"
+    DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S max"
   [ "$ML_SYSTEM" = polyml-4.1.1 -o "$ML_SYSTEM" = polyml-4.1.2 ] && \
     DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 180"
 else
@@ -82,7 +86,7 @@ fi
 
 if [ -z "$OUTFILE" ]; then
   DB="$INFILE"
-  ML_OPTIONS="-r $ML_OPTIONS"  
+  ML_OPTIONS="-r $ML_OPTIONS"
 elif [ "$INFILE" -ef "$OUTFILE" ]; then
   DB="$INFILE"
 elif [ -n "$COPYDB" ]; then
@@ -100,16 +104,17 @@ fi
 
 ## run it!
 
-if [ -z "$TERMINATE" ]; then
-  FEEDER_OPTS=""
-else
-  FEEDER_OPTS="-q"
-fi
-
 DB_INFO=$(ls -l "$DB" 2>/dev/null)
 
-"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" $FEEDER_OPTS | \
-  { read FPID; "$POLY" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+if [ -n "$TERMINATE" ]; then
+  echo "$MLTEXT" | "$POLY" $ML_OPTIONS "$DB"
+elif [ -n "$FEEDER" ]; then
+  "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" | \
+    { read FPID; "$POLY" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+else
+  "$POLY" $ML_OPTIONS "$DB" -- "$MLTEXT"
+fi
+
 RC="$?"
 
 
