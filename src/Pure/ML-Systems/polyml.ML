@@ -87,7 +87,7 @@ end;
 local
   fun println s =
     (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
-  val eval = use_text (println, println) false;
+  val eval = use_text (println, println) true;
 in
   val _ = PolyML.onEntry (fn () => app eval (CommandLine.arguments ()));
 end;
@@ -165,7 +165,7 @@ fun getenv var =
   | SOME txt => txt);
 
 
-(* profiling: version that works even with 
+(* profiling: version that works even with
 ML{*profiling 1*}
 apply \\<dots>
 ML{*profiling 0*}
@@ -183,18 +183,16 @@ struct
   structure IO =
   struct
   open OriginalIO
-  val mkTextReader = mkReader 
-  val mkTextWriter = mkWriter 
+  val mkTextReader = mkReader
+  val mkTextWriter = mkWriter
   end;
 end;
 
-(** This extension of the Poly/ML Signal structure is only necessary
-    because in SML/NJ, types Posix.Signal.signal and Signals.signal differ.**)
-
+(*This extension of the Poly/ML Signal structure is only necessary
+  because in SML/NJ, types Posix.Signal.signal and Signals.signal differ.*)
 structure IsaSignal =
 struct
-open Signal
-val usr1 = Posix.Signal.usr1 
-val usr2 = Posix.Signal.usr2 
+  open Signal
+  val usr1 = Posix.Signal.usr1
+  val usr2 = Posix.Signal.usr2
 end;
-
