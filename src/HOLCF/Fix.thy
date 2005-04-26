@@ -9,7 +9,7 @@ definitions for fixed point operator and admissibility
 header {* Fixed point operator and admissibility *}
 
 theory Fix
-imports Cfun
+imports Cfun Cprod
 begin
 
 consts
@@ -34,6 +34,21 @@ adm_def:       "adm P == !Y. chain(Y) -->
 
 admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
+
+text {* Binder syntax for @{term fix} *}
+
+syntax
+  "@FIX" :: "('a => 'a) => 'a"  (binder "FIX " 10)
+  "@FIXP" :: "[patterns, 'a] => 'a"  ("(3FIX <_>./ _)" [0, 10] 10)
+
+syntax (xsymbols)
+  "FIX " :: "[idt, 'a] => 'a"  ("(3\<mu>_./ _)" [0, 10] 10)
+  "@FIXP" :: "[patterns, 'a] => 'a"  ("(3\<mu>()<_>./ _)" [0, 10] 10)
+
+translations
+  "FIX x. LAM y. t" == "fix\<cdot>(LAM x y. t)"
+  "FIX x. t" == "fix\<cdot>(LAM x. t)"
+  "FIX <xs>. t" == "fix\<cdot>(LAM <xs>. t)"
 
 text {* derive inductive properties of iterate from primitive recursion *}
 
