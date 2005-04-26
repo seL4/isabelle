@@ -13,7 +13,7 @@ set -o allexport
 ISABELLE_SETTINGS_PRESENT=true
 
 #normalize ISABELLE_HOME as passed by caller
-ISABELLE_HOME=$(cd "$ISABELLE_HOME"; echo "$PWD")
+ISABELLE_HOME=$(cd "$ISABELLE_HOME"; pwd)
 if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
 then
   echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems later on!"
