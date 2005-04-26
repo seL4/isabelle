@@ -344,18 +344,21 @@ New in this Isabelle release
 
 *** System ***
 
-* HOL: isatool dimacs2hol converts files in DIMACS CNF format
-  (containing Boolean satisfiability problems) into Isabelle/HOL
-  theories.
+* Allow symlinks to all proper Isabelle executables (Isabelle,
+  isabelle, isatool etc.).
+
+* isabelle-process: Poly/ML no longer needs Perl to run an interactive
+  session.
+
+* ISABELLE_DOC_FORMAT setting specifies preferred document format (for
+  isatool doc, isatool mkdir, display_drafts etc.).
 
 * isatool usedir: option -f allows specification of the ML file to be
   used by Isabelle; default is ROOT.ML.
 
-* symlinks to Isabelle, isabelle, isabelle-interface and isabelle-process
-  are allowed; isabelle directories are determined based on link target.
-
-* ISABELLE_DOC_FORMAT setting specifies preferred document format (for
-  isatool doc, isatool mkdir, display_drafts etc.).
+* HOL: isatool dimacs2hol converts files in DIMACS CNF format
+  (containing Boolean satisfiability problems) into Isabelle/HOL
+  theories.
 
 
 *** ML ***
