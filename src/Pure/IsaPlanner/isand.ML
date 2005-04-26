@@ -1,7 +1,8 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      sys/isand.ML
+(*  Title:      isand.ML
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
+    Updated:    26 Apr 2005
     Date:       6 Aug 2004
 *)
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
@@ -9,61 +10,72 @@
 
     Natural Deduction tools
 
-    For working with Isbaelle theorem in a natural detuction style,
+    For working with Isabelle theorems in a natural detuction style.
     ie, not having to deal with meta level quantified varaibles,
     instead, we work with newly introduced frees, and hide the
     "all"'s, exporting results from theorems proved with the frees, to
-    solve the all cases of the previous goal. 
+    solve the all cases of the previous goal. This allows resolution
+    to do proof search normally. 
 
-    Note: A nice idea: allow esxporting to solve any subgoal, thus
+    Note: A nice idea: allow exporting to solve any subgoal, thus
     allowing the interleaving of proof, or provide a structure for the
-    ordering of proof, thus allowing proof attempts in parrelle, but
+    ordering of proof, thus allowing proof attempts in parrell, but
     recording the order to apply things in.
 
     debugging tools:
 
     fun asm_mk t = (assume (cterm_of (Theory.sign_of (the_context())) t)); 
     fun asm_read s =  
-      (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT))); 
+      (assume (read_cterm (Theory.sign_of (Context.the_context())) (s,propT)));
 
     THINK: are we really ok with our varify name w.r.t the prop - do
-    we alos need to avoid names in the hidden hyps?
+    we also need to avoid names in the hidden hyps? What about
+    unification contraints in flex-flex pairs - might they also have
+    extra free vars?
 *)
 
 signature ISA_ND =
 sig
+
+  (* export data *)
   datatype export = export of
            {gth: Thm.thm, (* initial goal theorem *)
             sgid: int, (* subgoal id which has been fixed etc *)
             fixes: Thm.cterm list, (* frees *)
             assumes: Thm.cterm list} (* assumptions *)
-
   val fixes_of_exp : export -> Thm.cterm list
-
   val export_back : export -> Thm.thm -> Thm.thm Seq.seq
   val export_solution : export -> Thm.thm -> Thm.thm
   val export_solutions : export list * Thm.thm -> Thm.thm
 
+  (* inserting meta level params for frees in the conditions *)
   val allify_conditions :
       (Term.term -> Thm.cterm) ->
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
   val allify_conditions' :
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
 
-  val assume_prems :
-      int -> Thm.thm -> Thm.thm list * Thm.thm * Thm.cterm list
-
+  (* meta level fixed params (i.e. !! vars) *)
   val fix_alls_term : int -> Term.term -> Term.term * Term.term list
   val fix_alls_cterm : int -> Thm.thm -> Thm.cterm * Thm.cterm list
   val fix_alls' : int -> Thm.thm -> Thm.thm * Thm.cterm list
   val fix_alls : int -> Thm.thm -> Thm.thm * export
 
-  val fix_vars_to_frees : Thm.thm -> (Thm.cterm * Thm.cterm) list * Thm.thm
-  val schemify_frees_to_vars : Thm.cterm list -> Thm.thm -> Thm.thm
+  (* meta variables in types and terms *)
+  val fix_tvars_to_tfrees : Thm.thm -> Thm.ctyp list * Thm.thm
+  val fix_vars_to_frees : Thm.thm -> Thm.cterm list * Thm.thm
+  val fix_vars_and_tvars : 
+      Thm.thm -> (Thm.cterm list * Thm.ctyp list) * Thm.thm
+  val unfix_frees : Thm.cterm list -> Thm.thm -> Thm.thm
+  val unfix_tfrees : Thm.ctyp list -> Thm.thm -> Thm.thm
+  val unfix_frees_and_tfrees :
+      (Thm.cterm list * Thm.ctyp list) -> Thm.thm -> Thm.thm
 
+  (* assumptions/subgoals *)
+  val assume_prems :
+      int -> Thm.thm -> Thm.thm list * Thm.thm * Thm.cterm list
   val fixed_subgoal_thms : Thm.thm -> Thm.thm list * (Thm.thm list -> Thm.thm)
   val fixes_and_assumes : int -> Thm.thm -> Thm.thm list * Thm.thm * export
-
   val hide_other_goals : Thm.thm -> Thm.thm * Thm.cterm list
   val hide_prems : Thm.thm -> Thm.thm * Thm.cterm list
 
@@ -75,13 +87,25 @@ sig
 end
 
 
-structure IsaND : ISA_ND =
-struct
+structure IsaND 
+: ISA_ND
+= struct
 
 (* Solve *some* subgoal of "th" directly by "sol" *)
 (* Note: this is probably what Markus ment to do upon export of a
 "show" but maybe he used RS/rtac instead, which would wrongly lead to
-failing if there are premices to the shown goal. *)
+failing if there are premices to the shown goal. 
+
+given: 
+sol : Thm.thm = [| Ai... |] ==> Ci
+th : Thm.thm = 
+  [| ... [| Ai... |] ==> Ci ... |] ==> G
+results in: 
+  [| ... [| Ai-1... |] ==> Ci-1
+    [| Ai+1... |] ==> Ci+1 ...
+  |] ==> G
+i.e. solves some subgoal of th that is identical to sol. 
+*)
 fun solve_with sol th = 
     let fun solvei 0 = Seq.empty
           | solvei i = 
@@ -95,9 +119,9 @@ fun solve_with sol th =
 (* Given ctertmify function, (string,type) pairs capturing the free
 vars that need to be allified in the assumption, and a theorem with
 assumptions possibly containing the free vars, then we give back the
-assumptions allified as hidden hyps. *)
-(* 
-Given: vs 
+assumptions allified as hidden hyps. 
+
+Given: x 
 th: A vs ==> B vs 
 Results in: "B vs" [!!x. A x]
 *)
@@ -122,6 +146,40 @@ fun allify_conditions' Ts th =
 
 
 
+(* These should be defined in term.ML *)
+fun dest_TVar (TVar x) = x
+  | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
+fun dest_TFree (TFree x) = x
+  | dest_TFree T = raise TYPE ("dest_TFree", [T], []);
+
+
+(* change type-vars to fresh type frees *)
+fun fix_tvars_to_tfrees th = 
+    let 
+      val sign = Thm.sign_of_thm th
+      val ctermify = Thm.cterm_of sign
+      val ctypify = Thm.ctyp_of sign
+
+      val prop = Thm.prop_of th;
+      val tfree_names = map fst (Term.add_term_tfrees (prop,[]));
+      val tvars = Term.add_term_tvars (prop, []);
+
+      val (names',renamings) = 
+          List.foldr (fn (tv as ((n,i),s),(Ns,Rs)) => 
+                         let val n2 = Term.variant Ns n in 
+                           (n2::Ns, (ctypify (TVar tv),
+                                     ctypify (TFree (n2,s)))::Rs)
+                         end) (tfree_names,[]) tvars;
+
+      val fixedfrees = map snd renamings;
+    in
+      (fixedfrees, Thm.instantiate (renamings, []) th)
+    end;
+
+(* change type-free's to type-vars *)
+fun unfix_tfrees ns th = 
+    fst (Thm.varifyT' (map (fn x => dest_TFree (Thm.typ_of x)) ns) th);
+
 (* change schematic vars to fresh free vars *)
 fun fix_vars_to_frees th = 
     let 
@@ -138,13 +196,23 @@ fun fix_vars_to_frees th =
                        n2 :: names)
                     end)
                 (([],names), vars)
-    in (insts, Thm.instantiate ([], insts) th) end;
+      val fixedfrees = map snd insts;
+    in (fixedfrees, Thm.instantiate ([], insts) th) end;
 
 (* make free vars into schematic vars with index zero *)
- fun schemify_frees_to_vars frees = 
+ fun unfix_frees frees = 
      apply (map (K (Drule.forall_elim_var 0)) frees) 
      o Drule.forall_intr_list frees;
 
+(* fix term and type variables *)
+fun fix_vars_and_tvars th = 
+    let val (tvars, th') = fix_tvars_to_tfrees th
+      val (vars, th'') = fix_vars_to_frees th' 
+    in ((vars, tvars), th'') end;
+
+(* implicit Thm.thm argument *)
+fun unfix_frees_and_tfrees (vs,tvs) = 
+    (unfix_frees vs o unfix_tfrees tvs);
 
 (* datatype to capture an exported result, ie a fix or assume. *)
 datatype export = 
