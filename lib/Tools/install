@@ -80,8 +80,9 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 0 -o -n "$NO_OPTS" ] && usage
 
 if [ -z "$RDISTDIR" ]; then
-  RDISTDIR=$DISTDIR
+  RDISTDIR="$DISTDIR"
 fi
+
 
 ## main
 
@@ -91,7 +92,7 @@ echo "referring to distribution at $DISTDIR"
 # standalone binaries
 
 #set by configure
-AUTO_BASH=/bin/bash
+AUTO_BASH=bash
 
 case "$AUTO_BASH" in
   /*)
@@ -110,6 +111,7 @@ if [ -n "$BINDIR" ]; then
     BIN="$BINDIR/$NAME"
     DIST="$RDISTDIR/bin/$NAME"
     echo "installing $BIN"
+    rm -f "$BIN"
     echo "#!$BASH" > "$BIN" || fail "Cannot write file: $BIN"
     echo >> "$BIN"
     echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
@@ -120,6 +122,7 @@ if [ -n "$BINDIR" ]; then
     BIN="$BINDIR/$NAME"
     DIST="$DISTDIR/bin/$NAME"
     echo "installing $BIN"
+    rm -f "$BIN"
     cp "$DIST" "$BIN" || fail "Cannot write file: $BIN"
     chmod +x "$BIN"
   done
