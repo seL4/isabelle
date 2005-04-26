@@ -5,10 +5,15 @@
 #
 # build - compile the Isabelle system and object-logics
 
+if [ -L "$0" ]; then
+  TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
+  exec $(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET") "$@"
+fi
+
 
 ## global settings
 
-ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
+ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
 
 
 ## settings
@@ -16,6 +21,7 @@ ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
 PRG="$(basename "$0")"
 
 export THIS_IS_ISABELLE_BUILD=true
+
 ISABELLE_HOME="$(dirname "$0")"
 . "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
@@ -56,7 +62,7 @@ ALL=""
 BATCH=""
 TARGETS=""
 
-while getopts "abim:p:t" OPT
+while getopts "abim:t" OPT
 do
   case "$OPT" in
     a)
@@ -112,8 +118,6 @@ if [ -z "$BATCH" ]; then
   echo "  ML_HOME=$ML_HOME"
   echo "  ML_OPTIONS=$ML_OPTIONS"
   echo "  ML_PLATFORM=$ML_PLATFORM"
-  echo "  ISABELLE_INTERFACE=$ISABELLE_INTERFACE"
-  echo "ISABELLE_OUTPUT=$ISABELLE_OUTPUT"
   echo
   echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
 fi
@@ -156,7 +160,6 @@ else
   echo "ML_HOME=$ML_HOME"
   echo "ML_OPTIONS=$ML_OPTIONS"
   echo "ML_PLATFORM=$ML_PLATFORM"
-  echo "ISABELLE_OUTPUT=$ISABELLE_OUTPUT"
   echo
   echo "ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
   echo
