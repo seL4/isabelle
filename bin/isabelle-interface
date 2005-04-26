@@ -5,16 +5,17 @@
 #
 # Isabelle interface startup script.
 
+if [ -L "$0" ]; then
+  TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
+  exec $(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET") "$@"
+fi
+
 
 ## settings
 
 PRG="$(basename "$0")"
 
-THIS="$0"
-while [ -L "$THIS" ]; do
-    THIS="$(dirname "$THIS")/$(LC_ALL=C ls -l "$THIS" | sed 's/.* -> //')"
-done
-ISABELLE_HOME="$(cd "$(dirname "$THIS")/.."; pwd)"
+ISABELLE_HOME="$(dirname "$0")/.."
 . "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
 

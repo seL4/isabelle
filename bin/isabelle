@@ -5,11 +5,12 @@
 #
 # Smart selection of isabelle-process versus isabelle-interface.
 
-THIS="$0"
-while [ -L "$THIS" ]; do
-    THIS="$(dirname "$THIS")/$(LC_ALL=C ls -l "$THIS" | sed 's/.* -> //')"
-done
-THIS="$(cd "$(dirname "$THIS")"; pwd)"
+if [ -L "$0" ]; then
+  TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
+  exec $(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET") "$@"
+fi
+
+THIS=$(cd "$(dirname "$0")"; pwd)
 NAME="$(basename "$0")"
 
 case "$NAME" in

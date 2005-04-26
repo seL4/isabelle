@@ -6,6 +6,11 @@
 # Isabelle tool starter -- provides settings environment
 # and keeps your PATH name space clean.
 
+if [ -L "$0" ]; then
+  TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
+  exec $(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET") "$@"
+fi
+
 
 ## settings
 
