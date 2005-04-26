@@ -208,7 +208,7 @@ fun searchf_tlr_unify_valid sgn maxidx lhs  =
 (* rule is the equation for substitution *)
 fun apply_subst_in_concl i th (cfvs, conclthm) rule m = 
     (RWInst.rw m rule conclthm)
-      |> IsaND.schemify_frees_to_vars cfvs
+      |> IsaND.unfix_frees cfvs
       |> RWInst.beta_eta_contract_tac
       |> (fn r => Tactic.rtac r i th);
 
@@ -280,7 +280,7 @@ fun eqsubst_meth inthms =
 fun apply_subst_in_asm i th (cfvs, j, nprems, pth) rule m = 
     (RWInst.rw m rule pth)
       |> Thm.permute_prems 0 ~1
-      |> IsaND.schemify_frees_to_vars cfvs
+      |> IsaND.unfix_frees cfvs
       |> RWInst.beta_eta_contract_tac
       |> (fn r => Tactic.dtac r i th);
 
