@@ -2052,7 +2052,7 @@ fun gen_activate_facts_elemss get_reg note_thmss attrib standard
                 handle Option => error ("(internal) unknown registration of " ^
                   quote (fst id) ^ " while activating facts.")) all_elemss);
       in Library.foldl (activate_facts_elems get_reg note_thmss attrib
-        (Drule.standard o Drule.fconv_rule (Thm.beta_conversion true) o
+        (standard o Drule.fconv_rule (Thm.beta_conversion true) o
           Drule.satisfy_hyps prems)) (thy_ctxt, new_elemss) end;
 
 val global_activate_facts_elemss = gen_activate_facts_elemss
