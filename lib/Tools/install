@@ -16,9 +16,6 @@ function usage()
   echo "  Options are:"
   echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution"
   echo "                 (default ISABELLE_HOME)"
-  echo "    -a RDISTDIR  refer to RDISTDIR as Isabelle distribution"
-  echo "                 in installed files, for packaging scripts"
-  echo "                 (default to same value as -d)"
   echo "    -k VERSION   install KDE application icon on desktop"
   echo "                 (for KDE VERSION 1 or 2)"
   echo "    -p DIR       install standalone binaries in DIR"
@@ -45,26 +42,19 @@ NO_OPTS=true
 DISTDIR="$ISABELLE_HOME"
 KDE=""
 BINDIR=""
-RDISTDIR=""
 
-while getopts "d:k:p:a:" OPT
+while getopts "d:k:p:" OPT
 do
+  NO_OPTS=""
   case "$OPT" in
     d)
       DISTDIR="$OPTARG"
-      NO_OPTS=""
       ;;
     k)
       KDE="$OPTARG"
-      NO_OPTS=""
       ;;
     p)
       BINDIR="$OPTARG"
-      NO_OPTS=""
-      ;;
-    a)
-      RDISTDIR="$OPTARG"
-      NO_OPTS=""
       ;;
     \?)
       usage
@@ -78,10 +68,6 @@ shift $(($OPTIND - 1))
 # args
 
 [ "$#" -ne 0 -o -n "$NO_OPTS" ] && usage
-
-if [ -z "$RDISTDIR" ]; then
-  RDISTDIR="$DISTDIR"
-fi
 
 
 ## main
@@ -109,7 +95,7 @@ if [ -n "$BINDIR" ]; then
   for NAME in isatool isabelle-process isabelle-interface
   do
     BIN="$BINDIR/$NAME"
-    DIST="$RDISTDIR/bin/$NAME"
+    DIST="$DISTDIR/bin/$NAME"
     echo "installing $BIN"
     rm -f "$BIN"
     echo "#!$BASH" > "$BIN" || fail "Cannot write file: $BIN"
@@ -120,10 +106,9 @@ if [ -n "$BINDIR" ]; then
   for NAME in Isabelle isabelle
   do
     BIN="$BINDIR/$NAME"
-    DIST="$DISTDIR/bin/$NAME"
     echo "installing $BIN"
     rm -f "$BIN"
-    cp "$DIST" "$BIN" || fail "Cannot write file: $BIN"
+    cp "$ISABELLE_HOME/bin/$NAME" "$BIN" || fail "Cannot write file: $BIN"
     chmod +x "$BIN"
   done
 fi
@@ -159,7 +144,7 @@ if [ -n "$KDE" ]; then
   echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
   echo "[KDE Desktop Entry]" >> "$KDEAPP"
   echo "Type=Application" >> "$KDEAPP"
-  echo "Exec=\"$RDISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
+  echo "Exec=\"$DISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
   echo "Icon=isabelle.xpm" >> "$KDEAPP"
   echo "TerminalOptions=" >> "$KDEAPP"
   echo "Path=" >> "$KDEAPP"
