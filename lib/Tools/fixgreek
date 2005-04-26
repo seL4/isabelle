@@ -35,7 +35,7 @@ SPECS="$@"; shift "$#"
 ## main
 
 #set by configure
-AUTO_PERL=/usr/bin/perl
+AUTO_PERL=perl
 
 find $SPECS -name \*.thy -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgreek.pl"
 find $SPECS -name \*.ML -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgreek.pl"

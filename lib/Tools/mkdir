@@ -199,7 +199,7 @@ fi
 # document directory
 
 #set by configure
-AUTO_PERL=/usr/bin/perl
+AUTO_PERL=perl
 
 if [ -e document ]; then
   echo "keeping $PREFIX/document" >&2

@@ -76,6 +76,6 @@ shift $(($OPTIND - 1))
 ## main
 
 #set by configure
-AUTO_PERL=/usr/bin/perl
+AUTO_PERL=perl
 
 exec "$AUTO_PERL" -w "$DIR"/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$TAIL"

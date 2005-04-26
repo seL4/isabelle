@@ -71,7 +71,7 @@ if [ -z "$OUTFILE" ]; then
 fi
 
 #set by configure
-AUTO_PERL=/usr/bin/perl
+AUTO_PERL=perl
 
 if [ "$OUTFILE" = "-" ]; then
   "$AUTO_PERL" -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps"
