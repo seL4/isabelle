@@ -6,7 +6,9 @@
 
 (* Auxiliary Lemmas *)
 
-theory AuxLemmas = JBasis:
+theory AuxLemmas
+imports "../J/JBasis"
+begin
 
 (**********************************************************************)
 (* List.thy *)

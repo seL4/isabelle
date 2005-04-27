@@ -5,7 +5,9 @@
 
 (* Compiler correctness statement and proof *)
 
-theory CorrComp =  JTypeSafe + LemmasComp:
+theory CorrComp
+imports "../J/JTypeSafe" "../Comp/LemmasComp"
+begin
 
 declare wf_prog_ws_prog [simp add]
 
@@ -1146,7 +1148,11 @@ apply (rule_tac ?instrs0.0 = "compStmt (pns, lvars, blk, res) blk" in progressio
 apply (subgoal_tac "(pns, lvars, blk, res) = gmb G md (mn, pTs)")
 apply (simp (no_asm_simp))
 apply (simp only: gh_conv)
-apply ((drule mp, rule TrueI)+, (drule spec)+, (drule mp, assumption)+, assumption)
+apply ((drule mp [OF _ TrueI])+, (drule spec)+)
+apply ((drule mp, assumption)+, assumption)
+  --{*extremely slow with Poly/ML (72s) and (under some circumstances)
+      unbearably slow with SML/NJ (up to 83 minutes)*}
+
 apply (simp (no_asm_use))
 apply (simp (no_asm_simp) add: gmb_def)
 

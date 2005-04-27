@@ -9,7 +9,9 @@ header {*
   \isaheader{State of the JVM} 
 *}
 
-theory JVMState = Conform:
+theory JVMState
+imports "../J/Conform"
+begin
 
 section {* Frame Stack *}
 types
