@@ -237,7 +237,7 @@ fun add_contras crules (th,hcs) =
   let fun rots (0,th) = hcs
 	| rots (k,th) = zero_var_indexes (make_horn crules th) ::
 			rots(k-1, assoc_right (th RS disj_comm))
-  in case nliterals(prop_of (check_no_bool th)) of
+  in case nliterals(prop_of th) of
 	1 => th::hcs
       | n => rots(n, assoc_right th)
   end;
