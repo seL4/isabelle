@@ -323,8 +323,11 @@ fun minusinf x fm = case fm of
 	 				 else fm 
  
   |(Const("op <",_) $ c $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z 
-  )) => 
-        if (x =y) andalso (pm1 = one) andalso (c = zero) then HOLogic.false_const else HOLogic.true_const 
+  )) => if (x = y) 
+	then if (pm1 = one) andalso (c = zero) then HOLogic.false_const 
+	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.true_const 
+	          else error "minusinf : term not in normal form!!!"
+	else fm
 	 
   |(Const ("Not", _) $ p) => HOLogic.Not $ (minusinf x p) 
   |(Const ("op &",_) $ p $ q) => HOLogic.conj $ (minusinf x p) $ (minusinf x q) 
@@ -341,8 +344,11 @@ fun plusinf x fm = case fm of
 	 				 else fm
 
   |(Const("op <",_) $ c $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z
-  )) =>
-        if (x =y) andalso (pm1 = one) andalso (c = zero) then HOLogic.true_const else HOLogic.false_const
+  )) => if (x = y) 
+	then if (pm1 = one) andalso (c = zero) then HOLogic.true_const 
+	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.false_const
+	     else error "plusinf : term not in normal form!!!"
+	else fm 
 
   |(Const ("Not", _) $ p) => HOLogic.Not $ (plusinf x p)
   |(Const ("op &",_) $ p $ q) => HOLogic.conj $ (plusinf x p) $ (plusinf x q)
