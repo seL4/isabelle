@@ -119,7 +119,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
  Tools/ATP/recon_transfer_proof.ML Tools/ATP/res_clasimpset.ML \
  Tools/ATP/VampireCommunication.ML Tools/ATP/SpassCommunication.ML Tools/ATP/modUnix.ML  \
  Tools/ATP/watcher.sig Tools/ATP/watcher.ML   Tools/res_atp.ML\
-  ##document/root.tex hologic.ML simpdata.ML thy_syntax.ML
+ document/root.tex hologic.ML simpdata.ML thy_syntax.ML
 	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL
 
 
