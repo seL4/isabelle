@@ -132,8 +132,6 @@ Least_Suc}, since there appears to be no need.*}
 
 ML
 {*
-val nat_diff_split = thm "nat_diff_split";
-val nat_diff_split_asm = thm "nat_diff_split_asm";
 val pred_nat_trancl_eq_le = thm "pred_nat_trancl_eq_le";
 val nat_diff_split = thm "nat_diff_split";
 val nat_diff_split_asm = thm "nat_diff_split_asm";
