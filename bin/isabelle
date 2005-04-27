@@ -7,7 +7,7 @@
 
 if [ -L "$0" ]; then
   TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
-  exec $(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET") "$@"
+  exec "$(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
 fi
 
 THIS=$(cd "$(dirname "$0")"; pwd)
