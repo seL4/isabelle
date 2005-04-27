@@ -39,7 +39,7 @@ translations
   "p ---> q" == "<p,q> \<in> contract^*"
 
 syntax (xsymbols)
-  "app"    :: "[i, i] => i"    	     (infixl "\<bullet>" 90)
+  "comb.app"    :: "[i, i] => i"    	     (infixl "\<bullet>" 90)
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"
@@ -157,8 +157,6 @@ inductive_cases
       K_contractE [elim!]: "K -1-> r"
   and S_contractE [elim!]: "S -1-> r"
   and Ap_contractE [elim!]: "p\<bullet>q -1-> r"
-
-declare contract.Ap1 [intro] contract.Ap2 [intro]
 
 lemma I_contract_E: "I -1-> r ==> P"
   by (auto simp add: I_def)
