@@ -6,7 +6,7 @@
 (* Compiler correctness statement and proof *)
 
 theory CorrComp
-imports "../J/JTypeSafe" "../Comp/LemmasComp"
+imports "../J/JTypeSafe" "LemmasComp"
 begin
 
 declare wf_prog_ws_prog [simp add]
@@ -1147,11 +1147,10 @@ apply (simp (no_asm_simp)) (* length lvars = length (replicate (length lvars) ar
 apply (rule_tac ?instrs0.0 = "compStmt (pns, lvars, blk, res) blk" in progression_transitive, rule HOL.refl)
 apply (subgoal_tac "(pns, lvars, blk, res) = gmb G md (mn, pTs)")
 apply (simp (no_asm_simp))
-apply (simp only: gh_conv)
-apply ((drule mp [OF _ TrueI])+, (drule spec)+)
-apply ((drule mp, assumption)+, assumption)
-  --{*extremely slow with Poly/ML (72s) and (under some circumstances)
-      unbearably slow with SML/NJ (up to 83 minutes)*}
+apply (simp only: gh_conv) 
+apply (drule mp [OF _ TrueI])+
+apply (erule allE, erule allE, erule allE, erule impE, assumption)+
+apply ((erule impE, assumption)+, assumption)
 
 apply (simp (no_asm_use))
 apply (simp (no_asm_simp) add: gmb_def)
