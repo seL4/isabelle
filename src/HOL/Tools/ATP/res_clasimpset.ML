@@ -170,9 +170,6 @@ fun remove_all_simps [] name_rule_list:(string*thm) list = name_rule_list
 
 
 
-fun thm_is_fol (x, thm) = rule_is_fol thm
-
-
 fun get_simp_metas [] = [[]]
 |   get_simp_metas (x::xs) = let val metas = ResAxioms.meta_cnf_axiom x
                              in
@@ -208,7 +205,7 @@ fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let
 
                                    val names_rules = ListPair.zip (good_names,name_fol_cs);
                                    
-                                   val new_clasrls = #1(ResAxioms.clausify_classical_rules name_fol_cs[])
+                                   val new_clasrls = #1(ResAxioms.clausify_rules name_fol_cs[])
 
                                    val claset_tptp_strs = map ( map ResClause.tptp_clause) new_clasrls;
 
@@ -251,11 +248,10 @@ fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let
                                   val simp_names = map #1 named_simps;
                                   val simp_rules = map #2 named_simps;
                               
-                                  val (simpset_cls,badthms) = ResAxioms.clausify_simpset_rules simp_rules [];
+                                  val (simpset_cls,badthms) = ResAxioms.clausify_rules  simp_rules [];
                                  (* 1137 clausif simps *)
-                                  val clausifiable_simps = remove_all_simps badthms named_simps;
+                                  val name_fol_simps = remove_all_simps badthms named_simps;
                                    
-                                    val name_fol_simps = List.filter thm_is_fol clausifiable_simps ;
                                     val simp_names = map #1 name_fol_simps;
                                     val simp_rules = map #2 name_fol_simps;
                                     
@@ -263,7 +259,7 @@ fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let
                                     (* need to get names of claset_cluases so we can make sure we've*)
                                     (* got the same ones (ie. the named ones ) as the claset rules *)
                                     (* length 1374*)
-                                    val new_simps = #1(ResAxioms.clausify_simpset_rules simp_rules []);
+                                    val new_simps = #1(ResAxioms.clausify_rules  simp_rules []);
                                     val simpset_tptp_strs = map (map ResClause.tptp_clause) new_simps;
 
                                     val stick_strs = map stick simpset_tptp_strs;

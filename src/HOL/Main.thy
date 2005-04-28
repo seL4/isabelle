@@ -6,7 +6,7 @@
 header {* Main HOL *}
 
 theory Main
-    imports Extraction Refute Reconstruction
+    imports Refute Reconstruction
 
 begin
 

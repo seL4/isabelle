@@ -141,75 +141,6 @@ fun transform_elim thm =
 end;
 
 
-(* some lemmas *)
-
-Goal "(P==True) ==> P";
-by(Blast_tac 1);
-qed "Eq_TrueD1";
-
-Goal "(True==P) ==> P";
-by(Blast_tac 1);
-qed "Eq_TrueD2";
-
-Goal "(P=True) ==> P";
-by(Blast_tac 1);
-qed "Eq_TrueD3";
-
-Goal "(P==False) ==> ~P";
-by(Blast_tac 1);
-qed "Eq_FalseD1";
-
-Goal "(False==P) ==> ~P";
-by(Blast_tac 1);
-qed "Eq_FalseD2";
-
-Goal "(P=False) ==> ~P";
-by(Blast_tac 1);
-qed "Eq_FalseD3";
-
-
-Goal "[|u == (if P then x else y); P|] ==> u==x";
-by Auto_tac;
-qed "eq_if_elim1";
-
-
-Goal "[|u == (if P then x else y); ~P|] ==> u==y";
-by Auto_tac;
-qed"eq_if_elim2";
-
-
-
-fun resolve_or_id ths th =
-     case [th] RL ths of
-         []   => [th]
-       | ths2 => ths2;
-
-
-
-val remove_bool_ths = [eq_if_elim1,eq_if_elim2,Eq_TrueD1,Eq_TrueD2,Eq_FalseD1,Eq_FalseD2];
-
-
-
-local 
-
-    fun prove s = prove_goal (the_context()) s (fn _ => [Simp_tac 1]);
-
-val small_simps = 
-  map prove 
-   ["(P | True) == True", "(True | P) == True",
-    "(P & True) == P", "(True & P) == P",
-    "(False | P) == P", "(P | False) == P",
-    "(False & P) == False", "(P & False) == False",
-    "~True == False", "~False == True"(*,
-    "(False = P) == ~P", "(P = False) == ~P",
-    "(True = P) == P",  "(P = True) == P"*)
-    (*"(True ==> PROP P) == PROP P"*)];
-in
-
-val small_simpset = empty_ss addsimps small_simps
-
-end;
-
 
 signature RES_AXIOMS =
 sig
@@ -230,8 +161,7 @@ val rm_Eps
 : (Term.term * Term.term) list -> Thm.thm list -> Term.term list
 val claset_rules_of_thy : Theory.theory -> Thm.thm list
 val simpset_rules_of_thy : Theory.theory -> (string * Thm.thm) list
-val clausify_simpset_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
-val clausify_classical_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
+val clausify_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
 
 end;
 
@@ -258,25 +188,19 @@ fun repeat_RS thm1 thm2 =
     end;
 
 
-
-(* added this function to remove True/False in a theorem that is in NNF form. *)
-fun rm_TF_nnf thm = simplify small_simpset thm;
-
-
 (* convert a theorem into NNF and also skolemize it. *)
 fun skolem_axiom thm = 
-    let val thm' = (skolemize o rm_TF_nnf o  make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) thm
+  if Term.is_first_order (prop_of thm) then
+    let val thm' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) thm
     in 
 	repeat_RS thm' someI_ex
-    end;
+    end
+  else raise THM ("skolem_axiom: not first-order", 0, [thm]);
 
 
-fun isa_cls thm = make_clauses [skolem_axiom thm]
+fun cnf_rule thm = make_clauses [skolem_axiom thm]
 
-fun cnf_elim thm = isa_cls (transform_elim thm);
-
-val cnf_rule = isa_cls;	
-
+fun cnf_elim thm = cnf_rule (transform_elim thm);
 
 
 (*Transfer a theorem in to theory Reconstruction.thy if it is not already
@@ -383,16 +307,11 @@ fun clausify_axiom thm =
 	fun make_axiom_clauses _ [] = []
 	  | make_axiom_clauses i (cls::clss) = (ResClause.make_axiom_clause cls (thm_name,i)) :: make_axiom_clauses (i+1) clss 
     in
-	make_axiom_clauses 0 isa_clauses'
-		
+	make_axiom_clauses 0 isa_clauses'		
     end;
   
 
-(******** Extracting and CNF/Clausify theorems from a classical reasoner and simpset of a given theory ******)
-
-
-fun retr_thms ([]:MetaSimplifier.rrule list) = []
-	  | retr_thms (r::rs) = (#name r, #thm r)::(retr_thms rs);
+(**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
 fun claset_rules_of_thy thy =
     let val clsset = rep_cs (claset_of thy)
@@ -405,89 +324,48 @@ fun claset_rules_of_thy thy =
     end;
 
 fun simpset_rules_of_thy thy =
-    let val simpset = simpset_of thy
-	val rules = #rules(fst (rep_ss simpset))
-	val thms = retr_thms (map #2 (Net.dest rules))
+    let val rules = #rules(fst (rep_ss (simpset_of thy)))
     in
-	thms
+	map (fn (_,r) => (#name r, #thm r)) (Net.dest rules)
     end;
 
 
-(**** Translate a set of classical rules or simplifier rules into CNF (still as type "thm") from a given theory ****)
+(**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
 
 (* classical rules *)
-fun cnf_classical_rules [] err_list = ([],err_list)
-  | cnf_classical_rules (thm::thms) err_list = 
-    let val (ts,es) = cnf_classical_rules thms err_list
-    in
-	((cnf_axiom thm)::ts,es) handle  _ => (ts,(thm::es))
-    end;
+fun cnf_rules [] err_list = ([],err_list)
+  | cnf_rules (thm::thms) err_list = 
+      let val (ts,es) = cnf_rules thms err_list
+      in  (cnf_axiom thm :: ts,es) handle  _ => (ts,(thm::es))  end;
 
 
 (* CNF all rules from a given theory's classical reasoner *)
 fun cnf_classical_rules_thy thy = 
-    let val rules = claset_rules_of_thy thy
-    in
-        cnf_classical_rules rules []
-    end;
-
-
-(* simplifier rules *)
-fun cnf_simpset_rules [] err_list = ([],err_list)
-  | cnf_simpset_rules (thm::thms) err_list =
-    let val (ts,es) = cnf_simpset_rules thms err_list
-	val thm' = resolve_or_id remove_bool_ths thm
-    in
-	((map cnf_axiom thm')@ts,es) handle _ => (ts,(thm::es))
-    end;
-
+    cnf_rules (claset_rules_of_thy thy) [];
 
 (* CNF all simplifier rules from a given theory's simpset *)
 fun cnf_simpset_rules_thy thy =
-    let val thms = map #2 (simpset_rules_of_thy thy)
-    in
-	cnf_simpset_rules thms []
-    end;
+    cnf_rules (map #2 (simpset_rules_of_thy thy)) [];
 
 
-
-(**** Convert all theorems of a classical reason/simpset into clauses (ResClause.clause) ****)
+(**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
 (* classical rules *)
-fun clausify_classical_rules [] err_list = ([],err_list)
-  | clausify_classical_rules (thm::thms) err_list =
-    let val (ts,es) = clausify_classical_rules thms err_list
+fun clausify_rules [] err_list = ([],err_list)
+  | clausify_rules (thm::thms) err_list =
+    let val (ts,es) = clausify_rules thms err_list
     in
 	((clausify_axiom thm)::ts,es) handle  _ => (ts,(thm::es))
     end;
 
 
-
 (* convert all classical rules from a given theory into Clause.clause format. *)
 fun clausify_classical_rules_thy thy =
-    let val rules = claset_rules_of_thy thy
-    in
-	clausify_classical_rules rules []
-    end;
-
-
-(* simplifier rules *)
-fun clausify_simpset_rules [] err_list = ([],err_list)
-  | clausify_simpset_rules (thm::thms) err_list =
-    let val (ts,es) = clausify_simpset_rules thms err_list
-    in
-	((clausify_axiom thm)::ts,es) handle _ => (ts,(thm::es))
-    end;
-
+    clausify_rules (claset_rules_of_thy thy) [];
 
 (* convert all simplifier rules from a given theory into Clause.clause format. *)
 fun clausify_simpset_rules_thy thy =
-    let val thms = map #2 (simpset_rules_of_thy thy)
-    in
-	clausify_simpset_rules thms []
-    end;
-
-
+    clausify_rules (map #2 (simpset_rules_of_thy thy)) [];
 
 
 end; 

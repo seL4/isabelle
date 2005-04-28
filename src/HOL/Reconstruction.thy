@@ -7,7 +7,7 @@
 header{*Attributes for Reconstructing External Resolution Proofs*}
 
 theory Reconstruction
-    imports Hilbert_Choice Map Infinite_Set
+    imports Hilbert_Choice Map Infinite_Set Extraction
     files "Tools/res_lib.ML"
 	  "Tools/res_clause.ML"
 	  "Tools/res_skolem_function.ML"

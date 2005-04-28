@@ -307,7 +307,11 @@ fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM _ => th;
 
-fun make_nnf th = make_nnf1 (check_no_bool th);
+(*The simplification removes occurrences of True and False.*)
+val nnf_ss = HOL_basic_ss addsimps Ball_def::Bex_def::simp_thms;
+
+fun make_nnf th = th |> simplify nnf_ss
+                     |> check_no_bool |> make_nnf1
 
 (*Pull existential quantifiers (Skolemization)*)
 fun skolemize th =
