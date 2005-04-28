@@ -88,6 +88,7 @@ sig
   include BASIC_DRULE
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
+  val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
   val tag_rule: tag -> thm -> thm
@@ -220,6 +221,22 @@ fun strip_type cT = (case Thm.typ_of cT of
         val (cTs, cT') = strip_type cT2
       in (cT1 :: cTs, cT') end
   | _ => ([], cT));
+
+fun plain_prop_of raw_thm =
+  let
+    val thm = Thm.strip_shyps raw_thm;
+    fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
+    val {hyps, prop, tpairs, ...} = Thm.rep_thm thm;
+  in
+    if not (null hyps) then
+      err "theorem may not contain hypotheses"
+    else if not (null (Thm.extra_shyps thm)) then
+      err "theorem may not contain sort hypotheses"
+    else if not (null tpairs) then
+      err "theorem may not contain flex-flex pairs"
+    else prop
+  end;
+
 
 
 (** reading of instantiations **)
