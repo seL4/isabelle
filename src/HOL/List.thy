@@ -566,11 +566,20 @@ by (induct xs) auto
 lemma rev_rev_ident [simp]: "rev (rev xs) = xs"
 by (induct xs) auto
 
+lemma rev_swap: "(rev xs = ys) = (xs = rev ys)"
+by auto
+
 lemma rev_is_Nil_conv [iff]: "(rev xs = []) = (xs = [])"
 by (induct xs) auto
 
 lemma Nil_is_rev_conv [iff]: "([] = rev xs) = (xs = [])"
 by (induct xs) auto
+
+lemma rev_singleton_conv [simp]: "(rev xs = [x]) = (xs = [x])"
+by (cases xs) auto
+
+lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
+by (cases xs) auto
 
 lemma rev_is_rev_conv [iff]: "!!ys. (rev xs = rev ys) = (xs = ys)"
 apply (induct xs, force)
