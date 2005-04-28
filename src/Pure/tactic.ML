@@ -110,8 +110,14 @@ sig
   val rewrite: bool -> thm list -> cterm -> thm
   val simplify: bool -> thm list -> thm -> thm
   val conjunction_tac: tactic
+  val smart_conjunction_tac: int -> tactic
+  val prove_multi: Sign.sg -> string list -> term list -> term list ->
+    (thm list -> tactic) -> thm list
+  val prove_multi_standard: Sign.sg -> string list -> term list -> term list ->
+    (thm list -> tactic) -> thm list
   val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove_standard: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove_standard: Sign.sg -> string list -> term list -> term ->
+    (thm list -> tactic) -> thm
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -641,12 +647,16 @@ val conj_tac = SUBGOAL (fn (Const ("all", _) $ Abs (_, _, Const ("==>", _) $
   
 val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
 
+fun smart_conjunction_tac 0 = assume_tac 1
+  | smart_conjunction_tac _ = TRY conjunction_tac;
 
 
-(** minimal goal interface for internal use *)
 
-fun prove sign xs asms prop tac =
+(** minimal goal interface for programmed proofs *)
+
+fun prove_multi sign xs asms props tac =
   let
+    val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
@@ -671,23 +681,29 @@ fun prove sign xs asms prop tac =
     val goal' =
       (case Seq.pull (tac prems goal) of SOME (goal', _) => goal' | _ => err "Tactic failed.");
     val ngoals = Thm.nprems_of goal';
+    val _ = conditional (ngoals <> 0) (fn () =>
+      err ("Proof failed.\n" ^
+        Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal')) ^
+        ("\n" ^ string_of_int ngoals ^ " unsolved goal(s)!")));
+
     val raw_result = goal' RS Drule.rev_triv_goal;
     val prop' = prop_of raw_result;
+    val _ = conditional (not (Pattern.matches (Sign.tsig_of sign) (prop, prop'))) (fn () =>
+      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop'));
   in
-    if ngoals <> 0 then
-      err ("Proof failed.\n" ^ Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal'))
-        ^ ("\n" ^ string_of_int ngoals ^ " unsolved goal(s)!"))
-    else if not (Pattern.matches (Sign.tsig_of sign) (prop, prop')) then
-      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop')
-    else
-      raw_result
+    Drule.conj_elim_precise (length props) raw_result
+    |> map (fn res => res
       |> Drule.implies_intr_list casms
       |> Drule.forall_intr_list cparams
       |> norm_hhf_rule
       |> (#1 o Thm.varifyT' fixed_tfrees)
-      |> Drule.zero_var_indexes
+      |> Drule.zero_var_indexes)
   end;
 
+fun prove_multi_standard sign xs asms prop tac =
+  map Drule.standard (prove_multi sign xs asms prop tac);
+
+fun prove sign xs asms prop tac = hd (prove_multi sign xs asms [prop] tac);
 fun prove_standard sign xs asms prop tac = Drule.standard (prove sign xs asms prop tac);
 
 end;
