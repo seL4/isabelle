@@ -865,6 +865,11 @@ apply (induct xs, simp)
 apply(simp split:nat.split)
 done
 
+lemma list_update_append:
+  "!!n. (xs @ ys) [n:= x] = 
+  (if n < length xs then xs[n:= x] @ ys else xs @ (ys [n-length xs:= x]))"
+by (induct xs) (auto split:nat.splits)
+
 lemma list_update_length [simp]:
  "(xs @ x # ys)[length xs := y] = (xs @ y # ys)"
 by (induct xs, auto)
@@ -879,6 +884,9 @@ by (induct xs) (auto split: nat.split)
 
 lemma set_update_subsetI: "[| set xs <= A; x:A |] ==> set(xs[i := x]) <= A"
 by (blast dest!: set_update_subset_insert [THEN subsetD])
+
+lemma set_update_memI: "!!n. n < length xs \<Longrightarrow> x \<in> set (xs[n := x])"
+by (induct xs) (auto split:nat.splits)
 
 
 subsubsection {* @{text last} and @{text butlast} *}
