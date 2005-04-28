@@ -1,8 +1,10 @@
 #!/bin/sh
 #
+# $Id$
+#
 # polyml-version --- issue Poly/ML version identifier
 #
 # NOTE: version identifiers should be kept as generic as possible,
 # i.e. shared by compatible environments.
 
-echo polyml-4.1.1
+echo polyml-4.1.3
