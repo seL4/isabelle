@@ -22,6 +22,7 @@ time_use_thy "Tuple";
 time_use_thy "NatSum";
 time_use_thy "Intuitionistic";
 time_use_thy "Classical";
+time_use_thy "CTL";
 time_use_thy "mesontest2";
 time_use_thy "PresburgerEx";
 time_use_thy "BT";
@@ -29,6 +30,7 @@ time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "MergeSort";
 time_use_thy "Puzzle";
+
 
 time_use_thy "Lagrange";
 

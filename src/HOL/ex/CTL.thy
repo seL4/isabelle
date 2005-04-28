@@ -1,7 +1,14 @@
 
+(*  Title:      HOL/ex/CTL.thy
+    ID:         $Id$
+    Author:     Gertrud Bauer
+*)
+
+header {* CTL formulae *}
+
 theory CTL = Main:
 
-section {* CTL formulae *}
+
 
 text {*
   We formalize basic concepts of Computational Tree Logic (CTL)

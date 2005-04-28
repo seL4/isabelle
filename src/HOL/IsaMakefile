@@ -16,7 +16,6 @@ test: \
   HOL-Bali \
   HOL-Complex-ex \
   HOL-Complex-Import \
-  HOL-CTL \
   HOL-Extraction \
       HOL-Complex-HahnBanach \
   HOL-Hoare \
@@ -534,15 +533,6 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Bali
 
 
-## HOL-CTL
-
-HOL-CTL: HOL $(LOG)/HOL-CTL.gz
-
-$(LOG)/HOL-CTL.gz: $(OUT)/HOL \
-  CTL/CTL.thy CTL/ROOT.ML CTL/document/root.tex CTL/document/root.bib
-	@$(ISATOOL) usedir $(OUT)/HOL CTL
-
-
 ## HOL-Extraction
 
 HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
@@ -701,7 +691,7 @@ clean:
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-                $(LOG)/HOL-Bali.gz $(LOG)/HOL-CTL.gz \
+                $(LOG)/HOL-Bali.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice \
