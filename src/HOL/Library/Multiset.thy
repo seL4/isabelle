@@ -740,7 +740,10 @@ lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
   by (induct_tac x, auto)
 
 lemma set_of_multiset_of[simp]: "set_of(multiset_of x) = set x"
- by (induct_tac x, auto) 
+  by (induct_tac x, auto) 
+
+lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
+  by (induct xs) auto
 
 lemma multiset_of_append[simp]: 
   "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
@@ -764,6 +767,10 @@ lemma distinct_count_atmost_1:
    apply (erule_tac x=aa in allE, simp) 
    done
 
+lemma multiset_of_eq_setD: 
+  "multiset_of xs = multiset_of ys \<Longrightarrow> set xs = set ys"
+  by (rule) (auto simp add:multiset_eq_conv_count_eq set_count_greater_0)
+
 lemma set_eq_iff_multiset_of_eq_distinct: 
   "\<lbrakk>distinct x; distinct y\<rbrakk> 
    \<Longrightarrow> (set x = set y) = (multiset_of x = multiset_of y)"
@@ -781,6 +788,11 @@ lemma set_eq_iff_multiset_of_remdups_eq:
 lemma multiset_of_compl_union[simp]:
  "multiset_of [x\<in>xs. P x] + multiset_of [x\<in>xs. \<not>P x] = multiset_of xs"
   by (induct xs) (auto simp: union_ac)
+
+lemma count_filter: 
+  "count (multiset_of xs) x = length [y \<in> xs. y = x]"
+  by (induct xs, auto)
+
 
 subsection {* Pointwise ordering induced by count *}
 
