@@ -52,6 +52,10 @@ defs (overloaded)
   Zero_multiset_def [simp]: "0 == {#}"
   size_def: "size M == setsum (count M) (set_of M)"
 
+constdefs 
+ multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "#\<inter>" 70)
+ "multiset_inter A B \<equiv> A - (A - B)"
+
 
 text {*
  \medskip Preservation of the representing set @{term multiset}.
@@ -264,6 +268,37 @@ qed "finite_psubset_induct";
 Better: use wf_finite_psubset in WF_Rel
 *)
 
+declare Rep_multiset_inject [symmetric, simp del]
+
+
+subsubsection {* Intersection *}
+
+lemma multiset_inter_count:
+  "count (A #\<inter> B) x = min (count A x) (count B x)"
+  by (simp add:multiset_inter_def min_def)
+
+lemma multiset_inter_commute: "A #\<inter> B = B #\<inter> A"
+  by (simp add: multiset_eq_conv_count_eq multiset_inter_count 
+                min_max.below_inf.inf_commute)
+
+lemma multiset_inter_assoc: "A #\<inter> (B #\<inter> C) = A #\<inter> B #\<inter> C"
+  by (simp add: multiset_eq_conv_count_eq multiset_inter_count 
+                min_max.below_inf.inf_assoc)
+
+lemma multiset_inter_left_commute: "A #\<inter> (B #\<inter> C) = B #\<inter> (A #\<inter> C)"
+  by (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def)
+
+lemmas multiset_inter_ac = multiset_inter_commute multiset_inter_assoc
+                           multiset_inter_left_commute
+
+lemma multiset_union_diff_commute: "B #\<inter> C = {#} \<Longrightarrow> A + B - C = A - C + B"
+  apply (simp add:multiset_eq_conv_count_eq multiset_inter_count min_def 
+              split:split_if_asm)
+  apply clarsimp
+  apply (erule_tac x="a" in allE)
+  apply auto
+  done
+
 
 subsection {* Induction over multisets *}
 
@@ -332,7 +367,7 @@ proof -
      prefer 2
      apply (simp add: expand_fun_eq)
     apply (erule ssubst)
-    apply (erule Abs_multiset_inverse [THEN subst])
+    apply (erule Abs_multiset_inverse [THEN subst]) 
     apply (erule prem2 [simplified])
     done
 qed
@@ -354,14 +389,12 @@ by (auto simp add: set_of_def)
 theorem multiset_partition: "M = {# x:M. P x #} + {# x:M. \<not> P x #}"
 by (subst multiset_eq_conv_count_eq, auto)
 
-declare Rep_multiset_inject [symmetric, simp del]
-declare multiset_typedef [simp del]
-
 theorem add_eq_conv_ex:
       "(M + {#a#} = N + {#b#}) =
        (M = N \<and> a = b \<or> (\<exists>K. M = K + {#b#} \<and> N = K + {#a#}))"
   by (auto simp add: add_eq_conv_diff)
 
+declare multiset_typedef [simp del]
 
 subsection {* Multiset orderings *}
 
