@@ -124,6 +124,11 @@ New in this Isabelle release
 * Pure: new flag show_var_qmarks to control printing of leading
   question marks of variable names.
 
+* Pure: new version of thms_containing that searches for a list 
+  of patterns instead of a list of constants. Available in 
+  ProofGeneral under ProofGeneral -> Find Theorems or C-c C-f. 
+  Example search: "(_::nat) + _ + _"   "_ ==> _"
+
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
 * Pure/Syntax: pretty pinter now supports unbreakable blocks,
