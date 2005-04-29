@@ -19,6 +19,8 @@ ERRORLOG=$ERRORDIR/error.log
 # where to put test-is-running files
 RUNNING=$HOME/var/running
 
+# max time until test is aborted (in sec)
+MAXTIME=28800
 
 ## diagnostics
 
@@ -108,7 +110,7 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    $NICE $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1 
+    (ulimit -t $MAXTIME; $NICE $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1)
 
     if [ $? -eq 0 ]
     then
