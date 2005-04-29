@@ -1167,14 +1167,24 @@ fun merge_stamps stamps1 stamps2 =
   end;
 
 
-(* trivial merge *)
+(*** trivial merge ***)
+
+(*For concise error messages: the last few components only*)
+fun abbrev_stamp_names_of sg = rev (List.take(map ! (stamps_of sg), 5));
+
+fun abbrev_str_of sg = 
+  let val sts = "..., " ^ commas (abbrev_stamp_names_of sg)
+          handle Subscript => commas (stamp_names_of sg)
+  in "{" ^ sts ^ "}" end;
 
 fun merge_refs (sgr1 as SgRef (SOME (ref (sg1 as Sg ({stamps = s1, ...}, _)))),
         sgr2 as SgRef (SOME (ref (sg2 as Sg ({stamps = s2, ...}, _))))) =
       if subsig (sg2, sg1) then sgr1
       else if subsig (sg1, sg2) then sgr2
       else (merge_stamps s1 s2; (*check for different versions*)
-        error "Attempt to do non-trivial merge of signatures")
+            error ("Attempt to do non-trivial merge of signatures\n" ^ 
+                   abbrev_str_of sg1 ^ "\n" ^ 
+                   abbrev_str_of sg2 ^ "\n"))
   | merge_refs _ = sys_error "Sign.merge_refs";
 
 val merge = deref o merge_refs o pairself self_ref;
