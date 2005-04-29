@@ -1463,38 +1463,52 @@ fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
       | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in gen_distinct eq_fst (List.filter valid (FactIndex.find idx index)) end;
 
+(* facts which are local to the current context, with their names 
+   examples are "prems" and "x" in "assumes x:" during a proof *)
+fun local_facts (ctxt as Context {thms = (_, _, _, index), ...}) = 
+    (* things like "prems" can occur twice under some circumstances *)
+    gen_distinct eq_fst (FactIndex.find ([],[]) index);
 
 fun print_thms_containing ctxt opt_limit ss =
   let
     val prt_term = pretty_term ctxt;
     val prt_fact = pretty_fact ctxt;
-    fun prt_consts [] = []
-      | prt_consts cs = [Pretty.block (Pretty.breaks (Pretty.str "constants" ::
-          map (Pretty.quote o prt_term o Syntax.const) cs))];
-    fun prt_frees [] = []
-      | prt_frees xs = [Pretty.block (Pretty.breaks (Pretty.str "variables" ::
-          map (Pretty.quote o prt_term o Syntax.free) xs))];
 
-    val (cs, xs) = Library.foldl (FactIndex.index_term (is_known ctxt))
-      (([], []), map (read_term_dummies ctxt) ss);
-    val empty_idx = null cs andalso null xs;
+    (* theorems from the theory and its ancestors *)
+    val thy = theory_of ctxt;
+    val sg1 = Theory.sign_of thy;
+    val all_thys = thy :: (Theory.ancestors_of thy)
+    val thms1 = List.concat (map PureThy.thms_with_names_of all_thys);
+    val facts1 =
+      PureThy.find_theorems sg1 thms1 ss;
 
-    val header =
-      if empty_idx then [Pretty.block [Pretty.str "Known facts:", Pretty.fbrk]]
-      else [Pretty.block (Pretty.breaks (Pretty.str "Facts containing" ::
-        separate (Pretty.str "and") (prt_consts cs @ prt_frees xs)) @
-          [Pretty.str ":", Pretty.fbrk])]
-    val facts =
-      PureThy.thms_containing (theory_of ctxt) (cs, xs) @ lthms_containing ctxt (cs, xs)
-      |> sort_wrt #1;
+    (* theorems from the local context *)
+    val sg2 = sign_of ctxt;
+    val thms2 = local_facts ctxt;
+    val facts2 = 
+      PureThy.find_theorems sg2 thms2 ss;
+    
+    (* combine them, use a limit, then print *)
+    val facts = facts1 @ facts2; 
     val len = length facts;
     val limit = getOpt (opt_limit, ! thms_containing_limit);
+    val count = Int.min (limit, len);
+    
+    val header = Pretty.blk (0, [Pretty.str "Searched for:", Pretty.fbrk,
+            Pretty.indent 4 (
+                Pretty.blk (0, separate Pretty.fbrk (map Pretty.str ss))),
+            Pretty.fbrk, Pretty.fbrk,
+            Pretty.str ("Found " ^ (Int.toString len) ^ 
+                " theorems (" ^ (Int.toString count) ^ " displayed):"), 
+            Pretty.fbrk]);
   in
-    if empty_idx andalso not (null ss) then
-      warning "thms_containing: no consts/frees in specification"
-    else (header @ (if len <= limit then [] else [Pretty.str "..."]) @
-        map prt_fact (Library.drop (len - limit, facts))) |> Pretty.chunks |> Pretty.writeln
+    if null facts then
+      warning "find_theorems: nothing found"
+    else 
+        Pretty.writeln header;
+        ((if len <= limit then [] else [Pretty.str "..."]) @
+        map (prt_fact) (Library.drop (len - limit, facts))) |> 
+            Pretty.chunks |> Pretty.writeln
   end;
-
 
 end;

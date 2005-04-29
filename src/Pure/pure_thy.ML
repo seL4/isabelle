@@ -14,6 +14,7 @@ sig
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
   val thms_of: theory -> (string * thm) list
+  val thms_with_names_of: theory -> (string * thm list) list
   structure ProtoPure:
     sig
       val thy: theory
@@ -31,6 +32,7 @@ sig
   val select_thm: thmref -> thm list -> thm list
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list * string list -> (string * thm list) list
+  val find_theorems: Sign.sg -> (string * thm list) list -> string list -> (string * thm list) list 
   val thms_containing_consts: theory -> string list -> (string * thm) list
   val find_matching_thms: (thm -> thm list) * (term -> term)
         -> theory -> term -> (string * thm) list
@@ -226,6 +228,10 @@ fun thms_of thy =
     map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms_tab)))
   end;
 
+(* thms_with_names_of - theorems in this theory and their names *)
+fun thms_with_names_of thy = 
+  TheoremsData.get thy |> ! |> #index |> FactIndex.find ([],[]);
+  (* looking for nothing in a FactIndex finds everything, i.e. all theorems *)
 
 (* thms_containing *)
 
@@ -245,6 +251,49 @@ fun thms_containing_consts thy consts =
   thms_containing thy (consts, []) |> map #2 |> List.concat
   |> map (fn th => (Thm.name_of_thm th, th))
 
+(* find_theorems - finding theorems by matching on a series of subterms  *)
+
+(* Takes a string pattern, such as "(_::nat) + (_ + _)" and converts it into
+    a term with all free variables made schematic *)
+fun str_pattern_to_term sg str_pattern =
+  let
+    (* pattern as term with dummies as Consts *)
+    val term_pattern = read_cterm sg (str_pattern, TypeInfer.logicT) 
+                       |> Thm.term_of; 
+    (* with dummies as Vars *)
+    val v_pattern = #2 (Term.replace_dummy_patterns (1,term_pattern));
+  in
+    (* with schematic vars *)
+    #1 (Type.varify (v_pattern, []))
+  end;
+
+(* find all thms such that for each returned thm, all given 
+    propositions are subterms of it *)
+fun thms_matching_patterns tsign (pat::pats) thms = 
+    let 
+        fun match_single pattern thm = 
+            Pattern.matches_subterm tsign (pat, Thm.prop_of thm);
+    in
+        thms_matching_patterns tsign pats
+            (List.filter (match_single pat) thms)
+    end
+  | thms_matching_patterns _ _ thms = thms; 
+
+(* facts are pairs of theorem name and a list of its thms *)
+fun find_theorems sg facts str_patterns =
+  let
+    val typesg = Sign.tsig_of sg;
+    
+    (* the patterns we will be looking for *)
+    val patterns = map (str_pattern_to_term sg) str_patterns;
+
+    (* we are interested in theorems which have one or more thms for which
+       all patterns are subterms *)
+    fun matches (_, thms) = 
+        (not o null o (thms_matching_patterns typesg patterns)) thms
+  in
+    List.filter matches facts
+  end;
 
 (* intro/elim theorems *)
 
