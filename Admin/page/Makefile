@@ -50,9 +50,9 @@ main:
 	  $(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
 
 pub-main: main
-	@echo "Publishing main pages."
-	scp main/* $(MAIN_PUB_MIRROR_SRC)
-	scp main/* $(MAIN_PUB_DEST)
+	@echo "Publishing main pages (*.html only)."
+	scp main/*.html $(MAIN_PUB_MIRROR_SRC)
+	scp main/*.html $(MAIN_PUB_DEST)
 
 dist:
 	@$(MKCONTENT) -p `cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
@@ -60,7 +60,7 @@ dist:
 	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
 
 pub-dist: dist
-	@echo "Publishing dist pages."
+	@echo "Publishing dist pages (*.html only)."
 	scp dist/*.html $(DIST_PUB_DEST)
 
 install: main dist
