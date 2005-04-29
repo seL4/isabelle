@@ -1,6 +1,7 @@
 (*  Title:      Pure/pure_thy.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+                contributions by Rafal Kolanski, NICTA
 
 Theorem database, derived theory operations, and the ProtoPure theory.
 *)

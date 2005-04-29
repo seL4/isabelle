@@ -1,6 +1,7 @@
 (*  Title:      Pure/Isar/proof_context.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+                contributions by Rafal Kolanski, NICTA
 
 The key concept of Isar proof contexts.
 *)
