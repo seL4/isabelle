@@ -24,7 +24,7 @@ ADMIN="berghofe@in.tum.de"
 HOME=/usr/stud/isatest
 
 # where to find the distribution
-DISTPREFIX=$HOME/isadist
+DISTPREFIX=$HOME/tmp/isadist
 
 # mail program
 MAIL=$HOME/bin/pmail
