@@ -111,7 +111,7 @@ if [ "$FAIL" != "" ]; then
   echo "$(date) $HOSTNAME $PRG: doc test FAILED for ${FAIL}, elapsed time $ELAPSED." >> $MASTERLOG
 
   cat > $TMP <<EOF
-Session(s) ${FAILED} in the documentation test failed (log attached).
+Session(s) ${FAIL} in the documentation test failed (log attached).
 Test ended on: $HOSTNAME, `date`.
 
 Have a nice day,
