@@ -8,7 +8,7 @@ default: dvi
 
 ## paths
 
-SRCPATH = Sugar/generated
+SRCPATH = Sugar/document
 
 ## dependencies
 
@@ -16,31 +16,31 @@ include ../Makefile.in
 
 NAME = sugar
 
-FILES = Sugar/generated/root.tex Sugar/generated/root.bib \
-	      Sugar/generated/mathpartir.sty Sugar/generated/LaTeXsugar.tex \
-        Sugar/generated/OptionalSugar.tex
+FILES = Sugar/document/root.tex Sugar/document/root.bib \
+	      Sugar/document/mathpartir.sty Sugar/document/LaTeXsugar.tex \
+        Sugar/document/OptionalSugar.tex
 
-GARBAGE = Sugar/generated/*.aux Sugar/generated/*.log Sugar/generated/*.toc \
-          Sugar/generated/*.idx Sugar/generated/*.bbl Sugar/generated/*.blg \
-          Sugar/generated/*.out
+GARBAGE = Sugar/document/*.aux Sugar/document/*.log Sugar/document/*.toc \
+          Sugar/document/*.idx Sugar/document/*.bbl Sugar/document/*.blg \
+          Sugar/document/*.out
 
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES)
-	cd Sugar/generated; \
+	cd Sugar/document; \
 	$(LATEX) root; \
 	$(BIBTEX) root; \
 	$(LATEX) root; \
 	$(LATEX) root
-	cp $(SRCPATH)/root.dvi $(NAME).dvi
+	mv $(SRCPATH)/root.dvi $(NAME).dvi
 
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES)
-	cd Sugar/generated; \
+	cd Sugar/document; \
 	$(PDFLATEX) root; \
 	$(BIBTEX) root; \
 	$(PDFLATEX) root; \
 	$(PDFLATEX) root
-	cp $(SRCPATH)/root.pdf $(NAME).pdf
+	mv $(SRCPATH)/root.pdf $(NAME).pdf
 

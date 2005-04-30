@@ -14,7 +14,7 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-USEDIR = $(ISATOOL) usedir -v true -i true -d pdf -D generated -H false
+USEDIR = $(ISATOOL) usedir -v true -i false -g false -d false -D document -H false
 
 
 ## Sugar
