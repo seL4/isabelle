@@ -1,0 +1,363 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Sugar}%
+\isamarkupfalse%
+%
+\isamarkupsection{Introduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+This document is for those Isabelle users who have mastered
+the art of mixing \LaTeX\ text and Isabelle theories and never want to
+typeset a theorem by hand anymore because they have experienced the
+bliss of writing \verb!@!\verb!{thm[display]setsum_cartesian_product[no_vars]}!
+and seeing Isabelle typeset it for them:
+\begin{isabelle}%
+{\isacharparenleft}{\isasymSum}x{\isasymin}A{\isachardot}\ {\isasymSum}y{\isasymin}B{\isachardot}\ f\ x\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymSum}z{\isasymin}A\ {\isasymtimes}\ B{\isachardot}\ f\ {\isacharparenleft}fst\ z{\isacharparenright}\ {\isacharparenleft}snd\ z{\isacharparenright}{\isacharparenright}%
+\end{isabelle}
+No typos, no omissions, no sweat.
+If you have not experienced that joy, read Chapter 4, \emph{Presenting
+Theories}, \cite{LNCS2283} first.
+
+If you have mastered the art of Isabelle's \emph{antiquotations},
+i.e.\ things like the above \verb!@!\verb!{thm...}!, beware: in your vanity
+you may be tempted to think that all readers of the stunning ps or pdf
+documents you can now produce at the drop of a hat will be struck with
+awe at the beauty unfolding in front of their eyes. Until one day you
+come across that very critical of readers known as the ``common referee''.
+He has the nasty habit of refusing to understand unfamiliar notation
+like Isabelle's infamous \isa{{\isasymlbrakk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}} no matter how many times you
+explain it in your paper. Even worse, he thinks that using \isa{{\isasymlbrakk}\ {\isasymrbrakk}} for anything other than denotational semantics is a cardinal sin
+that must be punished by instant rejection.
+
+
+This document shows you how to make Isabelle and \LaTeX\ cooperate to
+produce ordinary looking mathematics that hides the fact that it was
+typeset by a machine. You merely need to load the right files:
+\begin{itemize}
+\item Import theory \texttt{LaTeXsugar} in the header of your own
+theory.  You may also want bits of \texttt{OptionalSugar}, which you can
+copy selectively into your own theory or import as a whole.  Both
+theories live in \texttt{HOL/Library} and are found automatically.
+
+\item Should you need additional \LaTeX\ packages (the text will tell
+you so), you include them at the beginning of your \LaTeX\ document,
+typically in \texttt{root.tex}.
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{HOL syntax%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Logic%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The predefined constructs \isa{if}, \isa{let} and
+\isa{case} are set in sans serif font to distinguish them from
+other functions. This improves readability:
+\begin{itemize}
+\item \isa{\textsf{if}\ b\ \textsf{then}\ e\isactrlisub {\isadigit{1}}\ \textsf{else}\ e\isactrlisub {\isadigit{2}}} instead of \isa{if\ b\ then\ e\isactrlisub {\isadigit{1}}\ else\ e\isactrlisub {\isadigit{2}}}.
+\item \isa{\textsf{let}\ x\ {\isacharequal}\ e\isactrlisub {\isadigit{1}}\ \textsf{in}\ e\isactrlisub {\isadigit{2}}} instead of \isa{let\ x\ {\isacharequal}\ e\isactrlisub {\isadigit{1}}\ in\ e\isactrlisub {\isadigit{2}}}.
+\item \isa{\textsf{case}\ x\ \textsf{of}\ True\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{1}}\ {\isacharbar}\ False\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{2}}} instead of\\
+      \isa{case\ x\ of\ True\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{1}}\ {\isacharbar}\ False\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{2}}}.
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Sets%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Although set syntax in HOL is already close to
+standard, we provide a few further improvements:
+\begin{itemize}
+\item \isa{{\isacharbraceleft}x\ {\isacharbar}\ P{\isacharbraceright}} instead of \isa{{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}}.
+\item \isa{{\isasymemptyset}} instead of \isa{{\isacharbraceleft}{\isacharbraceright}}.
+\item \isa{{\isacharbraceleft}a{\isacharcomma}\ b{\isacharcomma}\ c{\isacharbraceright}\ {\isasymunion}\ M} instead of \isa{insert\ a\ {\isacharparenleft}insert\ b\ {\isacharparenleft}insert\ c\ M{\isacharparenright}{\isacharparenright}}.
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Lists%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If lists are used heavily, the following notations increase readability:
+\begin{itemize}
+\item \isa{x{\isasymcdot}xs} instead of \isa{x\ {\isacharhash}\ xs}.
+      Exceptionally, \isa{x{\isasymcdot}xs} is also input syntax.
+If you prefer more space around the $\cdot$ you have to redefine
+\verb!\isasymcdot! in \LaTeX:
+\verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!
+
+\item \isa{{\isacharbar}xs{\isacharbar}} instead of \isa{length\ xs}.
+\item \isa{xs\ensuremath{_{[\mathit{n}]}}} instead of \isa{nth\ xs\ n},
+      the $n$th element of \isa{xs}.
+
+\item The \isa{{\isacharat}} operation associates implicitly to the right,
+which leads to unpleasant line breaks if the term is too long for one
+line. To avoid this, \texttt{OptionalSugar} contains syntax to group
+\isa{{\isacharat}}-terms to the left before printing, which leads to better
+line breaking behaviour:
+\begin{isabelle}%
+term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \isacharat\ term\isactrlisub {\isadigit{2}}\ \isacharat\ term\isactrlisub {\isadigit{3}}\ \isacharat\ term\isactrlisub {\isadigit{4}}\ \isacharat\ term\isactrlisub {\isadigit{5}}\ \isacharat\ term\isactrlisub {\isadigit{6}}\ \isacharat\ term\isactrlisub {\isadigit{7}}\ \isacharat\ term\isactrlisub {\isadigit{8}}\ \isacharat\ term\isactrlisub {\isadigit{9}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\isactrlisub {\isadigit{0}}%
+\end{isabelle}
+
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Printing theorems%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Question marks%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If you print anything, especially theorems, containing
+schematic variables they are prefixed with a question mark:
+\verb!@!\verb!{thm conjI}! results in \isa{{\isasymlbrakk}{\isacharquery}P{\isacharsemicolon}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q}. Most of the time
+you would rather not see the question marks. There is an attribute
+\verb!no_vars! that you can attach to the theorem that turns its
+schematic into ordinary free variables: \verb!@!\verb!{thm conjI[no_vars]}!
+results in \isa{{\isasymlbrakk}P{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isasymand}\ Q}.
+
+This \verb!no_vars! business can become a bit tedious.
+If you would rather never see question marks, simply put
+\begin{verbatim}
+reset show_var_qmarks;
+\end{verbatim}
+at the beginning of your file \texttt{ROOT.ML}.
+The rest of this document is produced with this flag reset.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Inference rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+To print theorems as inference rules you need to include Didier
+R\'emy's \texttt{mathpartir} package~\cite{mathpartir}
+for typesetting inference rules in your \LaTeX\ file.
+
+Writing \verb!@!\verb!{thm[mode=Rule] conjI}! produces
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}}, even in the middle of a sentence.
+If you prefer your inference rule on a separate line, maybe with a name,
+\begin{center}
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}} {\sc conjI}
+\end{center}
+is produced by
+\begin{quote}
+\verb!\begin{center}!\\
+\verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI}!\\
+\verb!\end{center}!
+\end{quote}
+It is not recommended to use the standard \texttt{display} attribute
+together with \texttt{Rule} because centering does not work and because
+the line breaking mechanisms of \texttt{display} and \texttt{mathpartir} can
+clash.
+
+Of course you can display multiple rules in this fashion:
+\begin{quote}
+\verb!\begin{center}\isastyle!\\
+\verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI} \\[1ex]!\\
+\verb!@!\verb!{thm[mode=Rule] conjE} {\sc disjI$_1$} \qquad!\\
+\verb!@!\verb!{thm[mode=Rule] disjE} {\sc disjI$_2$}!\\
+\verb!\end{center}!
+\end{quote}
+yields
+\begin{center}\isastyle
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}} {\sc conjI} \\[1ex]
+\isa{\mbox{}\inferrule{\mbox{P}}{\mbox{P\ {\isasymor}\ Q}}} {\sc disjI$_1$} \qquad
+\isa{\mbox{}\inferrule{\mbox{Q}}{\mbox{P\ {\isasymor}\ Q}}} {\sc disjI$_2$}
+\end{center}
+Note that we included \verb!\isastyle! to obtain
+the smaller font that otherwise comes only with \texttt{display}.
+
+The \texttt{mathpartir} package copes well if there are too many
+premises for one line:
+\begin{center}
+\isa{\mbox{}\inferrule{\mbox{A\ {\isasymlongrightarrow}\ B}\\\ \mbox{B\ {\isasymlongrightarrow}\ C}\\\ \mbox{C\ {\isasymlongrightarrow}\ D}\\\ \mbox{D\ {\isasymlongrightarrow}\ E}\\\ \mbox{E\ {\isasymlongrightarrow}\ F}\\\ \mbox{F\ {\isasymlongrightarrow}\ G}\\\ \mbox{G\ {\isasymlongrightarrow}\ H}\\\ \mbox{H\ {\isasymlongrightarrow}\ I}\\\ \mbox{I\ {\isasymlongrightarrow}\ J}\\\ \mbox{J\ {\isasymlongrightarrow}\ K}}{\mbox{A\ {\isasymlongrightarrow}\ K}}}
+\end{center}
+
+Limitations: 1. Premises and conclusion must each not be longer than
+the line.  2. Premises that are \isa{{\isasymLongrightarrow}}-implications are again
+displayed with a horizontal line, which looks at least unusual.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{If-then%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If you prefer a fake ``natural language'' style you can produce
+the body of
+\newtheorem{theorem}{Theorem}
+\begin{theorem}
+\isa{{\rmfamily\upshape\normalsize{}If\,}\ \mbox{i\ {\isasymle}\ j}\ {\rmfamily\upshape\normalsize \,and\,}\ \mbox{j\ {\isasymle}\ k}\ {\rmfamily\upshape\normalsize \,then\,}\ i\ {\isasymle}\ k{\isachardot}}
+\end{theorem}
+by typing
+\begin{quote}
+\verb!@!\verb!{thm[mode=IfThen] le_trans}!
+\end{quote}
+
+In order to prevent odd line breaks, the premises are put into boxes.
+At times this is too drastic:
+\begin{theorem}
+\isa{{\rmfamily\upshape\normalsize{}If\,}\ \mbox{longpremise}\ {\rmfamily\upshape\normalsize \,and\,}\ \mbox{longerpremise}\ {\rmfamily\upshape\normalsize \,and\,}\ \mbox{P\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}}\ {\rmfamily\upshape\normalsize \,and\,}\ \mbox{longestpremise}\ {\rmfamily\upshape\normalsize \,then\,}\ conclusion{\isachardot}}
+\end{theorem}
+In which case you should use \texttt{mode=IfThenNoBox} instead of
+\texttt{mode=IfThen}:
+\begin{theorem}
+\isa{{\rmfamily\upshape\normalsize{}If\,}\ longpremise\ {\rmfamily\upshape\normalsize \,and\,}\ longerpremise\ {\rmfamily\upshape\normalsize \,and\,}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\rmfamily\upshape\normalsize \,and\,}\ longestpremise\ {\rmfamily\upshape\normalsize \,then\,}\ conclusion{\isachardot}}
+\end{theorem}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Definitions and Equations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \verb!thm! antiquotation works nicely for proper theorems, but
+  sets of equations as used in definitions are more difficult to
+  typeset nicely: for some reason people tend to prefer aligned 
+  \isa{{\isacharequal}} signs.
+
+  Isabelle2005 has a nice mechanism for this, namely the two
+  antiquotations \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}!.
+
+  \begin{center}
+  \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
+  \isa{foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}} & \isa{a}\\
+  \isa{foldl\ f\ a\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}} & \isa{foldl\ f\ {\isacharparenleft}f\ a\ x{\isacharparenright}\ xs}
+  \end{tabular}
+  \end{center}
+
+  \noindent 
+  is produced by the following code:
+
+\begin{quote}
+  \verb!\begin{center}!\\
+  \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
+  \verb!@!\verb!{lhs foldl_Nil} & @!\verb!{rhs foldl_Nil}!\\
+  \verb!@!\verb!{lhs foldl_Cons} & @!\verb!{rhs foldl_Cons}!\\
+  \verb!\end{tabular}!\\
+  \verb!\end{center}!
+\end{quote}
+
+  \noindent
+  Note the space between \verb!@! and \verb!{! in the tabular argument.
+  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
+  as antiquotation. \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}! 
+  try to be smart about the interpretation of the theorem they
+  print, they work just as well for meta equality \isa{{\isasymequiv}} and other
+  binary operators like \isa{{\isacharless}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Patterns%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sometimes functions ignore one or more of their
+  arguments and some functional languages have nice 
+  syntax for that as in \isa{hd\ {\isacharparenleft}x{\isasymcdot}\_{\isacharparenright}\ {\isacharequal}\ x}.
+
+  You can simulate this in Isabelle by instantiating the \isa{xs} in
+  definition \mbox{\isa{hd\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}\ {\isacharequal}\ x}} with a constant \isa{DUMMY} that
+  is printed as \isa{\_}. The code for the pattern above is 
+  \verb!@!\verb!{thm hd.simps [where xs=DUMMY]}!.
+
+  You can drive this game even further and extend the syntax of let
+  bindings such that certain functions like \isa{fst}, \isa{hd}, 
+  etc.\ are printed as patterns. \texttt{OptionalSugar} provides the
+  following:
+  
+  \begin{center}
+  \begin{tabular}{l@ {~~produced by~~}l}
+  \isa{\textsf{let}\ {\isacharparenleft}x{\isacharcomma}\ \_{\isacharparenright}\ {\isacharequal}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = fst p in t"}!\\
+  \isa{\textsf{let}\ {\isacharparenleft}\_{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = snd p in t"}!\\
+  \isa{\textsf{let}\ x{\isasymcdot}\_\ {\isacharequal}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = hd xs in t"}!\\
+  \isa{\textsf{let}\ \_{\isasymcdot}x\ {\isacharequal}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = tl xs in t"}!\\
+  \isa{\textsf{let}\ Some\ x\ {\isacharequal}\ y\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = the y in t"}!\\
+  \end{tabular}
+  \end{center}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Proofs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Full proofs, even if written in beautiful Isar style, are likely to
+  be too long and detailed to be included in conference papers, but
+  some key lemmas might be of interest.
+
+  It is usually easiest to put them in figures like the one in Fig.\
+  \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw}
+  command:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{figure}
+  \begin{center}\begin{minipage}{0.6\textwidth}  
+  \isastyle\isamarkuptrue
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ %
+\isamarkupcmt{pretty trivial%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ True\ \isamarkupfalse%
+\isacommand{by}\ force\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\end{center}
+  \caption{Example proof in a figure.}\label{fig:proof}
+  \end{figure}
+%
+\begin{isamarkuptext}%
+\begin{quote}
+\small
+\verb!text_raw {!\verb!*!\\
+\verb!  \begin{figure}!\\
+\verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
+\verb!  \isastyle\isamarkuptrue!\\
+\verb!*!\verb!}!\\
+\verb!lemma True!\\
+\verb!proof -!\\
+\verb!  -- "pretty trivial"!\\
+\verb!  show True by force!\\
+\verb!qed!\\
+\verb!text_raw {!\verb!*!\\
+\verb!  \end{minipage}\end{center}!\\
+\verb!  \caption{Example proof in a figure.}\label{fig:proof}!\\
+\verb!  \end{figure}!\\
+\verb!*!\verb!}!
+\end{quote}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
