@@ -13,7 +13,7 @@ include ../../../Makefile.in
 dvi: ../../isar-overview.dvi
 
 ../../isar-overview.dvi: root.dvi
-	cp root.dvi ../../isar-overview.dvi
+	mv root.dvi ../../isar-overview.dvi
 
 root.dvi: *.tex *.sty *.bib
 	$(LATEX) root
@@ -24,7 +24,7 @@ root.dvi: *.tex *.sty *.bib
 pdf: ../../isar-overview.pdf
 
 ../../isar-overview.pdf: root.pdf
-	cp root.pdf ../../isar-overview.pdf
+	mv root.pdf ../../isar-overview.pdf
 
 root.pdf: *.tex *.sty *.bib
 	$(PDFLATEX) root
