@@ -94,7 +94,7 @@ that recursively reverses the order of arguments of all function symbols in a
 \end{exercise}
 
 The experienced functional programmer may feel that our definition of
-@{term subst} is too complicated in that @{term substs} is
+@{term subst} is too complicated in that @{const substs} is
 unnecessary. The @{term App}-case can be defined directly as
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
 where @{term"map"} is the standard list function such that
@@ -143,7 +143,7 @@ simplification rule:
 declare subst_App [simp del]
 
 text{*\noindent
-The advantage is that now we have replaced @{term substs} by
+The advantage is that now we have replaced @{const substs} by
 @{term map}, we can profit from the large number of pre-proved lemmas
 about @{term map}.  Unfortunately inductive proofs about type
 @{text term} are still awkward because they expect a conjunction. One

@@ -140,7 +140,7 @@ If the left-hand side is not a higher-order pattern, all is not lost.
 The simplifier will still try to apply the rule provided it
 matches directly: without much $\lambda$-calculus hocus
 pocus.  For example, @{text"(?f ?x \<in> range ?f) = True"} rewrites
-@{term"g a \<in> range g"} to @{term True}, but will fail to match
+@{term"g a \<in> range g"} to @{const True}, but will fail to match
 @{text"g(h b) \<in> range(\<lambda>x. g(h x))"}.  However, you can
 eliminate the offending subterms --- those that are not patterns ---
 by adding new variables and conditions.

@@ -32,7 +32,7 @@ intros "s \<in> Avoid s A"
 text{*
 It is easy to see that for any infinite @{term A}-avoiding path @{term f}
 with @{prop"f(0::nat) \<in> Avoid s A"} there is an infinite @{term A}-avoiding path
-starting with @{term s} because (by definition of @{term Avoid}) there is a
+starting with @{term s} because (by definition of @{const Avoid}) there is a
 finite @{term A}-avoiding path from @{term s} to @{term"f(0::nat)"}.
 The proof is by induction on @{prop"f(0::nat) \<in> Avoid s A"}. However,
 this requires the following
@@ -98,7 +98,7 @@ then all successors of @{term t} that are in @{term"Avoid s A"} are in
 subgoal once, we have to prove that @{term t} is in @{term A} or all successors
 of @{term t} are in @{term"lfp (af A)"}.  But if @{term t} is not in @{term A},
 the second 
-@{term Avoid}-rule implies that all successors of @{term t} are in
+@{const Avoid}-rule implies that all successors of @{term t} are in
 @{term"Avoid s A"}, because we also assume @{prop"t \<in> Avoid s A"}.
 Hence, by the induction hypothesis, all successors of @{term t} are indeed in
 @{term"lfp(af A)"}. Mechanically:
@@ -136,7 +136,7 @@ into a @{text"\<And>p"}, which would complicate matters below. As it is,
 @{thm[display]Avoid_in_lfp[no_vars]}
 The main theorem is simply the corollary where @{prop"t = s"},
 when the assumption @{prop"t \<in> Avoid s A"} is trivially true
-by the first @{term Avoid}-rule. Isabelle confirms this:%
+by the first @{const Avoid}-rule. Isabelle confirms this:%
 \index{CTL|)}*}
 
 theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";

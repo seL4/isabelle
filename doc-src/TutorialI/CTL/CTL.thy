@@ -28,7 +28,7 @@ constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
          "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
 
 text{*\noindent
-This definition allows a succinct statement of the semantics of @{term AF}:
+This definition allows a succinct statement of the semantics of @{const AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
@@ -47,7 +47,7 @@ primrec
 "s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)";
 
 text{*\noindent
-Model checking @{term AF} involves a function which
+Model checking @{const AF} involves a function which
 is just complicated enough to warrant a separate definition:
 *};
 
@@ -69,7 +69,7 @@ primrec
 "mc(AF f)    = lfp(af(mc f))";
 
 text{*\noindent
-Because @{term af} is monotone in its second argument (and also its first, but
+Because @{const af} is monotone in its second argument (and also its first, but
 that is irrelevant), @{term"af A"} has a least fixed point:
 *};
 
@@ -101,7 +101,7 @@ by(blast);
 (*>*)
 text{*
 All we need to prove now is  @{prop"mc(AF f) = {s. s \<Turnstile> AF f}"}, which states
-that @{term mc} and @{text"\<Turnstile>"} agree for @{term AF}\@.
+that @{term mc} and @{text"\<Turnstile>"} agree for @{const AF}\@.
 This time we prove the two inclusions separately, starting
 with the easy one:
 *};
@@ -110,7 +110,7 @@ theorem AF_lemma1:
   "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}";
 
 txt{*\noindent
-In contrast to the analogous proof for @{term EF}, and just
+In contrast to the analogous proof for @{const EF}, and just
 for a change, we do not use fixed point induction.  Park-induction,
 named after David Park, is weaker but sufficient for this proof:
 \begin{center}
@@ -139,7 +139,7 @@ text{*
 The opposite inclusion is proved by contradiction: if some state
 @{term s} is not in @{term"lfp(af A)"}, then we can construct an
 infinite @{term A}-avoiding path starting from~@{term s}. The reason is
-that by unfolding @{term lfp} we find that if @{term s} is not in
+that by unfolding @{const lfp} we find that if @{term s} is not in
 @{term"lfp(af A)"}, then @{term s} is not in @{term A} and there is a
 direct successor of @{term s} that is again not in \mbox{@{term"lfp(af
 A)"}}. Iterating this argument yields the promised infinite
@@ -158,8 +158,8 @@ done;
 
 text{*\noindent
 We assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
-Unfolding @{term lfp} once and
-simplifying with the definition of @{term af} finishes the proof.
+Unfolding @{const lfp} once and
+simplifying with the definition of @{const af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
 path is parameterized by a predicate @{term Q} that should hold along the path:
@@ -175,7 +175,7 @@ Element @{term"n+1::nat"} on this path is some arbitrary successor
 @{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that @{text"SOME t. R t"}
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
 course, such a @{term t} need not exist, but that is of no
-concern to us since we will only use @{term path} when a
+concern to us since we will only use @{const path} when a
 suitable @{term t} does exist.
 
 Let us show that if each state @{term s} that satisfies @{term Q}
@@ -244,7 +244,7 @@ the offending rule may need to be applied explicitly rather than
 automatically. This is what happens in the step case.
 
 The induction step is similar, but more involved, because now we face nested
-occurrences of @{text SOME}. As a result, @{text fast} is no longer able to
+occurrences of @{const SOME}. As a result, @{text fast} is no longer able to
 solve the subgoal and we apply @{thm[source]someI2_ex} by hand.  We merely
 show the proof commands but do not describe the details:
 *};
@@ -258,7 +258,7 @@ apply(blast);
 done;
 
 text{*
-Function @{term path} has fulfilled its purpose now and can be forgotten.
+Function @{const path} has fulfilled its purpose now and can be forgotten.
 It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
@@ -446,7 +446,7 @@ done
 text{* Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
-implemented. Only @{term lfp} requires a little thought.  Fortunately, theory
+implemented. Only @{const lfp} requires a little thought.  Fortunately, theory
 @{text While_Combinator} in the Library~\cite{HOL-Library} provides a
 theorem stating that in the case of finite sets and a monotone
 function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by

@@ -49,7 +49,7 @@ text{*
 \index{recursion!guarded}%
 Neither \isacommand{primrec} nor \isacommand{recdef} allow to
 prefix an equation with a condition in the way ordinary definitions do
-(see @{term minus} above). Instead we have to move the condition over
+(see @{const minus} above). Instead we have to move the condition over
 to the right-hand side of the equation. Given a partial function $f$
 that should satisfy the recursion equation $f(x) = t$ over its domain
 $dom(f)$, we turn this into the \isacommand{recdef}
@@ -117,7 +117,7 @@ is known to the well-foundedness prover of \isacommand{recdef}.  Thus
 well-foundedness of the relation given to \isacommand{recdef} is immediate.
 Furthermore, each recursive call descends along that relation: the first
 argument stays unchanged and the second one descends along @{term"step1
-f"}. The proof requires unfolding the definition of @{term step1},
+f"}. The proof requires unfolding the definition of @{const step1},
 as specified in the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant from
@@ -157,7 +157,7 @@ That is, @{term"while b c s"} is equivalent to the imperative program
      x := s; while b(x) do x := c(x); return x
 \end{verbatim}
 In general, @{term s} will be a tuple or record.  As an example
-consider the following definition of function @{term find}:
+consider the following definition of function @{const find}:
 *}
 
 constdefs find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -181,7 +181,7 @@ and~2). The post-condition @{term Q} must become true when leaving the loop
 (premise~3). And each loop iteration must descend along a well-founded
 relation @{term r} (premises 4 and~5).
 
-Let us now prove that @{term find2} does indeed find a fixed point. Instead
+Let us now prove that @{const find2} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
 Only the final premise of @{thm[source]while_rule} is left unproved
 by @{text auto} but falls to @{text simp}:
