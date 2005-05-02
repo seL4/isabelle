@@ -138,7 +138,7 @@ because @{text"\<times>"} is a datatype. When we now try to prove
 lemma "swap(swap p) = p"
 
 txt{*\noindent
-simplification will do nothing, because the defining equation for @{term swap}
+simplification will do nothing, because the defining equation for @{const swap}
 expects a pair. Again, we need to turn @{term p} into a pair first, but this
 time there is no @{term split} in sight. In this case the only thing we can do
 is to split the term by hand:

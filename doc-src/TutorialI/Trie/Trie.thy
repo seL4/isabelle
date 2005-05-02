@@ -49,7 +49,7 @@ primrec "lookup t [] = value t"
 
 text{*
 As a first simple property we prove that looking up a string in the empty
-trie @{term"Trie None []"} always returns @{term None}. The proof merely
+trie @{term"Trie None []"} always returns @{const None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:
 *};
 
@@ -76,10 +76,10 @@ The base case is obvious. In the recursive case the subtrie
 @{term tt} associated with the first letter @{term a} is extracted,
 recursively updated, and then placed in front of the association list.
 The old subtrie associated with @{term a} is still in the association list
-but no longer accessible via @{term assoc}. Clearly, there is room here for
+but no longer accessible via @{const assoc}. Clearly, there is room here for
 optimizations!
 
-Before we start on any proofs about @{term update} we tell the simplifier to
+Before we start on any proofs about @{const update} we tell the simplifier to
 expand all @{text let}s and to split all @{text case}-constructs over
 options:
 *};
@@ -88,11 +88,11 @@ declare Let_def[simp] option.split[split]
 
 text{*\noindent
 The reason becomes clear when looking (probably after a failed proof
-attempt) at the body of @{term update}: it contains both
+attempt) at the body of @{const update}: it contains both
 @{text let} and a case distinction over type @{text option}.
 
-Our main goal is to prove the correct interaction of @{term update} and
-@{term lookup}:
+Our main goal is to prove the correct interaction of @{const update} and
+@{const lookup}:
 *};
 
 theorem "\<forall>t v bs. lookup (update t as v) bs =
@@ -102,8 +102,8 @@ txt{*\noindent
 Our plan is to induct on @{term as}; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
 @{term as} or @{term bs} is required. The choice of @{term as} is 
-guided by the intuition that simplification of @{term lookup} might be easier
-if @{term update} has already been simplified, which can only happen if
+guided by the intuition that simplification of @{const lookup} might be easier
+if @{const update} has already been simplified, which can only happen if
 @{term as} is instantiated.
 The start of the proof is conventional:
 *};
@@ -138,7 +138,7 @@ of the induction up in such a way that case distinction on @{term bs} makes
 sense and solves the proof. 
 
 \begin{exercise}
-  Modify @{term update} (and its type) such that it allows both insertion and
+  Modify @{const update} (and its type) such that it allows both insertion and
   deletion of entries with a single function.  Prove the corresponding version 
   of the main theorem above.
   Optimize your function such that it shrinks tries after
@@ -146,10 +146,10 @@ sense and solves the proof.
 \end{exercise}
 
 \begin{exercise}
-  Write an improved version of @{term update} that does not suffer from the
+  Write an improved version of @{const update} that does not suffer from the
   space leak (pointed out above) caused by not deleting overwritten entries
   from the association list. Prove the main theorem for your improved
-  @{term update}.
+  @{const update}.
 \end{exercise}
 
 \begin{exercise}

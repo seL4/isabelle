@@ -45,8 +45,8 @@ record point =
   Ycoord :: int
 
 text {*
-  Records of type @{typ point} have two fields named @{text Xcoord}
-  and @{text Ycoord}, both of type~@{typ int}.  We now define a
+  Records of type @{typ point} have two fields named @{const Xcoord}
+  and @{const Ycoord}, both of type~@{typ int}.  We now define a
   constant of type @{typ point}:
 *}
 
@@ -78,8 +78,8 @@ lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b\<rparr> = a"
 
 text {*
   The \emph{update}\index{update!record} operation is functional.  For
-  example, @{term "p\<lparr>Xcoord := 0\<rparr>"} is a record whose @{text Xcoord}
-  value is zero and whose @{text Ycoord} value is copied from~@{text
+  example, @{term "p\<lparr>Xcoord := 0\<rparr>"} is a record whose @{const Xcoord}
+  value is zero and whose @{const Ycoord} value is copied from~@{text
   p}.  Updates of explicit records are also simplified automatically:
 *}
 
@@ -111,7 +111,7 @@ record cpoint = point +
   col :: colour
 
 text {*
-  The fields of this new type are @{text Xcoord}, @{text Ycoord} and
+  The fields of this new type are @{const Xcoord}, @{text Ycoord} and
   @{text col}, in that order.
 *}
 
@@ -137,7 +137,7 @@ lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
 
 text {*
   This lemma applies to any record whose first two fields are @{text
-  Xcoord} and~@{text Ycoord}.  Note that @{text "\<lparr>Xcoord = a, Ycoord
+  Xcoord} and~@{const Ycoord}.  Note that @{text "\<lparr>Xcoord = a, Ycoord
   = b, \<dots> = ()\<rparr>"} is exactly the same as @{text "\<lparr>Xcoord = a, Ycoord
   = b\<rparr>"}.  Selectors and updates are always polymorphic wrt.\ the
   @{text more} part of a record scheme, its value is just ignored (for
@@ -169,7 +169,7 @@ text {*
   \medskip
 
   Type @{typ point} is for fixed records having exactly the two fields
-  @{text Xcoord} and~@{text Ycoord}, while the polymorphic type @{typ
+  @{const Xcoord} and~@{text Ycoord}, while the polymorphic type @{typ
   "'a point_scheme"} comprises all possible extensions to those two
   fields.  Note that @{typ "unit point_scheme"} coincides with @{typ
   point}, and @{typ "\<lparr>col :: colour\<rparr> point_scheme"} with @{typ
@@ -188,7 +188,7 @@ constdefs
 
 text {*
   Here is a generic method that modifies a point, incrementing its
-  @{text Xcoord} field.  The @{text Ycoord} and @{text more} fields
+  @{const Xcoord} field.  The @{text Ycoord} and @{text more} fields
   are copied across.  It works for any record type scheme derived from
   @{typ point} (including @{typ cpoint} etc.):
 *}
@@ -200,7 +200,7 @@ constdefs
 
 text {*
   Generic theorems can be proved about generic methods.  This trivial
-  lemma relates @{text incX} to @{text getX} and @{text setX}:
+  lemma relates @{const incX} to @{text getX} and @{text setX}:
 *}
 
 lemma "incX r = setX r (getX r + 1)"
@@ -272,7 +272,7 @@ lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrighta
 text {*
   Here the simplifier can do nothing, since general record equality is
   not eliminated automatically.  One way to proceed is by an explicit
-  forward step that applies the selector @{text Xcoord} to both sides
+  forward step that applies the selector @{const Xcoord} to both sides
   of the assumed record equality:
 *}
 
@@ -376,7 +376,7 @@ constdefs
   "cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
 
 text {*
-  The coloured points @{text cpt1} and @{text cpt2} are equal.  The
+  The coloured points @{const cpt1} and @{text cpt2} are equal.  The
   proof is trivial, by unfolding all the definitions.  We deliberately
   omit the definition of~@{text pt1} in order to reveal the underlying
   comparison on type @{typ point}.

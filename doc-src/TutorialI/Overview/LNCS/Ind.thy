@@ -21,7 +21,7 @@ done
 
 subsubsection{*Rule Induction*}
 
-text{* Rule induction for set @{term even}, @{thm[source]even.induct}:
+text{* Rule induction for set @{const even}, @{thm[source]even.induct}:
 @{thm[display] even.induct[no_vars]}*}
 (*<*)thm even.induct[no_vars](*>*)
 

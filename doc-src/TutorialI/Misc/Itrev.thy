@@ -119,7 +119,7 @@ matters in some cases. The variables that should be quantified are typically
 those that change in recursive calls.
 
 A final point worth mentioning is the orientation of the equation we just
-proved: the more complex notion (@{term itrev}) is on the left-hand
+proved: the more complex notion (@{const itrev}) is on the left-hand
 side, the simpler one (@{term rev}) on the right-hand side. This constitutes
 another, albeit weak heuristic that is not restricted to induction:
 \begin{quote}

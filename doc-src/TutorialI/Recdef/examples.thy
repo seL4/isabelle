@@ -63,7 +63,7 @@ To guarantee that the second equation can only be applied if the first
 one does not match, Isabelle internally replaces the second equation
 by the two possibilities that are left: @{prop"sep1(a,[]) = []"} and
 @{prop"sep1(a, [x]) = [x]"}.  Thus the functions @{term sep} and
-@{term sep1} are identical.
+@{const sep1} are identical.
 
 \begin{warn}
   \isacommand{recdef} only takes the first argument of a (curried)

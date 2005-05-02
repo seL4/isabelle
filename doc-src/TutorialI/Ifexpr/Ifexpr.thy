@@ -180,7 +180,7 @@ can provide the clue.  The necessity of universal quantification
 \S\ref{sec:InductionHeuristics}
 
 \begin{exercise}
-  We strengthen the definition of a @{term normal} If-expression as follows:
+  We strengthen the definition of a @{const normal} If-expression as follows:
   the first argument of all @{term IF}s must be a variable. Adapt the above
   development to this changed requirement. (Hint: you may need to formulate
   some of the goals as implications (@{text"\<longrightarrow>"}) rather than

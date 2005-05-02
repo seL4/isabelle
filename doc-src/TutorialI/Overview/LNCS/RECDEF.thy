@@ -29,7 +29,7 @@ recdef sep1 "measure (\<lambda>(a,xs). length xs)"
   "sep1(a, xs)     = xs";
 
 text{*
-This is what the rules for @{term sep1} are turned into:
+This is what the rules for @{const sep1} are turned into:
 @{thm[display,indent=5] sep1.simps[no_vars]}
 *}
 (*<*)
