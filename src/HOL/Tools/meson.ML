@@ -217,14 +217,18 @@ fun is_conn c = c mem_string
 val has_bool_arg_const = 
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
+      
+val has_meta_conn = 
+    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "Goal"]);
   
 (*Raises an exception if any Vars in the theorem mention type bool. That would mean
   they are higher-order, and in addition, they could cause make_horn to loop!
   Functions taking Boolean arguments are also rejected.*)
 fun check_no_bool th =
   let val {prop,...} = rep_thm th
-  in if exists (has_bool o fastype_of) (term_vars prop) orelse
-        has_bool_arg_const prop
+  in if exists (has_bool o fastype_of) (term_vars prop)  orelse
+        has_bool_arg_const prop  orelse  
+        has_meta_conn prop
   then raise THM ("check_no_bool", 0, [th]) else th
   end;
 
