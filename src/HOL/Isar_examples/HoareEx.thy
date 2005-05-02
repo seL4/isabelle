@@ -188,7 +188,7 @@ text {*
  state space.
 *}
 
-declare setsum_op_ivl_Suc[simp] atLeast0LessThan[symmetric,simp]
+declare atLeast0LessThan[symmetric,simp]
 
 theorem
   "|- .{True}.

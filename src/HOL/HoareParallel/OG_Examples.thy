@@ -484,8 +484,6 @@ done
 
 subsubsection {* Increment a Variable in Parallel *}
 
-declare setsum_op_ivl_Suc [simp]
-
 text {* First some lemmas about summation properties. *}
 (*
 lemma Example2_lemma1: "!!b. j<n \<Longrightarrow> (\<Sum>i::nat<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "

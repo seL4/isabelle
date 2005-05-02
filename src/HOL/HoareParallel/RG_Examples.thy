@@ -154,8 +154,6 @@ done
 
 subsubsection {* Parameterized *}
 
-declare setsum_op_ivl_Suc [simp]
-
 lemma Example2_lemma2_aux: "j<n \<Longrightarrow> 
  (\<Sum>i=0..<n. (b i::nat)) =
  (\<Sum>i=0..<j. b i) + b j + (\<Sum>i=0..<n-(Suc j) . b (Suc j + i))"

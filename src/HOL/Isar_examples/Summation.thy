@@ -9,8 +9,6 @@ theory Summation
 imports Main
 begin
 
-declare setsum_op_ivl_Suc [simp] setsum_cl_ivl_Suc [simp]
-
 text_raw {*
  \footnote{This example is somewhat reminiscent of the
  \url{http://isabelle.in.tum.de/library/HOL/ex/NatSum.html}, which is
