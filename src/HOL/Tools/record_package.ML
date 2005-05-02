@@ -1480,9 +1480,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                             (cterm_of sg (Free (variant variants (base c ^ "'"),T))); 
         val refls = map mkrefl fields_more;
         val constr_refl = Thm.reflexive (cterm_of sg (head_of ext));
-        val dest_convs' = map (Thm.freezeT o mk_meta_eq) dest_convs;
-         (* freezeT just for performance, to adjust the maxidx, so that nodup_vars will not 
-                be called during combination *)
+        val dest_convs' = map mk_meta_eq dest_convs;
+         
         fun mkthm (udef,(fld_refl,thms)) =
           let val bdyeq = Library.foldl (uncurry Thm.combination) (constr_refl,thms);
                (* (|N=N (|N=N,M=M,K=K,more=more|)
