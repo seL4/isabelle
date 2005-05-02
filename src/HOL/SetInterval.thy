@@ -617,11 +617,11 @@ lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)
 *)
 
-lemma setsum_cl_ivl_Suc:
+lemma setsum_cl_ivl_Suc[simp]:
   "setsum f {m..Suc n} = (if Suc n < m then 0 else setsum f {m..n} + f(Suc n))"
 by (auto simp:add_ac atLeastAtMostSuc_conv)
 
-lemma setsum_op_ivl_Suc:
+lemma setsum_op_ivl_Suc[simp]:
   "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
 by (auto simp:add_ac atLeastLessThanSuc)
 
