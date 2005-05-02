@@ -5,21 +5,7 @@
 
 (* Get claset rules *)
 
-
-
-fun remove_all [] rules = rules
-|   remove_all (x::xs) rules = let val rules' = List.filter (not_equal x) rules
-                              in
-                                  remove_all xs rules'
-                              end; 
-
 fun has_name th = not((Thm.name_of_thm th)= "")
-
-fun rule_is_fol th = let val tm = prop_of th
-                     in 
-                        Term.is_first_order tm
-                     end
-
 
 fun has_name_pair (a,b) = not_equal a "";
 fun good_pair c (a,b) = not_equal b c;
@@ -30,10 +16,8 @@ val num_of_clauses = ref 0;
 val clause_arr = Array.array(3500, ("empty", 0));
 
 
-val foo_arr = Array.array(20, ("a",0));
-
-
 (*
+val foo_arr = Array.array(20, ("a",0));
 
 fill_cls_array foo_arr 0 [("b",1), ("c",2), ("d", 3), ("e", 4), ("f",5)];
 
@@ -155,19 +139,6 @@ fun memo_add_clauses (name:string, cls)=
 fun memo_find_clause name = case Symtab.lookup (!nc,name) of
       	        NONE =>  []
                 |SOME cls  => cls ;
-      	        	
-
-
-
-fun not_second c (a,b)  = not_equal b c;
-
-fun remove_all_simps [] name_rule_list:(string*thm) list = name_rule_list
-|   remove_all_simps ((x:thm)::xs) (name_rule_list:(string*thm) list) = 
-                              let val name_rules' = List.filter (not_second  x) name_rule_list
-                              in
-                                  remove_all_simps xs name_rules'
-                              end; 
-
 
 
 fun get_simp_metas [] = [[]]
@@ -184,18 +155,12 @@ val clause_arr = Array.array(3500, ("empty", 0));
                                
 
 fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let 
-                                  val  outfile = TextIO.openOut("wibble");                                  val _ = TextIO.output (outfile, ("in write_out_clasimpset"))
-                                  val _ =  TextIO.closeOut outfile
-                                   val _= (warning ("in writeoutclasimp"))
+                                   val _= warning "in writeoutclasimp"
                                    (****************************************)
                                    (* add claset rules to array and write out as strings *)
                                    (****************************************)
-                                   val claset_rules = ResAxioms.claset_rules_of_thy (the_context())
-                                   val claset = ResAxioms.clausify_classical_rules_thy (the_context())
-                                   val (claset_clauses,badthms) =  claset;
-                                   val clausifiable_rules = remove_all badthms claset_rules;
-                                   val named_claset = List.filter has_name clausifiable_rules;
-                                   val name_fol_cs = List.filter rule_is_fol  named_claset;
+                                   val clausifiable_rules = ResAxioms.claset_rules_of_thy (the_context())
+                                   val name_fol_cs = List.filter has_name clausifiable_rules;
                                    (* length name_fol_cs is 93 *)
                                    val good_names = map Thm.name_of_thm name_fol_cs;
  
@@ -248,14 +213,8 @@ fun write_out_clasimp filename (clause_arr:(string * int) Array.array)  = let
                                   val simp_names = map #1 named_simps;
                                   val simp_rules = map #2 named_simps;
                               
-                                  val (simpset_cls,badthms) = ResAxioms.clausify_rules  simp_rules [];
                                  (* 1137 clausif simps *)
-                                  val name_fol_simps = remove_all_simps badthms named_simps;
                                    
-                                    val simp_names = map #1 name_fol_simps;
-                                    val simp_rules = map #2 name_fol_simps;
-                                    
-                                     (* 995 of these *)
                                     (* need to get names of claset_cluases so we can make sure we've*)
                                     (* got the same ones (ie. the named ones ) as the claset rules *)
                                     (* length 1374*)
