@@ -94,7 +94,7 @@ local
   (*** and bindig theorems to ML identifiers    ***)
 
   fun mk_bind_thms_string names =
-   (case find_first (not o ThmDatabase.is_ml_identifier) names of
+   (case Library.find_first (not o ThmDatabase.is_ml_identifier) names of
       SOME id => (warning (id ^ " is not a valid identifier"); "")
     | NONE =>
         let
