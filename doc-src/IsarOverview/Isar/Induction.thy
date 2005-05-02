@@ -77,13 +77,16 @@ of this. *}
 subsection{*Structural induction*}
 
 text{* We start with an inductive proof where both cases are proved automatically: *}
-lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
+lemma "2 * (\<Sum>i::nat = 0..<n+1. i) = n*(n+1)"
 by (induct n, simp_all)
 
-text{*\noindent If we want to expose more of the structure of the
+text{*\noindent The constraint @{text"::nat"} is needed because all of
+the operations involved are overloaded.
+
+If we want to expose more of the structure of the
 proof, we can use pattern matching to avoid having to repeat the goal
 statement: *}
-lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)" (is "?P n")
+lemma "2 * (\<Sum>i::nat = 0..<n+1. i) = n*(n+1)" (is "?P n")
 proof (induct n)
   show "?P 0" by simp
 next
@@ -94,7 +97,7 @@ qed
 text{* \noindent We could refine this further to show more of the equational
 proof. Instead we explore the same avenue as for case distinctions:
 introducing context via the \isakeyword{case} command: *}
-lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
+lemma "2 * (\<Sum>i::nat = 0..<n+1. i) = n*(n+1)"
 proof (induct n)
   case 0 show ?case by simp
 next
