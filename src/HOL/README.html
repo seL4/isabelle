@@ -29,23 +29,20 @@ There are also several example sessions:
 <dt>AxClasses
 <dd>a few basic examples of using axiomatic type classes
 
-<dt>BCV
-<dd>generic model of bytecode verification, i.e. data-flow analysis
-for assembly languages with subtypes
-
-<dt>HOL-Complex
+<dt>Complex
 <dd>a development of the complex numbers, the reals, and the hyper-reals,
 which are used in non-standard analysis (builds the image HOL-Complex)
-
-<dt>HOL-Complex-HahnBanach
-<dd>the Hahn-Banach theorem for real vector spaces (in Isabelle/Isar)
-
-<dt>HOL-Complex-ex
-<dd>miscellaneous real ans complex number examples
 
 <dt>Hoare
 <dd>verification of imperative programs (verification conditions are
 generated automatically from pre/post conditions and loop invariants)
+
+<dt>HoareParallel
+<dd>verification of shared-variable imperative programs a la Owicki-Gries.
+(verification conditions are generated automatically)
+
+<dt>Hyperreal
+<dd>Nonstandard analysis. Builds on Real and is part of Complex.
 
 <dt>IMP
 <dd>mechanization of a large part of a semantics text by Glynn Winskel
@@ -54,11 +51,14 @@ generated automatically from pre/post conditions and loop invariants)
 <dd>extension of IMP with local variables and mutually recursive
 procedures
 
-<dt>IOA
-<dd>a simple theory of Input/Output Automata
+<dt>Import
+<dd>theories imported from other (HOL) theorem provers.
 
 <dt>Induct
 <dd>examples of (co)inductive definitions
+
+<dt>IOA
+<dd>a simple theory of Input/Output Automata
 
 <dt>Isar_examples
 <dd>several introductory examples using Isabelle/Isar
@@ -69,23 +69,41 @@ procedures
 <dt>Lattice
 <dd>lattices and order structures (in Isabelle/Isar)
 
+<dt>Library
+<dd>A collection of generic theories
+
+<dt>Matrix
+<dd>two-dimensional matrices
+
 <dt>MicroJava
 <dd>formalization of a fragment of Java, together with a corresponding
 virtual machine and a specification of its bytecode verifier and a
-lightweight bytecode verifier, including proofs of type-safety.
+lightweight bytecode verifier, including proofs of type-safety
 
 <dt>Modelcheck
 <dd>basic setup for integration of some model checkers in Isabelle/HOL
 
+<dt>NanoJava
+<dd>Haore Logic for a tiny fragment of Java
+
 <dt>NumberTheory
 <dd>fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
-Fermat/Euler Theorem, Wilson's Theorem
+Fermat/Euler Theorem, Wilson's Theorem, Quadratic Reciprocity
 
 <dt>Prolog
 <dd>a (bare-bones) implementation of Lambda-Prolog
 
+<dt>Real
+<dd>the real numbers, part of Complex
+
+<dt>Real/HahnBanach
+<dd>the Hahn-Banach theorem for real vector spaces (in Isabelle/Isar)
+
+<dt>SET-Protocol
+<dd>verification of the SET Protocol
+
 <dt>Subst
-<dd>defines a theory of substitution and unification.
+<dd>a theory of substitution and unification.
 
 <dt>TLA
 <dd>Lamport's Temporal Logic of Actions (with separate example sessions)
