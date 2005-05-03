@@ -48,6 +48,8 @@ sig
   val is_Var: term -> bool
   val is_first_order: term -> bool
   val dest_Type: typ -> string * typ list
+  val dest_TVar: typ -> indexname * sort
+  val dest_TFree: typ -> string * sort
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
@@ -261,7 +263,10 @@ val op ---> = Library.foldr (op -->);
 
 fun dest_Type (Type x) = x
   | dest_Type T = raise TYPE ("dest_Type", [T], []);
-
+fun dest_TVar (TVar x) = x
+  | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
+fun dest_TFree (TFree x) = x
+  | dest_TFree T = raise TYPE ("dest_TFree", [T], []);
 
 (** Discriminators **)
 
@@ -824,7 +829,6 @@ fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
   | map_term _ _ _ (t as Bound _) = t
   | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
   | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
-
 
 
 (** TFrees and TVars **)
