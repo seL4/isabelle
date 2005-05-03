@@ -54,14 +54,26 @@ sig
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
   val allify_conditions' :
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
+  val assume_allified :
+      Sign.sg -> (string * Term.typ) list * (string * Term.sort) list 
+      -> Term.term -> (Thm.cterm * Thm.thm)
 
   (* meta level fixed params (i.e. !! vars) *)
+  val fix_alls_in_term : Term.term -> Term.term * Term.term list
   val fix_alls_term : int -> Term.term -> Term.term * Term.term list
   val fix_alls_cterm : int -> Thm.thm -> Thm.cterm * Thm.cterm list
   val fix_alls' : int -> Thm.thm -> Thm.thm * Thm.cterm list
   val fix_alls : int -> Thm.thm -> Thm.thm * export
 
   (* meta variables in types and terms *)
+  val fix_tvars_to_tfrees_in_terms 
+      : string list (* avoid these names *)
+        -> Term.term list -> 
+        (((string * int) * Term.sort) * (string * Term.sort)) list (* renamings *)
+  val fix_vars_to_frees_in_terms
+      : string list (* avoid these names *)
+        -> Term.term list ->
+        (((string * int) * Term.typ) * (string * Term.typ)) list (* renamings *)
   val fix_tvars_to_tfrees : Thm.thm -> Thm.ctyp list * Thm.thm
   val fix_vars_to_frees : Thm.thm -> Thm.cterm list * Thm.thm
   val fix_vars_and_tvars : 
@@ -144,60 +156,89 @@ fun allify_conditions ctermify Ts th =
 fun allify_conditions' Ts th = 
     allify_conditions (Thm.cterm_of (Thm.sign_of_thm th)) Ts th;
 
+(* allify types *)
+fun allify_typ ts ty = 
+    let 
+      fun trec (x as (TFree (s,srt))) = 
+          (case Library.find_first (fn (s2,srt2) => s = s2) ts
+            of NONE => x
+             | SOME (s2,_) => TVar ((s,0),srt))
+            (*  Maybe add in check here for bad sorts? 
+             if srt = srt2 then TVar ((s,0),srt) 
+               else raise  ("thaw_typ", ts, ty) *)
+          | trec (Type (s,typs)) = Type (s, map trec typs)
+          | trec (v as TVar _) = v;
+    in trec ty end;
 
+(* implicit typ's and term *)
+val allify_term_typs = Term.map_term_types o allify_typ;
+(* allified version of term, given frees and types to allify over *)
+fun assume_allified sgn (vs,tyvs) t = 
+    let
+      fun allify_var (vt as (n,ty),t)  = 
+          (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
+      fun allify Ts p = List.foldr allify_var p Ts
 
-(* These should be defined in term.ML *)
-fun dest_TVar (TVar x) = x
-  | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
-fun dest_TFree (TFree x) = x
-  | dest_TFree T = raise TYPE ("dest_TFree", [T], []);
+      val ctermify = Thm.cterm_of sgn;
+      val cvars = map (fn (n,ty) => ctermify (Var ((n,0),ty))) vs
+      val allified_term = t |> allify vs;
+      val ct = ctermify allified_term;
+      val typ_allified_ct = ctermify (allify_term_typs tyvs allified_term);
+    in (typ_allified_ct, 
+        Drule.forall_elim_vars 0 (Thm.assume ct)) end;
 
 
 (* change type-vars to fresh type frees *)
-fun fix_tvars_to_tfrees th = 
+fun fix_tvars_to_tfrees_in_terms names ts = 
     let 
-      val sign = Thm.sign_of_thm th
-      val ctermify = Thm.cterm_of sign
-      val ctypify = Thm.ctyp_of sign
-
-      val prop = Thm.prop_of th;
-      val tfree_names = map fst (Term.add_term_tfrees (prop,[]));
-      val tvars = Term.add_term_tvars (prop, []);
-
+      val tfree_names = map fst (List.foldr Term.add_term_tfrees [] ts);
+      val tvars = List.foldr Term.add_term_tvars [] ts;
       val (names',renamings) = 
           List.foldr (fn (tv as ((n,i),s),(Ns,Rs)) => 
                          let val n2 = Term.variant Ns n in 
-                           (n2::Ns, (ctypify (TVar tv),
-                                     ctypify (TFree (n2,s)))::Rs)
-                         end) (tfree_names,[]) tvars;
+                           (n2::Ns, (tv, (n2,s))::Rs)
+                         end) (tfree_names @ names,[]) tvars;
+    in renamings end;
+fun fix_tvars_to_tfrees th = 
+    let 
+      val sign = Thm.sign_of_thm th;
+      val ctypify = Thm.ctyp_of sign;
+      val renamings = fix_tvars_to_tfrees_in_terms [] [Thm.prop_of th];
+      val crenamings = 
+          map (fn (v,f) => (ctypify (TVar v), ctypify (TFree f)))
+              renamings;
+      val fixedfrees = map snd crenamings;
+    in (fixedfrees, Thm.instantiate (crenamings, []) th) end;
 
-      val fixedfrees = map snd renamings;
-    in
-      (fixedfrees, Thm.instantiate (renamings, []) th)
-    end;
 
 (* change type-free's to type-vars *)
 fun unfix_tfrees ns th = 
-    fst (Thm.varifyT' (map (fn x => dest_TFree (Thm.typ_of x)) ns) th);
+    let 
+      val varfiytfrees = (map (fn x => Term.dest_TFree (Thm.typ_of x)) ns)
+      val skiptfrees = Term.add_term_tfrees (Thm.prop_of th,[]) \\ varfiytfrees;
+    in fst (Thm.varifyT' skiptfrees th) end;
 
-(* change schematic vars to fresh free vars *)
+(* change schematic/meta vars to fresh free vars *)
+fun fix_vars_to_frees_in_terms names ts = 
+    let 
+      val vars = map Term.dest_Var (List.foldr Term.add_term_vars [] ts);
+      val Ns = List.foldr Term.add_term_names names ts;
+      val (_,renamings) = 
+          Library.foldl (fn ((Ns,Rs),v as ((n,i),ty)) => 
+                    let val n2 = Term.variant Ns n in
+                      (n2 :: Ns, (v, (n2,ty)) :: Rs)
+                    end) ((Ns,[]), vars);
+    in renamings end;
 fun fix_vars_to_frees th = 
     let 
       val ctermify = Thm.cterm_of (Thm.sign_of_thm th)
-      val prop = Thm.prop_of th
-      val vars = map Term.dest_Var (Term.term_vars prop)
+      val renamings = fix_vars_to_frees_in_terms [] [Thm.prop_of th];
+      val crenamings = 
+          map (fn (v,f) => (ctermify (Var v), ctermify (Free f)))
+              renamings;
+      val fixedfrees = map snd crenamings;
+    in (fixedfrees, Thm.instantiate ([], crenamings) th) end;
 
-      val names = Term.add_term_names (prop, [])
-
-      val (insts,names2) = 
-          Library.foldl (fn ((insts,names),v as ((n,i),ty)) => 
-                    let val n2 = Term.variant names n in
-                      ((ctermify (Var v), ctermify (Free(n2,ty))) :: insts, 
-                       n2 :: names)
-                    end)
-                (([],names), vars)
-      val fixedfrees = map snd insts;
-    in (fixedfrees, Thm.instantiate ([], insts) th) end;
 
 (* make free vars into schematic vars with index zero *)
  fun unfix_frees frees = 
@@ -333,8 +374,11 @@ show the goal in the original theorem.
 
 Note, an advantage of this over Isar is that it supports instantiation
 of unkowns in the earlier theorem, ie we can do instantiation of meta
-vars! *)
-(* loosely corresponds to:
+vars! 
+
+avoids constant, free and vars names. 
+
+loosely corresponds to:
 Given "[| SG0; ... !! x. As ==> SGi x; ... SGm |] ==> G" : thm
 Result: 
   ("(As ==> SGi x') ==> (As ==> SGi x')" : thm, 
@@ -342,9 +386,21 @@ Result:
      ("As ==> SGi x'" : thm) -> 
      ("[| SG0; ... SGi-1; SGi+1; ... SGm |] ==> G") : thm)
 *)
+fun fix_alls_in_term alledt = 
+    let
+      val t = Term.strip_all_body alledt;
+      val alls = rev (Term.strip_all_vars alledt);
+      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
+      val names = Term.add_term_names (t,varnames);
+      val fvs = map Free 
+                    ((Term.variantlist (map fst alls, names)) 
+                       ~~ (map snd alls));
+    in ((subst_bounds (fvs,t)), fvs) end;
+
 fun fix_alls_term i t = 
     let 
-      val names = Term.add_term_names (t,[]);
+      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
+      val names = Term.add_term_names (t,varnames);
       val gt = Logic.get_goal t i;
       val body = Term.strip_all_body gt;
       val alls = rev (Term.strip_all_vars gt);
@@ -407,13 +463,14 @@ assumed theorems that are the premices of subgoal i, it also gives
 back a new goal thm and an exporter, the new goalthm is as the old
 one, but without the premices, and the exporter will use a proof of
 the new goalthm, possibly using the assumed premices, to shoe the
-orginial goal. *)
+orginial goal.
 
-(* Note: Dealing with meta vars, need to meta-level-all them in the
+Note: Dealing with meta vars, need to meta-level-all them in the
 shyps, which we can later instantiate with a specific value.... ? 
 think about this... maybe need to introduce some new fixed vars and
-then remove them again at the end... like I do with rw_inst. *)
-(* loosely corresponds to:
+then remove them again at the end... like I do with rw_inst. 
+
+loosely corresponds to:
 Given "[| SG0; ... [| A0; ... An |] ==> SGi; ... SGm |] ==> G" : thm
 Result: 
 (["A0" [A0], ... ,"An" [An]] : thm list, -- assumptions
@@ -508,14 +565,8 @@ Result: ("G [As]" : thm,
 *)
 fun hide_prems th = 
     let 
-      val sgn = Thm.sign_of_thm th;
-      val ctermify = Thm.cterm_of sgn;
-
-      val t = (prop_of th);
-      val prems = Logic.strip_imp_prems t;
-      val cprems = map ctermify prems;
-      val aprems = map Thm.trivial cprems;
-
+      val cprems = Drule.cprems_of th;
+      val aprems = map Thm.assume cprems;
     (*   val unhidef = Drule.implies_intr_list cprems; *)
     in
       (Drule.implies_elim_list th aprems, cprems)

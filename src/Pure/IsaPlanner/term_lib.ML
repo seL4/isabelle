@@ -22,11 +22,11 @@ sig
 
     (* Matching/unification with exceptions handled *)
     val clean_match : Type.tsig -> Term.term * Term.term 
-                      -> ((Term.indexname * Term.typ) list 
-                         * (Term.indexname * Term.term) list) option
+                      -> ((Term.indexname * (Term.sort * Term.typ)) list 
+                         * (Term.indexname * (Term.typ * Term.term)) list) option
     val clean_unify : Sign.sg -> int -> Term.term * Term.term 
-                      -> ((Term.indexname * Term.typ) list 
-                         * (Term.indexname * Term.term) list) Seq.seq
+                      -> ((Term.indexname * (Term.sort * Term.typ)) list 
+                         * (Term.indexname * (Term.typ * Term.term)) list) Seq.seq
 
     (* managing variables in terms, can doing conversions *)
     val bounds_to_frees : Term.term -> Term.term
@@ -151,8 +151,7 @@ fun ho_term_height  (a $ b) =
 (* returns optional instantiation *)
 fun clean_match tsig (a as (pat, t)) = 
   let val (tyenv, tenv) = Pattern.match tsig a
-  in SOME (map (apsnd snd) (Vartab.dest tyenv),
-    map (apsnd snd) (Vartab.dest tenv))
+  in SOME (Vartab.dest tyenv, Vartab.dest tenv)
   end handle Pattern.MATCH => NONE;
 (* Higher order unification with exception handled, return the instantiations *)
 (* given Signature, max var index, pat, tgt *)
@@ -176,8 +175,8 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       (* is it right to throw away the flexes? 
          or should I be using them somehow? *)
           fun mk_insts (env,flexflexes) = 
-            (map (apsnd snd) (Vartab.dest (Envir.type_env env)),
-             map (apsnd snd) (Envir.alist_of env));
+            (Vartab.dest (Envir.type_env env),
+             Envir.alist_of env);
           val initenv = Envir.Envir {asol = Vartab.empty, 
                                      iTs = typinsttab, maxidx = ix2};
           val useq = (Unify.unifiers (sgn,initenv,[a]))
@@ -265,8 +264,8 @@ fun writesort s = writeln (pretty_print_sort s);
 (*  functions *)
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
-fun current_sign () = sign_of (the_context());
-fun cterm_of_term (t : term) = cterm_of (current_sign()) t;
+fun current_sign () = Theory.sign_of (the_context());
+fun cterm_of_term (t : term) = Thm.cterm_of (current_sign()) t;
 fun term_of_thm t = (Thm.prop_of t);
 
 (* little function to make a trueprop of anything by putting a P 

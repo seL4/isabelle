@@ -18,8 +18,8 @@ sig
   (* Rewrite: give it instantiation infromation, a rule, and the
   target thm, and it will return the rewritten target thm *)
   val rw :
-      ((Term.indexname * Term.typ) list *  (* type var instantiations *)
-       (Term.indexname * Term.term) list)  (* schematic var instantiations *)
+      ((Term.indexname * (Term.sort * Term.typ)) list *  (* type var instantiations *)
+       (Term.indexname * (Term.typ * Term.term)) list)  (* schematic var instantiations *)
       * (string * Term.typ) list           (* Fake named bounds + types *)
       * (string * Term.typ) list           (* names of bound + types *)
       * Term.term ->                       (* outer term for instantiation *)
@@ -35,32 +35,36 @@ sig
       -> (string * Term.typ) list (* hopeful name of outer bounds *)
       -> Thm.thm -> Thm.cterm list * Thm.thm
   val mk_fixtvar_tyinsts :
-      Term.indexname list ->
-      Term.term list -> ((string * int) * Term.typ) list * (string * sort) list
+      (Term.indexname * (Term.sort * Term.typ)) list ->
+      Term.term list -> ((string * int) * (Term.sort * Term.typ)) list 
+                        * (string * Term.sort) list
   val mk_renamings :
       Term.term -> Thm.thm -> (((string * int) * Term.typ) * Term.term) list
   val new_tfree :
       ((string * int) * Term.sort) *
-      (((string * int) * Term.typ) list * string list) ->
-      ((string * int) * Term.typ) list * string list
-  val cross_inst : (Term.indexname * Term.term) list 
-                   -> (Term.indexname * Term.term) list
+      (((string * int) * (Term.sort * Term.typ)) list * string list) ->
+      ((string * int) * (Term.sort * Term.typ)) list * string list
+  val cross_inst : (Term.indexname * (Term.typ * Term.term)) list 
+                   -> (Term.indexname *(Term.typ * Term.term)) list
+  val cross_inst_typs : (Term.indexname * (Term.sort * Term.typ)) list 
+                   -> (Term.indexname * (Term.sort * Term.typ)) list
 
-  val beta_contract_tac : Thm.thm -> Thm.thm
-  val beta_eta_contract_tac : Thm.thm -> Thm.thm
+  val beta_contract : Thm.thm -> Thm.thm
+  val beta_eta_contract : Thm.thm -> Thm.thm
 
 end;
 
-structure RWInst : RW_INST= 
-struct
+structure RWInst 
+(* : RW_INST *)
+= struct
 
 
 (* beta contract the theorem *)
-fun beta_contract_tac thm = 
+fun beta_contract thm = 
     equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm;
 
 (* beta-eta contract the theorem *)
-fun beta_eta_contract_tac thm = 
+fun beta_eta_contract thm = 
     let
       val thm2 = equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
       val thm3 = equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
@@ -149,18 +153,21 @@ fun mk_renamings tgt rule_inst =
 (* make a new fresh typefree instantiation for the given tvar *)
 fun new_tfree (tv as (ix,sort), (pairs,used)) =
       let val v = variant used (string_of_indexname ix)
-      in  ((ix,TFree(v,sort))::pairs, v::used)  end;
+      in  ((ix,(sort,TFree(v,sort)))::pairs, v::used)  end;
 
 
 (* make instantiations to fix type variables that are not 
    already instantiated (in ignore_ixs) from the list of terms. *)
-fun mk_fixtvar_tyinsts ignore_ixs ts = 
-    let val (tvars, tfrees) = 
+fun mk_fixtvar_tyinsts ignore_insts ts = 
+    let 
+      val ignore_ixs = map fst ignore_insts;
+      val (tvars, tfrees) = 
             foldr (fn (t, (varixs, tfrees)) => 
                       (Term.add_term_tvars (t,varixs),
                        Term.add_term_tfrees (t,tfrees)))
                   ([],[]) ts;
-        val unfixed_tvars = List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
+        val unfixed_tvars = 
+            List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
         val (fixtyinsts, _) = foldr new_tfree ([], map fst tfrees) unfixed_tvars
     in (fixtyinsts, tfrees) end;
 
@@ -170,19 +177,22 @@ replace all occurances in other instantiations - no loops are possible
 and thus only one-parsing of the instantiations is necessary. *)
 fun cross_inst insts = 
     let 
-      fun instL (ix, t) = 
-          map (fn (ix2,t2) => (ix2, Term.subst_vars ([], [(ix, t)]) t2));
+      fun instL (ix, (ty,t)) = 
+          map (fn (ix2,(ty2,t2)) => 
+                  (ix2, (ty2,Term.subst_vars ([], [(ix, t)]) t2)));
 
       fun cross_instL ([], l) = rev l
         | cross_instL ((ix, t) :: insts, l) = 
           cross_instL (instL (ix, t) insts, (ix, t) :: (instL (ix, t) l));
 
     in cross_instL (insts, []) end;
+
 (* as above but for types -- I don't know if this is needed, will we ever incur mixed up types? *)
 fun cross_inst_typs insts = 
     let 
-      fun instL (ix, ty) = 
-          map (fn (ix2,ty2) => (ix2, Term.typ_subst_TVars [(ix, ty)] ty2));
+      fun instL (ix, (srt,ty)) = 
+          map (fn (ix2,(srt2,ty2)) => 
+                  (ix2, (srt2,Term.typ_subst_TVars [(ix, ty)] ty2)));
 
       fun cross_instL ([], l) = rev l
         | cross_instL ((ix, t) :: insts, l) = 
@@ -207,30 +217,27 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
 
       (* fix all non-instantiated tvars *)
       val (fixtyinsts, othertfrees) = 
-          mk_fixtvar_tyinsts (map fst nonfixed_typinsts) 
+          mk_fixtvar_tyinsts nonfixed_typinsts
                              [Thm.prop_of rule, Thm.prop_of target_thm];
-
+          
       val typinsts = cross_inst_typs (nonfixed_typinsts @ fixtyinsts);
 
       (* certified instantiations for types *)
-      val ctyp_insts = map (apsnd ctypeify) typinsts;
+      val ctyp_insts = 
+          map (fn (ix,(s,ty)) => (ctypeify (TVar (ix,s)), ctypeify ty)) typinsts;
 
       (* type instantiated versions *)
-      fun tyinst insts rule =
-        let val (_, rsorts) = types_sorts rule
-        in Thm.instantiate (List.mapPartial (fn (ixn, cT) => Option.map
-          (fn S => (ctypeify (TVar (ixn, S)), cT)) (rsorts ixn)) insts, []) rule
-        end;
-      val tgt_th_tyinst = tyinst ctyp_insts target_thm;
-      val rule_tyinst = tyinst ctyp_insts rule;
+      val tgt_th_tyinst = Thm.instantiate (ctyp_insts,[]) target_thm;
+      val rule_tyinst =  Thm.instantiate (ctyp_insts,[]) rule;
 
+      val term_typ_inst = map (fn (ix,(srt,ty)) => (ix,ty)) typinsts;
       (* type instanitated outer term *)
-      val outerterm_tyinst = 
-          Term.subst_vars (typinsts,[]) outerterm;
+      val outerterm_tyinst = Term.subst_TVars term_typ_inst outerterm;
 
       (* type-instantiate the var instantiations *)
-      val insts_tyinst = foldr (fn ((ix,t),insts_tyinst) => 
-                            (ix, Term.subst_vars (typinsts,[]) t)
+      val insts_tyinst = foldr (fn ((ix,(ty,t)),insts_tyinst) => 
+                            (ix, (Term.typ_subst_TVars term_typ_inst ty, 
+                                  Term.subst_TVars term_typ_inst t))
                             :: insts_tyinst)
                         [] unprepinsts;
 
@@ -239,8 +246,8 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
 
       (* create certms of instantiations *)
       val cinsts_tyinst = 
-          map (fn (ix,t) => (ctermify (Var (ix, Term.type_of t)), 
-                             ctermify t)) insts_tyinst_inst;
+          map (fn (ix,(ty,t)) => (ctermify (Var (ix, ty)), 
+                                  ctermify t)) insts_tyinst_inst;
 
       (* The instantiated rule *)
       val rule_inst = rule_tyinst |> Thm.instantiate ([], cinsts_tyinst);
@@ -256,15 +263,14 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       (* Create the specific version of the rule for this target application *)
       val outerterm_inst = 
           outerterm_tyinst 
-            |> Term.subst_vars ([], insts_tyinst_inst)
-            |> Term.subst_vars ([], map (fn ((ix,ty),t) => (ix,t)) 
-                                        renamings);
+            |> Term.subst_Vars (map (fn (ix,(ty,t)) => (ix,t)) insts_tyinst_inst)
+            |> Term.subst_Vars (map (fn ((ix,ty),t) => (ix,t)) renamings);
       val couter_inst = Thm.reflexive (ctermify outerterm_inst);
       val (cprems, abstract_rule_inst) = 
           rule_inst |> Thm.instantiate ([], cterm_renamings)
                     |> mk_abstractedrule FakeTs Ts;
       val specific_tgt_rule = 
-          beta_eta_contract_tac
+          beta_eta_contract
             (Thm.combination couter_inst abstract_rule_inst);
 
       (* create an instantiated version of the target thm *)
@@ -275,7 +281,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val (vars,frees_of_fixed_vars) = Library.split_list cterm_renamings;
 
     in
-      (beta_eta_contract_tac tgt_th_inst)
+      (beta_eta_contract tgt_th_inst)
         |> Thm.equal_elim specific_tgt_rule
         |> Drule.implies_intr_list cprems
         |> Drule.forall_intr_list frees_of_fixed_vars

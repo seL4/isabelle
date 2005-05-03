@@ -34,8 +34,11 @@ signature ISA_FTERM =
        Term.term ->
        FcTerm ->
        (
-       ((Term.indexname * Term.typ) list * (Term.indexname * Term.term) list)
-       * (string * Term.typ) list * (string * Term.typ) list * Term.term)
+       ((Term.indexname * (Term.sort * Term.typ)) list 
+        * (Term.indexname * (Term.typ * Term.term)) list)
+       * (string * Term.typ) list 
+       * (string * Term.typ) list 
+       * Term.term)
        option
     val clean_unify_ft :
        Sign.sg ->
@@ -43,7 +46,8 @@ signature ISA_FTERM =
        Term.term ->
        FcTerm ->
        (
-       ((Term.indexname * Term.typ) list * (Term.indexname * Term.term) list)
+       ((Term.indexname * (Term.sort * Term.typ)) list 
+        * (Term.indexname * (Term.typ * Term.term)) list)
        * (string * Term.typ) list * (string * Term.typ) list * Term.term)
        Seq.seq
     val enc_appl :

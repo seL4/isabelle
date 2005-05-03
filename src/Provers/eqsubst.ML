@@ -28,8 +28,8 @@ signature EQSUBST_TAC =
 sig
 
   type match = 
-       ((Term.indexname * Term.typ) list (* type instantiations *)
-        * (Term.indexname * Term.term) list) (* term instantiations *)
+       ((Term.indexname * (Term.sort * Term.typ)) list (* type instantiations *)
+        * (Term.indexname * (Term.typ * Term.term)) list) (* term instantiations *)
        * (string * Term.typ) list (* fake named type abs env *)
        * (string * Term.typ) list (* type abs env *)
        * Term.term (* outer term *)
@@ -122,13 +122,13 @@ functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA)
   : EQSUBST_TAC
 = struct
 
-  (* a type abriviation for match infomration *)
+  (* a type abriviation for match information *)
   type match = 
-       ((Term.indexname * Term.typ) list (* type instantiations *)
-         * (Term.indexname * Term.term) list) (* term instantiations *)
-        * (string * Term.typ) list (* fake named type abs env *)
-        * (string * Term.typ) list (* type abs env *)
-        * Term.term (* outer term *)
+       ((Term.indexname * (Term.sort * Term.typ)) list (* type instantiations *)
+        * (Term.indexname * (Term.typ * Term.term)) list) (* term instantiations *)
+       * (string * Term.typ) list (* fake named type abs env *)
+       * (string * Term.typ) list (* type abs env *)
+       * Term.term (* outer term *)
 
 
 (* FOR DEBUGGING...
@@ -209,7 +209,7 @@ fun searchf_tlr_unify_valid sgn maxidx lhs  =
 fun apply_subst_in_concl i th (cfvs, conclthm) rule m = 
     (RWInst.rw m rule conclthm)
       |> IsaND.unfix_frees cfvs
-      |> RWInst.beta_eta_contract_tac
+      |> RWInst.beta_eta_contract
       |> (fn r => Tactic.rtac r i th);
 
 (*
@@ -281,7 +281,7 @@ fun apply_subst_in_asm i th (cfvs, j, nprems, pth) rule m =
     (RWInst.rw m rule pth)
       |> Thm.permute_prems 0 ~1
       |> IsaND.unfix_frees cfvs
-      |> RWInst.beta_eta_contract_tac
+      |> RWInst.beta_eta_contract
       |> (fn r => Tactic.dtac r i th);
 
 (*
