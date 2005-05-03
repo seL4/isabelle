@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 #
 # $Id$
@@ -209,7 +208,14 @@ else
 
   [ -z "$QUIET" ] && echo "creating $PREFIX/document/root.tex" >&2
   TITLE=$(echo "$NAME" | tr _ -)
-  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)
+  # a hack to extract the current user name
+  PERLLINE='@pw = getpwnam("'$USER'"); $uname = $pw[6];
+    $uname =~ tr/_/-/; $uname =~ s/^[^\\]*\\//g; $uname =~ s/,S[0-9\-]+$//g; print $uname;'
+  AUTHOR=$("$AUTO_PERL" -e "$PERLLINE")
+  # the perl "getpwnam" function extracts a data entry
+  # from /etc/passwd; the first tr is to replace some characters
+  # undigestible for tex; the two regexp substs eliminate the
+  # windows domain-specific noise as found in /etc/passwd using cygwin
   cat >document/root.tex <<EOF
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
