@@ -19,7 +19,6 @@ fun logSpassInput (instr, fd) = let val thisLine = TextIO.inputLine instr
 				TextIO.output (fd, thisLine); logSpassInput (instr,fd))
  			 end;
 
-
 (**********************************************************************)
 (*  Reconstruct the Spass proof w.r.t. thmstring (string version of   *)
 (*  Isabelle goal to be proved), then transfer the reconstruction     *)
@@ -38,16 +37,16 @@ val atomize_tac =
      end);
 
 
-fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num = 
+fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num clause_arr  (num_of_clauses:int ) = 
  let val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar3")));
  in
 SELECT_GOAL
   (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring toParent ppid negs))]) sg_num
+  METAHYPS(fn negs => (Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
  end ;
 
 
-fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num) = let 
+fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num,clause_arr,  num_of_clauses) = let 
                          val thisLine = TextIO.inputLine fromChild 
 			 in 
                             if (thisLine = "--------------------------SPASS-STOP------------------------------\n" )
@@ -58,51 +57,18 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
 			            in 
 
                                         TextIO.output(foo,(proofextract));TextIO.closeOut foo;
-                                        reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num thm
+                                        reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num  clause_arr  num_of_clauses thm
                                                
                                     end
                                   )
       			    else (
 				
-                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num)
+                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num, clause_arr,  num_of_clauses)
                                 )
  			 end;
 
 
-(*
 
-fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num) = let 
-                         val thisLine = TextIO.inputLine fromChild 
-			 in 
-                            if (thisLine = "--------------------------SPASS-STOP------------------------------\n" )
-			    then ( 
-                                    let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
-                                        val reconstr = Recon_Transfer.spassString_to_reconString (currentString^thisLine) thmstring thm sg_num
-                                        val foo =   TextIO.openOut( File.sysify_path(File.tmp_path (Path.basic"foobar2")));
-                               in
-                                         TextIO.output(foo,(reconstr^thmstring));TextIO.closeOut foo;
-                                   
-                                         TextIO.output (toParent, reconstr^"\n");
-                                         TextIO.flushOut toParent;
-                                         TextIO.output (toParent, thmstring^"\n");
-                                         TextIO.flushOut toParent;
-                                         TextIO.output (toParent, goalstring^"\n");
-                                         TextIO.flushOut toParent;
-                                          
-                                         Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-                                         (* Attempt to prevent several signals from turning up simultaneously *)
-                                         Posix.Process.sleep(Time.fromSeconds 1); ()
-                                               
-                                    end
-                                      
-                                  )
-      			    else (
-				
-                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num)
-                                )
- 			 end;
-
-*)
 
 (*********************************************************************************)
 (*  Inspect the output of a Spass   process to see if it has found a proof,      *)
@@ -110,7 +76,7 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, currentS
 (*********************************************************************************)
 
  
-fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,thm, sg_num) = 
+fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,thm, sg_num,clause_arr, num_of_clauses) = 
                                       (*let val _ = Posix.Process.wait ()
                                       in*)
                                        
@@ -127,20 +93,22 @@ fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd
                                                val _=  TextIO.output (outfile, "about to transfer proof, thm is: "^(string_of_thm thm));
                                                val _ =  TextIO.closeOut outfile;
                                                in
-                                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, thm, sg_num);
+                                                transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, thm, sg_num,clause_arr,  num_of_clauses);
                                                 true
                                                end)
                                              
                                              else 
                                                 (
-                                                 startSpassTransfer (fromChild, toParent, ppid, thmstring, goalstring,childCmd, thm, sg_num)
+                                                 startSpassTransfer (fromChild, toParent, ppid, thmstring, goalstring,childCmd, thm, sg_num,clause_arr, num_of_clauses)
                                                 )
                                             end
                                            )
                                          else (false)
                                      (*  end*)
 
-fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num) = 
+
+
+fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  (num_of_clauses:int )) = 
                                        let val spass_proof_file =  TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "spass_proof")))
                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_checkspass")));                                                                            
                                             val _ = TextIO.output (outfile, "checking proof found, thm is: "^(string_of_thm thm))
@@ -159,7 +127,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                              
                                                      val _ =  TextIO.closeOut outfile
                                                  in 
-                                                    startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num) 
+                                                    startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num, clause_arr,  num_of_clauses) 
                                                  end
                                                )   
                                                else if (thisLine= "SPASS beiseite: Completion found.\n" )
@@ -215,7 +183,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                                     else
                                                        (TextIO.output (spass_proof_file, (thisLine));
                                                        TextIO.flushOut spass_proof_file;
-                                                       checkSpassProofFound  (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num))
+                                                       checkSpassProofFound  (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num, clause_arr,  num_of_clauses))
 
                                               end
                                           )
@@ -229,36 +197,6 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
 (***********************************************************************)
 
 
-(***********************************************************************)
-(*  Function used by the Isabelle process to read in a vampire proof   *)
-(***********************************************************************)
-
-(*fun getVampInput instr = let val thisLine = TextIO.inputLine instr 
-			 in 
-                           if (thisLine = "%==============  End of proof. ==================\n" )
-			    then
-                               (
-                                (Pretty.writeln(Pretty.str  (concat["vampire",thisLine])));()
-                               )
-                             else if (thisLine = "% Unprovable.\n" ) 
-                                  then 
-                                     (
-                                      (Pretty.writeln(Pretty.str (concat["vampire",thisLine])));()
-                                      )
-                                   else if (thisLine = "% Proof not found.\n")
-                                        then 
-                                            (
-                                             Pretty.writeln(Pretty.str (concat["vampire", thisLine]));()
-                                             )
-
-
-                                         else 
-                                            (
-				              Pretty.writeln(Pretty.str (concat["vampire",thisLine])); getVampInput instr
-                                             )
- 			 end;
-
-*)
 
 fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                           then

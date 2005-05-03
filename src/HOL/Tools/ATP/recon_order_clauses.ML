@@ -242,7 +242,7 @@ fun apply_rule rule [] thm = thm
                     (* resulting thm, clause-strs in spass order, vars *)
 
 fun rearrange_clause thm res_strlist allvars = 
-                          let val isa_strlist = get_meta_lits thm
+                          let val isa_strlist = get_meta_lits thm (* change this to use Jia's code to get same looking thing as isastrlist? *)
                               val (posns, symlist, not_symlist) = checkorder res_strlist isa_strlist allvars([],[],[])
                               val symmed = apply_rule sym symlist thm
                               val not_symmed = apply_rule not_sym not_symlist symmed

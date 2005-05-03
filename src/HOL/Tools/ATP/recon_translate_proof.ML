@@ -67,9 +67,10 @@ fun lit_string_with_nums t = let val termstr = Term.string_of_term t
 
 fun reconstruction_failed fname = error (fname ^ ": reconstruction failed")
 
-(****************************************)
-(* Reconstruct an axiom resolution step *)
-(****************************************)
+(************************************************)
+(* Reconstruct an axiom resolution step         *)
+(* clauses is a list of (clausenum,clause) pairs*)
+(************************************************)
 
 fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
                                      let val this_axiom = valOf (assoc (clauses,clausenum))

@@ -17,6 +17,39 @@ fun not_newline ch = not (ch = "\n");
 
 
 
+(*
+fun fill_cls_array array n [] = ()
+|   fill_cls_array array n (x::xs) = let val _ = Array.update (array, n,x)
+                                     in
+                                        fill_cls_array array (n+1) (xs)
+                                     end;
+
+
+
+fun memo_add_clauses ((name:string, (cls:Thm.thm list)), symtable)=
+                        symtable := Symtab.update((name , cls), !symtable);
+      	       
+
+fun memo_add_all ([], symtable) = ()
+|   memo_add_all ((x::xs),symtable) = let val _ = memo_add_clauses (x, symtable)
+                           in
+                               memo_add_all (xs, symtable)
+                           end
+
+fun memo_find_clause (name, (symtable: Thm.thm list Symtab.table ref)) = case Symtab.lookup (!symtable,name) of
+      	        NONE =>  []
+                |SOME cls  => cls ;
+      	        	
+
+fun retrieve_clause array symtable clausenum = let
+                                                  val (name, clnum) = Array.sub(array, clausenum)
+                                                  val clauses = memo_find_clause (name, symtable)
+                                                  val clause = get_nth clnum clauses
+                                               in
+                                                  (name, clause)
+                                               end
+ *)                                             
+
 (* Versions that include type information *)
  
 fun string_of_thm thm = let val _ = set show_sorts
@@ -146,8 +179,30 @@ fun onestr ls = String.concat (map String.concat ls);
 fun thmstrings [] str = str
 |   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
 
+fun is_clasimp_ax clasimp_num n = n <=clasimp_num 
 
- fun get_axioms_used proof_steps thms = let 
+
+
+fun retrieve_axioms clause_arr  [] = []
+|   retrieve_axioms clause_arr  (x::xs) =  [Array.sub(clause_arr, x)]@
+ 						     (retrieve_axioms clause_arr  xs)
+
+
+(* retrieve the axioms that were obtained from the clasimpset *)
+
+fun get_clasimp_cls clause_arr clasimp_num step_nums = 
+                                let val clasimp_nums = List.filter (is_clasimp_ax clasimp_num) step_nums
+                                in
+                                    retrieve_axioms clause_arr  clasimp_nums
+                                end
+
+
+
+
+(* add array and table here, so can retrieve clasimp axioms *)
+
+ fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
+                                         let 
                                              (*val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
                                              val _ = TextIO.output (outfile, thmstring)
                                              
@@ -157,9 +212,21 @@ fun thmstrings [] str = str
                                             val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
                                             val axioms = get_init_axioms proof_steps
                                             val step_nums = get_step_nums axioms []
-                                      
-                                           
-                                            val clauses = make_clauses thms
+
+                                           (***********************************************)
+                                           (* here need to add the clauses from clause_arr*)
+                                           (***********************************************)
+
+                                           (* val clasimp_names_cls = get_clasimp_cls clause_arr   num_of_clauses step_nums   
+                                            val clasimp_names = map #1 clasimp_names_cls
+                                            val clasimp_cls = map #2 clasimp_names_cls
+                                            val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "clasimp_names")))                                                            val clasimp_namestr = concat clasimp_names                            
+                                             val _ = TextIO.output (outfile,clasimp_namestr)
+                                             
+                                             val _ =  TextIO.closeOut outfile
+*)
+
+                                            val clauses =(*(clasimp_cls)@*)( make_clauses thms)
                                             
                                             val vars = map thm_vars clauses
                                            
@@ -215,7 +282,7 @@ fun thmstrings [] str = str
                                            val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
                                            
                                          in
-                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (ListPair.zip (step_nums,ax_metas)))
+                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (*clasimp_names*)(ListPair.zip (step_nums,ax_metas)))
                                          end
                                         
 fun numclstr (vars, []) str = str
@@ -293,9 +360,12 @@ val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
 
 *)
 
+
+
+
 val dummy_tac = PRIMITIVE(fn thm => thm );
 
-fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms= 
+fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
                                               let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                        
                                                   (* val sign = sign_of_thm thm
                                                  val prems = prems_of thm
@@ -307,7 +377,8 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms=
 
                                                   val tokens = #1(lex proofstr)
 
-                                                     
+                                                    
+
                                               (***********************************)
                                               (* parse spass proof into datatype *)
                                               (***********************************)
@@ -327,7 +398,9 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms=
                                                   (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
                                                   (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
                                                   (* subgoal this is, and turn it into meta_clauses *)
-                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms
+                                                  (* should prob add array and table here, so that we can get axioms*)
+                                                  (* produced from the clasimpset rather than the problem *)
+                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr  num_of_clauses
                                                   
                                                   (*val numcls_string = numclstr ( vars, numcls) ""*)
                                                   val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_axiom")));                                                                            val _ = TextIO.output (outfile,"got axioms")

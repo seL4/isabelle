@@ -180,22 +180,28 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                              val _ = TextIO.output(outfile, "prob file path is "^probfile^" thmstring is "^thmstr^" goalstring is "^goalstring);
                              val _ = TextIO.flushOut outfile;
                              val _ =  TextIO.closeOut outfile
+                             val spass_home = getenv "SPASS_HOME"
                           in
                            (* without paramodulation *)
                            (warning ("goalstring in call_res_tac is: "^goalstring));
                            (warning ("prob file in cal_res_tac is: "^probfile));
+                                                       Watcher.callResProvers(childout,
+                            [("spass",thmstr,goalstring,spass_home,  
+                             "-DocProof", 
+                             clasimpfile, axfile, hypsfile, probfile)]);
+
                             Watcher.callResProvers(childout,
-                            [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",  
+                            [("spass",thmstr,goalstring,spass_home,  
                              "-FullRed=0%-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
                              clasimpfile, axfile, hypsfile, probfile)]);
 
                            (* with paramodulation *)
                            (*Watcher.callResProvers(childout,
-                                  [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS",
+                                  [("spass",thmstr,goalstring,spass_home,
                                   "-FullRed=0%-ISPm=1%-Split=0%-PObv=0%-DocProof", 
                                     prob_path)]); *)
                           (* Watcher.callResProvers(childout,
-                           [("spass",thmstr,goalstring,"/homes/clq20/bin/SPASS", 
+                           [("spass",thmstr,goalstring,spass_home, 
                            "-DocProof",  prob_path)]);*)
                            dummy_tac
                          end
@@ -282,24 +288,32 @@ fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
 (******************************************************************)
 (*FIX changed to clasimp_file *)
 fun isar_atp' (thms, thm) =
-    let val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+    let 
+	val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
         val _= (warning ("in isar_atp'"))
         val prems  = prems_of thm
         val sign = sign_of_thm thm
         val thms_string = Meson.concat_with_and (map string_of_thm thms) 
         val thmstring = string_of_thm thm
         val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-        (* set up variables for writing out the clasimps to a tptp file *)
-
-         val clause_arr = write_out_clasimp (File.sysify_path clasimp_file) clause_arr
+        
+	(* set up variables for writing out the clasimps to a tptp file *)
+	val (clause_arr, num_of_clauses) = ResClasimp.write_out_clasimp (File.sysify_path clasimp_file) 
         val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  
+
         (* cq: add write out clasimps to file *)
-        (* cq:create watcher and pass to isar_atp_aux *) 
-        (*val tenth_ax = fst( Array.sub(clause_arr, 10))  
-        val _ = (warning ("tenth axiom in array is: "^tenth_ax))         
-        val _ = (warning ("num_of_clauses is: "^(string_of_int (!num_of_clauses))) )  *)      
-                               
-        val (childin,childout,pid) = Watcher.createWatcher(thm)
+        (* cq:create watcher and pass to isar_atp_aux *)
+        (* tracing *) 
+        (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
+         val tenth_ax_thms = Recon_Transfer.memo_find_clause (tenth_ax, clause_tab)
+         val clause_str = Meson.concat_with_and (map string_of_thm tenth_ax_thms)
+         val _ = (warning ("tenth axiom in array is: "^tenth_ax))         
+         val _ = (warning ("tenth axiom in table is: "^clause_str))         
+                 
+         val _ = (warning ("num_of_clauses is: "^(string_of_int (num_of_clauses))) )     
+         *)             
+        
+        val (childin,childout,pid) = Watcher.createWatcher(thm,clause_arr, num_of_clauses)
         val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
     in
 	case prems of [] => () 

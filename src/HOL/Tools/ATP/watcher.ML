@@ -92,7 +92,7 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                                                          val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
                                                          (*** only include problem and clasimp for the moment, not sure how to refer to ***)
                                                          (*** hyps/local axioms just now                                                ***)
-                                                         val whole_prob_file = Unix.execute("/bin/cat", [(*clasimpfile, axfile, hypsfile,*)probfile,  ">", (File.sysify_path wholefile)])
+                                                         val whole_prob_file = Unix.execute("/bin/cat", [(*clasimpfile,axfile, hypsfile,*)probfile,  ">", (File.sysify_path wholefile)])
                                                          val dfg_create =if File.exists dfg_dir 
                                                                          then
                                                                              ((warning("dfg dir exists"));())
@@ -112,7 +112,8 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                      					(warning ("probfile is: "^probfile));
                                                          (warning("dfg file is: "^newfile));
                                                          (warning ("wholefile is: "^(File.sysify_path wholefile)));
-                                                         sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^newfile^"\n"));
+                                                        sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^newfile^"\n"));
+(*sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^"/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/dfg/mini_p1.dfg"^"\n"));*)
                                                          TextIO.flushOut toWatcherStr;
                                                          Unix.reap exec_tptp2x; 
                                                          
@@ -244,7 +245,7 @@ fun getInIoDesc someInstr =
 
 
 
-fun setupWatcher (thm) = let
+fun setupWatcher (thm,clause_arr, num_of_clauses) = let
           (** pipes for communication between parent and watcher **)
           val p1 = Posix.IO.pipe ()
           val p2 = Posix.IO.pipe ()
@@ -275,6 +276,14 @@ fun setupWatcher (thm) = let
                       val prems = prems_of thm
                       val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
                       val _ = (warning ("subgoals forked to startWatcher: "^prems_string));
+                     (* tracing *)
+		    (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
+                      val tenth_ax_thms = memo_find_clause (tenth_ax, clause_tab)
+                      val clause_str = Meson.concat_with_and (map string_of_thm tenth_ax_thms)
+                      val _ = (warning ("tenth axiom in array in watcher is: "^tenth_ax))         
+                      val _ = (warning ("tenth axiom in table in watcher is: "^clause_str))         
+                      val _ = (warning ("num_of_clauses in watcher is: "^(string_of_int (num_of_clauses))) )       
+                               *)
                       (*val goalstr = string_of_thm (the_goal)
                        val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "goal_in_watcher")));  
                       val _ = TextIO.output (outfile,goalstr )
@@ -374,7 +383,7 @@ fun setupWatcher (thm) = let
                                                 val _ = TextIO.output (outfile,(("subgoals forked to checkChildren: "^prems_string)^prover^thmstring^goalstring^childCmd) )
                                                 val _ =  TextIO.closeOut outfile
                                               val childDone = (case prover of
-                                    (* "vampire" => startVampireTransfer(childInput, toParentStr, parentID, childCmd)                                               |*)"spass" => (checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num)     ) )
+                                    (* "vampire" => startVampireTransfer(childInput, toParentStr, parentID, childCmd)                                               |*)"spass" => (checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)     ) )
                                                    in
                                                     if childDone      (**********************************************)
                                                     then              (* child has found a proof and transferred it *)
@@ -475,7 +484,7 @@ fun setupWatcher (thm) = let
                                              )
                                           else
                                             ( 
-                                              if ((length procList)<2)    (********************)
+                                              if ((length procList)<10)    (********************)
                                               then                        (* Execute locally  *)
                                                  (                        (********************)
                                                   let 
@@ -587,7 +596,7 @@ fun setupWatcher (thm) = let
 (**********************************************************)
 fun killWatcher pid= killChild pid;
 
-fun createWatcher (thm) = let val mychild = childInfo (setupWatcher(thm))
+fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) = let val mychild = childInfo (setupWatcher(thm,clause_arr,  num_of_clauses))
 			   val streams =snd mychild
                            val childin = fst streams
                            val childout = snd streams

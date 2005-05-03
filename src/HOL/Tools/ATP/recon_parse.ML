@@ -405,10 +405,20 @@ and arglist input = (   nterm ++ many (a (Other ",") ++ nterm >> snd)
 
  val clause =  term
 
- val line = number ++ justification ++ a (Other "|") ++ 
+
+
+ (*val line = number ++ justification ++ a (Other "|") ++ 
             a (Other "|") ++ clause ++ a (Other ".")
-          >> (fn (a, (z, (_,( _, (c, _))))) => (a, z, c))
-    
+          >> (fn (a, (z, (_,( _, (c, _))))) => (a, z, c))*)
+
+
+(* not entirely sure nterm is right here, but I don't think you get negative things before the ||s *)
+ val line = number ++ justification ++ many( nterm) ++ a (Other "|") ++ 
+            a (Other "|") ++ clause ++ a (Other ".")
+          >> (fn (a, (z, (w, (_,( _, (c, _)))))) => (a, z,(w@ c)))
+       
+
+
  val lines = many line
  val alllines = (lines ++ finished) >> fst
     

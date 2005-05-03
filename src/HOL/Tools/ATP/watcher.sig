@@ -36,7 +36,7 @@ val callSlayer : TextIO.outstream -> unit
 (* Start a watcher and set up signal handlers             *)
 (**********************************************************)
 
-val createWatcher : Thm.thm -> TextIO.instream * TextIO.outstream * Posix.Process.pid
+val createWatcher : Thm.thm*(ResClause.clause * Thm.thm) Array.array *  int -> TextIO.instream * TextIO.outstream * Posix.Process.pid
 
 
 
