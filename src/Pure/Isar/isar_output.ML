@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/isar_output.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Florian Haftmann, TU Muenchen
 
 Isar theory output.
 *)
@@ -29,7 +29,6 @@ sig
       (Toplevel.transition * (Toplevel.state -> Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
   val output_with: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a -> string
-  val put_style: string -> (Term.term -> Term.term) -> theory -> theory
 end;
 
 structure IsarOutput: ISAR_OUTPUT =
@@ -311,32 +310,6 @@ val _ = add_options
   ("source", Library.setmp source o boolean),
   ("goals_limit", Library.setmp goals_limit o integer)];
 
-(* style data *)
-
-exception Style of string;
-
-structure StyleArgs =
-struct
-  val name = "Isar/style";
-  type T = (string * (Term.term -> Term.term)) list;
-  val empty = [];
-  val copy = I;
-  val prep_ext = I;
-  fun merge (a1, a2) = Library.foldl Library.overwrite (a1, a2);
-    (* piecewise update of a1 by a2 *)
-  fun print _ _ = raise (Style "cannot print style (not implemented)");
-end;
-
-structure Style = TheoryDataFun(StyleArgs);
-
-fun get_style thy name =
-  case Library.assoc_string ((Style.get thy), name)
-    of NONE => raise (Style ("no style named " ^ name))
-     | SOME style => style
-
-fun put_style name style thy =
-  Style.put (Library.overwrite ((Style.get thy), (name, style))) thy;
-
 (* commands *)
 
 fun cond_quote prt =
@@ -372,39 +345,28 @@ val pretty_source =
 
 fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
-fun pretty_term_typ ctxt term = Pretty.block [
+fun pretty_term_typ_old ctxt term = Pretty.block [
   ((ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt) term),
   (Pretty.str "\\<Colon>") (* q'n'd *),
   ((ProofContext.pretty_typ ctxt o Term.type_of o ProofContext.extern_skolem ctxt) term)
   ]
 
-fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.type_of o ProofContext.extern_skolem ctxt;
+fun pretty_term_typ ctxt term = let val t = (ProofContext.extern_skolem ctxt term) in
+  ProofContext.pretty_term ctxt (
+    Syntax.const Syntax.constrainC $ t $ Syntax.term_of_typ (!show_sorts) (fastype_of t)
+  )
+end;
 
-fun pretty_term_const ctxt term = case Sign.const_type (ProofContext.sign_of ctxt) (Term.string_of_term term) of 
-  NONE => raise (Output.ERROR_MESSAGE ("Not a defined constant: " ^ (Term.string_of_term term)))
-  | (SOME _) => (ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt) term;
+fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of o ProofContext.extern_skolem ctxt;
+
+fun pretty_term_const ctxt (Const c) = pretty_term ctxt (Const c)
+  | pretty_term_const ctxt term = raise (Output.ERROR_MESSAGE ("Not a defined constant: " ^ (Term.string_of_term term)))
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 
-fun pretty_term_style ctxt (name, term) = pretty_term ctxt ((get_style (ProofContext.theory_of ctxt) name) term);
+fun pretty_term_style ctxt (name, term) = pretty_term ctxt ((Style.get_style (ProofContext.theory_of ctxt) name) term);
 
 fun pretty_thm_style ctxt (name, thm) = pretty_term_style ctxt (name, Thm.prop_of thm);
-
-fun lhs_of (Const ("==",_) $ t $ _) = t
-  | lhs_of (Const ("Trueprop",_) $ t) = lhs_of t
-  | lhs_of (Const ("==>",_) $ _ $ t) = lhs_of t
-  | lhs_of (_ $ t $ _) = t
-  | lhs_of _ = error ("Binary operator expected")
-
-fun pretty_lhs ctxt = pretty_term ctxt o lhs_of o Thm.prop_of;
-
-fun rhs_of (Const ("==",_) $ _ $ t) = t
-  | rhs_of (Const ("Trueprop",_) $ t) = rhs_of t
-  | rhs_of (Const ("==>",_) $ _ $ t) = rhs_of t
-  | rhs_of (_ $ _ $ t) = t
-  | rhs_of _ = error ("Binary operator expected")
-
-fun pretty_rhs ctxt = pretty_term ctxt o rhs_of o Thm.prop_of;
 
 fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
@@ -428,8 +390,6 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
 val _ = add_commands
  [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("thm_style", args ((Scan.lift Args.name) -- Attrib.local_thm) (output_with pretty_thm_style)),
-  ("lhs", args Attrib.local_thmss (output_seq_with pretty_lhs)),
-  ("rhs", args Attrib.local_thmss (output_seq_with pretty_rhs)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("term_style", args ((Scan.lift Args.name) -- Args.local_term) (output_with pretty_term_style)),
@@ -442,8 +402,6 @@ val _ = add_commands
   ("subgoals", output_goals false),
   ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
   ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true)))];
-
-val _ = Context.add_setup [Style.init];
 
 end;
 

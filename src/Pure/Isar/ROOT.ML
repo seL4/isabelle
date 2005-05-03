@@ -32,6 +32,7 @@ use "outer_parse.ML";
 
 (*toplevel environment*)
 use "toplevel.ML";
+use "term_style.ML";
 use "isar_output.ML";
 use "session.ML";
 
