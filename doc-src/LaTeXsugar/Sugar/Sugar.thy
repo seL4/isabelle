@@ -195,45 +195,6 @@ In which case you should use \texttt{mode=IfThenNoBox} instead of
 \end{theorem}
 *}
 
-subsection {*Definitions and Equations*}
-
-text {*
-  The \verb!thm! antiquotation works nicely for proper theorems, but
-  sets of equations as used in definitions are more difficult to
-  typeset nicely: for some reason people tend to prefer aligned 
-  @{text "="} signs.
-
-  Isabelle2005 has a nice mechanism for this, namely the two
-  antiquotations \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}!.
-
-  \begin{center}
-  \begin{tabular}{l@ {~~@{text "="}~~}l}
-  @{lhs foldl_Nil} & @{rhs foldl_Nil}\\
-  @{lhs foldl_Cons} & @{rhs foldl_Cons}
-  \end{tabular}
-  \end{center}
-
-  \noindent 
-  is produced by the following code:
-
-\begin{quote}
-  \verb!\begin{center}!\\
-  \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-  \verb!@!\verb!{lhs foldl_Nil} & @!\verb!{rhs foldl_Nil}!\\
-  \verb!@!\verb!{lhs foldl_Cons} & @!\verb!{rhs foldl_Cons}!\\
-  \verb!\end{tabular}!\\
-  \verb!\end{center}!
-\end{quote}
-
-  \noindent
-  Note the space between \verb!@! and \verb!{! in the tabular argument.
-  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
-  as antiquotation. \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}! 
-  try to be smart about the interpretation of the theorem they
-  print, they work just as well for meta equality @{text "\<equiv>"} and other
-  binary operators like @{text "<"}.
-*}
-
 subsection "Patterns"
 
 text {*
@@ -309,6 +270,105 @@ text {*
 \verb!*!\verb!}!
 \end{quote}
   
+*}
+
+subsection "Styles"
+
+text {*
+  The \verb!thm! antiquotation works nicely for proper theorems, but
+  sets of equations as used in definitions are more difficult to
+  typeset nicely: for some reason people tend to prefer aligned 
+  @{text "="} signs.
+
+  To deal with such cases where it is desirable to dive into the structure
+  of terms and theorems, Isabelle offers two antiquotations featuring
+  ``styles'':
+
+    \begin{quote}
+    \verb!@!\verb!{thm_style stylename thm}!\\
+    \verb!@!\verb!{term_style stylename term}!
+    \end{quote}
+
+  A ``style'' is a transformation of terms; there are three predefined
+  styles, named \verb!lhs!, \verb!rhs! and \verb!concl!, which obvious
+  meanings, e.~g.~the output
+
+  \begin{center}
+  \begin{tabular}{l@ {~~@{text "="}~~}l}
+  @{thm_style lhs foldl_Nil} & @{thm_style rhs foldl_Nil}\\
+  @{thm_style lhs foldl_Cons} & @{thm_style rhs foldl_Cons}
+  \end{tabular}
+  \end{center}
+
+  \noindent 
+  is produced by the following code:
+
+  \begin{quote}
+    \verb!\begin{center}!\\
+    \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
+    \verb!@!\verb!{thm_style lhs foldl_Nil} & @!\verb!{thm_style rhs foldl_Nil}!\\
+    \verb!@!\verb!{thm_style lhs foldl_Cons} & @!\verb!{thm_style rhs foldl_Cons}!\\
+    \verb!\end{tabular}!\\
+    \verb!\end{center}!
+  \end{quote}
+
+  \noindent
+  Note the space between \verb!@! and \verb!{! in the tabular argument.
+  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
+  as antiquotation. Both styles \verb!lhs! and \verb!rhs! 
+  try to be smart about the interpretation of the theorem they transform
+  they work just as well for meta equality @{text "\<equiv>"} and other
+  binary operators like @{text "<"}.
+
+  Likewise \verb!conclusion! may be used as style to show just the conclusion
+  of a formula:
+
+  \begin{center}
+    @{thm_style conclusion hd_Cons_tl}
+  \end{center}
+
+  \noindent 
+  is produced by
+
+  \begin{quote}
+    \verb!\begin{center}!\\
+    \verb!@!\verb!{thm_style conclusion hd_Cons_tl}!\\
+    \verb!\end{center}!
+  \end{quote}
+
+  If you aren't afraid about ML, you may also define your own styles;
+  a style is simply implemented by a ML function \verb!Term.term -> Term.term!.
+  Have a look at the following example (which indeed shows just the way the
+  \verb!lhs! style is implemented):
+
+  \begin{quote}
+    \verb!setup {!\verb!*!\\
+    \verb!!\\
+    \verb!let!\\
+    \verb!  fun my_lhs (Const ("==", _) $ t $ _) = t!\\
+    \verb!    | my_lhs (Const ("Trueprop", _) $ t) = my_lhs t!\\
+    \verb!    | my_lhs (Const ("==>", _) $ _ $ t) = my_lhs t!\\
+    \verb!    | my_lhs (_ $ t $ _) = t!\\
+    \verb!    | my_lhs _ = error ("Binary operator expected")!\\
+    \verb!  in [Style.put_style "new_lhs" my_lhs]!\\
+    \verb!end;!\\
+    \verb!!\\
+    \verb!*!\verb!}!\\
+  \end{quote}
+
+  Like in this example, it is recommended to put the definition of the style
+  function into a \verb!let! expression, in order not to pollute the
+  ML global namespace. The mapping from identifier name to the style function
+  is done by the \verb!Style.put_style! expression which expects the desired
+  style name and the style function as arguments. After this \verb!setup!,
+  there will be a new style available named \verb!new_lhs!, then allowing
+  antiquoations like \verb!@!\verb!{term_style new_lhs rev_map}!
+  yielding \verb!rev (map f xs)!.
+
+  The example above may be used as as a ``copy-and-paste'' pattern to write
+  your own styles; for a description of the constructs used, please refer
+  to the Isabelle reference manual.
+
 *}
 
 (*<*)
