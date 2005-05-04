@@ -115,6 +115,7 @@ sig
   val merge_rules: thm list * thm list -> thm list
   val imp_cong'         : thm -> thm -> thm
   val beta_eta_conversion: cterm -> thm
+  val eta_long_conversion: cterm -> thm
   val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val forall_conv       : (cterm -> thm) -> cterm -> thm
   val fconv_rule        : (cterm -> thm) -> thm -> thm
@@ -697,6 +698,9 @@ fun beta_eta_conversion t =
   let val thm = beta_conversion true t
   in transitive thm (eta_conversion (rhs_of thm)) end
 end;
+
+fun eta_long_conversion ct = transitive (beta_eta_conversion ct)
+  (symmetric (beta_eta_conversion (cterm_fun (Pattern.eta_long []) ct)));
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 fun goals_conv pred cv =
