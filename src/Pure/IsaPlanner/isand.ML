@@ -170,8 +170,9 @@ fun allify_typ ts ty =
           | trec (v as TVar _) = v;
     in trec ty end;
 
-(* implicit typ's and term *)
-val allify_term_typs = Term.map_term_types o allify_typ;
+(* implicit types and term *)
+fun allify_term_typs ty = Term.map_term_types (allify_typ ty);
+
 (* allified version of term, given frees and types to allify over *)
 fun assume_allified sgn (vs,tyvs) t = 
     let
