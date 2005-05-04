@@ -444,6 +444,7 @@ fun rule_format_att x = syntax (Args.mode "no_asm"
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
 fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
+fun eta_long x = no_args (Drule.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;
 
 
 (* rule declarations *)
@@ -506,6 +507,7 @@ val pure_attributes =
   ("standard", (standard, standard), "result put into standard form"),
   ("elim_format", (elim_format, elim_format), "destruct rule turned into elimination rule format"),
   ("no_vars", (no_vars, no_vars), "frozen schematic vars"),
+  ("eta_long", (eta_long, eta_long), "put theorem into eta long beta normal form"),
   ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),
