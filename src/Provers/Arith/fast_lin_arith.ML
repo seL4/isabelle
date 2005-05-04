@@ -25,7 +25,6 @@ signature LIN_ARITH_LOGIC =
 sig
   val conjI:		thm
   val ccontr:           thm (* (~ P ==> False) ==> P *)
-  val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
   val notI:             thm (* (P ==> False) ==> ~ P *)
   val not_lessD:        thm (* ~(m < n) ==> n <= m *)
   val not_leD:          thm (* ~(m <= n) ==> n < m *)
@@ -72,9 +71,9 @@ signature FAST_LIN_ARITH =
 sig
   val setup: (theory -> theory) list
   val map_data: ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
-                 lessD: thm list, simpset: Simplifier.simpset}
+                 lessD: thm list, neqE: thm list, simpset: Simplifier.simpset}
                  -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
-                     lessD: thm list, simpset: Simplifier.simpset})
+                     lessD: thm list, neqE: thm list, simpset: Simplifier.simpset})
                 -> theory -> theory
   val trace           : bool ref
   val fast_arith_neq_limit: int ref
@@ -96,21 +95,22 @@ structure DataArgs =
 struct
   val name = "Provers/fast_lin_arith";
   type T = {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
-            lessD: thm list, simpset: Simplifier.simpset};
+            lessD: thm list, neqE: thm list, simpset: Simplifier.simpset};
 
   val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
-               lessD = [], simpset = Simplifier.empty_ss};
+               lessD = [], neqE = [], simpset = Simplifier.empty_ss};
   val copy = I;
   val prep_ext = I;
 
   fun merge ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
-              lessD = lessD1, simpset = simpset1},
+              lessD = lessD1, neqE=neqE1, simpset = simpset1},
              {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
-              lessD = lessD2, simpset = simpset2}) =
+              lessD = lessD2, neqE=neqE2, simpset = simpset2}) =
     {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
      mult_mono_thms = Drule.merge_rules (mult_mono_thms1, mult_mono_thms2),
      inj_thms = Drule.merge_rules (inj_thms1, inj_thms2),
      lessD = Drule.merge_rules (lessD1, lessD2),
+     neqE = Drule.merge_rules (neqE1, neqE2),
      simpset = Simplifier.merge_ss (simpset1, simpset2)};
 
   fun print _ _ = ();
@@ -419,7 +419,8 @@ local
  exception FalseE of thm
 in
 fun mkthm sg asms just =
-  let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} = Data.get_sg sg;
+  let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} =
+          Data.get_sg sg;
       val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], List.mapPartial (fn thm => if Thm.no_prems thm
@@ -621,7 +622,8 @@ fun refute sg ps ex items = refutes sg ps ex (split_items items) [];
 fun refute_tac(i,justs) =
   fn state =>
     let val sg = #sign(rep_thm state)
-        fun just1 j = REPEAT_DETERM(etac LA_Logic.neqE i) THEN
+        val {neqE, ...} = Data.get_sg sg;
+        fun just1 j = REPEAT_DETERM(eresolve_tac neqE i) THEN
                       METAHYPS (fn asms => rtac (mkthm sg asms j) 1) i
     in DETERM(resolve_tac [LA_Logic.notI,LA_Logic.ccontr] i) THEN
        EVERY(map just1 justs)
@@ -685,14 +687,17 @@ let val (Il,r) = Thm.dest_comb imp
     val (_,ct2) = Thm.dest_comb Ict2
 in (ct1,ct2) end;
 
-fun splitasms asms =
-let fun split(asms',[]) = Tip(rev asms')
+fun splitasms sg asms =
+let val {neqE, ...}  = Data.get_sg sg;
+    fun split(asms',[]) = Tip(rev asms')
       | split(asms',asm::asms) =
-      let val spl = asm COMP LA_Logic.neqE
-          val (ct1,ct2) = extract(cprop_of spl)
-          val thm1 = assume ct1 and thm2 = assume ct2
-      in Spl(spl,ct1,split(asms',asms@[thm1]),ct2,split(asms',asms@[thm2])) end
-      handle THM _ => split(asm::asms', asms)
+      (case get_first (fn th => SOME(asm COMP th) handle THM _ => NONE) neqE
+       of SOME spl =>
+          let val (ct1,ct2) = extract(cprop_of spl)
+              val thm1 = assume ct1 and thm2 = assume ct2
+          in Spl(spl,ct1,split(asms',asms@[thm1]),ct2,split(asms',asms@[thm2]))
+          end
+       | NONE => split(asm::asms', asms))
 in split([],asms) end;
 
 fun fwdproof sg (Tip asms) (j::js) = (mkthm sg asms j, js)
@@ -708,7 +713,7 @@ fun prover sg thms Tconcl js pos =
 let val nTconcl = LA_Logic.neg_prop Tconcl
     val cnTconcl = cterm_of sg nTconcl
     val nTconclthm = assume cnTconcl
-    val tree = splitasms (thms @ [nTconclthm])
+    val tree = splitasms sg (thms @ [nTconclthm])
     val (thm,_) = fwdproof sg tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
 in SOME(LA_Logic.mk_Eq((implies_intr cnTconcl thm) COMP contr)) end
