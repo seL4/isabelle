@@ -565,10 +565,10 @@ val numeral_ss = simpset() addsimps numerals;
 
 val nat_bin_arith_setup =
  [Fast_Arith.map_data 
-   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
      {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
       inj_thms = inj_thms,
-      lessD = lessD,
+      lessD = lessD, neqE = neqE,
       simpset = simpset addsimps [Suc_nat_number_of, int_nat_number_of,
                                   not_neg_number_of_Pls,
                                   neg_number_of_Min,neg_number_of_BIT]})]

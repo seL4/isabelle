@@ -173,7 +173,6 @@ structure LA_Logic: LIN_ARITH_LOGIC =
 struct
 val ccontr = ccontr;
 val conjI = conjI;
-val neqE = linorder_neqE;
 val notI = notI;
 val sym = sym;
 val not_lessD = linorder_not_less RS iffD1;
@@ -418,12 +417,13 @@ in
 
 val init_lin_arith_data =
  Fast_Arith.setup @
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset = _} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
     add_mono_thms_ordered_semiring @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
+    neqE = [linorder_neqE_nat],
     simpset = HOL_basic_ss addsimps add_rules
                    addsimprocs [ab_group_add_cancel.sum_conv, 
                                 ab_group_add_cancel.rel_conv]

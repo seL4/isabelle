@@ -236,3 +236,4 @@ val zero_less_Suc = thm "zero_less_Suc";
 val zero_less_diff = thm "zero_less_diff";
 val zero_less_mult_iff = thm "zero_less_mult_iff";
 val zero_reorient = thm "zero_reorient";
+val linorder_neqE_nat = thm "linorder_neqE_nat";

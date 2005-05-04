@@ -443,6 +443,8 @@ instance nat :: "{order, linorder, wellorder}"
     (assumption |
       rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
 
+lemmas linorder_neqE_nat = linorder_neqE[where 'a = nat]
+
 lemma not_less_less_Suc_eq: "~ n < m ==> (n < Suc m) = (n = m)"
   by (blast elim!: less_SucE)
 
