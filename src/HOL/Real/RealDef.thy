@@ -587,8 +587,7 @@ apply (blast intro: elim: order_less_asym)
 done
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
-  by (force elim: order_less_asym
-            simp add: Ring_and_Field.mult_le_cancel_left)
+by(simp add:mult_commute)
 
 text{*Only two uses?*}
 lemma real_mult_less_mono':

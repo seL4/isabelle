@@ -245,6 +245,9 @@ instance ordered_idom \<subseteq> ordered_ring_strict ..
 
 axclass ordered_field \<subseteq> field, ordered_idom
 
+lemmas linorder_neqE_ordered_idom =
+ linorder_neqE[where 'a = "?'b::ordered_idom"]
+
 lemma eq_add_iff1:
      "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
 apply (simp add: diff_minus left_distrib)

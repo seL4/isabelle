@@ -423,7 +423,8 @@ val init_lin_arith_data =
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
-    neqE = [linorder_neqE_nat],
+    neqE = [linorder_neqE_nat,
+      Goals.get_thm (theory "Ring_and_Field") "linorder_neqE_ordered_idom"],
     simpset = HOL_basic_ss addsimps add_rules
                    addsimprocs [ab_group_add_cancel.sum_conv, 
                                 ab_group_add_cancel.rel_conv]

@@ -118,11 +118,12 @@ val fast_real_arith_simproc =
   Fast_Arith.lin_arith_prover;
 
 val real_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+ [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the reals are dense!*)
+    neqE = neqE,
     simpset = simpset addsimps simps}),
   arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT),
   arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT),
