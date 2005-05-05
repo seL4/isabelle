@@ -147,6 +147,7 @@ fun ho_term_height  (a $ b) =
   | ho_term_height (Abs(_,_,t)) = ho_term_height t
   | ho_term_height _ = 0;
 
+
 (* Higher order matching with exception handled *)
 (* returns optional instantiation *)
 fun clean_match tsig (a as (pat, t)) = 
@@ -174,14 +175,14 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
         let 
       (* is it right to throw away the flexes? 
          or should I be using them somehow? *)
-          fun mk_insts (env,flexflexes) = 
+          fun mk_insts env = 
             (Vartab.dest (Envir.type_env env),
              Envir.alist_of env);
           val initenv = Envir.Envir {asol = Vartab.empty, 
                                      iTs = typinsttab, maxidx = ix2};
-          val useq = (Unify.unifiers (sgn,initenv,[a]))
-	      handle UnequalLengths => Seq.empty
-		   | Term.TERM _ => Seq.empty;
+          val useq = (Unify.smash_unifiers (sgn,initenv,[a]))
+	            handle UnequalLengths => Seq.empty
+		               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () = 
               (case (Seq.pull useq) of 
                  NONE => NONE

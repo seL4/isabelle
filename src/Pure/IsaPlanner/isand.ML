@@ -55,7 +55,7 @@ sig
   val allify_conditions' :
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
   val assume_allified :
-      Sign.sg -> (string * Term.typ) list * (string * Term.sort) list 
+      Sign.sg -> (string * Term.sort) list * (string * Term.typ) list
       -> Term.term -> (Thm.cterm * Thm.thm)
 
   (* meta level fixed params (i.e. !! vars) *)
@@ -78,6 +78,8 @@ sig
   val fix_vars_to_frees : Thm.thm -> Thm.cterm list * Thm.thm
   val fix_vars_and_tvars : 
       Thm.thm -> (Thm.cterm list * Thm.ctyp list) * Thm.thm
+  val fix_vars_upto_idx : int -> Thm.thm -> Thm.thm
+  val fix_tvars_upto_idx : int -> Thm.thm -> Thm.thm
   val unfix_frees : Thm.cterm list -> Thm.thm -> Thm.thm
   val unfix_tfrees : Thm.ctyp list -> Thm.thm -> Thm.thm
   val unfix_frees_and_tfrees :
@@ -173,8 +175,10 @@ fun allify_typ ts ty =
 (* implicit types and term *)
 fun allify_term_typs ty = Term.map_term_types (allify_typ ty);
 
-(* allified version of term, given frees and types to allify over *)
-fun assume_allified sgn (vs,tyvs) t = 
+(* allified version of term, given frees to allify over. Note that we
+only allify over the types on the given allified cterm, we can't do
+this for the theorem as we are not allowed type-vars in the hyp. *)
+fun assume_allified sgn (tyvs,vs) t = 
     let
       fun allify_var (vt as (n,ty),t)  = 
           (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
@@ -239,6 +243,31 @@ fun fix_vars_to_frees th =
               renamings;
       val fixedfrees = map snd crenamings;
     in (fixedfrees, Thm.instantiate ([], crenamings) th) end;
+
+fun fix_tvars_upto_idx ix th = 
+    let 
+      val sgn = Thm.sign_of_thm th;
+      val ctypify = Thm.ctyp_of sgn
+      val prop = (Thm.prop_of th);
+      val tvars = Term.term_tvars prop;
+      val ctyfixes = 
+          Library.mapfilter 
+            (fn (v as ((s,i),ty)) => 
+                if i <= ix then SOME (ctypify (TVar v), ctypify (TFree (s,ty)))
+                else NONE) tvars;
+    in Thm.instantiate (ctyfixes, []) th end;
+fun fix_vars_upto_idx ix th = 
+    let 
+      val sgn = Thm.sign_of_thm th;
+      val ctermify = Thm.cterm_of sgn
+      val prop = (Thm.prop_of th);
+      val vars = map Term.dest_Var (Term.term_vars prop);
+      val cfixes = 
+          Library.mapfilter 
+            (fn (v as ((s,i),ty)) => 
+                if i <= ix then SOME (ctermify (Var v), ctermify (Free (s,ty)))
+                else NONE) vars;
+    in Thm.instantiate ([], cfixes) th end;
 
 
 (* make free vars into schematic vars with index zero *)
