@@ -27,6 +27,7 @@ sig
   val strong_conn: 'a T -> key list list
   val find_paths: 'a T -> key * key -> key list list
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
+  val update_node : key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T
@@ -144,6 +145,11 @@ fun find_paths G (x, y) =
 
 fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new ((x, (info, ([], []))), tab));
+
+fun update_node (x, info) (G as Graph tab) =
+    let val (_, (preds, succs)) = get_entry G x in
+      Graph (Table.update ((x, (info, (preds, succs))), tab))
+    end;
 
 fun del_nodes xs (Graph tab) =
   Graph (tab
