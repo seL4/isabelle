@@ -128,12 +128,21 @@ If Emacs appears to hang when the prover process is started, see the
 <A HREF="http://proofgeneral.inf.ed.ac.uk/FAQ">Proof General FAQ</a> 
 for advice.
 
-<h3>Running Isabelle on windows</h3>
+<h3>Running Isabelle on non-unix operating systems.</h3>
 
-<p>For a complete system, we recommend to run some recent version of
-Solaris, Darwin, or Linux.</p>
+<p>Though Isabelle is nativly designed for Unix (e.&nbsp;g. Solaris, Linux),
+Isabelle may also run under similar &raquo;unix-like&laquo; platforms:
 
-<p>Though not &raquo;officially supported&laquo;, Isabelle in most
-cases should also run on Windows, using the
-<a href="http://www.cygwin.com/">Cygwin</a> POSIX emulation layer. Here
-some <a href="notes_win_cygwin.html">notes</a> about it.</p>
+    <ul>
+        <li>Max OS X, since the Darwin kernel is a Unix kernel; see
+        <a href="notes_macos_darwin.html">installation notes for Max OS</a>.</li>
+        <li>Windows, using the <a href="http://www.cygwin.com/">Cygwin</a>
+        POSIX emulation layer; see <a href="notes_win_cygwin.html">installation
+        notes for Cygwin/Windows</a>.</li>
+    </ul>
+
+</p>
+
+<p>These installation instructions are not strictly normative, they are just
+hints contributed by Isabelle users.
+Feel free to contact us for any suggestions, corrections or improvements.</p>
