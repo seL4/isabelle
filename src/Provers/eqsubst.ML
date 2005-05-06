@@ -98,23 +98,23 @@ sig
        BasicIsaFTerm.FcTerm ->
        match Seq.seq Seq.seq)
 
-  val eqsubst_asm_meth : int -> Thm.thm list -> Proof.method
-  val eqsubst_asm_tac : int -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+  val eqsubst_asm_meth : int list -> Thm.thm list -> Proof.method
+  val eqsubst_asm_tac : int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
   val eqsubst_asm_tac' : 
       (Sign.sg -> int ->
        Term.term ->
        BasicIsaFTerm.FcTerm ->
        match Seq.seq) -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
 
-  val eqsubst_meth : int -> Thm.thm list -> Proof.method
-  val eqsubst_tac : int -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+  val eqsubst_meth : int list -> Thm.thm list -> Proof.method
+  val eqsubst_tac : int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
   val eqsubst_tac' : 
       (Sign.sg -> int ->
        Term.term ->
        BasicIsaFTerm.FcTerm ->
        match Seq.seq) -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
 
-  val meth : (bool * int) * Thm.thm list -> Proof.context -> Proof.method
+  val meth : (bool * int list) * Thm.thm list -> Proof.context -> Proof.method
   val setup : (Theory.theory -> Theory.theory) list
 end;
 
@@ -256,7 +256,6 @@ fun prep_concl_subst searchf i gth =
                             o Thm.prop_of) conclthm)))
     end;
 
-
 (* substitute using an object or meta level equality *)
 fun eqsubst_tac' searchf instepthm i th = 
     let 
@@ -275,19 +274,34 @@ fun eqsubst_tac' searchf instepthm i th =
     in (stepthms :-> rewrite_with_thm) end;
 
 
-(* substitute using one of the given theorems *)
-fun eqsubst_tac occ instepthms i th = 
-    if Thm.nprems_of th < i then Seq.empty else
-    (Seq.of_list instepthms) 
-    :-> (fn r => eqsubst_tac' (skip_first_occs_search 
-                                     occ searchf_tlr_unify_valid) r i th);
+(* General substiuttion of multiple occurances using one of 
+   the given theorems*)
+fun eqsubst_occL tac occL thms i th = 
+    let val nprems = Thm.nprems_of th in
+      if nprems < i then Seq.empty else
+      let val thmseq = (Seq.of_list thms) 
+        fun apply_occ occ th = 
+            thmseq :-> 
+                    (fn r => tac (skip_first_occs_search 
+                                    occ searchf_tlr_unify_valid) r
+                                 (i + ((Thm.nprems_of th) - nprems))
+                                 th);
+      in
+        Seq.EVERY (map apply_occ (Library.sort (Library.rev_order o Library.int_ord) occL)) 
+                  th
+      end
+    end;
+
+(* implicit argus: occL thms i th *)
+val eqsubst_tac = eqsubst_occL eqsubst_tac';
+
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
-fun eqsubst_meth occ inthms =
+fun eqsubst_meth occL inthms =
     Method.METHOD 
       (fn facts =>
-          HEADGOAL ( Method.insert_tac facts THEN' eqsubst_tac occ inthms ));
+          HEADGOAL ( Method.insert_tac facts THEN' eqsubst_tac occL inthms ));
 
 
 fun apply_subst_in_asm i th (cfvs, j, nprems, pth) rule m = 
@@ -365,34 +379,33 @@ fun eqsubst_asm_tac' searchf instepthm i th =
       (asmpreps :-> (fn a => stepthms :-> rewrite_with_thm a))
     end;
 
-(* substitute using one of the given theorems *)
-fun eqsubst_asm_tac occ instepthms i th = 
-    if Thm.nprems_of th < i then Seq.empty else
-    (Seq.of_list instepthms) 
-    :-> (fn r => eqsubst_asm_tac' (skip_first_occs_search 
-                                     occ searchf_tlr_unify_valid) r i th);
+(* substitute using one of the given theorems in an assumption.
+Implicit args: occL thms i th *)
+val eqsubst_asm_tac = eqsubst_occL eqsubst_asm_tac'; 
+
 
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
-fun eqsubst_asm_meth occ inthms =
+fun eqsubst_asm_meth occL inthms =
     Method.METHOD 
       (fn facts =>
-          HEADGOAL (Method.insert_tac facts THEN' eqsubst_asm_tac occ inthms ));
+          HEADGOAL (Method.insert_tac facts THEN' eqsubst_asm_tac occL inthms ));
 
 (* combination method that takes a flag (true indicates that subst
 should be done to an assumption, false = apply to the conclusion of
 the goal) as well as the theorems to use *)
-fun meth ((asmflag, occ), inthms) ctxt = 
-    if asmflag then eqsubst_asm_meth occ inthms else eqsubst_meth occ inthms;
+fun meth ((asmflag, occL), inthms) ctxt = 
+    if asmflag then eqsubst_asm_meth occL inthms else eqsubst_meth occL inthms;
 
 (* syntax for options, given "(asm)" will give back true, without
    gives back false *)
 val options_syntax =
     (Args.parens (Args.$$$ "asm") >> (K true)) ||
      (Scan.succeed false);
+
 val ith_syntax =
-    (Args.parens ((Args.$$$ "occ") |-- Args.nat)) 
-      || (Scan.succeed 0);
+    (Args.parens (Scan.repeat Args.nat))
+      || (Scan.succeed [0]);
 
 (* method syntax, first take options, then theorems *)
 fun meth_syntax meth src ctxt =
