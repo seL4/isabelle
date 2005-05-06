@@ -43,7 +43,7 @@ subsection {* Type lift is pointed *}
 lemma minimal_lift [iff]: "Undef << x"
   by (simp add: inst_lift_po)
 
-lemma UU_lift_def: "(SOME u. \<forall>y. u \<sqsubseteq> y) = Undef"
+lemma UU_lift_def: "(THE u. \<forall>y. u \<sqsubseteq> y) = Undef"
   apply (rule minimal2UU [symmetric])
   apply (rule minimal_lift)
   done
@@ -195,7 +195,7 @@ text {*
   For @{term "x ~= UU"} in assumptions @{text def_tac} replaces @{text
   x} by @{text "Def a"} in conclusion. *}
 
-ML {*
+ML_setup {*
   local val not_Undef_is_Def = thm "not_Undef_is_Def"
   in val def_tac = SIMPSET' (fn ss =>
     etac (not_Undef_is_Def RS iffD1 RS exE) THEN' asm_simp_tac ss)

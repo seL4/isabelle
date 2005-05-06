@@ -36,10 +36,10 @@ defs
 
   Ispair_def:    "Ispair a b == Abs_Sprod(Spair_Rep a b)"
 
-  Isfst_def:     "Isfst(p) == @z.        (p=Ispair UU UU --> z=UU)
+  Isfst_def:     "Isfst(p) == THE z.     (p=Ispair UU UU --> z=UU)
                 &(! a b. ~a=UU & ~b=UU & p=Ispair a b   --> z=a)"  
 
-  Issnd_def:     "Issnd(p) == @z.        (p=Ispair UU UU  --> z=UU)
+  Issnd_def:     "Issnd(p) == THE z.     (p=Ispair UU UU  --> z=UU)
                 &(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
 text {* A non-emptiness result for Sprod *}
@@ -189,7 +189,7 @@ text {* some results about the selectors @{term Isfst}, @{term Issnd} *}
 
 lemma strict_Isfst: "p=Ispair UU UU ==> Isfst p = UU"
 apply (unfold Isfst_def)
-apply (rule some_equality)
+apply (rule the_equality)
 apply (rule conjI)
 apply fast
 apply (intro strip)
@@ -213,7 +213,7 @@ done
 
 lemma strict_Issnd: "p=Ispair UU UU ==>Issnd p=UU"
 apply (unfold Issnd_def)
-apply (rule some_equality)
+apply (rule the_equality)
 apply (rule conjI)
 apply fast
 apply (intro strip)
@@ -237,7 +237,7 @@ done
 
 lemma Isfst: "[|x~=UU ;y~=UU |] ==> Isfst(Ispair x y) = x"
 apply (unfold Isfst_def)
-apply (rule some_equality)
+apply (rule the_equality)
 apply (rule conjI)
 apply (intro strip)
 apply (rule_tac P = "Ispair x y = Ispair UU UU" in notE)
@@ -252,7 +252,7 @@ done
 
 lemma Issnd: "[|x~=UU ;y~=UU |] ==> Issnd(Ispair x y) = y"
 apply (unfold Issnd_def)
-apply (rule some_equality)
+apply (rule the_equality)
 apply (rule conjI)
 apply (intro strip)
 apply (rule_tac P = "Ispair x y = Ispair UU UU" in notE)

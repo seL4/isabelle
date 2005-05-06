@@ -33,9 +33,8 @@ trans_less:      "[|x << y; y << z |] ==> x << z"
 
 text {* minimal fixes least element *}
 
-lemma minimal2UU[OF allI] : "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)"
-apply (blast intro: someI2 antisym_less)
-done
+lemma minimal2UU[OF allI] : "!x::'a::po. uu<<x ==> uu=(THE u.!y. u<<y)"
+by (blast intro: theI2 antisym_less)
 
 text {* the reverse law of anti-symmetry of @{term "op <<"} *}
 
@@ -89,7 +88,7 @@ chain_def:        "chain F == !i. F i << F (Suc i)"
 max_in_chain_def: "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 
 finite_chain_def: "finite_chain C == chain(C) & (? i. max_in_chain i C)"
 
-lub_def:          "lub S == (@x. S <<| x)"
+lub_def:          "lub S == (THE x. S <<| x)"
 
 text {* lubs are unique *}
 
@@ -128,13 +127,17 @@ text {* technical lemmas about @{term lub} and @{term is_lub} *}
 lemmas lub = lub_def [THEN meta_eq_to_obj_eq, standard]
 
 lemma lubI[OF exI]: "EX x. M <<| x ==> M <<| lub(M)"
-apply (simp add: lub some_eq_ex)
+apply (unfold lub_def)
+apply (rule theI')
+apply (erule ex_ex1I)
+apply (erule unique_lub)
+apply assumption
 done
 
 lemma thelubI: "M <<| l ==> lub(M) = l"
 apply (rule unique_lub)
-apply (subst lub)
-apply (erule someI)
+apply (rule lubI)
+apply assumption
 apply assumption
 done
 
@@ -211,10 +214,10 @@ apply (erule ub_rangeD)
 done
 
 lemma lub_finch2: 
-        "finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain i C)"
+        "finite_chain(C) ==> range(C) <<| C(LEAST i. max_in_chain i C)"
 apply (unfold finite_chain_def)
 apply (rule lub_finch1)
-prefer 2 apply (best intro: someI)
+prefer 2 apply (best intro: LeastI)
 apply blast
 done
 

@@ -140,14 +140,16 @@ syntax (xsymbols)
   UU            :: "'a::pcpo"                           ("\<bottom>")
 
 defs
-  UU_def:        "UU == @x.!y. x<<y"
+  UU_def:        "UU == THE x. ALL y. x<<y"
 
 text {* derive the old rule minimal *}
  
 lemma UU_least: "ALL z. UU << z"
 apply (unfold UU_def)
-apply (rule some_eq_ex [THEN iffD2])
+apply (rule theI')
+apply (rule ex_ex1I)
 apply (rule least)
+apply (blast intro: antisym_less)
 done
 
 lemmas minimal = UU_least [THEN spec, standard]
