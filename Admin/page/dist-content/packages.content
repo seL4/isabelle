@@ -46,7 +46,7 @@ bottom of this page. For more information, see the file INSTALL in
 <p>
 
 <!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
-<center>
+<div style="text-align: center">
 
 <table border="0" cellspacing="5" cellpadding="4" width="520">
 
@@ -82,7 +82,7 @@ bottom of this page. For more information, see the file INSTALL in
 <!-- _GP_ download(1, "HOL4 proof terms", "contrib/HOL4-proofs.tar.gz", "../..") -->
 
 </table>
-</center>
+</div>
 
 <p>
 

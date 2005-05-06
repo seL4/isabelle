@@ -90,7 +90,7 @@ EOF
     # empty_line(numcols)
     sub empty_line {
       my $retval = <<EOF;
-      <p>
+      <div style="height: 13px"></div>
 EOF
       return $retval;
     }
