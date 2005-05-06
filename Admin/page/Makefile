@@ -1,6 +1,17 @@
 # -- makefile for Isabelle web pages (dist and main)
 # -- $Id$
 
+# --- force shell
+SHELL=bash
+
+# --- check parameters
+ifeq ($(tidy),)
+    TIDYCMD=:
+else
+    TIDYCMD=tidy -q -i -asxhtml --doctype auto --indent-spaces 2 --wrap 80 \
+                --logical-emphasis yes --gnu-emacs yes --write-back yes
+endif
+
 # --- external tools
 
 GENPAGE   = ./bin/genpage
@@ -48,6 +59,10 @@ main:
 	@$(MKCONTENT) -p dist/`cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_MAIN)
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(MAIN_LAYOUT)/$(TEMPLATE_NAME) -c $(MAIN_CONTENT) -o $(MAIN_TARGET)
+	-@cd $(MAIN_TARGET); \
+        for html in *.html; \
+            do $(TIDYCMD) $$html; \
+        done
 
 pub-main: main
 	@echo "Publishing main pages (*.html only)."
@@ -58,6 +73,10 @@ dist:
 	@$(MKCONTENT) -p `cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
+	-@cd $(MAIN_TARGET); \
+        for html in *.html; \
+            do $(TIDYCMD) $$html; \
+        done
 
 pub-dist: dist
 	@echo "Publishing dist pages (*.html only)."
