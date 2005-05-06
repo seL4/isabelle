@@ -7,7 +7,7 @@ Isabelle Packages
 
 The following source and binary packages of <!-- _GP_ distname -->
 provide everything required for easy installation of the full Isabelle
-working environment on common Unix platforms.
+working environment on common Unix platforms (e.&nbsp;g. Linux, Darwin, Solaris)
 
 <p>
 
@@ -128,16 +128,12 @@ If Emacs appears to hang when the prover process is started, see the
 <A HREF="http://proofgeneral.inf.ed.ac.uk/FAQ">Proof General FAQ</a> 
 for advice.
 
-<h3>Running Isabelle on Windows</h3>
+<h3>Running Isabelle on windows</h3>
 
-Windows is not an officially supported platform for runnning Isabelle,
-but a friendly user, Norbert Völker, <a
-href="http://cswww.essex.ac.uk/Research/FSS/projects/isawin/">provides
-a page with tips</a> on how to get the core system working anyway.
+<p>For a complete system, we recommend to run some recent version of
+Solaris, Darwin, or Linux.</p>
 
-<p> 
-
-For a complete system we recommend to run some recent version of
-Solaris, Darwin, or Linux.
-
-<p>
+<p>Though not &raquo;officially supported&laquo;, Isabelle in most
+cases should also run on Windows, using the
+<a href="http://www.cygwin.com/">Cygwin</a> POSIX emulation layer. Here
+some <a href="notes_win_cygwin.html">notes</a> about it.</p>

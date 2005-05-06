@@ -1,0 +1,268 @@
+%title%
+Isabelle on Windows
+
+%body%
+
+<h2>Preconditions and restrictions</h2>
+
+<p>Please notice before you go ahead:
+<ul>
+    <li>The ML system these notes apply to is
+    <a href="http://www.smlnj.org/">Standard ML of New Jersey</a>;
+    it is <em>not</em> known yet how to get Isabelle run completely with
+    <a href="www.polyml.org/">Poly/ML</a>. See <a href="#polyml">a note
+    on Poly/ML</a> down this page.</li>
+    <li>It is assumed you have some experience with an Unix operating
+    system (e.&nbsp;g. what a shell is for and how to use it basically).
+    This is neccessary since the ML system has to be compiled from scratch.</li>
+</ul>
+</p>
+
+<p>Thanks to
+<a href="http://cswww.essex.ac.uk/Research/FSS/projects/isawin/">Norbert V&ouml;ker</a>
+and <a href="http://www.abo.fi/~viorel.preoteasa/isabelle/">Viorel Preoteasa</a>
+whose efforts helped a lot to get Isabelle run this way.</p>
+
+<h2>Installing Cygwin</h2>
+
+<p>Cygwin is a POSIX emulation layer for windows; it contains ports of a large
+collection of common Unix software (shells, perl, gcc, X11, latex, ImageMagick,
+&hellip;).</p>
+
+<p>To install it, get the installer from the
+<a href="http://www.cygwin.com">Cygwin website</a> and run it. It will ask you
+which packages to install, and then downloads and installs them.
+Please make sure you install everything needed by Isabelle; it is hard to give
+a concise list of packages here since the bundling of Cygwin packages may vary
+over time, but installing the base packages, perl, make, xemacs and x-server
+should be a good choice for the beginning.</p>
+
+<p>By default, cygwin installs to <tt>c:\cygwin</tt>; you may choose an arbitrary
+location, but it is recommended that it does not include any space or exotic
+characters. This directory will then become the root directory of the Cygwin
+filesystem tree, i.&nbsp;e. the Cygwin path <tt>/opt/smlnj</tt>
+will be mapped to Windows path <tt>c:\cygwin\opt\smlnj</tt>.</p>
+
+<p>After installation, open a Cygwin shell window (normally the installer
+makes a shortcut for you).</p>
+
+<h2>Getting and building SML/NJ</h2>
+
+<p>Now we are ready to get and build <a href="http://www.smlnj.org/">SML/NJ</a>;
+before this, set the environment variable SMLNJ_CYGWIN_RUNTIME to 1:
+
+    <blockquote>
+        <tt>
+          export SMLNJ_CYGWIN_RUNTIME=1
+        </tt>
+    </blockquote>
+
+    <blockquote>
+    (or
+        <tt>
+          setenv SMLNJ_CYGWIN_RUNTIME 1
+        </tt>
+    for c shells).
+    </blockquote>
+
+This setting will tell the build process that it should <em>not</em> attempt
+to build SML/NJ natively for Win32 but for Cygwin instead (see further
+<a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/CYGWININSTALL">CYGWININSTALL</a>).</p>
+
+<p>So far, this whole setup was tested using the latest working version (110.53)
+of SML/NJ from <a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/">http://smlnj.cs.uchicago.edu/dist/working/110.53/</a>.
+SML/NJ provides a nice installer enabling you to download and build it.
+Read <a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/INSTALL">INSTALL</a>
+to learn about the different possibilites to do this. The default packages
+should be sufficient.</p>
+
+<p>In the following, it is assumed that you install SML/NJ to Cygwin path <tt>/opt/smlnj</tt>;
+if you choose an other
+location, some tweaking in the <a href="#config"><tt>etc/settings</tt> file</a>
+may be neccessary later.</p>
+
+<p>Whenever SMLNJ is used, the SMLNJ_CYGWIN_RUNTIME environment variable
+must be set to 1 (lateron a convenient mechanism to make this the default
+is proposed).</p>
+
+<h2>Installing Isabelle</h2>
+
+<p>Download the latest Isabelle and ProofGeneral release packages from 
+<a href="http://isabelle.in.tum.de/dist/packages.html">http://isabelle.in.tum.de/dist/packages.html</a>.
+Assuming that you are in the directory where
+you downloaded the files, install them into <tt>/opt</tt> by typing into the
+bash shell:
+
+    <blockquote>
+        <tt>
+            tar -C /usr/opt -xvzf <a href="http://isabelle.in.tum.de/dist/Isabelle2004.tar.gz">Isabelle2004.tar.gz</a><br />
+            tar -C /usr/opt -xvzf <a href="http://isabelle.in.tum.de/dist/ProofGeneral-3.5.tar.gz">ProofGeneral-3.5.tar.gz</a>
+        </tt>
+    </blockquote>
+
+During extracting, one inconvenience may occur, see <a href="inconvenience">below</a>.</p>
+
+<p>The location <tt>/opt</tt> again is just a proposal; if you choose other
+locations, some tweaking in the <a href="#config"><tt>etc/settings</tt> file</a>
+may be neccessary later.</p>
+
+<h2 id="config">Configuring Isabelle</h2>
+
+<p>Edit the file <tt>/opt/Isabelle/etc/settings</tt>; first, uncomment the lines
+about SMLNJ. Also set the variable SMLNJ_CYGWIN_RUNTIME to 1, in order the
+cygwin version of SMLNJ is used. As mentioned above, the path variables for 
+the ML system and ProofGeneral may need adjustions, depending on your different
+installation locations.</p>
+
+<p>Take heed of the setting of ISABELLE_HOME_USER; by default, this is
+<tt>~/isabelle</tt>. To detect to which Windows path this will be mapped,
+type into the Cygwin bash shell:
+
+    <blockquote>
+        <tt>
+            cygpath --windows ~/isabelle
+        </tt>
+    </blockquote>
+
+If you don't like this location to be the isabelle home directory, consider
+setting of ISABELLE_HOME_USER to another value; use <tt>cygpath --unix
+&lt;winpath&gt;</tt> to detect which Cygwin path a given Windows path is mapped to.</p>
+
+<p>A typical change could look like this:
+
+    <blockquote>
+        from<br/>
+        <tt>
+            # Standard ML of New Jersey 110 or later<br>
+            #ML_SYSTEM=smlnj-110<br>
+            #ML_HOME="$ISABELLE_HOME/../smlnj/bin"<br>
+            #ML_OPTIONS="@SMLdebug=/dev/null"<br>
+            #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")<br>
+        </tt>
+    </blockquote>
+
+    <blockquote>
+        to<br/>
+        <tt>
+            # Standard ML of New Jersey 110 or later<br>
+            SMLNJ_CYGWIN_RUNTIME=1<br>
+            ML_SYSTEM=smlnj-110<br>
+            ML_HOME="$ISABELLE_HOME/../smlnj/bin"<br>
+            ML_OPTIONS="@SMLdebug=/dev/null"<br>
+            ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
+        </tt>
+    </blockquote>
+
+</p>
+
+<h2>Building logics</h2>
+
+<p>Now we can compile some logics. Start the cygwin shell (if not still
+running) and type:
+
+    <blockquote>
+        <tt>
+            cd /opt/Isabelle<br>
+            build HOL<br>
+            build ZF
+        </tt>
+    </blockquote>
+</p>
+
+<p>The compilation process may take quite a lot of time (depending also on 
+how fast the computer is). When starting building some logic the build
+program shows some variables and expects the user input &ndash; just hit enter.
+
+<h2>Running Isabelle with ProofGeneral</h2>
+
+<p>On Linux Isabelle can be started by two scripts located in <tt>Isabelle/bin</tt>:
+<tt>Isabelle</tt> and <tt>isabelle</tt>. <tt>Isabelle</tt> attempts to start
+ProofGeneral with XEmacs, and isabelle starts it in an SML shell session.
+However Windows treats the two names as one. To get around this just copy
+<tt>/opt/Isabelle/bin/isabelle</tt> to <tt>/opt/Isabelle/bin/Isabell</tt>.
+The script <tt>/opt/Isabelle/bin/Isabell</tt> will start Isabelle with ProofGeneral.</p>
+
+<p>How everything is ready to test some theory. Start the cygwin shell 
+(if not already running) and type
+
+    <blockquote>
+        <tt>startx &amp;</tt>
+    </blockquote>
+
+This will start the cygwin X server and an X shell window. In the X shell window,
+type
+
+    <blockquote>
+        <tt>/opt/Isabelle/bin/Isabell &amp;</tt>.
+    </blockquote>
+
+This will start the ProofGeneral interface for Isabelle. After a while an empty buffer 
+<tt>scratch.thy</tt> is created. You can turn on X-Symbol and Electric Terminator
+from the menu Proof-General &rarrow; Options.</p>
+
+<p>Load one of your favorite theory and test your Isabelle installation
+by proving something.</p>
+
+<p>To simplify starting ProofGeneral, consider writing a Windows command script,
+e.&nbsp;g.
+
+    <blockquote>
+        <tt>@bash startx -geometry 30x4 -iconic -e Isabell</tt>
+    </blockquote>
+
+and assigning a shortcut in the start menu to it.</p>
+
+<h2 id="inconvenience">Inconveniencies with the current version of Isabelle</h2>
+
+<p>With the current Isabelle release (Isabelle 2004), there are two inconveniencies:
+<ul>
+    <li>During extraction you will get a warning that file <tt>Real/HahnBanach/Aux.thy</tt>
+      can not be created. This is  because <tt>Aux</tt> is not allowed as a
+      filename under Windows. If you do not want to run the HahnBanach example,
+      you might simply want to ignore this warning.</li>
+    <li>The tool <tt>isatool mkdir</tt> tries to detect the name of the current
+    user, to put it into the generated <tt>root.tex</tt>. Alas, on Windows, this
+    leads to an unquoted <tt>\</tt> in the TeX file. So you either must edit
+    your <tt>root.tex</tt> manually to fix this, or directly patch <tt>/opt/Isabelle/lib/Tools/mkdir</tt>
+    by replacing
+
+        <blockquote>
+            <tt>
+                AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)
+            </tt>
+        </blockquote>
+
+        with
+
+        <blockquote>
+            <tt>
+                AUTHOR="default author name"
+            </tt>
+        </blockquote>
+
+    </li>
+</ul>
+
+<p>To get around both inconveniencies, consider using a recent developer snapshot
+of Isabelle; either, both inconveniencies won't be alive anymore in the next
+Isabelle release.</p>
+
+<h2 id="polyml">A note on Poly/ML</h2>
+
+<p>As indicated above, Isabelle does <em>not</em> run
+neatlessly with <a href="www.polyml.org/">Poly/ML</a> on Windows, due to two
+reasons:
+<ul>
+    <li>The native port of Poly/ML for windows does not, for what reason
+    ever, support shell-like stdin and stdout; instead, it implements
+    its own &raquo;terminal&laquo;. Alas, all &raquo;higher&laquo;
+    Isabelle features (Isar, ProofGeneral, &hellip;) depend on stdin and stdout.
+    So, though on the pure ML level Isabelle may run, its usability will be
+    very restricted.</li>
+    <li>It is not clear how Poly/ML has to be compiled for Cygwin.</li>
+</ul>
+</p>
+
+<p>If you know how to circumvent (fully or partially) any of these problems,
+please let us know.</p>
+
