@@ -204,8 +204,21 @@ New in this Isabelle release
 
 *** Document preparation ***
 
-* New antiquotations @{lhs thm} and @{rhs thm} printing the lhs/rhs of
-  definitions, equations, inequations etc.
+* New antiquotation @{term_type term} printing a term with its
+  type annotated
+
+* New antiquotation @{typeof term} printing the - surprise - the type of 
+  a term
+
+* New antiquotation @{const const} which is the same as @{term const} except
+  that const must be a defined constant identifier; helpful for early detection
+  of typoes
+
+* Two new antiquotations @{term_style style term} and @{thm_style style thm}
+  which print a term / theorem applying a "style" to it; predefined styles
+  are "lhs" and "rhs" printing the lhs/rhs of definitions, equations,
+  inequations etc. and "conclusion" printing only the conclusion of a theorem.
+  More styles may be defined using ML; see the "LaTeX Sugar" document for more
 
 * Antiquotations now provide the option 'locale=NAME' to specify an
   alternative context used for evaluating and printing the subsequent
