@@ -11,7 +11,7 @@
 . ~/.bashrc
 
 ## settings
-MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de haftmann@in.tum.de # berghofe@in.tum.de lp15@cam.ac.uk"
+MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de haftmann@in.tum.de berghofe@in.tum.de lp15@cam.ac.uk makarius@sketis.net"
 
 DOCDIR=$HOME/Doc
 DISTPREFIX=~/tmp/isadist
