@@ -7,7 +7,7 @@ Isabelle Packages
 
 The following source and binary packages of <!-- _GP_ distname -->
 provide everything required for easy installation of the full Isabelle
-working environment on common Unix platforms (e.&nbsp;g. Linux, Darwin, Solaris)
+working environment on common Unix platforms (e.g. Linux, Darwin, Solaris)
 
 <p>
 
@@ -128,21 +128,16 @@ If Emacs appears to hang when the prover process is started, see the
 <A HREF="http://proofgeneral.inf.ed.ac.uk/FAQ">Proof General FAQ</a> 
 for advice.
 
-<h3>Running Isabelle on non-unix operating systems.</h3>
+<h3>Further Information</h3>
 
-<p>Though Isabelle is nativly designed for Unix (e.&nbsp;g. Solaris, Linux),
-Isabelle may also run under similar &raquo;unix-like&laquo; platforms:
+<p>Although Isabelle is nativly designed for Unix environments
+(e.g. Solaris, Linux), it may also run under similar, Unix-like
+platforms. The following installation instructions are hints
+contributed by Isabelle users.  Feel free to contact us for any
+suggestions, corrections or improvements.</p>
 
     <ul>
-        <li>Max OS X, since the Darwin kernel is a Unix kernel; see
-        <a href="notes_macos_darwin.html">installation notes for Max OS</a>.</li>
-        <li>Windows, using the <a href="http://www.cygwin.com/">Cygwin</a>
-        POSIX emulation layer; see <a href="notes_win_cygwin.html">installation
-        notes for Cygwin/Windows</a>.</li>
+        <li><a href="notes_macos_darwin.html">Installation notes for Mac OS X</a></li>
+        <li><a href="notes_win_cygwin.html">Installation notes for Cygwin/Windows</a></li>
     </ul>
 
-</p>
-
-<p>These installation instructions are not strictly normative, they are just
-hints contributed by Isabelle users.
-Feel free to contact us for any suggestions, corrections or improvements.</p>
