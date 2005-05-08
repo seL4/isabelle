@@ -17,20 +17,15 @@ you are familiar with both Mac OS X and Unix. You must have installed the Mac
 OS X developer tools.</p>
 
 <ol>
-<li>Download Isabelle to a suitable directory, as described on the download
-<a href=
-"http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/packages.html">page</a>.
-Ensure that you get files such as <a href=
-"http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/contrib/polyml_ppc-darwin.tar.gz">
-<tt>polyml_ppc-darwin.tar.gz</tt></a> and <a href=
-"http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/HOL_ppc-darwin.tar.gz"><tt>
-HOL_ppc-darwin.tar.gz</tt></a> rather than the <tt>_x86-linux</tt>
-versions.</li>
+<li>Download Isabelle to a suitable directory, as described on the 
+<a href="packages.html">download page</a>. Be sure to get the following files
 
-<li>Install <a href="http://www.polyml.org/">Poly/ML</a> in a standard
-place, such as <tt>/usr/local/polyml</tt>, or put <tt>polyml</tt> in the
-same directory as <tt>Isabelle</tt>. Make sure you get the PPC Darwin
-version from the Poly/ML download page.</li>
+<!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --> <br>
+<!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
+<!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --> <br>
+<!-- _GP_ href("contrib/polyml_ppc-darwin.tar.gz", "polyml_ppc-darwin.tar.gz") --> <br>
+<!-- _GP_ href("HOL_ppc-darwin.tar.gz", "HOL_ppc-darwin.tar.gz") --> <br>
+</li>
 
 <li>You may have to install the bash shell. Versions of Mac OS X prior to
 10.2.2 did not provide it. If /bin/bash does not exist, you can install it
@@ -42,19 +37,20 @@ interface. You can also build Isabelle from the Unix command line,
 following the instructions for "Compiling Logics" in file
 <tt>Isabelle/INSTALL.</tt></li>
 
-<li>Install <a href="http://proofgeneral.inf.ed.ac.uk/">Proof General</a>.
-You may now be able to launch Proof General by typing "<tt>Isabelle</tt>"
-at the Unix command line. This will invoke the Apple-supplied version of
-Emacs in a terminal window, providing a primitive environment. Somewhat
-better is to run Proof General from within a version of Emacs ported as a
-native Mac OS X application, such as <a href=
+<li>You should also be able to launch <a
+href="http://proofgeneral.inf.ed.ac.uk/">Proof General</a> by typing
+"<tt>Isabelle</tt>" at the Unix command line. This will invoke the
+Apple-supplied version of Emacs in a terminal window, providing a
+primitive environment. Somewhat better is to run Proof General from
+within a version of Emacs ported as a native Mac OS X application,
+such as <a href=
 "http://home.att.ne.jp/alpha/z123/emacs-mac-e.html">MacEmacs JP</a> or
-<a href="http://mindlube.com/products/emacs/">mindlube's</a> or <a href=
-"http://www.cs.man.ac.uk/%7efranconi/mac-emacs/">Enhanced Carbon Emacs</a>.
-Visiting a theory file from Emacs will automatically launch Proof General
-provided <tt>isabelle</tt> is on the search path. None of these options
-support the X-Symbol package, unfortunately.</li>
-</ol>
+<a href="http://mindlube.com/products/emacs/">mindlube's</a> or <a
+href= "http://www.cs.man.ac.uk/%7efranconi/mac-emacs/">Enhanced Carbon
+Emacs</a>.  Visiting a theory file from Emacs will automatically
+launch Proof General provided <tt>isabelle</tt> is on the search
+path. None of these options support the X-Symbol package,
+unfortunately.</li> </ol>
 
 <p>In order to get the full benefit of Proof General, you must install the X
 Window System (X11) and <a href="http://www.xemacs.org/">XEmacs</a> or
