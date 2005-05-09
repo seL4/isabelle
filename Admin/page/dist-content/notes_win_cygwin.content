@@ -13,10 +13,11 @@ Isabelle on Windows
     <a href="www.polyml.org/">Poly/ML</a>. See <a href="#polyml">a note
     on Poly/ML</a> down this page.</li>
     <li>It is assumed you have some experience with an Unix operating
-    system (e.&nbsp;g. what a shell is for and how to use it basically).
-    This is neccessary since the ML system has to be compiled from scratch.</li>
+    system (e.g. what a shell is for and how to use it).</li>
 </ul>
 </p>
+
+<h2>Acknowlegements</h2>
 
 <p>Thanks to
 <a href="http://cswww.essex.ac.uk/Research/FSS/projects/isawin/">Norbert V&ouml;ker</a>
@@ -25,7 +26,7 @@ whose efforts helped a lot to get Isabelle run this way.</p>
 
 <h2>Installing Cygwin</h2>
 
-<p>Cygwin is a POSIX emulation layer for windows; it contains ports of a large
+<p>Cygwin is a POSIX emulation layer for Windows; it contains ports of a large
 collection of common Unix software (shells, perl, gcc, X11, latex, ImageMagick,
 &hellip;).</p>
 
@@ -40,7 +41,7 @@ should be a good choice for the beginning.</p>
 <p>By default, cygwin installs to <tt>c:\cygwin</tt>; you may choose an arbitrary
 location, but it is recommended that it does not include any space or exotic
 characters. This directory will then become the root directory of the Cygwin
-filesystem tree, i.&nbsp;e. the Cygwin path <tt>/opt/smlnj</tt>
+filesystem tree, i.e. the Cygwin path <tt>/opt/smlnj</tt>
 will be mapped to Windows path <tt>c:\cygwin\opt\smlnj</tt>.</p>
 
 <p>After installation, open a Cygwin shell window (normally the installer
@@ -69,7 +70,7 @@ This setting will tell the build process that it should <em>not</em> attempt
 to build SML/NJ natively for Win32 but for Cygwin instead (see further
 <a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/CYGWININSTALL">CYGWININSTALL</a>).</p>
 
-<p>So far, this whole setup was tested using the latest working version (110.53)
+<p>So far, this setup was tested using the working version 110.53
 of SML/NJ from <a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/">http://smlnj.cs.uchicago.edu/dist/working/110.53/</a>.
 SML/NJ provides a nice installer enabling you to download and build it.
 Read <a href="http://smlnj.cs.uchicago.edu/dist/working/110.53/INSTALL">INSTALL</a>
@@ -82,25 +83,24 @@ location, some tweaking in the <a href="#config"><tt>etc/settings</tt> file</a>
 may be neccessary later.</p>
 
 <p>Whenever SMLNJ is used, the SMLNJ_CYGWIN_RUNTIME environment variable
-must be set to 1 (lateron a convenient mechanism to make this the default
+must be set to 1 (later on a convenient mechanism to make this the default
 is proposed).</p>
 
 <h2>Installing Isabelle</h2>
 
-<p>Download the latest Isabelle and ProofGeneral release packages from 
-<a href="http://isabelle.in.tum.de/dist/packages.html">http://isabelle.in.tum.de/dist/packages.html</a>.
+<p>Download the latest Isabelle and ProofGeneral <a href="packages.html">release packages</a>.
 Assuming that you are in the directory where
 you downloaded the files, install them into <tt>/opt</tt> by typing into the
 bash shell:
 
     <blockquote>
         <tt>
-            tar -C /usr/opt -xvzf <a href="http://isabelle.in.tum.de/dist/Isabelle2004.tar.gz">Isabelle2004.tar.gz</a><br />
-            tar -C /usr/opt -xvzf <a href="http://isabelle.in.tum.de/dist/ProofGeneral-3.5.tar.gz">ProofGeneral-3.5.tar.gz</a>
+          tar -C /usr/opt -xvzf <!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --> <br>
+          tar -C /usr/opt -xvzf <!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
         </tt>
     </blockquote>
 
-During extracting, one inconvenience may occur, see <a href="inconvenience">below</a>.</p>
+During extraction, one inconvenience may occur, see <a href="inconvenience">below</a>.</p>
 
 <p>The location <tt>/opt</tt> again is just a proposal; if you choose other
 locations, some tweaking in the <a href="#config"><tt>etc/settings</tt> file</a>
@@ -115,7 +115,7 @@ the ML system and ProofGeneral may need adjustions, depending on your different
 installation locations.</p>
 
 <p>Take heed of the setting of ISABELLE_HOME_USER; by default, this is
-<tt>~/isabelle</tt>. To detect to which Windows path this will be mapped,
+<tt>~/isabelle</tt>. To detect which Windows path this will be mapped to,
 type into the Cygwin bash shell:
 
     <blockquote>
@@ -169,21 +169,20 @@ running) and type:
     </blockquote>
 </p>
 
-<p>The compilation process may take quite a lot of time (depending also on 
-how fast the computer is). When starting building some logic the build
-program shows some variables and expects the user input &ndash; just hit enter.
+<p>The compilation process may take some time (depending on 
+how fast the computer is). Before building a logic image the build
+program shows some variables and expects user input &ndash; just hit enter.
 
 <h2>Running Isabelle with ProofGeneral</h2>
 
-<p>On Linux Isabelle can be started by two scripts located in <tt>Isabelle/bin</tt>:
+<p>On Linux, Isabelle can be started by two scripts located in <tt>Isabelle/bin</tt>:
 <tt>Isabelle</tt> and <tt>isabelle</tt>. <tt>Isabelle</tt> attempts to start
 ProofGeneral with XEmacs, and isabelle starts it in an SML shell session.
 However Windows treats the two names as one. To get around this just copy
 <tt>/opt/Isabelle/bin/isabelle</tt> to <tt>/opt/Isabelle/bin/Isabell</tt>.
 The script <tt>/opt/Isabelle/bin/Isabell</tt> will start Isabelle with ProofGeneral.</p>
 
-<p>How everything is ready to test some theory. Start the cygwin shell 
-(if not already running) and type
+<p>Now everything should be ready. To test, start the cygwin shell and type
 
     <blockquote>
         <tt>startx &amp;</tt>
@@ -196,15 +195,15 @@ type
         <tt>/opt/Isabelle/bin/Isabell &amp;</tt>.
     </blockquote>
 
-This will start the ProofGeneral interface for Isabelle. After a while an empty buffer 
-<tt>scratch.thy</tt> is created. You can turn on X-Symbol and Electric Terminator
-from the menu Proof-General &rarrow; Options.</p>
+This will start the ProofGeneral interface for Isabelle. After a while
+an empty buffer <tt>Scratch.thy</tt> is created. You can turn on
+X-Symbol from the menu Proof-General &rarrow; Options.</p>
 
-<p>Load one of your favorite theory and test your Isabelle installation
+<p>Load one of your favorite theories and test your Isabelle installation
 by proving something.</p>
 
 <p>To simplify starting ProofGeneral, consider writing a Windows command script,
-e.&nbsp;g.
+e.g.
 
     <blockquote>
         <tt>@bash startx -geometry 30x4 -iconic -e Isabell</tt>
@@ -243,18 +242,17 @@ and assigning a shortcut in the start menu to it.</p>
     </li>
 </ul>
 
-<p>To get around both inconveniencies, consider using a recent developer snapshot
-of Isabelle; either, both inconveniencies won't be alive anymore in the next
-Isabelle release.</p>
+<p>To get around these inconveniencies, consider using a recent developer snapshot
+of Isabelle; both will be fixed in the next Isabelle release.</p>
 
 <h2 id="polyml">A note on Poly/ML</h2>
 
 <p>As indicated above, Isabelle does <em>not</em> run
-neatlessly with <a href="www.polyml.org/">Poly/ML</a> on Windows, due to two
+neatly with <a href="www.polyml.org/">Poly/ML</a> on Windows, for two
 reasons:
 <ul>
-    <li>The native port of Poly/ML for windows does not, for what reason
-    ever, support shell-like stdin and stdout; instead, it implements
+    <li>The native port of Poly/ML for Windows does not support shell-like stdin 
+    and stdout; instead, it implements
     its own &raquo;terminal&laquo;. Alas, all &raquo;higher&laquo;
     Isabelle features (Isar, ProofGeneral, &hellip;) depend on stdin and stdout.
     So, though on the pure ML level Isabelle may run, its usability will be
