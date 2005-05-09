@@ -23,7 +23,8 @@ distribution now includes the <a
 href="http://x-symbol.sourceforge.net">X-Symbol</a> package.  It
 should be used with a recent version of <a
 href="http://www.xemacs.org">XEmacs 21</a> or <a 
-href="http://www.gnu.org/software/emacs/emacs.html">GNU Emacs 21</a>. 
+href="http://www.gnu.org/software/emacs/emacs.html">GNU Emacs 21</a> (with
+Mule enabled).
 
 <p>
 
