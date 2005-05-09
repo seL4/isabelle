@@ -20,11 +20,13 @@ OS X developer tools.</p>
 <li>Download Isabelle to a suitable directory, as described on the 
 <a href="packages.html">download page</a>. Be sure to get the following files
 
-<!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --> <br>
-<!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
-<!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --> <br>
-<!-- _GP_ href("contrib/polyml_ppc-darwin.tar.gz", "polyml_ppc-darwin.tar.gz") --> <br>
-<!-- _GP_ href("HOL_ppc-darwin.tar.gz", "HOL_ppc-darwin.tar.gz") --> <br>
+<ul>
+<li><tt><!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --></tt></li>
+<li><tt><!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --></tt></li>
+<li><tt><!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --></tt></li>
+<li><tt><!-- _GP_ href("contrib/polyml_ppc-darwin.tar.gz", "polyml_ppc-darwin.tar.gz") --></tt></li>
+<li><tt><!-- _GP_ href("HOL_ppc-darwin.tar.gz", "HOL_ppc-darwin.tar.gz") --></tt></li>
+</ul>
 </li>
 
 <li>You may have to install the bash shell. Versions of Mac OS X prior to
