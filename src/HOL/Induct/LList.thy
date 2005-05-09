@@ -865,7 +865,8 @@ apply (rule_tac r = "range (%u. (lappend (iterates f u) N,iterates f u))"
        in llist_equalityI)
  apply (rule rangeI)
 apply (safe)
-apply (simplesubst iterates, simp)  --{*two redexes*}
+apply (subst (1 2) iterates)
+apply simp 
 done
 
 subsubsection{* Two proofs that @{text lmap} distributes over lappend *}

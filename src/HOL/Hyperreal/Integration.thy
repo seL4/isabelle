@@ -1,4 +1,4 @@
-(*  Title       : Integration.thy
+(*  ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 2000  University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
@@ -262,12 +262,13 @@ defer 1
  apply (drule partition_rhs)
  apply (drule partition_lhs, auto)
 apply (simp split: nat_diff_split)
-apply (subst partition)
-apply (simplesubst lemma_partition_append2, assumption+)
-   --{*Need to substitute the last occurrence*}
-apply (rule conjI)
-apply (drule_tac [2] lemma_partition_append1)
-apply (auto simp add: partition_lhs partition_rhs)
+apply (subst partition) 
+apply (subst (1 2) lemma_partition_append2, assumption+)
+apply (rule conjI) 
+apply (simp add: partition_lhs)
+apply (drule lemma_partition_append1)
+apply assumption; 
+apply (simp add: partition_rhs)
 done
 
 

@@ -1,9 +1,10 @@
-(*  Title       : MacLaurin.thy
+(*  ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 2001 University of Edinburgh
-    Description : MacLaurin series
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
+
+header{*MacLaurin Series*}
 
 theory MacLaurin
 imports Log
@@ -583,7 +584,7 @@ proof -
       in Maclaurin_all_le_objl)
     apply safe
     apply simp
-    apply (simplesubst mod_Suc_eq_Suc_mod)  --{*simultaneous substitution*}
+    apply (subst (1 2 3) mod_Suc_eq_Suc_mod)
     apply (cut_tac m=m in mod_exhaust_less_4, safe, simp+)
     apply (rule DERIV_minus, simp+)
     apply (rule lemma_DERIV_subst, rule DERIV_minus, rule DERIV_cos, simp)
