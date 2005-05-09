@@ -27,12 +27,14 @@ sig
   val mk_disj: term * term -> term
   val mk_imp: term * term -> term
   val dest_conj: term -> term list
+  val dest_disj: term -> term list
   val dest_imp: term -> term * term
   val dest_not: term -> term
   val dest_concls: term -> term list
   val eq_const: typ -> term
   val all_const: typ -> term
   val exists_const: typ -> term
+  val choice_const: typ -> term
   val Collect_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
@@ -137,6 +139,9 @@ and mk_imp (t1, t2) = imp $ t1 $ t2;
 fun dest_conj (Const ("op &", _) $ t $ t') = t :: dest_conj t'
   | dest_conj t = [t];
 
+fun dest_disj (Const ("op |", _) $ t $ t') = t :: dest_disj t'
+  | dest_disj t = [t];
+
 fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
@@ -158,6 +163,8 @@ fun list_all (vs,x) = foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P)) x vs
 
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
+
+fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T)
 
 fun Collect_const T = Const ("Collect", [T --> boolT] ---> mk_setT T);
 fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);

@@ -29,9 +29,6 @@ in
 val helper = Goals.result()
 end
 
-(* Akin to HOLogic.exists_const *)
-fun choice_const T = Const("Hilbert_Choice.Eps",(T-->HOLogic.boolT)-->T)
-
 (* Actual code *)
 
 local
@@ -45,7 +42,8 @@ local
 		val cdefname = if thname = ""
 			       then Thm.def_name (Sign.base_name cname)
 			       else thname
-		val def_eq = Logic.mk_equals (Const(cname_full,ctype),choice_const ctype $  P)
+		val def_eq = Logic.mk_equals (Const(cname_full,ctype),
+		                              HOLogic.choice_const ctype $  P)
 		val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
 		val thm' = [thm,hd thms] MRS helper
 	    in
