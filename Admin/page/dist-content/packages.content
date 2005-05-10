@@ -47,9 +47,7 @@ bottom of this page. For more information, see the file INSTALL in
 <p>
 
 <!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
-<div style="text-align: center">
-
-<table border="0" cellspacing="5" cellpadding="4" width="520">
+<table border="0" cellspacing="5" cellpadding="4" width="520" style="margin: 0px auto 0px auto">
 
 <!-- _GP_ downloadhead("Isabelle") -->
 <!-- _GP_ download(1, "Sources and documentation", distname . ".tar.gz", "../..") -->
@@ -81,9 +79,8 @@ bottom of this page. For more information, see the file INSTALL in
 
 <!-- _GP_ downloadhead("HOL4 proof terms") -->
 <!-- _GP_ download(1, "HOL4 proof terms", "contrib/HOL4-proofs.tar.gz", "../..") -->
-
 </table>
-</div>
+
 
 <p>
 
@@ -129,7 +126,7 @@ If Emacs appears to hang when the prover process is started, see the
 <A HREF="http://proofgeneral.inf.ed.ac.uk/FAQ">Proof General FAQ</a> 
 for advice.
 
-<h3>Further Information</h3>
+<h3>Other platforms</h3>
 
 <p>Although Isabelle is nativly designed for Unix environments
 (e.g. Solaris, Linux), it may also run under similar, Unix-like
