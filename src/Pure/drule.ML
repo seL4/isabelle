@@ -86,8 +86,10 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
+  val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
@@ -206,6 +208,10 @@ fun mk_implies(A,B) = Thm.capply (Thm.capply implies A) B;
 fun list_implies([], B) = B
   | list_implies(A::AS, B) = mk_implies (A, list_implies(AS,B));
 
+(*cterm version of list_comb: maps  (f, [t1,...,tn])  to  f(t1,...,tn) *)
+fun list_comb (f, []) = f
+  | list_comb (f, t::ts) = list_comb (Thm.capply f t, ts);
+
 (*cterm version of strip_comb: maps  f(t1,...,tn)  to  (f, [t1,...,tn]) *)
 fun strip_comb ct = 
   let
@@ -222,6 +228,11 @@ fun strip_type cT = (case Thm.typ_of cT of
         val (cTs, cT') = strip_type cT2
       in (cT1 :: cTs, cT') end
   | _ => ([], cT));
+
+(*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
+  of the meta-equality returned by the beta_conversion rule.*)
+fun beta_conv x y = 
+    #2 (Thm.dest_comb (cprop_of (Thm.beta_conversion false (Thm.capply x y))));
 
 fun plain_prop_of raw_thm =
   let
@@ -287,7 +298,8 @@ end;
 fun types_sorts thm =
     let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm;
         (* bogus term! *)
-        val big = list_comb (list_comb (prop, hyps), Thm.terms_of_tpairs tpairs);
+        val big = Term.list_comb 
+                    (Term.list_comb (prop, hyps), Thm.terms_of_tpairs tpairs);
         val vars = map dest_Var (term_vars big);
         val frees = map dest_Free (term_frees big);
         val tvars = term_tvars big;
