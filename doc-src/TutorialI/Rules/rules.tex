@@ -705,12 +705,39 @@ The Isabelle version of the substitution rule looks like this:
 Crucially, \isa{?P} is a function 
 variable.  It can be replaced by a $\lambda$-term 
 with one bound variable, whose occurrences identify the places 
-in which $s$ will be replaced by~$t$.  The proof above requires
-the term \isa{{\isasymlambda}x.~x=s}.
+in which $s$ will be replaced by~$t$.  The proof above requires \isa{?P}
+to be replaced by \isa{{\isasymlambda}x.~x=s}; the second premise will then
+be \isa{s=s} and the conclusion will be \isa{t=s}.
 
-The \isa{simp} method replaces equals by equals, but the substitution
-rule gives us more control.  The \methdx{subst} method is the easiest way to
-use the substitution rule.  Suppose a
+The \isa{simp} method also replaces equals by equals, but the substitution
+rule gives us more control.  Consider this proof: 
+\begin{isabelle}
+\isacommand{lemma}\
+"\isasymlbrakk x\ =\ f\ x;\ odd(f\ x)\isasymrbrakk\ \isasymLongrightarrow\
+odd\ x"\isanewline
+\isacommand{by}\ (erule\ ssubst)
+\end{isabelle}
+%
+The assumption \isa{x\ =\ f\ x}, if used for rewriting, would loop, 
+replacing \isa{x} by \isa{f x} and then by
+\isa{f(f x)} and so forth. (Here \isa{simp} 
+would see the danger and would re-orient the equality, but in more complicated
+cases it can be fooled.) When we apply the substitution rule,  
+Isabelle replaces every
+\isa{x} in the subgoal by \isa{f x} just once. It cannot loop.  The
+resulting subgoal is trivial by assumption, so the \isacommand{by} command
+proves it implicitly. 
+
+We are using the \isa{erule} method in a novel way. Hitherto, 
+the conclusion of the rule was just a variable such as~\isa{?R}, but it may
+be any term. The conclusion is unified with the subgoal just as 
+it would be with the \isa{rule} method. At the same time \isa{erule} looks 
+for an assumption that matches the rule's first premise, as usual.  With
+\isa{ssubst} the effect is to find, use and delete an equality 
+assumption.
+
+The \methdx{subst} method performs individual substitutions. In simple cases,
+it closely resembles a use of the substitution rule.  Suppose a
 proof has reached this point:
 \begin{isabelle}
 \ 1.\ \isasymlbrakk P\ x\ y\ z;\ Suc\ x\ <\ y\isasymrbrakk \ \isasymLongrightarrow \ f\ z\ =\ x\ *\ y%
@@ -740,31 +767,15 @@ The \isa{subst} method applies \isa{mult_commute} exactly once.
 As we wanted, \isa{x\ *\ y} has become \isa{y\ *\ x}.
 
 \medskip
-The \isa{subst} method is convenient, but to see how it works, let us
-examine an explicit use of the rule \isa{ssubst}.
-Consider this proof: 
+This use of the \methdx{subst} method has the same effect as the command
 \begin{isabelle}
-\isacommand{lemma}\
-"\isasymlbrakk x\ =\ f\ x;\ odd(f\ x)\isasymrbrakk\ \isasymLongrightarrow\
-odd\ x"\isanewline
-\isacommand{by}\ (erule\ ssubst)
+\isacommand{apply}\ (rule\ mult_commute [THEN ssubst])
 \end{isabelle}
-%
-The simplifier might loop, replacing \isa{x} by \isa{f x} and then by
-\isa{f(f x)} and so forth. (Here \isa{simp} 
-can see the danger and would re-orient the equality, but in more complicated
-cases it can be fooled.) When we apply substitution,  Isabelle replaces every
-\isa{x} in the subgoal by \isa{f x} just once: it cannot loop.  The
-resulting subgoal is trivial by assumption, so the \isacommand{by} command
-proves it implicitly. 
-
-We are using the \isa{erule} method in a novel way. Hitherto, 
-the conclusion of the rule was just a variable such as~\isa{?R}, but it may
-be any term. The conclusion is unified with the subgoal just as 
-it would be with the \isa{rule} method. At the same time \isa{erule} looks 
-for an assumption that matches the rule's first premise, as usual.  With
-\isa{ssubst} the effect is to find, use and delete an equality 
-assumption.
+The attribute \isa{THEN}, which combines two rules, is described in 
+{\S}\ref{sec:THEN} below. The \methdx{subst} method is more powerful than
+applying the substitution rule. It can perform substitutions in a subgoal's
+assumptions. Moreover, if the subgoal contains more than one occurrence of
+the left-hand side of the equality, the \methdx{subst} method lets us specify which occurrence should be replaced.
 
 
 \subsection{Unification and Its Pitfalls}
@@ -1819,6 +1830,8 @@ an equation, so it too is a forward step.
 \subsection{Modifying a Theorem using {\tt\slshape of},  {\tt\slshape where}
  and {\tt\slshape THEN}}
 
+\label{sec:THEN}
+
 Let us reproduce our examples in Isabelle.  Recall that in
 {\S}\ref{sec:recdef-simplification} we declared the recursive function
 \isa{gcd}:\index{*gcd (constant)|(}
@@ -1962,11 +1975,14 @@ attribute such as
 \isa{[of "?k*m"]} will be rejected.
 \end{warn}
 
-\begin{exercise}
-In {\S}\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
-can we achieve the same effect using \isa{THEN} with the rule \isa{ssubst}?
-% answer  rule (mult_commute [THEN ssubst])
-\end{exercise}
+%Answer is now included in that section! Is a modified version of this
+%  exercise worth including? E.g. find a difference between the two ways
+%  of substituting.
+%\begin{exercise}
+%In {\S}\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
+%can we achieve the same effect using \isa{THEN} with the rule \isa{ssubst}?
+%% answer  rule (mult_commute [THEN ssubst])
+%\end{exercise}
 
 \subsection{Modifying a Theorem using {\tt\slshape OF}}
 
