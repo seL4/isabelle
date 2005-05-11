@@ -1976,8 +1976,8 @@ lemma Least_mono:
     ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
     -- {* Courtesy of Stephan Merz *}
   apply clarify
-  apply (erule_tac P = "%x. x : S" in LeastI2, fast)
-  apply (rule LeastI2)
+  apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
+  apply (rule LeastI2_order)
   apply (auto elim: monoD intro!: order_antisym)
   done
 

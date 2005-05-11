@@ -203,7 +203,7 @@ constdefs
   "Least P == THE x. P x & (ALL y. P y --> x <= y)"
     -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
 
-lemma LeastI2:
+lemma LeastI2_order:
   "[| P (x::'a::order);
       !!y. P y ==> x <= y;
       !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]

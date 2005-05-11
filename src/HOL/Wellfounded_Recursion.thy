@@ -314,6 +314,20 @@ done
 lemmas LeastI   = wellorder_Least_lemma [THEN conjunct1, standard]
 lemmas Least_le = wellorder_Least_lemma [THEN conjunct2, standard]
 
+-- "The following 3 lemmas are due to Brian Huffman"
+lemma LeastI_ex: "EX x::'a::wellorder. P x ==> P (Least P)"
+apply (erule exE)
+apply (erule LeastI)
+done
+
+lemma LeastI2:
+  "[| P (a::'a::wellorder); !!x. P x ==> Q x |] ==> Q (Least P)"
+by (blast intro: LeastI)
+
+lemma LeastI2_ex:
+  "[| EX a::'a::wellorder. P a; !!x. P x ==> Q x |] ==> Q (Least P)"
+by (blast intro: LeastI_ex)
+
 lemma not_less_Least: "[| k < (LEAST x. P x) |] ==> ~P (k::'a::wellorder)"
 apply (simp (no_asm_use) add: linorder_not_le [symmetric])
 apply (erule contrapos_nn)
