@@ -128,7 +128,7 @@ for advice.
 
 <h3>Other platforms</h3>
 
-<p>Although Isabelle is nativly designed for Unix environments
+<p>Although Isabelle is natively designed for Unix environments
 (e.g. Solaris, Linux), it may also run under similar, Unix-like
 platforms. The following installation instructions are hints
 contributed by Isabelle users.  Feel free to contact us for any
