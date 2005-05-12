@@ -211,25 +211,42 @@ val recon_thy = ThyInfo.get_theory"Reconstruction";
 fun transfer_to_Reconstruction thm =
     transfer recon_thy thm handle THM _ => thm;
 
-(* remove "True" clause *)
-fun rm_redundant_cls [] = []
-  | rm_redundant_cls (thm::thms) =
-    let val t = prop_of thm
-    in
-	case t of (Const ("Trueprop", _) $ Const ("True", _)) => rm_redundant_cls thms
-		| _ => thm::(rm_redundant_cls thms)
-    end;
+fun is_taut th =
+      case (prop_of th) of
+           (Const ("Trueprop", _) $ Const ("True", _)) => true
+         | _ => false;
+
+(* remove tautologous clauses *)
+val rm_redundant_cls = List.filter (not o is_taut);
 
 (* transform an Isabelle thm into CNF *)
-fun cnf_axiom thm =
+fun cnf_axiom_aux thm =
     let val thm' = transfer_to_Reconstruction thm
 	val thm'' = if (is_elimR thm') then (cnf_elim thm')  else cnf_rule thm'
     in
-	map Thm.varifyT (rm_redundant_cls thm'')
+	map (zero_var_indexes o Thm.varifyT) (rm_redundant_cls thm'')
     end;
+    
+(*Cache for clauses: could be a hash table if we provided them.*)
+val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
+
+fun cnf_axiom th =
+    case Thm.name_of_thm th of
+	  "" => cnf_axiom_aux th (*no name, so can't cache*)
+	| s  => case Symtab.lookup (!clause_cache,s) of
+	  	  NONE => 
+		    let val cls = cnf_axiom_aux th
+		    in  clause_cache := Symtab.update ((s, (th,cls)), !clause_cache); cls
+		    end
+	        | SOME(th',cls) =>
+		    if eq_thm(th,th') then cls
+		    else (*New theorem stored under the same name? Possible??*)
+		      let val cls = cnf_axiom_aux th
+		      in  clause_cache := Symtab.update ((s, (th,cls)), !clause_cache); cls
+		      end;
 
 fun meta_cnf_axiom thm = 
-    map (zero_var_indexes o Meson.make_meta_clause) (cnf_axiom thm);
+    map Meson.make_meta_clause (cnf_axiom thm);
 
 
 (* changed: with one extra case added *)

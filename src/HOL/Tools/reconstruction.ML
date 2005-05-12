@@ -123,31 +123,10 @@ val demod_local = gen_demod local_thm;
 
 (** Conversion of a theorem into clauses **)
 
-local
+(*For efficiency, we rely upon memo-izing in ResAxioms.*)
+fun clausify_rule (th,i) = List.nth (ResAxioms.meta_cnf_axiom th, i)
 
-  (*Cache for clauses: could be a hash table if we provided them.*)
-  val cc = ref (Symtab.empty : (thm * thm list) Symtab.table)
-
-  fun memo_cnf th =
-    case Thm.name_of_thm th of
-        "" => ResAxioms.meta_cnf_axiom th (*no name, so can't cache*)
-      | s  => case Symtab.lookup (!cc,s) of
-      	        NONE => 
-      	        	let val cls = ResAxioms.meta_cnf_axiom th
-      	        	in  cc := Symtab.update ((s, (th,cls)), !cc); cls
-      	        	end
-      	      | SOME(th',cls) =>
-      	      	    if eq_thm(th,th') then cls
-      	      	    else (*New theorem stored under the same name? Possible??*)
-      	      	      let val cls = ResAxioms.meta_cnf_axiom th
-      	        	  in  cc := Symtab.update ((s, (th,cls)), !cc); cls
-      	        	  end;
-
-in
-fun clausify_rule (A,i) = List.nth (memo_cnf A,i)
-end;
-
-fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
+fun clausify_syntax i (x, th) = (x, clausify_rule (th,i));
 
 fun clausify x = syntax ((Scan.lift Args.nat) >> clausify_syntax) x;
 
