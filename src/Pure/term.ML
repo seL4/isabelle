@@ -703,8 +703,11 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 
 (*First order means in all terms of the form f(t1,...,tn) no argument has a function
-  type.*)
+  type. The meta-quantifier "all" is excluded--its argument always has a function
+  type--through a recursive call into its body.*)
 fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
+  | first_order1 Ts (Const("all",_)$Abs(a,T,body)) = 
+      not (is_funtype T) andalso first_order1 (T::Ts) body
   | first_order1 Ts t =
       case strip_comb t of
 	       (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
@@ -715,7 +718,6 @@ fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
 	     | _ => error "first_order: unexpected case";
 
 val is_first_order = first_order1 [];
-
 
 (*Computing the maximum index of a typ*)
 fun maxidx_of_typ(Type(_,Ts)) = maxidx_of_typs Ts
