@@ -226,48 +226,6 @@ In which case you should use \texttt{mode=IfThenNoBox} instead of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Definitions and Equations%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-The \verb!thm! antiquotation works nicely for proper theorems, but
-  sets of equations as used in definitions are more difficult to
-  typeset nicely: for some reason people tend to prefer aligned 
-  \isa{{\isacharequal}} signs.
-
-  Isabelle2005 has a nice mechanism for this, namely the two
-  antiquotations \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}!.
-
-  \begin{center}
-  \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
-  \isa{foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}} & \isa{a}\\
-  \isa{foldl\ f\ a\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}} & \isa{foldl\ f\ {\isacharparenleft}f\ a\ x{\isacharparenright}\ xs}
-  \end{tabular}
-  \end{center}
-
-  \noindent 
-  is produced by the following code:
-
-\begin{quote}
-  \verb!\begin{center}!\\
-  \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-  \verb!@!\verb!{lhs foldl_Nil} & @!\verb!{rhs foldl_Nil}!\\
-  \verb!@!\verb!{lhs foldl_Cons} & @!\verb!{rhs foldl_Cons}!\\
-  \verb!\end{tabular}!\\
-  \verb!\end{center}!
-\end{quote}
-
-  \noindent
-  Note the space between \verb!@! and \verb!{! in the tabular argument.
-  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
-  as antiquotation. \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}! 
-  try to be smart about the interpretation of the theorem they
-  print, they work just as well for meta equality \isa{{\isasymequiv}} and other
-  binary operators like \isa{{\isacharless}}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsubsection{Patterns%
 }
 \isamarkuptrue%
@@ -353,6 +311,95 @@ Full proofs, even if written in beautiful Isar style, are likely to
 \verb!  \end{figure}!\\
 \verb!*!\verb!}!
 \end{quote}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Styles%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \verb!thm! antiquotation works nicely for single theorems, but
+  sets of equations as used in definitions are more difficult to
+  typeset nicely: for some reason people tend to prefer aligned 
+  \isa{{\isacharequal}} signs.
+
+  To deal with such cases where it is desirable to dive into the structure
+  of terms and theorems, Isabelle offers two antiquotations featuring
+  ``styles'':
+
+    \begin{quote}
+    \verb!@!\verb!{thm_style stylename thm}!\\
+    \verb!@!\verb!{term_style stylename term}!
+    \end{quote}
+
+  A ``style'' is a transformation of terms. There are three predefined
+  styles, named \verb!lhs!, \verb!rhs! and \verb!conclusion!, with obvious
+  meanings. For example, the output
+  \begin{center}
+  \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
+  \isa{foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}} & \isa{a}\\
+  \isa{foldl\ f\ a\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}} & \isa{foldl\ f\ {\isacharparenleft}f\ a\ x{\isacharparenright}\ xs}
+  \end{tabular}
+  \end{center}
+  is produced by the following code:
+  \begin{quote}
+    \verb!\begin{center}!\\
+    \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
+    \verb!@!\verb!{thm_style lhs foldl_Nil} & @!\verb!{thm_style rhs foldl_Nil}!\\
+    \verb!@!\verb!{thm_style lhs foldl_Cons} & @!\verb!{thm_style rhs foldl_Cons}!\\
+    \verb!\end{tabular}!\\
+    \verb!\end{center}!
+  \end{quote}
+  Note the space between \verb!@! and \verb!{! in the tabular argument.
+  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
+  as an antiquotation. Both styles \verb!lhs! and \verb!rhs! 
+  try to be smart about the interpretation of the theorem they transform
+  they work just as well for meta equality \isa{{\isasymequiv}} and other
+  binary operators like \isa{{\isacharless}}.
+
+  Likewise \verb!conclusion! may be used as style to show just the conclusion
+  of a formula:
+  \begin{center}
+    \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+  \end{center}
+  is produced by
+  \begin{quote}
+    \verb!\begin{center}!\\
+    \verb!@!\verb!{thm_style conclusion hd_Cons_tl}!\\
+    \verb!\end{center}!
+  \end{quote}
+
+  If you are not afraid of ML, you may also define your own styles.
+  A style is simply implemented by an ML function of type \verb!term -> term!.
+  Have a look at the following example (which indeed shows just the way the
+  \verb!lhs! style is implemented):
+  \begin{quote}
+    \verb!setup {!\verb!*!\\
+    \verb!let!\\
+    \verb!  fun my_lhs (Const ("==", _) $ t $ _) = t!\\
+    \verb!    | my_lhs (Const ("Trueprop", _) $ t) = my_lhs t!\\
+    \verb!    | my_lhs (Const ("==>", _) $ _ $ t) = my_lhs t!\\
+    \verb!    | my_lhs (_ $ t $ _) = t!\\
+    \verb!    | my_lhs _ = error ("Binary operator expected")!\\
+    \verb!  in [Style.put_style "new_lhs" my_lhs]!\\
+    \verb!end;!\\
+    \verb!*!\verb!}!\\
+  \end{quote}
+  This code must go into your theory file, not as part of your
+  \LaTeX\ text but as a separate command in front of it.
+  Like in this example, it is recommended to put the definition of the style
+  function into a \verb!let! expression, in order not to pollute the
+  ML global namespace. The mapping from identifier name to the style function
+  is done by the \verb!Style.put_style! expression which expects the desired
+  style name and the style function as arguments. After this \verb!setup!,
+  there will be a new style available named \verb!new_lhs! allowing
+  antiquoations like \verb!@!\verb!{thm_style new_lhs rev_map}!
+  yielding \isa{rev\ {\isacharparenleft}map\ f\ xs{\isacharparenright}}.
+
+  The example above may be used as as a ``copy-and-paste'' pattern to write
+  your own styles; for a description of the constructs used, please refer
+  to the Isabelle reference manual.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
