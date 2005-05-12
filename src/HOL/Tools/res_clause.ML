@@ -352,16 +352,10 @@ fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts) = literals_of_term(P,li
         val ts'' = ResLib.no_rep_app ts ts' 
     in
         (lits',ts'')
-    end
-  | literals_of_term _ = raise CLAUSE("Unexpected clause format");
+    end;
      
 
-fun literals_of_thm thm = 
-    let val term_of_thm = prop_of thm
-			  
-    in
-	literals_of_term (term_of_thm,([],[]))
-    end;
+fun literals_of_thm thm = literals_of_term (prop_of thm, ([],[]));
     
  
 fun sorts_on_typs (_, []) = []

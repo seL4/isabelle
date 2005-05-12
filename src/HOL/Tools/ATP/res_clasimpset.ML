@@ -11,8 +11,6 @@ signature RES_CLASIMP =
 structure ResClasimp : RES_CLASIMP =
 struct
 
-fun has_name th = not((Thm.name_of_thm th)= "")
-
 fun has_name_pair (a,b) = not_equal a "";
 
 fun stick []  = []
@@ -21,10 +19,10 @@ fun stick []  = []
 (* changed, now it also finds out the name of the theorem. *)
 (* convert a theorem into CNF and then into Clause.clause format. *)
 fun clausify_axiom_pairs thm =
-    let val isa_clauses = ResAxioms.cnf_axiom thm (*"isa_clauses" are already "standard"ed. *)
+    let val thm_name = Thm.name_of_thm thm
+	val isa_clauses = ResAxioms.cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = ResAxioms.rm_Eps [] isa_clauses
-        val thm_name = Thm.name_of_thm thm
-	val clauses_n = length isa_clauses
+        val clauses_n = length isa_clauses
 	fun make_axiom_clauses _ [] []= []
 	  | make_axiom_clauses i (cls::clss) (cls'::clss')= ((ResClause.make_axiom_clause cls (thm_name,i)),cls') :: make_axiom_clauses (i+1) clss clss'
     in
@@ -39,9 +37,14 @@ fun clausify_rules_pairs [] err_list = ([],err_list)
 	((clausify_axiom_pairs thm)::ts,es) handle  _ => (ts,(thm::es))
     end;
 
+
+(*Insert th into the result provided the name is not "".*)
+fun add_nonempty ((name,th), ths) = if name="" then ths else th::ths;
+
+
 fun write_out_clasimp filename = let
 					val claset_rules = ResAxioms.claset_rules_of_thy (the_context());
-					val named_claset = List.filter has_name claset_rules;
+					val named_claset = List.foldr add_nonempty []  claset_rules;
 					val claset_cls_thms = #1( clausify_rules_pairs named_claset []);
 
 					val simpset_rules = ResAxioms.simpset_rules_of_thy (the_context());

@@ -11,9 +11,9 @@ signature RES_ELIM_RULE =
 sig
 
 exception ELIMR2FOL of string
-val elimRule_tac : Thm.thm -> Tactical.tactic
-val elimR2Fol : Thm.thm -> Term.term
-val transform_elim : Thm.thm -> Thm.thm
+val elimRule_tac : thm -> Tactical.tactic
+val elimR2Fol : thm -> Term.term
+val transform_elim : thm -> thm
 
 end;
 
@@ -37,31 +37,18 @@ exception ELIMR2FOL of string;
 
 (* functions used to construct a formula *)
 
-fun make_imp (prem,concl) = Const("op -->", Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $ prem $ concl;
-
-
 fun make_disjs [x] = x
-  | make_disjs (x :: xs) = Const("op |",Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $ x $ (make_disjs xs)
-
+  | make_disjs (x :: xs) = HOLogic.mk_disj(x, make_disjs xs)
 
 fun make_conjs [x] = x
-  | make_conjs (x :: xs) = Const("op &", Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $ x $ (make_conjs xs)
+  | make_conjs (x :: xs) =  HOLogic.mk_conj(x, make_conjs xs)
+
+fun add_EX tm [] = tm
+  | add_EX tm ((x,xtp)::xs) = add_EX (HOLogic.exists_const xtp $ Abs(x,xtp,tm)) xs;
 
 
-fun add_EX term [] = term
-  | add_EX term ((x,xtp)::xs) = add_EX (Const ("Ex",Type("fun",[Type("fun",[xtp,Type("bool",[])]),Type("bool",[])])) $ Abs (x,xtp,term)) xs;
 
-
-exception TRUEPROP of string; 
-
-fun strip_trueprop (Const ("Trueprop", Type("fun",[Type("bool",[]),Type("prop",[])])) $ P) = P
-  | strip_trueprop _ = raise TRUEPROP("not a prop!");
-
-
-fun neg P = Const ("Not", Type("fun",[Type("bool",[]),Type("bool",[])])) $ P;
-
-
-fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) (Const("Trueprop",_) $ Free(q,_))= (p = q)
+fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) (Const("Trueprop",_) $ Free(q,_)) = (p = q)
   | is_neg _ _ = false;
 
 
@@ -69,23 +56,23 @@ exception STRIP_CONCL;
 
 
 fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
-    let val P' = strip_trueprop P
-	val prems' = P'::prems
-    in
+      let val P' = HOLogic.dest_Trueprop P
+  	  val prems' = P'::prems
+      in
 	strip_concl' prems' bvs  Q
-    end
+      end
   | strip_concl' prems bvs P = 
-    let val P' = neg (strip_trueprop P)
-    in
+      let val P' = HOLogic.Not $ (HOLogic.dest_Trueprop P)
+      in
 	add_EX (make_conjs (P'::prems)) bvs
-    end;
+      end;
 
 
 fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body))  = strip_concl prems ((x,xtp)::bvs) concl body
   | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
     if (is_neg P concl) then (strip_concl' prems bvs Q)
     else
-	(let val P' = strip_trueprop P
+	(let val P' = HOLogic.dest_Trueprop P
 	     val prems' = P'::prems
 	 in
 	     strip_concl prems' bvs  concl Q
@@ -98,7 +85,7 @@ fun trans_elim (main,others,concl) =
     let val others' = map (strip_concl [] [] concl) others
 	val disjs = make_disjs others'
     in
-	make_imp(strip_trueprop main,disjs)
+	HOLogic.mk_imp (HOLogic.dest_Trueprop main, disjs)
     end;
 
 
@@ -107,21 +94,19 @@ fun elimR2Fol_aux prems concl =
     let val nprems = length prems
 	val main = hd prems
     in
-	if (nprems = 1) then neg (strip_trueprop main)
+	if (nprems = 1) then HOLogic.Not $ (HOLogic.dest_Trueprop main)
         else trans_elim (main, tl prems, concl)
     end;
 
-
-fun trueprop term = Const ("Trueprop", Type("fun",[Type("bool",[]),Type("prop",[])])) $ term; 
-	    
+    
 (* convert an elim rule into an equivalent formula, of type Term.term. *)
 fun elimR2Fol elimR = 
     let val elimR' = Drule.freeze_all elimR
 	val (prems,concl) = (prems_of elimR', concl_of elimR')
     in
 	case concl of Const("Trueprop",_) $ Free(_,Type("bool",[])) 
-		      => trueprop (elimR2Fol_aux prems concl)
-                    | Free(x,Type("prop",[])) => trueprop(elimR2Fol_aux prems concl) 
+		      => HOLogic.mk_Trueprop (elimR2Fol_aux prems concl)
+                    | Free(x,Type("prop",[])) => HOLogic.mk_Trueprop(elimR2Fol_aux prems concl) 
 		    | _ => raise ELIMR2FOL("Not an elimination rule!")
     end;
 
@@ -145,23 +130,20 @@ end;
 signature RES_AXIOMS =
 sig
 
-val clausify_axiom : Thm.thm -> ResClause.clause list
-val cnf_axiom : Thm.thm -> Thm.thm list
-val meta_cnf_axiom : Thm.thm -> Thm.thm list
-val cnf_elim : Thm.thm -> Thm.thm list
-val cnf_rule : Thm.thm -> Thm.thm list
-val cnf_classical_rules_thy : Theory.theory -> Thm.thm list list * Thm.thm list
-val clausify_classical_rules_thy 
-: Theory.theory -> ResClause.clause list list * Thm.thm list
-val cnf_simpset_rules_thy 
-: Theory.theory -> Thm.thm list list * Thm.thm list
-val clausify_simpset_rules_thy 
-: Theory.theory -> ResClause.clause list list * Thm.thm list
+val clausify_axiom : thm -> ResClause.clause list
+val cnf_axiom : (string * thm) -> thm list
+val meta_cnf_axiom : thm -> thm list
+val cnf_elim : thm -> thm list
+val cnf_rule : thm -> thm list
+val cnf_classical_rules_thy : theory -> thm list list * thm list
+val clausify_classical_rules_thy : theory -> ResClause.clause list list * thm list
+val cnf_simpset_rules_thy : theory -> thm list list * thm list
+val clausify_simpset_rules_thy : theory -> ResClause.clause list list * thm list
 val rm_Eps 
-: (Term.term * Term.term) list -> Thm.thm list -> Term.term list
-val claset_rules_of_thy : Theory.theory -> Thm.thm list
-val simpset_rules_of_thy : Theory.theory -> (string * Thm.thm) list
-val clausify_rules : Thm.thm list -> Thm.thm list -> ResClause.clause list list * Thm.thm list
+: (Term.term * Term.term) list -> thm list -> Term.term list
+val claset_rules_of_thy : theory -> (string * thm) list
+val simpset_rules_of_thy : theory -> (string * thm) list
+val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
 
 end;
 
@@ -230,8 +212,8 @@ fun cnf_axiom_aux thm =
 (*Cache for clauses: could be a hash table if we provided them.*)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
-fun cnf_axiom th =
-    case Thm.name_of_thm th of
+fun cnf_axiom (name,th) =
+    case name of
 	  "" => cnf_axiom_aux th (*no name, so can't cache*)
 	| s  => case Symtab.lookup (!clause_cache,s) of
 	  	  NONE => 
@@ -245,23 +227,23 @@ fun cnf_axiom th =
 		      in  clause_cache := Symtab.update ((s, (th,cls)), !clause_cache); cls
 		      end;
 
-fun meta_cnf_axiom thm = 
-    map Meson.make_meta_clause (cnf_axiom thm);
+fun pairname th = (Thm.name_of_thm th, th);
+
+fun meta_cnf_axiom th = 
+    map Meson.make_meta_clause (cnf_axiom (pairname th));
 
 
 (* changed: with one extra case added *)
-fun univ_vars_of_aux (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,body)) vars = univ_vars_of_aux body vars
-  | univ_vars_of_aux (Const ("Ex",_) $ Abs(_,_,body)) vars = univ_vars_of_aux body vars (* EX x. body *)
+fun univ_vars_of_aux (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,body)) vars =    
+      univ_vars_of_aux body vars
+  | univ_vars_of_aux (Const ("Ex",_) $ Abs(_,_,body)) vars = 
+      univ_vars_of_aux body vars (* EX x. body *)
   | univ_vars_of_aux (P $ Q) vars =
-    let val vars' = univ_vars_of_aux P vars
-    in
-	univ_vars_of_aux Q vars'
-    end
+      univ_vars_of_aux Q (univ_vars_of_aux P vars)
   | univ_vars_of_aux (t as Var(_,_)) vars = 
-    if (t mem vars) then vars else (t::vars)
+      if (t mem vars) then vars else (t::vars)
   | univ_vars_of_aux _ vars = vars;
   
-
 fun univ_vars_of t = univ_vars_of_aux t [];
 
 
@@ -280,11 +262,8 @@ fun sk_lookup [] t = NONE
 
 (* get the proper skolem term to replace epsilon term *)
 fun get_skolem epss t = 
-    let val sk_fun = sk_lookup epss t
-    in
-	case sk_fun of NONE => get_new_skolem epss t
-		     | SOME sk => (sk,epss)
-    end;
+    case (sk_lookup epss t) of NONE => get_new_skolem epss t
+		             | SOME sk => (sk,epss);
 
 
 fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = get_skolem epss t
@@ -297,32 +276,27 @@ fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = g
   | rm_Eps_cls_aux epss t = (t,epss);
 
 
-fun rm_Eps_cls epss thm =
-    let val tm = prop_of thm
-    in
-	rm_Eps_cls_aux epss tm
-    end;
+fun rm_Eps_cls epss thm = rm_Eps_cls_aux epss (prop_of thm);
 
 
 (* remove the epsilon terms in a formula, by skolem terms. *)
 fun rm_Eps _ [] = []
   | rm_Eps epss (thm::thms) = 
-    let val (thm',epss') = rm_Eps_cls epss thm
-    in
+      let val (thm',epss') = rm_Eps_cls epss thm
+      in
 	thm' :: (rm_Eps epss' thms)
-    end;
+      end;
 
 
-
-(* changed, now it also finds out the name of the theorem. *)
 (* convert a theorem into CNF and then into Clause.clause format. *)
 fun clausify_axiom thm =
-    let val isa_clauses = cnf_axiom thm (*"isa_clauses" are already "standard"ed. *)
+    let val name = Thm.name_of_thm thm
+	val isa_clauses = cnf_axiom (name, thm)
+	      (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = rm_Eps [] isa_clauses
-        val thm_name = Thm.name_of_thm thm
-	val clauses_n = length isa_clauses
+        val clauses_n = length isa_clauses
 	fun make_axiom_clauses _ [] = []
-	  | make_axiom_clauses i (cls::clss) = (ResClause.make_axiom_clause cls (thm_name,i)) :: make_axiom_clauses (i+1) clss 
+	  | make_axiom_clauses i (cls::clss) = (ResClause.make_axiom_clause cls (name,i)) :: make_axiom_clauses (i+1) clss 
     in
 	make_axiom_clauses 0 isa_clauses'		
     end;
@@ -337,7 +311,7 @@ fun claset_rules_of_thy thy =
 	val hazEs = #hazEs clsset
 	val hazIs = #hazIs clsset
     in
-	safeEs @ safeIs @ hazEs @ hazIs
+	map pairname (safeEs @ safeIs @ hazEs @ hazIs)
     end;
 
 fun simpset_rules_of_thy thy =
@@ -351,10 +325,9 @@ fun simpset_rules_of_thy thy =
 
 (* classical rules *)
 fun cnf_rules [] err_list = ([],err_list)
-  | cnf_rules (thm::thms) err_list = 
+  | cnf_rules ((name,thm) :: thms) err_list = 
       let val (ts,es) = cnf_rules thms err_list
-      in  (cnf_axiom thm :: ts,es) handle  _ => (ts,(thm::es))  end;
-
+      in  (cnf_axiom (name,thm) :: ts,es) handle  _ => (ts, (thm::es))  end;
 
 (* CNF all rules from a given theory's classical reasoner *)
 fun cnf_classical_rules_thy thy = 
@@ -362,7 +335,7 @@ fun cnf_classical_rules_thy thy =
 
 (* CNF all simplifier rules from a given theory's simpset *)
 fun cnf_simpset_rules_thy thy =
-    cnf_rules (map #2 (simpset_rules_of_thy thy)) [];
+    cnf_rules (simpset_rules_of_thy thy) [];
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
@@ -378,7 +351,7 @@ fun clausify_rules [] err_list = ([],err_list)
 
 (* convert all classical rules from a given theory into Clause.clause format. *)
 fun clausify_classical_rules_thy thy =
-    clausify_rules (claset_rules_of_thy thy) [];
+    clausify_rules (map #2 (claset_rules_of_thy thy)) [];
 
 (* convert all simplifier rules from a given theory into Clause.clause format. *)
 fun clausify_simpset_rules_thy thy =
