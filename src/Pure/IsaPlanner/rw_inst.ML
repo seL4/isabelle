@@ -201,13 +201,15 @@ fun cross_inst_typs insts =
     in cross_instL (insts, []) end;
 
 
-(* assume that rule and target_thm have distinct var names *)
-(* THINK: efficient version with tables for vars for: target vars,
-introduced vars, and rule vars, for quicker instantiation? *)
-(* The outerterm defines which part of the target_thm was modified *)
-(* Note: we take Ts in the upterm order, ie last abstraction first.,
-and with an outeterm where the abstracted subterm has the arguments in
-the revered order, ie first abstraction first. *)
+(* assume that rule and target_thm have distinct var names. THINK:
+efficient version with tables for vars for: target vars, introduced
+vars, and rule vars, for quicker instantiation?  The outerterm defines
+which part of the target_thm was modified.  Note: we take Ts in the
+upterm order, ie last abstraction first., and with an outeterm where
+the abstracted subterm has the arguments in the revered order, ie
+first abstraction first.  FakeTs has abstractions using the fake name
+- ie the name distinct from all other abstractions. *)
+
 fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm = 
     let 
       (* general signature info *)
@@ -219,12 +221,14 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val (fixtyinsts, othertfrees) = 
           mk_fixtvar_tyinsts nonfixed_typinsts
                              [Thm.prop_of rule, Thm.prop_of target_thm];
-          
+      val new_fixed_typs = map (fn ((s,i),(srt,ty)) => (Term.dest_TFree ty))
+                               fixtyinsts;
       val typinsts = cross_inst_typs (nonfixed_typinsts @ fixtyinsts);
 
       (* certified instantiations for types *)
       val ctyp_insts = 
-          map (fn (ix,(s,ty)) => (ctypeify (TVar (ix,s)), ctypeify ty)) typinsts;
+          map (fn (ix,(s,ty)) => (ctypeify (TVar (ix,s)), ctypeify ty)) 
+              typinsts;
 
       (* type instantiated versions *)
       val tgt_th_tyinst = Thm.instantiate (ctyp_insts,[]) target_thm;
@@ -233,6 +237,11 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val term_typ_inst = map (fn (ix,(srt,ty)) => (ix,ty)) typinsts;
       (* type instanitated outer term *)
       val outerterm_tyinst = Term.subst_TVars term_typ_inst outerterm;
+
+      val FakeTs_tyinst = map (apsnd (Term.typ_subst_TVars term_typ_inst)) 
+                              FakeTs;
+      val Ts_tyinst = map (apsnd (Term.typ_subst_TVars term_typ_inst)) 
+                          Ts;
 
       (* type-instantiate the var instantiations *)
       val insts_tyinst = foldr (fn ((ix,(ty,t)),insts_tyinst) => 
@@ -268,7 +277,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
       val couter_inst = Thm.reflexive (ctermify outerterm_inst);
       val (cprems, abstract_rule_inst) = 
           rule_inst |> Thm.instantiate ([], cterm_renamings)
-                    |> mk_abstractedrule FakeTs Ts;
+                    |> mk_abstractedrule FakeTs_tyinst Ts_tyinst;
       val specific_tgt_rule = 
           beta_eta_contract
             (Thm.combination couter_inst abstract_rule_inst);

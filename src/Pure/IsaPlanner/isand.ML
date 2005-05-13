@@ -208,7 +208,9 @@ fun fix_tvars_to_tfrees th =
     let 
       val sign = Thm.sign_of_thm th;
       val ctypify = Thm.ctyp_of sign;
-      val renamings = fix_tvars_to_tfrees_in_terms [] [Thm.prop_of th];
+      val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
+      val renamings = fix_tvars_to_tfrees_in_terms 
+                        [] ((Thm.prop_of th) :: tpairs);
       val crenamings = 
           map (fn (v,f) => (ctypify (TVar v), ctypify (TFree f)))
               renamings;
@@ -237,7 +239,9 @@ fun fix_vars_to_frees_in_terms names ts =
 fun fix_vars_to_frees th = 
     let 
       val ctermify = Thm.cterm_of (Thm.sign_of_thm th)
-      val renamings = fix_vars_to_frees_in_terms [] [Thm.prop_of th];
+      val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
+      val renamings = fix_vars_to_frees_in_terms 
+                        [] ([Thm.prop_of th] @ tpairs);
       val crenamings = 
           map (fn (v,f) => (ctermify (Var v), ctermify (Free f)))
               renamings;
@@ -248,8 +252,9 @@ fun fix_tvars_upto_idx ix th =
     let 
       val sgn = Thm.sign_of_thm th;
       val ctypify = Thm.ctyp_of sgn
+      val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
-      val tvars = Term.term_tvars prop;
+      val tvars = List.foldr Term.add_term_tvars [] (prop :: tpairs);
       val ctyfixes = 
           Library.mapfilter 
             (fn (v as ((s,i),ty)) => 
@@ -260,8 +265,10 @@ fun fix_vars_upto_idx ix th =
     let 
       val sgn = Thm.sign_of_thm th;
       val ctermify = Thm.cterm_of sgn
+      val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
-      val vars = map Term.dest_Var (Term.term_vars prop);
+      val vars = map Term.dest_Var (List.foldr Term.add_term_vars 
+                                               [] (prop :: tpairs));
       val cfixes = 
           Library.mapfilter 
             (fn (v as ((s,i),ty)) => 
@@ -282,8 +289,10 @@ fun fix_vars_and_tvars th =
     in ((vars, tvars), th'') end;
 
 (* implicit Thm.thm argument *)
+(* assumes: vars may contain fixed versions of the frees *)
+(* THINK: what if vs already has types varified? *)
 fun unfix_frees_and_tfrees (vs,tvs) = 
-    (unfix_frees vs o unfix_tfrees tvs);
+    (unfix_tfrees tvs o unfix_frees vs);
 
 (* datatype to capture an exported result, ie a fix or assume. *)
 datatype export = 

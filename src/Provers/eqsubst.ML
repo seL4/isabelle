@@ -27,6 +27,9 @@ end;
 signature EQSUBST_TAC = 
 sig
 
+  exception eqsubst_occL_exp of 
+            string * (int list) * (Thm.thm list) * int * Thm.thm;
+
   type match = 
        ((Term.indexname * (Term.sort * Term.typ)) list (* type instantiations *)
         * (Term.indexname * (Term.typ * Term.term)) list) (* term instantiations *)
@@ -273,9 +276,29 @@ fun eqsubst_tac' searchf instepthm i th =
 
     in (stepthms :-> rewrite_with_thm) end;
 
+(* Tactic.distinct_subgoals_tac *)
+
+(* custom version of distinct subgoals that works with term and 
+   type variables. Asssumes th is in beta-eta normal form. 
+   Also, does nothing if flexflex contraints are present. *)
+fun distinct_subgoals th =
+    if List.null (Thm.tpairs_of th) then
+      let val (fixes,fixedthm) = IsaND.fix_vars_and_tvars th
+        val (fixedthconcl,cprems) = IsaND.hide_prems fixedthm
+      in
+        IsaND.unfix_frees_and_tfrees 
+          fixes
+          (Drule.implies_intr_list 
+             (Library.gen_distinct 
+                (fn (x, y) => Thm.term_of x = Thm.term_of y)
+                cprems) fixedthconcl)
+      end
+    else th;
 
 (* General substiuttion of multiple occurances using one of 
    the given theorems*)
+exception eqsubst_occL_exp of 
+          string * (int list) * (Thm.thm list) * int * Thm.thm;
 fun eqsubst_occL tac occL thms i th = 
     let val nprems = Thm.nprems_of th in
       if nprems < i then Seq.empty else
@@ -287,10 +310,15 @@ fun eqsubst_occL tac occL thms i th =
                                  (i + ((Thm.nprems_of th) - nprems))
                                  th);
       in
-        Seq.EVERY (map apply_occ (Library.sort (Library.rev_order o Library.int_ord) occL)) 
-                  th
+        Seq.map distinct_subgoals
+                (Seq.EVERY (map apply_occ 
+                                (Library.sort (Library.rev_order 
+                                               o Library.int_ord) occL)) th)
       end
-    end;
+    end
+    handle THM _ => raise eqsubst_occL_exp ("THM",occL,thms,i,th);
+
+        
 
 (* implicit argus: occL thms i th *)
 val eqsubst_tac = eqsubst_occL eqsubst_tac';
