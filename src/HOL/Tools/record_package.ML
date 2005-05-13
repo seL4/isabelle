@@ -43,7 +43,7 @@ sig
 end;
 
 
-structure RecordPackage:RECORD_PACKAGE =      
+structure RecordPackage:RECORD_PACKAGE =     
 struct
 
 val rec_UNIV_I = thm "rec_UNIV_I";
@@ -567,10 +567,12 @@ fun gen_ext_type_tr sep mark sfx more sg t =
     fun get_sort xs n = (case assoc (xs,n) of 
                                 SOME s => s 
                               | NONE => Sign.defaultS sg);
-    fun to_type t = Sign.intern_typ sg 
-                      (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t);
+    
  
     val tsig = Sign.tsig_of sg;
+    fun to_type t = Type.cert_typ tsig 
+                       (Sign.intern_typ sg 
+                         (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t));
     fun unify (t,env) = Type.unify tsig env t; 
     
     fun mk_ext (fargs as (name,arg)::_) =
