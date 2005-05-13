@@ -301,9 +301,9 @@ let
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(all as Const("op -",T) $ s $ t, m, pi) =
-      if nT T then add_atom(all,m,pi)
-      else poly(s,m,poly(t,ratneg m,pi))
-  | poly(Const("uminus",_) $ t, m, pi) = poly(t,ratneg m,pi)
+      if nT T then add_atom(all,m,pi) else poly(s,m,poly(t,ratneg m,pi))
+  | poly(all as Const("uminus",T) $ t, m, pi) =
+      if nT T then add_atom(all,m,pi) else poly(t,ratneg m,pi)
   | poly(Const("0",_), _, pi) = pi
   | poly(Const("1",_), m, (p,i)) = (p,ratadd(i,m))
   | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,ratadd(i,m)))
