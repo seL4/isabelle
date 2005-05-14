@@ -412,11 +412,13 @@ $\ASSUMENAME$ in \S\ref{sec:proof-context}.
 
 \begin{matharray}{rcl@{\hspace*{2cm}}rcl}
   thm & : & \isarantiq & text & : & \isarantiq \\
-  lhs & : & \isarantiq & goals & : & \isarantiq \\
-  rhs & : & \isarantiq & subgoals & : & \isarantiq \\
-  prop & : & \isarantiq & prf & : & \isarantiq \\
-  term & : & \isarantiq & full_prf & : & \isarantiq \\
+  prop & : & \isarantiq & goals & : & \isarantiq \\
+  term & : & \isarantiq & subgoals & : & \isarantiq \\
+  const & : & \isarantiq & prf & : & \isarantiq \\
+  typeof & : & \isarantiq & full_prf & : & \isarantiq \\
   typ & : & \isarantiq \\  
+  thm_style & : & \isarantiq \\  
+  term_style & : & \isarantiq \\  
 \end{matharray}
 
 The text body of formal comments (see also \S\ref{sec:comments}) may contain
@@ -442,11 +444,13 @@ which are easier to read.
 
   antiquotation:
     'thm' options thmrefs |
-    'lhs' options thmrefs |
-    'rhs' options thmrefs |
     'prop' options prop |
     'term' options term |
+    'const' options term |
+    'typeof' options term |
     'typ' options type |
+    'thm\_style' options style thmref |
+    'term\_style' options style term |
     'text' options name |
     'goals' options |
     'subgoals' options |
@@ -469,20 +473,22 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   $no_vars$ operation (see \S\ref{sec:misc-meth-att}) would be particularly
   useful to suppress printing of schematic variables.
 
-\item [$\at\{lhs~\vec a\}$] prints the left hand sides of theorems $\vec a$.
-  The antiquotation only works for $\vec a$ that are definitions,
-  equations or other binary operators.  It understands the same
-  options and attributes as $\at\{thm~\vec a\}$.
-
-\item [$\at\{rhs~\vec a\}$] prints the right hand sides of theorems $\vec a$.
-  As for $\at\{lhs~\vec a\}$, $\vec a$ must be definitions, equations or
-  other binary operators.
-
 \item [$\at\{prop~\phi\}$] prints a well-typed proposition $\phi$.
 
 \item [$\at\{term~t\}$] prints a well-typed term $t$.
 
+\item [$\at\{const~c\}$] prints a well-defined constant $c$.
+
+\item [$\at\{typeof~t\}$] prints the type of a well-typed term $t$.
+
 \item [$\at\{typ~\tau\}$] prints a well-formed type $\tau$.
+
+\item [$\at\{thm_style~s~a\}$] prints theorem $a$, previously
+  applying a style $s$ to it; otherwise behaves the same as $\at\{thm~a\}$
+  with just one theorem.
+
+\item [$\at\{term_style~s~t\}$] prints a well-typed term $t$, previously
+  applying a style $s$ to it; otherwise behaves the same as $\at\{term~t\}$.
 
 \item [$\at\{text~s\}$] prints uninterpreted source text $s$.  This is
   particularly useful to print portions of text according to the Isabelle
@@ -509,6 +515,24 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   the compact proof term, which is denoted by ``$_$'' placeholders there.
 
 \end{descr}
+
+Per default, each theory contains three default styles for use with
+$\at\{thm_style~s~a\}$ and $\at\{term_style~s~t\}$:
+
+\begin{descr}
+
+\item [$lhs$] extracts the left hand sides of terms; this style only works
+    for terms that are definitions, equations or other binary operators.
+
+\item [$rhs$] extracts the right hand sides of terms; likewise,
+    this style only works
+    for terms that are definitions, equations or other binary operators.
+
+\item [$conlusion$] extracts the conclusion from propositions.
+
+\end{descr}
+
+Further styles may be defined at ML level.
 
 \medskip
 

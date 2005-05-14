@@ -327,35 +327,48 @@ text {*
   \end{quote}
 
   If you are not afraid of ML, you may also define your own styles.
-  A style is simply implemented by an ML function of type \verb!term -> term!.
-  Have a look at the following example (which indeed shows just the way the
-  \verb!lhs! style is implemented):
+  A style is implemented by an ML function of type
+  \verb!Proof.context -> term -> term!.
+  Have a look at the following example:
+
   \begin{quote}
     \verb!setup {!\verb!*!\\
     \verb!let!\\
-    \verb!  fun my_lhs (Const ("==", _) $ t $ _) = t!\\
-    \verb!    | my_lhs (Const ("Trueprop", _) $ t) = my_lhs t!\\
-    \verb!    | my_lhs (Const ("==>", _) $ _ $ t) = my_lhs t!\\
-    \verb!    | my_lhs (_ $ t $ _) = t!\\
-    \verb!    | my_lhs _ = error ("Binary operator expected")!\\
-    \verb!  in [Style.put_style "new_lhs" my_lhs]!\\
+    \verb!  fun my_lhs ctxt (Const ("==", _) $ t $ _) = t!\\
+    \verb!    | my_lhs ctxt (Const ("Trueprop", _) $ t) = my_lhs ctxt t!\\
+    \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs ctxt t!\\
+    \verb!    | my_lhs ctxt (_ $ t $ _) = t!\\
+    \verb!    | my_lhs ctxt _ = error ("Binary operator expected")!\\
+    \verb!  in [TermStyle.update_style "new_lhs" my_lhs]!\\
     \verb!end;!\\
     \verb!*!\verb!}!\\
   \end{quote}
+
+  This example indeed shows a way the \verb!lhs! style could be implemented;
+  note that the real implementation is more sophisticated.
+
   This code must go into your theory file, not as part of your
   \LaTeX\ text but as a separate command in front of it.
   Like in this example, it is recommended to put the definition of the style
   function into a \verb!let! expression, in order not to pollute the
-  ML global namespace. The mapping from identifier name to the style function
-  is done by the \verb!Style.put_style! expression which expects the desired
-  style name and the style function as arguments. After this \verb!setup!,
-  there will be a new style available named \verb!new_lhs! allowing
+  ML global namespace. Each style receives the current proof context
+  as first argument; this is necessary in situations where the current proof
+  context has an impact on the style (which is the case e.~g.~when the
+  style has some object-logic specific behaviour).
+
+  The mapping from identifier name to the style function
+  is done by the \verb!Style.update_style! expression which expects the desired
+  style name and the style function as arguments.
+  
+  After this \verb!setup!,
+  there will be a new style available named \verb!new_lhs!, thus allowing
   antiquoations like \verb!@!\verb!{thm_style new_lhs rev_map}!
   yielding @{thm_style lhs rev_map}.
 
   The example above may be used as as a ``copy-and-paste'' pattern to write
   your own styles; for a description of the constructs used, please refer
   to the Isabelle reference manual.
+
 
 *}
 

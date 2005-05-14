@@ -360,11 +360,15 @@ end;
 fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of o ProofContext.extern_skolem ctxt;
 
 fun pretty_term_const ctxt (Const c) = pretty_term ctxt (Const c)
-  | pretty_term_const ctxt term = raise (Output.ERROR_MESSAGE ("Not a defined constant: " ^ (Term.string_of_term term)))
+  | pretty_term_const ctxt term =
+      raise (Output.ERROR_MESSAGE ("Not a defined constant: " ^ (Term.string_of_term term)))
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 
-fun pretty_term_style ctxt (name, term) = pretty_term ctxt ((Style.get_style (ProofContext.theory_of ctxt) name) term);
+fun pretty_term_style ctxt (name, term) =
+  let
+    val thy = ProofContext.theory_of ctxt
+  in pretty_term ctxt (TermStyle.lookup_style thy name ctxt term) end;
 
 fun pretty_thm_style ctxt (name, thm) = pretty_term_style ctxt (name, Thm.prop_of thm);
 

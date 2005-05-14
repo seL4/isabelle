@@ -5,60 +5,53 @@
 Styles for terms, to use with the "term_style" and "thm_style" antiquotations
 *)
 
-signature STYLE =
+(* style data *)
+signature TERM_STYLE =
 sig
-  val get_style: theory -> string -> (Term.term -> Term.term)
-  val put_style: string -> (Term.term -> Term.term) -> theory -> theory
+  val lookup_style: theory -> string -> (Proof.context -> term -> term)
+  val update_style: string -> (Proof.context -> term -> term) -> theory -> theory
 end;
 
-structure Style: STYLE =
+structure TermStyle: TERM_STYLE =
 struct
 
-(* exception *)
-exception STYLE of string;
-
-(* style data *)
 structure StyleArgs =
 struct
   val name = "Isar/style";
-  type T = (string * (Term.term -> Term.term)) list;
-  val empty = [];
+  type T = (Proof.context -> term -> term) Symtab.table;
+  val empty = Symtab.empty;
   val copy = I;
   val prep_ext = I;
-  fun merge (a1, a2) = Library.foldl Library.overwrite (a1, a2);
-    (* piecewise update of a1 by a2 *)
-  fun print _ _ = raise (STYLE "cannot print style (not implemented)");
+  val merge = Symtab.merge (K true);
+  fun print _ table =
+    Pretty.strs ("defined styles:" :: (Symtab.keys table))
+    |> Pretty.writeln;
 end;
 
 structure StyleData = TheoryDataFun(StyleArgs);
 
 (* accessors *)
-fun get_style thy name =
-  case Library.assoc_string ((StyleData.get thy), name)
-    of NONE => raise (STYLE ("no style named " ^ name))
+fun lookup_style thy name =
+  case Symtab.lookup ((StyleData.get thy), name)
+    of NONE => raise (ERROR_MESSAGE ("no style named " ^ name))
      | SOME style => style
 
-fun put_style name style thy =
-  StyleData.put (Library.overwrite ((StyleData.get thy), (name, style))) thy;
+fun update_style name style thy =
+  thy
+  |> StyleData.put (Symtab.update ((name, style), StyleData.get thy));
 
 (* predefined styles *)
-fun style_lhs (Const ("==", _) $ t $ _) = t
-  | style_lhs (Const ("Trueprop", _) $ t) = style_lhs t
-  | style_lhs (Const ("==>", _) $ _ $ t) = style_lhs t
-  | style_lhs (_ $ t $ _) = t
-  | style_lhs _ = error ("Binary operator expected")
-
-fun style_rhs (Const ("==", _) $ _ $ t) = t
-  | style_rhs (Const ("Trueprop", _) $ t) = style_rhs t
-  | style_rhs (Const ("==>", _) $ _ $ t) = style_rhs t
-  | style_rhs (_ $ _ $ t) = t
-  | style_rhs _ = error ("Binary operator expected")
+fun style_binargs ctxt t =
+  let val concl = ObjectLogic.drop_judgment (ProofContext.sign_of ctxt) (Logic.strip_imp_concl t) in
+    case concl of (_ $ l $ r) => (l, r)
+        | _ => error ("Binary operator expected in term: " ^ ProofContext.string_of_term ctxt concl)
+  end;
 
 (* initialization *)
 val _ = Context.add_setup [StyleData.init,
-  put_style "lhs" style_lhs,
-  put_style "rhs" style_rhs,
-  put_style "conclusion" Logic.strip_imp_concl
+  update_style "lhs" (fst oo style_binargs),
+  update_style "rhs" (snd oo style_binargs),
+  update_style "conclusion" (K Logic.strip_imp_concl)
 ];
 
 end;
