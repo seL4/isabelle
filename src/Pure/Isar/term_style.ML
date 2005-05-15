@@ -22,7 +22,7 @@ struct
   val empty = Symtab.empty;
   val copy = I;
   val prep_ext = I;
-  val merge = Symtab.merge (K true);
+  fun merge x = Symtab.merge (K true) x;
   fun print _ table =
     Pretty.strs ("defined styles:" :: (Symtab.keys table))
     |> Pretty.writeln;
