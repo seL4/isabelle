@@ -17,6 +17,7 @@ sig
   val not_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
+  val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
   val conj: term
@@ -70,7 +71,7 @@ sig
   val mk_nat: int -> term
   val dest_nat: term -> int
   val intT: typ
-  val mk_int: int -> term
+  val mk_int: IntInf.int -> term
   val realT: typ
   val bitT: typ
   val B0_const: term
@@ -80,11 +81,9 @@ sig
   val min_const: term
   val bit_const: term
   val number_of_const: typ -> term
-  val int_of: int list -> int
-  val intinf_of: int list -> IntInf.int
-  val dest_binum: term -> int
-  val mk_bin: int -> term
-  val mk_bin_from_intinf: IntInf.int -> term
+  val int_of: int list -> IntInf.int 
+  val dest_binum: term -> IntInf.int
+  val mk_bin: IntInf.int -> term
   val bin_of : term -> int list
   val mk_list: ('a -> term) -> typ -> 'a list -> term
   val dest_list: term -> term list
@@ -311,12 +310,8 @@ and bit_const = Const ("Numeral.Bit", [binT, bitT] ---> binT);
 
 fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 
-
-fun int_of [] = 0
-  | int_of (b :: bs) = b + 2 * int_of bs;
-
-fun intinf_of [] = IntInf.fromInt 0
-  | intinf_of (b :: bs) = IntInf.+ (IntInf.fromInt b, IntInf.*(IntInf.fromInt 2, intinf_of bs));
+fun int_of [] = 0 
+  | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
 
 (*When called from a print translation, the Numeral qualifier will probably have
   been removed from Bit, bin.B0, etc.*)
@@ -338,30 +333,24 @@ fun mk_bit 0 = B0_const
   | mk_bit 1 = B1_const
   | mk_bit _ = sys_error "mk_bit";
 
-fun mk_bin_from_intinf  n =
+fun mk_bin  n =
     let
-	val zero = IntInf.fromInt 0
-	val minus_one = IntInf.fromInt ~1
-	val two = IntInf.fromInt 2
-
-	fun mk_bit n = if n = zero then B0_const else B1_const
+	fun mk_bit n = if n = 0 then B0_const else B1_const
 								 
 	fun bin_of n = 
-	    if n = zero then pls_const
-	    else if n = minus_one then min_const
+	    if n = 0 then pls_const
+	    else if n = ~1 then min_const
 	    else 
 		let 
-		    (*val (q,r) = IntInf.divMod (n, two): doesn't work in SML 10.0.7, but in newer versions!*)
-	            val q = IntInf.div (n, two)
-		    val r = IntInf.mod (n, two)
+		    (*val (q,r) = IntInf.divMod (n, 2): doesn't work in SML 10.0.7, but in newer versions!  FIXME: put this back after new SML released!*)
+	            val q = IntInf.div (n, 2)
+		    val r = IntInf.mod (n, 2)
 		in
 		    bit_const $ bin_of q $ mk_bit r
 		end
     in 
 	bin_of n
     end
-
-val mk_bin = mk_bin_from_intinf o IntInf.fromInt;
 
 
 (* int *)

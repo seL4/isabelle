@@ -149,8 +149,8 @@ val numeral_syms = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym];
 (*Order integers by absolute value and then by sign. The standard integer
   ordering is not well-founded.*)
 fun num_ord (i,j) =
-      (case Int.compare (abs i, abs j) of
-            EQUAL => Int.compare (Int.sign i, Int.sign j) 
+      (case IntInf.compare (IntInf.abs i, IntInf.abs j) of
+            EQUAL => Int.compare (IntInf.sign i, IntInf.sign j) 
           | ord => ord);
 
 (*This resembles Term.term_ord, but it puts binary numerals before other
@@ -388,7 +388,7 @@ val cancel_numerals =
 
 structure CombineNumeralsData =
   struct
-  val add               = op + : int*int -> int
+  val add               = IntInf.+ 
   val mk_sum            = long_mk_sum    (*to work for e.g. 2*x + 3*x *)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff

@@ -29,9 +29,9 @@ sig
   val dest_sum: term -> term list
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
-  val mk_coeff: int * term -> term
-  val dest_coeff: term -> int * term
-  val find_first_coeff: term -> term list -> int * term list
+  val mk_coeff: IntInf.int * term -> term
+  val dest_coeff: term -> IntInf.int * term
+  val find_first_coeff: term -> term list -> IntInf.int * term list
   (*rules*)
   val bal_add1: thm
   val bal_add2: thm

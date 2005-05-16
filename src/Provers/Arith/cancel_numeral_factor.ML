@@ -22,8 +22,8 @@ sig
   (*abstract syntax*)
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
-  val mk_coeff: int * term -> term
-  val dest_coeff: term -> int * term
+  val mk_coeff: IntInf.int * term -> term
+  val dest_coeff: term -> IntInf.int * term
   (*rules*)
   val cancel: thm
   val neg_exchanges: bool  (*true if a negative coeff swaps the two operands,
@@ -45,11 +45,6 @@ functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
 =
 struct
 
-
-(* greatest common divisor *)
-fun gcd (0, n) = abs n
-  | gcd (m, n) = gcd (n mod m, m);
-
 (*the simplification procedure*)
 fun proc sg ss t =
   let
@@ -61,7 +56,7 @@ fun proc sg ss t =
       and (m2, t2') = Data.dest_coeff t2
       val d = (*if both are negative, also divide through by ~1*)
           if (m1<0 andalso m2<=0) orelse
-             (m1<=0 andalso m2<0) then ~ (gcd(m1,m2)) else gcd(m1,m2)
+             (m1<=0 andalso m2<0) then ~ (abs(gcd(m1,m2))) else abs (gcd(m1,m2))
       val _ = if d=1 then   (*trivial, so do nothing*)
 		      raise TERM("cancel_numeral_factor", []) 
               else ()

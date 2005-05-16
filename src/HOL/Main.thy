@@ -32,11 +32,12 @@ consts_code
 
 quickcheck_params [default_type = int]
 
+(*FIXME: the IntInf.fromInt below hides a dependence on fixed-precision ints!*)
 ML {*
 fun wf_rec f x = f (wf_rec f) x;
 
 fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
-val term_of_int = HOLogic.mk_int;
+val term_of_int = HOLogic.mk_int o IntInf.fromInt;
 fun term_of_fun_type _ T _ U _ = Free ("<function>", T --> U);
 
 val eq_codegen_setup = [Codegen.add_codegen "eq_codegen"

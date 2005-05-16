@@ -27,14 +27,14 @@ struct
    | UnInterp of string * expr list
    | FalseExpr 
    | TrueExpr
-   | Int of int
-   | Rat of int * int;
+   | Int of IntInf.int
+   | Rat of IntInf.int * IntInf.int;
 
  open BasisLibrary
 
  fun signedInt i = 
-     if i < 0 then "-" ^ Int.toString (~i)
-     else Int.toString i;
+     if i < 0 then "-" ^ IntInf.toString (~i)
+     else IntInf.toString i;
 	 
  fun is_intnat T = T = HOLogic.intT orelse T = HOLogic.natT;
  

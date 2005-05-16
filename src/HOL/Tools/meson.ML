@@ -317,7 +317,8 @@ val nnf_ss = HOL_basic_ss addsimps Ex1_def::Ball_def::Bex_def::simp_thms;
 fun make_nnf th = th |> simplify nnf_ss
                      |> check_no_bool |> make_nnf1
 
-(*Pull existential quantifiers (Skolemization)*)
+(*Pull existential quantifiers to front. This accomplishes Skolemization for
+  clauses that arise from a subgoal.*)
 fun skolemize th =
   if not (has_consts ["Ex"] (prop_of th)) then th
   else (skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
@@ -331,7 +332,7 @@ fun skolemize th =
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths =
-   (  sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
+    (sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
 
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)

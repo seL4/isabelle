@@ -85,13 +85,14 @@ form [int,int]---> int*)
  
 fun mk_numeral 0 = Const("0",HOLogic.intT)
    |mk_numeral 1 = Const("1",HOLogic.intT)
-   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_bin n); 
+   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_bin (IntInf.fromInt n)); 
  
 (*Transform an Term to an natural number*)	  
 	  
 fun dest_numeral (Const("0",Type ("IntDef.int", []))) = 0
    |dest_numeral (Const("1",Type ("IntDef.int", []))) = 1
-   |dest_numeral (Const ("Numeral.number_of",_) $ n)= HOLogic.dest_binum n; 
+   |dest_numeral (Const ("Numeral.number_of",_) $ n) = 
+       IntInf.toInt (HOLogic.dest_binum n);
 (*Some terms often used for pattern matching*) 
  
 val zero = mk_numeral 0; 
@@ -245,12 +246,13 @@ fun posineq fm = case fm of
 (* ------------------------------------------------------------------------- *) 
 (*gcd calculates gcd (a,b) and helps lcm_num calculating lcm (a,b)*) 
  
+(*BEWARE: replaces Library.gcd!! There is also Library.lcm!*)
 fun gcd a b = if a=0 then b else gcd (b mod a) a ; 
 fun lcm_num a b = (abs a*b) div (gcd (abs a) (abs b)); 
  
 fun formlcm x fm = case fm of 
     (Const (p,_)$ _ $(Const ("op +", _)$(Const ("op *",_)$ c $ y ) $z ) ) =>  if 
-    (is_arith_rel fm) andalso (x = y) then abs(dest_numeral c) else 1 
+    (is_arith_rel fm) andalso (x = y) then  (abs(dest_numeral c)) else 1 
   | ( Const ("Not", _) $p) => formlcm x p 
   | ( Const ("op &",_) $ p $ q) => lcm_num (formlcm x p) (formlcm x q) 
   | ( Const ("op |",_) $ p $ q )=> lcm_num (formlcm x p) (formlcm x q) 
@@ -281,7 +283,7 @@ fun adjustcoeff x l fm =
 (* ------------------------------------------------------------------------- *) 
  
 fun unitycoeff x fm = 
-  let val l = formlcm x fm 
+  let val l = formlcm x fm
       val fm' = adjustcoeff x l fm in
       if l = 1 then fm' 
 	 else 
@@ -453,7 +455,8 @@ fun dvd_op (d, t) =
 
 
 val operations = 
-  [("op =",op=), ("op <",op<), ("op >",op>), ("op <=",op<=) , ("op >=",op>=), 
+  [("op =",op=), ("op <",Int.<), ("op >",Int.>), ("op <=",Int.<=) , 
+   ("op >=",Int.>=), 
    ("Divides.op dvd",fn (x,y) =>((y mod x) = 0))]; 
  
 fun applyoperation (SOME f) (a,b) = f (a, b) 
@@ -486,13 +489,14 @@ fun evalc_atom at = case at of
 fun evalc_atom at = case at of  
   (Const (p,_) $ s $ t) =>
    ( case assoc (operations,p) of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const else HOLogic.false_const)  
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const 
+                else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
   case assoc (operations,p) of 
-    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then 
-    HOLogic.false_const else HOLogic.true_const)  
+    SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) 
+               then HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 
       | _ =>  at) 
       | _ =>  at; 
@@ -678,7 +682,8 @@ fun mk_uni_int T (Const ("0",T2)) = if T = T2 then (mk_numeral 0) else (Const ("
 (* Minusinfinity Version*) 
 fun coopermi vars1 fm = 
   case fm of 
-   Const ("Ex",_) $ Abs(x0,T,p0) => let 
+   Const ("Ex",_) $ Abs(x0,T,p0) => 
+   let 
     val (xn,p1) = variant_abs (x0,T,p0) 
     val x = Free (xn,T)  
     val vars = (xn::vars1) 

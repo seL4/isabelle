@@ -186,6 +186,10 @@ lemma "(999999::int) \<le> (1000001 + 1) - 2"
 lemma "(1234567::int) \<le> 1234567"
   by simp
 
+text{*No integer overflow!*}
+lemma "1234567 * (1234567::int) < 1234567*1234567*1234567"
+  by simp
+
 
 text {* \medskip Quotient and Remainder *}
 
@@ -205,7 +209,7 @@ lemma "(10::int) mod -3 = -2"
 
 text {*
   A negative dividend\footnote{The definition agrees with mathematical
-  convention but not with the hardware of most computers}
+  convention and with ML, but not with the hardware of most computers}
 *}
 
 lemma "(-10::int) div 3 = -4"

@@ -30,7 +30,7 @@ sig
   val skolem: string -> string
   val dest_skolem: string -> string
   val read_nat: string -> int option
-  val read_xnum: string -> int
+  val read_xnum: string -> IntInf.int
   val read_idents: string -> string list
 end;
 
@@ -365,6 +365,16 @@ fun read_nat str =
 
 (* read_xnum *)
 
+fun read_intinf cs : IntInf.int * string list =
+  let val zero = ord"0"
+      val limit = zero+10
+      fun scan (num,[]) = (num,[])
+        | scan (num, c::cs) =
+              if  zero <= ord c  andalso  ord c < limit
+              then scan(10*num + IntInf.fromInt (ord c - zero), cs)
+              else (num, c::cs)
+  in  scan(0,cs)  end;
+
 fun read_xnum str =
   let
     val (sign, digs) =
@@ -373,7 +383,7 @@ fun read_xnum str =
       | "#" :: cs => (1, cs)
       | "-" :: cs => (~1, cs)
       | cs => (1, cs));
-  in sign * #1 (Library.read_int digs) end;
+  in sign * #1 (read_intinf digs) end;
 
 
 (* read_ident(s) *)

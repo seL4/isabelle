@@ -15,6 +15,8 @@ and a simplification procedure
 
 Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
+
+FIXME: convert to IntInf.int throughout. 
 *)
 
 (* Debugging: set Fast_Arith.trace *)
@@ -189,15 +191,15 @@ val ratrelmin = foldr1 ratrelmin2;
 val ratrelmax = foldr1 ratrelmax2;
 
 fun ratroundup r = let val (p,q) = rep_rat r
-                   in if q=1 then r else rat_of_int((p div q) + 1) end
+                   in if q=1 then r else rat_of_intinf((p div q) + 1) end
 
 fun ratrounddown r = let val (p,q) = rep_rat r
-                     in if q=1 then r else rat_of_int((p div q) - 1) end
+                     in if q=1 then r else rat_of_intinf((p div q) - 1) end
 
 fun ratexact up (r,exact) =
   if exact then r else
   let val (p,q) = rep_rat r
-      val nth = ratinv(rat_of_int q)
+      val nth = ratinv(rat_of_intinf q)
   in ratadd(r,if up then nth else ratneg nth) end;
 
 fun ratmiddle(r,s) = ratmul(ratadd(r,s),ratinv(rat_of_int 2));
@@ -299,7 +301,7 @@ fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
 
 fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
   let val c1 = el v l1 and c2 = el v l2
-      val m = lcm(abs c1,abs c2)
+      val m = IntInf.toInt (lcm(IntInf.fromInt (abs c1), IntInf.fromInt(abs c2)))
       val m1 = m div (abs c1) and m2 = m div (abs c2)
       val (n1,n2) =
         if (c1 >= 0) = (c2 >= 0)
@@ -497,12 +499,15 @@ end;
 
 fun coeff poly atom = case assoc(poly,atom) of NONE => 0 | SOME i => i;
 
-fun lcms is = Library.foldl lcm (1,is);
+fun lcms_intinf is = Library.foldl lcm (1, is);
+fun lcms is = IntInf.toInt (lcms_intinf (map IntInf.fromInt is));
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
-let val (rn,rd) = rep_rat r and (sn,sd) = rep_rat s
-    val m = lcms(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs))
-    fun mult(t,r) = let val (i,j) = rep_rat r in (t,i * (m div j)) end
+let val (rn,rd) = pairself IntInf.toInt (rep_rat r) and (sn,sd) = pairself IntInf.toInt (rep_rat s)
+    val m = IntInf.toInt (lcms_intinf(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs)))
+    fun mult(t,r) = 
+        let val (i,j) =  pairself IntInf.toInt (rep_rat r) 
+        in (t,i * (m div j)) end
 in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 
 fun mklineq n atoms =
@@ -533,9 +538,9 @@ fun mklineq n atoms =
 
 fun print_atom((a,d),r) =
   let val (p,q) = rep_rat r
-      val s = if d then string_of_int p else
+      val s = if d then IntInf.toString p else
               if p = 0 then "0"
-              else string_of_int p ^ "/" ^ string_of_int q
+              else IntInf.toString p ^ "/" ^ IntInf.toString q
   in a ^ " = " ^ s end;
 
 fun print_ex sds =

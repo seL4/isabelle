@@ -117,8 +117,8 @@ sig
   val suffixes1: 'a list -> 'a list list
 
   (*integers*)
-  val gcd: int * int -> int
-  val lcm: int * int -> int
+  val gcd: IntInf.int * IntInf.int -> IntInf.int
+  val lcm: IntInf.int * IntInf.int -> IntInf.int
   val inc: int ref -> int
   val dec: int ref -> int
   val upto: int * int -> int list
@@ -136,13 +136,14 @@ sig
   (*rational numbers*)
   type rat
   exception RAT of string
-  val rep_rat: rat -> int * int
+  val rep_rat: rat -> IntInf.int * IntInf.int
   val ratadd: rat * rat -> rat
   val ratmul: rat * rat -> rat
   val ratinv: rat -> rat
-  val int_ratdiv: int * int -> rat
+  val int_ratdiv: IntInf.int * IntInf.int -> rat
   val ratneg: rat -> rat
   val rat_of_int: int -> rat
+  val rat_of_intinf: IntInf.int -> rat
 
   (*strings*)
   val nth_elem_string: int * string -> string
@@ -665,7 +666,7 @@ fun suffixes1 xs = map rev (prefixes1 (rev xs));
 (** integers **)
 
 fun gcd(x,y) =
-  let fun gxd x y =
+  let fun gxd x y : IntInf.int =
     if y = 0 then x else gxd y (x mod y)
   in if x < y then gxd y x else gxd x y end;
 
@@ -1186,7 +1187,7 @@ val pwd = OS.FileSys.getDir;
 
 (** rational numbers **)
 
-datatype rat = Rat of bool * int * int
+datatype rat = Rat of bool * IntInf.int * IntInf.int
 
 exception RAT of string;
 
@@ -1212,7 +1213,9 @@ fun int_ratdiv(p,q) =
 
 fun ratneg(Rat(b,p,q)) = Rat(not b,p,q);
 
-fun rat_of_int i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
+fun rat_of_intinf i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
+
+fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
 
 
 (** misc **)

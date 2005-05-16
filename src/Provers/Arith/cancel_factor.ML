@@ -15,7 +15,7 @@ sig
   (*rules*)
   val prove_conv: tactic -> tactic -> Sign.sg -> term * term -> thm
   val norm_tac: tactic			(*AC0 etc.*)
-  val multiply_tac: int -> tactic	(*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
+  val multiply_tac: IntInf.int -> tactic	(*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
 end;
 
 signature CANCEL_FACTOR =

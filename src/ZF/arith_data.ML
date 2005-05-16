@@ -101,13 +101,13 @@ fun dest_prod t =
       handle TERM _ => [t];
 
 (*Dummy version: the only arguments are 0 and 1*)
-fun mk_coeff (0, t) = zero
+fun mk_coeff (0: IntInf.int, t) = zero
   | mk_coeff (1, t) = t
   | mk_coeff _       = raise TERM("mk_coeff", []);
 
 (*Dummy version: the "coefficient" is always 1.
   In the result, the factors are sorted terms*)
-fun dest_coeff t = (1, mk_prod (sort Term.term_ord (dest_prod t)));
+fun dest_coeff t = (1 : IntInf.int, mk_prod (sort Term.term_ord (dest_prod t)));
 
 (*Find first coefficient-term THAT MATCHES u*)
 fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])

@@ -13,6 +13,8 @@ For Isabelle2005:
 - a global "disprove" menu item both as an action and (if it can be done)
   as a setting (Stefan & Tjark)
 
+- convert fast_lin_arith.ML and cooper_dec.ML to use IntInf (Tobias)
+
 - update or remove ex/MT (Larry)  
 
 - Include IsaPlanner? (Larry to co-ordinate)
@@ -22,8 +24,6 @@ For Isabelle2005:
 - rules -> iprover (Stefan)
 
 - ball, bex and setsum congruence rules (Tobias & Stefan)
-
-- use IntInf.int (Steven)
 
 - html generation: somtimes lemma names and whole lemmas are missing.
   See http://afp.sourceforge.net/browser_info/current/HOL/HOL-Complex/Integration/SetsumThms.html

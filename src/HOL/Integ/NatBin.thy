@@ -860,7 +860,7 @@ consts_code
 ML {*
 fun number_of_codegen thy gr s b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("IntDef.int", [])])) $ bin) =
-        (SOME (gr, Pretty.str (string_of_int (HOLogic.dest_binum bin)))
+        (SOME (gr, Pretty.str (IntInf.toString (HOLogic.dest_binum bin)))
         handle TERM _ => NONE)
   | number_of_codegen thy gr s b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("nat", [])])) $ bin) =

@@ -28,7 +28,7 @@ fun dest_bin_str tm =
       (case rev rev_digs of
         ~1 :: bs => ("-", prefix_len (equal 1) bs)
       | bs => ("", prefix_len (equal 0) bs));
-    val i = HOLogic.intinf_of rev_digs;
+    val i = HOLogic.int_of rev_digs;
     val num = IntInf.toString (IntInf.abs i);
   in
     if i = IntInf.fromInt 0 orelse i = IntInf.fromInt 1 then raise Match
@@ -38,7 +38,7 @@ fun dest_bin_str tm =
 (* translation of integer numeral tokens to and from bitstrings *)
 
 fun numeral_tr (*"_Numeral"*) [t as Const (str, _)] =
-      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_bin_from_intinf (valOf (IntInf.fromString str))))
+      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_bin (valOf (IntInf.fromString str))))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =

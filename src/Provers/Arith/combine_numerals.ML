@@ -19,11 +19,11 @@ It works by (a) massaging the sum to bring the selected terms to the front:
 signature COMBINE_NUMERALS_DATA =
 sig
   (*abstract syntax*)
-  val add: int * int -> int          (*addition (or multiplication) *)
+  val add: IntInf.int * IntInf.int -> IntInf.int     (*addition (or multiplication) *)
   val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
-  val mk_coeff: int * term -> term
-  val dest_coeff: term -> int * term
+  val mk_coeff: IntInf.int * term -> term
+  val dest_coeff: term -> IntInf.int * term
   (*rules*)
   val left_distrib: thm
   (*proof tools*)

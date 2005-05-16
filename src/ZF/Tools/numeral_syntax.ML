@@ -8,8 +8,8 @@ theory ZF/Integ/Bin.
 
 signature NUMERAL_SYNTAX =
 sig
-  val dest_bin : term -> int
-  val mk_bin   : int -> term
+  val dest_bin : term -> IntInf.int
+  val mk_bin   : IntInf.int -> term
   val int_tr   : term list -> term
   val int_tr'  : bool -> typ -> term list -> term
   val setup    : (theory -> theory) list
@@ -23,7 +23,7 @@ struct
 val zero = Const("0", iT);
 val succ = Const("succ", iT --> iT);
 
-fun mk_bit 0 = zero
+fun mk_bit (0: IntInf.int) = zero
   | mk_bit 1 = succ$zero
   | mk_bit _ = sys_error "mk_bit";
 
@@ -42,16 +42,16 @@ val pls_const = Const ("Bin.bin.Pls", iT)
 and min_const = Const ("Bin.bin.Min", iT)
 and bit_const = Const ("Bin.bin.Bit", [iT, iT] ---> iT);
 
-fun mk_bin i =
-  let fun bin_of 0  = []
-	| bin_of ~1 = [~1]
-	| bin_of n  = (n mod 2) :: bin_of (n div 2);
+fun mk_bin (i: IntInf.int) =
+  let fun bin_of_int 0  = []
+  	    | bin_of_int ~1 = [~1]
+    	| bin_of_int n  = (n mod 2) :: bin_of_int (n div 2);
 
       fun term_of []   = pls_const
-	| term_of [~1] = min_const
-	| term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
+	    | term_of [~1] = min_const
+	    | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
   in
-    term_of (bin_of i)
+    term_of (bin_of_int i)
   end;
 
 (*we consider all "spellings", since they could vary depending on the caller*)
@@ -66,13 +66,15 @@ fun bin_of (Const ("Pls", _)) = []
   | bin_of (Const ("Bin.bin.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of _ = raise Match;
 
-fun integ_of [] = 0
-  | integ_of (b :: bs) = b + 2 * integ_of bs;
+(*Convert a list of bits to an integer*)
+fun integ_of [] = 0 : IntInf.int
+  | integ_of (b :: bs) = (IntInf.fromInt b) + 2 * integ_of bs;
 
 val dest_bin = integ_of o bin_of;
 
-(*leading 0s and (for negative numbers) -1s cause complications,
-  though they should never arise in normal use.*)
+(*leading 0s and (for negative numbers) -1s cause complications, though they 
+  should never arise in normal use. The formalization used in HOL prevents 
+  them altogether.*)
 fun show_int t =
   let
     val rev_digs = bin_of t;
@@ -80,7 +82,7 @@ fun show_int t =
 	(case rev rev_digs of
 	     ~1 :: bs => ("-", prefix_len (equal 1) bs)
 	   | bs =>       ("",  prefix_len (equal 0) bs));
-    val num = string_of_int (abs (integ_of rev_digs));
+    val num = IntInf.toString (abs (integ_of rev_digs));
   in
     "#" ^ sign ^ implode (replicate zs "0") ^ num
   end;
