@@ -155,7 +155,9 @@ sig
   val prems_limit: int ref
   val pretty_asms: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
-  val print_thms_containing: context -> int option -> string list -> unit
+  datatype search_criterion = Intro | Elim  | Dest | Rewrite |
+                              Pattern of string | Name of string;
+  val print_thms_containing: context -> term option -> int option -> (bool * search_criterion) list -> unit
 end;
 
 signature PRIVATE_PROOF_CONTEXT =
@@ -171,6 +173,8 @@ end;
 structure ProofContext: PRIVATE_PROOF_CONTEXT =
 struct
 
+datatype search_criterion = Intro | Elim | Dest | Rewrite |
+                          Pattern of string | Name of string;
 
 (** datatype context **)
 
@@ -1470,28 +1474,159 @@ fun local_facts (ctxt as Context {thms = (_, _, _, index), ...}) =
     (* things like "prems" can occur twice under some circumstances *)
     gen_distinct eq_fst (FactIndex.find ([],[]) index);
 
-fun print_thms_containing ctxt opt_limit ss =
+fun isSubstring pat str = 
+  if String.size pat = 0 then true
+  else if String.size pat > String.size str then false
+  else if String.substring (str, 0, String.size pat) = pat then true
+  else isSubstring pat (String.extract (str, 1, NONE));
+
+(* Takes a string pattern, such as "(_::nat) + (_ + _)" and converts it into
+    a term with all free variables made schematic *)
+fun str_pattern_to_term sg str_pattern =
+  let
+    (* pattern as term with dummies as Consts *)
+    val term_pattern = read_cterm sg (str_pattern, TypeInfer.logicT) 
+                       |> Thm.term_of; 
+    (* with dummies as Vars *)
+    val v_pattern = #2 (Term.replace_dummy_patterns (1,term_pattern));
+  in
+    (* with schematic vars *)
+    #1 (Type.varify (v_pattern, []))
+  end;
+
+(* alternate rem_top which checks for a Trueprop, unlike that in PureThy *)
+fun rem_top_c (Term.Const ("Trueprop", _)  $ t) = t
+  | rem_top_c _ = Bound 0;
+
+(* ---------- search filter contructions go here *)
+
+(* terms supplied in string form as patterns *)
+fun str_term_pat_to_filter sg str_pat = 
+  let
+    val tsig = Sign.tsig_of sg;
+    val pat = str_pattern_to_term sg str_pat;
+    
+    (* must qualify type so ML doesn't go and replace it with a concrete one *)
+    fun name_thm_matches_pattern tsig pat (_:string, thm) =
+      Pattern.matches_subterm tsig (pat, Thm.prop_of thm);
+  in
+    name_thm_matches_pattern (Sign.tsig_of sg) pat
+  end;
+ 
+(* create filter that just looks for a string in the name,
+   substring match only (no regexps are performed) *)
+fun str_name_pat_to_filter str_pat (name, _:Thm.thm) = isSubstring str_pat name;
+
+(* for elimination and destruction rules, we must check if the major premise
+   matches with one of the assumptions in the top subgoal, but we must 
+   additionally make sure that we tell elim/dest apart, using thm_check_fun *)
+fun elim_dest_filter thm_check_fun sg goal =
+  let
+    val elims_extract = (fn thm => if Thm.no_prems thm then [] else [thm],
+                       rem_top_c o hd o Logic.strip_imp_prems);
+
+    (* assumptions of the top subgoal *)
+    val prems = map rem_top_c (Logic.prems_of_goal goal 1);  
+    
+    fun prem_matches_name_thm prems (name_thm as (name,thm)) =
+        List.exists
+        (fn p => PureThy.is_matching_thm elims_extract sg p name_thm
+                andalso (thm_check_fun thm)) prems;
+  in
+    prem_matches_name_thm prems      
+  end;
+
+(* ------------</filter constructions> *)
+
+(* collect all the Var statements in a term *)
+fun vars_of_term (Const _) = []
+  | vars_of_term (Free _) = []
+  | vars_of_term (Bound _) = []
+  | vars_of_term (Abs (_,_,t)) = vars_of_term t
+  | vars_of_term (v as (Var _)) = [v]
+  | vars_of_term (x $ y) = vars_of_term x @ (vars_of_term y);
+
+(* elimination rule: conclusion is a Var and 
+   no Var in the conclusion appears in the major premise
+   Note: only makes sense if the major premise already matched the assumption 
+         of some goal! *)
+fun is_elim_rule thm =
+  let
+    val {prop, ...} = rep_thm thm;
+    val concl = rem_top_c (Logic.strip_imp_concl prop);
+    val major_prem = hd (Logic.strip_imp_prems prop);
+    val prem_vars = distinct (vars_of_term major_prem);
+    val concl_vars = distinct (vars_of_term concl);
+  in
+    Term.is_Var concl andalso ((prem_vars inter concl_vars) = [])
+  end;
+
+fun crit2str (Name name) = "name:" ^ name
+  | crit2str Elim = "elim"
+  | crit2str Intro = "intro"
+  | crit2str Rewrite = "rewrite"
+  | crit2str Dest = "dest"
+  | crit2str (Pattern x) = x;
+
+val criteria_to_str =
+  let
+    fun criterion_to_str ( true, ct) = "+ :   " ^ crit2str ct
+      | criterion_to_str (false, ct) = "- :   " ^ crit2str ct
+  in 
+    map criterion_to_str 
+  end;
+
+fun make_filter _ _ (Name name) = str_name_pat_to_filter name
+  | make_filter sg _ (Pattern p) = str_term_pat_to_filter sg p
+  (* beyond this point, only criteria requiring a goal! *)
+  | make_filter _ NONE c =
+      error ("Need to have a current goal to use " ^ (crit2str c))
+  | make_filter sg (SOME goal) Elim =
+      elim_dest_filter is_elim_rule sg goal
+  | make_filter sg (SOME goal) Dest =
+      (* in this case all that is not elim rule is dest *)
+      elim_dest_filter (not o is_elim_rule) sg goal
+  | make_filter sg (SOME goal) Intro =
+    let
+      (* filter by checking conclusion of theorem against conclusion of goal *)
+      fun intros_extract () = (single, rem_top_c o Logic.strip_imp_concl);
+      val concl = rem_top_c (Logic.concl_of_goal goal 1);
+    in
+      (fn name_thm => 
+            PureThy.is_matching_thm (intros_extract ()) sg concl name_thm)
+    end
+  | make_filter _ _ c =
+      error (crit2str c ^ " unimplemented");
+  (* XXX: searching for rewrites currently impossible since we'd need
+          a simplifier, which is included *after* Pure *)
+
+(* create filters ... convert negative ones to positive ones *)
+fun make_filters sg opt_goal =
+    map (fn (b,sc) => (if b then I else not) o (make_filter sg opt_goal sc));
+
+fun print_thms_containing ctxt opt_goal opt_limit criteria =
   let
     val prt_term = pretty_term ctxt;
     val prt_fact = pretty_fact ctxt;
+    val ss = criteria_to_str criteria;
 
-    (* theorems from the theory and its ancestors *)
+    (* facts from the theory and its ancestors *)
     val thy = theory_of ctxt;
     val sg1 = Theory.sign_of thy;
     val all_thys = thy :: (Theory.ancestors_of thy)
-    val thms1 = List.concat (map PureThy.thms_with_names_of all_thys);
-    val facts1 =
-      PureThy.find_theorems sg1 thms1 ss;
+    val facts1 = List.concat (map PureThy.thms_with_names_of all_thys);
+    val filters1 = make_filters sg1 opt_goal criteria;
+    val matches1 = PureThy.find_theorems facts1 filters1;
 
-    (* theorems from the local context *)
+    (* facts from the local context *)
     val sg2 = sign_of ctxt;
-    val thms2 = local_facts ctxt;
-    val facts2 = 
-      PureThy.find_theorems sg2 thms2 ss;
+    val facts2 = local_facts ctxt;
+    val filters2 = make_filters sg2 opt_goal criteria;
+    val matches2 = PureThy.find_theorems facts2 filters2;
     
     (* combine them, use a limit, then print *)
-    val facts = facts1 @ facts2; 
-    val len = length facts;
+    val matches = matches1 @ matches2;
+    val len = length matches;
     val limit = getOpt (opt_limit, ! thms_containing_limit);
     val count = Int.min (limit, len);
     
@@ -1503,13 +1638,14 @@ fun print_thms_containing ctxt opt_limit ss =
                 " theorems (" ^ (Int.toString count) ^ " displayed):"), 
             Pretty.fbrk]);
   in
-    if null facts then
+    if null matches then
       warning "find_theorems: nothing found"
     else 
-        Pretty.writeln header;
-        ((if len <= limit then [] else [Pretty.str "..."]) @
-        map (prt_fact) (Library.drop (len - limit, facts))) |> 
-            Pretty.chunks |> Pretty.writeln
+      Pretty.writeln header;
+      ((if len <= limit then [] else [Pretty.str "..."]) @
+      map (prt_fact) (Library.drop (len - limit, matches))) |> 
+        Pretty.chunks |> Pretty.writeln
   end;
 
 end;
+

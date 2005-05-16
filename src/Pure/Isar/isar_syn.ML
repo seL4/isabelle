@@ -631,10 +631,30 @@ val print_antiquotationsP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
 val thms_containingP =
-  OuterSyntax.improper_command "thms_containing"
-    "print facts containing certain constants or variables"
-    K.diag (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
-      Scan.repeat P.term >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
+  let
+    (* intro, elim, dest and rewrite are reserved, otherwise it's a pattern *)
+    fun decode "intro" = ProofContext.Intro
+      | decode "elim" = ProofContext.Elim
+      | decode "dest" = ProofContext.Dest
+      | decode "rewrite" = ProofContext.Rewrite
+      | decode x = ProofContext.Pattern x;
+  
+    (* either name:term or term *)
+    val criterion = ((P.term :-- (fn "name" => P.$$$ ":" |-- P.term | 
+                                     _ => Scan.fail)
+                                 ) >> (ProofContext.Name o #2)) ||
+                    (P.term >> decode);
+  in
+    OuterSyntax.improper_command "thms_containing"
+      "print facts meeting specified criteria"
+      K.diag 
+      (* obtain (int option * (bool * string) list) representing
+         a limit and a set of constraints (the bool indicates whether
+         the constraint is inclusive or exclusive) *)
+      (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
+       Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+        >> (Toplevel.no_timing oo IsarCmd.print_thms_containing))
+  end;
 
 val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"

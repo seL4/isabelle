@@ -56,7 +56,7 @@ sig
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val print_thms_containing: int option * string list
+  val print_thms_containing: int option * (bool * ProofContext.search_criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
@@ -244,9 +244,22 @@ val print_methods = Toplevel.unknown_theory o
 
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
-fun print_thms_containing (lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  ProofContext.print_thms_containing
-    (Toplevel.node_case ProofContext.init Proof.context_of state) lim spec);
+fun print_thms_containing (lim, spec) = Toplevel.unknown_theory o 
+Toplevel.keep (fn state =>
+  let
+    fun get_goal () = 
+      let val (_, (_, st)) = Proof.get_goal (Toplevel.proof_of state);
+      in prop_of st end;
+    
+    (* searching is permitted without a goal.
+       I am not sure whether the only exception that I should catch is UNDEF *)
+    val goal = SOME (get_goal ()) handle Toplevel.UNDEF => NONE;
+    
+    val ctxt = (Toplevel.node_case ProofContext.init Proof.context_of state);
+  in
+    ProofContext.print_thms_containing ctxt goal lim spec
+  end);
+
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));

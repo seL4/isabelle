@@ -33,10 +33,12 @@ sig
   val select_thm: thmref -> thm list -> thm list
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list * string list -> (string * thm list) list
-  val find_theorems: Sign.sg -> (string * thm list) list -> string list -> (string * thm list) list 
+  val find_theorems: ('a * 'b list) list -> ('a * 'b -> bool) list -> ('a * 'b list) list
   val thms_containing_consts: theory -> string list -> (string * thm) list
   val find_matching_thms: (thm -> thm list) * (term -> term)
         -> theory -> term -> (string * thm) list
+  val is_matching_thm: (thm -> thm list) * (term -> term)
+        -> Sign.sg -> term -> (string * thm) -> bool
   val find_intros: theory -> term -> (string * thm) list
   val find_intros_goal : theory -> thm -> int -> (string * thm) list
   val find_elims : theory -> term -> (string * thm) list
@@ -252,46 +254,29 @@ fun thms_containing_consts thy consts =
   thms_containing thy (consts, []) |> map #2 |> List.concat
   |> map (fn th => (Thm.name_of_thm th, th))
 
-(* find_theorems - finding theorems by matching on a series of subterms  *)
+(* Searching based on filters *)
+(* a filter must only take a (name:string, theorem:Thm.thm) and return true
+   if it finds a match, false if it doesn't *)
 
-(* Takes a string pattern, such as "(_::nat) + (_ + _)" and converts it into
-    a term with all free variables made schematic *)
-fun str_pattern_to_term sg str_pattern =
+(* given facts and filters, find all facts in which at least one theorem 
+   matches on ALL filters *)
+fun find_theorems facts filters =
   let
-    (* pattern as term with dummies as Consts *)
-    val term_pattern = read_cterm sg (str_pattern, TypeInfer.logicT) 
-                       |> Thm.term_of; 
-    (* with dummies as Vars *)
-    val v_pattern = #2 (Term.replace_dummy_patterns (1,term_pattern));
-  in
-    (* with schematic vars *)
-    #1 (Type.varify (v_pattern, []))
-  end;
+    (* break fact up into theorems, but associate them with the name of this 
+       fact, so that filters looking by name will only consider the fact's
+       name *)
+    fun fact_to_names_thms (name, thms) =
+      map (fn thm => (name, thm)) thms;
 
-(* find all thms such that for each returned thm, all given 
-    propositions are subterms of it *)
-fun thms_matching_patterns tsign (pat::pats) thms = 
-    let 
-        fun match_single pattern thm = 
-            Pattern.matches_subterm tsign (pat, Thm.prop_of thm);
-    in
-        thms_matching_patterns tsign pats
-            (List.filter (match_single pat) thms)
-    end
-  | thms_matching_patterns _ _ thms = thms; 
+    (* all filters return true when applied to a named theorem *)
+    fun match_all_filters filters name_thm =
+      List.all (fn filter => filter name_thm) filters;
 
-(* facts are pairs of theorem name and a list of its thms *)
-fun find_theorems sg facts str_patterns =
-  let
-    val typesg = Sign.tsig_of sg;
-    
-    (* the patterns we will be looking for *)
-    val patterns = map (str_pattern_to_term sg) str_patterns;
+    (* at least one theorem in this fact which matches all filters *)
+    fun fact_matches_filters filters fact =
+      List.exists (match_all_filters filters) (fact_to_names_thms fact);
 
-    (* we are interested in theorems which have one or more thms for which
-       all patterns are subterms *)
-    fun matches (_, thms) = 
-        (not o null o (thms_matching_patterns typesg patterns)) thms
+    fun matches x = (fact_matches_filters filters x)
   in
     List.filter matches facts
   end;
@@ -346,6 +331,13 @@ fun select_match(c,obj, signobj, named_thms, (extract_thms,extract_term)) =
         | select([],sels) = sels
 
   in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
+
+(* like find_matching_thms, but for one named theorem only *)
+fun is_matching_thm extract sg prop name_thm =
+  (case top_const prop of NONE => false
+   | SOME c => 
+      not ([] = select_match(c,prop, sg,[name_thm],extract)));
+
 
 fun find_matching_thms extract thy prop =
   (case top_const prop of NONE => []
