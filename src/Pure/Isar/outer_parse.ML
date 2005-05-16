@@ -21,6 +21,7 @@ sig
   val short_ident: token list -> string * token list
   val long_ident: token list -> string * token list
   val sym_ident: token list -> string * token list
+  val minus: token list -> string * token list
   val term_var: token list -> string * token list
   val type_ident: token list -> string * token list
   val type_var: token list -> string * token list
