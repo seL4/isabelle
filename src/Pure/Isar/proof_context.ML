@@ -1538,14 +1538,6 @@ fun elim_dest_filter thm_check_fun sg goal =
 
 (* ------------</filter constructions> *)
 
-(* collect all the Var statements in a term *)
-fun vars_of_term (Const _) = []
-  | vars_of_term (Free _) = []
-  | vars_of_term (Bound _) = []
-  | vars_of_term (Abs (_,_,t)) = vars_of_term t
-  | vars_of_term (v as (Var _)) = [v]
-  | vars_of_term (x $ y) = vars_of_term x @ (vars_of_term y);
-
 (* elimination rule: conclusion is a Var and 
    no Var in the conclusion appears in the major premise
    Note: only makes sense if the major premise already matched the assumption 
@@ -1555,10 +1547,10 @@ fun is_elim_rule thm =
     val {prop, ...} = rep_thm thm;
     val concl = rem_top_c (Logic.strip_imp_concl prop);
     val major_prem = hd (Logic.strip_imp_prems prop);
-    val prem_vars = distinct (vars_of_term major_prem);
-    val concl_vars = distinct (vars_of_term concl);
+    val prem_vars = distinct (Drule.vars_of_terms [major_prem]);
+    val concl_vars = distinct (Drule.vars_of_terms [concl]);
   in
-    Term.is_Var concl andalso ((prem_vars inter concl_vars) = [])
+    Term.is_Var concl andalso (prem_vars inter concl_vars) = []
   end;
 
 fun crit2str (Name name) = "name:" ^ name
