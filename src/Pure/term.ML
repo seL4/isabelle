@@ -702,9 +702,9 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
 fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 
-(*First order means in all terms of the form f(t1,...,tn) no argument has a function
-  type. The meta-quantifier "all" is excluded--its argument always has a function
-  type--through a recursive call into its body.*)
+(*First order means in all terms of the form f(t1,...,tn) no argument has a 
+  function type. The meta-quantifier "all" is excluded--its argument always 
+  has a function type--through a recursive call into its body.*)
 fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
   | first_order1 Ts (Const("all",_)$Abs(a,T,body)) = 
       not (is_funtype T) andalso first_order1 (T::Ts) body
