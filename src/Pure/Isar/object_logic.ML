@@ -47,7 +47,7 @@ struct
 
   fun merge_judgment (SOME x, SOME y) =
         if x = y then SOME x else error "Attempt to merge different object-logics"
-    | merge_judgment (j1, j2) = if isSome j1 then j1 else j2;
+    | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
 
   fun merge ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
     (merge_judgment (judgment1, judgment2),
@@ -117,7 +117,7 @@ fun fixed_judgment sg x =
     val c = judgment_name sg;
     val aT = TFree ("'a", []);
     val T =
-      getOpt (Sign.const_type sg c, aT --> propT)
+      if_none (Sign.const_type sg c) (aT --> propT)
       |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;

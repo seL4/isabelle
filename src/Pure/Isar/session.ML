@@ -73,7 +73,7 @@ val root_file = ThyLoad.ml_path "ROOT";
 
 fun get_rpath rpath_str =
   (if rpath_str = "" then () else
-     if isSome (!rpath) then
+     if is_some (! rpath) then
        error "Path for remote theory browsing information may only be set once"
      else
        rpath := SOME (Url.unpack rpath_str);

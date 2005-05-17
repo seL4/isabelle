@@ -415,7 +415,7 @@ local
 
 fun prove mk_prop str_of sign prop thms usr_tac =
   (Tactic.prove sign [] [] (mk_prop prop)
-      (K (axclass_tac thms THEN (getOpt (usr_tac, all_tac))))
+      (K (axclass_tac thms THEN (if_none usr_tac all_tac)))
     handle ERROR => error ("The error(s) above occurred while trying to prove " ^
      quote (str_of sign prop))) |> Drule.standard;
 

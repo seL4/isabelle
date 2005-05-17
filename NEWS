@@ -6,41 +6,6 @@ New in this Isabelle release
 
 *** General ***
 
-* ML: The type Library.option is no more, along with the exception
-  Library.OPTION: Isabelle now uses the standard option type.  The
-  functions the, is_some, is_none, etc. are still in Library, but
-  the constructors are now SOME and NONE instead of Some and None.
-  They raise the exception Option.
-
-* ML: The exception LIST is no more, the standard exceptions Empty and
-  Subscript, as well as Library.UnequalLengths are used instead.  This
-  means that function like Library.hd and Library.tl are gone, as the
-  standard hd and tl functions suffice.
-
-  A number of basic functions are now no longer exported to the top ML
-  level, as they are variants of standard functions.  The following
-  suggests how one can translate existing code:
-
-    the x = valOf x
-    if_none x y = getOpt(x,y)
-    is_some x = isSome x
-    apsome f x = Option.map f x
-    rev_append xs ys = List.revAppend(xs,ys)
-    nth_elem(i,xs) = List.nth(xs,i)
-    last_elem xs = List.last xs
-    flat xss = List.concat xss
-    seq fs = app fs
-    partition P xs = List.partition P xs
-    filter P xs = List.filter P xs
-    mapfilter f xs = List.mapPartial f xs
-
-  The final four functions, take, drop, foldl, and foldr, are somewhat
-  more complicated (especially the semantics of take and drop differ
-  from the standard).
-
-  A simple solution to broken code is to include "open Library" at the
-  beginning of a structure.  Everything after that will be as before.
-
 * Theory headers: the new header syntax for Isar theories is
 
   theory <name>
@@ -380,6 +345,30 @@ New in this Isabelle release
 
 
 *** ML ***
+
+* Pure/library.ML no longer defines its own option datatype, but uses
+  that of the SML basis, which has constructors NONE and SOME instead
+  of None and Some, as well as exception Option.Option instead of
+  OPTION.  The functions the, if_none, is_some, is_none have been
+  adapted accordingly, while Option.map replaces apsome.
+
+* The exception LIST is no more, the standard exceptions Empty and
+  Subscript, as well as Library.UnequalLengths are used instead.  This
+  means that function like Library.hd and Library.tl are gone, as the
+  standard hd and tl functions suffice.
+
+  A number of basic functions are now no longer exported to the ML
+  toplevel, as they are variants of standard functions.  The following
+  suggests how one can translate existing code:
+
+    rev_append xs ys = List.revAppend (xs, ys)
+    nth_elem (i, xs) = List.nth (xs, i)
+    last_elem xs = List.last xs
+    flat xss = List.concat xss
+    seq fs = app fs
+    partition P xs = List.partition P xs
+    filter P xs = List.filter P xs
+    mapfilter f xs = List.mapPartial f xs
 
 * Pure: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary

@@ -280,7 +280,7 @@ fun read toks =
   Source.of_list toks
   |> toplevel_source false true true get_parser
   |> Source.exhaust
-  |> map (fn tr => (Toplevel.name_of tr, valOf (Toplevel.source_of tr), tr));
+  |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
 
 
 (** read theory **)
@@ -299,7 +299,7 @@ fun deps_thy name ml path =
     val pos = Path.position path;
     val (name', parents, files) = ThyHeader.scan (src, pos);
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if ml andalso isSome (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
+    val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^

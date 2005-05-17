@@ -216,7 +216,7 @@ local
     $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
   val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
-  val read_symbs = List.mapPartial I o valOf o Scan.read Symbol.stopper scan_symbs;
+  val read_symbs = List.mapPartial I o the o Scan.read Symbol.stopper scan_symbs;
 
   fun unique_index xsymbs =
     if length (List.filter is_index xsymbs) <= 1 then xsymbs

@@ -189,7 +189,7 @@ fun calculate final opt_rules print state =
       | SOME calc => (false, Seq.map single (combine (calc @ facts))));
   in
     err_if state (initial andalso final) "No calculation yet";
-    err_if state (initial andalso isSome opt_rules) "Initial calculation -- no rules to be given";
+    err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
     calculations |> Seq.map (fn calc => (print (Proof.context_of state) calc;
         state |> maintain_calculation final calc))
   end;

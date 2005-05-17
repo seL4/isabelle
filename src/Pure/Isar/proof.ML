@@ -793,7 +793,7 @@ fun global_goal prep kind after_global export raw_locale a elems concl thy =
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind,
         theory_spec = (a, map (snd o fst) concl),
-        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (valOf opt_name, x)),
+        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (the opt_name, x)),
         view = view,
         export = export})
       (AfterQed (Seq.single, after_global))

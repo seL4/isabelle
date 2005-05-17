@@ -210,7 +210,7 @@ fun normalize trace stat get_rules pre_ast =
     val changes = ref 0;
 
     fun subst _ (ast as Constant _) = ast
-      | subst env (Variable x) = valOf (Symtab.lookup (env, x))
+      | subst env (Variable x) = the (Symtab.lookup (env, x))
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
     fun try_rules ((lhs, rhs) :: pats) ast =

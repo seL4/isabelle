@@ -186,14 +186,8 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-
-(*find tab for mode*)
-fun get_tab prtabs mode =
-  getOpt (assoc (prtabs, mode), Symtab.empty);
-
-(*collect tabs for mode hierarchy (default "")*)
-fun tabs_of prtabs modes =
-  List.mapPartial (fn mode => assoc (prtabs, mode)) (modes @ [""]);
+fun mode_tab prtabs mode = if_none (assoc (prtabs, mode)) Symtab.empty;
+fun mode_tabs prtabs modes = List.mapPartial (curry assoc prtabs) (modes @ [""]);
 
 
 (* xprod_to_fmt *)
@@ -246,7 +240,7 @@ val empty_prtabs = [];
 fun change_prtabs f mode xprods prtabs =
   let
     val fmts = List.mapPartial xprod_to_fmt xprods;
-    val tab = fold f fmts (get_tab prtabs mode);
+    val tab = fold f fmts (mode_tab prtabs mode);
   in overwrite (prtabs, (mode, tab)) end;
 
 fun extend_prtabs m = change_prtabs (curry Symtab.update_multi) m;
@@ -255,7 +249,7 @@ fun remove_prtabs m = change_prtabs (Symtab.remove_multi (op =)) m;
 fun merge_prtabs prtabs1 prtabs2 =
   let
     val modes = distinct (map fst (prtabs1 @ prtabs2));
-    fun merge m = (m, Symtab.merge_multi' (op =) (get_tab prtabs1 m, get_tab prtabs2 m));
+    fun merge m = (m, Symtab.merge_multi' (op =) (mode_tab prtabs1 m, mode_tab prtabs2 m));
   in map merge modes end;
 
 
@@ -358,14 +352,14 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
 (* pretty_term_ast *)
 
 fun pretty_term_ast curried prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode))
+  Pretty.blk (0, pretty (mode_tabs prtabs (! print_mode))
     trf tokentrf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast _ prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode))
+  Pretty.blk (0, pretty (mode_tabs prtabs (! print_mode))
     trf tokentrf true false ast 0);
 
 end;

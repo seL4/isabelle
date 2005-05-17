@@ -241,10 +241,10 @@ fun is_tvar (x, _) = (case Symbol.explode x of "'" :: _ => true | _ => false);
 
 fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
 
-fun the_sort sorts xi = valOf (sorts xi)
+fun the_sort sorts xi = the (sorts xi)
   handle Option.Option => error_var "No such type variable in theorem: " xi;
 
-fun the_type types xi = valOf (types xi)
+fun the_type types xi = the (types xi)
   handle Option.Option => error_var "No such variable in theorem: " xi;
 
 fun unify_types sign types ((unifier, maxidx), (xi, u)) =
@@ -339,9 +339,9 @@ fun read_instantiate init mixed_insts (context, thm) =
 
     mixed_insts |> List.app (fn (arg, (xi, _)) =>
       if is_tvar xi then
-        Args.assign (SOME (Args.Typ (valOf (assoc (type_insts''', xi))))) arg
+        Args.assign (SOME (Args.Typ (the (assoc (type_insts''', xi))))) arg
       else
-        Args.assign (SOME (Args.Term (valOf (assoc (term_insts''', xi))))) arg);
+        Args.assign (SOME (Args.Term (the (assoc (term_insts''', xi))))) arg);
 
     (context, thm''' |> RuleCases.save thm)
   end;

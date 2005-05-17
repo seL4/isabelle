@@ -73,7 +73,7 @@ fun save thm = save_case_names thm o save_consumes thm;
 
 fun get thm =
   let
-    val n = getOpt (lookup_consumes thm, 0);
+    val n = if_none (lookup_consumes thm) 0;
     val ss =
       (case lookup_case_names thm of
         NONE => map Library.string_of_int (1 upto (Thm.nprems_of thm - n))

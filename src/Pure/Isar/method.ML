@@ -154,7 +154,7 @@ val succeed = METHOD (K all_tac);
 (* shuffle *)
 
 fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (getOpt (opt_i,1))));
+fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
 
 
 (* insert *)
@@ -263,7 +263,7 @@ fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
 in
 
 fun rules_tac ctxt opt_lim =
-  SELECT_GOAL (DEEPEN (2, getOpt (opt_lim,20)) (intpr_tac ctxt [] 0) 4 1);
+  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4 1);
 
 end;
 
@@ -376,12 +376,12 @@ fun bires_inst_tac bires_flag ctxt insts thm =
                 NONE => types (a, ~1)
               | some => some)
           | types' xi = types xi;
-        fun internal x = isSome (types' (x, ~1));
+        fun internal x = is_some (types' (x, ~1));
         val used = Drule.add_used thm (Drule.add_used st []);
         val (ts, envT) =
           ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
         val envT' = map (fn (ixn, T) =>
-          (TVar (ixn, valOf (rsorts ixn)), T)) envT @ Tinsts_env;
+          (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =
           map
             (fn (xi, t) =>
@@ -735,7 +735,7 @@ fun finish_text asm NONE = close_text asm
 fun proof opt_text state =
   state
   |> Proof.assert_backward
-  |> refine (getOpt (opt_text,default_text))
+  |> refine (if_none opt_text default_text)
   |> Seq.map (Proof.goal_facts (K []))
   |> Seq.map Proof.enter_forward;
 

@@ -201,7 +201,7 @@ fun copy_node true (Theory thy) = Theory (Theory.copy thy)
 
 fun interruptible f x =
   let val y = ref (NONE: node History.T option);
-  in raise_interrupt (fn () => y := SOME (f x)) (); valOf (! y) end;
+  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
 
 val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
 
@@ -222,7 +222,7 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
           (mk_state (transform_error (interruptible (trans f')) node), NONE)
             handle exn => (mk_state node, SOME exn);
       in
-        if is_stale result then return (mk_state node, SOME (getOpt (opt_exn, rollback)))
+        if is_stale result then return (mk_state node, SOME (if_none opt_exn rollback))
         else return (result, opt_exn)
       end;
 
