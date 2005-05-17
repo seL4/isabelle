@@ -7,7 +7,7 @@
 
 if [ -L "$0" ]; then
   TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
-  exec "$(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
+  exec "$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
 fi
 
 
@@ -18,13 +18,12 @@ ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
 
 ## settings
 
-PRG="$(basename "$0")"
-
 export THIS_IS_ISABELLE_BUILD=true
 
-ISABELLE_HOME="$(dirname "$0")"
-. "$ISABELLE_HOME/lib/scripts/getsettings" || \
-  { echo "$PRG probably not called from its original place!"; exit 2; }
+PRG="$(basename "$0")"
+
+ISABELLE_HOME="$(cd "$(dirname "$0")"; pwd -P)"
+source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
 
 ## diagnostics

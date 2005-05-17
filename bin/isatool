@@ -3,12 +3,11 @@
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
-# Isabelle tool starter -- provides settings environment
-# and keeps your PATH name space clean.
+# Isabelle tool starter.
 
 if [ -L "$0" ]; then
   TARGET="$(LC_ALL=C ls -l "$0" | sed 's/.* -> //')"
-  exec "$(cd "$(dirname "$0")"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
+  exec "$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd "$(dirname "$TARGET")"; pwd)/$(basename "$TARGET")" "$@"
 fi
 
 
@@ -16,9 +15,8 @@ fi
 
 PRG="$(basename "$0")"
 
-ISABELLE_HOME="$(dirname "$0")/.."
-. "$ISABELLE_HOME/lib/scripts/getsettings" || \
-  { echo "$PRG probably not called from its original place!"; exit 2; }
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
 
 ## diagnostics
@@ -38,7 +36,6 @@ function usage()
     for DIR in $ISABELLE_TOOLS
     do
       cd "$DIR"
-      echo
       for T in *
       do
         if [ -f "$T" -a -x "$T" ]; then
@@ -49,7 +46,6 @@ function usage()
     done
     IFS="$ORIG_IFS"
   )
-  echo
   exit 1
 }
 
