@@ -215,7 +215,12 @@ fun distinct_subgoals_tac state =
         val assumed = implies_elim_list frozth (map assume froz_prems)
         val implied = implies_intr_list (gen_distinct cterm_aconv froz_prems)
                                         assumed;
-    in  Seq.single (thawfn implied)  end
+    in  (*Applying Thm.varifyT to the result of thawfn would (re-)generalize
+          all type variables that appear in the subgoals. Unfortunately, it
+          would also break the function AxClass.intro_classes_tac, even in the
+          trivial case where the type class has no axioms.*)
+        Seq.single (thawfn implied)
+    end
 end;
 
 
