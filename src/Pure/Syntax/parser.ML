@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Carsten Clasohm, Sonia Mahjoub, and Markus Wenzel, TU Muenchen
 
-Isabelle's main parser (used for terms and types).
+General context-free parser for the inner syntax of terms, types, etc.
 *)
 
 signature PARSER =
@@ -85,7 +85,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val (added_starts, lambdas') =
         if is_none new_chain then ([], lambdas) else
         let (*lookahead of chain's source*)
-            val ((from_nts, from_tks), _) = Array.sub (prods, valOf new_chain);
+            val ((from_nts, from_tks), _) = Array.sub (prods, the new_chain);
 
             (*copy from's lookahead to chain's destinations*)
             fun copy_lookahead [] added = added
@@ -149,7 +149,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       let
                         val new_lambda = is_none tk andalso nts subset lambdas;
 
-                        val new_tks = (if isSome tk then [valOf tk] else []) @
+                        val new_tks = (if is_some tk then [the tk] else []) @
                           Library.foldl token_union ([], map starts_for_nt nts) \\
                           l_starts;
 
@@ -228,14 +228,14 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
       (*insert production into grammar*)
       val (added_starts', prod_count') =
-        if isSome chain_from then (added_starts', prod_count)  (*don't store chain production*)
+        if is_some chain_from then (added_starts', prod_count)  (*don't store chain production*)
         else let
           (*lookahead tokens of new production and on which
             NTs lookahead depends*)
           val (start_tk, start_nts) = lookahead_dependency lambdas' rhs [];
 
           val start_tks = Library.foldl token_union
-                          (if isSome start_tk then [valOf start_tk] else [],
+                          (if is_some start_tk then [the start_tk] else [],
                            map starts_for_nt start_nts);
 
           val opt_starts = (if new_lambda then [NONE]
@@ -261,7 +261,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                 (*store new production*)
                 fun store [] prods is_new =
-                      (prods, if isSome prod_count andalso is_new then
+                      (prods, if is_some prod_count andalso is_new then
                                 Option.map (fn x => x+1) prod_count
                               else prod_count, is_new)
                   | store (tk :: tks) prods is_new =
@@ -270,7 +270,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         (*if prod_count = NONE then we can assume that
                           grammar does not contain new production already*)
                         val (tk_prods', is_new') =
-                          if isSome prod_count then
+                          if is_some prod_count then
                             if new_prod mem tk_prods then (tk_prods, false)
                             else (new_prod :: tk_prods, true)
                           else (new_prod :: tk_prods, true);
@@ -324,8 +324,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*test if production could already be associated with
                         a member of new_tks*)
                       val lambda = length depends > 1 orelse
-                                   not (null depends) andalso isSome tk
-                                   andalso valOf tk mem new_tks;
+                                   not (null depends) andalso is_some tk
+                                   andalso the tk mem new_tks;
 
                       (*associate production with new starting tokens*)
                       fun copy [] nt_prods = nt_prods
@@ -395,7 +395,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
       | pretty_symb (Nonterminal (tag, p)) =
-        let val name = fst (valOf (find_first (fn (n, t) => t = tag) taglist));
+        let val name = fst (the (find_first (fn (n, t) => t = tag) taglist));
         in Pretty.str (name ^ "[" ^ string_of_int p ^ "]") end;
 
     fun pretty_const "" = []
@@ -535,7 +535,7 @@ fun merge_grams gram_a gram_b =
             | store_tag nt_count tags tag =
               let val (nt_count', tags', tag') =
                    get_tag nt_count tags
-                     (fst (valOf (find_first (fn (n, t) => t = tag) tag_list)));
+                     (fst (the (find_first (fn (n, t) => t = tag) tag_list)));
               in Array.update (table, tag, tag');
                  store_tag nt_count' tags' (tag-1)
               end;
@@ -695,11 +695,11 @@ val branching_level = ref 600;                   (*trigger value for warnings*)
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
 fun prods_for prods chains include_none tk nts =
-let (*similar to token_assoc but does not automatically include 'NONE' key*)
-    fun token_assoc2 (list, key) =
+let
+    fun token_assoc (list, key) =
       let fun assoc [] result = result
             | assoc ((keyi, pi) :: pairs) result =
-                if isSome keyi andalso matching_tokens (valOf keyi, key)
+                if is_some keyi andalso matching_tokens (the keyi, key)
                    orelse include_none andalso is_none keyi then
                   assoc pairs (pi @ result)
                 else assoc pairs result;
@@ -708,7 +708,7 @@ let (*similar to token_assoc but does not automatically include 'NONE' key*)
     fun get_prods [] result = result
       | get_prods (nt :: nts) result =
         let val nt_prods = snd (Array.sub (prods, nt));
-        in get_prods nts ((token_assoc2 (nt_prods, tk)) @ result) end;
+        in get_prods nts ((token_assoc (nt_prods, tk)) @ result) end;
 in get_prods (connected_with chains nts nts) [] end;
 
 

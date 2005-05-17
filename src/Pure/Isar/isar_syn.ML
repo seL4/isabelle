@@ -858,4 +858,3 @@ end;
 OuterSyntax.add_keywords IsarSyn.keywords;
 OuterSyntax.add_parsers IsarSyn.parsers;
 IsarOutput.add_hidden_commands IsarSyn.hidden_commands;
-

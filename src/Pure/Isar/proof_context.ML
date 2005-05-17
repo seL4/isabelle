@@ -1639,4 +1639,3 @@ fun print_thms_containing ctxt opt_goal opt_limit criteria =
   end;
 
 end;
-

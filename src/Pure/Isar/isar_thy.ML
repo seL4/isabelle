@@ -685,4 +685,3 @@ fun init_context f x = Toplevel.init_theory (fn _ => fetch_context f x) (K ()) (
 val context = init_context (ThyInfo.quiet_update_thy true);
 
 end;
-

@@ -439,8 +439,8 @@ fun strip_blanks s =
 
 (* bump string -- treat as base 26 or base 1 numbers *)
 
-fun symbolic_end (_ :: "\\<^isup>" :: _) = true
-  | symbolic_end (_ :: "\\<^isub>" :: _) = true
+fun symbolic_end (_ :: "\\<^isub>" :: _) = true
+  | symbolic_end (_ :: "\\<^isup>" :: _) = true
   | symbolic_end (s :: _) = is_symbolic s
   | symbolic_end [] = false;
 

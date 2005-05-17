@@ -976,4 +976,3 @@ end;
 
 structure BasicProof: BASIC_PROOF = Proof;
 open BasicProof;
-

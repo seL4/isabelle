@@ -20,19 +20,17 @@ struct
 
 (* session state *)
 
-val pure = "Pure";
-
-val session = ref ([pure]: string list);
+val session = ref ([Sign.PureN]: string list);
 val session_path = ref ([]: string list);
 val session_finished = ref false;
-val rpath = ref (NONE: Url.T option);
+val remote_path = ref (NONE: Url.T option);
 
 
 (* access path *)
 
 fun path () = ! session_path;
 
-fun str_of [] = pure
+fun str_of [] = Sign.PureN
   | str_of elems = space_implode "/" elems;
 
 fun name () = "Isabelle/" ^ str_of (path ());
@@ -67,25 +65,21 @@ fun finish () =
 
 (* use_dir *)
 
-(*
-val root_file = ThyLoad.ml_path "ROOT";
-*)
-
 fun get_rpath rpath_str =
   (if rpath_str = "" then () else
-     if is_some (! rpath) then
+     if is_some (! remote_path) then
        error "Path for remote theory browsing information may only be set once"
      else
-       rpath := SOME (Url.unpack rpath_str);
-   (!rpath, rpath_str <> ""));
+       remote_path := SOME (Url.unpack rpath_str);
+   (! remote_path, rpath_str <> ""));
 
-fun use_dir root_file build modes reset info doc doc_graph parent name dump rpath_str level verbose hide =
+fun use_dir root build modes reset info doc doc_graph parent name dump rpath_str level verbose hide =
   Library.setmp print_mode (modes @ ! print_mode)
     (Library.setmp Proofterm.proofs level (Library.setmp IsarOutput.hide_commands hide (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph (path ()) name
          (if dump = "" then NONE else SOME (Path.unpack dump)) (get_rpath rpath_str) verbose;
-       File.use (Path.basic root_file);
+       File.use (Path.basic root);
        finish ())))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 

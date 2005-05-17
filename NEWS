@@ -86,8 +86,8 @@ New in this Isabelle release
 * Pure: tuned internal renaming of symbolic identifiers -- attach
   primes instead of base 26 numbers.
 
-* Pure: new flag show_var_qmarks to control printing of leading
-  question marks of variable names.
+* Pure: new flag show_question_marks controls printing of leading
+  question marks in schematic variable names.
 
 * Pure: new version of thms_containing that searches for a list 
   of patterns instead of a list of constants. Available in 
@@ -169,21 +169,23 @@ New in this Isabelle release
 
 *** Document preparation ***
 
-* New antiquotation @{term_type term} printing a term with its
-  type annotated
+* Several new antiquotation:
 
-* New antiquotation @{typeof term} printing the - surprise - the type of 
-  a term
+  @{term_type term} prints a term with its type annotated;
 
-* New antiquotation @{const const} which is the same as @{term const} except
-  that const must be a defined constant identifier; helpful for early detection
-  of typoes
+  @{typeof term} prints the type of a term;
 
-* Two new antiquotations @{term_style style term} and @{thm_style style thm}
-  which print a term / theorem applying a "style" to it; predefined styles
-  are "lhs" and "rhs" printing the lhs/rhs of definitions, equations,
-  inequations etc. and "conclusion" printing only the conclusion of a theorem.
-  More styles may be defined using ML; see the "LaTeX Sugar" document for more
+  @{const const} is the same as @{term const}, but checks
+    that the argument is a known logical constant;
+
+  @{term_style style term} and @{thm_style style thm} print a term or
+    theorem applying a "style" to it
+
+  Predefined styles are "lhs" and "rhs" printing the lhs/rhs of
+  definitions, equations, inequations etc. and "conclusion" printing
+  only the conclusion of a meta-logical statement theorem.  Styles may
+  be defined via TermStyle.add_style in ML.  See the "LaTeX Sugar"
+  document for more information.
 
 * Antiquotations now provide the option 'locale=NAME' to specify an
   alternative context used for evaluating and printing the subsequent
@@ -242,11 +244,11 @@ New in this Isabelle release
   \<epsilon> becomes available as variable, constant etc.
 
 * HOL: "x > y" abbreviates "y < x" and "x >= y" abbreviates "y <= x".
-  Similarly for all quantifiers: "ALL x > y" etc.
-  The x-symbol for >= is \<ge>.
+  Similarly for all quantifiers: "ALL x > y" etc.  The x-symbol for >=
+  is \<ge>.
 
-* HOL/Set: "{x:A. P}" abbreviates "{x. x:A & P}"
-           (and similarly for "\<in>" instead of ":")
+* HOL/Set: "{x:A. P}" abbreviates "{x. x:A & P}" (and similarly for
+  "\<in>" instead of ":").
 
 * HOL/SetInterval: The syntax for open intervals has changed:
 
