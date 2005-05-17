@@ -134,7 +134,7 @@ results in \isa{{\isasymlbrakk}P{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymL
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{verbatim}
-reset show_var_qmarks;
+reset show_question_marks;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag reset.%
@@ -379,8 +379,8 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \verb!setup {!\verb!*!\\
     \verb!let!\\
     \verb!  fun my_lhs ctxt (Const ("==", _) $ t $ _) = t!\\
-    \verb!    | my_lhs ctxt (Const ("Trueprop", _) $ t) = my_lhs t!\\
-    \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs t!\\
+    \verb!    | my_lhs ctxt (Const ("Trueprop", _) $ t) = my_lhs ctxt t!\\
+    \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs ctxt t!\\
     \verb!    | my_lhs ctxt (_ $ t $ _) = t!\\
     \verb!    | my_lhs ctxt _ = error ("Binary operator expected")!\\
     \verb!  in [TermStyle.update_style "new_lhs" my_lhs]!\\
