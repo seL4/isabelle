@@ -3,7 +3,6 @@
 # Author: Markus Wenzel, TU Muenchen
 #
 # getsettings - bash source script to augment current env.
-#
 
 if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
 then
@@ -12,8 +11,7 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
-#normalize ISABELLE_HOME as passed by caller
-ISABELLE_HOME=$(cd "$ISABELLE_HOME"; pwd)
+export ISABELLE_HOME
 if { echo -n "$ISABELLE_HOME" | fgrep " " >/dev/null; }
 then
   echo 1>&2 "### White space in ISABELLE_HOME may cause strange problems later on!"
@@ -44,12 +42,12 @@ function choosefrom ()
 }
 
 #get actual settings
-. "$ISABELLE_HOME/etc/settings" || exit 2
+source "$ISABELLE_HOME/etc/settings" || exit 2
 ISABELLE_SITE_SETTINGS_PRESENT=true
 
 [ "$ISABELLE_HOME" -ef "$ISABELLE_HOME_USER" ] && \
   { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER should not be the same directory!"; }
-[ -f "$ISABELLE_HOME_USER/etc/settings" ] && . "$ISABELLE_HOME_USER/etc/settings"
+[ -f "$ISABELLE_HOME_USER/etc/settings" ] && source "$ISABELLE_HOME_USER/etc/settings"
 
 #append ML system identifier to paths
 if [ -z "$ML_PLATFORM" ]; then
