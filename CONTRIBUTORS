@@ -1,3 +1,6 @@
 
 * May 2005: Rafal Kolanski, NICTA
   Substantially improved retrieval of facts from theory/proof context.
+
+* May 2005: Florian Haftmann, TUM
+  Several new antiquotation.
