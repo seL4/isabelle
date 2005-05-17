@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/proof_context.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-                contributions by Rafal Kolanski, NICTA
 
 The key concept of Isar proof contexts.
 *)
@@ -224,7 +223,7 @@ fun fixes_of (Context {asms = (_, fixes), ...}) = fixes;
 val fixed_names_of = map #2 o fixes_of;
 fun is_fixed ctxt x = exists (equal x o #2) (fixes_of ctxt);
 fun is_known (ctxt as Context {defs = (types, _, _, _), ...}) x =
-  isSome (Vartab.lookup (types, (x, ~1))) orelse is_fixed ctxt x;
+  is_some (Vartab.lookup (types, (x, ~1))) orelse is_fixed ctxt x;
 fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
@@ -471,7 +470,7 @@ end;
 (* internalize Skolem constants *)
 
 fun lookup_skolem ctxt x = assoc (fixes_of ctxt, x);
-fun get_skolem ctxt x = getOpt (lookup_skolem ctxt x, x);
+fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
 
 fun no_skolem internal ctxt x =
   if can Syntax.dest_skolem x then
@@ -713,7 +712,7 @@ end;
 
 fun read_tyname ctxt c =
   if c mem_string used_types ctxt then
-    TFree (c, getOpt (def_sort ctxt (c, ~1), Sign.defaultS (sign_of ctxt)))
+    TFree (c, if_none (def_sort ctxt (c, ~1)) (Sign.defaultS (sign_of ctxt)))
   else Sign.read_tyname (sign_of ctxt) c;
 
 fun read_const ctxt c =
@@ -761,7 +760,7 @@ fun generalize_tfrees inner outer =
     val occs_inner = type_occs inner;
     val occs_outer = type_occs outer;
     fun add (gen, a) =
-      if isSome (Symtab.lookup (occs_outer, a)) orelse
+      if is_some (Symtab.lookup (occs_outer, a)) orelse
         exists still_fixed (Symtab.lookup_multi (occs_inner, a))
       then gen else a :: gen;
   in fn tfrees => Library.foldl add ([], tfrees) end;
@@ -1184,7 +1183,7 @@ fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
-    val T = getOpt (opt_T, TypeInfer.logicT);
+    val T = if_none opt_T TypeInfer.logicT;
     val ctxt' = ctxt |> declare_terms_syntax (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
@@ -1280,7 +1279,7 @@ fun bind_skolem ctxt xs =
 
 fun prep_case ctxt name xs {fixes, assumes, binds} =
   let
-    fun replace (opt_x :: xs) ((y, T) :: ys) = (getOpt (opt_x,y), T) :: replace xs ys
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (if_none opt_x y, T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
@@ -1619,7 +1618,7 @@ fun print_thms_containing ctxt opt_goal opt_limit criteria =
     (* combine them, use a limit, then print *)
     val matches = matches1 @ matches2;
     val len = length matches;
-    val limit = getOpt (opt_limit, ! thms_containing_limit);
+    val limit = if_none opt_limit (! thms_containing_limit);
     val count = Int.min (limit, len);
     
     val header = Pretty.blk (0, [Pretty.str "Searched for:", Pretty.fbrk,
