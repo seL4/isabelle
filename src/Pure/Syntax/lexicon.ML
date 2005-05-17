@@ -22,6 +22,7 @@ sig
   val string_of_vname': indexname -> string
   val indexname: string -> indexname
   val read_var: string -> term
+  val read_variable: string -> indexname option
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -60,7 +61,6 @@ sig
   val str_of_token: token -> string
   val display_token: token -> string
   val matching_tokens: token * token -> bool
-  val token_assoc: (token option * 'a list) list * token -> 'a list
   val valued_token: token -> bool
   val predef_term: string -> token option
   val tokenize: Scan.lexicon -> bool -> string list -> token list
@@ -189,18 +189,6 @@ fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens _ = false;
 
 
-(* token_assoc *)
-
-fun token_assoc (list, key) =
-  let
-    fun assoc [] = []
-      | assoc ((keyi, xi) :: pairs) =
-          if is_none keyi orelse matching_tokens (valOf keyi, key) then
-            assoc pairs @ xi
-          else assoc pairs;
-  in assoc list end;
-
-
 (* valued_token *)
 
 fun valued_token (Token _) = false
@@ -300,33 +288,41 @@ fun tokenize lex xids chs =
 
 (** scan variables **)
 
-(* scan_vname *)
+(* scan_indexname *)
+
+local
 
 fun scan_vname chrs =
   let
-    fun nat_of_chs n [] = n
-      | nat_of_chs n (c :: cs) = nat_of_chs (n * 10 + (ord c - ord "0")) cs;
+    fun nat n [] = n
+      | nat n (c :: cs) = nat (n * 10 + (ord c - ord "0")) cs;
 
-    val nat = nat_of_chs 0;
-
-    fun split_vname chs =
-      let val (cs, ds) = take_suffix Symbol.is_digit chs
-      in (implode cs, nat ds) end
+    fun idxname cs ds = (implode (rev cs), nat 0 ds);
+    fun chop_idx [] ds = idxname [] ds
+      | chop_idx (cs as (_ :: "\\<^isub>" :: _)) ds = idxname cs ds
+      | chop_idx (cs as (_ :: "\\<^isup>" :: _)) ds = idxname cs ds
+      | chop_idx (c :: cs) ds =
+          if Symbol.is_digit c then chop_idx cs (c :: ds)
+          else idxname (c :: cs) ds;
 
     val scan =
-      scan_letter_letdigs -- Scan.optional ($$ "." |-- scan_digits1 >> nat) ~1;
+      scan_letter_letdigs -- Scan.optional ($$ "." |-- scan_digits1 >> nat 0) ~1;
   in
     (case scan chrs of
-      ((cs, ~1), cs') => (split_vname cs, cs')
+      ((cs, ~1), cs') => (chop_idx (rev cs) [], cs')
     | ((cs, i), cs') => ((implode cs, i), cs'))
   end;
 
-
-(* indexname *)
+in
 
 val scan_indexname =
      $$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i))
   || scan_vname;
+
+end;
+
+
+(* indexname *)
 
 fun indexname cs =
   (case Scan.read Symbol.stopper scan_indexname (Symbol.explode cs) of
@@ -343,9 +339,16 @@ fun var xi = Var (xi, dummyT);
 fun read_var str =
   let
     val scan =
-      $$ "?" |-- scan_indexname >> var ||
+      $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol.is_eof) >> var ||
       Scan.any Symbol.not_eof >> (free o implode);
-  in valOf (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
+  in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
+
+
+(* read_variable *)
+
+fun read_variable str =
+  let val scan = $$ "?" |-- scan_indexname || scan_indexname
+  in Scan.read Symbol.stopper scan (Symbol.explode str) end;
 
 
 (* variable kinds *)
@@ -359,21 +362,27 @@ val dest_skolem = unsuffix "__";
 
 (* read_nat *)
 
-fun read_nat str =
-  Option.map (#1 o Library.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
+fun read_nat s =
+  Option.map (#1 o Library.read_int)
+    (Scan.read Symbol.stopper scan_digits1 (Symbol.explode s));
 
 
 (* read_xnum *)
 
+local
+
 fun read_intinf cs : IntInf.int * string list =
-  let val zero = ord"0"
-      val limit = zero+10
-      fun scan (num,[]) = (num,[])
-        | scan (num, c::cs) =
-              if  zero <= ord c  andalso  ord c < limit
-              then scan(10*num + IntInf.fromInt (ord c - zero), cs)
-              else (num, c::cs)
-  in  scan(0,cs)  end;
+  let
+    val zero = ord "0";
+    val limit = zero + 10;
+    fun scan (num, []) = (num, [])
+      | scan (num, c :: cs) =
+          if zero <= ord c andalso ord c < limit
+          then scan (10 * num + IntInf.fromInt (ord c - zero), cs)
+          else (num, c :: cs)
+  in scan (0, cs) end;
+
+in
 
 fun read_xnum str =
   let
@@ -384,6 +393,8 @@ fun read_xnum str =
       | "-" :: cs => (~1, cs)
       | cs => (1, cs));
   in sign * #1 (read_intinf digs) end;
+
+end;
 
 
 (* read_ident(s) *)
