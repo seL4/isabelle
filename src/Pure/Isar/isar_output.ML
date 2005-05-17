@@ -297,7 +297,7 @@ val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
   ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
   ("show_structs", Library.setmp show_structs o boolean),
-  ("show_var_qmarks", Library.setmp show_var_qmarks o boolean),
+  ("show_question_marks", Library.setmp show_question_marks o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("locale", Library.setmp locale),
@@ -368,7 +368,7 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 fun pretty_term_style ctxt (name, term) =
   let
     val thy = ProofContext.theory_of ctxt
-  in pretty_term ctxt (TermStyle.lookup_style thy name ctxt term) end;
+  in pretty_term ctxt (TermStyle.the_style thy name ctxt term) end;
 
 fun pretty_thm_style ctxt (name, thm) = pretty_term_style ctxt (name, Thm.prop_of thm);
 
@@ -408,4 +408,3 @@ val _ = add_commands
   ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true)))];
 
 end;
-
