@@ -35,12 +35,15 @@ sig
   type stamp
   val stamp: unit -> stamp
 
-  (*options*)
-  val is_none: 'a option -> bool
-
   (*old options -- invalidated*)
   datatype invalid = None of invalid
   exception OPTION of invalid
+
+  (*options*)
+  val the: 'a option -> 'a
+  val if_none: 'a option -> 'a -> 'a
+  val is_some: 'a option -> bool
+  val is_none: 'a option -> bool
 
   exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -262,13 +265,6 @@ end;
 signature LIBRARY =
 sig
   include BASIC_LIBRARY
-
-  val the: 'a option -> 'a
-  val if_none: 'a option -> 'a -> 'a
-  val is_some: 'a option -> bool
-  val apsome: ('a -> 'b) -> 'a option -> 'b option
-
-  val rev_append: 'a list -> 'a list -> 'a list
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val take: int * 'a list -> 'a list
@@ -325,15 +321,21 @@ val stamp: unit -> stamp = ref;
 
 (** options **)
 
-val the = valOf;
-fun if_none opt a = getOpt (opt, a);
-val is_some = isSome;
-fun is_none opt = not (isSome opt);
-val apsome = Option.map;
-
 (*invalidate former constructors to prevent accidental use as match-all patterns!*)
 datatype invalid = None of invalid;
 exception OPTION of invalid;
+
+val the = Option.valOf;
+
+(*strict!*)
+fun if_none NONE y = y
+  | if_none (SOME x) _ = x;
+
+fun is_some (SOME _) = true
+  | is_some NONE = false;
+
+fun is_none (SOME _) = false
+  | is_none NONE = true;
 
 
 (* exception handling *)
@@ -445,8 +447,6 @@ fun cons x xs = x :: xs;
 fun single x = [x];
 
 fun append xs ys = xs @ ys;
-
-fun rev_append xs ys = List.revAppend (xs, ys);
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
