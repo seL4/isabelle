@@ -110,10 +110,10 @@ by (rule inv_equality [symmetric], auto)
 lemma bij_extend: "bij h ==> bij (extend (%(x,u::'c). h x))"
 apply (rule bijI)
 apply (blast intro: Extend.inj_extend)
-apply (rule_tac f = "extend (% (x,u) . inv h x) " in surjI) 
-apply (simplesubst inv_inv_eq [of h, symmetric], assumption) 
-apply (subst extend_inv, simp add: bij_imp_bij_inv) 
-apply (simp add: inv_inv_eq) 
+apply (rule_tac f = "extend (% (x,u) . inv h x)" in surjI) 
+apply (subst (1 2) inv_inv_eq [of h, symmetric], assumption+)
+apply (simp add: bij_imp_bij_inv extend_inv [of "inv h"]) 
+apply (simp add: inv_inv_eq)
 apply (rule Extend.extend_inverse) 
 apply (simp add: bij_imp_bij_inv) 
 done
@@ -146,14 +146,14 @@ lemmas surj_rename = bij_rename [THEN bij_is_surj, standard]
 
 lemma inj_rename_imp_inj: "inj (rename h) ==> inj h"
 apply (unfold inj_on_def, auto)
-apply (drule_tac x = "mk_program ({x}, {}, {}) " in spec)
-apply (drule_tac x = "mk_program ({y}, {}, {}) " in spec)
+apply (drule_tac x = "mk_program ({x}, {}, {})" in spec)
+apply (drule_tac x = "mk_program ({y}, {}, {})" in spec)
 apply (auto simp add: program_equality_iff rename_def extend_def)
 done
 
 lemma surj_rename_imp_surj: "surj (rename h) ==> surj h"
 apply (unfold surj_def, auto)
-apply (drule_tac x = "mk_program ({y}, {}, {}) " in spec)
+apply (drule_tac x = "mk_program ({y}, {}, {})" in spec)
 apply (auto simp add: program_equality_iff rename_def extend_def)
 done
 
