@@ -37,9 +37,6 @@ case "$ISABELLE_INTERFACE" in
   */*)
     INTERFACE="$ISABELLE_INTERFACE"
     ;;
-  *)
-    INTERFACE="$ISABELLE_HOME/lib/scripts/isa-$ISABELLE_INTERFACE"
-    ;;
 esac
 
 [ ! -x "$INTERFACE" ] && fail "Bad Isabelle interface: \"$ISABELLE_INTERFACE\""
