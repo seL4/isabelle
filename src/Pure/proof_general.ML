@@ -139,12 +139,12 @@ fun free_or_skolem x =
   | SOME x' => tagit skolem_tag x');
 
 fun var_or_skolem s =
-  (case Syntax.read_var s of
-    Var ((x, i), _) =>
+  (case Syntax.read_variable s of
+    SOME (x, i) =>
       (case try Syntax.dest_skolem x of
         NONE => tagit var_tag s
       | SOME x' => tagit skolem_tag (Syntax.string_of_vname (x', i)))
-  | _ => tagit var_tag s);
+  | NONE => tagit var_tag s);
 
 val proof_general_trans =
  Syntax.tokentrans_mode proof_generalN
@@ -593,9 +593,9 @@ val preferences = ref
      ("print-depth", 
       ("Setting for the ML print depth",
        print_depth_option)),
-     ("show-var-qmarks",
+     ("show-question-marks",
       ("Show leading question mark of variable name",
-       bool_option show_var_qmarks))]),
+       bool_option show_question_marks))]),
    ("Tracing",
     [("trace-simplifier", 
       ("Trace simplification rules.",
