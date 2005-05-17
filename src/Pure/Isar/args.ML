@@ -251,10 +251,7 @@ val name = named >> sym_of;
 
 val nat = some_ident Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
-
-(*variable name; leading '?' may be omitted if name contains no dot*)
-val read_var = try (#1 o Term.dest_Var o Syntax.read_var);
-val var = some_ident read_var || some_ident (fn x => read_var ("?" ^ x));
+val var = some_ident Syntax.read_variable;
 
 
 (* enumerations *)
@@ -399,4 +396,3 @@ fun pretty_attribs _ [] = []
       [Pretty.enclose "[" "]" (Pretty.commas (map (pretty_src ctxt) srcs))];
 
 end;
-
