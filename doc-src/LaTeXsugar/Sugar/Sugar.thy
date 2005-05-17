@@ -109,13 +109,13 @@ results in @{thm conjI[no_vars]}.
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{verbatim}
-reset show_var_qmarks;
+reset show_question_marks;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag reset.
 *}
 
-(*<*)ML"reset show_var_qmarks"(*>*)
+(*<*)ML"reset show_question_marks"(*>*)
 
 subsection "Inference rules"
 
@@ -339,7 +339,7 @@ text {*
     \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs ctxt t!\\
     \verb!    | my_lhs ctxt (_ $ t $ _) = t!\\
     \verb!    | my_lhs ctxt _ = error ("Binary operator expected")!\\
-    \verb!  in [TermStyle.update_style "new_lhs" my_lhs]!\\
+    \verb!  in [TermStyle.add_style "new_lhs" my_lhs]!\\
     \verb!end;!\\
     \verb!*!\verb!}!\\
   \end{quote}
