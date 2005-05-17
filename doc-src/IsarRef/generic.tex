@@ -873,7 +873,7 @@ method available for single-step case splitting.
 \end{matharray}
 
 \begin{rail}
-  'subst' thmref
+  'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
   ;
   'split' ('(' 'asm' ')')? thmrefs
   ;
@@ -887,8 +887,23 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 
 \begin{descr}
 
-\item [$subst~a$] performs a single substitution step using rule $a$, which
+\item [$subst~eq$] performs a single substitution step using rule $eq$, which
   may be either a meta or object equality.
+
+\item [$subst~(asm)~eq$] substitutes in an assumption.
+
+\item [$subst~(i \dots j)~eq$] performs several substitutions in the
+conclusion. The numbers $i$ to $j$ indicate the positions to substitute at.
+Positions are ordered from the top of the term tree moving down from left to
+right. For example, in $(a+b)+(c+d)$ there are three positions where
+commutativity of $+$ is applicable: 1 refers to the whole term, 2 to $a+b$
+and 3 to $c+d$. If the positions in the list $(i \dots j)$ are
+non-overlapping (e.g. $(2~3)$ in $(a+b)+(c+d)$) you may assume all
+substitutions are performed simultaneously. Otherwise the behaviour of
+$subst$ is not specified.
+
+\item [$subst~(asm)~(i \dots j)~eq$] performs the substitutions in the
+assumptions, which are treated as one big term.
 
 \item [$hypsubst$] performs substitution using some assumption; this only
   works for equations of the form $x = t$ where $x$ is a free or bound
