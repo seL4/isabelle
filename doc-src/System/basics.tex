@@ -391,50 +391,33 @@ by the {\ML} runtime environment.
 Isabelle is a generic theorem prover, even w.r.t.\ its user interface.  The
 \ttindex{Isabelle} (or \ttindex{isabelle-interface}) executable provides a
 uniform way for end-users to invoke a certain interface; which one to start is
-determined by the \settdx{ISABELLE_INTERFACE} setting variable.  Also note
-that the \texttt{install} utility provides some options to install desktop
-environment icons as well (see \S\ref{sec:tool-install}).
+determined by the \settdx{ISABELLE_INTERFACE} setting variable, which should
+give a full path specification to the actual executable.  Also note that the
+\texttt{install} utility provides some options to install desktop environment
+icons (see \S\ref{sec:tool-install}).
 
-An interface may be specified either by giving an identifier that the Isabelle
-distribution knows about, or by specifying an actual path name (containing a
-slash ``\texttt{/}'') of some executable.  Currently, the following interfaces
-are available:
-
-\begin{itemize}
-\item \texttt{none} is just a pass-through to raw \texttt{isabelle}. Thus
-  \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.  This is
-  the factory default.
-
-\item \texttt{emacs} refers to David Aspinall's \emph{Isamode}\index{user
-    interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,
-  the actual Isamode distribution is available elsewhere \cite{isamode}.
-  
-\item Proof~General~\cite{proofgeneral}\index{user interface!Proof General} is
-  an advanced interface for common theorem proving environments.  It has
-  become the de-facto standard for Isabelle recently, supporting both the old
-  ML top-level of classic Isabelle and the more convenient Isabelle/Isar
-  interpreter loop.  The Proof~General distributions includes separate
-  interface wrapper scripts (in \texttt{ProofGeneral/isa} and
-  \texttt{ProofGeneral/isar}).  The canonical settings for Isabelle/Isar are
-  as follows:
-  \begin{ttbox}
+Presently, the most prominent Isabelle interface is
+Proof~General~\cite{proofgeneral}\index{user interface!Proof General}.  There
+are separate versions for the raw ML top-level and the proper Isabelle/Isar
+interpreter loop.  The Proof~General distribution includes separate interface
+wrapper scripts (in \texttt{ProofGeneral/isa} and \texttt{ProofGeneral/isar})
+for either of these.  The canonical settings for Isabelle/Isar are as follows:
+\begin{ttbox}
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS=""
-  \end{ttbox}
-  Thus \texttt{Isabelle} would automatically invoke Emacs with proper setup of
-  the Proof~General Lisp packages.  There are some options available, such as
-  \texttt{-l} for passing the logic image to be used by default, or
-  \texttt{-m} to tune the standard print mode.  The \texttt{-I} option allows
-  to switch between the Isar and ML view, independently of the interface
-  script being used.
+\end{ttbox}
+Thus \texttt{Isabelle} would automatically invoke Emacs with proper setup of
+the Proof~General Lisp packages.  There are some options available, such as
+\texttt{-l} for passing the logic image to be used by default, or \texttt{-m}
+to tune the standard print mode.  The \texttt{-I} option allows to switch
+between the Isar and ML view, independently of the interface script being
+used.
   
-  \medskip Note that the world may be also seen the other way round: Emacs may
-  be started first (with proper setup of Proof~General mode), and
-  \texttt{isabelle} run from within.  This requires further Emacs Lisp
-  configuration, see the Proof~General documentation \cite{proofgeneral} for
-  more information.
-
-\end{itemize}
+\medskip Note that the world may be also seen the other way round: Emacs may
+be started first (with proper setup of Proof~General mode), and
+\texttt{isabelle} run from within.  This requires further Emacs Lisp
+configuration, see the Proof~General documentation \cite{proofgeneral} for
+more information.
 
 %%% Local Variables:
 %%% mode: latex
