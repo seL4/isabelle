@@ -168,7 +168,7 @@ sig
   val exists_subterm: (term -> bool) -> term -> bool
   val compress_type: typ -> typ
   val compress_term: term -> term
-  val show_var_qmarks: bool ref
+  val show_question_marks: bool ref
 end;
 
 signature TERM =
@@ -1117,17 +1117,22 @@ fun adhoc_freeze_vars tm =
 
 (* string_of_vname *)
 
-val show_var_qmarks = ref true;
+val show_question_marks = ref true;
 
 fun string_of_vname (x, i) =
   let
-    val si = string_of_int i;
-    val dot = getOpt (try (Symbol.is_digit o List.last o Symbol.explode) x, true);
-    val qmark = if !show_var_qmarks then "?" else "";
+    val question_mark = if ! show_question_marks then "?" else "";
+    val idx = string_of_int i;
+    val dot =
+      (case rev (Symbol.explode x) of
+        _ :: "\\<^isub>" :: _ => false
+      | _ :: "\\<^isup>" :: _ => false
+      | c :: _ => Symbol.is_digit c
+      | _ => true);
   in
-    if dot then qmark ^ x ^ "." ^ si
-    else if i = 0 then qmark ^ x
-    else qmark ^ x ^ si
+    if dot then question_mark ^ x ^ "." ^ idx
+    else if i <> 0 then question_mark ^ x ^ idx
+    else question_mark ^ x
   end;
 
 fun string_of_vname' (x, ~1) = x
