@@ -12,6 +12,8 @@ theory Fix
 imports Cfun Cprod
 begin
 
+subsection {* Definitions *}
+
 consts
 
 iterate	:: "nat=>('a->'a)=>'a=>'a"
@@ -35,7 +37,7 @@ adm_def:       "adm P == !Y. chain(Y) -->
 admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
 
-text {* Binder syntax for @{term fix} *}
+subsection {* Binder syntax for @{term fix} *}
 
 syntax
   "@FIX" :: "('a => 'a) => 'a"  (binder "FIX " 10)
@@ -50,12 +52,12 @@ translations
   "FIX x. t" == "fix\<cdot>(LAM x. t)"
   "FIX <xs>. t" == "fix\<cdot>(LAM <xs>. t)"
 
+subsection {* Properties of @{term iterate} and @{term fix} *}
+
 text {* derive inductive properties of iterate from primitive recursion *}
 
 lemma iterate_Suc2: "iterate (Suc n) F x = iterate n F (F$x)"
-apply (induct_tac "n")
-apply auto
-done
+by (induct_tac "n", auto)
 
 text {*
   The sequence of function iterations is a chain.
@@ -63,41 +65,23 @@ text {*
 *}
 
 lemma chain_iterate2: "x << F$x ==> chain (%i. iterate i F x)"
-apply (rule chainI)
-apply (induct_tac "i")
-apply auto
-apply (erule monofun_cfun_arg)
-done
+by (rule chainI, induct_tac "i", auto elim: monofun_cfun_arg)
 
 lemma chain_iterate: "chain (%i. iterate i F UU)"
-apply (rule chain_iterate2)
-apply (rule minimal)
-done
+by (rule chain_iterate2 [OF minimal])
 
 text {*
   Kleene's fixed point theorems for continuous functions in pointed
   omega cpo's
 *}
 
-lemma Ifix_eq: "Ifix F =F$(Ifix F)"
+lemma Ifix_eq: "Ifix F = F$(Ifix F)"
 apply (unfold Ifix_def)
+apply (subst lub_range_shift [of _ 1, symmetric])
+apply (rule chain_iterate)
 apply (subst contlub_cfun_arg)
 apply (rule chain_iterate)
-apply (rule antisym_less)
-apply (rule lub_mono)
-apply (rule chain_iterate)
-apply (rule ch2ch_Rep_CFunR)
-apply (rule chain_iterate)
-apply (rule allI)
-apply (rule iterate_Suc [THEN subst])
-apply (rule chain_iterate [THEN chainE])
-apply (rule is_lub_thelub)
-apply (rule ch2ch_Rep_CFunR)
-apply (rule chain_iterate)
-apply (rule ub_rangeI)
-apply (rule iterate_Suc [THEN subst])
-apply (rule is_ub_thelub)
-apply (rule chain_iterate)
+apply simp
 done
 
 lemma Ifix_least: "F$x=x ==> Ifix(F) << x"
@@ -108,166 +92,66 @@ apply (rule ub_rangeI)
 apply (induct_tac "i")
 apply (simp (no_asm_simp))
 apply (simp (no_asm_simp))
-apply (rule_tac t = "x" in subst)
-apply assumption
+apply (erule_tac t = "x" in subst)
 apply (erule monofun_cfun_arg)
 done
 
 text {* monotonicity and continuity of @{term iterate} *}
 
-lemma monofun_iterate: "monofun(iterate(i))"
-apply (rule monofunI [rule_format])
-apply (induct_tac "i")
-apply (simp)
-apply (simp add: less_fun monofun_cfun)
+lemma cont_iterate: "cont(iterate(i))"
+apply (induct_tac i)
+apply simp
+apply simp
+apply (rule cont2cont_CF1L_rev)
+apply (rule allI)
+apply (rule cont2cont_Rep_CFun)
+apply (rule cont_id)
+apply (erule cont2cont_CF1L)
 done
 
-text {*
-  The following lemma uses @{thm [source] contlub_cfun} which itself is based
-  on a diagonalisation lemma for continuous functions with two arguments. In
-  this special case it is the application function @{term Rep_CFun}
-*}
+lemma monofun_iterate: "monofun(iterate(i))"
+by (rule cont_iterate [THEN cont2mono])
 
 lemma contlub_iterate: "contlub(iterate(i))"
-apply (rule contlubI [rule_format])
-apply (induct_tac "i")
-apply (simp)
-apply (rule lub_const [THEN thelubI, symmetric])
-apply (simp del: range_composition)
-apply (rule ext)
-apply (simplesubst thelub_fun)
-apply (rule chainI)
-apply (rule less_fun [THEN iffD2])
-apply (rule allI)
-apply (rule chainE)
-apply (rule monofun_Rep_CFun1 [THEN ch2ch_MF2LR])
-apply (rule allI)
-apply (rule monofun_Rep_CFun2)
-apply assumption
-apply (rule ch2ch_fun)
-apply (rule monofun_iterate [THEN ch2ch_monofun])
-apply assumption
-apply (subst thelub_fun)
-apply (rule monofun_iterate [THEN ch2ch_monofun])
-apply assumption
-apply (rule contlub_cfun)
-apply assumption
-apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
-done
-
-lemma cont_iterate: "cont(iterate(i))"
-apply (rule monocontlub2cont)
-apply (rule monofun_iterate)
-apply (rule contlub_iterate)
-done
+by (rule cont_iterate [THEN cont2contlub])
 
 text {* a lemma about continuity of @{term iterate} in its third argument *}
 
+lemma cont_iterate2: "cont (iterate n F)"
+by (induct_tac "n", simp_all)
+
 lemma monofun_iterate2: "monofun(iterate n F)"
-apply (rule monofunI [rule_format])
-apply (induct_tac "n")
-apply (simp)
-apply (simp)
-apply (erule monofun_cfun_arg)
-done
+by (rule cont_iterate2 [THEN cont2mono])
 
 lemma contlub_iterate2: "contlub(iterate n F)"
-apply (rule contlubI [rule_format])
-apply (induct_tac "n")
-apply (simp)
-apply (simp)
-apply (rule_tac t = "iterate n F (lub (range (%u. Y u))) " and s = "lub (range (%i. iterate n F (Y i))) " in ssubst)
-apply assumption
-apply (rule contlub_cfun_arg)
-apply (erule monofun_iterate2 [THEN ch2ch_monofun])
-done
-
-lemma cont_iterate2: "cont (iterate n F)"
-apply (rule monocontlub2cont)
-apply (rule monofun_iterate2)
-apply (rule contlub_iterate2)
-done
+by (rule cont_iterate2 [THEN cont2contlub])
 
 text {* monotonicity and continuity of @{term Ifix} *}
 
-lemma monofun_Ifix: "monofun(Ifix)"
-apply (rule monofunI [rule_format])
+text {* better access to definitions *}
+
+lemma Ifix_def2: "Ifix=(%x. lub(range(%i. iterate i x UU)))"
+apply (rule ext)
 apply (unfold Ifix_def)
-apply (rule lub_mono)
-apply (rule chain_iterate)
-apply (rule chain_iterate)
-apply (rule allI)
-apply (rule less_fun [THEN iffD1, THEN spec], erule monofun_iterate [THEN monofunE, THEN spec, THEN spec, THEN mp])
-done
-
-text {*
-  since iterate is not monotone in its first argument, special lemmas must
-  be derived for lubs in this argument
-*}
-
-lemma chain_iterate_lub: 
-"chain(Y) ==> chain(%i. lub(range(%ia. iterate ia (Y i) UU)))"
-apply (rule chainI)
-apply (rule lub_mono)
-apply (rule chain_iterate)
-apply (rule chain_iterate)
-apply (rule allI)
-apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun, THEN chainE])
-done
-
-text {*
-  this exchange lemma is analog to the one for monotone functions
-  observe that monotonicity is not really needed. The propagation of
-  chains is the essential argument which is usually derived from monot.
-*}
-
-lemma contlub_Ifix_lemma1: "chain(Y) ==>iterate n (lub(range Y)) y = lub(range(%i. iterate n (Y i) y))"
-apply (rule thelub_fun [THEN subst])
-apply (erule monofun_iterate [THEN ch2ch_monofun])
-apply (simp add: contlub_iterate [THEN contlubE])
-done
-
-lemma ex_lub_iterate: "chain(Y) ==> 
-          lub(range(%i. lub(range(%ia. iterate i (Y ia) UU)))) = 
-          lub(range(%i. lub(range(%ia. iterate ia (Y i) UU))))"
-apply (rule antisym_less)
-apply (rule is_lub_thelub)
-apply (rule contlub_Ifix_lemma1 [THEN ext, THEN subst])
-apply assumption
-apply (rule chain_iterate)
-apply (rule ub_rangeI)
-apply (rule lub_mono)
-apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
-apply (erule chain_iterate_lub)
-apply (rule allI)
-apply (rule is_ub_thelub)
-apply (rule chain_iterate)
-apply (rule is_lub_thelub)
-apply (erule chain_iterate_lub)
-apply (rule ub_rangeI)
-apply (rule lub_mono)
-apply (rule chain_iterate)
-apply (rule contlub_Ifix_lemma1 [THEN ext, THEN subst])
-apply assumption
-apply (rule chain_iterate)
-apply (rule allI)
-apply (rule is_ub_thelub)
-apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
-done
-
-lemma contlub_Ifix: "contlub(Ifix)"
-apply (rule contlubI [rule_format])
-apply (unfold Ifix_def)
-apply (subst contlub_Ifix_lemma1 [THEN ext])
-apply assumption
-apply (erule ex_lub_iterate)
+apply (rule refl)
 done
 
 lemma cont_Ifix: "cont(Ifix)"
-apply (rule monocontlub2cont)
-apply (rule monofun_Ifix)
-apply (rule contlub_Ifix)
+apply (subst Ifix_def2)
+apply (subst cont_iterate [THEN cont2cont_CF1L, THEN beta_cfun, symmetric])
+apply (rule cont_lubcfun)
+apply (rule chainI)
+apply (rule less_cfun2)
+apply (simp add: cont_iterate [THEN cont2cont_CF1L] del: iterate_Suc)
+apply (rule chainE)
+apply (rule chain_iterate)
 done
+
+lemma monofun_Ifix: "monofun(Ifix)"
+by (rule cont_Ifix [THEN cont2mono])
+
+lemma contlub_Ifix: "contlub(Ifix)"
+by (rule cont_Ifix [THEN cont2contlub])
 
 text {* propagate properties of @{term Ifix} to its continuous counterpart *}
 
@@ -342,14 +226,6 @@ fun case_prover thy unfold s = prove_goal thy s (fn prems => [
 	Auto_tac
 	])
 *)
-text {* better access to definitions *}
-
-lemma Ifix_def2: "Ifix=(%x. lub(range(%i. iterate i x UU)))"
-apply (rule ext)
-apply (unfold Ifix_def)
-apply (rule refl)
-done
-
 text {* direct connection between @{term fix} and iteration without @{term Ifix} *}
 
 lemma fix_def2: "fix$F = lub(range(%i. iterate i F UU))"
@@ -358,7 +234,7 @@ apply (fold Ifix_def)
 apply (simp (no_asm_simp) add: cont_Ifix)
 done
 
-text {* Lemmas about admissibility and fixed point induction *}
+subsection {* Admissibility and fixed point induction *}
 
 text {* access to definitions *}
 
