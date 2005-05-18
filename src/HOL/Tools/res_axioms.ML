@@ -7,19 +7,33 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 
 
-signature RES_ELIM_RULE =
-sig
+signature RES_AXIOMS =
+  sig
+  exception ELIMR2FOL of string
+  val elimRule_tac : thm -> Tactical.tactic
+  val elimR2Fol : thm -> Term.term
+  val transform_elim : thm -> thm
+  
+  val clausify_axiom : thm -> ResClause.clause list
+  val cnf_axiom : (string * thm) -> thm list
+  val meta_cnf_axiom : thm -> thm list
+  val cnf_rule : thm -> thm list
+  val cnf_classical_rules_thy : theory -> thm list list * thm list
+  val clausify_classical_rules_thy : theory -> ResClause.clause list list * thm list
+  val cnf_simpset_rules_thy : theory -> thm list list * thm list
+  val clausify_simpset_rules_thy : theory -> ResClause.clause list list * thm list
+  val rm_Eps 
+  : (Term.term * Term.term) list -> thm list -> Term.term list
+  val claset_rules_of_thy : theory -> (string * thm) list
+  val simpset_rules_of_thy : theory -> (string * thm) list
+  val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
+  end;
 
-exception ELIMR2FOL of string
-val elimRule_tac : thm -> Tactical.tactic
-val elimR2Fol : thm -> Term.term
-val transform_elim : thm -> thm
-
-end;
-
-structure ResElimRule: RES_ELIM_RULE =
-
+structure ResAxioms : RES_AXIOMS =
+ 
 struct
+
+(**** Transformation of Elimination Rules into First-Order Formulas****)
 
 (* a tactic used to prove an elim-rule. *)
 fun elimRule_tac thm =
@@ -111,56 +125,27 @@ fun elimR2Fol elimR =
     end;
 
 
-
-(**** use prove_goalw_cterm to prove ****)
-
-(* convert an elim-rule into an equivalent theorem that does not have the predicate variable. *) 
-fun transform_elim thm =
-    let val tm = elimR2Fol thm
-	val ctm = cterm_of (sign_of_thm thm) tm	
-    in
-	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac thm])
-    end;	
-
-
-end;
-
-
-
-signature RES_AXIOMS =
-sig
-
-val clausify_axiom : thm -> ResClause.clause list
-val cnf_axiom : (string * thm) -> thm list
-val meta_cnf_axiom : thm -> thm list
-val cnf_elim : thm -> thm list
-val cnf_rule : thm -> thm list
-val cnf_classical_rules_thy : theory -> thm list list * thm list
-val clausify_classical_rules_thy : theory -> ResClause.clause list list * thm list
-val cnf_simpset_rules_thy : theory -> thm list list * thm list
-val clausify_simpset_rules_thy : theory -> ResClause.clause list list * thm list
-val rm_Eps 
-: (Term.term * Term.term) list -> thm list -> Term.term list
-val claset_rules_of_thy : theory -> (string * thm) list
-val simpset_rules_of_thy : theory -> (string * thm) list
-val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
-
-end;
-
-structure ResAxioms : RES_AXIOMS =
- 
-struct
-
-open ResElimRule;
-
-(* to be fixed: cnf_intro, cnf_rule, is_introR *)
-
 (* check if a rule is an elim rule *)
 fun is_elimR thm = 
     case (concl_of thm) of (Const ("Trueprop", _) $ Var (idx,_)) => true
 			 | Var(indx,Type("prop",[])) => true
 			 | _ => false;
 
+(* convert an elim-rule into an equivalent theorem that does not have the 
+   predicate variable.  Leave other theorems unchanged.*) 
+fun transform_elim thm =
+  if is_elimR thm then
+    let val tm = elimR2Fol thm
+	val ctm = cterm_of (sign_of_thm thm) tm	
+    in
+	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac thm])
+    end
+  else thm;
+
+
+(**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
+
+(* to be fixed: cnf_intro, cnf_rule, is_introR *)
 
 (* repeated resolution *)
 fun repeat_RS thm1 thm2 =
@@ -180,10 +165,7 @@ fun skolem_axiom thm =
   else raise THM ("skolem_axiom: not first-order", 0, [thm]);
 
 
-fun cnf_rule thm = make_clauses [skolem_axiom thm]
-
-fun cnf_elim thm = cnf_rule (transform_elim thm);
-
+fun cnf_rule thm = make_clauses [skolem_axiom (transform_elim thm)];
 
 (*Transfer a theorem in to theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
@@ -203,12 +185,10 @@ val rm_redundant_cls = List.filter (not o is_taut);
 
 (* transform an Isabelle thm into CNF *)
 fun cnf_axiom_aux thm =
-    let val thm' = transfer_to_Reconstruction thm
-	val thm'' = if (is_elimR thm') then (cnf_elim thm')  else cnf_rule thm'
-    in
-	map (zero_var_indexes o Thm.varifyT) (rm_redundant_cls thm'')
-    end;
-    
+    map (zero_var_indexes o Thm.varifyT) 
+        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction thm)));
+       
+       
 (*Cache for clauses: could be a hash table if we provided them.*)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
@@ -292,11 +272,12 @@ fun rm_Eps _ [] = []
 fun clausify_axiom thm =
     let val name = Thm.name_of_thm thm
 	val isa_clauses = cnf_axiom (name, thm)
-	      (*"isa_clauses" are already "standard"ed. *)
+	      (*"isa_clauses" are already in "standard" form. *)
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
 	fun make_axiom_clauses _ [] = []
-	  | make_axiom_clauses i (cls::clss) = (ResClause.make_axiom_clause cls (name,i)) :: make_axiom_clauses (i+1) clss 
+	  | make_axiom_clauses i (cls::clss) = 
+	      (ResClause.make_axiom_clause cls (name,i)) :: make_axiom_clauses (i+1) clss 
     in
 	make_axiom_clauses 0 isa_clauses'		
     end;
