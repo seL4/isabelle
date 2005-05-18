@@ -25,6 +25,12 @@ sig
   val seq_is_empty : 'a Seq.seq -> bool
   val number_seq : 'a Seq.seq -> (int * 'a) Seq.seq
 
+  datatype 'a skipseqT = 
+           skipmore of int
+         | skipseq of 'a Seq.seq Seq.seq;
+  val skipto_seqseq : int -> 'a Seq.seq Seq.seq -> 'a skipseqT
+  val seqflat_seq : 'a Seq.seq Seq.seq -> 'a Seq.seq 
+
   (* lists *)
   val mk_num_list : int -> int list
   val number_list : int -> 'a list -> (int * 'a) list
@@ -164,9 +170,51 @@ fun all_but_last_of_seq s =
  
   (* First result of a tactic... uses NTH, so if there is no elements,
 
-
      then no_tac is returned. *)
   fun FST f = NTH 1 f;
+
+datatype 'a skipseqT = skipmore of int
+  | skipseq of 'a Seq.seq Seq.seq;
+(* given a seqseq, skip the first m non-empty seq's *)
+fun skipto_seqseq m s = 
+    let 
+      fun skip_occs n sq = 
+          case Seq.pull sq of 
+            NONE => skipmore n
+          | SOME (h,t) => 
+            (case Seq.pull h of NONE => skip_occs n t
+             | SOME _ => if n <= 1 then skipseq (Seq.cons (h, t))
+                         else skip_occs (n - 1) t)
+    in (skip_occs m s) end;
+
+(* handy function for re-arranging Sequence operations *)
+(* [[a,b,c],[d,e],...] => flatten [[a,d,...], [b,e,...], [c, ...]] *)
+fun seqflat_seq ss = 
+    let 
+      fun pulltl LL () = 
+          (case Seq.pull LL of 
+             NONE => NONE
+           | SOME (hL,tLL) => 
+             (case Seq.pull hL of 
+                NONE => pulltl tLL ()
+              | SOME (h,tL) => 
+                SOME (h, Seq.make (recf (tLL, (Seq.single tL))))))
+      and recf (fstLL,sndLL) () = 
+          (case Seq.pull fstLL of 
+             NONE => pulltl sndLL ()
+           | SOME (hL, tLL) => 
+             (case Seq.pull hL of 
+                NONE => recf (tLL, sndLL) ()
+              | SOME (h,tL) => 
+                SOME (h, Seq.make (recf (tLL, Seq.append (sndLL, Seq.single tL))))))
+    in Seq.make (pulltl ss) end;
+(* tested with: 
+val ss = Seq.of_list [Seq.of_list [1,2,3], Seq.of_list [4,5], Seq.of_list [7,8,9,10]];
+Seq.list_of (seqflat_seq ss);
+val it = [1, 4, 7, 2, 5, 8, 3, 9, 10] : int list
+*)
+
+
 
   (* create a list opf the form (n, n-1, n-2, ... ) *)
   fun mk_num_list n =  
