@@ -383,7 +383,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs ctxt t!\\
     \verb!    | my_lhs ctxt (_ $ t $ _) = t!\\
     \verb!    | my_lhs ctxt _ = error ("Binary operator expected")!\\
-    \verb!  in [TermStyle.update_style "new_lhs" my_lhs]!\\
+    \verb!  in [TermStyle.add_style "new_lhs" my_lhs]!\\
     \verb!end;!\\
     \verb!*!\verb!}!\\
   \end{quote}
