@@ -342,7 +342,7 @@ in
     else if is_ascii_quasi s then Quasi
     else if is_ascii_blank s then Blank
     else if is_char s then Other
-    else getOpt (Symtab.lookup (symbol_kinds, s), Other);
+    else if_none (Symtab.lookup (symbol_kinds, s)) Other;
 end;
 
 fun is_letter s = kind s = Letter;
@@ -417,7 +417,7 @@ fun no_explode [] = true
 fun sym_explode str =
   let val chs = explode str in
     if no_explode chs then chs
-    else valOf (Scan.read stopper (Scan.repeat scan) chs)
+    else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
 val chars_only = not o exists_string (equal "\\");

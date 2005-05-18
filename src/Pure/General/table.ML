@@ -95,12 +95,12 @@ fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
 fun exists P tab = foldl_table (fn (false, e) => P e | (b, _) => b) (false, tab);
 
 fun min_key Empty = NONE
-  | min_key (Branch2 (left, (k, _), _)) = SOME (getOpt (min_key left, k))
-  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (getOpt (min_key left, k));
+  | min_key (Branch2 (left, (k, _), _)) = SOME (if_none (min_key left) k)
+  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (if_none (min_key left) k);
 
 fun max_key Empty = NONE
-  | max_key (Branch2 (_, (k, _), right)) = SOME (getOpt (max_key right, k))
-  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (getOpt (max_key right, k));
+  | max_key (Branch2 (_, (k, _), right)) = SOME (if_none (max_key right) k)
+  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (if_none (max_key right) k);
 
 
 (* lookup *)
@@ -184,7 +184,7 @@ fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
 fun extend (table, args) =
   let
     fun add (key, x) (tab, dups) =
-      if isSome (lookup (tab, key)) then (tab, key :: dups)
+      if is_some (lookup (tab, key)) then (tab, key :: dups)
       else (update ((key, x), tab), dups);
   in
     (case fold add args (table, []) of
@@ -212,12 +212,12 @@ fun del (SOME k) Empty = raise UNDEF k
   | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))
   | del k (Branch2 (Empty, p, Empty)) = (case compare k p of
-      EQUAL => (p, (true, Empty)) | _ => raise UNDEF (valOf k))
+      EQUAL => (p, (true, Empty)) | _ => raise UNDEF (the k))
   | del k (Branch3 (Empty, p, Empty, q, Empty)) = (case compare k p of
       EQUAL => (p, (false, Branch2 (Empty, q, Empty)))
     | _ => (case compare k q of
         EQUAL => (q, (false, Branch2 (Empty, p, Empty)))
-      | _ => raise UNDEF (valOf k)))
+      | _ => raise UNDEF (the k)))
   | del k (Branch2 (l, p, r)) = (case compare k p of
       LESS => (case del k l of
         (p', (false, l')) => (p', (false, Branch2 (l', p, r)))
@@ -311,7 +311,7 @@ fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 
 (* tables with multiple entries per key *)
 
-fun lookup_multi arg = getOpt (lookup arg, []);
+fun lookup_multi arg = if_none (lookup arg) [];
 
 fun update_multi ((key, x), tab) = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 

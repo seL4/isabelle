@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/isar_output.ML
     ID:         $Id$
-    Author:     Florian Haftmann, TU Muenchen
+    Author:     Markus Wenzel, TU Muenchen
 
 Isar theory output.
 *)
@@ -310,6 +310,7 @@ val _ = add_options
   ("source", Library.setmp source o boolean),
   ("goals_limit", Library.setmp goals_limit o integer)];
 
+
 (* commands *)
 
 fun cond_quote prt =
@@ -345,23 +346,17 @@ val pretty_source =
 
 fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
-fun pretty_term_typ_old ctxt term = Pretty.block [
-  ((ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt) term),
-  (Pretty.str "\\<Colon>") (* q'n'd *),
-  ((ProofContext.pretty_typ ctxt o Term.type_of o ProofContext.extern_skolem ctxt) term)
-  ]
+fun pretty_term_typ ctxt t =
+  (Syntax.const Syntax.constrainC $
+    ProofContext.extern_skolem ctxt t $
+    Syntax.term_of_typ (! show_sorts) (Term.fastype_of t))
+  |> ProofContext.pretty_term ctxt;
 
-fun pretty_term_typ ctxt term = let val t = (ProofContext.extern_skolem ctxt term) in
-  ProofContext.pretty_term ctxt (
-    Syntax.const Syntax.constrainC $ t $ Syntax.term_of_typ (!show_sorts) (fastype_of t)
-  )
-end;
+fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of;
 
-fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of o ProofContext.extern_skolem ctxt;
-
-fun pretty_term_const ctxt (Const c) = pretty_term ctxt (Const c)
-  | pretty_term_const ctxt term =
-      raise (Output.ERROR_MESSAGE ("Not a defined constant: " ^ (Term.string_of_term term)))
+fun pretty_term_const ctxt t =
+  if Term.is_Const t then pretty_term ctxt t
+  else error ("Logical constant expected: " ^ ProofContext.string_of_term ctxt t);
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 

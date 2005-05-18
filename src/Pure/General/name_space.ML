@@ -76,7 +76,7 @@ val accesses' = map pack o Library.suffixes1 o unpack;
 (* basic operations *)
 
 fun map_space f xname tab =
-  Symtab.update ((xname, f (getOpt (Symtab.lookup (tab, xname), ([], [])))), tab);
+  Symtab.update ((xname, f (if_none (Symtab.lookup (tab, xname)) ([], []))), tab);
 
 fun change f xname (name, tab) =
   map_space (fn (names, names') => (f names name, names')) xname tab;

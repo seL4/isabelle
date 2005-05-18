@@ -71,8 +71,8 @@ fun cons x_xq = make (fn () => SOME x_xq);
 fun single x = cons (x, empty);
 
 (*head and tail -- beware of calling the sequence function twice!!*)
-fun hd xq = #1 (valOf (pull xq))
-and tl xq = #2 (valOf (pull xq));
+fun hd xq = #1 (the (pull xq))
+and tl xq = #2 (the (pull xq));
 
 (*partial function as procedure*)
 fun try f x =
