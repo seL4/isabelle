@@ -421,173 +421,106 @@ done
 lemma adm_eq: "[|cont u ; cont v|]==> adm(%x. u x = v x)"
 by (simp add: po_eq_conv)
 
-text {* admissibility for disjunction is hard to prove. It takes 10 Lemmas *}
+text {* admissibility for disjunction is hard to prove. It takes 7 Lemmas *}
 
-lemma adm_disj_lemma1: "!n. P(Y n)|Q(Y n) ==> (? i.!j. R i j --> Q(Y(j))) | (!i.? j. R i j & P(Y(j)))"
-by fast
+lemma adm_disj_lemma1:
+  "\<forall>n::nat. P n \<or> Q n \<Longrightarrow> (\<forall>i. \<exists>j\<ge>i. P j) \<or> (\<forall>i. \<exists>j\<ge>i. Q j)"
+apply (erule contrapos_pp)
+apply clarsimp
+apply (rule exI)
+apply (rule conjI)
+apply (drule spec, erule mp)
+apply (rule le_maxI1)
+apply (drule spec, erule mp)
+apply (rule le_maxI2)
+done
 
-lemma adm_disj_lemma2: "[| adm(Q); ? X. chain(X) & (!n. Q(X(n))) & 
-      lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
+lemma adm_disj_lemma2: "[| adm P; \<exists>X. chain X & (!n. P(X n)) & 
+      lub(range Y)=lub(range X)|] ==> P(lub(range Y))"
 by (force elim: admD)
 
-lemma adm_disj_lemma3: "chain Y ==> chain (%m. if m < Suc i then Y (Suc i) else Y m)"
-apply (unfold chain_def)
-apply (simp)
-apply safe
-apply (subgoal_tac "ia = i")
-apply (simp_all)
-done
-
-lemma adm_disj_lemma4: "!j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
-by (simp)
-
-lemma adm_disj_lemma5: 
-  "!!Y::nat=>'a::cpo. [| chain(Y); ! j. i < j --> Q(Y(j)) |] ==> 
-          lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
-apply (safe intro!: lub_equal2 adm_disj_lemma3)
-prefer 2 apply (assumption)
-apply (rule_tac x = "i" in exI)
-apply (simp)
-done
-
-lemma adm_disj_lemma6: 
-  "[| chain(Y::nat=>'a::cpo); ? i. ! j. i < j --> Q(Y(j)) |] ==> 
-            ? X. chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
-apply (erule exE)
-apply (rule_tac x = "%m. if m<Suc (i) then Y (Suc (i)) else Y m" in exI)
-apply (rule conjI)
-apply (rule adm_disj_lemma3)
-apply assumption
-apply (rule conjI)
-apply (rule adm_disj_lemma4)
-apply assumption
-apply (rule adm_disj_lemma5)
-apply assumption
-apply assumption
-done
-
-lemma adm_disj_lemma7: 
-  "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j))  |] ==> 
-            chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
+lemma adm_disj_lemma3: 
+  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j) |] ==> 
+            chain(%m. Y (LEAST j. m\<le>j \<and> P(Y j)))"
 apply (rule chainI)
-apply (rule chain_mono3)
-apply assumption
+apply (erule chain_mono3)
 apply (rule Least_le)
 apply (rule conjI)
-apply (rule Suc_lessD)
+apply (rule Suc_leD)
 apply (erule allE)
 apply (erule exE)
-apply (rule LeastI [THEN conjunct1])
-apply assumption
-apply (erule allE)
-apply (erule exE)
-apply (rule LeastI [THEN conjunct2])
-apply assumption
-done
-
-lemma adm_disj_lemma8: 
-  "[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(LEAST j::nat. m<j & P(Y(j))))"
-apply (intro strip)
+apply (erule LeastI [THEN conjunct1])
 apply (erule allE)
 apply (erule exE)
 apply (erule LeastI [THEN conjunct2])
 done
 
-lemma adm_disj_lemma9: 
-  "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==> 
-            lub(range(Y)) = lub(range(%m. Y(Least(%j. m<j & P(Y(j))))))"
-apply (rule antisym_less)
-apply (rule lub_mono)
-apply assumption
-apply (rule adm_disj_lemma7)
-apply assumption
-apply assumption
-apply (intro strip)
-apply (rule chain_mono)
-apply assumption
+lemma adm_disj_lemma4: 
+  "[| \<forall>i. \<exists>j\<ge>i. P (Y j) |] ==> ! m. P(Y(LEAST j::nat. m\<le>j & P(Y j)))"
+apply (rule allI)
 apply (erule allE)
 apply (erule exE)
-apply (rule LeastI [THEN conjunct1])
-apply assumption
-apply (rule lub_mono3)
-apply (rule adm_disj_lemma7)
-apply assumption
-apply assumption
-apply assumption
-apply (intro strip)
-apply (rule exI)
-apply (rule chain_mono)
-apply assumption
-apply (rule lessI)
+apply (erule LeastI [THEN conjunct2])
 done
 
-lemma adm_disj_lemma10: "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==> 
-            ? X. chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
-apply (rule_tac x = "%m. Y (Least (%j. m<j & P (Y (j))))" in exI)
-apply (rule conjI)
-apply (rule adm_disj_lemma7)
-apply assumption
-apply assumption
-apply (rule conjI)
-apply (rule adm_disj_lemma8)
-apply assumption
-apply (rule adm_disj_lemma9)
-apply assumption
-apply assumption
+lemma adm_disj_lemma5: 
+  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j) |] ==> 
+            lub(range(Y)) = (LUB m. Y(LEAST j. m\<le>j & P(Y j)))"
+ apply (rule antisym_less)
+  apply (rule lub_mono)
+    apply assumption
+   apply (erule adm_disj_lemma3)
+   apply assumption
+  apply (rule allI)
+  apply (erule chain_mono3)
+  apply (erule allE)
+  apply (erule exE)
+  apply (erule LeastI [THEN conjunct1])
+ apply (rule lub_mono3)
+   apply (erule adm_disj_lemma3)
+   apply assumption
+  apply assumption
+ apply (rule allI)
+ apply (rule exI)
+ apply (rule refl_less)
 done
 
-lemma adm_disj_lemma12: "[| adm(P); chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
+lemma adm_disj_lemma6:
+  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j) |] ==> 
+            \<exists>X. chain X & (\<forall>n. P(X n)) & lub(range Y) = lub(range X)"
+apply (rule_tac x = "%m. Y (LEAST j. m\<le>j & P (Y j))" in exI)
+apply (fast intro!: adm_disj_lemma3 adm_disj_lemma4 adm_disj_lemma5)
+done
+
+lemma adm_disj_lemma7:
+"[| adm(P); chain(Y); \<forall>i. \<exists>j\<ge>i. P(Y j) |]==>P(lub(range(Y)))"
 apply (erule adm_disj_lemma2)
 apply (erule adm_disj_lemma6)
 apply assumption
 done
 
-lemma adm_lemma11: 
-"[| adm(P); chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
-apply (erule adm_disj_lemma2)
-apply (erule adm_disj_lemma10)
-apply assumption
-done
-
 lemma adm_disj: "[| adm P; adm Q |] ==> adm(%x. P x | Q x)"
 apply (rule admI)
-apply (rule adm_disj_lemma1 [THEN disjE])
+apply (erule adm_disj_lemma1 [THEN disjE])
+apply (rule disjI1)
+apply (erule adm_disj_lemma7)
+apply assumption
 apply assumption
 apply (rule disjI2)
-apply (erule adm_disj_lemma12)
-apply assumption
-apply assumption
-apply (rule disjI1)
-apply (erule adm_lemma11)
+apply (erule adm_disj_lemma7)
 apply assumption
 apply assumption
 done
 
 lemma adm_imp: "[| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)"
-apply (subgoal_tac " (%x. P x --> Q x) = (%x. ~P x | Q x) ")
-apply (erule ssubst)
-apply (erule adm_disj)
-apply assumption
-apply (simp)
-done
+by (subst imp_conv_disj, rule adm_disj)
 
 lemma adm_iff: "[| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |]  
             ==> adm (%x. P x = Q x)"
-apply (subgoal_tac " (%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))")
-apply (simp)
-apply (rule ext)
-apply fast
-done
-
+by (subst iff_conv_conj_imp, rule adm_conj)
 
 lemma adm_not_conj: "[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"
-apply (subgoal_tac " (%x. ~ (P x & Q x)) = (%x. ~ P x | ~ Q x) ")
-apply (rule_tac [2] ext)
-prefer 2 apply fast
-apply (erule ssubst)
-apply (erule adm_disj)
-apply assumption
-done
+by (subst de_Morgan_conj, rule adm_disj)
 
 lemmas adm_lemmas = adm_not_free adm_imp adm_disj adm_eq adm_not_UU
         adm_UU_not_less adm_all2 adm_not_less adm_not_conj adm_iff
