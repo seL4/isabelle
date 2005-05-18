@@ -232,9 +232,6 @@ fun apply_subst_in_concl i th (cfvs, conclthm) rule m =
       |> IsaND.unfix_frees cfvs
       |> RWInst.beta_eta_contract
       |> (fn r => Tactic.rtac r i th);
-(*
- |> (fn r => Thm.bicompose false (false, r, Thm.nprems_of r) i th)
-*)
 
 (* substitute within the conclusion of goal i of gth, using a meta
 equation rule. Note that we assume rule has var indicies zero'd *)
@@ -330,7 +327,7 @@ fun eqsubst_meth occL inthms =
           HEADGOAL ( Method.insert_tac facts THEN' eqsubst_tac occL inthms ));
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
-fun apply_subst_in_asm i th rule ((cfvs, j, nprems, pth),m) = 
+fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) = 
     let 
       val th2 = Thm.rotate_rule (j - 1) i th; (* put premice first *)
       val preelimrule = 
@@ -339,18 +336,21 @@ fun apply_subst_in_asm i th rule ((cfvs, j, nprems, pth),m) =
             |> Thm.permute_prems 0 ~1 (* put old asm first *)
             |> IsaND.unfix_frees cfvs (* unfix any global params *)
             |> RWInst.beta_eta_contract; (* normal form *)
-      val elimrule = 
+  (*    val elimrule = 
           preelimrule
             |> Tactic.make_elim (* make into elim rule *)
             |> Thm.lift_rule (th2, i); (* lift into context *)
+   *)
     in
       (* ~j because new asm starts at back, thus we subtract 1 *)
-      Seq.map (Thm.rotate_rule (~j) (nprems + i))
-              (Thm.bicompose 
+      Seq.map (Thm.rotate_rule (~j) ((Thm.nprems_of rule) + i))
+      (Tactic.dtac preelimrule i th2)
+
+      (* (Thm.bicompose 
                  false (* use unification *)
                  (true, (* elim resolution *)
-                  elimrule, 2 + nprems) 
-                 i th2)
+                  elimrule, (2 + (Thm.nprems_of rule)) - ngoalprems)
+                 i th2) *)
     end;
 
 
