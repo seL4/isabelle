@@ -1472,18 +1472,19 @@ for simplifications.
   packages, such as $\isarkeyword{datatype}$.
   
 \item [$\isarkeyword{thms_containing}~\vec c$] retrieves facts from the theory
-  or proof context matching all of the search criteria $\vec c$. Valid
-  criteria are $\isarkeyword{intro}$, $\isarkeyword{elim}$, and
-  $\isarkeyword{dest}$, selecting theorems that match the current goal
-  as introduction, elimination or destruction rules respectively,
-  $\isarkeyword{name}$ $:$ $s$, selecting all theorems that contain
-  $s$ in their fully qualified name, and finally any term $t$ which
-  may contain occurrences of ``$\_$'' and type restrictions, selecting
-  theorems that contain the pattern $t$. Criteria can be preceded by
-  \texttt{-} to select theorems that do \emph{not} match. Note that
-  giving the empty list of criteria yields \emph{all} currently known
-  facts.  An optional limit for the number of printed facts may be
-  given; the default is 40.
+  or proof context matching all of the search criteria $\vec c$. The
+  criteria $\isarkeyword{intro}$, $\isarkeyword{elim}$, and
+  $\isarkeyword{dest}$ select theorems that match the current goal as
+  introduction, elimination or destruction rules respectively. The
+  criterion $\isarkeyword{name}$ $:$ $s$ selects all theorems that
+  contain $s$ in their fully qualified name and the criterion which
+  consists of any term $t$ selects theorems that contain the pattern
+  $t$, which may contain occurrences of ``$\_$'' as well as type
+  restrictions.  Criteria can be preceded by \texttt{-} to select
+  theorems that do \emph{not} match. Note that giving the empty list
+  of criteria yields \emph{all} currently known facts.  An optional
+  limit for the number of printed facts may be given; the default is
+  40.
   
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
