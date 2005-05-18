@@ -89,10 +89,20 @@ New in this Isabelle release
 * Pure: new flag show_question_marks controls printing of leading
   question marks in schematic variable names.
 
-* Pure: new version of thms_containing that searches for a list 
-  of patterns instead of a list of constants. Available in 
-  ProofGeneral under ProofGeneral -> Find Theorems or C-c C-f. 
-  Example search: "(_::nat) + _ + _"   "_ ==> _"
+* Pure: new version of thms_containing that searches for a list of
+  criteria instead of a list of constants. Known criteria are: intro,
+  elim, dest, name:string, and any term. Criteria can be preceded by
+  '-' to select theorems that do not match. Intro, elim, dest select
+  theorems that match the current goal, name:s selects theorems whose
+  fully qualified name contain s.  Any other term is interpreted as
+  pattern and selects all theorem matching the pattern. Available in
+  ProofGeneral under ProofGeneral -> Find Theorems or C-c C-f.
+
+  Example: C-c C-f (100) "(_::nat) + _ + _" intro -name:"HOL."
+
+  prints the last 100 theorems matching the pattern "(_::nat) + _ + _",
+  matching the current goal as introduction rule and not having "HOL." 
+  in their name (i.e. not being defined in theory HOL).
 
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
