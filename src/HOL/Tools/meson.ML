@@ -14,6 +14,7 @@ FUNCTION nodups -- if done to goal clauses too!
 signature BASIC_MESON =
 sig
   val size_of_subgoals	: thm -> int
+  val make_cnf		: thm list -> thm -> thm list
   val make_nnf		: thm -> thm
   val skolemize		: thm -> thm
   val make_clauses	: thm list -> thm list
@@ -122,32 +123,43 @@ fun freeze_spec th =
 		     radixstring(26, "A", !name_ref))
   in  read_instantiate [("x", newname)] sth  end;
 
+(*Used with METAHYPS below. There is one assumption, which gets bound to prem
+  and then normalized via function nf. The normal form is given to resolve_tac,
+  presumably to instantiate a Boolean variable.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
-(*Conjunctive normal form, detecting tautologies early.
-  Strips universal quantifiers and breaks up conjunctions. *)
-fun cnf_aux seen (th,ths) =
- if taut_lits (literals(prop_of th) @ seen)  
-  then ths     (*tautology ignored*)
-  else if not (has_consts ["All","op &"] (prop_of th))  
-  then th::ths (*no work to do, terminate*)
-  else (*conjunction?*)
-	cnf_aux seen (th RS conjunct1,
-		      cnf_aux seen (th RS conjunct2, ths))
-  handle THM _ => (*universal quant?*)
-	cnf_aux  seen (freeze_spec th,  ths)
-  handle THM _ => (*disjunction?*)
-    let val tac =
-	(METAHYPS (resop (cnf_nil seen)) 1) THEN
-	(fn st' => st' |>
+(*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
+  Detects tautologies early, with "seen" holding the other literals of a clause.
+  Strips universal quantifiers and breaks up conjunctions.
+  Eliminates existential quantifiers using skoths: Skolemization theorems.*)
+fun cnf skoths (th,ths) =
+  let fun cnf_aux seen (th,ths) =
+        if taut_lits (literals(prop_of th) @ seen)  
+	then ths     (*tautology ignored*)
+	else if not (has_consts ["All","Ex","op &"] (prop_of th))  
+	then th::ths (*no work to do, terminate*)
+	else (*conjunction?*)
+	      cnf_aux seen (th RS conjunct1,
+			    cnf_aux seen (th RS conjunct2, ths))
+	handle THM _ => (*universal quantifier?*)
+	      cnf_aux seen (freeze_spec th,  ths)
+	handle THM _ => (*existential quantifier? Insert Skolem functions.*)
+	      cnf_aux seen (tryres (th,skoths), ths)
+	handle THM _ => (*disjunction?*)
+	  let val tac =
+	      (METAHYPS (resop (cnf_nil seen)) 1) THEN
+	     (fn st' => st' |>  
 		METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
-    in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
-and cnf_nil seen th = (cnf_aux seen (th,[]))
+	  in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
+      and cnf_nil seen th = (cnf_aux seen (th,[]))
+  in 
+    name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
+    (cnf skoths (th RS conjunct1, cnf skoths (th RS conjunct2, ths))
+     handle THM _ => (*not a conjunction*) cnf_aux [] (th, ths))
+  end;
 
-(*Top-level call to cnf -- it's safe to reset name_ref*)
-fun cnf (th,ths) =
-   (name_ref := 19;  cnf (th RS conjunct1, cnf (th RS conjunct2, ths))
-    handle THM _ => (*not a conjunction*) cnf_aux [] (th, ths));
+fun make_cnf skoths th = cnf skoths (th, []);
+
 
 (**** Removal of duplicate literals ****)
 
@@ -332,7 +344,7 @@ fun skolemize th =
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths =
-    (sort_clauses (map (generalize o nodups) (foldr cnf [] ths)));
+    (sort_clauses (map (generalize o nodups) (foldr (cnf[]) [] ths)));
 
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
