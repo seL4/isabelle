@@ -903,7 +903,8 @@ substitutions are performed simultaneously. Otherwise the behaviour of
 $subst$ is not specified.
 
 \item [$subst~(asm)~(i \dots j)~eq$] performs the substitutions in the
-assumptions, which are treated as one big term.
+assumptions. Positions $1 \dots i@1$ refer
+to assumption 1, positions $i@1+1 \dots i@2$ to assumption 2, and so on.
 
 \item [$hypsubst$] performs substitution using some assumption; this only
   works for equations of the form $x = t$ where $x$ is a free or bound
