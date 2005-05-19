@@ -33,6 +33,7 @@ begin
 
 text{*Every theory of HOL must be a descendant or ancestor of this one!*}
 
+setup ResAxioms.setup
 setup Reconstruction.setup
 
 end

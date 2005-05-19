@@ -5,8 +5,6 @@
 Transformation of axiom rules (elim/intro/etc) into CNF forms.    
 *)
 
-
-
 signature RES_AXIOMS =
   sig
   exception ELIMR2FOL of string
@@ -27,6 +25,7 @@ signature RES_AXIOMS =
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
+  val setup : (theory -> theory) list
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -36,14 +35,14 @@ struct
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
 (* a tactic used to prove an elim-rule. *)
-fun elimRule_tac thm =
-    ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac thm 1) THEN
+fun elimRule_tac th =
+    ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac th 1) THEN
     REPEAT(Fast_tac 1);
 
 
 (* This following version fails sometimes, need to investigate, do not use it now. *)
-fun elimRule_tac' thm =
-   ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac thm 1) THEN
+fun elimRule_tac' th =
+   ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac th 1) THEN
    REPEAT(SOLVE((etac exI 1) ORELSE (rtac conjI 1) ORELSE (rtac disjI1 1) ORELSE (rtac disjI2 1))); 
 
 
@@ -126,21 +125,21 @@ fun elimR2Fol elimR =
 
 
 (* check if a rule is an elim rule *)
-fun is_elimR thm = 
-    case (concl_of thm) of (Const ("Trueprop", _) $ Var (idx,_)) => true
+fun is_elimR th = 
+    case (concl_of th) of (Const ("Trueprop", _) $ Var (idx,_)) => true
 			 | Var(indx,Type("prop",[])) => true
 			 | _ => false;
 
 (* convert an elim-rule into an equivalent theorem that does not have the 
    predicate variable.  Leave other theorems unchanged.*) 
-fun transform_elim thm =
-  if is_elimR thm then
-    let val tm = elimR2Fol thm
-	val ctm = cterm_of (sign_of_thm thm) tm	
+fun transform_elim th =
+  if is_elimR th then
+    let val tm = elimR2Fol th
+	val ctm = cterm_of (sign_of_thm th) tm	
     in
-	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac thm])
+	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
     end
-  else thm;
+  else th;
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
@@ -155,25 +154,26 @@ fun repeat_RS thm1 thm2 =
     end;
 
 
-(* convert a theorem into NNF and also skolemize it. *)
-fun skolem_axiom thm = 
-  if Term.is_first_order (prop_of thm) then
-    let val thm' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) thm
+(*Convert a theorem into NNF and also skolemize it. Original version, using
+  Hilbert's epsilon in the resulting clauses.*)
+fun skolem_axiom th = 
+  if Term.is_first_order (prop_of th) then
+    let val th' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
     in 
-	repeat_RS thm' someI_ex
+	repeat_RS th' someI_ex
     end
-  else raise THM ("skolem_axiom: not first-order", 0, [thm]);
+  else raise THM ("skolem_axiom: not first-order", 0, [th]);
 
 
-fun cnf_rule thm = make_clauses [skolem_axiom (transform_elim thm)];
+fun cnf_rule th = make_clauses [skolem_axiom (transform_elim th)];
 
 (*Transfer a theorem in to theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
 
 val recon_thy = ThyInfo.get_theory"Reconstruction";
 
-fun transfer_to_Reconstruction thm =
-    transfer recon_thy thm handle THM _ => thm;
+fun transfer_to_Reconstruction th =
+    transfer recon_thy th handle THM _ => th;
 
 fun is_taut th =
       case (prop_of th) of
@@ -184,14 +184,102 @@ fun is_taut th =
 val rm_redundant_cls = List.filter (not o is_taut);
 
 (* transform an Isabelle thm into CNF *)
-fun cnf_axiom_aux thm =
+fun cnf_axiom_aux th =
     map (zero_var_indexes o Thm.varifyT) 
-        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction thm)));
+        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
        
        
-(*Cache for clauses: could be a hash table if we provided them.*)
+(**** SKOLEMIZATION BY INFERENCE (lcp) ****)
+
+(*Traverse a term, accumulating Skolem function definitions.*)
+fun declare_skofuns s t thy =
+  let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (n, thy) =
+	    (*Existential: declare a Skolem function, then insert into body and continue*)
+	    let val cname = s ^ "_" ^ Int.toString n
+		val args = term_frees xtp
+		val Ts = map type_of args
+		val cT = Ts ---> T
+		val c = Const(NameSpace.append (PureThy.get_name thy) cname, cT)
+		val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
+		val def = equals cT $ c $ rhs
+		val thy' = Theory.add_consts_i [(cname, cT, NoSyn)] thy
+		val thy'' = Theory.add_defs_i false [(cname ^ "_def", def)] thy'
+	    in dec_sko (subst_bound (list_comb(c,args), p)) (n+1, thy'') end
+	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) (n, thy) =
+	    (*Universal: insert a free variable into body and continue*)
+	    let val fname = variant (add_term_names (p,[])) a
+	    in dec_sko (subst_bound (Free(fname,T), p)) (n+1, thy) end
+	| dec_sko (Const ("op &", _) $ p $ q) nthy = 
+	    dec_sko q (dec_sko p nthy)
+	| dec_sko (Const ("op |", _) $ p $ q) nthy = 
+	    dec_sko q (dec_sko p nthy)
+	| dec_sko (Const ("Trueprop", _) $ p) nthy = 
+	    dec_sko p nthy
+	| dec_sko t (n,thy) = (n,thy) (*Do nothing otherwise*)
+  in  #2 (dec_sko t (1,thy))  end;
+
+(*cterms are used throughout for efficiency*)
+val cTrueprop = Thm.cterm_of (Theory.sign_of HOL.thy) HOLogic.Trueprop;
+
+(*cterm version of mk_cTrueprop*)
+fun c_mkTrueprop A = Thm.capply cTrueprop A;
+
+(*Given an abstraction over n variables, replace the bound variables by free
+  ones. Return the body, along with the list of free variables.*)
+fun c_variant_abs_multi (ct0, vars) = 
+      let val (cv,ct) = Thm.dest_abs NONE ct0
+      in  c_variant_abs_multi (ct, cv::vars)  end
+      handle CTERM _ => (ct0, rev vars);
+
+(*Given the definition of a Skolem function, return a theorem to replace 
+  an existential formula by a use of that function.*)
+fun skolem_of_def def =
+  let val (c,rhs) = Drule.dest_equals (cprop_of (Drule.freeze_all def))
+      val (ch, frees) = c_variant_abs_multi (rhs, [])
+      val (chil,cabs) = Thm.dest_comb ch
+      val {sign, t, ...} = rep_cterm chil
+      val (Const ("Hilbert_Choice.Eps", Type("fun",[_,T]))) = t
+      val cex = Thm.cterm_of sign (HOLogic.exists_const T)
+      val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
+      and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
+  in  prove_goalw_cterm [def] (Drule.mk_implies (ex_tm, conc))
+	    (fn [prem] => [ rtac (prem RS someI_ex) 1 ])
+  end;	 
+
+
+(*Converts an Isabelle theorem (intro, elim or simp format) into nnf.*)
+fun to_nnf thy th = 
+    if Term.is_first_order (prop_of th) then
+      th |> Thm.transfer thy |> transform_elim |> Drule.freeze_all
+	 |> ObjectLogic.atomize_thm |> make_nnf
+    else raise THM ("to_nnf: not first-order", 0, [th]);
+
+(*The cache prevents repeated clausification of a theorem, 
+  and also repeated declaration of Skolem functions*)  
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
+(*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
+fun skolem thy (name,th) =
+  let val cname = (case name of
+                         "" => gensym "sko" | s => Sign.base_name s)
+      val thy' = declare_skofuns cname (#prop (rep_thm th)) thy
+  in (map (skolem_of_def o #2) (axioms_of thy'), thy') end;
+
+(*Populate the clause cache using the supplied theorems*)
+fun skolemlist [] thy = thy
+  | skolemlist ((name,th)::nths) thy = 
+      (case Symtab.lookup (!clause_cache,name) of
+	  NONE => 
+	    let val nnfth = to_nnf thy th
+		val (skoths,thy') = skolem thy (name, nnfth)
+		val cls = Meson.make_cnf skoths nnfth
+	    in  clause_cache := Symtab.update ((name, (th,cls)), !clause_cache);
+		skolemlist nths thy'
+	    end
+	| SOME _ => skolemlist nths thy) (*FIXME: check for duplicate names?*)
+      handle THM _ => skolemlist nths thy;
+
+(*Exported function to convert Isabelle theorems into axiom clauses*) 
 fun cnf_axiom (name,th) =
     case name of
 	  "" => cnf_axiom_aux th (*no name, so can't cache*)
@@ -246,32 +334,29 @@ fun get_skolem epss t =
 		             | SOME sk => (sk,epss);
 
 
-fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = get_skolem epss t
+fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = 
+       get_skolem epss t
   | rm_Eps_cls_aux epss (P $ Q) =
-    let val (P',epss') = rm_Eps_cls_aux epss P
-	val (Q',epss'') = rm_Eps_cls_aux epss' Q
-    in
-	(P' $ Q',epss'')
-    end
+       let val (P',epss') = rm_Eps_cls_aux epss P
+	   val (Q',epss'') = rm_Eps_cls_aux epss' Q
+       in (P' $ Q',epss'') end
   | rm_Eps_cls_aux epss t = (t,epss);
 
 
-fun rm_Eps_cls epss thm = rm_Eps_cls_aux epss (prop_of thm);
+fun rm_Eps_cls epss th = rm_Eps_cls_aux epss (prop_of th);
 
 
 (* remove the epsilon terms in a formula, by skolem terms. *)
 fun rm_Eps _ [] = []
-  | rm_Eps epss (thm::thms) = 
-      let val (thm',epss') = rm_Eps_cls epss thm
-      in
-	thm' :: (rm_Eps epss' thms)
-      end;
+  | rm_Eps epss (th::thms) = 
+      let val (th',epss') = rm_Eps_cls epss th
+      in th' :: (rm_Eps epss' thms) end;
 
 
 (* convert a theorem into CNF and then into Clause.clause format. *)
-fun clausify_axiom thm =
-    let val name = Thm.name_of_thm thm
-	val isa_clauses = cnf_axiom (name, thm)
+fun clausify_axiom th =
+    let val name = Thm.name_of_thm th
+	val isa_clauses = cnf_axiom (name, th)
 	      (*"isa_clauses" are already in "standard" form. *)
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
@@ -306,9 +391,9 @@ fun simpset_rules_of_thy thy =
 
 (* classical rules *)
 fun cnf_rules [] err_list = ([],err_list)
-  | cnf_rules ((name,thm) :: thms) err_list = 
+  | cnf_rules ((name,th) :: thms) err_list = 
       let val (ts,es) = cnf_rules thms err_list
-      in  (cnf_axiom (name,thm) :: ts,es) handle  _ => (ts, (thm::es))  end;
+      in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;
 
 (* CNF all rules from a given theory's classical reasoner *)
 fun cnf_classical_rules_thy thy = 
@@ -323,12 +408,11 @@ fun cnf_simpset_rules_thy thy =
 
 (* classical rules *)
 fun clausify_rules [] err_list = ([],err_list)
-  | clausify_rules (thm::thms) err_list =
+  | clausify_rules (th::thms) err_list =
     let val (ts,es) = clausify_rules thms err_list
     in
-	((clausify_axiom thm)::ts,es) handle  _ => (ts,(thm::es))
+	((clausify_axiom th)::ts,es) handle  _ => (ts,(th::es))
     end;
-
 
 (* convert all classical rules from a given theory into Clause.clause format. *)
 fun clausify_classical_rules_thy thy =
@@ -338,5 +422,13 @@ fun clausify_classical_rules_thy thy =
 fun clausify_simpset_rules_thy thy =
     clausify_rules (map #2 (simpset_rules_of_thy thy)) [];
 
+(*Setup function: takes a theory and installs ALL simprules and claset rules 
+  into the clause cache*)
+fun clause_cache_setup thy =
+  let val simps = simpset_rules_of_thy thy
+      and clas  = claset_rules_of_thy thy
+  in skolemlist clas (skolemlist simps thy) end;
+  
+val setup = [clause_cache_setup];  
 
 end; 
