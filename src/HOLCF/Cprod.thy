@@ -14,6 +14,23 @@ begin
 
 defaultsort cpo
 
+subsection {* Type @{typ unit} is a pcpo *}
+
+instance unit :: sq_ord ..
+
+defs (overloaded)
+  less_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<equiv> True"
+
+instance unit :: po
+by intro_classes simp_all
+
+instance unit :: cpo
+by intro_classes (simp add: is_lub_def is_ub_def)
+
+instance unit :: pcpo
+by intro_classes simp
+
+
 subsection {* Ordering on @{typ "'a * 'b"} *}
 
 instance "*" :: (sq_ord, sq_ord) sq_ord ..
