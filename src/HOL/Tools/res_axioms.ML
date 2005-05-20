@@ -9,7 +9,7 @@ signature RES_AXIOMS =
   sig
   exception ELIMR2FOL of string
   val elimRule_tac : thm -> Tactical.tactic
-  val elimR2Fol : thm -> Term.term
+  val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
   
   val clausify_axiom : thm -> ResClause.clause list
@@ -20,8 +20,7 @@ signature RES_AXIOMS =
   val clausify_classical_rules_thy : theory -> ResClause.clause list list * thm list
   val cnf_simpset_rules_thy : theory -> thm list list * thm list
   val clausify_simpset_rules_thy : theory -> ResClause.clause list list * thm list
-  val rm_Eps 
-  : (Term.term * Term.term) list -> thm list -> Term.term list
+  val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
@@ -112,7 +111,7 @@ fun elimR2Fol_aux prems concl =
     end;
 
     
-(* convert an elim rule into an equivalent formula, of type Term.term. *)
+(* convert an elim rule into an equivalent formula, of type term. *)
 fun elimR2Fol elimR = 
     let val elimR' = Drule.freeze_all elimR
 	val (prems,concl) = (prems_of elimR', concl_of elimR')
@@ -196,19 +195,22 @@ fun declare_skofuns s t thy =
   let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (n, thy) =
 	    (*Existential: declare a Skolem function, then insert into body and continue*)
 	    let val cname = s ^ "_" ^ Int.toString n
-		val args = term_frees xtp
+		val args = term_frees xtp  (*get the formal parameter list*)
 		val Ts = map type_of args
 		val cT = Ts ---> T
 		val c = Const(NameSpace.append (PureThy.get_name thy) cname, cT)
+		        (*Generates a compound constant name in the given theory*)
 		val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
+		        (*Forms a lambda-abstraction over the formal parameters*)
 		val def = equals cT $ c $ rhs
 		val thy' = Theory.add_consts_i [(cname, cT, NoSyn)] thy
+		           (*Theory is augmented with the constant, then its def*)
 		val thy'' = Theory.add_defs_i false [(cname ^ "_def", def)] thy'
 	    in dec_sko (subst_bound (list_comb(c,args), p)) (n+1, thy'') end
 	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) (n, thy) =
-	    (*Universal: insert a free variable into body and continue*)
+	    (*Universal quant: insert a free variable into body and continue*)
 	    let val fname = variant (add_term_names (p,[])) a
-	    in dec_sko (subst_bound (Free(fname,T), p)) (n+1, thy) end
+	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thy) end
 	| dec_sko (Const ("op &", _) $ p $ q) nthy = 
 	    dec_sko q (dec_sko p nthy)
 	| dec_sko (Const ("op |", _) $ p $ q) nthy = 
