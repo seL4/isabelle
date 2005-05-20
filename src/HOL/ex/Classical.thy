@@ -10,6 +10,8 @@ theory Classical = Main:
 
 subsection{*Traditional Classical Reasoner*}
 
+text{*The machine "griffon" mentioned below is a 2.5GHz Power Mac G5.*}
+
 text{*Taken from @{text "FOL/Classical.thy"}. When porting examples from
 first-order logic, beware of the precedence of @{text "="} versus @{text
 "\<leftrightarrow>"}.*}
@@ -427,101 +429,101 @@ lemma "(\<forall>x y z. R(x,y) & R(y,z) --> R(x,z)) &
        (\<forall>x. \<exists>y. R(x,y)) -->
        ~ (\<forall>x. P x = (\<forall>y. R(x,y) --> ~ P y))"
 by (tactic{*safe_best_meson_tac 1*})
-    --{*In contrast, @{text meson} is SLOW: 15s on a 1.8GHz machine!*}
+    --{*In contrast, @{text meson} is SLOW: 7.6s on griffon*}
 
 
 subsubsection{*Pelletier's examples*}
 text{*1*}
 lemma "(P --> Q)  =  (~Q --> ~P)"
-by meson
+by blast
 
 text{*2*}
 lemma "(~ ~ P) =  P"
-by meson
+by blast
 
 text{*3*}
 lemma "~(P-->Q) --> (Q-->P)"
-by meson
+by blast
 
 text{*4*}
 lemma "(~P-->Q)  =  (~Q --> P)"
-by meson
+by blast
 
 text{*5*}
 lemma "((P|Q)-->(P|R)) --> (P|(Q-->R))"
-by meson
+by blast
 
 text{*6*}
 lemma "P | ~ P"
-by meson
+by blast
 
 text{*7*}
 lemma "P | ~ ~ ~ P"
-by meson
+by blast
 
 text{*8.  Peirce's law*}
 lemma "((P-->Q) --> P)  -->  P"
-by meson
+by blast
 
 text{*9*}
 lemma "((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)"
-by meson
+by blast
 
 text{*10*}
 lemma "(Q-->R) & (R-->P&Q) & (P-->Q|R) --> (P=Q)"
-by meson
+by blast
 
 text{*11.  Proved in each direction (incorrectly, says Pelletier!!)  *}
 lemma "P=(P::bool)"
-by meson
+by blast
 
 text{*12.  "Dijkstra's law"*}
 lemma "((P = Q) = R) = (P = (Q = R))"
-by meson
+by blast
 
 text{*13.  Distributive law*}
 lemma "(P | (Q & R)) = ((P | Q) & (P | R))"
-by meson
+by blast
 
 text{*14*}
 lemma "(P = Q) = ((Q | ~P) & (~Q|P))"
-by meson
+by blast
 
 text{*15*}
 lemma "(P --> Q) = (~P | Q)"
-by meson
+by blast
 
 text{*16*}
 lemma "(P-->Q) | (Q-->P)"
-by meson
+by blast
 
 text{*17*}
 lemma "((P & (Q-->R))-->S)  =  ((~P | Q | S) & (~P | ~R | S))"
-by meson
+by blast
 
 subsubsection{*Classical Logic: examples with quantifiers*}
 
 lemma "(\<forall>x. P x & Q x) = ((\<forall>x. P x) & (\<forall>x. Q x))"
-by meson
+by blast
 
 lemma "(\<exists>x. P --> Q x)  =  (P --> (\<exists>x. Q x))"
-by meson
+by blast
 
 lemma "(\<exists>x. P x --> Q) = ((\<forall>x. P x) --> Q)"
-by meson
+by blast
 
 lemma "((\<forall>x. P x) | Q)  =  (\<forall>x. P x | Q)"
-by meson
+by blast
 
 lemma "(\<forall>x. P x --> P(f x))  &  P d --> P(f(f(f d)))"
-by meson
+by blast
 
 text{*Needs double instantiation of EXISTS*}
 lemma "\<exists>x. P x --> P a & P b"
-by meson
+by blast
 
 lemma "\<exists>z. P z --> (\<forall>x. P x)"
-by meson
+by blast
 
 text{*From a paper by Claire Quigley*}
 lemma "\<exists>y. ((P c & Q y) | (\<exists>z. ~ Q z)) | (\<exists>x. ~ P x & Q d)"
@@ -531,34 +533,34 @@ subsubsection{*Hard examples with quantifiers*}
 
 text{*Problem 18*}
 lemma "\<exists>y. \<forall>x. P y --> P x"
-by meson
+by blast
 
 text{*Problem 19*}
 lemma "\<exists>x. \<forall>y z. (P y --> Q z) --> (P x --> Q x)"
-by meson
+by blast
 
 text{*Problem 20*}
 lemma "(\<forall>x y. \<exists>z. \<forall>w. (P x & Q y --> R z & S w))
     --> (\<exists>x y. P x & Q y) --> (\<exists>z. R z)"
-by meson
+by blast
 
 text{*Problem 21*}
 lemma "(\<exists>x. P --> Q x) & (\<exists>x. Q x --> P) --> (\<exists>x. P=Q x)"
-by meson
+by blast
 
 text{*Problem 22*}
 lemma "(\<forall>x. P = Q x)  -->  (P = (\<forall>x. Q x))"
-by meson
+by blast
 
 text{*Problem 23*}
 lemma "(\<forall>x. P | Q x)  =  (P | (\<forall>x. Q x))"
-by meson
+by blast
 
 text{*Problem 24*}  (*The first goal clause is useless*)
 lemma "~(\<exists>x. S x & Q x) & (\<forall>x. P x --> Q x | R x) &
       (~(\<exists>x. P x) --> (\<exists>x. Q x)) & (\<forall>x. Q x | R x --> S x)
     --> (\<exists>x. P x & R x)"
-by meson
+by blast
 
 text{*Problem 25*}
 lemma "(\<exists>x. P x) &
@@ -566,13 +568,13 @@ lemma "(\<exists>x. P x) &
       (\<forall>x. P x --> (M x & L x)) &
       ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x))
     --> (\<exists>x. Q x & P x)"
-by meson
+by blast
 
 text{*Problem 26; has 24 Horn clauses*}
 lemma "((\<exists>x. p x) = (\<exists>x. q x)) &
       (\<forall>x. \<forall>y. p x & q y --> (r x = s y))
   --> ((\<forall>x. p x --> r x) = (\<forall>x. q x --> s x))"
-by meson
+by blast
 
 text{*Problem 27; has 13 Horn clauses*}
 lemma "(\<exists>x. P x & ~Q x) &
@@ -580,61 +582,61 @@ lemma "(\<exists>x. P x & ~Q x) &
       (\<forall>x. M x & L x --> P x) &
       ((\<exists>x. R x & ~ Q x) --> (\<forall>x. L x --> ~ R x))
       --> (\<forall>x. M x --> ~L x)"
-by meson
+by blast
 
 text{*Problem 28.  AMENDED; has 14 Horn clauses*}
 lemma "(\<forall>x. P x --> (\<forall>x. Q x)) &
       ((\<forall>x. Q x | R x) --> (\<exists>x. Q x & S x)) &
       ((\<exists>x. S x) --> (\<forall>x. L x --> M x))
     --> (\<forall>x. P x & L x --> M x)"
-by meson
+by blast
 
 text{*Problem 29.  Essentially the same as Principia Mathematica *11.71.
       62 Horn clauses*}
 lemma "(\<exists>x. F x) & (\<exists>y. G y)
     --> ( ((\<forall>x. F x --> H x) & (\<forall>y. G y --> J y))  =
           (\<forall>x y. F x & G y --> H x & J y))"
-by meson
+by blast
 
 
 text{*Problem 30*}
 lemma "(\<forall>x. P x | Q x --> ~ R x) & (\<forall>x. (Q x --> ~ S x) --> P x & R x)
        --> (\<forall>x. S x)"
-by meson
+by blast
 
 text{*Problem 31; has 10 Horn clauses; first negative clauses is useless*}
 lemma "~(\<exists>x. P x & (Q x | R x)) &
       (\<exists>x. L x & P x) &
       (\<forall>x. ~ R x --> M x)
     --> (\<exists>x. L x & M x)"
-by meson
+by blast
 
 text{*Problem 32*}
 lemma "(\<forall>x. P x & (Q x | R x)-->S x) &
       (\<forall>x. S x & R x --> L x) &
       (\<forall>x. M x --> R x)
     --> (\<forall>x. P x & M x --> L x)"
-by meson
+by blast
 
 text{*Problem 33; has 55 Horn clauses*}
 lemma "(\<forall>x. P a & (P x --> P b)-->P c)  =
       (\<forall>x. (~P a | P x | P c) & (~P a | ~P b | P c))"
-by meson
+by blast
 
 text{*Problem 34: Andrews's challenge has 924 Horn clauses*}
 lemma "((\<exists>x. \<forall>y. p x = p y)  = ((\<exists>x. q x) = (\<forall>y. p y)))     =
       ((\<exists>x. \<forall>y. q x = q y)  = ((\<exists>x. p x) = (\<forall>y. q y)))"
-by meson
+by blast
 
 text{*Problem 35*}
 lemma "\<exists>x y. P x y -->  (\<forall>u v. P u v)"
-by meson
+by blast
 
 text{*Problem 36; has 15 Horn clauses*}
 lemma "(\<forall>x. \<exists>y. J x y) & (\<forall>x. \<exists>y. G x y) &
        (\<forall>x y. J x y | G x y --> (\<forall>z. J y z | G y z --> H x z))
        --> (\<forall>x. \<exists>y. H x y)"
-by meson
+by blast
 
 text{*Problem 37; has 10 Horn clauses*}
 lemma "(\<forall>z. \<exists>w. \<forall>x. \<exists>y.
@@ -642,7 +644,7 @@ lemma "(\<forall>z. \<exists>w. \<forall>x. \<exists>y.
       (\<forall>x z. ~P x z --> (\<exists>y. Q y z)) &
       ((\<exists>x y. Q x y) --> (\<forall>x. R x x))
     --> (\<forall>x. \<exists>y. R x y)"
-by meson --{*causes unification tracing messages*}
+by blast --{*causes unification tracing messages*}
 
 
 text{*Problem 38*}  text{*Quite hard: 422 Horn clauses!!*}
@@ -651,36 +653,36 @@ lemma "(\<forall>x. p a & (p x --> (\<exists>y. p y & r x y)) -->
       (\<forall>x. (~p a | p x | (\<exists>z. \<exists>w. p z & r x w & r w z)) &
             (~p a | ~(\<exists>y. p y & r x y) |
              (\<exists>z. \<exists>w. p z & r x w & r w z)))"
-by meson
+by blast
 
 text{*Problem 39*}
 lemma "~ (\<exists>x. \<forall>y. F y x = (~F y y))"
-by meson
+by blast
 
 text{*Problem 40.  AMENDED*}
 lemma "(\<exists>y. \<forall>x. F x y = F x x)
       -->  ~ (\<forall>x. \<exists>y. \<forall>z. F z y = (~F z x))"
-by meson
+by blast
 
 text{*Problem 41*}
 lemma "(\<forall>z. (\<exists>y. (\<forall>x. f x y = (f x z & ~ f x x))))
       --> ~ (\<exists>z. \<forall>x. f x z)"
-by meson
+by blast
 
 text{*Problem 42*}
 lemma "~ (\<exists>y. \<forall>x. p x y = (~ (\<exists>z. p x z & p z x)))"
-by meson
+by blast
 
 text{*Problem 43  NOW PROVED AUTOMATICALLY!!*}
 lemma "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool)))
       --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))"
-by meson
+by blast
 
 text{*Problem 44: 13 Horn clauses; 7-step proof*}
 lemma "(\<forall>x. f x --> (\<exists>y. g y & h x y & (\<exists>y. g y & ~ h x y)))  &
        (\<exists>x. j x & (\<forall>y. g y --> h x y))
        --> (\<exists>x. j x & ~f x)"
-by meson
+by blast
 
 text{*Problem 45; has 27 Horn clauses; 54-step proof*}
 lemma "(\<forall>x. f x & (\<forall>y. g y & h x y --> j x y)
@@ -689,7 +691,7 @@ lemma "(\<forall>x. f x & (\<forall>y. g y & h x y --> j x y)
       (\<exists>x. f x & (\<forall>y. h x y --> l y)
                 & (\<forall>y. g y & h x y --> j x y))
       --> (\<exists>x. f x & ~ (\<exists>y. g y & h x y))"
-by meson
+by blast
 
 text{*Problem 46; has 26 Horn clauses; 21-step proof*}
 lemma "(\<forall>x. f x & (\<forall>y. f y & h y x --> g y) --> g x) &
@@ -697,7 +699,7 @@ lemma "(\<forall>x. f x & (\<forall>y. f y & h y x --> g y) --> g x) &
        (\<exists>x. f x & ~g x & (\<forall>y. f y & ~g y --> j x y))) &
        (\<forall>x y. f x & f y & h x y --> ~j y x)
        --> (\<forall>x. f x --> g x)"
-by meson
+by blast
 
 text{*Problem 47.  Schubert's Steamroller*}
         text{*26 clauses; 63 Horn clauses
@@ -741,11 +743,12 @@ by meson
 
 text{*Problem 50.  What has this to do with equality?*}
 lemma "(\<forall>x. P a x | (\<forall>y. P x y)) --> (\<exists>x. \<forall>y. P x y)"
-by meson
+by blast
 
 text{*Problem 54: NOT PROVED*}
 lemma "(\<forall>y::'a. \<exists>z. \<forall>x. F x z = (x=y)) -->
-      ~ (\<exists>w. \<forall>x. F x w = (\<forall>u. F x u --> (\<exists>y. F y u & ~ (\<exists>z. F z u & F z y))))"oops 
+      ~ (\<exists>w. \<forall>x. F x w = (\<forall>u. F x u --> (\<exists>y. F y u & ~ (\<exists>z. F z u & F z y))))"
+oops 
 
 
 text{*Problem 55*}
@@ -766,25 +769,50 @@ by meson
 text{*Problem 57*}
 lemma "P (f a b) (f b c) & P (f b c) (f a c) &
       (\<forall>x y z. P x y & P y z --> P x z)    -->   P (f a b) (f a c)"
-by meson
+by blast
 
 text{*Problem 58: Challenge found on info-hol *}
 lemma "\<forall>P Q R x. \<exists>v w. \<forall>y z. P x & Q y --> (P v | R w) & (R z --> Q v)"
-by meson
+by blast
 
 text{*Problem 59*}
 lemma "(\<forall>x. P x = (~P(f x))) --> (\<exists>x. P x & ~P(f x))"
-by meson
+by blast
 
 text{*Problem 60*}
 lemma "\<forall>x. P x (f x) = (\<exists>y. (\<forall>z. P z y --> P z (f x)) & P x y)"
-by meson
+by blast
 
 text{*Problem 62 as corrected in JAR 18 (1997), page 135*}
 lemma "(\<forall>x. p a & (p x --> p(f x)) --> p(f(f x)))  =
        (\<forall>x. (~ p a | p x | p(f(f x))) &
             (~ p a | ~ p(f x) | p(f(f x))))"
-by meson
+by blast
+
+text{** Charles Morgan's problems **}
+
+lemma
+  assumes a: "\<forall>x y.  T(i x(i y x))"
+      and b: "\<forall>x y z. T(i (i x (i y z)) (i (i x y) (i x z)))"
+      and c: "\<forall>x y.   T(i (i (n x) (n y)) (i y x))"
+      and c': "\<forall>x y.   T(i (i y x) (i (n x) (n y)))"
+      and d: "\<forall>x y.   T(i x y) & T x --> T y"
+ shows True
+proof -
+  from a b d have "\<forall>x. T(i x x)" by blast
+  from a b c d have "\<forall>x. T(i x (n(n x)))" --{*Problem 66*}
+    by meson
+      --{*SLOW: 18s on griffon. 208346 inferences, depth 23 *}
+  from a b c d have "\<forall>x. T(i (n(n x)) x)" --{*Problem 67*}
+    by meson
+      --{*4.9s on griffon. 51061 inferences, depth 21 *}
+  from a b c' d have "\<forall>x. T(i x (n(n x)))" 
+      --{*Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)*}
+oops
+
+text{*Problem 71, as found in TPTP (SYN007+1.005)*}
+lemma "p1 = (p2 = (p3 = (p4 = (p5 = (p1 = (p2 = (p3 = (p4 = p5))))))))"
+by blast
 
 text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"

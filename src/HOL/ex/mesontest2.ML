@@ -139,36 +139,6 @@ And here is the proof! (Unkn is the start state after use of goal clause)
 (*Restore variable name preservation*)
 Logic.auto_rename := false; 
 
-
-(** Charles Morgan's problems **)
-
-val axa = "\\<forall>x y.   T(i x(i y x))";
-val axb = "\\<forall>x y z. T(i(i x(i y z))(i(i x y)(i x z)))";
-val axc = "\\<forall>x y.   T(i(i(n x)(n y))(i y x))";
-val axd = "\\<forall>x y.   T(i x y) & T x --> T y";
-
-fun axjoin ([],   q) = q
-  | axjoin (p::ps, q) = "(" ^ p ^ ") --> (" ^ axjoin(ps,q) ^ ")";
-
-Goal (axjoin([axa,axb,axd], "\\<forall>x. T(i x x)"));
-by (meson_tac 1);  
-result();
-
-writeln"Problem 66";  
-Goal (axjoin([axa,axb,axc,axd], "\\<forall>x. T(i x(n(n x)))"));
-by (meson_tac 1);  
-result();
-(*SLOW: 17s on griffon
-     208346 inferences so far.  Searching to depth 23 *)
-
-writeln"Problem 67";  
-Goal (axjoin([axa,axb,axc,axd], "\\<forall>x. T(i(n(n x)) x)"));
-by (meson_tac 1);  
-result();
-(*10s on a 1.8MHz machine
-  51061 inferences so far.  Searching to depth 21 *)
-
-
 (*MORE and MUCH HARDER test data for the MESON proof procedure
 
 Courtesy John Harrison 
