@@ -30,6 +30,7 @@ signature RES_CLAUSE =
     val tptp_arity_clause : arityClause -> string
     val tptp_classrelClause : classrelClause -> string
     val tptp_clause : clause -> string list
+    val clause_info : clause ->  string * string
     val tptp_clauses2str : string list -> string
     val typed : unit -> unit
     val untyped : unit -> unit
@@ -641,6 +642,14 @@ fun tptp_clause cls =
             (gen_tptp_type_cls(cls_id,knd,tfree,k)) ::  (typ_clss (k+1) tfrees)
     in 
 	cls_str :: (typ_clss 0 tfree_lits)
+    end;
+
+fun clause_info cls =
+    let 
+	val cls_id = string_of_clauseID cls
+	val ax_name = string_of_axiomName cls
+    in 
+	((ax_name^""), cls_id)
     end;
 
 

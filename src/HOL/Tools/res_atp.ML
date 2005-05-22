@@ -185,14 +185,14 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  = let
                            (* without paramodulation *)
                            (warning ("goalstring in call_res_tac is: "^goalstring));
                            (warning ("prob file in cal_res_tac is: "^probfile));
-                                                       Watcher.callResProvers(childout,
-                            [("spass",thmstr,goalstring,spass_home,  
+                                                      (* Watcher.callResProvers(childout,
+                            [("spass",thmstr,goalstring,(*spass_home*),  
                              "-DocProof", 
-                             clasimpfile, axfile, hypsfile, probfile)]);
+                             clasimpfile, axfile, hypsfile, probfile)]);*)
 
                             Watcher.callResProvers(childout,
-                            [("spass",thmstr,goalstring,spass_home,  
-                             "-FullRed=0%-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
+                            [("spass",thmstr,goalstring(*,spass_home*),"/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/spassshell",  
+                             "-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
                              clasimpfile, axfile, hypsfile, probfile)]);
 
                            (* with paramodulation *)
@@ -302,6 +302,7 @@ fun isar_atp' (thms, thm) =
         val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  
 
         (* cq: add write out clasimps to file *)
+
         (* cq:create watcher and pass to isar_atp_aux *)
         (* tracing *) 
         (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
@@ -373,8 +374,8 @@ in
 (* what about clasimpset - it should already be in the ax file - perhaps append to ax file rather than just *)
 (* write out ? Or keep as a separate file and then cat them all together in the watcher, like we do with the *)
 (*claset file and prob file*)
-(* FIX*)
-fun isar_local_thms (delta_cs, delta_ss_thms) =
+(* FIX: update to work with clausify_axiom_pairs now in ResAxioms*)
+(*fun isar_local_thms (delta_cs, delta_ss_thms) =
     let val thms_cs = get_thms_cs delta_cs
 	val thms_ss = get_thms_ss delta_ss_thms
 	val thms_clauses = ResLib.flat_noDup (map ResAxioms.clausify_axiom (thms_cs @ thms_ss))
@@ -384,7 +385,7 @@ fun isar_local_thms (delta_cs, delta_ss_thms) =
     in
 	(ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
     end;
-
+*)
 
 
 
@@ -404,7 +405,7 @@ fun isar_atp (ctxt,thm) =
           (warning ("initial thm in isar_atp: "^thmstring));
           (warning ("subgoals in isar_atp: "^prems_string));
     	  (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
-          (isar_local_thms (d_cs,d_ss_thms); (warning("about to call isar_atp'"));
+          ((*isar_local_thms (d_cs,d_ss_thms); *)(warning("about to call isar_atp'"));
            isar_atp' (prems, thm))
     end;
 

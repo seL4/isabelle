@@ -453,6 +453,10 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms 
                                               in 
                                                   TextIO.output (toParent,"Proof found but translation failed!" ^"\n");
                                                   TextIO.flushOut toParent;
+						TextIO.output (toParent, thmstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                         	   TextIO.output (toParent, goalstring^"\n");
+                                         	   TextIO.flushOut toParent;
             					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
                                          	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac

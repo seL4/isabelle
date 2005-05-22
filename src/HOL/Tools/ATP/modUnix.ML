@@ -7,6 +7,10 @@
 (****** Slightly modified version of sml Unix structure *********)
 (****************************************************************)
 
+
+structure modUnix: MODUNIX =
+  struct
+
 type signal = Posix.Signal.signal
 datatype exit_status = datatype Posix.Process.exit_status
 
@@ -272,3 +276,5 @@ fun myexecuteToList (cmd, argv, procList) = let
               outstr = outstr
             })::procList))
           end;
+
+end;

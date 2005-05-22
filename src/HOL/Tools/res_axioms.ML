@@ -11,19 +11,18 @@ signature RES_AXIOMS =
   val elimRule_tac : thm -> Tactical.tactic
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
-  
-  val clausify_axiom : thm -> ResClause.clause list
+  val clausify_axiom_pairs : (string*thm) -> (ResClause.clause*thm) list
   val cnf_axiom : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
   val cnf_rule : thm -> thm list
   val cnf_classical_rules_thy : theory -> thm list list * thm list
-  val clausify_classical_rules_thy : theory -> ResClause.clause list list * thm list
+ 
   val cnf_simpset_rules_thy : theory -> thm list list * thm list
-  val clausify_simpset_rules_thy : theory -> ResClause.clause list list * thm list
+ 
   val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
-  val clausify_rules : thm list -> thm list -> ResClause.clause list list * thm list
+  val clausify_rules_pairs : (string * thm) list -> thm list -> (ResClause.clause * thm) list list * thm list
   val setup : (theory -> theory) list
   end;
 
@@ -136,9 +135,13 @@ fun transform_elim th =
     let val tm = elimR2Fol th
 	val ctm = cterm_of (sign_of_thm th) tm	
     in
+
 	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
     end
-  else th;
+ else th;;	
+
+
+
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
@@ -355,20 +358,6 @@ fun rm_Eps _ [] = []
       in th' :: (rm_Eps epss' thms) end;
 
 
-(* convert a theorem into CNF and then into Clause.clause format. *)
-fun clausify_axiom th =
-    let val name = Thm.name_of_thm th
-	val isa_clauses = cnf_axiom (name, th)
-	      (*"isa_clauses" are already in "standard" form. *)
-        val isa_clauses' = rm_Eps [] isa_clauses
-        val clauses_n = length isa_clauses
-	fun make_axiom_clauses _ [] = []
-	  | make_axiom_clauses i (cls::clss) = 
-	      (ResClause.make_axiom_clause cls (name,i)) :: make_axiom_clauses (i+1) clss 
-    in
-	make_axiom_clauses 0 isa_clauses'		
-    end;
-  
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
@@ -408,21 +397,26 @@ fun cnf_simpset_rules_thy thy =
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
-(* classical rules *)
-fun clausify_rules [] err_list = ([],err_list)
-  | clausify_rules (th::thms) err_list =
-    let val (ts,es) = clausify_rules thms err_list
+(* outputs a list of (thm,clause) pairs *)
+fun clausify_axiom_pairs (thm_name,thm) =
+    let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
+        val isa_clauses' = rm_Eps [] isa_clauses
+        val clauses_n = length isa_clauses
+	fun make_axiom_clauses _ [] []= []
+	  | make_axiom_clauses i (cls::clss) (cls'::clss')= ((ResClause.make_axiom_clause cls (thm_name,i)),cls') :: make_axiom_clauses (i+1) clss clss'
     in
-	((clausify_axiom th)::ts,es) handle  _ => (ts,(th::es))
+	make_axiom_clauses 0 isa_clauses' isa_clauses		
     end;
 
-(* convert all classical rules from a given theory into Clause.clause format. *)
-fun clausify_classical_rules_thy thy =
-    clausify_rules (map #2 (claset_rules_of_thy thy)) [];
 
-(* convert all simplifier rules from a given theory into Clause.clause format. *)
-fun clausify_simpset_rules_thy thy =
-    clausify_rules (map #2 (simpset_rules_of_thy thy)) [];
+fun clausify_rules_pairs [] err_list = ([],err_list)
+  | clausify_rules_pairs ((name,thm)::thms) err_list =
+    let val (ts,es) = clausify_rules_pairs thms err_list
+    in
+	((clausify_axiom_pairs (name,thm))::ts,es) handle  _ => (ts,(thm::es))
+    end;
+(* classical rules *)
+
 
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
   into the clause cache*)

@@ -21,7 +21,7 @@ theory Reconstruction
  	  "Tools/ATP/recon_transfer_proof.ML"
 	  "Tools/ATP/VampireCommunication.ML"
 	  "Tools/ATP/SpassCommunication.ML"
-	  "Tools/ATP/modUnix.ML"
+	 (* "Tools/ATP/modUnix.ML"**)
 	  "Tools/ATP/watcher.sig"
 	  "Tools/ATP/watcher.ML"
 	  "Tools/ATP/res_clasimpset.ML"
