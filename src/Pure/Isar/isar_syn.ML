@@ -610,6 +610,10 @@ val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
+val print_simpsetP =
+  OuterSyntax.improper_command "print_simpset" "print context of Simplifier" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_simpset));
+
 val print_rulesP =
   OuterSyntax.improper_command "print_rules" "print intro/elim rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_rules));
@@ -630,35 +634,24 @@ val print_antiquotationsP =
   OuterSyntax.improper_command "print_antiquotations" "print antiquotations (global)" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
-val thms_containingP =
-  let
-    (* intro, elim, dest and rewrite are reserved, otherwise it's a pattern *)
-    fun decode "intro" = ProofContext.Intro
-      | decode "elim" = ProofContext.Elim
-      | decode "dest" = ProofContext.Dest
-      | decode "rewrite" = ProofContext.Rewrite
-      | decode x = ProofContext.Pattern x;
-  
-    (* either name:term or term *)
-    val criterion = ((P.term :-- (fn "name" => P.$$$ ":" |-- P.term | 
-                                     _ => Scan.fail)
-                                 ) >> (ProofContext.Name o #2)) ||
-                    (P.term >> decode);
-  in
-    OuterSyntax.improper_command "thms_containing"
-      "print facts meeting specified criteria"
-      K.diag 
-      (* obtain (int option * (bool * string) list) representing
-         a limit and a set of constraints (the bool indicates whether
-         the constraint is inclusive or exclusive) *)
-      (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
-       Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
-        >> (Toplevel.no_timing oo IsarCmd.print_thms_containing))
-  end;
-
 val thm_depsP =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
     K.diag (P.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
+
+val criterion =
+  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> FindTheorems.Name ||
+  P.reserved "intro" >> K FindTheorems.Intro ||
+  P.reserved "elim" >> K FindTheorems.Elim ||
+  P.reserved "dest" >> K FindTheorems.Dest ||
+  P.reserved "rewrite" |-- P.!!! (P.$$$ ":" |-- P.term) >> FindTheorems.Rewrite ||
+  P.term >> FindTheorems.Pattern;
+
+val find_theoremsP =
+  OuterSyntax.improper_command "thms_containing"  (* FIXME rename to "find_theorems" *)
+    "print theorems meeting specified criteria" K.diag
+    (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
+     Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+      >> (Toplevel.no_timing oo IsarCmd.find_theorems));
 
 val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
@@ -671,10 +664,6 @@ val print_lthmsP =
 val print_casesP =
   OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_cases));
-
-val print_introsP =
-  OuterSyntax.improper_command "print_intros" "print matching introduction rules" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_intros));
 
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
@@ -828,16 +817,15 @@ val parsers = [
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
-  redoP, undos_proofP, undoP, killP, interpretationP, interpretP, instantiateP,
-  (*diagnostic commands*)
-  pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_theoremsP, print_localesP, print_localeP,
-  print_registrationsP,
-  print_attributesP, print_rulesP, print_induct_rulesP,
-  print_trans_rulesP, print_methodsP, print_antiquotationsP,
-  thms_containingP, thm_depsP, print_bindsP, print_lthmsP,
-  print_casesP, print_introsP, print_thmsP, print_prfsP, print_full_prfsP,
-  print_propP, print_termP, print_typeP,
+  redoP, undos_proofP, undoP, killP, interpretationP, interpretP,
+  instantiateP, (*diagnostic commands*) pretty_setmarginP,
+  print_commandsP, print_contextP, print_theoryP, print_syntaxP,
+  print_theoremsP, print_localesP, print_localeP,
+  print_registrationsP, print_attributesP, print_simpsetP,
+  print_rulesP, print_induct_rulesP, print_trans_rulesP,
+  print_methodsP, print_antiquotationsP, thm_depsP, find_theoremsP,
+  print_bindsP, print_lthmsP, print_casesP, print_thmsP, print_prfsP,
+  print_full_prfsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
@@ -845,7 +833,6 @@ val parsers = [
   enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
 (*these commands can be hidden in LaTeX output*)
-
 val hidden_commands = [
   "use", "ML", "ML_command", "ML_setup", "setup", "method_setup",
   "parse_ast_translation", "parse_translation", "print_translation",
@@ -853,8 +840,6 @@ val hidden_commands = [
 
 end;
 
-
-(*install the Pure outer syntax*)
 OuterSyntax.add_keywords IsarSyn.keywords;
 OuterSyntax.add_parsers IsarSyn.parsers;
 IsarOutput.add_hidden_commands IsarSyn.hidden_commands;
