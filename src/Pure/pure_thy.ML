@@ -14,7 +14,6 @@ sig
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
   val thms_of: theory -> (string * thm) list
-  val thms_with_names_of: theory -> (string * thm list) list
   structure ProtoPure:
     sig
       val thy: theory
@@ -26,21 +25,17 @@ signature PURE_THY =
 sig
   include BASIC_PURE_THY
   datatype interval = FromTo of int * int | From of int | Single of int
+  val string_of_thmref: thmref -> string
   val get_thm_closure: theory -> thmref -> thm
   val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
   val select_thm: thmref -> thm list -> thm list
+  val selections: string * thm list -> (thmref * thm) list
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
-  val thms_containing: theory -> string list * string list -> (string * thm list) list
-  val find_theorems: ('a * 'b list) list -> ('a * 'b -> bool) list -> ('a * 'b list) list
+  val fact_index_of: theory -> FactIndex.T
+  val valid_thms: theory -> thmref * thm list -> bool
+  val thms_containing: theory -> FactIndex.spec -> (string * thm list) list
   val thms_containing_consts: theory -> string list -> (string * thm) list
-  val find_matching_thms: (thm -> thm list) * (term -> term)
-        -> theory -> term -> (string * thm) list
-  val is_matching_thm: (thm -> thm list) * (term -> term)
-        -> Sign.sg -> term -> (string * thm) -> bool
-  val find_intros: theory -> term -> (string * thm) list
-  val find_intros_goal : theory -> thm -> int -> (string * thm) list
-  val find_elims : theory -> term -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
@@ -106,25 +101,25 @@ struct
 
   type T =
     {space: NameSpace.T,
-      thms_tab: thm list Symtab.table,
+      theorems: thm list Symtab.table,
       index: FactIndex.T} ref;
 
   fun mk_empty _ =
-    ref {space = NameSpace.empty, thms_tab = Symtab.empty, index = FactIndex.empty}: T;
+    ref {space = NameSpace.empty, theorems = Symtab.empty, index = FactIndex.empty}: T;
 
   val empty = mk_empty ();
   fun copy (ref x) = ref x;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
-  fun pretty sg (ref {space, thms_tab, index = _}) =
+  fun pretty sg (ref {space, theorems, index = _}) =
     let
       val prt_thm = Display.pretty_thm_sg sg;
       fun prt_thms (name, [th]) =
             Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
 
-      val thmss = NameSpace.cond_extern_table space thms_tab;
+      val thmss = NameSpace.cond_extern_table space theorems;
     in Pretty.big_list "theorems:" (map prt_thms thmss) end;
 
   fun print sg data = Pretty.writeln (pretty sg data);
@@ -135,6 +130,8 @@ val get_theorems_sg = TheoremsData.get_sg;
 val get_theorems = TheoremsData.get;
 
 val cond_extern_thm_sg = NameSpace.cond_extern o #space o ! o get_theorems_sg;
+val fact_index_of = #index o ! o get_theorems;
+
 
 
 (* print theory *)
@@ -157,35 +154,50 @@ fun single_thm _ [thm] = thm
   | single_thm name _ = error ("Single theorem expected " ^ quote name);
 
 
-(* selections *)
+(* datatype interval *)
 
 datatype interval =
   FromTo of int * int |
   From of int |
   Single of int;
 
-type thmref = xstring * interval list option;
-
-local
-
 fun interval _ (FromTo (i, j)) = i upto j
   | interval n (From i) = i upto n
   | interval _ (Single i) = [i];
 
-fun select name thms n i =
-  if i < 1 orelse i > n then
-    error ("Bad subscript " ^ string_of_int i ^ " for " ^
-      quote name ^ " (length " ^ string_of_int n ^ ")")
-  else List.nth (thms, i - 1);
+fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
+  | string_of_interval (From i) = string_of_int i ^ "-"
+  | string_of_interval (Single i) = string_of_int i;
 
-in
+
+(* type thmref *)
+
+type thmref = xstring * interval list option;
+
+fun string_of_thmref (name, NONE) = name
+  | string_of_thmref (name, SOME is) =
+      name ^ enclose "(" ")" (commas (map string_of_interval is));
+
+
+(* select_thm *)
 
 fun select_thm (_, NONE) thms = thms
   | select_thm (name, SOME is) thms =
-      let val n = length thms
-      in map (select name thms n) (List.concat (map (interval n) is)) end;
+      let
+        val n = length thms;
+        fun select i =
+          if i < 1 orelse i > n then
+            error ("Bad subscript " ^ string_of_int i ^ " for " ^
+              quote name ^ " (length " ^ string_of_int n ^ ")")
+          else List.nth (thms, i - 1);
+      in map select (List.concat (map (interval n) is)) end;
 
-end;
+
+(* selections *)
+
+fun selections (name, [thm]) = [((name, NONE), thm)]
+  | selections (name, thms) = (1 upto length thms, thms) |> ListPair.map (fn (i, thm) =>
+      ((name, SOME [Single i]), thm));
 
 
 (* get_thm(s)_closure -- statically scoped versions *)
@@ -195,11 +207,11 @@ end;
 fun lookup_thms thy =
   let
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
-    val ref {space, thms_tab, ...} = get_theorems thy;
+    val ref {space, theorems, ...} = get_theorems thy;
   in
     fn name =>
       Option.map (map (Thm.transfer_sg (Sign.deref sg_ref)))        (*semi-dynamic identity*)
-      (Symtab.lookup (thms_tab, NameSpace.intern space name))   (*static content*)
+      (Symtab.lookup (theorems, NameSpace.intern space name))   (*static content*)
   end;
 
 fun get_thms_closure thy =
@@ -223,135 +235,33 @@ fun get_thmss thy names = List.concat (map (get_thms thy) names);
 fun get_thm thy (namei as (name, _)) = single_thm name (get_thms thy namei);
 
 
-(* thms_of *)
+(* thms_containing etc. *)
 
-fun thms_of thy =
-  let val ref {thms_tab, ...} = get_theorems thy in
-    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms_tab)))
-  end;
+fun valid_thms thy (thmref, ths) =
+  (case try (transform_error (get_thms thy)) thmref of
+    NONE => false
+  | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
 
-(* thms_with_names_of - theorems in this theory and their names *)
-fun thms_with_names_of thy = 
-  TheoremsData.get thy |> ! |> #index |> FactIndex.find ([],[]);
-  (* looking for nothing in a FactIndex finds everything, i.e. all theorems *)
-
-(* thms_containing *)
-
-fun thms_containing thy idx =
-  let
-    fun valid (name, ths) =
-      (case try (transform_error (get_thms thy)) (name, NONE) of
-        NONE => false
-      | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
-  in
-    (thy :: Theory.ancestors_of thy)
-    |> map (gen_distinct eq_fst o List.filter valid o FactIndex.find idx o #index o ! o get_theorems)
-    |> List.concat
-  end;
+fun thms_containing theory spec =
+  (theory :: Theory.ancestors_of theory)
+  |> map (fn thy =>
+      FactIndex.find (fact_index_of thy) spec
+      |> List.filter (fn (name, ths) => valid_thms theory ((name, NONE), ths))
+      |> gen_distinct eq_fst)
+  |> List.concat;
 
 fun thms_containing_consts thy consts =
   thms_containing thy (consts, []) |> map #2 |> List.concat
-  |> map (fn th => (Thm.name_of_thm th, th))
+  |> map (fn th => (Thm.name_of_thm th, th));
 
-(* Searching based on filters *)
-(* a filter must only take a (name:string, theorem:Thm.thm) and return true
-   if it finds a match, false if it doesn't *)
 
-(* given facts and filters, find all facts in which at least one theorem 
-   matches on ALL filters *)
-fun find_theorems facts filters =
-  let
-    (* break fact up into theorems, but associate them with the name of this 
-       fact, so that filters looking by name will only consider the fact's
-       name *)
-    fun fact_to_names_thms (name, thms) =
-      map (fn thm => (name, thm)) thms;
+(* thms_of *)
 
-    (* all filters return true when applied to a named theorem *)
-    fun match_all_filters filters name_thm =
-      List.all (fn filter => filter name_thm) filters;
-
-    (* at least one theorem in this fact which matches all filters *)
-    fun fact_matches_filters filters fact =
-      List.exists (match_all_filters filters) (fact_to_names_thms fact);
-
-    fun matches x = (fact_matches_filters filters x)
-  in
-    List.filter matches facts
+fun thms_of thy =
+  let val ref {theorems, ...} = get_theorems thy in
+    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest theorems)))
   end;
 
-(* intro/elim theorems *)
-
-(* intro: given a goal state, find a suitable intro rule for some subgoal *)
-(* elim: given a theorem thm,
-         find a theorem whose major premise eliminates the conclusion of thm *)
-
-fun top_const t = (case head_of t of Const (c, _) => SOME c | _ => NONE);
-
-(* This is a hack to remove the Trueprop constant that most logics use *)
-fun rem_top (_ $ t) = t
-  | rem_top _ = Bound 0 (* does not match anything *)
-
-(*returns all those named_thms whose subterm extracted by extract can be
-  instantiated to obj; the list is sorted according to the number of premises
-  and the size of the required substitution.*)
-fun select_match(c,obj, signobj, named_thms, (extract_thms,extract_term)) =
-  let val tsig = Sign.tsig_of signobj
-      fun matches prop =
-        let val pat = extract_term prop
-        in case head_of pat of
-             Const(d,_) => c=d andalso Pattern.matches tsig (pat,obj)
-           | _ => false
-        end
-
-      fun substsize prop =
-            let val pat = extract_term prop
-                val (_,subst) = Pattern.match tsig (pat,obj)
-            in Vartab.foldl (op + o apsnd (size_of_term o snd o snd)) (0, subst)
-            end
-
-      fun thm_ord ((p0,s0,_),(p1,s1,_)) =
-            prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
-
-      fun select((p as (_,thm))::named_thms, sels) =
-            let
-              fun sel(thm::thms,sels) =     
-                    let val {prop, ...} = rep_thm thm
-                    in if matches prop
-                       then (nprems_of thm,substsize prop,p)::sels
-                       else sel(thms,sels)
-                    end
-                | sel([],sels) = sels
-             val {sign, ...} = rep_thm thm
-           in select(named_thms,if Sign.subsig(sign, signobj)
-                                then sel(extract_thms thm,sels)
-                                else sels)
-           end
-        | select([],sels) = sels
-
-  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
-
-(* like find_matching_thms, but for one named theorem only *)
-fun is_matching_thm extract sg prop name_thm =
-  (case top_const prop of NONE => false
-   | SOME c => 
-      not ([] = select_match(c,prop, sg,[name_thm],extract)));
-
-
-fun find_matching_thms extract thy prop =
-  (case top_const prop of NONE => []
-   | SOME c => let val thms = thms_containing_consts thy [c]
-               in select_match(c,prop,Theory.sign_of thy,thms,extract) end)
-
-val find_intros =
-  find_matching_thms (single, rem_top o Logic.strip_imp_concl)
-
-fun find_intros_goal thy st i =
-  find_intros thy (rem_top(Logic.concl_of_goal (prop_of st) i));
-
-val find_elims = find_matching_thms
-  (fn thm => if Thm.no_prems thm then [] else [thm],
-   rem_top o hd o Logic.strip_imp_prems)
 
 
 (** store theorems **)                    (*DESTRUCTIVE*)
@@ -360,9 +270,9 @@ val find_elims = find_matching_thms
 
 fun hide_thms fully names thy =
   let
-    val r as ref {space, thms_tab, index} = get_theorems thy;
+    val r as ref {space, theorems, index} = get_theorems thy;
     val space' = NameSpace.hide fully (space, names);
-  in r := {space = space', thms_tab = thms_tab, index = index}; thy end;
+  in r := {space = space', theorems = theorems, index = index}; thy end;
 
 
 (* naming *)
@@ -396,21 +306,22 @@ fun gen_enter_thms _ _ _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         val (thy', thms') = app_att (thy, pre_name name thms);
         val named_thms = post_name name thms';
 
-        val r as ref {space, thms_tab, index} = get_theorems_sg sg;
+        val r as ref {space, theorems, index} = get_theorems_sg sg;
         val space' = NameSpace.extend' acc (space, [name]);
-        val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
-        val index' = FactIndex.add (K false) (index, (name, named_thms));
+        val theorems' = Symtab.update ((name, named_thms), theorems);
+        val index' = FactIndex.add (K false) (name, named_thms) index;
       in
-        (case Symtab.lookup (thms_tab, name) of
+        (case Symtab.lookup (theorems, name) of
           NONE => ()
         | SOME thms' =>
             if Library.equal_lists Thm.eq_thm (thms', named_thms) then warn_same name
             else warn_overwrite name);
-        r := {space = space', thms_tab = thms_tab', index = index'};
+        r := {space = space', theorems = theorems', index = index'};
         (thy', named_thms)
       end;
 
 fun enter_thms sg = gen_enter_thms Sign.full_name NameSpace.accesses sg;
+
 
 (* add_thms(s) *)
 
@@ -445,18 +356,13 @@ fun gen_note_thmss enter get kind_att args thy =
 
 in
 
-(* if path is set, only permit unqualified names *)
-
+(*if path is set, only permit unqualified names*)
 val note_thmss = gen_note_thmss enter_thms get_thms;
 val note_thmss_i = gen_note_thmss enter_thms (K I);
 
-(* always permit qualified names,
-   clients may specify non-standard access policy *)
-
-fun note_thmss_accesses acc =
-  gen_note_thmss (gen_enter_thms Sign.full_name' acc) get_thms;
-fun note_thmss_accesses_i acc =
-  gen_note_thmss (gen_enter_thms Sign.full_name' acc) (K I);
+(*always permit qualified names, clients may specify non-standard access policy*)
+fun note_thmss_accesses acc = gen_note_thmss (gen_enter_thms Sign.full_name' acc) get_thms;
+fun note_thmss_accesses_i acc = gen_note_thmss (gen_enter_thms Sign.full_name' acc) (K I);
 
 end;
 
@@ -615,15 +521,11 @@ fun add_typedecls decls thy =
 
 (*** the ProtoPure theory ***)
 
-
-(*It might make sense to restrict the polymorphism of the constant "==" to
-  sort logic, instead of the universal sort, {}.  Unfortunately, this change
-  causes HOL/Import/shuffler.ML to fail.*)
-
 val proto_pure =
   Theory.pre_pure
-  |> Library.apply [TheoremsData.init, TheoryManagementData.init, Proofterm.init]
-  |> put_name "ProtoPure"
+  |> TheoryManagementData.init |> put_name "ProtoPure"
+  |> TheoremsData.init
+  |> Proofterm.init
   |> global_path
   |> Theory.add_types
    [("fun", 2, NoSyn),
@@ -666,10 +568,7 @@ struct
   val Goal_def = get_axiom thy "Goal_def";
 end;
 
-
 end;
-
 
 structure BasicPureThy: BASIC_PURE_THY = PureThy;
 open BasicPureThy;
-
