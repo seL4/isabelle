@@ -5,12 +5,7 @@
 Isar/Pure outer syntax.
 *)
 
-signature ISAR_SYN =
-sig
-  val keywords: string list
-  val parsers: OuterSyntax.parser list
-  val hidden_commands: string list
-end;
+signature ISAR_SYN = sig end;
 
 structure IsarSyn: ISAR_SYN =
 struct
@@ -647,7 +642,7 @@ val criterion =
   P.term >> FindTheorems.Pattern;
 
 val find_theoremsP =
-  OuterSyntax.improper_command "thms_containing"  (* FIXME rename to "find_theorems" *)
+  OuterSyntax.improper_command "thms_containing"
     "print theorems meeting specified criteria" K.diag
     (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
      Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
@@ -787,7 +782,7 @@ val welcomeP =
 (*keep keywords consistent with the parsers, including those in
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
-val keywords =
+val _ = OuterSyntax.add_keywords
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes", "begin",
   "binder", "concl", "defines", "files", "fixes", "imports", "in", "includes",
@@ -796,7 +791,7 @@ val keywords =
   "\\<leftharpoondown>", "\\<rightharpoonup>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 
-val parsers = [
+val _ = OuterSyntax.add_parsers [
   (*theory structure*)
   theoryP, end_excursionP, contextP,
   (*markup commands*)
@@ -832,14 +827,10 @@ val parsers = [
   kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,
   enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
-(*these commands can be hidden in LaTeX output*)
-val hidden_commands = [
+val _ = IsarOutput.add_hidden_commands [
   "use", "ML", "ML_command", "ML_setup", "setup", "method_setup",
   "parse_ast_translation", "parse_translation", "print_translation",
-  "typed_print_translation", "print_ast_translation", "token_translation"];
+  "typed_print_translation", "print_ast_translation",
+  "token_translation"];
 
 end;
-
-OuterSyntax.add_keywords IsarSyn.keywords;
-OuterSyntax.add_parsers IsarSyn.parsers;
-IsarOutput.add_hidden_commands IsarSyn.hidden_commands;
