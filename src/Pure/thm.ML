@@ -300,7 +300,7 @@ datatype thm = Thm of
   tpairs: (term * term) list,  (*flex-flex pairs*)
   prop: term};                 (*conclusion*)
 
-fun terms_of_tpairs tpairs = List.concat (map (op @ o pairself single) tpairs);
+fun terms_of_tpairs tpairs = List.concat (map (fn (t, u) => [t, u]) tpairs);
 
 fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
