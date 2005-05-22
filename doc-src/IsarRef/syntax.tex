@@ -436,8 +436,11 @@ antiquotations may involve attributes as well.  For example,
 statement where all schematic variables have been replaced by fixed ones,
 which are easier to read.
 
-\indexisarant{thm}\indexisarant{lhs}\indexisarant{rhs}\indexisarant{prop}\indexisarant{term}
-\indexisarant{typ}\indexisarant{text}\indexisarant{goals}\indexisarant{subgoals}
+\indexisarant{thm}\indexisarant{prop}\indexisarant{term}\indexisarant{const}
+\indexisarant{typeof}\indexisarant{typ}\indexisarant{thm-style}
+\indexisarant{term-style}\indexisarant{text}\indexisarant{goals}
+\indexisarant{subgoals}\indexisarant{prf}\indexisarant{full-prf}
+
 \begin{rail}
   atsign lbrace antiquotation rbrace
   ;
@@ -516,19 +519,19 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 
 \end{descr}
 
-Per default, each theory contains three default styles for use with
-$\at\{thm_style~s~a\}$ and $\at\{term_style~s~t\}$:
+There are a few standard styles for use with $\at\{thm_style~s~a\}$ and
+$\at\{term_style~s~t\}$:
 
 \begin{descr}
-
-\item [$lhs$] extracts the left hand sides of terms; this style only works
-    for terms that are definitions, equations or other binary operators.
-
-\item [$rhs$] extracts the right hand sides of terms; likewise,
-    this style only works
-    for terms that are definitions, equations or other binary operators.
-
-\item [$conlusion$] extracts the conclusion from propositions.
+  
+\item [$lhs$] extracts the first argument of any application form with at
+  least two arguments -- typically is meta-level or object-level equality or
+  any other binary relation.
+  
+\item [$rhs$] similar to $lhs$, but extracts the second argument.
+  
+\item [$conlusion$] extracts the conclusion $C$ from nested meta-level
+  implications $A@1 \Imp \cdots A@n \Imp C$.
 
 \end{descr}
 
