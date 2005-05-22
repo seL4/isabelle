@@ -14,8 +14,6 @@ print_depth 1;
 Unify.trace_bound:= 20;
 Unify.search_bound := 40;
 
-use "~~/src/Provers/simplifier.ML";
-
 use_thy "Sequents";
 use "prover.ML";
 

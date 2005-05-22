@@ -140,7 +140,6 @@ defs
 
 subsection {* Lemmas and proof tools *}
 
-setup Simplifier.setup
 use "IFOL_lemmas.ML"
 
 use "fologic.ML"

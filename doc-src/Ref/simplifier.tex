@@ -1224,12 +1224,10 @@ This section describes how the simplifier is installed for intuitionistic
 first-order logic; the code is largely taken from {\tt FOL/simpdata.ML} of the
 Isabelle sources.
 
-The simplifier and the case splitting tactic, which reside on separate files,
-are not part of Pure Isabelle.  They must be loaded explicitly by the
-object-logic as follows (below \texttt{\~\relax\~\relax} refers to
-\texttt{\$ISABELLE_HOME}):
+The case splitting tactic, which resides on a separate files, is not part of
+Pure Isabelle.  It needs to be loaded explicitly by the object-logic as
+follows (below \texttt{\~\relax\~\relax} refers to \texttt{\$ISABELLE_HOME}):
 \begin{ttbox}
-use "\~\relax\~\relax/src/Provers/simplifier.ML";
 use "\~\relax\~\relax/src/Provers/splitter.ML";
 \end{ttbox}
 
@@ -1458,23 +1456,6 @@ structure SplitterData =
   end;
 \ttbreak
 structure Splitter = SplitterFun(SplitterData);
-\end{ttbox}
-
-
-\subsection{Theory setup}\index{simplification!setting up the theory}
-\begin{ttbox}\indexbold{*Simplifier.setup}\index{*setup!simplifier}
-Simplifier.setup: (theory -> theory) list
-\end{ttbox}
-
-Advanced theory related features of the simplifier (e.g.\ implicit
-simpset support) have to be set up explicitly.  The simplifier already
-provides a suitable setup function definition.  This has to be
-installed into the base theory of any new object-logic via a
-\texttt{setup} declaration.
-
-For example, this is done in \texttt{FOL/IFOL.thy} as follows:
-\begin{ttbox}
-setup Simplifier.setup
 \end{ttbox}
 
 

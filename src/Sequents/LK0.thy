@@ -123,10 +123,6 @@ constdefs
   If :: [o, 'a, 'a] => 'a   ("(if (_)/ then (_)/ else (_))" 10)
    "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
 
-
-setup
-  Simplifier.setup
-
 setup
   prover_setup
 

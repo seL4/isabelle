@@ -1124,7 +1124,6 @@ lemma Let_unfold: "f x \<equiv> g \<Longrightarrow>  Let x f \<equiv> g"
 subsubsection {* Actual Installation of the Simplifier *}
 
 use "simpdata.ML"
-setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 

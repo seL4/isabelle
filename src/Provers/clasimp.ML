@@ -3,7 +3,7 @@
     Author:     David von Oheimb, TU Muenchen
 
 Combination of classical reasoner and simplifier (depends on
-simplifier.ML, splitter.ML classical.ML, blast.ML).
+splitter.ML, classical.ML, blast.ML).
 *)
 
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2

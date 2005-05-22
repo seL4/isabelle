@@ -105,10 +105,10 @@ val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", [])];
 
-(* ###FIXME: move to Provers/simplifier.ML
+(* ###FIXME: move to simplifier.ML
 val mk_atomize:      (string * thm list) list -> thm -> thm list
 *)
-(* ###FIXME: move to Provers/simplifier.ML *)
+(* ###FIXME: move to simplifier.ML *)
 fun mk_atomize pairs =
   let fun atoms th =
         (case concl_of th of

@@ -10,7 +10,6 @@ writeln banner;
 
 print_depth 1;  
 
-use "~~/src/Provers/simplifier.ML";
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/ind.ML";
 use "~~/src/Provers/hypsubst.ML";

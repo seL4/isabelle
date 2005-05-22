@@ -61,64 +61,59 @@ HOL: Pure $(OUT)/HOL
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
-  $(SRC)/Provers/Arith/abel_cancel.ML \
-  $(SRC)/Provers/Arith/assoc_fold.ML \
-  $(SRC)/Provers/Arith/cancel_numerals.ML \
-  $(SRC)/Provers/Arith/cancel_sums.ML \
-  $(SRC)/Provers/Arith/combine_numerals.ML \
-  $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
-  $(SRC)/Provers/Arith/extract_common_term.ML \
-  $(SRC)/Provers/Arith/cancel_div_mod.ML \
-  $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
-  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/induct_method.ML \
-  $(SRC)/Provers/make_elim.ML $(SRC)/Provers/order.ML $(SRC)/Provers/quasi.ML\
-  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML \
-  $(SRC)/Provers/trancl.ML \
-  $(SRC)/TFL/casesplit.ML \
-  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML $(SRC)/TFL/rules.ML \
-  $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
-  $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
-  $(SRC)/Provers/eqsubst.ML\
-  eqrule_HOL_data.ML\
-  Datatype.ML Datatype.thy Datatype_Universe.thy \
-  Divides.thy Equiv_Relations.thy Extraction.thy Finite_Set.ML Finite_Set.thy \
-  Fun.thy Gfp.thy Hilbert_Choice.thy HOL.ML \
-  HOL.thy Inductive.thy Infinite_Set.thy Integ/Numeral.thy \
-  Integ/cooper_dec.ML Integ/cooper_proof.ML \
-  Integ/IntArith.thy Integ/IntDef.thy \
-  Integ/IntDiv.thy Integ/NatBin.thy Integ/NatSimprocs.thy Integ/Parity.thy \
-  Integ/int_arith1.ML Integ/int_factor_simprocs.ML Integ/nat_simprocs.ML \
-  Integ/Presburger.thy Integ/presburger.ML Integ/qelim.ML \
-  Lattice_Locales.thy Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy\
-  Nat.ML Nat.thy NatArith.thy Power.thy PreList.thy Product_Type.thy \
-  Refute.thy ROOT.ML \
-  Recdef.thy Reconstruction.thy Record.thy Relation.ML Relation.thy \
-  Relation_Power.thy LOrder.thy OrderedGroup.thy OrderedGroup.ML \
-  Orderings.ML Orderings.thy Ring_and_Field.thy\
-  Set.ML Set.thy SetInterval.thy \
-  Sum_Type.thy Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
- Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
- Tools/datatype_realizer.ML Tools/datatype_rep_proofs.ML \
- Tools/inductive_codegen.ML Tools/inductive_package.ML Tools/inductive_realizer.ML \
- Tools/meson.ML Tools/numeral_syntax.ML \
- Tools/primrec_package.ML Tools/prop_logic.ML \
- Tools/recdef_package.ML Tools/recfun_codegen.ML Tools/record_package.ML \
- Tools/reconstruction.ML Tools/refute.ML Tools/refute_isar.ML \
- Tools/rewrite_hol_proof.ML Tools/sat_solver.ML Tools/specification_package.ML \
- Tools/split_rule.ML Tools/typedef_package.ML \
-  Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
-  Wellfounded_Recursion.thy Wellfounded_Relations.thy arith_data.ML antisym_setup.ML \
-  blastdata.ML cladata.ML \
- Tools/res_lib.ML Tools/res_clause.ML Tools/res_skolem_function.ML\
- Tools/res_axioms.ML Tools/res_types_sorts.ML \
- Tools/ATP/recon_prelim.ML Tools/ATP/recon_order_clauses.ML\
- Tools/ATP/recon_translate_proof.ML Tools/ATP/recon_parse.ML \
- Tools/ATP/recon_transfer_proof.ML Tools/ATP/res_clasimpset.ML \
- Tools/ATP/VampireCommunication.ML Tools/ATP/SpassCommunication.ML Tools/ATP/modUnix.ML  \
- Tools/ATP/watcher.sig Tools/ATP/watcher.ML   Tools/res_atp.ML\
- document/root.tex hologic.ML simpdata.ML thy_syntax.ML
+$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
+  $(SRC)/Provers/Arith/assoc_fold.ML						\
+  $(SRC)/Provers/Arith/cancel_div_mod.ML					\
+  $(SRC)/Provers/Arith/cancel_numeral_factor.ML					\
+  $(SRC)/Provers/Arith/cancel_numerals.ML					\
+  $(SRC)/Provers/Arith/cancel_sums.ML						\
+  $(SRC)/Provers/Arith/combine_numerals.ML					\
+  $(SRC)/Provers/Arith/extract_common_term.ML					\
+  $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML		\
+  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML				\
+  $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML				\
+  $(SRC)/Provers/induct_method.ML $(SRC)/Provers/make_elim.ML			\
+  $(SRC)/Provers/order.ML $(SRC)/Provers/quantifier1.ML				\
+  $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML $(SRC)/Provers/trancl.ML	\
+  $(SRC)/TFL/casesplit.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML		\
+  $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML			\
+  $(SRC)/TFL/thry.ML $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML			\
+  Datatype.ML Datatype.thy Datatype_Universe.thy Divides.thy			\
+  Equiv_Relations.thy Extraction.thy Finite_Set.ML Finite_Set.thy		\
+  Fun.thy Gfp.thy HOL.ML HOL.thy Hilbert_Choice.thy Inductive.thy		\
+  Infinite_Set.thy Integ/IntArith.thy Integ/IntDef.thy Integ/IntDiv.thy		\
+  Integ/NatBin.thy Integ/NatSimprocs.thy Integ/Numeral.thy			\
+  Integ/Parity.thy Integ/Presburger.thy Integ/cooper_dec.ML			\
+  Integ/cooper_proof.ML Integ/int_arith1.ML Integ/int_factor_simprocs.ML	\
+  Integ/nat_simprocs.ML Integ/presburger.ML Integ/qelim.ML LOrder.thy		\
+  Lattice_Locales.thy Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy		\
+  Nat.ML Nat.thy NatArith.thy OrderedGroup.ML OrderedGroup.thy			\
+  Orderings.ML Orderings.thy Power.thy PreList.thy Product_Type.thy		\
+  ROOT.ML Recdef.thy Reconstruction.thy Record.thy Refute.thy			\
+  Relation.ML Relation.thy Relation_Power.thy Ring_and_Field.thy Set.ML		\
+  Set.thy SetInterval.thy Sum_Type.thy Tools/ATP/SpassCommunication.ML		\
+  Tools/ATP/VampireCommunication.ML Tools/ATP/modUnix.ML			\
+  Tools/ATP/recon_order_clauses.ML Tools/ATP/recon_parse.ML			\
+  Tools/ATP/recon_prelim.ML Tools/ATP/recon_transfer_proof.ML			\
+  Tools/ATP/recon_translate_proof.ML Tools/ATP/res_clasimpset.ML		\
+  Tools/ATP/watcher.ML Tools/ATP/watcher.sig					\
+  Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML				\
+  Tools/datatype_codegen.ML Tools/datatype_package.ML				\
+  Tools/datatype_prop.ML Tools/datatype_realizer.ML				\
+  Tools/datatype_rep_proofs.ML Tools/inductive_codegen.ML			\
+  Tools/inductive_package.ML Tools/inductive_realizer.ML Tools/meson.ML		\
+  Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/prop_logic.ML		\
+  Tools/recdef_package.ML Tools/recfun_codegen.ML				\
+  Tools/reconstruction.ML Tools/record_package.ML Tools/refute.ML		\
+  Tools/refute_isar.ML Tools/res_atp.ML Tools/res_axioms.ML			\
+  Tools/res_clause.ML Tools/res_lib.ML Tools/res_skolem_function.ML		\
+  Tools/res_types_sorts.ML Tools/rewrite_hol_proof.ML				\
+  Tools/sat_solver.ML Tools/specification_package.ML Tools/split_rule.ML	\
+  Tools/typedef_package.ML Transitive_Closure.ML Transitive_Closure.thy		\
+  Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
+  antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
+  document/root.tex eqrule_HOL_data.ML hologic.ML simpdata.ML			\
+  thy_syntax.ML
 	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL
 
 
@@ -126,14 +121,15 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
 
 HOL-Complex-HahnBanach: HOL-Complex $(LOG)/HOL-Complex-HahnBanach.gz
 
-$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
-  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
-  Real/HahnBanach/HahnBanachExtLemmas.thy	\
-  Real/HahnBanach/HahnBanachSupLemmas.thy	\
-  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy \
-  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML \
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
-  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib \
+$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
+  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
+  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
+  Real/HahnBanach/HahnBanachExtLemmas.thy				\
+  Real/HahnBanach/HahnBanachSupLemmas.thy				\
+  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy	\
+  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML			\
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy		\
+  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib	\
   Real/HahnBanach/document/root.tex
 	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Complex HahnBanach
 
@@ -142,24 +138,23 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex Real/HahnBanach/Bounds.thy 
 
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
-  Library/Zorn.thy\
-  Real/Lubs.thy Real/rat_arith.ML\
-  Real/Rational.thy Real/PReal.thy Real/RComplete.thy \
-  Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy \
-  Real/RealPow.thy Real/document/root.tex\
-  Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy\
-  Hyperreal/Filter.thy Hyperreal/HSeries.thy\
-  Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy\
-  Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy\
-  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\
-  Hyperreal/Integration.thy Hyperreal/Lim.thy Hyperreal/Log.thy\
-  Hyperreal/MacLaurin.thy Hyperreal/NatStar.thy\
-  Hyperreal/NSA.thy Hyperreal/NthRoot.thy Hyperreal/Poly.thy\
-  Hyperreal/SEQ.thy Hyperreal/Series.thy Hyperreal/Star.thy \
-  Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
-  Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy\
-  Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy\
+$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
+  Real/Lubs.thy Real/rat_arith.ML						\
+  Real/Rational.thy Real/PReal.thy Real/RComplete.thy				\
+  Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy		\
+  Real/RealPow.thy Real/document/root.tex					\
+  Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
+  Hyperreal/Filter.thy Hyperreal/HSeries.thy					\
+  Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy			\
+  Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy					\
+  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy				\
+  Hyperreal/Integration.thy Hyperreal/Lim.thy Hyperreal/Log.thy			\
+  Hyperreal/MacLaurin.thy Hyperreal/NatStar.thy					\
+  Hyperreal/NSA.thy Hyperreal/NthRoot.thy Hyperreal/Poly.thy			\
+  Hyperreal/SEQ.thy Hyperreal/Series.thy Hyperreal/Star.thy			\
+  Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML	\
+  Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy			\
+  Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy			\
   Complex/NSCA.thy Complex/NSComplex.thy Complex/document/root.tex 
 	@cd Complex; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Complex
 
