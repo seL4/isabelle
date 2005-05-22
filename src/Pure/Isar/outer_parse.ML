@@ -31,6 +31,7 @@ sig
   val sync: token list -> string * token list
   val eof: token list -> string * token list
   val $$$ : string -> token list -> string * token list
+  val reserved : string -> token list -> string * token list
   val semicolon: token list -> string * token list
   val underscore: token list -> string * token list
   val maybe: (token list -> 'a * token list) -> token list -> 'a option * token list
@@ -147,6 +148,10 @@ val eof = kind T.EOF;
 fun $$$ x =
   group (T.str_of_kind T.Keyword ^ " " ^ quote x)
     (Scan.one (T.keyword_with (equal x)) >> T.val_of);
+
+fun reserved x =
+  group ("Reserved identifier " ^ quote x)
+    (Scan.one (T.ident_with (equal x)) >> T.val_of);
 
 val semicolon = $$$ ";";
 
