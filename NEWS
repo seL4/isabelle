@@ -22,13 +22,13 @@ New in this Isabelle release
 * Theory loader: parent theories can now also be referred to via
   relative and absolute paths.
 
-* Provers/quasi.ML:  new transitivity reasoners for transitivity only
+* Provers/quasi.ML: new transitivity reasoners for transitivity only
   and quasi orders.
 
-* Provers/trancl.ML:  new transitivity reasoner for transitive and
+* Provers/trancl.ML: new transitivity reasoner for transitive and
   reflexive-transitive closure of relations.
 
-* Provers/blast.ML:  new reference depth_limit to make blast's depth
+* Provers/blast.ML: new reference depth_limit to make blast's depth
   limit (previously hard-coded with a value of 20) user-definable.
 
 * Provers: new version of the subst method, for single-step rewriting: it now
@@ -121,13 +121,8 @@ New in this Isabelle release
   Moreover, the low-level mk_simproc no longer applies Logic.varify
   internally, to allow for use in a context of fixed variables.
 
-* Pure/Simplifier: Command "find_rewrites" takes a string and lists all
-  equality theorems (not just those declared as simp!) whose left-hand
-  side matches the term given via the string. In PG the command can be
-  activated via Isabelle -> Show me -> matching rewrites.
-
-* Isar debugging: new reference Toplevel.debug; default false.
-  Set to make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
+* Isar debugging: new reference Toplevel.debug; default false.  Set to
+  make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
   
 * Locales:
   - "includes" disallowed in declaration of named locales (command "locale").
@@ -175,6 +170,10 @@ New in this Isabelle release
   INCOMPATIBILITY: elements of CPure (such as the CPure.intro /
   CPure.elim / CPure.dest attributes) now appear in the Pure name
   space; use isatool fixcpure to adapt your theory and ML sources.
+
+* Provers/simplifier.ML has been moved to Pure, where Simplifier.setup
+  is peformed already.  Object-logics merely need to finish their
+  initial simpset configuration as before.
 
 
 *** Document preparation ***
