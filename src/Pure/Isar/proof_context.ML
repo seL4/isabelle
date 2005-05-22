@@ -6,7 +6,6 @@ The key concept of Isar proof contexts.
 *)
 
 val show_structs = ref false;
-val thms_containing_limit = ref 40;
 
 signature PROOF_CONTEXT =
 sig
@@ -16,9 +15,11 @@ sig
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
   val is_fixed: context -> string -> bool
+  val is_known: context -> string -> bool
   val fixed_names_of: context -> string list
   val assumptions_of: context -> (cterm list * exporter) list
   val prems_of: context -> thm list
+  val fact_index_of: context -> FactIndex.T
   val print_proof_data: theory -> unit
   val init: theory -> context
   val pretty_term: context -> term -> Pretty.T
@@ -55,7 +56,6 @@ sig
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
   val declare_term: term -> context -> context
-  val declare_terms: term list -> context -> context
   val read_tyname: context -> string -> typ
   val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
@@ -91,6 +91,8 @@ sig
   val get_thm_closure: context -> thmref -> thm
   val get_thms: context -> thmref -> thm list
   val get_thms_closure: context -> thmref -> thm list
+  val valid_thms: context -> string * thm list -> bool
+  val lthms_containing: context -> FactIndex.spec -> (string * thm list) list
   val cond_extern: context -> string -> xstring
   val qualified: bool -> context -> context
   val restore_qualified: context -> context -> context
@@ -154,9 +156,6 @@ sig
   val prems_limit: int ref
   val pretty_asms: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
-  datatype search_criterion = Intro | Elim  | Dest | Rewrite |
-                              Pattern of string | Name of string;
-  val print_thms_containing: context -> term option -> int option -> (bool * search_criterion) list -> unit
 end;
 
 signature PRIVATE_PROOF_CONTEXT =
@@ -172,8 +171,6 @@ end;
 structure ProofContext: PRIVATE_PROOF_CONTEXT =
 struct
 
-datatype search_criterion = Intro | Elim | Dest | Rewrite |
-                          Pattern of string | Name of string;
 
 (** datatype context **)
 
@@ -189,15 +186,9 @@ datatype context =
         (string * thm list) list) *                           (*prems: A |- A *)
       (string * string) list,                                 (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,                         (*term bindings*)
-    thms: bool * NameSpace.T * thm list Symtab.table
-      * FactIndex.T,                                          (*local thms*)
-    (*thms is of the form (q, n, t, i) where
-       q: indicates whether theorems with qualified names may be stored;
-          this is initially forbidden (false); flag may be changed with
-          qualified and restore_qualified;
-       n: theorem namespace;
-       t: table of theorems;
-       i: index for theorem lookup (cf. thms_containing) *)
+    thms: bool * NameSpace.T * thm list Symtab.table * FactIndex.T,    (*local thms*)
+      (*the bool indicates whether theorems with qualified names may be stored,
+        cf. 'qualified' and 'restore_qualified'*)
     cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
       typ Vartab.table *                                      (*type constraints*)
@@ -228,6 +219,7 @@ fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
 fun prems_of (Context {asms = ((_, prems), _), ...}) = List.concat (map #2 prems);
+fun fact_index_of (Context {thms = (_, _, _, idx), ...}) = idx;
 
 
 
@@ -596,7 +588,7 @@ local
 
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
-fun gen_read' read app pattern dummies schematic
+fun gen_read' read app pattern schematic
     ctxt internal more_types more_sorts more_used s =
   let
     val types = append_env (def_type ctxt pattern) more_types;
@@ -608,30 +600,29 @@ fun gen_read' read app pattern dummies schematic
         | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
     |> app (intern_skolem ctxt internal)
     |> app (if pattern then I else norm_term ctxt schematic)
-    |> app (if pattern then prepare_dummies else if dummies then I else reject_dummies ctxt)
+    |> app (if pattern then prepare_dummies else reject_dummies ctxt)
   end;
 
-fun gen_read read app pattern dummies schematic ctxt =
-  gen_read' read app pattern dummies schematic ctxt (K false) (K NONE) (K NONE) [];
+fun gen_read read app pattern schematic ctxt =
+  gen_read' read app pattern schematic ctxt (K false) (K NONE) (K NONE) [];
 
 in
 
-val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false false;
-val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false false true;
+val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false;
+val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false true;
 
 fun read_term_pats T ctxt =
-  #1 o gen_read (read_def_termTs false) (apfst o map) true false false ctxt o map (rpair T);
+  #1 o gen_read (read_def_termTs false) (apfst o map) true false ctxt o map (rpair T);
 val read_prop_pats = read_term_pats propT;
 
 fun read_term_liberal ctxt =
-  gen_read' (read_term_sg true) I false false false ctxt (K true) (K NONE) (K NONE) [];
+  gen_read' (read_term_sg true) I false false ctxt (K true) (K NONE) (K NONE) [];
 
-val read_term              = gen_read (read_term_sg true) I false false false;
-val read_term_dummies      = gen_read (read_term_sg true) I false true false;
-val read_prop              = gen_read (read_prop_sg true) I false false false;
-val read_prop_schematic    = gen_read (read_prop_sg true) I false false true;
-val read_terms             = gen_read (read_terms_sg true) map false false false;
-fun read_props schematic   = gen_read (read_props_sg true) map false false schematic;
+val read_term              = gen_read (read_term_sg true) I false false;
+val read_prop              = gen_read (read_prop_sg true) I false false;
+val read_prop_schematic    = gen_read (read_prop_sg true) I false true;
+val read_terms             = gen_read (read_terms_sg true) map false false;
+fun read_props schematic   = gen_read (read_props_sg true) map false schematic;
 
 end;
 
@@ -687,23 +678,20 @@ fun ins_skolem def_ty = foldr
 fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
   (thy, syntax, data, asms, binds, thms, cases, f defs));
 
-fun declare_syn (ctxt, t) =
+in
+
+fun declare_term_syntax t ctxt =
   ctxt
   |> map_defaults (fn (types, sorts, used, occ) => (ins_types (types, t), sorts, used, occ))
   |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts (sorts, t), used, occ))
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used (used, t), occ));
 
-fun declare_occ (ctxt as Context {asms = (_, fixes), ...}, t) =
-  declare_syn (ctxt, t)
+fun declare_term t (ctxt as Context {asms = (_, fixes), ...}) =
+  ctxt
+  |> declare_term_syntax t
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs (occ, t)))
   |> map_defaults (fn (types, sorts, used, occ) =>
       (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) types fixes, sorts, used, occ));
-
-in
-
-fun declare_term t ctxt = declare_occ (ctxt, t);
-fun declare_terms ts ctxt = Library.foldl declare_occ (ctxt, ts);
-fun declare_terms_syntax ts ctxt = Library.foldl declare_syn (ctxt, ts);
 
 end;
 
@@ -736,7 +724,8 @@ fun warn_extra_tfrees
 
     val extras =
       Library.gen_rems Library.eq_fst (Symtab.dest occ2, Symtab.dest occ1)
-      |> map (fn (a, ts) => map (pair a) (List.mapPartial (try (#1 o Term.dest_Free)) ts)) |> List.concat
+      |> map (fn (a, ts) => map (pair a) (List.mapPartial (try (#1 o Term.dest_Free)) ts))
+      |> List.concat
       |> List.mapPartial (fn (a, x) =>
           (case def_type ctxt1 false (x, ~1) of NONE => SOME (a, x)
           | SOME T => if known_tfree a T then NONE else SOME (a, x)));
@@ -759,11 +748,11 @@ fun generalize_tfrees inner outer =
       | still_fixed _ = false;
     val occs_inner = type_occs inner;
     val occs_outer = type_occs outer;
-    fun add (gen, a) =
+    fun add a gen =
       if is_some (Symtab.lookup (occs_outer, a)) orelse
         exists still_fixed (Symtab.lookup_multi (occs_inner, a))
       then gen else a :: gen;
-  in fn tfrees => Library.foldl add ([], tfrees) end;
+  in fn tfrees => fold add tfrees [] end;
 
 fun generalize inner outer ts =
   let
@@ -868,8 +857,8 @@ fun simult_matches ctxt [] = []
       let
         fun fail () = raise CONTEXT ("Pattern match failed!", ctxt);
 
-        val maxidx = Library.foldl (fn (i, (t1, t2)) =>
-          Int.max (i, Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2))) (~1, pairs);
+        val maxidx = fold (fn (t1, t2) => fn i =>
+          Int.max (Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2), i)) pairs ~1;
         val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx,
           map swap pairs);    (*prefer assignment of variables from patterns*)
         val env =
@@ -889,18 +878,16 @@ fun simult_matches ctxt [] = []
 
 local
 
-fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
+fun gen_bind prep (xi as (x, _), raw_t) ctxt =
   ctxt |> delete_update_binds [(xi, Option.map (prep ctxt) raw_t)];
-
-fun gen_binds prep binds ctxt = Library.foldl (gen_bind prep) (ctxt, binds);
 
 in
 
 fun drop_schematic (b as (xi, SOME t)) = if null (Term.term_vars t) then b else (xi, NONE)
   | drop_schematic b = b;
 
-val add_binds = gen_binds read_term;
-val add_binds_i = gen_binds cert_term;
+val add_binds = fold (gen_bind read_term);
+val add_binds_i = fold (gen_bind cert_term);
 
 fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (sign_of ctxt) ts));
 val auto_bind_goal = auto_bind AutoBind.goal;
@@ -931,7 +918,8 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
     val binds'' = map (apsnd SOME) binds';
   in
     warn_extra_tfrees ctxt
-     (if gen then ctxt (*sic!*) |> declare_terms (map #2 binds') |> add_binds_i binds''
+     (if gen then
+        ctxt (*sic!*) |> fold declare_term (map #2 binds') |> add_binds_i binds''
       else ctxt' |> add_binds_i binds'')
   end;
 
@@ -1011,6 +999,22 @@ val get_thms = retrieve_thms PureThy.get_thms (K I);
 val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 
+(* valid_thms *)
+
+fun valid_thms ctxt (name, ths) =
+  (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
+    NONE => false
+  | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+
+
+(* lthms_containing *)
+
+fun lthms_containing ctxt spec =
+  FactIndex.find (fact_index_of ctxt) spec
+  |> List.filter (valid_thms ctxt)
+  |> gen_distinct eq_fst;
+
+
 (* name space operations *)
 
 fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
@@ -1035,8 +1039,8 @@ fun gen_put_thms _ _ ("", _) ctxt = ctxt
         if not override_q andalso not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
         else (thy, syntax, data, asms, binds, (q, NameSpace.extend' acc (space, [name]),
-          Symtab.update ((name, ths), tab),
-            FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs));
+          Symtab.update ((name, ths), tab), FactIndex.add (is_known ctxt) (name, ths) index),
+          cases, defs));
 
 fun gen_put_thm q acc (name, th) = gen_put_thms q acc (name, [th]);
 fun gen_put_thmss q acc = fold (gen_put_thms q acc);
@@ -1057,7 +1061,7 @@ fun reset_thms name =
 (* note_thmss *)
 
 local
-
+(* FIXME foldl_map (!?) *)
 fun gen_note_thss get acc (ctxt, ((name, more_attrs), ths_attrs)) =
   let
     fun app ((ct, ths), (th, attrs)) =
@@ -1184,7 +1188,7 @@ fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
 
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
     val T = if_none opt_T TypeInfer.logicT;
-    val ctxt' = ctxt |> declare_terms_syntax (map (fn x => Free (x, T)) xs);
+    val ctxt' = ctxt |> fold declare_term_syntax (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
 in
@@ -1208,7 +1212,8 @@ fun map_fixes f =
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
 val declare =
-  declare_terms_syntax o List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
+  fold declare_term_syntax o
+  List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
 
 fun add_vars xs Ts ctxt =
   let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
@@ -1454,188 +1459,6 @@ fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}
     verb_single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb_single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
     verb_single (fn () => Pretty.strs ("used type variable names:" :: used))
-  end;
-
-
-(* print_thms_containing *)
-
-fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
-  let
-    fun valid (name, ths) =
-      (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
-        NONE => false
-      | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
-  in gen_distinct eq_fst (List.filter valid (FactIndex.find idx index)) end;
-
-(* facts which are local to the current context, with their names 
-   examples are "prems" and "x" in "assumes x:" during a proof *)
-fun local_facts (ctxt as Context {thms = (_, _, _, index), ...}) = 
-    (* things like "prems" can occur twice under some circumstances *)
-    gen_distinct eq_fst (FactIndex.find ([],[]) index);
-
-fun isSubstring pat str = 
-  if String.size pat = 0 then true
-  else if String.size pat > String.size str then false
-  else if String.substring (str, 0, String.size pat) = pat then true
-  else isSubstring pat (String.extract (str, 1, NONE));
-
-(* Takes a string pattern, such as "(_::nat) + (_ + _)" and converts it into
-    a term with all free variables made schematic *)
-fun str_pattern_to_term sg str_pattern =
-  let
-    (* pattern as term with dummies as Consts *)
-    val term_pattern = read_cterm sg (str_pattern, TypeInfer.logicT) 
-                       |> Thm.term_of; 
-    (* with dummies as Vars *)
-    val v_pattern = #2 (Term.replace_dummy_patterns (1,term_pattern));
-  in
-    (* with schematic vars *)
-    #1 (Type.varify (v_pattern, []))
-  end;
-
-(* alternate rem_top which checks for a Trueprop, unlike that in PureThy *)
-fun rem_top_c (Term.Const ("Trueprop", _)  $ t) = t
-  | rem_top_c _ = Bound 0;
-
-(* ---------- search filter contructions go here *)
-
-(* terms supplied in string form as patterns *)
-fun str_term_pat_to_filter sg str_pat = 
-  let
-    val tsig = Sign.tsig_of sg;
-    val pat = str_pattern_to_term sg str_pat;
-    
-    (* must qualify type so ML doesn't go and replace it with a concrete one *)
-    fun name_thm_matches_pattern tsig pat (_:string, thm) =
-      Pattern.matches_subterm tsig (pat, Thm.prop_of thm);
-  in
-    name_thm_matches_pattern (Sign.tsig_of sg) pat
-  end;
- 
-(* create filter that just looks for a string in the name,
-   substring match only (no regexps are performed) *)
-fun str_name_pat_to_filter str_pat (name, _:Thm.thm) = isSubstring str_pat name;
-
-(* for elimination and destruction rules, we must check if the major premise
-   matches with one of the assumptions in the top subgoal, but we must 
-   additionally make sure that we tell elim/dest apart, using thm_check_fun *)
-fun elim_dest_filter thm_check_fun sg goal =
-  let
-    val elims_extract = (fn thm => if Thm.no_prems thm then [] else [thm],
-                       rem_top_c o hd o Logic.strip_imp_prems);
-
-    (* assumptions of the top subgoal *)
-    val prems = map rem_top_c (Logic.prems_of_goal goal 1);  
-    
-    fun prem_matches_name_thm prems (name_thm as (name,thm)) =
-        List.exists
-        (fn p => PureThy.is_matching_thm elims_extract sg p name_thm
-                andalso (thm_check_fun thm)) prems;
-  in
-    prem_matches_name_thm prems      
-  end;
-
-(* ------------</filter constructions> *)
-
-(* elimination rule: conclusion is a Var and 
-   no Var in the conclusion appears in the major premise
-   Note: only makes sense if the major premise already matched the assumption 
-         of some goal! *)
-fun is_elim_rule thm =
-  let
-    val {prop, ...} = rep_thm thm;
-    val concl = rem_top_c (Logic.strip_imp_concl prop);
-    val major_prem = hd (Logic.strip_imp_prems prop);
-    val prem_vars = distinct (Drule.vars_of_terms [major_prem]);
-    val concl_vars = distinct (Drule.vars_of_terms [concl]);
-  in
-    Term.is_Var concl andalso (prem_vars inter concl_vars) = []
-  end;
-
-fun crit2str (Name name) = "name:" ^ name
-  | crit2str Elim = "elim"
-  | crit2str Intro = "intro"
-  | crit2str Rewrite = "rewrite"
-  | crit2str Dest = "dest"
-  | crit2str (Pattern x) = x;
-
-val criteria_to_str =
-  let
-    fun criterion_to_str ( true, ct) = "+ :   " ^ crit2str ct
-      | criterion_to_str (false, ct) = "- :   " ^ crit2str ct
-  in 
-    map criterion_to_str 
-  end;
-
-fun make_filter _ _ (Name name) = str_name_pat_to_filter name
-  | make_filter sg _ (Pattern p) = str_term_pat_to_filter sg p
-  (* beyond this point, only criteria requiring a goal! *)
-  | make_filter _ NONE c =
-      error ("Need to have a current goal to use " ^ (crit2str c))
-  | make_filter sg (SOME goal) Elim =
-      elim_dest_filter is_elim_rule sg goal
-  | make_filter sg (SOME goal) Dest =
-      (* in this case all that is not elim rule is dest *)
-      elim_dest_filter (not o is_elim_rule) sg goal
-  | make_filter sg (SOME goal) Intro =
-    let
-      (* filter by checking conclusion of theorem against conclusion of goal *)
-      fun intros_extract () = (single, rem_top_c o Logic.strip_imp_concl);
-      val concl = rem_top_c (Logic.concl_of_goal goal 1);
-    in
-      (fn name_thm => 
-            PureThy.is_matching_thm (intros_extract ()) sg concl name_thm)
-    end
-  | make_filter _ _ c =
-      error (crit2str c ^ " unimplemented");
-  (* XXX: searching for rewrites currently impossible since we'd need
-          a simplifier, which is included *after* Pure *)
-
-(* create filters ... convert negative ones to positive ones *)
-fun make_filters sg opt_goal =
-    map (fn (b,sc) => (if b then I else not) o (make_filter sg opt_goal sc));
-
-fun print_thms_containing ctxt opt_goal opt_limit criteria =
-  let
-    val prt_term = pretty_term ctxt;
-    val prt_fact = pretty_fact ctxt;
-    val ss = criteria_to_str criteria;
-
-    (* facts from the theory and its ancestors *)
-    val thy = theory_of ctxt;
-    val sg1 = Theory.sign_of thy;
-    val all_thys = thy :: (Theory.ancestors_of thy)
-    val facts1 = List.concat (map PureThy.thms_with_names_of all_thys);
-    val filters1 = make_filters sg1 opt_goal criteria;
-    val matches1 = PureThy.find_theorems facts1 filters1;
-
-    (* facts from the local context *)
-    val sg2 = sign_of ctxt;
-    val facts2 = local_facts ctxt;
-    val filters2 = make_filters sg2 opt_goal criteria;
-    val matches2 = PureThy.find_theorems facts2 filters2;
-    
-    (* combine them, use a limit, then print *)
-    val matches = matches1 @ matches2;
-    val len = length matches;
-    val limit = if_none opt_limit (! thms_containing_limit);
-    val count = Int.min (limit, len);
-    
-    val header = Pretty.blk (0, [Pretty.str "Searched for:", Pretty.fbrk,
-            Pretty.indent 4 (
-                Pretty.blk (0, separate Pretty.fbrk (map Pretty.str ss))),
-            Pretty.fbrk, Pretty.fbrk,
-            Pretty.str ("Found " ^ (Int.toString len) ^ 
-                " theorems (" ^ (Int.toString count) ^ " displayed):"), 
-            Pretty.fbrk]);
-  in
-    if null matches then
-      warning "find_theorems: nothing found"
-    else 
-      Pretty.writeln header;
-      ((if len <= limit then [] else [Pretty.str "..."]) @
-      map (prt_fact) (Library.drop (len - limit, matches))) |> 
-        Pretty.chunks |> Pretty.writeln
   end;
 
 end;
