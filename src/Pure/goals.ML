@@ -96,9 +96,9 @@ sig
     -> (thm list -> tactic list) -> unit
   val no_qed: unit -> unit
   val thms_containing   : xstring list -> (string * thm) list
-  val findI             : int -> (string * thm) list
-  val findEs            : int -> (string * thm) list
-  val findE             : int -> int -> (string * thm) list
+  val findI             : int -> (thmref * thm) list
+  val findEs            : int -> (thmref * thm) list
+  val findE             : int -> int -> (thmref * thm) list
 end;
 
 signature GOALS =
@@ -1134,6 +1134,7 @@ fun no_qed () = ();
 (* retrieval *)
 
 fun theory_of_goal () = ThyInfo.theory_of_sign (Thm.sign_of_thm (topthm ()));
+val context_of_goal = ProofContext.init o theory_of_goal;
 
 fun thms_containing raw_consts =
   let
@@ -1146,19 +1147,17 @@ fun thms_containing raw_consts =
     PureThy.thms_containing_consts thy consts
   end;
 
-fun findI i = PureThy.find_intros_goal (theory_of_goal()) (topthm()) i;
+fun findI i = FindTheorems.find_intros_goal (context_of_goal()) (topthm()) i;
 
 fun findEs i =
   let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
       val prems = Logic.prems_of_goal (prop_of (topthm())) i
-      val thy = theory_of_goal();
-      val thmss = map (PureThy.find_elims thy) prems
+      val thmss = map (FindTheorems.find_elims (context_of_goal ())) prems
   in Library.foldl (gen_union eq_nth) ([],thmss) end;
 
 fun findE i j =
   let val prems = Logic.prems_of_goal (prop_of (topthm())) i
-      val thy = theory_of_goal();
-  in PureThy.find_elims thy (List.nth(prems, j-1)) end;
+  in FindTheorems.find_elims (context_of_goal ()) (List.nth(prems, j-1)) end;
 
 end;
 
