@@ -51,18 +51,19 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val print_registrations: string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
+  val print_simpset: Toplevel.transition -> Toplevel.transition
   val print_rules: Toplevel.transition -> Toplevel.transition
   val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val print_thms_containing: int option * (bool * ProofContext.search_criterion) list
+  val thm_deps: (thmref * Attrib.src list) list ->
+    Toplevel.transition -> Toplevel.transition
+  val find_theorems: int option * (bool * FindTheorems.search_criterion) list
     -> Toplevel.transition -> Toplevel.transition
-  val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
-  val print_intros: Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (thmref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_prfs: bool -> string list * (thmref * Attrib.src list) list option
@@ -227,6 +228,10 @@ fun print_registrations name = Toplevel.unknown_context o
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
 
+val print_simpset = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case Simplifier.print_simpset
+    (Simplifier.print_local_simpset o Proof.context_of));
+
 val print_rules = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case ContextRules.print_global_rules
     (ContextRules.print_local_rules o Proof.context_of));
@@ -244,25 +249,18 @@ val print_methods = Toplevel.unknown_theory o
 
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
-fun print_thms_containing (lim, spec) = Toplevel.unknown_theory o 
-Toplevel.keep (fn state =>
-  let
-    fun get_goal () = 
-      let val (_, (_, st)) = Proof.get_goal (Toplevel.proof_of state);
-      in prop_of st end;
-    
-    (* searching is permitted without a goal.
-       I am not sure whether the only exception that I should catch is UNDEF *)
-    val goal = SOME (get_goal ()) handle Toplevel.UNDEF => NONE;
-    
-    val ctxt = (Toplevel.node_case ProofContext.init Proof.context_of state);
-  in
-    ProofContext.print_thms_containing ctxt goal lim spec
-  end);
 
+(* retrieve theorems *)
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));
+
+fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val proof_state = Toplevel.enter_forward_proof state;
+    val ctxt = Proof.context_of proof_state;
+    val opt_goal = try Proof.get_goal proof_state |> Option.map (Thm.prop_of o #2 o #2);
+  in FindTheorems.print_theorems ctxt opt_goal opt_lim spec end);
 
 
 (* print proof context contents *)
@@ -278,14 +276,6 @@ val print_lthms = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_cases (Proof.context_of (Toplevel.proof_of state)));
-
-val print_intros = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-  let
-    val (ctxt, (_, st)) = Proof.get_goal (Toplevel.proof_of state)
-    val prt_fact = ProofContext.pretty_fact ctxt
-    val thy = ProofContext.theory_of ctxt
-    val facts = map (apsnd single) (PureThy.find_intros_goal thy st 1)
-  in map prt_fact (rev facts) |> Pretty.chunks |> Pretty.writeln end);
 
 
 (* print theorems / types / terms / props *)
