@@ -43,5 +43,7 @@ use "outer_syntax.ML";
 (*theory and proof operations*)
 use "isar_thy.ML";
 use "constdefs.ML";
+use "../simplifier.ML";
+use "find_theorems.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
