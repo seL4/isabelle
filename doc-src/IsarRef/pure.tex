@@ -1434,11 +1434,10 @@ way to include formal items into the printed text document.
 \railterm{thmdeps}
 
 \begin{rail}
-  thmscontaining (('(' nat ')')?) ((criterion '-'?) * )  
-  % no idea why this needs to be backwards (should be '-'? criterion),
-  % but it comes out right this way
+  thmscontaining (('(' nat ')')?) (criterion *)
   ;
-  criterion: 'intro' | 'elim' | 'dest' | 'term' | 'name' ':' string
+  criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
+    'rewrite' ':' term | term)
   ;
   thmdeps thmrefs
   ;
@@ -1472,19 +1471,20 @@ for simplifications.
   packages, such as $\isarkeyword{datatype}$.
   
 \item [$\isarkeyword{thms_containing}~\vec c$] retrieves facts from the theory
-  or proof context matching all of the search criteria $\vec c$. The
-  criteria $\isarkeyword{intro}$, $\isarkeyword{elim}$, and
-  $\isarkeyword{dest}$ select theorems that match the current goal as
-  introduction, elimination or destruction rules respectively. The
-  criterion $\isarkeyword{name}$ $:$ $s$ selects all theorems that
-  contain $s$ in their fully qualified name and the criterion which
-  consists of any term $t$ selects theorems that contain the pattern
-  $t$, which may contain occurrences of ``$\_$'' as well as type
-  restrictions.  Criteria can be preceded by \texttt{-} to select
-  theorems that do \emph{not} match. Note that giving the empty list
-  of criteria yields \emph{all} currently known facts.  An optional
-  limit for the number of printed facts may be given; the default is
-  40.
+  or proof context matching all of the search criteria $\vec c$.  A criterion
+  $name: s$ selects all theorems that contain $s$ in their fully qualified
+  name.  The criteria $intro$, $elim$, and $dest$ select theorems that match
+  the current goal as introduction, elimination or destruction rules,
+  respectively.  A criterion $rewrite: t$ selects all rewrite rules whose
+  left-hand side matches the given term.  A criterion term $t$ selects all
+  theorems that contain the pattern $t$ -- as usual patterns may contain
+  occurrences of the dummy ``$\_$'', schematic variables, and type
+  constraints.
+  
+  Criteria can be preceded by ``$-$'' to select theorems that do \emph{not}
+  match. Note that giving the empty list of criteria yields \emph{all}
+  currently known facts.  An optional limit for the number of printed facts
+  may be given; the default is 40.
   
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
