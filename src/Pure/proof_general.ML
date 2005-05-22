@@ -371,13 +371,12 @@ end
 
 end
 
+
 (* misc commands for ProofGeneral/isa *)
 
-(* PG/isa mode does not go through the Isar parser, hence we 
-   interpret everything as term pattern only *)
 fun thms_containing ss =
-  ProofContext.print_thms_containing (ProofContext.init (the_context ())) NONE NONE 
-    (map (fn s => (true, ProofContext.Pattern s)) ss);
+  FindTheorems.print_theorems (ProofContext.init (the_context ())) NONE NONE 
+    (map (fn s => (true, FindTheorems.Pattern s)) ss);
 
 val welcome = priority o Session.welcome;
 val help = welcome;
