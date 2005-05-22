@@ -19,6 +19,7 @@ sig
   val pos_of: token -> string
   val is_kind: token_kind -> token -> bool
   val keyword_with: (string -> bool) -> token -> bool
+  val ident_with: (string -> bool) -> token -> bool
   val name_of: token -> string
   val is_proper: token -> bool
   val is_semicolon: token -> bool
@@ -109,6 +110,9 @@ fun is_kind k (Token (_, (k', _))) = k = k';
 
 fun keyword_with pred (Token (_, (Keyword, x))) = pred x
   | keyword_with _ _ = false;
+
+fun ident_with pred (Token (_, (Ident, x))) = pred x
+  | ident_with _ _ = false;
 
 fun is_proper (Token (_, (Space, _))) = false
   | is_proper (Token (_, (Comment, _))) = false
