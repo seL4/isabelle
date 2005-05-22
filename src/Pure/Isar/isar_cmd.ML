@@ -59,7 +59,7 @@ sig
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val thm_deps: (thmref * Attrib.src list) list ->
     Toplevel.transition -> Toplevel.transition
-  val find_theorems: int option * (bool * FindTheorems.search_criterion) list
+  val find_theorems: int option * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
