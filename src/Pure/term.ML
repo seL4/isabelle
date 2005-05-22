@@ -193,6 +193,7 @@ sig
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
+  val show_dummy_patterns: term -> term
   val adhoc_freeze_vars: term -> term * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
@@ -1102,6 +1103,11 @@ val replace_dummy_patterns = replace_dummy [];
 
 fun is_replaced_dummy_pattern ("_dummy_", _) = true
   | is_replaced_dummy_pattern _ = false;
+
+fun show_dummy_patterns (Var (("_dummy_", _), T)) = Const ("dummy_pattern", T)
+  | show_dummy_patterns (t $ u) = show_dummy_patterns t $ show_dummy_patterns u
+  | show_dummy_patterns (Abs (x, T, t)) = Abs (x, T, show_dummy_patterns t)
+  | show_dummy_patterns a = a;
 
 
 (* adhoc freezing *)
