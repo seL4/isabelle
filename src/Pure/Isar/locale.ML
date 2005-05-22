@@ -1110,7 +1110,7 @@ fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
        Parameters new in context elements must receive types that are
        distinct from types of parameters in target (fixed_params).  *)
     val ctxt_with_fixed =
-      ProofContext.declare_terms (map Free fixed_params) ctxt;
+      fold ProofContext.declare_term (map Free fixed_params) ctxt;
     val int_elemss =
       raw_elemss
       |> List.mapPartial (fn (id, Int es) => SOME (id, es) | _ => NONE)
@@ -1248,13 +1248,13 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
     val raw_propps = map List.concat raw_proppss;
     val raw_propp = List.concat raw_propps;
 
-    (* CB: add type information from fixed_params to context (declare_terms) *)
+    (* CB: add type information from fixed_params to context (declare_term) *)
     (* CB: process patterns (conclusion and external elements only) *)
     val (ctxt, all_propp) =
-      prepp (ProofContext.declare_terms (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
+      prepp (fold ProofContext.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
     (* CB: add type information from conclusion and external elements
        to context *)
-    val ctxt = ProofContext.declare_terms (List.concat (map (map fst) all_propp)) ctxt;
+    val ctxt = fold ProofContext.declare_term (List.concat (map (map fst) all_propp)) ctxt;
 
     (* CB: resolve schematic variables (patterns) in conclusion and external
        elements. *)
