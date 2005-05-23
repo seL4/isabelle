@@ -436,10 +436,31 @@ by (simp only: eta_cfun)
 
 text {* cont2cont tactic *}
 
-lemmas cont_lemmas1 = cont_const cont_id cont_Rep_CFun2
-                    cont2cont_Rep_CFun cont2cont_LAM
+lemmas cont_lemmas1 =
+  cont_const cont_id cont_Rep_CFun2 cont2cont_Rep_CFun cont2cont_LAM
 
-declare cont_lemmas1 [simp]
+text {*
+  Continuity simproc by Brian Huffman.
+  Given the term @{term "cont f"}, the procedure tries to
+  construct the theorem @{prop "cont f == True"}. If this
+  theorem cannot be completely solved by the introduction
+  rules, then the procedure returns a conditional rewrite
+  rule with the unsolved subgoals as premises.
+*}
+
+ML_setup {*
+local
+  val rules = thms "cont_lemmas1";
+  fun solve_cont sg _ t =
+    let val tr = instantiate' [] [SOME (cterm_of sg t)] Eq_TrueI;
+        val tac = REPEAT_ALL_NEW (resolve_tac rules) 1;
+    in Option.map fst (Seq.pull (tac tr)) end;
+in
+  val cont_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
+        "continuity" ["cont f"] solve_cont;
+end;
+Addsimprocs [cont_proc];
+*}
 
 text {* HINT: @{text cont_tac} is now installed in simplifier in Lift.ML ! *}
 
@@ -454,11 +475,6 @@ by (simp add: inst_cfun_pcpo beta_cfun)
 text {* Instantiate the simplifier *}
 
 declare beta_cfun [simp]
-
-text {* use @{text cont_tac} as autotac. *}
-
-text {* HINT: @{text cont_tac} is now installed in simplifier in Lift.ML ! *}
-(*simpset_ref() := simpset() addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
