@@ -156,8 +156,8 @@ val back = Toplevel.proof o ProofHistory.back;
 
 (* use ML text *)
 
-fun use path = Toplevel.keep (fn state => ThyInfo.load_file false path) o
-  Toplevel.theory (fn thy => (Context.setmp (SOME thy) (ThyInfo.load_file false) path; thy));
+fun use path = Toplevel.keep (fn state =>
+  Context.setmp (try Toplevel.theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
 val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
