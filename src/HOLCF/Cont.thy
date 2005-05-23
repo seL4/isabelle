@@ -384,6 +384,11 @@ apply assumption
 apply (blast dest: cont2contlub [THEN contlubE])
 done
 
+lemma cont2cont_CF1L_rev2: "(!!y. cont (%x. c1 x y)) ==> cont c1"
+apply (rule cont2cont_CF1L_rev)
+apply simp
+done
+
 text {*
   What D.A.Schmidt calls continuity of abstraction
   never used here
