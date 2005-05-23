@@ -113,6 +113,9 @@ New in this Isabelle release
   etc.) may depend on the signature of the theory context being
   presently used for parsing/printing, see also isar-ref manual.
 
+* Pure/Simplifier: you can control the depth to which conditional rewriting
+  is traced via the PG menu Isabelle -> Settings -> Trace Simp Depth Limit.
+
 * Pure/Simplifier: simplification procedures may now take the current
   simpset into account (cf. Simplifier.simproc(_i) / mk_simproc
   interface), which is very useful for calling the Simplifier

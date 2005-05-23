@@ -15,6 +15,7 @@ sig
   val debug_simp: bool ref
   val trace_simp: bool ref
   val simp_depth_limit: int ref
+  val trace_simp_depth_limit: int ref
   type rrule
   type cong
   type solver
@@ -24,8 +25,7 @@ sig
   val rep_ss: simpset ->
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int,
-    depth: int} *
+    bounds: int} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews:
@@ -107,11 +107,13 @@ val debug_simp = ref false;
 val trace_simp = ref false;
 val simp_depth = ref 0;
 val simp_depth_limit = ref 1000;
+val trace_simp_depth_limit = ref 1000;
 
 local
 
 fun println a =
-  tracing (case ! simp_depth of 0 => a | n => enclose "[" "]" (string_of_int n) ^ a);
+  if !simp_depth > !trace_simp_depth_limit then ()
+  else tracing (enclose "[" "]" (string_of_int(!simp_depth)) ^ a);
 
 fun prnt warn a = if warn then warning a else println a;
 fun prtm warn a sg t = prnt warn (a ^ "\n" ^ Sign.string_of_term sg t);
@@ -195,7 +197,6 @@ val merge_solvers = gen_merge_lists eq_solver;
     prems: current premises;
     bounds: maximal index of bound variables already used
       (for generating new names when rewriting under lambda abstractions);
-    depth: depth of conditional rewriting;
     congs: association list of congruence rules and
            a list of `weak' congruence constants.
            A congruence is `weak' if it avoids normalization of some argument.
@@ -218,8 +219,7 @@ datatype simpset =
   Simpset of
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int,
-    depth: int} *
+    bounds: int} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews: mk_rews,
@@ -238,11 +238,11 @@ fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
 
 fun rep_ss (Simpset args) = args;
 
-fun make_ss1 (rules, prems, bounds, depth) =
-  {rules = rules, prems = prems, bounds = bounds, depth = depth};
+fun make_ss1 (rules, prems, bounds) =
+  {rules = rules, prems = prems, bounds = bounds};
 
-fun map_ss1 f {rules, prems, bounds, depth} =
-  make_ss1 (f (rules, prems, bounds, depth));
+fun map_ss1 f {rules, prems, bounds} =
+  make_ss1 (f (rules, prems, bounds));
 
 fun make_ss2 (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =
   {congs = congs, procs = procs, mk_rews = mk_rews, termless = termless,
@@ -253,9 +253,9 @@ fun map_ss2 f {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers}
 
 fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
-fun map_simpset f (Simpset ({rules, prems, bounds, depth},
+fun map_simpset f (Simpset ({rules, prems, bounds},
     {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers})) =
-  make_simpset (f ((rules, prems, bounds, depth),
+  make_simpset (f ((rules, prems, bounds),
     (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers)));
 
 fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
@@ -297,7 +297,7 @@ fun print_ss ss =
 local
 
 fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], 0, 0),
+  make_simpset ((Net.empty, [], 0),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 val basic_mk_rews: mk_rews =
@@ -320,10 +320,10 @@ end;
 
 fun merge_ss (ss1, ss2) =
   let
-    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, depth},
+    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1},
      {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
       loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
-    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, depth = _},
+    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2},
      {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
       loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
@@ -337,7 +337,7 @@ fun merge_ss (ss1, ss2) =
     val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
     val solvers' = merge_solvers solvers1 solvers2;
   in
-    make_simpset ((rules', prems', bounds', depth), ((congs', weak'), procs',
+    make_simpset ((rules', prems', bounds'), ((congs', weak'), procs',
       mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
   end;
 
@@ -363,11 +363,11 @@ fun simproc sg name = simproc_i sg name o map (Sign.simple_read_term sg TypeInfe
 
 (* bounds and prems *)
 
-val incr_bounds = map_simpset1 (fn (rules, prems, bounds, depth) =>
-  (rules, prems, bounds + 1, depth));
+val incr_bounds = map_simpset1 (fn (rules, prems, bounds) =>
+  (rules, prems, bounds + 1));
 
-fun add_prems ths = map_simpset1 (fn (rules, prems, bounds, depth) =>
-  (rules, ths @ prems, bounds, depth));
+fun add_prems ths = map_simpset1 (fn (rules, prems, bounds) =>
+  (rules, ths @ prems, bounds));
 
 fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
 
@@ -381,11 +381,11 @@ fun mk_rrule2 {thm, name, lhs, elhs, perm} =
 
 fun insert_rrule quiet (ss, rrule as {thm, name, lhs, elhs, perm}) =
  (trace_named_thm "Adding rewrite rule" (thm, name);
-  ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
+  ss |> map_simpset1 (fn (rules, prems, bounds) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
       val rules' = Net.insert_term ((term_of elhs, rrule2), rules, eq_rrule);
-    in (rules', prems, bounds, depth) end)
+    in (rules', prems, bounds) end)
   handle Net.INSERT =>
     (if quiet then () else warn_thm "Ignoring duplicate rewrite rule:" thm; ss));
 
@@ -506,8 +506,8 @@ fun ss addsimps thms =
 (* delsimps *)
 
 fun del_rrule (ss, rrule as {thm, elhs, ...}) =
-  ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
-    (Net.delete_term ((term_of elhs, rrule), rules, eq_rrule), prems, bounds, depth))
+  ss |> map_simpset1 (fn (rules, prems, bounds) =>
+    (Net.delete_term ((term_of elhs, rrule), rules, eq_rrule), prems, bounds))
   handle Net.DELETE => (warn_thm "Rewrite rule not in simpset:" thm; ss);
 
 fun ss delsimps thms =
@@ -757,21 +757,6 @@ fun cond_skel (args as (congs, (lhs, rhs))) =
   if term_varnames rhs subset term_varnames lhs then uncond_skel args
   else skel0;
 
-fun incr_depth ss =
-  let
-    val ss' = ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
-      (rules, prems, bounds, depth + 1));
-    val Simpset ({depth = depth', ...}, _) = ss';
-  in
-    if depth' > ! simp_depth_limit
-    then (warning "simp_depth_limit exceeded - giving up"; NONE)
-    else
-     (if depth' mod 10 = 0
-      then warning ("Simplification depth " ^ string_of_int depth')
-      else ();
-      SOME ss')
-  end;
-
 (*
   Rewriting -- we try in order:
     (1) beta reduction
@@ -813,10 +798,11 @@ fun rewritec (prover, signt, maxt) ss t =
               in SOME (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm "Trying to rewrite:" thm';
-              case incr_depth ss of
-                NONE => (trace_thm "FAILED - reached depth limit" thm'; NONE)
-              | SOME ss' =>
-              (case prover ss' thm' of
+              if !simp_depth > !simp_depth_limit
+              then let val s = "simp_depth_limit exceeded - giving up"
+                   in trace false s; warning s; NONE end
+              else
+              case prover ss thm' of
                 NONE => (trace_thm "FAILED" thm'; NONE)
               | SOME thm2 =>
                   (case check_conv true eta_thm thm2 of
@@ -824,7 +810,7 @@ fun rewritec (prover, signt, maxt) ss t =
                      SOME thm2' =>
                        let val concl = Logic.strip_imp_concl prop
                            val lr = Logic.dest_equals concl
-                       in SOME (thm2', cond_skel (congs, lr)) end))))
+                       in SOME (thm2', cond_skel (congs, lr)) end)))
       end
 
     fun rews [] = NONE
@@ -1099,16 +1085,18 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
 *)
 
 fun rewrite_cterm mode prover ss ct =
-  let
-    val Simpset ({depth, ...}, _) = ss;
-    val {sign, t, maxidx, ...} = Thm.rep_cterm ct;
-  in
-    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
-    simp_depth := depth;
-    bottomc (mode, prover, sign, maxidx) ss ct
-  end handle THM (s, _, thms) =>
-    error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
-      Pretty.string_of (Display.pretty_thms thms));
+  (simp_depth := !simp_depth + 1;
+   if !simp_depth mod 10 = 0
+   then warning ("Simplification depth " ^ string_of_int (!simp_depth))
+   else ();
+   trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
+   let val {sign, t, maxidx, ...} = Thm.rep_cterm ct
+       val res = bottomc (mode, prover, sign, maxidx) ss ct
+         handle THM (s, _, thms) =>
+         error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
+           Pretty.string_of (Display.pretty_thms thms))
+   in simp_depth := !simp_depth - 1; res end
+  ) handle exn => (simp_depth := 0; raise exn);
 
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
