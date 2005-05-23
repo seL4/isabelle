@@ -266,10 +266,10 @@ text{*But not a simprule because some concepts are better left in terms
   of @{term atLeastLessThan}*}
 lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
-
+(*
 lemma atLeastLessThan0 [simp]: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
-
+*)
 subsubsection {* Intervals of nats with @{term Suc} *}
 
 text{*Not a simprule because the RHS is too messy.*}
@@ -279,13 +279,13 @@ by (auto simp add: atLeastLessThan_def)
 
 lemma atLeastLessThan_singleton [simp]: "{m..<Suc m} = {m}"
 by (auto simp add: atLeastLessThan_def)
-
+(*
 lemma atLeast_sum_LessThan [simp]: "{m + k..<k::nat} = {}"
 by (induct k, simp_all add: atLeastLessThanSuc)
 
 lemma atLeastSucLessThan [simp]: "{Suc n..<n} = {}"
 by (auto simp add: atLeastLessThan_def)
-
+*)
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..<Suc u} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
 
@@ -612,10 +612,11 @@ lemma setsum_ivl_cong:
  setsum f {a..<b} = setsum g {c..<d}"
 by(rule setsum_cong, simp_all)
 
-(* FIXME delete
-lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
-by (simp add:lessThan_Suc)
-*)
+(* FIXME why are the following simp rules but the corresponding eqns
+on intervals are not? *)
+
+lemma setsum_lessThan_Suc[simp]: "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
+by (simp add:lessThan_Suc add_ac)
 
 lemma setsum_cl_ivl_Suc[simp]:
   "setsum f {m..Suc n} = (if Suc n < m then 0 else setsum f {m..n} + f(Suc n))"
@@ -624,11 +625,11 @@ by (auto simp:add_ac atLeastAtMostSuc_conv)
 lemma setsum_op_ivl_Suc[simp]:
   "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
 by (auto simp:add_ac atLeastLessThanSuc)
-
+(*
 lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
 by (auto simp:add_ac atLeastAtMostSuc_conv)
-
+*)
 lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
 by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)

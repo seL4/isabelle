@@ -595,7 +595,7 @@ constdefs
   disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "disj_matrices A B == (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
-ML {* simp_depth_limit := 2 *}
+ML {* simp_depth_limit := 6 *}
 
 lemma disj_matrices_contr1: "disj_matrices A B \<Longrightarrow> Rep_matrix A j i \<noteq> 0 \<Longrightarrow> Rep_matrix B j i = 0"
    by (simp add: disj_matrices_def)
