@@ -1,0 +1,5 @@
+#/homes/clq20/bin/SPASS -DocProof /homes/clq20/prob_1.dfg |/homes/clq20/testoutput.py
+
+/homes/clq20/bin/SPASS $* |/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/testoutput.py
+
+#pwd
