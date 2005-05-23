@@ -625,6 +625,8 @@ struct
 			| Const ("op -", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("op *", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("List.op @", T)          => collect_type_axioms (axs, T)
+			| Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
+			| Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
 			(* simply-typed lambda calculus *)
 			| Const (s, T)                    =>
 				let
@@ -2284,6 +2286,98 @@ struct
 		| _ =>
 			NONE;
 
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'lfp' could in principle be interpreted with     *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Lfp_lfp_interpreter thy model args t =
+		case t of
+		  Const ("Lfp.lfp", Type ("fun", [Type ("fun", [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
+			let
+				val (i_elem, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				val size_elem      = size_of_type i_elem
+				(* the universe (i.e. the set that contains every element) *)
+				val i_univ         = Node (replicate size_elem TT)
+				(* all sets with elements from type 'T' *)
+				val (i_set, _, _)  = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
+				val i_sets         = make_constants i_set
+				(* all functions that map sets to sets *)
+				val (i_fun, _, _)  = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("fun", [Type ("set", [T]), Type ("set", [T])])))
+				val i_funs         = make_constants i_fun
+				(* "lfp(f) == Inter({u. f(u) <= u})" *)
+				(* interpretation * interpretation -> bool *)
+				fun is_subset (Node subs, Node sups) =
+					List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT)) (subs ~~ sups)
+				  | is_subset (_, _) =
+					raise REFUTE ("Lfp_lfp_interpreter", "is_subset: interpretation for set is not a node")
+				(* interpretation * interpretation -> interpretation *)
+				fun intersection (Node xs, Node ys) =
+					Node (map (fn (x, y) => if (x = TT) andalso (y = TT) then TT else FF) (xs ~~ ys))
+				  | intersection (_, _) =
+					raise REFUTE ("Lfp_lfp_interpreter", "intersection: interpretation for set is not a node")
+				(* interpretation -> interpretaion *)
+				fun lfp (Node resultsets) =
+					foldl (fn ((set, resultset), acc) =>
+						if is_subset (resultset, set) then
+							intersection (acc, set)
+						else
+							acc) i_univ (i_sets ~~ resultsets)
+				  | lfp _ =
+						raise REFUTE ("Lfp_lfp_interpreter", "lfp: interpretation for function is not a node")
+			in
+				SOME (Node (map lfp i_funs), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'gfp' could in principle be interpreted with     *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Gfp_gfp_interpreter thy model args t =
+		case t of
+		  Const ("Gfp.gfp", Type ("fun", [Type ("fun", [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
+			let
+				val (i_elem, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				val size_elem      = size_of_type i_elem
+				(* the universe (i.e. the set that contains every element) *)
+				val i_univ         = Node (replicate size_elem TT)
+				(* all sets with elements from type 'T' *)
+				val (i_set, _, _)  = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
+				val i_sets         = make_constants i_set
+				(* all functions that map sets to sets *)
+				val (i_fun, _, _)  = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("fun", [Type ("set", [T]), Type ("set", [T])])))
+				val i_funs         = make_constants i_fun
+				(* "gfp(f) == Union({u. u <= f(u)})" *)
+				(* interpretation * interpretation -> bool *)
+				fun is_subset (Node subs, Node sups) =
+					List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT)) (subs ~~ sups)
+				  | is_subset (_, _) =
+					raise REFUTE ("Gfp_gfp_interpreter", "is_subset: interpretation for set is not a node")
+				(* interpretation * interpretation -> interpretation *)
+				fun union (Node xs, Node ys) =
+					Node (map (fn (x, y) => if (x = TT) orelse (y = TT) then TT else FF) (xs ~~ ys))
+				  | union (_, _) =
+					raise REFUTE ("Lfp_lfp_interpreter", "union: interpretation for set is not a node")
+				(* interpretation -> interpretaion *)
+				fun gfp (Node resultsets) =
+					foldl (fn ((set, resultset), acc) =>
+						if is_subset (set, resultset) then
+							union (acc, set)
+						else
+							acc) i_univ (i_sets ~~ resultsets)
+				  | gfp _ =
+						raise REFUTE ("Gfp_gfp_interpreter", "gfp: interpretation for function is not a node")
+			in
+				SOME (Node (map gfp i_funs), model, args)
+			end
+		| _ =>
+			NONE;
+
 
 (* ------------------------------------------------------------------------- *)
 (* PRINTERS                                                                  *)
@@ -2522,6 +2616,8 @@ struct
 		 add_interpreter "Nat.op -" Nat_minus_interpreter,
 		 add_interpreter "Nat.op *" Nat_mult_interpreter,
 		 add_interpreter "List.op @" List_append_interpreter,
+		 add_interpreter "Lfp.lfp" Lfp_lfp_interpreter,
+		 add_interpreter "Gfp.gfp" Gfp_gfp_interpreter,
 		 add_printer "stlc" stlc_printer,
 		 add_printer "set"  set_printer,
 		 add_printer "IDT"  IDT_printer];

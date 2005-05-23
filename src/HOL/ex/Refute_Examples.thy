@@ -901,8 +901,6 @@ oops
 
 subsection {* Inductively defined sets *}
 
-(*TODO: can we implement lfp/gfp more efficiently? *)
-
 consts
   arbitrarySet :: "'a set"
 inductive arbitrarySet
@@ -910,7 +908,7 @@ intros
   "arbitrary : arbitrarySet"
 
 lemma "x : arbitrarySet"
-  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+  refute
 oops
 
 consts
@@ -921,7 +919,7 @@ intros
   "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
 
 lemma "S : evenCard"
-  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+  refute
 oops
 
 consts
@@ -934,7 +932,7 @@ intros
   "n : odd \<Longrightarrow> Suc n : even"
 
 lemma "n : odd"
-  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+  (*refute*)  -- {* unfortunately, this little example already takes too long *}
 oops
 
 (******************************************************************************)
@@ -974,6 +972,18 @@ lemma "a @ [] = b @ []"
 oops
 
 lemma "a @ b = b @ a"
+  refute
+oops
+
+lemma "f (lfp f) = lfp f"
+  refute
+oops
+
+lemma "f (gfp f) = gfp f"
+  refute
+oops
+
+lemma "lfp f = gfp f"
   refute
 oops
 
