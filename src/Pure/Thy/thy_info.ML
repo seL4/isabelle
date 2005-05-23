@@ -95,7 +95,6 @@ fun upd_deps name entry G =
 fun update_node name parents entry G =
   (if can (Graph.get_node G) name then upd_deps name entry G else Graph.new_node (name, entry) G)
   |> add_deps name parents;
-   
 
 
 (* thy database *)
@@ -135,7 +134,7 @@ fun get_names () =
 fun lookup_thy name =
   SOME (thy_graph Graph.get_node name) handle Graph.UNDEF _ => NONE;
 
-val known_thy = isSome o lookup_thy;
+val known_thy = is_some o lookup_thy;
 fun check_known_thy name = known_thy name orelse (warning ("Unknown theory " ^ quote name); false);
 fun if_known_thy f name = if check_known_thy name then f name else ();
 
@@ -168,17 +167,26 @@ fun get_preds name =
     error (loader_msg "nothing known about theory" [name]);
 
 
-(* pretty printing a theory: omit finished theories *)
+(* pretty printing a theory *)
 
-fun unfinished_names stamps =
-    List.last (List.filter is_finished stamps) :: List.filter (not o is_finished) stamps;
+local
 
-fun pretty_sg sg = 
-      Pretty.str_list "{" "}" 
-        (unfinished_names (List.filter known_thy (Sign.stamp_names_of sg)));
+fun relevant_names names =
+  let
+    val (finished, unfinished) =
+      List.filter (equal "#" orf known_thy) names
+      |> List.partition (not_equal "#" andf is_finished);
+  in (if not (null finished) then [List.last finished] else []) @ unfinished end;
+
+fun pretty_sg sg =
+  Pretty.str_list "{" "}" (relevant_names (Sign.stamp_names_of sg));
+
+in
 
 val pretty_theory = pretty_sg o Theory.sign_of;
 val pprint_theory = Pretty.pprint o pretty_theory;
+
+end;
 
 
 (* access theory *)
@@ -244,8 +252,8 @@ fun check_unfinished fail name =
 (* load_file *)
 
 val opt_path = Option.map (Path.dir o fst o ThyLoad.get_thy);
-fun opt_path' (d : deps option) = getOpt (Option.map (opt_path o #master) d, NONE);
-fun opt_path'' d = getOpt (Option.map opt_path' d, NONE);
+fun opt_path' (d: deps option) = if_none (Option.map (opt_path o #master) d) NONE;
+fun opt_path'' d = if_none (Option.map opt_path' d) NONE;
 
 local
 
@@ -360,7 +368,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
             (if null initiators then "" else required_by "\n" initiators));
-        val dir' = getOpt (opt_path'' new_deps, dir);
+        val dir' = if_none (opt_path'' new_deps) dir;
         val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 
         val thy = if not really then SOME (get_theory name) else NONE;
@@ -417,7 +425,7 @@ fun begin_theory present upd name parents paths =
   let
     val bparents = map base_of_path parents;
     val dir' = opt_path'' (lookup_deps name);
-    val dir = getOpt (dir',Path.current);
+    val dir = if_none dir' Path.current;
     val assert_thy = if upd then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = List.app assert_thy parents;
