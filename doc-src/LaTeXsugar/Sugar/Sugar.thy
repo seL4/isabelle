@@ -277,11 +277,10 @@ subsection "Styles"
 text {*
   The \verb!thm! antiquotation works nicely for single theorems, but
   sets of equations as used in definitions are more difficult to
-  typeset nicely: for some reason people tend to prefer aligned 
-  @{text "="} signs.
+  typeset nicely: people tend to prefer aligned @{text "="} signs.
 
   To deal with such cases where it is desirable to dive into the structure
-  of terms and theorems, Isabelle offers two antiquotations featuring
+  of terms and theorems, Isabelle offers antiquotations featuring
   ``styles'':
 
     \begin{quote}
@@ -289,8 +288,8 @@ text {*
     \verb!@!\verb!{term_style stylename term}!
     \end{quote}
 
-  A ``style'' is a transformation of terms. There are three predefined
-  styles, named \verb!lhs!, \verb!rhs! and \verb!conclusion!, with obvious
+  A ``style'' is a transformation of propositions. There are predefined
+  styles, namly \verb!lhs!, \verb!rhs! and \verb!conclusion!, with obvious
   meanings. For example, the output
   \begin{center}
   \begin{tabular}{l@ {~~@{text "="}~~}l}
@@ -309,17 +308,27 @@ text {*
   \end{quote}
   Note the space between \verb!@! and \verb!{! in the tabular argument.
   It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
-  as an antiquotation. Both styles \verb!lhs! and \verb!rhs! 
-  try to be smart about the interpretation of the theorem they transform
-  they work just as well for meta equality @{text "\<equiv>"} and other
-  binary operators like @{text "<"}.
+  as an antiquotation. Both styles \verb!lhs! and \verb!rhs!
+  extract the left hand side (or right hand side respectivly) from the
+  conclusion of propositions, consisting of a binary operator
+  (e.~g.~@{text "="}, @{text "\<equiv>"}, @{text "<"}).
 
   Likewise \verb!conclusion! may be used as style to show just the conclusion
-  of a formula:
+  of a proposition. For example, take
+  \begin{center}
+    @{thm hd_Cons_tl}
+  \end{center}
+  produced by
+  \begin{quote}
+    \verb!\begin{center}!\\
+    \verb!@!\verb!{thm hd_Cons_tl}!\\
+    \verb!\end{center}!
+  \end{quote}
+  To print just the conclusion,
   \begin{center}
     @{thm_style conclusion hd_Cons_tl}
   \end{center}
-  is produced by
+  type
   \begin{quote}
     \verb!\begin{center}!\\
     \verb!@!\verb!{thm_style conclusion hd_Cons_tl}!\\
@@ -331,44 +340,48 @@ text {*
   \verb!Proof.context -> term -> term!.
   Have a look at the following example:
 
+*}
+
+setup {*
+let
+  fun my_concl ctxt = Logic.strip_imp_concl
+  in [TermStyle.add_style "my_concl" my_concl]
+end;
+*}
+
+text {*
+
   \begin{quote}
     \verb!setup {!\verb!*!\\
     \verb!let!\\
-    \verb!  fun my_lhs ctxt (Const ("==", _) $ t $ _) = t!\\
-    \verb!    | my_lhs ctxt (Const ("Trueprop", _) $ t) = my_lhs ctxt t!\\
-    \verb!    | my_lhs ctxt (Const ("==>", _) $ _ $ t) = my_lhs ctxt t!\\
-    \verb!    | my_lhs ctxt (_ $ t $ _) = t!\\
-    \verb!    | my_lhs ctxt _ = error ("Binary operator expected")!\\
-    \verb!  in [TermStyle.add_style "new_lhs" my_lhs]!\\
+    \verb!  fun my_concl ctxt = Logic.strip_imp_concl!\\
+    \verb!  in [TermStyle.add_style "my_concl" my_concl]!\\
     \verb!end;!\\
     \verb!*!\verb!}!\\
   \end{quote}
 
-  This example indeed shows a way the \verb!lhs! style could be implemented;
+  This example indeed shows how the \verb!conclusion! style could is implemented;
   note that the real implementation is more sophisticated.
 
-  This code must go into your theory file, not as part of your
+  This code should go into your theory file, not as part of your
   \LaTeX\ text but as a separate command in front of it.
-  Like in this example, it is recommended to put the definition of the style
-  function into a \verb!let! expression, in order not to pollute the
+  The \verb!let! expression avoids polluting the
   ML global namespace. Each style receives the current proof context
-  as first argument; this is necessary in situations where the current proof
+  as first argument; this is helpful in situations where the current proof
   context has an impact on the style (which is the case e.~g.~when the
   style has some object-logic specific behaviour).
 
   The mapping from identifier name to the style function
-  is done by the \verb!Style.update_style! expression which expects the desired
+  is done by the \verb!Style.add_style! expression which expects the desired
   style name and the style function as arguments.
   
   After this \verb!setup!,
-  there will be a new style available named \verb!new_lhs!, thus allowing
-  antiquoations like \verb!@!\verb!{thm_style new_lhs rev_map}!
-  yielding @{thm_style lhs rev_map}.
+  there will be a new style available named \verb!my_concl!, thus allowing
+  antiquoations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
+  yielding @{thm_style my_concl hd_Cons_tl}.
 
   The example above may be used as as a ``copy-and-paste'' pattern to write
-  your own styles; for a description of the constructs used, please refer
-  to the Isabelle reference manual.
-
+  your own styles.
 
 *}
 
