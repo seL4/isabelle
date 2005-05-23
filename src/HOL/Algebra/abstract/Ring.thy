@@ -117,15 +117,16 @@ subsection {* Rings and the summation operator *}
 
 (* Basic facts --- move to HOL!!! *)
 
+(* needed because natsum_cong (below) disables atMost_0 *)
 lemma natsum_0 [simp]: "setsum f {..(0::nat)} = (f 0::'a::comm_monoid_add)"
 by simp
-
+(*
 lemma natsum_Suc [simp]:
   "setsum f {..Suc n} = (f (Suc n) + setsum f {..n}::'a::comm_monoid_add)"
 by (simp add: atMost_Suc)
-
+*)
 lemma natsum_Suc2:
-  "setsum f {..Suc n} = (setsum (%i. f (Suc i)) {..n} + f 0::'a::comm_monoid_add)"
+  "setsum f {..Suc n} = (f 0::'a::comm_monoid_add) + (setsum (%i. f (Suc i)) {..n})"
 proof (induct n)
   case 0 show ?case by simp
 next

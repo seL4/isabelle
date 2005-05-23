@@ -286,7 +286,7 @@ proof
     proof (cases n)
       case 0 then show ?thesis by simp
     next
-      case Suc then show ?thesis by (simp del: natsum_Suc add: natsum_Suc2)
+      case Suc then show ?thesis by (simp del: setsum_atMost_Suc add: natsum_Suc2)
     qed
   qed
   show "(p + q) * r = p * r + q * r"
