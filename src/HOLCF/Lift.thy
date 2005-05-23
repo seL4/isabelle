@@ -293,11 +293,6 @@ text {*
   \medskip Extension of @{text cont_tac} and installation of simplifier.
 *}
 
-lemma cont2cont_CF1L_rev2: "(!!y. cont (%x. c1 x y)) ==> cont c1"
-  apply (rule cont2cont_CF1L_rev)
-  apply simp
-  done
-
 lemmas cont_lemmas_ext [simp] =
   cont_flift1_arg cont_flift2_arg
   cont_flift1_arg_and_not_arg cont2cont_CF1L_rev2
@@ -314,28 +309,6 @@ in fun cont_tacRs i =
   simp_tac (simpset() addsimps [flift1_def, flift2_def]) i THEN
   REPEAT (cont_tac i)
 end;
-*}
-
-text {*
-  New continuity simproc by Brian Huffman.
-  Given the term @{term "cont f"}, the procedure tries to
-  construct the theorem @{prop "cont f == True"}. If this
-  theorem cannot be completely solved by the introduction
-  rules, then the procedure returns a conditional rewrite
-  rule with the unsolved subgoals as premises.
-*}
-
-ML_setup {*
-local fun solve_cont sg _ t = let
-  val tr = instantiate' [] [SOME (cterm_of sg t)] Eq_TrueI
-  val tac = REPEAT_ALL_NEW cont_tac 1
-  in Option.map fst (Seq.pull (tac tr))
-  end;
-
-in val cont_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
-         "continuity" ["cont f"] solve_cont;
-end;
-Addsimprocs [cont_proc];
 *}
 
 
