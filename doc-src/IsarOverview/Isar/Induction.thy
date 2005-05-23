@@ -77,7 +77,7 @@ of this. *}
 subsection{*Structural induction*}
 
 text{* We start with an inductive proof where both cases are proved automatically: *}
-lemma "2 * (\<Sum>i::nat = 0..<n+1. i) = n*(n+1)"
+lemma "2 * (\<Sum>i::nat < n+1. i) = n*(n+1)"
 by (induct n, simp_all)
 
 text{*\noindent The constraint @{text"::nat"} is needed because all of
@@ -97,7 +97,7 @@ qed
 text{* \noindent We could refine this further to show more of the equational
 proof. Instead we explore the same avenue as for case distinctions:
 introducing context via the \isakeyword{case} command: *}
-lemma "2 * (\<Sum>i::nat = 0..<n+1. i) = n*(n+1)"
+lemma "2 * (\<Sum>i::nat < n+1. i) = n*(n+1)"
 proof (induct n)
   case 0 show ?case by simp
 next
