@@ -104,6 +104,13 @@ New in this Isabelle release
   matching the current goal as introduction rule and not having "HOL." 
   in their name (i.e. not being defined in theory HOL).
 
+* Pure/Syntax: In schematic variable names, *any* symbol following
+  \<^isub> or \<^isup> is now treated as part of the base name.  For
+  example, the following works without printing of ugly ".0" indexes:
+
+    lemma "x\<^isub>1 = x\<^isub>2 ==> x\<^isub>2 = x\<^isub>1"
+      by simp
+
 * Pure/Syntax: inner syntax includes (*(*nested*) comments*).
 
 * Pure/Syntax: pretty pinter now supports unbreakable blocks,
