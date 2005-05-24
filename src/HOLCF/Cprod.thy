@@ -280,6 +280,9 @@ lemma inject_cpair:
         "<a,b> = <aa,ba>  ==> a=aa & b=ba"
 by (simp add: cpair_def beta_cfun_cprod)
 
+lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' & b = b')"
+by (blast dest!: inject_cpair)
+
 lemma inst_cprod_pcpo2: "UU = <UU,UU>"
 by (simp add: cpair_def beta_cfun_cprod inst_cprod_pcpo)
 
@@ -311,10 +314,10 @@ by (simp add: cpair_def cfst_def beta_cfun_cprod cont_fst)
 lemma csnd2 [simp]: "csnd$<x,y> = y"
 by (simp add: cpair_def csnd_def beta_cfun_cprod cont_snd)
 
-lemma cfst_strict: "cfst$UU = UU"
+lemma cfst_strict [simp]: "cfst$UU = UU"
 by (simp add: inst_cprod_pcpo2)
 
-lemma csnd_strict: "csnd$UU = UU"
+lemma csnd_strict [simp]: "csnd$UU = UU"
 by (simp add: inst_cprod_pcpo2)
 
 lemma surjective_pairing_Cprod2: "<cfst$p, csnd$p> = p"
