@@ -81,7 +81,11 @@ function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
 function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
-function copy_styles () { cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR"; }
+function copy_styles ()
+{
+  cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR";
+  "$AUTO_PERL" -n -i -e 's/\$Id(?::\s)*([^\$]*)\$/originating from CVS: $1/g; print;' "$DIR"/*.sty
+}
 
 function extract_syms ()
 {

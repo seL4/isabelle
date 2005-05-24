@@ -386,6 +386,10 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
   Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
       handle Toplevel.UNDEF => error "No proof state")))) src state;
 
+(*this is just experimental*)
+fun output_ml_idf src ctxt idf = snd (use_text Context.ml_output true idf,
+    output_with (K pretty_text) src ctxt idf);
+
 val _ = add_commands
  [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("thm_style", args ((Scan.lift Args.name) -- Attrib.local_thm) (output_with pretty_thm_style)),
@@ -400,6 +404,8 @@ val _ = add_commands
   ("goals", output_goals true),
   ("subgoals", output_goals false),
   ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
-  ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true)))];
+  ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
+  (*this is just experimental*)
+  ("ML_idf", args (Scan.lift Args.name) output_ml_idf)];
 
 end;
