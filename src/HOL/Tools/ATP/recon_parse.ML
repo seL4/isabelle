@@ -436,23 +436,21 @@ fun dropUntilNot ch []   = ( [])
                                      dropUntilNot ch xs
 
 
-
-
-
 fun remove_spaces str  []  = str
 |   remove_spaces str (x::[]) = if x = " " 
                                 then 
                                     str 
                                 else 
                                     (str^x)
-|   remove_spaces str (x::xs) = let val (first, rest) = takeUntil " " (x::xs) []
-                                    val (next) = dropUntilNot " " rest 
-                                in 
-                                    if next = []
-                                    then 
-                                         (str^(implode first)) 
-                                    else remove_spaces  (str^(implode first)^" ") next 
-                                end
+|   remove_spaces str (x::xs) = 
+      let val (first, rest) = ReconOrderClauses.takeUntil " " (x::xs) []
+	  val (next) = dropUntilNot " " rest 
+      in 
+	  if next = []
+	  then 
+	       (str^(implode first)) 
+	  else remove_spaces  (str^(implode first)^" ") next 
+      end
 
 
 fun remove_space_strs clsstrs = map (remove_spaces "") (map explode clsstrs)
@@ -461,25 +459,25 @@ fun remove_space_strs clsstrs = map (remove_spaces "") (map explode clsstrs)
 fun all_spaces xs = List.filter  (not_equal " " ) xs
 
 fun just_change_space []  = []
-|   just_change_space ((clausenum, step, strs)::xs) = let val newstrs = remove_space_strs strs
-                                                 in
-                                                    if (all_spaces newstrs = [] ) (* all type_info *)                                                    then    
-                                                       (clausenum, step, newstrs)::(just_change_space xs)
-                                                    else 
-                                                        (clausenum, step, newstrs)::(just_change_space xs) 
-                                                 end
-
-
-
+|   just_change_space ((clausenum, step, strs)::xs) =
+      let val newstrs = remove_space_strs strs
+      in
+	 if (all_spaces newstrs = [] ) (* all type_info *)
+	 then    
+	    (clausenum, step, newstrs)::(just_change_space xs)
+	 else 
+	     (clausenum, step, newstrs)::(just_change_space xs) 
+      end;
 
 fun change_space []  = []
-|   change_space ((clausenum, step, strs)::xs) = let val newstrs = remove_space_strs strs
-                                                 in
-                                                    if (all_spaces newstrs = [] ) (* all type_info *)
-                                                    then    
-                                                       (clausenum, step, T_info, newstrs)::(change_space xs)
-                                                    else 
-                                                        (clausenum, step, P_info, newstrs)::(change_space xs) 
-                                                 end
+|   change_space ((clausenum, step, strs)::xs) = 
+      let val newstrs = remove_space_strs strs
+      in
+	 if (all_spaces newstrs = [] ) (* all type_info *)
+	 then    
+	    (clausenum, step, T_info, newstrs)::(change_space xs)
+	 else 
+	     (clausenum, step, P_info, newstrs)::(change_space xs) 
+      end
 
 end;

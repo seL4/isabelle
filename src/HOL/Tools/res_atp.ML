@@ -245,19 +245,18 @@ fun isar_atp_g tfrees sg_term (childin, childout, pid) n =
 (**********************************************)
 
 fun isar_atp_goal' thm k n tfree_lits  (childin, childout, pid) = 
-                  	if (k > n) 
-                        then () 
-	  		else 
-                           (let val  prems = prems_of thm 
-                                val sg_term = get_nth n prems
-                                val thmstring = string_of_thm thm
-                            in   
-                                 
-                		(warning("in isar_atp_goal'"));
-                                (warning("thmstring in isar_atp_goal': "^thmstring));
- 				 isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; 
-                                 isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) 
-                            end);
+      if (k > n) 
+      then () 
+      else 
+	  let val  prems = prems_of thm 
+	      val sg_term = ReconOrderClauses.get_nth n prems
+	      val thmstring = string_of_thm thm
+	  in   
+	      (warning("in isar_atp_goal'"));
+	      (warning("thmstring in isar_atp_goal': "^thmstring));
+	       isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; 
+	       isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) 
+	  end;
 
 
 fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = 

@@ -107,10 +107,13 @@ fun init_proofsteps_to_string [] str = str
 
 (*** get a string representing the Isabelle ordered axioms ***)
 
-fun origAx_to_string (num,(meta,thmvars)) =let val clause_strs = get_meta_lits_bracket meta
-                                         in
-                                            (string_of_int num)^"OrigAxiom()"^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
-                                         end
+fun origAx_to_string (num,(meta,thmvars)) =
+    let val clause_strs = ReconOrderClauses.get_meta_lits_bracket meta
+    in
+       (string_of_int num)^"OrigAxiom()"^"["^
+       (clause_strs_to_string clause_strs "")^"]"^"["^
+       (thmvars_to_string thmvars "")^"]"
+    end
 
 
 fun  origAxs_to_string [] str = str
@@ -122,20 +125,20 @@ fun  origAxs_to_string [] str = str
 
 (*** get a string representing the Isabelle ordered axioms not used in the spass proof***)
 
-fun extraAx_to_string (num, (meta,thmvars)) = let val clause_strs = get_meta_lits_bracket meta
-                                           in
-                                              (string_of_int num)^"ExtraAxiom()"^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
-                                           end
+fun extraAx_to_string (num, (meta,thmvars)) =
+   let val clause_strs = ReconOrderClauses.get_meta_lits_bracket meta
+   in
+      (string_of_int num)^"ExtraAxiom()"^"["^
+      (clause_strs_to_string clause_strs "")^"]"^
+      "["^(thmvars_to_string thmvars "")^"]"
+   end;
 
-
-
-fun  extraAxs_to_string [] str = str
-|   extraAxs_to_string (x::xs) str = let val newstr = extraAx_to_string x 
-                                   in
-                                       extraAxs_to_string xs (str^newstr)
-                                   end
-
-
+fun extraAxs_to_string [] str = str
+|   extraAxs_to_string (x::xs) str =
+      let val newstr = extraAx_to_string x 
+      in
+	  extraAxs_to_string xs (str^newstr)
+      end;
 
 fun is_axiom ( num:int,Axiom, str) = true
 |   is_axiom (num, _,_) = false
@@ -156,7 +159,7 @@ fun assoc_snd a [] = raise Noassoc
 |   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_snd x ys))])
 *)
 (*FIX - should this have vars in it? *)
-fun there_out_of_order xs ys = (checkorder xs ys [] ([],[],[]); true) 
+fun there_out_of_order xs ys = (ReconOrderClauses.checkorder xs ys [] ([],[],[]); true) 
                                handle _ => false
 
 fun assoc_out_of_order a [] = raise Noassoc
@@ -202,94 +205,94 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
 (* add array and table here, so can retrieve clasimp axioms *)
 
  fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
-                                         let 
-                                             (*val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
-                                             val _ = TextIO.output (outfile, thmstring)
-                                             
-                                             val _ =  TextIO.closeOut outfile*)
-                                            (* not sure why this is necessary again, but seems to be *)
+     let 
+	 (*val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
+	 val _ = TextIO.output (outfile, thmstring)
+	 
+	 val _ =  TextIO.closeOut outfile*)
+	(* not sure why this is necessary again, but seems to be *)
 
-                                            val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-                                            val axioms = get_init_axioms proof_steps
-                                            val step_nums = get_step_nums axioms []
+	val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+	val axioms = get_init_axioms proof_steps
+	val step_nums = get_step_nums axioms []
 
-                                           (***********************************************)
-                                           (* here need to add the clauses from clause_arr*)
-                                           (***********************************************)
+       (***********************************************)
+       (* here need to add the clauses from clause_arr*)
+       (***********************************************)
 
-                                           (* val clasimp_names_cls = get_clasimp_cls clause_arr   num_of_clauses step_nums   
-                                            val clasimp_names = map #1 clasimp_names_cls
-                                            val clasimp_cls = map #2 clasimp_names_cls
-                                            val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "clasimp_names")))                                                            val clasimp_namestr = concat clasimp_names                            
-                                             val _ = TextIO.output (outfile,clasimp_namestr)
-                                             
-                                             val _ =  TextIO.closeOut outfile
+       (* val clasimp_names_cls = get_clasimp_cls clause_arr   num_of_clauses step_nums   
+	val clasimp_names = map #1 clasimp_names_cls
+	val clasimp_cls = map #2 clasimp_names_cls
+	val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "clasimp_names")))                                                            val clasimp_namestr = concat clasimp_names                            
+	 val _ = TextIO.output (outfile,clasimp_namestr)
+	 
+	 val _ =  TextIO.closeOut outfile
 *)
 
-                                            val clauses =(*(clasimp_cls)@*)( make_clauses thms)
-                                            
-                                            val vars = map thm_vars clauses
-                                           
-                                            val distvars = distinct (fold append vars [])
-                                            val clause_terms = map prop_of clauses  
-                                            val clause_frees = List.concat (map term_frees clause_terms)
+	val clauses =(*(clasimp_cls)@*)( make_clauses thms)
+	
+	val vars = map thm_vars clauses
+       
+	val distvars = distinct (fold append vars [])
+	val clause_terms = map prop_of clauses  
+	val clause_frees = List.concat (map term_frees clause_terms)
 
-                                            val frees = map lit_string_with_nums clause_frees;
+	val frees = map lit_string_with_nums clause_frees;
 
-                                            val distfrees = distinct frees
+	val distfrees = distinct frees
 
-                                            val metas = map Meson.make_meta_clause clauses
-                                            val ax_strs = map #3 axioms
+	val metas = map Meson.make_meta_clause clauses
+	val ax_strs = map #3 axioms
 
-                                            (* literals of -all- axioms, not just those used by spass *)
-                                            val meta_strs = map get_meta_lits metas
-                                           
-                                            val metas_and_strs = ListPair.zip (metas,meta_strs)
-                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_clauses")));                                                                       
-                                             val _ = TextIO.output (outfile, onestr ax_strs)
-                                             
-                                             val _ =  TextIO.closeOut outfile
-                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metastrs")));                                                                       
-                                             val _ = TextIO.output (outfile, onestr meta_strs)
-                                             val _ =  TextIO.closeOut outfile
+	(* literals of -all- axioms, not just those used by spass *)
+	val meta_strs = map ReconOrderClauses.get_meta_lits metas
+       
+	val metas_and_strs = ListPair.zip (metas,meta_strs)
+	 val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_clauses")));                                                                       
+	 val _ = TextIO.output (outfile, onestr ax_strs)
+	 
+	 val _ =  TextIO.closeOut outfile
+	 val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metastrs")));                                                                       
+	 val _ = TextIO.output (outfile, onestr meta_strs)
+	 val _ =  TextIO.closeOut outfile
 
-                                            (* get list of axioms as thms with their variables *)
+	(* get list of axioms as thms with their variables *)
 
-                                            val ax_metas = get_assoc_snds ax_strs metas_and_strs []
-                                            val ax_vars = map thm_vars ax_metas
-                                            val ax_with_vars = ListPair.zip (ax_metas,ax_vars)
+	val ax_metas = get_assoc_snds ax_strs metas_and_strs []
+	val ax_vars = map thm_vars ax_metas
+	val ax_with_vars = ListPair.zip (ax_metas,ax_vars)
 
-                                            (* get list of extra axioms as thms with their variables *)
-                                            val extra_metas = add_if_not_inlist metas ax_metas []
-                                            val extra_vars = map thm_vars extra_metas
-                                            val extra_with_vars = if (not (extra_metas = []) ) 
-                                                                  then
- 									 ListPair.zip (extra_metas,extra_vars)
-                                                                  else
-                                                                         []
+	(* get list of extra axioms as thms with their variables *)
+	val extra_metas = add_if_not_inlist metas ax_metas []
+	val extra_vars = map thm_vars extra_metas
+	val extra_with_vars = if (not (extra_metas = []) ) 
+			      then
+				     ListPair.zip (extra_metas,extra_vars)
+			      else
+				     []
 
-                                           (* val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-                                           val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metas")))
+       (* val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+       val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metas")))
 
-                                           val _ = TextIO.output (outfile, ((thmstrings ax_metas "")))
-                                           val _ =  TextIO.closeOut outfile
-                                          val foo_metas =  File.sysify_path(File.tmp_path (Path.basic "foo_metas"))
-                                          val foo_metas2 =   File.sysify_path(File.tmp_path (Path.basic "foo_metas2"))
-                                            val execperl = Unix.execute("/usr/bin/perl", ["remchars.pl", "  <", foo_metas, "  >", foo_metas2])
-                                         val infile = TextIO.openIn(File.sysify_path(File.tmp_path (Path.basic "foo_metas2")))
-                                        val ax_metas_str = TextIO.inputLine (infile)
-                                        val _ = TextIO.closeIn infile
-                                           val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
-                                           
-                                         in
-                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (*clasimp_names*)(ListPair.zip (step_nums,ax_metas)))
-                                         end
-                                        
+       val _ = TextIO.output (outfile, ((thmstrings ax_metas "")))
+       val _ =  TextIO.closeOut outfile
+      val foo_metas =  File.sysify_path(File.tmp_path (Path.basic "foo_metas"))
+      val foo_metas2 =   File.sysify_path(File.tmp_path (Path.basic "foo_metas2"))
+	val execperl = Unix.execute("/usr/bin/perl", ["remchars.pl", "  <", foo_metas, "  >", foo_metas2])
+     val infile = TextIO.openIn(File.sysify_path(File.tmp_path (Path.basic "foo_metas2")))
+    val ax_metas_str = TextIO.inputLine (infile)
+    val _ = TextIO.closeIn infile
+       val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
+       
+     in
+	(distfrees,distvars, extra_with_vars,ax_with_vars, (*clasimp_names*)(ListPair.zip (step_nums,ax_metas)))
+     end
+    
 fun numclstr (vars, []) str = str
 |   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
-                               in
-                                   numclstr  (vars,rest) newstr
-                               end
+in
+numclstr  (vars,rest) newstr
+end
 
 (*
 
@@ -366,101 +369,101 @@ val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
 val dummy_tac = PRIMITIVE(fn thm => thm );
 
 fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
-                                              let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                        
-                                                  (* val sign = sign_of_thm thm
-                                                 val prems = prems_of thm
-                                                 val prems_string =  concat_with_and (map (Sign.string_of_term sign) prems) "" 
-                                                  val _ = warning ("thmstring is: "^thmstring);(*("thm in spassStrtoRec: "^(concat_with_and (map string_of_thm thms) "")^*)*)
-                                                  val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr))
-             (*val _ = TextIO.output (outfile, (("in spassStrto Reconstr")));*)
-                                                  val _ =  TextIO.closeOut outfile
+      let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                        
+	  (* val sign = sign_of_thm thm
+	 val prems = prems_of thm
+	 val prems_string =  concat_with_and (map (Sign.string_of_term sign) prems) "" 
+	  val _ = warning ("thmstring is: "^thmstring);(*("thm in spassStrtoRec: "^(concat_with_and (map string_of_thm thms) "")^*)*)
+	  val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr))
+(*val _ = TextIO.output (outfile, (("in spassStrto Reconstr")));*)
+	  val _ =  TextIO.closeOut outfile
 
-                                                  val tokens = #1(lex proofstr)
+	  val tokens = #1(lex proofstr)
 
-                                                    
+	    
 
-                                              (***********************************)
-                                              (* parse spass proof into datatype *)
-                                              (***********************************)
+      (***********************************)
+      (* parse spass proof into datatype *)
+      (***********************************)
 
-                                                  val proof_steps1 = parse tokens
-                                                  val proof_steps = just_change_space proof_steps1
+	  val proof_steps1 = parse tokens
+	  val proof_steps = just_change_space proof_steps1
 
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_parse")));                                                                                          val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
-                                                  val _ =  TextIO.closeOut outfile
-                                                
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_thmstring_at_parse")));                                                                             val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
-                                                  val _ =  TextIO.closeOut outfile
-                                              (************************************)
-                                              (* recreate original subgoal as thm *)
-                                              (************************************)
-                                                
-                                                  (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
-                                                  (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
-                                                  (* subgoal this is, and turn it into meta_clauses *)
-                                                  (* should prob add array and table here, so that we can get axioms*)
-                                                  (* produced from the clasimpset rather than the problem *)
-                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr  num_of_clauses
-                                                  
-                                                  (*val numcls_string = numclstr ( vars, numcls) ""*)
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_axiom")));                                                                            val _ = TextIO.output (outfile,"got axioms")
-                                                  val _ =  TextIO.closeOut outfile
-                                                    
-                                              (************************************)
-                                              (* translate proof                  *)
-                                              (************************************)
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps")));                                                          val _ = TextIO.output (outfile, ("about to translate proof, steps: "^(init_proofsteps_to_string proof_steps "")))
-                                                  val _ =  TextIO.closeOut outfile
-                                                  val (newthm,proof) = translate_proof numcls  proof_steps vars
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps2")));                                                                         val _ = TextIO.output (outfile, ("translated proof, steps: "^(init_proofsteps_to_string proof_steps "")))
-                                                  val _ =  TextIO.closeOut outfile
-                                              (***************************************************)
-                                              (* transfer necessary steps as strings to Isabelle *)
-                                              (***************************************************)
-                                                  (* turn the proof into a string *)
-                                                  val reconProofStr = proofs_to_string proof ""
-                                                  (* do the bit for the Isabelle ordered axioms at the top *)
-                                                  val ax_nums = map #1 numcls
-                                                  val ax_strs = map get_meta_lits_bracket (map #2 numcls)
-                                                  val numcls_strs = ListPair.zip (ax_nums,ax_strs)
-                                                  val num_cls_vars =  map (addvars vars) numcls_strs;
-                                                  val reconIsaAxStr = origAxs_to_string (ListPair.zip (ax_nums,ax_with_vars)) ""
-                                                  
-                                                  val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars)) else []
-                                                  val reconExtraAxStr = extraAxs_to_string ( ListPair.zip (extra_nums,extra_with_vars)) ""
-                                                  val frees_str = "["^(thmvars_to_string frees "")^"]"
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "reconstringfile")));
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_parse")));                                                                                          val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
+	  val _ =  TextIO.closeOut outfile
+	
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_thmstring_at_parse")));                                                                             val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
+	  val _ =  TextIO.closeOut outfile
+      (************************************)
+      (* recreate original subgoal as thm *)
+      (************************************)
+	
+	  (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
+	  (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
+	  (* subgoal this is, and turn it into meta_clauses *)
+	  (* should prob add array and table here, so that we can get axioms*)
+	  (* produced from the clasimpset rather than the problem *)
+	  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr  num_of_clauses
+	  
+	  (*val numcls_string = numclstr ( vars, numcls) ""*)
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_axiom")));                                                                            val _ = TextIO.output (outfile,"got axioms")
+	  val _ =  TextIO.closeOut outfile
+	    
+      (************************************)
+      (* translate proof                  *)
+      (************************************)
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps")));                                                          val _ = TextIO.output (outfile, ("about to translate proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+	  val _ =  TextIO.closeOut outfile
+	  val (newthm,proof) = translate_proof numcls  proof_steps vars
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps2")));                                                                         val _ = TextIO.output (outfile, ("translated proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+	  val _ =  TextIO.closeOut outfile
+      (***************************************************)
+      (* transfer necessary steps as strings to Isabelle *)
+      (***************************************************)
+	  (* turn the proof into a string *)
+	  val reconProofStr = proofs_to_string proof ""
+	  (* do the bit for the Isabelle ordered axioms at the top *)
+	  val ax_nums = map #1 numcls
+	  val ax_strs = map ReconOrderClauses.get_meta_lits_bracket (map #2 numcls)
+	  val numcls_strs = ListPair.zip (ax_nums,ax_strs)
+	  val num_cls_vars =  map (addvars vars) numcls_strs;
+	  val reconIsaAxStr = origAxs_to_string (ListPair.zip (ax_nums,ax_with_vars)) ""
+	  
+	  val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars)) else []
+	  val reconExtraAxStr = extraAxs_to_string ( ListPair.zip (extra_nums,extra_with_vars)) ""
+	  val frees_str = "["^(thmvars_to_string frees "")^"]"
+	  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "reconstringfile")));
 
-                                                  val _ = TextIO.output (outfile, (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr))
-                                                  val _ =  TextIO.closeOut outfile
-    						  val reconstr = (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
-                                              in 
-                                                   TextIO.output (toParent, reconstr^"\n");
-                                                   TextIO.flushOut toParent;
-                                        	   TextIO.output (toParent, thmstring^"\n");
-                                         	   TextIO.flushOut toParent;
-                                         	   TextIO.output (toParent, goalstring^"\n");
-                                         	   TextIO.flushOut toParent;
-                                          
-                                         	   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
-                                         	   Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
-                                              end
-                                              handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
+	  val _ = TextIO.output (outfile, (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr))
+	  val _ =  TextIO.closeOut outfile
+	  val reconstr = (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
+      in 
+	   TextIO.output (toParent, reconstr^"\n");
+	   TextIO.flushOut toParent;
+	   TextIO.output (toParent, thmstring^"\n");
+	   TextIO.flushOut toParent;
+	   TextIO.output (toParent, goalstring^"\n");
+	   TextIO.flushOut toParent;
+  
+	   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+	  (* Attempt to prevent several signals from turning up simultaneously *)
+	   Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
+      end
+      handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
 
-                                                  val _ = TextIO.output (outfile, ("In exception handler"));
-                                                  val _ =  TextIO.closeOut outfile
-                                              in 
-                                                  TextIO.output (toParent,"Proof found but translation failed!" ^"\n");
-                                                  TextIO.flushOut toParent;
-						TextIO.output (toParent, thmstring^"\n");
-                                         	   TextIO.flushOut toParent;
-                                         	   TextIO.output (toParent, goalstring^"\n");
-                                         	   TextIO.flushOut toParent;
-            					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
-                                         	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
-                                              end)
+	  val _ = TextIO.output (outfile, ("In exception handler"));
+	  val _ =  TextIO.closeOut outfile
+      in 
+	  TextIO.output (toParent,"Proof found but translation failed!" ^"\n");
+	  TextIO.flushOut toParent;
+	TextIO.output (toParent, thmstring^"\n");
+	   TextIO.flushOut toParent;
+	   TextIO.output (toParent, goalstring^"\n");
+	   TextIO.flushOut toParent;
+	  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+	  (* Attempt to prevent several signals from turning up simultaneously *)
+	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
+      end)
 
 
 
@@ -742,9 +745,9 @@ fun to_isar_proof (frees, xs, goalstring) = let val extraaxioms = get_extraaxiom
                            val axioms = get_axioms axioms_and_steps
                            
                            val steps = Library.drop (origax_num, axioms_and_steps)
-                           val firststeps = butlast steps
-                           val laststep = last steps
-                           val goalstring = implode(butlast(explode goalstring))
+                           val firststeps = ReconOrderClauses.butlast steps
+                           val laststep = ReconOrderClauses.last steps
+                           val goalstring = implode(ReconOrderClauses.butlast(explode goalstring))
                         
                            val isar_proof = 
                            ("show \""^goalstring^"\"\n")^

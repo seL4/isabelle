@@ -55,8 +55,9 @@ datatype Step_label = T_info
                      |P_info
 
 
-fun is_alpha_space_digit_or_neg ch = (ch = "~") orelse (is_alpha ch) orelse (is_digit ch) orelse ( ch = " ")
-
+fun is_alpha_space_digit_or_neg ch =
+    (ch = "~") orelse (ReconOrderClauses.is_alpha ch) orelse 
+    (ReconOrderClauses.is_digit ch) orelse ( ch = " ");
 
 
 fun lit_string_with_nums t = let val termstr = Term.string_of_term t
@@ -73,30 +74,29 @@ fun reconstruction_failed fname = error (fname ^ ": reconstruction failed")
 (************************************************)
 
 fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
-                                     let val this_axiom = valOf (assoc (clauses,clausenum))
-                                         val (res, numlist, symlist, nsymlist) = (rearrange_clause this_axiom clause_strs allvars)         
-                                         val thmvars = thm_vars res
-                                     in
-                                         (res, (Axiom,clause_strs,thmvars )  )
-                                     end
-                                     handle Option => reconstruction_failed "follow_axiom"
+    let val this_axiom = valOf (assoc (clauses,clausenum))
+	val (res, numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause this_axiom clause_strs allvars)         
+	val thmvars = thm_vars res
+    in
+	(res, (Axiom,clause_strs,thmvars )  )
+    end
+    handle Option => reconstruction_failed "follow_axiom"
 
 (****************************************)
 (* Reconstruct a binary resolution step *)
 (****************************************)
 
                  (* numbers of clauses and literals*) (*vars*) (*list of current thms*) (* literal strings as parsed from spass *)
-fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs 
-        = let
-              val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
-              val thm2 =  valOf (assoc (thml,clause2))
-              val res =   thm1 RSN ((lit2 +1), thm2)
-              val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
-              val thmvars = thm_vars res
-          in
-             (res',  ((Binary ((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars) )
-          end
-	  handle Option => reconstruction_failed "follow_binary"
+fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs =
+    let val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
+	val thm2 =  valOf (assoc (thml,clause2))
+	val res =   thm1 RSN ((lit2 +1), thm2)
+	val (res', numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause res clause_strs allvars)
+	val thmvars = thm_vars res
+    in
+       (res',  ((Binary ((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars) )
+    end
+    handle Option => reconstruction_failed "follow_binary"
 
 
 
@@ -105,17 +105,17 @@ fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs
 (******************************************************)
 
 
-fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs 
-        = let
-              val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
-              val thm2 =  valOf (assoc (thml,clause2))
-              val res =   thm1 RSN ((lit2 +1), thm2)
-              val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
-              val thmvars = thm_vars res
-          in
-             (res',  ((MRR ((clause1, lit1), (clause2 , lit2))) ,clause_strs,thmvars))
-          end
-	  handle Option => reconstruction_failed "follow_mrr"
+fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs =
+    let val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
+	val thm2 =  valOf (assoc (thml,clause2))
+	val res =   thm1 RSN ((lit2 +1), thm2)
+	val (res', numlist, symlist, nsymlist) = 
+	    (ReconOrderClauses.rearrange_clause res clause_strs allvars)
+	val thmvars = thm_vars res
+    in
+       (res',  ((MRR ((clause1, lit1), (clause2 , lit2))) ,clause_strs,thmvars))
+    end
+    handle Option => reconstruction_failed "follow_mrr"
 
 
 (*******************************************)
@@ -123,11 +123,13 @@ fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs
 (*******************************************)
 
 fun mksubstlist [] sublist = sublist
-   |mksubstlist ((a, (_, b)) :: rest) sublist = let val vartype = type_of b 
-                                          val avar = Var(a,vartype)
-                                          val newlist = ((avar,b)::sublist) in
-                                          mksubstlist rest newlist
-                                      end;
+   |mksubstlist ((a, (_, b)) :: rest) sublist = 
+       let val vartype = type_of b 
+	   val avar = Var(a,vartype)
+	   val newlist = ((avar,b)::sublist)
+       in
+	   mksubstlist rest newlist
+       end;
 
 (* based on Tactic.distinct_subgoals_tac *)
 
@@ -135,7 +137,7 @@ fun delete_assump_tac state lit =
     let val (frozth,thawfn) = freeze_thaw state
         val froz_prems = cprems_of frozth
         val assumed = implies_elim_list frozth (map assume froz_prems)
-        val new_prems = remove_nth lit froz_prems
+        val new_prems = ReconOrderClauses.remove_nth lit froz_prems
         val implied = implies_intr_list new_prems assumed
     in  
         Seq.single (thawfn implied)  
@@ -150,44 +152,46 @@ fun delete_assump_tac state lit =
 (*************************************)
 
 (*FIXME: share code with that in Tools/reconstruction.ML*)
-fun follow_factor clause lit1 lit2 allvars thml clause_strs= 
-                          let 
-                            val th =  valOf (assoc (thml,clause))
-                            val prems = prems_of th
-                            val sign = sign_of_thm th
-                            val fac1 = get_nth (lit1+1) prems
-                            val fac2 = get_nth (lit2+1) prems
-                            val unif_env = Unify.unifiers (sign,Envir.empty 0, [(fac1, fac2)])
-                            val newenv = getnewenv unif_env
-                            val envlist = Envir.alist_of newenv
-                            
-                            val (t1,t2)::_ = mksubstlist envlist []
-                          in 
-                            if (is_Var t1)
-                            then
-                                let 
-                                   val str1 = lit_string_with_nums t1;
-                                   val str2 = lit_string_with_nums t2;
-                                   val facthm = read_instantiate [(str1,str2)] th;
-                                   val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
-                                   val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
-                                   val thmvars = thm_vars res'
-                                in 
-                                       (res',((Factor (clause,  lit1, lit2)),clause_strs,thmvars))
-                                end
-                            else
-                                let
-                                   val str2 = lit_string_with_nums t1;
-                                   val str1 = lit_string_with_nums t2;
-                                   val facthm = read_instantiate [(str1,str2)] th;
-                                   val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
-                                   val (res', numlist, symlist, nsymlist) = (rearrange_clause res clause_strs allvars)
-                                  val thmvars = thm_vars res'
-                                in 
-                                       (res', ((Factor (clause,  lit1, lit2)),clause_strs, thmvars))         
-                                end
-                         end
-                         handle Option => reconstruction_failed "follow_factor"
+fun follow_factor clause lit1 lit2 allvars thml clause_strs = 
+    let 
+      val th =  valOf (assoc (thml,clause))
+      val prems = prems_of th
+      val sign = sign_of_thm th
+      val fac1 = ReconOrderClauses.get_nth (lit1+1) prems
+      val fac2 = ReconOrderClauses.get_nth (lit2+1) prems
+      val unif_env = Unify.unifiers (sign,Envir.empty 0, [(fac1, fac2)])
+      val newenv = getnewenv unif_env
+      val envlist = Envir.alist_of newenv
+      
+      val (t1,t2)::_ = mksubstlist envlist []
+    in 
+      if (is_Var t1)
+      then
+	  let 
+	     val str1 = lit_string_with_nums t1;
+	     val str2 = lit_string_with_nums t2;
+	     val facthm = read_instantiate [(str1,str2)] th;
+	     val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
+	     val (res', numlist, symlist, nsymlist) = 
+	         ReconOrderClauses.rearrange_clause res clause_strs allvars
+	     val thmvars = thm_vars res'
+	  in 
+		 (res',((Factor (clause,  lit1, lit2)),clause_strs,thmvars))
+	  end
+      else
+	  let
+	     val str2 = lit_string_with_nums t1;
+	     val str1 = lit_string_with_nums t2;
+	     val facthm = read_instantiate [(str1,str2)] th;
+	     val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
+	     val (res', numlist, symlist, nsymlist) = 
+	         ReconOrderClauses.rearrange_clause res clause_strs allvars
+	     val thmvars = thm_vars res'
+	  in 
+		 (res', ((Factor (clause,  lit1, lit2)),clause_strs, thmvars))         
+	  end
+   end
+   handle Option => reconstruction_failed "follow_factor"
 
 
 
@@ -216,28 +220,29 @@ val rev_subst = rotate_prems 1 subst;
 val rev_ssubst = rotate_prems 1 ssubst;
 
 
-fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
-                          let 
-                            val th1 =  valOf (assoc (thml,clause1))
-                            val th2 =  valOf (assoc (thml,clause2)) 
-                            val eq_lit_th = select_literal (lit1+1) th1
-                            val mod_lit_th = select_literal (lit2+1) th2
-                            val eqsubst = eq_lit_th RSN (2,rev_subst)
-                            val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
-			    val newth' =negate_head newth 
-                            val (res, numlist, symlist, nsymlist)  = (rearrange_clause newth' clause_strs allvars 
-                                handle Not_in_list => let 
-                                                  val mod_lit_th' = mod_lit_th RS not_sym
-                                                   val newth = Seq.hd (biresolution false [(false, mod_lit_th')] 1 eqsubst)
-			                           val newth' =negate_head newth 
-                                               in 
-                                                  (rearrange_clause newth' clause_strs allvars)
-                                               end)
-                            val thmvars = thm_vars res
-                         in 
-                           (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
-                         end
-			 handle Option => reconstruction_failed "follow_standard_para"
+fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs = 
+    let 
+      val th1 =  valOf (assoc (thml,clause1))
+      val th2 =  valOf (assoc (thml,clause2)) 
+      val eq_lit_th = select_literal (lit1+1) th1
+      val mod_lit_th = select_literal (lit2+1) th2
+      val eqsubst = eq_lit_th RSN (2,rev_subst)
+      val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
+      val newth' =negate_head newth 
+      val (res, numlist, symlist, nsymlist)  = 
+          (ReconOrderClauses.rearrange_clause newth' clause_strs allvars 
+	   handle Not_in_list => 
+	       let val mod_lit_th' = mod_lit_th RS not_sym
+		   val newth = Seq.hd (biresolution false [(false, mod_lit_th')] 1 eqsubst)
+		   val newth' =negate_head newth 
+		in 
+		   ReconOrderClauses.rearrange_clause newth' clause_strs allvars
+		end)
+      val thmvars = thm_vars res
+   in 
+     (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
+   end
+   handle Option => reconstruction_failed "follow_standard_para"
 
 (*              
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
@@ -293,26 +298,24 @@ fun delete_assumps 0 th = th
 (* extra conditions from the equality turn up as 2nd to last literals of result.  Need to delete them *)
 (* changed negate_nead to negate_head here too*)
                     (* clause1, lit1 is thing to rewrite with *)
-fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs= 
-
-                          let val th1 =  valOf (assoc (thml,clause1))
-                              val th2 = valOf (assoc (thml,clause2))
-                              val eq_lit_th = select_literal (lit1+1) th1
-                              val mod_lit_th = select_literal (lit2+1) th2
-                              val eqsubst = eq_lit_th RSN (2,rev_subst)
-                              val eq_lit_prem_num = length (prems_of eq_lit_th)
-                              val sign = Sign.merge (sign_of_thm th1, sign_of_thm th2)
-                              val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 
-eqsubst)
-                         
-                              val newthm = negate_head newth
-                              val newthm' = delete_assumps eq_lit_prem_num newthm
-                              val (res, numlist, symlist, nsymlist) =(rearrange_clause newthm clause_strs allvars)
-                              val thmvars = thm_vars res
-                           in
-                               (res, ((Rewrite ((clause1, lit1),  (clause2, lit2))),clause_strs,thmvars))
-                           end
-			   handle Option => reconstruction_failed "follow_rewrite"
+fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs = 
+      let val th1 =  valOf (assoc (thml,clause1))
+	  val th2 = valOf (assoc (thml,clause2))
+	  val eq_lit_th = select_literal (lit1+1) th1
+	  val mod_lit_th = select_literal (lit2+1) th2
+	  val eqsubst = eq_lit_th RSN (2,rev_subst)
+	  val eq_lit_prem_num = length (prems_of eq_lit_th)
+	  val sign = Sign.merge (sign_of_thm th1, sign_of_thm th2)
+	  val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
+     	  val newthm = negate_head newth
+	  val newthm' = delete_assumps eq_lit_prem_num newthm
+	  val (res, numlist, symlist, nsymlist) =
+	      ReconOrderClauses.rearrange_clause newthm clause_strs allvars
+	  val thmvars = thm_vars res
+       in
+	   (res, ((Rewrite ((clause1, lit1),  (clause2, lit2))),clause_strs,thmvars))
+       end
+       handle Option => reconstruction_failed "follow_rewrite"
 
 
 
@@ -321,17 +324,18 @@ eqsubst)
 (*****************************************)
 
 
-fun follow_obvious  (clause1, lit1)  allvars thml clause_strs= 
-                           let val th1 =  valOf (assoc (thml,clause1))
-                               val prems1 = prems_of th1
-                               val newthm = refl RSN ((lit1+ 1), th1)
-                                               handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
-                               val (res, numlist, symlist, nsymlist) =(rearrange_clause newthm clause_strs allvars)
-                               val thmvars = thm_vars res
-                           in 
-                               (res, ((Obvious (clause1, lit1)),clause_strs,thmvars))
-                           end
-  	 		   handle Option => reconstruction_failed "follow_obvious"
+fun follow_obvious  (clause1, lit1)  allvars thml clause_strs = 
+    let val th1 =  valOf (assoc (thml,clause1))
+	val prems1 = prems_of th1
+	val newthm = refl RSN ((lit1+ 1), th1)
+		     handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
+	val (res, numlist, symlist, nsymlist) =
+	    ReconOrderClauses.rearrange_clause newthm clause_strs allvars
+	val thmvars = thm_vars res
+    in 
+	(res, ((Obvious (clause1, lit1)),clause_strs,thmvars))
+    end
+    handle Option => reconstruction_failed "follow_obvious"
 
 (**************************************************************************************)
 (* reconstruct a single line of the res. proof - depending on what sort of proof step it was*)
@@ -436,28 +440,29 @@ fun follow clauses [] allvars thml recons =
 
 *)
 
-fun replace_clause_strs [] recons newrecons= (newrecons)
-|   replace_clause_strs ((thmnum, thm)::thml)  ((clausenum,(step,clause_strs,thmvars))::recons) newrecons = 
-                           let val new_clause_strs = get_meta_lits_bracket thm
-                           in
-                               replace_clause_strs thml recons ((clausenum,(step,new_clause_strs,thmvars))::newrecons)
-                           end
+fun replace_clause_strs [] recons newrecons = (newrecons)
+|   replace_clause_strs ((thmnum, thm)::thml)    
+                  ((clausenum,(step,clause_strs,thmvars))::recons) newrecons = 
+    let val new_clause_strs = ReconOrderClauses.get_meta_lits_bracket thm
+    in
+	replace_clause_strs thml recons  
+	    ((clausenum,(step,new_clause_strs,thmvars))::newrecons)
+    end
 
 
 fun follow clauses [] allvars thml recons = 
-                             let 
-                                 val new_recons = replace_clause_strs thml recons []
-                             in
-                                  ((snd( hd thml)), new_recons)
-                             end
-
- |  follow clauses (h::t) allvars thml recons 
-        = let
-            val (thml', recons') = follow_line clauses allvars  thml h recons
-            val  (thm, recons_list) = follow clauses t  allvars thml' recons'     
-          in
-             (thm,recons_list)
-          end
+      let 
+	  val new_recons = replace_clause_strs thml recons []
+      in
+	   (#2(hd thml), new_recons)
+      end
+ | follow clauses (h::t) allvars thml recons =
+      let
+	val (thml', recons') = follow_line clauses allvars  thml h recons
+	val  (thm, recons_list) = follow clauses t  allvars thml' recons'     
+      in
+	 (thm,recons_list)
+      end
 
 
 
@@ -481,4 +486,5 @@ fun translate_proof clauses proof allvars
 
 
 fun remove_tinfo [] = []
-|   remove_tinfo ( (clausenum, step, T_info, newstrs)::xs) = (clausenum, step , newstrs)::(remove_tinfo xs)
+  | remove_tinfo ( (clausenum, step, T_info, newstrs)::xs) =
+      (clausenum, step , newstrs)::(remove_tinfo xs)
