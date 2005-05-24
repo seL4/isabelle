@@ -34,7 +34,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Adm.ML Adm.thy Cfun.ML Cfun.thy \
   Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy \
   ROOT.ML Sprod.ML Sprod.thy \
   Ssum.ML Ssum.thy \
-  Tr.ML Tr.thy Up.ML \
+  Tr.ML Tr.thy TypedefPcpo.thy Up.ML \
   Up.thy adm.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
   domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
