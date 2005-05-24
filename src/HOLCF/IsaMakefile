@@ -27,7 +27,7 @@ HOLCF: HOL $(OUT)/HOLCF
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-$(OUT)/HOLCF: $(OUT)/HOL Adm.ML Adm.thy Cfun.ML Cfun.thy \
+$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.ML Cfun.thy \
   Cont.ML Cont.thy Cprod.ML Cprod.thy \
   Discrete.thy Domain.thy Fix.ML Fix.thy FunCpo.ML \
   FunCpo.thy HOLCF.ML HOLCF.thy Lift.ML \
@@ -35,7 +35,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Adm.ML Adm.thy Cfun.ML Cfun.thy \
   ROOT.ML Sprod.ML Sprod.thy \
   Ssum.ML Ssum.thy \
   Tr.ML Tr.thy TypedefPcpo.thy Up.ML \
-  Up.thy adm.ML cont_consts.ML \
+  Up.thy adm_tac.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
   domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
   ex/Stream.thy document/root.tex

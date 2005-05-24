@@ -1,5 +1,4 @@
-(*  Title:      HOLCF/adm.ML
-    ID:         $Id$
+(*  ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Admissibility tactic.
