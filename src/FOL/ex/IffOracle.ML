@@ -6,8 +6,9 @@
 Example of how to use an oracle
 *)
 
+val IffOracle_thy = the_context ();
 fun iff_oracle n =
-  invoke_oracle IffOracle.thy "iff" (Theory.sign_of IffOracle.thy, IffOracleExn n);
+  invoke_oracle IffOracle_thy "iff" (Theory.sign_of IffOracle_thy, IffOracleExn n);
 
 
 iff_oracle 2;

@@ -2,20 +2,18 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
-
-Example of how to declare an oracle
 *)
 
-IffOracle = FOL +
+header{*Example of Declaring an Oracle*}
 
-oracle
-  iff = mk_iff_oracle
+theory IffOracle = FOL:
 
-end
-
+text{*This oracle makes tautologies of the form "P <-> P <-> P <-> P".
+The length is specified by an integer, which is checked to be even and 
+positive.*}
 
 ML
-
+{*
 local
 
 (* internal syntactic declarations *)
@@ -34,10 +32,17 @@ in
 (*new exception constructor for passing arguments to the oracle*)
 exception IffOracleExn of int;
 
-(*oracle makes tautologies of the form "P <-> P <-> P <-> P"*)
 fun mk_iff_oracle (sign, IffOracleExn n) =
   if n > 0 andalso n mod 2 = 0
   then Trueprop $ mk_iff n
   else raise IffOracleExn n;
 
-end;
+end
+*}
+
+oracle
+  iff = mk_iff_oracle
+
+end
+
+
