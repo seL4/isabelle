@@ -247,6 +247,18 @@ apply (rule chain_iterate)
 apply assumption
 done
 
+text {* some lemmata for functions with flat/chfin domain/range types *}
+
+lemma adm_chfindom: "adm (%(u::'a::cpo->'b::chfin). P(u$s))"
+apply (unfold adm_def)
+apply (intro strip)
+apply (drule chfin_Rep_CFunR)
+apply (erule_tac x = "s" in allE)
+apply clarsimp
+done
+
+(* adm_flat not needed any more, since it is a special case of adm_chfindom *)
+
 text {* fixed point induction *}
 
 lemma fix_ind:

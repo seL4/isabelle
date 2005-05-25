@@ -6,7 +6,7 @@
 header {* Admissibility *}
 
 theory Adm
-imports Cfun
+imports Cont
 begin
 
 defaultsort cpo
@@ -57,18 +57,6 @@ apply (erule spec)
 done
 
 lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
-
-text {* some lemmata for functions with flat/chfin domain/range types *}
-
-lemma adm_chfindom: "adm (%(u::'a::cpo->'b::chfin). P(u$s))"
-apply (unfold adm_def)
-apply (intro strip)
-apply (drule chfin_Rep_CFunR)
-apply (erule_tac x = "s" in allE)
-apply clarsimp
-done
-
-(* adm_flat not needed any more, since it is a special case of adm_chfindom *)
 
 text {* improved admissibility introduction *}
 
@@ -268,7 +256,6 @@ val triv_admI = thm "triv_admI";
 val admD = thm "admD";
 val adm_max_in_chain = thm "adm_max_in_chain";
 val adm_chfin = thm "adm_chfin";
-val adm_chfindom = thm "adm_chfindom";
 val admI2 = thm "admI2";
 val adm_less = thm "adm_less";
 val adm_conj = thm "adm_conj";
