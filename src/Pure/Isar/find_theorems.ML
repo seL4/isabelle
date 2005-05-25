@@ -60,18 +60,7 @@ fun select_match (extract_thms, extract_term) ctxt obj facts =
     |> Library.sort thm_ord |> map #2
   end;
 
-(*speed up retrieval by checking head symbol*)
-fun index_head ctxt prop =
-  (case Term.head_of (ObjectLogic.drop_judgment (ProofContext.sign_of ctxt) prop) of
-    Const (c, _) => ([c], [])
-  | Free (x, _) => if ProofContext.is_known ctxt x then ([], [x]) else ([], [])
-  | _ => ([], []));
-
 in
-
-fun find_matching_thms extract ctxt prop =
-  find_thms ctxt (index_head ctxt prop)
-  |> select_match extract ctxt prop;
 
 fun is_matching_thm extract ctxt prop fact =
   not (null (select_match extract ctxt prop [fact]));
