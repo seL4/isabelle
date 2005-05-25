@@ -138,9 +138,6 @@ shows "cont (\<lambda>x. Abs (f x))"
  apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
 done
 
-lemmas typedef_cont_Abs2 =
-  typedef_cont_Abs [OF _ _ _ _ cont_Rep_CFun2]
-
 
 subsection {* Proving a typedef is pointed *}
 
