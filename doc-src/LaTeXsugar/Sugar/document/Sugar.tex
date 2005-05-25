@@ -339,8 +339,8 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \end{quote}
 
   A ``style'' is a transformation of propositions. There are predefined
-  styles, namly \verb!lhs!, \verb!rhs! and \verb!conclusion!, with obvious
-  meanings. For example, the output
+  styles, namly \verb!lhs!, \verb!rhs! and \verb!conclusion!. For example, 
+  the output
   \begin{center}
   \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
   \isa{foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}} & \isa{a}\\
@@ -358,22 +358,16 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   \end{quote}
   Note the space between \verb!@! and \verb!{! in the tabular argument.
   It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
-  as an antiquotation. Both styles \verb!lhs! and \verb!rhs!
+  as an antiquotation. The styles \verb!lhs! and \verb!rhs!
   extract the left hand side (or right hand side respectivly) from the
-  conclusion of propositions, consisting of a binary operator
+  conclusion of propositions consisting of a binary operator
   (e.~g.~\isa{{\isacharequal}}, \isa{{\isasymequiv}}, \isa{{\isacharless}}).
 
-  Likewise \verb!conclusion! may be used as style to show just the conclusion
-  of a proposition. For example, take
+  Likewise, \verb!conclusion! may be used as a style to show just the
+  conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
     \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
-  produced by
-  \begin{quote}
-    \verb!\begin{center}!\\
-    \verb!@!\verb!{thm hd_Cons_tl}!\\
-    \verb!\end{center}!
-  \end{quote}
   To print just the conclusion,
   \begin{center}
     \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
@@ -403,16 +397,16 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \verb!*!\verb!}!\\
   \end{quote}
 
-  This example indeed shows how the \verb!conclusion! style could is implemented;
-  note that the real implementation is more sophisticated.
+  \noindent
+  This example shows how the \verb!conclusion! style could have been implemented
+  and may be used as as a ``copy-and-paste'' pattern to write your own styles.
+  (The real implementation of \verb!conclusion! is a bit more sophisticated).
 
-  This code should go into your theory file, not as part of your
-  \LaTeX\ text but as a separate command in front of it.
+  The code should go into your theory file, separate from the \LaTeX\ text.
   The \verb!let! expression avoids polluting the
   ML global namespace. Each style receives the current proof context
-  as first argument; this is helpful in situations where the current proof
-  context has an impact on the style (which is the case e.~g.~when the
-  style has some object-logic specific behaviour).
+  as first argument; this is helpful in situations where the
+  style has some object-logic specific behaviour for example.
 
   The mapping from identifier name to the style function
   is done by the \isa{TermStyle{\isachardot}add{\isacharunderscore}style} expression which expects the desired
@@ -421,10 +415,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   After this \verb!setup!,
   there will be a new style available named \verb!my_concl!, thus allowing
   antiquoations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
-  yielding \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}.
-
-  The example above may be used as as a ``copy-and-paste'' pattern to write
-  your own styles.%
+  yielding \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
