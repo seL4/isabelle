@@ -64,57 +64,27 @@ text {*
   Undef}.
 *}
 
-lemma notUndef_I: "[| x<<y; x ~= Undef |] ==> y ~= Undef"
-  -- {* Tailoring @{text notUU_I} of @{text Pcpo.ML} to @{text Undef} *}
-  by (blast intro: antisym_less)
-
-lemma chain_mono2_po: "[| EX j.~Y(j)=Undef; chain(Y::nat=>('a)lift) |]
-         ==> EX j. ALL i. j<i-->~Y(i)=Undef"
-  -- {* Tailoring @{text chain_mono2} of @{text Pcpo.ML} to @{text Undef} *}
-  apply safe
-  apply (rule exI)
-  apply (intro strip)
-  apply (rule notUndef_I)
-   apply (erule (1) chain_mono)
-  apply assumption
-  done
-
 lemma flat_imp_chfin_poo: "(ALL Y. chain(Y::nat=>('a)lift)-->(EX n. max_in_chain n Y))"
   -- {* Tailoring @{text flat_imp_chfin} of @{text Fix.ML} to @{text lift} *}
   apply (unfold max_in_chain_def)
-  apply (intro strip)
-  apply (rule_tac P = "ALL i. Y (i) = Undef" in case_split)
-   apply (rule_tac x = 0 in exI)
-   apply (intro strip)
-   apply (rule trans)
-    apply (erule spec)
-   apply (rule sym)
-   apply (erule spec)
-  apply (subgoal_tac "ALL x y. x << (y:: ('a) lift) --> x=Undef | x=y")
-   prefer 2 apply (simp add: inst_lift_po)
-  apply (rule chain_mono2_po [THEN exE])
-    apply fast
-   apply assumption
-  apply (rule_tac x = "Suc x" in exI)
-  apply (intro strip)
-  apply (rule disjE)
-    prefer 3 apply assumption
-   apply (rule mp)
-    apply (drule spec)
-    apply (erule spec)
-   apply (erule le_imp_less_or_eq [THEN disjE])
-    apply (erule chain_mono)
-    apply auto
+  apply clarify
+  apply (case_tac "ALL i. Y i = Undef")
+   apply simp
+  apply simp
+  apply (erule exE)
+  apply (rule_tac x=i in exI)
+  apply clarify
+  apply (drule chain_mono3, assumption)
+  apply (simp add: less_lift_def)
   done
 
-theorem cpo_lift: "chain (Y::nat => 'a lift) ==> EX x. range Y <<| x"
-  apply (cut_tac flat_imp_chfin_poo)
-  apply (blast intro: lub_finch1)
+instance lift :: (type) chfin
+  apply intro_classes
+  apply (rule flat_imp_chfin_poo)
   done
 
 instance lift :: (type) pcpo
   apply intro_classes
-   apply (erule cpo_lift)
   apply (rule least_lift)
   done
 
