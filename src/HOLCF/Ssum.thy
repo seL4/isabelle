@@ -1,9 +1,8 @@
 (*  Title:      HOLCF/Ssum.thy
     ID:         $Id$
     Author:     Franz Regensburger and Brian Huffman
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Strict sum with typedef
+Strict sum with typedef.
 *)
 
 header {* The type of strict sums *}

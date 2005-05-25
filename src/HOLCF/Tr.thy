@@ -1,9 +1,8 @@
 (*  Title:      HOLCF/Tr.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Introduce infix if_then_else_fi and boolean connectives andalso, orelse
+Introduce infix if_then_else_fi and boolean connectives andalso, orelse.
 *)
 
 header {* The type of lifted booleans *}

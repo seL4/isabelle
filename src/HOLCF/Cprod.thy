@@ -1,9 +1,8 @@
 (*  Title:      HOLCF/Cprod.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Partial ordering for cartesian product of HOL theory prod.thy
+Partial ordering for cartesian product of HOL products.
 *)
 
 header {* The cpo of cartesian products *}

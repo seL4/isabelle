@@ -1,13 +1,12 @@
 (*  Title:      HOLCF/FunCpo.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of the partial ordering for the type of all functions => (fun)
 
 REMARK: The ordering on 'a => 'b is only defined if 'b is in class po !!
 
-Class instance of  => (fun) for class pcpo
+Class instance of  => (fun) for class pcpo.
 *)
 
 header {* Class instances for the type of all functions *}

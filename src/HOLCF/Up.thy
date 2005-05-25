@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/Up.thy
     ID:         $Id$
-    Author:     Franz Regensburger
-                Additions by Brian Huffman
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+    Author:     Franz Regensburger and Brian Huffman
 
 Lifting.
 *)

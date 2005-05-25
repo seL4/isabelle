@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Discrete.thy
     ID:         $Id$
     Author:     Tobias Nipkow
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Discrete CPOs.
 *)

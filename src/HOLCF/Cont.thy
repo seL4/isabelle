@@ -1,9 +1,8 @@
 (*  Title:      HOLCF/Cont.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-    Results about continuity and monotonicity
+Results about continuity and monotonicity.
 *)
 
 header {* Continuity and monotonicity *}

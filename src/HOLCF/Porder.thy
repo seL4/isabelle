@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/Porder.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of class porder (partial order).
-Conservative extension of theory Porder0 by constant definitions 
+Conservative extension of theory Porder0 by constant definitions.
 *)
 
 header {* Partial orders *}

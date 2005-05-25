@@ -1,9 +1,8 @@
 (*  Title:      HOLCF/Fix.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-definitions for fixed point operator and admissibility
+Definitions for fixed point operator and admissibility.
 *)
 
 header {* Fixed point operator and admissibility *}

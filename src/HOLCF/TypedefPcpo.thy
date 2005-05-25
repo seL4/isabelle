@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/TypedefPcpo.thy
     ID:         $Id$
     Author:     Brian Huffman
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Subtypes of pcpos *}

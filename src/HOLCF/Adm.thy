@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Adm.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Admissibility *}

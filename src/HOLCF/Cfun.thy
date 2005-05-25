@@ -1,10 +1,8 @@
 (*  Title:      HOLCF/Cfun.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of the type ->  of continuous functions.
-
 *)
 
 header {* The type of continuous functions *}
