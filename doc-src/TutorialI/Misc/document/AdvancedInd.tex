@@ -29,11 +29,99 @@ non-empty list, this lemma looks easy to prove:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+But induction produces the warning
+\begin{quote}\tt
+Induction variable occurs also among premises!
+\end{quote}
+and leads to the base case
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ last\ {\isacharbrackleft}{\isacharbrackright}%
+\end{isabelle}
+Simplification reduces the base case to this:
+\begin{isabelle}
+\ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
+\end{isabelle}
+We cannot prove this equality because we do not know what \isa{hd} and
+\isa{last} return when applied to \isa{{\isacharbrackleft}{\isacharbrackright}}.
+
+We should not have ignored the warning. Because the induction
+formula is only the conclusion, induction does not affect the occurrence of \isa{xs} in the premises.  
+Thus the case that should have been trivial
+becomes unprovable. Fortunately, the solution is easy:\footnote{A similar
+heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
+\begin{quote}
+\emph{Pull all occurrences of the induction variable into the conclusion
+using \isa{{\isasymlongrightarrow}}.}
+\end{quote}
+Thus we should state the lemma as an ordinary 
+implication~(\isa{{\isasymlongrightarrow}}), letting
+\attrdx{rule_format} (\S\ref{sec:forward}) convert the
+result to the usual \isa{{\isasymLongrightarrow}} form:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+This time, induction leaves us with a trivial base case:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ last\ {\isacharbrackleft}{\isacharbrackright}%
+\end{isabelle}
+And \isa{auto} completes the proof.
+
+If there are multiple premises $A@1$, \dots, $A@n$ containing the
+induction variable, you should turn the conclusion $C$ into
+\[ A@1 \longrightarrow \cdots A@n \longrightarrow C. \]
+Additionally, you may also have to universally quantify some other variables,
+which can yield a fairly complex conclusion.  However, \isa{rule{\isacharunderscore}format} 
+can remove any number of occurrences of \isa{{\isasymforall}} and
+\isa{{\isasymlongrightarrow}}.
+
+\index{induction!on a term}%
+A second reason why your proposition may not be amenable to induction is that
+you want to induct on a complex term, rather than a variable. In
+general, induction on a term~$t$ requires rephrasing the conclusion~$C$
+as
+\begin{equation}\label{eqn:ind-over-term}
+\forall y@1 \dots y@n.~ x = t \longrightarrow C.
+\end{equation}
+where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is a new variable.
+Now you can perform induction on~$x$. An example appears in
+\S\ref{sec:complete-ind} below.
+
+The very same problem may occur in connection with rule induction. Remember
+that it requires a premise of the form $(x@1,\dots,x@k) \in R$, where $R$ is
+some inductively defined set and the $x@i$ are variables.  If instead we have
+a premise $t \in R$, where $t$ is not just an $n$-tuple of variables, we
+replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
+\[ \forall y@1 \dots y@n.~ (x@1,\dots,x@k) = t \longrightarrow C. \]
+For an example see \S\ref{sec:CTL-revisited} below.
+
+Of course, all premises that share free variables with $t$ need to be pulled into
+the conclusion as well, under the \isa{{\isasymforall}}, again using \isa{{\isasymlongrightarrow}} as shown above.
+
+Readers who are puzzled by the form of statement
+(\ref{eqn:ind-over-term}) above should remember that the
+transformation is only performed to permit induction. Once induction
+has been applied, the statement can be transformed back into something quite
+intuitive. For example, applying wellfounded induction on $x$ (w.r.t.\
+$\prec$) to (\ref{eqn:ind-over-term}) and transforming the result a
+little leads to the goal
+\[ \bigwedge\overline{y}.\ 
+   \forall \overline{z}.\ t\,\overline{z} \prec t\,\overline{y}\ \longrightarrow\ C\,\overline{z}
+    \ \Longrightarrow\ C\,\overline{y} \]
+where $\overline{y}$ stands for $y@1 \dots y@n$ and the dependence of $t$ and
+$C$ on the free variables of $t$ has been made explicit.
+Unfortunately, this induction schema cannot be expressed as a
+single theorem because it depends on the number of free variables in $t$ ---
+the notation $\overline{y}$ is merely an informal device.%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 %
@@ -82,14 +170,41 @@ above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}, we use
+the same general induction method as for recursion induction (see
+\S\ref{sec:recdef-induction}):%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+We get the following proof state:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ {\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i\ {\isasymLongrightarrow}\ {\isasymforall}i{\isachardot}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
+\end{isabelle}
+After stripping the \isa{{\isasymforall}i}, the proof continues with a case
+distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ {\isadigit{0}}} is trivial and we focus on
+the other case:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}m{\isacharless}n{\isachardot}\ {\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
+\end{isabelle}%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -180,10 +295,18 @@ must generalize the statement as shown:%
 \isamarkuptrue%
 \isacommand{lemma}\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequote}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+The base case is vacuously true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
+hypothesis and case \isa{m\ {\isacharequal}\ n} follows from the assumption, again using
+the induction hypothesis:%
+\end{isamarkuptxt}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}\ less{\isacharunderscore}SucE{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -202,7 +325,7 @@ desired goal:%
 \isamarkuptrue%
 \isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 HOL already provides the mother of

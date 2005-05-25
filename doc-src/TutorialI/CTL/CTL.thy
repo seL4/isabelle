@@ -244,7 +244,7 @@ the offending rule may need to be applied explicitly rather than
 automatically. This is what happens in the step case.
 
 The induction step is similar, but more involved, because now we face nested
-occurrences of @{const SOME}. As a result, @{text fast} is no longer able to
+occurrences of @{text SOME}. As a result, @{text fast} is no longer able to
 solve the subgoal and we apply @{thm[source]someI2_ex} by hand.  We merely
 show the proof commands but do not describe the details:
 *};

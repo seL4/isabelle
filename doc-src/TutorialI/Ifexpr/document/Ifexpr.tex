@@ -100,10 +100,17 @@ value of its argument:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}valif\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ env\ {\isacharequal}\ value\ b\ env{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+The proof is canonical:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ b{\isacharparenright}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -152,11 +159,9 @@ lemma, which also helps to understand what \isa{normif} does:%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ valif\ {\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -184,11 +189,9 @@ normality of \isa{normif}:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -217,19 +220,15 @@ can provide the clue.  The necessity of universal quantification
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \end{isabellebody}%

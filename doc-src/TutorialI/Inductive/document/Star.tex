@@ -47,7 +47,7 @@ the standard definition. We start with a simple lemma:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -76,17 +76,69 @@ Now we turn to the inductive proof of transitivity:%
 \isamarkuptrue%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+Unfortunately, even the base case is a problem:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
+\end{isabelle}
+We have to abandon this proof attempt.
+To understand what is going on, let us look again at \isa{rtc{\isachardot}induct}.
+In the above application of \isa{erule}, the first premise of
+\isa{rtc{\isachardot}induct} is unified with the first suitable assumption, which
+is \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} rather than \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}}. Although that
+is what we want, it is merely due to the order in which the assumptions occur
+in the subgoal, which it is not good practice to rely on. As a result,
+\isa{{\isacharquery}xb} becomes \isa{x}, \isa{{\isacharquery}xa} becomes
+\isa{y} and \isa{{\isacharquery}P} becomes \isa{{\isasymlambda}u\ v{\isachardot}\ {\isacharparenleft}u{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}}, thus
+yielding the above subgoal. So what went wrong?
+
+When looking at the instantiation of \isa{{\isacharquery}P} we see that it does not
+depend on its second parameter at all. The reason is that in our original
+goal, of the pair \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}} only \isa{x} appears also in the
+conclusion, but not \isa{y}. Thus our induction statement is too
+weak. Fortunately, it can easily be strengthened:
+transfer the additional premise \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} into the conclusion:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+This is not an obscure trick but a generally applicable heuristic:
+\begin{quote}\em
+When proving a statement by rule induction on $(x@1,\dots,x@n) \in R$,
+pull all other premises containing any of the $x@i$ into the conclusion
+using $\longrightarrow$.
+\end{quote}
+A similar heuristic for other kinds of inductions is formulated in
+\S\ref{sec:ind-var-in-prems}. The \isa{rule{\isacharunderscore}format} directive turns
+\isa{{\isasymlongrightarrow}} back into \isa{{\isasymLongrightarrow}}: in the end we obtain the original
+statement of our lemma.%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+Now induction produces two subgoals which are both proved automatically:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y\ za{\isachardot}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ za{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
+\end{isabelle}%
+\end{isamarkuptxt}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Let us now prove that \isa{r{\isacharasterisk}} is really the reflexive transitive closure
@@ -110,18 +162,26 @@ inductions:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isadigit{2}}{\isachardot}induct{\isacharparenright}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}trans{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{done}\isanewline
 \isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 So why did we start with the first definition? Because it is simpler. It
@@ -149,7 +209,6 @@ in exercise~\ref{ex:converse-rtc-step}.
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \end{isabellebody}%

@@ -65,16 +65,61 @@ its first argument provided the second one is empty:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+There is no choice as to the induction variable, and we immediately simplify:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+Unfortunately, this attempt does not prove
+the induction step:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\ itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
+\end{isabelle}
+The induction hypothesis is too weak.  The fixed
+argument,~\isa{{\isacharbrackleft}{\isacharbrackright}}, prevents it from rewriting the conclusion.  
+This example suggests a heuristic:
+\begin{quote}\index{generalizing induction formulae}%
+\emph{Generalize goals for induction by replacing constants by variables.}
+\end{quote}
+Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
+just not true.  The correct generalization is%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+If \isa{ys} is replaced by \isa{{\isacharbrackleft}{\isacharbrackright}}, the right-hand side simplifies to
+\isa{rev\ xs}, as required.
+
+In this instance it was easy to guess the right generalization.
+Other situations can require a good deal of creativity.  
+
+Although we now have two variables, only \isa{xs} is suitable for
+induction, and we repeat our proof attempt. Unfortunately, we are still
+not there:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ ys\ {\isacharequal}\ rev\ list\ {\isacharat}\ ys\ {\isasymLongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharparenleft}a\ {\isacharhash}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ ys%
+\end{isabelle}
+The induction hypothesis is still too weak, but this time it takes no
+intuition to generalize: the problem is that \isa{ys} is fixed throughout
+the subgoal, but the induction hypothesis needs to be applied with
+\isa{a\ {\isacharhash}\ ys} instead of \isa{ys}. Hence we prove the theorem
+for all \isa{ys} instead of a fixed one:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%

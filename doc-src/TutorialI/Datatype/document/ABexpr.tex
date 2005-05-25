@@ -103,9 +103,14 @@ theorems simultaneously:%
 \isacommand{lemma}\ {\isachardoublequote}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
 \ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{apply}\ simp{\isacharunderscore}all\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -135,14 +140,12 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
 \end{isabellebody}%

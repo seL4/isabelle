@@ -67,9 +67,20 @@ by \methdx{case_tac}.  Here is a trivial example:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+results in the proof state
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs%
+\end{isabelle}
+which is solved automatically:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
