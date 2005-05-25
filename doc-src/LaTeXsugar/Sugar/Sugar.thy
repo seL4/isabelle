@@ -113,7 +113,12 @@ reset show_question_marks;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag reset.
-*}
+
+Hint: Resetting \verb!show_question_marks! only supresses question
+marks; variables that end in digits, e.g. @{text"x1"}, are still
+printed with a trailing @{text".0"}, e.g. @{text"x1.0"}, their
+internal index. This can be avoided by turning the last digit into a
+subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}. *}
 
 (*<*)ML"reset show_question_marks"(*>*)
 
@@ -341,14 +346,14 @@ text {*
   Have a look at the following example:
 
 *}
-
+(*<*)
 setup {*
 let
   fun my_concl ctxt = Logic.strip_imp_concl
   in [TermStyle.add_style "my_concl" my_concl]
 end;
 *}
-
+(*>*)
 text {*
 
   \begin{quote}

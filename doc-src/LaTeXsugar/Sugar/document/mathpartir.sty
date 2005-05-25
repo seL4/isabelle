@@ -1,11 +1,30 @@
-%%
-%% This is the original source file mathpar.sty
-%%
-%% Package `mathpar' to use with LaTeX 2e
-%% Copyright Didier Remy, all rights reserved.
+%  Mathpartir --- Math Paragraph for Typesetting Inference Rules
+%
+%  Copyright (C) 2001, 2002, 2003 Didier Rémy
+%
+%  Author         : Didier Remy 
+%  Version        : 1.1.1
+%  Bug Reports    : to author
+%  Web Site       : http://pauillac.inria.fr/~remy/latex/
+% 
+%  WhizzyTeX is free software; you can redistribute it and/or modify
+%  it under the terms of the GNU General Public License as published by
+%  the Free Software Foundation; either version 2, or (at your option)
+%  any later version.
+%  
+%  Mathpartir is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%  GNU General Public License for more details 
+%  (http://pauillac.inria.fr/~remy/license/GPL).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  File mathpartir.sty (LaTeX macros)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mathpartir}
-         [2001/23/02 v0.92 Math Paragraph for Type Inference Rules]
+    [2003/07/10 version 1.1.1 Math Paragraph for Typesetting Inference Rules]
 
 %%
 
@@ -22,14 +41,14 @@
 \newdimen \mpr@tmpdim
 
 % To ensure hevea \hva compatibility, \hva should expands to nothing 
-% in mathpar or in mathrule
+% in mathpar or in inferrule
 \let \mpr@hva \empty
 
 %% normal paragraph parametters, should rather be taken dynamically
 \def \mpr@savepar {%
   \edef \MathparNormalpar
      {\noexpand \lineskiplimit \the\lineskiplimit
-      \noexpand \lineski \the\lineskip}%
+      \noexpand \lineskip \the\lineskip}%
   }
 
 \def \mpr@rulelineskip {\lineskiplimit=0.3em\lineskip=0.2em plus 0.1em}
@@ -57,6 +76,9 @@
   } 
 \let \MathparBindings \mpr@bindings
 
+% \@ifundefined {ignorespacesafterend}
+%    {\def \ignorespacesafterend {\aftergroup \ignorespaces}
+
 \newenvironment{mathpar}[1][]
   {$$\mpr@savepar \parskip 0em \hsize \linewidth \centering
      \vbox \bgroup \mpr@prebindings \mpr@paroptions #1\ifmmode $\else
@@ -83,27 +105,27 @@
 \newtoks \mpr@lista
 \newtoks \mpr@listb
 
-\long \def\mpr@cons #1\to#2{\mpr@lista {\\{#1}}\mpr@listb \expandafter
+\long \def\mpr@cons #1\mpr@to#2{\mpr@lista {\\{#1}}\mpr@listb \expandafter
 {#2}\edef #2{\the \mpr@lista \the \mpr@listb}}
 
-\long \def\mpr@snoc #1\to#2{\mpr@lista {\\{#1}}\mpr@listb \expandafter
+\long \def\mpr@snoc #1\mpr@to#2{\mpr@lista {\\{#1}}\mpr@listb \expandafter
 {#2}\edef #2{\the \mpr@listb\the\mpr@lista}}
 
-\long \def \mpr@concat#1=#2\to#3{\mpr@lista \expandafter {#2}\mpr@listb
+\long \def \mpr@concat#1=#2\mpr@to#3{\mpr@lista \expandafter {#2}\mpr@listb
 \expandafter {#3}\edef #1{\the \mpr@listb\the\mpr@lista}}
 
-\def \mpr@head #1\to #2{\expandafter \mpr@head@ #1\mpr@head@ #1#2}
+\def \mpr@head #1\mpr@to #2{\expandafter \mpr@head@ #1\mpr@head@ #1#2}
 \long \def \mpr@head@ #1#2\mpr@head@ #3#4{\def #4{#1}\def#3{#2}}
 
-\def \mpr@flatten #1\to #2{\expandafter \mpr@flatten@ #1\mpr@flatten@ #1#2}
+\def \mpr@flatten #1\mpr@to #2{\expandafter \mpr@flatten@ #1\mpr@flatten@ #1#2}
 \long \def \mpr@flatten@ \\#1\\#2\mpr@flatten@ #3#4{\def #4{#1}\def #3{\\#2}}
 
-\def \mpr@makelist #1\to #2{\def \mpr@all {#1}%
+\def \mpr@makelist #1\mpr@to #2{\def \mpr@all {#1}%
    \mpr@lista {\\}\mpr@listb \expandafter {\mpr@all}\edef \mpr@all {\the
    \mpr@lista \the \mpr@listb \the \mpr@lista}\let #2\empty 
    \def \mpr@stripof ##1##2\mpr@stripend{\def \mpr@stripped{##2}}\loop
-     \mpr@flatten \mpr@all \to \mpr@one
-     \expandafter \mpr@snoc \mpr@one \to #2\expandafter \mpr@stripof
+     \mpr@flatten \mpr@all \mpr@to \mpr@one
+     \expandafter \mpr@snoc \mpr@one \mpr@to #2\expandafter \mpr@stripof
      \mpr@all \mpr@stripend  
      \ifx \mpr@stripped \empty \let \mpr@isempty 0\else \let \mpr@isempty 1\fi
      \ifx 1\mpr@isempty
@@ -112,8 +134,8 @@
 
 %% Part III -- Type inference rules
 
-\def \mpr@rev #1\to #2{\let \mpr@tmp \empty
-   \def \\##1{\mpr@cons ##1\to \mpr@tmp}#1\let #2\mpr@tmp}
+\def \mpr@rev #1\mpr@to #2{\let \mpr@tmp \empty
+   \def \\##1{\mpr@cons ##1\mpr@to \mpr@tmp}#1\let #2\mpr@tmp}
 
 \newif \if@premisse
 \newbox \mpr@hlist
@@ -139,9 +161,7 @@
 %              \fi}%
 % }
 
-
-
-
+\def \mpr@sep{2em}
 \def \mpr@blank { }
 \def \mpr@hovbox #1#2{\hbox
   \bgroup
@@ -158,8 +178,8 @@
   \if@premisse \let \snoc \mpr@cons \else \let \snoc \mpr@snoc \fi
   \let \@hvlist \empty \let \@rev \empty
   \mpr@tmpdim 0em
-  \expandafter \mpr@makelist #2\to \mpr@flat
-  \if@premisse \mpr@rev \mpr@flat \to \@rev \else \let \@rev \mpr@flat \fi
+  \expandafter \mpr@makelist #2\mpr@to \mpr@flat
+  \if@premisse \mpr@rev \mpr@flat \mpr@to \@rev \else \let \@rev \mpr@flat \fi
   \def \\##1{%
      \def \@test {##1}\ifx \@test \empty
         \mpr@htovlist
@@ -171,9 +191,11 @@
       \ifnum \mpr@tmpdim < \hsize
          \ifnum \wd\mpr@hlist > 0
            \if@premisse
-             \setbox \mpr@hlist \hbox {\unhbox0 \qquad \unhbox \mpr@hlist}%
+             \setbox \mpr@hlist 
+                \hbox {\unhbox0 \hskip \mpr@sep \unhbox \mpr@hlist}%
            \else
-             \setbox \mpr@hlist \hbox {\unhbox \mpr@hlist \qquad \unhbox0}%
+             \setbox \mpr@hlist
+                \hbox {\unhbox \mpr@hlist  \hskip \mpr@sep \unhbox0}%
            \fi
          \else 
          \setbox \mpr@hlist \hbox {\unhbox0}%
@@ -185,7 +207,7 @@
          \fi
          \setbox \mpr@hlist \hbox {\unhbox0}%
       \fi
-      \advance \mpr@tmpdim by 2em
+      \advance \mpr@tmpdim by \mpr@sep
    \fi
    }%
    \@rev
@@ -210,11 +232,14 @@
 \let \mpr@fraction \mpr@@fraction
 \def \mpr@@reduce #1#2{\hbox
     {$\lower 0.01pt \mpr@@fraction {#1}{#2}\mkern -15mu\rightarrow$}}
+\def \mpr@@rewrite #1#2#3{\hbox
+    {$\lower 0.01pt \mpr@@fraction {#2}{#3}\mkern -8mu#1$}}
 \def \mpr@infercenter #1{\vcenter {\mpr@hovbox{T}{#1}}}
 
 \def \mpr@empty {}
 \def \mpr@inferrule
   {\bgroup
+     \ifnum \linewidth<\hsize \hsize \linewidth\fi
      \mpr@rulelineskip
      \let \and \qquad
      \let \hva \mpr@hva
@@ -234,16 +259,16 @@
    \def \@test {#1}\ifx \@test\empty \box0
    \else \vbox 
 %%% Suggestion de Francois pour les etiquettes longues
-%%%   {\hbox to \wd0 {\TirName {#1}\hfil}\box0}\fi
-      {\hbox {\TirName {#1}}\box0}\fi
+%%%   {\hbox to \wd0 {\RefTirName {#1}\hfil}\box0}\fi
+      {\hbox {\RefTirName {#1}}\box0}\fi
    \egroup}
 
 \def \mpr@vdotfil #1{\vbox to #1{\leaders \hbox{$\cdot$} \vfil}}
 
 % They are two forms
-% \mathrule [label]{[premisses}{conclusions}
+% \inferrule [label]{[premisses}{conclusions}
 % or
-% \mathrule* [options]{[premisses}{conclusions}
+% \inferrule* [options]{[premisses}{conclusions}
 %
 % Premisses and conclusions are lists of elements separated by \\
 % Each \\ produces a break, attempting horizontal breaks if possible, 
@@ -264,18 +289,19 @@
 %  before               execute val at the beginning/left
 %  lab                  put a label [Val] on top of the rule
 %  lskip                add negative skip on the right
-%  llab                 put a left label [Val],  ignoring its width 
 %  left                 put a left label [Val]
+%  Left                 put a left label [Val],  ignoring its width 
 %  right                put a right label [Val]
-%  rlab                 put a right label [Val], ignoring its width
-%  rskip                add negative skip on the left
+%  Right                put a right label [Val], ignoring its width
+%  leftskip             skip negative space on the left-hand side
+%  rightskip            skip negative space on the right-hand side
 %  vdots                lift the rule by val and fill vertical space with dots
 %  after                execute val at the end/right
 %  
 %  Note that most options must come in this order to avoid strange
-%  typesetting (in particular  lskip must preceed left and llab and
-%  rskip must follow rlab or right; vdots must come last or be followed by
-%  rskip. 
+%  typesetting (in particular  leftskip must preceed left and Left and
+%  rightskip must follow Right or right; vdots must come last 
+%  or be only followed by rightskip. 
 %  
 
 \define@key {mprset}{flushleft}[]{\mpr@centerfalse}
@@ -288,19 +314,25 @@
 \define@key {mpr}{left}{\setbox0 \hbox {$\TirName {#1}\;$}\relax
      \advance \hsize by -\wd0\box0}
 \define@key {mpr}{width}{\hsize #1}
+\define@key {mpr}{sep}{\def\mpr@sep{#1}}
 \define@key {mpr}{before}{#1}
-\define@key {mpr}{lab}{\def \mpr@rulename {[#1]}}
-\define@key {mpr}{Lab}{\def \mpr@rulename {#1}}
+\define@key {mpr}{lab}{\let \RefTirName \TirName \def \mpr@rulename {#1}}
+\define@key {mpr}{Lab}{\let \RefTirName \TirName \def \mpr@rulename {#1}}
 \define@key {mpr}{narrower}{\hsize #1\hsize}
 \define@key {mpr}{leftskip}{\hskip -#1}
 \define@key {mpr}{reduce}[]{\let \mpr@fraction \mpr@@reduce}
 \define@key {mpr}{rightskip}
   {\setbox \mpr@right \hbox {\unhbox \mpr@right \hskip -#1}}
+\define@key {mpr}{LEFT}{\setbox0 \hbox {$#1$}\relax
+     \advance \hsize by -\wd0\box0}
 \define@key {mpr}{left}{\setbox0 \hbox {$\TirName {#1}\;$}\relax
      \advance \hsize by -\wd0\box0}
 \define@key {mpr}{Left}{\llap{$\TirName {#1}\;$}}
 \define@key {mpr}{right}
   {\setbox0 \hbox {$\;\TirName {#1}$}\relax \advance \hsize by -\wd0
+   \setbox \mpr@right \hbox {\unhbox \mpr@right \unhbox0}}
+\define@key {mpr}{RIGHT}
+  {\setbox0 \hbox {$#1$}\relax \advance \hsize by -\wd0
    \setbox \mpr@right \hbox {\unhbox \mpr@right \unhbox0}}
 \define@key {mpr}{Right}
   {\setbox \mpr@right \hbox {\unhbox \mpr@right \rlap {$\;\TirName {#1}$}}}
@@ -341,6 +373,7 @@
 
 \def \tir@name #1{\hbox {\small \sc #1}}
 \let \TirName \tir@name
+\let \RefTirName \tir@name
 
 %%% Other Exports
 
@@ -350,5 +383,6 @@
 % \let \listmake \mpr@makelist
 
 
-\endinput
 
+
+\endinput

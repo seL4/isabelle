@@ -137,7 +137,13 @@ If you would rather never see question marks, simply put
 reset show_question_marks;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
-The rest of this document is produced with this flag reset.%
+The rest of this document is produced with this flag reset.
+
+Hint: Resetting \verb!show_question_marks! only supresses question
+marks; variables that end in digits, e.g. \isa{x{\isadigit{1}}}, are still
+printed with a trailing \isa{{\isachardot}{\isadigit{0}}}, e.g. \isa{x{\isadigit{1}}{\isachardot}{\isadigit{0}}}, their
+internal index. This can be avoided by turning the last digit into a
+subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -358,7 +364,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   (e.~g.~\isa{{\isacharequal}}, \isa{{\isasymequiv}}, \isa{{\isacharless}}).
 
   Likewise \verb!conclusion! may be used as style to show just the conclusion
-  of a formula. For example, take
+  of a proposition. For example, take
   \begin{center}
     \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
@@ -385,12 +391,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   Have a look at the following example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{setup}\ {\isacharbraceleft}{\isacharasterisk}\isanewline
-let\isanewline
-\ \ fun\ my{\isacharunderscore}concl\ ctxt\ {\isacharequal}\ Logic{\isachardot}strip{\isacharunderscore}imp{\isacharunderscore}concl\isanewline
-\ \ in\ {\isacharbrackleft}TermStyle{\isachardot}add{\isacharunderscore}style\ {\isachardoublequote}my{\isacharunderscore}concl{\isachardoublequote}\ my{\isacharunderscore}concl{\isacharbrackright}\isanewline
-end{\isacharsemicolon}\isanewline
-{\isacharasterisk}{\isacharbraceright}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{quote}
@@ -414,7 +415,7 @@ end{\isacharsemicolon}\isanewline
   style has some object-logic specific behaviour).
 
   The mapping from identifier name to the style function
-  is done by the \verb!Style.add_style! expression which expects the desired
+  is done by the \isa{TermStyle{\isachardot}add{\isacharunderscore}style} expression which expects the desired
   style name and the style function as arguments.
   
   After this \verb!setup!,
