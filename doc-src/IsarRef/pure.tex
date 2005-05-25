@@ -1437,7 +1437,7 @@ way to include formal items into the printed text document.
   thmscontaining (('(' nat ')')?) (criterion *)
   ;
   criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
-    'rewrite' ':' term | term)
+    'simp' ':' term | term)
   ;
   thmdeps thmrefs
   ;
@@ -1471,13 +1471,13 @@ for simplifications.
   packages, such as $\isarkeyword{datatype}$.
   
 \item [$\isarkeyword{thms_containing}~\vec c$] retrieves facts from the theory
-  or proof context matching all of the search criteria $\vec c$.  A criterion
+  or proof context matching all of the search criteria $\vec c$.  The criterion
   $name: s$ selects all theorems that contain $s$ in their fully qualified
   name.  The criteria $intro$, $elim$, and $dest$ select theorems that match
   the current goal as introduction, elimination or destruction rules,
-  respectively.  A criterion $rewrite: t$ selects all rewrite rules whose
-  left-hand side matches the given term.  A criterion term $t$ selects all
-  theorems that contain the pattern $t$ -- as usual patterns may contain
+  respectively.  The criterion $simp: t$ selects all rewrite rules whose
+  left-hand side matches the given term.  The criterion term $t$ selects all
+  theorems that contain the pattern $t$ -- as usual, patterns may contain
   occurrences of the dummy ``$\_$'', schematic variables, and type
   constraints.
   

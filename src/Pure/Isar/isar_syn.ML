@@ -638,7 +638,7 @@ val criterion =
   P.reserved "intro" >> K FindTheorems.Intro ||
   P.reserved "elim" >> K FindTheorems.Elim ||
   P.reserved "dest" >> K FindTheorems.Dest ||
-  P.reserved "rewrite" |-- P.!!! (P.$$$ ":" |-- P.term) >> FindTheorems.Rewrite ||
+  P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> FindTheorems.Simp ||
   P.term >> FindTheorems.Pattern;
 
 val find_theoremsP =

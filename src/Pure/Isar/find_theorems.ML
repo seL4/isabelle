@@ -11,7 +11,7 @@ signature FIND_THEOREMS =
 sig
   val find_thms: Proof.context -> FactIndex.spec -> (thmref * thm) list
   datatype 'term criterion =
-    Name of string | Intro | Elim | Dest | Rewrite of 'term | Pattern of 'term
+    Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term
   val print_theorems: Proof.context -> term option -> int option ->
     (bool * string criterion) list -> unit
 end;
@@ -83,13 +83,13 @@ end;
 (** search criteria **)
 
 datatype 'term criterion =
-  Name of string | Intro | Elim | Dest | Rewrite of 'term | Pattern of 'term;
+  Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term;
 
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
-  | read_criterion ctxt (Rewrite str) = Rewrite (ProofContext.read_term ctxt str)
+  | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term ctxt str)
   | read_criterion ctxt (Pattern str) =
       Pattern (hd (ProofContext.read_term_pats TypeInfer.logicT ctxt [str]));
 
@@ -102,7 +102,7 @@ fun pretty_criterion ctxt (b, c) =
     | Intro => Pretty.str (prfx "intro")
     | Elim => Pretty.str (prfx "elim")
     | Dest => Pretty.str (prfx "dest")
-    | Rewrite t => Pretty.block [Pretty.str (prfx "rewrite:"), Pretty.brk 1,
+    | Simp t => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
         Pretty.quote (ProofContext.pretty_term ctxt t)]
     | Pattern pat => Pretty.enclose (prfx " \"") "\""
         [ProofContext.pretty_term ctxt (Term.show_dummy_patterns pat)])
@@ -172,14 +172,14 @@ fun filter_dest ctxt = filter_elim_dest (not oo is_elim) ctxt;
 end;
 
 
-(* filter_rewrite *)
+(* filter_simp *)
 
-fun filter_rewrite ctxt t =
+fun filter_simp ctxt t =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
       MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
-    val extract_rewrite = (mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-  in is_matching_thm extract_rewrite ctxt t end;
+    val extract_simp = (mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
+  in is_matching_thm extract_simp ctxt t end;
 
 
 (* filter_pattern *)
@@ -203,7 +203,7 @@ fun filter_crit _ _ (Name name) = filter_name name
   | filter_crit ctxt (SOME goal) Intro = filter_intro ctxt goal
   | filter_crit ctxt (SOME goal) Elim = filter_elim ctxt goal
   | filter_crit ctxt (SOME goal) Dest = filter_dest ctxt goal
-  | filter_crit ctxt _ (Rewrite str) = filter_rewrite ctxt str
+  | filter_crit ctxt _ (Simp str) = filter_simp ctxt str
   | filter_crit ctxt _ (Pattern str) = filter_pattern ctxt str;
 
 in
