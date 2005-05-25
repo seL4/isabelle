@@ -2341,7 +2341,7 @@ struct
 	fun Gfp_gfp_interpreter thy model args t =
 		case t of
 		  Const ("Gfp.gfp", Type ("fun", [Type ("fun", [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
-			let
+			let nonfix union (*because "union" is used below*)
 				val (i_elem, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 				val size_elem      = size_of_type i_elem
 				(* the universe (i.e. the set that contains every element) *)
@@ -2360,16 +2360,16 @@ struct
 					raise REFUTE ("Gfp_gfp_interpreter", "is_subset: interpretation for set is not a node")
 				(* interpretation * interpretation -> interpretation *)
 				fun union (Node xs, Node ys) =
-					Node (map (fn (x, y) => if (x = TT) orelse (y = TT) then TT else FF) (xs ~~ ys))
+					  Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF) 
+					       (xs ~~ ys))
 				  | union (_, _) =
 					raise REFUTE ("Lfp_lfp_interpreter", "union: interpretation for set is not a node")
 				(* interpretation -> interpretaion *)
 				fun gfp (Node resultsets) =
 					foldl (fn ((set, resultset), acc) =>
-						if is_subset (set, resultset) then
-							union (acc, set)
-						else
-							acc) i_univ (i_sets ~~ resultsets)
+						   if is_subset (set, resultset) then union (acc, set)
+						   else acc) 
+				  	      i_univ  (i_sets ~~ resultsets)
 				  | gfp _ =
 						raise REFUTE ("Gfp_gfp_interpreter", "gfp: interpretation for function is not a node")
 			in
