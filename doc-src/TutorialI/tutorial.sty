@@ -109,13 +109,28 @@
 \def\_{\leavevmode\kern.06em\vbox{\hrule height.2ex width.3em}\hskip0.1em}
 
 
-%%%% ``WARNING'' environment
-\def\dbend{\vtop to 0pt{\vss\hbox{\Huge\bf!}\vss}}
+%%%% ``WARNING'' environment: 2 ! characters separated by negative thin space
+\def\warnbang{\vtop to 0pt{\vss\hbox{\Huge\bf!\!!}\vss}}
 \newenvironment{warn}{\medskip\medbreak\begingroup \clubpenalty=10000 
          \small %%WAS\baselineskip=0.9\baselineskip
          \noindent \hangindent\parindent \hangafter=-2 
-         \hbox to0pt{\hskip-\hangindent\dbend\hfill}\ignorespaces}%
+         \hbox to0pt{\hskip-\hangindent\warnbang\hfill}\ignorespaces}%
         {\par\endgroup\medbreak}
+
+%%%% ``PROOF GENERAL'' environment: full chest
+\def\pgchest{\lower3pt\vbox to 0pt{\vss\hbox{\includegraphics[width=12pt]{pgchest}}\vss}}
+\newenvironment{pgnote}{\medskip\medbreak\begingroup \clubpenalty=10000 
+         \small \noindent \hangindent\parindent \hangafter=-2 
+         \hbox to0pt{\hskip-\hangindent \pgchest\hfill}\ignorespaces}%
+  {\par\endgroup\medbreak}
+
+%%%% ``PROOF GENERAL'' environment: head only
+\def\pghead{\lower3pt\vbox to 0pt{\vss\hbox{\includegraphics[width=12pt]{pghead}}\vss}}
+\newenvironment{pgnoteh}{\medskip\medbreak\begingroup \clubpenalty=10000 
+         \small \noindent \hangindent\parindent \hangafter=-2 
+         \hbox to0pt{\hskip-\hangindent \pghead\hfill}\ignorespaces}%
+  {\par\endgroup\medbreak}
+
 
 
 %%%% Standard logical symbols
