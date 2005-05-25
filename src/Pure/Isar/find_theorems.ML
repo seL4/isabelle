@@ -10,9 +10,6 @@ val thms_containing_limit = ref 40;
 signature FIND_THEOREMS =
 sig
   val find_thms: Proof.context -> FactIndex.spec -> (thmref * thm) list
-  val find_intros: Proof.context -> term -> (thmref * thm) list
-  val find_intros_goal: Proof.context -> thm -> int -> (thmref * thm) list
-  val find_elims: Proof.context -> term -> (thmref * thm) list
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Rewrite of 'term | Pattern of 'term
   val print_theorems: Proof.context -> term option -> int option ->
@@ -80,22 +77,6 @@ fun is_matching_thm extract ctxt prop fact =
   not (null (select_match extract ctxt prop [fact]));
 
 end;
-
-
-(* intro/elim rules *)
-
-(*match statement against conclusion of some rule*)
-val find_intros =
-  find_matching_thms (single, Logic.strip_imp_concl);
-
-(*match conclusion of subgoal i against conclusion of some rule*)
-fun find_intros_goal ctxt st i =
-  find_intros ctxt (Logic.concl_of_goal (Thm.prop_of st) i);
-
-(*match statement against major premise of some rule*)
-val find_elims = find_matching_thms
-  (fn thm => if Thm.no_prems thm then [] else [thm],
-   hd o Logic.strip_imp_prems);
 
 
 

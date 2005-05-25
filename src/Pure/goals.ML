@@ -96,9 +96,6 @@ sig
     -> (thm list -> tactic list) -> unit
   val no_qed: unit -> unit
   val thms_containing   : xstring list -> (string * thm) list
-  val findI             : int -> (thmref * thm) list
-  val findEs            : int -> (thmref * thm) list
-  val findE             : int -> int -> (thmref * thm) list
 end;
 
 signature GOALS =
@@ -1146,18 +1143,6 @@ fun thms_containing raw_consts =
     | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
     PureThy.thms_containing_consts thy consts
   end;
-
-fun findI i = FindTheorems.find_intros_goal (context_of_goal()) (topthm()) i;
-
-fun findEs i =
-  let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
-      val prems = Logic.prems_of_goal (prop_of (topthm())) i
-      val thmss = map (FindTheorems.find_elims (context_of_goal ())) prems
-  in Library.foldl (gen_union eq_nth) ([],thmss) end;
-
-fun findE i j =
-  let val prems = Logic.prems_of_goal (prop_of (topthm())) i
-  in FindTheorems.find_elims (context_of_goal ()) (List.nth(prems, j-1)) end;
 
 end;
 
