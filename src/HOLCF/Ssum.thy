@@ -11,6 +11,8 @@ theory Ssum
 imports Cprod TypedefPcpo
 begin
 
+defaultsort pcpo
+
 subsection {* Definition of strict sum type *}
 
 typedef (Ssum)  ('a, 'b) "++" (infixr 10) = 
@@ -142,12 +144,6 @@ apply simp
 done
 
 subsection {* Ordering properties of @{term sinl} and @{term sinr} *}
-
-lemma cpair_less: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
-apply (rule iffI)
-apply (erule less_cprod5c)
-apply (simp add: monofun_cfun)
-done
 
 lemma less_ssum4a: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: less_ssum_def Rep_Ssum_sinl cpair_less)
