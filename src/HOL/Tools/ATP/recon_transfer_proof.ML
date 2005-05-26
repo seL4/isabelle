@@ -73,18 +73,23 @@ fun thmvars_to_string [] str = str
 
 
 fun proofstep_to_string Axiom = "Axiom()"
-|   proofstep_to_string  (Binary ((a,b), (c,d)))= "Binary"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
-|   proofstep_to_string (Factor (a,b,c)) = "Factor"^"("^(string_of_int a)^","^(string_of_int b)^","^(string_of_int c)^")"
-|   proofstep_to_string  (Para ((a,b), (c,d)))= "Para"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
-|   proofstep_to_string  (MRR ((a,b), (c,d)))= "MRR"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
-|   proofstep_to_string (Rewrite((a,b),(c,d))) = "Rewrite"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
+|   proofstep_to_string  (Binary ((a,b), (c,d)))=
+      "Binary(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
+|   proofstep_to_string (Factor (a,b,c)) =
+      "Factor("^(string_of_int a)^","^(string_of_int b)^","^(string_of_int c)^")"
+|   proofstep_to_string  (Para ((a,b), (c,d)))= 
+      "Para(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
+|   proofstep_to_string  (MRR ((a,b), (c,d))) =
+      "MRR(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
+|   proofstep_to_string (Rewrite((a,b),(c,d))) =
+      "Rewrite(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
 
 fun list_to_string [] liststr = liststr
 |   list_to_string (x::[]) liststr = liststr^(string_of_int x)
 |   list_to_string (x::xs) liststr = list_to_string xs (liststr^(string_of_int x)^",")
 
 
-fun proof_to_string (num,(step,clause_strs, thmvars)) = (string_of_int num)^(proofstep_to_string step)^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
+fun proof_to_string (num,(step,clause_strs, thmvars)) = (string_of_int num)^(proofstep_to_string step)^"["^(clause_strs_to_string clause_strs "")^"]["^(thmvars_to_string thmvars "")^"]"
  
 
 fun proofs_to_string [] str = str
@@ -110,8 +115,8 @@ fun init_proofsteps_to_string [] str = str
 fun origAx_to_string (num,(meta,thmvars)) =
     let val clause_strs = ReconOrderClauses.get_meta_lits_bracket meta
     in
-       (string_of_int num)^"OrigAxiom()"^"["^
-       (clause_strs_to_string clause_strs "")^"]"^"["^
+       (string_of_int num)^"OrigAxiom()["^
+       (clause_strs_to_string clause_strs "")^"]["^
        (thmvars_to_string thmvars "")^"]"
     end
 
@@ -128,7 +133,7 @@ fun  origAxs_to_string [] str = str
 fun extraAx_to_string (num, (meta,thmvars)) =
    let val clause_strs = ReconOrderClauses.get_meta_lits_bracket meta
    in
-      (string_of_int num)^"ExtraAxiom()"^"["^
+      (string_of_int num)^"ExtraAxiom()["^
       (clause_strs_to_string clause_strs "")^"]"^
       "["^(thmvars_to_string thmvars "")^"]"
    end;
@@ -637,8 +642,8 @@ fun thmvars_to_quantstring [] str = str
 |   thmvars_to_quantstring (x::xs) str = thmvars_to_quantstring xs (str^(x^" "))
 
 
-fun clause_strs_to_isar clstrs [] =  "\"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> "^" \\<Longrightarrow> False\""
-|   clause_strs_to_isar clstrs thmvars = "\"\\<And>"^(thmvars_to_quantstring thmvars "")^"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> "^"\\<Longrightarrow> False\""
+fun clause_strs_to_isar clstrs [] =  "\"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> \\<Longrightarrow> False\""
+|   clause_strs_to_isar clstrs thmvars = "\"\\<And>"^(thmvars_to_quantstring thmvars "")^"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> \\<Longrightarrow> False\""
 
 fun frees_to_string [] str = implode (change_nots (explode str))
 |   frees_to_string (x::[]) str = implode (change_nots (explode (str^x)))
@@ -712,18 +717,22 @@ fun isar_axiomlines [] str = str
 fun have_isar_line (numb,(step, clstrs, thmstrs))="have cl"^(string_of_int numb)^": "^(clause_strs_to_isar clstrs thmstrs)^"\n"
 
 
-fun  by_isar_line ((Binary ((a,b), (c,d))))="by(rule cl"^
-                                                  (string_of_int a)^" [BINARY "^(string_of_int b)^" "^"cl"^
-                                                  (string_of_int c)^" "^(string_of_int d)^"])"^"\n"
-|   by_isar_line ( (Para ((a,b), (c,d)))) ="by (rule cl"^
-                                                  (string_of_int a)^" [PARAMOD "^(string_of_int b)^" "^"cl"^
-                                                  (string_of_int c)^" "^(string_of_int d)^"])"^"\n"
-|   by_isar_line ((Factor ((a,b,c)))) =    "by (rule cl"^(string_of_int a)^" [FACTOR "^(string_of_int b)^" "^
-                                                  (string_of_int c)^" "^"])"^"\n"
-|   by_isar_line ( (Rewrite ((a,b),(c,d)))) =  "by (rule cl"^(string_of_int a)^" [DEMOD "^(string_of_int b)^" "^
-                                                  (string_of_int c)^" "^(string_of_int d)^" "^"])"^"\n"
-
-|   by_isar_line ( (Obvious ((a,b)))) =  "by (rule cl"^(string_of_int a)^" [OBVIOUS "^(string_of_int b)^" ])"^"\n"
+fun by_isar_line ((Binary ((a,b), (c,d)))) = 
+    "by(rule cl"^
+		(string_of_int a)^" [binary "^(string_of_int b)^" cl"^
+		(string_of_int c)^" "^(string_of_int d)^"])\n"
+|   by_isar_line ( (Para ((a,b), (c,d)))) =
+    "by (rule cl"^
+		(string_of_int a)^" [paramod "^(string_of_int b)^" cl"^
+		(string_of_int c)^" "^(string_of_int d)^"])\n"
+|   by_isar_line ((Factor ((a,b,c)))) = 
+    "by (rule cl"^(string_of_int a)^" [factor "^(string_of_int b)^" "^
+		(string_of_int c)^" ])\n"
+|   by_isar_line ( (Rewrite ((a,b),(c,d)))) =
+    "by (rule cl"^(string_of_int a)^" [demod "^(string_of_int b)^" "^
+		(string_of_int c)^" "^(string_of_int d)^" ])\n"
+|   by_isar_line ( (Obvious ((a,b)))) =
+    "by (rule cl"^(string_of_int a)^" [obvious "^(string_of_int b)^" ])\n"
 
 fun isar_line (numb, (step, clstrs, thmstrs))  = (have_isar_line (numb,(step,clstrs, thmstrs )))^( by_isar_line step)
 
@@ -734,40 +743,38 @@ fun isar_lines [] str = str
 fun last_isar_line (numb,( step, clstrs,thmstrs)) = "show \"False\"\n"^(by_isar_line step)
 
 
-fun to_isar_proof (frees, xs, goalstring) = let val extraaxioms = get_extraaxioms xs
-                           val extraax_num = length extraaxioms
-                           val origaxioms_and_steps = Library.drop (extraax_num, xs)  
-                          
-  
-                           val origaxioms = get_origaxioms origaxioms_and_steps
-                           val origax_num = length origaxioms
-                           val axioms_and_steps = Library.drop (origax_num + extraax_num, xs)  
-                           val axioms = get_axioms axioms_and_steps
-                           
-                           val steps = Library.drop (origax_num, axioms_and_steps)
-                           val firststeps = ReconOrderClauses.butlast steps
-                           val laststep = ReconOrderClauses.last steps
-                           val goalstring = implode(ReconOrderClauses.butlast(explode goalstring))
-                        
-                           val isar_proof = 
-                           ("show \""^goalstring^"\"\n")^
-                           ("proof (rule ccontr,skolemize, make_clauses) \n")^
-                           ("fix "^(frees_to_isar_str frees)^"\n")^
-                           (assume_isar_extraaxioms extraaxioms)^
-                           (assume_isar_origaxioms origaxioms)^
-                           (isar_axiomlines axioms "")^
-                           (isar_lines firststeps "")^
-                           (last_isar_line laststep)^
-                           ("qed")
-                          val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "isar_proof_file")));
-
-                                                  val _ = TextIO.output (outfile, isar_proof)
-                                                  val _ =  TextIO.closeOut outfile
-
-
-                       in
-                           isar_proof
-                       end
+fun to_isar_proof (frees, xs, goalstring) =
+    let val extraaxioms = get_extraaxioms xs
+	val extraax_num = length extraaxioms
+	val origaxioms_and_steps = Library.drop (extraax_num, xs)  
+	
+	val origaxioms = get_origaxioms origaxioms_and_steps
+	val origax_num = length origaxioms
+	val axioms_and_steps = Library.drop (origax_num + extraax_num, xs)  
+	val axioms = get_axioms axioms_and_steps
+	
+	val steps = Library.drop (origax_num, axioms_and_steps)
+	val firststeps = ReconOrderClauses.butlast steps
+	val laststep = ReconOrderClauses.last steps
+	val goalstring = implode(ReconOrderClauses.butlast(explode goalstring))
+	
+	val isar_proof = 
+		("show \""^goalstring^"\"\n")^
+		("proof (rule ccontr,skolemize, make_clauses) \n")^
+		("fix "^(frees_to_isar_str frees)^"\n")^
+		(assume_isar_extraaxioms extraaxioms)^
+		(assume_isar_origaxioms origaxioms)^
+		(isar_axiomlines axioms "")^
+		(isar_lines firststeps "")^
+		(last_isar_line laststep)^
+		("qed")
+	val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "isar_proof_file")));
+	
+	val _ = TextIO.output (outfile, isar_proof)
+	val _ =  TextIO.closeOut outfile
+    in
+	isar_proof
+    end;
 
 (* get fix vars from axioms - all Frees *)
 (* check each clause for meta-vars and /\ over them at each step*)

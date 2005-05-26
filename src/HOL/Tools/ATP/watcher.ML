@@ -164,7 +164,7 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
 			(thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^"\n"))
 	  val _ =  TextIO.closeOut outfile
 	 (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
-	 val probID = ReconOrderClauses.last(explode probfile)
+	  val probID = ReconOrderClauses.last(explode probfile)
 	  val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
 	  (*** only include problem and clasimp for the moment, not sure how to refer to ***)
 	  (*** hyps/local axioms just now                                                ***)
@@ -174,16 +174,16 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
 			   else File.mkdir dfg_dir; 
 	  
 	  val dfg_path = File.sysify_path dfg_dir;
+	  val tptp2x_args = ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile]
 	  val exec_tptp2x = 
-	        Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X",  
-	                     ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile])
+ 	      Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X", tptp2x_args)
 	(*val _ = Posix.Process.wait ()*)
 	(*val _ =Unix.reap exec_tptp2x*)
 	  val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
  
        in   
 	  goals_being_watched := (!goals_being_watched) + 1;
-	  Posix.Process.sleep(Time.fromSeconds 1); 
+	  Posix.Process.sleep(Time.fromSeconds 4); 
 	  (warning ("probfile is: "^probfile));
 	  (warning("dfg file is: "^newfile));
 	  (warning ("wholefile is: "^(File.sysify_path wholefile)));
@@ -196,8 +196,8 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
 	  if File.exists
 	        (Path.append dfg_dir (Path.basic ("ax_prob"^"_" ^ probID ^ ".dfg")))
 	  then callResProvers (toWatcherStr, args)
-	  else error ("tptp2X failed: " ^ getenv "TPTP2X_HOME" ^ "/tptp2X" ^
-	              " -fdfg " ^ File.sysify_path wholefile ^ " -d " ^ dfg_path)
+	  else error ("tptp2X failed: " ^ getenv "TPTP2X_HOME" ^ "/tptp2X " ^
+	              space_implode " " tptp2x_args)
       end
 (*
 fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 

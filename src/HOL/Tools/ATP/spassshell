@@ -1,4 +1,7 @@
+#!/bin/sh
+#  ID: $Id$
+# Shell script to invoke SPASS and filter the output
 
+`isatool getenv -b SPASS_HOME`/SPASS  $* | \
+    `isatool getenv -b ISABELLE_HOME`/src/HOL/Tools/ATP/testoutput.py
 
-`isatool getenv -b SPASS_HOME`/SPASS  $* |testoutput.py
-#$SPASS_HOME  $* |testoutput.py
