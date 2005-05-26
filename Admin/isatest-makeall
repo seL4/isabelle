@@ -29,6 +29,7 @@ function usage()
 function fail()
 {
   echo "$1" >&2
+  echo "$(date) $HOSTNAME $PRG: FAILED, $1" >> $MASTERLOG
   exit 2
 }
 
@@ -57,12 +58,12 @@ case $HOSTNAME in
   
     sunbroy2)
         MFLAGS="-j 6"
-	NICE="nice"
+        NICE="nice"
         ;;
 
     sunbroy1)
         MFLAGS="-j 2"
-	NICE="nice"
+        NICE="nice"
         ;;
 
     macbroy*)
