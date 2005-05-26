@@ -1,4 +1,4 @@
 
 
-`isatool getenv -b SPASS_HOME`  $* |testoutput.py
+`isatool getenv -b SPASS_HOME`/SPASS  $* |testoutput.py
 #$SPASS_HOME  $* |testoutput.py

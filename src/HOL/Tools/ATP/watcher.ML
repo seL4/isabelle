@@ -15,8 +15,7 @@
 
 (*use "Proof_Transfer";
 use "VampireCommunication";
-use "SpassCommunication";
-use "modUnix";*)
+use "SpassCommunication";*)
 (*use "/homes/clq20/Jia_Code/TransStartIsar";*)
 
 
@@ -137,12 +136,9 @@ fun getArgs (fromParentStr, toParentStr,ys) =  let
 
 fun getCmd cmdStr = let val backList = ((rev(explode cmdStr))) 
                     in
-
                         if (String.isPrefix "\n"  (implode backList )) 
-                        then 
-                             (implode (rev ((tl backList))))
-                        else
-                           (cmdStr)
+                        then (implode (rev ((tl backList))))
+                        else cmdStr
                     end
                             
 (********************************************************************************)
@@ -150,15 +146,11 @@ fun getCmd cmdStr = let val backList = ((rev(explode cmdStr)))
 (********************************************************************************)
                     
 fun callResProver (toWatcherStr,  arg) = (sendOutput (toWatcherStr, arg^"\n"); 
-                                     TextIO.flushOut toWatcherStr
-                                    
-                                     )
+                                     TextIO.flushOut toWatcherStr)
 
 (*****************************************************************************************)
 (*  Send request to Watcher for multiple provers to be called for filenames in arg      *)
 (*****************************************************************************************)
-
-
 
 (* need to modify to send over hyps file too *)
 fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of calls\n"); 
@@ -177,14 +169,14 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
 	  (*** only include problem and clasimp for the moment, not sure how to refer to ***)
 	  (*** hyps/local axioms just now                                                ***)
 	  val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*,axfile, hypsfile,*)probfile,  ">", (File.sysify_path wholefile)])
-	  val dfg_create =if File.exists dfg_dir 
-			  then
-			      ((warning("dfg dir exists"));())
-			  else
-				File.mkdir dfg_dir; 
+	  val dfg_create = if File.exists dfg_dir 
+			   then warning("dfg dir exists")
+			   else File.mkdir dfg_dir; 
 	  
 	  val dfg_path = File.sysify_path dfg_dir;
-	  val exec_tptp2x = Unix.execute("/usr/groups/theory/tptp/TPTP-v3.0.1/TPTP2X/tptp2X",   ["-fdfg ",(File.sysify_path wholefile)," -d ",dfg_path])
+	  val exec_tptp2x = 
+	        Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X",  
+	                     ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile])
 	(*val _ = Posix.Process.wait ()*)
 	(*val _ =Unix.reap exec_tptp2x*)
 	  val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
@@ -192,16 +184,20 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
        in   
 	  goals_being_watched := (!goals_being_watched) + 1;
 	  Posix.Process.sleep(Time.fromSeconds 1); 
-	 (warning ("probfile is: "^probfile));
+	  (warning ("probfile is: "^probfile));
 	  (warning("dfg file is: "^newfile));
 	  (warning ("wholefile is: "^(File.sysify_path wholefile)));
-	 sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^newfile^"\n"));
+	  sendOutput (toWatcherStr,
+	       prover ^ "*" ^ thmstring ^ "*" ^ goalstring ^ "*" ^ proverCmd ^ 
+	       "*" ^ settings ^ "*" ^ newfile ^ "\n");
  (*sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^"/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/dfg/mini_p1.dfg"^"\n"));*)
 	  TextIO.flushOut toWatcherStr;
-	  Unix.reap exec_tptp2x; 
-	  
-	  callResProvers (toWatcherStr,args)
- 
+	  Unix.reap exec_tptp2x;
+	  if File.exists
+	        (Path.append dfg_dir (Path.basic ("ax_prob"^"_" ^ probID ^ ".dfg")))
+	  then callResProvers (toWatcherStr, args)
+	  else error ("tptp2X failed: " ^ getenv "TPTP2X_HOME" ^ "/tptp2X" ^
+	              " -fdfg " ^ File.sysify_path wholefile ^ " -d " ^ dfg_path)
       end
 (*
 fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 
