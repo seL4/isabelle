@@ -496,4 +496,41 @@ done
 lemmas flatdom_strict2cont = flatdom2monofun [THEN chfindom_monofun2cont, standard]
 (* f UU = UU ==> cont (f::'a=>'b::pcpo)" *)
 
+text {* the lub of a chain of monotone functions is monotone. *}
+
+lemma monofun_lub_fun:
+  "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
+    \<Longrightarrow> monofun (\<Squnion>i. F i)"
+apply (rule monofunI [rule_format])
+apply (simp add: thelub_fun)
+apply (rule lub_mono [rule_format])
+apply (erule ch2ch_fun)
+apply (erule ch2ch_fun)
+apply (simp add: monofunE)
+done
+
+text {* the lub of a chain of continuous functions is continuous *}
+
+lemma cont_lub_fun:
+  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
+ apply (rule contI [rule_format])
+ apply (rule is_lubI)
+  apply (rule ub_rangeI)
+  apply (erule monofun_lub_fun [THEN monofunE [rule_format]])
+   apply (simp add: cont2mono)
+  apply (erule is_ub_thelub)
+ apply (simp add: thelub_fun)
+ apply (rule is_lub_thelub)
+  apply (erule ch2ch_fun)
+ apply (rule ub_rangeI)
+ apply (drule_tac x=i in spec)
+ apply (simp add: cont2contlub [THEN contlubE])
+ apply (rule is_lub_thelub)
+  apply (simp add: cont2mono [THEN ch2ch_monofun])
+ apply (rule ub_rangeI)
+ apply (rule trans_less)
+  apply (erule ch2ch_fun [THEN is_ub_thelub])
+ apply (erule ub_rangeD)
+done
+
 end
