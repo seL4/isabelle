@@ -141,7 +141,7 @@ text {*
   @{prop "cont_Rep_CFun2 ==> monofun_Rep_CFun2 & contlub_Rep_CFun2"}
 *}
 
-lemma cont_Rep_CFun2: "cont(Rep_CFun(fo))"
+lemma cont_Rep_CFun2: "cont (Rep_CFun fo)"
 apply (rule_tac P = "cont" in CollectD)
 apply (fold CFun_def)
 apply (rule Rep_Cfun)
@@ -310,8 +310,6 @@ lemma inst_cfun_pcpo: "UU = Abs_CFun(%x. UU)"
 apply (simp add: UU_def UU_cfun_def)
 done
 
-defaultsort pcpo
-
 subsection {* Continuity of application *}
 
 text {* the contlub property for @{term Rep_CFun} its 'first' argument *}
@@ -467,7 +465,7 @@ text {* HINT: @{text cont_tac} is now installed in simplifier in Lift.ML ! *}
 
 text {* function application @{text "_[_]"} is strict in its first arguments *}
 
-lemma strict_Rep_CFun1 [simp]: "(UU::'a::cpo->'b)$x = (UU::'b)"
+lemma strict_Rep_CFun1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
 by (simp add: inst_cfun_pcpo beta_cfun)
 
 text {* Instantiate the simplifier *}
@@ -484,229 +482,100 @@ apply assumption
 apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_CFunL)
 done
 
-subsection {* Continuous isomorphisms *}
+subsection {* Continuous injection-retraction pairs *}
 
-text {* Continuous isomorphisms are strict. A proof for embedding projection pairs is similar. *}
+text {* Continuous retractions are strict. *}
 
-lemma iso_strict: 
-"!!f g.[|!y. f$(g$y)=(y::'b) ; !x. g$(f$x)=(x::'a) |]  
-  ==> f$UU=UU & g$UU=UU"
-apply (rule conjI)
+lemma retraction_strict:
+  "\<forall>x. f\<cdot>(g\<cdot>x) = x \<Longrightarrow> f\<cdot>\<bottom> = \<bottom>"
 apply (rule UU_I)
-apply (rule_tac s = "f$ (g$ (UU::'b))" and t = "UU::'b" in subst)
-apply (erule spec)
-apply (rule minimal [THEN monofun_cfun_arg])
-apply (rule UU_I)
-apply (rule_tac s = "g$ (f$ (UU::'a))" and t = "UU::'a" in subst)
-apply (erule spec)
-apply (rule minimal [THEN monofun_cfun_arg])
+apply (drule_tac x="\<bottom>" in spec)
+apply (erule subst)
+apply (rule monofun_cfun_arg)
+apply (rule minimal)
 done
 
-lemma isorep_defined: "[|!x. rep$(ab$x)=x;!y. ab$(rep$y)=y; z~=UU|] ==> rep$z ~= UU"
-apply (erule contrapos_nn)
-apply (drule_tac f = "ab" in cfun_arg_cong)
-apply (erule box_equals)
-apply fast
-apply (erule iso_strict [THEN conjunct1])
-apply assumption
+lemma injection_eq:
+  "\<forall>x. f\<cdot>(g\<cdot>x) = x \<Longrightarrow> (g\<cdot>x = g\<cdot>y) = (x = y)"
+apply (rule iffI)
+apply (drule_tac f=f in cfun_arg_cong)
+apply simp
+apply simp
 done
 
-lemma isoabs_defined: "[|!x. rep$(ab$x) = x;!y. ab$(rep$y)=y ; z~=UU|] ==> ab$z ~= UU"
-apply (erule contrapos_nn)
-apply (drule_tac f = "rep" in cfun_arg_cong)
-apply (erule box_equals)
-apply fast
-apply (erule iso_strict [THEN conjunct2])
-apply assumption
+lemma injection_defined_rev:
+  "\<lbrakk>\<forall>x. f\<cdot>(g\<cdot>x) = x; g\<cdot>z = \<bottom>\<rbrakk> \<Longrightarrow> z = \<bottom>"
+apply (drule_tac f=f in cfun_arg_cong)
+apply (simp add: retraction_strict)
 done
 
-text {* propagation of flatness and chain-finiteness by continuous isomorphisms *}
+lemma injection_defined:
+  "\<lbrakk>\<forall>x. f\<cdot>(g\<cdot>x) = x; z \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> g\<cdot>z \<noteq> \<bottom>"
+by (erule contrapos_nn, rule injection_defined_rev)
 
-lemma chfin2chfin: "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y);
-  !y. f$(g$y)=(y::'b) ; !x. g$(f$x)=(x::'a::chfin) |]  
-  ==> ! Y::nat=>'b. chain Y --> (? n. max_in_chain n Y)"
+text {* propagation of flatness and chain-finiteness by retractions *}
+
+lemma chfin2chfin:
+  "\<forall>y. (f::'a::chfin \<rightarrow> 'b)\<cdot>(g\<cdot>y) = y
+    \<Longrightarrow> \<forall>Y::nat \<Rightarrow> 'b. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
+apply clarify
+apply (drule_tac f=g in chain_monofun)
+apply (drule chfin [rule_format])
 apply (unfold max_in_chain_def)
-apply (clarify)
-apply (rule exE)
-apply (rule_tac P = "chain (%i. g$ (Y i))" in mp)
-apply (erule spec)
-apply (erule ch2ch_Rep_CFunR)
-apply (rule exI)
-apply (clarify)
-apply (rule_tac s = "f$ (g$ (Y x))" and t = "Y (x) " in subst)
-apply (erule spec)
-apply (rule_tac s = "f$ (g$ (Y j))" and t = "Y (j) " in subst)
-apply (erule spec)
-apply (rule cfun_arg_cong)
-apply (rule mp)
-apply (erule spec)
-apply assumption
+apply (simp add: injection_eq)
 done
 
-lemma flat2flat: "!!f g.[|!x y::'a. x<<y --> x=UU | x=y;  
-  !y. f$(g$y)=(y::'b); !x. g$(f$x)=(x::'a)|] ==> !x y::'b. x<<y --> x=UU | x=y"
-apply (intro strip)
-apply (rule disjE)
-apply (rule_tac P = "g$x<<g$y" in mp)
-apply (erule_tac [2] monofun_cfun_arg)
-apply (drule spec)
-apply (erule spec)
-apply (rule disjI1)
-apply (rule trans)
-apply (rule_tac s = "f$ (g$x) " and t = "x" in subst)
-apply (erule spec)
-apply (erule cfun_arg_cong)
-apply (rule iso_strict [THEN conjunct1])
-apply assumption
-apply assumption
-apply (rule disjI2)
-apply (rule_tac s = "f$ (g$x) " and t = "x" in subst)
-apply (erule spec)
-apply (rule_tac s = "f$ (g$y) " and t = "y" in subst)
-apply (erule spec)
-apply (erule cfun_arg_cong)
+lemma flat2flat:
+  "\<forall>y. (f::'a::flat \<rightarrow> 'b::pcpo)\<cdot>(g\<cdot>y) = y
+    \<Longrightarrow> \<forall>x y::'b. x \<sqsubseteq> y \<longrightarrow> x = \<bottom> \<or> x = y"
+apply clarify
+apply (drule_tac fo=g in monofun_cfun_arg)
+apply (drule ax_flat [rule_format])
+apply (erule disjE)
+apply (simp add: injection_defined_rev)
+apply (simp add: injection_eq)
 done
 
 text {* a result about functions with flat codomain *}
 
-lemma flat_codom: "f$(x::'a)=(c::'b::flat) ==> f$(UU::'a)=(UU::'b) | (!z. f$(z::'a)=c)"
-apply (case_tac "f$ (x::'a) = (UU::'b) ")
+lemma flat_eqI: "\<lbrakk>(x::'a::flat) \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> x = y"
+by (drule ax_flat [rule_format], simp)
+
+lemma flat_codom:
+  "f\<cdot>x = (c::'b::flat) \<Longrightarrow> f\<cdot>\<bottom> = \<bottom> \<or> (\<forall>z. f\<cdot>z = c)"
+apply (case_tac "f\<cdot>x = \<bottom>")
 apply (rule disjI1)
 apply (rule UU_I)
-apply (rule_tac s = "f$ (x) " and t = "UU::'b" in subst)
-apply assumption
+apply (erule_tac t="\<bottom>" in subst)
 apply (rule minimal [THEN monofun_cfun_arg])
-apply (case_tac "f$ (UU::'a) = (UU::'b) ")
-apply (erule disjI1)
-apply (rule disjI2)
-apply (rule allI)
-apply (erule subst)
-apply (rule_tac a = "f$ (UU::'a) " in refl [THEN box_equals])
-apply (rule_tac fo5 = "f" in minimal [THEN monofun_cfun_arg, THEN ax_flat [THEN spec, THEN spec, THEN mp], THEN disjE])
-apply simp
-apply assumption
-apply (rule_tac fo5 = "f" in minimal [THEN monofun_cfun_arg, THEN ax_flat [THEN spec, THEN spec, THEN mp], THEN disjE])
-apply simp
-apply assumption
+apply clarify
+apply (rule_tac a = "f\<cdot>\<bottom>" in refl [THEN box_equals])
+apply (erule minimal [THEN monofun_cfun_arg, THEN flat_eqI])
+apply (erule minimal [THEN monofun_cfun_arg, THEN flat_eqI])
 done
 
-subsection {* Strictified functions *}
-
-consts  
-        Istrictify   :: "('a->'b)=>'a=>'b"
-        strictify    :: "('a->'b)->'a->'b"
-defs
-
-Istrictify_def:  "Istrictify f x == if x=UU then UU else f$x"    
-strictify_def:   "strictify == (LAM f x. Istrictify f x)"
-
-text {* results about strictify *}
-
-lemma Istrictify1: 
-        "Istrictify(f)(UU)= (UU)"
-apply (unfold Istrictify_def)
-apply (simp (no_asm))
-done
-
-lemma Istrictify2: 
-        "~x=UU ==> Istrictify(f)(x)=f$x"
-by (simp add: Istrictify_def)
-
-lemma monofun_Istrictify1: "monofun(Istrictify)"
-apply (rule monofunI [rule_format])
-apply (rule less_fun [THEN iffD2, rule_format])
-apply (case_tac "xa=UU")
-apply (simp add: Istrictify1)
-apply (simp add: Istrictify2)
-apply (erule monofun_cfun_fun)
-done
-
-lemma monofun_Istrictify2: "monofun(Istrictify(f))"
-apply (rule monofunI [rule_format])
-apply (case_tac "x=UU")
-apply (simp add: Istrictify1)
-apply (frule notUU_I)
-apply assumption
-apply (simp add: Istrictify2)
-apply (erule monofun_cfun_arg)
-done
-
-lemma contlub_Istrictify1: "contlub(Istrictify)"
-apply (rule contlubI [rule_format])
-apply (rule ext)
-apply (subst thelub_fun)
-apply (erule monofun_Istrictify1 [THEN ch2ch_monofun])
-apply (case_tac "x=UU")
-apply (simp add: Istrictify1)
-apply (simp add: lub_const [THEN thelubI])
-apply (simp add: Istrictify2)
-apply (erule contlub_cfun_fun)
-done
-
-lemma contlub_Istrictify2: "contlub(Istrictify(f::'a -> 'b))"
-apply (rule contlubI [rule_format])
-apply (case_tac "lub (range (Y))=UU")
-apply (simp add: Istrictify1 chain_UU_I)
-apply (simp add: lub_const [THEN thelubI])
-apply (simp add: Istrictify2)
-apply (rule_tac s = "lub (range (%i. f$ (Y i)))" in trans)
-apply (erule contlub_cfun_arg)
-apply (rule lub_equal2)
-apply (rule chain_mono2 [THEN exE])
-apply (erule chain_UU_I_inverse2)
-apply (assumption)
-apply (blast intro: Istrictify2 [symmetric])
-apply (erule chain_monofun)
-apply (erule monofun_Istrictify2 [THEN ch2ch_monofun])
-done
-
-lemmas cont_Istrictify1 = contlub_Istrictify1 [THEN monofun_Istrictify1 [THEN monocontlub2cont], standard]
-
-lemmas cont_Istrictify2 = contlub_Istrictify2 [THEN monofun_Istrictify2 [THEN monocontlub2cont], standard]
-
-lemma strictify1 [simp]: "strictify$f$UU=UU"
-apply (unfold strictify_def)
-apply (subst beta_cfun)
-apply (simp add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
-apply (subst beta_cfun)
-apply (rule cont_Istrictify2)
-apply (rule Istrictify1)
-done
-
-lemma strictify2 [simp]: "~x=UU ==> strictify$f$x=f$x"
-apply (unfold strictify_def)
-apply (subst beta_cfun)
-apply (simp add: cont_Istrictify2 cont_Istrictify1 cont2cont_CF1L)
-apply (subst beta_cfun)
-apply (rule cont_Istrictify2)
-apply (erule Istrictify2)
-done
 
 subsection {* Identity and composition *}
 
 consts
-        ID      :: "('a::cpo) -> 'a"
-        cfcomp  :: "('b->'c)->(('a::cpo)->('b::cpo))->'a->('c::cpo)"
+  ID      :: "'a \<rightarrow> 'a"
+  cfcomp  :: "('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"
 
-syntax  "@oo"   :: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
+syntax  "@oo" :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c" (infixr "oo" 100)
      
-translations    "f1 oo f2" == "cfcomp$f1$f2"
+translations  "f1 oo f2" == "cfcomp$f1$f2"
 
 defs
-  ID_def:        "ID ==(LAM x. x)"
-  oo_def:        "cfcomp == (LAM f g x. f$(g$x))" 
+  ID_def: "ID \<equiv> (\<Lambda> x. x)"
+  oo_def: "cfcomp \<equiv> (\<Lambda> f g x. f\<cdot>(g\<cdot>x))" 
 
-lemma ID1 [simp]: "ID$x=x"
-apply (unfold ID_def)
-apply (subst beta_cfun)
-apply (rule cont_id)
-apply (rule refl)
-done
+lemma ID1 [simp]: "ID\<cdot>x = x"
+by (simp add: ID_def)
 
-lemma cfcomp1: "(f oo g)=(LAM x. f$(g$x))"
+lemma cfcomp1: "(f oo g) = (\<Lambda> x. f\<cdot>(g\<cdot>x))"
 by (simp add: oo_def)
 
-lemma cfcomp2 [simp]: "(f oo g)$x=f$(g$x)"
+lemma cfcomp2 [simp]: "(f oo g)\<cdot>x = f\<cdot>(g\<cdot>x)"
 by (simp add: cfcomp1)
 
 text {*
@@ -717,13 +586,92 @@ text {*
   The composition of f and g is interpretation of @{text "oo"}.
 *}
 
-lemma ID2 [simp]: "f oo ID = f "
+lemma ID2 [simp]: "f oo ID = f"
 by (rule ext_cfun, simp)
 
-lemma ID3 [simp]: "ID oo f = f "
+lemma ID3 [simp]: "ID oo f = f"
 by (rule ext_cfun, simp)
 
 lemma assoc_oo: "f oo (g oo h) = (f oo g) oo h"
 by (rule ext_cfun, simp)
+
+
+subsection {* Strictified functions *}
+
+defaultsort pcpo
+
+consts  
+  Istrictify :: "('a \<rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+  strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b"
+
+defs
+  Istrictify_def: "Istrictify f x \<equiv> if x = \<bottom> then \<bottom> else f\<cdot>x"    
+  strictify_def:  "strictify \<equiv> (\<Lambda> f x. Istrictify f x)"
+
+text {* results about strictify *}
+
+lemma Istrictify1: "Istrictify f \<bottom> = \<bottom>"
+by (simp add: Istrictify_def)
+
+lemma Istrictify2: "x \<noteq> \<bottom> \<Longrightarrow> Istrictify f x = f\<cdot>x"
+by (simp add: Istrictify_def)
+
+lemma monofun_Istrictify1: "monofun (\<lambda>f. Istrictify f x)"
+apply (rule monofunI [rule_format])
+apply (simp add: Istrictify_def monofun_cfun_fun)
+done
+
+lemma monofun_Istrictify2: "monofun (\<lambda>x. Istrictify f x)"
+apply (rule monofunI [rule_format])
+apply (simp add: Istrictify_def monofun_cfun_arg)
+apply clarify
+apply (simp add: eq_UU_iff)
+done
+
+lemma contlub_Istrictify1: "contlub (\<lambda>f. Istrictify f x)"
+apply (rule contlubI [rule_format])
+apply (case_tac "x = \<bottom>")
+apply (simp add: Istrictify1)
+apply (simp add: lub_const [THEN thelubI])
+apply (simp add: Istrictify2)
+apply (erule contlub_cfun_fun)
+done
+
+lemma contlub_Istrictify2: "contlub (\<lambda>x. Istrictify f x)"
+apply (rule contlubI [rule_format])
+apply (case_tac "lub (range Y) = \<bottom>")
+apply (simp add: Istrictify1 chain_UU_I)
+apply (simp add: lub_const [THEN thelubI])
+apply (simp add: Istrictify2)
+apply (simp add: contlub_cfun_arg)
+apply (rule lub_equal2)
+apply (rule chain_mono2 [THEN exE])
+apply (erule chain_UU_I_inverse2)
+apply (assumption)
+apply (blast intro: Istrictify2 [symmetric])
+apply (erule chain_monofun)
+apply (erule monofun_Istrictify2 [THEN ch2ch_monofun])
+done
+
+lemmas cont_Istrictify1 =
+  monocontlub2cont [OF monofun_Istrictify1 contlub_Istrictify1, standard]
+
+lemmas cont_Istrictify2 =
+  monocontlub2cont [OF monofun_Istrictify2 contlub_Istrictify2, standard]
+
+lemma strictify1 [simp]: "strictify\<cdot>f\<cdot>\<bottom> = \<bottom>"
+apply (unfold strictify_def)
+apply (simp add: cont_Istrictify1 cont_Istrictify2)
+apply (rule Istrictify1)
+done
+
+lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
+apply (unfold strictify_def)
+apply (simp add: cont_Istrictify1 cont_Istrictify2)
+apply (erule Istrictify2)
+done
+
+lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
+by simp
 
 end
