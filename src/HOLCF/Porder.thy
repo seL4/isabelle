@@ -253,6 +253,6 @@ lemma lub_const: "range(%x. c) <<| c"
 apply (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 done
 
+lemmas thelub_const = lub_const [THEN thelubI, standard]
+
 end 
-
-
