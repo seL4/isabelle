@@ -28,46 +28,6 @@ fun find_thms ctxt spec =
   |> map PureThy.selections |> List.concat;
 
 
-(* matching theorems *)
-
-local
-
-(*returns all those facts whose subterm extracted by extract can be
-  instantiated to obj; the list is sorted according to the number of premises
-  and the size of the required substitution*)
-fun select_match (extract_thms, extract_term) ctxt obj facts =
-  let
-    val match = #2 o Pattern.match (Sign.tsig_of (ProofContext.sign_of ctxt));
-
-    fun match_size pat =
-      let val subst = match (pat, obj)  (*exception Pattern.MATCH*)
-      in SOME (Vartab.foldl (op + o apsnd (Term.size_of_term o #2 o #2)) (0, subst)) end
-      handle Pattern.MATCH => NONE;
-
-    fun select (fact as (_, thm)) =
-      let
-        fun first_match (th :: ths) res =
-              (case match_size (extract_term (Thm.prop_of th)) of
-                SOME s => ((Thm.nprems_of th, s), fact) :: res
-              | NONE => first_match ths res)
-          | first_match [] res = res;
-      in first_match (extract_thms thm) end;
-
-    fun thm_ord (((p0, s0), _), ((p1, s1), _)) =
-      prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0, s0), (p1, s1));
-  in
-    fold select facts []
-    |> Library.sort thm_ord |> map #2
-  end;
-
-in
-
-fun is_matching_thm extract ctxt prop fact =
-  not (null (select_match extract ctxt prop [fact]));
-
-end;
-
-
 
 (** search criteria **)
 
@@ -78,7 +38,8 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
-  | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term ctxt str)
+  | read_criterion ctxt (Simp str) = 
+      Simp (hd (ProofContext.read_term_pats TypeInfer.logicT ctxt [str]))
   | read_criterion ctxt (Pattern str) =
       Pattern (hd (ProofContext.read_term_pats TypeInfer.logicT ctxt [str]));
 
@@ -91,8 +52,8 @@ fun pretty_criterion ctxt (b, c) =
     | Intro => Pretty.str (prfx "intro")
     | Elim => Pretty.str (prfx "elim")
     | Dest => Pretty.str (prfx "dest")
-    | Simp t => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
-        Pretty.quote (ProofContext.pretty_term ctxt t)]
+    | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
+        Pretty.quote (ProofContext.pretty_term ctxt (Term.show_dummy_patterns pat))]
     | Pattern pat => Pretty.enclose (prfx " \"") "\""
         [ProofContext.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
@@ -100,6 +61,27 @@ fun pretty_criterion ctxt (b, c) =
 
 
 (** search criterion filters **)
+
+
+(* matching theorems *)
+
+fun is_matching_thm (extract_thms, extract_term) ctxt po obj thm =
+  let
+    val sg = ProofContext.sign_of ctxt;
+    val tsig = Sign.tsig_of sg;
+
+    val is_nontrivial = is_Const o head_of o ObjectLogic.drop_judgment sg;    
+
+    fun matches pat = 
+      is_nontrivial pat andalso 
+      Pattern.matches tsig (if po then (pat,obj) else (obj,pat))
+      handle Pattern.MATCH => false;
+
+    val match_thm = matches o extract_term o Thm.prop_of
+  in       
+    List.exists match_thm (extract_thms thm)
+  end;
+
 
 (* filter_name *)
 
@@ -132,27 +114,27 @@ fun is_elim ctxt thm =
     not (Term.dest_Var concl mem prem_vars)
   end;
 
-fun filter_elim_dest check_thm ctxt goal =
+fun filter_elim_dest check_thm ctxt goal (_,thm) =
   let
     val extract_elim =
      (fn thm => if Thm.no_prems thm then [] else [thm],
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
   in
-    fn fact => prems |> List.exists (fn prem =>
-      is_matching_thm extract_elim ctxt prem fact
-      andalso (check_thm ctxt) (#2 fact))
+    prems |> 
+    List.exists (fn prem => 
+      is_matching_thm extract_elim ctxt true prem thm
+      andalso (check_thm ctxt) thm)
   end;
 
 in
 
-fun filter_intro ctxt goal =
+fun filter_intro ctxt goal (_,thm) =
   let
     val extract_intro = (single, Logic.strip_imp_concl);
     val concl = Logic.concl_of_goal goal 1;
   in
-    fn fact => is_matching_thm extract_intro ctxt concl fact
-      andalso not (is_elim ctxt (#2 fact))
+    is_matching_thm extract_intro ctxt true concl thm
   end;
 
 fun filter_elim ctxt = filter_elim_dest is_elim ctxt;
@@ -163,19 +145,19 @@ end;
 
 (* filter_simp *)
 
-fun filter_simp ctxt t =
+fun filter_simp ctxt t (_,thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
       MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
     val extract_simp = (mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-  in is_matching_thm extract_simp ctxt t end;
+  in is_matching_thm extract_simp ctxt false t thm end;
 
 
 (* filter_pattern *)
 
-fun filter_pattern ctxt pat =
+fun filter_pattern ctxt pat (_, thm) =
   let val tsig = Sign.tsig_of (ProofContext.sign_of ctxt)
-  in fn (_, thm) => Pattern.matches_subterm tsig (pat, Thm.prop_of thm) end;
+  in Pattern.matches_subterm tsig (pat, Thm.prop_of thm) end;
 
 
 (* interpret criteria as filters *)
@@ -192,8 +174,8 @@ fun filter_crit _ _ (Name name) = filter_name name
   | filter_crit ctxt (SOME goal) Intro = filter_intro ctxt goal
   | filter_crit ctxt (SOME goal) Elim = filter_elim ctxt goal
   | filter_crit ctxt (SOME goal) Dest = filter_dest ctxt goal
-  | filter_crit ctxt _ (Simp str) = filter_simp ctxt str
-  | filter_crit ctxt _ (Pattern str) = filter_pattern ctxt str;
+  | filter_crit ctxt _ (Simp pat) = filter_simp ctxt pat
+  | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
 in
 
