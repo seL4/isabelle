@@ -30,76 +30,61 @@ instance unit :: pcpo
 by intro_classes simp
 
 
-subsection {* Ordering on @{typ "'a * 'b"} *}
+subsection {* Type @{typ "'a * 'b"} is a partial order *}
 
 instance "*" :: (sq_ord, sq_ord) sq_ord ..
 
 defs (overloaded)
-  less_cprod_def: "p1 << p2 == (fst p1<<fst p2 & snd p1 << snd p2)"
+  less_cprod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
-subsection {* Type @{typ "'a * 'b"} is a partial order *}
+lemma refl_less_cprod: "(p::'a * 'b) \<sqsubseteq> p"
+by (simp add: less_cprod_def)
 
-lemma refl_less_cprod: "(p::'a*'b) << p"
-apply (unfold less_cprod_def)
-apply simp
-done
-
-lemma antisym_less_cprod: "[|(p1::'a * 'b) << p2;p2 << p1|] ==> p1=p2"
+lemma antisym_less_cprod: "\<lbrakk>(p1::'a * 'b) \<sqsubseteq> p2; p2 \<sqsubseteq> p1\<rbrakk> \<Longrightarrow> p1 = p2"
 apply (unfold less_cprod_def)
 apply (rule injective_fst_snd)
 apply (fast intro: antisym_less)
 apply (fast intro: antisym_less)
 done
 
-lemma trans_less_cprod: 
-        "[|(p1::'a*'b) << p2;p2 << p3|] ==> p1 << p3"
+lemma trans_less_cprod: "\<lbrakk>(p1::'a*'b) \<sqsubseteq> p2; p2 \<sqsubseteq> p3\<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p3"
 apply (unfold less_cprod_def)
 apply (rule conjI)
 apply (fast intro: trans_less)
 apply (fast intro: trans_less)
 done
 
-defaultsort pcpo
-
 instance "*" :: (cpo, cpo) po
 by intro_classes
   (assumption | rule refl_less_cprod antisym_less_cprod trans_less_cprod)+
 
-text {* for compatibility with old HOLCF-Version *}
-lemma inst_cprod_po: "(op <<)=(%x y. fst x<<fst y & snd x<<snd y)"
-apply (fold less_cprod_def)
-apply (rule refl)
-done
-
-lemma less_cprod4c: "(x1,y1) << (x2,y2) ==> x1 << x2 & y1 << y2"
-apply (simp add: inst_cprod_po)
-done
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
 text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
 
-lemma monofun_pair1: "monofun Pair"
-by (simp add: monofun less_fun inst_cprod_po)
+lemma monofun_pair1: "monofun (\<lambda>x. (x, y))"
+by (simp add: monofun less_cprod_def)
 
-lemma monofun_pair2: "monofun(Pair x)"
-by (simp add: monofun inst_cprod_po)
+lemma monofun_pair2: "monofun (\<lambda>y. (x, y))"
+by (simp add: monofun less_cprod_def)
 
-lemma monofun_pair: "[|x1<<x2; y1<<y2|] ==> (x1::'a::cpo,y1::'b::cpo)<<(x2,y2)"
-by (simp add: inst_cprod_po)
+lemma monofun_pair:
+  "\<lbrakk>x1 \<sqsubseteq> x2; y1 \<sqsubseteq> y2\<rbrakk> \<Longrightarrow> (x1, y1) \<sqsubseteq> (x2, y2)"
+by (simp add: less_cprod_def)
 
 text {* @{term fst} and @{term snd} are monotone *}
 
 lemma monofun_fst: "monofun fst"
-by (simp add: monofun inst_cprod_po)
+by (simp add: monofun less_cprod_def)
 
 lemma monofun_snd: "monofun snd"
-by (simp add: monofun inst_cprod_po)
+by (simp add: monofun less_cprod_def)
 
 subsection {* Type @{typ "'a * 'b"} is a cpo *}
 
 lemma lub_cprod: 
-"chain S ==> range S<<|(lub(range(%i. fst(S i))),lub(range(%i. snd(S i))))"
+"chain S \<Longrightarrow> range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
 apply (rule_tac t = "S i" in surjective_pairing [THEN ssubst])
@@ -118,15 +103,12 @@ apply (erule monofun_snd [THEN ch2ch_monofun])
 apply (erule monofun_snd [THEN ub2ub_monofun])
 done
 
-lemmas thelub_cprod = lub_cprod [THEN thelubI, standard]
-(*
-"chain ?S1 ==>
- lub (range ?S1) =
- (lub (range (%i. fst (?S1 i))), lub (range (%i. snd (?S1 i))))" : thm
+lemma thelub_cprod:
+  "chain S \<Longrightarrow> lub (range S) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+by (rule lub_cprod [THEN thelubI])
 
-*)
-
-lemma cpo_cprod: "chain(S::nat=>'a::cpo*'b::cpo)==>EX x. range S<<| x"
+lemma cpo_cprod:
+  "chain (S::nat \<Rightarrow> 'a::cpo * 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
 by (rule exI, erule lub_cprod)
 
 instance "*" :: (cpo, cpo) cpo
@@ -134,13 +116,11 @@ by intro_classes (rule cpo_cprod)
 
 subsection {* Type @{typ "'a * 'b"} is pointed *}
 
-lemma minimal_cprod: "(UU,UU)<<p"
-by (simp add: inst_cprod_po)
+lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
+by (simp add: less_cprod_def)
 
-lemmas UU_cprod_def = minimal_cprod [THEN minimal2UU, symmetric, standard]
-
-lemma least_cprod: "EX x::'a*'b. ALL y. x<<y"
-apply (rule_tac x = " (UU,UU) " in exI)
+lemma least_cprod: "EX x::'a::pcpo * 'b::pcpo. ALL y. x \<sqsubseteq> y"
+apply (rule_tac x = "(\<bottom>, \<bottom>)" in exI)
 apply (rule minimal_cprod [THEN allI])
 done
 
@@ -149,58 +129,54 @@ by intro_classes (rule least_cprod)
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cprod_pcpo: "UU = (UU,UU)"
-apply (simp add: UU_cprod_def[folded UU_def])
-done
+by (rule minimal_cprod [THEN UU_I, symmetric])
+
 
 subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
-lemma contlub_pair1: "contlub(Pair)"
+lemma contlub_pair1: "contlub (\<lambda>x. (x,y))"
 apply (rule contlubI [rule_format])
-apply (rule ext)
-apply (subst lub_fun [THEN thelubI])
-apply (erule monofun_pair1 [THEN ch2ch_monofun])
 apply (subst thelub_cprod)
-apply (rule ch2ch_fun)
 apply (erule monofun_pair1 [THEN ch2ch_monofun])
 apply (simp add: lub_const [THEN thelubI])
 done
 
-lemma contlub_pair2: "contlub(Pair(x))"
+lemma contlub_pair2: "contlub (\<lambda>y. (x, y))"
 apply (rule contlubI [rule_format])
 apply (subst thelub_cprod)
 apply (erule monofun_pair2 [THEN ch2ch_monofun])
 apply (simp add: lub_const [THEN thelubI])
 done
 
-lemma cont_pair1: "cont(Pair)"
+lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule monocontlub2cont)
 apply (rule monofun_pair1)
 apply (rule contlub_pair1)
 done
 
-lemma cont_pair2: "cont(Pair(x))"
+lemma cont_pair2: "cont (\<lambda>y. (x, y))"
 apply (rule monocontlub2cont)
 apply (rule monofun_pair2)
 apply (rule contlub_pair2)
 done
 
-lemma contlub_fst: "contlub(fst)"
+lemma contlub_fst: "contlub fst"
 apply (rule contlubI [rule_format])
 apply (simp add: lub_cprod [THEN thelubI])
 done
 
-lemma contlub_snd: "contlub(snd)"
+lemma contlub_snd: "contlub snd"
 apply (rule contlubI [rule_format])
 apply (simp add: lub_cprod [THEN thelubI])
 done
 
-lemma cont_fst: "cont(fst)"
+lemma cont_fst: "cont fst"
 apply (rule monocontlub2cont)
 apply (rule monofun_fst)
 apply (rule contlub_fst)
 done
 
-lemma cont_snd: "cont(snd)"
+lemma cont_snd: "cont snd"
 apply (rule monocontlub2cont)
 apply (rule monofun_snd)
 apply (rule contlub_snd)
@@ -209,44 +185,44 @@ done
 subsection {* Continuous versions of constants *}
 
 consts
-        cpair        :: "'a::cpo -> 'b::cpo -> ('a*'b)" (* continuous pairing *)
-        cfst         :: "('a::cpo*'b::cpo)->'a"
-        csnd         :: "('a::cpo*'b::cpo)->'b"
-        csplit       :: "('a::cpo->'b::cpo->'c::cpo)->('a*'b)->'c"
+  cpair  :: "'a \<rightarrow> 'b \<rightarrow> ('a * 'b)" (* continuous pairing *)
+  cfst   :: "('a * 'b) \<rightarrow> 'a"
+  csnd   :: "('a * 'b) \<rightarrow> 'b"
+  csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c"
 
 syntax
-        "@ctuple"    :: "['a, args] => 'a * 'b"         ("(1<_,/ _>)")
+  "@ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1<_,/ _>)")
 
 translations
-        "<x, y, z>"   == "<x, <y, z>>"
-        "<x, y>"      == "cpair$x$y"
+  "<x, y, z>" == "<x, <y, z>>"
+  "<x, y>"    == "cpair$x$y"
 
 defs
-cpair_def:       "cpair  == (LAM x y.(x,y))"
-cfst_def:        "cfst   == (LAM p. fst(p))"
-csnd_def:        "csnd   == (LAM p. snd(p))"      
-csplit_def:      "csplit == (LAM f p. f$(cfst$p)$(csnd$p))"
+  cpair_def:  "cpair  \<equiv> (\<Lambda> x y. (x, y))"
+  cfst_def:   "cfst   \<equiv> (\<Lambda> p. fst p)"
+  csnd_def:   "csnd   \<equiv> (\<Lambda> p. snd p)"      
+  csplit_def: "csplit \<equiv> (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
 
 subsection {* Syntax *}
 
 text {* syntax for @{text "LAM <x,y,z>.e"} *}
 
 syntax
-  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3LAM <_>./ _)" [0, 10] 10)
+  "_LAM" :: "[patterns, 'a \<Rightarrow> 'b] \<Rightarrow> ('a \<rightarrow> 'b)"  ("(3LAM <_>./ _)" [0, 10] 10)
 
 translations
-  "LAM <x,y,zs>.b"        == "csplit$(LAM x. LAM <y,zs>.b)"
+  "LAM <x,y,zs>. b"       == "csplit$(LAM x. LAM <y,zs>. b)"
   "LAM <x,y>. LAM zs. b"  <= "csplit$(LAM x y zs. b)"
   "LAM <x,y>.b"           == "csplit$(LAM x y. b)"
 
 syntax (xsymbols)
-  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\<Lambda>()<_>./ _)" [0, 10] 10)
+  "_LAM" :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\<Lambda>()<_>./ _)" [0, 10] 10)
 
 text {* syntax for Let *}
 
 constdefs
-  CLet           :: "'a::cpo -> ('a -> 'b::cpo) -> 'b"
-  "CLet == LAM s f. f$s"
+  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b"
+  "CLet \<equiv> \<Lambda> s f. f\<cdot>s"
 
 nonterminals
   Cletbinds  Cletbind
@@ -266,87 +242,62 @@ translations
 
 subsection {* Convert all lemmas to the continuous versions *}
 
-lemma beta_cfun_cprod: 
-        "(LAM x y.(x,y))$a$b = (a,b)"
-apply (subst beta_cfun)
-apply (simp add: cont_pair1 cont_pair2 cont2cont_CF1L)
-apply (subst beta_cfun)
-apply (rule cont_pair2)
-apply (rule refl)
-done
+lemma cpair_eq_pair: "<x, y> = (x, y)"
+by (simp add: cpair_def cont_pair1 cont_pair2)
 
-lemma inject_cpair: 
-        "<a,b> = <aa,ba>  ==> a=aa & b=ba"
-by (simp add: cpair_def beta_cfun_cprod)
+lemma inject_cpair: "<a,b> = <aa,ba> \<Longrightarrow> a = aa \<and> b = ba"
+by (simp add: cpair_eq_pair)
 
-lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' & b = b')"
-by (blast dest!: inject_cpair)
+lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' \<and> b = b')"
+by (simp add: cpair_eq_pair)
 
-lemma inst_cprod_pcpo2: "UU = <UU,UU>"
-by (simp add: cpair_def beta_cfun_cprod inst_cprod_pcpo)
+lemma cpair_less: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
+by (simp add: cpair_eq_pair less_cprod_def)
+
+lemma inst_cprod_pcpo2: "\<bottom> = <\<bottom>, \<bottom>>"
+by (simp add: cpair_eq_pair inst_cprod_pcpo)
 
 lemma defined_cpair_rev: 
- "<a,b> = UU ==> a = UU & b = UU"
-apply (drule inst_cprod_pcpo2 [THEN subst])
-apply (erule inject_cpair)
-done
+ "<a,b> = \<bottom> \<Longrightarrow> a = \<bottom> \<and> b = \<bottom>"
+by (simp add: inst_cprod_pcpo cpair_eq_pair)
 
-lemma Exh_Cprod2: "? a b. z=<a,b>"
-apply (unfold cpair_def)
-apply (rule PairE)
-apply (rule exI)
-apply (rule exI)
-apply (erule beta_cfun_cprod [THEN ssubst])
-done
+lemma Exh_Cprod2: "\<exists>a b. z = <a, b>"
+by (simp add: cpair_eq_pair)
 
-lemma cprodE:
-assumes prems: "!!x y. [| p = <x,y> |] ==> Q"
-shows "Q"
-apply (rule PairE)
-apply (rule prems)
-apply (simp add: cpair_def beta_cfun_cprod)
-done
+lemma cprodE: "\<lbrakk>\<And>x y. p = <x, y> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+by (cut_tac Exh_Cprod2, auto)
 
-lemma cfst2 [simp]: "cfst$<x,y> = x"
-by (simp add: cpair_def cfst_def beta_cfun_cprod cont_fst)
+lemma cfst2 [simp]: "cfst\<cdot><x, y> = x"
+by (simp add: cpair_eq_pair cfst_def cont_fst)
 
-lemma csnd2 [simp]: "csnd$<x,y> = y"
-by (simp add: cpair_def csnd_def beta_cfun_cprod cont_snd)
+lemma csnd2 [simp]: "csnd\<cdot><x, y> = y"
+by (simp add: cpair_eq_pair csnd_def cont_snd)
 
-lemma cfst_strict [simp]: "cfst$UU = UU"
+lemma cfst_strict [simp]: "cfst\<cdot>\<bottom> = \<bottom>"
 by (simp add: inst_cprod_pcpo2)
 
-lemma csnd_strict [simp]: "csnd$UU = UU"
+lemma csnd_strict [simp]: "csnd\<cdot>\<bottom> = \<bottom>"
 by (simp add: inst_cprod_pcpo2)
 
-lemma surjective_pairing_Cprod2: "<cfst$p, csnd$p> = p"
-apply (unfold cfst_def csnd_def cpair_def)
-apply (simp add: cont_fst cont_snd beta_cfun_cprod)
+lemma surjective_pairing_Cprod2: "<cfst\<cdot>p, csnd\<cdot>p> = p"
+apply (unfold cfst_def csnd_def)
+apply (simp add: cont_fst cont_snd cpair_eq_pair)
 done
-
-lemma less_cprod5c: 
- "<xa,ya> << <x,y> ==> xa<<x & ya << y"
-by (simp add: cpair_def beta_cfun_cprod inst_cprod_po)
 
 lemma lub_cprod2: 
-"[|chain(S)|] ==> range(S) <<|  
-  <(lub(range(%i. cfst$(S i)))) , lub(range(%i. csnd$(S i)))>"
-apply (simp add: cpair_def beta_cfun_cprod)
-apply (simp add: cfst_def csnd_def cont_fst cont_snd)
+  "chain S \<Longrightarrow> range S <<| <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
+apply (simp add: cpair_eq_pair cfst_def csnd_def cont_fst cont_snd)
 apply (erule lub_cprod)
 done
 
-lemmas thelub_cprod2 = lub_cprod2 [THEN thelubI, standard]
-(*
-chain ?S1 ==>
- lub (range ?S1) =
- <lub (range (%i. cfst$(?S1 i))), lub (range (%i. csnd$(?S1 i)))>" 
-*)
+lemma thelub_cprod2:
+  "chain S \<Longrightarrow> lub (range S) = <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
+by (rule lub_cprod2 [THEN thelubI])
 
-lemma csplit2 [simp]: "csplit$f$<x,y> = f$x$y"
+lemma csplit2 [simp]: "csplit\<cdot>f\<cdot><x,y> = f\<cdot>x\<cdot>y"
 by (simp add: csplit_def)
 
-lemma csplit3: "csplit$cpair$z=z"
+lemma csplit3: "csplit\<cdot>cpair\<cdot>z = z"
 by (simp add: csplit_def surjective_pairing_Cprod2)
 
 lemmas Cprod_rews = cfst2 csnd2 csplit2
