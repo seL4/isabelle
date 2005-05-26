@@ -11,6 +11,8 @@ theory Sprod
 imports Cprod TypedefPcpo
 begin
 
+defaultsort pcpo
+
 subsection {* Definition of strict product type *}
 
 typedef (Sprod)  ('a, 'b) "**" (infixr 20) =

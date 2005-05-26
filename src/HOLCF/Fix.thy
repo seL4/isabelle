@@ -11,6 +11,8 @@ theory Fix
 imports Cfun Cprod Adm
 begin
 
+defaultsort pcpo
+
 subsection {* Definitions *}
 
 consts
