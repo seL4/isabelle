@@ -5,24 +5,12 @@
 #
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 
-# source bashrc, we're called by cron
-. ~/.bashrc
-
-# canoncical home for all platforms
-HOME=/usr/stud/isatest
-
 ## global settings
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de makarius@sketis.net haftmann@in.tum.de"
+. ~/admin/isatest-settings
 
 TMP=/tmp/isatest-makedist.$$
 MAIL=$HOME/bin/pmail
 
-LOGPREFIX=$HOME/log
-MASTERLOG=$LOGPREFIX/isatest.log
-ERRORDIR=$HOME/var
-ERRORLOG=$ERRORDIR/error.log
-RUNNING=$HOME/var/running
-DISTPREFIX=$HOME/tmp/isadist
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=gtar
@@ -96,7 +84,6 @@ cd $DISTPREFIX >> $DISTLOG 2>&1
 $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
-gzip -f $DISTLOG
 
 ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
 echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> $MASTERLOG
@@ -104,17 +91,18 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 
 ## spawn test runs
 
-$SSH sunbroy2 "$MAKEALL $DISTPREFIX $HOME/settings/sun-poly $HOME/settings/sun-sml-dev"
+$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly $HOME/settings/sun-sml-dev"
 # give test some time to copy settings and start
 sleep 5
-#$SSH sunbroy1 "$MAKEALL $DISTPREFIX $HOME/settings/sun-sml-dev"
-#sleep 5
-$SSH atbroy51 "$MAKEALL $DISTPREFIX $HOME/settings/at-poly $HOME/settings/at-sml-dev"
-#sleep 5
-#$SSH atbroy51 "$MAKEALL $DISTPREFIX $HOME/settings/at-sml-dev"
+$SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-sml-dev"
 # wakeup call for macbroy33
 wakeonlan -i 131.159.47.255 00:30:65:DA:35:E0 > /dev/null
 sleep 5
-$SSH macbroy33 "$MAKEALL $DISTPREFIX $HOME/settings/mac-poly"
+$SSH macbroy33 "$MAKEALL $HOME/settings/mac-poly"
+
+
+echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
+
+gzip -f $DISTLOG
 
 ## end

@@ -6,39 +6,22 @@
 # DESCRIPTION: sends email for failed tests, checks for error.log,
 #              generates development snapshot if test ok
 
-# source bashrc, we're called by cron
-. ~/.bashrc
+## global settings
+. ~/admin/isatest-settings
 
 # produce empty list for patterns like isatest-*.log if no 
 # such file exists 
 shopt -s nullglob
 
-## global settings
-
-# send mail to:
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de makarius@sketis.net"
-
-ADMIN="berghofe@in.tum.de"
-
-# canoncical home for all platforms
-HOME=/usr/stud/isatest
-
-# where to find the distribution
-export DISTPREFIX=$HOME/tmp/isadist
+ADMIN="berghofe@in.tum.de kleing@in.tum.de"
 
 # mail program
 MAIL=$HOME/bin/pmail
 
-# where the logs are
-ERRORDIR=$HOME/var
-ERRORLOG=$ERRORDIR/error.log
-MASTERLOG=$HOME/log/isatest.log
-
-# where the test-still-running files are
-RUNNING=$HOME/var/running
-
 # tmp file for sending mail
 TMP=/tmp/isatest-makedist.$$
+
+export DISTPREFIX
 
 
 ## diagnostics

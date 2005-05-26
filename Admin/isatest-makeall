@@ -6,18 +6,7 @@
 # DESCRIPTION: Run isatool makeall from specified distribution and settings.
 
 ## global settings
-
-# canoncical home for all platforms 
-HOME=/usr/stud/isatest
-
-# where the log files are
-LOGPREFIX=$HOME/log
-MASTERLOG=$LOGPREFIX/isatest.log
-ERRORDIR=$HOME/var
-ERRORLOG=$ERRORDIR/error.log
-
-# where to put test-is-running files
-RUNNING=$HOME/var/running
+. ~/admin/isatest-settings
 
 # max time until test is aborted (in sec)
 MAXTIME=28800
@@ -48,10 +37,7 @@ function fail()
 # argument checking
 
 [ "$1" = "-?" ] && usage
-[ "$#" -lt "2" ] && usage
-
-DISTPREFIX=$1
-shift
+[ "$#" -lt "1" ] && usage
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
