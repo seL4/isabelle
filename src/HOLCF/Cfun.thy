@@ -73,15 +73,39 @@ text {* Eta - equality for continuous functions *}
 lemma eta_cfun: "(LAM x. f$x) = f"
 by (rule Rep_CFun_inverse)
 
-subsection {* Type @{typ "'a -> 'b"} is a partial order *}
+subsection {* Class instances *}
 
 instance "->"  :: (cpo, cpo) sq_ord ..
 
 defs (overloaded)
   less_cfun_def: "(op <<) == (% fo1 fo2. Rep_CFun fo1 << Rep_CFun fo2 )"
 
+lemma adm_CFun: "adm (\<lambda>f. f \<in> CFun)"
+by (simp add: CFun_def, rule admI, rule cont_lub_fun)
+
+lemma UU_CFun: "\<bottom> \<in> CFun"
+by (simp add: CFun_def inst_fun_pcpo cont_const)
+
 instance "->" :: (cpo, cpo) po
 by (rule typedef_po [OF type_definition_CFun less_cfun_def])
+
+instance "->" :: (cpo, cpo) cpo
+by (rule typedef_cpo [OF type_definition_CFun less_cfun_def adm_CFun])
+
+instance "->" :: (cpo, pcpo) pcpo
+by (rule typedef_pcpo_UU [OF type_definition_CFun less_cfun_def UU_CFun])
+
+lemmas cont_Rep_CFun =
+  typedef_cont_Rep [OF type_definition_CFun less_cfun_def adm_CFun]
+
+lemmas cont_Abs_CFun = 
+  typedef_cont_Abs [OF type_definition_CFun less_cfun_def adm_CFun]
+
+lemmas strict_Rep_CFun =
+  typedef_strict_Rep [OF type_definition_CFun less_cfun_def UU_CFun]
+
+lemmas strict_Abs_CFun =
+  typedef_strict_Abs [OF type_definition_CFun less_cfun_def UU_CFun]
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_po: "(op <<)=(%f1 f2. Rep_CFun f1 << Rep_CFun f2)"
@@ -152,9 +176,7 @@ lemmas contlub_cfun_arg = contlub_Rep_CFun2 [THEN contlubE, THEN spec, THEN mp]
 text {* @{term Rep_CFun} is monotone in its 'first' argument *}
 
 lemma monofun_Rep_CFun1: "monofun(Rep_CFun)"
-apply (rule monofunI [rule_format])
-apply (erule less_cfun [THEN subst])
-done
+by (rule cont_Rep_CFun [THEN cont2mono])
 
 text {* monotonicity of application @{term Rep_CFun} in mixfix syntax @{text "[_]_"} *}
 
@@ -253,14 +275,6 @@ lemmas thelub_cfun = lub_cfun [THEN thelubI, standard]
 chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i$x)))
 *)
 
-lemma cpo_cfun: "chain(CCF::nat=>('a->'b)) ==> ? x. range(CCF) <<| x"
-apply (rule exI)
-apply (erule lub_cfun)
-done
-
-instance "->" :: (cpo, cpo) cpo
-by intro_classes (rule cpo_cfun)
-
 subsection {* Miscellaneous *}
 
 text {* Extensionality in @{typ "'a -> 'b"} *}
@@ -288,11 +302,6 @@ apply (rule less_fun [THEN iffD2])
 apply simp
 done
 
-subsection {* Class instance of @{typ "'a -> 'b"} for class pcpo *}
-
-instance "->" :: (cpo, pcpo) pcpo
-by (intro_classes, rule least_cfun)
-
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "UU = Abs_CFun(%x. UU)"
 apply (simp add: UU_def UU_cfun_def)
@@ -303,24 +312,12 @@ subsection {* Continuity of application *}
 text {* the contlub property for @{term Rep_CFun} its 'first' argument *}
 
 lemma contlub_Rep_CFun1: "contlub(Rep_CFun)"
-apply (rule contlubI [rule_format])
-apply (rule ext)
-apply (subst thelub_cfun)
-apply assumption
-apply (subst Cfunapp2)
-apply (erule cont_lubcfun)
-apply (subst thelub_fun)
-apply (erule monofun_Rep_CFun1 [THEN ch2ch_monofun])
-apply (rule refl)
-done
+by (rule cont_Rep_CFun [THEN cont2contlub])
 
 text {* the cont property for @{term Rep_CFun} in its first argument *}
 
 lemma cont_Rep_CFun1: "cont(Rep_CFun)"
-apply (rule monocontlub2cont)
-apply (rule monofun_Rep_CFun1)
-apply (rule contlub_Rep_CFun1)
-done
+by (rule cont_Rep_CFun)
 
 text {* contlub, cont properties of @{term Rep_CFun} in its first argument in mixfix @{text "_[_]"} *}
 
@@ -380,16 +377,10 @@ lemma cont2mono_LAM:
 assumes p1: "!!x. cont(c1 x)"
 assumes p2: "!!y. monofun(%x. c1 x y)"
 shows "monofun(%x. LAM y. c1 x y)"
-apply (rule monofunI)
-apply (intro strip)
-apply (subst less_cfun)
-apply (subst less_fun)
-apply (rule allI)
-apply (subst beta_cfun)
-apply (rule p1)
-apply (subst beta_cfun)
-apply (rule p1)
-apply (erule p2 [THEN monofunE, THEN spec, THEN spec, THEN mp])
+apply (rule monofunI [rule_format])
+apply (rule less_cfun2)
+apply (simp add: beta_cfun p1)
+apply (erule p2 [THEN monofunE [rule_format]])
 done
 
 text {* cont2cont Lemma for @{term "%x. LAM y. c1 x y"} *}
@@ -398,19 +389,9 @@ lemma cont2cont_LAM:
 assumes p1: "!!x. cont(c1 x)"
 assumes p2: "!!y. cont(%x. c1 x y)"
 shows "cont(%x. LAM y. c1 x y)"
-apply (rule monocontlub2cont)
-apply (rule p1 [THEN cont2mono_LAM])
-apply (rule p2 [THEN cont2mono])
-apply (rule contlubI)
-apply (intro strip)
-apply (subst thelub_cfun)
-apply (rule p1 [THEN cont2mono_LAM, THEN ch2ch_monofun])
-apply (rule p2 [THEN cont2mono])
-apply assumption
-apply (rule_tac f = "Abs_CFun" in arg_cong)
-apply (rule ext)
-apply (subst p1 [THEN beta_cfun, THEN ext])
-apply (erule p2 [THEN cont2contlub, THEN contlubE, THEN spec, THEN mp])
+apply (rule cont_Abs_CFun)
+apply (simp add: p1 CFun_def)
+apply (simp add: p2 cont2cont_CF1L_rev)
 done
 
 text {* cont2cont Lemma for @{term "%x. LAM y. c1 x$y"} *}
