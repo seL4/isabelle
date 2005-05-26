@@ -8,7 +8,7 @@ Definition of the type ->  of continuous functions.
 header {* The type of continuous functions *}
 
 theory Cfun
-imports Cont
+imports TypedefPcpo
 begin
 
 defaultsort cpo
@@ -80,20 +80,8 @@ instance "->"  :: (cpo, cpo) sq_ord ..
 defs (overloaded)
   less_cfun_def: "(op <<) == (% fo1 fo2. Rep_CFun fo1 << Rep_CFun fo2 )"
 
-lemma refl_less_cfun: "(f::'a->'b) << f"
-by (unfold less_cfun_def, rule refl_less)
-
-lemma antisym_less_cfun: 
-        "[|(f1::'a->'b) << f2; f2 << f1|] ==> f1 = f2"
-by (unfold less_cfun_def, rule Rep_CFun_inject[THEN iffD1], rule antisym_less)
-
-lemma trans_less_cfun: 
-        "[|(f1::'a->'b) << f2; f2 << f3|] ==> f1 << f3"
-by (unfold less_cfun_def, rule trans_less)
-
 instance "->" :: (cpo, cpo) po
-by intro_classes
-  (assumption | rule refl_less_cfun antisym_less_cfun trans_less_cfun)+
+by (rule typedef_po [OF type_definition_CFun less_cfun_def])
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_po: "(op <<)=(%f1 f2. Rep_CFun f1 << Rep_CFun f2)"
