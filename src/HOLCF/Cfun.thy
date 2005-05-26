@@ -632,7 +632,7 @@ lemma contlub_Istrictify1: "contlub (\<lambda>f. Istrictify f x)"
 apply (rule contlubI [rule_format])
 apply (case_tac "x = \<bottom>")
 apply (simp add: Istrictify1)
-apply (simp add: lub_const [THEN thelubI])
+apply (simp add: thelub_const)
 apply (simp add: Istrictify2)
 apply (erule contlub_cfun_fun)
 done
@@ -641,7 +641,7 @@ lemma contlub_Istrictify2: "contlub (\<lambda>x. Istrictify f x)"
 apply (rule contlubI [rule_format])
 apply (case_tac "lub (range Y) = \<bottom>")
 apply (simp add: Istrictify1 chain_UU_I)
-apply (simp add: lub_const [THEN thelubI])
+apply (simp add: thelub_const)
 apply (simp add: Istrictify2)
 apply (simp add: contlub_cfun_arg)
 apply (rule lub_equal2)

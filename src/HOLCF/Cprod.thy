@@ -138,14 +138,14 @@ lemma contlub_pair1: "contlub (\<lambda>x. (x,y))"
 apply (rule contlubI [rule_format])
 apply (subst thelub_cprod)
 apply (erule monofun_pair1 [THEN ch2ch_monofun])
-apply (simp add: lub_const [THEN thelubI])
+apply (simp add: thelub_const)
 done
 
 lemma contlub_pair2: "contlub (\<lambda>y. (x, y))"
 apply (rule contlubI [rule_format])
 apply (subst thelub_cprod)
 apply (erule monofun_pair2 [THEN ch2ch_monofun])
-apply (simp add: lub_const [THEN thelubI])
+apply (simp add: thelub_const)
 done
 
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
