@@ -78,7 +78,7 @@ New in this Isabelle release
 
 * Pure: print_tac now outputs the goal through the trace channel.
 
-* Pure: reference Namespace.unique_names included.  If true the
+* Pure: reference NameSpace.unique_names included.  If true the
   (shortest) namespace-prefix is printed to disambiguate conflicts (as
   yet). If false the first entry wins (as during parsing). Default
   value is true.
