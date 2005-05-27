@@ -120,7 +120,7 @@ specifications.
   ;
 
   contextexpr: nameref | '(' contextexpr ')' |
-  (contextexpr (name+)) | (contextexpr + '+')
+  (contextexpr (name mixfix? +)) | (contextexpr + '+')
   ;
   contextelem: fixes | assumes | defines | notes | includes
   ;
@@ -148,10 +148,13 @@ specifications.
 
   The $import$ consists of a structured context expression, consisting of
   references to existing locales, renamed contexts, or merged contexts.
-  Renaming uses positional notation: $c~\vec x$ means that (a prefix) the
+  Renaming uses positional notation: $c~\vec x$ means that (a prefix of) the
   fixed parameters of context $c$ are named according to $\vec x$; a
-  ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}} means to skip that
-  position.  Also note that concrete syntax only works with the original name.
+  ``\texttt{_}'' (underscore) \indexisarthm{_@\texttt{_}} means to skip that
+  position.  Renaming by default deletes existing syntax.  Optionally,
+  new syntax may by specified with a mixfix annotation.  Note that the
+  special syntax declared with ``$(structure)$'' (see below) is
+  neither deleted nor can it be changed.
   Merging proceeds from left-to-right, suppressing any duplicates stemming
   from different paths through the import hierarchy.
 

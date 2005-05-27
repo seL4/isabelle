@@ -6,16 +6,46 @@
 Collection of regression tests for locales.
 *)
 
-header {* Test of Locale instantiation *}
+header {* Test of Locale Interpretation *}
 
-theory LocaleTest = FOL:
+theory LocaleTest
+imports FOL
+begin
 
 ML {* set quick_and_dirty *}    (* allow for thm command in batch mode *)
-ML {* set Toplevel.debug *}
+ML {* reset Toplevel.debug *}
 ML {* set show_hyps *}
 ML {* set show_sorts *}
 
-section {* interpretation *}
+section {* Renaming with Syntax *}
+
+locale S = var mult +
+  assumes "mult(x, y) = mult(y, x)"
+
+locale S' = S mult (infixl "**" 60)
+
+print_locale S'
+
+locale T = var mult (infixl "**" 60) +
+  assumes "x ** y = y ** x"
+
+locale U = T mult (infixl "**" 60) + T add (infixl "++" 55) + var h +
+  assumes hom: "h(x ** y) = h(x) ++ h(y)"
+
+locale var' = fixes x :: "'a => 'b"
+
+(* doesn't work in FOL, but should in HOL *)
+(* locale T' = var' mult (infixl "**" 60) *)
+
+locale V = U _ add
+print_locale V
+
+locale T' = fixes mult assumes "mult(x, y) = mult(y, x)"
+locale U' = T' mult + T' add + var h +
+  assumes hom: "h(mult(x, y)) = add(h(x), h(y))"
+
+
+section {* Interpretation *}
 
 (* interpretation input syntax *)
 
@@ -98,7 +128,7 @@ interpretation p4: A ["?x::?'a1"] apply (rule A.intro) apply rule done
 print_interps A
 *)
 
-interpretation p10: D + D a' b' d' [X "Y::i" _ U "V::i" _] .
+interpretation p10: D + D a' b' d' [X "Y::i" _ u "v::i" _] .
 
 corollary (in D) th_x: True ..
 
@@ -116,9 +146,11 @@ thm p2.th_z
 
 section {* Interpretation in proof contexts *}
 
+locale F = fixes f assumes asm_F: "f & f --> f"
+
 theorem True
 proof -
-  fix alpha::i and beta::'a and gamma::i
+  fix alpha::i and beta::'a and gamma::o
   (* FIXME: omitting type of beta leads to error later at interpret p6 *)
   have alpha_A: "A(alpha)" by (auto intro: A.intro)
   interpret p5: A [alpha] .  (* subsumed *)
@@ -126,6 +158,8 @@ proof -
   interpret p6: C [alpha beta] by (auto intro: C_axioms.intro)
   print_interps A   (* output: <no prefix>, p1 *)
   print_interps C   (* output: <no prefix>, p1, p6 *)
+  interpret p11: F [gamma] by (fast intro: F.intro)
+  thm p11.asm_F      (* gamma is a Free *)
 qed rule
 
 theorem (in A) True
@@ -162,12 +196,12 @@ thm p7'.e_def2
 
 (* Definition involving free variable in assm *)
 
-locale (open) F = fixes f assumes asm_F: "f --> x"
-  notes asm_F2 = asm_F
+locale (open) G = fixes g assumes asm_G: "g --> x"
+  notes asm_G2 = asm_G
 
-interpretation p8: F ["False"] by fast
+interpretation p8: G ["False"] by fast
 
-thm p8.asm_F2
+thm p8.asm_G2
 
 subsection {* Locale without assumptions *}
 

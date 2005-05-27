@@ -134,12 +134,15 @@ New in this Isabelle release
 * Isar debugging: new reference Toplevel.debug; default false.  Set to
   make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
   
-* Locales:
+* Locales: modifications regarding "includes"
   - "includes" disallowed in declaration of named locales (command "locale").
   - Fixed parameter management in theorem generation for goals with "includes".
     INCOMPATIBILITY: rarely, the generated theorem statement is different.
 
-* Locales:  new commands for the interpretation of locale expressions
+* Locales: locale expressions permit optional mixfix redeclaration for
+  renamed parameters.
+
+* Locales: new commands for the interpretation of locale expressions
   in theories (interpretation) and proof contexts (interpret).  These take an
   instantiation of the locale parameters and compute proof obligations from
   the instantiated specification.  After the obligations have been discharged,

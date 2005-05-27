@@ -328,7 +328,7 @@ text {*
 *}
 
 theorem norm_HahnBanach:
-  includes normed_vectorspace E + subspace F E + linearform F f + fn_norm + continuous F norm f
+  includes normed_vectorspace E + subspace F E + linearform F f + fn_norm + continuous F norm ("\<parallel>_\<parallel>") f
   shows "\<exists>g. linearform E g
      \<and> continuous E norm g
      \<and> (\<forall>x \<in> F. g x = f x)

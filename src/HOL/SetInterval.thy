@@ -447,7 +447,7 @@ lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
 
 subsection {*Lemmas useful with the summation operator setsum*}
 
-text {* For examples, see Algebra/poly/UnivPoly.thy *}
+text {* For examples, see Algebra/poly/UnivPoly2.thy *}
 
 subsubsection {* Disjoint Unions *}
 

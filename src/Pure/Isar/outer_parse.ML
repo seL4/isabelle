@@ -329,8 +329,10 @@ val loc_element =
 fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
 
+val rename = name -- Scan.option mixfix';
+
 fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
-and expr1 x = (expr2 -- Scan.repeat1 (maybe name) >> Locale.Rename || expr2) x
+and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
 and expr0 x = (plus1 expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
 
 in
