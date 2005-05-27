@@ -746,7 +746,7 @@ fun param_types ps = List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME
 
 fun merge_syntax ctxt ids ss = Symtab.merge (op =) ss
   handle Symtab.DUPS xs => err_in_locale ctxt
-    ("Conflicting syntax for parameter(s): " ^ commas_quote xs) (map #1 ids);
+    ("Conflicting syntax for parameter(s): " ^ commas_quote xs) (map fst ids);
 
 
 (* flatten expressions *)
