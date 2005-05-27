@@ -1129,37 +1129,6 @@ local
 
 local
 
-(* paramify type, process mixfix constraint of renamed syntax *)
-
-fun mx_type _ (x, NONE, mx) = (x, NONE, mx)
-  | mx_type _ (x, SOME T, NONE) =
-      (x, SOME (Term.map_type_tfree (TypeInfer.param 0) T), NONE)
-  | mx_type ctxt (x, SOME T, SOME mx) =
-      let
-val _ = warning "mx_type: mx";
-val _ = PolyML.print mx;
-        val tsig = Sign.tsig_of (ProofContext.sign_of ctxt);
-        val T' = Type.varifyT T;
-        val mxTs = map (fn n => TVar ((n, 0), []))
-          (Term.invent_names (Term.add_typ_tfree_names (T, [])) "'a"
-            (Syntax.mixfix_args mx + 1));
-          (* avoid name clashes in unification *)
-        val mxT = mxTs |> Library.split_last |> op --->;
-        val (tenv, _) = Type.unify tsig (Vartab.empty, 0) (T', mxT)
-          handle Type.TUNIFY =>
-            raise TYPE ("failed to satisfy mixfix-constraint for parameter " ^
-              quote x ^ "\nunable to unify", [T', mxT], []);
-        val U = Envir.norm_type tenv T';
-        val ixns = Term.add_typ_ixns ([], U);
-        val ren = Vartab.make (ixns ~~ Term.invent_names [] "'a" (length ixns));
-        val U' = Term.map_type_tvar (fn ((x, i), s) =>
-          (TypeInfer.param 0 (x, s))) U;
-(*        val U' = Term.map_type_tvar (fn (xi, s) =>
-          (TypeInfer.param 0 (valOf (Vartab.lookup (ren, xi)), s))) U;
-*)val _ = warning "mx_type (U, U')";
-val _ = PolyML.print (U, U');
-      in (x, SOME U', SOME mx) end;
-
 fun declare_int_elem (ctxt, Fixes fixes) =
       (ctxt |> ProofContext.add_fixes (map (fn (x, T, mx) =>
         (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes), [])
