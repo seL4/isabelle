@@ -16,7 +16,7 @@ imports
   While_Combinator
   Word
   Zorn
-  List_Prefix
+  (*List_Prefix*)
   Char_ord
   List_lexord
 begin
