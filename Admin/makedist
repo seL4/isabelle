@@ -53,7 +53,7 @@ Usage: $PRG VERSION
   Checklist for official releases (before running this script):
 
     * Check Admin/page contents.
-    * Check ANNOUNCE, README, INSTALL, NEWS.
+    * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
         cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle2002 isabelle
@@ -255,7 +255,7 @@ rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
-mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" "$DISTNAME"
+mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/index.html" "$DISTNAME/doc"
 
