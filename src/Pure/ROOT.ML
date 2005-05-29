@@ -36,6 +36,7 @@ use "pattern.ML";
 use "unify.ML";
 use "net.ML";
 use "logic.ML";
+use "defs.ML";
 use "theory.ML";
 use "theory_data.ML";
 use "context.ML";

@@ -150,6 +150,7 @@ sig
   val add_term_classes: term * class list -> class list
   val add_term_consts: term * string list -> string list
   val term_consts: term -> string list
+  val term_constsT: term -> (string * typ) list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
   val add_term_free_names: term * string list -> string list
@@ -784,8 +785,6 @@ fun invent_names _ _ 0 = []
         else a :: invent_names used b (n - 1)
       end;
 
-
-
 (** Consts etc. **)
 
 fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes cs Ts
@@ -803,7 +802,14 @@ fun add_term_consts (Const (c, _), cs) = c ins_string cs
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
 
+fun add_term_constsT (Const c, cs) = c::cs
+  | add_term_constsT (t $ u, cs) = add_term_constsT (t, add_term_constsT (u, cs))
+  | add_term_constsT (Abs (_, _, t), cs) = add_term_constsT (t, cs)
+  | add_term_constsT (_, cs) = cs;
+
 fun term_consts t = add_term_consts(t,[]);
+
+fun term_constsT t = add_term_constsT(t,[]);
 
 fun exists_Const P t = let
         fun ex (Const c      ) = P c

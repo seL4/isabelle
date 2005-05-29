@@ -11,7 +11,7 @@ sig
   exception THEORY of string * theory list
   val rep_theory: theory ->
     {sign: Sign.sg,
-      const_deps: unit Graph.T,
+      const_deps: Defs.graph,
       final_consts: typ list Symtab.table,
       axioms: term Symtab.table,
       oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
@@ -121,12 +121,10 @@ struct
 
 (** datatype theory **)
 
-(*Note: dependencies are only tracked for non-overloaded constant definitions*)
-
 datatype theory =
   Theory of {
     sign: Sign.sg,
-    const_deps: unit Graph.T,
+    const_deps: Defs.graph,
     final_consts: typ list Symtab.table,
     axioms: term Symtab.table,
     oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
@@ -163,7 +161,7 @@ fun assert_super thy1 thy2 =
 
 (*partial Pure theory*)
 val pre_pure =
-  make_theory Sign.pre_pure Graph.empty Symtab.empty Symtab.empty Symtab.empty [] [];
+  make_theory Sign.pre_pure Defs.empty Symtab.empty Symtab.empty Symtab.empty [] [];
 
 
 
@@ -317,7 +315,7 @@ fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
 
 (* clash_types, clash_consts *)
 
-(*check if types have common instance (ignoring sorts)*)
+(*check if types have common instance (ignoring sorts)
 
 fun clash_types ty1 ty2 =
   let
@@ -327,9 +325,9 @@ fun clash_types ty1 ty2 =
 
 fun clash_consts (c1, ty1) (c2, ty2) =
   c1 = c2 andalso clash_types ty1 ty2;
+*)
 
-
-(* clash_defns *)
+(* clash_defns 
 
 fun clash_defn c_ty (name, tm) =
   let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals (Logic.strip_imp_concl tm)))) in
@@ -338,6 +336,7 @@ fun clash_defn c_ty (name, tm) =
 
 fun clash_defns c_ty axms =
   distinct (List.mapPartial (clash_defn c_ty) axms);
+*)
 
 
 (* overloading *)
@@ -395,15 +394,22 @@ fun err_in_defn sg name msg =
   (error_msg msg;
     error ("The error(s) above occurred in definition " ^ quote (Sign.full_name sg name)));
 
-fun cycle_msg namess = "Cyclic dependency of constants:\n" ^
-  cat_lines (map (space_implode " -> " o map quote o rev) namess);
+fun pretty_const sg (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
 
-fun add_deps (c, cs) deps =
-  let fun declare (G, x) = Graph.new_node (x, ()) G handle Graph.DUP _ => G
-  in Library.foldl declare (deps, c :: cs) |> Graph.add_deps_acyclic (c, cs) end;
+fun cycle_msg sg namess = Pretty.string_of (Pretty.block (((Pretty.str "cyclic dependency found: ") :: Pretty.fbrk :: (
+  let      
+      fun f last (ty, constname, defname) =  
+	  (pretty_const sg (constname, ty)) @ (if last then [] else [Pretty.str (" depends via "^ quote defname^ " on ")])
+          	
+  in
+      foldr (fn (x,r) => (f (r=[]) x)@[Pretty.fbrk]@r) [] namess
+  end))))
 
 fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
   let
+    
+    val name = Sign.full_name sg name
+      
     fun is_final (c, ty) =
       case Symtab.lookup(final_consts,c) of
         SOME [] => true
@@ -422,35 +428,43 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
 
     val (c_ty as (c, ty), rhs) = dest_defn tm
       handle TERM (msg, _) => err_in_defn sg name msg;
-    val c_decl =
-      (case Sign.const_type sg c of SOME T => T
-      | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
 
-    val clashed = clash_defns c_ty axms;
+    fun decl deps c = 
+	(case Sign.const_type sg c of 
+	     SOME T => (Defs.declare deps c T handle _ => deps, T)
+	   | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
+
+    val (deps, c_decl) = decl deps c
+
+    val body = Term.term_constsT rhs
+    val deps = foldl (fn ((c, _), deps) => fst (decl deps c)) deps body
+
   in
-    if not (null clashed) then
-      err_in_defn sg name (Pretty.string_of (Pretty.chunks
-        (def_txt (c_ty, " clashes with") :: map (show_defn c) clashed)))
-    else if is_final c_ty then
+    if is_final c_ty then
       err_in_defn sg name (Pretty.string_of (Pretty.block
         ([Pretty.str "The constant",Pretty.brk 1] @
 	 pretty_const c_ty @
 	 [Pretty.brk 1,Pretty.str "has been declared final"])))
     else
       (case overloading sg c_decl ty of
-        NoOverloading =>
-          (add_deps (c, Term.term_consts rhs) deps
-              handle Graph.CYCLES namess => err_in_defn sg name (cycle_msg namess),
-            def :: axms)
-      | Useless =>
+	 Useless =>
            err_in_defn sg name (Pretty.string_of (Pretty.chunks
-             [Library.setmp show_sorts true def_txt (c_ty, ""), Pretty.str
-                 "imposes additional sort constraints on the declared type of the constant"]))
-      | Plain =>
-         (if not overloaded then warning (Pretty.string_of (Pretty.chunks
-           [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see "
-               ^ quote (Sign.full_name sg name) ^ ")")]))
-         else (); (deps, def :: axms)))
+	   [Library.setmp show_sorts true def_txt (c_ty, ""), Pretty.str
+              "imposes additional sort constraints on the declared type of the constant"]))   
+       | ov =>
+	 let 
+	     val deps' = Defs.define deps c ty name body
+		 handle Defs.DEFS s => err_in_defn sg name ("DEFS: "^s) 
+		      | Defs.CIRCULAR s => err_in_defn sg name (cycle_msg sg s)
+                      | Defs.CLASH (_, def1, def2) => err_in_defn sg name (
+			  "clashing definitions "^ quote def1 ^" and "^ quote def2)
+	 in
+	     ((if ov = Plain andalso not overloaded then
+		   warning (Pretty.string_of (Pretty.chunks
+		     [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see " ^ quote name ^ ")")]))
+	       else
+		   ()); (deps', def::axms))
+	 end)
   end;
 
 
@@ -550,8 +564,8 @@ fun prep_ext_merge thys =
     val sign' = Sign.prep_ext_merge (map sign_of thys)
 
     val depss = map (#const_deps o rep_theory) thys;
-    val deps' = Library.foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
-      handle Graph.CYCLES namess => error (cycle_msg namess);
+    val deps' = foldl (uncurry Defs.merge) (hd depss) (tl depss)
+      handle Defs.CIRCULAR namess => error (cycle_msg sign' namess);
 
     val final_constss = map (#final_consts o rep_theory) thys;
     val final_consts' =
