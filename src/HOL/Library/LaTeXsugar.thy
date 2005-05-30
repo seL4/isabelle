@@ -20,6 +20,12 @@ syntax (latex output)
   "_case_syntax":: "['a, cases_syn] => 'b"
   ("(\<^raw:\textsf{>case\<^raw:}> _ \<^raw:\textsf{>of\<^raw:}>/ _)" 10)
 
+(* should become standard syntax once x-symbols supports it *)
+syntax (latex)
+  nexists :: "('a => bool) => bool"           (binder "\<nexists>" 10)
+translations
+  "\<nexists>x. P" <= "\<not>(\<exists>x. P)"
+
 (* SETS *)
 
 (* empty set *)
