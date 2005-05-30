@@ -96,7 +96,7 @@ New in this Isabelle release
   dest select theorems that match the current goal, name:s selects
   theorems whose fully qualified name contain s, and simp:term selects
   all simplification rules whose lhs match term.  Any other term is 
-  interpreted as pattern and selects all theorem matching the
+  interpreted as pattern and selects all theorems matching the
   pattern. Available in ProofGeneral under 'ProofGeneral -> Find
   Theorems' or C-c C-f.
 
