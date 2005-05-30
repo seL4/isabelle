@@ -396,14 +396,18 @@ fun err_in_defn sg name msg =
 
 fun pretty_const sg (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
 
-fun cycle_msg sg namess = Pretty.string_of (Pretty.block (((Pretty.str "cyclic dependency found: ") :: Pretty.fbrk :: (
-  let      
-      fun f last (ty, constname, defname) =  
-	  (pretty_const sg (constname, ty)) @ (if last then [] else [Pretty.str (" depends via "^ quote defname^ " on ")])
-          	
+fun cycle_msg sg (infinite, namess) = 
+  let val header = if not (infinite) then "cyclic dependency found: " else "infinite chain found: "
   in
-      foldr (fn (x,r) => (f (r=[]) x)@[Pretty.fbrk]@r) [] namess
-  end))))
+      Pretty.string_of (Pretty.block (((Pretty.str header) :: Pretty.fbrk :: (
+        let      
+	    fun f last (ty, constname, defname) =  
+		(pretty_const sg (constname, ty)) @ (if last then [] else [Pretty.str (" depends via "^ quote defname^ " on ")])
+          	
+	in
+	    foldr (fn (x,r) => (f (r=[]) x)@[Pretty.fbrk]@r) [] namess
+	end))))
+  end
 
 fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
   let
@@ -455,7 +459,8 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
 	 let 
 	     val deps' = Defs.define deps c ty name body
 		 handle Defs.DEFS s => err_in_defn sg name ("DEFS: "^s) 
-		      | Defs.CIRCULAR s => err_in_defn sg name (cycle_msg sg s)
+		      | Defs.CIRCULAR s => err_in_defn sg name (cycle_msg sg (false, s))
+                      | Defs.INFINITE_CHAIN s => err_in_defn sg name (cycle_msg sg (true, s)) 
                       | Defs.CLASH (_, def1, def2) => err_in_defn sg name (
 			  "clashing definitions "^ quote def1 ^" and "^ quote def2)
 	 in
@@ -565,7 +570,8 @@ fun prep_ext_merge thys =
 
     val depss = map (#const_deps o rep_theory) thys;
     val deps' = foldl (uncurry Defs.merge) (hd depss) (tl depss)
-      handle Defs.CIRCULAR namess => error (cycle_msg sign' namess);
+      handle Defs.CIRCULAR namess => error (cycle_msg sign' (false, namess))
+	   | Defs.INFINITE_CHAIN namess => error (cycle_msg sign' (true, namess))
 
     val final_constss = map (#final_consts o rep_theory) thys;
     val final_consts' =

@@ -13,14 +13,15 @@ signature DEFS = sig
 
     exception DEFS of string
     exception CIRCULAR of (typ * string * string) list
+    exception INFINITE_CHAIN of (typ * string * string) list 
     exception CLASH of string * string * string
     
     val empty : graph
     val declare : graph -> string -> typ -> graph  (* exception DEFS *)
-    val define : graph -> string -> typ -> string -> (string * typ) list -> graph (* exception DEFS, CIRCULAR, CLASH *)
+    val define : graph -> string -> typ -> string -> (string * typ) list -> graph (* exception DEFS, CIRCULAR, INFINITE_CHAIN, CLASH *)
 
     (* the first argument should be the smaller graph *)
-    val merge : graph -> graph -> graph (* exception CIRCULAR, CLASH *)
+    val merge : graph -> graph -> graph (* exception CIRCULAR, INFINITE_CHAIN, CLASH *)
 
 end
 
@@ -70,6 +71,7 @@ val empty = ([], Symtab.empty)
 
 exception DEFS of string;
 exception CIRCULAR of (typ * string * string) list;
+exception INFINITE_CHAIN of (typ * string * string) list;
 exception CLASH of string * string * string;
 
 fun def_err s = raise (DEFS s)
@@ -390,7 +392,13 @@ fun define (actions, graph) name ty axname body =
 				    val _ = 
 					if noderef = mainref andalso defname = axname then
 					    (case unify alpha' ty' of
-						 NONE => ()
+						 NONE => 
+						   if (is_instance_r ty' alpha') then
+						       raise (INFINITE_CHAIN (
+							      (alpha', mainref, axname)::
+							      (subst_history s_beta history)@
+							      [(ty', mainref, axname)]))
+						   else ()
 					       | SOME s => raise (CIRCULAR (
 								  (subst s alpha', mainref, axname)::
 								  (subst_history s (subst_history s_beta history))@
