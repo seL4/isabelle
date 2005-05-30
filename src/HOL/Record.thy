@@ -1,6 +1,6 @@
 (*  Title:      HOL/Record.thy
     ID:         $Id$
-    Author:     Wolfgang Naraschewski, Norbert Schirmer  and Markus Wenzel, TU Muenchen
+    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 *)
 
 theory Record
@@ -58,8 +58,8 @@ syntax (xsymbols)
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
 
-use "Tools/record_package.ML";
-setup RecordPackage.setup;
+use "Tools/record_package.ML"
+setup RecordPackage.setup
 
 end
 
