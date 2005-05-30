@@ -91,12 +91,14 @@ New in this Isabelle release
 
 * Pure: new version of thms_containing that searches for a list of
   criteria instead of a list of constants. Known criteria are: intro,
-  elim, dest, name:string, and any term. Criteria can be preceded by
-  '-' to select theorems that do not match. Intro, elim, dest select
-  theorems that match the current goal, name:s selects theorems whose
-  fully qualified name contain s.  Any other term is interpreted as
-  pattern and selects all theorem matching the pattern. Available in
-  ProofGeneral under ProofGeneral -> Find Theorems or C-c C-f.
+  elim, dest, name:string, simp:term, and any term. Criteria can be 
+  preceded by '-' to select theorems that do not match. Intro, elim, 
+  dest select theorems that match the current goal, name:s selects
+  theorems whose fully qualified name contain s, and simp:term selects
+  all simplification rules whose lhs match term.  Any other term is 
+  interpreted as pattern and selects all theorem matching the
+  pattern. Available in ProofGeneral under 'ProofGeneral -> Find
+  Theorems' or C-c C-f.
 
   Example: C-c C-f (100) "(_::nat) + _ + _" intro -name:"HOL."
 
