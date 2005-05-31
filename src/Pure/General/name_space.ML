@@ -2,39 +2,56 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Hierarchically structured name spaces.
-
-More general than ML-like nested structures, but also slightly more
-ad-hoc.  Does not support absolute addressing.  Unknown names are
-implicitely considered to be declared outermost.
+Generic name spaces with declared and hidden entries.  Unknown names
+are considered as global; no support for absolute addressing.
 *)
+
+type bstring = string;    (*names to be bound / internalized*)
+type xstring = string;    (*externalized names / to be printed*)
+
+signature BASIC_NAME_SPACE =
+sig
+  val long_names: bool ref
+  val short_names: bool ref
+  val unique_names: bool ref
+end;
 
 signature NAME_SPACE =
 sig
-  val separator: string                 (*single char*)
+  include BASIC_NAME_SPACE
   val hidden: string -> string
-  val append: string -> string -> string
-  val unpack: string -> string list
-  val pack: string list -> string
-  val base: string -> string
-  val map_base: (string -> string) -> string -> string
+  val separator: string                 (*single char*)
   val is_qualified: string -> bool
+  val pack: string list -> string
+  val unpack: string -> string list
+  val append: string -> string -> string
+  val qualified: string -> string -> string
+  val base: string -> string
+  val drop_base: string -> string
+  val map_base: (string -> string) -> string -> string
+  val suffixes_prefixes: 'a list -> 'a list list
   val accesses: string -> string list
   val accesses': string -> string list
   type T
   val empty: T
-  val extend: T * string list -> T
-  val extend': (string -> string list) -> T * string list -> T
+  val valid_accesses: T -> string -> xstring list
+  val intern: T -> xstring -> string
+  val extern: T -> string -> xstring
+  val extern_table: T -> 'a Symtab.table -> (xstring * 'a) list
+  val hide: bool -> string -> T -> T
   val merge: T * T -> T
-  val hide: bool -> T * string list -> T
-  val intern: T -> string -> string
-  val extern: T -> string -> string
-  val long_names: bool ref
-  val short_names: bool ref
-  val unique_names: bool ref
-  val cond_extern: T -> string -> string
-  val cond_extern_table: T -> 'a Symtab.table -> (string * 'a) list
-  val dest: T -> (string * string list) list
+  val dest: T -> (string * xstring list) list
+  type naming
+  val path_of: naming -> string
+  val full: naming -> bstring -> string
+  val declare: naming -> string -> T -> T
+  val default_naming: naming
+  val add_path: string -> naming -> naming
+  val qualified_names: naming -> naming
+  val no_base_names: naming -> naming
+  val custom_accesses: (string list -> string list list) -> naming -> naming
+  val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
+    naming -> naming
 end;
 
 structure NameSpace: NAME_SPACE =
@@ -42,51 +59,47 @@ struct
 
 (** long identifiers **)
 
-val separator = ".";
 fun hidden name = "??." ^ name;
-fun is_hidden name = (case explode name of "?" :: "?" :: "." :: _ => true | _ => false);
+val is_hidden = String.isPrefix "??."
 
-fun append name1 name2 = name1 ^ separator ^ name2;
+val separator = ".";
+val is_qualified = exists_string (equal separator);
 
-val unpack = space_explode separator;
 val pack = space_implode separator;
+val unpack = space_explode separator;
 
-val base = List.last o unpack;
+fun append name1 "" = name1
+  | append "" name2 = name2
+  | append name1 name2 = name1 ^ separator ^ name2;
 
-fun map_base f name =
-  let val uname = unpack name
-  in pack (map_nth_elem (length uname - 1) f uname) end;
+fun qualified path name =
+  if path = "" orelse name = "" then name
+  else path ^ separator ^ name;
 
-fun is_qualified name = length (unpack name) > 1;
+fun base "" = ""
+  | base name = List.last (unpack name);
 
-fun accesses name =
+fun drop_base "" = ""
+  | drop_base name = pack (#1 (split_last (unpack name)));
+
+fun map_base _ "" = ""
+  | map_base f name =
+      let val names = unpack name
+      in pack (map_nth_elem (length names - 1) f names) end;
+
+fun suffixes_prefixes xs =
   let
-    val uname = unpack name;
-    val (q, b) = split_last uname;
-    val sfxs = Library.suffixes1 uname;
-    val pfxs = map (fn x => x @ [b]) (Library.prefixes1 q);
-  in map pack (sfxs @ pfxs) end;
+    val (qs, b) = split_last xs;
+    val sfxs = Library.suffixes1 xs;
+    val pfxs = map (fn x => x @ [b]) (Library.prefixes1 qs);
+  in sfxs @ pfxs end;
 
+val accesses = map pack o suffixes_prefixes o unpack;
 val accesses' = map pack o Library.suffixes1 o unpack;
 
 
 
 (** name spaces **)
-
-(* basic operations *)
-
-fun map_space f xname tab =
-  Symtab.update ((xname, f (if_none (Symtab.lookup (tab, xname)) ([], []))), tab);
-
-fun change f xname (name, tab) =
-  map_space (fn (names, names') => (f names name, names')) xname tab;
-
-fun change' f xname (name', tab) =
-  map_space (fn (names, names') => (names, f names' name')) xname tab;
-
-fun del names nm = if nm mem_string names then Library.gen_rem (op =) (names, nm) else names;
-fun add names nm = nm :: del names nm;
-
 
 (* datatype T *)
 
@@ -95,81 +108,79 @@ datatype T =
 
 val empty = NameSpace Symtab.empty;
 
+fun lookup (NameSpace tab) xname =
+  (case Symtab.lookup (tab, xname) of
+    NONE => (xname, true)
+  | SOME ([], []) => (xname, true)
+  | SOME ([name], _) => (name, true)
+  | SOME (name :: _, _) => (name, false)
+  | SOME ([], name' :: _) => (hidden name', true));
 
-(* extend *)            (*later entries preferred*)
-
-fun gen_extend_aux acc (name, tab) =
-  if is_hidden name then
-    error ("Attempt to declare hidden name " ^ quote name)
-  else Library.foldl (fn (tb, xname) => change add xname (name, tb)) (tab, acc name);
-
-fun extend' acc (NameSpace tab, names) =
-  NameSpace (foldr (gen_extend_aux acc) tab names);
-fun extend (NameSpace tab, names) =
-  NameSpace (foldr (gen_extend_aux accesses) tab names);
+fun valid_accesses (NameSpace tab) name =
+  ([], tab) |> Symtab.foldl (fn (accs, (xname, (names, _))) =>
+    if null names orelse hd names <> name then accs else xname :: accs);
 
 
-(* merge *)             (*1st preferred over 2nd*)
+(* intern and extern *)
 
-fun merge_aux (tab, (xname, (names1, names1'))) =
-  map_space (fn (names2, names2') =>
-    (merge_lists' names2 names1, merge_lists' names2' names1')) xname tab;
+fun intern space xname = #1 (lookup space xname);
 
-fun merge (NameSpace tab1, NameSpace tab2) =
-  NameSpace (Symtab.foldl merge_aux (tab2, tab1));
+val long_names = ref false;
+val short_names = ref false;
+val unique_names = ref true;
+
+fun extern space name =
+  let
+    fun valid unique xname =
+      let val (name', uniq) = lookup space xname
+      in name = name' andalso (uniq orelse (not unique)) end;
+
+    fun ex [] = if valid false name then name else hidden name
+      | ex (nm :: nms) = if valid (! unique_names) nm then nm else ex nms;
+  in
+    if ! long_names then name
+    else if ! short_names then base name
+    else ex (accesses' name)
+  end;
+
+fun extern_table space tab =
+  Library.sort_wrt #1 (map (apfst (extern space)) (Symtab.dest tab));
+
+
+(* basic operations *)
+
+fun map_space f xname (NameSpace tab) =
+  NameSpace (Symtab.update ((xname, f (if_none (Symtab.lookup (tab, xname)) ([], []))), tab));
+
+fun del (name: string) = remove (op =) name;
+fun add name names = name :: del name names;
+
+val del_name = map_space o apfst o del;
+val add_name = map_space o apfst o add;
+val add_name' = map_space o apsnd o add;
 
 
 (* hide *)
 
-fun hide_aux fully (name, tab) =
+fun hide fully name space =
   if not (is_qualified name) then
     error ("Attempt to hide global name " ^ quote name)
   else if is_hidden name then
     error ("Attempt to hide hidden name " ^ quote name)
-  else (change' add name (name,
-    Library.foldl (fn (tb, xname) => change del xname (name, tb))
-      (tab, if fully then accesses name else [base name])));
+  else
+    let val names = valid_accesses space name in
+      space
+      |> add_name' name name
+      |> fold (del_name name) (if fully then names else names inter_string [base name])
+    end;
 
-fun hide fully (NameSpace tab, names) = NameSpace (foldr (hide_aux fully) tab names);
 
+(* merge *)
 
-(* intern / extern names *)
-
-fun lookup (NameSpace tab) xname =
-  (case Symtab.lookup (tab, xname) of
-    NONE => (xname, true)
-  | SOME ([name], _) => (name, true)
-  | SOME (name :: _, _) => (name, false)
-  | SOME ([], []) => (xname, true)
-  | SOME ([], name' :: _) => (hidden name', true));
-
-fun intern spc xname = #1 (lookup spc xname);
-
-fun unique_extern mkunique space name =
-  let
-    fun try [] = hidden name
-      | try (nm :: nms) =
-          let val (full_nm, uniq) = lookup space nm
-          in if full_nm = name andalso (uniq orelse (not mkunique)) then nm else try nms end
-  in try (accesses' name) end;
-
-(*output unique names by default*)
-val unique_names = ref true;
-
-(*prune names on output by default*)
-val long_names = ref false;
-
-(*output only base name*)
-val short_names = ref false;
-
-fun extern space name = unique_extern (!unique_names) space name; 
-
-fun cond_extern space =
-  if ! long_names then I
-  else if ! short_names then base else extern space;
-
-fun cond_extern_table space tab =
-  Library.sort_wrt #1 (map (apfst (cond_extern space)) (Symtab.dest tab));
+fun merge (NameSpace tab1, space2) = (space2, tab1) |> Symtab.foldl
+  (fn (space, (xname, (names1, names1'))) =>
+    map_space (fn (names2, names2') =>
+      (merge_lists' names2 names1, merge_lists' names2' names1')) xname space);
 
 
 (* dest *)
@@ -182,7 +193,60 @@ fun dest (NameSpace tab) =
     (Symtab.dest (Symtab.make_multi (List.mapPartial dest_entry (Symtab.dest tab))));
 
 
+
+(** naming contexts **)
+
+(* datatype naming *)
+
+datatype naming = Naming of
+  string * ((string -> string -> string) * (string list -> string list list));
+
+fun path_of (Naming (path, _)) = path;
+
+
+(* declarations *)
+
+fun full (Naming (path, (qualify, _))) = qualify path;
+
+fun declare (Naming (_, (_, accs))) name space =
+  if is_hidden name then
+    error ("Attempt to declare hidden name " ^ quote name)
+  else
+    let val names = unpack name in
+      conditional (null names orelse exists (equal "") names) (fn () =>
+        error ("Bad name declaration " ^ quote name));
+      conditional (exists (not o Symbol.is_ident o Symbol.explode) names) (fn () =>
+        warning ("Declared non-identifier " ^ quote name));
+      fold (add_name name) (map pack (accs names)) space
+    end;
+
+
+(* manipulate namings *)
+
+fun reject_qualified name =
+  if is_qualified name then
+    error ("Attempt to declare qualified name " ^ quote name)
+  else name;
+
+val default_naming =
+  Naming ("", (fn path => qualified path o reject_qualified, suffixes_prefixes));
+
+fun add_path elems (Naming (path, policy)) =
+  if elems = "//" then Naming ("", (qualified, #2 policy))
+  else if elems = "/" then Naming ("", policy)
+  else if elems = ".." then Naming (drop_base path, policy)
+  else Naming (append path elems, policy);
+
+fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
+
+fun no_base_names (Naming (path, (qualify, accs))) =
+  Naming (path, (qualify, filter_out (fn [_] => true | _ => false) o accs));
+
+fun custom_accesses accs (Naming (path, (qualify, _))) = Naming (path, (qualify, accs));
+fun set_policy policy (Naming (path, _)) = Naming (path, policy);
+
+
 end;
 
-
-val long_names = NameSpace.long_names;
+structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
+open BasicNameSpace;
