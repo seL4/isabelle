@@ -39,6 +39,7 @@ sig
   val is_blank: symbol -> bool
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
+  val is_ident: symbol list -> bool
   val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val scan_id: string list -> string * string list
@@ -352,6 +353,9 @@ fun is_blank s = kind s = Blank;
 
 fun is_quasi_letter s = let val k = kind s in k = Letter orelse k = Quasi end;
 fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Quasi end;
+
+fun is_ident [] = false
+  | is_ident (c :: cs) = is_letter c andalso forall is_letdig cs;
 
 
 
