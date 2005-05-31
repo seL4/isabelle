@@ -49,7 +49,8 @@ sig
   val level: state -> int
   type method
   val method: (thm list -> tactic) -> method
-  val method_cases: (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> method
+  val method_cases:
+    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val refine_end: (context -> method) -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
@@ -157,7 +158,7 @@ fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = NONE, ...}) = s ^ (if a = "" then "" else " " ^ a)
   | kind_name sg (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = SOME (name, _), ...}) =
-      s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
+      s ^ " (in " ^ Locale.extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
   | kind_name _ (Have _) = "have";
 
@@ -280,10 +281,10 @@ fun get_goal state =
 
 (*
 (* Jia: added here: get all goals from the state 10/01/05 *)
-fun find_all i (state as State (Node {goal = SOME goal, ...}, node::nodes)) = 
+fun find_all i (state as State (Node {goal = SOME goal, ...}, node::nodes)) =
     let val others = find_all (i+1) (State (node, nodes))
     in
-	(context_of state, (i, goal)) :: others
+        (context_of state, (i, goal)) :: others
     end
   | find_all i (State (Node {goal = NONE, ...}, node :: nodes)) = find_all (i + 1) (State (node, nodes))
   | find_all _ (state as State (_, [])) = [];
@@ -292,10 +293,10 @@ val find_all_goals = find_all 0;
 
 fun find_all_goals_ctxts state =
     let val all_goals = find_all_goals state
-	fun find_ctxt_g [] = []
-	  | find_ctxt_g ((ctxt, (_, ((_, (_, thm)), _)))::others) = (ctxt,thm) :: (find_ctxt_g others)
+        fun find_ctxt_g [] = []
+          | find_ctxt_g ((ctxt, (_, ((_, (_, thm)), _)))::others) = (ctxt,thm) :: (find_ctxt_g others)
     in
-	find_ctxt_g all_goals
+        find_ctxt_g all_goals
     end;
 *)
 
@@ -348,16 +349,16 @@ val atp_hook = ref (fn ctxt_state: ProofContext.context * Thm.thm => ());
 (*Jia Meng: the modified version of enter_forward. *)
 (*Jia Meng: atp: Proof.state -> unit *)
 local
- fun atp state = 
+ fun atp state =
      let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
      in
-	 (!atp_hook) (ctxt,thm)          
+         (!atp_hook) (ctxt,thm)
      end;
-     
+
 in
 
- fun enter_forward state = 
-   if (!call_atp) then 
+ fun enter_forward state =
+   if (!call_atp) then
    ((atp state; enter_forward_aux state)
                            handle (STATE _) => enter_forward_aux state)
        else (enter_forward_aux state);
@@ -415,7 +416,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
         (if mode <> Backward orelse null goal_facts then NONE else SOME goal_facts) @
       [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^ prt_names names ^
           levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
-      pretty_goals_local ctxt begin_goal (true, !show_main_goal) (! Display.goals_limit) thm;
+      pretty_goals_local ctxt begin_goal (true, ! show_main_goal) (! Display.goals_limit) thm;
 
     val ctxt_prts =
       if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
@@ -444,7 +445,7 @@ fun pretty_goals main state =
 (* datatype method *)
 
 datatype method =
-  Method of thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq;
+  Method of thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq;
 
 fun method tac = Method (fn facts => fn st => Seq.map (rpair []) (tac facts st));
 val method_cases = Method;
@@ -454,25 +455,30 @@ val method_cases = Method;
 
 local
 
+fun goalN i = "goal" ^ string_of_int i;
+fun goals st = map goalN (1 upto Thm.nprems_of st);
+
+fun no_goal_cases st = map (rpair NONE) (goals st);
+
+fun goal_cases st =
+  RuleCases.make true NONE (Thm.sign_of_thm st, Thm.prop_of st) (goals st);
+
 fun check_sign sg state =
   if Sign.subsig (sg, sign_of state) then state
   else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
 
-fun mk_goals_cases st =
-  RuleCases.make true NONE (sign_of_thm st, prop_of st)
-    (map (fn i => "goal" ^ string_of_int i) (1 upto nprems_of st));
-
 fun gen_refine current_context meth_fun state =
   let
-    val (goal_ctxt, (_, ((result, (facts, thm)), x))) = find_goal state;
+    val (goal_ctxt, (_, ((result, (facts, st)), x))) = find_goal state;
     val Method meth = meth_fun (if current_context then context_of state else goal_ctxt);
-
-    fun refn (thm', cases) =
+  in
+    meth facts st |> Seq.map (fn (st', meth_cases) =>
       state
-      |> check_sign (Thm.sign_of_thm thm')
-      |> map_goal (ProofContext.add_cases (cases @ mk_goals_cases thm'))
-           (K ((result, (facts, thm')), x));
-  in Seq.map refn (meth facts thm) end;
+      |> check_sign (Thm.sign_of_thm st')
+      |> map_goal
+          (ProofContext.add_cases (no_goal_cases st @ goal_cases st' @ meth_cases))
+          (K ((result, (facts, st')), x)))
+  end;
 
 in
 
@@ -533,8 +539,8 @@ fun prep_result state ts raw_th =
     val ngoals = Thm.nprems_of raw_th;
     val _ =
       if ngoals = 0 then ()
-      else (err (Pretty.string_of (Pretty.chunks (pretty_goals_local ctxt "" (true, !show_main_goal)
-            (! Display.goals_limit) raw_th @
+      else (err (Pretty.string_of (Pretty.chunks
+        (pretty_goals_local ctxt "" (true, !show_main_goal) (! Display.goals_limit) raw_th @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val {hyps, sign, ...} = Thm.rep_thm raw_th;
@@ -705,16 +711,14 @@ fun invoke_case (name, xs, atts) state =
     val (state', (lets, asms)) =
       map_context_result (ProofContext.apply_case (get_case state name xs)) state;
     val assumptions = asms |> map (fn (a, ts) =>
-      ((if a = "" then "" else NameSpace.append name a, atts), map (rpair ([], [])) ts));
-    val qnames = filter_out (equal "") (map (#1 o #1) assumptions);
+      ((NameSpace.qualified name a, atts), map (rpair ([], [])) ts));
   in
     state'
     |> add_binds_i lets
-    |> map_context (ProofContext.qualified true)
+    |> map_context (ProofContext.no_base_names o ProofContext.qualified_names)
     |> assume_i assumptions
-    |> map_context (ProofContext.hide_thms false qnames)
+    |> map_context (ProofContext.restore_naming (context_of state))
     |> (fn st => simple_note_thms name (the_facts st) st)
-    |> map_context (ProofContext.restore_qualified (context_of state))
   end;
 
 
@@ -771,7 +775,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
       RuleCases.make true NONE (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
-      else [(rule_contextN, RuleCases.empty)]))
+      else [(rule_contextN, NONE)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
