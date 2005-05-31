@@ -3,15 +3,19 @@
 
 
 This directory contains the ML source files for Pure Isabelle, which
-is the basis for all object-logics:
+is the basis for all object-logics.  The Isabelle/Pure image may be
+compiled in batch mode like this:
 
-  IsaMakefile	compiles the Pure system (use isatool make)
-  ML-Systems/   compatibility files for various ML systems
-  General/	general tools
-  Syntax/     	the syntax module
-  Thy/          the theory file parser (old format) and loader
-  Isar/		Intelligible Semi-Automated Reasoning subsystem
-  ./		the actual meta logic implementation (see ROOT.ML)
+  isatool make Pure
 
-Isabelle programmers may want to have a look at the generic modules
-Library (see library.ML) and those in General/ (see General/README).
+Developers may want to produce a RAW image that merely consists of the
+ML compiler with the compatibility setup of ML-Systems/ preloaded:
+
+  isatool make RAW
+
+Now the Pure session may be compiled interactively as follows:
+
+  isabelle -u RAW
+
+
+$Id$
