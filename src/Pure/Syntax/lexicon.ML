@@ -72,23 +72,20 @@ struct
 
 (** is_identifier etc. **)
 
-fun is_ident [] = false
-  | is_ident (c :: cs) = Symbol.is_letter c andalso forall Symbol.is_letdig cs;
-
-val is_identifier = is_ident o Symbol.explode;
+val is_identifier = Symbol.is_ident o Symbol.explode;
 
 fun is_ascii_identifier s =
   let val cs = Symbol.explode s
-  in forall Symbol.is_ascii cs andalso is_ident cs end;
+  in forall Symbol.is_ascii cs andalso Symbol.is_ident cs end;
 
 fun is_xid s =
   (case Symbol.explode s of
-    "_" :: cs => is_ident cs
-  | cs => is_ident cs);
+    "_" :: cs => Symbol.is_ident cs
+  | cs => Symbol.is_ident cs);
 
 fun is_tid s =
   (case Symbol.explode s of
-    "'" :: cs => is_ident cs
+    "'" :: cs => Symbol.is_ident cs
   | _ => false);
 
 
