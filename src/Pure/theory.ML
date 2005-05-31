@@ -4,7 +4,6 @@
 
 The abstract type "theory" of theories.
 *)
-
 signature BASIC_THEORY =
 sig
   type theory
@@ -12,7 +11,6 @@ sig
   val rep_theory: theory ->
     {sign: Sign.sg,
       const_deps: Defs.graph,
-      final_consts: typ list Symtab.table,
       axioms: term Symtab.table,
       oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
       parents: theory list,
@@ -131,14 +129,13 @@ datatype theory =
   Theory of {
     sign: Sign.sg,
     const_deps: Defs.graph,
-    final_consts: typ list Symtab.table,
     axioms: term Symtab.table,
     oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
 
-fun make_theory sign const_deps final_consts axioms oracles parents ancestors =
-  Theory {sign = sign, const_deps = const_deps, final_consts = final_consts, axioms = axioms,
+fun make_theory sign const_deps axioms oracles parents ancestors =
+  Theory {sign = sign, const_deps = const_deps, axioms = axioms,
     oracles = oracles,  parents = parents, ancestors = ancestors};
 
 fun rep_theory (Theory args) = args;
@@ -167,7 +164,7 @@ fun assert_super thy1 thy2 =
 
 (*partial Pure theory*)
 val pre_pure =
-  make_theory Sign.pre_pure Defs.empty Symtab.empty Symtab.empty Symtab.empty [] [];
+  make_theory Sign.pre_pure Defs.empty Symtab.empty Symtab.empty [] [];
 
 
 
@@ -186,9 +183,9 @@ fun err_dup_axms names =
 fun err_dup_oras names =
   error ("Duplicate oracles: " ^ commas_quote names);
 
-fun ext_theory thy ext_sg ext_deps new_axms new_oras =
+fun ext_theory thy ext_sg new_axms new_oras =
   let
-    val Theory {sign, const_deps, final_consts, axioms, oracles, parents, ancestors} = thy;
+    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
     val axioms' =
       Symtab.extend (if draft then axioms else Symtab.empty, new_axms)
@@ -199,13 +196,13 @@ fun ext_theory thy ext_sg ext_deps new_axms new_oras =
     val (parents', ancestors') =
       if draft then (parents, ancestors) else ([thy], thy :: ancestors);
   in
-    make_theory (ext_sg sign) (ext_deps const_deps) final_consts axioms' oracles' parents' ancestors'
+    make_theory (ext_sg sign) const_deps axioms' oracles' parents' ancestors'
   end;
 
 
 (* extend signature of a theory *)
 
-fun ext_sign ext_sg args thy = ext_theory thy (ext_sg args) I [] [];
+fun ext_sign ext_sg args thy = ext_theory thy (ext_sg args) [] [];
 
 val add_classes            = ext_sign Sign.add_classes;
 val add_classes_i          = ext_sign Sign.add_classes_i;
@@ -306,7 +303,7 @@ fun ext_axms prep_axm raw_axms (thy as Theory {sign, ...}) =
     val axioms =
       map (apsnd (Term.compress_term o Logic.varify) o prep_axm sign) raw_axms';
     val ext_sg = Sign.add_space (axiomK, map fst axioms);
-  in ext_theory thy ext_sg I axioms [] end;
+  in ext_theory thy ext_sg axioms [] end;
 
 val add_axioms = ext_axms read_axm;
 val add_axioms_i = ext_axms cert_axm;
@@ -318,7 +315,7 @@ fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
   let
     val name = Sign.full_name sign raw_name;
     val ext_sg = Sign.add_space (oracleK, [name]);
-  in ext_theory thy ext_sg I [] [(name, (oracle, stamp ()))] end;
+  in ext_theory thy ext_sg [] [(name, (oracle, stamp ()))] end;
 
 
 
@@ -421,17 +418,11 @@ fun cycle_msg sg (infinite, namess) =
 	end))))
   end
 
-fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
+fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
   let
     
     val name = Sign.full_name sg name
       
-    fun is_final (c, ty) =
-      case Symtab.lookup(final_consts,c) of
-        SOME [] => true
-      | SOME tys => exists (curry (Sign.typ_instance sg) ty) tys
-      | NONE => false;
-
     fun pretty_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
 
@@ -446,9 +437,9 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
       handle TERM (msg, _) => err_in_defn sg name msg;
 
     fun decl deps c = 
-        (case Sign.const_type sg c of 
-             SOME T => (Defs.declare deps c T handle _ => deps, T)
-           | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
+	(case Sign.const_type sg c of 
+	     SOME T => (Defs.declare deps (c, T) handle _ => deps, T)
+	   | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
 
     val (deps, c_decl) = decl deps c
 
@@ -456,12 +447,6 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
     val deps = foldl (fn ((c, _), deps) => fst (decl deps c)) deps body
 
   in
-    if is_final c_ty then
-      err_in_defn sg name (Pretty.string_of (Pretty.block
-        ([Pretty.str "The constant",Pretty.brk 1] @
-         pretty_const c_ty @
-         [Pretty.brk 1,Pretty.str "has been declared final"])))
-    else
       (case overloading sg c_decl ty of
          Useless =>
            err_in_defn sg name (Pretty.string_of (Pretty.chunks
@@ -469,19 +454,24 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
               "imposes additional sort constraints on the declared type of the constant"]))   
        | ov =>
 	 let 
-	     val deps' = Defs.define deps c ty name body
+	     val deps' = Defs.define deps c_ty name body
 		 handle Defs.DEFS s => err_in_defn sg name ("DEFS: "^s) 
 		      | Defs.CIRCULAR s => err_in_defn sg name (cycle_msg sg (false, s))
                       | Defs.INFINITE_CHAIN s => err_in_defn sg name (cycle_msg sg (true, s)) 
                       | Defs.CLASH (_, def1, def2) => err_in_defn sg name (
-                          "clashing definitions "^ quote def1 ^" and "^ quote def2)
-         in
-             ((if ov = Plain andalso not overloaded then
-                   warning (Pretty.string_of (Pretty.chunks
-                     [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see " ^ quote name ^ ")")]))
-               else
-                   ()); (deps', def::axms))
-         end)
+			  "clashing definitions "^ quote def1 ^" and "^ quote def2)
+		      | Defs.FINAL cfinal =>
+			err_in_defn sg name (Pretty.string_of (Pretty.block
+			  ([Pretty.str "The constant",Pretty.brk 1] @
+			   pretty_const cfinal @
+			   [Pretty.brk 1,Pretty.str "has been declared final"]))) 
+	 in
+	     ((if ov = Plain andalso not overloaded then
+		   warning (Pretty.string_of (Pretty.chunks
+		     [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see " ^ quote name ^ ")")]))
+	       else
+		   ()); (deps', def::axms))
+	 end)
   end;
 
 
@@ -489,13 +479,13 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
 
 fun ext_defns prep_axm overloaded raw_axms thy =
   let
-    val Theory {sign, const_deps, final_consts, axioms, oracles, parents, ancestors} = thy;
+    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
     val all_axioms = List.concat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors));
 
     val axms = map (prep_axm sign) raw_axms;
-    val (const_deps', _) = Library.foldl (check_defn sign overloaded final_consts) ((const_deps, all_axioms), axms);
+    val (const_deps', _) = Library.foldl (check_defn sign overloaded) ((const_deps, all_axioms), axms);
   in
-    make_theory sign const_deps' final_consts axioms oracles parents ancestors
+    make_theory sign const_deps' axioms oracles parents ancestors
     |> add_axioms_i axms
   end;
 
@@ -507,39 +497,29 @@ val add_defs = ext_defns read_axm;
 
 fun ext_finals prep_term overloaded raw_terms thy =
   let
-    val Theory {sign, const_deps, final_consts, axioms, oracles, parents, ancestors} = thy;
-    fun mk_final (finals,tm) =
-      let
-        fun err msg = raise TERM(msg,[tm]);
-        val (c,ty) = dest_Const tm
-          handle TERM _ => err "Can only make constants final";
-        val c_decl =
-          (case Sign.const_type sign c of SOME T => T
-          | NONE => err ("Undeclared constant " ^ quote c));
-        val simple =
-          case overloading sign c_decl ty of
-            NoOverloading => true
-          | Useless => err "Sort restrictions too strong"
-          | Plain => if overloaded then false
-                     else err "Type is more general than declared";
-        val typ_instance = Sign.typ_instance sign;
-      in
-        if simple then
-          (case Symtab.lookup(finals,c) of
-            SOME [] => err "Constant already final"
-          | _ => Symtab.update((c,[]),finals))
-        else
-          (case Symtab.lookup(finals,c) of
-            SOME [] => err "Constant already completely final"
-          | SOME tys => if exists (curry typ_instance ty) tys
-                        then err "Instance of constant is already final"
-                        else Symtab.update((c,ty::gen_rem typ_instance (tys,ty)),finals)
-          | NONE => Symtab.update((c,[ty]),finals))
-      end;
+    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
+    fun mk_final (tm, finals) =
+	let
+            fun err msg = raise TERM(msg,[tm])
+            val (c,ty) = dest_Const tm
+		handle TERM _ => err "Can only make constants final"
+            val c_decl =
+		(case Sign.const_type sign c of 
+		     SOME T => T
+		   | NONE => err ("Undeclared constant " ^ quote c))
+	    val _ =
+		case overloading sign c_decl ty of
+		    NoOverloading => ()
+		  | Useless => err "Sort restrictions too strong"
+		  | Plain => (if overloaded then () else warning "Type is more general than declared")
+	    val finals = Defs.declare finals (c, c_decl) handle _ => finals
+	in
+	    Defs.finalize finals (c,ty)
+	end
     val consts = map (prep_term sign) raw_terms;
-    val final_consts' = Library.foldl mk_final (final_consts,consts);
+    val const_deps' = foldl mk_final const_deps consts;
   in
-    make_theory sign const_deps final_consts' axioms oracles parents ancestors
+    make_theory sign const_deps' axioms oracles parents ancestors
   end;
 
 local
@@ -585,9 +565,6 @@ fun prep_ext_merge thys =
       handle Defs.CIRCULAR namess => error (cycle_msg sign' (false, namess))
 	   | Defs.INFINITE_CHAIN namess => error (cycle_msg sign' (true, namess))
 
-    val final_constss = map (#final_consts o rep_theory) thys;
-    val final_consts' =
-      Library.foldl (Symtab.join (merge_final sign')) (hd final_constss, tl final_constss);
     val axioms' = Symtab.empty;
 
     fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
@@ -600,7 +577,7 @@ fun prep_ext_merge thys =
     val ancestors' =
       gen_distinct eq_thy (parents' @ List.concat (map ancestors_of thys));
   in
-    make_theory sign' deps' final_consts' axioms' oracles' parents' ancestors'
+    make_theory sign' deps' axioms' oracles' parents' ancestors'
   end;
 
 

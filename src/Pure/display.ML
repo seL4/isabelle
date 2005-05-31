@@ -223,7 +223,7 @@ fun pretty_full_theory thy =
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
 
-    val {sign = _, const_deps = _, final_consts, axioms, oracles,
+    val {sign = _, const_deps = const_deps,  axioms, oracles,
       parents = _, ancestors = _} = Theory.rep_theory thy;
     val {self = _, tsig, consts, naming, spaces, data} = Sign.rep_sg sg;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
@@ -232,7 +232,7 @@ fun pretty_full_theory thy =
     val tdecls = Symtab.dest types |> map (fn (t, (d, _)) =>
       (Sign.extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
     val cnsts = Sign.extern_table sg Sign.constK consts;
-    val finals = Sign.extern_table sg Sign.constK final_consts;
+    val finals = Sign.extern_table sg Sign.constK (Defs.finals const_deps)
     val axms = Sign.extern_table sg Theory.axiomK axioms;
     val oras = Sign.extern_table sg Theory.oracleK oracles;
   in

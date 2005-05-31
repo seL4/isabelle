@@ -14,11 +14,17 @@ signature DEFS = sig
     exception DEFS of string
     exception CIRCULAR of (typ * string * string) list
     exception INFINITE_CHAIN of (typ * string * string) list 
+    exception FINAL of string * typ
     exception CLASH of string * string * string
     
     val empty : graph
-    val declare : graph -> string -> typ -> graph  (* exception DEFS *)
-    val define : graph -> string -> typ -> string -> (string * typ) list -> graph (* exception DEFS, CIRCULAR, INFINITE_CHAIN, CLASH *)
+    val declare : graph -> string * typ -> graph  (* exception DEFS *)
+    val define : graph -> string * typ -> string -> (string * typ) list -> graph 
+      (* exception DEFS, CIRCULAR, INFINITE_CHAIN, CLASH, FINAL *)
+    
+    val finalize : graph -> string * typ -> graph (* exception DEFS *)
+
+    val finals : graph -> (typ list) Symtab.table
 
     (* the first argument should be the smaller graph *)
     val merge : graph -> graph -> graph (* exception CIRCULAR, INFINITE_CHAIN, CLASH *)
@@ -37,33 +43,26 @@ datatype node = Node of
      * defnode Symtab.table  (* a table of defnodes, each corresponding to 1 definition of the constant for a particular type, 
                              indexed by axiom name *)
      * backref Symtab.table (* a table of all back references to this node, indexed by node name *)
+     * typ list (* a list of all finalized types *)
      
 and defnode = Defnode of
        typ  (* type of the constant in this particular definition *)
      * ((noderef * (string option * edgelabel list) list) Symtab.table) (* The edges, grouped by nodes. *)
 
 and backref = Backref of
-       noderef  (* a reference to the node that has defnodes which reference a certain node A *)
+       noderef  (* the name of the node that has defnodes which reference a certain node A *)
      * (unit Symtab.table) (* the names of the defnodes that DIRECTLY reference A. *)
 
 fun getnode graph noderef = the (Symtab.lookup (graph, noderef))
-fun get_nodename (Node (n, _, _ ,_)) = n
-fun get_nodedefs (Node (_, _, defs, _)) = defs
-fun get_defnode (Node (_, _, defs, _)) defname = Symtab.lookup (defs, defname)
+fun get_nodename (Node (n, _, _ ,_, _)) = n
+fun get_nodedefs (Node (_, _, defs, _, _)) = defs
+fun get_defnode (Node (_, _, defs, _, _)) defname = Symtab.lookup (defs, defname)
 fun get_defnode' graph noderef defname = Symtab.lookup (get_nodedefs (the (Symtab.lookup (graph, noderef))), defname)
-fun get_nodename (Node (n, _, _ ,_)) = n
+fun get_nodename (Node (n, _, _ , _, _)) = n
 
-
-(*fun t2list t = rev (Symtab.foldl (fn (l, d) => d::l) ([], t))
-fun tmap f t = map (fn (a,b) => (a, f b)) t
-fun defnode2data (Defnode (typ, table)) = ("Defnode", typ, t2list table)
-fun backref2data (Backref (noderef, table)) = ("Backref", noderef, map fst (t2list table))
-fun node2data (Node (s, t, defs, backs)) = ("Node", ("nodename", s), ("nodetyp", t), 
-					    ("defs", tmap defnode2data (t2list defs)), ("backs", tmap backref2data (t2list backs)))
-fun graph2data g = ("Graph", tmap node2data (t2list g))
-*)
-
-datatype graphaction = Declare of string * typ | Define of string * typ * string * (string * typ) list
+datatype graphaction = Declare of string * typ 
+		     | Define of string * typ * string * (string * typ) list
+		     | Finalize of string * typ
 
 type graph = (graphaction list) * (node Symtab.table)
 
@@ -73,13 +72,14 @@ exception DEFS of string;
 exception CIRCULAR of (typ * string * string) list;
 exception INFINITE_CHAIN of (typ * string * string) list;
 exception CLASH of string * string * string;
+exception FINAL of string * typ;
 
 fun def_err s = raise (DEFS s)
 
-fun declare (actions, g) name ty =
-    ((Declare (name, ty))::actions, 
-     Symtab.update_new ((name, Node (name, Type.varifyT(Type.strip_sorts ty), Symtab.empty, Symtab.empty)), g))
-    handle Symtab.DUP _ => def_err "declare: constant is already defined"
+fun declare (actions, g) (cty as (name, ty)) =
+    ((Declare cty)::actions, 
+     Symtab.update_new ((name, Node (name, Type.varifyT(Type.strip_sorts ty), Symtab.empty, Symtab.empty, [])), g))
+    handle Symtab.DUP _ => def_err "constant is already declared"
 
 fun rename ty1 ty2 = incr_tvar ((maxidx_of_typ ty1)+1) ty2;  
 
@@ -216,7 +216,7 @@ fun defnode_edges_foldl f a defnode =
 	Symtab.foldl g (a, def_edges)
     end	
 
-fun define (actions, graph) name ty axname body =
+fun define (actions, graph) (name, ty) axname body =
     let
 	val ty = checkT ty
 	val body = map (fn (n,t) => (n, checkT t)) body		 
@@ -224,15 +224,22 @@ fun define (actions, graph) name ty axname body =
 	val mainnode  = (case Symtab.lookup (graph, mainref) of 
 			     NONE => def_err ("constant "^(quote mainref)^" is not declared")
 			   | SOME n => n)
-	val (Node (n, gty, defs, backs)) = mainnode
+	val (Node (n, gty, defs, backs, finals)) = mainnode
 	val _ = (if is_instance_r ty gty then () else def_err "type of constant does not match declared type")
 	fun check_def (s, Defnode (ty', _)) = 
 	    (if can_be_unified_r ty ty' then 
 		 raise (CLASH (mainref, axname, s))
 	     else if s = axname then
 	         def_err "name of axiom is already used for another definition of this constant"
-	     else true)
+	     else true)	
 	val _ = forall_table check_def defs		
+	fun check_final finalty = 
+	    (if can_be_unified_r finalty ty then
+		 raise (FINAL (mainref, finalty))
+	     else
+		 true)
+	val _ = forall check_final finals
+	
 	(* now we know that the only thing that can prevent acceptance of the definition is a cyclic dependency *)
 
 	(* body contains the constants that this constant definition depends on. For each element of body,
@@ -244,7 +251,7 @@ fun define (actions, graph) name ty axname body =
 		    (case Symtab.lookup (graph, bodyn) of 
 			 NONE => def_err "body of constant definition references undeclared constant"
 		       | SOME x => x)
-		val (Node (_, general_btyp, bdefs, bbacks)) = bnode
+		val (Node (_, general_btyp, bdefs, bbacks, bfinals)) = bnode
 	    in
 		case unify_r 0 bodyty general_btyp of
 		    NONE => NONE
@@ -260,13 +267,13 @@ fun define (actions, graph) name ty axname body =
 			      (case unify_r 0 bodyty def_ty of
 				   NONE => (swallowed, l)
 				 | SOME (maxidx, sigma1, sigma2) => 
-				   (is_instance bodyty def_ty,
+				   (is_instance_r bodyty def_ty,
 				    merge_labelled_edges l [(SOME def_name,[(maxidx, subst sigma1 ty, subst sigma2 def_ty, [])])]))
           	      val (swallowed, edges) = Symtab.foldl make_edges ((false, []), bdefs)
 		    in
-			if swallowed then 
+			if swallowed orelse (exists (is_instance_r bodyty) bfinals) then 
 			    (bodyn, edges)
-			else
+			else 
 			    (bodyn, [(NONE, [(maxidx, subst sigma1 ty, subst sigma2 general_btyp,[])])]@edges)
 		    end)
 	    end 
@@ -339,8 +346,8 @@ fun define (actions, graph) name ty axname body =
 	
 	fun install_backref graph noderef pointingnoderef pointingdefname = 
 	    let
-		val (Node (pname, _, _, _)) = getnode graph pointingnoderef
-		val (Node (name, ty, defs, backs)) = getnode graph noderef
+		val (Node (pname, _, _, _, _)) = getnode graph pointingnoderef
+		val (Node (name, ty, defs, backs, finals)) = getnode graph noderef
 	    in
 		case Symtab.lookup (backs, pname) of
 		    NONE => 
@@ -348,14 +355,14 @@ fun define (actions, graph) name ty axname body =
 			val defnames = Symtab.update ((pointingdefname, ()), Symtab.empty)
 			val backs = Symtab.update ((pname, Backref (pointingnoderef, defnames)), backs)
 		    in
-			Symtab.update ((name, Node (name, ty, defs, backs)), graph) 			
+			Symtab.update ((name, Node (name, ty, defs, backs, finals)), graph) 			
 		    end
 		  | SOME (Backref (pointingnoderef, defnames)) =>
 		    let
 			val defnames = Symtab.update_new ((pointingdefname, ()), defnames)
 			val backs = Symtab.update ((pname, Backref (pointingnoderef, defnames)), backs)
 		    in
-			Symtab.update ((name, Node (name, ty, defs, backs)), graph)
+			Symtab.update ((name, Node (name, ty, defs, backs, finals)), graph)
 		    end
 		    handle Symtab.DUP _ => graph
 	    end
@@ -368,8 +375,9 @@ fun define (actions, graph) name ty axname body =
 
         val graph = Symtab.foldl install_backrefs (graph, edges)
 
-        val (Node (_, _, _, backs)) = getnode graph mainref
-	val graph = Symtab.update ((mainref, Node (n, gty, Symtab.update_new ((axname, thisDefnode), defs), backs)), graph)
+        val (Node (_, _, _, backs, _)) = getnode graph mainref
+	val graph = Symtab.update ((mainref, Node (n, gty, Symtab.update_new 
+          ((axname, thisDefnode), defs), backs, finals)), graph)
 		    
 	(* Now we have to check all backreferences to this node and inform them about the new defnode. 
 	   In this section we also check for circularity. *)
@@ -420,7 +428,7 @@ fun define (actions, graph) name ty axname body =
 			    in
 				(defnames, (defname, none_edges, this_edges)::newedges)
 			    end			    
-			  | _ => def_err "update_defs, internal error, corrupt backrefs"
+			  | _ => sys_error "define: update_defs, internal error, corrupt backrefs"
 		    end
 		    
 		val (defnames, newedges') = Symtab.foldl update_defs ((Symtab.empty, []), defnames)
@@ -440,13 +448,14 @@ fun define (actions, graph) name ty axname body =
 						 
 	(* If a Circular exception is thrown then we never reach this point. *)
         (* Ok, the definition is consistent, let's update this node. *)
-	val graph = Symtab.update ((mainref, Node (n, gty, Symtab.update ((axname, thisDefnode), defs), backs)), graph)
+	val graph = Symtab.update ((mainref, Node (n, gty, Symtab.update 
+	  ((axname, thisDefnode), defs), backs, finals)), graph)
 
         (* Furthermore, update all the other nodes that backreference this node. *)
         fun final_update_backrefs graph noderef defname none_edges this_edges =
 	    let
 		val node = getnode graph noderef
-		val (Node (nodename, nodety, defs, backs)) = node
+		val (Node (nodename, nodety, defs, backs, finals)) = node
 		val (Defnode (defnode_ty, defnode_edges)) = the (get_defnode node defname)
 		val (_, defnode_links) = the (Symtab.lookup (defnode_edges, n))
 
@@ -467,7 +476,7 @@ fun define (actions, graph) name ty axname body =
 		val defnode_edges' = Symtab.update ((n, (mainref, defnode_links')), defnode_edges)
 		val defs' = Symtab.update ((defname, Defnode (defnode_ty, defnode_edges')), defs)
 	    in
-		Symtab.update ((nodename, Node (nodename, nodety, defs', backs)), graph)
+		Symtab.update ((nodename, Node (nodename, nodety, defs', backs, finals)), graph)
 	    end
 
 	val graph = foldl (fn ((noderef, newedges),graph) => foldl (fn ((defname, none_edges, this_edges), graph) =>
@@ -477,17 +486,77 @@ fun define (actions, graph) name ty axname body =
 	((Define (name, ty, axname, body))::actions, graph)	   
     end 
 
+    fun finalize' ((c, ty), graph) = 
+      case Symtab.lookup (graph, c) of 
+	  NONE => def_err ("finalize: constant "^(quote c)^" is not declared")
+	| SOME (Node (noderef, nodety, defs, backs, finals)) =>
+	  let 
+	      val nodety = checkT nodety 
+	  in
+	      if (not (is_instance_r ty nodety)) then
+		  def_err ("finalize: only type instances of the declared constant "^(quote c)^" can be finalized")
+	      else if exists (is_instance_r ty) finals then
+		  graph
+	      else 
+	      let
+	          val finals = ty :: finals
+		  val graph = Symtab.update ((noderef, Node(noderef, nodety, defs, backs, finals)), graph)
+		  fun update_backref ((graph, backs), (backrefname, Backref (_, backdefnames))) =
+		  let
+		      fun update_backdef ((graph, defnames), (backdefname, _)) = 
+	              let 
+			  val (backnode as Node (_, backty, backdefs, backbacks, backfinals)) = getnode graph backrefname
+			  val (Defnode (def_ty, all_edges)) = the (get_defnode backnode backdefname)						      
+			  val (defnames', all_edges') = 
+			      case Symtab.lookup (all_edges, noderef) of
+				  NONE => sys_error "finalize: corrupt backref"
+				| SOME (_, (NONE, edges)::rest) =>
+				  let
+				      val edges' = List.filter (fn (_, _, beta, _) => not (is_instance_r beta ty)) edges
+				  in
+				      if edges' = [] then 
+					  (defnames, Symtab.update ((noderef, (noderef, rest)), all_edges))
+				      else
+					  (Symtab.update ((backdefname, ()), defnames), 
+					   Symtab.update ((noderef, (noderef, (NONE, edges')::rest)), all_edges))
+				  end
+			  val defnode' = Defnode (def_ty, all_edges')
+			  val backnode' = Node (backrefname, backty, Symtab.update ((backdefname, defnode'), backdefs), 
+					   backbacks, backfinals)
+		      in
+			  (Symtab.update ((backrefname, backnode'), graph), defnames')			  			  
+		      end
+	  
+		      val (graph', defnames') = Symtab.foldl update_backdef ((graph, Symtab.empty), backdefnames)
+		  in
+		      (graph', if Symtab.is_empty defnames' then backs 
+			       else Symtab.update ((backrefname, Backref (backrefname, defnames')), backs))
+		  end
+		  val (graph', backs') = Symtab.foldl update_backref ((graph, Symtab.empty), backs)
+		  val Node (_, _, defs, _, _) = getnode graph' noderef
+	      in
+		  Symtab.update ((noderef, Node (noderef, nodety, defs, backs', finals)), graph')
+	      end
+	  end
+	   
+    fun finalize (history, graph) c_ty = ((Finalize c_ty)::history, finalize' (c_ty, graph))
     
-    fun merge' (Declare (name, ty), g) = (declare g name ty handle _ => g)
+    fun merge' (Declare cty, g) = (declare g cty handle _ => g)
       | merge' (Define (name, ty, axname, body), g as (_, graph)) = 
 	(case Symtab.lookup (graph, name) of
-	     NONE => define g name ty axname body
-	   | SOME (Node (_, _, defs, _)) => 
+	     NONE => define g (name, ty) axname body
+	   | SOME (Node (_, _, defs, _, _)) => 
 	     (case Symtab.lookup (defs, axname) of
-		  NONE => define g name ty axname body
+		  NONE => define g (name, ty) axname body
 		| SOME _ => g))
+      | merge' (Finalize finals, g) = (finalize g finals handle _ => g)
 	
     fun merge (actions, _) g = foldr merge' g actions
+
+    fun finals (history, graph) = 
+	Symtab.foldl 
+	    (fn (finals, (_, Node(name, _, _, _, ftys))) => Symtab.update_new ((name, ftys), finals))  
+	    (Symtab.empty, graph)
 
 end;
 		
