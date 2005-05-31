@@ -198,10 +198,8 @@ struct
 
   fun print sg {space, locales, scope} =
     let
-      fun extrn name =
-        if ! long_names then name else NameSpace.extern space name;
-      val locs = map (apfst extrn) (Symtab.dest locales);
-      val scope_names = rev (map (extrn o fst) (! scope));
+      val locs = NameSpace.extern_table space locales;
+      val scope_names = rev (map (NameSpace.extern space o fst) (! scope));
     in
       [Display.pretty_name_space ("locale name space", space),
         Pretty.big_list "locales:" (map (pretty_locale sg) locs),
@@ -225,7 +223,7 @@ val get_locale = get_locale_sg o Theory.sign_of;
 fun put_locale (name, locale) thy =
   let
     val {space, locales, scope} = LocalesData.get thy;
-    val space' = NameSpace.extend (space, [name]);
+    val space' = Sign.declare_name (Theory.sign_of thy) name space;
     val locales' = Symtab.update ((name, locale), locales);
   in thy |> LocalesData.put (make_locale_data space' locales' scope) end;
 
