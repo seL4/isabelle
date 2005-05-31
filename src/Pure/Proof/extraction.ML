@@ -746,9 +746,8 @@ fun extract thms thy =
 
     val defs = Library.foldl (fn (defs, (prf, vs)) =>
       fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
-    val {path, ...} = Sign.rep_sg sg;
 
-    fun add_def ((s, (vs, ((t, u), (prf, _)))), thy) =
+    fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
       (case Sign.const_type (sign_of thy) (extr_name s vs) of
          NONE =>
            let
@@ -768,10 +767,11 @@ fun extract thms thy =
            end
        | SOME _ => thy);
 
-  in thy |>
-    Theory.absolute_path |>
-    curry (Library.foldr add_def) defs |>
-    Theory.add_path (NameSpace.pack (getOpt (path,[])))
+  in
+    thy
+    |> Theory.absolute_path
+    |> fold_rev add_def defs
+    |> Theory.restore_naming thy
   end;
 
 
