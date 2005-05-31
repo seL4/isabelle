@@ -201,8 +201,7 @@ fun declare_skofuns s t thy =
 		val args = term_frees xtp  (*get the formal parameter list*)
 		val Ts = map type_of args
 		val cT = Ts ---> T
-		val c = Const(NameSpace.append (PureThy.get_name thy) cname, cT)
-		        (*Generates a compound constant name in the given theory*)
+		val c = Const (Sign.full_name (Theory.sign_of thy) cname, cT)
 		val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
 		        (*Forms a lambda-abstraction over the formal parameters*)
 		val def = equals cT $ c $ rhs
