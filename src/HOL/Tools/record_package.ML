@@ -287,7 +287,7 @@ struct
             [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
 
       fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (Sign.cond_extern sg Sign.constK c), Pretty.str " ::",
+        [Pretty.str (Sign.extern sg Sign.constK c), Pretty.str " ::",
           Pretty.brk 1, Pretty.quote (prt_typ T)];
 
       fun pretty_record (name, {args, parent, fields, ...}: record_info) =
@@ -1715,11 +1715,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     
     fun parent_more s = 
          if null parents then s 
-         else mk_sel s (NameSpace.append (#name (hd (rev parents))) moreN, extT);
+         else mk_sel s (NameSpace.qualified (#name (List.last parents)) moreN, extT);
 
     fun parent_more_upd v s =
       if null parents then v 
-      else let val mp = (NameSpace.append (#name (hd (rev parents))) moreN);
+      else let val mp = NameSpace.qualified (#name (List.last parents)) moreN;
            in mk_upd updateN mp v s end;
    
     (*record (scheme) type abbreviation*)
