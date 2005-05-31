@@ -482,6 +482,23 @@ val local_skip_proof = Toplevel.proof' (fn int =>
 
 (* global endings *)
 
+fun name_results "" res = res
+  | name_results name res =
+      let
+        val n = length (List.concat (map #2 res));
+        fun name_res (i, (a, ths)) =
+          let
+            val m = length ths;
+            val j = i + m;
+          in
+            if a <> "" then (j, (a, ths))
+            else if m = n then (j, (name, ths))
+            else if m = 1 then
+              (j, (PureThy.string_of_thmref (name, SOME [PureThy.Single i]), ths))
+            else (j, (PureThy.string_of_thmref (name, SOME [PureThy.FromTo (i, j - 1)]), ths))
+          end;
+      in #2 (foldl_map name_res (1, res)) end;
+
 fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   let
     val state = ProofHistory.current prf;
@@ -490,7 +507,7 @@ fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   in
     if kind = "" orelse kind = Drule.internalK then ()
     else (print_result (Proof.context_of state) ((kind, name), res);
-      Context.setmp (SOME thy) (Present.results kind) res);
+      Context.setmp (SOME thy) (Present.results kind) (name_results name res));
     thy
   end);
 
