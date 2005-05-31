@@ -6,10 +6,8 @@ The abstract type "sg" of signatures.
 *)
 
 (*base names*)
-type bstring = string;
 type bclass = class;
-(*external forms -- partially qualified names*)
-type xstring = string;
+(*external forms*)
 type xclass = class;
 type xsort = sort;
 type xtyp = typ;
@@ -24,7 +22,7 @@ sig
    {self: sg_ref,
     tsig: Type.tsig,
     consts: (typ * stamp) Symtab.table,
-    path: string list option,
+    naming: NameSpace.naming,
     spaces: (string * NameSpace.T) list,
     data: data}
   val name_of: sg -> string
@@ -54,14 +52,14 @@ sig
   val classK: string
   val typeK: string
   val constK: string
-  val full_name: sg -> bstring -> string
-  val full_name': sg -> bstring -> string
-  val full_name_path: sg -> string -> bstring -> string
+  val naming_of: sg -> NameSpace.naming
   val base_name: string -> bstring
+  val full_name: sg -> bstring -> string
+  val full_name_path: sg -> string -> bstring -> string
+  val declare_name: sg -> string -> NameSpace.T -> NameSpace.T
   val intern: sg -> string -> xstring -> string
   val extern: sg -> string -> string -> xstring
-  val cond_extern: sg -> string -> string -> xstring
-  val cond_extern_table: sg -> string -> 'a Symtab.table -> (xstring * 'a) list
+  val extern_table: sg -> string -> 'a Symtab.table -> (xstring * 'a) list
   val extern_typ: sg -> typ -> typ
   val intern_class: sg -> xclass -> class
   val intern_tycon: sg -> xstring -> string
@@ -156,6 +154,11 @@ sig
   val add_trrules: (xstring * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_path: string -> sg -> sg
+  val qualified_names: sg -> sg
+  val no_base_names: sg -> sg
+  val custom_accesses: (string list -> string list list) -> sg -> sg
+  val set_policy: (string -> bstring -> string) * (string list -> string list list) -> sg -> sg
+  val set_naming: NameSpace.naming -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val hide_space: bool -> string * string list -> sg -> sg
   val hide_space_i: bool -> string * string list -> sg -> sg
@@ -188,23 +191,23 @@ struct
 
 datatype sg =
   Sg of
-   {id: string ref,                             (*id*)
-    stamps: string ref list,                    (*unique theory indentifier*)
-    syn: syn} *                                 (*syntax for parsing and printing*)
-   {self: sg_ref,                               (*mutable self reference*)
-    tsig: Type.tsig,                            (*order-sorted signature of types*)
-    consts: (typ * stamp) Symtab.table,         (*type schemes of constants*)
-    path: string list option,                   (*current name space entry prefix*)
-    spaces: (string * NameSpace.T) list,        (*name spaces for consts, types etc.*)
-    data: data}                                 (*anytype data*)
+   {id: string ref,                               (*id*)
+    stamps: string ref list,                      (*unique theory indentifier*)
+    syn: syn} *                                   (*syntax for parsing and printing*)
+   {self: sg_ref,                                 (*mutable self reference*)
+    tsig: Type.tsig,                              (*order-sorted signature of types*)
+    consts: (typ * stamp) Symtab.table,           (*type schemes of constants*)
+    naming: NameSpace.naming,                     (*name space declaration context*)
+    spaces: (string * NameSpace.T) list,          (*name spaces for consts, types etc.*)
+    data: data}                                   (*anytype data*)
 and data =
   Data of
-    (Object.kind *                              (*kind (for authorization)*)
-      (Object.T *                               (*value*)
-        ((Object.T -> Object.T) *               (*copy method*)
-          (Object.T -> Object.T) *              (*prepare extend method*)
-          (Object.T * Object.T -> Object.T) *   (*merge and prepare extend method*)
-          (sg -> Object.T -> unit))))           (*print method*)
+    (Object.kind *                                (*kind (for authorization)*)
+      (Object.T *                                 (*value*)
+        ((Object.T -> Object.T) *                 (*copy method*)
+          (Object.T -> Object.T) *                (*prepare extend method*)
+          (Object.T * Object.T -> Object.T) *     (*merge and prepare extend method*)
+          (sg -> Object.T -> unit))))             (*print method*)
     Symtab.table
 and syn =
   Syn of
@@ -217,9 +220,9 @@ and sg_ref =
   SgRef of sg ref option;
 
 (*make signature*)
-fun make_sign (id, self, tsig, consts, syn, path, spaces, data, stamps) =
+fun make_sign (id, self, tsig, consts, syn, naming, spaces, data, stamps) =
   Sg ({id = id, stamps = stamps, syn = syn}, {self = self, tsig = tsig,
-    consts = consts, path = path, spaces = spaces, data = data});
+    consts = consts, naming = naming, spaces = spaces, data = data});
 
 
 (* basic operations *)
@@ -237,9 +240,10 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 val tsig_of = #tsig o rep_sg;
 fun is_logtype sg c = c mem_string Type.logical_types (tsig_of sg);
 fun const_type (Sg (_, {consts, ...})) c = Option.map #1 (Symtab.lookup (consts, c));
+fun naming_of (Sg (_, {naming, ...})) = naming;
 
-fun declared_tyname sg c = isSome (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c));
-fun declared_const sg c = isSome (const_type sg c);
+fun declared_tyname sg c = is_some (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c));
+fun declared_const sg c = is_some (const_type sg c);
 
 
 (* id and self *)
@@ -444,11 +448,11 @@ fun ext_stamps stamps (id as ref name) =
     else id :: stmps
   end;
 
-fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
+fun create_sign self stamps name (syn, tsig, ctab, (naming, spaces), data) =
   let
     val id = ref name;
     val sign =
-      make_sign (id, self, tsig, ctab, syn, path, spaces, data, ext_stamps stamps id);
+      make_sign (id, self, tsig, ctab, syn, naming, spaces, data, ext_stamps stamps id);
   in
     (case self of
       SgRef (SOME r) => r := sign
@@ -457,7 +461,7 @@ fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
   end;
 
 fun extend_sign keep extfun name decls
-    (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, path, spaces, data})) =
+    (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, naming, spaces, data})) =
   let
     val _ = check_stale sg;
     val (self', data') =
@@ -465,12 +469,20 @@ fun extend_sign keep extfun name decls
       else (SgRef (SOME (ref sg)), prep_ext_data data);
   in
     create_sign self' stamps name
-      (extfun sg (syn, tsig, consts, (path, spaces), data') decls)
+      (extfun sg (syn, tsig, consts, (naming, spaces), data') decls)
   end;
 
 
 
 (** name spaces **)
+
+(* naming *)
+
+val base_name = NameSpace.base;
+val full_name = NameSpace.full o naming_of;
+fun full_name_path sg elems = NameSpace.full (NameSpace.add_path elems (naming_of sg));
+val declare_name = NameSpace.declare o naming_of;
+
 
 (* kinds *)
 
@@ -481,46 +493,20 @@ val constK = "const";
 
 (* declare and retrieve names *)
 
-fun space_of spaces kind =
-  getOpt (assoc (spaces, kind), NameSpace.empty);
+fun get_space spaces kind =
+  if_none (assoc_string (spaces, kind)) NameSpace.empty;
 
 (*input and output of qualified names*)
-fun intrn spaces kind = NameSpace.intern (space_of spaces kind);
-fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
-fun cond_extrn spaces kind = NameSpace.cond_extern (space_of spaces kind);
-fun cond_extrn_table spaces kind tab = NameSpace.cond_extern_table (space_of spaces kind) tab;
+val intrn = NameSpace.intern oo get_space;
+val extrn = NameSpace.extern oo get_space;
+fun extrn_table spaces = NameSpace.extern_table o (get_space spaces);
 
 (*add / hide names*)
-fun change_space f spaces kind x = overwrite (spaces, (kind, f (space_of spaces kind, x)));
-fun add_names x = change_space NameSpace.extend x;
-fun hide_names b x = change_space (NameSpace.hide b) x;
+fun change_space f kind names spaces =
+  overwrite (spaces, (kind, f names (get_space spaces kind)));
 
-(*make full names, standard version*)
-fun full _ "" = error "Attempt to declare empty name \"\""
-  | full NONE bname = bname
-  | full (SOME path) bname =
-      if NameSpace.is_qualified bname then
-        error ("Attempt to declare qualified name " ^ quote bname)
-      else
-        let val name = NameSpace.pack (path @ [bname]) in
-          if Syntax.is_identifier bname then ()
-          else warning ("Declared non-identifier " ^ quote name); name
-        end;
-
-(*make full names, variant permitting qualified names*)
-fun full' _ "" = error "Attempt to declare empty name \"\""
-  | full' NONE bname = bname
-  | full' (SOME path) bname =
-      let
-        val bnames = NameSpace.unpack bname;
-        val name = NameSpace.pack (path @ bnames)
-      in
-        if forall Syntax.is_identifier bnames then ()
-        else warning ("Declared non-identifier " ^ quote name); name
-      end;
-
-(*base name*)
-val base_name = NameSpace.base;
+val add_names = change_space o fold o declare_name;
+val hide_names = change_space o fold o NameSpace.hide;
 
 
 (* intern / extern names *)
@@ -531,7 +517,7 @@ local
     let
       fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
       val table = List.mapPartial f' (add_xs (t, []));
-      fun lookup x = getOpt (assoc (table, x), x);
+      fun lookup x = if_none (assoc (table, x)) x;
     in lookup end;
 
   (*intern / extern typ*)
@@ -550,23 +536,22 @@ local
   val spaces_of = #spaces o rep_sg;
 in
   fun intrn_class spaces = intrn spaces classK;
-  fun extrn_class spaces = cond_extrn spaces classK;
+  fun extrn_class spaces = extrn spaces classK;
 
   val intrn_sort = map o intrn_class;
   val intrn_typ = trn_typ o intrn;
   val intrn_term = trn_term o intrn;
 
   val extrn_sort = map o extrn_class;
-  val extrn_typ = trn_typ o cond_extrn;
-  val extrn_term = trn_term o cond_extrn;
+  val extrn_typ = trn_typ o extrn;
+  val extrn_term = trn_term o extrn;
 
   fun intrn_tycons spaces T =
     map_typ I (mapping (intrn spaces typeK) add_typ_tycons T) T;
 
   val intern = intrn o spaces_of;
   val extern = extrn o spaces_of;
-  val cond_extern = cond_extrn o spaces_of;
-  fun cond_extern_table sg = cond_extrn_table (spaces_of sg);
+  fun extern_table sg = extrn_table (spaces_of sg);
 
   fun extern_typ (sg as Sg (_, {spaces, ...})) T =
        if ! NameSpace.long_names then T else extrn_typ spaces T;
@@ -580,13 +565,6 @@ in
   fun intern_const sg = intrn (spaces_of sg) constK;
 
   val intern_tycons = intrn_tycons o spaces_of;
-
-  val full_name = full o #path o rep_sg;
-  val full_name' = full' o #path o rep_sg;
-
-  fun full_name_path sg elems =
-    full (SOME (getOpt (#path (rep_sg sg), []) @ NameSpace.unpack elems));
-
 end;
 
 
@@ -597,11 +575,11 @@ val pure_syn =
   Syn (Syntax.pure_syn, (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
 
 val dummy_sg = make_sign (ref "", SgRef NONE, Type.empty_tsig,
-  Symtab.empty, pure_syn, SOME [], [], empty_data, []);
+  Symtab.empty, pure_syn, NameSpace.default_naming, [], empty_data, []);
 
 val pre_pure =
   create_sign (SgRef (SOME (ref dummy_sg))) [] "#"
-    (pure_syn, Type.empty_tsig, Symtab.empty, (SOME [], []), empty_data);
+    (pure_syn, Type.empty_tsig, Symtab.empty, (NameSpace.default_naming, []), empty_data);
 
 val PureN = "Pure";
 val CPureN = "CPure";
@@ -629,7 +607,7 @@ fun pretty_classrel sg cs = Pretty.block (List.concat
 
 fun pretty_arity sg (t, Ss, S) =
   let
-    val t' = cond_extern sg typeK t;
+    val t' = extern sg typeK t;
     val dom =
       if null Ss then []
       else [Pretty.list "(" ")" (map (pretty_sort sg) Ss), Pretty.brk 1];
@@ -782,7 +760,7 @@ fun read_tyname sg raw_c =
 
 fun read_const sg raw_c =
   let val c = intern_const sg raw_c in
-    if isSome (const_type sg c) then Const (c, dummyT)
+    if is_some (const_type sg c) then Const (c, dummyT)
     else raise TYPE ("Undeclared constant: " ^ quote c, [], [])
   end;
 
@@ -865,17 +843,17 @@ fun simple_read_term sign T s =
 
 (** signature extension functions **)  (*exception ERROR*)
 
-fun decls_of path name_of mfixs =
-  map (fn (x, y, mx) => (full path (name_of x mx), y)) mfixs;
+fun decls_of sg name_of mfixs =
+  map (fn (x, y, mx) => (full_name sg (name_of x mx), y)) mfixs;
 
 fun no_read _ _ _ _ decl = decl;
 
 
 (* add default sort *)
 
-fun ext_defS prep_sort sg (syn, tsig, ctab, (path, spaces), data) S =
+fun ext_defS prep_sort sg (syn, tsig, ctab, (naming, spaces), data) S =
   (syn, Type.set_defsort (prep_sort sg syn tsig spaces S) tsig,
-    ctab, (path, spaces), data);
+    ctab, (naming, spaces), data);
 
 fun ext_defsort arg = ext_defS rd_sort arg;
 fun ext_defsort_i arg = ext_defS cert_sort arg;
@@ -883,12 +861,12 @@ fun ext_defsort_i arg = ext_defS cert_sort arg;
 
 (* add type constructors *)
 
-fun ext_types sg (syn, tsig, ctab, (path, spaces), data) types =
+fun ext_types sg (syn, tsig, ctab, (naming, spaces), data) types =
   let
-    val decls = decls_of path Syntax.type_name types;
+    val decls = decls_of sg Syntax.type_name types;
     val syn' = map_syntax (Syntax.extend_type_gram types) syn;
     val tsig' = Type.add_types decls tsig;
-  in (syn', tsig', ctab, (path, add_names spaces typeK (map fst decls)), data) end;
+  in (syn', tsig', ctab, (naming, add_names sg typeK (map fst decls) spaces), data) end;
 
 
 (* add type abbreviations *)
@@ -897,17 +875,17 @@ fun read_abbr sg syn tsig spaces (t, vs, rhs_src) =
   (t, vs, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) rhs_src)
     handle ERROR => error ("in type abbreviation " ^ t);
 
-fun ext_abbrs rd_abbr sg (syn, tsig, ctab, (path, spaces), data) abbrs =
+fun ext_abbrs rd_abbr sg (syn, tsig, ctab, (naming, spaces), data) abbrs =
   let
     fun mfix_of (t, vs, _, mx) = (t, length vs, mx);
     val syn' = syn |> map_syntax (Syntax.extend_type_gram (map mfix_of abbrs));
 
     val abbrs' =
       map (fn (t, vs, rhs, mx) =>
-        (full path (Syntax.type_name t mx), vs, rhs)) abbrs;
-    val spaces' = add_names spaces typeK (map #1 abbrs');
+        (full_name sg (Syntax.type_name t mx), vs, rhs)) abbrs;
+    val spaces' = add_names sg typeK (map #1 abbrs') spaces;
     val decls = map (rd_abbr sg syn' tsig spaces') abbrs';
-  in (syn', Type.add_abbrs decls tsig, ctab, (path, spaces'), data) end;
+  in (syn', Type.add_abbrs decls tsig, ctab, (naming, spaces'), data) end;
 
 fun ext_tyabbrs abbrs = ext_abbrs read_abbr abbrs;
 fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
@@ -915,23 +893,23 @@ fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
 
 (* add nonterminals *)
 
-fun ext_nonterminals _ (syn, tsig, ctab, (path, spaces), data) bnames =
-  let val names = map (full path) bnames in
+fun ext_nonterminals sg (syn, tsig, ctab, (naming, spaces), data) bnames =
+  let val names = map (full_name sg) bnames in
     (map_syntax (Syntax.extend_consts names) syn,
       Type.add_nonterminals names tsig, ctab,
-      (path, add_names spaces typeK names), data)
+      (naming, add_names sg typeK names spaces), data)
   end;
 
 
 (* add type arities *)
 
-fun ext_ars int prep_sort sg (syn, tsig, ctab, (path, spaces), data) arities =
+fun ext_ars int prep_sort sg (syn, tsig, ctab, (naming, spaces), data) arities =
   let
     val prepS = prep_sort sg syn tsig spaces;
     fun prep_arity (c, Ss, S) =
       (if int then intrn spaces typeK c else c, map prepS Ss, prepS S);
     val tsig' = Type.add_arities (pp sg) (map prep_arity arities) tsig;
-  in (syn, tsig', ctab, (path, spaces), data) end;
+  in (syn, tsig', ctab, (naming, spaces), data) end;
 
 fun ext_arities arg = ext_ars true rd_sort arg;
 fun ext_arities_i arg = ext_ars false cert_sort arg;
@@ -939,8 +917,8 @@ fun ext_arities_i arg = ext_ars false cert_sort arg;
 
 (* add term constants and syntax *)
 
-fun const_name path c mx =
-  full path (Syntax.const_name c mx);
+fun const_name sg c mx =
+  full_name sg (Syntax.const_name c mx);
 
 fun err_in_const c =
   error ("in declaration of constant " ^ quote c);
@@ -949,27 +927,27 @@ fun err_dup_consts cs =
   error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
 
 
-fun read_cnst sg syn tsig (path, spaces) (c, ty_src, mx) =
+fun read_cnst sg syn tsig (naming, spaces) (c, ty_src, mx) =
   (c, rd_raw_typ (make_syntax sg syn) tsig spaces (K NONE) ty_src, mx)
-    handle ERROR => err_in_const (const_name path c mx);
+    handle ERROR => err_in_const (const_name sg c mx);
 
-fun change_cnsts change_gram rd_const syn_only prmode sg (syn, tsig, ctab, (path, spaces), data)
+fun change_cnsts change_gram rd_const syn_only prmode sg (syn, tsig, ctab, (naming, spaces), data)
     raw_consts =
   let
     val prep_typ = compress_type o Type.varifyT o Type.no_tvars o
      (if syn_only then Type.cert_typ_syntax tsig else Term.no_dummyT o Type.cert_typ tsig);
     fun prep_const (c, ty, mx) = (c, prep_typ ty, mx) handle TYPE (msg, _, _) =>
-      (error_msg msg; err_in_const (const_name path c mx));
+      (error_msg msg; err_in_const (const_name sg c mx));
 
-    val consts = map (prep_const o rd_const sg syn tsig (path, spaces)) raw_consts;
+    val consts = map (prep_const o rd_const sg syn tsig (naming, spaces)) raw_consts;
     val decls =
       if syn_only then []
-      else decls_of path Syntax.const_name consts;
+      else decls_of sg Syntax.const_name consts;
   in
     (map_syntax (change_gram (is_logtype sg) prmode consts) syn, tsig,
       Symtab.extend (ctab, map (fn (c, T) => (c, (T, stamp ()))) decls)
         handle Symtab.DUPS cs => err_dup_consts cs,
-      (path, add_names spaces constK (map fst decls)), data)
+      (naming, add_names sg constK (map fst decls) spaces), data)
   end;
 
 fun ext_cnsts rd = change_cnsts Syntax.extend_const_gram rd;
@@ -999,30 +977,30 @@ fun class_of_const c_class =
   end;
 
 
-fun ext_classes int sg (syn, tsig, ctab, (path, spaces), data) classes =
+fun ext_classes int sg (syn, tsig, ctab, (naming, spaces), data) classes =
   let
     val names = map fst classes;
     val consts =
       map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
 
-    val full_names = map (full path) names;
-    val spaces' = add_names spaces classK full_names;
+    val full_names = map (full_name sg) names;
+    val spaces' = add_names sg classK full_names spaces;
     val intrn = if int then map (intrn_class spaces') else I;
     val classes' =
       ListPair.map (fn (c, (_, cs)) => (c, intrn cs)) (full_names, classes);
   in
     ext_consts_i sg
       (map_syntax (Syntax.extend_consts names) syn,
-        Type.add_classes (pp sg) classes' tsig, ctab, (path, spaces'), data)
+        Type.add_classes (pp sg) classes' tsig, ctab, (naming, spaces'), data)
     consts
   end;
 
 
 (* add to classrel *)
 
-fun ext_classrel int sg (syn, tsig, ctab, (path, spaces), data) pairs =
+fun ext_classrel int sg (syn, tsig, ctab, (naming, spaces), data) pairs =
   let val intrn = if int then map (pairself (intrn_class spaces)) else I in
-    (syn, Type.add_classrel (pp sg) (intrn pairs) tsig, ctab, (path, spaces), data)
+    (syn, Type.add_classrel (pp sg) (intrn pairs) tsig, ctab, (naming, spaces), data)
   end;
 
 
@@ -1058,40 +1036,31 @@ fun ext_tokentrfuns sg (syn, tsig, ctab, names, data) args =
 
 (* add translation rules *)
 
-fun ext_trrules sg (syn, tsig, ctab, (path, spaces), data) args =
+fun ext_trrules sg (syn, tsig, ctab, (naming, spaces), data) args =
   (syn |> map_syntax (Syntax.extend_trrules (is_logtype sg) (make_syntax sg syn)
       (map (Syntax.map_trrule (fn (root, str) => (intrn spaces typeK root, str))) args)),
-    tsig, ctab, (path, spaces), data);
+    tsig, ctab, (naming, spaces), data);
 
 fun ext_trrules_i _ (syn, tsig, ctab, names, data) args =
   (syn |> map_syntax (Syntax.extend_trrules_i args), tsig, ctab, names, data);
 
 
-(* add to path *)
+(* change naming *)
 
-fun ext_path _ (syn, tsig, ctab, (path, spaces), data) elems =
-  let
-    val path' =
-      if elems = "//" then NONE
-      else if elems = "/" then SOME []
-      else if elems = ".." andalso isSome path andalso path <> SOME [] then
-        SOME (fst (split_last (valOf path)))
-      else SOME (getOpt (path,[]) @ NameSpace.unpack elems);
-  in
-    (syn, tsig, ctab, (path', spaces), data)
-  end;
+fun change_naming f _ (syn, tsig, ctab, (naming, spaces), data) args =
+  (syn, tsig, ctab, (f args naming, spaces), data);
 
 
 (* change name space *)
 
-fun ext_add_space _ (syn, tsig, ctab, (path, spaces), data) (kind, names) =
-  (syn, tsig, ctab, (path, add_names spaces kind names), data);
+fun ext_add_space sg (syn, tsig, ctab, (naming, spaces), data) (kind, names) =
+  (syn, tsig, ctab, (naming, add_names sg kind names spaces), data);
 
-fun ext_hide_space _ (syn, tsig, ctab, (path, spaces), data) (b, (kind, xnames)) =
-  (syn, tsig, ctab, (path, hide_names b spaces kind (map (intrn spaces kind) xnames)), data);
+fun ext_hide_space _ (syn, tsig, ctab, (naming, spaces), data) (b, (kind, xnames)) =
+  (syn, tsig, ctab, (naming, hide_names b kind (map (intrn spaces kind) xnames) spaces), data);
 
-fun ext_hide_space_i _ (syn, tsig, ctab, (path, spaces), data) (b, (kind, names)) =
-  (syn, tsig, ctab, (path, hide_names b spaces kind names), data);
+fun ext_hide_space_i _ (syn, tsig, ctab, (naming, spaces), data) (b, (kind, names)) =
+  (syn, tsig, ctab, (naming, hide_names b kind names spaces), data);
 
 
 (* signature data *)
@@ -1106,13 +1075,13 @@ fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, f, x) =
 fun copy_data (k, (e, mths as (cp, _, _, _))) =
   (k, (cp e handle exn => err_method "copy" (Object.name_of_kind k) exn, mths));
 
-fun copy (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, path, spaces, data})) =
+fun copy (sg as Sg ({id = _, stamps, syn}, {self, tsig, consts, naming, spaces, data})) =
   let
     val _ = check_stale sg;
     val self' = SgRef (SOME (ref sg));
     val Data tab = data;
     val data' = Data (Symtab.map copy_data tab);
-  in create_sign self' stamps "#" (syn, tsig, consts, (path, spaces), data') end;
+  in create_sign self' stamps "#" (syn, tsig, consts, (naming, spaces), data') end;
 
 
 (* the external interfaces *)
@@ -1144,7 +1113,12 @@ val add_advanced_trfunsT = extend_sign true ext_advanced_trfunsT "#";
 val add_tokentrfuns      = extend_sign true ext_tokentrfuns "#";
 val add_trrules          = extend_sign true ext_trrules "#";
 val add_trrules_i        = extend_sign true ext_trrules_i "#";
-val add_path             = extend_sign true ext_path "#";
+val add_path             = extend_sign true (change_naming NameSpace.add_path) "#";
+val qualified_names      = extend_sign true (change_naming (K NameSpace.qualified_names)) "#" ();
+val no_base_names        = extend_sign true (change_naming (K NameSpace.no_base_names)) "#" ();
+val custom_accesses      = extend_sign true (change_naming NameSpace.custom_accesses) "#";
+val set_policy           = extend_sign true (change_naming NameSpace.set_policy) "#";
+val set_naming           = extend_sign true (change_naming K) "#";
 val add_space            = extend_sign true ext_add_space "#";
 val hide_space           = curry (extend_sign true ext_hide_space "#");
 val hide_space_i         = curry (extend_sign true ext_hide_space_i "#");
@@ -1204,10 +1178,10 @@ fun nontriv_merge (sg1, sg2) =
     let
       val Sg ({id = _, stamps = stamps1, syn = Syn (syntax1, trfuns1)},
           {self = _, tsig = tsig1, consts = consts1,
-            path = _, spaces = spaces1, data = data1}) = sg1;
+            naming = _, spaces = spaces1, data = data1}) = sg1;
       val Sg ({id = _, stamps = stamps2, syn = Syn (syntax2, trfuns2)},
           {self = _, tsig = tsig2, consts = consts2,
-            path = _, spaces = spaces2, data = data2}) = sg2;
+            naming = _, spaces = spaces2, data = data2}) = sg2;
 
       val stamps = merge_stamps stamps1 stamps2;
       val syntax = Syntax.merge_syntaxes syntax1 syntax2;
@@ -1215,23 +1189,23 @@ fun nontriv_merge (sg1, sg2) =
       val consts = Symtab.merge eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
 
-      val path = SOME [];
+      val naming = NameSpace.default_naming;
       val kinds = distinct (map fst (spaces1 @ spaces2));
       val spaces =
         kinds ~~
           ListPair.map NameSpace.merge
-            (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
+            (map (get_space spaces1) kinds, map (get_space spaces2) kinds);
 
       val data = merge_data (data1, data2);
 
       val pre_sign = make_sign (ref "", SgRef (SOME (ref dummy_sg)),
-        tsig1, consts, Syn (syntax, trfuns), path, spaces, data, ref "#" :: stamps1);
+        tsig1, consts, Syn (syntax, trfuns), naming, spaces, data, ref "#" :: stamps1);
       val tsig = Type.merge_tsigs (pp pre_sign) (tsig1, tsig2);
 
       val self_ref = ref dummy_sg;
       val self = SgRef (SOME self_ref);
       val sign = make_sign (ref "", self, tsig, consts, Syn (syntax, trfuns),
-        path, spaces, data, stamps);
+        naming, spaces, data, stamps);
     in self_ref := sign; syn_of sign; sign end;
 
 in
