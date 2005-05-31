@@ -225,20 +225,20 @@ fun pretty_full_theory thy =
 
     val {sign = _, const_deps = _, final_consts, axioms, oracles,
       parents = _, ancestors = _} = Theory.rep_theory thy;
-    val {self = _, tsig, consts, path, spaces, data} = Sign.rep_sg sg;
+    val {self = _, tsig, consts, naming, spaces, data} = Sign.rep_sg sg;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val spcs = Library.sort_wrt #1 spaces;
     val tdecls = Symtab.dest types |> map (fn (t, (d, _)) =>
-      (Sign.cond_extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
-    val cnsts = Sign.cond_extern_table sg Sign.constK consts;
-    val finals = Sign.cond_extern_table sg Sign.constK final_consts;
-    val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
-    val oras = Sign.cond_extern_table sg Theory.oracleK oracles;
+      (Sign.extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
+    val cnsts = Sign.extern_table sg Sign.constK consts;
+    val finals = Sign.extern_table sg Sign.constK final_consts;
+    val axms = Sign.extern_table sg Theory.axiomK axioms;
+    val oras = Sign.extern_table sg Theory.oracleK oracles;
   in
     [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
       Pretty.strs ("data:" :: Sign.data_kinds data),
-      Pretty.strs ["name prefix:", NameSpace.pack (getOpt (path,["-"]))],
+      Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "name spaces:" (map pretty_name_space spcs),
       Pretty.big_list "classes:" (map pretty_classrel (Graph.dest classes)),
       pretty_default default,
