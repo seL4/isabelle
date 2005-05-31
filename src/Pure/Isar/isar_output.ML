@@ -299,6 +299,8 @@ val _ = add_options
   ("show_structs", Library.setmp show_structs o boolean),
   ("show_question_marks", Library.setmp show_question_marks o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
+  ("short_names", Library.setmp NameSpace.short_names o boolean),
+  ("unique_names", Library.setmp NameSpace.unique_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("locale", Library.setmp locale),
   ("display", Library.setmp display o boolean),
