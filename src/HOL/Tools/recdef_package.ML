@@ -120,7 +120,7 @@ struct
           Drule.merge_rules (wfs1, wfs2)));
 
   fun print sg (tab, hints) =
-   (Pretty.strs ("recdefs:" :: map #1 (Sign.cond_extern_table sg Sign.constK tab)) ::
+   (Pretty.strs ("recdefs:" :: map #1 (Sign.extern_table sg Sign.constK tab)) ::
      pretty_hints hints) |> Pretty.chunks |> Pretty.writeln;
 end;
 

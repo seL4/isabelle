@@ -131,8 +131,8 @@ struct
 
   fun print sg tab =
     let
-      val ext_class = Sign.cond_extern sg Sign.classK;
-      val ext_thm = PureThy.cond_extern_thm_sg sg;
+      val ext_class = Sign.extern sg Sign.classK;
+      val ext_thm = PureThy.extern_thm_sg sg;
 
       fun pretty_class c cs = Pretty.block
         (Pretty.str (ext_class c) :: Pretty.str " <" :: Pretty.brk 1 ::

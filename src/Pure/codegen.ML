@@ -342,11 +342,11 @@ fun mk_id s = if s = "" then "" else
   end;
 
 fun mk_const_id sg s =
-  let val s' = mk_id (Sign.cond_extern sg Sign.constK s)
+  let val s' = mk_id (Sign.extern sg Sign.constK s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s' end;
 
 fun mk_type_id sg s =
-  let val s' = mk_id (Sign.cond_extern sg Sign.typeK s)
+  let val s' = mk_id (Sign.extern sg Sign.typeK s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s' end;
 
 fun rename_terms ts =
