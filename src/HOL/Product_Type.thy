@@ -258,7 +258,7 @@ lemma PairE_lemma: "EX x y. p = (x, y)"
 lemma PairE [cases type: *]: "(!!x y. p = (x, y) ==> Q) ==> Q"
   by (insert PairE_lemma [of p]) blast
 
-ML_setup {*
+ML {*
   local val PairE = thm "PairE" in
     fun pair_tac s =
       EVERY' [res_inst_tac [("p", s)] PairE, hyp_subst_tac, K prune_params_tac];
@@ -298,17 +298,17 @@ text {*
   ?P(a, b)"} which cannot be solved by reflexivity.
 *}
 
-ML_setup "
+ML_setup {*
   (* replace parameters of product type by individual component parameters *)
   val safe_full_simp_tac = generic_simp_tac true (true, false, false);
   local (* filtering with exists_paired_all is an essential optimization *)
-    fun exists_paired_all (Const (\"all\", _) $ Abs (_, T, t)) =
+    fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
           can HOLogic.dest_prodT T orelse exists_paired_all t
       | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
       | exists_paired_all _ = false;
     val ss = HOL_basic_ss
-      addsimps [thm \"split_paired_all\", thm \"unit_all_eq2\", thm \"unit_abs_eta_conv\"]
+      addsimps [thm "split_paired_all", thm "unit_all_eq2", thm "unit_abs_eta_conv"]
       addsimprocs [unit_eq_proc];
   in
     val split_all_tac = SUBGOAL (fn (t, i) =>
@@ -319,8 +319,8 @@ ML_setup "
    if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
   end;
 
-claset_ref() := claset() addSbefore (\"split_all_tac\", split_all_tac);
-"
+claset_ref() := claset() addSbefore ("split_all_tac", split_all_tac);
+*}
 
 lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
   -- {* @{text "[iff]"} is not a good idea because it makes @{text blast} loop *}
@@ -515,21 +515,21 @@ qed
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
-ML_setup "
+ML_setup {*
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const (\"split\",_) $ _ $ (Const (\"Pair\",_)$_$_)) = true
+  fun exists_p_split (Const ("split",_) $ _ $ (Const ("Pair",_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
-  val ss = HOL_basic_ss addsimps [thm \"split_conv\"];
+  val ss = HOL_basic_ss addsimps [thm "split_conv"];
 in
 val split_conv_tac = SUBGOAL (fn (t, i) =>
     if exists_p_split t then safe_full_simp_tac ss i else no_tac);
 end;
 (* This prevents applications of splitE for already splitted arguments leading
    to quite time-consuming computations (in particular for nested tuples) *)
-claset_ref() := claset() addSbefore (\"split_conv_tac\", split_conv_tac);
-"
+claset_ref() := claset() addSbefore ("split_conv_tac", split_conv_tac);
+*}
 
 lemma split_eta_SetCompr [simp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
 by (rule ext, fast)

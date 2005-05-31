@@ -165,7 +165,7 @@ text {*
   For @{term "x ~= UU"} in assumptions @{text def_tac} replaces @{text
   x} by @{text "Def a"} in conclusion. *}
 
-ML_setup {*
+ML {*
   local val not_Undef_is_Def = thm "not_Undef_is_Def"
   in val def_tac = SIMPSET' (fn ss =>
     etac (not_Undef_is_Def RS iffD1 RS exE) THEN' asm_simp_tac ss)
@@ -268,7 +268,7 @@ lemmas cont_lemmas_ext [simp] =
   cont_flift1_arg_and_not_arg cont2cont_CF1L_rev2
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
-ML_setup {*
+ML {*
 val cont_lemmas2 = cont_lemmas1 @ thms "cont_lemmas_ext";
 
 fun cont_tac  i = resolve_tac cont_lemmas2 i;

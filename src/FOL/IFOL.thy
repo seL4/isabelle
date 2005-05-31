@@ -184,8 +184,8 @@ lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
   and [Pure.elim 2] = allE notE' impE'
   and [Pure.intro] = exI disjI2 disjI1
 
-ML_setup {*
-  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac ORELSE' tac));
+setup {*
+  [ContextRules.addSWrapper (fn tac => hyp_subst_tac ORELSE' tac)]
 *}
 
 

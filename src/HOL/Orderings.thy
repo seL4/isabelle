@@ -384,7 +384,6 @@ text{* Instantiate locales: *}
 
 interpretation min_max:
   lower_semilattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply -
 apply(rule lower_semilattice_axioms.intro)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)

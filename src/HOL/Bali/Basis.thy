@@ -7,7 +7,7 @@ header {* Definitions extending HOL as logical basis of Bali *}
 
 theory Basis = Main:
 
-ML_setup {*
+ML {*
 Unify.search_bound := 40;
 Unify.trace_bound  := 40;
 *}

@@ -12,7 +12,8 @@ begin
 
 subsection {* Setup *}
 
-ML_setup {*
+setup {*
+let
 fun realizes_set_proc (Const ("realizes", Type ("fun", [Type ("Null", []), _])) $ r $
       (Const ("op :", _) $ x $ S)) = (case strip_comb S of
         (Var (ixn, U), ts) => SOME (list_comb (Var (ixn, binder_types U @
@@ -33,18 +34,18 @@ fun mk_realizes_set r rT s (setT as Type ("set", [elT])) =
   Abs ("x", elT, Const ("realizes", rT --> HOLogic.boolT --> HOLogic.boolT) $
     incr_boundvars 1 r $ (Const ("op :", elT --> setT --> HOLogic.boolT) $
       Bound 0 $ incr_boundvars 1 s));
-
-  Context.>> (fn thy => thy |>
-    Extraction.add_types
+in
+  [Extraction.add_types
       [("bool", ([], NONE)),
-       ("set", ([realizes_set_proc], SOME mk_realizes_set))] |>
+       ("set", ([realizes_set_proc], SOME mk_realizes_set))],
     Extraction.set_preprocessor (fn sg =>
       Proofterm.rewrite_proof_notypes
         ([], ("HOL/elim_cong", RewriteHOLProof.elim_cong) ::
           ProofRewriteRules.rprocs true) o
       Proofterm.rewrite_proof (Sign.tsig_of sg)
         (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
-      ProofRewriteRules.elim_vars (curry Const "arbitrary")))
+      ProofRewriteRules.elim_vars (curry Const "arbitrary"))]
+end
 *}
 
 lemmas [extraction_expand] =

@@ -899,8 +899,8 @@ subsubsection {* Classical Reasoner setup *}
 use "cladata.ML"
 setup hypsubst_setup
 
-ML_setup {*
-  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
+setup {*
+  [ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)]
 *}
 
 setup Classical.setup

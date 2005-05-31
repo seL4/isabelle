@@ -158,7 +158,7 @@ lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
 
 subsection {* Setting up the package *}
 
-ML_setup {*
+ML {*
 val iso_intro       = thm "iso.intro";
 val iso_abs_iso     = thm "iso.abs_iso";
 val iso_rep_iso     = thm "iso.rep_iso";

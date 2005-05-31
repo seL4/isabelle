@@ -39,7 +39,7 @@ done
 declare split_if_asm [split del]
 declare lvar_def [simp]
 
-ML_setup {*
+ML {*
 fun inst1_tac s t st = case assoc (rev (term_varnames (prop_of st)), s) of
   SOME i => Tactic.instantiate_tac' [((s, i), t)] st | NONE => Seq.empty;
 val ax_tac = REPEAT o rtac allI THEN'

@@ -132,7 +132,7 @@ apply (rule_tac p = "Q" in trE)
 apply (simp_all)
 done
 
-ML_setup {*
+ML {*
 val split_If_tac =
   simp_tac (HOL_basic_ss addsimps [symmetric (thm "If2_def")])
     THEN' (split_tac [thm "split_If2"])
