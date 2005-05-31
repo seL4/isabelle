@@ -48,6 +48,7 @@ signature BASIC_THM =
   exception THM of string * int * thm list
   type 'a attribute 	(* = 'a * thm -> 'a * thm *)
   val eq_thm		: thm * thm -> bool
+  val eq_thms		: thm list * thm list -> bool
   val sign_of_thm       : thm -> Sign.sg
   val prop_of           : thm -> term
   val proof_of		: thm -> Proofterm.proof
@@ -341,6 +342,8 @@ fun eq_thm (th1, th2) =
     aconvs (terms_of_tpairs tpairs1, terms_of_tpairs tpairs2) andalso
     prop1 aconv prop2
   end;
+
+val eq_thms = Library.equal_lists eq_thm;
 
 fun sign_of_thm (Thm {sign_ref, ...}) = Sign.deref sign_ref;
 fun prop_of (Thm {prop, ...}) = prop;
