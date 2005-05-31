@@ -547,6 +547,12 @@ these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
 \item[$show_structs = bool$] controls printing of implicit structures.
 \item[$long_names = bool$] forces names of types and constants etc.\ to be
   printed in their fully qualified internal form.
+\item[$short_names = bool$] forces names of types and constants etc.\ to be
+  printed unqualified.  Note that internalizing the output again in the
+  current context may well yield a different result.
+\item[$unique_names = bool$] determines whether the printed version of
+  qualified names should be made sufficiently long to avoid overlap with names
+  declared further back.  Set to $false$ for more concise output.
 \item[$eta_contract = bool$] prints terms in $\eta$-contracted form.
 \item[$display = bool$] indicates if the text is to be output as multi-line
   ``display material'', rather than a small piece of text without line breaks
