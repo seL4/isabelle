@@ -46,6 +46,7 @@ sig
   val mode: string -> 'a * T list -> bool * ('a * T list)
   val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
   val name: T list -> string * T list
+  val symbol: T list -> string * T list
   val nat: T list -> int * T list
   val int: T list -> int * T list
   val var: T list -> indexname * T list
@@ -232,7 +233,8 @@ fun &&& x =
   touch (Scan.one (fn Arg ((k, y, _), _) => k = Keyword andalso x = y));
 
 fun $$$ x =
-  touch (Scan.one (fn Arg ((k, y, _), _) => (k = Ident orelse k = Keyword) andalso x = y) >> sym_of);
+  touch (Scan.one (fn Arg ((k, y, _), _) => (k = Ident orelse k = Keyword) andalso x = y))
+  >> sym_of;
 
 val add = $$$ "add";
 val del = $$$ "del";
@@ -248,6 +250,7 @@ fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name = named >> sym_of;
+val symbol = symbolic >> sym_of;
 
 val nat = some_ident Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
