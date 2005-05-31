@@ -40,7 +40,10 @@ theories live in \texttt{HOL/Library} and are found automatically.
 
 \item Should you need additional \LaTeX\ packages (the text will tell
 you so), you include them at the beginning of your \LaTeX\ document,
-typically in \texttt{root.tex}.
+typically in \texttt{root.tex}. For a start, you should
+\verb!\usepackage{amssymb}! --- otherwise typesetting
+@{prop[source]"\<not>(\<exists>x. P x)"} will fail because the AMS symbol
+@{text"\<nexists>"} is missing.
 \end{itemize}
 *}
 
@@ -48,7 +51,10 @@ section{* HOL syntax*}
 
 subsection{* Logic *}
 
-text{* The predefined constructs @{text"if"}, @{text"let"} and
+text{* 
+  The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as @{prop"~(EX x. P x)"}.
+
+The predefined constructs @{text"if"}, @{text"let"} and
 @{text"case"} are set in sans serif font to distinguish them from
 other functions. This improves readability:
 \begin{itemize}
@@ -193,11 +199,35 @@ At times this is too drastic:
 \begin{theorem}
 @{prop[mode=IfThen] "longpremise \<Longrightarrow> longerpremise \<Longrightarrow> P(f(f(f(f(f(f(f(f(f(x)))))))))) \<Longrightarrow> longestpremise \<Longrightarrow> conclusion"}
 \end{theorem}
-In which case you should use \texttt{mode=IfThenNoBox} instead of
-\texttt{mode=IfThen}:
+In which case you should use \texttt{IfThenNoBox} instead of
+\texttt{IfThen}:
 \begin{theorem}
 @{prop[mode=IfThenNoBox] "longpremise \<Longrightarrow> longerpremise \<Longrightarrow> P(f(f(f(f(f(f(f(f(f(x)))))))))) \<Longrightarrow> longestpremise \<Longrightarrow> conclusion"}
 \end{theorem}
+*}
+
+subsection{* Doing it yourself *}
+
+text{* If for some reason you want or need to present theorems your
+own way, you can extract the premises and the conclusion explicitly
+and combine them as you like:
+\begin{itemize}
+\item \verb!@!\verb!{thm_style premise1! $thm$\verb!}!
+prints premise 1 of $thm$ (and similarly up to \texttt{premise9}).
+\item \verb!@!\verb!{thm_style conclusion! $thm$\verb!}!
+prints the conclusion of $thm$.
+\end{itemize}
+For example, ``from @{thm_style premise2 conjI} and
+@{thm_style premise1 conjI} we conclude @{thm_style conclusion conjI}''
+is produced by
+\begin{quote}
+\verb!from !\verb!@!\verb!{thm_style premise2 conjI}!\\
+\verb!and !\verb!@!\verb!{thm_style premise1 conjI}!\\
+\verb!we conclude !\verb!@!\verb!{thm_style conclusion conjI}!
+\end{quote}
+Thus you can rearrange or hide premises and typeset the theorem as you like.
+The \verb!thm_style! antiquotation is a general mechanism explained
+in \S\ref{sec:styles}.
 *}
 
 subsection "Patterns"
@@ -277,7 +307,7 @@ text {*
   
 *}
 
-subsection "Styles"
+subsection {*Styles\label{sec:styles}*}
 
 text {*
   The \verb!thm! antiquotation works nicely for single theorems, but
