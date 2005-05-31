@@ -1,3 +1,6 @@
+
+(* $Id$ *)
+
 exception MuckeOracleExn of term;
 
 val trace_mc = ref false; 
@@ -102,7 +105,7 @@ let val sign = #sign (rep_thm state);
 	val prems = prems @ [concl];
         val itrm = search_ifs prems;
 in
-if (itrm = []) then (PureGeneral.Seq.empty) else
+if (itrm = []) then no_tac state else
 (
 let
 val trm = hd(itrm)

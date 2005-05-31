@@ -1,4 +1,6 @@
 
+(* $Id$ *)
+
 (* call_sim_tac invokes oracle "Sim" *)
 fun call_sim_tac thm_list i state = 
 let val sign = #sign (rep_thm state);
@@ -14,7 +16,7 @@ fun is_sim_tac thm_list i state =
 let val sign = #sign (rep_thm state);
 in
 case Library.drop(i-1,prems_of state) of
-        [] => PureGeneral.Seq.empty |
+        [] => no_tac state |
         subgoal::_ => EVERY[REPEAT(etac thin_rl i),
                         simp_tac (simpset() addsimps [ioa_implements_def]) i,
                         rtac conjI i,

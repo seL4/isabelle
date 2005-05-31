@@ -1,3 +1,6 @@
+
+(* $Id$ *)
+
 (* search_mu t searches for Mu terms in term t. In the case of nested Mu's,
    it yields innermost one. If no Mu term is present, search_mu yields NONE
 *)
@@ -167,7 +170,7 @@ val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 
 fun mc_mucke_tac defs i state =
   (case Library.drop (i - 1, Thm.prems_of state) of
-    [] => PureGeneral.Seq.empty
+    [] => no_tac state
   | subgoal :: _ =>
       EVERY [
         REPEAT (etac thin_rl i),
