@@ -19,10 +19,10 @@ sig
   val trace: Proof.context -> thm list -> unit
   val RAW_METHOD: (thm list -> tactic) -> Proof.method
   val RAW_METHOD_CASES:
-    (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
+    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> Proof.method
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD_CASES:
-    (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
+    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> Proof.method
   val SIMPLE_METHOD: tactic -> Proof.method
   val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> Proof.method
   val fail: Proof.method
@@ -183,8 +183,8 @@ end;
 
 (* unfold/fold definitions *)
 
-fun unfold ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
-fun fold ths = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac ths));
+fun unfold_meth ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
+fun fold_meth ths = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac ths));
 
 
 (* atomize rule statements *)
@@ -522,7 +522,7 @@ struct
       fun prt_meth (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      [Pretty.big_list "methods:" (map prt_meth (NameSpace.cond_extern_table space meths))]
+      [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table space meths))]
       |> Pretty.chunks |> Pretty.writeln
     end;
 end;
@@ -556,17 +556,15 @@ fun method thy =
 
 fun add_methods raw_meths thy =
   let
-    val full = Sign.full_name (Theory.sign_of thy);
-    val new_meths =
-      map (fn (name, f, comment) => (full name, ((f, comment), stamp ()))) raw_meths;
+    val sg = Theory.sign_of thy;
+    val new_meths = raw_meths |> map (fn (name, f, comment) =>
+      (Sign.full_name sg name, ((f, comment), stamp ())));
 
     val {space, meths} = MethodsData.get thy;
-    val space' = NameSpace.extend (space, map fst new_meths);
+    val space' = fold (Sign.declare_name sg) (map fst new_meths) space;
     val meths' = Symtab.extend (meths, new_meths) handle Symtab.DUPS dups =>
       error ("Duplicate declaration of method(s) " ^ commas_quote dups);
-  in
-    thy |> MethodsData.put {space = space', meths = meths'}
-  end;
+  in thy |> MethodsData.put {space = space', meths = meths'} end;
 
 val add_method = add_methods o Library.single;
 
@@ -784,10 +782,10 @@ val pure_methods =
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing (insert current facts only)"),
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
-  ("unfold", thms_args unfold, "unfold definitions"),
+  ("unfold", thms_args unfold_meth, "unfold definitions"),
   ("intro", thms_args intro, "repeatedly apply introduction rules"),
   ("elim", thms_args elim, "repeatedly apply elimination rules"),
-  ("fold", thms_args fold, "fold definitions"),
+  ("fold", thms_args fold_meth, "fold definitions"),
   ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
   ("rules", rules_args rules_meth, "apply many rules, including proof search"),
@@ -811,6 +809,10 @@ val pure_methods =
 
 val _ = Context.add_setup [add_methods pure_methods];
 
+
+(*final declarations of this structure!*)
+val unfold = unfold_meth;
+val fold = fold_meth;
 
 end;
 
