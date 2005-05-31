@@ -15,8 +15,7 @@ sig
   val get: thm -> string list * int
   val add: thm -> thm * (string list * int)
   type T
-  val empty: T
-  val make: bool -> term option -> Sign.sg * term -> string list -> (string * T) list
+  val make: bool -> term option -> Sign.sg * term -> string list -> (string * T option) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
@@ -29,6 +28,8 @@ struct
 val consumes_tagN = "consumes";
 val cases_tagN = "cases";
 val case_conclN = "case";
+val case_hypsN = "hyps";
+val case_premsN = "prems";
 
 
 (* number of consumed facts *)
@@ -49,7 +50,8 @@ fun put_consumes NONE th = th
 val save_consumes = put_consumes o lookup_consumes;
 
 fun consumes n x = Drule.rule_attribute (K (put_consumes (SOME n))) x;
-fun consumes_default n x = if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
+fun consumes_default n x =
+  if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
 
 (* case names *)
@@ -90,38 +92,42 @@ type T =
   assumes: (string * term list) list,
   binds: (indexname * term option) list};
 
-val hypsN = "hyps";
-val premsN = "prems";
-
-val empty = {fixes = [], assumes = [], binds = []};
-
-fun nth_subgoal(i,prop) =
-  hd (#1 (Logic.strip_prems (i, [], prop)));
-  
-fun prep_case is_open split sg prop name i =
+fun prep_case is_open sg (split, raw_prop) name =
   let
-    val Bi = Drule.norm_hhf sg (nth_subgoal(i,prop));
-    val all_xs = Logic.strip_params Bi
-    val n = (case split of NONE => length all_xs
-             | SOME t => length (Logic.strip_params(nth_subgoal(i,t))))
-    val (ind_xs, goal_xs) = splitAt(n,all_xs)
-    val rename = if is_open then I else apfst Syntax.internal
-    val xs = map rename ind_xs @ goal_xs
-    val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
-    val named_asms =
-      (case split of NONE => [("", asms)]
+    val prop = Drule.norm_hhf sg raw_prop;
+
+    val xs = Logic.strip_params prop;
+    val rename = if is_open then I else map (apfst Syntax.internal);
+    val named_xs =
+      (case split of
+        NONE => rename xs
       | SOME t =>
-          let val h = length (Logic.strip_assums_hyp(nth_subgoal(i,t)))
-              val (ps,qs) = splitAt(h, asms)
-          in [(hypsN, ps), (premsN, qs)] end);
-    val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
+          let val (us, vs) = splitAt (length (Logic.strip_params t), xs)
+          in rename us @ vs end);
+
+    val asms = map (curry Term.list_abs named_xs) (Logic.strip_assums_hyp prop);
+    val named_asms =
+      (case split of
+        NONE => [("", asms)]
+      | SOME t =>
+          let val (hyps, prems) = splitAt (length (Logic.strip_assums_hyp t), asms)
+          in [(case_hypsN, hyps), (case_premsN, prems)] end);
+
+    val concl = Term.list_abs (named_xs, Logic.strip_assums_concl prop);
     val bind = ((case_conclN, 0), SOME (ObjectLogic.drop_judgment sg concl));
-  in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;
+  in (name, SOME {fixes = named_xs, assumes = named_asms, binds = [bind]}) end;
 
 fun make is_open split (sg, prop) names =
-  let val nprems = Logic.count_prems (prop, 0) in
-    foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
-      ([], length names) (Library.drop (length names - nprems, names)) |> #1
+  let
+    val nprems = Logic.count_prems (prop, 0);
+    fun add_case name (cases, i) =
+      ((case try (fn () =>
+          (Option.map (curry Logic.nth_prem i) split, Logic.nth_prem (i, prop))) () of
+        NONE => (name, NONE)
+      | SOME sp => prep_case is_open sg sp name) :: cases, i - 1);
+  in
+    fold_rev add_case (Library.drop (length names - nprems, names)) ([], length names)
+    |> #1
   end;
 
 
