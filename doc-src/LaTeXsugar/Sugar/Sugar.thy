@@ -258,7 +258,7 @@ text {*
   \end{center}
 *}
 
-subsection "Proofs"
+section "Proofs"
 
 text {*
   Full proofs, even if written in beautiful Isar style, are likely to
@@ -307,7 +307,7 @@ text {*
   
 *}
 
-subsection {*Styles\label{sec:styles}*}
+section {*Styles\label{sec:styles}*}
 
 text {*
   The \verb!thm! antiquotation works nicely for single theorems, but
