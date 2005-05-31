@@ -93,32 +93,22 @@ sig
   val get_thms_closure: context -> thmref -> thm list
   val valid_thms: context -> string * thm list -> bool
   val lthms_containing: context -> FactIndex.spec -> (string * thm list) list
-  val cond_extern: context -> string -> xstring
-  val qualified: bool -> context -> context
-  val restore_qualified: context -> context -> context
+  val extern: context -> string -> xstring
+  val qualified_names: context -> context
+  val no_base_names: context -> context
+  val custom_accesses: (string list -> string list list) -> context -> context
+  val restore_naming: context -> context -> context
   val hide_thms: bool -> string list -> context -> context
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
   val reset_thms: string -> context -> context
   val note_thmss:
-    ((bstring * context attribute list) *
-      (thmref * context attribute list) list) list ->
-    context -> context * (bstring * thm list) list
+    ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
+      context -> context * (bstring * thm list) list
   val note_thmss_i:
-    ((bstring * context attribute list) *
-      (thm list * context attribute list) list) list ->
-    context -> context * (bstring * thm list) list
-  val note_thmss_accesses:
-    (string -> string list) ->
-    ((bstring * context attribute list) *
-      (thmref * context attribute list) list) list ->
-    context -> context * (bstring * thm list) list
-  val note_thmss_accesses_i:
-    (string -> string list) ->
-    ((bstring * context attribute list) *
-      (thm list * context attribute list) list) list ->
-    context -> context * (bstring * thm list) list
+    ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
+      context -> context * (bstring * thm list) list
   val export_assume: exporter
   val export_presume: exporter
   val cert_def: context -> term -> string * term
@@ -143,10 +133,10 @@ sig
   val add_fixes_liberal: (string * typ option * Syntax.mixfix option) list -> context -> context
   val fix_frees: term list -> context -> context
   val bind_skolem: context -> string list -> term -> term
-  val get_case: context -> string -> string option list -> RuleCases.T
-  val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context
     -> context * ((indexname * term option) list * (string * term list) list)
+  val get_case: context -> string -> string option list -> RuleCases.T
+  val add_cases: (string * RuleCases.T option) list -> context -> context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -186,9 +176,8 @@ datatype context =
         (string * thm list) list) *                           (*prems: A |- A *)
       (string * string) list,                                 (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,                         (*term bindings*)
-    thms: bool * NameSpace.T * thm list Symtab.table * FactIndex.T,    (*local thms*)
-      (*the bool indicates whether theorems with qualified names may be stored,
-        cf. 'qualified' and 'restore_qualified'*)
+    thms: NameSpace.naming * NameSpace.T *
+      thm list Symtab.table * FactIndex.T,                    (*local thms*)
     cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
       typ Vartab.table *                                      (*type constraints*)
@@ -314,7 +303,7 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
-      (false, NameSpace.empty, Symtab.empty, FactIndex.empty), [],
+      (NameSpace.default_naming, NameSpace.empty, Symtab.empty, FactIndex.empty), [],
       (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
 
@@ -1004,7 +993,7 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 fun valid_thms ctxt (name, ths) =
   (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
     NONE => false
-  | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
+  | SOME ths' => Thm.eq_thms (ths, ths'));
 
 
 (* lthms_containing *)
@@ -1017,37 +1006,37 @@ fun lthms_containing ctxt spec =
 
 (* name space operations *)
 
-fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
+fun extern (Context {thms = (_, space, _, _), ...}) = NameSpace.extern space;
 
-fun qualified q = map_context (fn (thy, syntax, data, asms, binds,
-    (_, space, tab, index), cases, defs) =>
-  (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs));
+fun map_naming f = map_context (fn (thy, syntax, data, asms, binds,
+    (naming, space, tab, index), cases, defs) =>
+  (thy, syntax, data, asms, binds, (f naming, space, tab, index), cases, defs));
 
-fun restore_qualified (Context {thms, ...}) = qualified (#1 thms);
+val qualified_names = map_naming NameSpace.qualified_names;
+val no_base_names = map_naming NameSpace.no_base_names;
+val custom_accesses = map_naming o NameSpace.custom_accesses;
+fun restore_naming (Context {thms, ...}) = map_naming (K (#1 thms));
 
 fun hide_thms fully names =
-  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
-    (thy, syntax, data, asms, binds, (q, NameSpace.hide fully (space, names), tab, index),
-      cases, defs));
+  map_context (fn (thy, syntax, data, asms, binds, (naming, space, tab, index), cases, defs) =>
+    (thy, syntax, data, asms, binds,
+      (naming, fold (NameSpace.hide fully) names space, tab, index), cases, defs));
 
 
 (* put_thm(s) *)
 
-fun gen_put_thms _ _ ("", _) ctxt = ctxt
-  | gen_put_thms override_q acc (name, ths) ctxt = ctxt |> map_context
-      (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
-        if not override_q andalso not q andalso NameSpace.is_qualified name then
-          raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
-        else (thy, syntax, data, asms, binds, (q, NameSpace.extend' acc (space, [name]),
-          Symtab.update ((name, ths), tab), FactIndex.add (is_known ctxt) (name, ths) index),
-          cases, defs));
+fun put_thms ("", _) ctxt = ctxt
+  | put_thms (bname, ths) ctxt = ctxt |> map_context
+      (fn (thy, syntax, data, asms, binds, (naming, space, tab, index), cases, defs) =>
+        let
+          val name = NameSpace.full naming bname;
+          val space' = NameSpace.declare naming name space;
+          val tab' = Symtab.update ((name, ths), tab);
+          val index' = FactIndex.add (is_known ctxt) (name, ths) index;
+        in (thy, syntax, data, asms, binds, (naming, space', tab', index'), cases, defs) end);
 
-fun gen_put_thm q acc (name, th) = gen_put_thms q acc (name, [th]);
-fun gen_put_thmss q acc = fold (gen_put_thms q acc);
-
-val put_thm = gen_put_thm false NameSpace.accesses;
-val put_thms = gen_put_thms false NameSpace.accesses;
-val put_thmss = gen_put_thmss false NameSpace.accesses;
+fun put_thm (name, th) = put_thms (name, [th]);
+val put_thmss = fold put_thms;
 
 
 (* reset_thms *)
@@ -1061,23 +1050,23 @@ fun reset_thms name =
 (* note_thmss *)
 
 local
-(* FIXME foldl_map (!?) *)
-fun gen_note_thss get acc (ctxt, ((name, more_attrs), ths_attrs)) =
+
+fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
   let
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = Library.foldl app ((ctxt, []), ths_attrs);
     val thms = List.concat (rev rev_thms);
-  in (ctxt' |> gen_put_thms true acc (name, thms), (name, thms)) end;
+  in (ctxt' |> put_thms (name, thms), (name, thms)) end;
 
-fun gen_note_thmss get acc args ctxt =
-  foldl_map (gen_note_thss get acc) (ctxt, args);
+fun gen_note_thmss get args ctxt =
+  foldl_map (gen_note_thss get) (ctxt, args);
 
 in
 
-val note_thmss = gen_note_thmss get_thms NameSpace.accesses;
-val note_thmss_i = gen_note_thmss (K I) NameSpace.accesses;
+val note_thmss = gen_note_thmss get_thms;
+val note_thmss_i = gen_note_thmss (K I);
 
 val note_thmss_accesses = gen_note_thmss get_thms;
 val note_thmss_accesses_i = gen_note_thmss (K I);
@@ -1282,6 +1271,15 @@ fun bind_skolem ctxt xs =
 
 (** cases **)
 
+fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
+  let
+    fun bind (c, (x, T)) = (c |> fix_i [([x], SOME T)], bind_skolem c [x] (Free (x, T)));
+    val (ctxt', xs) = foldl_map bind (ctxt, fixes);
+    fun app t = Library.foldl Term.betapply (t, xs);
+  in (ctxt', (map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes)) end;
+
+local
+
 fun prep_case ctxt name xs {fixes, assumes, binds} =
   let
     fun replace (opt_x :: xs) ((y, T) :: ys) = (if_none opt_x y, T) :: replace xs ys
@@ -1294,14 +1292,23 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
 
+fun rem_case name = remove (fn (x, (y, _)) => x = y) name;
+
+fun add_case ("", _) cases = cases
+  | add_case (name, NONE) cases = rem_case name cases
+  | add_case (name, SOME c) cases = (name, c) :: rem_case name cases;
+
+in
+
 fun get_case (ctxt as Context {cases, ...}) name xs =
   (case assoc (cases, name) of
     NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
   | SOME c => prep_case ctxt name xs c);
 
-
 fun add_cases xs = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-  (thy, syntax, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
+  (thy, syntax, data, asms, binds, thms, fold add_case xs cases, defs));
+
+end;
 
 
 
@@ -1344,19 +1351,12 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 (* local theorems *)
 
 fun pretty_lthms (ctxt as Context {thms = (_, space, tab, _), ...}) =
-  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.cond_extern_table space tab);
+  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.extern_table space tab);
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
 
 (* local contexts *)
-
-fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
-  let
-    fun bind (c, (x, T)) = (c |> fix_i [([x], SOME T)], bind_skolem c [x] (Free (x, T)));
-    val (ctxt', xs) = foldl_map bind (ctxt, fixes);
-    fun app t = Library.foldl Term.betapply (t, xs);
-  in (ctxt', (map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes)) end;
 
 fun pretty_cases (ctxt as Context {cases, ...}) =
   let
@@ -1380,12 +1380,10 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
           (List.mapPartial (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
-
-    val cases' = rev (Library.gen_distinct Library.eq_fst cases);
   in
     if null cases andalso not (! verbose) then []
     else [Pretty.big_list "cases:"
-      (map (prt_case o apsnd (fn c => (#fixes c, #2 (apply_case c ctxt)))) cases')]
+      (map (prt_case o apsnd (fn c => (#fixes c, #2 (apply_case c ctxt)))) (rev cases))]
   end;
 
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
