@@ -10,10 +10,8 @@ fun add_in_order (x:string) [] = [x]
                              else
                                   (y::(add_in_order x ys))
 fun add_once x [] = [x]
-|   add_once x (y::ys) = if (inlist x (y::ys)) then 
-                            (y::ys)
-                        else
-                            add_in_order x (y::ys)
+|   add_once x (y::ys) = if x mem (y::ys) then (y::ys)
+                         else add_in_order x (y::ys)
      
 fun thm_vars thm = map (fn ((name,ix),_) => name) (Drule.vars_of thm);
 

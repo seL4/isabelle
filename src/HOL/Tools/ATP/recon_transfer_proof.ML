@@ -53,21 +53,20 @@ fun retrieve_clause array symtable clausenum = let
 
 (* Versions that include type information *)
  
-fun string_of_thm thm = let val _ = set show_sorts
-                                val str = Display.string_of_thm thm
-                                val no_returns =List.filter not_newline (explode str)
-                                val _ = reset show_sorts
-                            in 
-                                implode no_returns
-                            end
+fun string_of_thm thm =
+  let val _ = set show_sorts
+      val str = Display.string_of_thm thm
+      val no_returns =List.filter not_newline (explode str)
+      val _ = reset show_sorts
+  in 
+      implode no_returns
+  end
 
 
 (* check separate args in the watcher program for separating strings with a * or ; or something *)
 
 fun clause_strs_to_string [] str = str
 |   clause_strs_to_string (x::xs) str = clause_strs_to_string xs (str^x^"%")
-
-
 
 fun thmvars_to_string [] str = str
 |   thmvars_to_string (x::xs) str = thmvars_to_string xs (str^x^"%")
@@ -174,11 +173,8 @@ fun assoc_out_of_order a [] = raise Noassoc
 fun get_assoc_snds [] xs assocs= assocs
 |   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_out_of_order x ys))])
 
-
-
-
 fun add_if_not_inlist [] xs newlist = newlist
-|   add_if_not_inlist (y::ys) xs newlist = if (not (inlist y xs)) then 
+|   add_if_not_inlist (y::ys) xs newlist = if (not (y mem xs)) then 
                                       add_if_not_inlist ys xs (y::newlist)
                                         else add_if_not_inlist ys xs (newlist)
 
@@ -205,57 +201,47 @@ fun numstr [] = ""
 (* retrieve the axioms that were obtained from the clasimpset *)
 
 fun get_clasimp_cls clause_arr clasimp_num step_nums = 
-                                let 
-                                    val realnums = map subone step_nums
-                                   
- 				    
-                                    val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
-                                   val axnums = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "axnums")))     
-                                   val _ = TextIO.output(axnums,(numstr clasimp_nums))
-                                   val _ = TextIO.closeOut(axnums)
-                                in
-                                    retrieve_axioms clause_arr  clasimp_nums
-                                end
+    let val realnums = map subone step_nums	
+	val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
+	val axnums = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "axnums")))     
+	val _ = TextIO.output(axnums,(numstr clasimp_nums))
+	val _ = TextIO.closeOut(axnums)
+    in
+	retrieve_axioms clause_arr  clasimp_nums
+    end
 
-fun get_cls []  = []
-|   get_cls (x::xs) = ((#1 x)::(get_cls xs))
 
 (* add array and table here, so can retrieve clasimp axioms *)
 
- fun get_axiom_names proof_steps thms (clause_arr:(ResClause.clause * Thm.thm) Array.array) num_of_clauses  =
-                                         let 
-                                           (* not sure why this is necessary again, but seems to be *)
-					    val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-                                            val axioms = get_init_axioms proof_steps
-                                            val step_nums = get_step_nums axioms []
-
-                                           (***********************************************)
-                                           (* here need to add the clauses from clause_arr*)
-                                           (***********************************************)
-
-                                            val (clasimp_names_cls) = get_clasimp_cls clause_arr   num_of_clauses step_nums 
-                                            val clauses=(get_cls clasimp_names_cls) 
-                                            val (names_clsnums) = map ResClause.clause_info clauses
-                                            val clasimp_names = map fst names_clsnums
-
-                                            val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "clasimp_names")))                                                                   val clasimp_namestr = concat clasimp_names                            
-                                            val _ = TextIO.output (outfile,clasimp_namestr)
-                                            val _ =  TextIO.closeOut outfile
-					    val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
-                                           
-                                         in
-                                            (clasimp_names)
-                                         end
+ fun get_axiom_names proof_steps thms (clause_arr:(ResClause.clause * thm) Array.array) num_of_clauses  =
+   let 
+     (* not sure why this is necessary again, but seems to be *)
+      val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+      val axioms = get_init_axioms proof_steps
+      val step_nums = get_step_nums axioms []
+  
+     (***********************************************)
+     (* here need to add the clauses from clause_arr*)
+     (***********************************************)
+  
+      val (clasimp_names_cls) = get_clasimp_cls clause_arr num_of_clauses step_nums 
+      val clasimp_names = map (#1 o ResClause.clause_info o #1) clasimp_names_cls
+  
+      val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
+                         (concat clasimp_names)
+      val _ = (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
+   in
+      clasimp_names
+   end
     
 fun numclstr (vars, []) str = str
-|   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
-in
-numclstr  (vars,rest) newstr
-end
+|   numclstr ( vars, ((num, thm)::rest)) str =
+      let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
+      in
+        numclstr  (vars,rest) newstr
+      end
 
-
-fun addvars  c (a,b)  = (a,b,c)
-
+fun addvars c (a,b)  = (a,b,c)
 
  fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
      let 

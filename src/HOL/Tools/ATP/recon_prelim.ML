@@ -131,31 +131,6 @@ fun var2free v = let val (index, tv) = dest_Var v
                      Free (istr,tv)
                  end;
 
-fun  inlist v [] = false
-    | inlist v (first::rest) = if first = v then
-				true
-			     else inlist v rest;
-
-(*fun in_vars v [] = false
-    | in_vars v ((a,b)::rest) = if v = a then
-				  true
-			       else if v = b then
-				  true
-			       else in_vars v rest;*)
-
-fun in_vars v [] = false
-    | in_vars v (a::rest) = if (fst v) = a then
-				  true
-			      
-			       else in_vars v rest;
-
-fun equalpair (a,b) (c,d) = if (a,b)= (c,d) then
-					true
-			    else if (a,b) = (d,c) then
-					true
-			    else false;
-
-
 fun is_empty_seq thisseq =  case Seq.chop (1, thisseq) of
                              ([],_)   => true
                            |      _   => false

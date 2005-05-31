@@ -41,7 +41,7 @@ fun minus a b = b - a;
                                 else
                                      takeUntil ch xs (res@[x]);
 
-fun contains_eq str = inlist "=" str 
+fun contains_eq str = "=" mem str 
 
 fun eq_not_neq str = let val uptoeq = fst(takeUntil "=" str [])
                      in (last uptoeq) <> "~" end
