@@ -375,9 +375,9 @@ val typedeclP =
 
 
 val typedef_proof_decl =
-  Scan.optional (P.$$$ "(" |-- P.!!!
-      (((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
-        --| P.$$$ ")")) (true, NONE) --
+  Scan.optional (P.$$$ "(" |--
+      ((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
+        --| P.$$$ ")") (true, NONE) --
     (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
