@@ -22,6 +22,7 @@ sig
   val strip_imp_concl   : term -> term
   val strip_prems       : int * term list * term -> term list * term
   val count_prems       : term * int -> int
+  val nth_prem		: int * term -> term
   val mk_conjunction    : term * term -> term
   val mk_conjunction_list: term list -> term
   val strip_horn        : term -> term list * term
@@ -112,9 +113,14 @@ fun strip_prems (0, As, B) = (As, B)
         strip_prems (i-1, A::As, B)
   | strip_prems (_, As, A) = raise TERM("strip_prems", A::As);
 
-(*Count premises -- quicker than (length ostrip_prems) *)
+(*Count premises -- quicker than (length o strip_prems) *)
 fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
   | count_prems (_,n) = n;
+
+(*Select Ai from A1 ==>...Ai==>B*)
+fun nth_prem (1, Const ("==>", _) $ A $ _) = A
+  | nth_prem (i, Const ("==>", _) $ _ $ B) = nth_prem (i - 1, B)
+  | nth_prem (_, A) = raise TERM ("nth_prem", [A]);
 
 (*strip a proof state (Horn clause):
   B1 ==> ... Bn ==> C   goes to   ([B1, ..., Bn], C)    *)
