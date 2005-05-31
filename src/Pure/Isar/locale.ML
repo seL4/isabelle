@@ -38,7 +38,7 @@ sig
   type element_i
   type locale
   val intern: Sign.sg -> xstring -> string
-  val cond_extern: Sign.sg -> string -> xstring
+  val extern: Sign.sg -> string -> xstring
   val the_locale: theory -> string -> locale
   val intern_attrib_elem: theory ->
     ('typ, 'term, 'fact) elem -> ('typ, 'term, 'fact) elem
@@ -337,7 +337,7 @@ struct
      Symtab.join (SOME o Registrations.join) (regs1, regs2));
 
   fun print _ (space, locs, _) =
-    Pretty.strs ("locales:" :: map (NameSpace.cond_extern space o #1) (Symtab.dest locs))
+    Pretty.strs ("locales:" :: map (NameSpace.extern space o #1) (Symtab.dest locs))
     |> Pretty.writeln;
 end;
 
@@ -366,11 +366,11 @@ val _ = Context.add_setup [LocalLocalesData.init];
 val print_locales = GlobalLocalesData.print;
 
 val intern = NameSpace.intern o #1 o GlobalLocalesData.get_sg;
-val cond_extern = NameSpace.cond_extern o #1 o GlobalLocalesData.get_sg;
+val extern = NameSpace.extern o #1 o GlobalLocalesData.get_sg;
 
-fun declare_locale name =
-  GlobalLocalesData.map (fn (space, locs, regs) =>
-    (NameSpace.extend (space, [name]), locs, regs));
+fun declare_locale name thy =
+  thy |> GlobalLocalesData.map (fn (space, locs, regs) =>
+    (Sign.declare_name (Theory.sign_of thy) name space, locs, regs));
 
 fun put_locale name loc =
   GlobalLocalesData.map (fn (space, locs, regs) =>
@@ -432,7 +432,7 @@ fun gen_put_registration map_data get_sg (name, ps) attn thy_ctxt =
       val (reg', sups) = Registrations.insert sg (ps, attn) reg;
       val _ = if not (null sups) then warning
                 ("Subsumed interpretation(s) of locale " ^
-                 quote (cond_extern sg name) ^
+                 quote (extern sg name) ^
                  "\nby interpretation(s) with the following prefix(es):\n" ^
                   commas_quote (map (fn (_, ((s, _), _)) => s) sups))
               else ();
@@ -543,7 +543,7 @@ fun err_in_locale ctxt msg ids =
   let
     val sign = ProofContext.sign_of ctxt;
     fun prt_id (name, parms) =
-      [Pretty.block (Pretty.breaks (map Pretty.str (cond_extern sign name :: parms)))];
+      [Pretty.block (Pretty.breaks (map Pretty.str (extern sign name :: parms)))];
     val prt_ids = List.concat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
     val err_msg =
       if forall (equal "" o #1) ids then msg
@@ -636,18 +636,8 @@ fun rename_elem ren =
   map_values I (rename_term ren) (rename_thm ren) o
   map_elem {name = I, typ = I, term = I, fact = I, attrib = I, var = rename_var ren};
 
-fun rename_facts prfx elem =
-  let
-    fun qualify (arg as ((name, atts), x)) =
-      if prfx = "" orelse name = "" then arg
-      else ((NameSpace.pack [prfx, name], atts), x);
-  in
-    (case elem of
-      Fixes fixes => Fixes fixes
-    | Assumes asms => Assumes (map qualify asms)
-    | Defines defs => Defines (map qualify defs)
-    | Notes facts => Notes (map qualify facts))
-  end;
+fun rename_facts prfx =
+  map_elem {var = I, typ = I, term = I, fact = I, attrib = I, name = NameSpace.qualified prfx};
 
 
 (* type instantiation *)
@@ -1006,7 +996,7 @@ fun activate_elem _ ((ctxt, axs), Fixes fixes) =
 
 fun activate_elems (((name, ps), axs), elems) ctxt =
   let val ((ctxt', _), res) =
-    foldl_map (activate_elem (name = "")) ((ProofContext.qualified true ctxt, axs), elems)
+    foldl_map (activate_elem (name = "")) ((ProofContext.qualified_names ctxt, axs), elems)
       handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
     val ctxt'' = if name = "" then ctxt'
           else let
@@ -1015,7 +1005,7 @@ fun activate_elems (((name, ps), axs), elems) ctxt =
             in foldl (fn (ax, ctxt) =>
               add_local_witness (name, ps') (Thm.assume (Thm.cprop_of ax)) ctxt) ctxt'' axs
             end
-  in (ProofContext.restore_qualified ctxt ctxt'', res) end;
+  in (ProofContext.restore_naming ctxt ctxt'', res) end;
 
 fun activate_elemss prep_facts = foldl_map (fn (ctxt, (((name, ps), axs), raw_elems)) =>
   let
@@ -1600,11 +1590,6 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
           \declared with (open)\n" ^ msg ^ "\n" ^
 	cat_lines (map string_of_thm thms));
 
-    val prefix_fact =
-      if prfx = "" then I
-      else (fn "" => ""
-             | s => NameSpace.append prfx s);
-
     fun inst_elem (ctxt, (Ext _)) = ctxt
       | inst_elem (ctxt, (Int (Notes facts))) =
               (* instantiate fact *)
@@ -1615,22 +1600,22 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
               val facts' =
                 map (apsnd (map (apfst (map inst_thm')))) facts
               (* rename fact *)
-              val facts'' = map (apfst (apfst prefix_fact)) facts'
+              val facts'' = map (apfst (apfst (NameSpace.qualified prfx))) facts'
               (* add attributes *)
               val facts''' = map (apfst (apsnd (fn atts => atts @ attribs))) facts''
           in fst (ProofContext.note_thmss_i facts''' ctxt)
           end
       | inst_elem (ctxt, (Int _)) = ctxt;
 
+    (* FIXME fold o fold *)
     fun inst_elems (ctxt, (id, elems)) = Library.foldl inst_elem (ctxt, elems);
 
     fun inst_elemss ctxt elemss = Library.foldl inst_elems (ctxt, elemss);
 
     (* main part *)
 
-    val ctxt' = ProofContext.qualified true ctxt;
-  in ProofContext.restore_qualified ctxt (inst_elemss ctxt' all_elemss)
-  end;
+    val ctxt' = ProofContext.qualified_names ctxt;
+  in ProofContext.restore_naming ctxt (inst_elemss ctxt' all_elemss) end;
 
 
 (** define locales **)
@@ -1655,7 +1640,7 @@ fun print_locale thy import body =
           prt_typ T :: Pretty.brk 1 :: prt_syn syn)
       | prt_fix (x, NONE, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
 
-    fun prt_name name = Pretty.str (ProofContext.cond_extern ctxt name);
+    fun prt_name name = Pretty.str (ProofContext.extern ctxt name);
     fun prt_name_atts (name, atts) =
       if name = "" andalso null atts then []
       else [Pretty.block (Pretty.breaks (prt_name name :: prt_atts atts @ [Pretty.str ":"]))];
@@ -1683,59 +1668,58 @@ fun print_locale thy import body =
   end;
 
 
-(* store results *)
 
-local
+(** store results **)
 
-fun hide_bound_names names thy =
-  thy |> PureThy.hide_thms false
-    (map (Sign.full_name (Theory.sign_of thy)) (filter_out (equal "") names));
-
-in
-
-(* store exported theorem in theory *)
+(* note_thmss_qualified *)
 
 fun note_thmss_qualified kind name args thy =
   thy
   |> Theory.add_path (Sign.base_name name)
+  |> Theory.no_base_names
   |> PureThy.note_thmss_i (Drule.kind kind) args
-  |>> hide_bound_names (map (#1 o #1) args)
-  |>> Theory.parent_path;
+  |>> Theory.restore_naming thy;
+
 
 (* accesses of interpreted theorems *)
 
-(* fully qualified name in theory is T.p.r.n where
-   T: theory name, p: interpretation prefix, r: renaming prefix, n: name *)
+local
 
-fun global_accesses prfx name =
-     if prfx = "" then
-       case NameSpace.unpack name of
-	   [] => [""]
-	 | [T, n] => map NameSpace.pack [[T, n], [n]]
-	 | [T, r, n] => map NameSpace.pack [[T, r, n], [T, n], [r, n], [n]]
-	 | _ => error ("Locale accesses: illegal name " ^ quote name)
-     else case NameSpace.unpack name of
-           [] => [""]
-         | [T, p, n] => map NameSpace.pack [[T, p, n], [p, n]]
-         | [T, p, r, n] => map NameSpace.pack
-             [[T, p, r, n], [T, p, n], [p, r, n], [p, n]]
-         | _ => error ("Locale accesses: illegal name " ^ quote name);
+(*fully qualified name in theory is T.p.r.n where
+  T: theory name, p: interpretation prefix, r: renaming prefix, n: name*)
+fun global_accesses _ [] = []
+  | global_accesses "" [T, n] = [[T, n], [n]]
+  | global_accesses "" [T, r, n] = [[T, r, n], [T, n], [r, n], [n]]
+  | global_accesses _ [T, p, n] = [[T, p, n], [p, n]]
+  | global_accesses _ [T, p, r, n] = [[T, p, r, n], [T, p, n], [p, r, n], [p, n]]
+  | global_accesses _ names = error ("Bad name declaration " ^ quote (NameSpace.pack names));
 
-(* fully qualified name in context is p.r.n where
-   p: interpretation prefix, r: renaming prefix, n: name *)
+(*fully qualified name in context is p.r.n where
+  p: interpretation prefix, r: renaming prefix, n: name*)
+fun local_accesses _ [] = []
+  | local_accesses "" [n] = [[n]]
+  | local_accesses "" [r, n] = [[r, n], [n]]
+  | local_accesses _ [p, n] = [[p, n]]
+  | local_accesses _ [p, r, n] = [[p, r, n], [p, n]]
+  | local_accesses _ names = error ("Bad name declaration " ^ quote (NameSpace.pack names));
 
-fun local_accesses prfx name =
-     if prfx = "" then
-       case NameSpace.unpack name of
-	   [] => [""]
-	 | [n] => map NameSpace.pack [[n]]
-	 | [r, n] => map NameSpace.pack [[r, n], [n]]
-	 | _ => error ("Locale accesses: illegal name " ^ quote name)
-     else case NameSpace.unpack name of
-           [] => [""]
-         | [p, n] => map NameSpace.pack [[p, n]]
-         | [p, r, n] => map NameSpace.pack [[p, r, n], [p, n]]
-         | _ => error ("Locale accesses: illegal name " ^ quote name);
+in
+
+fun global_note_accesses_i kind prfx args thy =
+  thy
+  |> Theory.qualified_names
+  |> Theory.custom_accesses (global_accesses prfx)
+  |> PureThy.note_thmss_i kind args
+  |>> Theory.restore_naming thy;
+
+fun local_note_accesses_i prfx args ctxt =
+  ctxt
+  |> ProofContext.qualified_names
+  |> ProofContext.custom_accesses (local_accesses prfx)
+  |> ProofContext.note_thmss_i args
+  |>> ProofContext.restore_naming ctxt;
+
+end;
 
 
 (* store instantiations of args for all registered interpretations
@@ -1743,14 +1727,11 @@ fun local_accesses prfx name =
 
 fun note_thmss_registrations kind target args thy =
   let
-    val ctxt = ProofContext.init thy;
-    val sign = Theory.sign_of thy;
-
     val (parms, parmTs_o) =
           the_locale thy target |> #params |> fst |> map fst |> split_list;
     val parmvTs = map (Type.varifyT o valOf) parmTs_o;
-    val ids = flatten (ctxt, intern_expr sign) (([], Symtab.empty), Expr (Locale target))
-          |> fst |> fst |> map fst;
+    val ids = flatten (ProofContext.init thy, intern_expr (Theory.sign_of thy))
+      (([], Symtab.empty), Expr (Locale target)) |> fst |> fst |> map fst;
 
     val regs = get_global_registrations thy target;
 
@@ -1758,9 +1739,10 @@ fun note_thmss_registrations kind target args thy =
 
     fun activate (thy, (vts, ((prfx, atts2), _))) =
       let
+        val sg = Theory.sign_of thy;
         val ts = map Logic.unvarify vts;
         (* type instantiation *)
-        val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of sign))
+        val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of sg))
              (Vartab.empty, (parmvTs ~~ map Term.fastype_of ts));
         val tinst = Vartab.dest vtinst |> map (fn ((x, 0), (_, T)) => (x, T))
              |> Symtab.make;            
@@ -1771,20 +1753,17 @@ fun note_thmss_registrations kind target args thy =
         val ids' = map (apsnd vinst_names) ids;
         val prems = List.concat (map (snd o valOf o get_global_registration thy) ids');
         val args' = map (fn ((n, atts), [(ths, [])]) =>
-            ((if prfx = "" orelse n = "" then "" else NameSpace.pack [prfx, n],
+            ((if prfx = "" orelse n = "" then "" else NameSpace.pack [prfx, n],  (* FIXME *)
               map (Attrib.global_attribute_i thy) (atts @ atts2)),
-             [(map (Drule.standard o Drule.satisfy_hyps prems o inst_tab_thm sign (inst, tinst)) ths, [])]))
+             [(map (Drule.standard o Drule.satisfy_hyps prems o inst_tab_thm sg (inst, tinst)) ths, [])]))
           args;
-      in
-        PureThy.note_thmss_accesses_i (global_accesses prfx) (Drule.kind kind) args' thy |> fst
-      end;
+      in global_note_accesses_i (Drule.kind kind) prfx args' thy |> fst end;
   in Library.foldl activate (thy, regs) end;
 
 
 fun smart_note_thmss kind NONE = PureThy.note_thmss_i (Drule.kind kind)
   | smart_note_thmss kind (SOME loc) = note_thmss_qualified kind loc;
 
-end;
 
 local
 
@@ -2075,9 +2054,7 @@ fun activate_facts_elem _ _ _ _ (thy_ctxt, Fixes _) = thy_ctxt
         (* discharge hyps *)
         val facts'' = map (apsnd (map (apfst (map disch)))) facts';
         (* prefix names *)
-        val facts''' = map (apfst (apfst (fn name =>
-          if prfx = "" orelse name = "" then name
-          else NameSpace.pack [prfx, name]))) facts'';
+        val facts''' = map (apfst (apfst (NameSpace.qualified prfx))) facts'';
       in
         fst (note_thmss prfx facts''' thy_ctxt)
       end;
@@ -2107,12 +2084,12 @@ fun gen_activate_facts_elemss get_reg note_thmss attrib standard
 val global_activate_facts_elemss = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
-      (fn prfx => PureThy.note_thmss_accesses_i (global_accesses prfx)
-        (Drule.kind ""))
+      (global_note_accesses_i (Drule.kind ""))
       Attrib.global_attribute_i Drule.standard;
+
 val local_activate_facts_elemss = gen_activate_facts_elemss
       get_local_registration
-      (fn prfx => ProofContext.note_thmss_accesses_i (local_accesses prfx))
+      local_note_accesses_i
       Attrib.context_attribute_i I;
 
 fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
