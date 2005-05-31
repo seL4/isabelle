@@ -75,7 +75,7 @@ struct
       fun prt_attr (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.cond_extern_table space attrs))]
+      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table space attrs))]
       |> Pretty.chunks |> Pretty.writeln
     end;
 end;
@@ -140,12 +140,12 @@ fun crude_closure ctxt src =
 
 fun add_attributes raw_attrs thy =
   let
-    val full = Sign.full_name (Theory.sign_of thy);
-    val new_attrs =
-      map (fn (name, (f, g), comment) => (full name, (((f, g), comment), stamp ()))) raw_attrs;
+    val sg = Theory.sign_of thy;
+    val new_attrs = raw_attrs |> map (fn (name, (f, g), comment) =>
+      (Sign.full_name sg name, (((f, g), comment), stamp ())));
 
     val {space, attrs} = AttributesData.get thy;
-    val space' = NameSpace.extend (space, map fst new_attrs);
+    val space' = fold (Sign.declare_name sg) (map fst new_attrs) space;
     val attrs' = Symtab.extend (attrs, new_attrs) handle Symtab.DUPS dups =>
       error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in thy |> AttributesData.put {space = space', attrs = attrs'} end;
