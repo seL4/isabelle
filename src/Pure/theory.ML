@@ -90,6 +90,12 @@ sig
   val parent_path: theory -> theory
   val root_path: theory -> theory
   val absolute_path: theory -> theory
+  val qualified_names: theory -> theory
+  val no_base_names: theory -> theory
+  val custom_accesses: (string list -> string list list) -> theory -> theory
+  val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
+    theory -> theory
+  val restore_naming: theory -> theory -> theory
   val hide_space: bool -> string * xstring list -> theory -> theory
   val hide_space_i: bool -> string * string list -> theory -> theory
   val hide_classes: bool -> string list -> theory -> theory
@@ -199,7 +205,7 @@ fun ext_theory thy ext_sg ext_deps new_axms new_oras =
 
 (* extend signature of a theory *)
 
-fun ext_sign extfun decls thy = ext_theory thy (extfun decls) I [] [];
+fun ext_sign ext_sg args thy = ext_theory thy (ext_sg args) I [] [];
 
 val add_classes            = ext_sign Sign.add_classes;
 val add_classes_i          = ext_sign Sign.add_classes_i;
@@ -233,6 +239,11 @@ val add_path               = ext_sign Sign.add_path;
 val parent_path            = add_path "..";
 val root_path              = add_path "/";
 val absolute_path          = add_path "//";
+val qualified_names        = ext_sign (K Sign.qualified_names) ();
+val no_base_names          = ext_sign (K Sign.no_base_names) ();
+val custom_accesses        = ext_sign Sign.custom_accesses;
+val set_policy             = ext_sign Sign.set_policy;
+val restore_naming         = ext_sign Sign.set_naming o Sign.naming_of o sign_of;
 val add_space              = ext_sign Sign.add_space;
 val hide_space             = ext_sign o Sign.hide_space;
 val hide_space_i           = ext_sign o Sign.hide_space_i;
@@ -326,6 +337,7 @@ fun clash_types ty1 ty2 =
 fun clash_consts (c1, ty1) (c2, ty2) =
   c1 = c2 andalso clash_types ty1 ty2;
 *)
+
 
 (* clash_defns 
 
@@ -434,9 +446,9 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
       handle TERM (msg, _) => err_in_defn sg name msg;
 
     fun decl deps c = 
-	(case Sign.const_type sg c of 
-	     SOME T => (Defs.declare deps c T handle _ => deps, T)
-	   | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
+        (case Sign.const_type sg c of 
+             SOME T => (Defs.declare deps c T handle _ => deps, T)
+           | NONE => err_in_defn sg name ("Undeclared constant " ^ quote c));
 
     val (deps, c_decl) = decl deps c
 
@@ -447,13 +459,13 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
     if is_final c_ty then
       err_in_defn sg name (Pretty.string_of (Pretty.block
         ([Pretty.str "The constant",Pretty.brk 1] @
-	 pretty_const c_ty @
-	 [Pretty.brk 1,Pretty.str "has been declared final"])))
+         pretty_const c_ty @
+         [Pretty.brk 1,Pretty.str "has been declared final"])))
     else
       (case overloading sg c_decl ty of
-	 Useless =>
+         Useless =>
            err_in_defn sg name (Pretty.string_of (Pretty.chunks
-	   [Library.setmp show_sorts true def_txt (c_ty, ""), Pretty.str
+           [Library.setmp show_sorts true def_txt (c_ty, ""), Pretty.str
               "imposes additional sort constraints on the declared type of the constant"]))   
        | ov =>
 	 let 
@@ -462,14 +474,14 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
 		      | Defs.CIRCULAR s => err_in_defn sg name (cycle_msg sg (false, s))
                       | Defs.INFINITE_CHAIN s => err_in_defn sg name (cycle_msg sg (true, s)) 
                       | Defs.CLASH (_, def1, def2) => err_in_defn sg name (
-			  "clashing definitions "^ quote def1 ^" and "^ quote def2)
-	 in
-	     ((if ov = Plain andalso not overloaded then
-		   warning (Pretty.string_of (Pretty.chunks
-		     [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see " ^ quote name ^ ")")]))
-	       else
-		   ()); (deps', def::axms))
-	 end)
+                          "clashing definitions "^ quote def1 ^" and "^ quote def2)
+         in
+             ((if ov = Plain andalso not overloaded then
+                   warning (Pretty.string_of (Pretty.chunks
+                     [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see " ^ quote name ^ ")")]))
+               else
+                   ()); (deps', def::axms))
+         end)
   end;
 
 
@@ -505,24 +517,24 @@ fun ext_finals prep_term overloaded raw_terms thy =
           (case Sign.const_type sign c of SOME T => T
           | NONE => err ("Undeclared constant " ^ quote c));
         val simple =
-	  case overloading sign c_decl ty of
-	    NoOverloading => true
-	  | Useless => err "Sort restrictions too strong"
-	  | Plain => if overloaded then false
-		     else err "Type is more general than declared";
+          case overloading sign c_decl ty of
+            NoOverloading => true
+          | Useless => err "Sort restrictions too strong"
+          | Plain => if overloaded then false
+                     else err "Type is more general than declared";
         val typ_instance = Sign.typ_instance sign;
       in
         if simple then
-	  (case Symtab.lookup(finals,c) of
-	    SOME [] => err "Constant already final"
-	  | _ => Symtab.update((c,[]),finals))
-	else
-	  (case Symtab.lookup(finals,c) of
-	    SOME [] => err "Constant already completely final"
+          (case Symtab.lookup(finals,c) of
+            SOME [] => err "Constant already final"
+          | _ => Symtab.update((c,[]),finals))
+        else
+          (case Symtab.lookup(finals,c) of
+            SOME [] => err "Constant already completely final"
           | SOME tys => if exists (curry typ_instance ty) tys
-			then err "Instance of constant is already final"
-			else Symtab.update((c,ty::gen_rem typ_instance (tys,ty)),finals)
-	  | NONE => Symtab.update((c,[ty]),finals))
+                        then err "Instance of constant is already final"
+                        else Symtab.update((c,ty::gen_rem typ_instance (tys,ty)),finals)
+          | NONE => Symtab.update((c,[ty]),finals))
       end;
     val consts = map (prep_term sign) raw_terms;
     val final_consts' = Library.foldl mk_final (final_consts,consts);
