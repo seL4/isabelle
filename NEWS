@@ -378,10 +378,10 @@ New in this Isabelle release
   OPTION.  The functions the, if_none, is_some, is_none have been
   adapted accordingly, while Option.map replaces apsome.
 
-* The exception LIST is no more, the standard exceptions Empty and
-  Subscript, as well as Library.UnequalLengths are used instead.  This
-  means that function like Library.hd and Library.tl are gone, as the
-  standard hd and tl functions suffice.
+* The exception LIST has been given up in favour of the standard
+  exceptions Empty and Subscript, as well as Library.UnequalLengths.
+  Function like Library.hd and Library.tl are superceded by the
+  standard hd and tl functions etc.
 
   A number of basic functions are now no longer exported to the ML
   toplevel, as they are variants of standard functions.  The following
@@ -411,6 +411,20 @@ New in this Isabelle release
   required when capturing already output material that will eventually
   be presented to the user a second time.  For the default print mode,
   both Output.output and Output.raw have no effect.
+
+* Pure: name spaces have been refined, with significant changes of the
+  internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
+  to extern(_table).  The plain name entry path is superceded by a
+  general 'naming' context, which also includes the 'policy' to
+  produce a fully qualified name and external accesses of a fully
+  qualified name; NameSpace.extend is superceded by context dependent
+  Sign.declare_name.  Several theory and proof context operations
+  modify the naming context; especially note Theory.restore_naming and
+  ProofContext.restore_naming.
+
+* Pure: cases produced by proof methods specify options, where NONE
+  means to remove case bindings -- INCOMPATIBILITY in
+  (RAW_)METHOD_CASES.
 
 * Provers: Simplifier and Classical Reasoner now support proof context
   dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
