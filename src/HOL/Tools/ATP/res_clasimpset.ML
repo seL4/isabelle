@@ -5,7 +5,7 @@
     Copyright   2004  University of Cambridge
 *)
 
-signature RES_CLASIMP =
+signature RES_CLASIMP = 
   sig
      val write_out_clasimp :string -> (ResClause.clause * Thm.thm) Array.array * int
   end;
@@ -50,6 +50,30 @@ fun remove_spaces_pair (str, thm) = (remove_spaces str, thm);
 (*Insert th into the result provided the name is not "".*)
 fun add_nonempty ((name,th), ths) = if name="" then ths else th::ths;
 
+fun posinlist x [] n = "not in list"
+|   posinlist x (y::ys) n = if (x=y) 
+			    then
+ 				string_of_int n
+			    else posinlist x (ys) (n+1)
+
+
+fun pairup [] [] = []
+|   pairup (x::xs) (y::ys) = (x,y)::(pairup xs ys)
+
+fun multi x 0 xlist = xlist
+   |multi x n xlist = multi x (n -1 ) (x::xlist);
+
+
+fun clause_numbering ((clause, theorem), cls) = let val num_of_cls = length cls
+                                              val numbers = 0 upto (num_of_cls -1)
+                                              val multi_name = multi (clause, theorem)  num_of_cls []
+                                          in 
+                                              (multi_name)
+                                          end;
+
+
+
+ 
 
 fun write_out_clasimp filename = 
     let val claset_rules = ResAxioms.claset_rules_of_thy (the_context());
@@ -64,22 +88,25 @@ fun write_out_clasimp filename =
 
 	val cls_thms = (claset_cls_thms@simpset_cls_thms);
 	val cls_thms_list = List.concat cls_thms;
-
-	(*********************************************************)
-	(* create array and put clausename, number pairs into it *)
-	(*********************************************************)
-	val num_of_clauses =  0;
-	val clause_arr = Array.fromList cls_thms_list;
-
-	val num_of_clauses = List.length cls_thms_list;
-
+        (* length 1429 *)
 	(*************************************************)
 	(* Write out clauses as tptp strings to filename *)
 	(*************************************************)
 	val clauses = map #1(cls_thms_list);
 	val cls_tptp_strs = map ResClause.tptp_clause clauses;
+        val alllist = pairup cls_thms_list cls_tptp_strs
+        val whole_list = List.concat (map clause_numbering alllist);
+ 
+        (*********************************************************)
+	(* create array and put clausename, number pairs into it *)
+	(*********************************************************)
+	val num_of_clauses =  0;
+	val clause_arr = Array.fromList whole_list;
+	val num_of_clauses = List.length whole_list;
+
 	(* list of lists of tptp string clauses *)
 	val stick_clasrls =   List.concat cls_tptp_strs;
+        (* length 1581*)
 	val out = TextIO.openOut filename;
 	val _=   ResLib.writeln_strs out stick_clasrls;
 	val _= TextIO.flushOut out;
@@ -88,6 +115,7 @@ fun write_out_clasimp filename =
 	(clause_arr, num_of_clauses)
   end;
 
-
 end;
 
+
+	

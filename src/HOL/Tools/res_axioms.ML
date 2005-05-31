@@ -396,7 +396,19 @@ fun cnf_simpset_rules_thy thy =
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
-(* outputs a list of (thm,clause) pairs *)
+(* outputs a list of (clause,thm) pairs *)
+(*fun clausify_axiom_pairs (thm_name,thm) =
+    let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
+        val isa_clauses' = rm_Eps [] isa_clauses
+        val clauses_n = length isa_clauses
+	fun make_axiom_clauses _ [] []= []
+	  | make_axiom_clauses i (cls::clss) (cls'::clss')= ((ResClause.make_axiom_clause cls (thm_name,i)),cls', thm_name, i) :: make_axiom_clauses (i+1) clss clss'
+    in
+	make_axiom_clauses 0 isa_clauses' isa_clauses		
+    end;
+*)
+
+
 fun clausify_axiom_pairs (thm_name,thm) =
     let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = rm_Eps [] isa_clauses
@@ -406,7 +418,6 @@ fun clausify_axiom_pairs (thm_name,thm) =
     in
 	make_axiom_clauses 0 isa_clauses' isa_clauses		
     end;
-
 
 fun clausify_rules_pairs [] err_list = ([],err_list)
   | clausify_rules_pairs ((name,thm)::thms) err_list =

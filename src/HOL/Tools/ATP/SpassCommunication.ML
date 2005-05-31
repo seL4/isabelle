@@ -7,6 +7,20 @@
 (***************************************************************************)
 (*  Code to deal with the transfer of proofs from a Spass process          *)
 (***************************************************************************)
+signature SPASS_COMM =
+  sig
+    val reconstruct : bool ref
+    val getSpassInput : TextIO.instream -> string * string * string
+    val checkSpassProofFound:  TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
+                               string *string * Thm.thm * int *(ResClause.clause * Thm.thm) Array.array  * int -> bool
+    
+  end;
+
+structure SpassComm :SPASS_COMM =
+struct
+
+(* switch for whether to reconstruct a proof found, or just list the lemmas used *)
+val reconstruct = ref true;
 
 (***********************************)
 (*  Write Spass   output to a file *)
@@ -42,7 +56,13 @@ fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num claus
  in
 SELECT_GOAL
   (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => (Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
+  METAHYPS(fn negs => (if !reconstruct 
+		       then 
+			   Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring 
+								     toParent ppid negs clause_arr  num_of_clauses 
+		       else
+			   Recon_Transfer.spassString_to_lemmaString proofextract thmstring goalstring 
+								     toParent ppid negs clause_arr  num_of_clauses ))]) sg_num	
  end ;
 
 
@@ -111,7 +131,7 @@ fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd
 fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  (num_of_clauses:int )) = 
                                        let val spass_proof_file =  TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "spass_proof")))
                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_checkspass")));                                                                            
-                                            val _ = TextIO.output (outfile, "checking proof found, thm is: "^(string_of_thm thm))
+                                            val _ = TextIO.output (outfile, "checking if proof found, thm is: "^(string_of_thm thm))
                                              
                                             val _ =  TextIO.closeOut outfile
                                        in 
@@ -140,8 +160,8 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
                                                              val _ =  TextIO.closeOut outfile
                                                       in
                                                        
-                                                        (*TextIO.output (toParent,childCmd^"\n" );
-                                                        TextIO.flushOut toParent;*)
+                                                        TextIO.output (toParent,childCmd^"\n" );
+                                                        TextIO.flushOut toParent;
                                                         TextIO.output (spass_proof_file, (thisLine));
                                                         TextIO.flushOut spass_proof_file;
                                                         TextIO.closeOut spass_proof_file;
@@ -224,6 +244,18 @@ fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                                                  (reconstr, thmstring, goalstring)
                                              end
                                           )
+
+					else if (String.isPrefix   "Rules from"  thisLine)
+                                        then 
+                                          (
+                                             let val reconstr = thisLine
+                                                 val thmstring = TextIO.inputLine instr
+                                                 val goalstring = TextIO.inputLine instr
+                                             in
+                                                 (reconstr, thmstring, goalstring)
+                                             end
+                                          )
+
                                          else if (thisLine = "Proof found but translation failed!")
                                               then
   						(
@@ -245,3 +277,4 @@ fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                               ("No output from reconstruction process.\n","","")
 
 
+end;

@@ -1,6 +1,7 @@
+
 (*  ID:         $Id$
-    Author:     Claire Quigley
-    Copyright   2004  University of Cambridge
+ Author:     Claire Quigley
+ Copyright   2004  University of Cambridge
 *)
 
 (******************)
@@ -195,19 +196,66 @@ fun retrieve_axioms clause_arr  [] = []
 |   retrieve_axioms clause_arr  (x::xs) =  [Array.sub(clause_arr, x)]@
  						     (retrieve_axioms clause_arr  xs)
 
+fun subone x = x - 1
+
+fun numstr [] = ""
+|   numstr (x::xs) = (string_of_int x)^"%"^(numstr xs)
+
 
 (* retrieve the axioms that were obtained from the clasimpset *)
 
 fun get_clasimp_cls clause_arr clasimp_num step_nums = 
-                                let val clasimp_nums = List.filter (is_clasimp_ax clasimp_num) step_nums
+                                let 
+                                    val realnums = map subone step_nums
+                                   
+ 				    
+                                    val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
+                                   val axnums = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "axnums")))     
+                                   val _ = TextIO.output(axnums,(numstr clasimp_nums))
+                                   val _ = TextIO.closeOut(axnums)
                                 in
                                     retrieve_axioms clause_arr  clasimp_nums
                                 end
 
-
-
+fun get_cls []  = []
+|   get_cls (x::xs) = ((#1 x)::(get_cls xs))
 
 (* add array and table here, so can retrieve clasimp axioms *)
+
+ fun get_axiom_names proof_steps thms (clause_arr:(ResClause.clause * Thm.thm) Array.array) num_of_clauses  =
+                                         let 
+                                           (* not sure why this is necessary again, but seems to be *)
+					    val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+                                            val axioms = get_init_axioms proof_steps
+                                            val step_nums = get_step_nums axioms []
+
+                                           (***********************************************)
+                                           (* here need to add the clauses from clause_arr*)
+                                           (***********************************************)
+
+                                            val (clasimp_names_cls) = get_clasimp_cls clause_arr   num_of_clauses step_nums 
+                                            val clauses=(get_cls clasimp_names_cls) 
+                                            val (names_clsnums) = map ResClause.clause_info clauses
+                                            val clasimp_names = map fst names_clsnums
+
+                                            val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "clasimp_names")))                                                                   val clasimp_namestr = concat clasimp_names                            
+                                            val _ = TextIO.output (outfile,clasimp_namestr)
+                                            val _ =  TextIO.closeOut outfile
+					    val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
+                                           
+                                         in
+                                            (clasimp_names)
+                                         end
+    
+fun numclstr (vars, []) str = str
+|   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
+in
+numclstr  (vars,rest) newstr
+end
+
+
+fun addvars  c (a,b)  = (a,b,c)
+
 
  fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
      let 
@@ -293,32 +341,8 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
 	(distfrees,distvars, extra_with_vars,ax_with_vars, (*clasimp_names*)(ListPair.zip (step_nums,ax_metas)))
      end
     
-fun numclstr (vars, []) str = str
-|   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
-in
-numclstr  (vars,rest) newstr
-end
 
-(*
-
-val proofstr = "Did parsing on Here is a proof with depth 4, length 9 :\
-\1[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*+ -> v_P(tconst_fun(typ__da_a,tconst_bool),U)*.\
-\3[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),U)*+ -> v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*.\
-\5[0:Inp] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),U)* v_P(tconst_fun(typ__da_a,tconst_bool),v_xa)*.\
-\7[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),U)*+ v_P(tconst_fun(typ__da_a,tconst_bool),v_xb)* -> .\
-\9[0:Fac:5.0,5.1] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),v_xa)*.\
-\10[0:Res:9.0,3.0] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*.\
-\11[0:Res:10.0,1.0] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),U)*.\
-\12[0:Fac:7.0,7.1] || v_P(tconst_fun(typ__da_a,tconst_bool),v_xb)* -> .\
-\14[0:Res:11.0,12.0] ||  -> .\
-\Formulae used in the proof :"
-
-*)
-
-
-fun addvars  c (a,b)  = (a,b,c)
-
-
+                                        
 
 (*********************************************************************)
 (* Pass in spass string of proof and string version of isabelle goal *)
@@ -326,52 +350,74 @@ fun addvars  c (a,b)  = (a,b,c)
 (*********************************************************************)
 
 
-(*
-
-
-val proofstr = "Here is a proof with depth 2, length 5 :\
-\1[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
-\3[0:Inp] || v_Q(tconst_fun(typ__asc39_a,tconst_bool),U)* -> .\
-\5[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)* -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa).\
-\7[0:Res:1.0,5.0] ||  -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
-\9[0:Res:7.0,3.0] ||  -> .\
-\Formulae used in the proof :"
-
-
-val proofstr = "Here is a proof with depth 4, length 9 :\
-\1[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*+ -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
-\3[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*+ -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*.\
-\5[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)* v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
-\7[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*+ v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xb)* -> .\
-\9[0:Fac:5.0,5.1] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
-\10[0:Res:9.0,3.0] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*.\
-\11[0:Res:10.0,1.0] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
-\12[0:Fac:7.0,7.1] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xb)* -> .\
-\14[0:Res:11.0,12.0] ||  -> .\
-\Formulae used in the proof :";
-
-
-val thmstring = " (~ (P::'a::type => bool) (x::'a::type) | P (U::'a::type)) & (~ (P::'a::type => bool) (U::'a::type) | P (x::'a::type)) & ((P::'a::type => bool) (xa::'a::type) | P (U::'a::type)) & (~ (P::'a::type => bool) (U::'a::type) | ~ P (xb::'a::type))";
-
-val thmstring = "(ALL xb::'a::type.   (~ (P::'a::type => bool) ((x::'a::type => 'a::type) xb) |    (Q::'a::type => bool) ((xa::'a::type => 'a::type) xb)) &   P xb & ~ Q xb)"
-
-
-val thmstring ="(ALL xb::'a::type.   (~ (P::'a::type => bool) ((x::'a::type => 'a::type) xb) |    (Q::'a::type => bool) ((xa::'a::type => 'a::type) xb)) &   P xb & ~ Q xb)"
-
-val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
-\1[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
-\3[0:Inp] || v_Q(tconst_fun(typ__asc39_a,tconst_bool),U)* -> .\
-\5[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x(tconst_fun(typ__asc39_a,typ__asc39_a),U))* -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa(tconst_fun(typ__asc39_a,typ__asc39_a),U)).\
-\7[0:Res:1.0,5.0] ||  -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa(tconst_fun(typ__asc39_a,typ__asc39_a),U))*.\
-\9[0:Res:7.0,3.0] ||  -> .\
-\Formulae used in the proof :";
-
-*)
-
-
-
+fun rules_to_string [] str = str
+|   rules_to_string [x] str = str^x
+|   rules_to_string (x::xs) str = rules_to_string xs (str^x^"   ")
+                                  
 
 val dummy_tac = PRIMITIVE(fn thm => thm );
+
+
+fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
+           let val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));     						  val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr^"goalstr is: "^goalstring^" num of clauses is: "^(string_of_int num_of_clauses)))
+                                                  val _ =  TextIO.closeOut outfile
+
+                                              (***********************************)
+                                              (* parse spass proof into datatype *)
+                                              (***********************************)
+         
+                                                  val tokens = #1(lex proofstr)
+                                                  val proof_steps1 = parse tokens
+                                                  val proof_steps = just_change_space proof_steps1
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_parse")));                                                     val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
+                                                  val _ =  TextIO.closeOut outfile
+                                                
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_thmstring_at_parse")));                                        val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
+                                                  val _ =  TextIO.closeOut outfile
+                                              (************************************)
+                                              (* recreate original subgoal as thm *)
+                                              (************************************)
+                                                
+                                                  (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
+                                                  (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
+                                                  (* subgoal this is, and turn it into meta_clauses *)
+                                                  (* should prob add array and table here, so that we can get axioms*)
+                                                  (* produced from the clasimpset rather than the problem *)
+
+                                                  val (axiom_names) = get_axiom_names proof_steps  thms clause_arr  num_of_clauses
+                                                  val ax_str = "Rules from clasimpset used in proof found by SPASS: "^(rules_to_string axiom_names "")
+                                                  val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "reconstrfile")));                                                     val _ = TextIO.output (outfile, ("reconstring is: "^ax_str^"  "^goalstring))
+                                                  val _ =  TextIO.closeOut outfile
+                                                   
+                                              in 
+                                                   TextIO.output (toParent, ax_str^"\n");
+                                                   TextIO.flushOut toParent;
+                                        	   TextIO.output (toParent, "goalstring: "^goalstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                         	   TextIO.output (toParent, "thmstring: "^thmstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                          
+                                         	   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
+                                         	   Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
+                                              end
+                                              handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
+
+                                                  val _ = TextIO.output (outfile, ("In exception handler"));
+                                                  val _ =  TextIO.closeOut outfile
+                                              in 
+                                                  TextIO.output (toParent,"Proof found but translation failed!" ^"\n");
+                                                  TextIO.flushOut toParent;
+						   TextIO.output (toParent, thmstring^"\n");
+                                         	   TextIO.flushOut toParent;
+                                         	   TextIO.output (toParent, goalstring^"\n");
+                                         	   TextIO.flushOut toParent;
+            					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+                                         	  (* Attempt to prevent several signals from turning up simultaneously *)
+                                         	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
+                                              end)
+
+
 
 fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
       let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                        
@@ -469,10 +515,6 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms 
 	  (* Attempt to prevent several signals from turning up simultaneously *)
 	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
       end)
-
-
-
-
 
 
 
@@ -806,6 +848,8 @@ fun apply_res_thm str goalstring  = let val tokens = #1 (lex str);
                                in 
                                   TextIO.output(foo,(isar_str));TextIO.closeOut foo;Pretty.writeln(Pretty.str  isar_str); () 
                                end 
+
+
 
 
 end;

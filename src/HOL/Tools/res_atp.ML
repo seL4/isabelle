@@ -21,7 +21,7 @@ val prob_file : Path.T;
 (*val atp_ax_tac : Thm.thm list -> int -> Tactical.tactic*)
 (*val atp_tac : int -> Tactical.tactic*)
 val debug: bool ref
-
+val full_spass: bool ref
 end;
 
 structure ResAtp : RES_ATP =
@@ -38,6 +38,7 @@ fun debug_tac tac = (warning "testing";tac);
 (* default value is false *)
 
 val trace_res = ref false;
+val full_spass = ref false;
 
 val skolem_tac = skolemize_tac;
 
@@ -188,11 +189,19 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  =
      [("spass",thmstr,goalstring,*spass_home*,  
      "-DocProof", 
      clasimpfile, axfile, hypsfile, probfile)]);*)
-	 Watcher.callResProvers(childout,
+  if !full_spass 
+  then
+   (Watcher.callResProvers(childout,
+	    [("spass", thmstr, goalstring (*,spass_home*), 
+	     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
+	     "-DocProof", 
+	     clasimpfile, axfile, hypsfile, probfile)]))
+  else	
+   (Watcher.callResProvers(childout,
 	    [("spass", thmstr, goalstring (*,spass_home*), 
 	     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
 	     "-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
-	     clasimpfile, axfile, hypsfile, probfile)]);
+	     clasimpfile, axfile, hypsfile, probfile)]));
      
 	(* with paramodulation *)
 	(*Watcher.callResProvers(childout,
