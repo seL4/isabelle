@@ -105,6 +105,7 @@ sig
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list * 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
+  val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val map2: ('a * 'b -> 'c) -> 'a list * 'b list -> 'c list
   val exists2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
@@ -179,7 +180,7 @@ sig
   val ins_string: string * string list -> string list
   val gen_ins: ('a * 'a -> bool) -> 'a * 'a list -> 'a list
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
-  val remove: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
+  val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
   val union: ''a list * ''a list -> ''a list
   val union_int: int list * int list -> int list
   val union_string: string list * string list -> string list
@@ -274,7 +275,6 @@ sig
   val flat: 'a list list -> 'a list
   val seq: ('a -> unit) -> 'a list -> unit
   val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val filter: ('a -> bool) -> 'a list -> 'a list
   val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
 end;
 
