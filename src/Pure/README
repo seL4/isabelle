@@ -17,5 +17,7 @@ Now the Pure session may be compiled interactively as follows:
 
   isabelle -u RAW
 
+See ROOT.ML for further informatio.
+
 
 $Id$
