@@ -39,10 +39,10 @@ sig
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
-  val remove: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table
+  val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_multi: 'a list table * key -> 'a list
   val update_multi: (key * 'a) * 'a list table -> 'a list table
-  val remove_multi: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
+  val remove_multi: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
   val merge_multi: ('a * 'a -> bool) ->
