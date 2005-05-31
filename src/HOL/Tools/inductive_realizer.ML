@@ -287,7 +287,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val rss = Library.foldl add_rule ([], intrs);
     val (prfx, _) = split_last (NameSpace.unpack (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
-    val {path, ...} = Sign.rep_sg (sign_of thy);
+
     val thy1 = thy |>
       Theory.root_path |>
       Theory.add_path (NameSpace.pack prfx);
@@ -440,7 +440,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         (HOLogic.dest_Trueprop (concl_of elim))))] p) (thy5,
            elimps ~~ get #case_thms dt_info ~~ case_names ~~ dummies)
 
-  in Theory.add_path (NameSpace.pack (getOpt (path, []))) thy6 end;
+  in Theory.restore_naming thy thy6 end;
 
 fun add_ind_realizers name rsets thy =
   let

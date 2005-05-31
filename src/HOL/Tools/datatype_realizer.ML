@@ -128,14 +128,13 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
             REPEAT (etac allE i) THEN atac i)) 1)]);
 
-    val {path, ...} = Sign.rep_sg sg;
     val ind_name = Thm.name_of_thm induction;
     val vs = map (fn i => List.nth (pnames, i)) is;
     val (thy', thm') = thy
       |> Theory.absolute_path
       |> PureThy.store_thm
         ((space_implode "_" (ind_name :: vs @ ["correctness"]), thm), [])
-      |>> Theory.add_path (NameSpace.pack (getOpt (path,[])));
+      |>> Theory.restore_naming thy;
 
     val ivs = Drule.vars_of_terms
       [Logic.varify (DatatypeProp.make_ind [descr] sorts)];
@@ -200,12 +199,11 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
             [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
              resolve_tac prems, asm_simp_tac HOL_basic_ss])]);
 
-    val {path, ...} = Sign.rep_sg sg;
     val exh_name = Thm.name_of_thm exhaustion;
     val (thy', thm') = thy
       |> Theory.absolute_path
       |> PureThy.store_thm ((exh_name ^ "_P_correctness", thm), [])
-      |>> Theory.add_path (NameSpace.pack (getOpt (path,[])));
+      |>> Theory.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
