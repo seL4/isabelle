@@ -31,11 +31,9 @@ struct
 val subgoals = [];
 
 val traceflag = ref true;
-(* used for debug *)
-val debug = ref false;
 
+val debug = ref false;
 fun debug_tac tac = (warning "testing";tac);
-(* default value is false *)
 
 val trace_res = ref false;
 val full_spass = ref false;
@@ -71,13 +69,10 @@ val dummy_tac = PRIMITIVE(fn thm => thm );
  
 (**** for Isabelle/ML interface  ****)
 
-fun is_proof_char ch = ((33 <= (ord ch)) andalso ((ord ch ) <= 126) andalso (not ((ord ch ) = 63))) orelse (ch = " ")
+fun is_proof_char ch = (ch = " ") orelse
+     ((ord"!" <= ord ch) andalso (ord ch <= ord"~") andalso (ch <> "?"))  
 
-fun proofstring x = let val exp = explode x 
-                    in
-                        List.filter (is_proof_char ) exp
-                    end
-
+fun proofstring x = List.filter (is_proof_char) (explode x);
 
 
 (*
@@ -135,9 +130,9 @@ fun tptp_inputs_tfrees thms n tfrees =
         val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
 	val out = TextIO.openOut(probfile)
     in
-	(ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out; (if !trace_res then (warning probfile) else ()))
+	(ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out;
+	 if !trace_res then (warning probfile) else ())
     end;
-
 
 
 (*********************************************************************)
@@ -221,28 +216,27 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  =
 
 
 fun call_atp_tac_tfrees sign thms n tfrees sg_term (childin, childout,pid) = 
-                                         (
-                                           warning("in call_atp_tac_tfrees");
-                                           
-                                           tptp_inputs_tfrees (make_clauses thms) n tfrees;
-                                           call_resolve_tac sign thms sg_term (childin, childout, pid) n;
-  					   dummy_tac);
+ (
+   warning("in call_atp_tac_tfrees");
+   tptp_inputs_tfrees (make_clauses thms) n tfrees;
+   call_resolve_tac sign thms sg_term (childin, childout, pid) n;
+   dummy_tac);
 
 fun atp_tac_tfrees tfrees sg_term (childin, childout,pid)  n st = 
-let val sign = sign_of_thm st
-    val _ = warning ("in atp_tac_tfrees ")
-    val _ = warning ("sg_term :" ^ (Sign.string_of_term sign sg_term))
-   
-   in
-
-SELECT_GOAL
-  (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  METAHYPS(fn negs => ( call_atp_tac_tfrees sign negs n tfrees sg_term (childin, childout,pid) ))]) n st
-end;
+  let val sign = sign_of_thm st
+      val _ = warning ("in atp_tac_tfrees ")
+      val _ = warning ("sg_term :" ^ (Sign.string_of_term sign sg_term))
+  in  
+    SELECT_GOAL
+      (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+       METAHYPS(fn negs => (call_atp_tac_tfrees sign negs n tfrees sg_term
+                            (childin, childout,pid) ))]) n st
+  end;
 
 
 fun isar_atp_g tfrees sg_term (childin, childout, pid) n =       
-((warning("in isar_atp_g"));atp_tac_tfrees tfrees sg_term (childin, childout, pid) n);
+  ((warning("in isar_atp_g"));
+   atp_tac_tfrees tfrees sg_term (childin, childout, pid) n);
 
 
 
@@ -256,7 +250,7 @@ fun isar_atp_goal' thm k n tfree_lits  (childin, childout, pid) =
       if (k > n) 
       then () 
       else 
-	  let val  prems = prems_of thm 
+	  let val prems = prems_of thm 
 	      val sg_term = ReconOrderClauses.get_nth n prems
 	      val thmstring = string_of_thm thm
 	  in   
@@ -282,9 +276,8 @@ fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) =
 
 fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) = 
     let val tfree_lits = isar_atp_h thms 
-    in
-	(warning("in isar_atp_aux"));
-         isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid)
+    in warning("in isar_atp_aux");
+       isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid)
     end;
 
 (******************************************************************)
@@ -294,9 +287,8 @@ fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
 (* turns off xsymbol at start of function, restoring it at end    *)
 (******************************************************************)
 (*FIX changed to clasimp_file *)
-fun isar_atp' (thms, thm) =
-    let 
-	val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+fun isar_atp' (ctxt, thms, thm) =
+    let val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
         val _= (warning ("in isar_atp'"))
         val prems  = prems_of thm
         val sign = sign_of_thm thm
@@ -305,8 +297,10 @@ fun isar_atp' (thms, thm) =
         val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
         
 	(* set up variables for writing out the clasimps to a tptp file *)
-	val (clause_arr, num_of_clauses) = ResClasimp.write_out_clasimp (File.sysify_path clasimp_file) 
-        val _ = (warning ("clasimp_file is this: "^(File.sysify_path clasimp_file)) )  
+	val (clause_arr, num_of_clauses) =
+	    ResClasimp.write_out_clasimp (File.sysify_path clasimp_file) 
+	                                 (ProofContext.theory_of ctxt)
+        val _ = warning ("clasimp_file is " ^ File.sysify_path clasimp_file)
 
         (* cq: add write out clasimps to file *)
 
@@ -349,8 +343,6 @@ fun get_thms_cs claset =
 	safeEs @ safeIs @ hazEs @ hazIs
     end;
 
-
-
 fun append_name name [] _ = []
   | append_name name (thm::thms) k = (Thm.name_thm ((name ^ "_" ^ (string_of_int k)),thm)) :: (append_name name thms (k+1));
 
@@ -360,7 +352,6 @@ fun append_names (name::names) (thms::thmss) =
 	thms'::(append_names names thmss)
     end;
 
-
 fun get_thms_ss [] = []
   | get_thms_ss thms =
     let val names = map Thm.name_of_thm thms 
@@ -369,9 +360,6 @@ fun get_thms_ss [] = []
     in
 	ResLib.flat_noDup thms''
     end;
-
-
-
 
 in
 
@@ -395,8 +383,6 @@ in
 *)
 
 
-
-
 (* called in Isar automatically *)
 
 fun isar_atp (ctxt,thm) =
@@ -413,12 +399,10 @@ fun isar_atp (ctxt,thm) =
           (warning ("subgoals in isar_atp: "^prems_string));
     	  (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
           ((*isar_local_thms (d_cs,d_ss_thms); *)(warning("about to call isar_atp'"));
-           isar_atp' (prems, thm))
+           isar_atp' (ctxt, prems, thm))
     end;
 
 end
-
-
 
 
 end;

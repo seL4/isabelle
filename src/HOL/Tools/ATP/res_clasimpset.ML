@@ -7,7 +7,7 @@
 
 signature RES_CLASIMP = 
   sig
-     val write_out_clasimp :string -> (ResClause.clause * Thm.thm) Array.array * int
+     val write_out_clasimp :string -> theory -> (ResClause.clause * thm) Array.array * int
   end;
 
 structure ResClasimp : RES_CLASIMP =
@@ -63,25 +63,22 @@ fun pairup [] [] = []
 fun multi x 0 xlist = xlist
    |multi x n xlist = multi x (n -1 ) (x::xlist);
 
+fun clause_numbering ((clause, theorem), cls) = 
+    let val num_of_cls = length cls
+	val numbers = 0 upto (num_of_cls -1)
+	val multi_name = multi (clause, theorem)  num_of_cls []
+    in 
+	(multi_name)
+    end;
 
-fun clause_numbering ((clause, theorem), cls) = let val num_of_cls = length cls
-                                              val numbers = 0 upto (num_of_cls -1)
-                                              val multi_name = multi (clause, theorem)  num_of_cls []
-                                          in 
-                                              (multi_name)
-                                          end;
-
-
-
- 
-
-fun write_out_clasimp filename = 
-    let val claset_rules = ResAxioms.claset_rules_of_thy (the_context());
+(*Write out the claset and simpset rules of the supplied theory.*)
+fun write_out_clasimp filename thy = 
+    let val claset_rules = ResAxioms.claset_rules_of_thy thy;
 	val named_claset = List.filter has_name_pair claset_rules;
 	val claset_names = map remove_spaces_pair (named_claset)
 	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
 
-	val simpset_rules = ResAxioms.simpset_rules_of_thy (the_context());
+	val simpset_rules = ResAxioms.simpset_rules_of_thy thy;
 	val named_simpset = 
 	      map remove_spaces_pair (List.filter has_name_pair simpset_rules)
 	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
