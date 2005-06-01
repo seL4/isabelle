@@ -221,8 +221,7 @@ For example, ``from @{thm_style prem2 conjI} and
 @{thm_style prem1 conjI} we conclude @{thm_style concl conjI}''
 is produced by
 \begin{quote}
-\verb!from !\verb!@!\verb!{thm_style prem2 conjI}!\\
-\verb!and !\verb!@!\verb!{thm_style prem1 conjI}!\\
+\verb!from !\verb!@!\verb!{thm_style prem2 conjI}! \verb!and !\verb!@!\verb!{thm_style prem1 conjI}!\\
 \verb!we conclude !\verb!@!\verb!{thm_style concl conjI}!
 \end{quote}
 Thus you can rearrange or hide premises and typeset the theorem as you like.
