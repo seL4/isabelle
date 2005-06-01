@@ -57,24 +57,25 @@ fun style_binargs ctxt t =
     | _ => error ("Binary operator expected in term: " ^ ProofContext.string_of_term ctxt concl)
   end;
 
-fun premise i _ t =
+fun style_parm_premise i ctxt t =
   let val prems = Logic.strip_imp_prems t
   in if i <= length prems then List.nth(prems, i-1)
-     else error ("Not enough premises: premise" ^ string_of_int i)
+     else error ("Not enough premises for prem" ^ string_of_int i ^
+                 " in propositon: " ^ ProofContext.string_of_term ctxt t)
   end;
- 
+
 val _ = Context.add_setup
  [add_style "lhs" (fst oo style_binargs),
   add_style "rhs" (snd oo style_binargs),
-  add_style "premise1" (premise 1),
-  add_style "premise2" (premise 2),
-  add_style "premise3" (premise 3),
-  add_style "premise4" (premise 4),
-  add_style "premise5" (premise 5),
-  add_style "premise6" (premise 6),
-  add_style "premise7" (premise 7),
-  add_style "premise8" (premise 8),
-  add_style "premise9" (premise 9),
+  add_style "prem1" (style_parm_premise 1),
+  add_style "prem2" (style_parm_premise 2),
+  add_style "prem3" (style_parm_premise 3),
+  add_style "prem4" (style_parm_premise 4),
+  add_style "prem5" (style_parm_premise 5),
+  add_style "prem6" (style_parm_premise 6),
+  add_style "prem7" (style_parm_premise 7),
+  add_style "prem8" (style_parm_premise 8),
+  add_style "prem9" (style_parm_premise 9),
   add_style "concl" (K Logic.strip_imp_concl)];
 
 end;

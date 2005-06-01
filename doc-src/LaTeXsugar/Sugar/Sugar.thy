@@ -212,17 +212,17 @@ text{* If for some reason you want or need to present theorems your
 own way, you can extract the premises and the conclusion explicitly
 and combine them as you like:
 \begin{itemize}
-\item \verb!@!\verb!{thm_style premise1! $thm$\verb!}!
-prints premise 1 of $thm$ (and similarly up to \texttt{premise9}).
+\item \verb!@!\verb!{thm_style prem1! $thm$\verb!}!
+prints premise 1 of $thm$ (and similarly up to \texttt{prem9}).
 \item \verb!@!\verb!{thm_style concl! $thm$\verb!}!
 prints the conclusion of $thm$.
 \end{itemize}
-For example, ``from @{thm_style premise2 conjI} and
-@{thm_style premise1 conjI} we conclude @{thm_style concl conjI}''
+For example, ``from @{thm_style prem2 conjI} and
+@{thm_style prem1 conjI} we conclude @{thm_style concl conjI}''
 is produced by
 \begin{quote}
-\verb!from !\verb!@!\verb!{thm_style premise2 conjI}!\\
-\verb!and !\verb!@!\verb!{thm_style premise1 conjI}!\\
+\verb!from !\verb!@!\verb!{thm_style prem2 conjI}!\\
+\verb!and !\verb!@!\verb!{thm_style prem1 conjI}!\\
 \verb!we conclude !\verb!@!\verb!{thm_style concl conjI}!
 \end{quote}
 Thus you can rearrange or hide premises and typeset the theorem as you like.
@@ -324,7 +324,7 @@ text {*
     \end{quote}
 
   A ``style'' is a transformation of propositions. There are predefined
-  styles, namly \verb!lhs! and \verb!rhs!, \verb!premise1! unto \verb!premise9!, and \verb!concl!.
+  styles, namly \verb!lhs! and \verb!rhs!, \verb!prem1! up to \verb!prem9!, and \verb!concl!.
   For example, 
   the output
   \begin{center}
