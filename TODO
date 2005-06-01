@@ -19,8 +19,6 @@ For Isabelle2005:
 
 - Include IsaPlanner? (Larry to co-ordinate)
 
-- update LaTeXsugar, remove references to future Isabelle2005 etc. (Gerwin)
-
 - rules -> iprover (Stefan)
 
 - ball, bex and setsum congruence rules (Tobias & Stefan)
