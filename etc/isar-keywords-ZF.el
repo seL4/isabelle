@@ -73,7 +73,6 @@
     "inductive_cases"
     "init_toplevel"
     "instance"
-    "instantiate"
     "interpret"
     "interpretation"
     "judgment"
@@ -192,6 +191,7 @@
     "case_eqns"
     "con_defs"
     "concl"
+    "constrains"
     "defines"
     "domains"
     "elimination"
@@ -413,7 +413,6 @@
 
 (defconst isar-keywords-proof-decl
   '("also"
-    "instantiate"
     "let"
     "moreover"
     "note"

@@ -141,8 +141,11 @@ New in this Isabelle release
   - Fixed parameter management in theorem generation for goals with "includes".
     INCOMPATIBILITY: rarely, the generated theorem statement is different.
 
-* Locales: locale expressions permit optional mixfix redeclaration for
-  renamed parameters.
+* Locales: new context element "constrains" for adding type constraints
+  to parameters.
+
+* Locales: context expressions permit optional syntax redeclaration when
+  renaming parameters.
 
 * Locales: new commands for the interpretation of locale expressions
   in theories (interpretation) and proof contexts (interpret).  These take an
@@ -154,6 +157,9 @@ New in this Isabelle release
   in duplicate.
   Use print_interps to inspect active interpretations of a particular locale.
   For details, see the Isar Reference manual.
+
+* Locales: INCOMPATIBILITY: experimental command "instantiate" has
+  been withdrawn.  Use "interpret" instead.
 
 * Locales: proper static binding of attribute syntax -- i.e. types /
   terms / facts mentioned as arguments are always those of the locale

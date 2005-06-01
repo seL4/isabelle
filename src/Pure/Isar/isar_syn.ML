@@ -386,11 +386,6 @@ val usingP =
   OuterSyntax.command "using" "augment goal facts" K.prf_decl
     (facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.using_facts)));
 
-val instantiateP =
-  OuterSyntax.command "instantiate" "instantiate locale" K.prf_decl
-    (P.opt_thm_name ":" -- P.xname
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.instantiate_locale)));
-
 
 (* proof context *)
 
@@ -785,9 +780,9 @@ val welcomeP =
 val _ = OuterSyntax.add_keywords
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes", "begin",
-  "binder", "concl", "defines", "files", "fixes", "imports", "in", "includes",
-  "infix", "infixl", "infixr", "is", "notes", "open", "output",
-  "overloaded", "shows", "structure", "where", "|", "\\<equiv>",
+  "binder", "concl", "constrains", "defines", "files", "fixes", "imports",
+  "in", "includes", "infix", "infixl", "infixr", "is", "notes", "open",
+  "output", "overloaded", "shows", "structure", "where", "|", "\\<equiv>",
   "\\<leftharpoondown>", "\\<rightharpoonup>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 
@@ -813,7 +808,8 @@ val _ = OuterSyntax.add_parsers [
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
   redoP, undos_proofP, undoP, killP, interpretationP, interpretP,
-  instantiateP, (*diagnostic commands*) pretty_setmarginP,
+  (*diagnostic commands*)
+  pretty_setmarginP,
   print_commandsP, print_contextP, print_theoryP, print_syntaxP,
   print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,

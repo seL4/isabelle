@@ -13,16 +13,21 @@ imports FOL
 begin
 
 ML {* set quick_and_dirty *}    (* allow for thm command in batch mode *)
-ML {* reset Toplevel.debug *}
+ML {* set Toplevel.debug *}
 ML {* set show_hyps *}
 ML {* set show_sorts *}
 
 section {* Renaming with Syntax *}
 
-locale S = var mult +
-  assumes "mult(x, y) = mult(y, x)"
 
-locale S' = S mult (infixl "**" 60)
+locale (open) S = var mult +
+  assumes "mult(x, y) = mult(y, x)"
+(* Making this declaration (open) reveals a problem when mixing open and
+   closed locales. *)
+
+print_locale S
+
+locale (open) S' = S mult (infixl "**" 60)
 
 print_locale S'
 
@@ -32,17 +37,16 @@ locale T = var mult (infixl "**" 60) +
 locale U = T mult (infixl "**" 60) + T add (infixl "++" 55) + var h +
   assumes hom: "h(x ** y) = h(x) ++ h(y)"
 
-locale var' = fixes x :: "'a => 'b"
-
-(* doesn't work in FOL, but should in HOL *)
-(* locale T' = var' mult (infixl "**" 60) *)
-
 locale V = U _ add
-print_locale V
 
-locale T' = fixes mult assumes "mult(x, y) = mult(y, x)"
-locale U' = T' mult + T' add + var h +
-  assumes hom: "h(mult(x, y)) = add(h(x), h(y))"
+
+section {* Constrains *}
+
+locale Z = fixes a (structure)
+locale Z' = Z +
+  constrains a :: "'a => 'b"
+  assumes "a (x :: 'a) = a (y)"
+print_locale Z'
 
 
 section {* Interpretation *}

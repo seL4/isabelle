@@ -122,9 +122,11 @@ specifications.
   contextexpr: nameref | '(' contextexpr ')' |
   (contextexpr (name mixfix? +)) | (contextexpr + '+')
   ;
-  contextelem: fixes | assumes | defines | notes | includes
+  contextelem: fixes | constrains | assumes | defines | notes | includes
   ;
   fixes: 'fixes' (name ('::' type)? structmixfix? + 'and')
+  ;
+  constrains: 'constrains' (name '::' type + 'and')
   ;
   assumes: 'assumes' (thmdecl? props + 'and')
   ;
@@ -167,6 +169,9 @@ specifications.
     and mixfix annotation $mx$ (both are optional).  The special syntax
     declaration ``$(structure)$'' means that $x$ may be referenced
     implicitly in this context.
+
+  \item [$\CONSTRAINS{~x::\tau}$] introduces a type constraint $\tau$
+    on the local parameter $x$.
 
   \item [$\ASSUMES{a}{\vec\phi}$] introduces local premises, similar to
     $\ASSUMENAME$ within a proof (cf.\ \S\ref{sec:proof-context}).
@@ -303,6 +308,15 @@ This requires a proof of the instantiated specification and is called
   Since attributes are applied to interpreted theorems, interpretation
   may modify the current simpset and claset.  Take this into
   account when choosing attributes for local theorems.
+\end{warn}
+
+\begin{warn}
+  An interpretation may subsume previous interpretations.  A warning
+  is issued, since it is likely that these could have been generalized
+  in the first place.  The locale package does not attempt to remove
+  subsumed interpretations.  This situation is normally harmless, but
+  note that $blast$ gets confused by the presence of multiple axclass
+  instances a rule.
 \end{warn}
 
 

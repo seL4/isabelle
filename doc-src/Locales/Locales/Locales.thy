@@ -14,6 +14,9 @@ ML_setup {* print_mode := "type_brackets" :: !print_mode; *}
 section {* Overview *}
 
 text {*
+  The present text is based on~\cite{Ballarin2004a}.  It was updated
+  for for Isabelle2005, but does not cover locale interpretation.
+
   Locales are an extension of the Isabelle proof assistant.  They
   provide support for modular reasoning. Locales were initially
   developed by Kamm\"uller~\cite{Kammuller2000} to support reasoning
@@ -129,9 +132,9 @@ text {*
   Figure~\ref{fig-grammar}.
   A key concept, introduced by Wenzel, is that
   locales are (internally) lists
-  of \emph{context elements}.  There are four kinds, identified
-  by the keywords \textbf{fixes}, \textbf{assumes}, \textbf{defines} and
-  \textbf{notes}.
+  of \emph{context elements}.  There are five kinds, identified
+  by the keywords \textbf{fixes}, \textbf{constrains},
+  \textbf{assumes}, \textbf{defines} and \textbf{notes}.
 
   \begin{figure}
   \hrule
@@ -146,13 +149,15 @@ text {*
   & \textit{locale-expr1} ( ``\textbf{+}'' \textit{locale-expr1} )$^*$ \\
   \textit{locale-expr1} & ::=
   & ( \textit{qualified-name} $|$
-    ``\textbf{(}'' \textit{locale-expr} ``\textbf{)}'' )
-    ( \textit{name} $|$ ``\textbf{\_}'' )$^*$ \\
+    ``\textbf{(}'' \textit{locale-expr} ``\textbf{)}'' ) \\
+  & & ( \textit{name} [ \textit{mixfix} ] $|$ ``\textbf{\_}'' )$^*$ \\
 
   \textit{fixes} & ::=
   & \textit{name} [ ``\textbf{::}'' \textit{type} ]
     [ ``\textbf{(}'' \textbf{structure} ``\textbf{)}'' $|$
     \textit{mixfix} ] \\
+  \textit{constrains} & ::=
+  & \textit{name} ``\textbf{::}'' \textit{type} \\
   \textit{assumes} & ::=
   & [ \textit{attr-name} ``\textbf{:}'' ] \textit{proposition} \\
   \textit{defines} & ::=
@@ -164,11 +169,16 @@ text {*
   \textit{element} & ::=
   & \textbf{fixes} \textit{fixes} ( \textbf{and} \textit{fixes} )$^*$ \\
   & |
+  & \textbf{constrains} \textit{constrains}
+    ( \textbf{and} \textit{constrains} )$^*$ \\
+  & |
   & \textbf{assumes} \textit{assumes} ( \textbf{and} \textit{assumes} )$^*$ \\
   & |
   & \textbf{defines} \textit{defines} ( \textbf{and} \textit{defines} )$^*$ \\
   & |
   & \textbf{notes} \textit{notes} ( \textbf{and} \textit{notes} )$^*$ \\
+  \textit{element1} & ::=
+  & \textit{element} \\
   & | & \textbf{includes} \textit{locale-expr} \\
 
   \textit{locale} & ::=
@@ -191,7 +201,7 @@ text {*
   & | & \textbf{declare} [ \textit{in-target} ] ( \textit{qualified-name}
     [ \textit{attribute} ] )$^+$ \\
   & | & \textit{theorem} \textit{proposition} \textit{proof} \\
-  & | & \textit{theorem} \textit{element}$^*$
+  & | & \textit{theorem} \textit{element1}$^*$
     \textbf{shows} \textit{proposition} \textit{proof} \\
   & | & \textbf{print\_locale} \textit{locale} \\
   & | & \textbf{print\_locales}
@@ -210,8 +220,7 @@ text {*
   declaring a named locale, it is possible to \emph{import} another
   named locale, or indeed several ones by importing a locale
   expression.  The second part of the declaration, also optional,
-  consists of a number of context element declarations.  Here, a fifth
-  kind, \textbf{includes}, is available.
+  consists of a number of context element declarations.
 
   A number of Isar commands have an additional, optional \emph{target}
   argument, which always refers to a named locale.  These commands
@@ -226,7 +235,7 @@ text {*
   \textbf{theorem} (and related commands), theorems stored in the target
   can be used in the associated proof scripts.
 
-  The Locales package permits a \emph{long goals format} for
+  The Locales package provides a \emph{long goals format} for
   propositions stated with \textbf{theorem} (and friends).  While
   normally a goal is just a formula, a long goal is a list of context
   elements, followed by the keyword \textbf{shows}, followed by the
@@ -286,15 +295,15 @@ locale semi =
 
 text {*
   The parameter @{term prod} has a
-  syntax annotation allowing the infix ``@{text "\<cdot>"}'' in the
+  syntax annotation enabling the infix ``@{text "\<cdot>"}'' in the
   assumption of associativity.  Parameters may have arbitrary mixfix
   syntax, like constants.  In the example, the type of @{term prod} is
   specified explicitly.  This is not necessary.  If no type is
   specified, a most general type is inferred simultaneously for all
   parameters, taking into account all assumptions (and type
   specifications of parameters, if present).%
-\footnote{Type inference also takes into account definitions and
-  import, as introduced later.}
+\footnote{Type inference also takes into account type constraints,
+  definitions and import, as introduced later.}
 
   Free variables in assumptions are implicitly universally quantified,
   unless they are parameters.  Hence the context defined by the locale
@@ -587,8 +596,8 @@ text {*
   The expression is only well-formed if $n$ does not
   exceed the number of parameters of $e$.  Underscores denote
   parameters that are not renamed.
-  Parameters whose names are changed lose mixfix syntax,
-  and there is currently no way to re-equip them with such.
+  Renaming by default removes mixfix syntax, but new syntax may be
+  specified.
 \item[Merge.]
   The locale expression $e_1 + e_2$ denotes
   the locale obtained by merging the locales of $e_1$
@@ -615,16 +624,16 @@ text {*
   specification of semigroup homomorphisms.
 *}
 
-locale semi_hom = comm_semi sum + comm_semi +
+locale semi_hom = comm_semi sum (infixl "\<oplus>" 65) + comm_semi +
   fixes hom
-  assumes hom: "hom (sum x y) = hom x \<cdot> hom y"
+  assumes hom: "hom (x \<oplus> y) = hom x \<cdot> hom y"
 
 text {*
   This locale defines a context with three parameters @{text "sum"},
-  @{text "prod"} and @{text "hom"}.  Only the second parameter has
-  mixfix syntax.  The first two are associative operations,
-  the first of type @{typ "['a, 'a] \<Rightarrow> 'a"}, the second of
-  type @{typ "['b, 'b] \<Rightarrow> 'b"}.  
+  @{text "prod"} and @{text "hom"}.  The first two parameters have
+  mixfix syntax.  They are associative operations,
+  the first of type @{typeof [locale=semi_hom] prod}, the second of
+  type @{typeof [locale=semi_hom] sum}.  
 
   How are facts that are imported via a locale expression identified?
   Facts are always introduced in a named locale (either in the
@@ -643,12 +652,12 @@ text {*
   facts, though.
 *}
 
-theorem (in semi_hom) "hom x \<cdot> (hom y \<cdot> hom z) = hom (sum x (sum y z))"
+theorem (in semi_hom) "hom x \<cdot> (hom y \<cdot> hom z) = hom (x \<oplus> (y \<oplus> z))"
 proof -
   have "hom x \<cdot> (hom y \<cdot> hom z) = hom y \<cdot> (hom x \<cdot> hom z)"
     by (simp add: prod.lcomm)
-  also have "\<dots> = hom (sum y (sum x z))" by (simp add: hom)
-  also have "\<dots> = hom (sum x (sum y z))" by (simp add: sum.lcomm)
+  also have "\<dots> = hom (y \<oplus> (x \<oplus> z))" by (simp add: hom)
+  also have "\<dots> = hom (x \<oplus> (y \<oplus> z))" by (simp add: sum.lcomm)
   finally show ?thesis .
 qed
 
@@ -822,15 +831,16 @@ text {*
   and the list of context elements
 \[
 \begin{array}{ll}
-  \textbf{fixes} & @{text sum} :: @{typ [quotes] "['a, 'a] \<Rightarrow> 'a"} \\
+  \textbf{fixes} & @{text sum} :: @{typ [quotes] "['a, 'a] \<Rightarrow> 'a"}
+    ~(\textbf{infixl}~@{text [quotes] "\<oplus>"}~65) \\
   \textbf{assumes} & @{text [quotes] "semi sum"} \\
-  \textbf{notes} & @{text sum.assoc}: @{text [quotes] "sum (sum ?x ?y) ?z
+  \textbf{notes} & @{text sum.assoc}: @{text [quotes] "(?x \<oplus> ?y) \<oplus> ?z
     = sum ?x (sum ?y ?z)"} \\
   \textbf{assumes} & @{text [quotes] "comm_semi_axioms sum"} \\
-  \textbf{notes} & @{text sum.comm}: @{text [quotes] "sum ?x ?y = sum
-    ?y ?x"} \\
-  \textbf{notes} & @{text sum.lcomm}: @{text [quotes] "sum ?x (sum ?y ?z)
-    = sum ?y (sum ?x ?z)"}
+  \textbf{notes} & @{text sum.comm}: @{text [quotes] "?x \<oplus> ?y = 
+    ?y \<oplus> ?x"} \\
+  \textbf{notes} & @{text sum.lcomm}: @{text [quotes] "?x \<oplus> (?y \<oplus> ?z)
+    = ?y \<oplus> (?x \<oplus> ?z)"}
 \end{array}
 \]
 
@@ -867,14 +877,15 @@ text {*
   Hence $\C(@{text "semi_hom"})$, shown below, is again well-formed.
 \[
 \begin{array}{ll}
-  \textbf{fixes} & @{text sum} :: @{typ [quotes] "['a, 'a] \<Rightarrow> 'a"} \\
+  \textbf{fixes} & @{text sum} :: @{typ [quotes] "['a, 'a] \<Rightarrow> 'a"}
+    ~(\textbf{infixl}~@{text [quotes] "\<oplus>"}~65) \\
   \textbf{assumes} & @{text [quotes] "semi sum"} \\
-  \textbf{notes} & @{text sum.assoc}: @{text [quotes] "sum (sum ?x ?y) ?z
-    = sum ?x (sum ?y ?z)"} \\
+  \textbf{notes} & @{text sum.assoc}: @{text [quotes] "(?x \<oplus> ?y) \<oplus> ?z
+    = ?x \<oplus> (?y \<oplus> ?z)"} \\
   \textbf{assumes} & @{text [quotes] "comm_semi_axioms sum"} \\
-  \textbf{notes} & @{text sum.comm}: @{text [quotes] "sum ?x ?y = sum ?y ?x"} \\
-  \textbf{notes} & @{text sum.lcomm}: @{text [quotes] "sum ?x (sum ?y ?z)
-    = sum ?y (sum ?x ?z)"} \\
+  \textbf{notes} & @{text sum.comm}: @{text [quotes] "?x \<oplus> ?y = ?y \<oplus> ?x"} \\
+  \textbf{notes} & @{text sum.lcomm}: @{text [quotes] "?x \<oplus> (?y \<oplus> ?z)
+    = ?y \<oplus> (?x \<oplus> ?z)"} \\
   \textbf{fixes} & @{text prod} :: @{typ [quotes] "['b, 'b] \<Rightarrow> 'b"}
     ~(\textbf{infixl}~@{text [quotes] "\<cdot>"}~70) \\
   \textbf{assumes} & @{text [quotes] "semi prod"} \\
@@ -887,7 +898,7 @@ text {*
   \textbf{fixes} & @{text hom} :: @{typ [quotes] "'a \<Rightarrow> 'b"} \\
   \textbf{assumes} & @{text [quotes] "semi_hom_axioms sum"} \\
   \textbf{notes} & @{text "sum_prod_hom.hom"}:
-    @{text "hom (sum x y) = hom x \<cdot> hom y"}
+    @{text "hom (x \<oplus> y) = hom x \<cdot> hom y"}
 \end{array}
 \]
 
@@ -959,11 +970,17 @@ text {*
   particular mixfix syntax is required.
   Its definition is
 \begin{center}
-  \textbf{locale} \textit{var} = \textbf{fixes} @{text "x_"}
+  \textbf{locale} @{text var} = \textbf{fixes} @{text "x_"}
 \end{center}
-   The use of the internal variable @{text "x_"}
+  The use of the internal variable @{text "x_"}
   enforces that the parameter is renamed before being used, because
-  internal variables may not occur in the input syntax.
+  internal variables may not occur in the input syntax.  Using
+  @{text var}, the locale @{text magma} could have been replaced by
+  the locale expression
+\begin{center}
+  @{text var} @{text prod} (\textbf{infixl} @{text [quotes] \<cdot>} 70)
+\end{center}
+  in the above locale declarations.
 *}
 
 subsection {* Includes *}
@@ -971,20 +988,7 @@ subsection {* Includes *}
 text {*
 \label{sec-includes}
   The context element \textbf{includes} takes a locale expression $e$
-  as argument.  It can occur at any point in a locale declaration, and
-  it adds $\C(e)$ to the current context.
-
-  If \textbf{includes} $e$ appears as context element in the
-  declaration of a named locale $l$, the included context is only
-  visible in subsequent context elements, but it is not propagated to
-  $l$.  That is, if $l$ is later used as a target, context elements
-  from $\C(e)$ are not added to the context.  Although it is
-  conceivable that this mechanism could be used to add only selected
-  facts from $e$ to $l$ (with \textbf{notes} elements following
-  \textbf{includes} $e$), currently no useful applications of this are
-  known.
-
-  The more common use of \textbf{includes} $e$ is in long goals, where it
+  as argument.  It can only occur in long goals, where it
   adds, like a target, locale context to the proof context.  Unlike
   with targets, the proved theorem is not stored
   in the locale.  Instead, it is exported immediately.
@@ -1049,13 +1053,10 @@ text {*
   effective in the context of a locale, and only if the first argument
   is a
   \emph{structural} parameter --- that is, a parameter with annotation
-  \textbf{(structure)}.  The token has the effect of replacing the
-  parameter with a subscripted number, the index of the structural
-  parameter in the locale.  This replacement takes place both for
-  printing and
-  parsing.  Subscripted $1$ for the first structural
-  parameter may be omitted, as in this specification of semigroups with
-  structures:
+  \textbf{(structure)}.  The token has the effect of subscripting the
+  parameter --- by bracketing it between \verb.\<^bsub>. and  \verb.\<^esub>..
+  Additionally, the subscript of the first structural parameter may be
+  omitted, as in this specification of semigroups with structures:
 *}
 
 locale comm_semi' =
@@ -1063,22 +1064,20 @@ locale comm_semi' =
   assumes assoc: "(x \<star> y) \<star> z = x \<star> (y \<star> z)" and comm: "x \<star> y = y \<star> x"
 
 text {*
-  Here @{text "x \<star> y"} is equivalent to @{text "x \<star>\<^sub>1 y"} and
-  abbreviates @{term "s_op G x y"}.  A specification of homomorphisms
+  Here @{text "x \<star> y"} is equivalent to @{text "x \<star>\<^bsub>G\<^esub> y"} and
+  abbreviates @{text "s_op G x y"}.  A specification of homomorphisms
   requires a second structural parameter.
 *}
 
 locale semi'_hom = comm_semi' + comm_semi' H +
   fixes hom
-  assumes hom: "hom (x \<star> y) = hom x \<star>\<^sub>2 hom y"
+  assumes hom: "hom (x \<star> y) = hom x \<star>\<^bsub>H\<^esub> hom y"
 
 text {*
   The parameter @{text H} is defined in the second \textbf{fixes}
-  element of $\C(@{term "semi'_comm"})$. Hence @{text "\<star>\<^sub>2"}
-  abbreviates @{term "s_op H x y"}.  The same construction can be done
-  with records instead of an \textit{ad-hoc} type.  In general, the
-  $i$th structural parameter is addressed by index $i$.  Only the
-  index $1$ may be omitted.  *}
+  element of $\C(@{term "semi'_comm"})$. Hence @{text "\<star>\<^bsub>H\<^esub>"}
+  abbreviates @{text "s_op H x y"}.  The same construction can be done
+  with records instead of an \textit{ad-hoc} type.  *}
 
 record 'a semi = prod :: "['a, 'a] \<Rightarrow> 'a" (infixl "\<bullet>\<index>" 70)
 
@@ -1119,7 +1118,7 @@ text {*
 section {* Conclusions and Outlook *}
 
 text {*
-  Locales provide a simple means of modular reasoning.  They allow to
+  Locales provide a simple means of modular reasoning.  They enable to
   abbreviate frequently occurring context statements and maintain facts
   valid in these contexts.  Importantly, using structures, they allow syntax to be
   effective only in certain contexts, and thus to mimic common
@@ -1157,7 +1156,7 @@ text {*
   A detailed comparison of locales with module systems in type theory
   has not been undertaken yet, but could be beneficial.  For example,
   a module system for Coq has recently been presented by Chrzaszcz
-  \cite{Chrzaszcz2003}.  While the
+  \cite{Chrzaszcz2003,Chrzaszcz2004}.  While the
   latter usually constitute extensions of the calculus, locales are
   a rather thin layer that does not change Isabelle's meta logic.
   Locales mainly manage specifications and facts.  Functors, like
