@@ -214,16 +214,16 @@ and combine them as you like:
 \begin{itemize}
 \item \verb!@!\verb!{thm_style premise1! $thm$\verb!}!
 prints premise 1 of $thm$ (and similarly up to \texttt{premise9}).
-\item \verb!@!\verb!{thm_style conclusion! $thm$\verb!}!
+\item \verb!@!\verb!{thm_style concl! $thm$\verb!}!
 prints the conclusion of $thm$.
 \end{itemize}
 For example, ``from @{thm_style premise2 conjI} and
-@{thm_style premise1 conjI} we conclude @{thm_style conclusion conjI}''
+@{thm_style premise1 conjI} we conclude @{thm_style concl conjI}''
 is produced by
 \begin{quote}
 \verb!from !\verb!@!\verb!{thm_style premise2 conjI}!\\
 \verb!and !\verb!@!\verb!{thm_style premise1 conjI}!\\
-\verb!we conclude !\verb!@!\verb!{thm_style conclusion conjI}!
+\verb!we conclude !\verb!@!\verb!{thm_style concl conjI}!
 \end{quote}
 Thus you can rearrange or hide premises and typeset the theorem as you like.
 The \verb!thm_style! antiquotation is a general mechanism explained
@@ -348,19 +348,19 @@ text {*
   conclusion of propositions consisting of a binary operator
   (e.~g.~@{text "="}, @{text "\<equiv>"}, @{text "<"}).
 
-  Likewise, \verb!conclusion! may be used as a style to show just the
+  Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
     @{thm hd_Cons_tl}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    @{thm_style conclusion hd_Cons_tl}
+    @{thm_style concl hd_Cons_tl}
   \end{center}
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm_style conclusion hd_Cons_tl}!\\
+    \verb!@!\verb!{thm_style concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
 
@@ -390,9 +390,8 @@ text {*
   \end{quote}
 
   \noindent
-  This example shows how the \verb!conclusion! style could have been implemented
+  This example shows how the \verb!concl! style is implemented
   and may be used as as a ``copy-and-paste'' pattern to write your own styles.
-  (The real implementation of \verb!conclusion! is a bit more sophisticated).
 
   The code should go into your theory file, separate from the \LaTeX\ text.
   The \verb!let! expression avoids polluting the

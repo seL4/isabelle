@@ -59,7 +59,7 @@ fun style_binargs ctxt t =
 
 fun premise i _ t =
   let val prems = Logic.strip_imp_prems t
-  in if i <= length prems then List.nth(prems,i-1)
+  in if i <= length prems then List.nth(prems, i-1)
      else error ("Not enough premises: premise" ^ string_of_int i)
   end;
  
@@ -75,6 +75,6 @@ val _ = Context.add_setup
   add_style "premise7" (premise 7),
   add_style "premise8" (premise 8),
   add_style "premise9" (premise 9),
-  add_style "conclusion" (K Logic.strip_imp_concl)];
+  add_style "concl" (K Logic.strip_imp_concl)];
 
 end;

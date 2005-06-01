@@ -394,10 +394,10 @@ fun output_ml_idf src ctxt idf = snd (use_text Context.ml_output true idf,
 
 val _ = add_commands
  [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
-  ("thm_style", args ((Scan.lift Args.name) -- Attrib.local_thm) (output_with pretty_thm_style)),
+  ("thm_style", args ((Scan.lift (Args.name || Args.symbol)) -- Attrib.local_thm) (output_with pretty_thm_style)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
-  ("term_style", args ((Scan.lift Args.name) -- Args.local_term) (output_with pretty_term_style)),
+  ("term_style", args ((Scan.lift (Args.name || Args.symbol)) -- Args.local_term) (output_with pretty_term_style)),
   ("term_type", args Args.local_term (output_with pretty_term_typ)),
   ("typeof", args Args.local_term (output_with pretty_term_typeof)),
   ("const", args Args.local_term (output_with pretty_term_const)),
