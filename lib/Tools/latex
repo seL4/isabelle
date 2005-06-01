@@ -88,6 +88,7 @@ function copy_styles ()
     TARGET="$DIR"/$(basename $STYLEFILE)
     rm -f $TARGET
     "$AUTO_PERL" -n -e 's/\$[I]d:?(?:\s)*([^\$]*)\$/originating from CVS: $1/g; print;' $STYLEFILE > $TARGET
+    # the [I] is there to prevent CVS from expanding $Id...$ itself ;-)
   done
 }
 
