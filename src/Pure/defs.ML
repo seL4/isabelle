@@ -161,8 +161,6 @@ fun checkT (Type (a, Ts)) = Type (a, map checkT Ts)
   | checkT (TVar ((a, i), _)) = def_err "type is not clean"
   | checkT (TFree (a, _)) = TVar ((a, 0), [])
 
-fun forall_table P tab = Symtab.foldl (fn (true, e) => P e | (b, _) => b) (true, tab);
-
 fun label_ord NONE NONE = EQUAL
   | label_ord NONE (SOME _) = LESS
   | label_ord (SOME _) NONE = GREATER
@@ -231,14 +229,14 @@ fun define (actions, graph) (name, ty) axname body =
 		 raise (CLASH (mainref, axname, s))
 	     else if s = axname then
 	         def_err "name of axiom is already used for another definition of this constant"
-	     else true)	
-	val _ = forall_table check_def defs		
-	fun check_final finalty = 
+	     else false)	
+	val _ = Symtab.exists check_def defs
+(*	fun check_final finalty = 
 	    (if can_be_unified_r finalty ty then
 		 raise (FINAL (mainref, finalty))
 	     else
 		 true)
-	val _ = forall check_final finals
+	val _ = forall check_final finals*)
 	
 	(* now we know that the only thing that can prevent acceptance of the definition is a cyclic dependency *)
 
@@ -271,7 +269,7 @@ fun define (actions, graph) (name, ty) axname body =
 				    merge_labelled_edges l [(SOME def_name,[(maxidx, subst sigma1 ty, subst sigma2 def_ty, [])])]))
           	      val (swallowed, edges) = Symtab.foldl make_edges ((false, []), bdefs)
 		    in
-			if swallowed orelse (exists (is_instance_r bodyty) bfinals) then 
+			if swallowed (*orelse (exists (is_instance_r bodyty) bfinals)*) then 
 			    (bodyn, edges)
 			else 
 			    (bodyn, [(NONE, [(maxidx, subst sigma1 ty, subst sigma2 general_btyp,[])])]@edges)
@@ -488,20 +486,30 @@ fun define (actions, graph) (name, ty) axname body =
 
     fun finalize' ((c, ty), graph) = 
       case Symtab.lookup (graph, c) of 
-	  NONE => def_err ("finalize: constant "^(quote c)^" is not declared")
+	  NONE => def_err ("cannot finalize constant "^(quote c)^"; it is not declared")
 	| SOME (Node (noderef, nodety, defs, backs, finals)) =>
 	  let 
-	      val nodety = checkT nodety 
-	  in
-	      if (not (is_instance_r ty nodety)) then
-		  def_err ("finalize: only type instances of the declared constant "^(quote c)^" can be finalized")
-	      else if exists (is_instance_r ty) finals then
+	      val ty = checkT ty
+	      val _ = if (not (is_instance_r ty nodety)) then
+			  def_err ("only type instances of the declared constant "^(quote c)^" can be finalized")
+		      else ()
+	      val _ = Symtab.exists (fn (def_name, Defnode (def_ty, _)) =>  
+					if can_be_unified_r ty def_ty then 
+					    def_err ("cannot finalize constant "^(quote c)^"; clash with definition "^(quote def_name))
+					else 
+					    false)
+				    defs
+	  in				    
+	      if exists (is_instance_r ty) finals then
 		  graph
 	      else 
 	      let
 	          val finals = ty :: finals
 		  val graph = Symtab.update ((noderef, Node(noderef, nodety, defs, backs, finals)), graph)
-		  fun update_backref ((graph, backs), (backrefname, Backref (_, backdefnames))) =
+	      in
+		  graph
+	      end
+(*		  fun update_backref ((graph, backs), (backrefname, Backref (_, backdefnames))) =
 		  let
 		      fun update_backdef ((graph, defnames), (backdefname, _)) = 
 	              let 
@@ -536,10 +544,11 @@ fun define (actions, graph) (name, ty) axname body =
 		  val Node (_, _, defs, _, _) = getnode graph' noderef
 	      in
 		  Symtab.update ((noderef, Node (noderef, nodety, defs, backs', finals)), graph')
-	      end
+	      end*)
 	  end
 	   
-    fun finalize (history, graph) c_ty = ((Finalize c_ty)::history, finalize' (c_ty, graph))
+    fun finalize (history, graph) c_ty = (history, graph)
+	(*((Finalize c_ty)::history, finalize' (c_ty, graph))*)
     
     fun merge' (Declare cty, g) = (declare g cty handle _ => g)
       | merge' (Define (name, ty, axname, body), g as (_, graph)) = 
@@ -551,6 +560,9 @@ fun define (actions, graph) (name, ty) axname body =
 		| SOME _ => g))
       | merge' (Finalize finals, g) = (finalize g finals handle _ => g)
 	
+    fun myrev [] ys = ys
+      | myrev (x::xs) ys = myrev xs (x::ys)
+
     fun merge (actions, _) g = foldr merge' g actions
 
     fun finals (history, graph) = 
