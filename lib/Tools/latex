@@ -87,7 +87,7 @@ function copy_styles ()
   do
     TARGET="$DIR"/$(basename $STYLEFILE)
     rm -f $TARGET
-    "$AUTO_PERL" -n -e 's/\$Id$]*)\$/originating from CVS: $1/g; print;' $STYLEFILE > $TARGET
+    "$AUTO_PERL" -n -e 's/\$[I]d:?(?:\s)*([^\$]*)\$/originating from CVS: $1/g; print;' $STYLEFILE > $TARGET
   done
 }
 
