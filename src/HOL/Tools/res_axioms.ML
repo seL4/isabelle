@@ -187,7 +187,7 @@ val rm_redundant_cls = List.filter (not o is_taut);
 
 (* transform an Isabelle thm into CNF *)
 fun cnf_axiom_aux th =
-    map (zero_var_indexes o Thm.varifyT) 
+    map zero_var_indexes
         (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
        
        

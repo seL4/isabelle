@@ -160,7 +160,7 @@ fun cnf skoths (th,ths) =
 
 (*Convert all suitable free variables to schematic variables, 
   but don't discharge assumptions.*)
-fun generalize th = forall_elim_vars 0 (forall_intr_frees th);
+fun generalize th = Thm.varifyT (forall_elim_vars 0 (forall_intr_frees th));
 
 fun make_cnf skoths th = map generalize (cnf skoths (th, []));
 
