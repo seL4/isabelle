@@ -206,7 +206,7 @@ In which case you should use \texttt{IfThenNoBox} instead of
 \end{theorem}
 *}
 
-subsection{* Doing it yourself *}
+subsection{* Doing it yourself\label{sec:yourself}*}
 
 text{* If for some reason you want or need to present theorems your
 own way, you can extract the premises and the conclusion explicitly
@@ -324,7 +324,8 @@ text {*
     \end{quote}
 
   A ``style'' is a transformation of propositions. There are predefined
-  styles, namly \verb!lhs!, \verb!rhs! and \verb!conclusion!. For example, 
+  styles, namly \verb!lhs! and \verb!rhs!, \verb!premise1! unto \verb!premise9!, and \verb!concl!.
+  For example, 
   the output
   \begin{center}
   \begin{tabular}{l@ {~~@{text "="}~~}l}
@@ -363,6 +364,8 @@ text {*
     \verb!@!\verb!{thm_style concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
+
+  Further use cases can be found in \S\ref{sec:yourself}.
 
   If you are not afraid of ML, you may also define your own styles.
   A style is implemented by an ML function of type

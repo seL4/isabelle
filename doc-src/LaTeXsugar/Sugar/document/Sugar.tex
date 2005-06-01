@@ -237,7 +237,7 @@ In which case you should use \texttt{IfThenNoBox} instead of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Doing it yourself%
+\isamarkupsubsection{Doing it yourself\label{sec:yourself}%
 }
 \isamarkuptrue%
 %
@@ -248,7 +248,7 @@ and combine them as you like:
 \begin{itemize}
 \item \verb!@!\verb!{thm_style premise1! $thm$\verb!}!
 prints premise 1 of $thm$ (and similarly up to \texttt{premise9}).
-\item \verb!@!\verb!{thm_style conclusion! $thm$\verb!}!
+\item \verb!@!\verb!{thm_style concl! $thm$\verb!}!
 prints the conclusion of $thm$.
 \end{itemize}
 For example, ``from \isa{Q} and
@@ -257,7 +257,7 @@ is produced by
 \begin{quote}
 \verb!from !\verb!@!\verb!{thm_style premise2 conjI}!\\
 \verb!and !\verb!@!\verb!{thm_style premise1 conjI}!\\
-\verb!we conclude !\verb!@!\verb!{thm_style conclusion conjI}!
+\verb!we conclude !\verb!@!\verb!{thm_style concl conjI}!
 \end{quote}
 Thus you can rearrange or hide premises and typeset the theorem as you like.
 The \verb!thm_style! antiquotation is a general mechanism explained
@@ -372,7 +372,8 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \end{quote}
 
   A ``style'' is a transformation of propositions. There are predefined
-  styles, namly \verb!lhs!, \verb!rhs! and \verb!conclusion!. For example, 
+  styles, namly \verb!lhs! and \verb!rhs!, \verb!premise1! unto \verb!premise9!, and \verb!concl!.
+  For example, 
   the output
   \begin{center}
   \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
@@ -396,7 +397,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   conclusion of propositions consisting of a binary operator
   (e.~g.~\isa{{\isacharequal}}, \isa{{\isasymequiv}}, \isa{{\isacharless}}).
 
-  Likewise, \verb!conclusion! may be used as a style to show just the
+  Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
     \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
@@ -408,9 +409,11 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm_style conclusion hd_Cons_tl}!\\
+    \verb!@!\verb!{thm_style concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
+
+  Further use cases can be found in \S\ref{sec:yourself}.
 
   If you are not afraid of ML, you may also define your own styles.
   A style is implemented by an ML function of type
@@ -431,9 +434,8 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   \end{quote}
 
   \noindent
-  This example shows how the \verb!conclusion! style could have been implemented
+  This example shows how the \verb!concl! style is implemented
   and may be used as as a ``copy-and-paste'' pattern to write your own styles.
-  (The real implementation of \verb!conclusion! is a bit more sophisticated).
 
   The code should go into your theory file, separate from the \LaTeX\ text.
   The \verb!let! expression avoids polluting the
