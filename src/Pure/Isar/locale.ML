@@ -18,11 +18,19 @@ See also:
     Workshop, TYPES 2003, Torino, Italy, LNCS 3085, pages 34-50, 2004.
 *)
 
+(* TODO:
+- beta-eta normalisation of interpretation parameters
+- no beta reduction of interpretation witnesses
+- mix of locales with and without open in activate_elems
+- dangling type frees in locales
+*)
+
 signature LOCALE =
 sig
   type context
   datatype ('typ, 'term, 'fact) elem =
     Fixes of (string * 'typ option * mixfix option) list |
+    Constrains of (string * 'typ) list |
     Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
     Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
@@ -78,8 +86,6 @@ sig
     theory * context -> (theory * context) * (string * thm list) list
 
   (* Locale interpretation *)
-  val instantiate: string -> string * context attribute list
-    -> thm list option -> context -> context
   val prep_global_registration:
     string * Attrib.src list -> expr -> string option list -> theory ->
     theory * ((string * term list) * term list) list * (theory -> theory)
@@ -101,6 +107,7 @@ type context = ProofContext.context;
 
 datatype ('typ, 'term, 'fact) elem =
   Fixes of (string * 'typ option * mixfix option) list |
+  Constrains of (string * 'typ) list |
   Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
   Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
   Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
@@ -303,7 +310,7 @@ struct
     end;
 
   (* add witness theorem to registration,
-     only if instantiation is exact, otherwise excpetion Option raised *)
+     only if instantiation is exact, otherwise exception Option raised *)
   fun add_witness ts thm regs =
     let
       val t = termify ts;
@@ -563,6 +570,8 @@ fun err_in_locale' ctxt msg ids' = err_in_locale ctxt msg (map fst ids');
 fun map_elem {name, var, typ, term, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
+   | Constrains csts => Constrains (csts |> map (fn (x, T) =>
+       let val (x', _) = var (x, SOME Syntax.NoSyn) in (x', typ T) end))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((name a, map attrib atts), propps |> map (fn (t, (ps, qs)) =>
         (term t, (map term ps, map term qs))))))
@@ -970,6 +979,7 @@ fun export_axioms axs _ hyps th =
 
 fun activate_elem _ ((ctxt, axs), Fixes fixes) =
       ((ctxt |> ProofContext.add_fixes fixes, axs), [])
+  | activate_elem _ ((ctxt, axs), Constrains _) = ((ctxt, axs), [])
   | activate_elem _ ((ctxt, axs), Assumes asms) =
       let
         val asms' = map_attrib_specs (Attrib.context_attribute_i ctxt) asms;
@@ -1066,14 +1076,14 @@ fun intern_expr sg (Locale xname) = Locale (intern sg xname)
 
 local
 
-fun prep_fixes prep_vars ctxt fixes =
-  let val vars = snd (foldl_map prep_vars (ctxt, map (fn (x, T, _) => ([x], T)) fixes))
-  in map (fn (([x'], T'), (_, _, mx)) => (x', T', mx)) (vars ~~ fixes) end;
+fun prep_parms prep_vars ctxt parms =
+  let val vars = snd (foldl_map prep_vars (ctxt, map (fn (x, T) => ([x], T)) parms))
+  in map (fn ([x'], T') => (x', T')) vars end;
 
 in
 
-fun read_fixes x = prep_fixes ProofContext.read_vars x;
-fun cert_fixes x = prep_fixes ProofContext.cert_vars x;
+fun read_parms x = prep_parms ProofContext.read_vars x;
+fun cert_parms x = prep_parms ProofContext.cert_vars x;
 
 end;
 
@@ -1124,17 +1134,27 @@ fun declare_int_elem (ctxt, Fixes fixes) =
         (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes), [])
   | declare_int_elem (ctxt, _) = (ctxt, []);
 
-fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
-      (ctxt |> ProofContext.add_fixes (prep_fixes ctxt fixes), [])
+fun declare_ext_elem prep_parms (ctxt, Fixes fixes) =
+      let
+        val parms = map (fn (x, T, _) => (x, T)) fixes;
+        val parms' = prep_parms ctxt parms;
+        val fixes' = map (fn ((x, T), (_, _, mx)) => (x, T, mx)) (parms' ~~ fixes);
+      in (ctxt |> ProofContext.add_fixes fixes', []) end
+  | declare_ext_elem prep_parms (ctxt, Constrains csts) =
+      let
+        val parms = map (fn (x, T) => (x, SOME T)) csts;
+        val parms' = prep_parms ctxt parms;
+        val ts = map (fn (x, SOME T) => Free (x, T)) parms';
+      in (Library.fold ProofContext.declare_term ts ctxt, []) end
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
 
-fun declare_elems prep_fixes (ctxt, (((name, ps), _), elems)) =
+fun declare_elems prep_parms (ctxt, (((name, ps), _), elems)) =
   let val (ctxt', propps) =
     (case elems of
       Int es => foldl_map declare_int_elem (ctxt, es)
-    | Ext e => foldl_map (declare_ext_elem prep_fixes) (ctxt, [e]))
+    | Ext e => foldl_map (declare_ext_elem prep_parms) (ctxt, [e]))
     handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
   in (ctxt', propps) end;
 
@@ -1142,7 +1162,7 @@ in
 
 (* CB: only called by prep_elemss. *)
 
-fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
+fun declare_elemss prep_parms fixed_params raw_elemss ctxt =
   let
     (* CB: fix of type bug of goal in target with context elements.
        Parameters new in context elements must receive types that are
@@ -1156,7 +1176,7 @@ fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
     val (_, raw_elemss') =
       foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
         (int_elemss, raw_elemss);
-  in foldl_map (declare_elems prep_fixes) (ctxt, raw_elemss') end;
+  in foldl_map (declare_elems prep_parms) (ctxt, raw_elemss') end;
 
 end;
 
@@ -1198,6 +1218,7 @@ fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
 (* CB: for finish_elems (Int and Ext) *)
 
 fun eval_text _ _ _ (text, Fixes _) = text
+  | eval_text _ _ _ (text, Constrains _) = text
   | eval_text _ _ is_ext ((((exts, exts'), (ints, ints')), (xs, env, defs)), Assumes asms) =
       let
         val ts = List.concat (map (map #1 o #2) asms);
@@ -1235,6 +1256,8 @@ fun closeup _ false elem = elem
 
 fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
       (x, assoc_string (parms, x), mx)) fixes)
+  | finish_ext_elem parms _ (Constrains csts, _) =
+      Constrains (map (fn (x, _) => (x, valOf (assoc_string (parms, x)))) csts)
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
   | finish_ext_elem _ close (Defines defs, propp) =
@@ -1270,7 +1293,7 @@ end;
 
 (* CB: type inference and consistency checks for locales *)
 
-fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_concl =
+fun prep_elemss prep_parms prepp do_close context fixed_params raw_elemss raw_concl =
   let
     (* CB: contexts computed in the course of this function are discarded.
        They are used for type inference and consistency checks only. *)
@@ -1278,7 +1301,7 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
        empty list if there is no target. *)
     (* CB: raw_elemss are list of pairs consisting of identifiers and
        context elements, the latter marked as internal or external. *)
-    val (raw_ctxt, raw_proppss) = declare_elemss prep_fixes fixed_params raw_elemss context;
+    val (raw_ctxt, raw_proppss) = declare_elemss prep_parms fixed_params raw_elemss context;
     (* CB: raw_ctxt is context with additional fixed variables derived from
        the fixes elements in raw_elemss,
        raw_proppss contains assumptions and definitions from the
@@ -1311,8 +1334,8 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
     (* CB: parms are the parameters from raw_elemss, with correct typing. *)
 
     (* CB: extract information from assumes and defines elements
-       (fixes and notes in raw_elemss don't have an effect on text and elemss),
-       compute final form of context elements. *)
+       (fixes, constrains and notes in raw_elemss don't have an effect on
+       text and elemss), compute final form of context elements. *)
     val (text, elemss) = finish_elemss ctxt parms do_close
       (((([], []), ([], [])), ([], [], [])), raw_elemss ~~ proppss);
     (* CB: text has the following structure:
@@ -1330,7 +1353,7 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
          defs: theorems representing the substitutions from defines elements
            (thms are normalised wrt. env).
        elemss is an updated version of raw_elemss:
-         - type info added to Fixes
+         - type info added to Fixes and modified in Constrains
          - axiom and definition statement replaced by corresponding one
            from proppss in Assumes and Defines
          - Facts unchanged
@@ -1339,8 +1362,8 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
 
 in
 
-fun read_elemss x = prep_elemss read_fixes ProofContext.read_propp_schematic x;
-fun cert_elemss x = prep_elemss cert_fixes ProofContext.cert_propp_schematic x;
+fun read_elemss x = prep_elemss read_parms ProofContext.read_propp_schematic x;
+fun cert_elemss x = prep_elemss cert_parms ProofContext.cert_propp_schematic x;
 
 end;
 
@@ -1442,182 +1465,6 @@ val cert_context_statement = gen_statement (K I) gen_context_i;
 end;
 
 
-(** CB: experimental instantiation mechanism **)
-
-fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val sign = Theory.sign_of thy;
-    val tsig = Sign.tsig_of sign;
-    val cert = cterm_of sign;
-
-    (** process the locale **)
-
-    val {predicate = (_, axioms), params = (ps, _), ...} =
-      the_locale thy (intern sign loc_name);
-    val fixed_params = param_types (map #1 ps);
-    val init = ProofContext.init thy;
-    val (_, raw_elemss) = flatten (init, intern_expr sign)
-         (([], Symtab.empty), Expr (Locale loc_name));
-    val ((parms, all_elemss, concl),
-         (spec as (_, (ints, _)), (xs, env, defs))) =
-      read_elemss false (* do_close *) init
-        fixed_params (* could also put [] here??? *) raw_elemss
-        [] (* concl *);
-
-    (** analyse the instantiation theorem inst **)
-
-    val inst = case raw_inst of
-        NONE => if null ints
-	  then NONE
-	  else error "Locale has assumptions but no chained fact was found"
-      | SOME [] => if null ints
-	  then NONE
-	  else error "Locale has assumptions but no chained fact was found"
-      | SOME [thm] => if null ints
-	  then (warning "Locale has no assumptions: fact ignored"; NONE)
-	  else SOME thm
-      | SOME _ => error "Multiple facts are not allowed";
-
-    val args = case inst of
-            NONE => []
-          | SOME thm => thm |> prop_of |> ObjectLogic.drop_judgment sign
-              |> Term.strip_comb
-              |>> (fn t as (Const (s, _)) => if (intern sign loc_name = s)
-                        then t
-                        else error ("Constant " ^ quote loc_name ^
-                          " expected but constant " ^ quote s ^ " was found")
-                    | t => error ("Constant " ^ quote loc_name ^ " expected \
-                          \but term " ^ quote (Sign.string_of_term sign t) ^
-                          " was found"))
-              |> snd;
-    val cargs = map cert args;
-
-    (* process parameters: match their types with those of arguments *)
-
-    val def_names = map (fn (Free (s, _), _) => s) env;
-    val (defined, assumed) = List.partition
-          (fn (s, _) => s mem def_names) fixed_params;
-    val cassumed = map (cert o Free) assumed;
-    val cdefined = map (cert o Free) defined;
-
-    val param_types = map snd assumed;
-    val v_param_types = map Type.varifyT param_types;
-    val arg_types = map Term.fastype_of args;
-    val Tenv = Library.foldl (Type.typ_match tsig)
-          (Vartab.empty, v_param_types ~~ arg_types)
-          handle UnequalLengths => error "Number of parameters does not \
-            \match number of arguments of chained fact";
-    (* get their sorts *)
-    val tfrees = foldr Term.add_typ_tfrees [] param_types
-    val Tenv' = map
-          (fn ((a, i), (S, T)) => ((a, S), T))
-          (Vartab.dest Tenv);
-
-    (* process (internal) elements *)
-
-    fun inst_type [] T = T
-      | inst_type env T =
-          Term.map_type_tfree (fn v => getOpt (assoc (env, v), TFree v)) T;
-
-    fun inst_term [] t = t
-      | inst_term env t = Term.map_term_types (inst_type env) t;
-
-    (* parameters with argument types *)
-
-    val cparams' = map (cterm_of sign o inst_term Tenv' o term_of) cassumed;
-    val cdefined' = map (cert o inst_term Tenv' o term_of) cdefined;
-    val cdefining = map (cert o inst_term Tenv' o snd) env;
-
-    fun inst_thm _ [] th = th
-      | inst_thm ctxt Tenv th =
-	  let
-	    val sign = ProofContext.sign_of ctxt;
-	    val cert = Thm.cterm_of sign;
-	    val certT = Thm.ctyp_of sign;
-	    val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
-	    val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
-	    val Tenv' = List.filter (fn ((a, _), _) => a mem_string tfrees) Tenv;
-	  in
-	    if null Tenv' then th
-	    else
-	      th
-	      |> Drule.implies_intr_list (map cert hyps)
-	      |> Drule.tvars_intr_list (map (#1 o #1) Tenv')
-	      |> (fn (th', al) => th' |>
-		Thm.instantiate ((map (fn ((a, _), T) =>
-                  (certT (TVar (valOf (assoc (al, a)))), certT T)) Tenv'), []))
-	      |> (fn th'' => Drule.implies_elim_list th''
-		  (map (Thm.assume o cert o inst_term Tenv') hyps))
-	  end;
-
-    val inst_type' = inst_type Tenv';
-
-    val inst_term' = Term.subst_atomic
-        (map (pairself term_of) ((cparams' @ cdefined') ~~ (cargs @ cdefining)))
-      o inst_term Tenv';
-
-    fun inst_thm' thm =
-      let
-        (* not all axs are normally applicable *)
-        val hyps = #hyps (rep_thm thm);
-        val ass = map (fn ax => (prop_of ax, ax)) axioms;
-        val axs' = Library.foldl (fn (axs, hyp) => 
-              (case gen_assoc (op aconv) (ass, hyp) of NONE => axs
-                 | SOME ax => axs @ [ax])) ([], hyps);
-        val thm' = Drule.satisfy_hyps axs' thm;
-        (* instantiate types *)
-        val thm'' = inst_thm ctxt Tenv' thm';
-        (* substitute arguments and discharge hypotheses *)
-        val thm''' = case inst of
-                NONE => thm''
-              | SOME inst_thm => let
-		    val hyps = #hyps (rep_thm thm'');
-		    val th = thm'' |> implies_intr_hyps
-		      |> forall_intr_list (cparams' @ cdefined')
-		      |> forall_elim_list (cargs @ cdefining)
-		    (* th has premises of the form either inst_thm or x==x *)
-		    fun mk hyp = if Logic.is_equals hyp
-			  then hyp |> Logic.dest_equals |> snd |> cert
-				 |> reflexive
-			  else inst_thm
-                  in implies_elim_list th (map mk hyps)
-                  end;
-      in thm''' end
-      handle THM (msg, n, thms) => error ("Exception THM " ^
-        string_of_int n ^ " raised\n" ^
-	  "Note: instantiate does not support old-style locales \
-          \declared with (open)\n" ^ msg ^ "\n" ^
-	cat_lines (map string_of_thm thms));
-
-    fun inst_elem (ctxt, (Ext _)) = ctxt
-      | inst_elem (ctxt, (Int (Notes facts))) =
-              (* instantiate fact *)
-          let
-              val facts = facts |> map_attrib_facts
-                (Attrib.context_attribute_i ctxt o
-                  Args.map_values I inst_type' inst_term' inst_thm');
-              val facts' =
-                map (apsnd (map (apfst (map inst_thm')))) facts
-              (* rename fact *)
-              val facts'' = map (apfst (apfst (NameSpace.qualified prfx))) facts'
-              (* add attributes *)
-              val facts''' = map (apfst (apsnd (fn atts => atts @ attribs))) facts''
-          in fst (ProofContext.note_thmss_i facts''' ctxt)
-          end
-      | inst_elem (ctxt, (Int _)) = ctxt;
-
-    (* FIXME fold o fold *)
-    fun inst_elems (ctxt, (id, elems)) = Library.foldl inst_elem (ctxt, elems);
-
-    fun inst_elemss ctxt elemss = Library.foldl inst_elems (ctxt, elemss);
-
-    (* main part *)
-
-    val ctxt' = ProofContext.qualified_names ctxt;
-  in ProofContext.restore_naming ctxt (inst_elemss ctxt' all_elemss) end;
-
-
 (** define locales **)
 
 (* print locale *)
@@ -1639,6 +1486,7 @@ fun print_locale thy import body =
     fun prt_fix (x, SOME T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
           prt_typ T :: Pretty.brk 1 :: prt_syn syn)
       | prt_fix (x, NONE, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
+    fun prt_cst (x, T) = Pretty.block [Pretty.str (x ^ " ::"), prt_typ T];
 
     fun prt_name name = Pretty.str (ProofContext.extern ctxt name);
     fun prt_name_atts (name, atts) =
@@ -1659,6 +1507,7 @@ fun print_locale thy import body =
     fun items _ [] = []
       | items prfx (x :: xs) = Pretty.block [Pretty.str prfx, Pretty.brk 1, x] :: items "  and" xs;
     fun prt_elem (Fixes fixes) = items "fixes" (map prt_fix fixes)
+      | prt_elem (Constrains csts) = items "constrains" (map prt_cst csts)
       | prt_elem (Assumes asms) = items "assumes" (map prt_asm asms)
       | prt_elem (Defines defs) = items "defines" (map prt_def defs)
       | prt_elem (Notes facts) = items "notes" (map prt_note facts);
@@ -2016,21 +1865,12 @@ local
 
 (* extract proof obligations (assms and defs) from elements *)
 
-(* check if defining equation has become t == t, these are dropped
-   in extract_asms_elem, as they lead to trivial proof obligations *)
-(* currently disabled *)
-fun check_def (_, (def, _)) = SOME def;
-(*
-fun check_def (_, (def, _)) =
-      if def |> Logic.dest_equals |> op aconv
-      then NONE else SOME def;
-*)
-
 fun extract_asms_elem (ts, Fixes _) = ts
+  | extract_asms_elem (ts, Constrains _) = ts
   | extract_asms_elem (ts, Assumes asms) =
       ts @ List.concat (map (fn (_, ams) => map (fn (t, _) => t) ams) asms)
   | extract_asms_elem (ts, Defines defs) =
-      ts @ List.mapPartial check_def defs
+      ts @ map (fn (_, (def, _)) => def) defs
   | extract_asms_elem (ts, Notes _) = ts;
 
 fun extract_asms_elems (id, elems) =
@@ -2042,6 +1882,7 @@ fun extract_asms_elemss elemss =
 (* activate instantiated facts in theory or context *)
 
 fun activate_facts_elem _ _ _ _ (thy_ctxt, Fixes _) = thy_ctxt
+  | activate_facts_elem _ _ _ _ (thy_ctxt, Constrains _) = thy_ctxt
   | activate_facts_elem _ _ _ _ (thy_ctxt, Assumes _) = thy_ctxt
   | activate_facts_elem _ _ _ _ (thy_ctxt, Defines _) = thy_ctxt
   | activate_facts_elem note_thmss attrib

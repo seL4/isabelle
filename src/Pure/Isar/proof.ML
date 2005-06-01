@@ -68,8 +68,6 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val using_thmss: ((thmref * context attribute list) list) list -> state -> state
   val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
-  val instantiate_locale: string * (string * context attribute list) -> state
-    -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
   val assm: ProofContext.exporter
@@ -633,20 +631,6 @@ val using_thmss = gen_using_thmss ProofContext.note_thmss;
 val using_thmss_i = gen_using_thmss ProofContext.note_thmss_i;
 
 end;
-
-
-(* locale instantiation *)
-
-fun instantiate_locale (loc_name, prfx_attribs) state =
-  let
-    val facts = if is_chain state then get_facts state else NONE;
-  in
-    state
-    |> assert_forward_or_chain
-    |> enter_forward
-    |> reset_facts
-    |> map_context (Locale.instantiate loc_name prfx_attribs facts)
-  end;
 
 
 (* fix *)

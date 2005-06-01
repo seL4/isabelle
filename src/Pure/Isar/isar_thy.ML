@@ -47,8 +47,6 @@ sig
   val using_facts_i: (thm * Proof.context attribute list) list list
     -> ProofHistory.T -> ProofHistory.T
   val chain: ProofHistory.T -> ProofHistory.T
-  val instantiate_locale: (string * Attrib.src list) * string -> ProofHistory.T
-    -> ProofHistory.T
   val fix: (string list * string option) list -> ProofHistory.T -> ProofHistory.T
   val fix_i: (string list * typ option) list -> ProofHistory.T -> ProofHistory.T
   val let_bind: (string list * string) list -> ProofHistory.T -> ProofHistory.T
@@ -289,14 +287,6 @@ fun using_facts args = ProofHistory.apply (fn state =>
 val using_facts_i = ProofHistory.apply o Proof.using_thmss_i o map (map (apfst single));
 
 val chain = ProofHistory.apply Proof.chain;
-
-
-(* locale instantiation *)
-
-fun instantiate_locale ((name, atts), loc) =
-  ProofHistory.apply (fn state =>
-    Proof.instantiate_locale (loc,
-        (name, map (Attrib.local_attribute (Proof.theory_of state)) atts)) state);
 
 
 (* context *)

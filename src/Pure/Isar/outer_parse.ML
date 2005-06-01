@@ -314,11 +314,14 @@ val xthms1 = Scan.repeat1 xthm;
 local
 
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K NONE || opt_mixfix >> SOME;
-val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "includes";
+val loc_keyword = $$$ "fixes" || $$$ "constrains" || $$$ "assumes" ||
+   $$$ "defines" || $$$ "notes" || $$$ "includes";
 
 val loc_element =
   $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
     >> triple1)) >> Locale.Fixes ||
+  $$$ "constrains" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ)))
+    >> Locale.Constrains ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
     >> Locale.Assumes ||
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
