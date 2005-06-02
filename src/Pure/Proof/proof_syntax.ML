@@ -223,7 +223,7 @@ fun cterm_of_proof thy prf =
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
-        (map (add_prefix "thm") thm_names @ map (add_prefix "axm") axm_names)
+        (map (add_prefix "axm") axm_names @ map (add_prefix "thm") thm_names)
   in
     (cterm_of sg (term_of_proof prf'),
      proof_of_term thy tab true o Thm.term_of)
@@ -237,7 +237,7 @@ fun read_term thy =
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
-        (map (add_prefix "thm") thm_names @ map (add_prefix "axm") axm_names)
+        (map (add_prefix "axm") axm_names @ map (add_prefix "thm") thm_names)
   in
     (fn T => fn s => Thm.term_of (read_cterm sg (s, T)))
   end;
