@@ -1,9 +1,9 @@
-(*  Title:      tctical
+(*  Title:      Pure/tctical.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Tacticals
+Tacticals.
 *)
 
 infix 1 THEN THEN' THEN_ALL_NEW;

@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      generic/isaplib.ML
+(*  Title:      Pure/IsaPlanner/isaplib.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucasd@dai.ed.ac.uk
 *)

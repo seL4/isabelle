@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      sys/eqrule_HOL_data.ML
+(*  Title:      HOL/eqrule_HOL_data.ML
+    Id:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Modified:   22 July 2004

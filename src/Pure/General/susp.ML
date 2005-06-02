@@ -1,3 +1,10 @@
+(*  Title:      Pure/General/susp.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg, TU Muenchen
+
+Delayed evaluation.
+*)
+
 signature SUSP =
 sig
 

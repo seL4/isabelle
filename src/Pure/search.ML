@@ -1,8 +1,8 @@
-(*  Title: 	search
+(*  Title: 	Pure/search.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson and Norbert Voelker
 
-Search tacticals
+Search tacticals.
 *)
 
 infix 1 THEN_MAYBE THEN_MAYBE';

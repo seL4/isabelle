@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      sys/rw_tools.ML
+(*  Title:      Pure/IsaPlanner/rw_tools.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Created:    28 May 2004

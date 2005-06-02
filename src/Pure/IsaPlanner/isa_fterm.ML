@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      libs/isa_fterm.ML
+(*  Title:      Pure/IsaPlanner/isa_fterm.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucasd@dai.ed.ac.uk
     Date:       16 April 2003

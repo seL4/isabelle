@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      isand.ML
+(*  Title:      Pure/IsaPlanner/isand.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Updated:    26 Apr 2005

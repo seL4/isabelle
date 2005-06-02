@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      libs/upterm_lib.ML
+(*  Title:      Pure/IsaPlanner/upterm_lib.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Created:    26 Jan 2004

@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      libs/term_lib.ML
+(*  Title:      Pure/IsaPlanner/term_lib.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucasd@dai.ed.ac.uk
     Created:    17 Aug 2002

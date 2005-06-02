@@ -1,5 +1,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      libs/focus_term_lib.ML
+(*  Title:      Pure/IsaPlanner/focus_term_lib.ML
+    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucasd@dai.ed.ac.uk
     Date:       16 April 2003
