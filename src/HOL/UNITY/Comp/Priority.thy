@@ -84,11 +84,11 @@ subsection{*Component correctness proofs*}
 
 text{* neighbors is stable  *}
 lemma Component_neighbors_stable: "Component i \<in> stable {s. neighbors k s = n}"
-by (simp add: Component_def, constrains, auto)
+by (simp add: Component_def, safety, auto)
 
 text{* property 4 *}
 lemma Component_waits_priority: "Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}"
-by (simp add: Component_def, constrains)
+by (simp add: Component_def, safety)
 
 text{* property 5: charpentier and Chandy mistakenly express it as
  'transient Highest i'. Consider the case where i has neighbors *}
@@ -107,11 +107,11 @@ done
 
 text{* property 6: Component doesn't introduce cycle *}
 lemma Component_well_behaves: "Component i \<in> Highest i co Highest i Un Lowest i"
-by (simp add: Component_def, constrains, fast)
+by (simp add: Component_def, safety, fast)
 
 text{* property 7: local axiom *}
 lemma locality: "Component i \<in> stable {s. \<forall>j k. j\<noteq>i & k\<noteq>i--> ((j,k):s) = b j k}"
-by (simp add: Component_def, constrains)
+by (simp add: Component_def, safety)
 
 
 subsection{*System  properties*}
@@ -120,12 +120,12 @@ text{* property 8: strictly universal *}
 lemma Safety: "system \<in> stable Safety"
 apply (unfold Safety_def)
 apply (rule stable_INT)
-apply (simp add: system_def, constrains, fast)
+apply (simp add: system_def, safety, fast)
 done
 
 text{* property 13: universal *}
 lemma p13: "system \<in> {s. s = q} co {s. s=q} Un {s. \<exists>i. derive i q s}"
-by (simp add: system_def Component_def mk_total_program_def totalize_JN, constrains, blast)
+by (simp add: system_def Component_def mk_total_program_def totalize_JN, safety, blast)
 
 text{* property 14: the 'above set' of a Component that hasn't got 
       priority doesn't increase *}
@@ -133,7 +133,7 @@ lemma above_not_increase:
      "system \<in> -Highest i Int {s. j\<notin>above i s} co {s. j\<notin>above i s}"
 apply (insert reach_lemma [of concl: j])
 apply (simp add: system_def Component_def mk_total_program_def totalize_JN, 
-       constrains)
+       safety)
 apply (simp add: trancl_converse, blast) 
 done
 
@@ -150,7 +150,7 @@ lemma system_well_behaves [rule_format]:
      "\<forall>i. system \<in> Highest i co Highest i Un Lowest i"
 apply clarify
 apply (simp add: system_def Component_def mk_total_program_def totalize_JN, 
-       constrains, auto)
+       safety, auto)
 done
 
 

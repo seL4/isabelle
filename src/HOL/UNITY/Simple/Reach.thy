@@ -62,7 +62,7 @@ declare reach_invariant_def [THEN def_set_simp, simp]
 
 lemma reach_invariant: "Rprg \<in> Always reach_invariant"
 apply (rule AlwaysI, force) 
-apply (unfold Rprg_def, constrains) 
+apply (unfold Rprg_def, safety) 
 apply (blast intro: rtrancl_trans)
 done
 

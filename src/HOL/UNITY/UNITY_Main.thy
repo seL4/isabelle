@@ -9,7 +9,7 @@ header{*Comprehensive UNITY Theory*}
 theory UNITY_Main = Detects + PPROD + Follows + ProgressSets
 files "UNITY_tactics.ML":
 
-method_setup constrains = {*
+method_setup safety = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts => 
             gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}

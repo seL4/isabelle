@@ -49,14 +49,14 @@ apply (rule AlwaysI)
 apply force
 apply (rule constrains_imp_Constrains [THEN StableI])
 apply auto
- apply (unfold F_def, constrains) 
-apply (unfold G_def, constrains) 
+ apply (unfold F_def, safety) 
+apply (unfold G_def, safety) 
 done
 
 lemma lemma2_1: "(F Join G) : ({s. NF s = k} - {s. BB s}) LeadsTo  
                               ({s. NF s = k} Int {s. BB s})"
 apply (rule stable_Join_ensures1[THEN leadsTo_Basis, THEN leadsTo_imp_LeadsTo])
- apply (unfold F_def, constrains) 
+ apply (unfold F_def, safety) 
 apply (unfold G_def, ensures_tac "cmdG") 
 done
 
@@ -64,7 +64,7 @@ lemma lemma2_2: "(F Join G) : ({s. NF s = k} Int {s. BB s}) LeadsTo
                               {s. k < NF s}"
 apply (rule stable_Join_ensures2[THEN leadsTo_Basis, THEN leadsTo_imp_LeadsTo])
  apply (unfold F_def, ensures_tac "cmdF") 
-apply (unfold G_def, constrains) 
+apply (unfold G_def, safety) 
 done
 
 lemma progress: "(F Join G) : UNIV LeadsTo {s. m < NF s}"

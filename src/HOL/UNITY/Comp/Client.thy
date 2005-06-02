@@ -83,7 +83,7 @@ lemma increasing_ask_rel:
      "Client \<in> UNIV guarantees Increasing ask Int Increasing rel"
 apply (auto intro!: increasing_imp_Increasing simp add: guar_def preserves_subset_increasing [THEN subsetD])
 apply (auto simp add: Client_def increasing_def)
-apply (constrains, auto)+
+apply (safety, auto)+
 done
 
 declare nth_append [simp] append_one_prefix [simp]
@@ -101,7 +101,7 @@ apply auto
 apply (rule invariantI [THEN stable_Join_Always2], force) 
  prefer 2
  apply (fast elim!: preserves_subset_stable [THEN subsetD] intro!: stable_Int) 
-apply (simp add: Client_def, constrains)
+apply (simp add: Client_def, safety)
 apply (cut_tac m = "tok s" in NbT_pos [THEN mod_less_divisor], auto)
 done
 
@@ -118,7 +118,7 @@ done
 text{*** Towards proving the liveness property ***}
 
 lemma stable_rel_le_giv: "Client \<in> stable {s. rel s \<le> giv s}"
-by (simp add: Client_def, constrains, auto)
+by (simp add: Client_def, safety, auto)
 
 lemma Join_Stable_rel_le_giv:
      "[| Client Join G \<in> Increasing giv;  G \<in> preserves rel |]  
@@ -197,14 +197,14 @@ done
 text{*This shows that the Client won't alter other variables in any state
   that it is combined with*}
 lemma client_preserves_dummy: "Client \<in> preserves dummy"
-by (simp add: Client_def preserves_def, clarify, constrains, auto)
+by (simp add: Client_def preserves_def, clarify, safety, auto)
 
 
 text{** Obsolete lemmas from first version of the Client **}
 
 lemma stable_size_rel_le_giv:
      "Client \<in> stable {s. size (rel s) \<le> size (giv s)}"
-by (simp add: Client_def, constrains, auto)
+by (simp add: Client_def, safety, auto)
 
 text{*clients return the right number of tokens*}
 lemma ok_guar_rel_prefix_giv:

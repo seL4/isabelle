@@ -35,7 +35,7 @@ done
 
 lemma Timer_preserves_snd [iff]: "Timer : preserves snd"
 apply (rule preservesI)
-apply (unfold Timer_def, constrains)
+apply (unfold Timer_def, safety)
 done
 
 
@@ -49,7 +49,7 @@ apply (erule_tac A'1 = "%i. lift_set i ({0} <*> UNIV)"
 apply auto
 (*Safety property, already reduced to the single Timer case*)
  prefer 2
- apply (simp add: Timer_def, constrains) 
+ apply (simp add: Timer_def, safety) 
 (*Progress property for the array of Timers*)
 apply (rule_tac f = "sub i o fst" in lessThan_induct)
 apply (case_tac "m")
@@ -61,7 +61,7 @@ apply (auto intro: subset_imp_leadsTo
 apply (rename_tac "n")
 apply (rule PLam_leadsTo_Basis)
 apply (auto simp add: lessThan_Suc [symmetric])
-apply (unfold Timer_def mk_total_program_def, constrains) 
+apply (unfold Timer_def mk_total_program_def, safety) 
 apply (rule_tac act = decr in totalize_transientI, auto)
 done
 

@@ -6,26 +6,29 @@
 The Lift-Control Example
 *)
 
-theory Lift = UNITY_Main:
+theory Lift
+imports "../UNITY_Main"
+
+begin
 
 record state =
-  floor :: "int"	    (*current position of the lift*)
-  "open" :: "bool"	    (*whether the door is opened at floor*)
-  stop  :: "bool"	    (*whether the lift is stopped at floor*)
-  req   :: "int set"	    (*for each floor, whether the lift is requested*)
-  up    :: "bool"	    (*current direction of movement*)
-  move  :: "bool"	    (*whether moving takes precedence over opening*)
+  floor :: "int"	    --{*current position of the lift*}
+  "open" :: "bool"	    --{*whether the door is opened at floor*}
+  stop  :: "bool"	    --{*whether the lift is stopped at floor*}
+  req   :: "int set"	    --{*for each floor, whether the lift is requested*}
+  up    :: "bool"	    --{*current direction of movement*}
+  move  :: "bool"	    --{*whether moving takes precedence over opening*}
 
 consts
-  Min :: "int"       (*least and greatest floors*)
-  Max :: "int"       (*least and greatest floors*)
+  Min :: "int"       --{*least and greatest floors*}
+  Max :: "int"       --{*least and greatest floors*}
 
 axioms
   Min_le_Max [iff]: "Min \<le> Max"
   
 constdefs
   
-  (** Abbreviations: the "always" part **)
+  --{*Abbreviations: the "always" part*}
   
   above :: "state set"
     "above == {s. \<exists>i. floor s < i & i \<le> Max & i \<in> req s}"
@@ -45,7 +48,7 @@ constdefs
   ready :: "state set"
     "ready == {s. stop s & ~ open s & move s}"
  
-  (** Further abbreviations **)
+  --{*Further abbreviations*}
 
   moving :: "state set"
     "moving ==  {s. ~ stop s & ~ open s}"
@@ -56,7 +59,7 @@ constdefs
   opened :: "state set"
     "opened ==  {s. stop s  &  open s  &  move s}"
 
-  closed :: "state set"  (*but this is the same as ready!!*)
+  closed :: "state set"  --{*but this is the same as ready!!*}
     "closed ==  {s. stop s  & ~ open s &  move s}"
 
   atFloor :: "int => state set"
@@ -67,7 +70,7 @@ constdefs
 
 
   
-  (** The program **)
+  --{*The program*}
   
   request_act :: "(state*state) set"
     "request_act == {(s,s'). s' = s (|stop:=True, move:=False|)
@@ -108,18 +111,20 @@ constdefs
          {(s,s'). s' = s (|floor := floor s - 1|)
 		       & ~ stop s & ~ up s & floor s \<notin> req s}"
 
-  (*This action is omitted from prior treatments, which therefore are
-    unrealistic: nobody asks the lift to do anything!  But adding this
-    action invalidates many of the existing progress arguments: various
-    "ensures" properties fail.*)
   button_press  :: "(state*state) set"
+      --{*This action is omitted from prior treatments, which therefore are
+	unrealistic: nobody asks the lift to do anything!  But adding this
+	action invalidates many of the existing progress arguments: various
+	"ensures" properties fail. Maybe it should be constrained to only
+        allow button presses in the current direction of travel, like in a
+        real lift.*}
     "button_press ==
          {(s,s'). \<exists>n. s' = s (|req := insert n (req s)|)
 		        & Min \<le> n & n \<le> Max}"
 
 
   Lift :: "state program"
-    (*for the moment, we OMIT button_press*)
+    --{*for the moment, we OMIT @{text button_press}*}
     "Lift == mk_total_program
                 ({s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
@@ -128,7 +133,7 @@ constdefs
 		 UNIV)"
 
 
-  (** Invariants **)
+  --{*Invariants*}
 
   bounded :: "state set"
     "bounded == {s. Min \<le> floor s & floor s \<le> Max}"
@@ -197,37 +202,37 @@ declare bounded_def [simp]
 
 lemma open_stop: "Lift \<in> Always open_stop"
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains)
+apply (unfold Lift_def, safety)
 done
 
 lemma stop_floor: "Lift \<in> Always stop_floor"
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains)
+apply (unfold Lift_def, safety)
 done
 
 (*This one needs open_stop, which was proved above*)
 lemma open_move: "Lift \<in> Always open_move"
 apply (cut_tac open_stop)
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains)
+apply (unfold Lift_def, safety)
 done
 
 lemma moving_up: "Lift \<in> Always moving_up"
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains)
+apply (unfold Lift_def, safety)
 apply (auto dest: order_le_imp_less_or_eq simp add: add1_zle_eq)
 done
 
 lemma moving_down: "Lift \<in> Always moving_down"
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains)
+apply (unfold Lift_def, safety)
 apply (blast dest: order_le_imp_less_or_eq)
 done
 
 lemma bounded: "Lift \<in> Always bounded"
 apply (cut_tac moving_up moving_down)
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains, auto)
+apply (unfold Lift_def, safety, auto)
 apply (drule not_mem_distinct, assumption, arith)+
 done
 
@@ -242,7 +247,7 @@ declare atFloor_def [THEN def_set_simp, simp]
 declare Req_def [THEN def_set_simp, simp]
 
 
-(** The HUG'93 paper mistakenly omits the Req n from these! **)
+text{*The HUG'93 paper mistakenly omits the Req n from these!*}
 
 (** Lift_1 **)
 lemma E_thm01: "Lift \<in> (stopped \<inter> atFloor n) LeadsTo (opened \<inter> atFloor n)"

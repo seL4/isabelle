@@ -87,7 +87,7 @@ declare preserves_def [simp]
 
 
 lemma p2: "Component i \<in> stable {s. C s = (c s) i + k}"
-by (simp add: Component_def, constrains)
+by (simp add: Component_def, safety)
 
 lemma p3:
      "[| OK I Component; i\<in>I |]   

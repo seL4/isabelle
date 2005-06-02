@@ -93,8 +93,8 @@ theorem "FF\<squnion>GG \<in> atLeast 0 leadsTo atLeast (k::int)"
 apply (subgoal_tac "FF\<squnion>GG \<in> (atLeast 0 \<inter> atLeast 0) leadsTo atLeast k")
  apply simp
 apply (rule_tac T = "atLeast 0" in leadsTo_Join)
-  apply (simp add: awp_iff FF_def, constrains)
- apply (simp add: awp_iff GG_def wens_set_FF, constrains)
+  apply (simp add: awp_iff FF_def, safety)
+ apply (simp add: awp_iff GG_def wens_set_FF, safety)
 apply (rule leadsTo_weaken_L [OF FF_leadsTo], simp) 
 done
 

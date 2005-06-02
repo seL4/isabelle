@@ -84,10 +84,10 @@ done
 (* Correctness proofs for Components *)
 (* p2 and p3 proofs *)
 lemma p2: "Component i \<in> stable {s. s C = s (c i) + k}"
-by (simp add: Component_def, constrains)
+by (simp add: Component_def, safety)
 
 lemma p3: "Component i \<in> stable {s. \<forall>v. v\<noteq>c i & v\<noteq>C --> s v = k v}"
-by (simp add: Component_def, constrains)
+by (simp add: Component_def, safety)
 
 
 lemma p2_p3_lemma1: 

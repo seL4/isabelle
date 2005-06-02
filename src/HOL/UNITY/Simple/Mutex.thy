@@ -94,13 +94,13 @@ declare bad_IU_def [THEN def_set_simp, simp]
 
 lemma IU: "Mutex \<in> Always IU"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains) 
+apply (unfold Mutex_def, safety) 
 done
 
 
 lemma IV: "Mutex \<in> Always IV"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains)
+apply (unfold Mutex_def, safety)
 done
 
 (*The safety property: mutual exclusion*)
@@ -113,7 +113,7 @@ done
 (*The bad invariant FAILS in V1*)
 lemma "Mutex \<in> Always bad_IU"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains, auto)
+apply (unfold Mutex_def, safety, auto)
 (*Resulting state: n=1, p=false, m=4, u=false.  
   Execution of V1 (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
@@ -127,7 +127,7 @@ by arith
 (*** Progress for U ***)
 
 lemma U_F0: "Mutex \<in> {s. m s=2} Unless {s. m s=3}"
-by (unfold Unless_def Mutex_def, constrains)
+by (unfold Unless_def Mutex_def, safety)
 
 lemma U_F1: "Mutex \<in> {s. m s=1} LeadsTo {s. p s = v s & m s = 2}"
 by (unfold Mutex_def, ensures_tac U1)
@@ -165,7 +165,7 @@ by (rule Always_LeadsTo_weaken [OF IU U_lemma123], auto)
 
 
 lemma V_F0: "Mutex \<in> {s. n s=2} Unless {s. n s=3}"
-by (unfold Unless_def Mutex_def, constrains)
+by (unfold Unless_def Mutex_def, safety)
 
 lemma V_F1: "Mutex \<in> {s. n s=1} LeadsTo {s. p s = (~ u s) & n s = 2}"
 by (unfold Mutex_def, ensures_tac "V1")
