@@ -1,6 +1,5 @@
 # -*- shell-script -*-
 # $Id$
-# Author: Markus Wenzel, TU Muenchen
 #
 # Isabelle settings -- site defaults.
 # Do *NOT* copy this file into your personal isabelle directory!!!
@@ -60,36 +59,24 @@ fi
 
 
 ###
-### Compilation options for isatool usedir
-### (as on command line)
+### Compilation options (cf. isatool usedir)
 ###
 
 ISABELLE_USEDIR_OPTIONS="-v true"
 
-# for overriding proof objects in HOL image
-HOL_PROOF_OBJECTS=""
+# Specifically for the HOL image
+HOL_USEDIR_OPTIONS=""
 
 
 ###
-### Document preparation
+### Document preparation (cf. isatool latex/document)
 ###
 
-# latex command for isatool latex/document
 ISABELLE_LATEX="latex"
-
-# pdflatex command for isatool latex/document
 ISABELLE_PDFLATEX="pdflatex"
-
-# bibtex command for isatool latex/document
 ISABELLE_BIBTEX="bibtex"
-
-# makeindex command for isatool latex/document
 ISABELLE_MAKEINDEX="makeindex"
-
-# dvips command for isatool latex/document
 ISABELLE_DVIPS="dvips -D 600"
-
-# epstopdf command for isatool latex/document
 ISABELLE_EPSTOPDF="epstopdf"
 
 # Paranoia setting for strange latex installations ...
@@ -97,8 +84,6 @@ ISABELLE_EPSTOPDF="epstopdf"
 
 # If ISABELLE_THUMBPDF is set, isatool tries to
 # generate thumbnails for proof documents
-#
-# probably not generally available ...
 #type -path thumbpdf >/dev/null && ISABELLE_THUMBPDF="thumbpdf"
 
 
@@ -115,7 +100,6 @@ ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 # Location for temporary files (should be on a local file system).
 ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 
-
 # Heap input locations. ML system identifier is included in lookup.
 ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 
@@ -129,14 +113,15 @@ else
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 fi
 
-# Site settings check -- just to make it a little bit harder to copy this file!
+# Site settings check -- just to make it a little bit harder to copy this file verbatim!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
   { echo >&2 "### Isabelle site settings already present!  Maybe copied etc/settings in full?"; }
 
 
 ###
-### default logic, users may want to override this.
+### default logic (users may want to override this in their own settings file)
 ###
+
 ISABELLE_LOGIC=HOL
 
 
@@ -144,25 +129,25 @@ ISABELLE_LOGIC=HOL
 ### Docs
 ###
 
-#Where to look for docs (multiple dirs separated by ':').
+# Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
-#Preferred document format
+# Preferred document format
 ISABELLE_DOC_FORMAT=pdf
 
-#The dvi file viewer
+# The dvi file viewer
 DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
 #DVI_VIEWER="xdvi -geometry 711x1005 -expert -s 7"
 #DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
-#The pdf file viewer
+# The pdf file viewer
 PDF_VIEWER=acroread
 #PDF_VIEWER=xpdf
-#PDF_VIEWER=open  ##best for Mac users: will open in default PDF viewer
+#PDF_VIEWER=open  #best for Mac users: will open in default PDF viewer
 
-#Printer spool command for PS files
+# Printer spool command for PS files
 PRINT_COMMAND=lp
 
 
@@ -236,4 +221,3 @@ XSYMBOL_HOME=$(choosefrom \
 
 # Jerusat 1.3 (SAT Solver)
 #JERUSAT_HOME=/usr/local/bin
-
