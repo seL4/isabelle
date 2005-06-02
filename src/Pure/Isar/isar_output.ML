@@ -37,8 +37,6 @@ struct
 structure T = OuterLex;
 structure P = OuterParse;
 
-
-
 (** global references -- defaults for options **)
 
 val locale = ref "";
@@ -168,7 +166,7 @@ fun eval_antiquote lex state (str, pos) =
           let val (opts, src) = antiq_args lex x in
             options opts (fn () => command src state) ();  (*preview errors!*)
             Library.setmp print_mode (! modes @ Latex.modes @ ! print_mode)
-              (options opts (fn () => command src state)) ()
+              (Output.no_warnings (options opts (fn () => command src state))) ()
           end;
     val ants = Antiquote.antiquotes_of (str, pos);
   in
