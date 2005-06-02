@@ -230,7 +230,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     val final_thy =
       axms_thy
       |> (#1 o PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts))
-      |> Theory.parent_path
+      |> Theory.restore_naming class_thy
       |> (#1 o PureThy.add_thms [Thm.no_attributes (intro_name bclass, intro)])
       |> put_axclass_info class info;
   in (final_thy, {intro = intro, axioms = axioms}) end;
