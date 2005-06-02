@@ -189,13 +189,13 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  =
    (Watcher.callResProvers(childout,
 	    [("spass", thmstr, goalstring (*,spass_home*), 
 	     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
-	     "-DocProof", 
+	     "-DocProof%-TimeLimit=60", 
 	     clasimpfile, axfile, hypsfile, probfile)]))
   else	
    (Watcher.callResProvers(childout,
 	    [("spass", thmstr, goalstring (*,spass_home*), 
 	     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
-	     "-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof", 
+	     "-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof%-TimeLimit=60", 
 	     clasimpfile, axfile, hypsfile, probfile)]));
      
 	(* with paramodulation *)

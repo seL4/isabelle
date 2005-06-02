@@ -175,9 +175,13 @@ fun callResProvers (toWatcherStr,  []) =
 			   else File.mkdir dfg_dir; 
 	  
 	  val dfg_path = File.sysify_path dfg_dir;
-	  val exec_tptp2x = 
+	 (* val exec_tptp2x = 
 	        Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X",  
-	                     ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile])
+	                     ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile]) *)
+        val tptp_home = getenv "TPTP2X_HOME" ^ "/tptp2X"
+       
+        val systemcall = system (tptp_home^" -fdfg -d " ^ dfg_path^" "^( File.sysify_path wholefile))
+        val _ =  warning("systemcall is "^ (string_of_int systemcall))
 	(*val _ = Posix.Process.wait ()*)
 	(*val _ =Unix.reap exec_tptp2x*)
 	  val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
@@ -193,7 +197,7 @@ fun callResProvers (toWatcherStr,  []) =
 	       "*" ^ settings ^ "*" ^ newfile ^ "\n");
  (*sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^"/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/dfg/mini_p1.dfg"^"\n"));*)
 	  TextIO.flushOut toWatcherStr;
-	  Unix.reap exec_tptp2x;
+	  (*Unix.reap exec_tptp2x;*)
 	  if File.exists
 	        (Path.append dfg_dir (Path.basic ("ax_prob"^"_" ^ probID ^ ".dfg")))
 	  then callResProvers (toWatcherStr, args)
