@@ -114,7 +114,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
   document/root.tex eqrule_HOL_data.ML hologic.ML simpdata.ML			\
   thy_syntax.ML
-	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL
+	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
 
 
 ## HOL-Complex-HahnBanach

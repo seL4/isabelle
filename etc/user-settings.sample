@@ -1,8 +1,8 @@
 # -*- shell-script -*-
 # $Id$
 #
-# Isabelle user settings sample -- may be copied to ~/isabelle/etc/settings
+# Isabelle user settings sample -- for use in ~/isabelle/etc/settings
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
-HOL_PROOF_OBJECTS="-p 1"
+HOL_USEDIR_OPTIONS="-p 1"
 ISABELLE_LOGIC=HOL
