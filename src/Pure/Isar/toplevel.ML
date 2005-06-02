@@ -229,7 +229,7 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
 
 fun check_stale state =
   if not (is_stale state) then ()
-  else warning "Stale signature encountered!  Should restart current theory.";
+  else warning "Stale signature encountered!";
 
 end;
 
@@ -466,6 +466,7 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ UnequalLengths = raised "UnequalLengths" []
   | exn_msg _ Empty = raised "Empty" []
   | exn_msg _ Subscript = raised "Subscript" []
+  | exn_msg _ (Fail msg) = raised "Fail" [msg]
   | exn_msg _ exn = General.exnMessage exn
 and fail_msg detailed kind ((name, pos), exn) =
   "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_msg detailed exn;
@@ -494,7 +495,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
       if int orelse not int_only then ()
       else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
-      (if ! Output.timing andalso not no_timing then (warning (command_msg "" tr); timeap) else I)
+      (if ! Output.timing andalso not no_timing then (info (command_msg "" tr); timeap) else I)
         (apply_trans int trans) state;
     val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
   in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
