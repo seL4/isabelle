@@ -136,7 +136,7 @@ datatype theory =
 
 fun make_theory sign const_deps axioms oracles parents ancestors =
   Theory {sign = sign, const_deps = const_deps, axioms = axioms,
-    oracles = oracles,  parents = parents, ancestors = ancestors};
+    oracles = oracles, parents = parents, ancestors = ancestors};
 
 fun rep_theory (Theory args) = args;
 
@@ -240,7 +240,7 @@ val qualified_names        = ext_sign (K Sign.qualified_names) ();
 val no_base_names          = ext_sign (K Sign.no_base_names) ();
 val custom_accesses        = ext_sign Sign.custom_accesses;
 val set_policy             = ext_sign Sign.set_policy;
-val restore_naming         = ext_sign Sign.set_naming o Sign.naming_of o sign_of;
+val restore_naming         = ext_sign Sign.restore_naming o sign_of;
 val add_space              = ext_sign Sign.add_space;
 val hide_space             = ext_sign o Sign.hide_space;
 val hide_space_i           = ext_sign o Sign.hide_space_i;
@@ -400,8 +400,7 @@ fun dest_defn tm =
 (* check_defn *)
 
 fun err_in_defn sg name msg =
-  (error_msg msg;
-    error ("The error(s) above occurred in definition " ^ quote (Sign.full_name sg name)));
+  error (cat_lines [msg, "The error(s) above occurred in definition " ^ quote name]);
 
 fun pretty_const sg (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
 
@@ -418,10 +417,9 @@ fun cycle_msg sg (infinite, namess) =
 	end))))
   end
 
-fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
+fun check_defn sg overloaded ((deps, axms), def as (bname, tm)) =
   let
-    
-    val name = Sign.full_name sg name
+    val name = Sign.full_name sg bname;
       
     fun pretty_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
@@ -510,7 +508,7 @@ fun ext_finals prep_term overloaded raw_terms thy =
 	    val _ =
 		case overloading sign c_decl ty of
 		    NoOverloading => ()
-		  | Useless => err "Sort restrictions too strong"
+		  | Useless => err "Sort constraints too strong"
 		  | Plain => (if overloaded then () else warning "Type is more general than declared")
 	    val finals = Defs.declare finals (c, c_decl) handle _ => finals
 	in
@@ -585,4 +583,3 @@ end;
 
 structure BasicTheory: BASIC_THEORY = Theory;
 open BasicTheory;
-
