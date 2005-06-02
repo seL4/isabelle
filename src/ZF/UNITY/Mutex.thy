@@ -148,13 +148,6 @@ lemma Mutex_in_program [simp,TC]: "Mutex \<in> program"
 by (simp add: Mutex_def)
 
 
-method_setup constrains = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts => 
-            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
-    "for proving safety properties"
-
-
 declare Mutex_def [THEN def_prg_Init, simp]
 ML
 {*
@@ -191,12 +184,12 @@ declare  bad_IU_def [THEN def_set_simp, simp]
 
 lemma IU: "Mutex \<in> Always(IU)"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains, auto) 
+apply (unfold Mutex_def, safety, auto) 
 done
 
 lemma IV: "Mutex \<in> Always(IV)"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains) 
+apply (unfold Mutex_def, safety) 
 done
 
 (*The safety property: mutual exclusion*)
@@ -214,7 +207,7 @@ done
 
 lemma "Mutex \<in> Always(bad_IU)"
 apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, constrains, auto)
+apply (unfold Mutex_def, safety, auto)
 apply (subgoal_tac "#1 $<= #3")
 apply (drule_tac x = "#1" and y = "#3" in zle_trans, auto)
 apply (simp (no_asm) add: not_zless_iff_zle [THEN iff_sym])
@@ -229,7 +222,7 @@ oops
 (*** Progress for U ***)
 
 lemma U_F0: "Mutex \<in> {s \<in> state. s`m=#2} Unless {s \<in> state. s`m=#3}"
-by (unfold Unless_def Mutex_def, constrains)
+by (unfold Unless_def Mutex_def, safety)
 
 lemma U_F1:
      "Mutex \<in> {s \<in> state. s`m=#1} LeadsTo {s \<in> state. s`p = s`v & s`m = #2}"
@@ -281,7 +274,7 @@ by (rule Always_LeadsTo_weaken [OF IU U_lemma123], auto)
 (*** Progress for V ***)
 
 lemma V_F0: "Mutex \<in> {s \<in> state. s`n=#2} Unless {s \<in> state. s`n=#3}"
-by (unfold Unless_def Mutex_def, constrains)
+by (unfold Unless_def Mutex_def, safety)
 
 lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} LeadsTo {s \<in> state. s`p = not(s`u) & s`n = #2}"
 by (unfold Mutex_def, ensures_tac "V1")

@@ -2,19 +2,20 @@
     ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
-
-The basic UNITY theory (revised version, based upon the "co" operator)
-From Misra, "A Logic for Concurrent Programming", 1994
-
-Theory ported from HOL.
 *)
 
 header {*The Basic UNITY Theory*}
 
 theory UNITY = State:
+
+text{*The basic UNITY theory (revised version, based upon the "co" operator)
+From Misra, "A Logic for Concurrent Programming", 1994.
+
+This ZF theory was ported from its HOL equivalent.*}
+
 consts
-  constrains :: "[i, i] => i"  (infixl "co"     60)
-  op_unless  :: "[i, i] => i"  (infixl "unless" 60)
+  "constrains" :: "[i, i] => i"  (infixl "co"     60)
+  op_unless    :: "[i, i] => i"  (infixl "unless" 60)
 
 constdefs
    program  :: i
@@ -86,7 +87,7 @@ defs
   unless_def:    "A unless B == (A - B) co (A Un B)"
 
 
-(** SKIP **)
+text{*SKIP*}
 lemma SKIP_in_program [iff,TC]: "SKIP \<in> program"
 by (force simp add: SKIP_def program_def mk_program_def)
 
@@ -100,7 +101,7 @@ by (force simp add: programify_def)
 lemma programify_in_program [iff,TC]: "programify(F) \<in> program"
 by (force simp add: programify_def) 
 
-(** Collapsing rules: to remove programify from expressions **)
+text{*Collapsing rules: to remove programify from expressions*}
 lemma programify_idem [simp]: "programify(programify(F))=programify(F)"
 by (force simp add: programify_def) 
 
@@ -164,7 +165,7 @@ by (simp add: RawActs_type Acts_def)
 lemma AllowedActs_type: "AllowedActs(F) \<subseteq> Pow(state*state)"
 by (simp add: RawAllowedActs_type AllowedActs_def)
 
-(* Needed in Behaviors *)
+text{*Needed in Behaviors*}
 lemma ActsD: "[| act \<in> Acts(F); <s,s'> \<in> act |] ==> s \<in> state & s' \<in> state"
 by (blast dest: Acts_type [THEN subsetD])
 
@@ -213,7 +214,7 @@ lemma state_times_state_Int_AllowedActs [simp]:
 by (cut_tac F = F in AllowedActs_type, blast)
 
 
-subsubsection{*The Opoerator @{term mk_program}*}
+subsubsection{*The Operator @{term mk_program}*}
 
 lemma mk_program_in_program [iff,TC]:
      "mk_program(init, acts, allowed) \<in> program"
@@ -246,7 +247,7 @@ lemma AllowedActs_eq [simp]:
       cons(id(state), allowed \<inter> Pow(state*state))"
 by (simp add: AllowedActs_def)
 
-(**Init, Acts, and AlowedActs  of SKIP **)
+text{*Init, Acts, and AlowedActs  of SKIP *}
 
 lemma RawInit_SKIP [simp]: "RawInit(SKIP) = state"
 by (simp add: SKIP_def)
@@ -266,7 +267,7 @@ by (force simp add: SKIP_def)
 lemma AllowedActs_SKIP [simp]: "AllowedActs(SKIP) = Pow(state*state)"
 by (force simp add: SKIP_def)
 
-(** Equality of UNITY programs **)
+text{*Equality of UNITY programs*}
 
 lemma raw_surjective_mk_program:
      "F \<in> program ==> mk_program(RawInit(F), RawActs(F), RawAllowedActs(F))=F"
@@ -323,13 +324,13 @@ lemma def_prg_simps:
 by auto
 
 
-(*An action is expanded only if a pair of states is being tested against it*)
+text{*An action is expanded only if a pair of states is being tested against it*}
 lemma def_act_simp:
      "[| act == {<s,s'> \<in> A*B. P(s, s')} |]
       ==> (<s,s'> \<in> act) <-> (<s,s'> \<in> A*B & P(s, s'))"
 by auto
 
-(*A set is expanded only if an element is being tested against it*)
+text{*A set is expanded only if an element is being tested against it*}
 lemma def_set_simp: "A == B ==> (x \<in> A) <-> (x \<in> B)"
 by auto
 
@@ -367,13 +368,13 @@ apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
 
-(*monotonic in 2nd argument*)
+text{*monotonic in 2nd argument*}
 lemma constrains_weaken_R:
     "[| F \<in> A co A'; A'\<subseteq>B' |] ==> F \<in> A co B'"
 apply (unfold constrains_def, blast)
 done
 
-(*anti-monotonic in 1st argument*)
+text{*anti-monotonic in 1st argument*}
 lemma constrains_weaken_L:
     "[| F \<in> A co A'; B\<subseteq>A |] ==> F \<in> B co A'"
 apply (unfold constrains_def st_set_def, blast)
@@ -439,8 +440,8 @@ lemma constrains_imp_subset:
   "[| F \<in> A co A' |] ==> A \<subseteq> A'"
 by (unfold constrains_def st_set_def, force)
 
-(*The reasoning is by subsets since "co" refers to single actions
-  only.  So this rule isn't that useful.*)
+text{*The reasoning is by subsets since "co" refers to single actions
+  only.  So this rule isn't that useful.*}
 
 lemma constrains_trans: "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C"
 by (unfold constrains_def st_set_def, auto, blast)
@@ -583,13 +584,13 @@ subsection{*The Elimination Theorem*}
  Should the premise be !!m instead of \<forall>m ? Would make it harder
  to use in forward proof. **)
 
-(* The general case easier to prove that le special case! *)
+text{*The general case is easier to prove than the special case!*}
 lemma "elimination":
     "[| \<forall>m \<in> M. F \<in> {s \<in> A. x(s) = m} co B(m); F \<in> program  |]
      ==> F \<in> {s \<in> A. x(s) \<in> M} co (\<Union>m \<in> M. B(m))"
 by (auto simp add: constrains_def st_set_def, blast)
 
-(* As above, but for the special case of A=state *)
+text{*As above, but for the special case of A=state*}
 lemma elimination2:
      "[| \<forall>m \<in> M. F \<in> {s \<in> state. x(s) = m} co B(m); F \<in> program  |]
      ==> F:{s \<in> state. x(s) \<in> M} co (\<Union>m \<in> M. B(m))"

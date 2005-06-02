@@ -564,7 +564,7 @@ fun always_tac i =
     rtac AlwaysI i THEN Force_tac i THEN constrains_tac i;
 *}
 
-method_setup constrains = {*
+method_setup safety = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
             gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}

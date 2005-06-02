@@ -115,7 +115,7 @@ lemma client_prog_preserves:
     "client_prog:(\<Inter>x \<in> var-{ask, rel, tok}. preserves(lift(x)))"
 apply (rule Inter_var_DiffI, force)
 apply (rule ballI)
-apply (rule preservesI, constrains, auto)
+apply (rule preservesI, safety, auto)
 done
 
 
@@ -136,7 +136,7 @@ lemma client_prog_Increasing_ask_rel:
 apply (unfold guar_def)
 apply (auto intro!: increasing_imp_Increasing 
             simp add: client_prog_ok_iff increasing_def preserves_imp_prefix)
-apply (constrains, force, force)+
+apply (safety, force, force)+
 done
 
 declare nth_append [simp] append_one_prefix [simp]
@@ -158,7 +158,7 @@ apply (rotate_tac -1)
 apply (auto simp add: client_prog_ok_iff)
 apply (rule invariantI [THEN stable_Join_Always2], force) 
  prefer 2
- apply (fast intro: stable_Int preserves_lift_imp_stable, constrains)
+ apply (fast intro: stable_Int preserves_lift_imp_stable, safety)
 apply (auto dest: ActsD)
 apply (cut_tac NbT_pos)
 apply (rule NbT_pos2 [THEN mod_less_divisor])
@@ -178,7 +178,7 @@ done
 
 lemma client_prog_stable_rel_le_giv: 
     "client_prog \<in> stable({s \<in> state. <s`rel, s`giv> \<in> prefix(nat)})"
-by (constrains, auto)
+by (safety, auto)
 
 lemma client_prog_Join_Stable_rel_le_giv: 
 "[| client_prog \<squnion> G \<in> Incr(lift(giv)); G \<in> preserves(lift(rel)) |]  

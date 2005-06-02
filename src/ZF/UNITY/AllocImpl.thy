@@ -89,7 +89,7 @@ lemma alloc_prog_preserves:
     "alloc_prog \<in> (\<Inter>x \<in> var-{giv, available_tok, NbR}. preserves(lift(x)))"
 apply (rule Inter_var_DiffI, force)
 apply (rule ballI)
-apply (rule preservesI, constrains)
+apply (rule preservesI, safety)
 done
 
 (* As a special case of the rule above *)
@@ -129,7 +129,7 @@ done
 
 (** Safety property: (28) **)
 lemma alloc_prog_Increasing_giv: "alloc_prog \<in> program guarantees Incr(lift(giv))"
-apply (auto intro!: increasing_imp_Increasing simp add: guar_def increasing_def alloc_prog_ok_iff alloc_prog_Allowed, constrains+)
+apply (auto intro!: increasing_imp_Increasing simp add: guar_def increasing_def alloc_prog_ok_iff alloc_prog_Allowed, safety+)
 apply (auto dest: ActsD)
 apply (drule_tac f = "lift (giv) " in preserves_imp_eq)
 apply auto
@@ -139,7 +139,7 @@ lemma giv_Bounded_lamma1:
 "alloc_prog \<in> stable({s\<in>state. s`NbR \<le> length(s`rel)} \<inter>
                      {s\<in>state. s`available_tok #+ tokens(s`giv) =
                                  NbT #+ tokens(take(s`NbR, s`rel))})"
-apply constrains
+apply safety
 apply auto
 apply (simp add: diff_add_0 add_commute diff_add_inverse add_assoc add_diff_inverse)
 apply (simp (no_asm_simp) add: take_succ)
@@ -209,7 +209,7 @@ apply (subgoal_tac "G \<in> preserves (lift (giv))")
  prefer 2 apply (simp add: alloc_prog_ok_iff)
 apply (rule_tac P = "%x y. <x,y> \<in> prefix(tokbag)" and A = "list(nat)"
        in stable_Join_Stable)
-apply constrains
+apply safety
  prefer 2 apply (simp add: lift_def, clarify)
 apply (drule_tac a = k in Increasing_imp_Stable, auto)
 done
@@ -239,7 +239,7 @@ done
 lemma alloc_prog_rel_Stable_NbR_lemma:
     "[| G \<in> program; alloc_prog ok G; k\<in>nat |]
      ==> alloc_prog \<squnion> G \<in> Stable({s\<in>state . k \<le> succ(s ` NbR)})"
-apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, constrains, auto)
+apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, safety, auto)
 apply (blast intro: le_trans leI)
 apply (drule_tac f = "lift (NbR)" and A = nat in preserves_imp_increasing)
 apply (drule_tac [2] g = succ in imp_increasing_comp)
@@ -363,7 +363,7 @@ done
 lemma alloc_prog_giv_Stable_lemma:
 "[| G \<in> program; alloc_prog ok G; k\<in>nat |]
   ==> alloc_prog \<squnion> G \<in> Stable({s\<in>state . k \<le> length(s`giv)})"
-apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, constrains)
+apply (auto intro!: stable_imp_Stable simp add: alloc_prog_ok_iff, safety)
 apply (auto intro: leI)
 apply (drule_tac f = "lift (giv)" and g = length in imp_preserves_comp)
 apply (drule_tac f = "length comp lift (giv)" and A = nat and r = Le in preserves_imp_increasing)
