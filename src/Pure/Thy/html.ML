@@ -57,158 +57,161 @@ fun html_mode f x = setmp print_mode (htmlN :: ! print_mode) f x;
 local
   val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
 
-  val output_sym =
-    fn "\\<spacespace>" => (2.0, "&nbsp;&nbsp;")
-     | "\\<exclamdown>" => (1.0, "&iexcl;")
-     | "\\<cent>" => (1.0, "&cent;")
-     | "\\<pounds>" => (1.0, "&pound;")
-     | "\\<currency>" => (1.0, "&curren;")
-     | "\\<yen>" => (1.0, "&yen;")
-     | "\\<bar>" => (1.0, "&brvbar;")
-     | "\\<section>" => (1.0, "&sect;")
-     | "\\<dieresis>" => (1.0, "&uml;")
-     | "\\<copyright>" => (1.0, "&copy;")
-     | "\\<ordfeminine>" => (1.0, "&ordf;")
-     | "\\<guillemotleft>" => (1.0, "&laquo;")
-     | "\\<not>" => (1.0, "&not;")
-     | "\\<hyphen>" => (1.0, "&shy;")
-     | "\\<registered>" => (1.0, "&reg;")
-     | "\\<inverse>" => (1.0, "&macr;")
-     | "\\<degree>" => (1.0, "&deg;")
-     | "\\<plusminus>" => (1.0, "&plusmn;")
-     | "\\<twosuperior>" => (1.0, "&sup2;")
-     | "\\<threesuperior>" => (1.0, "&sup3;")
-     | "\\<acute>" => (1.0, "&acute;")
-     | "\\<paragraph>" => (1.0, "&para;")
-     | "\\<cdot>" => (1.0, "&middot;")
-     | "\\<cedilla>" => (1.0, "&cedil;")
-     | "\\<onesuperior>" => (1.0, "&sup1;")
-     | "\\<ordmasculine>" => (1.0, "&ordm;")
-     | "\\<guillemotright>" => (1.0, "&raquo;")
-     | "\\<onequarter>" => (1.0, "&frac14;")
-     | "\\<onehalf>" => (1.0, "&frac12;")
-     | "\\<threequarters>" => (1.0, "&frac34;")
-     | "\\<questiondown>" => (1.0, "&iquest;")
-     | "\\<times>" => (1.0, "&times;")
-     | "\\<div>" => (1.0, "&divide;")
-     | "\\<circ>" => (1.0, "o")
-     | "\\<Alpha>" => (1.0, "&Alpha;")
-     | "\\<Beta>" => (1.0, "&Beta;")
-     | "\\<Gamma>" => (1.0, "&Gamma;")
-     | "\\<Delta>" => (1.0, "&Delta;")
-     | "\\<Epsilon>" => (1.0, "&Epsilon;")
-     | "\\<Zeta>" => (1.0, "&Zeta;")
-     | "\\<Eta>" => (1.0, "&Eta;")
-     | "\\<Theta>" => (1.0, "&Theta;")
-     | "\\<Iota>" => (1.0, "&Iota;")
-     | "\\<Kappa>" => (1.0, "&Kappa;")
-     | "\\<Lambda>" => (1.0, "&Lambda;")
-     | "\\<Mu>" => (1.0, "&Mu;")
-     | "\\<Nu>" => (1.0, "&Nu;")
-     | "\\<Xi>" => (1.0, "&Xi;")
-     | "\\<Omicron>" => (1.0, "&Omicron;")
-     | "\\<Pi>" => (1.0, "&Pi;")
-     | "\\<Rho>" => (1.0, "&Rho;")
-     | "\\<Sigma>" => (1.0, "&Sigma;")
-     | "\\<Tau>" => (1.0, "&Tau;")
-     | "\\<Upsilon>" => (1.0, "&Upsilon;")
-     | "\\<Phi>" => (1.0, "&Phi;")
-     | "\\<Chi>" => (1.0, "&Chi;")
-     | "\\<Psi>" => (1.0, "&Psi;")
-     | "\\<Omega>" => (1.0, "&Omega;")
-     | "\\<alpha>" => (1.0, "&alpha;")
-     | "\\<beta>" => (1.0, "&beta;")
-     | "\\<gamma>" => (1.0, "&gamma;")
-     | "\\<delta>" => (1.0, "&delta;")
-     | "\\<epsilon>" => (1.0, "&epsilon;")
-     | "\\<zeta>" => (1.0, "&zeta;")
-     | "\\<eta>" => (1.0, "&eta;")
-     | "\\<theta>" => (1.0, "&thetasym;")
-     | "\\<iota>" => (1.0, "&iota;")
-     | "\\<kappa>" => (1.0, "&kappa;")
-     | "\\<lambda>" => (1.0, "&lambda;")
-     | "\\<mu>" => (1.0, "&mu;")
-     | "\\<nu>" => (1.0, "&nu;")
-     | "\\<xi>" => (1.0, "&xi;")
-     | "\\<omicron>" => (1.0, "&omicron;")
-     | "\\<pi>" => (1.0, "&pi;")
-     | "\\<rho>" => (1.0, "&rho;")
-     | "\\<sigma>" => (1.0, "&sigma;")
-     | "\\<tau>" => (1.0, "&tau;")
-     | "\\<upsilon>" => (1.0, "&upsilon;")
-     | "\\<phi>" => (1.0, "&phi;")
-     | "\\<chi>" => (1.0, "&chi;")
-     | "\\<psi>" => (1.0, "&psi;")
-     | "\\<omega>" => (1.0, "&omega;")
-     | "\\<buller>" => (1.0, "&bull;")
-     | "\\<dots>" => (1.0, "&hellip;")
-     | "\\<Re>" => (1.0, "&real;")
-     | "\\<Im>" => (1.0, "&image;")
-     | "\\<wp>" => (1.0, "&weierp;")
-     | "\\<forall>" => (1.0, "&forall;")
-     | "\\<partial>" => (1.0, "&part;")
-     | "\\<exists>" => (1.0, "&exist;")
-     | "\\<emptyset>" => (1.0, "&empty;")
-     | "\\<nabla>" => (1.0, "&nabla;")
-     | "\\<in>" => (1.0, "&isin;")
-     | "\\<notin>" => (1.0, "&notin;")
-     | "\\<Prod>" => (1.0, "&prod;")
-     | "\\<Sum>" => (1.0, "&sum;")
-     | "\\<star>" => (1.0, "&lowast;")
-     | "\\<propto>" => (1.0, "&prop;")
-     | "\\<infinity>" => (1.0, "&infin;")
-     | "\\<angle>" => (1.0, "&ang;")
-     | "\\<and>" => (1.0, "&and;")
-     | "\\<or>" => (1.0, "&or;")
-     | "\\<inter>" => (1.0, "&cap;")
-     | "\\<union>" => (1.0, "&cup;")
-     | "\\<sim>" => (1.0, "&sim;")
-     | "\\<cong>" => (1.0, "&cong;")
-     | "\\<approx>" => (1.0, "&asymp;")
-     | "\\<noteq>" => (1.0, "&ne;")
-     | "\\<equiv>" => (1.0, "&equiv;")
-     | "\\<le>" => (1.0, "&le;")
-     | "\\<ge>" => (1.0, "&ge;")
-     | "\\<subset>" => (1.0, "&sub;")
-     | "\\<supset>" => (1.0, "&sup;")
-     | "\\<subseteq>" => (1.0, "&sube;")
-     | "\\<supseteq>" => (1.0, "&supe;")
-     | "\\<oplus>" => (1.0, "&oplus;")
-     | "\\<otimes>" => (1.0, "&otimes;")
-     | "\\<bottom>" => (1.0, "&perp;")
-     | "\\<lceil>" => (1.0, "&lceil;")
-     | "\\<rceil>" => (1.0, "&rceil;")
-     | "\\<lfloor>" => (1.0, "&lfloor;")
-     | "\\<rfloor>" => (1.0, "&rfloor;")
-     | "\\<langle>" => (1.0, "&lang;")
-     | "\\<rangle>" => (1.0, "&rang;")
-     | "\\<lozenge>" => (1.0, "&loz;")
-     | "\\<spadesuit>" => (1.0, "&spades;")
-     | "\\<clubsuit>" => (1.0, "&clubs;")
-     | "\\<heartsuit>" => (1.0, "&hearts;")
-     | "\\<diamondsuit>" => (1.0, "&diams;")
-     | "\\<lbrakk>" => (2.0, "[|")
-     | "\\<rbrakk>" => (2.0, "|]")
-     | "\\<Longrightarrow>" => (3.0, "==&gt;")
-     | "\\<Rightarrow>" => (2.0, "=&gt;")
-     | "\\<And>" => (2.0, "!!")
-     | "\\<Colon>" => (2.0, "::")
-     | "\\<lparr>" => (2.0, "(|")
-     | "\\<rparr>" => (2.0, "|)")
-     | "\\<longleftrightarrow>" => (3.0, "&lt;-&gt;")
-     | "\\<longrightarrow>" => (3.0, "--&gt;")
-     | "\\<rightarrow>" => (2.0, "-&gt;")
-     | "\\<^bsub>" => (0.0, "<sub>")
-     | "\\<^esub>" => (0.0, "</sub>")
-     | "\\<^bsup>" => (0.0, "<sup>")
-     | "\\<^esup>" => (0.0, "</sup>")
-     | "\\<^sub>" => (0.0, "\\<^sub>")
-     | "\\<^sup>" => (0.0, "\\<^sup>")
-     | "\\<^isub>" => (0.0, "\\<^isub>")
-     | "\\<^isup>" => (0.0, "\\<^isup>")
-     | s =>
-         if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
-         else (real (size s), implode (map escape (explode s)));
+  val html_syms = Symtab.make
+   [("\\<spacespace>", (2.0, "&nbsp;&nbsp;")),
+    ("\\<exclamdown>", (1.0, "&iexcl;")),
+    ("\\<cent>", (1.0, "&cent;")),
+    ("\\<pounds>", (1.0, "&pound;")),
+    ("\\<currency>", (1.0, "&curren;")),
+    ("\\<yen>", (1.0, "&yen;")),
+    ("\\<bar>", (1.0, "&brvbar;")),
+    ("\\<section>", (1.0, "&sect;")),
+    ("\\<dieresis>", (1.0, "&uml;")),
+    ("\\<copyright>", (1.0, "&copy;")),
+    ("\\<ordfeminine>", (1.0, "&ordf;")),
+    ("\\<guillemotleft>", (1.0, "&laquo;")),
+    ("\\<not>", (1.0, "&not;")),
+    ("\\<hyphen>", (1.0, "&shy;")),
+    ("\\<registered>", (1.0, "&reg;")),
+    ("\\<inverse>", (1.0, "&macr;")),
+    ("\\<degree>", (1.0, "&deg;")),
+    ("\\<plusminus>", (1.0, "&plusmn;")),
+    ("\\<twosuperior>", (1.0, "&sup2;")),
+    ("\\<threesuperior>", (1.0, "&sup3;")),
+    ("\\<acute>", (1.0, "&acute;")),
+    ("\\<paragraph>", (1.0, "&para;")),
+    ("\\<cdot>", (1.0, "&middot;")),
+    ("\\<cedilla>", (1.0, "&cedil;")),
+    ("\\<onesuperior>", (1.0, "&sup1;")),
+    ("\\<ordmasculine>", (1.0, "&ordm;")),
+    ("\\<guillemotright>", (1.0, "&raquo;")),
+    ("\\<onequarter>", (1.0, "&frac14;")),
+    ("\\<onehalf>", (1.0, "&frac12;")),
+    ("\\<threequarters>", (1.0, "&frac34;")),
+    ("\\<questiondown>", (1.0, "&iquest;")),
+    ("\\<times>", (1.0, "&times;")),
+    ("\\<div>", (1.0, "&divide;")),
+    ("\\<circ>", (1.0, "o")),
+    ("\\<Alpha>", (1.0, "&Alpha;")),
+    ("\\<Beta>", (1.0, "&Beta;")),
+    ("\\<Gamma>", (1.0, "&Gamma;")),
+    ("\\<Delta>", (1.0, "&Delta;")),
+    ("\\<Epsilon>", (1.0, "&Epsilon;")),
+    ("\\<Zeta>", (1.0, "&Zeta;")),
+    ("\\<Eta>", (1.0, "&Eta;")),
+    ("\\<Theta>", (1.0, "&Theta;")),
+    ("\\<Iota>", (1.0, "&Iota;")),
+    ("\\<Kappa>", (1.0, "&Kappa;")),
+    ("\\<Lambda>", (1.0, "&Lambda;")),
+    ("\\<Mu>", (1.0, "&Mu;")),
+    ("\\<Nu>", (1.0, "&Nu;")),
+    ("\\<Xi>", (1.0, "&Xi;")),
+    ("\\<Omicron>", (1.0, "&Omicron;")),
+    ("\\<Pi>", (1.0, "&Pi;")),
+    ("\\<Rho>", (1.0, "&Rho;")),
+    ("\\<Sigma>", (1.0, "&Sigma;")),
+    ("\\<Tau>", (1.0, "&Tau;")),
+    ("\\<Upsilon>", (1.0, "&Upsilon;")),
+    ("\\<Phi>", (1.0, "&Phi;")),
+    ("\\<Chi>", (1.0, "&Chi;")),
+    ("\\<Psi>", (1.0, "&Psi;")),
+    ("\\<Omega>", (1.0, "&Omega;")),
+    ("\\<alpha>", (1.0, "&alpha;")),
+    ("\\<beta>", (1.0, "&beta;")),
+    ("\\<gamma>", (1.0, "&gamma;")),
+    ("\\<delta>", (1.0, "&delta;")),
+    ("\\<epsilon>", (1.0, "&epsilon;")),
+    ("\\<zeta>", (1.0, "&zeta;")),
+    ("\\<eta>", (1.0, "&eta;")),
+    ("\\<theta>", (1.0, "&thetasym;")),
+    ("\\<iota>", (1.0, "&iota;")),
+    ("\\<kappa>", (1.0, "&kappa;")),
+    ("\\<lambda>", (1.0, "&lambda;")),
+    ("\\<mu>", (1.0, "&mu;")),
+    ("\\<nu>", (1.0, "&nu;")),
+    ("\\<xi>", (1.0, "&xi;")),
+    ("\\<omicron>", (1.0, "&omicron;")),
+    ("\\<pi>", (1.0, "&pi;")),
+    ("\\<rho>", (1.0, "&rho;")),
+    ("\\<sigma>", (1.0, "&sigma;")),
+    ("\\<tau>", (1.0, "&tau;")),
+    ("\\<upsilon>", (1.0, "&upsilon;")),
+    ("\\<phi>", (1.0, "&phi;")),
+    ("\\<chi>", (1.0, "&chi;")),
+    ("\\<psi>", (1.0, "&psi;")),
+    ("\\<omega>", (1.0, "&omega;")),
+    ("\\<bullet>", (1.0, "&bull;")),
+    ("\\<dots>", (1.0, "&hellip;")),
+    ("\\<Re>", (1.0, "&real;")),
+    ("\\<Im>", (1.0, "&image;")),
+    ("\\<wp>", (1.0, "&weierp;")),
+    ("\\<forall>", (1.0, "&forall;")),
+    ("\\<partial>", (1.0, "&part;")),
+    ("\\<exists>", (1.0, "&exist;")),
+    ("\\<emptyset>", (1.0, "&empty;")),
+    ("\\<nabla>", (1.0, "&nabla;")),
+    ("\\<in>", (1.0, "&isin;")),
+    ("\\<notin>", (1.0, "&notin;")),
+    ("\\<Prod>", (1.0, "&prod;")),
+    ("\\<Sum>", (1.0, "&sum;")),
+    ("\\<star>", (1.0, "&lowast;")),
+    ("\\<propto>", (1.0, "&prop;")),
+    ("\\<infinity>", (1.0, "&infin;")),
+    ("\\<angle>", (1.0, "&ang;")),
+    ("\\<and>", (1.0, "&and;")),
+    ("\\<or>", (1.0, "&or;")),
+    ("\\<inter>", (1.0, "&cap;")),
+    ("\\<union>", (1.0, "&cup;")),
+    ("\\<sim>", (1.0, "&sim;")),
+    ("\\<cong>", (1.0, "&cong;")),
+    ("\\<approx>", (1.0, "&asymp;")),
+    ("\\<noteq>", (1.0, "&ne;")),
+    ("\\<equiv>", (1.0, "&equiv;")),
+    ("\\<le>", (1.0, "&le;")),
+    ("\\<ge>", (1.0, "&ge;")),
+    ("\\<subset>", (1.0, "&sub;")),
+    ("\\<supset>", (1.0, "&sup;")),
+    ("\\<subseteq>", (1.0, "&sube;")),
+    ("\\<supseteq>", (1.0, "&supe;")),
+    ("\\<oplus>", (1.0, "&oplus;")),
+    ("\\<otimes>", (1.0, "&otimes;")),
+    ("\\<bottom>", (1.0, "&perp;")),
+    ("\\<lceil>", (1.0, "&lceil;")),
+    ("\\<rceil>", (1.0, "&rceil;")),
+    ("\\<lfloor>", (1.0, "&lfloor;")),
+    ("\\<rfloor>", (1.0, "&rfloor;")),
+    ("\\<langle>", (1.0, "&lang;")),
+    ("\\<rangle>", (1.0, "&rang;")),
+    ("\\<lozenge>", (1.0, "&loz;")),
+    ("\\<spadesuit>", (1.0, "&spades;")),
+    ("\\<clubsuit>", (1.0, "&clubs;")),
+    ("\\<heartsuit>", (1.0, "&hearts;")),
+    ("\\<diamondsuit>", (1.0, "&diams;")),
+    ("\\<lbrakk>", (2.0, "[|")),
+    ("\\<rbrakk>", (2.0, "|]")),
+    ("\\<Longrightarrow>", (3.0, "==&gt;")),
+    ("\\<Rightarrow>", (2.0, "=&gt;")),
+    ("\\<And>", (2.0, "!!")),
+    ("\\<Colon>", (2.0, "::")),
+    ("\\<lparr>", (2.0, "(|")),
+    ("\\<rparr>", (2.0, "|)),")),
+    ("\\<longleftrightarrow>", (3.0, "&lt;-&gt;")),
+    ("\\<longrightarrow>", (3.0, "--&gt;")),
+    ("\\<rightarrow>", (2.0, "-&gt;")),
+    ("\\<^bsub>", (0.0, "<sub>")),
+    ("\\<^esub>", (0.0, "</sub>")),
+    ("\\<^bsup>", (0.0, "<sup>")),
+    ("\\<^esup>", (0.0, "</sup>")),
+    ("\\<^sub>", (0.0, "\\<^sub>")),
+    ("\\<^sup>", (0.0, "\\<^sup>")),
+    ("\\<^isub>", (0.0, "\\<^isub>")),
+    ("\\<^isup>", (0.0, "\\<^isup>"))];
+
+  fun output_sym s =
+    if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
+    else
+      (case Symtab.lookup (html_syms, s) of SOME x => x
+      | NONE => (real (size s), implode (map escape (explode s))));
 
   fun add_sym (width, (w: real, s)) = (width + w, s);
 
@@ -241,8 +244,8 @@ val _ = Output.add_mode htmlN (output_width, Symbol.default_indent, Symbol.encod
 
 (* token translations *)
 
-fun style stl =
-  apfst (enclose ("<span class=" ^ Library.quote stl ^ ">") "</span>") o output_width;
+fun style s =
+  apfst (enclose ("<span class=" ^ Library.quote s ^ ">") "</span>") o output_width;
 
 val html_trans =
  [("class", style "tclass"),
