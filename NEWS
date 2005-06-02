@@ -425,8 +425,10 @@ New in this Isabelle release
   produce a fully qualified name and external accesses of a fully
   qualified name; NameSpace.extend is superceded by context dependent
   Sign.declare_name.  Several theory and proof context operations
-  modify the naming context; especially note Theory.restore_naming and
-  ProofContext.restore_naming.
+  modify the naming context.  Especially note Theory.restore_naming
+  and ProofContext.restore_naming to get back to a sane state; note
+  that Theory.add_path is no longer sufficient to recover from
+  Theory.absolute_path in particular.
 
 * Pure: cases produced by proof methods specify options, where NONE
   means to remove case bindings -- INCOMPATIBILITY in
