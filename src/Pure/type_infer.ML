@@ -88,13 +88,13 @@ fun deref (T as Link (ref (Param _))) = T
   | deref (Link (ref T)) = deref T
   | deref T = T;
 
-fun foldl_pretyps f (x, PConst (_, T)) = f (x, T)
-  | foldl_pretyps f (x, PFree (_, T)) = f (x, T)
-  | foldl_pretyps f (x, PVar (_, T)) = f (x, T)
-  | foldl_pretyps _ (x, PBound _) = x
-  | foldl_pretyps f (x, PAbs (_, T, t)) = foldl_pretyps f (f (x, T), t)
-  | foldl_pretyps f (x, PAppl (t, u)) = foldl_pretyps f (foldl_pretyps f (x, t), u)
-  | foldl_pretyps f (x, Constraint (t, T)) = f (foldl_pretyps f (x, t), T);
+fun fold_pretyps f (PConst (_, T)) x = f T x
+  | fold_pretyps f (PFree (_, T)) x = f T x
+  | fold_pretyps f (PVar (_, T)) x = f T x
+  | fold_pretyps _ (PBound _) x = x
+  | fold_pretyps f (PAbs (_, T, t)) x = fold_pretyps f t (f T x)
+  | fold_pretyps f (PAppl (t, u)) x = fold_pretyps f u (fold_pretyps f t x)
+  | fold_pretyps f (Constraint (t, T)) x = f T (fold_pretyps f t x);
 
 
 
@@ -110,16 +110,16 @@ fun polymorphicT T = Type ("_polymorphic_", [T]);
 
 fun pretyp_of is_param (params, typ) =
   let
-    fun add_parms (ps, TVar (xi as (x, _), S)) =
-          if is_param xi andalso is_none (assoc (ps, xi))
+    fun add_parms (TVar (xi as (x, _), S)) ps =
+          if is_param xi andalso is_none (assoc_string_int (ps, xi))
           then (xi, mk_param S) :: ps else ps
-      | add_parms (ps, TFree _) = ps
-      | add_parms (ps, Type (_, Ts)) = Library.foldl add_parms (ps, Ts);
+      | add_parms (TFree _) ps = ps
+      | add_parms (Type (_, Ts)) ps = fold add_parms Ts ps;
 
-    val params' = add_parms (params, typ);
+    val params' = add_parms typ params;
 
     fun pre_of (TVar (v as (xi, _))) =
-          (case assoc (params', xi) of
+          (case assoc_string_int (params', xi) of
             NONE => PTVar v
           | SOME p => p)
       | pre_of (TFree ("'_dummy_", S)) = mk_param S
@@ -137,7 +137,7 @@ fun pretyps_of is_param = foldl_map (pretyp_of is_param);
 fun preterm_of const_type is_param ((vparams, params), tm) =
   let
     fun add_vparm (ps, xi) =
-      if is_none (assoc (ps, xi)) then
+      if is_none (assoc_string_int (ps, xi)) then
         (xi, mk_param []) :: ps
       else ps;
 
@@ -149,7 +149,7 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
       | add_vparms (ps, _) = ps;
 
     val vparams' = add_vparms (vparams, tm);
-    fun var_param xi = valOf (assoc (vparams', xi));
+    fun var_param xi = the (assoc_string_int (vparams', xi));
 
 
     val preT_of = pretyp_of is_param;
@@ -192,23 +192,23 @@ fun preterms_of const_type is_param = foldl_map (preterm_of const_type is_param)
 
 (* add_parms *)
 
-fun add_parmsT (rs, PType (_, Ts)) = Library.foldl add_parmsT (rs, Ts)
-  | add_parmsT (rs, Link (r as ref (Param _))) = r ins rs
-  | add_parmsT (rs, Link (ref T)) = add_parmsT (rs, T)
-  | add_parmsT (rs, _) = rs;
+fun add_parmsT (PType (_, Ts)) rs = fold add_parmsT Ts rs
+  | add_parmsT (Link (r as ref (Param _))) rs = r ins rs
+  | add_parmsT (Link (ref T)) rs = add_parmsT T rs
+  | add_parmsT _ rs = rs;
 
-val add_parms = foldl_pretyps add_parmsT;
+val add_parms = fold_pretyps add_parmsT;
 
 
 (* add_names *)
 
-fun add_namesT (xs, PType (_, Ts)) = Library.foldl add_namesT (xs, Ts)
-  | add_namesT (xs, PTFree (x, _)) = x ins xs
-  | add_namesT (xs, PTVar ((x, _), _)) = x ins xs
-  | add_namesT (xs, Link (ref T)) = add_namesT (xs, T)
-  | add_namesT (xs, Param _) = xs;
+fun add_namesT (PType (_, Ts)) xs = fold add_namesT Ts xs
+  | add_namesT (PTFree (x, _)) xs = x ins_string xs
+  | add_namesT (PTVar ((x, _), _)) xs = x ins_string xs
+  | add_namesT (Link (ref T)) xs = add_namesT T xs
+  | add_namesT (Param _) xs = xs;
 
-val add_names = foldl_pretyps add_namesT;
+val add_names = fold_pretyps add_namesT;
 
 
 (* simple_typ/term_of *)
@@ -237,11 +237,11 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
     fun elim (r as ref (Param S), x) = r := mk_var (x, S)
       | elim _ = ();
 
-    val used' = Library.foldl add_names (Library.foldl add_namesT (used, Ts), ts);
-    val parms = rev (Library.foldl add_parms (Library.foldl add_parmsT ([], Ts), ts));
+    val used' = fold add_names ts (fold add_namesT Ts used);
+    val parms = rev (fold add_parms ts (fold add_parmsT Ts []));
     val names = Term.invent_names used' (prfx ^ "'a") (length parms);
   in
-    seq2 elim (parms, names);
+    ListPair.app elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)
   end;
 
@@ -269,7 +269,7 @@ fun unify pp classes arities =
           else r := mk_param (Sorts.inter_sort classes (S', S))
       | meet (Link (ref T), S) = meet (T, S)
       | meet (PType (a, Ts), S) =
-          seq2 meet (Ts, Sorts.mg_domain (classes, arities) a S
+          ListPair.app meet (Ts, Sorts.mg_domain (classes, arities) a S
             handle Sorts.DOMAIN ac => raise NO_UNIFIER (no_domain ac))
       | meet (PTFree (x, S'), S) =
           if Sorts.sort_le classes (S', S) then ()
@@ -304,7 +304,7 @@ fun unify pp classes arities =
       | unif (PType (a, Ts), PType (b, Us)) =
           if a <> b then
             raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b)
-          else seq2 unif (Ts, Us)
+          else ListPair.app unif (Ts, Us)
       | unif (T, U) = if T = U then () else raise NO_UNIFIER "";
 
   in unif end;
@@ -457,7 +457,7 @@ fun get_sort tsig def_sort map_sort raw_env =
           ^ commas_quote (map (Syntax.string_of_vname' o fst) dups)));
 
     fun get xi =
-      (case (assoc (env, xi), def_sort xi) of
+      (case (assoc_string_int (env, xi), def_sort xi) of
         (NONE, NONE) => Type.defaultS tsig
       | (NONE, SOME S) => S
       | (SOME S, NONE) => S
@@ -472,8 +472,8 @@ fun get_sort tsig def_sort map_sort raw_env =
 
 fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
-    fun get_type xi = getOpt (def_type xi, dummyT);
-    fun is_free x = isSome (def_type (x, ~1));
+    fun get_type xi = if_none (def_type xi) dummyT;
+    fun is_free x = is_some (def_type (x, ~1));
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
@@ -509,8 +509,8 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
 
   tsig: type signature
   const_type: name mapping and signature lookup
-  def_type: partial map from indexnames to types (constrains Frees, Vars)
-  def_sort: partial map from indexnames to sorts (constrains TFrees, TVars)
+  def_type: partial map from indexnames to types (constrains Frees and Vars)
+  def_sort: partial map from indexnames to sorts (constrains TFrees and TVars)
   used: list of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars*)
 
@@ -519,7 +519,7 @@ fun infer_types pp tsig const_type def_type def_sort
   let
     val {classes, arities, ...} = Type.rep_tsig tsig;
     val pat_Ts' = map (Type.cert_typ tsig) pat_Ts;
-    val is_const = isSome o const_type;
+    val is_const = is_some o const_type;
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
     val (ts, Ts, unifier) = basic_infer_types pp const_type

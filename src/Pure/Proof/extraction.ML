@@ -123,14 +123,10 @@ fun condrew sign rules procs =
 
 val chtype = change_type o SOME;
 
-fun add_prefix a b = NameSpace.pack (a :: NameSpace.unpack b);
+fun extr_name s vs = NameSpace.append "extr" (space_implode "_" (s :: vs));
+fun corr_name s vs = extr_name s vs ^ "_correctness";
 
-fun corr_name s vs =
-  add_prefix "extr" (space_implode "_" (s :: vs)) ^ "_correctness";
-
-fun extr_name s vs = add_prefix "extr" (space_implode "_" (s :: vs));
-
-fun msg d s = priority (implode (replicate d " ") ^ s);
+fun msg d s = priority (Symbol.spaces d ^ s);
 
 fun vars_of t = rev (foldl_aterms
   (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
@@ -279,7 +275,7 @@ val add_typeof_eqns_i = gen_add_typeof_eqns (K I);
 val add_typeof_eqns = gen_add_typeof_eqns read_condeq;
 
 fun thaw (T as TFree (a, S)) =
-      if ":" mem explode a then TVar (unpack_ixn a, S) else T
+      if exists_string (equal ":") a then TVar (unpack_ixn a, S) else T
   | thaw (Type (a, Ts)) = Type (a, map thaw Ts)
   | thaw T = T;
 

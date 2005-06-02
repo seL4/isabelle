@@ -37,10 +37,10 @@ val aT = TFree ("'a", []);
 
 (** constants for theorems and axioms **)
 
-fun add_prefix a b = NameSpace.pack (a :: NameSpace.unpack b);
-
-fun add_proof_atom_consts names sg = Sign.add_consts_i
-  (map (fn name => (name, proofT, NoSyn)) names) (Sign.add_path "//" sg);
+fun add_proof_atom_consts names sg =
+  sg
+  |> Sign.add_path "//"
+  |> Sign.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 
@@ -184,12 +184,12 @@ val mk_tyapp = Library.foldl (fn (prf, T) => Const ("Appt",
   [proofT, itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
 fun term_of _ (PThm ((name, _), _, _, NONE)) =
-      Const (add_prefix "thm" name, proofT)
+      Const (NameSpace.append "thm" name, proofT)
   | term_of _ (PThm ((name, _), _, _, SOME Ts)) =
-      mk_tyapp (Const (add_prefix "thm" name, proofT), Ts)
-  | term_of _ (PAxm (name, _, NONE)) = Const (add_prefix "axm" name, proofT)
+      mk_tyapp (Const (NameSpace.append "thm" name, proofT), Ts)
+  | term_of _ (PAxm (name, _, NONE)) = Const (NameSpace.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
-      mk_tyapp (Const (add_prefix "axm" name, proofT), Ts)
+      mk_tyapp (Const (NameSpace.append "axm" name, proofT), Ts)
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) = 
       let val T = getOpt (opT,dummyT)
@@ -223,7 +223,7 @@ fun cterm_of_proof thy prf =
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
-        (map (add_prefix "axm") axm_names @ map (add_prefix "thm") thm_names)
+        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
   in
     (cterm_of sg (term_of_proof prf'),
      proof_of_term thy tab true o Thm.term_of)
@@ -237,7 +237,7 @@ fun read_term thy =
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
-        (map (add_prefix "axm") axm_names @ map (add_prefix "thm") thm_names)
+        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
   in
     (fn T => fn s => Thm.term_of (read_cterm sg (s, T)))
   end;
@@ -255,7 +255,7 @@ fun pretty_proof sg prf =
     val sg' = sg |>
       add_proof_syntax |>
       add_proof_atom_consts
-        (map (add_prefix "thm") thm_names @ map (add_prefix "axm") axm_names)
+        (map (NameSpace.append "thm") thm_names @ map (NameSpace.append "axm") axm_names)
   in
     Sign.pretty_term sg' (term_of_proof prf)
   end;

@@ -64,9 +64,8 @@ sig
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> unit Toplevel.isar
-  val scan: string -> OuterLex.token list  
-  val read: OuterLex.token list -> 
-		(string * OuterLex.token list * Toplevel.transition) list
+  val scan: string -> OuterLex.token list
+  val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
 end;
 
 structure OuterSyntax : OUTER_SYNTAX  =
@@ -268,19 +267,23 @@ fun isar term no_pos =
   |> toplevel_source term false true get_parser;
 
 
-(* scan text,  read tokens with trace (for Proof General) *)
+(* scan text *)
 
 fun scan str =
- Source.of_string str
- |> Symbol.source false
- |> T.source true get_lexicons Position.none
- |> Source.exhaust
+  Source.of_string str
+  |> Symbol.source false
+  |> T.source true get_lexicons Position.none
+  |> Source.exhaust;
+
+
+(* read tokens with trace *)
 
 fun read toks =
   Source.of_list toks
   |> toplevel_source false true true get_parser
   |> Source.exhaust
   |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
+
 
 
 (** read theory **)
