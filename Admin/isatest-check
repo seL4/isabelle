@@ -13,8 +13,6 @@
 # such file exists 
 shopt -s nullglob
 
-ADMIN="berghofe@in.tum.de kleing@in.tum.de"
-
 # mail program
 MAIL=$HOME/bin/pmail
 
@@ -48,22 +46,29 @@ function fail()
 
 ## main
 
-# check if tests are still running, wait for them to finish for max 10h
+# check if tests are still running, wait for them to finish for max 8h
 i=0
-while [ -n "$(ls $RUNNING)" -a $i -lt 10 ]; do 
+while [ -n "$(ls $RUNNING)" -a $i -lt 8 ]; do 
     sleep 3600
     let "i = i+1"
 done
 
 # still running -> give up
 if [ -n "$(ls $RUNNING)" ]; then
-    echo "giving up waiting for test to finish at $(date)" > $TMP
+    echo "Giving up waiting for test to finish at $(date)." > $TMP
+    echo "Attaching all running and error logs." >> $TMP
     echo >> $TMP
+
+    if [ -e $ERRORLOG ]; then
+        cat $ERRORLOG >> $TMP
+    fi
+
     echo "Have a nice day," >> $TMP
     echo "  isatest" >> $TMP
 
-    for R in $ADMIN; do
-        $MAIL "isabelle test taking to long" $R $TMP
+    for R in $MAILTO; do
+        LOGS=$ERRORDIR/isatest*.log
+        $MAIL "isabelle test taking to long" $R $TMP $LOGS
     done
     
     exit 1
