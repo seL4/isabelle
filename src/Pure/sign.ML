@@ -158,7 +158,7 @@ sig
   val no_base_names: sg -> sg
   val custom_accesses: (string list -> string list list) -> sg -> sg
   val set_policy: (string -> bstring -> string) * (string list -> string list list) -> sg -> sg
-  val set_naming: NameSpace.naming -> sg -> sg
+  val restore_naming: sg -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val hide_space: bool -> string * string list -> sg -> sg
   val hide_space_i: bool -> string * string list -> sg -> sg
@@ -1118,7 +1118,7 @@ val qualified_names      = extend_sign true (change_naming (K NameSpace.qualifie
 val no_base_names        = extend_sign true (change_naming (K NameSpace.no_base_names)) "#" ();
 val custom_accesses      = extend_sign true (change_naming NameSpace.custom_accesses) "#";
 val set_policy           = extend_sign true (change_naming NameSpace.set_policy) "#";
-val set_naming           = extend_sign true (change_naming K) "#";
+val restore_naming       = extend_sign true (change_naming (K o naming_of)) "#";
 val add_space            = extend_sign true ext_add_space "#";
 val hide_space           = curry (extend_sign true ext_hide_space "#");
 val hide_space_i         = curry (extend_sign true ext_hide_space_i "#");
