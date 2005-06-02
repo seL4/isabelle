@@ -185,16 +185,16 @@ fun err_dup_oras names =
 
 fun ext_theory thy ext_sg new_axms new_oras =
   let
-    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy;
-    val draft = Sign.is_draft sign;
+    val Theory {sign, const_deps, axioms, oracles, parents, ancestors} = thy
+    val draft = Sign.is_draft sign
     val axioms' =
       Symtab.extend (if draft then axioms else Symtab.empty, new_axms)
-        handle Symtab.DUPS names => err_dup_axms names;
+        handle Symtab.DUPS names => err_dup_axms names
     val oracles' =
       Symtab.extend (oracles, new_oras)
-        handle Symtab.DUPS names => err_dup_oras names;
+        handle Symtab.DUPS names => err_dup_oras names
     val (parents', ancestors') =
-      if draft then (parents, ancestors) else ([thy], thy :: ancestors);
+      if draft then (parents, ancestors) else ([thy], thy :: ancestors)
   in
     make_theory (ext_sg sign) const_deps axioms' oracles' parents' ancestors'
   end;
@@ -321,33 +321,6 @@ fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
 
 (** add constant definitions **)
 
-(* clash_types, clash_consts *)
-
-(*check if types have common instance (ignoring sorts)
-
-fun clash_types ty1 ty2 =
-  let
-    val ty1' = Type.varifyT ty1;
-    val ty2' = incr_tvar (maxidx_of_typ ty1' + 1) (Type.varifyT ty2);
-  in Type.raw_unify (ty1', ty2') end;
-
-fun clash_consts (c1, ty1) (c2, ty2) =
-  c1 = c2 andalso clash_types ty1 ty2;
-*)
-
-
-(* clash_defns 
-
-fun clash_defn c_ty (name, tm) =
-  let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals (Logic.strip_imp_concl tm)))) in
-    if clash_consts c_ty (c, ty') then SOME (name, ty') else NONE
-  end handle TERM _ => NONE;
-
-fun clash_defns c_ty axms =
-  distinct (List.mapPartial (clash_defn c_ty) axms);
-*)
-
-
 (* overloading *)
 
 datatype overloading = NoOverloading | Useless | Plain;
@@ -358,7 +331,6 @@ fun overloading sg declT defT =
     else if Sign.typ_instance sg (Type.strip_sorts declT, Type.strip_sorts T) then Useless
     else Plain
   end;
-
 
 (* dest_defn *)
 
