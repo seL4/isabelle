@@ -11,26 +11,27 @@ sig
   val std_output: string -> unit
   val std_error: string -> unit
   val immediate_output: string -> unit
-  val writeln_default: string -> unit      
-  val writeln_fn: (string -> unit) ref  
-  val priority_fn: (string -> unit) ref 
-  val tracing_fn: (string -> unit) ref  
-  val warning_fn: (string -> unit) ref  
-  val error_fn: (string -> unit) ref    
-  val panic_fn: (string -> unit) ref    
-  val info_fn:  (string -> unit) ref    
-  val debug_fn: (string -> unit) ref    
-  val writeln: string -> unit		(* default output (in messages window) *)
-  val priority: string -> unit		(* high-priority (maybe modal/pop-up; must be displayed) *)
-  val tracing: string -> unit		(* tracing message (possibly in tracing window) *)
-  val warning: string -> unit		(* display warning of non-fatal error condition *)
-  val error_msg: string -> unit		(* display fatal error (possibly modal msg) *)
-  val error: string -> 'a		(* display message as above, raise exn *)	
-  val sys_error: string -> 'a		(* internal fatal error condition; raise exn *)
-  val panic: string -> unit		(* unrecoverable fatal error; exits system! *)
-  val info: string -> unit		(* incidental information message (e.g. timing) *)
-  val debug: string -> unit		(* internal debug messages, maybe hidden/disabled *)
-  val show_debug_msgs: bool ref	
+  val writeln_default: string -> unit
+  val writeln_fn: (string -> unit) ref
+  val priority_fn: (string -> unit) ref
+  val tracing_fn: (string -> unit) ref
+  val warning_fn: (string -> unit) ref
+  val error_fn: (string -> unit) ref
+  val panic_fn: (string -> unit) ref
+  val info_fn: (string -> unit) ref
+  val debug_fn: (string -> unit) ref
+  val writeln: string -> unit           (*default output (in messages window)*)
+  val priority: string -> unit          (*high-priority (maybe modal/pop-up; must be displayed)*)
+  val tracing: string -> unit           (*tracing message (possibly in tracing window)*)
+  val warning: string -> unit           (*display warning of non-fatal situation*)
+  val error_msg: string -> unit         (*display fatal error (possibly modal msg)*)
+  val error: string -> 'a               (*display message as above, raise exn*)
+  val sys_error: string -> 'a           (*internal fatal error condition; raise exn*)
+  val panic: string -> unit             (*unrecoverable fatal error; exits system!*)
+  val info: string -> unit              (*incidental information message (e.g. timing)*)
+  val debug: string -> unit             (*internal debug messages*)
+  val show_debug_msgs: bool ref
+  val no_warnings: ('a -> 'b) -> 'a -> 'b
   val assert: bool -> string -> unit
   val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
@@ -130,11 +131,14 @@ fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
 fun info s = ! info_fn (output s);
 
+fun no_warnings f = setmp warning_fn (K ()) f;
+
 val show_debug_msgs = ref false;
-fun debug s = if !show_debug_msgs then ! debug_fn (output s) else ()
+fun debug s = if ! show_debug_msgs then ! debug_fn (output s) else ()
 
 fun error_msg s = ! error_fn (output s);
 fun panic_msg s = ! panic_fn (output s);
+
 
 (* add_mode *)
 
