@@ -1,7 +1,7 @@
 (*  Title:      Pure/library.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:     Markus Wenzel, TU Munich
+    Author:     Markus Wenzel, TU Muenchen
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 rational numbers, strings, lists as sets, association lists, generic
@@ -132,7 +132,6 @@ sig
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
   val string_of_indexname: string * int -> string
-    (* CB: note alternative Syntax.string_of_vname has nicer syntax *)
   val read_radixint: int * string list -> int * string list
   val read_int: string list -> int * string list
   val oct_char: string -> string
@@ -151,8 +150,9 @@ sig
 
   (*strings*)
   val nth_elem_string: int * string -> string
-  val foldl_string: ('a * string -> 'a) -> 'a * string -> 'a
+  val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val exists_string: (string -> bool) -> string -> bool
+  val forall_string: (string -> bool) -> string -> bool
   val enclose: string -> string -> string -> string
   val unenclose: string -> string
   val quote: string -> string
@@ -736,25 +736,27 @@ fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 
 (** strings **)
 
-(*functions tuned for strings, avoiding explode*)
+(* functions tuned for strings, avoiding explode *)
 
 fun nth_elem_string (i, str) =
   (case try String.substring (str, i, 1) of
     SOME s => s
   | NONE => raise Subscript);
 
-fun foldl_string f (x0, str) =
+fun fold_string f str x0 =
   let
     val n = size str;
-    fun fold (x, i) =
-      if i < n then fold (f (x, String.substring (str, i, 1)), i + 1) else x;
-  in fold (x0, 0) end;
+    fun iter (x, i) =
+      if i < n then iter (f (String.substring (str, i, 1)) x, i + 1) else x;
+  in iter (x0, 0) end;
 
 fun exists_string pred str =
   let
     val n = size str;
     fun ex i = i < n andalso (pred (String.substring (str, i, 1)) orelse ex (i + 1));
   in ex 0 end;
+
+fun forall_string pred = not o exists_string (not o pred);
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
@@ -787,7 +789,6 @@ val split_lines = space_explode "\n";
 fun prefix_lines "" txt = txt
   | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
 
-(*untabify*)
 fun untabify chs =
   let
     val tab_width = 8;
@@ -801,25 +802,17 @@ fun untabify chs =
     else flat (#2 (foldl_map untab (0, chs)))
   end;
 
-(*append suffix*)
-fun suffix sfx s = s ^ sfx;
+fun suffix sffx s = s ^ sffx;
 
-(*remove suffix*)
-fun unsuffix sfx s =
-  let
-    val cs = explode s;
-    val prfx_len = size s - size sfx;
-  in
-    if prfx_len >= 0 andalso implode (drop (prfx_len, cs)) = sfx then
-      implode (take (prfx_len, cs))
+fun unsuffix sffx s =
+  let val m = size sffx; val n = size s - m in
+    if n >= 0 andalso String.substring (s, n, m) = sffx then String.substring (s, 0, n)
     else raise Fail "unsuffix"
   end;
 
-(*remove prefix*)
 fun unprefix prfx s =
-  let val (prfx', sfx) = splitAt (size prfx, explode s)
-  in
-    if implode prfx' = prfx then implode sfx
+  let val m = size prfx; val n = size s - m in
+    if String.isPrefix prfx s then String.substring (s, m, n)
     else raise Fail "unprefix"
   end;
 
