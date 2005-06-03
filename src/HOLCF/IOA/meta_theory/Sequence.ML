@@ -806,7 +806,7 @@ Goal "(x>>xs) << Filter P$y  \
 \   ==> y = ((Takewhile (%a. ~ P a)$y) @@ (x >> TL$(Dropwhile (%a.~P a)$y))) \
 \      & Finite (Takewhile (%a. ~ P a)$y)  & P x";
 by (rtac (divide_Seq_lemma RS mp) 1);
-by (dres_inst_tac [("fo","HD"),("x","x>>xs")]  monofun_cfun_arg 1);
+by (dres_inst_tac [("f","HD"),("x","x>>xs")]  monofun_cfun_arg 1);
 by (Asm_full_simp_tac 1); 
 qed"divide_Seq";
 
