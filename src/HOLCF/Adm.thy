@@ -79,9 +79,9 @@ apply (frule_tac f = "u" in cont2mono [THEN ch2ch_monofun])
 apply assumption
 apply (frule_tac f = "v" in cont2mono [THEN ch2ch_monofun])
 apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN spec, THEN mp, THEN ssubst])
+apply (erule cont2contlub [THEN contlubE, THEN ssubst])
 apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN spec, THEN mp, THEN ssubst])
+apply (erule cont2contlub [THEN contlubE, THEN ssubst])
 apply assumption
 apply (blast intro: lub_mono)
 done
@@ -113,7 +113,7 @@ lemmas adm_all2 = allI [THEN adm_all, standard]
 
 lemma adm_subst: "[|cont t; adm P|] ==> adm(%x. P (t x))"
 apply (rule admI)
-apply (simplesubst cont2contlub [THEN contlubE, THEN spec, THEN mp])
+apply (simplesubst cont2contlub [THEN contlubE])
 apply assumption
 apply assumption
 apply (erule admD)
@@ -133,7 +133,7 @@ apply (erule spec)
 apply (rule chain_UU_I [THEN spec])
 apply (erule cont2mono [THEN ch2ch_monofun])
 apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN spec, THEN mp, THEN subst])
+apply (erule cont2contlub [THEN contlubE, THEN subst])
 apply assumption
 apply assumption
 done
