@@ -125,6 +125,46 @@ prefer 2 apply (assumption)
 apply assumption
 done
 
+lemma diag_lub:
+  fixes Y :: "nat \<Rightarrow> nat \<Rightarrow> 'a::cpo"
+  assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
+  assumes 2: "\<And>i. chain (\<lambda>j. Y i j)"
+  shows "(\<Squnion>i. \<Squnion>j. Y i j) = (\<Squnion>i. Y i i)"
+proof (rule antisym_less)
+  have 3: "chain (\<lambda>i. Y i i)"
+    apply (rule chainI)
+    apply (rule trans_less)
+    apply (rule chainE [OF 1])
+    apply (rule chainE [OF 2])
+    done
+  have 4: "chain (\<lambda>i. \<Squnion>j. Y i j)"
+    apply (rule chainI)
+    apply (rule lub_mono [OF 2 2, rule_format])
+    apply (rule chainE [OF 1])
+    done
+  show "(\<Squnion>i. \<Squnion>j. Y i j) \<sqsubseteq> (\<Squnion>i. Y i i)"
+    apply (rule is_lub_thelub [OF 4])
+    apply (rule ub_rangeI)
+    apply (rule lub_mono3 [OF 2 3, rule_format])
+    apply (rule exI)
+    apply (rule trans_less)
+    apply (rule chain_mono3 [OF 1 le_maxI1])
+    apply (rule chain_mono3 [OF 2 le_maxI2])
+    done
+  show "(\<Squnion>i. Y i i) \<sqsubseteq> (\<Squnion>i. \<Squnion>j. Y i j)"
+    apply (rule lub_mono [OF 3 4, rule_format])
+    apply (rule is_ub_thelub [OF 2])
+    done
+qed
+
+lemma ex_lub:
+  fixes Y :: "nat \<Rightarrow> nat \<Rightarrow> 'a::cpo"
+  assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
+  assumes 2: "\<And>i. chain (\<lambda>j. Y i j)"
+  shows "(\<Squnion>i. \<Squnion>j. Y i j) = (\<Squnion>j. \<Squnion>i. Y i j)"
+by (simp add: diag_lub 1 2)
+
+
 subsection {* Pointed cpos *}
 
 text {* The class pcpo of pointed cpos *}
@@ -226,7 +266,6 @@ lemma flat_imp_chfin:
 apply (unfold max_in_chain_def)
 apply clarify
 apply (case_tac "ALL i. Y (i) =UU")
-apply (rule_tac x = "0" in exI)
 apply simp
 apply simp
 apply (erule exE)
