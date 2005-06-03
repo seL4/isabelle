@@ -2363,7 +2363,7 @@ struct
 					  Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF) 
 					       (xs ~~ ys))
 				  | union (_, _) =
-					raise REFUTE ("Lfp_lfp_interpreter", "union: interpretation for set is not a node")
+					raise REFUTE ("Gfp_gfp_interpreter", "union: interpretation for set is not a node")
 				(* interpretation -> interpretaion *)
 				fun gfp (Node resultsets) =
 					foldl (fn ((set, resultset), acc) =>
