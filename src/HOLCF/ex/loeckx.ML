@@ -55,10 +55,10 @@ by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac refl 1);
-by (rtac cont_lubcfun 1);
+by (rtac cont_lub_cfun 1);
 by (rtac chainI 1);
 by (strip_tac 1);
-by (rtac less_cfun2 1);
+by (rtac less_cfun_ext 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
@@ -88,9 +88,9 @@ val it = "chain ?F ==> cont (%x. lub (range (%j. ?F j$x)))" : thm
 
 Goal "cont Ifix";
 by (stac fix_lemma2 1);
-by (rtac cont_lubcfun 1);
+by (rtac cont_lub_cfun 1);
 by (rtac chainI 1);
-by (rtac less_cfun2 1);
+by (rtac less_cfun_ext 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);

@@ -28,7 +28,7 @@ defs
 consts
  
   i_rt :: "nat => 'a stream => 'a stream" (* chops the first i elements *)
-  i_th :: "nat => 'a stream => 'a"        (* the i-th element ä*)
+  i_th :: "nat => 'a stream => 'a"        (* the i-th element *)
 
   sconc         :: "'a stream => 'a stream => 'a stream" (infixr "ooo" 65) 
   constr_sconc  :: "'a stream => 'a stream => 'a stream" (* constructive *)
@@ -135,7 +135,7 @@ lemma surjectiv_scons: "(ft$s)&&(rt$s)=s"
 by (rule stream.casedist [of s], auto)
 
 lemma monofun_rt_mult: "x << s ==> iterate i rt x << iterate i rt s"
-by (insert monofun_iterate2 [of i "rt"], simp add: monofun, auto)
+by (insert monofun_iterate2 [of i "rt"], simp add: monofun_def, auto)
 
 
 
@@ -955,7 +955,7 @@ by (simp add: contlub_Rep_CFun2)
 
 lemma contlub_scons_lemma: "chain S ==> (LUB i. a && S i) = a && (LUB i. S i)"
 apply (insert contlub_scons [of a])
-by (simp only: contlub)
+by (simp only: contlub_def)
 
 lemma finite_lub_sconc: "chain Y ==> (stream_finite x) ==> 
                         (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
@@ -978,7 +978,7 @@ lemma contlub_sconc: "contlub (%y. x ooo y)";
 by (rule contlubI, insert contlub_sconc_lemma [of _ x], simp);
 
 lemma monofun_sconc: "monofun (%y. x ooo y)"
-by (simp add: monofun sconc_mono)
+by (simp add: monofun_def sconc_mono)
 
 lemma cont_sconc: "cont (%y. x ooo y)"
 apply (rule  monocontlub2cont)
