@@ -68,7 +68,7 @@ lemma discr_chain_f_range0:
 by (fast dest: discr_chain0 elim: arg_cong)
 
 lemma cont_discr [iff]: "cont(%x::('a::type)discr. f x)"
-apply (unfold cont is_lub_def is_ub_def)
+apply (unfold cont_def is_lub_def is_ub_def)
 apply (simp add: discr_chain_f_range0)
 done
 
