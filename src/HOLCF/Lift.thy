@@ -247,7 +247,7 @@ lemma cont_flift1_arg_and_not_arg: "!!f. [| !! a. cont (%y. (f y) a); cont g|] =
     cont (%y. lift_case UU (f y) (g y))"
   -- {* @{text flift1} is continuous in a variable that occurs either
     in the @{text Def} branch or in the argument. *}
-  apply (rule_tac tt = g in cont2cont_app)
+  apply (rule_tac t=g in cont2cont_app)
     apply (rule cont_flift1_not_arg)
     apply auto
   apply (rule cont_flift1_arg)
