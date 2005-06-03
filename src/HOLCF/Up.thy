@@ -157,10 +157,10 @@ done
 subsection {* Monotonicity of @{term Iup} and @{term Ifup} *}
 
 lemma monofun_Iup: "monofun(Iup)"
-by (simp add: monofun)
+by (simp add: monofun_def)
 
 lemma monofun_Ifup1: "monofun(Ifup)"
-apply (rule monofunI [rule_format])
+apply (rule monofunI)
 apply (rule less_fun [THEN iffD2, rule_format])
 apply (rule_tac p = "xa" in upE)
 apply simp
@@ -169,7 +169,7 @@ apply (erule monofun_cfun_fun)
 done
 
 lemma monofun_Ifup2: "monofun(Ifup(f))"
-apply (rule monofunI [rule_format])
+apply (rule monofunI)
 apply (rule_tac p = "x" in upE)
 apply simp
 apply simp
@@ -376,7 +376,7 @@ subsection {* Continuity of @{term Iup} and @{term Ifup} *}
 text {* continuity for @{term Iup} *}
 
 lemma cont_Iup [iff]: "cont(Iup)"
-apply (rule contI [rule_format])
+apply (rule contI)
 apply (rule is_lub_Iup)
 apply (erule thelubE [OF _ refl])
 done
@@ -386,7 +386,7 @@ lemmas contlub_Iup = cont_Iup [THEN cont2contlub]
 text {* continuity for @{term Ifup} *}
 
 lemma contlub_Ifup1: "contlub(Ifup)"
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (rule trans)
 apply (rule_tac [2] thelub_fun [symmetric])
 apply (erule_tac [2] monofun_Ifup1 [THEN ch2ch_monofun])
@@ -399,7 +399,7 @@ apply (erule contlub_cfun_fun)
 done
 
 lemma contlub_Ifup2: "contlub(Ifup(f))"
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (case_tac "EX i x. Y i = Iup x")
 apply (erule exE)
 apply (subst thelub_up1c)
