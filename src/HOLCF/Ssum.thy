@@ -51,14 +51,14 @@ lemmas cont_Rep_Ssum =
 lemmas cont_Abs_Ssum = 
   typedef_cont_Abs [OF type_definition_Ssum less_ssum_def adm_Ssum]
 
-lemmas strict_Rep_Ssum =
-  typedef_strict_Rep [OF type_definition_Ssum less_ssum_def UU_Ssum]
+lemmas Rep_Ssum_strict =
+  typedef_Rep_strict [OF type_definition_Ssum less_ssum_def UU_Ssum]
 
-lemmas strict_Abs_Ssum =
-  typedef_strict_Abs [OF type_definition_Ssum less_ssum_def UU_Ssum]
+lemmas Abs_Ssum_strict =
+  typedef_Abs_strict [OF type_definition_Ssum less_ssum_def UU_Ssum]
 
 lemma UU_Abs_Ssum: "\<bottom> = Abs_Ssum <\<bottom>, \<bottom>>"
-by (simp add: strict_Abs_Ssum inst_cprod_pcpo2 [symmetric])
+by (simp add: Abs_Ssum_strict inst_cprod_pcpo2 [symmetric])
 
 
 subsection {* Definitions of constructors *}
@@ -84,10 +84,10 @@ by (unfold sinl_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
 lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <\<bottom>, b>"
 by (unfold sinr_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
 
-lemma strict_sinl [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
+lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
 by (simp add: sinl_Abs_Ssum UU_Abs_Ssum)
 
-lemma strict_sinr [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
+lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
 by (simp add: sinr_Abs_Ssum UU_Abs_Ssum)
 
 lemma noteq_sinlsinr: "sinl\<cdot>a = sinr\<cdot>b \<Longrightarrow> a = \<bottom> \<and> b = \<bottom>"
@@ -95,10 +95,10 @@ apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum)
 apply (simp add: Abs_Ssum_inject Ssum_def)
 done
 
-lemma inject_sinl: "sinl\<cdot>x = sinl\<cdot>y \<Longrightarrow> x = y"
+lemma sinl_inject: "sinl\<cdot>x = sinl\<cdot>y \<Longrightarrow> x = y"
 by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
 
-lemma inject_sinr: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
+lemma sinr_inject: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
 by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
 
 lemma sinl_eq: "(sinl\<cdot>x = sinl\<cdot>y) = (x = y)"
@@ -107,15 +107,15 @@ by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
 lemma sinr_eq: "(sinr\<cdot>x = sinr\<cdot>y) = (x = y)"
 by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
 
-lemma defined_sinl [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
+lemma sinl_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
 apply (erule contrapos_nn)
-apply (rule inject_sinl)
+apply (rule sinl_inject)
 apply auto
 done
 
-lemma defined_sinr [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
+lemma sinr_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
 apply (erule contrapos_nn)
-apply (rule inject_sinr)
+apply (rule sinr_inject)
 apply auto
 done
 
@@ -138,7 +138,7 @@ by (cut_tac z=p in Exh_Ssum1, auto)
 lemma ssumE2:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (rule_tac p=p in ssumE)
-apply (simp only: strict_sinl [symmetric])
+apply (simp only: sinl_strict [symmetric])
 apply simp
 apply simp
 done
@@ -206,7 +206,7 @@ constdefs
 text {* rewrites for @{term Iwhen} *}
 
 lemma Iwhen1 [simp]: "Iwhen f g \<bottom> = \<bottom>"
-by (simp add: Iwhen_def strict_Rep_Ssum)
+by (simp add: Iwhen_def Rep_Ssum_strict)
 
 lemma Iwhen2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> Iwhen f g (sinl\<cdot>x) = f\<cdot>x"
 by (simp add: Iwhen_def Rep_Ssum_sinl)
@@ -215,10 +215,10 @@ lemma Iwhen3 [simp]: "y \<noteq> \<bottom> \<Longrightarrow> Iwhen f g (sinr\<cd
 by (simp add: Iwhen_def Rep_Ssum_sinr)
 
 lemma Iwhen4: "Iwhen f g (sinl\<cdot>x) = strictify\<cdot>f\<cdot>x"
-by (case_tac "x = \<bottom>", simp_all)
+by (simp add: strictify_conv_if)
 
 lemma Iwhen5: "Iwhen f g (sinr\<cdot>y) = strictify\<cdot>g\<cdot>y"
-by (case_tac "y = \<bottom>" , simp_all)
+by (simp add: strictify_conv_if)
 
 subsection {* Continuity of @{term Iwhen} *}
 
@@ -231,7 +231,7 @@ lemma cont_Iwhen2: "cont (\<lambda>g. Iwhen f g s)"
 by (rule_tac p=s in ssumE, simp_all)
 
 lemma cont_Iwhen3: "cont (\<lambda>s. Iwhen f g s)"
-apply (rule contI [rule_format])
+apply (rule contI)
 apply (drule ssum_chain_lemma, safe)
 apply (simp add: contlub_cfun_arg [symmetric])
 apply (simp add: Iwhen4)

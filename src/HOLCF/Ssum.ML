@@ -12,13 +12,13 @@ val sscase_def = thm "sscase_def";
 val cont_Iwhen1 = thm "cont_Iwhen1";
 val cont_Iwhen2 = thm "cont_Iwhen2";
 val cont_Iwhen3 = thm "cont_Iwhen3";
-val strict_sinl = thm "strict_sinl";
-val strict_sinr = thm "strict_sinr";
+val sinl_strict = thm "sinl_strict";
+val sinr_strict = thm "sinr_strict";
 val noteq_sinlsinr = thm "noteq_sinlsinr";
-val inject_sinl = thm "inject_sinl";
-val inject_sinr = thm "inject_sinr";
-val defined_sinl = thm "defined_sinl";
-val defined_sinr = thm "defined_sinr";
+val sinl_inject = thm "sinl_inject";
+val sinr_inject = thm "sinr_inject";
+val sinl_defined = thm "sinl_defined";
+val sinr_defined = thm "sinr_defined";
 val Exh_Ssum1 = thm "Exh_Ssum1";
 val ssumE = thm "ssumE";
 val ssumE2 = thm "ssumE2";
@@ -30,5 +30,5 @@ val less_ssum4b = thm "less_ssum4b";
 val less_ssum4c = thm "less_ssum4c";
 val less_ssum4d = thm "less_ssum4d";
 val sscase4 = thm "sscase4";
-val Ssum_rews = [strict_sinl, strict_sinr, defined_sinl, defined_sinr,
-                sscase1, sscase2, sscase3]
+val Ssum_rews = [sinl_strict, sinr_strict, sinl_defined, sinr_defined,
+                sscase1, sscase2, sscase3];
