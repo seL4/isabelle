@@ -6,7 +6,8 @@
 header {* Domain package *}
 
 theory Domain
-imports Ssum Sprod One Up
+imports Ssum Sprod One Up Fixrec
+(*
 files
   ("domain/library.ML")
   ("domain/syntax.ML")
@@ -14,6 +15,7 @@ files
   ("domain/theorems.ML")
   ("domain/extender.ML")
   ("domain/interface.ML")
+*)
 begin
 
 defaultsort pcpo
