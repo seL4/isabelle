@@ -16,22 +16,20 @@ defaultsort pcpo
 subsection {* Definitions *}
 
 consts
-
-iterate	:: "nat=>('a->'a)=>'a=>'a"
-Ifix	:: "('a->'a)=>'a"
-"fix"	:: "('a->'a)->'a"
-admw		:: "('a=>bool)=>bool"
+  iterate :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+  Ifix    :: "('a \<rightarrow> 'a) \<Rightarrow> 'a"
+  "fix"   :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
+  admw    :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
 
 primrec
   iterate_0:   "iterate 0 F x = x"
-  iterate_Suc: "iterate (Suc n) F x  = F$(iterate n F x)"
+  iterate_Suc: "iterate (Suc n) F x  = F\<cdot>(iterate n F x)"
 
 defs
+  Ifix_def:      "Ifix \<equiv> \<lambda>F. \<Squnion>i. iterate i F \<bottom>"
+  fix_def:       "fix \<equiv> \<Lambda> F. Ifix F"
 
-Ifix_def:      "Ifix F == lub(range(%i. iterate i F UU))"
-fix_def:       "fix == (LAM f. Ifix f)"
-
-admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
+  admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
 
 subsection {* Binder syntax for @{term fix} *}
@@ -53,18 +51,18 @@ subsection {* Properties of @{term iterate} and @{term fix} *}
 
 text {* derive inductive properties of iterate from primitive recursion *}
 
-lemma iterate_Suc2: "iterate (Suc n) F x = iterate n F (F$x)"
-by (induct_tac "n", auto)
+lemma iterate_Suc2: "iterate (Suc n) F x = iterate n F (F\<cdot>x)"
+by (induct_tac n, auto)
 
 text {*
   The sequence of function iterations is a chain.
   This property is essential since monotonicity of iterate makes no sense.
 *}
 
-lemma chain_iterate2: "x << F$x ==> chain (%i. iterate i F x)"
-by (rule chainI, induct_tac "i", auto elim: monofun_cfun_arg)
+lemma chain_iterate2: "x \<sqsubseteq> F\<cdot>x \<Longrightarrow> chain (\<lambda>i. iterate i F x)"
+by (rule chainI, induct_tac i, auto elim: monofun_cfun_arg)
 
-lemma chain_iterate: "chain (%i. iterate i F UU)"
+lemma chain_iterate: "chain (\<lambda>i. iterate i F \<bottom>)"
 by (rule chain_iterate2 [OF minimal])
 
 text {*
@@ -72,7 +70,7 @@ text {*
   omega cpo's
 *}
 
-lemma Ifix_eq: "Ifix F = F$(Ifix F)"
+lemma Ifix_eq: "Ifix F = F\<cdot>(Ifix F)"
 apply (unfold Ifix_def)
 apply (subst lub_range_shift [of _ 1, symmetric])
 apply (rule chain_iterate)
@@ -81,91 +79,57 @@ apply (rule chain_iterate)
 apply simp
 done
 
-lemma Ifix_least: "F$x=x ==> Ifix(F) << x"
+lemma Ifix_least: "F\<cdot>x = x \<Longrightarrow> Ifix F \<sqsubseteq> x"
 apply (unfold Ifix_def)
 apply (rule is_lub_thelub)
 apply (rule chain_iterate)
 apply (rule ub_rangeI)
-apply (induct_tac "i")
-apply (simp (no_asm_simp))
-apply (simp (no_asm_simp))
-apply (erule_tac t = "x" in subst)
-apply (erule monofun_cfun_arg)
-done
-
-text {* monotonicity and continuity of @{term iterate} *}
-
-lemma cont_iterate: "cont(iterate(i))"
 apply (induct_tac i)
 apply simp
 apply simp
-apply (rule cont2cont_CF1L_rev)
-apply (rule allI)
-apply (rule cont2cont_Rep_CFun)
-apply (rule cont_id)
-apply (erule cont2cont_CF1L)
+apply (erule subst)
+apply (erule monofun_cfun_arg)
 done
 
-lemma monofun_iterate: "monofun(iterate(i))"
-by (rule cont_iterate [THEN cont2mono])
+text {* continuity of @{term iterate} *}
 
-lemma contlub_iterate: "contlub(iterate(i))"
-by (rule cont_iterate [THEN cont2contlub])
+lemma cont_iterate1: "cont (\<lambda>F. iterate n F x)"
+by (induct_tac n, simp_all)
 
-text {* a lemma about continuity of @{term iterate} in its third argument *}
+lemma cont_iterate2: "cont (\<lambda>x. iterate n F x)"
+by (induct_tac n, simp_all)
 
-lemma cont_iterate2: "cont (iterate n F)"
-by (induct_tac "n", simp_all)
+lemma cont_iterate: "cont (iterate n)"
+by (rule cont_iterate1 [THEN cont2cont_CF1L_rev2])
 
-lemma monofun_iterate2: "monofun(iterate n F)"
-by (rule cont_iterate2 [THEN cont2mono])
+lemmas monofun_iterate2 = cont_iterate2 [THEN cont2mono, standard]
+lemmas contlub_iterate2 = cont_iterate2 [THEN cont2contlub, standard]
 
-lemma contlub_iterate2: "contlub(iterate n F)"
-by (rule cont_iterate2 [THEN cont2contlub])
+text {* continuity of @{term Ifix} *}
 
-text {* monotonicity and continuity of @{term Ifix} *}
-
-text {* better access to definitions *}
-
-lemma Ifix_def2: "Ifix=(%x. lub(range(%i. iterate i x UU)))"
-apply (rule ext)
+lemma cont_Ifix: "cont Ifix"
 apply (unfold Ifix_def)
-apply (rule refl)
-done
-
-lemma cont_Ifix: "cont(Ifix)"
-apply (subst Ifix_def2)
-apply (subst cont_iterate [THEN cont2cont_CF1L, THEN beta_cfun, symmetric])
-apply (rule cont_lubcfun)
-apply (rule chainI)
-apply (rule less_cfun2)
-apply (simp add: cont_iterate [THEN cont2cont_CF1L] del: iterate_Suc)
-apply (rule chainE)
+apply (rule cont2cont_lub)
+apply (rule ch2ch_fun_rev)
 apply (rule chain_iterate)
+apply (rule cont_iterate1)
 done
-
-lemma monofun_Ifix: "monofun(Ifix)"
-by (rule cont_Ifix [THEN cont2mono])
-
-lemma contlub_Ifix: "contlub(Ifix)"
-by (rule cont_Ifix [THEN cont2contlub])
 
 text {* propagate properties of @{term Ifix} to its continuous counterpart *}
 
-lemma fix_eq: "fix$F = F$(fix$F)"
+lemma fix_eq: "fix\<cdot>F = F\<cdot>(fix\<cdot>F)"
 apply (unfold fix_def)
 apply (simp add: cont_Ifix)
 apply (rule Ifix_eq)
 done
 
-lemma fix_least: "F$x = x ==> fix$F << x"
+lemma fix_least: "F\<cdot>x = x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
 apply (unfold fix_def)
 apply (simp add: cont_Ifix)
 apply (erule Ifix_least)
 done
 
-lemma fix_eqI: 
-"[| F$x = x; !z. F$z = z --> x << z |] ==> x = fix$F"
+lemma fix_eqI: "\<lbrakk>F\<cdot>x = x; \<forall>z. F\<cdot>z = z \<longrightarrow> x \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x = fix\<cdot>F"
 apply (rule antisym_less)
 apply (erule allE)
 apply (erule mp)
@@ -173,75 +137,33 @@ apply (rule fix_eq [symmetric])
 apply (erule fix_least)
 done
 
-lemma fix_eq2: "f == fix$F ==> f = F$f"
+lemma fix_eq2: "f \<equiv> fix\<cdot>F \<Longrightarrow> f = F\<cdot>f"
 by (simp add: fix_eq [symmetric])
 
-lemma fix_eq3: "f == fix$F ==> f$x = F$f$x"
+lemma fix_eq3: "f \<equiv> fix\<cdot>F \<Longrightarrow> f\<cdot>x = F\<cdot>f\<cdot>x"
 by (erule fix_eq2 [THEN cfun_fun_cong])
 
-(* fun fix_tac3 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq3) i)) *)
-
-lemma fix_eq4: "f = fix$F ==> f = F$f"
+lemma fix_eq4: "f = fix\<cdot>F \<Longrightarrow> f = F\<cdot>f"
 apply (erule ssubst)
 apply (rule fix_eq)
 done
 
-lemma fix_eq5: "f = fix$F ==> f$x = F$f$x"
-apply (rule trans)
-apply (erule fix_eq4 [THEN cfun_fun_cong])
-apply (rule refl)
-done
+lemma fix_eq5: "f = fix\<cdot>F \<Longrightarrow> f\<cdot>x = F\<cdot>f\<cdot>x"
+by (erule fix_eq4 [THEN cfun_fun_cong])
 
-(* fun fix_tac5 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq5) i)) *)
-
-(* proves the unfolding theorem for function equations f = fix$... *)
-(*
-fun fix_prover thy fixeq s = prove_goal thy s (fn prems => [
-        (rtac trans 1),
-        (rtac (fixeq RS fix_eq4) 1),
-        (rtac trans 1),
-        (rtac beta_cfun 1),
-        (Simp_tac 1)
-        ])
-*)
-(* proves the unfolding theorem for function definitions f == fix$... *)
-(*
-fun fix_prover2 thy fixdef s = prove_goal thy s (fn prems => [
-        (rtac trans 1),
-        (rtac (fix_eq2) 1),
-        (rtac fixdef 1),
-        (rtac beta_cfun 1),
-        (Simp_tac 1)
-        ])
-*)
-(* proves an application case for a function from its unfolding thm *)
-(*
-fun case_prover thy unfold s = prove_goal thy s (fn prems => [
-	(cut_facts_tac prems 1),
-	(rtac trans 1),
-	(stac unfold 1),
-	Auto_tac
-	])
-*)
 text {* direct connection between @{term fix} and iteration without @{term Ifix} *}
 
-lemma fix_def2: "fix$F = lub(range(%i. iterate i F UU))"
+lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i F \<bottom>)"
 apply (unfold fix_def)
-apply (fold Ifix_def)
-apply (simp (no_asm_simp) add: cont_Ifix)
+apply (simp add: cont_Ifix)
+apply (simp add: Ifix_def)
 done
 
 subsection {* Admissibility and fixed point induction *}
 
-lemma admw_def2: "admw(P) = (!F.(!n. P(iterate n F UU)) --> 
-                         P (lub(range(%i. iterate i F UU))))"
-apply (unfold admw_def)
-apply (rule refl)
-done
-
 text {* an admissible formula is also weak admissible *}
 
-lemma adm_impl_admw: "adm(P)==>admw(P)"
+lemma adm_impl_admw: "adm P \<Longrightarrow> admw P"
 apply (unfold admw_def)
 apply (intro strip)
 apply (erule admD)
@@ -251,7 +173,7 @@ done
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
-lemma adm_chfindom: "adm (%(u::'a::cpo->'b::chfin). P(u$s))"
+lemma adm_chfindom: "adm (\<lambda>(u::'a::cpo \<rightarrow> 'b::chfin). P(u\<cdot>s))"
 apply (unfold adm_def)
 apply (intro strip)
 apply (drule chfin_Rep_CFunR)
@@ -263,8 +185,7 @@ done
 
 text {* fixed point induction *}
 
-lemma fix_ind:
-     "[| adm(P); P(UU); !!x. P(x) ==> P(F$x)|] ==> P(fix$F)"
+lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
 apply (subst fix_def2)
 apply (erule admD)
 apply (rule chain_iterate)
@@ -274,8 +195,8 @@ apply simp
 apply simp
 done
 
-lemma def_fix_ind: "[| f == fix$F; adm(P);  
-        P(UU); !!x. P(x) ==> P(F$x)|] ==> P f"
+lemma def_fix_ind:
+  "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
 apply simp
 apply (erule fix_ind)
 apply assumption
@@ -284,20 +205,11 @@ done
 
 text {* computational induction for weak admissible formulae *}
 
-lemma wfix_ind: "[| admw(P); !n. P(iterate n F UU)|] ==> P(fix$F)"
-apply (subst fix_def2)
-apply (rule admw_def2 [THEN iffD1, THEN spec, THEN mp])
-apply assumption
-apply (rule allI)
-apply (erule spec)
-done
+lemma wfix_ind: "\<lbrakk>admw P; \<forall>n. P (iterate n F UU)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
+by (simp add: fix_def2 admw_def)
 
-lemma def_wfix_ind: "[| f == fix$F; admw(P);  
-        !n. P(iterate n F UU) |] ==> P f"
-apply simp
-apply (erule wfix_ind)
-apply assumption
-done
+lemma def_wfix_ind:
+  "\<lbrakk>f \<equiv> fix\<cdot>F; admw P; \<forall>n. P (iterate n F \<bottom>)\<rbrakk> \<Longrightarrow> P f"
+by (simp, rule wfix_ind)
 
 end
-
