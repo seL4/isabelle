@@ -98,7 +98,7 @@ lemma ex_sprod_defined_iff:
   apply (rule_tac p=y in sprodE)
    apply simp
   apply fast
- apply (force intro!: defined_spair)
+ apply (force intro!: spair_defined)
 done
 
 lemma ex_sprod_up_defined_iff:
@@ -110,7 +110,7 @@ lemma ex_sprod_up_defined_iff:
   apply (rule_tac p=x in upE1)
    apply simp
   apply fast
- apply (force intro!: defined_spair)
+ apply (force intro!: spair_defined)
 done
 
 lemma ex_ssum_defined_iff:
@@ -125,8 +125,8 @@ lemma ex_ssum_defined_iff:
    apply (rule disjI1, fast)
   apply (rule disjI2, fast)
  apply (erule disjE)
-  apply (force intro: defined_sinl)
- apply (force intro: defined_sinr)
+  apply (force intro: sinl_defined)
+ apply (force intro: sinr_defined)
 done
 
 lemma exh_start: "p = \<bottom> \<or> (\<exists>x. p = x \<and> x \<noteq> \<bottom>)"
