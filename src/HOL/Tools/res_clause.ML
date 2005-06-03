@@ -61,7 +61,7 @@ val arclause_prefix = "arcls_"
 val const_prefix = "const_";
 val tconst_prefix = "tconst_"; 
 
-val class_prefix = "clas_"; 
+val class_prefix = "class_"; 
 
 
 
@@ -358,36 +358,35 @@ fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts) = literals_of_term(P,li
 
 fun literals_of_thm thm = literals_of_term (prop_of thm, ([],[]));
     
- 
+(*Make literals for sorted type variables*) 
 fun sorts_on_typs (_, []) = []
-  | sorts_on_typs ((FOLTVar(indx)), [s]) = [LTVar((make_type_class s) ^ "(" ^ (make_schematic_type_var(string_of_indexname indx)) ^ ")")]
-  | sorts_on_typs ((FOLTVar(indx)), (s::ss))=  LTVar((make_type_class s) ^ "(" ^ (make_schematic_type_var(string_of_indexname indx)) ^ ")") :: (sorts_on_typs ((FOLTVar(indx)), ss))
-  | sorts_on_typs ((FOLTFree(x)), [s]) = [LTFree((make_type_class s) ^ "(" ^ (make_fixed_type_var(x)) ^ ")")]
-  | sorts_on_typs ((FOLTFree(x)), (s::ss)) = LTFree((make_type_class s) ^ "(" ^ (make_fixed_type_var(x)) ^ ")") :: (sorts_on_typs ((FOLTFree(x)), ss));
+  | sorts_on_typs (v, "HOL.type" :: s) =
+      sorts_on_typs (v,s)   (*Ignore sort "type"*)
+  | sorts_on_typs ((FOLTVar(indx)), (s::ss)) =
+      LTVar((make_type_class s) ^ 
+        "(" ^ (make_schematic_type_var(string_of_indexname indx)) ^ ")") :: 
+      (sorts_on_typs ((FOLTVar(indx)), ss))
+  | sorts_on_typs ((FOLTFree(x)), (s::ss)) =
+      LTFree((make_type_class s) ^ "(" ^ (make_fixed_type_var(x)) ^ ")") :: 
+      (sorts_on_typs ((FOLTFree(x)), ss));
 
-
+(*Given a list of sorted type variables, return two separate lists.
+  The first is for TVars, the second for TFrees.*)
 fun add_typs_aux [] = ([],[])
   | add_typs_aux ((FOLTVar(indx),s)::tss) = 
-    let val vs = sorts_on_typs (FOLTVar(indx),s)
-        val (vss,fss) = add_typs_aux tss
-    in
-        (ResLib.no_rep_app vs vss,fss)
-    end
+      let val vs = sorts_on_typs (FOLTVar(indx), s)
+	  val (vss,fss) = add_typs_aux tss
+      in
+	  (ResLib.no_rep_app vs vss, fss)
+      end
   | add_typs_aux ((FOLTFree(x),s)::tss) =
-    let val fs = sorts_on_typs (FOLTFree(x),s)
-        val (vss,fss) = add_typs_aux tss
-    in
-        (vss,ResLib.no_rep_app fs fss)
-    end;
+      let val fs = sorts_on_typs (FOLTFree(x), s)
+	  val (vss,fss) = add_typs_aux tss
+      in
+	  (vss, ResLib.no_rep_app fs fss)
+      end;
 
-
-fun add_typs (Clause cls) = 
-    let val ts = #types_sorts cls
-    in
-	add_typs_aux ts
-    end;    
-
-
+fun add_typs (Clause cls) = add_typs_aux (#types_sorts cls)
 
 
 (** make axiom clauses, hypothesis clauses and conjecture clauses. **)
