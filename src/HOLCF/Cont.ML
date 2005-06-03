@@ -1,9 +1,9 @@
 
 (* legacy ML bindings *)
 
-val monofun = thm "monofun";
-val contlub = thm "contlub";
-val cont = thm "cont";
+val monofun_def = thm "monofun_def";
+val contlub_def = thm "contlub_def";
+val cont_def = thm "cont_def";
 val contlubI = thm "contlubI";
 val contlubE = thm "contlubE";
 val contI = thm "contI";
@@ -18,16 +18,6 @@ val cont2mono = thm "cont2mono";
 val cont2contlub = thm "cont2contlub";
 val monofun_finch2finch = thm "monofun_finch2finch";
 val cont_finch2finch = thm "cont_finch2finch";
-val ch2ch_MF2L = thm "ch2ch_MF2L";
-val ch2ch_MF2R = thm "ch2ch_MF2R";
-val ch2ch_MF2LR = thm "ch2ch_MF2LR";
-val ch2ch_lubMF2R = thm "ch2ch_lubMF2R";
-val ch2ch_lubMF2L = thm "ch2ch_lubMF2L";
-val lub_MF2_mono = thm "lub_MF2_mono";
-val ex_lubMF2 = thm "ex_lubMF2";
-val diag_lubMF2_1 = thm "diag_lubMF2_1";
-val diag_lubMF2_2 = thm "diag_lubMF2_2";
-val contlub_CF2 = thm "contlub_CF2";
 val monofun_fun_fun = thm "monofun_fun_fun";
 val monofun_fun_arg = thm "monofun_fun_arg";
 val mono2mono_MF1L = thm "mono2mono_MF1L";
@@ -42,7 +32,6 @@ val cont2cont_app2 = thm "cont2cont_app2";
 val cont_id = thm "cont_id";
 val cont_const = thm "cont_const";
 val cont2cont_app3 = thm "cont2cont_app3";
-val CfunI = thm "CfunI";
 val flatdom2monofun = thm "flatdom2monofun";
 val chfindom_monofun2cont = thm "chfindom_monofun2cont";
 val flatdom_strict2cont = thm "flatdom_strict2cont";

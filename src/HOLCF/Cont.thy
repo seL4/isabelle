@@ -8,7 +8,7 @@ Results about continuity and monotonicity.
 header {* Continuity and monotonicity *}
 
 theory Cont
-imports FunCpo
+imports Ffun
 begin
 
 text {*
@@ -25,12 +25,12 @@ consts
 
 defs 
 
-monofun:         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
+monofun_def:         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
 
-contlub:         "contlub(f) == ! Y. chain(Y) --> 
+contlub_def:         "contlub(f) == ! Y. chain(Y) --> 
                                 f(lub(range(Y))) = lub(range(% i. f(Y(i))))"
 
-cont:            "cont(f)   == ! Y. chain(Y) --> 
+cont_def:            "cont(f)   == ! Y. chain(Y) --> 
                                 range(% i. f(Y(i))) <<| f(lub(range(Y)))"
 
 text {*
@@ -41,97 +41,96 @@ text {*
 text {* access to definition *}
 
 lemma contlubI:
-        "! Y. chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))==>
-        contlub(f)"
-by (unfold contlub)
+  "\<lbrakk>\<And>Y. chain Y \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))\<rbrakk> \<Longrightarrow> contlub f"
+by (simp add: contlub_def)
 
 lemma contlubE: 
-        " contlub(f)==> 
-          ! Y. chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))"
-by (unfold contlub)
+  "\<lbrakk>contlub f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))" 
+by (simp add: contlub_def)
 
-lemma contI: 
- "! Y. chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y))) ==> cont(f)"
-by (unfold cont)
+lemma contI:
+  "\<lbrakk>\<And>Y. chain Y \<Longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> cont f"
+by (simp add: cont_def)
 
-lemma contE: 
- "cont(f) ==> ! Y. chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y)))"
-by (unfold cont)
+lemma contE:
+  "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)"
+by (simp add: cont_def)
 
 lemma monofunI: 
-        "! x y. x << y --> f(x) << f(y) ==> monofun(f)"
-by (unfold monofun)
+  "\<lbrakk>\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y\<rbrakk> \<Longrightarrow> monofun f"
+by (simp add: monofun_def)
 
 lemma monofunE: 
-        "monofun(f) ==> ! x y. x << y --> f(x) << f(y)"
-by (unfold monofun)
+  "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
+by (simp add: monofun_def)
 
 text {* monotone functions map chains to chains *}
 
-lemma ch2ch_monofun: 
-        "[| monofun(f); chain(Y) |] ==> chain(%i. f(Y(i)))"
+lemma ch2ch_monofun: "\<lbrakk>monofun f; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. f (Y i))"
 apply (rule chainI)
-apply (erule monofunE [rule_format])
+apply (erule monofunE)
 apply (erule chainE)
 done
 
 text {* monotone functions map upper bound to upper bounds *}
 
 lemma ub2ub_monofun: 
- "[| monofun(f); range(Y) <| u|]  ==> range(%i. f(Y(i))) <| f(u)"
+  "\<lbrakk>monofun f; range Y <| u\<rbrakk> \<Longrightarrow> range (\<lambda>i. f (Y i)) <| f u"
 apply (rule ub_rangeI)
-apply (erule monofunE [rule_format])
+apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
 text {* left to right: @{prop "monofun(f) & contlub(f) ==> cont(f)"} *}
 
-lemma monocontlub2cont: 
-        "[|monofun(f);contlub(f)|] ==> cont(f)"
-apply (rule contI [rule_format])
+lemma monocontlub2cont: "\<lbrakk>monofun f; contlub f\<rbrakk> \<Longrightarrow> cont f"
+apply (rule contI)
 apply (rule thelubE)
 apply (erule ch2ch_monofun)
 apply assumption
-apply (erule contlubE [rule_format, symmetric])
+apply (erule contlubE [symmetric])
 apply assumption
 done
 
 text {* first a lemma about binary chains *}
 
-lemma binchain_cont: "[| cont(f); x << y |]   
-      ==> range(%i::nat. f(if i = 0 then x else y)) <<| f(y)"
-apply (rule subst)
-prefer 2 apply (erule contE [rule_format])
+lemma binchain_cont:
+  "\<lbrakk>cont f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> range (\<lambda>i::nat. f (if i = 0 then x else y)) <<| f y"
+apply (subgoal_tac "f (\<Squnion>i::nat. if i = 0 then x else y) = f y")
+apply (erule subst)
+apply (erule contE)
 apply (erule bin_chain)
-apply (rule_tac y = "y" in arg_cong)
+apply (rule_tac f=f in arg_cong)
 apply (erule lub_bin_chain [THEN thelubI])
 done
 
-text {* right to left: @{prop "cont(f) ==> monofun(f) & contlub(f)"} *}
-text {* part1: @{prop "cont(f) ==> monofun(f)"} *}
+text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
+text {* part1: @{prop "cont f \<Longrightarrow> monofun f"} *}
 
-lemma cont2mono: "cont(f) ==> monofun(f)"
-apply (rule monofunI [rule_format])
-apply (drule binchain_cont [THEN is_ub_lub])
-apply (auto split add: split_if_asm)
+lemma cont2mono: "cont f \<Longrightarrow> monofun f"
+apply (rule monofunI)
+apply (drule binchain_cont, assumption)
+apply (drule_tac i=0 in is_ub_lub)
+apply simp
 done
 
-text {* right to left: @{prop "cont(f) ==> monofun(f) & contlub(f)"} *}
-text {* part2: @{prop "cont(f) ==> contlub(f)"} *}
+text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
+text {* part2: @{prop "cont f \<Longrightarrow> contlub f"} *}
 
 lemma cont2contlub: "cont(f) ==> contlub(f)"
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (rule thelubI [symmetric])
-apply (erule contE [rule_format])
+apply (erule contE)
 apply assumption
 done
 
 text {* monotone functions map finite chains to finite chains *}
 
-lemma monofun_finch2finch: 
-  "[| monofun f; finite_chain Y |] ==> finite_chain (%n. f (Y n))"
+lemma monofun_finch2finch:
+  "\<lbrakk>monofun f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
 apply (unfold finite_chain_def)
-apply (force elim!: ch2ch_monofun simp add: max_in_chain_def)
+apply (simp add: ch2ch_monofun)
+apply (force simp add: max_in_chain_def)
 done
 
 text {* The same holds for continuous functions *}
@@ -139,221 +138,74 @@ text {* The same holds for continuous functions *}
 lemmas cont_finch2finch = cont2mono [THEN monofun_finch2finch, standard]
 (* [| cont ?f; finite_chain ?Y |] ==> finite_chain (%n. ?f (?Y n)) *)
 
-text {*
-  The following results are about a curried function that is monotone
-  in both arguments
-*}
-
-lemma ch2ch_MF2L: 
-"[|monofun(MF2); chain(F)|] ==> chain(%i. MF2 (F i) x)"
-by (erule ch2ch_monofun [THEN ch2ch_fun])
-
-lemma ch2ch_MF2R: 
-"[|monofun(MF2(f)); chain(Y)|] ==> chain(%i. MF2 f (Y i))"
-by (erule ch2ch_monofun)
-
-lemma ch2ch_MF2LR: 
-"[|monofun(MF2); !f. monofun(MF2(f)); chain(F); chain(Y)|] ==>  
-   chain(%i. MF2(F(i))(Y(i)))"
-apply (rule chainI)
-apply (rule trans_less)
-apply (erule ch2ch_MF2L [THEN chainE])
-apply assumption
-apply (rule monofunE [rule_format], erule spec)
-apply (erule chainE)
+lemma monofun_lub_fun:
+  "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
+    \<Longrightarrow> monofun (\<Squnion>i. F i)"
+apply (rule monofunI)
+apply (simp add: thelub_fun)
+apply (rule lub_mono [rule_format])
+apply (erule ch2ch_fun)
+apply (erule ch2ch_fun)
+apply (simp add: monofunE)
 done
 
-lemma ch2ch_lubMF2R: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-        chain(F);chain(Y)|] ==>  
-        chain(%j. lub(range(%i. MF2 (F j) (Y i))))"
-apply (rule lub_mono [THEN chainI])
-apply (rule ch2ch_MF2R, erule spec)
-apply assumption
-apply (rule ch2ch_MF2R, erule spec)
-apply assumption
-apply (rule allI)
-apply (rule chainE)
-apply (erule ch2ch_MF2L)
+text {* the lub of a chain of continuous functions is continuous *}
+
+declare range_composition [simp del]
+
+lemma contlub_lub_fun:
+  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> contlub (\<Squnion>i. F i)"
+apply (rule contlubI)
+apply (simp add: thelub_fun)
+apply (simp add: cont2contlub [THEN contlubE])
+apply (rule ex_lub)
+apply (erule ch2ch_fun)
+apply (simp add: cont2mono [THEN ch2ch_monofun])
+done
+
+lemma cont_lub_fun:
+  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
+apply (rule monocontlub2cont)
+apply (erule monofun_lub_fun)
+apply (simp add: cont2mono)
+apply (erule contlub_lub_fun)
 apply assumption
 done
 
-lemma ch2ch_lubMF2L: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-        chain(F);chain(Y)|] ==>  
-        chain(%i. lub(range(%j. MF2 (F j) (Y i))))"
-apply (rule lub_mono [THEN chainI])
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (rule allI)
-apply (rule chainE)
-apply (rule ch2ch_MF2R, erule spec)
-apply assumption
-done
-
-lemma lub_MF2_mono: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-        chain(F)|] ==>  
-        monofun(% x. lub(range(% j. MF2 (F j) (x))))"
-apply (rule monofunI [rule_format])
-apply (rule lub_mono)
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (rule allI)
-apply (rule monofunE [rule_format], erule spec)
-apply assumption
-done
-
-lemma ex_lubMF2: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-        chain(F); chain(Y)|] ==>  
-                lub(range(%j. lub(range(%i. MF2(F j) (Y i))))) = 
-                lub(range(%i. lub(range(%j. MF2(F j) (Y i)))))"
-apply (rule antisym_less)
-apply (rule is_lub_thelub[OF _ ub_rangeI])
-apply (erule ch2ch_lubMF2R)
-apply (assumption+)
-apply (rule lub_mono)
-apply (rule ch2ch_MF2R, erule spec)
-apply assumption
-apply (erule ch2ch_lubMF2L)
-apply (assumption+)
-apply (rule allI)
-apply (rule is_ub_thelub)
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (rule is_lub_thelub[OF _ ub_rangeI])
-apply (erule ch2ch_lubMF2L)
-apply (assumption+)
-apply (rule lub_mono)
-apply (erule ch2ch_MF2L)
-apply assumption
-apply (erule ch2ch_lubMF2R)
-apply (assumption+)
-apply (rule allI)
-apply (rule is_ub_thelub)
-apply (rule ch2ch_MF2R, erule spec)
-apply assumption
-done
-
-lemma diag_lubMF2_1: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-   chain(FY);chain(TY)|] ==> 
-  lub(range(%i. lub(range(%j. MF2(FY(j))(TY(i)))))) = 
-  lub(range(%i. MF2(FY(i))(TY(i))))"
-apply (rule antisym_less)
-apply (rule is_lub_thelub[OF _ ub_rangeI])
-apply (erule ch2ch_lubMF2L)
-apply (assumption+)
-apply (rule lub_mono3)
-apply (erule ch2ch_MF2L)
-apply (assumption+)
-apply (erule ch2ch_MF2LR)
-apply (assumption+)
-apply (rule allI)
-apply (rule_tac m = "i" and n = "ia" in nat_less_cases)
-apply (rule_tac x = "ia" in exI)
-apply (rule chain_mono)
-apply (erule allE)
-apply (erule ch2ch_MF2R)
-apply (assumption+)
-apply (erule ssubst)
-apply (rule_tac x = "ia" in exI)
-apply (rule refl_less)
-apply (rule_tac x = "i" in exI)
-apply (rule chain_mono)
-apply (erule ch2ch_MF2L)
-apply (assumption+)
-apply (rule lub_mono)
-apply (erule ch2ch_MF2LR)
-apply (assumption+)
-apply (erule ch2ch_lubMF2L)
-apply (assumption+)
-apply (rule allI)
-apply (rule is_ub_thelub)
-apply (erule ch2ch_MF2L)
-apply assumption
-done
-
-lemma diag_lubMF2_2: 
-"[|monofun(MF2::('a::po=>'b::po=>'c::cpo)); 
-   !f. monofun(MF2(f)::('b::po=>'c::cpo)); 
-   chain(FY);chain(TY)|] ==> 
-  lub(range(%j. lub(range(%i. MF2(FY(j))(TY(i)))))) = 
-  lub(range(%i. MF2(FY(i))(TY(i))))"
-apply (rule trans)
-apply (rule ex_lubMF2)
-apply (assumption+)
-apply (erule diag_lubMF2_1)
-apply (assumption+)
-done
-
-text {*
-  The following results are about a curried function that is continuous
-  in both arguments
-*}
-
-lemma contlub_CF2:
-assumes prem1: "cont(CF2)"
-assumes prem2: "!f. cont(CF2(f))"
-assumes prem3: "chain(FY)"
-assumes prem4: "chain(TY)"
-shows "CF2(lub(range(FY)))(lub(range(TY))) = lub(range(%i. CF2(FY(i))(TY(i))))"
-apply (subst prem1 [THEN cont2contlub, THEN contlubE, THEN spec, THEN mp])
-apply assumption
-apply (subst thelub_fun)
-apply (rule prem1 [THEN cont2mono [THEN ch2ch_monofun]])
-apply assumption
-apply (rule trans)
-apply (rule prem2 [THEN spec, THEN cont2contlub, THEN contlubE, THEN spec, THEN mp, THEN ext, THEN arg_cong, THEN arg_cong])
-apply (rule prem4)
-apply (rule diag_lubMF2_2)
-apply (auto simp add: cont2mono prems)
-done
+lemma cont2cont_lub:
+  "\<lbrakk>chain F; \<And>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i x)"
+by (simp add: thelub_fun [symmetric] cont_lub_fun)
 
 text {*
   The following results are about application for functions in @{typ "'a=>'b"}
 *}
 
-lemma monofun_fun_fun: "f1 << f2 ==> f1(x) << f2(x)"
-by (erule less_fun [THEN iffD1, THEN spec])
+lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
+by (simp add: less_fun_def)
 
-lemma monofun_fun_arg: "[|monofun(f); x1 << x2|] ==> f(x1) << f(x2)"
-by (erule monofunE [THEN spec, THEN spec, THEN mp])
+lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
+by (rule monofunE)
 
-lemma monofun_fun: "[|monofun(f1); monofun(f2); f1 << f2; x1 << x2|] ==> f1(x1) << f2(x2)"
-apply (rule trans_less)
-apply (erule monofun_fun_arg)
-apply assumption
-apply (erule monofun_fun_fun)
-done
+lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
+by (rule trans_less [OF monofun_fun_arg monofun_fun_fun])
 
 text {*
   The following results are about the propagation of monotonicity and
   continuity
 *}
 
-lemma mono2mono_MF1L: "[|monofun(c1)|] ==> monofun(%x. c1 x y)"
-apply (rule monofunI [rule_format])
+lemma mono2mono_MF1L: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
+apply (rule monofunI)
 apply (erule monofun_fun_arg [THEN monofun_fun_fun])
 apply assumption
 done
 
-lemma cont2cont_CF1L: "[|cont(c1)|] ==> cont(%x. c1 x y)"
+lemma cont2cont_CF1L: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule monocontlub2cont)
 apply (erule cont2mono [THEN mono2mono_MF1L])
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (frule asm_rl)
-apply (erule cont2contlub [THEN contlubE, THEN spec, THEN mp, THEN ssubst])
+apply (erule cont2contlub [THEN contlubE, THEN ssubst])
 apply assumption
 apply (subst thelub_fun)
 apply (rule ch2ch_monofun)
@@ -364,17 +216,17 @@ done
 
 (*********  Note "(%x.%y.c1 x y) = c1" ***********)
 
-lemma mono2mono_MF1L_rev: "!y. monofun(%x. c1 x y) ==> monofun(c1)"
-apply (rule monofunI [rule_format])
+lemma mono2mono_MF1L_rev: "\<forall>y. monofun (\<lambda>x. f x y) \<Longrightarrow> monofun f"
+apply (rule monofunI)
 apply (rule less_fun [THEN iffD2])
 apply (blast dest: monofunE)
 done
 
-lemma cont2cont_CF1L_rev: "!y. cont(%x. c1 x y) ==> cont(c1)"
+lemma cont2cont_CF1L_rev: "\<forall>y. cont (\<lambda>x. f x y) \<Longrightarrow> cont f"
 apply (rule monocontlub2cont)
 apply (rule cont2mono [THEN allI, THEN mono2mono_MF1L_rev])
 apply (erule spec)
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (rule ext)
 apply (subst thelub_fun)
 apply (rule cont2mono [THEN allI, THEN mono2mono_MF1L_rev, THEN ch2ch_monofun])
@@ -383,7 +235,7 @@ apply assumption
 apply (blast dest: cont2contlub [THEN contlubE])
 done
 
-lemma cont2cont_CF1L_rev2: "(!!y. cont (%x. c1 x y)) ==> cont c1"
+lemma cont2cont_CF1L_rev2: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont f"
 apply (rule cont2cont_CF1L_rev)
 apply simp
 done
@@ -397,41 +249,38 @@ lemma contlub_abstraction:
 "[|chain(Y::nat=>'a);!y. cont(%x.(c::'a::cpo=>'b::cpo=>'c::cpo) x y)|] ==> 
   (%y. lub(range(%i. c (Y i) y))) = (lub(range(%i.%y. c (Y i) y)))"
 apply (rule trans)
-prefer 2 apply (rule cont2contlub [THEN contlubE, THEN spec, THEN mp])
+prefer 2 apply (rule cont2contlub [THEN contlubE])
 prefer 2 apply (assumption)
 apply (erule cont2cont_CF1L_rev)
 apply (rule ext)
-apply (rule cont2contlub [THEN contlubE, THEN spec, THEN mp, symmetric])
+apply (rule cont2contlub [THEN contlubE, symmetric])
 apply (erule spec)
 apply assumption
 done
 
-lemma mono2mono_app: "[|monofun(ft);!x. monofun(ft(x));monofun(tt)|] ==> 
-         monofun(%x.(ft(x))(tt(x)))"
-apply (rule monofunI [rule_format])
-apply (rule_tac ?f1.0 = "ft(x)" and ?f2.0 = "ft(y)" in monofun_fun)
-apply (erule spec)
-apply (erule spec)
-apply (erule monofunE [rule_format])
-apply assumption
-apply (erule monofunE [rule_format])
-apply assumption
+lemma mono2mono_app:
+  "\<lbrakk>monofun f; \<forall>x. monofun (f x); monofun t\<rbrakk> \<Longrightarrow> monofun (\<lambda>x. (f x) (t x))"
+apply (rule monofunI)
+apply (simp add: monofun_fun monofunE)
 done
 
-lemma cont2contlub_app: "[|cont(ft);!x. cont(ft(x));cont(tt)|] ==> contlub(%x.(ft(x))(tt(x)))"
-apply (rule contlubI [rule_format])
-apply (rule_tac f3 = "tt" in contlubE [THEN spec, THEN mp, THEN ssubst])
-apply (erule cont2contlub)
-apply assumption
-apply (rule contlub_CF2)
-apply (assumption+)
-apply (erule cont2mono [THEN ch2ch_monofun])
-apply assumption
+lemma cont2contlub_app:
+  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> contlub (\<lambda>x. (f x) (t x))"
+apply (rule contlubI)
+apply (subgoal_tac "chain (\<lambda>i. f (Y i))")
+apply (subgoal_tac "chain (\<lambda>i. t (Y i))")
+apply (simp add: cont2contlub [THEN contlubE] thelub_fun)
+apply (rule diag_lub)
+apply (erule ch2ch_fun)
+apply (drule spec)
+apply (erule cont2mono [THEN ch2ch_monofun], assumption)
+apply (erule cont2mono [THEN ch2ch_monofun], assumption)
+apply (erule cont2mono [THEN ch2ch_monofun], assumption)
 done
 
-lemma cont2cont_app: "[|cont(ft); !x. cont(ft(x)); cont(tt)|] ==> cont(%x.(ft(x))(tt(x)))"
-apply (blast intro: monocontlub2cont mono2mono_app cont2mono cont2contlub_app)
-done
+lemma cont2cont_app:
+  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x) (t x))"
+by (blast intro: monocontlub2cont mono2mono_app cont2mono cont2contlub_app)
 
 lemmas cont2cont_app2 = cont2cont_app[OF _ allI]
 (*  [| cont ?ft; !!x. cont (?ft x); cont ?tt |] ==> *)
@@ -440,97 +289,42 @@ lemmas cont2cont_app2 = cont2cont_app[OF _ allI]
 
 text {* The identity function is continuous *}
 
-lemma cont_id: "cont(% x. x)"
-apply (rule contI [rule_format])
+lemma cont_id: "cont (\<lambda>x. x)"
+apply (rule contI)
 apply (erule thelubE)
 apply (rule refl)
 done
 
 text {* constant functions are continuous *}
 
-lemma cont_const: "cont(%x. c)"
-apply (rule contI [rule_format])
-apply (blast intro: is_lubI ub_rangeI dest: ub_rangeD)
+lemma cont_const: "cont (\<lambda>x. c)"
+apply (rule contI)
+apply (rule lub_const)
 done
 
 lemma cont2cont_app3: "[|cont(f); cont(t) |] ==> cont(%x. f(t(x)))"
 by (best intro: cont2cont_app2 cont_const)
 
-text {* A non-emptiness result for Cfun *}
-
-lemma CfunI: "?x:Collect cont"
-apply (rule CollectI)
-apply (rule cont_const)
-done
-
 text {* some properties of flat *}
 
-lemma flatdom2monofun: "f UU = UU ==> monofun (f::'a::flat=>'b::pcpo)"
-apply (rule monofunI [rule_format])
+lemma flatdom2monofun: "f \<bottom> = \<bottom> \<Longrightarrow> monofun (f::'a::flat \<Rightarrow> 'b::pcpo)"
+apply (rule monofunI)
 apply (drule ax_flat [rule_format])
 apply auto
 done
 
-declare range_composition [simp del]
-
-lemma chfindom_monofun2cont: "monofun f ==> cont(f::'a::chfin=>'b::pcpo)"
+lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::pcpo)"
 apply (rule monocontlub2cont)
 apply assumption
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (frule chfin2finch)
-apply (rule antisym_less)
-apply (clarsimp simp add: finite_chain_def maxinch_is_thelub)
-apply (rule is_ub_thelub)
-apply (erule ch2ch_monofun)
-apply assumption
-apply (drule monofun_finch2finch[COMP swap_prems_rl])
-apply assumption
-apply (simp add: finite_chain_def)
-apply (erule conjE)
-apply (erule exE)
-apply (simp add: maxinch_is_thelub)
-apply (erule monofunE [THEN spec, THEN spec, THEN mp])
-apply (erule is_ub_thelub)
+apply (clarsimp simp add: finite_chain_def)
+apply (subgoal_tac "max_in_chain i (\<lambda>i. f (Y i))")
+apply (simp add: maxinch_is_thelub ch2ch_monofun)
+apply (force simp add: max_in_chain_def)
 done
 
 lemmas flatdom_strict2cont = flatdom2monofun [THEN chfindom_monofun2cont, standard]
 (* f UU = UU ==> cont (f::'a=>'b::pcpo)" *)
-
-text {* the lub of a chain of monotone functions is monotone. *}
-
-lemma monofun_lub_fun:
-  "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
-    \<Longrightarrow> monofun (\<Squnion>i. F i)"
-apply (rule monofunI [rule_format])
-apply (simp add: thelub_fun)
-apply (rule lub_mono [rule_format])
-apply (erule ch2ch_fun)
-apply (erule ch2ch_fun)
-apply (simp add: monofunE)
-done
-
-text {* the lub of a chain of continuous functions is continuous *}
-
-lemma cont_lub_fun:
-  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
- apply (rule contI [rule_format])
- apply (rule is_lubI)
-  apply (rule ub_rangeI)
-  apply (erule monofun_lub_fun [THEN monofunE [rule_format]])
-   apply (simp add: cont2mono)
-  apply (erule is_ub_thelub)
- apply (simp add: thelub_fun)
- apply (rule is_lub_thelub)
-  apply (erule ch2ch_fun)
- apply (rule ub_rangeI)
- apply (drule_tac x=i in spec)
- apply (simp add: cont2contlub [THEN contlubE])
- apply (rule is_lub_thelub)
-  apply (simp add: cont2mono [THEN ch2ch_monofun])
- apply (rule ub_rangeI)
- apply (rule trans_less)
-  apply (erule ch2ch_fun [THEN is_ub_thelub])
- apply (erule ub_rangeD)
-done
 
 end
