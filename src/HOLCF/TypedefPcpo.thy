@@ -100,7 +100,7 @@ assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)"
 shows "cont Rep"
- apply (rule contI[rule_format])
+ apply (rule contI)
  apply (simp only: typedef_is_lub [OF type less adm, THEN thelubI])
  apply (subst type_definition.Abs_inverse [OF type])
   apply (erule lub_Rep_in_A [OF type less adm])
@@ -123,14 +123,14 @@ assumes type: "type_definition Rep Abs A"
     and f_in_A: "\<And>x. f x \<in> A"
     and cont_f: "cont f"
 shows "cont (\<lambda>x. Abs (f x))"
- apply (rule contI[rule_format])
+ apply (rule contI)
  apply (rule is_lubI)
   apply (rule ub_rangeI)
   apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
   apply (rule monofun_fun_arg [OF cont2mono [OF cont_f]])
   apply (erule is_ub_thelub)
  apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
- apply (simp only: contlubE[rule_format, OF cont2contlub [OF cont_f]])
+ apply (simp only: contlubE [OF cont2contlub [OF cont_f]])
  apply (rule is_lub_thelub)
   apply (erule ch2ch_monofun [OF cont2mono [OF cont_f]])
  apply (rule ub_rangeI)
@@ -181,7 +181,7 @@ text {*
   subset, @{term Rep} and @{term Abs} are both strict.
 *}
 
-theorem typedef_strict_Abs:
+theorem typedef_Abs_strict:
 assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and UU_in_A: "\<bottom> \<in> A"
@@ -190,12 +190,12 @@ shows "Abs \<bottom> = \<bottom>"
  apply (simp add: type_definition.Abs_inverse [OF type UU_in_A])
 done
 
-theorem typedef_strict_Rep:
+theorem typedef_Rep_strict:
 assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and UU_in_A: "\<bottom> \<in> A"
 shows "Rep \<bottom> = \<bottom>"
- apply (rule typedef_strict_Abs [OF type less UU_in_A, THEN subst])
+ apply (rule typedef_Abs_strict [OF type less UU_in_A, THEN subst])
  apply (rule type_definition.Abs_inverse [OF type UU_in_A])
 done
 
