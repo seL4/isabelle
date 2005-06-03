@@ -29,8 +29,8 @@ HOL:
 
 $(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.ML Cfun.thy \
   Cont.ML Cont.thy Cprod.ML Cprod.thy \
-  Discrete.thy Domain.thy Fix.ML Fix.thy Ffun.ML \
-  Ffun.thy HOLCF.ML HOLCF.thy Lift.ML \
+  Discrete.thy Domain.thy Fix.ML Fix.thy Fixrec.thy \
+  Ffun.ML Ffun.thy HOLCF.ML HOLCF.thy Lift.ML \
   Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy \
   ROOT.ML Sprod.ML Sprod.thy \
   Ssum.ML Ssum.thy \
