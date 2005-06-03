@@ -56,6 +56,8 @@ fun extern_name con = case Symbol.explode con of
 		   | _ => con;
 fun dis_name  con = "is_"^ (extern_name con);
 fun dis_name_ con = "is_"^ (strip_esc   con);
+fun mat_name  con = "match_"^ (extern_name con);
+fun mat_name_ con = "match_"^ (strip_esc   con);
 
 (* make distinct names out of the type list, 
    forbidding "o","n..","x..","f..","P.." as names *)
@@ -174,6 +176,12 @@ val UU = %%:"UU";
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
 fun cpair (S,T) = %%:"cpair"`S`T;
+fun mk_ctuple [] = %%:"UU" (* used in match_defs *)
+|   mk_ctuple (t::[]) = t
+|   mk_ctuple (t::ts) = cpair (t, mk_ctuple ts);
+fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
+|   mk_ctupleT (T::[]) = T
+|   mk_ctupleT (T::Ts) = mk_prodT(T, mk_ctupleT Ts);
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 

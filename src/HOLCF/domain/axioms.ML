@@ -61,6 +61,13 @@ let
 			   (if con'=con then %%:"TT" else %%:"FF") args)) cons))
 	in map ddef cons end;
 
+  val mat_defs = let
+	fun mdef (con,_) = (mat_name con ^"_def",%%:(mat_name con) == 
+		 mk_cRep_CFun(%%:(dname^"_when"),map 
+			(fn (con',args) => (foldr /\#
+			   (if con'=con then (%%:"return")`(mk_ctuple (map (bound_arg args) args)) else %%:"fail") args)) cons))
+	in map mdef cons end;
+
   val sel_defs = let
 	fun sdef con n arg = (sel_of arg^"_def",%%:(sel_of arg) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
@@ -81,7 +88,7 @@ let
 in (dnam,
     [abs_iso_ax, rep_iso_ax, reach_ax],
     [when_def, copy_def] @
-     con_defs @ dis_defs @ sel_defs @
+     con_defs @ dis_defs @ mat_defs @ sel_defs @
     [take_def, finite_def])
 end; (* let *)
 

@@ -47,10 +47,13 @@ local
 			(* stricly speaking, these constants have one argument,
 			   but the mixfix (without arguments) is introduced only
 			   to generate parse rules for non-alphanumeric names*)
+  fun mat (con ,s,args) = (mat_name_ con, dtype->>mk_ssumT(oneT,mk_uT(mk_ctupleT(map third args))),
+			   Mixfix(escape ("match_" ^ con), [], Syntax.max_pri));
   fun sel (_   ,_,args) = map (fn(_,sel,typ)=>(sel,dtype ->> typ,NoSyn))args;
 in
   val consts_con = map con cons';
   val consts_dis = map dis cons';
+  val consts_mat = map mat cons';
   val consts_sel = List.concat(map sel cons');
 end;
 
@@ -87,7 +90,7 @@ local open Syntax in
 end;
 
 in ([const_rep, const_abs, const_when, const_copy] @ 
-     consts_con @ consts_dis @ consts_sel @
+     consts_con @ consts_dis @ consts_mat @ consts_sel @
     [const_take, const_finite],
     [case_trans])
 end; (* let *)

@@ -69,6 +69,7 @@ val ax_rep_iso    = ga "rep_iso"  dname;
 val ax_when_def   = ga "when_def" dname;
 val axs_con_def   = map (fn (con,_) => ga (extern_name con^"_def") dname) cons;
 val axs_dis_def   = map (fn (con,_) => ga (   dis_name con^"_def") dname) cons;
+val axs_mat_def   = map (fn (con,_) => ga (   mat_name con^"_def") dname) cons;
 val axs_sel_def   = List.concat(map (fn (_,args) => 
                     map (fn     arg => ga (sel_of arg     ^"_def") dname) args)
 									  cons);
@@ -83,8 +84,8 @@ val dc_copy = %%:(dname^"_copy");
 val x_name = "x";
 
 val iso_locale = iso_intro OF [ax_abs_iso, ax_rep_iso];
-val abs_strict = iso_locale RS iso_abs_strict;
-val rep_strict = iso_locale RS iso_rep_strict;
+val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
+val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val abs_defin' = iso_locale RS iso_abs_defin';
 val rep_defin' = iso_locale RS iso_rep_defin';
 val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
@@ -217,6 +218,18 @@ val dis_rews = let
                                         (HOLCF_ss addsimps dis_apps) 1))]) cons;
 in dis_stricts @ dis_defins @ dis_apps end;
 
+val mat_rews = let
+  val mat_stricts = map (fn (con,_) => pg axs_mat_def (mk_trp(
+                             strict(%%:(mat_name con)))) [
+                                rtac when_strict 1]) cons;
+  val mat_apps = let fun one_mat c (con,args)= pg axs_mat_def
+                   (lift_defined %: (nonlazy args,
+                        (mk_trp((%%:(mat_name c))`(con_app con args) ===
+                              (if con=c then (%%:"return")`(mk_ctuple (map %# args)) else %%:"fail"))))) [
+                                asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
+        in List.concat(map (fn (c,_) => map (one_mat c) cons) cons) end;
+in mat_stricts @ mat_apps end;
+
 val con_stricts = List.concat(map (fn (con,args) => map (fn vn =>
                         pg con_appls
                            (mk_trp(con_app2 con (fn arg => if vname arg = vn 
@@ -263,7 +276,7 @@ val distincts_le = let
               (lift_defined %: ((nonlazy args1),
                         (mk_trp (con_app con1 args1 ~<< con_app con2 args2))))([
                         rtac rev_contrapos 1,
-                        eres_inst_tac[("fo",dis_name con1)] monofun_cfun_arg 1]
+                        eres_inst_tac[("f",dis_name con1)] monofun_cfun_arg 1]
                       @map(case_UU_tac (con_stricts @ dis_rews)1)(nonlazy args2)
                       @[asm_simp_tac (HOLCF_ss addsimps dis_rews) 1]);
     fun distinct (con1,args1) (con2,args2) =
@@ -304,7 +317,7 @@ in
 val inverts = map (fn (con,args) => 
                 pgterm (op <<) con args (List.concat(map (fn arg => [
                                 TRY(rtac conjI 1),
-                                dres_inst_tac [("fo",sel_of arg)] monofun_cfun_arg 1,
+                                dres_inst_tac [("f",sel_of arg)] monofun_cfun_arg 1,
                                 asm_full_simp_tac (HOLCF_ss addsimps sel_apps) 1]
                                                       ) args))) cons';
 val injects = map (fn ((con,args),inv_thm) => 
@@ -320,8 +333,7 @@ end;
 (* ----- theorems concerning one induction step ----------------------------- *)
 
 val copy_strict = pg[ax_copy_def](mk_trp(strict(dc_copy`%"f"))) [
-                   asm_simp_tac(HOLCF_ss addsimps [abs_strict, when_strict,
-                                                   cfst_strict,csnd_strict]) 1];
+                   asm_simp_tac(HOLCF_ss addsimps [abs_strict, when_strict]) 1];
 val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                     (lift_defined %: (nonlazy_rec args,
                         mk_trp(dc_copy`%"f"`(con_app con args) ===
@@ -333,7 +345,7 @@ val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                           simp_tac (HOLCF_ss addsimps con_appls) 1]))cons;
 val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                                         (con_app con args) ===UU))
-     (let val rews = cfst_strict::csnd_strict::copy_strict::copy_apps@con_rews
+     (let val rews = copy_strict::copy_apps@con_rews
                          in map (case_UU_tac rews 1) (nonlazy args) @ [
                              asm_simp_tac (HOLCF_ss addsimps rews) 1] end))
                         (List.filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
@@ -347,6 +359,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("con_rews", con_rews),
 		("sel_rews", sel_rews),
 		("dis_rews", dis_rews),
+		("match_rews", mat_rews),
 		("dist_les", dist_les),
 		("dist_eqs", dist_eqs),
 		("inverts" , inverts ),
@@ -390,8 +403,7 @@ val n_eqs = length eqs;
 (* ----- theorems concerning finite approximation and finite induction ------ *)
 
 local
-  val iterate_Cprod_ss = simpset_of Fix.thy
-                         addsimps [cfst_strict, csnd_strict]addsimps Cprod_rews;
+  val iterate_Cprod_ss = simpset_of Fix.thy;
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
