@@ -340,7 +340,7 @@ by (rule stream_reach2)
 lemma cpo_cont_lemma:
   "[| monofun (f::'a::cpo => 'b::cpo); (!Y. chain Y --> f (lub(range Y)) << (LUB i. f (Y i))) |] ==> cont f"
 apply (rule monocontlub2cont, auto)
-apply (simp add: contlub, auto)
+apply (simp add: contlub_def, auto)
 apply (erule_tac x="Y" in allE, auto)
 apply (simp add: po_eq_conv)
 apply (frule cpo,auto)
