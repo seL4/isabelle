@@ -125,6 +125,16 @@ prefer 2 apply (assumption)
 apply assumption
 done
 
+lemma ch2ch_lub:
+  fixes Y :: "nat \<Rightarrow> nat \<Rightarrow> 'a::cpo"
+  assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
+  assumes 2: "\<And>i. chain (\<lambda>j. Y i j)"
+  shows "chain (\<lambda>i. \<Squnion>j. Y i j)"
+apply (rule chainI)
+apply (rule lub_mono [rule_format, OF 2 2])
+apply (rule chainE [OF 1])
+done
+
 lemma diag_lub:
   fixes Y :: "nat \<Rightarrow> nat \<Rightarrow> 'a::cpo"
   assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
@@ -138,21 +148,18 @@ proof (rule antisym_less)
     apply (rule chainE [OF 2])
     done
   have 4: "chain (\<lambda>i. \<Squnion>j. Y i j)"
-    apply (rule chainI)
-    apply (rule lub_mono [OF 2 2, rule_format])
-    apply (rule chainE [OF 1])
-    done
+    by (rule ch2ch_lub [OF 1 2])
   show "(\<Squnion>i. \<Squnion>j. Y i j) \<sqsubseteq> (\<Squnion>i. Y i i)"
     apply (rule is_lub_thelub [OF 4])
     apply (rule ub_rangeI)
-    apply (rule lub_mono3 [OF 2 3, rule_format])
+    apply (rule lub_mono3 [rule_format, OF 2 3])
     apply (rule exI)
     apply (rule trans_less)
     apply (rule chain_mono3 [OF 1 le_maxI1])
     apply (rule chain_mono3 [OF 2 le_maxI2])
     done
   show "(\<Squnion>i. Y i i) \<sqsubseteq> (\<Squnion>i. \<Squnion>j. Y i j)"
-    apply (rule lub_mono [OF 3 4, rule_format])
+    apply (rule lub_mono [rule_format, OF 3 4])
     apply (rule is_ub_thelub [OF 2])
     done
 qed
