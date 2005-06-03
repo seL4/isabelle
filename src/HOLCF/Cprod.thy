@@ -49,8 +49,6 @@ done
 
 lemma trans_less_cprod: "\<lbrakk>(p1::'a*'b) \<sqsubseteq> p2; p2 \<sqsubseteq> p3\<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p3"
 apply (unfold less_cprod_def)
-apply (rule conjI)
-apply (fast intro: trans_less)
 apply (fast intro: trans_less)
 done
 
@@ -64,10 +62,10 @@ subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
 
 lemma monofun_pair1: "monofun (\<lambda>x. (x, y))"
-by (simp add: monofun less_cprod_def)
+by (simp add: monofun_def less_cprod_def)
 
 lemma monofun_pair2: "monofun (\<lambda>y. (x, y))"
-by (simp add: monofun less_cprod_def)
+by (simp add: monofun_def less_cprod_def)
 
 lemma monofun_pair:
   "\<lbrakk>x1 \<sqsubseteq> x2; y1 \<sqsubseteq> y2\<rbrakk> \<Longrightarrow> (x1, y1) \<sqsubseteq> (x2, y2)"
@@ -76,15 +74,15 @@ by (simp add: less_cprod_def)
 text {* @{term fst} and @{term snd} are monotone *}
 
 lemma monofun_fst: "monofun fst"
-by (simp add: monofun less_cprod_def)
+by (simp add: monofun_def less_cprod_def)
 
 lemma monofun_snd: "monofun snd"
-by (simp add: monofun less_cprod_def)
+by (simp add: monofun_def less_cprod_def)
 
 subsection {* Type @{typ "'a * 'b"} is a cpo *}
 
 lemma lub_cprod: 
-"chain S \<Longrightarrow> range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+  "chain S \<Longrightarrow> range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
 apply (rule_tac t = "S i" in surjective_pairing [THEN ssubst])
@@ -135,14 +133,14 @@ by (rule minimal_cprod [THEN UU_I, symmetric])
 subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
 lemma contlub_pair1: "contlub (\<lambda>x. (x,y))"
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (subst thelub_cprod)
 apply (erule monofun_pair1 [THEN ch2ch_monofun])
 apply (simp add: thelub_const)
 done
 
 lemma contlub_pair2: "contlub (\<lambda>y. (x, y))"
-apply (rule contlubI [rule_format])
+apply (rule contlubI)
 apply (subst thelub_cprod)
 apply (erule monofun_pair2 [THEN ch2ch_monofun])
 apply (simp add: thelub_const)
@@ -161,13 +159,13 @@ apply (rule contlub_pair2)
 done
 
 lemma contlub_fst: "contlub fst"
-apply (rule contlubI [rule_format])
-apply (simp add: lub_cprod [THEN thelubI])
+apply (rule contlubI)
+apply (simp add: thelub_cprod)
 done
 
 lemma contlub_snd: "contlub snd"
-apply (rule contlubI [rule_format])
-apply (simp add: lub_cprod [THEN thelubI])
+apply (rule contlubI)
+apply (simp add: thelub_cprod)
 done
 
 lemma cont_fst: "cont fst"
@@ -254,6 +252,9 @@ by (simp add: cpair_eq_pair)
 lemma cpair_less: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
 by (simp add: cpair_eq_pair less_cprod_def)
 
+lemma cpair_strict: "<\<bottom>, \<bottom>> = \<bottom>"
+by (simp add: cpair_eq_pair inst_cprod_pcpo)
+
 lemma inst_cprod_pcpo2: "\<bottom> = <\<bottom>, \<bottom>>"
 by (simp add: cpair_eq_pair inst_cprod_pcpo)
 
@@ -267,10 +268,10 @@ by (simp add: cpair_eq_pair)
 lemma cprodE: "\<lbrakk>\<And>x y. p = <x, y> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cut_tac Exh_Cprod2, auto)
 
-lemma cfst2 [simp]: "cfst\<cdot><x, y> = x"
+lemma cfst_cpair [simp]: "cfst\<cdot><x, y> = x"
 by (simp add: cpair_eq_pair cfst_def cont_fst)
 
-lemma csnd2 [simp]: "csnd\<cdot><x, y> = y"
+lemma csnd_cpair [simp]: "csnd\<cdot><x, y> = y"
 by (simp add: cpair_eq_pair csnd_def cont_snd)
 
 lemma cfst_strict [simp]: "cfst\<cdot>\<bottom> = \<bottom>"
@@ -300,6 +301,6 @@ by (simp add: csplit_def)
 lemma csplit3: "csplit\<cdot>cpair\<cdot>z = z"
 by (simp add: csplit_def surjective_pairing_Cprod2)
 
-lemmas Cprod_rews = cfst2 csnd2 csplit2
+lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
 
 end
