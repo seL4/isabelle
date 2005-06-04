@@ -9,195 +9,53 @@ New in this Isabelle release
 * Theory headers: the new header syntax for Isar theories is
 
   theory <name>
-  imports <theory1> ... <theoryn>
+  imports <theory1> ... <theoryN>
+  uses <file1> ... <fileM>
   begin
 
-  optionally also with a "files" section. The syntax
+where the 'uses' part is optional.  The previous syntax
 
-  theory <name> = <theory1> + ... + <theoryn>:
+  theory <name> = <theory1> + ... + <theoryN>:
 
-  will still be supported for some time but will eventually disappear.
-  The syntax of old-style theories has not changed.
+will disappear in the next release.  Note that there is no change in
+ancient non-Isar theories.
 
 * Theory loader: parent theories can now also be referred to via
-  relative and absolute paths.
+relative and absolute paths.
 
-* Provers/quasi.ML: new transitivity reasoners for transitivity only
-  and quasi orders.
+* Improved version of thms_containing searches for a list of criteria
+instead of a list of constants. Known criteria are: intro, elim, dest,
+name:string, simp:term, and any term. Criteria can be preceded by '-'
+to select theorems that do not match. Intro, elim, dest select
+theorems that match the current goal, name:s selects theorems whose
+fully qualified name contain s, and simp:term selects all
+simplification rules whose lhs match term.  Any other term is
+interpreted as pattern and selects all theorems matching the
+pattern. Available in ProofGeneral under 'ProofGeneral -> Find
+Theorems' or C-c C-f.  Example:
 
-* Provers/trancl.ML: new transitivity reasoner for transitive and
-  reflexive-transitive closure of relations.
+  C-c C-f (100) "(_::nat) + _ + _" intro -name:"HOL."
 
-* Provers/blast.ML: new reference depth_limit to make blast's depth
-  limit (previously hard-coded with a value of 20) user-definable.
-
-* Provers: new version of the subst method, for single-step rewriting: it now
-  works in bound variable contexts. New is subst (asm), for rewriting an
-  assumption. Thanks to Lucas Dixon! INCOMPATIBILITY: may rewrite a different
-  subterm than the original subst method, which is still available under the
-  name simplesubst.
-
-* Pure: thin_tac now works even if the assumption being deleted contains !! or ==>. 
-  More generally, erule now works even if the major premise of the elimination rule
-  contains !! or ==>.
-
-* Pure: considerably improved version of 'constdefs' command.  Now
-  performs automatic type-inference of declared constants; additional
-  support for local structure declarations (cf. locales and HOL
-  records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
-  to observe strictly sequential dependencies of definitions within a
-  single 'constdefs' section; moreover, the declared name needs to be
-  an identifier.  If all fails, consider to fall back on 'consts' and
-  'defs' separately.
-
-* Pure: improved indexed syntax and implicit structures.  First of
-  all, indexed syntax provides a notational device for subscripted
-  application, using the new syntax \<^bsub>term\<^esub> for arbitrary
-  expressions.  Secondly, in a local context with structure
-  declarations, number indexes \<^sub>n or the empty index (default
-  number 1) refer to a certain fixed variable implicitly; option
-  show_structs controls printing of implicit structures.  Typical
-  applications of these concepts involve record types and locales.
-
-* Pure: clear separation of logical types and nonterminals, where the
-  latter may only occur in 'syntax' specifications or type
-  abbreviations.  Before that distinction was only partially
-  implemented via type class "logic" vs. "{}".  Potential
-  INCOMPATIBILITY in rare cases of improper use of 'types'/'consts'
-  instead of 'nonterminals'/'syntax'.  Some very exotic syntax
-  specifications may require further adaption (e.g. Cube/Base.thy).
-
-* Pure: removed obsolete type class "logic", use the top sort {}
-  instead.  Note that non-logical types should be declared as
-  'nonterminals' rather than 'types'.  INCOMPATIBILITY for new
-  object-logic specifications.
-
-* Pure: command 'no_syntax' removes grammar declarations (and
-  translations) resulting from the given syntax specification, which
-  is interpreted in the same manner as for the 'syntax' command.
-
-* Pure: print_tac now outputs the goal through the trace channel.
-
-* Pure: reference NameSpace.unique_names included.  If true the
-  (shortest) namespace-prefix is printed to disambiguate conflicts (as
-  yet). If false the first entry wins (as during parsing). Default
-  value is true.
-
-* Pure: tuned internal renaming of symbolic identifiers -- attach
-  primes instead of base 26 numbers.
-
-* Pure: new flag show_question_marks controls printing of leading
-  question marks in schematic variable names.
-
-* Pure: new version of thms_containing that searches for a list of
-  criteria instead of a list of constants. Known criteria are: intro,
-  elim, dest, name:string, simp:term, and any term. Criteria can be 
-  preceded by '-' to select theorems that do not match. Intro, elim, 
-  dest select theorems that match the current goal, name:s selects
-  theorems whose fully qualified name contain s, and simp:term selects
-  all simplification rules whose lhs match term.  Any other term is 
-  interpreted as pattern and selects all theorems matching the
-  pattern. Available in ProofGeneral under 'ProofGeneral -> Find
-  Theorems' or C-c C-f.
-
-  Example: C-c C-f (100) "(_::nat) + _ + _" intro -name:"HOL."
-
-  prints the last 100 theorems matching the pattern "(_::nat) + _ + _",
-  matching the current goal as introduction rule and not having "HOL." 
-  in their name (i.e. not being defined in theory HOL).
-
-* Pure/Syntax: In schematic variable names, *any* symbol following
-  \<^isub> or \<^isup> is now treated as part of the base name.  For
-  example, the following works without printing of ugly ".0" indexes:
-
-    lemma "x\<^isub>1 = x\<^isub>2 ==> x\<^isub>2 = x\<^isub>1"
-      by simp
-
-* Pure/Syntax: inner syntax includes (*(*nested*) comments*).
-
-* Pure/Syntax: pretty pinter now supports unbreakable blocks,
-  specified in mixfix annotations as "(00...)".
-
-* Pure/Syntax: 'advanced' translation functions (parse_translation
-  etc.) may depend on the signature of the theory context being
-  presently used for parsing/printing, see also isar-ref manual.
-
-* Pure/Simplifier: you can control the depth to which conditional rewriting
-  is traced via the PG menu Isabelle -> Settings -> Trace Simp Depth Limit.
-
-* Pure/Simplifier: simplification procedures may now take the current
-  simpset into account (cf. Simplifier.simproc(_i) / mk_simproc
-  interface), which is very useful for calling the Simplifier
-  recursively.  Minor INCOMPATIBILITY: the 'prems' argument of
-  simprocs is gone -- use prems_of_ss on the simpset instead.
-  Moreover, the low-level mk_simproc no longer applies Logic.varify
-  internally, to allow for use in a context of fixed variables.
-
-* Isar debugging: new reference Toplevel.debug; default false.  Set to
-  make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
-  
-* Locales: modifications regarding "includes"
-  - "includes" disallowed in declaration of named locales (command "locale").
-  - Fixed parameter management in theorem generation for goals with "includes".
-    INCOMPATIBILITY: rarely, the generated theorem statement is different.
-
-* Locales: new context element "constrains" for adding type constraints
-  to parameters.
-
-* Locales: context expressions permit optional syntax redeclaration when
-  renaming parameters.
-
-* Locales: new commands for the interpretation of locale expressions
-  in theories (interpretation) and proof contexts (interpret).  These take an
-  instantiation of the locale parameters and compute proof obligations from
-  the instantiated specification.  After the obligations have been discharged,
-  the instantiated theorems of the locale are added to the theory or proof
-  context.  Interpretation is smart in that already active interpretations
-  do not occur in proof obligations, neither are instantiated theorems stored
-  in duplicate.
-  Use print_interps to inspect active interpretations of a particular locale.
-  For details, see the Isar Reference manual.
-
-* Locales: INCOMPATIBILITY: experimental command "instantiate" has
-  been withdrawn.  Use "interpret" instead.
-
-* Locales: proper static binding of attribute syntax -- i.e. types /
-  terms / facts mentioned as arguments are always those of the locale
-  definition context, independently of the context of later
-  invocations.  Moreover, locale operations (renaming and type / term
-  instantiation) are applied to attribute arguments as expected.
-
-  INCOMPATIBILITY of the ML interface: always pass Attrib.src instead
-  of actual attributes; rare situations may require Attrib.attribute
-  to embed those attributes into Attrib.src that lack concrete syntax.
-
-  Attribute implementations need to cooperate properly with the static
-  binding mechanism.  Basic parsers Args.XXX_typ/term/prop and
-  Attrib.XXX_thm etc. already do the right thing without further
-  intervention.  Only unusual applications -- such as "where" or "of"
-  (cf. src/Pure/Isar/attrib.ML), which process arguments depending
-  both on the context and the facts involved -- may have to assign
-  parsed values to argument tokens explicitly.
-
-* Attributes 'induct' and 'cases': type or set names may now be
-  locally fixed variables as well.
-
-* Isar: new syntax 'name(i-j, i-, i, ...)' for referring to specific
-  selections of theorems in named facts via indices.
-
-* Pure: reorganized bootstrapping of the Pure theories; CPure is now
-  derived from Pure, which contains all common declarations already.
-  Both theories are defined via plain Isabelle/Isar .thy files.
-  INCOMPATIBILITY: elements of CPure (such as the CPure.intro /
-  CPure.elim / CPure.dest attributes) now appear in the Pure name
-  space; use isatool fixcpure to adapt your theory and ML sources.
-
-* Provers/simplifier.ML has been moved to Pure, where Simplifier.setup
-  is peformed already.  Object-logics merely need to finish their
-  initial simpset configuration as before.
+prints the last 100 theorems matching the pattern "(_::nat) + _ + _",
+matching the current goal as introduction rule and not having "HOL."
+in their name (i.e. not being defined in theory HOL).
 
 
 *** Document preparation ***
+
+* Commands 'display_drafts' and 'print_drafts' perform simple output
+of raw sources.  Only those symbols that do not require additional
+LaTeX packages (depending on comments in isabellesym.sty) are
+displayed properly, everything else is left verbatim.  isatool display
+and isatool print are used as front ends (these are subject to the
+DVI/PDF_VIEWER and PRINT_COMMAND settings, respectively).
+
+* There is now a flag to control hiding of proofs and some other
+commands (such as 'ML' or 'parse/print_translation') in document
+output.  Hiding is enabled by default, and can be disabled by the
+option '-H false' of isatool usedir or by resetting the reference
+variable IsarOutput.hide_commands in ML.  Additional commands to be
+hidden may be declared using IsarOutput.add_hidden_commands.
 
 * Several new antiquotation:
 
@@ -205,260 +63,411 @@ New in this Isabelle release
 
   @{typeof term} prints the type of a term;
 
-  @{const const} is the same as @{term const}, but checks
-    that the argument is a known logical constant;
+  @{const const} is the same as @{term const}, but checks that the
+  argument is a known logical constant;
 
   @{term_style style term} and @{thm_style style thm} print a term or
-    theorem applying a "style" to it
+  theorem applying a "style" to it
 
-  Predefined styles are "lhs" and "rhs" printing the lhs/rhs of
-  definitions, equations, inequations etc. and "conclusion" printing
-  only the conclusion of a meta-logical statement theorem.  Styles may
-  be defined via TermStyle.add_style in ML.  See the "LaTeX Sugar"
-  document for more information.
+Predefined styles are 'lhs' and 'rhs' printing the lhs/rhs of
+definitions, equations, inequations etc., 'concl' printing only the
+conclusion of a meta-logical statement theorem, and 'prem1' .. 'prem9'
+to print the specified premise.  TermStyle.add_style provides an ML
+interface for introducing further styles.  See also the "LaTeX Sugar"
+document practical applications.
+
+
+*** Pure ***
+
+* Considerably improved version of 'constdefs' command.  Now performs
+automatic type-inference of declared constants; additional support for
+local structure declarations (cf. locales and HOL records), see also
+isar-ref manual.  Potential INCOMPATIBILITY: need to observe strictly
+sequential dependencies of definitions within a single 'constdefs'
+section; moreover, the declared name needs to be an identifier.  If
+all fails, consider to fall back on 'consts' and 'defs' separately.
+
+* Improved indexed syntax and implicit structures.  First of all,
+indexed syntax provides a notational device for subscripted
+application, using the new syntax \<^bsub>term\<^esub> for arbitrary
+expressions.  Secondly, in a local context with structure
+declarations, number indexes \<^sub>n or the empty index (default
+number 1) refer to a certain fixed variable implicitly; option
+show_structs controls printing of implicit structures.  Typical
+applications of these concepts involve record types and locales.
+
+* New command 'no_syntax' removes grammar declarations (and
+translations) resulting from the given syntax specification, which is
+interpreted in the same manner as for the 'syntax' command.
+
+* 'Advanced' translation functions (parse_translation etc.) may depend
+on the signature of the theory context being presently used for
+parsing/printing, see also isar-ref manual.
+
+* Improved internal renaming of symbolic identifiers -- attach primes
+instead of base 26 numbers.
+
+* New flag show_question_marks controls printing of leading question
+marks in schematic variable names.
+
+* In schematic variable names, *any* symbol following \<^isub> or
+\<^isup> is now treated as part of the base name.  For example, the
+following works without printing of awkward ".0" indexes:
+
+  lemma "x\<^isub>1 = x\<^isub>2 ==> x\<^isub>2 = x\<^isub>1"
+    by simp
+
+* Inner syntax includes (*(*nested*) comments*).
+
+* Pretty pinter now supports unbreakable blocks, specified in mixfix
+annotations as "(00...)".
+
+* Clear separation of logical types and nonterminals, where the latter
+may only occur in 'syntax' specifications or type abbreviations.
+Before that distinction was only partially implemented via type class
+"logic" vs. "{}".  Potential INCOMPATIBILITY in rare cases of improper
+use of 'types'/'consts' instead of 'nonterminals'/'syntax'.  Some very
+exotic syntax specifications may require further adaption
+(e.g. Cube/Base.thy).
+
+* Removed obsolete type class "logic", use the top sort {} instead.
+Note that non-logical types should be declared as 'nonterminals'
+rather than 'types'.  INCOMPATIBILITY for new object-logic
+specifications.
+
+* Simplifier: can now control the depth to which conditional rewriting
+is traced via the PG menu Isabelle -> Settings -> Trace Simp Depth
+Limit.
+
+* Simplifier: simplification procedures may now take the current
+simpset into account (cf. Simplifier.simproc(_i) / mk_simproc
+interface), which is very useful for calling the Simplifier
+recursively.  Minor INCOMPATIBILITY: the 'prems' argument of simprocs
+is gone -- use prems_of_ss on the simpset instead.  Moreover, the
+low-level mk_simproc no longer applies Logic.varify internally, to
+allow for use in a context of fixed variables.
+
+* thin_tac now works even if the assumption being deleted contains !!
+or ==>.  More generally, erule now works even if the major premise of
+the elimination rule contains !! or ==>.
+
+* Reorganized bootstrapping of the Pure theories; CPure is now derived
+from Pure, which contains all common declarations already.  Both
+theories are defined via plain Isabelle/Isar .thy files.
+INCOMPATIBILITY: elements of CPure (such as the CPure.intro /
+CPure.elim / CPure.dest attributes) now appear in the Pure name space;
+use isatool fixcpure to adapt your theory and ML sources.
+
+* New syntax 'name(i-j, i-, i, ...)' for referring to specific
+selections of theorems in named facts via index ranges.
+
+
+*** Locales ***
+  
+* New commands for the interpretation of locale expressions in
+theories ('interpretation') and proof contexts ('interpret').  These
+take an instantiation of the locale parameters and compute proof
+obligations from the instantiated specification.  After the
+obligations have been discharged, the instantiated theorems of the
+locale are added to the theory or proof context.  Interpretation is
+smart in that already active interpretations do not occur in proof
+obligations, neither are instantiated theorems stored in duplicate.
+Use print_interps to inspect active interpretations of a particular
+locale.  For details, see the Isar Reference manual.
+
+INCOMPATIBILITY: former 'instantiate' has been withdrawn, use
+'interpret' instead.
+
+* Proper static binding of attribute syntax -- i.e. types / terms /
+facts mentioned as arguments are always those of the locale definition
+context, independently of the context of later invocations.  Moreover,
+locale operations (renaming and type / term instantiation) are applied
+to attribute arguments as expected.
+
+INCOMPATIBILITY of the ML interface: always pass Attrib.src instead of
+actual attributes; rare situations may require Attrib.attribute to
+embed those attributes into Attrib.src that lack concrete syntax.
+Attribute implementations need to cooperate properly with the static
+binding mechanism.  Basic parsers Args.XXX_typ/term/prop and
+Attrib.XXX_thm etc. already do the right thing without further
+intervention.  Only unusual applications -- such as "where" or "of"
+(cf. src/Pure/Isar/attrib.ML), which process arguments depending both
+on the context and the facts involved -- may have to assign parsed
+values to argument tokens explicitly.
+
+* New context element "constrains" adds type constraints to parameters --
+there is no logical significance.
+
+* Context expressions: renaming parameters permits syntax
+redeclaration as well.
+
+* Locale definition: 'includes' now disallowed.
+
+* Changed parameter management in theorem generation for long goal
+statements with 'includes'.  INCOMPATIBILITY: produces a different
+theorem statement in rare situations.
+
+* Attributes 'induct' and 'cases': type or set names may now be
+locally fixed variables as well.
 
 * Antiquotations now provide the option 'locale=NAME' to specify an
-  alternative context used for evaluating and printing the subsequent
-  argument, as in @{thm [locale=LC] fold_commute}, for example.
+alternative context used for evaluating and printing the subsequent
+argument, as in @{thm [locale=LC] fold_commute}, for example.
 
-* Commands 'display_drafts' and 'print_drafts' perform simple output
-  of raw sources.  Only those symbols that do not require additional
-  LaTeX packages (depending on comments in isabellesym.sty) are
-  displayed properly, everything else is left verbatim.  We use
-  isatool display and isatool print as front ends; these are subject
-  to the DVI/PDF_VIEWER and PRINT_COMMAND settings, respectively.
 
-* Proof scripts as well as some other commands such as ML or
-  parse/print_translation can now be hidden in the document.  Hiding
-  is enabled by default, and can be disabled either via the option '-H
-  false' of isatool usedir or by resetting the reference variable
-  IsarOutput.hide_commands. Additional commands to be hidden may be
-  declared using IsarOutput.add_hidden_commands.
+*** Provers ***
+
+* Provers/hypsubst.ML: improved version of the subst method, for
+single-step rewriting: it now works in bound variable contexts. New is
+'subst (asm)', for rewriting an assumption.  INCOMPATIBILITY: may
+rewrite a different subterm than the original subst method, which is
+still available as 'simplesubst'.
+
+* Provers/quasi.ML: new transitivity reasoners for transitivity only
+and quasi orders.
+
+* Provers/trancl.ML: new transitivity reasoner for transitive and
+reflexive-transitive closure of relations.
+
+* Provers/blast.ML: new reference depth_limit to make blast's depth
+limit (previously hard-coded with a value of 20) user-definable.
+
+* Provers/simplifier.ML has been moved to Pure, where Simplifier.setup
+is peformed already.  Object-logics merely need to finish their
+initial simpset configuration as before.  INCOMPATIBILITY.
 
 
 *** HOL ***
 
-* Datatype induction via method `induct' now preserves the name of the
-  induction variable. For example, when proving P(xs::'a list) by induction
-  on xs, the induction step is now P(xs) ==> P(a#xs) rather than
-  P(list) ==> P(a#list) as previously.
-
-* HOL/record: reimplementation of records. Improved scalability for
-  records with many fields, avoiding performance problems for type
-  inference. Records are no longer composed of nested field types, but
-  of nested extension types. Therefore the record type only grows
-  linear in the number of extensions and not in the number of fields.
-  The top-level (users) view on records is preserved.  Potential
-  INCOMPATIBILITY only in strange cases, where the theory depends on
-  the old record representation. The type generated for a record is
-  called <record_name>_ext_type.
-
-* HOL/record: Reference record_quick_and_dirty_sensitive can be
-  enabled to skip the proofs triggered by a record definition or a
-  simproc (if quick_and_dirty is enabled). Definitions of large
-  records can take quite long.
-
-* HOL/record: "record_upd_simproc" for simplification of multiple
-  record updates enabled by default.  Moreover, trivial updates are
-  also removed: r(|x := x r|) = r.  INCOMPATIBILITY: old proofs break
-  occasionally, since simplification is more powerful by default.
-
-* HOL: symbolic syntax of Hilbert Choice Operator is now as follows:
+* Symbolic syntax of Hilbert Choice Operator is now as follows:
 
   syntax (epsilon)
     "_Eps" :: "[pttrn, bool] => 'a"    ("(3\<some>_./ _)" [0, 10] 10)
 
-  The symbol \<some> is displayed as the alternative epsilon of LaTeX
-  and x-symbol; use option '-m epsilon' to get it actually printed.
-  Moreover, the mathematically important symbolic identifier
-  \<epsilon> becomes available as variable, constant etc.
+The symbol \<some> is displayed as the alternative epsilon of LaTeX
+and x-symbol; use option '-m epsilon' to get it actually printed.
+Moreover, the mathematically important symbolic identifier \<epsilon>
+becomes available as variable, constant etc.  INCOMPATIBILITY,
 
-* HOL: "x > y" abbreviates "y < x" and "x >= y" abbreviates "y <= x".
-  Similarly for all quantifiers: "ALL x > y" etc.  The x-symbol for >=
-  is \<ge>.
+* "x > y" abbreviates "y < x" and "x >= y" abbreviates "y <= x".
+Similarly for all quantifiers: "ALL x > y" etc.  The x-symbol for >=
+is \<ge>.
 
-* HOL/Set: "{x:A. P}" abbreviates "{x. x:A & P}" (and similarly for
-  "\<in>" instead of ":").
+* "{x:A. P}" abbreviates "{x. x:A & P}", and similarly for "\<in>"
+instead of ":".
 
-* HOL/SetInterval: The syntax for open intervals has changed:
+* theory SetInterval: changed the syntax for open intervals:
 
-  Old         New
-  {..n(}   -> {..<n}
-  {)n..}   -> {n<..}
-  {m..n(}  -> {m..<n}
-  {)m..n}  -> {m<..n}
-  {)m..n(} -> {m<..<n}
+  Old       New
+  {..n(}    {..<n}
+  {)n..}    {n<..}
+  {m..n(}   {m..<n}
+  {)m..n}   {m<..n}
+  {)m..n(}  {m<..<n}
 
-  The old syntax is still supported but will disappear in the future.
-  For conversion use the following emacs search and replace patterns:
+The old syntax is still supported but will disappear in the next
+release.  For conversion use the following Emacs search and replace
+patterns (these are not perfect but work quite well):
 
   {)\([^\.]*\)\.\.  ->  {\1<\.\.}
   \.\.\([^(}]*\)(}  ->  \.\.<\1}
 
-  They are not perfect but work quite well.
+* theory Finite_Set: changed the syntax for 'setsum', summation over
+finite sets: "setsum (%x. e) A", which used to be "\<Sum>x:A. e", is
+now either "SUM x:A. e" or "\<Sum>x \<in> A. e".
 
-* HOL: The syntax for 'setsum', summation over finite sets, has changed:
+Some new syntax forms are available:
 
-  The syntax for 'setsum (%x. e) A' used to be '\<Sum>x:A. e'
-  and is now either 'SUM x:A. e' or '\<Sum>x\<in>A. e'.
+  "\<Sum>x | P. e"      for     "setsum (%x. e) {x. P}"
+  "\<Sum>x = a..b. e"   for     "setsum (%x. e) {a..b}"
+  "\<Sum>x = a..<b. e"  for     "setsum (%x. e) {a..<b}"
+  "\<Sum>x < k. e"      for     "setsum (%x. e) {..<k}"
 
-  There is new syntax for summation over finite sets:
+The latter form "\<Sum>x < k. e" used to be based on a separate
+function "Summation", which has been discontinued.
 
-  '\<Sum>x | P. e'    is the same as  'setsum (%x. e) {x. P}'
-  '\<Sum>x=a..b. e'   is the same as  'setsum (%x. e) {a..b}'
-  '\<Sum>x=a..<b. e'  is the same as  'setsum (%x. e) {a..<b}'
-  '\<Sum>x<k. e'      is the same as  'setsum (%x. e) {..<k}'
+* theory Finite_Set: in structured induction proofs, the insert case
+is now 'case (insert x F)' instead of the old counterintuitive 'case
+(insert F x)'.
 
-  Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
-  now translates into 'setsum' as above.
+* The 'refute' command has been extended to support a much larger
+fragment of HOL, including axiomatic type classes, constdefs and
+typedefs, inductive datatypes and recursion.
 
-* HOL: Finite set induction: In Isar proofs, the insert case is now
-  "case (insert x F)" instead of the old counterintuitive "case (insert F x)".
+* Datatype induction via method 'induct' now preserves the name of the
+induction variable. For example, when proving P(xs::'a list) by
+induction on xs, the induction step is now P(xs) ==> P(a#xs) rather
+than P(list) ==> P(a#list) as previously.  Potential INCOMPATIBILITY
+in unstructured proof scripts.
 
-* HOL/Simplifier:
+* Reworked implementation of records.  Improved scalability for
+records with many fields, avoiding performance problems for type
+inference. Records are no longer composed of nested field types, but
+of nested extension types. Therefore the record type only grows linear
+in the number of extensions and not in the number of fields.  The
+top-level (users) view on records is preserved.  Potential
+INCOMPATIBILITY only in strange cases, where the theory depends on the
+old record representation. The type generated for a record is called
+<record_name>_ext_type.
 
-  - Is now set up to reason about transitivity chains involving "trancl"
-  (r^+) and "rtrancl" (r^*) by setting up tactics provided by
-  Provers/trancl.ML as additional solvers.  INCOMPATIBILITY: old proofs break
-  occasionally as simplification may now solve more goals than previously.
+Flag record_quick_and_dirty_sensitive can be enabled to skip the
+proofs triggered by a record definition or a simproc (if
+quick_and_dirty is enabled).  Definitions of large records can take
+quite long.
 
-  - Converts x <= y into x = y if assumption y <= x is present.  Works for
-  all partial orders (class "order"), in particular numbers and sets. For
-  linear orders (e.g. numbers) it treats ~ x < y just like y <= x.
+New simproc record_upd_simproc for simplification of multiple record
+updates enabled by default.  Moreover, trivial updates are also
+removed: r(|x := x r|) = r.  INCOMPATIBILITY: old proofs break
+occasionally, since simplification is more powerful by default.
 
-  - Simproc for "let x = a in f x"
-  If a is a free or bound variable or a constant then the let is unfolded.
-  Otherwise first a is simplified to a', and then f a' is simplified to
-  g. If possible we abstract a' from g arriving at "let x = a' in g' x",
-  otherwise we unfold the let and arrive at g. The simproc can be 
-  enabled/disabled by the reference use_let_simproc. Potential
-  INCOMPATIBILITY since simplification is more powerful by default.
+* Simplifier: automatically reasons about transitivity chains
+involving "trancl" (r^+) and "rtrancl" (r^*) by setting up tactics
+provided by Provers/trancl.ML as additional solvers.  INCOMPATIBILITY:
+old proofs break occasionally as simplification may now solve more
+goals than previously.
 
-* HOL: The 'refute' command has been extended to support a much larger
-  fragment of HOL, including axiomatic type classes, constdefs and typedefs,
-  inductive datatypes and recursion.
+* Simplifier: converts x <= y into x = y if assumption y <= x is
+present.  Works for all partial orders (class "order"), in particular
+numbers and sets.  For linear orders (e.g. numbers) it treats ~ x < y
+just like y <= x.
+
+* Simplifier: new simproc for "let x = a in f x".  If a is a free or
+bound variable or a constant then the let is unfolded.  Otherwise
+first a is simplified to b, and then f b is simplified to g. If
+possible we abstract b from g arriving at "let x = b in h x",
+otherwise we unfold the let and arrive at g.  The simproc can be
+enabled/disabled by the reference use_let_simproc.  Potential
+INCOMPATIBILITY since simplification is more powerful by default.
 
 
 *** HOLCF ***
 
 * HOLCF: discontinued special version of 'constdefs' (which used to
-  support continuous functions) in favor of the general Pure one with
-  full type-inference.
+support continuous functions) in favor of the general Pure one with
+full type-inference.
 
 
 *** ZF ***
 
-* ZF/ex/{Group,Ring}: examples in abstract algebra, including the
-  First Isomorphism Theorem (on quotienting by the kernel of a
-  homomorphism).
+* ZF/ex: theories Group and Ring provide examples in abstract algebra,
+including the First Isomorphism Theorem (on quotienting by the kernel
+of a homomorphism).
 
 * ZF/Simplifier: install second copy of type solver that actually
-  makes use of TC rules declared to Isar proof contexts (or locales);
-  the old version is still required for ML proof scripts.
-
-
-*** System ***
-
-* Allow symlinks to all proper Isabelle executables (Isabelle,
-  isabelle, isatool etc.).
-
-* isabelle-process: Poly/ML no longer needs Perl to run an interactive
-  session.
-
-* ISABELLE_DOC_FORMAT setting specifies preferred document format (for
-  isatool doc, isatool mkdir, display_drafts etc.).
-
-* isatool usedir: option -f allows specification of the ML file to be
-  used by Isabelle; default is ROOT.ML.
-
-* HOL: isatool dimacs2hol converts files in DIMACS CNF format
-  (containing Boolean satisfiability problems) into Isabelle/HOL
-  theories.
+makes use of TC rules declared to Isar proof contexts (or locales);
+the old version is still required for ML proof scripts.
 
 
 *** ML ***
 
 * Pure/library.ML no longer defines its own option datatype, but uses
-  that of the SML basis, which has constructors NONE and SOME instead
-  of None and Some, as well as exception Option.Option instead of
-  OPTION.  The functions the, if_none, is_some, is_none have been
-  adapted accordingly, while Option.map replaces apsome.
+that of the SML basis, which has constructors NONE and SOME instead of
+None and Some, as well as exception Option.Option instead of OPTION.
+The functions the, if_none, is_some, is_none have been adapted
+accordingly, while Option.map replaces apsome.
 
 * The exception LIST has been given up in favour of the standard
-  exceptions Empty and Subscript, as well as Library.UnequalLengths.
-  Function like Library.hd and Library.tl are superceded by the
-  standard hd and tl functions etc.
+exceptions Empty and Subscript, as well as Library.UnequalLengths.
+Function like Library.hd and Library.tl are superceded by the standard
+hd and tl functions etc.
 
-  A number of basic functions are now no longer exported to the ML
-  toplevel, as they are variants of standard functions.  The following
-  suggests how one can translate existing code:
+A number of basic functions are now no longer exported to the ML
+toplevel, as they are variants of standard functions.  The following
+suggests how one can translate existing code:
 
     rev_append xs ys = List.revAppend (xs, ys)
     nth_elem (i, xs) = List.nth (xs, i)
     last_elem xs = List.last xs
     flat xss = List.concat xss
-    seq fs = app fs
+    seq fs = List.app fs
     partition P xs = List.partition P xs
     filter P xs = List.filter P xs
     mapfilter f xs = List.mapPartial f xs
 
 * Pure: output via the Isabelle channels of writeln/warning/error
-  etc. is now passed through Output.output, with a hook for arbitrary
-  transformations depending on the print_mode (cf. Output.add_mode --
-  the first active mode that provides a output function wins).
-  Already formatted output may be embedded into further text via
-  Output.raw; the result of Pretty.string_of/str_of and derived
-  functions (string_of_term/cterm/thm etc.) is already marked raw to
-  accommodate easy composition of diagnostic messages etc.
-  Programmers rarely need to care about Output.output or Output.raw at
-  all, with some notable exceptions: Output.output is required when
-  bypassing the standard channels (writeln etc.), or in token
-  translations to produce properly formatted results; Output.raw is
-  required when capturing already output material that will eventually
-  be presented to the user a second time.  For the default print mode,
-  both Output.output and Output.raw have no effect.
+etc. is now passed through Output.output, with a hook for arbitrary
+transformations depending on the print_mode (cf. Output.add_mode --
+the first active mode that provides a output function wins).  Already
+formatted output may be embedded into further text via Output.raw; the
+result of Pretty.string_of/str_of and derived functions
+(string_of_term/cterm/thm etc.) is already marked raw to accommodate
+easy composition of diagnostic messages etc.  Programmers rarely need
+to care about Output.output or Output.raw at all, with some notable
+exceptions: Output.output is required when bypassing the standard
+channels (writeln etc.), or in token translations to produce properly
+formatted results; Output.raw is required when capturing already
+output material that will eventually be presented to the user a second
+time.  For the default print mode, both Output.output and Output.raw
+have no effect.
+
+* Pure: print_tac now outputs the goal through the trace channel.
+
+* Isar debugging: new reference Toplevel.debug; default false.  Set to
+make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
 
 * Pure: name spaces have been refined, with significant changes of the
-  internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
-  to extern(_table).  The plain name entry path is superceded by a
-  general 'naming' context, which also includes the 'policy' to
-  produce a fully qualified name and external accesses of a fully
-  qualified name; NameSpace.extend is superceded by context dependent
-  Sign.declare_name.  Several theory and proof context operations
-  modify the naming context.  Especially note Theory.restore_naming
-  and ProofContext.restore_naming to get back to a sane state; note
-  that Theory.add_path is no longer sufficient to recover from
-  Theory.absolute_path in particular.
+internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
+to extern(_table).  The plain name entry path is superceded by a
+general 'naming' context, which also includes the 'policy' to produce
+a fully qualified name and external accesses of a fully qualified
+name; NameSpace.extend is superceded by context dependent
+Sign.declare_name.  Several theory and proof context operations modify
+the naming context.  Especially note Theory.restore_naming and
+ProofContext.restore_naming to get back to a sane state; note that
+Theory.add_path is no longer sufficient to recover from
+Theory.absolute_path in particular.
+
+* Pure: new flags short_names (default false) and unique_names
+(default true) for controlling output of qualified names.  If
+short_names is set, names are printed unqualified.  If unique_names is
+reset, the name prefix is reduced to the minimum required to achieve
+the original result when interning again, even if there is an overlap
+with earlier declarations.
 
 * Pure: cases produced by proof methods specify options, where NONE
-  means to remove case bindings -- INCOMPATIBILITY in
-  (RAW_)METHOD_CASES.
+means to remove case bindings -- INCOMPATIBILITY in
+(RAW_)METHOD_CASES.
 
 * Provers: Simplifier and Classical Reasoner now support proof context
-  dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
-  components are stored in the theory and patched into the
-  simpset/claset when used in an Isar proof context.  Context
-  dependent components are maintained by the following theory
-  operations:
+dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
+components are stored in the theory and patched into the
+simpset/claset when used in an Isar proof context.  Context dependent
+components are maintained by the following theory operations:
 
-    Simplifier.add_context_simprocs
-    Simplifier.del_context_simprocs
-    Simplifier.set_context_subgoaler
-    Simplifier.reset_context_subgoaler
-    Simplifier.add_context_looper
-    Simplifier.del_context_looper
-    Simplifier.add_context_unsafe_solver
-    Simplifier.add_context_safe_solver
+  Simplifier.add_context_simprocs
+  Simplifier.del_context_simprocs
+  Simplifier.set_context_subgoaler
+  Simplifier.reset_context_subgoaler
+  Simplifier.add_context_looper
+  Simplifier.del_context_looper
+  Simplifier.add_context_unsafe_solver
+  Simplifier.add_context_safe_solver
 
-    Classical.add_context_safe_wrapper
-    Classical.del_context_safe_wrapper
-    Classical.add_context_unsafe_wrapper
-    Classical.del_context_unsafe_wrapper
+  Classical.add_context_safe_wrapper
+  Classical.del_context_safe_wrapper
+  Classical.add_context_unsafe_wrapper
+  Classical.del_context_unsafe_wrapper
 
-  IMPORTANT NOTE: proof tools (methods etc.) need to use
-  local_simpset_of and local_claset_of to instead of the primitive
-  Simplifier.get_local_simpset and Classical.get_local_claset,
-  respectively, in order to see the context dependent fields!
+IMPORTANT NOTE: proof tools (methods etc.) need to use
+local_simpset_of and local_claset_of to instead of the primitive
+Simplifier.get_local_simpset and Classical.get_local_claset,
+respectively, in order to see the context dependent fields!
+
+
+*** System ***
+
+* Allow symlinks to all proper Isabelle executables (Isabelle,
+isabelle, isatool etc.).
+
+* ISABELLE_DOC_FORMAT setting specifies preferred document format (for
+isatool doc, isatool mkdir, display_drafts etc.).
+
+* isatool usedir: option -f allows specification of the ML file to be
+used by Isabelle; default is ROOT.ML.
+
+* HOL: isatool dimacs2hol converts files in DIMACS CNF format
+(containing Boolean satisfiability problems) into Isabelle/HOL
+theories.
 
 
 
