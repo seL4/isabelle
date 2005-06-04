@@ -350,8 +350,6 @@ class TransformerHandler(ContentHandler, EntityResolver):
 
     def processingInstruction(self, target, data):
 
-        print '*', target
-        print '*', data
         self.closeLastStart()
         self.flushCharacterBuffer()
         func = getattr(self._func, target)
