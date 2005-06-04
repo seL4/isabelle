@@ -1,0 +1,69 @@
+/************************************************************
+ * Stylesheet Isabelle (print media)                        *
+ ************************************************************/
+
+/* $Id$ */
+
+@namespace url(http://www.w3.org/1999/xhtml); /* DOES ANYONE KNOW WHAT'S THAT ABOUT!? */
+
+/* use times font for floating text */
+p, body, th, td {
+    font-family: Times New Roman,times,serif;
+}
+
+/* body margin */
+body {
+    margin: 4pt;
+}
+
+/* no rulers (they are just a supplemental for non-css browsers) */
+hr {
+    display: none;
+    visibility: hidden;
+    height: 0pt;
+    width: 0pt;
+}
+
+/* header layout */
+div#header {
+    position: relative;
+    height: 94px; 
+    background-color: #FFFFFF;
+}
+
+div#header h1 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+}
+
+div#header a#isabelle_logo {
+    position: absolute;
+    right: 0px;
+}
+
+div#header a#univ_tum {
+    display: none;
+}
+
+div#header a#univ_cambridge {
+    display: none;
+}
+
+div#header span.headersep {
+    display: none;
+}
+
+/* navigation layout */
+div#navigation {
+    display: none;
+}
+
+/* footer layout */
+div#footer {
+    position: relative;
+    top: 8px;
+    clear: both;
+    border-top: 2px solid #000000;
+}

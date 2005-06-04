@@ -1,0 +1,113 @@
+/************************************************************
+ * Stylesheet Isabelle (screen media)                       *
+ ************************************************************/
+
+/* $Id$ */
+
+@namespace url(http://www.w3.org/1999/xhtml); /* DOES ANYONE KNOW WHAT'S THAT ABOUT!? */
+
+/* no rulers (they are just a supplemental for non-css browsers) */
+hr {
+    display: none;
+    visibility: hidden;
+    height: 0pt;
+    width: 0pt;
+}
+
+div.hr {
+    /* a special for KHTML */
+    display: none;
+}
+
+/* header layout */
+div#header {
+    position: relative;
+    height: 90pt; 
+    background-color: #FFFFFF;
+}
+
+div#header h1 {
+    /* center between logos */
+    position: absolute;
+    top: 27px;
+    left: 200px;
+    right: 270px;
+    margin: 0px;
+}
+
+div#header a#isabelle_logo {
+    position: absolute;
+    top: 10px;
+    left: 3.2ex;
+}
+
+div#header a#univ_tum {
+    position: absolute;
+    top: 25px;
+    right: 40px;
+}
+
+div#header a#univ_cambridge {
+    position: absolute;
+    top: 25px;
+    right: 130px;
+}
+
+div#header span.headersep {
+    display: none;
+}
+
+/* navigation layout */
+div#navigation {
+    position: relative;
+    top: 2em;
+    left: 1ex;
+    bottom: 4px;
+    padding: 0.5em 0.5em;
+    float: left;
+    width: 15ex;
+    background-color: #FFFFFF;
+    border-top: 2px solid #0000A0;
+    border-bottom: 2px solid #0000A0;
+}
+
+div#navigation h2 {
+    display: none;
+}
+
+/* footer layout */
+div#footer {
+    margin-top: 2em;
+}
+
+/* content layout */
+div#content {
+    position: static;
+    left: 4px;
+    margin-left: 23ex;
+    margin-right: 3%;
+    background-color: #E0E0F0;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+}
+
+div#content h2 { 
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-top: 0.2ex;
+    padding-bottom: 0.2ex;
+    border-bottom: 1ex solid #E0E0F0;
+}
+
+div#content h3 { 
+    margin-right: -20px;
+    padding-top: 0.4ex;
+    padding-bottom: 0.2ex;
+    padding-left: 10px;
+}
+
+body.dist div#content {
+    /* not needed now */
+}

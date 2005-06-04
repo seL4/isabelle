@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='iso-8859-1' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?cvs id="$Id$"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Logics</title>
+    <?include file="//include/htmlheader.include.html"?>
+</head>
+
+<body class="main">
+    <?include file="//include/header.include.html"?>
+    <div class="hr"><hr/></div>
+    <?include file="//include/navigation.include.html"?>
+    <div class="hr"><hr/></div>
+    <div id="content">
+      <h2>Isabelle's Logics</h2>
+      <p>Isabelle can be viewed from two main
+      perspectives. On the one hand it may serve as a generic framework for rapid
+      prototyping of deductive systems. On the other hand, major existing logics
+      like <a href="#isabelle_hol"><em>Isabelle/HOL</em></a>
+      provide a theorem proving environment
+      ready to use for sizable applications.</p>    
+      
+      <p>The Isabelle distribution includes a large body of
+      object logics and other examples (see the <a href=
+      "library/index.html">Isabelle theory library</a>).</p>
+    
+      <dl>
+        <dt id="isabelle_hol"><a href="library/HOL/index.html">Isabelle/HOL</a></dt>
+        <dd>is a version of classical higher-order logic resembling that of the
+        <a href="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</a>. The
+        main libraries of the HOL 4 System are now <a href=
+        "library/HOL/HOL-Complex/HOL4/index.html">available in Isabelle</a>.</dd>
+    
+        <dt><a href=
+        "library/HOLCF/index.html">Isabelle/HOLCF</a></dt>
+        <dd>adds Scott's Logic for Computable Functions (domain theory) to
+        HOL.</dd>
+    
+        <dt><a href="library/FOL/index.html">Isabelle/FOL</a></dt>
+        <dd>provides basic classical and intuitionistic first-order logic. It is
+        polymorphic.</dd>
+    
+        <dt><a href="library/ZF/index.html">Isabelle/ZF</a></dt>
+            <dd>offers a formulation of Zermelo-Fraenkel set theory on top of FOL.</dd>
+      </dl>
+
+      <p><em>Isabelle/HOL</em> is currently the best developed object logic, including an
+      extensive library of (concrete) mathematics, and various packages for
+      advanced definitional concepts like (co-)inductive sets and types,
+      well-founded recursion etc. The distribution also includes some large
+      applications, for example correctness proofs of cryptographic protocols
+      (<a href="library/HOL/Auth/index.html">HOL/Auth</a>) or communication
+      protocols (<a href="library/HOLCF/IOA/index.html">HOLCF/IOA</a>).</p>
+    
+      <p><em>Isabelle/ZF</em> provides another starting point for applications, with a
+      slightly less developed library. Its definitional packages are similar to
+      those of Isabelle/HOL. Untyped ZF provides more advanced constructions for
+      sets than simply-typed HOL.</p>
+    
+      <p>There are a few minor object logics that may serve as further examples:
+      <a href="library/CTT/index.html">CTT</a> is an extensional version of
+      Martin-L&ouml;f's Type Theory, <a href="library/Cube/index.html">Cube</a> is
+      Barendregt's Lambda Cube. There are also some sequent calculus examples under
+      <a href="library/Sequents/index.html">Sequents</a>, including modal and
+      linear logics. Again see the <a href="library/index.html">Isabelle theory
+      library</a> for other examples.</p>
+    
+      <h2>Defining Logics</h2>
+
+      <p>Logics are not hard-wired into Isabelle, but
+      formulated within Isabelle's meta logic: <em>Isabelle/Pure</em>.
+      There are quite a lot of syntactic and deductive tools available in generic
+      Isabelle. Thus defining new logics or extending existing ones basically works
+      as follows:</p>
+    
+      <ol>
+        <li>declare concrete syntax (via mixfix grammar and syntax macros)</li>
+        <li>declare abstract syntax (as higher-order constants)</li>
+        <li>declare inference rules (as meta-logical propositions)</li>
+        <li>instantiate generic automatic proof tools (simplifier, classical
+        tableau prover etc.)</li>
+        <li>manually code special proof procedures (via tacticals or hand-written
+        ML)</li>
+      </ol>
+      
+      <p>The first three steps above are fully declarative and involve no ML
+      programming at all. Thus one already gets a decent deductive environment
+      based on primitive inferences (by employing the built-in mechanisms of
+      <em>Isabelle/Pure</em>, in particular higher-order unification and resolution). For
+      sizable applications some degree of automated reasoning is essential.
+      Instantiating existing tools like the classical tableau prover involves only
+      minimal ML-based setup. One may also write arbitrary proof procedures or even
+      theory extension packages in ML, without breaching system soundness (Isabelle
+      follows the well-known <em>LCF system approach</em> to achieve a secure
+      system).</p>
+    </div>
+    <div class="hr"><hr/></div>
+    <?include file="//include/footer.include.html"?>
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='iso-8859-1' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?cvs id="$Id$"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Installation instructions</title>
+    <?include file="//include/htmlheader.include.html"?>
+</head>
+
+<body class="dist">
+    <?include file="//include/header.include.html"?>
+    <div class="hr"><hr/></div>
+    <?include file="//include/navigation_dist.include.html"?>
+    <div class="hr"><hr/></div>
+    <div id="content">
+
+      <h2>Prerequisites</h2>
+      
+      <p>Isabelle runs on common Unix platforms (Linux, Solaris, etc.). 
+         Below we provide also some <a href="#other_platforms">hints</a>
+         on how to use Isabelle on other, not-quite-Unix platforms.</p>
+
+      <p>
+      The packages available from our <a href="download.html">download page</a>
+      expect the following software to be installed:
+      </p>
+          
+      <ul>
+        <li>bash 1.x or 2.x</li>
+        <li>Perl 5.x</li>
+        <li>optionally, XEmacs 21 or Emacs 21 with mule support (for ProofGeneral)</li>
+        <li>optionally, Java 1.1 or above (for theory graph browsing)</li>
+      </ul>
+
+      <p>
+      Our download page includes packages for a suitable implementation of Standard ML
+      (<a href="http://www.polyml.org">Poly/ML</a>) and      
+      <a
+      href="http://proofgeneral.inf.ed.ac.uk/">ProofGeneral</a>
+      (please <a
+      href="http://proofgeneral.inf.ed.ac.uk/register">register</a>). The
+      Proof General distribution now already includes the <a
+      href="http://x-symbol.sourceforge.net">X-Symbol</a> package, 
+      there is no need to download it separately.
+      </p>
+
+      <h2>Installation</h2>
+      
+      <p>In fact, there is no
+      installation required. Users may just unpack all required packages within the
+      same directory. The default settings of Isabelle should be reasonable for
+      most circumstances.</p>
+    
+      <p>A typical Linux/x86 site installation of Isabelle/HOL works as follows:</p>
+      <ul>
+        <li>By using GNU <tt>tar</tt>, the archives are uncompressed and unpacked into the
+            <tt>/usr/local</tt> directory (this location may be changed to anything
+            appropriate):
+            <blockquote>
+                <tt>tar -C /usr/local -xzf <?value key="distname"?>.tar.gz</tt><br />
+                <tt>tar -C /usr/local -xzf ProofGeneral.tar.gz</tt><br />
+                <tt>tar -C /usr/local -xzf polyml_base.tar.gz</tt><br />
+                <tt>tar -C /usr/local -xzf polyml_x86-linux.tar.gz</tt><br />
+                <tt>tar -C /usr/local -xzf HOL_x86-linux.tar.gz</tt><br />
+            </blockquote>
+        </li>
+        <li>
+          Users may now invoke Isabelle without further ado, e.g. run the main
+          executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the Proof
+          General interface for Isabelle/Isar. Note that there is a separate option in
+          the Proof General <em>Options</em> menu to enable X-Symbol.
+        </li>
+        <li>If Emacs appears to hang when the prover process is started, see the
+            <a href="http://proofgeneral.inf.ed.ac.uk/FAQ">ProofGeneral FAQ</a> for
+            advice.
+        </li>
+      </ul>
+
+      <p>For more information, see the file <a href="../isabelle/Isabelle/INSTALL">INSTALL</a> included in
+      <?value key="distname"?>.tar.gz.</p>
+
+      <h2 id="other_platforms">Other platforms</h2>
+    
+      <p>Although Isabelle is natively designed for Unix environments,
+      it may also run under similar, Unix-like platforms. The
+      following installation instructions are hints contributed by
+      Isabelle users.  Please feel free to contact us for any suggestions,
+      corrections or improvements.</p>
+    
+      <ul>
+        <li><a href="installation_notes_macosx.html">Installation notes for Mac OS
+        X</a></li>
+    
+        <li><a href="installation_notes_cygwin.html">Installation notes for
+        Cygwin/Windows</a></li>
+      </ul>
+
+    </div>
+    <div class="hr"><hr/></div>
+    <?include file="../include/footer.include.html"?>
+</body>
+
+</html>

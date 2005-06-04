@@ -1,0 +1,92 @@
+The Isabelle webpage
+====================
+
+(1) Philosophy
+==============
+
+The webpage sources consists of three differnt layers:
+
+a) the presentation layer
+-------------------------
+
+This is was the user actually sees; the slogan is
+
+    "structural XHTML plus with CSS"
+
+There are three different groups of end-user agents (browsers)
+
+ 1) "practical non-CSS" browsers (lynx, netscape4)
+    These just display plain HTML
+ 2) "more-or-less-w3c-CSS" browsers (KHTML/Konqueror/Safari, Internet Explorer)
+    These are able to display the pages almost as they should be,
+    but perhaps with some minor warts.
+ 3) "almost-w3-CSS" browsers (Mozilla/Firefox/Galeone)
+    These are the "reference implementation" for the layout
+
+b) the project layer
+--------------------
+
+This manages the dependencies between files; the tool of choice
+is
+
+    "make plus shell scripting"
+
+Project settings may be configured using a seperate configuration
+file
+
+c) the preprocessing layer
+--------------------------
+
+This allows to use things like includes, current date and so on:
+
+    "XHTML plus processing instructions"
+
+Note that this is almosz not interwoven with b), to keep it as robust
+and simple as possible.
+
+The layer itself is implemented by a small tool "pypager", written in python.
+
+
+(2) writing your own pages
+==========================
+
+You may add arbitrary files to the dir structure, but adhere to the following:
+* use XHTML, not loose HTML
+* no structural markup; of you need layout effects, use CSS
+* any files ending with .html are considered as HTML files and are implicitly
+  processed by the preprocessing layer
+* for HTML includes, it is most convenient to name them *.include.html
+* whole dirs maybe selected for statically copying them to the target destination
+  by configuring the project layer 
+
+
+(3) using the project layer framework
+=====================================
+
+To configure it the first time after checkout, just type
+> make phase=init
+
+Then, you may edit the project configuration file conf/localconf.mak.
+After a correct configuration, the build process may be started by
+> make
+
+The project layer tries to be smart about dependencies, but inlucdes,
+embedded images and so on are not tracked; to built dependencies anew,
+do
+> make depends
+
+After adding or deleting files, an
+> make depends
+may also be neccessary. The same after changing something in the configuration.
+
+If nothing seems to be sensible any more, try
+> make clean
+> make depends
+> make
+
+
+(4) project-specific remarks
+============================
+
+* the site is not monolithic
+* it must fit neatlessly into the Isabelle distribution and regression framework

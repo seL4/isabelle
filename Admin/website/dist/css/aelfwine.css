@@ -1,0 +1,725 @@
+/************************************************************
+ * Stylesheet AElfwine                                      *
+ ************************************************************
+ *                                                          *
+ * This has been collected from various sources.            *
+ *                                                          *
+ * Version 1.0 - 2005/05/01 - f.h.                          *
+ *                                                          *
+ * ...aiming for perfection ;-)                             *
+ *                                                          *
+ ************************************************************/
+
+@namespace url(http://www.w3.org/1999/xhtml); /* DOES ANYONE KNOW WHAT'S THAT ABOUT!? */
+
+/* base paragraph and heading types */
+h1 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          2.20em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         center;
+    white-space:        normal;
+
+    margin-top:         0.62em;
+    margin-bottom:      0.31em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+h2 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1.77em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         center;
+    white-space:        normal;
+
+    margin-top:         0.40em;
+    margin-bottom:      0.20em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+h3 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1.57em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         left;
+    white-space:        normal;
+
+    margin-top:         0.32em;
+    margin-bottom:      0.10em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+h4 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1.47em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         left;
+    white-space:        normal;
+
+    margin-top:         0.29em;
+    margin-bottom:      0.05em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+h5 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1.18em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         left;
+    white-space:        normal;
+
+    margin-top:         0.27em;
+    margin-bottom:      0.03em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+h6 {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1em;
+    font-weight:        bold;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    text-align:         left;
+    white-space:        normal;
+
+    margin-top:         0.25em;
+    margin-bottom:      0.00em;
+    margin-left:        0.00px;
+    margin-right:       0.00px;
+}
+
+p, body, th, td {
+    display:            block;
+
+    font-family:        Arial,Helvetica,Verdana,sans-serif;
+    font-style:         normal;
+    font-variant:       normal;
+    font-size:          1.00em;
+    font-weight:        normal;
+    font-stretch:       normal;
+    text-decoration:    none;
+    text-transform:     none;
+    color:              #000000; 
+    text-shadow:        none;
+
+    text-indent:        0.00px;
+    white-space:        normal;
+
+}
+
+p {
+    text-align:         justify;
+    margin-top:         0.20em;
+    margin-bottom:      0.20em;
+}
+
+/* text markup */
+
+em {
+    font-style:         italic;
+}
+
+strong {
+    font-weight:        bold;
+}
+
+del {
+    text-decoration:    line-through;
+}
+
+ins {
+    text-decoration:    underline;
+}
+
+/* text format */
+
+sub {
+    vertical-align: sub;
+    font-size: smaller;
+    line-height: normal;
+}
+
+sup {
+    vertical-align: super;
+    font-size: smaller;
+    line-height: normal;
+}
+
+big {
+    font-size: larger;
+}
+
+small {
+    font-size: smaller;
+}
+
+tt {
+    font-family: Courier New,monospace;
+}
+
+pre {
+    display: block;
+    font-family: Courier New,monospace;
+    white-space: pre;
+    margin: 1em 1em;
+}
+
+/* ruler */
+
+hr {
+    display: block;
+    margin: 0 auto 0 auto;
+}
+
+/* document */
+
+html {
+    display:            block;
+}
+
+body {
+    display:            block;
+    /* KHTML background:         #FFFFEE; */
+    margin:             8px;
+}
+
+/* blocks */
+
+div {
+    display:            block;
+}
+
+address {
+    display:            block;
+    font-style:         italic;
+}
+
+blockquote {
+    display:            block;
+    margin:             1em 40px;
+}
+
+blockquote[type=cite] {
+    display:            block;
+    margin:             1em 0em;
+    padding-left:       1em;
+    border-left:        solid;
+    border-color:       blue;
+    border-width:       thin;
+}
+
+/* spans */
+
+span {
+    display:            inline;
+}
+
+abbr, acronym {
+    display:            inline;
+}
+
+cite, q {
+    display:            inline;
+    font-style:         italic;
+}
+
+code, var, kbd {
+    font-family:        Courier New,monospace;
+    display:            inline;
+}
+
+dfn {
+    display:            inline;
+    font-style:         italic;
+    font-weight:        bold;
+}
+
+samp {
+    display:            inline;
+}
+
+/* tables */
+
+table {
+    display:            table;
+    margin:             0px;
+    padding:            0px;
+    border-spacing:     1px;
+    border-collapse:    separate;
+}
+
+table[align="left"] {
+    float:              left;
+}
+
+table[align="right"] {
+    float:              right;
+}
+
+caption {
+    display:            table-caption;
+}
+
+colgroup {
+    display:            table-column-group;
+}
+
+col {
+    display:            table-column;
+}
+
+thead {
+    display:            table-header-group;
+    vertical-align:     middle;
+}
+
+tbody {
+    display:            table-row-group;
+}
+
+tfoot {
+    display:            table-footer-group;
+    vertical-align:     middle;
+}
+
+tr {
+    display:            table-row;
+}
+
+th {
+    display:            table-cell;
+    font-weight:        bold;
+    padding:            1px;
+}
+
+td { 
+    display:            table-cell;
+    padding:            1px;
+}
+
+/* lists */
+
+ul {
+    display:            block;
+    list-style-type:    disc;
+    margin:             1em 0em;
+    padding-left:       40px;
+}
+
+ol {
+    display:            block;
+    list-style-type:    decimal;
+    margin:             1em 0em;
+    padding-left:       40px;
+}
+
+dl {
+    display:            block;
+    margin:             1em 0em;
+}
+
+dt {
+    display:            block;
+    margin-left:        1em;
+}
+
+dd {
+    display:            block;
+    margin-left:        3em;
+}
+
+li {
+    display:            list-item;
+}
+
+/* nested lists have no top/bottom margins */
+ul ul, ul ol, ul dl,
+ol ul, ol ol, ol dl,
+dl ul, dl ol, dl dl {
+    margin-top:         0;
+    margin-bottom:      0;
+}
+
+/* 2 deep unordered lists use a circle */
+ol ul, ul ul {
+    list-style-type:    circle;
+}
+
+/* 3 deep (or more) unordered lists use a square */
+ol ol ul, ol ul ul,
+ul ol ul, ul ul ul {
+  list-style-type:      square;
+}
+
+/* hyperlinks */
+
+a:link {
+    color:              #FF0000;
+}
+
+a:visited {
+    color:              #FF6600;
+}
+
+a:hover {
+    color:              #FF0000;
+}
+
+a:active {
+    color:              #FF0000;
+}
+
+a:focus {
+    color:              #FF0000;
+}
+
+a[name]:link, a[id]:link:not([href]) {
+    color:              #000000;
+}
+
+a[name]:hover, a[id]:hover:not([href]) {
+    color:              #000000;
+}
+
+a[name]:active, a[id]:active:not([href]) {
+    color:              #000000;
+}
+
+a[name]:focus, a[id]:focus:not([href]) {
+    color:              #000000;
+}
+
+a img {
+    border:             none;
+}
+
+/* hidden elements */
+area, base, basefont, head, meta, script, style, title,
+noembed, noframes, noscript, param {
+    display:            none;
+}
+
+/* forms */
+
+/* misc */
+legend {
+    padding-left:       2px;
+    padding-right:      2px;
+    border:             none;
+}
+
+fieldset {
+    display:            block;
+    margin-left:        2px;
+    margin-right:       2px;
+    padding:            0.75em 0.625em;
+    border:             2px groove ThreeDFace;
+}
+
+label {
+    cursor:             default;
+}
+
+/* default inputs, text inputs, and selects */
+input [type=""], input[type="text"], input[type="password"] {
+    padding:            1px 0px 1px 0px;
+    border:             2px inset ThreeDFace;
+    text-transform:     none;
+    vertical-align:     text-bottom;
+    cursor:             text;
+}
+
+textarea {
+    margin:             1px 0px 1px 0px;
+    border:             2px inset ThreeDFace;
+    font-size:          medium;
+    text-transform:     none;
+    vertical-align:     text-bottom;
+    cursor:             text;
+}
+
+select {
+    margin:             0;
+    border-color:       ThreeDFace;
+    white-space:        nowrap;
+    vertical-align:     text-bottom;
+    cursor:             default;
+    border-width:       2px;
+    border-style:       inset;
+}
+
+select[size] {
+    padding:            1px 0px 1px 0px;
+}
+
+select[size="1"] {
+    padding:            0px;
+}
+
+option {
+    display: block;
+}
+
+option :checked {
+    background-color:   Highlight;
+    color:              HighlightText;
+}
+
+optgroup {
+    display:            block;
+    font-style:         italic;
+    font-weight:        bold;
+}
+
+optgroup > option {
+    padding-left:       20px;
+    font-style:         normal;
+    font-weight:        normal;
+}
+
+optgroup :before {
+    display:            block;
+    content:            attr(label);
+}
+
+option[disabled],
+optgroup[disabled] {
+    background-color:   transparent;
+}
+
+/* hidden inputs */
+input[type="hidden"] {
+    display:            none;
+    padding:            0em;
+    border:             0em;
+    cursor:             auto;
+}
+
+/* image buttons */
+input[type="image"] {
+    padding:            0em;
+    border:             none;
+    background-color:   transparent;
+    vertical-align:     baseline;
+    font-family:        sans-serif;
+    font-size:          small;
+    cursor:             pointer;
+}
+
+input[type="image"][disabled] {
+    cursor:             default;
+}
+
+/* file selector */
+input[type="file"] {
+    white-space:        nowrap;
+    cursor:             default;
+    padding:            0px;
+    border-style:       none;
+}
+
+/* radio buttons and check boxes*/
+input[type="radio"] {
+    width:              13px;
+    height:             13px;
+    margin:             3px 3px 0px 5px;
+    padding:            0px;
+    vertical-align:     baseline;
+    cursor:             default;
+}
+
+/* check boxes */
+input[type="checkbox"] {
+    width:              13px;
+    height:             13px;
+    margin:             3px 3px 3px 4px;
+    padding:            0px;
+    vertical-align:     text-bottom;
+    cursor:             default;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+    border-style: groove;
+}
+
+input[type="checkbox"]:hover:active,
+input[type="radio"]:hover:active {
+    background-color:   ThreeDFace;
+    border-style:       inset;
+}
+
+/* buttons */
+button, 
+input[type="reset"],
+input[type="button"],
+input[type="submit"] { 
+    text-transform:     none;
+    padding:            2px 0 2px 0;
+    border:             2px outset ButtonFace;
+    background-color:   ButtonFace;
+    color:              ButtonText; 
+    white-space:        pre;
+    vertical-align:     text-bottom;
+    cursor:             default;
+}
+
+button:active:hover,
+input[type="reset"]:active:hover,
+input[type="button"]:active:hover,
+input[type="submit"]:active:hover {
+    padding:            3px 0 1px 0;
+    border-style:       inset;
+}
+
+/* disables inputs */
+
+input[disabled],
+textarea[disabled],
+option[disabled],
+optgroup[disabled],
+select[disabled] {
+    color:              GrayText;
+    background-color:   ThreeDFace;
+    cursor:             default;
+}
+
+input[type="radio"][disabled],
+input[type="radio"][disabled]:active,
+input[type="radio"][disabled]:hover,
+input[type="radio"][disabled]:hover:active,
+input[type="checkbox"][disabled],
+input[type="checkbox"][disabled]:active,
+input[type="checkbox"][disabled]:hover,
+input[type="checkbox"][disabled]:hover:active {
+    padding:            1px;
+    border:             1px inset ThreeDShadow;
+    color:              GrayText;
+    background-color:   ThreeDFace;
+}
+
+button[disabled]:active, button[disabled],
+input[type="reset"][disabled]:active,
+input[type="reset"][disabled],
+input[type="button"][disabled]:active,
+input[type="button"][disabled],
+select[disabled] > input[type="button"],
+select[disabled] > input[type="button"]:active,
+input[type="submit"][disabled]:active,
+input[type="submit"][disabled] {
+    padding:            3px 1px 3px 1px;
+    border:             1px outset ButtonShadow;
+    color:              GrayText;
+}
+
+/* DocBook-XSLT-specific extensions */
+
+div.figure {
+    margin-top: 1.9ex;
+}
+
+div.note {
+    margin-top: 1.0ex;
+    margin-bottom: 1.0ex;
+}
+
+div.tip {
+    margin-top: 1.0ex;
+    margin-bottom: 1.0ex;
+}
+
+div.warning {
+    margin-top: 1.0ex;
+    margin-bottom: 1.0ex;
+}
+
+div.caution {
+    margin-top: 1.0ex;
+    margin-bottom: 1.0ex;
+}
+
+div.important {
+    margin-top: 1.0ex;
+    margin-bottom: 1.0ex;
+}
+
+div.figure {
+    margin-bottom: 0.8ex;
+}
+
+div.example {
+    margin-bottom: 0.8ex;
+}
+
+div.equation {
+    margin-bottom: 0.8ex;
+}

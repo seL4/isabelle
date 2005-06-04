@@ -1,0 +1,7 @@
+mogrify -interlace line -strip -trim screenshot_isabelle_macos.gif
+convert -interlace line -scale x55 univ_tum_proto.gif univ_tum.gif
+convert -interlace line -scale x55 univ_cambridge_proto.gif univ_cambridge.gif
+convert -interlace line -scale x100 isabelle.gif isabelle_logo.gif
+convert -interlace line -scale '16x16!' isabelle.gif favicon.gif
+convert -interlace line -scale x125 tutorial_cover_big.gif tutorial_cover_small.gif
+convert -interlace line -scale 250x isabelle_pg_screenshot_big.png isabelle_pg_screenshot_small.png

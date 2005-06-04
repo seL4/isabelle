@@ -1,0 +1,185 @@
+/************************************************************
+ * Stylesheet Isabelle (all-media basics)                   *
+ ************************************************************/
+
+/* $Id$ */
+
+@namespace url(http://www.w3.org/1999/xhtml); /* DOES ANYONE KNOW WHAT'S THAT ABOUT!? */
+
+/* generic color settings */
+body {
+    background-color: #FFFFFF;
+}
+
+a:link {
+    color: #0000A0;
+}
+
+a:visited {
+    color: #5050A0;
+}
+
+a:hover {
+    color: #FFFFFF;
+    background-color: #0000FF;
+}
+
+a:hover img {
+    /* gets rid of some of hover highlight */
+    background-color: #FFFFFF;
+}
+
+a:active {
+    color: #00DDFF;
+}
+
+a:focus {
+    color: #00DDFF;
+}
+
+img {
+    border: none;
+}
+
+/* generic formatting */
+h1 { 
+    margin-top: 2em;
+    font-size: 230%;
+}
+
+h2 {
+    margin-top: 1em;
+    font-size: x-large;
+    text-align: left;
+    background-color: #8080F0;
+}
+
+h3 {
+    margin-top: 0.7em;
+    font-size: medium;
+    text-align: left;
+    background-color: #8080F0;
+}
+
+p {
+    margin-top: 0.3em;
+    margin-bottom: 0.4em;
+}
+
+/* indendation of following paragraphs */
+/* p + p {
+  text-indent: 0.8em;
+} */
+
+/* navigation layout */
+div#navigation ul {
+    list-style-type: none;
+    margin: 0em;
+    padding: 0em;
+    width: 100%;
+}
+
+/* div#navigation ul li {
+    margin: 5px 0em;
+    padding: 1em 0.5em;
+    text-align: center;
+}
+
+-- perhaps this must be reactivated if the span/strong hack
+   makes problems on non-mozilla browsers
+
+div#navigation ul li.nav_current {
+    background-color: #AAFFAA;
+} */ 
+
+div#navigation ul li {
+    margin: 0em;
+    padding: 0em;
+}
+
+div#navigation ul li span {
+    display: block;
+    margin: 1ex 0em;
+    padding: 1ex 0em;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #E0E0F0;
+    border-left: 7px solid #FFFFFF;
+}
+
+div#navigation ul li strong {
+    display: block;
+    font-weight: normal;
+    margin: 1ex 0em;
+    padding: 1ex 0em;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #E0E0F0;
+    border-left: 7px solid #0000A0;
+}
+
+body.dist div#navigation ul li strong {
+    border-left: 7px solid #00A000;
+}
+
+/* footer layout */
+div#footer p {
+    text-align: right;
+    font-size: x-small;
+}
+
+/* embedded images */
+img.left {
+    margin-right: 8pt;
+    float: left;
+}
+
+/* shell commands */
+ul.shellcmd {
+    background-color: #8080F0;
+}
+
+ul.shellcmd li:before {
+    content: "> ";
+    font-weight: bold; /* oder gleich grafik */
+}
+
+/* the faq */
+dl.faq dt {
+    background-color: #8080F0;
+    padding: 3px;
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+dl.faq dd {
+    padding: 3px;
+    margin-top: 3px;
+}
+
+/* download tables */
+table.download {
+    margin-top: 2ex;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border-spacing: 4px;
+}
+
+table.download tr td {
+    text-align: left;
+    background-color: #C0C0E0;
+    padding: 0.4ex 1em 0.4ex 1em;
+}
+
+table.download tr td.downloadheader {
+    text-align: left;
+    font-weight: bold;
+    background-color: #8080F0;
+    /* margin-top doesn't seem to work */
+    border-top: 1ex solid #E0E0F0;
+}
+
+table.download tr td + td + td {
+    text-align: right;
+}
