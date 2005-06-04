@@ -135,8 +135,13 @@ img.left {
 }
 
 /* shell commands */
+tt.shellcmd {
+    font-family: monospace;
+}
+
 ul.shellcmd {
     background-color: #8080F0;
+    font-family: monospace;
 }
 
 ul.shellcmd li:before {
