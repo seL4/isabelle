@@ -14,7 +14,7 @@ TIDY=tidy
 STATICDIRS=img media dist/css dist/img
 
 # build target (attention: ~ will not work!)
-OUTPUTROOT=$(HOME)/isaweb_public
+OUTPUTROOT=$(HOME)/isabelle_website
 
 # current distribution name
 DISTNAME=Isabelle2004
