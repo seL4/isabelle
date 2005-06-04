@@ -122,10 +122,6 @@ class Functions:
         handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
         handler.endElement(u"td")
 
-    def cvs(self, handler, **args):
-
-        pass
-
 # a notion of paths
 class PathCalculator:
 
@@ -354,6 +350,8 @@ class TransformerHandler(ContentHandler, EntityResolver):
 
     def processingInstruction(self, target, data):
 
+        print '*', target
+        print '*', data
         self.closeLastStart()
         self.flushCharacterBuffer()
         func = getattr(self._func, target)
