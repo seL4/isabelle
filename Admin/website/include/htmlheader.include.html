@@ -1,15 +1,20 @@
 <?xml version='1.0' encoding='iso-8859-1' ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<?cvs id="$Id$"?>
+<!-- $Id$ -->
 <dummy:wrapper xmlns:dummy="http://nowhere.no">
     <?contentType?>
+    <!-- the very base - here all elements are fixed to a certain base style -->
     <link rel="stylesheet" type="text/css" media="all" href="//dist/css/aelfwine.css"/>
+    <!-- basic isabelle-site-specific styles -->
     <link rel="stylesheet" type="text/css" media="all" href="//dist/css/isabelle_base.css"/>
+    <!-- advanced sceen styles - they are imported such that they are ignored by old-fashioned browsers -->
     <style type="text/css" media="screen">
         @import url(<?relativeRoot href="dist/css/isabelle_screen.css"?>);
     </style>
+    <!-- advanced print styles -->
     <link rel="stylesheet" type="text/css" media="print" href="//dist/css/isabelle_print.css"/>
     <link rel="icon" href="//dist/img/favicon.ico" type="image/icon"/>
     <meta name="language" content="en"/>
     <meta name="robots" content="index follow"/>
+    <meta name="author" content="Florian Haftmann" />
 </dummy:wrapper>

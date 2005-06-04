@@ -145,11 +145,14 @@ ul.shellcmd {
     list-style-type: none;
     margin-top: 1ex;
     margin-bottom: 1ex;
+    margin-left: 4em;
+    padding-left: 0pt;
 }
 
 ul.shellcmd li:before {
-    content: "> ";
-    font-weight: bold; /* oder gleich grafik */
+    content: "$ ";
+    font-weight: bold;
+    font-size: 40pt;
 }
 
 /* the faq */
