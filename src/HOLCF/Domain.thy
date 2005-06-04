@@ -6,7 +6,7 @@
 header {* Domain package *}
 
 theory Domain
-imports Ssum Sprod One Up Fixrec
+imports Ssum Sprod Up One Tr Fixrec
 (*
 files
   ("domain/library.ML")
