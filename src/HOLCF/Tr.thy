@@ -8,7 +8,7 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse.
 header {* The type of lifted booleans *}
 
 theory Tr
-imports Lift Fix
+imports Lift
 begin
 
 types
