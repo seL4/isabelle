@@ -5,7 +5,7 @@
 Theory for a loop primitive like while
 *)
 
-Loop = Tr +
+Loop = Tr + Fix +
 
 consts
         step  :: "('a -> tr)->('a -> 'a)->'a->'a"
