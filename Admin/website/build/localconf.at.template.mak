@@ -7,7 +7,7 @@ PYTHON=python
 # GNU find
 FIND=find
 
-# HTML tidy (needs not to be set if tidy usuage is disabled, see below)
+# HTML tidy (needs not to be set if tidy usage is disabled, see below)
 TIDY=tidy
 
 # dirs to copy to build target
