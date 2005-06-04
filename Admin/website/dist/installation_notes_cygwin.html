@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='iso-8859-1' ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<?cvs id="$Id$"?>
+<!-- $Id$ -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
@@ -52,11 +52,11 @@
       but installing the base packages, perl, make, xemacs and x-server should be a
       good choice for the beginning.</p>
     
-      <p>By default, cygwin installs to <tt>c:\cygwin</tt>; you may choose an
+      <p>By default, cygwin installs to <tt class="shellcmd">c:\cygwin</tt>; you may choose an
       arbitrary location, but it is recommended that it does not include any space
       or exotic characters. This directory will then become the root directory of
-      the Cygwin filesystem tree, i.e. the Cygwin path <tt>/opt/smlnj</tt> will be
-      mapped to Windows path <tt>c:\cygwin\opt\smlnj</tt>.</p>
+      the Cygwin filesystem tree, i.e. the Cygwin path <tt class="shellcmd">/opt/smlnj</tt> will be
+      mapped to Windows path <tt class="shellcmd">c:\cygwin\opt\smlnj</tt>.</p>
     
       <p>After installation, open a Cygwin shell window (normally the installer
       makes a shortcut for you).</p>
@@ -67,14 +67,10 @@
       "http://www.smlnj.org/">SML/NJ</a>; before this, set the environment variable
       SMLNJ_CYGWIN_RUNTIME to 1:</p>
     
-      <blockquote>
-        <tt>export SMLNJ_CYGWIN_RUNTIME=1</tt>
-      </blockquote>
+      <ul class="shellcmd">
+        <li>export SMLNJ_CYGWIN_RUNTIME=1</li>
+      </ul>
     
-      <blockquote>
-        (or <tt>setenv SMLNJ_CYGWIN_RUNTIME 1</tt> for c shells).
-      </blockquote>
-      
       <p>This setting will tell the build process that it should
       <em>not</em> attempt to build SML/NJ natively for Win32 but for Cygwin
       instead (see further <a href=
@@ -90,8 +86,8 @@
       should be sufficient.</p>
     
       <p>In the following, it is assumed that you install SML/NJ to Cygwin path
-      <tt>/opt/smlnj</tt>; if you choose an other location, some tweaking in the
-      <a href="#config"><tt>etc/settings</tt> file</a> may be neccessary later.</p>
+      <tt class="shellcmd">/opt/smlnj</tt>; if you choose an other location, some tweaking in the
+      <a href="#config"><tt class="shellcmd">etc/settings</tt> file</a> may be neccessary later.</p>
     
       <p>Whenever SMLNJ is used, the SMLNJ_CYGWIN_RUNTIME environment variable must
       be set to 1 (later on a convenient mechanism to make this the default is
@@ -101,40 +97,40 @@
     
       <p>Download the latest Isabelle and ProofGeneral <a href=
       "packages.html">release packages</a>. Assuming that you are in the directory
-      where you downloaded the files, install them into <tt>/opt</tt> by typing
+      where you downloaded the files, install them into <tt class="shellcmd">/opt</tt> by typing
       into the bash shell:</p>
     
-      <blockquote>
-        <tt>tar -C /usr/opt -xvzf <?value key="distname"?>.tar.gz</tt><br />
-        <tt>tar -C /usr/opt -xvzf ProofGeneral.tar.gz</tt><br />
-      </blockquote>
+      <ul class="shellcmd">
+        <li>tar -C /usr/opt -xvzf <?value key="distname"?>.tar.gz</li>
+        <li>tar -C /usr/opt -xvzf ProofGeneral.tar.gz</li>
+      </ul>
       
       <p>During extraction, one inconvenience may occur, see <a href=
       "inconvenience">below</a>.</p>
     
-      <p>The location <tt>/opt</tt> again is just a proposal; if you choose other
-      locations, some tweaking in the <a href="#config"><tt>etc/settings</tt>
+      <p>The location <tt class="shellcmd">/opt</tt> again is just a proposal; if you choose other
+      locations, some tweaking in the <a href="#config"><tt class="shellcmd">etc/settings</tt>
       file</a> may be neccessary later.</p>
     
       <h2 id="config">Configuring Isabelle</h2>
     
-      <p>Edit the file <tt>/opt/Isabelle/etc/settings</tt>; first, uncomment the
+      <p>Edit the file <tt class="shellcmd">/opt/Isabelle/etc/settings</tt>; first, uncomment the
       lines about SMLNJ. Also set the variable SMLNJ_CYGWIN_RUNTIME to 1, in order
       the cygwin version of SMLNJ is used. As mentioned above, the path variables
       for the ML system and ProofGeneral may need adjustions, depending on your
       different installation locations.</p>
     
       <p>Take heed of the setting of ISABELLE_HOME_USER; by default, this is
-      <tt>~/isabelle</tt>. To detect which Windows path this will be mapped to,
+      <tt class="shellcmd">~/isabelle</tt>. To detect which Windows path this will be mapped to,
       type into the Cygwin bash shell:</p>
     
-      <blockquote>
-        <tt>cygpath --windows ~/isabelle</tt>
-      </blockquote>
+      <ul class="shellcmd">
+        <li>cygpath --windows ~/isabelle</li>
+      </ul>
       
       <p>If you don't like this location to be the isabelle home
       directory, consider setting of ISABELLE_HOME_USER to another value; use
-      <tt>cygpath --unix &lt;winpath&gt;</tt> to detect which Cygwin path a given
+      <tt class="shellcmd">cygpath --unix &lt;winpath&gt;</tt> to detect which Cygwin path a given
       Windows path is mapped to.</p>
     
       <p>A typical change could look like this:</p>
@@ -165,11 +161,11 @@
       <p>Now we can compile some logics. Start the cygwin shell (if not still
       running) and type:</p>
     
-      <blockquote>
-        <tt>cd /opt/Isabelle</tt><br />
-        <tt>build HOL</tt><br />
-        <tt>build ZF</tt><br />
-      </blockquote>
+      <ul class="shellcmd">
+        <li>cd /opt/Isabelle</li>
+        <li>build HOL</li>
+        <li>build ZF</li>
+      </ul>
 
       <p>The compilation process may take some time (depending on how fast the
       computer is). Before building a logic image the build program shows some
@@ -178,26 +174,26 @@
       <h2>Running Isabelle with ProofGeneral</h2>
     
       <p>On Linux, Isabelle can be started by two scripts located in
-      <tt>Isabelle/bin</tt>: <tt>Isabelle</tt> and <tt>isabelle</tt>.
-      <tt>Isabelle</tt> attempts to start ProofGeneral with XEmacs, and isabelle
+      <tt class="shellcmd">Isabelle/bin</tt>: <tt class="shellcmd">Isabelle</tt> and <tt class="shellcmd">isabelle</tt>.
+      <tt class="shellcmd">Isabelle</tt> attempts to start ProofGeneral with XEmacs, and isabelle
       starts it in an SML shell session. However Windows treats the two names as
-      one. To get around this just copy <tt>/opt/Isabelle/bin/isabelle</tt> to
-      <tt>/opt/Isabelle/bin/Isabell</tt>. The script
-      <tt>/opt/Isabelle/bin/Isabell</tt> will start Isabelle with ProofGeneral.</p>
+      one. To get around this just copy <tt class="shellcmd">/opt/Isabelle/bin/isabelle</tt> to
+      <tt class="shellcmd">/opt/Isabelle/bin/Isabell</tt>. The script
+      <tt class="shellcmd">/opt/Isabelle/bin/Isabell</tt> will start Isabelle with ProofGeneral.</p>
     
       <p>Now everything should be ready. To test, start the cygwin shell and
       type</p>
     
-      <blockquote>
-        <tt>startx &amp;</tt>
-      </blockquote>
+      <ul class="shellcmd">
+        <li>startx &amp;</li>
+      </ul>
       
       <p>This will start the cygwin X server and an X shell window. In
       the X shell window, type</p>
     
-      <blockquote>
-        <tt>/opt/Isabelle/bin/Isabell &amp;</tt>.
-      </blockquote>
+      <ul class="shellcmd">
+        <li>/opt/Isabelle/bin/Isabell &amp;</li>.
+      </ul>
       
       <p>This will start the ProofGeneral interface for Isabelle. After a
       while an empty buffer <tt>Scratch.thy</tt> is created. You can turn on
@@ -223,16 +219,16 @@
     
       <ul>
         <li>During extraction you will get a warning that file
-        <tt>Real/HahnBanach/Aux.thy</tt> can not be created. This is because
-        <tt>Aux</tt> is not allowed as a filename under Windows. If you do not want
+        <tt class="shellcmd">Real/HahnBanach/Aux.thy</tt> can not be created. This is because
+        <tt class="shellcmd">Aux</tt> is not allowed as a filename under Windows. If you do not want
         to run the HahnBanach example, you might simply want to ignore this
         warning.</li>
     
-        <li>The tool <tt>isatool mkdir</tt> tries to detect the name of the current
-        user, to put it into the generated <tt>root.tex</tt>. Alas, on Windows,
+        <li>The tool <tt class="shellcmd">isatool mkdir</tt> tries to detect the name of the current
+        user, to put it into the generated <tt class="shellcmd">root.tex</tt>. Alas, on Windows,
         this leads to an unquoted <tt>\</tt> in the TeX file. So you either must
-        edit your <tt>root.tex</tt> manually to fix this, or directly patch
-        <tt>/opt/Isabelle/lib/Tools/mkdir</tt> by replacing
+        edit your <tt class="shellcmd">root.tex</tt> manually to fix this, or directly patch
+        <tt class="shellcmd">/opt/Isabelle/lib/Tools/mkdir</tt> by replacing
     
           <blockquote>
             <tt>AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)</tt>

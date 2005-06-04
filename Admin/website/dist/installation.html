@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='iso-8859-1' ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<?cvs id="$Id$"?>
+<!-- $Id$ -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
@@ -54,20 +54,20 @@
     
       <p>A typical Linux/x86 site installation of Isabelle/HOL works as follows:</p>
       <ul>
-        <li>By using GNU <tt>tar</tt>, the archives are uncompressed and unpacked into the
-            <tt>/usr/local</tt> directory (this location may be changed to anything
+        <li>By using GNU <tt class="shellcmd">tar</tt>, the archives are uncompressed and unpacked into the
+            <tt class="shellcmd">/usr/local</tt> directory (this location may be changed to anything
             appropriate):
-            <blockquote>
-                <tt>tar -C /usr/local -xzf <?value key="distname"?>.tar.gz</tt><br />
-                <tt>tar -C /usr/local -xzf ProofGeneral.tar.gz</tt><br />
-                <tt>tar -C /usr/local -xzf polyml_base.tar.gz</tt><br />
-                <tt>tar -C /usr/local -xzf polyml_x86-linux.tar.gz</tt><br />
-                <tt>tar -C /usr/local -xzf HOL_x86-linux.tar.gz</tt><br />
-            </blockquote>
+            <ul class="shellcmd">
+                <li>tar -C /usr/local -xzf <?value key="distname"?>.tar.gz</li>
+                <li>tar -C /usr/local -xzf ProofGeneral.tar.gz</li>
+                <li>tar -C /usr/local -xzf polyml_base.tar.gz</li>
+                <li>tar -C /usr/local -xzf polyml_x86-linux.tar.gz</li>
+                <li>tar -C /usr/local -xzf HOL_x86-linux.tar.gz</li>
+            </ul>
         </li>
         <li>
           Users may now invoke Isabelle without further ado, e.g. run the main
-          executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the Proof
+          executable <tt class="shellcmd">/usr/local/Isabelle/bin/Isabelle</tt> to launch the Proof
           General interface for Isabelle/Isar. Note that there is a separate option in
           the Proof General <em>Options</em> menu to enable X-Symbol.
         </li>

@@ -140,8 +140,11 @@ tt.shellcmd {
 }
 
 ul.shellcmd {
-    background-color: #8080F0;
+    background-color: #C0C0E0;
     font-family: monospace;
+    list-style-type: none;
+    margin-top: 1ex;
+    margin-bottom: 1ex;
 }
 
 ul.shellcmd li:before {
