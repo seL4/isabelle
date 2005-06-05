@@ -485,13 +485,12 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \item [$\at\{typeof~t\}$] prints the type of a well-typed term $t$.
 
 \item [$\at\{typ~\tau\}$] prints a well-formed type $\tau$.
-
-\item [$\at\{thm_style~s~a\}$] prints theorem $a$, previously
-  applying a style $s$ to it; otherwise behaves the same as $\at\{thm~a\}$
-  with just one theorem.
-
-\item [$\at\{term_style~s~t\}$] prints a well-typed term $t$ after
-  applying a style $s$ to it; otherwise behaves the same as $\at\{term~t\}$.
+  
+\item [$\at\{thm_style~s~a\}$] prints theorem $a$, previously applying a style
+  $s$ to it (see below).
+  
+\item [$\at\{term_style~s~t\}$] prints a well-typed term $t$ after applying a
+  style $s$ to it (see below).
 
 \item [$\at\{text~s\}$] prints uninterpreted source text $s$.  This is
   particularly useful to print portions of text according to the Isabelle
@@ -503,39 +502,42 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   of goal states does not conform to actual human-readable proof documents.
   Please do not include goal states into document output unless you really
   know what you are doing!
-
-\item [$\at\{subgoals\}$] behaves almost like $goals$, except that it does not
-  print the main goal.
-
+  
+\item [$\at\{subgoals\}$] is similar to $goals$, but does not print the main
+  goal.
+  
 \item [$\at\{prf~\vec a\}$] prints the (compact) proof terms corresponding to
-  the theorems $\vec a$. Note that this
-  requires proof terms to be switched on for the current object logic
-  (see the ``Proof terms'' section of the Isabelle reference manual
-  for information on how to do this).
-
-\item [$\at\{full_prf~\vec a\}$] is like $\at\{prf~\vec a\}$, but displays
-  the full proof terms, i.e.\ also displays information omitted in
-  the compact proof term, which is denoted by ``$_$'' placeholders there.
+  the theorems $\vec a$. Note that this requires proof terms to be switched on
+  for the current object logic (see the ``Proof terms'' section of the
+  Isabelle reference manual for information on how to do this).
+  
+\item [$\at\{full_prf~\vec a\}$] is like $\at\{prf~\vec a\}$, but displays the
+  full proof terms, i.e.\ also displays information omitted in the compact
+  proof term, which is denoted by ``$_$'' placeholders there.
 
 \end{descr}
 
-There are a few standard styles for use with $\at\{thm_style~s~a\}$ and
-$\at\{term_style~s~t\}$:
+\medskip
+
+The following standard styles for use with $thm_style$ and $term_style$ are
+available:
 
 \begin{descr}
   
 \item [$lhs$] extracts the first argument of any application form with at
-  least two arguments -- typically is meta-level or object-level equality or
-  any other binary relation.
+  least two arguments -- typically meta-level or object-level equality, or any
+  other binary relation.
   
-\item [$rhs$] similar to $lhs$, but extracts the second argument.
+\item [$rhs$] is like $lhs$, but extracts the second argument.
   
-\item [$conlusion$] extracts the conclusion $C$ from nested meta-level
-  implications $A@1 \Imp \cdots A@n \Imp C$.
+\item [$concl$] extracts the conclusion $C$ from a nested meta-level
+  implication $A@1 \Imp \cdots A@n \Imp C$.
+  
+\item [$prem1$, \dots, $prem9$] extract premise number $1$, \dots, $9$,
+  respectively, from a nested meta-level implication $A@1 \Imp \cdots A@n \Imp
+  C$.
 
 \end{descr}
-
-Further styles may be defined at ML level.
 
 \medskip
 
