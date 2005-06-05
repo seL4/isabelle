@@ -46,6 +46,7 @@ elif [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
 fi
 
 # Standard ML of New Jersey 110 or later
+#SMLNJ_CYGWIN_RUNTIME=1
 #ML_SYSTEM=smlnj-110
 #ML_HOME="$ISABELLE_HOME/contrib/smlnj/bin"
 #ML_OPTIONS="@SMLdebug=/dev/null"
