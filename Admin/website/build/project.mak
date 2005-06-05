@@ -1,9 +1,6 @@
 # isaweb makefile - project-specific dependencies
 # $Id$
 
-symlinks: $(DEP_SYMLINKS)
-.PHONY: symlinks
-
 #~ DEP_SYMLINKS=$(OUTPUTROOT)/dist/packages $(OUTPUTROOT)/library
 
 #~ $(OUTPUTROOT)/dist/packages: $(ISABELLE_DIST)
@@ -23,3 +20,6 @@ library: $(ISABELLE_LIBR)
 
 include/documentationdist.include.html: $(ISABELLE_DOC_CONTENT_FILE)
 	perl build/mkcontents.pl -p '//dist/packages/Isabelle/doc/' $< $@
+
+symlinks: $(DEP_SYMLINKS)
+.PHONY: symlinks
