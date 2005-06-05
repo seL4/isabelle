@@ -188,12 +188,12 @@ fun update_thy_only name =
 (* present draft files *)
 
 fun display_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
-  in system ("\"$ISATOOL\" display -c " ^ outfile ^ " &"); () end);
+  let val outfile = File.shell_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
+  in File.isatool ("display -c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts "ps" files)
-  in system ("\"$ISATOOL\" print -c " ^ outfile); () end);
+  let val outfile = File.shell_path (Present.drafts "ps" files)
+  in File.isatool ("print -c " ^ outfile); () end);
 
 
 (* pretty_setmargin *)
