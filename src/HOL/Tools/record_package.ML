@@ -236,7 +236,7 @@ fun make_record_data
 
 structure RecordsArgs =
 struct
-  val name = "HOL/records";      
+  val name = "HOL/records";       
   type T = record_data;
 
   val empty =
@@ -629,13 +629,13 @@ val adv_record_type_scheme_tr =
 
 val parse_translation =
  [("_record_update", record_update_tr),
-  ("_update_name", update_name_tr)];
+  ("_update_name", update_name_tr)]; 
 
 val adv_parse_translation = 
  [("_record",adv_record_tr),
   ("_record_scheme",adv_record_scheme_tr),
   ("_record_type",adv_record_type_tr),
-  ("_record_type_scheme",adv_record_type_scheme_tr)];
+  ("_record_type_scheme",adv_record_type_scheme_tr)]; 
 
 (* print translations *)
 
@@ -729,7 +729,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
       val tsig = Sign.tsig_of sg
 
       fun mk_type_abbr subst name alphas = 
-          let val abbrT = Type (name, map (fn a => TVar ((a, 0), [])) alphas);
+          let val abbrT = Type (name, map (fn a => TVar ((a, 0), Sign.defaultS sg)) alphas);
           in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
 
       fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T));
@@ -739,8 +739,8 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
              SOME (name,_) 
               => if name = lastExt 
                  then
-		  (let 
-                       val subst = unify schemeT T 
+		  (let
+                     val subst = unify schemeT T 
                    in 
                     if HOLogic.is_unitT (Envir.norm_type subst (TVar((zeta,0),Sign.defaultS sg)))
                     then mk_type_abbr subst abbr alphas
@@ -2143,4 +2143,4 @@ end;
 
 
 structure BasicRecordPackage: BASIC_RECORD_PACKAGE = RecordPackage;
-open BasicRecordPackage;
+open BasicRecordPackage;   
