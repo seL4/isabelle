@@ -151,12 +151,6 @@ fun system cmd =
   if OS.Process.isSuccess (OS.Process.system cmd) then 0 else 1;
 
 
-(* file handling *)
-
-(*get time of last modification*)
-fun file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
-
-
 (* getenv *)
 
 fun getenv var =

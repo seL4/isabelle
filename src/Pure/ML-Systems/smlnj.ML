@@ -180,12 +180,6 @@ fun execute command =
 val system = OS.Process.system: string -> int;
 
 
-(* file handling *)
-
-(*get time of last modification*)
-fun file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
-
-
 (* getenv *)
 
 fun getenv var =
