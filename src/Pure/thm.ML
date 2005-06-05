@@ -1051,7 +1051,7 @@ val varifyT = #1 o varifyT' [];
 fun freezeT(Thm{sign_ref,der,maxidx,shyps,hyps,tpairs,prop}) =
   let
     val prop1 = attach_tpairs tpairs prop;
-    val (prop2, _) = Type.freeze_thaw prop1;
+    val prop2 = Type.freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2)
   in (*no fix_shyps*)
     Thm{sign_ref = sign_ref, 

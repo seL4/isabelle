@@ -45,7 +45,7 @@ val read_term = Thm.term_of oo (HOLogic.read_cterm o Theory.sign_of);
  * have a tactic directly applied to them.
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
-    map (#1 o Type.freeze_thaw o HOLogic.dest_Trueprop)
+    map (Type.freeze o HOLogic.dest_Trueprop)
       (foldr (fn (th,A) => union_term (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------

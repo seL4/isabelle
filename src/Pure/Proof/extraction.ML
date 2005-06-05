@@ -748,8 +748,8 @@ fun extract thms thy =
          NONE =>
            let
              val corr_prop = Reconstruct.prop_of prf;
-             val ft = fst (Type.freeze_thaw t);
-             val fu = fst (Type.freeze_thaw u);
+             val ft = Type.freeze t;
+             val fu = Type.freeze u;
              val thy' = if t = nullt then thy else thy |>
                Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)] |>
                fst o PureThy.add_defs_i false [((extr_name s vs ^ "_def",

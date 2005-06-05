@@ -193,8 +193,7 @@ fun unify_consts sign cs intr_ts =
           (env, (replicate (length consts) cT) ~~ consts)
       end;
     val (env, _) = Library.foldl unify ((Vartab.empty, i'), rec_consts);
-    val subst = fst o Type.freeze_thaw o
-      (map_term_types (Envir.norm_type env))
+    val subst = Type.freeze o map_term_types (Envir.norm_type env)
 
   in (map subst cs', map subst intr_ts')
   end) handle Type.TUNIFY =>
