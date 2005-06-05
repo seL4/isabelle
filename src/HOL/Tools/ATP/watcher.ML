@@ -168,19 +168,19 @@ fun callResProvers (toWatcherStr,  []) =
 	  (*** only include problem and clasimp for the moment, not sure how to refer to ***)
 
 	  (*** hyps/local axioms just now (*,axfile, hypsfile,*)                                               ***)
-	  val whole_prob_file = system ("/bin/cat " ^ clasimpfile ^" "^ probfile ^ " > " ^ (File.sysify_path wholefile))
+	  val whole_prob_file = system ("cat " ^ clasimpfile ^" "^ probfile ^ " > " ^ File.shell_path wholefile)
 
 	  val dfg_create = if File.exists dfg_dir 
 			   then warning("dfg dir exists")
 			   else File.mkdir dfg_dir; 
 	  
-	  val dfg_path = File.sysify_path dfg_dir;
+	  val dfg_path = File.platform_path dfg_dir;
 	 (* val exec_tptp2x = 
 	        Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X",  
-	                     ["-fdfg", "-d " ^ dfg_path, File.sysify_path wholefile]) *)
+	                     ["-fdfg", "-d " ^ dfg_path, File.platform_path wholefile]) *)
         val tptp_home = getenv "TPTP2X_HOME" ^ "/tptp2X"
        
-        val systemcall = system (tptp_home^" -fdfg -d " ^ dfg_path^" "^( File.sysify_path wholefile))
+        val systemcall = system (tptp_home ^ " -fdfg -d " ^ File.shell_path dfg_dir ^ " " ^ File.shell_path wholefile)
         val _ =  warning("systemcall is "^ (string_of_int systemcall))
 	(*val _ = Posix.Process.wait ()*)
 	(*val _ =Unix.reap exec_tptp2x*)
@@ -191,7 +191,7 @@ fun callResProvers (toWatcherStr,  []) =
 	  Posix.Process.sleep(Time.fromSeconds 1); 
 	  (warning ("probfile is: "^probfile));
 	  (warning("dfg file is: "^newfile));
-	  (warning ("wholefile is: "^(File.sysify_path wholefile)));
+	  (warning ("wholefile is: "^(File.platform_path wholefile)));
 	  sendOutput (toWatcherStr,
 	       prover ^ "*" ^ thmstring ^ "*" ^ goalstring ^ "*" ^ proverCmd ^ 
 	       "*" ^ settings ^ "*" ^ newfile ^ "\n");
@@ -202,7 +202,7 @@ fun callResProvers (toWatcherStr,  []) =
 	        (Path.append dfg_dir (Path.basic ("ax_prob"^"_" ^ probID ^ ".dfg")))
 	  then callResProvers (toWatcherStr, args)
 	  else error ("tptp2X failed: " ^ getenv "TPTP2X_HOME" ^ "/tptp2X" ^
-	              " -fdfg " ^ File.sysify_path wholefile ^ " -d " ^ dfg_path)
+	              " -fdfg " ^ File.platform_path wholefile ^ " -d " ^ dfg_path)
       end
 (*
 fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 
@@ -369,7 +369,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		val _ = (warning ("num_of_clauses in watcher is: "^(string_of_int (num_of_clauses))) )       
 			 *)
 		(*val goalstr = string_of_thm (the_goal)
-		 val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "goal_in_watcher")));  
+		 val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "goal_in_watcher")));  
 		val _ = TextIO.output (outfile,goalstr )
 		val _ =  TextIO.closeOut outfile*)
 		fun killChildren [] = ()
@@ -722,11 +722,11 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) = let val mychild = ch
                           
 
 fun spass_proofHandler (n) = (
-                                 let  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_signal1")));
+                                 let  val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_signal1")));
                                       val _ = TextIO.output (outfile, ("In signal handler now\n"))
                                       val _ =  TextIO.closeOut outfile
                                       val (reconstr, thmstring, goalstring) = SpassComm.getSpassInput childin
-                                      val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "foo_signal")));
+                                      val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal")));
 
                                       val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^thmstring^goalstring^"goals_being_watched is: "^(string_of_int (!goals_being_watched))))
                                       val _ =  TextIO.closeOut outfile
@@ -743,7 +743,7 @@ fun spass_proofHandler (n) = (
                                                          
                                                                  if ((!goals_being_watched) = 0)
                                                                  then 
-                                                                    (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_reap_found")));
+                                                                    (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_found")));
                                                                          val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
                                                                          val _ =  TextIO.closeOut outfile
                                                                      in
@@ -762,7 +762,7 @@ fun spass_proofHandler (n) = (
                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
                                                                       if (!goals_being_watched = 0)
                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_reap_comp")));
+                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
                                                                                val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
                                                                                val _ =  TextIO.closeOut outfile
                                                                            in
@@ -781,7 +781,7 @@ fun spass_proofHandler (n) = (
                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
                                                                       if (!goals_being_watched = 0)
                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_reap_comp")));
+                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
                                                                                val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
                                                                                val _ =  TextIO.closeOut outfile
                                                                            in
@@ -801,7 +801,7 @@ fun spass_proofHandler (n) = (
                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
                                                                       if (!goals_being_watched = 0)
                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_reap_comp")));
+                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
                                                                                val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
                                                                                val _ =  TextIO.closeOut outfile
                                                                            in
