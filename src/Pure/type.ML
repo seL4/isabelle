@@ -42,8 +42,10 @@ sig
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
   val varify: term * (string * sort) list -> term * ((string * sort) * indexname) list
-  val freeze_thaw_type : typ -> typ * (typ -> typ)
-  val freeze_thaw : term -> term * (term -> term)
+  val freeze_thaw_type: typ -> typ * (typ -> typ)
+  val freeze_type: typ -> typ
+  val freeze_thaw: term -> term * (term -> term)
+  val freeze: term -> term
 
   (*matching and unification*)
   exception TYPE_MATCH
@@ -147,7 +149,7 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 local
 
 fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = getOpt (Library.assoc_string (env, x),T)
+  | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
   | inst_typ _ T = T;
 
 fun certify_typ normalize syntax tsig ty =
@@ -233,17 +235,17 @@ fun varify (t, fixed) =
 
 local
 
-fun new_name (ix, (pairs,used)) =
-      let val v = variant used (string_of_indexname ix)
-      in  ((ix,v)::pairs, v::used)  end;
+fun new_name (ix, (pairs, used)) =
+  let val v = variant used (string_of_indexname ix)
+  in ((ix, v) :: pairs, v :: used) end;
 
-fun freeze_one alist (ix,sort) =
-  TFree (valOf (assoc (alist, ix)), sort)
+fun freeze_one alist (ix, sort) =
+  TFree (the (assoc_string_int (alist, ix)), sort)
     handle Option =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
-fun thaw_one alist (a,sort) = TVar (valOf (assoc (alist,a)), sort)
-  handle Option => TFree(a, sort);
+fun thaw_one alist (a, sort) = TVar (the (assoc_string (alist, a)), sort)
+  handle Option => TFree (a, sort);
 
 in
 
@@ -254,6 +256,8 @@ fun freeze_thaw_type T =
     and tvars = map #1 (add_typ_tvars (T, []));
     val (alist, _) = foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
+
+val freeze_type = #1 o freeze_thaw_type;
 
 fun freeze_thaw t =
   let
@@ -267,6 +271,8 @@ fun freeze_thaw t =
       map_term_types (map_type_tfree (thaw_one (map swap alist)))))
   end;
 
+val freeze = #1 o freeze_thaw;
+
 end;
 
 
@@ -279,9 +285,11 @@ fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
   quote (Term.string_of_vname ixn) ^ " has two distinct sorts",
   [TVar (ixn, S), TVar (ixn, S')], []);
 
-fun lookup (tye, (ixn, S)) = case Vartab.lookup (tye, ixn) of
+fun lookup (tye, (ixn, S)) =
+  (case Vartab.lookup (tye, ixn) of
     NONE => NONE
-  | SOME (S', T) => if S = S' then SOME T else tvar_clash ixn S S';
+  | SOME (S', T) => if S = S' then SOME T else tvar_clash ixn S S');
+
 
 (* matching *)
 
@@ -528,7 +536,7 @@ fun new_decl (c, decl) types =
     SOME (decl', _) => err_in_decls c decl decl'
   | NONE => Symtab.update ((c, (decl, stamp ())), types));
 
-fun the_decl types c = fst (valOf (Symtab.lookup (types, c)));
+fun the_decl types c = fst (the (Symtab.lookup (types, c)));
 
 fun change_types f = change_tsig (fn (classes, default, types, arities) =>
   (classes, default, f types, arities));
