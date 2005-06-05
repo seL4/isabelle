@@ -39,7 +39,9 @@ sig
   val is_draft: sg -> bool
   val is_stale: sg -> bool
   val syn_of: sg -> Syntax.syntax
+  val naming_of: sg -> NameSpace.naming
   val const_type: sg -> string -> typ option
+  val the_const_type: sg -> string -> typ          (*exception TYPE*)
   val declared_tyname: sg -> string -> bool
   val declared_const: sg -> string -> bool
   val classes: sg -> class list
@@ -52,7 +54,6 @@ sig
   val classK: string
   val typeK: string
   val constK: string
-  val naming_of: sg -> NameSpace.naming
   val base_name: string -> bstring
   val full_name: sg -> bstring -> string
   val full_name_path: sg -> string -> bstring -> string
@@ -99,7 +100,7 @@ sig
   val read_typ': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val read_typ_raw': Syntax.syntax -> sg * (indexname -> sort option) -> string -> typ
   val read_tyname: sg -> string -> typ
-  val read_const: sg -> string -> term
+  val read_const: sg -> string -> term        (*exception TYPE*)
   val infer_types: Pretty.pp -> sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> term * (indexname * typ) list
@@ -237,10 +238,15 @@ fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
 val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
 
+fun naming_of (Sg (_, {naming, ...})) = naming;
 val tsig_of = #tsig o rep_sg;
 fun is_logtype sg c = c mem_string Type.logical_types (tsig_of sg);
+
 fun const_type (Sg (_, {consts, ...})) c = Option.map #1 (Symtab.lookup (consts, c));
-fun naming_of (Sg (_, {naming, ...})) = naming;
+
+fun the_const_type sg c =
+  (case const_type sg c of SOME T => T
+  | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
 fun declared_tyname sg c = is_some (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c));
 fun declared_const sg c = is_some (const_type sg c);
@@ -759,10 +765,8 @@ fun read_tyname sg raw_c =
   end;
 
 fun read_const sg raw_c =
-  let val c = intern_const sg raw_c in
-    if is_some (const_type sg c) then Const (c, dummyT)
-    else raise TYPE ("Undeclared constant: " ^ quote c, [], [])
-  end;
+  let val c = intern_const sg raw_c
+  in the_const_type sg c; Const (c, dummyT) end;
 
 
 
