@@ -49,7 +49,7 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
                     (case ThyInfo.lookup_theory x of
                       SOME thy =>
                         let val name = #name (Present.get_info thy)
-                        in if name = "" then [] else [name] end 
+                        in if name = "" then [] else [name] end
                     | NONE => [])
                  | _ => ["global"]);
             in
@@ -72,7 +72,7 @@ fun thm_deps thms =
       map Thm.proof_of thms))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
     val _ = Present.write_graph gra path;
-    val _ = system ("$ISATOOL browser -d " ^ Path.pack (Path.expand path) ^ " &");
+    val _ = File.isatool ("browser -d " ^ File.shell_path path ^ " &");
   in () end;
 
 end;
