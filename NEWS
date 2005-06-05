@@ -453,6 +453,11 @@ local_simpset_of and local_claset_of to instead of the primitive
 Simplifier.get_local_simpset and Classical.get_local_claset,
 respectively, in order to see the context dependent fields!
 
+* File.sysify_path and File.quote_sysify path have been replaced by
+File.platform_path and File.shell_path (with appropriate hooks).  This
+provides a clean interface for unusual systems where the internal and
+external process view of file names are different.
+
 
 *** System ***
 
@@ -465,7 +470,10 @@ isatool doc, isatool mkdir, display_drafts etc.).
 * isatool usedir: option -f allows specification of the ML file to be
 used by Isabelle; default is ROOT.ML.
 
-* HOL: isatool dimacs2hol converts files in DIMACS CNF format
+* New isatool version outputs the version identifier of the Isabelle
+distribution being used.
+
+* HOL: new isatool dimacs2hol converts files in DIMACS CNF format
 (containing Boolean satisfiability problems) into Isabelle/HOL
 theories.
 
