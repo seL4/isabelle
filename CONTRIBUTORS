@@ -5,4 +5,7 @@
 * May 2005: Florian Haftmann, TUM
   Several new antiquotation.
 
+* February 2005: Lucas Dixon, University of Edinburgh
+  Substantially improved subst method.
+
 $Id$
