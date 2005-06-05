@@ -50,12 +50,12 @@ also changed interactively by $\CONTEXT$ without creating a new theory.
 \begin{rail}
   'header' text
   ;
-  'theory' name '=' (name + '+') filespecs? ':'
+  'theory' name 'imports' (name +) uses? 'begin'
   ;
   'context' name
   ;
 
-  filespecs: 'files' ((name | parname) +);
+  uses: 'uses' ((name | parname) +);
 \end{rail}
 
 \begin{descr}
@@ -65,8 +65,9 @@ also changed interactively by $\CONTEXT$ without creating a new theory.
   produce chapter or section headings.  See also \S\ref{sec:markup-thy} and
   \S\ref{sec:markup-prf} for further markup commands.
   
-\item [$\THEORY~A = B@1 + \cdots + B@n\colon$] starts a new theory $A$ based
-  on the merge of existing theories $B@1, \dots, B@n$.
+\item [$\THEORY~A~\isarkeyword{imports}~B@1~\ldots~B@n~\isarkeyword{begin}$]
+  starts a new theory $A$ based on the merge of existing theories $B@1, \dots,
+  B@n$.
   
   Due to inclusion of several ancestors, the overall theory structure emerging
   in an Isabelle session forms a directed acyclic graph (DAG).  Isabelle's
@@ -75,7 +76,7 @@ also changed interactively by $\CONTEXT$ without creating a new theory.
   processing theory headers interactively; batch-mode explicitly distinguishes
   \verb,update_thy, from \verb,use_thy,, see also \cite{isabelle-ref}.
   
-  The optional $\isarkeyword{files}$ specification declares additional
+  The optional $\isarkeyword{uses}$ specification declares additional
   dependencies on ML files.  Files will be loaded immediately, unless the name
   is put in parentheses, which merely documents the dependency to be resolved
   later in the text (typically via explicit $\isarcmd{use}$ in the body text,
