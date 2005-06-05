@@ -81,7 +81,7 @@ $(DEP_FILE): $(CONF)
 	allstatic=''; \
 	for dir in $(STATICDIRS); \
 	do \
-		for file in `$(FIND) -L $$dir -type f -a ! -path "*/CVS/*"`; \
+		for file in `$(FIND) $$dir -follow -type f -a ! -path "*/CVS/*"`; \
 		do \
 			outputfile=$(OUTPUTROOT)/$$file; \
 			outputdir=`dirname $$outputfile`; \
@@ -97,7 +97,7 @@ $(DEP_FILE): $(CONF)
 	echo 'DEP_HTML=$$(DEP_ALLSTATIC) $$(DEP_SYMLINKS) include/documentationdist.include.html $(DEP_FILE) $(CONF)' >> $(DEP_FILE); \
 	echo >> $(DEP_FILE); \
 	allhtml=''; \
-	for html in `$(FIND) -P . -name "*.html" -a ! -name "*.include.html"`; \
+	for html in `$(FIND) . -name "*.html" -a ! -name "*.include.html"`; \
 	do \
 		outputfile=$(OUTPUTROOT)/$$html; \
 		outputdir=`dirname $$outputfile`; \
