@@ -115,8 +115,8 @@ fun init_graph remote_path curr_sess = map (fn name =>
    {name = name, ID = ID_of session name, dir = sess_name,
     path =
       if null session then "" else
-      if isSome remote_path andalso not is_local then
-        Url.pack (Url.append (valOf remote_path) (Url.File
+      if is_some remote_path andalso not is_local then
+        Url.pack (Url.append (the remote_path) (Url.File
           (Path.append (Path.make session) (html_path name))))
       else Path.pack (Path.append (mk_rel_path curr_sess session) (html_path name)),
     unfold = false,
@@ -266,16 +266,6 @@ fun update_index dir name =
 
 (* init session *)
 
-fun copy_files path1 path2 =
- (File.mkdir path2;
-  system ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));  (*FIXME: quote!?*)
-
-fun copy_all path1 path2 =
- (File.mkdir path2;
-  system ("cp -r " ^ File.quote_sysify_path path1 ^ "/. " ^
-    File.quote_sysify_path path2));
-
-
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
@@ -296,7 +286,7 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then
-          Url.append (valOf remote_path) (Url.File (Path.append sess_prefix parent_index_path))
+          Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
         else Url.File parent_index_path;
       val readme =
         if File.exists readme_html_path then SOME readme_html_path
@@ -326,7 +316,7 @@ fun write_tex_index tex_index path =
 fun isatool_document verbose doc_format path =
   let
     val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
-      File.quote_sysify_path path ^ " 2>&1" ^ (if verbose then "" else " >/dev/null");
+      File.shell_path path ^ " 2>&1" ^ (if verbose then "" else " >/dev/null");
     val doc_path = Path.ext doc_format path;
   in
     if verbose then writeln s else ();
@@ -340,11 +330,10 @@ fun isatool_browser graph =
     val pdfpath = File.tmp_path graph_pdf_path;
     val epspath = File.tmp_path graph_eps_path;
     val gpath = File.tmp_path graph_path;
-    val s = "\"$ISATOOL\" browser -o " ^ File.quote_sysify_path pdfpath ^ " " ^
-      File.quote_sysify_path gpath;
+    val s = "browser -o " ^ File.shell_path pdfpath ^ " " ^ File.shell_path gpath;
   in
     write_graph graph gpath;
-    if system s <> 0 orelse not (File.exists epspath) orelse not (File.exists pdfpath)
+    if File.isatool s <> 0 orelse not (File.exists epspath) orelse not (File.exists pdfpath)
     then error "Failed to prepare dependency graph"
     else
       let val pdf = File.read pdfpath and eps = File.read epspath
@@ -363,13 +352,16 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html);
 
     val opt_graphs =
-      if doc_graph andalso (isSome doc_prefix1 orelse isSome doc_prefix2) then
+      if doc_graph andalso (is_some doc_prefix1 orelse is_some doc_prefix2) then
         SOME (isatool_browser graph)
       else NONE;
 
     fun prepare_sources path =
-     (copy_all doc_path path;
-      copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
+     (File.mkdir path;
+      File.copy_dir doc_path path;
+      File.copy (Path.unpack "~~/lib/texinputs/isabelle.sty") path;
+      File.copy (Path.unpack "~~/lib/texinputs/isabellesym.sty") path;
+      File.copy (Path.unpack "~~/lib/texinputs/pdfsetup.sty") path;
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
@@ -382,12 +374,12 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       File.write (Path.append html_prefix session_entries_path) "";
       create_index html_prefix;
       if length path > 1 then update_index parent_html_prefix name else ();
-      (case readme of NONE => () | SOME path => File.copy path (Path.append html_prefix path));
+      (case readme of NONE => () | SOME path => File.copy path html_prefix);
       write_graph graph (Path.append html_prefix graph_path);
-      copy_files (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
+      File.copy (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
       List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.File index_path, name));
-      copy_files (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
+      File.copy (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
       List.app finish_html thys;
       List.app (uncurry File.write) files;
       conditional verbose (fn () =>
@@ -426,8 +418,8 @@ fun theory_output name s =
 fun parent_link remote_path curr_session name =
   let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
   in (if null session then NONE else
-     SOME (if isSome remote_path andalso not is_local then
-       Url.append (valOf remote_path) (Url.File
+     SOME (if is_some remote_path andalso not is_local then
+       Url.append (the remote_path) (Url.File
          (Path.append (Path.make session) (html_path name)))
      else Url.File (Path.append (mk_rel_path curr_session session)
        (html_path name))), name)
@@ -439,7 +431,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = map (apsnd SOME) orig_files @
-      (if isSome (ThyLoad.check_file optpath ml_path) then [(ml_path, NONE)] else []);
+      (if is_some (ThyLoad.check_file optpath ml_path) then [(ml_path, NONE)] else []);
 
     fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_file optpath raw_path of
@@ -473,7 +465,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
     add_graph_entry entry;
     add_html_index (HTML.theory_entry (Url.File (html_path name), name));
     add_tex_index (Latex.theory_entry name);
-    BrowserInfoData.put {name = sess_name, session = path, is_local = isSome remote_path} thy
+    BrowserInfoData.put {name = sess_name, session = path, is_local = is_some remote_path} thy
   end);
 
 
@@ -513,10 +505,8 @@ fun drafts doc_format src_paths =
     val _ = File.mkdir doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = File.copy (Path.unpack "~~/lib/texinputs/draft.tex") root_path;
-    val _ = File.system_command
-      ("\"$ISATOOL\" latex -o sty " ^ File.quote_sysify_path root_path);
-    val _ = File.system_command
-      ("\"$ISATOOL\" latex -o syms " ^ File.quote_sysify_path root_path);
+    val _ = File.isatool ("latex -o sty " ^ File.shell_path root_path);
+    val _ = File.isatool ("latex -o syms " ^ File.shell_path root_path);
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
