@@ -131,6 +131,8 @@ $FIND . -name .cvsignore -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
+$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
+$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 
 
 # build docs
@@ -165,7 +167,7 @@ cp Distribution/lib/logo/isabelle.gif ../page/main-content
 cp Distribution/lib/logo/isabelle.gif ../page/dist-content
 echo "$DISTNAME" > ../page/DISTNAME
 
-MOVE=$($FIND Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+MOVE=$($FIND Doc \( -type f -a -not -type l -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 rm -rf Doc Tools
@@ -201,6 +203,7 @@ lynx -dump README.html >README
 ( cd src; ../Admin/maketags; )
 
 rm -rf Admin
+rm -f TODO
 
 
 # create archive
