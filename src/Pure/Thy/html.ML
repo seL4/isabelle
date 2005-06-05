@@ -374,17 +374,24 @@ local
     | encl (SOME true) = I;
 
   fun file (opt_ref, path, loadit) = href_opt_path opt_ref (encl loadit (file_path path));
-  val files = space_implode " " o map file;
-  val parents = space_implode " + " o map (uncurry href_opt_path o apsnd name);
 
   fun theory up A =
     begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^
-    keyword "theory" ^ " " ^ name A ^ " = ";
+    keyword "theory" ^ " " ^ name A;
+
+  fun imports Bs =
+    keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
+
+  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps);
 in
 
-fun begin_theory up A Bs [] body = theory up A ^ parents Bs ^ ":\n" ^ body
-  | begin_theory up A Bs Ps body = theory up A ^ parents Bs ^ "<br>\n" ^ keyword "files" ^
-      " " ^ files Ps ^ ":" ^ "\n" ^ body;
+fun begin_theory up A Bs Ps body =
+  theory up A ^ "<br>\n" ^
+  imports Bs ^ "<br>\n" ^
+  (if null Ps then "" else uses Ps) ^
+  keyword "begin" ^ "<br>\n" ^
+  body;
+
 end;
 
 val end_theory = end_document;
