@@ -49,14 +49,6 @@ case "$ML_SYSTEM" in
 
     DISCGARB="$POLY"
     DISCGARB_OPTIONS="-d -c"
-    case "$ML_SYSTEM" in
-      polyml-4.1.[12])
-	DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 180"
-	;;
-      polyml-4.1.*)
-	DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S max"
-	;;
-    esac
 
     EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
     ;;
@@ -80,6 +72,14 @@ if [ -z "$INFILE" ]; then
   check_file "$ML_DBASE_PREFIX$ML_DBASE"
   INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
+  case "$ML_SYSTEM" in
+    polyml-4.1.[12])
+      DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 180"
+      ;;
+    polyml-4.1.*)
+      DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S max"
+      ;;
+  esac
 else
   COPYDB=true
 fi
