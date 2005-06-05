@@ -10,7 +10,8 @@ sig
   val is_old: (string, 'a) Source.source * Position.T -> bool
   val args: OuterLex.token list ->
     (string * string list * (string * bool) list) * OuterLex.token list
-  val scan: (string, 'a) Source.source * Position.T -> string * string list * (string * bool) list
+  val scan: (string, 'a) Source.source * Position.T ->
+    string * string list * (string * bool) list
 end;
 
 structure ThyHeader: THY_HEADER =
@@ -41,40 +42,40 @@ fun scan_header get_lex scan (src, pos) =
 val headerN = "header";
 val theoryN = "theory";
 val importsN = "imports";
-
-val theory_keyword = P.$$$ theoryN;
-val header_keyword = P.$$$ headerN;
-val imports_keyword = P.$$$ importsN;
+val filesN = "files";
+val usesN = "uses";
+val beginN = "begin";
 
 
 (* detect new/old headers *)
 
 val check_header_lexicon = T.make_lexicon [headerN, theoryN];
-val check_header = Scan.option (header_keyword || theory_keyword);
+val check_header = Scan.option (P.$$$ headerN || P.$$$ theoryN);
 
 fun is_old src_pos =
-  Library.is_none (scan_header (K check_header_lexicon) check_header src_pos);
+  is_none (scan_header (K check_header_lexicon) check_header src_pos);
 
 
 (* scan old/new headers *)
 
 val header_lexicon = T.make_lexicon
-  ["(", ")", "+", ":", ";", "=", "begin", "files", headerN, importsN, theoryN];
+  ["(", ")", "+", ":", ";", "=", beginN, filesN, headerN, importsN, theoryN, usesN];
 
-val file_name =
+val file =
   (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
+fun files keyword = Scan.optional (keyword |-- P.!!! (Scan.repeat1 file)) [];
 
 val args =
-  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name ||
-              imports_keyword |-- Scan.repeat1 P.name) --
-    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|
-  (P.$$$ ":" || P.$$$ "begin"))
-  >> (fn ((A, Bs), files) => (A, Bs, files));
+  P.name --
+   (P.$$$ "=" |-- P.!!! (P.enum1 "+" P.name -- files (P.$$$ filesN) --| P.$$$ ":") ||
+    P.$$$ importsN |-- P.!!! (Scan.repeat1 P.name -- files (P.$$$ filesN || P.$$$ usesN)
+      --| P.$$$ beginN))
+  >> P.triple2;
 
 
 val new_header =
-  header_keyword |-- (P.!!! (P.text -- Scan.repeat P.semicolon -- theory_keyword |-- args)) ||
-  theory_keyword |-- P.!!! args;
+  P.$$$ headerN |-- (P.!!! (P.text -- Scan.repeat P.semicolon -- P.$$$ theoryN |-- args)) ||
+  P.$$$ theoryN |-- P.!!! args;
 
 val old_header =
   P.!!! (P.group "theory header"
