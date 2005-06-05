@@ -110,10 +110,12 @@ fun get_thy (Master (thy, _)) = thy;
 local
 
 fun check_thy_aux (name, ml) =
-  (case check_file NONE (thy_path name) of
-    NONE => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
-      commas_quote (show_path ()))
-  | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE));
+  let val thy_file = thy_path name in
+    case check_file NONE thy_file of
+      NONE => error ("Could not find theory file " ^ quote (Path.pack thy_file) ^
+        " in dir(s) " ^ commas_quote (show_path ()))
+    | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE)
+  end;
 
 in
 
