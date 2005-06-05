@@ -63,7 +63,7 @@ function copy ()
           copy "${PREFIX}$NAME/" || return "$?"
         else
           { [ ! -d "$TODIR/${PREFIX}$NAME" ] && \
-            $(CP) -af "$FROMDIR/${PREFIX}$NAME" "$TODIR/${PREFIX}$NAME"; } || \
+            $CP -af "$FROMDIR/${PREFIX}$NAME" "$TODIR/${PREFIX}$NAME"; } || \
           fail "Cannot install '$TODIR/${PREFIX}$NAME'"
         fi
       fi
