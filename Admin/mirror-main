@@ -25,5 +25,7 @@ case ${HOST} in
     ;;
 esac
 
-rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
+echo "Warning: this script now mirrors the *complete* Isabelle site"
+
+rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va --copy-links \
   $USER@sunbroy2.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/www/. $DEST/.

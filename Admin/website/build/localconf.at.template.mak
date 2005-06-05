@@ -11,10 +11,10 @@ FIND=find
 TIDY=tidy
 
 # dirs to copy to build target
-STATICDIRS=img media dist/css dist/img
+STATICDIRS=img media dist/css dist/img dist/packages
 
 # build target (attention: ~ will not work!)
-OUTPUTROOT=$(HOME)/isabelle_website
+OUTPUTROOT=/usr/proj/isabelle-repository/www
 
 # current distribution name
 DISTNAME=Isabelle2004
@@ -23,7 +23,7 @@ DISTNAME=Isabelle2004
 ISABELLE_DIST=/home/proj/isabelle/dist/Isabelle2004
 
 # location of isabelle library 
-ISABELLE_LIBR=/home/proj/isabelle/dist/Isabelle2004/library
+ISABELLE_LIBR=/home/proj/isabelle/dist/library-Isabelle2004
 
 # location of doc content file
 ISABELLE_DOC_CONTENT_FILE=/home/proj/isabelle/Isabelle2004/doc/Contents
