@@ -322,20 +322,20 @@ fun tell_clear_response () =
 fun tell_file_loaded path = 
     if pgip() then
 	issue_pgipe "informtheoryloaded"  (* FIXME: get thy name from info here? *)
-		    [thyname_attr        (XML.text (File.sysify_path path)),
-		     localfile_url_attr  (XML.text (File.sysify_path path))]
+		    [thyname_attr        (XML.text (File.platform_path path)),
+		     localfile_url_attr  (XML.text (File.platform_path path))]
     else 
 	emacs_notify ("Proof General, this file is loaded: " 
-		      ^ quote (File.sysify_path path));
+		      ^ quote (File.platform_path path));
 
 fun tell_file_retracted path = 
     if pgip() then
 	issue_pgipe "informtheoryretracted"  (* FIXME: get thy name from info here? *)
-		    [thyname_attr        (XML.text (File.sysify_path path)),
-		     localfile_url_attr  (XML.text (File.sysify_path path))]
+		    [thyname_attr        (XML.text (File.platform_path path)),
+		     localfile_url_attr  (XML.text (File.platform_path path))]
     else 
 	emacs_notify ("Proof General, you can unlock the file " 
-		      ^ quote (File.sysify_path path));
+		      ^ quote (File.platform_path path));
 
 
 (* theory / proof state output *)
@@ -1158,7 +1158,7 @@ local
 
   fun localfile_of_url url = (* only handle file:/// or file://localhost/ *)
       case Url.unpack url of
-	  (Url.File path) => File.sysify_path path
+	  (Url.File path) => File.platform_path path
 	| _ => error ("Cannot access non-local URL " ^ url)
 
   val fileurl_of = localfile_of_url o (xmlattr "url")

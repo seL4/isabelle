@@ -107,7 +107,7 @@ fun isar_atp_h thms =
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss) 
 	val tfree_lits = ResLib.flat_noDup tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
-        val hypsfile = File.sysify_path hyps_file
+        val hypsfile = File.platform_path hyps_file
 	val out = TextIO.openOut(hypsfile)
     in
 	((ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out; if !trace_res then (warning hypsfile) else ());tfree_lits) 
@@ -127,7 +127,7 @@ fun tptp_inputs_tfrees thms n tfrees =
         val _ = (warning ("in tptp_inputs_tfrees 2"))
 	val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
          val _ = (warning ("in tptp_inputs_tfrees 3"))
-        val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
+        val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
 	val out = TextIO.openOut(probfile)
     in
 	(ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out;
@@ -168,11 +168,11 @@ fun call_resolve_tac sign thms sg_term (childin, childout,pid) n  =
 	val no_returns =List.filter   not_newline ( thmproofstring)
 	val thmstr = implode no_returns
        
-	val probfile = (File.sysify_path prob_file) ^ "_" ^ (string_of_int n)
-	val axfile = (File.sysify_path axiom_file)
-	val hypsfile = (File.sysify_path hyps_file)
-	val clasimpfile = (File.sysify_path clasimp_file)
-	val outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "hellofile")))
+	val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+	val axfile = (File.platform_path axiom_file)
+	val hypsfile = (File.platform_path hyps_file)
+	val clasimpfile = (File.platform_path clasimp_file)
+	val outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "hellofile")))
 	val _ = TextIO.output(outfile, "prob file path is "^probfile^" thmstring is "^thmstr^" goalstring is "^goalstring);
 	val _ = TextIO.flushOut outfile;
 	val _ =  TextIO.closeOut outfile
@@ -298,9 +298,9 @@ fun isar_atp' (ctxt, thms, thm) =
         
 	(* set up variables for writing out the clasimps to a tptp file *)
 	val (clause_arr, num_of_clauses) =
-	    ResClasimp.write_out_clasimp (File.sysify_path clasimp_file) 
+	    ResClasimp.write_out_clasimp (File.platform_path clasimp_file) 
 	                                 (ProofContext.theory_of ctxt)
-        val _ = warning ("clasimp_file is " ^ File.sysify_path clasimp_file)
+        val _ = warning ("clasimp_file is " ^ File.platform_path clasimp_file)
 
         (* cq: add write out clasimps to file *)
 
@@ -375,7 +375,7 @@ in
 	val thms_ss = get_thms_ss delta_ss_thms
 	val thms_clauses = ResLib.flat_noDup (map ResAxioms.clausify_axiom (thms_cs @ thms_ss))
 	val clauses_strs = ResLib.flat_noDup (map ResClause.tptp_clause thms_clauses) (*string list*)
-	val ax_file = File.sysify_path axiom_file
+	val ax_file = File.platform_path axiom_file
 	val out = TextIO.openOut ax_file
     in
 	(ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
