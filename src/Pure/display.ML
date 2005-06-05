@@ -71,7 +71,7 @@ fun pretty_flexpair pp (t, u) = Pretty.block
 
 fun pretty_thm_aux pp quote th =
   let
-    val {hyps, tpairs, prop, der = (ora, _), ...} = rep_thm th;
+    val {hyps, tpairs, prop, der = (ora, _), ...} = Thm.rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
@@ -182,7 +182,7 @@ fun pretty_full_theory thy =
     fun prt_sort S = Sign.pretty_sort sg S;
     fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
-    val prt_typ_no_tvars = prt_typ o #1 o Type.freeze_thaw_type;
+    val prt_typ_no_tvars = prt_typ o Type.freeze_type;
     fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
 
     fun pretty_classrel (c, []) = prt_cls c
@@ -223,8 +223,7 @@ fun pretty_full_theory thy =
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
 
-    val {sign = _, const_deps = const_deps,  axioms, oracles,
-      parents = _, ancestors = _} = Theory.rep_theory thy;
+    val {sign = _, defs, axioms, oracles, parents = _, ancestors = _} = Theory.rep_theory thy;
     val {self = _, tsig, consts, naming, spaces, data} = Sign.rep_sg sg;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
@@ -232,7 +231,7 @@ fun pretty_full_theory thy =
     val tdecls = Symtab.dest types |> map (fn (t, (d, _)) =>
       (Sign.extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
     val cnsts = Sign.extern_table sg Sign.constK consts;
-    val finals = Sign.extern_table sg Sign.constK (Defs.finals const_deps)
+    val finals = Sign.extern_table sg Sign.constK (Defs.finals defs);
     val axms = Sign.extern_table sg Theory.axiomK axioms;
     val oras = Sign.extern_table sg Theory.oracleK oracles;
   in
@@ -326,7 +325,7 @@ fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
     val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
 
 
-    val {prop, tpairs, ...} = rep_thm state;
+    val {prop, tpairs, ...} = Thm.rep_thm state;
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
 
