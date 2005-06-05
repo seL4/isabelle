@@ -215,8 +215,6 @@ fun declare (Naming (_, (_, accs))) name space =
     let val names = unpack name in
       conditional (null names orelse exists (equal "") names) (fn () =>
         error ("Bad name declaration " ^ quote name));
-      conditional (exists (not o Symbol.is_ident o Symbol.explode) names) (fn () =>
-        warning ("Declared non-identifier " ^ quote name));
       fold (add_name name) (map pack (accs names)) space
     end;
 
