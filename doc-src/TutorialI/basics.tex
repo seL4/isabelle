@@ -77,24 +77,27 @@ constructs that can fill the \textit{declarations, definitions, and
 constructs is found in the Isabelle/Isar Reference
 Manual~\cite{isabelle-isar-ref}.
 
-HOL's theory collection is available online at
-\begin{center}\small
-    \url{http://isabelle.in.tum.de/library/HOL/}
-\end{center}
-and is recommended browsing. Note that most of the theories 
-are based on classical Isabelle without the Isar extension. This means that
-they look slightly different than the theories in this tutorial, and that all
-proofs are in separate ML files.
-
 \begin{warn}
   HOL contains a theory \thydx{Main}, the union of all the basic
   predefined theories like arithmetic, lists, sets, etc.  
   Unless you know what you are doing, always include \isa{Main}
   as a direct or indirect parent of all your theories.
 \end{warn}
+HOL's theory collection is available online at
+\begin{center}\small
+    \url{http://isabelle.in.tum.de/library/HOL/}
+\end{center}
+and is recommended browsing.
 There is also a growing Library~\cite{HOL-Library}\index{Library}
 of useful theories that are not part of \isa{Main} but can be included
-among the parents of a theory and will then be loaded automatically.%
+among the parents of a theory and will then be loaded automatically.
+
+For the more adventurous, there is the \emph{Archive of Formal Proofs},
+a journal-like collection of more advanced Isabelle theories:
+\begin{center}\small
+    \url{http://afp.sourceforge.net/}
+\end{center}
+We hope that you will contribute to it yourself one day.%
 \index{theories|)}
 
 
@@ -137,18 +140,9 @@ denoted by \isasymFun\indexbold{$IsaFun@\isasymFun}.
   the user, Isabelle infers the type of all variables automatically (this is
   called \bfindex{type inference}) and keeps quiet about it. Occasionally
   this may lead to misunderstandings between you and the system. If anything
-  strange happens, we recommend that you set the flag\index{flags}
-  \isa{show_types}\index{*show_types (flag)}.  
-  Isabelle will then display type information
-  that is usually suppressed.  Simply type
-\begin{ttbox}
-ML "set show_types"
-\end{ttbox}
-
-\noindent
-This can be reversed by \texttt{ML "reset show_types"}. Various other flags,
-which we introduce as we go along, can be set and reset in the same manner.%
-\index{flags!setting and resetting}
+  strange happens, we recommend that you ask Isabelle to display all type
+  information. This is best done through the Proof General interface; see
+  \S\ref{sec:interface} for details.
 \end{warn}%
 \index{types|)}
 
@@ -308,6 +302,7 @@ Note that for readability we often drop the \isa{?}s when displaying a theorem.
 \index{variables|)}
 
 \section{Interaction and Interfaces}
+\label{sec:interface}
 
 Interaction with Isabelle can either occur at the shell level or through more
 advanced interfaces. To keep the tutorial independent of the interface, we
@@ -320,16 +315,26 @@ scripts currently presented in this tutorial, the recommended interface for
 Isabelle/Isar is the Emacs-based \bfindex{Proof
   General}~\cite{proofgeneral,Aspinall:TACAS:2000}.
 
-Some interfaces (including the shell level) offer special fonts with
-mathematical symbols. For those that do not, remember that \textsc{ascii}-equivalents
-are shown in table~\ref{tab:ascii} in the appendix.
+\begin{pgnote}
+Proof General specific information is always displayed in paragraphs
+identified by this miniature Proof General icon.
 
-Finally, a word about semicolons.\indexbold{$Isar@\texttt{;}} 
-Commands may but need not be terminated by semicolons.
-At the shell level it is advisable to use semicolons to enforce that a command
-is executed immediately; otherwise Isabelle may wait for the next keyword
-before it knows that the command is complete.
+On particularly nice feature of Proof General is its support for a special
+fonts with mathematical symbols. Most symbols have
+\textsc{ascii}-equivalents: for example, you can enter either \verb!&!
+or \verb!\<and>! to obtain $\land$. For a list of the most frequent symbols
+see table~\ref{tab:ascii} in the appendix.
+\end{pgnote}
 
+\begin{pgnote}
+Proof General offers an \texttt{Isabelle} menu for displaying information
+and setting flags. A particularly useful flag is \texttt{Show Types}
+which causes Isabelle to output the type information that is usually
+suppressed. This is indispensible in case of errors of all kinds
+because often the types reveal the source of the problem. Once you have
+diagnosed the problem you may no longer want to see the types because they
+clutter all output. Simply reset the flag.
+\end{pgnote}
 
 \section{Getting Started}
 

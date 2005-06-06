@@ -2,19 +2,9 @@
 \markboth{Preface}{Preface}
 
 This volume is a self-contained introduction to interactive proof
-in higher-order logic (HOL), using the proof assistant Isabelle 2002. 
-Compared with existing Isabelle documentation,
-it provides a direct route into higher-order logic, which most people
-prefer these days. It bypasses first-order logic and minimizes
-discussion of meta-theory.  It is written for potential users rather
+in higher-order logic (HOL), using the proof assistant Isabelle. 
+It is written for potential users rather
 than for our colleagues in the research world.
-
-Another departure from previous documentation is that we describe Markus
-Wenzel's proof script notation instead of ML tactic scripts.  The latter
-make it easier to introduce new tactics on the fly, but hardly anybody
-does that.  Wenzel's dedicated syntax is elegant, replacing for example
-eight simplification tactics with a single method, namely \isa{simp},
-with associated options.
 
 The book has three parts.  
 \begin{itemize}
@@ -33,16 +23,14 @@ relations and explains how to define sets inductively.  One of the
 examples concerns the theory of model checking, and another is drawn
 from a classic textbook on formal languages.
 \item 
-The third part, \textbf{Advanced Material}, describes a variety of
-other topics.  Among these are the real numbers, records and
-overloading.  Esoteric techniques are described involving induction and
-recursion.  A whole chapter is devoted to an extended example: the
-verification of a security protocol.
+The third part, \textbf{Advanced Material}, describes a variety of other
+topics.  Among these are the real numbers, records and overloading.  Advanced
+techniques for induction and recursion are described.  A whole chapter is
+devoted to an extended example: the verification of a security protocol.
 \end{itemize}
 
 The typesetting relies on Wenzel's theory presentation tools.  An
 annotated source file is run, typesetting the theory
-% and any requested Isabelle responses
 in the form of a \LaTeX\ source file.  This book is derived almost entirely
 from output generated in this way.  The final chapter of Part~I explains how
 users may produce their own formal documents in a similar fashion.
@@ -57,8 +45,7 @@ book says very little about Proof General, which has its own documentation.
 In order to run Isabelle, you will need a Standard ML compiler.  We recommend
 \hfootref{http://www.polyml.org/}{Poly/ML}, which is free and gives the best
 performance.  The other fully supported compiler is
-\hfootref{http://cm.bell-labs.com/cm/cs/what/smlnj/index.html}{Standard ML of
-  New Jersey}.
+\hfootref{http://www.smlnj.org/index.html}{Standard ML of New Jersey}.
 
 This tutorial owes a lot to the constant discussions with and the valuable
 feedback from the Isabelle group at Munich: Stefan Berghofer, Olaf
@@ -69,7 +56,7 @@ received comments from Stefano Bistarelli, Gergely Buday, John Matthews
 and Tanja Vos.
 
 The research has been funded by many sources, including the {\sc dfg} grants
-Ni~491/2, Ni~491/3, Ni~491/4 and the {\sc epsrc} grants GR\slash K57381,
-GR\slash K77051, GR\slash M75440, GR\slash R01156\slash 01 and by the
-\textsc{esprit} working groups 21900 and IST-1999-29001 (the \emph{Types}
-project).
+NI~491/2, NI~491/3, NI~491/4, NI~491/6, {\sc bmbf} project Verisoft, the {\sc
+epsrc} grants GR/K57381, GR/K77051, GR/M75440, GR/R01156/01 GR/S57198/01 and
+by the \textsc{esprit} working groups 21900 and IST-1999-29001 (the
+\emph{Types} project).
