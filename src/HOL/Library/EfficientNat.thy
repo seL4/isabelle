@@ -65,6 +65,8 @@ lemma [code]: "m div n = nat (int m div int n)"
   by (simp add: zdiv_int [symmetric])
 lemma [code]: "m mod n = nat (int m mod int n)"
   by (simp add: zmod_int [symmetric])
+lemma [code]: "(m < n) = (int m < int n)"
+  by simp
 
 subsection {* Preprocessors *}
 
