@@ -791,7 +791,7 @@ fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes cs Ts
   | add_typ_classes (TFree (_, S), cs) = S union cs
   | add_typ_classes (TVar (_, S), cs) = S union cs;
 
-fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (c ins cs) Ts
+fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (c ins_string cs) Ts
   | add_typ_tycons (_, cs) = cs;
 
 val add_term_classes = it_term_types add_typ_classes;
@@ -862,7 +862,7 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
 (*Accumulates the TVars in a type, suppressing duplicates. *)
 fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
   | add_typ_tvars(TFree(_),vs) = vs
-  | add_typ_tvars(TVar(v),vs) = v ins vs;
+  | add_typ_tvars(TVar(v),vs) = insert (op =) v vs;
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
 fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names fs Ts
@@ -870,7 +870,7 @@ fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names fs Ts
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
 fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees fs Ts
-  | add_typ_tfrees(TFree(f),fs) = f ins fs
+  | add_typ_tfrees(TFree(f),fs) = insert (op =) f fs
   | add_typ_tfrees(TVar(_),fs) = fs;
 
 fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames nms Ts
@@ -988,10 +988,10 @@ fun foldl_term_types f (x, t as Const (_, T)) = f t (x, T)
 fun foldl_types f = foldl_term_types (fn _ => f);
 
 (*collect variables*)
-val add_tvarsT = foldl_atyps (fn (vs, TVar v) => v ins vs | (vs, _) => vs);
+val add_tvarsT = foldl_atyps (fn (vs, TVar v) => insert (op =) v vs | (vs, _) => vs);
 val add_tvars = foldl_types add_tvarsT;
-val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
-val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
+val add_vars = foldl_aterms (fn (vs, Var v) => insert (op =) v vs | (vs, _) => vs);
+val add_frees = foldl_aterms (fn (vs, Free v) => insert (op =) v vs | (vs, _) => vs);
 
 (*collect variable names*)
 val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
