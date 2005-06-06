@@ -198,9 +198,9 @@ fun lint vars tm = if is_numeral tm then tm else case tm of
         if is_numeral s' then (linear_cmul (dest_numeral s') t') 
         else if is_numeral t' then (linear_cmul (dest_numeral t') s') 
  
-         else (warning "lint: apparent nonlinearity"; raise COOPER)
+         else raise COOPER
          end 
-  |_ =>  error ("COOPER:lint: unknown term  \n");
+  |_ =>  raise COOPER;
    
  
  
