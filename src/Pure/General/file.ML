@@ -126,7 +126,7 @@ fun copy from to =
   in write target (read from) end;
 
 fun copy_dir from to =
-  system_command ("cp -r " ^ shell_path from ^ "/. " ^ shell_path to);
+  (system ("cp -r " ^ shell_path from ^ "/. " ^ shell_path to); ());  (* FIXME system_command *)
 
 
 (* use ML files *)
