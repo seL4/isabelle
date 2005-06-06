@@ -1,10 +1,24 @@
 For the next release:
 
-- integrate into makedist (Florian), deploy on Munich site
+- use "//" paths for alle internal static resources, due to link consistency
+
+- integrate into makedist-chain (Florian)
+
+- more concise installation instructions for MaxOS X
+
+- make preview second section in "overview"
+
+- centralize scattered project partners informations at "community"
+
+- move projects from "overview" to "community"
+
+- reduce prominence of license issue at "overview"
 
 In the mid-time:
 
--
+- clarify relationship of "overview" and "logics":
+    * overview: Isabelle/HOL
+    * logics: Isabelle system
 
 Visionary:
 

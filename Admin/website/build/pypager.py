@@ -105,11 +105,23 @@ class Functions:
         handler.endElement(wrapTagname)
         handler.endElement(u"li")
 
+    def downloadLink(self, handler, **args):
+
+        target = args[u"target"].encode("latin-1")
+        targetReal = self._pc.absDstPathOf(target)
+        title = args.get(u"title", unicode(posixpath.split(targetReal)[1], 'latin-1'))
+        size = os.stat(targetReal).st_size
+        handler.startElement(u"a", {
+            u"href": target
+        })
+        handler.characters(title)
+        handler.endElement(u"a")
+
     def downloadCells(self, handler, **args):
 
         target = args[u"target"].encode("latin-1")
         targetReal = self._pc.absDstPathOf(target)
-        title = args.get(u"title", unicode(posixpath.split(target)[0], 'latin-1'))
+        title = args.get(u"title", unicode(posixpath.split(targetReal)[1], 'latin-1'))
         size = os.stat(targetReal).st_size
         handler.startElement(u"td", {})
         handler.startElement(u"a", {
