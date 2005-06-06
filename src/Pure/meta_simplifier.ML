@@ -412,6 +412,12 @@ fun reorient sign prems lhs rhs =
     orelse
   is_Var (head_of lhs)
     orelse
+(* turns t = x around, which causes a headache if x is a local variable -
+   usually it is very useful :-(
+  is_Free rhs andalso not(is_Free lhs) andalso not(Logic.occs(rhs,lhs))
+  andalso not(exists_subterm is_Var lhs)
+    orelse
+*)
   exists (apl (lhs, Logic.occs)) (rhs :: prems)
     orelse
   null prems andalso Pattern.matches (Sign.tsig_of sign) (lhs, rhs)
