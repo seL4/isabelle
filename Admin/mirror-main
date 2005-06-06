@@ -12,6 +12,9 @@
 HOST=$(hostname)
 
 case ${HOST} in
+  sunbroy2)
+    DEST=/home/html/isabelle/html-data
+    ;;
   atbroy1)
     DEST=/home/html/isabelle/html-data
     ;;
