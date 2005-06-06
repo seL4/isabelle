@@ -446,7 +446,6 @@ apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor
 --{* 33 subgoals left *}
 apply(tactic {* ALLGOALS Clarify_tac *})
 
-ML "set Presburger.trace"
 apply(tactic {* TRYALL simple_arith_tac *})
 --{* 10 subgoals left *}
 apply (force simp add:less_Suc_eq)
