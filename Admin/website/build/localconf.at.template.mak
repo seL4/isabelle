@@ -11,7 +11,7 @@ FIND=find
 TIDY=tidy
 
 # dirs to copy to build target
-STATICDIRS=img media dist/css dist/img dist/packages
+STATICDIRS=img media dist/css dist/img dist/packages dist/misc
 
 # build target (attention: ~ will not work!)
 OUTPUTROOT=/usr/proj/isabelle-repository/www
