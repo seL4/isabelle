@@ -33,7 +33,6 @@ esac
 cd $(dirname "$ISABELLE_DIST")
 cp -a ../contrib .
 
-cd page && make
-cd .. && rm -rf page
+cd website && make && cd .. && rm -rf website
 
 date

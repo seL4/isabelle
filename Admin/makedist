@@ -161,11 +161,20 @@ echo "###"
 
 cd "$DISTBASE/$DISTNAME" || fail "Something is wrong: dist directory doesn't exist!"
 
-cp -R Admin/page ..
-cp Distribution/doc/Contents ../page
-cp Distribution/lib/logo/isabelle.gif ../page/main-content
-cp Distribution/lib/logo/isabelle.gif ../page/dist-content
-echo "$DISTNAME" > ../page/DISTNAME
+#~ # old site framework
+#~ cp -R Admin/page ..
+#~ cp Distribution/doc/Contents ../page
+#~ cp Distribution/lib/logo/isabelle.gif ../page/main-content
+#~ cp Distribution/lib/logo/isabelle.gif ../page/dist-content
+#~ echo "$DISTNAME" > ../page/DISTNAME
+# new site framework
+cp -R Admin/website ..
+mkdir -p ../website/conf
+cat > ../website/conf/distname.mak <<EOF
+# this is a generated file - do not edit unless you know what you are doing
+
+DISTNAME=$DISTNAME
+EOF
 
 MOVE=$($FIND Doc \( -type f -a -not -type l -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
