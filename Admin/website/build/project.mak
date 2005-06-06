@@ -23,3 +23,14 @@ include/documentationdist.include.html: $(ISABELLE_DOC_CONTENT_FILE)
 
 symlinks: $(DEP_SYMLINKS)
 .PHONY: symlinks
+
+include conf/distname.mak
+conf/distname.mak:
+	@echo 'There is no conf/distname.mak file; it should have been'; \
+	echo 'allocated by makedist.'; \
+	echo 'If you have no makedist at hands, allocate a conf/distname.mak file'; \
+	echo 'yourself, e. g. by:'; \
+	echo; \
+	echo 'echo "DISTNAME=Isabelle2004" > conf/distname.mak'; \
+	echo; \
+	false; \
