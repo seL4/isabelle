@@ -145,16 +145,16 @@ done
 
 subsection {* Ordering properties of @{term sinl} and @{term sinr} *}
 
-lemma less_ssum4a: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
+lemma sinl_less: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: less_ssum_def Rep_Ssum_sinl cpair_less)
 
-lemma less_ssum4b: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
+lemma sinr_less: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: less_ssum_def Rep_Ssum_sinr cpair_less)
 
-lemma less_ssum4c: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
+lemma sinl_less_sinr: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
 by (simp add: less_ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
 
-lemma less_ssum4d: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
+lemma sinr_less_sinl: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
 by (simp add: less_ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
 
 subsection {* Chains of strict sums *}
@@ -162,15 +162,15 @@ subsection {* Chains of strict sums *}
 lemma less_sinlD: "p \<sqsubseteq> sinl\<cdot>x \<Longrightarrow> \<exists>y. p = sinl\<cdot>y \<and> y \<sqsubseteq> x"
 apply (rule_tac p=p in ssumE)
 apply (rule_tac x="\<bottom>" in exI, simp)
-apply (simp add: less_ssum4a sinl_eq)
-apply (simp add: less_ssum4d)
+apply (simp add: sinl_less sinl_eq)
+apply (simp add: sinr_less_sinl)
 done
 
 lemma less_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
 apply (rule_tac p=p in ssumE)
 apply (rule_tac x="\<bottom>" in exI, simp)
-apply (simp add: less_ssum4c)
-apply (simp add: less_ssum4b sinr_eq)
+apply (simp add: sinl_less_sinr)
+apply (simp add: sinr_less sinr_eq)
 done
 
 lemma ssum_chain_lemma:
