@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+#
+# $Id$
+# Author: Florian Haftmann, TUM
+#
+# A generic framework script for simple theory file migrations
+# (under developement)
+#
+
+use strict;
+use File::Find;
+use File::Basename;
+use File::Copy;
+
+# configuration
+my @suffices = ('\.thy');
+my $backupext = '.bak';
+
+# migrator lookup hash
+my %migrators = (
+    id => sub {
+        my ($file, @content) = @_;
+    },
+    dummy => sub {
+        my ($file, @content) = @_;
+    }
+);
+
+# process dir tree
+sub process_tree {
+    my ($root, $migrator, $backupext) = @_;
+    find(sub { process($File::Find::name, $migrator, $backupext) }, $root);
+}
+
+# process single file
+sub process {
+    my ($file, $migrator, $backupext) = @_;
+    my ($basename, $dirname, $ext) = fileparse($file, @suffices);
+    #~ print "$file\n";
+    if ($ext) {
+        open ISTREAM, $file or die("error opening $file");
+        my @content = <ISTREAM>;
+        close ISTREAM;
+        if ($backupext) {
+            copy($file, "$file$backupext");
+        }
+        print "Migrating $file...\n";
+        &$migrator($file, @content);
+    }
+}
+
+# first argument: migrator name
+my $migrator = $migrators{shift @ARGV};
+$migrator or die ("invalid migrator name");
+# other arguments: files or trees
+foreach my $fileloc (@ARGV) {
+    -e $fileloc or die ("no file $fileloc");
+}
+foreach my $fileloc (@ARGV) {
+    if (-d $fileloc) {
+        process_tree($fileloc, $migrator, $backupext);
+    } else {
+        process($fileloc, $migrator, $backupext);
+    }
+}
