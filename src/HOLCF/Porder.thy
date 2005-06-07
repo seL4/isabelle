@@ -174,7 +174,7 @@ done
 
 lemma chain_shift: "chain Y ==> chain (%i. Y (i + j))"
 apply (rule chainI)
-apply clarsimp
+apply simp
 apply (erule chainE)
 done
 
@@ -192,6 +192,22 @@ done
 
 lemmas is_ub_lub = is_lubD1 [THEN ub_rangeD, standard]
   -- {* @{thm is_ub_lub} *} (* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1 *)
+
+lemma is_ub_range_shift:
+  "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <| x = range S <| x"
+apply (rule iffI)
+apply (rule ub_rangeI)
+apply (rule_tac y="S (i + j)" in trans_less)
+apply (erule chain_mono3)
+apply (rule le_add1)
+apply (erule ub_rangeD)
+apply (rule ub_rangeI)
+apply (erule ub_rangeD)
+done
+
+lemma is_lub_range_shift:
+  "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <<| x = range S <<| x"
+by (simp add: is_lub_def is_ub_range_shift)
 
 text {* results about finite chains *}
 
