@@ -393,12 +393,16 @@ fun pretty_path pp path = fold_rev (fn (T, c, def) =>
    | prts => Pretty.block (pretty_const pp (c, T) @
       [Pretty.brk 1, Pretty.str ("depends via " ^ quote def ^ " on")]) :: prts) path [];
 
+fun chain_history_msg s = 
+    if Defs.chain_history () then s^": " 
+    else s^" (set DEFS_CHAIN_HISTORY=ON for full history): "
+
 fun defs_circular pp path =
-  Pretty.str "Cyclic dependency in definitions: " :: pretty_path pp path
+  Pretty.str (chain_history_msg "Cyclic dependency of definitions") :: pretty_path pp path
   |> Pretty.chunks |> Pretty.string_of;
 
 fun defs_infinite_chain pp path =
-  Pretty.str "Infinite chain in definitions: " :: pretty_path pp path
+  Pretty.str (chain_history_msg "Infinite chain of definitions") :: pretty_path pp path
   |> Pretty.chunks |> Pretty.string_of;
 
 fun defs_clash def1 def2 = "Type clash in definitions " ^ quote def1 ^ " and " ^ quote def2;
