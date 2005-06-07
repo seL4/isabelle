@@ -1,27 +1,27 @@
 The Isabelle webpage
 ====================
 
-(1) Philosophy
+(1) philosophy
 ==============
 
-The webpage sources consists of three differnt layers:
+The webpage sources consists of three different layers:
 
 a) the presentation layer
 -------------------------
 
 This is was the user actually sees; the slogan is
 
-    "structural XHTML plus with CSS"
+    "structural XHTML plus CSS"
 
 There are three different groups of end-user agents (browsers)
 
  1) "practical non-CSS" browsers (lynx, netscape4)
-    These just display plain HTML
+    These just display plain HTML.
  2) "more-or-less-w3c-CSS" browsers (KHTML/Konqueror/Safari, Internet Explorer)
     These are able to display the pages almost as they should be,
     but perhaps with some minor warts.
  3) "almost-w3-CSS" browsers (Mozilla/Firefox/Galeone)
-    These are the "reference implementation" for the layout
+    These are the "reference implementation" for the layout.
 
 b) the project layer
 --------------------
@@ -32,7 +32,7 @@ is
     "make plus shell scripting"
 
 Project settings may be configured using a seperate configuration
-file
+file.
 
 c) the preprocessing layer
 --------------------------
@@ -41,7 +41,7 @@ This allows to use things like includes, current date and so on:
 
     "XHTML plus processing instructions"
 
-Note that this is almosz not interwoven with b), to keep it as robust
+Note that this is almost not interwoven with b), to keep it as robust
 and simple as possible.
 
 The layer itself is implemented by a small tool "pypager", written in python.
@@ -52,10 +52,11 @@ The layer itself is implemented by a small tool "pypager", written in python.
 
 You may add arbitrary files to the dir structure, but adhere to the following:
 * use XHTML, not loose HTML
-* no structural markup; of you need layout effects, use CSS
+* only structural markup; if you need layout effects, use CSS
 * any files ending with .html are considered as HTML files and are implicitly
   processed by the preprocessing layer
-* for HTML includes, it is most convenient to name them *.include.html
+* for HTML includes, it is most convenient to name them *.include.html to
+  avoid them to be processed stand-alone by the preprocessing layer
 * whole dirs maybe selected for statically copying them to the target destination
   by configuring the project layer
 * for attributes etc. referencing file locations, there is a convenient
@@ -67,7 +68,8 @@ You may add arbitrary files to the dir structure, but adhere to the following:
 
   Further, targets are checked for existances.
   This is a simple but powerful thing easing to keep the pages consistent.
-
+* for the semantics of the processing instructions, see build/pypager.py
+  source code
 
 (3) using the project layer framework
 =====================================
