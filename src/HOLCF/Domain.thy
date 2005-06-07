@@ -90,7 +90,7 @@ lemma ex_up_defined_iff:
   apply (rule_tac p=x in upE1)
    apply simp
   apply fast
- apply (force intro!: defined_up)
+ apply (force intro!: up_defined)
 done
 
 lemma ex_sprod_defined_iff:
