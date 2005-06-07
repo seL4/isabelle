@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+#
+# $Id$
+# Author: Florian Haftmann, TUM
+#
+# Do consistency and quality checks on the isabelle sources
+#
+
+use strict;
+use File::Find;
+use File::Basename;
+
+# configuration
+my $isabelleRoot = $ENV{'HOME'} . "/isabelle";
+my @suffices = ('\.thy', '\.ml', '\.ML');
+
+# lint main procedure
+sub lint() {
+    my ($basename, $dirname, $ext) = fileparse($File::Find::name, @suffices);
+    if ($ext) {
+        open ISTREAM, $File::Find::name or die("error opening $File::Find::name");
+        my $found = 0;
+        while (<ISTREAM>) {
+            $found ||= m/\$Id[^\$]*\$/;
+            last if $found;
+        }
+        close ISTREAM;
+        my $relname = substr($File::Find::name, (length $isabelleRoot) + 1);
+        if (! $found) {
+            print "Found no CVS id in $relname\n";
+        }
+    }
+}
+
+# first argument =^= isabelle repository root
+if (@ARGV) {
+    $isabelleRoot = $ARGV[0];
+}
+
+find(\&lint, $isabelleRoot);
+
