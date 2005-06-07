@@ -57,6 +57,7 @@ val Rep_CFun_strict1 = thm "Rep_CFun_strict1";
 val chfin_Rep_CFunR = thm "chfin_Rep_CFunR";
 val retraction_strict = thm "retraction_strict";
 val injection_eq = thm "injection_eq";
+val injection_less = thm "injection_less";
 val injection_defined_rev = thm "injection_defined_rev";
 val injection_defined = thm "injection_defined";
 val chfin2chfin = thm "chfin2chfin";

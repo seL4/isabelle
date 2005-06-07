@@ -336,6 +336,14 @@ apply simp
 apply simp
 done
 
+lemma injection_less:
+  "\<forall>x. f\<cdot>(g\<cdot>x) = x \<Longrightarrow> (g\<cdot>x \<sqsubseteq> g\<cdot>y) = (x \<sqsubseteq> y)"
+apply (rule iffI)
+apply (drule_tac f=f in monofun_cfun_arg)
+apply simp
+apply (erule monofun_cfun_arg)
+done
+
 lemma injection_defined_rev:
   "\<lbrakk>\<forall>x. f\<cdot>(g\<cdot>x) = x; g\<cdot>z = \<bottom>\<rbrakk> \<Longrightarrow> z = \<bottom>"
 apply (drule_tac f=f in cfun_arg_cong)
