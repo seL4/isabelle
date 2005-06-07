@@ -21,10 +21,48 @@ my %migrators = (
     id => sub {
         my ($file, @content) = @_;
     },
-    dummy => sub {
+    thyheader => sub {
         my ($file, @content) = @_;
+        $_ = join("", @content);
+        if (m!\G
+                ^
+                    theory\s+([^ ]+)
+                    (?:\s+(?:imports|=)\s+([^:]*?))?
+                    (?:\s+(?:files|uses)\s+([^:]*?))?
+                    \s*(?:begin|:)
+             !cgomsx) {
+            # STRATEGIE: abschnittsweises matchen, zwischendurch immer wieder whitespace
+            # verarbeiten
+        }
     }
 );
+
+# utility functions
+sub skip_wscomment {
+    my $commentlevel = 0;
+    my @skipped = ();
+    while () {
+        if (m!\G\{\*!cgoms) {
+            push(@skipped, $&);
+            $commentlevel++;
+        } elsif ($commentlevel > 0) {
+            if (m!\G\*\}!cgoms) {
+                push(@skipped, $&);
+                $commentlevel--;
+            } elsif (m!\G(?:
+                        [^{*]|\*[^{}]|\{[^*]
+                       )*!cgomsx) {
+                push(@skipped, $&);
+            } else {
+                die ("probably incorrectly nested comment");
+            }
+        } elsif (m!\G\s+!cgoms) {
+            push(@skipped, $&);
+        } else {
+            return join('', @skipped);
+        }
+    }
+}
 
 # process dir tree
 sub process_tree {

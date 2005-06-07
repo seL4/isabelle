@@ -2,10 +2,6 @@ For the next release:
 
 - use "//" paths for alle internal static resources, due to link consistency
 
-- integrate into makedist-chain (Florian)
-
-- more concise installation instructions for MaxOS X
-
 - make preview second section in "overview"
 
 - centralize scattered project partners informations at "community"
@@ -13,6 +9,8 @@ For the next release:
 - move projects from "overview" to "community"
 
 - reduce prominence of license issue at "overview"
+
+- add CONTRIBUTORS and COPYRIGHT to Packages
 
 In the mid-time:
 
