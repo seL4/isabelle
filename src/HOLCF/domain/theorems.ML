@@ -304,30 +304,34 @@ val dist_eqs = let
     in map standard (distincts (cons~~distincts_le)) end;
 
 local 
-  fun pgterm rel con args = let
-                fun append s = upd_vname(fn v => v^s);
-                val (largs,rargs) = (args, map (append "'") args);
-                in pg [] (mk_trp (rel(con_app con largs,con_app con rargs)) ===>
-                      lift_defined %: ((nonlazy largs),lift_defined %: ((nonlazy rargs),
-                            mk_trp (foldr' mk_conj 
-                                (ListPair.map rel
-				 (map %# largs, map %# rargs)))))) end;
+  fun pgterm rel con args =
+    let
+      fun append s = upd_vname(fn v => v^s);
+      val (largs,rargs) = (args, map (append "'") args);
+      val concl = mk_trp (foldr' mk_conj (ListPair.map rel (map %# largs, map %# rargs)));
+      val prem = mk_trp (rel(con_app con largs,con_app con rargs));
+      val prop = prem ===> lift_defined %: (nonlazy largs, concl);
+    in pg con_appls prop end;
   val cons' = List.filter (fn (_,args) => args<>[]) cons;
 in
-val inverts = map (fn (con,args) => 
-                pgterm (op <<) con args (List.concat(map (fn arg => [
-                                TRY(rtac conjI 1),
-                                dres_inst_tac [("f",sel_of arg)] monofun_cfun_arg 1,
-                                asm_full_simp_tac (HOLCF_ss addsimps sel_apps) 1]
-                                                      ) args))) cons';
-val injects = map (fn ((con,args),inv_thm) => 
-                           pgterm (op ===) con args [
-                                etac (antisym_less_inverse RS conjE) 1,
-                                dtac inv_thm 1, REPEAT(atac 1),
-                                dtac inv_thm 1, REPEAT(atac 1),
-                                TRY(safe_tac HOL_cs),
-                                REPEAT(rtac antisym_less 1 ORELSE atac 1)] )
-                  (cons'~~inverts);
+val inverts =
+  let
+    val abs_less = ax_abs_iso RS (allI RS injection_less) RS iffD1;
+    val simps = [up_less, spair_less];
+    val tacs = [
+      dtac abs_less 1,
+      REPEAT (dresolve_tac [sinl_less RS iffD1, sinr_less RS iffD1] 1),
+      asm_full_simp_tac (HOLCF_ss addsimps simps) 1];
+  in map (fn (con,args) => pgterm (op <<) con args tacs) cons' end;
+val injects =
+  let
+    val abs_eq = ax_abs_iso RS (allI RS injection_eq) RS iffD1;
+    val simps = [up_eq, spair_eq];
+    val tacs = [
+      dtac abs_eq 1,
+      REPEAT (dresolve_tac [sinl_inject, sinr_inject] 1),
+      asm_full_simp_tac (HOLCF_ss addsimps simps) 1];
+  in map (fn (con,args) => pgterm (op ===) con args tacs) cons' end;
 end;
 
 (* ----- theorems concerning one induction step ----------------------------- *)
