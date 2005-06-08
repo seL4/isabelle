@@ -69,7 +69,7 @@ lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
    apply (erule disjE)
     apply (tactic "contr_tac 1")
    apply simp
-  apply (erule (2) dnat.inverts)
+  apply (erule (1) dnat.inverts)
   done
 
 end
