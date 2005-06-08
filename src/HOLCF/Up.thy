@@ -285,7 +285,7 @@ done
 lemma up_inject: "up\<cdot>x = up\<cdot>y \<Longrightarrow> x = y"
 by (simp add: up_def cont_Iup)
 
-lemma up_eq: "(up\<cdot>x = up\<cdot>y) = (x = y)"
+lemma up_eq [simp]: "(up\<cdot>x = up\<cdot>y) = (x = y)"
 by (rule iffI, erule up_inject, simp)
 
 lemma up_defined [simp]: " up\<cdot>x \<noteq> \<bottom>"
@@ -294,7 +294,7 @@ by (simp add: up_def cont_Iup inst_up_pcpo)
 lemma not_up_less_UU [simp]: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
 by (simp add: eq_UU_iff [symmetric])
 
-lemma up_less: "(up\<cdot>x \<sqsubseteq> up\<cdot>y) = (x \<sqsubseteq> y)"
+lemma up_less [simp]: "(up\<cdot>x \<sqsubseteq> up\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: up_def cont_Iup)
 
 lemma upE1: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
