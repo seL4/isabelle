@@ -102,7 +102,7 @@ class Functions:
     def navitem(self, handler, **args):
 
         """<?navitem target="..." title="..."?> - inserts an item in a navigation list,
-            targeting to target and entitled title"""
+            targeting to <target> and entitled <title>"""
 
         target = args[u"target"].encode("latin-1")
         target = self._pc.relDstPathOf(target)
@@ -124,6 +124,9 @@ class Functions:
 
     def downloadLink(self, handler, **args):
 
+        """<?downloadLink target="..." [title="..."]?> - inserts a link to a file
+           to download; if the title is omitted, it is the bare filename itself"""
+
         target = args[u"target"].encode("latin-1")
         targetReal = self._pc.absDstPathOf(target)
         title = args.get(u"title", unicode(posixpath.split(targetReal)[1], 'latin-1'))
@@ -135,6 +138,10 @@ class Functions:
         handler.endElement(u"a")
 
     def downloadCells(self, handler, **args):
+
+        """<?downloadCells target="..." [title="..."]?> - like downloadLink, but
+           puts the link into a table cell and appends a table cell displaying the
+           size of the linked file"""
 
         target = args[u"target"].encode("latin-1")
         targetReal = self._pc.absDstPathOf(target)
