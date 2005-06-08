@@ -58,7 +58,7 @@ constdefs (structure L)
   join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
   "x \<squnion> y == sup L {x, y}"
 
-  meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 65)
+  meet :: "[_, 'a, 'a] => 'a" (infixl "\<sqinter>\<index>" 70)
   "x \<sqinter> y == inf L {x, y}"
 
 

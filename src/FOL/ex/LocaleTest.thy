@@ -22,12 +22,10 @@ section {* Renaming with Syntax *}
 
 locale (open) S = var mult +
   assumes "mult(x, y) = mult(y, x)"
-(* Making this declaration (open) reveals a problem when mixing open and
-   closed locales. *)
 
 print_locale S
 
-locale (open) S' = S mult (infixl "**" 60)
+locale S' = S mult (infixl "**" 60)
 
 print_locale S'
 

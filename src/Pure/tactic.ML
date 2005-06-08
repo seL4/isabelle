@@ -111,10 +111,13 @@ sig
   val simplify: bool -> thm list -> thm -> thm
   val conjunction_tac: tactic
   val smart_conjunction_tac: int -> tactic
+  val prove_multi_plain: Sign.sg -> string list -> term list -> term list ->
+    (thm list -> tactic) -> thm list
   val prove_multi: Sign.sg -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
   val prove_multi_standard: Sign.sg -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
+  val prove_plain: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_standard: Sign.sg -> string list -> term list -> term ->
     (thm list -> tactic) -> thm
@@ -659,7 +662,7 @@ fun smart_conjunction_tac 0 = assume_tac 1
 
 (** minimal goal interface for programmed proofs *)
 
-fun prove_multi sign xs asms props tac =
+fun gen_prove_multi finish_thm sign xs asms props tac =
   let
     val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
@@ -700,14 +703,19 @@ fun prove_multi sign xs asms props tac =
     |> map (fn res => res
       |> Drule.implies_intr_list casms
       |> Drule.forall_intr_list cparams
-      |> norm_hhf_rule
-      |> (#1 o Thm.varifyT' fixed_tfrees)
-      |> Drule.zero_var_indexes)
+      |> finish_thm fixed_tfrees)
   end;
 
+fun prove_multi_plain sign xs asms prop tac =
+  gen_prove_multi (K norm_hhf_plain) sign xs asms prop tac;
+fun prove_multi sign xs asms prop tac =
+  gen_prove_multi (fn fixed_tfrees => Drule.zero_var_indexes o
+      (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf_rule)
+    sign xs asms prop tac;
 fun prove_multi_standard sign xs asms prop tac =
   map Drule.standard (prove_multi sign xs asms prop tac);
 
+fun prove_plain sign xs asms prop tac = hd (prove_multi_plain sign xs asms [prop] tac);
 fun prove sign xs asms prop tac = hd (prove_multi sign xs asms [prop] tac);
 fun prove_standard sign xs asms prop tac = Drule.standard (prove sign xs asms prop tac);
 

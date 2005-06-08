@@ -21,7 +21,6 @@ See also:
 (* TODO:
 - beta-eta normalisation of interpretation parameters
 - no beta reduction of interpretation witnesses
-- mix of locales with and without open in activate_elems
 - dangling type frees in locales
 *)
 
@@ -855,7 +854,6 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     (* thy used for retrieval of locale info,
        ctxt for error messages, parameter unification and instantiation
        of axioms *)
-    (* TODO: consider err_in_locale with thy argument *)
 
     fun renaming (SOME x :: xs) (y :: ys) = (y, x) :: renaming xs ys
       | renaming (NONE :: xs) (y :: ys) = renaming xs ys
@@ -1740,7 +1738,7 @@ fun def_pred bname parms defs ts norm_ts thy =
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))]
       |> Drule.conj_elim_precise (length ts);
     val axioms = (ts ~~ conjuncts) |> map (fn (t, ax) =>
-      Tactic.prove defs_sign [] [] t (fn _ =>
+      Tactic.prove_plain defs_sign [] [] t (fn _ =>
         Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in (defs_thy, (statement, intro, axioms)) end;
@@ -1777,7 +1775,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val aname = if null ints then bname else bname ^ "_" ^ axiomsN;
           val (def_thy, (statement, intro, axioms)) =
             thy |> def_pred aname parms defs exts exts';
-          val elemss' = change_elemss axioms elemss @
+          val elemss' = change_elemss (map (Drule.zero_var_indexes o Drule.gen_all) axioms) elemss @
             [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
         in
           def_thy |> note_thmss_qualified "" aname
