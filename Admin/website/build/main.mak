@@ -87,7 +87,9 @@ $(DEP_FILE): $(CONF)
 			outputdir=`dirname $$outputfile`; \
 			echo "$$outputfile: $$file" >> $(DEP_FILE); \
 			echo "	mkdir -p $$outputdir" >> $(DEP_FILE); \
+			echo "	-chmod $(TARGET_UMASK_DIR) $$outputdir" >> $(DEP_FILE); \
 			echo '	cp $$< $$@' >> $(DEP_FILE); \
+			echo '	chmod $(TARGET_UMASK_FILE) $$@' >> $(DEP_FILE); \
 			allstatic="$$allstatic$$outputfile "; \
 			echo >> $(DEP_FILE); \
 		done; \
@@ -103,8 +105,10 @@ $(DEP_FILE): $(CONF)
 		outputdir=`dirname $$outputfile`; \
 		echo "$$outputfile: $$html"' $$(DEP_HTML)' >> $(DEP_FILE); \
 		echo "	mkdir -p $$outputdir" >> $(DEP_FILE); \
+		echo "	-chmod $(TARGET_UMASK_DIR) $$outputdir" >> $(DEP_FILE); \
 		echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" distname="$(DISTNAME)" $$< $$@' >> $(DEP_FILE); \
 		echo '	-$(TIDYCMD) $$@' >> $(DEP_FILE); \
+		echo '	chmod $(TARGET_UMASK_FILE) $$@' >> $(DEP_FILE); \
 		allhtml="$$allhtml$$outputfile "; \
 		echo >> $(DEP_FILE); \
 	done; \

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: Latin-1 -*-
 
+"""
+    (on available processing instructions, see the Functions class)
+"""
+
 __author__ = 'Florian Haftmann, florian.haftmann@informatik.tu-muenchen.de'
 __revision__ = '$Id$'
 
@@ -39,20 +43,22 @@ class Functions:
         self._modtime = modtime
         self._encodingMeta = encodingMeta
 
-    def getPc(self):
-
-        return self._pc
-
     def value(self, handler, **args):
+
+        """<?value key="..."?> - inserts a property value given on the command line"""
 
         value = self._valdict[args[u"key"]]
         handler.characters(value)
 
     def title(self, handler, **args):
 
+        """<?title?> - inserts the document's title as glimpsed from the <title> tag"""
+
         handler.characters(handler._title)
 
     def contentType(self, handler, **args):
+
+        """<?contentType?> - inserts the document's content type/encoding"""
 
         encoding = self._encodingMeta or handler._encoding
         attr = {
@@ -64,19 +70,27 @@ class Functions:
 
     def currentDate(self, handler, **args):
 
+        """<?currentDate?> - inserts the current date"""
+
         handler.characters(unicode(time.strftime('%Y-%m-%d %H:%M:%S')))
 
     def modificationDate(self, handler, **args):
+
+        """<?modificationDate?> - inserts the modification date of this file"""
 
         handler.characters(unicode(time.strftime('%Y-%m-%d %H:%M:%S',
             time.localtime(self._modtime))))
 
     def relativeRoot(self, handler, **args):
 
+        """<?relativeRoot href="..."?> - inserts the relative path specified by href"""
+
         href = args[u"href"].encode("latin-1")
         handler.characters(self._pc.relDstPathOf('//'+href))
 
     def include(self, handler, **args):
+
+        """<?include file="..."?> - includes an XML file"""
 
         filename = args[u"file"].encode("latin-1")
         filename = self._pc.absSrcPathOf(filename)
@@ -86,6 +100,9 @@ class Functions:
         istream.close()
 
     def navitem(self, handler, **args):
+
+        """<?navitem target="..." title="..."?> - inserts an item in a navigation list,
+            targeting to target and entitled title"""
 
         target = args[u"target"].encode("latin-1")
         target = self._pc.relDstPathOf(target)
@@ -133,6 +150,10 @@ class Functions:
         handler.startElement(u"td", {})
         handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
         handler.endElement(u"td")
+
+    def getPc(self):
+
+        return self._pc
 
 # a notion of paths
 class PathCalculator:

@@ -17,6 +17,7 @@ dist/packages: $(ISABELLE_DIST)
 
 $(OUTPUTROOT)/library: $(ISABELLE_LIBR)
 	ln -s $< $@
+	chmod $(TARGET_UMASK_DIR) $@
 
 include/documentationdist.include.html: $(ISABELLE_DOC_CONTENT_FILE)
 	perl build/mkcontents.pl -p '//dist/packages/Isabelle/doc/' $< $@
