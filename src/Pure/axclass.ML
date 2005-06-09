@@ -9,17 +9,17 @@ signature AX_CLASS =
 sig
   val quiet_mode: bool ref
   val print_axclasses: theory -> unit
-  val add_axclass: bclass * xclass list -> ((bstring * string) * Attrib.src list) list
+  val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * {intro: thm, axioms: thm list}
-  val add_axclass_i: bclass * class list -> ((bstring * term) * theory attribute list) list
+  val add_axclass_i: bstring * class list -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * {intro: thm, axioms: thm list}
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
-  val add_inst_subclass: xclass * xclass -> tactic -> theory -> theory
+  val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
   val add_inst_subclass_i: class * class -> tactic -> theory -> theory
   val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
-  val instance_subclass_proof: xclass * xclass -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof: xstring * xstring -> bool -> theory -> ProofHistory.T
   val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
   val instance_arity_proof: xstring * string list * string -> bool -> theory -> ProofHistory.T
   val instance_arity_proof_i: string * sort list * sort -> bool -> theory -> ProofHistory.T
@@ -28,7 +28,7 @@ sig
 
   (*legacy interfaces*)
   val axclass_tac: thm list -> tactic
-  val add_inst_subclass_x: xclass * xclass -> string list -> thm list
+  val add_inst_subclass_x: xstring * xstring -> string list -> thm list
     -> tactic option -> theory -> theory
   val add_inst_arity_x: xstring * string list * string -> string list
     -> thm list -> tactic option -> theory -> theory
