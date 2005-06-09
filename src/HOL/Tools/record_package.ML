@@ -1213,13 +1213,14 @@ fun record_split_tac i st =
 val record_split_name = "record_split_tac";
 val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE' tac);
 
+
+
 (** theory extender interface **)
 
 (* prepare arguments *)
 
-(*note: read_raw_typ avoids expanding type abbreviations*)
 fun read_raw_parent sign s =
-  (case Sign.read_raw_typ (sign, K NONE) s handle TYPE (msg, _, _) => error msg of
+  (case Sign.read_typ_abbrev (sign, K NONE) s handle TYPE (msg, _, _) => error msg of
     Type (name, Ts) => (Ts, name)
   | _ => error ("Bad parent record specification: " ^ quote s));
 
