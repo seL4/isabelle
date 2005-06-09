@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Generic name spaces with declared and hidden entries.  Unknown names
-are considered as global; no support for absolute addressing.
+are considered global; no support for absolute addressing.
 *)
 
 type bstring = string;    (*names to be bound / internalized*)
@@ -37,7 +37,6 @@ sig
   val valid_accesses: T -> string -> xstring list
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
-  val extern_table: T -> 'a Symtab.table -> (xstring * 'a) list
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   val dest: T -> (string * xstring list) list
@@ -52,6 +51,11 @@ sig
   val custom_accesses: (string list -> string list list) -> naming -> naming
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     naming -> naming
+  type 'a table = T * 'a Symtab.table
+  val empty_table: 'a table
+  val extend_table: naming -> 'a table * (bstring * 'a) list -> 'a table
+  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
+  val extern_table: 'a table -> (xstring * 'a) list
 end;
 
 structure NameSpace: NAME_SPACE =
@@ -142,9 +146,6 @@ fun extern space name =
     else if ! short_names then base name
     else ex (accesses' name)
   end;
-
-fun extern_table space tab =
-  Library.sort_wrt #1 (map (apfst (extern space)) (Symtab.dest tab));
 
 
 (* basic operations *)
@@ -243,6 +244,23 @@ fun no_base_names (Naming (path, (qualify, accs))) =
 fun custom_accesses accs (Naming (path, (qualify, _))) = Naming (path, (qualify, accs));
 fun set_policy policy (Naming (path, _)) = Naming (path, policy);
 
+
+
+(** name spaces coupled with symbol tables **)
+
+type 'a table = T * 'a Symtab.table;
+
+val empty_table = (empty, Symtab.empty);
+
+fun extend_table naming ((space, tab), bentries) =
+  let val entries = map (apfst (full naming)) bentries
+  in (fold (declare naming o #1) entries space, Symtab.extend (tab, entries)) end;
+
+fun merge_tables eq ((space1, tab1), (space2, tab2)) =
+  (merge (space1, space2), (Symtab.merge eq (tab1, tab2)));
+
+fun extern_table (space, tab) =
+  Library.sort_wrt #1 (map (apfst (extern space)) (Symtab.dest tab));
 
 end;
 
