@@ -383,8 +383,7 @@ fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
 
 fun get_defn thy s T =
   let
-    val axms = List.concat (map (Symtab.dest o #axioms o Theory.rep_theory)
-      (thy :: Theory.ancestors_of thy));
+    val axms = Theory.all_axioms_of thy;
     fun prep_def def = (case preprocess thy [def] of
       [def'] => prop_of def' | _ => error "get_defn: bad preprocessor");
     fun dest t =

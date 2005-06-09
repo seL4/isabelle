@@ -419,7 +419,7 @@ struct
 	let
 		val _ = immediate_output "Adding axioms..."
 		(* (string * Term.term) list *)
-		val axioms = List.concat (map (Symtab.dest o #axioms o Theory.rep_theory) (thy :: Theory.ancestors_of thy))
+		val axioms = Theory.all_axioms_of thy;
 		(* string list *)
 		val rec_names = Symtab.foldl (fn (acc, (_, info)) =>
 			#rec_names info @ acc) ([], DatatypePackage.get_datatypes thy)
