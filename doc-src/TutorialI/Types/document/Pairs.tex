@@ -67,7 +67,7 @@ The most obvious approach is the brute force expansion of \isa{split}:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}x{\isacharparenright}\ p\ {\isacharequal}\ fst\ p{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
@@ -90,12 +90,19 @@ rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}y{\isacharparenright}\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
+\end{isabelle}
+This subgoal is easily proved by simplification. Thus we could have combined
+simplification and splitting in one command that proves the goal outright:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Let us look at a second example:%
@@ -103,15 +110,42 @@ Let us look at a second example:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}let\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ p\ in\ fst\ p\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ fst\ p\ {\isacharequal}\ x{\isacharparenright}\ p%
+\end{isabelle}
+A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
+can be split as above. The same is true for paired set comprehension:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ split\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
+\end{isabelle}
+Again, simplification produces a term suitable for \isa{split{\isacharunderscore}split}
+as above. If you are worried about the strange form of the premise:
+\isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ x\ {\isacharequal}\ y} is short for \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y}.
+The same proof procedure works for%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+except that we now have to use \isa{split{\isacharunderscore}split{\isacharunderscore}asm}, because
+\isa{split} occurs in the assumptions.
+
+However, splitting \isa{split} is not always a solution, as no \isa{split}
+may be present in the goal. Consider the following function:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{consts}\ swap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequote}\isanewline
@@ -126,16 +160,51 @@ because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+simplification will do nothing, because the defining equation for \isa{Pairs{\isachardot}swap}
+expects a pair. Again, we need to turn \isa{p} into a pair first, but this
+time there is no \isa{split} in sight. In this case the only thing we can do
+is to split the term by hand:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ p{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymLongrightarrow}\ Pairs{\isachardot}swap\ {\isacharparenleft}Pairs{\isachardot}swap\ p{\isacharparenright}\ {\isacharequal}\ p%
+\end{isabelle}
+Again, \methdx{case_tac} is applicable because \isa{{\isasymtimes}} is a datatype.
+The subgoal is easily proved by \isa{simp}.
+
+Splitting by \isa{case{\isacharunderscore}tac} also solves the previous examples and may thus
+appear preferable to the more arcane methods introduced first. However, see
+the warning about \isa{case{\isacharunderscore}tac} in \S\ref{sec:struct-ind-case}.
+
+In case the term to be split is a quantified variable, there are more options.
+You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal
+with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}p\ q{\isachardot}\ swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ q\ {\isasymlongrightarrow}\ p\ {\isacharequal}\ q{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b\ aa\ ba{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }Pairs{\isachardot}swap\ {\isacharparenleft}Pairs{\isachardot}swap\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}%
+\end{isabelle}%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+\isacommand{apply}\ simp\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -150,7 +219,7 @@ where two separate \isa{simp} applications succeed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -161,7 +230,7 @@ Finally, the simplifier automatically splits all \isa{{\isasymforall}} and
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}p{\isachardot}\ {\isasymexists}q{\isachardot}\ swap\ p\ {\isacharequal}\ swap\ q{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent

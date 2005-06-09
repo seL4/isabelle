@@ -77,7 +77,7 @@ For each field, there is a \emph{selector}\index{selector!record}
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The \emph{update}\index{update!record} operation is functional.  For
@@ -88,7 +88,7 @@ The \emph{update}\index{update!record} operation is functional.  For
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}\ {\isacharequal}\isanewline
 \ \ \ \ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isadigit{0}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{warn}
@@ -139,7 +139,7 @@ The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ p{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}} is exactly the same as \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}}.  Selectors and updates are always polymorphic wrt.\ the
@@ -152,7 +152,7 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}point{\isachardot}more\ cpt{\isadigit{1}}\ {\isacharequal}\ {\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 We see that the colour part attached to this \isa{point} is a
@@ -167,7 +167,7 @@ We see that the colour part attached to this \isa{point} is a
   \medskip
   \begin{tabular}{l}
   \isa{point}~\isa{{\isacharequal}}~\isa{point} \\
-  \isa{{\isacharprime}a\ point{\isacharunderscore}scheme}~\isa{{\isacharequal}}~\isa{{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a{\isasymrparr}} \\
+  \isa{{\isacharprime}a\ point{\isacharunderscore}scheme}~\isa{{\isacharequal}}~\isa{{\isacharprime}a\ point{\isacharunderscore}scheme} \\
   \end{tabular}
   \medskip
 
@@ -204,7 +204,7 @@ Generic theorems can be proved about generic methods.  This trivial
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}incX\ r\ {\isacharequal}\ setX\ r\ {\isacharparenleft}getX\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ getX{\isacharunderscore}def\ setX{\isacharunderscore}def\ incX{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{warn}
@@ -231,7 +231,7 @@ Two records are equal\index{equality!of records} if all pairs of
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharprime}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ {\isacharparenleft}a\ {\isacharequal}\ a{\isacharprime}\ {\isasymand}\ b\ {\isacharequal}\ b{\isacharprime}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The following equality is similar, but generic, in that \isa{r}
@@ -240,7 +240,7 @@ The following equality is similar, but generic, in that \isa{r}
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isacharcomma}\ Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 We see above the syntax for iterated updates.  We could equivalently
@@ -253,7 +253,7 @@ We see above the syntax for iterated updates.  We could equivalently
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The generic version of this equality includes the pseudo-field
@@ -262,7 +262,7 @@ The generic version of this equality includes the pseudo-field
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip The simplifier can prove many record equalities
@@ -272,8 +272,9 @@ The generic version of this equality includes the pseudo-field
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}\ simp{\isacharquery}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{oops}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Here the simplifier can do nothing, since general record equality is
@@ -284,10 +285,19 @@ Here the simplifier can do nothing, since general record equality is
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}drule{\isacharunderscore}tac\ f\ {\isacharequal}\ Xcoord\ \isakeyword{in}\ arg{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isacharparenright}\ {\isacharequal}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\end{isabelle}
+    Now, \isa{simp} will reduce the assumption to the desired
+    conclusion.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ simp\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The \isa{cases} method is preferable to such a forward proof.  We
@@ -295,11 +305,31 @@ The \isa{cases} method is preferable to such a forward proof.  We
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequote}\isamarkupfalse%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+The \methdx{cases} method adds an equality to replace the
+  named record term by an explicit record expression, listing all
+  fields.  It even includes the pseudo-field \isa{more}, since the
+  record equality stated here is generic for all extensions.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}cases\ r{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}Xcoord\ Ycoord\ more{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\end{isabelle} Again, \isa{simp} finishes the proof.  Because \isa{r} is now represented as
+  an explicit record construction, the updates can be applied and the
+  record equality can be replaced by equality of the corresponding
+  fields (due to injectivity).%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ simp\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The generic cases method does not admit references to locally bound
@@ -386,10 +416,17 @@ The coloured points \isa{cpt{\isadigit{1}}} and \isa{cpt{\isadigit{2}}} are equa
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}cpt{\isadigit{1}}\ {\isacharequal}\ cpt{\isadigit{2}}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs\ cpoint{\isachardot}defs{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ Xcoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}\ {\isasymand}\ Ycoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}%
+\end{isabelle}%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 In the example below, a coloured point is truncated to leave a
@@ -398,7 +435,7 @@ In the example below, a coloured point is truncated to leave a
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}point{\isachardot}truncate\ cpt{\isadigit{2}}\ {\isacharequal}\ pt{\isadigit{1}}{\isachardoublequote}\isanewline
 \ \ \isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{exercise}

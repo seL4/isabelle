@@ -3,6 +3,7 @@
 %%
 %% macros for Isabelle generated LaTeX output
 %%
+%% 
 
 %%% Simple document preparation (based on theory token language and symbols)
 
@@ -23,7 +24,14 @@
 \newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
 \newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
 \newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
+\newcommand{\isactrlisub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
+\newcommand{\isactrlisup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
+\newcommand{\isactrlbsub}{\emph\bgroup\begin{math}{}\sb\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlesub}{\egroup\egroup\end{math}\egroup}
+\newcommand{\isactrlbsup}{\emph\bgroup\begin{math}{}\sp\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlesup}{\egroup\egroup\end{math}\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
+
 
 \newdimen\isa@parindent\newdimen\isa@parskip
 
@@ -41,6 +49,7 @@
 
 \newcommand{\isaindent}[1]{\hphantom{#1}}
 \newcommand{\isanewline}{\mbox{}\par\mbox{}}
+\newcommand{\isasep}{} % override with e.g. \renewcommand{\isasep}{\vspace{1ex}}
 \newcommand{\isadigit}[1]{#1}
 
 \chardef\isacharbang=`\!
