@@ -33,9 +33,11 @@ sig
   val default_type: context -> string -> typ option
   val used_types: context -> string list
   val read_typ: context -> string -> typ
-  val read_typ_raw: context -> string -> typ
+  val read_typ_syntax: context -> string -> typ
+  val read_typ_abbrev: context -> string -> typ
   val cert_typ: context -> typ -> typ
-  val cert_typ_raw: context -> typ -> typ
+  val cert_typ_syntax: context -> typ -> typ
+  val cert_typ_abbrev: context -> typ -> typ
   val get_skolem: context -> string -> string
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
@@ -93,7 +95,7 @@ sig
   val get_thms_closure: context -> thmref -> thm list
   val valid_thms: context -> string * thm list -> bool
   val lthms_containing: context -> FactIndex.spec -> (string * thm list) list
-  val extern: context -> string -> xstring
+  val extern_thm: context -> string -> xstring
   val qualified_names: context -> context
   val no_base_names: context -> context
   val custom_accesses: (string list -> string list list) -> context -> context
@@ -176,8 +178,8 @@ datatype context =
         (string * thm list) list) *                           (*prems: A |- A *)
       (string * string) list,                                 (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,                         (*term bindings*)
-    thms: NameSpace.naming * NameSpace.T *
-      thm list Symtab.table * FactIndex.T,                    (*local thms*)
+    thms: NameSpace.naming *
+      thm list NameSpace.table * FactIndex.T,                 (*local thms*)
     cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
       typ Vartab.table *                                      (*type constraints*)
@@ -208,7 +210,7 @@ fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
 fun prems_of (Context {asms = ((_, prems), _), ...}) = List.concat (map #2 prems);
-fun fact_index_of (Context {thms = (_, _, _, idx), ...}) = idx;
+fun fact_index_of (Context {thms = (_, _, idx), ...}) = idx;
 
 
 
@@ -303,7 +305,7 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
-      (NameSpace.default_naming, NameSpace.empty, Symtab.empty, FactIndex.empty), [],
+      (NameSpace.default_naming, NameSpace.empty_table, FactIndex.empty), [],
       (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
 
@@ -440,10 +442,12 @@ fun cert_typ_aux cert ctxt raw_T =
 
 in
 
-val read_typ     = read_typ_aux Sign.read_typ';
-val read_typ_raw = read_typ_aux Sign.read_typ_raw';
-val cert_typ     = cert_typ_aux Sign.certify_typ;
-val cert_typ_raw = cert_typ_aux Sign.certify_typ_raw;
+val read_typ        = read_typ_aux Sign.read_typ';
+val read_typ_syntax = read_typ_aux Sign.read_typ_syntax';
+val read_typ_abbrev = read_typ_aux Sign.read_typ_abbrev';
+val cert_typ        = cert_typ_aux Sign.certify_typ;
+val cert_typ_syntax = cert_typ_aux Sign.certify_typ_syntax;
+val cert_typ_abbrev = cert_typ_aux Sign.certify_typ_abbrev;
 
 end;
 
@@ -971,7 +975,7 @@ end;
 (* get_thm(s) *)
 
 (*beware of proper order of evaluation!*)
-fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab, _), ...}) =
+fun retrieve_thms f g (ctxt as Context {thy, thms = (_, (space, tab), _), ...}) =
   let
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
     val get_from_thy = f thy;
@@ -1006,34 +1010,34 @@ fun lthms_containing ctxt spec =
 
 (* name space operations *)
 
-fun extern (Context {thms = (_, space, _, _), ...}) = NameSpace.extern space;
+fun extern_thm (Context {thms = (_, (space, _), _), ...}) = NameSpace.extern space;
 
 fun map_naming f = map_context (fn (thy, syntax, data, asms, binds,
-    (naming, space, tab, index), cases, defs) =>
-  (thy, syntax, data, asms, binds, (f naming, space, tab, index), cases, defs));
+    (naming, table, index), cases, defs) =>
+  (thy, syntax, data, asms, binds, (f naming, table, index), cases, defs));
 
 val qualified_names = map_naming NameSpace.qualified_names;
 val no_base_names = map_naming NameSpace.no_base_names;
 val custom_accesses = map_naming o NameSpace.custom_accesses;
 fun restore_naming (Context {thms, ...}) = map_naming (K (#1 thms));
 
-fun hide_thms fully names =
-  map_context (fn (thy, syntax, data, asms, binds, (naming, space, tab, index), cases, defs) =>
+fun hide_thms fully names = map_context
+  (fn (thy, syntax, data, asms, binds, (naming, (space, tab), index), cases, defs) =>
     (thy, syntax, data, asms, binds,
-      (naming, fold (NameSpace.hide fully) names space, tab, index), cases, defs));
+      (naming, (fold (NameSpace.hide fully) names space, tab), index), cases, defs));
 
 
 (* put_thm(s) *)
 
 fun put_thms ("", _) ctxt = ctxt
   | put_thms (bname, ths) ctxt = ctxt |> map_context
-      (fn (thy, syntax, data, asms, binds, (naming, space, tab, index), cases, defs) =>
+      (fn (thy, syntax, data, asms, binds, (naming, (space, tab), index), cases, defs) =>
         let
           val name = NameSpace.full naming bname;
           val space' = NameSpace.declare naming name space;
           val tab' = Symtab.update ((name, ths), tab);
           val index' = FactIndex.add (is_known ctxt) (name, ths) index;
-        in (thy, syntax, data, asms, binds, (naming, space', tab', index'), cases, defs) end);
+        in (thy, syntax, data, asms, binds, (naming, (space', tab'), index'), cases, defs) end);
 
 fun put_thm (name, th) = put_thms (name, [th]);
 val put_thmss = fold put_thms;
@@ -1041,9 +1045,9 @@ val put_thmss = fold put_thms;
 
 (* reset_thms *)
 
-fun reset_thms name =
-  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
-    (thy, syntax, data, asms, binds, (q, space, Symtab.delete_safe name tab, index),
+fun reset_thms name =    (* FIXME hide!? *)
+  map_context (fn (thy, syntax, data, asms, binds, (q, (space, tab), index), cases, defs) =>
+    (thy, syntax, data, asms, binds, (q, (space, Symtab.delete_safe name tab), index),
       cases, defs));
 
 
@@ -1350,8 +1354,8 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 (* local theorems *)
 
-fun pretty_lthms (ctxt as Context {thms = (_, space, tab, _), ...}) =
-  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.extern_table space tab);
+fun pretty_lthms (ctxt as Context {thms = (_, table, _), ...}) =
+  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.extern_table table);
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
