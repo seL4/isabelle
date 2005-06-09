@@ -67,11 +67,11 @@ sig
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
   val named_fact: (string -> thm list) -> T list -> thm list * T list
-  val global_typ_raw: theory * T list -> typ * (theory * T list)
+  val global_typ_abbrev: theory * T list -> typ * (theory * T list)
   val global_typ: theory * T list -> typ * (theory * T list)
   val global_term: theory * T list -> term * (theory * T list)
   val global_prop: theory * T list -> term * (theory * T list)
-  val local_typ_raw: ProofContext.context * T list -> typ * (ProofContext.context * T list)
+  val local_typ_abbrev: ProofContext.context * T list -> typ * (ProofContext.context * T list)
   val local_typ: ProofContext.context * T list -> typ * (ProofContext.context * T list)
   val local_term: ProofContext.context * T list -> term * (ProofContext.context * T list)
   val local_prop: ProofContext.context * T list -> term * (ProofContext.context * T list)
@@ -292,12 +292,12 @@ fun named_fact get = internal_fact || named >> evaluate Fact get;
 
 (* terms and types *)
 
-val global_typ_raw = Scan.peek (named_typ o ProofContext.read_typ_raw o ProofContext.init);
+val global_typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o ProofContext.init);
 val global_typ = Scan.peek (named_typ o ProofContext.read_typ o ProofContext.init);
 val global_term = Scan.peek (named_term o ProofContext.read_term o ProofContext.init);
 val global_prop = Scan.peek (named_term o ProofContext.read_prop o ProofContext.init);
 
-val local_typ_raw = Scan.peek (named_typ o ProofContext.read_typ_raw);
+val local_typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev);
 val local_typ = Scan.peek (named_typ o ProofContext.read_typ);
 val local_term = Scan.peek (named_term o ProofContext.read_term);
 val local_prop = Scan.peek (named_term o ProofContext.read_prop);
