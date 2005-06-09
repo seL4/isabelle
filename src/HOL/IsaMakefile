@@ -593,7 +593,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy \
 HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
 
 $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
-  Isar_examples/Cantor.ML Isar_examples/Cantor.thy \
+  Isar_examples/Cantor.ML Isar_examples/Cantor.thy Isar_examples/Drinker.thy \
   Isar_examples/ExprCompiler.thy Isar_examples/Fibonacci.thy \
   Isar_examples/Group.thy Isar_examples/Hoare.thy Isar_examples/HoareEx.thy \
   Isar_examples/KnasterTarski.thy Isar_examples/MutilatedCheckerboard.thy \
