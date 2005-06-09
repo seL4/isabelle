@@ -376,13 +376,8 @@ fun add_expand_thm (thy, thm) =
     val is_def =
       (case strip_comb (fst (Logic.dest_equals (prop_of thm))) of
          (Const _, ts) => forall is_Var ts andalso null (duplicates ts)
-           andalso exists (fn thy =>
-               isSome (Symtab.lookup (#axioms (rep_theory thy), name)))
-             (thy :: ancestors_of thy)
+           andalso can (Thm.get_axiom_i thy) name
        | _ => false) handle TERM _ => false;
-
-    val name = Thm.name_of_thm thm;
-    val _ = assert (name <> "") "add_expand_thms: unnamed theorem";
   in
     (ExtractionData.put (if is_def then
         {realizes_eqns = realizes_eqns,
