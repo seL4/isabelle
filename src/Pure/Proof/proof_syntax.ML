@@ -92,8 +92,7 @@ fun add_proof_syntax sg =
 fun disambiguate_names thy prf =
   let
     val thms = thms_of_proof Symtab.empty prf;
-    val thms' = map (apsnd (#prop o rep_thm)) (List.concat
-      (map PureThy.thms_of (thy :: Theory.ancestors_of thy)));
+    val thms' = map (apsnd (#prop o rep_thm)) (PureThy.all_thms_of thy);
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
       let val prop = getOpt (assoc (thms', key), Bound 0)
@@ -124,9 +123,8 @@ fun disambiguate_names thy prf =
 
 fun proof_of_term thy tab ty =
   let
-    val thys = thy :: Theory.ancestors_of thy;
-    val thms = List.concat (map thms_of thys);
-    val axms = List.concat (map (Symtab.dest o #axioms o rep_theory) thys);
+    val thms = PureThy.all_thms_of thy;
+    val axms = Theory.all_axioms_of thy;
 
     fun mk_term t = (if ty then I else map_term_types (K dummyT))
       (Term.no_dummy_patterns t);
@@ -216,10 +214,9 @@ val term_of_proof = term_of [];
 fun cterm_of_proof thy prf =
   let
     val (prf', tab) = disambiguate_names thy prf;
-    val thys = thy :: Theory.ancestors_of thy;
-    val thm_names = filter_out (equal "") (map fst (List.concat (map thms_of thys))) @
-      map fst (Symtab.dest tab);
-    val axm_names = map fst (List.concat (map (Symtab.dest o #axioms o rep_theory) thys));
+    val thm_names = filter_out (equal "")
+      (map fst (PureThy.all_thms_of thy) @ map fst (Symtab.dest tab));
+    val axm_names = map fst (Theory.all_axioms_of thy);
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
@@ -231,9 +228,8 @@ fun cterm_of_proof thy prf =
 
 fun read_term thy =
   let
-    val thys = thy :: Theory.ancestors_of thy;
-    val thm_names = filter_out (equal "") (map fst (List.concat (map thms_of thys)));
-    val axm_names = map fst (List.concat (map (Symtab.dest o #axioms o rep_theory) thys));
+    val thm_names = filter_out (equal "") (map fst (PureThy.all_thms_of thy));
+    val axm_names = map fst (Theory.all_axioms_of thy);
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
