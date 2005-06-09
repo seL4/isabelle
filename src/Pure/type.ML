@@ -34,7 +34,7 @@ sig
   val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
   val cert_typ: tsig -> typ -> typ
   val cert_typ_syntax: tsig -> typ -> typ
-  val cert_typ_raw: tsig -> typ -> typ
+  val cert_typ_abbrev: tsig -> typ -> typ
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -62,7 +62,7 @@ sig
   val add_classrel: Pretty.pp -> (class * class) list -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
   val add_types: (string * int) list -> tsig -> tsig
-  val add_abbrs: (string * string list * typ) list -> tsig -> tsig
+  val add_abbrevs: (string * string list * typ) list -> tsig -> tsig
   val add_nonterminals: string list -> tsig -> tsig
   val add_arities: Pretty.pp -> arity list -> tsig -> tsig
   val merge_tsigs: Pretty.pp -> tsig * tsig -> tsig
@@ -186,9 +186,9 @@ fun certify_typ normalize syntax tsig ty =
 
 in
 
-val cert_typ         = certify_typ true false;
-val cert_typ_syntax  = certify_typ true true;
-val cert_typ_raw     = certify_typ false true;
+val cert_typ        = certify_typ true false;
+val cert_typ_syntax = certify_typ true true;
+val cert_typ_abbrev = certify_typ false true;
 
 end;
 
@@ -295,21 +295,21 @@ fun lookup (tye, (ixn, S)) =
 
 exception TYPE_MATCH;
 
-fun typ_match tsig =
+fun typ_match tsig (tyenv, TU) =
   let
-    fun match (subs, (TVar (v, S), T)) =
+    fun match (TVar (v, S), T) subs =
           (case lookup (subs, (v, S)) of
             NONE =>
               if of_sort tsig (T, S) then Vartab.update_new ((v, (S, T)), subs)
               else raise TYPE_MATCH
           | SOME U => if U = T then subs else raise TYPE_MATCH)
-      | match (subs, (Type (a, Ts), Type (b, Us))) =
+      | match (Type (a, Ts), Type (b, Us)) subs =
           if a <> b then raise TYPE_MATCH
-          else Library.foldl match (subs, Ts ~~ Us)
-      | match (subs, (TFree x, TFree y)) =
+          else fold match (Ts ~~ Us) subs
+      | match (TFree x, TFree y) subs =
           if x = y then subs else raise TYPE_MATCH
-      | match _ = raise TYPE_MATCH;
-  in match end;
+      | match _ _ = raise TYPE_MATCH;
+  in match TU tyenv end;
 
 fun typ_instance tsig (T, U) =
   (typ_match tsig (Vartab.empty, (U, T)); true) handle TYPE_MATCH => false;
@@ -423,7 +423,7 @@ fun coregular pp C t (c, Ss) ars =
     | NONE => (c, Ss) :: ars)
   end;
 
-fun insert pp C t ((c, Ss), ars) =
+fun insert pp C t (c, Ss) ars =
   (case assoc_string (ars, c) of
     NONE => coregular pp C t (c, Ss) ars
   | SOME Ss' =>
@@ -434,14 +434,14 @@ fun insert pp C t ((c, Ss), ars) =
 
 fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 
-fun insert_arities pp classes (arities, (t, ars)) =
+fun insert_arities pp classes (t, ars) arities =
   let val ars' =
     Symtab.lookup_multi (arities, t)
-    |> curry (Library.foldr (insert pp classes t)) (List.concat (map (complete classes) ars))
+    |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
   in Symtab.update ((t, ars'), arities) end;
 
 fun insert_table pp classes = Symtab.foldl (fn (arities, (t, ars)) =>
-  insert_arities pp classes (arities, (t, map (apsnd (map (Sorts.norm_sort classes))) ars)));
+  insert_arities pp classes (t, map (apsnd (map (Sorts.norm_sort classes))) ars) arities);
 
 in
 
@@ -458,7 +458,7 @@ fun add_arities pp decls tsig = tsig |> change_tsig (fn (classes, default, types
       | NONE => error (undecl_type t));
 
     val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
-    val arities' = Library.foldl (insert_arities pp classes) (arities, ars);
+    val arities' = fold (insert_arities pp classes) ars arities;
   in (classes, default, types, arities') end);
 
 fun rebuild_arities pp classes arities =
@@ -546,11 +546,11 @@ fun syntactic types (Type (c, Ts)) =
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 
-fun add_abbr (a, vs, rhs) tsig = tsig |> change_types (fn types =>
+fun add_abbrev (a, vs, rhs) tsig = tsig |> change_types (fn types =>
   let
     fun err msg =
       error (msg ^ "\nThe error(s) above occurred in type abbreviation: " ^ quote a);
-    val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
+    val rhs' = compress_type (strip_sorts (no_tvars (cert_typ_syntax tsig rhs)))
       handle TYPE (msg, _, _) => err msg;
   in
     (case duplicates vs of
@@ -567,7 +567,7 @@ in
 fun add_types ps = change_types (fold new_decl (ps |> map (fn (c, n) =>
   if n < 0 then err_neg_args c else (c, LogicalType n))));
 
-val add_abbrs = fold add_abbr;
+val add_abbrevs = fold add_abbrev;
 val add_nonterminals = change_types o fold new_decl o map (rpair Nonterminal);
 
 fun merge_types (types1, types2) =
