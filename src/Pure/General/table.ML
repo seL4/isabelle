@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
-Generic tables and tables indexed by strings.  Efficient purely
-functional implementation using balanced 2-3 trees.
+Generic tables.  Efficient purely functional implementation using
+balanced 2-3 trees.
 *)
 
 signature KEY =
@@ -341,6 +341,5 @@ val foldl = foldl_table;
 
 end;
 
-
-(*tables indexed by strings*)
+structure Inttab = TableFun(type key = int val ord = int_ord);
 structure Symtab = TableFun(type key = string val ord = string_ord);
