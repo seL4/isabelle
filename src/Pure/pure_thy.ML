@@ -13,7 +13,6 @@ sig
   val get_thm: theory -> thmref -> thm
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
-  val thms_of: theory -> (string * thm) list
   structure ProtoPure:
     sig
       val thy: theory
@@ -36,6 +35,8 @@ sig
   val valid_thms: theory -> thmref * thm list -> bool
   val thms_containing: theory -> FactIndex.spec -> (string * thm list) list
   val thms_containing_consts: theory -> string list -> (string * thm) list
+  val thms_of: theory -> (string * thm) list
+  val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
@@ -86,26 +87,25 @@ struct
   val name = "Pure/theorems";
 
   type T =
-    {space: NameSpace.T,
-      theorems: thm list Symtab.table,
+    {theorems: thm list NameSpace.table,
       index: FactIndex.T} ref;
 
   fun mk_empty _ =
-    ref {space = NameSpace.empty, theorems = Symtab.empty, index = FactIndex.empty}: T;
+    ref {theorems = NameSpace.empty_table, index = FactIndex.empty}: T;
 
   val empty = mk_empty ();
   fun copy (ref x) = ref x;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
-  fun pretty sg (ref {space, theorems, index = _}) =
+  fun pretty sg (ref {theorems, index = _}) =
     let
       val prt_thm = Display.pretty_thm_sg sg;
       fun prt_thms (name, [th]) =
             Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
 
-      val thmss = NameSpace.extern_table space theorems;
+      val thmss = NameSpace.extern_table theorems;
     in Pretty.big_list "theorems:" (map prt_thms thmss) end;
 
   fun print sg data = Pretty.writeln (pretty sg data);
@@ -115,7 +115,7 @@ structure TheoremsData = TheoryDataFun(TheoremsDataArgs);
 val get_theorems_sg = TheoremsData.get_sg;
 val get_theorems = TheoremsData.get;
 
-val extern_thm_sg = NameSpace.extern o #space o ! o get_theorems_sg;
+val extern_thm_sg = NameSpace.extern o #1 o #theorems o ! o get_theorems_sg;
 val fact_index_of = #index o ! o get_theorems;
 
 
@@ -193,11 +193,11 @@ fun selections (name, [thm]) = [((name, NONE), thm)]
 fun lookup_thms thy =
   let
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
-    val ref {space, theorems, ...} = get_theorems thy;
+    val ref {theorems = (space, thms), ...} = get_theorems thy;
   in
     fn name =>
       Option.map (map (Thm.transfer_sg (Sign.deref sg_ref)))        (*semi-dynamic identity*)
-      (Symtab.lookup (theorems, NameSpace.intern space name))   (*static content*)
+      (Symtab.lookup (thms, NameSpace.intern space name))           (*static content*)
   end;
 
 fun get_thms_closure thy =
@@ -241,12 +241,14 @@ fun thms_containing_consts thy consts =
   |> map (fn th => (Thm.name_of_thm th, th));
 
 
-(* thms_of *)
+(* thms_of etc. *)
 
 fun thms_of thy =
-  let val ref {theorems, ...} = get_theorems thy in
-    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest theorems)))
+  let val ref {theorems = (_, thms), ...} = get_theorems thy in
+    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms)))
   end;
+
+fun all_thms_of thy = List.concat (map thms_of (thy :: Theory.ancestors_of thy));
 
 
 
@@ -256,9 +258,9 @@ fun thms_of thy =
 
 fun hide_thms fully names thy =
   let
-    val r as ref {space, theorems, index} = get_theorems thy;
+    val r as ref {theorems = (space, thms), index} = get_theorems thy;
     val space' = fold (NameSpace.hide fully) names space;
-  in r := {space = space', theorems = theorems, index = index}; thy end;
+  in r := {theorems = (space', thms), index = index}; thy end;
 
 
 (* naming *)
@@ -292,7 +294,7 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         val (thy', thms') = app_att (thy, pre_name name thms);
         val named_thms = post_name name thms';
 
-        val r as ref {space, theorems, index} = get_theorems_sg sg;
+        val r as ref {theorems = (space, theorems), index} = get_theorems_sg sg;
         val space' = Sign.declare_name sg name space;
         val theorems' = Symtab.update ((name, named_thms), theorems);
         val index' = FactIndex.add (K false) (name, named_thms) index;
@@ -302,7 +304,7 @@ fun enter_thms _ _ _ app_att thy ("", thms) = app_att (thy, thms)
         | SOME thms' =>
             if Thm.eq_thms (thms', named_thms) then warn_same name
             else warn_overwrite name);
-        r := {space = space', theorems = theorems', index = index'};
+        r := {theorems = (space', theorems'), index = index'};
         (thy', named_thms)
       end;
 
