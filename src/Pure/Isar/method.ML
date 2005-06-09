@@ -505,24 +505,20 @@ fun tactic txt ctxt = METHOD (fn facts =>
 structure MethodsDataArgs =
 struct
   val name = "Isar/methods";
-  type T =
-    {space: NameSpace.T,
-     meths: (((src -> Proof.context -> Proof.method) * string) * stamp) Symtab.table};
+  type T = (((src -> Proof.context -> Proof.method) * string) * stamp) NameSpace.table;
 
-  val empty = {space = NameSpace.empty, meths = Symtab.empty};
+  val empty = NameSpace.empty_table;
   val copy = I;
   val prep_ext = I;
-  fun merge ({space = space1, meths = meths1}, {space = space2, meths = meths2}) =
-    {space = NameSpace.merge (space1, space2),
-      meths = Symtab.merge eq_snd (meths1, meths2) handle Symtab.DUPS dups =>
-        error ("Attempt to merge different versions of methods " ^ commas_quote dups)};
+  fun merge tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
+    error ("Attempt to merge different versions of method(s) " ^ commas_quote dups);
 
-  fun print _ {space, meths} =
+  fun print _ meths =
     let
       fun prt_meth (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table space meths))]
+      [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
       |> Pretty.chunks |> Pretty.writeln
     end;
 end;
@@ -538,8 +534,7 @@ exception METHOD_FAIL of (string * Position.T) * exn;
 
 fun method thy =
   let
-    val {space, meths} = MethodsData.get thy;
-
+    val (space, meths) = MethodsData.get thy;
     fun meth src =
       let
         val ((raw_name, _), pos) = Args.dest_src src;
@@ -558,13 +553,12 @@ fun add_methods raw_meths thy =
   let
     val sg = Theory.sign_of thy;
     val new_meths = raw_meths |> map (fn (name, f, comment) =>
-      (Sign.full_name sg name, ((f, comment), stamp ())));
+      (name, ((f, comment), stamp ())));
 
-    val {space, meths} = MethodsData.get thy;
-    val space' = fold (Sign.declare_name sg) (map fst new_meths) space;
-    val meths' = Symtab.extend (meths, new_meths) handle Symtab.DUPS dups =>
-      error ("Duplicate declaration of method(s) " ^ commas_quote dups);
-  in thy |> MethodsData.put {space = space', meths = meths'} end;
+    fun add meths = NameSpace.extend_table (Sign.naming_of sg) (meths, new_meths)
+      handle Symtab.DUPS dups =>
+        error ("Duplicate declaration of method(s) " ^ commas_quote dups);
+  in MethodsData.map add thy end;
 
 val add_method = add_methods o Library.single;
 
