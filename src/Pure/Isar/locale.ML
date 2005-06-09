@@ -343,7 +343,7 @@ struct
      Symtab.join (SOME o Registrations.join) (regs1, regs2));
 
   fun print _ (space, locs, _) =
-    Pretty.strs ("locales:" :: map (NameSpace.extern space o #1) (Symtab.dest locs))
+    Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
     |> Pretty.writeln;
 end;
 
@@ -1486,7 +1486,7 @@ fun print_locale thy import body =
       | prt_fix (x, NONE, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
     fun prt_cst (x, T) = Pretty.block [Pretty.str (x ^ " ::"), prt_typ T];
 
-    fun prt_name name = Pretty.str (ProofContext.extern ctxt name);
+    fun prt_name name = Pretty.str (ProofContext.extern_thm ctxt name);
     fun prt_name_atts (name, atts) =
       if name = "" andalso null atts then []
       else [Pretty.block (Pretty.breaks (prt_name name :: prt_atts atts @ [Pretty.str ":"]))];
