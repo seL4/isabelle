@@ -483,7 +483,7 @@ fun get_axiom_i theory name =
   let
     fun get_ax [] = NONE
       | get_ax (thy :: thys) =
-          let val {sign, axioms, ...} = Theory.rep_theory thy in
+          let val {sign, axioms = (_, axioms), ...} = Theory.rep_theory thy in
             (case Symtab.lookup (axioms, name) of
               SOME t =>
                 SOME (fix_shyps [] []
@@ -503,7 +503,8 @@ fun get_axiom_i theory name =
     | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
 
-fun get_axiom thy = get_axiom_i thy o Sign.intern (Theory.sign_of thy) Theory.axiomK;
+fun get_axiom thy =
+  get_axiom_i thy o NameSpace.intern (#1 (#axioms (Theory.rep_theory thy)));
 
 fun def_name name = name ^ "_def";
 fun get_def thy = get_axiom thy o def_name;
@@ -512,7 +513,7 @@ fun get_def thy = get_axiom thy o def_name;
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
   map (fn (s, _) => (s, get_axiom thy s))
-    (Symtab.dest (#axioms (Theory.rep_theory thy)));
+    (Symtab.dest (#2 (#axioms (Theory.rep_theory thy))));
 
 
 (* name and tags -- make proof objects more readable *)
@@ -1443,7 +1444,7 @@ fun biresolution match brules i state =
 
 fun invoke_oracle_i thy name =
   let
-    val {sign = sg, oracles, ...} = Theory.rep_theory thy;
+    val {sign = sg, oracles = (_, oracles), ...} = Theory.rep_theory thy;
     val oracle =
       (case Symtab.lookup (oracles, name) of
         NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
@@ -1470,7 +1471,7 @@ fun invoke_oracle_i thy name =
   end;
 
 fun invoke_oracle thy =
-  invoke_oracle_i thy o Sign.intern (Theory.sign_of thy) Theory.oracleK;
+  invoke_oracle_i thy o NameSpace.intern (#1 (#oracles (Theory.rep_theory thy)));
 
 
 end;
