@@ -399,7 +399,7 @@ val _ = add_commands
   ("term_type", args Args.local_term (output_with pretty_term_typ)),
   ("typeof", args Args.local_term (output_with pretty_term_typeof)),
   ("const", args Args.local_term (output_with pretty_term_const)),
-  ("typ", args Args.local_typ_raw (output_with ProofContext.pretty_typ)),
+  ("typ", args Args.local_typ_abbrev (output_with ProofContext.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
   ("goals", output_goals true),
   ("subgoals", output_goals false),
