@@ -1,6 +1,10 @@
 # isaweb makefile - project-specific dependencies
 # $Id$
 
+project: site
+	chmod -R g-w $(OUTPUTROOT)/dist/packages
+.PHONY: project
+
 #~ DEP_SYMLINKS=$(OUTPUTROOT)/dist/packages $(OUTPUTROOT)/library
 
 #~ $(OUTPUTROOT)/dist/packages: $(ISABELLE_DIST)

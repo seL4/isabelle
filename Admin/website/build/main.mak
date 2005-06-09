@@ -22,7 +22,7 @@ init:
 else
 
 # default target
-default: site
+default: project
 
 # check configuration
 include $(CONF)
