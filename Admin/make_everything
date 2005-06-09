@@ -3,13 +3,13 @@
 # $Id$
 #
 # make_everything -- an adhoc script that demonstrates the general procedure
-#   of creating the Isabelle distribution and WWW page
+#   of creating the Isabelle distribution and WWW site
 #
 # assumptions:
 #   - proper settings for polyml are present by magic
 #     (e.g. via ~/isabelle/etc/settings)
 #   - ~/tmp/isadist/contrib holds packages of external tools (polyml etc.)
-#
+
 
 date
 
