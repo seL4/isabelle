@@ -56,26 +56,22 @@ structure AttributesDataArgs =
 struct
   val name = "Isar/attributes";
   type T =
-    {space: NameSpace.T,
-     attrs:
-       ((((src -> theory attribute) * (src -> ProofContext.context attribute))
-         * string) * stamp) Symtab.table};
+    ((((src -> theory attribute) * (src -> ProofContext.context attribute))
+        * string) * stamp) NameSpace.table;
 
-  val empty = {space = NameSpace.empty, attrs = Symtab.empty};
+  val empty = NameSpace.empty_table;
   val copy = I;
   val prep_ext = I;
 
-  fun merge ({space = space1, attrs = attrs1}, {space = space2, attrs = attrs2}) =
-    {space = NameSpace.merge (space1, space2),
-      attrs = Symtab.merge eq_snd (attrs1, attrs2) handle Symtab.DUPS dups =>
-        error ("Attempt to merge different versions of attributes " ^ commas_quote dups)};
+  fun merge tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
+    error ("Attempt to merge different versions of attribute(s) " ^ commas_quote dups);
 
-  fun print _ {space, attrs} =
+  fun print _ attribs =
     let
       fun prt_attr (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table space attrs))]
+      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
       |> Pretty.chunks |> Pretty.writeln
     end;
 end;
@@ -87,7 +83,7 @@ val print_attributes = AttributesData.print;
 
 (* interning *)
 
-val intern = NameSpace.intern o #space o AttributesData.get_sg;
+val intern = NameSpace.intern o #1 o AttributesData.get_sg;
 val intern_src = Args.map_name o intern;
 
 
@@ -97,12 +93,9 @@ exception ATTRIB_FAIL of (string * Position.T) * exn;
 
 fun gen_attribute which thy =
   let
-    val {attrs, ...} = AttributesData.get thy;
-
+    val attrs = #2 (AttributesData.get thy);
     fun attr src =
-      let
-        val ((name, _), pos) = Args.dest_src src;
-      in
+      let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup (attrs, name) of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
         | SOME ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
@@ -142,13 +135,11 @@ fun add_attributes raw_attrs thy =
   let
     val sg = Theory.sign_of thy;
     val new_attrs = raw_attrs |> map (fn (name, (f, g), comment) =>
-      (Sign.full_name sg name, (((f, g), comment), stamp ())));
-
-    val {space, attrs} = AttributesData.get thy;
-    val space' = fold (Sign.declare_name sg) (map fst new_attrs) space;
-    val attrs' = Symtab.extend (attrs, new_attrs) handle Symtab.DUPS dups =>
-      error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
-  in thy |> AttributesData.put {space = space', attrs = attrs'} end;
+      (name, (((f, g), comment), stamp ())));
+    fun add attrs = NameSpace.extend_table (Sign.naming_of sg) (attrs, new_attrs)
+      handle Symtab.DUPS dups =>
+        error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
+  in AttributesData.map add thy end;
 
 (*implicit version*)
 fun Attribute name att cmt = Context.>> (add_attributes [(name, att, cmt)]);
