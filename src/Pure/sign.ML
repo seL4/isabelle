@@ -235,7 +235,13 @@ fun stamps_of (Sg ({stamps, ...}, _)) = stamps;
 val stamp_names_of = rev o map ! o stamps_of;
 fun exists_stamp name = exists (equal name o !) o stamps_of;
 
-fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
+fun is_stale (Sg ({id, ...}, {self = SgRef (SOME (ref (Sg ({id = id', ...}, _)))), ...})) =
+      id <> id'
+  | is_stale _ = false;
+
+fun pretty_sg sg =
+  Pretty.str_list "{" "}" (stamp_names_of sg @ (if is_stale sg then ["!"] else []));
+
 val pprint_sg = Pretty.pprint o pretty_sg;
 
 fun pretty_abbrev_sg sg =
@@ -249,13 +255,9 @@ val str_of_sg = Pretty.str_of o pretty_abbrev_sg;
 
 (* id and self *)
 
-fun check_stale pos (sg as Sg ({id, ...},
-        {self = SgRef (SOME (ref (Sg ({id = id', ...}, _)))), ...})) =
-      if id = id' then sg
-      else raise TERM ("Stale signature (in " ^ pos ^ "): " ^ str_of_sg sg, [])
-  | check_stale _ _ = sys_error "Sign.check_stale";
-
-val is_stale = not o can (check_stale "Sign.is_stale");
+fun check_stale pos sg =
+  if is_stale sg then raise TERM ("Stale signature (in " ^ pos ^ "): " ^ str_of_sg sg, [])
+  else sg;
 
 fun self_ref (sg as Sg (_, {self, ...})) = (check_stale "Sign.self_ref" sg; self);
 
@@ -374,18 +376,25 @@ val prep_ext = new_sg prep_ext_data;
 val copy = new_sg copy_data;
 
 fun add_name name (sg as Sg ({stamps, syn, ...}, {self, tsig, consts, naming, spaces, data})) =
- (check_stale "Sign.add_name" sg;
-  create_sg name self stamps naming data (syn, tsig, consts, spaces));
+  let
+    val _ = check_stale "Sign.add_name" sg;
+    val (self', data') =
+      if is_draft sg then (self, data)
+      else (SgRef (SOME (ref sg)), prep_ext_data data);
+  in create_sg name self' stamps naming data' (syn, tsig, consts, spaces) end;
 
-fun map_sg f (sg as Sg ({stamps, syn, ...}, {self, tsig, consts, naming, spaces, data})) =
+fun map_sg keep f (sg as Sg ({stamps, syn, ...}, {self, tsig, consts, naming, spaces, data})) =
   let
     val _ = check_stale "Sign.map_sg" sg;
-    val (naming', data', sign') = f (naming, data, (syn, tsig, consts, spaces));
-  in create_sg "#" self stamps naming' data' sign' end;
+    val (self', data') =
+      if is_draft sg andalso keep then (self, data)
+      else (SgRef (SOME (ref sg)), prep_ext_data data);
+    val (naming', data', sign') = f (naming, data', (syn, tsig, consts, spaces));
+  in create_sg "#" self' stamps naming' data' sign' end;
 
-fun map_naming f = map_sg (fn (naming, data, sign) => (f naming, data, sign));
-fun map_data f = map_sg (fn (naming, data, sign) => (naming, f data, sign));
-fun map_sign f = map_sg (fn (naming, data, sign) => (naming, data, f sign));
+fun map_naming f = map_sg true (fn (naming, data, sign) => (f naming, data, sign));
+fun map_data f = map_sg true (fn (naming, data, sign) => (naming, f data, sign));
+fun map_sign f = map_sg true (fn (naming, data, sign) => (naming, data, f sign));
 fun map_syn f = map_sign (fn (syn, tsig, consts, spaces) => (f syn, tsig, consts, spaces));
 
 
