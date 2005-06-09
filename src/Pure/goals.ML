@@ -198,7 +198,7 @@ struct
 
   fun print sg {space, locales, scope} =
     let
-      val locs = NameSpace.extern_table space locales;
+      val locs = NameSpace.extern_table (space, locales);
       val scope_names = rev (map (NameSpace.extern space o fst) (! scope));
     in
       [Display.pretty_name_space ("locale name space", space),
