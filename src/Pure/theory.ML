@@ -12,8 +12,8 @@ sig
   val rep_theory: theory ->
     {sign: Sign.sg,
       defs: Defs.graph,
-      axioms: term Symtab.table,
-      oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
+      axioms: term NameSpace.table,
+      oracles: ((Sign.sg * Object.T -> term) * stamp) NameSpace.table,
       parents: theory list,
       ancestors: theory list}
   val sign_of: theory -> Sign.sg
@@ -33,12 +33,11 @@ end
 signature THEORY =
 sig
   include BASIC_THEORY
-  val axiomK: string
-  val oracleK: string
-  (*theory extension primitives*)
-  val add_classes: (bclass * xclass list) list -> theory -> theory
-  val add_classes_i: (bclass * class list) list -> theory -> theory
-  val add_classrel: (xclass * xclass) list -> theory -> theory
+  val axioms_of: theory -> (string * term) list
+  val all_axioms_of: theory -> (string * term) list
+  val add_classes: (bstring * xstring list) list -> theory -> theory
+  val add_classes_i: (bstring * class list) list -> theory -> theory
+  val add_classrel: (xstring * xstring) list -> theory -> theory
   val add_classrel_i: (class * class) list -> theory -> theory
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
@@ -129,8 +128,8 @@ datatype theory =
   Theory of {
     sign: Sign.sg,
     defs: Defs.graph,
-    axioms: term Symtab.table,
-    oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
+    axioms: term NameSpace.table,
+    oracles: ((Sign.sg * Object.T -> term) * stamp) NameSpace.table,
     parents: theory list,
     ancestors: theory list};
 
@@ -145,6 +144,9 @@ val is_draft = Sign.is_draft o sign_of;
 val syn_of = Sign.syn_of o sign_of;
 val parents_of = #parents o rep_theory;
 val ancestors_of = #ancestors o rep_theory;
+
+val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
+fun all_axioms_of thy = List.concat (map axioms_of (thy :: ancestors_of thy));
 
 (*errors involving theories*)
 exception THEORY of string * theory list;
@@ -164,33 +166,29 @@ fun assert_super thy1 thy2 =
 
 (*partial Pure theory*)
 val pre_pure =
-  make_theory Sign.pre_pure Defs.empty Symtab.empty Symtab.empty [] [];
+  make_theory Sign.pre_pure Defs.empty NameSpace.empty_table NameSpace.empty_table [] [];
 
 
 
 (** extend theory **)
 
-(*name spaces*)
-val axiomK = "axiom";
-val oracleK = "oracle";
-
-
 (* extend logical part of a theory *)
 
-fun err_dup_axms names =
-  error ("Duplicate axiom name(s): " ^ commas_quote names);
+fun err_dup_axms dups = error ("Duplicate axiom(s): " ^ commas_quote dups);
+fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
 
-fun err_dup_oras names =
-  error ("Duplicate oracles: " ^ commas_quote names);
-
-fun ext_theory thy ext_sg new_axms new_oras =
+fun ext_theory thy ext_sg axms oras =
   let
     val Theory {sign, defs, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
-    val axioms' = Symtab.extend (if draft then axioms else Symtab.empty, new_axms)
-      handle Symtab.DUPS names => err_dup_axms names;
-    val oracles' = Symtab.extend (oracles, new_oras)
-      handle Symtab.DUPS names => err_dup_oras names;
+    val naming = Sign.naming_of sign;
+
+    val axioms' = NameSpace.extend_table naming
+        (if draft then axioms else NameSpace.empty_table, axms)
+      handle Symtab.DUPS dups => err_dup_axms dups;
+    val oracles' = NameSpace.extend_table naming (oracles, oras)
+      handle Symtab.DUPS dups => err_dup_oras dups;
+
     val (parents', ancestors') =
       if draft then (parents, ancestors) else ([thy], thy :: ancestors);
   in make_theory (ext_sg sign) defs axioms' oracles' parents' ancestors' end;
@@ -237,7 +235,6 @@ val no_base_names          = ext_sign (K Sign.no_base_names) ();
 val custom_accesses        = ext_sign Sign.custom_accesses;
 val set_policy             = ext_sign Sign.set_policy;
 val restore_naming         = ext_sign Sign.restore_naming o sign_of;
-val add_space              = ext_sign Sign.add_space;
 val hide_space             = ext_sign o Sign.hide_space;
 val hide_space_i           = ext_sign o Sign.hide_space_i;
 fun hide_classes b         = curry (hide_space_i b) Sign.classK;
@@ -300,11 +297,8 @@ local
 fun gen_add_axioms prep_axm raw_axms thy =
   let
     val sg = sign_of thy;
-    val raw_axms' = map (apfst (Sign.full_name sg)) raw_axms;
-    val axioms =
-      map (apsnd (Term.compress_term o Logic.varify) o prep_axm sg) raw_axms';
-    val ext_sg = Sign.add_space (axiomK, map fst axioms);
-  in ext_theory thy ext_sg axioms [] end;
+    val axms = map (apsnd (Term.compress_term o Logic.varify) o prep_axm sg) raw_axms;
+  in ext_theory thy I axms [] end;
 
 in
 
@@ -316,11 +310,8 @@ end;
 
 (* add oracle **)
 
-fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
-  let
-    val name = Sign.full_name sign raw_name;
-    val ext_sg = Sign.add_space (oracleK, [name]);
-  in ext_theory thy ext_sg [] [(name, (oracle, stamp ()))] end;
+fun add_oracle (bname, oracle) thy =
+  ext_theory thy I [] [(bname, (oracle, stamp ()))];
 
 
 
@@ -537,13 +528,16 @@ fun prep_ext_merge thys =
       handle Defs.CIRCULAR namess => error (defs_circular (Sign.pp sign') namess)
         | Defs.INFINITE_CHAIN namess => error (defs_infinite_chain (Sign.pp sign') namess);
 
-    val axioms' = Symtab.empty;
+    val axioms' = NameSpace.empty_table;
 
+    val oras_spaces = map (#1 o #oracles o rep_theory) thys;
+    val oras_space' = Library.foldl NameSpace.merge (hd oras_spaces, tl oras_spaces);
     fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
-    val oracles' =
+    val oras' =
       Symtab.make (gen_distinct eq_ora
-        (List.concat (map (Symtab.dest o #oracles o rep_theory) thys)))
+        (List.concat (map (Symtab.dest o #2 o #oracles o rep_theory) thys)))
       handle Symtab.DUPS names => err_dup_oras names;
+    val oracles' = (oras_space', oras');
 
     val parents' = gen_distinct eq_thy thys;
     val ancestors' =
