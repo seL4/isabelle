@@ -70,10 +70,6 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_term_types: (typ -> typ) -> term -> term
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
-  val map_typ: (class -> class) -> (string -> string) -> typ -> typ
-  val map_term:
-     (class -> class) ->
-     (string -> string) -> (string -> string) -> term -> term
   val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
   val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
   val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
@@ -178,6 +174,8 @@ sig
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
   val invent_names: string list -> string -> int -> string list
+  val map_typ: (string -> string) -> (string -> string) -> typ -> typ
+  val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
   val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
   val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
   val add_vars: (indexname * typ) list * term -> (indexname * typ) list
@@ -1057,6 +1055,7 @@ structure Termtab = TableFun(type key = term val ord = term_ord);
      Saves 50-75% on storage requirements.  As it is a bit slow,
      it should be called only for axioms, stored theorems, etc.
      Recorded term and type fragments are never disposed. ***)
+
 
 (** Sharing of types **)
 
