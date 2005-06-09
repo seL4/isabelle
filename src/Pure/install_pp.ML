@@ -4,7 +4,7 @@
 Set up automatic toplevel pretty printing.
 *)
 
-install_pp (make_pp ["Theory", "theory"] ThyInfo.pprint_theory);
+install_pp (make_pp ["Theory", "theory"] Display.pprint_theory);
 install_pp (make_pp ["Thm", "thm"] Display.pprint_thm);
 install_pp (make_pp ["Thm", "cterm"] Display.pprint_cterm);
 install_pp (make_pp ["Thm", "ctyp"] Display.pprint_ctyp);
