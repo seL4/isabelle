@@ -363,8 +363,7 @@ fun decomp sg =
   let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
   in decomp2 (sg,discrete,inj_consts) end
 
-(*FIXME: remove the IntInf.fromInt when linear arithmetic is converted to IntInfs*)
-fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin (IntInf.fromInt n))
+fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin n)
 
 end;
 

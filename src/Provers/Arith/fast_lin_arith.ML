@@ -15,8 +15,6 @@ and a simplification procedure
 
 Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
-
-FIXME: convert to IntInf.int throughout. 
 *)
 
 (* Debugging: set Fast_Arith.trace *)
@@ -55,7 +53,7 @@ signature LIN_ARITH_DATA =
 sig
   val decomp:
     Sign.sg -> term -> ((term*rat)list * rat * string * (term*rat)list * rat * bool)option
-  val number_of: int * typ -> term
+  val number_of: IntInf.int * typ -> term
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -141,11 +139,11 @@ datatype injust = Asm of int
                 | NotLessD of injust
                 | NotLeD of injust
                 | NotLeDD of injust
-                | Multiplied of int * injust
-                | Multiplied2 of int * injust
+                | Multiplied of IntInf.int * injust
+                | Multiplied2 of IntInf.int * injust
                 | Added of injust * injust;
 
-datatype lineq = Lineq of int * lineq_type * int list * injust;
+datatype lineq = Lineq of IntInf.int * lineq_type * IntInf.int list * injust;
 
 fun el 0 (h::_) = h
   | el n (_::t) = el (n - 1) t
@@ -171,10 +169,10 @@ fun elim_eqns(ineqs,Lineq(i,Le,cs,_)) = (i,true,cs)::ineqs
 val rat0 = rat_of_int 0;
 
 (* PRE: ex[v] must be 0! *)
-fun eval (ex:rat list) v (a:int,le,cs:int list) =
-  let val rs = map rat_of_int cs
+fun eval (ex:rat list) v (a:IntInf.int,le,cs:IntInf.int list) =
+  let val rs = map rat_of_intinf cs
       val rsum = Library.foldl ratadd (rat0,map ratmul (rs ~~ ex))
-  in (ratmul(ratadd(rat_of_int a,ratneg rsum), ratinv(el v rs)), le) end;
+  in (ratmul(ratadd(rat_of_intinf a,ratneg rsum), ratinv(el v rs)), le) end;
 (* If el v rs < 0, le should be negated.
    Instead this swap is taken into account in ratrelmin2.
 *)
@@ -258,7 +256,7 @@ fun pick_vars discr (ineqs,ex) =
 
 fun findex0 discr n lineqs =
   let val ineqs = Library.foldl elim_eqns ([],lineqs)
-      val rineqs = map (fn (a,le,cs) => (rat_of_int a, le, map rat_of_int cs))
+      val rineqs = map (fn (a,le,cs) => (rat_of_intinf a, le, map rat_of_intinf cs))
                        ineqs
   in pick_vars discr (rineqs,replicate n rat0) end;
 
@@ -301,7 +299,7 @@ fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
 
 fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
   let val c1 = el v l1 and c2 = el v l2
-      val m = IntInf.toInt (lcm(IntInf.fromInt (abs c1), IntInf.fromInt(abs c2)))
+      val m = lcm(abs c1, abs c2)
       val m1 = m div (abs c1) and m2 = m div (abs c2)
       val (n1,n2) =
         if (c1 >= 0) = (c2 >= 0)
@@ -322,7 +320,7 @@ fun is_trivial (Lineq(_,_,l,_)) = forall (fn i => i=0) l;
 fun is_answer (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
-fun calc_blowup l =
+fun calc_blowup (l:IntInf.int list) =
   let val (p,n) = List.partition (apl(0,op<)) (List.filter (apl(0,op<>)) l)
   in (length p) * (length n) end;
 
@@ -350,9 +348,9 @@ fun extract_first p =
 fun print_ineqs ineqs =
   if !trace then
      tracing(cat_lines(""::map (fn Lineq(c,t,l,_) =>
-       string_of_int c ^
+       IntInf.toString c ^
        (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
-       commas(map string_of_int l)) ineqs))
+       commas(map IntInf.toString l)) ineqs))
   else ();
 
 type history = (int * lineq list) list;
@@ -371,7 +369,7 @@ fun elim(ineqs,hist) =
   let val (eqs,noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not(null eqs) then
      let val clist = Library.foldl (fn (cs,Lineq(_,_,l,_)) => l union cs) ([],eqs)
-         val sclist = sort (fn (x,y) => int_ord(abs(x),abs(y)))
+         val sclist = sort (fn (x,y) => IntInf.compare(abs(x),abs(y)))
                            (List.filter (fn i => i<>0) clist)
          val c = hd sclist
          val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
@@ -478,8 +476,8 @@ fun mkthm sg asms just =
         | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
         | mk(NotLessD(j)) = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
         | mk(Added(j1,j2)) = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
-        | mk(Multiplied(n,j)) = (trace_msg("*"^string_of_int n); trace_thm "*" (multn(n,mk j)))
-        | mk(Multiplied2(n,j)) = simp (trace_msg("**"^string_of_int n); trace_thm "**" (multn2(n,mk j)))
+        | mk(Multiplied(n,j)) = (trace_msg("*"^IntInf.toString n); trace_thm "*" (multn(n,mk j)))
+        | mk(Multiplied2(n,j)) = simp (trace_msg("**"^IntInf.toString n); trace_thm "**" (multn2(n,mk j)))
 
   in trace_msg "mkthm";
      let val thm = trace_thm "Final thm:" (mk just)
@@ -497,16 +495,16 @@ fun mkthm sg asms just =
   end
 end;
 
-fun coeff poly atom = case assoc(poly,atom) of NONE => 0 | SOME i => i;
+fun coeff poly atom : IntInf.int =
+  case assoc(poly,atom) of NONE => 0 | SOME i => i;
 
-fun lcms_intinf is = Library.foldl lcm (1, is);
-fun lcms is = IntInf.toInt (lcms_intinf (map IntInf.fromInt is));
+fun lcms is = Library.foldl lcm (1, is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
-let val (rn,rd) = pairself IntInf.toInt (rep_rat r) and (sn,sd) = pairself IntInf.toInt (rep_rat s)
-    val m = IntInf.toInt (lcms_intinf(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs)))
+let val (rn,rd) = rep_rat r and (sn,sd) = rep_rat s
+    val m = lcms(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) = 
-        let val (i,j) =  pairself IntInf.toInt (rep_rat r) 
+        let val (i,j) =  (rep_rat r) 
         in (t,i * (m div j)) end
 in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 
