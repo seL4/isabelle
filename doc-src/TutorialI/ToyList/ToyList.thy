@@ -117,10 +117,10 @@ the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer
 \section{An Introductory Proof}
 \label{sec:intro-proof}
 
-Assuming you have input the declarations and definitions of \texttt{ToyList}
-presented so far, we are ready to prove a few simple theorems. This will
-illustrate not just the basic proof commands but also the typical proof
-process.
+Assuming you have processed the declarations and definitions of
+\texttt{ToyList} presented so far, we are ready to prove a few simple
+theorems. This will illustrate not just the basic proof commands but
+also the typical proof process.
 
 \subsubsection*{Main Goal.}
 
