@@ -35,8 +35,15 @@ datatype Side = Left |Right
                      | MRR of (int * int) * (int * int) 
                      | Factor of (int * int * int)           (* (clause,lit1, lit2) *)
                      | Para of (int * int) * (int * int) 
+		     | Super_l of (int * int) * (int * int)
+		     | Super_r of (int * int) * (int * int)
                      | Rewrite of (int * int) * (int * int)  
+		     | SortSimp of (int * int) * (int * int)  
+		     | UnitConf of (int * int) * (int * int)  
                      | Obvious of (int * int)
+  		     | AED of (int*int)
+  		     | EqualRes of (int*int)
+    		     | Condense of (int*int)
                      (*| Hyper of int list*)
                      | Unusedstep of unit
 

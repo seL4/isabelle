@@ -150,60 +150,27 @@ fun callResProver (toWatcherStr,  arg) = (sendOutput (toWatcherStr, arg^"\n");
                                      TextIO.flushOut toWatcherStr)
 
 (*****************************************************************************************)
-(*  Send request to Watcher for multiple provers to be called for filenames in arg      *)
+(*  Send request to Watcher for multiple provers to be called for filenames in arg       *)
+(*  need to do the dfg stuff in the watcher, not here! send over the clasimp and stuff files too*)
 (*****************************************************************************************)
 
+    
 (* need to modify to send over hyps file too *)
-fun callResProvers (toWatcherStr,  []) =
-      (sendOutput (toWatcherStr, "End of calls\n"); 
-       TextIO.flushOut toWatcherStr)
+fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of calls\n"); 
+                                     TextIO.flushOut toWatcherStr)
 |   callResProvers (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings,clasimpfile, axfile, hypsfile,probfile)::args) =
-      let val dfg_dir = File.tmp_path (Path.basic "dfg"); 
-	 (*** need to check here if the directory exists and, if not, create it***)
-	  val _ = File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))                                                                     
-	              (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^"\n")
-	 (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
-	 val probID = ReconOrderClauses.last(explode probfile)
-	  val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
-	  (*** only include problem and clasimp for the moment, not sure how to refer to ***)
+                                          let  val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "tog_comms")));                                                                                    
+                              val _ = TextIO.output (outfile,(prover^thmstring^goalstring^proverCmd^settings^clasimpfile^hypsfile^probfile) )
+                              val _ =  TextIO.closeOut outfile
+                                        in   (sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^
+							             settings^"*"^clasimpfile^"*"^hypsfile^"*"^probfile^"\n"));
+                                          goals_being_watched := (!goals_being_watched) + 1;
+                                          TextIO.flushOut toWatcherStr;
+					  
+                                          callResProvers (toWatcherStr,args))
+                                        end   
+                                                
 
-	  (*** hyps/local axioms just now (*,axfile, hypsfile,*)                                               ***)
-	  val whole_prob_file = system ("cat " ^ clasimpfile ^" "^ probfile ^ " > " ^ File.shell_path wholefile)
-
-	  val dfg_create = if File.exists dfg_dir 
-			   then warning("dfg dir exists")
-			   else File.mkdir dfg_dir; 
-	  
-	  val dfg_path = File.platform_path dfg_dir;
-	 (* val exec_tptp2x = 
-	        Unix.execute(getenv "TPTP2X_HOME" ^ "/tptp2X",  
-	                     ["-fdfg", "-d " ^ dfg_path, File.platform_path wholefile]) *)
-        val tptp_home = getenv "TPTP2X_HOME" ^ "/tptp2X"
-       
-        val systemcall = system (tptp_home ^ " -fdfg -d " ^ File.shell_path dfg_dir ^ " " ^ File.shell_path wholefile)
-        val _ =  warning("systemcall is "^ (string_of_int systemcall))
-	(*val _ = Posix.Process.wait ()*)
-	(*val _ =Unix.reap exec_tptp2x*)
-	  val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
- 
-       in   
-	  goals_being_watched := (!goals_being_watched) + 1;
-	  Posix.Process.sleep(Time.fromSeconds 1); 
-	  (warning ("probfile is: "^probfile));
-	  (warning("dfg file is: "^newfile));
-	  (warning ("wholefile is: "^(File.platform_path wholefile)));
-	  sendOutput (toWatcherStr,
-	       prover ^ "*" ^ thmstring ^ "*" ^ goalstring ^ "*" ^ proverCmd ^ 
-	       "*" ^ settings ^ "*" ^ newfile ^ "\n");
- (*sendOutput (toWatcherStr, (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^"/homes/clq20/IsabelleCVS/isabelle/HOL/Tools/ATP/dfg/mini_p1.dfg"^"\n"));*)
-	  TextIO.flushOut toWatcherStr;
-	  (*Unix.reap exec_tptp2x;*)
-	  if File.exists
-	        (Path.append dfg_dir (Path.basic ("ax_prob"^"_" ^ probID ^ ".dfg")))
-	  then callResProvers (toWatcherStr, args)
-	  else error ("tptp2X failed: " ^ getenv "TPTP2X_HOME" ^ "/tptp2X" ^
-	              " -fdfg " ^ File.platform_path wholefile ^ " -d " ^ dfg_path)
-      end
 (*
 fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 
                                      
@@ -240,69 +207,155 @@ fun callSlayer (toWatcherStr) = (sendOutput (toWatcherStr, "Kill vampires\n");
                                      getSettings rest (settings@[(implode set)])
                                  end
 
-fun separateFields str =
-  let val (prover, rest) = takeUntil "*" str []
-      val prover = implode prover
-      val (thmstring, rest) =  takeUntil "*" rest []
-      val thmstring = implode thmstring
-      val (goalstring, rest) =  takeUntil "*" rest []
-      val goalstring = implode goalstring
-      val (proverCmd, rest ) =  takeUntil "*" rest []
-      val proverCmd = implode proverCmd
-      
-      val (settings, rest) =  takeUntil "*" rest []
-      val settings = getSettings settings []
-      val (file, rest) =  takeUntil "*" rest []
-      val file = implode file
-      val _ = File.write (File.tmp_path (Path.basic "sep_comms"))
-                (prover^thmstring^goalstring^proverCmd^file) 
-  in
-     (prover,thmstring,goalstring, proverCmd, settings, file)
-  end
+fun separateFields str = let val  outfile = TextIO.openAppend(*("sep_field")*)(File.platform_path(File.tmp_path (Path.basic "sep_field")))                                                                         
+                              val _ = TextIO.output (outfile,("In separateFields, str is: "^(implode str)^"\n\n") )
+                              val _ =  TextIO.closeOut outfile
+                              val (prover, rest) = takeUntil "*" str []
+                              val prover = implode prover
+
+                              val (thmstring, rest) =  takeUntil "*" rest []
+                              val thmstring = implode thmstring
+
+                              val (goalstring, rest) =  takeUntil "*" rest []
+                              val goalstring = implode goalstring
+
+                              val (proverCmd, rest ) =  takeUntil "*" rest []
+                              val proverCmd = implode proverCmd
+                              
+                              val (settings, rest) =  takeUntil "*" rest []
+                              val settings = getSettings settings []
+
+			      val (clasimpfile, rest ) =  takeUntil "*" rest []
+                              val clasimpfile = implode clasimpfile
+                              
+  			      val (hypsfile, rest ) =  takeUntil "*" rest []
+                              val hypsfile = implode hypsfile
+
+                              val (file, rest) =  takeUntil "*" rest []
+                              val file = implode file
+
+                              val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "sep_comms")));                                                                                    
+                              val _ = TextIO.output (outfile,("Sep comms are: "^(implode str)^"**"^prover^thmstring^goalstring^proverCmd^clasimpfile^hypsfile^file^"\n\n") )
+                              val _ =  TextIO.closeOut outfile
+                              
+                          in
+                             (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile, file)
+                          end
 
  
+                      
+(***********************************************************************************)
+(* do tptp2x and cat to turn clasimpfile, hypsfile and probfile into one .dfg file *)
+(***********************************************************************************)
+
+fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile ,probfile) = 
+ let
+		val dfg_dir = File.tmp_path (Path.basic "dfg"); 
+
+  		(*** need to check here if the directory exists and, if not, create it***)
+  		
+
+ 		(*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
+		val probID = List.last(explode probfile)
+    		val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
+
+    		(*** only include problem and clasimp for the moment, not sure how to refer to ***)
+   		(*** hyps/local axioms just now                                                ***)
+   		val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
+    		val dfg_create =
+ 		if File.exists dfg_dir 
+     	        then
+     	            ((warning("dfg dir exists"));())
+ 		else
+ 		     File.mkdir dfg_dir; 
+   		val dfg_path = File.platform_path dfg_dir;
+   		
+   		val bar = system ("/usr/groups/theory/tptp/TPTP-v3.0.1/TPTP2X/tptp2X -fdfg "^
+                                 (File.platform_path wholefile)^" -d "^dfg_path)
+    		val newfile = dfg_path^"/ax_prob"^"_"^(probID)^".dfg"
+                val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic"thmstring_in_watcher")));   
+   		val _ = TextIO.output (outfile, (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n"))
+ 		val _ =  TextIO.closeOut outfile
+
+ 	     in
+ 		(prover,thmstring,goalstring, proverCmd, settings,newfile)	
+	     end;
+
+
+(* remove \n from end of command and put back into tuple format *)
+             
+
+(*  val cmdStr = "spass*((ALL xa. (~ P x | P xa) & (~ P xa | P x)) & (P xa | (ALL x. P x)) & ((ALL x. ~ P x) | ~ P xb) [.])*(EX x. ALL y. P x = P y) --> (EX x. P x) = (ALL y. P y)*/homes/clq20/bin/SPASS*-DocProof*/local/scratch/clq20/27023/clasimp*/local/scratch/clq20/27023/hyps*/local/scratch/clq20/27023/prob_1\n" *)
+
+(*FIX:  are the two getCmd procs getting confused?  Why do I have two anyway? *)
 
  fun getCmd cmdStr = let val backList = ((rev(explode cmdStr))) 
+                         val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic"cmdStr")));   
+   		val _ = TextIO.output (outfile, (cmdStr))
+ 		val _ =  TextIO.closeOut outfile
                      in
 
                          if (String.isPrefix "\n"  (implode backList )) 
                          then 
-                             separateFields ((rev ((tl backList))))
+                            ( let 
+              val newCmdStr = (rev(tl backList))
+              val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic"backlist")));   
+   		val _ = TextIO.output (outfile, ("about to call sepfields with "^(implode newCmdStr)))
+ 		val _ =  TextIO.closeOut outfile 
+				 val cmdtuple = separateFields newCmdStr
+                             in 
+ 				 formatCmd cmdtuple
+			     end)
                          else
-                           (separateFields (explode cmdStr))
+                          ( let 
+			      val cmdtuple =(separateFields (explode cmdStr))
+			   in
+ 				formatCmd cmdtuple
+			   end)
+			   
                      end
                       
 
 fun getProofCmd (a,b,c,d,e,f) = d
 
-
+                        
 (**************************************************************)
 (* Get commands from Isabelle                                 *)
 (**************************************************************)
+(* FIX: or perhaps do the tptp2x stuff here - so it's get commands and then format them, before passing them to spass *)
 
 fun getCmds (toParentStr,fromParentStr, cmdList) = 
-       let val thisLine = TextIO.inputLine fromParentStr 
-       in
-	  (if (thisLine = "End of calls\n") 
-	   then 
-	      (cmdList)
-	   else if (thisLine = "Kill children\n") 
-		then 
-		    (   TextIO.output (toParentStr,thisLine ); 
-			TextIO.flushOut toParentStr;
-		      (("","","","Kill children",[],"")::cmdList)
-		     )
-	      else (let val thisCmd = getCmd (thisLine) (* thisCmd = (prover,thmstring,proverCmd, settings, file)*)
-		    in
-		      (*TextIO.output (toParentStr, thisCmd); 
-			TextIO.flushOut toParentStr;*)
-			getCmds (toParentStr,fromParentStr, (thisCmd::cmdList))
-		    end
-		    )
-	    )
-	end
+                                       let val thisLine = TextIO.inputLine fromParentStr 
+                                           val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "parent_comms")));                                                                                    
+                              val _ = TextIO.output (outfile,(thisLine) )
+                              val _ =  TextIO.closeOut outfile
+                                       in
+                                          (if (thisLine = "End of calls\n") 
+                                           then 
+ 					      
+                                              (cmdList)
+ 					      
+                                           else if (thisLine = "Kill children\n") 
+                                                then 
+                                                    (   TextIO.output (toParentStr,thisLine ); 
+                                                        TextIO.flushOut toParentStr;
+                                                      (("","","","Kill children",[],"")::cmdList)
+                                                     )
+                                              else (let val thisCmd = getCmd (thisLine) 
+							(*********************************************************)
+                                                        (* thisCmd = (prover,thmstring,proverCmd, settings, file)*)
+						        (* i.e. put back into tuple format                       *)
+							(*********************************************************)
+                                                    in
+                                                      (*TextIO.output (toParentStr, thisCmd); 
+                                                        TextIO.flushOut toParentStr;*)
+                                                        getCmds (toParentStr,fromParentStr, (thisCmd::cmdList))
+                                                    end
+                                                    )
+                                            )
+                                        end
                                     
-                                    
+                                                                  
 (**************************************************************)
 (*  Get Io-descriptor for polling of an input stream          *)
 (**************************************************************)
@@ -388,6 +441,8 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			 if (isSome pd ) then 
 			     let val pd' = OS.IO.pollIn (valOf pd)
 				 val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
+				 val _ = File.append (File.tmp_path (Path.basic "parent_poll")) 
+			           ("In parent_poll\n")	
 			     in
 				if null pdl 
 				then
@@ -414,13 +469,15 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			 if (isSome pd ) then 
 			     let val pd' = OS.IO.pollIn (valOf pd)
 				 val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
+                                 val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
+			           ("In child_poll\n")
 			     in
 				if null pdl 
 				then
 				   NONE
 				else if (OS.IO.isIn (hd pdl)) 
 				     then
-					 SOME (getCmd (TextIO.inputLine fromStr))
+					 SOME ((*getCmd*) (TextIO.inputLine fromStr))
 				     else
 					 NONE
 			     end
@@ -439,13 +496,19 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	      fun checkChildren ([], toParentStr) = []  (*** no children to check ********)
 							(*********************************)
 	      |   checkChildren ((childProc::otherChildren), toParentStr) = 
-		    let val (childInput,childOutput) =  cmdstreamsOf childProc
+		    let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
+			           ("In check child, length of queue:"^(string_of_int (length (childProc::otherChildren)))^"\n")
+                        val (childInput,childOutput) =  cmdstreamsOf childProc
 			val child_handle= cmdchildHandle childProc
 			(* childCmd is the .dfg file that the problem is in *)
 			val childCmd = fst(snd (cmdchildInfo childProc))
+                        val _ = File.append (File.tmp_path (Path.basic "child_command")) 
+			           (childCmd^"\n")
 			(* now get the number of the subgoal from the filename *)
 			val sg_num = int_of_string(ReconOrderClauses.get_nth 5 (rev(explode childCmd)))
 			val childIncoming = pollChildInput childInput
+ 			val _ = File.append (File.tmp_path (Path.basic "child_check_polled")) 
+			           ("finished polling child \n")
 			val parentID = Posix.ProcEnv.getppid()
 			val prover = cmdProver childProc
 			val thmstring = cmdThm childProc
@@ -454,8 +517,8 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
 			val _ = warning("subgoals forked to checkChildren: "^prems_string)
 			val goalstring = cmdGoal childProc							
-			val _ = File.write (File.tmp_path (Path.basic "child_comms")) 
-			           (prover^thmstring^goalstring^childCmd)
+			val _ = File.append (File.tmp_path (Path.basic "child_comms")) 
+			           (prover^thmstring^goalstring^childCmd^"\n")
 		    in 
 		      if (isSome childIncoming) 
 		      then 
@@ -496,8 +559,9 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 
 (*** add subgoal id num to this *)
 	     fun execCmds  [] procList = procList
-	     |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  = 
-		   if (prover = "spass") 
+	     |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("About to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+	       in 
+		 if (prover = "spass") 
 		   then 
 		       let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
 			   val (instr, outstr)=Unix.streamsOf childhandle
@@ -509,12 +573,12 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 						proc_handle = childhandle,
 						instr = instr,
 						outstr = outstr })::procList))
-			    val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:"^goalstring^proverCmd^(concat settings)^file)
+			    val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
 		       in
-			  execCmds cmds newProcList
+			  Posix.Process.sleep (Time.fromSeconds 1);execCmds cmds newProcList
 		       end
 		   else 
-		       let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
+		       let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = (Unix.execute(proverCmd, (settings@[file])))
 			   val (instr, outstr)=Unix.streamsOf childhandle
 			   val newProcList =    (((CMDPROC{
 						prover = prover,
@@ -525,9 +589,9 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 						instr = instr,
 						outstr = outstr })::procList))
 		       in
-			  execCmds cmds newProcList
+			 Posix.Process.sleep (Time.fromSeconds 1); execCmds cmds newProcList
 		       end
-
+		end
 
 
 	  (****************************************)                  
@@ -587,7 +651,11 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 					    let 
 					      val newProcList = execCmds (valOf cmdsFromIsa) procList
 					      val parentID = Posix.ProcEnv.getppid()
+          					 val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
 					      val newProcList' =checkChildren (newProcList, toParentStr) 
+
+					      val _ = warning("off to keep watching...")
+					     val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
 					    in
 					      (*Posix.Process.sleep (Time.fromSeconds 1);*)
 					      loop (newProcList') 
@@ -615,7 +683,8 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 										    (******************************)
 				  (    let val newProcList = checkChildren ((procList), toParentStr)
 				       in
-					 Posix.Process.sleep (Time.fromSeconds 1);
+					 (*Posix.Process.sleep (Time.fromSeconds 1);*)
+					(File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
 					 loop (newProcList)
 				       end
 				   
@@ -797,11 +866,11 @@ fun spass_proofHandler (n) = (
                                                                    (
                                                                      goals_being_watched := (!goals_being_watched) -1;
                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                      Pretty.writeln(Pretty.str (goalstring^reconstr));
+                                                                      Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
                                                                       if (!goals_being_watched = 0)
                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
+                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
                                                                                val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
                                                                                val _ =  TextIO.closeOut outfile
                                                                            in

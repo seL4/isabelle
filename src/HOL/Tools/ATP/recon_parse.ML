@@ -212,6 +212,21 @@ datatype Tree = Leaf of string
                    ++ term_num
             >> (fn (_, (_, (c, (_, e)))) => Para (c, e))
       
+      val super_l  = (a (Word "SpL")) ++ (a (Other ":"))
+                   ++ term_num ++ (a (Other ","))
+                   ++ term_num
+            >> (fn (_, (_, (c, (_, e)))) => Super_l (c, e))
+
+
+      val super_r  = (a (Word "SpR")) ++ (a (Other ":"))
+                   ++ term_num ++ (a (Other ","))
+                   ++ term_num
+            >> (fn (_, (_, (c, (_, e)))) => Super_r (c, e))
+
+
+      val aed = (a (Word "AED")) ++ (a (Other ":")) ++ term_num
+                 >> (fn (_, (_, c)) => Obvious ((fst c),(snd c)))
+
       val rewrite = (a (Word "Rew")) ++ (a (Other ":")) 
                     ++ term_num ++ (a (Other ",")) 
                     ++ term_num
@@ -223,10 +238,27 @@ datatype Tree = Leaf of string
                    ++ term_num
             >> (fn (_, (_, (c, (_, e)))) => MRR (c, e))
 
+      val ssi = (a (Word "SSi")) ++ (a (Other ":"))
+                   ++ term_num ++ (a (Other ","))
+                   ++ term_num
+            >> (fn (_, (_, (c, (_, e)))) => SortSimp (c, e))
+
+    val unc = (a (Word "UnC")) ++ (a (Other ":"))
+                   ++ term_num ++ (a (Other ","))
+                   ++ term_num
+            >> (fn (_, (_, (c, (_, e)))) => UnitConf (c, e))
+
+
 
       val obv = (a (Word "Obv")) ++ (a (Other ":")) ++ term_num
                  >> (fn (_, (_, c)) => Obvious ((fst c),(snd c)))
-     
+
+      val eqres = (a (Word "EqR")) ++ (a (Other ":")) ++ term_num
+                 >> (fn (_, (_, c)) => EqualRes ((fst c),(snd c)))
+   
+      val con = (a (Word "Con")) ++ (a (Other ":")) ++ term_num
+                 >> (fn (_, (_, c)) => Condense ((fst c),(snd c)))
+
 (*
       val hyper = a (Word "hyper")
                   ++ many ((a (Other ",") ++ number) >> snd)
@@ -234,7 +266,8 @@ datatype Tree = Leaf of string
 *)
      (* val method = axiom ||binary || factor || para || hyper*)
 
-      val method = axiom || binary || factor || para || rewrite || mrr || obv
+      val method = axiom || binary || factor || para ||super_l || super_r || rewrite || mrr || obv || aed || ssi || unc|| con
+
       val binary_s = a (Word "binary_s") ++ a (Other ",") ++ term_num
             >> (fn (_, (_, a)) => Binary_s a)
       val factor_s = a (Word "factor_s")
@@ -316,7 +349,9 @@ and  pterm input = (
         || word ++ a (Other "(") ++  arglist ++ a (Other ")") 
            >> (fn ( a, (_,(b,_ ))) => ("~"^" "^(remove_typeinfo a)^" "^b))
 
-        || word >> (fn w => "~"^" "^(remove_typeinfo w))) input
+        || word ++ a (Other "*") >> (fn (w,b) => "~"^" "^(remove_typeinfo w))
+
+        || word                  >> (fn w => "~"^" "^(remove_typeinfo w))) input
 
 and  nterm input =
     
@@ -338,7 +373,9 @@ and  nterm input =
         || word ++ a (Other "(") ++ arglist ++ a (Other ")") 
            >> (fn (a, (_,(b,_ ))) => ((remove_typeinfo a)^" "^b))
 
-        || word >> (fn w =>  (remove_typeinfo w)) ) input 
+        || word ++ a (Other "*") >> (fn (w,b) =>  (remove_typeinfo w)) 
+        || word                  >> (fn w =>  (remove_typeinfo w)) 
+         ) input 
 
 
 and peqterm input =(

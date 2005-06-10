@@ -221,7 +221,8 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
 fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                           then
                                let val thisLine = TextIO.inputLine instr 
-                                   val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_thisLine")));                                                                     val _ = TextIO.output (outfile, (thisLine))
+                                   val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_thisLine")));                                                                     val _ = TextIO.output (outfile, (thisLine))
+
                                              
                                    val _ =  TextIO.closeOut outfile
 			       in 
@@ -256,7 +257,7 @@ fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                                              end
                                           )
 
-                                         else if (thisLine = "Proof found but translation failed!")
+                                         else if ((substring (thisLine, 0,5)) = "Proof") 
                                               then
   						(
 						   let val reconstr = thisLine
