@@ -367,50 +367,56 @@ by(simp_all)
 subsection{*Tracing*}
 text{*\indexbold{tracing the simplifier}
 Using the simplifier effectively may take a bit of experimentation.  Set the
-\isa{trace_simp}\index{*trace_simp (flag)} flag\index{flags} 
-to get a better idea of what is going
-on:
+Proof General flag \textsf{Isabelle} $>$ \textsf{Settings} $>$ \textsf{Trace Simplifier} to get a better idea of what is going on:
 *}
 
-ML "set trace_simp"
 lemma "rev [a] = []"
 apply(simp)
 (*<*)oops(*>*)
 
 text{*\noindent
-produces the trace
+produces the following trace in Proof General's \textsf{Trace} buffer:
 
 \begin{ttbox}\makeatother
-Applying instance of rewrite rule:
-rev (?x1 \# ?xs1) == rev ?xs1 @ [?x1]
-Rewriting:
-rev [a] == rev [] @ [a]
-Applying instance of rewrite rule:
-rev [] == []
-Rewriting:
-rev [] == []
-Applying instance of rewrite rule:
-[] @ ?y == ?y
-Rewriting:
-[] @ [a] == [a]
-Applying instance of rewrite rule:
-?x3 \# ?t3 = ?t3 == False
-Rewriting:
-[a] = [] == False
+[0]Applying instance of rewrite rule "List.rev.simps_2":
+rev (?x1 # ?xs1) \(\equiv\) rev ?xs1 @ [?x1]
+
+[0]Rewriting:
+rev [a] \(\equiv\) rev [] @ [a]
+
+[0]Applying instance of rewrite rule "List.rev.simps_1":
+rev [] \(\equiv\) []
+
+[0]Rewriting:
+rev [] \(\equiv\) []
+
+[0]Applying instance of rewrite rule "List.op @.append_Nil":
+[] @ ?y \(\equiv\) ?y
+
+[0]Rewriting:
+[] @ [a] \(\equiv\) [a]
+
+[0]Applying instance of rewrite rule
+?x2 # ?t1 = ?t1 \(\equiv\) False
+
+[0]Rewriting:
+[a] = [] \(\equiv\) False
 \end{ttbox}
+The trace lists each rule being applied, both in its general form and
+the instance being used. The \texttt{[}$i$\texttt{]} in front (where
+above $i$ is always \texttt{0}) indicates that we are inside the $i$th
+recursive invocation of the simplifier. Each attempt to apply a
+conditional rule shows the rule followed by the trace of the
+(recursive!) simplification of the conditions, the latter prefixed by
+\texttt{[}$i+1$\texttt{]} instead of \texttt{[}$i$\texttt{]}.
+Another source of recursive invocations of the simplifier are
+proofs of arithmetic formulae.
 
-The trace lists each rule being applied, both in its general form and the 
-instance being used.  For conditional rules, the trace lists the rule
-it is trying to rewrite and gives the result of attempting to prove
-each of the rule's conditions.  Many other hints about the simplifier's
-actions will appear.
+Many other hints about the simplifier's actions may appear.
 
-In more complicated cases, the trace can be quite lengthy.  Invocations of the
-simplifier are often nested, for instance when solving conditions of rewrite
-rules.  Thus it is advisable to reset it:
-*}
-
-ML "reset trace_simp"
+In more complicated cases, the trace can be very lengthy.  Thus it is
+advisable to reset the \textsf{Trace Simplifier} flag after having
+obtained the desired trace.  *}
 
 (*<*)
 end

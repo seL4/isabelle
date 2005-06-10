@@ -309,6 +309,7 @@ Induction is less important for integers than it is for the natural numbers, but
 
 
 \subsection{The Types of Rational, Real and Complex Numbers}
+\label{sec:real}
 
 \index{rational numbers|(}\index{*rat (type)|(}%
 \index{real numbers|(}\index{*real (type)|(}%
@@ -340,15 +341,12 @@ Exponentiation can express floating-point values such as
 is performed.
 
 \begin{warn}
-Type \isa{real} is only available in the logic HOL-Complex, which
-is  HOL extended with a definitional development of the real and complex
-numbers.  Base your theory upon theory
-\thydx{Complex_Main}, not the usual \isa{Main}.%
+Type \isa{real} is only available in the logic HOL-Complex, which is
+HOL extended with a definitional development of the real and complex
+numbers.  Base your theory upon theory \thydx{Complex_Main}, not the
+usual \isa{Main}, and set the Proof General menu item \textsf{Isabelle} $>$
+\textsf{Logics} $>$ \textsf{HOL-Complex}.%
 \index{real numbers|)}\index{*real (type)|)}
-Launch Isabelle using the command 
-\begin{verbatim}
-Isabelle -l HOL-Complex
-\end{verbatim}
 \end{warn}
 
 Also available in HOL-Complex is the

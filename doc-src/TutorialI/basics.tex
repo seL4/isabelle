@@ -87,10 +87,10 @@ HOL's theory collection is available online at
 \begin{center}\small
     \url{http://isabelle.in.tum.de/library/HOL/}
 \end{center}
-and is recommended browsing.
-There is also a growing Library~\cite{HOL-Library}\index{Library}
-of useful theories that are not part of \isa{Main} but can be included
-among the parents of a theory and will then be loaded automatically.
+and is recommended browsing. In subdirectory \texttt{Library} you find
+a growing library of useful theories that are not part of \isa{Main}
+but can be included among the parents of a theory and will then be
+loaded automatically.
 
 For the more adventurous, there is the \emph{Archive of Formal Proofs},
 a journal-like collection of more advanced Isabelle theories:
@@ -134,15 +134,17 @@ denoted by \isasymFun\indexbold{$IsaFun@\isasymFun}.
 \end{description}
 \begin{warn}
   Types are extremely important because they prevent us from writing
-  nonsense.  Isabelle insists that all terms and formulae must be well-typed
-  and will print an error message if a type mismatch is encountered. To
-  reduce the amount of explicit type information that needs to be provided by
-  the user, Isabelle infers the type of all variables automatically (this is
-  called \bfindex{type inference}) and keeps quiet about it. Occasionally
-  this may lead to misunderstandings between you and the system. If anything
-  strange happens, we recommend that you ask Isabelle to display all type
-  information. This is best done through the Proof General interface; see
-  \S\ref{sec:interface} for details.
+  nonsense.  Isabelle insists that all terms and formulae must be
+  well-typed and will print an error message if a type mismatch is
+  encountered. To reduce the amount of explicit type information that
+  needs to be provided by the user, Isabelle infers the type of all
+  variables automatically (this is called \bfindex{type inference})
+  and keeps quiet about it. Occasionally this may lead to
+  misunderstandings between you and the system. If anything strange
+  happens, we recommend that you ask Isabelle to display all type
+  information via the Proof General menu item \textsf{Isabelle} $>$
+  \textsf{Settings} $>$ \textsf{Show Types} (see \S\ref{sec:interface}
+  for details).
 \end{warn}%
 \index{types|)}
 
@@ -257,16 +259,13 @@ the tutorial. Their \textsc{ascii}-equivalents are shown in table~\ref{tab:ascii
 the appendix.
 
 \begin{warn}
-A particular
-problem for novices can be the priority of operators. If you are unsure, use
-additional parentheses. In those cases where Isabelle echoes your
-input, you can see which parentheses are dropped --- they were superfluous. If
-you are unsure how to interpret Isabelle's output because you don't know
-where the (dropped) parentheses go, set the flag\index{flags}
-\isa{show_brackets}\index{*show_brackets (flag)}:
-\begin{ttbox}
-ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
-\end{ttbox}
+A particular problem for novices can be the priority of operators. If
+you are unsure, use additional parentheses. In those cases where
+Isabelle echoes your input, you can see which parentheses are dropped
+--- they were superfluous. If you are unsure how to interpret
+Isabelle's output because you don't know where the (dropped)
+parentheses go, set the Proof General flag \textsf{Isabelle} $>$
+\textsf{Settings} $>$ \textsf{Show Brackets} (see \S\ref{sec:interface}).
 \end{warn}
 
 
@@ -304,48 +303,52 @@ Note that for readability we often drop the \isa{?}s when displaying a theorem.
 \section{Interaction and Interfaces}
 \label{sec:interface}
 
-Interaction with Isabelle can either occur at the shell level or through more
-advanced interfaces. To keep the tutorial independent of the interface, we
-have phrased the description of the interaction in a neutral language. For
-example, the phrase ``to abandon a proof'' means to type \isacommand{oops} at the
-shell level, which is explained the first time the phrase is used. Other
-interfaces perform the same act by cursor movements and/or mouse clicks.
-Although shell-based interaction is quite feasible for the kind of proof
-scripts currently presented in this tutorial, the recommended interface for
-Isabelle/Isar is the Emacs-based \bfindex{Proof
-  General}~\cite{proofgeneral,Aspinall:TACAS:2000}.
-
+The recommended interface for Isabelle/Isar is the (X)Emacs-based
+\bfindex{Proof General}~\cite{proofgeneral,Aspinall:TACAS:2000}.
+Interaction with Isabelle at the shell level, although possible,
+should be avoided. Most of the tutorial is independent of the
+interface and is phrased in a neutral language. For example, the
+phrase ``to abandon a proof'' corresponds to the obvious
+action of clicking on the \textsf{Undo} symbol in Proof General.
+Proof General specific information is often displayed in paragraphs
+identified by a miniature Proof General icon. Here are two examples:
 \begin{pgnote}
-Proof General specific information is always displayed in paragraphs
-identified by this miniature Proof General icon.
+Proof General supports a special font with mathematical symbols known
+as ``x-symbols''. All symbols have \textsc{ascii}-equivalents: for
+example, you can enter either \verb!&!  or \verb!\<and>! to obtain
+$\land$. For a list of the most frequent symbols see table~\ref{tab:ascii}
+in the appendix.
 
-On particularly nice feature of Proof General is its support for a special
-fonts with mathematical symbols. Most symbols have
-\textsc{ascii}-equivalents: for example, you can enter either \verb!&!
-or \verb!\<and>! to obtain $\land$. For a list of the most frequent symbols
-see table~\ref{tab:ascii} in the appendix.
+Note that by default x-symbols are not enabled. You have to switch
+them on via the menu item \textsf{Proof-General} $>$ \textsf{Options} $>$
+\textsf{X-Symbols} (and save the option via the top-level
+\textsf{Options} menu).
 \end{pgnote}
 
 \begin{pgnote}
-Proof General offers an \texttt{Isabelle} menu for displaying information
-and setting flags. A particularly useful flag is \texttt{Show Types}
-which causes Isabelle to output the type information that is usually
+Proof General offers the \textsf{Isabelle} menu for displaying
+information and setting flags. A particularly useful flag is
+\textsf{Isabelle} $>$ \textsf{Settings} $>$ \textsf{Show Types} which
+causes Isabelle to output the type information that is usually
 suppressed. This is indispensible in case of errors of all kinds
-because often the types reveal the source of the problem. Once you have
-diagnosed the problem you may no longer want to see the types because they
-clutter all output. Simply reset the flag.
+because often the types reveal the source of the problem. Once you
+have diagnosed the problem you may no longer want to see the types
+because they clutter all output. Simply reset the flag.
 \end{pgnote}
 
 \section{Getting Started}
 
-Assuming you have installed Isabelle, you start it by typing \texttt{isabelle
-  -I HOL} in a shell window.\footnote{Simply executing \texttt{isabelle -I}
-  starts the default logic, which usually is already \texttt{HOL}.  This is
-  controlled by the \texttt{ISABELLE_LOGIC} setting, see \emph{The Isabelle
-    System Manual} for more details.} This presents you with Isabelle's most
-basic \textsc{ascii} interface.  In addition you need to open an editor window to
-create theory files.  While you are developing a theory, we recommend that you
-type each command into the file first and then enter it into Isabelle by
-copy-and-paste, thus ensuring that you have a complete record of your theory.
-As mentioned above, Proof General offers a much superior interface.
-If you have installed Proof General, you can start it by typing \texttt{Isabelle}.
+Assuming you have installed Isabelle and Proof General, you start it by typing
+\texttt{Isabelle} in a shell window. This launches a Proof General window.
+By default, you are in HOL\footnote{This is controlled by the
+\texttt{ISABELLE_LOGIC} setting, see \emph{The Isabelle System Manual}
+for more details.}.
+
+\begin{pgnote}
+You can choose a different logic via the \textsf{Isabelle} $>$
+\textsf{Logics} menu. For example, you may want to work in the real
+numbers, an extension of HOL (see \S\ref{sec:real}).
+% This is just excess baggage:
+%(You have to restart Proof General if you only compile the new logic
+%after having launching Proof General already).
+\end{pgnote}
