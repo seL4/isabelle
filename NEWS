@@ -424,9 +424,26 @@ reset, the name prefix is reduced to the minimum required to achieve
 the original result when interning again, even if there is an overlap
 with earlier declarations.
 
+* Pure/sign/theory: discontinued named name spaces (i.e. classK,
+typeK, constK, axiomK, oracleK), but provide explicit operations for
+any of these kinds.  For example, Sign.intern typeK is now
+Sign.intern_type, Theory.hide_space Sign.typeK is now
+Theory.hide_types.  Also note that former
+Theory.hide_classes/types/consts are now
+Theory.hide_classes_i/types_i/consts_i, while the non '_i' versions
+internalize their arguments!  INCOMPATIBILITY.
+
 * Pure: cases produced by proof methods specify options, where NONE
 means to remove case bindings -- INCOMPATIBILITY in
 (RAW_)METHOD_CASES.
+
+* Pure: the following operations retrieve axioms or theorems from a
+theory node or theory hierarchy, respectively:
+
+  Theory.axioms_of: theory -> (string * term) list
+  Theory.all_axioms_of: theory -> (string * term) list
+  PureThy.thms_of: theory -> (string * thm) list
+  PureThy.all_thms_of: theory -> (string * thm) list
 
 * Provers: Simplifier and Classical Reasoner now support proof context
 dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
