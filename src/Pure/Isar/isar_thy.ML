@@ -7,8 +7,8 @@ Pure/Isar derived theory operations.
 
 signature ISAR_THY =
 sig
-  val hide_space: string * xstring list -> theory -> theory
-  val hide_space_i: string * string list -> theory -> theory
+  val hide_names: string * xstring list -> theory -> theory
+  val hide_names_i: string * string list -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defs: bool * ((bstring * string) * Attrib.src list) list -> theory -> theory
@@ -178,27 +178,27 @@ struct
 local
 
 val kinds =
- [(Sign.classK, can o Sign.certify_class),
-  (Sign.typeK, Sign.declared_tyname),
-  (Sign.constK, Sign.declared_const)];
+ [("class", (Sign.intern_class, can o Sign.certify_class, Theory.hide_classes_i)),
+  ("type", (Sign.intern_type, Sign.declared_tyname, Theory.hide_types_i)),
+  ("const", (Sign.intern_const, Sign.declared_const, Theory.hide_consts_i))];
 
-fun gen_hide intern (kind, xnames) thy =
-  (case assoc (kinds, kind) of
-    SOME check =>
+fun gen_hide int (kind, xnames) thy =
+  (case assoc_string (kinds, kind) of
+    SOME (intern, check, hide) =>
       let
         val sg = Theory.sign_of thy;
-        val names = map (intern sg kind) xnames;
+        val names = if int then map (intern sg) xnames else xnames;
         val bads = filter_out (check sg) names;
       in
-        if null bads then Theory.hide_space_i true (kind, names) thy
+        if null bads then hide true names thy
         else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
       end
   | NONE => error ("Bad name space specification: " ^ quote kind));
 
 in
 
-fun hide_space x = gen_hide Sign.intern x;
-fun hide_space_i x = gen_hide (K (K I)) x;
+val hide_names = gen_hide true;
+val hide_names_i = gen_hide false;
 
 end;
 
