@@ -68,7 +68,7 @@ if [ -n "$(ls $RUNNING)" ]; then
 
     for R in $MAILTO; do
         LOGS=$ERRORDIR/isatest*.log
-        $MAIL "isabelle test taking to long" $R $TMP $LOGS
+        $MAIL "isabelle test taking too long" $R $TMP $LOGS
     done
     
     exit 1
