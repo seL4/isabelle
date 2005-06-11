@@ -2046,7 +2046,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
 
-	    val fulltyname = Sign.intern_tycon (sign_of thy') tycname
+	    val fulltyname = Sign.intern_type (sign_of thy') tycname
 	    val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
 
 	    val sg = sign_of thy''
@@ -2110,7 +2110,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hollight
 
 	    val th4 = Drule.freeze_all th3
-	    val fulltyname = Sign.intern_tycon (sign_of thy') tycname
+	    val fulltyname = Sign.intern_type (sign_of thy') tycname
 	    val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
 
 	    val sg = sign_of thy''

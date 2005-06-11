@@ -403,7 +403,7 @@ fun add_types tys thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns,
-       types = map (apfst (Sign.intern_tycon (sign_of thy))) tys @ types,
+       types = map (apfst (Sign.intern_type (sign_of thy))) tys @ types,
        realizers = realizers, defs = defs, expand = expand, prep = prep} thy
   end;
 
