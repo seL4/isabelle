@@ -94,11 +94,12 @@ sig
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     theory -> theory
   val restore_naming: theory -> theory -> theory
-  val hide_space: bool -> string * xstring list -> theory -> theory
-  val hide_space_i: bool -> string * string list -> theory -> theory
-  val hide_classes: bool -> string list -> theory -> theory
-  val hide_types: bool -> string list -> theory -> theory
-  val hide_consts: bool -> string list -> theory -> theory
+  val hide_classes: bool -> xstring list -> theory -> theory
+  val hide_classes_i: bool -> string list -> theory -> theory
+  val hide_types: bool -> xstring list -> theory -> theory
+  val hide_types_i: bool -> string list -> theory -> theory
+  val hide_consts: bool -> xstring list -> theory -> theory
+  val hide_consts_i: bool -> string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
   val prep_ext: theory -> theory
@@ -235,11 +236,12 @@ val no_base_names          = ext_sign (K Sign.no_base_names) ();
 val custom_accesses        = ext_sign Sign.custom_accesses;
 val set_policy             = ext_sign Sign.set_policy;
 val restore_naming         = ext_sign Sign.restore_naming o sign_of;
-val hide_space             = ext_sign o Sign.hide_space;
-val hide_space_i           = ext_sign o Sign.hide_space_i;
-fun hide_classes b         = curry (hide_space_i b) Sign.classK;
-fun hide_types b           = curry (hide_space_i b) Sign.typeK;
-fun hide_consts b          = curry (hide_space_i b) Sign.constK;
+val hide_classes           = ext_sign o Sign.hide_classes;
+val hide_classes_i         = ext_sign o Sign.hide_classes_i;
+val hide_types             = ext_sign o Sign.hide_types;
+val hide_types_i           = ext_sign o Sign.hide_types_i;
+val hide_consts            = ext_sign o Sign.hide_consts;
+val hide_consts_i          = ext_sign o Sign.hide_consts_i;
 val add_name               = ext_sign Sign.add_name;
 val copy                   = ext_sign (K Sign.copy) ();
 val prep_ext               = ext_sign (K Sign.prep_ext) ();
