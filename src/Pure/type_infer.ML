@@ -523,7 +523,7 @@ fun infer_types pp tsig const_type def_type def_sort
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
     val (ts, Ts, unifier) = basic_infer_types pp const_type
-      classes arities used freeze is_param raw_ts' pat_Ts';
+      (#2 classes) arities used freeze is_param raw_ts' pat_Ts';
   in (ts, unifier) end;
 
 end;

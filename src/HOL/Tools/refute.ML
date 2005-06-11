@@ -507,7 +507,7 @@ struct
 					| _               => raise REFUTE ("collect_axioms", "type " ^ Sign.string_of_typ (sign_of thy) T ^ " is not a variable"))
 				(* obtain all superclasses of classes in 'sort' *)
 				(* string list *)
-				val superclasses = Graph.all_succs ((#classes o Type.rep_tsig o Sign.tsig_of o sign_of) thy) sort
+				val superclasses = Graph.all_succs ((#2 o #classes o Type.rep_tsig o Sign.tsig_of o sign_of) thy) sort
 			in
 				Library.foldl collect_class_axioms (axs, superclasses)
 			end
