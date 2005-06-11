@@ -55,8 +55,8 @@ fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
 (* theory setup *)
 
 val setup =
- [Theory.hide_consts false ["Numeral.Pls", "Numeral.Min"],
-  Theory.hide_consts false ["Numeral.bit.B0", "Numeral.bit.B1"],
+ [Theory.hide_consts_i false ["Numeral.Pls", "Numeral.Min"],
+  Theory.hide_consts_i false ["Numeral.bit.B0", "Numeral.bit.B1"],
    Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
   Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')]];
 
