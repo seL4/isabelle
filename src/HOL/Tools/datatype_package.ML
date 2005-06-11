@@ -99,7 +99,7 @@ struct
 
   fun print sg tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map #1 (Sign.extern_table sg Sign.typeK tab)));
+      map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
 end;
 
 structure DatatypesData = TheoryDataFun(DatatypesArgs);
@@ -466,7 +466,7 @@ fun case_tr' constrs sg ts =
         (loose_bnos (strip_abs_body t))
       end;
     val cases = map (fn ((cname, dts), t) =>
-      (Sign.extern sg Sign.constK cname,
+      (Sign.extern_const sg cname,
        strip_abs (length dts) t, is_dependent (length dts) t))
       (constrs ~~ fs);
     fun count_cases (cs, (_, _, true)) = cs

@@ -47,7 +47,7 @@ fun mk_TFree s  = TFree ("'"^s, pcpoS);
 
 (*cfun, ssum, sprod, u, tr, one *)
 
-local val intern = Sign.intern_tycon HOLCF_sg;
+local val intern = Sign.intern_type HOLCF_sg;
 in
 val cfun_arrow = intern "->";
 val op   ->>  = mk_btyp cfun_arrow;

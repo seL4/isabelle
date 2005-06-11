@@ -101,7 +101,8 @@ struct
     (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
 
   fun print sg (tab, monos) =
-    [Pretty.strs ("(co)inductives:" :: map #1 (Sign.extern_table sg Sign.constK tab)),
+    [Pretty.strs ("(co)inductives:" ::
+      map #1 (NameSpace.extern_table (Sign.const_space sg, tab))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_sg sg) monos)]
     |> Pretty.chunks |> Pretty.writeln;
 end;

@@ -42,7 +42,7 @@ structure DatatypesArgs =
 
   fun print sg tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map #1 (Sign.extern_table sg Sign.typeK tab)));
+      map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
   end;
 
 structure DatatypesData = TheoryDataFun(DatatypesArgs);

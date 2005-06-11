@@ -287,7 +287,7 @@ struct
             [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
 
       fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (Sign.extern sg Sign.constK c), Pretty.str " ::",
+        [Pretty.str (Sign.extern_const sg c), Pretty.str " ::",
           Pretty.brk 1, Pretty.quote (prt_typ T)];
 
       fun pretty_record (name, {args, parent, fields, ...}: record_info) =
@@ -670,7 +670,7 @@ fun record_tr' sep mark record record_scheme unit sg t =
                      SOME flds 
                      => (let
                           val (f::fs) = but_last (map fst flds);
-                          val flds' = Sign.extern sg Sign.constK f::map NameSpace.base fs; 
+                          val flds' = Sign.extern_const sg f :: map NameSpace.base fs; 
                           val (args',more) = split_last args; 
                          in (flds'~~args')@field_lst more end
                          handle UnequalLengths => [("",t)])
@@ -775,7 +775,7 @@ fun record_type_tr' sep mark record record_scheme sg t =
                            SOME (_,alphas) 
                            => (let
                                 val (f::fs) = but_last flds;
-                                val flds' = apfst (Sign.extern sg Sign.constK) f
+                                val flds' = apfst (Sign.extern_const sg) f
                                             ::map (apfst NameSpace.base) fs; 
                                 val (args',more) = split_last args; 
                                 val alphavars = map Type.varifyT (but_last alphas); 

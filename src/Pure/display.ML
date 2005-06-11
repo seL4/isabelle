@@ -199,14 +199,14 @@ fun pretty_full_theory thy =
             prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
 
     val tfrees = map (fn v => TFree (v, []));
-    fun pretty_type syn (t, Type.LogicalType n) =
+    fun pretty_type syn (t, (Type.LogicalType n, _)) =
           if syn then NONE
           else SOME (prt_typ (Type (t, tfrees (Term.invent_names [] "'a" n))))
-      | pretty_type syn (t, Type.Abbreviation (vs, U, syn')) =
+      | pretty_type syn (t, (Type.Abbreviation (vs, U, syn'), _)) =
           if syn <> syn' then NONE
           else SOME (Pretty.block
             [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
-      | pretty_type syn (t, Type.Nonterminal) =
+      | pretty_type syn (t, (Type.Nonterminal, _)) =
           if not syn then NONE
           else SOME (prt_typ (Type (t, [])));
 
@@ -224,20 +224,20 @@ fun pretty_full_theory thy =
 
 
     val {sign = _, defs, axioms, oracles, parents = _, ancestors = _} = Theory.rep_theory thy;
-    val {self = _, tsig, consts, naming, spaces = _, data} = Sign.rep_sg sg;
+    val {self = _, tsig, consts, naming, data} = Sign.rep_sg sg;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
-    val tdecls = Symtab.dest types |> map (fn (t, (d, _)) =>
-      (Sign.extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
-    val cnsts = Sign.extern_table sg Sign.constK consts;
-    val finals = Sign.extern_table sg Sign.constK (Defs.finals defs);
+    val clsses = NameSpace.extern_table (apsnd (Symtab.make o Graph.dest) classes);
+    val tdecls = NameSpace.extern_table types;
+    val cnsts = NameSpace.extern_table consts;
+    val finals = NameSpace.extern_table (#1 consts, Defs.finals defs);
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
     [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
       Pretty.strs ("data:" :: Sign.data_kinds data),
       Pretty.strs ["name prefix:", NameSpace.path_of naming],
-      Pretty.big_list "classes:" (map pretty_classrel (Graph.dest classes)),
+      Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
       pretty_witness witness,
       Pretty.big_list "syntactic types:" (List.mapPartial (pretty_type true) tdecls),

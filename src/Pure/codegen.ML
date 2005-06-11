@@ -300,7 +300,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
   let
     val {codegens, tycodegens, consts, types, attrs, preprocs, test_params} =
       CodegenData.get thy;
-    val tc = Sign.intern_tycon (sign_of thy) s
+    val tc = Sign.intern_type (sign_of thy) s
   in
     (case assoc (types, tc) of
        NONE => CodegenData.put {codegens = codegens,
@@ -342,11 +342,11 @@ fun mk_id s = if s = "" then "" else
   end;
 
 fun mk_const_id sg s =
-  let val s' = mk_id (Sign.extern sg Sign.constK s)
+  let val s' = mk_id (Sign.extern_const sg s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s' end;
 
 fun mk_type_id sg s =
-  let val s' = mk_id (Sign.extern sg Sign.typeK s)
+  let val s' = mk_id (Sign.extern_type sg s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s' end;
 
 fun rename_terms ts =

@@ -131,12 +131,9 @@ struct
 
   fun print sg tab =
     let
-      val ext_class = Sign.extern sg Sign.classK;
-      val ext_thm = PureThy.extern_thm_sg sg;
-
       fun pretty_class c cs = Pretty.block
-        (Pretty.str (ext_class c) :: Pretty.str " <" :: Pretty.brk 1 ::
-          Pretty.breaks (map (Pretty.str o ext_class) cs));
+        (Pretty.str (Sign.extern_class sg c) :: Pretty.str " <" :: Pretty.brk 1 ::
+          Pretty.breaks (map (Pretty.str o Sign.extern_class sg) cs));
 
       fun pretty_thms name thms = Pretty.big_list (name ^ ":")
         (map (Display.pretty_thm_sg sg) thms);
@@ -282,7 +279,7 @@ fun test_arity sg ar = (Type.add_arities (Sign.pp sg) [ar] (Sign.tsig_of sg); ar
 fun prep_arity prep_tycon prep_sort prep sg (t, Ss, x) =
   test_arity sg (prep_tycon sg t, map (prep_sort sg) Ss, prep sg x);
 
-val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
+val read_arity = prep_arity Sign.intern_type Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
 
 
