@@ -6,7 +6,17 @@
 Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 *)
 
-(** ML system related **)
+(** ML system and platform related **)
+
+(* cygwin *)
+
+val cygwin_platform =
+  let val n = size ml_platform
+  in n >= 6 andalso String.substring (ml_platform, n - 6, 6) = "cygwin" end;
+
+fun if_cygwin f x = if cygwin_platform then f x else ();
+fun unless_cygwin f x = if not cygwin_platform then f x else ();
+
 
 (* old Poly/ML emulation *)
 
@@ -34,7 +44,8 @@ use "ML-Systems/cpu-timer-basis.ML";
 
 (* bounded time execution *)
 
-use "ML-Systems/polyml-time-limit.ML";
+unless_cygwin
+  use "ML-Systems/polyml-time-limit.ML";
 
 
 (* prompts *)
@@ -168,25 +179,5 @@ ML{*profiling 0*}
 val profiling: int->unit =
      RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler;
 
-structure OriginalPosix = Posix;
-structure OriginalIO = Posix.IO;
-
-structure Posix =
-struct
-  open OriginalPosix
-  structure IO =
-  struct
-  open OriginalIO
-  val mkTextReader = mkReader
-  val mkTextWriter = mkWriter
-  end;
-end;
-
-(*This extension of the Poly/ML Signal structure is only necessary
-  because in SML/NJ, types Posix.Signal.signal and Signals.signal differ.*)
-structure IsaSignal =
-struct
-  open Signal
-  val usr1 = Posix.Signal.usr1
-  val usr2 = Posix.Signal.usr2
-end;
+unless_cygwin
+  use "ML-Systems/polyml-posix.ML";
