@@ -45,6 +45,7 @@ $(OUT)/Pure: CPure.thy General/ROOT.ML General/buffer.ML		\
   Isar/toplevel.ML		                                        \
   ML-Systems/cpu-timer-basis.ML ML-Systems/cpu-timer-gc.ML		\
   ML-Systems/polyml-time-limit.ML ML-Systems/polyml.ML			\
+  ML-Systems/polyml-posix.ML 						\
   ML-Systems/smlnj-basis-compat.ML ML-Systems/smlnj-compiler.ML		\
   ML-Systems/smlnj-pp-new.ML ML-Systems/smlnj-pp-old.ML			\
   ML-Systems/smlnj.ML Proof/extraction.ML Proof/proof_rewrite_rules.ML	\
