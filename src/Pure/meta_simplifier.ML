@@ -105,7 +105,7 @@ exception SIMPLIFIER of string * thm;
 
 val debug_simp = ref false;
 val trace_simp = ref false;
-val simp_depth = ref 0;
+val simp_depth = ref (~1);
 val simp_depth_limit = ref 1000;
 val trace_simp_depth_limit = ref 1000;
 
@@ -1102,7 +1102,7 @@ fun rewrite_cterm mode prover ss ct =
          error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
            Pretty.string_of (Display.pretty_thms thms))
    in simp_depth := !simp_depth - 1; res end
-  ) handle exn => (simp_depth := 0; raise exn);
+  ) handle exn => (simp_depth := !simp_depth - 1; raise exn);
 
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
