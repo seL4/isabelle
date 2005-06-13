@@ -93,6 +93,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 (* timing *)
 
 fun timeit_msg s x = if !timing then (warning s; timeit x) else x ();
+fun timing_msg s = if !timing then warning s else ();
  
 (* syntax *)
 
@@ -1344,6 +1345,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun mk_ext args = list_comb (Const ext_decl, args); 
 
     (*destructors*) 
+    val _ = timing_msg "record extension preparing definitions";
     val dest_decls = map (mk_selC extT o (apfst (suffix ext_dest))) bfields_more;
 
     fun mk_dest_spec (i, (c,T)) =
@@ -1354,7 +1356,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val dest_specs =
       ListPair.map mk_dest_spec (idxms, fields_more);
    
-    
+    (*updates*)
     val upd_decls = map (mk_updC updN extT) bfields_more;
     fun mk_upd_spec (c,T) =
       let
@@ -1367,16 +1369,19 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val upd_specs = map mk_upd_spec fields_more;
     
     (* 1st stage: defs_thy *)
-    val (defs_thy, (([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs),upd_defs)) =
-        thy 
+    fun mk_defs () =
+      thy 
         |> extension_typedef name repT (alphas@[zeta])
         |>> Theory.add_consts_i 
               (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
         |>>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
         |>>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
+    val (defs_thy, (([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs),upd_defs)) =
+        timeit_msg "record extension type/selector/update defs:" mk_defs;
+        
     
     (* prepare propositions *)
-
+    val _ = timing_msg "record extension preparing propositions";
     val vars_more = vars@[more];
     val named_vars_more = (names@[full moreN])~~vars_more;
     val variants = map (fn (Free (x,_))=>x) vars_more;
@@ -1385,7 +1390,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val w     = Free (wN, extT);
     val P = Free (variant variants "P", extT-->HOLogic.boolT);
     val C = Free (variant variants "C", HOLogic.boolT);
-
+    
     val inject_prop =
       let val vars_more' = map (fn (Free (x,T)) => Free (x ^ "'",T)) vars_more;
       in All (map dest_Free (vars_more@vars_more')) 
@@ -1408,7 +1413,6 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
        map (fn (c, x as Free (_,T)) => mk_sel ext (suffix ext_dest c,T) === x) named_vars_more;
 
     (*updates*)
-    
     fun mk_upd_prop (i,(c,T)) =
       let val x' = Free (variant variants (base c ^ "'"),T) 
           val args' = nth_update x' (i, vars_more)
@@ -1637,13 +1641,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val all_named_vars_more = all_named_vars @ [(full_moreN,more)];
    
     (* 1st stage: extension_thy *)
-	
     val (extension_thy,extT,ext_induct,ext_inject,ext_dest_convs,ext_split,u_convs) =
       thy
       |> Theory.add_path bname
       |> extension_definition full extN fields names alphas_ext zeta moreT more vars;
 
-   
+    val _ = timing_msg "record preparing definitions";	
     val Type extension_scheme = extT;
     val extension_name = unsuffix ext_typeN (fst extension_scheme);
     val extension = let val (n,Ts) = extension_scheme in (n,subst_last HOLogic.unitT Ts) end; 
@@ -1757,8 +1760,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 2st stage: defs_thy *)
  
-    val (defs_thy,((sel_defs,upd_defs),derived_defs)) = 
-        extension_thy
+    fun mk_defs () =
+      extension_thy
         |> Theory.add_trfuns 
             ([],[],field_tr's, [])
         |> Theory.add_advanced_trfuns 
@@ -1774,10 +1777,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
         |>>> (PureThy.add_defs_i false o map Thm.no_attributes) upd_specs
 	|>>> (PureThy.add_defs_i false o map Thm.no_attributes)
-               [make_spec, fields_spec, extend_spec, truncate_spec];
+               [make_spec, fields_spec, extend_spec, truncate_spec]
+    val (defs_thy,((sel_defs,upd_defs),derived_defs)) =
+        timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
+         mk_defs;
         
 
     (* prepare propositions *)
+    val _ = timing_msg "record preparing propositions";	
     val P = Free (variant all_variants "P", rec_schemeT0-->HOLogic.boolT);
     val C = Free (variant all_variants "C", HOLogic.boolT);    
     val P_unit = Free (variant all_variants "P", recT0-->HOLogic.boolT);
