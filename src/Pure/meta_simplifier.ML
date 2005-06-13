@@ -105,9 +105,9 @@ exception SIMPLIFIER of string * thm;
 
 val debug_simp = ref false;
 val trace_simp = ref false;
-val simp_depth = ref (~1);
-val simp_depth_limit = ref 1000;
-val trace_simp_depth_limit = ref 1000;
+val simp_depth = ref 0;
+val simp_depth_limit = ref 100;
+val trace_simp_depth_limit = ref 100;
 
 local
 
