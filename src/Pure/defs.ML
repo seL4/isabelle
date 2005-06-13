@@ -71,7 +71,7 @@ datatype graphaction = Declare of string * typ
 		     | Define of string * typ * string * (string * typ) list
 		     | Finalize of string * typ
 
-type graph = int * (graphaction list) * (node Symtab.table)
+type graph = int * (string Symtab.table) * (graphaction list) * (node Symtab.table)
              
 val CHAIN_HISTORY = 
     let
@@ -84,7 +84,7 @@ val CHAIN_HISTORY =
 fun set_chain_history b = CHAIN_HISTORY := b
 fun chain_history () = !CHAIN_HISTORY
 
-val empty = (0, [], Symtab.empty)
+val empty = (0, Symtab.empty, [], Symtab.empty)
 
 exception DEFS of string;
 exception CIRCULAR of (typ * string * string) list;
@@ -100,10 +100,30 @@ fun no_forwards defs =
         if not closed then false else Symtab.is_empty edges)
     (true, defs)
 
-fun checkT (Type (a, Ts)) = Type (a, map checkT Ts)
-  | checkT (TVar ((a, 0), _)) = TVar ((a, 0), [])
-  | checkT (TVar ((a, i), _)) = def_err "type is not clean"
-  | checkT (TFree (a, _)) = TVar ((a, 0), [])
+exception No_Change;
+
+fun map_nc f list = 
+    let 
+      val changed = ref false
+      fun f' x = 
+          let 
+            val x' = f x  
+            val _ = changed := true
+          in
+            x'
+          end handle No_Change => x
+      val list' = map f' list
+    in
+      if !changed then list' else raise No_Change
+    end
+
+fun checkT' (t as (Type (a, Ts))) = (Type (a, map_nc checkT' Ts) handle No_Change => t)
+  | checkT' (t as (TVar ((a, 0), []))) = raise No_Change
+  | checkT' (t as (TVar ((a, 0), _))) = TVar ((a, 0), [])
+  | checkT' (t as (TFree (a, _))) = TVar ((a, 0), [])
+  | checkT' _ = def_err "type is not clean"
+
+fun checkT t = Term.compress_type (checkT' t handle No_Change => t)
 
 fun rename ty1 ty2 = incr_tvar ((maxidx_of_typ ty1)+1) ty2;  
 
@@ -237,8 +257,8 @@ fun merge_edges_1 (x, []) = [x]
     
 fun merge_edges xs ys = foldl merge_edges_1 xs ys
 
-fun declare' (g as (cost, actions, graph)) (cty as (name, ty)) =
-    (cost, (Declare cty)::actions, 
+fun declare' (g as (cost, axmap, actions, graph)) (cty as (name, ty)) =
+    (cost, axmap, (Declare cty)::actions, 
      Symtab.update_new ((name, Node (ty, Symtab.empty, Symtab.empty, [], Open)), graph))
     handle Symtab.DUP _ => 
            let
@@ -252,7 +272,28 @@ fun declare' (g as (cost, actions, graph)) (cty as (name, ty)) =
 
 fun declare g (name, ty) = declare' g (name, checkT ty)
 
-fun define' (cost, actions, graph) (mainref, ty) axname body =
+val axcounter = ref (IntInf.fromInt 0)
+fun newaxname axmap axname =
+    let
+      val c = !axcounter
+      val _ = axcounter := c+1
+      val axname' = axname^"_"^(IntInf.toString c)
+    in
+      (Symtab.update ((axname', axname), axmap), axname')
+    end
+
+fun translate_ex axmap x = 
+    let
+      fun translate (ty, nodename, axname) = 
+          (ty, nodename, the (Symtab.lookup (axmap, axname)))
+    in
+      case x of
+        INFINITE_CHAIN chain => raise (INFINITE_CHAIN (map translate chain))
+      | CIRCULAR cycle => raise (CIRCULAR (map translate cycle))
+      | _ => raise x
+    end
+
+fun define' (cost, axmap, actions, graph) (mainref, ty) axname body =
     let
       val mainnode  = (case Symtab.lookup (graph, mainref) of 
 			 NONE => def_err ("constant "^mainref^" is not declared")
@@ -474,10 +515,10 @@ fun define' (cost, actions, graph) (mainref, ty) axname body =
       val graph = Symtab.update ((mainref, Node (gty, defs, backs, finals, closed)), graph) 
       val actions' = (Define (mainref, ty, axname, body))::actions
     in	    
-      (cost+3,actions', graph)
-    end 
+      (cost+3, axmap, actions', graph)
+    end handle ex => translate_ex axmap ex
     
-fun define (g as (_, _, graph)) (mainref, ty) axname body =
+fun define (g as (cost, axmap, actions, graph)) (mainref, ty) axname body =
     let
       val ty = checkT ty
       fun checkbody (n, t) = 
@@ -489,11 +530,12 @@ fun define (g as (_, _, graph)) (mainref, ty) axname body =
             | _ => SOME (n, checkT t)
           end
       val body = distinct (List.mapPartial checkbody body)
+      val (axmap, axname) = newaxname axmap axname
     in
-      define' g (mainref, ty) axname body
+      define' (cost, axmap, actions, graph) (mainref, ty) axname body
     end
 
-fun finalize' (cost, history, graph) (noderef, ty) = 
+fun finalize' (cost, axmap, history, graph) (noderef, ty) = 
     case Symtab.lookup (graph, noderef) of 
       NONE => def_err ("cannot finalize constant "^noderef^"; it is not declared")
     | SOME (Node (nodety, defs, backs, finals, closed)) =>
@@ -525,7 +567,7 @@ fun finalize' (cost, history, graph) (noderef, ty) =
                    SOME (final_ty :: finals))                              
       in    
         case update_finals finals of
-          NONE => (cost, history, graph)
+          NONE => (cost, axmap, history, graph)
         | SOME finals => 
 	  let
             val closed = if closed = Open andalso is_instance_r nodety ty then 
@@ -583,14 +625,14 @@ fun finalize' (cost, history, graph) (noderef, ty) =
                                                         finals, closed)), graph')
             val history' = (Finalize (noderef, ty)) :: history
 	  in
-	    (cost+1, history', graph')
+	    (cost+1, axmap, history', graph')
 	  end
       end
  
 fun finalize g (noderef, ty) = finalize' g (noderef, checkT ty) 
 
 fun merge' (Declare cty, g) = declare' g cty
-  | merge' (Define (name, ty, axname, body), g as (_,_, graph)) = 
+  | merge' (Define (name, ty, axname, body), g as (_,_, _, graph)) = 
     (case Symtab.lookup (graph, name) of
        NONE => define' g (name, ty) axname body
      | SOME (Node (_, defs, _, _, _)) => 
@@ -599,13 +641,13 @@ fun merge' (Declare cty, g) = declare' g cty
 	| SOME _ => g))
   | merge' (Finalize finals, g) = finalize' g finals 
                        
-fun merge (g1 as (cost1, actions1, _)) (g2 as (cost2, actions2, _)) =
+fun merge (g1 as (cost1, _, actions1, _)) (g2 as (cost2, _, actions2, _)) =
     if cost1 < cost2 then
       foldr merge' g2 actions1
     else
       foldr merge' g1 actions2
                            
-fun finals (cost, history, graph) = 
+fun finals (_, _, history, graph) = 
     Symtab.foldl 
       (fn (finals, (name, Node(_, _, _, ftys, _))) => 
           Symtab.update_new ((name, ftys), finals)) 
