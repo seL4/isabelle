@@ -24,15 +24,48 @@ my %migrators = (
     thyheader => sub {
         my ($file, @content) = @_;
         $_ = join("", @content);
-        if (m!\G
-                ^
-                    theory\s+([^ ]+)
-                    (?:\s+(?:imports|=)\s+([^:]*?))?
-                    (?:\s+(?:files|uses)\s+([^:]*?))?
-                    \s*(?:begin|:)
-             !cgomsx) {
-            # STRATEGIE: abschnittsweises matchen, zwischendurch immer wieder whitespace
-            # verarbeiten
+        if (m!^theory!cgoms) {
+            my $prelude = $';
+            my $thyheader = "theory";
+            $thyheader .= skip_wscomment();
+            if (m!\G(\S+)!cgoms) {
+                $thyheader .= $1;
+                $thyheader .= skip_wscomment();
+                print "--->\n>>>$thyheader<<<\n<---\n";
+                if (m!\G(?:imports|=)!cgoms) {
+                    $thyheader .= "imports";
+                    $thyheader .= skip_wscomment() || " ";
+                    print "--->\n>>>$thyheader<<<\n<---\n";
+                    while () {
+                        my $str = read_plainstring();
+                        print "--->\n>>>$str<<<\n<---\n";
+                        if (! $str) {
+                            last;
+                        }
+                        $thyheader .= $str;
+                        $thyheader .= skip_wscomment();
+                    }
+                    #~ print "--->\n>>>$thyheader<<<\n<---\n";
+                }
+                if (m!\G(?:files|uses)!cgoms) {
+                    $thyheader .= "uses";
+                    $thyheader .= skip_wscomment();
+                    while () {
+                        my $str = read_plainstring();
+                        if (! $str) {
+                            last;
+                        }
+                        $thyheader .= $str;
+                        $thyheader .= skip_wscomment();
+                    }
+                }
+                if (m!\G(?:begin|:)!cgoms) {
+                    my $postlude = $';
+                    $thyheader .=  "begin";
+                    # do replacement here
+                    print "$file:\n$thyheader\n\n";
+                }
+            }
         }
     }
 );
@@ -62,6 +95,11 @@ sub skip_wscomment {
             return join('', @skipped);
         }
     }
+}
+
+sub read_plainstring {
+    m!\G("[^"]+"|[^"\s]+)!cgoms or return "";
+    return $&;
 }
 
 # process dir tree
