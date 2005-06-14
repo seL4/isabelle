@@ -235,7 +235,7 @@ apply assumption
 apply (blast dest: cont2contlub [THEN contlubE])
 done
 
-lemma cont2cont_CF1L_rev2: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont f"
+lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x y. f x y)"
 apply (rule cont2cont_CF1L_rev)
 apply simp
 done

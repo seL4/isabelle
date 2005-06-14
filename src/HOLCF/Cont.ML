@@ -24,6 +24,7 @@ val mono2mono_MF1L = thm "mono2mono_MF1L";
 val cont2cont_CF1L = thm "cont2cont_CF1L";
 val mono2mono_MF1L_rev = thm "mono2mono_MF1L_rev";
 val cont2cont_CF1L_rev = thm "cont2cont_CF1L_rev";
+val cont2cont_lambda = thm "cont2cont_lambda";
 val contlub_abstraction = thm "contlub_abstraction";
 val mono2mono_app = thm "mono2mono_app";
 val cont2contlub_app = thm "cont2contlub_app";

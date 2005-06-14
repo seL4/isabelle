@@ -24,7 +24,6 @@ val Lift_cases = thm "Lift_cases";
 val Lift_exhaust = thm "Lift_exhaust";
 val UU_lift_def = thm "UU_lift_def";
 val Undef_eq_UU = thm "Undef_eq_UU";
-val cont2cont_CF1L_rev2 = thm "cont2cont_CF1L_rev2";
 val cont_Rep_CFun_app = thm "cont_Rep_CFun_app";
 val cont_Rep_CFun_app_app = thm "cont_Rep_CFun_app_app";
 val cont_flift1_arg = thm "cont_flift1_arg";

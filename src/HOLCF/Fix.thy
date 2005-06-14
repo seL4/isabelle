@@ -100,7 +100,7 @@ lemma cont_iterate2: "cont (\<lambda>x. iterate n F x)"
 by (induct_tac n, simp_all)
 
 lemma cont_iterate: "cont (iterate n)"
-by (rule cont_iterate1 [THEN cont2cont_CF1L_rev2])
+by (rule cont_iterate1 [THEN cont2cont_lambda])
 
 lemmas monofun_iterate2 = cont_iterate2 [THEN cont2mono, standard]
 lemmas contlub_iterate2 = cont_iterate2 [THEN cont2contlub, standard]

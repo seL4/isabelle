@@ -265,7 +265,7 @@ text {*
 
 lemmas cont_lemmas_ext [simp] =
   cont_flift1_arg cont_flift2_arg
-  cont_flift1_arg_and_not_arg cont2cont_CF1L_rev2
+  cont_flift1_arg_and_not_arg cont2cont_lambda
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
 ML {*
