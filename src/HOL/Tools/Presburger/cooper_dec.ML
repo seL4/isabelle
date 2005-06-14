@@ -12,21 +12,21 @@ sig
   exception COOPER
   exception COOPER_ORACLE of term
   val is_arith_rel : term -> bool
-  val mk_numeral : int -> term
-  val dest_numeral : term -> int
+  val mk_numeral : IntInf.int -> term
+  val dest_numeral : term -> IntInf.int
   val is_numeral : term -> bool
   val zero : term
   val one : term
-  val linear_cmul : int -> term -> term
+  val linear_cmul : IntInf.int -> term -> term
   val linear_add : string list -> term -> term -> term 
   val linear_sub : string list -> term -> term -> term 
   val linear_neg : term -> term
   val lint : string list -> term -> term
   val linform : string list -> term -> term
-  val formlcm : term -> term -> int
-  val adjustcoeff : term -> int -> term -> term
+  val formlcm : term -> term -> IntInf.int
+  val adjustcoeff : term -> IntInf.int -> term -> term
   val unitycoeff : term -> term -> term
-  val divlcm : term -> term -> int
+  val divlcm : term -> term -> IntInf.int
   val bset : term -> term -> term list
   val aset : term -> term -> term list
   val linrep : string list -> term -> term -> term -> term
@@ -35,7 +35,7 @@ sig
   val simpl : term -> term
   val fv : term -> string list
   val negate : term -> term
-  val operations : (string * (int * int -> bool)) list
+  val operations : (string * (IntInf.int * IntInf.int -> bool)) list
   val conjuncts : term -> term list
   val disjuncts : term -> term list
   val has_bound : term -> bool
@@ -65,7 +65,7 @@ exception COOPER_ORACLE of term;
 (* ------------------------------------------------------------------------- *) 
  
 (*Assumption : The construction of atomar formulas in linearl arithmetic is based on 
-relation operations of Type : [int,int]---> bool *) 
+relation operations of Type : [IntInf.int,IntInf.int]---> bool *) 
  
 (* ------------------------------------------------------------------------- *) 
  
@@ -85,14 +85,14 @@ form [int,int]---> int*)
  
 fun mk_numeral 0 = Const("0",HOLogic.intT)
    |mk_numeral 1 = Const("1",HOLogic.intT)
-   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_bin (IntInf.fromInt n)); 
+   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_bin n); 
  
 (*Transform an Term to an natural number*)	  
 	  
 fun dest_numeral (Const("0",Type ("IntDef.int", []))) = 0
    |dest_numeral (Const("1",Type ("IntDef.int", []))) = 1
    |dest_numeral (Const ("Numeral.number_of",_) $ n) = 
-       IntInf.toInt (HOLogic.dest_binum n);
+       HOLogic.dest_binum n;
 (*Some terms often used for pattern matching*) 
  
 val zero = mk_numeral 0; 
@@ -116,7 +116,7 @@ fun numeral2 f m n = mk_numeral(f(dest_numeral m) (dest_numeral n));
 (* Note that we're quite strict: the ci must be present even if 1            *) 
 (* (but if 0 we expect the monomial to be omitted) and k must be there       *) 
 (* even if it's zero. Thus, it's a constant iff not an addition term.        *) 
-(* ------------------------------------------------------------------------- *) 
+(* ------------------------------------------------------------------------- *)  
  
  
 fun linear_cmul n tm =  if n = 0 then zero else let fun times n k = n*k in  

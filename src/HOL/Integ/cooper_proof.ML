@@ -21,7 +21,7 @@ sig
   val proof_of_evalc : Sign.sg -> term -> thm
   val proof_of_cnnf : Sign.sg -> term -> (term -> thm) -> thm
   val proof_of_linform : Sign.sg -> string list -> term -> thm
-  val proof_of_adjustcoeffeq : Sign.sg -> term -> int -> term -> thm
+  val proof_of_adjustcoeffeq : Sign.sg -> term -> IntInf.int -> term -> thm
   val prove_elementar : Sign.sg -> string -> term -> thm
   val thm_of : Sign.sg -> (term -> (term list * (thm list -> thm))) -> term -> thm
 end;
