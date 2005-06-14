@@ -85,7 +85,7 @@ fun str2typ sg = typ_of o read_ctyp sg;
 
 type cons = (string *			(* operator name of constr *)
 	    ((bool*int)*		(*  (lazy,recursive element or ~1) *)
-	      string*			(*   selector name    *)
+	      string option*		(*   selector name    *)
 	      string)			(*   argument name    *)
 	    list);			(* argument list      *)
 type eq = (string *		(* name      of abstracted type *)

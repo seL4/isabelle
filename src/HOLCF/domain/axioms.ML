@@ -69,11 +69,11 @@ let
 	in map mdef cons end;
 
   val sel_defs = let
-	fun sdef con n arg = (sel_of arg^"_def",%%:(sel_of arg) == 
+	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then %%:"UU" else
-			 foldr /\# (Bound (length args - n)) args) cons));
-	in List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons) end;
+			 foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
+	in List.mapPartial Id (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
 
 
 (* ----- axiom and definitions concerning induction ------------------------- *)

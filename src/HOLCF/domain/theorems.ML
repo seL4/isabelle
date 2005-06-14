@@ -70,8 +70,8 @@ val ax_when_def   = ga "when_def" dname;
 val axs_con_def   = map (fn (con,_) => ga (extern_name con^"_def") dname) cons;
 val axs_dis_def   = map (fn (con,_) => ga (   dis_name con^"_def") dname) cons;
 val axs_mat_def   = map (fn (con,_) => ga (   mat_name con^"_def") dname) cons;
-val axs_sel_def   = List.concat(map (fn (_,args) => 
-                    map (fn     arg => ga (sel_of arg     ^"_def") dname) args)
+val axs_sel_def   = List.concat(map (fn (_,args) => List.mapPartial (fn arg =>
+                 Option.map (fn sel => ga (sel^"_def") dname) (sel_of arg)) args)
 									  cons);
 val ax_copy_def   = ga "copy_def" dname;
 end; (* local *)
@@ -246,7 +246,7 @@ val con_rews = con_stricts @ con_defins;
 
 val sel_stricts = let fun one_sel sel = pg axs_sel_def (mk_trp(strict(%%:sel))) [
                                 simp_tac (HOLCF_ss addsimps when_rews) 1];
-in List.concat(map (fn (_,args) =>map (fn arg => one_sel (sel_of arg)) args) cons) end;
+in List.concat(map (fn (_,args) => List.mapPartial (fn arg => Option.map one_sel (sel_of arg)) args) cons) end;
 val sel_apps = let fun one_sel c n sel = map (fn (con,args) => 
                 let val nlas = nonlazy args;
                     val vns  = map vname args;
@@ -261,13 +261,13 @@ val sel_apps = let fun one_sel c n sel = map (fn (con,args) =>
                                                   (List.nth(vns,n))] else [])
                      @ [asm_simp_tac(HOLCF_ss addsimps when_rews)1])end) cons;
 in List.concat(map  (fn (c,args) => 
-     List.concat(mapn (fn n => fn arg => one_sel c n (sel_of arg)) 0 args)) cons) end;
-val sel_defins = if length cons=1 then map (fn arg => pg [](defined(%:x_name)==> 
-                        defined(%%:(sel_of arg)`%x_name)) [
+     List.concat(List.mapPartial Id (mapn (fn n => fn arg => Option.map (one_sel c n) (sel_of arg)) 0 args))) cons) end;
+val sel_defins = if length cons=1 then List.mapPartial (fn arg => Option.map (fn sel => pg [](defined(%:x_name)==> 
+                        defined(%%:sel`%x_name)) [
                                 rtac casedist 1,
                                 contr_tac 1,
                                 DETERM_UNTIL_SOLVED (CHANGED(asm_simp_tac 
-                                             (HOLCF_ss addsimps sel_apps) 1))]) 
+                                             (HOLCF_ss addsimps sel_apps) 1))])(sel_of arg)) 
                  (filter_out is_lazy (snd(hd cons))) else [];
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
 

@@ -63,7 +63,7 @@ local
       fun mk_conslist cons' = 
 	  mk_list (map (fn (c,syn,ts)=> "\n"^
 		    mk_triple(Library.quote c, syn, mk_list (map (fn (b,s ,tp) =>
-		    mk_triple(Bool.toString b, Library.quote s, tp)) ts))) cons');
+		    mk_triple(Bool.toString b, "SOME "^Library.quote s, tp)) ts))) cons');
     in "val thy = thy |> Domain_Extender.add_domain "
        ^ mk_pair(Library.quote comp_dname, mk_list(map (fn ((n,vs),cs) => "\n"^
 				   mk_pair (mk_pair (Library.quote n, mk_list vs), 

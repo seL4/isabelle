@@ -26,7 +26,7 @@ and bar = bar ("'a dummy")
 signature DOMAIN_EXTENDER =
 sig
   val add_domain: string *
-      ((bstring * string list) * (string * mixfix * (bool * string * string) list) list) list
+      ((bstring * string list) * (string * mixfix * (bool * string option * string) list) list) list
     -> theory -> theory
 end;
 
@@ -36,9 +36,8 @@ struct
 open Domain_Library;
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
-
   fun check_and_sort_domain (dtnvs: (string * typ list) list, 
-     cons'' : ((string * mixfix * (bool*string*typ) list) list) list) sg =
+     cons'' : ((string * mixfix * (bool*string option*typ) list) list) list) sg =
   let
     val defaultS = Sign.defaultS sg;
     val test_dupl_typs = (case duplicates (map fst dtnvs) of 
@@ -46,8 +45,8 @@ open Domain_Library;
     val test_dupl_cons = (case duplicates (map first (List.concat cons'')) of 
 	[] => false | dups => error ("Duplicate constructors: " 
 							 ^ commas_quote dups));
-    val test_dupl_sels = (case duplicates 
-			       (map second (List.concat (map third (List.concat cons'')))) of
+    val test_dupl_sels = (case duplicates (List.mapPartial second
+			       (List.concat (map third (List.concat cons'')))) of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
     val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o rep_TFree)s)of
 	[] => false | dups => error("Duplicate type arguments: " 
@@ -145,7 +144,10 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val dest_decl =
   P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --
-    P.name -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1;
+    (P.name >> SOME) -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1
+  || P.$$$ "(" |-- P.$$$ "lazy" |-- P.typ --| P.$$$ ")"
+       >> (fn t => (true,NONE,t))
+  || P.typ >> (fn t => (false,NONE,t));
 
 val cons_decl =
   P.name -- Scan.repeat dest_decl -- P.opt_mixfix

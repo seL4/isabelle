@@ -12,7 +12,7 @@ local
 open Domain_Library;
 infixr 5 -->; infixr 6 ->>;
 fun calc_syntax dtypeprod ((dname, typevars), 
-	(cons': (string * mixfix * (bool*string*typ) list) list)) =
+	(cons': (string * mixfix * (bool*string option*typ) list) list)) =
 let
 (* ----- constants concerning the isomorphism ------------------------------- *)
 
@@ -49,7 +49,8 @@ local
 			   to generate parse rules for non-alphanumeric names*)
   fun mat (con ,s,args) = (mat_name_ con, dtype->>mk_ssumT(oneT,mk_uT(mk_ctupleT(map third args))),
 			   Mixfix(escape ("match_" ^ con), [], Syntax.max_pri));
-  fun sel (_   ,_,args) = map (fn(_,sel,typ)=>(sel,dtype ->> typ,NoSyn))args;
+  fun sel1 (_,sel,typ)  = Option.map (fn s => (s,dtype ->> typ,NoSyn)) sel;
+  fun sel (_   ,_,args) = List.mapPartial sel1 args;
 in
   val consts_con = map con cons';
   val consts_dis = map dis cons';
@@ -100,7 +101,7 @@ end; (* let *)
 in (* local *)
 
 fun add_syntax (comp_dnam,eqs': ((string * typ list) *
-	(string * mixfix * (bool*string*typ) list) list) list) thy'' =
+	(string * mixfix * (bool*string option*typ) list) list) list) thy'' =
 let
   val dtypes  = map (Type o fst) eqs';
   val boolT   = HOLogic.boolT;
