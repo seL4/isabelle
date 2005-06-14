@@ -317,20 +317,18 @@ in
 val inverts =
   let
     val abs_less = ax_abs_iso RS (allI RS injection_less) RS iffD1;
-    val simps = [up_less, spair_less];
     val tacs = [
       dtac abs_less 1,
       REPEAT (dresolve_tac [sinl_less RS iffD1, sinr_less RS iffD1] 1),
-      asm_full_simp_tac (HOLCF_ss addsimps simps) 1];
+      asm_full_simp_tac (HOLCF_ss addsimps [spair_less]) 1];
   in map (fn (con,args) => pgterm (op <<) con args tacs) cons' end;
 val injects =
   let
     val abs_eq = ax_abs_iso RS (allI RS injection_eq) RS iffD1;
-    val simps = [up_eq, spair_eq];
     val tacs = [
       dtac abs_eq 1,
       REPEAT (dresolve_tac [sinl_inject, sinr_inject] 1),
-      asm_full_simp_tac (HOLCF_ss addsimps simps) 1];
+      asm_full_simp_tac (HOLCF_ss addsimps [spair_eq]) 1];
   in map (fn (con,args) => pgterm (op ===) con args tacs) cons' end;
 end;
 
