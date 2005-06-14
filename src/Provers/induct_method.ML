@@ -19,6 +19,10 @@ end;
 
 signature INDUCT_METHOD =
 sig
+  val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
+    thm list -> int -> RuleCases.tactic
+  val induct_tac: Proof.context -> bool -> term option list list ->
+    thm option -> thm list -> int -> RuleCases.tactic
   val setup: (theory -> theory) list
 end;
 
@@ -88,7 +92,9 @@ fun find_casesT ctxt ((SOME t :: _) :: _) = InductAttrib.find_casesT ctxt (fasty
 fun find_casesS ctxt (fact :: _) = InductAttrib.find_casesS ctxt fact
   | find_casesS _ _ = [];
 
-fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
+in
+
+fun cases_tac ctxt is_open insts opt_rule facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -112,9 +118,8 @@ fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
       (Method.multi_resolves (Library.take (n, facts)) [th]);
   in resolveq_cases_tac (RuleCases.make is_open NONE) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
-in
-
-val cases_meth = Method.METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo cases_tac);
+val cases_meth = Method.METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
+  (fn (ctxt, (is_open, (insts, opt_rule))) => cases_tac ctxt is_open insts opt_rule));
 
 end;
 
@@ -276,10 +281,11 @@ fun find_inductT ctxt insts =
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
   | find_inductS _ _ = [];
 
+in
 
 (* main tactic *)
 
-fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
+fun induct_tac ctxt is_open insts opt_rule facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -311,9 +317,8 @@ fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
     val tac = resolveq_cases_tac' RuleCases.make is_open (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 
-in
-
-val induct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo induct_tac);
+val induct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
+  (fn (ctxt, (is_open, (insts, opt_rule))) => induct_tac ctxt is_open insts opt_rule));
 
 end;
 
