@@ -9,6 +9,7 @@ header {* The type of continuous functions *}
 
 theory Cfun
 imports TypedefPcpo
+files ("cont_proc.ML")
 begin
 
 defaultsort cpo
@@ -201,7 +202,7 @@ apply (erule monofun_lub_fun)
 apply (simp add: monofun_Rep_CFun2)
 done
 
-text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"}: uses MF2 lemmas from Cont.thy *}
+text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"} *}
 
 lemma ex_lub_cfun: "[| chain(F); chain(Y) |] ==> 
                 lub(range(%j. lub(range(%i. F(j)$(Y i))))) = 
@@ -269,33 +270,13 @@ apply (simp add: p1 CFun_def)
 apply (simp add: p2 cont2cont_CF1L_rev)
 done
 
-text {* cont2cont tactic *}
+text {* continuity simplification procedure *}
 
 lemmas cont_lemmas1 =
   cont_const cont_id cont_Rep_CFun2 cont2cont_Rep_CFun cont2cont_LAM
 
-text {*
-  Continuity simproc by Brian Huffman.
-  Given the term @{term "cont f"}, the procedure tries to
-  construct the theorem @{prop "cont f == True"}. If this
-  theorem cannot be completely solved by the introduction
-  rules, then the procedure returns a conditional rewrite
-  rule with the unsolved subgoals as premises.
-*}
-
-ML_setup {*
-local
-  val rules = thms "cont_lemmas1";
-  fun solve_cont sg _ t =
-    let val tr = instantiate' [] [SOME (cterm_of sg t)] Eq_TrueI;
-        val tac = REPEAT_ALL_NEW (resolve_tac rules) 1;
-    in Option.map fst (Seq.pull (tac tr)) end;
-in
-  val cont_proc = Simplifier.simproc (Theory.sign_of (the_context ()))
-        "continuity" ["cont f"] solve_cont;
-end;
-Addsimprocs [cont_proc];
-*}
+use "cont_proc.ML";
+setup ContProc.setup;
 
 (*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
 (*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
