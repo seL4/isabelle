@@ -18,6 +18,7 @@ sig
   val make: bool -> term option -> Sign.sg * term -> string list -> (string * T option) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
+  type tactic
 end;
 
 structure RuleCases: RULE_CASES =
@@ -137,5 +138,10 @@ fun rename_params xss thm = foldln Thm.rename_params_rule xss thm
   |> save thm;
 
 fun params xss = Drule.rule_attribute (K (rename_params xss));
+
+
+(* tactics with cases *)
+
+type tactic = thm -> (thm * (string * T option) list) Seq.seq;
 
 end;
