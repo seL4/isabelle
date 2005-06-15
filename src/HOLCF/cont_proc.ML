@@ -7,6 +7,7 @@ signature CONT_PROC =
 sig
   val is_lcf_term: term -> bool
   val cont_thms: term -> thm list
+  val all_cont_thms: term -> thm list
   val cont_proc: theory -> simproc
   val setup: (theory -> theory) list
 end;
@@ -57,20 +58,22 @@ local
         in (map (fn y => SOME (k y RS Lx)) ys, x') end;
 
   (* first list: cont thm for each dangling bound variable *)
-  (* second list: cont thm for each LAM *)
-  fun cont_thms1 (Const _ $ f $ t) = let
-        val (cs1,ls1) = cont_thms1 f;
-        val (cs2,ls2) = cont_thms1 t;
-        in (zip cs1 cs2, ls1 @ ls2) end
-    | cont_thms1 (Const _ $ Abs (_,_,t)) = let
-        val (cs,ls) = cont_thms1 t;
+  (* second list: cont thm for each LAM in t *)
+  (* if b = false, only return cont thm for outermost LAMs *)
+  fun cont_thms1 b (Const _ $ f $ t) = let
+        val (cs1,ls1) = cont_thms1 b f;
+        val (cs2,ls2) = cont_thms1 b t;
+        in (zip cs1 cs2, if b then ls1 @ ls2 else []) end
+    | cont_thms1 b (Const _ $ Abs (_,_,t)) = let
+        val (cs,ls) = cont_thms1 b t;
         val (cs',l) = lam cs;
         in (cs',l::ls) end
-    | cont_thms1 (Bound n) = (var n, [])
-    | cont_thms1 _ = ([],[]);
+    | cont_thms1 _ (Bound n) = (var n, [])
+    | cont_thms1 _ _ = ([],[]);
 in
   (* precondition: is_lcf_term t = true *)
-  fun cont_thms t = snd (cont_thms1 t);
+  fun cont_thms t = snd (cont_thms1 false t);
+  fun all_cont_thms t = snd (cont_thms1 true t);
 end;
 
 (*

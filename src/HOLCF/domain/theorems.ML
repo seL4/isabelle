@@ -93,36 +93,6 @@ val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
 (* ----- generating beta reduction rules from definitions-------------------- *)
 
 local
-  fun k NONE = cont_const | k (SOME x) = x;
-  
-  fun ap NONE NONE = NONE
-  |   ap x    y    = SOME (standard (cont2cont_Rep_CFun OF [k x, k y]));
-
-  fun var 0 = [SOME cont_id]
-  |   var n = NONE :: var (n-1);
-
-  fun zip []      []      = []
-  |   zip []      (y::ys) = (ap NONE y   ) :: zip [] ys
-  |   zip (x::xs) []      = (ap x    NONE) :: zip xs []
-  |   zip (x::xs) (y::ys) = (ap x    y   ) :: zip xs ys
-
-  fun lam [] = ([], cont_const)
-  |   lam (x::ys) = let val x' = k x
-                        val Lx = x' RS cont2cont_LAM
-                    in  (map (fn y => SOME (k y RS Lx)) ys, x')
-                    end;
-
-  fun term_conts (Bound n) = (var n, [])
-  |   term_conts (Const _) = ([],[])
-  |   term_conts (Const _ $ Abs (_,_,t)) = let
-          val (cs,ls) = term_conts t
-          val (cs',l) = lam cs
-          in  (cs',l::ls)
-          end
-  |   term_conts (Const _ $ f $ t)
-         = (zip (fst (term_conts f)) (fst (term_conts t)), [])
-  |   term_conts t = let val dummy = prin t in ([],[]) end;
-
   fun arglist (Const _ $ Abs (s,_,t)) = let
         val (vars,body) = arglist t
         in  (s :: vars, body) end
@@ -131,12 +101,12 @@ local
   fun bound_vars 0 = [] | bound_vars i = (Bound (i-1) :: bound_vars (i-1));
 in
   fun appl_of_def def = let
-        val (_ $ con $ lam) = concl_of def
-        val (vars, rhs) = arglist lam
-        val lhs = Library.foldl (op `) (con, bound_vars (length vars));
-        val appl = bind_fun vars (lhs == rhs)
-        val ([],cs) = term_conts lam
-        val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs
+        val (_ $ con $ lam) = concl_of def;
+        val (vars, rhs) = arglist lam;
+        val lhs = mk_cRep_CFun (con, bound_vars (length vars));
+        val appl = bind_fun vars (lhs == rhs);
+        val cs = ContProc.cont_thms lam;
+        val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs;
         in pg (def::betas) appl [rtac reflexive_thm 1] end;
 end;
 
