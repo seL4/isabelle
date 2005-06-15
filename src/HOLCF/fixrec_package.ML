@@ -8,7 +8,7 @@ Recursive function definition package for HOLCF.
 signature FIXREC_PACKAGE =
 sig
   val add_fixrec: string list list -> theory -> theory
-  val add_fixpat: string * string -> theory -> theory
+  val add_fixpat: ((string * Attrib.src list) * string) list -> theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
@@ -42,13 +42,11 @@ infix 1 ===; fun S === T = %%:"op =" $ S $ T;
 infix 9 `  ; fun f ` x = %%:"Cfun.Rep_CFun" $ f $ x;
 
 (* infers the type of a term *)
-(* similar to Theory.inferT_axm, but allows any type *)
+(* similar to Theory.inferT_axm, but allows any type, not just propT *)
 fun infer sg t =
   fst (Sign.infer_types (Sign.pp sg) sg (K NONE) (K NONE) [] true ([t],dummyT));
 
-(* The next few functions build continuous lambda abstractions *)
-
-(* Similar to Term.lambda, but allows abstraction over constants *)
+(* Similar to Term.lambda, but also allows abstraction over constants *)
 fun lambda' (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
   | lambda' (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
   | lambda' (v as Const (x, T)) t = Abs (Sign.base_name x, T, abstract_over (v, t))
@@ -73,7 +71,7 @@ fun mk_ctuple [] = %%:"UU"
 |   mk_ctuple (t::ts) = %%:"Cprod.cpair"`t`(mk_ctuple ts);
 
 (*************************************************************************)
-(************************ fixed-point definitions ************************)
+(************* fixed-point definitions and unfolding theorems ************)
 (*************************************************************************)
 
 fun add_fixdefs eqs thy =
@@ -224,22 +222,6 @@ fun make_simps names unfold_thms ctss thy =
     (#1 o PureThy.add_thmss (map Thm.no_attributes thmss)) thy
   end;
 
-(* this proves the def without fix is a theorem, this uses the fixpoint def *)
-(*
-fun make_simp name eqs ct fixdef_thm thy' = 
-  let
-    val ss = simpset_of thy';
-    val eq_thm = fixdef_thm RS fix_eq2;
-    val ind_thm = fixdef_thm RS def_fix_ind;
-    val rew_thms = prove_list thy' unfold_thm eqs;
-    val thmss =
-      [ (basename^"_unfold", [unfold_thm])
-      , (basename^"_ind", [ind_thm])
-      , (basename^"_rews", rew_thms) ]
-  in
-    (#1 o PureThy.add_thmss (map Thm.no_attributes thmss)) thy'
-  end;
-*)
 (*************************************************************************)
 (************************* Main fixrec function **************************)
 (*************************************************************************)
@@ -260,10 +242,10 @@ fun add_fixrec strss thy =
 (******************************** Fixpat *********************************)
 (*************************************************************************)
 
-fun fix_pat name pat thy = 
+fun fix_pat thy pat = 
   let
-    val sign = sign_of thy;
-    val t = term_of (Thm.read_cterm sign (pat, dummyT));
+    val sg = sign_of thy;
+    val t = term_of (Thm.read_cterm sg (pat, dummyT));
     val T = fastype_of t;
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
     fun head_const (Const ("Cfun.Rep_CFun",_) $ f $ t) = head_const f
@@ -271,14 +253,17 @@ fun fix_pat name pat thy =
       | head_const _ = sys_error "FIXPAT: function is not declared as constant in theory";
     val c = head_const t;
     val unfold_thm = Goals.get_thm thy (c^"_unfold");
-    val thm = prove_goalw_cterm [] (cterm_of sign eq)
+    val rew = prove_goalw_cterm [] (cterm_of sg eq)
           (fn _ => [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
-    val _ = print_thm thm;
-  in
-    (#1 o PureThy.add_thmss [Thm.no_attributes (name, [thm])]) thy
-  end;
+  in rew end;
 
-fun add_fixpat (name,pat) = fix_pat name pat;
+fun add_fixpat pats thy = 
+  let
+    val ((names, srcss), strings) = apfst ListPair.unzip (ListPair.unzip pats);
+    val atts = map (map (Attrib.global_attribute thy)) srcss;
+    val rews = map (fix_pat thy) strings;
+    val (thy', _) = PureThy.add_thms ((names ~~ rews) ~~ atts) thy;
+  in thy' end;
 
 (*************************************************************************)
 (******************************** Parsers ********************************)
@@ -291,17 +276,18 @@ val fixrec_decl = P.and_list1 (Scan.repeat1 P.prop);
 (* this builds a parser for a new keyword, fixrec, whose functionality 
 is defined by add_fixrec *)
 val fixrecP =
-  OuterSyntax.command "fixrec" "parser for fixrec functions" K.thy_decl
+  OuterSyntax.command "fixrec" "define recursive functions (HOLCF)" K.thy_decl
     (fixrec_decl >> (Toplevel.theory o add_fixrec));
 
 (* this adds the parser for fixrec to the syntax *)
 val _ = OuterSyntax.add_parsers [fixrecP];
 
 (* fixpat parser *)
-val fixpat_decl = P.name -- P.prop;
+(*val fixpat_decl = P.name -- P.prop;*)
+val fixpat_decl = Scan.repeat1 (P.thm_name ":" -- P.prop);
 
 val fixpatP =
-  OuterSyntax.command "fixpat" "testing out this parser" K.thy_decl
+  OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
     (fixpat_decl >> (Toplevel.theory o add_fixpat));
 
 val _ = OuterSyntax.add_parsers [fixpatP];
