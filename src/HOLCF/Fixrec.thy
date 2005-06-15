@@ -134,6 +134,27 @@ lemma match_up_simps [simp]:
   "match_up\<cdot>\<bottom> = \<bottom>"
 by (simp_all add: match_up_def)
 
+subsection {* Mutual recursion *}
+
+text {*
+  The following rules are used to prove unfolding theorems from
+  fixed-point definitions of mutually recursive functions.
+*}
+
+lemma cpair_equalI: "\<lbrakk>x \<equiv> cfst\<cdot>p; y \<equiv> csnd\<cdot>p\<rbrakk> \<Longrightarrow> <x,y> \<equiv> p"
+by (simp add: surjective_pairing_Cprod2)
+
+lemma cpair_eqD1: "<x,y> = <x',y'> \<Longrightarrow> x = x'"
+by simp
+
+lemma cpair_eqD2: "<x,y> = <x',y'> \<Longrightarrow> y = y'"
+by simp
+
+ML {*
+val cpair_equalI = thm "cpair_equalI";
+val cpair_eqD1 = thm "cpair_eqD1";
+val cpair_eqD2 = thm "cpair_eqD2";
+*}
 
 subsection {* Intitializing the fixrec package *}
 
