@@ -128,6 +128,23 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}
 
 (*<*)ML"reset show_question_marks"(*>*)
 
+subsection "Variable names"
+
+text{* It sometimes happens that you want to change the name of a
+variable in a theorem before printing it. This can easily be achieved
+with the help of Isabelle's instantiation attribute \texttt{where}:
+@{thm conjI[where P = \<phi> and Q = \<psi>]} is the result of
+\begin{quote}
+\verb!@!\verb!{thm conjI[where P = \<phi> and Q = \<psi>]}!
+\end{quote}
+To support the ``\_''-notation for irrelevant variables
+the constant \texttt{DUMMY} has been introduced:
+@{thm fst_conv[where b = DUMMY]} is produced by
+\begin{quote}
+\verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
+\end{quote}
+*}
+
 subsection "Inference rules"
 
 text{* To print theorems as inference rules you need to include Didier
