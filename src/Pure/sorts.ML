@@ -19,7 +19,6 @@ sig
   val class_eq: classes -> class * class -> bool
   val class_less: classes -> class * class -> bool
   val class_le: classes -> class * class -> bool
-  val construct_dep: classes -> class * class list -> class list * class
   val sort_eq: classes -> sort * sort -> bool
   val sort_less: classes -> sort * sort -> bool
   val sort_le: classes -> sort * sort -> bool
@@ -104,10 +103,6 @@ fun class_eq (_: classes) (c1, c2:class) = c1 = c2;
 val class_less: classes -> class * class -> bool = Graph.is_edge;
 fun class_le classes (c1, c2) = c1 = c2 orelse class_less classes (c1, c2);
 
-fun construct_dep classes (subc, supercs) =
-  (hd o Library.flat) (map (fn superc =>
-    map (fn path => (path, superc)) (Graph.find_paths classes (subc, superc))
-  ) supercs)
 
 (* sorts *)
 
