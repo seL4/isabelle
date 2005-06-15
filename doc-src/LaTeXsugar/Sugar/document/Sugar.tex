@@ -153,6 +153,27 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub 
 \isamarkuptrue%
 \isamarkupfalse%
 %
+\isamarkupsubsection{Variable names%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+It sometimes happens that you want to change the name of a
+variable in a theorem before printing it. This can easily be achieved
+with the help of Isabelle's instantiation attribute \texttt{where}:
+\isa{{\isasymlbrakk}{\isasymphi}{\isacharsemicolon}\ {\isasympsi}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymphi}\ {\isasymand}\ {\isasympsi}} is the result of
+\begin{quote}
+\verb!@!\verb!{thm conjI[where P = \<phi> and Q = \<psi>]}!
+\end{quote}
+To support the ``\_''-notation for irrelevant variables
+the constant \texttt{DUMMY} has been introduced:
+\isa{fst\ {\isacharparenleft}a{\isacharcomma}\ \_{\isacharparenright}\ {\isacharequal}\ a} is produced by
+\begin{quote}
+\verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
+\end{quote}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Inference rules%
 }
 \isamarkuptrue%
