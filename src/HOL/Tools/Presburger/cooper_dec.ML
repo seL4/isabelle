@@ -247,7 +247,7 @@ fun posineq fm = case fm of
 (*gcd calculates gcd (a,b) and helps lcm_num calculating lcm (a,b)*) 
  
 (*BEWARE: replaces Library.gcd!! There is also Library.lcm!*)
-fun gcd a b = if a=0 then b else gcd (b mod a) a ; 
+fun gcd (a:IntInf.int) b = if a=0 then b else gcd (b mod a) a ; 
 fun lcm_num a b = (abs a*b) div (gcd (abs a) (abs b)); 
  
 fun formlcm x fm = case fm of 
@@ -455,9 +455,9 @@ fun dvd_op (d, t) =
 
 
 val operations = 
-  [("op =",op=), ("op <",Int.<), ("op >",Int.>), ("op <=",Int.<=) , 
-   ("op >=",Int.>=), 
-   ("Divides.op dvd",fn (x,y) =>((y mod x) = 0))]; 
+  [("op =",op=), ("op <",IntInf.<), ("op >",IntInf.>), ("op <=",IntInf.<=) , 
+   ("op >=",IntInf.>=), 
+   ("Divides.op dvd",fn (x,y) =>((IntInf.mod(y, x)) = 0))]; 
  
 fun applyoperation (SOME f) (a,b) = f (a, b) 
     |applyoperation _ (_, _) = false; 
@@ -679,7 +679,9 @@ fun mk_uni_int T (Const ("0",T2)) = if T = T2 then (mk_numeral 0) else (Const ("
     |mk_uni_int T tm = tm; 
  
 
-(* Minusinfinity Version*) 
+(* Minusinfinity Version*)    
+fun myupto (m:IntInf.int) n = if m > n then [] else m::(myupto (m+1) n)
+
 fun coopermi vars1 fm = 
   case fm of 
    Const ("Ex",_) $ Abs(x0,T,p0) => 
@@ -690,7 +692,7 @@ fun coopermi vars1 fm =
     val p = unitycoeff x  (posineq (simpl p1))
     val p_inf = simpl (minusinf x p) 
     val bset = bset x p 
-    val js = 1 upto divlcm x p  
+    val js = myupto 1 (divlcm x p)
     fun p_element j b = linrep vars x (linear_add vars b (mk_numeral j)) p  
     fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) bset)  
    in (list_disj (map stage js))
@@ -709,7 +711,7 @@ fun cooperpi vars1 fm =
     val p = unitycoeff x  (posineq (simpl p1))
     val p_inf = simpl (plusinf x p)
     val aset = aset x p
-    val js = 1 upto divlcm x p
+    val js = myupto 1 (divlcm x p)
     fun p_element j a = linrep vars x (linear_sub vars a (mk_numeral j)) p
     fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) aset)
    in (list_disj (map stage js))
@@ -747,7 +749,7 @@ fun set_w d b st vars x p = let
              in (rw,HOLogic.mk_disj(F',rf)) 
 	     end)
     val f = if b then linear_add else linear_sub
-    val p_elements = foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) [] (1 upto d)
+    val p_elements = foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) [] (myupto 1 d)
     in h p_elements
     end;
 
@@ -775,7 +777,7 @@ fun cooper vars1 fm =
     val p = unitycoeff x  p1 
     val ast = aset x p
     val bst = bset x p
-    val js = 1 upto divlcm x p
+    val js = myupto 1 (divlcm x p)
     val (p_inf,f,S ) = 
     if (length bst) <= (length ast) 
      then (simpl (minusinf x p),linear_add,bst)
