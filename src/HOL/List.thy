@@ -1650,6 +1650,13 @@ done
 lemma replicate_add: "replicate (n + m) x = replicate n x @ replicate m x"
 by (induct n) auto
 
+text{* Courtesy of Matthias Daum: *}
+lemma append_replicate_commute:
+  "replicate n x @ replicate k x = replicate k x @ replicate n x"
+apply (simp add: replicate_add [THEN sym])
+apply (simp add: add_commute)
+done
+
 lemma hd_replicate [simp]: "n \<noteq> 0 ==> hd (replicate n x) = x"
 by (induct n) auto
 
@@ -1663,6 +1670,27 @@ lemma nth_replicate[simp]: "!!i. i < n ==> (replicate n x)!i = x"
 apply (induct n, simp)
 apply (simp add: nth_Cons split: nat.split)
 done
+
+text{* Courtesy of Matthias Daum (2 lemmas): *}
+lemma take_replicate[simp]: "take i (replicate k x) = replicate (min i k) x"
+apply (case_tac "k \<le> i")
+ apply  (simp add: min_def)
+apply (drule not_leE)
+apply (simp add: min_def)
+apply (subgoal_tac "replicate k x = replicate i x @ replicate (k - i) x")
+ apply  simp
+apply (simp add: replicate_add [symmetric])
+done
+
+lemma drop_replicate[simp]: "!!i. drop i (replicate k x) = replicate (k-i) x"
+apply (induct k)
+ apply simp
+apply clarsimp
+apply (case_tac i)
+ apply simp
+apply clarsimp
+done
+
 
 lemma set_replicate_Suc: "set (replicate (Suc n) x) = {x}"
 by (induct n) auto
