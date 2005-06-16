@@ -217,8 +217,11 @@ lemmas int_distrib =
   zadd_zmult_distrib zadd_zmult_distrib2
   zdiff_zmult_distrib zdiff_zmult_distrib2
 
-lemma zmult_int: "(int m) * (int n) = int (m * n)"
+lemma int_mult: "int (m * n) = (int m) * (int n)"
 by (simp add: int_def mult)
+
+text{*Compatibility binding*}
+lemmas zmult_int = int_mult [symmetric]
 
 lemma zmult_1: "(1::int) * z = z"
 by (cases z, simp add: One_int_def int_def mult)
@@ -441,7 +444,6 @@ by (auto simp add: nat_eq_iff2)
 
 lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
 by (insert zless_nat_conj [of 0], auto)
-
 
 lemma nat_add_distrib:
      "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"

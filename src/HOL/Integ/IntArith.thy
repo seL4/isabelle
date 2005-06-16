@@ -13,6 +13,7 @@ begin
 text{*Duplicate: can't understand why it's necessary*}
 declare numeral_0_eq_0 [simp]
 
+
 subsection{*Instantiating Binary Arithmetic for the Integers*}
 
 instance
@@ -174,6 +175,11 @@ by (subst nat_eq_iff, simp)
 lemma nat_2: "nat 2 = Suc (Suc 0)"
 by (subst nat_eq_iff, simp)
 
+lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
+apply (insert zless_nat_conj [of 1 z])
+apply (auto simp add: nat_1)
+done
+
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
 declare int_eq_iff [of _ "number_of v", standard, simp]
@@ -202,7 +208,7 @@ by (induct m n rule: diff_induct, simp_all)
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (case_tac "0 \<le> z'")
 apply (rule inj_int [THEN injD])
-apply (simp add: zmult_int [symmetric] zero_le_mult_iff)
+apply (simp add: int_mult zero_le_mult_iff)
 apply (simp add: mult_le_0_iff)
 done
 

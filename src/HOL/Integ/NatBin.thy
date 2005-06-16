@@ -76,6 +76,13 @@ apply (rule_tac q = "int (m div m') " in quorem_mod)
 apply (simp add: nat_less_iff [symmetric] quorem_def nat_numeral_0_eq_0 zadd_int zmult_int)
 done
 
+text{*Suggested by Matthias Daum*}
+lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
+apply (subgoal_tac "nat x div nat k < nat x") 
+ apply (simp add: nat_div_distrib [symmetric])
+apply (rule Divides.div_less_dividend, simp_all) 
+done
+
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 

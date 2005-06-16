@@ -582,7 +582,6 @@ apply (erule subst)
 apply (erule subst, simp_all)
 done
 
-
 subsection{*More Algebraic Laws for div and mod*}
 
 text{*proving (a*b) div c = a * (b div c) + a * (b mod c) *}
@@ -1112,11 +1111,11 @@ lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
   apply (auto simp add: dvd_def nat_abs_mult_distrib)
   apply (auto simp add: nat_eq_iff abs_if split add: split_if_asm)
    apply (rule_tac x = "-(int k)" in exI)
-  apply (auto simp add: zmult_int [symmetric])
+  apply (auto simp add: int_mult)
   done
 
 lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  apply (auto simp add: dvd_def abs_if zmult_int [symmetric])
+  apply (auto simp add: dvd_def abs_if int_mult)
     apply (rule_tac [3] x = "nat k" in exI)
     apply (rule_tac [2] x = "-(int k)" in exI)
     apply (rule_tac x = "nat (-k)" in exI)
@@ -1127,7 +1126,7 @@ lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
   done
 
 lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
-  apply (auto simp add: dvd_def zmult_int [symmetric])
+  apply (auto simp add: dvd_def int_mult)
   apply (rule_tac x = "nat k" in exI)
   apply (cut_tac k = m in int_less_0_conv)
   apply (auto simp add: zero_le_mult_iff mult_less_0_iff
@@ -1195,8 +1194,11 @@ apply (induct "n")
 apply (auto simp add: zero_le_mult_iff)
 done
 
-theorem zpower_int: "(int m)^n = int (m^n)"
-  by (induct n) (simp_all add: zmult_int)
+lemma int_power: "int (m^n) = (int m) ^ n"
+  by (induct n, simp_all add: int_mult)
+
+text{*Compatibility binding*}
+lemmas zpower_int = int_power [symmetric]
 
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)
@@ -1208,8 +1210,18 @@ done
 lemma zmod_int: "int (a mod b) = (int a) mod (int b)"
 apply (subst split_mod, auto)
 apply (subst split_zmod, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia in IntDiv.unique_remainder)
+apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia 
+       in unique_remainder)
 apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
+done
+
+text{*Suggested by Matthias Daum*}
+lemma int_power_div_base:
+     "\<lbrakk>0 < m; 0 < k\<rbrakk> \<Longrightarrow> k ^ m div k = (k::int) ^ (m - Suc 0)"
+apply (subgoal_tac "k ^ m = k ^ ((m - 1) + 1)")
+ apply (erule ssubst)
+ apply (simp only: power_add)
+ apply simp_all
 done
 
 ML

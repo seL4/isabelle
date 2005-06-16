@@ -28,13 +28,6 @@ defs (overloaded)
   even_nat_def: "even (x::nat) == even (int x)"
 
 
-subsection {* Casting a nat power to an integer *}
-
-lemma zpow_int: "int (x^y) = (int x)^y"
-  apply (induct y)
-  apply (simp, simp add: zmult_int [THEN sym])
-  done
-
 subsection {* Even and odd are mutually exclusive *}
 
 lemma int_pos_lt_two_imp_zero_or_one: 
@@ -143,7 +136,7 @@ lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
   by (simp add: even_nat_def)
 
 lemma even_nat_product: "even((x::nat) * y) = (even x | even y)"
-  by (simp add: even_nat_def zmult_int [THEN sym])
+  by (simp add: even_nat_def int_mult)
 
 lemma even_nat_sum: "even ((x::nat) + y) = 
     ((even x & even y) | (odd x & odd y))"
@@ -163,7 +156,7 @@ text{*Compatibility, in case Avigad uses this*}
 lemmas even_nat_suc = even_nat_Suc
 
 lemma even_nat_power: "even ((x::nat)^y) = (even x & 0 < y)"
-  by (simp add: even_nat_def zpow_int)
+  by (simp add: even_nat_def int_power)
 
 lemma even_nat_zero: "even (0::nat)"
   by (simp add: even_nat_def)
