@@ -24,12 +24,9 @@ case `uname -s` in
     ;;
   Linux)
     case `uname -m` in
-      i?86)
+      i?86 | x86_64)
         PLATFORM=x86-linux
         ;;
-      x86?64)
-	PLATFORM=x86-linux
-	;;
       Power* | power* | ppc)
         PLATFORM=ppc-linux
         ;;
