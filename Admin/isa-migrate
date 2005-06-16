@@ -27,7 +27,7 @@ my %migrators = (
         my $diag = 0;
         $_ = join("", @content);
         if (m!^theory!cgoms) {
-            my $prelude = $';
+            my $prelude = $`;
             my $thyheader = "theory";
             $thyheader .= skip_wscomment();
             if (m!\G(\S+)!cgoms) {
