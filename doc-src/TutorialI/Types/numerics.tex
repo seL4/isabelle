@@ -398,10 +398,13 @@ field, then an ordering is no longer required.
 \rulename{mult_cancel_right}
 \end{isabelle}
 Theorems \isa{field_mult_eq_0_iff} and \isa{field_mult_cancel_right}
-express the same properties, only for fields. When working with such
-theorems, setting the \texttt{show_sorts}\index{*show_sorts (flag)}
-flag will display the type classes of all type variables. Here is how the 
-theorem \isa{field_mult_cancel_right} appears with the flag set.
+express the same properties, only for fields.
+\begin{pgnote}
+Setting the flag \textsf{Isabelle} $>$ \textsf{Settings} $>$
+\textsf{Show Sorts} will display the type classes of all type variables.
+\end{pgnote}
+\noindent
+Here is how the theorem \isa{field_mult_cancel_right} appears with the flag set.
 \begin{isabelle}
 ((a::'a::field)\ *\ (c::'a::field)\ =\ (b::'a::field)\ *\ c)\ =\isanewline
 (c\ =\ (0::'a::field)\ \isasymor \ a\ =\ b)

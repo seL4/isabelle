@@ -640,6 +640,7 @@ If unification fails when you think it should succeed, try setting the Proof Gen
 which makes Isabelle show the cause of unification failures (in Proof
 General's \textsf{Trace} buffer).
 \end{pgnote}
+\noindent
 For example, suppose we are trying to prove this subgoal by assumption:
 \begin{isabelle}
 \ 1.\ P\ (a,\ f\ (b,\ g\ (e,\ a),\ b),\ a)\ \isasymLongrightarrow \ P\ (a,\ f\ (b,\ g\ (c,\ a),\ b),\ a)
@@ -648,10 +649,9 @@ The \isa{assumption} method having failed, we try again with the flag set:
 \begin{isabelle}
 \isacommand{apply} assumption
 \end{isabelle}
-Even in this trivial case, the output is unexpectedly verbose, but it yields the necessary information that \isa{e} clashes with \isa{c}:
+In this trivial case, the output clearly shows that \isa{e} clashes with \isa{c}:
 \begin{isabelle}
-Clash: e =/= c\isanewline
-Clash: == =/= Trueprop
+Clash: e =/= c
 \end{isabelle}
 
 Isabelle uses

@@ -101,7 +101,7 @@ word. We start with 0 and end (at the right end) with 2. Since each move to the
 right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem @{thm[source]nat0_intermed_int_val}
-@{thm[display]nat0_intermed_int_val[no_vars]}
+@{thm[display,margin=60]nat0_intermed_int_val[no_vars]}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
 @{text"\<bar>.\<bar>"} is the absolute value function\footnote{See
 Table~\ref{tab:ascii} in the Appendix for the correct \textsc{ascii}
