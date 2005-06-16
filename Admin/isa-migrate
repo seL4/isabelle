@@ -68,7 +68,13 @@ my %migrators = (
                     }
                     $thyheader .=  "begin";
                     # do replacement here
-                    print "$file:\n$thyheader\n\n";
+                    if ($diag) {
+                        print "$file:\n$thyheader\n\n";
+                    } else {
+                        open(OSTREAM, ">$file") or die("error opening $file");
+                        print OSTREAM "$prelude$thyheader$postlude";
+                        close(OSTREAM);
+                    }
                 }
             }
         }
@@ -114,7 +120,7 @@ sub process {
     my ($basename, $dirname, $ext) = fileparse($file, @suffices);
     #~ print "$file\n";
     if ($ext) {
-        open ISTREAM, $file or die("error opening $file");
+        open(ISTREAM, $file) or die("error opening $file");
         my @content = <ISTREAM>;
         close ISTREAM;
         if ($backupext) {
