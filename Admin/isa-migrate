@@ -23,6 +23,8 @@ my %migrators = (
     },
     thyheader => sub {
         my ($file, @content) = @_;
+        #~ my $diag = 1;
+        my $diag = 0;
         $_ = join("", @content);
         if (m!^theory!cgoms) {
             my $prelude = $';
@@ -31,36 +33,39 @@ my %migrators = (
             if (m!\G(\S+)!cgoms) {
                 $thyheader .= $1;
                 $thyheader .= skip_wscomment();
-                print "--->\n>>>$thyheader<<<\n<---\n";
+                $diag and print "--->\n(1)>>>$thyheader<<<\n<---\n";
                 if (m!\G(?:imports|=)!cgoms) {
                     $thyheader .= "imports";
                     $thyheader .= skip_wscomment() || " ";
-                    print "--->\n>>>$thyheader<<<\n<---\n";
-                    while () {
-                        my $str = read_plainstring();
-                        print "--->\n>>>$str<<<\n<---\n";
-                        if (! $str) {
-                            last;
-                        }
-                        $thyheader .= $str;
+                    $diag and print "--->\n(2)>>>$thyheader<<<\n<---\n";
+                    while (m/\G(?!uses|files|begin|:)/cgoms && m!\G\w+!cgoms) {
+                        $diag and print "--->\n(3)>>>$&<<<\n<---\n";
+                        $thyheader .= $&;
+                        $thyheader .= skip_wscomment();
+                        m/\G\+? ?/cgoms;
                         $thyheader .= skip_wscomment();
                     }
-                    #~ print "--->\n>>>$thyheader<<<\n<---\n";
+                    $diag and print "--->\n(4)>>>$thyheader<<<\n<---\n";
                 }
                 if (m!\G(?:files|uses)!cgoms) {
                     $thyheader .= "uses";
                     $thyheader .= skip_wscomment();
-                    while () {
-                        my $str = read_plainstring();
-                        if (! $str) {
-                            last;
-                        }
-                        $thyheader .= $str;
+                    $diag and print "--->\n(5)>>>$thyheader<<<\n<---\n";
+                    while (m/\G(?!begin|:)/cgoms && m!\G(\("[^"]+"\)|"[^"]+"|[^"\s]+)!cgoms) {
+                        $diag and print "--->\n(6)>>>$&<<<\n<---\n";
+                        $thyheader .= $&;
                         $thyheader .= skip_wscomment();
                     }
+                    $diag and print "--->\n(7)>>>$thyheader<<<\n<---\n";
                 }
+                #~ m!\G.{19}!cgoms;
+                #~ print "***$&\n";
+
                 if (m!\G(?:begin|:)!cgoms) {
                     my $postlude = $';
+                    if ($& == ":") {
+                        $thyheader .= " ";
+                    }
                     $thyheader .=  "begin";
                     # do replacement here
                     print "$file:\n$thyheader\n\n";
@@ -97,15 +102,10 @@ sub skip_wscomment {
     }
 }
 
-sub read_plainstring {
-    m!\G("[^"]+"|[^"\s]+)!cgoms or return "";
-    return $&;
-}
-
 # process dir tree
 sub process_tree {
     my ($root, $migrator, $backupext) = @_;
-    find(sub { process($File::Find::name, $migrator, $backupext) }, $root);
+    find(sub { process($_, $migrator, $backupext) }, $root);
 }
 
 # process single file
@@ -139,3 +139,5 @@ foreach my $fileloc (@ARGV) {
         process($fileloc, $migrator, $backupext);
     }
 }
+
+#!!! example file:
