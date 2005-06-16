@@ -38,15 +38,22 @@ my %migrators = (
                     $thyheader .= "imports";
                     $thyheader .= skip_wscomment() || " ";
                     $diag and print "--->\n(2)>>>$thyheader<<<\n<---\n";
-                    while (m/\G(?!uses|files|begin|:)/cgoms && m!\G\w+!cgoms) {
+                    while (m/\G(?!uses|files|begin|:)/cgoms && m!\G(?:[\w_]+|"[^"]+")!cgoms) {
                         $diag and print "--->\n(3)>>>$&<<<\n<---\n";
                         $thyheader .= $&;
                         $thyheader .= skip_wscomment();
-                        m/\G\+? ?/cgoms;
+                        if (m!\G\+!cgoms) {
+                            m!\G ?!cgoms;
+                        }
                         $thyheader .= skip_wscomment();
+                        #~ if (m/\G(?!uses|files|begin|:)/cgoms) { print '!!!'; }
+                        #~ if (m!\G[\w_]+!cgoms) { print '§§§'; }
                     }
                     $diag and print "--->\n(4)>>>$thyheader<<<\n<---\n";
                 }
+                #~ m!\G.{19}!cgoms;
+                #~ print "***$&\n";
+                #~ die;
                 if (m!\G(?:files|uses)!cgoms) {
                     $thyheader .= "uses";
                     $thyheader .= skip_wscomment();
@@ -58,8 +65,7 @@ my %migrators = (
                     }
                     $diag and print "--->\n(7)>>>$thyheader<<<\n<---\n";
                 }
-                #~ m!\G.{19}!cgoms;
-                #~ print "***$&\n";
+                
 
                 if (m!\G(?:begin|:)!cgoms) {
                     my $postlude = $';
@@ -86,16 +92,16 @@ sub skip_wscomment {
     my $commentlevel = 0;
     my @skipped = ();
     while () {
-        if (m!\G\{\*!cgoms) {
+        if (m!\G\(\*!cgoms) {
             push(@skipped, $&);
             $commentlevel++;
         } elsif ($commentlevel > 0) {
-            if (m!\G\*\}!cgoms) {
+            if (m!\G\*\)!cgoms) {
                 push(@skipped, $&);
                 $commentlevel--;
-            } elsif (m!\G(?:
-                        [^{*]|\*[^{}]|\{[^*]
-                       )*!cgomsx) {
+            } elsif (m/\G(?:
+                        \*(?!\))|\((?!\*)|[^(*]
+                       )*/cgomsx) {
                 push(@skipped, $&);
             } else {
                 die ("probably incorrectly nested comment");
