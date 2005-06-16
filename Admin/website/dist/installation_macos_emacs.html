@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='iso-8859-1' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- $Id$ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>MacOS X Emacs hints</title>
+    <?include file="//include/htmlheader.include.html"?>
+</head>
+
+<body class="dist">
+    <?include file="//include/header.include.html"?>
+    <div class="hr"><hr/></div>
+    <?include file="//include/navigation_dist.include.html"?>
+    <div class="hr"><hr/></div>
+    <div id="content">
+
+      <h2>MacOS X Emacs hints</h2>
+      
+        <p>Assuming you have an installation of Isabelle on your Mac,
+        there are various possibilites for running ProofGeneral:</p>
+
+        <ul>
+            <li>You should also be able to launch <a href=
+                "http://proofgeneral.inf.ed.ac.uk/">Proof General</a> by typing
+                <tt class="shellcmd">Isabelle</tt> at the Unix command line. This will invoke the
+                Apple-supplied version of Emacs in a terminal window, providing a primitive
+                environment.</li>
+            <li>Somewhat better is to run Proof General from within a version
+                of Emacs ported as a native Mac OS X application, such as <a href=
+                "http://home.att.ne.jp/alpha/z123/emacs-mac-e.html">MacEmacs JP</a> or
+                <a href="http://mindlube.com/products/emacs/">mindlube's</a> or <a href=
+                "http://www.cs.man.ac.uk/%7efranconi/mac-emacs/">Enhanced Carbon Emacs</a>.
+                Visiting a theory file from Emacs will automatically launch Proof General
+                provided <tt class="shellcmd">isabelle</tt> is on the search path. None of these options
+                support the X-Symbol package, unfortunately.</li>
+            <li>In order to get the full benefit of Proof General, you must install the X
+              Window System (X11) and <a href="http://www.xemacs.org/">XEmacs</a> or
+              <a href="http://www.gnu.org/software/emacs/emacs.html">GNU Emacs</a>.</li>
+              <ul>
+                <li>
+                    <a href="http://www.apple.com/macosx/x11/">apple's version of X11</a>
+                    is included with the Panther (MacOS X 10.3) installation discs, though it is
+                    not installed by default. The Command key serves as Meta, but it is
+                    reserved for standard Apple shortcuts such as C, V and X, so you must use
+                    Esc-C, Esc-V and Esc-X in Emacs or else deselect &raquo;Enable key equivalents&laquo;
+                    in the X11 preferences.</li>
+                <li>The easiest way to install XEmacs or GNU Emacs is via the package manager
+                  <a href="http://fink.sourceforge.net/">Fink</a>. Install the Fink package
+                  <tt>xemacs-sumo-pkg</tt> to get the XEmacs libraries that Proof General needs
+                  to run. To install GNU Emacs, install the package <tt>emacs21</tt>. Fink can
+                  compile from sources, but this takes hours, so it is better to request binary
+                  installations.</li>
+                <li>To use <a href="http://www.gnu.org/software/emacs/emacs.html">GNU
+                  Emacs</a> instead of <a href="http://www.xemacs.org/">XEmacs</a>, you must
+                  recompile Proof General and X-Symbol following the instructions <a href=
+                  "http://proofgeneral.inf.ed.ac.uk/FAQ">here</a>. Note that Proof General
+                  incorporates its own copy of X-Symbol.</li>
+
+              </ul>
+        </ul>
+
+        <p>You may want to install this drag-and-drop <a href=
+        "//dist/misc/isabelle_droplet.dmg">Isabelle launcher</a>. It is a simple hack that
+        invokes XEmacs on any files dropped on it.</p>
+
+        <p>Here is a <a href=
+        "//dist/img/screenshot_isabelle_macos.gif">screenshot</a> showing Proof General running
+        in GNU Emacs.</p>
+
+    </div>
+    <div class="hr"><hr/></div>
+    <?include file="../include/footer.include.html"?>
+</body>
+
+</html>
