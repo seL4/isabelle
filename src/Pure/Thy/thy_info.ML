@@ -9,8 +9,6 @@ file dependencies.
 signature BASIC_THY_INFO =
 sig
   val theory: string -> theory
-  val theory_of_sign: Sign.sg -> theory
-  val theory_of_thm: thm -> theory
 (*val use: string -> unit*)             (*exported later*)
   val time_use: string -> unit
   val touch_thy: string -> unit
@@ -49,7 +47,6 @@ sig
   val finish: unit -> unit
   val register_theory: theory -> unit
   val pretty_theory: theory -> Pretty.T
-  val pprint_theory: theory -> pprint_args -> unit
 end;
 
 structure ThyInfo: THY_INFO =
@@ -174,17 +171,14 @@ local
 fun relevant_names names =
   let
     val (finished, unfinished) =
-      List.filter (equal "#" orf known_thy) names
-      |> List.partition (not_equal "#" andf is_finished);
+      List.filter (equal Context.draftN orf known_thy) names
+      |> List.partition (not_equal Context.draftN andf is_finished);
   in (if not (null finished) then [List.last finished] else []) @ unfinished end;
-
-fun pretty_sg sg =
-  Pretty.str_list "{" "}" (relevant_names (Sign.stamp_names_of sg));
 
 in
 
-val pretty_theory = pretty_sg o Theory.sign_of;
-val pprint_theory = Pretty.pprint o pretty_theory;
+fun pretty_theory thy =
+  Pretty.str_list "{" "}" (relevant_names (Context.names_of thy));
 
 end;
 
@@ -200,9 +194,6 @@ fun get_theory name =
   (case lookup_theory name of
     (SOME theory) => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
-
-val theory_of_sign = get_theory o Sign.name_of;
-val theory_of_thm = theory_of_sign o Thm.sign_of_thm;
 
 fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
@@ -265,7 +256,7 @@ fun provide path name info (deps as SOME {present, outdated, master, files}) =
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =
-  (case Option.map PureThy.get_name (Context.get_context ()) of
+  (case Option.map Context.theory_name (Context.get_context ()) of
     NONE => (ThyLoad.load_file NONE path; ())
   | SOME name => (case lookup_deps name of
       SOME deps => change_deps name (provide path name
@@ -429,7 +420,9 @@ fun begin_theory present upd name parents paths =
     val assert_thy = if upd then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = List.app assert_thy parents;
-    val theory = PureThy.begin_theory name (map get_theory bparents);
+    val theory =
+      Context.begin_theory Sign.pp name (map get_theory bparents)
+      |> Sign.local_path;
     val deps =
       if known_thy name then get_deps name
       else (init_deps NONE (map #1 paths));   (*records additional ML files only!*)
@@ -444,8 +437,8 @@ fun begin_theory present upd name parents paths =
 
 fun end_theory theory =
   let
-    val theory' = PureThy.end_theory theory;
-    val name = PureThy.get_name theory;
+    val name = Context.theory_name theory;
+    val theory' = Context.end_theory theory;
   in put_theory name theory'; theory' end;
 
 
@@ -458,9 +451,9 @@ fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
 
 fun register_theory theory =
   let
-    val name = PureThy.get_name theory;
+    val name = Context.theory_name theory;
     val parents = Theory.parents_of theory;
-    val parent_names = map PureThy.get_name parents;
+    val parent_names = map Context.theory_name parents;
 
     fun err txt bads =
       error (loader_msg txt bads ^ "\n" ^ gen_msg "cannot register theory" [name]);
