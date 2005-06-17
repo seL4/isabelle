@@ -25,7 +25,7 @@ sig
   val init_state: theory -> state
   val context_of: state -> context
   val theory_of: state -> theory
-  val sign_of: state -> Sign.sg
+  val sign_of: state -> theory    (*obsolete*)
   val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
   val put_thms: string * thm list -> state -> state
@@ -49,8 +49,7 @@ sig
   val level: state -> int
   type method
   val method: (thm list -> tactic) -> method
-  val method_cases:
-    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> method
+  val method_cases: (thm list -> RuleCases.tactic) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val refine_end: (context -> method) -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
@@ -154,9 +153,9 @@ datatype kind =
 
 fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = NONE, ...}) = s ^ (if a = "" then "" else " " ^ a)
-  | kind_name sg (Theorem {kind = s, theory_spec = ((a, _), _),
+  | kind_name thy (Theorem {kind = s, theory_spec = ((a, _), _),
         locale_spec = SOME (name, _), ...}) =
-      s ^ " (in " ^ Locale.extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
+      s ^ " (in " ^ Locale.extern thy name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
   | kind_name _ (Have _) = "have";
 
@@ -218,7 +217,7 @@ fun init_state thy =
 
 fun context_of (State (Node {context, ...}, _)) = context;
 val theory_of = ProofContext.theory_of o context_of;
-val sign_of = ProofContext.sign_of o context_of;
+val sign_of = theory_of;
 
 fun map_context f = map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
@@ -412,7 +411,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
     fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
       pretty_facts "using " ctxt
         (if mode <> Backward orelse null goal_facts then NONE else SOME goal_facts) @
-      [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^ prt_names names ^
+      [Pretty.str ("goal (" ^ kind_name (theory_of state) kind ^ prt_names names ^
           levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
       pretty_goals_local ctxt begin_goal (true, ! show_main_goal) (! Display.goals_limit) thm;
 
@@ -442,8 +441,7 @@ fun pretty_goals main state =
 
 (* datatype method *)
 
-datatype method =
-  Method of thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq;
+datatype method = Method of thm list -> RuleCases.tactic;
 
 fun method tac = Method (fn facts => fn st => Seq.map (rpair []) (tac facts st));
 val method_cases = Method;
@@ -459,11 +457,11 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  RuleCases.make true NONE (Thm.sign_of_thm st, Thm.prop_of st) (goals st);
+  RuleCases.make true NONE (Thm.theory_of_thm st, Thm.prop_of st) (goals st);
 
-fun check_sign sg state =
-  if Sign.subsig (sg, sign_of state) then state
-  else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
+fun check_theory thy state =
+  if subthy (thy, theory_of state) then state
+  else raise STATE ("Bad theory of method result: " ^ Context.str_of_thy thy, state);
 
 fun gen_refine current_context meth_fun state =
   let
@@ -472,7 +470,7 @@ fun gen_refine current_context meth_fun state =
   in
     meth facts st |> Seq.map (fn (st', meth_cases) =>
       state
-      |> check_sign (Thm.sign_of_thm st')
+      |> check_theory (Thm.theory_of_thm st')
       |> map_goal
           (ProofContext.add_cases (no_goal_cases st @ goal_cases st' @ meth_cases))
           (K ((result, (facts, st')), x)))
@@ -541,8 +539,8 @@ fun prep_result state ts raw_th =
         (pretty_goals_local ctxt "" (true, !show_main_goal) (! Display.goals_limit) raw_th @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
-    val {hyps, sign, ...} = Thm.rep_thm raw_th;
-    val tsig = Sign.tsig_of sign;
+    val {hyps, thy, ...} = Thm.rep_thm raw_th;
+    val tsig = Sign.tsig_of thy;
     val casms = List.concat (map #1 (ProofContext.assumptions_of (context_of state)));
     val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
 
@@ -735,13 +733,13 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       |> enter_forward
       |> opt_block
       |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
-    val sign' = sign_of state';
+    val thy' = theory_of state';
 
     val AfterQed (after_local, after_global) = after_qed;
     val after_qed' = AfterQed (after_local o map_context gen_binds, after_global);
 
     val props = List.concat propss;
-    val cprop = Thm.cterm_of sign' (Logic.mk_conjunction_list props);
+    val cprop = Thm.cterm_of thy' (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
 
     val tvars = foldr Term.add_term_tvars [] props;
@@ -758,7 +756,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
     |> put_goal (SOME (((kind, names, propss), ([], goal)), (after_qed', pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
-      RuleCases.make true NONE (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
+      RuleCases.make true NONE (Thm.theory_of_thm goal, Thm.prop_of goal) [rule_contextN]
       else [(rule_contextN, NONE)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
@@ -863,7 +861,7 @@ fun finish_local (print_result, print_rule) state =
       | _ => err_malformed "finish_local" state);
   in
     conditional pr (fn () => print_result goal_ctxt
-      (kind_name (sign_of state) kind, names ~~ Library.unflat tss results));
+      (kind_name (theory_of state) kind, names ~~ Library.unflat tss results));
     outer_state
     |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
     |> (fn st => Seq.map (fn res =>
