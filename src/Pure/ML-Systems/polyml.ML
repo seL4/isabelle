@@ -8,6 +8,9 @@ Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 
 (** ML system and platform related **)
 
+PolyML.Compiler.printInAlphabeticalOrder := false;
+
+
 (* cygwin *)
 
 val cygwin_platform =
