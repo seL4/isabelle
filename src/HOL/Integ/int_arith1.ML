@@ -466,7 +466,7 @@ structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
   val ss                = HOL_ss
   val eq_reflection     = eq_reflection
-  val sg_ref = Sign.self_ref (Theory.sign_of (the_context ()))
+  val thy_ref = Theory.self_ref (the_context ())
   val add_ac = mult_ac
 end;
 

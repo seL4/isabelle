@@ -8,7 +8,7 @@ struct
   val ss = simpset_of HOL.thy
   val eq_reflection = thm "eq_reflection"
   
-  val sg_ref = Sign.self_ref (sign_of (theory "OrderedGroup"))
+  val thy_ref = Theory.self_ref (theory "OrderedGroup")
 
   val T = TFree("'a", ["OrderedGroup.ab_group_add"])
   

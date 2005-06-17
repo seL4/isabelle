@@ -10,14 +10,14 @@ Simplification procedures for abelian groups (e.g. integers, reals)
 
 *)
 
-(* Modificaton in May 2004 by Steven Obua: polymorphic types work also now *) 
+(* Modification in May 2004 by Steven Obua: polymorphic types work also now *) 
 
 signature ABEL_CANCEL =
 sig
   val ss                : simpset       (*basic simpset of object-logic*)
   val eq_reflection     : thm           (*object-equality to meta-equality*)
 
-  val sg_ref            : Sign.sg_ref   (*signature of the theory of the group*)
+  val thy_ref           : theory_ref    (*signature of the theory of the group*)
   val T                 : typ           (*the type of group elements*)
 
   val restrict_to_left  : thm
@@ -125,7 +125,7 @@ open Data;
 
  val sum_conv =
      Simplifier.mk_simproc "cancel_sums"
-       (map (Drule.cterm_fun Logic.varify o Thm.read_cterm (Sign.deref sg_ref))
+       (map (Drule.cterm_fun Logic.varify o Thm.read_cterm (Theory.deref thy_ref))
         [("x + y", Data.T), ("x - y", Data.T)])  (* FIXME depends on concrete syntax !???!!??! *)
        sum_proc;
 
@@ -182,7 +182,7 @@ open Data;
    handle Cancel => NONE;
 
  val rel_conv =
-     Simplifier.simproc_i (Sign.deref sg_ref) "cancel_relations"
+     Simplifier.simproc_i (Theory.deref thy_ref) "cancel_relations"
        (map Data.dest_eqI eqI_rules) rel_proc;
 
 end;

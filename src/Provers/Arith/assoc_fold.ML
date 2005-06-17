@@ -13,7 +13,7 @@ signature ASSOC_FOLD_DATA =
 sig
   val ss                : simpset       (*basic simpset of object-logtic*)
   val eq_reflection     : thm           (*object-equality to meta-equality*)
-  val sg_ref            : Sign.sg_ref   (*the operator's signature*)
+  val thy_ref           : theory_ref    (*the operator's signature*)
   val add_ac            : thm list      (*AC-rewrites for plus*)
 end;
 
@@ -42,8 +42,8 @@ struct
  val trace = ref false;
 
  (*Make a simproc to combine all literals in a associative nest*)
- fun proc sg _ lhs =
-   let fun show t = string_of_cterm (Thm.cterm_of sg t)
+ fun proc thy _ lhs =
+   let fun show t = string_of_cterm (Thm.cterm_of thy t)
        val _ = if !trace then tracing ("assoc_fold simproc: LHS = " ^ show lhs)
                else ()
        val plus =
@@ -54,7 +54,7 @@ struct
                else ()
        val rhs = plus $ mk_sum plus lits $ mk_sum plus others
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
-       val th = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
+       val th = Tactic.prove thy [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
                             simp_tac assoc_ss 1)
    in SOME th end
