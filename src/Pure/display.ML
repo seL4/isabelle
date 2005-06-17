@@ -33,17 +33,14 @@ sig
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
-  val pretty_thm_sg: Sign.sg -> thm -> Pretty.T
-  val pretty_thms_sg: Sign.sg -> thm list -> Pretty.T
+  val pretty_thm_sg: theory -> thm -> Pretty.T
+  val pretty_thms_sg: theory -> thm list -> Pretty.T
   val pprint_thm: thm -> pprint_args -> unit
   val pretty_ctyp: ctyp -> Pretty.T
   val pprint_ctyp: ctyp -> pprint_args -> unit
   val pretty_cterm: cterm -> Pretty.T
   val pprint_cterm: cterm -> pprint_args -> unit
-  val pretty_theory: theory -> Pretty.T
-  val pprint_theory: theory -> pprint_args -> unit
   val pretty_full_theory: theory -> Pretty.T list
-  val pretty_name_space: string * NameSpace.T -> Pretty.T
   val pretty_goals_aux: Pretty.pp -> string -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list
   val print_goals: int -> thm -> unit
@@ -94,7 +91,7 @@ fun pretty_thm_aux pp quote th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun gen_pretty_thm quote th =
-  pretty_thm_aux (Sign.pp (Thm.sign_of_thm th)) quote th;
+  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) quote th;
 
 val pretty_thm = gen_pretty_thm true;
 val pretty_thm_no_quote = gen_pretty_thm false;
@@ -106,8 +103,8 @@ val pprint_thm = Pretty.pprint o pretty_thm;
 fun pretty_thms [th] = pretty_thm th
   | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
 
-val pretty_thm_sg = pretty_thm oo Thm.transfer_sg;
-val pretty_thms_sg = pretty_thms oo (map o Thm.transfer_sg);
+val pretty_thm_sg = pretty_thm oo Thm.transfer;
+val pretty_thms_sg = pretty_thms oo (map o Thm.transfer);
 
 
 (* top-level commands for printing theorems *)
@@ -128,24 +125,24 @@ fun prths ths = (List.app (fn th => (print_thm th; writeln "")) ths; ths);
 (* other printing commands *)
 
 fun pretty_ctyp cT =
-  let val {sign, T} = rep_ctyp cT in Sign.pretty_typ sign T end;
+  let val {thy, T, ...} = rep_ctyp cT in Sign.pretty_typ thy T end;
 
 fun pprint_ctyp cT =
-  let val {sign, T} = rep_ctyp cT in Sign.pprint_typ sign T end;
+  let val {thy, T, ...} = rep_ctyp cT in Sign.pprint_typ thy T end;
 
 fun string_of_ctyp cT =
-  let val {sign, T} = rep_ctyp cT in Sign.string_of_typ sign T end;
+  let val {thy, T, ...} = rep_ctyp cT in Sign.string_of_typ thy T end;
 
 val print_ctyp = writeln o string_of_ctyp;
 
 fun pretty_cterm ct =
-  let val {sign, t, ...} = rep_cterm ct in Sign.pretty_term sign t end;
+  let val {thy, t, ...} = rep_cterm ct in Sign.pretty_term thy t end;
 
 fun pprint_cterm ct =
-  let val {sign, t, ...} = rep_cterm ct in Sign.pprint_term sign t end;
+  let val {thy, t, ...} = rep_cterm ct in Sign.pprint_term thy t end;
 
 fun string_of_cterm ct =
-  let val {sign, t, ...} = rep_cterm ct in Sign.string_of_term sign t end;
+  let val {thy, t, ...} = rep_cterm ct in Sign.string_of_term thy t end;
 
 val print_cterm = writeln o string_of_cterm;
 
@@ -153,37 +150,19 @@ val print_cterm = writeln o string_of_cterm;
 
 (** print theory **)
 
-val pretty_theory = Sign.pretty_sg o Theory.sign_of;
-val pprint_theory = Sign.pprint_sg o Theory.sign_of;
-
-val print_syntax = Syntax.print_syntax o Theory.syn_of;
-
-
-(* pretty_name_space  *)
-
-fun pretty_name_space (kind, space) =
-  let
-    fun prt_entry (name, accs) = Pretty.block
-      (Pretty.str (Library.quote name ^ " =") :: Pretty.brk 1 ::
-        Pretty.commas (map (Pretty.quote o Pretty.str) accs));
-  in
-    Pretty.fbreaks (Pretty.str (kind ^ ":") :: map prt_entry (NameSpace.dest space))
-    |> Pretty.block
-  end;
+val print_syntax = Syntax.print_syntax o Sign.syn_of;
 
 
 (* pretty_full_theory *)
 
 fun pretty_full_theory thy =
   let
-    val sg = Theory.sign_of thy;
-
-    fun prt_cls c = Sign.pretty_sort sg [c];
-    fun prt_sort S = Sign.pretty_sort sg S;
-    fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
-    fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
+    fun prt_cls c = Sign.pretty_sort thy [c];
+    fun prt_sort S = Sign.pretty_sort thy S;
+    fun prt_arity t (c, Ss) = Sign.pretty_arity thy (t, Ss, [c]);
+    fun prt_typ ty = Pretty.quote (Sign.pretty_typ thy ty);
     val prt_typ_no_tvars = prt_typ o Type.freeze_type;
-    fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
+    fun prt_term t = Pretty.quote (Sign.pretty_term thy t);
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -222,9 +201,8 @@ fun pretty_full_theory thy =
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
-
-    val {sign = _, defs, axioms, oracles, parents = _, ancestors = _} = Theory.rep_theory thy;
-    val {self = _, tsig, consts, naming, data} = Sign.rep_sg sg;
+    val {axioms, defs, oracles} = Theory.rep_theory thy;
+    val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val clsses = NameSpace.extern_table (apsnd (Symtab.make o Graph.dest) classes);
@@ -234,8 +212,8 @@ fun pretty_full_theory thy =
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
-    [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
-      Pretty.strs ("data:" :: Sign.data_kinds data),
+    [Pretty.strs ("names:" :: Context.names_of thy),
+      Pretty.strs ("data:" :: Context.theory_data thy),
       Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
@@ -347,7 +325,7 @@ fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
   end;
 
 fun pretty_goals_marker bg n th =
-  pretty_goals_aux (Sign.pp (Thm.sign_of_thm th)) bg (true, true) n th;
+  pretty_goals_aux (Sign.pp (Thm.theory_of_thm th)) bg (true, true) n th;
 
 val pretty_goals = pretty_goals_marker "";
 val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals_marker "";
