@@ -22,9 +22,9 @@ sig
   val mk_context_simproc: string -> cterm list ->
     (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val print_simpset: theory -> unit
-  val simpset_ref_of_sg: Sign.sg -> simpset ref
+  val simpset_ref_of_sg: theory -> simpset ref    (*obsolete*)
   val simpset_ref_of: theory -> simpset ref
-  val simpset_of_sg: Sign.sg -> simpset
+  val simpset_of_sg: theory -> simpset            (*obsolete*)
   val simpset_of: theory -> simpset
   val SIMPSET: (simpset -> tactic) -> tactic
   val SIMPSET': (simpset -> 'a -> tactic) -> 'a -> tactic
@@ -58,13 +58,13 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
-  val simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
-  val simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
-  val context_simproc_i: Sign.sg -> string -> term list
+  val simproc_i: theory -> string -> term list
+    -> (theory -> simpset -> term -> thm option) -> simproc
+  val simproc: theory -> string -> string list
+    -> (theory -> simpset -> term -> thm option) -> simproc
+  val context_simproc_i: theory -> string -> term list
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
-  val context_simproc: Sign.sg -> string -> string list
+  val context_simproc: theory -> string -> string list
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
@@ -130,11 +130,11 @@ fun mk_context_simproc name lhss f = ContextSimproc ((name, lhss, f), stamp ());
 fun eq_context_simproc (ContextSimproc (_, id1), ContextSimproc (_, id2)) = (id1 = id2);
 val merge_context_simprocs = gen_merge_lists eq_context_simproc;
 
-fun context_simproc_i sg name =
-  mk_context_simproc name o map (Thm.cterm_of sg o Logic.varify);
+fun context_simproc_i thy name =
+  mk_context_simproc name o map (Thm.cterm_of thy o Logic.varify);
 
-fun context_simproc sg name =
-  context_simproc_i sg name o map (Sign.simple_read_term sg TypeInfer.logicT);
+fun context_simproc thy name =
+  context_simproc_i thy name o map (Sign.simple_read_term thy TypeInfer.logicT);
 
 
 (* datatype context_ss *)
@@ -188,25 +188,24 @@ fun merge_context_ss (ctxt_ss1, ctxt_ss2) =
 
 (* theory data kind 'Pure/simpset' *)
 
-structure GlobalSimpsetArgs =
-struct
+structure GlobalSimpset = TheoryDataFun
+(struct
   val name = "Pure/simpset";
   type T = simpset ref * context_ss;
 
   val empty = (ref empty_ss, empty_context_ss);
   fun copy (ref ss, ctxt_ss) = (ref ss, ctxt_ss): T;            (*create new reference!*)
-  val prep_ext = copy;
-  fun merge ((ref ss1, ctxt_ss1), (ref ss2, ctxt_ss2)) =
+  val extend = copy;
+  fun merge _ ((ref ss1, ctxt_ss1), (ref ss2, ctxt_ss2)) =
     (ref (merge_ss (ss1, ss2)), merge_context_ss (ctxt_ss1, ctxt_ss2));
   fun print _ (ref ss, _) = print_ss ss;
-end;
+end);
 
-structure GlobalSimpset = TheoryDataFun(GlobalSimpsetArgs);
 val _ = Context.add_setup [GlobalSimpset.init];
 val print_simpset = GlobalSimpset.print;
 
-val simpset_ref_of_sg = #1 o GlobalSimpset.get_sg;
 val simpset_ref_of = #1 o GlobalSimpset.get;
+val simpset_ref_of_sg = simpset_ref_of;
 val get_context_ss = #2 o GlobalSimpset.get o ProofContext.theory_of;
 
 fun map_context_ss f = GlobalSimpset.map (apsnd
@@ -216,14 +215,14 @@ fun map_context_ss f = GlobalSimpset.map (apsnd
 
 (* access global simpset *)
 
-val simpset_of_sg = ! o simpset_ref_of_sg;
-val simpset_of = simpset_of_sg o Theory.sign_of;
+val simpset_of = ! o simpset_ref_of;
+val simpset_of_sg = simpset_of;
 
-fun SIMPSET tacf state = tacf (simpset_of_sg (Thm.sign_of_thm state)) state;
-fun SIMPSET' tacf i state = tacf (simpset_of_sg (Thm.sign_of_thm state)) i state;
+fun SIMPSET tacf state = tacf (simpset_of (Thm.theory_of_thm state)) state;
+fun SIMPSET' tacf i state = tacf (simpset_of (Thm.theory_of_thm state)) i state;
 
 val simpset = simpset_of o Context.the_context;
-val simpset_ref = simpset_ref_of_sg o Theory.sign_of o Context.the_context;
+val simpset_ref = simpset_ref_of o Context.the_context;
 
 
 (* change global simpset *)
@@ -285,15 +284,14 @@ fun add_context_safe_solver solver =
 
 (* proof data kind 'Pure/simpset' *)
 
-structure LocalSimpsetArgs =
-struct
+structure LocalSimpset = ProofDataFun
+(struct
   val name = "Pure/simpset";
   type T = simpset;
   val init = simpset_of;
   fun print ctxt ss = print_ss (context_ss ctxt ss (get_context_ss ctxt));
-end;
+end);
 
-structure LocalSimpset = ProofDataFun(LocalSimpsetArgs);
 val _ = Context.add_setup [LocalSimpset.init];
 val print_local_simpset = LocalSimpset.print;
 

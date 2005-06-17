@@ -29,16 +29,16 @@ sig
   val ext_typeN: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
-  val get_extT_fields:  Sign.sg -> typ -> ((string * typ) list * (string * typ))
-  val get_recT_fields:  Sign.sg -> typ -> ((string * typ) list * (string * typ))
-  val get_extension: Sign.sg -> Symtab.key -> (string * typ list) option
-  val get_extinjects: Sign.sg -> thm list
-  val get_simpset: Sign.sg -> simpset
+  val get_extT_fields:  theory -> typ -> ((string * typ) list * (string * typ))
+  val get_recT_fields:  theory -> typ -> ((string * typ) list * (string * typ))
+  val get_extension: theory -> Symtab.key -> (string * typ list) option
+  val get_extinjects: theory -> thm list
+  val get_simpset: theory -> simpset
   val print_records: theory -> unit
-  val add_record: string list * string -> string option -> (string * string * mixfix) list 
-                  -> theory -> theory
-  val add_record_i: string list * string -> (typ list * string) option 
-                    -> (string * typ * mixfix) list -> theory -> theory
+  val add_record: string list * string -> string option -> (string * string * mixfix) list
+    -> theory -> theory
+  val add_record_i: string list * string -> (typ list * string) option
+    -> (string * typ * mixfix) list -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
@@ -235,8 +235,8 @@ fun make_record_data
   equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits, 
   extfields = extfields, fieldext = fieldext }: record_data;
 
-structure RecordsArgs =
-struct
+structure RecordsData = TheoryDataFun
+(struct
   val name = "HOL/records";       
   type T = record_data;
 
@@ -246,8 +246,8 @@ struct
        Symtab.empty [] Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
 
   val copy = I;
-  val prep_ext = I;
-  fun merge
+  val extend = I;
+  fun merge _
    ({records = recs1,
      sel_upd = {selectors = sels1, updates = upds1, simpset = ss1},
      equalities = equalities1,
@@ -296,10 +296,10 @@ struct
           [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
           pretty_parent parent @ map pretty_field fields));
     in map pretty_record (Symtab.dest recs) |> Pretty.chunks |> Pretty.writeln end;
-end;
+end);
 
-structure RecordsData = TheoryDataFun(RecordsArgs);
 val print_records = RecordsData.print;
+
 
 (* access 'records' *)
 
@@ -315,7 +315,7 @@ fun put_record name info thy =
 
 (* access 'sel_upd' *)
 
-fun get_sel_upd sg = #sel_upd (RecordsData.get_sg sg);
+val get_sel_upd = #sel_upd o RecordsData.get;
 
 fun get_selectors sg name = Symtab.lookup (#selectors (get_sel_upd sg), name);
 fun is_selector sg name = 
@@ -353,7 +353,7 @@ fun add_record_equalities name thm thy =
   in RecordsData.put data thy end;
 
 fun get_equalities sg name =
-  Symtab.lookup (#equalities (RecordsData.get_sg sg), name);
+  Symtab.lookup (#equalities (RecordsData.get sg), name);
 
 (* access 'extinjects' *)
 
@@ -365,7 +365,7 @@ fun add_extinjects thm thy =
                  splits extfields fieldext;
   in RecordsData.put data thy end;
 
-fun get_extinjects sg = #extinjects (RecordsData.get_sg sg);
+fun get_extinjects sg = #extinjects (RecordsData.get sg);
 
 (* access 'extsplit' *)
 
@@ -379,7 +379,7 @@ fun add_extsplit name thm thy =
   in RecordsData.put data thy end;
 
 fun get_extsplit sg name =
-  Symtab.lookup (#extsplit (RecordsData.get_sg sg), name);
+  Symtab.lookup (#extsplit (RecordsData.get sg), name);
 
 (* access 'splits' *)
 
@@ -393,13 +393,13 @@ fun add_record_splits name thmP thy =
   in RecordsData.put data thy end;
 
 fun get_splits sg name =
-  Symtab.lookup (#splits (RecordsData.get_sg sg), name);
+  Symtab.lookup (#splits (RecordsData.get sg), name);
 
 
 
 (* extension of a record name *)
 fun get_extension sg name =
- case Symtab.lookup (#records (RecordsData.get_sg sg),name) of
+ case Symtab.lookup (#records (RecordsData.get sg),name) of
         SOME s => SOME (#extension s)
       | NONE => NONE;
 
@@ -415,7 +415,7 @@ fun add_extfields name fields thy =
   in RecordsData.put data thy end;
 
 fun get_extfields sg name =
-  Symtab.lookup (#extfields (RecordsData.get_sg sg), name);
+  Symtab.lookup (#extfields (RecordsData.get sg), name);
 
 fun get_extT_fields sg T = 
   let
@@ -425,7 +425,7 @@ fun get_extT_fields sg T =
     val midx = maxidx_of_typs (moreT::Ts);
     fun varify (a, S) = TVar ((a, midx), S);
     val varifyT = map_type_tfree varify;
-    val {records,extfields,...} = RecordsData.get_sg sg;
+    val {records,extfields,...} = RecordsData.get sg;
     val (flds,(more,_)) = split_last (Symtab.lookup_multi (extfields,name));
     val args = map varifyT (snd (#extension (valOf (Symtab.lookup (records,recname)))));
 
@@ -458,7 +458,7 @@ fun add_fieldext extname_types fields thy =
 
 
 fun get_fieldext sg name =
-  Symtab.lookup (#fieldext (RecordsData.get_sg sg), name);
+  Symtab.lookup (#fieldext (RecordsData.get sg), name);
 
 (* parent records *)
 
@@ -841,7 +841,7 @@ fun quick_and_dirty_prf noopt opt () =
 
 fun prove_split_simp sg T prop =
   let 
-    val {sel_upd={simpset,...},extsplit,...} = RecordsData.get_sg sg;
+    val {sel_upd={simpset,...},extsplit,...} = RecordsData.get sg;
     val extsplits = 
             Library.foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
                     ([],dest_recTs T);
@@ -880,7 +880,7 @@ val record_simproc =
           (case get_updates sg u of SOME u_name =>
             let
               fun mk_abs_var x t = (x, fastype_of t);
-              val {sel_upd={updates,...},extfields,...} = RecordsData.get_sg sg;
+              val {sel_upd={updates,...},extfields,...} = RecordsData.get sg;
               
               fun mk_eq_terms ((upd as Const (u,Type(_,[updT,_]))) $ k $ r) =
 		  (case (Symtab.lookup (updates,u)) of
@@ -938,7 +938,7 @@ val record_upd_simproc =
     (fn sg => fn _ => fn t =>
       (case t of ((upd as Const (u, Type(_,[_,Type(_,[T,_])]))) $ k $ r) =>
  	 let datatype ('a,'b) calc = Init of 'b | Inter of 'a  
-             val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get_sg sg;
+             val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get sg;
              
 	     fun mk_abs_var x t = (x, fastype_of t);
              fun sel_name u = NameSpace.base (unsuffix updateN u);
@@ -1142,7 +1142,7 @@ fun record_split_simp_tac thms P i st =
   let
     val sg = Thm.sign_of_thm st;
     val {sel_upd={simpset,...},...} 
-            = RecordsData.get_sg sg;
+            = RecordsData.get sg;
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>

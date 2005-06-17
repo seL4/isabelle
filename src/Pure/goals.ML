@@ -1,6 +1,6 @@
-(*  Title: 	Pure/goals.ML
+(*  Title:      Pure/goals.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson and Florian Kammueller, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson and Florian Kammueller, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Old-style locales and goal stack package.  The goal stack initially
@@ -19,71 +19,71 @@ sig
   val thms: xstring -> thm list
   type proof
   val reset_goals       : unit -> unit
-  val atomic_goal	: theory -> string -> thm list
-  val atomic_goalw	: theory -> thm list -> string -> thm list
-  val Goal		: string -> thm list
-  val Goalw		: thm list -> string -> thm list
-  val ba		: int -> unit
-  val back		: unit -> unit
-  val bd		: thm -> int -> unit
-  val bds		: thm list -> int -> unit
-  val be		: thm -> int -> unit
-  val bes		: thm list -> int -> unit
-  val br		: thm -> int -> unit
-  val brs		: thm list -> int -> unit
-  val bw		: thm -> unit
-  val bws		: thm list -> unit
-  val by		: tactic -> unit
-  val byev		: tactic list -> unit
-  val chop		: unit -> unit
-  val choplev		: int -> unit
+  val atomic_goal       : theory -> string -> thm list
+  val atomic_goalw      : theory -> thm list -> string -> thm list
+  val Goal              : string -> thm list
+  val Goalw             : thm list -> string -> thm list
+  val ba                : int -> unit
+  val back              : unit -> unit
+  val bd                : thm -> int -> unit
+  val bds               : thm list -> int -> unit
+  val be                : thm -> int -> unit
+  val bes               : thm list -> int -> unit
+  val br                : thm -> int -> unit
+  val brs               : thm list -> int -> unit
+  val bw                : thm -> unit
+  val bws               : thm list -> unit
+  val by                : tactic -> unit
+  val byev              : tactic list -> unit
+  val chop              : unit -> unit
+  val choplev           : int -> unit
   val export_thy        : theory -> thm -> thm
   val export            : thm -> thm
-  val Export		: thm -> thm
-  val fa		: unit -> unit
-  val fd		: thm -> unit
-  val fds		: thm list -> unit
-  val fe		: thm -> unit
-  val fes		: thm list -> unit
-  val filter_goal	: (term*term->bool) -> thm list -> int -> thm list
-  val fr		: thm -> unit
-  val frs		: thm list -> unit
-  val getgoal		: int -> term
-  val gethyps		: int -> thm list
-  val goal		: theory -> string -> thm list
-  val goalw		: theory -> thm list -> string -> thm list
-  val goalw_cterm	: thm list -> cterm -> thm list
-  val pop_proof		: unit -> thm list
-  val pr		: unit -> unit
+  val Export            : thm -> thm
+  val fa                : unit -> unit
+  val fd                : thm -> unit
+  val fds               : thm list -> unit
+  val fe                : thm -> unit
+  val fes               : thm list -> unit
+  val filter_goal       : (term*term->bool) -> thm list -> int -> thm list
+  val fr                : thm -> unit
+  val frs               : thm list -> unit
+  val getgoal           : int -> term
+  val gethyps           : int -> thm list
+  val goal              : theory -> string -> thm list
+  val goalw             : theory -> thm list -> string -> thm list
+  val goalw_cterm       : thm list -> cterm -> thm list
+  val pop_proof         : unit -> thm list
+  val pr                : unit -> unit
   val disable_pr        : unit -> unit
   val enable_pr         : unit -> unit
-  val prlev		: int -> unit
-  val prlim		: int -> unit
-  val premises		: unit -> thm list
-  val prin		: term -> unit
-  val printyp		: typ -> unit
-  val pprint_term	: term -> pprint_args -> unit
-  val pprint_typ	: typ -> pprint_args -> unit
-  val print_exn		: exn -> 'a
-  val print_sign_exn	: Sign.sg -> exn -> 'a
-  val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
+  val prlev             : int -> unit
+  val prlim             : int -> unit
+  val premises          : unit -> thm list
+  val prin              : term -> unit
+  val printyp           : typ -> unit
+  val pprint_term       : term -> pprint_args -> unit
+  val pprint_typ        : typ -> pprint_args -> unit
+  val print_exn         : exn -> 'a
+  val print_sign_exn    : theory -> exn -> 'a
+  val prove_goal        : theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
-  val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
-  val prove_goalw_cterm_nocheck	: thm list->cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm : thm list->cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm_nocheck : thm list->cterm->(thm list->tactic list)->thm
   val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
     -> (thm list -> tactic list) -> thm
   val simple_prove_goal_cterm : cterm->(thm list->tactic list)->thm
-  val push_proof	: unit -> unit
-  val read		: string -> term
-  val ren		: string -> int -> unit
-  val restore_proof	: proof -> thm list
-  val result		: unit -> thm  
+  val push_proof        : unit -> unit
+  val read              : string -> term
+  val ren               : string -> int -> unit
+  val restore_proof     : proof -> thm list
+  val result            : unit -> thm
   val result_error_fn   : (thm -> string -> thm) ref
-  val rotate_proof	: unit -> thm list
-  val uresult		: unit -> thm  
-  val save_proof	: unit -> proof
-  val topthm		: unit -> thm
-  val undo		: unit -> unit
+  val rotate_proof      : unit -> thm list
+  val uresult           : unit -> thm
+  val save_proof        : unit -> proof
+  val topthm            : unit -> thm
+  val undo              : unit -> unit
   val bind_thm          : string * thm -> unit
   val bind_thms         : string * thm list -> unit
   val qed               : string -> unit
@@ -112,7 +112,7 @@ sig
   val open_locale: xstring -> theory -> theory
   val close_locale: xstring -> theory -> theory
   val print_scope: theory -> unit
-  val read_cterm: Sign.sg -> string * typ -> cterm
+  val read_cterm: theory -> string * typ -> cterm
 end;
 
 structure Goals: GOALS =
@@ -125,11 +125,11 @@ assumptions and definitions that have local scope.  Typical form is
 
     locale Locale_name =
       fixes   (*variables that are fixed in the locale's scope*)
-	v :: T
+        v :: T
       assumes (*meta-hypothesis that hold in the locale*)
-	Asm_name "meta-formula"  
+        Asm_name "meta-formula"
       defines (*local definitions of fixed variables in terms of others*)
-	v_def "v x == ...x..."
+        v_def "v x == ...x..."
 *)
 
 (** type locale **)
@@ -144,13 +144,13 @@ type locale =
   defaults: (string * sort) list * (string * typ) list * string list};
 
 fun make_locale ancestor consts nosyn rules defs thms defaults =
-  {ancestor = ancestor, consts = consts, nosyn = nosyn, rules = rules, 
+  {ancestor = ancestor, consts = consts, nosyn = nosyn, rules = rules,
    defs = defs, thms = thms, defaults = defaults}: locale;
 
-fun pretty_locale sg (name, {ancestor, consts, rules, defs, nosyn = _, thms = _, defaults = _}) =
+fun pretty_locale thy (name, {ancestor, consts, rules, defs, nosyn = _, thms = _, defaults = _}) =
   let
-    val prt_typ = Pretty.quote o Sign.pretty_typ sg;
-    val prt_term = Pretty.quote o Sign.pretty_term sg;
+    val prt_typ = Pretty.quote o Sign.pretty_typ thy;
+    val prt_term = Pretty.quote o Sign.pretty_term thy;
 
     fun pretty_const (c, T) = Pretty.block
       [Pretty.str (c ^ " ::"), Pretty.brk 1, prt_typ T];
@@ -182,48 +182,43 @@ type locale_data =
 fun make_locale_data space locales scope =
   {space = space, locales = locales, scope = scope}: locale_data;
 
-structure LocalesArgs =
-struct
+structure LocalesData = TheoryDataFun
+(struct
   val name = "Pure/old-locales";
   type T = locale_data;
 
   val empty = make_locale_data NameSpace.empty Symtab.empty (ref []);
   fun copy {space, locales, scope = ref locs} = make_locale_data space locales (ref locs);
-  fun prep_ext {space, locales, scope = _} = make_locale_data space locales (ref []);
-  fun merge ({space = space1, locales = locales1, scope = _},
+  fun extend {space, locales, scope = _} = make_locale_data space locales (ref []);
+  fun merge _ ({space = space1, locales = locales1, scope = _},
     {space = space2, locales = locales2, scope = _}) =
       make_locale_data (NameSpace.merge (space1, space2))
         (Symtab.merge (K true) (locales1, locales2))
         (ref []);
 
-  fun print sg {space, locales, scope} =
+  fun print thy {space, locales, scope} =
     let
       val locs = NameSpace.extern_table (space, locales);
       val scope_names = rev (map (NameSpace.extern space o fst) (! scope));
     in
-      [Display.pretty_name_space ("locale name space", space),
-        Pretty.big_list "locales:" (map (pretty_locale sg) locs),
+      [Pretty.big_list "locales:" (map (pretty_locale thy) locs),
         Pretty.strs ("current scope:" :: scope_names)]
       |> Pretty.chunks |> Pretty.writeln
     end;
-end;
+end);
 
-
-structure LocalesData = TheoryDataFun(LocalesArgs);
 val _ = Context.add_setup [LocalesData.init];
 val print_locales = LocalesData.print;
 
 
 (* access locales *)
 
-fun get_locale_sg sg name = Symtab.lookup (#locales (LocalesData.get_sg sg), name);
-
-val get_locale = get_locale_sg o Theory.sign_of;
+fun get_locale thy name = Symtab.lookup (#locales (LocalesData.get thy), name);
 
 fun put_locale (name, locale) thy =
   let
     val {space, locales, scope} = LocalesData.get thy;
-    val space' = Sign.declare_name (Theory.sign_of thy) name space;
+    val space' = Sign.declare_name thy name space;
     val locales' = Symtab.update ((name, locale), locales);
   in thy |> LocalesData.put (make_locale_data space' locales' scope) end;
 
@@ -236,11 +231,9 @@ fun lookup_locale thy xname =
 
 (* access scope *)
 
-fun get_scope_sg sg =
-  if Sign.eq_sg (sg, Theory.sign_of ProtoPure.thy) then []
-  else ! (#scope (LocalesData.get_sg sg));
-
-val get_scope = get_scope_sg o Theory.sign_of;
+fun get_scope thy =
+  if eq_thy (thy, ProtoPure.thy) then []
+  else ! (#scope (LocalesData.get thy));
 
 fun change_scope f thy =
   let val {scope, ...} = LocalesData.get thy
@@ -264,26 +257,26 @@ fun open_locale xname thy =
       fun opn lc th = (change_scope (cons lc) th; th)
   in case anc of
          NONE => opn loc thy
-       | SOME(loc') => 
-           if loc' mem (map fst cur_sc) 
+       | SOME(loc') =>
+           if loc' mem (map fst cur_sc)
            then opn loc thy
-           else (warning ("Opening locale " ^ quote loc' ^ ", required by " ^ 
-			  quote xname);
+           else (warning ("Opening locale " ^ quote loc' ^ ", required by " ^
+                          quote xname);
                  opn loc (open_locale (Sign.base_name loc') thy))
   end;
 
 fun pop_locale [] = error "Currently no open locales"
   | pop_locale (_ :: locs) = locs;
 
-fun close_locale name thy = 
+fun close_locale name thy =
    let val lname = (case get_scope thy of (ln,_)::_ => ln
                                         | _ => error "No locales are open!")
-       val ok = (name = Sign.base_name lname) handle _ => false
+       val ok = name = Sign.base_name lname
    in if ok then (change_scope pop_locale thy; thy)
       else error ("locale " ^ name ^ " is not top of scope; top is " ^ lname)
    end;
 
-fun print_scope thy = 
+fun print_scope thy =
 Pretty.writeln (Pretty.strs ("current scope:" :: rev(map (Sign.base_name o fst) (get_scope thy))));
 
 (*implicit context versions*)
@@ -295,11 +288,10 @@ fun Print_scope () = (print_scope (Context.the_context ()); ());
 (** functions for goals.ML **)
 
 (* in_locale: check if hyps (: term list) of a proof are contained in the
-   (current) scope. This function is needed in prepare_proof. It needs to
-   refer to the signature, because theory is not available in prepare_proof. *)
+   (current) scope. This function is needed in prepare_proof. *)
 
-fun in_locale hyps sg =
-    let val cur_sc = get_scope_sg sg;
+fun in_locale hyps thy =
+    let val cur_sc = get_scope thy;
         val rule_lists = map (#rules o snd) cur_sc;
         val def_lists = map (#defs o snd) cur_sc;
         val rules = map snd (foldr (op union) [] rule_lists);
@@ -311,11 +303,9 @@ fun in_locale hyps sg =
 
 
 (* is_open_loc: check if any locale is open, i.e. in the scope of the current thy *)
-fun is_open_loc_sg sign =
-    let val cur_sc = get_scope_sg sign
+fun is_open_loc thy =
+    let val cur_sc = get_scope thy
     in not(null(cur_sc)) end;
-
-val is_open_loc = is_open_loc_sg o Theory.sign_of;
 
 
 (* get theorems *)
@@ -336,7 +326,7 @@ fun thms name = get_thms (Context.the_context ()) name;
 
 (* get the defaults of a locale, for extension *)
 
-fun get_defaults thy name = 
+fun get_defaults thy name =
   let val (lname, loc) = the_locale thy name;
   in #defaults(loc)
   end;
@@ -346,15 +336,15 @@ fun get_defaults thy name =
 
 (* prepare types *)
 
-fun read_typ sg (envT, s) =
+fun read_typ thy (envT, s) =
   let
     fun def_sort (x, ~1) = assoc (envT, x)
       | def_sort _ = NONE;
-    val T = Type.no_tvars (Sign.read_typ (sg, def_sort) s) handle TYPE (msg, _, _) => error msg;
+    val T = Type.no_tvars (Sign.read_typ (thy, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, envT), T) end;
 
-fun cert_typ sg (envT, raw_T) =
-  let val T = Type.no_tvars (Sign.certify_typ sg raw_T) handle TYPE (msg, _, _) => error msg
+fun cert_typ thy (envT, raw_T) =
+  let val T = Type.no_tvars (Sign.certify_typ thy raw_T) handle TYPE (msg, _, _) => error msg
   in (Term.add_typ_tfrees (T, envT), T) end;
 
 
@@ -365,20 +355,20 @@ val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
 fun enter_term t (envS, envT, used) =
   (Term.add_term_tfrees (t, envS), add_frees (envT, t), Term.add_term_tfree_names (t, used));
 
-fun read_axm sg ((envS, envT, used), (name, s)) =
+fun read_axm thy ((envS, envT, used), (name, s)) =
   let
     fun def_sort (x, ~1) = assoc (envS, x)
       | def_sort _ = NONE;
     fun def_type (x, ~1) = assoc (envT, x)
       | def_type _ = NONE;
-    val (_, t) = Theory.read_def_axm (sg, def_type, def_sort) used (name, s);
+    val (_, t) = Theory.read_def_axm (thy, def_type, def_sort) used (name, s);
   in
     (enter_term t (envS, envT, used), t)
   end;
 
 
-fun cert_axm sg ((envS, envT, used), (name, raw_t)) =
-  let val (_, t) = Theory.cert_axm sg (name, raw_t)
+fun cert_axm thy ((envS, envT, used), (name, raw_t)) =
+  let val (_, t) = Theory.cert_axm thy (name, raw_t)
   in (enter_term t (envS, envT, used), t) end;
 
 
@@ -386,8 +376,8 @@ fun cert_axm sg ((envS, envT, used), (name, raw_t)) =
    that already exist for subterms. If no locale is open, this function is equal to
    Thm.read_cterm  *)
 
-fun read_cterm sign =
-    let val cur_sc = get_scope_sg sign;
+fun read_cterm thy =
+    let val cur_sc = get_scope thy;
         val defaults = map (#defaults o snd) cur_sc;
         val envS = List.concat (map #1 defaults);
         val envT = List.concat (map #2 defaults);
@@ -396,15 +386,15 @@ fun read_cterm sign =
           | def_sort _ = NONE;
         fun def_type (x, ~1) = assoc (envT, x)
           | def_type _ = NONE;
-    in (if (is_open_loc_sg sign)
-        then (#1 o read_def_cterm (sign, def_type, def_sort) used true)
-        else Thm.read_cterm sign)
+    in (if (is_open_loc thy)
+        then (#1 o read_def_cterm (thy, def_type, def_sort) used true)
+        else Thm.read_cterm thy)
     end;
 
 (* basic functions needed for definitions and display *)
 (* collect all locale constants of a scope, i.e. a list of locales *)
-fun collect_consts sg =
-    let val cur_sc = get_scope_sg sg;
+fun collect_consts thy =
+    let val cur_sc = get_scope thy;
         val locale_list = map snd cur_sc;
         val const_list = List.concat (map #consts locale_list)
     in map fst const_list end;
@@ -447,7 +437,7 @@ fun abs_over_free clist ((defaults: (string * sort) list * (string * typ) list *
 
 (* assume a definition, i.e assume the cterm of a definiton term and then eliminate
    the binding !!, so that the def can be applied as rewrite. The meta hyp will still contain !! *)
-fun prep_hyps clist sg = forall_elim_vars(0) o Thm.assume o (Thm.cterm_of sg);
+fun prep_hyps clist thy = forall_elim_vars(0) o Thm.assume o (Thm.cterm_of thy);
 
 
 (* concrete syntax *)
@@ -460,21 +450,20 @@ fun mk_loc_tr c ts = list_comb (Free (c, dummyT), ts);
 (* add_locale *)
 
 fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_defs thy =
-  let val sign = Theory.sign_of thy;
+  let
+    val name = Sign.full_name thy bname;
 
-    val name = Sign.full_name sign bname;
-
-    val (envSb, old_loc_consts, _) = 
+    val (envSb, old_loc_consts, _) =
                     case bancestor of
                        SOME(loc) => (get_defaults thy loc)
                      | NONE      => ([],[],[]);
 
-    val old_nosyn = case bancestor of 
+    val old_nosyn = case bancestor of
                        SOME(loc) => #nosyn(#2(the_locale thy loc))
                      | NONE      => [];
 
     (* Get the full name of the ancestor *)
-    val ancestor = case bancestor of 
+    val ancestor = case bancestor of
                        SOME(loc) => SOME(#1(the_locale thy loc))
                      | NONE      => NONE;
 
@@ -485,7 +474,7 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
         val c = Syntax.const_name raw_c raw_mx;
         val c_syn = mark_syn c;
         val mx = Syntax.fix_mixfix raw_c raw_mx;
-        val (envS', T) = prep_typ sign (envS, raw_T) handle ERROR =>
+        val (envS', T) = prep_typ thy (envS, raw_T) handle ERROR =>
           error ("The error(s) above occured in locale constant " ^ quote c);
         val trfun = if mx = Syntax.NoSyn then NONE else SOME (c_syn, mk_loc_tr c);
       in (envS', ((c, T), (c_syn, T, mx), trfun)) end;
@@ -505,38 +494,36 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
       |> Theory.add_modesyntax_i Syntax.default_mode loc_syn
       |> Theory.add_trfuns ([], loc_trfuns, [], []);
 
-    val syntax_sign = Theory.sign_of syntax_thy;
-
 
     (* prepare rules and defs *)
 
     fun prep_axiom (env, (a, raw_t)) =
       let
-        val (env', t) = prep_term syntax_sign (env, (a, raw_t)) handle ERROR =>
+        val (env', t) = prep_term syntax_thy (env, (a, raw_t)) handle ERROR =>
           error ("The error(s) above occured in locale rule / definition " ^ quote a);
       in (env', (a, t)) end;
 
     val ((envS1, envT1, used1), loc_rules) =
       foldl_map prep_axiom ((envS0, loc_consts, map fst envS0), raw_rules);
-    val (defaults, loc_defs) = 
-	foldl_map prep_axiom ((envS1, envT1, used1), raw_defs);
+    val (defaults, loc_defs) =
+        foldl_map prep_axiom ((envS1, envT1, used1), raw_defs);
 
-    val old_loc_consts = collect_consts syntax_sign;
+    val old_loc_consts = collect_consts syntax_thy;
     val new_loc_consts = (map #1 loc_consts);
     val all_loc_consts = old_loc_consts @ new_loc_consts;
 
-    val (defaults, loc_defs_terms) = 
-	foldl_map (abs_over_free all_loc_consts) (defaults, loc_defs);
-    val loc_defs_thms = 
-	map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) loc_defs_terms;
-    val (defaults, loc_thms_terms) = 
-	foldl_map (abs_over_free all_loc_consts) (defaults, loc_rules);
-    val loc_thms = map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign))
-		       (loc_thms_terms)
+    val (defaults, loc_defs_terms) =
+        foldl_map (abs_over_free all_loc_consts) (defaults, loc_defs);
+    val loc_defs_thms =
+        map (apsnd (prep_hyps (map #1 loc_consts) syntax_thy)) loc_defs_terms;
+    val (defaults, loc_thms_terms) =
+        foldl_map (abs_over_free all_loc_consts) (defaults, loc_rules);
+    val loc_thms = map (apsnd (prep_hyps (map #1 loc_consts) syntax_thy))
+                       (loc_thms_terms)
                    @ loc_defs_thms;
 
 
-    (* error messages *) 
+    (* error messages *)
 
     fun locale_error msg = error (msg ^ "\nFor locale " ^ quote name);
 
@@ -544,31 +531,31 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
       if is_none (get_locale thy name) then []
       else ["Duplicate definition of locale " ^ quote name];
 
-    (* check if definientes are locale constants 
+    (* check if definientes are locale constants
        (in the same locale, so no redefining!) *)
     val err_def_head =
-      let fun peal_appl t = 
-            case t of 
+      let fun peal_appl t =
+            case t of
                  t1 $ t2 => peal_appl t1
                | Free(t) => t
                | _ => locale_error ("Bad form of LHS in locale definition");
-	  fun lhs (_, Const ("==" , _) $  d1 $ d2) = peal_appl d1
-	    | lhs _ = locale_error ("Definitions must use the == relation");
+          fun lhs (_, Const ("==" , _) $  d1 $ d2) = peal_appl d1
+            | lhs _ = locale_error ("Definitions must use the == relation");
           val defs = map lhs loc_defs;
           val check = defs subset loc_consts
-      in if check then [] 
+      in if check then []
          else ["defined item not declared fixed in locale " ^ quote name]
-      end; 
+      end;
 
     (* check that variables on rhs of definitions are either fixed or on lhs *)
-    val err_var_rhs = 
-      let fun compare_var_sides (t, (_, Const ("==", _) $ d1 $ d2)) = 
-		let val varl1 = difflist d1 all_loc_consts;
-		    val varl2 = difflist d2 all_loc_consts
-		in t andalso (varl2 subset varl1)
-		end
-            | compare_var_sides (_,_) = 
-		locale_error ("Definitions must use the == relation")
+    val err_var_rhs =
+      let fun compare_var_sides (t, (_, Const ("==", _) $ d1 $ d2)) =
+                let val varl1 = difflist d1 all_loc_consts;
+                    val varl2 = difflist d2 all_loc_consts
+                in t andalso (varl2 subset varl1)
+                end
+            | compare_var_sides (_,_) =
+                locale_error ("Definitions must use the == relation")
           val check = Library.foldl compare_var_sides (true, loc_defs)
       in if check then []
          else ["nonfixed variable on right hand side of a locale definition in locale " ^ quote name]
@@ -580,8 +567,8 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
     else error (cat_lines errs);
 
     syntax_thy
-    |> put_locale (name, 
-		   make_locale ancestor loc_consts nosyn loc_thms_terms 
+    |> put_locale (name,
+                   make_locale ancestor loc_consts nosyn loc_thms_terms
                                         loc_defs_terms   loc_thms defaults)
   end;
 
@@ -612,14 +599,14 @@ fun const_ssubst_list [] t = t
   | const_ssubst_list (s :: l) t = const_ssubst_list l (const_ssubst t s);
 
 (* pretty_term *)
-fun pretty_term sign =
-    if (is_open_loc_sg sign) then
-        let val locale_list = map snd(get_scope_sg sign);
+fun pretty_term thy =
+    if (is_open_loc thy) then
+        let val locale_list = map snd(get_scope thy);
             val nosyn = List.concat (map #nosyn locale_list);
-            val str_list = (collect_consts sign) \\ nosyn
-        in Sign.pretty_term sign o (const_ssubst_list str_list)
+            val str_list = (collect_consts thy) \\ nosyn
+        in Sign.pretty_term thy o (const_ssubst_list str_list)
         end
-    else Sign.pretty_term sign;
+    else Sign.pretty_term thy;
 
 
 
@@ -644,10 +631,9 @@ fun premises() = !curr_prems;
 fun init_mkresult _ = error "No goal has been supplied in subgoal module";
 val curr_mkresult = ref (init_mkresult: bool*thm->thm);
 
-val dummy = trivial(read_cterm (Theory.sign_of ProtoPure.thy)
-    ("PROP No_goal_has_been_supplied",propT));
+val dummy = Thm.trivial (read_cterm ProtoPure.thy ("PROP No_goal_has_been_supplied", propT));
 
-(*List of previous goal stacks, for the undo operation.  Set by setstate. 
+(*List of previous goal stacks, for the undo operation.  Set by setstate.
   A list of lists!*)
 val undo_list = ref([[(dummy, Seq.empty)]] : gstack list);
 
@@ -662,9 +648,9 @@ fun reset_goals () =
 
 (*** Setting up goal-directed proof ***)
 
-(*Generates the list of new theories when the proof state's signature changes*)
-fun sign_error (sign,sign') =
-  let val names = Sign.stamp_names_of sign' \\ Sign.stamp_names_of sign
+(*Generates the list of new theories when the proof state's theory changes*)
+fun thy_error (thy,thy') =
+  let val names = Context.names_of thy' \\ Context.names_of thy
   in  case names of
         [name] => "\nNew theory: " ^ name
       | _       => "\nNew theories: " ^ space_implode ", " names
@@ -689,23 +675,22 @@ fun varify th =
   end;
 
 (** exporting a theorem out of a locale means turning all meta-hyps into assumptions
-    and expand and cancel the locale definitions. 
+    and expand and cancel the locale definitions.
     export goes through all levels in case of nested locales, whereas
     export_thy just goes one up. **)
 
-fun get_top_scope_thms thy = 
-   let val sc = (get_scope_sg (Theory.sign_of thy))
-   in if (null sc) then (warning "No locale in theory"; [])
+fun get_top_scope_thms thy =
+   let val sc = get_scope thy
+   in if null sc then (warning "No locale in theory"; [])
       else map Thm.prop_of (map #2 (#thms(snd(hd sc))))
    end;
 
-fun implies_intr_some_hyps thy A_set th = 
-   let 
-       val sign = Theory.sign_of thy;
+fun implies_intr_some_hyps thy A_set th =
+   let
        val used_As = A_set inter #hyps(rep_thm(th));
-       val ctl = map (cterm_of sign) used_As
+       val ctl = map (cterm_of thy) used_As
    in Library.foldl (fn (x, y) => Thm.implies_intr y x) (th, ctl)
-   end; 
+   end;
 
 fun standard_some thy A_set th =
   let val {maxidx,...} = rep_thm th
@@ -716,7 +701,7 @@ fun standard_some thy A_set th =
        |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
-fun export_thy thy th = 
+fun export_thy thy th =
   let val A_set = get_top_scope_thms thy
   in
      standard_some thy [] (Seq.hd ((REPEAT (FIRSTGOAL (rtac reflexive_thm))) (standard_some thy A_set th)))
@@ -733,107 +718,106 @@ fun Export th = export_thy (the_context ()) th;
   "Goal::prop=>prop" to avoid assumptions being returned separately.
 *)
 fun prepare_proof atomic rths chorn =
-  let val {sign, t=horn,...} = rep_cterm chorn;
+  let val {thy, t=horn,...} = rep_cterm chorn;
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (As, B) = Logic.strip_horn horn;
       val atoms = atomic andalso
             forall (fn t => not(Logic.is_implies t orelse Logic.is_all t)) As;
       val (As,B) = if atoms then ([],horn) else (As,B);
-      val cAs = map (cterm_of sign) As;
+      val cAs = map (cterm_of thy) As;
       val prems = map (rewrite_rule rths o forall_elim_vars 0 o Thm.assume) cAs;
-      val cB = cterm_of sign B;
+      val cB = cterm_of thy B;
       val st0 = let val st = Drule.impose_hyps cAs (Drule.mk_triv_goal cB)
                 in  rewrite_goals_rule rths st end
       (*discharges assumptions from state in the order they appear in goal;
-	checks (if requested) that resulting theorem is equivalent to goal. *)
+        checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
         let val state = Seq.hd (flexflex_rule state)
-	    		handle THM _ => state   (*smash flexflex pairs*)
-	    val ngoals = nprems_of state
+                        handle THM _ => state   (*smash flexflex pairs*)
+            val ngoals = nprems_of state
             val ath = implies_intr_list cAs state
             val th = ath RS Drule.rev_triv_goal
-            val {hyps,prop,sign=sign',...} = rep_thm th
+            val {hyps,prop,thy=thy',...} = rep_thm th
             val final_th = if (null(hyps)) then standard th else varify th
         in  if not check then final_th
-	    else if not (Sign.eq_sg(sign,sign')) then !result_error_fn state
-		("Signature of proof state has changed!" ^
-		 sign_error (sign,sign'))
+            else if not (eq_thy(thy,thy')) then !result_error_fn state
+                ("Theory of proof state has changed!" ^
+                 thy_error (thy,thy'))
             else if ngoals>0 then !result_error_fn state
-		(string_of_int ngoals ^ " unsolved goals!")
-            else if (not (null hyps) andalso (not (in_locale hyps sign)))
-		 then !result_error_fn state
-                  ("Additional hypotheses:\n" ^ 
-		   cat_lines 
-		    (map (Sign.string_of_term sign) 
-		     (List.filter (fn x => (not (in_locale [x] sign))) 
-		      hyps)))
-	    else if Pattern.matches (Sign.tsig_of sign)
-			            (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
-		 then final_th
-	    else  !result_error_fn state "proved a different theorem"
+                (string_of_int ngoals ^ " unsolved goals!")
+            else if (not (null hyps) andalso (not (in_locale hyps thy)))
+                 then !result_error_fn state
+                  ("Additional hypotheses:\n" ^
+                   cat_lines
+                    (map (Sign.string_of_term thy)
+                     (List.filter (fn x => (not (in_locale [x] thy)))
+                      hyps)))
+            else if Pattern.matches (Sign.tsig_of thy)
+                                    (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
+                 then final_th
+            else  !result_error_fn state "proved a different theorem"
         end
   in
-     if Sign.eq_sg(sign, Thm.sign_of_thm st0)
+     if eq_thy(thy, Thm.theory_of_thm st0)
      then (prems, st0, mkresult)
-     else error ("Definitions would change the proof state's signature" ^
-		 sign_error (sign, Thm.sign_of_thm st0))
+     else error ("Definitions would change the proof state's theory" ^
+                 thy_error (thy, Thm.theory_of_thm st0))
   end
   handle THM(s,_,_) => error("prepare_proof: exception THM was raised!\n" ^ s);
 
 (*Prints exceptions readably to users*)
-fun print_sign_exn_unit sign e = 
+fun print_sign_exn_unit thy e =
   case e of
      THM (msg,i,thms) =>
-	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-	  List.app print_thm thms)
+         (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
+          List.app print_thm thms)
    | THEORY (msg,thys) =>
-	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  List.app (Pretty.writeln o Display.pretty_theory) thys)
+         (writeln ("Exception THEORY raised:\n" ^ msg);
+          List.app (writeln o Context.str_of_thy) thys)
    | TERM (msg,ts) =>
-	 (writeln ("Exception TERM raised:\n" ^ msg);
-	  List.app (writeln o Sign.string_of_term sign) ts)
+         (writeln ("Exception TERM raised:\n" ^ msg);
+          List.app (writeln o Sign.string_of_term thy) ts)
    | TYPE (msg,Ts,ts) =>
-	 (writeln ("Exception TYPE raised:\n" ^ msg);
-	  List.app (writeln o Sign.string_of_typ sign) Ts;
-	  List.app (writeln o Sign.string_of_term sign) ts)
+         (writeln ("Exception TYPE raised:\n" ^ msg);
+          List.app (writeln o Sign.string_of_typ thy) Ts;
+          List.app (writeln o Sign.string_of_term thy) ts)
    | e => raise e;
 
 (*Prints an exception, then fails*)
-fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise ERROR);
+fun print_sign_exn thy e = (print_sign_exn_unit thy e; raise ERROR);
 
 (** the prove_goal.... commands
     Prove theorem using the listed tactics; check it has the specified form.
-    Augment signature with all type assignments of goal.
+    Augment theory with all type assignments of goal.
     Syntax is similar to "goal" command for easy keyboard use. **)
 
 (*Version taking the goal as a cterm*)
 fun prove_goalw_cterm_general check rths chorn tacsf =
   let val (prems, st0, mkresult) = prepare_proof false rths chorn
       val tac = EVERY (tacsf prems)
-      fun statef() = 
-	  (case Seq.pull (tac st0) of 
-	       SOME(st,_) => st
-	     | _ => error ("prove_goal: tactic failed"))
+      fun statef() =
+          (case Seq.pull (tac st0) of
+               SOME(st,_) => st
+             | _ => error ("prove_goal: tactic failed"))
   in  mkresult (check, cond_timeit (!Output.timing) statef)  end
-  handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
-	       writeln ("The exception above was raised for\n" ^ 
-		      Display.string_of_cterm chorn); raise e);
+  handle e => (print_sign_exn_unit (#thy (rep_cterm chorn)) e;
+               writeln ("The exception above was raised for\n" ^
+                      Display.string_of_cterm chorn); raise e);
 
-(*Two variants: one checking the result, one not.  
+(*Two variants: one checking the result, one not.
   Neither prints runtime messages: they are for internal packages.*)
-fun prove_goalw_cterm rths chorn = 
-	setmp Output.timing false (prove_goalw_cterm_general true rths chorn)
-and prove_goalw_cterm_nocheck rths chorn = 
-	setmp Output.timing false (prove_goalw_cterm_general false rths chorn);
+fun prove_goalw_cterm rths chorn =
+        setmp Output.timing false (prove_goalw_cterm_general true rths chorn)
+and prove_goalw_cterm_nocheck rths chorn =
+        setmp Output.timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
-  let val sign = Theory.sign_of thy
-      val chorn = read_cterm sign (agoal,propT)
-  in  prove_goalw_cterm_general true rths chorn tacsf end
+  let val chorn = read_cterm thy (agoal, propT)
+  in prove_goalw_cterm_general true rths chorn tacsf end
   handle ERROR => error (*from read_cterm?*)
-		("The error(s) above occurred for " ^ quote agoal);
+                ("The error(s) above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
@@ -847,7 +831,7 @@ fun quick_and_dirty_prove_goalw_cterm thy rews ct tacs =
 (*** Commands etc ***)
 
 (*Return the current goal stack, if any, from undo_list*)
-fun getstate() : gstack = case !undo_list of 
+fun getstate() : gstack = case !undo_list of
       []   => error"No current state in subgoal module"
     | x::_ => x;
 
@@ -868,7 +852,7 @@ fun print_top ((th, _), pairs) =
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Seq.empty)]  to set st as the state.  *)
-fun setstate newgoals = 
+fun setstate newgoals =
   (print_top (pop newgoals);  undo_list := newgoals :: !undo_list);
 
 (*Given a proof state transformation, return a command that updates
@@ -895,7 +879,7 @@ fun getgoal i = Logic.get_goal (prop_of (topthm())) i;
   For debugging uses of METAHYPS*)
 local exception GETHYPS of thm list
 in
-fun gethyps i = 
+fun gethyps i =
     (METAHYPS (fn hyps => raise (GETHYPS hyps)) i (topthm());  [])
     handle GETHYPS hyps => hyps
 end;
@@ -904,14 +888,14 @@ end;
 fun filter_goal could ths i = filter_thms could (999, getgoal i, ths);
 
 (*For inspecting earlier levels of the backward proof*)
-fun chop_level n (pair,pairs) = 
+fun chop_level n (pair,pairs) =
   let val level = length pairs
   in  if n<0 andalso ~n <= level
-      then  List.drop (pair::pairs, ~n) 
+      then  List.drop (pair::pairs, ~n)
       else if 0<=n andalso n<= level
-      then  List.drop (pair::pairs, level - n) 
-      else  error ("Level number must lie between 0 and " ^ 
-		   string_of_int level)
+      then  List.drop (pair::pairs, level - n)
+      else  error ("Level number must lie between 0 and " ^
+                   string_of_int level)
   end;
 
 (*Print the given level of the proof; prlev ~1 prints previous level*)
@@ -922,15 +906,15 @@ fun pr () = (enable_pr (); apply_fun print_top);
 fun prlim n = (goals_limit:=n; pr());
 
 (** the goal.... commands
-    Read main goal.  Set global variables curr_prems, curr_mkresult. 
+    Read main goal.  Set global variables curr_prems, curr_mkresult.
     Initial subgoal and premises are rewritten using rths. **)
 
 (*Version taking the goal as a cterm; if you have a term t and theory thy, use
-    goalw_cterm rths (cterm_of (Theory.sign_of thy) t);      *)
-fun agoalw_cterm atomic rths chorn = 
+    goalw_cterm rths (cterm_of thy t);      *)
+fun agoalw_cterm atomic rths chorn =
   let val (prems, st0, mkresult) = prepare_proof atomic rths chorn
   in  undo_list := [];
-      setstate [ (st0, Seq.empty) ];  
+      setstate [ (st0, Seq.empty) ];
       curr_prems := prems;
       curr_mkresult := mkresult;
       prems
@@ -939,10 +923,10 @@ fun agoalw_cterm atomic rths chorn =
 val goalw_cterm = agoalw_cterm false;
 
 (*Version taking the goal as a string*)
-fun agoalw atomic thy rths agoal = 
-    agoalw_cterm atomic rths (read_cterm(Theory.sign_of thy)(agoal,propT))
+fun agoalw atomic thy rths agoal =
+    agoalw_cterm atomic rths (read_cterm thy (agoal, propT))
     handle ERROR => error (*from type_assign, etc via prepare_proof*)
-	("The error(s) above occurred for " ^ quote agoal);
+        ("The error(s) above occurred for " ^ quote agoal);
 
 val goalw = agoalw false;
 
@@ -978,15 +962,15 @@ fun simple_prove_goal_cterm G f =
 fun by_com tac ((th,ths), pairs) : gstack =
   (case  Seq.pull(tac th)  of
      NONE      => error"by: tactic failed"
-   | SOME(th2,ths2) => 
-       (if eq_thm(th,th2) 
-	  then warning "Warning: same as previous level"
-	  else if eq_thm_sg(th,th2) then ()
-	  else warning ("Warning: signature of proof state has changed" ^
-		       sign_error (Thm.sign_of_thm th, Thm.sign_of_thm th2));
+   | SOME(th2,ths2) =>
+       (if eq_thm(th,th2)
+          then warning "Warning: same as previous level"
+          else if eq_thm_thy(th,th2) then ()
+          else warning ("Warning: theory of proof state has changed" ^
+                       thy_error (Thm.theory_of_thm th, Thm.theory_of_thm th2));
        ((th2,ths2)::(th,ths)::pairs)));
 
-fun by tac = cond_timeit (!Output.timing) 
+fun by tac = cond_timeit (!Output.timing)
     (fn() => make_command (by_com tac));
 
 (* byev[tac1,...,tacn] applies tac1 THEN ... THEN tacn.
@@ -999,13 +983,13 @@ val byev = by o EVERY;
 fun backtrack [] = error"back: no alternatives"
   | backtrack ((th,thstr) :: pairs) =
      (case Seq.pull thstr of
-	  NONE      => (writeln"Going back a level..."; backtrack pairs)
-	| SOME(th2,thstr2) =>  
-	   (if eq_thm(th,th2) 
-	      then warning "Warning: same as previous choice at this level"
-	      else if eq_thm_sg(th,th2) then ()
-	      else warning "Warning: signature of proof state has changed";
-	    (th2,thstr2)::pairs));
+          NONE      => (writeln"Going back a level..."; backtrack pairs)
+        | SOME(th2,thstr2) =>
+           (if eq_thm(th,th2)
+              then warning "Warning: same as previous choice at this level"
+              else if eq_thm_thy(th,th2) then ()
+              else warning "Warning: theory of proof state has changed";
+            (th2,thstr2)::pairs));
 
 fun back() = setstate (backtrack (getstate()));
 
@@ -1031,25 +1015,25 @@ fun restore_proof(Proof(ul,prems,mk)) =
 
 
 fun top_proof() = case !proofstack of
-	[] => error("Stack of proof attempts is empty!")
+        [] => error("Stack of proof attempts is empty!")
     | p::ps => (p,ps);
 
 (*  push a copy of the current proof state on to the stack *)
 fun push_proof() = (proofstack := (save_proof() :: !proofstack));
 
 (* discard the top proof state of the stack *)
-fun pop_proof() = 
+fun pop_proof() =
   let val (p,ps) = top_proof()
       val prems = restore_proof p
   in proofstack := ps;  pr();  prems end;
 
 (* rotate the stack so that the top element goes to the bottom *)
 fun rotate_proof() = let val (p,ps) = top_proof()
-		    in proofstack := ps@[save_proof()];
-		       restore_proof p;
-		       pr();
-		       !curr_prems
-		    end;
+                    in proofstack := ps@[save_proof()];
+                       restore_proof p;
+                       pr();
+                       !curr_prems
+                    end;
 
 
 (** Shortcuts for commonly-used tactics **)
@@ -1085,11 +1069,11 @@ fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 (** Reading and printing terms wrt the current theory **)
 
-fun top_sg() = Thm.sign_of_thm (topthm());
+fun top_sg() = Thm.theory_of_thm (topthm());
 
 fun read s = term_of (read_cterm (top_sg()) (s, TypeInfer.logicT));
 
-(*Print a term under the current signature of the proof state*)
+(*Print a term under the current theory of the proof state*)
 fun prin t = writeln (Sign.string_of_term (top_sg()) t);
 
 fun printyp T = writeln (Sign.string_of_typ (top_sg()) T);
@@ -1099,7 +1083,7 @@ fun pprint_term t = Sign.pprint_term (top_sg()) t;
 fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
 
 
-(*Prints exceptions nicely at top level; 
+(*Prints exceptions nicely at top level;
   raises the exception in order to have a polymorphic type!*)
 fun print_exn e = (print_sign_exn_unit (top_sg()) e;  raise e);
 
@@ -1128,15 +1112,15 @@ fun no_qed () = ();
 
 (* retrieval *)
 
-fun theory_of_goal () = ThyInfo.theory_of_sign (Thm.sign_of_thm (topthm ()));
+fun theory_of_goal () = Thm.theory_of_thm (topthm ());
 val context_of_goal = ProofContext.init o theory_of_goal;
 
 fun thms_containing raw_consts =
   let
     val thy = theory_of_goal ();
-    val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
+    val consts = map (Sign.intern_const thy) raw_consts;
   in
-    (case List.filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
+    (case List.filter (is_none o Sign.const_type thy) consts of
       [] => ()
     | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
     PureThy.thms_containing_consts thy consts

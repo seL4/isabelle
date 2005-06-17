@@ -13,7 +13,7 @@ sig
   type exporter
   exception CONTEXT of string * context
   val theory_of: context -> theory
-  val sign_of: context -> Sign.sg
+  val sign_of: context -> theory    (*obsolete*)
   val is_fixed: context -> string -> bool
   val is_known: context -> string -> bool
   val fixed_names_of: context -> string list
@@ -198,7 +198,7 @@ fun map_context f (Context {thy, syntax, data, asms, binds, thms, cases, defs}) 
   make_context (f (thy, syntax, data, asms, binds, thms, cases, defs));
 
 fun theory_of (Context {thy, ...}) = thy;
-val sign_of = Theory.sign_of o theory_of;
+val sign_of = theory_of;
 fun syntax_of (Context {syntax, ...}) = syntax;
 
 fun fixes_of (Context {asms = (_, fixes), ...}) = fixes;
@@ -218,7 +218,7 @@ fun fact_index_of (Context {thms = (_, _, idx), ...}) = idx;
 
 (* errors *)
 
-fun of_theory thy = "\nof theory " ^ Sign.str_of_sg (Theory.sign_of thy);
+fun of_theory thy = "\nof theory " ^ Context.str_of_thy thy;
 
 fun err_inconsistent kinds =
   error ("Attempt to merge different versions of " ^ commas_quote kinds ^ " proof data");
@@ -240,20 +240,19 @@ fun err_access ctxt kind =
 
 (* data kind 'Isar/proof_data' *)
 
-structure ProofDataDataArgs =
-struct
+structure ProofDataData = TheoryDataFun
+(struct
   val name = "Isar/proof_data";
   type T = (Object.kind * ((theory -> Object.T) * (context -> Object.T -> unit))) Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  fun merge tabs = Symtab.merge (Object.eq_kind o pairself fst) tabs
+  val extend = I;
+  fun merge _ tabs = Symtab.merge (Object.eq_kind o pairself fst) tabs
     handle Symtab.DUPS kinds => err_inconsistent kinds;
   fun print _ tab = Pretty.writeln (Pretty.strs (map #1 (Symtab.dest tab)));
-end;
+end);
 
-structure ProofDataData = TheoryDataFun(ProofDataDataArgs);
 val _ = Context.add_setup [ProofDataData.init];
 val print_proof_data = ProofDataData.print;
 
@@ -304,7 +303,7 @@ fun put_data kind f x ctxt =
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
+    make_context (thy, (Sign.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
       (NameSpace.default_naming, NameSpace.empty_table, FactIndex.empty), [],
       (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
@@ -364,7 +363,7 @@ in
 fun add_syntax decls =
   map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
     let
-      val is_logtype = Sign.is_logtype (Theory.sign_of thy);
+      val is_logtype = Sign.is_logtype thy;
       val structs' = structs @ List.mapPartial prep_struct decls;
       val mxs = List.mapPartial prep_mixfix decls;
       val (fixed, mxs_output) = Library.split_list (List.mapPartial prep_mixfix' decls);
@@ -385,11 +384,11 @@ end;
 
 (** pretty printing **)
 
-fun pretty_term ctxt t = Sign.pretty_term' (syn_of ctxt) (sign_of ctxt) (context_tr' ctxt t);
-fun pretty_typ ctxt T = Sign.pretty_typ (sign_of ctxt) T;
-fun pretty_sort ctxt S = Sign.pretty_sort (sign_of ctxt) S;
-fun pretty_classrel ctxt cs = Sign.pretty_classrel (sign_of ctxt) cs;
-fun pretty_arity ctxt ar = Sign.pretty_arity (sign_of ctxt) ar;
+fun pretty_term ctxt t = Sign.pretty_term' (syn_of ctxt) (theory_of ctxt) (context_tr' ctxt t);
+fun pretty_typ ctxt T = Sign.pretty_typ (theory_of ctxt) T;
+fun pretty_sort ctxt S = Sign.pretty_sort (theory_of ctxt) S;
+fun pretty_classrel ctxt cs = Sign.pretty_classrel (theory_of ctxt) cs;
+fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
@@ -433,11 +432,11 @@ fun used_types (Context {defs = (_, _, used, _), ...}) = used;
 local
 
 fun read_typ_aux read ctxt s =
-  transform_error (read (syn_of ctxt) (sign_of ctxt, def_sort ctxt)) s
+  transform_error (read (syn_of ctxt) (theory_of ctxt, def_sort ctxt)) s
     handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
 fun cert_typ_aux cert ctxt raw_T =
-  cert (sign_of ctxt) raw_T
+  cert (theory_of ctxt) raw_T
     handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
 in
@@ -505,29 +504,29 @@ fun extern_skolem ctxt =
 
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
-fun read_def_termTs freeze pp syn sg (types, sorts, used) sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype sg) syn (sg, types, sorts) used freeze sTs;
+fun read_def_termTs freeze pp syn thy (types, sorts, used) sTs =
+  Sign.read_def_terms' pp (Sign.is_logtype thy) syn (thy, types, sorts) used freeze sTs;
 
-fun read_def_termT freeze pp syn sg defs sT =
-  apfst hd (read_def_termTs freeze pp syn sg defs [sT]);
+fun read_def_termT freeze pp syn thy defs sT =
+  apfst hd (read_def_termTs freeze pp syn thy defs [sT]);
 
-fun read_term_sg freeze pp syn sg defs s =
-  #1 (read_def_termT freeze pp syn sg defs (s, TypeInfer.logicT));
+fun read_term_thy freeze pp syn thy defs s =
+  #1 (read_def_termT freeze pp syn thy defs (s, TypeInfer.logicT));
 
-fun read_prop_sg freeze pp syn sg defs s =
-  #1 (read_def_termT freeze pp syn sg defs (s, propT));
+fun read_prop_thy freeze pp syn thy defs s =
+  #1 (read_def_termT freeze pp syn thy defs (s, propT));
 
-fun read_terms_sg freeze pp syn sg defs =
-  #1 o read_def_termTs freeze pp syn sg defs o map (rpair TypeInfer.logicT);
+fun read_terms_thy freeze pp syn thy defs =
+  #1 o read_def_termTs freeze pp syn thy defs o map (rpair TypeInfer.logicT);
 
-fun read_props_sg freeze pp syn sg defs =
-  #1 o read_def_termTs freeze pp syn sg defs o map (rpair propT);
+fun read_props_thy freeze pp syn thy defs =
+  #1 o read_def_termTs freeze pp syn thy defs o map (rpair propT);
 
 
-fun cert_term_sg pp sg t = #1 (Sign.certify_term pp sg t);
+fun cert_term_thy pp thy t = #1 (Sign.certify_term pp thy t);
 
-fun cert_prop_sg pp sg tm =
-  let val (t, T, _) = Sign.certify_term pp sg tm
+fun cert_prop_thy pp thy tm =
+  let val (t, T, _) = Sign.certify_term pp thy tm
   in if T = propT then t else raise TERM ("Term not of type prop", [t]) end;
 
 
@@ -538,7 +537,7 @@ fun cert_prop_sg pp sg tm =
 
 fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
-  in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
+  in #1 (Type.unify (Sign.tsig_of (theory_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
 
 fun norm_term (ctxt as Context {binds, ...}) schematic =
   let
@@ -588,7 +587,7 @@ fun gen_read' read app pattern schematic
     val sorts = append_env (def_sort ctxt) more_sorts;
     val used = used_types ctxt @ more_used;
   in
-    (transform_error (read (pp ctxt) (syn_of ctxt) (sign_of ctxt) (types, sorts, used)) s
+    (transform_error (read (pp ctxt) (syn_of ctxt) (theory_of ctxt) (types, sorts, used)) s
       handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
         | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
     |> app (intern_skolem ctxt internal)
@@ -609,13 +608,13 @@ fun read_term_pats T ctxt =
 val read_prop_pats = read_term_pats propT;
 
 fun read_term_liberal ctxt =
-  gen_read' (read_term_sg true) I false false ctxt (K true) (K NONE) (K NONE) [];
+  gen_read' (read_term_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
 
-val read_term              = gen_read (read_term_sg true) I false false;
-val read_prop              = gen_read (read_prop_sg true) I false false;
-val read_prop_schematic    = gen_read (read_prop_sg true) I false true;
-val read_terms             = gen_read (read_terms_sg true) map false false;
-fun read_props schematic   = gen_read (read_props_sg true) map false schematic;
+val read_term              = gen_read (read_term_thy true) I false false;
+val read_prop              = gen_read (read_prop_thy true) I false false;
+val read_prop_schematic    = gen_read (read_prop_thy true) I false true;
+val read_terms             = gen_read (read_terms_thy true) map false false;
+fun read_props schematic   = gen_read (read_props_thy true) map false schematic;
 
 end;
 
@@ -626,17 +625,17 @@ local
 
 fun gen_cert cert pattern schematic ctxt t = t
   |> (if pattern then I else norm_term ctxt schematic)
-  |> (fn t' => cert (pp ctxt) (sign_of ctxt) t'
+  |> (fn t' => cert (pp ctxt) (theory_of ctxt) t'
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
 in
 
-val cert_term = gen_cert cert_term_sg false false;
-val cert_prop = gen_cert cert_prop_sg false false;
-val cert_props = map oo gen_cert cert_prop_sg false;
+val cert_term = gen_cert cert_term_thy false false;
+val cert_prop = gen_cert cert_prop_thy false false;
+val cert_props = map oo gen_cert cert_prop_thy false;
 
-fun cert_term_pats _ = map o gen_cert cert_term_sg true false;
-val cert_prop_pats = map o gen_cert cert_prop_sg true false;
+fun cert_term_pats _ = map o gen_cert cert_term_thy true false;
+val cert_prop_pats = map o gen_cert cert_prop_thy true false;
 
 end;
 
@@ -693,13 +692,13 @@ end;
 
 fun read_tyname ctxt c =
   if c mem_string used_types ctxt then
-    TFree (c, if_none (def_sort ctxt (c, ~1)) (Sign.defaultS (sign_of ctxt)))
-  else Sign.read_tyname (sign_of ctxt) c;
+    TFree (c, if_none (def_sort ctxt (c, ~1)) (Sign.defaultS (theory_of ctxt)))
+  else Sign.read_tyname (theory_of ctxt) c;
 
 fun read_const ctxt c =
   (case lookup_skolem ctxt c of
     SOME c' => Free (c', dummyT)
-  | NONE => Sign.read_const (sign_of ctxt) c);
+  | NONE => Sign.read_const (theory_of ctxt) c);
 
 
 
@@ -774,8 +773,8 @@ fun export_view view is_goal inner outer =
     |> Seq.map (Drule.implies_intr_list view)
     |> Seq.map (fn rule =>
       let
-        val {sign, prop, ...} = Thm.rep_thm rule;
-        val frees = map (Thm.cterm_of sign) (List.mapPartial (find_free prop) fixes);
+        val {thy, prop, ...} = Thm.rep_thm rule;
+        val frees = map (Thm.cterm_of thy) (List.mapPartial (find_free prop) fixes);
         val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
         rule
@@ -852,7 +851,7 @@ fun simult_matches ctxt [] = []
 
         val maxidx = fold (fn (t1, t2) => fn i =>
           Int.max (Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2), i)) pairs ~1;
-        val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx,
+        val envs = Unify.smash_unifiers (theory_of ctxt, Envir.empty maxidx,
           map swap pairs);    (*prefer assignment of variables from patterns*)
         val env =
           (case Seq.pull envs of
@@ -882,7 +881,7 @@ fun drop_schematic (b as (xi, SOME t)) = if null (Term.term_vars t) then b else 
 val add_binds = fold (gen_bind read_term);
 val add_binds_i = fold (gen_bind cert_term);
 
-fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (sign_of ctxt) ts));
+fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (theory_of ctxt) ts));
 val auto_bind_goal = auto_bind AutoBind.goal;
 val auto_bind_facts = auto_bind AutoBind.facts;
 
@@ -977,12 +976,12 @@ end;
 (*beware of proper order of evaluation!*)
 fun retrieve_thms f g (ctxt as Context {thy, thms = (_, (space, tab), _), ...}) =
   let
-    val sg_ref = Sign.self_ref (Theory.sign_of thy);
+    val thy_ref = Theory.self_ref thy;
     val get_from_thy = f thy;
   in
     fn xnamei as (xname, _) =>
       (case Symtab.lookup (tab, NameSpace.intern space xname) of
-        SOME ths => map (Thm.transfer_sg (Sign.deref sg_ref)) (PureThy.select_thm xnamei ths)
+        SOME ths => map (Thm.transfer (Theory.deref thy_ref)) (PureThy.select_thm xnamei ths)
       | _ => get_from_thy xnamei) |> g xname
   end;
 
@@ -1116,7 +1115,7 @@ fun cert_def ctxt eq =
 
 fun head_of_def cprop =
   #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
-  |> Thm.cterm_of (Thm.sign_of_cterm cprop);
+  |> Thm.cterm_of (Thm.theory_of_cterm cprop);
 
 fun export_def _ cprops thm =
   thm
@@ -1132,7 +1131,7 @@ local
 
 fun add_assm (ctxt, ((name, attrs), props)) =
   let
-    val cprops = map (Thm.cterm_of (sign_of ctxt)) props;
+    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
     val asms = map (Tactic.norm_hhf_rule o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
@@ -1438,7 +1437,7 @@ fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}
 
     (*theory*)
     val pretty_thy = Pretty.block
-      [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg (sign_of ctxt)];
+      [Pretty.str "Theory:", Pretty.brk 1, Context.pretty_thy (theory_of ctxt)];
 
     (*defaults*)
     fun prt_atom prt prtT (x, X) = Pretty.block

@@ -11,7 +11,7 @@ cut_lin_arith_tac: thms -> int -> tactic
 
 and a simplification procedure
 
-    lin_arith_prover: Sign.sg -> simpset -> term -> thm option
+    lin_arith_prover: theory -> simpset -> term -> thm option
 
 Only take premises and conclusions into account that are already (negated)
 (in)equations. lin_arith_prover tries to prove or disprove the term.
@@ -34,7 +34,7 @@ sig
   val neg_prop: term -> term
   val is_False: thm -> bool
   val is_nat: typ list * term -> bool
-  val mk_nat_thm: Sign.sg -> term -> thm
+  val mk_nat_thm: theory -> term -> thm
 end;
 (*
 mk_Eq(~in) = `in == False'
@@ -52,7 +52,7 @@ mk_nat_thm(t) = "0 <= t"
 signature LIN_ARITH_DATA =
 sig
   val decomp:
-    Sign.sg -> term -> ((term*rat)list * rat * string * (term*rat)list * rat * bool)option
+    theory -> term -> ((term*rat)list * rat * string * (term*rat)list * rat * bool)option
   val number_of: IntInf.int * typ -> term
 end;
 (*
@@ -77,7 +77,7 @@ sig
                 -> theory -> theory
   val trace           : bool ref
   val fast_arith_neq_limit: int ref
-  val lin_arith_prover: Sign.sg -> simpset -> term -> thm option
+  val lin_arith_prover: theory -> simpset -> term -> thm option
   val     lin_arith_tac:     bool -> int -> tactic
   val cut_lin_arith_tac: thm list -> int -> tactic
 end;
@@ -91,8 +91,8 @@ struct
 
 (* data kind 'Provers/fast_lin_arith' *)
 
-structure DataArgs =
-struct
+structure Data = TheoryDataFun
+(struct
   val name = "Provers/fast_lin_arith";
   type T = {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
             lessD: thm list, neqE: thm list, simpset: Simplifier.simpset};
@@ -100,12 +100,13 @@ struct
   val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
                lessD = [], neqE = [], simpset = Simplifier.empty_ss};
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun merge ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
-              lessD = lessD1, neqE=neqE1, simpset = simpset1},
-             {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
-              lessD = lessD2, neqE=neqE2, simpset = simpset2}) =
+  fun merge _
+    ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
+      lessD = lessD1, neqE=neqE1, simpset = simpset1},
+     {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
+      lessD = lessD2, neqE=neqE2, simpset = simpset2}) =
     {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
      mult_mono_thms = Drule.merge_rules (mult_mono_thms1, mult_mono_thms2),
      inj_thms = Drule.merge_rules (inj_thms1, inj_thms2),
@@ -114,9 +115,8 @@ struct
      simpset = Simplifier.merge_ss (simpset1, simpset2)};
 
   fun print _ _ = ();
-end;
+end);
 
-structure Data = TheoryDataFun(DataArgs);
 val map_data = Data.map;
 val setup = [Data.init];
 
@@ -420,7 +420,7 @@ local
 in
 fun mkthm sg asms just =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} =
-          Data.get_sg sg;
+          Data.get sg;
       val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], List.mapPartial (fn thm => if Thm.no_prems thm
@@ -625,7 +625,7 @@ fun refute sg ps ex items = refutes sg ps ex (split_items items) [];
 fun refute_tac(i,justs) =
   fn state =>
     let val sg = #sign(rep_thm state)
-        val {neqE, ...} = Data.get_sg sg;
+        val {neqE, ...} = Data.get sg;
         fun just1 j = REPEAT_DETERM(eresolve_tac neqE i) THEN
                       METAHYPS (fn asms => rtac (mkthm sg asms j) 1) i
     in DETERM(resolve_tac [LA_Logic.notI,LA_Logic.ccontr] i) THEN
@@ -691,7 +691,7 @@ let val (Il,r) = Thm.dest_comb imp
 in (ct1,ct2) end;
 
 fun splitasms sg asms =
-let val {neqE, ...}  = Data.get_sg sg;
+let val {neqE, ...}  = Data.get sg;
     fun split(asms',[]) = Tip(rev asms')
       | split(asms',asm::asms) =
       (case get_first (fn th => SOME(asm COMP th) handle THM _ => NONE) neqE

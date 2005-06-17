@@ -168,32 +168,27 @@ fun best_tac pack  =
 
 
 
-structure ProverArgs =
-  struct
+structure ProverData = TheoryDataFun
+(struct
   val name = "Sequents/prover";
   type T = pack ref;
   val empty = ref empty_pack
   fun copy (ref pack) = ref pack;
-  val prep_ext = copy;
-  fun merge (ref pack1, ref pack2) = ref (merge_pack (pack1, pack2));
+  val extend = copy;
+  fun merge _ (ref pack1, ref pack2) = ref (merge_pack (pack1, pack2));
   fun print _ (ref pack) = print_pack pack;
-  end;
-
-structure ProverData = TheoryDataFun(ProverArgs);
+end);
 
 val prover_setup = [ProverData.init];
 
 val print_pack = ProverData.print;
-val pack_ref_of_sg = ProverData.get_sg;
 val pack_ref_of = ProverData.get;
 
 (* access global pack *)
 
-val pack_of_sg = ! o pack_ref_of_sg;
-val pack_of = pack_of_sg o sign_of;
-
+val pack_of = ! o pack_ref_of;
 val pack = pack_of o Context.the_context;
-val pack_ref = pack_ref_of_sg o sign_of o Context.the_context;
+val pack_ref = pack_ref_of o Context.the_context;
 
 
 (* change global pack *)

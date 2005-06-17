@@ -44,8 +44,8 @@ sig
   type element
   type element_i
   type locale
-  val intern: Sign.sg -> xstring -> string
-  val extern: Sign.sg -> string -> xstring
+  val intern: theory -> xstring -> string
+  val extern: theory -> string -> xstring
   val the_locale: theory -> string -> locale
   val intern_attrib_elem: theory ->
     ('typ, 'term, 'fact) elem -> ('typ, 'term, 'fact) elem
@@ -161,11 +161,11 @@ fun tinst_tab_term tinst t = if Symtab.is_empty tinst
       then t
       else Term.map_term_types (tinst_tab_type tinst) t;
 
-fun tinst_tab_thm sg tinst thm = if Symtab.is_empty tinst
+fun tinst_tab_thm thy tinst thm = if Symtab.is_empty tinst
       then thm
       else let
-          val cert = Thm.cterm_of sg;
-          val certT = Thm.ctyp_of sg;
+          val cert = Thm.cterm_of thy;
+          val certT = Thm.ctyp_of thy;
           val {hyps, prop, ...} = Thm.rep_thm thm;
           val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
           val tinst' = Symtab.dest tinst |>
@@ -198,11 +198,11 @@ fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
             | instf (s $ t) = instf s $ instf t
         in instf end;
 
-fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
-      then tinst_tab_thm sg tinst thm
+fun inst_tab_thm thy (inst, tinst) thm = if Symtab.is_empty inst
+      then tinst_tab_thm thy tinst thm
       else let
-          val cert = Thm.cterm_of sg;
-          val certT = Thm.ctyp_of sg;
+          val cert = Thm.cterm_of thy;
+          val certT = Thm.ctyp_of thy;
           val {hyps, prop, ...} = Thm.rep_thm thm;
           (* type instantiations *)
           val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
@@ -218,7 +218,7 @@ fun inst_tab_thm sg (inst, tinst) thm = if Symtab.is_empty inst
                     if a = x then SOME (Free (x, tinst_tab_type tinst T), t)
                     else NONE) frees);
         in
-          if null tinst' andalso null inst' then tinst_tab_thm sg tinst thm
+          if null tinst' andalso null inst' then tinst_tab_thm thy tinst thm
           else thm |> Drule.implies_intr_list (map cert hyps)
             |> Drule.tvars_intr_list (map #1 tinst')
             |> (fn (th, al) => th |> Thm.instantiate
@@ -239,9 +239,9 @@ structure Registrations :
     val empty: T
     val join: T * T -> T
     val dest: T -> (term list * ((string * Attrib.src list) * thm list)) list
-    val lookup: Sign.sg -> T * term list ->
+    val lookup: theory -> T * term list ->
       ((string * Attrib.src list) * thm list) option
-    val insert: Sign.sg -> term list * (string * Attrib.src list) -> T ->
+    val insert: theory -> term list * (string * Attrib.src list) -> T ->
       T * (term list * ((string * Attrib.src list) * thm list)) list
     val add_witness: term list -> thm -> T -> T
   end =
@@ -262,7 +262,7 @@ struct
 
   (* joining of registrations: prefix and attributs of left theory,
      thms are equal, no attempt to subsumption testing *)
-  fun join (r1, r2) = Termtab.join (fn (reg, _) => SOME reg) (r1, r2);
+  fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => SOME reg) (r1, r2);
 
   fun dest regs = map (apfst untermify) (Termtab.dest regs);
 
@@ -321,8 +321,8 @@ end;
 
 (** theory data **)
 
-structure GlobalLocalesArgs =
-struct
+structure GlobalLocalesData = TheoryDataFun
+(struct
   val name = "Isar/locales";
   type T = NameSpace.T * locale Symtab.table * Registrations.T Symtab.table;
     (* 1st entry: locale namespace,
@@ -331,39 +331,37 @@ struct
 
   val empty = (NameSpace.empty, Symtab.empty, Symtab.empty);
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun join_locs ({predicate, import, elems, params}: locale,
+  fun join_locs _ ({predicate, import, elems, params}: locale,
       {elems = elems', ...}: locale) =
     SOME {predicate = predicate, import = import,
       elems = gen_merge_lists eq_snd elems elems',
       params = params};
-  fun merge ((space1, locs1, regs1), (space2, locs2, regs2)) =
+  fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
-     Symtab.join (SOME o Registrations.join) (regs1, regs2));
+     Symtab.join (K (SOME o Registrations.join)) (regs1, regs2));
 
   fun print _ (space, locs, _) =
     Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
     |> Pretty.writeln;
-end;
+end);
 
-structure GlobalLocalesData = TheoryDataFun(GlobalLocalesArgs);
 val _ = Context.add_setup [GlobalLocalesData.init];
 
 
 
 (** context data **)
 
-structure LocalLocalesArgs =
-struct
+structure LocalLocalesData = ProofDataFun
+(struct
   val name = "Isar/locales";
   type T = Registrations.T Symtab.table;
     (* registrations, indexed by locale name *)
   fun init _ = Symtab.empty;
   fun print _ _ = ();
-end;
+end);
 
-structure LocalLocalesData = ProofDataFun(LocalLocalesArgs);
 val _ = Context.add_setup [LocalLocalesData.init];
 
 
@@ -371,12 +369,12 @@ val _ = Context.add_setup [LocalLocalesData.init];
 
 val print_locales = GlobalLocalesData.print;
 
-val intern = NameSpace.intern o #1 o GlobalLocalesData.get_sg;
-val extern = NameSpace.extern o #1 o GlobalLocalesData.get_sg;
+val intern = NameSpace.intern o #1 o GlobalLocalesData.get;
+val extern = NameSpace.extern o #1 o GlobalLocalesData.get;
 
 fun declare_locale name thy =
   thy |> GlobalLocalesData.map (fn (space, locs, regs) =>
-    (Sign.declare_name (Theory.sign_of thy) name space, locs, regs));
+    (Sign.declare_name thy name space, locs, regs));
 
 fun put_locale name loc =
   GlobalLocalesData.map (fn (space, locs, regs) =>
@@ -408,15 +406,15 @@ val get_global_registrations =
 val get_local_registrations =
      gen_get_registrations LocalLocalesData.get;
 
-fun gen_get_registration get get_sg thy_ctxt (name, ps) =
+fun gen_get_registration get thy_of thy_ctxt (name, ps) =
   case Symtab.lookup (get thy_ctxt, name) of
       NONE => NONE
-    | SOME reg => Registrations.lookup (get_sg thy_ctxt) (reg, ps);
+    | SOME reg => Registrations.lookup (thy_of thy_ctxt) (reg, ps);
 
 val get_global_registration =
-     gen_get_registration (#3 o GlobalLocalesData.get) Theory.sign_of;
+     gen_get_registration (#3 o GlobalLocalesData.get) I;
 val get_local_registration =
-     gen_get_registration LocalLocalesData.get ProofContext.sign_of;
+     gen_get_registration LocalLocalesData.get ProofContext.theory_of;
 
 val test_global_registration = isSome oo get_global_registration;
 val test_local_registration = isSome oo get_local_registration;
@@ -430,15 +428,15 @@ fun smart_test_registration ctxt id =
 
 (* add registration to theory or context, ignored if subsumed *)
 
-fun gen_put_registration map_data get_sg (name, ps) attn thy_ctxt =
+fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
   map_data (fn regs =>
     let
-      val sg = get_sg thy_ctxt;
+      val thy = thy_of thy_ctxt;
       val reg = getOpt (Symtab.lookup (regs, name), Registrations.empty);
-      val (reg', sups) = Registrations.insert sg (ps, attn) reg;
+      val (reg', sups) = Registrations.insert thy (ps, attn) reg;
       val _ = if not (null sups) then warning
                 ("Subsumed interpretation(s) of locale " ^
-                 quote (extern sg name) ^
+                 quote (extern thy name) ^
                  "\nby interpretation(s) with the following prefix(es):\n" ^
                   commas_quote (map (fn (_, ((s, _), _)) => s) sups))
               else ();
@@ -446,10 +444,9 @@ fun gen_put_registration map_data get_sg (name, ps) attn thy_ctxt =
 
 val put_global_registration =
      gen_put_registration (fn f =>
-       GlobalLocalesData.map (fn (space, locs, regs) =>
-         (space, locs, f regs))) Theory.sign_of;
+       GlobalLocalesData.map (fn (space, locs, regs) => (space, locs, f regs))) I;
 val put_local_registration =
-     gen_put_registration LocalLocalesData.map ProofContext.sign_of;
+     gen_put_registration LocalLocalesData.map ProofContext.theory_of;
 
 (* TODO: needed? *)
 (*
@@ -487,7 +484,6 @@ val add_local_witness = gen_add_witness LocalLocalesData.map;
 
 fun imports thy (upper, lower) =
   let
-    val sign = sign_of thy;
     fun imps (Locale name) low = (name = low) orelse
       (case get_locale thy name of
            NONE => false
@@ -495,7 +491,7 @@ fun imports thy (upper, lower) =
       | imps (Rename (expr, _)) low = imps expr low
       | imps (Merge es) low = exists (fn e => imps e low) es;
   in
-    imps (Locale (intern sign upper)) (intern sign lower)
+    imps (Locale (intern thy upper)) (intern thy lower)
   end;
 
 
@@ -505,7 +501,6 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
     val thy = ProofContext.theory_of ctxt;
-    val sg = Theory.sign_of thy;
 
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
     val prt_atts = Args.pretty_attribs ctxt;
@@ -517,7 +512,7 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
               [Pretty.str ":", Pretty.brk 1,
                 Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))]));
 
-    val loc_int = intern sg loc;
+    val loc_int = intern thy loc;
     val regs = get_regs thy_ctxt;
     val loc_regs = Symtab.lookup (regs, loc_int);
   in
@@ -547,9 +542,9 @@ fun print_local_registrations loc ctxt =
 
 fun err_in_locale ctxt msg ids =
   let
-    val sign = ProofContext.sign_of ctxt;
+    val thy = ProofContext.theory_of ctxt;
     fun prt_id (name, parms) =
-      [Pretty.block (Pretty.breaks (map Pretty.str (extern sign name :: parms)))];
+      [Pretty.block (Pretty.breaks (map Pretty.str (extern thy name :: parms)))];
     val prt_ids = List.concat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
     val err_msg =
       if forall (equal "" o #1) ids then msg
@@ -591,7 +586,7 @@ fun map_attrib_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))
 
 fun map_attrib_elem f = map_elem {name = I, var = I, typ = I, term = I, fact = I, attrib = f};
 
-fun intern_attrib_elem thy = map_attrib_elem (Attrib.intern_src (Theory.sign_of thy));
+fun intern_attrib_elem thy = map_attrib_elem (Attrib.intern_src thy);
 
 fun intern_attrib_elem_expr thy (Elem elem) = Elem (intern_attrib_elem thy elem)
   | intern_attrib_elem_expr _ (Expr expr) = Expr expr;
@@ -623,8 +618,8 @@ fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
 
 fun rename_thm ren th =
   let
-    val {sign, hyps, prop, maxidx, ...} = Thm.rep_thm th;
-    val cert = Thm.cterm_of sign;
+    val {thy, hyps, prop, maxidx, ...} = Thm.rep_thm th;
+    val cert = Thm.cterm_of thy;
     val (xs, Ts) = Library.split_list (Library.foldl Term.add_frees ([], prop :: hyps));
     val xs' = map (rename ren) xs;
     fun cert_frees names = map (cert o Free) (names ~~ Ts);
@@ -659,9 +654,9 @@ fun inst_term [] t = t
 fun inst_thm _ [] th = th
   | inst_thm ctxt env th =
       let
-        val sign = ProofContext.sign_of ctxt;
-        val cert = Thm.cterm_of sign;
-        val certT = Thm.ctyp_of sign;
+        val thy = ProofContext.theory_of ctxt;
+        val cert = Thm.cterm_of thy;
+        val certT = Thm.ctyp_of thy;
         val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
         val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
         val env' = List.filter (fn ((a, _), _) => a mem_string tfrees) env;
@@ -686,16 +681,16 @@ fun inst_elem ctxt env =
 
 (* instantiate TFrees *)
 
-fun tinst_tab_elem sg tinst =
-  map_values (tinst_tab_type tinst) (tinst_tab_term tinst) (tinst_tab_thm sg tinst);
+fun tinst_tab_elem thy tinst =
+  map_values (tinst_tab_type tinst) (tinst_tab_term tinst) (tinst_tab_thm thy tinst);
 
 (* instantiate TFrees and Frees *)
 
-fun inst_tab_elem sg (inst as (_, tinst)) =
-  map_values (tinst_tab_type tinst) (inst_tab_term inst) (inst_tab_thm sg inst);
+fun inst_tab_elem thy (inst as (_, tinst)) =
+  map_values (tinst_tab_type tinst) (inst_tab_term inst) (inst_tab_thm thy inst);
 
-fun inst_tab_elems sign inst ((n, ps), elems) =
-      ((n, map (inst_tab_term inst) ps), map (inst_tab_elem sign inst) elems);
+fun inst_tab_elems thy inst ((n, ps), elems) =
+      ((n, map (inst_tab_term inst) ps), map (inst_tab_elem thy inst) elems);
 
 
 (** structured contexts: rename + merge + implicit type instantiation **)
@@ -719,7 +714,7 @@ fun unify_frozen ctxt maxidx Ts Us =
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
     val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
-    val tsig = Sign.tsig_of (ProofContext.sign_of ctxt);
+    val tsig = Sign.tsig_of (ProofContext.theory_of ctxt);
 
     fun unify (env, (SOME T, SOME U)) = (Type.unify tsig env (U, T)
           handle Type.TUNIFY =>
@@ -771,8 +766,8 @@ fun unique_parms ctxt elemss =
 fun unify_parms ctxt (fixed_parms : (string * typ) list)
   (raw_parmss : (string * typ option) list list) =
   let
-    val sign = ProofContext.sign_of ctxt;
-    val tsig = Sign.tsig_of sign;
+    val thy = ProofContext.theory_of ctxt;
+    val tsig = Sign.tsig_of thy;
     val maxidx = length raw_parmss;
     val idx_parmss = (0 upto maxidx - 1) ~~ raw_parmss;
 
@@ -783,7 +778,7 @@ fun unify_parms ctxt (fixed_parms : (string * typ) list)
     fun unify T ((env, maxidx), U) =
       Type.unify tsig (env, maxidx) (U, T)
       handle Type.TUNIFY =>
-        let val prt = Sign.string_of_typ sign
+        let val prt = Sign.string_of_typ thy
         in raise TYPE ("unify_parms: failed to unify types " ^
           prt U ^ " and " ^ prt T, [U, T], [])
         end
@@ -1065,9 +1060,9 @@ fun register_elemss id_elemss ctxt =
 
 (* expressions *)
 
-fun intern_expr sg (Locale xname) = Locale (intern sg xname)
-  | intern_expr sg (Merge exprs) = Merge (map (intern_expr sg) exprs)
-  | intern_expr sg (Rename (expr, xs)) = Rename (intern_expr sg expr, xs);
+fun intern_expr thy (Locale xname) = Locale (intern thy xname)
+  | intern_expr thy (Merge exprs) = Merge (map (intern_expr thy) exprs)
+  | intern_expr thy (Rename (expr, xs)) = Rename (intern_expr thy expr, xs);
 
 
 (* parameters *)
@@ -1196,14 +1191,14 @@ fun abstract_term eq =    (*assumes well-formedness according to ProofContext.ce
     val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
   in (Term.dest_Free f, eq') end;
 
-fun abstract_thm sign eq =
-  Thm.assume (Thm.cterm_of sign eq) |> Drule.gen_all |> Drule.abs_def;
+fun abstract_thm thy eq =
+  Thm.assume (Thm.cterm_of thy eq) |> Drule.gen_all |> Drule.abs_def;
 
 fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
   let
     val ((y, T), b) = abstract_term eq;
     val b' = norm_term env b;
-    val th = abstract_thm (ProofContext.sign_of ctxt) eq;
+    val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = err_in_locale ctxt (msg ^ ": " ^ quote y) [(name, map fst ps)];
   in
     conditional (exists (equal y o #1) xs) (fn () =>
@@ -1382,7 +1377,7 @@ fun prep_facts _ _ ctxt (Int elem) =
      {var = I, typ = I, term = I,
       name = prep_name ctxt,
       fact = get ctxt,
-      attrib = Args.assignable o intern (ProofContext.sign_of ctxt)};
+      attrib = Args.assignable o intern (ProofContext.theory_of ctxt)};
 
 in
 
@@ -1399,11 +1394,12 @@ local
 fun prep_context_statement prep_expr prep_elemss prep_facts
     do_close fixed_params import elements raw_concl context =
   let
-    val sign = ProofContext.sign_of context;
+    val thy = ProofContext.theory_of context;
 
-    val ((import_ids, import_syn), raw_import_elemss) = flatten (context, prep_expr sign) (([], Symtab.empty), Expr import);
+    val ((import_ids, import_syn), raw_import_elemss) =
+      flatten (context, prep_expr thy) (([], Symtab.empty), Expr import);
     (* CB: normalise "includes" among elements *)
-    val ((ids, syn), raw_elemsss) = foldl_map (flatten (context, prep_expr sign))
+    val ((ids, syn), raw_elemsss) = foldl_map (flatten (context, prep_expr thy))
       ((import_ids, import_syn), elements);
 
     val raw_elemss = List.concat raw_elemsss;
@@ -1426,7 +1422,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val stmt = gen_distinct Term.aconv
        (List.concat (map (fn ((_, axs), _) =>
          List.concat (map (#hyps o Thm.rep_thm) axs)) qs));
-    val cstmt = map (cterm_of sign) stmt;
+    val cstmt = map (cterm_of thy) stmt;
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss, syn)), (parms, spec, defs)), (cstmt, concl))
   end;
@@ -1437,7 +1433,7 @@ val gen_context_i = prep_context_statement (K I) cert_elemss cert_facts;
 fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val locale = Option.map (prep_locale (Theory.sign_of thy)) raw_locale;
+    val locale = Option.map (prep_locale thy) raw_locale;
     val (target_stmt, fixed_params, import) =
       (case locale of NONE => ([], [], empty)
       | SOME name =>
@@ -1577,7 +1573,7 @@ fun note_thmss_registrations kind target args thy =
     val (parms, parmTs_o) =
           the_locale thy target |> #params |> fst |> map fst |> split_list;
     val parmvTs = map (Type.varifyT o valOf) parmTs_o;
-    val ids = flatten (ProofContext.init thy, intern_expr (Theory.sign_of thy))
+    val ids = flatten (ProofContext.init thy, intern_expr thy)
       (([], Symtab.empty), Expr (Locale target)) |> fst |> fst |> map fst;
 
     val regs = get_global_registrations thy target;
@@ -1586,10 +1582,9 @@ fun note_thmss_registrations kind target args thy =
 
     fun activate (thy, (vts, ((prfx, atts2), _))) =
       let
-        val sg = Theory.sign_of thy;
         val ts = map Logic.unvarify vts;
         (* type instantiation *)
-        val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of sg))
+        val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of thy))
              (Vartab.empty, (parmvTs ~~ map Term.fastype_of ts));
         val tinst = Vartab.dest vtinst |> map (fn ((x, 0), (_, T)) => (x, T))
              |> Symtab.make;            
@@ -1602,7 +1597,7 @@ fun note_thmss_registrations kind target args thy =
         val args' = map (fn ((n, atts), [(ths, [])]) =>
             ((if prfx = "" orelse n = "" then "" else NameSpace.pack [prfx, n],  (* FIXME *)
               map (Attrib.global_attribute_i thy) (atts @ atts2)),
-             [(map (Drule.standard o Drule.satisfy_hyps prems o inst_tab_thm sg (inst, tinst)) ths, [])]))
+             [(map (Drule.standard o Drule.satisfy_hyps prems o inst_tab_thm thy (inst, tinst)) ths, [])]))
           args;
       in global_note_accesses_i (Drule.kind kind) prfx args' thy |> fst end;
   in Library.foldl activate (thy, regs) end;
@@ -1632,7 +1627,7 @@ fun put_facts loc args thy =
 fun gen_note_thmss prep_locale prep_facts kind raw_loc args thy =
   let
     val thy_ctxt = ProofContext.init thy;
-    val loc = prep_locale (Theory.sign_of thy) raw_loc;
+    val loc = prep_locale thy raw_loc;
     val (_, (stmt, _), loc_ctxt, _, _) = cert_context_statement (SOME loc) [] [] thy_ctxt;
     val export = ProofContext.export_standard stmt loc_ctxt thy_ctxt;
 
@@ -1678,14 +1673,14 @@ local
 val introN = "intro";
 val axiomsN = "axioms";
 
-fun atomize_spec sign ts =
+fun atomize_spec thy ts =
   let
     val t = foldr1 Logic.mk_conjunction ts;
-    val body = ObjectLogic.atomize_term sign t;
+    val body = ObjectLogic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
-    if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of sign t))
-    else (body, bodyT, ObjectLogic.atomize_rule sign (Thm.cterm_of sign t))
+    if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
+    else (body, bodyT, ObjectLogic.atomize_rule thy (Thm.cterm_of thy t))
   end;
 
 fun aprop_tr' n c = (c, fn args =>
@@ -1703,10 +1698,9 @@ fun aprop_tr' n c = (c, fn args =>
 
 fun def_pred bname parms defs ts norm_ts thy =
   let
-    val sign = Theory.sign_of thy;
-    val name = Sign.full_name sign bname;
+    val name = Sign.full_name thy bname;
 
-    val (body, bodyT, body_eq) = atomize_spec sign norm_ts;
+    val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
     val env = Term.add_term_free_names (body, []);
     val xs = List.filter (fn (x, _) => x mem_string env) parms;
     val Ts = map #2 xs;
@@ -1716,7 +1710,7 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val args = map Logic.mk_type extraTs @ map Free xs;
     val head = Term.list_comb (Const (name, predT), args);
-    val statement = ObjectLogic.assert_propT sign head;
+    val statement = ObjectLogic.assert_propT thy head;
 
     val (defs_thy, [pred_def]) =
       thy
@@ -1725,10 +1719,9 @@ fun def_pred bname parms defs ts norm_ts thy =
       |> Theory.add_consts_i [(bname, predT, Syntax.NoSyn)]
       |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
 
-    val defs_sign = Theory.sign_of defs_thy;
-    val cert = Thm.cterm_of defs_sign;
+    val cert = Thm.cterm_of defs_thy;
 
-    val intro = Tactic.prove_standard defs_sign [] norm_ts statement (fn _ =>
+    val intro = Tactic.prove_standard defs_thy [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
       Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
@@ -1738,7 +1731,7 @@ fun def_pred bname parms defs ts norm_ts thy =
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))]
       |> Drule.conj_elim_precise (length ts);
     val axioms = (ts ~~ conjuncts) |> map (fn (t, ax) =>
-      Tactic.prove_plain defs_sign [] [] t (fn _ =>
+      Tactic.prove_plain defs_thy [] [] t (fn _ =>
         Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in (defs_thy, (statement, intro, axioms)) end;
@@ -1788,7 +1781,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
         let
           val (def_thy, (statement, intro, axioms)) =
             thy' |> def_pred bname parms defs (ints @ more_ts) (ints' @ more_ts);
-          val cstatement = Thm.cterm_of (Theory.sign_of def_thy) statement;
+          val cstatement = Thm.cterm_of def_thy statement;
         in
           def_thy |> note_thmss_qualified "" bname
             [((introN, []), [([intro], [])]),
@@ -1808,8 +1801,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
   (* CB: do_pred controls generation of predicates.
          true -> with, false -> without predicates. *)
   let
-    val sign = Theory.sign_of thy;
-    val name = Sign.full_name sign bname;
+    val name = Sign.full_name thy bname;
     val _ = conditional (isSome (get_locale thy name)) (fn () =>
       error ("Duplicate definition of locale " ^ quote name));
 
@@ -1817,6 +1809,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)), text) =
       prep_ctxt raw_import raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss;
+    val import = prep_expr thy raw_import;
 
     val (pred_thy, (elemss', predicate as (predicate_statement, predicate_axioms))) =
       if do_pred then thy |> define_preds bname text elemss
@@ -1838,7 +1831,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     pred_thy
     |> note_thmss_qualified "" name facts' |> #1
     |> declare_locale name
-    |> put_locale name {predicate = predicate, import = prep_expr sign raw_import,
+    |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) (List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))),
         params = (params_of elemss' |>
           map (fn (x, T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss))}
@@ -1935,10 +1928,10 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     attn expr insts thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
-    val sign = ProofContext.sign_of ctxt;
+    val thy = ProofContext.theory_of ctxt;
 
     val ctxt' = ctxt |> ProofContext.theory_of |> ProofContext.init;
-    val ((ids, _), raw_elemss) = flatten (ctxt', intern_expr sign)
+    val ((ids, _), raw_elemss) = flatten (ctxt', intern_expr thy)
           (([], Symtab.empty), Expr expr);
     val do_close = false;  (* effect unknown *)
     val ((parms, all_elemss, _), (spec, (xs, defs, _))) =
@@ -2004,7 +1997,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
 
     (* instantiate ids and elements *)
     val inst_elemss = map
-          (fn (id, (_, elems)) => inst_tab_elems sign (inst, tinst) (id, 
+          (fn (id, (_, elems)) => inst_tab_elems thy (inst, tinst) (id, 
             map (fn Int e => e) elems)) 
           (ids' ~~ all_elemss);
 
@@ -2016,7 +2009,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     val propss = extract_asms_elemss new_inst_elemss;
 
     val bind_attrib = Attrib.crude_closure ctxt o Args.assignable;
-    val attn' = apsnd (map (bind_attrib o Attrib.intern_src sign)) attn;
+    val attn' = apsnd (map (bind_attrib o Attrib.intern_src thy)) attn;
 
     (** add registrations to theory or context,
         without theorems, these are added after the proof **)
@@ -2034,7 +2027,7 @@ in
 val prep_global_registration = gen_prep_registration
      ProofContext.init false
      (fn thy => fn sorts => fn used =>
-       Sign.read_def_terms (Theory.sign_of thy, K NONE, sorts) used true)
+       Sign.read_def_terms (thy, K NONE, sorts) used true)
      (fn thy => fn (name, ps) =>
        test_global_registration thy (name, map Logic.varify ps))
      (fn (name, ps) => put_global_registration (name, map Logic.varify ps))

@@ -124,33 +124,26 @@ fun print_tc (TC{rules,...}) =
 (** global tcset **)
 
 structure TypecheckingArgs =
-  struct
+struct
   val name = "ZF/type-checker";
   type T = tcset ref;
   val empty = ref (TC{rules=[], net=Net.empty});
   fun copy (ref tc) = ref tc;
-  val prep_ext = copy;
-  fun merge (ref tc1, ref tc2) = ref (merge_tc (tc1, tc2));
+  val extend = copy;
+  fun merge _ (ref tc1, ref tc2) = ref (merge_tc (tc1, tc2));
   fun print _ (ref tc) = print_tc tc;
-  end;
+end;
 
 structure TypecheckingData = TheoryDataFun(TypecheckingArgs);
 
 val print_tcset = TypecheckingData.print;
-val tcset_ref_of_sg = TypecheckingData.get_sg;
 val tcset_ref_of = TypecheckingData.get;
-
-
-(* access global tcset *)
-
-val tcset_of_sg = ! o tcset_ref_of_sg;
-val tcset_of = tcset_of_sg o sign_of;
-
+val tcset_of = ! o tcset_ref_of;
 val tcset = tcset_of o Context.the_context;
-val tcset_ref = tcset_ref_of_sg o sign_of o Context.the_context;
+val tcset_ref = tcset_ref_of o Context.the_context;
 
-fun TCSET tacf st = tacf (tcset_of_sg (Thm.sign_of_thm st)) st;
-fun TCSET' tacf i st = tacf (tcset_of_sg (Thm.sign_of_thm st)) i st;
+fun TCSET tacf st = tacf (tcset_of (Thm.theory_of_thm st)) st;
+fun TCSET' tacf i st = tacf (tcset_of (Thm.theory_of_thm st)) i st;
 
 
 (* change global tcset *)
@@ -168,15 +161,14 @@ fun Type_solver_tac hyps = type_solver_tac (tcset()) hyps;
 
 (** local tcset **)
 
-structure LocalTypecheckingArgs =
-struct
+structure LocalTypecheckingData = ProofDataFun
+(struct
   val name = TypecheckingArgs.name;
   type T = tcset;
   val init = tcset_of;
   fun print _ tcset = print_tc tcset;
-end;
+end);
 
-structure LocalTypecheckingData = ProofDataFun(LocalTypecheckingArgs);
 val local_tcset_of = LocalTypecheckingData.get;
 
 

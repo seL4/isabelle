@@ -95,7 +95,7 @@ sig
   val equal_elim : term -> term -> proof -> proof -> proof
   val axm_proof : string -> term -> proof
   val oracle_proof : string -> term -> proof
-  val thm_proof : Sign.sg -> string * (string * string list) list ->
+  val thm_proof : theory -> string * (string * string list) list ->
     term list -> term -> proof -> proof
   val get_name_tags : term list -> term -> proof -> string * (string * string list) list
 
@@ -1093,21 +1093,19 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 (* data kind 'Pure/proof' *)
 
-structure ProofArgs =
-struct
+structure ProofData = TheoryDataFun
+(struct
   val name = "Pure/proof";
   type T = ((proof * proof) list *
     (string * (typ list -> proof -> proof option)) list);
 
   val empty = ([], []);
   val copy = I;
-  val prep_ext = I;
-  fun merge ((rules1, procs1), (rules2, procs2)) =
+  val extend = I;
+  fun merge _ ((rules1, procs1), (rules2, procs2)) =
     (merge_lists rules1 rules2, merge_alists procs1 procs2);
   fun print _ _ = ();
-end;
-
-structure ProofData = TheoryDataFun(ProofArgs);
+end);
 
 val init = ProofData.init;
 
@@ -1119,7 +1117,7 @@ fun add_prf_rprocs ps thy =
   let val r = ProofData.get thy
   in ProofData.put (fst r, ps @ snd r) thy end;
 
-fun thm_proof sign (name, tags) hyps prop prf =
+fun thm_proof thy (name, tags) hyps prop prf =
   let
     val prop = Logic.list_implies (hyps, prop);
     val nvs = needed_vars prop;
@@ -1127,7 +1125,7 @@ fun thm_proof sign (name, tags) hyps prop prf =
         if ixn mem nvs then SOME v else NONE) (vars_of prop) @
       map SOME (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
-        #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
+        #4 (shrink [] 0 (rewrite_prf fst (ProofData.get thy)
           (foldr (uncurry implies_intr_proof) prf hyps)))
       else MinProof (mk_min_proof ([], prf));
     val head = (case strip_combt (fst (strip_combP prf)) of

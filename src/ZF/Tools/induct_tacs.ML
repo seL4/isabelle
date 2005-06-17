@@ -30,22 +30,20 @@ type datatype_info =
    mutual_induct : thm,
    exhaustion : thm};
 
-structure DatatypesArgs =
-  struct
+structure DatatypesData = TheoryDataFun
+(struct
   val name = "ZF/datatypes";
   type T = datatype_info Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  val merge: T * T -> T = Symtab.merge (K true);
+  val extend = I;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
 
-  fun print sg tab =
+  fun print thy tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
-  end;
-
-structure DatatypesData = TheoryDataFun(DatatypesArgs);
+      map #1 (NameSpace.extern_table (Sign.type_space thy, tab))));
+end);
 
 
 (** Constructor information: needed to map constructors to datatypes **)
@@ -57,27 +55,22 @@ type constructor_info =
    rec_rewrites : thm list};  (*recursor equations*)
 
 
-structure ConstructorsArgs =
-struct
+structure ConstructorsData = TheoryDataFun
+(struct
   val name = "ZF/constructors"
   type T = constructor_info Symtab.table
-
   val empty = Symtab.empty
   val copy = I;
-  val prep_ext = I
-  val merge: T * T -> T = Symtab.merge (K true)
-
-  fun print sg tab = ()   (*nothing extra to print*)
-end;
-
-structure ConstructorsData = TheoryDataFun(ConstructorsArgs);
-
+  val extend = I
+  fun merge _ tabs: T = Symtab.merge (K true) tabs;
+  fun print _ _= ();
+end);
 
 structure DatatypeTactics : DATATYPE_TACTICS =
 struct
 
-fun datatype_info_sg sign name =
-  (case Symtab.lookup (DatatypesData.get_sg sign, name) of
+fun datatype_info thy name =
+  (case Symtab.lookup (DatatypesData.get thy, name) of
     SOME info => info
   | NONE => error ("Unknown datatype " ^ quote name));
 
@@ -106,11 +99,11 @@ fun find_tname var Bi =
 fun exhaust_induct_tac exh var i state =
   let
     val (_, _, Bi, _) = dest_state (state, i)
-    val {sign, ...} = rep_thm state
+    val thy = Thm.theory_of_thm state
     val tn = find_tname var Bi
     val rule =
-        if exh then #exhaustion (datatype_info_sg sign tn)
-               else #induct  (datatype_info_sg sign tn)
+        if exh then #exhaustion (datatype_info thy tn)
+               else #induct  (datatype_info thy tn)
     val (Const("op :",_) $ Var(ixn,_) $ _) =
         (case prems_of rule of
              [] => error "induction is not available for this datatype"
@@ -120,7 +113,7 @@ fun exhaust_induct_tac exh var i state =
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)
-		case_tac var i state
+                case_tac var i state
             else error msg;
 
 val exhaust_tac = exhaust_induct_tac true;
@@ -131,12 +124,10 @@ val induct_tac = exhaust_induct_tac false;
 
 fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   let
-    val sign = sign_of thy;
-
     (*analyze the LHS of a case equation to get a constructor*)
     fun const_of (Const("op =", _) $ (_ $ c) $ _) = c
       | const_of eqn = error ("Ill-formed case equation: " ^
-                              Sign.string_of_term sign eqn);
+                              Sign.string_of_term thy eqn);
 
     val constructors =
         map (head_of o const_of o FOLogic.dest_Trueprop o
@@ -232,4 +223,3 @@ end;
 
 val exhaust_tac = DatatypeTactics.exhaust_tac;
 val induct_tac  = DatatypeTactics.induct_tac;
-

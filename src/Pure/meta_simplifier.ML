@@ -42,7 +42,7 @@ sig
   val merge_ss: simpset * simpset -> simpset
   type simproc
   val mk_simproc: string -> cterm list ->
-    (Sign.sg -> simpset -> term -> thm option) -> simproc
+    (theory -> simpset -> term -> thm option) -> simproc
   val add_prems: thm list -> simpset -> simpset
   val prems_of_ss: simpset -> thm list
   val addsimps: simpset * thm list -> simpset
@@ -75,15 +75,15 @@ sig
   exception SIMPLIFIER of string * thm
   val clear_ss: simpset -> simpset
   exception SIMPROC_FAIL of string * exn
-  val simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
-  val simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
+  val simproc_i: theory -> string -> term list
+    -> (theory -> simpset -> term -> thm option) -> simproc
+  val simproc: theory -> string -> string list
+    -> (theory -> simpset -> term -> thm option) -> simproc
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
   val rewrite_aux: (simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
   val simplify_aux: (simpset -> thm -> thm option) -> bool -> thm list -> thm -> thm
-  val rewrite_term: Sign.sg -> thm list -> (term -> term option) list -> term -> term
+  val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
   val rewrite_thm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
   val rewrite_goals_rule_aux: (simpset -> thm -> thm option) -> thm list -> thm -> thm
@@ -116,7 +116,7 @@ fun println a =
   else tracing (enclose "[" "]" (string_of_int(!simp_depth)) ^ a);
 
 fun prnt warn a = if warn then warning a else println a;
-fun prtm warn a sg t = prnt warn (a ^ "\n" ^ Sign.string_of_term sg t);
+fun prtm warn a thy t = prnt warn (a ^ "\n" ^ Sign.string_of_term thy t);
 fun prctm warn a t = prnt warn (a ^ "\n" ^ Display.string_of_cterm t);
 
 in
@@ -124,8 +124,8 @@ in
 fun debug warn a = if ! debug_simp then prnt warn a else ();
 fun trace warn a = if ! trace_simp then prnt warn a else ();
 
-fun debug_term warn a sign t = if ! debug_simp then prtm warn a sign t else ();
-fun trace_term warn a sign t = if ! trace_simp then prtm warn a sign t else ();
+fun debug_term warn a thy t = if ! debug_simp then prtm warn a thy t else ();
+fun trace_term warn a thy t = if ! trace_simp then prtm warn a thy t else ();
 fun trace_cterm warn a ct = if ! trace_simp then prctm warn a ct else ();
 fun trace_thm a th = if ! trace_simp then prctm false a (Thm.cprop_of th) else ();
 
@@ -231,7 +231,7 @@ and proc =
   Proc of
    {name: string,
     lhs: cterm,
-    proc: Sign.sg -> simpset -> term -> thm option,
+    proc: theory -> simpset -> term -> thm option,
     id: stamp};
 
 fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
@@ -354,8 +354,8 @@ fun mk_simproc name lhss proc =
       Proc {name = name, lhs = lhs, proc = proc, id = id}))
   end;
 
-fun simproc_i sg name = mk_simproc name o map (Thm.cterm_of sg o Logic.varify);
-fun simproc sg name = simproc_i sg name o map (Sign.simple_read_term sg TypeInfer.logicT);
+fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
+fun simproc thy name = simproc_i thy name o map (Sign.simple_read_term thy TypeInfer.logicT);
 
 
 
@@ -407,7 +407,7 @@ fun rewrite_rule_extra_vars prems elhs erhs =
   not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
 
 (*simple test for looping rewrite rules and stupid orientations*)
-fun reorient sign prems lhs rhs =
+fun reorient thy prems lhs rhs =
   rewrite_rule_extra_vars prems lhs rhs
     orelse
   is_Var (head_of lhs)
@@ -420,7 +420,7 @@ fun reorient sign prems lhs rhs =
 *)
   exists (apl (lhs, Logic.occs)) (rhs :: prems)
     orelse
-  null prems andalso Pattern.matches (Sign.tsig_of sign) (lhs, rhs)
+  null prems andalso Pattern.matches (Sign.tsig_of thy) (lhs, rhs)
     (*the condition "null prems" is necessary because conditional rewrites
       with extra variables in the conditions may terminate although
       the rhs is an instance of the lhs; example: ?m < ?n ==> f(?n) == f(?m)*)
@@ -429,7 +429,7 @@ fun reorient sign prems lhs rhs =
 
 fun decomp_simp thm =
   let
-    val {sign, prop, ...} = Thm.rep_thm thm;
+    val {thy, prop, ...} = Thm.rep_thm thm;
     val prems = Logic.strip_imp_prems prop;
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
     val (lhs, rhs) = Drule.dest_equals concl handle TERM _ =>
@@ -441,7 +441,7 @@ fun decomp_simp thm =
       var_perm (term_of elhs, erhs) andalso
       not (term_of elhs aconv erhs) andalso
       not (is_Var (term_of elhs));
-  in (sign, prems, term_of lhs, elhs, term_of rhs, perm) end;
+  in (thy, prems, term_of lhs, elhs, term_of rhs, perm) end;
 
 fun decomp_simp' thm =
   let val (_, _, lhs, _, rhs, _) = decomp_simp thm in
@@ -476,10 +476,10 @@ fun mk_rrule ss (thm, name) =
   end;
 
 fun orient_rrule ss (thm, name) =
-  let val (sign, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
+  let val (thy, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
     if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
-    else if reorient sign prems lhs rhs then
-      if reorient sign prems rhs lhs
+    else if reorient thy prems lhs rhs then
+      if reorient thy prems rhs lhs
       then mk_eq_True ss (thm, name)
       else
         let val Simpset (_, {mk_rews = {mk_sym, ...}, ...}) = ss in
@@ -718,9 +718,9 @@ fun check_conv msg thm thm' =
       (symmetric (Drule.beta_eta_conversion (lhs_of thm'))) thm')
   in if msg then trace_thm "SUCCEEDED" thm' else (); SOME thm'' end
   handle THM _ =>
-    let val {sign, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
+    let val {thy, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
       trace_thm "Proved wrong thm (Check subgoaler?)" thm';
-      trace_term false "Should have proved:" sign prop0;
+      trace_term false "Should have proved:" thy prop0;
       NONE
     end;
 
@@ -773,16 +773,16 @@ fun cond_skel (args as (congs, (lhs, rhs))) =
   IMPORTANT: rewrite rules must not introduce new Vars or TVars!
 *)
 
-fun rewritec (prover, signt, maxt) ss t =
+fun rewritec (prover, thyt, maxt) ss t =
   let
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = ss;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = rhs_of eta_thm;
     val eta_t = term_of eta_t';
-    val tsigt = Sign.tsig_of signt;
+    val tsigt = Sign.tsig_of thyt;
     fun rew {thm, name, lhs, elhs, fo, perm} =
       let
-        val {sign, prop, maxidx, ...} = rep_thm thm;
+        val {thy, prop, maxidx, ...} = rep_thm thm;
         val (rthm, elhs') = if maxt = ~1 then (thm, elhs)
           else (Thm.incr_indexes (maxt+1) thm, Thm.cterm_incr_indexes (maxt+1) elhs);
         val insts = if fo then Thm.cterm_first_order_match (elhs', eta_t')
@@ -837,9 +837,9 @@ fun rewritec (prover, signt, maxt) ss t =
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches tsigt (Thm.term_of lhs, Thm.term_of t) then
-            (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
+            (debug_term false ("Trying procedure " ^ quote name ^ " on:") thyt eta_t;
              case transform_failure (curry SIMPROC_FAIL name)
-                 (fn () => proc signt ss eta_t) () of
+                 (fn () => proc thyt ss eta_t) () of
                NONE => (debug false "FAILED"; proc_rews ps)
              | SOME raw_thm =>
                  (trace_thm ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
@@ -859,8 +859,8 @@ fun rewritec (prover, signt, maxt) ss t =
 
 (* conversion to apply a congruence rule to a term *)
 
-fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
-  let val sign = Thm.sign_of_thm cong
+fun congc (prover,thyt,maxt) {thm=cong,lhs=lhs} t =
+  let val thy = Thm.theory_of_thm cong
       val rthm = if maxt = ~1 then cong else Thm.incr_indexes (maxt+1) cong;
       val rlhs = fst (Drule.dest_equals (Drule.strip_imp_concl (cprop_of rthm)));
       val insts = Thm.cterm_match (rlhs, t)
@@ -889,20 +889,20 @@ fun transitive1 NONE NONE = NONE
 fun transitive2 thm = transitive1 (SOME thm);
 fun transitive3 thm = transitive1 thm o SOME;
 
-fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
+fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
   let
     fun botc skel ss t =
           if is_Var skel then NONE
           else
           (case subc skel ss t of
              some as SOME thm1 =>
-               (case rewritec (prover, sign, maxidx) ss (rhs_of thm1) of
+               (case rewritec (prover, thy, maxidx) ss (rhs_of thm1) of
                   SOME (thm2, skel2) =>
                     transitive2 (transitive thm1 thm2)
                       (botc skel2 ss (rhs_of thm2))
                 | NONE => some)
            | NONE =>
-               (case rewritec (prover, sign, maxidx) ss t of
+               (case rewritec (prover, thy, maxidx) ss t of
                   SOME (thm2, skel2) => transitive2 thm2
                     (botc skel2 ss (rhs_of thm2))
                 | NONE => NONE))
@@ -957,7 +957,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
   (*post processing: some partial applications h t1 ... tj, j <= length ts,
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
-                             val thm = congc (prover ss, sign, maxidx) cong t0;
+                             val thm = congc (prover ss, thy, maxidx) cong t0;
                              val t = getOpt (Option.map rhs_of thm, t0);
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
@@ -1012,7 +1012,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
             val concl' =
               Drule.mk_implies (prem, getOpt (Option.map rhs_of eq, concl));
             val dprem = Option.map (curry (disch false) prem)
-          in case rewritec (prover, sign, maxidx) ss' concl' of
+          in case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
             | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
                   (valOf (transitive3 (dprem eq) eq'), prems))
@@ -1096,8 +1096,8 @@ fun rewrite_cterm mode prover ss ct =
    then warning ("Simplification depth " ^ string_of_int (!simp_depth))
    else ();
    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
-   let val {sign, t, maxidx, ...} = Thm.rep_cterm ct
-       val res = bottomc (mode, prover, sign, maxidx) ss ct
+   let val {thy, t, maxidx, ...} = Thm.rep_cterm ct
+       val res = bottomc (mode, prover, thy, maxidx) ss ct
          handle THM (s, _, thms) =>
          error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
            Pretty.string_of (Display.pretty_thms thms))
@@ -1115,8 +1115,8 @@ fun simplify_aux _ _ [] = (fn th => th)
       Drule.fconv_rule (rewrite_cterm (full, false, false) prover (empty_ss addsimps thms));
 
 (*simple term rewriting -- no proof*)
-fun rewrite_term sg rules procs =
-  Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules) procs;
+fun rewrite_term thy rules procs =
+  Pattern.rewrite_term (Sign.tsig_of thy) (map decomp_simp' rules) procs;
 
 fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
 

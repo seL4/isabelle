@@ -7,7 +7,7 @@ Extraction of programs from proofs.
 
 signature EXTRACTION =
 sig
-  val set_preprocessor : (Sign.sg -> Proofterm.proof -> Proofterm.proof) -> theory -> theory
+  val set_preprocessor : (theory -> Proofterm.proof -> Proofterm.proof) -> theory -> theory
   val add_realizes_eqns_i : ((term * term) list * (term * term)) list -> theory -> theory
   val add_realizes_eqns : string list -> theory -> theory
   val add_typeof_eqns_i : ((term * term) list * (term * term)) list -> theory -> theory
@@ -86,9 +86,9 @@ fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
   foldr add_rule {next = next, rs = rs1, net = net} (rs2 \\ rs1);
 
-fun condrew sign rules procs =
+fun condrew thy rules procs =
   let
-    val tsig = Sign.tsig_of sign;
+    val tsig = Sign.tsig_of thy;
 
     fun rew tm =
       Pattern.rewrite_term tsig [] (condrew' :: procs) tm
@@ -112,7 +112,7 @@ fun condrew sign rules procs =
               (~1, map (Int.max o pairself maxidx_of_term) prems'),
              iTs = Tenv, asol = tenv};
           val env'' = Library.foldl (fn (env, p) =>
-            Pattern.unify (sign, env, [pairself (lookup rew) p])) (env', prems')
+            Pattern.unify (thy, env, [pairself (lookup rew) p])) (env', prems')
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
           (sort (Int.compare o pairself fst)
@@ -178,8 +178,8 @@ fun get_var_type t =
 
 (* data kind 'Pure/extraction' *)
 
-structure ExtractionArgs =
-struct
+structure ExtractionData = TheoryDataFun
+(struct
   val name = "Pure/extraction";
   type T =
     {realizes_eqns : rules,
@@ -189,7 +189,7 @@ struct
      realizers : (string list * (term * proof)) list Symtab.table,
      defs : thm list,
      expand : (string * term) list,
-     prep : (Sign.sg -> proof -> proof) option}
+     prep : (theory -> proof -> proof) option}
 
   val empty =
     {realizes_eqns = empty_rules,
@@ -200,9 +200,9 @@ struct
      expand = [],
      prep = NONE};
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun merge
+  fun merge _
     (({realizes_eqns = realizes_eqns1, typeof_eqns = typeof_eqns1, types = types1,
        realizers = realizers1, defs = defs1, expand = expand1, prep = prep1},
       {realizes_eqns = realizes_eqns2, typeof_eqns = typeof_eqns2, types = types2,
@@ -216,16 +216,15 @@ struct
      expand = merge_lists expand1 expand2,
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
 
-  fun print sg (x : T) = ();
-end;
+  fun print _ _ = ();
+end);
 
-structure ExtractionData = TheoryDataFun(ExtractionArgs);
 val _ = Context.add_setup [ExtractionData.init];
 
 fun read_condeq thy =
-  let val sg = sign_of (add_syntax thy)
+  let val thy' = add_syntax thy
   in fn s =>
-    let val t = Logic.varify (term_of (read_cterm sg (s, propT)))
+    let val t = Logic.varify (term_of (read_cterm thy' (s, propT)))
     in (map Logic.dest_equals (Logic.strip_imp_prems t),
       Logic.dest_equals (Logic.strip_imp_concl t))
     end handle TERM _ => error ("Not a (conditional) meta equality:\n" ^ s)
@@ -286,13 +285,13 @@ fun freeze (TVar ((a, i), S)) = TFree (a ^ ":" ^ string_of_int i, S)
 fun freeze_thaw f x =
   map_term_types thaw (f (map_term_types freeze x));
 
-fun etype_of sg vs Ts t =
+fun etype_of thy vs Ts t =
   let
-    val {typeof_eqns, ...} = ExtractionData.get_sg sg;
+    val {typeof_eqns, ...} = ExtractionData.get thy;
     fun err () = error ("Unable to determine type of extracted program for\n" ^
-      Sign.string_of_term sg t)
-  in case strip_abs_body (freeze_thaw (condrew sg (#net typeof_eqns)
-    [typeof_proc (Sign.defaultS sg) vs]) (list_abs (map (pair "x") (rev Ts),
+      Sign.string_of_term thy t)
+  in case strip_abs_body (freeze_thaw (condrew thy (#net typeof_eqns)
+    [typeof_proc (Sign.defaultS thy) vs]) (list_abs (map (pair "x") (rev Ts),
       Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
       Const ("Type", _) $ u => (Logic.dest_type u handle TERM _ => err ())
     | _ => err ()
@@ -319,28 +318,26 @@ fun prep_realizer thy =
     val rtypes = map fst types;
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
     val thy' = add_syntax thy;
-    val sign = sign_of thy';
-    val tsg = Sign.tsig_of sign;
     val rd = ProofSyntax.read_proof thy' false
   in fn (thm, (vs, s1, s2)) =>
     let
       val name = Thm.name_of_thm thm;
       val _ = assert (name <> "") "add_realizers: unnamed theorem";
-      val prop = Pattern.rewrite_term tsg
+      val prop = Pattern.rewrite_term (Sign.tsig_of thy')
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
       val vars = vars_of prop;
       val vars' = filter_out (fn v =>
         tname_of (body_type (fastype_of v)) mem rtypes) vars;
-      val T = etype_of sign vs [] prop;
+      val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
-      val t = map_term_types thw (term_of (read_cterm sign (s1, T')));
-      val r' = freeze_thaw (condrew sign eqns
-        (procs @ [typeof_proc (Sign.defaultS sign) vs, rlz_proc]))
+      val t = map_term_types thw (term_of (read_cterm thy' (s1, T')));
+      val r' = freeze_thaw (condrew thy' eqns
+        (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
             (if T = nullT then t else list_comb (t, vars')) $ prop);
       val r = foldr forall_intr r' (map (get_var_type r') vars);
-      val prf = Reconstruct.reconstruct_proof sign r (rd s2);
+      val prf = Reconstruct.reconstruct_proof thy' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
 
@@ -351,15 +348,14 @@ val add_realizers = gen_add_realizers prep_realizer;
 fun realizes_of thy vs t prop =
   let
     val thy' = add_syntax thy;
-    val sign = sign_of thy';
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
     val procs = List.concat (map (fst o snd) types);
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
-    val prop' = Pattern.rewrite_term (Sign.tsig_of sign)
+    val prop' = Pattern.rewrite_term (Sign.tsig_of thy')
       (map (Logic.dest_equals o prop_of) defs) [] prop;
-  in freeze_thaw (condrew sign eqns
-    (procs @ [typeof_proc (Sign.defaultS sign) vs, rlz_proc]))
+  in freeze_thaw (condrew thy' eqns
+    (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
       (Const ("realizes", fastype_of t --> propT --> propT) $ t $ prop')
   end;
 
@@ -403,7 +399,7 @@ fun add_types tys thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns,
-       types = map (apfst (Sign.intern_type (sign_of thy))) tys @ types,
+       types = map (apfst (Sign.intern_type thy)) tys @ types,
        realizers = realizers, defs = defs, expand = expand, prep = prep} thy
   end;
 
@@ -466,15 +462,14 @@ val dummyt = Const ("dummy", dummyT);
 
 fun extract thms thy =
   let
-    val sg = sign_of (add_syntax thy);
-    val tsg = Sign.tsig_of sg;
+    val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
     val procs = List.concat (map (fst o snd) types);
     val rtypes = map fst types;
-    val typroc = typeof_proc (Sign.defaultS sg);
-    val prep = getOpt (prep, K I) sg o ProofRewriteRules.elim_defs sg false defs o
-      Reconstruct.expand_proof sg (("", NONE) :: map (apsnd SOME) expand);
+    val typroc = typeof_proc (Sign.defaultS thy');
+    val prep = getOpt (prep, K I) thy' o ProofRewriteRules.elim_defs thy' false defs o
+      Reconstruct.expand_proof thy' (("", NONE) :: map (apsnd SOME) expand);
     val rrews = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
 
     fun find_inst prop Ts ts vs =
@@ -485,7 +480,7 @@ fun extract thms thy =
 
         fun add_args ((Var ((a, i), _), t), (vs', tye)) =
           if a mem rvs then
-            let val T = etype_of sg vs Ts t
+            let val T = etype_of thy' vs Ts t
             in if T = nullT then (vs', tye)
                else (a :: vs', (("'" ^ a, i), T) :: tye)
             end
@@ -497,7 +492,7 @@ fun extract thms thy =
     fun find' s = map snd o List.filter (equal s o fst)
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
-      (condrew sg rrews (procs @ [typroc vs, rlz_proc])) (list_abs
+      (condrew thy' rrews (procs @ [typroc vs, rlz_proc])) (list_abs
         (map (pair "x") (rev Ts), t)));
 
     fun realizes_null vs prop = app_rlz_rews [] vs
@@ -513,7 +508,7 @@ fun extract thms thy =
 
       | corr d defs vs ts Ts hs (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) t =
           let
-            val T = etype_of sg vs Ts prop;
+            val T = etype_of thy' vs Ts prop;
             val u = if T = nullT then 
                 (case t of SOME u => SOME (incr_boundvars 1 u) | NONE => NONE)
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
@@ -537,7 +532,7 @@ fun extract thms thy =
                else (case t' of SOME (u $ _) => SOME u | _ => NONE));
             val u = if not (tname_of T mem rtypes) then t else
               let
-                val eT = etype_of sg vs Ts t;
+                val eT = etype_of thy' vs Ts t;
                 val (r, Us') = if eT = nullT then (nullt, Us) else
                   (Bound (length Us), eT :: Us);
                 val u = list_comb (incr_boundvars (length Us') t,
@@ -551,7 +546,7 @@ fun extract thms thy =
       | corr d defs vs ts Ts hs (prf1 %% prf2) (prf1' %% prf2') t =
           let
             val prop = Reconstruct.prop_of' hs prf2';
-            val T = etype_of sg vs Ts prop;
+            val T = etype_of thy' vs Ts prop;
             val (defs1, f, u) = if T = nullT then (defs, t, NONE) else
               (case t of
                  SOME (f $ u) => (defs, SOME f, SOME u)
@@ -569,7 +564,7 @@ fun extract thms thy =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye;
-            val T = etype_of sg vs' [] prop;
+            val T = etype_of thy' vs' [] prop;
             val defs' = if T = nullT then defs
               else fst (extr d defs vs ts Ts hs prf0)
           in
@@ -582,7 +577,7 @@ fun extract thms thy =
                     val _ = msg d ("Building correctness proof for " ^ quote name ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Reconstruct.reconstruct_proof sg prop prf);
+                    val prf' = prep (Reconstruct.reconstruct_proof thy' prop prf);
                     val (defs'', corr_prf) =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' NONE;
                     val corr_prop = Reconstruct.prop_of corr_prf;
@@ -599,7 +594,7 @@ fun extract thms thy =
             | SOME rs => (case find vs' rs of
                 SOME (_, prf') => (defs', prf_subst_TVars tye' prf')
               | NONE => error ("corr: no realizer for instance of theorem " ^
-                  quote name ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
+                  quote name ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
                     (Reconstruct.prop_of (proof_combt (prf0, ts))))))
           end
 
@@ -608,12 +603,12 @@ fun extract thms thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
-            if etype_of sg vs' [] prop = nullT andalso
+            if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (defs, prf0)
             else case find vs' (Symtab.lookup_multi (realizers, s)) of
               SOME (_, prf) => (defs, prf_subst_TVars tye' prf)
             | NONE => error ("corr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
+                quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
 
@@ -628,7 +623,7 @@ fun extract thms thy =
 
       | extr d defs vs ts Ts hs (AbsP (s, SOME t, prf)) =
           let
-            val T = etype_of sg vs Ts t;
+            val T = etype_of thy' vs Ts t;
             val (defs', t) = extr d defs vs [] (T :: Ts) (t :: hs)
               (incr_pboundvars 0 1 prf)
           in (defs',
@@ -646,7 +641,7 @@ fun extract thms thy =
           let
             val (defs', f) = extr d defs vs [] Ts hs prf1;
             val prop = Reconstruct.prop_of' hs prf2;
-            val T = etype_of sg vs Ts prop
+            val T = etype_of thy' vs Ts prop
           in
             if T = nullT then (defs', f) else
               let val (defs'', t) = extr d defs' vs [] Ts hs prf2
@@ -665,7 +660,7 @@ fun extract thms thy =
                     val _ = msg d ("Extracting " ^ quote s ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Reconstruct.reconstruct_proof sg prop prf);
+                    val prf' = prep (Reconstruct.reconstruct_proof thy' prop prf);
                     val (defs', t) = extr (d + 1) defs vs' [] [] [] prf';
                     val (defs'', corr_prf) =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' (SOME t);
@@ -708,7 +703,7 @@ fun extract thms thy =
             | SOME rs => (case find vs' rs of
                 SOME (t, _) => (defs, subst_TVars tye' t)
               | NONE => error ("extr: no realizer for instance of theorem " ^
-                  quote s ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
+                  quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
                     (Reconstruct.prop_of (proof_combt (prf0, ts))))))
           end
 
@@ -720,7 +715,7 @@ fun extract thms thy =
             case find vs' (Symtab.lookup_multi (realizers, s)) of
               SOME (t, _) => (defs, subst_TVars tye' t)
             | NONE => error ("extr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
+                quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
 
@@ -731,7 +726,7 @@ fun extract thms thy =
         val {prop, der = (_, prf), sign, ...} = rep_thm thm;
         val name = Thm.name_of_thm thm;
         val _ = assert (name <> "") "extraction: unnamed theorem";
-        val _ = assert (etype_of sg vs [] prop <> nullT) ("theorem " ^
+        val _ = assert (etype_of thy' vs [] prop <> nullT) ("theorem " ^
           quote name ^ " has no computational content")
       in (Reconstruct.reconstruct_proof sign prop prf, vs) end;
 
@@ -739,7 +734,7 @@ fun extract thms thy =
       fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
 
     fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
-      (case Sign.const_type (sign_of thy) (extr_name s vs) of
+      (case Sign.const_type thy (extr_name s vs) of
          NONE =>
            let
              val corr_prop = Reconstruct.prop_of prf;
@@ -798,6 +793,6 @@ val extractP =
 
 val _ = OuterSyntax.add_parsers [realizersP, realizabilityP, typeofP, extractP];
 
-val etype_of = etype_of o sign_of o add_syntax;
+val etype_of = etype_of o add_syntax;
 
 end;

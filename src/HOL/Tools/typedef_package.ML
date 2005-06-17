@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/typedef_package.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Gordon/HOL-style type definitions.
 *)
@@ -50,18 +50,16 @@ val Abs_induct = thm "type_definition.Abs_induct";
 
 (** theory data **)
 
-structure TypedefArgs =
-struct
+structure TypedefData = TheoryDataFun
+(struct
   val name = "HOL/typedef";
   type T = (typ * typ * string * string) Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  val merge : T * T -> T = Symtab.merge op =;
-  fun print sg _ = ();
-end;
-
-structure TypedefData = TheoryDataFun(TypedefArgs);
+  val extend = I;
+  fun merge _ (tabs: T * T) = Symtab.merge (op =) tabs;
+  fun print _ _ = ();
+end);
 
 fun put_typedef newT oldT Abs_name Rep_name thy =
   TypedefData.put (Symtab.update_new
@@ -74,16 +72,14 @@ fun put_typedef newT oldT Abs_name Rep_name thy =
 
 fun add_typedecls decls thy =
   let
-    val full = Sign.full_name (Theory.sign_of thy);
-
     fun arity_of (raw_name, args, mx) =
-      (full (Syntax.type_name raw_name mx), replicate (length args) HOLogic.typeS, HOLogic.typeS);
+      (Sign.full_name thy (Syntax.type_name raw_name mx),
+        replicate (length args) HOLogic.typeS, HOLogic.typeS);
   in
     if can (Theory.assert_super HOL.thy) thy then
-      thy
-      |> PureThy.add_typedecls decls
+      thy |> Theory.add_typedecls decls
       |> Theory.add_arities_i (map arity_of decls)
-    else thy |> PureThy.add_typedecls decls
+    else thy |> Theory.add_typedecls decls
   end;
 
 
@@ -109,16 +105,17 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
       getOpt (witn2_tac, TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    Tactic.prove (Theory.sign_of thy) [] [] goal (K tac)
-  end handle ERROR => error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
+    Tactic.prove thy [] [] goal (K tac)
+  end
+  handle ERROR => error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
 
 
 (* prepare_typedef *)
 
-fun read_term sg used s =
-  #1 (Thm.read_def_cterm (sg, K NONE, K NONE) used true (s, HOLogic.typeT));
+fun read_term thy used s =
+  #1 (Thm.read_def_cterm (thy, K NONE, K NONE) used true (s, HOLogic.typeT));
 
-fun cert_term sg _ t = Thm.cterm_of sg t handle TERM (msg, _) => error msg;
+fun cert_term thy _ t = Thm.cterm_of thy t handle TERM (msg, _) => error msg;
 
 fun err_in_typedef name =
   error ("The error(s) above occurred in typedef " ^ quote name);
@@ -126,16 +123,15 @@ fun err_in_typedef name =
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Typedef" "typedefs";
-    val sign = Theory.sign_of thy;
-    val full = Sign.full_name sign;
+    val full = Sign.full_name thy;
 
     (*rhs*)
     val full_name = full name;
-    val cset = prep_term sign vs raw_set;
+    val cset = prep_term thy vs raw_set;
     val {T = setT, t = set, ...} = Thm.rep_cterm cset;
     val rhs_tfrees = term_tfrees set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (Sign.string_of_typ sign setT));
+      error ("Not a set type: " ^ quote (Sign.string_of_typ thy setT));
     fun mk_nonempty A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
@@ -283,7 +279,7 @@ fun typedef_codegen thy gr dep brack t =
         val (gr', _) = Codegen.invoke_tycodegen thy dep false (gr, T);
         val (gr'', ps) =
           foldl_map (Codegen.invoke_codegen thy dep true) (gr', ts);
-        val id = Codegen.mk_const_id (sign_of thy) s
+        val id = Codegen.mk_const_id thy s
       in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
     fun get_name (Type (tname, _)) = tname
       | get_name _ = "";
@@ -312,10 +308,9 @@ fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
        | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
            if isSome (Codegen.get_assoc_type thy tname) then NONE else
            let
-             val sg = sign_of thy;
-             val Abs_id = Codegen.mk_const_id sg Abs_name;
-             val Rep_id = Codegen.mk_const_id sg Rep_name;
-             val ty_id = Codegen.mk_type_id sg s;
+             val Abs_id = Codegen.mk_const_id thy Abs_name;
+             val Rep_id = Codegen.mk_const_id thy Rep_name;
+             val ty_id = Codegen.mk_type_id thy s;
              val (gr', qs) = foldl_map
                (Codegen.invoke_tycodegen thy dep (length Ts = 1)) (gr, Ts);
              val gr'' = Graph.add_edge (Abs_id, dep) gr' handle Graph.UNDEF _ =>
@@ -334,21 +329,21 @@ fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
                      Pretty.str "x) = x;"]) ^ "\n\n" ^
                    (if "term_of" mem !Codegen.mode then
                       Pretty.string_of (Pretty.block [Pretty.str "fun ",
-                        Codegen.mk_term_of sg false newT, Pretty.brk 1,
+                        Codegen.mk_term_of thy false newT, Pretty.brk 1,
                         Pretty.str ("(" ^ Abs_id), Pretty.brk 1,
                         Pretty.str "x) =", Pretty.brk 1,
                         Pretty.block [Pretty.str ("Const (\"" ^ Abs_name ^ "\","),
                           Pretty.brk 1, Codegen.mk_type false (oldT --> newT),
                           Pretty.str ")"], Pretty.str " $", Pretty.brk 1,
-                        Codegen.mk_term_of sg false oldT, Pretty.brk 1,
+                        Codegen.mk_term_of thy false oldT, Pretty.brk 1,
                         Pretty.str "x;"]) ^ "\n\n"
                     else "") ^
                    (if "test" mem !Codegen.mode then
                       Pretty.string_of (Pretty.block [Pretty.str "fun ",
-                        Codegen.mk_gen sg false [] "" newT, Pretty.brk 1,
+                        Codegen.mk_gen thy false [] "" newT, Pretty.brk 1,
                         Pretty.str "i =", Pretty.brk 1,
                         Pretty.block [Pretty.str (Abs_id ^ " ("),
-                          Codegen.mk_gen sg false [] "" oldT, Pretty.brk 1,
+                          Codegen.mk_gen thy false [] "" oldT, Pretty.brk 1,
                           Pretty.str "i);"]]) ^ "\n\n"
                     else "")
                in Graph.map_node Abs_id (K (NONE, s)) gr'' end

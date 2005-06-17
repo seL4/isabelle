@@ -38,8 +38,8 @@ sig
   val invoke_tycodegen: theory -> string -> bool ->
     (exn option * string) Graph.T * typ -> (exn option * string) Graph.T * Pretty.T
   val mk_id: string -> string
-  val mk_const_id: Sign.sg -> string -> string
-  val mk_type_id: Sign.sg -> string -> string
+  val mk_const_id: theory -> string -> string
+  val mk_type_id: theory -> string -> string
   val rename_term: term -> term
   val new_names: term -> string list -> string list
   val new_name: term -> string -> string
@@ -50,8 +50,8 @@ sig
   val eta_expand: term -> term list -> int -> term
   val strip_tname: string -> string
   val mk_type: bool -> typ -> Pretty.T
-  val mk_term_of: Sign.sg -> bool -> typ -> Pretty.T
-  val mk_gen: Sign.sg -> bool -> string list -> string -> typ -> Pretty.T
+  val mk_term_of: theory -> bool -> typ -> Pretty.T
+  val mk_gen: theory -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> int -> int -> term -> (string * term) list option
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
@@ -121,14 +121,14 @@ fun set_size size ({iterations, default_type, ...} : test_params) =
 fun set_iterations iterations ({size, default_type, ...} : test_params) =
   {size = size, iterations = iterations, default_type = default_type};
 
-fun set_default_type s sg ({size, iterations, ...} : test_params) =
+fun set_default_type s thy ({size, iterations, ...} : test_params) =
   {size = size, iterations = iterations,
-   default_type = SOME (typ_of (read_ctyp sg s))};
+   default_type = SOME (typ_of (read_ctyp thy s))};
 
 (* data kind 'Pure/codegen' *)
- 
-structure CodegenArgs =
-struct
+
+structure CodegenData = TheoryDataFun
+(struct
   val name = "Pure/codegen";
   type T =
     {codegens : (string * term codegen) list,
@@ -143,9 +143,9 @@ struct
     {codegens = [], tycodegens = [], consts = [], types = [], attrs = [],
      preprocs = [], test_params = default_test_params};
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun merge
+  fun merge _
     ({codegens = codegens1, tycodegens = tycodegens1,
       consts = consts1, types = types1, attrs = attrs1,
       preprocs = preprocs1, test_params = test_params1},
@@ -160,13 +160,12 @@ struct
      preprocs = merge_alists' preprocs1 preprocs2,
      test_params = merge_test_params test_params1 test_params2};
 
-  fun print sg ({codegens, tycodegens, ...} : T) =
+  fun print _ ({codegens, tycodegens, ...} : T) =
     Pretty.writeln (Pretty.chunks
       [Pretty.strs ("term code generators:" :: map fst codegens),
        Pretty.strs ("type code generators:" :: map fst tycodegens)]);
-end;
+end);
 
-structure CodegenData = TheoryDataFun(CodegenArgs);
 val _ = Context.add_setup [CodegenData.init];
 val print_codegens = CodegenData.print;
 
@@ -265,18 +264,17 @@ val _ = Context.add_setup [add_attribute "unfold" (Scan.succeed unfold_attr)];
 
 fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn)) =>
   let
-    val sg = sign_of thy;
     val {codegens, tycodegens, consts, types, attrs, preprocs, test_params} =
       CodegenData.get thy;
-    val cname = Sign.intern_const sg s;
+    val cname = Sign.intern_const thy s;
   in
-    (case Sign.const_type sg cname of
+    (case Sign.const_type thy cname of
        SOME T =>
          let val T' = (case tyopt of
                 NONE => T
               | SOME ty =>
-                  let val U = prep_type sg ty
-                  in if Sign.typ_instance sg (U, T) then U
+                  let val U = prep_type thy ty
+                  in if Sign.typ_instance thy (U, T) then U
                     else error ("Illegal type constraint for constant " ^ cname)
                   end)
          in (case assoc (consts, (cname, T')) of
@@ -291,7 +289,7 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
   end) (thy, xs);
 
 val assoc_consts_i = gen_assoc_consts (K I);
-val assoc_consts = gen_assoc_consts (fn sg => typ_of o read_ctyp sg);
+val assoc_consts = gen_assoc_consts (typ_of oo read_ctyp);
 
 
 (**** associate types with target language types ****)
@@ -322,7 +320,7 @@ fun dest_sym s = (case split_last (snd (take_prefix (equal "\\") (explode s))) o
     ("<" :: "^" :: xs, ">") => (true, implode xs)
   | ("<" :: xs, ">") => (false, implode xs)
   | _ => sys_error "dest_sym");
-  
+
 fun mk_id s = if s = "" then "" else
   let
     fun check_str [] = []
@@ -341,12 +339,12 @@ fun mk_id s = if s = "" then "" else
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
 
-fun mk_const_id sg s =
-  let val s' = mk_id (Sign.extern_const sg s)
+fun mk_const_id thy s =
+  let val s' = mk_id (Sign.extern_const thy s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s' end;
 
-fun mk_type_id sg s =
-  let val s' = mk_id (Sign.extern_type sg s)
+fun mk_type_id thy s =
+  let val s' = mk_id (Sign.extern_type thy s)
   in if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s' end;
 
 fun rename_terms ts =
@@ -570,11 +568,10 @@ fun output_code gr xs = implode (map (snd o Graph.get_node gr)
 fun gen_generate_code prep_term thy =
   setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
   let
-    val sg = sign_of thy;
     val gr = Graph.new_node ("<Top>", (NONE, "")) Graph.empty;
     val (gr', ps) = foldl_map (fn (gr, (s, t)) => apsnd (pair s)
       (invoke_codegen thy "<Top>" false (gr, t)))
-        (gr, map (apsnd (prep_term sg)) xs)
+        (gr, map (apsnd (prep_term thy)) xs)
     val code =
       "structure Generated =\nstruct\n\n" ^
       output_code gr' ["<Top>"] ^
@@ -585,7 +582,7 @@ fun gen_generate_code prep_term thy =
 
 val generate_code_i = gen_generate_code (K I);
 val generate_code = gen_generate_code
-  (fn sg => term_of o read_cterm sg o rpair TypeInfer.logicT);
+  (fn thy => term_of o read_cterm thy o rpair TypeInfer.logicT);
 
 
 (**** Reflection ****)
@@ -603,22 +600,22 @@ fun mk_type p (TVar ((s, i), _)) = Pretty.str
       [Pretty.str "Type", Pretty.brk 1, Pretty.str ("(\"" ^ s ^ "\","),
        Pretty.brk 1, pretty_list (map (mk_type false) Ts), Pretty.str ")"]);
 
-fun mk_term_of sg p (TVar ((s, i), _)) = Pretty.str
+fun mk_term_of _ p (TVar ((s, i), _)) = Pretty.str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "F")
-  | mk_term_of sg p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
-  | mk_term_of sg p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
-      (separate (Pretty.brk 1) (Pretty.str ("term_of_" ^ mk_type_id sg s) ::
-        List.concat (map (fn T => [mk_term_of sg true T, mk_type true T]) Ts))));
+  | mk_term_of _ p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
+  | mk_term_of thy p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
+      (separate (Pretty.brk 1) (Pretty.str ("term_of_" ^ mk_type_id thy s) ::
+        List.concat (map (fn T => [mk_term_of thy true T, mk_type true T]) Ts))));
 
 
 (**** Test data generators ****)
 
-fun mk_gen sg p xs a (TVar ((s, i), _)) = Pretty.str
+fun mk_gen _ p xs a (TVar ((s, i), _)) = Pretty.str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "G")
-  | mk_gen sg p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
-  | mk_gen sg p xs a (Type (s, Ts)) = (if p then parens else I) (Pretty.block
-      (separate (Pretty.brk 1) (Pretty.str ("gen_" ^ mk_type_id sg s ^
-        (if s mem xs then "'" else "")) :: map (mk_gen sg true xs a) Ts @
+  | mk_gen _ p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
+  | mk_gen thy p xs a (Type (s, Ts)) = (if p then parens else I) (Pretty.block
+      (separate (Pretty.brk 1) (Pretty.str ("gen_" ^ mk_type_id thy s ^
+        (if s mem xs then "'" else "")) :: map (mk_gen thy true xs a) Ts @
         (if s mem xs then [Pretty.str a] else []))));
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
@@ -629,7 +626,6 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
       "Term to be tested contains type variables";
     val _ = assert (null (term_vars t))
       "Term to be tested contains schematic variables";
-    val sg = sign_of thy;
     val frees = map dest_Free (term_frees t);
     val szname = variant (map fst frees) "i";
     val s = "structure TestTerm =\nstruct\n\n" ^
@@ -641,7 +637,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
             Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
               Pretty.block [Pretty.str ("val " ^ mk_id s ^ " ="), Pretty.brk 1,
-              mk_gen sg false [] "" T, Pretty.brk 1,
+              mk_gen thy false [] "" T, Pretty.brk 1,
               Pretty.str (szname ^ ";")]) frees)),
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
@@ -652,7 +648,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
                 List.concat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     mk_app false (mk_term_of sg false T)
+                     mk_app false (mk_term_of thy false T)
                        [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
@@ -670,12 +666,12 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
 
 fun test_goal ({size, iterations, default_type}, tvinsts) i st =
   let
-    val sg = Toplevel.sign_of st;
+    val thy = Toplevel.theory_of st;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val (gi, frees) = Logic.goal_params
       (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
-    val gi' = ObjectLogic.atomize_term sg (map_term_types
+    val gi' = ObjectLogic.atomize_term thy (map_term_types
       (map_type_tfree (fn p as (s, _) => getOpt (assoc (tvinsts, s),
         getOpt (default_type,TFree p)))) (subst_bounds (frees, strip gi)));
   in case test_term (Toplevel.theory_of st) size iterations gi' of
@@ -683,7 +679,7 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
     | SOME cex => writeln ("Counterexample found:\n" ^
         Pretty.string_of (Pretty.chunks (map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
-            Sign.pretty_term sg t]) cex)))
+            Sign.pretty_term thy t]) cex)))
   end;
 
 
@@ -753,8 +749,8 @@ val parse_test_params = P.short_ident :-- (fn s =>
   P.$$$ "=" |-- getOpt (assoc (params, s), Scan.fail)) >> snd;
 
 fun parse_tyinst xs =
-  (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn sg =>
-    fn (x, ys) => (x, (v, typ_of (read_ctyp sg s)) :: ys))) xs;
+  (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
+    fn (x, ys) => (x, (v, typ_of (read_ctyp thy s)) :: ys))) xs;
 
 fun app [] x = x
   | app (f :: fs) x = app fs (f x);
@@ -768,7 +764,7 @@ val test_paramsP =
 val testP =
   OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
   (Scan.option (P.$$$ "[" |-- P.list1
-    (   parse_test_params >> (fn f => fn sg => apfst (f sg))
+    (   parse_test_params >> (fn f => fn thy => apfst (f thy))
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
     (fn (ps, g) => Toplevel.keep (fn st =>
       test_goal (app (getOpt (Option.map

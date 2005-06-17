@@ -119,41 +119,40 @@ type axclass_info =
     intro: thm,
     axioms: thm list};
 
-structure AxclassesArgs =
-struct
+structure AxclassesData = TheoryDataFun
+(struct
   val name = "Pure/axclasses";
   type T = axclass_info Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  fun merge (tab1, tab2) = Symtab.merge (K true) (tab1, tab2);
+  val extend = I;
+  fun merge _ = Symtab.merge (K true);
 
-  fun print sg tab =
+  fun print thy tab =
     let
       fun pretty_class c cs = Pretty.block
-        (Pretty.str (Sign.extern_class sg c) :: Pretty.str " <" :: Pretty.brk 1 ::
-          Pretty.breaks (map (Pretty.str o Sign.extern_class sg) cs));
+        (Pretty.str (Sign.extern_class thy c) :: Pretty.str " <" :: Pretty.brk 1 ::
+          Pretty.breaks (map (Pretty.str o Sign.extern_class thy) cs));
 
       fun pretty_thms name thms = Pretty.big_list (name ^ ":")
-        (map (Display.pretty_thm_sg sg) thms);
+        (map (Display.pretty_thm_sg thy) thms);
 
       fun pretty_axclass (name, {super_classes, intro, axioms}) = Pretty.block (Pretty.fbreaks
         [pretty_class name super_classes, pretty_thms introN [intro], pretty_thms axiomsN axioms]);
     in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest tab))) end;
-end;
+end);
 
-structure AxclassesData = TheoryDataFun(AxclassesArgs);
 val _ = Context.add_setup [AxclassesData.init];
 val print_axclasses = AxclassesData.print;
 
 
 (* get and put data *)
 
-fun lookup_axclass_info_sg sg c = Symtab.lookup (AxclassesData.get_sg sg, c);
+fun lookup_axclass_info thy c = Symtab.lookup (AxclassesData.get thy, c);
 
 fun get_axclass_info thy c =
-  (case lookup_axclass_info_sg (Theory.sign_of thy) c of
+  (case lookup_axclass_info thy c of
     NONE => error ("Unknown axclass " ^ quote c)
   | SOME info => info);
 
@@ -163,10 +162,10 @@ fun put_axclass_info c info thy =
 
 (* class_axms *)
 
-fun class_axms sign =
-  let val classes = Sign.classes sign in
-    map (Thm.class_triv sign) classes @
-    List.mapPartial (Option.map #intro o lookup_axclass_info_sg sign) classes
+fun class_axms thy =
+  let val classes = Sign.classes thy in
+    map (Thm.class_triv thy) classes @
+    List.mapPartial (Option.map #intro o lookup_axclass_info thy) classes
   end;
 
 
@@ -183,17 +182,14 @@ fun err_bad_tfrees ax =
 
 fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axioms_atts thy =
   let
-    val sign = Theory.sign_of thy;
-
-    val class = Sign.full_name sign bclass;
-    val super_classes = map (prep_class sign) raw_super_classes;
-    val axms = map (prep_axm sign o fst) raw_axioms_atts;
+    val class = Sign.full_name thy bclass;
+    val super_classes = map (prep_class thy) raw_super_classes;
+    val axms = map (prep_axm thy o fst) raw_axioms_atts;
     val atts = map (map (prep_att thy) o snd) raw_axioms_atts;
 
     (*declare class*)
     val class_thy =
       thy |> Theory.add_classes_i [(bclass, super_classes)];
-    val class_sign = Theory.sign_of class_thy;
 
     (*prepare abstract axioms*)
     fun abs_axm ax =
@@ -205,9 +201,9 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     fun axm_sort (name, ax) =
       (case term_tfrees ax of
         [] => []
-      | [(_, S)] => if Sign.subsort class_sign ([class], S) then S else err_bad_axsort name class
+      | [(_, S)] => if Sign.subsort class_thy ([class], S) then S else err_bad_axsort name class
       | _ => err_bad_tfrees name);
-    val axS = Sign.certify_sort class_sign (List.concat (map axm_sort axms));
+    val axS = Sign.certify_sort class_thy (List.concat (map axm_sort axms));
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);
@@ -268,16 +264,16 @@ fun add_arity_thms thms thy =
 
 (* prepare classes and arities *)
 
-fun read_class sg c = Sign.certify_class sg (Sign.intern_class sg c);
+fun read_class thy c = Sign.certify_class thy (Sign.intern_class thy c);
 
-fun test_classrel sg cc = (Type.add_classrel (Sign.pp sg) [cc] (Sign.tsig_of sg); cc);
-fun cert_classrel sg = test_classrel sg o Library.pairself (Sign.certify_class sg);
-fun read_classrel sg = test_classrel sg o Library.pairself (read_class sg);
+fun test_classrel thy cc = (Type.add_classrel (Sign.pp thy) [cc] (Sign.tsig_of thy); cc);
+fun cert_classrel thy = test_classrel thy o Library.pairself (Sign.certify_class thy);
+fun read_classrel thy = test_classrel thy o Library.pairself (read_class thy);
 
-fun test_arity sg ar = (Type.add_arities (Sign.pp sg) [ar] (Sign.tsig_of sg); ar);
+fun test_arity thy ar = (Type.add_arities (Sign.pp thy) [ar] (Sign.tsig_of thy); ar);
 
-fun prep_arity prep_tycon prep_sort prep sg (t, Ss, x) =
-  test_arity sg (prep_tycon sg t, map (prep_sort sg) Ss, prep sg x);
+fun prep_arity prep_tycon prep_sort prep thy (t, Ss, x) =
+  test_arity thy (prep_tycon thy t, map (prep_sort thy) Ss, prep thy x);
 
 val read_arity = prep_arity Sign.intern_type Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
@@ -289,22 +285,20 @@ local
 
 fun ext_inst_subclass prep_classrel raw_cc tac thy =
   let
-    val sign = Theory.sign_of thy;
-    val (c1, c2) = prep_classrel sign raw_cc;
-    val txt = quote (Sign.string_of_classrel sign [c1, c2]);
+    val (c1, c2) = prep_classrel thy raw_cc;
+    val txt = quote (Sign.string_of_classrel thy [c1, c2]);
     val _ = message ("Proving class inclusion " ^ txt ^ " ...");
-    val th = Tactic.prove sign [] [] (mk_classrel (c1, c2)) (K tac) handle ERROR =>
+    val th = Tactic.prove thy [] [] (mk_classrel (c1, c2)) (K tac) handle ERROR =>
       error ("The error(s) above occurred while trying to prove " ^ txt);
   in add_classrel_thms [th] thy end;
 
 fun ext_inst_arity prep_arity raw_arity tac thy =
   let
-    val sign = Theory.sign_of thy;
-    val arity = prep_arity sign raw_arity;
-    val txt = quote (Sign.string_of_arity sign arity);
+    val arity = prep_arity thy raw_arity;
+    val txt = quote (Sign.string_of_arity thy arity);
     val _ = message ("Proving type arity " ^ txt ^ " ...");
     val props = (mk_arities arity);
-    val ths = Tactic.prove_multi sign [] [] props
+    val ths = Tactic.prove_multi thy [] [] props
         (fn _ => Tactic.smart_conjunction_tac (length props) THEN tac)
       handle ERROR => error ("The error(s) above occurred while trying to prove " ^ txt);
   in add_arity_thms ths thy end;
@@ -327,7 +321,7 @@ fun inst_proof mk_prop add_thms inst int theory =
   theory
   |> IsarThy.multi_theorem_i Drule.internalK I ProofContext.export_standard
     ("", [fn (thy, th) => (add_thms [th] thy, th)]) []
-    (map (fn t => (("", []), [(t, ([], []))])) (mk_prop (Theory.sign_of theory) inst)) int;
+    (map (fn t => (("", []), [(t, ([], []))])) (mk_prop theory inst)) int;
 
 in
 
@@ -345,7 +339,7 @@ end;
 
 fun intro_classes_tac facts st =
   (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st))))
+      REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.theory_of_thm st))))
     THEN Tactic.distinct_subgoals_tac) st;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
@@ -410,41 +404,39 @@ fun axclass_tac thms =
 
 local
 
-fun prove mk_prop str_of sign prop thms usr_tac =
-  (Tactic.prove sign [] [] (mk_prop prop)
+fun prove mk_prop str_of thy prop thms usr_tac =
+  (Tactic.prove thy [] [] (mk_prop prop)
       (K (axclass_tac thms THEN (if_none usr_tac all_tac)))
     handle ERROR => error ("The error(s) above occurred while trying to prove " ^
-     quote (str_of sign prop))) |> Drule.standard;
+     quote (str_of thy prop))) |> Drule.standard;
 
-val prove_subclass = prove mk_classrel (fn sg => fn (c1, c2) =>
-  Pretty.string_of_classrel (Sign.pp sg) [c1, c2]);
+val prove_subclass = prove mk_classrel (fn thy => fn (c1, c2) =>
+  Pretty.string_of_classrel (Sign.pp thy) [c1, c2]);
 
-val prove_arity = prove mk_arity (fn sg => fn (t, Ss, c) =>
-  Pretty.string_of_arity (Sign.pp sg) (t, Ss, [c]));
+val prove_arity = prove mk_arity (fn thy => fn (t, Ss, c) =>
+  Pretty.string_of_arity (Sign.pp thy) (t, Ss, [c]));
 
 fun witnesses thy names thms =
-  PureThy.get_thmss thy (map (rpair NONE) names) @ thms @ List.filter is_def (map snd (axioms_of thy));
+  PureThy.get_thmss thy (map (rpair NONE) names) @
+  thms @
+  List.filter is_def (map snd (axioms_of thy));
 
 in
 
 fun add_inst_subclass_x raw_c1_c2 names thms usr_tac thy =
-  let
-    val sign = Theory.sign_of thy;
-    val (c1, c2) = read_classrel sign raw_c1_c2;
-  in
-    message ("Proving class inclusion " ^ quote (Sign.string_of_classrel sign [c1, c2]) ^ " ...");
-    thy |> add_classrel_thms [prove_subclass sign (c1, c2) (witnesses thy names thms) usr_tac]
+  let val (c1, c2) = read_classrel thy raw_c1_c2 in
+    message ("Proving class inclusion " ^ quote (Sign.string_of_classrel thy [c1, c2]) ^ " ...");
+    thy |> add_classrel_thms [prove_subclass thy (c1, c2) (witnesses thy names thms) usr_tac]
   end;
 
 fun add_inst_arity_x raw_arity names thms usr_tac thy =
   let
-    val sign = Theory.sign_of thy;
-    val (t, Ss, cs) = read_arity sign raw_arity;
+    val (t, Ss, cs) = read_arity thy raw_arity;
     val wthms = witnesses thy names thms;
     fun prove c =
      (message ("Proving type arity " ^
-        quote (Sign.string_of_arity sign (t, Ss, [c])) ^ " ...");
-        prove_arity sign (t, Ss, c) wthms usr_tac);
+        quote (Sign.string_of_arity thy (t, Ss, [c])) ^ " ...");
+        prove_arity thy (t, Ss, c) wthms usr_tac);
   in add_arity_thms (map prove cs) thy end;
 
 end;

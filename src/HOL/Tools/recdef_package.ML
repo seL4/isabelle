@@ -103,28 +103,27 @@ end;
 
 type recdef_info = {simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
-structure GlobalRecdefArgs =
-struct
+structure GlobalRecdefData = TheoryDataFun
+(struct
   val name = "HOL/recdef";
   type T = recdef_info Symtab.table * hints;
 
   val empty = (Symtab.empty, mk_hints ([], [], [])): T;
   val copy = I;
-  val prep_ext = I;
-  fun merge
+  val extend = I;
+  fun merge _
    ((tab1, {simps = simps1, congs = congs1, wfs = wfs1}),
-    (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) =
+    (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
         mk_hints (Drule.merge_rules (simps1, simps2),
           Library.merge_alists congs1 congs2,
           Drule.merge_rules (wfs1, wfs2)));
 
-  fun print sg (tab, hints) =
-    (Pretty.strs ("recdefs:" :: map #1 (NameSpace.extern_table (Sign.const_space sg, tab))) ::
+  fun print thy (tab, hints) =
+    (Pretty.strs ("recdefs:" :: map #1 (NameSpace.extern_table (Sign.const_space thy, tab))) ::
       pretty_hints hints) |> Pretty.chunks |> Pretty.writeln;
-end;
+end);
 
-structure GlobalRecdefData = TheoryDataFun(GlobalRecdefArgs);
 val print_recdefs = GlobalRecdefData.print;
 
 
@@ -143,15 +142,14 @@ val map_global_hints = GlobalRecdefData.map o apsnd;
 
 (* proof data kind 'HOL/recdef' *)
 
-structure LocalRecdefArgs =
-struct
+structure LocalRecdefData = ProofDataFun
+(struct
   val name = "HOL/recdef";
   type T = hints;
   val init = get_global_hints;
   fun print _ hints = pretty_hints hints |> Pretty.chunks |> Pretty.writeln;
-end;
+end);
 
-structure LocalRecdefData = ProofDataFun(LocalRecdefArgs);
 val get_local_hints = LocalRecdefData.get;
 val map_local_hints = LocalRecdefData.map;
 
@@ -234,7 +232,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
   let
     val _ = requires_recdef thy;
 
-    val name = Sign.intern_const (Theory.sign_of thy) raw_name;
+    val name = Sign.intern_const thy raw_name;
     val bname = Sign.base_name name;
     val _ = message ("Defining recursive function " ^ quote name ^ " ...");
 
@@ -282,7 +280,7 @@ val add_recdef_old = gen_add_recdef Tfl.define Attrib.global_attribute prepare_h
 
 fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
   let
-    val name = Sign.intern_const (Theory.sign_of thy) raw_name;
+    val name = Sign.intern_const thy raw_name;
     val bname = Sign.base_name name;
 
     val _ = requires_recdef thy;
@@ -306,7 +304,7 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 
 fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
   let
-    val name = prep_name (Theory.sign_of thy) raw_name;
+    val name = prep_name thy raw_name;
     val atts = map (prep_att thy) raw_atts;
     val tcs =
       (case get_recdef thy name of
@@ -380,6 +378,4 @@ val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP, recdef_tcP];
 
 end;
 
-
 end;
-

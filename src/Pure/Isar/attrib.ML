@@ -8,8 +8,9 @@ Symbolic theorem attributes.
 signature BASIC_ATTRIB =
 sig
   val print_attributes: theory -> unit
-  val Attribute: bstring -> (Args.src -> theory attribute) * (Args.src -> ProofContext.context attribute)
-    -> string -> unit
+  val Attribute: bstring ->
+    (Args.src -> theory attribute) * (Args.src -> ProofContext.context attribute) ->
+    string -> unit
 end;
 
 signature ATTRIB =
@@ -17,8 +18,8 @@ sig
   include BASIC_ATTRIB
   type src
   exception ATTRIB_FAIL of (string * Position.T) * exn
-  val intern: Sign.sg -> xstring -> string
-  val intern_src: Sign.sg -> src -> src
+  val intern: theory -> xstring -> string
+  val intern_src: theory -> src -> src
   val global_attribute_i: theory -> src -> theory attribute
   val global_attribute: theory -> src -> theory attribute
   val local_attribute_i: theory -> src -> ProofContext.context attribute
@@ -33,9 +34,12 @@ sig
   val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
   val global_thms: theory * Args.T list -> thm list * (theory * Args.T list)
   val global_thmss: theory * Args.T list -> thm list * (theory * Args.T list)
-  val local_thm: ProofContext.context * Args.T list -> thm * (ProofContext.context * Args.T list)
-  val local_thms: ProofContext.context * Args.T list -> thm list * (ProofContext.context * Args.T list)
-  val local_thmss: ProofContext.context * Args.T list -> thm list * (ProofContext.context * Args.T list)
+  val local_thm: ProofContext.context * Args.T list ->
+    thm * (ProofContext.context * Args.T list)
+  val local_thms: ProofContext.context * Args.T list ->
+    thm list * (ProofContext.context * Args.T list)
+  val local_thmss: ProofContext.context * Args.T list ->
+    thm list * (ProofContext.context * Args.T list)
   val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> src -> 'a attribute
   val no_args: 'a attribute -> src -> 'a attribute
   val add_del_args: 'a attribute -> 'a attribute -> src -> 'a attribute
@@ -50,10 +54,10 @@ type src = Args.src;
 
 (** attributes theory data **)
 
-(* data kind 'Isar/attributes' *)
+(* datatype attributes *)
 
-structure AttributesDataArgs =
-struct
+structure AttributesData = TheoryDataFun
+(struct
   val name = "Isar/attributes";
   type T =
     ((((src -> theory attribute) * (src -> ProofContext.context attribute))
@@ -61,9 +65,9 @@ struct
 
   val empty = NameSpace.empty_table;
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun merge tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
+  fun merge _ tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
     error ("Attempt to merge different versions of attribute(s) " ^ commas_quote dups);
 
   fun print _ attribs =
@@ -74,16 +78,15 @@ struct
       [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
       |> Pretty.chunks |> Pretty.writeln
     end;
-end;
+end);
 
-structure AttributesData = TheoryDataFun(AttributesDataArgs);
 val _ = Context.add_setup [AttributesData.init];
 val print_attributes = AttributesData.print;
 
 
 (* interning *)
 
-val intern = NameSpace.intern o #1 o AttributesData.get_sg;
+val intern = NameSpace.intern o #1 o AttributesData.get;
 val intern_src = Args.map_name o intern;
 
 
@@ -103,10 +106,10 @@ fun gen_attribute which thy =
   in attr end;
 
 val global_attribute_i = gen_attribute fst;
-fun global_attribute thy = global_attribute_i thy o intern_src (Theory.sign_of thy);
+fun global_attribute thy = global_attribute_i thy o intern_src thy;
 
 val local_attribute_i = gen_attribute snd;
-fun local_attribute thy = local_attribute_i thy o intern_src (Theory.sign_of thy);
+fun local_attribute thy = local_attribute_i thy o intern_src thy;
 
 val context_attribute_i = local_attribute_i o ProofContext.theory_of;
 val context_attribute = local_attribute o ProofContext.theory_of;
@@ -133,10 +136,9 @@ fun crude_closure ctxt src =
 
 fun add_attributes raw_attrs thy =
   let
-    val sg = Theory.sign_of thy;
     val new_attrs = raw_attrs |> map (fn (name, (f, g), comment) =>
       (name, (((f, g), comment), stamp ())));
-    fun add attrs = NameSpace.extend_table (Sign.naming_of sg) (attrs, new_attrs)
+    fun add attrs = NameSpace.extend_table (Sign.naming_of thy) (attrs, new_attrs)
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in AttributesData.map add thy end;
@@ -157,7 +159,7 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
   Scan.ahead Args.name -- Args.named_fact (fn name => get st (name, NONE)) --
-  Scan.option Args.thm_sel -- Args.opt_attribs (intern (Theory.sign_of (theory_of st)))
+  Scan.option Args.thm_sel -- Args.opt_attribs (intern (theory_of st))
   >> (fn (((name, fact), sel), srcs) =>
     let
       val ths = PureThy.select_thm (name, sel) fact;
@@ -238,24 +240,24 @@ fun the_sort sorts xi = the (sorts xi)
 fun the_type types xi = the (types xi)
   handle Option.Option => error_var "No such variable in theorem: " xi;
 
-fun unify_types sign types ((unifier, maxidx), (xi, u)) =
+fun unify_types thy types ((unifier, maxidx), (xi, u)) =
   let
     val T = the_type types xi;
     val U = Term.fastype_of u;
     val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
   in
-    Type.unify (Sign.tsig_of sign) (unifier, maxidx') (T, U)
+    Type.unify (Sign.tsig_of thy) (unifier, maxidx') (T, U)
       handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
   end;
 
 fun typ_subst env = apsnd (Term.typ_subst_TVars env);
 fun subst env = apsnd (Term.subst_TVars env);
 
-fun instantiate sign envT env thm =
+fun instantiate thy envT env thm =
   let
     val (_, sorts) = Drule.types_sorts thm;
-    fun prepT (a, T) = (Thm.ctyp_of sign (TVar (a, the_sort sorts a)), Thm.ctyp_of sign T);
-    fun prep (xi, t) = pairself (Thm.cterm_of sign) (Var (xi, Term.fastype_of t), t);
+    fun prepT (a, T) = (Thm.ctyp_of thy (TVar (a, the_sort sorts a)), Thm.ctyp_of thy T);
+    fun prep (xi, t) = pairself (Thm.cterm_of thy) (Var (xi, Term.fastype_of t), t);
   in
     Drule.instantiate (map prepT (distinct envT),
       map prep (gen_distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
@@ -266,7 +268,7 @@ in
 fun read_instantiate init mixed_insts (context, thm) =
   let
     val ctxt = init context;
-    val sign = ProofContext.sign_of ctxt;
+    val thy = ProofContext.theory_of ctxt;
 
     val (type_insts, term_insts) = List.partition (is_tvar o #1) (map #2 mixed_insts);
     val internal_insts = term_insts |> List.mapPartial
@@ -290,23 +292,23 @@ fun read_instantiate init mixed_insts (context, thm) =
           | Args.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
-        if Sign.of_sort sign (T, S) then (xi, T)
+        if Sign.of_sort thy (T, S) then (xi, T)
         else error_var "Incompatible sort for typ instantiation of " xi
       end;
 
     val type_insts' = map readT type_insts;
-    val thm' = instantiate sign type_insts' [] thm;
+    val thm' = instantiate thy type_insts' [] thm;
 
 
     (* internal term instantiations *)
 
     val types' = #1 (Drule.types_sorts thm');
     val unifier = map (apsnd snd) (Vartab.dest (#1
-      (Library.foldl (unify_types sign types') ((Vartab.empty, 0), internal_insts))));
+      (Library.foldl (unify_types thy types') ((Vartab.empty, 0), internal_insts))));
 
     val type_insts'' = map (typ_subst unifier) type_insts';
     val internal_insts'' = map (subst unifier) internal_insts;
-    val thm'' = instantiate sign unifier internal_insts'' thm';
+    val thm'' = instantiate thy unifier internal_insts'' thm';
 
 
     (* external term instantiations *)
@@ -323,7 +325,7 @@ fun read_instantiate init mixed_insts (context, thm) =
 
     val external_insts''' = xs ~~ ts;
     val term_insts''' = internal_insts''' @ external_insts''';
-    val thm''' = instantiate sign inferred external_insts''' thm'';
+    val thm''' = instantiate thy inferred external_insts''' thm'';
   in
 
     (* assign internalized values *)
