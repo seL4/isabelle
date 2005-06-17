@@ -64,8 +64,8 @@
     "finalconsts"
     "finally"
     "fix"
-    "fixrec"
     "fixpat"
+    "fixrec"
     "from"
     "full_prf"
     "generate_code"
@@ -243,6 +243,7 @@
     "to"
     "transitions"
     "transrel"
+    "uses"
     "where"))
 
 (defconst isar-keywords-control
@@ -354,8 +355,8 @@
     "extract"
     "extract_type"
     "finalconsts"
-    "fixrec"
     "fixpat"
+    "fixrec"
     "generate_code"
     "global"
     "hide"

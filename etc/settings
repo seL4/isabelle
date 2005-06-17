@@ -222,3 +222,6 @@ XSYMBOL_HOME=$(choosefrom \
 
 # Jerusat 1.3 (SAT Solver)
 #JERUSAT_HOME=/usr/local/bin
+
+# HOL4 proof objects (cf. Isabelle/src/HOL/Import)
+HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
