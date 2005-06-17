@@ -132,12 +132,12 @@ in
 fun mk_lam_def (_::_) _ _ = NONE  
   | mk_lam_def [] ((Const("==",_) $ (Const _)) $ RHS) t = SOME t
   | mk_lam_def [] ((Const("==",_) $ LHS) $ RHS) t = 
-    let val tsig = #sign (rep_thm t);
-	val fnam = Sign.string_of_term tsig (getfun LHS);
-	val rhs = Sign.string_of_term tsig (freeze_thaw RHS)
+    let val thy = theory_of_thm t;
+	val fnam = Sign.string_of_term thy (getfun LHS);
+	val rhs = Sign.string_of_term thy (freeze_thaw RHS)
 	val gl = delete_bold_string (fnam ^" == % " ^ (getargs LHS) ^" . " ^ rhs);
     in
-	SOME (prove_goal (theory_of_sign tsig) gl (fn prems =>
+	SOME (prove_goal thy gl (fn prems =>
   		[(REPEAT (rtac ext_rl 1)), (rtac t 1) ]))
     end
 | mk_lam_def [] _ t= NONE; 
