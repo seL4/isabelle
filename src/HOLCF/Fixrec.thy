@@ -6,7 +6,7 @@
 header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
-imports Ssum One Up Fix
+imports Ssum One Up Fix Tr
 uses ("fixrec_package.ML")
 begin
 
@@ -111,6 +111,9 @@ by (simp add: mplus_def fail_def)
 lemma mplus_return [simp]: "return\<cdot>x +++ m = return\<cdot>x"
 by (simp add: mplus_def return_def)
 
+lemma mplus_fail2 [simp]: "m +++ fail = m"
+by (rule_tac p=m in maybeE, simp_all)
+
 lemma mplus_assoc: "(x +++ y) +++ z = x +++ (y +++ z)"
 by (rule_tac p=x in maybeE, simp_all)
 
@@ -125,6 +128,15 @@ constdefs
   match_up :: "'a u \<rightarrow> 'a maybe"
   "match_up \<equiv> fup\<cdot>return"
 
+  match_ONE :: "one \<rightarrow> unit maybe"
+  "match_ONE \<equiv> flift1 (\<lambda>u. return\<cdot>())"
+
+  match_TT :: "tr \<rightarrow> unit maybe"
+  "match_TT \<equiv> flift1 (\<lambda>b. if b then return\<cdot>() else fail)"
+
+  match_FF :: "tr \<rightarrow> unit maybe"
+  "match_FF \<equiv> flift1 (\<lambda>b. if b then fail else return\<cdot>())"
+
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot><x,y> = return\<cdot><x,y>"
 by (simp add: match_cpair_def)
@@ -133,6 +145,23 @@ lemma match_up_simps [simp]:
   "match_up\<cdot>(up\<cdot>x) = return\<cdot>x"
   "match_up\<cdot>\<bottom> = \<bottom>"
 by (simp_all add: match_up_def)
+
+lemma match_ONE_simps [simp]:
+  "match_ONE\<cdot>ONE = return\<cdot>()"
+  "match_ONE\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: ONE_def match_ONE_def)
+
+lemma match_TT_simps [simp]:
+  "match_TT\<cdot>TT = return\<cdot>()"
+  "match_TT\<cdot>FF = fail"
+  "match_TT\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: TT_def FF_def match_TT_def)
+
+lemma match_FF_simps [simp]:
+  "match_FF\<cdot>FF = return\<cdot>()"
+  "match_FF\<cdot>TT = fail"
+  "match_FF\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: TT_def FF_def match_FF_def)
 
 subsection {* Mutual recursion *}
 
