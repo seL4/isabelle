@@ -16,18 +16,17 @@ struct
 
 open Codegen;
 
-structure CodegenArgs =
-struct
+structure CodegenData = TheoryDataFun
+(struct
   val name = "HOL/recfun_codegen";
   type T = thm list Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  val merge = Symtab.merge_multi' Drule.eq_thm_prop;
+  val extend = I;
+  fun merge _ = Symtab.merge_multi' Drule.eq_thm_prop;
   fun print _ _ = ();
-end;
+end);
 
-structure CodegenData = TheoryDataFun(CodegenArgs);
 
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
 val lhs_of = fst o dest_eqn o prop_of;

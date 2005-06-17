@@ -201,24 +201,22 @@ end;
 
 (* arith theory data *)
 
-structure ArithTheoryDataArgs =
-struct
+structure ArithTheoryData = TheoryDataFun
+(struct
   val name = "HOL/arith";
   type T = {splits: thm list, inj_consts: (string * typ)list, discrete: string  list, presburger: (int -> tactic) option};
 
   val empty = {splits = [], inj_consts = [], discrete = [], presburger = NONE};
   val copy = I;
-  val prep_ext = I;
-  fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, presburger= presburger1},
+  val extend = I;
+  fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, presburger= presburger1},
              {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, presburger= presburger2}) =
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
     discrete = merge_lists discrete1 discrete2,
     presburger = (case presburger1 of NONE => presburger2 | p => p)};
   fun print _ _ = ();
-end;
-
-structure ArithTheoryData = TheoryDataFun(ArithTheoryDataArgs);
+end);
 
 fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
   {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, presburger= presburger}) thy, thm);
@@ -360,7 +358,7 @@ fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
   | decomp2 data _ = NONE
 
 fun decomp sg =
-  let val {discrete, inj_consts, ...} = ArithTheoryData.get_sg sg
+  let val {discrete, inj_consts, ...} = ArithTheoryData.get sg
   in decomp2 (sg,discrete,inj_consts) end
 
 fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin n)
@@ -458,12 +456,12 @@ local
 
 fun raw_arith_tac ex i st =
   refute_tac (K true)
-   (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
+   (REPEAT o split_tac (#splits (ArithTheoryData.get (Thm.sign_of_thm st))))
    ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
    i st;
 
 fun presburger_tac i st =
-  (case ArithTheoryData.get_sg (sign_of_thm st) of
+  (case ArithTheoryData.get (sign_of_thm st) of
      {presburger = SOME tac, ...} =>
        (tracing "Simple arithmetic decision procedure failed.\nNow trying full Presburger arithmetic..."; tac i st)
    | _ => no_tac st);

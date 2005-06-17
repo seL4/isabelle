@@ -85,7 +85,7 @@ val init_rules =
   NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
     Drule.eq_thm_prop (th1, th2));
 
-fun lookup_rule (rs: rules) name = Library.assoc (NetRules.rules rs, name);
+fun lookup_rule (rs: rules) name = assoc_string (NetRules.rules rs, name);
 
 fun print_rules prt kind x rs =
   let val thms = map snd (NetRules.rules rs)
@@ -109,8 +109,8 @@ struct
     ((init_rules (first_var o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (last_var o #2), init_rules (Thm.major_prem_of o #2)));
   val copy = I;
-  val prep_ext = I;
-  fun merge (((casesT1, casesS1), (inductT1, inductS1)),
+  val extend = I;
+  fun merge _ (((casesT1, casesS1), (inductT1, inductS1)),
       ((casesT2, casesS2), (inductT2, inductS2))) =
     ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
@@ -132,16 +132,15 @@ val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
 
 (* proof data kind 'Isar/induction' *)
 
-structure LocalInductArgs =
-struct
+structure LocalInduct = ProofDataFun
+(struct
   val name = "Isar/induction";
   type T = GlobalInductArgs.T;
 
   fun init thy = GlobalInduct.get thy;
   fun print x = print_all_rules ProofContext.pretty_thm x;
-end;
+end);
 
-structure LocalInduct = ProofDataFun(LocalInductArgs);
 val _ = Context.add_setup [LocalInduct.init];
 val print_local_rules = LocalInduct.print;
 val dest_local_rules = GlobalInductArgs.dest o LocalInduct.get;
@@ -228,6 +227,5 @@ val _ = Context.add_setup
  [Attrib.add_attributes
   [(casesN, cases_attr, "declaration of cases rule for type or set"),
    (inductN, induct_attr, "declaration of induction rule for type or set")]];
-
 
 end;

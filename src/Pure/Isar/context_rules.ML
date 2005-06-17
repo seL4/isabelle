@@ -126,9 +126,9 @@ struct
 
   val empty = make_rules ~1 [] empty_netpairs ([], []);
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
-  fun merge (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
+  fun merge _ (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
       Rules {rules = rules2, wrappers = (ws2, ws2'), ...}) =
     let
       val wrappers = (gen_merge_lists' eq_snd ws1 ws2, gen_merge_lists' eq_snd ws1' ws2');
@@ -147,15 +147,14 @@ structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
 val _ = Context.add_setup [GlobalRules.init];
 val print_global_rules = GlobalRules.print;
 
-structure LocalRulesArgs =
-struct
+structure LocalRules = ProofDataFun
+(struct
   val name = GlobalRulesArgs.name;
   type T = GlobalRulesArgs.T;
   val init = GlobalRules.get;
   val print = print_rules ProofContext.pretty_thm;
-end;
+end);
 
-structure LocalRules = ProofDataFun(LocalRulesArgs);
 val _ = Context.add_setup [LocalRules.init];
 val print_local_rules = LocalRules.print;
 
@@ -175,22 +174,25 @@ fun untaglist [] = []
       if k = k' then untaglist rest
       else x :: untaglist rest;
 
-fun orderlist brls = 
-    untaglist (sort (prod_ord Int.compare Int.compare o pairself fst) brls);
-fun orderlist_no_weight brls = 
-    untaglist (sort (Int.compare o pairself (snd o fst)) brls);
+fun orderlist brls =
+  untaglist (sort (prod_ord Int.compare Int.compare o pairself fst) brls);
+
+fun orderlist_no_weight brls =
+  untaglist (sort (Int.compare o pairself (snd o fst)) brls);
 
 fun may_unify weighted t net =
   map snd ((if weighted then orderlist else orderlist_no_weight) (Net.unify_term net t));
 
 fun find_erules _ [] = K []
   | find_erules w (fact :: _) = may_unify w (Logic.strip_assums_concl (Thm.prop_of fact));
+
 fun find_irules w goal = may_unify w (Logic.strip_assums_concl goal);
 
 fun find_rules_netpair weighted facts goal (inet, enet) =
   find_erules weighted facts enet @ find_irules weighted goal inet;
 
-fun find_rules weighted facts goals = map (find_rules_netpair weighted facts goals) o netpairs;
+fun find_rules weighted facts goals =
+  map (find_rules_netpair weighted facts goals) o netpairs;
 
 
 (* wrappers *)
@@ -267,6 +269,5 @@ val addXIs_local = modifier (intro_query_local NONE);
 val addXEs_local = modifier (elim_query_local NONE);
 val addXDs_local = modifier (dest_query_local NONE);
 val delrules_local = modifier rule_del_local;
-
 
 end;

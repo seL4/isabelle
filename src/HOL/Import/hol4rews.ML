@@ -18,9 +18,9 @@ val name = "HOL4/import_status"
 type T = ImportStatus
 val empty = NoImport
 val copy = I
-val prep_ext = I
-fun merge (NoImport,NoImport) = NoImport
-  | merge _ = (warning "Import status set during merge"; NoImport)
+val extend = I
+fun merge _ (NoImport,NoImport) = NoImport
+  | merge _ _ = (warning "Import status set during merge"; NoImport)
 fun print sg import_status =
     Pretty.writeln (Pretty.str (case import_status of NoImport => "No current import" | Generating thyname => ("Generating " ^ thyname) | Replaying thyname => ("Replaying " ^ thyname)))
 end;
@@ -33,10 +33,10 @@ val name = "HOL4/import_segment"
 type T = string
 val empty = ""
 val copy = I
-val prep_ext = I
-fun merge ("",arg) = arg
-  | merge (arg,"") = arg
-  | merge (s1,s2) =
+val extend = I
+fun merge _ ("",arg) = arg
+  | merge _ (arg,"") = arg
+  | merge _ (s1,s2) =
     if s1 = s2
     then s1
     else error "Trying to merge two different import segments"
@@ -55,9 +55,9 @@ val name = "HOL4/used_names"
 type T = string list
 val empty = []
 val copy = I
-val prep_ext = I
-fun merge ([],[]) = []
-  | merge _ = error "Used names not empty during merge"
+val extend = I
+fun merge _ ([],[]) = []
+  | merge _ _ = error "Used names not empty during merge"
 fun print sg used_names =
     Pretty.writeln (Pretty.str "Printing of HOL4/used_names Not implemented")
 end;
@@ -70,9 +70,9 @@ val name = "HOL4/dump_data"
 type T = string * string * string list
 val empty = ("","",[])
 val copy = I
-val prep_ext = I
-fun merge (("","",[]),("","",[])) = ("","",[])
-  | merge _ = error "Dump data not empty during merge"
+val extend = I
+fun merge _ (("","",[]),("","",[])) = ("","",[])
+  | merge _ _ = error "Dump data not empty during merge"
 fun print sg dump_data =
     Pretty.writeln (Pretty.str "Printing of HOL4/dump_data Not implemented")
 end;
@@ -85,8 +85,8 @@ val name = "HOL4/moves"
 type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = Symtab.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 moves:"
 	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
@@ -100,8 +100,8 @@ val name = "HOL4/imports"
 type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = Symtab.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 imports:"
 	(Symtab.foldl (fn (xl,(thyname,segname)) => (Pretty.str (thyname ^ " imported from segment " ^ segname)::xl)) ([],tab)))
@@ -130,8 +130,8 @@ val name = "HOL4/constant_moves"
 type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = Symtab.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant moves:"
 	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
@@ -145,8 +145,8 @@ val name = "HOL4/mappings"
 type T = (string option) StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),isathm)) => (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of SOME th => " --> " ^ th | NONE => "IGNORED"))::xl)) ([],tab)))
@@ -160,8 +160,8 @@ val name = "HOL4/theorems"
 type T = holthm StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),(_,thm))) => (Pretty.str (bthy ^ "." ^ bthm ^ ":")::(Display.pretty_thm thm)::xl)) ([],tab)))
@@ -175,8 +175,8 @@ val name = "HOL4/constmappings"
 type T = (bool * string * typ option) StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst,_))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
@@ -190,8 +190,8 @@ val name = "HOL4/renamings"
 type T = string StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant renamings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ newname)::xl)) ([],tab)))
@@ -205,8 +205,8 @@ val name = "HOL4/def_maps"
 type T = string StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant definitions:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ ": " ^ newname)::xl)) ([],tab)))
@@ -220,8 +220,8 @@ val name = "HOL4/typemappings"
 type T = (bool * string) StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 type mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
@@ -235,8 +235,8 @@ val name = "HOL4/pending"
 type T = ((term * term) list * thm) StringPair.table
 val empty = StringPair.empty
 val copy = I
-val prep_ext = I
-val merge : T * T -> T = StringPair.merge (K true)
+val extend = I
+fun merge _ : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 pending theorems:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),(_,th))) => (Pretty.chunks [Pretty.str (bthy ^ "." ^ bthm ^ ":"),Display.pretty_thm th]::xl)) ([],tab)))
@@ -250,8 +250,8 @@ val name = "HOL4/rewrites"
 type T = thm list
 val empty = []
 val copy = I
-val prep_ext = I
-val merge = Library.gen_union Thm.eq_thm
+val extend = I
+fun merge _ = Library.gen_union Thm.eq_thm
 fun print sg thms =
     Pretty.writeln (Pretty.big_list "HOL4 rewrite rules:"
 				    (map Display.pretty_thm thms))
@@ -480,7 +480,7 @@ fun export_hol4_pending thy =
 	fun process (thy,((bthy,bthm),hth as (_,thm))) =
 	    let
 		val sg      = sign_of thy
-		val thm1 = rewrite_rule (map (transfer_sg sg) rews) (transfer_sg sg thm)
+		val thm1 = rewrite_rule (map (Thm.transfer sg) rews) (Thm.transfer sg thm)
 		val thm2 = standard thm1
 		val (thy2,_) = PureThy.store_thm((bthm,thm2),[]) thy
 		val thy5 = add_hol4_theorem bthy bthm hth thy2

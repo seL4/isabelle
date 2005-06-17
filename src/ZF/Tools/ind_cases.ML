@@ -18,19 +18,18 @@ struct
 
 (* theory data *)
 
-structure IndCasesArgs =
-struct
+structure IndCasesData = TheoryDataFun
+(struct
   val name = "ZF/ind_cases";
   type T = (simpset -> cterm -> thm) Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  fun merge (tab1, tab2) = Symtab.merge (K true) (tab1, tab2);
+  val extend = I;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
   fun print _ _ = ();
-end;
+end);
 
-structure IndCasesData = TheoryDataFun(IndCasesArgs);
 
 fun declare name f = IndCasesData.map (fn tab => Symtab.update ((name, f), tab));
 

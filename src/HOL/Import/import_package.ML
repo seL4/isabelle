@@ -16,10 +16,9 @@ val name = "HOL4/import_data"
 type T = ProofKernel.thm option array option
 val empty = NONE
 val copy = I
-val prep_ext = I
-fun merge _ = NONE
-fun print sg import_segment =
-    Pretty.writeln (Pretty.str ("Pretty printing of importer data not implemented"))
+val extend = I
+fun merge _ _ = NONE
+fun print _ _ = ()
 end
 
 structure ImportData = TheoryDataFun(ImportDataArgs)

@@ -79,10 +79,10 @@ sig
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
 
-  val claset_ref_of_sg: Sign.sg -> claset ref
   val claset_ref_of: theory -> claset ref
-  val claset_of_sg: Sign.sg -> claset
+  val claset_ref_of_sg: theory -> claset ref    (*obsolete*)
   val claset_of: theory -> claset
+  val claset_of_sg: theory -> claset            (*obsolete*)
   val CLASET: (claset -> tactic) -> tactic
   val CLASET': (claset -> 'a -> tactic) -> 'a -> tactic
   val claset: unit -> claset
@@ -826,23 +826,22 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 (* theory data kind 'Provers/claset' *)
 
-structure GlobalClasetArgs =
-struct
+structure GlobalClaset = TheoryDataFun
+(struct
   val name = "Provers/claset";
   type T = claset ref * context_cs;
 
   val empty = (ref empty_cs, empty_context_cs);
-  fun copy (ref cs, ctxt_cs) = (ref cs, ctxt_cs): T;            (*create new reference!*)
-  val prep_ext = copy;
-  fun merge ((ref cs1, ctxt_cs1), (ref cs2, ctxt_cs2)) =
+  fun copy (ref cs, ctxt_cs) = (ref cs, ctxt_cs): T;
+  val extend = copy;
+  fun merge _ ((ref cs1, ctxt_cs1), (ref cs2, ctxt_cs2)) =
     (ref (merge_cs (cs1, cs2)), merge_context_cs (ctxt_cs1, ctxt_cs2));
   fun print _ (ref cs, _) = print_cs cs;
-end;
+end);
 
-structure GlobalClaset = TheoryDataFun(GlobalClasetArgs);
 val print_claset = GlobalClaset.print;
-val claset_ref_of_sg = #1 o GlobalClaset.get_sg;
 val claset_ref_of = #1 o GlobalClaset.get;
+val claset_ref_of_sg = claset_ref_of;
 val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 
 fun map_context_cs f = GlobalClaset.map (apsnd
@@ -851,14 +850,14 @@ fun map_context_cs f = GlobalClaset.map (apsnd
 
 (* access claset *)
 
-val claset_of_sg = ! o claset_ref_of_sg;
-val claset_of = claset_of_sg o Theory.sign_of;
+val claset_of = ! o claset_ref_of;
+val claset_of_sg = claset_of;
 
-fun CLASET tacf state = tacf (claset_of_sg (Thm.sign_of_thm state)) state;
-fun CLASET' tacf i state = tacf (claset_of_sg (Thm.sign_of_thm state)) i state;
+fun CLASET tacf state = tacf (claset_of (Thm.theory_of_thm state)) state;
+fun CLASET' tacf i state = tacf (claset_of (Thm.theory_of_thm state)) i state;
 
 val claset = claset_of o Context.the_context;
-val claset_ref = claset_ref_of_sg o Theory.sign_of o Context.the_context;
+val claset_ref = claset_ref_of o Context.the_context;
 
 
 (* change claset *)
@@ -885,15 +884,14 @@ fun del_context_unsafe_wrapper name = map_context_cs (apsnd (filter_out (equal n
 
 (* proof data kind 'Provers/claset' *)
 
-structure LocalClasetArgs =
-struct
+structure LocalClaset = ProofDataFun
+(struct
   val name = "Provers/claset";
   type T = claset;
   val init = claset_of;
   fun print ctxt cs = print_cs (context_cs ctxt cs (get_context_cs ctxt));
-end;
+end);
 
-structure LocalClaset = ProofDataFun(LocalClasetArgs);
 val print_local_claset = LocalClaset.print;
 val get_local_claset = LocalClaset.get;
 val put_local_claset = LocalClaset.put;
@@ -921,7 +919,7 @@ fun delta_increment ctxt =
   in (ctxt', #2 (DeltaClasetData.get ctxt'))
   end;
 
-local 
+local
 fun rename_thm' (ctxt,thm) =
   let val (new_ctxt, new_id) = delta_increment ctxt
       val new_name = "anon_cla_" ^ (string_of_int new_id)
@@ -935,7 +933,7 @@ in
 fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else (ctxt, thm);
 
 end
-     
+
 
 (* attributes *)
 
@@ -961,60 +959,60 @@ fun safe_dest_local (ctxt,th) =
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th)  else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addSDs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt'
+        val new_dcs = delta_cs addSDs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
     in
-	change_local_cs (op addSDs) (ctxt'',th)
+        change_local_cs (op addSDs) (ctxt'',th)
     end;
 
-fun safe_elim_local (ctxt, th)= 
+fun safe_elim_local (ctxt, th)=
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th) else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addSEs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt' 
+        val new_dcs = delta_cs addSEs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
     in
-	change_local_cs (op addSEs) (ctxt'',th)
+        change_local_cs (op addSEs) (ctxt'',th)
     end;
 
-fun safe_intro_local (ctxt, th) = 
+fun safe_intro_local (ctxt, th) =
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th) else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addSIs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt'
+        val new_dcs = delta_cs addSIs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
     in
-	change_local_cs (op addSIs) (ctxt'',th)
+        change_local_cs (op addSIs) (ctxt'',th)
     end;
 
-fun haz_dest_local (ctxt, th)= 
+fun haz_dest_local (ctxt, th)=
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th)else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addDs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt'
+        val new_dcs = delta_cs addDs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
     in
-	change_local_cs (op addDs) (ctxt'',th)
+        change_local_cs (op addDs) (ctxt'',th)
     end;
 
 fun haz_elim_local (ctxt,th) =
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th)  else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addEs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt'
-    in 
-	change_local_cs (op addEs) (ctxt'',th)
+        val new_dcs = delta_cs addEs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
+    in
+        change_local_cs (op addEs) (ctxt'',th)
     end;
 
-fun haz_intro_local (ctxt,th) = 
+fun haz_intro_local (ctxt,th) =
     let val thm_name = Thm.name_of_thm th
         val (ctxt', th') = if (thm_name = "") then rename_thm (ctxt,th)  else (ctxt, th)
         val delta_cs = get_delta_claset ctxt'
-	val new_dcs = delta_cs addIs [th']
-	val ctxt'' = put_delta_claset new_dcs ctxt'
-    in 
-	change_local_cs (op addIs) (ctxt'',th)
+        val new_dcs = delta_cs addIs [th']
+        val ctxt'' = put_delta_claset new_dcs ctxt'
+    in
+        change_local_cs (op addIs) (ctxt'',th)
     end;
 
 

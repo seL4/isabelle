@@ -183,8 +183,8 @@ struct
 			 parameters: string Symtab.table};
 		val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
 		val copy = I;
-		val prep_ext = I;
-		fun merge
+		val extend = I;
+		fun merge _
 			({interpreters = in1, printers = pr1, parameters = pa1},
 			 {interpreters = in2, printers = pr2, parameters = pa2}) =
 			{interpreters = rev (merge_alists (rev in1) (rev in2)),

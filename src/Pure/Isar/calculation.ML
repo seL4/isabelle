@@ -32,43 +32,41 @@ struct
 
 (** global and local calculation data **)
 
-(* theory data kind 'Isar/calculation' *)
+(* global calculation *)
 
 fun print_rules prt x (trans, sym) =
   [Pretty.big_list "transitivity rules:" (map (prt x) (NetRules.rules trans)),
     Pretty.big_list "symmetry rules:" (map (prt x) sym)]
   |> Pretty.chunks |> Pretty.writeln;
 
-structure GlobalCalculationArgs =
-struct
+structure GlobalCalculation = TheoryDataFun
+(struct
   val name = "Isar/calculation";
   type T = thm NetRules.T * thm list
 
   val empty = (NetRules.elim, []);
   val copy = I;
-  val prep_ext = I;
-  fun merge ((trans1, sym1), (trans2, sym2)) =
+  val extend = I;
+  fun merge _ ((trans1, sym1), (trans2, sym2)) =
     (NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2));
   val print = print_rules Display.pretty_thm_sg;
-end;
+end);
 
-structure GlobalCalculation = TheoryDataFun(GlobalCalculationArgs);
 val _ = Context.add_setup [GlobalCalculation.init];
 val print_global_rules = GlobalCalculation.print;
 
 
-(* proof data kind 'Isar/calculation' *)
+(* local calculation *)
 
-structure LocalCalculationArgs =
-struct
+structure LocalCalculation = ProofDataFun
+(struct
   val name = "Isar/calculation";
   type T = (thm NetRules.T * thm list) * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, NONE);
   fun print ctxt (rs, _) = print_rules ProofContext.pretty_thm ctxt rs;
-end;
+end);
 
-structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
 val _ = Context.add_setup [LocalCalculation.init];
 val get_local_rules = #1 o LocalCalculation.get o Proof.context_of;
 val print_local_rules = LocalCalculation.print;

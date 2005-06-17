@@ -18,8 +18,8 @@ open Codegen;
 
 (**** theory data ****)
 
-structure CodegenArgs =
-struct
+structure CodegenData = TheoryDataFun
+(struct
   val name = "HOL/inductive_codegen";
   type T =
     {intros : thm list Symtab.table,
@@ -28,16 +28,15 @@ struct
   val empty =
     {intros = Symtab.empty, graph = Graph.empty, eqns = Symtab.empty};
   val copy = I;
-  val prep_ext = I;
-  fun merge ({intros=intros1, graph=graph1, eqns=eqns1},
+  val extend = I;
+  fun merge _ ({intros=intros1, graph=graph1, eqns=eqns1},
     {intros=intros2, graph=graph2, eqns=eqns2}) =
     {intros = Symtab.merge_multi Drule.eq_thm_prop (intros1, intros2),
      graph = Graph.merge (K true) (graph1, graph2),
      eqns = Symtab.merge_multi Drule.eq_thm_prop (eqns1, eqns2)};
   fun print _ _ = ();
-end;
+end);
 
-structure CodegenData = TheoryDataFun(CodegenArgs);
 
 fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
   string_of_thm thm);

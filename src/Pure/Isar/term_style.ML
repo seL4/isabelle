@@ -20,19 +20,18 @@ struct
 fun err_dup_styles names =
   error ("Duplicate declaration of antiquote style(s): " ^ commas_quote names);
 
-structure StyleArgs =
-struct
+structure StyleData = TheoryDataFun
+(struct
   val name = "Isar/style";
   type T = ((Proof.context -> term -> term) * stamp) Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  fun merge tabs = Symtab.merge eq_snd tabs
+  val extend = I;
+  fun merge _ tabs = Symtab.merge eq_snd tabs
     handle Symtab.DUPS dups => err_dup_styles dups;
   fun print _ tab = Pretty.writeln (Pretty.strs ("antiquote styles:" :: Symtab.keys tab));
-end;
+end);
 
-structure StyleData = TheoryDataFun(StyleArgs);
 val _ = Context.add_setup [StyleData.init];
 val print_styles = StyleData.print;
 
@@ -52,16 +51,19 @@ fun add_style name style thy =
 (* predefined styles *)
 
 fun style_binargs ctxt t =
-  let val concl = ObjectLogic.drop_judgment (ProofContext.sign_of ctxt) (Logic.strip_imp_concl t) in
+  let
+    val concl = ObjectLogic.drop_judgment (ProofContext.theory_of ctxt)
+      (Logic.strip_imp_concl t)
+  in
     case concl of (_ $ l $ r) => (l, r)
     | _ => error ("Binary operator expected in term: " ^ ProofContext.string_of_term ctxt concl)
   end;
 
 fun style_parm_premise i ctxt t =
-  let val prems = Logic.strip_imp_prems t
-  in if i <= length prems then List.nth(prems, i-1)
-     else error ("Not enough premises for prem" ^ string_of_int i ^
-                 " in propositon: " ^ ProofContext.string_of_term ctxt t)
+  let val prems = Logic.strip_imp_prems t in
+    if i <= length prems then List.nth (prems, i - 1)
+    else error ("Not enough premises for prem" ^ string_of_int i ^
+      " in propositon: " ^ ProofContext.string_of_term ctxt t)
   end;
 
 val _ = Context.add_setup
