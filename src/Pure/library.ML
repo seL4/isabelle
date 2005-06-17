@@ -31,10 +31,6 @@ sig
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
 
-  (*stamps*)
-  type stamp
-  val stamp: unit -> stamp
-
   (*old options -- invalidated*)
   datatype invalid = None of invalid
   exception OPTION of invalid
@@ -261,6 +257,10 @@ sig
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
   val scanwords: (string -> bool) -> string list -> string list
+  type stamp
+  val stamp: unit -> stamp
+  type serial
+  val serial: unit -> serial
 end;
 
 signature LIBRARY =
@@ -309,13 +309,6 @@ fun funpow n f x =
 fun (f oo g) x y = f (g x y);
 fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
-
-
-
-(** stamps **)
-
-type stamp = unit ref;
-val stamp: unit -> stamp = ref;
 
 
 
@@ -665,12 +658,12 @@ fun suffixes1 xs = map rev (prefixes1 (rev xs));
 
 (** integers **)
 
-fun gcd(x,y) =
+fun gcd (x, y) =
   let fun gxd x y : IntInf.int =
     if y = 0 then x else gxd y (x mod y)
   in if x < y then gxd y x else gxd x y end;
 
-fun lcm(x,y) = (x * y) div gcd(x,y);
+fun lcm (x, y) = (x * y) div gcd (x, y);
 
 fun inc i = (i := ! i + 1; ! i);
 fun dec i = (i := ! i - 1; ! i);
@@ -906,11 +899,11 @@ fun [] subset ys = true
   | (x :: xs) subset ys = x mem ys andalso xs subset ys;
 
 (*subset, optimized version for ints*)
-fun ([]:int list) subset_int ys = true
+fun ([]: int list) subset_int ys = true
   | (x :: xs) subset_int ys = x mem_int ys andalso xs subset_int ys;
 
 (*subset, optimized version for strings*)
-fun ([]:string list) subset_string ys = true
+fun ([]: string list) subset_string ys = true
   | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
 
 (*set equality*)
@@ -918,7 +911,7 @@ fun eq_set (xs, ys) =
   xs = ys orelse (xs subset ys andalso ys subset xs);
 
 (*set equality for strings*)
-fun eq_set_string ((xs:string list), ys) =
+fun eq_set_string ((xs: string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
 
 fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
@@ -1288,6 +1281,15 @@ fun scanwords is_let cs =
             in implode lets :: scanwords is_let rest end;
   in scan1 (#2 (take_prefix (not o is_let) cs)) end;
 
+
+(* stamps and serial numbers *)
+
+type stamp = unit ref;
+val stamp: unit -> stamp = ref;
+
+type serial = int;
+local val count = ref 0
+in fun serial () = inc count end;
 
 end;
 
