@@ -557,8 +557,8 @@ val pure_sections =
   axm_section "axclass" "|> (#1 ooo AxClass.add_axclass)" axclass_decl,
   section "instance" "" instance_decl,
   section "path" "|> Theory.add_path" name,
-  section "global" "|> PureThy.global_path" empty_decl,
-  section "local" "|> PureThy.local_path" empty_decl,
+  section "global" "|> Sign.root_path" empty_decl,
+  section "local" "|> Sign.local_path" empty_decl,
   section "setup" "|> Library.apply" long_id,
   section "MLtext" "" verbatim,
   section "locale" "|> Goals.add_locale" locale_decl];
