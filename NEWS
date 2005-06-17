@@ -424,6 +424,32 @@ reset, the name prefix is reduced to the minimum required to achieve
 the original result when interning again, even if there is an overlap
 with earlier declarations.
 
+* Pure/TheoryDataFun: change of the argument structure; 'prep_ext' is
+now 'extend', and 'merge' gets an additional Pretty.pp argument
+(useful for printing error messages).  INCOMPATIBILITY.
+
+* Pure: major reorganization of the theory context.  Type Sign.sg and
+Theory.theory are now identified, referring to the universal
+Context.theory (see Pure/context.ML).  Actual signature and theory
+content is managed as theory data.  The old code and interfaces were
+spread over many files and structures; the new arrangement introduces
+considerable INCOMPATIBILITY to gain more clarity:
+
+  Context -- theory management operations (name, identity, inclusion,
+    parents, ancestors, merge, etc.), plus generic theory data;
+
+  Sign -- logical signature and syntax operations (declaring consts,
+    types, etc.), plus certify/read for common entities;
+
+  Theory -- logical theory operations (stating axioms, definitions,
+    oracles), plus a copy of logical signature operations (consts,
+    types, etc.); also a few basic management operations (Theory.copy,
+    Theory.merge, etc.)
+
+The most basic sign_of operations (Theory.sign_of, Thm.sign_of_thm
+etc.) as well as the sign field in Thm.rep_thm etc. have been retained
+for convenience -- they merely return the theory.
+
 * Pure/sign/theory: discontinued named name spaces (i.e. classK,
 typeK, constK, axiomK, oracleK), but provide explicit operations for
 any of these kinds.  For example, Sign.intern typeK is now
