@@ -81,10 +81,8 @@ val empty = Graph Table.empty;
 fun keys (Graph tab) = Table.keys tab;
 fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, succs)) (Table.dest tab);
 
-fun minimals (Graph tab) =
-  Table.foldl (fn (ms, (m, (_, ([], _)))) => m :: ms | (ms, _) => ms) ([], tab);
-fun maximals (Graph tab) =
-  Table.foldl (fn (ms, (m, (_, (_, [])))) => m :: ms | (ms, _) => ms) ([], tab);
+fun minimals (Graph tab) = Table.fold (fn (m, (_, ([], _))) => cons m | _ => I) tab [];
+fun maximals (Graph tab) = Table.fold (fn (m, (_, (_, []))) => cons m | _ => I) tab [];
 
 fun get_entry (Graph tab) x =
   (case Table.lookup (tab, x) of
