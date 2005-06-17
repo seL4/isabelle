@@ -24,6 +24,7 @@ use "term.ML";
 use "General/pretty.ML";
 use "sorts.ML";
 use "type.ML";
+use "context.ML";
 
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
@@ -38,8 +39,6 @@ use "net.ML";
 use "logic.ML";
 use "defs.ML";
 use "theory.ML";
-use "theory_data.ML";
-use "context.ML";
 use "proofterm.ML";
 use "thm.ML";
 use "display.ML";
@@ -78,7 +77,7 @@ use "Thy/thm_deps.ML";
 (*theorem database ML interface*)
 use "Thy/thm_database.ML";
 
-(*the Isar subsystem*)
+(*the Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 
 use "axclass.ML";
