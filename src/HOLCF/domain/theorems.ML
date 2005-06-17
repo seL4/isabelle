@@ -331,12 +331,12 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("con_rews", con_rews),
 		("sel_rews", sel_rews),
 		("dis_rews", dis_rews),
-		("match_rews", mat_rews),
 		("dist_les", dist_les),
 		("dist_eqs", dist_eqs),
 		("inverts" , inverts ),
 		("injects" , injects ),
 		("copy_rews", copy_rews)])))
+       |> (#1 o PureThy.add_thmss [(("match_rews", mat_rews), [Simplifier.simp_add_global])])
        |> Theory.parent_path |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
                  dist_les @ dist_eqs @ copy_rews)
 end; (* let *)
