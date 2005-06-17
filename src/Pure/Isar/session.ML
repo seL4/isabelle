@@ -20,7 +20,7 @@ struct
 
 (* session state *)
 
-val session = ref ([Sign.PureN]: string list);
+val session = ref ([Context.PureN]: string list);
 val session_path = ref ([]: string list);
 val session_finished = ref false;
 val remote_path = ref (NONE: Url.T option);
@@ -30,7 +30,7 @@ val remote_path = ref (NONE: Url.T option);
 
 fun path () = ! session_path;
 
-fun str_of [] = Sign.PureN
+fun str_of [] = Context.PureN
   | str_of elems = space_implode "/" elems;
 
 fun name () = "Isabelle/" ^ str_of (path ());
