@@ -45,7 +45,7 @@ fun print_sign_exn_unit sign e =
 	  List.app print_thm thms)
    | THEORY (msg,thys) =>
 	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  List.app (Pretty.writeln o Display.pretty_theory) thys)
+	  List.app (writeln o Context.str_of_thy) thys)
    | TERM (msg,ts) =>
 	 (writeln ("Exception TERM raised:\n" ^ msg);
 	  List.app (writeln o Sign.string_of_term sign) ts)
@@ -81,8 +81,8 @@ val name = "HOL/shuffles"
 type T = thm list
 val empty = []
 val copy = I
-val prep_ext = I
-val merge = Library.gen_union Thm.eq_thm
+val extend = I
+fun merge _ = Library.gen_union Thm.eq_thm
 fun print sg thms =
     Pretty.writeln (Pretty.big_list "Shuffle theorems:"
 				    (map Display.pretty_thm thms))
@@ -477,7 +477,7 @@ fun norm_term thy t =
 
 	val norms = ShuffleData.get thy
 	val ss = empty_ss setmksimps single
-			  addsimps (map (transfer_sg sg) norms)
+			  addsimps (map (Thm.transfer sg) norms)
 	fun chain f th =
 	    let
 		val rhs = snd (dest_equals (cprop_of th))
@@ -581,7 +581,7 @@ fun set_prop thy t =
 	fun process [] = NONE
 	  | process ((name,th)::thms) =
 	    let
-		val norm_th = varifyT (norm_thm thy (close_thm (transfer_sg sg th)))
+		val norm_th = varifyT (norm_thm thy (close_thm (Thm.transfer sg th)))
 		val triv_th = trivial rhs
 		val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
 		val mod_th = case Seq.pull (bicompose true (false,norm_th,0) 1 triv_th) of
