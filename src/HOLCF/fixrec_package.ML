@@ -7,7 +7,7 @@ Recursive function definition package for HOLCF.
 
 signature FIXREC_PACKAGE =
 sig
-  val add_fixrec: string list list -> theory -> theory
+  val add_fixrec: ((string * Attrib.src list) * string) list list -> theory -> theory
   val add_fixpat: ((string * Attrib.src list) * string) list -> theory -> theory
 end;
 
@@ -31,8 +31,12 @@ val mk_trp = HOLogic.mk_Trueprop;
 
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs (Const ("==", _)$lhs$rhs) = (lhs, rhs)
-  | dest_eqs (Const ("Trueprop", _)$(Const ("op =", _)$lhs$rhs))    = (lhs,rhs)
+  | dest_eqs (Const ("Trueprop", _)$(Const ("op =", _)$lhs$rhs)) = (lhs,rhs)
   | dest_eqs t = sys_error (Sign.string_of_term (sign_of (the_context())) t);
+
+(* similar to Thm.head_of, but for continuous application *)
+fun chead_of (Const("Cfun.Rep_CFun",_)$f$t) = chead_of f
+  | chead_of u = u;
 
 (* these are helpful functions copied from HOLCF/domain/library.ML *)
 fun %: s = Free(s,dummyT);
@@ -98,19 +102,19 @@ fun add_fixdefs eqs thy =
           (fn _ => [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
                     simp_tac (simpset_of thy') 1]);
     val ctuple_induct_thm =
-          (space_implode "_" names ^ "_induct", [ctuple_fixdef_thm RS def_fix_ind]);
+          (space_implode "_" names ^ "_induct", ctuple_fixdef_thm RS def_fix_ind);
     
     fun unfolds [] thm = []
-      | unfolds (n::[]) thm = [(n^"_unfold", [thm])]
+      | unfolds (n::[]) thm = [(n^"_unfold", thm)]
       | unfolds (n::ns) thm = let
           val thmL = thm RS cpair_eqD1;
           val thmR = thm RS cpair_eqD2;
-        in (n^"_unfold", [thmL]) :: unfolds ns thmR end;
-    val unfold_thmss = unfolds names ctuple_unfold_thm;
-    val thmss = ctuple_induct_thm :: unfold_thmss;
-    val (thy'', _) = PureThy.add_thmss (map Thm.no_attributes thmss) thy';
+        in (n^"_unfold", thmL) :: unfolds ns thmR end;
+    val unfold_thms = unfolds names ctuple_unfold_thm;
+    val thms = ctuple_induct_thm :: unfold_thms;
+    val (thy'', _) = PureThy.add_thms (map Thm.no_attributes thms) thy';
   in
-    (thy'', names, fixdef_thms, List.concat (map snd unfold_thmss))
+    (thy'', names, fixdef_thms, map snd unfold_thms)
   end;
 
 (*************************************************************************)
@@ -201,25 +205,29 @@ fun compile_pats eqs =
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
 
-fun prove_rew thy unfold_thm ct =
+fun prove_simp thy unfold_thm t =
   let
     val ss = simpset_of thy;
+    val ct = cterm_of thy t;
     val thm = prove_goalw_cterm [] ct
       (fn _ => [SOLVE(stac unfold_thm 1 THEN simp_tac ss 1)])
         handle _ => sys_error (string_of_cterm ct^" :: proof failed on this equation.");
   in thm end;
 
 (* this proves that each equation is a theorem *)
-fun prove_rews thy (unfold_thm,cts) = map (prove_rew thy unfold_thm) cts;
+fun prove_simps thy (unfold_thm,ts) = map (prove_simp thy unfold_thm) ts;
 
 (* proves the pattern matching equations as theorems, using unfold *)
-fun make_simps names unfold_thms ctss thy = 
+fun make_simps cnames unfold_thms namess attss tss thy = 
   let
-    val thm_names = map (fn name => name^"_rews") names;
-    val rew_thmss = ListPair.map (prove_rews thy) (unfold_thms, ctss);
-    val thmss = ListPair.zip (thm_names, rew_thmss);
+    val thm_names = map (fn name => name^"_simps") cnames;
+    val rew_thmss = map (prove_simps thy) (unfold_thms ~~ tss);
+    val thms = (List.concat namess ~~ List.concat rew_thmss) ~~ List.concat attss;
+    val (thy',_) = PureThy.add_thms thms thy;
+    val thmss = thm_names ~~ rew_thmss;
+    val simp_attribute = rpair [Simplifier.simp_add_global];
   in
-    (#1 o PureThy.add_thmss (map Thm.no_attributes thmss)) thy
+    (#1 o PureThy.add_thmss (map simp_attribute thmss)) thy'
   end;
 
 (*************************************************************************)
@@ -227,15 +235,17 @@ fun make_simps names unfold_thms ctss thy =
 (*************************************************************************)
 
 (* this calls the main processing function and then returns the new state *)
-fun add_fixrec strss thy =
+fun add_fixrec blocks thy =
   let
     val sg = sign_of thy;
-    val ctss = map (map (Thm.read_cterm sg o rpair propT)) strss;
-    val tss = map (map term_of) ctss;
-    val ts' = map (fn ts => infer sg (compile_pats ts)) tss;
-    val (thy', names, fixdef_thms, unfold_thms) = add_fixdefs ts' thy;
+    fun split_list2 xss = split_list (map split_list xss);
+    val ((namess, srcsss), strss) = apfst split_list2 (split_list2 blocks);
+    val attss = map (map (map (Attrib.global_attribute thy))) srcsss;
+    val tss = map (map (term_of o Thm.read_cterm sg o rpair propT)) strss;
+    val ts' = map (infer sg o compile_pats) tss;
+    val (thy', cnames, fixdef_thms, unfold_thms) = add_fixdefs ts' thy;
   in
-    make_simps names unfold_thms ctss thy'
+    make_simps cnames unfold_thms namess attss tss thy'
   end;
 
 (*************************************************************************)
@@ -248,11 +258,9 @@ fun fix_pat thy pat =
     val t = term_of (Thm.read_cterm sg (pat, dummyT));
     val T = fastype_of t;
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
-    fun head_const (Const ("Cfun.Rep_CFun",_) $ f $ t) = head_const f
-      | head_const (Const (c,_)) = c
-      | head_const _ = sys_error "FIXPAT: function is not declared as constant in theory";
-    val c = head_const t;
-    val unfold_thm = Goals.get_thm thy (c^"_unfold");
+    val cname = case chead_of t of Const(c,_) => c | _ =>
+              sys_error "FIXPAT: function is not declared as constant in theory";
+    val unfold_thm = Goals.get_thm thy (cname^"_unfold");
     val rew = prove_goalw_cterm [] (cterm_of sg eq)
           (fn _ => [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
   in rew end;
@@ -261,8 +269,8 @@ fun add_fixpat pats thy =
   let
     val ((names, srcss), strings) = apfst ListPair.unzip (ListPair.unzip pats);
     val atts = map (map (Attrib.global_attribute thy)) srcss;
-    val rews = map (fix_pat thy) strings;
-    val (thy', _) = PureThy.add_thms ((names ~~ rews) ~~ atts) thy;
+    val simps = map (fix_pat thy) strings;
+    val (thy', _) = PureThy.add_thms ((names ~~ simps) ~~ atts) thy;
   in thy' end;
 
 (*************************************************************************)
@@ -271,7 +279,7 @@ fun add_fixpat pats thy =
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val fixrec_decl = P.and_list1 (Scan.repeat1 P.prop);
+val fixrec_decl = P.and_list1 (Scan.repeat1 (P.opt_thm_name ":" -- P.prop));
 
 (* this builds a parser for a new keyword, fixrec, whose functionality 
 is defined by add_fixrec *)
@@ -283,8 +291,7 @@ val fixrecP =
 val _ = OuterSyntax.add_parsers [fixrecP];
 
 (* fixpat parser *)
-(*val fixpat_decl = P.name -- P.prop;*)
-val fixpat_decl = Scan.repeat1 (P.thm_name ":" -- P.prop);
+val fixpat_decl = Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
 
 val fixpatP =
   OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
