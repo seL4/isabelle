@@ -63,17 +63,12 @@ sig
        size : thm list,
        simps : thm list}
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
-  val get_datatypes_sg : Sign.sg -> DatatypeAux.datatype_info Symtab.table
   val print_datatypes : theory -> unit
-  val datatype_info_sg : Sign.sg -> string -> DatatypeAux.datatype_info option
   val datatype_info : theory -> string -> DatatypeAux.datatype_info option
-  val datatype_info_sg_err : Sign.sg -> string -> DatatypeAux.datatype_info
   val datatype_info_err : theory -> string -> DatatypeAux.datatype_info
   val constrs_of : theory -> string -> term list option
-  val constrs_of_sg : Sign.sg -> string -> term list option
   val case_const_of : theory -> string -> term option
   val weak_case_congs_of : theory -> thm list
-  val weak_case_congs_of_sg : Sign.sg -> thm list
   val setup: (theory -> theory) list
 end;
 
@@ -87,23 +82,21 @@ val quiet_mode = quiet_mode;
 
 (* data kind 'HOL/datatypes' *)
 
-structure DatatypesArgs =
-struct
+structure DatatypesData = TheoryDataFun
+(struct
   val name = "HOL/datatypes";
   type T = datatype_info Symtab.table;
 
   val empty = Symtab.empty;
   val copy = I;
-  val prep_ext = I;
-  val merge: T * T -> T = Symtab.merge (K true);
+  val extend = I;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
 
   fun print sg tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
       map #1 (NameSpace.extern_table (Sign.type_space sg, tab))));
-end;
+end);
 
-structure DatatypesData = TheoryDataFun(DatatypesArgs);
-val get_datatypes_sg = DatatypesData.get_sg;
 val get_datatypes = DatatypesData.get;
 val put_datatypes = DatatypesData.put;
 val print_datatypes = DatatypesData.print;
@@ -111,34 +104,24 @@ val print_datatypes = DatatypesData.print;
 
 (** theory information about datatypes **)
 
-fun datatype_info_sg sg name = Symtab.lookup (get_datatypes_sg sg, name);
-
-fun datatype_info_sg_err sg name = (case datatype_info_sg sg name of
-      SOME info => info
-    | NONE => error ("Unknown datatype " ^ quote name));
-
-val datatype_info = datatype_info_sg o Theory.sign_of;
+fun datatype_info thy name = Symtab.lookup (get_datatypes thy, name);
 
 fun datatype_info_err thy name = (case datatype_info thy name of
       SOME info => info
     | NONE => error ("Unknown datatype " ^ quote name));
 
-fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
+fun constrs_of thy tname = (case datatype_info thy tname of
    SOME {index, descr, ...} =>
      let val (_, _, constrs) = valOf (assoc (descr, index))
-     in SOME (map (fn (cname, _) => Const (cname, valOf (Sign.const_type sg cname))) constrs)
+     in SOME (map (fn (cname, _) => Const (cname, Sign.the_const_type thy cname)) constrs)
      end
  | _ => NONE);
 
-val constrs_of = constrs_of_sg o Theory.sign_of;
-
 fun case_const_of thy tname = (case datatype_info thy tname of
-   SOME {case_name, ...} => SOME (Const (case_name, valOf (Sign.const_type
-     (Theory.sign_of thy) case_name)))
+   SOME {case_name, ...} => SOME (Const (case_name, Sign.the_const_type thy case_name))
  | _ => NONE);
 
-val weak_case_congs_of_sg = map (#weak_case_cong o #2) o Symtab.dest o get_datatypes_sg;
-val weak_case_congs_of = weak_case_congs_of_sg o Theory.sign_of;
+val weak_case_congs_of = map (#weak_case_cong o #2) o Symtab.dest o get_datatypes;
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
@@ -197,7 +180,7 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
         SOME r => (r, "Induction rule")
       | NONE =>
           let val tn = find_tname (hd (List.mapPartial I (List.concat varss))) Bi
-          in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
+          in (#induction (datatype_info_err sign tn), "Induction rule for type " ^ tn) end);
 
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = List.concat (map prep_inst (concls ~~ varss)) handle UnequalLengths =>
@@ -229,7 +212,7 @@ fun gen_case_tac inst_tac (t, SOME rule) i state =
       let val tn = infer_tname state i t in
         if tn = HOLogic.boolN then inst_tac [(("P", 0), t)] case_split_thm i state
         else case_inst_tac inst_tac t
-               (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn))
+               (#exhaustion (datatype_info_err (Thm.sign_of_thm state) tn))
                i state
       end handle THM _ => Seq.empty;
 
@@ -349,7 +332,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
          (case (stripT (0, T1), stripT (0, T2)) of
             ((i', Type (tname1, _)), (j', Type (tname2, _))) =>
                 if tname1 = tname2 andalso not (cname1 = cname2) andalso i = i' andalso j = j' then
-                   (case (constrs_of_sg sg tname1) of
+                   (case (constrs_of sg tname1) of
                       SOME constrs => let val cnames = map (fst o dest_Const) constrs
                         in if cname1 mem cnames andalso cname2 mem cnames then
                              let val eq_t = Logic.mk_equals (t, Const ("False", HOLogic.boolT));
@@ -358,7 +341,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
                                  val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
                                    map (get_thm Datatype_thy o rpair NONE)
                                      ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
-                             in (case (#distinct (datatype_info_sg_err sg tname1)) of
+                             in (case (#distinct (datatype_info_err sg tname1)) of
                                  QuickAndDirty => SOME (Thm.invoke_oracle
                                    Datatype_thy distinctN (sg, ConstrDistinct eq_t))
                                | FewConstrs thms => SOME (Tactic.prove sg [] [] eq_t (K
@@ -380,7 +363,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
   | distinct_proc sg _ _ = NONE;
 
 val distinct_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) distinctN ["s = t"] distinct_proc;
+  Simplifier.simproc HOL.thy distinctN ["s = t"] distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
@@ -403,7 +386,7 @@ fun case_tr sg [t, u] =
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val cases as ((cname, _), _) :: _ = map dest_case1 (dest_case2 u);
-      val tab = Symtab.dest (get_datatypes_sg sg);
+      val tab = Symtab.dest (get_datatypes sg);
       val (cases', default) = (case split_last cases of
           (cases', (("dummy_pattern", []), t)) => (cases', SOME t)
         | _ => (cases, NONE))
@@ -623,8 +606,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         (name, Ts @ [T] ---> freeT, NoSyn))
           (case_names ~~ newTs ~~ case_fn_Ts));
 
-    val reccomb_names' = map (Sign.intern_const (Theory.sign_of thy2')) reccomb_names;
-    val case_names' = map (Sign.intern_const (Theory.sign_of thy2')) case_names;
+    val reccomb_names' = map (Sign.intern_const thy2') reccomb_names;
+    val case_names' = map (Sign.intern_const thy2') case_names;
 
     val thy2 = thy2' |>
 
@@ -840,7 +823,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (thy8, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy7;
     val (thy9, size_thms) =
-      if Sign.exists_stamp "NatArith" (Theory.sign_of thy8) then
+      if Context.exists_name "NatArith" thy8 then
         DatatypeAbsProofs.prove_size_thms false new_type_names
           [descr] sorts reccomb_names rec_thms thy8
       else (thy8, []);
