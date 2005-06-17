@@ -418,10 +418,9 @@ val thy_name = Path.pack o #1 o Path.split_ext o Path.base o Path.unpack;
 val update_thy_only = setmp MetaSimplifier.trace_simp 
 			    false ThyInfo.update_thy_only;
 
-fun which_context () =
+fun dynamic_context () =
   (case Context.get_context () of
-    SOME thy => "  Using current (dynamic!) one: " ^
-      (case try PureThy.get_name thy of SOME name => quote name | NONE => "<unnamed>")
+    SOME thy => "  Using current (dynamic!) one: " ^ quote (Context.theory_name thy)
   | NONE => "");
 
 fun try_update_thy_only file =
@@ -429,7 +428,7 @@ fun try_update_thy_only file =
     let val name = thy_name file in
       if isSome (ThyLoad.check_file NONE (ThyLoad.thy_path name)) 
       then update_thy_only name
-      else warning ("Unkown theory context of ML file." ^ which_context ())
+      else warning ("Unkown theory context of ML file." ^ dynamic_context ())
     end) ();
 
 
@@ -1164,7 +1163,7 @@ local
   val fileurl_of = localfile_of_url o (xmlattr "url")
 
   val topthy = Toplevel.theory_of o Toplevel.get_state
-  val topthy_name = PureThy.get_name o topthy
+  val topthy_name = Context.theory_name o topthy
 
   val currently_open_file = ref (NONE : string option)
 
