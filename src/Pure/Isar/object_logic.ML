@@ -9,16 +9,16 @@ signature OBJECT_LOGIC =
 sig
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
-  val judgment_name: Sign.sg -> string
-  val is_judgment: Sign.sg -> term -> bool
-  val drop_judgment: Sign.sg -> term -> term
-  val fixed_judgment: Sign.sg -> string -> term
-  val assert_propT: Sign.sg -> term -> term
+  val judgment_name: theory -> string
+  val is_judgment: theory -> term -> bool
+  val drop_judgment: theory -> term -> term
+  val fixed_judgment: theory -> string -> term
+  val assert_propT: theory -> term -> term
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
-  val atomize_term: Sign.sg -> term -> term
+  val atomize_term: theory -> term -> term
   val atomize_thm: thm -> thm
-  val atomize_rule: Sign.sg -> cterm -> thm
+  val atomize_rule: theory -> cterm -> thm
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
@@ -36,27 +36,26 @@ struct
 
 (* data kind 'Pure/object-logic' *)
 
-structure ObjectLogicDataArgs =
-struct
+structure ObjectLogicData = TheoryDataFun
+(struct
   val name = "Pure/object-logic";
   type T = string option * (thm list * thm list);
 
   val empty = (NONE, ([], [Drule.norm_hhf_eq]));
   val copy = I;
-  val prep_ext = I;
+  val extend = I;
 
   fun merge_judgment (SOME x, SOME y) =
         if x = y then SOME x else error "Attempt to merge different object-logics"
     | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
 
-  fun merge ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
+  fun merge _ ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
     (merge_judgment (judgment1, judgment2),
       (Drule.merge_rules (atomize1, atomize2), Drule.merge_rules (rulify1, rulify2)));
 
   fun print _ _ = ();
-end;
+end);
 
-structure ObjectLogicData = TheoryDataFun(ObjectLogicDataArgs);
 val _ = Context.add_setup [ObjectLogicData.init];
 
 
@@ -70,23 +69,12 @@ local
 fun new_judgment name (NONE, rules) = (SOME name, rules)
   | new_judgment _ (SOME _, _) = error "Attempt to redeclare object-logic judgment";
 
-fun add_final name thy =
-  let
-    val typ = case Sign.const_type (sign_of thy) name of
-		SOME T => T
-	      | NONE => error "Internal error in ObjectLogic.gen_add_judgment";
-  in
-    Theory.add_finals_i false [Const(name,typ)] thy
-  end;
-
-fun gen_add_judgment add_consts (name, T, syn) thy =
-  let
-    val fullname = Sign.full_name (Theory.sign_of thy) name;
-  in
+fun gen_add_judgment add_consts (bname, T, mx) thy =
+  let val c = Sign.full_name thy (Syntax.const_name bname mx) in
     thy
-    |> add_consts [(name, T, syn)]
-    |> add_final fullname
-    |> ObjectLogicData.map (new_judgment fullname)
+    |> add_consts [(bname, T, mx)]
+    |> (fn thy' => Theory.add_finals_i false [(Const (c, Sign.the_const_type thy' c))] thy')
+    |> ObjectLogicData.map (new_judgment c)
   end;
 
 in
@@ -99,32 +87,32 @@ end;
 
 (* term operations *)
 
-fun judgment_name sg =
-  (case ObjectLogicData.get_sg sg of
+fun judgment_name thy =
+  (case ObjectLogicData.get thy of
     (SOME name, _) => name
   | _ => raise TERM ("Unknown object-logic judgment", []));
 
-fun is_judgment sg (Const (c, _) $ _) = c = judgment_name sg
+fun is_judgment thy (Const (c, _) $ _) = c = judgment_name thy
   | is_judgment _ _ = false;
 
-fun drop_judgment sg (Abs (x, T, t)) = Abs (x, T, drop_judgment sg t)
-  | drop_judgment sg (tm as (Const (c, _) $ t)) =
-      if (c = judgment_name sg handle TERM _ => false) then t else tm
+fun drop_judgment thy (Abs (x, T, t)) = Abs (x, T, drop_judgment thy t)
+  | drop_judgment thy (tm as (Const (c, _) $ t)) =
+      if (c = judgment_name thy handle TERM _ => false) then t else tm
   | drop_judgment _ tm = tm;
 
-fun fixed_judgment sg x =
+fun fixed_judgment thy x =
   let  (*be robust wrt. low-level errors*)
-    val c = judgment_name sg;
+    val c = judgment_name thy;
     val aT = TFree ("'a", []);
     val T =
-      if_none (Sign.const_type sg c) (aT --> propT)
+      if_none (Sign.const_type thy c) (aT --> propT)
       |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;
 
-fun assert_propT sg t =
+fun assert_propT thy t =
   let val T = Term.fastype_of t
-  in if T = propT then t else Const (judgment_name sg, T --> propT) $ t end;
+  in if T = propT then t else Const (judgment_name thy, T --> propT) $ t end;
 
 
 
@@ -132,8 +120,8 @@ fun assert_propT sg t =
 
 (* maintain rules *)
 
-val get_atomize = #1 o #2 o ObjectLogicData.get_sg;
-val get_rulify = #2 o #2 o ObjectLogicData.get_sg;
+val get_atomize = #1 o #2 o ObjectLogicData.get;
+val get_rulify = #2 o #2 o ObjectLogicData.get;
 
 val add_atomize = ObjectLogicData.map o Library.apsnd o Library.apfst o Drule.add_rule;
 val add_rulify = ObjectLogicData.map o Library.apsnd o Library.apsnd o Drule.add_rule;
@@ -149,22 +137,22 @@ fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
     (Drule.forall_conv
       (Drule.goals_conv (K true) (Tactic.rewrite true rews)))));
 
-fun atomize_term sg =
-  drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg) [];
+fun atomize_term thy =
+  drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize_rule sg = Tactic.rewrite true (get_atomize sg);
+fun atomize_rule thy = Tactic.rewrite true (get_atomize thy);
 
-(*Convert a natural-deduction rule into a formula (probably in FOL)*)
+(*convert a natural-deduction rule into an object-level formula*)
 fun atomize_thm th =
-  rewrite_rule  (get_atomize (Thm.sign_of_thm th)) th;
+  rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
-    (rewrite_prems_tac (get_atomize (Thm.sign_of_thm st)) i) st
+    (rewrite_prems_tac (get_atomize (Thm.theory_of_thm st)) i) st
   else all_tac st;
 
 fun full_atomize_tac i st =
-  rewrite_goal_tac (get_atomize (Thm.sign_of_thm st)) i st;
+  rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
@@ -173,7 +161,7 @@ fun atomize_goal i st =
 (* rulify *)
 
 fun gen_rulify full thm =
-  Tactic.simplify full (get_rulify (Thm.sign_of_thm thm)) thm
+  Tactic.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
   |> Drule.gen_all |> Drule.strip_shyps_warning |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
