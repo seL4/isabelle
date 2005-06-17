@@ -2,249 +2,184 @@
     ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 
-The abstract type "theory" of theories.
+Logical theory content: axioms, definitions, oracles.
 *)
 
 signature BASIC_THEORY =
 sig
   type theory
-  exception THEORY of string * theory list
+  type theory_ref
+  val sign_of: theory -> theory    (*dummy*)
   val rep_theory: theory ->
-    {sign: Sign.sg,
-      defs: Defs.graph,
-      axioms: term NameSpace.table,
-      oracles: ((Sign.sg * Object.T -> term) * stamp) NameSpace.table,
-      parents: theory list,
-      ancestors: theory list}
-  val sign_of: theory -> Sign.sg
-  val is_draft: theory -> bool
-  val syn_of: theory -> Syntax.syntax
+   {axioms: term NameSpace.table,
+    defs: Defs.graph,
+    oracles: ((theory * Object.T -> term) * stamp) NameSpace.table}
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
-  val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
-  val cert_axm: Sign.sg -> string * term -> string * term
-  val read_def_axm: Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
+  val subthy: theory * theory -> bool
+  val cert_axm: theory -> string * term -> string * term
+  val read_def_axm: theory * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> string * string -> string * term
-  val read_axm: Sign.sg -> string * string -> string * term
-  val inferT_axm: Sign.sg -> string * term -> string * term
+  val read_axm: theory -> string * string -> string * term
+  val inferT_axm: theory -> string * term -> string * term
 end
 
 signature THEORY =
 sig
   include BASIC_THEORY
+  include SIGN_THEORY
+  val init: theory -> theory
+  val axiom_space: theory -> NameSpace.T
+  val oracle_space: theory -> NameSpace.T
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
-  val add_classes: (bstring * xstring list) list -> theory -> theory
-  val add_classes_i: (bstring * class list) list -> theory -> theory
-  val add_classrel: (xstring * xstring) list -> theory -> theory
-  val add_classrel_i: (class * class) list -> theory -> theory
-  val add_defsort: string -> theory -> theory
-  val add_defsort_i: sort -> theory -> theory
-  val add_types: (bstring * int * mixfix) list -> theory -> theory
-  val add_nonterminals: bstring list -> theory -> theory
-  val add_tyabbrs: (bstring * string list * string * mixfix) list
-    -> theory -> theory
-  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list
-    -> theory -> theory
-  val add_arities: (xstring * string list * string) list -> theory -> theory
-  val add_arities_i: (string * sort list * sort) list -> theory -> theory
-  val add_consts: (bstring * string * mixfix) list -> theory -> theory
-  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_syntax: (bstring * string * mixfix) list -> theory -> theory
-  val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
-  val del_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
-  val del_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
-  val add_trfuns:
-    (string * (Syntax.ast list -> Syntax.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
-    (string * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
-  val add_trfunsT:
-    (string * (bool -> typ -> term list -> term)) list -> theory -> theory
-  val add_advanced_trfuns:
-    (string * (Sign.sg -> Syntax.ast list -> Syntax.ast)) list *
-    (string * (Sign.sg -> term list -> term)) list *
-    (string * (Sign.sg -> term list -> term)) list *
-    (string * (Sign.sg -> Syntax.ast list -> Syntax.ast)) list -> theory -> theory
-  val add_advanced_trfunsT:
-    (string * (Sign.sg -> bool -> typ -> term list -> term)) list -> theory -> theory
-  val add_tokentrfuns:
-    (string * string * (string -> string * real)) list -> theory -> theory
-  val add_mode_tokentrfuns: string -> (string * (string -> string * real)) list
-    -> theory -> theory
-  val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
-  val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
-  val add_axioms: (bstring * string) list -> theory -> theory
-  val add_axioms_i: (bstring * term) list -> theory -> theory
-  val add_oracle: bstring * (Sign.sg * Object.T -> term) -> theory -> theory
-  val add_finals: bool -> string list -> theory -> theory
-  val add_finals_i: bool -> term list -> theory -> theory
-  val add_defs: bool -> (bstring * string) list -> theory -> theory
-  val add_defs_i: bool -> (bstring * term) list -> theory -> theory
-  val add_path: string -> theory -> theory
-  val parent_path: theory -> theory
-  val root_path: theory -> theory
-  val absolute_path: theory -> theory
-  val qualified_names: theory -> theory
-  val no_base_names: theory -> theory
-  val custom_accesses: (string list -> string list list) -> theory -> theory
-  val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
-    theory -> theory
-  val restore_naming: theory -> theory -> theory
-  val hide_classes: bool -> xstring list -> theory -> theory
-  val hide_classes_i: bool -> string list -> theory -> theory
-  val hide_types: bool -> xstring list -> theory -> theory
-  val hide_types_i: bool -> string list -> theory -> theory
-  val hide_consts: bool -> xstring list -> theory -> theory
-  val hide_consts_i: bool -> string list -> theory -> theory
-  val add_name: string -> theory -> theory
-  val copy: theory -> theory
-  val prep_ext: theory -> theory
-  val prep_ext_merge: theory list -> theory
+  val self_ref: theory -> theory_ref
+  val deref: theory_ref -> theory
+  val merge: theory * theory -> theory                     (*exception TERM*)
+  val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
-  val pre_pure: theory
+  val copy: theory -> theory
+  val checkpoint: theory -> theory
+  val add_axioms: (bstring * string) list -> theory -> theory
+  val add_axioms_i: (bstring * term) list -> theory -> theory
+  val add_defs: bool -> (bstring * string) list -> theory -> theory
+  val add_defs_i: bool -> (bstring * term) list -> theory -> theory
+  val add_finals: bool -> string list -> theory -> theory
+  val add_finals_i: bool -> term list -> theory -> theory
+  val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end;
 
-signature PRIVATE_THEORY =
-sig
-  include THEORY
-  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
-  val print_data: Object.kind -> theory -> unit
-  val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
-  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> theory -> theory
-end;
-
-structure Theory: PRIVATE_THEORY =
+structure Theory: THEORY =
 struct
 
+(** type theory **)
 
-(** datatype theory **)
+(* context operations *)
 
-datatype theory =
-  Theory of {
-    sign: Sign.sg,
-    defs: Defs.graph,
-    axioms: term NameSpace.table,
-    oracles: ((Sign.sg * Object.T -> term) * stamp) NameSpace.table,
-    parents: theory list,
-    ancestors: theory list};
+type theory = Context.theory;
+type theory_ref = Context.theory_ref;
 
-fun make_theory sign defs axioms oracles parents ancestors =
-  Theory {sign = sign, defs = defs, axioms = axioms,
-    oracles = oracles, parents = parents, ancestors = ancestors};
+val eq_thy = Context.eq_thy;
+val subthy = Context.subthy;
+val copy = Context.copy_thy;
+val checkpoint = Context.checkpoint_thy;
 
-fun rep_theory (Theory args) = args;
+val parents_of = Context.parents_of;
+val ancestors_of = Context.ancestors_of;
 
-val sign_of = #sign o rep_theory;
-val is_draft = Sign.is_draft o sign_of;
-val syn_of = Sign.syn_of o sign_of;
-val parents_of = #parents o rep_theory;
-val ancestors_of = #ancestors o rep_theory;
+val self_ref = Context.self_ref;
+val deref = Context.deref;
+val merge = Context.merge;
+val merge_refs = Context.merge_refs;
+
+
+(* signature operations *)
+
+val sign_of = I;
+
+structure SignTheory: SIGN_THEORY = Sign;
+open SignTheory;
+
+
+
+(** diagnostics **)  (* FIXME belongs to defs.ML *)
+
+fun pretty_const pp (c, T) =
+ [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];    (* FIXME zero indexes!? *)
+
+fun pretty_path pp path = fold_rev (fn (T, c, def) =>
+  fn [] => [Pretty.block (pretty_const pp (c, T))]
+   | prts => Pretty.block (pretty_const pp (c, T) @
+      [Pretty.brk 1, Pretty.str ("depends via " ^ quote def ^ " on")]) :: prts) path [];
+
+fun chain_history_msg s =    (* FIXME huh!? *)
+  if Defs.chain_history () then s ^ ": "
+  else s ^ " (set DEFS_CHAIN_HISTORY=ON for full history): ";
+
+fun defs_circular pp path =
+  Pretty.str (chain_history_msg "Cyclic dependency of definitions") :: pretty_path pp path
+  |> Pretty.chunks |> Pretty.string_of;
+
+fun defs_infinite_chain pp path =
+  Pretty.str (chain_history_msg "Infinite chain of definitions") :: pretty_path pp path
+  |> Pretty.chunks |> Pretty.string_of;
+
+fun defs_clash def1 def2 = "Type clash in definitions " ^ quote def1 ^ " and " ^ quote def2;
+
+fun defs_final pp const =
+  (Pretty.str "Attempt to define final constant" :: Pretty.brk 1 :: pretty_const pp const)
+  |> Pretty.block |> Pretty.string_of;
+
+
+
+(** datatype thy **)
+
+datatype thy = Thy of
+ {axioms: term NameSpace.table,
+  defs: Defs.graph,
+  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table};
+
+fun make_thy (axioms, defs, oracles) =
+  Thy {axioms = axioms, defs = defs, oracles = oracles};
+
+fun err_dup_axms dups = error ("Duplicate axiom(s): " ^ commas_quote dups);
+fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
+
+structure ThyData = TheoryDataFun
+(struct
+  val name = "Pure/thy";
+  type T = thy;
+  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table);
+  val copy = I;
+
+  fun extend (Thy {axioms, defs, oracles}) = make_thy (NameSpace.empty_table, defs, oracles);
+
+  fun merge pp (thy1, thy2) =
+    let
+      val Thy {axioms = _, defs = defs1, oracles = oracles1} = thy1;
+      val Thy {axioms = _, defs = defs2, oracles = oracles2} = thy2;
+
+      val axioms = NameSpace.empty_table;
+      val defs = Defs.merge defs1 defs2  (* FIXME produce errors in defs.ML *)
+        handle Defs.CIRCULAR namess => error (defs_circular pp namess)
+          | Defs.INFINITE_CHAIN namess => error (defs_infinite_chain pp namess);
+      val oracles = NameSpace.merge_tables eq_snd (oracles1, oracles2)
+        handle Symtab.DUPS dups => err_dup_oras dups;
+    in make_thy (axioms, defs, oracles) end;
+
+  fun print _ _ = ();
+end);
+
+val init = ThyData.init;
+
+fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
+
+fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles}) =>
+  make_thy (f (axioms, defs, oracles)));
+
+fun map_axioms f = map_thy (fn (axioms, defs, oracles) => (f axioms, defs, oracles));
+fun map_defs f = map_thy (fn (axioms, defs, oracles) => (axioms, f defs, oracles));
+fun map_oracles f = map_thy (fn (axioms, defs, oracles) => (axioms, defs, f oracles));
+
+
+(* basic operations *)
+
+val axiom_space = #1 o #axioms o rep_theory;
+val oracle_space = #1 o #oracles o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = List.concat (map axioms_of (thy :: ancestors_of thy));
 
-(*errors involving theories*)
-exception THEORY of string * theory list;
-
-(*compare theories*)
-val subthy = Sign.subsig o pairself sign_of;
-val eq_thy = Sign.eq_sg o pairself sign_of;
-
-(*check for some theory*)
 fun requires thy name what =
-  if Sign.exists_stamp name (sign_of thy) then ()
+  if Context.exists_name name thy then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
 fun assert_super thy1 thy2 =
   if subthy (thy1, thy2) then thy2
   else raise THEORY ("Not a super theory", [thy1, thy2]);
-
-(*partial Pure theory*)
-val pre_pure =
-  make_theory Sign.pre_pure Defs.empty NameSpace.empty_table NameSpace.empty_table [] [];
-
-
-
-(** extend theory **)
-
-(* extend logical part of a theory *)
-
-fun err_dup_axms dups = error ("Duplicate axiom(s): " ^ commas_quote dups);
-fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
-
-fun ext_theory thy ext_sg axms oras =
-  let
-    val Theory {sign, defs, axioms, oracles, parents, ancestors} = thy;
-    val draft = Sign.is_draft sign;
-    val naming = Sign.naming_of sign;
-
-    val axioms' = NameSpace.extend_table naming
-        (if draft then axioms else NameSpace.empty_table, axms)
-      handle Symtab.DUPS dups => err_dup_axms dups;
-    val oracles' = NameSpace.extend_table naming (oracles, oras)
-      handle Symtab.DUPS dups => err_dup_oras dups;
-
-    val (parents', ancestors') =
-      if draft then (parents, ancestors) else ([thy], thy :: ancestors);
-  in make_theory (ext_sg sign) defs axioms' oracles' parents' ancestors' end;
-
-
-(* extend signature of a theory *)
-
-fun ext_sign ext_sg args thy = ext_theory thy (ext_sg args) [] [];
-
-val add_classes            = ext_sign Sign.add_classes;
-val add_classes_i          = ext_sign Sign.add_classes_i;
-val add_classrel           = ext_sign Sign.add_classrel;
-val add_classrel_i         = ext_sign Sign.add_classrel_i;
-val add_defsort            = ext_sign Sign.add_defsort;
-val add_defsort_i          = ext_sign Sign.add_defsort_i;
-val add_types              = ext_sign Sign.add_types;
-val add_nonterminals       = ext_sign Sign.add_nonterminals;
-val add_tyabbrs            = ext_sign Sign.add_tyabbrs;
-val add_tyabbrs_i          = ext_sign Sign.add_tyabbrs_i;
-val add_arities            = ext_sign Sign.add_arities;
-val add_arities_i          = ext_sign Sign.add_arities_i;
-val add_consts             = ext_sign Sign.add_consts;
-val add_consts_i           = ext_sign Sign.add_consts_i;
-val add_syntax             = ext_sign Sign.add_syntax;
-val add_syntax_i           = ext_sign Sign.add_syntax_i;
-val add_modesyntax         = curry (ext_sign Sign.add_modesyntax);
-val add_modesyntax_i       = curry (ext_sign Sign.add_modesyntax_i);
-val del_modesyntax         = curry (ext_sign Sign.del_modesyntax);
-val del_modesyntax_i       = curry (ext_sign Sign.del_modesyntax_i);
-val add_trfuns             = ext_sign Sign.add_trfuns;
-val add_trfunsT            = ext_sign Sign.add_trfunsT;
-val add_advanced_trfuns    = ext_sign Sign.add_advanced_trfuns;
-val add_advanced_trfunsT   = ext_sign Sign.add_advanced_trfunsT;
-val add_tokentrfuns        = ext_sign Sign.add_tokentrfuns;
-fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
-val add_trrules            = ext_sign Sign.add_trrules;
-val add_trrules_i          = ext_sign Sign.add_trrules_i;
-val add_path               = ext_sign Sign.add_path;
-val parent_path            = add_path "..";
-val root_path              = add_path "/";
-val absolute_path          = add_path "//";
-val qualified_names        = ext_sign (K Sign.qualified_names) ();
-val no_base_names          = ext_sign (K Sign.no_base_names) ();
-val custom_accesses        = ext_sign Sign.custom_accesses;
-val set_policy             = ext_sign Sign.set_policy;
-val restore_naming         = ext_sign Sign.restore_naming o sign_of;
-val hide_classes           = ext_sign o Sign.hide_classes;
-val hide_classes_i         = ext_sign o Sign.hide_classes_i;
-val hide_types             = ext_sign o Sign.hide_types;
-val hide_types_i           = ext_sign o Sign.hide_types_i;
-val hide_consts            = ext_sign o Sign.hide_consts;
-val hide_consts_i          = ext_sign o Sign.hide_consts_i;
-val add_name               = ext_sign Sign.add_name;
-val copy                   = ext_sign (K Sign.copy) ();
-val prep_ext               = ext_sign (K Sign.prep_ext) ();
 
 
 
@@ -262,10 +197,10 @@ fun no_vars pp tm =
       (Pretty.str "Illegal schematic variable(s) in term:" ::
        map (Pretty.term pp) ts @ map (Pretty.typ pp o TVar) ixns)))));
 
-fun cert_axm sg (name, raw_tm) =
+fun cert_axm thy (name, raw_tm) =
   let
-    val pp = Sign.pp sg;
-    val (t, T, _) = Sign.certify_term pp sg raw_tm
+    val pp = Sign.pp thy;
+    val (t, T, _) = Sign.certify_term pp thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
   in
@@ -274,33 +209,33 @@ fun cert_axm sg (name, raw_tm) =
     (name, no_vars pp t)
   end;
 
-(*some duplication of code with read_def_cterm*)
-fun read_def_axm (sg, types, sorts) used (name, str) =
+fun read_def_axm (thy, types, sorts) used (name, str) =
   let
-    val ts = Syntax.read (Sign.is_logtype sg) (Sign.syn_of sg) propT str;
-    val (t, _) = Sign.infer_types (Sign.pp sg) sg types sorts used true (ts, propT);
-  in cert_axm sg (name, t) end
+    val ts = Syntax.read (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
+    val (t, _) = Sign.infer_types (Sign.pp thy) thy types sorts used true (ts, propT);
+  in cert_axm thy (name, t) end
   handle ERROR => err_in_axm name;
 
-fun read_axm sg name_str = read_def_axm (sg, K NONE, K NONE) [] name_str;
+fun read_axm thy name_str = read_def_axm (thy, K NONE, K NONE) [] name_str;
 
-fun inferT_axm sg (name, pre_tm) =
+fun inferT_axm thy (name, pre_tm) =
   let
-    val pp = Sign.pp sg;
-    val (t, _) = Sign.infer_types pp sg (K NONE) (K NONE) [] true ([pre_tm], propT);
+    val pp = Sign.pp thy;
+    val (t, _) = Sign.infer_types pp thy (K NONE) (K NONE) [] true ([pre_tm], propT);
   in (name, no_vars pp t) end
   handle ERROR => err_in_axm name;
 
 
-(* extend axioms of a theory *)
+(* add_axioms(_i) *)
 
 local
 
-fun gen_add_axioms prep_axm raw_axms thy =
+fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val sg = sign_of thy;
-    val axms = map (apsnd (Term.compress_term o Logic.varify) o prep_axm sg) raw_axms;
-  in ext_theory thy I axms [] end;
+    val axms = map (apsnd (Term.compress_term o Logic.varify) o prep_axm thy) raw_axms;
+    val axioms' = NameSpace.extend_table (Sign.naming_of thy) (axioms, axms)
+      handle Symtab.DUPS dups => err_dup_axms dups;
+  in axioms' end);
 
 in
 
@@ -310,12 +245,6 @@ val add_axioms_i = gen_add_axioms cert_axm;
 end;
 
 
-(* add oracle **)
-
-fun add_oracle (bname, oracle) thy =
-  ext_theory thy I [] [(bname, (oracle, stamp ()))];
-
-
 
 (** add constant definitions **)
 
@@ -323,12 +252,12 @@ fun add_oracle (bname, oracle) thy =
 
 datatype overloading = Clean | Implicit | Useless;
 
-fun overloading sg overloaded declT defT =
+fun overloading thy overloaded declT defT =
   let
     val defT' = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
   in
-    if Sign.typ_instance sg (declT, defT') then Clean
-    else if Sign.typ_instance sg (Type.strip_sorts declT, Type.strip_sorts defT') then Useless
+    if Sign.typ_instance thy (declT, defT') then Clean
+    else if Sign.typ_instance thy (Type.strip_sorts declT, Type.strip_sorts defT') then Useless
     else if overloaded then Clean
     else Implicit
   end;
@@ -375,70 +304,42 @@ fun dest_def pp tm =
 
 (* check_def *)
 
-fun pretty_const pp (c, T) =
- [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];    (* FIXME zero indexes!? *)
-
-(* FIXME move error messages to defs.ML !? *)
-
-fun pretty_path pp path = fold_rev (fn (T, c, def) =>
-  fn [] => [Pretty.block (pretty_const pp (c, T))]
-   | prts => Pretty.block (pretty_const pp (c, T) @
-      [Pretty.brk 1, Pretty.str ("depends via " ^ quote def ^ " on")]) :: prts) path [];
-
-fun chain_history_msg s = 
-    if Defs.chain_history () then s^": " 
-    else s^" (set DEFS_CHAIN_HISTORY=ON for full history): "
-
-fun defs_circular pp path =
-  Pretty.str (chain_history_msg "Cyclic dependency of definitions") :: pretty_path pp path
-  |> Pretty.chunks |> Pretty.string_of;
-
-fun defs_infinite_chain pp path =
-  Pretty.str (chain_history_msg "Infinite chain of definitions") :: pretty_path pp path
-  |> Pretty.chunks |> Pretty.string_of;
-
-fun defs_clash def1 def2 = "Type clash in definitions " ^ quote def1 ^ " and " ^ quote def2;
-
-fun defs_final pp const =
-  (Pretty.str "Attempt to define final constant" :: Pretty.brk 1 :: pretty_const pp const)
-  |> Pretty.block |> Pretty.string_of;
-
-(* FIXME move to defs.ML; avoid exceptions *)
-fun declare sg c defs =
-  let val T = Sign.the_const_type sg c
+fun declare thy c defs =      (* FIXME move to defs.ML *)
+  let val T = Sign.the_const_type thy c
   in if_none (try (Defs.declare defs) (c, T)) defs end;
 
-
-fun check_def sg overloaded (bname, tm) defs =
+fun check_def thy overloaded (bname, tm) defs =
   let
-    val pp = Sign.pp sg;
-    val name = Sign.full_name sg bname;
+    val pp = Sign.pp thy;
 
     fun err msg = error (Pretty.string_of (Pretty.chunks
-     [Pretty.str msg,
-      Pretty.block [Pretty.str ("The error(s) above occurred in definition " ^ quote name ^ ":"),
+     [Pretty.str msg, Pretty.block
+      [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
         Pretty.fbrk, Pretty.quote (Pretty.term pp tm)]]));
 
-    fun show_def const txt =
+    fun prt_const (c, T) =
+     [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+      Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
+    fun string_of_def const txt =
       [Pretty.block (Pretty.str "Definition of " :: pretty_const pp const), Pretty.str txt]
       |> Pretty.chunks |> Pretty.string_of;
 
     val ((c, defT), rhs) = dest_def pp tm handle TERM (msg, _) => err msg;
     val rhs_consts = Term.term_constsT rhs;
-    val declT = Sign.the_const_type sg c;
+    val declT = Sign.the_const_type thy c;
 
     val _ =
-      (case overloading sg overloaded declT defT of
+      (case overloading thy overloaded declT defT of
         Clean => ()
-      | Implicit => warning (show_def (c, defT)
-          ("is strictly less general than the declared type (see " ^ quote name ^ ")"))
-      | Useless => err (Library.setmp show_sorts true (show_def (c, defT))
+      | Implicit => warning (string_of_def (c, defT)
+          ("is strictly less general than the declared type (see " ^ quote bname ^ ")"))
+      | Useless => err (Library.setmp show_sorts true (string_of_def (c, defT))
           "imposes additional sort constraints on the declared type of the constant"));
 
-    val decl_defs = defs |> declare sg c |> fold (declare sg) (map #1 rhs_consts);
+    val decl_defs = defs |> declare thy c |> fold (declare thy) (map #1 rhs_consts);
   in
-    Defs.define decl_defs (c, defT) name rhs_consts
+    Defs.define decl_defs (c, defT) (Sign.full_name thy bname) rhs_consts
+      (* FIXME produce errors in defs.ML *)
       handle Defs.DEFS msg => err ("DEFS: " ^ msg)   (* FIXME sys_error!? *)
         | Defs.CIRCULAR path => err (defs_circular pp path)
         | Defs.INFINITE_CHAIN path => err (defs_infinite_chain pp path)
@@ -447,17 +348,14 @@ fun check_def sg overloaded (bname, tm) defs =
   end;
 
 
-(* add_defs *)
+(* add_defs(_i) *)
 
 local
 
 fun gen_add_defs prep_axm overloaded raw_axms thy =
-  let
-    val Theory {sign, defs, axioms, oracles, parents, ancestors} = thy;
-    val axms = map (prep_axm sign) raw_axms;
-    val defs' = fold (check_def sign overloaded) axms defs;
-  in
-    make_theory sign defs' axioms oracles parents ancestors
+  let val axms = map (prep_axm thy) raw_axms in
+    thy
+    |> map_defs (fold (check_def thy overloaded) axms)
     |> add_axioms_i axms
   end;
 
@@ -469,13 +367,12 @@ val add_defs = gen_add_defs read_axm;
 end;
 
 
-(* add_finals *)
+(* add_finals(_i) *)
 
 local
 
 fun gen_add_finals prep_term overloaded raw_terms thy =
   let
-    val Theory {sign, defs, axioms, oracles, parents, ancestors} = thy;
     fun finalize tm finals =
       let
         fun err msg = raise TERM (msg, [tm]);    (* FIXME error!? *)
@@ -483,22 +380,19 @@ fun gen_add_finals prep_term overloaded raw_terms thy =
           (case tm of Const x => x
           | Free _ => err "Attempt to finalize variable (or undeclared constant)"
           | _ => err "Attempt to finalize non-constant term");
-        val declT = Sign.the_const_type sign c
+        val declT = Sign.the_const_type thy c
           handle TYPE (msg, _, _) => err msg;
-        val _ =
-          (case overloading sign overloaded declT defT of
+        val _ =    (* FIXME unify messages with defs *)
+          (case overloading thy overloaded declT defT of
             Clean => ()
-          | Implcit => warning ("Finalizing " ^ quote c ^
+          | Implicit => warning ("Finalizing " ^ quote c ^
               " at a strictly less general type than declared")
           | Useless => err "Sort constraints stronger than declared");
-      in
-        Defs.finalize (if_none (try (Defs.declare finals) (c, declT)) finals) (c, defT)
-      end;
-    val defs' = fold finalize (map (prep_term sign) raw_terms) defs;
-  in make_theory sign defs' axioms oracles parents ancestors end;
+      in Defs.finalize (if_none (try (Defs.declare finals) (c, declT)) finals) (c, defT) end;
+  in thy |> map_defs (fold finalize (map (prep_term thy) raw_terms)) end;
 
-fun read_term sg = Sign.simple_read_term sg TypeInfer.logicT;
-fun cert_term sg = #1 o Sign.certify_term (Sign.pp sg) sg;
+fun read_term thy = Sign.simple_read_term thy TypeInfer.logicT;
+fun cert_term thy = #1 o Sign.certify_term (Sign.pp thy) thy;
 
 in
 
@@ -509,43 +403,11 @@ end;
 
 
 
-(** additional theory data **)
+(** add oracle **)
 
-val init_data = curry (ext_sign Sign.init_data);
-fun print_data kind = Sign.print_data kind o sign_of;
-fun get_data kind f = Sign.get_data kind f o sign_of;
-fun put_data kind f = ext_sign (Sign.put_data kind f);
-
-
-
-(** merge theories **)          (*exception ERROR*)
-
-(*merge list of theories from left to right, preparing extend*)
-fun prep_ext_merge thys =
-  let
-    val sign' = Sign.prep_ext_merge (map sign_of thys);
-
-    val defss = map (#defs o rep_theory) thys;
-    val defs' = foldl (uncurry Defs.merge) (hd defss) (tl defss)
-      handle Defs.CIRCULAR namess => error (defs_circular (Sign.pp sign') namess)
-        | Defs.INFINITE_CHAIN namess => error (defs_infinite_chain (Sign.pp sign') namess);
-
-    val axioms' = NameSpace.empty_table;
-
-    val oras_spaces = map (#1 o #oracles o rep_theory) thys;
-    val oras_space' = Library.foldl NameSpace.merge (hd oras_spaces, tl oras_spaces);
-    fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
-    val oras' =
-      Symtab.make (gen_distinct eq_ora
-        (List.concat (map (Symtab.dest o #2 o #oracles o rep_theory) thys)))
-      handle Symtab.DUPS names => err_dup_oras names;
-    val oracles' = (oras_space', oras');
-
-    val parents' = gen_distinct eq_thy thys;
-    val ancestors' =
-      gen_distinct eq_thy (parents' @ List.concat (map ancestors_of thys));
-  in make_theory sign' defs' axioms' oracles' parents' ancestors' end;
-
+fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
+  NameSpace.extend_table (Sign.naming_of thy) (oracles, [(bname, (oracle, stamp ()))])
+    handle Symtab.DUPS dups => err_dup_oras dups);
 
 end;
 
