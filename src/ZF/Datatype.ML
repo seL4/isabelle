@@ -73,9 +73,9 @@ struct
        and (rhead, rargs) = strip_comb rhs
        val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
        val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
-       val lcon_info = valOf (Symtab.lookup (ConstructorsData.get_sg sg, lname))
+       val lcon_info = valOf (Symtab.lookup (ConstructorsData.get sg, lname))
          handle Option => raise Match;
-       val rcon_info = valOf (Symtab.lookup (ConstructorsData.get_sg sg, rname))
+       val rcon_info = valOf (Symtab.lookup (ConstructorsData.get sg, rname))
          handle Option => raise Match;
        val new = 
            if #big_rec_name lcon_info = #big_rec_name rcon_info 

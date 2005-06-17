@@ -8,7 +8,7 @@ Function for parsing and printing proof terms.
 signature PROOF_SYNTAX =
 sig
   val proofT : typ
-  val add_proof_syntax : Sign.sg -> Sign.sg
+  val add_proof_syntax : theory -> theory
   val disambiguate_names : theory -> Proofterm.proof ->
     Proofterm.proof * Proofterm.proof Symtab.table
   val proof_of_term : theory -> Proofterm.proof Symtab.table ->
@@ -17,7 +17,7 @@ sig
   val cterm_of_proof : theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
   val read_term : theory -> typ -> string -> term
   val read_proof : theory -> bool -> string -> Proofterm.proof
-  val pretty_proof : Sign.sg -> Proofterm.proof -> Pretty.T
+  val pretty_proof : theory -> Proofterm.proof -> Pretty.T
   val pretty_proof_of : bool -> thm -> Pretty.T
   val print_proof_of : bool -> thm -> unit
 end;
@@ -37,20 +37,20 @@ val aT = TFree ("'a", []);
 
 (** constants for theorems and axioms **)
 
-fun add_proof_atom_consts names sg =
-  sg
-  |> Sign.add_path "//"
-  |> Sign.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
+fun add_proof_atom_consts names thy =
+  thy
+  |> Theory.absolute_path
+  |> Theory.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 
-fun add_proof_syntax sg =
-  sg
-  |> Sign.copy
-  |> Sign.add_path "/"
-  |> Sign.add_defsort_i []
-  |> Sign.add_types [("proof", 0, NoSyn)]
-  |> Sign.add_consts_i
+fun add_proof_syntax thy =
+  thy
+  |> Theory.copy
+  |> Theory.root_path
+  |> Theory.add_defsort_i []
+  |> Theory.add_types [("proof", 0, NoSyn)]
+  |> Theory.add_consts_i
       [("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
        ("Abst", (aT --> proofT) --> proofT, NoSyn),
@@ -58,8 +58,8 @@ fun add_proof_syntax sg =
        ("Hyp", propT --> proofT, NoSyn),
        ("Oracle", propT --> proofT, NoSyn),
        ("MinProof", proofT, Delimfix "?")]
-  |> Sign.add_nonterminals ["param", "params"]
-  |> Sign.add_syntax_i
+  |> Theory.add_nonterminals ["param", "params"]
+  |> Theory.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
@@ -67,13 +67,13 @@ fun add_proof_syntax sg =
        ("", paramT --> paramT, Delimfix "'(_')"),
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
-  |> Sign.add_modesyntax_i (("xsymbols", true),
+  |> Theory.add_modesyntax_i ("xsymbols", true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<Lambda>_./ _)", [0, 3], 3)),
        ("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
-       ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))])
-  |> Sign.add_modesyntax_i (("latex", false),
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))])
-  |> Sign.add_trrules_i (map Syntax.ParsePrintRule
+       ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
+  |> Theory.add_modesyntax_i ("latex", false)
+      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
+  |> Theory.add_trrules_i (map Syntax.ParsePrintRule
       [(Syntax.mk_appl (Constant "_Lam")
           [Syntax.mk_appl (Constant "_Lam0") [Variable "l", Variable "m"], Variable "A"],
         Syntax.mk_appl (Constant "_Lam")
@@ -167,7 +167,7 @@ fun proof_of_term thy tab ty =
       | prf_of [] (Const ("Appt", _) $ prf $ t) = prf_of [] prf %
           (case t of Const ("dummy_pattern", _) => NONE | _ => SOME (mk_term t))
       | prf_of _ t = error ("Not a proof term:\n" ^
-          Sign.string_of_term (sign_of thy) t)
+          Sign.string_of_term thy t)
 
   in prf_of [] end;
 
@@ -217,12 +217,12 @@ fun cterm_of_proof thy prf =
     val thm_names = filter_out (equal "")
       (map fst (PureThy.all_thms_of thy) @ map fst (Symtab.dest tab));
     val axm_names = map fst (Theory.all_axioms_of thy);
-    val sg = sign_of thy |>
-      add_proof_syntax |>
-      add_proof_atom_consts
+    val thy' = thy
+      |> add_proof_syntax
+      |> add_proof_atom_consts
         (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
   in
-    (cterm_of sg (term_of_proof prf'),
+    (cterm_of thy' (term_of_proof prf'),
      proof_of_term thy tab true o Thm.term_of)
   end;
 
@@ -230,12 +230,12 @@ fun read_term thy =
   let
     val thm_names = filter_out (equal "") (map fst (PureThy.all_thms_of thy));
     val axm_names = map fst (Theory.all_axioms_of thy);
-    val sg = sign_of thy |>
-      add_proof_syntax |>
-      add_proof_atom_consts
+    val thy' = thy
+      |> add_proof_syntax
+      |> add_proof_atom_consts
         (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
   in
-    (fn T => fn s => Thm.term_of (read_cterm sg (s, T)))
+    fn T => fn s => Thm.term_of (read_cterm thy' (s, T))
   end;
 
 fun read_proof thy =
@@ -244,27 +244,27 @@ fun read_proof thy =
     (fn ty => fn s => proof_of_term thy Symtab.empty ty (Logic.varify (rd s)))
   end;
 
-fun pretty_proof sg prf =
+fun pretty_proof thy prf =
   let
     val thm_names = map fst (Symtab.dest (thms_of_proof Symtab.empty prf)) \ "";
     val axm_names = map fst (Symtab.dest (axms_of_proof Symtab.empty prf));
-    val sg' = sg |>
+    val thy' = thy |>
       add_proof_syntax |>
       add_proof_atom_consts
         (map (NameSpace.append "thm") thm_names @ map (NameSpace.append "axm") axm_names)
   in
-    Sign.pretty_term sg' (term_of_proof prf)
+    Sign.pretty_term thy' (term_of_proof prf)
   end;
 
 fun pretty_proof_of full thm =
   let
-    val {sign, der = (_, prf), prop, ...} = rep_thm thm;
+    val {thy, der = (_, prf), prop, ...} = rep_thm thm;
     val prf' = (case strip_combt (fst (strip_combP prf)) of
         (PThm (_, prf', prop', _), _) => if prop=prop' then prf' else prf
       | _ => prf)
   in
-    pretty_proof sign
-      (if full then Reconstruct.reconstruct_proof sign prop prf' else prf')
+    pretty_proof thy
+      (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
   end;
 
 val print_proof_of = Pretty.writeln oo pretty_proof_of;

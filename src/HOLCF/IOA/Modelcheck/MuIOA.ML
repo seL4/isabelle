@@ -164,7 +164,7 @@ in
 
 fun mk_sim_oracle (sign, SimOracleExn (subgoal,thl)) =
 (let
-        val weak_case_congs = DatatypePackage.weak_case_congs_of_sg sign;
+        val weak_case_congs = DatatypePackage.weak_case_congs_of sign;
 
 	val concl = (Logic.strip_imp_concl subgoal);
 

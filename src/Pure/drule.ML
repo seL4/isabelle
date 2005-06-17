@@ -20,7 +20,7 @@ sig
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
   val ctyp_fun          : (typ -> typ) -> (ctyp -> ctyp)
   val read_insts        :
-          Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
+          theory -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
                   -> string list -> (indexname * string) list
                   -> (ctyp * ctyp) list * (cterm * cterm) list
@@ -54,10 +54,10 @@ sig
   val OF                : thm * thm list -> thm
   val compose           : thm * int * thm -> thm list
   val COMP              : thm * thm -> thm
-  val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
+  val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
   val read_instantiate  : (string*string)list -> thm -> thm
   val cterm_instantiate : (cterm*cterm)list -> thm -> thm
-  val eq_thm_sg         : thm * thm -> bool
+  val eq_thm_thy        : thm * thm -> bool
   val eq_thm_prop	: thm * thm -> bool
   val weak_eq_thm       : thm * thm -> bool
   val size_of_thm       : thm -> int
@@ -123,7 +123,7 @@ sig
   val fconv_rule        : (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
-  val norm_hhf: Sign.sg -> term -> term
+  val norm_hhf: theory -> term -> term
   val triv_goal: thm
   val rev_triv_goal: thm
   val implies_intr_goals: cterm list -> thm -> thm
@@ -146,7 +146,7 @@ sig
   val conj_elim_precise: int -> thm -> thm list
   val conj_intr_thm: thm
   val abs_def: thm -> thm
-  val read_instantiate_sg': Sign.sg -> (indexname * string) list -> thm -> thm
+  val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
 end;
 
@@ -190,16 +190,14 @@ fun strip_imp_concl ct =
 val cprems_of = strip_imp_prems o cprop_of;
 
 fun cterm_fun f ct =
-  let val {t, sign, ...} = Thm.rep_cterm ct
-  in Thm.cterm_of sign (f t) end;
+  let val {t, thy, ...} = Thm.rep_cterm ct
+  in Thm.cterm_of thy (f t) end;
 
 fun ctyp_fun f cT =
-  let val {T, sign, ...} = Thm.rep_ctyp cT
-  in Thm.ctyp_of sign (f T) end;
+  let val {T, thy, ...} = Thm.rep_ctyp cT
+  in Thm.ctyp_of thy (f T) end;
 
-val proto_sign = Theory.sign_of ProtoPure.thy;
-
-val implies = cterm_of proto_sign Term.implies;
+val implies = cterm_of ProtoPure.thy Term.implies;
 
 (*cterm version of mk_implies*)
 fun mk_implies(A,B) = Thm.capply (Thm.capply implies A) B;
@@ -259,7 +257,7 @@ fun absent ixn =
 fun inst_failure ixn =
   error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
 
-fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
+fun read_insts thy (rtypes,rsorts) (types,sorts) used insts =
 let
     fun is_tv ((a, _), _) =
       (case Symbol.explode a of "'" :: _ => true | _ => false);
@@ -267,8 +265,8 @@ let
     fun sort_of ixn = case rsorts ixn of SOME S => S | NONE => absent ixn;
     fun readT (ixn, st) =
         let val S = sort_of ixn;
-            val T = Sign.read_typ (sign,sorts) st;
-        in if Sign.typ_instance sign (T, TVar(ixn,S)) then (ixn,T)
+            val T = Sign.read_typ (thy,sorts) st;
+        in if Sign.typ_instance thy (T, TVar(ixn,S)) then (ixn,T)
            else inst_failure ixn
         end
     val tye = map readT tvs;
@@ -278,13 +276,13 @@ let
     val ixnsTs = map mkty vs;
     val ixns = map fst ixnsTs
     and sTs  = map snd ixnsTs
-    val (cts,tye2) = read_def_cterms(sign,types,sorts) used false sTs;
+    val (cts,tye2) = read_def_cterms(thy,types,sorts) used false sTs;
     fun mkcVar(ixn,T) =
         let val U = typ_subst_TVars tye2 T
-        in cterm_of sign (Var(ixn,U)) end
+        in cterm_of thy (Var(ixn,U)) end
     val ixnTs = ListPair.zip(ixns, map snd sTs)
-in (map (fn (ixn, T) => (ctyp_of sign (TVar (ixn, sort_of ixn)),
-      ctyp_of sign T)) (tye2 @ tye),
+in (map (fn (ixn, T) => (ctyp_of thy (TVar (ixn, sort_of ixn)),
+      ctyp_of thy T)) (tye2 @ tye),
     ListPair.zip(map mkcVar ixnTs,cts))
 end;
 
@@ -362,7 +360,7 @@ fun has_internal tags = exists (equal internalK o fst) tags;
 (*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
   let
-    val str_of_sort = Pretty.str_of o Sign.pretty_sort (Thm.sign_of_thm thm);
+    val str_of_sort = Pretty.str_of o Sign.pretty_sort (Thm.theory_of_thm thm);
     val thm' = Thm.strip_shyps thm;
     val xshyps = Thm.extra_shyps thm';
   in
@@ -379,9 +377,9 @@ fun forall_intr_list [] th = th
 
 (*Generalization over all suitable Free variables*)
 fun forall_intr_frees th =
-    let val {prop,sign,...} = rep_thm th
+    let val {prop,thy,...} = rep_thm th
     in  forall_intr_list
-         (map (cterm_of sign) (sort (make_ord atless) (term_frees prop)))
+         (map (cterm_of thy) (sort (make_ord atless) (term_frees prop)))
          th
     end;
 
@@ -390,8 +388,8 @@ val forall_elim_vars = PureThy.forall_elim_vars;
 
 fun gen_all thm =
   let
-    val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
-    fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of sign (Var ((x, maxidx + 1), T))) th;
+    val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
+    fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T))) th;
     val vs = Term.strip_all_vars prop;
   in Library.foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
 
@@ -415,7 +413,7 @@ fun satisfy_hyps ths th =
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
-    let val {prop,sign,tpairs,...} = rep_thm th;
+    let val {prop,thy,tpairs,...} = rep_thm th;
         val (tpair_l, tpair_r) = Library.split_list tpairs;
         val vars = foldr add_term_vars 
                          (foldr add_term_vars (term_vars prop) tpair_l) tpair_r;
@@ -426,12 +424,12 @@ fun zero_var_indexes th =
         val nms' = rev(Library.foldl add_new_id ([], map (#1 o #1) inrs));
         val tye = ListPair.map (fn ((v, rs), a) => (TVar (v, rs), TVar ((a, 0), rs)))
                      (inrs, nms')
-        val ctye = map (pairself (ctyp_of sign)) tye;
+        val ctye = map (pairself (ctyp_of thy)) tye;
         fun varpairs([],[]) = []
           | varpairs((var as Var(v,T)) :: vars, b::bs) =
                 let val T' = typ_subst_atomic tye T
-                in (cterm_of sign (Var(v,T')),
-                    cterm_of sign (Var((b,0),T'))) :: varpairs(vars,bs)
+                in (cterm_of thy (Var(v,T')),
+                    cterm_of thy (Var((b,0),T'))) :: varpairs(vars,bs)
                 end
           | varpairs _ = raise TERM("varpairs", []);
     in Thm.instantiate (ctye, varpairs(vars,rev bs)) th end;
@@ -474,7 +472,7 @@ fun local_standard th =
 
 fun freeze_thaw_robust th =
  let val fth = freezeT th
-     val {prop, tpairs, sign, ...} = rep_thm fth
+     val {prop, tpairs, thy, ...} = rep_thm fth
  in
    case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
@@ -484,8 +482,8 @@ fun freeze_thaw_robust th =
                    in  ((ix,v)::pairs)  end;
              val alist = foldr newName [] vars
              fun mk_inst (Var(v,T)) =
-                 (cterm_of sign (Var(v,T)),
-                  cterm_of sign (Free(valOf (assoc(alist,v)), T)))
+                 (cterm_of thy (Var(v,T)),
+                  cterm_of thy (Free(valOf (assoc(alist,v)), T)))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -497,7 +495,7 @@ fun freeze_thaw_robust th =
   The Frees created from Vars have nice names.*)
 fun freeze_thaw th =
  let val fth = freezeT th
-     val {prop, tpairs, sign, ...} = rep_thm fth
+     val {prop, tpairs, thy, ...} = rep_thm fth
  in
    case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
@@ -508,8 +506,8 @@ fun freeze_thaw th =
              val (alist, _) = foldr newName ([], Library.foldr add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
-                 (cterm_of sign (Var(v,T)),
-                  cterm_of sign (Free(valOf (assoc(alist,v)), T)))
+                 (cterm_of thy (Var(v,T)),
+                  cterm_of thy (Free(valOf (assoc(alist,v)), T)))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)
@@ -536,9 +534,8 @@ val rearrange_prems = let
   Example is [| ALL x:?A. ?P(x) |] ==> [| ?P(?a) |]
              [ !(A,P,a)[| ALL x:A. P(x) |] ==> [| P(a) |] ]    *)
 fun assume_ax thy sP =
-    let val sign = Theory.sign_of thy
-        val prop = Logic.close_form (term_of (read_cterm sign (sP, propT)))
-    in forall_elim_vars 0 (assume (cterm_of sign prop))  end;
+  let val prop = Logic.close_form (term_of (read_cterm thy (sP, propT)))
+  in forall_elim_vars 0 (Thm.assume (cterm_of thy prop)) end;
 
 (*Resolution: exactly one resolvent must be produced.*)
 fun tha RSN (i,thb) =
@@ -594,8 +591,8 @@ fun tha COMP thb =
 
 (** theorem equality **)
 
-(*True if the two theorems have the same signature.*)
-val eq_thm_sg = Sign.eq_sg o pairself Thm.sign_of_thm;
+(*True if the two theorems have the same theory.*)
+val eq_thm_thy = eq_thy o pairself Thm.theory_of_thm;
 
 (*True if the two theorems have the same prop field, ignoring hyps, der, etc.*)
 val eq_thm_prop = op aconv o pairself Thm.prop_of;
@@ -622,16 +619,16 @@ fun term_vars' (t as Var(v,T)) = [t]
   | term_vars' _ = [];
 
 fun forall_intr_vars th =
-  let val {prop,sign,...} = rep_thm th;
+  let val {prop,thy,...} = rep_thm th;
       val vars = distinct (term_vars' prop);
-  in forall_intr_list (map (cterm_of sign) vars) th end;
+  in forall_intr_list (map (cterm_of thy) vars) th end;
 
 val weak_eq_thm = Thm.eq_thm o pairself (forall_intr_vars o freezeT);
 
 
 (*** Meta-Rewriting Rules ***)
 
-fun read_prop s = read_cterm proto_sign (s, propT);
+fun read_prop s = read_cterm ProtoPure.thy (s, propT);
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);
@@ -639,7 +636,7 @@ fun store_thm_open name thm = hd (PureThy.smart_store_thms_open (name, [thm]));
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
-  let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),[])))
+  let val cx = cterm_of ProtoPure.thy (Var(("x",0),TVar(("'a",0),[])))
   in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
@@ -768,7 +765,7 @@ val thin_rl =
 val triv_forall_equality =
   let val V  = read_prop "PROP V"
       and QV = read_prop "!!x::'a. PROP V"
-      and x  = read_cterm proto_sign ("x", TypeInfer.logicT);
+      and x  = read_cterm ProtoPure.thy ("x", TypeInfer.logicT);
   in
     store_standard_thm_open "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
@@ -823,7 +820,7 @@ val remdups_rl =
 
 val norm_hhf_eq =
   let
-    val cert = Thm.cterm_of proto_sign;
+    val cert = Thm.cterm_of ProtoPure.thy;
     val aT = TFree ("'a", []);
     val all = Term.all aT;
     val x = Free ("x", aT);
@@ -857,53 +854,53 @@ fun is_norm_hhf tm =
       | is_norm _ = true;
   in is_norm (Pattern.beta_eta_contract tm) end;
 
-fun norm_hhf sg t =
+fun norm_hhf thy t =
   if is_norm_hhf t then t
-  else Pattern.rewrite_term (Sign.tsig_of sg) [Logic.dest_equals (prop_of norm_hhf_eq)] [] t;
+  else Pattern.rewrite_term (Sign.tsig_of thy) [Logic.dest_equals (prop_of norm_hhf_eq)] [] t;
 
 
-(*** Instantiate theorem th, reading instantiations under signature sg ****)
+(*** Instantiate theorem th, reading instantiations in theory thy ****)
 
 (*Version that normalizes the result: Thm.instantiate no longer does that*)
 fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
 
-fun read_instantiate_sg' sg sinsts th =
+fun read_instantiate_sg' thy sinsts th =
     let val ts = types_sorts th;
         val used = add_used th [];
-    in  instantiate (read_insts sg ts ts used sinsts) th  end;
+    in  instantiate (read_insts thy ts ts used sinsts) th  end;
 
-fun read_instantiate_sg sg sinsts th =
-  read_instantiate_sg' sg (map (apfst Syntax.indexname) sinsts) th;
+fun read_instantiate_sg thy sinsts th =
+  read_instantiate_sg' thy (map (apfst Syntax.indexname) sinsts) th;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
-    read_instantiate_sg (Thm.sign_of_thm th) sinsts th;
+    read_instantiate_sg (Thm.theory_of_thm th) sinsts th;
 
 fun read_instantiate' sinsts th =
-    read_instantiate_sg' (Thm.sign_of_thm th) sinsts th;
+    read_instantiate_sg' (Thm.theory_of_thm th) sinsts th;
 
 
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms, inferring type instantiations. *)
 local
-  fun add_types ((ct,cu), (sign,tye,maxidx)) =
-    let val {sign=signt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
-        and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
+  fun add_types ((ct,cu), (thy,tye,maxidx)) =
+    let val {thy=thyt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
+        and {thy=thyu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
-        val sign' = Sign.merge(sign, Sign.merge(signt, signu))
-        val (tye',maxi') = Type.unify (Sign.tsig_of sign') (tye, maxi) (T, U)
+        val thy' = Theory.merge(thy, Theory.merge(thyt, thyu))
+        val (tye',maxi') = Type.unify (Sign.tsig_of thy') (tye, maxi) (T, U)
           handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
-    in  (sign', tye', maxi')  end;
+    in  (thy', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = foldr add_types (Thm.sign_of_thm th, Vartab.empty, 0) ctpairs0
+  let val (thy,tye,_) = foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
       fun instT(ct,cu) = 
-        let val inst = cterm_of sign o Envir.subst_TVars tye o term_of
+        let val inst = cterm_of thy o Envir.subst_TVars tye o term_of
         in (inst ct, inst cu) end
-      fun ctyp2 (ixn, (S, T)) = (ctyp_of sign (TVar (ixn, S)), ctyp_of sign T)
+      fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
   in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
-           raise THM("cterm_instantiate: incompatible signatures",0,[th])
+           raise THM("cterm_instantiate: incompatible theories",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])
 end;
 
@@ -912,11 +909,11 @@ end;
 
 (*Given the term "a", takes (%x.t)==(%x.u) to t[a/x]==u[a/x]*)
 fun equal_abs_elim ca eqth =
-  let val {sign=signa, t=a, ...} = rep_cterm ca
+  let val {thy=thya, t=a, ...} = rep_cterm ca
       and combth = combination eqth (reflexive ca)
-      val {sign,prop,...} = rep_thm eqth
+      val {thy,prop,...} = rep_thm eqth
       val (abst,absu) = Logic.dest_equals prop
-      val cterm = cterm_of (Sign.merge (sign,signa))
+      val cterm = cterm_of (Theory.merge (thy,thya))
   in  transitive (symmetric (beta_conversion false (cterm (abst$a))))
            (transitive combth (beta_conversion false (cterm (absu$a))))
   end
@@ -929,7 +926,7 @@ fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 (*** Goal (PROP A) <==> PROP A ***)
 
 local
-  val cert = Thm.cterm_of proto_sign;
+  val cert = Thm.cterm_of ProtoPure.thy;
   val A = Free ("A", propT);
   val G = Logic.mk_goal A;
   val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
@@ -940,7 +937,7 @@ in
       (Thm.equal_elim G_def (Thm.assume (cert G)))));
 end;
 
-val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign Logic.goal_const);
+val mk_cgoal = Thm.capply (Thm.cterm_of ProtoPure.thy Logic.goal_const);
 fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
 
 fun implies_intr_goals cprops thm =
@@ -952,7 +949,7 @@ fun implies_intr_goals cprops thm =
 (** variations on instantiate **)
 
 (*shorthand for instantiating just one variable in the current theory*)
-fun inst x t = read_instantiate_sg (sign_of (the_context())) [(x,t)];
+fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
 
 
 (* collect vars in left-to-right order *)
@@ -974,11 +971,11 @@ fun instantiate' cTs cts thm =
         List.mapPartial (Option.map Thm.term_of) cts);
 
     fun inst_of (v, ct) =
-      (Thm.cterm_of (#sign (Thm.rep_cterm ct)) (Var v), ct)
+      (Thm.cterm_of (Thm.theory_of_cterm ct) (Var v), ct)
         handle TYPE (msg, _, _) => err msg;
 
     fun tyinst_of (v, cT) =
-      (Thm.ctyp_of (#sign (Thm.rep_ctyp cT)) (TVar v), cT)
+      (Thm.ctyp_of (Thm.theory_of_ctyp cT) (TVar v), cT)
         handle TYPE (msg, _, _) => err msg;
 
     fun zip_vars _ [] = []
@@ -1005,18 +1002,18 @@ fun instantiate' cTs cts thm =
 fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
     let
-      val {sign, prop, ...} = rep_thm thm;
+      val {thy, prop, ...} = rep_thm thm;
       fun ren (Abs (x, T, t)) = Abs (getOpt (assoc (vs, x), x), T, ren t)
         | ren (t $ u) = ren t $ ren u
         | ren t = t;
-    in equal_elim (reflexive (cterm_of sign (ren prop))) thm end;
+    in equal_elim (reflexive (cterm_of thy (ren prop))) thm end;
 
 
 (* renaming in left-to-right order *)
 
 fun rename_bvars' xs thm =
   let
-    val {sign, prop, ...} = rep_thm thm;
+    val {thy, prop, ...} = rep_thm thm;
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
           let val (xs', t') = rename xs t
@@ -1028,7 +1025,7 @@ fun rename_bvars' xs thm =
           in (xs'', t' $ u') end
       | rename xs t = (xs, t);
   in case rename xs prop of
-      ([], prop') => equal_elim (reflexive (cterm_of sign prop')) thm
+      ([], prop') => equal_elim (reflexive (cterm_of thy prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
 
@@ -1040,14 +1037,14 @@ fun rename_bvars' xs thm =
 
 fun unvarifyT thm =
   let
-    val cT = Thm.ctyp_of (Thm.sign_of_thm thm);
+    val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
     val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) (tvars_of thm);
   in instantiate' tfrees [] thm end;
 
 fun unvarify raw_thm =
   let
     val thm = unvarifyT raw_thm;
-    val ct = Thm.cterm_of (Thm.sign_of_thm thm);
+    val ct = Thm.cterm_of (Thm.theory_of_thm thm);
     val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) (vars_of thm);
   in instantiate' [] frees thm end;
 
@@ -1083,14 +1080,14 @@ fun freeze_all_TVars thm =
   (case tvars_of thm of
     [] => thm
   | tvars =>
-      let val cert = Thm.ctyp_of (Thm.sign_of_thm thm)
+      let val cert = Thm.ctyp_of (Thm.theory_of_thm thm)
       in instantiate' (map (fn ((x, _), S) => SOME (cert (TFree (x, S)))) tvars) [] thm end);
 
 fun freeze_all_Vars thm =
   (case vars_of thm of
     [] => thm
   | vars =>
-      let val cert = Thm.cterm_of (Thm.sign_of_thm thm)
+      let val cert = Thm.cterm_of (Thm.theory_of_thm thm)
       in instantiate' [] (map (fn ((x, _), T) => SOME (cert (Free (x, T)))) vars) thm end);
 
 val freeze_all = freeze_all_Vars o freeze_all_TVars;

@@ -186,9 +186,8 @@ fun gen_hide int (kind, xnames) thy =
   (case assoc_string (kinds, kind) of
     SOME (intern, check, hide) =>
       let
-        val sg = Theory.sign_of thy;
-        val names = if int then map (intern sg) xnames else xnames;
-        val bads = filter_out (check sg) names;
+        val names = if int then map (intern thy) xnames else xnames;
+        val bads = filter_out (check thy) names;
       in
         if null bads then hide true names thy
         else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
@@ -313,6 +312,8 @@ fun prt_facts ctxt =
 
 fun pretty_results ctxt ((kind, ""), facts) =
       Pretty.block (Pretty.str kind :: Pretty.brk 1 :: prt_facts ctxt facts)
+  | pretty_results ctxt ((kind, name), [fact]) = Pretty.blk (1,
+      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, ProofContext.pretty_fact ctxt fact])
   | pretty_results ctxt ((kind, name), facts) = Pretty.blk (1,
       [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk,
         Pretty.blk (1, Pretty.str "(" :: prt_facts ctxt facts @ [Pretty.str ")"])]);
@@ -385,8 +386,8 @@ fun multi_theorem_i k after_qed export a =
 fun locale_multi_theorem k locale (name, atts) elems concl int thy =
   global_statement (Proof.multi_theorem k I  ProofContext.export_standard
       (SOME (locale,
-        (map (Attrib.intern_src (Theory.sign_of thy)) atts,
-         map (map (Attrib.intern_src (Theory.sign_of thy)) o snd o fst) concl)))
+        (map (Attrib.intern_src thy) atts,
+         map (map (Attrib.intern_src thy) o snd o fst) concl)))
       (name, [])
       (map (Locale.intern_attrib_elem_expr thy) elems))
     (map (apfst (apsnd (K []))) concl) int thy;
@@ -554,7 +555,7 @@ end;
 (* translation functions *)
 
 fun advancedT false = ""
-  | advancedT true = "Sign.sg -> ";
+  | advancedT true = "theory -> ";
 
 fun advancedN false = ""
   | advancedN true = "advanced_";
@@ -610,7 +611,7 @@ fun method_setup (name, txt, cmt) =
 
 fun add_oracle (name, txt) =
   Context.use_let
-    "val oracle: bstring * (Sign.sg * Object.T -> term)"
+    "val oracle: bstring * (theory * Object.T -> term)"
     "Theory.add_oracle oracle"
     ("(" ^ Library.quote name ^ ", " ^ txt ^ ")");
 
@@ -635,8 +636,8 @@ fun register_globally (((prfx, atts), expr), insts) int thy =
   in
     multi_theorem_i Drule.internalK activate ProofContext.export_plain
       ("", []) []
-      (map (fn ((n, ps), props) => 
-          ((NameSpace.base n, [witness (n, map Logic.varify ps)]), 
+      (map (fn ((n, ps), props) =>
+          ((NameSpace.base n, [witness (n, map Logic.varify ps)]),
         map (fn prop => (prop, ([], []))) props)) propss) int thy'
   end;
 
@@ -659,16 +660,20 @@ fun register_locally (((prfx, atts), expr), insts) =
 (* theory init and exit *)
 
 fun gen_begin_theory upd name parents files =
-  let val ml_filename = Path.pack (ThyLoad.ml_path name);
-      val () = if exists (equal ml_filename o #1) files
-               then error ((quote ml_filename) ^ " not allowed in files section for theory " ^ name)
-               else ()
-  in ThyInfo.begin_theory Present.begin_theory upd name parents (map (apfst Path.unpack) files) end;
+  let
+    val ml_filename = Path.pack (ThyLoad.ml_path name);
+    (* FIXME unreliable test -- better make ThyInfo manage dependencies properly *)
+    val _ = conditional (exists (equal ml_filename o #1) files) (fn () =>
+      error ((quote ml_filename) ^ " not allowed in files section for theory " ^ name));
+  in
+    ThyInfo.begin_theory Present.begin_theory upd name parents
+      (map (apfst Path.unpack) files)
+  end;
 
 val begin_theory = gen_begin_theory false;
 
 fun end_theory thy =
-  if ThyInfo.check_known_thy (PureThy.get_name thy) then ThyInfo.end_theory thy
+  if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy
   else thy;
 
 val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
@@ -677,7 +682,8 @@ val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
 fun bg_theory (name, parents, files) int = gen_begin_theory int name parents files;
 fun en_theory thy = (end_theory thy; ());
 
-fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o PureThy.get_name);
+fun theory spec =
+  Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o Context.theory_name);
 
 
 (* context switch *)

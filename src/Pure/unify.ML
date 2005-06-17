@@ -1,33 +1,31 @@
 (*  Title:      Pure/unify.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
-Higher-Order Unification
+Higher-Order Unification.
 
-Types as well as terms are unified.  The outermost functions assume the
-terms to be unified already have the same type.  In resolution, this is
-assured because both have type "prop".
+Types as well as terms are unified.  The outermost functions assume
+the terms to be unified already have the same type.  In resolution,
+this is assured because both have type "prop".
 *)
 
-
-signature UNIFY = 
-  sig
+signature UNIFY =
+sig
   (*references for control and tracing*)
   val trace_bound: int ref
   val trace_simp: bool ref
   val trace_types: bool ref
   val search_bound: int ref
   (*other exports*)
-  val combound : (term*int*int) -> term
-  val rlist_abs: (string*typ)list * term -> term   
-  val smash_unifiers : Sign.sg * Envir.env * (term*term)list
-	-> (Envir.env Seq.seq)
-  val unifiers: Sign.sg * Envir.env * ((term*term)list)
-	-> (Envir.env * (term * term)list) Seq.seq
-  end;
+  val combound: term * int * int -> term
+  val rlist_abs: (string * typ) list * term -> term
+  val smash_unifiers: theory * Envir.env * (term * term) list -> Envir.env Seq.seq
+  val unifiers: theory * Envir.env * ((term * term) list) ->
+    (Envir.env * (term * term) list) Seq.seq
+end
 
-structure Unify	: UNIFY = 
+structure Unify	: UNIFY =
 struct
 
 (*Unification options*)
@@ -38,7 +36,8 @@ and trace_simp = ref false	(*print dpairs before calling SIMPL*)
 and trace_types = ref false	(*announce potential incompleteness
 				  of type unification*)
 
-val sgr = ref(Sign.pre_pure);
+val thy_ref = ref (NONE: theory option);
+fun thy () = the (! thy_ref);
 
 type binderlist = (string*typ) list;
 
@@ -180,12 +179,12 @@ exception ASSIGN;	(*Raised if not an assignment*)
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of (!sgr)) (iTs, maxidx) (U, T)
+  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of (thy ())) (iTs, maxidx) (U, T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise CANTUNIFY;
 
 fun test_unify_types(args as (T,U,_)) =
-let val sot = Sign.string_of_typ (!sgr);
+let val sot = Sign.string_of_typ (thy ());
     fun warn() = tracing ("Potential loss of completeness: "^sot U^" = "^sot T);
     val env' = unify_types(args)
 in if is_TVar(T) orelse is_TVar(U) then warn() else ();
@@ -556,7 +555,7 @@ fun add_ffpair ((rbinder,t0,u0), (env,tpairs))
     t is always flexible.*)
 fun print_dpairs msg (env,dpairs) =
   let fun pdp (rbinder,t,u) =
-        let fun termT t = Sign.pretty_term (!sgr)
+        let fun termT t = Sign.pretty_term (thy ())
                               (Envir.norm_term env (rlist_abs(rbinder,t)))
             val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1,
                           termT t];
@@ -567,7 +566,7 @@ fun print_dpairs msg (env,dpairs) =
 (*Unify the dpairs in the environment.
   Returns flex-flex disagreement pairs NOT IN normal form. 
   SIMPL may raise exception CANTUNIFY. *)
-fun hounifiers (sg,env, tus : (term*term)list) 
+fun hounifiers (thy,env, tus : (term*term)list) 
   : (Envir.env * (term*term)list)Seq.seq =
   let fun add_unify tdepth ((env,dpairs), reseq) =
 	  Seq.make (fn()=>
@@ -591,14 +590,13 @@ fun hounifiers (sg,env, tus : (term*term)list)
 	    (if tdepth > !trace_bound then tracing"Failure node" else ();
 	     Seq.pull reseq));
      val dps = map (fn(t,u)=> ([],t,u)) tus
-  in sgr := sg;
-     add_unify 1 ((env,dps), Seq.empty) 
-  end;
+     val _ = thy_ref := SOME thy;
+  in add_unify 1 ((env, dps), Seq.empty) end;
 
-fun unifiers(params) =
-      Seq.cons((Pattern.unify(params), []),   Seq.empty)
-      handle Pattern.Unif => Seq.empty
-           | Pattern.Pattern => hounifiers(params);
+fun unifiers params =
+  Seq.cons ((Pattern.unify params, []), Seq.empty)
+    handle Pattern.Unif => Seq.empty
+         | Pattern.Pattern => hounifiers params;
 
 
 (*For smash_flexflex1*)
@@ -630,7 +628,7 @@ fun smash_flexflex (env,tpairs) : Envir.env =
   foldr smash_flexflex1 env tpairs;
 
 (*Returns unifiers with no remaining disagreement pairs*)
-fun smash_unifiers (sg, env, tus) : Envir.env Seq.seq =
-    Seq.map smash_flexflex (unifiers(sg,env,tus));
+fun smash_unifiers (thy, env, tus) : Envir.env Seq.seq =
+    Seq.map smash_flexflex (unifiers(thy,env,tus));
 
 end;

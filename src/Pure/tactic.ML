@@ -111,15 +111,15 @@ sig
   val simplify: bool -> thm list -> thm -> thm
   val conjunction_tac: tactic
   val smart_conjunction_tac: int -> tactic
-  val prove_multi_plain: Sign.sg -> string list -> term list -> term list ->
+  val prove_multi_plain: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
-  val prove_multi: Sign.sg -> string list -> term list -> term list ->
+  val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
-  val prove_multi_standard: Sign.sg -> string list -> term list -> term list ->
+  val prove_multi_standard: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
-  val prove_plain: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove_standard: Sign.sg -> string list -> term list -> term ->
+  val prove_plain: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove_standard: theory -> string list -> term list -> term ->
     (thm list -> tactic) -> thm
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
@@ -237,16 +237,16 @@ fun params_of_state st i =
   let val (_, _, Bi, _) = dest_state(st,i)
       val params = Logic.strip_params Bi
   in rev(rename_wrt_term Bi params) end;
-  
+
 (*read instantiations with respect to subgoal i of proof state st*)
 fun read_insts_in_state (st, i, sinsts, rule) =
-	let val {sign,...} = rep_thm st
-	    and params = params_of_state st i
-	    and rts = types_sorts rule and (types,sorts) = types_sorts st
-	    fun types'(a,~1) = (case assoc(params,a) of NONE => types(a,~1) | sm => sm)
-	      | types'(ixn) = types ixn;
-	    val used = Drule.add_used rule (Drule.add_used st []);
-	in read_insts sign rts (types',sorts) used sinsts end;
+  let val thy = Thm.theory_of_thm st
+      and params = params_of_state st i
+      and rts = types_sorts rule and (types,sorts) = types_sorts st
+      fun types'(a, ~1) = (case assoc_string (params, a) of NONE => types (a, ~1) | sm => sm)
+        | types' ixn = types ixn;
+      val used = Drule.add_used rule (Drule.add_used st []);
+  in read_insts thy rts (types',sorts) used sinsts end;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
 fun lift_inst_rule' (st, i, sinsts, rule) =
@@ -285,15 +285,15 @@ NB: the types in insts must be correctly instantiated already,
     i.e. Tinsts is not applied to insts.
 *)
 fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
-let val {maxidx,sign,...} = rep_thm st
+let val {maxidx,thy,...} = rep_thm st
     val paramTs = map #2 (params_of_state st i)
     and inc = maxidx+1
     fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> incr_tvar inc T)
     (*lift only Var, not term, which must be lifted already*)
-    fun liftpair (v,t) = (cterm_of sign (liftvar v), cterm_of sign t)
+    fun liftpair (v,t) = (cterm_of thy (liftvar v), cterm_of thy t)
     fun liftTpair (((a, i), S), T) =
-      (ctyp_of sign (TVar ((a, i + inc), S)),
-       ctyp_of sign (incr_tvar inc T))
+      (ctyp_of thy (TVar ((a, i + inc), S)),
+       ctyp_of thy (incr_tvar inc T))
 in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
@@ -338,7 +338,7 @@ fun eres_inst_tac' sinsts rule i =
   increment revcut_rl instead.*)
 fun make_elim_preserve rl =
   let val {maxidx,...} = rep_thm rl
-      fun cvar ixn = cterm_of (Theory.sign_of ProtoPure.thy) (Var(ixn,propT));
+      fun cvar ixn = cterm_of ProtoPure.thy (Var(ixn,propT));
       val revcut_rl' =
           instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
                              (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
@@ -596,11 +596,11 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 fun rename_params_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
-    | NONE => 
+    | NONE =>
        (if !Logic.auto_rename
-	 then (warning "Resetting Logic.auto_rename";
-	     Logic.auto_rename := false)
-	else (); PRIMITIVE (rename_params_rule (xs, i)));
+         then (warning "Resetting Logic.auto_rename";
+             Logic.auto_rename := false)
+        else (); PRIMITIVE (rename_params_rule (xs, i)));
 
 fun rename_tac str i =
   let val cs = Symbol.explode str in
@@ -652,7 +652,7 @@ val conj_tac = SUBGOAL (fn (Const ("all", _) $ Abs (_, _, Const ("==>", _) $
     (fn st =>
       compose_tac (false, Drule.incr_indexes_wrt [] [] [] [st] Drule.conj_intr_thm, 2) i st)
   | _ => no_tac);
-  
+
 val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
 
 fun smart_conjunction_tac 0 = assume_tac 1
@@ -662,7 +662,7 @@ fun smart_conjunction_tac 0 = assume_tac 1
 
 (** minimal goal interface for programmed proofs *)
 
-fun gen_prove_multi finish_thm sign xs asms props tac =
+fun gen_prove_multi finish_thm thy xs asms props tac =
   let
     val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
@@ -673,9 +673,9 @@ fun gen_prove_multi finish_thm sign xs asms props tac =
 
     fun err msg = raise ERROR_MESSAGE
       (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
-        Sign.string_of_term sign (Term.list_all_free (params, statement)));
+        Sign.string_of_term thy (Term.list_all_free (params, statement)));
 
-    fun cert_safe t = Thm.cterm_of sign (Envir.beta_norm t)
+    fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
     val _ = cert_safe statement;
@@ -696,8 +696,8 @@ fun gen_prove_multi finish_thm sign xs asms props tac =
 
     val raw_result = goal' RS Drule.rev_triv_goal;
     val prop' = prop_of raw_result;
-    val _ = conditional (not (Pattern.matches (Sign.tsig_of sign) (prop, prop'))) (fn () =>
-      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop'));
+    val _ = conditional (not (Pattern.matches (Sign.tsig_of thy) (prop, prop'))) (fn () =>
+      err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
   in
     Drule.conj_elim_precise (length props) raw_result
     |> map (fn res => res
@@ -706,18 +706,18 @@ fun gen_prove_multi finish_thm sign xs asms props tac =
       |> finish_thm fixed_tfrees)
   end;
 
-fun prove_multi_plain sign xs asms prop tac =
-  gen_prove_multi (K norm_hhf_plain) sign xs asms prop tac;
-fun prove_multi sign xs asms prop tac =
+fun prove_multi_plain thy xs asms prop tac =
+  gen_prove_multi (K norm_hhf_plain) thy xs asms prop tac;
+fun prove_multi thy xs asms prop tac =
   gen_prove_multi (fn fixed_tfrees => Drule.zero_var_indexes o
       (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf_rule)
-    sign xs asms prop tac;
-fun prove_multi_standard sign xs asms prop tac =
-  map Drule.standard (prove_multi sign xs asms prop tac);
+    thy xs asms prop tac;
+fun prove_multi_standard thy xs asms prop tac =
+  map Drule.standard (prove_multi thy xs asms prop tac);
 
-fun prove_plain sign xs asms prop tac = hd (prove_multi_plain sign xs asms [prop] tac);
-fun prove sign xs asms prop tac = hd (prove_multi sign xs asms [prop] tac);
-fun prove_standard sign xs asms prop tac = Drule.standard (prove sign xs asms prop tac);
+fun prove_plain thy xs asms prop tac = hd (prove_multi_plain thy xs asms [prop] tac);
+fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
+fun prove_standard thy xs asms prop tac = Drule.standard (prove thy xs asms prop tac);
 
 end;
 
