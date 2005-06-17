@@ -179,10 +179,16 @@ by simp
 lemma cpair_eqD2: "<x,y> = <x',y'> \<Longrightarrow> y = y'"
 by simp
 
+text {* lemma for proving rewrite rules *}
+
+lemma ssubst_lhs: "\<lbrakk>t = s; P s = Q\<rbrakk> \<Longrightarrow> P t = Q"
+by simp
+
 ML {*
 val cpair_equalI = thm "cpair_equalI";
 val cpair_eqD1 = thm "cpair_eqD1";
 val cpair_eqD2 = thm "cpair_eqD2";
+val ssubst_lhs = thm "ssubst_lhs";
 *}
 
 subsection {* Intitializing the fixrec package *}

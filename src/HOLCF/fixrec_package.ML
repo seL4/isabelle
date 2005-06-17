@@ -210,8 +210,7 @@ fun prove_simp thy unfold_thm t =
     val ss = simpset_of thy;
     val ct = cterm_of thy t;
     val thm = prove_goalw_cterm [] ct
-      (fn _ => [SOLVE(stac unfold_thm 1 THEN simp_tac ss 1)])
-        handle _ => sys_error (string_of_cterm ct^" :: proof failed on this equation.");
+      (fn _ => [rtac (unfold_thm RS ssubst_lhs) 1, simp_tac ss 1]);
   in thm end;
 
 (* this proves that each equation is a theorem *)
