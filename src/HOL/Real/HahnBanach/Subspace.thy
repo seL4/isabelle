@@ -5,7 +5,7 @@
 
 header {* Subspaces *}
 
-theory Subspace = VectorSpace:
+theory Subspace imports VectorSpace begin
 
 
 subsection {* Definition *}

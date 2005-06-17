@@ -10,7 +10,7 @@ Theory ported from HOL.
 
 header{*Fixed Point of a Program*}
 
-theory FP = UNITY:
+theory FP imports UNITY begin
 
 constdefs   
   FP_Orig :: "i=>i"

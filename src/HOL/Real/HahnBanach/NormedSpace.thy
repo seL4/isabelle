@@ -5,7 +5,7 @@
 
 header {* Normed vector spaces *}
 
-theory NormedSpace =  Subspace:
+theory NormedSpace imports  Subspace begin
 
 subsection {* Quasinorms *}
 

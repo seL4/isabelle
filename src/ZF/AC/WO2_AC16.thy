@@ -14,7 +14,7 @@
   contains m distinct elements (in fact is equipollent to s)
 *)
 
-theory WO2_AC16 = AC_Equiv + AC16_lemmas + Cardinal_aux:
+theory WO2_AC16 imports AC_Equiv AC16_lemmas Cardinal_aux begin
 
 (**** A recursive definition used in the proof of WO2 ==> AC16 ****)
 

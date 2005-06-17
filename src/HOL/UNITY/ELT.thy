@@ -24,7 +24,7 @@ inductive "elt CC F B"
 
 header{*Progress Under Allowable Sets*}
 
-theory ELT = Project:
+theory ELT imports Project begin
 
 consts
 

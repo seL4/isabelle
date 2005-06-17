@@ -8,7 +8,7 @@ Weak safety relations: restricted to the set of reachable states.
 
 header{*Weak Safety*}
 
-theory Constrains = UNITY:
+theory Constrains imports UNITY begin
 
 consts traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
 

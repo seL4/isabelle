@@ -6,7 +6,7 @@
 
 header{*Classical Predicate Calculus Problems*}
 
-theory Classical = Main:
+theory Classical imports Main begin
 
 subsection{*Traditional Classical Reasoner*}
 

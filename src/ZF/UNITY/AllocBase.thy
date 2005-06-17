@@ -7,7 +7,7 @@
 
 header{*Common declarations for Chandy and Charpentier's Allocator*}
 
-theory AllocBase = Follows + MultisetSum + Guar:
+theory AllocBase imports Follows MultisetSum Guar begin
 
 consts
   tokbag   :: i  (* tokbags could be multisets...or any ordered type?*)

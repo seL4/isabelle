@@ -7,7 +7,7 @@
 
 header{*Infinite-Branching Datatype Definitions*}
 
-theory InfDatatype = Datatype + Univ + Finite + Cardinal_AC:
+theory InfDatatype imports Datatype Univ Finite Cardinal_AC begin
 
 lemmas fun_Limit_VfromE = 
     Limit_VfromE [OF apply_funtype InfCard_csucc [THEN InfCard_is_Limit]]

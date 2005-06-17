@@ -5,7 +5,7 @@
 
 header{*The SET Merchant Registration Protocol*}
 
-theory Merchant_Registration = PublicSET:
+theory Merchant_Registration imports PublicSET begin
 
 text{*Copmpared with Cardholder Reigstration, @{text KeyCryptKey} is not
   needed: no session key encrypts another.  Instead we

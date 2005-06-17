@@ -5,7 +5,7 @@
 
 header {* Residue Sets *}
 
-theory Residues = Int2:;
+theory Residues imports Int2 begin;
 
 text{*Note.  This theory is being revised.  See the web page
 \url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}

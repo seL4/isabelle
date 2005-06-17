@@ -1,5 +1,5 @@
 (*<*)
-theory Plus = Main:
+theory Plus imports Main begin
 (*>*)
 
 text{*\noindent Define the following addition function *}

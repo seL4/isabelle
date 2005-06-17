@@ -9,7 +9,7 @@ General products of programs (Pi operation)
 Some dead wood here!
 *)
 
-theory PPROD = Lift_prog:
+theory PPROD imports Lift_prog begin
 
 constdefs
 

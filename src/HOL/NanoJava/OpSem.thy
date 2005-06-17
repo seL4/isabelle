@@ -6,7 +6,7 @@
 
 header "Operational Evaluation Semantics"
 
-theory OpSem = State:
+theory OpSem imports State begin
 
 consts
  exec :: "(state \<times> stmt       \<times> nat \<times> state) set"

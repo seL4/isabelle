@@ -7,7 +7,7 @@
 
 header{*Combining Orderings: Foundations of Ordinal Arithmetic*}
 
-theory OrderArith = Order + Sum + Ordinal:
+theory OrderArith imports Order Sum Ordinal begin
 constdefs
 
   (*disjoint sum of two relations; underlies ordinal addition*)

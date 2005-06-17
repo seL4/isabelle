@@ -1,6 +1,6 @@
 header {* Correctness of Definite Assignment *}
 
-theory DefiniteAssignmentCorrect = WellForm + Eval:
+theory DefiniteAssignmentCorrect imports WellForm Eval begin
 
 ML {*
 Delsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]

@@ -6,7 +6,7 @@
 
 header {* Primitive Recursive Functions: the inductive definition *}
 
-theory Primrec = Main:
+theory Primrec imports Main begin
 
 text {*
   Proof adopted from \cite{szasz}.

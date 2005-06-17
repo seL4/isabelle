@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Real = HOL4Base:
+theory HOL4Real imports HOL4Base begin
 
 ;setup_theory realax
 

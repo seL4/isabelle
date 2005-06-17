@@ -6,7 +6,7 @@
 
 header {* Higman's lemma *}
 
-theory Higman = Main:
+theory Higman imports Main begin
 
 text {*
   Formalization by Stefan Berghofer and Monika Seisenberger,

@@ -6,7 +6,7 @@ header {* Field, method, interface, and class declarations, whole Java programs
 *}
 
 (** order is significant, because of clash for "var" **)
-theory Decl = Term + Table:
+theory Decl imports Term Table begin
 
 text {*
 improvements:

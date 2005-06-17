@@ -7,7 +7,7 @@ Pointers, heaps and heap abstractions.
 See the paper by Mehta and Nipkow.
 *)
 
-theory Heap = Main:
+theory Heap imports Main begin
 
 subsection "References"
 

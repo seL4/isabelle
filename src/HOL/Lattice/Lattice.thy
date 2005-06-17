@@ -5,7 +5,7 @@
 
 header {* Lattices *}
 
-theory Lattice = Bounds:
+theory Lattice imports Bounds begin
 
 subsection {* Lattice operations *}
 

@@ -8,7 +8,7 @@ Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
 
 header{*Unions of Programs*}
 
-theory Union = SubstAx + FP:
+theory Union imports SubstAx FP begin
 
 constdefs
 

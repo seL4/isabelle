@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Recur = Main:
+theory Recur imports Main begin
 
 ML "Pretty.setmargin 64"
 

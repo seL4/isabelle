@@ -6,7 +6,7 @@
 
 header {* Sample datatype definitions *}
 
-theory Datatypes = Main:
+theory Datatypes imports Main begin
 
 subsection {* A type with four constructors *}
 

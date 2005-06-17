@@ -7,7 +7,7 @@ Basic propositional and quantifier reasoning.
 
 header {* Basic logical reasoning *}
 
-theory BasicLogic = Main:
+theory BasicLogic imports Main begin
 
 
 subsection {* Pure backward reasoning *}

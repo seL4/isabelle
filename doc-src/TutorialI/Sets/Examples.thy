@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Examples = Main:
+theory Examples imports Main begin
 
 ML "reset eta_contract"
 ML "Pretty.setmargin 64"

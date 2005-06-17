@@ -8,7 +8,7 @@ Examples of recdef definitions.  Most, but not all, are handled automatically.
 
 header {* Examples of recdef definitions *}
 
-theory Recdefs = Main:
+theory Recdefs imports Main begin
 
 consts fact :: "nat => nat"
 recdef fact  less_than

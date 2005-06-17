@@ -1,6 +1,6 @@
 header {* \section{The Proof System} *}
 
-theory RG_Hoare = RG_Tran:
+theory RG_Hoare imports RG_Tran begin
 
 subsection {* Proof System for Component Programs *}
 

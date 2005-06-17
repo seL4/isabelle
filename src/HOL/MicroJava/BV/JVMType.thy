@@ -7,7 +7,7 @@
 
 header {* \isaheader{The JVM Type System as Semilattice} *}
 
-theory JVMType = Opt + Product + Listn + JType:
+theory JVMType imports Opt Product Listn JType begin
 
 types
   locvars_type = "ty err list"

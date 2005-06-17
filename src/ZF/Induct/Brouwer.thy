@@ -6,7 +6,7 @@
 
 header {* Infinite branching datatype definitions *}
 
-theory Brouwer = Main_ZFC:
+theory Brouwer imports Main_ZFC begin
 
 subsection {* The Brouwer ordinals *}
 

@@ -5,7 +5,7 @@
 
 header {* Complete lattices *}
 
-theory CompleteLattice = Lattice:
+theory CompleteLattice imports Lattice begin
 
 subsection {* Complete lattice operations *}
 

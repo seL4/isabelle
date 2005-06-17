@@ -7,7 +7,7 @@ header {* HOL type definitions *}
 
 theory Typedef
 imports Set
-files ("Tools/typedef_package.ML")
+uses ("Tools/typedef_package.ML")
 begin
 
 locale type_definition =

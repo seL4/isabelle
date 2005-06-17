@@ -11,7 +11,7 @@ Changes by Jeremy Avigad, 2003/02/21:
 
 header {* Divisibility and prime numbers (on integers) *}
 
-theory IntPrimes = Primes:
+theory IntPrimes imports Primes begin
 
 text {*
   The @{text dvd} relation, GCD, Euclid's extended algorithm, primes,

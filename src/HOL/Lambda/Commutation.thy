@@ -6,7 +6,7 @@
 
 header {* Abstract commutation and confluence notions *}
 
-theory Commutation = Main:
+theory Commutation imports Main begin
 
 subsection {* Basic definitions *}
 

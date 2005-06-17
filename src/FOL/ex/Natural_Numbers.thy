@@ -5,7 +5,7 @@
 
 header {* Natural numbers *}
 
-theory Natural_Numbers = FOL:
+theory Natural_Numbers imports FOL begin
 
 text {*
   Theory of the natural numbers: Peano's axioms, primitive recursion.

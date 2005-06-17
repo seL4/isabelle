@@ -7,7 +7,7 @@
 
 header {* Orders and Lattices *}
 
-theory Lattice = Main:
+theory Lattice imports Main begin
 
 text {* Object with a carrier set. *}
 

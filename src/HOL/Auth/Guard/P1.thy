@@ -15,7 +15,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Protocol P1*}
 
-theory P1 = Guard_Public + List_Msg:
+theory P1 imports Guard_Public List_Msg begin
 
 subsection{*Protocol Definition*}
 

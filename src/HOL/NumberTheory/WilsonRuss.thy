@@ -9,7 +9,7 @@ Changes by Jeremy Avigad, 2003/02/21:
 
 header {* Wilson's Theorem according to Russinoff *}
 
-theory WilsonRuss = EulerFermat:
+theory WilsonRuss imports EulerFermat begin
 
 text {*
   Wilson's Theorem following quite closely Russinoff's approach

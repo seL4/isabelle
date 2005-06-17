@@ -5,7 +5,7 @@
 
 header {* Denotational semantics of expressions and commands *}
 
-theory Denotation = Com:
+theory Denotation imports Com begin
 
 subsection {* Definitions *}
 

@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Types = Language:
+theory Types imports Language begin
 
 consts
   Ty :: i               (* Datatype of types *)

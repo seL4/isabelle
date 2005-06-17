@@ -7,7 +7,7 @@ Distributed Resource Management System:  Client Implementation
 *)
 
 
-theory ClientImpl = AllocBase + Guar:
+theory ClientImpl imports AllocBase Guar begin
 
 consts
   ask :: i (* input history:  tokens requested *)

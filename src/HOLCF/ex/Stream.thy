@@ -5,7 +5,7 @@
 General Stream domain.
 *)
 
-theory Stream = HOLCF + Nat_Infinity:
+theory Stream imports HOLCF Nat_Infinity begin
 
 domain 'a stream = "&&" (ft::'a) (lazy rt::"'a stream") (infixr 65)
 

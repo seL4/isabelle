@@ -1,7 +1,7 @@
 
 header {* \section{The Proof System} *}
 
-theory OG_Hoare = OG_Tran:
+theory OG_Hoare imports OG_Tran begin
 
 consts assertions :: "'a ann_com \<Rightarrow> ('a assn) set"
 primrec

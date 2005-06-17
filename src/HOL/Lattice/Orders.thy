@@ -5,7 +5,7 @@
 
 header {* Orders *}
 
-theory Orders = Main:
+theory Orders imports Main begin
 
 subsection {* Ordered structures *}
 

@@ -6,7 +6,7 @@
 
 header "Statements and expression emulations"
 
-theory Term = Main:
+theory Term imports Main begin
 
 typedecl cname  --{* class    name *}
 typedecl mname  --{* method   name *}

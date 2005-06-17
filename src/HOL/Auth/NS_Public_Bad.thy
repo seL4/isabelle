@@ -13,7 +13,7 @@ From page 260 of
 
 header{*Verifying the Needham-Schroeder Public-Key Protocol*}
 
-theory NS_Public_Bad = Public:
+theory NS_Public_Bad imports Public begin
 
 consts  ns_public  :: "event list set"
 

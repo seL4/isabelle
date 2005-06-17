@@ -1,7 +1,7 @@
 
 header {* \section{Examples} *}
 
-theory OG_Examples = OG_Syntax:
+theory OG_Examples imports OG_Syntax begin
 
 subsection {* Mutual Exclusion *}
 

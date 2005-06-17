@@ -6,7 +6,7 @@
 
 header {* Simply-typed lambda terms *}
 
-theory Type = ListApplication:
+theory Type imports ListApplication begin
 
 
 subsection {* Environments *}

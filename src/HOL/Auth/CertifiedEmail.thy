@@ -5,7 +5,7 @@
 
 header{*The Certified Electronic Mail Protocol by Abadi et al.*}
 
-theory CertifiedEmail = Public:
+theory CertifiedEmail imports Public begin
 
 syntax
   TTP        :: agent

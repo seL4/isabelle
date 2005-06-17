@@ -6,7 +6,7 @@
 
 header{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
 
-theory Fixedpt = equalities:
+theory Fixedpt imports equalities begin
 
 constdefs
   

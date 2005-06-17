@@ -13,7 +13,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Needham-Schroeder-Lowe Public-Key Protocol*}
 
-theory NS_Public = Guard_Public:
+theory NS_Public imports Guard_Public begin
 
 subsection{*messages used in the protocol*}
 

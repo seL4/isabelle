@@ -7,7 +7,7 @@
 
 header{*Common Declarations for Chandy and Charpentier's Allocator*}
 
-theory AllocBase = UNITY_Main:
+theory AllocBase imports UNITY_Main begin
 
 consts
   NbT      :: nat       (*Number of tokens in system*)

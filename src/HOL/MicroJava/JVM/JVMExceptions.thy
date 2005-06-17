@@ -6,7 +6,7 @@
 
 header {* \isaheader{Exception handling in the JVM} *}
 
-theory JVMExceptions = JVMInstructions:
+theory JVMExceptions imports JVMInstructions begin
 
 constdefs
   match_exception_entry :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_entry \<Rightarrow> bool"

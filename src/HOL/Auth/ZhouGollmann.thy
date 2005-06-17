@@ -10,7 +10,7 @@ The protocol of
   55-61
 *)
 
-theory ZhouGollmann = Public:
+theory ZhouGollmann imports Public begin
 
 syntax
   TTP :: agent

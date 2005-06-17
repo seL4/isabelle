@@ -4,7 +4,7 @@
 *)
 header {* The relations between Java types *}
 
-theory TypeRel = Decl:
+theory TypeRel imports Decl begin
 
 text {*
 simplifications:

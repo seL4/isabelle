@@ -23,8 +23,8 @@ my %migrators = (
     },
     thyheader => sub {
         my ($file, @content) = @_;
-        my $diag = 1;
-        #~ my $diag = 0;
+        #~ my $diag = 1;
+        my $diag = 0;
         $_ = join("", @content);
         if (m!^theory!cgoms) {
             my $prelude = $`;

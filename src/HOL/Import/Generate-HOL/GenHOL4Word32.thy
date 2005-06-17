@@ -3,7 +3,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Word32 = GenHOL4Base:;
+theory GenHOL4Word32 imports GenHOL4Base begin;
 
 import_segment "hol4";
 

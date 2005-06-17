@@ -7,8 +7,8 @@ A formulation of Hoare logic suitable for Isar.
 
 header {* Hoare Logic *}
 
-theory Hoare = Main
-files ("~~/src/HOL/Hoare/hoare.ML"):
+theory Hoare imports Main
+uses ("~~/src/HOL/Hoare/hoare.ML") begin
 
 subsection {* Abstract syntax and semantics *}
 

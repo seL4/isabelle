@@ -6,7 +6,7 @@
 
 header "Expressions"
 
-theory Expr = Main:
+theory Expr imports Main begin
 
 text {*
   Arithmetic expressions and Boolean expressions.

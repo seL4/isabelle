@@ -15,7 +15,7 @@ Added: a strong form of the \<subseteq> relation (component_of) and localize
 
 header{*Composition: Basic Primitives*}
 
-theory Comp = Union:
+theory Comp imports Union begin
 
 instance program :: (type) ord ..
 

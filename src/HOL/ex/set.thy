@@ -6,7 +6,7 @@
 
 header {* Set Theory examples: Cantor's Theorem, Schröder-Berstein Theorem, etc. *}
 
-theory set = Main:
+theory set imports Main begin
 
 text{*
   These two are cited in Benzmueller and Kohlhase's system description

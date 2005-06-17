@@ -6,7 +6,7 @@
 
 header{*The Original Otway-Rees Protocol*}
 
-theory OtwayRees = Public:
+theory OtwayRees imports Public begin
 
 text{* From page 244 of
   Burrows, Abadi and Needham (1989).  A Logic of Authentication.

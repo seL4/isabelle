@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Otway-Rees Protocol*}
 
-theory OtwayRees = Guard_Shared:
+theory OtwayRees imports Guard_Shared begin
 
 subsection{*messages used in the protocol*}
 

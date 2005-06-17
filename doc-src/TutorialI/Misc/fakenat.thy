@@ -1,5 +1,5 @@
 (*<*)
-theory fakenat = Main:;
+theory fakenat imports Main begin;
 (*>*)
 
 text{*\noindent

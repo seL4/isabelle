@@ -8,7 +8,7 @@ Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 
 header {* Groups *}
 
-theory Group = FuncSet + Lattice:
+theory Group imports FuncSet Lattice begin
 
 
 section {* Monoids and Groups *}

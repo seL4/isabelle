@@ -5,7 +5,7 @@
 
 header{*The Public-Key Theory, Modified for SET*}
 
-theory PublicSET = EventSET:
+theory PublicSET imports EventSET begin
 
 subsection{*Symmetric and Asymmetric Keys*}
 

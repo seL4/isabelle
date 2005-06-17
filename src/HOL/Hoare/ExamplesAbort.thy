@@ -6,7 +6,7 @@
 Some small examples for programs that may abort.
 *)
 
-theory ExamplesAbort = HoareAbort:
+theory ExamplesAbort imports HoareAbort begin
 
 lemma "VARS x y z::nat
  {y = z & z \<noteq> 0} z \<noteq> 0 \<rightarrow> x := y div z {x = 1}"

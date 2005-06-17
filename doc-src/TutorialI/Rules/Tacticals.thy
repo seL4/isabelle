@@ -1,4 +1,4 @@
-theory Tacticals = Main:
+theory Tacticals imports Main begin
 
 text{*REPEAT*}
 lemma "\<lbrakk>P\<longrightarrow>Q; Q\<longrightarrow>R; R\<longrightarrow>S; P\<rbrakk> \<Longrightarrow> S"

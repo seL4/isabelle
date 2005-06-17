@@ -8,7 +8,7 @@
    used in compiler type correctness proof *)
 
 
-theory Altern = BVSpec:
+theory Altern imports BVSpec begin
 
 
 constdefs

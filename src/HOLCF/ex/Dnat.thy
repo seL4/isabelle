@@ -5,7 +5,7 @@
 Theory for the domain of natural numbers  dnat = one ++ dnat
 *)
 
-theory Dnat = HOLCF:
+theory Dnat imports HOLCF begin
 
 domain dnat = dzero | dsucc (dpred :: dnat)
 

@@ -6,7 +6,7 @@
 
 header {* Weak normalization for simply-typed lambda calculus *}
 
-theory WeakNorm = Type:
+theory WeakNorm imports Type begin
 
 text {*
 Formalization by Stefan Berghofer. Partly based on a paper proof by

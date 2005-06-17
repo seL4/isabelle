@@ -5,7 +5,7 @@
 
 header {* Vector spaces *}
 
-theory VectorSpace = Real + Bounds + Zorn:
+theory VectorSpace imports Real Bounds Zorn begin
 
 subsection {* Signature *}
 

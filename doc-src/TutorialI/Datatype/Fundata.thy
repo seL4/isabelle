@@ -1,5 +1,5 @@
 (*<*)
-theory Fundata = Main:
+theory Fundata imports Main begin
 (*>*)
 datatype ('a,'i)bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
 

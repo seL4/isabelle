@@ -6,7 +6,7 @@
 
 header{*The Kerberos Protocol, Version IV*}
 
-theory KerberosIV = Public:
+theory KerberosIV imports Public begin
 
 syntax
   Kas :: agent

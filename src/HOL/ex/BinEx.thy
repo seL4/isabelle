@@ -6,7 +6,7 @@
 
 header {* Binary arithmetic examples *}
 
-theory BinEx = Main:
+theory BinEx imports Main begin
 
 subsection {* Regression Testing for Cancellation Simprocs *}
 

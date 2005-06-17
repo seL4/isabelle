@@ -16,7 +16,7 @@ Progress Sets.  From
 
 header{*Progress Sets*}
 
-theory ProgressSets = Transformers:
+theory ProgressSets imports Transformers begin
 
 subsection {*Complete Lattices and the Operator @{term cl}*}
 

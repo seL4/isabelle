@@ -5,7 +5,7 @@
 
 header {* The supremum w.r.t.~the function order *}
 
-theory HahnBanachSupLemmas = FunctionNorm + ZornLemma:
+theory HahnBanachSupLemmas imports FunctionNorm ZornLemma begin
 
 text {*
   This section contains some lemmas that will be used in the proof of

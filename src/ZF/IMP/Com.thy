@@ -5,7 +5,7 @@
 
 header {* Arithmetic expressions, boolean expressions, commands *}
 
-theory Com = Main:
+theory Com imports Main begin
 
 
 subsection {* Arithmetic expressions *}

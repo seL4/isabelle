@@ -6,7 +6,7 @@
 
 header{*The Follows Relation of Charpentier and Sivilotte*}
 
-theory Follows = SubstAx + ListOrder + Multiset:
+theory Follows imports SubstAx ListOrder Multiset begin
 
 constdefs
 

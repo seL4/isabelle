@@ -7,7 +7,7 @@ header {*Further Arithmetic Facts Concerning the Natural Numbers*}
 
 theory NatArith
 imports Nat
-files "arith_data.ML"
+uses "arith_data.ML"
 begin
 
 setup arith_setup

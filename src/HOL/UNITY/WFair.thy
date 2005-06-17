@@ -10,7 +10,7 @@ From Misra, "A Logic for Concurrent Programming", 1994
 
 header{*Progress*}
 
-theory WFair = UNITY:
+theory WFair imports UNITY begin
 
 text{*The original version of this theory was based on weak fairness.  (Thus,
 the entire UNITY development embodied this assumption, until February 2003.)

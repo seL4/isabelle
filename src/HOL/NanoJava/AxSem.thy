@@ -6,7 +6,7 @@
 
 header "Axiomatic Semantics"
 
-theory AxSem = State:
+theory AxSem imports State begin
 
 types assn   = "state => bool"
      vassn   = "val => assn"

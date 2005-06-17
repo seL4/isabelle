@@ -1,5 +1,5 @@
 (*<*)
-theory Tree2 = Tree:
+theory Tree2 imports Tree begin
 (*>*)
 
 text{*\noindent In Exercise~\ref{ex:Tree} we defined a function

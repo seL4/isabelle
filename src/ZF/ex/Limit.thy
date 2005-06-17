@@ -19,7 +19,7 @@
 (Proofs converted to Isar and tidied up considerably by lcp)
 *)
 
-theory Limit  =  Main:
+theory Limit  imports  Main begin
 
 constdefs
 

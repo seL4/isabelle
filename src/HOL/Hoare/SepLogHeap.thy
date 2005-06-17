@@ -7,7 +7,7 @@ Heap abstractions (at the moment only Path and List)
 for Separation Logic.
 *)
 
-theory SepLogHeap = Main:
+theory SepLogHeap imports Main begin
 
 types heap = "(nat \<Rightarrow> nat option)"
 

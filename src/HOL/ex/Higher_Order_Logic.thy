@@ -5,7 +5,7 @@
 
 header {* Foundations of HOL *}
 
-theory Higher_Order_Logic = CPure:
+theory Higher_Order_Logic imports CPure begin
 
 text {*
   The following theory development demonstrates Higher-Order Logic

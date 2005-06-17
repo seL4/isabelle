@@ -1,5 +1,5 @@
 (*<*)
-theory Trie = Main:;
+theory Trie imports Main begin;
 (*>*)
 text{*
 To minimize running time, each node of a trie should contain an array that maps

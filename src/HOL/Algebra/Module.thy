@@ -6,7 +6,7 @@
 
 header {* Modules over an Abelian Group *}
 
-theory Module = CRing:
+theory Module imports CRing begin
 
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)

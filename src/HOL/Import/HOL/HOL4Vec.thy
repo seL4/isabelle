@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Vec = HOL4Base:
+theory HOL4Vec imports HOL4Base begin
 
 ;setup_theory res_quan
 

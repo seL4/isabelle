@@ -9,7 +9,7 @@ relation r over the domain A.
 
 header{*Charpentier's "Increasing" Relation*}
 
-theory Increasing = Constrains + Monotonicity:
+theory Increasing imports Constrains Monotonicity begin
 
 constdefs
 

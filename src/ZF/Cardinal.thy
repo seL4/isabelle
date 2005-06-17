@@ -7,7 +7,7 @@
 
 header{*Cardinal Numbers Without the Axiom of Choice*}
 
-theory Cardinal = OrderType + Finite + Nat + Sum:
+theory Cardinal imports OrderType Finite Nat Sum begin
 
 constdefs
 

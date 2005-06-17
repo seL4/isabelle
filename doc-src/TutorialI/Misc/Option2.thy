@@ -1,5 +1,5 @@
 (*<*)
-theory Option2 = Main:
+theory Option2 imports Main begin
 hide const None Some
 hide type option
 (*>*)

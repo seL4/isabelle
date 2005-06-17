@@ -7,7 +7,7 @@ S-expressions, general binary trees for defining recursive data
 structures by hand.
 *)
 
-theory Sexp = Datatype_Universe + Inductive:
+theory Sexp imports Datatype_Universe Inductive begin
 consts
   sexp      :: "'a item set"
 

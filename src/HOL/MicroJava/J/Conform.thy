@@ -6,7 +6,7 @@
 
 header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
-theory Conform = State + WellType + Exceptions:
+theory Conform imports State WellType Exceptions begin
 
 types 'c env_ = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 

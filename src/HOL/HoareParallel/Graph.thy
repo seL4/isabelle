@@ -3,7 +3,7 @@ header {* \chapter{Case Study: Single and Multi-Mutator Garbage Collection Algor
 
 \section {Formalization of the Memory} *}
 
-theory Graph = Main:
+theory Graph imports Main begin
 
 datatype node = Black | White
 

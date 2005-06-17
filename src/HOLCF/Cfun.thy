@@ -9,7 +9,7 @@ header {* The type of continuous functions *}
 
 theory Cfun
 imports TypedefPcpo
-files ("cont_proc.ML")
+uses ("cont_proc.ML")
 begin
 
 defaultsort cpo

@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory Group = Main:
+theory Group imports Main begin
 
 subsection {* Monoids and Groups *}
 

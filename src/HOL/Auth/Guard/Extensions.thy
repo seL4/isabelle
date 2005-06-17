@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header {*Extensions to Standard Theories*}
 
-theory Extensions = Event:
+theory Extensions imports Event begin
 
 subsection{*Extensions to Theory @{text Set}*}
 

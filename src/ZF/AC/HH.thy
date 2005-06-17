@@ -8,7 +8,7 @@ Some properties of the recursive definition of HH used in the proofs of
   AC15 ==> WO6
 *)
 
-theory HH = AC_Equiv + Hartog:
+theory HH imports AC_Equiv Hartog begin
 
 constdefs
  

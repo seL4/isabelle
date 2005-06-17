@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-theory Instructions = Main:
+theory Instructions imports Main begin
 
 (* ------------------------------------------------------------------------- *)
 (* Example from Konrad: 68000 instruction set.                               *)

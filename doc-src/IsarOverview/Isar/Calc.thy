@@ -1,4 +1,4 @@
-theory Calc = Main:
+theory Calc imports Main begin
 
 subsection{* Chains of equalities *}
 

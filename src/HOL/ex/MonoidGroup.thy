@@ -7,7 +7,7 @@ Monoids and Groups as predicates over record schemes.
 
 header {* Monoids and Groups *}
 
-theory MonoidGroup = Main:
+theory MonoidGroup imports Main begin
 
 record 'a monoid_sig =
   times :: "'a => 'a => 'a"

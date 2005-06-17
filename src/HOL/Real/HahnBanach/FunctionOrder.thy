@@ -5,7 +5,7 @@
 
 header {* An order on functions *}
 
-theory FunctionOrder = Subspace + Linearform:
+theory FunctionOrder imports Subspace Linearform begin
 
 subsection {* The graph of a function *}
 

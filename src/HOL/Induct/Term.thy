@@ -5,7 +5,7 @@
 
 header {* Terms over a given alphabet *}
 
-theory Term = Main:
+theory Term imports Main begin
 
 datatype ('a, 'b) "term" =
     Var 'a

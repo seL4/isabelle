@@ -8,7 +8,7 @@ Also, the proofs needed to show that each of AC2, AC3, ..., AC6 is equivalent
 to AC0 and AC1.
 *)
 
-theory AC17_AC1 = HH:
+theory AC17_AC1 imports HH begin
 
 
 (** AC0 is equivalent to AC1.  

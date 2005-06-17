@@ -1,7 +1,7 @@
 
 header {* Nested datatypes *}
 
-theory NestedDatatype = Main:
+theory NestedDatatype imports Main begin
 
 subsection {* Terms and substitution *}
 

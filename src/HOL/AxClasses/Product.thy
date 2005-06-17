@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory Product = Main:
+theory Product imports Main begin
 
 axclass product < type
 

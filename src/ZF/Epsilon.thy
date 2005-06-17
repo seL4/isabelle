@@ -7,7 +7,7 @@
 
 header{*Epsilon Induction and Recursion*}
 
-theory Epsilon = Nat:
+theory Epsilon imports Nat begin
 
 constdefs
   eclose    :: "i=>i"

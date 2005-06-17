@@ -5,7 +5,7 @@
 *)
 header {* Definitions extending HOL as logical basis of Bali *}
 
-theory Basis = Main:
+theory Basis imports Main begin
 
 ML {*
 Unify.search_bound := 40;

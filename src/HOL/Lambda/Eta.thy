@@ -6,7 +6,7 @@
 
 header {* Eta-reduction *}
 
-theory Eta = ParRed:
+theory Eta imports ParRed begin
 
 
 subsection {* Definition of eta-reduction and relatives *}

@@ -5,7 +5,7 @@
 
 header {* The Drinker's Principle *}
 
-theory Drinker = Main:
+theory Drinker imports Main begin
 
 text {*
  Two parts of de-Morgan's law -- one intuitionistic and one classical:

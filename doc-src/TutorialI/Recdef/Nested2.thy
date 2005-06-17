@@ -1,5 +1,5 @@
 (*<*)
-theory Nested2 = Nested0:
+theory Nested2 imports Nested0 begin
 (*>*)
 
 lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)"

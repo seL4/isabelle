@@ -10,7 +10,7 @@ header {* Refute *}
 
 theory Refute
 imports Map
-files "Tools/prop_logic.ML"
+uses "Tools/prop_logic.ML"
       "Tools/sat_solver.ML"
       "Tools/refute.ML"
       "Tools/refute_isar.ML"

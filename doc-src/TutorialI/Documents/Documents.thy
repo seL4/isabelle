@@ -1,5 +1,5 @@
 (*<*)
-theory Documents = Main:
+theory Documents imports Main begin
 (*>*)
 
 section {* Concrete Syntax \label{sec:concrete-syntax} *}

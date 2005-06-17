@@ -13,7 +13,7 @@
 
 header{*Arithmetic Operators and Their Definitions*} 
 
-theory Arith = Univ:
+theory Arith imports Univ begin
 
 text{*Proofs about elementary arithmetic: addition, multiplication, etc.*}
 

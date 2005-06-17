@@ -6,7 +6,7 @@
 
 header{*The Otway-Bull Recursive Authentication Protocol*}
 
-theory Recur = Public:
+theory Recur imports Public begin
 
 text{*End marker for message bundles*}
 syntax        END :: "msg"

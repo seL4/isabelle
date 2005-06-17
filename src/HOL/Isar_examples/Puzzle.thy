@@ -1,7 +1,7 @@
 
 header {* An old chestnut *}
 
-theory Puzzle = Main:
+theory Puzzle imports Main begin
 
 text_raw {*
  \footnote{A question from ``Bundeswettbewerb Mathematik''.  Original

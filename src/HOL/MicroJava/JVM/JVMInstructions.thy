@@ -7,7 +7,7 @@
 header {* \isaheader{Instructions of the JVM} *}
 
 
-theory JVMInstructions = JVMState:
+theory JVMInstructions imports JVMState begin
 
 
 datatype 

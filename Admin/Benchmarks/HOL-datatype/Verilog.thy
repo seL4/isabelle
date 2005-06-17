@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-theory Verilog = Main:
+theory Verilog imports Main begin
 
 (* ------------------------------------------------------------------------- *)
 (* Example from Daryl: a Verilog grammar.                                    *)

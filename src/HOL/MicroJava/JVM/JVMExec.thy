@@ -6,7 +6,7 @@
 
 header {* \isaheader{Program Execution in the JVM} *}
 
-theory JVMExec = JVMExecInstr + JVMExceptions:
+theory JVMExec imports JVMExecInstr JVMExceptions begin
 
 
 consts

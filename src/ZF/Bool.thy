@@ -7,7 +7,7 @@
 
 header{*Booleans in Zermelo-Fraenkel Set Theory*}
 
-theory Bool = pair:
+theory Bool imports pair begin
 
 syntax
     "1"         :: i             ("1")

@@ -7,7 +7,7 @@
 
 header{*Functions, Function Spaces, Lambda-Abstraction*}
 
-theory func = equalities + Sum:
+theory func imports equalities Sum begin
 
 subsection{*The Pi Operator: Dependent Function Space*}
 

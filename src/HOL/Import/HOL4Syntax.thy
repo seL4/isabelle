@@ -3,8 +3,8 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4Syntax = HOL4Setup
-  files "import_syntax.ML":
+theory HOL4Syntax imports HOL4Setup
+  uses "import_syntax.ML" begin
 
 ML {* HOL4ImportSyntax.setup() *}
 

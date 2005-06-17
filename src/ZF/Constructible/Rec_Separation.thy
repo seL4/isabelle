@@ -5,7 +5,7 @@
 
 header {*Separation for Facts About Recursion*}
 
-theory Rec_Separation = Separation + Internalize:
+theory Rec_Separation imports Separation Internalize begin
 
 text{*This theory proves all instances needed for locales @{text
 "M_trancl"} and @{text "M_datatypes"}*}

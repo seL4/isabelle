@@ -8,7 +8,7 @@ header{*Arithmetic on Binary Integers*}
 
 theory Numeral
 imports IntDef Datatype
-files "../Tools/numeral_syntax.ML"
+uses "../Tools/numeral_syntax.ML"
 begin
 
 text{* The file @{text numeral_syntax.ML} hides the constructors Pls and Min.

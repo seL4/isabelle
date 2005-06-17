@@ -9,7 +9,7 @@ Changes by Jeremy Avigad, 2003/02/21:
 
 header {* Fermat's Little Theorem extended to Euler's Totient function *}
 
-theory EulerFermat = BijectionRel + IntFact:
+theory EulerFermat imports BijectionRel IntFact begin
 
 text {*
   Fermat's Little Theorem extended to Euler's Totient function. More

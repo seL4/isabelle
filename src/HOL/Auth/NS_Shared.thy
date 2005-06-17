@@ -6,7 +6,7 @@
 
 header{*The Needham-Schroeder Shared-Key Protocol*}
 
-theory NS_Shared = Public:
+theory NS_Shared imports Public begin
 
 text{*
 From page 247 of

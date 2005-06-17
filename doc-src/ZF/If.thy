@@ -6,7 +6,7 @@
 First-Order Logic: the 'if' example.
 *)
 
-theory If = FOL:
+theory If imports FOL begin
 
 constdefs
   if :: "[o,o,o]=>o"

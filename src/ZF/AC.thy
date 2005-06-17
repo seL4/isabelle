@@ -7,7 +7,7 @@
 
 header{*The Axiom of Choice*}
 
-theory AC = Main:
+theory AC imports Main begin
 
 text{*This definition comes from Halmos (1960), page 59.*}
 axioms AC: "[| a: A;  !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)"

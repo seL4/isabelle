@@ -9,7 +9,7 @@ header {*
   \isaheader{Some Auxiliary Definitions}
 *}
 
-theory JBasis = Main: 
+theory JBasis imports Main begin 
 
 lemmas [simp] = Let_def
 

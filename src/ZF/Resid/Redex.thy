@@ -5,7 +5,7 @@
     Logic Image: ZF
 *)
 
-theory Redex = Main:
+theory Redex imports Main begin
 consts
   redexes     :: i
 

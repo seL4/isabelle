@@ -5,7 +5,7 @@
 Hartog's function.
 *)
 
-theory Hartog = AC_Equiv:
+theory Hartog imports AC_Equiv begin
 
 constdefs
   Hartog :: "i => i"

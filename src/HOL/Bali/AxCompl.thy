@@ -7,7 +7,7 @@ header {*
 Completeness proof for Axiomatic semantics of Java expressions and statements
 *}
 
-theory AxCompl = AxSem:
+theory AxCompl imports AxSem begin
 
 text {*
 design issues:

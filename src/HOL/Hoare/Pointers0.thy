@@ -10,7 +10,7 @@ specifications (a bit). However, the proofs don't seem to get simpler
 - in fact in some case they appear to get (a bit) more complicated.
 *)
 
-theory Pointers0 = Hoare:
+theory Pointers0 imports Hoare begin
 
 subsection "References"
 

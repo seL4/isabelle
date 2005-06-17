@@ -4,7 +4,7 @@
     Copyright   1996 TUM
 *)
 
-theory Compiler = Machines:
+theory Compiler imports Machines begin
 
 subsection "The compiler"
 

@@ -5,7 +5,7 @@
 
 header {* The Axiom of Choice Holds in L! *}
 
-theory AC_in_L = Formula:
+theory AC_in_L imports Formula begin
 
 subsection{*Extending a Wellordering over a List -- Lexicographic Power*}
 

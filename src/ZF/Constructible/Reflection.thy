@@ -5,7 +5,7 @@
 
 header {* The Reflection Theorem*}
 
-theory Reflection = Normal:
+theory Reflection imports Normal begin
 
 lemma all_iff_not_ex_not: "(\<forall>x. P(x)) <-> (~ (\<exists>x. ~ P(x)))";
 by blast

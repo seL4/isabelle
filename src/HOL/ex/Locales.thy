@@ -5,7 +5,7 @@
 
 header {* Using locales in Isabelle/Isar *}
 
-theory Locales = Main:
+theory Locales imports Main begin
 
 text_raw {*
   \newcommand{\isasyminv}{\isasyminverse}

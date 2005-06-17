@@ -6,7 +6,7 @@
 
 header {* Lifting beta-reduction to lists *}
 
-theory ListBeta = ListApplication + ListOrder:
+theory ListBeta imports ListApplication ListOrder begin
 
 text {*
   Lifting beta-reduction to lists of terms, reducing exactly one element.

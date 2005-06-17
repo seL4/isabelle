@@ -13,7 +13,7 @@ compact, but avoids the funny H.
 
 *)
 
-theory Separation = HoareAbort + SepLogHeap:
+theory Separation imports HoareAbort SepLogHeap begin
 
 text{* The semantic definition of a few connectives: *}
 

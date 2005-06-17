@@ -1,5 +1,5 @@
 (*<*)
-theory case_exprs = Main:
+theory case_exprs imports Main begin
 (*>*)
 
 subsection{*Case Expressions*}

@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Static = Values + Types:
+theory Static imports Values Types begin
 
 (*** Basic correspondence relation -- not completely specified, as it is a
      parameter of the proof.  A concrete version could be defined inductively.

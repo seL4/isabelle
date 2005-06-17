@@ -6,7 +6,7 @@
 
 header "Program State"
 
-theory State = TypeRel:
+theory State imports TypeRel begin
 
 constdefs
 

@@ -6,7 +6,7 @@
 
 header {* \isaheader{Java Values} *}
 
-theory Value = Type:
+theory Value imports Type begin
 
 typedecl loc_ -- "locations, i.e. abstract references on objects" 
 

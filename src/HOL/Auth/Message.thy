@@ -9,7 +9,7 @@ Inductive relations "parts", "analz" and "synth"
 
 header{*Theory of Agents and Messages for Security Protocols*}
 
-theory Message = Main:
+theory Message imports Main begin
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A \<union> (B \<union> A) = B \<union> A"

@@ -4,7 +4,7 @@
 *)
 header {* Abstract tables and their implementation as lists *}
 
-theory Table = Basis:
+theory Table imports Basis begin
 
 text {*
 design issues:

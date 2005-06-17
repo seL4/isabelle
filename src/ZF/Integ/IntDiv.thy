@@ -31,7 +31,7 @@ Here is the division algorithm in ML:
 
 header{*The Division Operators Div and Mod*}
 
-theory IntDiv = IntArith + OrderArith:
+theory IntDiv imports IntArith OrderArith begin
 
 constdefs
   quorem :: "[i,i] => o"

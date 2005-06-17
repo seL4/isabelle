@@ -6,7 +6,7 @@
 
 header "Example"
 
-theory Example = Equivalence:
+theory Example imports Equivalence begin
 
 text {*
 

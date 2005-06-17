@@ -1,7 +1,7 @@
 
 header {* Syntactic classes *}
 
-theory Product = Main:
+theory Product imports Main begin
 
 text {*
   \medskip\noindent There is still a feature of Isabelle's type system

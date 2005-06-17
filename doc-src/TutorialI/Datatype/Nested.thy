@@ -1,5 +1,5 @@
 (*<*)
-theory Nested = ABexpr:
+theory Nested imports ABexpr begin
 (*>*)
 
 text{*

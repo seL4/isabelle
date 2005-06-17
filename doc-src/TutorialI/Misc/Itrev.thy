@@ -1,5 +1,5 @@
 (*<*)
-theory Itrev = Main:;
+theory Itrev imports Main begin;
 (*>*)
 
 section{*Induction Heuristics*}

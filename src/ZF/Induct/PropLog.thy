@@ -6,7 +6,7 @@
 
 header {* Meta-theory of propositional logic *}
 
-theory PropLog = Main:
+theory PropLog imports Main begin
 
 text {*
   Datatype definition of propositional logic formulae and inductive

@@ -5,7 +5,7 @@
 
 header {*Absoluteness of Well-Founded Recursion*}
 
-theory WF_absolute = WFrec:
+theory WF_absolute imports WFrec begin
 
 subsection{*Transitive closure without fixedpoints*}
 

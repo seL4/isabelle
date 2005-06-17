@@ -10,7 +10,7 @@ header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
 imports NatSimprocs SetInterval
-files ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") ("presburger.ML")
+uses ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") ("presburger.ML")
 begin
 
 text {* Theorem for unitifying the coeffitients of @{text x} in an existential formula*}

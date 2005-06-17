@@ -9,7 +9,7 @@ header{*Defining the Reals from the Positive Reals*}
 
 theory RealDef
 imports PReal
-files ("real_arith.ML")
+uses ("real_arith.ML")
 begin
 
 constdefs

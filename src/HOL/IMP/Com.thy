@@ -7,7 +7,7 @@
 
 header "Syntax of Commands"
 
-theory Com = Main:
+theory Com imports Main begin
 
 typedecl loc 
   -- "an unspecified (arbitrary) type of locations 

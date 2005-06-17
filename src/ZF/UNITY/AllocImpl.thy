@@ -7,7 +7,7 @@ Single-client allocator implementation
 Charpentier and Chandy, section 7 (page 17).
 *)
 
-theory AllocImpl = ClientImpl:
+theory AllocImpl imports ClientImpl begin
 
 consts
 

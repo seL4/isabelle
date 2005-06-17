@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-theory Brackin = Main:
+theory Brackin imports Main begin
 
 (* ------------------------------------------------------------------------- *)
 (* A couple from Steve Brackin's work.                                       *)

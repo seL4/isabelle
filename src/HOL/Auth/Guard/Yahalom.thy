@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Yahalom Protocol*}
 
-theory Yahalom = Guard_Shared:
+theory Yahalom imports Guard_Shared begin
 
 subsection{*messages used in the protocol*}
 

@@ -1,5 +1,5 @@
 (*<*)
-theory simp = Main:
+theory simp imports Main begin
 (*>*)
 
 section{*Simplification*}

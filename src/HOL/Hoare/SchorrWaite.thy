@@ -7,7 +7,7 @@ Proof of the Schorr-Waite graph marking algorithm.
 *)
 
 
-theory SchorrWaite = HeapSyntax:
+theory SchorrWaite imports HeapSyntax begin
 
 section {* Machinery for the Schorr-Waite proof*}
 

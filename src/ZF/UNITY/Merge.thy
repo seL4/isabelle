@@ -7,7 +7,7 @@ A multiple-client allocator from a single-client allocator:
 Merge specification
 *)
 
-theory Merge = AllocBase + Follows +  Guar + GenPrefix:
+theory Merge imports AllocBase Follows  Guar GenPrefix begin
 
 (** Merge specification (the number of inputs is Nclients) ***)
 (** Parameter A represents the type of items to Merge **)

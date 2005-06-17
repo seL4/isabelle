@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Even = Main:
+theory Even imports Main begin
 
 
 consts even :: "nat set"

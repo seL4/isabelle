@@ -5,7 +5,7 @@
 
 header {* Bounds *}
 
-theory Bounds = Orders:
+theory Bounds imports Orders begin
 
 subsection {* Infimum and supremum *}
 

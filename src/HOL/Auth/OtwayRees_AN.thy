@@ -6,7 +6,7 @@
 
 header{*The Otway-Rees Protocol as Modified by Abadi and Needham*}
 
-theory OtwayRees_AN = Public:
+theory OtwayRees_AN imports Public begin
 
 text{*
 This simplified version has minimal encryption and explicit messages.

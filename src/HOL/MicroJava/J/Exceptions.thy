@@ -4,7 +4,7 @@
     Copyright   2002 Technische Universitaet Muenchen
 *)
 
-theory Exceptions = State:
+theory Exceptions imports State begin
 
 text {* a new, blank object with default values in all fields: *}
 constdefs

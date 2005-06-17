@@ -6,7 +6,7 @@
 
 header {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
 
-theory Factorization = Primes + Permutation:
+theory Factorization imports Primes Permutation begin
 
 
 subsection {* Definitions *}

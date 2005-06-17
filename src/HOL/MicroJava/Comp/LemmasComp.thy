@@ -5,7 +5,7 @@
 
 (* Lemmas for compiler correctness proof *)
 
-theory LemmasComp = TranslComp:
+theory LemmasComp imports TranslComp begin
 
 
 declare split_paired_All [simp del]

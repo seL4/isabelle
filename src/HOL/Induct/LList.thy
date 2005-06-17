@@ -22,7 +22,7 @@ Previous definition of llistD_Fun was explicit:
 
 header {*Definition of type llist by a greatest fixed point*}
 
-theory LList = Main + SList:
+theory LList imports Main SList begin
 
 consts
 

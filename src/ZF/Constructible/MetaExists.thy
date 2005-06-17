@@ -5,7 +5,7 @@
 
 header{*The meta-existential quantifier*}
 
-theory MetaExists = Main:
+theory MetaExists imports Main begin
 
 text{*Allows quantification over any term having sort @{text logic}.  Used to
 quantify over classes.  Yields a proposition rather than a FOL formula.*}

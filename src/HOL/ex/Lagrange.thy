@@ -11,7 +11,7 @@ to demonstrate ordered rewriting for commutative rings.
 The enterprising reader might consider proving all of Lagrange's theorem.
 *)
 
-theory Lagrange = Main:
+theory Lagrange imports Main begin
 
 constdefs sq :: "'a::times => 'a"
          "sq x == x*x"

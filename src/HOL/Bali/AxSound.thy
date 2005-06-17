@@ -8,7 +8,7 @@ header {* Soundness proof for Axiomatic semantics of Java expressions and
 
 
 
-theory AxSound = AxSem:
+theory AxSound imports AxSem begin
 
 section "validity"
 

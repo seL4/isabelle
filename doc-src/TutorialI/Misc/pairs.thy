@@ -1,5 +1,5 @@
 (*<*)
-theory pairs = Main:;
+theory pairs imports Main begin;
 (*>*)
 text{*\label{sec:pairs}\index{pairs and tuples}
 HOL also has ordered pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$

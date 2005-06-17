@@ -5,7 +5,7 @@
 The proof of AC1 ==> AC18 ==> AC19 ==> AC1
 *)
 
-theory AC18_AC19 = AC_Equiv:
+theory AC18_AC19 imports AC_Equiv begin
 
 constdefs
   uu    :: "i => i"

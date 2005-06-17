@@ -6,7 +6,7 @@
 
 header {*The Basic UNITY Theory*}
 
-theory UNITY = State:
+theory UNITY imports State begin
 
 text{*The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994.

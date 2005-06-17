@@ -7,7 +7,7 @@
 
 header{*Zorn's Lemma*}
 
-theory Zorn = OrderArith + AC + Inductive:
+theory Zorn imports OrderArith AC Inductive begin
 
 text{*Based upon the unpublished article ``Towards the Mechanization of the
 Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.*}

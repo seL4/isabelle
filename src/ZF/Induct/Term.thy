@@ -6,7 +6,7 @@
 
 header {* Terms over an alphabet *}
 
-theory Term = Main:
+theory Term imports Main begin
 
 text {*
   Illustrates the list functor (essentially the same type as in @{text

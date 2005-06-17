@@ -7,7 +7,7 @@
 
 header{*Cardinal Arithmetic Without the Axiom of Choice*}
 
-theory CardinalArith = Cardinal + OrderArith + ArithSimp + Finite:
+theory CardinalArith imports Cardinal OrderArith ArithSimp Finite begin
 
 constdefs
 

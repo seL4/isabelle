@@ -8,7 +8,7 @@ Tidied and converted to Isar by lcp.
 
 header{*The Kerberos Protocol, BAN Version*}
 
-theory Kerberos_BAN = Public:
+theory Kerberos_BAN imports Public begin
 
 text{*From page 251 of
   Burrows, Abadi and Needham (1989).  A Logic of Authentication.

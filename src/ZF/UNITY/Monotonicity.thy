@@ -8,7 +8,7 @@ Monotonicity of an operator (meta-function) with respect to arbitrary set relati
 
 header{*Monotonicity of an Operator WRT a Relation*}
 
-theory Monotonicity = GenPrefix + MultisetSum:
+theory Monotonicity imports GenPrefix MultisetSum begin
 
 constdefs
 

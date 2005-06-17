@@ -4,6 +4,6 @@
     Author: Clemens Ballarin, started 17 July 1997
 *)
 
-theory Abstract = RingHomo + Field:
+theory Abstract imports RingHomo Field begin
 
 end

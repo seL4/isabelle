@@ -7,7 +7,7 @@ Commutation theory for proving the Church Rosser theorem
 	ported from Isabelle/HOL  by Sidi Ould Ehmety
 *)
 
-theory Commutation = Main:
+theory Commutation imports Main begin
 
 constdefs
   square  :: "[i, i, i, i] => o"

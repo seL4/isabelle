@@ -22,7 +22,7 @@ Theory ported from HOL.
 
 header{*The Chandy-Sanders Guarantees Operator*}
 
-theory Guar = Comp: 
+theory Guar imports Comp begin 
 
 
 (* To be moved to theory WFair???? *)

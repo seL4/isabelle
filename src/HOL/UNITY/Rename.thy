@@ -6,7 +6,7 @@
 
 header{*Renaming of State Sets*}
 
-theory Rename = Extend:
+theory Rename imports Extend begin
 
 constdefs
   

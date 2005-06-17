@@ -7,7 +7,7 @@
 
 header{*The Combinatorial Argument Underlying the First Sylow Theorem*}
 
-theory Exponent = Main + Primes:
+theory Exponent imports Main Primes begin
 
 constdefs
   exponent      :: "[nat, nat] => nat"

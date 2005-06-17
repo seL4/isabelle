@@ -1,3 +1,3 @@
-theory Main_ZFC = Main + InfDatatype:
+theory Main_ZFC imports Main InfDatatype begin
 
 end

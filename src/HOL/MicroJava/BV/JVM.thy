@@ -6,7 +6,7 @@
 
 header {* \isaheader{Kildall for the JVM}\label{sec:JVM} *}
 
-theory JVM = Kildall + Typing_Framework_JVM:
+theory JVM imports Kildall Typing_Framework_JVM begin
 
 
 constdefs

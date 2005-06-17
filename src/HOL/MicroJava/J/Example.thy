@@ -6,7 +6,7 @@
 
 header {* \isaheader{Example MicroJava Program} *}
 
-theory Example = SystemClasses + Eval:
+theory Example imports SystemClasses Eval begin
 
 text {* 
 The following example MicroJava program includes:

@@ -10,7 +10,7 @@ Original file is ../Auth/NS_Public_Bad
 
 header{*Analyzing the Needham-Schroeder Public-Key Protocol in UNITY*}
 
-theory NSP_Bad = Public + UNITY_Main:
+theory NSP_Bad imports Public UNITY_Main begin
 
 text{*This is the flawed version, vulnerable to Lowe's attack.
 From page 260 of

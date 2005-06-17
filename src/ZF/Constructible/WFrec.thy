@@ -5,7 +5,7 @@
 
 header{*Relativized Well-Founded Recursion*}
 
-theory WFrec = Wellorderings:
+theory WFrec imports Wellorderings begin
 
 
 subsection{*General Lemmas*}

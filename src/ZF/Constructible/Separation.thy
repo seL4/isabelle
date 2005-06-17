@@ -5,7 +5,7 @@
 
 header{*Early Instances of Separation and Strong Replacement*}
 
-theory Separation = L_axioms + WF_absolute:
+theory Separation imports L_axioms WF_absolute begin
 
 text{*This theory proves all instances needed for locale @{text "M_basic"}*}
 

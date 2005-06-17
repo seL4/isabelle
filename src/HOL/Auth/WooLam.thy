@@ -6,7 +6,7 @@
 
 header{*The Woo-Lam Protocol*}
 
-theory WooLam = Public:
+theory WooLam imports Public begin
 
 text{*Simplified version from page 11 of
   Abadi and Needham (1996). 

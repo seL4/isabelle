@@ -5,7 +5,7 @@
 
 header {* Conformance notions for the type soundness proof for Java *}
 
-theory Conform = State:
+theory Conform imports State begin
 
 text {*
 design issues:

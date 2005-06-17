@@ -1,7 +1,7 @@
 
 header {* Basic group theory *}
 
-theory Group = Main:
+theory Group imports Main begin
 
 text {*
   \medskip\noindent The meta-level type system of Isabelle supports

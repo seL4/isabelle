@@ -8,7 +8,7 @@ execution of Java expressions and statements
 PRELIMINARY!!!!!!!!
 *)
 
-theory Trans = Evaln:
+theory Trans imports Evaln begin
 
 constdefs groundVar:: "var \<Rightarrow> bool"
 "groundVar v \<equiv> (case v of

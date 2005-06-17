@@ -1,5 +1,5 @@
 (*<*)
-theory natsum = Main:;
+theory natsum imports Main begin;
 (*>*)
 text{*\noindent
 In particular, there are @{text"case"}-expressions, for example

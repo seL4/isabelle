@@ -8,7 +8,7 @@ Some sample proofs of inclusions for the final coalgebra "U" (by lcp)
 
 *)
 
-theory Map = Main:
+theory Map imports Main begin
 
 constdefs
   TMap :: "[i,i] => i"

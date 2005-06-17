@@ -1,5 +1,5 @@
 (*<*)
-theory Ifexpr = Main:;
+theory Ifexpr imports Main begin;
 (*>*)
 
 subsection{*Case Study: Boolean Expressions*}

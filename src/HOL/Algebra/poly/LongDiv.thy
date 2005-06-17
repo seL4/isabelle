@@ -4,7 +4,7 @@
     Author: Clemens Ballarin, started 23 June 1999
 *)
 
-theory LongDiv = PolyHomo:
+theory LongDiv imports PolyHomo begin
 
 consts
   lcoeff :: "'a::ring up => 'a"

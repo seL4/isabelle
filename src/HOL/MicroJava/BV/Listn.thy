@@ -8,7 +8,7 @@ Lists of a fixed length
 
 header {* \isaheader{Fixed Length Lists} *}
 
-theory Listn = Err:
+theory Listn imports Err begin
 
 constdefs
 

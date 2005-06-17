@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Protocol-Independent Confidentiality Theorem on Nonces*}
 
-theory Guard = Analz + Extensions:
+theory Guard imports Analz Extensions begin
 
 (******************************************************************************
 messages where all the occurrences of Nonce n are

@@ -7,7 +7,7 @@
 
 header{*Relations: Their General Properties and Transitive Closure*}
 
-theory Trancl = Fixedpt + Perm:
+theory Trancl imports Fixedpt Perm begin
 
 constdefs
   refl     :: "[i,i]=>o"

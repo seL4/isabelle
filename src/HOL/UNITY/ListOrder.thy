@@ -15,7 +15,7 @@ Based on Lex/Prefix
 
 header {*The Prefix Ordering on Lists*}
 
-theory ListOrder = Main:
+theory ListOrder imports Main begin
 
 consts
   genPrefix :: "('a * 'a)set => ('a list * 'a list)set"

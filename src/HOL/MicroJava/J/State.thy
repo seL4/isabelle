@@ -6,7 +6,7 @@
 
 header {* \isaheader{Program State} *}
 
-theory State = TypeRel + Value:
+theory State imports TypeRel Value begin
 
 types 
   fields_ = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"

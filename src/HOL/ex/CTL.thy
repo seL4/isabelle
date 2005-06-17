@@ -6,7 +6,7 @@
 
 header {* CTL formulae *}
 
-theory CTL = Main:
+theory CTL imports Main begin
 
 
 

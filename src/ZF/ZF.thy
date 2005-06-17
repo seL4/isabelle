@@ -6,7 +6,7 @@
 
 header{*Zermelo-Fraenkel Set Theory*}
 
-theory ZF = FOL:
+theory ZF imports FOL begin
 
 global
 

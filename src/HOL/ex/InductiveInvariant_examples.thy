@@ -1,4 +1,4 @@
-theory InductiveInvariant_examples = InductiveInvariant :
+theory InductiveInvariant_examples imports InductiveInvariant  begin
 
 (** Authors: Sava Krsti\'{c} and John Matthews **)
 (**    Date: Oct 17, 2003                      **)

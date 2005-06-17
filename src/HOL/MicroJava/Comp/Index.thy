@@ -5,7 +5,7 @@
 
 (* Index of variable in list of parameter names and local variables *)
 
-theory Index =  AuxLemmas + DefsComp:
+theory Index imports  AuxLemmas DefsComp begin
 
 (*indexing a variable name among all variable declarations in a method body*)
 constdefs

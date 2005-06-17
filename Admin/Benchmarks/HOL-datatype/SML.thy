@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-theory SML = Main:
+theory SML imports Main begin
 
 (* ------------------------------------------------------------------------- *)
 (* Example from Myra: part of the syntax of SML.                             *)

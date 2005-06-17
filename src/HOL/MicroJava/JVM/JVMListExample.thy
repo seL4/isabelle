@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example for generating executable code from JVM semantics}\label{sec:JVMListExample} *}
 
-theory JVMListExample = SystemClasses + JVMExec:
+theory JVMListExample imports SystemClasses JVMExec begin
 
 consts
   list_nam :: cnam

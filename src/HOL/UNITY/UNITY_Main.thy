@@ -6,8 +6,8 @@
 
 header{*Comprehensive UNITY Theory*}
 
-theory UNITY_Main = Detects + PPROD + Follows + ProgressSets
-files "UNITY_tactics.ML":
+theory UNITY_Main imports Detects PPROD Follows ProgressSets
+uses "UNITY_tactics.ML" begin
 
 method_setup safety = {*
     Method.ctxt_args (fn ctxt =>

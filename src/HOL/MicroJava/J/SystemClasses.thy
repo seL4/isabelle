@@ -6,7 +6,7 @@
 
 header {* \isaheader{System Classes} *}
 
-theory SystemClasses = Decl:
+theory SystemClasses imports Decl begin
 
 text {*
   This theory provides definitions for the @{text Object} class,

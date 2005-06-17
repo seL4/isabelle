@@ -6,7 +6,7 @@
 
 header {* Trivial codatatype definitions, one of which goes wrong! *}
 
-theory CoUnit = Main:
+theory CoUnit imports Main begin
 
 text {*
   See discussion in: L C Paulson.  A Concrete Final Coalgebra Theorem

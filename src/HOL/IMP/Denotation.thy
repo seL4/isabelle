@@ -6,7 +6,7 @@
 
 header "Denotational Semantics of Commands"
 
-theory Denotation = Natural:
+theory Denotation imports Natural begin
 
 types com_den = "(state\<times>state)set"
 

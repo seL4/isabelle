@@ -1,5 +1,5 @@
 (*<*)
-theory prime_def = Main:;
+theory prime_def imports Main begin;
 consts prime :: "nat \<Rightarrow> bool"
 (*>*)
 text{*

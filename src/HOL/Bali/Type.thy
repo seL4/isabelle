@@ -5,7 +5,7 @@
 
 header {* Java types *}
 
-theory Type = Name:
+theory Type imports Name begin
 
 text {*
 simplifications:

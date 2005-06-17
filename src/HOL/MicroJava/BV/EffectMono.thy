@@ -6,7 +6,7 @@
 
 header {* \isaheader{Monotonicity of eff and app} *}
 
-theory EffectMono = Effect:
+theory EffectMono imports Effect begin
 
 
 lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"

@@ -1,5 +1,5 @@
 (*<*)
-theory CodeGen = Main:
+theory CodeGen imports Main begin
 (*>*)
 
 section{*Case Study: Compiling Expressions*}

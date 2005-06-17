@@ -6,7 +6,7 @@
 
 header {* \isaheader{Well-typedness Constraints} *}
 
-theory WellType = Term + WellForm:
+theory WellType imports Term WellForm begin
 
 text {*
 the formulation of well-typedness of method calls given below (as well as

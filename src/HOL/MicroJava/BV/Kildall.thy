@@ -8,7 +8,7 @@ Kildall's algorithm
 
 header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
 
-theory Kildall = SemilatAlg + While_Combinator:
+theory Kildall imports SemilatAlg While_Combinator begin
 
 
 consts

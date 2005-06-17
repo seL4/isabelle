@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Blast = Main:
+theory Blast imports Main begin
 
 lemma "((\<exists>x. \<forall>y. p(x)=p(y)) = ((\<exists>x. q(x))=(\<forall>y. p(y))))   =    
        ((\<exists>x. \<forall>y. q(x)=q(y)) = ((\<exists>x. p(x))=(\<forall>y. q(y))))"

@@ -6,7 +6,7 @@
 
 header{*The Yahalom Protocol: A Flawed Version*}
 
-theory Yahalom_Bad = Public:
+theory Yahalom_Bad imports Public begin
 
 text{*
 Demonstrates of why Oops is necessary.  This protocol can be attacked because

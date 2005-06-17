@@ -1,4 +1,4 @@
-theory Ordinal = Main:
+theory Ordinal imports Main begin
 
 datatype ordinal = Zero | Succ ordinal | Limit "nat \<Rightarrow> ordinal"
 

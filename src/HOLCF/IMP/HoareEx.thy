@@ -6,7 +6,7 @@
 
 header "Correctness of Hoare by Fixpoint Reasoning"
 
-theory HoareEx = Denotational:
+theory HoareEx imports Denotational begin
 
 text {*
   An example from the HOLCF paper by Müller, Nipkow, Oheimb, Slotosch

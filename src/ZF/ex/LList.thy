@@ -14,7 +14,7 @@ co_recursion for defining lconst, flip, etc.
 a typing rule for it, based on some notion of "productivity..."
 *)
 
-theory LList = Main:
+theory LList imports Main begin
 
 consts
   llist  :: "i=>i";

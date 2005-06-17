@@ -1,5 +1,5 @@
 
-theory IntArith = Bin
-files "int_arith.ML":
+theory IntArith imports Bin
+uses "int_arith.ML" begin
 
 end

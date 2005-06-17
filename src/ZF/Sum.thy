@@ -7,7 +7,7 @@
 
 header{*Disjoint Sums*}
 
-theory Sum = Bool + equalities:
+theory Sum imports Bool equalities begin
 
 text{*And the "Part" primitive for simultaneous recursive type definitions*}
 

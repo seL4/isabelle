@@ -6,7 +6,7 @@
 
 header {* Application of a term to a list of terms *}
 
-theory ListApplication = Lambda:
+theory ListApplication imports Lambda begin
 
 syntax
   "_list_application" :: "dB => dB list => dB"    (infixl "\<degree>\<degree>" 150)

@@ -5,7 +5,7 @@
 
 header {* \isaheader{A Defensive JVM} *}
 
-theory JVMDefensive = JVMExec:
+theory JVMDefensive imports JVMExec begin
 
 text {*
   Extend the state space by one element indicating a type error (or

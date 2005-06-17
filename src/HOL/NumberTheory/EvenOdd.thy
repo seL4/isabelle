@@ -5,7 +5,7 @@
 
 header {*Parity: Even and Odd Integers*}
 
-theory EvenOdd = Int2:;
+theory EvenOdd imports Int2 begin;
 
 text{*Note.  This theory is being revised.  See the web page
 \url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}

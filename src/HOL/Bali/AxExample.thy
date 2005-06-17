@@ -5,7 +5,7 @@
 
 header {* Example of a proof based on the Bali axiomatic semantics *}
 
-theory AxExample = AxSem + Example:
+theory AxExample imports AxSem Example begin
 
 constdefs
   arr_inv :: "st \<Rightarrow> bool"

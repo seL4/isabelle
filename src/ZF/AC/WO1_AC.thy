@@ -25,7 +25,7 @@ have AC10(2).
 
 *)
 
-theory WO1_AC = AC_Equiv:
+theory WO1_AC imports AC_Equiv begin
 
 (* ********************************************************************** *)
 (* WO1 ==> AC1                                                            *)

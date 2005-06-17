@@ -1,7 +1,7 @@
 
 header {* \section{The Multi-Mutator Case} *}
 
-theory Mul_Gar_Coll = Graph + OG_Syntax:
+theory Mul_Gar_Coll imports Graph OG_Syntax begin
 
 text {*  The full theory takes aprox. 18 minutes.  *}
 

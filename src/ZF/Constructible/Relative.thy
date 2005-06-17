@@ -5,7 +5,7 @@
 
 header {*Relativization and Absoluteness*}
 
-theory Relative = Main:
+theory Relative imports Main begin
 
 subsection{* Relativized versions of standard set-theoretic concepts *}
 

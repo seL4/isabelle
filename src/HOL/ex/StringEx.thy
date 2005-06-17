@@ -1,7 +1,7 @@
 
 header {* String examples *}
 
-theory StringEx = Main:
+theory StringEx imports Main begin
 
 lemma "hd ''ABCD'' = CHR ''A''"
   by simp

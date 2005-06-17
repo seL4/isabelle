@@ -3,7 +3,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Vec = GenHOL4Base:
+theory GenHOL4Vec imports GenHOL4Base begin
 
 import_segment "hol4";
 

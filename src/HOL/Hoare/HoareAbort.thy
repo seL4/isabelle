@@ -6,8 +6,8 @@
 Like Hoare.thy, but with an Abort statement for modelling run time errors.
 *)
 
-theory HoareAbort  = Main
-files ("hoareAbort.ML"):
+theory HoareAbort  imports Main
+uses ("hoareAbort.ML") begin
 
 types
     'a bexp = "'a set"

@@ -11,7 +11,7 @@ Formalizes UNITY-program states using dependent types so that:
 
 header{*UNITY Program States*}
 
-theory State = Main:
+theory State imports Main begin
 
 consts var :: i
 datatype var = Var("i \<in> list(nat)")

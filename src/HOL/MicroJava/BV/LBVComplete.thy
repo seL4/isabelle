@@ -6,7 +6,7 @@
 
 header {* \isaheader{Completeness of the LBV} *}
 
-theory LBVComplete = LBVSpec + Typing_Framework:
+theory LBVComplete imports LBVSpec Typing_Framework begin
 
 constdefs
   is_target :: "['s step_type, 's list, nat] \<Rightarrow> bool" 

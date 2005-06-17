@@ -1,5 +1,5 @@
 (*<*)
-theory Nested1 = Nested0:
+theory Nested1 imports Nested0 begin
 (*>*)
 
 text{*\noindent

@@ -11,7 +11,7 @@ Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
 
 header{*Quine-Inspired Ordered Pairs and Disjoint Sums*}
 
-theory QPair = Sum + func:
+theory QPair imports Sum func begin
 
 text{*For non-well-founded data
 structures in ZF.  Does not precisely follow Quine's construction.  Thanks

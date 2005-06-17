@@ -6,7 +6,7 @@
 
 header {* \isaheader{Relations between Java Types} *}
 
-theory TypeRel = Decl:
+theory TypeRel imports Decl begin
 
 consts
   subcls1 :: "'c prog => (cname \<times> cname) set"  -- "subclass"

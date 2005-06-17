@@ -6,7 +6,7 @@
 Examples of verifications of pointer programs
 *)
 
-theory Pointer_Examples = HeapSyntax:
+theory Pointer_Examples imports HeapSyntax begin
 
 section "Verifications"
 

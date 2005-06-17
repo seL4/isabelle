@@ -1,4 +1,4 @@
-theory SparseMatrix = Matrix:
+theory SparseMatrix imports Matrix begin
 
 types 
   'a spvec = "(nat * 'a) list"

@@ -1,4 +1,4 @@
-theory Forward = Primes:
+theory Forward imports Primes begin
 
 text{*\noindent
 Forward proof material: of, OF, THEN, simplify, rule_format.

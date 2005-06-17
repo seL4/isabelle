@@ -3,7 +3,7 @@
     Author:     Martin Strecker
 *)
 
-theory NatCanonify = Main:
+theory NatCanonify imports Main begin
 
 (************************************************************************)
   (* Canonizer for converting nat to int *)

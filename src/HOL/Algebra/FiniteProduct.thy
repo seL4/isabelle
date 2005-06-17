@@ -7,7 +7,7 @@ This file is largely based on HOL/Finite_Set.thy.
 
 header {* Product Operator for Commutative Monoids *}
 
-theory FiniteProduct = Group:
+theory FiniteProduct imports Group begin
 
 text {* Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
   possible, because here we have explicit typing rules like 

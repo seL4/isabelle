@@ -6,7 +6,7 @@
 
 header {* \isaheader{Well-formedness of Java programs} *}
 
-theory WellForm = TypeRel + SystemClasses:
+theory WellForm imports TypeRel SystemClasses begin
 
 text {*
 for static checks on expressions and statements, see WellType.

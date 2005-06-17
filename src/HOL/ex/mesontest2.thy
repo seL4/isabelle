@@ -1,6 +1,6 @@
 (*ID:         $Id$*)
 header {* Meson test cases *}
 
-theory mesontest2 = Main:
+theory mesontest2 imports Main begin
 
 end

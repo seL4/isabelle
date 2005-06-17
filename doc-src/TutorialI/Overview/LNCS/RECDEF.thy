@@ -1,5 +1,5 @@
 (*<*)
-theory RECDEF = Main:
+theory RECDEF imports Main begin
 (*>*)
 
 subsection{*Wellfounded Recursion*}

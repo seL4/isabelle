@@ -5,7 +5,7 @@
 
 header {* Extending non-maximal functions *}
 
-theory HahnBanachExtLemmas = FunctionNorm:
+theory HahnBanachExtLemmas imports FunctionNorm begin
 
 text {*
   In this section the following context is presumed.  Let @{text E} be

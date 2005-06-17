@@ -7,7 +7,7 @@
 
 header "Transition Semantics of Commands"
 
-theory Transition = Natural:
+theory Transition imports Natural begin
 
 subsection "The transition relation"
 

@@ -1,5 +1,5 @@
 (*<*)
-theory examples = Main:;
+theory examples imports Main begin;
 (*>*)
 
 text{*

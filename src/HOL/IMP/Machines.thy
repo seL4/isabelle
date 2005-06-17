@@ -1,4 +1,4 @@
-theory Machines = Natural:
+theory Machines imports Natural begin
 
 lemma rtrancl_eq: "R^* = Id \<union> (R O R^*)"
 by(fast intro:rtrancl.intros elim:rtranclE)

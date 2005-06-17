@@ -10,7 +10,7 @@ Inheritance of GUARANTEES properties under extension
 
 header{*Projections of State Sets*}
 
-theory Project = Extend:
+theory Project imports Extend begin
 
 constdefs
   projecting :: "['c program => 'c set, 'a*'b => 'c, 

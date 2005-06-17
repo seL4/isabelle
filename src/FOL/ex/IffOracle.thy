@@ -6,7 +6,7 @@
 
 header{*Example of Declaring an Oracle*}
 
-theory IffOracle = FOL:
+theory IffOracle imports FOL begin
 
 text{*This oracle makes tautologies of the form "P <-> P <-> P <-> P".
 The length is specified by an integer, which is checked to be even and 

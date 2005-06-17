@@ -5,7 +5,7 @@
 
 header {* Euler's criterion *}
 
-theory Euler = Residues + EvenOdd:;
+theory Euler imports Residues EvenOdd begin;
 
 constdefs
   MultInvPair :: "int => int => int => int set"

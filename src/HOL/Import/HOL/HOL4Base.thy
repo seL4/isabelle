@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Base = "../HOL4Compat" + "../HOL4Syntax":
+theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin
 
 ;setup_theory bool
 

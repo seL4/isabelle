@@ -5,7 +5,7 @@
 
 header {* The norm of a function *}
 
-theory FunctionNorm = NormedSpace + FunctionOrder:
+theory FunctionNorm imports NormedSpace FunctionOrder begin
 
 subsection {* Continuous linear forms*}
 

@@ -7,7 +7,7 @@ header {*Simprocs for the Naturals*}
 
 theory NatSimprocs
 imports NatBin
-files "int_factor_simprocs.ML" "nat_simprocs.ML"
+uses "int_factor_simprocs.ML" "nat_simprocs.ML"
 begin
 
 setup nat_simprocs_setup

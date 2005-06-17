@@ -6,7 +6,7 @@
 
 header{*Classical Predicate Calculus Problems*}
 
-theory Classical = FOL:
+theory Classical imports FOL begin
 
 lemma "(P --> Q | R) --> (P-->Q) | (P-->R)"
 by blast

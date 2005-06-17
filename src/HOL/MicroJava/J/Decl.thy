@@ -6,7 +6,7 @@
 
 header {* \isaheader{Class Declarations and Programs} *}
 
-theory Decl = Type:
+theory Decl imports Type begin
 
 types 
   fdecl    = "vname \<times> ty"        -- "field declaration, cf. 8.3 (, 9.3)"

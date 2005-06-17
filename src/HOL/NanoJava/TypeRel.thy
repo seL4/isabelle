@@ -6,7 +6,7 @@
 
 header "Type relations"
 
-theory TypeRel = Decl:
+theory TypeRel imports Decl begin
 
 consts
   widen   :: "(ty    \<times> ty   ) set"  --{* widening *}

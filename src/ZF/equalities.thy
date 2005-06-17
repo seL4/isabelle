@@ -7,7 +7,7 @@
 
 header{*Basic Equalities and Inclusions*}
 
-theory equalities = pair:
+theory equalities imports pair begin
 
 text{*These cover union, intersection, converse, domain, range, etc.  Philippe
 de Groote proved many of the inclusions.*}

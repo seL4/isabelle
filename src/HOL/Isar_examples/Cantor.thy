@@ -5,7 +5,7 @@
 
 header {* Cantor's Theorem *}
 
-theory Cantor = Main:
+theory Cantor imports Main begin
 
 text_raw {*
   \footnote{This is an Isar version of the final example of the

@@ -6,7 +6,7 @@
 
 header {* \isaheader{More on Semilattices} *}
 
-theory SemilatAlg = Typing_Framework + Product:
+theory SemilatAlg imports Typing_Framework Product begin
 
 
 constdefs 

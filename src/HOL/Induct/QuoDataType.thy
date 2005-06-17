@@ -7,7 +7,7 @@
 
 header{*Defining an Initial Algebra by Quotienting a Free Algebra*}
 
-theory QuoDataType = Main:
+theory QuoDataType imports Main begin
 
 subsection{*Defining the Free Algebra*}
 

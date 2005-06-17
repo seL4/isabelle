@@ -10,7 +10,7 @@ awp:   weakest (liberal) precondition
 
 header "Verification Conditions"
 
-theory VC = Hoare:
+theory VC imports Hoare begin
 
 datatype  acom = Askip
                | Aass   loc aexp

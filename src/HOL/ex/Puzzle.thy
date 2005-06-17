@@ -8,7 +8,7 @@ A question from "Bundeswettbewerb Mathematik"
 Proof due to Herbert Ehler
 *)
 
-theory Puzzle = Main:
+theory Puzzle imports Main begin
 
 consts f :: "nat => nat"
 

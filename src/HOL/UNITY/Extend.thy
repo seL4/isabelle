@@ -10,7 +10,7 @@ Extending of state setsExtending of state sets
 
 header{*Extending State Sets*}
 
-theory Extend = Guar:
+theory Extend imports Guar begin
 
 constdefs
 

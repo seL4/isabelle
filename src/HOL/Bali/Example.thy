@@ -4,7 +4,7 @@
 *)
 header {* Example Bali program *}
 
-theory Example = Eval + WellForm:
+theory Example imports Eval WellForm begin
 
 text {*
 The following example Bali program includes:

@@ -1,5 +1,5 @@
 (*<*)
-theory ABexpr = Main:;
+theory ABexpr imports Main begin;
 (*>*)
 
 text{*

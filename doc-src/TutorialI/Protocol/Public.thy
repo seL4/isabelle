@@ -8,8 +8,8 @@ Theory of Public Keys (common to all public-key protocols)
 Private and public keys; initial states of agents
 *)
 
-theory Public = Event
-files ("Public_lemmas.ML"):
+theory Public imports Event
+uses ("Public_lemmas.ML") begin
 
 consts
   pubK    :: "agent => key"

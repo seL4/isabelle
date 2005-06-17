@@ -7,7 +7,7 @@
 
 header{*Equivalence Relations*}
 
-theory EquivClass = Trancl + Perm:
+theory EquivClass imports Trancl Perm begin
 
 constdefs
 

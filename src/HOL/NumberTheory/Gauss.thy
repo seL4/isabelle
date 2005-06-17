@@ -5,7 +5,7 @@
 
 header {* Gauss' Lemma *}
 
-theory Gauss = Euler:;
+theory Gauss imports Euler begin;
 
 locale GAUSS =
   fixes p :: "int"

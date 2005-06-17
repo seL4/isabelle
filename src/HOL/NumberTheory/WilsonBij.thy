@@ -6,7 +6,7 @@
 
 header {* Wilson's Theorem using a more abstract approach *}
 
-theory WilsonBij = BijectionRel + IntFact:
+theory WilsonBij imports BijectionRel IntFact begin
 
 text {*
   Wilson's Theorem using a more ``abstract'' approach based on

@@ -9,7 +9,7 @@ header {* Type classes for $\le$ *}
 
 theory Orderings
 imports Lattice_Locales
-files ("antisym_setup.ML")
+uses ("antisym_setup.ML")
 begin
 
 subsection {* Order signatures and orders *}

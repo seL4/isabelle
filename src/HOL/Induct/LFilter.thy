@@ -7,7 +7,7 @@
 header {*The "filter" functional for coinductive lists
   --defined by a combination of induction and coinduction*}
 
-theory LFilter = LList:
+theory LFilter imports LList begin
 
 consts
   findRel	:: "('a => bool) => ('a llist * 'a llist)set"

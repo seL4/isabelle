@@ -5,7 +5,7 @@
 
 header {* Sigma algebras *}
 
-theory Sigma_Algebra = Main:
+theory Sigma_Algebra imports Main begin
 
 text {*
   This is just a tiny example demonstrating the use of inductive

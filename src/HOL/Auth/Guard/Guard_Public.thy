@@ -11,7 +11,7 @@ William Gates Building, JJ Thomson Avenue
 Cambridge CB3 0FD, United Kingdom
 ******************************************************************************)
 
-theory Guard_Public = Guard + Public + Extensions:
+theory Guard_Public imports Guard Public Extensions begin
 
 subsection{*Extensions to Theory @{text Public}*}
 

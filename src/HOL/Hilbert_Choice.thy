@@ -8,7 +8,7 @@ header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
 imports NatArith
-files ("Tools/meson.ML") ("Tools/specification_package.ML")
+uses ("Tools/meson.ML") ("Tools/specification_package.ML")
 begin
 
 subsection {* Hilbert's epsilon *}

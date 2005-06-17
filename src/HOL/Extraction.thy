@@ -7,7 +7,7 @@ header {* Program extraction for HOL *}
 
 theory Extraction
 imports Datatype
-files "Tools/rewrite_hol_proof.ML"
+uses "Tools/rewrite_hol_proof.ML"
 begin
 
 subsection {* Setup *}

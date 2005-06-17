@@ -6,7 +6,7 @@
 
 header {* \isaheader{LBV for the JVM}\label{sec:JVM} *}
 
-theory LBVJVM = LBVCorrect + LBVComplete + Typing_Framework_JVM:
+theory LBVJVM imports LBVCorrect LBVComplete Typing_Framework_JVM begin
 
 types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> state list"
 

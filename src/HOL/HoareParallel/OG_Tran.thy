@@ -1,7 +1,7 @@
 
 header {* \section{Operational Semantics} *}
 
-theory OG_Tran = OG_Com:
+theory OG_Tran imports OG_Com begin
 
 types
   'a ann_com_op = "('a ann_com) option"

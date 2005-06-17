@@ -6,7 +6,7 @@
 
 header {* The Mutilated Checker Board Problem *}
 
-theory MutilatedCheckerboard = Main:
+theory MutilatedCheckerboard imports Main begin
 
 text {*
  The Mutilated Checker Board Problem, formalized inductively.  See

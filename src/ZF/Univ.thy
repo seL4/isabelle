@@ -11,7 +11,7 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
 
 header{*The Cumulative Hierarchy and a Small Universe for Recursive Types*}
 
-theory Univ = Epsilon + Cardinal:
+theory Univ imports Epsilon Cardinal begin
 
 constdefs
   Vfrom       :: "[i,i]=>i"

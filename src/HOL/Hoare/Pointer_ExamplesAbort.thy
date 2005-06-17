@@ -6,7 +6,7 @@
 Examples of verifications of pointer programs
 *)
 
-theory Pointer_ExamplesAbort = HeapSyntaxAbort:
+theory Pointer_ExamplesAbort imports HeapSyntaxAbort begin
 
 section "Verifications"
 

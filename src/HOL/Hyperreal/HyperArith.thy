@@ -8,7 +8,7 @@ header{*Binary arithmetic and Simplification for the Hyperreals*}
 
 theory HyperArith
 imports HyperDef
-files ("hypreal_arith.ML")
+uses ("hypreal_arith.ML")
 begin
 
 subsection{*Numerals and Arithmetic*}

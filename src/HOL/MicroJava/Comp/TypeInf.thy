@@ -4,7 +4,7 @@
 *)
 
 (* Exact position in theory hierarchy still to be determined *)
-theory TypeInf =  WellType:
+theory TypeInf imports  WellType begin
 
 
 

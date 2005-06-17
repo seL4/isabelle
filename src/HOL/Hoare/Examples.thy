@@ -6,7 +6,7 @@
 Various examples.
 *)
 
-theory Examples = Hoare + Arith2:
+theory Examples imports Hoare Arith2 begin
 
 (*** ARITHMETIC ***)
 

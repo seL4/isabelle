@@ -7,7 +7,7 @@ A multiple-client allocator from a single-client allocator:
 Distributor specification
 *)
 
-theory Distributor = AllocBase + Follows +  Guar + GenPrefix:
+theory Distributor imports AllocBase Follows  Guar GenPrefix begin
 
 text{*Distributor specification (the number of outputs is Nclients)*}
 

@@ -5,7 +5,7 @@
 
 (* Compiling MicroJava into MicroJVM -- Translation functions *)
 
-theory TranslComp =  TranslCompTp:
+theory TranslComp imports  TranslCompTp begin
 
 
 (* parameter java_mb only serves to define function index later *)

@@ -5,7 +5,7 @@
 
 header{*Cosets and Quotient Groups*}
 
-theory Coset = Group + Exponent:
+theory Coset imports Group Exponent begin
 
 constdefs (structure G)
   r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)

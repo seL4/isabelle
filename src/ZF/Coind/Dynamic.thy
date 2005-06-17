@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Dynamic = Values:
+theory Dynamic imports Values begin
 
 consts
   EvalRel :: i

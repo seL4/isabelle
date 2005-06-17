@@ -8,7 +8,7 @@ Binary trees (based on the ZF version).
 
 header {* Binary trees *}
 
-theory BT = Main:
+theory BT imports Main begin
 
 datatype 'a bt =
     Lf

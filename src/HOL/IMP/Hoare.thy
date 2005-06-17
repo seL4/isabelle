@@ -6,7 +6,7 @@
 
 header "Inductive Definition of Hoare Logic"
 
-theory Hoare = Denotation:
+theory Hoare imports Denotation begin
 
 types assn = "state => bool"
 

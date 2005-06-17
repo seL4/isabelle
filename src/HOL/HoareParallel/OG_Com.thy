@@ -3,7 +3,7 @@ header {* \chapter{The Owicki-Gries Method}
 
 \section{Abstract Syntax} *} 
 
-theory OG_Com = Main:
+theory OG_Com imports Main begin
 
 text {* Type abbreviations for boolean expressions and assertions: *}
 

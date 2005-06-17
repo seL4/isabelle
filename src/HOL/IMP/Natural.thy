@@ -7,7 +7,7 @@
 
 header "Natural Semantics of Commands"
 
-theory Natural = Com:
+theory Natural imports Com begin
 
 subsection "Execution of commands"
 

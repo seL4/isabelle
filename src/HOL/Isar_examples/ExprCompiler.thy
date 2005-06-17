@@ -7,7 +7,7 @@ Correctness of a simple expression/stack-machine compiler.
 
 header {* Correctness of a simple expression compiler *}
 
-theory ExprCompiler = Main:
+theory ExprCompiler imports Main begin
 
 text {*
  This is a (rather trivial) example of program verification.  We model

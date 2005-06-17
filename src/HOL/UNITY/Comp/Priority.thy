@@ -6,7 +6,7 @@
 
 header{*The priority system*}
 
-theory Priority = PriorityAux:
+theory Priority imports PriorityAux begin
 
 text{*From Charpentier and Chandy,
 Examples of Program Composition Illustrating the Use of Universal Properties

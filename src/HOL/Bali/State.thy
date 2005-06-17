@@ -4,7 +4,7 @@
 *)
 header {* State for evaluation of Java expressions and statements *}
 
-theory State = DeclConcepts:
+theory State imports DeclConcepts begin
 
 text {*
 design issues:

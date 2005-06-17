@@ -9,7 +9,7 @@ the TFL package.
 
 header {* Primitive Recursive Functions *}
 
-theory Primrec = Main:
+theory Primrec imports Main begin
 
 text {*
   Proof adopted from

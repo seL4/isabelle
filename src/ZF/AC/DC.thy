@@ -5,7 +5,7 @@
 The proofs concerning the Axiom of Dependent Choice
 *)
 
-theory DC = AC_Equiv + Hartog + Cardinal_aux:
+theory DC imports AC_Equiv Hartog Cardinal_aux begin
 
 lemma RepFun_lepoll: "Ord(a) ==> {P(b). b \<in> a} \<lesssim> a"
 apply (unfold lepoll_def)

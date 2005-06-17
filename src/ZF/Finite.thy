@@ -8,7 +8,7 @@ prove:  b: Fin(A) ==> inj(b,b) <= surj(b,b)
 
 header{*Finite Powerset Operator and Finite Function Space*}
 
-theory Finite = Inductive + Epsilon + Nat:
+theory Finite imports Inductive Epsilon Nat begin
 
 (*The natural numbers as a datatype*)
 rep_datatype

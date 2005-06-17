@@ -7,7 +7,7 @@ The proof of AC16(n, k) ==> WO4(n-k)
 Tidied (using locales) by LCP
 *)
 
-theory AC16_WO4 = AC16_lemmas:
+theory AC16_WO4 imports AC16_lemmas begin
 
 (* ********************************************************************** *)
 (* The case of finite set                                                 *)

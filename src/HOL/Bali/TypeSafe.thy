@@ -4,7 +4,7 @@
 *)
 header {* The type soundness proof for Java *}
 
-theory TypeSafe = DefiniteAssignmentCorrect + Conform:
+theory TypeSafe imports DefiniteAssignmentCorrect Conform begin
 
 section "error free"
  

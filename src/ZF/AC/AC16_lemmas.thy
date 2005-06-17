@@ -5,7 +5,7 @@
 Lemmas used in the proofs concerning AC16
 *)
 
-theory AC16_lemmas = AC_Equiv + Hartog + Cardinal_aux:
+theory AC16_lemmas imports AC_Equiv Hartog Cardinal_aux begin
 
 lemma cons_Diff_eq: "a\<notin>A ==> cons(a,A)-{a}=A"
 by fast

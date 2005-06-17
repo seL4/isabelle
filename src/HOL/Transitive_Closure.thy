@@ -8,7 +8,7 @@ header {* Reflexive and Transitive closure of a relation *}
 
 theory Transitive_Closure
 imports Inductive
-files ("../Provers/trancl.ML")
+uses ("../Provers/trancl.ML")
 begin
 
 text {*

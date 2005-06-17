@@ -5,7 +5,7 @@
 
 header {* The Hahn-Banach Theorem *}
 
-theory HahnBanach = HahnBanachLemmas:
+theory HahnBanach imports HahnBanachLemmas begin
 
 text {*
   We present the proof of two different versions of the Hahn-Banach

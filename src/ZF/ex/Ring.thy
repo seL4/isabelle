@@ -5,7 +5,7 @@
 
 header {* Rings *}
 
-theory Ring = Group:
+theory Ring imports Group begin
 
 (*First, we must simulate a record declaration:
 record ring = monoid +

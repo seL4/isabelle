@@ -1,5 +1,5 @@
 (*<*)
-theory Tree = Main:
+theory Tree imports Main begin
 (*>*)
 
 text{*\noindent

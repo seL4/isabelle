@@ -4,7 +4,7 @@
 *)
 
 header {* Well-formedness of Java programs *}
-theory WellForm = DefiniteAssignment:
+theory WellForm imports DefiniteAssignment begin
 
 text {*
 For static checks on expressions and statements, see WellType.thy

@@ -6,7 +6,7 @@
 
 header "Denotational Semantics of Commands in HOLCF"
 
-theory Denotational = HOLCF + Natural:
+theory Denotational imports HOLCF Natural begin
 
 subsection "Definition"
 

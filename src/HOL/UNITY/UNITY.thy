@@ -10,7 +10,7 @@ From Misra, "A Logic for Concurrent Programming", 1994
 
 header {*The Basic UNITY Theory*}
 
-theory UNITY = Main:
+theory UNITY imports Main begin
 
 typedef (Program)
   'a program = "{(init:: 'a set, acts :: ('a * 'a)set set,

@@ -16,7 +16,7 @@ Theory ported from HOL.
 
 header{*Composition*}
 
-theory Comp = Union + Increasing:
+theory Comp imports Union Increasing begin
 
 constdefs
 

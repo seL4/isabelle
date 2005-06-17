@@ -5,7 +5,7 @@
 
 header {*Integers: Divisibility and Congruences*}
 
-theory Int2 = Finite2 + WilsonRuss:;
+theory Int2 imports Finite2 WilsonRuss begin;
 
 text{*Note.  This theory is being revised.  See the web page
 \url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}

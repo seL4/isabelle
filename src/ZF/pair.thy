@@ -7,8 +7,8 @@
 
 header{*Ordered Pairs*}
 
-theory pair = upair
-files "simpdata.ML":
+theory pair imports upair
+uses "simpdata.ML" begin
 
 (** Lemmas for showing that <a,b> uniquely determines a and b **)
 

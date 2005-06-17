@@ -1,5 +1,5 @@
 (*<*)
-theory appendix = Main:;
+theory appendix imports Main begin;
 (*>*)
 
 text{*

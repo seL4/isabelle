@@ -5,7 +5,7 @@
 Auxiliary lemmas concerning cardinalities
 *)
 
-theory Cardinal_aux = AC_Equiv:
+theory Cardinal_aux imports AC_Equiv begin
 
 lemma Diff_lepoll: "[| A \<lesssim> succ(m); B \<subseteq> A; B\<noteq>0 |] ==> A-B \<lesssim> m"
 apply (rule not_emptyE, assumption)

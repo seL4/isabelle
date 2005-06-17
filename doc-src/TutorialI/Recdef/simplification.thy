@@ -1,5 +1,5 @@
 (*<*)
-theory simplification = Main:;
+theory simplification imports Main begin;
 (*>*)
 
 text{*

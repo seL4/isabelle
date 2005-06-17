@@ -5,7 +5,7 @@
 
 header {* Equivalence *}
 
-theory Equiv = Denotation + Com:
+theory Equiv imports Denotation Com begin
 
 lemma aexp_iff [rule_format]:
   "[| a \<in> aexp; sigma: loc -> nat |] 

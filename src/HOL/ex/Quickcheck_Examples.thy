@@ -6,7 +6,7 @@
 
 header {* Examples for the 'quickcheck' command *}
 
-theory Quickcheck_Examples = Main:
+theory Quickcheck_Examples imports Main begin
 
 text {*
 The 'quickcheck' command allows to find counterexamples by evaluating

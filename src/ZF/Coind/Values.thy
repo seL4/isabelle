@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Values = Language + Map:
+theory Values imports Language Map begin
 
 (* Values, values environments and associated operators *)
 

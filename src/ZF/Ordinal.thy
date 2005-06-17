@@ -7,7 +7,7 @@
 
 header{*Transitive Sets and Ordinals*}
 
-theory Ordinal = WF + Bool + equalities:
+theory Ordinal imports WF Bool equalities begin
 
 constdefs
 

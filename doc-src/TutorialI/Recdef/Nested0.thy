@@ -1,5 +1,5 @@
 (*<*)
-theory Nested0 = Main:
+theory Nested0 imports Main begin
 (*>*)
 
 text{*

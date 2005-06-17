@@ -6,7 +6,7 @@
 header {*Separation for Facts About Order Types, Rank Functions and 
       Well-Founded Relations*}
 
-theory Rank_Separation = Rank + Rec_Separation:
+theory Rank_Separation imports Rank Rec_Separation begin
 
 
 text{*This theory proves all instances needed for locales

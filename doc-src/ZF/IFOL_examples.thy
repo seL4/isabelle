@@ -1,6 +1,6 @@
 header{*Examples of Intuitionistic Reasoning*}
 
-theory IFOL_examples = IFOL:
+theory IFOL_examples imports IFOL begin
 
 text{*Quantifier example from the book Logic and Computation*}
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"

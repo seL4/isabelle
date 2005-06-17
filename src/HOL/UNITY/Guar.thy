@@ -18,7 +18,7 @@ Fifth International Conference on Mathematics of Program, 2000.
 
 header{*Guarantees Specifications*}
 
-theory Guar = Comp:
+theory Guar imports Comp begin
 
 instance program :: (type) order
   by (intro_classes,

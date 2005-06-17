@@ -6,7 +6,7 @@
 
 header {* Factorial on integers *}
 
-theory IntFact = IntPrimes:
+theory IntFact imports IntPrimes begin
 
 text {*
   Factorial on integers and recursively defined set including all

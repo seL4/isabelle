@@ -4,7 +4,7 @@
 *)
 header {* Well-typedness of Java programs *}
 
-theory WellType = DeclConcepts:
+theory WellType imports DeclConcepts begin
 
 text {*
 improvements over Java Specification 1.0:

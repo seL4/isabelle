@@ -7,7 +7,7 @@
 
 header {* Univariate Polynomials *}
 
-theory UnivPoly = Module:
+theory UnivPoly imports Module begin
 
 text {*
   Polynomials are formalised as modules with additional operations for

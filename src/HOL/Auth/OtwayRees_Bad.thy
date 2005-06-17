@@ -7,7 +7,7 @@
 
 header{*The Otway-Rees Protocol: The Faulty BAN Version*}
 
-theory OtwayRees_Bad = Public:
+theory OtwayRees_Bad imports Public begin
 
 text{*The FAULTY version omitting encryption of Nonce NB, as suggested on 
 page 247 of

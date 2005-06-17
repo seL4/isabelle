@@ -5,7 +5,7 @@
     Logic Image: ZF
 *)
 
-theory Reduction = Residuals:
+theory Reduction imports Residuals begin
 
 (**** Lambda-terms ****)
 

@@ -8,7 +8,7 @@ Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 
 header{*Mutual Induction via Iteratived Inductive Definitions*}
 
-theory Com = Main:
+theory Com imports Main begin
 
 typedecl loc
 

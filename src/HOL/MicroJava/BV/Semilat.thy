@@ -11,7 +11,7 @@ header {*
   \isaheader{Semilattices} 
 *}
 
-theory Semilat = While_Combinator:
+theory Semilat imports While_Combinator begin
 
 types 'a ord    = "'a \<Rightarrow> 'a \<Rightarrow> bool"
       'a binop  = "'a \<Rightarrow> 'a \<Rightarrow> 'a"

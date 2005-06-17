@@ -6,7 +6,7 @@
 
 header {* \isaheader{Java types} *}
 
-theory Type = JBasis:
+theory Type imports JBasis begin
 
 typedecl cnam 
 

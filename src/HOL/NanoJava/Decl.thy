@@ -6,7 +6,7 @@
 
 header "Types, class Declarations, and whole programs"
 
-theory Decl = Term:
+theory Decl imports Term begin
 
 datatype ty
   = NT           --{* null type  *}

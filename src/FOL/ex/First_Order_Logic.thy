@@ -5,7 +5,7 @@
 
 header {* A simple formulation of First-Order Logic *}
 
-theory First_Order_Logic = Pure:
+theory First_Order_Logic imports Pure begin
 
 text {*
   The subsequent theory development illustrates single-sorted

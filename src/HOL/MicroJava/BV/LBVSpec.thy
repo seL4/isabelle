@@ -6,7 +6,7 @@
 
 header {* \isaheader{The Lightweight Bytecode Verifier} *}
 
-theory LBVSpec = SemilatAlg + Opt:
+theory LBVSpec imports SemilatAlg Opt begin
 
 types
   's certificate = "'s list"   

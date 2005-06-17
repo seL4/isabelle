@@ -6,7 +6,7 @@
 
 header "Examples"
 
-theory Examples = Natural:
+theory Examples imports Natural begin
 
 constdefs  
   factorial :: "loc => loc => com"

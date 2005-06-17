@@ -3,7 +3,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Prob = GenHOL4Real:
+theory GenHOL4Prob imports GenHOL4Real begin
 
 import_segment "hol4";
 

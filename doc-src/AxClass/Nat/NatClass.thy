@@ -1,7 +1,7 @@
 
 header {* Defining natural numbers in FOL \label{sec:ex-natclass} *}
 
-theory NatClass = FOL:
+theory NatClass imports FOL begin
 
 text {*
  \medskip\noindent Axiomatic type classes abstract over exactly one

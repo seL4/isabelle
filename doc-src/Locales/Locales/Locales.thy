@@ -6,7 +6,7 @@
 *)
 
 (*<*)
-theory Locales = Main:
+theory Locales imports Main begin
 
 ML_setup {* print_mode := "type_brackets" :: !print_mode; *}
 (*>*)

@@ -7,8 +7,8 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
-theory Message = Main
-files ("Message_lemmas.ML"):
+theory Message imports Main
+uses ("Message_lemmas.ML") begin
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A Un (B Un A) = B Un A"

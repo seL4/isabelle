@@ -8,7 +8,7 @@ Reachability in Graphs
 From Chandy and Misra, "Parallel Program Design" (1989), sections 6.2 and 11.3
 *)
 
-theory Reachability = Detects + Reach:
+theory Reachability imports Detects Reach begin
 
 types  edge = "(vertex*vertex)"
 

@@ -5,7 +5,7 @@
 
 header {* Partial equivalence relations *}
 
-theory PER = Main:
+theory PER imports Main begin
 
 text {*
   Higher-order quotients are defined over partial equivalence

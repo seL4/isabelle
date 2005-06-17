@@ -6,7 +6,7 @@
 
 header {* Binary trees *}
 
-theory Binary_Trees = Main:
+theory Binary_Trees imports Main begin
 
 subsection {* Datatype definition *}
 

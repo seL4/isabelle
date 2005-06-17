@@ -6,7 +6,7 @@
 
 header{*The Yahalom Protocol, Variant 2*}
 
-theory Yahalom2 = Public:
+theory Yahalom2 imports Public begin
 
 text{*
 This version trades encryption of NB for additional explicitness in YM3.

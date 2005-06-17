@@ -5,7 +5,7 @@
     Logic Image: ZF
 *)
 
-theory Substitution = Redex:
+theory Substitution imports Redex begin
 
 consts
   lift_aux      :: "i=>i"

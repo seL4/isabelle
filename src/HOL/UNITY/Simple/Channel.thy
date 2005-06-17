@@ -8,7 +8,7 @@ Unordered Channel
 From Misra, "A Logic for Concurrent Programming" (1994), section 13.3
 *)
 
-theory Channel = UNITY_Main:
+theory Channel imports UNITY_Main begin
 
 types state = "nat set"
 

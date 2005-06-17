@@ -6,7 +6,7 @@ header {* Operational evaluation (big-step) semantics of Java expressions and
           statements
 *}
 
-theory Eval = State + DeclConcepts:
+theory Eval imports State DeclConcepts begin
 
 text {*
 

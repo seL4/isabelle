@@ -5,7 +5,7 @@
 
 header {* The ZF Axioms (Except Separation) in L *}
 
-theory L_axioms = Formula + Relative + Reflection + MetaExists:
+theory L_axioms imports Formula Relative Reflection MetaExists begin
 
 text {* The class L satisfies the premises of locale @{text M_trivial} *}
 

@@ -7,9 +7,9 @@
 
 header{*Datatype and CoDatatype Definitions*}
 
-theory Datatype = Inductive + Univ + QUniv
-  files
+theory Datatype imports Inductive Univ QUniv
+  uses
     "Tools/datatype_package.ML"
-    "Tools/numeral_syntax.ML":  (*belongs to theory Bin*)
+    "Tools/numeral_syntax.ML" begin  (*belongs to theory Bin*)
 
 end

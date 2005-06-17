@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example for generating executable code from Java semantics} *}
 
-theory JListExample = Eval + SystemClasses:
+theory JListExample imports Eval SystemClasses begin
 
 ML {* Syntax.ambiguity_level := 100000 *}
 

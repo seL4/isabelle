@@ -8,7 +8,7 @@ These results help justify infinite-branching datatypes
 
 header{*Cardinal Arithmetic Using AC*}
 
-theory Cardinal_AC = CardinalArith + Zorn:
+theory Cardinal_AC imports CardinalArith Zorn begin
 
 subsection{*Strengthened Forms of Existing Theorems on Cardinals*}
 

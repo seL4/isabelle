@@ -1,4 +1,4 @@
-theory FP0 = PreList:
+theory FP0 imports PreList begin
 
 datatype 'a list = Nil                          ("[]")
                  | Cons 'a "'a list"            (infixr "#" 65)

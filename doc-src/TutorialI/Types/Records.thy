@@ -2,7 +2,7 @@
 header {* Records \label{sec:records} *}
 
 (*<*)
-theory Records = Main:
+theory Records imports Main begin
 (*>*)
 
 text {*

@@ -5,7 +5,7 @@
 
 theory Record
 imports Product_Type
-files ("Tools/record_package.ML")
+uses ("Tools/record_package.ML")
 begin
 
 ML {*

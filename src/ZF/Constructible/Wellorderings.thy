@@ -5,7 +5,7 @@
 
 header {*Relativized Wellorderings*}
 
-theory Wellorderings = Relative:
+theory Wellorderings imports Relative begin
 
 text{*We define functions analogous to @{term ordermap} @{term ordertype} 
       but without using recursion.  Instead, there is a direct appeal

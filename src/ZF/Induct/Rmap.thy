@@ -6,7 +6,7 @@
 
 header {* An operator to ``map'' a relation over a list *}
 
-theory Rmap = Main:
+theory Rmap imports Main begin
 
 consts
   rmap :: "i=>i"

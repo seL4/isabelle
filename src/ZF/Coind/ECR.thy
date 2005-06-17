@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory ECR = Static + Dynamic:
+theory ECR imports Static Dynamic begin
 
 (* The extended correspondence relation *)
 

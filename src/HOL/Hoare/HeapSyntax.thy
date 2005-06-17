@@ -4,7 +4,7 @@
     Copyright   2002 TUM
 *)
 
-theory HeapSyntax = Hoare + Heap:
+theory HeapSyntax imports Hoare Heap begin
 
 subsection "Field access and update"
 

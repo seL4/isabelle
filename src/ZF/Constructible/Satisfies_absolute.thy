@@ -5,7 +5,7 @@
 
 header {*Absoluteness for the Satisfies Relation on Formulas*}
 
-theory Satisfies_absolute = Datatype_absolute + Rec_Separation: 
+theory Satisfies_absolute imports Datatype_absolute Rec_Separation begin 
 
 
 subsection {*More Internalization*}

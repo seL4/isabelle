@@ -5,7 +5,7 @@
 
 header {* Linearforms *}
 
-theory Linearform = VectorSpace:
+theory Linearform imports VectorSpace begin
 
 text {*
   A \emph{linear form} is a function on a vector space into the reals

@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*lemmas on guarded messages for protocols with symmetric keys*}
 
-theory Guard_Shared = Guard + GuardK + Shared:
+theory Guard_Shared imports Guard GuardK Shared begin
 
 subsection{*Extensions to Theory @{text Shared}*}
 

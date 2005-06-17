@@ -5,7 +5,7 @@
 
 header {* Hilbert's choice and classical logic *}
 
-theory Hilbert_Classical = Main:
+theory Hilbert_Classical imports Main begin
 
 text {*
   Derivation of the classical law of tertium-non-datur by means of

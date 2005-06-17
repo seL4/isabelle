@@ -5,7 +5,7 @@
 
 header {* Sylow's theorem *}
 
-theory Sylow = Coset:
+theory Sylow imports Coset begin
 
 text {*
   See also \cite{Kammueller-Paulson:1999}.

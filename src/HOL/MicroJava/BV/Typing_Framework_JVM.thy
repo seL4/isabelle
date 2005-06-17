@@ -6,7 +6,7 @@
 
 header {* \isaheader{The Typing Framework for the JVM}\label{sec:JVM} *}
 
-theory Typing_Framework_JVM = Typing_Framework_err + JVMType + EffectMono + BVSpec:
+theory Typing_Framework_JVM imports Typing_Framework_err JVMType EffectMono BVSpec begin
 
 
 constdefs

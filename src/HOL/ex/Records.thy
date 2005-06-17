@@ -6,7 +6,7 @@
 
 header {* Using extensible records in HOL -- points and coloured points *}
 
-theory Records = Main:
+theory Records imports Main begin
 
 subsection {* Points *}
 

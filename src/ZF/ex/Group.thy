@@ -5,7 +5,7 @@
 
 header {* Groups *}
 
-theory Group = Main:
+theory Group imports Main begin
 
 text{*Based on work by Clemens Ballarin, Florian Kammueller, L C Paulson and
 Markus Wenzel.*}

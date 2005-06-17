@@ -6,7 +6,7 @@
 
 header {* The Mutilated Chess Board Problem, formalized inductively *}
 
-theory Mutil = Main:
+theory Mutil imports Main begin
 
 text {*
   Originator is Max Black, according to J A Robinson.  Popularized as

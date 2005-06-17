@@ -7,14 +7,14 @@
 
 header{*Inductive and Coinductive Definitions*}
 
-theory Inductive = Fixedpt + QPair
-  files
+theory Inductive imports Fixedpt QPair
+  uses
     "ind_syntax.ML"
     "Tools/cartprod.ML"
     "Tools/ind_cases.ML"
     "Tools/inductive_package.ML"
     "Tools/induct_tacs.ML"
-    "Tools/primrec_package.ML":
+    "Tools/primrec_package.ML" begin
 
 setup IndCases.setup
 setup DatatypeTactics.setup

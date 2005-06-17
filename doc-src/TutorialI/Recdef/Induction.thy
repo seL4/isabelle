@@ -1,5 +1,5 @@
 (*<*)
-theory Induction = examples + simplification:;
+theory Induction imports examples simplification begin;
 (*>*)
 
 text{*

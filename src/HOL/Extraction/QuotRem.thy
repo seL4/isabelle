@@ -5,7 +5,7 @@
 
 header {* Quotient and remainder *}
 
-theory QuotRem = Main:
+theory QuotRem imports Main begin
 
 text {* Derivation of quotient and remainder using program extraction. *}
 

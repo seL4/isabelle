@@ -15,7 +15,7 @@ Fibonacci numbers: proofs of laws taken from
 
 header {* Fib and Gcd commute *}
 
-theory Fibonacci = Primes:
+theory Fibonacci imports Primes begin
 
 text_raw {*
  \footnote{Isar version by Gertrud Bauer.  Original tactic script by

@@ -8,7 +8,7 @@ lift_prog, etc: replication of components and arrays of processes.
 
 header{*Replication of Components*}
 
-theory Lift_prog = Rename:
+theory Lift_prog imports Rename begin
 
 constdefs
 

@@ -6,7 +6,7 @@
 header {*Absoluteness for the Definable Powerset Function*}
 
 
-theory DPow_absolute = Satisfies_absolute:
+theory DPow_absolute imports Satisfies_absolute begin
 
 
 subsection{*Preliminary Internalizations*}

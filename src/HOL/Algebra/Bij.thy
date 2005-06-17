@@ -5,7 +5,7 @@
 
 header {* Bijections of a Set, Permutation Groups, Automorphism Groups *}
 
-theory Bij = Group:
+theory Bij imports Group begin
 
 constdefs
   Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"

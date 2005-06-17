@@ -5,7 +5,7 @@
 
 header {* Basic group theory *}
 
-theory Group = Main:
+theory Group imports Main begin
 
 subsection {* Groups and calculational reasoning *} 
 

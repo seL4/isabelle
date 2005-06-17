@@ -6,7 +6,7 @@
 
 header {* Basic definitions of Lambda-calculus *}
 
-theory Lambda = Main:
+theory Lambda imports Main begin
 
 
 subsection {* Lambda-terms in de Bruijn notation and substitution *}

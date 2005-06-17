@@ -7,7 +7,7 @@ header {* Classical first-order logic *}
 
 theory FOL 
 imports IFOL
-files ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+uses ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
       ("eqrule_FOL_data.ML")
       ("~~/src/Provers/eqsubst.ML")
 begin  

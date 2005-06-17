@@ -5,7 +5,7 @@
 
 header {* The Fibonacci function *}
 
-theory Fib = Primes:
+theory Fib imports Primes begin
 
 text {*
   Fibonacci numbers: proofs of laws taken from:

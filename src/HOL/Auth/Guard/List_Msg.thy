@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Lists of Messages and Lists of Agents*}
 
-theory List_Msg = Extensions:
+theory List_Msg imports Extensions begin
 
 subsection{*Implementation of Lists by Messages*}
 

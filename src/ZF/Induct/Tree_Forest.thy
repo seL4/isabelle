@@ -6,7 +6,7 @@
 
 header {* Trees and forests, a mutually recursive type definition *}
 
-theory Tree_Forest = Main:
+theory Tree_Forest imports Main begin
 
 subsection {* Datatype definition *}
 

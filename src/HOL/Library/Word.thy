@@ -7,7 +7,7 @@ header {* Binary Words *}
 
 theory Word
 imports Main
-files "word_setup.ML"
+uses "word_setup.ML"
 begin
 
 subsection {* Auxilary Lemmas *}

@@ -6,7 +6,7 @@
 
 header {* Strong normalization for simply-typed lambda calculus *}
 
-theory StrongNorm = Type + InductTermi:
+theory StrongNorm imports Type InductTermi begin
 
 text {*
 Formalization by Stefan Berghofer. Partly based on a paper proof by

@@ -6,7 +6,7 @@
 
 header{*Distributed Resource Management System: the Client*}
 
-theory Client = Rename + AllocBase:
+theory Client imports Rename AllocBase begin
 
 types
   tokbag = nat	   --{*tokbags could be multisets...or any ordered type?*}

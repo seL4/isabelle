@@ -1,5 +1,5 @@
 (*<*)
-theory AdvancedInd = Main:;
+theory AdvancedInd imports Main begin;
 (*>*)
 
 text{*\noindent

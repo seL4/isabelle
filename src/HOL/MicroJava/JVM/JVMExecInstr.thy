@@ -8,7 +8,7 @@
 header {* \isaheader{JVM Instruction Semantics} *}
 
 
-theory JVMExecInstr = JVMInstructions + JVMState:
+theory JVMExecInstr imports JVMInstructions JVMState begin
 
 
 consts

@@ -1,7 +1,7 @@
 
 header {* Semigroups *}
 
-theory Semigroups = Main:
+theory Semigroups imports Main begin
 
 text {*
   \medskip\noindent An axiomatic type class is simply a class of types

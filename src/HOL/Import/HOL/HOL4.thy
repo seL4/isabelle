@@ -3,6 +3,6 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4 = HOL4Vec + HOL4Word32 + HOL4Real:
+theory HOL4 imports HOL4Vec HOL4Word32 HOL4Real begin
 
 end

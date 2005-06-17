@@ -5,7 +5,7 @@
 
 header {* Multiple nested quotations and anti-quotations *}
 
-theory Multiquote = Main:
+theory Multiquote imports Main begin
 
 text {*
   Multiple nested quotations and anti-quotations -- basically a

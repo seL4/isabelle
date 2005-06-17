@@ -12,7 +12,7 @@ proofs presented by the Rubins.  The others are based on the Rubins' proofs,
 but slightly changed.
 *)
 
-theory AC_Equiv = Main: (*obviously not Main_ZFC*)
+theory AC_Equiv imports Main begin (*obviously not Main_ZFC*)
 
 constdefs
   

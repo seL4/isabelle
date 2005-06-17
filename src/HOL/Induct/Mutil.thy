@@ -6,7 +6,7 @@
 
 header {* The Mutilated Chess Board Problem *}
 
-theory Mutil = Main:
+theory Mutil imports Main begin
 
 text {*
   The Mutilated Chess Board Problem, formalized inductively.

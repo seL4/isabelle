@@ -6,7 +6,7 @@
 
 header {* \isaheader{Operational Evaluation (big step) Semantics} *}
 
-theory Eval = State + WellType:
+theory Eval imports State WellType begin
 
 
   -- "Auxiliary notions"

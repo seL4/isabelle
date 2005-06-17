@@ -5,7 +5,7 @@
     Logic Image: ZF
 *)
 
-theory Confluence = Reduction:
+theory Confluence imports Reduction begin
 
 constdefs
   confluence    :: "i=>o"

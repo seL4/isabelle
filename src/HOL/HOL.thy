@@ -7,7 +7,7 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-files ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("eqrule_HOL_data.ML")
+uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("eqrule_HOL_data.ML")
       ("~~/src/Provers/eqsubst.ML")
 begin
 

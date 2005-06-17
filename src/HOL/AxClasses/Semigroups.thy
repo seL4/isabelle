@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory Semigroups = Main:
+theory Semigroups imports Main begin
 
 consts
   times :: "'a => 'a => 'a"    (infixl "[*]" 70)

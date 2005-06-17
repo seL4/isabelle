@@ -4,7 +4,7 @@
     Copyright   2002 TUM
 *)
 
-theory HeapSyntaxAbort = HoareAbort + Heap:
+theory HeapSyntaxAbort imports HoareAbort Heap begin
 
 subsection "Field access and update"
 

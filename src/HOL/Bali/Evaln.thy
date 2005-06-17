@@ -6,7 +6,7 @@ header {* Operational evaluation (big-step) semantics of Java expressions and
           statements
 *}
 
-theory Evaln = TypeSafe:
+theory Evaln imports TypeSafe begin
 
 
 text {*

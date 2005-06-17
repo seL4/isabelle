@@ -6,7 +6,7 @@
 
 header {* The Chinese Remainder Theorem *}
 
-theory Chinese = IntPrimes:
+theory Chinese imports IntPrimes begin
 
 text {*
   The Chinese Remainder Theorem for an arbitrary finite number of

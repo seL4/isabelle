@@ -6,6 +6,6 @@
 Intuitionistic First-Order Logic.
 *)
 
-theory int = IFOL:
+theory int imports IFOL begin
 
 end

@@ -5,7 +5,7 @@
 
 header {* Arithmetic and boolean expressions *}
 
-theory ABexp = Main:
+theory ABexp imports Main begin
 
 datatype 'a aexp =
     IF "'a bexp"  "'a aexp"  "'a aexp"

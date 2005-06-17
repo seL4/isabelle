@@ -6,7 +6,7 @@
 
 header "Equivalence of Operational and Axiomatic Semantics"
 
-theory Equivalence = OpSem + AxSem:
+theory Equivalence imports OpSem AxSem begin
 
 subsection "Validity"
 

@@ -5,7 +5,7 @@
 
 header {*Absoluteness Properties for Recursive Datatypes*}
 
-theory Datatype_absolute = Formula + WF_absolute:
+theory Datatype_absolute imports Formula WF_absolute begin
 
 
 subsection{*The lfp of a continuous function can be expressed as a union*}

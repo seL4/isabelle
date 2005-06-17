@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Other Protocol-Independent Results*}
 
-theory Proto = Guard_Public:
+theory Proto imports Guard_Public begin
 
 subsection{*protocols*}
 

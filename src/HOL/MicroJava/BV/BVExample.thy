@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
-theory BVExample = JVMListExample + BVSpecTypeSafe + JVM:
+theory BVExample imports JVMListExample BVSpecTypeSafe JVM begin
 
 text {*
   This theory shows type correctness of the example program in section 

@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-theory Language = Main:
+theory Language imports Main begin
 
 consts
   Const :: i                    (* Abstract type of constants *)

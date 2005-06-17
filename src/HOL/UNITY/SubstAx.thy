@@ -8,7 +8,7 @@ Weak LeadsTo relation (restricted to the set of reachable states)
 
 header{*Weak Progress*}
 
-theory SubstAx = WFair + Constrains:
+theory SubstAx imports WFair Constrains begin
 
 constdefs
    Ensures :: "['a set, 'a set] => 'a program set"    (infixl "Ensures" 60)

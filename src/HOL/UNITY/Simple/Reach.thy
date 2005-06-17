@@ -7,7 +7,7 @@ Reachability in Directed Graphs.  From Chandy and Misra, section 6.4.
 	[this example took only four days!]
 *)
 
-theory Reach = UNITY_Main:
+theory Reach imports UNITY_Main begin
 
 typedecl vertex
 

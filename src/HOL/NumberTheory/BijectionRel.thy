@@ -6,7 +6,7 @@
 
 header {* Bijections between sets *}
 
-theory BijectionRel = Main:
+theory BijectionRel imports Main begin
 
 text {*
   Inductive definitions of bijections between two different sets and

@@ -8,7 +8,7 @@ Theory of Shared Keys (common to all symmetric-key protocols)
 Shared, long-term keys; initial states of agents
 *)
 
-theory Shared = Event:
+theory Shared imports Event begin
 
 consts
   shrK    :: "agent => key"  (*symmetric keys*);

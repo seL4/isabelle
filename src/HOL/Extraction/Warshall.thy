@@ -5,7 +5,7 @@
 
 header {* Warshall's algorithm *}
 
-theory Warshall = Main:
+theory Warshall imports Main begin
 
 text {*
   Derivation of Warshall's algorithm using program extraction,

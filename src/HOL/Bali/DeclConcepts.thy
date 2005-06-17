@@ -5,7 +5,7 @@
 header {* Advanced concepts on Java declarations like overriding, inheritance,
 dynamic method lookup*}
 
-theory DeclConcepts = TypeRel:
+theory DeclConcepts imports TypeRel begin
 
 section "access control (cf. 6.6), overriding and hiding (cf. 8.4.6.1)"
 

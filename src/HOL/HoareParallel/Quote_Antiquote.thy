@@ -1,7 +1,7 @@
 
 header {* \section{Concrete Syntax} *}
 
-theory Quote_Antiquote = Main:
+theory Quote_Antiquote imports Main begin
 
 syntax
   "_quote"     :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"                ("(\<guillemotleft>_\<guillemotright>)" [0] 1000)

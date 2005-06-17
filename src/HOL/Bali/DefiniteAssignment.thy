@@ -1,6 +1,6 @@
 header {* Definite Assignment *}
 
-theory DefiniteAssignment = WellType: 
+theory DefiniteAssignment imports WellType begin 
 
 text {* Definite Assignment Analysis (cf. 16)
 

@@ -2,7 +2,7 @@
 
 header{*Theory Main: Everything Except AC*}
 
-theory Main = List + IntDiv + CardinalArith:
+theory Main imports List IntDiv CardinalArith begin
 
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
   primrec isn't available into after Datatype.  The only theories defined

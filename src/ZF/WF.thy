@@ -17,7 +17,7 @@ a mess.
 
 header{*Well-Founded Recursion*}
 
-theory WF = Trancl:
+theory WF imports Trancl begin
 
 constdefs
   wf           :: "i=>o"

@@ -6,7 +6,7 @@
 
 header{*Intuitionistic First-Order Logic*}
 
-theory Intuitionistic = IFOL:
+theory Intuitionistic imports IFOL begin
 
 (*
 Single-step ML commands:

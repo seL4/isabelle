@@ -13,7 +13,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
 
 header{*A Family of Similar Counters: Version with Compatibility*}
 
-theory Counterc =  UNITY_Main:
+theory Counterc imports  UNITY_Main begin
 
 typedecl state
 arities state :: type

@@ -6,7 +6,7 @@
 header {*Absoluteness for Order Types, Rank Functions and Well-Founded 
          Relations*}
 
-theory Rank = WF_absolute:
+theory Rank imports WF_absolute begin
 
 subsection {*Order Types: A Direct Construction by Replacement*}
 

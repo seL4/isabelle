@@ -1,7 +1,7 @@
 
 header {* \section{The Single Mutator Case} *}
 
-theory Gar_Coll = Graph + OG_Syntax:
+theory Gar_Coll imports Graph OG_Syntax begin
 
 declare psubsetE [rule del]
 

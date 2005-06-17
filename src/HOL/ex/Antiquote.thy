@@ -5,7 +5,7 @@
 
 header {* Antiquotations *}
 
-theory Antiquote = Main:
+theory Antiquote imports Main begin
 
 text {*
   A simple example on quote / antiquote in higher-order abstract

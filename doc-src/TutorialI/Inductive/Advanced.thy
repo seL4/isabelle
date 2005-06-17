@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Advanced = Even:
+theory Advanced imports Even begin
 
 
 datatype 'f gterm = Apply 'f "'f gterm list"

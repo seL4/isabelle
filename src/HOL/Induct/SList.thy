@@ -24,7 +24,7 @@ datatype 'a m = Node 'a * ('a m) list
 Tidied by lcp.  Still needs removal of nat_rec.
 *)
 
-theory SList = NatArith + Sexp + Hilbert_Choice:
+theory SList imports NatArith Sexp Hilbert_Choice begin
 
 (*Hilbert_Choice is needed for the function "inv"*)
 

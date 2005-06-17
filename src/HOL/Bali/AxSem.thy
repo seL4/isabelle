@@ -7,7 +7,7 @@ header {* Axiomatic semantics of Java expressions and statements
           (see also Eval.thy)
         *}
 
-theory AxSem = Evaln + TypeSafe:
+theory AxSem imports Evaln TypeSafe begin
 
 text {*
 design issues:

@@ -3,7 +3,7 @@
     Author:     Steven Obua
 *)
 
-theory MatrixGeneral = Main:
+theory MatrixGeneral imports Main begin
 
 types 'a infmatrix = "[nat, nat] \<Rightarrow> 'a"
 

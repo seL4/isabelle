@@ -8,7 +8,7 @@ Composition of homomorphisms, Pastre's examples, ...
 
 header{*Miscellaneous ZF Examples*}
 
-theory misc = Main:
+theory misc imports Main begin
 
 subsection{*Various Small Problems*}
 

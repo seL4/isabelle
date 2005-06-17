@@ -11,8 +11,8 @@ Datatype of events; function "spies"; freshness
     stores are visible to him
 *)
 
-theory Event = Message
-files ("Event_lemmas.ML"):
+theory Event imports Message
+uses ("Event_lemmas.ML") begin
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"

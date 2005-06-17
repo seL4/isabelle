@@ -20,7 +20,7 @@ Moreover we don't need to prove AC13(1) ==> AC1 and AC11 ==> AC14 as
 Rubin & Rubin do.
 *)
 
-theory AC15_WO6 = HH + Cardinal_aux:
+theory AC15_WO6 imports HH Cardinal_aux begin
 
 
 (* ********************************************************************** *)

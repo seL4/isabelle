@@ -5,7 +5,7 @@
 
 header {*Special quantifiers*}
 
-theory OrdQuant = Ordinal:
+theory OrdQuant imports Ordinal begin
 
 subsection {*Quantifiers and union operator for ordinals*}
 

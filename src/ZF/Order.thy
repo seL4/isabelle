@@ -9,7 +9,7 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
 
 header{*Partial and Total Orderings: Basic Definitions and Properties*}
 
-theory Order = WF + Perm:
+theory Order imports WF Perm begin
 
 constdefs
 

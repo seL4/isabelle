@@ -7,7 +7,7 @@
 
 header{*Quotienting a Free Algebra Involving Nested Recursion*}
 
-theory QuoNestedDataType = Main:
+theory QuoNestedDataType imports Main begin
 
 subsection{*Defining the Free Algebra*}
 

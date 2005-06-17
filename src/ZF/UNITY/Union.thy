@@ -11,7 +11,7 @@ Theory ported form HOL..
 
 *)
 
-theory Union = SubstAx + FP:
+theory Union imports SubstAx FP begin
 
 constdefs
 

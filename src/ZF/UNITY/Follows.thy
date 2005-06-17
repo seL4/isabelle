@@ -8,7 +8,7 @@ Theory ported from HOL.
 
 header{*The "Follows" relation of Charpentier and Sivilotte*}
 
-theory Follows = SubstAx + Increasing:
+theory Follows imports SubstAx Increasing begin
 
 constdefs
   Follows :: "[i, i, i=>i, i=>i] => i"

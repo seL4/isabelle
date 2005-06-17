@@ -5,7 +5,7 @@
 
 header {*Closed Unbounded Classes and Normal Functions*}
 
-theory Normal = Main:
+theory Normal imports Main begin
 
 text{*
 One source is the book

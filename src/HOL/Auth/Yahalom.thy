@@ -6,7 +6,7 @@
 
 header{*The Yahalom Protocol*}
 
-theory Yahalom = Public:
+theory Yahalom imports Public begin
 
 text{*From page 257 of
   Burrows, Abadi and Needham (1989).  A Logic of Authentication.

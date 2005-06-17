@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Relations = Main:
+theory Relations imports Main begin
 
 ML "Pretty.setmargin 64"
 

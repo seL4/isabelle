@@ -6,7 +6,7 @@
 
 header{*The Divides Relation and Euclid's algorithm for the GCD*}
 
-theory Primes = Main:
+theory Primes imports Main begin
 constdefs
   divides :: "[i,i]=>o"              (infixl "dvd" 50) 
     "m dvd n == m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"

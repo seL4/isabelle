@@ -6,7 +6,7 @@
 
 header {* \isaheader{Type Safety Proof} *}
 
-theory JTypeSafe = Eval + Conform:
+theory JTypeSafe imports Eval Conform begin
 
 declare split_beta [simp]
 

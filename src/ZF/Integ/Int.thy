@@ -7,7 +7,7 @@
 
 header{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
 
-theory Int = EquivClass + ArithSimp:
+theory Int imports EquivClass ArithSimp begin
 
 constdefs
   intrel :: i

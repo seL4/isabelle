@@ -6,7 +6,7 @@
 
 header {* Infinitely branching trees *}
 
-theory Tree = Main:
+theory Tree imports Main begin
 
 datatype 'a tree =
     Atom 'a

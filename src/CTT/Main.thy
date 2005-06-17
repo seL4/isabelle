@@ -1,6 +1,6 @@
 
 (*theory Main includes everything*)
 
-theory Main = CTT + Arith + Bool:
+theory Main imports CTT Arith Bool begin
 
 end

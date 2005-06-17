@@ -8,7 +8,7 @@ The error type
 
 header {* \isaheader{The Error Type} *}
 
-theory Err = Semilat:
+theory Err imports Semilat begin
 
 datatype 'a err = Err | OK 'a
 

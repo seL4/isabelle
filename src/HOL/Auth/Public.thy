@@ -8,7 +8,7 @@ Theory of Public Keys (common to all public-key protocols)
 Private and public keys; initial states of agents
 *)
 
-theory Public = Event:
+theory Public imports Event begin
 
 lemma invKey_K: "K \<in> symKeys ==> invKey K = K"
 by (simp add: symKeys_def)

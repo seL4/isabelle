@@ -8,7 +8,7 @@ More about options
 
 header {* \isaheader{More about Options} *}
 
-theory Opt = Err:
+theory Opt imports Err begin
 
 constdefs
  le :: "'a ord \<Rightarrow> 'a option ord"

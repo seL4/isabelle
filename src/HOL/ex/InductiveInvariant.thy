@@ -1,4 +1,4 @@
-theory InductiveInvariant = Main:
+theory InductiveInvariant imports Main begin
 
 (** Authors: Sava Krsti\'{c} and John Matthews **)
 (**    Date: Sep 12, 2003                      **)

@@ -16,7 +16,7 @@ Predicate Transformers.  From
 
 header{*Predicate Transformers*}
 
-theory Transformers = Comp:
+theory Transformers imports Comp begin
 
 subsection{*Defining the Predicate Transformers @{term wp},
    @{term awp} and  @{term wens}*}

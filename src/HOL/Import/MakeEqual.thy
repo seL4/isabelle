@@ -3,8 +3,8 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory MakeEqual = Main
-  files "shuffler.ML":
+theory MakeEqual imports Main
+  uses "shuffler.ML" begin
 
 setup Shuffler.setup
 

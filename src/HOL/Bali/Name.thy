@@ -4,7 +4,7 @@
 *)
 header {* Java names *}
 
-theory Name = Basis:
+theory Name imports Basis begin
 
 (* cf. 6.5 *) 
 typedecl tnam	--{* ordinary type name, i.e. class or interface name *}

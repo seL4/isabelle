@@ -5,7 +5,7 @@
 Some examples for Presburger Arithmetic
 *)
 
-theory PresburgerEx = Main:
+theory PresburgerEx imports Main begin
 
 theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
   by presburger

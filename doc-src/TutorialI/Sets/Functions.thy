@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Functions = Main:
+theory Functions imports Main begin
 
 ML "Pretty.setmargin 64"
 

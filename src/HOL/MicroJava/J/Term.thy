@@ -6,7 +6,7 @@
 
 header {* \isaheader{Expressions and Statements} *}
 
-theory Term = Value:
+theory Term imports Value begin
 
 datatype binop = Eq | Add    -- "function codes for binary operation"
 

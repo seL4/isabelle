@@ -7,7 +7,7 @@ header {* TFL: recursive function definitions *}
 
 theory Recdef
 imports Wellfounded_Relations Datatype
-files
+uses
   ("../TFL/casesplit.ML")
   ("../TFL/utils.ML")
   ("../TFL/usyntax.ML")

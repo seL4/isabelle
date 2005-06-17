@@ -9,7 +9,7 @@ confluence of beta.
 
 header {* Parallel reduction and a complete developments *}
 
-theory ParRed = Lambda + Commutation:
+theory ParRed imports Lambda Commutation begin
 
 
 subsection {* Parallel reduction *}

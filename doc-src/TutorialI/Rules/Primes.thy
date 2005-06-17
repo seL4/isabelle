@@ -3,7 +3,7 @@
 
 (*Euclid's algorithm 
   This material now appears AFTER that of Forward.thy *)
-theory Primes = Main:
+theory Primes imports Main begin
 consts
   gcd     :: "nat*nat \<Rightarrow> nat"
 

@@ -7,8 +7,8 @@
 
 header {* The algebraic hierarchy of rings as axiomatic classes *}
 
-theory Ring = Main
-files ("order.ML"):
+theory Ring imports Main
+uses ("order.ML") begin
 
 section {* Constants *}
 

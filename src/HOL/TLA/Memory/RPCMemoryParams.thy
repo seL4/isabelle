@@ -9,7 +9,7 @@
     Basic declarations for the RPC-memory example.
 *)
 
-theory RPCMemoryParams = Main:
+theory RPCMemoryParams imports Main begin
 
 types
   bit = "bool"   (* Signal wires for the procedure interface.

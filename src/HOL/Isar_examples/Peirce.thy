@@ -5,7 +5,7 @@
 
 header {* Peirce's Law *}
 
-theory Peirce = Main:
+theory Peirce imports Main begin
 
 text {*
  We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.  This is

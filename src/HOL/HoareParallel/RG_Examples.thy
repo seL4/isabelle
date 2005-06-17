@@ -1,6 +1,6 @@
 header {* \section{Examples} *}
 
-theory RG_Examples = RG_Syntax:
+theory RG_Examples imports RG_Syntax begin
 
 lemmas definitions [simp]= stable_def Pre_def Rely_def Guar_def Post_def Com_def 
 

@@ -5,7 +5,7 @@
 
 header{*Purchase Phase of SET*}
 
-theory Purchase = PublicSET:
+theory Purchase imports PublicSET begin
 
 text{*
 Note: nonces seem to consist of 20 bytes.  That includes both freshness

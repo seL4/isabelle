@@ -7,7 +7,7 @@ header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Ssum One Up Fix
-files ("fixrec_package.ML")
+uses ("fixrec_package.ML")
 begin
 
 subsection {* Maybe monad type *}

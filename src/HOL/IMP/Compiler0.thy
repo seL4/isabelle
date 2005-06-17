@@ -10,7 +10,7 @@ development was started. See Machines.thy and Compiler.thy.
 
 header "A Simple Compiler"
 
-theory Compiler0 = Natural:
+theory Compiler0 imports Natural begin
 
 subsection "An abstract, simplistic machine"
 

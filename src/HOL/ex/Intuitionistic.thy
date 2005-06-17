@@ -8,7 +8,7 @@ Higher-Order Logic: Intuitionistic predicate calculus problems
 Taken from FOL/ex/int.ML
 *)
 
-theory Intuitionistic = Main:
+theory Intuitionistic imports Main begin
 
 
 (*Metatheorem (for PROPOSITIONAL formulae...):

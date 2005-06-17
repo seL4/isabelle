@@ -9,7 +9,7 @@ header{*Arithmetic with simplification*}
 
 theory ArithSimp 
 imports Arith
-files "~~/src/Provers/Arith/cancel_numerals.ML"
+uses "~~/src/Provers/Arith/cancel_numerals.ML"
       "~~/src/Provers/Arith/combine_numerals.ML"
       "arith_data.ML"
 

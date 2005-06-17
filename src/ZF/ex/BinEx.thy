@@ -6,7 +6,7 @@
 Examples of performing binary arithmetic by simplification
 *)
 
-theory BinEx = Main:
+theory BinEx imports Main begin
 (*All runtimes below are on a 300MHz Pentium*)
 
 lemma "#13  $+  #19 = #32"

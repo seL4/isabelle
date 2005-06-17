@@ -8,7 +8,7 @@ From Misra, "A Logic for Concurrent Programming", 1994
 
 header{*Fixed Point of a Program*}
 
-theory FP = UNITY:
+theory FP imports UNITY begin
 
 constdefs
 

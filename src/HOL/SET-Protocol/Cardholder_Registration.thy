@@ -6,7 +6,7 @@
 
 header{*The SET Cardholder Registration Protocol*}
 
-theory Cardholder_Registration = PublicSET:
+theory Cardholder_Registration imports PublicSET begin
 
 text{*Note: nonces seem to consist of 20 bytes.  That includes both freshness
 challenges (Chall-EE, etc.) and important secrets (CardSecret, PANsecret)

@@ -6,7 +6,7 @@
 
 *)
 
-theory Residuals = Substitution:
+theory Residuals imports Substitution begin
 
 consts
   Sres          :: "i"

@@ -5,7 +5,7 @@
 
 header {* Ordinals *}
 
-theory Ordinals = Main:
+theory Ordinals imports Main begin
 
 text {*
   Some basic definitions of ordinal numbers.  Draws an Agda

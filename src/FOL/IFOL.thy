@@ -7,7 +7,7 @@ header {* Intuitionistic first-order logic *}
 
 theory IFOL
 imports Pure
-files ("IFOL_lemmas.ML") ("fologic.ML") ("hypsubstdata.ML") ("intprover.ML")
+uses ("IFOL_lemmas.ML") ("fologic.ML") ("hypsubstdata.ML") ("intprover.ML")
 begin
 
 

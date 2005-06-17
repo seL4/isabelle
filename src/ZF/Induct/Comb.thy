@@ -6,7 +6,7 @@
 
 header {* Combinatory Logic example: the Church-Rosser Theorem *}
 
-theory Comb = Main:
+theory Comb imports Main begin
 
 text {*
   Curiously, combinators do not include free variables.

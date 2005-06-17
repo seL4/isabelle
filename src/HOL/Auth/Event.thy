@@ -11,7 +11,7 @@ Datatype of events; function "spies"; freshness
 
 header{*Theory of Events for Security Protocols*}
 
-theory Event = Message:
+theory Event imports Message begin
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"

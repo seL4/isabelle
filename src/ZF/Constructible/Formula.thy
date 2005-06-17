@@ -5,7 +5,7 @@
 
 header {* First-Order Formulas and the Definition of the Class L *}
 
-theory Formula = Main:
+theory Formula imports Main begin
 
 subsection{*Internalized formulas of FOL*}
 

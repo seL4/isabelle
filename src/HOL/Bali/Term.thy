@@ -5,7 +5,7 @@
 
 header {* Java expressions and statements *}
 
-theory Term = Value + Table:
+theory Term imports Value Table begin
 
 text {*
 design issues:

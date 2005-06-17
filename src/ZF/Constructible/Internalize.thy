@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-theory Internalize = L_axioms + Datatype_absolute:
+theory Internalize imports L_axioms Datatype_absolute begin
 
 subsection{*Internalized Forms of Data Structuring Operators*}
 

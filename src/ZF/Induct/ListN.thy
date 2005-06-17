@@ -6,7 +6,7 @@
 
 header {* Lists of n elements *}
 
-theory ListN = Main:
+theory ListN imports Main begin
 
 text {*
   Inductive definition of lists of @{text n} elements; see

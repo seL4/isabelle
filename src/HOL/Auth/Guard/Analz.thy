@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*Decomposition of Analz into two parts*}
 
-theory Analz = Extensions:
+theory Analz imports Extensions begin
 
 text{*decomposition of @{term analz} into two parts: 
       @{term pparts} (for pairs) and analz of @{term kparts}*}

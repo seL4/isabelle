@@ -6,7 +6,7 @@
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
-theory Mutex = UNITY_Main:
+theory Mutex imports UNITY_Main begin
 
 record state =
   p :: bool

@@ -8,7 +8,7 @@ Products as semilattices
 
 header {* \isaheader{Products as Semilattices} *}
 
-theory Product = Err:
+theory Product imports Err begin
 
 constdefs
  le :: "'a ord \<Rightarrow> 'b ord \<Rightarrow> ('a * 'b) ord"

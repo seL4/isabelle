@@ -9,8 +9,8 @@ following Mike Gordon) would suffice. Maybe the datatype com comes in useful
 later.
 *)
 
-theory Hoare  = Main
-files ("hoare.ML"):
+theory Hoare  imports Main
+uses ("hoare.ML") begin
 
 types
     'a bexp = "'a set"

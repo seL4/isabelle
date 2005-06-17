@@ -1,5 +1,5 @@
 (* ID:         $Id$ *)
-theory Basic = Main:
+theory Basic imports Main begin
 
 lemma conj_rule: "\<lbrakk> P; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P)"
 apply (rule conjI)

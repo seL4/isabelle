@@ -6,7 +6,7 @@
 
 header {* Datatype definition n-ary branching trees *}
 
-theory Ntree = Main:
+theory Ntree imports Main begin
 
 text {*
   Demonstrates a simple use of function space in a datatype

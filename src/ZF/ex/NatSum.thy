@@ -17,7 +17,7 @@ Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
 *)
 
 
-theory NatSum = Main:
+theory NatSum imports Main begin
 
 consts sum :: "[i=>i, i] => i"
 primrec 

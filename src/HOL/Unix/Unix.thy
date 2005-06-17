@@ -5,7 +5,7 @@
 
 header {* Unix file-systems \label{sec:unix-file-system} *}
 
-theory Unix = Nested_Environment + List_Prefix:
+theory Unix imports Nested_Environment List_Prefix begin
 
 text {*
   We give a simple mathematical model of the basic structures

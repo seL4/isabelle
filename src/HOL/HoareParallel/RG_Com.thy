@@ -4,7 +4,7 @@ header {* \chapter{The Rely-Guarantee Method}
 \section {Abstract Syntax}
 *}
 
-theory RG_Com = Main:
+theory RG_Com imports Main begin
 
 text {* Semantics of assertions and boolean expressions (bexp) as sets
 of states.  Syntax of commands @{text com} and parallel commands

@@ -6,7 +6,7 @@ header {* Java values *}
 
 
 
-theory Value = Type:
+theory Value imports Type begin
 
 typedecl loc            --{* locations, i.e. abstract references on objects *}
 arities	 loc :: "type"

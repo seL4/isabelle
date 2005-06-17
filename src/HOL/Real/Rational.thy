@@ -7,7 +7,7 @@ header {* Rational numbers *}
 
 theory Rational
 imports Quotient
-files ("rat_arith.ML")
+uses ("rat_arith.ML")
 begin
 
 subsection {* Fractions *}

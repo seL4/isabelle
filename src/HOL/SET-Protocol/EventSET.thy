@@ -5,7 +5,7 @@
 
 header{*Theory of Events for SET*}
 
-theory EventSET = MessageSET:
+theory EventSET imports MessageSET begin
 
 text{*The Root Certification Authority*}
 syntax        RCA :: agent

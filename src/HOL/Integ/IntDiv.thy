@@ -10,7 +10,7 @@ header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
 imports IntArith Recdef
-files ("IntDiv_setup.ML")
+uses ("IntDiv_setup.ML")
 begin
 
 declare zless_nat_conj [simp]

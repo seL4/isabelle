@@ -10,7 +10,7 @@ rediscovered by Matthes and Joachimski.
 
 header {* Inductive characterization of terminating lambda terms *}
 
-theory InductTermi = ListBeta:
+theory InductTermi imports ListBeta begin
 
 subsection {* Terminating lambda terms *}
 

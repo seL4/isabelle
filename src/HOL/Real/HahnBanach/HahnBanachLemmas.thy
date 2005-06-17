@@ -1,4 +1,4 @@
 (*<*)
-theory HahnBanachLemmas = HahnBanachSupLemmas + HahnBanachExtLemmas:
+theory HahnBanachLemmas imports HahnBanachSupLemmas HahnBanachExtLemmas begin
 end
 (*>*)

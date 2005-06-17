@@ -1,4 +1,4 @@
-theory Isar = Sets:
+theory Isar imports Sets begin
 
 section{*A Taste of Structured Proofs in Isar*}
 

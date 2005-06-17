@@ -3,7 +3,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Base = "../HOL4Compat" + "../HOL4Syntax":;
+theory GenHOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin;
 
 import_segment "hol4";
 

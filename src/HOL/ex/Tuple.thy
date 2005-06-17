@@ -10,7 +10,7 @@ tuples in HOL, but it breaks many existing theories!
 
 header {* Properly nested products *}
 
-theory Tuple = HOL:
+theory Tuple imports HOL begin
 
 
 subsection {* Abstract syntax *}
