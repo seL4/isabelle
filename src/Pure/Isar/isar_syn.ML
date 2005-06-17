@@ -97,7 +97,7 @@ val defaultsortP =
 val typedeclP =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
-      Toplevel.theory (PureThy.add_typedecls [(a, args, mx)])));
+      Toplevel.theory (Theory.add_typedecls [(a, args, mx)])));
 
 val typeabbrP =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
@@ -221,11 +221,11 @@ val declareP =
 
 val globalP =
   OuterSyntax.command "global" "disable prefixing of theory name" K.thy_decl
-    (Scan.succeed (Toplevel.theory PureThy.global_path));
+    (Scan.succeed (Toplevel.theory Sign.root_path));
 
 val localP =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
-    (Scan.succeed (Toplevel.theory PureThy.local_path));
+    (Scan.succeed (Toplevel.theory Sign.local_path));
 
 val hideP =
   OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
