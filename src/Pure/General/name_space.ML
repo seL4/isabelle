@@ -120,9 +120,8 @@ fun lookup (NameSpace tab) xname =
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (hidden name', true));
 
-fun valid_accesses (NameSpace tab) name =
-  ([], tab) |> Symtab.foldl (fn (accs, (xname, (names, _))) =>
-    if null names orelse hd names <> name then accs else xname :: accs);
+fun valid_accesses (NameSpace tab) name = Symtab.fold (fn (xname, (names, _)) =>
+  if not (null names) andalso hd names = name then cons xname else I) tab [];
 
 
 (* intern and extern *)
@@ -178,10 +177,9 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace tab1, space2) = (space2, tab1) |> Symtab.foldl
-  (fn (space, (xname, (names1, names1'))) =>
-    map_space (fn (names2, names2') =>
-      (merge_lists' names2 names1, merge_lists' names2' names1')) xname space);
+fun merge (NameSpace tab1, space2) = Symtab.fold (fn (xname, (names1, names1')) =>
+  xname |> map_space (fn (names2, names2') =>
+    (merge_lists' names2 names1, merge_lists' names2' names1'))) tab1 space2;
 
 
 (* dest *)

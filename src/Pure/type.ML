@@ -106,10 +106,8 @@ fun make_tsig (classes, default, types, arities, log_types, witness) =
 
 fun build_tsig (classes, default, types, arities) =
   let
-    fun add_log_type (ts, (c, (LogicalType n, _))) = (c, n) :: ts
-      | add_log_type (ts, _) = ts;
     val log_types =
-      Symtab.foldl add_log_type ([], #2 types)
+      Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (#2 types) []
       |> Library.sort (Library.int_ord o pairself #2) |> map #1;
     val witness =
       (case Sorts.witness_sorts (#2 classes, arities) log_types [] [Graph.keys (#2 classes)] of
@@ -440,8 +438,8 @@ fun insert_arities pp classes (t, ars) arities =
     |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
   in Symtab.update ((t, ars'), arities) end;
 
-fun insert_table pp classes = Symtab.foldl (fn (arities, (t, ars)) =>
-  insert_arities pp classes (t, map (apsnd (map (Sorts.norm_sort classes))) ars) arities);
+fun insert_table pp classes = Symtab.fold (fn (t, ars) =>
+  insert_arities pp classes (t, map (apsnd (map (Sorts.norm_sort classes))) ars));
 
 in
 
@@ -462,10 +460,13 @@ fun add_arities pp decls tsig = tsig |> map_tsig (fn (classes, default, types, a
   in (classes, default, types, arities') end);
 
 fun rebuild_arities pp classes arities =
-  insert_table pp classes (Symtab.empty, arities);
+  Symtab.empty
+  |> insert_table pp classes arities;
 
 fun merge_arities pp classes (arities1, arities2) =
-  insert_table pp classes (insert_table pp classes (Symtab.empty, arities1), arities2);
+  Symtab.empty
+  |> insert_table pp classes arities1
+  |> insert_table pp classes arities2;
 
 end;
 
