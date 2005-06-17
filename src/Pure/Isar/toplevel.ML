@@ -24,7 +24,7 @@ sig
   val node_of: state -> node
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val theory_of: state -> theory
-  val sign_of: state -> Sign.sg
+  val sign_of: state -> theory    (*obsolete*)
   val context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   val enter_forward_proof: state -> Proof.state
@@ -97,7 +97,7 @@ fun str_of_node (Theory _) = "in theory mode"
   | str_of_node _ = "in proof mode";
 
 fun pretty_context thy = [Pretty.block
-  [Pretty.str "theory", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
+  [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
     Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]];
 
 fun pretty_prf prf = Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf);
@@ -169,8 +169,8 @@ fun node_case f g state =
   | Proof prf => g (ProofHistory.current prf));
 
 val theory_of = node_case I Proof.theory_of;
+val sign_of = theory_of;
 val context_of = node_case ProofContext.init Proof.context_of;
-val sign_of = Theory.sign_of o theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
 val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
@@ -185,15 +185,15 @@ exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 
 
-(* recovery from stale signatures *)
+(* recovery from stale theories *)
 
 (*note: proof commands should be non-destructive!*)
 
 local
 
-fun is_stale state = Sign.is_stale (sign_of state) handle UNDEF => false;
+fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
-fun checkpoint_node true (Theory thy) = Theory (PureThy.checkpoint thy)
+fun checkpoint_node true (Theory thy) = Theory (Theory.checkpoint thy)
   | checkpoint_node _ node = node;
 
 fun copy_node true (Theory thy) = Theory (Theory.copy thy)
@@ -203,7 +203,7 @@ fun interruptible f x =
   let val y = ref (NONE: node History.T option);
   in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
 
-val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
+val rollback = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
 
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
@@ -229,16 +229,16 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
 
 fun check_stale state =
   if not (is_stale state) then ()
-  else warning "Stale signature encountered!";
+  else warning "Stale theory encountered!";
 
 end;
 
 
 (* primitive transitions *)
 
-(*Important note: recovery from stale signatures is provided only for
+(*Important note: recovery from stale theories is provided only for
   theory-level operations via MapCurrent and AppCurrent.  Other node
-  or state operations should not touch signatures at all.
+  or state operations should not touch theories at all.
 
   Also note that interrupts are enabled for Keep, MapCurrent, and
   AppCurrent only.*)
@@ -428,7 +428,7 @@ local
 
 fun with_context f xs =
   (case Context.get_context () of NONE => []
-  | SOME thy => map (f (Theory.sign_of thy)) xs);
+  | SOME thy => map (f thy) xs);
 
 fun raised name [] = "exception " ^ name ^ " raised"
   | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
@@ -436,13 +436,13 @@ fun raised name [] = "exception " ^ name ^ " raised"
 
 fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ RESTART = "Restart."
-  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg _ Interrupt = "Interrupt."
   | exn_msg _ ERROR = "ERROR."
   | exn_msg _ (ERROR_MESSAGE msg) = msg
+  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
+  | exn_msg detailed (Context.DATA_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
-  | exn_msg true (THEORY (msg, thys)) =
-     raised "THEORY" (msg :: map (Pretty.string_of o Display.pretty_theory) thys)
+  | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
   | exn_msg _ (ProofContext.CONTEXT (msg, _)) = msg
   | exn_msg _ (Proof.STATE (msg, _)) = msg
   | exn_msg _ (ProofHistory.FAIL msg) = msg
