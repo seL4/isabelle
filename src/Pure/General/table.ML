@@ -22,6 +22,8 @@ sig
   val empty: 'a table
   val is_empty: 'a table -> bool
   val map: ('a -> 'b) -> 'a table -> 'b table
+  val map': (key -> 'a -> 'b) -> 'a table -> 'b table
+  val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val foldl: ('a * (key * 'b) -> 'a) -> 'a * 'b table -> 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
@@ -35,7 +37,8 @@ sig
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
   val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUPS*)
-  val join: ('a * 'a -> 'a option) -> 'a table * 'a table -> 'a table  (*exception DUPS*)
+  val join: (key -> 'a * 'a -> 'a option) ->
+    'a table * 'a table -> 'a table                                    (*exception DUPS*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
@@ -81,23 +84,24 @@ fun is_empty Empty = true
 
 fun map_table _ Empty = Empty
   | map_table f (Branch2 (left, (k, x), right)) =
-      Branch2 (map_table f left, (k, f x), map_table f right)
+      Branch2 (map_table f left, (k, f k x), map_table f right)
   | map_table f (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-      Branch3 (map_table f left, (k1, f x1), map_table f mid, (k2, f x2), map_table f right);
+      Branch3 (map_table f left, (k1, f k1 x1),
+        map_table f mid, (k2, f k2 x2), map_table f right);
 
-fun foldl_table _ (x, Empty) = x
-  | foldl_table f (x, Branch2 (left, p, right)) =
-      foldl_table f (f (foldl_table f (x, left), p), right)
-  | foldl_table f (x, Branch3 (left, p1, mid, p2, right)) =
-      foldl_table f (f (foldl_table f (f (foldl_table f (x, left), p1), mid), p2), right);
+fun fold_table f Empty x = x
+  | fold_table f (Branch2 (left, p, right)) x =
+      fold_table f right (f p (fold_table f left x))
+  | fold_table f (Branch3 (left, p1, mid, p2, right)) x =
+      fold_table f right (f p2 (fold_table f mid (f p1 (fold_table f left x))));
 
-fun dest tab = rev (foldl_table (fn (rev_ps, p) => p :: rev_ps) ([], tab));
-fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
+fun dest tab = rev (fold_table cons tab []);
+fun keys tab = rev (fold_table (cons o #1) tab []);
 
 local exception TRUE in
 
 fun exists pred tab =
-  (foldl_table (fn ((), e) => if pred e then raise TRUE else ()) ((), tab); false)
+  (fold_table (fn p => fn () => if pred p then raise TRUE else ()) tab (); false)
     handle TRUE => true;
 
 fun forall pred = not o exists (not o pred);
@@ -303,20 +307,20 @@ fun remove eq (key, x) tab =
 
 fun join f (table1, table2) =
   let
-    fun add ((tab, dups), (key, x)) =
+    fun add (key, x) (tab, dups) =
       (case lookup (tab, key) of
         NONE => (update ((key, x), tab), dups)
       | SOME y =>
-          (case f (y, x) of
+          (case f key (y, x) of
             SOME z => (update ((key, z), tab), dups)
           | NONE => (tab, key :: dups)));
   in
-    (case foldl_table add ((table1, []), table2) of
+    (case fold_table add table2 (table1, []) of
       (table', []) => table'
     | (_, dups) => raise DUPS (rev dups))
   end;
 
-fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
+fun merge eq tabs = join (fn _ => fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 
 
 (* tables with multiple entries per key *)
@@ -331,13 +335,15 @@ fun remove_multi eq (key, x) tab =
 
 fun make_multi args = foldr update_multi empty args;
 fun dest_multi tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
-fun merge_multi eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists eq xs xs')) tabs;
-fun merge_multi' eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists' eq xs xs')) tabs;
+fun merge_multi eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists eq xs xs'));
+fun merge_multi' eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists' eq xs xs'));
 
 
 (*final declarations of this structure!*)
-val map = map_table;
-val foldl = foldl_table;
+fun map f = map_table (K f);
+val map' = map_table;
+val fold = fold_table;
+fun foldl f (x, tab) = fold (fn p => fn x' => f (x', p)) tab x;
 
 end;
 
