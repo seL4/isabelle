@@ -171,7 +171,7 @@ fun print_exn e =
 (* Compatibility. *)
 
 fun mk_syn thy c =
-  if Syntax.is_identifier c andalso not (Syntax.is_keyword (Theory.syn_of thy) c) then NoSyn
+  if Syntax.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
   else Syntax.literal c
 
 fun quotename c =
@@ -568,8 +568,7 @@ fun get_proof_dir (thyname:string) thy =
 	    case get_segment2 thyname thy of
 		SOME seg => seg
 	      | NONE => get_import_segment thy
-	val defpath = [OS.Path.joinDirFile {dir=getenv "ISABELLE_HOME_USER",file="proofs"}]
-	val path = space_explode ":" (getenv "PROOF_DIRS") @ defpath
+	val path = space_explode ":" (getenv "HOL4_PROOFS")
 	fun find [] = NONE
 	  | find (p::ps) =
 	    (let
@@ -1208,10 +1207,10 @@ fun rewrite_hol4_term t thy =
     let
 	val sg = sign_of thy
 
-	val hol4rews1 = map (transfer_sg sg) (HOL4Rewrites.get thy)
+	val hol4rews1 = map (Thm.transfer sg) (HOL4Rewrites.get thy)
 	val hol4ss = empty_ss setmksimps single addsimps hol4rews1
     in
-	transfer_sg sg (Simplifier.full_rewrite hol4ss (cterm_of sg t))
+	Thm.transfer sg (Simplifier.full_rewrite hol4ss (cterm_of sg t))
     end
 
 
@@ -2057,7 +2056,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 
 	    val sg = sign_of thy4
 	    val rew = rewrite_hol4_term (concl_of td_th) thy4
-	    val th  = equal_elim rew (transfer_sg sg td_th)
+	    val th  = equal_elim rew (Thm.transfer sg td_th)
 	    val c   = case HOLogic.dest_Trueprop (prop_of th) of
 			  Const("Ex",exT) $ P =>
 			  let
