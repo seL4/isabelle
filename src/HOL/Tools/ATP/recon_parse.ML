@@ -135,8 +135,20 @@ val proofstring =
 \\
 \--------------------------SPASS-STOP------------------------------"
 
-
 fun extract_proof s
+      = if cut_exists "Here is a proof with" s then
+          (kill_lines 0
+           o snd o cut_after ":"
+           o snd o cut_after "Here is a proof with"
+           o fst o cut_after " ||  -> .") s
+        else if cut_exists "%================== Proof: ======================" s then
+          (kill_lines 0
+           o snd o cut_after "%================== Proof: ======================"
+           o fst o cut_before "==============  End of proof. ==================") s
+        else
+          raise SPASSError "Couldn't find a proof."
+
+(*fun extract_proof s
       = if cut_exists "Here is a proof with" s then
           (kill_lines 0
            o snd o cut_after ":"
@@ -144,7 +156,7 @@ fun extract_proof s
            o fst o cut_after " ||  -> .") s
         else
           raise SPASSError "Couldn't find a proof."
-
+*)
 
 
 fun several p = many (some p)

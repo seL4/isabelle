@@ -28,8 +28,9 @@ exception Reflex_equal;
 
 datatype Side = Left |Right
 
- datatype Proofstep = ExtraAxiom
-                     |OrigAxiom
+ datatype Proofstep =  ExtraAxiom
+                     | OrigAxiom
+  		     | VampInput 
                      | Axiom
                      | Binary of (int * int) * (int * int)   (* (clause1,lit1), (clause2, lit2) *)
                      | MRR of (int * int) * (int * int) 
