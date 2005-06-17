@@ -156,7 +156,7 @@ let
 
   (*Forbid the inductive definition structure from clashing with a theory
     name.  This restriction may become obsolete as ML is de-emphasized.*)
-  val dummy = deny (big_rec_base_name mem (Sign.stamp_names_of sign))
+  val dummy = deny (big_rec_base_name mem (Context.names_of sign))
                ("Definition " ^ big_rec_base_name ^
                 " would clash with the theory of the same name!");
 
