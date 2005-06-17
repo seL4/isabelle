@@ -1,6 +1,3 @@
-
-open washing;
-
 (* "activate" definitions for use in proof *)
 
 val changeI = [context1] RL ([change] RLN (2,[cut]));
