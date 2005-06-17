@@ -18,11 +18,9 @@ sig
   type src
   val trace: Proof.context -> thm list -> unit
   val RAW_METHOD: (thm list -> tactic) -> Proof.method
-  val RAW_METHOD_CASES:
-    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> Proof.method
+  val RAW_METHOD_CASES: (thm list -> RuleCases.tactic) -> Proof.method
   val METHOD: (thm list -> tactic) -> Proof.method
-  val METHOD_CASES:
-    (thm list -> thm -> (thm * (string * RuleCases.T option) list) Seq.seq) -> Proof.method
+  val METHOD_CASES: (thm list -> RuleCases.tactic) -> Proof.method
   val SIMPLE_METHOD: tactic -> Proof.method
   val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> Proof.method
   val fail: Proof.method
@@ -502,15 +500,15 @@ fun tactic txt ctxt = METHOD (fn facts =>
 
 (* data kind 'Isar/methods' *)
 
-structure MethodsDataArgs =
-struct
+structure MethodsData = TheoryDataFun
+(struct
   val name = "Isar/methods";
   type T = (((src -> Proof.context -> Proof.method) * string) * stamp) NameSpace.table;
 
   val empty = NameSpace.empty_table;
   val copy = I;
-  val prep_ext = I;
-  fun merge tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
+  val extend = I;
+  fun merge _ tables = NameSpace.merge_tables eq_snd tables handle Symtab.DUPS dups =>
     error ("Attempt to merge different versions of method(s) " ^ commas_quote dups);
 
   fun print _ meths =
@@ -521,9 +519,8 @@ struct
       [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
       |> Pretty.chunks |> Pretty.writeln
     end;
-end;
+end);
 
-structure MethodsData = TheoryDataFun(MethodsDataArgs);
 val _ = Context.add_setup [MethodsData.init];
 val print_methods = MethodsData.print;
 
