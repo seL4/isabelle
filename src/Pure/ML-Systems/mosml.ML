@@ -7,7 +7,7 @@ Compatibility file for Moscow ML 2.00
 
 NOTE: saving images does not work (yet!?), may run it interactively as follows:
 
-$ cd .../Pure
+$ cd ~~/src/Pure
 $ isabelle RAW_ML_SYSTEM
 > val ml_system = "mosml";
 > use "ML-Systems/mosml.ML";
@@ -16,29 +16,42 @@ $ isabelle RAW_ML_SYSTEM
 
 (** ML system related **)
 
-
 (* Poly/ML emulation *)
 
 load "Bool";
 load "Int";
 load "Real";
 load "ListPair";
-
 load "OS";
 load "Process";
 load "FileSys";
 
+(*proper implementation available?*)
+structure IntInf =
+struct
+  open Int;
+end;
+
+structure Real =
+struct
+  open Real;
+  val realFloor = real o floor;
+end;
+
+structure Time =
+struct
+  open Time;
+  fun toString t = Time.toString t
+    handle Overflow => Real.toString (Time.toReal t);   (*workaround Y2004 bug*)
+end;
+
 structure OS =
-  struct
+struct
   open OS
   structure Process = Process
   structure FileSys = FileSys
-  end;
+end;
  
-(*To exit the system with an exit code -- an alternative to ^D *)
-fun exit 0 = Process.exit Process.success
-  | exit _ = Process.exit Process.failure;
-
 (*limit the printing depth*)
 fun print_depth n =
  (Meta.printDepth := n div 2;
