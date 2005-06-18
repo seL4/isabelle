@@ -43,7 +43,7 @@ fun insert ord x list =
 fun remove ord x list =
   let
     fun rmove [] = raise SAME
-      | rmove (lst as y :: ys) =
+      | rmove (y :: ys) =
           (case ord (x, y) of
             LESS => raise SAME
           | EQUAL => ys
