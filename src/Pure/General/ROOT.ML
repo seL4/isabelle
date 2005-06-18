@@ -4,6 +4,7 @@
 Library of general tools --- prefer this over the 'Standard ML Library'.
 *)
 
+use "ord_list.ML";
 use "table.ML";
 use "output.ML";
 use "graph.ML";
