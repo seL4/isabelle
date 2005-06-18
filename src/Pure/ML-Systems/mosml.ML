@@ -12,6 +12,9 @@ $ isabelle RAW_ML_SYSTEM
 > val ml_system = "mosml";
 > use "ML-Systems/mosml.ML";
 > use "ROOT.ML";
+> Session.finish ();
+> cd "../HOL";
+> use "ROOT.ML";
 *)
 
 (** ML system related **)
