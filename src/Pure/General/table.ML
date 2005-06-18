@@ -42,6 +42,7 @@ sig
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
+  val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_multi: 'a list table * key -> 'a list
@@ -292,7 +293,12 @@ fun delete_safe key tab = delete key tab handle UNDEF _ => tab;
 end;
 
 
-(* insert and remove *)
+(* member, insert and remove *)
+
+fun member eq tab (key, x) =
+  (case lookup (tab, key) of
+    NONE => false
+  | SOME y => eq (x, y));
 
 fun insert eq (key, x) =
   modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
