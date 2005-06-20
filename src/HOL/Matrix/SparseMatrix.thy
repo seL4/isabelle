@@ -1,3 +1,8 @@
+(*  Title:      HOL/Matrix/SparseMatrix.thy
+    ID:         $Id$
+    Author:     Steven Obua
+*)
+
 theory SparseMatrix imports Matrix begin
 
 types 
