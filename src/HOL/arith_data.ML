@@ -423,7 +423,7 @@ val init_lin_arith_data =
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
     neqE = [linorder_neqE_nat,
-      Goals.get_thm (theory "Ring_and_Field") "linorder_neqE_ordered_idom"],
+      get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
     simpset = HOL_basic_ss addsimps add_rules
                    addsimprocs [ab_group_add_cancel.sum_conv, 
                                 ab_group_add_cancel.rel_conv]
@@ -464,7 +464,7 @@ fun raw_arith_tac ex i st =
 fun presburger_tac i st =
   (case ArithTheoryData.get (sign_of_thm st) of
      {presburger = SOME tac, ...} =>
-       (tracing "Simple arithmetic decision procedure failed.\nNow trying full Presburger arithmetic..."; tac i st)
+       (warning "Simple arithmetic decision procedure failed, trying full Presburger arithmetic..."; tac i st)
    | _ => no_tac st);
 
 in
