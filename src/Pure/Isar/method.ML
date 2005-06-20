@@ -311,10 +311,14 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 fun asm_tac ths =
   foldr (op APPEND') (K no_tac) (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths);
 
+val refl_tac = SUBGOAL (fn (prop, i) =>
+  if can Logic.dest_equals (Logic.strip_assums_concl prop)
+  then Tactic.rtac Drule.reflexive_thm i else no_tac);
+
 fun assm_tac ctxt =
   assume_tac APPEND'
   asm_tac (ProofContext.prems_of ctxt) APPEND'
-  Tactic.rtac Drule.reflexive_thm;
+  refl_tac;
 
 fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ [fact] = asm_tac [fact]
@@ -487,10 +491,10 @@ fun set_tactic f = tactic_ref := f;
 fun tactic txt ctxt = METHOD (fn facts =>
   (Context.use_mltext
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
-     \let val thm = ProofContext.get_thm_closure ctxt o rpair NONE\n\
-     \  and thms = ProofContext.get_thms_closure ctxt o rpair NONE in\n"
-     ^ txt ^
-     "\nend in Method.set_tactic tactic end")
+       \let val thm = ProofContext.get_thm_closure ctxt o PureThy.Name\n\
+       \  and thms = ProofContext.get_thms_closure ctxt o PureThy.Name in\n"
+       ^ txt ^
+       "\nend in Method.set_tactic tactic end")
     false NONE;
     Context.setmp (SOME (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
 
