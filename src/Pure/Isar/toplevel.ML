@@ -7,8 +7,7 @@ The Isabelle/Isar toplevel.
 
 signature TOPLEVEL =
 sig
-  datatype node = Theory of theory | Proof of ProofHistory.T
-    | SkipProof of int History.T * theory
+  datatype node = Theory of theory | Proof of ProofHistory.T | SkipProof of int History.T * theory
   type state
   val toplevel: state
   val is_toplevel: state -> bool
@@ -228,8 +227,7 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
       end;
 
 fun check_stale state =
-  if not (is_stale state) then ()
-  else warning "Stale theory encountered!";
+  conditional (is_stale state) (fn () => warning "Stale theory encountered!");
 
 end;
 

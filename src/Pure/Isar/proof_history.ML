@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Histories of proof states, with undo / redo and prev / back.
+Histories of proof states, with undo / redo and backtracking.
 *)
 
 signature PROOF_HISTORY =
@@ -28,8 +28,8 @@ struct
 (* datatype proof history *)
 
 type node =
-  Proof.state *			(*first result*)
-  Proof.state Seq.seq; 		(*alternative results*)
+  Proof.state *                 (*first result*)
+  Proof.state Seq.seq;          (*alternative results*)
 
 type proof = node * node list;
 
@@ -55,15 +55,15 @@ val redo = app History.redo;
 
 (* backtrack *)
 
-fun back_fun recur ((_, stq), nodes) =
+fun backtrack recur ((_, stq), nodes) =
   (case Seq.pull stq of
     NONE =>
       if recur andalso not (null nodes) then
-        (writeln "back: trying previous proof state ..."; back_fun recur (hd nodes, tl nodes))
+        (writeln "back: trying previous proof state ..."; backtrack recur (hd nodes, tl nodes))
       else raise FAIL "back: no alternatives"
   | SOME result => (result, nodes));
 
-val back = hist_app o back_fun;
+val back = hist_app o backtrack;
 
 
 (* apply transformer *)
