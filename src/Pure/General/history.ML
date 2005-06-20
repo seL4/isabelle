@@ -11,6 +11,7 @@ sig
   val init: int option -> 'a -> 'a T
   val is_initial: 'a T -> bool
   val current: 'a T -> 'a
+  val previous: 'a T -> 'a option
   val clear: int -> 'a T -> 'a T
   val undo: 'a T -> 'a T
   val redo: 'a T -> 'a T
@@ -33,6 +34,9 @@ fun init lim x = History (x, (lim, 0, [], []));
 fun is_initial (History (_, (_, len, _, _))) = len = 0;
 
 fun current (History (x, _)) = x;
+
+fun previous (History (_, (_, _, x :: _, _))) = SOME x
+  | previous _ = NONE;
 
 fun clear n (History (x, (lim, len, undo_list, redo_list))) =
   History (x, (lim, Int.max (0, len - n), Library.drop (n, undo_list), redo_list));
