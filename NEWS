@@ -161,6 +161,9 @@ use isatool fixcpure to adapt your theory and ML sources.
 * New syntax 'name(i-j, i-, i, ...)' for referring to specific
 selections of theorems in named facts via index ranges.
 
+* More efficient treatment of intermediate checkpoints in interactive
+theory development.
+
 
 *** Locales ***
   
@@ -458,6 +461,10 @@ Theory.hide_types.  Also note that former
 Theory.hide_classes/types/consts are now
 Theory.hide_classes_i/types_i/consts_i, while the non '_i' versions
 internalize their arguments!  INCOMPATIBILITY.
+
+* Pure: get_thm interface (of PureThy and ProofContext) expects
+datatype thmref (with constructors Name and NameSelection) instead of
+plain string -- INCOMPATIBILITY;
 
 * Pure: cases produced by proof methods specify options, where NONE
 means to remove case bindings -- INCOMPATIBILITY in
