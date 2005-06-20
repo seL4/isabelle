@@ -65,15 +65,12 @@ fun add pred (name, ths) (Index {next, facts, consts, frees}) =
 
 (* find facts *)
 
-fun intersect ([], _) = []
-  | intersect (_, []) = []
-  | intersect (xxs as ((x as (i: int, _)) :: xs), yys as ((y as (j, _)) :: ys)) =
-      if i = j then x :: intersect (xs, ys)
-      else if i > j then intersect (xs, yys)
-      else intersect (xxs, ys);
+fun fact_ord ((i, _), (j, _)) = int_ord (j, i);
 
 fun intersects [xs] = xs
-  | intersects xss = if exists null xss then [] else foldr1 intersect xss;
+  | intersects xss =
+      if exists null xss then []
+      else fold (OrdList.inter fact_ord) (tl xss) (hd xss);
 
 fun find idx ([], []) = facts idx
   | find (Index {consts, frees, ...}) (cs, xs) =
