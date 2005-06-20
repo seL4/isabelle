@@ -146,13 +146,16 @@ fun tptp_inputs_tfrees thms n tfrees =
 (* now passing in list of skolemized thms and list of sgterms to go with them *)
 fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list) (childin, childout,pid) n  = let
    val axfile = (File.platform_path axiom_file)
-    val hypsfile = (File.platform_path hyps_file)
-     val clasimpfile = (File.platform_path clasimp_file)
-    val spass_home = getenv "SPASS_HOME"
+   val hypsfile = (File.platform_path hyps_file)
+   val clasimpfile = (File.platform_path clasimp_file)
+   val spass_home = getenv "SPASS_HOME"
+   val spass = spass_home ^ "/SPASS"
+   val _ = if File.exists (File.unpack_platform_path spass) then () 
+	   else error ("Could not find the file " ^ spass)
      
-fun make_atp_list [] sign n = []
-|   make_atp_list ((sko_thm, sg_term)::xs) sign  n = 
-let 
+   fun make_atp_list [] sign n = []
+   |   make_atp_list ((sko_thm, sg_term)::xs) sign  n = 
+   let 
 	val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm) 
 	val thmproofstr = proofstring ( skothmstr)
 	val no_returns =List.filter   not_newline ( thmproofstr)
