@@ -401,7 +401,7 @@ val mk_var = Free
 fun dom_rng (Type("fun",[dom,rng])) = (dom,rng)
   | dom_rng _ = raise ERR "dom_rng" "Not a functional type"
 
-fun mk_thy_const thy Thy Name Ty = Const(intern_const_name Thy Name thy,Ty)
+fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
 local
     fun get_type sg thyname name =
@@ -409,12 +409,12 @@ local
 	    SOME ty => ty
 	  | NONE => raise ERR "get_type" (name ^ ": No such constant")
 in
-fun prim_mk_const thy Thy Name =
+fun prim_mk_const thy Thy Nam =
     let
-	val name = intern_const_name Thy Name thy
+	val name = intern_const_name Thy Nam thy
 	val cmaps = HOL4ConstMaps.get thy
     in
-	case StringPair.lookup(cmaps,(Thy,Name)) of
+	case StringPair.lookup(cmaps,(Thy,Nam)) of
 	    SOME(_,_,SOME ty) => Const(name,ty)
 	  | _ => Const(name,get_type (sign_of thy) Thy name)
     end
@@ -1236,10 +1236,10 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	    SOME (SOME thmname) =>
 	    let
 		val _ = message ("Looking for " ^ thmname)
-		val th1 = (SOME (transform_error (PureThy.get_thm thy) (thmname, NONE))
+		val th1 = (SOME (transform_error (PureThy.get_thm thy) (Name thmname))
 			   handle ERROR_MESSAGE _ =>
 				  (case split_name thmname of
-				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy (listname, NONE),idx-1))
+				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy (Name listname),idx-1))
 							       handle _ => NONE)
 				     | NONE => NONE))
 	    in

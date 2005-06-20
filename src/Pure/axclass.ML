@@ -417,7 +417,7 @@ val prove_arity = prove mk_arity (fn thy => fn (t, Ss, c) =>
   Pretty.string_of_arity (Sign.pp thy) (t, Ss, [c]));
 
 fun witnesses thy names thms =
-  PureThy.get_thmss thy (map (rpair NONE) names) @
+  PureThy.get_thmss thy (map Name names) @
   thms @
   List.filter is_def (map snd (axioms_of thy));
 

@@ -82,9 +82,9 @@ fun cring_normalise ctxt = let
       ("Non-commutative rings in proof context: " ^ commas non_comm_rings ^
        "\nCommutative rings in proof context: " ^ commas comm_rings);
     val simps =
-      List.concat (map (fn s => ProofContext.get_thms ctxt (s ^ ".ring_simprules", NONE))
+      List.concat (map (fn s => ProofContext.get_thms ctxt (Name (s ^ ".ring_simprules")))
         non_comm_rings) @
-      List.concat (map (fn s => ProofContext.get_thms ctxt (s ^ ".cring_simprules", NONE))
+      List.concat (map (fn s => ProofContext.get_thms ctxt (Name (s ^ ".cring_simprules")))
         comm_rings);
   in Method.SIMPLE_METHOD' HEADGOAL (asm_full_simp_tac (cring_ss addsimps simps))
   end;

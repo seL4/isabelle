@@ -115,7 +115,7 @@ fun condrew thy rules procs =
             Pattern.unify (thy, env, [pairself (lookup rew) p])) (env', prems')
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
-          (sort (Int.compare o pairself fst)
+          (sort (int_ord o pairself fst)
             (Net.match_term rules (Pattern.eta_contract tm)))
       end;
 
@@ -774,7 +774,7 @@ val realizersP =
     (Scan.repeat1 (P.xname -- parse_vars --| P.$$$ ":" -- P.string -- P.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
        (map (fn (((a, vs), s1), s2) =>
-         (PureThy.get_thm thy (a, NONE), (vs, s1, s2))) xs) thy)));
+         (PureThy.get_thm thy (Name a), (vs, s1, s2))) xs) thy)));
 
 val realizabilityP =
   OuterSyntax.command "realizability"
@@ -789,7 +789,7 @@ val typeofP =
 val extractP =
   OuterSyntax.command "extract" "extract terms from proofs" K.thy_decl
     (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
-      (fn thy => extract (map (apfst (PureThy.get_thm thy o rpair NONE)) xs) thy)));
+      (fn thy => extract (map (apfst (PureThy.get_thm thy o Name)) xs) thy)));
 
 val _ = OuterSyntax.add_parsers [realizersP, realizabilityP, typeofP, extractP];
 

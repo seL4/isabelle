@@ -523,7 +523,7 @@ fun parse_thy (lex, sectab) chs = #1 (!! (theory_defn sectab) (tokenize lex chs)
 
 (* standard sections *)
 
-fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy (" ^ Library.quote ax ^ ", NONE);";
+fun mk_val ax = "val " ^ ax ^ " = PureThy.get_thm thy (PureThy.Name " ^ Library.quote ax ^ ");";
 val mk_vals = cat_lines o map mk_val;
 
 fun mk_axm_sect "" (txt, axs) = (txt, mk_vals axs)

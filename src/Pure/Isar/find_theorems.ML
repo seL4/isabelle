@@ -38,7 +38,7 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
-  | read_criterion ctxt (Simp str) = 
+  | read_criterion ctxt (Simp str) =
       Simp (hd (ProofContext.read_term_pats TypeInfer.logicT ctxt [str]))
   | read_criterion ctxt (Pattern str) =
       Pattern (hd (ProofContext.read_term_pats TypeInfer.logicT ctxt [str]));
@@ -70,15 +70,15 @@ fun is_matching_thm (extract_thms, extract_term) ctxt po obj thm =
     val sg = ProofContext.sign_of ctxt;
     val tsig = Sign.tsig_of sg;
 
-    val is_nontrivial = is_Const o head_of o ObjectLogic.drop_judgment sg;    
+    val is_nontrivial = is_Const o head_of o ObjectLogic.drop_judgment sg;
 
-    fun matches pat = 
-      is_nontrivial pat andalso 
+    fun matches pat =
+      is_nontrivial pat andalso
       Pattern.matches tsig (if po then (pat,obj) else (obj,pat))
       handle Pattern.MATCH => false;
 
     val match_thm = matches o extract_term o Thm.prop_of
-  in       
+  in
     List.exists match_thm (extract_thms thm)
   end;
 
@@ -93,7 +93,7 @@ fun is_substring pat str =
 
 (*filter that just looks for a string in the name,
   substring match only (no regexps are performed)*)
-fun filter_name str_pat ((name, _), _) = is_substring str_pat name;
+fun filter_name str_pat (thmref, _) = is_substring str_pat (PureThy.name_of_thmref thmref);
 
 
 (* filter intro/elim/dest rules *)
@@ -121,8 +121,8 @@ fun filter_elim_dest check_thm ctxt goal (_,thm) =
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
   in
-    prems |> 
-    List.exists (fn prem => 
+    prems |>
+    List.exists (fn prem =>
       is_matching_thm extract_elim ctxt true prem thm
       andalso (check_thm ctxt) thm)
   end;

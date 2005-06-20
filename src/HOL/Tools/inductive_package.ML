@@ -614,11 +614,11 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 
     val sum_case_rewrites =
       (if Context.theory_name thy = "Datatype" then
-        PureThy.get_thms thy ("sum.cases", NONE)
+        PureThy.get_thms thy (Name "sum.cases")
       else
         (case ThyInfo.lookup_theory "Datatype" of
           NONE => []
-        | SOME thy' => PureThy.get_thms thy' ("sum.cases", NONE)))
+        | SOME thy' => PureThy.get_thms thy' (Name "sum.cases")))
       |> map mk_meta_eq;
 
     val (preds, ind_prems, mutual_ind_concl, factors) =

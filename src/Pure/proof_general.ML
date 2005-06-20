@@ -715,7 +715,7 @@ end
 
 local
  val topthy = Toplevel.theory_of o Toplevel.get_state
- fun pthm thy name = print_thm (get_thm thy (name, NONE))
+ fun pthm thy name = print_thm (get_thm thy (Name name))
 
  fun idvalue tp nm = ("idvalue",[("objtype",tp),("name",nm)])
 in

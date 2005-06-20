@@ -339,7 +339,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
                                  val eq_ct = cterm_of sg eq_t;
                                  val Datatype_thy = theory "Datatype";
                                  val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-                                   map (get_thm Datatype_thy o rpair NONE)
+                                   map (get_thm Datatype_thy o Name)
                                      ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
                              in (case (#distinct (datatype_info_err sg tname1)) of
                                  QuickAndDirty => SOME (Thm.invoke_oracle
@@ -644,7 +644,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.parent_path |>>>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
-    val size_thms = if no_size then [] else get_thms thy3 ("size", NONE);
+    val size_thms = if no_size then [] else get_thms thy3 (Name "size");
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
 
