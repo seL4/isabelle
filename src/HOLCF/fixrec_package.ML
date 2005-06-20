@@ -8,14 +8,13 @@ Recursive function definition package for HOLCF.
 signature FIXREC_PACKAGE =
 sig
   val add_fixrec: ((string * Attrib.src list) * string) list list -> theory -> theory
+  val add_fixrec_i: ((string * theory attribute list) * term) list list -> theory -> theory
   val add_fixpat: ((string * Attrib.src list) * string) list -> theory -> theory
+  val add_fixpat_i: ((string * theory attribute list) * term) list -> theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
 struct
-
-local
-open ThyParse in
 
 (* ->> is taken from holcf_logic.ML *)
 (* TODO: fix dependencies so we can import HOLCFLogic here *)
@@ -234,43 +233,49 @@ fun make_simps cnames unfold_thms namess attss tss thy =
 (*************************************************************************)
 
 (* this calls the main processing function and then returns the new state *)
-fun add_fixrec blocks thy =
+fun gen_add_fixrec prep_prop prep_attrib blocks thy =
   let
-    val sg = sign_of thy;
     fun split_list2 xss = split_list (map split_list xss);
     val ((namess, srcsss), strss) = apfst split_list2 (split_list2 blocks);
-    val attss = map (map (map (Attrib.global_attribute thy))) srcsss;
-    val tss = map (map (term_of o Thm.read_cterm sg o rpair propT)) strss;
-    val ts' = map (infer sg o compile_pats) tss;
+    val attss = map (map (map (prep_attrib thy))) srcsss;
+    val tss = map (map (prep_prop thy)) strss;
+    val ts' = map (infer thy o compile_pats) tss;
     val (thy', cnames, fixdef_thms, unfold_thms) = add_fixdefs ts' thy;
   in
     make_simps cnames unfold_thms namess attss tss thy'
   end;
 
+val add_fixrec = gen_add_fixrec Sign.read_prop Attrib.global_attribute;
+val add_fixrec_i = gen_add_fixrec Sign.cert_prop (K I);
+
+
 (*************************************************************************)
 (******************************** Fixpat *********************************)
 (*************************************************************************)
 
-fun fix_pat thy pat = 
+fun fix_pat prep_term thy pat = 
   let
-    val sg = sign_of thy;
-    val t = term_of (Thm.read_cterm sg (pat, dummyT));
+    val t = prep_term thy pat;
     val T = fastype_of t;
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
     val cname = case chead_of t of Const(c,_) => c | _ =>
               sys_error "FIXPAT: function is not declared as constant in theory";
-    val unfold_thm = Goals.get_thm thy (cname^"_unfold");
-    val rew = prove_goalw_cterm [] (cterm_of sg eq)
+    val unfold_thm = PureThy.get_thm thy (Name (cname^"_unfold"));
+    val rew = prove_goalw_cterm [] (cterm_of thy eq)
           (fn _ => [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
   in rew end;
 
-fun add_fixpat pats thy = 
+fun gen_add_fixpat prep_term prep_attrib pats thy =
   let
     val ((names, srcss), strings) = apfst ListPair.unzip (ListPair.unzip pats);
-    val atts = map (map (Attrib.global_attribute thy)) srcss;
-    val simps = map (fix_pat thy) strings;
+    val atts = map (map (prep_attrib thy)) srcss;
+    val simps = map (fix_pat prep_term thy) strings;
     val (thy', _) = PureThy.add_thms ((names ~~ simps) ~~ atts) thy;
   in thy' end;
+
+val add_fixpat = gen_add_fixpat Sign.read_term Attrib.global_attribute;
+val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
+
 
 (*************************************************************************)
 (******************************** Parsers ********************************)
@@ -299,7 +304,5 @@ val fixpatP =
 val _ = OuterSyntax.add_parsers [fixpatP];
 
 end; (* local structure *)
-
-end; (* local open *)
 
 end; (* struct *)
