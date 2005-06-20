@@ -212,8 +212,10 @@ val print_syntax = Toplevel.unknown_theory o
   Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
   Toplevel.keep (ProofContext.print_syntax o Proof.context_of o Toplevel.proof_of);
 
-val print_theorems = Toplevel.unknown_theory o
-  Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
+val print_theorems = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  (case History.previous (Toplevel.node_history_of state) of
+    SOME (Toplevel.Theory prev_thy) => PureThy.print_theorems_diff prev_thy
+  | _ => PureThy.print_theorems) (Toplevel.theory_of state));
 
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
