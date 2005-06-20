@@ -305,7 +305,7 @@ val thm_sel = $$$ "(" |-- list1
   nat --| minus >> PureThy.From ||
   nat >> PureThy.Single) --| $$$ ")";
 
-val xthm = xname -- Scan.option thm_sel -- opt_attribs;
+val xthm = (xname -- thm_sel >> NameSelection || xname >> Name) -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
 
 

@@ -485,8 +485,8 @@ fun name_results "" res = res
             if a <> "" then (j, (a, ths))
             else if m = n then (j, (name, ths))
             else if m = 1 then
-              (j, (PureThy.string_of_thmref (name, SOME [PureThy.Single i]), ths))
-            else (j, (PureThy.string_of_thmref (name, SOME [PureThy.FromTo (i, j - 1)]), ths))
+              (j, (PureThy.string_of_thmref (NameSelection (name, [Single i])), ths))
+            else (j, (PureThy.string_of_thmref (NameSelection (name, [FromTo (i, j - 1)])), ths))
           end;
       in #2 (foldl_map name_res (1, res)) end;
 
@@ -600,8 +600,8 @@ val generic_setup =
 
 fun method_setup (name, txt, cmt) =
   Context.use_let
-    "val thm = PureThy.get_thm_closure (Context.the_context ());\n\
-    \val thms = PureThy.get_thms_closure (Context.the_context ());\n\
+    "val thm = PureThy.get_thm_closure (Context.the_context ()) o PureThy.Name;\n\
+    \val thms = PureThy.get_thms_closure (Context.the_context ()) o PureThy.Name;\n\
     \val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Method.add_method method"
     ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
