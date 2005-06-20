@@ -30,6 +30,8 @@ fun string2int s =
 
 exception Noparse;
 exception SPASSError of string;
+exception VampError of string;
+
 
 fun (parser1 ++ parser2) input =
       let
@@ -159,6 +161,9 @@ fun extract_proof s
 *)
 
 
+
+
+
 fun several p = many (some p)
       fun collect (h, t) = h ^ (Utils.itlist (fn s1 => fn s2 => s1 ^ s2) t "")
   
@@ -182,10 +187,53 @@ fun several p = many (some p)
      (* val lex = fst ( alltokens ( (map str)  explode))*)
      fun lex s =  alltokens  (explode s)
 
+
+(*********************************************************)
+(*  Temporary code to "parse" Vampire proofs             *)
+(*********************************************************)
+
+fun num_int (Number n) = n
+|   num_int _ = raise VampError "Not a number"
+
+ fun takeUntil ch [] res  = (res, [])
+ |   takeUntil ch (x::xs) res = if   x = ch 
+                                then
+                                     (res, xs)
+                                else
+                                     takeUntil ch xs (res@[x])
+       
+fun linenums [] nums = nums
+|   linenums (x::xs) nums = let val (fst, rest ) = takeUntil (Other "%") (x::xs) []
+                                in 
+				  if rest = [] 
+				  then 
+				      nums
+				  else
+			          let val num = hd rest
+                                      val int_of = num_int num
+	
+			          in
+				     linenums rest (int_of::nums)
+			         end
+                                end
+
+fun get_linenums proofstr = let val s = extract_proof proofstr
+                                val tokens = #1(lex s)
+	                 
+	                    in
+		                rev (linenums tokens [])
+		            end
+
+(************************************************************)
+(************************************************************)
+
+
+(**************************************************)
+(* Code to parse SPASS proofs                     *)
+(**************************************************)
+
 datatype Tree = Leaf of string
                 | Branch of Tree * Tree
-
-
 
    
       fun number ((Number n)::rest) = (n, rest)

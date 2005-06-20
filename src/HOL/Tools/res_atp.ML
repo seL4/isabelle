@@ -10,7 +10,7 @@ ATPs with TPTP format input.
 
 
 signature RES_ATP = 
-sig
+sig  
 val trace_res : bool ref
 val subgoals: Thm.thm list
 val traceflag : bool ref
@@ -22,6 +22,8 @@ val prob_file : Path.T;
 (*val atp_tac : int -> Tactical.tactic*)
 val debug: bool ref
 val full_spass: bool ref
+(*val spass: bool ref*)
+val vampire: bool ref
 end;
 
 structure ResAtp : RES_ATP =
@@ -36,7 +38,14 @@ val debug = ref false;
 
 fun debug_tac tac = (warning "testing";tac);
 (* default value is false *)
+
 val full_spass = ref false;
+
+(* use spass as default prover *)
+(*val spass = ref true;*)
+
+val vampire = ref false;
+
 val trace_res = ref false;
 
 val skolem_tac = skolemize_tac;
@@ -171,16 +180,22 @@ fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list
 	val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
 	val _ = (warning ("prob file in cal_res_tac is: "^probfile))                                                                           
 in
- 	if !full_spass 
-  	then
+     if !SpassComm.spass 
+       then if !full_spass 
+            then
    		([("spass", thmstr, goalstring (*,spass_home*), 
 	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),  
 	     	"-DocProof%-TimeLimit=60", 
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-  	else	
+  	    else	
    		([("spass", thmstr, goalstring (*,spass_home*), 
 	     	getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),  
-	     	"-Auto=0%-ISRe%-ISFc%-RTaut%-RFSub%-RBSub%-DocProof%-TimeLimit=60", 
+	     	"-Auto=0%-IORe%-IOFc%-RTaut%-RFSub%-RBSub%-DocProof%-TimeLimit=60", 
+	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
+     else
+	   ([("vampire", thmstr, goalstring (*,spass_home*), 
+	    	 "/homes/jm318/Vampire8/vkernel"(*( getenv "SPASS_HOME")^"/SPASS"*),  
+	     	"-t 300%-m 100000", 
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
 end
 

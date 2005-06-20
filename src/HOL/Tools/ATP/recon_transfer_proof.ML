@@ -201,9 +201,9 @@ fun numstr [] = ""
 fun get_clasimp_cls clause_arr clasimp_num step_nums = 
     let val realnums = map subone step_nums	
 	val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
-	val axnums = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "axnums")))     
+(*	val axnums = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "axnums")))     
 	val _ = TextIO.output(axnums,(numstr clasimp_nums))
-	val _ = TextIO.closeOut(axnums)
+	val _ = TextIO.closeOut(axnums)*)
     in
 	retrieve_axioms clause_arr  clasimp_nums
     end
@@ -235,12 +235,11 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
       clasimp_names
    end
     
- fun get_axiom_names_vamp proof_steps thms (clause_arr:(ResClause.clause * thm) Array.array) num_of_clauses  =
+ fun get_axiom_names_vamp proofstr thms (clause_arr:(ResClause.clause * thm) Array.array) num_of_clauses  =
    let 
      (* not sure why this is necessary again, but seems to be *)
       val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-      val axioms = get_init_axioms proof_steps
-      val step_nums = get_step_nums axioms []
+      val step_nums =get_linenums proofstr
   
      (***********************************************)
      (* here need to add the clauses from clause_arr*)
@@ -455,11 +454,11 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
                                                   val _ = TextIO.output (outfile, ("In exception handler"));
                                                   val _ =  TextIO.closeOut outfile
                                               in 
-                                                 TextIO.output (toParent,"Proof found but parsing failed for resolution proof: "^(remove_linebreaks proofstr) ^"\n");
+                                                 TextIO.output (toParent,"Proof found but parsing failed for resolution proof: "^(remove_linebreaks proofstr)^"\n" );
                                                   TextIO.flushOut toParent;
-						   TextIO.output (toParent, thmstring^"\n");
+						   TextIO.output (toParent, (remove_linebreaks thmstring)^"\n");
                                          	   TextIO.flushOut toParent;
-                                         	   TextIO.output (toParent, goalstring^"\n");
+                                         	   TextIO.output (toParent, ( (remove_linebreaks goalstring)^"\n"));
                                          	   TextIO.flushOut toParent;
             					  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
@@ -467,42 +466,24 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
                                               end)
 
 
-(*fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
-           let val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));     						  val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr^"goalstr is: "^goalstring^" num of clauses is: "^(string_of_int num_of_clauses)))
-                                                  val _ =  TextIO.closeOut outfile
+fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
+           let val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "thmstringfile")));     						       val _ = TextIO.output (outfile, (" thmstring is: "^thmstring^"proofstr is: "^proofstr^"goalstr is: "^goalstring^" num of clauses is: "^(string_of_int num_of_clauses)))
+                                               val _ =  TextIO.closeOut outfile
 
                                               (***********************************)
-                                              (* parse spass proof into datatype *)
+                                              (* get vampire axiom names         *)
                                               (***********************************)
          
-                                                  val tokens = #1(lex proofstr)
-                                                  val proof_steps = VampParse.parse tokens
-                                                  (*val proof_steps = just_change_space proof_steps1*)
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_parse")));                                                     val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
-                                                  val _ =  TextIO.closeOut outfile
-                                                
-                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_thmstring_at_parse")));                                        val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
-                                                  val _ =  TextIO.closeOut outfile
-                                              (************************************)
-                                              (* recreate original subgoal as thm *)
-                                              (************************************)
-                                                
-                                                  (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
-                                                  (* need to get prems_of thm, then get right one of the prems, relating to whichever*)
-                                                  (* subgoal this is, and turn it into meta_clauses *)
-                                                  (* should prob add array and table here, so that we can get axioms*)
-                                                  (* produced from the clasimpset rather than the problem *)
-
-                                                  val (axiom_names) = get_axiom_names_vamp proof_steps  thms clause_arr  num_of_clauses
-                                                  val ax_str = "Rules from clasimpset used in proof found by SPASS: "^(rules_to_string axiom_names "")
-                                                  val  outfile = TextIO.openAppend(File.sysify_path(File.tmp_path (Path.basic "reconstrfile")));                                                     val _ = TextIO.output (outfile, ("reconstring is: "^ax_str^"  "^goalstring))
-                                                  val _ =  TextIO.closeOut outfile
+                                               val (axiom_names) = get_axiom_names_vamp proofstr  thms clause_arr  num_of_clauses
+                                               val ax_str = "Rules from clasimpset used in proof found by SPASS: "^(rules_to_string axiom_names "")
+                                               val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "reconstrfile")));                                                    val _ = TextIO.output (outfile, ("reconstring is: "^ax_str^"  "^goalstring))
+                                               val _ =  TextIO.closeOut outfile
                                                    
                                               in 
                                                    TextIO.output (toParent, ax_str^"\n");
                                                    TextIO.flushOut toParent;
                                         	   TextIO.output (toParent, "goalstring: "^goalstring^"\n");
-                                         	   TextIO.flushOut toParent;fdsa
+                                         	   TextIO.flushOut toParent;
                                          	   TextIO.output (toParent, "thmstring: "^thmstring^"\n");
                                          	   TextIO.flushOut toParent;
                                           
@@ -510,12 +491,12 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
                                          	   Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
                                               end
-                                              handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
+                                              handle _ => (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_handler")));
 
                                                   val _ = TextIO.output (outfile, ("In exception handler"));
                                                   val _ =  TextIO.closeOut outfile
                                               in 
-                                                  TextIO.output (toParent,"Proof found but translation failed for resolution proof: \n"^(remove_linebreaks proofstr) ^"\n");
+                                                  TextIO.output (toParent,"Proof found but translation failed for resolution proof: "^(remove_linebreaks proofstr) );
                                                   TextIO.flushOut toParent;
 						   TextIO.output (toParent, thmstring^"\n");
                                          	   TextIO.flushOut toParent;
@@ -525,7 +506,7 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
                                          	  (* Attempt to prevent several signals from turning up simultaneously *)
                                          	  Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
                                               end)
-*)
+
 
 
 
@@ -619,7 +600,7 @@ fun spassString_to_reconString proofstr thmstring goalstring toParent ppid thms 
 	  val _ = TextIO.output (outfile, ("In exception handler"));
 	  val _ =  TextIO.closeOut outfile
       in 
-	   TextIO.output (toParent,"Proof found but translation failed for resolution proof: \n"^proofstr ^"\n");
+	   TextIO.output (toParent,"Proof found but translation failed for resolution proof:"^(remove_linebreaks proofstr) ^"\n");
 	  TextIO.flushOut toParent;
 	TextIO.output (toParent, thmstring^"\n");
 	   TextIO.flushOut toParent;
