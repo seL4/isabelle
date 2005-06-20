@@ -8,8 +8,6 @@ val banner = "First-Order Logic with Natural Deduction";
 
 writeln banner;
 
-print_depth 1;  
-
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/ind.ML";
 use "~~/src/Provers/hypsubst.ML";
@@ -21,5 +19,3 @@ use "~~/src/Provers/clasimp.ML";
 use "~~/src/Provers/quantifier1.ML";
 
 use_thy "FOL";
-
-print_depth 8;

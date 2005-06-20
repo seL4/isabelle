@@ -9,8 +9,6 @@ Classical Higher-order Logic.
 val banner = "Higher-Order Logic";
 writeln banner;
 
-print_depth 1;
-
 (*old-style theory syntax*)
 use "thy_syntax.ML";
 
@@ -39,8 +37,6 @@ use "~~/src/Provers/order.ML";
 with_path "Integ" use_thy "Main";
 
 path_add "~~/src/HOL/Library";
-
-print_depth 8;
 
 Goal "True";  (*leave subgoal package empty*)
 
