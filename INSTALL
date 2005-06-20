@@ -36,12 +36,7 @@ This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
 The installation may be finished as follows:
 
   cd [ISABELLE_HOME]
-  ./configure
   ./bin/isatool install -p /usr/local/bin
-
-Note that the configure script is only required for systems that do
-not have bash and perl in the canonical places (/bin/bash and
-/usr/bin/perl).
 
 The install utility creates global references to the present Isabelle
 installation, enabling users to invoke the Isabelle executables
