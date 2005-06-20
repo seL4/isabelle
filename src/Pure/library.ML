@@ -166,7 +166,7 @@ sig
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
 
-  (*lists as sets*)
+  (*lists as sets -- see also Pure/General/ord_list.ML*)
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
   val mem_string: string * string list -> bool
@@ -175,6 +175,7 @@ sig
   val ins_int: int * int list -> int list
   val ins_string: string * string list -> string list
   val gen_ins: ('a * 'a -> bool) -> 'a * 'a list -> 'a list
+  val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
   val union: ''a list * ''a list -> ''a list
@@ -231,6 +232,7 @@ sig
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val int_ord: int * int -> order
   val string_ord: string * string -> order
+  val option_ord: ('a * 'b -> order) -> 'a option * 'b option -> order
   val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
@@ -817,7 +819,7 @@ fun replicate_string 0 _ = ""
 
 
 
-(** lists as sets **)
+(** lists as sets -- see also Pure/General/ord_list.ML **)
 
 (*membership in a list*)
 fun x mem [] = false
@@ -835,7 +837,8 @@ fun (x:string) mem_string [] = false
 fun gen_mem eq (x, []) = false
   | gen_mem eq (x, y :: ys) = eq (x, y) orelse gen_mem eq (x, ys);
 
-(*insert and remove*)
+(*member, insert, and remove -- with canonical argument order*)
+fun member eq xs x = gen_mem eq (x, xs);
 fun insert eq x xs = if gen_mem eq (x, xs) then xs else x :: xs;
 fun remove eq x xs = if gen_mem eq (x, xs) then filter_out (fn y => eq (x, y)) xs else xs;
 
@@ -1084,6 +1087,11 @@ fun make_ord rel (x, y) =
 
 val int_ord = Int.compare;
 val string_ord = String.compare;
+
+fun option_ord ord (SOME x, SOME y) = ord (x, y)
+  | option_ord _ (NONE, NONE) = EQUAL
+  | option_ord _ (NONE, SOME _) = LESS
+  | option_ord _ (SOME _, NONE) = GREATER;
 
 (*lexicographic product*)
 fun prod_ord a_ord b_ord ((x, y), (x', y')) =
