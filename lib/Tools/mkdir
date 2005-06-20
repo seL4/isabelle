@@ -197,9 +197,6 @@ fi
 
 # document directory
 
-#set by configure
-AUTO_PERL=perl
-
 if [ -e document ]; then
   echo "keeping $PREFIX/document" >&2
 else
@@ -207,38 +204,36 @@ else
   mkdir document || fail "Bad directory: $PREFIX/document"
 
   [ -z "$QUIET" ] && echo "creating $PREFIX/document/root.tex" >&2
-  TITLE=$(echo "$NAME" | tr _ -)
-  # a hack to extract the current user name
-  PERLLINE='@pw = getpwnam("'$USER'"); $uname = $pw[6];
-    $uname =~ tr/_/-/; $uname =~ s/^[^\\]*\\//g; $uname =~ s/,S[0-9\-]+$//g; print $uname;'
-  AUTHOR=$("$AUTO_PERL" -e "$PERLLINE")
-  # the perl "getpwnam" function extracts a data entry
-  # from /etc/passwd; the first tr is to replace some characters
-  # undigestible for tex; the two regexp substs eliminate the
-  # windows domain-specific noise as found in /etc/passwd using cygwin
+  TITLE=$(echo "$NAME" | tr _ - | tr -d '\\')
+  AUTHOR=$(echo "By $USER" | tr _ - | tr -d '\\')
   cat >document/root.tex <<EOF
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
 
-% further packages required for unusual symbols (see also isabellesym.sty)
-% use only when needed
-%\usepackage{amssymb}                  % for \<leadsto>, \<box>, \<diamond>,
-                                       % \<sqsupset>, \<mho>, \<Join>, 
-                                       % \<lhd>, \<lesssim>, \<greatersim>,
-                                       % \<lessapprox>, \<greaterapprox>,
-                                       % \<triangleq>, \<yen>, \<lozenge>
-%\usepackage[greek,english]{babel}     % greek for \<euro>,
-                                       % english for \<guillemotleft>, 
-                                       %             \<guillemotright>
-                                       % default language = last
-%\usepackage[latin1]{inputenc}         % for \<onesuperior>, \<onequarter>,
-                                       % \<twosuperior>, \<onehalf>,
-                                       % \<threesuperior>, \<threequarters>,
-                                       % \<degree>
-%\usepackage[only,bigsqcap]{stmaryrd}  % for \<Sqinter>
-%\usepackage{eufrak}                   % for \<AA> ... \<ZZ>, \<aa> ... \<zz>
-                                       % (only needed if amssymb not used)
-%\usepackage{textcomp}                 % for \<cent>, \<currency>
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
 
 % this should be the last package used
 \usepackage{pdfsetup}
