@@ -504,9 +504,7 @@ val add_rules =
      minus_mult_left RS sym, minus_mult_right RS sym,
      minus_add_distrib, minus_minus, mult_assoc,
      of_nat_0, of_nat_1, of_nat_Suc, of_nat_add, of_nat_mult,
-     of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat,
-     zero_neq_one, zero_less_one, zero_le_one, 
-     zero_neq_one RS not_sym, not_one_le_zero, not_one_less_zero];
+     of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat];
 
 val simprocs = [assoc_fold_simproc, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals;

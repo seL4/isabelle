@@ -388,7 +388,8 @@ val isolateSuc =
 val add_rules =
  [add_zero_left,add_zero_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
   One_nat_def,isolateSuc,
-  order_less_irrefl];
+  order_less_irrefl, zero_neq_one, zero_less_one, zero_le_one, 
+  zero_neq_one RS not_sym, not_one_le_zero, not_one_less_zero];
 
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
