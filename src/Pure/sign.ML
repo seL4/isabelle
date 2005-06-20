@@ -133,6 +133,9 @@ sig
   val certify_typ_syntax: theory -> typ -> typ
   val certify_typ_abbrev: theory -> typ -> typ
   val certify_term: Pretty.pp -> theory -> term -> term * typ * int
+  val certify_prop: Pretty.pp -> theory -> term -> term * typ * int
+  val cert_term: theory -> term -> term
+  val cert_prop: theory -> term -> term
   val read_sort': Syntax.syntax -> theory -> string -> sort
   val read_sort: theory -> string -> sort
   val read_typ': Syntax.syntax -> theory * (indexname -> sort option) -> string -> typ
@@ -156,6 +159,8 @@ sig
     theory * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val simple_read_term: theory -> typ -> string -> term
+  val read_term: theory -> string -> term
+  val read_prop: theory -> string -> term
   val const_of_class: class -> string
   val class_of_const: string -> class
   include SIGN_THEORY
@@ -464,6 +469,13 @@ fun certify_term pp thy tm =
 
 end;
 
+fun certify_prop pp thy tm =
+  let val res as (tm', T, _) = certify_term pp thy tm
+  in if T <> propT then raise TYPE ("Term not of type prop", [T], [tm']) else res end;
+
+fun cert_term thy tm = #1 (certify_term (pp thy) thy tm);
+fun cert_prop thy tm = #1 (certify_prop (pp thy) thy tm);
+
 
 
 (** read and certify entities **)    (*exception ERROR*)
@@ -575,8 +587,7 @@ fun infer_types pp thy def_type def_sort used freeze tsT =
   apfst hd (infer_types_simult pp thy def_type def_sort used freeze [tsT]);
 
 
-
-(** read_def_terms -- read terms and infer types **)    (*exception ERROR*)
+(* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
 
 fun read_def_terms' pp is_logtype syn (thy, types, sorts) used freeze sTs =
   let
@@ -592,6 +603,9 @@ fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
   in t end
   handle ERROR => error ("The error(s) above occurred for term " ^ s);
+
+fun read_term thy = simple_read_term thy TypeInfer.logicT;
+fun read_prop thy = simple_read_term thy propT;
 
 
 
