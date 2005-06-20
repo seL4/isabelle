@@ -814,19 +814,26 @@ done
 text{*When M receives AuthRes, he knows that P signed it, including
   the identifying tags and the purchase amount, which he can verify.
   (Although the spec has SIGNED and UNSIGNED forms of AuthRes, they
-   send the same message to M.)*}
+   send the same message to M.)  The conclusion is weak: M is existentially
+  quantified! That is because Authorization Response does not refer to M, while
+  the digital envelope weakens the link between @{term MsgAuthRes} and
+  @{term"priSK M"}.  Changing the precondition to refer to 
+  @{term "Crypt K (sign SK M)"} requires assuming @{term K} to be secure, since
+  otherwise the Spy could create that message.*}
 theorem M_verifies_AuthRes:
-  "[| MsgAuthRes = {|Number LID_M, Number XID, Number PurchAmt|};
+  "[| MsgAuthRes = {|{|Number LID_M, Number XID, Number PurchAmt|}, 
+                     Hash authCode|};
       Crypt (priSK (PG j)) (Hash MsgAuthRes) \<in> parts (knows Spy evs);
-      evs \<in> set_pur;  PG j \<notin> bad|]
-   ==> \<exists>i KM HOIData HOD P_I.
+      PG j \<notin> bad;  evs \<in> set_pur|]
+   ==> \<exists>M KM KP HOIData HOD P_I.
 	Gets (PG j)
-	   (EncB (priSK (Merchant i)) KM (pubEK (PG j))
+	   (EncB (priSK M) KM (pubEK (PG j))
 		    {|Number LID_M, Number XID, HOIData, HOD|}
 		    P_I) \<in> set evs &
-	Says (PG j) (Merchant i)
-	     (Crypt (pubEK (Merchant i)) (sign (priSK (PG j)) MsgAuthRes))
-          \<in> set evs"
+	Says (PG j) M
+	     (EncB (priSK (PG j)) KP (pubEK M)
+	      {|Number LID_M, Number XID, Number PurchAmt|}
+	      authCode) \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
