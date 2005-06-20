@@ -622,12 +622,13 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML \
 
 ## HOL-Matrix
 
-HOL-Matrix: HOL HOL-Complex $(LOG)/HOL-Matrix.gz
+HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
 
 $(LOG)/HOL-Matrix.gz: $(OUT)/HOL-Complex \
   Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
   Matrix/document/root.tex Matrix/ROOT.ML
-	@cd Matrix; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL-Matrix
+	@$(ISATOOL) usedir $(OUT)/HOL-Complex Matrix
+
 
 ## TLA
 
@@ -689,7 +690,7 @@ clean:
                 $(LOG)/HOL-Bali.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Lattice \
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix \
 		$(LOG)/HOL-Complex.gz \
 		$(LOG)/HOL-Complex-ex.gz \
 		$(LOG)/HOL-Complex-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
