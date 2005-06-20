@@ -101,13 +101,13 @@ fun ipartition gv (constructors,rows) =
         | part {constrs = [],   rows = _::_, A} = pfail"extra cases in defn"
         | part {constrs = _::_, rows = [],   A} = pfail"cases missing in defn"
         | part {constrs = c::crst, rows,     A} =
-          let val (Name,Ty) = dest_Const c
-              val L = binder_types Ty
+          let val (c, T) = dest_Const c
+              val L = binder_types T
               val (in_group, not_in_group) =
                U.itlist (fn (row as (p::rst, rhs)) =>
                          fn (in_group,not_in_group) =>
                   let val (pc,args) = S.strip_comb p
-                  in if (#1(dest_Const pc) = Name)
+                  in if (#1(dest_Const pc) = c)
                      then ((args@rst, rhs)::in_group, not_in_group)
                      else (in_group, row::not_in_group)
                   end)      rows ([],[])
@@ -157,13 +157,13 @@ fun fresh_constr ty_match colty gv c =
 
 (*---------------------------------------------------------------------------
  * Goes through a list of rows and picks out the ones beginning with a
- * pattern with constructor = Name.
+ * pattern with constructor = name.
  *---------------------------------------------------------------------------*)
-fun mk_group Name rows =
+fun mk_group name rows =
   U.itlist (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
                let val (pc,args) = S.strip_comb p
-               in if ((#1 (Term.dest_Const pc) = Name) handle TERM _ => false)
+               in if ((#1 (Term.dest_Const pc) = name) handle TERM _ => false)
                   then (((prfx,args@rst), rhs)::in_group, not_in_group)
                   else (in_group, row::not_in_group) end)
       rows ([],[]);
@@ -178,8 +178,7 @@ let val fresh = fresh_constr ty_match colty gv
      fun part {constrs = [],      rows, A} = rev A
        | part {constrs = c::crst, rows, A} =
          let val (c',gvars) = fresh c
-             val (Name,Ty) = dest_Const c'
-             val (in_group, not_in_group) = mk_group Name rows
+             val (in_group, not_in_group) = mk_group (#1 (dest_Const c')) rows
              val in_group' =
                  if (null in_group)  (* Constructor not given *)
                  then [((prfx, #2(fresh c)), (S.ARB res_ty, (~1,false)))]
@@ -290,7 +289,7 @@ fun mk_case ty_info ty_match usednames range_ty =
 (* Repeated variable occurrences in a pattern are not allowed. *)
 fun FV_multiset tm =
    case (S.dest_term tm)
-     of S.VAR{Name,Ty} => [Free(Name,Ty)]
+     of S.VAR{Name = c, Ty = T} => [Free(c, T)]
       | S.CONST _ => []
       | S.COMB{Rator, Rand} => FV_multiset Rator @ FV_multiset Rand
       | S.LAMB _ => raise TFL_ERR "FV_multiset" "lambda";
@@ -370,9 +369,9 @@ end end;
 
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
-fun mk_const_def sign (Name, Ty, rhs) =
+fun mk_const_def sign (c, Ty, rhs) =
     Sign.infer_types (Sign.pp sign) sign (K NONE) (K NONE) [] false
-               ([Const("==",dummyT) $ Const(Name,Ty) $ rhs], propT)
+               ([Const("==",dummyT) $ Const(c,Ty) $ rhs], propT)
     |> #1;
 
 (*Make all TVars available for instantiation by adding a ? to the front*)
@@ -386,17 +385,17 @@ local val f_eq_wfrec_R_M =
       val (fname,_) = dest_Free f
       val (wfrec,_) = S.strip_comb rhs
 in
-fun wfrec_definition0 thy fid R (functional as Abs(Name, Ty, _)) =
- let val def_name = if Name<>fid then
+fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
+ let val def_name = if x<>fid then
                         raise TFL_ERR "wfrec_definition0"
                                       ("Expected a definition of " ^
                                              quote fid ^ " but found one of " ^
-                                      quote Name)
-                    else Name ^ "_def"
+                                      quote x)
+                    else x ^ "_def"
      val wfrec_R_M =  map_term_types poly_tvars
                           (wfrec $ map_term_types poly_tvars R)
                       $ functional
-     val def_term = mk_const_def (Theory.sign_of thy) (Name, Ty, wfrec_R_M)
+     val def_term = mk_const_def (Theory.sign_of thy) (x, Ty, wfrec_R_M)
      val (thy', [def]) = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
  in (thy', def) end;
 end;
@@ -449,7 +448,7 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
                            given_pats
      val (case_rewrites,context_congs) = extraction_thms theory
      (*case_ss causes minimal simplification: bodies of case expressions are
-       not simplified. Otherwise large examples (Red-Black trees) are too 
+       not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
      val case_ss = HOL_basic_ss addcongs
        DatatypePackage.weak_case_congs_of theory addsimps case_rewrites
@@ -485,15 +484,15 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val g = list_comb(f,SV)
      val h = Free(fname,type_of g)
      val eqns1 = map (subst_free[(g,h)]) eqns
-     val {functional as Abs(Name, Ty, _),  pats} = mk_functional thy eqns1
+     val {functional as Abs(x, Ty, _),  pats} = mk_functional thy eqns1
      val given_pats = givens pats
-     (* val f = Free(Name,Ty) *)
+     (* val f = Free(x,Ty) *)
      val Type("fun", [f_dty, f_rty]) = Ty
-     val dummy = if Name<>fid then
+     val dummy = if x<>fid then
                         raise TFL_ERR "wfrec_eqns"
                                       ("Expected a definition of " ^
                                       quote fid ^ " but found one of " ^
-                                      quote Name)
+                                      quote x)
                  else ()
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
@@ -551,9 +550,9 @@ fun lazyR_def thy fid tflCongs eqns =
                            else ()
      val {lhs,rhs} = S.dest_eq proto_def'
      val (c,args) = S.strip_comb lhs
-     val (Name,Ty) = dest_atom c
+     val (name,Ty) = dest_atom c
      val defn = mk_const_def (Theory.sign_of thy)
-                 (Name, Ty, S.list_mk_abs (args,rhs))
+                 (name, Ty, S.list_mk_abs (args,rhs))
      val (theory, [def0]) =
        thy
        |> PureThy.add_defs_i false
@@ -580,7 +579,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
      val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
                        theory Hilbert_Choice*)
-         thm "Hilbert_Choice.tfl_some" 
+         thm "Hilbert_Choice.tfl_some"
          handle ERROR => error
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
      val bar = R.MP (R.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
