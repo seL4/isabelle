@@ -496,13 +496,13 @@ fun extern_skolem ctxt =
 (** prepare terms and propositions **)
 
 (*
-  (1) read / certify wrt. signature of context
+  (1) read / certify wrt. theory of context
   (2) intern Skolem constants
   (3) expand term bindings
 *)
 
 
-(* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
+(* read wrt. theory *)     (*exception ERROR*)
 
 fun read_def_termTs freeze pp syn thy (types, sorts, used) sTs =
   Sign.read_def_terms' pp (Sign.is_logtype thy) syn (thy, types, sorts) used freeze sTs;
@@ -521,13 +521,6 @@ fun read_terms_thy freeze pp syn thy defs =
 
 fun read_props_thy freeze pp syn thy defs =
   #1 o read_def_termTs freeze pp syn thy defs o map (rpair propT);
-
-
-fun cert_term_thy pp thy t = #1 (Sign.certify_term pp thy t);
-
-fun cert_prop_thy pp thy tm =
-  let val (t, T, _) = Sign.certify_term pp thy tm
-  in if T = propT then t else raise TERM ("Term not of type prop", [t]) end;
 
 
 (* norm_term *)
@@ -626,16 +619,20 @@ local
 fun gen_cert cert pattern schematic ctxt t = t
   |> (if pattern then I else norm_term ctxt schematic)
   |> (fn t' => cert (pp ctxt) (theory_of ctxt) t'
-    handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
+    handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt)
+      | TERM (msg, _) => raise CONTEXT (msg, ctxt));
+
+val certify_term = #1 ooo Sign.certify_term;
+val certify_prop = #1 ooo Sign.certify_prop;
 
 in
 
-val cert_term = gen_cert cert_term_thy false false;
-val cert_prop = gen_cert cert_prop_thy false false;
-val cert_props = map oo gen_cert cert_prop_thy false;
+val cert_term = gen_cert certify_term false false;
+val cert_prop = gen_cert certify_prop false false;
+val cert_props = map oo gen_cert certify_prop false;
 
-fun cert_term_pats _ = map o gen_cert cert_term_thy true false;
-val cert_prop_pats = map o gen_cert cert_prop_thy true false;
+fun cert_term_pats _ = map o gen_cert certify_term true false;
+val cert_prop_pats = map o gen_cert certify_prop true false;
 
 end;
 
@@ -974,15 +971,18 @@ end;
 (* get_thm(s) *)
 
 (*beware of proper order of evaluation!*)
-fun retrieve_thms f g (ctxt as Context {thy, thms = (_, (space, tab), _), ...}) =
-  let
-    val thy_ref = Theory.self_ref thy;
-    val get_from_thy = f thy;
-  in
-    fn xnamei as (xname, _) =>
-      (case Symtab.lookup (tab, NameSpace.intern space xname) of
-        SOME ths => map (Thm.transfer (Theory.deref thy_ref)) (PureThy.select_thm xnamei ths)
-      | _ => get_from_thy xnamei) |> g xname
+fun retrieve_thms from_thy pick (ctxt as Context {thy, thms = (_, (space, tab), _), ...}) =
+  let val thy_ref = Theory.self_ref thy in
+    fn xthmref =>
+      let
+        val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
+        val name = PureThy.name_of_thmref thmref;
+        val thy' = Theory.deref thy_ref;
+      in
+        (case Symtab.lookup (tab, name) of
+          SOME ths => map (Thm.transfer thy') (PureThy.select_thm thmref ths)
+        | NONE => from_thy thy' xthmref) |> pick name
+      end
   end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
@@ -994,7 +994,7 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
+  (case try (transform_error (fn () => get_thms ctxt (Name name))) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 
