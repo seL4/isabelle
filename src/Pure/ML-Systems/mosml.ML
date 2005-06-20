@@ -19,6 +19,10 @@ $ isabelle RAW_ML_SYSTEM
 
 (** ML system related **)
 
+(*proper implementation available?*)
+fun pointer_eq (x:''a, y) = false;
+
+
 (* Poly/ML emulation *)
 
 load "Bool";

@@ -11,6 +11,12 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 
 (** ML system related **)
 
+(* low-level pointer equality *)
+
+(*proper implementation available?*)
+fun pointer_eq (x:''a, y) = false;
+
+
 (* restore old-style character / string functions *)
 
 val ord     = SML90.ord;
