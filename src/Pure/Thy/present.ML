@@ -72,15 +72,13 @@ fun show_path path = Path.pack (Path.append (File.pwd ()) path);
 
 (** additional theory data **)
 
-val empty_browser_info = {name = "Pure", session = []: string list, is_local = false};
-
 structure BrowserInfoData = TheoryDataFun
 (struct
   val name = "Pure/browser_info";
   type T = {name: string, session: string list, is_local: bool};
-  val empty = empty_browser_info;
+  val empty = {name = "", session = [], is_local = false}: T;
   val copy = I;
-  fun extend _ = {name = "", session = [], is_local = false};
+  fun extend _ = empty;
   fun merge _ _ = empty;
   fun print _ _ = ();
 end);
@@ -89,7 +87,7 @@ val _ = Context.add_setup [BrowserInfoData.init];
 
 fun get_info thy =
   if Context.theory_name thy mem_string [Context.ProtoPureN, Context.PureN, Context.CPureN]
-  then empty_browser_info
+  then {name = Context.PureN, session = [], is_local = false}
   else BrowserInfoData.get thy;
 
 
