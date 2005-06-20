@@ -9,7 +9,7 @@ signature BASIC_THEORY =
 sig
   type theory
   type theory_ref
-  val sign_of: theory -> theory    (*dummy*)
+  val sign_of: theory -> theory    (*obsolete*)
   val rep_theory: theory ->
    {axioms: term NameSpace.table,
     defs: Defs.graph,
@@ -29,6 +29,10 @@ signature THEORY =
 sig
   include BASIC_THEORY
   include SIGN_THEORY
+  val begin_theory: string -> theory list -> theory
+  val end_theory: theory -> theory
+  val checkpoint: theory -> theory
+  val copy: theory -> theory
   val init: theory -> theory
   val axiom_space: theory -> NameSpace.T
   val oracle_space: theory -> NameSpace.T
@@ -40,8 +44,6 @@ sig
   val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
-  val copy: theory -> theory
-  val checkpoint: theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_defs: bool -> (bstring * string) list -> theory -> theory
@@ -49,7 +51,7 @@ sig
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
-end;
+end
 
 structure Theory: THEORY =
 struct
@@ -63,8 +65,6 @@ type theory_ref = Context.theory_ref;
 
 val eq_thy = Context.eq_thy;
 val subthy = Context.subthy;
-val copy = Context.copy_thy;
-val checkpoint = Context.checkpoint_thy;
 
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
@@ -73,6 +73,11 @@ val self_ref = Context.self_ref;
 val deref = Context.deref;
 val merge = Context.merge;
 val merge_refs = Context.merge_refs;
+
+val begin_theory = Sign.local_path oo Context.begin_thy Sign.pp;
+val end_theory = Context.finish_thy;
+val checkpoint = Context.checkpoint_thy;
+val copy = Context.copy_thy;
 
 
 (* signature operations *)
