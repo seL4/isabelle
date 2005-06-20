@@ -420,9 +420,7 @@ fun begin_theory present upd name parents paths =
     val assert_thy = if upd then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = List.app assert_thy parents;
-    val theory =
-      Context.begin_theory Sign.pp name (map get_theory bparents)
-      |> Sign.local_path;
+    val theory = Theory.begin_theory name (map get_theory bparents);
     val deps =
       if known_thy name then get_deps name
       else (init_deps NONE (map #1 paths));   (*records additional ML files only!*)
@@ -438,7 +436,7 @@ fun begin_theory present upd name parents paths =
 fun end_theory theory =
   let
     val name = Context.theory_name theory;
-    val theory' = Context.end_theory theory;
+    val theory' = Theory.end_theory theory;
   in put_theory name theory'; theory' end;
 
 
