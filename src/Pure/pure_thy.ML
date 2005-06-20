@@ -7,7 +7,8 @@ Theorem storage.  The ProtoPure theory.
 
 signature BASIC_PURE_THY =
 sig
-  type thmref
+  datatype interval = FromTo of int * int | From of int | Single of int
+  datatype thmref = Name of string | NameSelection of string * interval list
   val print_theorems: theory -> unit
   val print_theory: theory -> unit
   val get_thm: theory -> thmref -> thm
@@ -23,12 +24,14 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  datatype interval = FromTo of int * int | From of int | Single of int
   val string_of_thmref: thmref -> string
   val theorem_space: theory -> NameSpace.T
+  val print_theorems_diff: theory -> theory -> unit
   val get_thm_closure: theory -> thmref -> thm
   val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
+  val name_of_thmref: thmref -> string
+  val map_name_of_thmref: (string -> string) -> thmref -> thmref
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
   val fact_index_of: theory -> FactIndex.T
@@ -78,14 +81,19 @@ struct
 
 (** dataype theorems **)
 
-fun pretty_theorems thy theorems =
+fun pretty_theorems_diff thy prev_thms (space, thms) =
   let
     val prt_thm = Display.pretty_thm_sg thy;
     fun prt_thms (name, [th]) =
           Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
       | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
-    val thmss = NameSpace.extern_table theorems;
+
+    val diff_thmss = Symtab.fold (fn fact =>
+      if not (Symtab.member eq_thms prev_thms fact) then cons fact else I) thms [];
+    val thmss = diff_thmss |> map (apfst (NameSpace.extern space)) |> Library.sort_wrt #1;
   in Pretty.big_list "theorems:" (map prt_thms thmss) end;
+
+fun pretty_theorems thy = pretty_theorems_diff thy Symtab.empty;
 
 structure TheoremsData = TheoryDataFun
 (struct
@@ -104,18 +112,23 @@ structure TheoremsData = TheoryDataFun
   fun print thy (ref {theorems, index}) = Pretty.writeln (pretty_theorems thy theorems);
 end);
 
-val get_theorems = TheoremsData.get;
-val theorem_space = #1 o #theorems o ! o get_theorems;
-val fact_index_of = #index o ! o get_theorems;
+val get_theorems_ref = TheoremsData.get;
+val get_theorems = ! o get_theorems_ref;
+val theorem_space = #1 o #theorems o get_theorems;
+val fact_index_of = #index o get_theorems;
 
 
 (* print theory *)
 
 val print_theorems = TheoremsData.print;
 
+fun print_theorems_diff prev_thy thy =
+  Pretty.writeln (pretty_theorems_diff thy
+    (#2 (#theorems (get_theorems prev_thy))) (#theorems (get_theorems thy)));
+
 fun print_theory thy =
   Display.pretty_full_theory thy @
-    [pretty_theorems thy (#theorems (! (get_theorems thy)))]
+    [pretty_theorems thy (#theorems (get_theorems thy))]
   |> Pretty.chunks |> Pretty.writeln;
 
 
@@ -145,19 +158,27 @@ fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
   | string_of_interval (Single i) = string_of_int i;
 
 
-(* type thmref *)
+(* datatype thmref *)
 
-type thmref = xstring * interval list option;
+datatype thmref =
+  Name of string |
+  NameSelection of string * interval list;
 
-fun string_of_thmref (name, NONE) = name
-  | string_of_thmref (name, SOME is) =
+fun name_of_thmref (Name name) = name
+  | name_of_thmref (NameSelection (name, _)) = name;
+
+fun map_name_of_thmref f (Name name) = Name (f name)
+  | map_name_of_thmref f (NameSelection (name, is)) = NameSelection (f name, is);
+
+fun string_of_thmref (Name name) = name
+  | string_of_thmref (NameSelection (name, is)) =
       name ^ enclose "(" ")" (commas (map string_of_interval is));
 
 
 (* select_thm *)
 
-fun select_thm (_, NONE) thms = thms
-  | select_thm (name, SOME is) thms =
+fun select_thm (Name _) thms = thms
+  | select_thm (NameSelection (name, is)) thms =
       let
         val n = length thms;
         fun select i =
@@ -170,9 +191,9 @@ fun select_thm (_, NONE) thms = thms
 
 (* selections *)
 
-fun selections (name, [thm]) = [((name, NONE), thm)]
+fun selections (name, [thm]) = [(Name name, thm)]
   | selections (name, thms) = (1 upto length thms, thms) |> ListPair.map (fn (i, thm) =>
-      ((name, SOME [Single i]), thm));
+      (NameSelection (name, [Single i]), thm));
 
 
 (* get_thm(s)_closure -- statically scoped versions *)
@@ -182,7 +203,7 @@ fun selections (name, [thm]) = [((name, NONE), thm)]
 fun lookup_thms thy =
   let
     val thy_ref = Theory.self_ref thy;
-    val ref {theorems = (space, thms), ...} = get_theorems thy;
+    val (space, thms) = #theorems (get_theorems thy);
   in
     fn name =>
       Option.map (map (Thm.transfer (Theory.deref thy_ref)))    (*dynamic identity*)
@@ -191,22 +212,26 @@ fun lookup_thms thy =
 
 fun get_thms_closure thy =
   let val closures = map lookup_thms (thy :: Theory.ancestors_of thy) in
-    fn (name, i) => select_thm (name, i) (the_thms name (get_first (fn f => f name) closures))
+    fn thmref =>
+      let val name = name_of_thmref thmref
+      in select_thm thmref (the_thms name (get_first (fn f => f name) closures)) end
   end;
 
 fun get_thm_closure thy =
   let val get = get_thms_closure thy
-  in fn (name, i) => single_thm name (get (name, i)) end;
+  in fn thmref => single_thm (name_of_thmref thmref) (get thmref) end;
 
 
 (* get_thms etc. *)
 
-fun get_thms theory (name, i) =
-  get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
-  |> the_thms name |> select_thm (name, i) |> map (Thm.transfer theory);
+fun get_thms theory thmref =
+  let val name = name_of_thmref thmref in
+    get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
+    |> the_thms name |> select_thm thmref |> map (Thm.transfer theory)
+  end;
 
-fun get_thmss thy names = List.concat (map (get_thms thy) names);
-fun get_thm thy (name, i) = single_thm name (get_thms thy (name, i));
+fun get_thmss thy thmrefs = List.concat (map (get_thms thy) thmrefs);
+fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
 
 
 (* thms_containing etc. *)
@@ -220,7 +245,7 @@ fun thms_containing theory spec =
   (theory :: Theory.ancestors_of theory)
   |> map (fn thy =>
       FactIndex.find (fact_index_of thy) spec
-      |> List.filter (fn (name, ths) => valid_thms theory ((name, NONE), ths))
+      |> List.filter (fn (name, ths) => valid_thms theory (Name name, ths))
       |> gen_distinct eq_fst)
   |> List.concat;
 
@@ -232,7 +257,7 @@ fun thms_containing_consts thy consts =
 (* thms_of etc. *)
 
 fun thms_of thy =
-  let val ref {theorems = (_, thms), ...} = get_theorems thy in
+  let val (_, thms) = #theorems (get_theorems thy) in
     map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms)))
   end;
 
@@ -246,7 +271,7 @@ fun all_thms_of thy = List.concat (map thms_of (thy :: Theory.ancestors_of thy))
 
 fun hide_thms fully names thy =
   let
-    val r as ref {theorems = (space, thms), index} = get_theorems thy;
+    val r as ref {theorems = (space, thms), index} = get_theorems_ref thy;
     val space' = fold (NameSpace.hide fully) names space;
   in r := {theorems = (space', thms), index = index}; thy end;
 
@@ -280,7 +305,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
   | enter_thms pre_name post_name app_att (bname, thms) thy =
       let
         val name = Sign.full_name thy bname;
-        val r as ref {theorems = (space, theorems), index} = get_theorems thy;
+        val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy;
         val space' = Sign.declare_name thy name space;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
         val theorems' = Symtab.update ((name, thms'), theorems);
@@ -423,7 +448,7 @@ val aT = TFree ("'a", []);
 val A = Free ("A", propT);
 
 val proto_pure =
-  Context.pre_pure
+  Context.pre_pure_thy
   |> Sign.init
   |> Theory.init
   |> Proofterm.init
@@ -461,7 +486,7 @@ val proto_pure =
    [("Goal_def", Logic.mk_equals (Logic.mk_goal A, A))]
   |> (#1 o add_thmss [(("nothing", []), [])])
   |> Theory.add_axioms_i Proofterm.equality_axms
-  |> Context.end_theory;
+  |> Theory.end_theory;
 
 structure ProtoPure =
 struct
