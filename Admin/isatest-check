@@ -56,7 +56,7 @@ done
 # still running -> give up
 if [ -n "$(ls $RUNNING)" ]; then
     echo "Giving up waiting for test to finish at $(date)." > $TMP
-    echo "Attaching all running and error logs." >> $TMP
+    echo "Attaching all error logs collected so far." >> $TMP
     echo >> $TMP
 
     if [ -e $ERRORLOG ]; then
