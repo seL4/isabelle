@@ -11,6 +11,8 @@ sig
   val member: ('b * 'a -> order) -> 'a list -> 'b -> bool
   val insert: ('a * 'a -> order) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> order) -> 'b -> 'a list -> 'a list
+  val subset: ('b * 'a -> order) -> 'b list * 'a list -> bool
+  val eq_set: ('b * 'a -> order) -> 'b list * 'a list -> bool
   val union: ('a * 'a -> order) -> 'a list -> 'a list -> 'a list
   val inter: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
   val subtract: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
@@ -19,38 +21,58 @@ end;
 structure OrdList: ORD_LIST =
 struct
 
-exception SAME;
-fun handle_same f x = f x handle SAME => x;
+
+(* single elements *)
+
+exception ABSENT of int;
+
+fun find_index ord list x =
+  let
+    fun find i [] = raise ABSENT i
+      | find i (y :: ys) =
+          (case ord (x, y) of
+            LESS => raise ABSENT i
+          | EQUAL => i
+          | GREATER => find (i + 1) ys);
+  in find 0 list end;
 
 fun member ord list x =
-  let
-    fun memb [] = false
-      | memb (y :: ys) =
-          (case ord (x, y) of
-            LESS => false
-          | EQUAL => true
-          | GREATER => memb ys);
-  in memb list end;
+  (find_index ord list x; true) handle ABSENT _ => false;
 
 fun insert ord x list =
   let
-    fun insrt [] = [x]
-      | insrt (lst as y :: ys) =
-          (case ord (x, y) of
-            LESS => x :: lst
-          | EQUAL => raise SAME
-          | GREATER => y :: insrt ys);
-  in handle_same insrt list end;
+    fun insrt 0 ys = x :: ys
+      | insrt i (y :: ys) = y :: insrt (i - 1) ys;
+  in (find_index ord list x; list) handle ABSENT i => insrt i list end;
 
 fun remove ord x list =
   let
-    fun rmove [] = raise SAME
-      | rmove (y :: ys) =
+    fun rmove 0 (_ :: ys) = ys
+      | rmove i (y :: ys) = y :: rmove (i - 1) ys;
+  in rmove (find_index ord list x) list handle ABSENT _ => list end;
+
+
+(* lists as sets *)
+
+nonfix subset;
+fun subset ord (list1, list2) =
+  let
+    fun sub [] _ = true
+      | sub _ [] = false
+      | sub (lst1 as x :: xs) (y :: ys) =
           (case ord (x, y) of
-            LESS => raise SAME
-          | EQUAL => ys
-          | GREATER => y :: rmove ys);
-  in handle_same rmove list end;
+            LESS => false
+          | EQUAL => sub xs ys
+          | GREATER => sub lst1 ys);
+  in sub list1 list2 end;
+
+fun eq_set ord lists = list_ord ord lists = EQUAL;
+
+
+(* algebraic operations *)
+
+exception SAME;
+fun handle_same f x = f x handle SAME => x;
 
 (*union: insert elements of first list into second list*)
 nonfix union;
