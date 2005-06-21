@@ -66,11 +66,9 @@ fun switch_equal a x = let val (a_lhs, a_rhs) = get_eq_strs a
                            (a_lhs = x_rhs) andalso (a_rhs = x_lhs)
                        end
 
-fun equal_pair (a,b) = equal a b
-
 fun is_var_pair (a,b) vars = (a mem vars) andalso (b mem vars)
 
-fun var_equiv vars (a,b)  = (equal_pair (a,b)) orelse (is_var_pair (a,b) vars)
+fun var_equiv vars (a,b)  = a=b orelse (is_var_pair (a,b) vars)
 
 fun all_true [] = false
 |   all_true xs = let val falselist = List.filter (equal false ) xs 

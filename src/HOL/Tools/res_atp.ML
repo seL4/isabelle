@@ -153,18 +153,15 @@ fun tptp_inputs_tfrees thms n tfrees =
 (* should be modified to allow other provers to be called            *)
 (*********************************************************************)
 (* now passing in list of skolemized thms and list of sgterms to go with them *)
-fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list) (childin, childout,pid) n  = let
+fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list) (childin, childout,pid) n  = 
+ let
    val axfile = (File.platform_path axiom_file)
    val hypsfile = (File.platform_path hyps_file)
    val clasimpfile = (File.platform_path clasimp_file)
-   val spass_home = getenv "SPASS_HOME"
-   val spass = spass_home ^ "/SPASS"
-   val _ = if File.exists (File.unpack_platform_path spass) then () 
-	   else error ("Could not find the file " ^ spass)
      
    fun make_atp_list [] sign n = []
    |   make_atp_list ((sko_thm, sg_term)::xs) sign  n = 
-   let 
+     let 
 	val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm) 
 	val thmproofstr = proofstring ( skothmstr)
 	val no_returns =List.filter   not_newline ( thmproofstr)
@@ -178,26 +175,32 @@ fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list
 	val _ = warning ("goalstring in make_atp_lists is: "^goalstring)
 
 	val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
-	val _ = (warning ("prob file in cal_res_tac is: "^probfile))                                                                           
-in
-     if !SpassComm.spass 
-       then if !full_spass 
-            then
+	val _ = (warning ("prob file in cal_res_tac is: "^probfile))      
+     in
+       if !SpassComm.spass 
+       then 
+         let val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
+         in  (*We've checked that SPASS is there for ATP/spassshell to run.*)
+           if !full_spass 
+            then (*Allow SPASS to run in Auto mode, using all its inference rules*)
    		([("spass", thmstr, goalstring (*,spass_home*), 
-	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),  
+	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
 	     	"-DocProof%-TimeLimit=60", 
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-  	    else	
+  	    else (*Restrict SPASS to a small set of rules that we can parse*)
    		([("spass", thmstr, goalstring (*,spass_home*), 
 	     	getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),  
 	     	"-Auto=0%-IORe%-IOFc%-RTaut%-RFSub%-RBSub%-DocProof%-TimeLimit=60", 
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
+	 end
      else
-	   ([("vampire", thmstr, goalstring (*,spass_home*), 
-	    	 "/homes/jm318/Vampire8/vkernel"(*( getenv "SPASS_HOME")^"/SPASS"*),  
-	     	"-t 300%-m 100000", 
-	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-end
+       let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
+       in  
+	   ([("vampire", thmstr, goalstring, vampire, "-t 300%-m 100000", 
+	      clasimpfile, axfile, hypsfile, probfile)] @ 
+	    (make_atp_list xs sign (n+1)))
+       end
+     end
 
 val thms_goals = ListPair.zip( thms, sg_terms) 
 val atp_list = make_atp_list  thms_goals sign 1
@@ -228,14 +231,14 @@ Watcher.callResProvers(childout, [("spass", "thmstring", "goalstr", "/homes/clq2
 
 
 fun get_sko_thms tfrees sign sg_terms (childin, childout,pid)  thm n sko_thms  =
-                       if (equal n 0) then 
-				(call_resolve_tac  (rev sko_thms) sign  sg_terms (childin, childout, pid) (List.length sg_terms);dummy_tac thm)
-			else
-                           
-               		( SELECT_GOAL
-  				(EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-  				 METAHYPS(fn negs => (tptp_inputs_tfrees (make_clauses negs) n tfrees;
-                                                    get_sko_thms  tfrees sign sg_terms (childin, childout, pid) thm  (n -1) (negs::sko_thms);dummy_tac))]) n thm )
+    if n=0 then 
+	     (call_resolve_tac  (rev sko_thms) sign  sg_terms (childin, childout, pid) (List.length sg_terms);dummy_tac thm)
+     else
+	
+     ( SELECT_GOAL
+	     (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+	      METAHYPS(fn negs => (tptp_inputs_tfrees (make_clauses negs) n tfrees;
+				 get_sko_thms  tfrees sign sg_terms (childin, childout, pid) thm  (n -1) (negs::sko_thms);dummy_tac))]) n thm )
 
 
 
@@ -246,21 +249,19 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid)  thm n sko_thms  =
 (**********************************************)
 
 fun isar_atp_goal' thm n tfree_lits  (childin, childout, pid) = 
-                  
-                           (let val  prems = prems_of thm 
-                              (*val sg_term = get_nth k prems*)
-                                val sign = sign_of_thm thm
-                                val thmstring = string_of_thm thm
-                            in   
-                                 
-                		(warning("in isar_atp_goal'"));
-                                (warning("thmstring in isar_atp_goal': "^thmstring));
- 				(* go and call callResProvers with this subgoal *)
- 				(* isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; *)
- 				(* recursive call to pick up the remaining subgoals *)
-                                (* isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) *)
-                                get_sko_thms tfree_lits sign  prems (childin, childout, pid) thm n []
-                            end);
+    let val  prems = prems_of thm 
+      (*val sg_term = get_nth k prems*)
+	val sign = sign_of_thm thm
+	val thmstring = string_of_thm thm
+    in   
+	warning("in isar_atp_goal'");
+	warning("thmstring in isar_atp_goal': "^thmstring);
+	(* go and call callResProvers with this subgoal *)
+	(* isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; *)
+	(* recursive call to pick up the remaining subgoals *)
+	(* isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) *)
+	get_sko_thms tfree_lits sign  prems (childin, childout, pid) thm n []
+    end ;
 
 (*fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = 
               (if (!debug) then warning (string_of_thm thm) 
