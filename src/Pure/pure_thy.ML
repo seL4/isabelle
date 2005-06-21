@@ -305,9 +305,9 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
   | enter_thms pre_name post_name app_att (bname, thms) thy =
       let
         val name = Sign.full_name thy bname;
-        val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy;
-        val space' = Sign.declare_name thy name space;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
+        val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy';
+        val space' = Sign.declare_name thy' name space;
         val theorems' = Symtab.update ((name, thms'), theorems);
         val index' = FactIndex.add (K false) (name, thms') index;
       in
