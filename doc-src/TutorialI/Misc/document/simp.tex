@@ -454,34 +454,34 @@ Proof General flag \textsf{Isabelle} $>$ \textsf{Settings} $>$ \textsf{Trace Sim
 produces the following trace in Proof General's \textsf{Trace} buffer:
 
 \begin{ttbox}\makeatother
-[0]Applying instance of rewrite rule "List.rev.simps_2":
+[1]Applying instance of rewrite rule "List.rev.simps_2":
 rev (?x1 # ?xs1) \(\equiv\) rev ?xs1 @ [?x1]
 
-[0]Rewriting:
+[1]Rewriting:
 rev [a] \(\equiv\) rev [] @ [a]
 
-[0]Applying instance of rewrite rule "List.rev.simps_1":
+[1]Applying instance of rewrite rule "List.rev.simps_1":
 rev [] \(\equiv\) []
 
-[0]Rewriting:
+[1]Rewriting:
 rev [] \(\equiv\) []
 
-[0]Applying instance of rewrite rule "List.op @.append_Nil":
+[1]Applying instance of rewrite rule "List.op @.append_Nil":
 [] @ ?y \(\equiv\) ?y
 
-[0]Rewriting:
+[1]Rewriting:
 [] @ [a] \(\equiv\) [a]
 
-[0]Applying instance of rewrite rule
+[1]Applying instance of rewrite rule
 ?x2 # ?t1 = ?t1 \(\equiv\) False
 
-[0]Rewriting:
+[1]Rewriting:
 [a] = [] \(\equiv\) False
 \end{ttbox}
 The trace lists each rule being applied, both in its general form and
 the instance being used. The \texttt{[}$i$\texttt{]} in front (where
-above $i$ is always \texttt{0}) indicates that we are inside the $i$th
-recursive invocation of the simplifier. Each attempt to apply a
+above $i$ is always \texttt{1}) indicates that we are inside the $i$th
+invocation of the simplifier. Each attempt to apply a
 conditional rule shows the rule followed by the trace of the
 (recursive!) simplification of the conditions, the latter prefixed by
 \texttt{[}$i+1$\texttt{]} instead of \texttt{[}$i$\texttt{]}.
@@ -493,6 +493,88 @@ Many other hints about the simplifier's actions may appear.
 In more complicated cases, the trace can be very lengthy.  Thus it is
 advisable to reset the \textsf{Trace Simplifier} flag after having
 obtained the desired trace.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Finding Theorems%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle's large database of already proved theorems requires
+and offers a powerful yet simple search engine. Its only limitation is
+its restriction to the theories currently loaded.
+
+\begin{pgnote}
+The search engine is started by clicking on Proof General's \textsf{Find} icon.
+You specify your search textually in the input buffer at the bottom
+of the window.
+\end{pgnote}
+
+The simplest form of search is that for theorems containing particular
+patterns: just type in the pattern(s). A pattern can be any term (even
+a single identifier) and may contain ``\texttt{\_}''. Here are some
+examples:
+\begin{ttbox}
+length
+"_ # _ = _ # _"
+"_ + _"
+"_ * (_ - (_::nat))"
+\end{ttbox}
+Note the ability to specify types to narrow searches involving overloaded
+operators.
+
+If you specify more than one pattern, all of them must be present in a
+theorem to match.
+
+\begin{warn}
+Always use ``\texttt{\_}'' rather than variable names: searching for
+\texttt{"x + y"} will usually not find any matching theorems
+because they would need to contain literally \texttt{x} and \texttt{y}.
+This is a feature, not a  bug.
+
+When searching for infix operators, do not just type in the symbol:
+\texttt{+} is not a proper term, you  need to say \texttt{"_ + _"}.
+This applies to other, more complicated syntaxes, too.
+\end{warn}
+
+If you are looking for theorems potentially simplifying some term, you
+need to prefix the pattern with \texttt{simp:}.
+\begin{ttbox}
+simp: "_ * (_ + _)"
+\end{ttbox}
+This searches all (possibly conditional) equations of the form
+\begin{isabelle}%
+\ \ \ \ \ {\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ {\isasymdots}%
+\end{isabelle}
+i.e.\ all distributivity rules.
+Note that the given pattern needs to be simplified
+at the root, not somewhere inside.
+
+You may also search theorems by name. To make this useful you merely
+need to give a substring. For example, you could try and search for all
+commutativity theorems like this:
+\begin{ttbox}
+name: comm
+\end{ttbox}
+This retrieves all theorems whose name contains \texttt{comm}.
+
+Search criteria can also be negated by prefixing them with ``\texttt{-}'':
+\begin{ttbox}
+-name: HOL
+\end{ttbox}
+finds theorems whose name does not contain \texttt{HOL}. This is useful for
+excluding particular theories from the search because the (long) name of
+a theorem contains the name of the theory it comes from.
+
+Finallly, different search criteria can be combined arbitrarily:
+\begin{ttbox}
+"_ + _"  -"_ - _"  -simp: "_ * (_ + _)"  name: assoc
+\end{ttbox}
+looks for theorems containg a plus but no minus which are not distributivity
+rules and whose name contains \texttt{assoc}.
+
+Further search criteria are explained in \S\ref{sec:Find:ied}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
