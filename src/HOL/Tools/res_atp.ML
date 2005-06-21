@@ -1,5 +1,7 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
+
     ID: $Id$
+
     Copyright 2004 University of Cambridge
 
 ATPs with TPTP format input.
@@ -24,6 +26,7 @@ val debug: bool ref
 val full_spass: bool ref
 (*val spass: bool ref*)
 val vampire: bool ref
+val custom_spass :string list  ref
 end;
 
 structure ResAtp : RES_ATP =
@@ -43,6 +46,8 @@ val full_spass = ref false;
 
 (* use spass as default prover *)
 (*val spass = ref true;*)
+
+val custom_spass = ref ["Auto=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub","-DocProof","-TimeLimit=60"];
 
 val vampire = ref false;
 
@@ -156,12 +161,16 @@ fun tptp_inputs_tfrees thms n tfrees =
 fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list) (childin, childout,pid) n  = 
  let
    val axfile = (File.platform_path axiom_file)
-   val hypsfile = (File.platform_path hyps_file)
-   val clasimpfile = (File.platform_path clasimp_file)
-     
+
+    val hypsfile = (File.platform_path hyps_file)
+     val clasimpfile = (File.platform_path clasimp_file)
+    val spass_home = getenv "SPASS_HOME"
+
+
    fun make_atp_list [] sign n = []
    |   make_atp_list ((sko_thm, sg_term)::xs) sign  n = 
      let 
+
 	val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm) 
 	val thmproofstr = proofstring ( skothmstr)
 	val no_returns =List.filter   not_newline ( thmproofstr)
@@ -175,6 +184,7 @@ fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list
 	val _ = warning ("goalstring in make_atp_lists is: "^goalstring)
 
 	val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+
 	val _ = (warning ("prob file in cal_res_tac is: "^probfile))      
      in
        if !SpassComm.spass 
@@ -183,14 +193,17 @@ fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list
          in  (*We've checked that SPASS is there for ATP/spassshell to run.*)
            if !full_spass 
             then (*Allow SPASS to run in Auto mode, using all its inference rules*)
+
    		([("spass", thmstr, goalstring (*,spass_home*), 
-	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",  
-	     	"-DocProof%-TimeLimit=60", 
+
+	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),  
+	     	"-DocProof%-TimeLimit=60%-SOS", 
+
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
   	    else (*Restrict SPASS to a small set of rules that we can parse*)
    		([("spass", thmstr, goalstring (*,spass_home*), 
 	     	getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),  
-	     	"-Auto=0%-IORe%-IOFc%-RTaut%-RFSub%-RBSub%-DocProof%-TimeLimit=60", 
+	     	("-" ^ space_implode "%-" (!custom_spass)), 
 	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
 	 end
      else
@@ -209,21 +222,7 @@ in
         warning("Sent commands to watcher!");
   	dummy_tac
  end
-(*
-  val axfile = (File.platform_path axiom_file)
-    val hypsfile = (File.platform_path hyps_file)
-     val clasimpfile = (File.platform_path  clasimp_file)
-    val spass_home = getenv "SPASS_HOME"
- val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int 1)
-    
- val (clause_arr, num_of_clauses) = ResClasimp.write_out_clasimp_small (File.platform_path clasimp_file) ;
- val (childin,childout,pid) = Watcher.createWatcher(mp, clause_arr, num_of_clauses);
-Watcher.callResProvers(childout, [("spass", "thmstring", "goalstr", spass_home,  "-DocProof", clasimpfile, axfile, hypsfile,probfile)]);
 
-Watcher.callResProvers(childout, [("spass", "thmstring", "goalstr", "/homes/clq20/spassshell",  "", clasimpfile, axfile, hypsfile,probfile)]);
-
-
-*)
 (**********************************************************)
 (* write out the current subgoal as a tptp file, probN,   *)
 (* then call dummy_tac - should be call_res_tac           *)
@@ -263,9 +262,7 @@ fun isar_atp_goal' thm n tfree_lits  (childin, childout, pid) =
 	get_sko_thms tfree_lits sign  prems (childin, childout, pid) thm n []
     end ;
 
-(*fun isar_atp_goal thm n_subgoals tfree_lits   (childin, childout, pid) = 
-              (if (!debug) then warning (string_of_thm thm) 
-               else (isar_atp_goal' thm n_subgoals tfree_lits  (childin, childout, pid) ));*)
+
 
 (**************************************************)
 (* convert clauses from "assume" to conjecture.   *)
@@ -305,18 +302,7 @@ fun isar_atp' (ctxt,thms, thm) =
 	    ResClasimp.write_out_clasimp(*_small*) (File.platform_path clasimp_file) 
 	                                 (ProofContext.theory_of ctxt)
         val _ = (warning ("clasimp_file is this: "^(File.platform_path clasimp_file)) )  
-
-        (* cq: add write out clasimps to file *)
-        (* cq:create watcher and pass to isar_atp_aux *)
-        (* tracing *) 
-        (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
-         val tenth_ax_thms = Recon_Transfer.memo_find_clause (tenth_ax, clause_tab)
-         val clause_str = Meson.concat_with_and (map string_of_thm tenth_ax_thms)
-         val _ = (warning ("tenth axiom in array is: "^tenth_ax))         
-         val _ = (warning ("tenth axiom in table is: "^clause_str))         
-                 
-         val _ = (warning ("num_of_clauses is: "^(string_of_int (num_of_clauses))) )     
-         *)             
+           
         
         val (childin,childout,pid) = Watcher.createWatcher(thm,clause_arr, num_of_clauses)
         val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))

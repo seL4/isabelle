@@ -209,16 +209,24 @@ fun linenums [] nums = nums
 				  then 
 				      nums
 				  else
-			          let val num = hd rest
-                                      val int_of = num_int num
-	
+			          let val first = hd rest
+				
 			          in
-				     linenums rest (int_of::nums)
+				    if (first = (Other "*") ) 
+				    then 
+					
+					 linenums rest ((num_int (hd (tl rest)))::nums)
+				     else
+					  linenums rest ((num_int first)::nums)
 			         end
                                 end
 
-fun get_linenums proofstr = let val s = extract_proof proofstr
-                                val tokens = #1(lex s)
+
+(* This relies on a Vampire proof line starting "% Number" or "% * Number"*)
+(* Check this is right *)
+
+fun get_linenums proofstr = let (*val s = extract_proof proofstr*)
+                                val tokens = #1(lex proofstr)
 	                 
 	                    in
 		                rev (linenums tokens [])

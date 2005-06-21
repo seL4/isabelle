@@ -475,7 +475,7 @@ fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms c
                                               (***********************************)
          
                                                val (axiom_names) = get_axiom_names_vamp proofstr  thms clause_arr  num_of_clauses
-                                               val ax_str = "Rules from clasimpset used in proof found by SPASS: "^(rules_to_string axiom_names "")
+                                               val ax_str = "Rules from clasimpset used in proof found by Vampire: "^(rules_to_string axiom_names "")
                                                val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "reconstrfile")));                                                    val _ = TextIO.output (outfile, ("reconstring is: "^ax_str^"  "^goalstring))
                                                val _ =  TextIO.closeOut outfile
                                                    
@@ -496,7 +496,7 @@ fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms c
                                                   val _ = TextIO.output (outfile, ("In exception handler"));
                                                   val _ =  TextIO.closeOut outfile
                                               in 
-                                                  TextIO.output (toParent,"Proof found but translation failed for resolution proof: "^(remove_linebreaks proofstr) );
+                                                  TextIO.output (toParent,"Proof found by Vampire but translation failed for resolution proof: "^(remove_linebreaks proofstr) );
                                                   TextIO.flushOut toParent;
 						   TextIO.output (toParent, thmstring^"\n");
                                          	   TextIO.flushOut toParent;

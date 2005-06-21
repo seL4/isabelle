@@ -42,8 +42,7 @@ fun logSpassInput (instr, fd) = let val thisLine = TextIO.inputLine instr
 (**********************************************************************)
 
 
-val atomize_tac =
-    SUBGOAL
+val atomize_tac =    SUBGOAL
      (fn (prop,_) =>
 	 let val ts = Logic.strip_assums_hyp prop
 	 in EVERY1 
