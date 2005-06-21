@@ -342,8 +342,10 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 
 
 (*Make a tactic for subgoal i, if there is one.  *)
-fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
-                             handle Subscript => Seq.empty;
+fun SUBGOAL goalfun i st =
+  (case try Logic.nth_prem (i, Thm.prop_of st) of
+    SOME goal => goalfun (goal, i) st
+  | NONE => Seq.empty);
 
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
