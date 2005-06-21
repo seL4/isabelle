@@ -384,6 +384,9 @@ lemma rtrancl_empty [simp]: "{}^* = Id"
 lemma rtranclD: "(a, b) \<in> R^* ==> a = b \<or> a \<noteq> b \<and> (a, b) \<in> R^+"
   by (force simp add: reflcl_trancl [symmetric] simp del: reflcl_trancl)
 
+lemma rtrancl_eq_or_trancl:
+  "(x,y) \<in> R\<^sup>* = (x=y \<or> x\<noteq>y \<and> (x,y) \<in> R\<^sup>+)"
+  by (fast elim: trancl_into_rtrancl dest: rtranclD)
 
 text {* @{text Domain} and @{text Range} *}
 
