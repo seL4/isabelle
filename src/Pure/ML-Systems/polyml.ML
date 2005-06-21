@@ -21,9 +21,8 @@ fun if_cygwin f x = if cygwin_platform then f x else ();
 fun unless_cygwin f x = if not cygwin_platform then f x else ();
 
 
-(* low-level pointer equality *)
-
-fun pointer_eq (x:''a, y) = Address.wordEq (x, y);
+(*low-level pointer equality*)
+val pointer_eq = Address.wordEq;
 
 
 (* old Poly/ML emulation *)
