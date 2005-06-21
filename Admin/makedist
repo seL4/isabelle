@@ -236,19 +236,19 @@ chgrp -R isabelle "$DISTNAME" Isabelle
 mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
-page/bin/mkcontents "$DISTNAME/doc/Contents" "pdf/$DISTNAME/doc/index"
-cat > "pdf/$DISTNAME/doc/index.html" <<EOF
-<html>
-<head>
-<title>$DISTNAME Documentation</title>
-</head>
-<body>
-<h1>$DISTNAME Documentation</h1>
-$(cat "pdf/$DISTNAME/doc/index")
-</body>
-</html>
-EOF
-rm "pdf/$DISTNAME/doc/index"
+#~ page/bin/mkcontents "$DISTNAME/doc/Contents" "pdf/$DISTNAME/doc/index"
+#~ cat > "pdf/$DISTNAME/doc/index.html" <<EOF
+#~ <html>
+#~ <head>
+#~ <title>$DISTNAME Documentation</title>
+#~ </head>
+#~ <body>
+#~ <h1>$DISTNAME Documentation</h1>
+#~ $(cat "pdf/$DISTNAME/doc/index")
+#~ </body>
+#~ </html>
+#~ EOF
+#~ rm "pdf/$DISTNAME/doc/index"
 
 echo "$DISTNAME.tar.gz"
 "$TAR" cf "$DISTNAME.tar" Isabelle "$DISTNAME"
