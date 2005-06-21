@@ -331,7 +331,7 @@ fun extend_lexicon lexicon [] = lexicon
         fun ext (lex, chrs) =
           let
             fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-                  (case String.compare (c, d) of
+                  (case string_ord (c, d) of
                     LESS => Branch (d, a, add lt chs, eq, gt)
                   | EQUAL => Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
                   | GREATER => Branch (d, a, lt, eq, add gt chs))
@@ -361,7 +361,7 @@ fun merge_lexicons lex1 lex2 =
 fun is_literal Empty _ = false
   | is_literal _ [] = false
   | is_literal (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-      (case String.compare (c, d) of
+      (case string_ord (c, d) of
         LESS => is_literal lt chs
       | EQUAL => a <> no_literal andalso null cs orelse is_literal eq cs
       | GREATER => is_literal gt chs);
@@ -374,7 +374,7 @@ fun literal lex chrs =
     fun lit Empty res _ = res
       | lit (Branch _) _ [] = raise MORE NONE
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
-          (case String.compare (c, d) of
+          (case string_ord (c, d) of
             LESS => lit lt res chs
           | EQUAL => lit eq (if a = no_literal then res else SOME (a, cs)) cs
           | GREATER => lit gt res chs);

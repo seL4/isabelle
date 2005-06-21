@@ -38,7 +38,7 @@ fun rules (Rules {rules = rs, ...}) = rs;
 
 fun retrieve (Rules {rules, net, ...}) tm =
   Tactic.untaglist 
-     ((Library.sort (Int.compare o pairself #1) (Net.unify_term net tm)));
+     ((Library.sort (int_ord o pairself #1) (Net.unify_term net tm)));
 
 
 (* build rules *)

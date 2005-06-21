@@ -113,7 +113,7 @@ fun print_rules prt x (Rules {rules, ...}) =
     fun prt_kind (i, b) =
       Pretty.big_list (the (assoc (kind_names, (i, b))) ^ ":")
         (List.mapPartial (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
-          (sort (Int.compare o pairself fst) rules));
+          (sort (int_ord o pairself fst) rules));
   in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 
 
@@ -175,10 +175,10 @@ fun untaglist [] = []
       else x :: untaglist rest;
 
 fun orderlist brls =
-  untaglist (sort (prod_ord Int.compare Int.compare o pairself fst) brls);
+  untaglist (sort (prod_ord int_ord int_ord o pairself fst) brls);
 
 fun orderlist_no_weight brls =
-  untaglist (sort (Int.compare o pairself (snd o fst)) brls);
+  untaglist (sort (int_ord o pairself (snd o fst)) brls);
 
 fun may_unify weighted t net =
   map snd ((if weighted then orderlist else orderlist_no_weight) (Net.unify_term net t));
