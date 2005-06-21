@@ -19,12 +19,7 @@ $ isabelle RAW_ML_SYSTEM
 
 (** ML system related **)
 
-(*proper implementation available?*)
-fun pointer_eq (x:''a, y) = false;
-
-
-(* Poly/ML emulation *)
-
+load "Obj";
 load "Bool";
 load "Int";
 load "Real";
@@ -32,6 +27,10 @@ load "ListPair";
 load "OS";
 load "Process";
 load "FileSys";
+
+(*low-level pointer equality*)
+local val cast : 'a -> int = Obj.magic
+in fun pointer_eq (x:'a, y:'a) = (cast x = cast y) end;
 
 (*proper implementation available?*)
 structure IntInf =
@@ -92,6 +91,7 @@ end = struct
    fun timeLimit t f x =
       f x;
 end;
+
 
 (* ML command execution *)
 
