@@ -66,7 +66,7 @@ fun subset ord (list1, list2) =
           | GREATER => sub lst1 ys);
   in sub list1 list2 end;
 
-fun eq_set ord lists = list_ord ord lists = EQUAL;
+fun eq_set ord lists = (list_ord ord lists = EQUAL);
 
 
 (* algebraic operations *)

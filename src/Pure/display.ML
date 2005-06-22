@@ -56,7 +56,7 @@ struct
 
 (** print thm **)
 
-val goals_limit = ref 10;       (*max number of goals to print -- set by user*)
+val goals_limit = ref 10;       (*max number of goals to print*)
 val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
@@ -113,13 +113,8 @@ val print_thm = Pretty.writeln o pretty_thm;
 val print_thms = Pretty.writeln o pretty_thms;
 
 fun prth th = (print_thm th; th);
-
-(*Print and return a sequence of theorems, separated by blank lines. *)
-fun prthq thseq =
-  (Seq.print (fn _ => print_thm) 100000 thseq; thseq);
-
-(*Print and return a list of theorems, separated by blank lines. *)
-fun prths ths = (List.app (fn th => (print_thm th; writeln "")) ths; ths);
+fun prthq thq = (Seq.print (K print_thm) 100000 thq; thq);
+fun prths ths = (prthq (Seq.of_list ths); ths);
 
 
 (* other printing commands *)
@@ -207,20 +202,23 @@ fun pretty_full_theory thy =
 
     val clsses = NameSpace.extern_table (apsnd (Symtab.make o Graph.dest) classes);
     val tdecls = NameSpace.extern_table types;
+    val arties = Symtab.dest arities
+      |> Library.sort_wrt (NameSpace.extern (Sign.type_space thy) o #1);
     val cnsts = NameSpace.extern_table consts;
     val finals = NameSpace.extern_table (#1 consts, Defs.finals defs);
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
     [Pretty.strs ("names:" :: Context.names_of thy),
-      Pretty.strs ("data:" :: Context.theory_data thy),
+      Pretty.strs ("theory data:" :: Context.theory_data_of thy),
+      Pretty.strs ("proof data:" :: Context.proof_data_of thy),
       Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
       pretty_witness witness,
       Pretty.big_list "syntactic types:" (List.mapPartial (pretty_type true) tdecls),
       Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
-      Pretty.big_list "type arities:" (pretty_arities (Symtab.dest arities)),
+      Pretty.big_list "type arities:" (pretty_arities arties),
       Pretty.big_list "consts:" (map pretty_const cnsts),
       Pretty.big_list "finals consts:" (map pretty_final finals),
       Pretty.big_list "axioms:" (map prt_axm axms),
@@ -233,8 +231,7 @@ fun pretty_full_theory thy =
 
 (* print_goals etc. *)
 
-(*show consts with types in proof state output?*)
-val show_consts = ref false;
+val show_consts = ref false;  (*true: show consts with types in proof state output*)
 
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)

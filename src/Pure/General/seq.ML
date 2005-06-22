@@ -151,18 +151,16 @@ fun interleave (xq, yq) =
       NONE => pull yq
     | SOME (x, xq') => SOME (x, interleave (yq, xq'))));
 
-
-(*functional to print a sequence, up to "count" elements;
-  the function prelem should print the element number and also the element*)
-fun print prelem count seq =
+(*print a sequence, up to "count" elements*)
+fun print print_elem count =
   let
-    fun pr (k, xq) =
+    fun prnt k xq =
       if k > count then ()
       else
         (case pull xq of
           NONE => ()
-        | SOME (x, xq') => (prelem k x; writeln ""; pr (k + 1, xq')))
-  in pr (1, seq) end;
+        | SOME (x, xq') => (print_elem k x; writeln ""; prnt (k + 1) xq'));
+  in prnt 1 end;
 
 (*accumulating a function over a sequence; this is lazy*)
 fun it_right f (xq, yq) =
