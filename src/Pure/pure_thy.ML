@@ -449,9 +449,9 @@ val A = Free ("A", propT);
 
 val proto_pure =
   Context.pre_pure_thy
-  |> Sign.init
-  |> Theory.init
-  |> Proofterm.init
+  |> Sign.init_data
+  |> Theory.init_data
+  |> Proofterm.init_data
   |> TheoremsData.init
   |> Theory.add_types
    [("fun", 2, NoSyn),

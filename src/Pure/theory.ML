@@ -33,7 +33,7 @@ sig
   val end_theory: theory -> theory
   val checkpoint: theory -> theory
   val copy: theory -> theory
-  val init: theory -> theory
+  val init_data: theory -> theory
   val axiom_space: theory -> NameSpace.T
   val oracle_space: theory -> NameSpace.T
   val axioms_of: theory -> (string * term) list
@@ -135,7 +135,7 @@ fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
 
 structure ThyData = TheoryDataFun
 (struct
-  val name = "Pure/thy";
+  val name = "Pure/theory";
   type T = thy;
   val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table);
   val copy = I;
@@ -158,7 +158,7 @@ structure ThyData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val init = ThyData.init;
+val init_data = ThyData.init;
 
 fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
 

@@ -72,7 +72,7 @@ signature SIGN =
 sig
   type syn
   type sg    (*obsolete*)
-  val init: theory -> theory
+  val init_data: theory -> theory
   val rep_sg: theory ->
    {naming: NameSpace.naming,
     syn: syn,
@@ -238,7 +238,7 @@ structure SignData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val init = SignData.init;
+val init_data = SignData.init;
 
 fun rep_sg thy = SignData.get thy |> (fn Sign args => args);
 

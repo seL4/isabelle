@@ -107,7 +107,7 @@ sig
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
-  val init : theory -> theory
+  val init_data: theory -> theory
   
 end
 
@@ -1107,7 +1107,7 @@ structure ProofData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val init = ProofData.init;
+val init_data = ProofData.init;
 
 fun add_prf_rrules rs thy =
   let val r = ProofData.get thy
