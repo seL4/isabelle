@@ -22,7 +22,7 @@ fun err_dup_styles names =
 
 structure StyleData = TheoryDataFun
 (struct
-  val name = "Isar/style";
+  val name = "Isar/antiquote_style";
   type T = ((Proof.context -> term -> term) * stamp) Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
