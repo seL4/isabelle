@@ -9,12 +9,13 @@ Compatibility file for Standard ML of New Jersey 110 or later.
   [110, x] => if x >= 35 then use "ML-Systems/smlnj-compiler.ML" else ()
 | _ => ());
 
+
 (** ML system related **)
 
-(* low-level pointer equality *)
+(*low-level pointer equality*)
 
-(*proper implementation available? This declaration may get overridden below.*)
-fun pointer_eq (x:''a, y) = false;
+(*dummy version -- may get overridden in smlnj-ptreql.ML*)
+fun pointer_eq (x:'a, y) = false;
 
 (case #version_id (Compiler.version) of
   [110, x] => if x >= 49 then use "ML-Systems/smlnj-ptreql.ML" else ()
@@ -53,8 +54,8 @@ fun print_depth n =
 
 (case #version_id (Compiler.version) of
   [110, x] => if x >= 44
-	      then use "ML-Systems/cpu-timer-basis.ML"
-	      else use "ML-Systems/cpu-timer-gc.ML"
+              then use "ML-Systems/cpu-timer-basis.ML"
+              else use "ML-Systems/cpu-timer-gc.ML"
 | _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
@@ -66,16 +67,16 @@ fun ml_prompts p1 p2 =
 
 (case #version_id (Compiler.version) of
   [110, x] => if x >= 44
-	      then use "ML-Systems/smlnj-basis-compat.ML"
-	      else ()
+              then use "ML-Systems/smlnj-basis-compat.ML"
+              else ()
 | _ => ());
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
 (case #version_id (Compiler.version) of
   [110, x] => if x >= 44
-	      then use "ML-Systems/smlnj-pp-new.ML"
-	      else use "ML-Systems/smlnj-pp-old.ML"
+              then use "ML-Systems/smlnj-pp-new.ML"
+              else use "ML-Systems/smlnj-pp-old.ML"
 | _ => use "ML-Systems/smlnj-pp-old.ML");
 
 fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
@@ -137,7 +138,7 @@ fun raise_interrupt f x =
 
 end;
 
-(** Signal handling: emulation of the Poly/ML Signal structure. Note that types 
+(** Signal handling: emulation of the Poly/ML Signal structure. Note that types
     Posix.Signal.signal and Signals.signal differ **)
 
 structure IsaSignal =
@@ -145,20 +146,23 @@ struct
 
 datatype sig_handle = SIG_DFL | SIG_IGN | SIG_HANDLE of Signals.signal -> unit;
 
-(*From the SML/NJ documentation:
-"HANDLER(f) installs a handler for a signal. When signal is delivered to the process, the execution state of the current thread will be bundled up as a continuation k, then f(signal,n,k) will be called. The number n is the number of times signal has been signalled since the last time f was invoked for it."*)
+(*From the SML/NJ documentation: "HANDLER(f) installs a handler for a
+  signal. When signal is delivered to the process, the execution state
+  of the current thread will be bundled up as a continuation k, then
+  f(signal,n,k) will be called. The number n is the number of times
+  signal has been signalled since the last time f was invoked for it."*)
 
 fun toAction SIG_DFL = Signals.DEFAULT
   | toAction SIG_IGN = Signals.IGNORE
-  | toAction (SIG_HANDLE iu) = 
+  | toAction (SIG_HANDLE iu) =
       Signals.HANDLER (fn (signo,_,cont) => (iu signo; cont));
-  
+
 (*The types are correct, but I'm not sure about the semantics!*)
 fun fromAction Signals.DEFAULT = SIG_DFL
   | fromAction Signals.IGNORE = SIG_IGN
-  | fromAction (Signals.HANDLER f) = 
+  | fromAction (Signals.HANDLER f) =
       SIG_HANDLE (fn signo => SMLofNJ.Cont.callcc (fn k => (f (signo,0,k); ())));
-    
+
 (*Poly/ML version has type  int * sig_handle -> sig_handle*)
 fun signal (signo, sh) = fromAction (Signals.setHandler (signo, toAction sh));
 
