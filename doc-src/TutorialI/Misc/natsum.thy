@@ -1,5 +1,5 @@
 (*<*)
-theory natsum imports Main begin;
+theory natsum imports Main begin
 (*>*)
 text{*\noindent
 In particular, there are @{text"case"}-expressions, for example
@@ -7,17 +7,17 @@ In particular, there are @{text"case"}-expressions, for example
 primitive recursion, for example
 *}
 
-consts sum :: "nat \<Rightarrow> nat";
+consts sum :: "nat \<Rightarrow> nat"
 primrec "sum 0 = 0"
-        "sum (Suc n) = Suc n + sum n";
+        "sum (Suc n) = Suc n + sum n"
 
 text{*\noindent
 and induction, for example
 *}
 
-lemma "sum n + sum n = n*(Suc n)";
-apply(induct_tac n);
-apply(auto);
+lemma "sum n + sum n = n*(Suc n)"
+apply(induct_tac n)
+apply(auto)
 done
 
 text{*\newcommand{\mystar}{*%
@@ -44,8 +44,8 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
   declared. As a consequence, you will be unable to prove the
   goal. To alert you to such pitfalls, Isabelle flags numerals without a
   fixed type in its output: @{prop"x+0 = x"}. (In the absence of a numeral,
-  it may take you some time to realize what has happened if @{text
-  show_types} is not set).  In this particular example, you need to include
+  it may take you some time to realize what has happened if \pgmenu{Show
+  Types} is not set).  In this particular example, you need to include
   an explicit type constraint, for example @{text"x+0 = (x::nat)"}. If there
   is enough contextual information this may not be necessary: @{prop"Suc x =
   x"} automatically implies @{text"x::nat"} because @{term Suc} is not
@@ -95,7 +95,7 @@ Such formulas may involve the usual logical connectives (@{text"\<not>"},
 @{text"\<le>"} and @{text"<"}, and the operations @{text"+"}, @{text"-"},
 @{term min} and @{term max}.  For example, *}
 
-lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))";
+lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))"
 apply(arith)
 (*<*)done(*>*)
 

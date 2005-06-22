@@ -367,7 +367,7 @@ by(simp_all)
 subsection{*Tracing*}
 text{*\indexbold{tracing the simplifier}
 Using the simplifier effectively may take a bit of experimentation.  Set the
-Proof General flag \textsf{Isabelle} $>$ \textsf{Settings} $>$ \textsf{Trace Simplifier} to get a better idea of what is going on:
+Proof General flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Simplifier} to get a better idea of what is going on:
 *}
 
 lemma "rev [a] = []"
@@ -375,7 +375,7 @@ apply(simp)
 (*<*)oops(*>*)
 
 text{*\noindent
-produces the following trace in Proof General's \textsf{Trace} buffer:
+produces the following trace in Proof General's \pgmenu{Trace} buffer:
 
 \begin{ttbox}\makeatother
 [1]Applying instance of rewrite rule "List.rev.simps_2":
@@ -415,17 +415,18 @@ proofs of arithmetic formulae.
 Many other hints about the simplifier's actions may appear.
 
 In more complicated cases, the trace can be very lengthy.  Thus it is
-advisable to reset the \textsf{Trace Simplifier} flag after having
+advisable to reset the \pgmenu{Trace Simplifier} flag after having
 obtained the desired trace.  *}
 
 subsection{*Finding Theorems*}
 
-text{* Isabelle's large database of already proved theorems requires
+text{*\indexbold{finding theorems}\indexbold{searching theorems}
+Isabelle's large database of already proved theorems requires
 and offers a powerful yet simple search engine. Its only limitation is
 its restriction to the theories currently loaded.
 
 \begin{pgnote}
-The search engine is started by clicking on Proof General's \textsf{Find} icon.
+The search engine is started by clicking on Proof General's \pgmenu{Find} icon.
 You specify your search textually in the input buffer at the bottom
 of the window.
 \end{pgnote}
@@ -462,11 +463,12 @@ need to prefix the pattern with \texttt{simp:}.
 \begin{ttbox}
 simp: "_ * (_ + _)"
 \end{ttbox}
-This searches all (possibly conditional) equations of the form
+This searches \emph{all} (possibly conditional) equations of the form
 @{text[display]"_ * (_ + _) = \<dots>"}
-i.e.\ all distributivity rules.
+not just those with a \isa{simp} attribute.
 Note that the given pattern needs to be simplified
-at the root, not somewhere inside.
+at the root, not somewhere inside: for example, commutativity of @{text"+"}
+does not match.
 
 You may also search theorems by name. To make this useful you merely
 need to give a substring. For example, you could try and search for all
@@ -478,9 +480,10 @@ This retrieves all theorems whose name contains \texttt{comm}.
 
 Search criteria can also be negated by prefixing them with ``\texttt{-}'':
 \begin{ttbox}
--name: HOL
+-name: List
 \end{ttbox}
-finds theorems whose name does not contain \texttt{HOL}. This is useful for
+finds theorems whose name does not contain \texttt{List}. This can be useful,
+for example, for
 excluding particular theories from the search because the (long) name of
 a theorem contains the name of the theory it comes from.
 
@@ -488,12 +491,18 @@ Finallly, different search criteria can be combined arbitrarily:
 \begin{ttbox}
 "_ + _"  -"_ - _"  -simp: "_ * (_ + _)"  name: assoc
 \end{ttbox}
-looks for theorems containg a plus but no minus which are not distributivity
-rules and whose name contains \texttt{assoc}.
+looks for theorems containg a plus but no minus which do not simplify
+\mbox{@{text"_ * (_ + _)"}} at the root and whose name contains \texttt{assoc}.
 
 Further search criteria are explained in \S\ref{sec:find:ied}.
-*}
 
+\begin{pgnote}
+Proof General keeps a history of all your search expressions.
+If you click on \pgmenu{Find}, you can use the arrow keys to scroll
+through previous searches and just modify them. This saves you having
+to type in lengthy expressions again and again.
+\end{pgnote}
+*}
 (*<*)
 end
 (*>*)

@@ -55,7 +55,8 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
   declared. As a consequence, you will be unable to prove the
   goal. To alert you to such pitfalls, Isabelle flags numerals without a
   fixed type in its output: \isa{x\ {\isacharplus}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ x}. (In the absence of a numeral,
-  it may take you some time to realize what has happened if \isa{show{\isacharunderscore}types} is not set).  In this particular example, you need to include
+  it may take you some time to realize what has happened if \pgmenu{Show
+  Types} is not set).  In this particular example, you need to include
   an explicit type constraint, for example \isa{x{\isacharplus}{\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}}. If there
   is enough contextual information this may not be necessary: \isa{Suc\ x\ {\isacharequal}\ x} automatically implies \isa{x{\isacharcolon}{\isacharcolon}nat} because \isa{Suc} is not
   overloaded.

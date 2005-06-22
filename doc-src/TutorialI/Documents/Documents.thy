@@ -630,8 +630,8 @@ text {\ttlbrace}*
   parsing and type-checking.  Document preparation enables symbolic
   output by default.
 
-  \medskip The next example includes an option to modify Isabelle's
-  \verb,show_types, flag.  The antiquotation
+  \medskip The next example includes an option to show the type of all
+  variables.  The antiquotation
   \texttt{{\at}}\verb,{term [show_types] "%x y. x"}, produces the
   output @{term [show_types] "%x y. x"}.  Type inference has figured
   out the most general typings in the present theory context.  Terms
