@@ -21,6 +21,15 @@ sig
     Type  of string * typ list |
     TFree of string * sort |
     TVar  of indexname * sort
+  datatype term =
+    Const of string * typ |
+    Free of string * typ |
+    Var of indexname * typ |
+    Bound of int |
+    Abs of string * typ * term |
+    op $ of term * term
+  exception TYPE of string * typ list * term list
+  exception TERM of string * term list
   val --> : typ * typ -> typ
   val ---> : typ list * typ -> typ
   val is_TVar: typ -> bool
@@ -30,18 +39,6 @@ sig
   val binder_types: typ -> typ list
   val body_type: typ -> typ
   val strip_type: typ -> typ list * typ
-  datatype term =
-    Const of string * typ |
-    Free of string * typ |
-    Var of indexname * typ |
-    Bound of int |
-    Abs of string * typ * term |
-    op $ of term * term
-  structure Vartab : TABLE
-  structure Typtab : TABLE
-  structure Termtab : TABLE
-  exception TYPE of string * typ list * term list
-  exception TERM of string * term list
   val is_Bound: term -> bool
   val is_Const: term -> bool
   val is_Free: term -> bool
@@ -70,6 +67,11 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_term_types: (typ -> typ) -> term -> term
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
+  structure Vartab: TABLE
+  structure Typtab: TABLE
+  structure Termtab: TABLE
+  val aconv: term * term -> bool
+  val aconvs: term list * term list -> bool
   val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
   val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
   val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
@@ -99,8 +101,6 @@ sig
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
   val mem_ix: indexname * indexname list -> bool
-  val aconv: term * term -> bool
-  val aconvs: term list * term list -> bool
   val mem_term: term * term list -> bool
   val subset_term: term list * term list -> bool
   val eq_set_term: term list * term list -> bool
@@ -130,7 +130,7 @@ sig
   val maxidx_of_terms: term list -> int
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
-        (* note reversed order of args wrt. variant! *)
+    (*note reversed order of args wrt. variant!*)
   val variant_abs: string * typ * term -> string * term
   val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
   val add_new_id: string list * string -> string list
@@ -171,6 +171,14 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val indexname_ord: indexname * indexname -> order
+  val sort_ord: sort * sort -> order
+  val typ_ord: typ * typ -> order
+  val typs_ord: typ list * typ list -> order
+  val term_ord: term * term -> order
+  val terms_ord: term list * term list -> order
+  val hd_ord: term * term -> order
+  val termless: term * term -> bool
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
   val invent_names: string list -> string -> int -> string list
@@ -180,13 +188,6 @@ sig
   val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
   val add_vars: (indexname * typ) list * term -> (indexname * typ) list
   val add_frees: (string * typ) list * term -> (string * typ) list
-  val indexname_ord: indexname * indexname -> order
-  val typ_ord: typ * typ -> order
-  val typs_ord: typ list * typ list -> order
-  val term_ord: term * term -> order
-  val terms_ord: term list * term list -> order
-  val hd_ord: term * term -> order
-  val termless: term * term -> bool
   val no_dummyT: typ -> typ
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
@@ -204,7 +205,7 @@ struct
 
 (*Indexnames can be quickly renamed by adding an offset to the integer part,
   for resolution.*)
-type indexname = string*int;
+type indexname = string * int;
 
 (* Types are classified by sorts. *)
 type class = string;
@@ -224,8 +225,6 @@ datatype typ = Type  of string * typ list
   It is possible to create meaningless terms containing loose bound vars
   or type mismatches.  But such terms are not allowed in rules. *)
 
-
-
 datatype term =
     Const of string * typ
   | Free  of string * typ
@@ -234,13 +233,11 @@ datatype term =
   | Abs   of string*typ*term
   | op $  of term*term;
 
-
-(*For errors involving type mismatches*)
+(*Errors involving type mismatches*)
 exception TYPE of string * typ list * term list;
 
-(*For system errors involving terms*)
+(*Errors errors involving terms*)
 exception TERM of string * term list;
-
 
 (*Note variable naming conventions!
     a,b,c: string
@@ -256,6 +253,17 @@ exception TERM of string * term list;
 
 (** Types **)
 
+(*dummy type for parsing and printing etc.*)
+val dummyT = Type ("dummy", []);
+
+fun no_dummyT typ =
+  let
+    fun check (T as Type ("dummy", _)) =
+          raise TYPE ("Illegal occurrence of '_' dummy type", [T], [])
+      | check (Type (_, Ts)) = List.app check Ts
+      | check _ = ();
+  in check typ; typ end;
+
 fun S --> T = Type("fun",[S,T]);
 
 (*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
@@ -267,6 +275,7 @@ fun dest_TVar (TVar x) = x
   | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
 fun dest_TFree (TFree x) = x
   | dest_TFree T = raise TYPE ("dest_TFree", [T], []);
+
 
 (** Discriminators **)
 
@@ -288,6 +297,7 @@ fun is_TVar (TVar _) = true
 (*Differs from proofterm/is_fun in its treatment of TVar*)
 fun is_funtype (Type("fun",[_,_])) = true
   | is_funtype _ = false;
+
 
 (** Destructors **)
 
@@ -426,6 +436,72 @@ let fun iter(Const(_,T), a) = f(T,a)
 in iter end
 
 
+(** Comparing terms, types etc. **)
+
+fun indexname_ord ((x, i), (y, j)) =
+  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+
+val sort_ord = list_ord string_ord;
+
+
+(* typ_ord *)
+
+fun typ_ord TU =
+  if pointer_eq TU then EQUAL
+  else
+    (case TU of
+      (Type x, Type y) => prod_ord string_ord typs_ord (x, y)
+    | (Type _, _) => GREATER
+    | (TFree _, Type _) => LESS
+    | (TFree x, TFree y) => prod_ord string_ord sort_ord (x, y)
+    | (TFree _, TVar _) => GREATER
+    | (TVar _, Type _) => LESS
+    | (TVar _, TFree _) => LESS
+    | (TVar x, TVar y) => prod_ord indexname_ord sort_ord (x, y))
+and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
+
+
+(* term_ord *)
+
+(*a linear well-founded AC-compatible ordering for terms:
+  s < t <=> 1. size(s) < size(t) or
+            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
+            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
+               (s1..sn) < (t1..tn) (lexicographically)*)
+
+fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
+  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
+  | dest_hd (Var v) = (v, 2)
+  | dest_hd (Bound i) = ((("", i), dummyT), 3)
+  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
+
+fun term_ord tu =
+  if pointer_eq tu then EQUAL
+  else
+    (case tu of
+      (Abs (_, T, t), Abs(_, U, u)) =>
+        (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+      | (t, u) =>
+        (case int_ord (size_of_term t, size_of_term u) of
+          EQUAL =>
+            let
+              val (f, ts) = strip_comb t
+              and (g, us) = strip_comb u
+            in case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord end
+        | ord => ord))
+and hd_ord (f, g) =
+  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
+and terms_ord (ts, us) = list_ord term_ord (ts, us);
+
+fun op aconv tu = (term_ord tu = EQUAL);
+fun aconvs ts_us = (list_ord term_ord ts_us = EQUAL);
+fun termless tu = (term_ord tu = LESS);
+
+structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
+structure Typtab = TableFun(type key = typ val ord = typ_ord);
+structure Termtab = TableFun(type key = term val ord = term_ord);
+
+
 (** Connectives of higher order logic **)
 
 fun itselfT ty = Type ("itself", [ty]);
@@ -551,15 +627,6 @@ fun mem_ix (_, []) = false
 (*insertion into list, optimized version for indexnames*)
 fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
 
-(*Tests whether 2 terms are alpha-convertible and have same type.
-  Note that constants may have more than one type.*)
-fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
-  | (Free(a,T))  aconv (Free(b,U))  = a=b  andalso  T=U
-  | (Var(v,T))   aconv (Var(w,U))   = eq_ix(v,w)  andalso  T=U
-  | (Bound i)    aconv (Bound j)    = i=j
-  | (Abs(_,T,t)) aconv (Abs(_,U,u)) = t aconv u  andalso  T=U
-  | (f$t)        aconv (g$u)        = (f aconv g) andalso (t aconv u)
-  | _ aconv _  =  false;
 
 (** Membership, insertion, union for terms **)
 
@@ -581,11 +648,6 @@ fun union_term (xs, []) = xs
 fun inter_term ([], ys) = []
   | inter_term (x::xs, ys) =
       if mem_term (x,ys) then x :: inter_term(xs,ys) else inter_term(xs,ys);
-
-(*are two term lists alpha-convertible in corresponding elements?*)
-fun aconvs ([],[]) = true
-  | aconvs (t::ts, u::us) = t aconv u andalso aconvs(ts,us)
-  | aconvs _ = false;
 
 (*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
@@ -702,20 +764,20 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
 fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 
-(*First order means in all terms of the form f(t1,...,tn) no argument has a 
-  function type. The meta-quantifier "all" is excluded--its argument always 
+(*First order means in all terms of the form f(t1,...,tn) no argument has a
+  function type. The meta-quantifier "all" is excluded--its argument always
   has a function type--through a recursive call into its body.*)
 fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
-  | first_order1 Ts (Const("all",_)$Abs(a,T,body)) = 
+  | first_order1 Ts (Const("all",_)$Abs(a,T,body)) =
       not (is_funtype T) andalso first_order1 (T::Ts) body
   | first_order1 Ts t =
       case strip_comb t of
-	       (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	     | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	     | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	     | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	     | (Abs _, ts) => false (*not in beta-normal form*)
-	     | _ => error "first_order: unexpected case";
+               (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+             | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+             | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+             | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+             | (Abs _, ts) => false (*not in beta-normal form*)
+             | _ => error "first_order: unexpected case";
 
 val is_first_order = first_order1 [];
 
@@ -744,19 +806,6 @@ fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
 
 (**** Syntax-related declarations ****)
 
-
-(*Dummy type for parsing and printing.  Will be replaced during type inference. *)
-val dummyT = Type("dummy",[]);
-
-fun no_dummyT typ =
-  let
-    fun check (T as Type ("dummy", _)) =
-          raise TYPE ("Illegal occurrence of '_' dummy type", [T], [])
-      | check (Type (_, Ts)) = List.app check Ts
-      | check _ = ();
-  in check typ; typ end;
-
-
 (*** Printing ***)
 
 (*Makes a variant of a name distinct from the names in bs.
@@ -782,6 +831,7 @@ fun invent_names _ _ 0 = []
         if a mem_string used then invent_names used b n
         else a :: invent_names used b (n - 1)
       end;
+
 
 (** Consts etc. **)
 
@@ -906,6 +956,7 @@ fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
   | add_term_tvar_ixns(f$t,ixns) =
       add_term_tvar_ixns(t,add_term_tvar_ixns(f,ixns));
 
+
 (** Frees and Vars **)
 
 (*a partial ordering (not reflexive) for atomic terms*)
@@ -995,60 +1046,6 @@ val add_frees = foldl_aterms (fn (vs, Free v) => insert (op =) v vs | (vs, _) =>
 val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
 fun term_varnames t = add_term_varnames ([], t);
 
-
-(** type and term orders **)
-
-fun indexname_ord ((x, i), (y, j)) =
-  (case Int.compare (i, j) of EQUAL => String.compare (x, y) | ord => ord);
-
-val sort_ord = list_ord String.compare;
-
-
-(* typ_ord *)
-
-fun typ_ord (Type x, Type y) = prod_ord String.compare typs_ord (x, y)
-  | typ_ord (Type _, _) = GREATER
-  | typ_ord (TFree _, Type _) = LESS
-  | typ_ord (TFree x, TFree y) = prod_ord String.compare sort_ord (x, y)
-  | typ_ord (TFree _, TVar _) = GREATER
-  | typ_ord (TVar _, Type _) = LESS
-  | typ_ord (TVar _, TFree _) = LESS
-  | typ_ord (TVar x, TVar y) = prod_ord indexname_ord sort_ord (x, y)
-and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
-
-
-(* term_ord *)
-
-(*a linear well-founded AC-compatible ordering for terms:
-  s < t <=> 1. size(s) < size(t) or
-            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
-            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
-               (s1..sn) < (t1..tn) (lexicographically)*)
-
-fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
-  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
-  | dest_hd (Var v) = (v, 2)
-  | dest_hd (Bound i) = ((("", i), dummyT), 3)
-  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
-
-fun term_ord (Abs (_, T, t), Abs(_, U, u)) =
-      (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
-  | term_ord (t, u) =
-      (case Int.compare (size_of_term t, size_of_term u) of
-        EQUAL =>
-          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
-            (case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord)
-          end
-      | ord => ord)
-and hd_ord (f, g) =
-  prod_ord (prod_ord indexname_ord typ_ord) Int.compare (dest_hd f, dest_hd g)
-and terms_ord (ts, us) = list_ord term_ord (ts, us);
-
-fun termless tu = (term_ord tu = LESS);
-
-structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
-structure Typtab = TableFun(type key = typ val ord = typ_ord);
-structure Termtab = TableFun(type key = term val ord = term_ord);
 
 
 (*** Compression of terms and types by sharing common subtrees.
