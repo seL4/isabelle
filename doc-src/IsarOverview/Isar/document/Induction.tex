@@ -127,7 +127,7 @@ of this.%
 We start with an inductive proof where both cases are proved automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}induct\ n{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
 %
@@ -140,7 +140,7 @@ proof, we can use pattern matching to avoid having to repeat the goal
 statement:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isacharequal}\ {\isadigit{0}}{\isachardot}{\isachardot}{\isacharless}n{\isacharplus}{\isadigit{1}}{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}P\ n{\isachardoublequote}{\isacharparenright}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}P\ n{\isachardoublequote}{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -163,7 +163,7 @@ proof. Instead we explore the same avenue as for case distinctions:
 introducing context via the \isakeyword{case} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isasymle}\ n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
