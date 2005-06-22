@@ -26,7 +26,7 @@ Pure: $(OUT)/Pure
 $(OUT)/Pure: CPure.thy General/ROOT.ML General/buffer.ML		\
   General/file.ML General/graph.ML General/heap.ML General/history.ML	\
   General/lazy_scan.ML General/lazy_seq.ML General/name_space.ML	\
-  General/object.ML General/ord_list.ML General/output.ML General/path.ML			\
+  General/ord_list.ML General/output.ML General/path.ML			\
   General/position.ML General/pretty.ML General/scan.ML General/seq.ML	\
   General/source.ML General/susp.ML General/symbol.ML General/table.ML	\
   General/url.ML General/xml.ML IsaPlanner/focus_term_lib.ML		\
@@ -39,15 +39,14 @@ $(OUT)/Pure: CPure.thy General/ROOT.ML General/buffer.ML		\
   Isar/isar_syn.ML Isar/isar_thy.ML Isar/locale.ML Isar/method.ML	\
   Isar/net_rules.ML Isar/object_logic.ML Isar/obtain.ML			\
   Isar/outer_lex.ML Isar/outer_parse.ML Isar/outer_syntax.ML		\
-  Isar/proof.ML Isar/proof_context.ML Isar/proof_data.ML		\
-  Isar/proof_history.ML Isar/rule_cases.ML Isar/session.ML		\
-  Isar/skip_proof.ML Isar/term_style.ML Isar/thy_header.ML              \
-  Isar/toplevel.ML		                                        \
+  Isar/proof.ML Isar/proof_context.ML Isar/proof_history.ML		\
+  Isar/rule_cases.ML Isar/session.ML Isar/skip_proof.ML			\
+  Isar/term_style.ML Isar/thy_header.ML Isar/toplevel.ML		\
   ML-Systems/cpu-timer-basis.ML ML-Systems/cpu-timer-gc.ML		\
   ML-Systems/polyml-time-limit.ML ML-Systems/polyml.ML			\
-  ML-Systems/polyml-posix.ML 						\
-  ML-Systems/smlnj-basis-compat.ML ML-Systems/smlnj-compiler.ML		\
-  ML-Systems/smlnj-ptreql.ML ML-Systems/smlnj-pp-new.ML ML-Systems/smlnj-pp-old.ML			\
+  ML-Systems/polyml-posix.ML ML-Systems/smlnj-basis-compat.ML		\
+  ML-Systems/smlnj-compiler.ML ML-Systems/smlnj-ptreql.ML		\
+  ML-Systems/smlnj-pp-new.ML ML-Systems/smlnj-pp-old.ML			\
   ML-Systems/smlnj.ML Proof/extraction.ML Proof/proof_rewrite_rules.ML	\
   Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
   Pure.thy ROOT.ML Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML	\
@@ -59,8 +58,8 @@ $(OUT)/Pure: CPure.thy General/ROOT.ML General/buffer.ML		\
   codegen.ML context.ML display.ML drule.ML envir.ML fact_index.ML	\
   goals.ML install_pp.ML library.ML logic.ML meta_simplifier.ML net.ML	\
   pattern.ML proof_general.ML proofterm.ML pure_thy.ML search.ML	\
-  sign.ML simplifier.ML sorts.ML tactic.ML tctical.ML term.ML		\
-  defs.ML theory.ML thm.ML type.ML type_infer.ML unify.ML
+  sign.ML simplifier.ML sorts.ML tactic.ML tctical.ML term.ML defs.ML	\
+  theory.ML thm.ML type.ML type_infer.ML unify.ML
 	@./mk
 
 
