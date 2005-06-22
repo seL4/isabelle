@@ -8,47 +8,30 @@ header {* The Drinker's Principle *}
 theory Drinker imports Main begin
 
 text {*
- Two parts of de-Morgan's law -- one intuitionistic and one classical:
+  Here is another example of classical reasoning: the Drinker's
+  Principle says that for some person, if he is drunk, everybody else
+  is drunk!
+
+  We first prove a classical part of de-Morgan's law.
 *}
 
-lemma deMorgan1: "\<not> (\<exists>x. P x) \<Longrightarrow> \<forall>x. \<not> P x"
-proof -
-  assume a: "\<not> (\<exists>x. P x)"
-  show ?thesis
-  proof
-    fix x
-    show "\<not> P x"
-    proof
-      assume "P x"
-      then have "\<exists>x. P x" ..
-      with a show False by contradiction
-    qed
-  qed
-qed
-
-lemma deMorgan2: "\<not> (\<forall>x. P x) \<Longrightarrow> \<exists>x. \<not> P x"
-proof (rule classical)
-  assume a: "\<not> (\<forall>x. P x)"
-  assume b: "\<not> (\<exists>x. \<not> P x)"
-  have "\<forall>x. P x"
+lemma deMorgan:
+  assumes "\<not> (\<forall>x. P x)"
+  shows "\<exists>x. \<not> P x"
+  using prems
+proof (rule contrapos_np)
+  assume a: "\<not> (\<exists>x. \<not> P x)"
+  show "\<forall>x. P x"
   proof
     fix x
     show "P x"
     proof (rule classical)
-      assume c: "\<not> P x"
-      from b have "\<forall>x. \<not> \<not> P x" by (rule deMorgan1)
-      then have "\<not> \<not> P x" ..
-      with c show ?thesis by contradiction
+      assume "\<not> P x"
+      then have "\<exists>x. \<not> P x" ..
+      with a show ?thesis by contradiction
     qed
   qed
-  with a show ?thesis by contradiction
 qed
-
-text {*
- Here is another example of classical reasoning: the Drinker's
- Principle says that for some person, if he is drunk, everybody else
- is drunk!
-*}
 
 theorem Drinker's_Principle: "\<exists>x. drunk x \<longrightarrow> (\<forall>x. drunk x)"
 proof cases
@@ -57,7 +40,7 @@ proof cases
   then show ?thesis ..
 next
   assume "\<not> (\<forall>x. drunk x)"
-  then have "\<exists>x. \<not> drunk x" by (rule deMorgan2)
+  then have "\<exists>x. \<not> drunk x" by (rule deMorgan)
   then obtain a where a: "\<not> drunk a" ..
   have "drunk a \<longrightarrow> (\<forall>x. drunk x)"
   proof
