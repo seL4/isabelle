@@ -13,8 +13,12 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 
 (* low-level pointer equality *)
 
-(*proper implementation available?*)
+(*proper implementation available? This declaration may get overridden below.*)
 fun pointer_eq (x:''a, y) = false;
+
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 49 then use "ML-Systems/smlnj-ptreql.ML" else ()
+| _ => ());
 
 
 (* restore old-style character / string functions *)

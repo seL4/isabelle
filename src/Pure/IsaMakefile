@@ -47,7 +47,7 @@ $(OUT)/Pure: CPure.thy General/ROOT.ML General/buffer.ML		\
   ML-Systems/polyml-time-limit.ML ML-Systems/polyml.ML			\
   ML-Systems/polyml-posix.ML 						\
   ML-Systems/smlnj-basis-compat.ML ML-Systems/smlnj-compiler.ML		\
-  ML-Systems/smlnj-pp-new.ML ML-Systems/smlnj-pp-old.ML			\
+  ML-Systems/smlnj-ptreql.ML ML-Systems/smlnj-pp-new.ML ML-Systems/smlnj-pp-old.ML			\
   ML-Systems/smlnj.ML Proof/extraction.ML Proof/proof_rewrite_rules.ML	\
   Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
   Pure.thy ROOT.ML Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML	\
