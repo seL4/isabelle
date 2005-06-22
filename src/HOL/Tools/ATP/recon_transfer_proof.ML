@@ -79,8 +79,8 @@ fun proofstep_to_string Axiom = "Axiom()"
       "Para(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
 |   proofstep_to_string  (MRR ((a,b), (c,d))) =
       "MRR(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
-|   proofstep_to_string (Rewrite((a,b),(c,d))) =
-      "Rewrite(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"
+(*|   proofstep_to_string (Rewrite((a,b),(c,d))) =
+      "Rewrite(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"*)
 
 fun list_to_string [] liststr = liststr
 |   list_to_string (x::[]) liststr = liststr^(string_of_int x)
@@ -667,16 +667,16 @@ val origaxiomstep = (a (Word "OrigAxiom"))++ (a (Other "(")) ++(a (Other ")"))
             >> (fn (_, (_, (c, (_, (e,(_,(f,_))))))) =>  Factor (c,e,f))
 
 
-val rewritestep = (a (Word "Rewrite"))  ++ (a (Other "(")) ++ (a (Other "(")) 
+(*val rewritestep = (a (Word "Rewrite"))  ++ (a (Other "(")) ++ (a (Other "(")) 
                    ++ term_numstep  ++ (a (Other ")")) ++ (a (Other ","))
                    ++ (a (Other "(")) ++ term_numstep ++ (a (Other ")")) ++ (a (Other ")"))
-            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => Rewrite (c,e))
+            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => Rewrite (c,e))*)
 
 val obviousstep = (a (Word "Obvious")) ++ (a (Other "(")) 
                    ++ term_numstep  ++ (a (Other ")")) 
             >> (fn (_, (_, (c,_))) => Obvious (c))
 
- val methodstep = extraaxiomstep || origaxiomstep || axiomstep ||binarystep || factorstep|| parastep || mrrstep || rewritestep || obviousstep
+ val methodstep = extraaxiomstep || origaxiomstep || axiomstep ||binarystep || factorstep|| parastep || mrrstep || (*rewritestep ||*) obviousstep
 
 
  val number_list_step =
@@ -869,9 +869,9 @@ fun by_isar_line ((Binary ((a,b), (c,d)))) =
 |   by_isar_line ((Factor ((a,b,c)))) = 
     "by (rule cl"^(string_of_int a)^" [factor "^(string_of_int b)^" "^
 		(string_of_int c)^" ])\n"
-|   by_isar_line ( (Rewrite ((a,b),(c,d)))) =
+(*|   by_isar_line ( (Rewrite ((a,b),(c,d)))) =
     "by (rule cl"^(string_of_int a)^" [demod "^(string_of_int b)^" "^
-		(string_of_int c)^" "^(string_of_int d)^" ])\n"
+		(string_of_int c)^" "^(string_of_int d)^" ])\n"*)
 |   by_isar_line ( (Obvious ((a,b)))) =
     "by (rule cl"^(string_of_int a)^" [obvious "^(string_of_int b)^" ])\n"
 

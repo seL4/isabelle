@@ -259,6 +259,10 @@ datatype Tree = Leaf of string
       val term_num =
         (number ++ (a (Other ".")) ++ number) >> (fn (a, (_, c)) => (a, c))
 
+
+      val term_num_list = (term_num ++ many (a (Other ",") ++ term_num >> snd)
+			   >> (fn (a, b) => (a::b)))
+
       val axiom = (a (Word "Inp"))
             >> (fn (_) => Axiom)
       
@@ -296,9 +300,8 @@ datatype Tree = Leaf of string
                  >> (fn (_, (_, c)) => Obvious ((fst c),(snd c)))
 
       val rewrite = (a (Word "Rew")) ++ (a (Other ":")) 
-                    ++ term_num ++ (a (Other ",")) 
-                    ++ term_num
-            >> (fn (_, (_, (c, (_, e)))) =>  Rewrite (c, e))
+                    ++ term_num_list
+            >> (fn (_, (_, (c))) =>  Rewrite (c))
 
 
       val mrr = (a (Word "MRR")) ++ (a (Other ":"))

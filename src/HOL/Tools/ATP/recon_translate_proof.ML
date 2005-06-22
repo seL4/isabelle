@@ -38,7 +38,8 @@ datatype Side = Left |Right
                      | Para of (int * int) * (int * int) 
 		     | Super_l of (int * int) * (int * int)
 		     | Super_r of (int * int) * (int * int)
-                     | Rewrite of (int * int) * (int * int)  
+                     (*| Rewrite of (int * int) * (int * int)  *)
+                     | Rewrite of (int * int) list
 		     | SortSimp of (int * int) * (int * int)  
 		     | UnitConf of (int * int) * (int * int)  
                      | Obvious of (int * int)
@@ -304,7 +305,7 @@ fun delete_assumps 0 th = th
 (* extra conditions from the equality turn up as 2nd to last literals of result.  Need to delete them *)
 (* changed negate_nead to negate_head here too*)
                     (* clause1, lit1 is thing to rewrite with *)
-fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs = 
+(*fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs = 
       let val th1 =  valOf (assoc (thml,clause1))
 	  val th2 = valOf (assoc (thml,clause2))
 	  val eq_lit_th = select_literal (lit1+1) th1
@@ -323,7 +324,7 @@ fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs =
        end
        handle Option => reconstruction_failed "follow_rewrite"
 
-
+*)
 
 (*****************************************)
 (* Reconstruct an obvious reduction step *)
@@ -362,8 +363,8 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs =
       | follow_proof clauses  allvars clausenum  thml (Para (a, b)) clause_strs
         = follow_standard_para (a, b) allvars  thml clause_strs
 
-      | follow_proof clauses  allvars clausenum thml (Rewrite (a,b)) clause_strs
-        = follow_rewrite (a,b)  allvars thml clause_strs
+    (*  | follow_proof clauses  allvars clausenum thml (Rewrite (a,b)) clause_strs
+        = follow_rewrite (a,b)  allvars thml clause_strs*)
 
       | follow_proof clauses  allvars clausenum thml (Obvious (a,b)) clause_strs
         = follow_obvious (a,b)  allvars thml clause_strs
