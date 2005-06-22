@@ -13,7 +13,6 @@ use "scan.ML";
 use "source.ML";
 use "symbol.ML";
 use "name_space.ML";
-use "object.ML";
 use "seq.ML";
 use "susp.ML";
 use "lazy_seq.ML";
