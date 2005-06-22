@@ -418,7 +418,7 @@ In more complicated cases, the trace can be very lengthy.  Thus it is
 advisable to reset the \pgmenu{Trace Simplifier} flag after having
 obtained the desired trace.  *}
 
-subsection{*Finding Theorems*}
+subsection{*Finding Theorems\label{sec:find}*}
 
 text{*\indexbold{finding theorems}\indexbold{searching theorems}
 Isabelle's large database of already proved theorems requires
@@ -494,7 +494,7 @@ Finallly, different search criteria can be combined arbitrarily:
 looks for theorems containg a plus but no minus which do not simplify
 \mbox{@{text"_ * (_ + _)"}} at the root and whose name contains \texttt{assoc}.
 
-Further search criteria are explained in \S\ref{sec:find:ied}.
+Further search criteria are explained in \S\ref{sec:find2}.
 
 \begin{pgnote}
 Proof General keeps a history of all your search expressions.
