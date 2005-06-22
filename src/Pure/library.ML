@@ -263,6 +263,7 @@ sig
   val stamp: unit -> stamp
   type serial
   val serial: unit -> serial
+  structure Object: sig type T end
 end;
 
 signature LIBRARY =
@@ -1298,6 +1299,13 @@ val stamp: unit -> stamp = ref;
 type serial = int;
 local val count = ref 0
 in fun serial () = inc count end;
+
+
+(* generic objects *)
+
+(*note that the builtin exception datatype may be extended by new
+  constructors at any time*)
+structure Object = struct type T = exn end;
 
 end;
 
