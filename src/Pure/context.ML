@@ -3,7 +3,8 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Generic theory contexts with unique identity, arbitrarily typed data,
-graph-based development.  Implicit theory context in ML.
+development graph and history support.  Implicit theory contexts in ML.
+Generic proof contexts with arbitrarily typed data.
 *)
 
 signature BASIC_CONTEXT =
@@ -45,7 +46,7 @@ sig
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
-  val theory_data: theory -> string list
+  val theory_data_of: theory -> string list
   val pre_pure_thy: theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
   (*ML theory context*)
@@ -63,6 +64,15 @@ sig
   val use_let: string -> string -> string -> theory -> theory
   val add_setup: (theory -> theory) list -> unit
   val setup: unit -> (theory -> theory) list
+  (*proof context*)
+  type proof
+  val theory_of_proof: proof -> theory
+  val init_proof: theory -> proof
+  val proof_data_of: theory -> string list
+  (*generic context*)
+  datatype context = Theory of theory | Proof of proof
+  val theory_of: context -> theory
+  val proof_of: context -> proof
 end;
 
 signature PRIVATE_CONTEXT =
@@ -75,6 +85,13 @@ sig
     val init: serial -> theory -> theory
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
+  end
+  structure ProofData:
+  sig
+    val declare: string -> (theory -> Object.T) -> serial
+    val init: serial -> theory -> theory
+    val get: serial -> (Object.T -> 'a) -> proof -> 'a
+    val put: serial -> ('a -> Object.T) -> 'a -> proof -> proof
   end
 end;
 
@@ -114,10 +131,10 @@ val invoke_copy      = invoke "copy" #copy;
 val invoke_extend    = invoke "extend" #extend;
 fun invoke_merge pp  = invoke "merge" (fn kind => #merge kind pp);
 
-fun declare_theory_data name e cp ext mrg =
+fun declare_theory_data name empty copy extend merge =
   let
     val k = serial ();
-    val kind = {name = name, empty = e, copy = cp, extend = ext, merge = mrg};
+    val kind = {name = name, empty = empty, copy = copy, extend = extend, merge = merge};
     val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
       warning ("Duplicate declaration of theory data " ^ quote name));
     val _ = kinds := Inttab.update ((k, kind), ! kinds);
@@ -135,17 +152,18 @@ end;
 
 datatype theory =
   Theory of
-  (*identity*)
+   (*identity*)
    {self: theory ref option,            (*dynamic self reference -- follows theory changes*)
     id: serial * string,                (*identifier of this theory*)
     ids: string Inttab.table,           (*identifiers of ancestors*)
     iids: string Inttab.table} *        (*identifiers of intermediate checkpoints*)
-  (*data*)
-  Object.T Inttab.table *               (*record of arbitrarily typed data*)
-  (*ancestry of graph development*)
+   (*data*)
+   {theory: Object.T Inttab.table,      (*theory data record*)
+    proof: unit Inttab.table} *         (*proof data kinds*)
+   (*ancestry*)
    {parents: theory list,               (*immediate predecessors*)
     ancestors: theory list} *           (*all predecessors*)
-  (*history of linear development*)
+   (*history*)
    {name: string,                       (*prospective name of finished theory*)
     version: int,                       (*checkpoint counter*)
     intermediates: theory list};        (*intermediate checkpoints*)
@@ -160,9 +178,14 @@ val ancestry_of = #3 o rep_theory;
 val history_of  = #4 o rep_theory;
 
 fun make_identity self id ids iids = {self = self, id = id, ids = ids, iids = iids};
+fun make_data theory proof = {theory = theory, proof = proof};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 fun make_history name vers ints = {name = name, version = vers, intermediates = ints};
 
+fun map_theory f {theory, proof} = make_data (f theory) proof;
+fun map_proof f {theory, proof} = make_data theory (f proof);
+
+val the_self = the o #self o identity_of;
 val parents_of = #parents o ancestry_of;
 val ancestors_of = #ancestors o ancestry_of;
 val theory_name = #name o history_of;
@@ -170,7 +193,7 @@ val theory_name = #name o history_of;
 
 (* staleness *)
 
-fun eq_id ((i: int, _), (j, _)) = i = j;
+fun eq_id ((i: int, _), (j, _)) = (i = j);
 
 fun is_stale
     (Theory ({self = SOME (ref (Theory ({id = id', ...}, _, _, _))), id, ...}, _, _, _)) =
@@ -219,7 +242,7 @@ fun pretty_abbrev_thy thy =
 val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
 
 
-(* consistency *)
+(* consistency *)    (*exception TERM*)
 
 fun check_thy pos thy =
   if is_stale thy then
@@ -244,44 +267,32 @@ fun check_merge
   |> check_insert (#version history2 > 0) id2;
 
 
+(* equality and inclusion *)
+
+val eq_thy = eq_id o pairself (#id o identity_of o check_thy "Context.eq_thy");
+
+fun proper_subthy
+  (thy1 as Theory ({id = (i, _), ...}, _, _, _),
+    thy2 as Theory ({ids, iids, ...}, _, _, _)) =
+  (pairself (check_thy "Context.proper_subthy") (thy1, thy2);
+    is_some (Inttab.lookup (ids, i)) orelse is_some (Inttab.lookup (iids, i)));
+
+fun subthy thys = eq_thy thys orelse proper_subthy thys;
+
+
 (* theory references *)
 
 (*theory_ref provides a safe way to store dynamic references to a
-  theory -- a plain theory value would become stale as the self
-  reference moves on*)
+  theory in external data structures -- a plain theory value would
+  become stale as the self reference moves on*)
 
 datatype theory_ref = TheoryRef of theory ref;
 
-val self_ref = TheoryRef o the o #self o identity_of o check_thy "Context.self_ref";
+val self_ref = TheoryRef o the_self o check_thy "Context.self_ref";
 fun deref (TheoryRef (ref thy)) = thy;
 
 
-(* equality and inclusion *)  (* FIXME proper_subthy; no subthy_internal *)
-
-local
-
-fun exists_ids (Theory ({id, ids, iids, ...}, _, _, _)) (i, _) =
-  i = #1 id orelse
-  is_some (Inttab.lookup (ids, i)) orelse
-  is_some (Inttab.lookup (iids, i));
-
-fun member_ids (Theory ({id, ...}, _, _, _), thy) = exists_ids thy id;
-
-fun subset_ids (Theory ({id, ids, iids, ...}, _, _, _), thy) =
-  exists_ids thy id andalso
-  Inttab.forall (exists_ids thy) ids andalso
-  Inttab.forall (exists_ids thy) iids;
-
-in
-
-val eq_thy = eq_id o pairself (#id o identity_of o check_thy "Context.eq_thy");
-fun subthy thys = eq_thy thys orelse member_ids thys;
-fun subthy_internal thys = eq_thy thys orelse subset_ids thys;
-
-end;
-
-
-(* trivial merge *)
+(* trivial merge *)    (*exception TERM*)
 
 fun merge (thy1, thy2) =
   if subthy (thy2, thy1) then thy1
@@ -313,8 +324,8 @@ fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, his
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
-      then (NONE, copy_data data, ancestry)
-      else (NONE, extend_data data, make_ancestry [thy] (thy :: #ancestors ancestry));
+      then (NONE, map_theory copy_data data, ancestry)
+      else (NONE, map_theory extend_data data, make_ancestry [thy] (thy :: #ancestors ancestry));
     val data'' = f data';
   in create_thy name self' id ids iids data'' ancestry' history end;
 
@@ -324,37 +335,43 @@ val extend_thy = modify_thy I;
 
 fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
   (check_thy "Context.copy_thy" thy;
-    create_thy draftN NONE id ids iids (copy_data data) ancestry history);
+    create_thy draftN NONE id ids iids (map_theory copy_data data) ancestry history);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
-  Inttab.empty (make_ancestry [] []) (make_history ProtoPureN 0 []);
+  (make_data Inttab.empty Inttab.empty) (make_ancestry [] []) (make_history ProtoPureN 0 []);
 
 
 (* named theory nodes *)
 
 fun merge_thys pp (thy1, thy2) =
-  if subthy_internal (thy2, thy1) then thy1
-  else if subthy_internal (thy1, thy2) then thy2
-  else if exists_name CPureN thy1 <> exists_name CPureN thy2 then
+  if exists_name CPureN thy1 <> exists_name CPureN thy2 then
     error "Cannot merge Pure and CPure developments"
   else
     let
       val (ids, iids) = check_merge thy1 thy2;
-      val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
+      val data1 = data_of thy1 and data2 = data_of thy2;
+      val data = make_data
+        (merge_data (pp thy1) (#theory data1, #theory data2))
+        (Inttab.merge (K true) (#proof data1, #proof data2));
       val ancestry = make_ancestry [] [];
       val history = make_history "" 0 [];
     in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end;
+
+fun maximal_thys thys =
+  thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));
 
 fun begin_thy pp name imports =
   if name = draftN then error ("Illegal theory name: " ^ quote draftN)
   else
     let
-      val parents = gen_distinct eq_thy imports;  (* FIXME maximals *)
+      val parents =
+        maximal_thys (gen_distinct eq_thy (map (check_thy "Context.begin_thy") imports));
       val ancestors = gen_distinct eq_thy (parents @ List.concat (map ancestors_of parents));
       val Theory ({id, ids, iids, ...}, data, _, _) =
         (case parents of
           [] => error "No parent theories"
-        | thy :: thys => extend_thy (Library.foldl (merge_thys pp) (thy, thys)));
+        | [thy] => extend_thy thy
+        | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
       val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0 [];
     in create_thy draftN NONE id ids iids data ancestry history end;
@@ -375,21 +392,24 @@ fun checkpoint_thy thy =
 fun finish_thy thy =
   let
     val {name, version, intermediates} = history_of thy;
-    val rs = map (the o #self o identity_of o check_thy "Context.finish_thy") intermediates;
+    val rs = map (the_self o check_thy "Context.finish_thy") intermediates;
     val thy' as Theory ({self, id, ids, ...}, data', ancestry', _) = name_thy name thy;
     val identity' = make_identity self id ids Inttab.empty;
     val history' = make_history name 0 [];
     val thy'' = vitalize (Theory (identity', data', ancestry', history'));
-  in List.app (fn r => r := thy'') rs; thy'' end;
+    val _ = List.app (fn r => r := thy'') rs;
+  in thy'' end;
 
 
 (* theory data *)
 
-fun theory_data thy =
-  map invoke_name (Inttab.keys (data_of thy))
+fun dest_data name_of tab =
+  map name_of (Inttab.keys tab)
   |> map (rpair ()) |> Symtab.make_multi |> Symtab.dest
   |> map (apsnd length)
   |> map (fn (name, 1) => name | (name, n) => name ^ enclose "[" "]" (string_of_int n));
+
+val theory_data_of = dest_data invoke_name o #theory o data_of;
 
 structure TheoryData =
 struct
@@ -397,19 +417,19 @@ struct
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  (case Inttab.lookup (data_of thy, k) of
+  (case Inttab.lookup (#theory (data_of thy), k) of
     SOME x => (dest x handle Match =>
       error ("Failed to access theory data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized theory data " ^ quote (invoke_name k)));
 
-fun put k mk x = modify_thy (curry Inttab.update (k, mk x));
+fun put k mk x = modify_thy (map_theory (curry Inttab.update (k, mk x)));
 fun init k = put k I (invoke_empty k);
 
 end;
 
 
 
-(** ML theory context **)
+(*** ML theory context ***)
 
 local
   val current_theory = ref (NONE: theory option);
@@ -468,6 +488,82 @@ in
   fun setup () = let val fns = ! setup_fns in setup_fns := []; fns end;
 end;
 
+
+
+(*** proof context ***)
+
+(* datatype proof *)
+
+datatype proof = Proof of theory * Object.T Inttab.table;
+
+fun theory_of_proof (Proof (thy, _)) = thy;
+fun data_of_proof (Proof (_, data)) = data;
+fun map_prf f (Proof (thy, data)) = Proof (thy, f data);
+
+
+(* proof data kinds *)
+
+local
+
+type kind =
+ {name: string,
+  init: theory -> Object.T};
+
+val kinds = ref (Inttab.empty: kind Inttab.table);
+
+fun invoke meth_name meth_fn k =
+  (case Inttab.lookup (! kinds, k) of
+    SOME kind => meth_fn kind |> transform_failure (fn exn =>
+      DATA_FAIL (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
+  | NONE => sys_error ("Invalid proof data identifier " ^ string_of_int k));
+
+fun invoke_name k = invoke "name" (K o #name) k ();
+val invoke_init   = invoke "init" #init;
+
+in
+
+val proof_data_of = dest_data invoke_name o #proof o data_of;
+
+fun init_proof thy =
+  Proof (thy, Inttab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
+
+structure ProofData =
+struct
+
+fun declare name init =
+  let
+    val k = serial ();
+    val kind = {name = name, init = init};
+    val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
+      warning ("Duplicate declaration of proof data " ^ quote name));
+    val _ = kinds := Inttab.update ((k, kind), ! kinds);
+  in k end;
+
+fun init k = modify_thy (map_proof (curry Inttab.update (k, ())));
+
+fun get k dest prf =
+  (case Inttab.lookup (data_of_proof prf, k) of
+    SOME x => (dest x handle Match =>
+      error ("Failed to access proof data " ^ quote (invoke_name k)))
+  | NONE => error ("Uninitialized proof data " ^ quote (invoke_name k)));
+
+fun put k mk x = map_prf (curry Inttab.update (k, mk x));
+
+end;
+
+end;
+
+
+(*** generic context ***)
+
+datatype context = Theory of theory | Proof of proof;
+
+fun theory_of (Theory thy) = thy
+  | theory_of (Proof prf) = theory_of_proof prf;
+
+fun proof_of (Theory thy) = init_proof thy
+  | proof_of (Proof prf) = prf;
+
 end;
 
 structure BasicContext: BASIC_CONTEXT = Context;
@@ -475,7 +571,9 @@ open BasicContext;
 
 
 
-(*** type-safe interface for theory data ***)
+(*** type-safe interfaces for data declarations ***)
+
+(** theory data **)
 
 signature THEORY_DATA_ARGS =
 sig
@@ -522,5 +620,45 @@ fun map f thy = put (f (get thy)) thy;
 
 end;
 
-(*hide private interface!*)
+
+
+(** proof data **)
+
+signature PROOF_DATA_ARGS =
+sig
+  val name: string
+  type T
+  val init: theory -> T
+  val print: Context.proof -> T -> unit
+end;
+
+signature PROOF_DATA =
+sig
+  type T
+  val init: theory -> theory
+  val print: Context.proof -> unit
+  val get: Context.proof -> T
+  val put: T -> Context.proof -> Context.proof
+  val map: (T -> T) -> Context.proof -> Context.proof
+end;
+
+functor ProofDataFun(Data: PROOF_DATA_ARGS): PROOF_DATA =
+struct
+
+structure ProofData = Context.ProofData;
+
+type T = Data.T;
+exception Data of T;
+
+val kind = ProofData.declare Data.name (Data o Data.init);
+
+val init = ProofData.init kind;
+val get = ProofData.get kind (fn Data x => x);
+fun print prf = Data.print prf (get prf);
+val put = ProofData.put kind Data;
+fun map f prf = put (f (get prf)) prf;
+
+end;
+
+(*hide private interface*)
 structure Context: CONTEXT = Context;
