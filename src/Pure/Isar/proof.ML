@@ -40,10 +40,11 @@ sig
   val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
-  val atp_hook: (ProofContext.context * Thm.thm -> unit) ref
+  val atp_hook: (context * thm -> unit) ref
   val enter_forward: state -> state
-  val verbose: bool ref
   val show_main_goal: bool ref
+  val verbose: bool ref
+  val depth_of: state -> int
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val level: state -> int
@@ -382,8 +383,10 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 (** pretty_state **)
 
 val show_main_goal = ref false;
-
 val verbose = ProofContext.verbose;
+
+
+fun depth_of (State (_, nodes)) = length nodes div 2 - 1;
 
 val pretty_goals_local = Display.pretty_goals_aux o ProofContext.pp;
 
@@ -391,7 +394,7 @@ fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
-fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
+fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, _)) =
   let
     val ref (_, _, begin_goal) = Display.current_goals_markers;
 
@@ -422,7 +425,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
 
     val prts =
      [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-        (if ! verbose then ", depth " ^ string_of_int (length nodes div 2 - 1)
+        (if ! verbose then ", depth " ^ string_of_int (depth_of state)
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
