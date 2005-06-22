@@ -453,6 +453,11 @@ The most basic sign_of operations (Theory.sign_of, Thm.sign_of_thm
 etc.) as well as the sign field in Thm.rep_thm etc. have been retained
 for convenience -- they merely return the theory.
 
+* Pure: the Isar proof context type is already defined early in Pure
+as Context.proof (note that ProofContext.context and Proof.context are
+aliases, where the latter is the preferred name).  This enables other
+Isabelle components to refer to that type even before Isar is present.
+
 * Pure/sign/theory: discontinued named name spaces (i.e. classK,
 typeK, constK, axiomK, oracleK), but provide explicit operations for
 any of these kinds.  For example, Sign.intern typeK is now
