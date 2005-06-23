@@ -1208,14 +1208,31 @@ constdefs
   "setprod f A == if finite A then fold (op *) f 1 A else 1"
 
 syntax
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
-
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3PROD _:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
   "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+
+translations -- {* Beware of argument permutation! *}
+  "PROD i:A. b" == "setprod (%i. b) A" 
+  "\<Prod>i\<in>A. b" == "setprod (%i. b) A" 
+
+text{* Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
+ @{text"\<Prod>x|P. e"}. *}
+
+syntax
+  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3PROD _ |/ _./ _)" [0,0,10] 10)
+syntax (xsymbols)
+  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
+syntax (HTML output)
+  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
+
 translations
-  "\<Prod>i:A. b" == "setprod (%i. b) A"  -- {* Beware of argument permutation! *}
+  "PROD x|P. t" => "setprod (%x. t) {x. P}"
+  "\<Prod>x|P. t" => "setprod (%x. t) {x. P}"
+
+text{* Finally we abbreviate @{term"\<Prod>x\<in>A. x"} by @{text"\<Prod>A"}. *}
 
 syntax
   "_Setprod" :: "'a set => 'a::comm_monoid_mult"  ("\<Prod>_" [1000] 999)
@@ -1296,13 +1313,13 @@ apply (cases "finite C")
 done
 
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
-    (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
+    (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =
+    (\<Prod>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
 by(simp add:setprod_def AC_mult.fold_Sigma split_def cong:setprod_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
-     "(\<Prod>x:A. (\<Prod>y: B. f x y)) = (\<Prod>z:(A <*> B). f (fst z) (snd z))"
+     "(\<Prod>x\<in>A. (\<Prod>y\<in> B. f x y)) = (\<Prod>z\<in>(A <*> B). f (fst z) (snd z))"
 apply (cases "finite A") 
  apply (cases "finite B") 
   apply (simp add: setprod_Sigma)
@@ -1540,7 +1557,7 @@ apply (auto simp add: ring_distrib add_ac)
 done
 
 
-lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
+lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::recpower)) = y^(card A)"
   apply (erule finite_induct)
   apply (auto simp add: power_Suc)
   done
