@@ -122,7 +122,7 @@ lemma Def_not_UU: "Def a ~= UU"
 subsection {* Further operations *}
 
 consts
- flift1      :: "('a => 'b::pcpo) => ('a lift -> 'b)"
+ flift1      :: "('a => 'b::pcpo) => ('a lift -> 'b)" (binder "FLIFT " 10)
  flift2      :: "('a => 'b)       => ('a lift -> 'b lift)"
  liftpair    ::"'a::type lift * 'b::type lift => ('a * 'b) lift"
 
