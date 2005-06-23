@@ -6,7 +6,7 @@
 header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
-imports Ssum One Up Fix Tr
+imports Sprod Ssum Up One Tr Fix
 uses ("fixrec_package.ML")
 begin
 
@@ -119,11 +119,18 @@ by (rule_tac p=x in maybeE, simp_all)
 
 subsection {* Match functions for built-in types *}
 
-text {* Currently the package only supports lazy constructors *}
-
 constdefs
   match_cpair :: "'a \<times> 'b \<rightarrow> ('a \<times> 'b) maybe"
   "match_cpair \<equiv> csplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+
+  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<times> 'b) maybe"
+  "match_spair \<equiv> ssplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+
+  match_sinl :: "'a \<oplus> 'b \<rightarrow> 'a maybe"
+  "match_sinl \<equiv> sscase\<cdot>return\<cdot>(\<Lambda> y. fail)"
+
+  match_sinr :: "'a \<oplus> 'b \<rightarrow> 'b maybe"
+  "match_sinr \<equiv> sscase\<cdot>(\<Lambda> x. fail)\<cdot>return"
 
   match_up :: "'a u \<rightarrow> 'a maybe"
   "match_up \<equiv> fup\<cdot>return"
@@ -140,6 +147,23 @@ constdefs
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot><x,y> = return\<cdot><x,y>"
 by (simp add: match_cpair_def)
+
+lemma match_spair_simps [simp]:
+  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x,y:) = return\<cdot><x,y>"
+  "match_spair\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: match_spair_def)
+
+lemma match_sinl_simps [simp]:
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinl\<cdot>x) = return\<cdot>x"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinr\<cdot>x) = fail"
+  "match_sinl\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: match_sinl_def)
+
+lemma match_sinr_simps [simp]:
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinr\<cdot>x) = return\<cdot>x"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinl\<cdot>x) = fail"
+  "match_sinr\<cdot>\<bottom> = \<bottom>"
+by (simp_all add: match_sinr_def)
 
 lemma match_up_simps [simp]:
   "match_up\<cdot>(up\<cdot>x) = return\<cdot>x"
