@@ -309,7 +309,7 @@ by (simp add: fup_def cont_Ifup1 cont_Ifup2 inst_up_pcpo)
 lemma fup2 [simp]: "fup\<cdot>f\<cdot>(up\<cdot>x) = f\<cdot>x"
 by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2 )
 
-lemma fup3: "fup\<cdot>up\<cdot>x = x"
+lemma fup3 [simp]: "fup\<cdot>up\<cdot>x = x"
 by (rule_tac p=x in upE1, simp_all)
 
 end

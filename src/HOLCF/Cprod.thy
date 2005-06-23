@@ -301,7 +301,7 @@ by (rule lub_cprod2 [THEN thelubI])
 lemma csplit2 [simp]: "csplit\<cdot>f\<cdot><x,y> = f\<cdot>x\<cdot>y"
 by (simp add: csplit_def)
 
-lemma csplit3: "csplit\<cdot>cpair\<cdot>z = z"
+lemma csplit3 [simp]: "csplit\<cdot>cpair\<cdot>z = z"
 by (simp add: csplit_def surjective_pairing_Cprod2)
 
 lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2

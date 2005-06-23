@@ -200,7 +200,7 @@ by (simp add: ssplit_def)
 lemma ssplit2 [simp]: "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> ssplit\<cdot>f\<cdot>(:x, y:)= f\<cdot>x\<cdot>y"
 by (simp add: ssplit_def)
 
-lemma ssplit3: "ssplit\<cdot>spair\<cdot>z = z"
+lemma ssplit3 [simp]: "ssplit\<cdot>spair\<cdot>z = z"
 by (rule_tac p=z in sprodE, simp_all)
 
 end
