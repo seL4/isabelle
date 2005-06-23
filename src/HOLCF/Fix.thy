@@ -159,6 +159,25 @@ apply (simp add: cont_Ifix)
 apply (simp add: Ifix_def)
 done
 
+text {* strictness of @{term fix} *}
+
+lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F = \<bottom>"
+by (rule fix_least [THEN UU_I])
+
+lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
+apply (erule contrapos_nn)
+apply (erule subst)
+apply (rule fix_eq [symmetric])
+done
+
+text {* @{term fix} applied to identity and constant functions *}
+
+lemma fix_id: "(\<mu> x. x) = \<bottom>"
+by (simp add: fix_strict)
+
+lemma fix_const: "(\<mu> x. c) = c"
+by (rule fix_eq [THEN trans], simp)
+
 subsection {* Admissibility and fixed point induction *}
 
 text {* an admissible formula is also weak admissible *}
