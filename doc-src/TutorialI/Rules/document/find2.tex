@@ -1,0 +1,55 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{find{\isadigit{2}}}%
+\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\index{finding theorems}\index{searching theorems} In
+\S\ref{sec:find} we introduced Proof General's \pgmenu{Find} button
+for finding theorems in the database via pattern matching. If we are
+inside a proof we can be more specific and search for introduction,
+elimination and destruction rules \emph{w.r.t.\ the current goal}.
+For this purpose \pgmenu{Find} provides 3 aditional search criteria:
+\texttt{intro}, \texttt{elim} and \texttt{dest}.
+
+For example, given the goal \begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ A\ {\isasymand}\ B%
+\end{isabelle}
+when you click on \pgmenu{Find} and type in the search expression
+\texttt{intro} you are shown a few rules ending in \isa{{\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q},
+among them \isa{conjI}. This can be very effective for finding
+if the very theorem you are trying to prove is already in the
+database: given the goal%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\vspace{-\bigskipamount}
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ A\ {\isasymlongrightarrow}\ A%
+\end{isabelle}
+the search for \texttt{intro} finds not just \isa{impI}
+but also \isa{imp{\isacharunderscore}refl}: \isa{{\isacharquery}P\ {\isasymlongrightarrow}\ {\isacharquery}P}.
+
+As before, search criteria can be combined freely: for example,
+\begin{ttbox}
+"_ \at\ _"  intro
+\end{ttbox}
+searches for all introduction rules that match the current goal and
+contain the \isa{{\isacharat}} function.
+
+Searching for elimination and destruction rules via \texttt{elim} and
+\texttt{dest} is analogous to \texttt{intro} but takes the assumptions
+into account, too.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
