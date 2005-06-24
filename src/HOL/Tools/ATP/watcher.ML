@@ -266,36 +266,36 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     
     val tptp2X = ResLib.helper_path "TPTP2X_HOME" "tptp2X"  		
 
- 		(*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
-		val probID = List.last(explode probfile)
-    		val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
+    (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
+    val probID = List.last(explode probfile)
+    val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
 
-    		(*** only include problem and clasimp for the moment, not sure how to refer to ***)
-   		(*** hyps/local axioms just now                                                ***)
-   		val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
-                (*** check if the directory exists and, if not, create it***)
-    		val _ = 
-		    if !SpassComm.spass
-                    then 
-			if File.exists dfg_dir then warning("dfg dir exists")
-			else File.mkdir dfg_dir
+    (*** only include problem and clasimp for the moment, not sure how to refer to ***)
+    (*** hyps/local axioms just now                                                ***)
+    val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
+    (*** check if the directory exists and, if not, create it***)
+    val _ = 
+	if !SpassComm.spass
+	then 
+	    if File.exists dfg_dir then warning("dfg dir exists")
+	    else File.mkdir dfg_dir
+	else
+	    warning("not converting to dfg")
+    
+    val _ = if !SpassComm.spass then 
+		system (tptp2X ^ " -fdfg -d "^dfg_path^" "^
+			File.platform_path wholefile)
+	      else 7
+    val newfile =   if !SpassComm.spass 
+		    then 
+			    dfg_path^"/ax_prob"^"_"^(probID)^".dfg" 
 		    else
-			warning("not converting to dfg")
-   		
-   		val _ = if !SpassComm.spass then 
-   		            system (tptp2X ^ " -fdfg -d "^dfg_path^" "^
-                                    File.platform_path wholefile)
-			  else 7
-    		val newfile =   if !SpassComm.spass 
-				then 
-					dfg_path^"/ax_prob"^"_"^(probID)^".dfg" 
-			        else
-					(File.platform_path wholefile)
- 		val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
- 		           (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n")
- 	     in
- 		(prover,thmstring,goalstring, proverCmd, settings,newfile)	
-	     end;
+			    (File.platform_path wholefile)
+    val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
+	       (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n")
+  in
+    (prover,thmstring,goalstring, proverCmd, settings,newfile)	
+  end;
 
 
 
@@ -574,41 +574,45 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 
 (*** add subgoal id num to this *)
 	     fun execCmds  [] procList = procList
-	     |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("About to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+	     |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("\nAbout to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
 	       in 
 		 if (prover = "spass") 
-		   then 
-		       let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
-			   val (instr, outstr)=Unix.streamsOf childhandle
-			   val newProcList =    (((CMDPROC{
-						prover = prover,
-						cmd = file,
-						thmstring = thmstring,
-						goalstring = goalstring,
-						proc_handle = childhandle,
-						instr = instr,
-						outstr = outstr })::procList))
-			    val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-		       in
-			  Posix.Process.sleep (Time.fromSeconds 1);execCmds cmds newProcList
-		       end
-		   else 
-		       let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = (Unix.execute(proverCmd, (settings@[file])))
-			   val (instr, outstr)=Unix.streamsOf childhandle
-                           
-			   val newProcList =    (((CMDPROC{
-						prover = prover,
-						cmd = file,
-						thmstring = thmstring,
-						goalstring = goalstring,
-						proc_handle = childhandle,
-						instr = instr,
-						outstr = outstr })::procList))
-              
-                           val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-		       in
-			 Posix.Process.sleep (Time.fromSeconds 1); execCmds cmds newProcList
-		       end
+		 then 
+		   let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+		            (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
+		       val (instr, outstr) = Unix.streamsOf childhandle
+		       val newProcList =    (((CMDPROC{
+					    prover = prover,
+					    cmd = file,
+					    thmstring = thmstring,
+					    goalstring = goalstring,
+					    proc_handle = childhandle,
+					    instr = instr,
+					    outstr = outstr })::procList))
+			val _ = File.append (File.tmp_path (Path.basic "exec_child"))  
+			     ("\nexecuting command for goal:\n"^
+			      goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+		   in
+		      Posix.Process.sleep (Time.fromSeconds 1);execCmds cmds newProcList
+		   end
+		 else 
+		   let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+		            (Unix.execute(proverCmd, (settings@[file])))
+		       val (instr, outstr) = Unix.streamsOf childhandle
+		       
+		       val newProcList =    (((CMDPROC{
+					    prover = prover,
+					    cmd = file,
+					    thmstring = thmstring,
+					    goalstring = goalstring,
+					    proc_handle = childhandle,
+					    instr = instr,
+					    outstr = outstr })::procList))
+	  
+		       val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+		   in
+		     Posix.Process.sleep (Time.fromSeconds 1); execCmds cmds newProcList
+		   end
 		end
 
 
