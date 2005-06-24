@@ -245,16 +245,12 @@ text {*
   never used here
 *}
 
-lemma contlub_abstraction: 
-"[|chain(Y::nat=>'a);!y. cont(%x.(c::'a::cpo=>'b::cpo=>'c::cpo) x y)|] ==> 
-  (%y. lub(range(%i. c (Y i) y))) = (lub(range(%i.%y. c (Y i) y)))"
-apply (rule trans)
-prefer 2 apply (rule cont2contlub [THEN contlubE])
-prefer 2 apply (assumption)
+lemma contlub_abstraction:
+  "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
+    (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
+apply (rule thelub_fun [symmetric])
+apply (rule cont2mono [THEN ch2ch_monofun])
 apply (erule cont2cont_CF1L_rev)
-apply (rule ext)
-apply (rule cont2contlub [THEN contlubE, symmetric])
-apply (erule spec)
 apply assumption
 done
 
