@@ -502,8 +502,8 @@ obtained the desired trace.%
 %
 \begin{isamarkuptext}%
 \indexbold{finding theorems}\indexbold{searching theorems}
-Isabelle's large database of already proved theorems requires
-and offers a powerful yet simple search engine. Its only limitation is
+Isabelle's large database of proved theorems 
+offers a powerful search engine. Its chief limitation is
 its restriction to the theories currently loaded.
 
 \begin{pgnote}
@@ -512,9 +512,10 @@ You specify your search textually in the input buffer at the bottom
 of the window.
 \end{pgnote}
 
-The simplest form of search is that for theorems containing particular
-patterns: just type in the pattern(s). A pattern can be any term (even
-a single identifier) and may contain ``\texttt{\_}''. Here are some
+The simplest form of search finds theorems containing specified
+patterns.  A pattern can be any term (even
+a single identifier).  It may contain ``\texttt{\_}'', a wildcard standing
+for any term. Here are some
 examples:
 \begin{ttbox}
 length
@@ -522,60 +523,57 @@ length
 "_ + _"
 "_ * (_ - (_::nat))"
 \end{ttbox}
-Note the ability to specify types to narrow searches involving overloaded
-operators.
-
-If you specify more than one pattern, all of them must be present in a
-theorem to match.
+Specifying types, as shown in the last example, 
+constrains searches involving overloaded operators.
 
 \begin{warn}
 Always use ``\texttt{\_}'' rather than variable names: searching for
 \texttt{"x + y"} will usually not find any matching theorems
-because they would need to contain literally \texttt{x} and \texttt{y}.
-This is a feature, not a  bug.
+because they would need to contain \texttt{x} and~\texttt{y} literally.
 
-When searching for infix operators, do not just type in the symbol:
-\texttt{+} is not a proper term, you  need to say \texttt{"_ + _"}.
-This applies to other, more complicated syntaxes, too.
+When searching for infix operators, do not just type in the symbol,
+such as~\texttt{+}, but a proper term such as \texttt{"_ + _"}.
+This remark applies to more complicated syntaxes, too.
 \end{warn}
 
-If you are looking for theorems potentially simplifying some term, you
-need to prefix the pattern with \texttt{simp:}.
+If you are looking for rewrite rules (possibly conditional) that could
+simplify some term, prefix the pattern with \texttt{simp:}.
 \begin{ttbox}
 simp: "_ * (_ + _)"
 \end{ttbox}
-This searches \emph{all} (possibly conditional) equations of the form
+This finds \emph{all} equations---not just those with a \isa{simp} attribute---whose conclusion has the form
 \begin{isabelle}%
 \ \ \ \ \ {\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ {\isasymdots}%
 \end{isabelle}
-not just those with a \isa{simp} attribute.
-Note that the given pattern needs to be simplified
-at the root, not somewhere inside: for example, commutativity of \isa{{\isacharplus}}
-does not match.
+It only finds equations that can simplify the given pattern
+at the root, not somewhere inside: for example, equations of the form
+\isa{{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}\ {\isacharequal}\ {\isasymdots}} do not match.
 
-You may also search theorems by name. To make this useful you merely
-need to give a substring. For example, you could try and search for all
+You may also search for theorems by name---you merely
+need to specify a substring. For example, you could search for all
 commutativity theorems like this:
 \begin{ttbox}
 name: comm
 \end{ttbox}
 This retrieves all theorems whose name contains \texttt{comm}.
 
-Search criteria can also be negated by prefixing them with ``\texttt{-}'':
+Search criteria can also be negated by prefixing them with ``\texttt{-}''.
+For example,
 \begin{ttbox}
 -name: List
 \end{ttbox}
-finds theorems whose name does not contain \texttt{List}. This can be useful,
-for example, for
-excluding particular theories from the search because the (long) name of
+finds theorems whose name does not contain \texttt{List}. You can use this
+to exclude particular theories from the search: the long name of
 a theorem contains the name of the theory it comes from.
 
-Finallly, different search criteria can be combined arbitrarily:
+Finallly, different search criteria can be combined arbitrarily. 
+The effect is conjuctive: Find returns the theorerms that satisfy all of
+the criteria. For example,
 \begin{ttbox}
 "_ + _"  -"_ - _"  -simp: "_ * (_ + _)"  name: assoc
 \end{ttbox}
-looks for theorems containg a plus but no minus which do not simplify
-\mbox{\isa{{\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}}} at the root and whose name contains \texttt{assoc}.
+looks for theorems containing plus but not minus, and which do not simplify
+\mbox{\isa{{\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}}} at the root, and whose name contains \texttt{assoc}.
 
 Further search criteria are explained in \S\ref{sec:find2}.
 

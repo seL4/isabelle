@@ -6,21 +6,21 @@
 %
 \begin{isamarkuptxt}%
 \index{finding theorems}\index{searching theorems} In
-\S\ref{sec:find} we introduced Proof General's \pgmenu{Find} button
+\S\ref{sec:find}, we introduced Proof General's \pgmenu{Find} button
 for finding theorems in the database via pattern matching. If we are
-inside a proof we can be more specific and search for introduction,
-elimination and destruction rules \emph{w.r.t.\ the current goal}.
-For this purpose \pgmenu{Find} provides 3 aditional search criteria:
+inside a proof, we can be more specific; we can search for introduction,
+elimination and destruction rules \emph{with respect to the current goal}.
+For this purpose, \pgmenu{Find} provides three aditional search criteria:
 \texttt{intro}, \texttt{elim} and \texttt{dest}.
 
 For example, given the goal \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ A\ {\isasymand}\ B%
 \end{isabelle}
-when you click on \pgmenu{Find} and type in the search expression
-\texttt{intro} you are shown a few rules ending in \isa{{\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q},
-among them \isa{conjI}. This can be very effective for finding
-if the very theorem you are trying to prove is already in the
-database: given the goal%
+you can click on \pgmenu{Find} and type in the search expression
+\texttt{intro}. You will be shown a few rules ending in \isa{{\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q},
+among them \isa{conjI}\@. You may even discover that
+the very theorem you are trying to prove is already in the
+database.  Given the goal%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -39,7 +39,7 @@ As before, search criteria can be combined freely: for example,
 "_ \at\ _"  intro
 \end{ttbox}
 searches for all introduction rules that match the current goal and
-contain the \isa{{\isacharat}} function.
+mention the \isa{{\isacharat}} function.
 
 Searching for elimination and destruction rules via \texttt{elim} and
 \texttt{dest} is analogous to \texttt{intro} but takes the assumptions
