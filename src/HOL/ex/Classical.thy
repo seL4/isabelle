@@ -422,6 +422,11 @@ by blast
 
 subsection{*Model Elimination Prover*}
 
+
+text{*Trying out meson with arguments*}
+lemma "x < y & y < z --> ~ (z < (x::nat))"
+by (meson order_less_irrefl order_less_trans)
+
 text{*The "small example" from Bezem, Hendriks and de Nivelle,
 Automatic Proof Construction in Type Theory Using Resolution,
 JAR 29: 3-4 (2002), pages 253-275 *}

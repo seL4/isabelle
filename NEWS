@@ -342,6 +342,8 @@ otherwise we unfold the let and arrive at g.  The simproc can be
 enabled/disabled by the reference use_let_simproc.  Potential
 INCOMPATIBILITY since simplification is more powerful by default.
 
+* Classical reasoning: the meson method now accepts theorems as arguments.
+
 
 *** HOLCF ***
 

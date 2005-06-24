@@ -15,6 +15,8 @@ signature RES_AXIOMS =
   val cnf_axiom : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
   val cnf_rule : thm -> thm list
+  val cnf_rules : (string*thm) list -> thm list -> thm list list * thm list
+
   val cnf_classical_rules_thy : theory -> thm list list * thm list
  
   val cnf_simpset_rules_thy : theory -> thm list list * thm list
@@ -23,7 +25,8 @@ signature RES_AXIOMS =
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val clausify_rules_pairs : (string * thm) list -> thm list -> (ResClause.clause * thm) list list * thm list
-  val setup : (theory -> theory) list
+  val clause_setup : (theory -> theory) list
+  val meson_method_setup : (theory -> theory) list
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -138,10 +141,7 @@ fun transform_elim th =
 
 	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
     end
- else th;;	
-
-
-
+ else th;
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
@@ -169,13 +169,16 @@ fun skolem_axiom th =
 
 fun cnf_rule th = make_clauses [skolem_axiom (transform_elim th)];
 
-(*Transfer a theorem in to theory Reconstruction.thy if it is not already
+(*Transfer a theorem into theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
 
-val recon_thy = ThyInfo.get_theory"Reconstruction";
+(*This will refer to the final version of theory Reconstruction.*)
+val recon_thy_ref = Theory.self_ref (the_context ());  
 
+(*If called while Reconstruction is being created, it will transfer to the
+  current version. If called afterward, it will transfer to the final version.*)
 fun transfer_to_Reconstruction th =
-    transfer recon_thy th handle THM _ => th;
+    transfer (Theory.deref recon_thy_ref) th handle THM _ => th;
 
 fun is_taut th =
       case (prop_of th) of
@@ -254,7 +257,8 @@ fun skolem_of_def def =
 (*Converts an Isabelle theorem (intro, elim or simp format) into nnf.*)
 fun to_nnf thy th = 
     if Term.is_first_order (prop_of th) then
-      th |> Thm.transfer thy |> transform_elim |> Drule.freeze_all
+      th |> Thm.transfer thy
+         |> transform_elim |> Drule.freeze_all
 	 |> ObjectLogic.atomize_thm |> make_nnf
     else raise THM ("to_nnf: not first-order", 0, [th]);
 
@@ -397,18 +401,6 @@ fun cnf_simpset_rules_thy thy =
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
 (* outputs a list of (clause,thm) pairs *)
-(*fun clausify_axiom_pairs (thm_name,thm) =
-    let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
-        val isa_clauses' = rm_Eps [] isa_clauses
-        val clauses_n = length isa_clauses
-	fun make_axiom_clauses _ [] []= []
-	  | make_axiom_clauses i (cls::clss) (cls'::clss')= ((ResClause.make_axiom_clause cls (thm_name,i)),cls', thm_name, i) :: make_axiom_clauses (i+1) clss clss'
-    in
-	make_axiom_clauses 0 isa_clauses' isa_clauses		
-    end;
-*)
-
-
 fun clausify_axiom_pairs (thm_name,thm) =
     let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = rm_Eps [] isa_clauses
@@ -435,6 +427,20 @@ fun clause_cache_setup thy =
       and clas  = claset_rules_of_thy thy
   in skolemlist clas (skolemlist simps thy) end;
   
-val setup = [clause_cache_setup];  
+val clause_setup = [clause_cache_setup];  
+
+
+(*** meson proof methods ***)
+
+fun cnf_rules_of_ths ths = List.concat (#1 (cnf_rules (map pairname ths) []));
+
+fun meson_meth ths ctxt =
+  Method.SIMPLE_METHOD' HEADGOAL
+    (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) (local_claset_of ctxt));
+
+val meson_method_setup =
+ [Method.add_methods
+  [("meson", Method.thms_ctxt_args meson_meth, 
+    "The MESON resolution proof procedure")]];
 
 end; 

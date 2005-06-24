@@ -235,20 +235,16 @@ lemma completeness_0_lemma:
     "{} |= p ==> \<forall>t. hyps p t - hyps p t0 |- p" 
 apply (rule hyps_subset [THEN hyps_finite [THEN finite_subset_induct]])
  apply (simp add: sat_thms_p, safe)
-(*Case hyps p t-insert(#v,Y) |- p *)
- apply (rule thms_excluded_middle_rule)
-  apply (rule insert_Diff_same [THEN weaken_left])
-  apply (erule spec)
- apply (rule insert_Diff_subset2 [THEN weaken_left])
- apply (rule hyps_Diff [THEN Diff_weaken_left])
- apply (erule spec)
-(*Case hyps p t-insert(#v -> false,Y) |- p *)
-apply (rule thms_excluded_middle_rule)
- apply (rule_tac [2] insert_Diff_same [THEN weaken_left])
- apply (erule_tac [2] spec)
-apply (rule insert_Diff_subset2 [THEN weaken_left])
-apply (rule hyps_insert [THEN Diff_weaken_left])
-apply (erule spec)
+ txt{*Case @{text"hyps p t-insert(#v,Y) |- p"} *}
+ apply (rules intro: thms_excluded_middle_rule 
+		     insert_Diff_same [THEN weaken_left]
+                     insert_Diff_subset2 [THEN weaken_left] 
+                     hyps_Diff [THEN Diff_weaken_left])
+txt{*Case @{text"hyps p t-insert(#v -> false,Y) |- p"} *}
+ apply (rules intro: thms_excluded_middle_rule 
+		     insert_Diff_same [THEN weaken_left]
+                     insert_Diff_subset2 [THEN weaken_left] 
+                     hyps_insert [THEN Diff_weaken_left])
 done
 
 text{*The base case for completeness*}
@@ -263,14 +259,12 @@ by (unfold sat_def, auto)
 
 theorem completeness [rule_format]: "finite H ==> \<forall>p. H |= p --> H |- p"
 apply (erule finite_induct)
-apply (safe intro!: completeness_0)
-apply (drule sat_imp)
-apply (drule spec) 
-apply (blast intro: weaken_left_insert [THEN thms.MP])  
+ apply (blast intro: completeness_0)
+apply (rules intro: sat_imp thms.H insertI1 weaken_left_insert [THEN thms.MP])
 done
 
 theorem syntax_iff_semantics: "finite H ==> (H |- p) = (H |= p)"
-by (fast elim!: soundness completeness)
+by (blast intro: soundness completeness)
 
 end
 

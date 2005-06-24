@@ -616,7 +616,7 @@ val ex_forward = thm "ex_forward";
 
 
 use "Tools/meson.ML"
-setup meson_setup
+setup Meson.skolemize_setup
 
 use "Tools/specification_package.ML"
 

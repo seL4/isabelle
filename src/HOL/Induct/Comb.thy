@@ -95,9 +95,9 @@ lemma diamond_strip_lemmaE [rule_format]:
     "[| diamond(r);  (x,y) \<in> r^* |] ==>   
           \<forall>y'. (x,y') \<in> r --> (\<exists>z. (y',z) \<in> r^* & (y,z) \<in> r)"
 apply (unfold diamond_def)
-apply (erule rtrancl_induct, blast, clarify)
-apply (drule spec, drule mp, assumption)
-apply (blast intro: rtrancl_trans [OF _ r_into_rtrancl])
+apply (erule rtrancl_induct)
+apply (meson rtrancl_refl)
+apply (meson rtrancl_trans r_into_rtrancl)
 done
 
 lemma diamond_rtrancl: "diamond(r) ==> diamond(r^*)"
@@ -210,7 +210,7 @@ by (unfold I_def, blast)
 lemma parcontract_subset_reduce: "parcontract <= contract^*"
 apply (rule subsetI)
 apply (simp only: split_tupled_all)
-apply (erule parcontract.induct , blast+)
+apply (erule parcontract.induct, blast+)
 done
 
 lemma reduce_eq_parreduce: "contract^* = parcontract^*"

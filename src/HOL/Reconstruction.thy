@@ -33,7 +33,8 @@ begin
 
 text{*Every theory of HOL must be a descendant or ancestor of this one!*}
 
-setup ResAxioms.setup
+setup ResAxioms.clause_setup
+setup ResAxioms.meson_method_setup
 setup Reconstruction.setup
 
 end

@@ -29,13 +29,12 @@ sig
   val depth_meson_tac	: int -> tactic
   val prolog_step_tac'	: thm list -> int -> tactic
   val iter_deepen_prolog_tac	: thm list -> tactic
-  val iter_deepen_meson_tac	: int -> tactic
+  val iter_deepen_meson_tac	: thm list -> int -> tactic
   val meson_tac		: int -> tactic
   val negate_head	: thm -> thm
   val select_literal	: int -> thm -> thm
   val skolemize_tac	: int -> tactic
   val make_clauses_tac	: int -> tactic
-  val meson_setup	: (theory -> theory) list
 end
 
 
@@ -61,6 +60,7 @@ val disj_comm = thm "meson_disj_comm";
 val disj_FalseD1 = thm "meson_disj_FalseD1";
 val disj_FalseD2 = thm "meson_disj_FalseD2";
 
+val depth_limit = ref 2000;
 
 (**** Operators for forward proof ****)
 
@@ -250,7 +250,8 @@ fun check_no_bool th =
 fun make_horn crules th = make_horn crules (tryres(th,crules))
 			  handle THM _ => th;
 
-(*Generate Horn clauses for all contrapositives of a clause*)
+(*Generate Horn clauses for all contrapositives of a clause. The input, th,
+  is a HOL disjunction.*)
 fun add_contras crules (th,hcs) =
   let fun rots (0,th) = hcs
 	| rots (k,th) = zero_var_indexes (make_horn crules th) ::
@@ -267,7 +268,7 @@ fun name_thms label =
 
     in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
 
-(*Find an all-negative support clause*)
+(*Is the given disjunction an all-negative support clause?*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
 
 val neg_clauses = List.filter is_negative;
@@ -349,7 +350,7 @@ fun make_clauses ths =
     (sort_clauses (map (generalize o nodups) (foldr (cnf[]) [] ths)));
 
 
-(*Convert a list of clauses to (contrapositive) Horn clauses*)
+(*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
     name_thms "Horn#"
       (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) [] ths));
@@ -366,7 +367,6 @@ fun depth_prolog_tac horns =
 (*Return all negative clauses, as possible goal clauses*)
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
-
 fun skolemize_prems_tac prems =
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
@@ -380,6 +380,7 @@ fun MESON cltac = SELECT_GOAL
 
 (** Best-first search versions **)
 
+(*ths is a list of additional clauses (HOL disjunctions) to use.*)
 fun best_meson_tac sizef =
   MESON (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
@@ -398,7 +399,6 @@ val depth_meson_tac =
                              depth_prolog_tac (make_horns cls)]);
 
 
-
 (** Iterative deepening version **)
 
 (*This version does only one inference per call;
@@ -415,16 +415,19 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
-val iter_deepen_meson_tac =
+fun iter_deepen_meson_tac ths =
   MESON (fn cls =>
-         (THEN_ITER_DEEPEN (resolve_tac (gocls cls) 1)
-                           (has_fewer_prems 1)
-                           (prolog_step_tac' (make_horns cls))));
+           case (gocls (cls@ths)) of
+           	[] => no_tac  (*no goal clauses*)
+              | goes => 
+		 (THEN_ITER_DEEPEN (resolve_tac goes 1)
+				   (has_fewer_prems 1)
+				   (prolog_step_tac' (make_horns (cls@ths)))));
 
-fun meson_claset_tac cs =
-  SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL iter_deepen_meson_tac);
+fun meson_claset_tac ths cs =
+  SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL (iter_deepen_meson_tac ths));
 
-val meson_tac = CLASET' meson_claset_tac;
+val meson_tac = CLASET' (meson_claset_tac []);
 
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)
@@ -496,28 +499,19 @@ val make_clauses_tac =
                   (make_meta_clauses (make_clauses hyps))) 1)),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
+     
+     
+(*** setup the special skoklemization methods ***)
 
+(*No CHANGED_PROP here, since these always appear in the preamble*)
 
-(*** proof method setup ***)
+val skolemize_meth = Method.SIMPLE_METHOD' HEADGOAL skolemize_tac;
 
-fun meson_meth ctxt =
-  Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o meson_claset_tac (local_claset_of ctxt));
+val make_clauses_meth = Method.SIMPLE_METHOD' HEADGOAL make_clauses_tac;
 
-val skolemize_meth =
-  Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o skolemize_tac);
-
-val make_clauses_meth =
-  Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o make_clauses_tac);
-
-
-val meson_setup =
+val skolemize_setup =
  [Method.add_methods
-  [("meson", Method.ctxt_args meson_meth, 
-    "The MESON resolution proof procedure"),
-   ("skolemize", Method.no_args skolemize_meth, 
+  [("skolemize", Method.no_args skolemize_meth, 
     "Skolemization into existential quantifiers"),
    ("make_clauses", Method.no_args make_clauses_meth, 
     "Conversion to !!-quantified meta-level clauses")]];

@@ -286,12 +286,8 @@ lemma COMP_case:
   ==> \<exists>k. \<forall>l. COMP g fs  l < ack(k, list_add l)"
   apply (unfold COMP_def)
   apply (frule Int_lower1 [THEN lists_mono, THEN subsetD])
-  apply (erule COMP_map_aux [THEN exE])
-  apply (rule exI)
-  apply (rule allI)
-  apply (drule spec)+
-  apply (erule less_trans)
-  apply (blast intro: ack_less_mono2 ack_nest_bound less_trans)
+  apply (drule COMP_map_aux)
+  apply (meson ack_less_mono2 ack_nest_bound less_trans)
   done
 
 
