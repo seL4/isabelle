@@ -13,29 +13,26 @@ defaultsort cpo
 
 subsection {* Definitions *}
 
-consts
-adm		:: "('a::cpo=>bool)=>bool"
-
-defs
-adm_def:       "adm P == !Y. chain(Y) --> 
-                        (!i. P(Y i)) --> P(lub(range Y))"
+constdefs
+  adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool"
+  "adm P \<equiv> \<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (lub (range Y))"
 
 subsection {* Admissibility and fixed point induction *}
 
 text {* access to definitions *}
 
 lemma admI:
-   "(!!Y. [| chain Y; !i. P (Y i) |] ==> P (lub (range Y))) ==> adm P"
+   "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (lub (range Y))) \<Longrightarrow> adm P"
 apply (unfold adm_def)
 apply blast
 done
 
-lemma triv_admI: "!x. P x ==> adm P"
+lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
 apply (rule admI)
 apply (erule spec)
 done
 
-lemma admD: "[| adm(P); chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))"
+lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
 apply (unfold adm_def)
 apply blast
 done
@@ -43,13 +40,13 @@ done
 text {* for chain-finite (easy) types every formula is admissible *}
 
 lemma adm_max_in_chain: 
-"!Y. chain(Y::nat=>'a) --> (? n. max_in_chain n Y) ==> adm(P::'a=>bool)"
+  "\<forall>Y. chain (Y::nat=>'a) \<longrightarrow> (\<exists>n. max_in_chain n Y) \<Longrightarrow> adm (P::'a=>bool)"
 apply (unfold adm_def)
 apply (intro strip)
-apply (rule exE)
-apply (rule mp)
-apply (erule spec)
+apply (drule spec)
+apply (drule mp)
 apply assumption
+apply (erule exE)
 apply (subst lub_finch1 [THEN thelubI])
 apply assumption
 apply assumption
@@ -61,10 +58,9 @@ lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
 text {* improved admissibility introduction *}
 
 lemma admI2:
- "(!!Y. [| chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |] 
-  ==> P(lub (range Y))) ==> adm P"
-apply (unfold adm_def)
-apply (intro strip)
+  "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> 
+    \<Longrightarrow> P (lub (range Y))) \<Longrightarrow> adm P"
+apply (rule admI)
 apply (erule increasing_chain_adm_lemma)
 apply assumption
 apply fast
@@ -72,74 +68,53 @@ done
 
 text {* admissibility of special formulae and propagation *}
 
-lemma adm_less [simp]: "[|cont u;cont v|]==> adm(%x. u x << v x)"
-apply (unfold adm_def)
-apply (intro strip)
-apply (frule_tac f = "u" in cont2mono [THEN ch2ch_monofun])
+lemma adm_less [simp]: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
+apply (rule admI)
+apply (simp add: cont2contlub [THEN contlubE])
+apply (rule lub_mono)
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
 apply assumption
-apply (frule_tac f = "v" in cont2mono [THEN ch2ch_monofun])
-apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN ssubst])
-apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN ssubst])
-apply assumption
-apply (blast intro: lub_mono)
 done
 
-lemma adm_conj [simp]: "[| adm P; adm Q |] ==> adm(%x. P x & Q x)"
+lemma adm_conj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
 by (fast elim: admD intro: admI)
 
-lemma adm_not_free [simp]: "adm(%x. t)"
-apply (unfold adm_def)
-apply fast
-done
+lemma adm_not_free: "adm (\<lambda>x. t)"
+by (rule admI, simp)
 
-lemma adm_not_less: "cont t ==> adm(%x.~ (t x) << u)"
-apply (unfold adm_def)
-apply (intro strip)
-apply (rule contrapos_nn)
-apply (erule spec)
+lemma adm_not_less: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
+apply (rule admI)
+apply (drule_tac x=0 in spec)
+apply (erule contrapos_nn)
 apply (rule trans_less)
 prefer 2 apply (assumption)
 apply (erule cont2mono [THEN monofun_fun_arg])
-apply (rule is_ub_thelub)
-apply assumption
+apply (erule is_ub_thelub)
 done
 
-lemma adm_all: "!y. adm(P y) ==> adm(%x.!y. P y x)"
+lemma adm_all: "\<forall>y. adm (P y) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
 by (fast intro: admI elim: admD)
 
 lemmas adm_all2 = allI [THEN adm_all, standard]
 
-lemma adm_subst: "[|cont t; adm P|] ==> adm(%x. P (t x))"
+lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
-apply (simplesubst cont2contlub [THEN contlubE])
-apply assumption
-apply assumption
+apply (simp add: cont2contlub [THEN contlubE])
 apply (erule admD)
 apply (erule cont2mono [THEN ch2ch_monofun])
 apply assumption
 apply assumption
 done
 
-lemma adm_UU_not_less: "adm(%x.~ UU << t(x))"
-by simp
+lemma adm_UU_not_less: "adm (\<lambda>x. \<not> \<bottom> \<sqsubseteq> t x)"
+by (simp add: adm_not_free)
 
-lemma adm_not_UU: "cont(t)==> adm(%x.~ (t x) = UU)"
-apply (unfold adm_def)
-apply (intro strip)
-apply (rule contrapos_nn)
-apply (erule spec)
-apply (rule chain_UU_I [THEN spec])
-apply (erule cont2mono [THEN ch2ch_monofun])
-apply assumption
-apply (erule cont2contlub [THEN contlubE, THEN subst])
-apply assumption
-apply assumption
-done
+lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x = \<bottom>)"
+by (simp add: eq_UU_iff adm_not_less)
 
-lemma adm_eq: "[|cont u ; cont v|]==> adm(%x. u x = v x)"
-by (simp add: po_eq_conv)
+lemma adm_eq: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
+by (simp add: po_eq_conv adm_conj)
 
 text {* admissibility for disjunction is hard to prove. It takes 7 Lemmas *}
 
@@ -155,13 +130,14 @@ apply (drule spec, erule mp)
 apply (rule le_maxI2)
 done
 
-lemma adm_disj_lemma2: "[| adm P; \<exists>X. chain X & (!n. P(X n)) & 
-      lub(range Y)=lub(range X)|] ==> P(lub(range Y))"
+lemma adm_disj_lemma2:
+  "\<lbrakk>adm P; \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> 
+    lub (range Y) = lub (range X)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
 by (force elim: admD)
 
 lemma adm_disj_lemma3: 
-  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j) |] ==> 
-            chain(%m. Y (LEAST j. m\<le>j \<and> P(Y j)))"
+  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow>
+    chain (\<lambda>m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
 apply (rule chainI)
 apply (erule chain_mono3)
 apply (rule Least_le)
@@ -176,7 +152,7 @@ apply (erule LeastI [THEN conjunct2])
 done
 
 lemma adm_disj_lemma4: 
-  "[| \<forall>i. \<exists>j\<ge>i. P (Y j) |] ==> ! m. P(Y(LEAST j::nat. m\<le>j & P(Y j)))"
+  "\<lbrakk>\<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> \<forall>m. P (Y (LEAST j::nat. m \<le> j \<and> P (Y j)))"
 apply (rule allI)
 apply (erule allE)
 apply (erule exE)
@@ -184,21 +160,19 @@ apply (erule LeastI [THEN conjunct2])
 done
 
 lemma adm_disj_lemma5: 
-  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j) |] ==> 
-            lub(range(Y)) = (LUB m. Y(LEAST j. m\<le>j & P(Y j)))"
+  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j)\<rbrakk> \<Longrightarrow> 
+    lub (range Y) = (LUB m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
  apply (rule antisym_less)
   apply (rule lub_mono)
     apply assumption
-   apply (erule adm_disj_lemma3)
-   apply assumption
+   apply (erule (1) adm_disj_lemma3)
   apply (rule allI)
   apply (erule chain_mono3)
   apply (erule allE)
   apply (erule exE)
   apply (erule LeastI [THEN conjunct1])
  apply (rule lub_mono3)
-   apply (erule adm_disj_lemma3)
-   apply assumption
+   apply (erule (1) adm_disj_lemma3)
   apply assumption
  apply (rule allI)
  apply (rule exI)
@@ -206,44 +180,42 @@ lemma adm_disj_lemma5:
 done
 
 lemma adm_disj_lemma6:
-  "[| chain(Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j) |] ==> 
-            \<exists>X. chain X & (\<forall>n. P(X n)) & lub(range Y) = lub(range X)"
-apply (rule_tac x = "%m. Y (LEAST j. m\<le>j & P (Y j))" in exI)
+  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j)\<rbrakk> \<Longrightarrow>
+    \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> lub (range Y) = lub (range X)"
+apply (rule_tac x = "\<lambda>m. Y (LEAST j. m \<le> j \<and> P (Y j))" in exI)
 apply (fast intro!: adm_disj_lemma3 adm_disj_lemma4 adm_disj_lemma5)
 done
 
 lemma adm_disj_lemma7:
-"[| adm(P); chain(Y); \<forall>i. \<exists>j\<ge>i. P(Y j) |]==>P(lub(range(Y)))"
+  "\<lbrakk>adm P; chain Y; \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
 apply (erule adm_disj_lemma2)
-apply (erule adm_disj_lemma6)
-apply assumption
+apply (erule (1) adm_disj_lemma6)
 done
 
 lemma adm_disj: "[| adm P; adm Q |] ==> adm(%x. P x | Q x)"
 apply (rule admI)
 apply (erule adm_disj_lemma1 [THEN disjE])
 apply (rule disjI1)
-apply (erule adm_disj_lemma7)
-apply assumption
-apply assumption
+apply (erule (2) adm_disj_lemma7)
 apply (rule disjI2)
-apply (erule adm_disj_lemma7)
-apply assumption
-apply assumption
+apply (erule (2) adm_disj_lemma7)
 done
 
-lemma adm_imp: "[| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)"
+lemma adm_imp: "\<lbrakk>adm (\<lambda>x. \<not> P x); adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<longrightarrow> Q x)"
 by (subst imp_conv_disj, rule adm_disj)
 
-lemma adm_iff: "[| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |]  
-            ==> adm (%x. P x = Q x)"
+lemma adm_iff:
+  "\<lbrakk>adm (\<lambda>x. P x \<longrightarrow> Q x); adm (\<lambda>x. Q x \<longrightarrow> P x)\<rbrakk>  
+    \<Longrightarrow> adm (\<lambda>x. P x = Q x)"
 by (subst iff_conv_conj_imp, rule adm_conj)
 
-lemma adm_not_conj: "[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"
+lemma adm_not_conj:
+  "\<lbrakk>adm (\<lambda>x. \<not> P x); adm (\<lambda>x. \<not> Q x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> (P x \<and> Q x))"
 by (subst de_Morgan_conj, rule adm_disj)
 
-lemmas adm_lemmas = adm_not_free adm_imp adm_disj adm_eq adm_not_UU
-        adm_UU_not_less adm_all2 adm_not_less adm_not_conj adm_iff
+lemmas adm_lemmas =
+  adm_conj adm_not_free adm_imp adm_disj adm_eq adm_not_UU
+  adm_UU_not_less adm_all2 adm_not_less adm_not_conj adm_iff
 
 declare adm_lemmas [simp]
 
@@ -278,8 +250,7 @@ val adm_disj = thm "adm_disj";
 val adm_imp = thm "adm_imp";
 val adm_iff = thm "adm_iff";
 val adm_not_conj = thm "adm_not_conj";
-val adm_lemmas = [adm_not_free, adm_imp, adm_disj, adm_eq, adm_not_UU,
-        adm_UU_not_less, adm_all2, adm_not_less, adm_not_conj, adm_iff]
+val adm_lemmas = thms "adm_lemmas";
 *}
 
 end
