@@ -179,6 +179,7 @@ sig
   val terms_ord: term list * term list -> order
   val hd_ord: term * term -> order
   val termless: term * term -> bool
+  val term_lpo: (string -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
   val invent_names: string list -> string -> int -> string list
@@ -496,6 +497,54 @@ and terms_ord (ts, us) = list_ord term_ord (ts, us);
 fun op aconv tu = (term_ord tu = EQUAL);
 fun aconvs ts_us = (list_ord term_ord ts_us = EQUAL);
 fun termless tu = (term_ord tu = LESS);
+
+(*** Lexicographic path order on terms.
+
+  See Baader & Nipkow, Term rewriting, CUP 1998.
+  Without variables.  Const, Var, Bound, Free and Abs are treated all as
+  constants.
+
+  f_ord maps strings to integers and serves two purposes:
+  - Predicate on constant symbols.  Those that are not recognised by f_ord
+    must be mapped to ~1.
+  - Order on the recognised symbols.  These must be mapped to distinct
+    integers >= 0.
+
+***)
+
+local
+fun dest_hd f_ord (Const (a, T)) = 
+      let val ord = f_ord a in
+        if ord = ~1 then ((1, ((a, 0), T)), 0) else ((0, (("", ord), T)), 0)
+      end
+  | dest_hd _ (Free (a, T)) = ((1, ((a, 0), T)), 0)
+  | dest_hd _ (Var v) = ((1, v), 1)
+  | dest_hd _ (Bound i) = ((1, (("", i), dummyT)), 2)
+  | dest_hd _ (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
+
+fun term_lpo f_ord (s, t) =
+  let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in
+    if forall (fn si => term_lpo f_ord (si, t) = LESS) ss
+    then case hd_ord f_ord (f, g) of
+	GREATER =>
+	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+	  then GREATER else LESS
+      | EQUAL =>
+	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+	  then list_ord (term_lpo f_ord) (ss, ts)
+	  else LESS
+      | LESS => LESS
+    else GREATER
+  end
+and hd_ord f_ord (f, g) = case (f, g) of
+    (Abs (_, T, t), Abs (_, U, u)) =>
+      (case term_lpo f_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+  | (_, _) => prod_ord (prod_ord int_ord
+                  (prod_ord indexname_ord typ_ord)) int_ord
+                (dest_hd f_ord f, dest_hd f_ord g)
+in
+val term_lpo = term_lpo
+end;
 
 structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
 structure Typtab = TableFun(type key = typ val ord = typ_ord);
