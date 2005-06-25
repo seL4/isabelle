@@ -21,6 +21,8 @@ of four squares, provided all prime numbers are.  However, this is an
 abstract theorem about commutative rings.  It has, a priori, nothing to do
 with nat.*)
 
+ML"Delsimprocs[ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]"
+
 (*once a slow step, but now (2001) just three seconds!*)
 lemma Lagrange_lemma:
  "!!x1::'a::comm_ring.

@@ -1555,13 +1555,13 @@ proof -
   have xy: "- ?x <= ?y"
     apply (simp)
     apply (rule_tac y="0::'a" in order_trans)
-    apply (rule addm2)+
+    apply (rule addm2)
     apply (simp_all add: mult_pos_le mult_neg_le)
-    apply (rule addm)+
+    apply (rule addm)
     apply (simp_all add: mult_pos_le mult_neg_le)
     done
   have yx: "?y <= ?x"
-    apply (simp add: add_ac)
+    apply (simp add:diff_def)
     apply (rule_tac y=0 in order_trans)
     apply (rule addm2, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)
     apply (rule addm, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)
@@ -1687,7 +1687,7 @@ proof -
   have 6: "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <= abs (y * (A - A') + (y * A' - c') + (c'-c)) * abs x"
     by (simp add: abs_le_mult)
   have 7: "(abs (y * (A - A') + (y * A' - c') + (c'-c))) * abs x <= (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x"
-    by (simp add: abs_triangle_ineq mult_right_mono)
+    by(rule abs_triangle_ineq [THEN mult_right_mono]) simp
   have 8: " (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x <=  (abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x"
     by (simp add: abs_triangle_ineq mult_right_mono)    
   have 9: "(abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x"
@@ -1712,7 +1712,7 @@ proof -
     by (simp)
   show ?thesis 
     apply (rule_tac le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])
-    apply (simp_all add: 5 14[simplified abs_of_ge_0[of y, simplified prems]])
+    apply (simp_all only: 5 14[simplified abs_of_ge_0[of y, simplified prems]])
     done
 qed
 
