@@ -95,10 +95,8 @@ $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly $HOME/settings/sun-sml-dev"
 # give test some time to copy settings and start
 sleep 5
 $SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-sml-dev"
-# wakeup call for macbroy33
-wakeonlan -i 131.159.47.255 00:30:65:DA:35:E0 > /dev/null
 sleep 5
-$SSH macbroy33 "$MAKEALL $HOME/settings/mac-poly"
+$SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
