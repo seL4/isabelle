@@ -7,6 +7,7 @@ Support for calculational proofs.
 
 signature CALCULATION =
 sig
+  val get_calculation: Proof.state -> thm list option
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val trans_add_global: theory attribute
