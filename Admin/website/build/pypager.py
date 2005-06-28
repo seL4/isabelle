@@ -332,14 +332,14 @@ class TransformerHandler(ContentHandler, EntityResolver):
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        if self._spamprotect and name == u"a":
+        if self.spamprotect and name == u"a":
             value = attrs.get(u"href")
             if value and value.startswith(u"mailto:"):
                 attrs = dict(attrs)
                 attrs[u"href"] = "".join([ ("&#%i;" % ord(c)) for c in value ])
         for (key, value) in attrs.items():
             self._out.write(u' %s=%s' % (key, quoteattr(value)))
-        self._currentXPath.append(name)
+        self._currentXPath.append(key)
         self._lastStart = True
 
     def endElement(self, name):
