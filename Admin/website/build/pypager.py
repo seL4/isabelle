@@ -332,14 +332,14 @@ class TransformerHandler(ContentHandler, EntityResolver):
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        if self.spamprotect and name = u"a":
+        if self._spamprotect and name == u"a":
             value = attrs.get(u"href")
             if value and value.startswith(u"mailto:"):
                 attrs = dict(attrs)
                 attrs[u"href"] = "".join([ ("&#%i;" % ord(c)) for c in value ])
         for (key, value) in attrs.items():
             self._out.write(u' %s=%s' % (key, quoteattr(value)))
-        self._currentXPath.append(key)
+        self._currentXPath.append(name)
         self._lastStart = True
 
     def endElement(self, name):
@@ -453,7 +453,7 @@ def main():
         action="store", dest="encodinghtml",
         type="string", default="",
         help="force value of html content encoding meta tag", metavar='encoding')
-    cmdlineparser.add_option("-s", "--spamprotect",
+    cmdlineparser.add_option("-p", "--spamprotect",
         action="store_true", dest="spamprotect",
         help="rewrite mailto-links using entities")
 

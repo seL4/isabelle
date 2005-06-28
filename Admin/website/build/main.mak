@@ -106,7 +106,7 @@ $(DEP_FILE): $(CONF)
 		echo "$$outputfile: $$html"' $$(DEP_HTML)' >> $(DEP_FILE); \
 		echo "	mkdir -p $$outputdir" >> $(DEP_FILE); \
 		echo "	-chmod $(TARGET_UMASK_DIR) $$outputdir" >> $(DEP_FILE); \
-		echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" distname="$(DISTNAME)" $$< $$@' >> $(DEP_FILE); \
+		echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" --spamprotect distname="$(DISTNAME)" $$< $$@' >> $(DEP_FILE); \
 		echo '	-$(TIDYCMD) $$@' >> $(DEP_FILE); \
 		echo '	chmod $(TARGET_UMASK_FILE) $$@' >> $(DEP_FILE); \
 		allhtml="$$allhtml$$outputfile "; \

@@ -67,3 +67,8 @@ div#footer {
     clear: both;
     border-top: 2px solid #000000;
 }
+
+/* mirrorlist */
+div.mirrorlist {
+    display: none;
+}

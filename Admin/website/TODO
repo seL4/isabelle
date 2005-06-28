@@ -1,6 +1,11 @@
 For the next release:
 
-- use "//" paths for alle internal static resources, due to link consistency
+- use "//" paths for alle internal static resources, due to link consistency (check it)
+
+- Spam-Schutz!? (check it)
+
+- attempt to introduce a notion of mirrors, in order to clarify
+  the relationship between main and dist
 
 - centralize scattered project partners informations at "community"
 
@@ -10,14 +15,11 @@ For the next release:
 
 - add CONTRIBUTORS and COPYRIGHT to Packages
 
-- attempt to include a notion of mirrors, in order to re-clarify
-  the relationship between main and dist
-
 In the mid-time:
 
 - clarify relationship of "overview" and "logics":
-    * overview: Isabelle/HOL
-    * logics: Isabelle system
+    * overview: Isabelle/HOL   
+    * logics:   Isabelle system
 
 Visionary:
 
