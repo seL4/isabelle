@@ -1,11 +1,8 @@
 For the next release:
 
-- use "//" paths for alle internal static resources, due to link consistency (check it)
-
-- Spam-Schutz!? (check it)
-
 - attempt to introduce a notion of mirrors, in order to clarify
   the relationship between main and dist
+    --> add a "stripprefix" to directive
 
 - centralize scattered project partners informations at "community"
 
