@@ -104,8 +104,7 @@ lemma diamond_rtrancl: "diamond(r) ==> diamond(r^*)"
 apply (simp (no_asm_simp) add: diamond_def)
 apply (rule impI [THEN allI, THEN allI])
 apply (erule rtrancl_induct, blast)
-apply (best intro: rtrancl_trans [OF _ r_into_rtrancl] 
-            elim: diamond_strip_lemmaE [THEN exE])
+apply (meson rtrancl_trans r_into_rtrancl diamond_strip_lemmaE)
 done
 
 

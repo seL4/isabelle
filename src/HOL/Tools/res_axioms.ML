@@ -38,14 +38,7 @@ struct
 (* a tactic used to prove an elim-rule. *)
 fun elimRule_tac th =
     ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac th 1) THEN
-    REPEAT(Fast_tac 1);
-
-
-(* This following version fails sometimes, need to investigate, do not use it now. *)
-fun elimRule_tac' th =
-   ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac th 1) THEN
-   REPEAT(SOLVE((etac exI 1) ORELSE (rtac conjI 1) ORELSE (rtac disjI1 1) ORELSE (rtac disjI2 1))); 
-
+    REPEAT(fast_tac HOL_cs 1);
 
 exception ELIMR2FOL of string;
 
@@ -138,7 +131,6 @@ fun transform_elim th =
     let val tm = elimR2Fol th
 	val ctm = cterm_of (sign_of_thm th) tm	
     in
-
 	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
     end
  else th;
@@ -159,12 +151,9 @@ fun repeat_RS thm1 thm2 =
 (*Convert a theorem into NNF and also skolemize it. Original version, using
   Hilbert's epsilon in the resulting clauses.*)
 fun skolem_axiom th = 
-  if Term.is_first_order (prop_of th) then
-    let val th' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
-    in 
-	repeat_RS th' someI_ex
-    end
-  else raise THM ("skolem_axiom: not first-order", 0, [th]);
+  let val th' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
+  in  repeat_RS th' someI_ex
+  end;
 
 
 fun cnf_rule th = make_clauses [skolem_axiom (transform_elim th)];
@@ -240,11 +229,11 @@ fun c_variant_abs_multi (ct0, vars) =
 
 (*Given the definition of a Skolem function, return a theorem to replace 
   an existential formula by a use of that function.*)
-fun skolem_of_def def =
+fun skolem_of_def def =  
   let val (c,rhs) = Drule.dest_equals (cprop_of (Drule.freeze_all def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chil,cabs) = Thm.dest_comb ch
-      val {sign, t, ...} = rep_cterm chil
+      val {sign,t, ...} = rep_cterm chil
       val (Const ("Hilbert_Choice.Eps", Type("fun",[_,T]))) = t
       val cex = Thm.cterm_of sign (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
@@ -256,11 +245,9 @@ fun skolem_of_def def =
 
 (*Converts an Isabelle theorem (intro, elim or simp format) into nnf.*)
 fun to_nnf thy th = 
-    if Term.is_first_order (prop_of th) then
-      th |> Thm.transfer thy
-         |> transform_elim |> Drule.freeze_all
-	 |> ObjectLogic.atomize_thm |> make_nnf
-    else raise THM ("to_nnf: not first-order", 0, [th]);
+    th |> Thm.transfer thy
+       |> transform_elim |> Drule.freeze_all
+       |> ObjectLogic.atomize_thm |> make_nnf;
 
 (*The cache prevents repeated clausification of a theorem, 
   and also repeated declaration of Skolem functions*)  
@@ -268,8 +255,7 @@ val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
 fun skolem thy (name,th) =
-  let val cname = (case name of
-                         "" => gensym "sko" | s => Sign.base_name s)
+  let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
       val thy' = declare_skofuns cname (#prop (rep_thm th)) thy
   in (map (skolem_of_def o #2) (axioms_of thy'), thy') end;
 
@@ -278,14 +264,19 @@ fun skolemlist [] thy = thy
   | skolemlist ((name,th)::nths) thy = 
       (case Symtab.lookup (!clause_cache,name) of
 	  NONE => 
-	    let val nnfth = to_nnf thy th
-		val (skoths,thy') = skolem thy (name, nnfth)
-		val cls = Meson.make_cnf skoths nnfth
-	    in  clause_cache := Symtab.update ((name, (th,cls)), !clause_cache);
-		skolemlist nths thy'
-	    end
+	    let val (nnfth,ok) = (to_nnf thy th, true)  
+	                 handle THM _ => (asm_rl, false)
+            in
+                if ok then
+                    let val (skoths,thy') = skolem thy (name, nnfth)
+			val cls = Meson.make_cnf skoths nnfth
+		    in  clause_cache := 
+		     	  Symtab.update ((name, (th,cls)), !clause_cache);
+			skolemlist nths thy'
+		    end
+		else skolemlist nths thy
+            end
 	| SOME _ => skolemlist nths thy) (*FIXME: check for duplicate names?*)
-      handle THM _ => skolemlist nths thy;
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
 fun cnf_axiom (name,th) =

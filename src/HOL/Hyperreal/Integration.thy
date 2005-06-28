@@ -368,12 +368,8 @@ text{*Fundamental theorem of calculus (Part I)*}
 
 text{*"Straddle Lemma" : Swartz and Thompson: AMM 95(7) 1988 *}
 
-lemma choiceP: "\<forall>x. P(x) --> (\<exists>y. Q x y) ==> \<exists>f. (\<forall>x. P(x) --> Q x (f x))"
-by meson
-
-lemma choiceP2: "\<forall>x. P(x) --> (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>
-      \<exists>f fa. (\<forall>x. P(x) --> R(f x) & Q x (f x) (fa x))"
-by meson
+lemma choiceP: "\<forall>x. P(x) --> (\<exists>y. Q x y) ==> \<exists>f. (\<forall>x. P(x) --> Q x (f x))" 
+by (insert bchoice [of "Collect P" Q], simp) 
 
 (*UNUSED
 lemma choice2: "\<forall>x. (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>

@@ -138,19 +138,23 @@ fun cnf skoths (th,ths) =
 	then ths     (*tautology ignored*)
 	else if not (has_consts ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
-	else (*conjunction?*)
-	      cnf_aux seen (th RS conjunct1,
-			    cnf_aux seen (th RS conjunct2, ths))
-	handle THM _ => (*universal quantifier?*)
-	      cnf_aux seen (freeze_spec th,  ths)
-	handle THM _ => (*existential quantifier? Insert Skolem functions.*)
+	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
+	    Const ("op &", _) => (*conjunction*)
+		cnf_aux seen (th RS conjunct1,
+			      cnf_aux seen (th RS conjunct2, ths))
+	  | Const ("All", _) => (*universal quantifier*)
+	        cnf_aux seen (freeze_spec th,  ths)
+	  | Const ("Ex", _) => 
+	      (*existential quantifier: Insert Skolem functions*)
 	      cnf_aux seen (tryres (th,skoths), ths)
-	handle THM _ => (*disjunction?*)
-	  let val tac =
-	      (METAHYPS (resop (cnf_nil seen)) 1) THEN
-	     (fn st' => st' |>  
-		METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
-	  in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
+	  | Const ("op |", _) => (*disjunction*)
+	      let val tac =
+		  (METAHYPS (resop (cnf_nil seen)) 1) THEN
+		   (fn st' => st' |>  
+		      METAHYPS 
+		        (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
+	      in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
+	  | _ => (*no work to do*) th::ths 
       and cnf_nil seen th = (cnf_aux seen (th,[]))
   in 
     name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
@@ -235,15 +239,16 @@ val has_bool_arg_const =
 val has_meta_conn = 
     exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "Goal"]);
   
-(*Raises an exception if any Vars in the theorem mention type bool. That would mean
-  they are higher-order, and in addition, they could cause make_horn to loop!
-  Functions taking Boolean arguments are also rejected.*)
-fun check_no_bool th =
+(*Raises an exception if any Vars in the theorem mention type bool; they
+  could cause make_horn to loop! Also rejects functions whose arguments are 
+  Booleans or other functions.*)
+fun check_is_fol th = 
   let val {prop,...} = rep_thm th
   in if exists (has_bool o fastype_of) (term_vars prop)  orelse
+        not (Term.is_first_order ["all","All","Ex"] prop) orelse
         has_bool_arg_const prop  orelse  
         has_meta_conn prop
-  then raise THM ("check_no_bool", 0, [th]) else th
+  then raise THM ("check_is_fol", 0, [th]) else th
   end;
 
 (*Create a meta-level Horn clause*)
@@ -330,7 +335,7 @@ fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
 val nnf_ss = HOL_basic_ss addsimps Ex1_def::Ball_def::Bex_def::simp_thms;
 
 fun make_nnf th = th |> simplify nnf_ss
-                     |> check_no_bool |> make_nnf1
+                     |> check_is_fol |> make_nnf1
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
@@ -371,12 +376,14 @@ fun skolemize_prems_tac prems =
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
 
-(*Shell of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
-fun MESON cltac = SELECT_GOAL
- (EVERY1 [rtac ccontr,
-          METAHYPS (fn negs =>
-                    EVERY1 [skolemize_prems_tac negs,
-                            METAHYPS (cltac o make_clauses)])]);
+(*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
+fun MESON cltac i st = 
+  SELECT_GOAL
+   (EVERY1 [rtac ccontr,
+	    METAHYPS (fn negs =>
+		      EVERY1 [skolemize_prems_tac negs,
+			      METAHYPS (cltac o make_clauses)])]) i st
+  handle THM _ => no_tac st;	(*probably from check_is_fol*)		      
 
 (** Best-first search versions **)
 
@@ -446,7 +453,7 @@ fun negated_asm_of_head th =
 
 (*Converting one clause*)
 fun make_meta_clause th = 
-	negated_asm_of_head (make_horn resolution_clause_rules (check_no_bool th));
+    negated_asm_of_head (make_horn resolution_clause_rules (check_is_fol th));
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
