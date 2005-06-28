@@ -257,7 +257,7 @@ class PathCalculator:
 # the XML transformer
 class TransformerHandler(ContentHandler, EntityResolver):
 
-    def __init__(self, out, encoding, dtd, func, spamprotect):
+    def __init__(self, out, encoding, dtd, func):
 
         ContentHandler.__init__(self)
         #~ EntityResolver.__init__(self)
@@ -268,7 +268,6 @@ class TransformerHandler(ContentHandler, EntityResolver):
         self._encoding = encoding
         self._lastStart = False
         self._func = func
-        self._spamprotect = spamprotect
         self._characterBuffer = {}
         self._currentXPath = []
         self._title = None
@@ -284,8 +283,6 @@ class TransformerHandler(ContentHandler, EntityResolver):
     def flushCharacterBuffer(self):
 
         content = escape(u"".join(self._characterBuffer))
-        if self._currentXPath and self._currentXPath[-1] == u"a":
-            content = content.replace(u"@", u"&#64;")
         self._out.write(content)
         self._characterBuffer = []
 
@@ -335,11 +332,6 @@ class TransformerHandler(ContentHandler, EntityResolver):
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        if self._spamprotect and name == u"a":
-            value = attrs.get(u"href")
-            if value and value.startswith(u"mailto:"):
-                attrs = dict(attrs)
-                attrs[u"href"] = "".join([ ("&#%i;" % ord(c)) for c in value ])
         for (key, value) in attrs.items():
             self._out.write(u' %s=%s' % (key, quoteattr(value)))
         self._currentXPath.append(name)
@@ -456,9 +448,6 @@ def main():
         action="store", dest="encodinghtml",
         type="string", default="",
         help="force value of html content encoding meta tag", metavar='encoding')
-    cmdlineparser.add_option("-p", "--spamprotect",
-        action="store_true", dest="spamprotect",
-        help="rewrite mailto-links using entities")
 
     options, args = cmdlineparser.parse_args(sys.argv[1:])
 
@@ -501,7 +490,7 @@ def main():
         ostream = sys.stdout
 
     # process file
-    transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func, options.spamprotect)
+    transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func)
     parseWithER(istream, transformer)
 
     # close handles
