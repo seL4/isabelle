@@ -43,7 +43,7 @@ sig
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
-  val is_first_order: term -> bool
+  val is_first_order: string list -> term -> bool
   val dest_Type: typ -> string * typ list
   val dest_TVar: typ -> indexname * sort
   val dest_TFree: typ -> string * sort
@@ -814,21 +814,22 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 
 (*First order means in all terms of the form f(t1,...,tn) no argument has a
-  function type. The meta-quantifier "all" is excluded--its argument always
-  has a function type--through a recursive call into its body.*)
-fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
-  | first_order1 Ts (Const("all",_)$Abs(a,T,body)) =
-      not (is_funtype T) andalso first_order1 (T::Ts) body
-  | first_order1 Ts t =
-      case strip_comb t of
-               (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-             | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-             | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-             | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-             | (Abs _, ts) => false (*not in beta-normal form*)
-             | _ => error "first_order: unexpected case";
-
-val is_first_order = first_order1 [];
+  function type. The supplied quantifiers are excluded: their argument always
+  has a function type through a recursive call into its body.*)
+fun is_first_order quants = 
+  let fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
+	| first_order1 Ts (Const(q,_) $ Abs(a,T,body)) =
+	    q mem_string quants  andalso   (*it is a known quantifier*)
+            not (is_funtype T)   andalso first_order1 (T::Ts) body
+	| first_order1 Ts t =
+	    case strip_comb t of
+		 (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	       | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	       | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	       | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+	       | (Abs _, ts) => false (*not in beta-normal form*)
+	       | _ => error "first_order: unexpected case"
+    in  first_order1 []  end;
 
 (*Computing the maximum index of a typ*)
 fun maxidx_of_typ(Type(_,Ts)) = maxidx_of_typs Ts
