@@ -33,7 +33,6 @@ consts
   Not           :: "bool => bool"                   ("~ _" [40] 40)
   True          :: bool
   False         :: bool
-  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" 10)
   arbitrary     :: 'a
 
   The           :: "('a => bool) => 'a"
@@ -49,6 +48,8 @@ consts
 
 local
 
+consts
+  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" 10)
 
 subsubsection {* Additional concrete syntax *}
 

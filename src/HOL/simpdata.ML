@@ -240,7 +240,7 @@ val Delsplits        = Splitter.Delsplits;
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
-   ("If", [if_bool_eq_conj RS iffD1])];
+   ("HOL.If", [if_bool_eq_conj RS iffD1])];
 
 (*
 val mk_atomize:      (string * thm list) list -> thm -> thm list

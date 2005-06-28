@@ -41,7 +41,7 @@ end;
 local
   (* searching an if-term as below as possible *)
   fun contains_if (Abs(a,T,t)) = [] |
-  contains_if (Const("If",T) $ b $ a1 $ a2) =
+  contains_if (Const("HOL.If",T) $ b $ a1 $ a2) =
   let
   fun tn (Type(s,_)) = s |
   tn _ = error "cannot master type variables in if term";
@@ -60,7 +60,7 @@ local
   find_replace_term t = (t,[]);
 
   fun if_substi (Abs(a,T,t)) trm = Abs(a,T,t) |
-  if_substi (Const("If",T) $ b $ a1 $ a2) t = t |
+  if_substi (Const("HOL.If",T) $ b $ a1 $ a2) t = t |
   if_substi (a $ b) t = if ((contains_if b)=[]) then ((if_substi a t)$b)
 		        else (a$(if_substi b t)) |
   if_substi t v = t;
@@ -654,7 +654,7 @@ let
   val tty = type_of_term t;
   val con_term = con_term_of con a;
  in
-	(Const("If",Type("fun",[Type("bool",[]),
+	(Const("HOL.If",Type("fun",[Type("bool",[]),
         Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])])) $
 	(Const("op =",Type("fun",[tty,Type("fun",[tty,Type("bool",[])])])) $
         t $ con_term) $
@@ -757,7 +757,7 @@ let
  fun casc_if2 sg tl x con [] ty trm [] = trm | (* should never occur *)
  casc_if2 sg tl x con [arg] ty trm [] = x_subst sg tl x (con_term_of con arg) trm |
  casc_if2 sg tl x con (a::r) ty trm cl =
-        Const("If",Type("fun",[Type("bool",[]),
+        Const("HOL.If",Type("fun",[Type("bool",[]),
         Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])
         ])) $
      (Const("op =",Type("fun",[ty,Type("fun",[ty,Type("bool",[])])])) $

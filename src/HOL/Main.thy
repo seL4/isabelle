@@ -26,7 +26,7 @@ consts_code
   "Not"     ("not")
   "op |"    ("(_ orelse/ _)")
   "op &"    ("(_ andalso/ _)")
-  "If"      ("(if _/ then _/ else _)")
+  "HOL.If"      ("(if _/ then _/ else _)")
 
   "wfrec"   ("wf'_rec?")
 
