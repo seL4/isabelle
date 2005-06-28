@@ -158,6 +158,18 @@ class Functions:
         handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
         handler.endElement(u"td")
 
+    def mirror(self, handler, **args):
+
+        """<?mirror prefix="..." title="..."?> - generates a mirror switch link,
+           where prefix denotes the base root url of the mirror location
+           and title the visible description"""
+
+        prefix = args[u"prefix"]
+        title = args[u"title"]
+        handler.startElement(u"a", {u"href": posixpath.join(prefix, self._pc.relLocOfThis())})
+        handler.characters(title)
+        handler.endElement(u"a")
+
     def getPc(self):
 
         return self._pc
@@ -168,7 +180,7 @@ class PathCalculator:
     def __init__(self, srcLoc, srcRoot, dstRoot):
 
         self._src = path.normpath(path.abspath(srcLoc))
-        srcPath, srcName = path.split(self._src)
+        srcPath, self._srcName = path.split(self._src)
         self._srcRoot = path.normpath(path.abspath(srcRoot))
         self._dstRoot = path.normpath(path.abspath(dstRoot))
         self._relRoot = ""
@@ -217,6 +229,10 @@ class PathCalculator:
         loc = self.stripCommonPrefix(loc, self._relLoc)
         return loc
 
+    def relLocOfThis(self):
+
+        return posixpath.join(self._relLoc, self._srcName)
+
     def stripCommonPrefix(self, loc, prefix):
 
         common = self.commonPrefix((loc, prefix))
@@ -241,7 +257,7 @@ class PathCalculator:
 # the XML transformer
 class TransformerHandler(ContentHandler, EntityResolver):
 
-    def __init__(self, out, encoding, dtd, func):
+    def __init__(self, out, encoding, dtd, func, spamprotect):
 
         ContentHandler.__init__(self)
         #~ EntityResolver.__init__(self)
@@ -252,6 +268,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
         self._encoding = encoding
         self._lastStart = False
         self._func = func
+        self._spamprotect = spamprotect
         self._characterBuffer = {}
         self._currentXPath = []
         self._title = None
@@ -266,7 +283,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
 
     def flushCharacterBuffer(self):
 
-        self._out.write(escape(u"".join(self._characterBuffer)))
+        self._out.write(escape(u"".join(self._characterBuffer)).replace(u"@", u"&#64;"))
         self._characterBuffer = []
 
     def transformAbsPath(self, attrs, attrname):
@@ -315,9 +332,14 @@ class TransformerHandler(ContentHandler, EntityResolver):
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        for (name, value) in attrs.items():
-            self._out.write(u' %s=%s' % (name, quoteattr(value)))
-        self._currentXPath.append(name)
+        if self.spamprotect and name = u"a":
+            value = attrs.get(u"href")
+            if value and value.startswith(u"mailto:"):
+                attrs = dict(attrs)
+                attrs[u"href"] = "".join([ ("&#%i;" % ord(c)) for c in value ])
+        for (key, value) in attrs.items():
+            self._out.write(u' %s=%s' % (key, quoteattr(value)))
+        self._currentXPath.append(key)
         self._lastStart = True
 
     def endElement(self, name):
@@ -430,8 +452,10 @@ def main():
     cmdlineparser.add_option("-m", "--encodinghtml",
         action="store", dest="encodinghtml",
         type="string", default="",
-        help="force value of html content encoding meta ", metavar='encoding')
-
+        help="force value of html content encoding meta tag", metavar='encoding')
+    cmdlineparser.add_option("-s", "--spamprotect",
+        action="store_true", dest="spamprotect",
+        help="rewrite mailto-links using entities")
 
     options, args = cmdlineparser.parse_args(sys.argv[1:])
 
@@ -474,7 +498,7 @@ def main():
         ostream = sys.stdout
 
     # process file
-    transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func)
+    transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func, options.spamprotect)
     parseWithER(istream, transformer)
 
     # close handles
