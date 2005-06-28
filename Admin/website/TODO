@@ -4,6 +4,8 @@ For the next release:
   the relationship between main and dist
     --> add a "stripprefix" to directive
 
+- better argument handling in pypager
+
 - centralize scattered project partners informations at "community"
 
 - move projects from "overview" to "community"

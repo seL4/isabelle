@@ -170,6 +170,8 @@ class Functions:
         thisloc = self._pc.relLocOfThis()
         if thisloc.startswith(stripprefix):
             thisloc = thisloc[len(stripprefix):]
+        else:
+            raise Exception("Incompatible mirror (prefix to strip not found): %s" % title.encode("latin-1"))
         handler.startElement(u"a", {u"href": posixpath.join(prefix, thisloc)})
         handler.characters(title)
         handler.endElement(u"a")
