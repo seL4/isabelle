@@ -43,20 +43,20 @@ class Functions:
         self._modtime = modtime
         self._encodingMeta = encodingMeta
 
-    def value(self, handler, **args):
+    def value(self, handler, key):
 
         """<?value key="..."?> - inserts a property value given on the command line"""
 
-        value = self._valdict[args[u"key"]]
+        value = self._valdict[key]
         handler.characters(value)
 
-    def title(self, handler, **args):
+    def title(self, handler):
 
         """<?title?> - inserts the document's title as glimpsed from the <title> tag"""
 
         handler.characters(handler._title)
 
-    def contentType(self, handler, **args):
+    def contentType(self, handler):
 
         """<?contentType?> - inserts the document's content type/encoding"""
 
@@ -68,49 +68,45 @@ class Functions:
         handler.startElement(u"meta", attr)
         handler.endElement(u"meta")
 
-    def currentDate(self, handler, **args):
+    def currentDate(self, handler):
 
         """<?currentDate?> - inserts the current date"""
 
         handler.characters(unicode(time.strftime('%Y-%m-%d %H:%M:%S')))
 
-    def modificationDate(self, handler, **args):
+    def modificationDate(self, handler):
 
         """<?modificationDate?> - inserts the modification date of this file"""
 
         handler.characters(unicode(time.strftime('%Y-%m-%d %H:%M:%S',
             time.localtime(self._modtime))))
 
-    def relativeRoot(self, handler, **args):
+    def relativeRoot(self, handler, href):
 
         """<?relativeRoot href="..."?> - inserts the relative path specified by href"""
 
-        href = args[u"href"].encode("latin-1")
-        handler.characters(self._pc.relDstPathOf('//'+href))
+        handler.characters(self._pc.relDstPathOf('//'+href.encode("latin-1")))
 
-    def include(self, handler, **args):
+    def include(self, handler, file):
 
         """<?include file="..."?> - includes an XML file"""
 
-        filename = args[u"file"].encode("latin-1")
-        filename = self._pc.absSrcPathOf(filename)
+        filename = self._pc.absSrcPathOf(file.encode("latin-1"))
         self._modtime = max(self._modtime, os.stat(filename).st_mtime)
         istream = open(filename, "r")
         parseWithER(istream, handler)
         istream.close()
 
-    def navitem(self, handler, **args):
+    def navitem(self, handler, target, title):
 
         """<?navitem target="..." title="..."?> - inserts an item in a navigation list,
             targeting to <target> and entitled <title>"""
 
-        target = args[u"target"].encode("latin-1")
-        target = self._pc.relDstPathOf(target)
+        target = self._pc.relDstPathOf(target.encode("latin-1"))
         if self._pc.isSrc(target):
             wrapTagname = u"strong"
         else:
             wrapTagname = u"span"
-        title = args[u"title"]
         attr = {}
         handler.startElement(u"li", attr)
         handler.startElement(wrapTagname, {})
@@ -122,14 +118,14 @@ class Functions:
         handler.endElement(wrapTagname)
         handler.endElement(u"li")
 
-    def downloadLink(self, handler, **args):
+    def downloadLink(self, handler, target, title = None):
 
         """<?downloadLink target="..." [title="..."]?> - inserts a link to a file
            to download; if the title is omitted, it is the bare filename itself"""
 
-        target = args[u"target"].encode("latin-1")
-        targetReal = self._pc.absDstPathOf(target)
-        title = args.get(u"title", unicode(posixpath.split(targetReal)[1], 'latin-1'))
+        targetReal = self._pc.absDstPathOf(target.encode("latin-1"))
+        if not title:
+            title = unicode(posixpath.split(targetReal)[1], 'latin-1')
         size = os.stat(targetReal).st_size
         handler.startElement(u"a", {
             u"href": target
@@ -137,15 +133,15 @@ class Functions:
         handler.characters(title)
         handler.endElement(u"a")
 
-    def downloadCells(self, handler, **args):
+    def downloadCells(self, handler, target, title = None):
 
         """<?downloadCells target="..." [title="..."]?> - like downloadLink, but
            puts the link into a table cell and appends a table cell displaying the
            size of the linked file"""
 
-        target = args[u"target"].encode("latin-1")
-        targetReal = self._pc.absDstPathOf(target)
-        title = args.get(u"title", unicode(posixpath.split(targetReal)[1], 'latin-1'))
+        targetReal = self._pc.absDstPathOf(target.encode("latin-1"))
+        if not title:
+            title = unicode(posixpath.split(targetReal)[1], 'latin-1')
         size = os.stat(targetReal).st_size
         handler.startElement(u"td", {})
         handler.startElement(u"a", {
@@ -158,14 +154,12 @@ class Functions:
         handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
         handler.endElement(u"td")
 
-    def mirror(self, handler, **args):
+    def mirror(self, handler, prefix, title):
 
         """<?mirror prefix="..." title="..."?> - generates a mirror switch link,
            where prefix denotes the base root url of the mirror location
            and title the visible description"""
 
-        prefix = args[u"prefix"]
-        title = args[u"title"]
         stripprefix = args.get(u"stripprefix", u"")
         thisloc = self._pc.relLocOfThis()
         if thisloc.startswith(stripprefix):

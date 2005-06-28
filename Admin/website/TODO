@@ -1,13 +1,8 @@
 For the next release:
 
-- attempt to introduce a notion of mirrors, in order to clarify
-  the relationship between main and dist
-    --> add a "stripprefix" to directive
-
-- better argument handling in pypager
+- better argument handling in pypager --> test it
 
 - centralize scattered project partners informations at "community"
-
 - move projects from "overview" to "community"
 
 - reduce prominence of license issue at "overview"
