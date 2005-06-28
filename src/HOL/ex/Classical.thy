@@ -706,26 +706,27 @@ lemma "(\<forall>x. f x & (\<forall>y. f y & h y x --> g y) --> g x) &
        --> (\<forall>x. f x --> g x)"
 by blast
 
-text{*Problem 47.  Schubert's Steamroller*}
-        text{*26 clauses; 63 Horn clauses
-          87094 inferences so far.  Searching to depth 36*}
-lemma "(\<forall>x. P1 x --> P0 x) & (\<exists>x. P1 x) &
-       (\<forall>x. P2 x --> P0 x) & (\<exists>x. P2 x) &
-       (\<forall>x. P3 x --> P0 x) & (\<exists>x. P3 x) &
-       (\<forall>x. P4 x --> P0 x) & (\<exists>x. P4 x) &
-       (\<forall>x. P5 x --> P0 x) & (\<exists>x. P5 x) &
-       (\<forall>x. Q1 x --> Q0 x) & (\<exists>x. Q1 x) &
-       (\<forall>x. P0 x --> ((\<forall>y. Q0 y-->R x y) |
-			(\<forall>y. P0 y & S y x &
-			     (\<exists>z. Q0 z&R y z) --> R x y))) &
-       (\<forall>x y. P3 y & (P5 x|P4 x) --> S x y) &
-       (\<forall>x y. P3 x & P2 y --> S x y) &
-       (\<forall>x y. P2 x & P1 y --> S x y) &
-       (\<forall>x y. P1 x & (P2 y|Q1 y) --> ~R x y) &
-       (\<forall>x y. P3 x & P4 y --> R x y) &
-       (\<forall>x y. P3 x & P5 y --> ~R x y) &
-       (\<forall>x. (P4 x|P5 x) --> (\<exists>y. Q0 y & R x y))
-       --> (\<exists>x y. P0 x & P0 y & (\<exists>z. Q1 z & R y z & R x y))"
+text{*Problem 47.  Schubert's Steamroller.
+      26 clauses; 63 Horn clauses.
+      87094 inferences so far.  Searching to depth 36*}
+lemma "(\<forall>x. wolf x \<longrightarrow> animal x) & (\<exists>x. wolf x) &
+       (\<forall>x. fox x \<longrightarrow> animal x) & (\<exists>x. fox x) &
+       (\<forall>x. bird x \<longrightarrow> animal x) & (\<exists>x. bird x) &
+       (\<forall>x. caterpillar x \<longrightarrow> animal x) & (\<exists>x. caterpillar x) &
+       (\<forall>x. snail x \<longrightarrow> animal x) & (\<exists>x. snail x) &
+       (\<forall>x. grain x \<longrightarrow> plant x) & (\<exists>x. grain x) &
+       (\<forall>x. animal x \<longrightarrow>
+             ((\<forall>y. plant y \<longrightarrow> eats x y)  \<or> 
+	      (\<forall>y. animal y & smaller_than y x &
+                    (\<exists>z. plant z & eats y z) \<longrightarrow> eats x y))) &
+       (\<forall>x y. bird y & (snail x \<or> caterpillar x) \<longrightarrow> smaller_than x y) &
+       (\<forall>x y. bird x & fox y \<longrightarrow> smaller_than x y) &
+       (\<forall>x y. fox x & wolf y \<longrightarrow> smaller_than x y) &
+       (\<forall>x y. wolf x & (fox y \<or> grain y) \<longrightarrow> ~eats x y) &
+       (\<forall>x y. bird x & caterpillar y \<longrightarrow> eats x y) &
+       (\<forall>x y. bird x & snail y \<longrightarrow> ~eats x y) &
+       (\<forall>x. (caterpillar x \<or> snail x) \<longrightarrow> (\<exists>y. plant y & eats x y))
+       \<longrightarrow> (\<exists>x y. animal x & animal y & (\<exists>z. grain z & eats y z & eats x y))"
 by (tactic{*safe_best_meson_tac 1*})
     --{*Nearly twice as fast as @{text meson},
         which performs iterative deepening rather than best-first search*}
