@@ -283,7 +283,10 @@ class TransformerHandler(ContentHandler, EntityResolver):
 
     def flushCharacterBuffer(self):
 
-        self._out.write(escape(u"".join(self._characterBuffer)).replace(u"@", u"&#64;"))
+        content = escape(u"".join(self._characterBuffer))
+        if self._currentXPath and self._currentXPath[-1] == u"a":
+            content = content.replace(u"@", u"&#64;")
+        self._out.write(content)
         self._characterBuffer = []
 
     def transformAbsPath(self, attrs, attrname):
@@ -339,7 +342,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
                 attrs[u"href"] = "".join([ ("&#%i;" % ord(c)) for c in value ])
         for (key, value) in attrs.items():
             self._out.write(u' %s=%s' % (key, quoteattr(value)))
-        self._currentXPath.append(key)
+        self._currentXPath.append(name)
         self._lastStart = True
 
     def endElement(self, name):
