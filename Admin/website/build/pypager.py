@@ -166,7 +166,11 @@ class Functions:
 
         prefix = args[u"prefix"]
         title = args[u"title"]
-        handler.startElement(u"a", {u"href": posixpath.join(prefix, self._pc.relLocOfThis())})
+        stripprefix = args.get(u"stripprefix", u"")
+        thisloc = self._pc.relLocOfThis()
+        if thisloc.startswith(stripprefix):
+            thisloc = thisloc[len(stripprefix):]
+        handler.startElement(u"a", {u"href": posixpath.join(prefix, thisloc)})
         handler.characters(title)
         handler.endElement(u"a")
 
