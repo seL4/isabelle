@@ -1,12 +1,5 @@
 For the next release:
 
-- better argument handling in pypager --> test it
-
-- centralize scattered project partners informations at "community"
-- move projects from "overview" to "community"
-
-- reduce prominence of license issue at "overview"
-
 - add CONTRIBUTORS and COPYRIGHT to Packages
 
 - clarify purpose of the rsync daemon, consider

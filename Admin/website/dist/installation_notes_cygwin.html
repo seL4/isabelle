@@ -29,7 +29,9 @@
         <li>It is assumed you have some experience with an Unix operating system
         (e.g. what a shell is for and how to use it).</li>
       </ul>
-    
+
+      <p>Any suggestions and improvements concerning this hints are welcomed!</p>
+
       <h2>Acknowlegements</h2>
     
       <p>Thanks to <a href=
@@ -177,9 +179,10 @@
       <tt class="shellcmd">Isabelle/bin</tt>: <tt class="shellcmd">Isabelle</tt> and <tt class="shellcmd">isabelle</tt>.
       <tt class="shellcmd">Isabelle</tt> attempts to start ProofGeneral with XEmacs, and isabelle
       starts it in an SML shell session. However Windows treats the two names as
-      one. To get around this just copy <tt class="shellcmd">/opt/Isabelle/bin/isabelle</tt> to
-      <tt class="shellcmd">/opt/Isabelle/bin/Isabell</tt>. The script
-      <tt class="shellcmd">/opt/Isabelle/bin/Isabell</tt> will start Isabelle with ProofGeneral.</p>
+      one. To get around this, just rename <tt class="shellcmd">/opt/Isabelle/bin/isabelle</tt> to
+      <tt class="shellcmd">/opt/Isabelle/bin/Isabelle</tt>. This script
+      will start Isabelle with ProofGeneral; the <tt class="shellcmd">isabelle</tt>
+      script in any case is available as <tt class="shellcmd">isabelle-process</tt>.</p>
     
       <p>Now everything should be ready. To test, start the cygwin shell and
       type</p>
@@ -192,7 +195,7 @@
       the X shell window, type</p>
     
       <ul class="shellcmd">
-        <li>/opt/Isabelle/bin/Isabell &amp;</li>.
+        <li>/opt/Isabelle/bin/Isabelle &amp;</li>.
       </ul>
       
       <p>This will start the ProofGeneral interface for Isabelle. After a
@@ -203,7 +206,7 @@
       proving something.</p>
     
       <p>To simplify starting ProofGeneral, consider writing a Windows command
-      script, e.g.</p>
+      script, e.&nbsp;g.</p>
     
       <blockquote>
         <tt>@bash startx -geometry 30x4 -iconic -e Isabell</tt>
@@ -248,7 +251,7 @@
       <p>As indicated above, Isabelle does <em>not</em> run neatly with <a href=
       "http://www.polyml.org/">Poly/ML</a> on Windows, since it is not clear
       how Poly/ML has to be compiled for Cygwin, and the native Windows port
-      of PolyML do not provide some Posix interfaces Isabelle relies on.</p>
+      of PolyML does not provide some Posix signals Isabelle/ProofGeneral relies on.</p>
     
       <p>If you know how to circumvent (fully or partially) any of these problems,
       please let us know.</p>
