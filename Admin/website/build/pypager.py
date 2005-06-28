@@ -332,7 +332,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        if self.spamprotect and name == u"a":
+        if self._spamprotect and name == u"a":
             value = attrs.get(u"href")
             if value and value.startswith(u"mailto:"):
                 attrs = dict(attrs)
