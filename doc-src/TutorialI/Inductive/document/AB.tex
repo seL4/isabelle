@@ -145,10 +145,10 @@ discuss it.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}\ nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ abs{\isacharunderscore}if\ take{\isacharunderscore}Cons\ split{\isacharcolon}\ nat{\isachardot}split{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:%

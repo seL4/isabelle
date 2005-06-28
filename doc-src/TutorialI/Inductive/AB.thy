@@ -133,8 +133,8 @@ discuss it.
 *}
 
 apply(induct_tac w)
- apply(simp)
-by(force simp add: zabs_def take_Cons split: nat.split if_splits)
+apply(auto simp add: abs_if take_Cons split: nat.split)
+done
 
 text{*
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:

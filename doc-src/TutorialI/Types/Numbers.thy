@@ -166,7 +166,7 @@ lemma "abs (x+y) \<le> abs x + abs (y :: int)"
 by arith
 
 lemma "abs (2*x) = 2 * abs (x :: int)"
-by (simp add: zabs_def) 
+by (simp add: abs_if) 
 
 
 text {*Induction rules for the Integers
