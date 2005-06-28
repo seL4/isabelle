@@ -1,4 +1,4 @@
-The Isabelle webpage
+The Isabelle Webpage
 ====================
 
 (1) philosophy
@@ -53,12 +53,13 @@ The layer itself is implemented by a small tool "pypager", written in python.
 You may add arbitrary files to the dir structure, but adhere to the following:
 * use XHTML, not loose HTML
 * only structural markup; if you need layout effects, use CSS
+  (browse the exitings files to get some inspirations)
 * any files ending with .html are considered as HTML files and are implicitly
   processed by the preprocessing layer
 * for HTML includes, it is most convenient to name them *.include.html to
   avoid them to be processed stand-alone by the preprocessing layer
-* whole dirs maybe selected for statically copying them to the target destination
-  by configuring the project layer
+* whole dirs maybe selected for statically copying them to the
+  target destination by configuring the project layer
 * for attributes etc. referencing file locations, there is a convenient
   abbreviation: "//" at the beginning of a path is translated to the root,
   but expressed relatively to the current location, e. g.
@@ -67,9 +68,10 @@ You may add arbitrary files to the dir structure, but adhere to the following:
                 becomes: <a href="../def/itsyou.html">
 
   Further, targets are checked for existances.
-  This is a simple but powerful thing easing to keep the pages consistent.
+  This is a simple yet powerful thing easing to keep the pages consistent.
 * for the semantics of the processing instructions, see build/pypager.py
   source code
+
 
 (3) using the project layer framework
 =====================================

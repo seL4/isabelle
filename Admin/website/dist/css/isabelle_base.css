@@ -79,19 +79,6 @@ div#navigation ul {
     width: 100%;
 }
 
-/* div#navigation ul li {
-    margin: 5px 0em;
-    padding: 1em 0.5em;
-    text-align: center;
-}
-
--- perhaps this must be reactivated if the span/strong hack
-   makes problems on non-mozilla browsers
-
-div#navigation ul li.nav_current {
-    background-color: #AAFFAA;
-} */ 
-
 div#navigation ul li {
     margin: 0em;
     padding: 0em;

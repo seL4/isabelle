@@ -111,3 +111,26 @@ div#content h3 {
 body.dist div#content {
     /* not needed now */
 }
+
+/* mirror switch layout */
+div.mirrorlist {
+    margin: 2pt;
+    padding: 1pt;
+    border: 2pt solid #000000;
+    background-color: #EEEEDD;
+}
+
+div.mirrorlist h2 {
+    margin: 0pt;
+    padding: 2pt;
+    border: none;
+    background-color: #000000;
+    color: #EEEEDD;
+    font-size: 10pt;
+    text-align: left;
+}
+
+div.mirrorlist ul {
+    font-size: 10pt;
+    font-style: italics;
+}

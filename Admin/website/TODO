@@ -2,8 +2,6 @@ For the next release:
 
 - use "//" paths for alle internal static resources, due to link consistency
 
-- make preview second section in "overview"
-
 - centralize scattered project partners informations at "community"
 
 - move projects from "overview" to "community"
@@ -11,6 +9,9 @@ For the next release:
 - reduce prominence of license issue at "overview"
 
 - add CONTRIBUTORS and COPYRIGHT to Packages
+
+- attempt to include a notion of mirrors, in order to re-clarify
+  the relationship between main and dist
 
 In the mid-time:
 
