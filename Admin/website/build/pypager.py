@@ -154,13 +154,12 @@ class Functions:
         handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
         handler.endElement(u"td")
 
-    def mirror(self, handler, prefix, title):
+    def mirror(self, handler, prefix, title, stripprefix = u""):
 
-        """<?mirror prefix="..." title="..."?> - generates a mirror switch link,
+        """<?mirror prefix="..." title="..." [stripprefix="..."] ?> - generates a mirror switch link,
            where prefix denotes the base root url of the mirror location
            and title the visible description"""
 
-        stripprefix = args.get(u"stripprefix", u"")
         thisloc = self._pc.relLocOfThis()
         if thisloc.startswith(stripprefix):
             thisloc = thisloc[len(stripprefix):]

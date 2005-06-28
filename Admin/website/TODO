@@ -9,12 +9,30 @@ For the next release:
 
 - add CONTRIBUTORS and COPYRIGHT to Packages
 
+- clarify purpose of the rsync daemon, consider
+  a rsyncd module for *both* main and dist;
+  upgrade rsync on atbroy1 to protocol 28,
+  to handle symlinks appropriately (?)
+
 In the mid-time:
+
+- a gentle intro enumeration on Home - "Why Isabelle?"
+    * stably running, mature system
+    * (something to say about Isar?)
+    * big library
+    * big community
+    * it's free
+    * ...
+  (to discuss)
 
 - clarify relationship of "overview" and "logics":
     * overview: Isabelle/HOL   
     * logics:   Isabelle system
+  (to discuss)
+
+- introduce "mirror switch boxes"
+  (to discuss)
 
 Visionary:
 
--
+- unify dist and main
