@@ -40,6 +40,7 @@ sig
   val instantiate       :
     (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes  : thm -> thm
+  val implies_intr_hyps : thm -> thm
   val standard          : thm -> thm
   val standard'         : thm -> thm
   val rotate_prems      : int -> thm -> thm
@@ -438,6 +439,10 @@ fun zero_var_indexes th =
 (** Standard form of object-rule: no hypotheses, flexflex constraints,
     Frees, or outer quantifiers; all generality expressed by Vars of index 0.**)
 
+(*Discharge all hypotheses.*)
+fun implies_intr_hyps th =
+  fold Thm.implies_intr (#hyps (Thm.crep_thm th)) th;
+
 (*Squash a theorem's flexflex constraints provided it can be done uniquely.
   This step can lose information.*)
 fun flexflex_unique th =
@@ -641,7 +646,7 @@ val reflexive_thm =
 
 val symmetric_thm =
   let val xy = read_prop "x == y"
-  in store_standard_thm_open "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
+  in store_standard_thm_open "symmetric" (Thm.implies_intr xy (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
   let val xy = read_prop "x == y"
