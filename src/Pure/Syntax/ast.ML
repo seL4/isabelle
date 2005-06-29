@@ -6,16 +6,16 @@ Abstract syntax trees, translation rules, matching and normalization of asts.
 *)
 
 signature AST0 =
-  sig
+sig
   datatype ast =
     Constant of string |
     Variable of string |
     Appl of ast list
   exception AST of string * ast list
-  end;
+end;
 
 signature AST1 =
-  sig
+sig
   include AST0
   val mk_appl: ast -> ast list -> ast
   val str_of_ast: ast -> string
@@ -23,23 +23,21 @@ signature AST1 =
   val pretty_rule: ast * ast -> Pretty.T
   val pprint_ast: ast -> pprint_args -> unit
   val fold_ast: string -> ast list -> ast
-  val fold_ast2: string -> string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
-  val unfold_ast2: string -> string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
   val trace_ast: bool ref
   val stat_ast: bool ref
-  end;
+end;
 
 signature AST =
-  sig
+sig
   include AST1
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
   val normalize: bool -> bool -> (string -> (ast * ast) list) -> ast -> ast
   val normalize_ast: (string -> (ast * ast) list) -> ast -> ast
-  end;
+end;
 
 structure Ast : AST =
 struct
@@ -73,27 +71,16 @@ exception AST of string * ast list;
 
 (** print asts in a LISP-like style **)
 
-(* str_of_ast *)
-
 fun str_of_ast (Constant a) = quote a
   | str_of_ast (Variable x) = x
   | str_of_ast (Appl asts) = "(" ^ (space_implode " " (map str_of_ast asts)) ^ ")";
-
-
-(* pretty_ast *)
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) = Pretty.str x
   | pretty_ast (Appl asts) =
       Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
-
-(* pprint_ast *)
-
 val pprint_ast = Pretty.pprint o pretty_ast;
-
-
-(* pretty_rule *)
 
 fun pretty_rule (lhs, rhs) =
   Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];
@@ -144,26 +131,18 @@ fun fold_ast _ [] = raise Match
 
 fun fold_ast_p c = Library.foldr (fn (x, xs) => Appl [Constant c, x, xs]);
 
-fun fold_ast2 _ _ [] = raise Match
-  | fold_ast2 _ c1 [y] = Appl [Constant c1, y]
-  | fold_ast2 c c1 (x :: xs) = Appl [Constant c, x, fold_ast2 c c1 xs];
 
 (* unfold asts *)
 
 fun unfold_ast c (y as Appl [Constant c', x, xs]) =
-      if c = c' then x :: (unfold_ast c xs) else [y]
+      if c = c' then x :: unfold_ast c xs else [y]
   | unfold_ast _ y = [y];
-
-fun unfold_ast2 c c1 (y as Appl [Constant c', x, xs]) =
-      if c = c' then x :: (unfold_ast2 c c1 xs) else [y]
-  | unfold_ast2 _ c1 (y as Appl [Constant c', x]) =
-      if c1 = c' then [x] else [y]
-  | unfold_ast2 _ _ y = [y];
 
 fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
       if c = c' then apfst (cons x) (unfold_ast_p c xs)
       else ([], y)
   | unfold_ast_p _ y = ([], y);
+
 
 
 (** normalization of asts **)
@@ -284,4 +263,3 @@ fun normalize_ast get_rules ast =
   normalize (! trace_ast) (! stat_ast) get_rules ast;
 
 end;
-
