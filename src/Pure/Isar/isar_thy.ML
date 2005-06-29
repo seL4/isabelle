@@ -128,6 +128,8 @@ sig
   val apply: Method.text -> ProofHistory.T -> ProofHistory.T
   val apply_end: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
+  val three_buffersN: string
+  val cond_print: Toplevel.transition -> Toplevel.transition
   val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text * Method.text option
     -> Toplevel.transition -> Toplevel.transition
@@ -458,6 +460,9 @@ val proof = ProofHistory.applys o Method.proof;
 
 
 (* local endings *)
+
+val three_buffersN = "three_buffers";
+val cond_print = Toplevel.print' three_buffersN;
 
 val local_qed = proof'' o (ProofHistory.applys oo Method.local_qed true);
 val skip_local_qed =
