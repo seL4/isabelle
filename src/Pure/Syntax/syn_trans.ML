@@ -21,6 +21,7 @@ sig
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val variant_abs': string * typ * term -> string * term
+  exception TRANSLATION_FAIL of exn * string
 end;
 
 signature SYN_TRANS1 =
@@ -49,8 +50,10 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val pts_to_asts: (string -> (Ast.ast list -> Ast.ast) option) -> Parser.parsetree list -> Ast.ast list
-  val asts_to_terms: (string -> (term list -> term) option) -> Ast.ast list -> term list
+  val pts_to_asts: theory -> (string -> (theory -> Ast.ast list -> Ast.ast) option) ->
+    Parser.parsetree list -> Ast.ast list
+  val asts_to_terms: theory -> (string -> (theory -> term list -> term) option) ->
+    Ast.ast list -> term list
 end;
 
 structure SynTrans: SYN_TRANS =
@@ -113,9 +116,7 @@ fun mk_binder_tr (sy, name) =
 
     fun binder_tr (*sy*) [idts, body] = tr (idts, body)
       | binder_tr (*sy*) ts = raise TERM ("binder_tr", ts);
-  in
-    (sy, binder_tr)
-  end;
+  in (sy, binder_tr) end;
 
 
 (* meta propositions *)
@@ -131,15 +132,14 @@ fun ofclass_tr (*"_ofclass"*) [ty, cls] =
 
 (* meta implication *)
 
-fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
-      Ast.fold_ast_p "==>" (Ast.unfold_ast2 "_asms" "_asm" asms, concl)
+fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
+      let val prems =
+        (case Ast.unfold_ast_p "_asms" asms of
+          (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
+        | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
+      in Ast.fold_ast_p "==>" (prems, concl) end
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
-(*
-fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
-      Ast.fold_ast_p "==>" (Ast.unfold_ast "_asms" asms, concl)
-  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
-*)
 
 (* type reflection *)
 
@@ -337,9 +337,7 @@ fun prop_tr' tm =
       | tr' Ts (t as t1 $ t2) =
           (if is_Const (Term.head_of t) orelse not (is_prop Ts t)
             then I else aprop) (tr' Ts t1 $ tr' Ts t2);
-  in
-    tr' [] tm
-  end;
+  in tr' [] tm end;
 
 fun mk_ofclass_tr' show_sorts (*"_mk_ofclass"*) T [t] =
       Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
@@ -352,19 +350,13 @@ fun impl_ast_tr' (*"==>"*) asts =
   if TypeExt.no_brackets () then raise Match
   else
     (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
-      (asms as _ :: _ :: _, concl)
-        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast2 "_asms" "_asm" asms, concl]
+      (prems as _ :: _ :: _, concl) =>
+        let
+          val (asms, asm) = split_last prems;
+          val asms' = Ast.fold_ast_p "_asms" (asms, Ast.Appl [Ast.Constant "_asm", asm]);
+        in Ast.Appl [Ast.Constant "_bigimpl", asms', concl] end
     | _ => raise Match);
 
-(*
-fun impl_ast_tr' (*"==>"*) asts =
-  if TypeExt.no_brackets () then raise Match
-  else
-    (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
-      (asms as _ :: _ :: _, concl)
-        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
-    | _ => raise Match);
-*)
 
 (* meta conjunction *)
 
@@ -432,7 +424,6 @@ fun the_struct' structs s =
   [(case Lexicon.read_nat s of
     SOME i => Ast.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
   | NONE => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
-;
 
 fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
       the_struct' structs "1"
@@ -467,14 +458,16 @@ fun struct_trfuns structs =
 
 (** pts_to_asts **)
 
-exception TRANSLATION of string * exn;
+exception TRANSLATION_FAIL of exn * string;
 
-fun pts_to_asts trf pts =
+fun pts_to_asts thy trf pts =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
-      | SOME f => f args handle exn => raise TRANSLATION (a, exn));
+      | SOME f => transform_failure (fn exn =>
+            TRANSLATION_FAIL (exn, "Error in parse ast translation for " ^ quote a))
+          (fn () => f thy args) ());
 
     (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
@@ -483,23 +476,20 @@ fun pts_to_asts trf pts =
     val exn_results = map (capture ast_of) pts;
     val exns = List.mapPartial get_exn exn_results;
     val results = List.mapPartial get_result exn_results
-  in
-    (case (results, exns) of
-      ([], TRANSLATION (a, exn) :: _) =>
-        (writeln ("Error in parse ast translation for " ^ quote a); raise exn)
-    | _ => results)
-  end;
+  in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
 
 
 
 (** asts_to_terms **)
 
-fun asts_to_terms trf asts =
+fun asts_to_terms thy trf asts =
   let
     fun trans a args =
       (case trf a of
         NONE => Term.list_comb (Lexicon.const a, args)
-      | SOME f => f args handle exn => raise TRANSLATION (a, exn));
+      | SOME f => transform_failure (fn exn =>
+            TRANSLATION_FAIL (exn, "Error in parse translation for " ^ quote a))
+          (fn () => f thy args) ());
 
     fun term_of (Ast.Constant a) = trans a []
       | term_of (Ast.Variable x) = Lexicon.read_var x
@@ -512,11 +502,6 @@ fun asts_to_terms trf asts =
     val exn_results = map (capture term_of) asts;
     val exns = List.mapPartial get_exn exn_results;
     val results = List.mapPartial get_result exn_results
-  in
-    (case (results, exns) of
-      ([], TRANSLATION (a, exn) :: _) =>
-        (writeln ("Error in parse translation for " ^ quote a); raise exn)
-    | _ => results)
-  end;
+  in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
 
 end;
