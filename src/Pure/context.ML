@@ -39,6 +39,7 @@ sig
   val check_thy: string -> theory -> theory
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
+  val joinable: theory * theory -> bool
   val merge: theory * theory -> theory                     (*exception TERM*)
   val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
   val self_ref: theory -> theory_ref
@@ -278,6 +279,8 @@ fun proper_subthy
     is_some (Inttab.lookup (ids, i)) orelse is_some (Inttab.lookup (iids, i)));
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
+
+fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 
 
 (* theory references *)
