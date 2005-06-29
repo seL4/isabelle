@@ -403,10 +403,13 @@ fun head_of (f$t) = head_of f
   | head_of u = u;
 
 
-(*Number of atoms and abstractions in a term*)
-fun size_of_term (Abs (_,_,body)) = 1 + size_of_term body
-  | size_of_term (f$t) = size_of_term f  +  size_of_term t
-  | size_of_term _ = 1;
+(*number of atoms and abstractions in a term*)
+fun size_of_term tm =
+  let
+    fun add_size (t $ u) n = add_size t (add_size u n)
+      | add_size (Abs (_ ,_, t)) n = add_size t (n + 1)
+      | add_size _ n = n + 1;
+  in add_size tm 0 end;
 
 fun map_type_tvar f (Type(a,Ts)) = Type(a, map (map_type_tvar f) Ts)
   | map_type_tvar f (T as TFree _) = T
@@ -442,7 +445,9 @@ in iter end
 fun indexname_ord ((x, i), (y, j)) =
   (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
 
-val sort_ord = list_ord string_ord;
+fun sort_ord SS =
+  if pointer_eq SS then EQUAL
+  else list_ord string_ord SS;
 
 
 (* typ_ord *)
