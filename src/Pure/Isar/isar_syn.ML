@@ -446,27 +446,27 @@ val nextP =
 
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof" K.qed_block
-    (Scan.option P.method >> IsarThy.qed);
+    (Scan.option P.method >> (IsarThy.cond_print oo IsarThy.qed));
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof" K.qed
-    (P.method -- Scan.option P.method >> IsarThy.terminal_proof);
+    (P.method -- Scan.option P.method >> (IsarThy.cond_print oo IsarThy.terminal_proof));
 
 val default_proofP =
   OuterSyntax.command ".." "default proof" K.qed
-    (Scan.succeed IsarThy.default_proof);
+    (Scan.succeed (IsarThy.cond_print o IsarThy.default_proof));
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof" K.qed
-    (Scan.succeed IsarThy.immediate_proof);
+    (Scan.succeed (IsarThy.cond_print o IsarThy.immediate_proof));
 
 val done_proofP =
   OuterSyntax.command "done" "done proof" K.qed
-    (Scan.succeed IsarThy.done_proof);
+    (Scan.succeed (IsarThy.cond_print o IsarThy.done_proof));
 
 val skip_proofP =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
-    (Scan.succeed IsarThy.skip_proof);
+    (Scan.succeed (IsarThy.cond_print o IsarThy.skip_proof));
 
 val forget_proofP =
   OuterSyntax.command "oops" "forget proof" K.qed_global
@@ -504,19 +504,19 @@ val calc_args =
 
 val alsoP =
   OuterSyntax.command "also" "combine calculation and current facts" K.prf_decl
-    (calc_args >> IsarThy.also);
+    (calc_args >> (IsarThy.cond_print oo IsarThy.also));
 
 val finallyP =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result" K.prf_chain
-    (calc_args >> IsarThy.finally);
+    (calc_args >> (IsarThy.cond_print oo IsarThy.finally));
 
 val moreoverP =
   OuterSyntax.command "moreover" "augment calculation by current facts" K.prf_decl
-    (Scan.succeed IsarThy.moreover);
+    (Scan.succeed (IsarThy.cond_print o IsarThy.moreover));
 
 val ultimatelyP =
   OuterSyntax.command "ultimately" "augment calculation by current facts, exhibit result"
-    K.prf_chain (Scan.succeed IsarThy.ultimately);
+    K.prf_chain (Scan.succeed (IsarThy.cond_print o IsarThy.ultimately));
 
 
 (* proof navigation *)
