@@ -193,9 +193,10 @@ fun syn_ext_consts is_logtype const_decls =
     val mfix = List.concat (map mfix_of const_decls);
     val xconsts = map name_of const_decls;
     val binders = List.mapPartial binder const_decls;
-    val binder_trs = binders |> map (SynExt.stamp_trfun binder_stamp o SynTrans.mk_binder_tr);
+    val binder_trs = binders |> map (SynExt.stamp_trfun binder_stamp o
+        apsnd K o SynTrans.mk_binder_tr);
     val binder_trs' = binders |> map (SynExt.stamp_trfun binder_stamp o
-        apsnd SynTrans.non_typed_tr' o SynTrans.mk_binder_tr' o swap);
+        apsnd (K o SynTrans.non_typed_tr') o SynTrans.mk_binder_tr' o swap);
   in
     SynExt.syn_ext' true is_logtype
       mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
