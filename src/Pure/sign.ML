@@ -70,12 +70,11 @@ end
 
 signature SIGN =
 sig
-  type syn
   type sg    (*obsolete*)
   val init_data: theory -> theory
   val rep_sg: theory ->
    {naming: NameSpace.naming,
-    syn: syn,
+    syn: Syntax.syntax,
     tsig: Type.tsig,
     consts: (typ * stamp) NameSpace.table}
   val naming_of: theory -> NameSpace.naming
@@ -172,34 +171,11 @@ struct
 type sg = theory;
 
 
-(** datatype syn **)    (* FIXME use Syntax.syntax here (include advanced trfuns there) *)
-
-datatype syn =
-  Syn of
-    Syntax.syntax *
-     (((theory -> ast list -> ast) * stamp) Symtab.table *
-      ((theory -> term list -> term) * stamp) Symtab.table *
-      ((theory -> bool -> typ -> term list -> term) * stamp) list Symtab.table *
-      ((theory -> ast list -> ast) * stamp) list Symtab.table)
-
-fun merge_trfuns
-    (parse_ast_trtab1, parse_trtab1, print_trtab1, print_ast_trtab1)
-    (parse_ast_trtab2, parse_trtab2, print_trtab2, print_ast_trtab2) =
-  (Syntax.merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,
-    Syntax.merge_trtabs "parse translation" parse_trtab1 parse_trtab2,
-    Syntax.merge_tr'tabs print_trtab1 print_trtab2,
-    Syntax.merge_tr'tabs print_ast_trtab1 print_ast_trtab2);
-
-val pure_syn =
-  Syn (Syntax.pure_syn, (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
-
-
-
 (** datatype sign **)
 
 datatype sign = Sign of
  {naming: NameSpace.naming,                 (*common naming conventions*)
-  syn: syn,                                 (*concrete syntax for terms, types, sorts*)
+  syn: Syntax.syntax,                       (*concrete syntax for terms, types, sorts*)
   tsig: Type.tsig,                          (*order-sorted signature of types*)
   consts: (typ * stamp) NameSpace.table};   (*type schemes of term constants*)
 
@@ -217,19 +193,15 @@ structure SignData = TheoryDataFun
   val extend = I;
 
   val empty =
-    make_sign (NameSpace.default_naming, pure_syn, Type.empty_tsig, NameSpace.empty_table);
+    make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig, NameSpace.empty_table);
 
   fun merge pp (sign1, sign2) =
     let
-      val Sign {naming = _, syn = Syn (syntax1, trfuns1), tsig = tsig1,
-        consts = consts1} = sign1;
-      val Sign {naming = _, syn = Syn (syntax2, trfuns2), tsig = tsig2,
-        consts = consts2} = sign2;
+      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
+      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
       val naming = NameSpace.default_naming;
-      val syntax = Syntax.merge_syntaxes syntax1 syntax2;
-      val trfuns = merge_trfuns trfuns1 trfuns2;
-      val syn = Syn (syntax, trfuns);
+      val syn = Syntax.merge_syntaxes syn1 syn2;
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
       val consts = NameSpace.merge_tables eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
@@ -262,26 +234,7 @@ val declare_name = NameSpace.declare o naming_of;
 
 (* syntax *)
 
-fun map_syntax f (Syn (syntax, trfuns)) = Syn (f syntax, trfuns);
-
-fun make_syntax thy (Syn (syntax, (atrs, trs, tr's, atr's))) =
-  let
-    fun apply (c, (f, s)) = (c, (f thy, s));
-    fun prep tab = map apply (Symtab.dest tab);
-    fun prep' tab = map apply (Symtab.dest_multi tab);
-  in syntax |> Syntax.extend_trfuns (prep atrs, prep trs, prep' tr's, prep' atr's) end;
-
-fun syn_of thy = make_syntax thy (#syn (rep_sg thy));
-
-
-(* advanced translation functions *)
-
-fun extend_trfuns (atrs, trs, tr's, atr's)
-    (Syn (syn, (parse_ast_trtab, parse_trtab, print_trtab, print_ast_trtab))) =
-  Syn (syn, (Syntax.extend_trtab "parse ast translation" atrs parse_ast_trtab,
-    Syntax.extend_trtab "parse translation" trs parse_trtab,
-    Syntax.extend_tr'tab tr's print_trtab,
-    Syntax.extend_tr'tab atr's print_ast_trtab));
+val syn_of = #syn o rep_sg;
 
 
 (* type signature *)
@@ -363,10 +316,10 @@ end;
 (** pretty printing of terms, types etc. **)
 
 fun pretty_term' syn thy t =
-  Syntax.pretty_term syn (Context.exists_name Context.CPureN thy) (extern_term thy t);
+  Syntax.pretty_term thy syn (Context.exists_name Context.CPureN thy) (extern_term thy t);
 fun pretty_term thy t = pretty_term' (syn_of thy) thy t;
-fun pretty_typ thy T = Syntax.pretty_typ (syn_of thy) (extern_typ thy T);
-fun pretty_sort thy S = Syntax.pretty_sort (syn_of thy) (extern_sort thy S);
+fun pretty_typ thy T = Syntax.pretty_typ thy (syn_of thy) (extern_typ thy T);
+fun pretty_sort thy S = Syntax.pretty_sort thy (syn_of thy) (extern_sort thy S);
 
 fun pretty_classrel thy cs = Pretty.block (List.concat
   (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort thy o single) cs)));
@@ -485,7 +438,7 @@ fun cert_prop thy tm = #1 (certify_prop (pp thy) thy tm);
 fun read_sort' syn thy str =
   let
     val _ = Context.check_thy "Sign.read_sort'" thy;
-    val S = intern_sort thy (Syntax.read_sort syn str);
+    val S = intern_sort thy (Syntax.read_sort thy syn str);
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
 fun read_sort thy str = read_sort' (syn_of thy) thy str;
@@ -499,7 +452,7 @@ fun gen_read_typ' cert syn (thy, def_sort) str =
   let
     val _ = Context.check_thy "Sign.gen_read_typ'" thy;
     val get_sort = TypeInfer.get_sort (tsig_of thy) def_sort (intern_sort thy);
-    val T = intern_tycons thy (Syntax.read_typ syn get_sort (intern_sort thy) str);
+    val T = intern_tycons thy (Syntax.read_typ thy syn get_sort (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR => error ("The error(s) above occurred in type " ^ quote str);
 
@@ -593,7 +546,7 @@ fun read_def_terms' pp is_logtype syn (thy, types, sorts) used freeze sTs =
   let
     fun read (s, T) =
       let val T' = certify_typ thy T handle TYPE (msg, _, _) => error msg
-      in (Syntax.read is_logtype syn T' s, T') end;
+      in (Syntax.read thy is_logtype syn T' s, T') end;
   in infer_types_simult pp thy types sorts used freeze (map read sTs) end;
 
 fun read_def_terms (thy, types, sorts) =
@@ -624,7 +577,7 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = map_syntax (Syntax.extend_type_gram types) syn;
+    val syn' = Syntax.extend_type_gram types syn;
     val decls = map (fn (a, n, mx) => (Syntax.type_name a mx, n)) types;
     val tsig' = Type.add_types naming decls tsig;
   in (naming, syn', tsig', consts) end);
@@ -641,7 +594,7 @@ fun add_typedecls decls thy =
 
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = map_syntax (Syntax.extend_consts ns) syn;
+    val syn' = Syntax.extend_consts ns syn;
     val tsig' = Type.add_nonterminals naming ns tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -651,7 +604,7 @@ fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val syn' = map_syntax (Syntax.extend_type_gram [(a, length vs, mx)]) syn;
+      val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
       val abbr = (a', vs, prep_typ thy rhs)
         handle ERROR => error ("in type abbreviation " ^ quote a');
@@ -681,7 +634,7 @@ fun gen_syntax change_gram prep_typ prmode args thy =
   let
     fun prep (c, T, mx) = (c, prep_typ thy T, mx)
       handle ERROR => error ("in syntax declaration " ^ quote (Syntax.const_name c mx));
-  in thy |> map_syn (map_syntax (change_gram (is_logtype thy) prmode (map prep args))) end;
+  in thy |> map_syn (change_gram (is_logtype thy) prmode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
@@ -727,7 +680,7 @@ fun gen_add_class int_class (bclass, raw_classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val classes = map (int_class thy) raw_classes;
-      val syn' = map_syntax (Syntax.extend_consts [bclass]) syn;
+      val syn' = Syntax.extend_consts [bclass] syn;
       val tsig' = Type.add_classes (pp thy) naming [(bclass, classes)] tsig;
     in (naming, syn', tsig', consts) end)
   |> add_consts_i [(const_of_class bclass, a_itselfT --> propT, Syntax.NoSyn)];
@@ -754,24 +707,21 @@ local
 
 fun mk trs = map Syntax.mk_trfun trs;
 
-fun gen_add_trfuns ext non_typed (atrs, trs, tr's, atr's) thy = thy |> map_syn (fn syn =>
-  let val syn' = syn |> ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's)
-  in make_syntax thy syn'; syn' end);
+fun gen_add_trfuns ext non_typed (atrs, trs, tr's, atr's) =
+  map_syn (ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's));
 
-fun gen_add_trfunsT ext tr's thy = thy |> map_syn (fn syn =>
-  let val syn' = syn |> ext ([], [], mk tr's, [])
-  in make_syntax thy syn'; syn' end);
+fun gen_add_trfunsT ext tr's = map_syn (ext ([], [], mk tr's, []));
 
 in
 
-val add_trfuns = gen_add_trfuns (map_syntax o Syntax.extend_trfuns) Syntax.non_typed_tr';
-val add_trfunsT = gen_add_trfunsT (map_syntax o Syntax.extend_trfuns);
-val add_advanced_trfuns = gen_add_trfuns extend_trfuns Syntax.non_typed_tr'';
-val add_advanced_trfunsT = gen_add_trfunsT extend_trfuns;
+val add_trfuns = gen_add_trfuns Syntax.extend_trfuns Syntax.non_typed_tr';
+val add_trfunsT = gen_add_trfunsT Syntax.extend_trfuns;
+val add_advanced_trfuns = gen_add_trfuns Syntax.extend_advanced_trfuns Syntax.non_typed_tr'';
+val add_advanced_trfunsT = gen_add_trfunsT Syntax.extend_advanced_trfuns;
 
 end;
 
-val add_tokentrfuns = map_syn o map_syntax o Syntax.extend_tokentrfuns;
+val add_tokentrfuns = map_syn o Syntax.extend_tokentrfuns;
 fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 
@@ -779,9 +729,9 @@ fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 fun add_trrules args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in map_syntax (Syntax.extend_trrules (is_logtype thy) (make_syntax thy syn) rules) syn end);
+  in Syntax.extend_trrules thy (is_logtype thy) syn rules syn end);
 
-val add_trrules_i = map_syn o map_syntax o Syntax.extend_trrules_i;
+val add_trrules_i = map_syn o Syntax.extend_trrules_i;
 
 
 (* modify naming *)
