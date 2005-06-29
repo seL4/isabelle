@@ -22,6 +22,7 @@ sig
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
+  val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
   eqtype info
@@ -121,12 +122,17 @@ fun append path txt =
 
 end;
 
-fun copy from to =
-  let val target = if is_dir to then Path.append to (Path.base from) else to
-  in write target (read from) end;
+fun eq paths =
+  (case try (pairself (OS.FileSys.fileId o platform_path)) paths of
+    SOME ids => OS.FileSys.compare ids = EQUAL
+  | NONE => false);
 
-fun copy_dir from to =
-  (system ("cp -r " ^ shell_path from ^ "/. " ^ shell_path to); ());  (* FIXME system_command *)
+fun copy from to = conditional (not (eq (from, to))) (fn () =>
+  let val target = if is_dir to then Path.append to (Path.base from) else to
+  in write target (read from) end);
+
+fun copy_dir from to = conditional (not (eq (from, to))) (fn () =>
+  (system_command ("cp -r " ^ shell_path from ^ "/. " ^ shell_path to); ()))
 
 
 (* use ML files *)
