@@ -39,6 +39,7 @@ sig
   val source: OuterLex.token list -> transition -> transition
   val interactive: bool -> transition -> transition
   val print: transition -> transition
+  val print': string -> transition -> transition
   val no_timing: transition -> transition
   val reset: transition -> transition
   val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
@@ -295,7 +296,7 @@ datatype transition = Transition of
   pos: Position.T,
   source: OuterLex.token list option,
   int_only: bool,
-  print: bool,
+  print: string list,
   no_timing: bool,
   trans: trans list};
 
@@ -306,7 +307,7 @@ fun make_transition (name, pos, source, int_only, print, no_timing, trans) =
 fun map_transition f (Transition {name, pos, source, int_only, print, no_timing, trans}) =
   make_transition (f (name, pos, source, int_only, print, no_timing, trans));
 
-val empty = make_transition ("<unknown>", Position.none, NONE, false, false, false, []);
+val empty = make_transition ("<unknown>", Position.none, NONE, false, [], false, []);
 
 fun name_of (Transition {name, ...}) = name;
 fun source_of (Transition {source, ...}) = source;
@@ -337,8 +338,10 @@ fun source src = map_transition (fn (name, pos, _, int_only, print, no_timing, t
 fun interactive int_only = map_transition (fn (name, pos, source, _, print, no_timing, trans) =>
   (name, pos, source, int_only, print, no_timing, trans));
 
-val print = map_transition (fn (name, pos, source, int_only, _, no_timing, trans) =>
-  (name, pos, source, int_only, true, no_timing, trans));
+fun print' mode = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
+  (name, pos, source, int_only, insert (op =) mode print, no_timing, trans));
+
+val print = print' "";
 
 val no_timing = map_transition (fn (name, pos, source, int_only, print, _, trans) =>
   (name, pos, source, int_only, print, true, trans));
@@ -439,6 +442,7 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ (ERROR_MESSAGE msg) = msg
   | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg detailed (Context.DATA_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
+  | exn_msg detailed (Syntax.TRANSLATION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
   | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
   | exn_msg _ (ProofContext.CONTEXT (msg, _)) = msg
@@ -495,7 +499,9 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
     val (result, opt_exn) =
       (if ! Output.timing andalso not no_timing then (info (command_msg "" tr); timeap) else I)
         (apply_trans int trans) state;
-    val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
+    val _ = conditional (int andalso not (! quiet) andalso
+        exists (fn m => m mem_string print) ("" :: ! print_mode))
+      (fn () => print_state false result);
   in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in
