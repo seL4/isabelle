@@ -13,6 +13,7 @@ sig
   val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
+  val no_type_brackets: unit -> bool
 end;
 
 signature TYPE_EXT =
@@ -53,15 +54,17 @@ fun sort_of_term tm =
 
 fun raw_term_sorts tm =
   let
-    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env = ((x, ~1), sort_of_term cs) ins env
-      | add_env (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ cs) env 
-                = ((x, ~1), sort_of_term cs) ins env
-      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env = (xi, sort_of_term cs) ins env
-      | add_env (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ cs) env 
-                = (xi, sort_of_term cs) ins env
+    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env =
+          ((x, ~1), sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ cs) env =
+          ((x, ~1), sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env =
+          (xi, sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ cs) env =
+          (xi, sort_of_term cs) ins env
       | add_env (Abs (_, _, t)) env = add_env t env
       | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
-      | add_env t env = env;
+      | add_env _ env = env;
   in add_env tm [] end;
 
 
@@ -76,16 +79,15 @@ fun typ_of_term get_sort map_sort t =
       | typ_of (Const ("_tfree",_) $ (t as Free x)) = typ_of t
       | typ_of (Const ("_tvar",_) $ (t as Var x)) = typ_of t
       | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) 
-               = TFree (x, get_sort (x, ~1))
+      | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) =
+          TFree (x, get_sort (x, ~1))
       | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) 
-               = TVar (xi, get_sort xi)
+      | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) =
+          TVar (xi, get_sort xi)
       | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", map_sort (sort_of_term t))
-     
       | typ_of tm =
           let
-            val (t, ts) = strip_comb tm;
+            val (t, ts) = Term.strip_comb tm;
             val a =
               (case t of
                 Const (x, _) => x
@@ -123,7 +125,7 @@ fun term_of_typ show_sorts ty =
       if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
       else t;
 
-    fun term_of (Type (a, Ts)) = list_comb (Lexicon.const a, map term_of Ts)
+    fun term_of (Type (a, Ts)) = Term.list_comb (Lexicon.const a, map term_of Ts)
       | term_of (TFree (x, S)) = of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
       | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
   in term_of ty end;
@@ -138,16 +140,15 @@ val bracketsN = "brackets";
 val no_bracketsN = "no_brackets";
 
 fun no_brackets () =
-  Library.find_first (equal bracketsN orf equal no_bracketsN) (! print_mode)
-  = SOME no_bracketsN;
+  find_first (equal bracketsN orf equal no_bracketsN) (! print_mode)
+    = SOME no_bracketsN;
 
 val type_bracketsN = "type_brackets";
 val no_type_bracketsN = "no_type_brackets";
 
 fun no_type_brackets () =
-  Library.find_first (equal type_bracketsN orf equal no_type_bracketsN)
-                     (! print_mode)
-  <> SOME type_bracketsN;
+  Library.find_first (equal type_bracketsN orf equal no_type_bracketsN) (! print_mode)
+    <> SOME type_bracketsN;
 
 
 (* parse ast translations *)
@@ -172,7 +173,7 @@ fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
       Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
 
 fun fun_ast_tr' (*"fun"*) asts =
-  if no_brackets() orelse no_type_brackets() then raise Match
+  if no_brackets () orelse no_type_brackets () then raise Match
   else
     (case Ast.unfold_ast_p "fun" (Ast.Appl (Ast.Constant "fun" :: asts)) of
       (dom as _ :: _ :: _, cod)
@@ -216,10 +217,10 @@ val type_ext = syn_ext' false (K false)
    Mfix ("'_",          typeT,                         "dummy", [], max_pri)]
   []
   (map SynExt.mk_trfun
-   [("_tapp", tapp_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
+   [("_tapp", K tapp_ast_tr), ("_tappl", K tappl_ast_tr), ("_bracket", K bracket_ast_tr)],
    [],
    [],
-   map SynExt.mk_trfun [("fun", fun_ast_tr')])
+   map SynExt.mk_trfun [("fun", K fun_ast_tr')])
   (map (fn s => ("", s, Output.output_width)) SynExt.standard_token_classes)
   ([], []);
 
