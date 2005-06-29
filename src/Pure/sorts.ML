@@ -7,13 +7,16 @@ Type classes and sorts.
 
 signature SORTS =
 sig
-  val eq_sort: sort * sort -> bool
-  val mem_sort: sort * sort list -> bool
-  val subset_sort: sort list * sort list -> bool
-  val eq_set_sort: sort list * sort list -> bool
-  val ins_sort: sort * sort list -> sort list
-  val union_sort: sort list * sort list -> sort list
-  val rems_sort: sort list * sort list -> sort list
+  (*operations on ordered lists*)
+  val eq_set: sort list * sort list -> bool
+  val union: sort list -> sort list -> sort list
+  val subtract: sort list -> sort list -> sort list
+  val insert_sort: sort -> sort list -> sort list
+  val insert_typ: typ -> sort list -> sort list
+  val insert_typs: typ list -> sort list -> sort list
+  val insert_term: term -> sort list -> sort list
+  val insert_terms: term list -> sort list -> sort list
+  (*signature information*)
   type classes
   type arities
   val class_eq: classes -> class * class -> bool
@@ -53,28 +56,29 @@ struct
 *)
 
 
-(* equality, membership and insertion of sorts *)
+(* ordered lists of sorts *)
 
-fun eq_sort ([]: sort, []) = true
-  | eq_sort ((S1 :: Ss1), (S2 :: Ss2)) = S1 = S2 andalso eq_sort (Ss1, Ss2)
-  | eq_sort (_, _) = false;
+val eq_set = OrdList.eq_set Term.sort_ord;
+val op union = OrdList.union Term.sort_ord;
+val subtract = OrdList.subtract Term.sort_ord;
 
-fun mem_sort (_: sort, []) = false
-  | mem_sort (S, S' :: Ss) = eq_sort (S, S') orelse mem_sort (S, Ss);
+val insert_sort = OrdList.insert Term.sort_ord;
 
-fun ins_sort (S, Ss) = if mem_sort (S, Ss) then Ss else S :: Ss;
+fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
+  | insert_typ (TVar (_, S)) Ss = insert_sort S Ss
+  | insert_typ (Type (_, Ts)) Ss = insert_typs Ts Ss
+and insert_typs [] Ss = Ss
+  | insert_typs (T :: Ts) Ss = insert_typs Ts (insert_typ T Ss);
 
-fun union_sort (Ss, []) = Ss
-  | union_sort ([], Ss) = Ss
-  | union_sort ((S :: Ss), Ss') = union_sort (Ss, ins_sort (S, Ss'));
+fun insert_term (Const (_, T)) Ss = insert_typ T Ss
+  | insert_term (Free (_, T)) Ss = insert_typ T Ss
+  | insert_term (Var (_, T)) Ss = insert_typ T Ss
+  | insert_term (Bound _) Ss = Ss
+  | insert_term (Abs (_, T, t)) Ss = insert_term t (insert_typ T Ss)
+  | insert_term (t $ u) Ss = insert_term t (insert_term u Ss);
 
-fun subset_sort ([], Ss) = true
-  | subset_sort (S :: Ss, Ss') = mem_sort (S, Ss') andalso subset_sort (Ss, Ss');
-
-fun eq_set_sort (Ss, Ss') =
-  Ss = Ss' orelse (subset_sort (Ss, Ss') andalso subset_sort (Ss', Ss));
-
-val rems_sort = gen_rems eq_sort;
+fun insert_terms [] Ss = Ss
+  | insert_terms (t :: ts) Ss = insert_terms ts (insert_term t Ss);
 
 
 (* sort signature information *)
