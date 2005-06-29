@@ -47,7 +47,7 @@ fun thm_of_proof thy prf =
 
     fun thm_of _ _ (PThm ((name, _), _, prop', SOME Ts)) =
           let
-            val thm = Thm.implies_intr_hyps (lookup name);
+            val thm = Drule.implies_intr_hyps (lookup name);
             val {prop, ...} = rep_thm thm;
             val _ = if prop aconv prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
