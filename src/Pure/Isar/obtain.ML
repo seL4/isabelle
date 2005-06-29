@@ -83,7 +83,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*obtain statements*)
-    val thesisN = Term.variant xs (Syntax.internal AutoBind.thesisN);
+    val thesisN = Term.variant xs AutoBind.thesisN;
     val bind_thesis = ProofContext.bind_skolem fix_ctxt [thesisN];
     val bound_thesis = bind_thesis (ObjectLogic.fixed_judgment sign thesisN);
     val bound_thesis_raw as (bound_thesis_name, _) =
