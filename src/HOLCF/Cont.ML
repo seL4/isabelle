@@ -33,6 +33,6 @@ val cont2cont_app2 = thm "cont2cont_app2";
 val cont_id = thm "cont_id";
 val cont_const = thm "cont_const";
 val cont2cont_app3 = thm "cont2cont_app3";
-val flatdom2monofun = thm "flatdom2monofun";
 val chfindom_monofun2cont = thm "chfindom_monofun2cont";
+val flatdom_strict2mono = thm "flatdom_strict2mono";
 val flatdom_strict2cont = thm "flatdom_strict2cont";
