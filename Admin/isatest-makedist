@@ -96,7 +96,7 @@ $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly $HOME/settings/sun-sml-dev"
 sleep 5
 $SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-sml-dev"
 sleep 5
-$SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
+$SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly $HOME/settings/mac-sml-dev"
 
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
