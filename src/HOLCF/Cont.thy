@@ -18,27 +18,17 @@ text {*
 
 defaultsort po
 
-consts  
-        monofun :: "('a => 'b) => bool"  -- "monotonicity"
-        contlub :: "('a::cpo => 'b::cpo) => bool"  -- "first cont. def"
-        cont    :: "('a::cpo => 'b::cpo) => bool"  -- "secnd cont. def"
+subsection {* Definitions *}
 
-defs 
+constdefs
+  monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  -- "monotonicity"
+  "monofun f \<equiv> \<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y"
 
-monofun_def:         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
+  contlub :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"  -- "first cont. def"
+  "contlub f \<equiv> \<forall>Y. chain Y \<longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))"
 
-contlub_def:         "contlub(f) == ! Y. chain(Y) --> 
-                                f(lub(range(Y))) = lub(range(% i. f(Y(i))))"
-
-cont_def:            "cont(f)   == ! Y. chain(Y) --> 
-                                range(% i. f(Y(i))) <<| f(lub(range(Y)))"
-
-text {*
-  the main purpose of cont.thy is to show:
-  @{prop "monofun(f) & contlub(f) == cont(f)"}
-*}
-
-text {* access to definition *}
+  cont    :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"  -- "secnd cont. def"
+  "cont f    \<equiv> \<forall>Y. chain Y \<longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)"
 
 lemma contlubI:
   "\<lbrakk>\<And>Y. chain Y \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))\<rbrakk> \<Longrightarrow> contlub f"
@@ -64,6 +54,22 @@ lemma monofunE:
   "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
 by (simp add: monofun_def)
 
+text {*
+  The following results are about application for functions in @{typ "'a=>'b"}
+*}
+
+lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
+by (simp add: less_fun_def)
+
+lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
+by (rule monofunE)
+
+lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
+by (rule trans_less [OF monofun_fun_arg monofun_fun_fun])
+
+
+subsection {* @{prop "monofun f \<and> contlub f \<equiv> cont f"} *}
+
 text {* monotone functions map chains to chains *}
 
 lemma ch2ch_monofun: "\<lbrakk>monofun f; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. f (Y i))"
@@ -81,7 +87,7 @@ apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
-text {* left to right: @{prop "monofun(f) & contlub(f) ==> cont(f)"} *}
+text {* left to right: @{prop "monofun f \<and> contlub f \<Longrightarrow> cont f"} *}
 
 lemma monocontlub2cont: "\<lbrakk>monofun f; contlub f\<rbrakk> \<Longrightarrow> cont f"
 apply (rule contI)
@@ -117,26 +123,38 @@ done
 text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
 text {* part2: @{prop "cont f \<Longrightarrow> contlub f"} *}
 
-lemma cont2contlub: "cont(f) ==> contlub(f)"
+lemma cont2contlub: "cont f \<Longrightarrow> contlub f"
 apply (rule contlubI)
 apply (rule thelubI [symmetric])
 apply (erule contE)
 apply assumption
 done
 
-text {* monotone functions map finite chains to finite chains *}
+subsection {* Continuity of basic functions *}
 
-lemma monofun_finch2finch:
-  "\<lbrakk>monofun f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
-apply (unfold finite_chain_def)
-apply (simp add: ch2ch_monofun)
-apply (force simp add: max_in_chain_def)
+text {* The identity function is continuous *}
+
+lemma cont_id: "cont (\<lambda>x. x)"
+apply (rule contI)
+apply (erule thelubE)
+apply (rule refl)
 done
 
-text {* The same holds for continuous functions *}
+text {* constant functions are continuous *}
 
-lemmas cont_finch2finch = cont2mono [THEN monofun_finch2finch, standard]
-(* [| cont ?f; finite_chain ?Y |] ==> finite_chain (%n. ?f (?Y n)) *)
+lemma cont_const: "cont (\<lambda>x. c)"
+apply (rule contI)
+apply (rule lub_const)
+done
+
+text {* if-then-else is continuous *}
+
+lemma cont_if: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. if b then f x else g x)"
+by (induct b) simp_all
+
+subsection {* Propagation of monotonicity and continuity *}
+
+text {* the lub of a chain of monotone functions is monotone *}
 
 lemma monofun_lub_fun:
   "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
@@ -176,45 +194,20 @@ lemma cont2cont_lub:
   "\<lbrakk>chain F; \<And>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i x)"
 by (simp add: thelub_fun [symmetric] cont_lub_fun)
 
-text {*
-  The following results are about application for functions in @{typ "'a=>'b"}
-*}
-
-lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
-by (simp add: less_fun_def)
-
-lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
-by (rule monofunE)
-
-lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
-by (rule trans_less [OF monofun_fun_arg monofun_fun_fun])
-
-text {*
-  The following results are about the propagation of monotonicity and
-  continuity
-*}
-
 lemma mono2mono_MF1L: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
 apply (rule monofunI)
-apply (erule monofun_fun_arg [THEN monofun_fun_fun])
-apply assumption
+apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])
 done
 
 lemma cont2cont_CF1L: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule monocontlub2cont)
 apply (erule cont2mono [THEN mono2mono_MF1L])
 apply (rule contlubI)
-apply (frule asm_rl)
-apply (erule cont2contlub [THEN contlubE, THEN ssubst])
-apply assumption
-apply (subst thelub_fun)
-apply (rule ch2ch_monofun)
-apply (erule cont2mono)
-apply assumption
-apply (rule refl)
+apply (simp add: cont2contlub [THEN contlubE])
+apply (simp add: thelub_fun cont2mono [THEN ch2ch_monofun])
 done
 
-(*********  Note "(%x.%y.c1 x y) = c1" ***********)
+text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 
 lemma mono2mono_MF1L_rev: "\<forall>y. monofun (\<lambda>x. f x y) \<Longrightarrow> monofun f"
 apply (rule monofunI)
@@ -223,35 +216,29 @@ apply (blast dest: monofunE)
 done
 
 lemma cont2cont_CF1L_rev: "\<forall>y. cont (\<lambda>x. f x y) \<Longrightarrow> cont f"
+apply (subgoal_tac "monofun f")
 apply (rule monocontlub2cont)
-apply (rule cont2mono [THEN allI, THEN mono2mono_MF1L_rev])
-apply (erule spec)
+apply assumption
 apply (rule contlubI)
 apply (rule ext)
-apply (subst thelub_fun)
-apply (rule cont2mono [THEN allI, THEN mono2mono_MF1L_rev, THEN ch2ch_monofun])
-apply (erule spec)
-apply assumption
+apply (simp add: thelub_fun ch2ch_monofun)
 apply (blast dest: cont2contlub [THEN contlubE])
+apply (simp add: mono2mono_MF1L_rev cont2mono)
 done
 
-lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x y. f x y)"
+lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. (\<lambda>y. f x y))"
 apply (rule cont2cont_CF1L_rev)
 apply simp
 done
 
-text {*
-  What D.A.Schmidt calls continuity of abstraction
-  never used here
-*}
+text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
 
 lemma contlub_abstraction:
   "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
     (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
 apply (rule thelub_fun [symmetric])
 apply (rule cont2mono [THEN ch2ch_monofun])
-apply (erule cont2cont_CF1L_rev)
-apply assumption
+apply (erule (1) cont2cont_CF1L_rev)
 done
 
 lemma mono2mono_app:
@@ -269,45 +256,36 @@ apply (simp add: cont2contlub [THEN contlubE] thelub_fun)
 apply (rule diag_lub)
 apply (erule ch2ch_fun)
 apply (drule spec)
-apply (erule cont2mono [THEN ch2ch_monofun], assumption)
-apply (erule cont2mono [THEN ch2ch_monofun], assumption)
-apply (erule cont2mono [THEN ch2ch_monofun], assumption)
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
 done
 
 lemma cont2cont_app:
   "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x) (t x))"
 by (blast intro: monocontlub2cont mono2mono_app cont2mono cont2contlub_app)
 
-lemmas cont2cont_app2 = cont2cont_app[OF _ allI]
-(*  [| cont ?ft; !!x. cont (?ft x); cont ?tt |] ==> *)
-(*        cont (%x. ?ft x (?tt x))                    *)
+lemmas cont2cont_app2 = cont2cont_app [rule_format]
 
+lemma cont2cont_app3: "\<lbrakk>cont f; cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. f (t x))"
+by (rule cont2cont_app2 [OF cont_const])
 
-text {* The identity function is continuous *}
+subsection {* Finite chains and flat pcpos *}
 
-lemma cont_id: "cont (\<lambda>x. x)"
-apply (rule contI)
-apply (erule thelubE)
-apply (rule refl)
+text {* monotone functions map finite chains to finite chains *}
+
+lemma monofun_finch2finch:
+  "\<lbrakk>monofun f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
+apply (unfold finite_chain_def)
+apply (simp add: ch2ch_monofun)
+apply (force simp add: max_in_chain_def)
 done
 
-text {* constant functions are continuous *}
+text {* The same holds for continuous functions *}
 
-lemma cont_const: "cont (\<lambda>x. c)"
-apply (rule contI)
-apply (rule lub_const)
-done
-
-lemma cont2cont_app3: "[|cont(f); cont(t) |] ==> cont(%x. f(t(x)))"
-by (best intro: cont2cont_app2 cont_const)
-
-text {* some properties of flat *}
-
-lemma flatdom2monofun: "f \<bottom> = \<bottom> \<Longrightarrow> monofun (f::'a::flat \<Rightarrow> 'b::pcpo)"
-apply (rule monofunI)
-apply (drule ax_flat [rule_format])
-apply auto
-done
+lemma cont_finch2finch:
+  "\<lbrakk>cont f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
+by (rule cont2mono [THEN monofun_finch2finch])
 
 lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::pcpo)"
 apply (rule monocontlub2cont)
@@ -320,7 +298,15 @@ apply (simp add: maxinch_is_thelub ch2ch_monofun)
 apply (force simp add: max_in_chain_def)
 done
 
-lemmas flatdom_strict2cont = flatdom2monofun [THEN chfindom_monofun2cont, standard]
-(* f UU = UU ==> cont (f::'a=>'b::pcpo)" *)
+text {* some properties of flat *}
+
+lemma flatdom_strict2mono: "f \<bottom> = \<bottom> \<Longrightarrow> monofun (f::'a::flat \<Rightarrow> 'b::pcpo)"
+apply (rule monofunI)
+apply (drule ax_flat [rule_format])
+apply auto
+done
+
+lemma flatdom_strict2cont: "f \<bottom> = \<bottom> \<Longrightarrow> cont (f::'a::flat \<Rightarrow> 'b::pcpo)"
+by (rule flatdom_strict2mono [THEN chfindom_monofun2cont])
 
 end
