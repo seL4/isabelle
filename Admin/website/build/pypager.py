@@ -160,6 +160,7 @@ class Functions:
            where prefix denotes the base root url of the mirror location
            and title the visible description"""
 
+        title = title.replace(u" ", unichr(160))
         thisloc = self._pc.relLocOfThis()
         if thisloc.startswith(stripprefix):
             thisloc = thisloc[len(stripprefix):]

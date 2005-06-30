@@ -114,7 +114,7 @@ body.dist div#content {
 
 /* mirror switch layout */
 div.mirrorlist {
-    margin: 10pt;
+    margin: 5pt 0pt 10pt 10pt;
     padding: 0pt;
     position: relative;
     float: right;
@@ -137,11 +137,11 @@ div.mirrorlist p {
 
 div.mirrorlist ul {
     margin: 1pt 1pt 1pt 1em;
-    margin-left: 1em;
     padding: 0pt;
 }
 
 div.mirrorlist ul li {
     font-size: 8pt;
     font-style: italics;
+    padding: 0pt 12pt 0pt 0pt;
 }
