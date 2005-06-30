@@ -10,28 +10,23 @@
 
 . ~/.bashrc
 
-## settings
-MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de haftmann@in.tum.de berghofe@in.tum.de lp15@cam.ac.uk makarius@sketis.net"
+## global settings
+. ~/admin/isatest-settings
 
 DOCDIR=$HOME/Doc
-DISTPREFIX=~/tmp/isadist
 
 MAXTIME=1800
 
 ISABELLE_DEVEL=$DISTPREFIX/Isabelle
 DATE=$(date "+%Y-%m-%d")
 
-LOG=~/log/isatest-doc-$DATE.log
-MASTERLOG=~/log/isatest.log
+LOG=$LOGPREFIX/isatest-doc-$DATE.log
 
 SHORT=sun-poly
 SETTINGS=~/settings/$SHORT
 
 ISATOOL=$ISABELLE_DEVEL/bin/isatool
     
-ERRORDIR=$HOME/var
-ERRORLOG=$ERRORDIR/error.log
-RUNNING=$HOME/var/running
 
 MAIL=~/afp/release/admin/mail-attach
 
