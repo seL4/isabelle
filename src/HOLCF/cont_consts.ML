@@ -27,12 +27,6 @@ fun upd_first  f (x,y,z) = (f x,   y,   z);
 fun upd_second f (x,y,z) = (  x, f y,   z);
 fun upd_third  f (x,y,z) = (  x,   y, f z);
 
-fun filter2 (pred: 'a->bool) : 'a list -> 'a list * 'a list =
-  let fun filt []      = ([],[])
-        | filt (x::xs) = let val (ys,zs) = filt xs in
-                         if pred x then (x::ys,zs) else (ys,x::zs) end
-  in filt end;
-
 fun change_arrow 0 T               = T
 |   change_arrow n (Type(_,[S,T])) = Type ("fun",[S,change_arrow (n-1) T])
 |   change_arrow _ _               = sys_error "cont_consts: change_arrow";
@@ -87,7 +81,7 @@ fun is_contconst (_,_,NoSyn   ) = false
 fun gen_add_consts prep_typ raw_decls thy =
   let
     val decls = map (upd_second (Thm.typ_of o prep_typ (Theory.sign_of thy))) raw_decls;
-    val (contconst_decls, normal_decls) = filter2 is_contconst decls;
+    val (contconst_decls, normal_decls) = List.partition is_contconst decls;
     val transformed_decls = map transform contconst_decls;
   in
     thy
