@@ -15,14 +15,10 @@ subsection {* Definitions *}
 
 constdefs
   adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool"
-  "adm P \<equiv> \<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (lub (range Y))"
-
-subsection {* Admissibility and fixed point induction *}
-
-text {* access to definitions *}
+  "adm P \<equiv> \<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (\<Squnion>i. Y i)"
 
 lemma admI:
-   "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (lub (range Y))) \<Longrightarrow> adm P"
+   "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
 apply (unfold adm_def)
 apply blast
 done
@@ -32,43 +28,42 @@ apply (rule admI)
 apply (erule spec)
 done
 
-lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
+lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
 apply (unfold adm_def)
 apply blast
 done
 
+text {* improved admissibility introduction *}
+
+lemma admI2:
+  "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> 
+    \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
+apply (rule admI)
+apply (erule (1) increasing_chain_adm_lemma)
+apply fast
+done
+
+subsection {* Admissibility on chain-finite types *}
+
 text {* for chain-finite (easy) types every formula is admissible *}
 
 lemma adm_max_in_chain: 
-  "\<forall>Y. chain (Y::nat=>'a) \<longrightarrow> (\<exists>n. max_in_chain n Y) \<Longrightarrow> adm (P::'a=>bool)"
+  "\<forall>Y. chain (Y::nat \<Rightarrow> 'a) \<longrightarrow> (\<exists>n. max_in_chain n Y)
+    \<Longrightarrow> adm (P::'a \<Rightarrow> bool)"
 apply (unfold adm_def)
 apply (intro strip)
 apply (drule spec)
 apply (drule mp)
 apply assumption
 apply (erule exE)
-apply (subst lub_finch1 [THEN thelubI])
-apply assumption
-apply assumption
-apply (erule spec)
+apply (simp add: maxinch_is_thelub)
 done
 
 lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
 
-text {* improved admissibility introduction *}
+subsection {* Admissibility of special formulae and propagation *}
 
-lemma admI2:
-  "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> 
-    \<Longrightarrow> P (lub (range Y))) \<Longrightarrow> adm P"
-apply (rule admI)
-apply (erule increasing_chain_adm_lemma)
-apply assumption
-apply fast
-done
-
-text {* admissibility of special formulae and propagation *}
-
-lemma adm_less [simp]: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
+lemma adm_less: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
 apply (simp add: cont2contlub [THEN contlubE])
 apply (rule lub_mono)
@@ -96,14 +91,13 @@ done
 lemma adm_all: "\<forall>y. adm (P y) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
 by (fast intro: admI elim: admD)
 
-lemmas adm_all2 = allI [THEN adm_all, standard]
+lemmas adm_all2 = adm_all [rule_format]
 
 lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
 apply (simp add: cont2contlub [THEN contlubE])
 apply (erule admD)
-apply (erule cont2mono [THEN ch2ch_monofun])
-apply assumption
+apply (erule (1) cont2mono [THEN ch2ch_monofun])
 apply assumption
 done
 
@@ -114,7 +108,7 @@ lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x = \<bott
 by (simp add: eq_UU_iff adm_not_less)
 
 lemma adm_eq: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
-by (simp add: po_eq_conv adm_conj)
+by (simp add: po_eq_conv adm_conj adm_less)
 
 text {* admissibility for disjunction is hard to prove. It takes 7 Lemmas *}
 
@@ -131,46 +125,41 @@ apply (rule le_maxI2)
 done
 
 lemma adm_disj_lemma2:
-  "\<lbrakk>adm P; \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> 
-    lub (range Y) = lub (range X)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
+  "\<lbrakk>adm P; \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> (\<Squnion>i. Y i) = (\<Squnion>i. X i)\<rbrakk>
+    \<Longrightarrow> P (\<Squnion>i. Y i)"
 by (force elim: admD)
 
 lemma adm_disj_lemma3: 
-  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow>
-    chain (\<lambda>m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
+  "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk>
+    \<Longrightarrow> chain (\<lambda>m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
 apply (rule chainI)
 apply (erule chain_mono3)
 apply (rule Least_le)
+apply (drule_tac x="Suc i" in spec)
 apply (rule conjI)
 apply (rule Suc_leD)
-apply (erule allE)
-apply (erule exE)
-apply (erule LeastI [THEN conjunct1])
-apply (erule allE)
-apply (erule exE)
-apply (erule LeastI [THEN conjunct2])
+apply (erule LeastI_ex [THEN conjunct1])
+apply (erule LeastI_ex [THEN conjunct2])
 done
 
 lemma adm_disj_lemma4: 
   "\<lbrakk>\<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> \<forall>m. P (Y (LEAST j::nat. m \<le> j \<and> P (Y j)))"
 apply (rule allI)
-apply (erule allE)
-apply (erule exE)
-apply (erule LeastI [THEN conjunct2])
+apply (drule_tac x=m in spec)
+apply (erule LeastI_ex [THEN conjunct2])
 done
 
 lemma adm_disj_lemma5: 
-  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j)\<rbrakk> \<Longrightarrow> 
-    lub (range Y) = (LUB m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
+  "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> 
+    (\<Squnion>m. Y m) = (\<Squnion>m. Y (LEAST j. m \<le> j \<and> P (Y j)))"
  apply (rule antisym_less)
   apply (rule lub_mono)
     apply assumption
    apply (erule (1) adm_disj_lemma3)
   apply (rule allI)
   apply (erule chain_mono3)
-  apply (erule allE)
-  apply (erule exE)
-  apply (erule LeastI [THEN conjunct1])
+  apply (drule_tac x=k in spec)
+  apply (erule LeastI_ex [THEN conjunct1])
  apply (rule lub_mono3)
    apply (erule (1) adm_disj_lemma3)
   apply assumption
@@ -180,19 +169,19 @@ lemma adm_disj_lemma5:
 done
 
 lemma adm_disj_lemma6:
-  "\<lbrakk>chain (Y::nat=>'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j)\<rbrakk> \<Longrightarrow>
-    \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> lub (range Y) = lub (range X)"
+  "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P(Y j)\<rbrakk> \<Longrightarrow>
+    \<exists>X. chain X \<and> (\<forall>n. P (X n)) \<and> (\<Squnion>i. Y i) = (\<Squnion>i. X i)"
 apply (rule_tac x = "\<lambda>m. Y (LEAST j. m \<le> j \<and> P (Y j))" in exI)
 apply (fast intro!: adm_disj_lemma3 adm_disj_lemma4 adm_disj_lemma5)
 done
 
 lemma adm_disj_lemma7:
-  "\<lbrakk>adm P; chain Y; \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> P (lub (range Y))"
+  "\<lbrakk>adm P; chain Y; \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
 apply (erule adm_disj_lemma2)
 apply (erule (1) adm_disj_lemma6)
 done
 
-lemma adm_disj: "[| adm P; adm Q |] ==> adm(%x. P x | Q x)"
+lemma adm_disj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<or> Q x)"
 apply (rule admI)
 apply (erule adm_disj_lemma1 [THEN disjE])
 apply (rule disjI1)
@@ -214,7 +203,7 @@ lemma adm_not_conj:
 by (subst de_Morgan_conj, rule adm_disj)
 
 lemmas adm_lemmas =
-  adm_conj adm_not_free adm_imp adm_disj adm_eq adm_not_UU
+  adm_less adm_conj adm_not_free adm_imp adm_disj adm_eq adm_not_UU
   adm_UU_not_less adm_all2 adm_not_less adm_not_conj adm_iff
 
 declare adm_lemmas [simp]
