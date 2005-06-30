@@ -183,11 +183,9 @@ locale E = fixes e defines e_def: "e(x) == x & x"
 
 lemma (in E) True thm e_def by fast
 
-interpretation p7: E ["(%x. x)"] by simp
+interpretation p7: E ["%x. x"] by simp
 
-(* TODO: goal mustn't be beta-reduced here, is doesn't match meta-hyp *)
-
-thm p7.e_def2
+thm p7.e_def2 (* has no premise *)
 
 locale E' = fixes e defines e_def: "e == (%x. x & x)"
   notes e_def2 = e_def

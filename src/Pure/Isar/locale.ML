@@ -20,8 +20,8 @@ See also:
 
 (* TODO:
 - beta-eta normalisation of interpretation parameters
-- no beta reduction of interpretation witnesses
 - dangling type frees in locales
+- test subsumption of interpretations when merging theories
 *)
 
 signature LOCALE =
@@ -137,7 +137,7 @@ type locale =
     *)
   import: expr,                                       (*dynamic import*)
   elems: (element_i * stamp) list,                    (*static content*)
-  params: ((string * typ option) * mixfix option) list * string list}
+  params: ((string * typ) * mixfix option) list * string list}
                                                       (*all/local params*)
 
 
@@ -149,6 +149,9 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 
 
 (** term and type instantiation, using symbol tables **)
+(** functions for term instantiation beta-reduce the result
+    unless the instantiation table is empty (inst_tab_term)
+    or the instantiation has no effect (inst_tab_thm) **)
 
 (* instantiate TFrees *)
 
@@ -196,7 +199,7 @@ fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
             | instf (b as Bound _) = b
             | instf (Abs (x, T, t)) = Abs (x, tinst_tab_type tinst T, instf t)
             | instf (s $ t) = instf s $ instf t
-        in instf end;
+        in Envir.beta_norm o instf end;
 
 fun inst_tab_thm thy (inst, tinst) thm = if Symtab.is_empty inst
       then tinst_tab_thm thy tinst thm
@@ -226,6 +229,7 @@ fun inst_tab_thm thy (inst, tinst) thm = if Symtab.is_empty inst
                   []))
             |> Drule.forall_intr_list (map (cert o #1) inst')
             |> Drule.forall_elim_list (map (cert o #2) inst') 
+            |> Drule.fconv_rule (Thm.beta_conversion true)
             |> (fn th => Drule.implies_elim_list th
                  (map (Thm.assume o cert o inst_tab_term (inst, tinst)) hyps))
         end;
@@ -260,7 +264,7 @@ struct
           | ut (s $ t) ts = ut s (t::ts)
     in ut t [] end;
 
-  (* joining of registrations: prefix and attributs of left theory,
+  (* joining of registrations: prefix and attributes of left theory,
      thms are equal, no attempt to subsumption testing *)
   fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => SOME reg) (r1, r2);
 
@@ -914,7 +918,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     fun eval syn ((name, xs), axs) =
       let
         val {params = (ps, qs), elems, ...} = the_locale thy name;
-        val ps' = map #1 ps;
+        val ps' = map (apsnd SOME o #1) ps;
         val ren = map #1 ps' ~~
               map (fn x => (x, valOf (Symtab.lookup (syn, x)))) xs;
         val (params', elems') =
@@ -1439,7 +1443,7 @@ fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
       | SOME name =>
           let val {predicate = (stmt, _), params = (ps, _), ...} =
             the_locale thy name
-          in (stmt, param_types (map fst ps), Locale name) end);
+          in (stmt, map fst ps, Locale name) end);
     val ((((locale_ctxt, locale_elemss), (elems_ctxt, _, _)), _), (elems_stmt, concl')) =
       prep_ctxt false fixed_params import elems concl ctxt;
   in (locale, (target_stmt, elems_stmt), locale_ctxt, elems_ctxt, concl') end;
@@ -1570,9 +1574,9 @@ end;
 
 fun note_thmss_registrations kind target args thy =
   let
-    val (parms, parmTs_o) =
+    val (parms, parmTs) =
           the_locale thy target |> #params |> fst |> map fst |> split_list;
-    val parmvTs = map (Type.varifyT o valOf) parmTs_o;
+    val parmvTs = map Type.varifyT parmTs;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
       (([], Symtab.empty), Expr (Locale target)) |> fst |> fst |> map fst;
 
@@ -1834,7 +1838,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) (List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))),
         params = (params_of elemss' |>
-          map (fn (x, T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss))}
+          map (fn (x, SOME T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss))}
   end;
 
 in
