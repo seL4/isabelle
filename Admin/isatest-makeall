@@ -67,7 +67,7 @@ case $HOSTNAME in
         ;;
 
     macbroy5)
-        MFLAGS="-j 2"
+        MFLAGS="" # -j 2 does not work on poly/macos 10.4.1
         NICE=""
         ;;
 
