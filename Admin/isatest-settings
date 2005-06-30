@@ -11,7 +11,7 @@
 HOME=/usr/stud/isatest
 
 ## send email on failure to
-MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de makarius@sketis.net haftmann@in.tum.de"
+MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk skalberg@in.tum.de makarius@sketis.net haftmann@in.tum.de"
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
