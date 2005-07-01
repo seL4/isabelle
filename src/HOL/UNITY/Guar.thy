@@ -431,7 +431,7 @@ lemma wx_subset: "(wx X)<=X"
 by (unfold wx_def, auto)
 
 lemma wx_ex_prop: "ex_prop (wx X)"
-apply (simp add: wx_def ex_prop_equiv, safe, blast)
+apply (simp add: wx_def ex_prop_equiv cong: bex_cong, safe, blast)
 apply force 
 done
 
