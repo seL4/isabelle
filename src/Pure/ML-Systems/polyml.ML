@@ -8,9 +8,6 @@ Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 
 (** ML system and platform related **)
 
-PolyML.Compiler.printInAlphabeticalOrder := false;
-
-
 (* cygwin *)
 
 val cygwin_platform =
@@ -148,6 +145,10 @@ end;
 
 (** OS related **)
 
+unless_cygwin
+  use "ML-Systems/polyml-posix.ML";
+
+
 (* system command execution *)
 
 (*execute Unix command which doesn't take any input from stdin and
@@ -177,14 +178,19 @@ fun getenv var =
   | SOME txt => txt);
 
 
-(* profiling: version that works even with
-ML{*profiling 1*}
-apply \\<dots>
-ML{*profiling 0*}
-*)
+(* profile execution *)
 
-val profiling: int->unit =
-     RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler;
+local
 
-unless_cygwin
-  use "ML-Systems/polyml-posix.ML";
+fun no_profile () =
+  RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
+
+in
+
+fun profile 0 f x = f x
+  | profile n f x =
+     (RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler n;
+      let val y = f x handle exn => (no_profile (); raise exn)
+      in no_profile (); y end);
+
+end;
