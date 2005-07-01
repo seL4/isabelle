@@ -239,8 +239,7 @@ by (blast intro: chain_UU_I_inverse)
 lemma notUU_I: "\<lbrakk>x \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> y \<noteq> \<bottom>"
 by (blast intro: UU_I)
 
-lemma chain_mono2: 
- "\<lbrakk>\<exists>j::nat. Y j \<noteq> \<bottom>; chain Y\<rbrakk> \<Longrightarrow> \<exists>j. \<forall>i>j. Y i \<noteq> \<bottom>"
+lemma chain_mono2: "\<lbrakk>\<exists>j. Y j \<noteq> \<bottom>; chain Y\<rbrakk> \<Longrightarrow> \<exists>j. \<forall>i>j. Y i \<noteq> \<bottom>"
 by (blast dest: notUU_I chain_mono)
 
 subsection {* Chain-finite and flat cpos *}
@@ -286,7 +285,7 @@ done
 instance flat < chfin
 by intro_classes (rule flat_imp_chfin)
 
-text {* flat subclass of chfin @{text "-->"} @{text adm_flat} not needed *}
+text {* flat subclass of chfin; @{text adm_flat} not needed *}
 
 lemma flat_eq: "(a::'a::flat) \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = b)"
 by (safe dest!: ax_flat [rule_format])
