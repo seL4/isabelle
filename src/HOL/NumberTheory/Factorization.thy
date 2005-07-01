@@ -19,7 +19,7 @@ consts
   sort :: "nat list => nat list"
 
 defs
-  primel_def: "primel xs == set xs \<subseteq> prime"
+  primel_def: "primel xs == \<forall>p \<in> set xs. prime p"
 
 primrec
   "nondec [] = True"
@@ -83,12 +83,12 @@ lemma primel_append: "primel (xs @ ys) = (primel xs \<and> primel ys)"
   apply auto
   done
 
-lemma prime_primel: "n \<in> prime ==> primel [n] \<and> prod [n] = n"
+lemma prime_primel: "prime n ==> primel [n] \<and> prod [n] = n"
   apply (unfold primel_def)
   apply auto
   done
 
-lemma prime_nd_one: "p \<in> prime ==> \<not> p dvd Suc 0"
+lemma prime_nd_one: "prime p ==> \<not> p dvd Suc 0"
   apply (unfold prime_def dvd_def)
   apply auto
   done
@@ -105,12 +105,12 @@ lemma primel_tl: "primel (x # xs) ==> primel xs"
   apply auto
   done
 
-lemma primel_hd_tl: "(primel (x # xs)) = (x \<in> prime \<and> primel xs)"
+lemma primel_hd_tl: "(primel (x # xs)) = (prime x \<and> primel xs)"
   apply (unfold primel_def)
   apply auto
   done
 
-lemma primes_eq: "p \<in> prime ==> q \<in> prime ==> p dvd q ==> p = q"
+lemma primes_eq: "prime p ==> prime q ==> p dvd q ==> p = q"
   apply (unfold prime_def)
   apply auto
   done
@@ -121,12 +121,12 @@ lemma primel_one_empty: "primel xs ==> prod xs = Suc 0 ==> xs = []"
    apply simp_all
   done
 
-lemma prime_g_one: "p \<in> prime ==> Suc 0 < p"
+lemma prime_g_one: "prime p ==> Suc 0 < p"
   apply (unfold prime_def)
   apply auto
   done
 
-lemma prime_g_zero: "p \<in> prime ==> 0 < p"
+lemma prime_g_zero: "prime p ==> 0 < p"
   apply (unfold prime_def)
   apply auto
   done
@@ -186,7 +186,11 @@ subsection {* Permutation *}
 lemma perm_primel [rule_format]: "xs <~~> ys ==> primel xs --> primel ys"
   apply (unfold primel_def)
   apply (erule perm.induct)
-     apply simp_all
+     apply simp
+    apply simp
+   apply (simp (no_asm))
+   apply blast
+  apply blast
   done
 
 lemma perm_prod [rule_format]: "xs <~~> ys ==> prod xs = prod ys"
@@ -223,7 +227,7 @@ lemma ex_nondec_lemma:
   done
 
 lemma not_prime_ex_mk:
-  "Suc 0 < n \<and> n \<notin> prime ==>
+  "Suc 0 < n \<and> \<not> prime n ==>
     \<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
   apply (unfold prime_def dvd_def)
   apply (auto intro: n_less_m_mult_n n_less_n_mult_m one_less_m one_less_k)
@@ -240,7 +244,7 @@ lemma split_primel:
 lemma factor_exists [rule_format]: "Suc 0 < n --> (\<exists>l. primel l \<and> prod l = n)"
   apply (induct n rule: nat_less_induct)
   apply (rule impI)
-  apply (case_tac "n \<in> prime")
+  apply (case_tac "prime n")
    apply (rule exI)
    apply (erule prime_primel)
   apply (cut_tac n = n in not_prime_ex_mk)
@@ -256,7 +260,7 @@ lemma nondec_factor_exists: "Suc 0 < n ==> \<exists>l. primel l \<and> nondec l 
 subsection {* Uniqueness *}
 
 lemma prime_dvd_mult_list [rule_format]:
-    "p \<in> prime ==> p dvd (prod xs) --> (\<exists>m. m:set xs \<and> p dvd m)"
+    "prime p ==> p dvd (prod xs) --> (\<exists>m. m:set xs \<and> p dvd m)"
   apply (induct xs)
    apply (force simp add: prime_def)
    apply (force dest: prime_dvd_mult)
@@ -300,7 +304,7 @@ lemma primel_prod_less:
   done
 
 lemma prod_one_empty:
-    "primel xs ==> p * prod xs = p ==> p \<in> prime ==> xs = []"
+    "primel xs ==> p * prod xs = p ==> prime p ==> xs = []"
   apply (auto intro: primel_one_empty simp add: prime_def)
   done
 

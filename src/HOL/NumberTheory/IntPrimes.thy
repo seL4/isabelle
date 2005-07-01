@@ -40,8 +40,8 @@ constdefs
   zgcd :: "int * int => int"
   "zgcd == \<lambda>(x,y). int (gcd (nat (abs x), nat (abs y)))"
 
-  zprime :: "int set"
-  "zprime == {p. 1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p)}"
+  zprime :: "int \<Rightarrow> bool"
+  "zprime p == 1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p)"
 
   xzgcd :: "int => int => int * int * int"
   "xzgcd m n == xzgcda (m, n, m, n, 1, 0, 0, 1)"
@@ -159,14 +159,14 @@ lemma zgcd_geq_zero: "0 <= zgcd(x,y)"
 
 text{*This is merely a sanity check on zprime, since the previous version
       denoted the empty set.*}
-lemma "2 \<in> zprime"
+lemma "zprime 2"
   apply (auto simp add: zprime_def) 
   apply (frule zdvd_imp_le, simp) 
   apply (auto simp add: order_le_less dvd_def) 
   done
 
 lemma zprime_imp_zrelprime:
-    "p \<in> zprime ==> \<not> p dvd n ==> zgcd (n, p) = 1"
+    "zprime p ==> \<not> p dvd n ==> zgcd (n, p) = 1"
   apply (auto simp add: zprime_def)
   apply (drule_tac x = "zgcd(n, p)" in allE)
   apply (auto simp add: zgcd_zdvd2 [of n p] zgcd_geq_zero)
@@ -174,13 +174,13 @@ lemma zprime_imp_zrelprime:
   done
 
 lemma zless_zprime_imp_zrelprime:
-    "p \<in> zprime ==> 0 < n ==> n < p ==> zgcd (n, p) = 1"
+    "zprime p ==> 0 < n ==> n < p ==> zgcd (n, p) = 1"
   apply (erule zprime_imp_zrelprime)
   apply (erule zdvd_not_zless, assumption)
   done
 
 lemma zprime_zdvd_zmult:
-    "0 \<le> (m::int) ==> p \<in> zprime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
+    "0 \<le> (m::int) ==> zprime p ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   apply safe
   apply (rule zrelprime_zdvd_zmult)
    apply (rule zprime_imp_zrelprime, auto)
@@ -282,7 +282,7 @@ lemma zcong_zmult_self: "[a * m = b * m] (mod m)"
   done
 
 lemma zcong_square:
-   "[|p \<in> zprime;  0 < a;  [a * a = 1] (mod p)|]
+   "[| zprime p;  0 < a;  [a * a = 1] (mod p)|]
     ==> [a = 1] (mod p) \<or> [a = p - 1] (mod p)"
   apply (unfold zcong_def)
   apply (rule zprime_zdvd_zmult)
@@ -346,7 +346,7 @@ lemma zcong_zless_imp_eq:
   done
 
 lemma zcong_square_zless:
-  "p \<in> zprime ==> 0 < a ==> a < p ==>
+  "zprime p ==> 0 < a ==> a < p ==>
     [a * a = 1] (mod p) ==> a = 1 \<or> a = p - 1"
   apply (cut_tac p = p and a = a in zcong_square)
      apply (simp add: zprime_def)

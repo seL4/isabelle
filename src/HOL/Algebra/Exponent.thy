@@ -11,15 +11,15 @@ theory Exponent imports Main Primes begin
 
 constdefs
   exponent      :: "[nat, nat] => nat"
-  "exponent p s == if p \<in> prime then (GREATEST r. p^r dvd s) else 0"
+  "exponent p s == if prime p then (GREATEST r. p^r dvd s) else 0"
 
 subsection{*Prime Theorems*}
 
-lemma prime_imp_one_less: "p \<in> prime ==> Suc 0 < p"
+lemma prime_imp_one_less: "prime p ==> Suc 0 < p"
 by (unfold prime_def, force)
 
 lemma prime_iff:
-     "(p \<in> prime) = (Suc 0 < p & (\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))"
+     "(prime p) = (Suc 0 < p & (\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))"
 apply (auto simp add: prime_imp_one_less)
 apply (blast dest!: prime_dvd_mult)
 apply (auto simp add: prime_def)
@@ -30,7 +30,7 @@ apply (drule_tac x = k in spec)
 apply (simp add: dvd_mult_cancel1 dvd_mult_cancel2, auto)
 done
 
-lemma zero_less_prime_power: "p \<in> prime ==> 0 < p^a"
+lemma zero_less_prime_power: "prime p ==> 0 < p^a"
 by (force simp add: prime_iff)
 
 
@@ -39,7 +39,7 @@ by (rule ccontr, simp)
 
 
 lemma prime_dvd_cases:
-     "[| p*k dvd m*n;  p \<in> prime |]  
+     "[| p*k dvd m*n;  prime p |]  
       ==> (\<exists>x. k dvd x*n & m = p*x) | (\<exists>y. k dvd m*y & n = p*y)"
 apply (simp add: prime_iff)
 apply (frule dvd_mult_left)
@@ -56,7 +56,7 @@ apply (simp_all add: mult_ac)
 done
 
 
-lemma prime_power_dvd_cases [rule_format (no_asm)]: "p \<in> prime  
+lemma prime_power_dvd_cases [rule_format (no_asm)]: "prime p
       ==> \<forall>m n. p^c dvd m*n -->  
           (\<forall>a b. a+b = Suc c --> p^a dvd m | p^b dvd n)"
 apply (induct_tac "c")
@@ -89,7 +89,7 @@ done
 
 (*needed in this form in Sylow.ML*)
 lemma div_combine:
-     "[| p \<in> prime; ~ (p ^ (Suc r) dvd n);  p^(a+r) dvd n*k |]  
+     "[| prime p; ~ (p ^ (Suc r) dvd n);  p^(a+r) dvd n*k |]  
       ==> p ^ a dvd k"
 by (drule_tac a = "Suc r" and b = a in prime_power_dvd_cases, assumption, auto)
 
@@ -117,7 +117,7 @@ done
 subsection{*Exponent Theorems*}
 
 lemma exponent_ge [rule_format]:
-     "[|p^k dvd n;  p \<in> prime;  0<n|] ==> k <= exponent p n"
+     "[|p^k dvd n;  prime p;  0<n|] ==> k <= exponent p n"
 apply (simp add: exponent_def)
 apply (erule Greatest_le)
 apply (blast dest: prime_imp_one_less power_dvd_bound)
@@ -131,14 +131,14 @@ prefer 2 apply (blast dest: prime_imp_one_less power_dvd_bound, simp)
 done
 
 lemma power_Suc_exponent_Not_dvd:
-     "[|(p * p ^ exponent p s) dvd s;  p \<in> prime |] ==> s=0"
+     "[|(p * p ^ exponent p s) dvd s;  prime p |] ==> s=0"
 apply (subgoal_tac "p ^ Suc (exponent p s) dvd s")
  prefer 2 apply simp 
 apply (rule ccontr)
 apply (drule exponent_ge, auto)
 done
 
-lemma exponent_power_eq [simp]: "p \<in> prime ==> exponent p (p^a) = a"
+lemma exponent_power_eq [simp]: "prime p ==> exponent p (p^a) = a"
 apply (simp (no_asm_simp) add: exponent_def)
 apply (rule Greatest_equality, simp)
 apply (simp (no_asm_simp) add: prime_imp_one_less power_dvd_imp_le)
@@ -148,7 +148,7 @@ lemma exponent_equalityI:
      "!r::nat. (p^r dvd a) = (p^r dvd b) ==> exponent p a = exponent p b"
 by (simp (no_asm_simp) add: exponent_def)
 
-lemma exponent_eq_0 [simp]: "p \<notin> prime ==> exponent p s = 0"
+lemma exponent_eq_0 [simp]: "\<not> prime p ==> exponent p s = 0"
 by (simp (no_asm_simp) add: exponent_def)
 
 
@@ -156,7 +156,7 @@ by (simp (no_asm_simp) add: exponent_def)
 lemma exponent_mult_add1:
      "[| 0 < a; 0 < b |]   
       ==> (exponent p a) + (exponent p b) <= exponent p (a * b)"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
 apply (rule exponent_ge)
 apply (auto simp add: power_add)
 apply (blast intro: prime_imp_one_less power_exponent_dvd mult_dvd_mono)
@@ -165,7 +165,7 @@ done
 (* exponent_mult_add, opposite inclusion *)
 lemma exponent_mult_add2: "[| 0 < a; 0 < b |]  
       ==> exponent p (a * b) <= (exponent p a) + (exponent p b)"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
 apply (rule leI, clarify)
 apply (cut_tac p = p and s = "a*b" in power_exponent_dvd, auto)
 apply (subgoal_tac "p ^ (Suc (exponent p a + exponent p b)) dvd a * b")
@@ -191,7 +191,7 @@ apply (auto dest: dvd_mult_left)
 done
 
 lemma exponent_1_eq_0 [simp]: "exponent p (Suc 0) = 0"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
 apply (auto simp add: prime_iff not_divides_exponent_0)
 done
 
@@ -258,7 +258,7 @@ lemmas bad_Sucs = binomial_Suc_Suc mult_Suc mult_Suc_right
 lemma p_not_div_choose_lemma [rule_format]:
      "[| \<forall>i. Suc i < K --> exponent p (Suc i) = exponent p (Suc(j+i))|]  
       ==> k<K --> exponent p ((j+k) choose k) = 0"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
  prefer 2 apply simp 
 apply (induct_tac "k")
 apply (simp (no_asm))
@@ -293,7 +293,7 @@ done
 
 lemma const_p_fac_right:
      "0 < m ==> exponent p ((p^a * m - Suc 0) choose (p^a - Suc 0)) = 0"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
  prefer 2 apply simp 
 apply (frule_tac a = a in zero_less_prime_power)
 apply (rule_tac K = "p^a" in p_not_div_choose)
@@ -311,7 +311,7 @@ done
 
 lemma const_p_fac:
      "0 < m ==> exponent p (((p^a) * m) choose p^a) = exponent p m"
-apply (case_tac "p \<in> prime")
+apply (case_tac "prime p")
  prefer 2 apply simp 
 apply (subgoal_tac "0 < p^a * m & p^a <= p^a * m")
  prefer 2 apply (force simp add: prime_iff)

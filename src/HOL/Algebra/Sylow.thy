@@ -15,7 +15,7 @@ text{*The combinatorial argument is in theory Exponent*}
 
 locale sylow = group +
   fixes p and a and m and calM and RelM
-  assumes prime_p:   "p \<in> prime"
+  assumes prime_p:   "prime p"
       and order_G:   "order(G) = (p^a) * m"
       and finite_G [iff]:  "finite (carrier G)"
   defines "calM == {s. s \<subseteq> carrier(G) & card(s) = p^a}"
@@ -363,7 +363,7 @@ lemma sylow_eq: "sylow G p a m = (group G & sylow_axioms G p a m)"
 by (simp add: sylow_def group_def)
 
 theorem sylow_thm:
-     "[|p \<in> prime;  group(G);  order(G) = (p^a) * m; finite (carrier G)|]
+     "[| prime p;  group(G);  order(G) = (p^a) * m; finite (carrier G)|]
       ==> \<exists>H. subgroup H G & card(H) = p^a"
 apply (rule sylow.sylow_thm [of G p a m])
 apply (simp add: sylow_eq sylow_axioms_def)

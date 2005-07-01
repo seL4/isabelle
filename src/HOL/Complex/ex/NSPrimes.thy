@@ -22,7 +22,7 @@ constdefs
 
 constdefs
   starprime :: "hypnat set"
-  "starprime == ( *sNat* prime)"
+  "starprime == ( *sNat* {p. prime p})"
 
 constdefs
   choicefun :: "'a set => 'a"
@@ -149,7 +149,7 @@ apply (drule UF_choice, auto)
 apply (drule_tac x = f in spec, auto, ultra+)
 done
 
-lemma prime_two:  "2 : prime"
+lemma prime_two:  "prime 2"
 apply (unfold prime_def, auto)
 apply (frule dvd_imp_le)
 apply (auto dest: dvd_0_left)
@@ -158,13 +158,13 @@ done
 declare prime_two [simp]
 
 (* proof uses course-of-value induction *)
-lemma prime_factor_exists [rule_format]: "Suc 0 < n --> (\<exists>k \<in> prime. k dvd n)"
+lemma prime_factor_exists [rule_format]: "Suc 0 < n --> (\<exists>k. prime k & k dvd n)"
 apply (rule_tac n = n in nat_less_induct, auto)
-apply (case_tac "n \<in> prime")
-apply (rule_tac x = n in bexI, auto)
+apply (case_tac "prime n")
+apply (rule_tac x = n in exI, auto)
 apply (drule conjI [THEN not_prime_ex_mk], auto)
 apply (drule_tac x = m in spec, auto)
-apply (rule_tac x = ka in bexI)
+apply (rule_tac x = ka in exI)
 apply (auto intro: dvd_mult2)
 done
 
@@ -173,7 +173,7 @@ lemma hyperprime_factor_exists [rule_format]: "1 < n ==> (\<exists>k \<in> starp
 apply (rule_tac z = n in eq_Abs_hypnat)
 apply (auto simp add: hypnat_one_def hypnat_less starprime_def
     lemma_hypnat_P_EX lemma_hypnat_P_ALL hdvd starsetNat_def Ball_def UF_if)
-apply (rule_tac x = "%n. @y. y \<in> prime & y dvd x n" in exI, auto, ultra)
+apply (rule_tac x = "%n. @y. prime y & y dvd x n" in exI, auto, ultra)
 apply (drule sym, simp (no_asm_simp))
  prefer 2 apply ultra
 apply (rule_tac [!] someI2_ex)
@@ -372,7 +372,7 @@ apply (rule_tac z = N in eq_Abs_hypnat)
 apply (auto simp add: hypnat_less hypnat_add)
 done
 
-lemma zero_not_prime: "0 \<notin> prime"
+lemma zero_not_prime: "\<not> prime 0"
 apply safe
 apply (drule prime_g_zero, auto)
 done
@@ -389,13 +389,13 @@ apply (auto intro!: bexI)
 done
 declare hypnat_zero_not_prime [simp]
 
-lemma one_not_prime: "1 \<notin> prime"
+lemma one_not_prime: "\<not> prime 1"
 apply safe
 apply (drule prime_g_one, auto)
 done
 declare one_not_prime [simp]
 
-lemma one_not_prime2: "Suc 0 \<notin> prime"
+lemma one_not_prime2: "\<not> prime(Suc 0)"
 apply safe
 apply (drule prime_g_one, auto)
 done
@@ -428,7 +428,7 @@ apply (rule_tac z = x in eq_Abs_hypnat)
 apply (auto simp add: hdvd)
 done
 
-theorem not_finite_prime: "~ finite prime"
+theorem not_finite_prime: "~ finite {p. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
 apply (cut_tac hypnat_dvd_all_hypnat_of_nat)
 apply (erule exE)
@@ -437,7 +437,7 @@ apply (subgoal_tac "1 < N + 1")
 prefer 2 apply (blast intro: hypnat_add_one_gt_one)
 apply (drule hyperprime_factor_exists)
 apply (auto intro: NatStar_mem)
-apply (subgoal_tac "k \<notin> hypnat_of_nat ` prime")
+apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def, safe)
 apply (drule_tac x = x in bspec)
 apply (rule ccontr, simp)

@@ -17,16 +17,16 @@ text {*
 
 subsection {* Preliminaries *}
 
-lemma prime_nonzero:  "p \<in> prime \<Longrightarrow> p \<noteq> 0"
+lemma prime_nonzero:  "prime p \<Longrightarrow> p \<noteq> 0"
   by (force simp add: prime_def)
 
 lemma prime_dvd_other_side:
-    "n * n = p * (k * k) \<Longrightarrow> p \<in> prime \<Longrightarrow> p dvd n"
+    "n * n = p * (k * k) \<Longrightarrow> prime p \<Longrightarrow> p dvd n"
   apply (subgoal_tac "p dvd n * n", blast dest: prime_dvd_mult)
   apply (rule_tac j = "k * k" in dvd_mult_left, simp)
   done
 
-lemma reduction: "p \<in> prime \<Longrightarrow>
+lemma reduction: "prime p \<Longrightarrow>
     0 < k \<Longrightarrow> k * k = p * (j * j) \<Longrightarrow> k < p * j \<and> 0 < j"
   apply (rule ccontr)
   apply (simp add: linorder_not_less)
@@ -40,7 +40,7 @@ lemma rearrange: "(j::nat) * (p * j) = k * k \<Longrightarrow> k * k = p * (j * 
   by (simp add: mult_ac)
 
 lemma prime_not_square:
-    "p \<in> prime \<Longrightarrow> (\<And>k. 0 < k \<Longrightarrow> m * m \<noteq> p * (k * k))"
+    "prime p \<Longrightarrow> (\<And>k. 0 < k \<Longrightarrow> m * m \<noteq> p * (k * k))"
   apply (induct m rule: nat_less_induct)
   apply clarify
   apply (frule prime_dvd_other_side, assumption)
@@ -65,7 +65,7 @@ text {*
 *}
 
 theorem prime_sqrt_irrational:
-    "p \<in> prime \<Longrightarrow> x * x = real p \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<notin> \<rat>"
+    "prime p \<Longrightarrow> x * x = real p \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<notin> \<rat>"
   apply (simp add: rationals_def real_abs_def)
   apply clarify
   apply (erule_tac P = "real m / real n * ?x = ?y" in rev_mp)

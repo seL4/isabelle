@@ -144,7 +144,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p));p \<in> zprime; 2 < p;
+lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   A = {x. 0 < x & x \<le> (p - 1) div 2} |] ==> 
   (Legendre a p) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
   apply (subst GAUSS.gauss_lemma)
@@ -169,9 +169,9 @@ locale QRTEMP =
   fixes f1    :: "int => (int * int) set"
   fixes f2    :: "int => (int * int) set"
 
-  assumes p_prime: "p \<in> zprime"
+  assumes p_prime: "zprime p"
   assumes p_g_2: "2 < p"
-  assumes q_prime: "q \<in> zprime"
+  assumes q_prime: "zprime q"
   assumes q_g_2: "2 < q"
   assumes p_neq_q:      "p \<noteq> q"
 
@@ -367,10 +367,10 @@ proof -
   ultimately show ?thesis ..
 qed
 
-lemma aux2: "[| p \<in> zprime; q \<in> zprime; 2 < p; 2 < q |] ==> 
+lemma aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==> 
              (q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
 proof-
-  assume "p \<in> zprime" and "q \<in> zprime" and "2 < p" and "2 < q"
+  assume "zprime p" and "zprime q" and "2 < p" and "2 < q"
   (* Set up what's even and odd *)
   then have "p \<in> zOdd & q \<in> zOdd"
     by (auto simp add:  zprime_zOdd_eq_grt_2)
@@ -570,7 +570,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma pq_prime_neq: "[| p \<in> zprime; q \<in> zprime; p \<noteq> q |] ==> (~[p = 0] (mod q))"
+lemma pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q))"
   apply (auto simp add: zcong_eq_zdvd_prop zprime_def)
   apply (drule_tac x = q in allE)
   apply (drule_tac x = p in allE)
@@ -613,7 +613,7 @@ proof -
 qed
 
 theorem Quadratic_Reciprocity:
-     "[| p \<in> zOdd; p \<in> zprime; q \<in> zOdd; q \<in> zprime; 
+     "[| p \<in> zOdd; zprime p; q \<in> zOdd; zprime q; 
          p \<noteq> q |] 
       ==> (Legendre p q) * (Legendre q p) = 
           (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"

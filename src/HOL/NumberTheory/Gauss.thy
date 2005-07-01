@@ -17,7 +17,7 @@ locale GAUSS =
   fixes E :: "int set"
   fixes F :: "int set"
 
-  assumes p_prime: "p \<in> zprime"
+  assumes p_prime: "zprime p"
   assumes p_g_2: "2 < p"
   assumes p_a_relprime: "~[a = 0](mod p)"
   assumes a_nonzero:    "0 < a"

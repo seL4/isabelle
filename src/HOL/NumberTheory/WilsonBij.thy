@@ -23,7 +23,7 @@ constdefs
     \<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1"
   inv :: "int => int => int"
   "inv p a ==
-    if p \<in> zprime \<and> 0 < a \<and> a < p then
+    if zprime p \<and> 0 < a \<and> a < p then
       (SOME x. 0 \<le> x \<and> x < p \<and> zcong (a * x) 1 p)
     else 0"
 
@@ -31,7 +31,7 @@ constdefs
 text {* \medskip Inverse *}
 
 lemma inv_correct:
-  "p \<in> zprime ==> 0 < a ==> a < p
+  "zprime p ==> 0 < a ==> a < p
     ==> 0 \<le> inv p a \<and> inv p a < p \<and> [a * inv p a = 1] (mod p)"
   apply (unfold inv_def)
   apply (simp (no_asm_simp))
@@ -46,7 +46,7 @@ lemmas inv_less = inv_correct [THEN conjunct2, THEN conjunct1, standard]
 lemmas inv_is_inv = inv_correct [THEN conjunct2, THEN conjunct2, standard]
 
 lemma inv_not_0:
-  "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 0"
+  "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 0"
   -- {* same as @{text WilsonRuss} *}
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
@@ -61,7 +61,7 @@ lemma inv_not_0:
   done
 
 lemma inv_not_1:
-  "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 1"
+  "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 1"
   -- {* same as @{text WilsonRuss} *}
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
@@ -86,7 +86,7 @@ lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   done
 
 lemma inv_not_p_minus_1:
-  "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> p - 1"
+  "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> p - 1"
   -- {* same as @{text WilsonRuss} *}
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
@@ -102,7 +102,7 @@ text {*
   but use ``@{text correct}'' theorems.
 *}
 
-lemma inv_g_1: "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
+lemma inv_g_1: "zprime p ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
   apply (subgoal_tac "inv p a \<noteq> 1")
    apply (subgoal_tac "inv p a \<noteq> 0")
     apply (subst order_less_le)
@@ -116,7 +116,7 @@ lemma inv_g_1: "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
   done
 
 lemma inv_less_p_minus_1:
-  "p \<in> zprime ==> 1 < a ==> a < p - 1 ==> inv p a < p - 1"
+  "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a < p - 1"
   -- {* ditto *}
   apply (subst order_less_le)
   apply (simp add: inv_not_p_minus_1 inv_less)
@@ -141,7 +141,7 @@ lemma aux4: "x \<le> p - 2 ==> x < (p::int) - 1"
   apply auto
   done
 
-lemma inv_inj: "p \<in> zprime ==> inj_on (inv p) (d22set (p - 2))"
+lemma inv_inj: "zprime p ==> inj_on (inv p) (d22set (p - 2))"
   apply (unfold inj_on_def)
   apply auto
   apply (rule zcong_zless_imp_eq)
@@ -160,7 +160,7 @@ lemma inv_inj: "p \<in> zprime ==> inj_on (inv p) (d22set (p - 2))"
   done
 
 lemma inv_d22set_d22set:
-    "p \<in> zprime ==> inv p ` d22set (p - 2) = d22set (p - 2)"
+    "zprime p ==> inv p ` d22set (p - 2) = d22set (p - 2)"
   apply (rule endo_inj_surj)
     apply (rule d22set_fin)
    apply (erule_tac [2] inv_inj)
@@ -173,7 +173,7 @@ lemma inv_d22set_d22set:
   done
 
 lemma d22set_d22set_bij:
-    "p \<in> zprime ==> (d22set (p - 2), d22set (p - 2)) \<in> bijR (reciR p)"
+    "zprime p ==> (d22set (p - 2), d22set (p - 2)) \<in> bijR (reciR p)"
   apply (unfold reciR_def)
   apply (rule_tac s = "(d22set (p - 2), inv p ` d22set (p - 2))" in subst)
    apply (simp add: inv_d22set_d22set)
@@ -187,14 +187,14 @@ lemma d22set_d22set_bij:
          apply (auto intro: d22set_g_1 d22set_le aux2 aux3 aux4)
   done
 
-lemma reciP_bijP: "p \<in> zprime ==> bijP (reciR p) (d22set (p - 2))"
+lemma reciP_bijP: "zprime p ==> bijP (reciR p) (d22set (p - 2))"
   apply (unfold reciR_def bijP_def)
   apply auto
   apply (rule d22set_mem)
    apply auto
   done
 
-lemma reciP_uniq: "p \<in> zprime ==> uniqP (reciR p)"
+lemma reciP_uniq: "zprime p ==> uniqP (reciR p)"
   apply (unfold reciR_def uniqP_def)
   apply auto
    apply (rule zcong_zless_imp_eq)
@@ -211,13 +211,13 @@ lemma reciP_uniq: "p \<in> zprime ==> uniqP (reciR p)"
            apply auto
   done
 
-lemma reciP_sym: "p \<in> zprime ==> symP (reciR p)"
+lemma reciP_sym: "zprime p ==> symP (reciR p)"
   apply (unfold reciR_def symP_def)
   apply (simp add: zmult_commute)
   apply auto
   done
 
-lemma bijER_d22set: "p \<in> zprime ==> d22set (p - 2) \<in> bijER (reciR p)"
+lemma bijER_d22set: "zprime p ==> d22set (p - 2) \<in> bijER (reciR p)"
   apply (rule bijR_bijER)
      apply (erule d22set_d22set_bij)
     apply (erule reciP_bijP)
@@ -229,7 +229,7 @@ lemma bijER_d22set: "p \<in> zprime ==> d22set (p - 2) \<in> bijER (reciR p)"
 subsection {* Wilson *}
 
 lemma bijER_zcong_prod_1:
-    "p \<in> zprime ==> A \<in> bijER (reciR p) ==> [\<Prod>A = 1] (mod p)"
+    "zprime p ==> A \<in> bijER (reciR p) ==> [\<Prod>A = 1] (mod p)"
   apply (unfold reciR_def)
   apply (erule bijER.induct)
     apply (subgoal_tac [2] "a = 1 \<or> a = p - 1")
@@ -245,7 +245,7 @@ lemma bijER_zcong_prod_1:
    apply auto
   done
 
-theorem Wilson_Bij: "p \<in> zprime ==> [zfact (p - 1) = -1] (mod p)"
+theorem Wilson_Bij: "zprime p ==> [zfact (p - 1) = -1] (mod p)"
   apply (subgoal_tac "zcong ((p - 1) * zfact (p - 2)) (-1 * 1) p")
    apply (rule_tac [2] zcong_zmult)
     apply (simp add: zprime_def)

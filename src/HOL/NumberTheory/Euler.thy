@@ -19,7 +19,7 @@ constdefs
 (*                                                              *)
 (****************************************************************)
 
-lemma MultInvPair_prop1a: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p));
+lemma MultInvPair_prop1a: "[| zprime p; 2 < p; ~([a = 0](mod p));
                               X \<in> (SetS a p); Y \<in> (SetS a p);
                               ~((X \<inter> Y) = {}) |] ==> 
                            X = Y";
@@ -37,7 +37,7 @@ lemma MultInvPair_prop1a: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p));
   apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)
 done
 
-lemma MultInvPair_prop1b: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p));
+lemma MultInvPair_prop1b: "[| zprime p; 2 < p; ~([a = 0](mod p));
                               X \<in> (SetS a p); Y \<in> (SetS a p);
                               X \<noteq> Y |] ==>
                               X \<inter> Y = {}";
@@ -46,11 +46,11 @@ lemma MultInvPair_prop1b: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p));
   apply (drule MultInvPair_prop1a, auto)
 done
 
-lemma MultInvPair_prop1c: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)) |] ==>  
+lemma MultInvPair_prop1c: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==>  
     \<forall>X \<in> SetS a p. \<forall>Y \<in> SetS a p. X \<noteq> Y --> X\<inter>Y = {}"
   by (auto simp add: MultInvPair_prop1b)
 
-lemma MultInvPair_prop2: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)) |] ==> 
+lemma MultInvPair_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==> 
                           Union ( SetS a p) = SRStar p";
   apply (auto simp add: SetS_def MultInvPair_def StandardRes_SRStar_prop4 
     SRStar_mult_prop2)
@@ -58,13 +58,13 @@ lemma MultInvPair_prop2: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)) |] ==>
   apply (rule bexI, auto)
 done
 
-lemma MultInvPair_distinct: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); 
+lemma MultInvPair_distinct: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
                                 ~([j = 0] (mod p)); 
                                 ~(QuadRes p a) |]  ==> 
                              ~([j = a * MultInv p j] (mod p))";
   apply auto
 proof -;
-  assume "p \<in> zprime" and "2 < p" and "~([a = 0] (mod p))" and 
+  assume "zprime p" and "2 < p" and "~([a = 0] (mod p))" and 
     "~([j = 0] (mod p))" and "~(QuadRes p a)";
   assume "[j = a * MultInv p j] (mod p)";
   then have "[j * j = (a * MultInv p j) * j] (mod p)";
@@ -87,7 +87,7 @@ proof -;
     by (simp add: QuadRes_def)
 qed;
 
-lemma MultInvPair_card_two: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); 
+lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
                                 ~(QuadRes p a); ~([j = 0] (mod p)) |]  ==> 
                              card (MultInvPair a p j) = 2";
   apply (auto simp add: MultInvPair_def)
@@ -109,7 +109,7 @@ lemma SetS_finite: "2 < p ==> finite (SetS a p)";
 lemma SetS_elems_finite: "\<forall>X \<in> SetS a p. finite X";
   by (auto simp add: SetS_def MultInvPair_def)
 
-lemma SetS_elems_card: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); 
+lemma SetS_elems_card: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
                         ~(QuadRes p a) |]  ==>
                         \<forall>X \<in> SetS a p. card X = 2";
   apply (auto simp add: SetS_def)
@@ -124,10 +124,10 @@ lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set);
     \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S";
 by (induct set: Finites, auto)
 
-lemma SetS_card: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==> 
+lemma SetS_card: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==> 
                   int(card(SetS a p)) = (p - 1) div 2";
 proof -;
-  assume "p \<in> zprime" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)";
+  assume "zprime p" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)";
   then have "(p - 1) = 2 * int(card(SetS a p))";
   proof -;
     have "p - 1 = int(card(Union (SetS a p)))";
@@ -148,7 +148,7 @@ proof -;
     by auto
 qed;
 
-lemma SetS_setprod_prop: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p));
+lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                               ~(QuadRes p a); x \<in> (SetS a p) |] ==> 
                           [\<Prod>x = a] (mod p)";
   apply (auto simp add: SetS_def MultInvPair_def)
@@ -185,10 +185,10 @@ lemma SRStar_d22set_prop [rule_format]: "2 < p --> (SRStar p) = {1} \<union>
   apply (frule d22set_g_1, auto)
 done
 
-lemma Union_SetS_setprod_prop1: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
+lemma Union_SetS_setprod_prop1: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
                                  [\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
 proof -
-  assume "p \<in> zprime" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)"
+  assume "zprime p" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)"
   then have "[\<Prod>(Union (SetS a p)) = 
       setprod (setprod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
@@ -208,10 +208,10 @@ proof -
   done
 qed
 
-lemma Union_SetS_setprod_prop2: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)) |] ==> 
+lemma Union_SetS_setprod_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==> 
                                     \<Prod>(Union (SetS a p)) = zfact (p - 1)";
 proof -;
-  assume "p \<in> zprime" and "2 < p" and "~([a = 0](mod p))";
+  assume "zprime p" and "2 < p" and "~([a = 0](mod p))";
   then have "\<Prod>(Union (SetS a p)) = \<Prod>(SRStar p)"
     by (auto simp add: MultInvPair_prop2)
   also have "... = \<Prod>({1} \<union> (d22set (p - 1)))"
@@ -231,7 +231,7 @@ proof -;
   finally show ?thesis .
 qed;
 
-lemma zfact_prop: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
+lemma zfact_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
                    [zfact (p - 1) = a ^ nat ((p - 1) div 2)] (mod p)";
   apply (frule Union_SetS_setprod_prop1) 
   apply (auto simp add: Union_SetS_setprod_prop2)
@@ -245,7 +245,7 @@ done
 (*                                                              *)
 (****************************************************************)
 
-lemma Euler_part1: "[| 2 < p; p \<in> zprime; ~([x = 0](mod p)); 
+lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
     ~(QuadRes p x) |] ==> 
       [x^(nat (((p) - 1) div 2)) = -1](mod p)";
   apply (frule zfact_prop, auto)
@@ -289,7 +289,7 @@ proof -;
   then show ?thesis by auto
 qed;
 
-lemma Euler_part2: "[| 2 < p; p \<in> zprime; [a = 0] (mod p) |] ==> [0 = a ^ nat ((p - 1) div 2)] (mod p)";
+lemma Euler_part2: "[| 2 < p; zprime p; [a = 0] (mod p) |] ==> [0 = a ^ nat ((p - 1) div 2)] (mod p)";
   apply (frule zprime_zOdd_eq_grt_2)
   apply (frule aux_2, auto)
   apply (frule_tac a = a in aux_1, auto)
@@ -314,7 +314,7 @@ done
 lemma aux__2: "2 * nat((p - 1) div 2) =  nat (2 * ((p - 1) div 2))";
   by (auto simp add: nat_mult_distrib)
 
-lemma Euler_part3: "[| 2 < p; p \<in> zprime; ~([x = 0](mod p)); QuadRes p x |] ==> 
+lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==> 
                       [x^(nat (((p) - 1) div 2)) = 1](mod p)";
   apply (subgoal_tac "p \<in> zOdd")
   apply (auto simp add: QuadRes_def)
@@ -335,7 +335,7 @@ done
 (*                                                                  *)
 (********************************************************************)
 
-theorem Euler_Criterion: "[| 2 < p; p \<in> zprime |] ==> [(Legendre a p) =
+theorem Euler_Criterion: "[| 2 < p; zprime p |] ==> [(Legendre a p) =
     a^(nat (((p) - 1) div 2))] (mod p)";
   apply (auto simp add: Legendre_def Euler_part2)
   apply (frule Euler_part3, auto simp add: zcong_sym)

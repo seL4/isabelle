@@ -39,7 +39,7 @@ lemma inv_is_inv_aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
 by (subst int_int_eq [symmetric], auto)
 
 lemma inv_is_inv:
-    "p \<in> zprime \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> [a * inv p a = 1] (mod p)"
+    "zprime p \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> [a * inv p a = 1] (mod p)"
   apply (unfold inv_def)
   apply (subst zcong_zmod)
   apply (subst zmod_zmult1_eq [symmetric])
@@ -52,7 +52,7 @@ lemma inv_is_inv:
   done
 
 lemma inv_distinct:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> a \<noteq> inv p a"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> a \<noteq> inv p a"
   apply safe
   apply (cut_tac a = a and p = p in zcong_square)
      apply (cut_tac [3] a = a and p = p in inv_is_inv, auto)
@@ -63,7 +63,7 @@ lemma inv_distinct:
   done
 
 lemma inv_not_0:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> 0"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> 0"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply (unfold zcong_def, auto)
@@ -75,7 +75,7 @@ lemma inv_not_0:
   done
 
 lemma inv_not_1:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> 1"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> 1"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      prefer 4
@@ -96,7 +96,7 @@ lemma inv_not_p_minus_1_aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   done
 
 lemma inv_not_p_minus_1:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> p - 1"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a \<noteq> p - 1"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv, auto)
   apply (simp add: inv_not_p_minus_1_aux)
@@ -105,7 +105,7 @@ lemma inv_not_p_minus_1:
   done
 
 lemma inv_g_1:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> 1 < inv p a"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> 1 < inv p a"
   apply (case_tac "0\<le> inv p a")
    apply (subgoal_tac "inv p a \<noteq> 1")
     apply (subgoal_tac "inv p a \<noteq> 0")
@@ -118,7 +118,7 @@ lemma inv_g_1:
   done
 
 lemma inv_less_p_minus_1:
-    "p \<in> zprime \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a < p - 1"
+    "zprime p \<Longrightarrow> 1 < a \<Longrightarrow> a < p - 1 ==> inv p a < p - 1"
   apply (case_tac "inv p a < p")
    apply (subst order_less_le)
    apply (simp add: inv_not_p_minus_1, auto)
@@ -140,7 +140,7 @@ lemma zcong_zpower_zmult:
    apply (rule_tac [2] zcong_zmult, simp_all)
   done
 
-lemma inv_inv: "p \<in> zprime \<Longrightarrow>
+lemma inv_inv: "zprime p \<Longrightarrow>
     5 \<le> p \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> inv p (inv p a) = a"
   apply (unfold inv_def)
   apply (subst zpower_zmod)
@@ -197,7 +197,7 @@ lemma wset_subset: "1 < a \<Longrightarrow> b \<in> wset (a - 1, p) ==> b \<in> 
   done
 
 lemma wset_g_1 [rule_format]:
-    "p \<in> zprime --> a < p - 1 --> b \<in> wset (a, p) --> 1 < b"
+    "zprime p --> a < p - 1 --> b \<in> wset (a, p) --> 1 < b"
   apply (induct a p rule: wset_induct, auto)
   apply (case_tac "b = a")
    apply (case_tac [2] "b = inv p a")
@@ -209,7 +209,7 @@ lemma wset_g_1 [rule_format]:
   done
 
 lemma wset_less [rule_format]:
-    "p \<in> zprime --> a < p - 1 --> b \<in> wset (a, p) --> b < p - 1"
+    "zprime p --> a < p - 1 --> b \<in> wset (a, p) --> b < p - 1"
   apply (induct a p rule: wset_induct, auto)
   apply (case_tac "b = a")
    apply (case_tac [2] "b = inv p a")
@@ -221,7 +221,7 @@ lemma wset_less [rule_format]:
   done
 
 lemma wset_mem [rule_format]:
-  "p \<in> zprime -->
+  "zprime p -->
     a < p - 1 --> 1 < b --> b \<le> a --> b \<in> wset (a, p)"
   apply (induct a p rule: wset.induct, auto)
   apply (rule_tac wset_subset)
@@ -230,7 +230,7 @@ lemma wset_mem [rule_format]:
   done
 
 lemma wset_mem_inv_mem [rule_format]:
-  "p \<in> zprime --> 5 \<le> p --> a < p - 1 --> b \<in> wset (a, p)
+  "zprime p --> 5 \<le> p --> a < p - 1 --> b \<in> wset (a, p)
     --> inv p b \<in> wset (a, p)"
   apply (induct a p rule: wset_induct, auto)
    apply (case_tac "b = a")
@@ -245,7 +245,7 @@ lemma wset_mem_inv_mem [rule_format]:
   done
 
 lemma wset_inv_mem_mem:
-  "p \<in> zprime \<Longrightarrow> 5 \<le> p \<Longrightarrow> a < p - 1 \<Longrightarrow> 1 < b \<Longrightarrow> b < p - 1
+  "zprime p \<Longrightarrow> 5 \<le> p \<Longrightarrow> a < p - 1 \<Longrightarrow> 1 < b \<Longrightarrow> b < p - 1
     \<Longrightarrow> inv p b \<in> wset (a, p) \<Longrightarrow> b \<in> wset (a, p)"
   apply (rule_tac s = "inv p (inv p b)" and t = b in subst)
    apply (rule_tac [2] wset_mem_inv_mem)
@@ -260,7 +260,7 @@ lemma wset_fin: "finite (wset (a, p))"
   done
 
 lemma wset_zcong_prod_1 [rule_format]:
-  "p \<in> zprime -->
+  "zprime p -->
     5 \<le> p --> a < p - 1 --> [(\<Prod>x\<in>wset(a, p). x) = 1] (mod p)"
   apply (induct a p rule: wset_induct)
    prefer 2
@@ -281,7 +281,7 @@ lemma wset_zcong_prod_1 [rule_format]:
   apply (rule inv_distinct, auto)
   done
 
-lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - 2) = wset (p - 2, p)"
+lemma d22set_eq_wset: "zprime p ==> d22set (p - 2) = wset (p - 2, p)"
   apply safe
    apply (erule wset_mem)
      apply (rule_tac [2] d22set_g_1)
@@ -298,7 +298,7 @@ lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - 2) = wset (p - 2, p)"
 
 subsection {* Wilson *}
 
-lemma prime_g_5: "p \<in> zprime \<Longrightarrow> p \<noteq> 2 \<Longrightarrow> p \<noteq> 3 ==> 5 \<le> p"
+lemma prime_g_5: "zprime p \<Longrightarrow> p \<noteq> 2 \<Longrightarrow> p \<noteq> 3 ==> 5 \<le> p"
   apply (unfold zprime_def dvd_def)
   apply (case_tac "p = 4", auto)
    apply (rule notE)
@@ -311,7 +311,7 @@ lemma prime_g_5: "p \<in> zprime \<Longrightarrow> p \<noteq> 2 \<Longrightarrow
   done
 
 theorem Wilson_Russ:
-    "p \<in> zprime ==> [zfact (p - 1) = -1] (mod p)"
+    "zprime p ==> [zfact (p - 1) = -1] (mod p)"
   apply (subgoal_tac "[(p - 1) * zfact (p - 2) = -1 * 1] (mod p)")
    apply (rule_tac [2] zcong_zmult)
     apply (simp only: zprime_def)

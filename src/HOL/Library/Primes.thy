@@ -29,8 +29,8 @@ constdefs
   coprime :: "nat => nat => bool"
   "coprime m n == gcd (m, n) = 1"
 
-  prime :: "nat set"
-  "prime == {p. 1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p)}"
+  prime :: "nat \<Rightarrow> bool"
+  "prime p == 1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p)"
 
 
 lemma gcd_induct:
@@ -172,7 +172,7 @@ lemma relprime_dvd_mult_iff: "gcd (k, n) = 1 ==> (k dvd m * n) = (k dvd m)"
   apply (blast intro: relprime_dvd_mult dvd_trans)
   done
 
-lemma prime_imp_relprime: "p \<in> prime ==> \<not> p dvd n ==> gcd (p, n) = 1"
+lemma prime_imp_relprime: "prime p ==> \<not> p dvd n ==> gcd (p, n) = 1"
   apply (auto simp add: prime_def)
   apply (drule_tac x = "gcd (p, n)" in spec)
   apply auto
@@ -180,7 +180,7 @@ lemma prime_imp_relprime: "p \<in> prime ==> \<not> p dvd n ==> gcd (p, n) = 1"
   apply simp
   done
 
-lemma two_is_prime: "2 \<in> prime"
+lemma two_is_prime: "prime 2"
   apply (auto simp add: prime_def)
   apply (case_tac m)
    apply (auto dest!: dvd_imp_le)
@@ -192,13 +192,13 @@ text {*
   one of those primes.
 *}
 
-lemma prime_dvd_mult: "p \<in> prime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
+lemma prime_dvd_mult: "prime p ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   by (blast intro: relprime_dvd_mult prime_imp_relprime)
 
-lemma prime_dvd_square: "p \<in> prime ==> p dvd m^Suc (Suc 0) ==> p dvd m"
+lemma prime_dvd_square: "prime p ==> p dvd m^Suc (Suc 0) ==> p dvd m"
   by (auto dest: prime_dvd_mult)
 
-lemma prime_dvd_power_two: "p \<in> prime ==> p dvd m\<twosuperior> ==> p dvd m"
+lemma prime_dvd_power_two: "prime p ==> p dvd m\<twosuperior> ==> p dvd m"
   by (rule prime_dvd_square) (simp_all add: power2_eq_square)
 
 

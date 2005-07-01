@@ -219,7 +219,7 @@ lemma even_prod_div_2: "[| x \<in> zEven |] ==> (x * y) div 2 = (x div 2) * y";
 
 (* An odd prime is greater than 2 *)
 
-lemma zprime_zOdd_eq_grt_2: "p \<in> zprime ==> (p \<in> zOdd) = (2 < p)";
+lemma zprime_zOdd_eq_grt_2: "zprime p ==> (p \<in> zOdd) = (2 < p)";
   apply (auto simp add: zOdd_def zprime_def)
   apply (drule_tac x = 2 in allE)
   apply (insert odd_iff_not_even [of p])  

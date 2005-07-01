@@ -96,7 +96,7 @@ by (drule_tac a = x in pos_mod_sign, arith, simp)
 lemma StandardRes_SRStar_prop1a: "x \<in> SRStar p ==> ~([x = 0] (mod p))";
   by (auto simp add: SRStar_def zcong_def zdvd_not_zless)
 
-lemma StandardRes_SRStar_prop2: "[| 2 < p; p \<in> zprime; x \<in> SRStar p |] 
+lemma StandardRes_SRStar_prop2: "[| 2 < p; zprime p; x \<in> SRStar p |] 
      ==> StandardRes p (MultInv p x) \<in> SRStar p";
   apply (frule_tac x = "(MultInv p x)" in StandardRes_SRStar_prop1, simp);
   apply (rule MultInv_prop3)
@@ -106,18 +106,18 @@ done
 lemma StandardRes_SRStar_prop3: "x \<in> SRStar p ==> StandardRes p x = x";
   by (auto simp add: SRStar_SR_prop StandardRes_SR_prop)
 
-lemma StandardRes_SRStar_prop4: "[| p \<in> zprime; 2 < p; x \<in> SRStar p |] 
+lemma StandardRes_SRStar_prop4: "[| zprime p; 2 < p; x \<in> SRStar p |] 
      ==> StandardRes p x \<in> SRStar p";
   by (frule StandardRes_SRStar_prop3, auto)
 
-lemma SRStar_mult_prop1: "[| p \<in> zprime; 2 < p; x \<in> SRStar p; y \<in> SRStar p|] 
+lemma SRStar_mult_prop1: "[| zprime p; 2 < p; x \<in> SRStar p; y \<in> SRStar p|] 
      ==> (StandardRes p (x * y)):SRStar p";
   apply (frule_tac x = x in StandardRes_SRStar_prop4, auto)
   apply (frule_tac x = y in StandardRes_SRStar_prop4, auto)
   apply (auto simp add: StandardRes_SRStar_prop1 zcong_zmult_prop3)
 done
 
-lemma SRStar_mult_prop2: "[| p \<in> zprime; 2 < p; ~([a = 0](mod p)); 
+lemma SRStar_mult_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)); 
      x \<in> SRStar p |] 
      ==> StandardRes p (a * MultInv p x) \<in> SRStar p";
   apply (frule_tac x = x in StandardRes_SRStar_prop2, auto)
