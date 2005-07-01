@@ -301,17 +301,9 @@ translations
   "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
-ML_setup {* 
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
-
 lemma (in comm_monoid) finprod_empty [simp]: 
   "finprod G f {} = \<one>"
   by (simp add: finprod_def)
-
-ML_setup {* 
-  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
-*}
 
 declare funcsetI [intro]
   funcset_mem [dest]
