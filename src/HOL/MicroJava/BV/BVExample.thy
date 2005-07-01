@@ -454,7 +454,7 @@ consts_code
   "op :"   ("(_ mem _)")
   "op Un"  ("(_ union _)")
   "image"  ("map")
-  "UNION"  ("(fn A => fn f => List.concat (map f A))")
+  "UNION"  ("(fn A => fn f => BasisLibrary.List.concat (map f A))")
   "Bex"    ("(fn A => fn f => exists f A)")
   "Ball"   ("(fn A => fn f => forall f A)")
   "some_elem" ("hd")
@@ -475,7 +475,7 @@ lemmas [code] =
 
 lemmas [code ind] = rtrancl_refl converse_rtrancl_into_rtrancl
 
-generate_code 
+generate_code
   test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
     [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
   test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
