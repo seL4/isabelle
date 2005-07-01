@@ -69,6 +69,10 @@ val not_iff = thm "not_iff";
 val not_imp = thm "not_imp";
 val not_not = thm "not_not";
 val rev_conj_cong = thm "rev_conj_cong";
+val simp_impliesE = thm "simp_impliesI";
+val simp_impliesI = thm "simp_impliesI";
+val simp_implies_cong = thm "simp_implies_cong";
+val simp_implies_def = thm "simp_implies_def";
 val simp_thms = thms "simp_thms";
 val split_if = thm "split_if";
 val split_if_asm = thm "split_if_asm";
@@ -198,11 +202,40 @@ fun mk_eq th = case concl_of th of
 fun mk_eq_True r =
   SOME (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => NONE;
 
+(* Produce theorems of the form
+  (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)
+*)
+fun lift_meta_eq_to_obj_eq i st =
+  let
+    val {sign, ...} = rep_thm st;
+    fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
+      | count_imp _ = 0;
+    val j = count_imp (Logic.strip_assums_concl (List.nth (prems_of st, i - 1)))
+  in if j = 0 then meta_eq_to_obj_eq
+    else
+      let
+        val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
+        fun mk_simp_implies Q = foldr (fn (R, S) =>
+          Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Q Ps
+        val aT = TFree ("'a", HOLogic.typeS);
+        val x = Free ("x", aT);
+        val y = Free ("y", aT)
+      in prove_goalw_cterm [simp_implies_def]
+        (cterm_of sign (Logic.mk_implies
+          (mk_simp_implies (Logic.mk_equals (x, y)),
+           mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))))
+        (fn hyps => [REPEAT (ares_tac (meta_eq_to_obj_eq :: hyps) 1)])
+      end
+  end;
+  
 (*Congruence rules for = (instead of ==)*)
-fun mk_meta_cong rl =
-  zero_var_indexes(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
-  handle THM _ =>
-  error("Premises and conclusion of congruence rules must be =-equalities");
+fun mk_meta_cong rl = zero_var_indexes
+  (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
+     rtac (lift_meta_eq_to_obj_eq i st) i st) rl)
+   in mk_meta_eq rl' handle THM _ =>
+     if Logic.is_equals (concl_of rl') then rl'
+     else error "Conclusion of congruence rules must be =-equality"
+   end);
 
 (* Elimination of True from asumptions: *)
 
@@ -263,11 +296,13 @@ fun mksimps pairs =
   (List.mapPartial (try mk_eq) o mk_atomize pairs o gen_all);
 
 fun unsafe_solver_tac prems =
+  (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
   FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems), atac, etac FalseE];
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver_tac prems =
+  (fn i => REPEAT_DETERM (match_tac [simp_impliesI] i)) THEN'
   FIRST'[match_tac(reflexive_thm::TrueI::refl::prems),
          eq_assume_tac, ematch_tac [FalseE]];
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
@@ -298,7 +333,7 @@ val HOL_ss =
        thm "the_eq_trivial", the_sym_eq_trivial]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup,let_simproc]
-     addcongs [imp_cong]
+     addcongs [imp_cong, simp_implies_cong]
      addsplits [split_if];
 
 fun hol_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);

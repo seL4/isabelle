@@ -1122,6 +1122,53 @@ lemma Let_folded: "f x \<equiv> g x \<Longrightarrow>  Let x f \<equiv> Let x g"
 lemma Let_unfold: "f x \<equiv> g \<Longrightarrow>  Let x f \<equiv> g"
   by (unfold Let_def)
 
+text {*
+The following copy of the implication operator is useful for
+fine-tuning congruence rules.
+*}
+
+consts
+  simp_implies :: "[prop, prop] => prop"  ("(_/ =simp=> _)" [2, 1] 1)
+defs simp_implies_def: "simp_implies \<equiv> op ==>"
+
+lemma simp_impliesI: 
+  assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
+  shows "PROP P =simp=> PROP Q"
+  apply (unfold simp_implies_def)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma simp_impliesE:
+  assumes PQ:"PROP P =simp=> PROP Q"
+  and P: "PROP P"
+  and QR: "PROP Q \<Longrightarrow> PROP R"
+  shows "PROP R"
+  apply (rule QR)
+  apply (rule PQ [unfolded simp_implies_def])
+  apply (rule P)
+  done
+
+lemma simp_implies_cong:
+  assumes PP' :"PROP P == PROP P'"
+  and P'QQ': "PROP P' ==> (PROP Q == PROP Q')"
+  shows "(PROP P =simp=> PROP Q) == (PROP P' =simp=> PROP Q')"
+proof (unfold simp_implies_def, rule equal_intr_rule)
+  assume PQ: "PROP P \<Longrightarrow> PROP Q"
+  and P': "PROP P'"
+  from PP' [symmetric] and P' have "PROP P"
+    by (rule equal_elim_rule1)
+  hence "PROP Q" by (rule PQ)
+  with P'QQ' [OF P'] show "PROP Q'" by (rule equal_elim_rule1)
+next
+  assume P'Q': "PROP P' \<Longrightarrow> PROP Q'"
+  and P: "PROP P"
+  from PP' and P have P': "PROP P'" by (rule equal_elim_rule1)
+  hence "PROP Q'" by (rule P'Q')
+  with P'QQ' [OF P', symmetric] show "PROP Q"
+    by (rule equal_elim_rule1)
+qed
+
 subsubsection {* Actual Installation of the Simplifier *}
 
 use "simpdata.ML"
