@@ -407,8 +407,13 @@ have no effect.
 
 * Pure: print_tac now outputs the goal through the trace channel.
 
-* Isar debugging: new reference Toplevel.debug; default false.  Set to
-make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
+* Isar debugging: new reference Toplevel.debug (default false).  Set
+to make printing of exceptions THM, TERM, TYPE and THEORY more
+verbose.
+
+* Isar profiling: new reference Toplevel.profiling (default 0).  For
+Poly/ML, set to 1 to profile time, 2 to profile space (which increases
+the runtime).
 
 * Pure: name spaces have been refined, with significant changes of the
 internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
