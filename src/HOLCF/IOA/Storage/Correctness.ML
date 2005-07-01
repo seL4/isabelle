@@ -49,8 +49,6 @@ by (Fast_tac 1);
 (* FREE *)
 by (res_inst_tac [("x","(used - {nat},c)")] exI 1);
 by (Asm_full_simp_tac 1);
-by (SELECT_GOAL (safe_tac set_cs) 1);
-by Auto_tac;
 by (rtac transition_is_ex 1);
 by (simp_tac (simpset() addsimps [
       Spec.ioa_def,Spec.trans_def,trans_of_def])1);
