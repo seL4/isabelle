@@ -2260,20 +2260,20 @@ subsubsection {* Code generator setup *}
 ML {*
 local
 
-fun list_codegen thy gr dep b t =
-  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy dep false)
+fun list_codegen thy defs gr dep thyname b t =
+  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy defs dep thyname false)
     (gr, HOLogic.dest_list t)
   in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun dest_nibble (Const (s, _)) = int_of_nibble (unprefix "List.nibble.Nibble" s)
   | dest_nibble _ = raise Match;
 
-fun char_codegen thy gr dep b (Const ("List.char.Char", _) $ c1 $ c2) =
+fun char_codegen thy defs gr dep thyname b (Const ("List.char.Char", _) $ c1 $ c2) =
     (let val c = chr (dest_nibble c1 * 16 + dest_nibble c2)
      in if Symbol.is_printable c then SOME (gr, Pretty.quote (Pretty.str c))
        else NONE
      end handle Fail _ => NONE | Match => NONE)
-  | char_codegen thy gr dep b _ = NONE;
+  | char_codegen thy defs gr dep thyname b _ = NONE;
 
 in
 
