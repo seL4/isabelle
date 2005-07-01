@@ -891,6 +891,10 @@ lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
 by(fastsimp simp: setsum_def intro: AC_add.fold_cong)
 
+lemma strong_setsum_cong:
+  "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setsum f A = setsum g B"
+by(fastsimp simp: simp_implies_def setsum_def intro: AC_add.fold_cong)
+
 lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
   by (rule setsum_cong[OF refl], auto);
 
@@ -1271,6 +1275,10 @@ by (auto simp add: setprod_reindex)
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
 by(fastsimp simp: setprod_def intro: AC_mult.fold_cong)
+
+lemma strong_setprod_cong:
+  "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
+by(fastsimp simp: simp_implies_def setprod_def intro: AC_mult.fold_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
