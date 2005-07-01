@@ -210,7 +210,7 @@ val flexflex_tac = PRIMSEQ flexflex_rule;
 
 (*Remove duplicate subgoals.  By Mark Staples*)
 local
-fun cterm_aconv (a,b) = #t (rep_cterm a) aconv #t (rep_cterm b);
+fun cterm_aconv (a,b) = term_of a aconv term_of b;
 in
 fun distinct_subgoals_tac state =
     let val (frozth,thawfn) = freeze_thaw state
