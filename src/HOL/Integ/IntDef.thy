@@ -853,6 +853,65 @@ apply (simp_all add: not_zle_0_negative del: int_Suc)
 done
 
 
+subsection {* Configuration of the code generator *}
+
+ML {*
+infix 7 `*;
+infix 6 `+;
+
+val op `* = op * : int * int -> int;
+val op `+ = op + : int * int -> int;
+val `~ = ~ : int -> int;
+*}
+
+types_code
+  "int" ("int")
+
+constdefs
+  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int"
+  "int_aux i n == (i + int n)"
+  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat"
+  "nat_aux n i == (n + nat i)"
+
+lemma [code]:
+  "int_aux i 0 = i"
+  "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
+  "int n = int_aux 0 n"
+  by (simp add: int_aux_def)+
+
+lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
+  -- {* tail recursive *}
+  by (auto simp add: nat_aux_def nat_eq_iff linorder_not_le order_less_imp_le
+    dest: zless_imp_add1_zle)
+lemma [code]: "nat i = nat_aux 0 i"
+  by (simp add: nat_aux_def)
+
+consts_code
+  "0" :: "int"                  ("0")
+  "1" :: "int"                  ("1")
+  "uminus" :: "int => int"      ("`~")
+  "op +" :: "int => int => int" ("(_ `+/ _)")
+  "op *" :: "int => int => int" ("(_ `*/ _)")
+  "op <" :: "int => int => bool" ("(_ </ _)")
+  "op <=" :: "int => int => bool" ("(_ <=/ _)")
+  "neg"                         ("(_ < 0)")
+
+ML {*
+fun number_of_codegen thy defs gr s thyname b (Const ("Numeral.number_of",
+      Type ("fun", [_, Type ("IntDef.int", [])])) $ bin) =
+        (SOME (gr, Pretty.str (IntInf.toString (HOLogic.dest_binum bin)))
+        handle TERM _ => NONE)
+  | number_of_codegen thy defs gr s thyname b (Const ("Numeral.number_of",
+      Type ("fun", [_, Type ("nat", [])])) $ bin) =
+        SOME (Codegen.invoke_codegen thy defs s thyname b (gr,
+          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
+            (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
+  | number_of_codegen _ _ _ _ _ _ _ = NONE;
+*}
+
+setup {* [Codegen.add_codegen "number_of_codegen" number_of_codegen] *}
+
+
 (*Legacy ML bindings, but no longer the structure Int.*)
 ML
 {*
