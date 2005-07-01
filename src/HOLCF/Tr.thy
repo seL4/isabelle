@@ -11,6 +11,8 @@ theory Tr
 imports Lift
 begin
 
+defaultsort pcpo
+
 types
   tr = "bool lift"
 
