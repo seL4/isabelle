@@ -285,10 +285,6 @@ lemma (in UP_cring) UP_a_comm:
   shows "p \<oplus>\<^bsub>P\<^esub> q = q \<oplus>\<^bsub>P\<^esub> p"
   by (rule up_eqI, simp add: a_comm R, simp_all add: R)
 
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
-
 lemma (in UP_cring) UP_m_assoc:
   assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
   shows "(p \<otimes>\<^bsub>P\<^esub> q) \<otimes>\<^bsub>P\<^esub> r = p \<otimes>\<^bsub>P\<^esub> (q \<otimes>\<^bsub>P\<^esub> r)"
@@ -317,10 +313,6 @@ proof (rule up_eqI)
   with R show "coeff P ((p \<otimes>\<^bsub>P\<^esub> q) \<otimes>\<^bsub>P\<^esub> r) n = coeff P (p \<otimes>\<^bsub>P\<^esub> (q \<otimes>\<^bsub>P\<^esub> r)) n"
     by (simp add: Pi_def)
 qed (simp_all add: R)
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
-*}
 
 lemma (in UP_cring) UP_l_one [simp]:
   assumes R: "p \<in> carrier P"
@@ -630,10 +622,6 @@ lemma (in UP_cring) monom_zero [simp]:
   "monom P \<zero> n = \<zero>\<^bsub>P\<^esub>"
   by (simp add: UP_def P_def)
 
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
-
 lemma (in UP_cring) monom_mult_is_smult:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
   shows "monom P a 0 \<otimes>\<^bsub>P\<^esub> p = a \<odot>\<^bsub>P\<^esub> p"
@@ -651,18 +639,10 @@ proof (rule up_eqI)
     by (simp add: UP_m_comm)
 qed (simp_all add: R)
 
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
-*}
-
 lemma (in UP_cring) monom_add [simp]:
   "[| a \<in> carrier R; b \<in> carrier R |] ==>
   monom P (a \<oplus> b) n = monom P a n \<oplus>\<^bsub>P\<^esub> monom P b n"
   by (rule up_eqI) simp_all
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
 
 lemma (in UP_cring) monom_one_Suc:
   "monom P \<one> (Suc n) = monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> 1"
@@ -738,10 +718,6 @@ proof (rule up_eqI)
     finally show ?thesis .
   qed
 qed (simp_all)
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
-*}
 
 lemma (in UP_cring) monom_mult_smult:
   "[| a \<in> carrier R; b \<in> carrier R |] ==> monom P (a \<otimes> b) n = a \<odot>\<^bsub>P\<^esub> monom P b n"
@@ -993,10 +969,6 @@ proof (rule deg_aboveI)
   with boundm R show "coeff P (p \<otimes>\<^bsub>P\<^esub> q) m = \<zero>" by simp
 qed (simp add: R)
 
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
-
 lemma (in UP_domain) deg_mult [simp]:
   "[| p ~= \<zero>\<^bsub>P\<^esub>; q ~= \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==>
   deg R (p \<otimes>\<^bsub>P\<^esub> q) = deg R p + deg R q"
@@ -1032,10 +1004,6 @@ lemma (in UP_cring) coeff_finsum:
   shows "p \<in> A -> carrier P ==>
     coeff P (finsum P p A) k = (\<Oplus>i \<in> A. coeff P (p i) k)"
   using fin by induct (auto simp: Pi_def)
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
 
 lemma (in UP_cring) up_repr:
   assumes R: "p \<in> carrier P"
@@ -1088,10 +1056,6 @@ proof -
   also have "... = p" by (rule up_repr)
   finally show ?thesis .
 qed
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
-*}
 
 subsection {* Polynomials over an integral domain form an integral domain *}
 
@@ -1177,10 +1141,6 @@ lemma (in abelian_monoid) finsum_cong2:
   "[| !!i. i \<in> A ==> f i \<in> carrier G = True; A = B;
   !!i. i \<in> B ==> f i = g i |] ==> finsum G f A = finsum G g B"
   sorry*)
-
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
 
 theorem (in cring) diagonal_sum:
   "[| f \<in> {..n + m::nat} -> carrier R; g \<in> {..n + m} -> carrier R |] ==>
