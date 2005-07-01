@@ -67,6 +67,7 @@ sig
   val unknown_context: transition -> transition
   val quiet: bool ref
   val debug: bool ref
+  val profiling: int ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion_result: ((transition * (state -> state -> 'a -> 'a)) list * 'a) -> 'a
@@ -421,6 +422,7 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 val quiet = ref false;
 val debug = ref false;
+val profiling = ref 0;
 
 
 (* print exceptions *)
@@ -498,7 +500,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
       else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
       (if ! Output.timing andalso not no_timing then (info (command_msg "" tr); timeap) else I)
-        (apply_trans int trans) state;
+        (profile (! profiling) (apply_trans int trans)) state;
     val _ = conditional (int andalso not (! quiet) andalso
         exists (fn m => m mem_string print) ("" :: ! print_mode))
       (fn () => print_state false result);
