@@ -83,18 +83,23 @@ fun is_empty Empty = true
 
 (* map and fold combinators *)
 
-fun map_table _ Empty = Empty
-  | map_table f (Branch2 (left, (k, x), right)) =
-      Branch2 (map_table f left, (k, f k x), map_table f right)
-  | map_table f (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-      Branch3 (map_table f left, (k1, f k1 x1),
-        map_table f mid, (k2, f k2 x2), map_table f right);
+fun map_table f =
+  let
+    fun map Empty = Empty
+      | map (Branch2 (left, (k, x), right)) =
+          Branch2 (map left, (k, f k x), map right)
+      | map (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          Branch3 (map left, (k1, f k1 x1), map mid, (k2, f k2 x2), map right);
+  in map end;
 
-fun fold_table f Empty x = x
-  | fold_table f (Branch2 (left, p, right)) x =
-      fold_table f right (f p (fold_table f left x))
-  | fold_table f (Branch3 (left, p1, mid, p2, right)) x =
-      fold_table f right (f p2 (fold_table f mid (f p1 (fold_table f left x))));
+fun fold_table f =
+  let
+    fun fold Empty x = x
+      | fold (Branch2 (left, p, right)) x =
+          fold right (f p (fold left x))
+      | fold (Branch3 (left, p1, mid, p2, right)) x =
+          fold right (f p2 (fold mid (f p1 (fold left x))));
+  in fold end;
 
 fun dest tab = rev (fold_table cons tab []);
 fun keys tab = rev (fold_table (cons o #1) tab []);
