@@ -34,15 +34,10 @@ proof -
 qed
 *)
 
-(* Instruct simplifier to simplify assumptions introduced by congs.
-   This makes setsum_cong more convenient to use, because assumptions
+(* With this variant of setsum_cong, assumptions
    like i:{m..n} get simplified (to m <= i & i <= n). *)
 
-declare setsum_cong [cong]
-
-ML_setup {* 
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
+declare strong_setsum_cong [cong]
 
 section {* Definition of type up *}
 
