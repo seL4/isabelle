@@ -21,8 +21,8 @@ structure FixrecPackage: FIXREC_PACKAGE =
 struct
 
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
-fun fixrec_eq_err sign s eq =
-  fixrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term sign eq));
+fun fixrec_eq_err thy s eq =
+  fixrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));
 
 (* ->> is taken from holcf_logic.ML *)
 (* TODO: fix dependencies so we can import HOLCFLogic here *)
@@ -100,12 +100,12 @@ fun add_fixdefs eqs thy =
       | defs (l::ls) r = one_def l (%%:"Cprod.cfst"`r) :: defs ls (%%:"Cprod.csnd"`r);
     val (names, pre_fixdefs) = ListPair.unzip (defs lhss fixpoint);
     
-    val fixdefs = map (inferT_axm (sign_of thy)) pre_fixdefs;
+    val fixdefs = map (inferT_axm thy) pre_fixdefs;
     val (thy', fixdef_thms) =
       PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => cpair_equalI OF [x,y]) fixdef_thms;
     
-    fun mk_cterm t = let val sg' = sign_of thy' in cterm_of sg' (infer sg' t) end;
+    fun mk_cterm t = cterm_of thy' (infer thy' t);
     val ctuple_unfold_ct = mk_cterm (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
     val ctuple_unfold_thm = prove_goalw_cterm [] ctuple_unfold_ct
           (fn _ => [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
@@ -233,18 +233,17 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     val eqns = List.concat blocks;
     val lengths = map length blocks;
     
-    val sign = sign_of thy;
     val ((names, srcss), strings) = apfst split_list (split_list eqns);
     val atts = map (map (prep_attrib thy)) srcss;
     val eqn_ts = map (prep_prop thy) strings;
     val rec_ts = map (fn eq => chead_of (fst (dest_eqs (Logic.strip_imp_concl eq)))
-      handle TERM _ => fixrec_eq_err sign "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = InductivePackage.unify_consts sign rec_ts eqn_ts;
+      handle TERM _ => fixrec_eq_err thy "not a proper equation" eq) eqn_ts;
+    val (_, eqn_ts') = InductivePackage.unify_consts thy rec_ts eqn_ts;
     
     fun unconcat [] _ = []
       | unconcat (n::ns) xs = List.take (xs,n) :: unconcat ns (List.drop (xs,n));
     val pattern_blocks = unconcat lengths (map Logic.strip_imp_concl eqn_ts');
-    val compiled_ts = map (infer sign o compile_pats) pattern_blocks;
+    val compiled_ts = map (infer thy o compile_pats) pattern_blocks;
     val (thy', cnames, fixdef_thms, unfold_thms) = add_fixdefs compiled_ts thy;
   in
     if strict then let (* only prove simp rules if strict = true *)
@@ -301,8 +300,7 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val fixrec_eqn = P.opt_thm_name ":" -- P.prop;
 
-val fixrec_strict =
-  Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true;
+val fixrec_strict = P.opt_keyword "permissive" >> not;
 
 val fixrec_decl = fixrec_strict -- P.and_list1 (Scan.repeat1 fixrec_eqn);
 
