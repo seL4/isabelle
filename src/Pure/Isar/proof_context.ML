@@ -1220,7 +1220,7 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
 
-fun rem_case name = remove (fn (x, (y, _)) => x = y) name;
+fun rem_case name = remove (fn (x: string, (y, _)) => x = y) name;
 
 fun add_case ("", _) cases = cases
   | add_case (name, NONE) cases = rem_case name cases

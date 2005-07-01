@@ -627,7 +627,7 @@ fun mkStates i minPrec lhsID rhss =
 
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
-fun conc (t, prec:int) [] = (NONE, [(t, prec)])
+fun conc (t: parsetree list, prec:int) [] = (NONE, [(t, prec)])
   | conc (t, prec) ((t', prec') :: ts) =
       if t = t' then
         (SOME prec', if prec' >= prec then (t', prec') :: ts
@@ -637,7 +637,7 @@ fun conc (t, prec:int) [] = (NONE, [(t, prec)])
         in (n, (t', prec') :: ts') end;
 
 (*Update entry in used*)
-fun update_trees ((B, (i, ts)) :: used) (A, t) =
+fun update_trees ((B: nt_tag, (i, ts)) :: used) (A, t) =
   if A = B then
     let val (n, ts') = conc t ts
     in ((A, (i, ts')) :: used, n) end
@@ -646,7 +646,7 @@ fun update_trees ((B, (i, ts)) :: used) (A, t) =
     in ((B, (i, ts)) :: used', n) end;
 
 (*Replace entry in used*)
-fun update_prec (A, prec) used =
+fun update_prec (A: nt_tag, prec) used =
   let fun update ((hd as (B, (_, ts))) :: used, used') =
         if A = B
         then used' @ ((A, (prec, ts)) :: used)

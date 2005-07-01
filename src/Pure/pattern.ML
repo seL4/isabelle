@@ -111,7 +111,7 @@ fun mapbnd f =
     in mpb 0 end;
 
 fun idx [] j     = raise Unif
-  | idx(i::is) j = if i=j then length is else idx is j;
+  | idx(i::is) j = if (i:int) =j then length is else idx is j;
 
 fun at xs i = List.nth (xs,i);
 
@@ -202,7 +202,7 @@ fun proj(s,env,binders,is) =
 (* mk_ff_list(is,js) = [ length(is) - k | 1 <= k <= |is| and is[k] = js[k] ] *)
 fun mk_ff_list(is,js) =
     let fun mk([],[],_)        = []
-          | mk(i::is,j::js, k) = if i=j then k :: mk(is,js,k-1)
+          | mk(i::is,j::js, k) = if (i:int) = j then k :: mk(is,js,k-1)
                                         else mk(is,js,k-1)
           | mk _               = error"mk_ff_list"
     in mk(is,js,length is-1) end;
@@ -408,8 +408,8 @@ let
     let val (ph,pargs) = strip_comb pat
         fun rigrig1(iTs,oargs) =
               Library.foldl (mtch binders) ((iTs,itms), pargs~~oargs)
-        fun rigrig2((a,Ta),(b,Tb),oargs) =
-              if a<> b then raise MATCH
+        fun rigrig2((a:string,Ta),(b,Tb),oargs) =
+              if a <> b then raise MATCH
               else rigrig1(typ_match tsg (iTs,(Ta,Tb)), oargs)
     in case ph of
          Var(ixn,T) =>

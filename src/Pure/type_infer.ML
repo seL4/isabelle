@@ -448,7 +448,7 @@ fun paramify_dummies (maxidx, TFree ("'_dummy_", S)) =
 
 fun get_sort tsig def_sort map_sort raw_env =
   let
-    fun eq ((xi, S), (xi', S')) =
+    fun eq ((xi: indexname, S), (xi', S')) =
       xi = xi' andalso Type.eq_sort tsig (S, S');
 
     val env = gen_distinct eq (map (apsnd map_sort) raw_env);
