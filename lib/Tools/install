@@ -16,8 +16,6 @@ function usage()
   echo "  Options are:"
   echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution"
   echo "                 (default ISABELLE_HOME)"
-  echo "    -k VERSION   install KDE application icon on desktop"
-  echo "                 (for KDE VERSION 1 or 2)"
   echo "    -p DIR       install standalone binaries in DIR"
   echo
   echo "  Install Isabelle executables with absolute references to the current"
@@ -40,18 +38,14 @@ function fail()
 NO_OPTS=true
 
 DISTDIR="$ISABELLE_HOME"
-KDE=""
 BINDIR=""
 
-while getopts "d:k:p:" OPT
+while getopts "d:p:" OPT
 do
   NO_OPTS=""
   case "$OPT" in
     d)
       DISTDIR="$OPTARG"
-      ;;
-    k)
-      KDE="$OPTARG"
       ;;
     p)
       BINDIR="$OPTARG"
@@ -111,43 +105,4 @@ if [ -n "$BINDIR" ]; then
     cp "$ISABELLE_HOME/bin/$NAME" "$BIN" || fail "Cannot write file: $BIN"
     chmod +x "$BIN"
   done
-fi
-
-
-# install KDE 1.x / 2.x application icon
-
-if [ -n "$KDE" ]; then
-  if [ "$KDE" = 1 ]; then
-    KDEHOME=~/.kde
-    KDEDESKTOP=~/Desktop
-    KDEAPP="$KDEDESKTOP/Isabelle.kdelnk"
-  elif [ "$KDE" = 2 ]; then
-    KDEHOME=~/.kde2
-    KDEDESKTOP=~/KDesktop
-    KDEAPP="$KDEDESKTOP/Isabelle.desktop"
-  else
-    fail "Unknown KDE version \"$KDE\""
-  fi
-  mkdir -p "$KDEDESKTOP" || fail "Bad directory: $KDEDESKTOP"
-
-  KDEICONS="$KDEHOME/share/icons"
-  mkdir -p "$KDEICONS" || fail "Bad directory: $KDEICONS"
-  mkdir -p "$KDEICONS/mini" || fail "Bad directory: $KDEICONS/mini"
-
-  [ -f "$KDEICONS/isabelle.xpm" ] || cp "$ISABELLE_HOME/lib/icons/isabelle.xpm" "$KDEICONS" || \
-    fail "Cannot write file: $KDEICONS/isabelle.xpm"
-  [ -f "$KDEICONS/mini/isabelle.xpm" ] || \
-    cp "$ISABELLE_HOME/lib/icons/isabelle-mini.xpm" "$KDEICONS/mini/isabelle.xpm" || \
-    fail "Cannot write file: $KDEICONS/mini/isabelle.xpm"
-
-  echo "installing $KDEAPP"
-  echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
-  echo "[KDE Desktop Entry]" >> "$KDEAPP"
-  echo "Type=Application" >> "$KDEAPP"
-  echo "Exec=\"$DISTDIR/bin/isabelle-interface\" %f" >> "$KDEAPP"
-  echo "Icon=isabelle.xpm" >> "$KDEAPP"
-  echo "TerminalOptions=" >> "$KDEAPP"
-  echo "Path=" >> "$KDEAPP"
-  echo "Terminal=0" >> "$KDEAPP"
-  echo "Name=Isabelle" >> "$KDEAPP"
 fi
