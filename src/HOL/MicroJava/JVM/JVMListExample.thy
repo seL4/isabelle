@@ -98,7 +98,7 @@ consts_code
 
   "arbitrary" ("(raise ERROR)")
   "arbitrary" :: "val" ("{* Unit *}")
-  "arbitrary" :: "cname" ("Object")
+  "arbitrary" :: "cname" ("{* Object *}")
 
   "list_nam" ("\"list\"")
   "test_nam" ("\"test\"")
@@ -115,7 +115,7 @@ fun new_addr p none loc hp =
 
 subsection {* Single step execution *}
 
-generate_code 
+generate_code
   test = "exec (E, start_state E test_name makelist_name)"
 
 ML {* test *}
