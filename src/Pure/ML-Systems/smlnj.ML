@@ -59,8 +59,10 @@ fun print_depth n =
 | _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
-(* prompts *)
+(*profiling -- dummy implementation*)
+fun profile (n: int) f x = f x;
 
+(*prompts*)
 fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
 

@@ -68,8 +68,10 @@ fun print_depth n =
 fun make_pp path pprint = ();
 fun install_pp _ = ();
 
-(*prompts*)
-(*n.a.??*)
+(*profiling -- dummy implementation*)
+fun profile (n: int) f x = f x;
+
+(*prompts -- dummy impelemtation*)
 fun ml_prompts p1 p2 = ();
 
 
