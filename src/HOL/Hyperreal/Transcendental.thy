@@ -360,11 +360,8 @@ subsection{*Properties of Power Series*}
 lemma lemma_realpow_diff_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))::real)"
-apply (auto simp add: setsum_mult simp del: setsum_op_ivl_Suc)
-apply (rule setsum_cong[OF refl])
-apply (subst lemma_realpow_diff)
-apply (auto simp add: mult_ac)
-done
+by (auto simp add: setsum_mult lemma_realpow_diff mult_ac
+  simp del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
      "x ^ (Suc n) - y ^ (Suc n) =  
@@ -468,9 +465,8 @@ subsection{*Term-by-Term Differentiability of Power Series*}
 lemma lemma_termdiff1:
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p)))::real)"
-apply (rule setsum_cong[OF refl])
-apply (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac)
-done
+by (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac
+  cong: strong_setsum_cong)
 
 lemma less_add_one: "m < n ==> (\<exists>d. n = m + d + Suc 0)"
 by (simp add: less_iff_Suc_add)
