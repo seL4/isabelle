@@ -56,6 +56,7 @@ sig
   exception TUNIFY
   val unify: tsig -> tyenv * int -> typ * typ -> tyenv * int
   val raw_unify: typ * typ -> bool
+  val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
   val add_classes: Pretty.pp -> NameSpace.naming -> (bstring * class list) list -> tsig -> tsig
@@ -387,6 +388,13 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) (tyenv, maxidx) 
 fun raw_unify (ty1, ty2) =
   (unify empty_tsig (Vartab.empty, 0) (strip_sorts ty1, strip_sorts ty2); true)
     handle TUNIFY => false;
+
+(*check whether two types are equal with respect to a type environment*)
+fun eq_type tye (T, T') =
+  (case (devar (T, tye), devar (T', tye)) of
+     (Type (s, Ts), Type (s', Ts')) =>
+       s = s' andalso ListPair.all (eq_type tye) (Ts, Ts')
+   | (U, U') => U = U');
 
 
 
