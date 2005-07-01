@@ -444,15 +444,25 @@ ML_setup {*
 
 subsubsection {* Congruence rules *}
 
-lemma ball_cong [cong]:
+lemma ball_cong:
   "A = B ==> (!!x. x:B ==> P x = Q x) ==>
     (ALL x:A. P x) = (ALL x:B. Q x)"
   by (simp add: Ball_def)
 
-lemma bex_cong [cong]:
+lemma strong_ball_cong [cong]:
+  "A = B ==> (!!x. x:B =simp=> P x = Q x) ==>
+    (ALL x:A. P x) = (ALL x:B. Q x)"
+  by (simp add: simp_implies_def Ball_def)
+
+lemma bex_cong:
   "A = B ==> (!!x. x:B ==> P x = Q x) ==>
     (EX x:A. P x) = (EX x:B. Q x)"
   by (simp add: Bex_def cong: conj_cong)
+
+lemma strong_bex_cong [cong]:
+  "A = B ==> (!!x. x:B =simp=> P x = Q x) ==>
+    (EX x:A. P x) = (EX x:B. Q x)"
+  by (simp add: simp_implies_def Bex_def cong: conj_cong)
 
 
 subsubsection {* Subsets *}
