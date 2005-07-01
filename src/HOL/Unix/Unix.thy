@@ -614,14 +614,12 @@ text {*
 *}
 
 theorem transitions_type_safe:
-  "root =xs\<Rightarrow> root' \<Longrightarrow> \<exists>att dir. root = Env att dir
-    \<Longrightarrow> \<exists>att dir. root' = Env att dir"
-proof -
-  case rule_context
-  with transition_type_safe show ?thesis
-  proof (rule transitions_invariant)
-    show "\<forall>x \<in> set xs. True" by blast
-  qed
+  assumes "root =xs\<Rightarrow> root'"
+    and "\<exists>att dir. root = Env att dir"
+  shows "\<exists>att dir. root' = Env att dir"
+  using transition_type_safe and prems
+proof (rule transitions_invariant)
+  show "\<forall>x \<in> set xs. True" by blast
 qed
 
 
