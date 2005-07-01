@@ -36,9 +36,6 @@ and trace_simp = ref false	(*print dpairs before calling SIMPL*)
 and trace_types = ref false	(*announce potential incompleteness
 				  of type unification*)
 
-val thy_ref = ref (NONE: theory option);
-fun thy () = the (! thy_ref);
-
 type binderlist = (string*typ) list;
 
 type dpair = binderlist * term * term;
@@ -177,16 +174,16 @@ exception CANTUNIFY;	(*Signals non-unifiability.  Does not signal errors!*)
 exception ASSIGN;	(*Raised if not an assignment*)
 
 
-fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
+fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of (thy ())) (iTs, maxidx) (U, T)
+  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of thy) (iTs, maxidx) (U, T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise CANTUNIFY;
 
-fun test_unify_types(args as (T,U,_)) =
-let val sot = Sign.string_of_typ (thy ());
-    fun warn() = tracing ("Potential loss of completeness: "^sot U^" = "^sot T);
-    val env' = unify_types(args)
+fun test_unify_types thy (args as (T,U,_)) =
+let val str_of = Sign.string_of_typ thy;
+    fun warn() = tracing ("Potential loss of completeness: " ^ str_of U ^ " = " ^ str_of T);
+    val env' = unify_types thy args
 in if is_TVar(T) orelse is_TVar(U) then warn() else ();
    env'
 end;
@@ -209,10 +206,10 @@ fun rlist_abs ([], body) = body
 (*Solve v=u by assignment -- "fixedpoint" to Huet -- if v not in u.
   If v occurs rigidly then nonunifiable.
   If v occurs nonrigidly then must use full algorithm. *)
-fun assignment (env, rbinder, t, u) =
+fun assignment thy (env, rbinder, t, u) =
     let val vT as (v,T) = get_eta_var (rbinder, 0, t)
     in  case rigid_occurs_term (ref [], env, v, u) of
-	      NoOcc => let val env = unify_types(body_type env T,
+	      NoOcc => let val env = unify_types thy (body_type env T,
 						 fastype env (rbinder,u),env)
 		in Envir.update ((vT, rlist_abs (rbinder, u)), env) end
 	    | Nonrigid =>  raise ASSIGN
@@ -225,17 +222,17 @@ fun assignment (env, rbinder, t, u) =
   Checks that binders have same length, since terms should be eta-normal;
     if not, raises TERM, probably indicating type mismatch.
   Uses variable a (unless the null string) to preserve user's naming.*) 
-fun new_dpair (rbinder, Abs(a,T,body1), Abs(b,U,body2), env) =
-	let val env' = unify_types(T,U,env)
+fun new_dpair thy (rbinder, Abs(a,T,body1), Abs(b,U,body2), env) =
+	let val env' = unify_types thy (T,U,env)
 	    val c = if a="" then b else a
-	in new_dpair((c,T) :: rbinder, body1, body2, env') end
-    | new_dpair (_, Abs _, _, _) = raise TERM ("new_dpair", [])
-    | new_dpair (_, _, Abs _, _) = raise TERM ("new_dpair", [])
-    | new_dpair (rbinder, t1, t2, env) = ((rbinder, t1, t2), env);
+	in new_dpair thy ((c,T) :: rbinder, body1, body2, env') end
+    | new_dpair _ (_, Abs _, _, _) = raise TERM ("new_dpair", [])
+    | new_dpair _ (_, _, Abs _, _) = raise TERM ("new_dpair", [])
+    | new_dpair _ (rbinder, t1, t2, env) = ((rbinder, t1, t2), env);
 
 
-fun head_norm_dpair (env, (rbinder,t,u)) : dpair * Envir.env =
-     new_dpair (rbinder,
+fun head_norm_dpair thy (env, (rbinder,t,u)) : dpair * Envir.env =
+     new_dpair thy (rbinder,
 		eta_norm env (rbinder, Envir.head_norm env t),
 	  	eta_norm env (rbinder, Envir.head_norm env u), env);
 
@@ -247,11 +244,11 @@ fun head_norm_dpair (env, (rbinder,t,u)) : dpair * Envir.env =
   Does not even identify Vars in dpairs such as ?a =?= ?b; an attempt to
     do so caused numerous problems with no compensating advantage.
 *)
-fun SIMPL0 (dp0, (env,flexflex,flexrigid))
+fun SIMPL0 thy (dp0, (env,flexflex,flexrigid))
 	: Envir.env * dpair list * dpair list =
-    let val (dp as (rbinder,t,u), env) = head_norm_dpair(env,dp0);
+    let val (dp as (rbinder,t,u), env) = head_norm_dpair thy (env,dp0);
 	    fun SIMRANDS(f$t, g$u, env) =
-			SIMPL0((rbinder,t,u), SIMRANDS(f,g,env))
+			SIMPL0 thy ((rbinder,t,u), SIMRANDS(f,g,env))
 	      | SIMRANDS (t as _$_, _, _) =
 		raise TERM ("SIMPL: operands mismatch", [t,u])
 	      | SIMRANDS (t, u as _$_, _) =
@@ -260,21 +257,21 @@ fun SIMPL0 (dp0, (env,flexflex,flexrigid))
     in case (head_of t, head_of u) of
        (Var(_,T), Var(_,U)) =>
 	    let val T' = body_type env T and U' = body_type env U;
-		val env = unify_types(T',U',env)
+		val env = unify_types thy (T',U',env)
 	    in (env, dp::flexflex, flexrigid) end
      | (Var _, _) =>
-	    ((assignment (env,rbinder,t,u), flexflex, flexrigid)
+	    ((assignment thy (env,rbinder,t,u), flexflex, flexrigid)
 	     handle ASSIGN => (env, flexflex, dp::flexrigid))
      | (_, Var _) =>
-	    ((assignment (env,rbinder,u,t), flexflex, flexrigid)
+	    ((assignment thy (env,rbinder,u,t), flexflex, flexrigid)
 	     handle ASSIGN => (env, flexflex, (rbinder,u,t)::flexrigid))
      | (Const(a,T), Const(b,U)) =>
-	    if a=b then SIMRANDS(t,u, unify_types(T,U,env))
+	    if a=b then SIMRANDS(t,u, unify_types thy (T,U,env))
 	    else raise CANTUNIFY
      | (Bound i,    Bound j)    =>
 	    if i=j  then SIMRANDS(t,u,env) else raise CANTUNIFY
      | (Free(a,T),  Free(b,U))  =>
-	    if a=b then SIMRANDS(t,u, unify_types(T,U,env))
+	    if a=b then SIMRANDS(t,u, unify_types thy (T,U,env))
 	    else raise CANTUNIFY
      | _ => raise CANTUNIFY
     end;
@@ -289,12 +286,12 @@ fun changed (env, f$_) = changed (env,f)
 
 (*Recursion needed if any of the 'head variables' have been updated
   Clever would be to re-do just the affected dpairs*)
-fun SIMPL (env,dpairs) : Envir.env * dpair list * dpair list =
+fun SIMPL thy (env,dpairs) : Envir.env * dpair list * dpair list =
     let val all as (env',flexflex,flexrigid) =
-	    foldr SIMPL0 (env,[],[]) dpairs;
+	    foldr (SIMPL0 thy) (env,[],[]) dpairs;
 	val dps = flexrigid@flexflex
     in if exists (fn ((_,t,u)) => changed(env',t) orelse changed(env',u)) dps
-       then SIMPL(env',dps) else all
+       then SIMPL thy (env',dps) else all
     end;
 
 
@@ -332,7 +329,7 @@ fun type_abs (env,T,t) = types_abs(binder_types env T, t);
   For example, projection in ?b'(?a) may be wrong if other dpairs constrain ?a.
   The order for trying projections is crucial in ?b'(?a)   
   NB "vname" is only used in the call to make_args!!   *)
-fun matchcopy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs)) 
+fun matchcopy thy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs)) 
 	: (term * (Envir.env * dpair list))Seq.seq =
 let (*Produce copies of uarg and cons them in front of uargs*)
     fun copycons uarg (uargs, (env, dpairs)) =
@@ -349,14 +346,14 @@ let (*Produce copies of uarg and cons them in front of uargs*)
     (*attempt projection on argument with given typ*)
     val Ts = map (curry (fastype env) rbinder) targs;
     fun projenv (head, (Us,bary), targ, tail) = 
-	let val env = if !trace_types then test_unify_types(base,bary,env)
-		      else unify_types(base,bary,env)
+	let val env = if !trace_types then test_unify_types thy (base,bary,env)
+		      else unify_types thy (base,bary,env)
 	in Seq.make (fn () =>  
 	    let val (env',args) = make_args vname (Ts,env,Us);
 		(*higher-order projection: plug in targs for bound vars*)
 		fun plugin arg = list_comb(head_of arg, targs);
 		val dp = (rbinder, list_comb(targ, map plugin args), u);
-		val (env2,frigid,fflex) = SIMPL (env', dp::dpairs)
+		val (env2,frigid,fflex) = SIMPL thy (env', dp::dpairs)
 		    (*may raise exception CANTUNIFY*)
 	    in  SOME ((list_comb(head,args), (env2, frigid@fflex)),
 			tail)
@@ -393,7 +390,7 @@ in mc end;
 
 
 (*Call matchcopy to produce assignments to the variable in the dpair*)
-fun MATCH (env, (rbinder,t,u), dpairs)
+fun MATCH thy (env, (rbinder,t,u), dpairs)
 	: (Envir.env * dpair list)Seq.seq = 
   let val (Var (vT as (v, T)), targs) = strip_comb t;
       val Ts = binder_types env T;
@@ -403,7 +400,7 @@ fun MATCH (env, (rbinder,t,u), dpairs)
 	      NONE => (Envir.update ((vT, types_abs(Ts, u')), env'),  dpairs')
 	    | SOME s => (env', ([], s, types_abs(Ts, u'))::dpairs')
   in Seq.map new_dset
-         (matchcopy (#1 v) (rbinder, targs, u, (env,dpairs)))
+         (matchcopy thy (#1 v) (rbinder, targs, u, (env,dpairs)))
   end;
 
 
@@ -412,10 +409,10 @@ fun MATCH (env, (rbinder,t,u), dpairs)
 
 (*At end of unification, do flex-flex assignments like ?a -> ?f(?b) 
   Attempts to update t with u, raising ASSIGN if impossible*)
-fun ff_assign(env, rbinder, t, u) : Envir.env = 
+fun ff_assign thy (env, rbinder, t, u) : Envir.env = 
 let val vT as (v,T) = get_eta_var(rbinder,0,t)
 in if occurs_terms (ref [], env, v, [u]) then raise ASSIGN
-   else let val env = unify_types(body_type env T,
+   else let val env = unify_types thy (body_type env T,
 				  fastype env (rbinder,u),
 				  env)
 	in Envir.vupdate ((vT, rlist_abs (rbinder, u)), env) end
@@ -514,7 +511,7 @@ fun add_tpair (rbinder, (t0,u0), tpairs) : (term*term) list =
 
 (*Simplify both terms and check for assignments.
   Bound vars in the binder are "banned" unless used in both t AND u *)
-fun clean_ffpair ((rbinder, t, u), (env,tpairs)) = 
+fun clean_ffpair thy ((rbinder, t, u), (env,tpairs)) = 
   let val loot = loose_bnos t  and  loou = loose_bnos u
       fun add_index (((a,T), j), (bnos, newbinder)) = 
             if  j mem_int loot  andalso  j mem_int loou 
@@ -524,8 +521,8 @@ fun clean_ffpair ((rbinder, t, u), (env,tpairs)) =
       val (banned,rbin') = foldr add_index ([],[]) (rbinder~~indices);
       val (env', t') = clean_term banned (env, t);
       val (env'',u') = clean_term banned (env',u)
-  in  (ff_assign(env'', rbin', t', u'), tpairs)
-      handle ASSIGN => (ff_assign(env'', rbin', u', t'), tpairs)
+  in  (ff_assign thy (env'', rbin', t', u'), tpairs)
+      handle ASSIGN => (ff_assign thy (env'', rbin', u', t'), tpairs)
       handle ASSIGN => (env'', add_tpair(rbin', (t',u'), tpairs))
   end
   handle CHANGE_FAIL => (env, add_tpair(rbinder, (t,u), tpairs));
@@ -535,7 +532,7 @@ fun clean_ffpair ((rbinder, t, u), (env,tpairs)) =
   eliminates trivial tpairs like t=t, as well as repeated ones
   trivial tpairs can easily escape SIMPL:  ?A=t, ?A=?B, ?B=t gives t=t 
   Resulting tpairs MAY NOT be in normal form:  assignments may occur here.*)
-fun add_ffpair ((rbinder,t0,u0), (env,tpairs)) 
+fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs)) 
       : Envir.env * (term*term)list =
   let val t = Envir.norm_term env t0  and  u = Envir.norm_term env u0
   in  case  (head_of t, head_of u) of
@@ -544,8 +541,8 @@ fun add_ffpair ((rbinder,t0,u0), (env,tpairs))
 	    if T=U then (env, add_tpair (rbinder, (t,u), tpairs))
 	    else raise TERM ("add_ffpair: Var name confusion", [t,u])
 	else if xless(v,w) then (*prefer to update the LARGER variable*)
-	     clean_ffpair ((rbinder, u, t), (env,tpairs))
-        else clean_ffpair ((rbinder, t, u), (env,tpairs))
+	     clean_ffpair thy ((rbinder, u, t), (env,tpairs))
+        else clean_ffpair thy ((rbinder, t, u), (env,tpairs))
     | _ => raise TERM ("add_ffpair: Vars expected", [t,u])
   end;
 
@@ -553,9 +550,9 @@ fun add_ffpair ((rbinder,t0,u0), (env,tpairs))
 (*Print a tracing message + list of dpairs.
   In t==u print u first because it may be rigid or flexible --
     t is always flexible.*)
-fun print_dpairs msg (env,dpairs) =
+fun print_dpairs thy msg (env,dpairs) =
   let fun pdp (rbinder,t,u) =
-        let fun termT t = Sign.pretty_term (thy ())
+        let fun termT t = Sign.pretty_term thy
                               (Envir.norm_term env (rlist_abs(rbinder,t)))
             val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1,
                           termT t];
@@ -572,25 +569,24 @@ fun hounifiers (thy,env, tus : (term*term)list)
 	  Seq.make (fn()=>
 	  let val (env',flexflex,flexrigid) = 
 	       (if tdepth> !trace_bound andalso !trace_simp
-		then print_dpairs "Enter SIMPL" (env,dpairs)  else ();
-		SIMPL (env,dpairs))
+		then print_dpairs thy "Enter SIMPL" (env,dpairs)  else ();
+		SIMPL thy (env,dpairs))
 	  in case flexrigid of
-	      [] => SOME (foldr add_ffpair (env',[]) flexflex, reseq)
+	      [] => SOME (foldr (add_ffpair thy) (env',[]) flexflex, reseq)
 	    | dp::frigid' => 
 		if tdepth > !search_bound then
 		    (warning "Unification bound exceeded"; Seq.pull reseq)
 		else
 		(if tdepth > !trace_bound then
-		    print_dpairs "Enter MATCH" (env',flexrigid@flexflex)
+		    print_dpairs thy "Enter MATCH" (env',flexrigid@flexflex)
 		 else ();
 		 Seq.pull (Seq.it_right (add_unify (tdepth+1))
-			   (MATCH (env',dp, frigid'@flexflex), reseq)))
+			   (MATCH thy (env',dp, frigid'@flexflex), reseq)))
 	  end
 	  handle CANTUNIFY => 
 	    (if tdepth > !trace_bound then tracing"Failure node" else ();
 	     Seq.pull reseq));
      val dps = map (fn(t,u)=> ([],t,u)) tus
-     val _ = thy_ref := SOME thy;
   in add_unify 1 ((env, dps), Seq.empty) end;
 
 fun unifiers params =
