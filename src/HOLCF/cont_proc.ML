@@ -8,6 +8,7 @@ sig
   val is_lcf_term: term -> bool
   val cont_thms: term -> thm list
   val all_cont_thms: term -> thm list
+  val cont_tac: int -> tactic
   val cont_proc: theory -> simproc
   val setup: (theory -> theory) list
 end;
@@ -84,19 +85,28 @@ end;
 *)
 
 local
-  fun solve_cont sg _ (t as Const("Cont.cont",_) $ f) =
+  val rules = [cont_K, cont_I, cont_R, cont_A, cont_L];
+  
+  fun cont_tac_of_term (Const("Cont.cont",_) $ f) =
     let
-      val rules = [cont_K, cont_I, cont_R, cont_A, cont_L];
-      val tr = instantiate' [] [SOME (cterm_of sg t)] Eq_TrueI;
       val f' = Const("Cfun.Abs_CFun",dummyT) $ f;
-      val tac = if is_lcf_term f'
-        then rtac (hd (cont_thms f')) 1
-        else REPEAT_ALL_NEW (resolve_tac rules) 1;
-    in Option.map fst (Seq.pull (tac tr)) end
-    | solve_cont sg _ _ = NONE;
+    in
+      if is_lcf_term f'
+        then rtac (hd (cont_thms f'))
+        else REPEAT_ALL_NEW (resolve_tac rules)
+    end
+    | cont_tac_of_term _ = K no_tac;
 in
-  fun cont_proc thy = Simplifier.simproc (Theory.sign_of thy)
-        "cont_proc" ["cont f"] solve_cont;
+  val cont_tac = SUBGOAL (fn (t,i) => cont_tac_of_term (HOLogic.dest_Trueprop t) i);
+end;
+
+local
+  fun solve_cont thy _ t =
+    let
+      val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI;
+    in Option.map fst (Seq.pull (cont_tac 1 tr)) end
+in
+  fun cont_proc thy = Simplifier.simproc thy "cont_proc" ["cont f"] solve_cont;
 end;
 
 val setup =
