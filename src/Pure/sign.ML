@@ -90,6 +90,7 @@ sig
   val of_sort: theory -> typ * sort -> bool
   val witness_sorts: theory -> sort list -> sort list -> (typ * sort) list
   val universal_witness: theory -> (typ * sort) option
+  val all_sorts_nonempty: theory -> bool
   val typ_instance: theory -> typ * typ -> bool
   val is_logtype: theory -> string -> bool
   val const_type: theory -> string -> typ option
@@ -246,6 +247,7 @@ val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val universal_witness = Type.universal_witness o tsig_of;
+val all_sorts_nonempty = is_some o universal_witness;
 val typ_instance = Type.typ_instance o tsig_of;
 fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
 
