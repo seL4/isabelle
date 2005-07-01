@@ -17,7 +17,7 @@ sig
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
   val lookup: env * (indexname * typ) -> term option
-  val lookup': (Type.tyenv * tenv) * (indexname * typ) -> term option
+  val lookup': tenv * (indexname * typ) -> term option
   val update: ((indexname * typ) * term) * env -> env
   val empty: int -> env
   val is_empty: env -> bool
@@ -68,20 +68,6 @@ fun genvar name (env,T) : env * term =
   let val (env',[v]) = genvars name (env,[T])
   in  (env',v)  end;
 
-(* de-reference TVars. When dealing with environments produced by *)
-(* matching instead of unification, there is no need to chase     *)
-(* assigned TVars. In this case, set b to false.                  *)
-fun devar b iTs (T as TVar vT) = (case Type.lookup (iTs, vT) of
-      NONE => T
-    | SOME T' => if b then devar true iTs T' else T')
-  | devar b iTs T = T;
-
-fun eq_type b iTs (T, T') =
-  (case (devar b iTs T, devar b iTs T') of
-     (Type (s, Ts), Type (s', Ts')) =>
-       s = s' andalso ListPair.all (eq_type b iTs) (Ts, Ts')
-   | (U, U') => U = U');
-
 fun var_clash ixn T T' = raise TYPE ("Variable " ^
   quote (Syntax.string_of_vname ixn) ^ " has two distinct types",
   [T', T], []);
@@ -92,19 +78,18 @@ fun gen_lookup f asol (xname, T) =
    | SOME (U, t) => if f (T, U) then SOME t
        else var_clash xname T U);
 
-(* version ignoring type substitutions *)
-fun lookup1 asol = gen_lookup op = asol;
+(* When dealing with environments produced by matching instead *)
+(* of unification, there is no need to chase assigned TVars.   *)
+(* In this case, we can simply ignore the type substitution    *)
+(* and use = instead of eq_type.                               *)
 
-fun gen_lookup2 b (iTs, asol) =
-  if Vartab.is_empty iTs then lookup1 asol
-  else gen_lookup (eq_type b iTs) asol;
+fun lookup' (asol, p) = gen_lookup op = asol p;
 
-fun lookup2 env = gen_lookup2 true env;
+fun lookup2 (iTs, asol) p =
+  if Vartab.is_empty iTs then lookup' (asol, p)
+  else gen_lookup (Type.eq_type iTs) asol p;
 
 fun lookup (Envir {asol, iTs, ...}, p) = lookup2 (iTs, asol) p;
-
-(* version for matching algorithms, does not chase TVars *)
-fun lookup' (env, p) = gen_lookup2 false env p;
 
 fun update (((xname, T), t), Envir {maxidx, asol, iTs}) =
   Envir{maxidx=maxidx, asol=Vartab.update_new ((xname, (T, t)), asol), iTs=iTs};
@@ -148,7 +133,7 @@ exception SAME;
 
 fun norm_term1 same (asol,t) : term =
   let fun norm (Var wT) =
-            (case lookup1 asol wT of
+            (case lookup' (asol, wT) of
                 SOME u => (norm u handle SAME => u)
               | NONE   => raise SAME)
         | norm (Abs(a,T,body)) =  Abs(a, T, norm body)
@@ -261,18 +246,18 @@ val subst_TVars = map_term_types o typ_subst_TVars;
 
 (*Substitute for Vars in a term *)
 fun subst_Vars itms t = if Vartab.is_empty itms then t else
-  let fun subst (v as Var ixnT) = getOpt (lookup1 itms ixnT, v)
+  let fun subst (v as Var ixnT) = getOpt (lookup' (itms, ixnT), v)
         | subst (Abs (a, T, t)) = Abs (a, T, subst t)
         | subst (f $ t) = subst f $ subst t
         | subst t = t
   in subst t end;
 
 (*Substitute for type/term Vars in a term *)
-fun subst_vars (env as (iTs, itms)) =
+fun subst_vars (iTs, itms) =
   if Vartab.is_empty iTs then subst_Vars itms else
   let fun subst (Const (a, T)) = Const(a, typ_subst_TVars iTs T)
         | subst (Free (a, T)) = Free (a, typ_subst_TVars iTs T)
-        | subst (Var (ixn, T)) = (case lookup' (env, (ixn, T)) of
+        | subst (Var (ixn, T)) = (case lookup' (itms, (ixn, T)) of
             NONE   => Var (ixn, typ_subst_TVars iTs T)
           | SOME t => t)
         | subst (b as Bound _) = b
