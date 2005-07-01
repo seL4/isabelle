@@ -371,7 +371,7 @@ fun read_asts thy is_logtype (Syntax tabs) xids root str =
       if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
       else (warning ("Ambiguous input " ^ quote str ^ "\n" ^
           "produces " ^ string_of_int (length pts) ^ " parse trees (see trace).");
-         List.app (tracing o show_pt) pts));
+         List.app (warning o show_pt) pts));
     SynTrans.pts_to_asts thy (lookup_tr parse_ast_trtab) pts
   end;
 
