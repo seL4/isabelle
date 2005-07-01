@@ -369,8 +369,9 @@ fun read_asts thy is_logtype (Syntax tabs) xids root str =
   in
     conditional (length pts > ! ambiguity_level) (fn () =>
       if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
-      else warning (cat_lines ("Ambiguous input " ^ quote str ::
-        "produces the following parse trees:" :: map show_pt pts)));
+      else (warning ("Ambiguous input " ^ quote str ^ "\n" ^
+          "produces " ^ string_of_int (length pts) ^ " parse trees (see trace).");
+         List.app (tracing o show_pt) pts));
     SynTrans.pts_to_asts thy (lookup_tr parse_ast_trtab) pts
   end;
 
