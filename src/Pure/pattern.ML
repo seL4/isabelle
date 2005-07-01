@@ -358,7 +358,7 @@ fun fomatch tsig =
     fun mtch (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
           if loose_bvar(t,0) then raise MATCH
-          else (case Envir.lookup' (instsp, (ixn, T)) of
+          else (case Envir.lookup' (insts, (ixn, T)) of
                   NONE => (typ_match tsig (tyinsts, (T, fastype_of t)),
                            Vartab.update_new ((ixn, (T, t)), insts))
                 | SOME u => if t aeconv u then instsp else raise MATCH)
@@ -414,7 +414,7 @@ let
     in case ph of
          Var(ixn,T) =>
            let val is = ints_of pargs
-           in case Envir.lookup' (env, (ixn, T)) of
+           in case Envir.lookup' (itms, (ixn, T)) of
                 NONE => (iTs,match_bind(itms,binders,ixn,T,is,obj))
               | SOME u => if obj aeconv (red u is []) then env
                           else raise MATCH
