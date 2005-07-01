@@ -450,18 +450,27 @@ fun apply [] x = x
 
 (* fold *)
 
-fun fold _ [] y = y
-  | fold f (x :: xs) y = fold f xs (f x y);
+fun fold f =
+  let
+    fun fold_aux [] y = y
+      | fold_aux (x :: xs) y = fold_aux xs (f x y);
+  in fold_aux end;
 
-fun fold_rev _ [] y = y
-  | fold_rev f (x :: xs) y = f x (fold_rev f xs y);
+fun fold_rev f =
+  let
+    fun fold_aux [] y = y
+      | fold_aux (x :: xs) y = f x (fold_aux xs y);
+  in fold_aux end;
 
-fun foldl_map _ (x, []) = (x, [])
-  | foldl_map f (x, y :: ys) =
-      let
-        val (x', y') = f (x, y);
-        val (x'', ys') = foldl_map f (x', ys);
-      in (x'', y' :: ys') end;
+fun foldl_map f =
+  let
+    fun fold_aux (x, []) = (x, [])
+      | fold_aux (x, y :: ys) =
+          let
+            val (x', y') = f (x, y);
+            val (x'', ys') = fold_aux (x', ys);
+          in (x'', y' :: ys') end;
+  in fold_aux end;
 
 (*the following versions of fold are designed to fit nicely with infixes*)
 
