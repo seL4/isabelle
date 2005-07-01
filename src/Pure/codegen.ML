@@ -18,6 +18,8 @@ sig
     | Pretty of Pretty.T
     | Quote of 'a;
 
+  type deftab
+  type codegr
   type 'a codegen
 
   val add_codegen: string -> term codegen -> theory -> theory
@@ -26,35 +28,40 @@ sig
   val add_preprocessor: (theory -> thm list -> thm list) -> theory -> theory
   val preprocess: theory -> thm list -> thm list
   val print_codegens: theory -> unit
-  val generate_code: theory -> (string * string) list -> string
-  val generate_code_i: theory -> (string * term) list -> string
+  val generate_code: theory -> (string * string) list -> (string * string) list
+  val generate_code_i: theory -> (string * term) list -> (string * string) list
   val assoc_consts: (xstring * string option * term mixfix list) list -> theory -> theory
   val assoc_consts_i: (xstring * typ option * term mixfix list) list -> theory -> theory
   val assoc_types: (xstring * typ mixfix list) list -> theory -> theory
   val get_assoc_code: theory -> string -> typ -> term mixfix list option
   val get_assoc_type: theory -> string -> typ mixfix list option
-  val invoke_codegen: theory -> string -> bool ->
-    (exn option * string) Graph.T * term -> (exn option * string) Graph.T * Pretty.T
-  val invoke_tycodegen: theory -> string -> bool ->
-    (exn option * string) Graph.T * typ -> (exn option * string) Graph.T * Pretty.T
+  val invoke_codegen: theory -> deftab -> string -> string -> bool ->
+    codegr * term -> codegr * Pretty.T
+  val invoke_tycodegen: theory -> deftab -> string -> string -> bool ->
+    codegr * typ -> codegr * Pretty.T
   val mk_id: string -> string
-  val mk_const_id: theory -> string -> string
-  val mk_type_id: theory -> string -> string
+  val mk_const_id: theory -> string -> string -> string -> string
+  val mk_type_id: theory -> string -> string -> string -> string
+  val thyname_of_type: string -> theory -> string
+  val thyname_of_const: string -> theory -> string
+  val rename_terms: term list -> term list
   val rename_term: term -> term
   val new_names: term -> string list -> string list
   val new_name: term -> string -> string
-  val get_defn: theory -> string -> typ -> ((term list * term) * int option) option
+  val get_defn: theory -> deftab -> string -> typ ->
+    ((typ * (string * (term list * term))) * int option) option
   val is_instance: theory -> typ -> typ -> bool
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
   val eta_expand: term -> term list -> int -> term
   val strip_tname: string -> string
   val mk_type: bool -> typ -> Pretty.T
-  val mk_term_of: theory -> bool -> typ -> Pretty.T
-  val mk_gen: theory -> bool -> string list -> string -> typ -> Pretty.T
+  val mk_term_of: theory -> string -> bool -> typ -> Pretty.T
+  val mk_gen: theory -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> int -> int -> term -> (string * term) list option
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
+  val mk_deftab: theory -> deftab
 end;
 
 structure Codegen : CODEGEN =
@@ -93,10 +100,34 @@ fun num_args x = length (List.filter is_arg x);
 
 (**** theory data ****)
 
+(* preprocessed definition table *)
+
+type deftab =
+  (typ *              (* type of constant *)
+    (string *         (* name of theory containing definition of constant *)
+      (term list *    (* parameters *)
+       term)))        (* right-hand side *)
+  list Symtab.table;
+
+(* code dependency graph *)
+
+type codegr =
+  (exn option *    (* slot for arbitrary data *)
+   string *        (* name of structure containing piece of code *)
+   string)         (* piece of code *)
+  Graph.T;
+
 (* type of code generators *)
 
-type 'a codegen = theory -> (exn option * string) Graph.T ->
-  string -> bool -> 'a -> ((exn option * string) Graph.T * Pretty.T) option;
+type 'a codegen =
+  theory ->    (* theory in which generate_code was called *)
+  deftab ->    (* definition table (for efficiency) *)
+  codegr ->    (* code dependency graph *)
+  string ->    (* node name of caller (for recording dependencies) *)
+  string ->    (* theory name of caller (for modular code generation) *)
+  bool ->      (* whether to parenthesize generated expression *)
+  'a ->        (* item to generate code from *)
+  (codegr * Pretty.T) option;
 
 (* parameters for random testing *)
 
@@ -298,7 +329,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
   let
     val {codegens, tycodegens, consts, types, attrs, preprocs, test_params} =
       CodegenData.get thy;
-    val tc = Sign.intern_type (sign_of thy) s
+    val tc = Sign.intern_type thy s
   in
     (case assoc (types, tc) of
        NONE => CodegenData.put {codegens = codegens,
@@ -339,13 +370,58 @@ fun mk_id s = if s = "" then "" else
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
 
-fun mk_const_id thy s =
-  let val s' = mk_id (Sign.extern_const thy s)
-  in if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s' end;
+fun extrn thy f thyname s =
+  let
+    val xs = NameSpace.unpack s;
+    val s' = setmp NameSpace.long_names false (setmp NameSpace.short_names false
+      (setmp NameSpace.unique_names true (f thy))) s;
+    val xs' = NameSpace.unpack s'
+  in
+    if "modular" mem !mode andalso length xs = length xs' andalso hd xs' = thyname
+    then NameSpace.pack (tl xs') else s'
+  end;
 
-fun mk_type_id thy s =
-  let val s' = mk_id (Sign.extern_type thy s)
-  in if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s' end;
+(* thyname:  theory name for caller                                        *)
+(* thyname': theory name for callee                                        *)
+(* if caller and callee reside in different theories, use qualified access *)
+
+fun mk_const_id thy thyname thyname' s =
+  let
+    val s' = mk_id (extrn thy Sign.extern_const thyname' s);
+    val s'' = if s' mem ThmDatabase.ml_reserved then s' ^ "_const" else s'
+  in
+    if "modular" mem !mode andalso thyname <> thyname' andalso thyname' <> ""
+    then thyname' ^ "." ^ s'' else s''
+  end;
+
+fun mk_type_id' f thy thyname thyname' s =
+  let
+    val s' = mk_id (extrn thy Sign.extern_type thyname' s);
+    val s'' = f (if s' mem ThmDatabase.ml_reserved then s' ^ "_type" else s')
+  in
+    if "modular" mem !mode andalso thyname <> thyname' andalso thyname' <> ""
+    then thyname' ^ "." ^ s'' else s''
+  end;
+
+val mk_type_id = mk_type_id' I;
+
+fun theory_of_type s thy = 
+  if Sign.declared_tyname thy s
+  then SOME (if_none (get_first (theory_of_type s) (Theory.parents_of thy)) thy)
+  else NONE;
+
+fun theory_of_const s thy = 
+  if Sign.declared_const thy s
+  then SOME (if_none (get_first (theory_of_const s) (Theory.parents_of thy)) thy)
+  else NONE;
+
+fun thyname_of_type s thy = (case theory_of_type s thy of
+    NONE => error ("thyname_of_type: no such type: " ^ quote s)
+  | SOME thy' => Context.theory_name thy');
+
+fun thyname_of_const s thy = (case theory_of_const s thy of
+    NONE => error ("thyname_of_const: no such constant: " ^ quote s)
+  | SOME thy' => Context.theory_name thy');
 
 fun rename_terms ts =
   let
@@ -374,53 +450,60 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance thy T1 T2 =
-  Sign.typ_instance (sign_of thy) (T1, Type.varifyT T2);
+  Sign.typ_instance thy (T1, Type.varifyT T2);
 
 fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
-fun get_defn thy s T =
+fun mk_deftab thy =
   let
-    val axms = Theory.all_axioms_of thy;
+    val axmss = map (fn thy' =>
+      (Context.theory_name thy', snd (#axioms (Theory.rep_theory thy'))))
+      (thy :: Theory.ancestors_of thy);
     fun prep_def def = (case preprocess thy [def] of
-      [def'] => prop_of def' | _ => error "get_defn: bad preprocessor");
+      [def'] => prop_of def' | _ => error "mk_deftab: bad preprocessor");
     fun dest t =
       let
         val (lhs, rhs) = Logic.dest_equals t;
         val (c, args) = strip_comb lhs;
-        val (s', T') = dest_Const c
-      in if s = s' then SOME (T', (args, rhs)) else NONE
+        val (s, T) = dest_Const c
+      in if forall is_Var args then SOME (s, (T, (args, rhs))) else NONE
       end handle TERM _ => NONE;
-    val defs = List.mapPartial (fn (name, t) => Option.map (pair name) (dest t)) axms;
-    val i = find_index (is_instance thy T o fst o snd) defs
+    fun add_def thyname (defs, (name, t)) = (case dest t of
+        NONE => defs
+      | SOME _ => (case dest (prep_def (Thm.get_axiom thy name)) of
+          NONE => defs
+        | SOME (s, (T, (args, rhs))) => Symtab.update
+            ((s, (T, (thyname, split_last (rename_terms (args @ [rhs])))) ::
+            if_none (Symtab.lookup (defs, s)) []), defs)))
   in
-    if i >= 0 then
-      let val (name, (T', (args, _))) = List.nth (defs, i)
-      in case dest (prep_def (Thm.get_axiom thy name)) of
-          NONE => NONE
-        | SOME (T'', p as (args', rhs)) =>
-            if T' = T'' andalso args = args' then
-              SOME (split_last (rename_terms (args @ [rhs])),
-                if length defs = 1 then NONE else SOME i)
-            else NONE
-      end
-    else NONE
+    foldl (fn ((thyname, axms), defs) =>
+      Symtab.foldl (add_def thyname) (defs, axms)) Symtab.empty axmss
   end;
+
+fun get_defn thy defs s T = (case Symtab.lookup (defs, s) of
+    NONE => NONE
+  | SOME ds =>
+      let val i = find_index (is_instance thy T o fst) ds
+      in if i >= 0 then
+          SOME (List.nth (ds, i), if length ds = 1 then NONE else SOME i)
+        else NONE
+      end);
 
 
 (**** invoke suitable code generator for term / type ****)
 
-fun invoke_codegen thy dep brack (gr, t) = (case get_first
-   (fn (_, f) => f thy gr dep brack t) (#codegens (CodegenData.get thy)) of
+fun invoke_codegen thy defs dep thyname brack (gr, t) = (case get_first
+   (fn (_, f) => f thy defs gr dep thyname brack t) (#codegens (CodegenData.get thy)) of
       NONE => error ("Unable to generate code for term:\n" ^
-        Sign.string_of_term (sign_of thy) t ^ "\nrequired by:\n" ^
+        Sign.string_of_term thy t ^ "\nrequired by:\n" ^
         commas (Graph.all_succs gr [dep]))
     | SOME x => x);
 
-fun invoke_tycodegen thy dep brack (gr, T) = (case get_first
-   (fn (_, f) => f thy gr dep brack T) (#tycodegens (CodegenData.get thy)) of
+fun invoke_tycodegen thy defs dep thyname brack (gr, T) = (case get_first
+   (fn (_, f) => f thy defs gr dep thyname brack T) (#tycodegens (CodegenData.get thy)) of
       NONE => error ("Unable to generate code for type:\n" ^
-        Sign.string_of_typ (sign_of thy) T ^ "\nrequired by:\n" ^
+        Sign.string_of_typ thy T ^ "\nrequired by:\n" ^
         commas (Graph.all_succs gr [dep]))
     | SOME x => x);
 
@@ -463,15 +546,15 @@ fun new_names t xs = variantlist (map mk_id xs,
 
 fun new_name t x = hd (new_names t [x]);
 
-fun default_codegen thy gr dep brack t =
+fun default_codegen thy defs gr dep thyname brack t =
   let
     val (u, ts) = strip_comb t;
-    fun codegens brack = foldl_map (invoke_codegen thy dep brack)
+    fun codegens brack = foldl_map (invoke_codegen thy defs dep thyname brack)
   in (case u of
       Var ((s, i), T) =>
         let
           val (gr', ps) = codegens true (gr, ts);
-          val (gr'', _) = invoke_tycodegen thy dep false (gr', T)
+          val (gr'', _) = invoke_tycodegen thy defs dep thyname false (gr', T)
         in SOME (gr'', mk_app brack (Pretty.str (s ^
            (if i=0 then "" else string_of_int i))) ps)
         end
@@ -479,7 +562,7 @@ fun default_codegen thy gr dep brack t =
     | Free (s, T) =>
         let
           val (gr', ps) = codegens true (gr, ts);
-          val (gr'', _) = invoke_tycodegen thy dep false (gr', T)
+          val (gr'', _) = invoke_tycodegen thy defs dep thyname false (gr', T)
         in SOME (gr'', mk_app brack (Pretty.str s) ps) end
 
     | Const (s, T) =>
@@ -487,7 +570,7 @@ fun default_codegen thy gr dep brack t =
          SOME ms =>
            let val i = num_args ms
            in if length ts < i then
-               default_codegen thy gr dep brack (eta_expand u ts i)
+               default_codegen thy defs gr dep thyname brack (eta_expand u ts i)
              else
                let
                  val (ts1, ts2) = args_of ms ts;
@@ -498,15 +581,17 @@ fun default_codegen thy gr dep brack t =
                  SOME (gr3, mk_app brack (Pretty.block (pretty_mixfix ms ps1 ps3)) ps2)
                end
            end
-       | NONE => (case get_defn thy s T of
+       | NONE => (case get_defn thy defs s T of
            NONE => NONE
-         | SOME ((args, rhs), k) =>
+         | SOME ((U, (thyname', (args, rhs))), k) =>
              let
-               val id = mk_const_id (sign_of thy) s ^ (case k of
-                 NONE => "" | SOME i => "_def" ^ string_of_int i);
+               val suffix = (case k of NONE => "" | SOME i => "_def" ^ string_of_int i);
+               val node_id = s ^ suffix;
+               val def_id = mk_const_id thy thyname' thyname' s ^ suffix;
+               val call_id = mk_const_id thy thyname thyname' s ^ suffix;
                val (gr', ps) = codegens true (gr, ts);
              in
-               SOME (Graph.add_edge (id, dep) gr' handle Graph.UNDEF _ =>
+               SOME (Graph.add_edge (node_id, dep) gr' handle Graph.UNDEF _ =>
                  let
                    val _ = message ("expanding definition of " ^ s);
                    val (Ts, _) = strip_type T;
@@ -514,17 +599,19 @@ fun default_codegen thy gr dep brack t =
                      if not (null args) orelse null Ts then (args, rhs) else
                        let val v = Free (new_name rhs "x", hd Ts)
                        in ([v], betapply (rhs, v)) end;
-                   val (gr1, p) = invoke_codegen thy id false
-                     (Graph.add_edge (id, dep)
-                        (Graph.new_node (id, (NONE, "")) gr'), rhs');
+                   val (gr1, p) = invoke_codegen thy defs node_id thyname' false
+                     (Graph.add_edge (node_id, dep)
+                        (Graph.new_node (node_id, (NONE, "", "")) gr'), rhs');
                    val (gr2, xs) = codegens false (gr1, args');
-                   val (gr3, ty) = invoke_tycodegen thy id false (gr2, T);
-                 in Graph.map_node id (K (NONE, Pretty.string_of (Pretty.block
-                   (separate (Pretty.brk 1) (if null args' then
-                       [Pretty.str ("val " ^ id ^ " :"), ty]
-                     else Pretty.str ("fun " ^ id) :: xs) @
-                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n")) gr3
-                 end, mk_app brack (Pretty.str id) ps)
+                   val (gr3, _) = invoke_tycodegen thy defs dep thyname false (gr2, T);
+                   val (gr4, ty) = invoke_tycodegen thy defs node_id thyname' false (gr3, U);
+                 in Graph.map_node node_id (K (NONE, thyname', Pretty.string_of
+                   (Pretty.block (separate (Pretty.brk 1)
+                     (if null args' then
+                        [Pretty.str ("val " ^ def_id ^ " :"), ty]
+                      else Pretty.str ("fun " ^ def_id) :: xs) @
+                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n")) gr4
+                 end, mk_app brack (Pretty.str call_id) ps)
              end))
 
     | Abs _ =>
@@ -533,7 +620,7 @@ fun default_codegen thy gr dep brack t =
         val t = strip_abs_body u
         val bs' = new_names t bs;
         val (gr1, ps) = codegens true (gr, ts);
-        val (gr2, p) = invoke_codegen thy dep false
+        val (gr2, p) = invoke_codegen thy defs dep thyname false
           (gr1, subst_bounds (map Free (rev (bs' ~~ Ts)), t));
       in
         SOME (gr2, mk_app brack (Pretty.block (Pretty.str "(" :: pretty_fn bs' p @
@@ -543,18 +630,21 @@ fun default_codegen thy gr dep brack t =
     | _ => NONE)
   end;
 
-fun default_tycodegen thy gr dep brack (TVar ((s, i), _)) =
+fun default_tycodegen thy defs gr dep thyname brack (TVar ((s, i), _)) =
       SOME (gr, Pretty.str (s ^ (if i = 0 then "" else string_of_int i)))
-  | default_tycodegen thy gr dep brack (TFree (s, _)) = SOME (gr, Pretty.str s)
-  | default_tycodegen thy gr dep brack (Type (s, Ts)) =
+  | default_tycodegen thy defs gr dep thyname brack (TFree (s, _)) =
+      SOME (gr, Pretty.str s)
+  | default_tycodegen thy defs gr dep thyname brack (Type (s, Ts)) =
       (case assoc (#types (CodegenData.get thy), s) of
          NONE => NONE
        | SOME ms =>
            let
              val (gr', ps) = foldl_map
-               (invoke_tycodegen thy dep false) (gr, fst (args_of ms Ts));
+               (invoke_tycodegen thy defs dep thyname false)
+               (gr, fst (args_of ms Ts));
              val (gr'', qs) = foldl_map
-               (invoke_tycodegen thy dep false) (gr', quotes_of ms)
+               (invoke_tycodegen thy defs dep thyname false)
+               (gr', quotes_of ms)
            in SOME (gr'', Pretty.block (pretty_mixfix ms ps qs)) end);
 
 val _ = Context.add_setup
@@ -562,23 +652,62 @@ val _ = Context.add_setup
   add_tycodegen "default" default_tycodegen];
 
 
-fun output_code gr xs = implode (map (snd o Graph.get_node gr)
-  (rev (Graph.all_preds gr xs)));
+fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
+
+fun add_to_module name s ms =
+  overwrite (ms, (name, the (assoc (ms, name)) ^ s));
+
+fun output_code gr xs =
+  let
+    val code =
+      map (fn s => (s, Graph.get_node gr s)) (rev (Graph.all_preds gr xs))
+    fun string_of_cycle (a :: b :: cs) =
+          let val SOME (x, y) = get_first (fn (x, (_, a', _)) =>
+            if a = a' then Option.map (pair x)
+              (find_first (equal b o #2 o Graph.get_node gr)
+                (Graph.imm_succs gr x))
+            else NONE) code
+          in x ^ " called by " ^ y ^ "\n" ^ string_of_cycle (b :: cs) end
+      | string_of_cycle _ = ""
+  in
+    if "modular" mem !mode then
+      let
+        val modules = distinct (map (#2 o snd) code);
+        val mod_gr = foldr (uncurry Graph.add_edge_acyclic)
+          (foldr (uncurry (Graph.new_node o rpair ())) Graph.empty modules)
+          (List.concat (map (fn (s, (_, thyname, _)) => map (pair thyname)
+            (filter_out (equal thyname) (map (#2 o Graph.get_node gr)
+              (Graph.imm_succs gr s)))) code));
+        val modules' =
+          rev (Graph.all_preds mod_gr (map (#2 o Graph.get_node gr) xs))
+      in
+        foldl (fn ((_, (_, thyname, s)), ms) => add_to_module thyname s ms)
+          (map (rpair "") modules') code
+      end handle Graph.CYCLES (cs :: _) =>
+        error ("Cyclic dependency of modules:\n" ^ commas cs ^
+          "\n" ^ string_of_cycle cs)
+    else [("Generated", implode (map (#3 o snd) code))]
+  end;
 
 fun gen_generate_code prep_term thy =
   setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
   let
-    val gr = Graph.new_node ("<Top>", (NONE, "")) Graph.empty;
+    val defs = mk_deftab thy;
+    val gr = Graph.new_node ("<Top>", (NONE, "Generated", "")) Graph.empty;
+    fun expand (t as Abs _) = t
+      | expand t = (case fastype_of t of
+          Type ("fun", [T, U]) => Abs ("x", T, t $ Bound 0) | _ => t);
     val (gr', ps) = foldl_map (fn (gr, (s, t)) => apsnd (pair s)
-      (invoke_codegen thy "<Top>" false (gr, t)))
-        (gr, map (apsnd (prep_term thy)) xs)
+      (invoke_codegen thy defs "<Top>" "Generated" false (gr, t)))
+        (gr, map (apsnd (expand o prep_term thy)) xs);
     val code =
-      "structure Generated =\nstruct\n\n" ^
-      output_code gr' ["<Top>"] ^
       space_implode "\n\n" (map (fn (s', p) => Pretty.string_of (Pretty.block
         [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1, p, Pretty.str ";"])) ps) ^
-      "\n\nend;\n\nopen Generated;\n";
-  in code end));
+      "\n\n"
+  in
+    map (fn (name, s) => (name, mk_struct name s))
+      (add_to_module "Generated" code (output_code gr' ["<Top>"]))
+  end));
 
 val generate_code_i = gen_generate_code (K I);
 val generate_code = gen_generate_code
@@ -600,23 +729,29 @@ fun mk_type p (TVar ((s, i), _)) = Pretty.str
       [Pretty.str "Type", Pretty.brk 1, Pretty.str ("(\"" ^ s ^ "\","),
        Pretty.brk 1, pretty_list (map (mk_type false) Ts), Pretty.str ")"]);
 
-fun mk_term_of _ p (TVar ((s, i), _)) = Pretty.str
+fun mk_term_of thy thyname p (TVar ((s, i), _)) = Pretty.str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "F")
-  | mk_term_of _ p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
-  | mk_term_of thy p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
-      (separate (Pretty.brk 1) (Pretty.str ("term_of_" ^ mk_type_id thy s) ::
-        List.concat (map (fn T => [mk_term_of thy true T, mk_type true T]) Ts))));
+  | mk_term_of thy thyname p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
+  | mk_term_of thy thyname p (Type (s, Ts)) = (if p then parens else I)
+      (Pretty.block (separate (Pretty.brk 1)
+        (Pretty.str (mk_type_id' (fn s' => "term_of_" ^ s')
+          thy thyname (thyname_of_type s thy) s) ::
+        List.concat (map (fn T =>
+          [mk_term_of thy thyname true T, mk_type true T]) Ts))));
 
 
 (**** Test data generators ****)
 
-fun mk_gen _ p xs a (TVar ((s, i), _)) = Pretty.str
+fun mk_gen thy thyname p xs a (TVar ((s, i), _)) = Pretty.str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "G")
-  | mk_gen _ p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
-  | mk_gen thy p xs a (Type (s, Ts)) = (if p then parens else I) (Pretty.block
-      (separate (Pretty.brk 1) (Pretty.str ("gen_" ^ mk_type_id thy s ^
-        (if s mem xs then "'" else "")) :: map (mk_gen thy true xs a) Ts @
-        (if s mem xs then [Pretty.str a] else []))));
+  | mk_gen thy thyname p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
+  | mk_gen thy thyname p xs a (Type (s, Ts)) = (if p then parens else I)
+      (Pretty.block (separate (Pretty.brk 1)
+        (Pretty.str (mk_type_id' (fn s' => "gen_" ^ s')
+          thy thyname (thyname_of_type s thy) s ^
+          (if s mem xs then "'" else "")) ::
+         map (mk_gen thy thyname true xs a) Ts @
+         (if s mem xs then [Pretty.str a] else []))));
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
@@ -628,16 +763,17 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
       "Term to be tested contains schematic variables";
     val frees = map dest_Free (term_frees t);
     val szname = variant (map fst frees) "i";
-    val s = "structure TestTerm =\nstruct\n\n" ^
-      setmp mode ["term_of", "test"] (generate_code_i thy)
-        [("testf", list_abs_free (frees, t))] ^
-      "\n" ^ Pretty.string_of
+    val code = space_implode "\n" (map snd
+      (setmp mode ["term_of", "test"] (generate_code_i thy)
+        [("testf", list_abs_free (frees, t))]));
+    val s = "structure TestTerm =\nstruct\n\n" ^ code ^
+      "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
           Pretty.brk 1, Pretty.str ("(fn " ^ szname ^ " =>"), Pretty.brk 1,
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
             Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
               Pretty.block [Pretty.str ("val " ^ mk_id s ^ " ="), Pretty.brk 1,
-              mk_gen thy false [] "" T, Pretty.brk 1,
+              mk_gen thy "" false [] "" T, Pretty.brk 1,
               Pretty.str (szname ^ ";")]) frees)),
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
@@ -648,7 +784,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
                 List.concat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     mk_app false (mk_term_of thy false T)
+                     mk_app false (mk_term_of thy "" false T)
                        [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
@@ -716,7 +852,7 @@ val assoc_typeP =
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")") >>
      (fn xs => Toplevel.theory (fn thy => assoc_types
        (map (fn (name, mfx) => (name, parse_mixfix
-         (typ_of o read_ctyp (sign_of thy)) mfx)) xs) thy)));
+         (typ_of o read_ctyp thy) mfx)) xs) thy)));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
@@ -726,7 +862,7 @@ val assoc_constP =
         P.$$$ "(" -- P.string --| P.$$$ ")") >>
      (fn xs => Toplevel.theory (fn thy => assoc_consts
        (map (fn ((name, optype), mfx) => (name, optype, parse_mixfix
-         (term_of o read_cterm (sign_of thy) o rpair TypeInfer.logicT) mfx))
+         (term_of o read_cterm thy o rpair TypeInfer.logicT) mfx))
            xs) thy)));
 
 val generate_codeP =
@@ -735,10 +871,18 @@ val generate_codeP =
      Scan.optional (P.$$$ "[" |-- P.enum "," P.xname --| P.$$$ "]") (!mode) --
      Scan.repeat1 (P.name --| P.$$$ "=" -- P.term) >>
      (fn ((opt_fname, mode'), xs) => Toplevel.theory (fn thy =>
-        ((case opt_fname of
-            NONE => use_text Context.ml_output false
-          | SOME fname => File.write (Path.unpack fname))
-              (setmp mode mode' (generate_code thy) xs); thy))));
+       let val code = setmp mode mode' (generate_code thy) xs
+       in ((case opt_fname of
+           NONE => use_text Context.ml_output false
+             (space_implode "\n" (map snd code) ^ "\nopen Generated;\n")
+         | SOME fname =>
+             if "modular" mem mode' then
+               app (fn (name, s) => File.write
+                   (Path.append (Path.unpack fname) (Path.basic (name ^ ".ML"))) s)
+                 (("ROOT", implode (map (fn (name, _) =>
+                     "use \"" ^ name ^ ".ML\";\n") code)) :: code)
+             else File.write (Path.unpack fname) (snd (hd code))); thy)
+       end)));
 
 val params =
   [("size", P.nat >> (K o set_size)),
@@ -759,7 +903,7 @@ val test_paramsP =
   OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
     (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
       (fn fs => Toplevel.theory (fn thy =>
-         map_test_params (app (map (fn f => f (sign_of thy)) fs)) thy)));
+         map_test_params (app (map (fn f => f thy) fs)) thy)));
 
 val testP =
   OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
