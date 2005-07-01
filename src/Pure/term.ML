@@ -176,7 +176,6 @@ sig
   val typ_ord: typ * typ -> order
   val typs_ord: typ list * typ list -> order
   val term_ord: term * term -> order
-  val terms_ord: term list * term list -> order
   val hd_ord: term * term -> order
   val termless: term * term -> bool
   val term_lpo: (string -> int) -> term * term -> order
@@ -474,6 +473,10 @@ and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
             2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
                (s1..sn) < (t1..tn) (lexicographically)*)
+local
+
+fun hd_depth (t $ _, n) = hd_depth (t, n + 1)
+  | hd_depth p = p;
 
 fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
   | dest_hd (Free (a, T)) = (((a, 0), T), 1)
@@ -481,30 +484,46 @@ fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
   | dest_hd (Bound i) = ((("", i), dummyT), 3)
   | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
 
+in
+
 fun term_ord tu =
   if pointer_eq tu then EQUAL
   else
     (case tu of
       (Abs (_, T, t), Abs(_, U, u)) =>
         (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
-      | (t, u) =>
+    | (t, u) =>
         (case int_ord (size_of_term t, size_of_term u) of
           EQUAL =>
             let
-              val (f, ts) = strip_comb t
-              and (g, us) = strip_comb u
-            in case hd_ord (f, g) of EQUAL => terms_ord (ts, us) | ord => ord end
+              val (f, m) = hd_depth (t, 0)
+              and (g, n) = hd_depth (u, 0);
+            in
+              (case hd_ord (f, g) of EQUAL =>
+                (case int_ord (m, n) of EQUAL => args_ord (t, u) | ord => ord)
+              | ord => ord)
+            end
         | ord => ord))
 and hd_ord (f, g) =
   prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
-and terms_ord (ts, us) = list_ord term_ord (ts, us);
+and args_ord (f $ t, g $ u) =
+      (case args_ord (f, g) of EQUAL => term_ord (t, u) | ord => ord)
+  | args_ord _ = EQUAL;
 
 fun op aconv tu = (term_ord tu = EQUAL);
 fun aconvs ts_us = (list_ord term_ord ts_us = EQUAL);
 fun termless tu = (term_ord tu = LESS);
 
-(*** Lexicographic path order on terms.
+structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
+structure Typtab = TableFun(type key = typ val ord = typ_ord);
+structure Termtab = TableFun(type key = term val ord = term_ord);
 
+end;
+
+
+(** Lexicographic path order on terms **)
+
+(*
   See Baader & Nipkow, Term rewriting, CUP 1998.
   Without variables.  Const, Var, Bound, Free and Abs are treated all as
   constants.
@@ -515,10 +534,10 @@ fun termless tu = (term_ord tu = LESS);
   - Order on the recognised symbols.  These must be mapped to distinct
     integers >= 0.
 
-***)
+*)
 
 local
-fun dest_hd f_ord (Const (a, T)) = 
+fun dest_hd f_ord (Const (a, T)) =
       let val ord = f_ord a in
         if ord = ~1 then ((1, ((a, 0), T)), 0) else ((0, (("", ord), T)), 0)
       end
@@ -531,13 +550,13 @@ fun term_lpo f_ord (s, t) =
   let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in
     if forall (fn si => term_lpo f_ord (si, t) = LESS) ss
     then case hd_ord f_ord (f, g) of
-	GREATER =>
-	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
-	  then GREATER else LESS
+        GREATER =>
+          if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+          then GREATER else LESS
       | EQUAL =>
-	  if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
-	  then list_ord (term_lpo f_ord) (ss, ts)
-	  else LESS
+          if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
+          then list_ord (term_lpo f_ord) (ss, ts)
+          else LESS
       | LESS => LESS
     else GREATER
   end
@@ -550,10 +569,6 @@ and hd_ord f_ord (f, g) = case (f, g) of
 in
 val term_lpo = term_lpo
 end;
-
-structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
-structure Typtab = TableFun(type key = typ val ord = typ_ord);
-structure Termtab = TableFun(type key = term val ord = term_ord);
 
 
 (** Connectives of higher order logic **)
@@ -821,19 +836,19 @@ fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 (*First order means in all terms of the form f(t1,...,tn) no argument has a
   function type. The supplied quantifiers are excluded: their argument always
   has a function type through a recursive call into its body.*)
-fun is_first_order quants = 
+fun is_first_order quants =
   let fun first_order1 Ts (Abs (_,T,body)) = first_order1 (T::Ts) body
-	| first_order1 Ts (Const(q,_) $ Abs(a,T,body)) =
-	    q mem_string quants  andalso   (*it is a known quantifier*)
+        | first_order1 Ts (Const(q,_) $ Abs(a,T,body)) =
+            q mem_string quants  andalso   (*it is a known quantifier*)
             not (is_funtype T)   andalso first_order1 (T::Ts) body
-	| first_order1 Ts t =
-	    case strip_comb t of
-		 (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	       | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	       | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	       | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
-	       | (Abs _, ts) => false (*not in beta-normal form*)
-	       | _ => error "first_order: unexpected case"
+        | first_order1 Ts t =
+            case strip_comb t of
+                 (Var _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+               | (Free _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+               | (Const _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+               | (Bound _, ts) => forall (first_order1 Ts andf has_not_funtype Ts) ts
+               | (Abs _, ts) => false (*not in beta-normal form*)
+               | _ => error "first_order: unexpected case"
     in  first_order1 []  end;
 
 (*Computing the maximum index of a typ*)
