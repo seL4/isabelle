@@ -161,14 +161,17 @@ lemma Lift_cases: "[| x = UU ==> P; ? a. x = Def a ==> P |] ==> P"
 lemma not_Undef_is_Def: "(x ~= UU) = (EX y. x = Def y)"
   by (cases x) simp_all
 
+lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+  by (cases x) simp_all
+
 text {*
   For @{term "x ~= UU"} in assumptions @{text def_tac} replaces @{text
   x} by @{text "Def a"} in conclusion. *}
 
 ML {*
-  local val not_Undef_is_Def = thm "not_Undef_is_Def"
+  local val lift_definedE = thm "lift_definedE"
   in val def_tac = SIMPSET' (fn ss =>
-    etac (not_Undef_is_Def RS iffD1 RS exE) THEN' asm_simp_tac ss)
+    etac lift_definedE THEN' asm_simp_tac ss)
   end;
 *}
 
@@ -215,12 +218,6 @@ lemma cont_Rep_CFun_app_app: "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s t)
   apply (erule cont_Rep_CFun_app)
   apply assumption
   done
-
-text {* Continuity of if-then-else. *}
-
-lemma cont_if: "[| cont f1; cont f2 |] ==> cont (%x. if b then f1 x else f2 x)"
-  by (cases b) simp_all
-
 
 subsection {* Continuity Proofs for flift1, flift2, if *}
 
