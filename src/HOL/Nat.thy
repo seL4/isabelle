@@ -286,7 +286,7 @@ lemma Suc_lessE: assumes major: "Suc i < k"
 lemma Suc_less_SucD: "Suc m < Suc n ==> m < n"
   by (blast elim: lessE dest: Suc_lessD)
 
-lemma Suc_less_eq [iff]: "(Suc m < Suc n) = (m < n)"
+lemma Suc_less_eq [iff, code]: "(Suc m < Suc n) = (m < n)"
   apply (rule iffI)
   apply (erule Suc_less_SucD)
   apply (erule Suc_mono)
@@ -299,6 +299,9 @@ lemma less_trans_Suc:
   apply (simp add: less_Suc_eq)
   apply (blast dest: Suc_lessD)
   done
+
+lemma [code]: "((n::nat) < 0) = False" by simp
+lemma [code]: "(0 < Suc n) = True" by simp
 
 text {* Can be used with @{text less_Suc_eq} to get @{term "n = m | n < m"} *}
 lemma not_less_eq: "(~ m < n) = (n < Suc m)"
