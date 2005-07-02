@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Simple report generator for Poly/ML profiling output.
+
+use strict;
+
+my %log = ();
+my @output = ();
+
+while (<ARGV>) {
+    if (m,^( |\d){10} (\S+$|GARBAGE COLLECTION.*$),) {
+	my $count = $1;
+	my $fun = $2;
+	if ($count =~ m,^\s*(\d)+$,) {
+	    if (defined($log{$fun})) {
+		$log{$fun} += $count;
+	    } else {
+		$log{$fun} = $count;
+	    }
+	}
+    }
+}
+
+foreach my $fun (keys %log) {
+    push @output, (sprintf "%8d %s\n", $log{$fun}, $fun);
+}
+
+print (sort @output);
