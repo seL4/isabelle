@@ -68,6 +68,7 @@ sig
   val raw: string -> string
   val add_mode: string ->
     (string -> string * real) * (string * int -> string) * (string -> string) -> unit
+  val transform_exceptions: bool ref
 end;
 
 structure Output: OUTPUT =
@@ -196,18 +197,24 @@ fun handle_error f x =
 
 (* transform ERROR into ERROR_MESSAGE *)
 
+val transform_exceptions = ref true;
+
 exception ERROR_MESSAGE of string;
 
 fun transform_error f x =
-  (case handle_error f x of
-    OK y => y
-  | Error msg => raise ERROR_MESSAGE msg);
+  if ! transform_exceptions then
+    (case handle_error f x of
+      OK y => y
+    | Error msg => raise ERROR_MESSAGE msg)
+  else f x;
 
 
 (* transform any exception, including ERROR *)
 
 fun transform_failure exn f x =
-  transform_error f x handle Interrupt => raise Interrupt | e => raise exn e;
+  if ! transform_exceptions then
+    transform_error f x handle Interrupt => raise Interrupt | e => raise exn e
+  else f x;
 
 
 
