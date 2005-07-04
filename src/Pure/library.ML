@@ -232,6 +232,7 @@ sig
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val int_ord: int * int -> order
   val string_ord: string * string -> order
+  val fast_string_ord: string * string -> order
   val option_ord: ('a * 'b -> order) -> 'a option * 'b option -> order
   val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
@@ -1098,6 +1099,9 @@ fun make_ord rel (x, y) =
 val int_ord = Int.compare;
 val string_ord = String.compare;
 
+fun fast_string_ord (s1, s2) =
+  (case int_ord (size s1, size s2) of EQUAL => string_ord (s1, s2) | ord => ord);
+
 fun option_ord ord (SOME x, SOME y) = ord (x, y)
   | option_ord _ (NONE, NONE) = EQUAL
   | option_ord _ (NONE, SOME _) = LESS
@@ -1116,7 +1120,7 @@ fun dict_ord _ ([], []) = EQUAL
 
 (*lexicographic product of lists*)
 fun list_ord elem_ord (xs, ys) =
-  prod_ord int_ord (dict_ord elem_ord) ((length xs, xs), (length ys, ys));
+  (case int_ord (length xs, length ys) of EQUAL => dict_ord elem_ord (xs, ys) | ord => ord);
 
 
 (* sorting *)
