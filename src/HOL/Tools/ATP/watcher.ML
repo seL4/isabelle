@@ -165,8 +165,8 @@ fun callResProvers (toWatcherStr,  []) =
                              (prover^thmstring^goalstring^proverCmd^settings^
                               clasimpfile^hypsfile^probfile)
       in sendOutput (toWatcherStr,    
-            (prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^
-             settings^"*"^clasimpfile^"*"^hypsfile^"*"^probfile^"\n"));
+            (prover^"$"^thmstring^"$"^goalstring^"$"^proverCmd^"$"^
+             settings^"$"^clasimpfile^"$"^hypsfile^"$"^probfile^"\n"));
          goals_being_watched := (!goals_being_watched) + 1;
 	 TextIO.flushOut toWatcherStr;
 	 callResProvers (toWatcherStr,args)
@@ -213,33 +213,33 @@ fun separateFields str =
   let val  outfile = TextIO.openAppend(*("sep_field")*)(File.platform_path(File.tmp_path (Path.basic "sep_field")))                                                                         
       val _ = TextIO.output (outfile,("In separateFields, str is: "^(implode str)^"\n\n") )
       val _ =  TextIO.closeOut outfile
-      val (prover, rest) = takeUntil "*" str []
+      val (prover, rest) = takeUntil "$" str []
       val prover = implode prover
 
-      val (thmstring, rest) =  takeUntil "*" rest []
+      val (thmstring, rest) =  takeUntil "$" rest []
       val thmstring = implode thmstring
 
-      val (goalstring, rest) =  takeUntil "*" rest []
+      val (goalstring, rest) =  takeUntil "$" rest []
       val goalstring = implode goalstring
 
-      val (proverCmd, rest ) =  takeUntil "*" rest []
+      val (proverCmd, rest ) =  takeUntil "$" rest []
       val proverCmd = implode proverCmd
       
-      val (settings, rest) =  takeUntil "*" rest []
+      val (settings, rest) =  takeUntil "$" rest []
       val settings = getSettings settings []
 
-      val (clasimpfile, rest ) =  takeUntil "*" rest []
+      val (clasimpfile, rest ) =  takeUntil "$" rest []
       val clasimpfile = implode clasimpfile
       
-      val (hypsfile, rest ) =  takeUntil "*" rest []
+      val (hypsfile, rest ) =  takeUntil "$" rest []
       val hypsfile = implode hypsfile
 
-      val (file, rest) =  takeUntil "*" rest []
+      val (file, rest) =  takeUntil "$" rest []
       val file = implode file
 
       val _ = File.append (File.tmp_path (Path.basic "sep_comms"))                                                                                
                   ("Sep comms are: "^(implode str)^"**"^
-                   prover^thmstring^goalstring^proverCmd^clasimpfile^hypsfile^file^"\n\n")
+                   prover^" thmstring: "^thmstring^"\n goalstr:  "^goalstring^" \n provercmd: "^proverCmd^" \n  clasimp "^clasimpfile^" \n hyps "^hypsfile^"\n prob  "^file^"\n\n")
   in
      (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile, file)
   end
@@ -289,6 +289,7 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     val newfile =   if !SpassComm.spass 
 		    then 
 			    dfg_path^"/ax_prob"^"_"^(probID)^".dfg" 
+
 		    else
 			    (File.platform_path wholefile)
     val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
@@ -813,6 +814,8 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) = let val mychild = ch
                            VampComm.getVampInput childin; Pretty.writeln(Pretty.str  (oct_char "361"));() )               
                           
 
+
+
 fun spass_proofHandler (n) = (
                                  let  val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal1")));
                                       val _ = TextIO.output (outfile, ("In signal handler now\n"))
@@ -844,9 +847,8 @@ fun spass_proofHandler (n) = (
                                                                  else
                                                                     ()
                                                             )
-                                                    (* if there's no proof, but a message from Spass *)
-                                                    else if ((substring (reconstr, 0,5))= "SPASS")
-                                                         then
+                                                    (* if there's no proof, but a some sort of  message from Spass *)
+                                                    else 
                                                                  (
                                                                      goals_being_watched := (!goals_being_watched) -1;
                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
@@ -862,67 +864,7 @@ fun spass_proofHandler (n) = (
                                                                            end )
                                                                       else
                                                                          ()
-                                                                ) 
-						   (* print out a list of rules used from clasimpset*)
-                                                    else if ((substring (reconstr, 0,5))= "Rules")
-                                                         then
-                                                                 (
-                                                                     goals_being_watched := (!goals_being_watched) -1;
-                                                                     Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                      Pretty.writeln(Pretty.str (goalstring^reconstr));
-                                                                      Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                      if (!goals_being_watched = 0)
-                                                                      then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                           in
-                                                                              killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
-                                                                           end )
-                                                                      else
-                                                                         ()
-                                                                )
-							
-                                                          (* if proof translation failed *)
-                                                          else if ((substring (reconstr, 0,5)) = "Proof")
-                                                               then 
-                                                                   (
-                                                                      goals_being_watched := (!goals_being_watched) -1;
-                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
-                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                       if (!goals_being_watched = 0)
-                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                            in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                            end )
-                                                                       else
-                                                                          ( )
-                                                                      )
-
-
-                                                                else  (* add something here ?*)
-                                                                   (
-                                                                      goals_being_watched := (!goals_being_watched) -1;
-                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                       Pretty.writeln(Pretty.str ("Ran out of options in handler"));
-                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                       if (!goals_being_watched = 0)
-                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                            in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                            end )
-                                                                       else
-                                                                          ( )
-                                                                      )
-                                                                     
-                                                                           
+                                                                )						               
                                                             
                                        end)
 

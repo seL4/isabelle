@@ -184,16 +184,36 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
                  Posix.Process.sleep(Time.fromSeconds 1);
                  true
                end)
-            else if (thisLine = "% Proof not found.\n")
+            else if (thisLine = "% Proof not found. Time limit expired.\n")
             then
-              (
-               Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-               TextIO.output (toParent,childCmd^"\n" );
-               TextIO.flushOut toParent;
-               TextIO.output (toParent, thisLine);
-               TextIO.flushOut toParent;
+              (let    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
+                           val _ = TextIO.output (outfile, (thisLine))
 
-               true)
+                           val _ =  TextIO.closeOut outfile
+               in
+
+                 TextIO.output (toParent,childCmd^"\n" );
+                 TextIO.flushOut toParent;
+                 TextIO.output (vamp_proof_file, (thisLine));
+                 TextIO.flushOut vamp_proof_file;
+                 TextIO.closeOut vamp_proof_file;
+                 (*TextIO.output (toParent, thisLine);
+                  TextIO.flushOut toParent;
+                  TextIO.output (toParent, "bar\n");
+                  TextIO.flushOut toParent;*)
+
+                 TextIO.output (toParent, thisLine^"\n");
+                 TextIO.flushOut toParent;
+                 TextIO.output (toParent, thmstring^"\n");
+                 TextIO.flushOut toParent;
+                 TextIO.output (toParent, goalstring^"\n");
+                 TextIO.flushOut toParent;
+                 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+                 (* Attempt to prevent several signals from turning up simultaneously *)
+                 Posix.Process.sleep(Time.fromSeconds 1);
+                 true
+               end
+              )
 
             else
               (TextIO.output (vamp_proof_file, (thisLine));
@@ -238,7 +258,7 @@ fun getVampInput instr =
              (reconstr, thmstring, goalstring)
            end
              )
-        else  if (thisLine = "% Proof not found.\n")
+        else  if (thisLine = "% Proof not found. Time limit expired.\n")
         then
           (
            let val reconstr = thisLine

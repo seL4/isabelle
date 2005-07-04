@@ -48,7 +48,6 @@ val full_spass = ref false;
 (*val spass = ref true;*)
 
 val custom_spass = ref ["Auto=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub","-DocProof","-TimeLimit=60"];
-
 val vampire = ref false;
 
 val trace_res = ref false;
@@ -209,7 +208,7 @@ fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list
      else
        let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
        in  
-	   ([("vampire", thmstr, goalstring, vampire, "-t 300%-m 100000", 
+	   ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000", 
 	      clasimpfile, axfile, hypsfile, probfile)] @ 
 	    (make_atp_list xs sign (n+1)))
        end
