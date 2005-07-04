@@ -96,11 +96,12 @@ fun insert ((keys,x), net, eq) =
         | ins1 (AtomK a :: keys, Net{comb,var,alist}) =
             let fun newpair net = (a, ins1(keys,net))
                 fun inslist [] = [newpair empty]
-                  | inslist((b: string, netb) :: alist) =
-                      if a=b then newpair netb :: alist
-                      else if a<b then (*absent, ins1ert in alist*)
+                  | inslist ((b, netb) :: alist) =
+                      (case fast_string_ord (a, b) of
+                        EQUAL => newpair netb :: alist
+                      | LESS => (*absent, insert in alist*)
                           newpair empty :: (b,netb) :: alist
-                      else (*a>b*) (b,netb) :: inslist alist
+                      | GREATER => (b,netb) :: inslist alist)
             in  Net{comb=comb, var=var, alist= inslist alist}  end
   in  ins1 (keys,net)  end;
 
@@ -133,25 +134,28 @@ fun delete ((keys, x), net, eq) =
         | del1 (AtomK a :: keys, Net{comb,var,alist}) =
             let fun newpair net = (a, del1(keys,net))
                 fun dellist [] = raise DELETE
-                  | dellist((b: string, netb) :: alist) =
-                      if a=b then conspair(newpair netb, alist)
-                      else if a<b then (*absent*) raise DELETE
-                      else (*a>b*)  (b,netb) :: dellist alist
+                  | dellist((b, netb) :: alist) =
+                      (case fast_string_ord (a, b) of
+                        EQUAL => conspair(newpair netb, alist)
+                      | LESS => (*absent*) raise DELETE
+                      | GREATER => (b,netb) :: dellist alist)
             in  newnet{comb=comb, var=var, alist= dellist alist}  end
   in  del1 (keys,net)  end;
 
 fun delete_term ((t,x), net, eq) = delete((key_of_term t, x), net, eq);
+
 
 (*** Retrieval functions for discrimination nets ***)
 
 exception OASSOC;
 
 (*Ordered association list lookup*)
-fun oassoc ([], a: string) = raise OASSOC
+fun oassoc ([], a) = raise OASSOC
   | oassoc ((b,x)::pairs, a) =
-      if b<a then oassoc(pairs,a)
-      else if a=b then x
-      else raise OASSOC;
+      (case fast_string_ord (a, b) of
+        EQUAL => x
+      | LESS => raise OASSOC
+      | GREATER => oassoc(pairs,a));
 
 (*Return the list of items at the given node, [] if no such node*)
 fun lookup (Leaf(xs), []) = xs
