@@ -27,9 +27,13 @@ sig
   val context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   val enter_forward_proof: state -> Proof.state
-  type transition
+  val quiet: bool ref
+  val debug: bool ref
+  val timing: bool ref
+  val profiling: int ref
   exception TERMINATE
   exception RESTART
+  type transition
   val undo_limit: bool -> int option
   val empty: transition
   val name_of: transition -> string
@@ -65,9 +69,6 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
-  val quiet: bool ref
-  val debug: bool ref
-  val profiling: int ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion_result: ((transition * (state -> state -> 'a -> 'a)) list * 'a) -> 'a
@@ -179,6 +180,11 @@ val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
 
 
 (** toplevel transitions **)
+
+val quiet = ref false;
+val debug = ref false;
+val timing = Output.timing;
+val profiling = ref 0;
 
 exception TERMINATE;
 exception RESTART;
@@ -420,11 +426,6 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 (** toplevel transactions **)
 
-val quiet = ref false;
-val debug = ref false;
-val profiling = ref 0;
-
-
 (* print exceptions *)
 
 local
@@ -495,12 +496,15 @@ local
 
 fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
   let
-    val _ =
-      if int orelse not int_only then ()
-      else warning (command_msg "Interactive-only " tr);
+    val _ = conditional (not int andalso int_only) (fn () =>
+      warning (command_msg "Interactive-only " tr));
+
+    fun do_timing f x = (info (command_msg "" tr); timeap f x);
+    fun do_profiling f x = profile (! profiling) f x;
+
     val (result, opt_exn) =
-      (if ! Output.timing andalso not no_timing then (info (command_msg "" tr); timeap) else I)
-        (profile (! profiling) (apply_trans int trans)) state;
+      (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I)
+        ((if ! profiling > 0 then do_profiling else I) (apply_trans int trans)) state;
     val _ = conditional (int andalso not (! quiet) andalso
         exists (fn m => m mem_string print) ("" :: ! print_mode))
       (fn () => print_state false result);

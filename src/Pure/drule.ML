@@ -155,24 +155,23 @@ structure Drule: DRULE =
 struct
 
 
-(** some cterm->cterm operations: much faster than calling cterm_of! **)
+(** some cterm->cterm operations: faster than calling cterm_of! **)
 
-(** SAME NAMES as in structure Logic: use compound identifiers! **)
+(* FIXME exception CTERM (!?) *)
 
-(*dest_implies for cterms. Note T=prop below*)
 fun dest_implies ct =
-    case term_of ct of
-        (Const("==>", _) $ _ $ _) =>
-            let val (ct1,ct2) = Thm.dest_comb ct
-            in  (#2 (Thm.dest_comb ct1), ct2)  end
-      | _ => raise TERM ("dest_implies", [term_of ct]) ;
+  (case Thm.term_of ct of
+    (Const ("==>", _) $ _ $ _) =>
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in (#2 (Thm.dest_comb ct1), ct2) end
+  | _ => raise TERM ("dest_implies", [term_of ct]));
 
 fun dest_equals ct =
-    case term_of ct of
-        (Const("==", _) $ _ $ _) =>
-            let val (ct1,ct2) = Thm.dest_comb ct
-            in  (#2 (Thm.dest_comb ct1), ct2)  end
-      | _ => raise TERM ("dest_equals", [term_of ct]) ;
+  (case Thm.term_of ct of
+    (Const ("==", _) $ _ $ _) =>
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in (#2 (Thm.dest_comb ct1), ct2) end
+    | _ => raise TERM ("dest_equals", [term_of ct]));
 
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
@@ -729,7 +728,7 @@ fun forall_conv cv ct =
   let val p as (ct1, ct2) = Thm.dest_comb ct
   in (case pairself term_of p of
       (Const ("all", _), Abs (s, _, _)) =>
-         let val (v, ct') = Thm.dest_abs (SOME "@") ct2;
+         let val (v, ct') = Thm.dest_abs (SOME (gensym "all_")) ct2;
          in Thm.combination (Thm.reflexive ct1)
            (Thm.abstract_rule s v (forall_conv cv ct'))
          end
