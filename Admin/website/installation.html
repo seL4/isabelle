@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='iso-8859-1' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- $Id$ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Installation instructions</title>
+    <?include file="//include/htmlheader.include.html"?>
+</head>
+
+<body class="dist">
+    <?include file="//include/header.include.html"?>
+    <div class="hr"><hr/></div>
+    <?include file="//include/navigation.include.html"?>
+    <div class="hr"><hr/></div>
+
+    <div id="content">
+      <?include file="//include/mirrorlist.include.html"?>
+      <div class="hr"><hr/></div>
+
+      <h2>General</h2>
+      
+        <p>
+            Isabelle runs on common Unix platforms.
+            For Linux, Solaris and MaxOS / Darwin, we provide ready-to-install bundles;
+            for other Unices, Isabelle has to be built from scratch.
+        </p>
+        
+        <p>
+            A usable Isabelle system consists of the following components:
+        </p>
+        
+        <ul>
+            <li>a suitable ML environment for Standard ML</li>
+            <li>the Isabelle system itself, including the desired object logic(s)
+            (e.&nbsp;g. HOL)</li>
+            <li>the ProofGeneral user interface</li>
+        </ul>
+
+        <p>Optionally, theory graph browsing may be used if a Java JRE 1.1 or above
+        is installed.</p>
+
+        <p>For operating-system-specific instructions:</p>
+        
+        <ul>
+            <li><a href="#install_linux">Linux (x86)</a></li>
+            <li><a href="#install_solaris">Solaris (sparc)</a></li>
+            <li><a href="#install_darwin">MacOS X / Darwin</a></li>
+            <li><a href="#install_windows">Windows</a></li>
+        </ul>
+
+      <h2 id="install_linux">Linux</h2>
+
+        <p>Commonly, an installation of Isabelle could work as follows:</p>
+
+        <ul>
+            <li>Ensure that your system has a running XEmacs 21 or Emacs 21
+                with mule support (for ProofGeneral)</li>
+            <li>Get the packages for <a href="http://www.polyml.org">Poly/ML</a>,
+                <a href="http://proofgeneral.inf.ed.ac.uk/">ProofGeneral</a> (including
+                the Emacs <a href="http://x-symbol.sourceforge.net">X-Symbol</a> package)
+                and Isabelle,
+                either from our <a href="download.html">package page</a> or from the
+                links below. When you download ProofGeneral, please
+                <a href="http://proofgeneral.inf.ed.ac.uk/register">register</a></li>
+            <li>Likewise download the compiled image(s) of your desired object logic(s)</li>
+            <li>Unpack the archives to an appropriate location, e.&nbsp;g.
+                <tt class="shellcmd">/usr/local</tt>:
+                <ul class="shellcmd">
+                    <li>tar -C /usr/local -xzf <?downloadLink target="//dist/packages/Isabelle2004.tar.gz"?></li>
+                    <li>tar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/ProofGeneral.tar.gz"?></li>
+                    <li>tar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_base.tar.gz"?></li>
+                    <li>tar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_x86-linux.tar.gz"?></li>
+                    <li>tar -C /usr/local -xzf <?downloadLink target="//dist/packages/HOL_x86-linux.tar.gz"?></li>
+                </ul>
+            </li>
+            <li>Under most circumstances, the default settings of Isabelle should be reasonable for
+                invoking Isabelle/ProofGeneral without further ado:
+                <ul class="shellcmd">
+                    <li>/usr/local/Isabelle/bin/Isabelle</li>
+                </ul>
+                Note that there is a separate option in
+                the Proof General <em>Options</em> menu to enable X-Symbol.
+            </li>
+            <li>If Emacs appears to hang when the prover process is started, see the
+                <a href="http://proofgeneral.inf.ed.ac.uk/FAQ">ProofGeneral FAQ</a> for
+                advice.
+            </li>
+        </ul>
+
+        <p>For more information, see the file <a href="//dist/packages/Isabelle/INSTALL">INSTALL</a>.</p>
+
+      <h2 id="install_solaris">Solaris</h2>
+
+        <p>Before you start, ensure the following for your system:</p>
+        <ul>
+            <li>GNU bash 2.x</li>
+            <li>perl 5.x</li>
+            <li>GNU tar 1.13 or higher</li>
+            <li>GNU gzip 1.3 or higher</li>
+            <li>running XEmacs 21 or Emacs 21
+                with mule support (for ProofGeneral)</li>
+        </ul>
+
+        <p>Then, an installation on Solaris is analogous to Linux:</p>
+
+        <ul>
+            <li>Get the packages for <a href="http://www.polyml.org">Poly/ML</a>,
+                <a href="http://proofgeneral.inf.ed.ac.uk/">ProofGeneral</a> (including
+                the Emacs <a href="http://x-symbol.sourceforge.net">X-Symbol</a> package)
+                and Isabelle,
+                either from our <a href="download.html">package page</a> or from the
+                links below. When you download ProofGeneral, please
+                <a href="http://proofgeneral.inf.ed.ac.uk/register">register</a></li>
+            <li>Likewise download the compiled image(s) of your desired object logic(s)</li>
+            <li>Unpack the archives to an appropriate location, e.&nbsp;g.
+                <tt class="shellcmd">/usr/local</tt>:
+                <ul class="shellcmd">
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/Isabelle2004.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/ProofGeneral.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_base.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_sparc-solaris.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/HOL_sparc-solaris.tar.gz"?></li>
+                </ul>
+            </li>
+            <li>Under most circumstances, the default settings of Isabelle should be reasonable for
+                invoking Isabelle/ProofGeneral without further ado:
+                <ul class="shellcmd">
+                    <li>/usr/local/Isabelle/bin/Isabelle</li>
+                </ul>
+                Note that there is a separate option in
+                the Proof General <em>Options</em> menu to enable X-Symbol.
+            </li>
+            <li>If Emacs appears to hang when the prover process is started, see the
+                <a href="http://proofgeneral.inf.ed.ac.uk/FAQ">ProofGeneral FAQ</a> for
+                advice.
+            </li>
+        </ul>
+
+        <p>For more information, see the file <a href="//dist/packages/Isabelle/INSTALL">INSTALL</a>.</p>
+
+      <h2 id="install_darwin">MaxOS X / Darwin</h2>
+
+        <p>Before you start, ensure the following for your system:</p>
+        <ul>
+            <li>running MacOS X 10.2.2 or higher</li>
+            <li>running XEmacs 21 or Emacs 21 with mule support (for ProofGeneral)
+                &ndash; for further reference, see the
+                <a href="installation_macos_emacs.html">MacOS X Emacs hints</a>
+            </li>
+        </ul>
+
+        <p>Then, an installation on Darwin is analogous to Linux:</p>
+
+        <ul>
+            <li>Get the packages for <a href="http://www.polyml.org">Poly/ML</a>,
+                <a href="http://proofgeneral.inf.ed.ac.uk/">ProofGeneral</a> (including
+                the Emacs <a href="http://x-symbol.sourceforge.net">X-Symbol</a> package)
+                and Isabelle,
+                either from our <a href="download.html">package page</a> or from the
+                links below. When you download ProofGeneral, please
+                <a href="http://proofgeneral.inf.ed.ac.uk/register">register</a></li>
+            <li>Likewise download the compiled image(s) of your desired object logic(s)</li>
+            <li>Unpack the archives to an appropriate location, e.&nbsp;g.
+                <tt class="shellcmd">/usr/local</tt>:
+                <ul class="shellcmd">
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/Isabelle2004.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/ProofGeneral.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_base.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/contrib/polyml_ppc-darwin.tar.gz"?></li>
+                    <li>gtar -C /usr/local -xzf <?downloadLink target="//dist/packages/HOL_ppc-darwin.tar.gz"?></li>
+                </ul>
+            </li>
+            <li>Under most circumstances, the default settings of Isabelle should be reasonable for
+                invoking Isabelle/ProofGeneral without further ado:
+                <ul class="shellcmd">
+                    <li>/usr/local/Isabelle/bin/Isabelle</li>
+                </ul>
+                Note that there is a separate option in
+                the Proof General <em>Options</em> menu to enable X-Symbol.
+            </li>
+            <li>If Emacs appears to hang when the prover process is started, see the
+                <a href="http://proofgeneral.inf.ed.ac.uk/FAQ">ProofGeneral FAQ</a> for
+                advice.
+            </li>
+        </ul>
+
+      <h2 id="install_windows">Windows</h2>
+
+        <p>Isabelle does not run nativly on Windows; in a restricted fashion,
+        you may run Isabelle on Windows using the Cygwin environment.
+        See <a href="installation_notes_cygwin.html">Installation notes for
+        Cygwin/Windows</a>.</p>
+
+        <p>For a serious apporach, you should consider a Windows/Linux dualboot
+        installation.</p>
+
+    </div>
+    <div class="hr"><hr/></div>
+    <?include file="../include/footer.include.html"?>
+</body>
+
+</html>
