@@ -68,11 +68,14 @@ fun print_depth n =
 fun make_pp path pprint = ();
 fun install_pp _ = ();
 
-(*profiling -- dummy implementation*)
+(*dummy implementation*)
+fun ml_prompts p1 p2 = ();
+
+(*dummy implementation*)
 fun profile (n: int) f x = f x;
 
-(*prompts -- dummy impelemtation*)
-fun ml_prompts p1 p2 = ();
+(*dummy impelemtation*)
+fun exception_trace f = f ();
 
 
 (** Compiler-independent timing functions **)

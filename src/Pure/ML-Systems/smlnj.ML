@@ -59,19 +59,22 @@ fun print_depth n =
 | _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
-(*profiling -- dummy implementation*)
-fun profile (n: int) f x = f x;
-
 (*prompts*)
 fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
 
+(*dummy impelemtation*)
+fun profile (n: int) f x = f x;
+
+(*dummy impelemtation*)
+fun exception_trace f = f ();
 
 (case #version_id (Compiler.version) of
   [110, x] => if x >= 44
               then use "ML-Systems/smlnj-basis-compat.ML"
               else ()
 | _ => ());
+
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
