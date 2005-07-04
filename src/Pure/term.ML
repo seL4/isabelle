@@ -111,6 +111,7 @@ sig
   val subst_free: (term * term) list -> term -> term
   val subst_atomic: (term * term) list -> term -> term
   val typ_subst_atomic: (typ * typ) list -> typ -> typ
+  val subst_atomic_types: (typ * typ) list -> term -> term
   val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
   val typ_subst_TVars: (indexname * typ) list -> typ -> typ
   val subst_Vars: (indexname * term) list -> term -> term
@@ -171,16 +172,18 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
   val sort_ord: sort * sort -> order
   val typ_ord: typ * typ -> order
-  val typs_ord: typ list * typ list -> order
+  val fast_term_ord: term * term -> order
   val term_ord: term * term -> order
   val hd_ord: term * term -> order
   val termless: term * term -> bool
   val term_lpo: (string -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
+  val argument_type_of: term -> typ
   val invent_names: string list -> string -> int -> string list
   val map_typ: (string -> string) -> (string -> string) -> typ -> typ
   val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
@@ -188,6 +191,7 @@ sig
   val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
   val add_vars: (indexname * typ) list * term -> (indexname * typ) list
   val add_frees: (string * typ) list * term -> (string * typ) list
+  val dest_abs: string * typ * term -> string * term
   val no_dummyT: typ -> typ
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
@@ -363,6 +367,18 @@ fun fastype_of1 (Ts, f$u) =
 
 fun fastype_of t : typ = fastype_of1 ([],t);
 
+(*Determine the argument type of a function*)
+fun argument_type_of tm =
+  let
+    fun argT i (Type ("fun", [T, U])) = if i = 0 then T else argT (i - 1) U
+      | argT _ T = raise TYPE ("argument_type_of", [T], []);
+
+    fun arg 0 _ (Abs (_, T, _)) = T
+      | arg i Ts (Abs (_, T, t)) = arg (i - 1) (T :: Ts) t
+      | arg i Ts (t $ _) = arg (i + 1) Ts t
+      | arg i Ts a = argT i (fastype_of1 (Ts, a));
+  in arg 0 [] tm end;
+
 
 val list_abs = Library.foldr (fn ((x, T), t) => Abs (x, T, t));
 
@@ -405,28 +421,34 @@ fun head_of (f$t) = head_of f
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
   let
-    fun add_size (t $ u) n = add_size t (add_size u n)
-      | add_size (Abs (_ ,_, t)) n = add_size t (n + 1)
-      | add_size _ n = n + 1;
-  in add_size tm 0 end;
+    fun add_size (t $ u, n) = add_size (t, add_size (u, n))
+      | add_size (Abs (_ ,_, t), n) = add_size (t, n + 1)
+      | add_size (_, n) = n + 1;
+  in add_size (tm, 0) end;
 
-fun map_type_tvar f (Type(a,Ts)) = Type(a, map (map_type_tvar f) Ts)
-  | map_type_tvar f (T as TFree _) = T
-  | map_type_tvar f (TVar x) = f x;
+fun map_type_tvar f =
+  let
+    fun map_aux (Type (a, Ts)) = Type (a, map map_aux Ts)
+      | map_aux (TVar x) = f x
+      | map_aux T = T;
+  in map_aux end;
 
-fun map_type_tfree f (Type(a,Ts)) = Type(a, map (map_type_tfree f) Ts)
-  | map_type_tfree f (TFree x) = f x
-  | map_type_tfree f (T as TVar _) = T;
+fun map_type_tfree f =
+  let
+    fun map_aux (Type (a, Ts)) = Type (a, map map_aux Ts)
+      | map_aux (TFree x) = f x
+      | map_aux T = T;
+  in map_aux end;
 
-(* apply a function to all types in a term *)
 fun map_term_types f =
-let fun map(Const(a,T)) = Const(a, f T)
-      | map(Free(a,T)) = Free(a, f T)
-      | map(Var(v,T)) = Var(v, f T)
-      | map(t as Bound _)  = t
-      | map(Abs(a,T,t)) = Abs(a, f T, map t)
-      | map(f$t) = map f $ map t;
-in map end;
+  let
+    fun map_aux (Const (a, T)) = Const (a, f T)
+      | map_aux (Free (a, T)) = Free (a, f T)
+      | map_aux (Var (v, T)) = Var (v, f T)
+      | map_aux (t as Bound _)  = t
+      | map_aux (Abs (a, T, t)) = Abs (a, f T, map_aux t)
+      | map_aux (t $ u) = map_aux t $ map_aux u;
+  in map_aux end;
 
 (* iterate a function over all types in a term *)
 fun it_term_types f =
@@ -439,31 +461,89 @@ let fun iter(Const(_,T), a) = f(T,a)
 in iter end
 
 
-(** Comparing terms, types etc. **)
+(** Comparing terms, types, sorts etc. **)
 
-fun indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+(* fast syntactic comparison *)
+
+fun fast_indexname_ord ((x, i), (y, j)) =
+  (case int_ord (i, j) of EQUAL => fast_string_ord (x, y) | ord => ord);
 
 fun sort_ord SS =
   if pointer_eq SS then EQUAL
-  else list_ord string_ord SS;
+  else list_ord fast_string_ord SS;
 
+local
 
-(* typ_ord *)
+fun cons_nr (TVar _) = 0
+  | cons_nr (TFree _) = 1
+  | cons_nr (Type _) = 2;
+
+in
 
 fun typ_ord TU =
   if pointer_eq TU then EQUAL
   else
     (case TU of
-      (Type x, Type y) => prod_ord string_ord typs_ord (x, y)
-    | (Type _, _) => GREATER
-    | (TFree _, Type _) => LESS
-    | (TFree x, TFree y) => prod_ord string_ord sort_ord (x, y)
-    | (TFree _, TVar _) => GREATER
-    | (TVar _, Type _) => LESS
-    | (TVar _, TFree _) => LESS
-    | (TVar x, TVar y) => prod_ord indexname_ord sort_ord (x, y))
-and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
+      (Type (a, Ts), Type (b, Us)) =>
+        (case fast_string_ord (a, b) of EQUAL => list_ord typ_ord (Ts, Us) | ord => ord)
+    | (TFree (a, S), TFree (b, S')) =>
+        (case fast_string_ord (a, b) of EQUAL => sort_ord (S, S') | ord => ord)
+    | (TVar (xi, S), TVar (yj, S')) =>
+        (case fast_indexname_ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
+    | (T, U) => int_ord (cons_nr T, cons_nr U));
+
+end;
+
+local
+
+fun cons_nr (Const _) = 0
+  | cons_nr (Free _) = 1
+  | cons_nr (Var _) = 2
+  | cons_nr (Bound _) = 3
+  | cons_nr (Abs _) = 4
+  | cons_nr (_ $ _) = 5;
+
+fun struct_ord (Abs (_, _, t), Abs (_, _, u)) = struct_ord (t, u)
+  | struct_ord (t1 $ t2, u1 $ u2) =
+      (case struct_ord (t1, u1) of EQUAL => struct_ord (t2, u2) | ord => ord)
+  | struct_ord (t, u) = int_ord (cons_nr t, cons_nr u);
+
+fun atoms_ord (Abs (_, _, t), Abs (_, _, u)) = atoms_ord (t, u)
+  | atoms_ord (t1 $ t2, u1 $ u2) =
+      (case atoms_ord (t1, u1) of EQUAL => atoms_ord (t2, u2) | ord => ord)
+  | atoms_ord (Const (a, _), Const (b, _)) = fast_string_ord (a, b)
+  | atoms_ord (Free (x, _), Free (y, _)) = fast_string_ord (x, y)
+  | atoms_ord (Var (xi, _), Var (yj, _)) = fast_indexname_ord (xi, yj)
+  | atoms_ord (Bound i, Bound j) = int_ord (i, j)
+  | atoms_ord _ = sys_error "atoms_ord";
+
+fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
+      (case typ_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
+  | types_ord (t1 $ t2, u1 $ u2) =
+      (case types_ord (t1, u1) of EQUAL => types_ord (t2, u2) | ord => ord)
+  | types_ord (Const (_, T), Const (_, U)) = typ_ord (T, U)
+  | types_ord (Free (_, T), Free (_, U)) = typ_ord (T, U)
+  | types_ord (Var (_, T), Var (_, U)) = typ_ord (T, U)
+  | types_ord (Bound _, Bound _) = EQUAL
+  | types_ord _ = sys_error "types_ord";
+
+in
+
+fun fast_term_ord tu =
+  if pointer_eq tu then EQUAL
+  else
+    (case struct_ord tu of
+      EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
+    | ord => ord);
+
+fun op aconv tu = (fast_term_ord tu = EQUAL);
+fun aconvs ts_us = (list_ord fast_term_ord ts_us = EQUAL);
+
+structure Vartab = TableFun(type key = indexname val ord = fast_indexname_ord);
+structure Typtab = TableFun(type key = typ val ord = typ_ord);
+structure Termtab = TableFun(type key = term val ord = fast_term_ord);
+
+end;
 
 
 (* term_ord *)
@@ -473,6 +553,10 @@ and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
             2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
             3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
                (s1..sn) < (t1..tn) (lexicographically)*)
+
+fun indexname_ord ((x, i), (y, j)) =
+  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
+
 local
 
 fun hd_depth (t $ _, n) = hd_depth (t, n + 1)
@@ -510,13 +594,7 @@ and args_ord (f $ t, g $ u) =
       (case args_ord (f, g) of EQUAL => term_ord (t, u) | ord => ord)
   | args_ord _ = EQUAL;
 
-fun op aconv tu = (term_ord tu = EQUAL);
-fun aconvs ts_us = (list_ord term_ord ts_us = EQUAL);
 fun termless tu = (term_ord tu = LESS);
-
-structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
-structure Typtab = TableFun(type key = typ val ord = typ_ord);
-structure Termtab = TableFun(type key = term val ord = term_ord);
 
 end;
 
@@ -622,7 +700,7 @@ fun rename_abs pat obj t =
   let
     val ren = match_bvs (pat, obj, []);
     fun ren_abs (Abs (x, T, b)) =
-          Abs (getOpt (assoc_string (ren, x), x), T, ren_abs b)
+          Abs (if_none (assoc_string (ren, x)) x, T, ren_abs b)
       | ren_abs (f $ t) = ren_abs f $ ren_abs t
       | ren_abs t = t
   in if null ren then NONE else SOME (ren_abs t) end;
@@ -782,50 +860,63 @@ fun list_all ([], t) = t
   | list_all ((a,T)::vars, t) =
         (all T) $ (Abs(a, T, list_all(vars,t)));
 
-(*Replace the ATOMIC term ti by ui;    instl = [(t1,u1), ..., (tn,un)].
+(*Replace the ATOMIC term ti by ui;    inst = [(t1,u1), ..., (tn,un)].
   A simultaneous substitution:  [ (a,b), (b,a) ] swaps a and b.  *)
-fun subst_atomic [] t = t : term
-  | subst_atomic (instl: (term*term) list) t =
-      let fun subst (Abs(a,T,body)) = Abs(a, T, subst body)
-            | subst (f$t') = subst f $ subst t'
-            | subst t = getOpt (assoc(instl,t),t)
-      in  subst t  end;
+fun subst_atomic [] tm = tm
+  | subst_atomic inst tm =
+      let
+        fun subst (Abs (a, T, body)) = Abs (a, T, subst body)
+          | subst (t $ u) = subst t $ subst u
+          | subst t = if_none (gen_assoc (op aconv) (inst, t)) t;
+      in subst tm end;
 
-(*Replace the ATOMIC type Ti by Ui;    instl = [(T1,U1), ..., (Tn,Un)].*)
-fun typ_subst_atomic [] T = T
-  | typ_subst_atomic instl (Type (s, Ts)) =
-      Type (s, map (typ_subst_atomic instl) Ts)
-  | typ_subst_atomic instl T = getOpt (assoc (instl, T), T);
+(*Replace the ATOMIC type Ti by Ui;    inst = [(T1,U1), ..., (Tn,Un)].*)
+fun typ_subst_atomic [] ty = ty
+  | typ_subst_atomic inst ty =
+      let
+        fun subst (Type (a, Ts)) = Type (a, map subst Ts)
+          | subst T = if_none (gen_assoc (op = : typ * typ -> bool) (inst, T)) T;
+      in subst ty end;
 
-(*Substitute for type Vars in a type*)
-fun typ_subst_TVars iTs T = if null iTs then T else
-  let fun subst(Type(a,Ts)) = Type(a, map subst Ts)
-        | subst(T as TFree _) = T
-        | subst(T as TVar(ixn,_)) = getOpt (assoc(iTs,ixn),T)
-  in subst T end;
+fun subst_atomic_types [] tm = tm
+  | subst_atomic_types inst tm = map_term_types (typ_subst_atomic inst) tm;
 
-(*Substitute for type Vars in a term*)
-val subst_TVars = map_term_types o typ_subst_TVars;
+fun typ_subst_TVars [] ty = ty
+  | typ_subst_TVars inst ty =
+      let
+        fun subst (Type (a, Ts)) = Type (a, map subst Ts)
+          | subst (T as TVar (xi, _)) = if_none (assoc_string_int (inst, xi)) T
+          | subst T = T;
+      in subst ty end;
 
-(*Substitute for Vars in a term; see also envir/norm_term*)
-fun subst_Vars itms t = if null itms then t else
-  let fun subst(v as Var(ixn,_)) = getOpt (assoc(itms,ixn),v)
-        | subst(Abs(a,T,t)) = Abs(a,T,subst t)
-        | subst(f$t) = subst f $ subst t
-        | subst(t) = t
-  in subst t end;
+fun subst_TVars [] tm = tm
+  | subst_TVars inst tm = map_term_types (typ_subst_TVars inst) tm;
 
-(*Substitute for type/term Vars in a term; see also envir/norm_term*)
-fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
-  let fun subst(Const(a,T)) = Const(a,typ_subst_TVars iTs T)
-        | subst(Free(a,T)) = Free(a,typ_subst_TVars iTs T)
-        | subst(v as Var(ixn,T)) = (case assoc(itms,ixn) of
-            NONE   => Var(ixn,typ_subst_TVars iTs T)
-          | SOME t => t)
-        | subst(b as Bound _) = b
-        | subst(Abs(a,T,t)) = Abs(a,typ_subst_TVars iTs T,subst t)
-        | subst(f$t) = subst f $ subst t
-  in subst end;
+(*see also Envir.norm_term*)
+fun subst_Vars [] tm = tm
+  | subst_Vars inst tm =
+      let
+        fun subst (t as Var (xi, _)) = if_none (assoc_string_int (inst, xi)) t
+          | subst (Abs (a, T, t)) = Abs (a, T, subst t)
+          | subst (t $ u) = subst t $ subst u
+          | subst t = t;
+      in subst tm end;
+
+(*see also Envir.norm_term*)
+fun subst_vars ([], []) tm = tm
+  | subst_vars ([], inst) tm = subst_Vars inst tm
+  | subst_vars (instT, inst) tm =
+      let
+        fun subst (Const (a, T)) = Const (a, typ_subst_TVars instT T)
+          | subst (Free (a, T)) = Free (a, typ_subst_TVars instT T)
+          | subst (t as Var (xi, T)) =
+              (case assoc_string_int (inst, xi) of
+                NONE => Var (xi, typ_subst_TVars instT T)
+              | SOME t => t)
+          | subst (t as Bound _) = t
+          | subst (Abs (a, T, t)) = Abs (a, typ_subst_TVars instT T, subst t)
+          | subst (t $ u) = subst t $ subst u;
+      in subst tm end;
 
 
 (** Identifying first-order terms **)
@@ -871,7 +962,8 @@ fun maxidx_of_terms ts = Library.foldl Int.max (~1, map maxidx_of_term ts);
 
 
 (* Increment the index of all Poly's in T by k *)
-fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
+fun incr_tvar 0 T = T
+  | incr_tvar k T = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S)) T;
 
 
 (**** Syntax-related declarations ****)
@@ -1064,10 +1156,22 @@ fun add_term_frees (t, frees: term list) = case t of
 fun term_frees t = add_term_frees(t,[]);
 
 (*Given an abstraction over P, replaces the bound variable by a Free variable
-  having a unique name. *)
+  having a unique name*)
 fun variant_abs (a,T,P) =
   let val b = variant (add_term_names(P,[])) a
   in  (b,  subst_bound (Free(b,T), P))  end;
+
+fun dest_abs (x, T, body) =
+  let
+    fun name_clash (Free (y, _)) = (x = y)
+      | name_clash (t $ u) = name_clash t orelse name_clash u
+      | name_clash (Abs (_, _, t)) = name_clash t
+      | name_clash _ = false;
+  in
+    if name_clash body then
+      dest_abs (variant [x] x, T, body)    (*potentially slow, but rarely happens*)
+    else (x, subst_bound (Free (x, T), body))
+  end;
 
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
