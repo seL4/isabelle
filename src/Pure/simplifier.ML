@@ -475,10 +475,10 @@ val simp_options =
   Args.parens (Args.$$$ asm_lrN) >> K asm_lr_simp_tac ||
   Scan.succeed asm_full_simp_tac);
 
-val simp_flags = Scan.repeat
+fun simp_flags x = (Scan.repeat
   (Args.parens (Args.$$$ "depth_limit" -- Args.colon |-- Args.nat)
     >> setmp MetaSimplifier.simp_depth_limit)
-  >> curry (Library.foldl op o) I;
+  >> curry (Library.foldl op o) I) x;
 
 val cong_modifiers =
  [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local):Method.modifier),
