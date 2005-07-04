@@ -162,13 +162,8 @@ struct
 
 (** collect occurrences of sorts -- unless all sorts non-empty **)
 
-fun may_insert_typ_sorts thy T =
-  if Sign.all_sorts_nonempty thy then I
-  else Sorts.insert_typ T;
-
-fun may_insert_term_sorts thy t =
-  if Sign.all_sorts_nonempty thy then I
-  else Sorts.insert_term t;
+fun may_insert_typ_sorts thy T = if Sign.all_sorts_nonempty thy then I else Sorts.insert_typ T;
+fun may_insert_term_sorts thy t = if Sign.all_sorts_nonempty thy then I else Sorts.insert_term t;
 
 (*NB: type unification may invent new sorts*)
 fun may_insert_env_sorts thy (env as Envir.Envir {iTs, ...}) =
@@ -199,7 +194,7 @@ fun read_ctyp thy s =
 
 fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), sorts}) =
       map (fn T => Ctyp {thy_ref = thy_ref, T = T, sorts = sorts}) Ts
-  | dest_ctyp cT = [cT];
+  | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
 
 
 
@@ -212,6 +207,8 @@ datatype cterm = Cterm of
   T: typ,
   maxidx: int,
   sorts: sort list};
+
+exception CTERM of string;
 
 fun rep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   let val thy =  Theory.deref thy_ref
@@ -240,26 +237,19 @@ fun cterm_of thy tm =
 fun merge_thys0 (Cterm {thy_ref = r1, ...}) (Cterm {thy_ref = r2, ...}) =
   Theory.merge_refs (r1, r2);
 
-exception CTERM of string;
-
 (*Destruct application in cterms*)
-fun dest_comb (Cterm {thy_ref, T, maxidx, sorts, t = A $ B}) =
-      let
-        val typeA = fastype_of A;
-        val typeB =
-          (case typeA of Type ("fun", [S, T]) => S
-          | _ => sys_error "Function type expected in dest_comb");
-      in
-        (Cterm {t = A, T = typeA, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
-         Cterm {t = B, T = typeB, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
+fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of t in
+        (Cterm {t = t, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
+         Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
   | dest_comb _ = raise CTERM "dest_comb";
 
 (*Destruct abstraction in cterms*)
-fun dest_abs a (Cterm {t = Abs (x, ty, M), T as Type("fun",[_,S]), thy_ref, maxidx, sorts}) =
-      let val (y, N) = variant_abs (if_none a x, ty, M) in
-        (Cterm {t = Free (y, ty), T = ty, thy_ref = thy_ref, maxidx = 0, sorts = sorts},
-          Cterm {t = N, T = S, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
+fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
+      let val (y', t') = Term.dest_abs (if_none a x, T, t) in
+        (Cterm {t = Free (y', T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
+          Cterm {t = t', T = U, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
   | dest_abs _ _ = raise CTERM "dest_abs";
 
@@ -397,9 +387,9 @@ fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
 (* hyps *)
 
-val remove_hyps = OrdList.remove Term.term_ord;
-val union_hyps = OrdList.union Term.term_ord;
-val eq_set_hyps = OrdList.eq_set Term.term_ord;
+val remove_hyps = OrdList.remove Term.fast_term_ord;
+val union_hyps = OrdList.union Term.fast_term_ord;
+val eq_set_hyps = OrdList.eq_set Term.fast_term_ord;
 
 
 (* eq_thm(s) *)
@@ -587,8 +577,8 @@ fun assume raw_ct =
   A ==> B
 *)
 fun implies_intr
-    (ct as Cterm {thy_ref = thy_refA, t = A, T, maxidx = maxidxA, sorts})
-    (th as Thm {thy_ref, der, maxidx, hyps, shyps, tpairs, prop}) =
+    (ct as Cterm {t = A, T, maxidx = maxidxA, sorts, ...})
+    (th as Thm {der, maxidx, hyps, shyps, tpairs, prop, ...}) =
   if T <> propT then
     raise THM ("implies_intr: assumptions must have type prop", 0, [th])
   else
@@ -636,7 +626,7 @@ fun implies_elim thAB thA =
 *)
 fun forall_intr
     (ct as Cterm {t = x, T, sorts, ...})
-    (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
+    (th as Thm {der, maxidx, shyps, hyps, tpairs, prop, ...}) =
   let
     fun result a =
       Thm {thy_ref = merge_thys1 ct th,
@@ -942,7 +932,7 @@ fun add_ctpair ((thy, sorts), (ct, cu)) =
 
 fun add_ctyp ((thy, sorts), (cT, cU)) =
   let
-    val Ctyp {T = T, thy_ref = thy_ref1, sorts = sorts1, ...} = cT
+    val Ctyp {T, thy_ref = thy_ref1, sorts = sorts1, ...} = cT
     and Ctyp {T = U, thy_ref = thy_ref2, sorts = sorts2, ...} = cU;
     val thy' = Theory.merge (thy, Theory.deref (Theory.merge_refs (thy_ref1, thy_ref2)));
     val sorts' = Sorts.union sorts2 (Sorts.union sorts1 sorts);
@@ -963,10 +953,10 @@ in
 fun instantiate ([], []) th = th
   | instantiate (vcTs, ctpairs) th =
       let
-        val Thm {thy_ref, der, maxidx, hyps, shyps, tpairs = dpairs, prop} = th;
-        val (thy_sorts, tpairs) = foldl_map add_ctpair ((Theory.deref thy_ref, shyps), ctpairs);
-        val ((thy', shyps'), vTs) = foldl_map add_ctyp (thy_sorts, vcTs);
-        fun subst t = subst_atomic tpairs (map_term_types (typ_subst_atomic vTs) t);
+        val Thm {thy_ref, der, hyps, shyps, tpairs = dpairs, prop, ...} = th;
+        val (context, tpairs) = foldl_map add_ctpair ((Theory.deref thy_ref, shyps), ctpairs);
+        val ((thy', shyps'), vTs) = foldl_map add_ctyp (context, vcTs);
+        fun subst t = subst_atomic tpairs (subst_atomic_types vTs t);
         val prop' = subst prop;
         val dpairs' = map (pairself subst) dpairs;
       in
@@ -1067,7 +1057,7 @@ fun dest_state (state as Thm{prop,tpairs,...}, i) =
   resolution with goal i of state. *)
 fun lift_rule (state, i) orule =
   let
-    val Thm {shyps = sshyps, prop = sprop, maxidx = smax, thy_ref = sthy_ref,...} = state;
+    val Thm {shyps = sshyps, prop = sprop, maxidx = smax, ...} = state;
     val (Bi :: _, _) = Logic.strip_prems (i, [], sprop)
       handle TERM _ => raise THM ("lift_rule", i, [orule, state]);
     val (lift_abs, lift_all) = Logic.lift_fns (Bi, smax + 1);
