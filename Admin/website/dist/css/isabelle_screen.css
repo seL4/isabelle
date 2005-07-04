@@ -108,30 +108,22 @@ div#content h3 {
     padding-left: 10px;
 }
 
-body.dist div#content {
-    /* not needed now */
-}
-
 /* mirror switch layout */
 div.mirrorlist {
-    margin: 5pt 0pt 10pt 10pt;
-    padding: 0pt;
-    position: relative;
-    float: right;
-    top: 0px;
-    right: 0px;
-    border: 2pt solid #000000;
-    background-color: #EEEEDD;
+    margin: 1ex 0em;
+    padding: 2pt;
+    background-color: #E0E0F0;
     text-align: left;
+    border-left: 7px solid #FFFFFF;
 }
 
-div.mirrorlist p {
+div.mirrorlist h3 {
     margin: 1pt;
     padding: 1pt;
     border: none;
-    background-color: #000000;
-    color: #EEEEDD;
-    font-size: 9pt;
+    background-color: #FFFFFF;
+    color: #0000A0;
+    font-size: 11pt;
     text-align: left;
 }
 

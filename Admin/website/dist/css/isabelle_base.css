@@ -105,10 +105,6 @@ div#navigation ul li strong {
     border-left: 7px solid #0000A0;
 }
 
-body.dist div#navigation ul li strong {
-    border-left: 7px solid #00A000;
-}
-
 /* footer layout */
 div#footer p {
     text-align: right;
