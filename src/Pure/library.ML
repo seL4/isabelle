@@ -8,7 +8,7 @@ rational numbers, strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
-infix |> |-> |>> |>>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
+infix |> |-> |>> ||> |>>> ||>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
@@ -22,9 +22,11 @@ sig
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
   val |> : 'a * ('a -> 'b) -> 'b
-  val |-> : ('a * 'c) * ('c -> 'a -> 'b) -> 'b
-  val |>> : ('a * 'b) * ('a -> 'c) -> 'c * 'b
-  val |>>> : ('a * 'b) * ('a -> 'c * 'd) -> 'c * ('b * 'd)
+  val |-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b
+  val |>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c
+  val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
+  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
+  val ||>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b
   val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
   val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
@@ -85,6 +87,7 @@ sig
   val apply: ('a -> 'a) list -> 'a -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
@@ -297,9 +300,11 @@ fun K x y = x;
 
 (*reverse apply*)
 fun (x |> f) = f x;
-fun ((x, v) |-> f) = f v x;
+fun ((x, y) |-> f) = f x y;
 fun ((x, y) |>> f) = (f x, y);
+fun ((x, y) ||> f) = (x, f y);
 fun ((x, y) |>>> f) = let val (x', z) = f x in (x', (y, z)) end;
+fun ((x, y) ||>> f) = let val (z, y') = f y in ((x, z), y') end;
 
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
@@ -463,6 +468,16 @@ fun fold_rev f =
   let
     fun fold_aux [] y = y
       | fold_aux (x :: xs) y = f x (fold_aux xs y);
+  in fold_aux end;
+
+fun fold_map f = 
+  let
+    fun fold_aux [] y = ([], y)
+      | fold_aux (x :: xs) y =
+          let
+            val (x', y') = f x y
+            val (xs', y'') = fold_aux xs y'
+          in (x' :: xs', y'') end;
   in fold_aux end;
 
 fun foldl_map f =
