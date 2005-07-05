@@ -296,7 +296,7 @@ struct
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
 fun I x = x;
-fun K x y = x;
+fun K x = fn y => x;
 
 (*reverse apply*)
 fun (x |> f) = f x;
