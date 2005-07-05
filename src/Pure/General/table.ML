@@ -359,4 +359,4 @@ fun foldl f (x, tab) = fold (fn p => fn x' => f (x', p)) tab x;
 end;
 
 structure Inttab = TableFun(type key = int val ord = int_ord);
-structure Symtab = TableFun(type key = string val ord = string_ord);
+structure Symtab = TableFun(type key = string val ord = fast_string_ord);
