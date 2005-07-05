@@ -415,6 +415,17 @@ verbose.
 Poly/ML, set to 1 to profile time, 2 to profile space (which increases
 the runtime).
 
+* Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
+reasonably efficient light-weight implementation of lists as sets.
+
+* Pure: more efficient orders for basic syntactic entities: added
+fast_string_ord, fast_indexname_ord, fast_term_ord; changed sort_ord
+and typ_ord to use fast_string_ord and fast_indexname_ord (term_ord is
+NOT affected); structures Symtab, Vartab, Typtab, Termtab use the fast
+orders now -- potential INCOMPATIBILITY for code that depends on a
+particular order for Symtab.keys, Symtab.dest, etc. (consider using
+Library.sort_strings on result).
+
 * Pure: name spaces have been refined, with significant changes of the
 internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
 to extern(_table).  The plain name entry path is superceded by a
