@@ -9,10 +9,8 @@ val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 set timing;
 
 warning "\nset quick_and_dirty\n"; set quick_and_dirty;
-seq time_use_thy tests;
+List.app time_use_thy tests;
 
-(* not run by default
 warning "\nreset quick_and_dirty\n"; reset quick_and_dirty;
-seq remove_thy tests;
-seq time_use_thy tests;
-*)
+List.app remove_thy tests;
+List.app time_use_thy tests;
