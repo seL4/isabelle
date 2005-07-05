@@ -118,33 +118,7 @@ rep_datatype lift
 lemma Def_not_UU: "Def a ~= UU"
   by simp
 
-
-subsection {* Further operations *}
-
-consts
- flift1      :: "('a => 'b::pcpo) => ('a lift -> 'b)" (binder "FLIFT " 10)
- flift2      :: "('a => 'b)       => ('a lift -> 'b lift)"
- liftpair    ::"'a::type lift * 'b::type lift => ('a * 'b) lift"
-
-defs
- flift1_def:
-  "flift1 f == (LAM x. (case x of
-                   UU => UU
-                 | Def y => (f y)))"
- flift2_def:
-  "flift2 f == (LAM x. (case x of
-                   UU => UU
-                 | Def y => Def (f y)))"
- liftpair_def:
-  "liftpair x  == (case (cfst$x) of
-                  UU  => UU
-                | Def x1 => (case (csnd$x) of
-                               UU => UU
-                             | Def x2 => Def (x1,x2)))"
-
-
 declare inst_lift_pcpo [symmetric, simp]
-
 
 lemma less_lift: "(x::'a lift) << y = (x=y | x=UU)"
   by (simp add: inst_lift_po)
@@ -199,9 +173,6 @@ proof
     by (simp add: less_lift)
 qed
 
-defaultsort pcpo
-
-
 text {*
   \medskip Two specific lemmas for the combination of LCF and HOL
   terms.
@@ -219,9 +190,63 @@ lemma cont_Rep_CFun_app_app: "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s t)
   apply assumption
   done
 
-subsection {* Continuity Proofs for flift1, flift2, if *}
+subsection {* Further operations *}
+
+constdefs
+  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)" (binder "FLIFT " 10)
+  "flift1 \<equiv> \<lambda>f. (\<Lambda> x. lift_case \<bottom> f x)"
+
+  flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)"
+  "flift2 f \<equiv> FLIFT x. Def (f x)"
+
+  liftpair :: "'a lift \<times> 'b lift \<Rightarrow> ('a \<times> 'b) lift"
+  "liftpair x \<equiv> csplit\<cdot>(FLIFT x y. Def (x, y))\<cdot>x"
+
+subsection {* Continuity Proofs for flift1, flift2 *}
 
 text {* Need the instance of @{text flat}. *}
+
+lemma cont_lift_case1: "cont (\<lambda>f. lift_case a f x)"
+apply (induct x)
+apply simp
+apply simp
+apply (rule cont_id [THEN cont2cont_CF1L])
+done
+
+lemma cont_lift_case2: "cont (\<lambda>x. lift_case \<bottom> f x)"
+apply (rule flatdom_strict2cont)
+apply simp
+done
+
+lemma cont_flift1: "cont flift1"
+apply (unfold flift1_def)
+apply (rule cont2cont_LAM)
+apply (rule cont_lift_case2)
+apply (rule cont_lift_case1)
+done
+
+lemma cont2cont_flift1:
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
+apply (rule cont_flift1 [THEN cont2cont_app3])
+apply (simp add: cont2cont_lambda)
+done
+
+lemma flift1_Def [simp]: "flift1 f\<cdot>(Def x) = (f x)"
+by (simp add: flift1_def cont_lift_case2)
+
+lemma flift2_Def [simp]: "flift2 f\<cdot>(Def x) = Def (f x)"
+by (simp add: flift2_def)
+
+lemma flift1_strict [simp]: "flift1 f\<cdot>\<bottom> = \<bottom>"
+by (simp add: flift1_def cont_lift_case2)
+
+lemma flift2_strict [simp]: "flift2 f\<cdot>\<bottom> = \<bottom>"
+by (simp add: flift2_def)
+
+lemma flift2_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> (flift2 f)\<cdot>x \<noteq> \<bottom>"
+by (erule lift_definedE, simp)
+
+text {* old continuity rules *}
 
 lemma cont_flift1_arg: "cont (lift_case UU f)"
   -- {* @{text flift1} is continuous in its argument itself. *}
@@ -277,23 +302,5 @@ in fun cont_tacRs i =
   REPEAT (cont_tac i)
 end;
 *}
-
-
-subsection {* flift1, flift2 *}
-
-lemma flift1_Def [simp]: "flift1 f$(Def x) = (f x)"
-  by (simp add: flift1_def)
-
-lemma flift2_Def [simp]: "flift2 f$(Def x) = Def (f x)"
-  by (simp add: flift2_def)
-
-lemma flift1_UU [simp]: "flift1 f$UU = UU"
-  by (simp add: flift1_def)
-
-lemma flift2_UU [simp]: "flift2 f$UU = UU"
-  by (simp add: flift2_def)
-
-lemma flift2_nUU [simp]: "x~=UU ==> (flift2 f)$x~=UU"
-  by (tactic "def_tac 1")
 
 end
