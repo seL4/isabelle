@@ -8,54 +8,21 @@ Strict product with typedef.
 header {* The type of strict products *}
 
 theory Sprod
-imports Cprod TypedefPcpo
+imports Cprod
 begin
 
 defaultsort pcpo
 
 subsection {* Definition of strict product type *}
 
-typedef (Sprod)  ('a, 'b) "**" (infixr 20) =
+pcpodef (Sprod)  ('a, 'b) "**" (infixr 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (cfst\<cdot>p \<noteq> \<bottom> \<and> csnd\<cdot>p \<noteq> \<bottom>)}"
-by (auto simp add: inst_cprod_pcpo)
+by simp
 
 syntax (xsymbols)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
 syntax (HTML output)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
-
-subsection {* Class instances *}
-
-instance "**" :: (pcpo, pcpo) sq_ord ..
-defs (overloaded)
-  less_sprod_def: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep_Sprod x \<sqsubseteq> Rep_Sprod y"
-
-lemma adm_Sprod: "adm (\<lambda>x. x \<in> Sprod)"
-by (simp add: Sprod_def)
-
-lemma UU_Sprod: "\<bottom> \<in> Sprod"
-by (simp add: Sprod_def)
-
-instance "**" :: (pcpo, pcpo) po
-by (rule typedef_po [OF type_definition_Sprod less_sprod_def])
-
-instance "**" :: (pcpo, pcpo) cpo
-by (rule typedef_cpo [OF type_definition_Sprod less_sprod_def adm_Sprod])
-
-instance "**" :: (pcpo, pcpo) pcpo
-by (rule typedef_pcpo_UU [OF type_definition_Sprod less_sprod_def UU_Sprod])
-
-lemmas cont_Rep_Sprod =
-  typedef_cont_Rep [OF type_definition_Sprod less_sprod_def adm_Sprod]
-
-lemmas cont_Abs_Sprod = 
-  typedef_cont_Abs [OF type_definition_Sprod less_sprod_def adm_Sprod]
-
-lemmas Rep_Sprod_strict =
-  typedef_Rep_strict [OF type_definition_Sprod less_sprod_def UU_Sprod]
-
-lemmas Abs_Sprod_strict =
-  typedef_Abs_strict [OF type_definition_Sprod less_sprod_def UU_Sprod]
 
 lemma UU_Abs_Sprod: "\<bottom> = Abs_Sprod <\<bottom>, \<bottom>>"
 by (simp add: Abs_Sprod_strict inst_cprod_pcpo2 [symmetric])
@@ -178,7 +145,7 @@ lemma surjective_pairing_Sprod2: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (rule_tac p=p in sprodE, simp_all)
 
 lemma less_sprod: "p1 \<sqsubseteq> p2 = (sfst\<cdot>p1 \<sqsubseteq> sfst\<cdot>p2 \<and> ssnd\<cdot>p1 \<sqsubseteq> ssnd\<cdot>p2)"
-apply (simp add: less_sprod_def sfst_def ssnd_def cont_Rep_Sprod)
+apply (simp add: less_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
 apply (rule less_cprod)
 done
 

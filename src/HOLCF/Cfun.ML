@@ -1,7 +1,7 @@
 
 (* legacy ML bindings *)
 
-val less_cfun_def = thm "less_cfun_def";
+val less_cfun_def = thm "less_CFun_def";
 val cfun_cong = thm "cfun_cong";
 val cfun_fun_cong = thm "cfun_fun_cong";
 val cfun_arg_cong = thm "cfun_arg_cong";

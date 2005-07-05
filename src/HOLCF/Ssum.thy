@@ -8,54 +8,21 @@ Strict sum with typedef.
 header {* The type of strict sums *}
 
 theory Ssum
-imports Cprod TypedefPcpo
+imports Cprod
 begin
 
 defaultsort pcpo
 
 subsection {* Definition of strict sum type *}
 
-typedef (Ssum)  ('a, 'b) "++" (infixr 10) = 
+pcpodef (Ssum)  ('a, 'b) "++" (infixr 10) = 
         "{p::'a \<times> 'b. cfst\<cdot>p = \<bottom> \<or> csnd\<cdot>p = \<bottom>}"
-by (rule_tac x="<\<bottom>,\<bottom>>" in exI, simp)
+by simp
 
 syntax (xsymbols)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
 syntax (HTML output)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
-
-subsection {* Class instances *}
-
-instance "++" :: (pcpo, pcpo) sq_ord ..
-defs (overloaded)
-  less_ssum_def: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep_Ssum x \<sqsubseteq> Rep_Ssum y"
-
-lemma adm_Ssum: "adm (\<lambda>x. x \<in> Ssum)"
-by (simp add: Ssum_def cont_fst cont_snd)
-
-lemma UU_Ssum: "\<bottom> \<in> Ssum"
-by (simp add: Ssum_def inst_cprod_pcpo2)
-
-instance "++" :: (pcpo, pcpo) po
-by (rule typedef_po [OF type_definition_Ssum less_ssum_def])
-
-instance "++" :: (pcpo, pcpo) cpo
-by (rule typedef_cpo [OF type_definition_Ssum less_ssum_def adm_Ssum])
-
-instance "++" :: (pcpo, pcpo) pcpo
-by (rule typedef_pcpo_UU [OF type_definition_Ssum less_ssum_def UU_Ssum])
-
-lemmas cont_Rep_Ssum =
-  typedef_cont_Rep [OF type_definition_Ssum less_ssum_def adm_Ssum]
-
-lemmas cont_Abs_Ssum = 
-  typedef_cont_Abs [OF type_definition_Ssum less_ssum_def adm_Ssum]
-
-lemmas Rep_Ssum_strict =
-  typedef_Rep_strict [OF type_definition_Ssum less_ssum_def UU_Ssum]
-
-lemmas Abs_Ssum_strict =
-  typedef_Abs_strict [OF type_definition_Ssum less_ssum_def UU_Ssum]
 
 lemma UU_Abs_Ssum: "\<bottom> = Abs_Ssum <\<bottom>, \<bottom>>"
 by (simp add: Abs_Ssum_strict inst_cprod_pcpo2 [symmetric])
@@ -146,16 +113,16 @@ done
 subsection {* Ordering properties of @{term sinl} and @{term sinr} *}
 
 lemma sinl_less: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_ssum_def Rep_Ssum_sinl cpair_less)
+by (simp add: less_Ssum_def Rep_Ssum_sinl cpair_less)
 
 lemma sinr_less: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_ssum_def Rep_Ssum_sinr cpair_less)
+by (simp add: less_Ssum_def Rep_Ssum_sinr cpair_less)
 
 lemma sinl_less_sinr: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
 
 lemma sinr_less_sinl: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
 
 subsection {* Chains of strict sums *}
 

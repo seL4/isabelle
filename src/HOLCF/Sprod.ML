@@ -1,7 +1,7 @@
 
 (* legacy ML bindings *)
 
-val less_sprod_def = thm "less_sprod_def";
+val less_sprod_def = thm "less_Sprod_def";
 val spair_def = thm "spair_def";
 val sfst_def = thm "sfst_def";
 val ssnd_def = thm "ssnd_def";

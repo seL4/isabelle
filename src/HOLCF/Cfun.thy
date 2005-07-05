@@ -8,7 +8,7 @@ Definition of the type ->  of continuous functions.
 header {* The type of continuous functions *}
 
 theory Cfun
-imports TypedefPcpo
+imports Pcpodef
 uses ("cont_proc.ML")
 begin
 
@@ -16,8 +16,14 @@ defaultsort cpo
 
 subsection {* Definition of continuous function type *}
 
-typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}"
-by (rule exI, fast intro: cont_const)
+lemma Ex_cont: "\<exists>f. cont f"
+by (rule exI, rule cont_const)
+
+lemma adm_cont: "adm cont"
+by (rule admI, rule cont_lub_fun)
+
+cpodef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}"
+by (simp add: Ex_cont adm_cont)
 
 syntax
   Rep_CFun :: "('a -> 'b) => ('a => 'b)" ("_$_" [999,1000] 999)
@@ -36,37 +42,17 @@ syntax (HTML output)
 
 subsection {* Class instances *}
 
-instance "->"  :: (cpo, cpo) sq_ord ..
-
-defs (overloaded)
-  less_cfun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. Rep_CFun f \<sqsubseteq> Rep_CFun g)"
-
-lemma adm_CFun: "adm (\<lambda>f. f \<in> CFun)"
-by (simp add: CFun_def, rule admI, rule cont_lub_fun)
-
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
 
-instance "->" :: (cpo, cpo) po
-by (rule typedef_po [OF type_definition_CFun less_cfun_def])
-
-instance "->" :: (cpo, cpo) cpo
-by (rule typedef_cpo [OF type_definition_CFun less_cfun_def adm_CFun])
-
 instance "->" :: (cpo, pcpo) pcpo
-by (rule typedef_pcpo_UU [OF type_definition_CFun less_cfun_def UU_CFun])
-
-lemmas cont_Rep_CFun =
-  typedef_cont_Rep [OF type_definition_CFun less_cfun_def adm_CFun]
-
-lemmas cont_Abs_CFun = 
-  typedef_cont_Abs [OF type_definition_CFun less_cfun_def adm_CFun]
+by (rule typedef_pcpo_UU [OF type_definition_CFun less_CFun_def UU_CFun])
 
 lemmas Rep_CFun_strict =
-  typedef_Rep_strict [OF type_definition_CFun less_cfun_def UU_CFun]
+  typedef_Rep_strict [OF type_definition_CFun less_CFun_def UU_CFun]
 
 lemmas Abs_CFun_strict =
-  typedef_Abs_strict [OF type_definition_CFun less_cfun_def UU_CFun]
+  typedef_Abs_strict [OF type_definition_CFun less_CFun_def UU_CFun]
 
 text {* Additional lemma about the isomorphism between
         @{typ "'a -> 'b"} and @{term CFun} *}
@@ -136,12 +122,12 @@ by (rule cont_Rep_CFun1 [THEN contE])
 text {* Extensionality wrt. @{term "op <<"} in @{typ "'a -> 'b"} *}
 
 lemma less_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
-by (simp add: less_cfun_def less_fun_def)
+by (simp add: less_CFun_def less_fun_def)
 
 text {* monotonicity of application *}
 
 lemma monofun_cfun_fun: "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>x"
-by (simp add: less_cfun_def less_fun_def)
+by (simp add: less_CFun_def less_fun_def)
 
 lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> f\<cdot>y"
 by (rule monofun_Rep_CFun2 [THEN monofunE])
@@ -204,9 +190,8 @@ done
 
 text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"} *}
 
-lemma ex_lub_cfun: "[| chain(F); chain(Y) |] ==> 
-                lub(range(%j. lub(range(%i. F(j)$(Y i))))) = 
-                lub(range(%i. lub(range(%j. F(j)$(Y i)))))"
+lemma ex_lub_cfun:
+  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>j. \<Squnion>i. F j\<cdot>(Y i)) = (\<Squnion>i. \<Squnion>j. F j\<cdot>(Y i))"
 by (simp add: diag_lub ch2ch_Rep_CFunL ch2ch_Rep_CFunR)
 
 text {* the lub of a chain of cont. functions is continuous *}
@@ -222,7 +207,7 @@ text {* type @{typ "'a -> 'b"} is chain complete *}
 lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (LAM x. LUB i. F i$x)"
 apply (subst thelub_fun [symmetric])
 apply (erule monofun_Rep_CFun [THEN ch2ch_monofun])
-apply (erule typedef_is_lub [OF type_definition_CFun less_cfun_def adm_CFun])
+apply (erule typedef_is_lub [OF type_definition_CFun less_CFun_def adm_CFun])
 done
 
 lemmas thelub_cfun = lub_cfun [THEN thelubI, standard]
@@ -232,8 +217,9 @@ subsection {* Miscellaneous *}
 
 text {* Monotonicity of @{term Abs_CFun} *}
 
-lemma semi_monofun_Abs_CFun: "[| cont(f); cont(g); f<<g|] ==> Abs_CFun(f)<<Abs_CFun(g)"
-by (simp add: less_cfun_def Abs_CFun_inverse2)
+lemma semi_monofun_Abs_CFun:
+  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_CFun f \<sqsubseteq> Abs_CFun g"
+by (simp add: less_CFun_def Abs_CFun_inverse2)
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
@@ -454,7 +440,8 @@ done
 lemma contlub_Istrictify2: "contlub (\<lambda>x. Istrictify f x)"
 apply (rule contlubI)
 apply (case_tac "lub (range Y) = \<bottom>")
-apply (simp add: Istrictify1 chain_UU_I thelub_const)
+apply (drule (1) chain_UU_I)
+apply (simp add: Istrictify1 thelub_const)
 apply (simp add: Istrictify2)
 apply (simp add: contlub_cfun_arg)
 apply (rule lub_equal2)
