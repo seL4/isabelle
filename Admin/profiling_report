@@ -11,7 +11,7 @@ my %log = ();
 my @output = ();
 
 while (<ARGV>) {
-    if (m,^( |\d){10} (\S+$|GARBAGE COLLECTION.*$),) {
+    if (m,^([ 0-9]{10}) (\S+$|GARBAGE COLLECTION.*$),) {
 	my $count = $1;
 	my $fun = $2;
 	if ($count =~ m,^\s*(\d)+$,) {
