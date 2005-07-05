@@ -416,7 +416,7 @@ Poly/ML, set to 1 to profile time, 2 to profile space (which increases
 the runtime).
 
 * Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
-reasonably efficient light-weight implementation of lists as sets.
+reasonably efficient light-weight implementation of sets as lists.
 
 * Pure: more efficient orders for basic syntactic entities: added
 fast_string_ord, fast_indexname_ord, fast_term_ord; changed sort_ord
