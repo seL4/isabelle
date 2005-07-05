@@ -87,7 +87,7 @@ exception INSERT;       (*duplicate item in the net*)
 *)
 fun insert ((keys,x), net, eq) =
   let fun ins1 ([], Leaf xs) =
-            if gen_mem eq (x,xs) then  raise INSERT  else Leaf(x::xs)
+            if member eq xs x then  raise INSERT  else Leaf(x::xs)
         | ins1 (keys, Leaf[]) = ins1 (keys, emptynet)   (*expand empty...*)
         | ins1 (CombK :: keys, Net{comb,var,alist}) =
             Net{comb=ins1(keys,comb), var=var, alist=alist}
@@ -124,7 +124,7 @@ fun conspair((b, Leaf[]), alist) = alist
   eq is the equality test for items. *)
 fun delete ((keys, x), net, eq) =
   let fun del1 ([], Leaf xs) =
-            if gen_mem eq (x,xs) then Leaf (gen_rem (eq o swap) (xs,x))
+            if member eq xs x then Leaf (remove eq x xs)
             else raise DELETE
         | del1 (keys, Leaf[]) = raise DELETE
         | del1 (CombK :: keys, Net{comb,var,alist}) =
@@ -232,11 +232,8 @@ fun dest (Leaf xs) = map (pair []) xs
 
 (** merge **)
 
-fun add eq (net, keys_x) =
-  insert (keys_x, net, eq) handle INSERT => net;
-
-fun merge (net1, net2, eq) =
-  Library.foldl (add eq) (net1, dest net2);
+fun add eq keys_x net = insert (keys_x, net, eq) handle INSERT => net;
+fun merge (net1, net2, eq) = fold (add eq) (dest net2) net1;
 
 
 end;
