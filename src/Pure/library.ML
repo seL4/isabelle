@@ -27,12 +27,12 @@ sig
   val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val ||>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b
-  val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
-  val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
-  val funpow: int -> ('a -> 'a) -> 'a -> 'a
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
+  val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
+  val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
+  val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
   (*old options -- invalidated*)
   datatype invalid = None of invalid
@@ -296,7 +296,7 @@ struct
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
 fun I x = x;
-fun K x = fn y => x;
+fun K x = fn _ => x;
 
 (*reverse application and structured results*)
 fun x |> f = f x;
@@ -305,6 +305,11 @@ fun (x, y) |>> f = (f x, y);
 fun (x, y) ||> f = (x, f y);
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
+
+(*composition with multiple args*)
+fun (f oo g) x y = f (g x y);
+fun (f ooo g) x y z = f (g x y z);
+fun (f oooo g) x y z w = f (g x y z w);
 
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
@@ -315,11 +320,6 @@ fun funpow n f x =
   let fun rep (0, x) = x
         | rep (n, x) = rep (n - 1, f x)
   in rep (n, x) end;
-
-(*concatenation: 2 and 3 args*)
-fun (f oo g) x y = f (g x y);
-fun (f ooo g) x y z = f (g x y z);
-fun (f oooo g) x y z w = f (g x y z w);
 
 
 
@@ -399,8 +399,8 @@ fun not_equal x y = x <> y;
 
 (* operators for combining predicates *)
 
-fun (p orf q) = fn x => p x orelse q x;
-fun (p andf q) = fn x => p x andalso q x;
+fun p orf q = fn x => p x orelse q x;
+fun p andf q = fn x => p x andalso q x;
 
 
 (* predicates on lists *)
@@ -470,7 +470,7 @@ fun fold_rev f =
       | fold_aux (x :: xs) y = f x (fold_aux xs y);
   in fold_aux end;
 
-fun fold_map f = 
+fun fold_map f =
   let
     fun fold_aux [] y = ([], y)
       | fold_aux (x :: xs) y =
