@@ -45,6 +45,7 @@ sig
   val chunks: T list -> T
   val indent: int -> T -> T
   val string_of: T -> string
+  val output_buffer: T -> Buffer.T
   val output: T -> string
   val writeln: T -> unit
   val writelns: T list -> unit
@@ -240,9 +241,8 @@ fun pruning dp (Block(bes,indent,wd)) =
 
 fun prune dp e = if dp > 0 then pruning dp e else e;
 
-fun output e =
-  Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty));
-
+fun output_buffer e = #tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty);
+val output = Buffer.content o output_buffer;
 val string_of = Output.raw o output;
 val writeln = writeln o string_of;
 fun writelns [] = () | writelns es = writeln (chunks es);
