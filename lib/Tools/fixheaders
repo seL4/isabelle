@@ -3,7 +3,7 @@
 # $Id$
 # Author: Florian Haftmann, TUM
 #
-# DESCRIPTION: migrates theory header (of new-style theories) to non-deprecated syntax
+# DESCRIPTION: turn Isar theory headers into imports-uses-begin format
 
 
 ## diagnostics
@@ -15,8 +15,8 @@ function usage()
   echo
   echo "Usage: $PRG [FILES|DIRS...]"
   echo
-  echo "  Recursively find .thy files, patching them to ensure that"
-  echo "  theory headers (of new-style theories) are in non-deprecated format."
+  echo "  Recursively find .thy files, turning Isar theory headers into"
+  echo "  imports-uses-begin format."
   echo
   echo "  Renames old versions of FILES by appending \"~~\"."
   echo
@@ -36,5 +36,5 @@ SPECS="$@"; shift "$#"
 #set by configure
 AUTO_PERL=perl
 
-find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
+find $SPECS -name \*.thy -print | \
   xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixheaders.pl"
