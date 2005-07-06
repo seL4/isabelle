@@ -206,36 +206,48 @@ fun checkpoint_node true (Theory thy) = Theory (Theory.checkpoint thy)
 fun copy_node true (Theory thy) = Theory (Theory.copy thy)
   | copy_node _ node = node;
 
-fun interruptible f x =
-  let val y = ref (NONE: node History.T option);
-  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
-
-val rollback = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
+val stale_theory = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
 
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
+
+fun debug_trans f x =
+  if ! debug then
+    let val y = ref x in
+      setmp Output.transform_exceptions false
+        exception_trace (fn () => y := f x); ! y
+    end
+  else f x;
+
+fun interruptible f x =
+  let val y = ref x
+  in raise_interrupt (fn () => y := f x) (); ! y end;
 
 in
 
 fun node_trans _ _ _ (State NONE) = raise UNDEF
   | node_trans int hist f (State (SOME (node, term))) =
       let
-        fun mk_state nd = State (SOME (nd, term));
-
         val cont_node = History.map (checkpoint_node int) node;
         val back_node = History.map (copy_node int) cont_node;
+        fun state nd = State (SOME (nd, term));
+        fun normal_state nd = (state nd, NONE);
+        fun error_state nd exn = (state nd, SOME exn);
 
-        val trans = if hist then History.apply_copy (copy_node int) else History.map;
-        val (result, opt_exn) =
-          (mk_state (transform_error (interruptible (trans (f int))) cont_node), NONE)
-            handle exn => (mk_state cont_node, SOME exn);
+        val (result, err) =
+          cont_node
+          |> ((fn nd => f int nd)
+              |> (if hist then History.apply_copy (copy_node int) else History.map)
+              |> debug_trans
+              |> interruptible
+              |> transform_error)
+          |> normal_state
+          handle exn => error_state cont_node exn;
       in
-        if is_stale result then return (mk_state back_node, SOME (if_none opt_exn rollback))
-        else return (result, opt_exn)
+        if is_stale result
+        then return (error_state back_node (if_none err stale_theory))
+        else return (result, err)
       end;
-
-fun check_stale state =
-  conditional (is_stale state) (fn () => warning "Stale theory encountered!");
 
 end;
 
@@ -478,8 +490,6 @@ and fail_msg detailed kind ((name, pos), exn) =
 
 in
 
-val debug = ref false;
-
 fun exn_message exn = exn_msg (! debug) exn;
 
 fun print_exn NONE = ()
@@ -503,8 +513,9 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
     fun do_profiling f x = profile (! profiling) f x;
 
     val (result, opt_exn) =
-      (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I)
-        ((if ! profiling > 0 then do_profiling else I) (apply_trans int trans)) state;
+       state |> (apply_trans int trans
+        |> (if ! profiling > 0 then do_profiling else I)
+        |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
     val _ = conditional (int andalso not (! quiet) andalso
         exists (fn m => m mem_string print) ("" :: ! print_mode))
       (fn () => print_state false result);
@@ -580,7 +591,7 @@ fun >> tr =
     NONE => false
   | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
-        check_stale state'; print_exn exn_info;
+        print_exn exn_info;
         true));
 
 fun >>> [] = ()
@@ -596,8 +607,6 @@ fun raw_loop src =
   | SOME NONE => ()
   | SOME (SOME (tr, src')) => if >> tr then raw_loop src' else ());
 
-
 fun loop src = ignore_interrupt raw_loop src;
-
 
 end;
