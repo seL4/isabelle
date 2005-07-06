@@ -298,13 +298,13 @@ fun uncurry f (x, y) = f x y;
 fun I x = x;
 fun K x = fn y => x;
 
-(*reverse apply*)
-fun (x |> f) = f x;
-fun ((x, y) |-> f) = f x y;
-fun ((x, y) |>> f) = (f x, y);
-fun ((x, y) ||> f) = (x, f y);
-fun ((x, y) |>>> f) = let val (x', z) = f x in (x', (y, z)) end;
-fun ((x, y) ||>> f) = let val (z, y') = f y in ((x, z), y') end;
+(*reverse application and structured results*)
+fun x |> f = f x;
+fun (x, y) |-> f = f x y;
+fun (x, y) |>> f = (f x, y);
+fun (x, y) ||> f = (x, f y);
+fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
+fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
 
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
@@ -475,19 +475,9 @@ fun fold_map f =
     fun fold_aux [] y = ([], y)
       | fold_aux (x :: xs) y =
           let
-            val (x', y') = f x y
-            val (xs', y'') = fold_aux xs y'
+            val (x', y') = f x y;
+            val (xs', y'') = fold_aux xs y';
           in (x' :: xs', y'') end;
-  in fold_aux end;
-
-fun foldl_map f =
-  let
-    fun fold_aux (x, []) = (x, [])
-      | fold_aux (x, y :: ys) =
-          let
-            val (x', y') = f (x, y);
-            val (x'', ys') = fold_aux (x', ys);
-          in (x'', y' :: ys') end;
   in fold_aux end;
 
 (*the following versions of fold are designed to fit nicely with infixes*)
@@ -514,6 +504,16 @@ fun foldr1 f l =
   in  itr l  end;
 
 fun foldln f xs e = fst (foldl (fn ((e,i), x) => (f (x,i) e, i+1)) ((e,1),xs));
+
+fun foldl_map f =
+  let
+    fun fold_aux (x, []) = (x, [])
+      | fold_aux (x, y :: ys) =
+          let
+            val (x', y') = f (x, y);
+            val (x'', ys') = fold_aux (x', ys);
+          in (x'', y' :: ys') end;
+  in fold_aux end;
 
 
 (* basic list functions *)

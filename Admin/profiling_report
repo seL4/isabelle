@@ -14,6 +14,8 @@ while (<ARGV>) {
     if (m,^([ 0-9]{10}) (\S+$|GARBAGE COLLECTION.*$),) {
 	my $count = $1;
 	my $fun = $2;
+	$fun =~ s,-?\(\d+\).*$,,g;
+	$fun =~ s,/\d+$,,g;
 	if ($count =~ m,^\s*(\d)+$,) {
 	    if (defined($log{$fun})) {
 		$log{$fun} += $count;
