@@ -58,7 +58,8 @@ fun init reset parent name =
 (* finish *)
 
 fun finish () =
-  (ThyInfo.finish ();
+  (Output.accumulated_time ();
+    ThyInfo.finish ();
     Present.finish ();
     session_finished := true);
 
