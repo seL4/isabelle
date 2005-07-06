@@ -17,8 +17,9 @@ where the 'uses' part is optional.  The previous syntax
 
   theory <name> = <theory1> + ... + <theoryN>:
 
-will disappear in the next release.  Note that there is no change in
-ancient non-Isar theories.
+will disappear in the next release.  Use isatool fixheaders to convert
+existing theory files.  Note that there is no change in ancient
+non-Isar theories.
 
 * Theory loader: parent theories can now also be referred to via
 relative and absolute paths.
