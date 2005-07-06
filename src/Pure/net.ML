@@ -14,6 +14,8 @@ match_term no longer treats abstractions as wildcards; instead they match
 only wildcards in patterns.  Requires operands to be beta-eta-normal.
 *)
 
+val time_string_of_bound = time_init ();
+
 signature NET =
   sig
   type key
@@ -39,6 +41,7 @@ datatype key = CombK | VarK | AtomK of string;
 
 (*Bound variables*)
 fun string_of_bound i = "*B*" ^ chr (i div 256) ^ chr (i mod 256);
+val string_of_bound = time time_string_of_bound string_of_bound;
 
 (*Keys are preorder lists of symbols -- Combinations, Vars, Atoms.
   Any term whose head is a Var is regarded entirely as a Var.
@@ -62,17 +65,17 @@ fun key_of_term t = add_key_of_terms (t, []);
 
 (*Trees indexed by key lists: each arc is labelled by a key.
   Each node contains a list of items, and arcs to children.
-  Keys in the association list (alist) are stored in ascending order.
   The empty key addresses the entire net.
   Lookup functions preserve order in items stored at same level.
 *)
 datatype 'a net = Leaf of 'a list
                 | Net of {comb: 'a net,
                           var: 'a net,
-                          alist: (string * 'a net) list};
+                          atoms: 'a net Symtab.table};
 
 val empty = Leaf[];
-val emptynet = Net{comb=empty, var=empty, alist=[]};
+fun is_empty (Leaf []) = true | is_empty _ = false;
+val emptynet = Net{comb=empty, var=empty, atoms=Symtab.empty};
 
 
 (*** Insertion into a discrimination net ***)
@@ -89,20 +92,15 @@ fun insert ((keys,x), net, eq) =
   let fun ins1 ([], Leaf xs) =
             if member eq xs x then  raise INSERT  else Leaf(x::xs)
         | ins1 (keys, Leaf[]) = ins1 (keys, emptynet)   (*expand empty...*)
-        | ins1 (CombK :: keys, Net{comb,var,alist}) =
-            Net{comb=ins1(keys,comb), var=var, alist=alist}
-        | ins1 (VarK :: keys, Net{comb,var,alist}) =
-            Net{comb=comb, var=ins1(keys,var), alist=alist}
-        | ins1 (AtomK a :: keys, Net{comb,var,alist}) =
-            let fun newpair net = (a, ins1(keys,net))
-                fun inslist [] = [newpair empty]
-                  | inslist ((b, netb) :: alist) =
-                      (case fast_string_ord (a, b) of
-                        EQUAL => newpair netb :: alist
-                      | LESS => (*absent, insert in alist*)
-                          newpair empty :: (b,netb) :: alist
-                      | GREATER => (b,netb) :: inslist alist)
-            in  Net{comb=comb, var=var, alist= inslist alist}  end
+        | ins1 (CombK :: keys, Net{comb,var,atoms}) =
+            Net{comb=ins1(keys,comb), var=var, atoms=atoms}
+        | ins1 (VarK :: keys, Net{comb,var,atoms}) =
+            Net{comb=comb, var=ins1(keys,var), atoms=atoms}
+        | ins1 (AtomK a :: keys, Net{comb,var,atoms}) =
+            let
+              val net' = if_none (Symtab.lookup (atoms, a)) empty;
+              val atoms' = Symtab.update ((a, ins1(keys,net')), atoms);
+            in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
 
 fun insert_term ((t,x), net, eq) = insert((key_of_term t, x), net, eq);
@@ -112,12 +110,9 @@ fun insert_term ((t,x), net, eq) = insert((key_of_term t, x), net, eq);
 exception DELETE;       (*missing item in the net*)
 
 (*Create a new Net node if it would be nonempty*)
-fun newnet {comb=Leaf[], var=Leaf[], alist=[]} = empty
-  | newnet {comb,var,alist} = Net{comb=comb, var=var, alist=alist};
-
-(*add new (b,net) pair to the alist provided net is nonempty*)
-fun conspair((b, Leaf[]), alist) = alist
-  | conspair((b, net), alist)    = (b, net) :: alist;
+fun newnet (args as {comb,var,atoms}) =
+  if is_empty comb andalso is_empty var andalso Symtab.is_empty atoms
+  then empty else Net args;
 
 (*Deletes item x from the list at the node addressed by the keys.
   Raises DELETE if absent.  Collapses the net if possible.
@@ -127,19 +122,19 @@ fun delete ((keys, x), net, eq) =
             if member eq xs x then Leaf (remove eq x xs)
             else raise DELETE
         | del1 (keys, Leaf[]) = raise DELETE
-        | del1 (CombK :: keys, Net{comb,var,alist}) =
-            newnet{comb=del1(keys,comb), var=var, alist=alist}
-        | del1 (VarK :: keys, Net{comb,var,alist}) =
-            newnet{comb=comb, var=del1(keys,var), alist=alist}
-        | del1 (AtomK a :: keys, Net{comb,var,alist}) =
-            let fun newpair net = (a, del1(keys,net))
-                fun dellist [] = raise DELETE
-                  | dellist((b, netb) :: alist) =
-                      (case fast_string_ord (a, b) of
-                        EQUAL => conspair(newpair netb, alist)
-                      | LESS => (*absent*) raise DELETE
-                      | GREATER => (b,netb) :: dellist alist)
-            in  newnet{comb=comb, var=var, alist= dellist alist}  end
+        | del1 (CombK :: keys, Net{comb,var,atoms}) =
+            newnet{comb=del1(keys,comb), var=var, atoms=atoms}
+        | del1 (VarK :: keys, Net{comb,var,atoms}) =
+            newnet{comb=comb, var=del1(keys,var), atoms=atoms}
+        | del1 (AtomK a :: keys, Net{comb,var,atoms}) =
+            let val atoms' =
+              (case Symtab.lookup (atoms, a) of
+                NONE => raise DELETE
+              | SOME net' =>
+                  (case del1 (keys, net') of
+                    Leaf [] => Symtab.delete a atoms
+                  | net'' => Symtab.update ((a, net''), atoms)))
+            in  newnet{comb=comb, var=var, atoms=atoms'}  end
   in  del1 (keys,net)  end;
 
 fun delete_term ((t,x), net, eq) = delete((key_of_term t, x), net, eq);
@@ -147,37 +142,32 @@ fun delete_term ((t,x), net, eq) = delete((key_of_term t, x), net, eq);
 
 (*** Retrieval functions for discrimination nets ***)
 
-exception OASSOC;
+exception ABSENT;
 
-(*Ordered association list lookup*)
-fun oassoc ([], a) = raise OASSOC
-  | oassoc ((b,x)::pairs, a) =
-      (case fast_string_ord (a, b) of
-        EQUAL => x
-      | LESS => raise OASSOC
-      | GREATER => oassoc(pairs,a));
+fun the_atom atoms a =
+  (case Symtab.lookup (atoms, a) of
+    NONE => raise ABSENT
+  | SOME net => net);
 
 (*Return the list of items at the given node, [] if no such node*)
 fun lookup (Leaf(xs), []) = xs
   | lookup (Leaf _, _::_) = []  (*non-empty keys and empty net*)
-  | lookup (Net{comb,var,alist}, CombK :: keys) = lookup(comb,keys)
-  | lookup (Net{comb,var,alist}, VarK :: keys) = lookup(var,keys)
-  | lookup (Net{comb,var,alist}, AtomK a :: keys) =
-      lookup(oassoc(alist,a),keys)  handle  OASSOC => [];
+  | lookup (Net{comb,var,atoms}, CombK :: keys) = lookup(comb,keys)
+  | lookup (Net{comb,var,atoms}, VarK :: keys) = lookup(var,keys)
+  | lookup (Net{comb,var,atoms}, AtomK a :: keys) =
+      lookup (the_atom atoms a, keys) handle ABSENT => [];
 
 
 (*Skipping a term in a net.  Recursively skip 2 levels if a combination*)
 fun net_skip (Leaf _, nets) = nets
-  | net_skip (Net{comb,var,alist}, nets) =
-    foldr net_skip
-          (foldr (fn ((_,net), nets) => net::nets) (var::nets) alist)
-          (net_skip (comb,[]))
+  | net_skip (Net{comb,var,atoms}, nets) =
+      foldr net_skip (Symtab.fold (cons o #2) atoms (var::nets)) (net_skip (comb,[]));
 
 (** Matching and Unification**)
 
 (*conses the linked net, if present, to nets*)
-fun look1 (alist, a) nets =
-       oassoc(alist,a) :: nets  handle  OASSOC => nets;
+fun look1 (atoms, a) nets =
+  the_atom atoms a :: nets handle ABSENT => nets;
 
 (*Return the nodes accessible from the term (cons them before nets)
   "unif" signifies retrieval for unification rather than matching.
@@ -187,12 +177,12 @@ fun look1 (alist, a) nets =
 *)
 fun matching unif t (net,nets) =
   let fun rands _ (Leaf _, nets) = nets
-        | rands t (Net{comb,alist,...}, nets) =
+        | rands t (Net{comb,atoms,...}, nets) =
             case t of
                 f$t => foldr (matching unif t) nets (rands f (comb,[]))
-              | Const(c,_) => look1 (alist, c) nets
-              | Free(c,_)  => look1 (alist, c) nets
-              | Bound i    => look1 (alist, string_of_bound i) nets
+              | Const(c,_) => look1 (atoms, c) nets
+              | Free(c,_)  => look1 (atoms, c) nets
+              | Bound i    => look1 (atoms, string_of_bound i) nets
               | _          => nets
   in
      case net of
@@ -224,10 +214,11 @@ fun unify_term net t =
 fun cons_fst x (xs, y) = (x :: xs, y);
 
 fun dest (Leaf xs) = map (pair []) xs
-  | dest (Net {comb, var, alist}) =
+  | dest (Net {comb, var, atoms}) =
       map (cons_fst CombK) (dest comb) @
       map (cons_fst VarK) (dest var) @
-      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) alist);
+      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net))
+        (Symtab.dest atoms));
 
 
 (** merge **)
