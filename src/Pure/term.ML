@@ -30,30 +30,31 @@ sig
     op $ of term * term
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
+  val dummyT: typ
+  val no_dummyT: typ -> typ
   val --> : typ * typ -> typ
   val ---> : typ list * typ -> typ
+  val dest_Type: typ -> string * typ list
+  val dest_TVar: typ -> indexname * sort
+  val dest_TFree: typ -> string * sort
+  val is_Bound: term -> bool
+  val is_Const: term -> bool
+  val is_Free: term -> bool
+  val is_Var: term -> bool
   val is_TVar: typ -> bool
   val is_funtype: typ -> bool
+  val dest_Const: term -> string * typ
+  val dest_Free: term -> string * typ
+  val dest_Var: term -> indexname * typ
   val domain_type: typ -> typ
   val range_type: typ -> typ
   val binder_types: typ -> typ list
   val body_type: typ -> typ
   val strip_type: typ -> typ list * typ
-  val is_Bound: term -> bool
-  val is_Const: term -> bool
-  val is_Free: term -> bool
-  val is_Var: term -> bool
-  val is_first_order: string list -> term -> bool
-  val dest_Type: typ -> string * typ list
-  val dest_TVar: typ -> indexname * sort
-  val dest_TFree: typ -> string * sort
-  val dest_Const: term -> string * typ
-  val dest_Free: term -> string * typ
-  val dest_Var: term -> indexname * typ
-  val type_of: term -> typ
   val type_of1: typ list * term -> typ
-  val fastype_of: term -> typ
+  val type_of: term -> typ
   val fastype_of1: typ list * term -> typ
+  val fastype_of: term -> typ
   val list_abs: (string * typ) list * term -> term
   val strip_abs_body: term -> term
   val strip_abs_vars: term -> (string * typ) list
@@ -67,19 +68,11 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_term_types: (typ -> typ) -> term -> term
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
+  val aconv: term * term -> bool
+  val aconvs: term list * term list -> bool
   structure Vartab: TABLE
   structure Typtab: TABLE
   structure Termtab: TABLE
-  val aconv: term * term -> bool
-  val aconvs: term list * term list -> bool
-  val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
-  val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
-  val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
-  val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
-  val foldl_map_aterms: ('a * term -> 'a * term) -> 'a * term -> 'a * term
-  val add_term_varnames: indexname list * term -> indexname list
-  val term_varnames: term -> indexname list
-  val dummyT: typ
   val itselfT: typ -> typ
   val a_itselfT: typ
   val propT: typ
@@ -96,7 +89,6 @@ sig
   val loose_bvar1: term * int -> bool
   val subst_bounds: term list * term -> term
   val subst_bound: term * term -> term
-  val subst_TVars: (indexname * typ) list -> term -> term
   val betapply: term * term -> term
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
@@ -109,61 +101,69 @@ sig
   val inter_term: term list * term list -> term list
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
-  val subst_atomic: (term * term) list -> term -> term
-  val typ_subst_atomic: (typ * typ) list -> typ -> typ
-  val subst_atomic_types: (typ * typ) list -> term -> term
-  val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
-  val typ_subst_TVars: (indexname * typ) list -> typ -> typ
-  val subst_Vars: (indexname * term) list -> term -> term
-  val incr_tvar: int -> typ -> typ
   val xless: (string * int) * indexname -> bool
-  val atless: term * term -> bool
-  val insert_aterm: term * term list -> term list
   val abstract_over: term * term -> term
   val lambda: term -> term -> term
   val absfree: string * typ * term -> term
   val list_abs_free: (string * typ) list * term -> term
   val list_all_free: (string * typ) list * term -> term
   val list_all: (string * typ) list * term -> term
+  val subst_atomic: (term * term) list -> term -> term
+  val typ_subst_atomic: (typ * typ) list -> typ -> typ
+  val subst_atomic_types: (typ * typ) list -> term -> term
+  val typ_subst_TVars: (indexname * typ) list -> typ -> typ
+  val subst_TVars: (indexname * typ) list -> term -> term
+  val subst_Vars: (indexname * term) list -> term -> term
+  val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
+  val is_first_order: string list -> term -> bool
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val maxidx_of_terms: term list -> int
+  val incr_tvar: int -> typ -> typ
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
     (*note reversed order of args wrt. variant!*)
-  val variant_abs: string * typ * term -> string * term
-  val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
-  val add_new_id: string list * string -> string list
   val add_typ_classes: typ * class list -> class list
-  val add_typ_ixns: indexname list * typ -> indexname list
-  val add_typ_tfree_names: typ * string list -> string list
-  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
-  val typ_tfrees: typ -> (string * sort) list
-  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
-  val typ_tvars: typ -> (indexname * sort) list
   val add_typ_tycons: typ * string list -> string list
-  val add_typ_varnames: typ * string list -> string list
   val add_term_classes: term * class list -> class list
+  val add_term_tycons: term * string list -> string list
   val add_term_consts: term * string list -> string list
+  val add_term_constsT: term * (string * typ) list -> (string * typ) list
   val term_consts: term -> string list
   val term_constsT: term -> (string * typ) list
-  val add_term_frees: term * term list -> term list
-  val term_frees: term -> term list
-  val add_term_free_names: term * string list -> string list
-  val add_term_names: term * string list -> string list
-  val add_term_tfree_names: term * string list -> string list
-  val add_term_tfrees: term * (string * sort) list -> (string * sort) list
-  val term_tfrees: term -> (string * sort) list
-  val add_term_tvar_ixns: term * indexname list -> indexname list
-  val add_term_tvarnames: term * string list -> string list
-  val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
-  val term_tvars: term -> (indexname * sort) list
-  val add_term_tycons: term * string list -> string list
-  val add_term_vars: term * term list -> term list
-  val term_vars: term -> term list
   val exists_Const: (string * typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
+  val add_new_id: string list * string -> string list
+  val add_term_free_names: term * string list -> string list
+  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
+  val add_typ_tfree_names: typ * string list -> string list
+  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
+  val add_typ_varnames: typ * string list -> string list
+  val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
+  val add_term_tfrees: term * (string * sort) list -> (string * sort) list
+  val add_term_tfree_names: term * string list -> string list
+  val add_term_tvarnames: term * string list -> string list
+  val typ_tfrees: typ -> (string * sort) list
+  val typ_tvars: typ -> (indexname * sort) list
+  val term_tfrees: term -> (string * sort) list
+  val term_tvars: term -> (indexname * sort) list
+  val add_typ_ixns: indexname list * typ -> indexname list
+  val add_term_tvar_ixns: term * indexname list -> indexname list
+  val atless: term * term -> bool
+  val insert_aterm: term * term list -> term list
+  val add_term_vars: term * term list -> term list
+  val term_vars: term -> term list
+  val add_term_frees: term * term list -> term list
+  val term_frees: term -> term list
+  val variant_abs: string * typ * term -> string * term
+  val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
+  val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
+  val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
+  val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
+  val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
+  val add_term_names: term * string list -> string list
+  val add_term_varnames: indexname list * term -> indexname list
+  val term_varnames: term -> indexname list
   val compress_type: typ -> typ
   val compress_term: term -> term
   val show_question_marks: bool ref
@@ -172,6 +172,7 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val argument_type_of: term -> typ
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
   val sort_ord: sort * sort -> order
@@ -183,16 +184,17 @@ sig
   val term_lpo: (string -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
-  val argument_type_of: term -> typ
+  val maxidx_typ: typ -> int -> int
+  val maxidx_typs: typ list -> int -> int
+  val maxidx_term: term -> int -> int
   val invent_names: string list -> string -> int -> string list
   val map_typ: (string -> string) -> (string -> string) -> typ -> typ
   val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
+  val dest_abs: string * typ * term -> string * term
   val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
   val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
   val add_vars: (indexname * typ) list * term -> (indexname * typ) list
   val add_frees: (string * typ) list * term -> (string * typ) list
-  val dest_abs: string * typ * term -> string * term
-  val no_dummyT: typ -> typ
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
@@ -201,7 +203,6 @@ sig
   val adhoc_freeze_vars: term -> term * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
-  val string_of_term: term -> string
 end;
 
 structure Term: TERM =
@@ -942,23 +943,25 @@ fun is_first_order quants =
                | _ => error "first_order: unexpected case"
     in  first_order1 []  end;
 
-(*Computing the maximum index of a typ*)
-fun maxidx_of_typ(Type(_,Ts)) = maxidx_of_typs Ts
-  | maxidx_of_typ(TFree _) = ~1
-  | maxidx_of_typ(TVar((_,i),_)) = i
-and maxidx_of_typs [] = ~1
-  | maxidx_of_typs (T::Ts) = Int.max(maxidx_of_typ T, maxidx_of_typs Ts);
 
+(* maximum index of a typs and terms *)
 
-(*Computing the maximum index of a term*)
-fun maxidx_of_term (Const(_,T)) = maxidx_of_typ T
-  | maxidx_of_term (Bound _) = ~1
-  | maxidx_of_term (Free(_,T)) = maxidx_of_typ T
-  | maxidx_of_term (Var ((_,i), T)) = Int.max(i, maxidx_of_typ T)
-  | maxidx_of_term (Abs (_,T,u)) = Int.max(maxidx_of_term u, maxidx_of_typ T)
-  | maxidx_of_term (f$t) = Int.max(maxidx_of_term f,  maxidx_of_term t);
+fun maxidx_typ (TVar ((_, j), _)) i = Int.max (i, j)
+  | maxidx_typ (Type (_, Ts)) i = maxidx_typs Ts i
+  | maxidx_typ (TFree _) i = i
+and maxidx_typs [] i = i
+  | maxidx_typs (T :: Ts) i = maxidx_typs Ts (maxidx_typ T i);
 
-fun maxidx_of_terms ts = Library.foldl Int.max (~1, map maxidx_of_term ts);
+fun maxidx_term (Var ((_, j), T)) i = maxidx_typ T (Int.max (i, j))
+  | maxidx_term (Const (_, T)) i = maxidx_typ T i
+  | maxidx_term (Free (_, T)) i = maxidx_typ T i
+  | maxidx_term (Bound _) i = i
+  | maxidx_term (Abs (_, T, t)) i = maxidx_term t (maxidx_typ T i)
+  | maxidx_term (t $ u) i = maxidx_term u (maxidx_term t i);
+
+fun maxidx_of_typ T = maxidx_typ T ~1;
+fun maxidx_of_typs Ts = maxidx_typs Ts ~1;
+fun maxidx_of_term t = maxidx_term t ~1;
 
 
 (* Increment the index of all Poly's in T by k *)
@@ -1193,13 +1196,6 @@ fun foldl_aterms f (x, t $ u) = foldl_aterms f (foldl_aterms f (x, t), u)
   | foldl_aterms f (x, Abs (_, _, t)) = foldl_aterms f (x, t)
   | foldl_aterms f x_atom = f x_atom;
 
-fun foldl_map_aterms f (x, t $ u) =
-      let val (x', t') = foldl_map_aterms f (x, t); val (x'', u') = foldl_map_aterms f (x', u);
-      in (x'', t' $ u') end
-  | foldl_map_aterms f (x, Abs (a, T, t)) =
-      let val (x', t') = foldl_map_aterms f (x, t) in (x', Abs (a, T, t')) end
-  | foldl_map_aterms f x_atom = f x_atom;
-
 (*foldl types of term*)
 fun foldl_term_types f (x, t as Const (_, T)) = f t (x, T)
   | foldl_term_types f (x, t as Free (_, T)) = f t (x, T)
@@ -1319,14 +1315,6 @@ fun string_of_vname (x, i) =
 
 fun string_of_vname' (x, ~1) = x
   | string_of_vname' xi = string_of_vname xi;
-
-fun string_of_term (Const(s,_)) = s
-  | string_of_term (Free(s,_)) = s
-  | string_of_term (Var(ix,_)) = string_of_vname ix
-  | string_of_term (Bound i) = string_of_int i
-  | string_of_term (Abs(x,_,t)) = "%" ^ x ^ ". " ^ string_of_term t
-  | string_of_term (s $ t) =
-      "(" ^ string_of_term s ^ " " ^ string_of_term t ^ ")"
 
 end;
 
