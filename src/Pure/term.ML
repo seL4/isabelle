@@ -766,7 +766,7 @@ fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
 (** Equality, membership and insertion of indexnames (string*ints) **)
 
 (*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
-fun eq_ix ((a, i):indexname, (a',i'):indexname) = (a=a') andalso i=i';
+fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
 
 (*membership in a list, optimized version for indexnames*)
 fun mem_ix (_, []) = false
