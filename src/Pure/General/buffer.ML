@@ -22,6 +22,6 @@ datatype T = Buffer of string list;
 val empty = Buffer [];
 fun add x (Buffer xs) = Buffer (x :: xs);
 fun content (Buffer xs) = implode (rev xs);
-fun write path buffer = File.write path (content buffer);
+fun write path (Buffer xs) = File.write_list path (rev xs);
 
 end;
