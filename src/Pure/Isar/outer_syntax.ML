@@ -216,8 +216,8 @@ fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
 fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
 
 fun dest_parsers () =
-  map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only))
-    (Symtab.dest (get_parsers ()));
+  get_parsers () |> Symtab.dest |> sort_wrt #1
+  |> map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only));
 
 fun print_outer_syntax () =
   let
