@@ -287,7 +287,7 @@ lemma COMP_case:
   apply (unfold COMP_def)
   apply (frule Int_lower1 [THEN lists_mono, THEN subsetD])
     --{*Now, if meson tolerated map, we could finish with
-  @{text "(drule COMP_map_aux, meson ack_less_mono2 ack_nest_bound less_trans).*}
+  @{text "(drule COMP_map_aux, meson ack_less_mono2 ack_nest_bound less_trans)"} *}
   apply (erule COMP_map_aux [THEN exE])
   apply (rule exI)
   apply (rule allI)
