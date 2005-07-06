@@ -352,7 +352,7 @@ fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
 
 (* certify wrt. type signature *)
 
-fun certify cert = cert o tsig_of o Context.check_thy "Sign.certify";
+fun certify cert = cert o tsig_of o Context.check_thy;
 
 val certify_class      = certify Type.cert_class;
 val certify_sort       = certify Type.cert_sort;
@@ -397,7 +397,7 @@ in
 
 fun certify_term pp thy tm =
   let
-    val _ = Context.check_thy "Sign.certify_term" thy;
+    val _ = Context.check_thy thy;
 
     val tm' = map_term_types (certify_typ thy) tm;
     val tm' = if tm = tm' then tm else tm';  (*avoid copying of already normal term*)
@@ -439,7 +439,7 @@ fun cert_prop thy tm = #1 (certify_prop (pp thy) thy tm);
 
 fun read_sort' syn thy str =
   let
-    val _ = Context.check_thy "Sign.read_sort'" thy;
+    val _ = Context.check_thy thy;
     val S = intern_sort thy (Syntax.read_sort thy syn str);
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
@@ -452,7 +452,7 @@ local
 
 fun gen_read_typ' cert syn (thy, def_sort) str =
   let
-    val _ = Context.check_thy "Sign.gen_read_typ'" thy;
+    val _ = Context.check_thy thy;
     val get_sort = TypeInfer.get_sort (tsig_of thy) def_sort (intern_sort thy);
     val T = intern_tycons thy (Syntax.read_typ thy syn get_sort (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
