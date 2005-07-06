@@ -22,6 +22,8 @@ sig
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
+  val write_list: Path.T -> string list -> unit
+  val append_list: Path.T -> string list -> unit
   val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
@@ -107,18 +109,21 @@ fun fail_safe f g x =
   let val y = f x handle exn => (g x; raise exn)
   in g x; y end;
 
-fun output txt stream = TextIO.output (stream, txt);
+fun output txts stream = List.app (fn txt => TextIO.output (stream, txt)) txts;
 
 in
 
 fun read path =
   fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (platform_path path));
 
-fun write path txt =
-  fail_safe (output txt) TextIO.closeOut (TextIO.openOut (platform_path path));
+fun write_list path txts =
+  fail_safe (output txts) TextIO.closeOut (TextIO.openOut (platform_path path));
 
-fun append path txt =
-  fail_safe (output txt) TextIO.closeOut (TextIO.openAppend (platform_path path));
+fun append_list path txts =
+  fail_safe (output txts) TextIO.closeOut (TextIO.openAppend (platform_path path));
+
+fun write path txt = write_list path [txt];
+fun append path txt = append_list path [txt];
 
 end;
 
