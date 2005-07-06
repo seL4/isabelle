@@ -352,6 +352,7 @@ fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
 
 fun eq_tpairs ((t, u), (t', u')) = t aconv t' andalso u aconv u';
 val union_tpairs = gen_merge_lists eq_tpairs;
+val maxidx_tpairs = fold (fn (t, u) => Term.maxidx_term t o Term.maxidx_term u);
 
 fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
@@ -897,7 +898,7 @@ fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) 
         in
           Thm {thy_ref = thy_ref,
             der = Pt.infer_derivs' (Pt.norm_proof' env) der,
-            maxidx = maxidx_of_terms (prop' :: terms_of_tpairs tpairs'),
+            maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop'),
             shyps = may_insert_env_sorts (Theory.deref thy_ref) env shyps,
             hyps = hyps,
             tpairs = tpairs',
@@ -967,7 +968,7 @@ fun instantiate ([], []) th = th
         else
           Thm {thy_ref = Theory.self_ref thy',
             der = Pt.infer_derivs' (Pt.instantiate vTs tpairs) der,
-            maxidx = maxidx_of_terms (prop' :: terms_of_tpairs dpairs'),
+            maxidx = maxidx_tpairs dpairs' (maxidx_of_term prop'),
             shyps = shyps',
             hyps = hyps,
             tpairs = dpairs',
