@@ -48,13 +48,7 @@ sig
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
-  type time_info
-  val time_init: unit -> time_info ref
-  val time_reset: time_info ref -> unit
-  val time_check: time_info ref -> {timer: Timer.cpu_timer,
-    sys: Time.time, usr: Time.time, gc: Time.time, count: int}
-  val time_finish: string -> time_info ref -> unit
-  val time: time_info ref -> ('a -> 'b) -> 'a -> 'b
+  val time_accumulator: string -> ('a -> 'b) -> 'a -> 'b
 end;
 
 signature OUTPUT =
@@ -69,6 +63,7 @@ sig
   val add_mode: string ->
     (string -> string * real) * (string * int -> string) * (string -> string) -> unit
   val transform_exceptions: bool ref
+  val accumulated_time: unit -> unit
 end;
 
 structure Output: OUTPUT =
@@ -244,50 +239,67 @@ fun timeap_msg s f x = (info s; timeap f x);
 
 local
 
-fun add_interval time time1 time2 =
-  Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
-
-fun secs prfx time = prfx ^ Time.toString time;
-
-in
-
 datatype time_info = TI of
-  {timer: Timer.cpu_timer,
+  {name: string,
+   timer: Timer.cpu_timer,
    sys: Time.time,
    usr: Time.time,
    gc: Time.time,
    count: int};
 
-fun time_init () = ref (TI {timer = Timer.startCPUTimer (),
-    sys = Time.zeroTime, usr = Time.zeroTime, gc = Time.zeroTime, count = 0});
+fun time_init name = ref (TI
+ {name = name,
+  timer = Timer.startCPUTimer (),
+  sys = Time.zeroTime,
+  usr = Time.zeroTime,
+  gc = Time.zeroTime,
+  count = 0});
 
-fun time_reset r = r := ! (time_init ());
+fun time_reset (r as ref (TI {name, ...})) = r := ! (time_init name);
 
 fun time_check (ref (TI r)) = r;
 
-fun time_finish name ti =
-  let val {timer, sys, usr, gc, count} = time_check ti in
-    info ("Total of " ^ quote name ^ ": " ^
-      secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
-      " secs in " ^ string_of_int count ^ " calls");
-    ti := TI {timer = timer, sys = Time.zeroTime, usr = Time.zeroTime,
-      gc = Time.zeroTime, count = 0}
-  end;
-
-fun time ti f x =
+fun time_add ti f x =
   let
-    val {timer, sys, usr, gc, count} = time_check ti;
+    fun add_diff time time1 time2 =
+      Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
+    val {name, timer, sys, usr, gc, count} = time_check ti;
     val (sys1, usr1, gc1) = checkTimer timer;
     val result = capture f x;
     val (sys2, usr2, gc2) = checkTimer timer;
   in
-    ti := TI {timer = timer,
-      sys = add_interval sys sys1 sys2,
-      usr = add_interval usr usr1 usr2,
-      gc = add_interval gc gc1 gc2,
+    ti := TI
+     {name = name,
+      timer = timer,
+      sys = add_diff sys sys1 sys2,
+      usr = add_diff usr usr1 usr2,
+      gc = add_diff gc gc1 gc2,
       count = count + 1};
     release result
   end;
+
+fun time_finish ti =
+  let
+    fun secs prfx time = prfx ^ Time.toString time;
+    val {name, timer, sys, usr, gc, count} = time_check ti;
+  in
+    info ("Total of " ^ quote name ^ ": " ^
+      secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
+      " secs in " ^ string_of_int count ^ " calls");
+    time_reset ti
+  end;
+
+val time_finish_hooks = ref ([]: (unit -> unit) list);
+
+in
+
+fun time_accumulator name =
+  let val ti = time_init name in
+    change time_finish_hooks (cons (fn () => time_finish ti));
+    time_add ti
+  end;
+
+fun accumulated_time () = List.app (fn f => f ()) (! time_finish_hooks);
 
 end;
 
