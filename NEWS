@@ -406,15 +406,15 @@ output material that will eventually be presented to the user a second
 time.  For the default print mode, both Output.output and Output.raw
 have no effect.
 
-* Pure: print_tac now outputs the goal through the trace channel.
+* Pure: Output.time_accumulator NAME creates an operator ('a -> 'b) ->
+'a -> 'b to measure runtime and count invocations; the cumulative
+results are displayed at the end of a batch session.
 
-* Isar debugging: new reference Toplevel.debug (default false).  Set
-to make printing of exceptions THM, TERM, TYPE and THEORY more
-verbose.
-
-* Isar profiling: new reference Toplevel.profiling (default 0).  For
-Poly/ML, set to 1 to profile time, 2 to profile space (which increases
-the runtime).
+* Isar toplevel: improved diagnostics, mostly for Poly/ML only.
+Reference Toplevel.debug (default false) controls detailed printing
+and tracing of low-level exceptions; Toplevel.profiling (default 0)
+controls execution profiling -- set to 1 for time and 2 for space
+(both increase the runtime).
 
 * Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
 reasonably efficient light-weight implementation of sets as lists.
@@ -501,6 +501,8 @@ theory node or theory hierarchy, respectively:
   Theory.all_axioms_of: theory -> (string * term) list
   PureThy.thms_of: theory -> (string * thm) list
   PureThy.all_thms_of: theory -> (string * thm) list
+
+* Pure: print_tac now outputs the goal through the trace channel.
 
 * Provers: Simplifier and Classical Reasoner now support proof context
 dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
