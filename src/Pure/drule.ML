@@ -599,10 +599,10 @@ fun tha COMP thb =
 val eq_thm_thy = eq_thy o pairself Thm.theory_of_thm;
 
 (*True if the two theorems have the same prop field, ignoring hyps, der, etc.*)
-val eq_thm_prop = op aconv o pairself Thm.prop_of;
+val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
 (*Useful "distance" function for BEST_FIRST*)
-val size_of_thm = size_of_term o prop_of;
+val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*maintain lists of theorems --- preserving canonical order*)
 fun del_rules rs rules = Library.gen_rems eq_thm_prop (rules, rs);
@@ -956,13 +956,13 @@ fun implies_intr_goals cprops thm =
 fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
 
 
-(* collect vars in left-to-right order *)
+(* vars in left-to-right order *)
 
 fun tvars_of_terms ts = rev (Library.foldl Term.add_tvars ([], ts));
 fun vars_of_terms ts = rev (Library.foldl Term.add_vars ([], ts));
 
-fun tvars_of thm = tvars_of_terms [prop_of thm];
-fun vars_of thm = vars_of_terms [prop_of thm];
+fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];
+fun vars_of thm = vars_of_terms [Thm.full_prop_of thm];
 
 
 (* instantiate by left-to-right occurrence of variables *)
