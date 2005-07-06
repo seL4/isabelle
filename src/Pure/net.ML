@@ -14,8 +14,6 @@ match_term no longer treats abstractions as wildcards; instead they match
 only wildcards in patterns.  Requires operands to be beta-eta-normal.
 *)
 
-val time_string_of_bound = time_init ();
-
 signature NET =
   sig
   type key
@@ -41,7 +39,6 @@ datatype key = CombK | VarK | AtomK of string;
 
 (*Bound variables*)
 fun string_of_bound i = "*B*" ^ chr (i div 256) ^ chr (i mod 256);
-val string_of_bound = time time_string_of_bound string_of_bound;
 
 (*Keys are preorder lists of symbols -- Combinations, Vars, Atoms.
   Any term whose head is a Var is regarded entirely as a Var.
