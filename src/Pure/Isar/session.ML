@@ -79,7 +79,7 @@ fun use_dir root build modes reset info doc doc_graph parent name dump rpath_str
       (init reset parent name;
        Present.init build info doc doc_graph (path ()) name
          (if dump = "" then NONE else SOME (Path.unpack dump)) (get_rpath rpath_str) verbose;
-       File.use (Path.basic root);
+       ThyInfo.time_use root;
        finish ())))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
