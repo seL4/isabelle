@@ -152,6 +152,7 @@ sig
   val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_incr_indexes: int -> cterm -> cterm
   val terms_of_tpairs: (term * term) list -> term list
+  val full_prop_of: thm -> term
 end;
 
 structure Thm: THM =
@@ -348,14 +349,8 @@ datatype thm = Thm of
   tpairs: (term * term) list,  (*flex-flex pairs*)
   prop: term};                 (*conclusion*)
 
-fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
-
-fun eq_tpairs ((t, u), (t', u')) = t aconv t' andalso u aconv u';
-val union_tpairs = gen_merge_lists eq_tpairs;
-val maxidx_tpairs = fold (fn (t, u) => Term.maxidx_term t o Term.maxidx_term u);
-
-fun attach_tpairs tpairs prop =
-  Logic.list_implies (map Logic.mk_equals tpairs, prop);
+(*errors involving theorems*)
+exception THM of string * int * thm list;
 
 fun rep_thm (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
   let val thy = Theory.deref thy_ref in
@@ -375,8 +370,17 @@ fun crep_thm (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
     prop = cterm maxidx prop}
   end;
 
-(*errors involving theorems*)
-exception THM of string * int * thm list;
+fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
+
+fun eq_tpairs ((t, u), (t', u')) = t aconv t' andalso u aconv u';
+val union_tpairs = gen_merge_lists eq_tpairs;
+val maxidx_tpairs = fold (fn (t, u) => Term.maxidx_term t o Term.maxidx_term u);
+
+fun attach_tpairs tpairs prop =
+  Logic.list_implies (map Logic.mk_equals tpairs, prop);
+
+fun full_prop_of (Thm {tpairs, prop, ...}) = attach_tpairs tpairs prop;
+  
 
 (*attributes subsume any kind of rules or context modifiers*)
 type 'a attribute = 'a * thm -> 'a * thm;
@@ -1181,7 +1185,7 @@ fun permute_prems j k rl =
       else if 0 < m andalso m < n_j then
         let val (ps, qs) = splitAt (m, moved_prems)
         in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
-      else raise THM ("permute_prems:k", k, [rl]);
+      else raise THM ("permute_prems: k", k, [rl]);
   in
     Thm {thy_ref = thy_ref,
       der = Pt.infer_derivs' (Pt.permute_prems_prf prems j m) der,
