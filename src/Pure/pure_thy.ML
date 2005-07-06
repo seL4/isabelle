@@ -389,22 +389,24 @@ val smart_store_thms_open = smart_store (K (K I));
 end;
 
 
-(* forall_elim_vars (belongs to drule.ML) *)
+(* forall_elim_var(s) -- belongs to drule.ML *)
 
-(*Replace outermost quantified variable by Var of given index.*)
-fun forall_elim_var i th =
-  let val {prop, thy, ...} = Thm.rep_thm th
-  in case prop of
-        Const ("all", _) $ Abs (a, T, _) =>
-          let val used = map (fst o fst)
-            (List.filter (equal i o snd o fst) (Term.add_vars ([], prop)))
-          in Thm.forall_elim (Thm.cterm_of thy (Var ((variant used a, i), T))) th end
-     | _ => raise THM ("forall_elim_var", i, [th])
-  end;
+fun forall_elim_vars_aux strip_vars i th =
+  let
+    val {thy, tpairs, prop, ...} = Thm.rep_thm th;
+    fun add_used t used = (used, t) |> Term.foldl_aterms
+      (fn (xs, Var ((x, j), _)) => if i = j then x ins_string xs else xs | (xs, _) => xs);
+    val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);
+    val vars = strip_vars prop;
+    val cvars = (Term.variantlist (map #1 vars, used), vars)
+      |> ListPair.map (fn (x, (_, T)) => Thm.cterm_of thy (Var ((x, i), T)));
+  in fold Thm.forall_elim cvars th end;
 
-(*Repeat forall_elim_var until all outer quantifiers are removed*)
-fun forall_elim_vars i th =
-  forall_elim_vars i (forall_elim_var i th) handle THM _ => th;
+val forall_elim_vars = forall_elim_vars_aux Term.strip_all_vars;
+
+fun forall_elim_var i th = forall_elim_vars_aux
+  (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
+  | _ => raise THM ("forall_elim_vars", i, [th])) i th;
 
 
 (* store axioms as theorems *)
