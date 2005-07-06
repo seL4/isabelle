@@ -36,7 +36,7 @@ sig
   val pprint_thy: theory -> pprint_args -> unit
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
-  val check_thy: string -> theory -> theory
+  val check_thy: theory -> theory
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
@@ -245,9 +245,9 @@ val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
 
 (* consistency *)    (*exception TERM*)
 
-fun check_thy pos thy =
+fun check_thy thy =
   if is_stale thy then
-    raise TERM ("Stale theory encountered (in " ^ pos ^ "):\n" ^ string_of_thy thy, [])
+    raise TERM ("Stale theory encountered:\n" ^ string_of_thy thy, [])
   else thy;
 
 fun check_ins id ids =
@@ -270,13 +270,11 @@ fun check_merge
 
 (* equality and inclusion *)
 
-val eq_thy = eq_id o pairself (#id o identity_of o check_thy "Context.eq_thy");
+val eq_thy = eq_id o pairself (#id o identity_of o check_thy);
 
 fun proper_subthy
-  (thy1 as Theory ({id = (i, _), ...}, _, _, _),
-    thy2 as Theory ({ids, iids, ...}, _, _, _)) =
-  (pairself (check_thy "Context.proper_subthy") (thy1, thy2);
-    is_some (Inttab.lookup (ids, i)) orelse is_some (Inttab.lookup (iids, i)));
+    (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
+  is_some (Inttab.lookup (ids, i)) orelse is_some (Inttab.lookup (iids, i));
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
 
@@ -291,20 +289,23 @@ fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 
 datatype theory_ref = TheoryRef of theory ref;
 
-val self_ref = TheoryRef o the_self o check_thy "Context.self_ref";
+val self_ref = TheoryRef o the_self o check_thy;
 fun deref (TheoryRef (ref thy)) = thy;
 
 
 (* trivial merge *)    (*exception TERM*)
 
 fun merge (thy1, thy2) =
-  if subthy (thy2, thy1) then thy1
-  else if subthy (thy1, thy2) then thy2
+  if eq_thy (thy1, thy2) then thy1
+  else if proper_subthy (thy2, thy1) then thy1
+  else if proper_subthy (thy1, thy2) then thy2
   else (check_merge thy1 thy2;
     raise TERM (cat_lines ["Attempt to perform non-trivial merge of theories:",
       str_of_thy thy1, str_of_thy thy2], []));
 
-fun merge_refs (ref1, ref2) = self_ref (merge (deref ref1, deref ref2));
+fun merge_refs (ref1, ref2) =
+  if ref1 = ref2 then ref1
+  else self_ref (merge (deref ref1, deref ref2));
 
 
 
@@ -323,7 +324,7 @@ fun create_thy name self id ids iids data ancestry history =
 
 fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, history)) =
   let
-    val _ = check_thy "Context.change_thy" thy;
+    val _ = check_thy thy;
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
@@ -337,7 +338,7 @@ val modify_thy = change_thy draftN;
 val extend_thy = modify_thy I;
 
 fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
-  (check_thy "Context.copy_thy" thy;
+  (check_thy thy;
     create_thy draftN NONE id ids iids (map_theory copy_data data) ancestry history);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
@@ -368,7 +369,7 @@ fun begin_thy pp name imports =
   else
     let
       val parents =
-        maximal_thys (gen_distinct eq_thy (map (check_thy "Context.begin_thy") imports));
+        maximal_thys (gen_distinct eq_thy (map check_thy imports));
       val ancestors = gen_distinct eq_thy (parents @ List.concat (map ancestors_of parents));
       val Theory ({id, ids, iids, ...}, data, _, _) =
         (case parents of
@@ -395,7 +396,7 @@ fun checkpoint_thy thy =
 fun finish_thy thy =
   let
     val {name, version, intermediates} = history_of thy;
-    val rs = map (the_self o check_thy "Context.finish_thy") intermediates;
+    val rs = map (the_self o check_thy) intermediates;
     val thy' as Theory ({self, id, ids, ...}, data', ancestry', _) = name_thy name thy;
     val identity' = make_identity self id ids Inttab.empty;
     val history' = make_history name 0 [];
