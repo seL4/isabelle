@@ -34,8 +34,9 @@ lemma Lagrange_lemma:
 by(simp add: sq_def ring_eq_simps)
 
 
-(* A challenge by John Harrison. Takes about 4 mins on a 3GHz machine.
+text{*A challenge by John Harrison. Takes about 74s on a 2.5GHz Apple G5.*}
 
+(*
 lemma "!!p1::'a::comm_ring.
  (sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 
  (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2) 
