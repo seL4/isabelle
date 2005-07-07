@@ -38,6 +38,7 @@ sig
   val oracle_space: theory -> NameSpace.T
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
+  val defs_of : theory -> Defs.graph
   val self_ref: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory                     (*exception TERM*)
@@ -177,6 +178,8 @@ val oracle_space = #1 o #oracles o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = List.concat (map axioms_of (thy :: ancestors_of thy));
+
+fun defs_of thy = (case rep_theory thy of {defs=D, ...} => D)
 
 fun requires thy name what =
   if Context.exists_name name thy then ()

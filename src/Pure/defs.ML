@@ -35,6 +35,10 @@ signature DEFS = sig
   val set_chain_history : bool -> unit
   val chain_history : unit -> bool
 
+  datatype overloadingstate = Open | Closed | Final
+  val overloading_info : graph -> string -> (typ * (string*typ) list * overloadingstate) option
+  val is_overloaded : graph -> string -> bool
+
 end
 
 structure Defs :> DEFS = struct
@@ -42,7 +46,7 @@ structure Defs :> DEFS = struct
 type tyenv = Type.tyenv
 type edgelabel = (int * typ * typ * (typ * string * string) list)
 
-datatype forwardstate = Open | Closed | Final
+datatype overloadingstate = Open | Closed | Final
 
 datatype node = Node of
          typ  (* most general type of constant *)
@@ -53,7 +57,7 @@ datatype node = Node of
              (* a table of all back referencing defnodes to this node, 
                 indexed by node name of the defnodes *)
          * typ list (* a list of all finalized types *)
-         * forwardstate
+         * overloadingstate
      
      and defnode = Defnode of
          typ  (* type of the constant in this particular definition *)
@@ -652,6 +656,21 @@ fun finals (_, _, history, graph) =
       (fn (finals, (name, Node(_, _, _, ftys, _))) => 
           Symtab.update_new ((name, ftys), finals)) 
       (Symtab.empty, graph)
+
+fun overloading_info (_, axmap, _, graph) c = 
+    let
+      fun translate (ax, Defnode (ty, _)) = (the (Symtab.lookup (axmap, ax)), ty)
+    in
+      case Symtab.lookup (graph, c) of
+        NONE => NONE
+      | SOME (Node (ty, defnodes, _, _, state)) =>
+        SOME (ty, map translate (Symtab.dest defnodes), state)
+    end
+      
+fun is_overloaded g c = 
+    case overloading_info g c of
+      NONE => false
+    | SOME (_, l, _) => length l >= 2
 
 end;
 		

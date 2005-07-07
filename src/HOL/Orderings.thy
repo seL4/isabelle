@@ -346,6 +346,7 @@ structure Order_Tac = Order_Tac_Fun (
     val neq_le_trans = thm "order_neq_le_trans";
     val less_imp_neq = thm "less_imp_neq";
     val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
+    val not_sym = thm "not_sym";
     val decomp_part = decomp_gen ["Orderings.order"];
     val decomp_lin = decomp_gen ["Orderings.linorder"];
 

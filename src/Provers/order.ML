@@ -44,6 +44,7 @@ sig
   val le_trans: thm  (* [| x <= y; y <= z |] ==> x <= z *)
   val le_neq_trans : thm (* [| x <= y ; x ~= y |] ==> x < y *)
   val neq_le_trans : thm (* [| x ~= y ; x <= y |] ==> x < y *)
+  val not_sym : thm (* x ~= y ==> y ~= x *)
 
   (* Additional theorems for linear orders *)
   val not_lessD: thm (* ~(x < y) ==> y <= x *)
@@ -137,7 +138,7 @@ fun mkasm_partial sign (t, n) =
     | "~="  => if (x aconv y) then 
                   raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
+                      NotEq (y, x,Thm ( [Asm n], Less.not_sym))] 
     | _     => error ("partial_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_part."))
   | NONE => [];
@@ -167,7 +168,7 @@ fun mkasm_linear sign (t, n) =
     | "~="  => if (x aconv y) then 
                   raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
+                      NotEq (y, x,Thm ( [Asm n], Less.not_sym))] 
     | _     => error ("linear_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_lin."))
   | NONE => [];
@@ -785,10 +786,10 @@ in
      (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
        ( SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
           if  (x aconv x' andalso y aconv y') then p 
-	  else Thm ([p], thm "not_sym")
+	  else Thm ([p], Less.not_sym)
      | ( SOME (Less (x, y, p)), NotEq (x', y', _)) => 
           if x aconv x' andalso y aconv y' then (Thm ([p], Less.less_imp_neq))
-          else (Thm ([(Thm ([p], Less.less_imp_neq))], thm "not_sym"))
+          else (Thm ([(Thm ([p], Less.less_imp_neq))], Less.not_sym))
      | _ => raise Cannot) 
    ) else (
    
@@ -810,11 +811,11 @@ in
 	    	if e subsumes subgoal then (
 		     case e of (Less (u, v, q)) => (
 		       if u aconv x andalso v aconv y then (Thm ([q], Less.less_imp_neq))
-		       else (Thm ([(Thm ([q], Less.less_imp_neq))], thm "not_sym"))
+		       else (Thm ([(Thm ([q], Less.less_imp_neq))], Less.not_sym))
 		     )
 		     |    (NotEq (u,v, q)) => (
 		       if u aconv x andalso v aconv y then q
-		       else (Thm ([q],  thm "not_sym"))
+		       else (Thm ([q],  Less.not_sym))
 		     )
 		 )
                 (* if SCC_x is linked to SCC_y via edge e *)
@@ -843,7 +844,7 @@ in
 		     case e of (Less (_, _,_)) => (
 		        let val xypath = (completeTermPath y u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v x (List.nth(sccSubgraphs, vi)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
-			in (Thm ([(Thm ([getprf xyLesss], Less.less_imp_neq))] , thm "not_sym")) end ) 
+			in (Thm ([(Thm ([getprf xyLesss], Less.less_imp_neq))] , Less.not_sym)) end ) 
 		     | _ => (
 		        
 			let val yupath = completeTermPath y u (List.nth(sccSubgraphs, ui))
@@ -857,7 +858,7 @@ in
 			    val y_eq_u =  (Thm ([(getprf yuLesss),(getprf uyLesss)], Less.eqI))
 			    val v_eq_x =  (Thm ([(getprf vxLesss),(getprf xvLesss)], Less.eqI))
 			in
-			    (Thm ([(Thm ([y_eq_u , (getprf e), v_eq_x ], Less.eq_neq_eq_imp_neq))], thm "not_sym"))
+			    (Thm ([(Thm ([y_eq_u , (getprf e), v_eq_x ], Less.eq_neq_eq_imp_neq))], Less.not_sym))
 		        end
 		       )
 		  ) else (
@@ -871,7 +872,7 @@ in
 	                        val xr = dfs_int_reachable sccGraph_transpose xi
 		               in 
 		                case  (findLess e y x yi xi yr xr) of 
-		                      (SOME prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], thm "not_sym")) 
+		                      (SOME prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], Less.not_sym)) 
                                       | _ => processNeqEdges es
 		               end)
 		 ) end) 
