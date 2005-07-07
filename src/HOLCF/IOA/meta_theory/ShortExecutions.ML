@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mller
 
 Some properties about (Cut ex), defined as follows:
 
@@ -139,7 +139,7 @@ by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Map2Finite]) 1);
 (* csae ~ Finite s *)
 by (asm_full_simp_tac (simpset() addsimps [Cut_UU]) 1);
-by (rtac (Cut_UU RS sym) 1);
+by (rtac (Cut_UU (*RS sym*)) 1);
 by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1); 
 by (asm_full_simp_tac (simpset() addsimps [Map2Finite]) 1);
 (* main case *)

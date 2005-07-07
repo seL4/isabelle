@@ -304,13 +304,14 @@ Addsimps [Cons_not_nil2,Cons_inject_eq,Cons_inject_less_eq,seq_take_Cons,
           Cons_not_UU,Cons_not_less_UU,Cons_not_less_nil,Cons_not_nil];
 
 (* Instead of adding UU_neq_Cons every equation UU~=x could be changed to x~=UU *)
+(*
 Goal "UU ~= x>>xs";
 by (res_inst_tac [("s1","UU"),("t1","x>>xs")]  (sym RS rev_contrapos) 1);
 by (REPEAT (Simp_tac 1));
 qed"UU_neq_Cons";
 
 Addsimps [UU_neq_Cons];
-
+*)
 
 (* ----------------------------------------------------------------------------------- *)
 

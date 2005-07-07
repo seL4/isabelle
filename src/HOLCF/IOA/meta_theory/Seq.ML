@@ -1,19 +1,20 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mller
 *)  
 
 Addsimps (sfinite.intrs @ seq.rews);
 
 
 (* Instead of adding UU_neq_nil every equation UU~=x could be changed to x~=UU *)
+(*
 Goal "UU ~=nil";
 by (res_inst_tac [("s1","UU"),("t1","nil")]  (sym RS rev_contrapos) 1);
 by (REPEAT (Simp_tac 1));
 qed"UU_neq_nil";
 
 Addsimps [UU_neq_nil];
-
+*)
 
 
 
