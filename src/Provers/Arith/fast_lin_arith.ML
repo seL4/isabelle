@@ -30,6 +30,7 @@ sig
   val not_leD:          thm (* ~(m <= n) ==> n < m *)
   val sym:		thm (* x = y ==> y = x *)
   val mk_Eq: thm -> thm
+  val atomize: thm -> thm list
   val mk_Trueprop: term -> term
   val neg_prop: term -> term
   val is_False: thm -> bool
@@ -731,7 +732,7 @@ handle THM _ => NONE;
 *)
 fun lin_arith_prover sg ss concl =
 let
-    val thms = prems_of_ss ss;
+    val thms = List.concat(map LA_Logic.atomize (prems_of_ss ss));
     val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove sg ([],[]) false Hs Tconcl of (* concl provable? *)
