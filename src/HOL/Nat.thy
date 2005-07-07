@@ -93,7 +93,7 @@ lemma Zero_neq_Suc: "0 = Suc m ==> R"
 
 text {* Injectiveness of @{term Suc} *}
 
-lemma inj_Suc: "inj_on Suc N"
+lemma inj_Suc[simp]: "inj_on Suc N"
   by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat Suc_RepI 
                 inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject) 
 
@@ -663,6 +663,14 @@ lemma add_eq_self_zero: "!!m::nat. m + n = m ==> n = 0"
   apply (drule add_0_right [THEN ssubst])
   apply (simp add: nat_add_assoc del: add_0_right)
   done
+
+
+lemma inj_on_add_nat[simp]: "inj_on (%n::nat. n+k) N"
+apply(induct k)
+ apply simp
+apply(drule comp_inj_on[OF _ inj_Suc])
+apply (simp add:o_def)
+done
 
 
 subsection {* Multiplication *}

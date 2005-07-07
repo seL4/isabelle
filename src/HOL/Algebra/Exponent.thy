@@ -27,7 +27,7 @@ apply (erule dvdE)
 apply (case_tac "k=0", simp)
 apply (drule_tac x = m in spec)
 apply (drule_tac x = k in spec)
-apply (simp add: dvd_mult_cancel1 dvd_mult_cancel2, auto)
+apply (simp add: dvd_mult_cancel1 dvd_mult_cancel2)
 done
 
 lemma zero_less_prime_power: "prime p ==> 0 < p^a"

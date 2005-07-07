@@ -131,7 +131,7 @@ lemma Rep_one_matrix[simp]: "Rep_matrix (one_matrix n) j i = (if (j = i & j < n)
 apply (simp add: one_matrix_def)
 apply (simplesubst RepAbs_matrix)
 apply (rule exI[of _ n], simp add: split_if)+
-by (simp add: split_if, arith)
+by (simp add: split_if)
 
 lemma nrows_one_matrix[simp]: "nrows ((one_matrix n) :: ('a::axclass_0_neq_1)matrix) = n" (is "?r = _")
 proof -

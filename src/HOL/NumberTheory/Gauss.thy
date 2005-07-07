@@ -459,8 +459,7 @@ theorem (in GAUSS) pre_gauss_lemma:
       by (simp add: B_def)
     then have "[setprod id A = ((-1)^(card E) * (setprod (%x. x * a) A))] 
         (mod p)"
-      apply (rule zcong_trans)
-      by (simp add: finite_A inj_on_xa_A setprod_reindex_id zcong_scalar2)
+      by(simp add:finite_A inj_on_xa_A setprod_reindex_id[symmetric])
     moreover have "setprod (%x. x * a) A = 
         setprod (%x. a) A * setprod id A"
       by (insert finite_A, induct set: Finites, auto)

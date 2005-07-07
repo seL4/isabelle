@@ -24,15 +24,13 @@ proof -
   also have "setsum (%x. a * x) = setsum (%x. x * a)" 
     by (auto simp add: zmult_commute)
   also have "setsum (%x. x * a) A = setsum id B"
-    by (auto simp add: B_def setsum_reindex_id finite_A inj_on_xa_A)
+    by (simp add: B_def setsum_reindex_id[OF inj_on_xa_A])
   also have "... = setsum (%x. p * (x div p) + StandardRes p x) B"
-    apply (rule setsum_cong)
-    by (auto simp add: finite_B StandardRes_def zmod_zdiv_equality)
+    by (auto simp add: StandardRes_def zmod_zdiv_equality)
   also have "... = setsum (%x. p * (x div p)) B + setsum (StandardRes p) B"
     by (rule setsum_addf)
   also have "setsum (StandardRes p) B = setsum id C"
-    by (auto simp add: C_def setsum_reindex_id [THEN sym] finite_B 
-      SR_B_inj)
+    by (auto simp add: C_def setsum_reindex_id[OF SR_B_inj])
   also from C_eq have "... = setsum id (D \<union> E)"
     by auto
   also from finite_D finite_E have "... = setsum id D + setsum id E"
@@ -40,7 +38,7 @@ proof -
     by (auto simp add: D_def E_def)
   also have "setsum (%x. p * (x div p)) B = 
       setsum ((%x. p * (x div p)) o (%x. (x * a))) A"
-    by (auto simp add: B_def setsum_reindex finite_A inj_on_xa_A)
+    by (auto simp add: B_def setsum_reindex inj_on_xa_A)
   also have "... = setsum (%x. p * ((x * a) div p)) A"
     by (auto simp add: o_def)
   also from finite_A have "setsum (%x. p * ((x * a) div p)) A = 
@@ -588,7 +586,7 @@ proof -
   from prems have "~([q = 0] (mod p))"
     apply (rule_tac p = q and q = p in pq_prime_neq)
     apply (simp add: QRTEMP_def)+
-    by arith
+    done
   with prems have a2: "(Legendre q p) = 
       (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
     apply (rule_tac p = p in  MainQRLemma)

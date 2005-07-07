@@ -16,7 +16,6 @@ lemma
  "VARS a i j
  {k <= length a & i < k & j < k} j < length a \<rightarrow> a[i] := a!j {True}"
 apply vcg_simp
-apply arith
 done
 
 lemma "VARS (a::int list) i
@@ -27,7 +26,6 @@ lemma "VARS (a::int list) i
  DO a[i] := 7; i := i+1 OD
  {True}"
 apply vcg_simp
-apply arith
 done
 
 end

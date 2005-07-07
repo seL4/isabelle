@@ -175,12 +175,11 @@ apply(tactic {* ALLGOALS Clarify_tac *})
 --{* 11 vc *}
 apply simp_all
 apply(tactic {* ALLGOALS Clarify_tac *})
---{* 11 subgoals left *}
+--{* 10 subgoals left *}
 apply(erule less_SucE)
  apply simp
 apply simp
---{* 10 subgoals left *}
-apply force
+--{* 9 subgoals left *}
 apply(case_tac "i=k")
  apply force
 apply simp
@@ -443,11 +442,11 @@ apply(tactic {* ALLGOALS Clarify_tac *})
 apply(simp_all (asm_lr) only:length_0_conv [THEN sym])
 --{* 44 subgoals left *}
 apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor mod_lemma)
---{* 33 subgoals left *}
+--{* 32 subgoals left *}
 apply(tactic {* ALLGOALS Clarify_tac *})
 
 apply(tactic {* TRYALL simple_arith_tac *})
---{* 10 subgoals left *}
+--{* 9 subgoals left *}
 apply (force simp add:less_Suc_eq)
 apply(drule sym)
 apply (force simp add:less_Suc_eq)+
@@ -525,10 +524,6 @@ apply(erule ssubst)
 apply simp_all
 done
 
-lemma Example2_lemma3: "!!b. \<forall>i< n. b i = (Suc 0) \<Longrightarrow> (\<Sum>i=0..<n. b i)= n"
-apply (induct n)
-apply auto
-done
 
 record Example2 = 
  c :: "nat \<Rightarrow> nat" 
@@ -544,16 +539,13 @@ lemma Example_2: "0<n \<Longrightarrow>
  COEND 
  .{\<acute>x=n}."
 apply oghoare
-apply simp_all
+apply (simp_all cong del: strong_setsum_cong)
 apply (tactic {* ALLGOALS Clarify_tac *})
-apply simp_all
-   apply(erule Example2_lemma2)
-   apply simp
-  apply(erule Example2_lemma2)
-  apply simp
- apply(erule Example2_lemma2)
- apply simp
-apply(force intro: Example2_lemma3)
+apply (simp_all cong del: strong_setsum_cong)
+   apply(erule (1) Example2_lemma2)
+  apply(erule (1) Example2_lemma2)
+ apply(erule (1) Example2_lemma2)
+apply(simp)
 done
 
 end

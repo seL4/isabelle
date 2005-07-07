@@ -300,6 +300,52 @@ lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
 lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
 by (auto simp add: atLeastAtMost_def)
 
+subsubsection {* Image *}
+
+lemma image_add_atLeastAtMost:
+  "(%n::nat. n+k) ` {i..j} = {i+k..j+k}" (is "?A = ?B")
+proof
+  show "?A \<subseteq> ?B" by auto
+next
+  show "?B \<subseteq> ?A"
+  proof
+    fix n assume a: "n : ?B"
+    hence "n - k : {i..j}" by auto arith+
+    moreover have "n = (n - k) + k" using a by auto
+    ultimately show "n : ?A" by blast
+  qed
+qed
+
+lemma image_add_atLeastLessThan:
+  "(%n::nat. n+k) ` {i..<j} = {i+k..<j+k}" (is "?A = ?B")
+proof
+  show "?A \<subseteq> ?B" by auto
+next
+  show "?B \<subseteq> ?A"
+  proof
+    fix n assume a: "n : ?B"
+    hence "n - k : {i..<j}" by auto arith+
+    moreover have "n = (n - k) + k" using a by auto
+    ultimately show "n : ?A" by blast
+  qed
+qed
+
+corollary image_Suc_atLeastAtMost[simp]:
+  "Suc ` {i..j} = {Suc i..Suc j}"
+using image_add_atLeastAtMost[where k=1] by simp
+
+corollary image_Suc_atLeastLessThan[simp]:
+  "Suc ` {i..<j} = {Suc i..<Suc j}"
+using image_add_atLeastLessThan[where k=1] by simp
+
+lemma image_add_int_atLeastLessThan:
+    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
+  apply (auto simp add: image_def)
+  apply (rule_tac x = "x - l" in bexI)
+  apply auto
+  done
+
+
 subsubsection {* Finiteness *}
 
 lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..<k}"
@@ -390,19 +436,12 @@ lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
   apply auto
   done
 
-lemma image_atLeastLessThan_int_shift:
-    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
-  apply (auto simp add: image_def)
-  apply (rule_tac x = "x - l" in bexI)
-  apply auto
-  done
-
 lemma finite_atLeastLessThan_int [iff]: "finite {l..<u::int}"
   apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule finite_imageI)
   apply (rule finite_atLeastZeroLessThan_int)
-  apply (rule image_atLeastLessThan_int_shift)
+  apply (rule image_add_int_atLeastLessThan)
   done
 
 lemma finite_atLeastAtMost_int [iff]: "finite {l..(u::int)}"
@@ -430,7 +469,7 @@ lemma card_atLeastLessThan_int [simp]: "card {l..<u} = nat (u - l)"
   apply (erule subst)
   apply (rule card_image)
   apply (simp add: inj_on_def)
-  apply (rule image_atLeastLessThan_int_shift)
+  apply (rule image_add_int_atLeastLessThan)
   done
 
 lemma card_atLeastAtMost_int [simp]: "card {l..u} = nat (u - l + 1)"
@@ -607,8 +646,6 @@ Note that for uniformity on @{typ nat} it is better to use
 not provide all lemmas available for @{term"{m..<n}"} also in the
 special form for @{term"{..<n}"}. *}
 
-(* FIXME change the simplifier's treatment of congruence rules?? *)
-
 text{* This congruence rule should be used for sums over intervals as
 the standard theorem @{text[source]setsum_cong} does not work well
 with the simplifier who adds the unsimplified premise @{term"x:B"} to
@@ -652,9 +689,25 @@ using setsum_add_nat_ivl [of m n p f,symmetric]
 apply (simp add: add_ac)
 done
 
+subsection{* Shifting bounds *}
+
 lemma setsum_shift_bounds_nat_ivl:
   "setsum f {m+k..<n+k} = setsum (%i. f(i + k)){m..<n::nat}"
 by (induct "n", auto simp:atLeastLessThanSuc)
+
+lemma setsum_shift_bounds_cl_nat_ivl:
+  "setsum f {m+k..n+k} = setsum (%i. f(i + k)){m..n::nat}"
+apply (insert setsum_reindex[OF inj_on_add_nat, where h=f and B = "{m..n}"])
+apply (simp add:image_add_atLeastAtMost o_def)
+done
+
+corollary setsum_shift_bounds_cl_Suc_ivl:
+  "setsum f {Suc m..Suc n} = setsum (%i. f(Suc i)){m..n}"
+by (simp add:setsum_shift_bounds_cl_nat_ivl[where k=1,simplified])
+
+corollary setsum_shift_bounds_Suc_ivl:
+  "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
+by (simp add:setsum_shift_bounds_nat_ivl[where k=1,simplified])
 
 
 ML

@@ -92,13 +92,16 @@ text{*The Identity Function: @{term id}*}
 lemma id_apply [simp]: "id x = x"
 by (simp add: id_def)
 
-lemma inj_on_id: "inj_on id A"
+lemma inj_on_id[simp]: "inj_on id A"
 by (simp add: inj_on_def) 
 
-lemma surj_id: "surj id"
+lemma inj_on_id2[simp]: "inj_on (%x. x) A"
+by (simp add: inj_on_def) 
+
+lemma surj_id[simp]: "surj id"
 by (simp add: surj_def) 
 
-lemma bij_id: "bij id"
+lemma bij_id[simp]: "bij id"
 by (simp add: bij_def inj_on_id surj_id) 
 
 

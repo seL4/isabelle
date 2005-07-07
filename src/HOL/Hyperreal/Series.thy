@@ -137,6 +137,10 @@ lemma sumr_pos_lt_pair_lemma:
 apply (induct "no", auto)
 apply (drule_tac x = "Suc no" in spec)
 apply (simp add: add_ac)
+(* FIXME why does simp require a separate step to prove the (pure arithmetic)
+   left-over? With del cong: strong_setsum_cong it works!
+*)
+apply simp
 done
 
 

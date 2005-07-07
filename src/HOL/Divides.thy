@@ -242,7 +242,7 @@ by (simp add: mult_commute div_mult_self_is_m)
 subsection{*Proving facts about Quotient and Remainder*}
 
 lemma unique_quotient_lemma:
-     "[| b*q' + r'  \<le> b*q + r;  0 < b;  r < b |]  
+     "[| b*q' + r'  \<le> b*q + r;  x < b;  r < b |]  
       ==> q' \<le> (q::nat)"
 apply (rule leI)
 apply (subst less_iff_Suc_add)
@@ -254,7 +254,7 @@ lemma unique_quotient:
       ==> q = q'"
 apply (simp add: split_ifs quorem_def)
 apply (blast intro: order_antisym 
-             dest: order_eq_refl [THEN unique_quotient_lemma] sym)+
+             dest: order_eq_refl [THEN unique_quotient_lemma] sym)
 done
 
 lemma unique_remainder:
@@ -702,7 +702,9 @@ lemma split_div_lemma:
   "0 < n \<Longrightarrow> (n * q \<le> m \<and> m < n * (Suc q)) = (q = ((m::nat) div n))"
   apply (rule iffI)
   apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
-  apply (simp_all add: quorem_def, arith)
+prefer 3; apply assumption
+  apply (simp_all add: quorem_def)
+  apply arith
   apply (rule conjI)
   apply (rule_tac P="%x. n * (m div n) \<le> x" in
     subst [OF mod_div_equality [of _ n]])

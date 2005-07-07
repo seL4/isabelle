@@ -228,7 +228,7 @@ apply(rule Basic)
 apply simp
 apply clarify
 apply simp
-apply(force elim:Example2_lemma2_Suc0)
+apply(simp add:Example2_lemma2_Suc0 cong:if_cong)
 apply simp+
 done
 

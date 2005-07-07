@@ -315,14 +315,11 @@ theorem Euler_Fermat:
   apply (rule Bnor_fin)
   done
 
-lemma Bnor_prime [rule_format (no_asm)]:
-  "zprime p ==>
-    a < p --> (\<forall>b. 0 < b \<and> b \<le> a --> zgcd (b, p) = 1)
-    --> card (BnorRset (a, p)) = nat a"
-  apply (auto simp add: zless_zprime_imp_zrelprime)
+lemma Bnor_prime:
+  "\<lbrakk> zprime p; a < p \<rbrakk> \<Longrightarrow> card (BnorRset (a, p)) = nat a"
   apply (induct a p rule: BnorRset.induct)
   apply (subst BnorRset.simps)
-  apply (unfold Let_def, auto)
+  apply (unfold Let_def, auto simp add:zless_zprime_imp_zrelprime)
   apply (subgoal_tac "finite (BnorRset (a - 1,m))")
    apply (subgoal_tac "a ~: BnorRset (a - 1,m)")
     apply (auto simp add: card_insert_disjoint Suc_nat_eq_nat_zadd1)
@@ -333,7 +330,6 @@ lemma Bnor_prime [rule_format (no_asm)]:
 lemma phi_prime: "zprime p ==> phi p = nat (p - 1)"
   apply (unfold phi_def norRRset_def)
   apply (rule Bnor_prime, auto)
-  apply (erule zless_zprime_imp_zrelprime, simp_all)
   done
 
 theorem Little_Fermat:

@@ -102,7 +102,7 @@ Here is the division algorithm in ML:
 subsection{*Uniqueness and Monotonicity of Quotients and Remainders*}
 
 lemma unique_quotient_lemma:
-     "[| b*q' + r'  \<le> b*q + r;  0 \<le> r';  0 < b;  r < b |]  
+     "[| b*q' + r'  \<le> b*q + r;  0 \<le> r';  r' < b;  r < b |]  
       ==> q' \<le> (q::int)"
 apply (subgoal_tac "r' + b * (q'-q) \<le> r")
  prefer 2 apply (simp add: right_diff_distrib)
@@ -115,7 +115,7 @@ apply (simp add: mult_less_cancel_left)
 done
 
 lemma unique_quotient_lemma_neg:
-     "[| b*q' + r' \<le> b*q + r;  r \<le> 0;  b < 0;  b < r' |]  
+     "[| b*q' + r' \<le> b*q + r;  r \<le> 0;  b < r;  b < r' |]  
       ==> q \<le> (q'::int)"
 by (rule_tac b = "-b" and r = "-r'" and r' = "-r" in unique_quotient_lemma, 
     auto)

@@ -181,7 +181,7 @@ apply (rule equiv_intrel [THEN congruent2_commuteI])
 apply (simp add: congruent_def mult_ac)  
 apply (rename_tac u v w x y z)
 apply (subgoal_tac "u*y + x*y = w*y + v*y  &  u*z + x*z = w*z + v*z")
-apply (simp add: mult_ac, arith)
+apply (simp add: mult_ac)
 apply (simp add: add_mult_distrib [symmetric])
 done
 

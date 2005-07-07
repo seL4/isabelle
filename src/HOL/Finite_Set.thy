@@ -891,8 +891,9 @@ lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
 by(fastsimp simp: setsum_def intro: AC_add.fold_cong)
 
-lemma strong_setsum_cong:
-  "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setsum f A = setsum g B"
+lemma strong_setsum_cong[cong]:
+  "A = B ==> (!!x. x:B =simp=> f x = g x)
+   ==> setsum (%x. f x) A = setsum (%x. g x) B"
 by(fastsimp simp: simp_implies_def setsum_def intro: AC_add.fold_cong)
 
 lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
@@ -1702,71 +1703,6 @@ apply(rotate_tac -1)
   apply (subst card_Un_disjoint)
   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
   done
-
-
-subsubsection {* Theorems about @{text "choose"} *}
-
-text {*
-  \medskip Basic theorem about @{text "choose"}.  By Florian
-  Kamm\"uller, tidied by LCP.
-*}
-
-lemma card_s_0_eq_empty:
-    "finite A ==> card {B. B \<subseteq> A & card B = 0} = 1"
-  apply (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
-  apply (simp cong add: rev_conj_cong)
-  done
-
-lemma choose_deconstruct: "finite M ==> x \<notin> M
-  ==> {s. s <= insert x M & card(s) = Suc k}
-       = {s. s <= M & card(s) = Suc k} Un
-         {s. EX t. t <= M & card(t) = k & s = insert x t}"
-  apply safe
-   apply (auto intro: finite_subset [THEN card_insert_disjoint])
-  apply (drule_tac x = "xa - {x}" in spec)
-  apply (subgoal_tac "x \<notin> xa", auto)
-  apply (erule rev_mp, subst card_Diff_singleton)
-  apply (auto intro: finite_subset)
-  done
-
-text{*There are as many subsets of @{term A} having cardinality @{term k}
- as there are sets obtained from the former by inserting a fixed element
- @{term x} into each.*}
-lemma constr_bij:
-   "[|finite A; x \<notin> A|] ==>
-    card {B. EX C. C <= A & card(C) = k & B = insert x C} =
-    card {B. B <= A & card(B) = k}"
-  apply (rule_tac f = "%s. s - {x}" and g = "insert x" in card_bij_eq)
-       apply (auto elim!: equalityE simp add: inj_on_def)
-    apply (subst Diff_insert0, auto)
-   txt {* finiteness of the two sets *}
-   apply (rule_tac [2] B = "Pow (A)" in finite_subset)
-   apply (rule_tac B = "Pow (insert x A)" in finite_subset)
-   apply fast+
-  done
-
-text {*
-  Main theorem: combinatorial statement about number of subsets of a set.
-*}
-
-lemma n_sub_lemma:
-  "!!A. finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
-  apply (induct k)
-   apply (simp add: card_s_0_eq_empty, atomize)
-  apply (rotate_tac -1, erule finite_induct)
-   apply (simp_all (no_asm_simp) cong add: conj_cong
-     add: card_s_0_eq_empty choose_deconstruct)
-  apply (subst card_Un_disjoint)
-     prefer 4 apply (force simp add: constr_bij)
-    prefer 3 apply force
-   prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
-     finite_subset [of _ "Pow (insert x F)", standard])
-  apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
-  done
-
-theorem n_subsets:
-    "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
-  by (simp add: n_sub_lemma)
 
 
 subsection{* A fold functional for non-empty sets *}

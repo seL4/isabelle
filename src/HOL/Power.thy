@@ -5,7 +5,7 @@
 
 *)
 
-header{*Exponentiation and Binomial Coefficients*}
+header{*Exponentiation*}
 
 theory Power
 imports Divides
@@ -345,86 +345,6 @@ apply (rule power_le_imp_le_exp, assumption)
 apply (erule dvd_imp_le, simp)
 done
 
-
-subsection{*Binomial Coefficients*}
-
-text{*This development is based on the work of Andy Gordon and
-Florian Kammueller*}
-
-consts
-  binomial :: "[nat,nat] => nat"      (infixl "choose" 65)
-
-primrec
-  binomial_0:   "(0     choose k) = (if k = 0 then 1 else 0)"
-
-  binomial_Suc: "(Suc n choose k) =
-                 (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
-
-lemma binomial_n_0 [simp]: "(n choose 0) = 1"
-by (case_tac "n", simp_all)
-
-lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
-by simp
-
-lemma binomial_Suc_Suc [simp]:
-     "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
-by simp
-
-lemma binomial_eq_0 [rule_format]: "\<forall>k. n < k --> (n choose k) = 0"
-apply (induct "n", auto)
-apply (erule allE)
-apply (erule mp, arith)
-done
-
-declare binomial_0 [simp del] binomial_Suc [simp del]
-
-lemma binomial_n_n [simp]: "(n choose n) = 1"
-apply (induct "n")
-apply (simp_all add: binomial_eq_0)
-done
-
-lemma binomial_Suc_n [simp]: "(Suc n choose n) = Suc n"
-by (induct "n", simp_all)
-
-lemma binomial_1 [simp]: "(n choose Suc 0) = n"
-by (induct "n", simp_all)
-
-lemma zero_less_binomial [rule_format]: "k \<le> n --> 0 < (n choose k)"
-by (rule_tac m = n and n = k in diff_induct, simp_all)
-
-lemma binomial_eq_0_iff: "(n choose k = 0) = (n<k)"
-apply (safe intro!: binomial_eq_0)
-apply (erule contrapos_pp)
-apply (simp add: zero_less_binomial)
-done
-
-lemma zero_less_binomial_iff: "(0 < n choose k) = (k\<le>n)"
-by (simp add: linorder_not_less [symmetric] binomial_eq_0_iff [symmetric])
-
-(*Might be more useful if re-oriented*)
-lemma Suc_times_binomial_eq [rule_format]:
-     "\<forall>k. k \<le> n --> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-apply (induct "n")
-apply (simp add: binomial_0, clarify)
-apply (case_tac "k")
-apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq
-                      binomial_eq_0)
-done
-
-text{*This is the well-known version, but it's harder to use because of the
-  need to reason about division.*}
-lemma binomial_Suc_Suc_eq_times:
-     "k \<le> n ==> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
-by (simp add: Suc_times_binomial_eq div_mult_self_is_m zero_less_Suc
-        del: mult_Suc mult_Suc_right)
-
-text{*Another version, with -1 instead of Suc.*}
-lemma times_binomial_minus1_eq:
-     "[|k \<le> n;  0<k|] ==> (n choose k) * k = n * ((n - 1) choose (k - 1))"
-apply (cut_tac n = "n - 1" and k = "k - 1" in Suc_times_binomial_eq)
-apply (simp split add: nat_diff_split, auto)
-done
-
 text{*ML bindings for the general exponentiation theorems*}
 ML
 {*
@@ -477,19 +397,6 @@ val nat_power_less_imp_less = thm"nat_power_less_imp_less";
 val nat_zero_less_power_iff = thm"nat_zero_less_power_iff";
 val power_le_dvd = thm"power_le_dvd";
 val power_dvd_imp_le = thm"power_dvd_imp_le";
-val binomial_n_0 = thm"binomial_n_0";
-val binomial_0_Suc = thm"binomial_0_Suc";
-val binomial_Suc_Suc = thm"binomial_Suc_Suc";
-val binomial_eq_0 = thm"binomial_eq_0";
-val binomial_n_n = thm"binomial_n_n";
-val binomial_Suc_n = thm"binomial_Suc_n";
-val binomial_1 = thm"binomial_1";
-val zero_less_binomial = thm"zero_less_binomial";
-val binomial_eq_0_iff = thm"binomial_eq_0_iff";
-val zero_less_binomial_iff = thm"zero_less_binomial_iff";
-val Suc_times_binomial_eq = thm"Suc_times_binomial_eq";
-val binomial_Suc_Suc_eq_times = thm"binomial_Suc_Suc_eq_times";
-val times_binomial_minus1_eq = thm"times_binomial_minus1_eq";
 *}
 
 end

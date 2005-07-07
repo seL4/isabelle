@@ -73,7 +73,6 @@ lemma gcd_scm: "VARS a b x y
 apply vcg
   apply simp
  apply(simp add: distribs gcd_diff_r not_less_iff_le gcd_diff_l)
- apply arith
 apply(simp add: distribs gcd_nnn)
 done
 
@@ -136,7 +135,6 @@ lemma sqrt: "VARS r x
  DO r := r+1 OD
  {r*r <= X & X < (r+1)*(r+1)}"
 apply vcg_simp
-apply auto
 done
 
 (* without multiplication *)
@@ -149,7 +147,6 @@ lemma sqrt_without_multiplication: "VARS u w r x
  DO r := r + 1; w := w + u + 2; u := u + 2 OD
  {r*r <= X & X < (r+1)*(r+1)}"
 apply vcg_simp
-apply auto
 done
 
 
@@ -231,11 +228,10 @@ lemma Partition:
 apply (simp);
 apply (erule thin_rl)+
 apply vcg_simp
-    apply (force simp: neq_Nil_conv)
-   apply (blast elim!: less_SucE intro: Suc_leI)
-  apply (blast elim!: less_SucE intro: less_imp_diff_less dest: lem)
- apply (force simp: nth_list_update)
-apply (auto intro: order_antisym)
+   apply (force simp: neq_Nil_conv)
+  apply (blast elim!: less_SucE intro: Suc_leI)
+ apply (blast elim!: less_SucE intro: less_imp_diff_less dest: lem)
+apply (force simp: nth_list_update)
 done
 
 end

@@ -183,6 +183,11 @@ fun mk_Eq thm = (thm RS Eq_FalseI) handle THM _ => (thm RS Eq_TrueI);
 
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
+fun atomize thm = case #prop(rep_thm thm) of
+    Const("Trueprop",_) $ (Const("op &",_) $ _ $ _) =>
+    atomize(thm RS conjunct1) @ atomize(thm RS conjunct2)
+  | _ => [thm];
+
 fun neg_prop(TP$(Const("Not",_)$t)) = TP$t
   | neg_prop(TP$t) = TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t);
 

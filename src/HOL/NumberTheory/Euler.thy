@@ -175,7 +175,7 @@ lemma aux2: "[| (a::int) < c; b < c |] ==> (a \<le> b | b \<le> a)";
 lemma SRStar_d22set_prop [rule_format]: "2 < p --> (SRStar p) = {1} \<union> 
     (d22set (p - 1))";
   apply (induct p rule: d22set.induct, auto)
-  apply (simp add: SRStar_def d22set.simps, arith)
+  apply (simp add: SRStar_def d22set.simps)
   apply (simp add: SRStar_def d22set.simps, clarify)
   apply (frule aux1)
   apply (frule aux2, auto)

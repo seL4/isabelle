@@ -78,7 +78,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/TFL/casesplit.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML		\
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML			\
   $(SRC)/TFL/thry.ML $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML			\
-  Datatype.ML Datatype.thy Datatype_Universe.thy Divides.thy			\
+  Binomial.thy Datatype.ML Datatype.thy Datatype_Universe.thy Divides.thy \
   Equiv_Relations.thy Extraction.thy Finite_Set.ML Finite_Set.thy		\
   Fun.thy Gfp.thy HOL.ML HOL.thy Hilbert_Choice.thy Inductive.thy		\
   Infinite_Set.thy Integ/IntArith.thy Integ/IntDef.thy Integ/IntDiv.thy		\
