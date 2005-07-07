@@ -88,6 +88,10 @@ sig
   val prep_global_registration:
     string * Attrib.src list -> expr -> string option list -> theory ->
     theory * ((string * term list) * term list) list * (theory -> theory)
+(*
+  val prep_registration_in_locale:
+    string -> expr -> string option list -> theory ->
+*)
   val prep_local_registration:
     string * Attrib.src list -> expr -> string option list -> context ->
     context * ((string * term list) * term list) list * (context -> context)
@@ -126,7 +130,7 @@ type element_i = (typ, term, thm list) elem;
 
 type locale =
  {predicate: cterm list * thm list,
-    (* CB: For old-style locales with "(open)" this entry is ([], []).
+    (* CB: For locales with "(open)" this entry is ([], []).
        For new-style locales, which declare predicates, if the locale declares
        no predicates, this is also ([], []).
        If the locale declares predicates, the record field is
@@ -137,8 +141,12 @@ type locale =
     *)
   import: expr,                                       (*dynamic import*)
   elems: (element_i * stamp) list,                    (*static content*)
-  params: ((string * typ) * mixfix option) list * string list}
+  params: ((string * typ) * mixfix option) list * string list,
                                                       (*all/local params*)
+  regs: ((string * string list) * thm list) list}
+    (* Registrations: indentifiers and witness theorems of locales interpreted
+       in the locale.
+    *)
 
 
 (* CB: an internal (Int) locale element was either imported or included,
@@ -235,7 +243,7 @@ fun inst_tab_thm thy (inst, tinst) thm = if Symtab.is_empty inst
         end;
 
 
-(** registration management **)
+(** management of registrations in theories and proof contexts **)
 
 structure Registrations :
   sig
@@ -323,6 +331,7 @@ struct
     end;
 end;
 
+
 (** theory data **)
 
 structure GlobalLocalesData = TheoryDataFun
@@ -337,11 +346,12 @@ structure GlobalLocalesData = TheoryDataFun
   val copy = I;
   val extend = I;
 
-  fun join_locs _ ({predicate, import, elems, params}: locale,
-      {elems = elems', ...}: locale) =
+  fun join_locs _ ({predicate, import, elems, params, regs}: locale,
+      {elems = elems', regs = regs', ...}: locale) =
     SOME {predicate = predicate, import = import,
       elems = gen_merge_lists eq_snd elems elems',
-      params = params};
+      params = params,
+      regs = merge_alists regs regs'};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
      Symtab.join (K (SOME o Registrations.join)) (regs1, regs2));
@@ -452,17 +462,6 @@ val put_global_registration =
 val put_local_registration =
      gen_put_registration LocalLocalesData.map ProofContext.theory_of;
 
-(* TODO: needed? *)
-(*
-fun smart_put_registration id attn ctxt =
-  (* ignore registration if already present in theory *)
-     let
-       val thy = ProofContext.theory_of ctxt;
-     in case get_global_registration thy id of
-          NONE => put_local_registration id attn ctxt
-        | SOME _ => ctxt
-     end;
-*)
 
 (* add witness theorem to registration in theory or context,
    ignored if registration not present *)
@@ -813,8 +812,8 @@ fun unify_elemss _ _ [] = []
             map (inst_thm ctxt env) axs), map (inst_elem ctxt env) elems);
       in map inst (elemss ~~ envs) end;
 
-(* like unify_elemss, but does not touch axioms,
-   additional parameter for enforcing further constraints (eg. syntax) *)
+(* like unify_elemss, but does not touch axioms, additional
+   parameter c_parms for enforcing further constraints (eg. syntax) *)
 
 fun unify_elemss' _ _ [] [] = []
   | unify_elemss' _ [] [elems] [] = [elems]
@@ -906,7 +905,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
       | identify top (Merge es) =
           Library.foldl (fn ((ids, parms, syn), e) => let
                      val (ids', parms', syn') = identify top e
-                   in (gen_merge_lists eq_fst ids ids',
+                   in (merge_alists ids ids',
                        merge_lists parms parms',
                        merge_syntax ctxt ids' (syn, syn')) end)
             (([], [], Symtab.empty), es);
@@ -1288,7 +1287,14 @@ fun finish_elemss ctxt parms do_close =
 
 end;
 
-(* CB: type inference and consistency checks for locales *)
+
+(* CB: type inference and consistency checks for locales.
+
+   Works by building a context (through declare_elemss), extracting the
+   required information and adjusting the context elements (finish_elemss).
+   Can also universally close free vars in assms and defs.  This is only
+   needed for Ext elements and controlled by parameter do_close.  
+*)
 
 fun prep_elemss prep_parms prepp do_close context fixed_params raw_elemss raw_concl =
   let
@@ -1617,12 +1623,12 @@ local
 
 fun put_facts loc args thy =
   let
-    val {predicate, import, elems, params} = the_locale thy loc;
+    val {predicate, import, elems, params, regs} = the_locale thy loc;
     val note = Notes (map (fn ((a, atts), bs) =>
       ((a, atts), map (apfst (map (curry Thm.name_thm a))) bs)) args);
   in
     thy |> put_locale loc {predicate = predicate, import = import,
-      elems = elems @ [(note, stamp ())], params = params}
+      elems = elems @ [(note, stamp ())], params = params, regs = regs}
   end;
 
 (* add theorem to locale and theory,
@@ -1838,7 +1844,8 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) (List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))),
         params = (params_of elemss' |>
-          map (fn (x, SOME T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss))}
+          map (fn (x, SOME T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss)),
+        regs = []}
   end;
 
 in
@@ -1937,9 +1944,8 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     val ctxt' = ctxt |> ProofContext.theory_of |> ProofContext.init;
     val ((ids, _), raw_elemss) = flatten (ctxt', intern_expr thy)
           (([], Symtab.empty), Expr expr);
-    val do_close = false;  (* effect unknown *)
     val ((parms, all_elemss, _), (spec, (xs, defs, _))) =
-          read_elemss do_close ctxt' [] raw_elemss [];
+          read_elemss false ctxt' [] raw_elemss [];
 
 
     (** compute instantiation **)

@@ -200,7 +200,7 @@ val constdefsP =
 
 val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1);
 
-fun theorems kind = P.locale_target -- name_facts
+fun theorems kind = P.opt_locale_target -- name_facts
   >> uncurry (#1 ooo IsarThy.smart_theorems kind);
 
 val theoremsP =
@@ -213,7 +213,7 @@ val lemmasP =
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (P.locale_target -- (P.and_list1 P.xthms1 >> List.concat)
+    (P.opt_locale_target -- (P.and_list1 P.xthms1 >> List.concat)
       >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
 
 
@@ -309,19 +309,27 @@ val localeP =
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory o IsarThy.add_locale o (fn ((x, y), (z, w)) => (x, y, z, w))));
 
-val view_val =
+val opt_inst =
   Scan.optional (P.$$$ "[" |-- Scan.repeat1 (P.maybe P.term) --| P.$$$ "]") [];
 
 val interpretationP =
   OuterSyntax.command "interpretation"
-    "prove and register interpretation of locale expression in theory" K.thy_goal
-    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
-      >> ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_globally));
+    "prove and register interpretation of locale expression in theory or locale" K.thy_goal
+    (
+      (* with target: in locale *)
+      P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") --
+        P.locale_expr >>
+        ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_in_locale)
+    ||
+      (* without target: in theory *)
+      P.opt_thm_name ":" -- P.locale_expr -- P.!!! opt_inst >>
+        ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_globally)
+    );
 
 val interpretP =
   OuterSyntax.command "interpret"
-    "prove and register interpretation of locale expression in context" K.prf_goal
-    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! view_val
+    "prove and register interpretation of locale expression in proof context" K.prf_goal
+    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! opt_inst
       >> ((Toplevel.print oo Toplevel.proof) o IsarThy.register_locally));
 
 
@@ -336,7 +344,7 @@ val general_statement =
 
 fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
-    (P.locale_target -- Scan.optional (P.opt_thm_name ":" --|
+    (P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
       Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
       general_statement >> (fn ((x, y), (z, w)) =>
       (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z w))));

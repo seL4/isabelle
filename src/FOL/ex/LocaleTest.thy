@@ -307,4 +307,8 @@ proof -
   show ?thesis by (simp only: A.OP.AC)
 qed
 
+section {* Interpretation in Locales *}
+
+interpretation M < L .
+
 end

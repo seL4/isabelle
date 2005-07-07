@@ -158,6 +158,8 @@ sig
   val register_globally:
     ((string * Attrib.src list) * Locale.expr) * string option list ->
     bool -> theory -> ProofHistory.T
+  val register_in_locale:
+    string * Locale.expr -> bool -> theory -> ProofHistory.T
   val register_locally:
     ((string * Attrib.src list) * Locale.expr) * string option list ->
     ProofHistory.T -> ProofHistory.T
@@ -643,6 +645,14 @@ fun register_globally (((prfx, atts), expr), insts) int thy =
       (map (fn ((n, ps), props) =>
           ((NameSpace.base n, [witness (n, map Logic.varify ps)]),
         map (fn prop => (prop, ([], []))) props)) propss) int thy'
+  end;
+
+fun register_in_locale (target, expr) int thy =
+  let
+    val target = Locale.intern thy target;
+  in
+    locale_multi_theorem_i Drule.internalK target ("",[]) []
+      [] (*concl*) int thy
   end;
 
 fun register_locally (((prfx, atts), expr), insts) =
