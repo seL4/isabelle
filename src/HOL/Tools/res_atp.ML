@@ -287,10 +287,13 @@ fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
 (******************************************************************)
 (*FIX changed to clasimp_file *)
 fun isar_atp' (ctxt,thms, thm) =
+ if null (prems_of thm) then () 
+ else
     let 
-	val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+	val _= (print_mode := (Library.gen_rems (op =) 
+	                       (! print_mode, ["xsymbols", "symbols"])))
         val _= (warning ("in isar_atp'"))
-        val prems  = prems_of thm
+        val prems = prems_of thm
         val sign = sign_of_thm thm
         val thms_string = Meson.concat_with_and (map string_of_thm thms) 
         val thmstring = string_of_thm thm
@@ -298,22 +301,21 @@ fun isar_atp' (ctxt,thms, thm) =
         
 	(* set up variables for writing out the clasimps to a tptp file *)
 	val (clause_arr, num_of_clauses) =
-	    ResClasimp.write_out_clasimp(*_small*) (File.platform_path clasimp_file) 
+	    ResClasimp.write_out_clasimp (File.platform_path clasimp_file) 
 	                                 (ProofContext.theory_of ctxt)
-        val _ = (warning ("clasimp_file is this: "^(File.platform_path clasimp_file)) )  
-           
-        
+	                                 (hd prems) (*FIXME: hack!! need to do all prems*)
+        val _ = warning ("clasimp_file is " ^ File.platform_path clasimp_file) 
         val (childin,childout,pid) = Watcher.createWatcher(thm,clause_arr, num_of_clauses)
-        val pidstring = string_of_int(Word.toInt (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
+        val pidstring = string_of_int(Word.toInt
+                           (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
     in
-	case prems of [] => () 
-		    | _ => ((warning ("initial thms: "^thms_string)); 
-                           (warning ("initial thm: "^thmstring));
-                           (warning ("subgoals: "^prems_string));
-                           (warning ("pid: "^ pidstring))); 
-                            isar_atp_aux thms thm (length prems) (childin, childout, pid) ;
-                           (warning("turning xsymbol back on!"));
-                           print_mode := (["xsymbols", "symbols"] @ ! print_mode)
+       warning ("initial thms: "^thms_string); 
+       warning ("initial thm: "^thmstring);
+       warning ("subgoals: "^prems_string);
+       warning ("pid: "^ pidstring); 
+       isar_atp_aux thms thm (length prems) (childin, childout, pid);
+       warning("turning xsymbol back on!");
+       print_mode := (["xsymbols", "symbols"] @ ! print_mode)
     end;
 
 

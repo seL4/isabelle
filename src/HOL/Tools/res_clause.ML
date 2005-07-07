@@ -577,7 +577,7 @@ and
   | string_of_term (Fun (name,typ,terms)) = 
     let val terms' = map string_of_term terms
     in
-        if (!keep_types) then name ^ (ResLib.list_to_string (typ :: terms'))
+        if (!keep_types) then name ^ (ResLib.list_to_string (terms' @ [typ]))
         else name ^ (ResLib.list_to_string terms')
     end;
 
@@ -590,7 +590,8 @@ fun string_of_predicate (Predicate("equal",typ,terms)) = string_of_equality(typ,
   | string_of_predicate (Predicate(name,typ,terms)) = 
     let val terms_as_strings = map string_of_term terms
     in
-        if (!keep_types) then name ^ (ResLib.list_to_string  (typ :: terms_as_strings))
+        if (!keep_types) 
+        then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
         else name ^ (ResLib.list_to_string terms_as_strings) 
     end;
 
