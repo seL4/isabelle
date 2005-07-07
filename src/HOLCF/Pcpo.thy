@@ -203,6 +203,25 @@ done
 lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
 by (rule UU_least [THEN spec])
 
+lemma UU_reorient: "(\<bottom> = x) = (x = \<bottom>)"
+by auto
+
+ML_setup {*
+local
+  val meta_UU_reorient = thm "UU_reorient" RS eq_reflection;
+  fun is_UU (Const ("Pcpo.UU",_)) = true
+    | is_UU _ = false;
+  fun reorient_proc sg _ (_ $ t $ u) =
+    if is_UU u then NONE else SOME meta_UU_reorient;
+in
+  val UU_reorient_simproc = 
+    Simplifier.simproc (the_context ())
+      "UU_reorient_simproc" ["UU=x"] reorient_proc
+end;
+
+Addsimprocs [UU_reorient_simproc];
+*}
+
 text {* useful lemmas about @{term \<bottom>} *}
 
 lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
