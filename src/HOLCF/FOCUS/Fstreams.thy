@@ -194,7 +194,7 @@ by (simp add: fsingleton_def2)
 
 lemma ft_eq[simp]: "(ft$s = Def a) = (EX t. s = <a> ooo t)"
 apply (rule stream.casedist [of s],auto)
-by (drule sym, auto simp add: fsingleton_def2)
+by ((*drule sym,*) auto simp add: fsingleton_def2)
 
 lemma surjective_fstreams: "(<d> ooo y = x) = (ft$x = Def d & rt$x = y)"
 by auto
@@ -224,7 +224,7 @@ apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (case_tac "y=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (drule stream.inverts, auto)
-apply (simp add: less_lift_def, auto)
+apply (simp add: less_lift, auto)
 apply (rule monofun_cfun, auto)
 apply (case_tac "s=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
@@ -233,11 +233,11 @@ apply (drule stream_prefix, auto)
 apply (case_tac "y=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
 apply (drule stream.inverts, auto)
-apply (simp add: less_lift_def)
+apply (simp add: less_lift)
 apply (drule stream.inverts, auto)+
 apply (erule_tac x="tt" in allE)
 apply (erule_tac x="yb" in allE, auto)
-apply (simp add: less_lift_def)
+apply (simp add: less_lift)
 by (rule monofun_cfun, auto)
 
 lemma fstreams_lub_lemma1: "[| chain Y; lub (range Y) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
