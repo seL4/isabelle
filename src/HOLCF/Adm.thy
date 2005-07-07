@@ -65,10 +65,10 @@ subsection {* Admissibility of special formulae and propagation *}
 
 lemma adm_less: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
-apply (simp add: cont2contlub [THEN contlubE])
+apply (simp add: cont2contlubE)
 apply (rule lub_mono)
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) ch2ch_cont)
+apply (erule (1) ch2ch_cont)
 apply assumption
 done
 
@@ -95,9 +95,9 @@ lemmas adm_all2 = adm_all [rule_format]
 
 lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
-apply (simp add: cont2contlub [THEN contlubE])
+apply (simp add: cont2contlubE)
 apply (erule admD)
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) ch2ch_cont)
 apply assumption
 done
 
@@ -243,4 +243,3 @@ val adm_lemmas = thms "adm_lemmas";
 *}
 
 end
-
