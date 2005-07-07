@@ -193,18 +193,11 @@ lemma cont_flift1_arg_and_not_arg: "!!f. [| !! a. cont (%y. (f y) a); cont g|] =
   apply (rule cont_flift1_arg)
   done
 
-lemma cont_flift2_arg: "cont (lift_case UU (%y. Def (f y)))"
-  -- {* @{text flift2} is continuous in its argument itself. *}
-  apply (rule flatdom_strict2cont)
-  apply simp
-  done
-
 text {*
   \medskip Extension of @{text cont_tac} and installation of simplifier.
 *}
 
 lemmas cont_lemmas_ext [simp] =
-  cont_flift1_arg cont_flift2_arg
   cont_flift1_arg_and_not_arg cont2cont_lambda
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
@@ -214,9 +207,9 @@ val cont_lemmas2 = cont_lemmas1 @ thms "cont_lemmas_ext";
 fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = REPEAT (cont_tac i);
 
-local val flift1_def = thm "flift1_def" and flift2_def = thm "flift2_def"
+local val flift1_def = thm "flift1_def"
 in fun cont_tacRs i =
-  simp_tac (simpset() addsimps [flift1_def, flift2_def]) i THEN
+  simp_tac (simpset() addsimps [flift1_def]) i THEN
   REPEAT (cont_tac i)
 end;
 *}
