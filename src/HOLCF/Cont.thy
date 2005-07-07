@@ -120,6 +120,8 @@ apply (drule_tac i=0 in is_ub_lub)
 apply simp
 done
 
+lemmas ch2ch_cont = cont2mono [THEN ch2ch_monofun]
+
 text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
 text {* part2: @{prop "cont f \<Longrightarrow> contlub f"} *}
 
@@ -129,6 +131,8 @@ apply (rule thelubI [symmetric])
 apply (erule contE)
 apply assumption
 done
+
+lemmas cont2contlubE = cont2contlub [THEN contlubE]
 
 subsection {* Continuity of basic functions *}
 
@@ -175,10 +179,10 @@ lemma contlub_lub_fun:
   "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> contlub (\<Squnion>i. F i)"
 apply (rule contlubI)
 apply (simp add: thelub_fun)
-apply (simp add: cont2contlub [THEN contlubE])
+apply (simp add: cont2contlubE)
 apply (rule ex_lub)
 apply (erule ch2ch_fun)
-apply (simp add: cont2mono [THEN ch2ch_monofun])
+apply (simp add: ch2ch_cont)
 done
 
 lemma cont_lub_fun:
@@ -203,8 +207,8 @@ lemma cont2cont_CF1L: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule monocontlub2cont)
 apply (erule cont2mono [THEN mono2mono_MF1L])
 apply (rule contlubI)
-apply (simp add: cont2contlub [THEN contlubE])
-apply (simp add: thelub_fun cont2mono [THEN ch2ch_monofun])
+apply (simp add: cont2contlubE)
+apply (simp add: thelub_fun ch2ch_cont)
 done
 
 text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
@@ -222,7 +226,7 @@ apply assumption
 apply (rule contlubI)
 apply (rule ext)
 apply (simp add: thelub_fun ch2ch_monofun)
-apply (blast dest: cont2contlub [THEN contlubE])
+apply (blast dest: cont2contlubE)
 apply (simp add: mono2mono_MF1L_rev cont2mono)
 done
 
@@ -237,7 +241,7 @@ lemma contlub_abstraction:
   "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
     (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
 apply (rule thelub_fun [symmetric])
-apply (rule cont2mono [THEN ch2ch_monofun])
+apply (rule ch2ch_cont)
 apply (erule (1) cont2cont_CF1L_rev)
 done
 
@@ -252,13 +256,13 @@ lemma cont2contlub_app:
 apply (rule contlubI)
 apply (subgoal_tac "chain (\<lambda>i. f (Y i))")
 apply (subgoal_tac "chain (\<lambda>i. t (Y i))")
-apply (simp add: cont2contlub [THEN contlubE] thelub_fun)
+apply (simp add: cont2contlubE thelub_fun)
 apply (rule diag_lub)
 apply (erule ch2ch_fun)
 apply (drule spec)
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
-apply (erule (1) cont2mono [THEN ch2ch_monofun])
+apply (erule (1) ch2ch_cont)
+apply (erule (1) ch2ch_cont)
+apply (erule (1) ch2ch_cont)
 done
 
 lemma cont2cont_app:
