@@ -176,7 +176,6 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (forward_tac [rewrite_rule [Impl.inv1_def]
                                 (inv1 RS invariantE) RS conjunct1] 1);
   by (tac2 1);
-  by (arith_tac 1);
 
   (* 3 *)
   by (forward_tac [rewrite_rule [Impl.inv1_def] (inv1 RS invariantE)] 1);
