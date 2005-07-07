@@ -6,133 +6,57 @@
 header {* Lifting types of class type to flat pcpo's *}
 
 theory Lift
-imports Cprod
+imports Discrete Up Cprod
 begin
 
 defaultsort type
 
+pcpodef 'a lift = "UNIV :: 'a discr u set"
+by simp
 
-typedef 'a lift = "UNIV :: 'a option set" ..
+lemmas inst_lift_pcpo = Abs_lift_strict [symmetric]
 
 constdefs
-  Undef :: "'a lift"
-  "Undef == Abs_lift None"
-  Def :: "'a => 'a lift"
-  "Def x == Abs_lift (Some x)"
-
-instance lift :: (type) sq_ord ..
-
-defs (overloaded)
-  less_lift_def: "x << y == (x=y | x=Undef)"
-
-instance lift :: (type) po
-proof
-  fix x y z :: "'a lift"
-  show "x << x" by (unfold less_lift_def) blast
-  { assume "x << y" and "y << x" thus "x = y" by (unfold less_lift_def) blast }
-  { assume "x << y" and "y << z" thus "x << z" by (unfold less_lift_def) blast }
-qed
-
-lemma inst_lift_po: "(op <<) = (\<lambda>x y. x = y | x = Undef)"
-  -- {* For compatibility with old HOLCF-Version. *}
-  by (simp only: less_lift_def [symmetric])
-
-
-subsection {* Type lift is pointed *}
-
-lemma minimal_lift [iff]: "Undef << x"
-  by (simp add: inst_lift_po)
-
-lemma UU_lift_def: "(THE u. \<forall>y. u \<sqsubseteq> y) = Undef"
-  apply (rule minimal2UU [symmetric])
-  apply (rule minimal_lift)
-  done
-
-lemma least_lift: "EX x::'a lift. ALL y. x << y"
-  apply (rule_tac x = Undef in exI)
-  apply (rule minimal_lift [THEN allI])
-  done
-
-
-subsection {* Type lift is a cpo *}
-
-text {*
-  The following lemmas have already been proved in @{text Pcpo.ML} and
-  @{text Fix.ML}, but there class @{text pcpo} is assumed, although
-  only @{text po} is necessary and a least element. Therefore they are
-  redone here for the @{text po} lift with least element @{text
-  Undef}.
-*}
-
-lemma flat_imp_chfin_poo: "(ALL Y. chain(Y::nat=>('a)lift)-->(EX n. max_in_chain n Y))"
-  -- {* Tailoring @{text flat_imp_chfin} of @{text Fix.ML} to @{text lift} *}
-  apply (unfold max_in_chain_def)
-  apply clarify
-  apply (case_tac "ALL i. Y i = Undef")
-   apply simp
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x=i in exI)
-  apply clarify
-  apply (drule chain_mono3, assumption)
-  apply (simp add: less_lift_def)
-  done
-
-instance lift :: (type) chfin
-  apply intro_classes
-  apply (rule flat_imp_chfin_poo)
-  done
-
-instance lift :: (type) pcpo
-  apply intro_classes
-  apply (rule least_lift)
-  done
-
-lemma inst_lift_pcpo: "UU = Undef"
-  -- {* For compatibility with old HOLCF-Version. *}
-  by (simp add: UU_def UU_lift_def)
-
+  Def :: "'a \<Rightarrow> 'a lift"
+  "Def x \<equiv> Abs_lift (up\<cdot>(Discr x))"
 
 subsection {* Lift as a datatype *}
 
-lemma lift_distinct1: "UU ~= Def x"
-  by (simp add: Undef_def Def_def Abs_lift_inject lift_def inst_lift_pcpo)
+lemma lift_distinct1: "\<bottom> \<noteq> Def x"
+by (simp add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
 
-lemma lift_distinct2: "Def x ~= UU"
-  by (simp add: Undef_def Def_def Abs_lift_inject lift_def inst_lift_pcpo)
+lemma lift_distinct2: "Def x \<noteq> \<bottom>"
+by (simp add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
 
-lemma Def_inject: "(Def x = Def x') = (x = x')"
-  by (simp add: Def_def Abs_lift_inject lift_def)
+lemma Def_inject: "(Def x = Def y) = (x = y)"
+by (simp add: Def_def Abs_lift_inject lift_def)
 
-lemma lift_induct: "P UU ==> (!!x. P (Def x)) ==> P y"
-  apply (induct y)
-  apply (induct_tac y)
-   apply (simp_all add: Undef_def Def_def inst_lift_pcpo)
-  done
+lemma lift_induct: "\<lbrakk>P \<bottom>; \<And>x. P (Def x)\<rbrakk> \<Longrightarrow> P y"
+apply (induct y)
+apply (rule_tac p=y in upE1)
+apply (simp add: Abs_lift_strict)
+apply (case_tac x)
+apply (simp add: Def_def)
+done
 
 rep_datatype lift
   distinct lift_distinct1 lift_distinct2
   inject Def_inject
   induction lift_induct
 
-lemma Def_not_UU: "Def a ~= UU"
+lemma Def_not_UU: "Def a \<noteq> UU"
   by simp
 
-declare inst_lift_pcpo [symmetric, simp]
 
-lemma less_lift: "(x::'a lift) << y = (x=y | x=UU)"
-  by (simp add: inst_lift_po)
+text {* @{term UU} and @{term Def} *}
 
-
-text {* @{text UU} and @{text Def} *}
-
-lemma Lift_exhaust: "x = UU | (EX y. x = Def y)"
+lemma Lift_exhaust: "x = \<bottom> \<or> (\<exists>y. x = Def y)"
   by (induct x) simp_all
 
-lemma Lift_cases: "[| x = UU ==> P; ? a. x = Def a ==> P |] ==> P"
+lemma Lift_cases: "\<lbrakk>x = \<bottom> \<Longrightarrow> P; \<exists>a. x = Def a \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by (insert Lift_exhaust) blast
 
-lemma not_Undef_is_Def: "(x ~= UU) = (EX y. x = Def y)"
+lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
   by (cases x) simp_all
 
 lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
@@ -149,46 +73,40 @@ ML {*
   end;
 *}
 
-lemma Undef_eq_UU: "Undef = UU"
-  by (rule inst_lift_pcpo [symmetric])
-
-lemma DefE: "Def x = UU ==> R"
+lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"
   by simp
 
-lemma DefE2: "[| x = Def s; x = UU |] ==> R"
+lemma DefE2: "\<lbrakk>x = Def s; x = \<bottom>\<rbrakk> \<Longrightarrow> R"
   by simp
 
-lemma Def_inject_less_eq: "Def x << Def y = (x = y)"
-  by (simp add: less_lift_def)
+lemma Def_inject_less_eq: "Def x \<sqsubseteq> Def y = (x = y)"
+by (simp add: less_lift_def Def_def Abs_lift_inverse lift_def)
 
-lemma Def_less_is_eq [simp]: "Def x << y = (Def x = y)"
-  by (simp add: less_lift)
+lemma Def_less_is_eq [simp]: "Def x \<sqsubseteq> y = (Def x = y)"
+apply (induct y)
+apply (simp add: eq_UU_iff)
+apply (simp add: Def_inject_less_eq)
+done
 
 
 subsection {* Lift is flat *}
 
+lemma less_lift: "(x::'a lift) \<sqsubseteq> y = (x = y \<or> x = \<bottom>)"
+by (induct x, simp_all)
+
 instance lift :: (type) flat
-proof
-  show "ALL x y::'a lift. x << y --> x = UU | x = y"
-    by (simp add: less_lift)
-qed
+by (intro_classes, simp add: less_lift)
 
 text {*
   \medskip Two specific lemmas for the combination of LCF and HOL
   terms.
 *}
 
-lemma cont_Rep_CFun_app: "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s)"
-  apply (rule cont2cont_CF1L)
-  apply (tactic "resolve_tac cont_lemmas1 1")+
-   apply auto
-  done
+lemma cont_Rep_CFun_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s)"
+by (rule cont2cont_Rep_CFun [THEN cont2cont_CF1L])
 
-lemma cont_Rep_CFun_app_app: "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s t)"
-  apply (rule cont2cont_CF1L)
-  apply (erule cont_Rep_CFun_app)
-  apply assumption
-  done
+lemma cont_Rep_CFun_app_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s t)"
+by (rule cont_Rep_CFun_app [THEN cont2cont_CF1L])
 
 subsection {* Further operations *}
 
