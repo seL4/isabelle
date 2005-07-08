@@ -1,11 +1,7 @@
 
 (* legacy ML bindings *)
 
-val Iup_def = thm "Iup_def";
-val Ifup_def = thm "Ifup_def";
 val less_up_def = thm "less_up_def";
-val Ifup1 = thm "Ifup1";
-val Ifup2 = thm "Ifup2";
 val refl_less_up = thm "refl_less_up";
 val antisym_less_up = thm "antisym_less_up";
 val trans_less_up = thm "trans_less_up";
@@ -20,12 +16,12 @@ val inst_up_pcpo = thm "inst_up_pcpo";
 val cont_Iup = thm "cont_Iup";
 val cont_Ifup1 = thm "cont_Ifup1";
 val cont_Ifup2 = thm "cont_Ifup2";
-val Exh_Up1 = thm "Exh_Up1";
+val Exh_Up = thm "Exh_Up";
 val up_inject = thm "up_inject";
 val up_eq = thm "up_eq";
 val up_defined = thm "up_defined";
 val up_less = thm "up_less";
-val upE1 = thm "upE1";
+val upE = thm "upE";
 val fup1 = thm "fup1";
 val fup2 = thm "fup2";
 val fup3 = thm "fup3";
