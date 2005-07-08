@@ -144,10 +144,13 @@ by (rule_tac p=p in sprodE, simp_all)
 lemma surjective_pairing_Sprod2: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (rule_tac p=p in sprodE, simp_all)
 
-lemma less_sprod: "p1 \<sqsubseteq> p2 = (sfst\<cdot>p1 \<sqsubseteq> sfst\<cdot>p2 \<and> ssnd\<cdot>p1 \<sqsubseteq> ssnd\<cdot>p2)"
+lemma less_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
 apply (simp add: less_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
 apply (rule less_cprod)
 done
+
+lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
+by (auto simp add: po_eq_conv less_sprod)
 
 lemma spair_less:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<sqsubseteq> (:a, b:) = (x \<sqsubseteq> a \<and> y \<sqsubseteq> b)"
