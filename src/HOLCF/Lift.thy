@@ -149,6 +149,15 @@ apply (rule cont_flift1 [THEN cont2cont_app3])
 apply (simp add: cont2cont_lambda)
 done
 
+lemma cont2cont_lift_case:
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case UU (f x) (g x))"
+apply (subgoal_tac "cont (\<lambda>x. (FLIFT y. f x y)\<cdot>(g x))")
+apply (simp add: flift1_def cont_lift_case2)
+apply (simp add: cont2cont_flift1)
+done
+
+text {* rewrites for @{term flift1}, @{term flift2} *}
+
 lemma flift1_Def [simp]: "flift1 f\<cdot>(Def x) = (f x)"
 by (simp add: flift1_def cont_lift_case2)
 
@@ -164,42 +173,12 @@ by (simp add: flift2_def)
 lemma flift2_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> (flift2 f)\<cdot>x \<noteq> \<bottom>"
 by (erule lift_definedE, simp)
 
-text {* old continuity rules *}
-
-lemma cont_flift1_arg: "cont (lift_case UU f)"
-  -- {* @{text flift1} is continuous in its argument itself. *}
-  apply (rule flatdom_strict2cont)
-  apply simp
-  done
-
-lemma cont_flift1_not_arg: "!!f. [| !! a. cont (%y. (f y) a) |] ==>
-           cont (%y. lift_case UU (f y))"
-  -- {* @{text flift1} is continuous in a variable that occurs only
-    in the @{text Def} branch. *}
-  apply (rule cont2cont_CF1L_rev)
-  apply (intro strip)
-  apply (case_tac y)
-   apply simp
-  apply simp
-  done
-
-lemma cont_flift1_arg_and_not_arg: "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==>
-    cont (%y. lift_case UU (f y) (g y))"
-  -- {* @{text flift1} is continuous in a variable that occurs either
-    in the @{text Def} branch or in the argument. *}
-  apply (rule_tac t=g in cont2cont_app)
-    apply (rule cont_flift1_not_arg)
-    apply auto
-  apply (rule cont_flift1_arg)
-  done
-
 text {*
   \medskip Extension of @{text cont_tac} and installation of simplifier.
 *}
 
 lemmas cont_lemmas_ext [simp] =
-  cont2cont_flift1
-  cont_flift1_arg_and_not_arg cont2cont_lambda
+  cont2cont_flift1 cont2cont_lift_case cont2cont_lambda
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
 ML {*
@@ -210,7 +189,7 @@ fun cont_tacR i = REPEAT (cont_tac i);
 
 local val flift1_def = thm "flift1_def"
 in fun cont_tacRs i =
-  simp_tac (simpset() (* addsimps [flift1_def] *)) i THEN
+  simp_tac (simpset()) i THEN
   REPEAT (cont_tac i)
 end;
 *}
