@@ -25,7 +25,7 @@ syntax (HTML output)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
 
 lemma UU_Abs_Ssum: "\<bottom> = Abs_Ssum <\<bottom>, \<bottom>>"
-by (simp add: Abs_Ssum_strict inst_cprod_pcpo2 [symmetric])
+by (simp add: Abs_Ssum_strict cpair_strict)
 
 
 subsection {* Definitions of constructors *}
@@ -52,47 +52,46 @@ lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <\<bottom>, b>"
 by (unfold sinr_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
 
 lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinl_Abs_Ssum UU_Abs_Ssum)
+by (simp add: sinl_Abs_Ssum Abs_Ssum_strict cpair_strict)
 
 lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinr_Abs_Ssum UU_Abs_Ssum)
+by (simp add: sinr_Abs_Ssum Abs_Ssum_strict cpair_strict)
 
-lemma noteq_sinlsinr: "sinl\<cdot>a = sinr\<cdot>b \<Longrightarrow> a = \<bottom> \<and> b = \<bottom>"
-apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum)
-apply (simp add: Abs_Ssum_inject Ssum_def)
-done
+lemma sinl_eq [simp]: "(sinl\<cdot>x = sinl\<cdot>y) = (x = y)"
+by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
+
+lemma sinr_eq [simp]: "(sinr\<cdot>x = sinr\<cdot>y) = (x = y)"
+by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
 
 lemma sinl_inject: "sinl\<cdot>x = sinl\<cdot>y \<Longrightarrow> x = y"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
+by (rule sinl_eq [THEN iffD1])
 
 lemma sinr_inject: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
+by (rule sinr_eq [THEN iffD1])
 
-lemma sinl_eq: "(sinl\<cdot>x = sinl\<cdot>y) = (x = y)"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
-
-lemma sinr_eq: "(sinr\<cdot>x = sinr\<cdot>y) = (x = y)"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
-
-lemma sinl_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
-apply (erule contrapos_nn)
-apply (rule sinl_inject)
-apply auto
+lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
+apply (rule sinl_strict [THEN subst])
+apply (rule sinl_eq)
 done
 
-lemma sinr_defined [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
-apply (erule contrapos_nn)
-apply (rule sinr_inject)
-apply auto
+lemma sinr_defined_iff [simp]: "(sinr\<cdot>x = \<bottom>) = (x = \<bottom>)"
+apply (rule sinr_strict [THEN subst])
+apply (rule sinr_eq)
 done
+
+lemma sinl_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
+by simp
+
+lemma sinr_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
+by simp
 
 subsection {* Case analysis *}
 
 lemma Exh_Ssum1: 
   "z = \<bottom> \<or> (\<exists>a. z = sinl\<cdot>a \<and> a \<noteq> \<bottom>) \<or> (\<exists>b. z = sinr\<cdot>b \<and> b \<noteq> \<bottom>)"
-apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum UU_Abs_Ssum)
-apply (rule_tac x=z in Abs_Ssum_cases)
+apply (rule_tac x=z in Abs_Ssum_induct)
 apply (rule_tac p=y in cprodE)
+apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum UU_Abs_Ssum)
 apply (auto simp add: Ssum_def)
 done
 
@@ -112,32 +111,38 @@ done
 
 subsection {* Ordering properties of @{term sinl} and @{term sinr} *}
 
-lemma sinl_less: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
+lemma sinl_less [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: less_Ssum_def Rep_Ssum_sinl cpair_less)
 
-lemma sinr_less: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
+lemma sinr_less [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: less_Ssum_def Rep_Ssum_sinr cpair_less)
 
-lemma sinl_less_sinr: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
+lemma sinl_less_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
 by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
 
-lemma sinr_less_sinl: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
+lemma sinr_less_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
 by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr cpair_less eq_UU_iff)
+
+lemma sinl_eq_sinr [simp]: "(sinl\<cdot>x = sinr\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
+by (simp add: po_eq_conv)
+
+lemma sinr_eq_sinl [simp]: "(sinr\<cdot>x = sinl\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
+by (simp add: po_eq_conv)
 
 subsection {* Chains of strict sums *}
 
 lemma less_sinlD: "p \<sqsubseteq> sinl\<cdot>x \<Longrightarrow> \<exists>y. p = sinl\<cdot>y \<and> y \<sqsubseteq> x"
 apply (rule_tac p=p in ssumE)
 apply (rule_tac x="\<bottom>" in exI, simp)
-apply (simp add: sinl_less sinl_eq)
-apply (simp add: sinr_less_sinl)
+apply simp
+apply simp
 done
 
 lemma less_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
 apply (rule_tac p=p in ssumE)
 apply (rule_tac x="\<bottom>" in exI, simp)
-apply (simp add: sinl_less_sinr)
-apply (simp add: sinr_less sinr_eq)
+apply simp
+apply simp
 done
 
 lemma ssum_chain_lemma:
@@ -151,7 +156,7 @@ lemma ssum_chain_lemma:
    apply (erule cont_Rep_Ssum [THEN ch2ch_cont])
   apply (rule ext, drule_tac x=i in is_ub_thelub, simp)
   apply (drule less_sinlD, clarify)
-  apply (simp add: sinl_eq Rep_Ssum_sinl)
+  apply (simp add: Rep_Ssum_sinl)
  apply (rule disjI2)
  apply (rule_tac x="\<lambda>i. csnd\<cdot>(Rep_Ssum (Y i))" in exI)
  apply (rule conjI)
@@ -159,7 +164,7 @@ lemma ssum_chain_lemma:
   apply (erule cont_Rep_Ssum [THEN ch2ch_cont])
  apply (rule ext, drule_tac x=i in is_ub_thelub, simp)
  apply (drule less_sinrD, clarify)
- apply (simp add: sinr_eq Rep_Ssum_sinr)
+ apply (simp add: Rep_Ssum_sinr)
 done
 
 subsection {* Definitions of constants *}

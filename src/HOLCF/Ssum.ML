@@ -14,7 +14,6 @@ val cont_Iwhen2 = thm "cont_Iwhen2";
 val cont_Iwhen3 = thm "cont_Iwhen3";
 val sinl_strict = thm "sinl_strict";
 val sinr_strict = thm "sinr_strict";
-val noteq_sinlsinr = thm "noteq_sinlsinr";
 val sinl_inject = thm "sinl_inject";
 val sinr_inject = thm "sinr_inject";
 val sinl_eq = thm "sinl_eq";
