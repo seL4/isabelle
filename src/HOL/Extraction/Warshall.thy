@@ -5,7 +5,9 @@
 
 header {* Warshall's algorithm *}
 
-theory Warshall imports Main begin
+theory Warshall
+imports Main
+begin
 
 text {*
   Derivation of Warshall's algorithm using program extraction,
@@ -138,14 +140,12 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
       	proof
 	  from Cons show "list_all (\<lambda>x. x < Suc i) as" by simp
 	  from Cons show "is_path' r a as k" by simp
-	  from Cons and False show "\<not> list_all (\<lambda>x. x < i) as"
-	    by (simp, arith)
+	  from Cons and False show "\<not> list_all (\<lambda>x. x < i) as" by (simp)
       	qed
       	show ?thesis
       	proof
 	  from Cons False ys
-	  show "list_all (\<lambda>x. x < i) (a # ys) \<and> is_path' r j (a # ys) i"
-	    by (simp, arith)
+	  show "list_all (\<lambda>x. x<i) (a#ys) \<and> is_path' r j (a#ys) i" by simp
       	qed
       qed
     qed
@@ -172,14 +172,13 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
       	proof
 	  from snoc show "list_all (\<lambda>x. x < Suc i) as" by simp
 	  from snoc show "is_path' r j as a" by simp
-	  from snoc and False show "\<not> list_all (\<lambda>x. x < i) as"
-	    by (simp, arith)
+	  from snoc and False show "\<not> list_all (\<lambda>x. x < i) as" by simp
       	qed
       	show ?thesis
       	proof
 	  from snoc False ys
 	  show "list_all (\<lambda>x. x < i) (ys @ [a]) \<and> is_path' r i (ys @ [a]) k"
-	    by (simp, arith)  
+	    by simp
       	qed
       qed
     qed
@@ -256,4 +255,3 @@ text {*
 *}
 
 end
-
