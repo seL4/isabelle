@@ -215,7 +215,7 @@ val cpair_eqD2 = thm "cpair_eqD2";
 val ssubst_lhs = thm "ssubst_lhs";
 *}
 
-subsection {* Intitializing the fixrec package *}
+subsection {* Initializing the fixrec package *}
 
 use "fixrec_package.ML"
 
