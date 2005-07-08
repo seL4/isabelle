@@ -26,7 +26,7 @@ lemma maybeE:
 apply (unfold fail_def return_def)
 apply (rule_tac p=p in ssumE, simp)
 apply (rule_tac p=x in oneE, simp, simp)
-apply (rule_tac p=y in upE1, simp, simp)
+apply (rule_tac p=y in upE, simp, simp)
 done
 
 subsection {* Monadic bind operator *}

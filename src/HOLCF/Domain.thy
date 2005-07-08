@@ -87,7 +87,7 @@ done
 lemma ex_up_defined_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = (\<exists>x. P (up\<cdot>x))"
  apply safe
-  apply (rule_tac p=x in upE1)
+  apply (rule_tac p=x in upE)
    apply simp
   apply fast
  apply (force intro!: up_defined)
@@ -109,7 +109,7 @@ lemma ex_sprod_up_defined_iff:
  apply safe
   apply (rule_tac p=y in sprodE)
    apply simp
-  apply (rule_tac p=x in upE1)
+  apply (rule_tac p=x in upE)
    apply simp
   apply fast
  apply (force intro!: spair_defined)
