@@ -285,8 +285,11 @@ apply (unfold cfst_def csnd_def)
 apply (simp add: cont_fst cont_snd cpair_eq_pair)
 done
 
-lemma less_cprod: "p1 \<sqsubseteq> p2 = (cfst\<cdot>p1 \<sqsubseteq> cfst\<cdot>p2 \<and> csnd\<cdot>p1 \<sqsubseteq> csnd\<cdot>p2)"
+lemma less_cprod: "x \<sqsubseteq> y = (cfst\<cdot>x \<sqsubseteq> cfst\<cdot>y \<and> csnd\<cdot>x \<sqsubseteq> csnd\<cdot>y)"
 by (simp add: less_cprod_def cfst_def csnd_def cont_fst cont_snd)
+
+lemma eq_cprod: "(x = y) = (cfst\<cdot>x = cfst\<cdot>y \<and> csnd\<cdot>x = csnd\<cdot>y)"
+by (auto simp add: po_eq_conv less_cprod)
 
 lemma lub_cprod2: 
   "chain S \<Longrightarrow> range S <<| <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
