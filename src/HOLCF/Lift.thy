@@ -33,7 +33,7 @@ by (simp add: Def_def Abs_lift_inject lift_def)
 
 lemma lift_induct: "\<lbrakk>P \<bottom>; \<And>x. P (Def x)\<rbrakk> \<Longrightarrow> P y"
 apply (induct y)
-apply (rule_tac p=y in upE1)
+apply (rule_tac p=y in upE)
 apply (simp add: Abs_lift_strict)
 apply (case_tac x)
 apply (simp add: Def_def)
@@ -198,6 +198,7 @@ text {*
 *}
 
 lemmas cont_lemmas_ext [simp] =
+  cont2cont_flift1
   cont_flift1_arg_and_not_arg cont2cont_lambda
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
@@ -209,7 +210,7 @@ fun cont_tacR i = REPEAT (cont_tac i);
 
 local val flift1_def = thm "flift1_def"
 in fun cont_tacRs i =
-  simp_tac (simpset() addsimps [flift1_def]) i THEN
+  simp_tac (simpset() (* addsimps [flift1_def] *)) i THEN
   REPEAT (cont_tac i)
 end;
 *}
