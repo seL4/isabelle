@@ -13,7 +13,6 @@ val trE = thm "trE";
 val tr_defs = thms "tr_defs";
 val dist_less_tr = thms "dist_less_tr";
 val dist_eq_tr = thms "dist_eq_tr";
-val ifte_simp = thm "ifte_simp";
 val ifte_thms = thms "ifte_thms";
 val andalso_thms = thms "andalso_thms";
 val orelse_thms = thms "orelse_thms";

@@ -84,18 +84,11 @@ by (simp_all add: tr_defs)
 
 text {* lemmas about andalso, orelse, neg and if *}
 
-lemma ifte_simp:
-  "If x then e1 else e2 fi =
-    flift1 (%b. if b then e1 else e2)$x"
-apply (unfold ifte_def TT_def FF_def flift1_def)
-apply (simp add: cont_flift1_arg cont_if)
-done
-
 lemma ifte_thms [simp]:
   "If UU then e1 else e2 fi = UU"
   "If FF then e1 else e2 fi = e2"
   "If TT then e1 else e2 fi = e1"
-by (simp_all add: ifte_simp TT_def FF_def)
+by (simp_all add: ifte_def TT_def FF_def)
 
 lemma andalso_thms [simp]:
   "(TT andalso y) = y"
