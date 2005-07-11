@@ -80,7 +80,7 @@ lemma "\<lbrakk> \<not> m < n; m < n + (1::nat) \<rbrakk> \<Longrightarrow> m = 
 
 text{*\noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
-logical connectives, and all arithmetic operations apart from addition.
+many logical connectives, and all arithmetic operations apart from addition.
 In consequence, @{text auto} and @{text simp} cannot prove this slightly more complex goal:
 *}
 
@@ -119,7 +119,7 @@ If @{text k} is a numeral, \sdx{div}~@{text k}, \sdx{mod}~@{text k} and
 @{text k}~\sdx{dvd} are also supported, where the former two are eliminated
 by case distinctions, again blowing up the running time.
 
-If the formula involves explicit quantifiers, @{text arith} may take
+If the formula involves quantifiers, @{text arith} may take
 super-exponential time and space.
 \end{warn}
 *}
