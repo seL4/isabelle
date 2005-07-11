@@ -113,7 +113,7 @@ fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 (* convert clauses from "assume" to conjecture. write to file "hyps" *)
 (* hypotheses of the goal currently being proved                     *)
 (*********************************************************************)
-
+(*perhaps have 2 different versions of this, depending on whether or not SpassComm.spass is set *)
 fun isar_atp_h thms =
         
     let val prems = map (skolemize o make_nnf o ObjectLogic.atomize_thm) thms
@@ -123,6 +123,7 @@ fun isar_atp_h thms =
         val clss = map ResClause.make_conjecture_clause prems'''
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss) 
 	val tfree_lits = ResLib.flat_noDup tfree_litss
+        (* tfree clause is different in tptp and dfg versions *)
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
         val hypsfile = File.platform_path hyps_file
 	val out = TextIO.openOut(hypsfile)
@@ -151,6 +152,24 @@ fun tptp_inputs_tfrees thms n tfrees =
     end;
 
 
+(*********************************************************************)
+(* write out a subgoal as DFG clauses to the file "probN"           *)
+(* where N is the number of this subgoal                             *)
+(*********************************************************************)
+(*
+fun dfg_inputs_tfrees thms n tfrees = 
+    let val _ = (warning ("in dfg_inputs_tfrees 0"))
+        val clss = map (ResClause.make_conjecture_clause_thm) thms
+         val _ = (warning ("in dfg_inputs_tfrees 1"))
+	val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
+        val _ = (warning ("in dfg_inputs_tfrees 2"))
+	val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
+         val _ = (warning ("in dfg_inputs_tfrees 3"))
+        val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+	val out = TextIO.openOut(probfile)
+    in
+	(ResLib.writeln_strs out (tfree_clss @ dfg_clss); TextIO.closeOut out; (if !trace_res then (warning probfile) else ()))
+    end;*)
 
 (*********************************************************************)
 (* call SPASS with settings and problem file for the current subgoal *)

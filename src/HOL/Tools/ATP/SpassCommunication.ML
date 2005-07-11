@@ -283,6 +283,19 @@ fun getSpassInput instr = if (isSome (TextIO.canInput(instr, 2)))
                                                       (reconstr, thmstring, goalstring)
                                                    end
 						)
+                                        else if ((substring (thisLine, 0,1)) = "%") 
+                                              then
+  						(
+						   let val reconstr = thisLine
+                                                       val thmstring = TextIO.inputLine instr
+                                                       val goalstring = TextIO.inputLine instr
+						      val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_getSpass")));
+                                    		val _ = TextIO.output (outfile, (thisLine))
+                                     			 val _ =  TextIO.closeOut outfile
+                                                   in
+                                                      (reconstr, thmstring, goalstring)
+                                                   end
+						)
                                         	 else
                                                      getSpassInput instr
                                             

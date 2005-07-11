@@ -257,6 +257,7 @@ fun fun_name_type (Const(c,T)) = (lookup_const c,type_of T)
   | fun_name_type _ = raise CLAUSE("Function Not First Order");
     
 
+(* FIX - add in funcs and stuff to this *)
 
 fun term_of (Var(ind_nm,T)) = 
     let val (folType,ts) = type_of T
