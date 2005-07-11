@@ -667,10 +667,16 @@ fun overloading_info (_, axmap, _, graph) c =
         SOME (ty, map translate (Symtab.dest defnodes), state)
     end
       
-fun is_overloaded g c = 
-    case overloading_info g c of
-      NONE => false
-    | SOME (_, l, _) => length l >= 2
+exception Overloaded;
+fun is_overloaded (_, _, _, graph) c = 
+    let 
+      fun count (c, _) = if c = 1 then raise Overloaded else c+1
+    in
+      case Symtab.lookup (graph, c) of
+        NONE => false
+      | SOME (Node (_, defnodes, _, _, _)) =>
+        ((Symtab.foldl count (0, defnodes); false) handle Overloaded => true)
+    end
 
 end;
 		
