@@ -3,6 +3,7 @@
 structure Blast_Data = 
   struct
   type claset	= Cla.claset
+  val is_hol    = false
   val notE	= notE
   val ccontr	= ccontr
   val contr_tac = Cla.contr_tac

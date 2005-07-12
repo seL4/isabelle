@@ -48,6 +48,7 @@ signature BLAST_DATA =
   sig
   type claset
   val notE		: thm		(* [| ~P;  P |] ==> R *)
+  val is_hol    : bool      (*Is this HOL or FOL/ZF?*)	
   val ccontr		: thm		
   val contr_tac 	: int -> tactic
   val dup_intr		: thm -> thm
@@ -130,19 +131,16 @@ fun is_Var (Var _) = true
 
 fun dest_Var (Var x) =  x;
 
-
 fun rand (f$x) = x;
 
 (* maps   (f, [t1,...,tn])  to  f(t1,...,tn) *)
 val list_comb : term * term list -> term = Library.foldl (op $);
-
 
 (* maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
 fun strip_comb u : term * term list = 
     let fun stripc (f$t, ts) = stripc (f, t::ts)
         |   stripc  x =  x 
     in  stripc(u,[])  end;
-
 
 (* maps   f(t1,...,tn)  to  f , which is never a combination *)
 fun head_of (f$t) = head_of f
@@ -158,7 +156,8 @@ fun mkGoal P = Const"*Goal*" $ P;
 fun isGoal (Const"*Goal*" $ _) = true
   | isGoal _                   = false;
 
-val Trueprop = Term.Const("Trueprop", Type("o",[])-->propT);
+val boolT = if Data.is_hol then "bool" else "o";
+val Trueprop = Term.Const("Trueprop", Type(boolT,[])-->propT);
 fun mk_tprop P = Term.$ (Trueprop, P);
 
 fun isTrueprop (Term.Const("Trueprop",_)) = true
@@ -169,8 +168,7 @@ fun isTrueprop (Term.Const("Trueprop",_)) = true
 
 (*alist is a map from TVar names to Vars.  We need to unify the TVars
   faithfully in order to track overloading*)
-fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, 
-						  map (fromType alist) Ts)
+fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) Ts)
   | fromType alist (Term.TFree(a,_)) = Free a
   | fromType alist (Term.TVar (ixn,_)) =
 	      (case (assoc_string_int(!alist,ixn)) of
@@ -179,21 +177,25 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a,
 			   end
 		 | SOME v => v)
 
-(*Monomorphic constants used in blast, plus binary propositional connectives.*)
-val standard_consts = 
-    ["Not", "op &", "op |", "op -->", "op <->", 
-     "*Goal*", "*False*", "==>", "all", "Trueprop"];
+(*Definitions of the theory in which blast is initialized.*)
+val curr_defs = ref Defs.empty;
 
-val standard_const_table = Symtab.make (map (rpair()) standard_consts)
+(*Types aren't needed if the constant has at most one definition and is monomorphic*)
+fun no_types_needed s =
+  (case Defs.overloading_info (!curr_defs) s of
+      NONE => true
+    | SOME (T,defs,_) => length defs <= 1 andalso null (typ_tvars T))
+  handle Option => (warning ("Defs.overloading_info failed for " ^ s); false);
 
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.
-  Const is used for a small number of built-in operators that are
-  known to be monomorphic, which promotes efficiency. *)
+  For efficiency, Const is used for FOL and for the logical constants.
+  We can't use it for all non-overloaded operators because some preservation
+  of type information is necessary to prevent PROOF FAILED elsewhere.*)
 fun fromConst alist (a,T) = 
-    case Symtab.lookup(standard_const_table, a) of
-	NONE => TConst(a, fromType alist T)
-      | SOME() => Const(a)
+    if not Data.is_hol orelse a mem_string ["All","Ex","all"] orelse no_types_needed a 
+	then Const a 
+	else TConst(a, fromType alist T);
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
@@ -377,8 +379,8 @@ fun unify(vars,t,u) =
     end;
 
 
-(*Convert from "real" terms to prototerms; eta-contract
-  Code is duplicated with fromSubgoal.  Correct this?*)
+(*Convert from "real" terms to prototerms; eta-contract.
+  Code is similar to fromSubgoal.*)
 fun fromTerm t =
   let val alistVar = ref []
       and alistTVar = ref []
@@ -597,9 +599,7 @@ fun showType (Free a)  = Term.TFree (a,[])
 (*Display top-level overloading if any*)
 fun topType (TConst(a,t)) = SOME (showType t)
   | topType (Abs(a,t))    = topType t
-  | topType (f $ u)       = (case topType f of
-				 NONE => topType u
-			       | some => some)
+  | topType (f $ u)       = (case topType f of NONE => topType u | some => some)
   | topType _             = NONE;
 
 
@@ -1247,9 +1247,9 @@ fun fromSubgoal t =
   in  skoSubgoal 0 (from 0 (discard_foralls t))  end;
 
 
-fun initialize() = 
+fun initialize thy = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
-     nclosed := 0;  ntried := 1);
+     nclosed := 0;  ntried := 1;  curr_defs := Theory.defs_of thy);
 
 
 (*Tactic using tableau engine and proof reconstruction.  
@@ -1257,8 +1257,7 @@ fun initialize() =
 	(also prints reconstruction time)
  "lim" is depth limit.*)
 fun timing_depth_tac start cs lim i st0 = 
- (initialize();
-  let val st = ObjectLogic.atomize_goal i st0;
+  let val st = (initialize (theory_of_thm st0); ObjectLogic.atomize_goal i st0);
       val {sign,...} = rep_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
@@ -1269,7 +1268,7 @@ fun timing_depth_tac start cs lim i st0 =
 	  case Seq.pull(EVERY' (rev tacs) i st) of
 	      NONE => (writeln ("PROOF FAILED for depth " ^
 				Int.toString lim);
-		       if !trace then writeln "************************\n"
+		       if !trace then error "************************\n"
 		       else ();
 		       backtrack choices)
 	    | cell => (if (!trace orelse !stats)
@@ -1279,7 +1278,7 @@ fun timing_depth_tac start cs lim i st0 =
           end
   in prove (sign, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont) 
   end
-  handle PROVE     => Seq.empty);
+  handle PROVE     => Seq.empty;
 
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
@@ -1301,16 +1300,16 @@ fun Blast_tac i = blast_tac (Data.claset()) i;
 
 (*Translate subgoal i from a proof state*)
 fun trygl cs lim i = 
-    (initialize();
-     let val st = topthm()
-         val {sign,...} = rep_thm st
-	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
-         val hyps  = strip_imp_prems skoprem
-         and concl = strip_imp_concl skoprem
-     in timeap prove (sign, startTiming(), cs, 
-		      [initBranch (mkGoal concl :: hyps, lim)], I)
-     end
-     handle Subscript => error("There is no subgoal " ^ Int.toString i));
+	let val st = topthm()
+		val {sign,...} = rep_thm st
+		val skoprem = (initialize (theory_of_thm st); 
+		               fromSubgoal (List.nth(prems_of st, i-1)))
+		val hyps  = strip_imp_prems skoprem
+		and concl = strip_imp_concl skoprem
+	in timeap prove (sign, startTiming(), cs, 
+			 [initBranch (mkGoal concl :: hyps, lim)], I)
+	end
+	handle Subscript => error("There is no subgoal " ^ Int.toString i);
 
 fun Trygl lim i = trygl (Data.claset()) lim i;
 
@@ -1319,7 +1318,7 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
                       term_of |> fromTerm |> rand |> mkGoal;
 
 fun tryInThy thy lim s = 
-    (initialize();
+    (initialize thy;
      timeap prove (Theory.sign_of thy, 
 		   startTiming(), 
 		   Data.claset(), 
