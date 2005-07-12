@@ -138,8 +138,17 @@ by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_spair)
 lemma ssnd_spair [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>(:x, y:) = y"
 by (simp add: ssnd_def cont_Rep_Sprod Rep_Sprod_spair)
 
-lemma sfstssnd_defined: "p \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>p \<noteq> \<bottom> \<and> ssnd\<cdot>p \<noteq> \<bottom>"
+lemma sfst_defined_iff [simp]: "(sfst\<cdot>p = \<bottom>) = (p = \<bottom>)"
 by (rule_tac p=p in sprodE, simp_all)
+
+lemma ssnd_defined_iff [simp]: "(ssnd\<cdot>p = \<bottom>) = (p = \<bottom>)"
+by (rule_tac p=p in sprodE, simp_all)
+
+lemma sfst_defined: "p \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>p \<noteq> \<bottom>"
+by simp
+
+lemma ssnd_defined: "p \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>p \<noteq> \<bottom>"
+by simp
 
 lemma surjective_pairing_Sprod2: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (rule_tac p=p in sprodE, simp_all)
