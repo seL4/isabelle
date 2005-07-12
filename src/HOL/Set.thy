@@ -1110,10 +1110,10 @@ by blast
 text {* \medskip Monotonicity. *}
 
 lemma mono_Un: "mono f ==> f A \<union> f B \<subseteq> f (A \<union> B)"
-  by (blast dest: monoD)
+  by (auto simp add: mono_def)
 
 lemma mono_Int: "mono f ==> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  by (blast dest: monoD)
+  by (auto simp add: mono_def)
 
 subsubsection {* Equalities involving union, intersection, inclusion, etc. *}
 
@@ -1199,12 +1199,12 @@ lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \
 lemma insert_disjoint[simp]:
  "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
  "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
-by auto
+  by auto
 
 lemma disjoint_insert[simp]:
  "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
  "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
-by auto
+  by auto
 
 text {* \medskip @{text image}. *}
 
@@ -1215,7 +1215,7 @@ lemma image_insert [simp]: "f ` insert a B = insert (f a) (f`B)"
   by blast
 
 lemma image_constant: "x \<in> A ==> (\<lambda>x. c) ` A = {c}"
-  by blast
+  by auto
 
 lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
   by blast
@@ -1226,10 +1226,11 @@ lemma insert_image [simp]: "x \<in> A ==> insert (f x) (f`A) = f`A"
 lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
   by blast
 
+
 lemma image_Collect: "f ` {x. P x} = {f x | x. P x}"
-  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS, *}
-  -- {* with its implicit quantifier and conjunction.  Also image enjoys better *}
-  -- {* equational properties than does the RHS. *}
+  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
+      with its implicit quantifier and conjunction.  Also image enjoys better
+      equational properties than does the RHS. *}
   by blast
 
 lemma if_image_distrib [simp]:
