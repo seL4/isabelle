@@ -98,7 +98,7 @@ thm_maps
   "REAL_LT_TRANS" > "Set.basic_trans_rules_21"
   "REAL_LT_TOTAL" > "HOL4Compat.REAL_LT_TOTAL"
   "REAL_LT_REFL" > "Orderings.order_less_irrefl"
-  "REAL_LT_MUL" > "Ring_and_Field.mult_pos"
+  "REAL_LT_MUL" > "Ring_and_Field.mult_pos_pos"
   "REAL_LT_IADD" > "OrderedGroup.add_strict_left_mono"
   "REAL_LDISTRIB" > "Ring_and_Field.ring_eq_simps_2"
   "REAL_INV_0" > "Ring_and_Field.division_by_zero.inverse_zero"

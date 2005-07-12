@@ -50,7 +50,7 @@ done
 lemma zero_less_power:
      "0 < (a::'a::{ordered_semidom,recpower}) ==> 0 < a^n"
 apply (induct "n")
-apply (simp_all add: power_Suc zero_less_one mult_pos)
+apply (simp_all add: power_Suc zero_less_one mult_pos_pos)
 done
 
 lemma zero_le_power:
@@ -163,6 +163,12 @@ lemma power_inverse:
   "inverse ((a::'a::{field,division_by_zero,recpower}) ^ n) = (inverse a) ^ n"
 apply (induct "n")
 apply (auto simp add: power_Suc inverse_mult_distrib)
+done
+
+lemma power_one_over: "1 / (a::'a::{field,division_by_zero,recpower})^n = 
+    (1 / a)^n"
+apply (simp add: divide_inverse)
+apply (rule power_inverse)
 done
 
 lemma nonzero_power_divide:

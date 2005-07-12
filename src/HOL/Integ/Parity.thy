@@ -152,9 +152,6 @@ lemma even_nat_difference:
 lemma even_nat_Suc: "even (Suc x) = odd x"
   by (simp add: even_nat_def)
 
-text{*Compatibility, in case Avigad uses this*}
-lemmas even_nat_suc = even_nat_Suc
-
 lemma even_nat_power: "even ((x::nat)^y) = (even x & 0 < y)"
   by (simp add: even_nat_def int_power)
 
@@ -225,7 +222,25 @@ lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
   apply (erule odd_nat_div_two_times_two_plus_one [THEN sym], auto)
   done
 
-subsection {* Powers of negative one *}
+subsection {* Parity and powers *}
+
+lemma minus_one_even_odd_power:
+     "(even x --> (- 1::'a::{comm_ring_1,recpower})^x = 1) & 
+      (odd x --> (- 1::'a)^x = - 1)"
+  apply (induct x)
+  apply (rule conjI)
+  apply simp
+  apply (insert even_nat_zero, blast)
+  apply (simp add: power_Suc)
+done
+
+lemma minus_one_even_power [simp]:
+     "even x ==> (- 1::'a::{comm_ring_1,recpower})^x = 1"
+  by (rule minus_one_even_odd_power [THEN conjunct1, THEN mp], assumption)
+
+lemma minus_one_odd_power [simp]:
+     "odd x ==> (- 1::'a::{comm_ring_1,recpower})^x = - 1"
+  by (rule minus_one_even_odd_power [THEN conjunct2, THEN mp], assumption)
 
 lemma neg_one_even_odd_power:
      "(even x --> (-1::'a::{number_ring,recpower})^x = 1) & 
@@ -247,6 +262,119 @@ lemma neg_power_if:
       (if even n then (x ^ n) else -(x ^ n))"
   by (induct n, simp_all split: split_if_asm add: power_Suc) 
 
+lemma zero_le_even_power: "even n ==> 
+    0 <= (x::'a::{recpower,ordered_ring_strict}) ^ n"
+  apply (simp add: even_nat_equiv_def2)
+  apply (erule exE)
+  apply (erule ssubst)
+  apply (subst power_add)
+  apply (rule zero_le_square)
+  done
+
+lemma zero_le_odd_power: "odd n ==> 
+    (0 <= (x::'a::{recpower,ordered_idom}) ^ n) = (0 <= x)"
+  apply (simp add: odd_nat_equiv_def2)
+  apply (erule exE)
+  apply (erule ssubst)
+  apply (subst power_Suc)
+  apply (subst power_add)
+  apply (subst zero_le_mult_iff)
+  apply auto
+  apply (subgoal_tac "x = 0 & 0 < y")
+  apply (erule conjE, assumption)
+  apply (subst power_eq_0_iff [THEN sym])
+  apply (subgoal_tac "0 <= x^y * x^y")
+  apply simp
+  apply (rule zero_le_square)+
+done
+
+lemma zero_le_power_eq: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n) = 
+    (even n | (odd n & 0 <= x))"
+  apply auto
+  apply (subst zero_le_odd_power [THEN sym])
+  apply assumption+
+  apply (erule zero_le_even_power)
+  apply (subst zero_le_odd_power) 
+  apply assumption+
+done
+
+lemma zero_less_power_eq: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) = 
+    (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
+  apply (rule iffI)
+  apply clarsimp
+  apply (rule conjI)
+  apply clarsimp
+  apply (rule ccontr)
+  apply (subgoal_tac "~ (0 <= x^n)")
+  apply simp
+  apply (subst zero_le_odd_power)
+  apply assumption 
+  apply simp
+  apply (rule notI)
+  apply (simp add: power_0_left)
+  apply (rule notI)
+  apply (simp add: power_0_left)
+  apply auto
+  apply (subgoal_tac "0 <= x^n")
+  apply (frule order_le_imp_less_or_eq)
+  apply simp
+  apply (erule zero_le_even_power)
+  apply (subgoal_tac "0 <= x^n")
+  apply (frule order_le_imp_less_or_eq)
+  apply auto
+  apply (subst zero_le_odd_power)
+  apply assumption
+  apply (erule order_less_imp_le)
+done
+
+lemma power_less_zero_eq: "((x::'a::{recpower,ordered_idom}) ^ n < 0) =
+    (odd n & x < 0)" 
+  apply (subst linorder_not_le [THEN sym])+
+  apply (subst zero_le_power_eq)
+  apply auto
+done
+
+lemma power_le_zero_eq: "((x::'a::{recpower,ordered_idom}) ^ n <= 0) =
+    (n ~= 0 & ((odd n & x <= 0) | (even n & x = 0)))"
+  apply (subst linorder_not_less [THEN sym])+
+  apply (subst zero_less_power_eq)
+  apply auto
+done
+
+lemma power_even_abs: "even n ==> 
+    (abs (x::'a::{recpower,ordered_idom}))^n = x^n"
+  apply (subst power_abs [THEN sym])
+  apply (simp add: zero_le_even_power)
+done
+
+lemma zero_less_power_nat_eq: "(0 < (x::nat) ^ n) = (n = 0 | 0 < x)"
+  apply (induct n)
+  apply simp
+  apply auto
+done
+
+lemma power_minus_even [simp]: "even n ==> 
+    (- x)^n = (x^n::'a::{recpower,comm_ring_1})"
+  apply (subst power_minus)
+  apply simp
+done
+
+lemma power_minus_odd [simp]: "odd n ==> 
+    (- x)^n = - (x^n::'a::{recpower,comm_ring_1})"
+  apply (subst power_minus)
+  apply simp
+done
+
+(* Simplify, when the exponent is a numeral *)
+
+declare power_0_left [of "number_of w", standard, simp]
+declare zero_le_power_eq [of _ "number_of w", standard, simp]
+declare zero_less_power_eq [of _ "number_of w", standard, simp]
+declare power_le_zero_eq [of _ "number_of w", standard, simp]
+declare power_less_zero_eq [of _ "number_of w", standard, simp]
+declare zero_less_power_nat_eq [of _ "number_of w", standard, simp]
+declare power_eq_0_iff [of _ "number_of w", standard, simp]
+declare power_even_abs [of "number_of w" _, standard, simp]
 
 subsection {* An Equivalence for @{term "0 \<le> a^n"} *}
 

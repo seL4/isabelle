@@ -63,7 +63,7 @@ fi
 ### Compilation options (cf. isatool usedir)
 ###
 
-ISABELLE_USEDIR_OPTIONS="-v true"
+ISABELLE_USEDIR_OPTIONS="-v true -i true"
 
 # Specifically for the HOL image
 HOL_USEDIR_OPTIONS=""

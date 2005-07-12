@@ -600,7 +600,7 @@ proof -
     apply (drule lemma_odd_mod_4_div_2)
     apply (simp add: numeral_2_eq_2 divide_inverse)
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
-                   simp add: est mult_pos_le mult_ac divide_inverse
+                   simp add: est mult_nonneg_nonneg mult_ac divide_inverse
                           power_abs [symmetric])
     done
 qed

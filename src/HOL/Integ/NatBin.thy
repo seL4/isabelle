@@ -274,40 +274,49 @@ lemma [simp]: "(0::'a::{comm_semiring_1_cancel,recpower})\<twosuperior> = 0"
 lemma [simp]: "(1::'a::{comm_semiring_1_cancel,recpower})\<twosuperior> = 1"
   by (simp add: power2_eq_square)
 
+lemma power3_eq_cube: "(x::'a::recpower) ^ 3 = x * x * x"
+  apply (subgoal_tac "3 = Suc (Suc (Suc 0))")
+  apply (erule ssubst)
+  apply (simp add: power_Suc mult_ac)
+  apply (unfold nat_number_of_def)
+  apply (subst nat_eq_iff)
+  apply simp
+done
+
 text{*Squares of literal numerals will be evaluated.*}
 declare power2_eq_square [of "number_of w", standard, simp]
 
-lemma zero_le_power2 [simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
+lemma zero_le_power2: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square zero_le_square)
 
-lemma zero_less_power2 [simp]:
+lemma zero_less_power2:
      "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,recpower}))"
   by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
 
-lemma power2_less_0 [simp]:
+lemma power2_less_0:
   fixes a :: "'a::{ordered_idom,recpower}"
   shows "~ (a\<twosuperior> < 0)"
 by (force simp add: power2_eq_square mult_less_0_iff) 
 
-lemma zero_eq_power2 [simp]:
+lemma zero_eq_power2:
      "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,recpower}))"
   by (force simp add: power2_eq_square mult_eq_0_iff)
 
-lemma abs_power2 [simp]:
+lemma abs_power2:
      "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square abs_mult abs_mult_self)
 
-lemma power2_abs [simp]:
+lemma power2_abs:
      "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square abs_mult_self)
 
-lemma power2_minus [simp]:
+lemma power2_minus:
      "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,recpower})"
   by (simp add: power2_eq_square)
 
 lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
 apply (induct "n")
-apply (auto simp add: power_Suc power_add)
+apply (auto simp add: power_Suc power_add power2_minus)
 done
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
@@ -320,7 +329,7 @@ lemma power_minus_even [simp]:
      "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
 by (simp add: power_minus1_even power_minus [of a]) 
 
-lemma zero_le_even_power:
+lemma zero_le_even_power':
      "0 \<le> (a::'a::{ordered_idom,recpower}) ^ (2*n)"
 proof (induct "n")
   case 0
@@ -343,7 +352,7 @@ next
     have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)" 
       by (simp add: mult_ac power_add power2_eq_square Power.power_Suc)
     thus ?case
-      by (simp add: prems mult_less_0_iff mult_neg)
+      by (simp add: prems mult_less_0_iff mult_neg_neg)
 qed
 
 lemma odd_0_le_power_imp_0_le:
@@ -758,7 +767,7 @@ val power2_abs = thm "power2_abs";
 val power2_minus = thm "power2_minus";
 val power_minus1_even = thm "power_minus1_even";
 val power_minus_even = thm "power_minus_even";
-val zero_le_even_power = thm "zero_le_even_power";
+(* val zero_le_even_power = thm "zero_le_even_power"; *)
 val odd_power_less_zero = thm "odd_power_less_zero";
 val odd_0_le_power_imp_0_le = thm "odd_0_le_power_imp_0_le";
 
@@ -815,7 +824,7 @@ val nat_mult_eq_cancel_disj = thm"nat_mult_eq_cancel_disj";
 val nat_mult_div_cancel_disj = thm"nat_mult_div_cancel_disj";
 
 val power_minus_even = thm"power_minus_even";
-val zero_le_even_power = thm"zero_le_even_power";
+(* val zero_le_even_power = thm"zero_le_even_power"; *)
 *}
 
 end

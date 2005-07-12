@@ -429,7 +429,7 @@ apply (rule_tac y = "(e/2) * \<bar>v - x\<bar>" in order_trans)
  prefer 2 apply simp
 apply (erule_tac [!] V= "\<forall>x'. x' ~= x & \<bar>x' + - x\<bar> < s --> ?P x'" in thin_rl)
 apply (drule_tac x = v in spec, simp add: times_divide_eq)
-apply (drule_tac x = u in spec, auto, arith)
+apply (drule_tac x = u in spec, auto)
 apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
 apply (rule order_trans)
 apply (auto simp add: abs_le_interval_iff)

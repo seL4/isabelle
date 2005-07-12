@@ -1,7 +1,7 @@
 (*  Title:      HOL/Finite_Set.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
-                Additions by Jeremy Avigad in Feb 2004
+                with contributions by Jeremy Avigad
 *)
 
 header {* Finite sets *}
@@ -1137,6 +1137,26 @@ proof -
   finally show ?thesis .
 qed
 
+lemma setsum_mono3: "finite B ==> A <= B ==> 
+    ALL x: B - A. 
+      0 <= ((f x)::'a::{comm_monoid_add,pordered_ab_semigroup_add}) ==>
+        setsum f A <= setsum f B"
+  apply (subgoal_tac "setsum f B = setsum f A + setsum f (B - A)")
+  apply (erule ssubst)
+  apply (subgoal_tac "setsum f A + 0 <= setsum f A + setsum f (B - A)")
+  apply simp
+  apply (rule add_left_mono)
+  apply (erule setsum_nonneg)
+  apply (subst setsum_Un_disjoint [THEN sym])
+  apply (erule finite_subset, assumption)
+  apply (rule finite_subset)
+  prefer 2
+  apply assumption
+  apply auto
+  apply (rule setsum_cong)
+  apply auto
+done
+
 (* FIXME: this is distributitivty, name as such! *)
 
 lemma setsum_mult: 
@@ -1197,7 +1217,8 @@ proof (cases "finite A")
     case (insert a A)
     hence "\<bar>\<Sum>a\<in>insert a A. \<bar>f a\<bar>\<bar> = \<bar>\<bar>f a\<bar> + (\<Sum>a\<in>A. \<bar>f a\<bar>)\<bar>" by simp
     also have "\<dots> = \<bar>\<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>\<bar>"  using insert by simp
-    also have "\<dots> = \<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>" by simp
+    also have "\<dots> = \<bar>f a\<bar> + \<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar>"
+      by (simp del: abs_of_nonneg)
     also have "\<dots> = (\<Sum>a\<in>insert a A. \<bar>f a\<bar>)" using insert by simp
     finally show ?case .
   qed

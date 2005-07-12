@@ -9,6 +9,7 @@ theory HOL
 imports CPure
 uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("eqrule_HOL_data.ML")
       ("~~/src/Provers/eqsubst.ML")
+
 begin
 
 subsection {* Primitive logic *}

@@ -1393,7 +1393,7 @@ apply (case_tac "x \<in> Infinitesimal")
 apply (simp add: Infinitesimal_approx_hrabs)
 apply (rule linorder_cases [of 0 x])  
 apply (frule lemma_approx_gt_zero [of x y]) 
-apply (auto simp add: lemma_approx_less_zero [of x y])  
+apply (auto simp add: lemma_approx_less_zero [of x y] abs_of_neg)
 done
 
 lemma approx_hrabs_zero_cancel: "abs(x) @= 0 ==> x @= 0"

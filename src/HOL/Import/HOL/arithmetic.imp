@@ -162,7 +162,7 @@ thm_maps
   "LESS_OR" > "Nat.Suc_leI"
   "LESS_NOT_SUC" > "HOL4Base.arithmetic.LESS_NOT_SUC"
   "LESS_MULT_MONO" > "Nat.Suc_mult_less_cancel1"
-  "LESS_MULT2" > "Ring_and_Field.mult_pos"
+  "LESS_MULT2" > "Ring_and_Field.mult_pos_pos"
   "LESS_MONO_REV" > "Nat.Suc_less_SucD"
   "LESS_MONO_MULT" > "Nat.mult_le_mono1"
   "LESS_MONO_EQ" > "Nat.Suc_less_eq"

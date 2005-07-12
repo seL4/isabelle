@@ -115,7 +115,7 @@ done
 lemma real_mult_less_self: "0 < r ==> r * (1 + -inverse(real (Suc n))) < r"
 apply (simp (no_asm) add: right_distrib)
 apply (rule add_less_cancel_left [of "-r", THEN iffD1])
-apply (auto intro: mult_pos
+apply (auto intro: mult_pos_pos
             simp add: add_assoc [symmetric] neg_less_0_iff_less)
 done
 

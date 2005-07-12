@@ -592,7 +592,7 @@ apply (auto simp add: add_commute)
 apply (subgoal_tac "summable (%n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))")
 apply (rule_tac [2] x = K in powser_insidea, auto)
 apply (subgoal_tac [2] "\<bar>r\<bar> = r", auto)
-apply (rule_tac [2] y1 = "\<bar>x\<bar>" in order_trans [THEN abs_eq], auto)
+apply (rule_tac [2] y1 = "\<bar>x\<bar>" in order_trans [THEN abs_of_nonneg], auto)
 apply (simp add: diffs_def mult_assoc [symmetric])
 apply (subgoal_tac
         "\<forall>n. real (Suc n) * real (Suc (Suc n)) * \<bar>c (Suc (Suc n))\<bar> * (r ^ n) 
@@ -2418,7 +2418,7 @@ done
 
 lemma real_sqrt_ge_abs1 [simp]: "\<bar>x\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
 apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: numeral_2_eq_2 [symmetric])
+apply (auto simp add: numeral_2_eq_2 [symmetric] power2_abs)
 done
 
 lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
@@ -2463,7 +2463,7 @@ apply (rule add_mono)
 apply (auto simp add: four_x_squared simp del: realpow_Suc intro: power_mono)
 done
 
-declare real_sqrt_sum_squares_ge_zero [THEN abs_eq, simp]
+declare real_sqrt_sum_squares_ge_zero [THEN abs_of_nonneg, simp]
 
 
 subsection{*A Few Theorems Involving Ln, Derivatives, etc.*}

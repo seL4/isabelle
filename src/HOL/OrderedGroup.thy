@@ -1,6 +1,7 @@
 (*  Title:   HOL/OrderedGroup.thy
     ID:      $Id$
-    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel
+    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel,
+             with contributions by Jeremy Avigad
 *)
 
 header {* Ordered Groups *}
@@ -466,6 +467,72 @@ lemmas compare_rls =
        diff_less_eq less_diff_eq diff_le_eq le_diff_eq
        diff_eq_eq eq_diff_eq
 
+subsection {* Support for reasoning about signs *}
+
+lemma add_pos_pos: "0 < 
+    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
+      ==> 0 < y ==> 0 < x + y"
+apply (subgoal_tac "0 + 0 < x + y")
+apply simp
+apply (erule add_less_le_mono)
+apply (erule order_less_imp_le)
+done
+
+lemma add_pos_nonneg: "0 < 
+    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
+      ==> 0 <= y ==> 0 < x + y"
+apply (subgoal_tac "0 + 0 < x + y")
+apply simp
+apply (erule add_less_le_mono, assumption)
+done
+
+lemma add_nonneg_pos: "0 <= 
+    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
+      ==> 0 < y ==> 0 < x + y"
+apply (subgoal_tac "0 + 0 < x + y")
+apply simp
+apply (erule add_le_less_mono, assumption)
+done
+
+lemma add_nonneg_nonneg: "0 <= 
+    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
+      ==> 0 <= y ==> 0 <= x + y"
+apply (subgoal_tac "0 + 0 <= x + y")
+apply simp
+apply (erule add_mono, assumption)
+done
+
+lemma add_neg_neg: "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add})
+    < 0 ==> y < 0 ==> x + y < 0"
+apply (subgoal_tac "x + y < 0 + 0")
+apply simp
+apply (erule add_less_le_mono)
+apply (erule order_less_imp_le)
+done
+
+lemma add_neg_nonpos: 
+    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) < 0 
+      ==> y <= 0 ==> x + y < 0"
+apply (subgoal_tac "x + y < 0 + 0")
+apply simp
+apply (erule add_less_le_mono, assumption)
+done
+
+lemma add_nonpos_neg: 
+    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) <= 0 
+      ==> y < 0 ==> x + y < 0"
+apply (subgoal_tac "x + y < 0 + 0")
+apply simp
+apply (erule add_le_less_mono, assumption)
+done
+
+lemma add_nonpos_nonpos: 
+    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) <= 0 
+      ==> y <= 0 ==> x + y <= 0"
+apply (subgoal_tac "x + y <= 0 + 0")
+apply simp
+apply (erule add_mono, assumption)
+done
 
 subsection{*Lemmas for the @{text cancel_numerals} simproc*}
 
@@ -702,16 +769,6 @@ proof -
   show ?thesis by (simp add: abs_lattice join_eq_if)
 qed
 
-lemma abs_eq [simp]:
-  fixes a :: "'a::{lordered_ab_group_abs, linorder}"
-  shows  "0 \<le> a ==> abs a = a"
-by (simp add: abs_if_lattice linorder_not_less [symmetric]) 
-
-lemma abs_minus_eq [simp]: 
-  fixes a :: "'a::{lordered_ab_group_abs, linorder}"
-  shows "a < 0 ==> abs a = -a"
-by (simp add: abs_if_lattice linorder_not_less [symmetric])
-
 lemma abs_ge_zero[simp]: "0 \<le> abs (a::'a::lordered_ab_group_abs)"
 proof -
   have a:"a <= abs a" and b:"-a <= abs a" by (auto simp add: abs_lattice meet_join_le)
@@ -800,11 +857,18 @@ lemma nprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a 
 lemma iff2imp: "(A=B) \<Longrightarrow> (A \<Longrightarrow> B)"
 by (simp)
 
-lemma imp_abs_id: "0 \<le> a \<Longrightarrow> abs a = (a::'a::lordered_ab_group_abs)"
+lemma abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> abs a = (a::'a::lordered_ab_group_abs)"
 by (simp add: iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_pprt_id] abs_prts)
 
-lemma imp_abs_neg_id: "a \<le> 0 \<Longrightarrow> abs a = -(a::'a::lordered_ab_group_abs)"
+lemma abs_of_pos: "0 < (x::'a::lordered_ab_group_abs) ==> abs x = x";
+by (rule abs_of_nonneg, rule order_less_imp_le);
+
+lemma abs_of_nonpos [simp]: "a \<le> 0 \<Longrightarrow> abs a = -(a::'a::lordered_ab_group_abs)"
 by (simp add: iff2imp[OF le_zero_iff_zero_pprt] iff2imp[OF zero_le_iff_nprt_id] abs_prts)
+
+lemma abs_of_neg: "(x::'a::lordered_ab_group_abs) <  0 ==> 
+  abs x = - x"
+by (rule abs_of_nonpos, rule order_less_imp_le)
 
 lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::lordered_ab_group_abs)"
 by (simp add: abs_lattice join_imp_le)
@@ -845,6 +909,36 @@ proof -
   from a d e have "abs(a+b) <= join ?m ?n" 
     by (drule_tac abs_leI, auto)
   with g[symmetric] show ?thesis by simp
+qed
+
+lemma abs_triangle_ineq2: "abs (a::'a::lordered_ab_group_abs) - 
+    abs b <= abs (a - b)"
+  apply (simp add: compare_rls)
+  apply (subgoal_tac "abs a = abs (a - b + b)")
+  apply (erule ssubst)
+  apply (rule abs_triangle_ineq)
+  apply (rule arg_cong);back;
+  apply (simp add: compare_rls)
+done
+
+lemma abs_triangle_ineq3: 
+    "abs(abs (a::'a::lordered_ab_group_abs) - abs b) <= abs (a - b)"
+  apply (subst abs_le_iff)
+  apply auto
+  apply (rule abs_triangle_ineq2)
+  apply (subst abs_minus_commute)
+  apply (rule abs_triangle_ineq2)
+done
+
+lemma abs_triangle_ineq4: "abs ((a::'a::lordered_ab_group_abs) - b) <= 
+    abs a + abs b"
+proof -;
+  have "abs(a - b) = abs(a + - b)"
+    by (subst diff_minus, rule refl)
+  also have "... <= abs a + abs (- b)"
+    by (rule abs_triangle_ineq)
+  finally show ?thesis
+    by simp
 qed
 
 lemma abs_diff_triangle_ineq:
@@ -925,14 +1019,6 @@ proof -
     done
   have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
   show ?thesis by (rule le_add_right_mono[OF 2 3])
-qed
-
-lemma abs_of_ge_0: "0 <= (y::'a::lordered_ab_group_abs) \<Longrightarrow> abs y = y"
-proof -
-  assume 1:"0 <= y"
-  have 2:"-y <= 0" by (simp add: 1)
-  from 1 2 have 3:"-y <= y" by (simp only:)
-  show ?thesis by (simp add: abs_lattice ge_imp_join_eq[OF 3])
 qed
 
 ML {*
@@ -1068,8 +1154,8 @@ val le_zero_iff_zero_pprt = thm "le_zero_iff_zero_pprt";
 val le_zero_iff_pprt_id = thm "le_zero_iff_pprt_id";
 val zero_le_iff_nprt_id = thm "zero_le_iff_nprt_id";
 val iff2imp = thm "iff2imp";
-val imp_abs_id = thm "imp_abs_id";
-val imp_abs_neg_id = thm "imp_abs_neg_id";
+(* val imp_abs_id = thm "imp_abs_id";
+val imp_abs_neg_id = thm "imp_abs_neg_id"; *)
 val abs_leI = thm "abs_leI";
 val le_minus_self_iff = thm "le_minus_self_iff";
 val minus_le_self_iff = thm "minus_le_self_iff";

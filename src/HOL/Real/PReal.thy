@@ -372,7 +372,7 @@ proof -
   obtain y where [simp]: "0 < y" "y \<notin> B" by blast
   show ?thesis
   proof (intro exI conjI)
-    show "0 < x*y" by (simp add: mult_pos)
+    show "0 < x*y" by (simp add: mult_pos_pos)
     show "x * y \<notin> mult_set A B"
     proof -
       { fix u::rat and v::rat
@@ -398,7 +398,7 @@ lemma mult_set_not_rat_set:
 proof
   show "mult_set A B \<subseteq> {r. 0 < r}"
     by (force simp add: mult_set_def
-              intro: preal_imp_pos [OF A] preal_imp_pos [OF B] mult_pos)
+              intro: preal_imp_pos [OF A] preal_imp_pos [OF B] mult_pos_pos)
 next
   show "mult_set A B \<noteq> {r. 0 < r}"
     by (insert preal_not_mem_mult_set_Ex [OF A B], blast)
@@ -491,7 +491,8 @@ proof (induct z)
       have vpos: "0<v" by (rule preal_imp_pos [OF A v])
       hence "u*v < 1*v" by (simp only: mult_strict_right_mono prems)
       thus "u * v \<in> A"
-        by (force intro: preal_downwards_closed [OF A v] mult_pos upos vpos)
+        by (force intro: preal_downwards_closed [OF A v] mult_pos_pos 
+          upos vpos)
     qed
   next
     show "A \<subseteq> ?lhs"
