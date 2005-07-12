@@ -11,9 +11,14 @@ sig
 		     | CApp of closure * closure | CAbs of closure | Closure of (closure list) * closure
 
     val set_compiled_rewriter : (term -> closure) -> unit
+    val list_nth : 'a list * int -> 'a
+    val list_map : ('a -> 'b) -> 'a list -> 'b list
 end
 
 structure AM_Compiler :> COMPILING_AM = struct
+
+val list_nth = List.nth;
+val list_map = map;
 
 datatype term = Var of int | Const of int | App of term * term | Abs of term
 
@@ -133,7 +138,7 @@ fun load_rules sname name prog =
 		"and weak stack (Closure (e, App (a, b))) = weak (SAppL (Closure (e, b), stack)) (Closure (e, a))",
 		"  | weak (SAppL (b, stack)) (Closure (e, Abs m)) =  weak stack (Closure (b::e, m))",
 		"  | weak stack (clos as Closure (_, Abs _)) = weak_last stack clos",
-		"  | weak stack (Closure (e, Var n)) = weak stack (List.nth (e, n) handle Subscript => (Var (n-(length e))))",
+		"  | weak stack (Closure (e, Var n)) = weak stack ("^sname^".list_nth (e, n) handle _ => (Var (n-(length e))))",
 		"  | weak stack (Closure (e, c)) = weak stack c",
 		"  | weak stack clos = lookup stack clos",
 		"and weak_last (SAppR (a, stack)) b = weak stack (App(a, b))",
@@ -177,7 +182,7 @@ fun load_rules sname name prog =
 		"  | exportTerm (Const c) = "^sname^".CConst c",
 		"  | exportTerm (App (a,b)) = "^sname^".CApp (exportTerm a, exportTerm b)",
 		"  | exportTerm (Abs m) = "^sname^".CAbs (exportTerm m)",
-		"  | exportTerm (Closure (closlist, clos)) = "^sname^".Closure (map exportTerm closlist, exportTerm clos)"]
+		"  | exportTerm (Closure (closlist, clos)) = "^sname^".Closure ("^sname^".list_map exportTerm closlist, exportTerm clos)"]
 	val _ = writelist (map ec constants)
 		
 	val _ = writelist [
@@ -199,9 +204,9 @@ fun load_rules sname name prog =
 
 	val _ = 
 	    let
-		val fout = TextIO.openOut "gen_code.ML"
+		(*val fout = TextIO.openOut "gen_code.ML"
 		val _ = TextIO.output (fout, !buffer)
-		val _  = TextIO.closeOut fout
+		val _  = TextIO.closeOut fout*)
 	    in
 		()
 	    end

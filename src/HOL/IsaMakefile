@@ -143,6 +143,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
   Real/Rational.thy Real/PReal.thy Real/RComplete.thy				\
   Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy		\
   Real/RealPow.thy Real/document/root.tex					\
+  Real/Float.thy Real/Float.ML                                                  \
   Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
   Hyperreal/Filter.thy Hyperreal/HSeries.thy					\
   Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy			\

@@ -18,66 +18,6 @@ val run : program -> term -> term
 
 end
 
-signature BIN_TREE_KEY =
-sig
-  type key
-  val less : key * key -> bool
-  val eq : key * key -> bool
-end
-
-signature BIN_TREE = 
-sig
-    type key    
-    type 'a t
-    val tree_of_list : (key * 'a list -> 'b) -> (key * 'a) list -> 'b t
-    val lookup : 'a t -> key -> 'a Option.option
-    val empty : 'a t
-end
-
-functor BinTreeFun(Key: BIN_TREE_KEY) : BIN_TREE  =
-struct
-
-type key = Key.key
-
-datatype 'a t = Empty | Node of key * 'a * 'a t * 'a t 
-
-val empty = Empty
-
-fun insert (k, a) [] = [(k, a)]
-  | insert (k, a) ((l,b)::x') = 
-    if Key.less (k, l) then (k, a)::(l,b)::x'
-    else if Key.eq (k, l) then (k, a@b)::x'
-    else (l,b)::(insert (k, a) x')
-
-fun sort ((k, a)::x) = insert (k, a) (sort x)
-  | sort [] = []
-
-fun tree_of_sorted_list [] = Empty
-  | tree_of_sorted_list l = 
-    let
-	val len = length l
-	val leftlen = (len - 1) div 2
-	val left = tree_of_sorted_list (List.take (l, leftlen))
-	val rightl = List.drop (l, leftlen)
-	val (k, x) = hd rightl
-    in
-	Node (k, x, left, tree_of_sorted_list (tl rightl))
-    end
-	
-fun tree_of_list f l = tree_of_sorted_list (map (fn (k, a) => (k, f (k,a))) (sort (map (fn (k, a) => (k, [a])) l)))
-		 
-fun lookup Empty key = NONE
-  | lookup (Node (k, x, left, right)) key =
-    if Key.less (key, k) then
-	lookup left key
-    else if Key.less (k, key) then
-	lookup right key
-    else
-	SOME x
-end;
-
-structure IntBinTree = BinTreeFun (type key = int val less = (op <) val eq = (op = : int * int -> bool));
-
 structure AM_Interpreter :> ABSTRACT_MACHINE = struct
 
 datatype term = Var of int | Const of int | App of term * term | Abs of term
@@ -88,16 +28,9 @@ datatype closure = CVar of int | CConst of int
 		 | CApp of closure * closure | CAbs of closure 
 		 | Closure of (closure list) * closure 
 
-structure IntPairKey = 
-struct
-type key = int * int
-fun less ((x1, y1), (x2, y2)) = x1 < x2 orelse (x1 = x2 andalso y1 < y2)
-fun eq (k1, k2) = (k1 = k2)
-end
+structure prog_struct = TableFun(type key = int*int val ord = prod_ord int_ord int_ord);
 
-structure prog_struct = BinTreeFun (IntPairKey)
-
-type program = ((pattern * closure) list) prog_struct.t
+type program = ((pattern * closure) list) prog_struct.table
 
 datatype stack = SEmpty | SAppL of closure * stack | SAppR of closure * stack | SAbs of stack
 
@@ -160,7 +93,7 @@ fun compile eqs =
 	val eqs = map (fn (p, r) => (check_freevars (count_patternvars p) r; 
 				     (pattern_key p, (p, clos_of_term r)))) eqs
     in
-	prog_struct.tree_of_list (fn (key, rules) => rules) eqs
+	prog_struct.make (map (fn (k, a) => (k, [a])) eqs)
     end	
 
 fun match_rules n [] clos = NONE
@@ -172,7 +105,7 @@ fun match_rules n [] clos = NONE
 fun match_closure prog clos = 
     case len_head_of_closure 0 clos of
 	(len, CConst c) =>
-	(case prog_struct.lookup prog (c, len) of
+	(case prog_struct.lookup (prog, (c, len)) of
 	    NONE => NONE
 	  | SOME rules => match_rules 0 rules clos)
       | _ => NONE

@@ -8,3 +8,4 @@ by Jacques Fleuriot
 *)
 
 time_use_thy "Real";
+use_thy "Float";
