@@ -93,6 +93,9 @@ cd "IsaPlanner"; use "ROOT.ML"; cd "..";
 (*configuration for Proof General*)
 use "proof_general.ML";
 
+(* loading the Tools directory *)
+cd "Tools"; use "ROOT.ML"; cd "..";
+
 (*the Pure theories*)
 use_thy "Pure"; structure Pure = struct val thy = theory "Pure" end;
 use_thy "CPure"; structure CPure = struct val thy = theory "CPure" end;
