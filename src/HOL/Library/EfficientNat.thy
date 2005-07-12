@@ -30,16 +30,26 @@ returns its input value, provided that it is non-negative, and otherwise
 returns @{text "0"}.
 *}
 
-types_code nat ("int")
+types_code
+  nat ("int")
+attach (term_of) {*
+fun term_of_nat 0 = Const ("0", HOLogic.natT)
+  | term_of_nat 1 = Const ("1", HOLogic.natT)
+  | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
+      HOLogic.mk_bin (IntInf.fromInt i);
+*}
+attach (test) {*
+fun gen_nat i = random_range 0 i;
+*}
+
 consts_code
   0 :: nat ("0")
   Suc ("(_ + 1)")
-  nat ("nat")
-  int ("(_)")
-
-ML {*
+  nat ("\<module>nat")
+attach {*
 fun nat i = if i < 0 then 0 else i;
 *}
+  int ("(_)")
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional

@@ -65,7 +65,12 @@ types_code
   loc_ ("int")
 
 consts_code
-  "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *} {* Loc *}")
+  "new_Addr" ("\<module>new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *} {* Loc *}")
+attach {*
+fun new_addr p none loc hp =
+  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
+  in nr 0 end;
+*}
 
   "arbitrary" ("(raise ERROR)")
   "arbitrary" :: "val" ("{* Unit *}")
@@ -81,12 +86,6 @@ consts_code
   "l2_nam" ("\"l2\"")
   "l3_nam" ("\"l3\"")
   "l4_nam" ("\"l4\"")
-
-ML {*
-fun new_addr p none loc hp =
-  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
-  in nr 0 end;
-*}
 
 generate_code
   test = "example_prg\<turnstile>Norm (empty, empty)

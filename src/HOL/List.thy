@@ -2282,26 +2282,30 @@ val list_codegen_setup =
    Codegen.add_codegen "char_codegen" char_codegen];
 
 end;
+*}
 
+types_code
+  "list" ("_ list")
+attach (term_of) {*
 val term_of_list = HOLogic.mk_list;
-
+*}
+attach (test) {*
 fun gen_list' aG i j = frequency
   [(i, fn () => aG j :: gen_list' aG (i-1) j), (1, fn () => [])] ()
 and gen_list aG i = gen_list' aG i i;
-
+*}
+  "char" ("string")
+attach (term_of) {*
 val nibbleT = Type ("List.nibble", []);
 
 fun term_of_char c =
   Const ("List.char.Char", nibbleT --> nibbleT --> Type ("List.char", [])) $
     Const ("List.nibble.Nibble" ^ nibble_of_int (ord c div 16), nibbleT) $
     Const ("List.nibble.Nibble" ^ nibble_of_int (ord c mod 16), nibbleT);
-
+*}
+attach (test) {*
 fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
 *}
-
-types_code
-  "list" ("_ list")
-  "char" ("string")
 
 consts_code "Cons" ("(_ ::/ _)")
 

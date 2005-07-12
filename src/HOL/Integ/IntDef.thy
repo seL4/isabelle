@@ -855,17 +855,16 @@ done
 
 subsection {* Configuration of the code generator *}
 
-ML {*
-infix 7 `*;
-infix 6 `+;
-
-val op `* = op * : int * int -> int;
-val op `+ = op + : int * int -> int;
-val `~ = ~ : int -> int;
-*}
+(*FIXME: the IntInf.fromInt below hides a dependence on fixed-precision ints!*)
 
 types_code
   "int" ("int")
+attach (term_of) {*
+val term_of_int = HOLogic.mk_int o IntInf.fromInt;
+*}
+attach (test) {*
+fun gen_int i = one_of [~1, 1] * random_range 0 i;
+*}
 
 constdefs
   int_aux :: "int \<Rightarrow> nat \<Rightarrow> int"
@@ -889,9 +888,9 @@ lemma [code]: "nat i = nat_aux 0 i"
 consts_code
   "0" :: "int"                  ("0")
   "1" :: "int"                  ("1")
-  "uminus" :: "int => int"      ("`~")
-  "op +" :: "int => int => int" ("(_ `+/ _)")
-  "op *" :: "int => int => int" ("(_ `*/ _)")
+  "uminus" :: "int => int"      ("~")
+  "op +" :: "int => int => int" ("(_ +/ _)")
+  "op *" :: "int => int => int" ("(_ */ _)")
   "op <" :: "int => int => bool" ("(_ </ _)")
   "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")

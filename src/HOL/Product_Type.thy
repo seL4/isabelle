@@ -773,6 +773,12 @@ subsection {* Code generator setup *}
 
 types_code
   "*"     ("(_ */ _)")
+attach (term_of) {*
+fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
+*}
+attach (test) {*
+fun gen_id_42 aG bG i = (aG i, bG i);
+*}
 
 consts_code
   "Pair"    ("(_,/ _)")
@@ -780,10 +786,6 @@ consts_code
   "snd"     ("snd")
 
 ML {*
-fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
-
-fun gen_id_42 aG bG i = (aG i, bG i);
-
 local
 
 fun strip_abs 0 t = ([], t)
