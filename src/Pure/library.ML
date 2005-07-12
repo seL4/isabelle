@@ -8,7 +8,7 @@ rational numbers, strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
-infix |> |-> |>> ||> |>>> ||>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
+infix |> |-> ||> ||>> |>> |>>> #> #-> `> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
@@ -23,10 +23,13 @@ sig
   val K: 'a -> 'b -> 'a
   val |> : 'a * ('a -> 'b) -> 'b
   val |-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b
-  val |>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c
   val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
-  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val ||>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b
+  val |>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c
+  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
+  val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
+  val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
+  val `> : 'b * ('b -> 'a) -> 'a * 'b
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
@@ -87,7 +90,7 @@ sig
   val apply: ('a -> 'a) list -> 'a -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
+  val fold_yield: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
@@ -305,6 +308,9 @@ fun (x, y) |>> f = (f x, y);
 fun (x, y) ||> f = (x, f y);
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
+fun f #> g = g o f;
+fun f #-> g = fn s => let val (v, s') = f s in g v s' end;
+fun x `> h = (h x, x)
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
@@ -470,7 +476,7 @@ fun fold_rev f =
       | fold_aux (x :: xs) y = f x (fold_aux xs y);
   in fold_aux end;
 
-fun fold_map f =
+fun fold_yield f =
   let
     fun fold_aux [] y = ([], y)
       | fold_aux (x :: xs) y =
