@@ -35,14 +35,14 @@ let
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
 
   fun con_def outer recu m n (_,args) = let
-     fun idxs z x arg = (if is_lazy arg then fn t => %%:"up"`t else Id)
+     fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else Id)
 			(if recu andalso is_rec arg then (cproj (Bound z) eqs
 				  (rec_of arg))`Bound(z-x) else Bound(z-x));
-     fun parms [] = %%:"ONE"
-     |   parms vs = foldr'(fn(x,t)=> %%:"spair"`x`t)(mapn (idxs(length vs))1 vs);
+     fun parms [] = %%:ONE_N
+     |   parms vs = foldr'(fn(x,t)=> %%:spairN`x`t)(mapn (idxs(length vs))1 vs);
      fun inj y 1 _ = y
-     |   inj y _ 0 = %%:"sinl"`y
-     |   inj y i j = %%:"sinr"`(inj y (i-1) (j-1));
+     |   inj y _ 0 = %%:sinlN`y
+     |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
   in foldr /\# (outer (inj (parms args) m n)) args end;
 
   val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
@@ -58,30 +58,32 @@ let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
-			   (if con'=con then %%:"TT" else %%:"FF") args)) cons))
+			   (if con'=con then %%:TT_N else %%:FF_N) args)) cons))
 	in map ddef cons end;
 
   val mat_defs = let
 	fun mdef (con,_) = (mat_name con ^"_def",%%:(mat_name con) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
-			   (if con'=con then (%%:"return")`(mk_ctuple (map (bound_arg args) args)) else %%:"fail") args)) cons))
+			   (if con'=con
+                               then %%:returnN`(mk_ctuple (map (bound_arg args) args))
+                               else %%:failN) args)) cons))
 	in map mdef cons end;
 
   val sel_defs = let
 	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
-			(fn (con',args) => if con'<>con then %%:"UU" else
+			(fn (con',args) => if con'<>con then UU else
 			 foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
 	in List.mapPartial Id (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
 
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
-  val reach_ax = ("reach", mk_trp(cproj (%%:"fix"`%%(comp_dname^"_copy")) eqs n
+  val reach_ax = ("reach", mk_trp(cproj (%%:fixN`%%(comp_dname^"_copy")) eqs n
 					`%x_name === %:x_name));
   val take_def = ("take_def",%%:(dname^"_take") == mk_lam("n",cproj' 
-	     (%%:"iterate" $ Bound 0 $ %%:(comp_dname^"_copy") $ %%:"UU") eqs n));
+	     (%%:iterateN $ Bound 0 $ %%:(comp_dname^"_copy") $ UU) eqs n));
   val finite_def = ("finite_def",%%:(dname^"_finite") == mk_lam(x_name,
 	mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 

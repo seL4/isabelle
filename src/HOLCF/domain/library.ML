@@ -102,6 +102,40 @@ fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
 fun nonlazy     args   = map vname (filter_out is_lazy    args);
 fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 
+(* ----- qualified names of HOLCF constants ----- *)
+
+val lessN      = "Porder.op <<"
+val UU_N       = "Pcpo.UU";
+val admN       = "Adm.adm";
+val Rep_CFunN  = "Cfun.Rep_CFun";
+val Abs_CFunN  = "Cfun.Abs_CFun";
+val ID_N       = "Cfun.ID";
+val cfcompN    = "Cfun.cfcomp";
+val strictifyN = "Cfun.strictify";
+val cpairN     = "Cprod.cpair";
+val cfstN      = "Cprod.cfst";
+val csndN      = "Cprod.csnd";
+val csplitN    = "Cprod.csplit";
+val spairN     = "Sprod.spair";
+val sfstN      = "Sprod.sfst";
+val ssndN      = "Sprod.ssnd";
+val ssplitN    = "Sprod.ssplit";
+val sinlN      = "Ssum.sinl";
+val sinrN      = "Ssum.sinr";
+val sscaseN    = "Ssum.sscase";
+val upN        = "Up.up";
+val fupN       = "Up.fup";
+val ONE_N      = "One.ONE";
+val TT_N       = "Tr.TT";
+val FF_N       = "Tr.FF";
+val iterateN   = "Fix.iterate";
+val fixN       = "Fix.fix";
+val returnN    = "Fixrec.return";
+val failN      = "Fixrec.fail";
+
+val pcpoN      = "Pcpo.pcpo"
+val pcpoS      = [pcpoN];
+
 (* ----- support for type and mixfix expressions ----- *)
 
 infixr 5 -->;
@@ -119,6 +153,7 @@ fun mk_disj (S,T) = disj $ S $ T;
 fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
+fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
 local 
 		    fun sg [s]     = %:s
 		    |   sg (s::ss) = %%:"_classes" $ %:s $ sg ss
@@ -132,20 +167,19 @@ in
 fun mk_constrain      (typ,T) = %%:"_constrain" $ T $ tf typ;
 fun mk_constrainall (x,typ,P) = %%:"All" $ (%%:"_constrainAbs" $ mk_lam(x,P) $ tf typ);
 end;
-fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
 end;
 
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 
-infixr 0 ===>;fun S ===> T = %%:"==>" $ S $ T;
-infixr 0 ==>;fun S ==> T = mk_trp S ===> mk_trp T;
-infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
-infix 1 ===; fun S === T = %%:"op =" $ S $ T;
-infix 1 ~=;  fun S ~=  T = mk_not (S === T);
-infix 1 <<;  fun S <<  T = %%:"op <<" $ S $ T;
-infix 1 ~<<; fun S ~<< T = mk_not (S << T);
+infixr 0 ===>;  fun S ===> T = %%:"==>" $ S $ T;
+infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
+infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
+infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
+infix 1 ~=;     fun S ~=  T = mk_not (S === T);
+infix 1 <<;     fun S <<  T = %%:lessN $ S $ T;
+infix 1 ~<<;    fun S ~<< T = mk_not (S << T);
 
-infix 9 `  ; fun f`  x = %%:"Rep_CFun" $ f $ x;
+infix 9 `  ; fun f`  x = %%:Rep_CFunN $ f $ x;
 infix 9 `% ; fun f`% s = f` %: s;
 infix 9 `%%; fun f`%%s = f` %%:s;
 fun mk_cRep_CFun (F,As) = Library.foldl (op `) (F,As);
@@ -159,24 +193,24 @@ fun prj _  _  x (   _::[]) _ = x
 fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
 						    avoid type varaibles *)
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
-fun cproj x      = prj (fn S => K(%%:"cfst"`S)) (fn S => K(%%:"csnd"`S)) x;
+fun cproj x      = prj (fn S => K(%%:cfstN`S)) (fn S => K(%%:csndN`S)) x;
 fun prj' _  _  x (   _::[]) _ = x
 |   prj' f1 _  x (_::   ys) 0 = f1 x (foldr' mk_prodT ys)
 |   prj' f1 f2 x (y::   ys) j = prj' f1 f2 (f2 x y) ys (j-1);
 fun cproj' T eqs = prj'
-	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S)
-	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
+	(fn S => fn t => Const(cfstN,mk_prodT(dummyT,t)->>dummyT)`S)
+	(fn S => fn t => Const(csndN,mk_prodT(t,dummyT)->>dummyT)`S) 
 		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
-fun /\ v T = %%:"Abs_CFun" $ mk_lam(v,T);
+fun /\ v T = %%:Abs_CFunN $ mk_lam(v,T);
 fun /\# (arg,T) = /\ (vname arg) T;
-infixr 9 oo; fun S oo T = %%:"cfcomp"`S`T;
-val UU = %%:"UU";
+infixr 9 oo; fun S oo T = %%:cfcompN`S`T;
+val UU = %%:UU_N;
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
-fun cpair (S,T) = %%:"cpair"`S`T;
-fun mk_ctuple [] = %%:"UU" (* used in match_defs *)
+fun cpair (S,T) = %%:cpairN`S`T;
+fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
 |   mk_ctuple (t::[]) = t
 |   mk_ctuple (t::ts) = cpair (t, mk_ctuple ts);
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
@@ -185,12 +219,12 @@ fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
-fun cont_eta_contract (Const("Abs_CFun",TT) $ Abs(a,T,body)) = 
+fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) = 
       (case cont_eta_contract body  of
-        body' as (Const("Rep_CFun",Ta) $ f $ Bound 0) => 
+        body' as (Const("Cfun.Rep_CFun",Ta) $ f $ Bound 0) => 
 	  if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-	  else   Const("Abs_CFun",TT) $ Abs(a,T,body')
-      | body' => Const("Abs_CFun",TT) $ Abs(a,T,body'))
+	  else   Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body')
+      | body' => Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body'))
 |   cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
 |   cont_eta_contract t    = t;
 
@@ -201,14 +235,14 @@ fun when_body cons funarg = let
 	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
 	|   one_fun n (_,args) = let
 		val l2 = length args;
-		fun idxs m arg = (if is_lazy arg then fn x=> %%:"fup"`%%"ID"`x
+		fun idxs m arg = (if is_lazy arg then fn x=> %%:fupN` %%:ID_N`x
 					         else Id) (Bound(l2-m));
 		in cont_eta_contract (foldr'' 
-			(fn (a,t) => %%:"ssplit"`(/\# (a,t)))
+			(fn (a,t) => %%:ssplitN`(/\# (a,t)))
 			(args,
 			fn a=> /\#(a,(mk_cRep_CFun(funarg(l2,n),mapn idxs 1 args))))
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
-    then fn t => %%:"strictify"`t else Id)
-     (foldr' (fn (x,y)=> %%:"sscase"`x`y) (mapn one_fun 1 cons)) end;
+    then fn t => %%:strictifyN`t else Id)
+     (foldr' (fn (x,y)=> %%:sscaseN`x`y) (mapn one_fun 1 cons)) end;
 end; (* struct *)

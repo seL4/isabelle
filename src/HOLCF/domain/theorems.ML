@@ -114,7 +114,7 @@ val when_appl = appl_of_def ax_when_def;
 val con_appls = map appl_of_def axs_con_def;
 
 local
-  fun arg2typ n arg = let val t = TVar (("'a",n),["Pcpo.pcpo"])
+  fun arg2typ n arg = let val t = TVar (("'a",n),pcpoS)
                       in (n+1, if is_lazy arg then mk_uT t else t) end;
   fun args2typ n [] = (n,oneT)
   |   args2typ n [arg] = arg2typ n arg
@@ -177,7 +177,7 @@ val dis_rews = let
   val dis_apps = let fun one_dis c (con,args)= pg axs_dis_def
                    (lift_defined %: (nonlazy args,
                         (mk_trp((%%:(dis_name c))`(con_app con args) ===
-                              %%:(if con=c then "TT" else "FF"))))) [
+                              %%:(if con=c then TT_N else FF_N))))) [
                                 asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
         in List.concat(map (fn (c,_) => map (one_dis c) cons) cons) end;
   val dis_defins = map (fn (con,args) => pg [] (defined(%:x_name) ==> 
@@ -195,8 +195,10 @@ val mat_rews = let
   val mat_apps = let fun one_mat c (con,args)= pg axs_mat_def
                    (lift_defined %: (nonlazy args,
                         (mk_trp((%%:(mat_name c))`(con_app con args) ===
-                              (if con=c then (%%:"return")`(mk_ctuple (map %# args)) else %%:"fail"))))) [
-                                asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
+                              (if con=c
+                                  then %%:returnN`(mk_ctuple (map %# args))
+                                  else %%:failN)))))
+                   [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
         in List.concat(map (fn (c,_) => map (one_mat c) cons) cons) end;
 in mat_stricts @ mat_apps end;
 
@@ -542,7 +544,7 @@ val (finites,ind) = if is_finite then
 ) end (* let *) else
   (mapn (fn n => fn dn => read_instantiate_sg (sign_of thy) 
                     [("P",dn^"_finite "^x_name n)] excluded_middle) 1 dnames,
-   pg'' thy [] (Library.foldr (op ===>) (mapn (fn n => K(mk_trp(%%:"adm" $ %:(P_name n))))
+   pg'' thy [] (Library.foldr (op ===>) (mapn (fn n => K(mk_trp(%%:admN $ %:(P_name n))))
                1 dnames, ind_term (fn n => fn dn => %:(P_name n) $ %:(x_name n))))
                    (fn prems => map (fn ax_reach => rtac (ax_reach RS subst) 1) 
                                     axs_reach @ [
