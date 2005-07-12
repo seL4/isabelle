@@ -73,7 +73,7 @@ lemma right_unit [simp]: "m >>= return = m"
 by (rule_tac p=m in maybeE, simp_all)
 
 lemma bind_assoc [simp]:
- "(do a <- m; b <- k\<cdot>a; h\<cdot>b) = (do b <- (do a <- m; k\<cdot>a); h\<cdot>b)"
+ "(do b <- (do a <- m; k\<cdot>a); h\<cdot>b) = (do a <- m; b <- k\<cdot>a; h\<cdot>b)"
 by (rule_tac p=m in maybeE, simp_all)
 
 subsection {* Run operator *}
