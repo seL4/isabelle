@@ -12,6 +12,8 @@ begin
 
 subsection {* Maybe monad type *}
 
+defaultsort cpo
+
 types 'a maybe = "one ++ 'a u"
 
 constdefs
@@ -77,7 +79,7 @@ by (rule_tac p=m in maybeE, simp_all)
 subsection {* Run operator *}
 
 constdefs
-  run:: "'a maybe \<rightarrow> 'a"
+  run:: "'a::pcpo maybe \<rightarrow> 'a"
   "run \<equiv> sscase\<cdot>\<bottom>\<cdot>(fup\<cdot>ID)"
 
 text {* rewrite rules for run *}
@@ -119,8 +121,13 @@ by (rule_tac p=x in maybeE, simp_all)
 
 subsection {* Match functions for built-in types *}
 
+defaultsort pcpo
+
 constdefs
-  match_cpair :: "'a \<times> 'b \<rightarrow> ('a \<times> 'b) maybe"
+  match_UU :: "'a \<rightarrow> unit maybe"
+  "match_UU \<equiv> \<Lambda> x. fail"
+
+  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<times> 'b) maybe"
   "match_cpair \<equiv> csplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
 
   match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<times> 'b) maybe"
@@ -132,7 +139,7 @@ constdefs
   match_sinr :: "'a \<oplus> 'b \<rightarrow> 'b maybe"
   "match_sinr \<equiv> sscase\<cdot>(\<Lambda> x. fail)\<cdot>return"
 
-  match_up :: "'a u \<rightarrow> 'a maybe"
+  match_up :: "'a::cpo u \<rightarrow> 'a maybe"
   "match_up \<equiv> fup\<cdot>return"
 
   match_ONE :: "one \<rightarrow> unit maybe"
@@ -143,6 +150,10 @@ constdefs
 
   match_FF :: "tr \<rightarrow> unit maybe"
   "match_FF \<equiv> flift1 (\<lambda>b. if b then fail else return\<cdot>())"
+
+lemma match_UU_simps [simp]:
+  "match_UU\<cdot>x = fail"
+by (simp add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot><x,y> = return\<cdot><x,y>"
