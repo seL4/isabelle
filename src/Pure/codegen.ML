@@ -15,6 +15,7 @@ sig
   datatype 'a mixfix =
       Arg
     | Ignore
+    | Module
     | Pretty of Pretty.T
     | Quote of 'a;
 
@@ -30,11 +31,16 @@ sig
   val print_codegens: theory -> unit
   val generate_code: theory -> (string * string) list -> (string * string) list
   val generate_code_i: theory -> (string * term) list -> (string * string) list
-  val assoc_consts: (xstring * string option * term mixfix list) list -> theory -> theory
-  val assoc_consts_i: (xstring * typ option * term mixfix list) list -> theory -> theory
-  val assoc_types: (xstring * typ mixfix list) list -> theory -> theory
-  val get_assoc_code: theory -> string -> typ -> term mixfix list option
-  val get_assoc_type: theory -> string -> typ mixfix list option
+  val assoc_consts: (xstring * string option * (term mixfix list *
+    (string * string) list)) list -> theory -> theory
+  val assoc_consts_i: (xstring * typ option * (term mixfix list *
+    (string * string) list)) list -> theory -> theory
+  val assoc_types: (xstring * (typ mixfix list *
+    (string * string) list)) list -> theory -> theory
+  val get_assoc_code: theory -> string -> typ ->
+    (term mixfix list * (string * string) list) option
+  val get_assoc_type: theory -> string ->
+    (typ mixfix list * (string * string) list) option
   val invoke_codegen: theory -> deftab -> string -> string -> bool ->
     codegr * term -> codegr * Pretty.T
   val invoke_tycodegen: theory -> deftab -> string -> string -> bool ->
@@ -79,6 +85,7 @@ val margin = ref 80;
 datatype 'a mixfix =
     Arg
   | Ignore
+  | Module
   | Pretty of Pretty.T
   | Quote of 'a;
 
@@ -164,8 +171,8 @@ structure CodegenData = TheoryDataFun
   type T =
     {codegens : (string * term codegen) list,
      tycodegens : (string * typ codegen) list,
-     consts : ((string * typ) * term mixfix list) list,
-     types : (string * typ mixfix list) list,
+     consts : ((string * typ) * (term mixfix list * (string * string) list)) list,
+     types : (string * (typ mixfix list * (string * string) list)) list,
      attrs: (string * (Args.T list -> theory attribute * Args.T list)) list,
      preprocs: (stamp * (theory -> thm list -> thm list)) list,
      test_params: test_params};
@@ -455,6 +462,9 @@ fun is_instance thy T1 T2 =
 fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
+fun get_aux_code xs = List.mapPartial (fn (m, code) =>
+  if m = "" orelse m mem !mode then SOME code else NONE) xs;
+
 fun mk_deftab thy =
   let
     val axmss = map (fn thy' =>
@@ -516,11 +526,19 @@ fun pretty_fn [] p = [p]
   | pretty_fn (x::xs) p = Pretty.str ("fn " ^ x ^ " =>") ::
       Pretty.brk 1 :: pretty_fn xs p;
 
-fun pretty_mixfix [] [] _ = []
-  | pretty_mixfix (Arg :: ms) (p :: ps) qs = p :: pretty_mixfix ms ps qs
-  | pretty_mixfix (Ignore :: ms) ps qs = pretty_mixfix ms ps qs
-  | pretty_mixfix (Pretty p :: ms) ps qs = p :: pretty_mixfix ms ps qs
-  | pretty_mixfix (Quote _ :: ms) ps (q :: qs) = q :: pretty_mixfix ms ps qs;
+fun pretty_mixfix _ _ [] [] _ = []
+  | pretty_mixfix module module' (Arg :: ms) (p :: ps) qs =
+      p :: pretty_mixfix module module' ms ps qs
+  | pretty_mixfix module module' (Ignore :: ms) ps qs =
+      pretty_mixfix module module' ms ps qs
+  | pretty_mixfix module module' (Module :: ms) ps qs =
+      (if "modular" mem !mode andalso module <> module'
+       then cons (Pretty.str (module' ^ ".")) else I)
+      (pretty_mixfix module module' ms ps qs)
+  | pretty_mixfix module module' (Pretty p :: ms) ps qs =
+      p :: pretty_mixfix module module' ms ps qs
+  | pretty_mixfix module module' (Quote _ :: ms) ps (q :: qs) =
+      q :: pretty_mixfix module module' ms ps qs;
 
 
 (**** default code generators ****)
@@ -567,7 +585,7 @@ fun default_codegen thy defs gr dep thyname brack t =
 
     | Const (s, T) =>
       (case get_assoc_code thy s T of
-         SOME ms =>
+         SOME (ms, aux) =>
            let val i = num_args ms
            in if length ts < i then
                default_codegen thy defs gr dep thyname brack (eta_expand u ts i)
@@ -577,8 +595,20 @@ fun default_codegen thy defs gr dep thyname brack t =
                  val (gr1, ps1) = codegens false (gr, ts1);
                  val (gr2, ps2) = codegens true (gr1, ts2);
                  val (gr3, ps3) = codegens false (gr2, quotes_of ms);
-               in
-                 SOME (gr3, mk_app brack (Pretty.block (pretty_mixfix ms ps1 ps3)) ps2)
+                 val (thyname', suffix) = (case get_defn thy defs s T of
+                     NONE => (thyname_of_const s thy, "")
+                   | SOME ((U, (thyname', _)), NONE) => (thyname', "")
+                   | SOME ((U, (thyname', _)), SOME i) =>
+                       (thyname', "_def" ^ string_of_int i));
+                 val node_id = s ^ suffix;
+                 val p = mk_app brack (Pretty.block
+                   (pretty_mixfix thyname thyname' ms ps1 ps3)) ps2
+               in SOME (case try (Graph.get_node gr3) node_id of
+                   NONE => (case get_aux_code aux of
+                       [] => (gr3, p)
+                     | xs => (Graph.add_edge (node_id, dep) (Graph.new_node
+                         (node_id, (NONE, thyname', space_implode "\n" xs ^ "\n")) gr3), p))
+                 | SOME _ => (Graph.add_edge (node_id, dep) gr3, p))
                end
            end
        | NONE => (case get_defn thy defs s T of
@@ -637,15 +667,24 @@ fun default_tycodegen thy defs gr dep thyname brack (TVar ((s, i), _)) =
   | default_tycodegen thy defs gr dep thyname brack (Type (s, Ts)) =
       (case assoc (#types (CodegenData.get thy), s) of
          NONE => NONE
-       | SOME ms =>
+       | SOME (ms, aux) =>
            let
              val (gr', ps) = foldl_map
                (invoke_tycodegen thy defs dep thyname false)
                (gr, fst (args_of ms Ts));
              val (gr'', qs) = foldl_map
                (invoke_tycodegen thy defs dep thyname false)
-               (gr', quotes_of ms)
-           in SOME (gr'', Pretty.block (pretty_mixfix ms ps qs)) end);
+               (gr', quotes_of ms);
+             val thyname' = thyname_of_type s thy;
+             val node_id = s ^ " (type)";
+             val p = Pretty.block (pretty_mixfix thyname thyname' ms ps qs)
+           in SOME (case try (Graph.get_node gr'') node_id of
+               NONE => (case get_aux_code aux of
+                   [] => (gr'', p)
+                 | xs => (Graph.add_edge (node_id, dep) (Graph.new_node
+                     (node_id, (NONE, thyname', space_implode "\n" xs ^ "\n")) gr''), p))
+             | SOME _ => (Graph.add_edge (node_id, dep) gr'', p))
+           end);
 
 val _ = Context.add_setup
  [add_codegen "default" default_codegen,
@@ -827,6 +866,7 @@ fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
      (   $$ "_" >> K Arg
       || $$ "?" >> K Ignore
+      || $$ "\\<module>" >> K Module
       || $$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length)
       || $$ "{" |-- $$ "*" |-- Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.not_eof
@@ -834,35 +874,54 @@ fun parse_mixfix rd s =
          $$ "*" --| $$ "}" >> (Quote o rd o implode)
       || Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.not_eof
-            || Scan.unless ($$ "_" || $$ "?" || $$ "/" || $$ "{" |-- $$ "*")
+            || Scan.unless ($$ "_" || $$ "?" || $$ "\\<module>" || $$ "/" || $$ "{" |-- $$ "*")
                  (Scan.one Symbol.not_eof)) >> (Pretty o str o implode)))
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
 
 val _ = Context.add_setup
-  [assoc_types [("fun", parse_mixfix (K dummyT) "(_ ->/ _)")]];
+  [assoc_types [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
+     [("term_of",
+       "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
+      ("test",
+       "fun gen_fun_type _ G i =\n\
+       \  let\n\
+       \    val f = ref (fn x => raise ERROR);\n\
+       \    val _ = (f := (fn x =>\n\
+       \      let\n\
+       \        val y = G i;\n\
+       \        val f' = !f\n\
+       \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
+       \  in (fn x => !f x) end;\n")]))]];
 
 
 structure P = OuterParse and K = OuterSyntax.Keyword;
 
+fun strip_newlines s = implode (fst (take_suffix (equal "\n")
+  (snd (take_prefix (equal "\n") (explode s))))) ^ "\n";
+
+val parse_attach = Scan.repeat (P.$$$ "attach" |--
+  Scan.optional (P.$$$ "(" |-- P.xname --| P.$$$ ")") "" --
+    (P.verbatim >> strip_newlines));
+
 val assoc_typeP =
   OuterSyntax.command "types_code"
   "associate types with target language types" K.thy_decl
-    (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")") >>
+    (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => assoc_types
-       (map (fn (name, mfx) => (name, parse_mixfix
-         (typ_of o read_ctyp thy) mfx)) xs) thy)));
+       (map (fn ((name, mfx), aux) => (name, (parse_mixfix
+         (typ_of o read_ctyp thy) mfx, aux))) xs) thy)));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
   "associate constants with target language code" K.thy_decl
     (Scan.repeat1
        (P.xname -- (Scan.option (P.$$$ "::" |-- P.typ)) --|
-        P.$$$ "(" -- P.string --| P.$$$ ")") >>
+        P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => assoc_consts
-       (map (fn ((name, optype), mfx) => (name, optype, parse_mixfix
-         (term_of o read_cterm thy o rpair TypeInfer.logicT) mfx))
+       (map (fn (((name, optype), mfx), aux) => (name, optype, (parse_mixfix
+         (term_of o read_cterm thy o rpair TypeInfer.logicT) mfx, aux)))
            xs) thy)));
 
 val generate_codeP =
@@ -914,6 +973,8 @@ val testP =
       test_goal (app (getOpt (Option.map
           (map (fn f => f (Toplevel.sign_of st))) ps, []))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
+
+val _ = OuterSyntax.add_keywords ["attach"];
 
 val _ = OuterSyntax.add_parsers
   [assoc_typeP, assoc_constP, generate_codeP, test_paramsP, testP];
