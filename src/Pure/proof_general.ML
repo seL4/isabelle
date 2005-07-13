@@ -470,6 +470,7 @@ local
 
 val spaces_quote = space_implode " " o map quote;
 
+(* FIXME: investigate why dependencies at the moment include themselves! *)
 fun thm_deps_message (thms, deps) =
   if pgip() then
     issue_pgips
