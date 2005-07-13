@@ -15,24 +15,26 @@ only wildcards in patterns.  Requires operands to be beta-eta-normal.
 *)
 
 signature NET =
-  sig
+sig
   type key
-  type 'a net
-  exception DELETE and INSERT
-  val delete: (key list * 'a) * 'b net * ('a * 'b -> bool) -> 'b net
-  val delete_term: (term * 'a) * 'b net * ('a * 'b -> bool) -> 'b net
-  val empty: 'a net
-  val insert: (key list * 'a) * 'a net * ('a*'a -> bool) -> 'a net
-  val insert_term:   (term * 'a) * 'a net * ('a*'a -> bool) -> 'a net
-  val lookup: 'a net * key list -> 'a list
-  val match_term: 'a net -> term -> 'a list
   val key_of_term: term -> key list
+  type 'a net
+  val empty: 'a net
+  exception INSERT
+  val insert: ('a * 'a -> bool) -> key list * 'a -> 'a net -> 'a net
+  val insert_term: ('a * 'a -> bool) -> term * 'a -> 'a net -> 'a net
+  exception DELETE
+  val delete: ('b * 'a -> bool) -> key list * 'b -> 'a net -> 'a net
+  val delete_term: ('b * 'a -> bool) -> term * 'b -> 'a net -> 'a net
+  val lookup: 'a net -> key list -> 'a list
+  val match_term: 'a net -> term -> 'a list
   val unify_term: 'a net -> term -> 'a list
-  val dest: 'a net -> (key list * 'a) list
-  val merge: 'a net * 'a net * ('a*'a -> bool) -> 'a net
-  end;
+  val entries: 'a net -> 'a list
+  val subtract: ('b * 'a -> bool) -> 'a net -> 'b net -> 'b list
+  val merge: ('a * 'a -> bool) -> 'a net * 'a net -> 'a net
+end;
 
-structure Net : NET =
+structure Net: NET =
 struct
 
 datatype key = CombK | VarK | AtomK of string;
@@ -85,7 +87,7 @@ exception INSERT;       (*duplicate item in the net*)
   eq is the equality test for items.
   The empty list of keys generates a Leaf node, others a Net node.
 *)
-fun insert ((keys,x), net, eq) =
+fun insert eq (keys,x) net =
   let fun ins1 ([], Leaf xs) =
             if member eq xs x then  raise INSERT  else Leaf(x::xs)
         | ins1 (keys, Leaf[]) = ins1 (keys, emptynet)   (*expand empty...*)
@@ -100,7 +102,9 @@ fun insert ((keys,x), net, eq) =
             in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
 
-fun insert_term ((t,x), net, eq) = insert((key_of_term t, x), net, eq);
+fun insert_safe eq entry net = insert eq entry net handle INSERT => net;
+fun insert_term eq (t, x) = insert eq (key_of_term t, x);
+
 
 (*** Deletion from a discrimination net ***)
 
@@ -114,7 +118,7 @@ fun newnet (args as {comb,var,atoms}) =
 (*Deletes item x from the list at the node addressed by the keys.
   Raises DELETE if absent.  Collapses the net if possible.
   eq is the equality test for items. *)
-fun delete ((keys, x), net, eq) =
+fun delete eq (keys, x) net =
   let fun del1 ([], Leaf xs) =
             if member eq xs x then Leaf (remove eq x xs)
             else raise DELETE
@@ -134,7 +138,7 @@ fun delete ((keys, x), net, eq) =
             in  newnet{comb=comb, var=var, atoms=atoms'}  end
   in  del1 (keys,net)  end;
 
-fun delete_term ((t,x), net, eq) = delete((key_of_term t, x), net, eq);
+fun delete_term eq (t, x) = delete eq (key_of_term t, x);
 
 
 (*** Retrieval functions for discrimination nets ***)
@@ -147,12 +151,12 @@ fun the_atom atoms a =
   | SOME net => net);
 
 (*Return the list of items at the given node, [] if no such node*)
-fun lookup (Leaf(xs), []) = xs
-  | lookup (Leaf _, _::_) = []  (*non-empty keys and empty net*)
-  | lookup (Net{comb,var,atoms}, CombK :: keys) = lookup(comb,keys)
-  | lookup (Net{comb,var,atoms}, VarK :: keys) = lookup(var,keys)
-  | lookup (Net{comb,var,atoms}, AtomK a :: keys) =
-      lookup (the_atom atoms a, keys) handle ABSENT => [];
+fun lookup (Leaf xs) [] = xs
+  | lookup (Leaf _) (_ :: _) = []  (*non-empty keys and empty net*)
+  | lookup (Net {comb, var, atoms}) (CombK :: keys) = lookup comb keys
+  | lookup (Net {comb, var, atoms}) (VarK :: keys) = lookup var keys
+  | lookup (Net {comb, var, atoms}) (AtomK a :: keys) =
+      lookup (the_atom atoms a) keys handle ABSENT => [];
 
 
 (*Skipping a term in a net.  Recursively skip 2 levels if a combination*)
@@ -160,7 +164,8 @@ fun net_skip (Leaf _, nets) = nets
   | net_skip (Net{comb,var,atoms}, nets) =
       foldr net_skip (Symtab.fold (cons o #2) atoms (var::nets)) (net_skip (comb,[]));
 
-(** Matching and Unification**)
+
+(** Matching and Unification **)
 
 (*conses the linked net, if present, to nets*)
 fun look1 (atoms, a) nets =
@@ -206,7 +211,27 @@ fun unify_term net t =
     extract_leaves (matching true t (net,[]));
 
 
-(** dest **)
+(** operations on nets **)
+
+(*subtraction: collect entries of second net that are NOT present in first net*)
+fun subtract eq net1 net2 =
+  let
+    fun subtr (Net _) (Leaf ys) = append ys
+      | subtr (Leaf xs) (Leaf ys) =
+          fold_rev (fn y => if member eq xs y then I else cons y) ys
+      | subtr (Leaf _) (net as Net _) = subtr emptynet net
+      | subtr (Net {comb = comb1, var = var1, atoms = atoms1})
+            (Net {comb = comb2, var = var2, atoms = atoms2}) =
+          Symtab.fold (fn (a, net) =>
+            subtr (if_none (Symtab.lookup (atoms1, a)) emptynet) net) atoms2 o
+          subtr var1 var2 o
+          subtr comb1 comb2;
+  in subtr net1 net2 [] end;
+
+fun entries net = subtract (K false) empty net;
+
+
+(* merge *)
 
 fun cons_fst x (xs, y) = (x :: xs, y);
 
@@ -214,14 +239,8 @@ fun dest (Leaf xs) = map (pair []) xs
   | dest (Net {comb, var, atoms}) =
       map (cons_fst CombK) (dest comb) @
       map (cons_fst VarK) (dest var) @
-      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net))
-        (Symtab.dest atoms));
+      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms));
 
-
-(** merge **)
-
-fun add eq keys_x net = insert (keys_x, net, eq) handle INSERT => net;
-fun merge (net1, net2, eq) = fold (add eq) (dest net2) net1;
-
+fun merge eq (net1, net2) = fold (insert_safe eq) (dest net2) net1;
 
 end;
