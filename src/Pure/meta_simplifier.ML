@@ -17,6 +17,7 @@ sig
   val simp_depth_limit: int ref
   val trace_simp_depth_limit: int ref
   type rrule
+  val eq_rrule: rrule * rrule -> bool
   type cong
   type solver
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
@@ -274,10 +275,10 @@ fun print_ss ss =
       Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
 
     val Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...}) = ss;
-    val smps = map (#thm o #2) (Net.dest rules);
+    val smps = map #thm (Net.entries rules);
     val cngs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs);
-    val prcs = Net.dest procs |>
-      map (fn (_, Proc {name, lhs, id, ...}) => ((name, lhs), id))
+    val prcs = Net.entries procs |>
+      map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
       |> partition_eq eq_snd
       |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
       |> Library.sort_wrt #1;
@@ -327,12 +328,12 @@ fun merge_ss (ss1, ss2) =
      {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
       loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
-    val rules' = Net.merge (rules1, rules2, eq_rrule);
+    val rules' = Net.merge eq_rrule (rules1, rules2);
     val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
     val bounds' = Int.max (bounds1, bounds2);
     val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
     val weak' = merge_lists weak1 weak2;
-    val procs' = Net.merge (procs1, procs2, eq_proc);
+    val procs' = Net.merge eq_proc (procs1, procs2);
     val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
     val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
     val solvers' = merge_solvers solvers1 solvers2;
@@ -355,7 +356,7 @@ fun mk_simproc name lhss proc =
   end;
 
 fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
-fun simproc thy name = simproc_i thy name o map (Sign.simple_read_term thy TypeInfer.logicT);
+fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
 
 
 
@@ -384,7 +385,7 @@ fun insert_rrule quiet (ss, rrule as {thm, name, lhs, elhs, perm}) =
   ss |> map_simpset1 (fn (rules, prems, bounds) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
-      val rules' = Net.insert_term ((term_of elhs, rrule2), rules, eq_rrule);
+      val rules' = Net.insert_term eq_rrule (term_of elhs, rrule2) rules;
     in (rules', prems, bounds) end)
   handle Net.INSERT =>
     (if quiet then () else warn_thm "Ignoring duplicate rewrite rule:" thm; ss));
@@ -513,7 +514,7 @@ fun ss addsimps thms =
 
 fun del_rrule (ss, rrule as {thm, elhs, ...}) =
   ss |> map_simpset1 (fn (rules, prems, bounds) =>
-    (Net.delete_term ((term_of elhs, rrule), rules, eq_rrule), prems, bounds))
+    (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds))
   handle Net.DELETE => (warn_thm "Rewrite rule not in simpset:" thm; ss);
 
 fun ss delsimps thms =
@@ -599,14 +600,14 @@ local
 fun add_proc (ss, proc as Proc {name, lhs, ...}) =
  (trace_cterm false ("Adding simplification procedure " ^ quote name ^ " for") lhs;
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    (congs, Net.insert_term ((term_of lhs, proc), procs, eq_proc),
+    (congs, Net.insert_term eq_proc (term_of lhs, proc) procs,
       mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
   handle Net.INSERT =>
     (warning ("Ignoring duplicate simplification procedure " ^ quote name); ss));
 
 fun del_proc (ss, proc as Proc {name, lhs, ...}) =
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    (congs, Net.delete_term ((term_of lhs, proc), procs, eq_proc),
+    (congs, Net.delete_term eq_proc (term_of lhs, proc) procs,
       mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
   handle Net.DELETE =>
     (warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
