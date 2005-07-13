@@ -359,7 +359,7 @@ val showP =
 
 val haveP =
   OuterSyntax.command "have" "state local goal" K.prf_goal
-    (statement >> ((Toplevel.print oo Toplevel.proof) o  IsarThy.have));
+    (statement >> ((Toplevel.print oo Toplevel.proof) o IsarThy.have));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\"" K.prf_goal
@@ -501,7 +501,8 @@ val apply_endP =
 
 val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
-    (Scan.option P.method >> (fn m => Toplevel.print o Toplevel.proof (IsarThy.proof m) o
+    (Scan.option P.method >> (fn m => Toplevel.print o
+      Toplevel.actual_proof (IsarThy.proof m) o
       Toplevel.skip_proof (History.apply (fn i => i + 1))));
 
 
