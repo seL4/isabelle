@@ -11,20 +11,16 @@
 structure Recon_Parse =
 struct
 
-exception ASSERTION of string;
+open ReconPrelim ReconTranslateProof;
 
 exception NOPARSE_WORD
 exception NOPARSE_NUM
 fun to_upper s = String.translate (Char.toString o Char.toUpper) s;
 
 fun string2int s =
-  let
-    val io = Int.fromString s
-  in
-    case io of
-      (SOME i) => i
-      | _ => raise ASSERTION "string -> int failed"
-  end
+  (case Int.fromString s of SOME i => i
+  | NONE => raise ASSERTION "string -> int failed");
+
 
 (* Parser combinators *)
 
