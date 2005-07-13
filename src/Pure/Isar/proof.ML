@@ -5,9 +5,6 @@
 The Isar/VM proof language interpreter.
 *)
 
-
-(*Jia Meng: added in atp_hook and modified enter_forward. *)
-
 signature BASIC_PROOF =
 sig
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
@@ -32,6 +29,7 @@ sig
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
+  val thisN: string
   val get_goal: state -> context * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
   val get_mode: state -> mode
@@ -40,11 +38,9 @@ sig
   val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
-  val atp_hook: (context * thm -> unit) ref
   val enter_forward: state -> state
   val show_main_goal: bool ref
   val verbose: bool ref
-  val depth_of: state -> int
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val level: state -> int
@@ -123,22 +119,17 @@ sig
   val global_qed: (state -> state Seq.seq) -> state
     -> (theory * ((string * string) * (string * thm list) list)) Seq.seq
   val begin_block: state -> state
-  val end_block: state -> state Seq.seq
   val next_block: state -> state
-  val thisN: string
-  val call_atp: bool ref;
+  val end_block: state -> state Seq.seq
 end;
 
 structure Proof: PROOF =
 struct
 
-(*Jia Meng: by default, no ATP is called. *)
-val call_atp = ref false;
-
-(** proof state **)
-
 type context = ProofContext.context;
 
+
+(** proof state **)
 
 (* type goal *)
 
@@ -276,28 +267,6 @@ fun get_goal state =
   let val (ctxt, (_, ((_, x), _))) = find_goal state
   in (ctxt, x) end;
 
-
-(*
-(* Jia: added here: get all goals from the state 10/01/05 *)
-fun find_all i (state as State (Node {goal = SOME goal, ...}, node::nodes)) =
-    let val others = find_all (i+1) (State (node, nodes))
-    in
-        (context_of state, (i, goal)) :: others
-    end
-  | find_all i (State (Node {goal = NONE, ...}, node :: nodes)) = find_all (i + 1) (State (node, nodes))
-  | find_all _ (state as State (_, [])) = [];
-
-val find_all_goals = find_all 0;
-
-fun find_all_goals_ctxts state =
-    let val all_goals = find_all_goals state
-        fun find_ctxt_g [] = []
-          | find_ctxt_g ((ctxt, (_, ((_, (_, thm)), _)))::others) = (ctxt,thm) :: (find_ctxt_g others)
-    in
-        find_ctxt_g all_goals
-    end;
-*)
-
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
 fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
@@ -322,7 +291,7 @@ fun use_facts state =
 fun get_mode (State (Node {mode, ...}, _)) = mode;
 fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
-val enter_forward_aux = put_mode Forward;
+val enter_forward = put_mode Forward;
 val enter_forward_chain = put_mode ForwardChain;
 val enter_backward = put_mode Backward;
 
@@ -338,30 +307,6 @@ val assert_forward = assert_mode (equal Forward);
 val assert_forward_or_chain = assert_mode (equal Forward orf equal ForwardChain);
 val assert_backward = assert_mode (equal Backward);
 val assert_no_chain = assert_mode (not_equal ForwardChain);
-
-
-(*Jia Meng: a hook to be used for calling ATPs. *)
-(* send the entire proof context *)
-val atp_hook = ref (fn ctxt_state: ProofContext.context * Thm.thm => ());
-
-(*Jia Meng: the modified version of enter_forward. *)
-(*Jia Meng: atp: Proof.state -> unit *)
-local
- fun atp state =
-     let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
-     in
-         (!atp_hook) (ctxt,thm)
-     end;
-
-in
-
- fun enter_forward state =
-   if (!call_atp) then
-   ((atp state; enter_forward_aux state)
-                           handle (STATE _) => enter_forward_aux state)
-       else (enter_forward_aux state);
-
-end;
 
 
 (* blocks *)
@@ -386,15 +331,13 @@ val show_main_goal = ref false;
 val verbose = ProofContext.verbose;
 
 
-fun depth_of (State (_, nodes)) = length nodes div 2 - 1;
-
 val pretty_goals_local = Display.pretty_goals_aux o ProofContext.pp;
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
-fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, _)) =
+fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Display.current_goals_markers;
 
@@ -425,7 +368,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
 
     val prts =
      [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-        (if ! verbose then ", depth " ^ string_of_int (depth_of state)
+        (if ! verbose then ", depth " ^ string_of_int (length nodes div 2 - 1)
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
@@ -566,16 +509,22 @@ fun prep_result state ts raw_th =
 
 (* bind *)
 
-fun gen_bind f x state =
+local
+
+fun gen_bind f args state =
   state
   |> assert_forward
-  |> map_context (f x)
+  |> map_context (f args)
   |> reset_facts;
+
+in
 
 val match_bind = gen_bind (ProofContext.match_bind false);
 val match_bind_i = gen_bind (ProofContext.match_bind_i false);
 val let_bind = gen_bind (ProofContext.match_bind true);
 val let_bind_i = gen_bind (ProofContext.match_bind_i true);
+
+end;
 
 
 (* note_thmss *)
@@ -636,23 +585,33 @@ end;
 
 (* fix *)
 
-fun gen_fix f xs state =
+local
+
+fun gen_fix f args state =
   state
   |> assert_forward
-  |> map_context (f xs)
+  |> map_context (f args)
   |> reset_facts;
+
+in
 
 val fix = gen_fix ProofContext.fix;
 val fix_i = gen_fix ProofContext.fix_i;
 
+end;
+
 
 (* assume and presume *)
+
+local
 
 fun gen_assume f exp args state =
   state
   |> assert_forward
   |> map_context_result (f exp args)
   |> these_factss;
+
+in
 
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
@@ -661,9 +620,13 @@ val assume_i = assm_i ProofContext.export_assume;
 val presume = assm ProofContext.export_presume;
 val presume_i = assm_i ProofContext.export_presume;
 
+end;
+
 
 
 (** local definitions **)
+
+local
 
 fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state =
   let
@@ -685,8 +648,12 @@ fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state
     |> assm_i ProofContext.export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
 
+in
+
 val def = gen_def fix ProofContext.read_term ProofContext.read_term_pats;
 val def_i = gen_def fix_i ProofContext.cert_term ProofContext.cert_term_pats;
+
+end;
 
 
 (* invoke_case *)
@@ -725,6 +692,8 @@ fun from_facts facts state =
 
 
 (* setup goals *)
+
+local
 
 val rule_contextN = "rule_context";
 
@@ -767,7 +736,6 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
     |> enter_backward
   end;
 
-(*global goals*)
 fun global_goal prep kind after_global export raw_locale a elems concl thy =
   let
     val init = init_state thy;
@@ -789,11 +757,6 @@ fun global_goal prep kind after_global export raw_locale a elems concl thy =
       true (map (fst o fst) concl) propp
   end;
 
-val multi_theorem = global_goal Locale.read_context_statement;
-val multi_theorem_i = global_goal Locale.cert_context_statement;
-
-
-(*local goals*)
 fun local_goal' prepp kind (check: bool -> state -> state) after_local pr args int state =
   state
   |> setup_goal open_block prepp (K I) (kind (map (snd o fst) args))
@@ -803,10 +766,16 @@ fun local_goal' prepp kind (check: bool -> state -> state) after_local pr args i
 
 fun local_goal prepp kind f pr args = local_goal' prepp kind (K I) f pr args false;
 
+in
+
+val multi_theorem = global_goal Locale.read_context_statement;
+val multi_theorem_i = global_goal Locale.cert_context_statement;
 val show = local_goal' ProofContext.bind_propp Show;
 val show_i = local_goal' ProofContext.bind_propp_i Show;
 val have = local_goal ProofContext.bind_propp Have;
 val have_i = local_goal ProofContext.bind_propp_i Have;
+
+end;
 
 
 
@@ -931,27 +900,11 @@ fun global_qed finalize state =
 
 (** blocks **)
 
-(* begin_block *)
-
 fun begin_block state =
   state
   |> assert_forward
   |> new_block
   |> open_block;
-
-
-(* end_block *)
-
-fun end_block state =
-  state
-  |> assert_forward
-  |> close_block
-  |> assert_current_goal false
-  |> close_block
-  |> transfer_facts state;
-
-
-(* next_block *)
 
 fun next_block state =
   state
@@ -960,6 +913,13 @@ fun next_block state =
   |> new_block
   |> reset_facts;
 
+fun end_block state =
+  state
+  |> assert_forward
+  |> close_block
+  |> assert_current_goal false
+  |> close_block
+  |> transfer_facts state;
 
 end;
 
