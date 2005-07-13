@@ -86,9 +86,7 @@ fun has_consts bs =
   in  has  end;
 
 (* for tracing: encloses each string element in brackets. *)
-fun concat_with_and [] = ""
-  | concat_with_and [x] = "(" ^ x ^ ")"
-  | concat_with_and (x::xs) = "(" ^ x ^ ")" ^ " & " ^ concat_with_and xs;
+val concat_with_and = space_implode " & " o map (enclose "(" ")");
 
 
 (**** Clause handling ****)
@@ -288,7 +286,7 @@ fun rhyps (Const("==>",_) $ (Const("Trueprop",_) $ A) $ phi,
 (** Detecting repeated assumptions in a subgoal **)
 
 (*The stringtree detects repeated assumptions.*)
-fun ins_term (net,t) = Net.insert_term((t,t), net, op aconv);
+fun ins_term (net,t) = Net.insert_term (op aconv) (t,t) net;
 
 (*detects repetitions in a list of terms*)
 fun has_reps [] = false
