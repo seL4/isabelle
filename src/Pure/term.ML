@@ -1246,7 +1246,7 @@ val add_vars =
 val add_frees =
   let fun add_frees' (Free v) = insert (op =) v
          | add_frees' _ = I
-  in uncurry (fold_aterms add_frees') o swap end;*)
+  in uncurry (fold_aterms add_frees') o swap end;
 
 (*collect variable names*)
 val add_term_varnames =
