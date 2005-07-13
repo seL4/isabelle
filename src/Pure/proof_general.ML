@@ -1115,7 +1115,7 @@ fun xmltext ((XML.Text text)::ts) = text ^ (xmltext ts)
 fun isarscript xmls = isarcmd (xmltext xmls)   (* send a script command *)
 
 
-(* load an arbitrary (.thy or .ML) file *)
+(* load an arbitrary file (must be .thy or .ML) *)
 
 fun use_thy_or_ml_file file =
     let
@@ -1125,7 +1125,6 @@ fun use_thy_or_ml_file file =
             "" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
           | "thy" => isarcmd ("use_thy " ^ (quote (Path.pack path)))
           | "ML" => isarcmd ("use " ^ quote file)
-          (* instead of error we could guess theory? *)
           | other => error ("Don't know how to read a file with extension " ^ other)
     end
 
@@ -1159,6 +1158,22 @@ local
   val topthy_name = Context.theory_name o topthy
 
   val currently_open_file = ref (NONE : string option)
+
+  (* Path management: we allow theory files to have dependencies
+     in their own directory, but when we change directory for a new
+     file we remove the path.  Leaving it there can cause confusion
+     with difference in batch mode.a  NB: PGIP does not assume
+     that the prover has a load path. *)
+  local 
+      val current_working_dir = ref (NONE : string option)
+  in
+      fun changecwd dir = 
+	  (case (!current_working_dir) of
+	       NONE => ()
+             | SOME dir => ThyLoad.del_path dir;
+	   ThyLoad.add_path dir;
+	   current_working_dir := SOME dir)
+  end
 
   val topnode = Toplevel.node_of o Toplevel.get_state
   fun topproofpos () = (case topnode() of Toplevel.Proof ph => SOME(ProofHistory.position ph)
@@ -1239,7 +1254,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
                                            currently_open_file := NONE)
                               | NONE => raise PGIP ("closefile when no file is open!"))
      | "abortfile"      => (currently_open_file := NONE) (* perhaps error for no file open *)
-     | "changecwd"      => ThyLoad.add_path (dirname_attr attrs)
+     | "changecwd"      => changecwd (dirname_attr attrs)
      | "systemcmd"      => isarscript data
      (* unofficial command for debugging *)
      | "quitpgip" => raise PGIP_QUIT
