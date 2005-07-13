@@ -202,7 +202,6 @@ esac
 ISABELLE_TMP="$ISABELLE_TMP_PREFIX$$"
 mkdir -p "$ISABELLE_TMP"
 
-
 ## run it!
 
 ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
@@ -218,6 +217,7 @@ elif [ "$ISAR" = true ]; then
 fi
 
 export INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
+export ISABELLE_PID="$$"
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
