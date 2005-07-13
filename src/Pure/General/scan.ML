@@ -259,7 +259,7 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (force scan --| lift stop) (state, List.revAppend (rev input, [stopper]))
+    else (force scan --| lift stop) (state, input @ [stopper])
   end;
 
 fun finite stopper scan = unlift (finite' stopper (lift scan));

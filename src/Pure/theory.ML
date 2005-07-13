@@ -179,7 +179,7 @@ val oracle_space = #1 o #oracles o rep_theory;
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = List.concat (map axioms_of (thy :: ancestors_of thy));
 
-fun defs_of thy = (case rep_theory thy of {defs=D, ...} => D)
+val defs_of = #defs o rep_theory;
 
 fun requires thy name what =
   if Context.exists_name name thy then ()

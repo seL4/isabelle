@@ -3,6 +3,11 @@
     Copyright   2004  University of Cambridge
 *)
 
+structure ReconTranslateProof =
+struct
+
+open ReconPrelim;
+
 fun add_in_order (x:string) [] = [x]
 |   add_in_order (x:string) ((y:string)::ys) = if (x < y) 
                              then 
@@ -15,10 +20,6 @@ fun add_once x [] = [x]
      
 fun thm_vars thm = map (fn ((name,ix),_) => name) (Drule.vars_of thm);
 
-Goal "False ==> False";
-by Auto_tac;
-qed "False_imp";
-
 exception Reflex_equal;
 
 (********************************)
@@ -28,7 +29,7 @@ exception Reflex_equal;
 
 datatype Side = Left |Right
 
- datatype Proofstep =  ExtraAxiom
+datatype Proofstep =  ExtraAxiom
                      | OrigAxiom
   		     | VampInput 
                      | Axiom
@@ -424,15 +425,13 @@ fun proofstring x = let val exp = explode x
                     end
 
 
-fun not_newline ch = not (ch = "\n");
-
 (*
 
 fun follow clauses [] allvars thml recons = 
                              let (* val _ = reset show_sorts*)
                               val thmstring = Meson.concat_with_and (map string_of_thm (map snd thml))
                               val thmproofstring = proofstring ( thmstring)
-                            val no_returns =List.filter  not_newline ( thmproofstring)
+                            val no_returns = no_lines thmproofstring
                             val thmstr = implode no_returns
                                val outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "thml_file")))
                                val _ = TextIO.output(outfile, "thmstr is "^thmstr)
@@ -502,3 +501,5 @@ fun translate_proof clauses proof allvars
 fun remove_tinfo [] = []
   | remove_tinfo ( (clausenum, step, T_info, newstrs)::xs) =
       (clausenum, step , newstrs)::(remove_tinfo xs)
+
+end;

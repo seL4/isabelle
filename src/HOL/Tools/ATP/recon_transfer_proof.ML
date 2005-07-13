@@ -9,10 +9,10 @@
 
 structure Recon_Transfer =
 struct
-open Recon_Parse
-infixr 8 ++; infixr 7 >>; infixr 6 ||;
 
-fun not_newline ch = not (ch = "\n");
+open Recon_Parse
+
+infixr 8 ++; infixr 7 >>; infixr 6 ||;
 
 
 
@@ -51,14 +51,9 @@ fun retrieve_clause array symtable clausenum = let
 
 (* Versions that include type information *)
  
+(* FIXME rename to str_of_thm *)
 fun string_of_thm thm =
-  let val _ = set show_sorts
-      val str = Display.string_of_thm thm
-      val no_returns =List.filter not_newline (explode str)
-      val _ = reset show_sorts
-  in 
-      implode no_returns
-  end
+  setmp show_sorts true (Pretty.str_of o Display.pretty_thm) thm;
 
 
 (* check separate args in the watcher program for separating strings with a * or ; or something *)
@@ -377,31 +372,16 @@ val dummy_tac = PRIMITIVE(fn thm => thm );
 \1453[0:Rew:1279.0,1430.0,1242.0,1430.0,1279.0,1430.0] || equal(const_0,const_0)* -> .\
 \1454[0:Obv:1453.0] ||  -> .";*)
 
-fun remove_linebreaks str = let val strlist = explode str
-	                        val nonewlines = filter (not_equal "\n") strlist
-	                    in
-				implode nonewlines
-			    end
-
-
 fun subst_for a b [] = ""
-|   subst_for a b (x::xs) = if (x = a)
-				   then 
-					(b^(subst_for a b  xs))
-				   else
-					x^(subst_for a b xs)
+  | subst_for a b (x :: xs) =
+      if x = a
+      then 
+	b ^ subst_for a b xs
+      else
+	x ^ subst_for a b xs;
 
-
-fun remove_linebreaks str = let val strlist = explode str
-			    in
-				subst_for "\n" "\t" strlist
-			    end
-
-fun restore_linebreaks str = let val strlist = explode str
-			     in
-				subst_for "\t" "\n" strlist
-			     end
-
+val remove_linebreaks = subst_for "\n" "\t" o explode;
+val restore_linebreaks = subst_for "\t" "\n" o explode;
 
 
 fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
