@@ -6,12 +6,6 @@ Generic simplifier, suitable for most logics (see also
 meta_simplifier.ML for the actual meta-level rewriting engine).
 *)
 
-(* added: put_delta_simpset, get_delta_simpset
-   changed: simp_add_local
-   07/01/05
-*)
-
-
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
@@ -98,9 +92,6 @@ sig
   val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
     -> (theory -> theory) list
   val easy_setup: thm -> thm list -> (theory -> theory) list
-
-  val get_delta_simpset: ProofContext.context -> Thm.thm list
-  val put_delta_simpset: Thm.thm list -> ProofContext.context -> ProofContext.context
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -134,7 +125,7 @@ fun context_simproc_i thy name =
   mk_context_simproc name o map (Thm.cterm_of thy o Logic.varify);
 
 fun context_simproc thy name =
-  context_simproc_i thy name o map (Sign.simple_read_term thy TypeInfer.logicT);
+  context_simproc_i thy name o map (Sign.read_term thy);
 
 
 (* datatype context_ss *)
@@ -303,44 +294,6 @@ fun local_simpset_of ctxt =
   context_ss ctxt (get_local_simpset ctxt) (get_context_ss ctxt);
 
 
-(* Jia: added DeltaSimpsetArgs and DeltaSimpset for delta_simpset
-	also added methods to retrieve them. *)
-(* CB: changed "delta simpsets" to context data,
-       moved counter to here, it is no longer a ref *)
-
-structure DeltaSimpsetArgs =
-struct
-  val name = "Pure/delta_simpset";
-  type T = Thm.thm list * int;  (*the type is thm list * int*)
-  fun init _ = ([], 0);
-  fun print ctxt thms = ();
-end;
-
-structure DeltaSimpsetData = ProofDataFun(DeltaSimpsetArgs);
-val _ = Context.add_setup [DeltaSimpsetData.init];
-
-val get_delta_simpset = #1 o DeltaSimpsetData.get;
-fun put_delta_simpset ss = DeltaSimpsetData.map (fn (_, i) => (ss, i));
-fun delta_increment ctxt =
-  let val ctxt' = DeltaSimpsetData.map (fn (ss, i) => (ss, i+1)) ctxt
-  in (ctxt', #2 (DeltaSimpsetData.get ctxt'))
-  end;
-
-(* Jia: added to rename a local thm if necessary *) 
-local 
-fun rename_thm' (ctxt,thm) =
-  let val (new_ctxt, new_id) = delta_increment ctxt
-      val new_name = "anon_simp_" ^ (string_of_int new_id)
-  in
-    (new_ctxt, Thm.name_thm(new_name,thm))
-end;
-
-in
-
-fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else (ctxt, thm);
-
-end
-
 (* attributes *)
 
 fun change_global_ss f (thy, th) =
@@ -353,23 +306,7 @@ fun change_local_ss f (ctxt, th) =
 
 val simp_add_global = change_global_ss (op addsimps);
 val simp_del_global = change_global_ss (op delsimps);
-
-
-
-
-
-(* Jia: note: when simplifier rules are added to local_simpset, they are also added to delta_simpset in ProofContext.context, but not removed if simp_del_local is called *)
-fun simp_add_local (ctxt,th) = 
-    let val delta_ss = get_delta_simpset ctxt
-	val thm_name = Thm.name_of_thm th
-        val (ctxt', th') =
-          if (thm_name = "") then rename_thm (ctxt,th)  else (ctxt, th)
-	val new_dss = th'::delta_ss
-	val ctxt'' = put_delta_simpset new_dss ctxt' 
-    in
-	change_local_ss (op addsimps) (ctxt'',th)
-    end;
-
+val simp_add_local = change_local_ss (op addsimps);
 val simp_del_local = change_local_ss (op delsimps);
 
 val cong_add_global = change_global_ss (op addcongs);
@@ -378,6 +315,8 @@ val cong_add_local = change_local_ss (op addcongs);
 val cong_del_local = change_local_ss (op delcongs);
 
 
+(* tactics *)
+
 val simp_tac = generic_simp_tac false (false, false, false);
 val asm_simp_tac = generic_simp_tac false (false, true, false);
 val full_simp_tac = generic_simp_tac false (true, false, false);
@@ -385,14 +324,15 @@ val asm_lr_simp_tac = generic_simp_tac false (true, true, false);
 val asm_full_simp_tac = generic_simp_tac false (true, true, true);
 val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
 
-
-
 (*the abstraction over the proof state delays the dereferencing*)
 fun          Simp_tac i st =          simp_tac (simpset ()) i st;
 fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
 fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
 fun   Asm_lr_simp_tac i st =   asm_lr_simp_tac (simpset ()) i st;
 fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
+
+
+(* conversions *)
 
 val          simplify = simp_thm (false, false, false);
 val      asm_simplify = simp_thm (false, true, false);
