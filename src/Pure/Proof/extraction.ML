@@ -128,8 +128,8 @@ fun corr_name s vs = extr_name s vs ^ "_correctness";
 
 fun msg d s = priority (Symbol.spaces d ^ s);
 
-fun vars_of t = rev (fold_aterms
-  (fn v as Var _ => (fn vs => v ins vs) | _ => I) t []);
+fun vars_of t = rev (foldl_aterms
+  (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
 
 fun vfs_of t = vars_of t @ sort (make_ord atless) (term_frees t);
 

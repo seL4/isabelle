@@ -705,7 +705,7 @@ fun inst_tab_elems thy inst ((n, ps), elems) =
 
 fun frozen_tvars ctxt Ts =
   let
-    val tvars = rev (fold Term.add_tvarsT Ts []);
+    val tvars = rev (Library.foldl Term.add_tvarsT ([], Ts));
     val tfrees = map TFree
       (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
   in map (fn ((x, S), y) => (x, (S, y))) (tvars ~~ tfrees) end;
