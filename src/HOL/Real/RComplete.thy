@@ -831,7 +831,7 @@ lemma le_natfloor_eq_number_of [simp]:
   apply simp
 done
 
-lemma le_natfloor_one_eq [simp]: "(1 <= natfloor x) = (1 <= x)"
+lemma le_natfloor_eq_one [simp]: "(1 <= natfloor x) = (1 <= x)"
   apply (case_tac "0 <= x")
   apply (subst le_natfloor_eq, assumption, simp)
   apply (rule iffI)
@@ -971,13 +971,14 @@ lemma natceiling_le_eq: "0 <= x ==> (natceiling x <= a) = (x <= real a)"
   apply (erule natceiling_le)
 done
 
-lemma natceiling_le_eq2 [simp]: "~ neg((number_of n)::int) ==> 0 <= x ==>
-    (natceiling x <= number_of n) = (x <= number_of n)"
+lemma natceiling_le_eq_number_of [simp]: 
+    "~ neg((number_of n)::int) ==> 0 <= x ==>
+      (natceiling x <= number_of n) = (x <= number_of n)"
   apply (subst natceiling_le_eq, assumption)
   apply simp
 done
 
-lemma natceiling_one_le_eq: "(natceiling x <= 1) = (x <= 1)"
+lemma natceiling_le_eq_one: "(natceiling x <= 1) = (x <= 1)"
   apply (case_tac "0 <= x")
   apply (subst natceiling_le_eq)
   apply assumption
@@ -1017,8 +1018,9 @@ lemma natceiling_add [simp]: "0 <= x ==>
   apply simp_all
 done
 
-lemma natceiling_add2 [simp]: "~ neg ((number_of n)::int) ==> 0 <= x ==> 
-    natceiling (x + number_of n) = natceiling x + number_of n"
+lemma natceiling_add_number_of [simp]: 
+    "~ neg ((number_of n)::int) ==> 0 <= x ==> 
+      natceiling (x + number_of n) = natceiling x + number_of n"
   apply (subst natceiling_add [THEN sym])
   apply simp_all
 done
