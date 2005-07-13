@@ -7,17 +7,11 @@ The Isabelle/Isar toplevel.
 
 signature TOPLEVEL =
 sig
-  datatype node = Theory of theory | Proof of ProofHistory.T | SkipProof of int History.T * theory
+  datatype node =
+    Theory of theory | Proof of ProofHistory.T | SkipProof of int History.T * theory
   type state
   val toplevel: state
   val is_toplevel: state -> bool
-  val prompt_state_default: state -> string
-  val prompt_state_fn: (state -> string) ref
-  val print_state_context: state -> unit
-  val print_state_default: bool -> state -> unit
-  val print_state_fn: (bool -> state -> unit) ref
-  val print_state: bool -> state -> unit
-  val pretty_state: bool -> state -> Pretty.T list
   exception UNDEF
   val node_history_of: state -> node History.T
   val node_of: state -> node
@@ -27,10 +21,19 @@ sig
   val context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   val enter_forward_proof: state -> Proof.state
+  val prompt_state_default: state -> string
+  val prompt_state_fn: (state -> string) ref
+  val print_state_context: state -> unit
+  val print_state_default: bool -> state -> unit
+  val print_state_hook: (bool -> state -> unit) -> unit
+  val print_state_fn: (bool -> state -> unit) ref
+  val print_state: bool -> state -> unit
+  val pretty_state: bool -> state -> Pretty.T list
   val quiet: bool ref
   val debug: bool ref
   val timing: bool ref
   val profiling: int ref
+  val skip_proofs: bool ref
   exception TERMINATE
   exception RESTART
   type transition
@@ -55,16 +58,15 @@ sig
   val imperative: (unit -> unit) -> transition -> transition
   val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit)
     -> transition -> transition
-  val skip_proofs: bool ref
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_to_proof: (bool -> theory -> ProofHistory.T) -> transition -> transition
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
-  val proof'': (ProofHistory.T -> ProofHistory.T) -> transition -> transition
+  val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
+  val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
   val proof_to_theory': (bool -> ProofHistory.T -> theory) -> transition -> transition
-  val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val skip_proof_to_theory: (int History.T -> bool) -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
@@ -88,32 +90,12 @@ struct
 
 (** toplevel state **)
 
-(* datatype node *)
+(* datatype state *)
 
 datatype node =
   Theory of theory |
-  Proof of ProofHistory.T |
-  SkipProof of int History.T * theory;
-
-fun str_of_node (Theory _) = "in theory mode"
-  | str_of_node _ = "in proof mode";
-
-fun pretty_context thy = [Pretty.block
-  [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
-    Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]];
-
-fun pretty_prf prf = Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf);
-
-fun pretty_node_context (Theory thy) = pretty_context thy
-  | pretty_node_context (Proof prf) = pretty_context (Proof.theory_of (ProofHistory.current prf))
-  | pretty_node_context _ = [];
-
-fun pretty_node prf_only (Theory thy) = if prf_only then [] else pretty_context thy
-  | pretty_node _ (Proof prf) = pretty_prf prf
-  | pretty_node _ _ = [];
-
-
-(* datatype state *)
+  Proof of ProofHistory.T |              (*history of proof states*)
+  SkipProof of int History.T * theory;   (*history of proof depths*)
 
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
@@ -123,36 +105,11 @@ fun is_toplevel (State NONE) = true
   | is_toplevel _ = false;
 
 fun str_of_state (State NONE) = "at top level"
-  | str_of_state (State (SOME (node, _))) = str_of_node (History.current node);
-
-
-(* prompt_state hook *)
-
-fun prompt_state_default (State _) = Source.default_prompt;
-
-val prompt_state_fn = ref prompt_state_default;
-fun prompt_state state = ! prompt_state_fn state;
-
-
-(* print state *)
-
-fun pretty_current_node _ (State NONE) = []
-  | pretty_current_node prt (State (SOME (node, _))) = prt (History.current node);
-
-val print_state_context =
-  Pretty.writeln o Pretty.chunks o pretty_current_node pretty_node_context;
-
-fun pretty_state prf_only state =
-  let val ref (begin_state, end_state, _) = Display.current_goals_markers in
-    (case pretty_current_node (pretty_node prf_only) state of [] => []
-    | prts =>
-        (if begin_state = "" then [] else [Pretty.str begin_state]) @ prts @
-        (if end_state = "" then [] else [Pretty.str end_state]))
-  end;
-
-fun print_state_default prf_only state = Pretty.writelns (pretty_state prf_only state);
-val print_state_fn = ref print_state_default;
-fun print_state state = ! print_state_fn state;
+  | str_of_state (State (SOME (node, _))) =
+      (case History.current node of
+        Theory _ => "in theory mode"
+      | Proof _ => "in proof mode"
+      | SkipProof _ => "in skipped proof mode");
 
 
 (* top node *)
@@ -167,8 +124,8 @@ val node_of = History.current o node_history_of;
 fun node_case f g state =
   (case node_of state of
     Theory thy => f thy
-  | SkipProof (i, thy) => f thy
-  | Proof prf => g (ProofHistory.current prf));
+  | Proof prf => g (ProofHistory.current prf)
+  | SkipProof (_, thy) => f thy);
 
 val theory_of = node_case I Proof.theory_of;
 val sign_of = theory_of;
@@ -178,6 +135,51 @@ val proof_of = node_case (fn _ => raise UNDEF) I;
 val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
 
 
+(* prompt state *)
+
+fun prompt_state_default (State _) = Source.default_prompt;
+
+val prompt_state_fn = ref prompt_state_default;
+fun prompt_state state = ! prompt_state_fn state;
+
+
+(* print state *)
+
+fun pretty_context thy = [Pretty.block
+  [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
+    Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]];
+
+fun pretty_state_context state =
+  (case try theory_of state of NONE => []
+  | SOME thy => pretty_context thy);
+
+fun pretty_node prf_only (Theory thy) = if prf_only then [] else pretty_context thy
+  | pretty_node _ (Proof prf) =
+      Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
+  | pretty_node _ (SkipProof (h, _)) =
+      [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))];
+
+fun pretty_state prf_only state =
+  let val ref (begin_state, end_state, _) = Display.current_goals_markers in
+    (case try node_of state of NONE => []
+    | SOME node =>
+        (if begin_state = "" then [] else [Pretty.str begin_state]) @
+        pretty_node prf_only node @
+        (if end_state = "" then [] else [Pretty.str end_state]))
+  end;
+
+val print_state_context = Pretty.writelns o pretty_state_context;
+fun print_state_default prf_only state = Pretty.writelns (pretty_state prf_only state);
+
+val print_state_hooks = ref ([]: (bool -> state -> unit) list);
+fun print_state_hook f = change print_state_hooks (cons f);
+val print_state_fn = ref print_state_default;
+
+fun print_state prf_only state =
+ (List.app (fn f => (try (fn () => f prf_only state) (); ())) (! print_state_hooks);
+  ! print_state_fn prf_only state);
+
+
 
 (** toplevel transitions **)
 
@@ -185,6 +187,7 @@ val quiet = ref false;
 val debug = ref false;
 val timing = Output.timing;
 val profiling = ref 0;
+val skip_proofs = ref false;
 
 exception TERMINATE;
 exception RESTART;
@@ -192,13 +195,15 @@ exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 
 
-(* recovery from stale theories *)
+(* node transactions and recovery from stale theories *)
 
-(*note: proof commands should be non-destructive!*)
+(*NB: proof commands should be non-destructive!*)
 
 local
 
 fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
+
+val stale_theory = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
 
 fun checkpoint_node true (Theory thy) = Theory (Theory.checkpoint thy)
   | checkpoint_node _ node = node;
@@ -206,17 +211,13 @@ fun checkpoint_node true (Theory thy) = Theory (Theory.checkpoint thy)
 fun copy_node true (Theory thy) = Theory (Theory.copy thy)
   | copy_node _ node = node;
 
-val stale_theory = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
-
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
 
 fun debug_trans f x =
   if ! debug then
-    let val y = ref x in
-      setmp Output.transform_exceptions false
-        exception_trace (fn () => y := f x); ! y
-    end
+    setmp Output.transform_exceptions false
+      exception_trace (fn () => f x)
   else f x;
 
 fun interruptible f x =
@@ -225,8 +226,8 @@ fun interruptible f x =
 
 in
 
-fun node_trans _ _ _ (State NONE) = raise UNDEF
-  | node_trans int hist f (State (SOME (node, term))) =
+fun transaction _ _ _ (State NONE) = raise UNDEF
+  | transaction int hist f (State (SOME (node, term))) =
       let
         val cont_node = History.map (checkpoint_node int) node;
         val back_node = History.map (copy_node int) cont_node;
@@ -254,12 +255,11 @@ end;
 
 (* primitive transitions *)
 
-(*Important note: recovery from stale theories is provided only for
-  theory-level operations via MapCurrent and AppCurrent.  Other node
-  or state operations should not touch theories at all.
+(*NB: recovery from stale theories is provided only for theory-level
+  operations via MapCurrent and AppCurrent.  Other node or state
+  operations should not touch theories at all.
 
-  Also note that interrupts are enabled for Keep, MapCurrent, and
-  AppCurrent only.*)
+  Interrupts are enabled only for Keep, MapCurrent, and AppCurrent.*)
 
 datatype trans =
   Reset |                                       (*empty toplevel*)
@@ -289,8 +289,8 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
   | apply_tr _ (History _) (State NONE) = raise UNDEF
   | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
-  | apply_tr int (MapCurrent f) state = node_trans int false f state
-  | apply_tr int (AppCurrent f) state = node_trans int true f state;
+  | apply_tr int (MapCurrent f) state = transaction int false f state
+  | apply_tr int (AppCurrent f) state = transaction int true f state;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -311,13 +311,13 @@ end;
 (* datatype transition *)
 
 datatype transition = Transition of
- {name: string,
-  pos: Position.T,
-  source: OuterLex.token list option,
-  int_only: bool,
-  print: string list,
-  no_timing: bool,
-  trans: trans list};
+ {name: string,                        (*command name*)
+  pos: Position.T,                     (*source position*)
+  source: OuterLex.token list option,  (*source text*)
+  int_only: bool,                      (*interactive-only*)
+  print: string list,                  (*print modes (union)*)
+  no_timing: bool,                     (*suppress timing*)
+  trans: trans list};                  (*primitive transitions (union)*)
 
 fun make_transition (name, pos, source, int_only, print, no_timing, trans) =
   Transition {name = name, pos = pos, source = source,
@@ -391,14 +391,6 @@ fun init_theory f exit kill =
 
 (* typed transitions *)
 
-(*The skip_proofs flag allows proof scripts to be skipped during
-  interactive proof in order to speed up processing of large
-  theories. While in skipping mode, states are represented as
-  SkipProof (h, thy), where h contains a counter for the number of
-  open proof blocks.*)
-
-val skip_proofs = ref false;
-
 fun theory f = app_current (fn _ => (fn Theory thy => Theory (f thy) | _ => raise UNDEF));
 fun theory' f = app_current (fn int => (fn Theory thy => Theory (f int thy) | _ => raise UNDEF));
 
@@ -409,13 +401,18 @@ fun theory_to_proof f = app_current (fn int =>
         else Proof (f int thy)
     | _ => raise UNDEF));
 
-fun proof''' b f = map_current (fn int => (fn Proof prf => Proof (f int prf)
-  | SkipProof (h, thy) => if b then SkipProof (History.apply I h, thy) else raise UNDEF
-  | _ => raise UNDEF));
+fun proof' f = map_current (fn int =>
+  (fn Proof prf => Proof (f int prf)
+    | SkipProof (h, thy) => SkipProof (History.apply I h, thy)   (*approximate f*)
+    | _ => raise UNDEF));
 
-val proof' = proof''' true;
 val proof = proof' o K;
-val proof'' = proof''' false o K;
+
+fun actual_proof f = map_current (fn _ =>
+  (fn Proof prf => Proof (f prf) | _ => raise UNDEF));
+
+fun skip_proof f = map_current (fn _ =>
+  (fn SkipProof (h, thy) => SkipProof (f h, thy) | _ => raise UNDEF));
 
 fun proof_to_theory' f =
   map_current (fn int => (fn Proof prf => Theory (f int prf)
@@ -424,10 +421,7 @@ fun proof_to_theory' f =
 
 val proof_to_theory = proof_to_theory' o K;
 
-fun skip_proof f = map_current (fn int =>
-  (fn SkipProof (h, thy) => SkipProof (f h, thy) | _ => raise UNDEF));
-
-fun skip_proof_to_theory p = map_current (fn int =>
+fun skip_proof_to_theory p = map_current (fn _ =>
   (fn SkipProof (h, thy) => if p h then Theory thy else raise UNDEF | _ => raise UNDEF));
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
@@ -499,8 +493,6 @@ end;
 
 
 (* apply transitions *)
-
-val quiet = ref false;
 
 local
 
