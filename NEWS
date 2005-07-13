@@ -416,6 +416,10 @@ and tracing of low-level exceptions; Toplevel.profiling (default 0)
 controls execution profiling -- set to 1 for time and 2 for space
 (both increase the runtime).
 
+* Isar session: The initial use of ROOT.ML is now always timed,
+i.e. the log will show the actual process times, in contrast to the
+elapsed wall-clock time that the outer shell wrapper produces.
+ 
 * Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
 reasonably efficient light-weight implementation of sets as lists.
 
