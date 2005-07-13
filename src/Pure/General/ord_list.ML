@@ -24,32 +24,31 @@ struct
 
 (* single elements *)
 
-exception ABSENT of int;
-
 fun find_index ord list x =
   let
-    fun find i [] = raise ABSENT i
+    fun find i [] = ~ i
       | find i (y :: ys) =
           (case ord (x, y) of
-            LESS => raise ABSENT i
+            LESS => ~ i
           | EQUAL => i
           | GREATER => find (i + 1) ys);
-  in find 0 list end;
+  in find 1 list end;
 
-fun member ord list x =
-  (find_index ord list x; true) handle ABSENT _ => false;
+fun member ord list x = find_index ord list x > 0;
 
 fun insert ord x list =
   let
-    fun insrt 0 ys = x :: ys
+    fun insrt 1 ys = x :: ys
       | insrt i (y :: ys) = y :: insrt (i - 1) ys;
-  in (find_index ord list x; list) handle ABSENT i => insrt i list end;
+    val idx = find_index ord list x;
+  in if idx > 0 then list else insrt (~ idx) list end;
 
 fun remove ord x list =
   let
-    fun rmove 0 (_ :: ys) = ys
+    fun rmove 1 (_ :: ys) = ys
       | rmove i (y :: ys) = y :: rmove (i - 1) ys;
-  in rmove (find_index ord list x) list handle ABSENT _ => list end;
+    val idx = find_index ord list x;
+  in if idx > 0 then rmove idx list else list end;
 
 
 (* lists as sets *)
