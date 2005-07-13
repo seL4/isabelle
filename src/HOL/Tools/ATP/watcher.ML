@@ -23,6 +23,8 @@ use "SpassCommunication";*)
 structure Watcher: WATCHER =
   struct
 
+open ReconPrelim Recon_Transfer
+
 val goals_being_watched = ref 0;
 
 (*****************************************)
