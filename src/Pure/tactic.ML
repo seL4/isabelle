@@ -106,6 +106,7 @@ sig
   include BASIC_TACTIC
   val innermost_params: int -> thm -> (string * typ) list
   val untaglist: (int * 'a) list -> 'a list
+  val eq_kbrl: ('a * (bool * thm)) * ('a * (bool * thm)) -> bool
   val orderlist: (int * 'a) list -> 'a list
   val rewrite: bool -> thm list -> cterm -> thm
   val simplify: bool -> thm list -> thm -> thm
@@ -437,26 +438,24 @@ fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
 fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
   if eres then
     (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.insert_term ((prem, kbrl), enet, K false))
+      SOME prem => (inet, Net.insert_term (K false) (prem, kbrl) enet)
     | NONE => error "insert_tagged_brl: elimination rule with no premises")
-  else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
+  else (Net.insert_term (K false) (concl_of th, kbrl) inet, enet);
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
     foldr insert_tagged_brl netpair (taglist 1 brls);
 
 (*delete one kbrl from the pair of nets*)
-local
-  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Drule.eq_thm_prop (th, th')
-in
+fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Drule.eq_thm_prop (th, th')
+
 fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
   (if eres then
     (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.delete_term ((prem, ((), brl)), enet, eq_kbrl))
+      SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
     | NONE => (inet, enet))  (*no major premise: ignore*)
-  else (Net.delete_term ((Thm.concl_of th, ((), brl)), inet, eq_kbrl), enet))
+  else (Net.delete_term eq_kbrl (Thm.concl_of th, ((), brl)) inet, enet))
   handle Net.DELETE => (inet,enet);
-end;
 
 
 (*biresolution using a pair of nets rather than rules.
@@ -486,7 +485,7 @@ val net_bimatch_tac =
 
 (*insert one tagged rl into the net*)
 fun insert_krl (krl as (k,th), net) =
-    Net.insert_term ((concl_of th, krl), net, K false);
+    Net.insert_term (K false) (concl_of th, krl) net;
 
 (*build a net of rules for resolution*)
 fun build_net rls =
