@@ -56,7 +56,7 @@ fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_t
 local
 
 fun rev_vars_of tm =
-  Term.foldl_aterms (fn (ts, t as Var _) => t :: ts | (ts, _) => ts) ([], tm)
+  Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []
   |> Library.distinct;
 
 val mk_var = encode_type o #2 o Term.dest_Var;

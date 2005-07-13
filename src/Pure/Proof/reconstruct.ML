@@ -23,8 +23,8 @@ open Proofterm;
 val quiet_mode = ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
-fun vars_of t = rev (foldl_aterms
-  (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
+fun vars_of t = rev (fold_aterms
+  (fn v as Var _ => (fn vs => v ins vs) | _ => I) t []);
 
 fun forall_intr (t, prop) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)

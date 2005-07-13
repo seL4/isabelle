@@ -958,7 +958,7 @@ fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
 
 (* vars in left-to-right order *)
 
-fun tvars_of_terms ts = rev (Library.foldl Term.add_tvars ([], ts));
+fun tvars_of_terms ts = rev (fold Term.add_tvars ts []);
 fun vars_of_terms ts = rev (Library.foldl Term.add_vars ([], ts));
 
 fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];

@@ -89,8 +89,8 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     val bound_thesis_raw as (bound_thesis_name, _) =
       Term.dest_Free (bind_thesis (Free (thesisN, propT)));
     val bound_thesis_var =
-      foldl_aterms (fn (v, Free (x, T)) => if x = bound_thesis_name then (x, T) else v
-        | (v, t) => v) (bound_thesis_raw, bound_thesis);
+      fold_aterms (fn Free (x, T) => (fn v => if x = bound_thesis_name then (x, T) else v)
+        | _ => I) bound_thesis bound_thesis_raw;
 
     fun occs_var x = Library.get_first (fn t =>
       ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;

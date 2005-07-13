@@ -350,10 +350,10 @@ fun cert_typ thy (envT, raw_T) =
 
 (* prepare props *)
 
-val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
+val add_frees = fold_aterms (fn Free v => (fn vs => v ins vs) | _ => I);
 
 fun enter_term t (envS, envT, used) =
-  (Term.add_term_tfrees (t, envS), add_frees (envT, t), Term.add_term_tfree_names (t, used));
+  (Term.add_term_tfrees (t, envS), add_frees t envT, Term.add_term_tfree_names (t, used));
 
 fun read_axm thy ((envS, envT, used), (name, s)) =
   let
