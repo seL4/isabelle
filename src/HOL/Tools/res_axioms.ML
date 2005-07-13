@@ -250,7 +250,7 @@ fun to_nnf thy th =
        |> ObjectLogic.atomize_thm |> make_nnf;
 
 (*The cache prevents repeated clausification of a theorem, 
-  and also repeated declaration of Skolem functions*)  
+  and also repeated declaration of Skolem functions*)  (* FIXME better use Termtab!? *)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
@@ -366,10 +366,8 @@ fun claset_rules_of_thy thy =
     end;
 
 fun simpset_rules_of_thy thy =
-    let val rules = #rules(fst (rep_ss (simpset_of thy)))
-    in
-	map (fn (_,r) => (#name r, #thm r)) (Net.dest rules)
-    end;
+    let val rules = #rules (fst (rep_ss (simpset_of thy)))
+    in map (fn r => (#name r, #thm r)) (Net.entries rules) end;
 
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)

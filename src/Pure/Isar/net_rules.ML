@@ -47,7 +47,7 @@ fun init eq index = mk_rules eq index [] ~1 Net.empty;
 
 fun add rule (Rules {eq, index, rules, next, net}) =
   mk_rules eq index (rule :: rules) (next - 1)
-    (Net.insert_term ((index rule, (next, rule)), net, K false));
+    (Net.insert_term (K false) (index rule, (next, rule)) net);
 
 fun merge (Rules {eq, index, rules = rules1, ...}, Rules {rules = rules2, ...}) =
   let val rules = Library.gen_merge_lists' eq rules1 rules2
@@ -56,7 +56,7 @@ fun merge (Rules {eq, index, rules = rules1, ...}, Rules {rules = rules2, ...}) 
 fun delete rule (rs as Rules {eq, index, rules, next, net}) =
   if not (Library.gen_mem eq (rule, rules)) then rs
   else mk_rules eq index (Library.gen_rem eq (rules, rule)) next
-    (Net.delete_term ((index rule, (0, rule)), net, eq o pairself #2));
+    (Net.delete_term (eq o pairself #2) (index rule, (0, rule)) net);
 
 fun insert rule rs = add rule (delete rule rs);    (*ensure that new rule gets precedence*)
 

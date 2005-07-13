@@ -79,8 +79,8 @@ type rules =
 val empty_rules : rules = {next = 0, rs = [], net = Net.empty};
 
 fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
-  {next = next - 1, rs = r :: rs, net = Net.insert_term
-     ((Pattern.eta_contract lhs, (next, r)), net, K false)};
+  {next = next - 1, rs = r :: rs, net = Net.insert_term (K false)
+     (Pattern.eta_contract lhs, (next, r)) net};
 
 fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
@@ -316,7 +316,7 @@ fun prep_realizer thy =
       ExtractionData.get thy;
     val procs = List.concat (map (fst o snd) types);
     val rtypes = map fst types;
-    val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
+    val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val thy' = add_syntax thy;
     val rd = ProofSyntax.read_proof thy' false
   in fn (thm, (vs, s1, s2)) =>
@@ -351,7 +351,7 @@ fun realizes_of thy vs t prop =
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
     val procs = List.concat (map (fst o snd) types);
-    val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
+    val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val prop' = Pattern.rewrite_term (Sign.tsig_of thy')
       (map (Logic.dest_equals o prop_of) defs) [] prop;
   in freeze_thaw (condrew thy' eqns
@@ -470,7 +470,7 @@ fun extract thms thy =
     val typroc = typeof_proc (Sign.defaultS thy');
     val prep = getOpt (prep, K I) thy' o ProofRewriteRules.elim_defs thy' false defs o
       Reconstruct.expand_proof thy' (("", NONE) :: map (apsnd SOME) expand);
-    val rrews = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
+    val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
     fun find_inst prop Ts ts vs =
       let

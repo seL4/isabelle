@@ -58,12 +58,12 @@ fun addTC (cs as TC{rules, net}, th) =
           cs)
   else
       TC{rules  = th::rules,
-         net = Net.insert_term ((concl_of th, th), net, K false)};
+         net = Net.insert_term (K false) (concl_of th, th) net};
 
 
 fun delTC (cs as TC{rules, net}, th) =
   if mem_thm (th, rules) then
-      TC{net = Net.delete_term ((concl_of th, th), net, Drule.eq_thm_prop),
+      TC{net = Net.delete_term Drule.eq_thm_prop (concl_of th, th) net,
          rules  = rem_thm (rules,th)}
   else (warning ("No such type-checking rule\n" ^ (string_of_thm th));
         cs);
@@ -113,7 +113,7 @@ fun type_solver_tac tcset hyps = SELECT_GOAL
 
 fun merge_tc (TC{rules,net}, TC{rules=rules',net=net'}) =
     TC {rules = gen_union Drule.eq_thm_prop (rules,rules'),
-        net = Net.merge (net, net', Drule.eq_thm_prop)};
+        net = Net.merge Drule.eq_thm_prop (net, net')};
 
 (*print tcsets*)
 fun print_tc (TC{rules,...}) =
