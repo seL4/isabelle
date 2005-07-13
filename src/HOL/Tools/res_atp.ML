@@ -1,46 +1,36 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
-
     ID: $Id$
-
     Copyright 2004 University of Cambridge
 
 ATPs with TPTP format input.
 *)
 
-(*Jia: changed: isar_atp now processes entire proof context.  fetch thms from delta simpset/claset*)
-(*Claire: changed: added actual watcher calls *)
-
-
-signature RES_ATP = 
-sig  
-val trace_res : bool ref
-val subgoals: Thm.thm list
-val traceflag : bool ref
-val axiom_file : Path.T
-val hyps_file : Path.T
-val isar_atp : ProofContext.context * Thm.thm -> unit
-val prob_file : Path.T;
-(*val atp_ax_tac : Thm.thm list -> int -> Tactical.tactic*)
+signature RES_ATP =
+sig
+  val call_atp: bool ref
+  val trace_res : bool ref
+  val traceflag : bool ref
+  val axiom_file : Path.T
+  val hyps_file : Path.T
+  val prob_file : Path.T;
+(*val atp_ax_tac : thm list -> int -> Tactical.tactic*)
 (*val atp_tac : int -> Tactical.tactic*)
-val debug: bool ref
-val full_spass: bool ref
+  val debug: bool ref
+  val full_spass: bool ref
 (*val spass: bool ref*)
-val vampire: bool ref
-val custom_spass :string list  ref
+  val vampire: bool ref
+  val custom_spass: string list ref
 end;
 
-structure ResAtp : RES_ATP =
-
+structure ResAtp: RES_ATP =
 struct
 
-val subgoals = [];
+val call_atp = ref false;
 
 val traceflag = ref true;
-(* used for debug *)
 val debug = ref false;
 
-fun debug_tac tac = (warning "testing";tac);
-(* default value is false *)
+fun debug_tac tac = (warning "testing"; tac);
 
 val full_spass = ref false;
 
@@ -55,41 +45,37 @@ val trace_res = ref false;
 val skolem_tac = skolemize_tac;
 
 val num_of_clauses = ref 0;
-val clause_arr = Array.array(3500, ("empty", 0));
+val clause_arr = Array.array (3500, ("empty", 0));
 
 
 val atomize_tac =
     SUBGOAL
      (fn (prop,_) =>
-	 let val ts = Logic.strip_assums_hyp prop
-	 in EVERY1 
-		[METAHYPS
-		     (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
-	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+         let val ts = Logic.strip_assums_hyp prop
+         in EVERY1
+                [METAHYPS
+                     (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
+          REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
 (* temporarily use these files, which will be loaded by Vampire *)
-val file_id_num =ref 0;
-
-fun new_prob_file () =  (file_id_num := (!file_id_num) + 1;"prob"^(string_of_int (!file_id_num)));
-
+val file_id_num = ref 0;
+fun new_prob_file () = "prob" ^ string_of_int (inc file_id_num);
 
 val axiom_file = File.tmp_path (Path.basic "axioms");
 val clasimp_file = File.tmp_path (Path.basic "clasimp");
 val hyps_file = File.tmp_path (Path.basic "hyps");
 val prob_file = File.tmp_path (Path.basic "prob");
-val dummy_tac = PRIMITIVE(fn thm => thm );
+val dummy_tac = all_tac;
 
- 
+
 (**** for Isabelle/ML interface  ****)
 
-fun is_proof_char ch = ((33 <= (ord ch)) andalso ((ord ch ) <= 126) andalso (not ((ord ch ) = 63))) orelse (ch = " ")
+fun is_proof_char ch =
+  (33 <= ord ch andalso ord ch <= 126 andalso ord ch <> 63)
+  orelse ch = " ";
 
-fun proofstring x = let val exp = explode x 
-                    in
-                        List.filter (is_proof_char ) exp
-                    end
-
+val proofstring = List.filter is_proof_char o explode;
 
 
 (*
@@ -103,7 +89,7 @@ fun call_atp_tac thms n = (tptp_inputs thms ; dummy_tac);
 fun repeat_RS thm1 thm2 =
     let val thm1' =  thm1 RS thm2 handle THM _ => thm1
     in
-	if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
+        if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
     end;
 
 (* a special version of repeat_RS *)
@@ -115,7 +101,6 @@ fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 (*********************************************************************)
 (*perhaps have 2 different versions of this, depending on whether or not SpassComm.spass is set *)
 fun isar_atp_h thms =
-        
     let val prems = map (skolemize o make_nnf o ObjectLogic.atomize_thm) thms
         val prems' = map repeat_someI_ex prems
         val prems'' = make_clauses prems'
@@ -126,9 +111,11 @@ fun isar_atp_h thms =
         (* tfree clause is different in tptp and dfg versions *)
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
         val hypsfile = File.platform_path hyps_file
-	val out = TextIO.openOut(hypsfile)
+        val out = TextIO.openOut(hypsfile)
     in
-	((ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out; if !trace_res then (warning hypsfile) else ());tfree_lits) 
+      (ResLib.writeln_strs out (tfree_clss @ tptp_clss);
+        TextIO.closeOut out; if !trace_res then (warning hypsfile) else ());
+      tfree_lits
     end;
 
 
@@ -137,18 +124,21 @@ fun isar_atp_h thms =
 (* where N is the number of this subgoal                             *)
 (*********************************************************************)
 
-fun tptp_inputs_tfrees thms n tfrees = 
-    let val _ = (warning ("in tptp_inputs_tfrees 0"))
-        val clss = map (ResClause.make_conjecture_clause_thm) thms
-         val _ = (warning ("in tptp_inputs_tfrees 1"))
-	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
-        val _ = (warning ("in tptp_inputs_tfrees 2"))
-	val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
-         val _ = (warning ("in tptp_inputs_tfrees 3"))
-        val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
-	val out = TextIO.openOut(probfile)
+fun tptp_inputs_tfrees thms n tfrees =
+    let
+      val _ = warning ("in tptp_inputs_tfrees 0")
+      val clss = map (ResClause.make_conjecture_clause_thm) thms
+      val _ = warning ("in tptp_inputs_tfrees 1")
+      val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
+      val _ = warning ("in tptp_inputs_tfrees 2")
+      val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees)
+      val _ = warning ("in tptp_inputs_tfrees 3")
+      val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
+      val out = TextIO.openOut(probfile)
     in
-	(ResLib.writeln_strs out (tfree_clss @ tptp_clss); TextIO.closeOut out; (if !trace_res then (warning probfile) else ()))
+      ResLib.writeln_strs out (tfree_clss @ tptp_clss);
+      TextIO.closeOut out;
+      if !trace_res then (warning probfile) else ()
     end;
 
 
@@ -176,87 +166,84 @@ fun dfg_inputs_tfrees thms n tfrees =
 (* should be modified to allow other provers to be called            *)
 (*********************************************************************)
 (* now passing in list of skolemized thms and list of sgterms to go with them *)
-fun call_resolve_tac  (thms: Thm.thm list list)  sign (sg_terms:  Term.term list) (childin, childout,pid) n  = 
- let
-   val axfile = (File.platform_path axiom_file)
+fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childin, childout,pid) n  =
+  let
+    val axfile = (File.platform_path axiom_file)
 
     val hypsfile = (File.platform_path hyps_file)
-     val clasimpfile = (File.platform_path clasimp_file)
-    val spass_home = getenv "SPASS_HOME"
+    val clasimpfile = (File.platform_path clasimp_file)
 
+    fun make_atp_list [] sign n = []
+      | make_atp_list ((sko_thm, sg_term)::xs) sign  n =
+          let
+            val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm)
+            val thmproofstr = proofstring ( skothmstr)
+            val no_returns = filter_out (equal "\n") thmproofstr
+            val thmstr = implode no_returns
+            val _ = warning ("thmstring in make_atp_lists is: "^thmstr)
 
-   fun make_atp_list [] sign n = []
-   |   make_atp_list ((sko_thm, sg_term)::xs) sign  n = 
-     let 
+            val sgstr = Sign.string_of_term sign sg_term
+            val goalproofstring = proofstring sgstr
+            val no_returns = filter_out (equal "\n") goalproofstring
+            val goalstring = implode no_returns
+            val _ = warning ("goalstring in make_atp_lists is: "^goalstring)
 
-	val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm) 
-	val thmproofstr = proofstring ( skothmstr)
-	val no_returns =List.filter   not_newline ( thmproofstr)
-	val thmstr = implode no_returns
-	val _ = warning ("thmstring in make_atp_lists is: "^thmstr)
+            val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
 
-	val sgstr = Sign.string_of_term sign sg_term 
-	val goalproofstring = proofstring sgstr
-	val no_returns =List.filter not_newline ( goalproofstring)
-	val goalstring = implode no_returns
-	val _ = warning ("goalstring in make_atp_lists is: "^goalstring)
+            val _ = (warning ("prob file in cal_res_tac is: "^probfile))
+          in
+            if !SpassComm.spass
+            then
+              let val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
+              in  (*We've checked that SPASS is there for ATP/spassshell to run.*)
+                if !full_spass
+                then (*Allow SPASS to run in Auto mode, using all its inference rules*)
+                  ([("spass", thmstr, goalstring (*,spass_home*),
 
-	val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+                     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),
+                     "-DocProof%-TimeLimit=60%-SOS",
+                     
+                     clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
+                else (*Restrict SPASS to a small set of rules that we can parse*)
+                  ([("spass", thmstr, goalstring (*,spass_home*),
+                     getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),
+                     ("-" ^ space_implode "%-" (!custom_spass)),
+                     clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
+              end
+            else
+              let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
+              in
+                ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000",
+                   clasimpfile, axfile, hypsfile, probfile)] @
+                 (make_atp_list xs sign (n+1)))
+              end
+          end
 
-	val _ = (warning ("prob file in cal_res_tac is: "^probfile))      
-     in
-       if !SpassComm.spass 
-       then 
-         let val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
-         in  (*We've checked that SPASS is there for ATP/spassshell to run.*)
-           if !full_spass 
-            then (*Allow SPASS to run in Auto mode, using all its inference rules*)
-
-   		([("spass", thmstr, goalstring (*,spass_home*), 
-
-	    	 getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),  
-	     	"-DocProof%-TimeLimit=60%-SOS", 
-
-	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-  	    else (*Restrict SPASS to a small set of rules that we can parse*)
-   		([("spass", thmstr, goalstring (*,spass_home*), 
-	     	getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),  
-	     	("-" ^ space_implode "%-" (!custom_spass)), 
-	     	clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-	 end
-     else
-       let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
-       in  
-	   ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000", 
-	      clasimpfile, axfile, hypsfile, probfile)] @ 
-	    (make_atp_list xs sign (n+1)))
-       end
-     end
-
-val thms_goals = ListPair.zip( thms, sg_terms) 
-val atp_list = make_atp_list  thms_goals sign 1
-in
-	Watcher.callResProvers(childout,atp_list);
-        warning("Sent commands to watcher!");
-  	dummy_tac
- end
+    val thms_goals = ListPair.zip( thms, sg_terms)
+    val atp_list = make_atp_list  thms_goals sign 1
+  in
+    Watcher.callResProvers(childout,atp_list);
+    warning "Sent commands to watcher!";
+    dummy_tac
+  end
 
 (**********************************************************)
 (* write out the current subgoal as a tptp file, probN,   *)
 (* then call dummy_tac - should be call_res_tac           *)
 (**********************************************************)
 
-
-fun get_sko_thms tfrees sign sg_terms (childin, childout,pid)  thm n sko_thms  =
-    if n=0 then 
-	     (call_resolve_tac  (rev sko_thms) sign  sg_terms (childin, childout, pid) (List.length sg_terms);dummy_tac thm)
-     else
-	
-     ( SELECT_GOAL
-	     (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-	      METAHYPS(fn negs => (tptp_inputs_tfrees (make_clauses negs) n tfrees;
-				 get_sko_thms  tfrees sign sg_terms (childin, childout, pid) thm  (n -1) (negs::sko_thms);dummy_tac))]) n thm )
-
+fun get_sko_thms tfrees sign sg_terms (childin, childout, pid) thm n sko_thms =
+  if n = 0 then
+    (call_resolve_tac (rev sko_thms)
+      sign sg_terms (childin, childout, pid) (List.length sg_terms);
+     dummy_tac thm)
+  else
+    SELECT_GOAL
+      (EVERY1 [rtac ccontr, atomize_tac, skolemize_tac,
+        METAHYPS (fn negs =>
+          (tptp_inputs_tfrees (make_clauses negs) n tfrees;
+           get_sko_thms tfrees sign sg_terms (childin, childout, pid) thm (n - 1)
+             (negs::sko_thms); dummy_tac))]) n thm;
 
 
 (**********************************************)
@@ -265,21 +252,21 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid)  thm n sko_thms  =
 (* in proof reconstruction                    *)
 (**********************************************)
 
-fun isar_atp_goal' thm n tfree_lits  (childin, childout, pid) = 
-    let val  prems = prems_of thm 
-      (*val sg_term = get_nth k prems*)
-	val sign = sign_of_thm thm
-	val thmstring = string_of_thm thm
-    in   
-	warning("in isar_atp_goal'");
-	warning("thmstring in isar_atp_goal': "^thmstring);
-	(* go and call callResProvers with this subgoal *)
-	(* isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; *)
-	(* recursive call to pick up the remaining subgoals *)
-	(* isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) *)
-	get_sko_thms tfree_lits sign  prems (childin, childout, pid) thm n []
-    end ;
-
+fun isar_atp_goal' thm n tfree_lits (childin, childout, pid) =
+  let
+    val prems = Thm.prems_of thm
+    (*val sg_term = get_nth k prems*)
+    val sign = sign_of_thm thm
+    val thmstring = string_of_thm thm
+  in
+    warning("in isar_atp_goal'");
+    warning("thmstring in isar_atp_goal': " ^ thmstring);
+    (* go and call callResProvers with this subgoal *)
+    (* isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; *)
+    (* recursive call to pick up the remaining subgoals *)
+    (* isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) *)
+    get_sko_thms tfree_lits sign prems (childin, childout, pid) thm n []
+  end;
 
 
 (**************************************************)
@@ -290,13 +277,12 @@ fun isar_atp_goal' thm n tfree_lits  (childin, childout, pid) =
 (* write to file "hyps"                           *)
 (**************************************************)
 
-
-fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) = 
-    let val tfree_lits = isar_atp_h thms 
-    in
-	(warning("in isar_atp_aux"));
-         isar_atp_goal' thm n_subgoals tfree_lits   (childin, childout, pid)
-    end;
+fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
+  let val tfree_lits = isar_atp_h thms
+  in
+    warning ("in isar_atp_aux");
+    isar_atp_goal' thm n_subgoals tfree_lits (childin, childout, pid)
+  end;
 
 (******************************************************************)
 (* called in Isar automatically                                   *)
@@ -305,78 +291,55 @@ fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
 (* turns off xsymbol at start of function, restoring it at end    *)
 (******************************************************************)
 (*FIX changed to clasimp_file *)
-fun isar_atp' (ctxt,thms, thm) =
- if null (prems_of thm) then () 
- else
-    let 
-	val _= (print_mode := (Library.gen_rems (op =) 
-	                       (! print_mode, ["xsymbols", "symbols"])))
-        val _= (warning ("in isar_atp'"))
-        val prems = prems_of thm
-        val sign = sign_of_thm thm
-        val thms_string = Meson.concat_with_and (map string_of_thm thms) 
-        val thmstring = string_of_thm thm
-        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-        
-	(* set up variables for writing out the clasimps to a tptp file *)
-	val (clause_arr, num_of_clauses) =
-	    ResClasimp.write_out_clasimp (File.platform_path clasimp_file) 
-	                                 (ProofContext.theory_of ctxt)
-	                                 (hd prems) (*FIXME: hack!! need to do all prems*)
-        val _ = warning ("clasimp_file is " ^ File.platform_path clasimp_file) 
-        val (childin,childout,pid) = Watcher.createWatcher(thm,clause_arr, num_of_clauses)
-        val pidstring = string_of_int(Word.toInt
-                           (Word.fromLargeWord ( Posix.Process.pidToWord pid )))
+val isar_atp' = setmp print_mode [] (fn (ctxt, thms, thm) =>
+  if Thm.no_prems thm then ()
+  else
+    let
+      val _= warning ("in isar_atp'")
+      val thy = ProofContext.theory_of ctxt
+      val prems = Thm.prems_of thm
+      val thms_string = Meson.concat_with_and (map string_of_thm thms)
+      val thm_string = string_of_thm thm
+      val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) prems)
+
+      (*set up variables for writing out the clasimps to a tptp file*)
+      val (clause_arr, num_of_clauses) =
+        ResClasimp.write_out_clasimp (File.platform_path clasimp_file) thy
+          (hd prems) (*FIXME: hack!! need to do all prems*)
+      val _ = warning ("clasimp_file is " ^ File.platform_path clasimp_file)
+      val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr, num_of_clauses)
+      val pid_string =
+        string_of_int (Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid)))
     in
-       warning ("initial thms: "^thms_string); 
-       warning ("initial thm: "^thmstring);
-       warning ("subgoals: "^prems_string);
-       warning ("pid: "^ pidstring); 
-       isar_atp_aux thms thm (length prems) (childin, childout, pid);
-       warning("turning xsymbol back on!");
-       print_mode := (["xsymbols", "symbols"] @ ! print_mode)
-    end;
+      warning ("initial thms: " ^ thms_string);
+      warning ("initial thm: " ^ thm_string);
+      warning ("subgoals: " ^ prems_string);
+      warning ("pid: "^ pid_string);
+      isar_atp_aux thms thm (length prems) (childin, childout, pid);
+      ()
+    end);
 
-
-
-
-local
 
 fun get_thms_cs claset =
-    let val clsset = rep_cs claset
-	val safeEs = #safeEs clsset
-	val safeIs = #safeIs clsset
-	val hazEs = #hazEs clsset
-	val hazIs = #hazIs clsset
-    in
-	safeEs @ safeIs @ hazEs @ hazIs
-    end;
-
-
+  let val {safeEs, safeIs, hazEs, hazIs, ...} = rep_cs claset
+  in safeEs @ safeIs @ hazEs @ hazIs end;
 
 fun append_name name [] _ = []
-  | append_name name (thm::thms) k = (Thm.name_thm ((name ^ "_" ^ (string_of_int k)),thm)) :: (append_name name thms (k+1));
+  | append_name name (thm :: thms) k =
+      Thm.name_thm ((name ^ "_" ^ string_of_int k), thm) :: append_name name thms (k + 1);
 
-fun append_names (name::names) (thms::thmss) =
-    let val thms' = append_name name thms 0
-    in
-	thms'::(append_names names thmss)
-    end;
-
+fun append_names (name :: names) (thms :: thmss) =
+  append_name name thms 0 :: append_names names thmss;
 
 fun get_thms_ss [] = []
   | get_thms_ss thms =
-    let val names = map Thm.name_of_thm thms 
+      let
+        val names = map Thm.name_of_thm thms
         val thms' = map (mksimps mksimps_pairs) thms
         val thms'' = append_names names thms'
-    in
-	ResLib.flat_noDup thms''
-    end;
-
-
-
-
-in
+      in
+        ResLib.flat_noDup thms''
+      end;
 
 
 (* convert locally declared rules to axiom clauses *)
@@ -387,43 +350,55 @@ in
 (* FIX*)
 (*fun isar_local_thms (delta_cs, delta_ss_thms) =
     let val thms_cs = get_thms_cs delta_cs
-	val thms_ss = get_thms_ss delta_ss_thms
-	val thms_clauses = ResLib.flat_noDup (map ResAxioms.clausify_axiom (thms_cs @ thms_ss))
-	val clauses_strs = ResLib.flat_noDup (map ResClause.tptp_clause thms_clauses) (*string list*)
-	val ax_file = File.platform_path axiom_file
-	val out = TextIO.openOut ax_file
+        val thms_ss = get_thms_ss delta_ss_thms
+        val thms_clauses = ResLib.flat_noDup (map ResAxioms.clausify_axiom (thms_cs @ thms_ss))
+        val clauses_strs = ResLib.flat_noDup (map ResClause.tptp_clause thms_clauses) (*string list*)
+        val ax_file = File.platform_path axiom_file
+        val out = TextIO.openOut ax_file
     in
-	(ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
+        (ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
     end;
 *)
 
 
+fun subtract_simpset thy ctxt =
+  let
+    val rules1 = #rules (#1 (rep_ss (simpset_of thy)));
+    val rules2 = #rules (#1 (rep_ss (local_simpset_of ctxt)));
+  in map #thm (Net.subtract MetaSimplifier.eq_rrule rules1 rules2) end;
 
-
-(* called in Isar automatically *)
-
-fun isar_atp (ctxt,thm) =
-    let val prems = ProofContext.prems_of ctxt
-        val d_cs = Classical.get_delta_claset ctxt 
-        val d_ss_thms = Simplifier.get_delta_simpset ctxt
-        val thmstring = string_of_thm thm
-        val sg_prems = prems_of thm
-        val sign = sign_of_thm thm
-        val prem_no = length sg_prems
-        val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) sg_prems) 
-    in
-          (warning ("initial thm in isar_atp: "^thmstring));
-          (warning ("subgoals in isar_atp: "^prems_string));
-    	  (warning ("number of subgoals in isar_atp: "^(string_of_int prem_no)));
-          (*isar_local_thms (d_cs,d_ss_thms);*)
-           isar_atp' (ctxt,prems, thm)
-    end;
-
-end
+fun subtract_claset thy ctxt =
+  let
+    val (netI1, netE1) = #xtra_netpair (rep_cs (claset_of thy));
+    val (netI2, netE2) = #xtra_netpair (rep_cs (local_claset_of ctxt));
+    val subtract = map (#2 o #2) oo Net.subtract Tactic.eq_kbrl;
+  in subtract netI1 netI2 @ subtract netE1 netE2 end;
 
 
 
+(** the Isar toplevel hook **)
+
+val _ = Toplevel.print_state_hook (fn _ => fn state =>
+  let
+    val _ = if ! call_atp then () else raise Toplevel.UNDEF;
+    val prf =
+      (case Toplevel.node_of state of Toplevel.Proof prf => prf | _ => raise Toplevel.UNDEF);
+    val _ = Proof.assert_backward (the (ProofHistory.previous prf));
+    val proof = Proof.assert_forward (ProofHistory.current prf);
+    val (ctxt, (_, goal)) = Proof.get_goal proof;
+
+    val thy = ProofContext.theory_of ctxt;
+    val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) (Thm.prems_of goal));
+
+    (* FIXME presently unused *)
+    val ss_thms = subtract_simpset thy ctxt;
+    val cs_thms = subtract_claset thy ctxt;
+  in
+    warning ("initial thm in isar_atp: " ^ string_of_thm goal);
+    warning ("subgoals in isar_atp: " ^ prems_string);
+    warning ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
+    (*isar_local_thms (d_cs,d_ss_thms);*)
+    isar_atp' (ctxt, ProofContext.prems_of ctxt, goal)
+  end);
 
 end;
-
-Proof.atp_hook := ResAtp.isar_atp;
