@@ -13,6 +13,7 @@ sig
   val init: int option -> Proof.state -> T
   val is_initial: T -> bool
   val current: T -> Proof.state
+  val previous: T -> Proof.state option
   val clear: int -> T -> T
   val undo: T -> T
   val redo: T -> T
@@ -48,6 +49,7 @@ fun position (ProofHistory prf) = length (snd (History.current prf));
 fun init lim st = ProofHistory (History.init lim ((st, Seq.empty), []));
 fun is_initial (ProofHistory prf) = History.is_initial prf;
 fun current (ProofHistory prf) = fst (fst (History.current prf));
+fun previous (ProofHistory prf) = Option.map (fst o fst) (History.previous prf);
 val clear = app o History.clear;
 val undo = app History.undo;
 val redo = app History.redo;
