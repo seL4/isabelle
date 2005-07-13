@@ -316,17 +316,15 @@ fun tell_clear_response () =
 
 fun tell_file_loaded path =
   if pgip () then
-    issue_pgipe "informtheoryloaded"  (* FIXME: get thy name from info here? *)
-      [thyname_attr        (XML.text (File.platform_path path)),
-       localfile_url_attr  (XML.text (File.platform_path path))]
+    issue_pgipe "informfileloaded"
+      [localfile_url_attr  (XML.text (File.platform_path path))]
   else
     emacs_notify ("Proof General, this file is loaded: " ^ quote (File.platform_path path));
 
 fun tell_file_retracted path =
   if pgip() then
-    issue_pgipe "informtheoryretracted"  (* FIXME: get thy name from info here? *)
-      [thyname_attr        (XML.text (File.platform_path path)),
-       localfile_url_attr  (XML.text (File.platform_path path))]
+    issue_pgipe "informfileretracted"
+      [localfile_url_attr  (XML.text (File.platform_path path))]
   else
     emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
 
@@ -900,17 +898,21 @@ local
             (empty "openblock")
         end
 
-    fun xmls_of_qed (name,markup) = (case name of
-      "sorry"         => markup "giveupgoal"
-    | "oops"          => markup "postponegoal"
-    | "done"          => markup "closegoal"
-    | "by"            => markup "closegoal"  (* nested or toplevel *)
-    | "qed"           => markup "closegoal"  (* nested or toplevel *)
-    | "."             => markup "closegoal"  (* nested or toplevel *)
-    | ".."            => markup "closegoal"  (* nested or toplevel *)
-    | other => (* default to closegoal: may be wrong for extns *)
-      (parse_warning ("Unrecognized qed command: " ^ quote other); markup "closegoal"))
-        @ (empty "closeblock")
+    fun xmls_of_qed (name,markup) = 
+	let val qedmarkup  = 
+		(case name of
+		     "sorry" => markup "postponegoal"
+		   | "oops"  => markup "giveupgoal"
+		   | "done"  => markup "closegoal" 
+		   | "by"    => markup "closegoal"  (* nested or toplevel *)
+		   | "qed"   => markup "closegoal"  (* nested or toplevel *)
+		   | "."     => markup "closegoal"  (* nested or toplevel *)
+		   | ".."    => markup "closegoal"  (* nested or toplevel *)
+		   | other => (* default to closegoal: may be wrong for extns *)
+				  (parse_warning 
+				       ("Unrecognized qed command: " ^ quote other); 
+				       markup "closegoal"))
+	in qedmarkup @ (empty "closeblock") end
 
     fun xmls_of_kind kind (name,toks,str) =
     let val markup = markup_text str in
