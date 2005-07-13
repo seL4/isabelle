@@ -161,29 +161,38 @@ end;
 
 (* assembling PGIP packets *)
 
+val pgip_refid  = ref NONE: string option ref;  
 val pgip_refseq = ref NONE: string option ref;
-val pgip_refid = ref NONE: string option ref;
 
 local
-  val pgip_class  = "pg";
-  val pgip_origin = "Isabelle/Isar";
-  val pgip_id =
-    getenv "HOSTNAME" ^ "/" ^ getenv "USER" ^ "/" ^ Time.toString (Time.now ());
-    (* FIXME da: PPID is empty for me: any way to get process ID? *)
-    (* FIXME mak: consider using Path.pack (Path.base (Path.unpack (getenv "ISABELLE_TMP"))),
-       which includes USER already; note that pgip_id above is determined at compile time! *)
+  val pgip_class  = "pg"
+  val pgip_tag = "Isabelle/Isar"
+  val pgip_id = ref ""
+  val pgip_seq = ref 0
+  fun pgip_serial () = inc pgip_seq
 
   fun assemble_pgips pgips =
     XML.element
       "pgip"
-      ([("class",  pgip_class),
-        ("origin", pgip_origin),
-        ("id",     pgip_id)] @
-       if_none (Option.map (single o (pair "refseq")) (! pgip_refseq)) [] @
-       if_none (Option.map (single o (pair "refid")) (! pgip_refid)) [] @
-       [("seq",  string_of_int (Library.serial ()))])
+      ([("tag",    pgip_tag),
+        ("class",  pgip_class),
+        ("id",     !pgip_id)] @
+       if_none (Option.map (single o (pair "destid")) (! pgip_refid)) [] @
+       (* destid=refid since Isabelle only communicates back to sender,
+          so we may omit refid from attributes.
+       if_none (Option.map (single o (pair "refid"))  (! pgip_refid)) [] @
+       *)
+       if_none (Option.map (single o (pair "refseq")) (! pgip_refseq)) [])
       pgips;
+
 in
+
+fun init_pgip_session_id () = 
+    pgip_id := getenv "HOSTNAME" ^ "/" ^ getenv "USER" ^ "/" ^
+               getenv "ISABELLE_PID" ^ "/" ^ Time.toString (Time.now ())
+						       
+
+fun matching_pgip_id id = (id = !pgip_id)
 
 fun decorated_output bg en prfx =
   writeln_default o enclose bg en o prefix_lines prfx;
@@ -1284,26 +1293,32 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | _ => raise PGIP ("Unrecognized PGIP element: " ^ elem)))
 
 fun process_pgip_tree xml =
-    (pgip_refseq := NONE;
-     pgip_refid := NONE;
+    (pgip_refid := NONE;
+     pgip_refseq := NONE;
      (case xml of
           XML.Elem ("pgip", attrs, pgips) =>
           (let
                val class = xmlattr "class" attrs
-               val _ = (pgip_refseq := xmlattro "seq" attrs;
-                        pgip_refid :=  xmlattro "id" attrs)
+	       val dest  = xmlattro "destid" attrs
+               val _ = (pgip_refid :=  xmlattro "id" attrs;
+			pgip_refseq := xmlattro "seq" attrs)
            in
-               if (class = "pa") then
-                   List.app process_pgip_element pgips
-               else
-                   raise PGIP "PGIP packet for me should have class=\"pa\""
+	       (* We respond to broadcast messages to provers, or 
+                  messages intended uniquely for us.  Silently ignore rest. *)
+               case dest of
+		   NONE => if (class = "pa") then
+			       (List.app process_pgip_element pgips; true)
+			   else false
+		 | SOME id => if (matching_pgip_id id) then
+				  (List.app process_pgip_element pgips; true)
+			      else false
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
      handle (PGIP msg) =>
             (error (msg ^ "\nPGIP error occured in XML text below:\n" ^
                     (XML.string_of_tree xml))))
 
-val process_pgip = process_pgip_tree o XML.tree_of_string;
+val process_pgip = K () o process_pgip_tree o XML.tree_of_string
 
 end
 
@@ -1314,28 +1329,31 @@ local
 
 exception XML_PARSE
 
-fun loop src : unit =
+fun loop ready src =
     let
-        val _ = issue_pgipe "ready" []
+        val _ = if ready then (issue_pgipe "ready" []) else ()
         val pgipo = (Source.get_single src)
                         handle e => raise XML_PARSE
     in
         case pgipo of
              NONE  => ()
            | SOME (pgip,src') =>
-             ((process_pgip_tree pgip); loop src') handle e => handler (e,SOME src')
+	     let 
+		 val ready' = (process_pgip_tree pgip) handle e => (handler (e,SOME src'); true)
+	     in 
+		 loop ready' src'
+	     end 
     end handle e => handler (e,SOME src)  (* i.e. error in ready/XML parse *)
 
 and handler (e,srco) =
     case (e,srco) of
         (XML_PARSE,SOME src) =>
-        (* (!error_fn "Invalid XML input, aborting"; ()) NB: loop OK for tty, but want exit on EOF *)
-         panic "Invalid XML input, aborting"
+        panic "Invalid XML input, aborting" (* NB: loop OK for tty, but want exit on EOF *)
       | (PGIP_QUIT,_) => ()
-      | (ERROR,SOME src) => loop src (* message already given *)
-      | (Interrupt,SOME src) => (!error_fn "Interrupt during PGIP processing"; loop src)
-      | (Toplevel.UNDEF,SOME src) => (error "No working context defined"; loop src) (* usually *)
-      | (e,SOME src) => (error (Toplevel.exn_message e); loop src)
+      | (ERROR,SOME src) => loop true src (* message already given *)
+      | (Interrupt,SOME src) => (!error_fn "Interrupt during PGIP processing"; loop true src)
+      | (Toplevel.UNDEF,SOME src) => (error "No working context defined"; loop true src) (* usually *)
+      | (e,SOME src) => (error (Toplevel.exn_message e); loop true src)
       | (_,NONE) => ()
 in
   (* NB: simple tty for now; later might read from other tty-style sources (e.g. sockets). *)
@@ -1344,7 +1362,7 @@ in
 
   val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 
-  val pgip_toplevel =  loop
+  val pgip_toplevel =  loop true
 end
 
 
@@ -1422,7 +1440,8 @@ fun init_setup isar pgip =
   sync_thy_loader ();
   print_mode := proof_generalN :: (! print_mode \ proof_generalN);
   if pgip then
-    print_mode := pgmlN :: (pgmlatomsN :: (! print_mode \ pgmlN \ pgmlatomsN))
+      (init_pgip_session_id();
+       print_mode := pgmlN :: (pgmlatomsN :: (! print_mode \ pgmlN \ pgmlatomsN)))
   else
     pgip_emacs_compatibility_flag := true;  (* assume this for PG <3.6 compatibility *)
   set quick_and_dirty;
