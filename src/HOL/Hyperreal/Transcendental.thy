@@ -568,7 +568,7 @@ apply (subgoal_tac "summable (%n. abs (g (h::real) (n::nat))) ")
  apply (rule_tac [2] g = "%n. f n * \<bar>h\<bar>" in summable_comparison_test)
   apply (rule_tac [2] x = 0 in exI, auto)
 apply (rule_tac j = "\<Sum>n. \<bar>g h n\<bar>" in real_le_trans)
-apply (auto intro: summable_rabs summable_le simp add: sums_summable [THEN suminf_mult])
+apply (auto intro: summable_rabs summable_le simp add: sums_summable [THEN suminf_mult2])
 done
 
 
@@ -637,7 +637,6 @@ apply (rule lemma_termdiff3)
 apply (auto intro: abs_triangle_ineq [THEN order_trans], arith)
 done
 
-
 lemma termdiffs: 
     "[| summable(%n. c(n) * (K ^ n));  
         summable(%n. (diffs c)(n) * (K ^ n));  
@@ -657,7 +656,7 @@ apply (auto intro!: summable_sums)
 apply (rule_tac [2] powser_inside, rule_tac [4] powser_inside)
 apply (auto simp add: add_commute)
 apply (drule_tac x="(\<lambda>n. c n * (xa + x) ^ n)" in sums_diff, assumption) 
-apply (drule_tac x = "(%n. c n * (xa + x) ^ n - c n * x ^ n) " and c = "inverse xa" in sums_mult)
+apply (drule_tac f = "(%n. c n * (xa + x) ^ n - c n * x ^ n) " and c = "inverse xa" in sums_mult)
 apply (rule sums_unique)
 apply (simp add: diff_def divide_inverse add_ac mult_ac)
 apply (rule LIM_zero_cancel)
@@ -680,16 +679,12 @@ apply (auto simp add: add_commute)
 apply (frule_tac x = "(%n. c n * (xa + x) ^ n) " and y = "(%n. c n * x ^ n)" in sums_diff, assumption)
 apply (simp add: suminf_diff [OF sums_summable sums_summable] 
                right_diff_distrib [symmetric])
-apply (frule_tac x = "(%n. c n * ((xa + x) ^ n - x ^ n))" and c = "inverse xa" in sums_mult)
-apply (simp add: sums_summable [THEN suminf_mult2])
-apply (frule_tac x = "(%n. inverse xa * (c n * ((xa + x) ^ n - x ^ n))) " and y = "(%n. real n * c n * x ^ (n - Suc 0))" in sums_diff)
-apply assumption
-apply (simp add: suminf_diff [OF sums_summable sums_summable] add_ac mult_ac)
-apply (rule_tac f = suminf in arg_cong)
-apply (rule ext)
-apply (simp add: diff_def right_distrib add_ac mult_ac)
+apply (subst suminf_diff)
+apply (rule summable_mult2)
+apply (erule sums_summable)
+apply (erule sums_summable)
+apply (simp add: ring_eq_simps)
 done
-
 
 subsection{*Formal Derivatives of Exp, Sin, and Cos Series*} 
 

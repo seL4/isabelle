@@ -3,6 +3,7 @@
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
+    Additional contributions by Jeremy Avigad
 *)
 
 header{*Defining the Reals from the Positive Reals*}
@@ -635,27 +636,46 @@ defs (overloaded)
   real_of_nat_def: "real z == of_nat z"
   real_of_int_def: "real z == of_int z"
 
+lemma real_eq_of_nat: "real = of_nat"
+  apply (rule ext)
+  apply (unfold real_of_nat_def)
+  apply (rule refl)
+  done
+
+lemma real_eq_of_int: "real = of_int"
+  apply (rule ext)
+  apply (unfold real_of_int_def)
+  apply (rule refl)
+  done
+
 lemma real_of_int_zero [simp]: "real (0::int) = 0"  
 by (simp add: real_of_int_def) 
 
 lemma real_of_one [simp]: "real (1::int) = (1::real)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_add: "real (x::int) + real y = real (x + y)"
+lemma real_of_int_add [simp]: "real(x + y) = real (x::int) + real y"
 by (simp add: real_of_int_def) 
-declare real_of_int_add [symmetric, simp]
 
-lemma real_of_int_minus: "-real (x::int) = real (-x)"
+lemma real_of_int_minus [simp]: "real(-x) = -real (x::int)"
 by (simp add: real_of_int_def) 
-declare real_of_int_minus [symmetric, simp]
 
-lemma real_of_int_diff: "real (x::int) - real y = real (x - y)"
+lemma real_of_int_diff [simp]: "real(x - y) = real (x::int) - real y"
 by (simp add: real_of_int_def) 
-declare real_of_int_diff [symmetric, simp]
 
-lemma real_of_int_mult: "real (x::int) * real y = real (x * y)"
+lemma real_of_int_mult [simp]: "real(x * y) = real (x::int) * real y"
 by (simp add: real_of_int_def) 
-declare real_of_int_mult [symmetric, simp]
+
+lemma real_of_int_setsum [simp]: "real ((SUM x:A. f x)::int) = (SUM x:A. real(f x))"
+  apply (subst real_eq_of_int)+
+  apply (rule of_int_setsum)
+done
+
+lemma real_of_int_setprod [simp]: "real ((PROD x:A. f x)::int) = 
+    (PROD x:A. real(f x))"
+  apply (subst real_eq_of_int)+
+  apply (rule of_int_setprod)
+done
 
 lemma real_of_int_zero_cancel [simp]: "(real x = 0) = (x = (0::int))"
 by (simp add: real_of_int_def) 
@@ -669,6 +689,91 @@ by (simp add: real_of_int_def)
 lemma real_of_int_le_iff [simp]: "(real (x::int) \<le> real y) = (x \<le> y)"
 by (simp add: real_of_int_def) 
 
+lemma real_of_int_gt_zero_cancel_iff [simp]: "(0 < real (n::int)) = (0 < n)"
+by (simp add: real_of_int_def) 
+
+lemma real_of_int_ge_zero_cancel_iff [simp]: "(0 <= real (n::int)) = (0 <= n)"
+by (simp add: real_of_int_def) 
+
+lemma real_of_int_lt_zero_cancel_iff [simp]: "(real (n::int) < 0) = (n < 0)"
+by (simp add: real_of_int_def)
+
+lemma real_of_int_le_zero_cancel_iff [simp]: "(real (n::int) <= 0) = (n <= 0)"
+by (simp add: real_of_int_def)
+
+lemma int_less_real_le: "((n::int) < m) = (real n + 1 <= real m)"
+  apply (subgoal_tac "real n + 1 = real (n + 1)")
+  apply (simp del: real_of_int_add)
+  apply auto
+done
+
+lemma int_le_real_less: "((n::int) <= m) = (real n < real m + 1)"
+  apply (subgoal_tac "real m + 1 = real (m + 1)")
+  apply (simp del: real_of_int_add)
+  apply simp
+done
+
+lemma real_of_int_div_aux: "d ~= 0 ==> (real (x::int)) / (real d) = 
+    real (x div d) + (real (x mod d)) / (real d)"
+proof -
+  assume "d ~= 0"
+  have "x = (x div d) * d + x mod d"
+    by auto
+  then have "real x = real (x div d) * real d + real(x mod d)"
+    by (simp only: real_of_int_mult [THEN sym] real_of_int_add [THEN sym])
+  then have "real x / real d = ... / real d"
+    by simp
+  then show ?thesis
+    by (auto simp add: add_divide_distrib ring_eq_simps prems)
+qed
+
+lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
+    real(n div d) = real n / real d"
+  apply (frule real_of_int_div_aux [of d n])
+  apply simp
+  apply (simp add: zdvd_iff_zmod_eq_0)
+done
+
+lemma real_of_int_div2:
+  "0 <= real (n::int) / real (x) - real (n div x)"
+  apply (case_tac "x = 0")
+  apply simp
+  apply (case_tac "0 < x")
+  apply (simp add: compare_rls)
+  apply (subst real_of_int_div_aux)
+  apply simp
+  apply simp
+  apply (subst zero_le_divide_iff)
+  apply auto
+  apply (simp add: compare_rls)
+  apply (subst real_of_int_div_aux)
+  apply simp
+  apply simp
+  apply (subst zero_le_divide_iff)
+  apply auto
+done
+
+lemma real_of_int_div3:
+  "real (n::int) / real (x) - real (n div x) <= 1"
+  apply(case_tac "x = 0")
+  apply simp
+  apply (simp add: compare_rls)
+  apply (subst real_of_int_div_aux)
+  apply assumption
+  apply simp
+  apply (subst divide_le_eq)
+  apply clarsimp
+  apply (rule conjI)
+  apply (rule impI)
+  apply (rule order_less_imp_le)
+  apply simp
+  apply (rule impI)
+  apply (rule order_less_imp_le)
+  apply simp
+done
+
+lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
+  by (insert real_of_int_div2 [of n x], simp)
 
 subsection{*Embedding the Naturals into the Reals*}
 
@@ -701,6 +806,24 @@ by (simp add: real_of_nat_def del: of_nat_Suc)
 lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
 by (simp add: real_of_nat_def)
 
+lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) = 
+    (SUM x:A. real(f x))"
+  apply (subst real_eq_of_nat)+
+  apply (rule of_nat_setsum)
+done
+
+lemma real_of_nat_setprod [simp]: "real ((PROD x:A. f x)::nat) = 
+    (PROD x:A. real(f x))"
+  apply (subst real_eq_of_nat)+
+  apply (rule of_nat_setprod)
+done
+
+lemma real_of_card: "real (card A) = setsum (%x.1) A"
+  apply (subst card_eq_setsum)
+  apply (subst real_of_nat_setsum)
+  apply simp
+done
+
 lemma real_of_nat_inject [iff]: "(real (n::nat) = real m) = (n = m)"
 by (simp add: real_of_nat_def)
 
@@ -722,13 +845,76 @@ by (simp add: add: real_of_nat_def)
 lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat)) = (0 \<le> n)"
 by (simp add: add: real_of_nat_def)
 
+lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
+  apply (subgoal_tac "real n + 1 = real (Suc n)")
+  apply simp
+  apply (auto simp add: real_of_nat_Suc)
+done
+
+lemma nat_le_real_less: "((n::nat) <= m) = (real n < real m + 1)"
+  apply (subgoal_tac "real m + 1 = real (Suc m)")
+  apply (simp add: less_Suc_eq_le)
+  apply (simp add: real_of_nat_Suc)
+done
+
+lemma real_of_nat_div_aux: "0 < d ==> (real (x::nat)) / (real d) = 
+    real (x div d) + (real (x mod d)) / (real d)"
+proof -
+  assume "0 < d"
+  have "x = (x div d) * d + x mod d"
+    by auto
+  then have "real x = real (x div d) * real d + real(x mod d)"
+    by (simp only: real_of_nat_mult [THEN sym] real_of_nat_add [THEN sym])
+  then have "real x / real d = \<dots> / real d"
+    by simp
+  then show ?thesis
+    by (auto simp add: add_divide_distrib ring_eq_simps prems)
+qed
+
+lemma real_of_nat_div: "0 < (d::nat) ==> d dvd n ==>
+    real(n div d) = real n / real d"
+  apply (frule real_of_nat_div_aux [of d n])
+  apply simp
+  apply (subst dvd_eq_mod_eq_0 [THEN sym])
+  apply assumption
+done
+
+lemma real_of_nat_div2:
+  "0 <= real (n::nat) / real (x) - real (n div x)"
+  apply(case_tac "x = 0")
+  apply simp
+  apply (simp add: compare_rls)
+  apply (subst real_of_nat_div_aux)
+  apply assumption
+  apply simp
+  apply (subst zero_le_divide_iff)
+  apply simp
+done
+
+lemma real_of_nat_div3:
+  "real (n::nat) / real (x) - real (n div x) <= 1"
+  apply(case_tac "x = 0")
+  apply simp
+  apply (simp add: compare_rls)
+  apply (subst real_of_nat_div_aux)
+  apply assumption
+  apply simp
+done
+
+lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x" 
+  by (insert real_of_nat_div2 [of n x], simp)
+
 lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)
 
 lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
 by (simp add: real_of_int_def real_of_nat_def)
 
-
+lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
+  apply (subgoal_tac "real(int(nat x)) = real(nat x)")
+  apply force
+  apply (simp only: real_of_int_real_of_nat)
+done
 
 subsection{*Numerals and Arithmetic*}
 

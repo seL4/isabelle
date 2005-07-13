@@ -3,6 +3,7 @@
     Copyright   : 1998  University of Cambridge
     Description : Convergence of sequences and series
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+    Additional contributions by Jeremy Avigad
 *)
 
 theory SEQ
@@ -204,6 +205,15 @@ by (auto intro: approx_add simp add: NSLIMSEQ_def starfunNat_add [symmetric])
 lemma LIMSEQ_add: "[| X ----> a; Y ----> b |] ==> (%n. X n + Y n) ----> a + b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add)
 
+lemma LIMSEQ_add_const: "f ----> a ==> (%n.(f n + b)) ----> a + b"
+  apply (subgoal_tac "%n. (f n + b) == %n. (f n + (%n. b) n)")
+  apply (subgoal_tac "(%n. b) ----> b")
+  apply (auto simp add: LIMSEQ_add LIMSEQ_const)
+done
+
+lemma NSLIMSEQ_add_const: "f ----NS> a ==> (%n.(f n + b)) ----NS> a + b"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_add_const)
+
 lemma NSLIMSEQ_mult:
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
 by (auto intro!: approx_mult_HFinite 
@@ -242,6 +252,15 @@ lemma NSLIMSEQ_diff:
 apply (simp add: diff_minus)
 apply (blast intro: NSLIMSEQ_add_minus)
 done
+
+lemma LIMSEQ_diff_const: "f ----> a ==> (%n.(f n  - b)) ----> a - b"
+  apply (subgoal_tac "%n. (f n - b) == %n. (f n - (%n. b) n)")
+  apply (subgoal_tac "(%n. b) ----> b")
+  apply (auto simp add: LIMSEQ_diff LIMSEQ_const)
+done
+
+lemma NSLIMSEQ_diff_const: "f ----NS> a ==> (%n.(f n - b)) ----NS> a - b"
+by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_diff_const)
 
 text{*Proof is like that of @{text NSLIM_inverse}.*}
 lemma NSLIMSEQ_inverse:
@@ -293,6 +312,66 @@ next
   thus ?thesis
     by (simp add: setsum_def LIMSEQ_const)
 qed
+
+lemma LIMSEQ_setprod:
+  assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
+  shows "(\<lambda>m. \<Prod>n\<in>S. X n m) ----> (\<Prod>n\<in>S. L n)"
+proof (cases "finite S")
+  case True
+  thus ?thesis using n
+  proof (induct)
+    case empty
+    show ?case
+      by (simp add: LIMSEQ_const)
+  next
+    case insert
+    thus ?case
+      by (simp add: LIMSEQ_mult)
+  qed
+next
+  case False
+  thus ?thesis
+    by (simp add: setprod_def LIMSEQ_const)
+qed
+
+lemma LIMSEQ_ignore_initial_segment: "f ----> a 
+  ==> (%n. f(n + k)) ----> a"
+  apply (unfold LIMSEQ_def) 
+  apply (clarify)
+  apply (drule_tac x = r in spec)
+  apply (clarify)
+  apply (rule_tac x = "no + k" in exI)
+  by auto
+
+lemma LIMSEQ_offset: "(%x. f (x + k)) ----> a ==>
+    f ----> a"
+  apply (unfold LIMSEQ_def)
+  apply clarsimp
+  apply (drule_tac x = r in spec)
+  apply clarsimp
+  apply (rule_tac x = "no + k" in exI)
+  apply clarsimp
+  apply (drule_tac x = "n - k" in spec)
+  apply (frule mp)
+  apply arith
+  apply simp
+done
+
+lemma LIMSEQ_diff_approach_zero: 
+  "g ----> L ==> (%x. f x - g x) ----> 0  ==>
+     f ----> L"
+  apply (drule LIMSEQ_add)
+  apply assumption
+  apply simp
+done
+
+lemma LIMSEQ_diff_approach_zero2: 
+  "f ----> L ==> (%x. f x - g x) ----> 0  ==>
+     g ----> L";
+  apply (drule LIMSEQ_diff)
+  apply assumption
+  apply simp
+done
 
 
 subsection{*Nslim and Lim*}

@@ -10,33 +10,6 @@ theory MacLaurin
 imports Log
 begin
 
-(* FIXME generalize? *)
-lemma sumr_offset:
- "(\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
-by (induct "n", auto)
-
-lemma sumr_offset2:
- "\<forall>f. (\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
-by (induct "n", auto)
-
-lemma sumr_offset3:
-  "setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
-by (simp  add: sumr_offset)
-
-lemma sumr_offset4:
- "\<forall>n f. setsum f {0::nat..<n+k} =
-        (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
-by (simp add: sumr_offset)
-
-(*
-lemma sumr_from_1_from_0: "0 < n ==>
-      (\<Sum>n=Suc 0 ..< Suc n. if even(n) then 0 else
-             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n =
-      (\<Sum>n=0..<Suc n. if even(n) then 0 else
-             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n"
-by (rule_tac n1 = 1 in sumr_split_add [THEN subst], auto)
-*)
-
 subsection{*Maclaurin's Theorem with Lagrange Form of Remainder*}
 
 text{*This is a very long, messy proof even now that it's been broken down

@@ -1,5 +1,6 @@
 (*  Title       : Log.thy
     Author      : Jacques D. Fleuriot
+                  Additional contributions by Jeremy Avigad
     Copyright   : 2000,2001 University of Edinburgh
 *)
 
@@ -38,6 +39,9 @@ by (simp add: powr_def exp_add [symmetric] ln_mult right_distrib)
 lemma powr_gt_zero [simp]: "0 < x powr a"
 by (simp add: powr_def)
 
+lemma powr_ge_pzero [simp]: "0 <= x powr y"
+by (rule order_less_imp_le, rule powr_gt_zero)
+
 lemma powr_not_zero [simp]: "x powr a \<noteq> 0"
 by (simp add: powr_def)
 
@@ -45,6 +49,12 @@ lemma powr_divide:
      "[| 0 < x; 0 < y |] ==> (x / y) powr a = (x powr a)/(y powr a)"
 apply (simp add: divide_inverse positive_imp_inverse_positive powr_mult)
 apply (simp add: powr_def exp_minus [symmetric] exp_add [symmetric] ln_inverse)
+done
+
+lemma powr_divide2: "x powr a / x powr b = x powr (a - b)"
+  apply (simp add: powr_def)
+  apply (subst exp_diff [THEN sym])
+  apply (simp add: left_diff_distrib)
 done
 
 lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
@@ -129,8 +139,6 @@ lemma log_le_cancel_iff [simp]:
 by (simp add: linorder_not_less [symmetric])
 
 
-subsection{*Further Results Courtesy Jeremy Avigad*}
-
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (induct n, simp)
   apply (subgoal_tac "real(Suc n) = real n + 1")
@@ -176,12 +184,94 @@ lemma powr_less_mono2: "0 < a ==> 0 < x ==> x < y ==> x powr a <
   apply assumption+
 done
 
-lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a";
+lemma powr_less_mono2_neg: "a < 0 ==> 0 < x ==> x < y ==> y powr a <
+    x powr a"
+  apply (unfold powr_def)
+  apply (rule exp_less_mono)
+  apply (rule mult_strict_left_mono_neg)
+  apply (subst ln_less_cancel_iff)
+  apply assumption
+  apply (rule order_less_trans)
+  prefer 2
+  apply assumption+
+done
+
+lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
   apply (case_tac "a = 0", simp)
   apply (case_tac "x = y", simp)
   apply (rule order_less_imp_le)
   apply (rule powr_less_mono2, auto)
 done
+
+lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
+  apply (rule mult_imp_le_div_pos)
+  apply (assumption)
+  apply (subst mult_commute)
+  apply (subst ln_pwr [THEN sym])
+  apply auto
+  apply (rule ln_bound)
+  apply (erule ge_one_powr_ge_zero)
+  apply (erule order_less_imp_le)
+done
+
+lemma ln_powr_bound2: "1 < x ==> 0 < a ==> (ln x) powr a <= (a powr a) * x"
+proof -
+  assume "1 < x" and "0 < a"
+  then have "ln x <= (x powr (1 / a)) / (1 / a)"
+    apply (intro ln_powr_bound)
+    apply (erule order_less_imp_le)
+    apply (rule divide_pos_pos)
+    apply simp_all
+    done
+  also have "... = a * (x powr (1 / a))"
+    by simp
+  finally have "(ln x) powr a <= (a * (x powr (1 / a))) powr a"
+    apply (intro powr_mono2)
+    apply (rule order_less_imp_le, rule prems)
+    apply (rule ln_gt_zero)
+    apply (rule prems)
+    apply assumption
+    done
+  also have "... = (a powr a) * ((x powr (1 / a)) powr a)"
+    apply (rule powr_mult)
+    apply (rule prems)
+    apply (rule powr_gt_zero)
+    done
+  also have "(x powr (1 / a)) powr a = x powr ((1 / a) * a)"
+    by (rule powr_powr)
+  also have "... = x"
+    apply simp
+    apply (subgoal_tac "a ~= 0")
+    apply (insert prems, auto)
+    done
+  finally show ?thesis .
+qed
+
+lemma LIMSEQ_neg_powr: "0 < s ==> (%x. (real x) powr - s) ----> 0"
+  apply (unfold LIMSEQ_def)
+  apply clarsimp
+  apply (rule_tac x = "natfloor(r powr (1 / - s)) + 1" in exI)
+  apply clarify
+  proof -
+    fix r fix n
+    assume "0 < s" and "0 < r" and "natfloor (r powr (1 / - s)) + 1 <= n"
+    have "r powr (1 / - s) < real(natfloor(r powr (1 / - s))) + 1"
+      by (rule real_natfloor_add_one_gt)
+    also have "... = real(natfloor(r powr (1 / -s)) + 1)"
+      by simp
+    also have "... <= real n"
+      apply (subst real_of_nat_le_iff)
+      apply (rule prems)
+      done
+    finally have "r powr (1 / - s) < real n".
+    then have "real n powr (- s) < (r powr (1 / - s)) powr - s" 
+      apply (intro powr_less_mono2_neg)
+      apply (auto simp add: prems)
+      done
+    also have "... = r"
+      by (simp add: powr_powr prems less_imp_neq [THEN not_sym])
+    finally show "real n powr - s < r" .
+  qed
 
 
 

@@ -4,6 +4,7 @@
 
 Converted to Isar and polished by lcp
 Converted to setsum and polished yet more by TNN
+Additional contributions by Jeremy Avigad
 *) 
 
 header{*Finite Summation and Infinite Series*}
@@ -60,6 +61,32 @@ apply (induct "n")
 apply (simp_all add: setsum_add_nat_ivl add_commute)
 done
 
+(* FIXME generalize? *)
+lemma sumr_offset:
+ "(\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
+by (induct "n", auto)
+
+lemma sumr_offset2:
+ "\<forall>f. (\<Sum>m=0..<n::nat. f(m+k)::real) = setsum f {0..<n+k} - setsum f {0..<k}"
+by (induct "n", auto)
+
+lemma sumr_offset3:
+  "setsum f {0::nat..<n+k} = (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
+by (simp  add: sumr_offset)
+
+lemma sumr_offset4:
+ "\<forall>n f. setsum f {0::nat..<n+k} =
+        (\<Sum>m=0..<n. f (m+k)::real) + setsum f {0..<k}"
+by (simp add: sumr_offset)
+
+(*
+lemma sumr_from_1_from_0: "0 < n ==>
+      (\<Sum>n=Suc 0 ..< Suc n. if even(n) then 0 else
+             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n =
+      (\<Sum>n=0..<Suc n. if even(n) then 0 else
+             ((- 1) ^ ((n - (Suc 0)) div 2))/(real (fact n))) * a ^ n"
+by (rule_tac n1 = 1 in sumr_split_add [THEN subst], auto)
+*)
 
 subsection{* Infinite Sums, by the Properties of Limits*}
 
@@ -88,6 +115,34 @@ apply (frule sums_summable [THEN summable_sums])
 apply (auto intro!: LIMSEQ_unique simp add: sums_def)
 done
 
+lemma sums_split_initial_segment: "f sums s ==> 
+  (%n. f(n + k)) sums (s - (SUM i = 0..< k. f i))"
+  apply (unfold sums_def);
+  apply (simp add: sumr_offset); 
+  apply (rule LIMSEQ_diff_const)
+  apply (rule LIMSEQ_ignore_initial_segment)
+  apply assumption
+done
+
+lemma summable_ignore_initial_segment: "summable f ==> 
+    summable (%n. f(n + k))"
+  apply (unfold summable_def)
+  apply (auto intro: sums_split_initial_segment)
+done
+
+lemma suminf_minus_initial_segment: "summable f ==>
+    suminf f = s ==> suminf (%n. f(n + k)) = s - (SUM i = 0..< k. f i)"
+  apply (frule summable_ignore_initial_segment)
+  apply (rule sums_unique [THEN sym])
+  apply (frule summable_sums)
+  apply (rule sums_split_initial_segment)
+  apply auto
+done
+
+lemma suminf_split_initial_segment: "summable f ==> 
+    suminf f = (SUM i = 0..< k. f i) + suminf (%n. f(n + k))"
+by (auto simp add: suminf_minus_initial_segment)
+
 lemma series_zero: 
      "(\<forall>m. n \<le> m --> f(m) = 0) ==> f sums (setsum f {0..<n})"
 apply (simp add: sums_def LIMSEQ_def diff_minus[symmetric], safe)
@@ -95,30 +150,112 @@ apply (rule_tac x = n in exI)
 apply (clarsimp simp add:setsum_diff[symmetric] cong:setsum_ivl_cong)
 done
 
+lemma sums_zero: "(%n. 0) sums 0";
+  apply (unfold sums_def);
+  apply simp;
+  apply (rule LIMSEQ_const);
+done;
 
-lemma sums_mult: "x sums x0 ==> (%n. c * x(n)) sums (c * x0)"
+lemma summable_zero: "summable (%n. 0)";
+  apply (rule sums_summable);
+  apply (rule sums_zero);
+done;
+
+lemma suminf_zero: "suminf (%n. 0) = 0";
+  apply (rule sym);
+  apply (rule sums_unique);
+  apply (rule sums_zero);
+done;
+  
+lemma sums_mult: "f sums a ==> (%n. c * f n) sums (c * a)"
 by (auto simp add: sums_def setsum_mult [symmetric]
          intro!: LIMSEQ_mult intro: LIMSEQ_const)
 
-lemma sums_divide: "x sums x' ==> (%n. x(n)/c) sums (x'/c)"
+lemma summable_mult: "summable f ==> summable (%n. c * f n)";
+  apply (unfold summable_def);
+  apply (auto intro: sums_mult);
+done;
+
+lemma suminf_mult: "summable f ==> suminf (%n. c * f n) = c * suminf f";
+  apply (rule sym);
+  apply (rule sums_unique);
+  apply (rule sums_mult);
+  apply (erule summable_sums);
+done;
+
+lemma sums_mult2: "f sums a ==> (%n. f n * c) sums (a * c)"
+apply (subst mult_commute)
+apply (subst mult_commute);back;
+apply (erule sums_mult)
+done
+
+lemma summable_mult2: "summable f ==> summable (%n. f n * c)"
+  apply (unfold summable_def)
+  apply (auto intro: sums_mult2)
+done
+
+lemma suminf_mult2: "summable f ==> suminf f * c = (\<Sum>n. f n * c)"
+by (auto intro!: sums_unique sums_mult summable_sums simp add: mult_commute)
+
+lemma sums_divide: "f sums a ==> (%n. (f n)/c) sums (a/c)"
 by (simp add: real_divide_def sums_mult mult_commute [of _ "inverse c"])
+
+lemma summable_divide: "summable f ==> summable (%n. (f n) / c)";
+  apply (unfold summable_def);
+  apply (auto intro: sums_divide);
+done;
+
+lemma suminf_divide: "summable f ==> suminf (%n. (f n) / c) = (suminf f) / c";
+  apply (rule sym);
+  apply (rule sums_unique);
+  apply (rule sums_divide);
+  apply (erule summable_sums);
+done;
+
+lemma sums_add: "[| x sums x0; y sums y0 |] ==> (%n. x n + y n) sums (x0+y0)"
+by (auto simp add: sums_def setsum_addf intro: LIMSEQ_add)
+
+lemma summable_add: "summable f ==> summable g ==> summable (%x. f x + g x)";
+  apply (unfold summable_def);
+  apply clarify;
+  apply (rule exI);
+  apply (erule sums_add);
+  apply assumption;
+done;
+
+lemma suminf_add:
+     "[| summable f; summable g |]   
+      ==> suminf f + suminf g  = (\<Sum>n. f n + g n)"
+by (auto intro!: sums_add sums_unique summable_sums)
 
 lemma sums_diff: "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0-y0)"
 by (auto simp add: sums_def setsum_subtractf intro: LIMSEQ_diff)
 
-lemma suminf_mult: "summable f ==> suminf f * c = (\<Sum>n. f n * c)"
-by (auto intro!: sums_unique sums_mult summable_sums simp add: mult_commute)
-
-lemma suminf_mult2: "summable f ==> c * suminf f  = (\<Sum>n. c * f n)"
-by (auto intro!: sums_unique sums_mult summable_sums)
+lemma summable_diff: "summable f ==> summable g ==> summable (%x. f x - g x)";
+  apply (unfold summable_def);
+  apply clarify;
+  apply (rule exI);
+  apply (erule sums_diff);
+  apply assumption;
+done;
 
 lemma suminf_diff:
      "[| summable f; summable g |]   
       ==> suminf f - suminf g  = (\<Sum>n. f n - g n)"
 by (auto intro!: sums_diff sums_unique summable_sums)
 
-lemma sums_minus: "x sums x0 ==> (%n. - x n) sums - x0"
-by (auto simp add: sums_def intro!: LIMSEQ_minus simp add: setsum_negf)
+lemma sums_minus: "f sums s ==> (%x. - f x) sums (- s)";
+  by (simp add: sums_def setsum_negf LIMSEQ_minus);
+
+lemma summable_minus: "summable f ==> summable (%x. - f x)";
+  by (auto simp add: summable_def intro: sums_minus);
+
+lemma suminf_minus: "summable f ==> suminf (%x. - f x) = - (suminf f)";
+  apply (rule sym);
+  apply (rule sums_unique);
+  apply (rule sums_minus);
+  apply (erule summable_sums);
+done;
 
 lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
