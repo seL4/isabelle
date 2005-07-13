@@ -855,11 +855,10 @@ fun prove_split_simp sg T prop =
 
 
 local
-
-fun get_fields extfields T = 
-     Library.foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
-             ([],(dest_recTs T));
-fun eq s1 s2 = (String.compare (s1, s2) = EQUAL);
+fun eq (s1:string) (s2:string) = (s1 = s2);
+fun has_field extfields f T =
+     exists (fn (eN,_) => exists (eq f o fst) (Symtab.lookup_multi (extfields,eN))) 
+       (dest_recTs T);
 in
 (* record_simproc *)
 (* Simplifies selections of an record update:
@@ -894,8 +893,8 @@ val record_simproc =
                                val kv = mk_abs_var "k" k
                                val kb = Bound 1 
                              in SOME (upd$kb$rb,kb,[kv,rv],true) end
-                        else if exists (eq u_name o fst) (get_fields extfields rangeS)
-                             orelse exists (eq s o fst) (get_fields extfields updT)
+                        else if has_field extfields u_name rangeS
+                             orelse has_field extfields s updT
                              then NONE
 			     else (case mk_eq_terms r of 
                                      SOME (trm,trm',vars,update_s) 
@@ -945,7 +944,7 @@ val record_upd_simproc =
              fun sel_name u = NameSpace.base (unsuffix updateN u);
 
              fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
-                  if exists (eq s o fst) (get_fields extfields mT) then upd else seed s r
+                  if has_field extfields s mT then upd else seed s r
                | seed _ r = r;
 
              fun grow u uT k vars (sprout,skeleton) = 
