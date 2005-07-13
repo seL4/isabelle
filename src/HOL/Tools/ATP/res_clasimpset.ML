@@ -1,6 +1,4 @@
-
-(*  ID:         $Id$
-
+(*  ID:      $Id$
     Author:     Claire Quigley
     Copyright   2004  University of Cambridge
 *)
@@ -14,7 +12,8 @@ struct
 
 fun add_term_consts_rm ncs (Const(c, _)) cs = 
     if (c mem ncs) then cs else (c ins_string cs)
-  | add_term_consts_rm ncs (t $ u) cs = add_term_consts_rm ncs t (add_term_consts_rm ncs u cs)
+  | add_term_consts_rm ncs (t $ u) cs =
+      add_term_consts_rm ncs t (add_term_consts_rm ncs u cs)
   | add_term_consts_rm ncs (Abs(_,_,t)) cs = add_term_consts_rm ncs t cs
   | add_term_consts_rm ncs _ cs = cs;
 
@@ -26,9 +25,6 @@ fun thm_consts_rm ncs thm = term_consts_rm ncs (prop_of thm);
 
 
 fun consts_of_thm (n,thm) = thm_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] thm;
-
-
-
 
 fun consts_of_term term = term_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] term;
 
@@ -77,25 +73,16 @@ fun relevant_axioms goal thmTab n =
 	    let val thms1 = axioms_having_consts cs thmTab
 		val cs1 = ResLib.flat_noDup (map consts_of_thm thms1)
 	    in
-		if ((cs1 subset cs) orelse (n <= k)) then (k,thms1) 
+		if ((cs1 subset cs) orelse n <= k) then (k,thms1) 
 		else (relevant_axioms_aux1 (cs1 union cs) (k+1))
 	    end
 
-	fun relevant_axioms_aux2 cs k =
-	    let val thms1 = axioms_having_consts cs thmTab
-		val cs1 = ResLib.flat_noDup (map consts_of_thm thms1)
-	    in
-		if (cs1 subset cs)  then (k,thms1) 
-		else (relevant_axioms_aux2 (cs1 union cs) (k+1))
-	    end
-
-    in
-	if n <= 0 then (relevant_axioms_aux2 consts 1) else (relevant_axioms_aux1 consts 1)
-    end;
+    in  relevant_axioms_aux1 consts 1  end;
 
 
-
-fun relevant_filter n goal thms = #2 (relevant_axioms goal (make_thm_table thms) n);
+fun relevant_filter n goal thms = 
+    if n<=0 then thms 
+    else #2 (relevant_axioms goal (make_thm_table thms) n);
 
 
 (* find the thms from thy that contain relevant constants, n is the iteration number *)
@@ -113,7 +100,6 @@ fun find_axioms_n_c thy goal n =
 	val table = make_thm_table current_thms
     in
 	relevant_axioms goal table n
-
     end;
 
 end;
@@ -121,13 +107,18 @@ end;
 
 signature RES_CLASIMP = 
   sig
-     val write_out_clasimp : string -> theory -> term -> 
+  val relevant : int ref
+  val write_out_clasimp : string -> theory -> term -> 
                              (ResClause.clause * thm) Array.array * int
-val write_out_clasimp_small :string -> theory -> (ResClause.clause * thm) Array.array * int
+  val write_out_clasimp_small :
+     string -> theory -> (ResClause.clause * thm) Array.array * int
   end;
 
 structure ResClasimp : RES_CLASIMP =
 struct
+
+(*Relevance filtering is off by default*)
+val relevant = ref 0;  
 
 fun has_name th = ((Thm.name_of_thm th)  <>  "")
 
@@ -190,14 +181,16 @@ fun clause_numbering ((clause, theorem), cls) =
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.*)
 fun write_out_clasimp filename thy goal = 
-    let val claset_rules = ReduceAxiomsN.relevant_filter 1 goal 
-                              (ResAxioms.claset_rules_of_thy thy);
+    let val claset_rules = 
+              ReduceAxiomsN.relevant_filter (!relevant) goal 
+                (ResAxioms.claset_rules_of_thy thy);
 	val named_claset = List.filter has_name_pair claset_rules;
 	val claset_names = map remove_spaces_pair (named_claset)
 	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
 
-	val simpset_rules = ReduceAxiomsN.relevant_filter 1 goal 
-	                       (ResAxioms.simpset_rules_of_thy thy);
+	val simpset_rules =
+	      ReduceAxiomsN.relevant_filter (!relevant) goal 
+                (ResAxioms.simpset_rules_of_thy thy);
 	val named_simpset = 
 	      map remove_spaces_pair (List.filter has_name_pair simpset_rules)
 	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
