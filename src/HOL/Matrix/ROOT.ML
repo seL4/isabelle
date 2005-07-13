@@ -3,4 +3,6 @@
 *)
 
 use_thy "SparseMatrix";
+cd "cplex"; use_thy "Cplex"; cd "..";
+
 
