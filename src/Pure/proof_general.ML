@@ -296,7 +296,7 @@ fun with_displaywrap (elt, attrs) dispfn =
     fun wlgrablines s = lines := s :: ! lines;
   in
     setmp writeln_fn wlgrablines dispfn ();
-    (* FIXME: XML.element here inefficient, should use stream output *)
+    (* IMPORTANT FIXME: XML.element here too inefficient, should use stream output *)
     issue_pgip elt attrs (XML.element "pgmltext" [] (! lines))
   end;
 
@@ -709,6 +709,7 @@ local
 
  fun idvalue tp nm = ("idvalue",[("objtype",tp),("name",nm)])
 in
+(* FIXME: add askids for "file" here, which returns single theory with same name *)
 fun askids (NONE, SOME "theory")  = send_thy_idtable NONE (ThyInfo.names())
   | askids (NONE, NONE) =  send_thy_idtable NONE (ThyInfo.names())
                            (* only theories known in top context *)
@@ -1066,11 +1067,33 @@ end
 val isabelle_pgml_version_supported = "1.0";
 val isabelle_pgip_version_supported = "2.0"
 
+(* TODO: would be cleaner to define a datatype here for the accepted elements,
+   and mapping functions to/from strings.  At the moment this list must
+   coincide with the strings in the function process_pgip_element. *)
+val isabelle_acceptedpgipelems = 
+    ["askpgip","askpgml","askprefs","getpref","setpref",
+     "proverinit","proverexit","startquiet","stopquiet",
+     "pgmlsymbolson", "pgmlsymbolsoff",
+     "dostep", "undostep", "redostep", "abortgoal", "forget", "restoregoal",
+     "askids", "showid", "askguise",
+     "parsescript",
+     "showproofstate", "showctxt", "searchtheorems", "setlinewidth", "viewdoc",
+     "doitem", "undoitem", "redoitem", "abortheory",
+     "retracttheory", "loadfile", "openfile", "closefile",
+     "abortfile", "changecwd", "systemcmd"];
+
 fun usespgip () =
-    issue_pgipe "usespgip" [("version", isabelle_pgip_version_supported)];
+    issue_pgip 
+	"usespgip" 
+	[("version", isabelle_pgip_version_supported)]
+	(XML.element "acceptedpgipelems" []
+		     (map (fn s=>XML.element "pgipelem" 
+					     [] (* if threads: possibility to add async here *)
+					     [s])
+			  isabelle_acceptedpgipelems))
 
 fun usespgml () =
-    issue_pgipe "usespgml" [("version", isabelle_pgml_version_supported)];
+    issue_pgipe "usespgml" [("version", isabelle_pgml_version_supported)]
 
 fun hasprefs () =
     List.app (fn (prefcat, prefs) =>
@@ -1079,7 +1102,7 @@ fun hasprefs () =
                        XML.element "haspref" [("name", name),
                                               ("descr", descr),
                                               ("default", default)]
-                       [ty]) prefs)]) (!preferences);
+                       [ty]) prefs)]) (!preferences)
 
 fun allprefs () = Library.foldl (op @) ([], map snd (!preferences))
 
