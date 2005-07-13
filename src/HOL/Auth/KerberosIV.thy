@@ -1218,7 +1218,7 @@ by (blast dest: B_trusts_ServKey K4_imp_K2_refined)
 lemma NotExpirServ_NotExpirAuth_refined:
      "[| ~ ExpirServ Tt evs; ServLife + Tt <= AuthLife + Tk |]
       ==> ~ ExpirAuth Tk evs"
-by (blast dest: leI le_trans elim: leE)
+by (blast dest: leI le_trans dest: leD)
 
 
 lemma Confidentiality_B:

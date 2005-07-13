@@ -2248,7 +2248,7 @@ proof -
 	hence "ys ! (length ys - Suc n) = rev ys ! n"
 	  ..
 	thus "(y # ys) ! (length ys - n) = rev ys ! n"
-	  by (simp add: nth_Cons' noty not_less_iff_le [symmetric])
+	  by (simp add: nth_Cons' noty linorder_not_less [symmetric])
       next
 	assume "~ n < length ys"
 	hence x: "length ys \<le> n"

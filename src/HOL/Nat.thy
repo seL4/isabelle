@@ -342,22 +342,6 @@ lemma le_Suc_eq: "(m \<le> Suc n) = (m \<le> n | m = Suc n)"
 lemma le_SucE: "m \<le> Suc n ==> (m \<le> n ==> R) ==> (m = Suc n ==> R) ==> R"
   by (drule le_Suc_eq [THEN iffD1], rules+)
 
-lemma leI: "~ n < m ==> m \<le> (n::nat)" by (simp add: le_def)
-
-lemma leD: "m \<le> n ==> ~ n < (m::nat)"
-  by (simp add: le_def)
-
-lemmas leE = leD [elim_format]
-
-lemma not_less_iff_le: "(~ n < m) = (m \<le> (n::nat))"
-  by (blast intro: leI elim: leE)
-
-lemma not_leE: "~ m \<le> n ==> n<(m::nat)"
-  by (simp add: le_def)
-
-lemma not_le_iff_less: "(~ n \<le> m) = (m < (n::nat))"
-  by (simp add: le_def)
-
 lemma Suc_leI: "m < n ==> Suc(m) \<le> n"
   apply (simp add: le_def less_Suc_eq)
   apply (blast elim!: less_irrefl less_asym)
@@ -853,7 +837,7 @@ lemma add_diff_inverse: "~  m < n ==> n + (m - n) = (m::nat)"
   by (induct m n rule: diff_induct) simp_all
 
 lemma le_add_diff_inverse [simp]: "n \<le> m ==> n + (m - n) = (m::nat)"
-  by (simp add: add_diff_inverse not_less_iff_le)
+  by (simp add: add_diff_inverse linorder_not_less)
 
 lemma le_add_diff_inverse2 [simp]: "n \<le> m ==> (m - n) + n = (m::nat)"
   by (simp add: le_add_diff_inverse add_commute)

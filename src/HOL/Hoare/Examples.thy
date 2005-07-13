@@ -50,7 +50,7 @@ apply vcg
 (*Now prove the verification conditions*)
   apply auto
   apply(simp add: gcd_diff_r less_imp_le)
- apply(simp add: not_less_iff_le gcd_diff_l)
+ apply(simp add: linorder_not_less gcd_diff_l)
 apply(erule gcd_nnn)
 done
 
@@ -72,7 +72,7 @@ lemma gcd_scm: "VARS a b x y
  {a = gcd A B & 2*A*B = a*(x+y)}"
 apply vcg
   apply simp
- apply(simp add: distribs gcd_diff_r not_less_iff_le gcd_diff_l)
+ apply(simp add: distribs gcd_diff_r linorder_not_less gcd_diff_l)
 apply(simp add: distribs gcd_nnn)
 done
 

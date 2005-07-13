@@ -25,6 +25,9 @@ val [nat_case_0, nat_case_Suc] = thms "nat.cases";
 bind_thm ("nat_case_0", nat_case_0);
 bind_thm ("nat_case_Suc", nat_case_Suc);
 
+val leD = thm "leD";  (*Now defined in Orderings.thy*)
+val leI = thm "leI";
+
 val Least_Suc = thm "Least_Suc";
 val Least_Suc2 = thm "Least_Suc2";
 val One_nat_def = thm "One_nat_def";
@@ -112,9 +115,6 @@ val gr0_conv_Suc = thm "gr0_conv_Suc";
 val gr_implies_not0 = thm "gr_implies_not0";
 val inj_Suc = thm "inj_Suc";
 val le0 = thm "le0";
-val leD = thm "leD";
-val leE = thm "leE";
-val leI = thm "leI";
 val le_0_eq = thm "le_0_eq";
 val le_SucE = thm "le_SucE";
 val le_SucI = thm "le_SucI";
@@ -212,10 +212,8 @@ val not_add_less1 = thm "not_add_less1";
 val not_add_less2 = thm "not_add_less2";
 val not_gr0 = thm "not_gr0";
 val not_leE = thm "not_leE";
-val not_le_iff_less = thm "not_le_iff_less";
 val not_less0 = thm "not_less0";
 val not_less_eq = thm "not_less_eq";
-val not_less_iff_le = thm "not_less_iff_le";
 val not_less_less_Suc_eq = thm "not_less_less_Suc_eq";
 val not_less_simps = thms "not_less_simps";
 val one_eq_mult_iff = thm "one_eq_mult_iff";

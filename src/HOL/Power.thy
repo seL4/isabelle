@@ -324,7 +324,7 @@ by (insert one_le_power [of i n], simp)
 
 lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
 apply (unfold dvd_def)
-apply (erule not_less_iff_le [THEN iffD2, THEN add_diff_inverse, THEN subst])
+apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
 apply (simp add: power_add)
 done
 

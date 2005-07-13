@@ -127,7 +127,7 @@ proof
     assume "\<not> ?rhs"
     then obtain m where m: "\<forall>n. m<n \<longrightarrow> n\<notin>S" by blast
     hence "S \<subseteq> {..m}"
-      by (auto simp add: sym[OF not_less_iff_le])
+      by (auto simp add: sym[OF linorder_not_less])
     with inf show "False" 
       by (simp add: finite_nat_iff_bounded_le)
   qed

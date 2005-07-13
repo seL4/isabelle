@@ -269,6 +269,17 @@ by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
 lemma linorder_antisym_conv3: "~ (y::'a::linorder) < x ==> (~ x < y) = (x = y)"
 by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
 
+text{*Replacing the old Nat.leI*}
+lemma leI: "~ x < y ==> y <= (x::'a::linorder)"
+  by (simp only: linorder_not_less)
+
+lemma leD: "y <= (x::'a::linorder) ==> ~ x < y"
+  by (simp only: linorder_not_less)
+
+(*FIXME inappropriate name (or delete altogether)*)
+lemma not_leE: "~ y <= (x::'a::linorder) ==> x < y"
+  by (simp only: linorder_not_le)
+
 use "antisym_setup.ML";
 setup antisym_setup
 

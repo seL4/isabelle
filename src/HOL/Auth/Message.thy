@@ -84,11 +84,11 @@ inductive "parts H"
 lemma parts_mono: "G\<subseteq>H ==> parts(G) \<subseteq> parts(H)"
 apply auto
 apply (erule parts.induct) 
-apply (auto dest: Fst Snd Body) 
+apply (blast dest: Fst Snd Body)+
 done
 
 
-(*Equations hold because constructors are injective; cannot prove for all f*)
+text{*Equations hold because constructors are injective; cannot prove for all f*}
 lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x:A)"
 by auto
 

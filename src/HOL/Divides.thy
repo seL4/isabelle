@@ -82,7 +82,7 @@ done
 
 (*Avoids the ugly ~m<n above*)
 lemma le_mod_geq: "(n::nat) \<le> m ==> m mod n = (m-n) mod n"
-by (simp add: mod_geq not_less_iff_le)
+by (simp add: mod_geq linorder_not_less)
 
 lemma mod_if: "m mod (n::nat) = (if m<n then m else (m-n) mod n)"
 by (simp add: mod_geq)
@@ -149,7 +149,7 @@ done
 
 (*Avoids the ugly ~m<n above*)
 lemma le_div_geq: "[| 0<n;  n\<le>m |] ==> m div n = Suc((m-n) div n)"
-by (simp add: div_geq not_less_iff_le)
+by (simp add: div_geq linorder_not_less)
 
 lemma div_if: "0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))"
 by (simp add: div_geq)
@@ -483,7 +483,7 @@ apply (case_tac "Suc (na) <n")
 (* case Suc(na) < n *)
 apply (frule lessI [THEN less_trans], simp add: less_not_refl3)
 (* case n \<le> Suc(na) *)
-apply (simp add: not_less_iff_le le_Suc_eq mod_geq)
+apply (simp add: linorder_not_less le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
@@ -545,7 +545,7 @@ apply (blast intro: diff_mult_distrib2 [symmetric])
 done
 
 lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
-apply (erule not_less_iff_le [THEN iffD2, THEN add_diff_inverse, THEN subst])
+apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
 apply (blast intro: dvd_add)
 done
 

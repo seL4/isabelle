@@ -336,7 +336,7 @@ lemma ex_has_least_nat:
     "P k ==> \<exists>x. P x & (\<forall>y. P y --> m x <= (m y::nat))"
   apply (simp only: pred_nat_trancl_eq_le [symmetric])
   apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
-   apply (simp add: less_eq not_le_iff_less pred_nat_trancl_eq_le, assumption)
+   apply (simp add: less_eq linorder_not_le pred_nat_trancl_eq_le, assumption)
   done
 
 lemma LeastM_nat_lemma:

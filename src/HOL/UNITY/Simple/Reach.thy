@@ -138,7 +138,7 @@ apply (simp (no_asm) add: Diff_fixedpoint Rprg_def)
 apply (rule LeadsTo_UN, auto)
 apply (ensures_tac "asgt a b")
  prefer 2 apply blast
-apply (simp (no_asm_use) add: not_less_iff_le)
+apply (simp (no_asm_use) add: linorder_not_less)
 apply (drule metric_le [THEN order_antisym]) 
 apply (auto elim: less_not_refl3 [THEN [2] rev_notE])
 done
