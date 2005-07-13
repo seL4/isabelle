@@ -214,4 +214,4 @@ end;
 
 
 (*graphs indexed by strings*)
-structure Graph = GraphFun(type key = string val ord = string_ord);
+structure Graph = GraphFun(type key = string val ord = fast_string_ord);
