@@ -178,8 +178,8 @@ fun coind_prefix true = "co"
 fun unify_consts thy cs intr_ts =
   (let
     val tsig = Sign.tsig_of thy;
-    val add_term_consts_2 =
-      foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
+    fun add_term_consts_2 (x, y) =
+      fold_aterms (fn (Const c) => curry (op ins) c | _ => I) y x;
     fun varify (t, (i, ts)) =
       let val t' = map_term_types (incr_tvar (i + 1)) (#1 (Type.varify (t, [])))
       in (maxidx_of_term t', t'::ts) end;
