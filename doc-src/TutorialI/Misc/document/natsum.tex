@@ -91,7 +91,7 @@ simple arithmetic goals automatically:%
 \begin{isamarkuptext}%
 \noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
-logical connectives, and all arithmetic operations apart from addition.
+many logical connectives, and all arithmetic operations apart from addition.
 In consequence, \isa{auto} and \isa{simp} cannot prove this slightly more complex goal:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -135,7 +135,7 @@ If \isa{k} is a numeral, \sdx{div}~\isa{k}, \sdx{mod}~\isa{k} and
 \isa{k}~\sdx{dvd} are also supported, where the former two are eliminated
 by case distinctions, again blowing up the running time.
 
-If the formula involves explicit quantifiers, \isa{arith} may take
+If the formula involves quantifiers, \isa{arith} may take
 super-exponential time and space.
 \end{warn}%
 \end{isamarkuptext}%
