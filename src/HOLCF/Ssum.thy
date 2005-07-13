@@ -206,13 +206,9 @@ lemma cont_Iwhen3: "cont (\<lambda>s. Iwhen f g s)"
 apply (rule contI)
 apply (drule ssum_chain_lemma, safe)
 apply (simp add: contlub_cfun_arg [symmetric])
-apply (simp add: Iwhen4)
-apply (simp add: contlub_cfun_arg)
-apply (simp add: thelubE chain_monofun)
+apply (simp add: Iwhen4 cont_cfun_arg)
 apply (simp add: contlub_cfun_arg [symmetric])
-apply (simp add: Iwhen5)
-apply (simp add: contlub_cfun_arg)
-apply (simp add: thelubE chain_monofun)
+apply (simp add: Iwhen5 cont_cfun_arg)
 done
 
 subsection {* Continuous versions of constants *}
