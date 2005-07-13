@@ -645,13 +645,7 @@ fun tptp_clause cls =
 	cls_str :: (typ_clss 0 tfree_lits)
     end;
 
-fun clause_info cls =
-    let 
-	val cls_id = string_of_clauseID cls
-	val ax_name = string_of_axiomName cls
-    in 
-	((ax_name^""), cls_id)
-    end;
+fun clause_info cls = (string_of_axiomName cls, string_of_clauseID cls);
 
 
 fun clause2tptp cls =
