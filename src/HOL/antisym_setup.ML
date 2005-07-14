@@ -1,3 +1,6 @@
+
+(* $Id$ *)
+
 local
 
 val order_antisym_conv = thm "order_antisym_conv"
@@ -13,7 +16,7 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
       val t = HOLogic.mk_Trueprop(le $ s $ r);
   in case Library.find_first (prp t) prems of
        NONE =>
-         let val t = HOLogic.mk_Trueprop(HOLogic.not_const $ (less $ r $ s))
+         let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
          in case Library.find_first (prp t) prems of
               NONE => NONE
             | SOME thm => SOME(mk_meta_eq(thm RS linorder_antisym_conv1))
