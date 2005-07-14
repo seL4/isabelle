@@ -5,7 +5,7 @@
 
 Installing the oracle for SVC (Stanford Validity Checker)
 
-The following code merely CALLS the oracle; 
+The following code merely CALLS the oracle;
   the soundness-critical functions are at HOL/Tools/svc_funcs.ML
 
 Based upon the work of Søren T. Heilmann
@@ -26,21 +26,21 @@ fun svc_abstract t =
     val nPar = length params
     val vname = ref "V_a"
     val pairs = ref ([] : (term*term) list)
-    fun insert t = 
-	let val T = fastype_of t
+    fun insert t =
+        let val T = fastype_of t
             val v = Unify.combound (Var ((!vname,0), Us--->T),
-				    0, nPar)
-	in  vname := Symbol.bump_string (!vname); 
-	    pairs := (t, v) :: !pairs;
-	    v
-	end;
-    fun replace t = 
-	case t of
-	    Free _  => t  (*but not existing Vars, lest the names clash*)
-	  | Bound _ => t
-	  | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
-		      SOME v => v
-		    | NONE   => insert t)
+                                    0, nPar)
+        in  vname := Symbol.bump_string (!vname);
+            pairs := (t, v) :: !pairs;
+            v
+        end;
+    fun replace t =
+        case t of
+            Free _  => t  (*but not existing Vars, lest the names clash*)
+          | Bound _ => t
+          | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
+                      SOME v => v
+                    | NONE   => insert t)
     (*abstraction of a numeric literal*)
     fun lit (t as Const("0", _)) = t
       | lit (t as Const("1", _)) = t
@@ -66,11 +66,11 @@ fun svc_abstract t =
       | nat t = lit t
     (*abstraction of a relation: =, <, <=*)
     fun rel (T, c $ x $ y) =
-	    if T = HOLogic.realT then c $ (rat x) $ (rat y)
-	    else if T = HOLogic.intT then c $ (int x) $ (int y)
-	    else if T = HOLogic.natT then c $ (nat x) $ (nat y)
-	    else if T = HOLogic.boolT then c $ (fm x) $ (fm y)
-	    else replace (c $ x $ y)   (*non-numeric comparison*)
+            if T = HOLogic.realT then c $ (rat x) $ (rat y)
+            else if T = HOLogic.intT then c $ (int x) $ (int y)
+            else if T = HOLogic.natT then c $ (nat x) $ (nat y)
+            else if T = HOLogic.boolT then c $ (fm x) $ (fm y)
+            else replace (c $ x $ y)   (*non-numeric comparison*)
     (*abstraction of a formula*)
     and fm ((c as Const("op &", _)) $ p $ q) = c $ (fm p) $ (fm q)
       | fm ((c as Const("op |", _)) $ p $ q) = c $ (fm p) $ (fm q)
@@ -92,20 +92,13 @@ fun svc_abstract t =
 (*Present the entire subgoal to the oracle, assumptions and all, but possibly
   abstracted.  Use via compose_tac, which performs no lifting but will
   instantiate variables.*)
-local val svc_thy = the_context () in
 
-fun svc_tac i st = 
-  let val prem = BasisLibrary.List.nth (prems_of st, i-1)
-      val (absPrem, _) = svc_abstract prem
-      val th = invoke_oracle svc_thy "svc_oracle"
-	             (#sign (rep_thm st), Svc.OracleExn absPrem)
-   in 
-      compose_tac (false, th, 0) i st
-   end 
-   handle Svc.OracleExn _ => Seq.empty
-	| Subscript       => Seq.empty;
-
-end;
+fun svc_tac i st =
+  let
+    val (abs_goal, _) = svc_abstract (Logic.get_goal (Thm.prop_of st) i)
+    val th = svc_oracle (Thm.theory_of_thm st) abs_goal
+   in compose_tac (false, th, 0) i end
+   handle TERM _ => no_tac;
 
 
 (*check if user has SVC installed*)

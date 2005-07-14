@@ -8,15 +8,18 @@ Installing the oracle for SVC (Stanford Validity Checker)
 Based upon the work of Søren T. Heilmann
 *)
 
-theory SVC_Oracle imports Main (** + Real??**)
-uses "svc_funcs.ML" begin
+theory SVC_Oracle
+imports Main
+uses "svc_funcs.ML"
+begin
 
 consts
-  (*reserved for the oracle*)
   iff_keep :: "[bool, bool] => bool"
   iff_unfold :: "[bool, bool] => bool"
 
+hide const iff_keep iff_unfold
+
 oracle
-  svc_oracle = Svc.oracle
+  svc_oracle ("term") = Svc.oracle
 
 end

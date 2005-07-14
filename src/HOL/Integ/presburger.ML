@@ -28,12 +28,6 @@ fun trace_msg s = if !trace then tracing s else ();
 (*-----------------------------------------------------------------*)
 
 
-(* Invoking the oracle *)
-
-fun pres_oracle sg t = 
-  invoke_oracle (theory "Presburger") "presburger_oracle" 
-     (sg, CooperDec.COOPER_ORACLE t) ;
-
 val presburger_ss = simpset_of (theory "Presburger");
 
 fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
@@ -279,7 +273,7 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     let val pth = 
           (* If quick_and_dirty then run without proof generation as oracle*)
              if !quick_and_dirty 
-             then pres_oracle sg (Pattern.eta_long [] t1)
+             then presburger_oracle sg (Pattern.eta_long [] t1)
 (*
 assume (cterm_of sg 
 	       (HOLogic.mk_Trueprop(HOLogic.mk_eq(t1,CooperDec.integer_qelim (Pattern.eta_long [] t1)))))
