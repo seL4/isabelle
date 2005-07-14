@@ -642,7 +642,7 @@ fun forall_intr
         tpairs = tpairs,
         prop = all T $ Abs (a, T, abstract_over (x, prop))};
     fun check_occs x ts =
-      if exists (apl (x, Logic.occs)) ts then
+      if exists (fn t => Logic.occs (x, t)) ts then
         raise THM("forall_intr: variable free in assumptions", 0, [th])
       else ();
   in
@@ -784,7 +784,7 @@ fun abstract_rule a
         prop = Logic.mk_equals
           (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))};
     fun check_occs x ts =
-      if exists (apl (x, Logic.occs)) ts then
+      if exists (fn t => Logic.occs (x, t)) ts then
         raise THM ("abstract_rule: variable free in assumptions", 0, [th])
       else ();
   in
@@ -1406,7 +1406,7 @@ fun bicompose match arg i state =
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
 fun could_bires (Hs, B, eres_flg, rule) =
-    let fun could_reshyp (A1::_) = exists (apl(A1,could_unify)) Hs
+    let fun could_reshyp (A1::_) = exists (fn H => could_unify (A1, H)) Hs
           | could_reshyp [] = false;  (*no premise -- illegal*)
     in  could_unify(concl_of rule, B) andalso
         (not eres_flg  orelse  could_reshyp (prems_of rule))
@@ -1439,10 +1439,11 @@ fun invoke_oracle_i thy1 name =
       (case Symtab.lookup (#2 (#oracles (Theory.rep_theory thy1)), name) of
         NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
       | SOME (f, _) => f);
+    val thy_ref1 = Theory.self_ref thy1;
   in
     fn (thy2, data) =>
       let
-        val thy' = Theory.merge (thy1, thy2);
+        val thy' = Theory.merge (Theory.deref thy_ref1, thy2);
         val (prop, T, maxidx) =
           Sign.certify_term (Sign.pp thy') thy' (oracle (thy', data));
       in
