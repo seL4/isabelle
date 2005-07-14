@@ -1983,7 +1983,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
 
     val tinst = Symtab.make (map
                 (fn ((x, 0), T) => (x, T |> renameT)
-                  | ((_, n), _) => error "Internal error var in prep_registration") vinst);
+                  | ((_, n), _) => sys_error "Internal error var in prep_registration") vinst);
     val inst = Symtab.make (given_ps ~~ map rename vs);
 
     (* defined params without user input *)

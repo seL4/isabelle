@@ -723,7 +723,7 @@ fun gen_export_std exp_view view inner outer =
     fn th =>
       (case Seq.pull (exp th) of
         SOME (th', _) => th' |> Drule.local_standard
-      | NONE => raise CONTEXT ("Internal failure while exporting theorem", inner))
+      | NONE => sys_error "Failed to export theorem")
   end;
 
 val export_standard = gen_export_std export_view;
