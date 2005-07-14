@@ -161,7 +161,7 @@ fun extract_proof s
 
 
 fun several p = many (some p)
-      fun collect (h, t) = h ^ (Utils.itlist (fn s1 => fn s2 => s1 ^ s2) t "")
+      fun collect (h, t) = h ^ (fold_rev (fn s1 => fn s2 => s1 ^ s2) t "")
   
       fun lower_letter s = ("a" <= s) andalso (s <= "z")
       fun upper_letter s = ("A" <= s) andalso (s <= "Z")
