@@ -19,8 +19,6 @@ sig
 
     val current_sign : unit -> Sign.sg
 
-    structure fvartabS : TABLE
-
     (* Matching/unification with exceptions handled *)
     val clean_match : Type.tsig -> Term.term * Term.term 
                       -> ((Term.indexname * (Term.sort * Term.typ)) list 
@@ -53,11 +51,6 @@ sig
     val term_of_thm : Thm.thm -> Term.term
     val get_prems_of_sg_term : Term.term -> Term.term list
     val triv_thm_from_string : string -> Thm.thm
-(*    val make_term_into_simp_thm :
-       (string * Term.typ) list -> Sign.sg -> Term.term -> Thm.thm
-    val thms_of_prems_in_goal : int -> Thm.thm -> Thm.thm list
-*)
-
 
     (* some common term manipulations *)
     val try_dest_Goal : Term.term -> Term.term
@@ -101,8 +94,7 @@ sig
 
     (* Isar term skolemisationm and unsolemisation *)
     (* I think this is written also in IsarRTechn and also in somewhere else *)
-    (* val skolemise_term : (string,Term.typ) list -> Term.term -> Term.term
-     val unskolemise_term : (string,Term.typ) list -> Term.term -> Term.term *)
+    (* val skolemise_term : (string,Term.typ) list -> Term.term -> Term.term *)
     val unskolemise_all_term : 
         Term.term -> 
         (((string * Term.typ) * string) list * Term.term)
@@ -112,7 +104,7 @@ sig
     val readwty : string -> string -> Term.term
 
     (* pretty stuff *)
-    val pp_term : Term.term -> unit
+    val print_term : Term.term -> unit
     val pretty_print_sort : string list -> string
     val pretty_print_term : Term.term -> string
     val pretty_print_type : Term.typ -> string
@@ -255,47 +247,13 @@ fun writeterm t = writeln (pretty_print_term t);
 fun writetype t = writeln (pretty_print_type t);
 fun writesort s = writeln (pretty_print_sort s);
 
-
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
-(*  Turn on show types *)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
-
-(* if (!show_types) then true else set show_types; *)
-
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
-(*  functions *)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
-
 fun current_sign () = Theory.sign_of (the_context());
 fun cterm_of_term (t : term) = Thm.cterm_of (current_sign()) t;
 fun term_of_thm t = (Thm.prop_of t);
 
-(* little function to make a trueprop of anything by putting a P 
-   function in front of it... 
-fun HOL_mk_term_prop t = 
-  ((Const("Trueprop", Type("fun", 
-    [Type("bool", []), Type("prop", [])]))) $
-      ((Free("P", Type("fun", [type_of t, 
-        Type("bool", [])]))) $ t));
-
-*)
-
 fun string_of_term t =
   (Sign.string_of_term (current_sign()) t);
-
-(*
-(allt as (Const("Trueprop", ty) $ m)) = 
-    (string_of_cterm (cterm_of_term allt))
-  | string_of_term (t : term) = 
-    string_of_cterm (cterm_of_term (HOL_mk_term_prop t));
-*)
-
-(* creates a simple cterm of the term if it's not already a prop by 
-   prefixing it with a polymorphic function P, then create the cterm
-   and print that. Handy tool for printing terms that are not
-   already propositions, or not cterms. 
-*)
-fun pp_term t = writeln (string_of_term t);
+fun print_term t = writeln (string_of_term t);
 
 (* create a trivial HOL thm from anything... *)
 fun triv_thm_from_string s = 
@@ -330,13 +288,6 @@ fun triv_thm_from_string s =
 				 [] => false
 			 | (_::_) => true);
 
-  (* working with Isar terms and their skolemisation(s) *)
-(*    val skolemise_term : (string,Term.typ) list -> Term.term -> Term.term
-    val unskolemise_term : (string,Term.typ) list -> Term.term -> Term.term
-*)
-
-(* cunning version *)
-
 (* This version avoids name conflicts that might be introduced by
 unskolemisation, and returns a list of (string * Term.typ) * string,
 where the outer string is the original name, and the inner string is
@@ -370,17 +321,6 @@ fun unskolemise_all_term t =
       val ((renames,names'),t') = unsk (([], names),I) t
     in (renames,t') end;
 end
-
-(*    fun unskolemise_all_term t = 
-        let 
-          fun fmap fv = 
-              let (n,ty) = (Term.dest_Free fv) in 
-                SOME (fv, Free (Syntax.dest_skolem n, ty)) handle LIST _ => NONE
-              end
-          val substfrees = List.mapPartial fmap (Term.term_frees t)
-        in
-          Term.subst_free substfrees t
-        end; *)
 
 (* true if the type t is a function *)
 fun is_fun_typ (Type(s, l)) = 
@@ -420,40 +360,31 @@ fun readwty tstr tystr =
   
   Also, the isabelle term.ML version of aeconv uses a
   function that it claims doesn't work! *)
-
   fun term_name_eq (Abs(_,ty1,t1)) (Abs(_,ty2,t2)) l = 
     if ty1 = ty2 then term_name_eq t1 t2 l
     else NONE
-
   | term_name_eq (ah $ at) (bh $ bt) l =
     let 
       val lopt = (term_name_eq ah bh l)
     in
       if isSome lopt then 
-	term_name_eq at bt (valOf lopt)
+	      term_name_eq at bt (valOf lopt)
       else
         NONE
     end
-
   | term_name_eq (Const(a,T)) (Const(b,U)) l = 
     if a=b andalso T=U then SOME l
     else NONE
-
   | term_name_eq (a as Free(s1,ty1)) (b as Free(s2,ty2)) l = 
     same_var_check a b l
-
   | term_name_eq (a as Free(s1,ty1)) (b as Var(n2,ty2)) l = 
     same_var_check a b l
-
   | term_name_eq (a as Var(n1,ty1)) (b as Free(s2,ty2)) l = 
     same_var_check a b l
-
   | term_name_eq (a as Var(n1,ty1)) (b as Var(n2,ty2)) l = 
     same_var_check a b l
-
   | term_name_eq (Bound i) (Bound j) l = 
     if i = j then SOME l else NONE
-
   | term_name_eq a b l = ((*writeln ("unchecked case:\n" ^ "a:\n" ^ (pretty_print_term a) ^ "\nb:\n" ^ (pretty_print_term b));*) NONE);
 
  (* checks to see if the term in a name-equivalent member of the list of terms. *)
@@ -570,15 +501,9 @@ is a valid wave rule... *)
 			  (_ :: _) => true
 			| [] => false;
 
-
-      (* pp_term a; pp_term b; writeln "EQTerm matches are: "; map (fn (a,b) => writeln ("(" ^ (string_of_term a) ^ ", " ^ (string_of_term b) ^ ")")) L;*) 
-
-
   (* change all bound variables to see ones with appropriate name and
   type *)
-
   (* naming convention is OK as we use 'variant' from term.ML *)
-
   (* Note "bounds_to_frees" defined below, its better and quicker, but
   keeps the quantifiers handing about, and changes all bounds, not
   just universally quantified ones. *)
@@ -599,25 +524,21 @@ is a valid wave rule... *)
       (subst_bounds ((bnds_to_frees vars frees_names []), body))
     end; 
 
-
-
-structure fvartabS = TableFun(type key = string val ord = string_ord);
-
 (* a runtime-quick function which makes sure that every variable has a
 unique name *)
 fun unique_namify_aux (ntab,(Abs(s,ty,t))) = 
-    (case (fvartabS.lookup (ntab,s)) of
+    (case (Symtab.lookup (ntab,s)) of
        NONE => 
        let 
-				 val (ntab2,t2) = unique_namify_aux ((fvartabS.update ((s,s),ntab)), t)
+				 val (ntab2,t2) = unique_namify_aux ((Symtab.update ((s,s),ntab)), t)
        in
 				 (ntab2,Abs(s,ty,t2))
        end
      | SOME s2 => 
        let 
-				 val s_new = (Term.variant (fvartabS.keys ntab) s)
+				 val s_new = (Term.variant (Symtab.keys ntab) s)
 				 val (ntab2,t2) = 
-						 unique_namify_aux ((fvartabS.update ((s_new,s_new),ntab)), t)
+						 unique_namify_aux ((Symtab.update ((s_new,s_new),ntab)), t)
        in
 				 (ntab2,Abs(s_new,ty,t2))
        end)
@@ -630,17 +551,17 @@ fun unique_namify_aux (ntab,(Abs(s,ty,t))) =
     end
   | unique_namify_aux (nt as (ntab,Const x)) = nt
   | unique_namify_aux (nt as (ntab,f as Free (s,ty))) = 
-    (case (fvartabS.lookup (ntab,s)) of
-       NONE => ((fvartabS.update ((s,s),ntab)), f)
+    (case (Symtab.lookup (ntab,s)) of
+       NONE => ((Symtab.update ((s,s),ntab)), f)
      | SOME _ => nt)
   | unique_namify_aux (nt as (ntab,v as Var ((s,i),ty))) = 
-    (case (fvartabS.lookup (ntab,s)) of
-       NONE => ((fvartabS.update ((s,s),ntab)), v)
+    (case (Symtab.lookup (ntab,s)) of
+       NONE => ((Symtab.update ((s,s),ntab)), v)
      | SOME _ => nt)
   | unique_namify_aux (nt as (ntab, Bound i)) = nt;
 		
 fun unique_namify t = 
-    #2 (unique_namify_aux (fvartabS.empty, t));
+    #2 (unique_namify_aux (Symtab.empty, t));
 
 (* a runtime-quick function which makes sure that every variable has a
 unique name and also changes bound variables to free variables, used
@@ -649,20 +570,20 @@ manipulation, which doesn't have necessary relation to the original
 sematics of the term. This is really a trick for our embedding code. *)
 
 fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) = 
-    (case (fvartabS.lookup (ntab,s)) of
+    (case (Symtab.lookup (ntab,s)) of
       NONE => 
       let 
 	val (ntab2,t2) = bounds_to_frees_aux ((s,ty)::T)
-				       ((fvartabS.update ((s,s),ntab)), t)
+				       ((Symtab.update ((s,s),ntab)), t)
       in
 	(ntab2,Abs(s,ty,t2))
       end
     | SOME s2 => 
       let 
-	val s_new = (Term.variant (fvartabS.keys ntab) s)
+	val s_new = (Term.variant (Symtab.keys ntab) s)
 	val (ntab2,t2) = 
 	    bounds_to_frees_aux ((s_new,ty)::T) 
-			  (fvartabS.update (((s_new,s_new),ntab)), t)
+			  (Symtab.update (((s_new,s_new),ntab)), t)
       in
 	(ntab2,Abs(s_new,ty,t2))
       end)
@@ -675,12 +596,12 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
     end
   | bounds_to_frees_aux T (nt as (ntab,Const x)) = nt
   | bounds_to_frees_aux T (nt as (ntab,f as Free (s,ty))) = 
-    (case (fvartabS.lookup (ntab,s)) of
-      NONE => ((fvartabS.update ((s,s),ntab)), f)
+    (case (Symtab.lookup (ntab,s)) of
+      NONE => ((Symtab.update ((s,s),ntab)), f)
     | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab,v as Var ((s,i),ty))) = 
-     (case (fvartabS.lookup (ntab,s)) of
-      NONE => ((fvartabS.update ((s,s),ntab)), v)
+     (case (Symtab.lookup (ntab,s)) of
+      NONE => ((Symtab.update ((s,s),ntab)), v)
     | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab, Bound i)) = 
     let 
@@ -691,10 +612,10 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
 
 
 fun bounds_to_frees t = 
-    #2 (bounds_to_frees_aux [] (fvartabS.empty,t));
+    #2 (bounds_to_frees_aux [] (Symtab.empty,t));
 
 fun bounds_to_frees_with_vars vars t = 
-    #2 (bounds_to_frees_aux vars (fvartabS.empty,t));
+    #2 (bounds_to_frees_aux vars (Symtab.empty,t));
 
 
 
@@ -713,39 +634,6 @@ fun loose_bnds_to_frees_aux (bnds,vars) (Abs(s,ty,t)) =
 fun loose_bnds_to_frees vars t = 
     loose_bnds_to_frees_aux (0,vars) t;
 
-(* puts prems of a theorem into a useful form, (rulify) 
-  Note that any loose bound variables are treated as free vars 
-*)
-(* fun make_term_into_simp_thm vars sgn t = 
-    let 
-      val triv = 
-					Thm.trivial (Thm.cterm_of 
-			 sgn (loose_bnds_to_frees vars t))
-    in
-      SplitterData.mk_eq (Drule.standard (ObjectLogic.rulify_no_asm triv))
-    end;
-
-fun thms_of_prems_in_goal i tm= 
-    let 
-      val goal = (List.nth (Thm.prems_of tm,i-1))
-      val vars = rev (strip_all_vars goal)
-      val prems = Logic.strip_assums_hyp (strip_all_body goal)
-      val simp_prem_thms = 
-					map (make_term_into_simp_thm vars (Thm.sign_of_thm tm)) prems
-    in
-      simp_prem_thms
-    end;
-*)
-
-  (* replace all universally quantifief variables (at HOL object level) 
-     with free vars 
-  fun HOL_Alls_to_frees TL (Const("All", _) $ Abs(v, ty, t)) = 
-      HOL_Alls_to_frees ((Free (v, ty)) :: TL) t
-    | HOL_Alls_to_frees TL t = 
-      (TL,(subst_bounds (TL, t)));
-*)
-
-  (* this is just a hack for mixing with interactive mode, and using topthm() *)
 
   fun try_dest_Goal (Const("Goal", _) $ T) = T
     | try_dest_Goal T = T;
@@ -785,16 +673,6 @@ fun get_prems_of_sg_term t =
 				(prems, (try_dest_Trueprop (try_dest_Goal concl)))
       end;
 
-(* old version
-      fun cleaned_term t =  
-        let 
-            val concl = (HOLogic.dest_Trueprop (Logic.strip_imp_concl 
-                          (change_bounds_to_frees t) ))
-	in 
-	  concl
-	end;
-*)
-
   (* change free variables to vars and visa versa *)
   (* *** check naming is OK, can we just use the vasr old name? *)
   (* *** Check: Logic.varify and Logic.unvarify *)
@@ -814,35 +692,3 @@ fun get_prems_of_sg_term t =
 
 
 end;
-
-
-
-  (* ignores lambda abstractions, ie (\x y = y) 
-     same as embedding check code, ie. (f a b) = can "a" be embedded in "b"
-  *)
-  (* fun term_is_same_or_simpler_than (Abs(s,ty,t)) b = 
-    term_is_same_or_simpler_than t b
-
-  | term_is_same_or_simpler_than a (Abs(s,ty,t)) = 
-    term_is_same_or_simpler_than a t
-
-  | term_is_same_or_simpler_than (ah $ at) (bh $ bt) =
-    (term_is_same_or_simpler_than (ah $ at) bh) orelse
-    (term_is_same_or_simpler_than (ah $ at) bt) orelse
-    ((term_is_same_or_simpler_than ah bh) andalso 
-     (term_is_same_or_simpler_than at bt))
-
-  | term_is_same_or_simpler_than (ah $ at) b = false
-
-  | term_is_same_or_simpler_than a (bh $ bt) =
-      (term_is_same_or_simpler_than a bh) orelse 
-      (term_is_same_or_simpler_than a bt)
-
-  | term_is_same_or_simpler_than a b =
-      if a = b then true else false;
-  *)
-
-(*  fun term_is_simpler_than t1 t2 = 
-    (are_different_terms t1 t2) andalso 
-    (term_is_same_or_simpler_than t1 t2);
-*)
