@@ -6,8 +6,6 @@
 Abstract syntax operations of the Pure meta-logic.
 *)
 
-infix occs;
-
 signature LOGIC =
 sig
   val is_all            : term -> bool
@@ -179,7 +177,7 @@ fun dest_goal (Const ("Goal", _) $ t) = t
 
 (*Does t occur in u?  Or is alpha-convertible to u?
   The term t must contain no loose bound variables*)
-fun t occs u = exists_subterm (fn s => t aconv s) u;
+fun occs (t, u) = exists_subterm (fn s => t aconv s) u;
 
 (*Close up a formula over all free variables by quantification*)
 fun close_form A =
