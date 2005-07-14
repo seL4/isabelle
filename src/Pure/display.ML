@@ -200,10 +200,9 @@ fun pretty_full_theory thy =
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
-    val clsses = NameSpace.extern_table (apsnd (Symtab.make o Graph.dest) classes);
-    val tdecls = NameSpace.extern_table types;
-    val arties = Symtab.dest arities
-      |> Library.sort_wrt (NameSpace.extern (Sign.type_space thy) o #1);
+    val clsses = NameSpace.dest_table (apsnd (Symtab.make o Graph.dest) classes);
+    val tdecls = NameSpace.dest_table types;
+    val arties = NameSpace.dest_table (Sign.type_space thy, arities);
     val cnsts = NameSpace.extern_table consts;
     val finals = NameSpace.extern_table (#1 consts, Defs.finals defs);
     val axms = NameSpace.extern_table axioms;
