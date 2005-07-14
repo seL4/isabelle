@@ -128,7 +128,7 @@ fun MP th1 th2 = th2 RS (th1 RS mp)
 fun DISCH tm thm = Thm.implies_intr (D.mk_prop tm) thm COMP impI
   handle THM (msg, _, _) => raise RULES_ERR "DISCH" msg;
 
-fun DISCH_ALL thm = U.itlist DISCH (#hyps (Thm.crep_thm thm)) thm;
+fun DISCH_ALL thm = fold_rev DISCH (#hyps (Thm.crep_thm thm)) thm;
 
 
 fun FILTER_DISCH_ALL P thm =
@@ -202,9 +202,9 @@ fun EVEN_ORS thms =
         | blue ldisjs (th::rst) rdisjs =
             let val tail = tl rdisjs
                 val rdisj_tl = D.list_mk_disj tail
-            in U.itlist DISJ2 ldisjs (DISJ1 th rdisj_tl)
+            in fold_rev DISJ2 ldisjs (DISJ1 th rdisj_tl)
                :: blue (ldisjs @ [cconcl th]) rst tail
-            end handle U.ERR _ => [U.itlist DISJ2 ldisjs th]
+            end handle U.ERR _ => [fold_rev DISJ2 ldisjs th]
    in blue [] thms (map cconcl thms) end;
 
 
@@ -287,10 +287,10 @@ fun SPEC tm thm =
    end
 end;
 
-fun SPEC_ALL thm = U.rev_itlist SPEC (#1(D.strip_forall(cconcl thm))) thm;
+fun SPEC_ALL thm = fold SPEC (#1(D.strip_forall(cconcl thm))) thm;
 
 val ISPEC = SPEC
-val ISPECL = U.rev_itlist ISPEC;
+val ISPECL = fold ISPEC;
 
 (* Not optimized! Too complicated. *)
 local val {prop,sign,...} = rep_thm allI
@@ -318,7 +318,7 @@ fun GEN v th =
    end
 end;
 
-val GENL = U.itlist GEN;
+val GENL = fold_rev GEN;
 
 fun GEN_ALL thm =
    let val {prop,sign,...} = rep_thm thm
@@ -383,7 +383,7 @@ end;
  *---------------------------------------------------------------------------*)
 
 fun EXISTL vlist th =
-  U.itlist (fn v => fn thm => EXISTS(D.mk_exists(v,cconcl thm), v) thm)
+  fold_rev (fn v => fn thm => EXISTS(D.mk_exists(v,cconcl thm), v) thm)
            vlist th;
 
 
@@ -404,7 +404,7 @@ fun IT_EXISTS blist th =
        fun ?v M  = cterm_of sign (S.mk_exists{Bvar=v,Body = M})
 
   in
-  U.itlist (fn (b as (r1,r2)) => fn thm =>
+  fold_rev (fn (b as (r1,r2)) => fn thm =>
         EXISTS(?r2(subst_free[b]
                    (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
               thm)
@@ -527,7 +527,7 @@ fun rename thm =
       val ants = Logic.strip_imp_prems prop
       val news = get (ants,1,[])
   in
-  U.rev_itlist rename_params_rule news thm
+  fold rename_params_rule news thm
   end;
 
 
@@ -567,7 +567,7 @@ fun mk_aabs (vstr, body) =
   handle U.ERR _ => S.mk_pabs {varstruct = vstr, body = body};
 
 fun list_mk_aabs (vstrl,tm) =
-    U.itlist (fn vstr => fn tm => mk_aabs(vstr,tm)) vstrl tm;
+    fold_rev (fn vstr => fn tm => mk_aabs(vstr,tm)) vstrl tm;
 
 fun dest_aabs used tm =
    let val ({Bvar,Body}, used') = S.dest_abs used tm
@@ -765,7 +765,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                    sign,...} = rep_thm thm
               fun genl tm = let val vlist = gen_rems (op aconv)
                                            (add_term_frees(tm,[]), globals)
-                            in U.itlist Forall vlist tm
+                            in fold_rev Forall vlist tm
                             end
               (*--------------------------------------------------------------
                * This actually isn't quite right, since it will think that

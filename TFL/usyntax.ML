@@ -115,7 +115,7 @@ fun dest_vtype (TVar x) = x
 val is_vartype = can dest_vtype;
 
 val type_vars  = map mk_prim_vartype o typ_tvars
-fun type_varsl L = distinct (Utils.rev_itlist (curry op @ o type_vars) L []);
+fun type_varsl L = distinct (fold (curry op @ o type_vars) L []);
 
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
@@ -312,11 +312,11 @@ val is_pabs   = can (dest_pabs [])
 
 (* Construction of a cterm from a list of Terms *)
 
-fun list_mk_abs(L,tm) = Utils.itlist (fn v => fn M => mk_abs{Bvar=v, Body=M}) L tm;
+fun list_mk_abs(L,tm) = fold_rev (fn v => fn M => mk_abs{Bvar=v, Body=M}) L tm;
 
 (* These others are almost never used *)
-fun list_mk_imp(A,c) = Utils.itlist(fn a => fn tm => mk_imp{ant=a,conseq=tm}) A c;
-fun list_mk_forall(V,t) = Utils.itlist(fn v => fn b => mk_forall{Bvar=v, Body=b})V t;
+fun list_mk_imp(A,c) = fold_rev (fn a => fn tm => mk_imp{ant=a,conseq=tm}) A c;
+fun list_mk_forall(V,t) = fold_rev (fn v => fn b => mk_forall{Bvar=v, Body=b})V t;
 val list_mk_conj = Utils.end_itlist(fn c1 => fn tm => mk_conj{conj1=c1, conj2=tm})
 
 

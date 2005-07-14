@@ -104,7 +104,7 @@ fun ipartition gv (constructors,rows) =
           let val (c, T) = dest_Const c
               val L = binder_types T
               val (in_group, not_in_group) =
-               U.itlist (fn (row as (p::rst, rhs)) =>
+               fold_rev (fn (row as (p::rst, rhs)) =>
                          fn (in_group,not_in_group) =>
                   let val (pc,args) = S.strip_comb p
                   in if (#1(dest_Const pc) = c)
@@ -160,7 +160,7 @@ fun fresh_constr ty_match colty gv c =
  * pattern with constructor = name.
  *---------------------------------------------------------------------------*)
 fun mk_group name rows =
-  U.itlist (fn (row as ((prfx, p::rst), rhs)) =>
+  fold_rev (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
                let val (pc,args) = S.strip_comb p
                in if ((#1 (Term.dest_Const pc) = name) handle TERM _ => false)
@@ -565,14 +565,14 @@ fun lazyR_def thy fid tflCongs eqns =
      val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
          (*lcp: a lot of object-logic inference to remove*)
      val baz = R.DISCH_ALL
-                 (U.itlist R.DISCH full_rqt_prop
+                 (fold_rev R.DISCH full_rqt_prop
                   (R.LIST_CONJ extractants))
      val dum = if !trace then writeln ("baz = " ^ string_of_thm baz)
                            else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
      val SVrefls = map reflexive SV'
-     val def0 = (U.rev_itlist (fn x => fn th => R.rbeta(combination th x))
+     val def0 = (fold (fn x => fn th => R.rbeta(combination th x))
                    SVrefls def)
                 RS meta_eq_to_obj_eq
      val def' = R.MP (R.SPEC (tych R') (R.GEN (tych R1) baz)) def0
@@ -584,7 +584,7 @@ fun lazyR_def thy fid tflCongs eqns =
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
      val bar = R.MP (R.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
  in {theory = theory, R=R1, SV=SV,
-     rules = U.rev_itlist (U.C R.MP) (R.CONJUNCTS bar) def',
+     rules = fold (U.C R.MP) (R.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
  end;
@@ -834,7 +834,7 @@ fun LEFT_ABS_VSTRUCT tych thm =
       val [veq] = List.filter (can S.dest_eq) (#1 (R.dest_thm thm))
       val {lhs,rhs} = S.dest_eq veq
       val L = S.free_vars_lr rhs
-  in  #2 (U.itlist CHOOSER L (veq,thm))  end;
+  in  #2 (fold_rev CHOOSER L (veq,thm))  end;
 
 
 (*----------------------------------------------------------------------------
@@ -873,7 +873,7 @@ let val tych = Thry.typecheck thy
     val dc = R.MP Sinduct dant
     val Parg_ty = type_of(#Bvar(S.dest_forall(concl dc)))
     val vars = map (gvvariant[Pname]) (S.strip_prod_type Parg_ty)
-    val dc' = U.itlist (R.GEN o tych) vars
+    val dc' = fold_rev (R.GEN o tych) vars
                        (R.SPEC (tych(S.mk_vstruct Parg_ty vars)) dc)
 in
    R.GEN (tych P) (R.DISCH (tych(concl Rinduct_assum)) dc')
@@ -999,7 +999,7 @@ let val tych = Thry.typecheck theory
         let val tcs = #1(strip_imp (concl r))
             val extra_tcs = gen_rems (op aconv) (ftcs, tcs)
             val extra_tc_thms = map simplify_nested_tc extra_tcs
-            val (r1,ind1) = U.rev_itlist simplify_tc tcs (r,ind)
+            val (r1,ind1) = fold simplify_tc tcs (r,ind)
             val r2 = R.FILTER_DISCH_ALL(not o S.is_WFR) r1
         in loop(rst, nthms@extra_tc_thms, r2::R, ind1)
         end
