@@ -36,8 +36,10 @@ signature DEFS = sig
   val chain_history : unit -> bool
 
   datatype overloadingstate = Open | Closed | Final
+  
+
   val overloading_info : graph -> string -> (typ * (string*typ) list * overloadingstate) option
-  val is_overloaded : graph -> string -> bool
+  val fast_overloading_info : graph -> string -> (typ * int * overloadingstate) option
 
 end
 
@@ -72,7 +74,7 @@ fun get_defnode' graph noderef defname =
 fun table_size table = Symtab.foldl (fn (x, _) => x+1) (0, table)
         
 datatype graphaction = Declare of string * typ
-		     | Define of string * typ * string * (string * typ) list
+		     | Define of string * typ * string * string * (string * typ) list
 		     | Finalize of string * typ
 
 type graph = int * (string Symtab.table) * (graphaction list) * (node Symtab.table)
@@ -297,7 +299,7 @@ fun translate_ex axmap x =
       | _ => raise x
     end
 
-fun define' (cost, axmap, actions, graph) (mainref, ty) axname body =
+fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body =
     let
       val mainnode  = (case Symtab.lookup (graph, mainref) of 
 			 NONE => def_err ("constant "^mainref^" is not declared")
@@ -517,12 +519,12 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname body =
       val (Node (gty, defs, _, finals, closed)) = getnode graph mainref
       val closed = if closed = Closed andalso no_forwards defs then Final else closed
       val graph = Symtab.update ((mainref, Node (gty, defs, backs, finals, closed)), graph) 
-      val actions' = (Define (mainref, ty, axname, body))::actions
+      val actions' = (Define (mainref, ty, axname, orig_axname, body))::actions
     in	    
       (cost+3, axmap, actions', graph)
     end handle ex => translate_ex axmap ex
     
-fun define (g as (cost, axmap, actions, graph)) (mainref, ty) axname body =
+fun define (g as (cost, axmap, actions, graph)) (mainref, ty) orig_axname body =
     let
       val ty = checkT ty
       fun checkbody (n, t) = 
@@ -534,9 +536,9 @@ fun define (g as (cost, axmap, actions, graph)) (mainref, ty) axname body =
             | _ => SOME (n, checkT t)
           end
       val body = distinct (List.mapPartial checkbody body)
-      val (axmap, axname) = newaxname axmap axname
+      val (axmap, axname) = newaxname axmap orig_axname
     in
-      define' (cost, axmap, actions, graph) (mainref, ty) axname body
+      define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body
     end
 
 fun finalize' (cost, axmap, history, graph) (noderef, ty) = 
@@ -635,13 +637,16 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
  
 fun finalize g (noderef, ty) = finalize' g (noderef, checkT ty) 
 
+fun update_axname ax orig_ax (cost, axmap, history, graph) =
+  (cost, Symtab.update ((ax, orig_ax), axmap), history, graph)
+
 fun merge' (Declare cty, g) = declare' g cty
-  | merge' (Define (name, ty, axname, body), g as (_,_, _, graph)) = 
+  | merge' (Define (name, ty, axname, orig_axname, body), g as (cost, axmap, history, graph)) = 
     (case Symtab.lookup (graph, name) of
-       NONE => define' g (name, ty) axname body
+       NONE => define' (update_axname axname orig_axname g) (name, ty) axname orig_axname body
      | SOME (Node (_, defs, _, _, _)) => 
        (case Symtab.lookup (defs, axname) of
-	  NONE => define' g (name, ty) axname body
+	  NONE => define' (update_axname axname orig_axname g) (name, ty) axname orig_axname body
 	| SOME _ => g))
   | merge' (Finalize finals, g) = finalize' g finals 
                        
@@ -667,15 +672,14 @@ fun overloading_info (_, axmap, _, graph) c =
         SOME (ty, map translate (Symtab.dest defnodes), state)
     end
       
-exception Overloaded;
-fun is_overloaded (_, _, _, graph) c = 
+fun fast_overloading_info (_, _, _, graph) c = 
     let 
-      fun count (c, _) = if c = 1 then raise Overloaded else c+1
+      fun count (c, _) = c+1
     in
       case Symtab.lookup (graph, c) of
-        NONE => false
-      | SOME (Node (_, defnodes, _, _, _)) =>
-        ((Symtab.foldl count (0, defnodes); false) handle Overloaded => true)
+        NONE => NONE
+      | SOME (Node (ty, defnodes, _, _, state)) =>
+        SOME (ty, Symtab.foldl count (0, defnodes), state)
     end
 
 end;
