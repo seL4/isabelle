@@ -354,12 +354,6 @@ apply (simp add: floor_def Least_def)
 apply (insert real_lb_ub_int [of r], safe)
 apply (rule theI2)
 apply auto
-apply (subst int_le_real_less, simp)
-apply (drule_tac x = n in spec)
-apply auto
-apply (subgoal_tac "n <= x")
-apply simp
-apply (subst int_le_real_less, simp)
 done
 
 lemma floor_mono: "x < y ==> floor x \<le> floor y"
@@ -385,7 +379,6 @@ apply (simp add: floor_def Least_def)
 apply (insert real_lb_ub_int [of x], erule exE)
 apply (rule theI2)
 apply (auto intro: lemma_floor) 
-apply (auto simp add: order_eq_iff int_le_real_less)
 done
 
 lemma floor_eq: "[| real n < x; x < real n + 1 |] ==> floor x = n"
@@ -429,7 +422,6 @@ apply (simp add: floor_def Least_def)
 apply (insert real_lb_ub_int [of r], safe)
 apply (rule theI2)
 apply (auto intro: lemma_floor)
-apply (auto simp add: order_eq_iff int_le_real_less)
 done
 
 lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real(floor r)"
@@ -437,7 +429,6 @@ apply (simp add: floor_def Least_def)
 apply (insert real_lb_ub_int [of r], safe)
 apply (rule theI2)
 apply (auto intro: lemma_floor)
-apply (auto simp add: order_eq_iff int_le_real_less)
 done
 
 lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real(floor r) + 1"
