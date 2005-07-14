@@ -49,8 +49,6 @@ open cplex
      
 exception Converter of string;
 
-structure Inttab = TableFun(type key = int val ord = int_ord);
-
 fun neg_term (cplexNeg t) = t
   | neg_term (cplexSum ts) = cplexSum (map neg_term ts)
   | neg_term t = cplexNeg t 

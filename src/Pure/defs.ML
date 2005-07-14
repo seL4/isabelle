@@ -197,8 +197,6 @@ fun can_be_unified ty1 ty2 =
       NONE => false
     | _ => true
            
-structure Inttab = TableFun(type key = int val ord = int_ord);
-
 fun normalize_edge_idx (edge as (maxidx, u1, v1, history)) =
     if maxidx <= 1000000 then edge else
     let
