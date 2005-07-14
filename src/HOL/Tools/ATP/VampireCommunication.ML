@@ -1,10 +1,11 @@
-(*  Title:      VampireCommunication.ml
+(*  Title:      VampireCommunication.ML
     ID:         $Id$
     Author:     Claire Quigley
     Copyright   2004  University of Cambridge
 *)
 
-(* FIXME proper structure definition *)
+structure VampireCommunication =
+struct
 
 (***************************************************************************)
 (*  Code to deal with the transfer of proofs from a Vampire process        *)
@@ -109,3 +110,5 @@ fun getVampInput instr =
     else
       (Pretty.writeln (Pretty.str (concat ["vampire", thisLine])); getVampInput instr)
   end;
+
+end;
