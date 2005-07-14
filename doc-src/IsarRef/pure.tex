@@ -587,19 +587,23 @@ val print_ast_translation:
   \isarcmd{oracle} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
-Oracles provide an interface to external reasoning systems, without giving up
-control completely --- each theorem carries a derivation object recording any
-oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
+The oracle interface promotes a given ML function \texttt{theory -> T -> term}
+to \texttt{theory -> T -> thm}, for some type \texttt{T} given by the user.
+This acts like an infinitary specification of axioms -- there is no internal
+check of the correctness of the results!  The inference kernel records oracle
+invocations within the internal derivation object of theorems, and the pretty
+printer attaches ``\texttt{[!]}'' to indicate results that are not fully
+checked by Isabelle inferences.
 
 \begin{rail}
-  'oracle' name '=' text
+  'oracle' name '(' type ')' '=' text
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{oracle}~name=text$] declares oracle $name$ to be ML
-  function $text$, which has to be of type
-  \texttt{Sign.sg~*~Object.T~->~term}.
+\item [$\isarkeyword{oracle}~name~(type)=~text$] turns the given ML expression
+  $text$ of type \texttt{theory~->~$type$~->~term} into an ML function $name$
+  of type \texttt{theory~->~$type$~->~thm}.
 \end{descr}
 
 
