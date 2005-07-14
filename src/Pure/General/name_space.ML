@@ -55,6 +55,7 @@ sig
   val empty_table: 'a table
   val extend_table: naming -> 'a table * (bstring * 'a) list -> 'a table
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
+  val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
 
@@ -257,8 +258,12 @@ fun extend_table naming ((space, tab), bentries) =
 fun merge_tables eq ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), (Symtab.merge eq (tab1, tab2)));
 
-fun extern_table (space, tab) =
-  Library.sort_wrt #1 (map (apfst (extern space)) (Symtab.dest tab));
+fun ext_table (space, tab) =
+  Symtab.fold (fn (name, x) => cons ((name, extern space name), x)) tab []
+  |> Library.sort_wrt (#2 o #1);
+
+fun dest_table tab = map (apfst #1) (ext_table tab);
+fun extern_table tab = map (apfst #2) (ext_table tab);
 
 end;
 
