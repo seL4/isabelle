@@ -69,7 +69,7 @@ val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
 val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
 
 fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
+  Simplifier.simproc (the_context ()) name pats proc;
 
 end;
 
@@ -439,7 +439,7 @@ val init_lin_arith_data =
 end;
 
 val fast_nat_arith_simproc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "fast_nat_arith"
+  Simplifier.simproc (the_context ()) "fast_nat_arith"
     ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] Fast_Arith.lin_arith_prover;
 
 
@@ -462,14 +462,14 @@ local
 
 fun raw_arith_tac ex i st =
   refute_tac (K true)
-   (REPEAT o split_tac (#splits (ArithTheoryData.get (Thm.sign_of_thm st))))
+   (REPEAT o split_tac (#splits (ArithTheoryData.get (Thm.theory_of_thm st))))
    ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
    i st;
 
 fun presburger_tac i st =
-  (case ArithTheoryData.get (sign_of_thm st) of
+  (case ArithTheoryData.get (Thm.theory_of_thm st) of
      {presburger = SOME tac, ...} =>
-       (warning "Simple arithmetic decision procedure failed, trying full Presburger arithmetic..."; tac i st)
+       (warning "Trying full Presburger arithmetic..."; tac i st)
    | _ => no_tac st);
 
 in
@@ -508,7 +508,7 @@ fun antisym_eq prems thm =
         in
           case Library.find_first (prp r') prems of
             NONE =>
-              let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ s $ t))
+              let val r' = Tr $ (HOLogic.Not $ (Const("op <",T) $ s $ t))
               in case Library.find_first (prp r') prems of
                    NONE => []
                  | SOME thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
@@ -520,7 +520,7 @@ fun antisym_eq prems thm =
         in
           case Library.find_first (prp r') prems of
             NONE =>
-              let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ t $ s))
+              let val r' = Tr $ (HOLogic.Not $ (Const("op <",T) $ t $ s))
               in case Library.find_first (prp r') prems of
                    NONE => []
                  | SOME thm' =>
