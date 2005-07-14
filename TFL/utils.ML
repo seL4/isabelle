@@ -10,8 +10,6 @@ signature UTILS =
 sig
   exception ERR of {module: string, func: string, mesg: string}
   val C: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
-  val itlist: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val rev_itlist: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val end_itlist: ('a -> 'a -> 'a) -> 'a list -> 'a
   val itlist2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val pluck: ('a -> bool) -> 'a list -> 'a * 'a list
@@ -30,26 +28,9 @@ fun UTILS_ERR func mesg = ERR {module = "Utils", func = func, mesg = mesg};
 
 fun C f x y = f y x
 
-fun itlist f L base_value =
-   let fun it [] = base_value
-         | it (a::rst) = f a (it rst)
-   in it L
-   end;
-
-fun rev_itlist f =
-   let fun rev_it [] base = base
-         | rev_it (a::rst) base = rev_it rst (f a base)
-   in rev_it
-   end;
-
-fun end_itlist f =
-   let fun endit [] = raise UTILS_ERR "end_itlist" "list too short"
-         | endit alist =
-            let val (base::ralist) = rev alist
-            in itlist f (rev ralist) base
-            end
-   in endit
-   end;
+fun end_itlist f [] = raise (UTILS_ERR "end_itlist" "list too short")
+  | end_itlist f [x] = x 
+  | end_itlist f (x :: xs) = f x (end_itlist f xs);
 
 fun itlist2 f L1 L2 base_value =
  let fun it ([],[]) = base_value
