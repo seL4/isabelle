@@ -105,6 +105,12 @@ interpreted in the same manner as for the 'syntax' command.
 on the signature of the theory context being presently used for
 parsing/printing, see also isar-ref manual.
 
+* Improved 'oracle' command provides a type-safe interface to turn an
+ML expression of type theory -> T -> term into a primitive rule of
+type theory -> T -> thm (i.e. the functionality of Thm.invoke_oracle
+is already included here); see also FOL/ex/IffExample.thy;
+INCOMPATIBILITY.
+
 * Improved internal renaming of symbolic identifiers -- attach primes
 instead of base 26 numbers.
 
