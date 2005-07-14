@@ -133,7 +133,7 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
   of [] => {induction=induction, rules=rules,tcs=[]}
   | L  => let val dummy = message "Simplifying nested TCs ..."
               val (solved,simplified,stubborn) =
-               U.itlist (fn th => fn (So,Si,St) =>
+               fold_rev (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
                      if (solved th) then (th::So, Si, St)
                      else (So, th::Si, St)) nested_tcs ([],[],[])
