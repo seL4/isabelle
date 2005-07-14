@@ -17,11 +17,6 @@ end
 =
 struct
 
-fun fst (a,b) = a
-fun snd (a,b) = b
-
-val filter = List.filter;
-
 exception Destruct_floatstr of string;
 
 fun destruct_floatstr isDigit isExp number = 

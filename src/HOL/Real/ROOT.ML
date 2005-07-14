@@ -7,5 +7,4 @@ Construction of the Reals using Dedekind Cuts
 by Jacques Fleuriot
 *)
 
-time_use_thy "Real";
-use_thy "Float";
+time_use_thy "Float";
