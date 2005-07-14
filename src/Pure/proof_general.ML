@@ -1362,7 +1362,7 @@ in
 
   val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 
-  val pgip_toplevel =  loop true
+  fun pgip_toplevel x = loop true x
 end
 
 
