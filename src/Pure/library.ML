@@ -8,7 +8,7 @@ rational numbers, strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
-infix |> |-> ||> ||>> |>> |>>> #> #-> `> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
+infix |> |-> ||> ||>> |>> |>>> #> #-> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
@@ -29,7 +29,7 @@ sig
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
   val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
-  val `> : 'b * ('b -> 'a) -> 'a * 'b
+  val ` : ('b -> 'a) -> 'b -> 'a * 'b
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
@@ -310,7 +310,7 @@ fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
 fun f #> g = g o f;
 fun f #-> g = fn s => let val (v, s') = f s in g v s' end;
-fun x `> h = (h x, x)
+fun ` h = fn s => (h s, s)
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
