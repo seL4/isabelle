@@ -10,52 +10,45 @@ infixr 6 ->>;
 signature HOLCF_LOGIC =
 sig
   val mk_btyp: string -> typ * typ -> typ
-  val mk_prodT:          typ * typ -> typ
-  val mk_not:  term -> term
-
-  val HOLCF_sg: Sign.sg
   val pcpoC: class
   val pcpoS: sort
   val mk_TFree: string -> typ
   val cfun_arrow: string
-  val ->>      : typ * typ -> typ
-  val mk_ssumT : typ * typ -> typ
+  val ->> : typ * typ -> typ
+  val mk_ssumT: typ * typ -> typ
   val mk_sprodT: typ * typ -> typ
   val mk_uT: typ -> typ
   val trT: typ
   val oneT: typ
-
 end;
-
 
 structure HOLCFLogic: HOLCF_LOGIC =
 struct
 
-open HOLogic;
+(* sort pcpo *)
+
+val pcpoC = Sign.intern_class (the_context ()) "pcpo";
+val pcpoS = [pcpoC];
+fun mk_TFree s = TFree ("'" ^ s, pcpoS);
+
+
+(* basic types *)
 
 fun mk_btyp t (S,T) = Type (t,[S,T]);
-val mk_prodT = mk_btyp "*";
 
-fun mk_not P  = Const ("Not", boolT --> boolT) $ P;
-
-(* basics *)
-
-val HOLCF_sg    = sign_of HOLCF.thy;
-val pcpoC       = Sign.intern_class HOLCF_sg "pcpo";
-val pcpoS       = [pcpoC];
-fun mk_TFree s  = TFree ("'"^s, pcpoS);
-
-(*cfun, ssum, sprod, u, tr, one *)
-
-local val intern = Sign.intern_type HOLCF_sg;
+local
+  val intern_type = Sign.intern_type (the_context ());
+  val u = intern_type "u";
 in
-val cfun_arrow = intern "->";
-val op   ->>  = mk_btyp cfun_arrow;
-val mk_ssumT  = mk_btyp (intern "++");
-val mk_sprodT = mk_btyp (intern "**");
-fun mk_uT T   = Type (intern "u"  ,[T]);
-val trT       = Type (intern "tr" ,[ ]);
-val oneT      = Type (intern "one",[ ]);
+
+val cfun_arrow = intern_type "->";
+val op ->> = mk_btyp cfun_arrow;
+val mk_ssumT = mk_btyp (intern_type "++");
+val mk_sprodT = mk_btyp (intern_type "**");
+fun mk_uT T = Type (u, [T]);
+val trT = Type (intern_type "tr" , []);
+val oneT = Type (intern_type "one", []);
+
 end;
 
 end;
