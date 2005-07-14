@@ -10,7 +10,6 @@ decision procedure (intensively inspired from J.Harrison)
 signature COOPER_DEC = 
 sig
   exception COOPER
-  exception COOPER_ORACLE of term
   val is_arith_rel : term -> bool
   val mk_numeral : IntInf.int -> term
   val dest_numeral : term -> IntInf.int
@@ -45,7 +44,7 @@ sig
   val evalc : term -> term
   val cooper_w : string list -> term -> (term option * term)
   val integer_qelim : Term.term -> Term.term
-  val mk_presburger_oracle : (Sign.sg * exn) -> term
+  val presburger_oracle : theory -> term -> term
 end;
 
 structure  CooperDec : COOPER_DEC =
@@ -55,9 +54,6 @@ struct
 (* Cooper's algorithm for Presburger arithmetic.                             *) 
 (* ========================================================================= *) 
 exception COOPER;
-
-(* Exception for the oracle *)
-exception COOPER_ORACLE of term;
 
 
 (* ------------------------------------------------------------------------- *) 
@@ -523,12 +519,6 @@ val evalc = onatoms evalc_atom;
 (* Hence overall quantifier elimination.                                     *) 
 (* ------------------------------------------------------------------------- *) 
  
-(*Applyes a function iteratively on the list*) 
- 
-fun end_itlist f []     = error "end_itlist" 
-   |end_itlist f [x]    = x 
-   |end_itlist f (h::t) = f h (end_itlist f t); 
- 
  
 (*list_disj[conj] makes a disj[conj] of a given list. used with conjucts or disjuncts 
 it liearises iterated conj[disj]unctions. *) 
@@ -536,12 +526,12 @@ it liearises iterated conj[disj]unctions. *)
 fun disj_help p q = HOLogic.disj $ p $ q ; 
  
 fun list_disj l = 
-  if l = [] then HOLogic.false_const else end_itlist disj_help l; 
+  if l = [] then HOLogic.false_const else Utils.end_itlist disj_help l; 
    
 fun conj_help p q = HOLogic.conj $ p $ q ; 
  
 fun list_conj l = 
-  if l = [] then HOLogic.true_const else end_itlist conj_help l; 
+  if l = [] then HOLogic.true_const else Utils.end_itlist conj_help l; 
    
 (*Simplification of Formulas *) 
  
@@ -826,14 +816,6 @@ fun cooper_w vars1 fm =
   | _ => error "cooper: not an existential formula";
 
  
-(*Function itlist applys a double parametred function f : 'a->'b->b iteratively to a List l : 'a 
-list With End condition b. ict calculates f(e1,f(f(e2,f(e3,...(...f(en,b))..))))) 
- assuming l = [e1,e2,...,en]*) 
- 
-fun itlist f l b = case l of 
-    [] => b 
-  | (h::t) => f h (itlist f t b); 
- 
 (* ------------------------------------------------------------------------- *) 
 (* Free variables in terms and formulas.	                             *) 
 (* ------------------------------------------------------------------------- *) 
@@ -890,7 +872,7 @@ fun lift_qelim afn nfn qfn isat =
       (if ycjs = [] then p else 
                           let val q = (qfn vars ((HOLogic.exists_const HOLogic.intT 
 			  ) $ Abs(x,HOLogic.intT,(list_conj ycjs)))) in 
-                          (itlist conj_help ncjs q)  
+                          (fold_rev conj_help ncjs q)  
 			  end) 
        end 
     
@@ -956,9 +938,8 @@ val integer_qelim = simpl o evalc o (lift_qelim linform (simpl o (cnnf posineq o
 
 val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) cooper is_arith_rel) ; 
 
-fun mk_presburger_oracle (sg,COOPER_ORACLE t) = 
+fun presburger_oracle thy t =
     if (!quick_and_dirty) 
     then HOLogic.mk_Trueprop (HOLogic.mk_eq(t,integer_qelim t))
-    else raise COOPER_ORACLE t
-    |mk_presburger_oracle (sg,_) = error "Oops";
+    else error "Presburger oracle: not in quick_and_dirty mode"
 end;
