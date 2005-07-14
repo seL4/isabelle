@@ -80,9 +80,9 @@ fun eq_terms [] = true
 
 
 (*figure out internal names*)
-val chfin_pcpoS = Sign.intern_sort (sign_of HOLCF.thy) ["chfin", "pcpo"];
-val cont_name = Sign.intern_const (sign_of HOLCF.thy) "cont";
-val adm_name = Sign.intern_const (sign_of HOLCF.thy) "adm";
+val chfin_pcpoS = Sign.intern_sort (the_context ()) ["chfin", "pcpo"];
+val cont_name = Sign.intern_const (the_context ()) "cont";
+val adm_name = Sign.intern_const (the_context ()) "adm";
 
 
 (*** check whether type of terms in list is chain finite ***)

@@ -118,11 +118,10 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     |> Method.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
-    |> (fn state' =>
-        state'
-        |> Proof.from_facts chain_facts
-        |> Proof.show_i (K I) after_qed false [(("", []), [(bound_thesis, ([], []))])] false
-        |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
+    |> `Proof.the_facts
+    ||> Proof.from_facts chain_facts
+    ||> Proof.show_i (K I) after_qed false [(("", []), [(bound_thesis, ([], []))])] false
+    |-> (fn facts => Method.refine (Method.Basic (K (Method.insert facts))))
   end;
 
 val obtain = gen_obtain ProofContext.read_vars ProofContext.read_propp;

@@ -41,13 +41,13 @@ val _ = Context.add_setup [Theory.add_oracle ("skip_proof", skip_proof)];
 (* basic cheating *)
 
 fun make_thm thy t =
-  Thm.invoke_oracle_i thy "Pure.skip_proof" (Theory.sign_of thy, SkipProof t);
+  Thm.invoke_oracle_i thy "Pure.skip_proof" (thy, SkipProof t);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
 fun prove thy xs asms prop tac =
-  Tactic.prove (Theory.sign_of thy) xs asms prop
+  Tactic.prove thy xs asms prop
     (if ! quick_and_dirty then (K (cheat_tac thy)) else tac);
 
 

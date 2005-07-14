@@ -222,10 +222,10 @@ fun subtract eq net1 net2 =
       | subtr (Leaf _) (net as Net _) = subtr emptynet net
       | subtr (Net {comb = comb1, var = var1, atoms = atoms1})
             (Net {comb = comb2, var = var2, atoms = atoms2}) =
-          Symtab.fold (fn (a, net) =>
-            subtr (if_none (Symtab.lookup (atoms1, a)) emptynet) net) atoms2 o
-          subtr var1 var2 o
-          subtr comb1 comb2;
+          subtr comb1 comb2
+          #> subtr var1 var2
+          #> Symtab.fold (fn (a, net) =>
+            subtr (if_none (Symtab.lookup (atoms1, a)) emptynet) net) atoms2
   in subtr net1 net2 [] end;
 
 fun entries net = subtract (K false) empty net;

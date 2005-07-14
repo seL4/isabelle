@@ -8,19 +8,20 @@ rational numbers, strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
-infix |> |-> ||> ||>> |>> |>>> #> #-> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
-  mem mem_int mem_string union union_int union_string inter inter_int
-  inter_string subset subset_int subset_string;
+infix |> |-> ||> ||>> |>> |>>> #> #-> ~~ \ \\ ins ins_string ins_int
+  orf andf prefix upto downto mem mem_int mem_string union union_int
+  union_string inter inter_int inter_string subset subset_int
+  subset_string;
 
 infix 3 oo ooo oooo;
 
 signature BASIC_LIBRARY =
 sig
   (*functions*)
-  val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
-  val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
+  val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
+  val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val |> : 'a * ('a -> 'b) -> 'b
   val |-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b
   val ||> : ('c * 'a) * ('a -> 'b) -> 'c * 'b
@@ -33,9 +34,9 @@ sig
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
+  val funpow: int -> ('a -> 'a) -> 'a -> 'a
   val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
   val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
-  val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
   (*old options -- invalidated*)
   datatype invalid = None of invalid
@@ -295,11 +296,10 @@ struct
 
 (** functions **)
 
-(*handy combinators*)
-fun curry f x y = f (x, y);
-fun uncurry f (x, y) = f x y;
 fun I x = x;
 fun K x = fn _ => x;
+fun curry f x y = f (x, y);
+fun uncurry f (x, y) = f x y;
 
 (*reverse application and structured results*)
 fun x |> f = f x;
@@ -308,18 +308,18 @@ fun (x, y) |>> f = (f x, y);
 fun (x, y) ||> f = (x, f y);
 fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
+
+(*reverse composition*)
 fun f #> g = g o f;
-fun f #-> g = fn s => let val (v, s') = f s in g v s' end;
-fun ` h = fn s => (h s, s)
+fun f #-> g = uncurry g o f;
+
+(*view results*)
+fun `f = fn x => (f x, x);
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
 fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
-
-(*application of (infix) operator to its left or right argument*)
-fun apl (x, f) y = f (x, y);
-fun apr (f, y) x = f (x, y);
 
 (*function exponentiation: f(...(f x)...) with n applications of f*)
 fun funpow n f x =
@@ -327,6 +327,9 @@ fun funpow n f x =
         | rep (n, x) = rep (n - 1, f x)
   in rep (n, x) end;
 
+(*application of (infix) operator to its left or right argument*)
+fun apl (x, f) y = f (x, y);
+fun apr (f, y) x = f (x, y);
 
 
 (** options **)
@@ -1268,12 +1271,13 @@ fun keyfilter [] searchkey = []
   Preserves order of elements in both lists.*)
 val partition = List.partition;
 
-
 fun partition_eq (eq:'a * 'a -> bool) =
-    let fun part [] = []
-          | part (x::ys) = let val (xs, xs') = partition (apl(x, eq)) ys
-                           in (x::xs)::(part xs') end
-    in part end;
+  let
+    fun part [] = []
+      | part (x :: ys) =
+          let val (xs, xs') = partition (fn y => eq (x, y)) ys
+          in (x::xs)::(part xs') end
+  in part end;
 
 
 (*Partition a list into buckets  [ bi, b(i+1), ..., bj ]

@@ -419,7 +419,7 @@ fun reorient thy prems lhs rhs =
   andalso not(exists_subterm is_Var lhs)
     orelse
 *)
-  exists (apl (lhs, Logic.occs)) (rhs :: prems)
+  exists (fn t => Logic.occs (lhs, t)) (rhs :: prems)
     orelse
   null prems andalso Pattern.matches (Sign.tsig_of thy) (lhs, rhs)
     (*the condition "null prems" is necessary because conditional rewrites

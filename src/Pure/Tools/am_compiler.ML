@@ -5,14 +5,14 @@
 
 signature COMPILING_AM = 
 sig
-    include ABSTRACT_MACHINE
+  include ABSTRACT_MACHINE
 
-    datatype closure = CVar of int | CConst of int
-		     | CApp of closure * closure | CAbs of closure | Closure of (closure list) * closure
+  datatype closure = CVar of int | CConst of int
+    | CApp of closure * closure | CAbs of closure | Closure of (closure list) * closure
 
-    val set_compiled_rewriter : (term -> closure) -> unit
-    val list_nth : 'a list * int -> 'a
-    val list_map : ('a -> 'b) -> 'a list -> 'b list
+  val set_compiled_rewriter : (term -> closure) -> unit
+  val list_nth : 'a list * int -> 'a
+  val list_map : ('a -> 'b) -> 'a list -> 'b list
 end
 
 structure AM_Compiler :> COMPILING_AM = struct
@@ -25,7 +25,8 @@ datatype term = Var of int | Const of int | App of term * term | Abs of term
 datatype pattern = PVar | PConst of int * (pattern list)
 
 datatype closure = CVar of int | CConst of int
-		 | CApp of closure * closure | CAbs of closure | Closure of (closure list) * closure
+	         | CApp of closure * closure | CAbs of closure
+                 | Closure of (closure list) * closure
 
 val compiled_rewriter = ref (NONE:(term -> closure)Option.option)
 
@@ -47,19 +48,22 @@ fun term_of_clos (CVar x) = Var x
   | term_of_clos (CConst c) = Const c
   | term_of_clos (CApp (u, v)) = App (term_of_clos u, term_of_clos v)
   | term_of_clos (CAbs u) = Abs (term_of_clos u)
-  | term_of_clos (Closure (e, u)) = raise (Run "internal error: closure in normalized term found")
+  | term_of_clos (Closure (e, u)) =
+      raise (Run "internal error: closure in normalized term found")
 
 fun strip_closure args (CApp (a,b)) = strip_closure (b::args) a
   | strip_closure args x = (x, args)
 
-(* Returns true iff at most 0 .. (free-1) occur unbound. therefore check_freevars 0 t iff t is closed *)
+(*Returns true iff at most 0 .. (free-1) occur unbound. therefore
+  check_freevars 0 t iff t is closed*)
 fun check_freevars free (Var x) = x < free
   | check_freevars free (Const c) = true
   | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
   | check_freevars free (Abs m) = check_freevars (free+1) m
 
 fun count_patternvars PVar = 1
-  | count_patternvars (PConst (_, ps)) = List.foldl (fn (p, count) => (count_patternvars p)+count) 0 ps
+  | count_patternvars (PConst (_, ps)) =
+      List.foldl (fn (p, count) => (count_patternvars p)+count) 0 ps
 
 fun print_rule (p, t) = 
     let	
@@ -81,17 +85,22 @@ fun print_rule (p, t) =
 	    end
 
 	val (n, pattern) = print_pattern 0 p
-	val pattern = if List.exists Char.isSpace (String.explode pattern) then "("^pattern^")" else pattern
+	val pattern =
+            if List.exists Char.isSpace (String.explode pattern) then "("^pattern^")"
+            else pattern
 	
-	fun print_term d (Var x) = (*if x < d then "Var "^(str x) else "x"^(str (n-(x-d)-1))*) "Var "^(str x)
-	  | print_term d (Const c) = "c"^(str c)
-	  | print_term d (App (a,b)) = "App ("^(print_term d a)^", "^(print_term d b)^")"
-	  | print_term d (Abs c) = "Abs ("^(print_term (d+1) c)^")"
+	fun print_term d (Var x) = (*if x < d then "Var "^(str x) else "x"^(str (n-(x-d)-1))*)
+              "Var " ^ str x
+	  | print_term d (Const c) = "c" ^ str c
+	  | print_term d (App (a,b)) = "App (" ^ print_term d a ^ ", " ^ print_term d b ^ ")"
+	  | print_term d (Abs c) = "Abs (" ^ print_term (d + 1) c ^ ")"
 
 	fun listvars n = if n = 0 then "x0" else "x"^(str n)^", "^(listvars (n-1))
 
 	val term = print_term 0 t
-	val term = if n > 0 then "Closure (["^(listvars (n-1))^"], "^term^")" else "Closure ([], "^term^")"
+	val term =
+            if n > 0 then "Closure (["^(listvars (n-1))^"], "^term^")"
+            else "Closure ([], "^term^")"
 			   
     in
 	"lookup stack "^pattern^" = weak stack ("^term^")"
@@ -104,7 +113,7 @@ fun remove_dups (c::cs) =
   | remove_dups [] = []
 
 fun constants_of PVar = []
-  | constants_of (PConst (c, ps)) = c::(List.concat (map constants_of ps))
+  | constants_of (PConst (c, ps)) = c :: List.concat (map constants_of ps)
 
 fun constants_of_term (Var _) = []
   | constants_of_term (Abs m) = constants_of_term m
@@ -113,6 +122,7 @@ fun constants_of_term (Var _) = []
     
 fun load_rules sname name prog = 
     let
+        (* FIXME consider using more readable/efficient Buffer.empty |> fold Buffer.add etc. *)
 	val buffer = ref ""
 	fun write s = (buffer := (!buffer)^s)
 	fun writeln s = (write s; write "\n")
@@ -210,11 +220,9 @@ fun load_rules sname name prog =
 	    in
 		()
 	    end
-	    
-	val dummy = (fn s => ())		    
     in
 	compiled_rewriter := NONE;	
-	use_text (dummy, dummy) false (!buffer);
+	use_text (K (), K ()) false (!buffer);
 	case !compiled_rewriter of 
 	    NONE => raise (Compile "cannot communicate with compiled function")
 	  | SOME r => (compiled_rewriter := NONE; fn t => term_of_clos (r t))

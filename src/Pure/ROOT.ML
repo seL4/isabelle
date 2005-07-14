@@ -1,9 +1,7 @@
 (*  Title:      Pure/ROOT.ML
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
 
-Root file for Pure Isabelle.
+Pure Isabelle.
 *)
 
 val banner = "Pure Isabelle";
@@ -93,10 +91,8 @@ cd "IsaPlanner"; use "ROOT.ML"; cd "..";
 (*configuration for Proof General*)
 use "proof_general.ML";
 
-(* loading the Tools directory *)
 cd "Tools"; use "ROOT.ML"; cd "..";
 
-(*the Pure theories*)
 use_thy "Pure"; structure Pure = struct val thy = theory "Pure" end;
 use_thy "CPure"; structure CPure = struct val thy = theory "CPure" end;
 

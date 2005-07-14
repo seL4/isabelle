@@ -35,7 +35,7 @@ let
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
 
   fun con_def outer recu m n (_,args) = let
-     fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else Id)
+     fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else I)
 			(if recu andalso is_rec arg then (cproj (Bound z) eqs
 				  (rec_of arg))`Bound(z-x) else Bound(z-x));
      fun parms [] = %%:ONE_N
@@ -47,7 +47,7 @@ let
 
   val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
 	Library.foldl (op `) (%%:(dname^"_when") , 
-	              mapn (con_def Id true (length cons)) 0 cons)));
+	              mapn (con_def I true (length cons)) 0 cons)));
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
@@ -75,7 +75,7 @@ let
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then UU else
 			 foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
-	in List.mapPartial Id (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
+	in List.mapPartial I (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
 
 
 (* ----- axiom and definitions concerning induction ------------------------- *)

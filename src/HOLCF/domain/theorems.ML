@@ -6,6 +6,7 @@
 Proof generator for domain section.
 *)
 
+val HOLCF_ss = simpset();
 
 structure Domain_Theorems = struct
 
@@ -233,7 +234,7 @@ val sel_apps = let fun one_sel c n sel = map (fn (con,args) =>
                                                   (List.nth(vns,n))] else [])
                      @ [asm_simp_tac(HOLCF_ss addsimps when_rews)1])end) cons;
 in List.concat(map  (fn (c,args) => 
-     List.concat(List.mapPartial Id (mapn (fn n => fn arg => Option.map (one_sel c n) (sel_of arg)) 0 args))) cons) end;
+     List.concat(List.mapPartial I (mapn (fn n => fn arg => Option.map (one_sel c n) (sel_of arg)) 0 args))) cons) end;
 val sel_defins = if length cons=1 then List.mapPartial (fn arg => Option.map (fn sel => pg [](defined(%:x_name)==> 
                         defined(%%:sel`%x_name)) [
                                 rtac casedist 1,
@@ -442,7 +443,7 @@ local
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons)  = if all_rec_to [] false (n,cons) then (warning
         ("domain "^List.nth(dnames,n)^" is empty!"); true) else false;
-    fun lazy_rec_to ns = rec_to exists Id  lazy_rec_to ns;
+    fun lazy_rec_to ns = rec_to exists I  lazy_rec_to ns;
 
   in val n__eqs     = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
      val is_emptys = map warn n__eqs;

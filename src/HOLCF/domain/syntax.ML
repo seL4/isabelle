@@ -105,8 +105,8 @@ fun add_syntax (comp_dnam,eqs': ((string * typ list) *
 let
   val dtypes  = map (Type o fst) eqs';
   val boolT   = HOLogic.boolT;
-  val funprod = foldr' mk_prodT (map (fn tp => tp ->> tp          ) dtypes);
-  val relprod = foldr' mk_prodT (map (fn tp => tp --> tp --> boolT) dtypes);
+  val funprod = foldr' HOLogic.mk_prodT (map (fn tp => tp ->> tp          ) dtypes);
+  val relprod = foldr' HOLogic.mk_prodT (map (fn tp => tp --> tp --> boolT) dtypes);
   val const_copy   = (comp_dnam^"_copy"  ,funprod ->> funprod, NoSyn);
   val const_bisim  = (comp_dnam^"_bisim" ,relprod --> boolT  , NoSyn);
   val ctt           = map (calc_syntax funprod) eqs';
