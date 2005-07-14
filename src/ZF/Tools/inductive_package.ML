@@ -48,7 +48,7 @@ functor Add_inductive_def_Fun
  : INDUCTIVE_PACKAGE =
 struct
 
-open Logic Ind_Syntax;
+open Ind_Syntax;
 
 val co_prefix = if coind then "co" else "";
 
@@ -112,7 +112,7 @@ let
 
   (*Makes a disjunct from an introduction rule*)
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
-    let val prems = map dest_tprop (strip_imp_prems intr)
+    let val prems = map dest_tprop (Logic.strip_imp_prems intr)
         val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
         val exfrees = term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
@@ -138,7 +138,7 @@ let
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
-  val dummy = List.app (fn rec_hd => deny (rec_hd occs fp_rhs)
+  val dummy = List.app (fn rec_hd => deny (Logic.occs (rec_hd, fp_rhs))
                              "Illegal occurrence of recursion operator")
            rec_hds;
 
