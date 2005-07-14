@@ -153,7 +153,7 @@ sig
   val token_translation: string -> theory -> theory
   val generic_setup: string -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
-  val add_oracle: bstring * string -> theory -> theory
+  val add_oracle: bstring * string * string -> theory -> theory
   val add_locale: bool * bstring * Locale.expr * Locale.element list -> theory -> theory
   val register_globally:
     ((string * Attrib.src list) * Locale.expr) * string option list ->
@@ -615,11 +615,20 @@ fun method_setup (name, txt, cmt) =
 
 (* add_oracle *)
 
-fun add_oracle (name, txt) =
-  Context.use_let
-    "val oracle: bstring * (theory * Object.T -> term)"
-    "Theory.add_oracle oracle"
-    ("(" ^ Library.quote name ^ ", " ^ txt ^ ")");
+fun add_oracle (name, T, oracle) =
+  let val txt =
+    "local\n\
+    \  type T = " ^ T ^ ";\n\
+    \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
+    \  val name = " ^ quote name ^ ";\n\
+    \  exception Arg of T;\n\
+    \  val _ = Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
+    \  val thy = Context.the_context ();\n\
+    \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
+    \in\n\
+    \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
+    \end;\n";
+  in Context.use_mltext_theory txt false end;
 
 
 (* add_locale *)

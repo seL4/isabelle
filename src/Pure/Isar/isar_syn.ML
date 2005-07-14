@@ -292,8 +292,9 @@ val token_translationP =
 (* oracles *)
 
 val oracleP =
-  OuterSyntax.command "oracle" "install oracle" K.thy_decl
-    ((P.name --| P.$$$ "=") -- P.text >> (Toplevel.theory o IsarThy.add_oracle));
+  OuterSyntax.command "oracle" "declare oracle" K.thy_decl
+    (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
+      -- P.text >> (Toplevel.theory o IsarThy.add_oracle o P.triple1));
 
 
 (* locales *)
