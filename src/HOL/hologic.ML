@@ -14,7 +14,6 @@ sig
   val boolT: typ
   val false_const: term
   val true_const: term
-  val not_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
   val Trueprop: term
@@ -27,6 +26,7 @@ sig
   val mk_conj: term * term -> term
   val mk_disj: term * term -> term
   val mk_imp: term * term -> term
+  val mk_not: term -> term
   val dest_conj: term -> term list
   val dest_disj: term -> term list
   val dest_imp: term -> term * term
@@ -108,7 +108,6 @@ val boolT = Type (boolN, []);
 
 val true_const =  Const ("True", boolT);
 val false_const = Const ("False", boolT);
-val not_const = Const ("Not", boolT --> boolT);
 
 fun mk_setT T = Type ("set", [T]);
 
@@ -133,7 +132,8 @@ and Not = Const ("Not", boolT --> boolT);
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
-and mk_imp (t1, t2) = imp $ t1 $ t2;
+and mk_imp (t1, t2) = imp $ t1 $ t2
+and mk_not t = Not $ t;
 
 fun dest_conj (Const ("op &", _) $ t $ t') = t :: dest_conj t'
   | dest_conj t = [t];
