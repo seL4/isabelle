@@ -1,4 +1,8 @@
 
+* July 2005: Florian Haftmann, TUM
+  Some combinators for linear functional transformations in ML:
+  |->  #->  fold_yield  etc.
+
 * May 2005: Rafal Kolanski, NICTA
   Substantially improved retrieval of facts from theory/proof context.
 
