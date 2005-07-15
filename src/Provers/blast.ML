@@ -182,10 +182,9 @@ val curr_defs = ref Defs.empty;
 
 (*Types aren't needed if the constant has at most one definition and is monomorphic*)
 fun no_types_needed s =
-  (case Defs.overloading_info (!curr_defs) s of
+  (case Defs.fast_overloading_info (!curr_defs) s of
       NONE => true
-    | SOME (T,defs,_) => length defs <= 1 andalso null (typ_tvars T))
-  handle Option => (warning ("Defs.overloading_info failed for " ^ s); false);
+    | SOME (T,len,_) => len <= 1 andalso null (typ_tvars T))
 
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.
