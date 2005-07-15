@@ -8,10 +8,10 @@ Reconstruction of partial proof terms.
 signature RECONSTRUCT =
 sig
   val quiet_mode : bool ref
-  val reconstruct_proof : Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
+  val reconstruct_proof : theory -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
-  val expand_proof : Sign.sg -> (string * term option) list ->
+  val expand_proof : theory -> (string * term option) list ->
     Proofterm.proof -> Proofterm.proof
 end;
 
@@ -24,7 +24,7 @@ val quiet_mode = ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
 fun vars_of t = rev (fold_aterms
-  (fn v as Var _ => (fn vs => v ins vs) | _ => I) t []);
+  (fn v as Var _ => insert (op =) v | _ => I) t []);
 
 fun forall_intr (t, prop) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
@@ -232,12 +232,7 @@ fun make_constraints_cprf sg env cprf =
       | mk_cnstrts _ _ _ _ _ = error "reconstruct_proof: minimal proof object"
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
-fun add_term_ixns (is, Var (i, T)) = add_typ_ixns (i ins is, T)
-  | add_term_ixns (is, Free (_, T)) = add_typ_ixns (is, T)
-  | add_term_ixns (is, Const (_, T)) = add_typ_ixns (is, T)
-  | add_term_ixns (is, t1 $ t2) = add_term_ixns (add_term_ixns (is, t1), t2)
-  | add_term_ixns (is, Abs (_, T, t)) = add_term_ixns (add_typ_ixns (is, T), t)
-  | add_term_ixns (is, _) = is;
+fun add_term_ixns (is, t) = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I) t is;
 
 
 (**** update list of free variables of constraints ****)
@@ -361,7 +356,8 @@ fun expand_proof sg thms prf =
           let
             fun inc i =
               map_proof_terms (Logic.incr_indexes ([], i)) (incr_tvar i);
-            val (maxidx', prf, prfs') = (case assoc (prfs, (a, prop)) of
+            val (maxidx', prf, prfs') =
+              (case gen_assoc (op =) (prfs, (a, prop)) of
                 NONE =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);

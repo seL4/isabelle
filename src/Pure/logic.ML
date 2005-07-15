@@ -331,26 +331,27 @@ fun assum_pairs(nasms,A) =
 
 (*Converts Frees to Vars and TFrees to TVars so that axioms can be written
   without (?) everywhere*)
-fun varify (Const(a,T)) = Const(a, Type.varifyT T)
-  | varify (Free(a,T)) = Var((a,0), Type.varifyT T)
-  | varify (Var(ixn,T)) = Var(ixn, Type.varifyT T)
-  | varify (Abs (a,T,body)) = Abs (a, Type.varifyT T, varify body)
-  | varify (f$t) = varify f $ varify t
-  | varify t = t;
+fun varify (Const(a, T)) = Const (a, Type.varifyT T)
+  | varify (Free (a, T)) = Var ((a, 0), Type.varifyT T)
+  | varify (Var (ixn, T)) = Var (ixn, Type.varifyT T)
+  | varify (t as Bound _) = t
+  | varify (Abs (a, T, body)) = Abs (a, Type.varifyT T, varify body)
+  | varify (f $ t) = varify f $ varify t;
 
 (*Inverse of varify.  Converts axioms back to their original form.*)
-fun unvarify (Const(a,T))    = Const(a, Type.unvarifyT T)
-  | unvarify (Free(a,T))     = Free(a, Type.unvarifyT T)  (* CB: added *)
-  | unvarify (Var((a,0), T)) = Free(a, Type.unvarifyT T)
-  | unvarify (Var(ixn,T))    = Var(ixn, Type.unvarifyT T)  (*non-0 index!*)
-  | unvarify (Abs (a,T,body)) = Abs (a, Type.unvarifyT T, unvarify body)
-  | unvarify (f$t) = unvarify f $ unvarify t
-  | unvarify t = t;
+fun unvarify (Const (a, T)) = Const (a, Type.unvarifyT T)
+  | unvarify (Free (a, T)) = Free (a, Type.unvarifyT T)
+  | unvarify (Var ((a, 0), T)) = Free (a, Type.unvarifyT T)
+  | unvarify (Var (ixn, T)) = Var (ixn, Type.unvarifyT T)  (*non-0 index!*)
+  | unvarify (t as Bound _) = t
+  | unvarify (Abs (a, T, body)) = Abs (a, Type.unvarifyT T, unvarify body)
+  | unvarify (f $ t) = unvarify f $ unvarify t;
 
 
-(*Get subgoal i*)
-fun get_goal st i = List.nth (strip_imp_prems st, i-1)
-  handle Subscript => error "Goal number out of range";
+(* goal states *)
+
+fun get_goal st i = nth_prem (i, st)
+  handle TERM _ => error "Goal number out of range";
 
 (*reverses parameters for substitution*)
 fun goal_params st i =

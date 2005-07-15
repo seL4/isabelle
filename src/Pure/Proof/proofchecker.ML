@@ -19,7 +19,7 @@ open Proofterm;
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = foldr Symtab.update Symtab.empty (PureThy.all_thms_of thy)
+  let val tab = fold_rev (curry Symtab.update) (PureThy.all_thms_of thy) Symtab.empty
   in
     (fn s => case Symtab.lookup (tab, s) of
        NONE => error ("Unknown theorem " ^ quote s)
@@ -37,7 +37,7 @@ fun thm_of_proof thy prf =
 
     fun thm_of_atom thm Ts =
       let
-        val tvars = term_tvars (prop_of thm);
+        val tvars = term_tvars (Thm.full_prop_of thm);
         val (thm', fmap) = Thm.varifyT' [] thm;
         val ctye = map (pairself (Thm.ctyp_of sg))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
