@@ -161,12 +161,8 @@ sig
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
-  val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
-  val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
-  val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
-  val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
   val add_term_names: term * string list -> string list
-  val add_term_varnames: indexname list * term -> indexname list
+  val add_term_varnames: term -> indexname list -> indexname list
   val term_varnames: term -> indexname list
   val compress_type: typ -> typ
   val compress_term: term -> term
@@ -195,14 +191,10 @@ sig
   val map_typ: (string -> string) -> (string -> string) -> typ -> typ
   val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
   val dest_abs: string * typ * term -> string * term
-  (*val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
+  val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
-  val add_vars: (indexname * typ) list * term -> (indexname * typ) list
-  val add_frees: (string * typ) list * term -> (string * typ) list*)
-  val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
-  val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
-  val add_vars: (indexname * typ) list * term -> (indexname * typ) list
-  val add_frees: (string * typ) list * term -> (string * typ) list
+  val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
+  val add_frees: term -> (string * typ) list -> (string * typ) list
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
@@ -1197,74 +1189,32 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
 (*fold atoms of type*)
 fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
-  | fold_atyps f T = f T
+  | fold_atyps f T = f T;
 
 (*fold atoms of term*)
-fun fold_aterms f (t $ u) = (fold_aterms f u) o (fold_aterms f t)
+fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
-  | fold_aterms f t = f t;
+  | fold_aterms f a = f a;
 
 (*fold types of term*)
 fun fold_term_types f (t as Const (_, T)) = f t T
   | fold_term_types f (t as Free (_, T)) = f t T
   | fold_term_types f (t as Var (_, T)) = f t T
   | fold_term_types f (Bound _) = I
-  | fold_term_types f (t as Abs (_, T, b)) = (fold_term_types f b) o (f t T)
-  | fold_term_types f (t $ u) = (fold_term_types f u) o (fold_term_types f t);
+  | fold_term_types f (t as Abs (_, T, b)) = f t T #> fold_term_types f b
+  | fold_term_types f (t $ u) = fold_term_types f t #> fold_term_types f u;
 
-fun fold_types f = fold_term_types (fn _ => f);
-
-(*foldl atoms of type*)
-fun foldl_atyps f (x, Type (_, Ts)) = Library.foldl (foldl_atyps f) (x, Ts)
-  | foldl_atyps f x_atom = f x_atom;
-
-(*foldl atoms of term*)
-fun foldl_aterms f (x, t $ u) = foldl_aterms f (foldl_aterms f (x, t), u)
-  | foldl_aterms f (x, Abs (_, _, t)) = foldl_aterms f (x, t)
-  | foldl_aterms f x_atom = f x_atom;
-
-(*foldl types of term*)
-fun foldl_term_types f (x, t as Const (_, T)) = f t (x, T)
-  | foldl_term_types f (x, t as Free (_, T)) = f t (x, T)
-  | foldl_term_types f (x, t as Var (_, T)) = f t (x, T)
-  | foldl_term_types f (x, Bound _) = x
-  | foldl_term_types f (x, t as Abs (_, T, b)) = foldl_term_types f (f t (x, T), b)
-  | foldl_term_types f (x, t $ u) = foldl_term_types f (foldl_term_types f (x, t), u);
-
-fun foldl_types f = foldl_term_types (fn _ => f);
-
-(*(*collect variables*)
-val add_tvarsT =
-  let fun add_tvarsT' (TVar v) = insert (op =) v
-         | add_tvarsT' _ = I
-  in fold_atyps add_tvarsT' end;
-val add_tvars = fold_types add_tvarsT;
-val add_vars =
-  let fun add_vars' (Var v) = insert (op =) v
-         | add_vars' _ = I
-  in uncurry (fold_aterms add_vars') o swap end;
-val add_frees =
-  let fun add_frees' (Free v) = insert (op =) v
-         | add_frees' _ = I
-  in uncurry (fold_aterms add_frees') o swap end;
-
-(*collect variable names*)
-val add_term_varnames =
-  let fun add_term_varnames' (Var (x, _)) xs = ins_ix (x, xs)
-         | add_term_varnames' _ xs = xs
-  in uncurry (fold_aterms add_term_varnames') o swap end;
-  
-fun term_varnames t = add_term_varnames ([], t);*)
+fun fold_types f = fold_term_types (K f);
 
 (*collect variables*)
-val add_tvarsT = foldl_atyps (fn (vs, TVar v) => insert (op =) v vs | (vs, _) => vs);
-val add_tvars = foldl_types add_tvarsT;
-val add_vars = foldl_aterms (fn (vs, Var v) => insert (op =) v vs | (vs, _) => vs);
-val add_frees = foldl_aterms (fn (vs, Free v) => insert (op =) v vs | (vs, _) => vs);
+val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
+val add_tvars = fold_types add_tvarsT;
+val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
+val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 
 (*collect variable names*)
-val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
-fun term_varnames t = add_term_varnames ([], t);
+val add_term_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
+fun term_varnames t = add_term_varnames t [];
 
 
 
