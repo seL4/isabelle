@@ -95,7 +95,7 @@ fun condrew thy rules procs =
     and condrew' tm =
       let
         val cache = ref ([] : (term * term) list);
-        fun lookup f x = (case assoc (!cache, x) of
+        fun lookup f x = (case gen_assoc (op =) (!cache, x) of
             NONE =>
               let val y = f x
               in (cache := (x, y) :: !cache; y) end
@@ -128,9 +128,7 @@ fun corr_name s vs = extr_name s vs ^ "_correctness";
 
 fun msg d s = priority (Symbol.spaces d ^ s);
 
-fun vars_of t = rev (foldl_aterms
-  (fn (vs, v as Var _) => v ins vs | (vs, _) => vs) ([], t));
-
+fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 fun vfs_of t = vars_of t @ sort (make_ord atless) (term_frees t);
 
 fun forall_intr (t, prop) =
@@ -161,13 +159,13 @@ fun tname_of (Type (s, _)) = s
 
 fun get_var_type t =
   let
-    val vs = Term.add_vars ([], t);
-    val fs = Term.add_frees ([], t)
+    val vs = Term.add_vars t [];
+    val fs = Term.add_frees t [];
   in fn 
-      Var (ixn, _) => (case assoc (Term.add_vars ([], t), ixn) of
+      Var (ixn, _) => (case assoc_string_int (vs, ixn) of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Var (ixn, T))
-    | Free (s, _) => (case assoc (Term.add_frees ([], t), s) of
+    | Free (s, _) => (case assoc_string (fs, s) of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Free (s, T))
     | _ => error "get_var_type: not a variable"
@@ -537,7 +535,7 @@ fun extract thms thy =
                   (Bound (length Us), eT :: Us);
                 val u = list_comb (incr_boundvars (length Us') t,
                   map Bound (length Us - 1 downto 0));
-                val u' = (case assoc (types, tname_of T) of
+                val u' = (case assoc_string (types, tname_of T) of
                     SOME ((_, SOME f)) => f r eT u T
                   | _ => Const ("realizes", eT --> T --> T) $ r $ u)
               in app_rlz_rews Ts vs (list_abs (map (pair "x") Us', u')) end
