@@ -178,15 +178,14 @@ fun coind_prefix true = "co"
 fun unify_consts thy cs intr_ts =
   (let
     val tsig = Sign.tsig_of thy;
-    val add_term_consts_2 =
-      foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
+    val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
     fun varify (t, (i, ts)) =
       let val t' = map_term_types (incr_tvar (i + 1)) (#1 (Type.varify (t, [])))
       in (maxidx_of_term t', t'::ts) end;
     val (i, cs') = foldr varify (~1, []) cs;
     val (i', intr_ts') = foldr varify (i, []) intr_ts;
-    val rec_consts = Library.foldl add_term_consts_2 ([], cs');
-    val intr_consts = Library.foldl add_term_consts_2 ([], intr_ts');
+    val rec_consts = fold add_term_consts_2 cs' [];
+    val intr_consts = fold add_term_consts_2 intr_ts' [];
     fun unify (env, (cname, cT)) =
       let val consts = map snd (List.filter (fn c => fst c = cname) intr_consts)
       in Library.foldl (fn ((env', j'), Tp) => (Type.unify tsig (env', j') Tp))

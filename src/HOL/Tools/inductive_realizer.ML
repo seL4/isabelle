@@ -60,7 +60,7 @@ fun dt_of_intrs thy vs intrs =
     val params = map dest_Var ts;
     val tname = space_implode "_" (Sign.base_name s ^ "T" :: vs);
     fun constr_of_intr intr = (Sign.base_name (Thm.name_of_thm intr),
-      map (Type.unvarifyT o snd) (rev (Term.add_vars ([], prop_of intr)) \\ params) @
+      map (Type.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
         filter_out (equal Extraction.nullT) (map
           (Type.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
             NoSyn);
@@ -137,7 +137,7 @@ fun fun_of_prem thy rsets vs params rule intr =
     val args = map (Free o apfst fst o dest_Var)
       (add_term_vars (prop_of intr, []) \\ map Var params);
     val args' = map (Free o apfst fst)
-      (Term.add_vars ([], prop_of intr) \\ params);
+      (Term.add_vars (prop_of intr) [] \\ params);
     val rule' = strip_all rule;
     val conclT = Extraction.etype_of thy vs [] (Logic.strip_imp_concl rule');
     val used = map (fst o dest_Free) args;
@@ -213,7 +213,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
           HOLogic.unitT --> body_type (fastype_of (hd fs))) :: fs
         else fs)
       end) (intrs, (premss ~~ dummies))));
-    val frees = Library.foldl Term.add_frees ([], fs);
+    val frees = fold Term.add_frees fs [];
     val Ts = map fastype_of fs;
     val rlzs = List.mapPartial (fn (a, concl) =>
       let val T = Extraction.etype_of thy vs [] concl
@@ -250,9 +250,9 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
   let
     val prems = prems_of rule ~~ prems_of rrule;
     val rvs = map fst (relevant_vars (prop_of rule));
-    val xs = rev (Term.add_vars ([], prop_of rule));
+    val xs = rev (Term.add_vars (prop_of rule) []);
     val vs1 = map Var (filter_out (fn ((a, _), _) => a mem rvs) xs);
-    val rlzvs = rev (Term.add_vars ([], prop_of rrule));
+    val rlzvs = rev (Term.add_vars (prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, valOf (assoc (rlzvs, ixn)))) xs;
     val rs = gen_rems (op = o pairself fst) (rlzvs, xs);
 
@@ -327,7 +327,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val rintrs = map (fn (intr, c) => Pattern.eta_contract
       (Extraction.realizes_of thy2 vs
         c (prop_of (forall_intr_list (map (cterm_of (sign_of thy2) o Var)
-          (rev (Term.add_vars ([], prop_of intr)) \\ params')) intr))))
+          (rev (Term.add_vars (prop_of intr) []) \\ params')) intr))))
             (intrs ~~ List.concat constrss);
     val rlzsets = distinct (map (fn rintr => snd (HOLogic.dest_mem
       (HOLogic.dest_Trueprop (Logic.strip_assums_concl rintr)))) rintrs);
@@ -384,11 +384,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val (prem :: prems) = prems_of elim;
         fun reorder1 (p, intr) =
           Library.foldl (fn (t, ((s, _), T)) => all T $ lambda (Free (s, T)) t)
-            (strip_all p, Term.add_vars ([], prop_of intr) \\ params');
+            (strip_all p, Term.add_vars (prop_of intr) [] \\ params');
         fun reorder2 (intr, i) =
           let
             val fs1 = term_vars (prop_of intr) \\ params;
-            val fs2 = Term.add_vars ([], prop_of intr) \\ params'
+            val fs2 = Term.add_vars (prop_of intr) [] \\ params'
           in Library.foldl (fn (t, x) => lambda (Var x) t)
             (list_comb (Bound (i + length fs1), fs1), fs2)
           end;
@@ -429,7 +429,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val thy5 = Extraction.add_realizers_i
       (map (mk_realizer thy4 vs params')
          (map (fn ((rule, rrule), c) => ((rule, rrule), list_comb (c,
-            map Var (rev (Term.add_vars ([], prop_of rule)) \\ params')))) 
+            map Var (rev (Term.add_vars (prop_of rule) []) \\ params')))) 
               (List.concat (map snd rss) ~~ rintr_thms ~~ List.concat constrss))) thy4;
     val elimps = List.mapPartial (fn (s, intrs) => if s mem rsets then
         Option.map (rpair intrs) (find_first (fn (thm, _) =>

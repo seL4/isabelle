@@ -180,8 +180,8 @@ val term_vs = map (fst o fst o dest_Var) o term_vars;
 val terms_vs = distinct o List.concat o (map term_vs);
 
 (** collect all Vars in a term (with duplicates!) **)
-fun term_vTs t = map (apfst fst o dest_Var)
-  (List.filter is_Var (foldl_aterms (op :: o Library.swap) ([], t)));
+fun term_vTs tm =
+  fold_aterms (fn Var ((x, _), T) => cons (x, T) | _ => I) tm [];
 
 fun get_args _ _ [] = ([], [])
   | get_args is i (x::xs) = (if i mem is then apfst else apsnd) (cons x)

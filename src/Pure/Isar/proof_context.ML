@@ -565,28 +565,26 @@ end;
 
 local
 
-val ins_types = foldl_aterms
-  (fn (types, Free (x, T)) => Vartab.update (((x, ~1), T), types)
-    | (types, Var v) => Vartab.update (v, types)
-    | (types, _) => types);
+val ins_types = fold_aterms
+  (fn Free (x, T) => curry Vartab.update ((x, ~1), T)
+    | Var v => curry Vartab.update v
+    | _ => I);
 
-val ins_sorts = foldl_types (foldl_atyps
-  (fn (sorts, TFree (x, S)) => Vartab.update (((x, ~1), S), sorts)
-    | (sorts, TVar v) => Vartab.update (v, sorts)
-    | (sorts, _) => sorts));
+val ins_sorts = fold_types (fold_atyps
+  (fn TFree (x, S) => curry Vartab.update ((x, ~1), S)
+    | TVar v => curry Vartab.update v
+    | _ => I));
 
-val ins_used = foldl_term_types (fn t => foldl_atyps
-  (fn (used, TFree (x, _)) => x ins_string used
-    | (used, _) => used));
+val ins_used = fold_term_types (fn t =>
+  fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I));
 
-val ins_occs = foldl_term_types (fn t => foldl_atyps
-  (fn (tab, TFree (x, _)) => Symtab.update_multi ((x, t), tab) | (tab, _) => tab));
+val ins_occs = fold_term_types (fn t =>
+  fold_atyps (fn TFree (x, _) => curry Symtab.update_multi (x, t) | _ => I));
 
-fun ins_skolem def_ty = foldr
-  (fn ((x, x'), types) =>
-    (case def_ty x' of
-      SOME T => Vartab.update (((x, ~1), T), types)
-    | NONE => types));
+fun ins_skolem def_ty = fold_rev (fn (x, x') =>
+  (case def_ty x' of
+    SOME T => curry Vartab.update ((x, ~1), T)
+  | NONE => I));
 
 fun map_defaults f = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
   (syntax, asms, binds, thms, cases, f defs));
@@ -595,17 +593,17 @@ in
 
 fun declare_term_syntax t ctxt =
   ctxt
-  |> map_defaults (fn (types, sorts, used, occ) => (ins_types (types, t), sorts, used, occ))
-  |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts (sorts, t), used, occ))
-  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used (used, t), occ));
+  |> map_defaults (fn (types, sorts, used, occ) => (ins_types t types, sorts, used, occ))
+  |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts t sorts, used, occ))
+  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used t used, occ));
 
 fun declare_term t ctxt =
   ctxt
   |> declare_term_syntax t
-  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs (occ, t)))
+  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs t occ))
   |> map_defaults (fn (types, sorts, used, occ) =>
-      (ins_skolem (fn x =>
-        Vartab.lookup (types, (x, ~1))) types (fixes_of ctxt), sorts, used, occ));
+      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes_of ctxt) types,
+        sorts, used, occ));
 
 end;
 
@@ -676,10 +674,10 @@ fun generalize inner outer ts =
 
 (** export theorems **)
 
-fun get_free x (NONE, t as Free (y, _)) = if x = y then SOME t else NONE
-  | get_free _ (opt, _) = opt;
+fun get_free x (t as Free (y, _)) NONE = if x = y then SOME t else NONE
+  | get_free _ _ opt = opt;
 
-fun find_free t x = foldl_aterms (get_free x) (NONE, t);
+fun find_free t x = fold_aterms (get_free x) t NONE;
 
 fun export_view view is_goal inner outer =
   let
@@ -1177,7 +1175,7 @@ end;
 
 fun fix_frees ts ctxt =
   let
-    val frees = Library.foldl Term.add_frees ([], ts);
+    val frees = fold Term.add_frees ts [];
     fun new (x, T) = if is_fixed ctxt x then NONE else SOME ([x], SOME T);
   in fix_direct false (rev (List.mapPartial new frees)) ctxt end;
 

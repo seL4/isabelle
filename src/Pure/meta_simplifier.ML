@@ -403,7 +403,7 @@ prems are nonempty: does solving the prems really guarantee instantiation of
 all its Vars? Better: a dynamic check each time a rule is applied.
 *)
 fun rewrite_rule_extra_vars prems elhs erhs =
-  not (term_varnames erhs subset Library.foldl add_term_varnames (term_varnames elhs, prems))
+  not (term_varnames erhs subset fold add_term_varnames prems (term_varnames elhs))
   orelse
   not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
 

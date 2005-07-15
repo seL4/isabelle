@@ -545,7 +545,7 @@ translations
 print_translation {*
 let
   fun mk v v' q n P =
-    if v=v' andalso not(v  mem (map fst (Term.add_frees([],n))))
+    if v=v' andalso not (v mem (map fst (Term.add_frees n [])))
     then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
   fun all_tr' [Const ("_bound",_) $ Free (v,_),
                Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =

@@ -623,7 +623,7 @@ fun rename_thm ren th =
   let
     val {thy, hyps, prop, maxidx, ...} = Thm.rep_thm th;
     val cert = Thm.cterm_of thy;
-    val (xs, Ts) = Library.split_list (Library.foldl Term.add_frees ([], prop :: hyps));
+    val (xs, Ts) = Library.split_list (fold Term.add_frees (prop :: hyps) []);
     val xs' = map (rename ren) xs;
     fun cert_frees names = map (cert o Free) (names ~~ Ts);
     fun cert_vars names = map (cert o Var o apfst (rpair (maxidx + 1))) (names ~~ Ts);
@@ -705,7 +705,7 @@ fun inst_tab_elems thy inst ((n, ps), elems) =
 
 fun frozen_tvars ctxt Ts =
   let
-    val tvars = rev (Library.foldl Term.add_tvarsT ([], Ts));
+    val tvars = rev (fold Term.add_tvarsT Ts []);
     val tfrees = map TFree
       (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
   in map (fn ((x, S), y) => (x, (S, y))) (tvars ~~ tfrees) end;
@@ -951,7 +951,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
          elemss;
     fun inst_ax th = let
          val {hyps, prop, ...} = Thm.rep_thm th;
-         val ps = map (apsnd SOME) (Library.foldl Term.add_frees ([], prop :: hyps));
+         val ps = map (apsnd SOME) (fold Term.add_frees (prop :: hyps) []);
          val [env] = unify_parms ctxt all_params [ps];
          val th' = inst_thm ctxt env th;
        in th' end;
@@ -1208,7 +1208,7 @@ fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
       err "Attempt to define previously specified variable");
     conditional (exists (fn (Free (y', _), _) => y = y' | _ => false) env) (fn () =>
       err "Attempt to redefine variable");
-    (Term.add_frees (xs, b'), (Free (y, T), b') :: env, th :: ths)
+    (Term.add_frees b' xs, (Free (y, T), b') :: env, th :: ths)
   end;
 
 (* CB: for finish_elems (Int and Ext) *)
@@ -1222,7 +1222,7 @@ fun eval_text _ _ _ (text, Fixes _) = text
         val spec' =
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
           else ((exts, exts'), (ints @ ts, ints' @ ts'));
-      in (spec', (Library.foldl Term.add_frees (xs, ts'), env, defs)) end
+      in (spec', (fold Term.add_frees ts' xs, env, defs)) end
   | eval_text ctxt (id, _) _ ((spec, binds), Defines defs) =
       (spec, Library.foldl (bind_def ctxt id) (binds, map (#1 o #2) defs))
   | eval_text _ _ _ (text, Notes _) = text;
@@ -1234,7 +1234,7 @@ fun closeup _ false elem = elem
       let
         fun close_frees t =
           let val frees = rev (filter_out (ProofContext.is_fixed ctxt o #1)
-            (Term.add_frees ([], t)))
+            (Term.add_frees t []))
           in Term.list_all_free (frees, t) end;
 
         fun no_binds [] = []
@@ -1966,7 +1966,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     fun sorts (a, i) = assoc (tvars, (a, i));
     val (vs, vinst) = read_terms thy_ctxt sorts used given_insts;
     val vars = foldl Term.add_term_tvar_ixns [] vs \\ map fst tvars;
-    val vars' = Library.foldl Term.add_term_varnames (vars, vs);
+    val vars' = fold Term.add_term_varnames vs vars;
     val _ = if null vars' then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
            commas_quote (map Syntax.string_of_vname vars'));

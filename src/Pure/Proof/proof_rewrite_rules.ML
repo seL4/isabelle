@@ -210,8 +210,7 @@ fun rewrite_terms r =
 
 (**** eliminate definitions in proof ****)
 
-fun vars_of t = rev (fold_aterms
-  (fn v as Var _ => (fn vs => v ins vs) | _ => I) t []);
+fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 
 fun insert_refl defs Ts (prf1 %% prf2) =
       insert_refl defs Ts prf1 %% insert_refl defs Ts prf2

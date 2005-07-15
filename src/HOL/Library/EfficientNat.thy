@@ -110,10 +110,10 @@ val Suc_if_eq = thm "Suc_if_eq";
 fun remove_suc thy thms =
   let
     val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
-    val ctzero = cterm_of (sign_of Main.thy) HOLogic.zero;
+    val ctzero = cterm_of Main.thy HOLogic.zero;
     val vname = variant (map fst
-      (Library.foldl add_term_varnames ([], map prop_of thms))) "x";
-    val cv = cterm_of (sign_of Main.thy) (Var ((vname, 0), HOLogic.natT));
+      (fold (add_term_varnames o Thm.full_prop_of) thms [])) "x";
+    val cv = cterm_of Main.thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
       (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
     fun rhs_of th = snd (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))));
@@ -172,7 +172,7 @@ fun remove_suc_clause thy thms =
   let
     val Suc_clause' = Thm.transfer thy Suc_clause;
     val vname = variant (map fst
-      (Library.foldl add_term_varnames ([], map prop_of thms))) "x";
+      (fold (add_term_varnames o Thm.full_prop_of) thms [])) "x";
     fun find_var (t as Const ("Suc", _) $ (v as Var _)) = SOME (t, v)
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;
@@ -184,7 +184,7 @@ fun remove_suc_clause thy thms =
       NONE => thms
     | SOME ((th, th'), (Sucv, v)) =>
         let
-          val cert = cterm_of (sign_of_thm th);
+          val cert = cterm_of (Thm.theory_of_thm th);
           val th'' = ObjectLogic.rulify (Thm.implies_elim
             (Drule.fconv_rule (Thm.beta_conversion true)
               (Drule.instantiate' []
