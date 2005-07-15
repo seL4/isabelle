@@ -115,12 +115,16 @@ fun forall pred = not o exists (not o pred);
 end;
 
 fun min_key Empty = NONE
-  | min_key (Branch2 (left, (k, _), _)) = SOME (if_none (min_key left) k)
-  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (if_none (min_key left) k);
+  | min_key (Branch2 (Empty, (k, _), _)) = SOME k
+  | min_key (Branch3 (Empty, (k, _), _, _, _)) = SOME k
+  | min_key (Branch2 (left, _, _)) = min_key left
+  | min_key (Branch3 (left, _, _, _, _)) = min_key left;
 
 fun max_key Empty = NONE
-  | max_key (Branch2 (_, (k, _), right)) = SOME (if_none (max_key right) k)
-  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (if_none (max_key right) k);
+  | max_key (Branch2 (_, (k, _), Empty)) = SOME k
+  | max_key (Branch3 (_, _, _, (k, _), Empty)) = SOME k
+  | max_key (Branch2 (_, _, right)) = max_key right
+  | max_key (Branch3 (_, _, _, _, right)) = max_key right;
 
 
 (* lookup *)
