@@ -92,10 +92,10 @@ fun add_proof_syntax thy =
 fun disambiguate_names thy prf =
   let
     val thms = thms_of_proof Symtab.empty prf;
-    val thms' = map (apsnd (#prop o rep_thm)) (PureThy.all_thms_of thy);
+    val thms' = map (apsnd Thm.full_prop_of) (PureThy.all_thms_of thy);
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
-      let val prop = getOpt (assoc (thms', key), Bound 0)
+      let val prop = getOpt (assoc_string (thms', key), Bound 0)
       in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
         if prop <> prop' then
           (Symtab.update ((key ^ "_" ^ string_of_int i, prf), tab), i+1)
@@ -108,7 +108,7 @@ fun disambiguate_names thy prf =
       | rename (prf % t) = rename prf % t
       | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
           let
-            val prop' = getOpt (assoc (thms', s), Bound 0);
+            val prop' = getOpt (assoc_string (thms', s), Bound 0);
             val ps = map fst (valOf (Symtab.lookup (thms, s))) \ prop'
           in if prop = prop' then prf' else
             PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
@@ -136,13 +136,13 @@ fun proof_of_term thy tab ty =
                "axm" :: xs =>
                  let
                    val name = NameSpace.pack xs;
-                   val prop = (case assoc (axms, name) of
+                   val prop = (case assoc_string (axms, name) of
                        SOME prop => prop
                      | NONE => error ("Unknown axiom " ^ quote name))
                  in PAxm (name, prop, NONE) end
              | "thm" :: xs =>
                  let val name = NameSpace.pack xs;
-                 in (case assoc (thms, name) of
+                 in (case assoc_string (thms, name) of
                      SOME thm => fst (strip_combt (Thm.proof_of thm))
                    | NONE => (case Symtab.lookup (tab, name) of
                          SOME prf => prf
