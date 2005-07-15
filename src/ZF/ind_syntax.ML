@@ -124,18 +124,13 @@ fun data_domain co (rec_tms, con_ty_lists) =
     let val rec_hds = map head_of rec_tms
         val dummy = assert_all is_Const rec_hds
           (fn t => "Datatype set not previously declared as constant: " ^
-                   Sign.string_of_term (sign_of IFOL.thy) t);
+                   Sign.string_of_term IFOL.thy t);
         val rec_names = (*nat doesn't have to be added*)
 	    "Nat.nat" :: map (#1 o dest_Const) rec_hds
 	val u = if co then quniv else univ
-	fun is_OK (Const(a,T)) = not (a mem_string rec_names)
-	  | is_OK _            = false
-	val add_term_consts_2 =
-	    foldl_aterms (fn (cs, Const c) => Const c ins cs | (cs, _) => cs);
-	fun fourth (_, name, args, prems) = prems
-	fun add_consts_in_cts cts = 
-	    Library.foldl (Library.foldl add_term_consts_2) ([], map fourth (List.concat cts));
-	val cs = List.filter is_OK (add_consts_in_cts con_ty_lists)
+	val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
+          (fn t as Const (a, _) => if a mem_string rec_names then I else insert (op =) t
+            | _ => I)) con_ty_lists [];
     in  u $ union_params (hd rec_tms, cs)  end;
 
 
