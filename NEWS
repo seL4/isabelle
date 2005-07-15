@@ -378,13 +378,13 @@ None and Some, as well as exception Option.Option instead of OPTION.
 The functions the, if_none, is_some, is_none have been adapted
 accordingly, while Option.map replaces apsome.
 
-* The exception LIST has been given up in favour of the standard
-exceptions Empty and Subscript, as well as Library.UnequalLengths.
-Function like Library.hd and Library.tl are superceded by the standard
-hd and tl functions etc.
+* Pure/library.ML: the exception LIST has been given up in favour of
+the standard exceptions Empty and Subscript, as well as
+Library.UnequalLengths.  Function like Library.hd and Library.tl are
+superceded by the standard hd and tl functions etc.
 
-A number of basic functions are now no longer exported to the ML
-toplevel, as they are variants of standard functions.  The following
+A number of basic list functions are no longer exported to the ML
+toplevel, as they are variants of predefined functions.  The following
 suggests how one can translate existing code:
 
     rev_append xs ys = List.revAppend (xs, ys)
@@ -393,8 +393,34 @@ suggests how one can translate existing code:
     flat xss = List.concat xss
     seq fs = List.app fs
     partition P xs = List.partition P xs
-    filter P xs = List.filter P xs
     mapfilter f xs = List.mapPartial f xs
+
+* Pure/library.ML: several combinators for linear functional
+transformations, notably reverse application and composition:
+
+  x |> f		f #> g
+  (x, y) |-> f		f #-> g
+
+* Pure/library.ML: canonical list combinators fold, fold_rev, and
+fold_yield support linear functional transformations and nesting.  For
+example:
+
+  fold f [x1, ..., xN] y =
+    y |> f x1 |> ... |> f xN
+
+  (fold o fold) f [xs1, ..., xsN] y =
+    y |> fold f xs1 |> ... |> fold f xsN
+
+  fold f [x1, ..., xN] =
+    f x1 #> ... #> f xN
+
+  (fold o fold) f [xs1, ..., xsN] =
+    fold f xs1 #> ... #> fold f xsN
+
+* Pure/term.ML: combinators fold_atyps, fold_aterms, fold_term_types,
+fold_types traverse types/terms from left to right, observing
+canonical argument order.  Supercedes previous foldl_XXX versions,
+add_frees, add_vars have been adapted as well: INCOMPATIBILITY.
 
 * Pure: output via the Isabelle channels of writeln/warning/error
 etc. is now passed through Output.output, with a hook for arbitrary
