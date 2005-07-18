@@ -402,7 +402,7 @@ transformations, notably reverse application and composition:
   (x, y) |-> f		f #-> g
 
 * Pure/library.ML: canonical list combinators fold, fold_rev, and
-fold_yield support linear functional transformations and nesting.  For
+fold_map support linear functional transformations and nesting.  For
 example:
 
   fold f [x1, ..., xN] y =

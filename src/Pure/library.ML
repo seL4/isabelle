@@ -91,7 +91,7 @@ sig
   val apply: ('a -> 'a) list -> 'a -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val fold_yield: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
+  val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
@@ -479,7 +479,7 @@ fun fold_rev f =
       | fold_aux (x :: xs) y = f x (fold_aux xs y);
   in fold_aux end;
 
-fun fold_yield f =
+fun fold_map f =
   let
     fun fold_aux [] y = ([], y)
       | fold_aux (x :: xs) y =
