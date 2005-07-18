@@ -1,7 +1,7 @@
 (*  Title:      HOL/Refute.thy
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2004
+    Copyright   2003-2005
 
 Basic setup and documentation for the 'refute' (and 'refute_params') command.
 *)
@@ -11,9 +11,9 @@ header {* Refute *}
 theory Refute
 imports Map
 uses "Tools/prop_logic.ML"
-      "Tools/sat_solver.ML"
-      "Tools/refute.ML"
-      "Tools/refute_isar.ML"
+     "Tools/sat_solver.ML"
+     "Tools/refute.ML"
+     "Tools/refute_isar.ML"
 begin
 
 setup Refute.setup
@@ -49,19 +49,15 @@ text {*
 (*                                                                           *)
 (* 'refute' currently accepts formulas of higher-order predicate logic (with *)
 (* equality), including free/bound/schematic variables, lambda abstractions, *)
-(* sets and set membership, "arbitrary", "The", and "Eps".  Defining         *)
-(* equations for constants are added automatically.  Inductive datatypes are *)
-(* supported, but may lead to spurious countermodels.                        *)
+(* sets and set membership, "arbitrary", "The", "Eps", records and           *)
+(* inductively defined sets.  Defining equations for constants are added     *)
+(* automatically, as are sort axioms.  Other, user-asserted axioms however   *)
+(* are ignored.  Inductive datatypes and recursive functions are supported,  *)
+(* but may lead to spurious countermodels.                                   *)
 (*                                                                           *)
 (* The (space) complexity of the algorithm is non-elementary.                *)
 (*                                                                           *)
-(* NOT (YET) SUPPORTED ARE                                                   *)
-(*                                                                           *)
-(* - schematic type variables                                                *)
-(* - axioms, sorts                                                           *)
-(* - inductively defined sets                                                *)
-(* - recursive functions on IDTs (case, recursion operators, size)           *)
-(* - ...                                                                     *)
+(* Schematic type variables are not supported.                               *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
