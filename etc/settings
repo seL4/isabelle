@@ -2,7 +2,11 @@
 # $Id$
 #
 # Isabelle settings -- site defaults.
-# Do *NOT* copy this file into your personal isabelle directory!!!
+#
+# Important notes:
+#   * See the system manual for explanations on Isabelle settings
+#   * DO NOT EDIT the repository copy of this file!
+#   * DO NOT COPY this file into your personal isabelle directory!
 
 ###
 ### ML compiler settings (ESSENTIAL!)
@@ -11,7 +15,6 @@
 # Note that ML_HOME specifies the location of the actual compiler
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
-
 
 # try finding the poly packages from the Isabelle site in the usual places
 POLYML_HOME=$(choosefrom \
@@ -63,7 +66,7 @@ fi
 ### Compilation options (cf. isatool usedir)
 ###
 
-ISABELLE_USEDIR_OPTIONS="-v true -i true"
+ISABELLE_USEDIR_OPTIONS="-v true"
 
 # Specifically for the HOL image
 HOL_USEDIR_OPTIONS=""
@@ -120,7 +123,7 @@ fi
 
 
 ###
-### default logic (users may want to override this in their own settings file)
+### default logic
 ###
 
 ISABELLE_LOGIC=HOL
@@ -175,21 +178,10 @@ ISABELLE_INTERFACE=$(choosefrom\
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
 
-# try xemacs first, else emacs
-type -path xemacs >/dev/null || PROOFGENERAL_OPTIONS="-p emacs $PROOFGENERAL_OPTIONS"
+type -path xemacs >/dev/null || \
+  PROOFGENERAL_OPTIONS="-p emacs $PROOFGENERAL_OPTIONS"
 
-
-# X-Symbol installation location (for Proof General, obsolete for PG >= 3.5)
-XSYMBOL_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/x-symbol" \
-  "$ISABELLE_HOME/../x-symbol" \
-  "/usr/share/x-symbol" \
-  "/usr/local/x-symbol" \
-  "/opt/x-symbol" \
-  "")
-
-# Executed before xemacs with ProofGeneral is called.
-# Required for remote fonts only.
+# Executed before xemacs with ProofGeneral is called; required for remote fonts.
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 
@@ -228,12 +220,8 @@ HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 
 # For configuring HOL/Matrix/cplex
 # First option: use the commercial cplex solver
-# LP_SOLVER_NAME=CPLEX
-# LP_SOLVER_PATH=cplex
+#LP_SOLVER_NAME=CPLEX
+#LP_SOLVER_PATH=cplex
 # Second option: use the open source glpk solver
-# LP_SOLVER_NAME=GLPK
-# LP_SOLVER_PATH=glpsol
-
-# toogles the detail of the error message in case of a cyclic definition
-DEFS_CHAIN_HISTORY=ON
-#DEFS_CHAIN_HISTORY=OFF
+#LP_SOLVER_NAME=GLPK
+#LP_SOLVER_PATH=glpsol
