@@ -3,6 +3,4 @@
 *)
 
 use_thy "SparseMatrix";
-cd "cplex"; use_thy "MatrixLP"; cd "..";
-
-
+with_path "cplex" use_thy "MatrixLP";
