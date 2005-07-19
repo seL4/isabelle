@@ -630,8 +630,22 @@ $(LOG)/HOL-Complex-Matrix.gz: $(OUT)/HOL-Complex \
   Matrix/document/root.tex Matrix/ROOT.ML \
   Matrix/cplex/ROOT.ML Matrix/cplex/Cplex.thy Matrix/cplex/CplexMatrixConverter.ML \
   Matrix/cplex/Cplex_tools.ML Matrix/cplex/FloatSparseMatrix.thy \
-  Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML
+  Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML \
+  Matrix/cplex/MatrixLP.thy Matrix/cplex/MatrixLP.ML
 	@$(ISATOOL) usedir $(OUT)/HOL-Complex Matrix
+
+## HOL-Complex-Matrix
+
+#HOL-Complex-Matrix: HOL $(OUT)/HOL-Complex-Matrix
+#
+#$(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
+#  Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
+#  Matrix/document/root.tex Matrix/ROOT.ML \
+#  Matrix/cplex/ROOT.ML Matrix/cplex/Cplex.thy Matrix/cplex/CplexMatrixConverter.ML \
+#  Matrix/cplex/Cplex_tools.ML Matrix/cplex/FloatSparseMatrix.thy \
+#  Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML \
+#  Matrix/cplex/MatrixLP.thy Matrix/cplex/MatrixLP.ML
+#	@cd Matrix; $(ISATOOL) usedir -b -g true $(OUT)/HOL-Complex HOL-Complex-Matrix
 
 
 ## TLA

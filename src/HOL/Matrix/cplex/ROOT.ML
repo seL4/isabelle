@@ -2,4 +2,4 @@
     ID:         $Id$
 *)
 
-(*use_thy "Cplex";*)
+use_thy "MatrixLP";

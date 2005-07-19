@@ -81,14 +81,16 @@ val empty_vector_const = Const (term_Nil, spvecT)
 val Cons_spvec_const = Const (term_Cons, spvec_elemT --> spvecT --> spvecT)
 val Cons_spmat_const = Const (term_Cons, spmat_elemT --> spmatT --> spmatT) 
 			 
-val float_const = Const (readterm "float", HOLogic.mk_prodT (HOLogic.intT, HOLogic.intT) --> HOLogic.realT)
+val float_const = Float.float_const
+
+(*val float_const = Const (readterm "float", HOLogic.mk_prodT (HOLogic.intT, HOLogic.intT) --> HOLogic.realT)*)
 		  
 val zero = IntInf.fromInt 0
 val minus_one = IntInf.fromInt ~1
 val two = IntInf.fromInt 2
 	  
-fun mk_intinf ty n =
-    let
+val mk_intinf = Float.mk_intinf
+(*    let
 	fun mk_bit n = if n = zero then HOLogic.false_const else HOLogic.true_const
 								 
 	fun bin_of n = 
@@ -104,20 +106,20 @@ fun mk_intinf ty n =
 		end
     in 
 	HOLogic.number_of_const ty $ (bin_of n)
-    end
+    end*)
 
-fun mk_float (a,b) = 
-    float_const $ (HOLogic.mk_prod ((mk_intinf HOLogic.intT a), (mk_intinf HOLogic.intT b)))
+val mk_float  = Float.mk_float 
+(*    float_const $ (HOLogic.mk_prod ((mk_intinf HOLogic.intT a), (mk_intinf HOLogic.intT b)))*)
 
 fun float2cterm (a,b) = cterm_of sg (mk_float (a,b))
 
-fun approx_value_term prec f value = 
-    let
+fun approx_value_term prec f = Float.approx_float prec (fn (x, y) => (f x, f y))
+(*    let
 	val (flower, fupper) = ExactFloatingPoint.approx_decstr_by_bin prec value
 	val (flower, fupper) = (f flower, f fupper)
     in
 	(mk_float flower, mk_float fupper)
-    end
+    end*)
 
 fun approx_value prec pprt value = 
     let

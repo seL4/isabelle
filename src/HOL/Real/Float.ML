@@ -352,7 +352,7 @@ exception Dest_float;
 
 fun mk_intinf ty n =
     let
-	fun mk_bit n = if n = zero then HOLogic.false_const else HOLogic.true_const
+	fun mk_bit n = if n = zero then HOLogic.B0_const else HOLogic.B1_const
 								 
 	fun bin_of n = 
 	    if n = zero then HOLogic.pls_const
@@ -373,8 +373,8 @@ fun dest_intinf n =
     let
 	fun dest_bit n = 
 	    case n of 
-		Const ("False", _) => FloatArith.izero
-	      | Const ("True", _) => FloatArith.ione
+		Const ("Numeral.bit.B0", _) => FloatArith.izero
+	      | Const ("Numeral.bit.B1", _) => FloatArith.ione
 	      | _ => raise Dest_intinf
 			 
 	fun int_of n = 

@@ -225,3 +225,15 @@ XSYMBOL_HOME=$(choosefrom \
 
 # HOL4 proof objects (cf. Isabelle/src/HOL/Import)
 HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
+
+# For configuring HOL/Matrix/cplex
+# First option: use the commercial cplex solver
+# LP_SOLVER_NAME=CPLEX
+# LP_SOLVER_PATH=cplex
+# Second option: use the open source glpk solver
+# LP_SOLVER_NAME=GLPK
+# LP_SOLVER_PATH=glpsol
+
+# toogles the detail of the error message in case of a cyclic definition
+DEFS_CHAIN_HISTORY=ON
+#DEFS_CHAIN_HISTORY=OFF

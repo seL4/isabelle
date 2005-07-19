@@ -1191,7 +1191,7 @@ fun solve prog =
     case getenv "LP_SOLVER_NAME" of
 	"CPLEX" => solve_cplex prog
       | "GLPK" => solve_glpk prog
-      | _ => raise (Execute ("LP_SOLVER.NAME must be set to CPLEX or to GLPK"));
+      | _ => raise (Execute ("LP_SOLVER_NAME must be set to CPLEX or to GLPK"));
 		   
 end;
 
