@@ -85,11 +85,8 @@ function copy_styles ()
 {
   for STYLEFILE in "$ISABELLE_HOME/lib/texinputs"/*.sty
   do
-    TARGET="$DIR"/$(basename $STYLEFILE)
-    rm -f $TARGET
-    "$AUTO_PERL" -n -e 's/\$[I]d:?(?:\s)*([^\$]*)\$//g; print;' "$STYLEFILE" > "$TARGET"
-    #~ "$AUTO_PERL" -n -e 's/\$[I]d:?(?:\s)*([^\$]*)\$/originating from CVS: $1/g; print;' $STYLEFILE > $TARGET
-    # the [I] is there to prevent CVS from expanding $Id...$ itself ;-)
+    TARGET="$DIR"/$(basename "$STYLEFILE")
+    "$AUTO_PERL" -p -e 's/\$[I]d:?(?:\s)*([^\$]*)\$//g' "$STYLEFILE" > "$TARGET"
   done
 }
 

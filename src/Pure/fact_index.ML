@@ -25,20 +25,20 @@ type spec = string list * string list;
 
 (* indexing items *)
 
-fun add_frees pred (Free (x, _), xs) = if pred x then x ins_string xs else xs
-  | add_frees pred (t $ u, xs) = add_frees pred (t, add_frees pred (u, xs))
-  | add_frees pred (Abs (_, _, t), xs) = add_frees pred (t, xs)
-  | add_frees _ (_, xs) = xs;
+val add_consts = fold_aterms
+  (fn Const (c, _) => if c = Term.dummy_patternN then I else insert (op =) c | _ => I);
 
-fun index_term pred t (cs, xs) =
-  (Term.add_term_consts (t, cs) \ Term.dummy_patternN, add_frees pred (t, xs));
+fun add_frees pred = fold_aterms
+  (fn Free (x, _) => if pred x then insert (op =) x else I | _ => I);
+
+fun index_term pred t (cs, xs) = (add_consts t cs, add_frees pred t xs);
 
 fun index_thm pred th idx =
   let val {tpairs, hyps, prop, ...} = Thm.rep_thm th in
     idx
     |> index_term pred prop
     |> fold (index_term pred) hyps
-    |> fold (index_term pred) (Thm.terms_of_tpairs tpairs)
+    |> fold (fn (t, u) => index_term pred t #> index_term pred u) tpairs
   end;
 
 
