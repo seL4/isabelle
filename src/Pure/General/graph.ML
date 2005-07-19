@@ -63,7 +63,7 @@ type keys = unit Table.table;
 val empty_keys = Table.empty: keys;
 
 infix mem_keys;
-fun x mem_keys tab = is_some (Table.lookup (tab: keys, x));
+fun x mem_keys tab = Table.defined (tab: keys) x;
 
 infix ins_keys;
 fun x ins_keys tab = Table.insert (K true) (x, ()) (tab: keys);

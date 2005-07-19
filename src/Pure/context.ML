@@ -251,7 +251,7 @@ fun check_thy thy =
   else thy;
 
 fun check_ins id ids =
-  if draft_id id orelse is_some (Inttab.lookup (ids, #1 id)) then ids
+  if draft_id id orelse Inttab.defined ids (#1 id) then ids
   else if Inttab.exists (equal (#2 id) o #2) ids then
     raise TERM ("Different versions of theory component " ^ quote (#2 id), [])
   else Inttab.update (id, ids);
@@ -274,7 +274,7 @@ val eq_thy = eq_id o pairself (#id o identity_of o check_thy);
 
 fun proper_subthy
     (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
-  is_some (Inttab.lookup (ids, i)) orelse is_some (Inttab.lookup (iids, i));
+  Inttab.defined ids i orelse Inttab.defined iids i;
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
 

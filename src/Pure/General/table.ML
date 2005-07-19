@@ -211,7 +211,7 @@ fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
 fun extend (table, args) =
   let
     fun add (key, x) (tab, dups) =
-      if is_some (lookup (tab, key)) then (tab, key :: dups)
+      if defined tab key then (tab, key :: dups)
       else (update ((key, x), tab), dups);
   in
     (case fold add args (table, []) of

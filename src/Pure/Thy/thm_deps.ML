@@ -39,7 +39,7 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
       let val ((name, tags), prf') = dest_thm_axm prf
       in
         if name <> "" andalso not (Drule.has_internal tags) then
-          if is_none (Symtab.lookup (gra, name)) then
+          if not (Symtab.defined gra name) then
             let
               val (gra', parents') = make_deps_graph ((gra, []), prf');
               val prefx = #1 (Library.split_last (NameSpace.unpack name));

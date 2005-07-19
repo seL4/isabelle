@@ -224,8 +224,7 @@ val defaults_of = #defs o rep_context;
 val type_occs_of = #4 o defaults_of;
 
 fun is_fixed ctxt x = exists (equal x o #2) (fixes_of ctxt);
-fun is_known ctxt x =
-  is_some (Vartab.lookup (#1 (defaults_of ctxt), (x, ~1))) orelse is_fixed ctxt x;
+fun is_known ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1) orelse is_fixed ctxt x;
 
 
 
@@ -659,7 +658,7 @@ fun generalize_tfrees inner outer =
     val occs_inner = type_occs_of inner;
     val occs_outer = type_occs_of outer;
     fun add a gen =
-      if is_some (Symtab.lookup (occs_outer, a)) orelse
+      if Symtab.defined occs_outer a orelse
         exists still_fixed (Symtab.lookup_multi (occs_inner, a))
       then gen else a :: gen;
   in fn tfrees => fold add tfrees [] end;

@@ -60,7 +60,7 @@ val global_options =
 
 
 fun add_item kind (tab, (name, x)) =
- (if is_none (Symtab.lookup (tab, name)) then ()
+ (if not (Symtab.defined tab name) then ()
   else warning ("Redefined antiquotation output " ^ kind ^ ": " ^ quote name);
   Symtab.update ((name, x), tab));
 

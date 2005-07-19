@@ -260,9 +260,7 @@ fun the_const_type thy c =
   (case const_type thy c of SOME T => T
   | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
-fun declared_tyname thy c =
-  is_some (Symtab.lookup (#2 (#types (Type.rep_tsig (tsig_of thy))), c));
-
+val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = is_some oo const_type;
 
 

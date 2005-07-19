@@ -198,7 +198,7 @@ fun add_keywords keywords = change_lexicons (apfst (fn lex =>
   (Scan.extend_lexicon lex (map Symbol.explode keywords))));
 
 fun add_parser (tab, Parser (name, (comment, kind, markup), int_only, parse)) =
- (if is_none (Symtab.lookup (tab, name)) then ()
+ (if not (Symtab.defined tab name) then ()
   else warning ("Redefined outer syntax command " ^ quote name);
   Symtab.update ((name, (((comment, kind), (int_only, parse)), markup)), tab));
 
