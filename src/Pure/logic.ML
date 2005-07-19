@@ -20,7 +20,7 @@ sig
   val strip_imp_concl   : term -> term
   val strip_prems       : int * term list * term -> term list * term
   val count_prems       : term * int -> int
-  val nth_prem		: int * term -> term
+  val nth_prem          : int * term -> term
   val mk_conjunction    : term * term -> term
   val mk_conjunction_list: term list -> term
   val strip_horn        : term -> term list * term
@@ -36,6 +36,7 @@ sig
   val occs              : term * term -> bool
   val close_form        : term -> term
   val incr_indexes      : typ list * int -> term -> term
+  val incr_tvar         : int -> typ -> typ
   val lift_fns          : term * int -> (term -> term) * (term -> term)
   val strip_assums_hyp  : term -> term list
   val strip_assums_concl: term -> term
@@ -186,19 +187,44 @@ fun close_form A =
 
 (*** Specialized operations for resolution... ***)
 
+local exception SAME in
+
+fun incrT k =
+  let
+    fun incr (TVar ((a, i), S)) = TVar ((a, i + k), S)
+      | incr (Type (a, Ts)) = Type (a, incrs Ts)
+      | incr _ = raise SAME
+    and incrs (T :: Ts) =
+        (incr T :: (incrs Ts handle SAME => Ts)
+          handle SAME => T :: incrs Ts)
+      | incrs [] = raise SAME;
+  in incr end;
+
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
-fun incr_indexes (Us: typ list, inc:int) t =
-  let fun incr (Var ((a,i), T), lev) =
-                Unify.combound (Var((a, i+inc), Us---> incr_tvar inc T),
-                                lev, length Us)
-        | incr (Abs (a,T,body), lev) =
-                Abs (a, incr_tvar inc T, incr(body,lev+1))
-        | incr (Const(a,T),_) = Const(a, incr_tvar inc T)
-        | incr (Free(a,T),_) = Free(a, incr_tvar inc T)
-        | incr (f$t, lev) = incr(f,lev) $ incr(t,lev)
-        | incr (t,lev) = t
-  in  incr(t,0)  end;
+fun incr_indexes (Us, k) t =
+  let
+    val n = length Us;
+    val incrT = if k = 0 then I else incrT k;
+
+    fun incr lev (Var ((x, i), T)) =
+          Unify.combound (Var ((x, i + k), Us ---> (incrT T handle SAME => T)), lev, n)
+      | incr lev (Abs (x, T, body)) =
+          (Abs (x, incrT T, incr (lev + 1) body handle SAME => body)
+            handle SAME => Abs (x, T, incr (lev + 1) body))
+      | incr lev (t $ u) =
+          (incr lev t $ (incr lev u handle SAME => u)
+            handle SAME => t $ incr lev u)
+      | incr _ (Const (c, T)) = Const (c, incrT T)
+      | incr _ (Free (x, T)) = Free (x, incrT T)
+      | incr _ (t as Bound _) = t;
+  in incr 0 t handle SAME => t end;
+
+fun incr_tvar 0 T = T
+  | incr_tvar k T = incrT k T handle SAME => T;
+
+end;
+
 
 (*Make lifting functions from subgoal and increment.
     lift_abs operates on tpairs (unification constraints)
@@ -294,17 +320,17 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
 
 (*** Treatmsent of "assume", "erule", etc. ***)
 
-(*Strips assumptions in goal yielding  
+(*Strips assumptions in goal yielding
    HS = [Hn,...,H1],   params = [xm,...,x1], and B,
-  where x1...xm are the parameters. This version (21.1.2005) REQUIRES 
-  the the parameters to be flattened, but it allows erule to work on 
+  where x1...xm are the parameters. This version (21.1.2005) REQUIRES
+  the the parameters to be flattened, but it allows erule to work on
   assumptions of the form !!x. phi. Any !! after the outermost string
   will be regarded as belonging to the conclusion, and left untouched.
   Used ONLY by assum_pairs.
       Unless nasms<0, it can terminate the recursion early; that allows
   erule to work on assumptions of the form P==>Q.*)
 fun strip_assums_imp (0, Hs, B) = (Hs, B)  (*recursion terminated by nasms*)
-  | strip_assums_imp (nasms, Hs, Const("==>", _) $ H $ B) = 
+  | strip_assums_imp (nasms, Hs, Const("==>", _) $ H $ B) =
       strip_assums_imp (nasms-1, H::Hs, B)
   | strip_assums_imp (_, Hs, B) = (Hs, B); (*recursion terminated by B*)
 
