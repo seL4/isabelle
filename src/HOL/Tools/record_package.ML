@@ -875,38 +875,38 @@ in
 val record_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
     (fn sg => fn _ => fn t =>
-      (case t of (sel as Const (s, Type (_,[domS,rangeS])))$((upd as Const (u, _)) $ k $ r)=>
+      (case t of (sel as Const (s, Type (_,[domS,rangeS])))$
+                   ((upd as Const (u,Type(_,[_,Type (_,[rT,_])]))) $ k $ r)=>
         (case get_selectors sg s of SOME () =>
           (case get_updates sg u of SOME u_name =>
             let
-              fun mk_abs_var x t = (x, fastype_of t);
               val {sel_upd={updates,...},extfields,...} = RecordsData.get sg;
               
-              fun mk_eq_terms ((upd as Const (u,Type(_,[updT,_]))) $ k $ r) =
+              fun mk_eq_terms ((upd as Const (u,Type(_,[kT,_]))) $ k $ r) =
 		  (case (Symtab.lookup (updates,u)) of
                      NONE => NONE
                    | SOME u_name 
                      => if u_name = s
                         then let 
-                               val rv = mk_abs_var "r" r
+                               val rv = ("r",rT)
                                val rb = Bound 0
-                               val kv = mk_abs_var "k" k
+                               val kv = ("k",kT)
                                val kb = Bound 1 
                              in SOME (upd$kb$rb,kb,[kv,rv],true) end
                         else if has_field extfields u_name rangeS
-                             orelse has_field extfields s updT
+                             orelse has_field extfields s kT
                              then NONE
 			     else (case mk_eq_terms r of 
                                      SOME (trm,trm',vars,update_s) 
                                      => let   
-					  val kv = mk_abs_var "k" k
+					  val kv = ("k",kT)
                                           val kb = Bound (length vars)
 		                        in SOME (upd$kb$trm,trm',kv::vars,update_s) end
                                    | NONE
                                      => let 
-					  val rv = mk_abs_var "r" r
+					  val rv = ("r",rT)
                                           val rb = Bound 0
-                                          val kv = mk_abs_var "k" k
+                                          val kv = ("k",kT)
                                           val kb = Bound 1 
                                         in SOME (upd$kb$rb,rb,[kv,rv],false) end))
                 | mk_eq_terms r = NONE     
@@ -915,9 +915,9 @@ val record_simproc =
                  SOME (trm,trm',vars,update_s) 
                  => if update_s 
 		    then SOME (prove_split_simp sg domS 
-                                 (list_all(vars,(Logic.mk_equals (sel$trm,trm')))))
+                                 (list_all(vars,(equals rangeS$(sel$trm)$trm'))))
                     else SOME (prove_split_simp sg domS 
-                                 (list_all(vars,(Logic.mk_equals (sel$trm,sel$trm')))))
+                                 (list_all(vars,(equals rangeS$(sel$trm)$(sel$trm')))))
                | NONE => NONE)
             end
           | NONE => NONE)
@@ -936,20 +936,20 @@ val record_simproc =
 val record_upd_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u k r)"]
     (fn sg => fn _ => fn t =>
-      (case t of ((upd as Const (u, Type(_,[_,Type(_,[T,_])]))) $ k $ r) =>
+      (case t of ((upd as Const (u, Type(_,[_,Type(_,[rT,_])]))) $ k $ r) =>
  	 let datatype ('a,'b) calc = Init of 'b | Inter of 'a  
              val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get sg;
              
-	     fun mk_abs_var x t = (x, fastype_of t);
+	     (*fun mk_abs_var x t = (x, fastype_of t);*)
              fun sel_name u = NameSpace.base (unsuffix updateN u);
 
              fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
                   if has_field extfields s mT then upd else seed s r
                | seed _ r = r;
 
-             fun grow u uT k vars (sprout,skeleton) = 
+             fun grow u uT k kT vars (sprout,skeleton) = 
 		   if sel_name u = moreN
-                   then let val kv = mk_abs_var "k" k;
+                   then let val kv = ("k", kT);
                             val kb = Bound (length vars);
                         in ((Const (u,uT)$k$sprout,Const (u,uT)$kb$skeleton),kv::vars) end
                    else ((sprout,skeleton),vars);
@@ -960,13 +960,13 @@ val record_upd_simproc =
                    else NONE
                | is_upd_same _ _ _ = NONE
  
-             fun init_seed r = ((r,Bound 0), [mk_abs_var "r" r]);
+             fun init_seed r = ((r,Bound 0), [("r", rT)]);
                        
              (* mk_updterm returns either
               *  - Init (orig-term, orig-term-skeleton, vars) if no optimisation can be made,
               *     where vars are the bound variables in the skeleton 
               *  - Inter (orig-term-skeleton,simplified-term-skeleton, 
-              *           vars, term-sprout, skeleton-sprout)
+              *           vars, (term-sprout, skeleton-sprout))
               *     where "All vars. orig-term-skeleton = simplified-term-skeleton" is
               *     the desired simplification rule,
               *     the sprouts accumulate the "more-updates" on the way from the seed
@@ -976,57 +976,58 @@ val record_upd_simproc =
               * memorising the updates in the already-table. While walking up the
               * updates again, the optimised term is constructed.
               *)
-             fun mk_updterm upds already (t as ((upd as Const (u,uT)) $ k $ r)) =
+             fun mk_updterm upds already 
+                 (t as ((upd as Const (u,uT as (Type (_,[kT,_])))) $ k $ r)) =
 		 if isSome (Symtab.lookup (upds,u))
 		 then let 
 			 fun rest already = mk_updterm upds already
-		      in if isSome (Symtab.lookup (already,u)) 
+		      in if u mem_string already 
 			 then (case (rest already r) of
 				 Init ((sprout,skel),vars) => 
                                  let
-	                           val kv = mk_abs_var (sel_name u) k;
+	                           val kv = (sel_name u, kT);
                                    val kb = Bound (length vars);
-                                   val (sprout',vars')= grow u uT k (kv::vars) (sprout,skel);
+                                   val (sprout',vars')= grow u uT k kT (kv::vars) (sprout,skel);
                                  in Inter (upd$kb$skel,skel,vars',sprout') end
                                | Inter (trm,trm',vars,sprout) => 
                                  let 
-		                   val kv = mk_abs_var (sel_name u) k;
+		                   val kv = (sel_name u, kT);
                                    val kb = Bound (length vars);
-                                   val (sprout',vars') = grow u uT k (kv::vars) sprout;
+                                   val (sprout',vars') = grow u uT k kT (kv::vars) sprout;
                                  in Inter(upd$kb$trm,trm',kv::vars',sprout') end) 
 	                 else 
-                          (case rest (Symtab.update ((u,()),already)) r of 
+                          (case rest (u::already) r of 
 			     Init ((sprout,skel),vars) => 
                               (case is_upd_same (sprout,skel) u k of
                                  SOME (sel,skel') => 
                                  let
-		                   val (sprout',vars') = grow u uT k vars (sprout,skel); 
+		                   val (sprout',vars') = grow u uT k kT vars (sprout,skel); 
                                   in Inter(upd$(sel$skel')$skel,skel,vars',sprout') end
                                | NONE =>  
                                  let
-	                           val kv = mk_abs_var (sel_name u) k;
+	                           val kv = (sel_name u, kT);
                                    val kb = Bound (length vars);
                                  in Init ((upd$k$sprout,upd$kb$skel),kv::vars) end)
 		           | Inter (trm,trm',vars,sprout) => 
                                (case is_upd_same sprout u k of
                                   SOME (sel,skel) =>
                                   let
-                                    val (sprout',vars') = grow u uT k vars sprout
+                                    val (sprout',vars') = grow u uT k kT vars sprout
                                   in Inter(upd$(sel$skel)$trm,trm',vars',sprout') end
                                 | NONE =>
                                   let
-				    val kv = mk_abs_var (sel_name u) k
+				    val kv = (sel_name u, kT)
                                     val kb = Bound (length vars)
-                                    val (sprout',vars') = grow u uT k (kv::vars) sprout
+                                    val (sprout',vars') = grow u uT k kT (kv::vars) sprout
                                   in Inter (upd$kb$trm,upd$kb$trm',vars',sprout') end))
 		      end
 		 else Init (init_seed t)
 	       | mk_updterm _ _ t = Init (init_seed t);
 
-	 in (case mk_updterm updates Symtab.empty t of
+	 in (case mk_updterm updates [] t of
 	       Inter (trm,trm',vars,_)
-                => SOME (prove_split_simp sg T  
-                          (list_all(vars,(Logic.mk_equals (trm,trm')))))
+                => SOME (prove_split_simp sg rT  
+                          (list_all(vars,(equals rT$trm$trm'))))
              | _ => NONE)
 	 end
        | _ => NONE));
@@ -1113,12 +1114,12 @@ val record_ex_sel_eq_simproc =
        in         
          (case t of 
            (Const ("Ex",Tex)$Abs(s,T,t)) =>
-             let val eq = mkeq (dest_sel_eq t) 0;
+             (let val eq = mkeq (dest_sel_eq t) 0;
                  val prop = list_all ([("r",T)],
                               Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
              in SOME (prove prop) end
-             handle TERM _ => NONE
+             handle TERM _ => NONE)
           | _ => NONE)                      
          end)
 
