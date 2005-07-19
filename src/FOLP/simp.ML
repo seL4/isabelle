@@ -593,7 +593,7 @@ fun mk_cong_thy thy f =
 let val sg = sign_of thy;
     val T = case Sign.const_type sg f of
                 NONE => error(f^" not declared") | SOME(T) => T;
-    val T' = incr_tvar 9 T;
+    val T' = Logic.incr_tvar 9 T;
 in mk_cong_type sg (Const(f,T'),T') end;
 
 fun mk_congs thy = List.concat o map (mk_cong_thy thy);
@@ -602,7 +602,7 @@ fun mk_typed_congs thy =
 let val sg = sign_of thy;
     val S0 = Sign.defaultS sg;
     fun readfT(f,s) =
-        let val T = incr_tvar 9 (Sign.read_typ(sg,K(SOME(S0))) s);
+        let val T = Logic.incr_tvar 9 (Sign.read_typ(sg,K(SOME(S0))) s);
             val t = case Sign.const_type sg f of
                       SOME(_) => Const(f,T) | NONE => Free(f,T)
         in (t,T) end

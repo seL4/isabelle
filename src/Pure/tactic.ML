@@ -256,13 +256,13 @@ let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
     and params = params_of_state st i
     val paramTs = map #2 params
     and inc = maxidx+1
-    fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> incr_tvar inc T)
+    fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
       | liftvar t = raise TERM("Variable expected", [t]);
     fun liftterm t = list_abs_free (params,
                                     Logic.incr_indexes(paramTs,inc) t)
     (*Lifts instantiation pair over params*)
     fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
-    val lifttvar = pairself (ctyp_fun (incr_tvar inc))
+    val lifttvar = pairself (ctyp_fun (Logic.incr_tvar inc))
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
@@ -289,12 +289,12 @@ fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
 let val {maxidx,thy,...} = rep_thm st
     val paramTs = map #2 (params_of_state st i)
     and inc = maxidx+1
-    fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> incr_tvar inc T)
+    fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
     (*lift only Var, not term, which must be lifted already*)
     fun liftpair (v,t) = (cterm_of thy (liftvar v), cterm_of thy t)
     fun liftTpair (((a, i), S), T) =
       (ctyp_of thy (TVar ((a, i + inc), S)),
-       ctyp_of thy (incr_tvar inc T))
+       ctyp_of thy (Logic.incr_tvar inc T))
 in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;

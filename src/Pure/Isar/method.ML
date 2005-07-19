@@ -396,13 +396,13 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val paramTs = map #2 params
         and inc = maxidx+1
         fun liftvar (Var ((a,j), T)) =
-              Var((a, j+inc), paramTs ---> incr_tvar inc T)
+              Var((a, j+inc), paramTs ---> Logic.incr_tvar inc T)
           | liftvar t = raise TERM("Variable expected", [t]);
         fun liftterm t = list_abs_free
               (params, Logic.incr_indexes(paramTs,inc) t)
         fun liftpair (cv,ct) =
               (cterm_fun liftvar cv, cterm_fun liftterm ct)
-        val lifttvar = pairself (ctyp_of sign o incr_tvar inc);
+        val lifttvar = pairself (ctyp_of sign o Logic.incr_tvar inc);
         val rule = Drule.instantiate
               (map lifttvar envT', map liftpair cenv)
               (lift_rule (st, i) thm)
