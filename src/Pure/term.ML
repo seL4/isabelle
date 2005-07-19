@@ -119,7 +119,6 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val incr_tvar: int -> typ -> typ
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
     (*note reversed order of args wrt. variant!*)
@@ -184,6 +183,11 @@ sig
   val term_lpo: (string -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
+  val eq_var: (indexname * typ) * (indexname * typ) -> bool
+  val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
+  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+    -> term -> term
+  val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
@@ -763,23 +767,28 @@ fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
   | betapply (f,u) = f$u;
 
 
-(** Equality, membership and insertion of indexnames (string*ints) **)
+(** Specialized equality, membership, insertion etc. **)
 
-(*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
+(* indexnames *)
+
 fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
 
-(*membership in a list, optimized version for indexnames*)
 fun mem_ix (_, []) = false
-  | mem_ix (x, y :: ys) = eq_ix(x,y) orelse mem_ix (x, ys);
+  | mem_ix (x, y :: ys) = eq_ix (x, y) orelse mem_ix (x, ys);
 
-(*insertion into list, optimized version for indexnames*)
-fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
+fun ins_ix (x, xs) = if mem_ix (x, xs) then xs else x :: xs;
 
 
-(** Membership, insertion, union for terms **)
+(* variables *)
+
+fun eq_var ((xi, T: typ), (yj, U)) = eq_ix (xi, yj) andalso T = U;
+fun eq_tvar ((xi, S: sort), (yj, S')) = eq_ix (xi, yj) andalso S = S';
+
+
+(* terms *)
 
 fun mem_term (_, []) = false
-  | mem_term (t, t'::ts) = t aconv t' orelse mem_term(t,ts);
+  | mem_term (t, t'::ts) = t aconv t' orelse mem_term (t, ts);
 
 fun subset_term ([], ys) = true
   | subset_term (x :: xs, ys) = mem_term (x, ys) andalso subset_term(xs, ys);
@@ -796,6 +805,7 @@ fun union_term (xs, []) = xs
 fun inter_term ([], ys) = []
   | inter_term (x::xs, ys) =
       if mem_term (x,ys) then x :: inter_term(xs,ys) else inter_term(xs,ys);
+
 
 (*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
@@ -831,13 +841,16 @@ fun xless ((a,i), (b,j): indexname) = i<j  orelse  (i=j andalso a<b);
 (*Abstraction of the term "body" over its occurrences of v,
     which must contain no loose bound variables.
   The resulting term is ready to become the body of an Abs.*)
-fun abstract_over (v,body) =
-  let fun abst (lev,u) = if (v aconv u) then (Bound lev) else
-      (case u of
-          Abs(a,T,t) => Abs(a, T, abst(lev+1, t))
-        | f$rand => abst(lev,f) $ abst(lev,rand)
+fun abstract_over (v, body) =
+  let
+    fun abst (lev, u) =
+      if v aconv u then Bound lev
+      else
+        (case u of
+          Abs (a, T, t) => Abs (a, T, abst (lev + 1, t))
+        | f $ rand => abst (lev, f) $ abst (lev, rand)
         | _ => u)
-  in  abst(0,body)  end;
+  in abst(0, body) end;
 
 fun lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
   | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
@@ -920,6 +933,49 @@ fun subst_vars ([], []) tm = tm
       in subst tm end;
 
 
+(* efficient substitution of schematic variables *)
+
+local exception SAME in
+
+fun substT [] _ = raise SAME
+  | substT instT ty =
+      let
+        fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
+          | subst_typ (TVar v) =
+              (case gen_assoc eq_tvar (instT, v) of
+                SOME T => T
+              | NONE => raise SAME)
+          | subst_typ _ = raise SAME
+        and subst_typs (T :: Ts) =
+            (subst_typ T :: (subst_typs Ts handle SAME => Ts)
+              handle SAME => T :: subst_typs Ts)
+          | subst_typs [] = raise SAME;
+      in subst_typ ty end;
+
+fun instantiate ([], []) tm = tm
+  | instantiate (instT, inst) tm =
+      let
+        fun subst (Const (c, T)) = Const (c, substT instT T)
+          | subst (Free (x, T)) = Free (x, substT instT T)
+          | subst (Var (xi, T)) =
+              let val (T', same) = (substT instT T, false) handle SAME => (T, true) in
+                (case gen_assoc eq_var (inst, (xi, T')) of
+                   SOME t => t
+                 | NONE => if same then raise SAME else Var (xi, T'))
+              end
+          | subst (Bound _) = raise SAME
+          | subst (Abs (x, T, t)) =
+              (Abs (x, substT instT T, subst t handle SAME => t)
+                handle SAME => Abs (x, T, subst t))
+          | subst (t $ u) = (subst t $ (subst u handle SAME => u) handle SAME => t $ subst u);
+      in subst tm handle SAME => tm end;
+
+fun instantiateT instT ty =
+  substT instT ty handle SAME => ty;
+
+end;
+
+
 (** Identifying first-order terms **)
 
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
@@ -963,10 +1019,6 @@ fun maxidx_of_typ T = maxidx_typ T ~1;
 fun maxidx_of_typs Ts = maxidx_typs Ts ~1;
 fun maxidx_of_term t = maxidx_term t ~1;
 
-
-(* Increment the index of all Poly's in T by k *)
-fun incr_tvar 0 T = T
-  | incr_tvar k T = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S)) T;
 
 
 (**** Syntax-related declarations ****)
