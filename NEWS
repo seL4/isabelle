@@ -351,6 +351,41 @@ INCOMPATIBILITY since simplification is more powerful by default.
 
 * Classical reasoning: the meson method now accepts theorems as arguments.
 
+* Introduced various additions and improvements in OrderedGroup.thy and 
+Ring_and_Field.thy, to faciliate calculations involving equalities 
+and inequalities.
+
+* Added rules for simplifying exponents to Parity.thy
+
+Below are some theorems that have been eliminated or modified in this release:
+
+  abs_eq             now named abs_of_nonneg
+  abs_of_ge_0        now named abs_of_nonneg 
+  abs_minus_eq       now named abs_of_nonpos  
+  imp_abs_id         now named abs_of_nonneg
+  imp_abs_neg_id     now named abs_of_nonpos
+  mult_pos           now named mult_pos_pos
+  mult_pos_le        now named mult_nonneg_nonneg
+  mult_pos_neg_le    now named mult_nonneg_nonpos
+  mult_pos_neg2_le   now named mult_nonneg_nonpos2
+  mult_neg           now named mult_neg_neg
+  mult_neg_le        now named mult_nonpos_nonpos
+
+
+*** HOL-Complex ***
+
+* Introduced better support for embedding natural numbers and integers
+in the reals, in RealDef.thy.
+
+* Expanded support for floor and ceiling functions, in RComplete.thy.
+
+Below are some theorems that have been eliminated or modified in this release:
+
+  real_of_int_add    reversed direction of equality (use "THEN sym")
+  real_of_int_minus  reversed direction of equality (use "THEN sym")
+  real_of_int_diff   reversed direction of equality (use "THEN sym")
+  real_of_int_mult   reversed direction of equality (use "THEN sym")
+
 
 *** HOLCF ***
 

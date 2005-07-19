@@ -701,6 +701,9 @@ by (simp add: real_of_int_def)
 lemma real_of_int_le_zero_cancel_iff [simp]: "(real (n::int) <= 0) = (n <= 0)"
 by (simp add: real_of_int_def)
 
+lemma real_of_int_abs [simp]: "real (abs x) = abs(real (x::int))"
+by (auto simp add: abs_if)
+
 lemma int_less_real_le: "((n::int) < m) = (real n + 1 <= real m)"
   apply (subgoal_tac "real n + 1 = real (n + 1)")
   apply (simp del: real_of_int_add)
