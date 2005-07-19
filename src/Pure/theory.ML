@@ -90,37 +90,6 @@ open SignTheory;
 
 
 
-(** diagnostics **)  (* FIXME belongs to defs.ML *)
-
-fun pretty_const pp (c, T) =
- [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];    (* FIXME zero indexes!? *)
-
-fun pretty_path pp path = fold_rev (fn (T, c, def) =>
-  fn [] => [Pretty.block (pretty_const pp (c, T))]
-   | prts => Pretty.block (pretty_const pp (c, T) @
-      [Pretty.brk 1, Pretty.str ("depends via " ^ quote def ^ " on")]) :: prts) path [];
-
-fun chain_history_msg s =    (* FIXME huh!? *)
-  if Defs.chain_history () then s ^ ": "
-  else s ^ " (set DEFS_CHAIN_HISTORY=ON for full history): ";
-
-fun defs_circular pp path =
-  Pretty.str (chain_history_msg "Cyclic dependency of definitions") :: pretty_path pp path
-  |> Pretty.chunks |> Pretty.string_of;
-
-fun defs_infinite_chain pp path =
-  Pretty.str (chain_history_msg "Infinite chain of definitions") :: pretty_path pp path
-  |> Pretty.chunks |> Pretty.string_of;
-
-fun defs_clash def1 def2 = "Type clash in definitions " ^ quote def1 ^ " and " ^ quote def2;
-
-fun defs_final pp const =
-  (Pretty.str "Attempt to define final constant" :: Pretty.brk 1 :: pretty_const pp const)
-  |> Pretty.block |> Pretty.string_of;
-
-
-
 (** datatype thy **)
 
 datatype thy = Thy of
@@ -149,9 +118,7 @@ structure ThyData = TheoryDataFun
       val Thy {axioms = _, defs = defs2, oracles = oracles2} = thy2;
 
       val axioms = NameSpace.empty_table;
-      val defs = Defs.merge defs1 defs2  (* FIXME produce errors in defs.ML *)
-        handle Defs.CIRCULAR namess => error (defs_circular pp namess)
-          | Defs.INFINITE_CHAIN namess => error (defs_infinite_chain pp namess);
+      val defs = Defs.merge pp defs1 defs2;
       val oracles = NameSpace.merge_tables eq_snd (oracles1, oracles2)
         handle Symtab.DUPS dups => err_dup_oras dups;
     in make_thy (axioms, defs, oracles) end;
@@ -262,7 +229,7 @@ datatype overloading = Clean | Implicit | Useless;
 
 fun overloading thy overloaded declT defT =
   let
-    val defT' = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
+    val defT' = Logic.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
   in
     if Sign.typ_instance thy (declT, defT') then Clean
     else if Sign.typ_instance thy (Type.strip_sorts declT, Type.strip_sorts defT') then Useless
@@ -312,19 +279,13 @@ fun dest_def pp tm =
 
 (* check_def *)
 
-fun declare thy c defs =      (* FIXME move to defs.ML *)
-  let val T = Sign.the_const_type thy c
-  in if_none (try (Defs.declare defs) (c, T)) defs end;
+fun pretty_const pp (c, T) =
+ [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
 
 fun check_def thy overloaded (bname, tm) defs =
   let
     val pp = Sign.pp thy;
-
-    fun err msg = error (Pretty.string_of (Pretty.chunks
-     [Pretty.str msg, Pretty.block
-      [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
-        Pretty.fbrk, Pretty.quote (Pretty.term pp tm)]]));
-
     fun prt_const (c, T) =
      [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
@@ -332,28 +293,25 @@ fun check_def thy overloaded (bname, tm) defs =
       [Pretty.block (Pretty.str "Definition of " :: pretty_const pp const), Pretty.str txt]
       |> Pretty.chunks |> Pretty.string_of;
 
-    val ((c, defT), rhs) = dest_def pp tm handle TERM (msg, _) => err msg;
+    fun typed_const c = (c, Sign.the_const_type thy c);
+
+    val ((c, defT), rhs) = dest_def pp tm handle TERM (msg, _) => error msg;
     val rhs_consts = Term.term_constsT rhs;
     val declT = Sign.the_const_type thy c;
-
     val _ =
       (case overloading thy overloaded declT defT of
         Clean => ()
       | Implicit => warning (string_of_def (c, defT)
           ("is strictly less general than the declared type (see " ^ quote bname ^ ")"))
-      | Useless => err (Library.setmp show_sorts true (string_of_def (c, defT))
+      | Useless => error (Library.setmp show_sorts true (string_of_def (c, defT))
           "imposes additional sort constraints on the declared type of the constant"));
-
-    val decl_defs = defs |> declare thy c |> fold (declare thy) (map #1 rhs_consts);
   in
-    Defs.define decl_defs (c, defT) (Sign.full_name thy bname) rhs_consts
-      (* FIXME produce errors in defs.ML *)
-      handle Defs.DEFS msg => err ("DEFS: " ^ msg)   (* FIXME sys_error!? *)
-        | Defs.CIRCULAR path => err (defs_circular pp path)
-        | Defs.INFINITE_CHAIN path => err (defs_infinite_chain pp path)
-        | Defs.CLASH (_, def1, def2) => err (defs_clash def1 def2)
-        | Defs.FINAL const => err (defs_final pp const)
-  end;
+    defs |> Defs.declare (typed_const c) |> fold (Defs.declare o typed_const o #1) rhs_consts
+    |> Defs.define pp (c, defT) (Sign.full_name thy bname) rhs_consts
+  end
+  handle ERROR => error (Pretty.string_of (Pretty.block
+   [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
+    Pretty.fbrk, Pretty.quote (Pretty.term (Sign.pp thy) tm)]));
 
 
 (* add_defs(_i) *)
@@ -396,7 +354,7 @@ fun gen_add_finals prep_term overloaded raw_terms thy =
           | Implicit => warning ("Finalizing " ^ quote c ^
               " at a strictly less general type than declared")
           | Useless => err "Sort constraints stronger than declared");
-      in Defs.finalize (if_none (try (Defs.declare finals) (c, declT)) finals) (c, defT) end;
+      in finals |> Defs.declare (c, declT) |> Defs.finalize (c, defT) end;
   in thy |> map_defs (fold finalize (map (prep_term thy) raw_terms)) end;
 
 fun read_term thy = Sign.simple_read_term thy TypeInfer.logicT;
