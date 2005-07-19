@@ -1,209 +1,402 @@
-(*  Title       : RComplete.thy
+(*  Title       : HOL/Real/RComplete.thy
     ID          : $Id$
-    Author      : Jacques D. Fleuriot
-                  Converted to Isar and polished by lcp
-                  Most floor and ceiling lemmas by Jeremy Avigad
-    Copyright   : 1998  University of Cambridge
-    Copyright   : 2001,2002  University of Edinburgh
-*) 
+    Author      : Jacques D. Fleuriot, University of Edinburgh
+    Author      : Larry Paulson, University of Cambridge
+    Author      : Jeremy Avigad, Carnegie Mellon University
+    Author      : Florian Zuleger, Johannes Hoelzl, and Simon Funke, TU Muenchen
+*)
 
-header{*Completeness of the Reals; Floor and Ceiling Functions*}
+header {* Completeness of the Reals; Floor and Ceiling Functions *}
 
 theory RComplete
 imports Lubs RealDef
 begin
 
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
-by simp
+  by simp
 
 
-subsection{*Completeness of Reals by Supremum Property of type @{typ preal}*} 
+subsection {* Completeness of Positive Reals *}
 
- (*a few lemmas*)
-lemma real_sup_lemma1:
-     "\<forall>x \<in> P. 0 < x ==>   
-      ((\<exists>x \<in> P. y < x) = (\<exists>X. real_of_preal X \<in> P & y < real_of_preal X))"
-by (blast dest!: bspec real_gt_zero_preal_Ex [THEN iffD1])
+text {*
+  Supremum property for the set of positive reals
 
-lemma real_sup_lemma2:
-     "[| \<forall>x \<in> P. 0 < x;  a \<in> P;   \<forall>x \<in> P. x < y |]  
-      ==> (\<exists>X. X\<in> {w. real_of_preal w \<in> P}) &  
-          (\<exists>Y. \<forall>X\<in> {w. real_of_preal w \<in> P}. X < Y)"
-apply (rule conjI)
-apply (blast dest: bspec real_gt_zero_preal_Ex [THEN iffD1], auto)
-apply (drule bspec, assumption)
-apply (frule bspec, assumption)
-apply (drule order_less_trans, assumption)
-apply (drule real_gt_zero_preal_Ex [THEN iffD1], force) 
-done
+  Let @{text "P"} be a non-empty set of positive reals, with an upper
+  bound @{text "y"}.  Then @{text "P"} has a least upper bound
+  (written @{text "S"}).
 
-(*-------------------------------------------------------------
-            Completeness of Positive Reals
- -------------------------------------------------------------*)
+  FIXME: Can the premise be weakened to @{text "\<forall>x \<in> P. x\<le> y"}?
+*}
 
-(**
- Supremum property for the set of positive reals
- FIXME: long proof - should be improved
-**)
+lemma posreal_complete:
+  assumes positive_P: "\<forall>x \<in> P. (0::real) < x"
+    and not_empty_P: "\<exists>x. x \<in> P"
+    and upper_bound_Ex: "\<exists>y. \<forall>x \<in> P. x<y"
+  shows "\<exists>S. \<forall>y. (\<exists>x \<in> P. y < x) = (y < S)"
+proof (rule exI, rule allI)
+  fix y
+  let ?pP = "{w. real_of_preal w \<in> P}"
 
-(*Let P be a non-empty set of positive reals, with an upper bound y.
-  Then P has a least upper bound (written S).  
-FIXME: Can the premise be weakened to \<forall>x \<in> P. x\<le> y ??*)
-lemma posreal_complete: "[| \<forall>x \<in> P. (0::real) < x;  \<exists>x. x \<in> P;  \<exists>y. \<forall>x \<in> P. x<y |]  
-      ==> (\<exists>S. \<forall>y. (\<exists>x \<in> P. y < x) = (y < S))"
-apply (rule_tac x = "real_of_preal (psup ({w. real_of_preal w \<in> P}))" in exI)
-apply clarify
-apply (case_tac "0 < ya", auto)
-apply (frule real_sup_lemma2, assumption+)
-apply (drule real_gt_zero_preal_Ex [THEN iffD1])
-apply (drule_tac [3] real_less_all_real2, auto)
-apply (rule preal_complete [THEN iffD1])
-apply (auto intro: order_less_imp_le)
-apply (frule real_gt_preal_preal_Ex, force)
-(* second part *)
-apply (rule real_sup_lemma1 [THEN iffD2], assumption)
-apply (auto dest!: real_less_all_real2 real_gt_zero_preal_Ex [THEN iffD1])
-apply (frule_tac [2] real_sup_lemma2)
-apply (frule real_sup_lemma2, assumption+, clarify) 
-apply (rule preal_complete [THEN iffD2, THEN bexE])
-prefer 3 apply blast
-apply (blast intro!: order_less_imp_le)+
-done
+  show "(\<exists>x\<in>P. y < x) = (y < real_of_preal (psup ?pP))"
+  proof (cases "0 < y")
+    assume neg_y: "\<not> 0 < y"
+    show ?thesis
+    proof
+      assume "\<exists>x\<in>P. y < x"
+      have "\<forall>x. y < real_of_preal x"
+        using neg_y by (rule real_less_all_real2)
+      thus "y < real_of_preal (psup ?pP)" ..
+    next
+      assume "y < real_of_preal (psup ?pP)"
+      obtain "x" where x_in_P: "x \<in> P" using not_empty_P ..
+      hence "0 < x" using positive_P by simp
+      hence "y < x" using neg_y by simp
+      thus "\<exists>x \<in> P. y < x" using x_in_P ..
+    qed
+  next
+    assume pos_y: "0 < y"
 
-(*--------------------------------------------------------
-   Completeness properties using isUb, isLub etc.
- -------------------------------------------------------*)
+    then obtain py where y_is_py: "y = real_of_preal py"
+      by (auto simp add: real_gt_zero_preal_Ex)
+
+    obtain a where a_in_P: "a \<in> P" using not_empty_P ..
+    have a_pos: "0 < a" using positive_P ..
+    then obtain pa where "a = real_of_preal pa"
+      by (auto simp add: real_gt_zero_preal_Ex)
+    hence "pa \<in> ?pP" using a_in_P by auto
+    hence pP_not_empty: "?pP \<noteq> {}" by auto
+
+    obtain sup where sup: "\<forall>x \<in> P. x < sup"
+      using upper_bound_Ex ..
+    hence  "a < sup" ..
+    hence "0 < sup" using a_pos by arith
+    then obtain possup where "sup = real_of_preal possup"
+      by (auto simp add: real_gt_zero_preal_Ex)
+    hence "\<forall>X \<in> ?pP. X \<le> possup"
+      using sup by (auto simp add: real_of_preal_lessI)
+    with pP_not_empty have psup: "\<And>Z. (\<exists>X \<in> ?pP. Z < X) = (Z < psup ?pP)"
+      by (rule preal_complete)
+
+    show ?thesis
+    proof
+      assume "\<exists>x \<in> P. y < x"
+      then obtain x where x_in_P: "x \<in> P" and y_less_x: "y < x" ..
+      hence "0 < x" using pos_y by arith
+      then obtain px where x_is_px: "x = real_of_preal px"
+        by (auto simp add: real_gt_zero_preal_Ex)
+
+      have py_less_X: "\<exists>X \<in> ?pP. py < X"
+      proof
+        show "py < px" using y_is_py and x_is_px and y_less_x
+          by (simp add: real_of_preal_lessI)
+        show "px \<in> ?pP" using x_in_P and x_is_px by simp
+      qed
+
+      have "(\<exists>X \<in> ?pP. py < X) ==> (py < psup ?pP)"
+        using psup by simp
+      hence "py < psup ?pP" using py_less_X by simp
+      thus "y < real_of_preal (psup {w. real_of_preal w \<in> P})"
+        using y_is_py and pos_y by (simp add: real_of_preal_lessI)
+    next
+      assume y_less_psup: "y < real_of_preal (psup ?pP)"
+
+      hence "py < psup ?pP" using y_is_py
+        by (simp add: real_of_preal_lessI)
+      then obtain "X" where py_less_X: "py < X" and X_in_pP: "X \<in> ?pP"
+        using psup by auto
+      then obtain x where x_is_X: "x = real_of_preal X"
+        by (simp add: real_gt_zero_preal_Ex)
+      hence "y < x" using py_less_X and y_is_py
+        by (simp add: real_of_preal_lessI)
+
+      moreover have "x \<in> P" using x_is_X and X_in_pP by simp
+
+      ultimately show "\<exists> x \<in> P. y < x" ..
+    qed
+  qed
+qed
+
+text {*
+  \medskip Completeness properties using @{text "isUb"}, @{text "isLub"} etc.
+*}
 
 lemma real_isLub_unique: "[| isLub R S x; isLub R S y |] ==> x = (y::real)"
-apply (frule isLub_isUb)
-apply (frule_tac x = y in isLub_isUb)
-apply (blast intro!: order_antisym dest!: isLub_le_isUb)
-done
+  apply (frule isLub_isUb)
+  apply (frule_tac x = y in isLub_isUb)
+  apply (blast intro!: order_antisym dest!: isLub_le_isUb)
+  done
 
-lemma real_order_restrict: "[| (x::real) <=* S'; S <= S' |] ==> x <=* S"
-by (unfold setle_def setge_def, blast)
 
-(*----------------------------------------------------------------
-           Completeness theorem for the positive reals(again)
- ----------------------------------------------------------------*)
+text {*
+  \medskip Completeness theorem for the positive reals (again).
+*}
 
 lemma posreals_complete:
-     "[| \<forall>x \<in>S. 0 < x;  
-         \<exists>x. x \<in>S;  
-         \<exists>u. isUb (UNIV::real set) S u  
-      |] ==> \<exists>t. isLub (UNIV::real set) S t"
-apply (rule_tac x = "real_of_preal (psup ({w. real_of_preal w \<in> S}))" in exI)
-apply (auto simp add: isLub_def leastP_def isUb_def)
-apply (auto intro!: setleI setgeI dest!: real_gt_zero_preal_Ex [THEN iffD1])
-apply (frule_tac x = y in bspec, assumption)
-apply (drule real_gt_zero_preal_Ex [THEN iffD1])
-apply (auto simp add: real_of_preal_le_iff)
-apply (frule_tac y = "real_of_preal ya" in setleD, assumption)
-apply (frule real_ge_preal_preal_Ex, safe)
-apply (blast intro!: preal_psup_le dest!: setleD intro: real_of_preal_le_iff [THEN iffD1])
-apply (frule_tac x = x in bspec, assumption)
-apply (frule isUbD2)
-apply (drule real_gt_zero_preal_Ex [THEN iffD1])
-apply (auto dest!: isUbD real_ge_preal_preal_Ex simp add: real_of_preal_le_iff)
-apply (blast dest!: setleD intro!: psup_le_ub intro: real_of_preal_le_iff [THEN iffD1])
-done
+  assumes positive_S: "\<forall>x \<in> S. 0 < x"
+    and not_empty_S: "\<exists>x. x \<in> S"
+    and upper_bound_Ex: "\<exists>u. isUb (UNIV::real set) S u"
+  shows "\<exists>t. isLub (UNIV::real set) S t"
+proof
+  let ?pS = "{w. real_of_preal w \<in> S}"
+
+  obtain u where "isUb UNIV S u" using upper_bound_Ex ..
+  hence sup: "\<forall>x \<in> S. x \<le> u" by (simp add: isUb_def setle_def)
+
+  obtain x where x_in_S: "x \<in> S" using not_empty_S ..
+  hence x_gt_zero: "0 < x" using positive_S by simp
+  have  "x \<le> u" using sup and x_in_S ..
+  hence "0 < u" using x_gt_zero by arith
+
+  then obtain pu where u_is_pu: "u = real_of_preal pu"
+    by (auto simp add: real_gt_zero_preal_Ex)
+
+  have pS_less_pu: "\<forall>pa \<in> ?pS. pa \<le> pu"
+  proof
+    fix pa
+    assume "pa \<in> ?pS"
+    then obtain a where "a \<in> S" and "a = real_of_preal pa"
+      by simp
+    moreover hence "a \<le> u" using sup by simp
+    ultimately show "pa \<le> pu"
+      using sup and u_is_pu by (simp add: real_of_preal_le_iff)
+  qed
+
+  have "\<forall>y \<in> S. y \<le> real_of_preal (psup ?pS)"
+  proof
+    fix y
+    assume y_in_S: "y \<in> S"
+    hence "0 < y" using positive_S by simp
+    then obtain py where y_is_py: "y = real_of_preal py"
+      by (auto simp add: real_gt_zero_preal_Ex)
+    hence py_in_pS: "py \<in> ?pS" using y_in_S by simp
+    with pS_less_pu have "py \<le> psup ?pS"
+      by (rule preal_psup_le)
+    thus "y \<le> real_of_preal (psup ?pS)"
+      using y_is_py by (simp add: real_of_preal_le_iff)
+  qed
+
+  moreover {
+    fix x
+    assume x_ub_S: "\<forall>y\<in>S. y \<le> x"
+    have "real_of_preal (psup ?pS) \<le> x"
+    proof -
+      obtain "s" where s_in_S: "s \<in> S" using not_empty_S ..
+      hence s_pos: "0 < s" using positive_S by simp
+
+      hence "\<exists> ps. s = real_of_preal ps" by (simp add: real_gt_zero_preal_Ex)
+      then obtain "ps" where s_is_ps: "s = real_of_preal ps" ..
+      hence ps_in_pS: "ps \<in> {w. real_of_preal w \<in> S}" using s_in_S by simp
+
+      from x_ub_S have "s \<le> x" using s_in_S ..
+      hence "0 < x" using s_pos by simp
+      hence "\<exists> px. x = real_of_preal px" by (simp add: real_gt_zero_preal_Ex)
+      then obtain "px" where x_is_px: "x = real_of_preal px" ..
+
+      have "\<forall>pe \<in> ?pS. pe \<le> px"
+      proof
+	fix pe
+	assume "pe \<in> ?pS"
+	hence "real_of_preal pe \<in> S" by simp
+	hence "real_of_preal pe \<le> x" using x_ub_S by simp
+	thus "pe \<le> px" using x_is_px by (simp add: real_of_preal_le_iff)
+      qed
+
+      moreover have "?pS \<noteq> {}" using ps_in_pS by auto
+      ultimately have "(psup ?pS) \<le> px" by (simp add: psup_le_ub)
+      thus "real_of_preal (psup ?pS) \<le> x" using x_is_px by (simp add: real_of_preal_le_iff)
+    qed
+  }
+  ultimately show "isLub UNIV S (real_of_preal (psup ?pS))"
+    by (simp add: isLub_def leastP_def isUb_def setle_def setge_def)
+qed
+
+text {*
+  \medskip reals Completeness (again!)
+*}
+
+lemma reals_complete:
+  assumes notempty_S: "\<exists>X. X \<in> S"
+    and exists_Ub: "\<exists>Y. isUb (UNIV::real set) S Y"
+  shows "\<exists>t. isLub (UNIV :: real set) S t"
+proof -
+  obtain X where X_in_S: "X \<in> S" using notempty_S ..
+  obtain Y where Y_isUb: "isUb (UNIV::real set) S Y"
+    using exists_Ub ..
+  let ?SHIFT = "{z. \<exists>x \<in>S. z = x + (-X) + 1} \<inter> {x. 0 < x}"
+
+  {
+    fix x
+    assume "isUb (UNIV::real set) S x"
+    hence S_le_x: "\<forall> y \<in> S. y <= x"
+      by (simp add: isUb_def setle_def)
+    {
+      fix s
+      assume "s \<in> {z. \<exists>x\<in>S. z = x + - X + 1}"
+      hence "\<exists> x \<in> S. s = x + -X + 1" ..
+      then obtain x1 where "x1 \<in> S" and "s = x1 + (-X) + 1" ..
+      moreover hence "x1 \<le> x" using S_le_x by simp
+      ultimately have "s \<le> x + - X + 1" by arith
+    }
+    then have "isUb (UNIV::real set) ?SHIFT (x + (-X) + 1)"
+      by (auto simp add: isUb_def setle_def)
+  } note S_Ub_is_SHIFT_Ub = this
+
+  hence "isUb UNIV ?SHIFT (Y + (-X) + 1)" using Y_isUb by simp
+  hence "\<exists>Z. isUb UNIV ?SHIFT Z" ..
+  moreover have "\<forall>y \<in> ?SHIFT. 0 < y" by auto
+  moreover have shifted_not_empty: "\<exists>u. u \<in> ?SHIFT"
+    using X_in_S and Y_isUb by auto
+  ultimately obtain t where t_is_Lub: "isLub UNIV ?SHIFT t"
+    using posreals_complete [of ?SHIFT] by blast
+
+  show ?thesis
+  proof
+    show "isLub UNIV S (t + X + (-1))"
+    proof (rule isLubI2)
+      {
+        fix x
+        assume "isUb (UNIV::real set) S x"
+        hence "isUb (UNIV::real set) (?SHIFT) (x + (-X) + 1)"
+	  using S_Ub_is_SHIFT_Ub by simp
+        hence "t \<le> (x + (-X) + 1)"
+	  using t_is_Lub by (simp add: isLub_le_isUb)
+        hence "t + X + -1 \<le> x" by arith
+      }
+      then show "(t + X + -1) <=* Collect (isUb UNIV S)"
+	by (simp add: setgeI)
+    next
+      show "isUb UNIV S (t + X + -1)"
+      proof -
+        {
+          fix y
+          assume y_in_S: "y \<in> S"
+          have "y \<le> t + X + -1"
+          proof -
+            obtain "u" where u_in_shift: "u \<in> ?SHIFT" using shifted_not_empty ..
+            hence "\<exists> x \<in> S. u = x + - X + 1" by simp
+            then obtain "x" where x_and_u: "u = x + - X + 1" ..
+            have u_le_t: "u \<le> t" using u_in_shift and t_is_Lub by (simp add: isLubD2)
+
+            show ?thesis
+            proof cases
+              assume "y \<le> x"
+              moreover have "x = u + X + - 1" using x_and_u by arith
+              moreover have "u + X + - 1  \<le> t + X + -1" using u_le_t by arith
+              ultimately show "y  \<le> t + X + -1" by arith
+            next
+              assume "~(y \<le> x)"
+              hence x_less_y: "x < y" by arith
+
+              have "x + (-X) + 1 \<in> ?SHIFT" using x_and_u and u_in_shift by simp
+              hence "0 < x + (-X) + 1" by simp
+              hence "0 < y + (-X) + 1" using x_less_y by arith
+              hence "y + (-X) + 1 \<in> ?SHIFT" using y_in_S by simp
+              hence "y + (-X) + 1 \<le> t" using t_is_Lub  by (simp add: isLubD2)
+              thus ?thesis by simp
+            qed
+          qed
+        }
+        then show ?thesis by (simp add: isUb_def setle_def)
+      qed
+    qed
+  qed
+qed
 
 
-(*-------------------------------
-    Lemmas
- -------------------------------*)
-lemma real_sup_lemma3: "\<forall>y \<in> {z. \<exists>x \<in> P. z = x + (-xa) + 1} Int {x. 0 < x}. 0 < y"
-by auto
- 
-lemma lemma_le_swap2: "(xa <= S + X + (-Z)) = (xa + (-X) + Z <= (S::real))"
-by auto
+subsection {* The Archimedean Property of the Reals *}
 
-lemma lemma_real_complete2b: "[| (x::real) + (-X) + 1 <= S; xa <= x |] ==> xa <= S + X + (- 1)"
-by arith
+theorem reals_Archimedean:
+  assumes x_pos: "0 < x"
+  shows "\<exists>n. inverse (real (Suc n)) < x"
+proof (rule ccontr)
+  assume contr: "\<not> ?thesis"
+  have "\<forall>n. x * real (Suc n) <= 1"
+  proof
+    fix n
+    from contr have "x \<le> inverse (real (Suc n))"
+      by (simp add: linorder_not_less)
+    hence "x \<le> (1 / (real (Suc n)))"
+      by (simp add: inverse_eq_divide)
+    moreover have "0 \<le> real (Suc n)"
+      by (rule real_of_nat_ge_zero)
+    ultimately have "x * real (Suc n) \<le> (1 / real (Suc n)) * real (Suc n)"
+      by (rule mult_right_mono)
+    thus "x * real (Suc n) \<le> 1" by simp
+  qed
+  hence "{z. \<exists>n. z = x * (real (Suc n))} *<= 1"
+    by (simp add: setle_def, safe, rule spec)
+  hence "isUb (UNIV::real set) {z. \<exists>n. z = x * (real (Suc n))} 1"
+    by (simp add: isUbI)
+  hence "\<exists>Y. isUb (UNIV::real set) {z. \<exists>n. z = x* (real (Suc n))} Y" ..
+  moreover have "\<exists>X. X \<in> {z. \<exists>n. z = x* (real (Suc n))}" by auto
+  ultimately have "\<exists>t. isLub UNIV {z. \<exists>n. z = x * real (Suc n)} t"
+    by (simp add: reals_complete)
+  then obtain "t" where
+    t_is_Lub: "isLub UNIV {z. \<exists>n. z = x * real (Suc n)} t" ..
 
-(*----------------------------------------------------------
-      reals Completeness (again!)
- ----------------------------------------------------------*)
-lemma reals_complete: "[| \<exists>X. X \<in>S;  \<exists>Y. isUb (UNIV::real set) S Y |]   
-      ==> \<exists>t. isLub (UNIV :: real set) S t"
-apply safe
-apply (subgoal_tac "\<exists>u. u\<in> {z. \<exists>x \<in>S. z = x + (-X) + 1} Int {x. 0 < x}")
-apply (subgoal_tac "isUb (UNIV::real set) ({z. \<exists>x \<in>S. z = x + (-X) + 1} Int {x. 0 < x}) (Y + (-X) + 1) ")
-apply (cut_tac P = S and xa = X in real_sup_lemma3)
-apply (frule posreals_complete [OF _ _ exI], blast, blast, safe)
-apply (rule_tac x = "t + X + (- 1) " in exI)
-apply (rule isLubI2)
-apply (rule_tac [2] setgeI, safe)
-apply (subgoal_tac [2] "isUb (UNIV:: real set) ({z. \<exists>x \<in>S. z = x + (-X) + 1} Int {x. 0 < x}) (y + (-X) + 1) ")
-apply (drule_tac [2] y = " (y + (- X) + 1) " in isLub_le_isUb)
- prefer 2 apply assumption
- prefer 2
-apply arith
-apply (rule setleI [THEN isUbI], safe)
-apply (rule_tac x = x and y = y in linorder_cases)
-apply (subst lemma_le_swap2)
-apply (frule isLubD2)
- prefer 2 apply assumption
-apply safe
-apply blast
-apply arith
-apply (subst lemma_le_swap2)
-apply (frule isLubD2)
- prefer 2 apply assumption
-apply blast
-apply (rule lemma_real_complete2b)
-apply (erule_tac [2] order_less_imp_le)
-apply (blast intro!: isLubD2, blast) 
-apply (simp (no_asm_use) add: add_assoc)
-apply (blast dest: isUbD intro!: setleI [THEN isUbI] intro: add_right_mono)
-apply (blast dest: isUbD intro!: setleI [THEN isUbI] intro: add_right_mono, auto)
-done
+  have "\<forall>n::nat. x * real n \<le> t + - x"
+  proof
+    fix n
+    from t_is_Lub have "x * real (Suc n) \<le> t"
+      by (simp add: isLubD2)
+    hence  "x * (real n) + x \<le> t"
+      by (simp add: right_distrib real_of_nat_Suc)
+    thus  "x * (real n) \<le> t + - x" by arith
+  qed
 
+  hence "\<forall>m. x * real (Suc m) \<le> t + - x" by simp
+  hence "{z. \<exists>n. z = x * (real (Suc n))}  *<= (t + - x)"
+    by (auto simp add: setle_def)
+  hence "isUb (UNIV::real set) {z. \<exists>n. z = x * (real (Suc n))} (t + (-x))"
+    by (simp add: isUbI)
+  hence "t \<le> t + - x"
+    using t_is_Lub by (simp add: isLub_le_isUb)
+  thus False using x_pos by arith
+qed
 
-subsection{*Corollary: the Archimedean Property of the Reals*}
+text {*
+  There must be other proofs, e.g. @{text "Suc"} of the largest
+  integer in the cut representing @{text "x"}.
+*}
 
-lemma reals_Archimedean: "0 < x ==> \<exists>n. inverse (real(Suc n)) < x"
-apply (rule ccontr)
-apply (subgoal_tac "\<forall>n. x * real (Suc n) <= 1")
- prefer 2
-apply (simp add: linorder_not_less inverse_eq_divide, clarify) 
-apply (drule_tac x = n in spec)
-apply (drule_tac c = "real (Suc n)"  in mult_right_mono)
-apply (rule real_of_nat_ge_zero)
-apply (simp add: times_divide_eq_right real_of_nat_Suc_gt_zero [THEN real_not_refl2, THEN not_sym] mult_commute)
-apply (subgoal_tac "isUb (UNIV::real set) {z. \<exists>n. z = x* (real (Suc n))} 1")
-apply (subgoal_tac "\<exists>X. X \<in> {z. \<exists>n. z = x* (real (Suc n))}")
-apply (drule reals_complete)
-apply (auto intro: isUbI setleI)
-apply (subgoal_tac "\<forall>m. x* (real (Suc m)) <= t")
-apply (simp add: real_of_nat_Suc right_distrib)
-prefer 2 apply (blast intro: isLubD2)
-apply (simp add: le_diff_eq [symmetric] real_diff_def)
-apply (subgoal_tac "isUb (UNIV::real set) {z. \<exists>n. z = x* (real (Suc n))} (t + (-x))")
-prefer 2 apply (blast intro!: isUbI setleI)
-apply (drule_tac y = "t+ (-x) " in isLub_le_isUb)
-apply (auto simp add: real_of_nat_Suc right_distrib)
-done
-
-(*There must be other proofs, e.g. Suc of the largest integer in the
-  cut representing x*)
 lemma reals_Archimedean2: "\<exists>n. (x::real) < real (n::nat)"
-apply (rule_tac x = x and y = 0 in linorder_cases)
-apply (rule_tac x = 0 in exI)
-apply (rule_tac [2] x = 1 in exI)
-apply (auto elim: order_less_trans simp add: real_of_nat_one)
-apply (frule positive_imp_inverse_positive [THEN reals_Archimedean], safe)
-apply (rule_tac x = "Suc n" in exI)
-apply (frule_tac b = "inverse x" in mult_strict_right_mono, auto)
-done
+proof cases
+  assume "x \<le> 0"
+  hence "x < real (1::nat)" by simp
+  thus ?thesis ..
+next
+  assume "\<not> x \<le> 0"
+  hence x_greater_zero: "0 < x" by simp
+  hence "0 < inverse x" by simp
+  then obtain n where "inverse (real (Suc n)) < inverse x"
+    using reals_Archimedean by blast
+  hence "inverse (real (Suc n)) * x < inverse x * x"
+    using x_greater_zero by (rule mult_strict_right_mono)
+  hence "inverse (real (Suc n)) * x < 1"
+    using x_greater_zero by (simp add: real_mult_inverse_left mult_commute)
+  hence "real (Suc n) * (inverse (real (Suc n)) * x) < real (Suc n) * 1"
+    by (rule mult_strict_left_mono) simp
+  hence "x < real (Suc n)"
+    by (simp add: mult_commute ring_eq_simps real_mult_inverse_left)
+  thus "\<exists>(n::nat). x < real n" ..
+qed
 
-lemma reals_Archimedean3: "0 < x ==> \<forall>y. \<exists>(n::nat). y < real n * x"
-apply safe
-apply (cut_tac x = "y*inverse (x) " in reals_Archimedean2)
-apply safe
-apply (frule_tac a = "y * inverse x" in mult_strict_right_mono)
-apply (auto simp add: mult_assoc real_of_nat_def)
-done
+lemma reals_Archimedean3:
+  assumes x_greater_zero: "0 < x"
+  shows "\<forall>(y::real). \<exists>(n::nat). y < real n * x"
+proof
+  fix y
+  have x_not_zero: "x \<noteq> 0" using x_greater_zero by simp
+  obtain n where "y * inverse x < real (n::nat)"
+    using reals_Archimedean2 ..
+  hence "y * inverse x * x < real n * x"
+    using x_greater_zero by (simp add: mult_strict_right_mono)
+  hence "x * inverse x * y < x * real n"
+    by (simp add: mult_commute ring_eq_simps)
+  hence "y < real (n::nat) * x"
+    using x_not_zero by (simp add: real_mult_inverse_left ring_eq_simps)
+  thus "\<exists>(n::nat). y < real n * x" ..
+qed
 
 lemma reals_Archimedean6:
      "0 \<le> r ==> \<exists>(n::nat). real (n - 1) \<le> r & r < real (n)"
@@ -217,7 +410,7 @@ apply (drule_tac x = x' in spec, simp)
 done
 
 lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < real (Suc n)"
-by (drule reals_Archimedean6, auto)
+  by (drule reals_Archimedean6) auto
 
 lemma reals_Archimedean_6b_int:
      "0 \<le> r ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
@@ -241,7 +434,6 @@ ML
 val real_sum_of_halves = thm "real_sum_of_halves";
 val posreal_complete = thm "posreal_complete";
 val real_isLub_unique = thm "real_isLub_unique";
-val real_order_restrict = thm "real_order_restrict";
 val posreals_complete = thm "posreals_complete";
 val reals_complete = thm "reals_complete";
 val reals_Archimedean = thm "reals_Archimedean";
@@ -378,7 +570,7 @@ lemma real_of_int_floor_cancel [simp]:
 apply (simp add: floor_def Least_def)
 apply (insert real_lb_ub_int [of x], erule exE)
 apply (rule theI2)
-apply (auto intro: lemma_floor) 
+apply (auto intro: lemma_floor)
 done
 
 lemma floor_eq: "[| real n < x; x < real n + 1 |] ==> floor x = n"
@@ -446,7 +638,7 @@ lemma le_floor: "real a <= x ==> a <= floor x"
   apply arith
   apply (subst real_of_int_less_iff [THEN sym])
   apply simp
-  apply (insert real_of_int_floor_add_one_gt [of x]) 
+  apply (insert real_of_int_floor_add_one_gt [of x])
   apply arith
 done
 
@@ -464,7 +656,7 @@ lemma le_floor_eq: "(a <= floor x) = (real a <= x)"
   apply (erule le_floor)
 done
 
-lemma le_floor_eq_number_of [simp]: 
+lemma le_floor_eq_number_of [simp]:
     "(number_of n <= floor x) = (number_of n <= x)"
 by (simp add: le_floor_eq)
 
@@ -480,7 +672,7 @@ lemma floor_less_eq: "(floor x < a) = (x < real a)"
   apply (rule le_floor_eq)
 done
 
-lemma floor_less_eq_number_of [simp]: 
+lemma floor_less_eq_number_of [simp]:
     "(floor x < number_of n) = (x < number_of n)"
 by (simp add: floor_less_eq)
 
@@ -495,7 +687,7 @@ lemma less_floor_eq: "(a < floor x) = (real a + 1 <= x)"
   apply auto
 done
 
-lemma less_floor_eq_number_of [simp]: 
+lemma less_floor_eq_number_of [simp]:
     "(number_of n < floor x) = (number_of n + 1 <= x)"
 by (simp add: less_floor_eq)
 
@@ -510,7 +702,7 @@ lemma floor_le_eq: "(floor x <= a) = (x < real a + 1)"
   apply auto
 done
 
-lemma floor_le_eq_number_of [simp]: 
+lemma floor_le_eq_number_of [simp]:
     "(floor x <= number_of n) = (x < number_of n + 1)"
 by (simp add: floor_le_eq)
 
@@ -535,16 +727,16 @@ lemma floor_add [simp]: "floor (x + real a) = floor x + a"
   apply (rule real_of_int_floor_add_one_gt)
   apply (subgoal_tac "floor (x + real a) < floor x + a + 1")
   apply arith
-  apply (subst real_of_int_less_iff [THEN sym])  
+  apply (subst real_of_int_less_iff [THEN sym])
   apply simp
-  apply (subgoal_tac "real(floor(x + real a)) <= x + real a") 
+  apply (subgoal_tac "real(floor(x + real a)) <= x + real a")
   apply (subgoal_tac "x < real(floor x) + 1")
   apply arith
   apply (rule real_of_int_floor_add_one_gt)
   apply (rule real_of_int_floor_le)
 done
 
-lemma floor_add_number_of [simp]: 
+lemma floor_add_number_of [simp]:
     "floor (x + number_of n) = floor x + number_of n"
   apply (subst floor_add [THEN sym])
   apply simp
@@ -561,7 +753,7 @@ lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
   apply (rule floor_add)
 done
 
-lemma floor_subtract_number_of [simp]: "floor (x - number_of n) = 
+lemma floor_subtract_number_of [simp]: "floor (x - number_of n) =
     floor x - number_of n"
   apply (subst floor_subtract [THEN sym])
   apply simp
@@ -661,14 +853,14 @@ lemma ceiling_le_eq: "(ceiling x <= a) = (x <= real a)"
   apply (erule ceiling_le)
 done
 
-lemma ceiling_le_eq_number_of [simp]: 
+lemma ceiling_le_eq_number_of [simp]:
     "(ceiling x <= number_of n) = (x <= number_of n)"
 by (simp add: ceiling_le_eq)
 
-lemma ceiling_le_zero_eq [simp]: "(ceiling x <= 0) = (x <= 0)" 
+lemma ceiling_le_zero_eq [simp]: "(ceiling x <= 0) = (x <= 0)"
 by (simp add: ceiling_le_eq)
 
-lemma ceiling_le_eq_one [simp]: "(ceiling x <= 1) = (x <= 1)" 
+lemma ceiling_le_eq_one [simp]: "(ceiling x <= 1) = (x <= 1)"
 by (simp add: ceiling_le_eq)
 
 lemma less_ceiling_eq: "(a < ceiling x) = (real a < x)"
@@ -677,7 +869,7 @@ lemma less_ceiling_eq: "(a < ceiling x) = (real a < x)"
   apply (rule ceiling_le_eq)
 done
 
-lemma less_ceiling_eq_number_of [simp]: 
+lemma less_ceiling_eq_number_of [simp]:
     "(number_of n < ceiling x) = (number_of n < x)"
 by (simp add: less_ceiling_eq)
 
@@ -692,7 +884,7 @@ lemma ceiling_less_eq: "(ceiling x < a) = (x <= real a - 1)"
   apply auto
 done
 
-lemma ceiling_less_eq_number_of [simp]: 
+lemma ceiling_less_eq_number_of [simp]:
     "(ceiling x < number_of n) = (x <= number_of n - 1)"
 by (simp add: ceiling_less_eq)
 
@@ -707,7 +899,7 @@ lemma le_ceiling_eq: "(a <= ceiling x) = (real a - 1 < x)"
   apply auto
 done
 
-lemma le_ceiling_eq_number_of [simp]: 
+lemma le_ceiling_eq_number_of [simp]:
     "(number_of n <= ceiling x) = (number_of n - 1 < x)"
 by (simp add: le_ceiling_eq)
 
@@ -724,7 +916,7 @@ lemma ceiling_add [simp]: "ceiling (x + real a) = ceiling x + a"
   apply simp
 done
 
-lemma ceiling_add_number_of [simp]: "ceiling (x + number_of n) = 
+lemma ceiling_add_number_of [simp]: "ceiling (x + number_of n) =
     ceiling x + number_of n"
   apply (subst ceiling_add [THEN sym])
   apply simp
@@ -741,7 +933,7 @@ lemma ceiling_subtract [simp]: "ceiling (x - real a) = ceiling x - a"
   apply (rule ceiling_add)
 done
 
-lemma ceiling_subtract_number_of [simp]: "ceiling (x - number_of n) = 
+lemma ceiling_subtract_number_of [simp]: "ceiling (x - number_of n) =
     ceiling x - number_of n"
   apply (subst ceiling_subtract [THEN sym])
   apply simp
@@ -790,7 +982,7 @@ lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
   apply (subst natfloor_def)+
   apply (subst nat_le_eq_zle)
   apply force
-  apply (erule floor_mono2) 
+  apply (erule floor_mono2)
   apply (subst natfloor_neg)
   apply simp
   apply simp
@@ -815,7 +1007,7 @@ lemma le_natfloor_eq: "0 <= x ==> (a <= natfloor x) = (real a <= x)"
   apply (erule le_natfloor)
 done
 
-lemma le_natfloor_eq_number_of [simp]: 
+lemma le_natfloor_eq_number_of [simp]:
     "~ neg((number_of n)::int) ==> 0 <= x ==>
       (number_of n <= natfloor x) = (number_of n <= x)"
   apply (subst le_natfloor_eq, assumption)
@@ -826,7 +1018,7 @@ lemma le_natfloor_eq_one [simp]: "(1 <= natfloor x) = (1 <= x)"
   apply (case_tac "0 <= x")
   apply (subst le_natfloor_eq, assumption, simp)
   apply (rule iffI)
-  apply (subgoal_tac "natfloor x <= natfloor 0") 
+  apply (subgoal_tac "natfloor x <= natfloor 0")
   apply simp
   apply (rule natfloor_mono)
   apply simp
@@ -869,8 +1061,8 @@ lemma natfloor_add [simp]: "0 <= x ==> natfloor (x + real a) = natfloor x + a"
   apply simp
 done
 
-lemma natfloor_add_number_of [simp]: 
-    "~neg ((number_of n)::int) ==> 0 <= x ==> 
+lemma natfloor_add_number_of [simp]:
+    "~neg ((number_of n)::int) ==> 0 <= x ==>
       natfloor (x + number_of n) = natfloor x + number_of n"
   apply (subst natfloor_add [THEN sym])
   apply simp_all
@@ -882,7 +1074,7 @@ lemma natfloor_add_one: "0 <= x ==> natfloor(x + 1) = natfloor x + 1"
   apply simp
 done
 
-lemma natfloor_subtract [simp]: "real a <= x ==> 
+lemma natfloor_subtract [simp]: "real a <= x ==>
     natfloor(x - real a) = natfloor x - a"
   apply (unfold natfloor_def)
   apply (subgoal_tac "real a = real (int a)")
@@ -962,7 +1154,7 @@ lemma natceiling_le_eq: "0 <= x ==> (natceiling x <= a) = (x <= real a)"
   apply (erule natceiling_le)
 done
 
-lemma natceiling_le_eq_number_of [simp]: 
+lemma natceiling_le_eq_number_of [simp]:
     "~ neg((number_of n)::int) ==> 0 <= x ==>
       (natceiling x <= number_of n) = (x <= number_of n)"
   apply (subst natceiling_le_eq, assumption)
@@ -996,7 +1188,7 @@ lemma natceiling_eq: "real n < x ==> x <= real n + 1 ==> natceiling x = n + 1"
   apply auto
 done
 
-lemma natceiling_add [simp]: "0 <= x ==> 
+lemma natceiling_add [simp]: "0 <= x ==>
     natceiling (x + real a) = natceiling x + a"
   apply (unfold natceiling_def)
   apply (subgoal_tac "real a = real (int a)")
@@ -1009,8 +1201,8 @@ lemma natceiling_add [simp]: "0 <= x ==>
   apply simp_all
 done
 
-lemma natceiling_add_number_of [simp]: 
-    "~ neg ((number_of n)::int) ==> 0 <= x ==> 
+lemma natceiling_add_number_of [simp]:
+    "~ neg ((number_of n)::int) ==> 0 <= x ==>
       natceiling (x + number_of n) = natceiling x + number_of n"
   apply (subst natceiling_add [THEN sym])
   apply simp_all
@@ -1022,7 +1214,7 @@ lemma natceiling_add_one: "0 <= x ==> natceiling(x + 1) = natceiling x + 1"
   apply simp
 done
 
-lemma natceiling_subtract [simp]: "real a <= x ==> 
+lemma natceiling_subtract [simp]: "real a <= x ==>
     natceiling(x - real a) = natceiling x - a"
   apply (unfold natceiling_def)
   apply (subgoal_tac "real a = real (int a)")
@@ -1037,31 +1229,31 @@ lemma natceiling_subtract [simp]: "real a <= x ==>
   apply simp_all
 done
 
-lemma natfloor_div_nat: "1 <= x ==> 0 < y ==> 
+lemma natfloor_div_nat: "1 <= x ==> 0 < y ==>
   natfloor (x / real y) = natfloor x div y"
 proof -
   assume "1 <= (x::real)" and "0 < (y::nat)"
   have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
     by simp
-  then have a: "real(natfloor x) = real ((natfloor x) div y) * real y + 
+  then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +
     real((natfloor x) mod y)"
     by (simp only: real_of_nat_add [THEN sym] real_of_nat_mult [THEN sym])
   have "x = real(natfloor x) + (x - real(natfloor x))"
     by simp
-  then have "x = real ((natfloor x) div y) * real y + 
+  then have "x = real ((natfloor x) div y) * real y +
       real((natfloor x) mod y) + (x - real(natfloor x))"
     by (simp add: a)
   then have "x / real y = ... / real y"
     by simp
-  also have "... = real((natfloor x) div y) + real((natfloor x) mod y) / 
+  also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y"
     by (auto simp add: ring_distrib ring_eq_simps add_divide_distrib
       diff_divide_distrib prems)
   finally have "natfloor (x / real y) = natfloor(...)" by simp
-  also have "... = natfloor(real((natfloor x) mod y) / 
+  also have "... = natfloor(real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y + real((natfloor x) div y))"
     by (simp add: add_ac)
-  also have "... = natfloor(real((natfloor x) mod y) / 
+  also have "... = natfloor(real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y) + (natfloor x) div y"
     apply (rule natfloor_add)
     apply (rule add_nonneg_nonneg)
@@ -1073,7 +1265,7 @@ proof -
     apply (rule real_natfloor_le)
     apply (insert prems, auto)
     done
-  also have "natfloor(real((natfloor x) mod y) / 
+  also have "natfloor(real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y) = 0"
     apply (rule natfloor_eq)
     apply simp
@@ -1091,7 +1283,7 @@ proof -
     apply (erule ssubst)
     apply (rule add_le_less_mono)
     apply (simp add: compare_rls)
-    apply (subgoal_tac "real(natfloor x mod y) + 1 = 
+    apply (subgoal_tac "real(natfloor x mod y) + 1 =
       real(natfloor x mod y + 1)")
     apply (erule ssubst)
     apply (subst real_of_nat_le_iff)
@@ -1158,6 +1350,5 @@ val ceiling_number_of_eq = thm "ceiling_number_of_eq";
 val real_of_int_ceiling_diff_one_le = thm "real_of_int_ceiling_diff_one_le";
 val real_of_int_ceiling_le_add_one = thm "real_of_int_ceiling_le_add_one";
 *}
-
 
 end
