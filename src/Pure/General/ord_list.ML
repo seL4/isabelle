@@ -84,10 +84,7 @@ fun union ord list1 list2 =
             LESS => x :: handle_same (unio xs) lst2
           | EQUAL => y :: unio xs ys
           | GREATER => y :: unio lst1 ys);
-  in
-    if subset ord (list1, list2) then list2
-    else handle_same (unio list1) list2
-  end;
+  in handle_same (unio list1) list2 end;
 
 (*intersection: filter second list for elements present in first list*)
 nonfix inter;
