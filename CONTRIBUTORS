@@ -1,7 +1,13 @@
 
+* July 2005: Jeremy Avigad, Carnegie Mellon University
+  Various improvements of the HOL and HOL-Complex library.
+
 * July 2005: Florian Haftmann, TUM
   Some combinators for linear functional transformations in ML:
   |->  #->  fold_map  etc.
+
+* July 2005: Florian Zuleger, Johannes Hoelzl, and Simon Funke, TUM
+  Some structured proofs about completeness of real numbers.
 
 * May 2005: Rafal Kolanski, NICTA
   Substantially improved retrieval of facts from theory/proof context.
