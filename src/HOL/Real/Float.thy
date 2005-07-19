@@ -3,7 +3,7 @@
     Author: Steven Obua
 *)
 
-theory Float = Real:
+theory Float imports Real begin
 
 constdefs  
   pow2 :: "int \<Rightarrow> real"

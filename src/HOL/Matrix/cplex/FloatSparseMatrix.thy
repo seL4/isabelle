@@ -3,6 +3,6 @@
     Author:     Steven Obua
 *)
 
-theory FloatSparseMatrix = Float + SparseMatrix:
+theory FloatSparseMatrix imports Float SparseMatrix begin
 
 end

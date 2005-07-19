@@ -5,7 +5,7 @@
 
 theory Cplex 
 imports FloatSparseMatrix
-files "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML" "fspmlp.ML"
+uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML" "fspmlp.ML"
 begin
 
 end
