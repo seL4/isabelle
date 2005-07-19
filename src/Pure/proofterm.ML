@@ -73,7 +73,8 @@ sig
   val freezeT : term -> proof -> proof
   val rotate_proof : term list -> term -> int -> proof -> proof
   val permute_prems_prf : term list -> int -> int -> proof -> proof
-  val instantiate : (typ * typ) list -> (term * term) list -> proof -> proof
+  val instantiate : ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+    -> proof -> proof
   val lift_proof : term -> int -> term -> proof -> proof
   val assumption_proof : term list -> term -> int -> proof -> proof
   val bicompose_proof : term list -> term list -> term list -> term option ->
@@ -597,9 +598,9 @@ fun permute_prems_prf prems j k prf =
 
 (***** instantiation *****)
 
-fun instantiate vTs tpairs prf =
-  map_proof_terms (subst_atomic (map (apsnd remove_types) tpairs) o
-    map_term_types (typ_subst_atomic vTs)) (typ_subst_atomic vTs) prf;
+fun instantiate (instT, inst) prf =
+  map_proof_terms (Term.instantiate (instT, map (apsnd remove_types) inst))
+    (Term.instantiateT instT) prf;
 
 
 (***** lifting *****)
@@ -611,7 +612,7 @@ fun lift_proof Bi inc prop prf =
     fun lift'' Us Ts t = strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
 
     fun lift' Us Ts (Abst (s, T, prf)) =
-          (Abst (s, apsome' (same (incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
+          (Abst (s, apsome' (same (Logic.incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
            handle SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
       | lift' Us Ts (AbsP (s, t, prf)) =
           (AbsP (s, apsome' (same (lift'' Us Ts)) t, lifth' Us Ts prf)
@@ -621,9 +622,9 @@ fun lift_proof Bi inc prop prf =
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
           handle SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PThm (s, prf, prop, Ts)) =
-          PThm (s, prf, prop, apsome' (same (map (incr_tvar inc))) Ts)
+          PThm (s, prf, prop, apsome' (same (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, apsome' (same (map (incr_tvar inc))) Ts)
+          PAxm (s, prop, apsome' (same (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ _ = raise SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
