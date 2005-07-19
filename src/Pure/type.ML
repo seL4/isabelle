@@ -304,10 +304,12 @@ fun typ_match tsig (tyenv, TU) =
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (Type (a, Ts), Type (b, Us)) subs =
           if a <> b then raise TYPE_MATCH
-          else fold match (Ts ~~ Us) subs
+          else matches (Ts, Us) subs
       | match (TFree x, TFree y) subs =
           if x = y then subs else raise TYPE_MATCH
-      | match _ _ = raise TYPE_MATCH;
+      | match _ _ = raise TYPE_MATCH
+    and matches (T :: Ts, U :: Us) subs = matches (Ts, Us) (match (T, U) subs)
+      | matches _ subs = subs;
   in match TU tyenv end;
 
 fun typ_instance tsig (T, U) =
@@ -331,11 +333,11 @@ fun occurs v tye =
   in occ end;
 
 (*chase variable assignments; if devar returns a type var then it must be unassigned*)
-fun devar (T as TVar v, tye) =
-      (case  lookup (tye, v) of
-        SOME U => devar (U, tye)
+fun devar tye (T as TVar v) =
+      (case lookup (tye, v) of
+        SOME U => devar tye U
       | NONE => T)
-  | devar (T, tye) = T;
+  | devar tye T = T;
 
 fun unify (tsig as TSig {classes = (_, classes), arities, ...}) (tyenv, maxidx) TU =
   let
@@ -345,22 +347,20 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) (tyenv, maxidx) 
     fun mg_domain a S =
       Sorts.mg_domain (classes, arities) a S handle Sorts.DOMAIN _ => raise TUNIFY;
 
-    fun meet ((_, []), tye) = tye
-      | meet ((TVar (xi, S'), S), tye) =
+    fun meet (_, []) tye = tye
+      | meet (TVar (xi, S'), S) tye =
           if Sorts.sort_le classes (S', S) then tye
           else Vartab.update_new ((xi, (S',
             gen_tyvar (Sorts.inter_sort classes (S', S)))), tye)
-      | meet ((TFree (_, S'), S), tye) =
+      | meet (TFree (_, S'), S) tye =
           if Sorts.sort_le classes (S', S) then tye
           else raise TUNIFY
-      | meet ((Type (a, Ts), S), tye) = meets ((Ts, mg_domain a S), tye)
-    and meets (([], []), tye) = tye
-      | meets ((T :: Ts, S :: Ss), tye) =
-          meets ((Ts, Ss), meet ((devar (T, tye), S), tye))
-      | meets _ = sys_error "meets";
+      | meet (Type (a, Ts), S) tye = meets (Ts, mg_domain a S) tye
+    and meets (T :: Ts, S :: Ss) tye = meets (Ts, Ss) (meet (devar tye T, S) tye)
+      | meets _ tye = tye;
 
-    fun unif ((ty1, ty2), tye) =
-      (case (devar (ty1, tye), devar (ty2, tye)) of
+    fun unif (ty1, ty2) tye =
+      (case (devar tye ty1, devar tye ty2) of
         (T as TVar (v, S1), U as TVar (w, S2)) =>
           if eq_ix (v, w) then
             if S1 = S2 then tye else tvar_clash v S1 S2
@@ -374,15 +374,17 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) (tyenv, maxidx) 
             end
       | (TVar (v, S), T) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), Vartab.update_new ((v, (S, T)), tye))
+          else meet (T, S) (Vartab.update_new ((v, (S, T)), tye))
       | (T, TVar (v, S)) =>
           if occurs v tye T then raise TUNIFY
-          else meet ((T, S), Vartab.update_new ((v, (S, T)), tye))
+          else meet (T, S) (Vartab.update_new ((v, (S, T)), tye))
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
-          else foldr unif tye (Ts ~~ Us)
-      | (T, U) => if T = U then tye else raise TUNIFY);
-  in (unif (TU, tyenv), ! tyvar_count) end;
+          else unifs (Ts, Us) tye
+      | (T, U) => if T = U then tye else raise TUNIFY)
+    and unifs (T :: Ts, U :: Us) tye = unifs (Ts, Us) (unif (T, U) tye)
+      | unifs _ tye = tye;
+  in (unif TU tyenv, ! tyvar_count) end;
 
 (*purely structural unification *)
 fun raw_unify (ty1, ty2) =
@@ -391,7 +393,7 @@ fun raw_unify (ty1, ty2) =
 
 (*check whether two types are equal with respect to a type environment*)
 fun eq_type tye (T, T') =
-  (case (devar (T, tye), devar (T', tye)) of
+  (case (devar tye T, devar tye T') of
      (Type (s, Ts), Type (s', Ts')) =>
        s = s' andalso ListPair.all (eq_type tye) (Ts, Ts')
    | (U, U') => U = U');
