@@ -26,7 +26,6 @@ sig
   val sort_less: classes -> sort * sort -> bool
   val sort_le: classes -> sort * sort -> bool
   val sorts_le: classes -> sort list * sort list -> bool
-  val inter_class: classes -> class * sort -> sort
   val inter_sort: classes -> sort * sort -> sort
   val norm_sort: classes -> sort -> sort
   val certify_class: classes -> class -> class
@@ -125,21 +124,12 @@ fun sort_less classes (S1, S2) =
 
 (* normal forms of sorts *)
 
-local
-
 fun minimal_class classes S c =
   not (exists (fn c' => class_less classes (c', c)) S);
 
-val distinct_class = gen_distinct (op = : class * class -> bool);
-
-in
-
 fun norm_sort _ [] = []
   | norm_sort _ (S as [_]) = S
-  | norm_sort classes S =
-      sort_strings (distinct_class (List.filter (minimal_class classes S) S));
-
-end;
+  | norm_sort classes S = unique_strings (sort_strings (filter (minimal_class classes S) S));
 
 
 (* certify *)
@@ -155,7 +145,7 @@ fun certify_sort classes = norm_sort classes o map (certify_class classes);
 (** intersection **)
 
 (*intersect class with sort (preserves minimality)*)
-fun inter_class classes (c, S) =
+fun inter_class classes c S =
   let
     fun intr [] = [c]
       | intr (S' as c' :: c's) =
@@ -165,7 +155,8 @@ fun inter_class classes (c, S) =
   in intr S end;
 
 (*instersect sorts (preserves minimality)*)
-fun inter_sort classes = sort_strings o Library.foldr (inter_class classes);
+fun inter_sort classes (S1, S2) =
+  sort_strings (fold (inter_class classes) S1 S2);
 
 
 
@@ -175,15 +166,18 @@ fun inter_sort classes = sort_strings o Library.foldr (inter_class classes);
 
 exception DOMAIN of string * class;
 
-fun mg_domain _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
-  | mg_domain (classes, arities) a S =
-      let
-        fun mg_dom c =
-          (case Library.assoc_string (Symtab.lookup_multi (arities, a), c) of
-            NONE => raise DOMAIN (a, c)
-          | SOME Ss => Ss);
-        val doms = map mg_dom S;
-      in Library.foldl (ListPair.map (inter_sort classes)) (hd doms, tl doms) end;
+fun mg_domain (classes, arities) a S =
+  let
+    fun dom c =
+      (case Library.assoc_string (Symtab.lookup_multi (arities, a), c) of
+        NONE => raise DOMAIN (a, c)
+      | SOME Ss => Ss);
+    fun dom_inter c Ss = ListPair.map (inter_sort classes) (dom c, Ss);
+  in
+    (case S of
+      [] => sys_error "mg_domain"  (*don't know number of args!*)
+    | c :: cs => fold dom_inter cs (dom c))
+  end;
 
 
 (* of_sort *)
@@ -251,7 +245,7 @@ in
 
 fun witness_sorts (classes, arities) log_types hyps sorts =
   let
-    (*double check result of witness search*)
+    (*double check result of witness construction*)
     fun check_result NONE = NONE
       | check_result (SOME (T, S)) =
           if of_sort (classes, arities) (T, S) then SOME (T, S)
