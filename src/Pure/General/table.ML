@@ -31,6 +31,7 @@ sig
   val max_key: 'a table -> key option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
+  val defined: 'a table -> key -> bool
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
   val update_new: (key * 'a) * 'a table -> 'a table                    (*exception DUP*)
@@ -144,6 +145,8 @@ fun lookup (Empty, _) = NONE
             LESS => lookup (mid, key)
           | EQUAL => SOME x2
           | GREATER => lookup (right, key)));
+
+fun defined tab key = is_some (lookup (tab, key));
 
 
 (* updates *)
