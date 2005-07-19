@@ -209,6 +209,7 @@ sig
   val findrep: ''a list -> ''a list
   val gen_duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ''a list -> ''a list
+  val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
   (*association lists*)
   val assoc: (''a * 'b) list * ''a -> 'b option
@@ -638,7 +639,7 @@ val mapfilter = List.mapPartial;
 exception UnequalLengths;
 
 fun map2 _ ([], []) = []
-  | map2 f (x :: xs, y :: ys) = (f (x, y) :: map2 f (xs, ys))
+  | map2 f (x :: xs, y :: ys) = f (x, y) :: map2 f (xs, ys)
   | map2 _ _ = raise UnequalLengths;
 
 fun exists2 _ ([], []) = false
@@ -983,7 +984,6 @@ fun gen_distinct eq lst =
 
 fun distinct l = gen_distinct (op =) l;
 
-
 (*returns the tail beginning with the first repeated element, or []*)
 fun findrep [] = []
   | findrep (x :: xs) = if x mem xs then x :: xs else findrep xs;
@@ -1005,6 +1005,12 @@ fun gen_duplicates eq lst =
   end;
 
 fun duplicates l = gen_duplicates (op =) l;
+
+fun has_duplicates eq =
+  let
+    fun dups [] = false
+      | dups (x :: xs) = member eq xs x orelse dups xs;
+  in dups end;
 
 
 
@@ -1154,14 +1160,12 @@ fun list_ord elem_ord (xs, ys) =
 (*quicksort (stable, i.e. does not reorder equal elements)*)
 fun sort ord =
   let
-    fun qsort xs =
-      let val len = length xs in
-        if len <= 1 then xs
-        else
-          let val (lts, eqs, gts) = part (nth_elem (len div 2, xs)) xs in
-            qsort lts @ eqs @ qsort gts
-          end
-      end
+    fun qsort [] = []
+      | qsort (xs as [_]) = xs
+      | qsort (xs as [x, y]) = if ord (x, y) = GREATER then [y, x] else xs
+      | qsort xs =
+          let val (lts, eqs, gts) = part (nth_elem (length xs div 2, xs)) xs
+          in qsort lts @ eqs @ qsort gts end
     and part _ [] = ([], [], [])
       | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
     and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
