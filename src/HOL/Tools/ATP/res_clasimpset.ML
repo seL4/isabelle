@@ -185,7 +185,6 @@ fun write_out_clasimp filename thy goal =
               ReduceAxiomsN.relevant_filter (!relevant) goal 
                 (ResAxioms.claset_rules_of_thy thy);
 	val named_claset = List.filter has_name_pair claset_rules;
-	val claset_names = map remove_spaces_pair (named_claset)
 	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
 
 	val simpset_rules =

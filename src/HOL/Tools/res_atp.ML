@@ -71,11 +71,14 @@ val dummy_tac = all_tac;
 
 (**** for Isabelle/ML interface  ****)
 
-fun is_proof_char ch =
-  (33 <= ord ch andalso ord ch <= 126 andalso ord ch <> 63)
-  orelse ch = " ";
+(*Remove unwanted characters such as ? and newline from the textural 
+  representation of a theorem (surely they don't need to be produced in 
+  the first place?) *)
 
-val proofstring = List.filter is_proof_char o explode;
+fun is_proof_char ch = (#" " <= ch andalso ch <= #"~" andalso ch <> #"?");
+
+val proofstring =
+    String.translate (fn c => if is_proof_char c then str c else "");
 
 
 (*
@@ -174,41 +177,31 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
     val clasimpfile = (File.platform_path clasimp_file)
 
     fun make_atp_list [] sign n = []
-      | make_atp_list ((sko_thm, sg_term)::xs) sign  n =
+      | make_atp_list ((sko_thm, sg_term)::xs) sign n =
           let
-            val skothmstr = Meson.concat_with_and (map string_of_thm sko_thm)
-            val thmproofstr = proofstring ( skothmstr)
-            val no_returns = filter_out (equal "\n") thmproofstr
-            val thmstr = implode no_returns
-            val _ = warning ("thmstring in make_atp_lists is: "^thmstr)
+            val thmstr = proofstring (Meson.concat_with_and (map string_of_thm sko_thm))
+            val _ = warning ("thmstring in make_atp_lists is " ^ thmstr)
 
-            val sgstr = Sign.string_of_term sign sg_term
-            val goalproofstring = proofstring sgstr
-            val no_returns = filter_out (equal "\n") goalproofstring
-            val goalstring = implode no_returns
-            val _ = warning ("goalstring in make_atp_lists is: "^goalstring)
+            val goalstring = proofstring (Sign.string_of_term sign sg_term)
+            val _ = warning ("goalstring in make_atp_lists is " ^ goalstring)
 
-            val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
-
-            val _ = (warning ("prob file in cal_res_tac is: "^probfile))
+            val probfile = File.platform_path prob_file ^ "_" ^ (string_of_int n)
+            val _ = warning ("prob file in call_resolve_tac is " ^ probfile)
           in
             if !SpassComm.spass
             then
-              let val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
-              in  (*We've checked that SPASS is there for ATP/spassshell to run.*)
-                if !full_spass
-                then (*Allow SPASS to run in Auto mode, using all its inference rules*)
-                  ([("spass", thmstr, goalstring (*,spass_home*),
-
-                     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell"(*( getenv "SPASS_HOME")^"/SPASS"*),
-                     "-DocProof%-TimeLimit=60%-SOS",
-                     
-                     clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
-                else (*Restrict SPASS to a small set of rules that we can parse*)
-                  ([("spass", thmstr, goalstring (*,spass_home*),
-                     getenv "ISABELLE_HOME" ^"/src/HOL/Tools/ATP/spassshell"(* (getenv "SPASS_HOME")^"/SPASS"*),
-                     ("-" ^ space_implode "%-" (!custom_spass)),
-                     clasimpfile, axfile, hypsfile, probfile)]@(make_atp_list xs sign (n+1)))
+              let val optionline = (*Custom SPASS options, or default?*)
+		      if !full_spass (*Auto mode: all SPASS inference rules*)
+                      then "-DocProof%-TimeLimit=60%-SOS"
+                      else "-" ^ space_implode "%-" (!custom_spass)
+                  val _ = warning ("SPASS option string is " ^ optionline)
+                  val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
+                    (*We've checked that SPASS is there for ATP/spassshell to run.*)
+              in 
+                  ([("spass", thmstr, goalstring,
+                     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",
+                     optionline, clasimpfile, axfile, hypsfile, probfile)] @ 
+                  (make_atp_list xs sign (n+1)))
               end
             else
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
@@ -219,8 +212,7 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
               end
           end
 
-    val thms_goals = ListPair.zip( thms, sg_terms)
-    val atp_list = make_atp_list  thms_goals sign 1
+    val atp_list = make_atp_list (ListPair.zip (thms, sg_terms)) sign 1
   in
     Watcher.callResProvers(childout,atp_list);
     warning "Sent commands to watcher!";
@@ -356,7 +348,7 @@ fun get_thms_ss [] = []
         val ax_file = File.platform_path axiom_file
         val out = TextIO.openOut ax_file
     in
-        (ResLib.writeln_strs out clauses_strs; (warning ("axiom file is: "^ax_file));TextIO.closeOut out)
+        (ResLib.writeln_strs out clauses_strs; (warning ("axiom file is "^ax_file));TextIO.closeOut out)
     end;
 *)
 

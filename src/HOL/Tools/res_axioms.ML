@@ -16,11 +16,6 @@ signature RES_AXIOMS =
   val meta_cnf_axiom : thm -> thm list
   val cnf_rule : thm -> thm list
   val cnf_rules : (string*thm) list -> thm list -> thm list list * thm list
-
-  val cnf_classical_rules_thy : theory -> thm list list * thm list
- 
-  val cnf_simpset_rules_thy : theory -> thm list list * thm list
- 
   val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
@@ -378,14 +373,6 @@ fun cnf_rules [] err_list = ([],err_list)
       let val (ts,es) = cnf_rules thms err_list
       in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;
 
-(* CNF all rules from a given theory's classical reasoner *)
-fun cnf_classical_rules_thy thy = 
-    cnf_rules (claset_rules_of_thy thy) [];
-
-(* CNF all simplifier rules from a given theory's simpset *)
-fun cnf_simpset_rules_thy thy =
-    cnf_rules (simpset_rules_of_thy thy) [];
-
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
@@ -395,18 +382,20 @@ fun clausify_axiom_pairs (thm_name,thm) =
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
 	fun make_axiom_clauses _ [] []= []
-	  | make_axiom_clauses i (cls::clss) (cls'::clss')= ((ResClause.make_axiom_clause cls (thm_name,i)),cls') :: make_axiom_clauses (i+1) clss clss'
+	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
+	      (ResClause.make_axiom_clause cls (thm_name,i), cls') :: 
+	      make_axiom_clauses (i+1) clss clss'
     in
 	make_axiom_clauses 0 isa_clauses' isa_clauses		
     end;
 
 fun clausify_rules_pairs [] err_list = ([],err_list)
   | clausify_rules_pairs ((name,thm)::thms) err_list =
-    let val (ts,es) = clausify_rules_pairs thms err_list
-    in
-	((clausify_axiom_pairs (name,thm))::ts,es) handle  _ => (ts,(thm::es))
-    end;
-(* classical rules *)
+      let val (ts,es) = clausify_rules_pairs thms err_list
+      in
+	  ((clausify_axiom_pairs (name,thm))::ts, es) 
+	  handle  _ => (ts, (thm::es))
+      end;
 
 
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
