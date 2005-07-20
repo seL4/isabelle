@@ -62,6 +62,20 @@ fun pretty_criterion ctxt (b, c) =
 
 (** search criterion filters **)
 
+(*generated filters are to be of the form
+  input: (PureThy.thmref * Thm.thm)
+  output: (p::int, s::int) option, where
+    NONE indicates no match
+    p is the primary sorting criterion 
+      (eg. number of assumptions in the theorem)
+    s is the secondary sorting criterion
+      (eg. size of the substitution for intro, elim and dest)
+  when applying a set of filters to a thm, fold results in:
+    (biggest p, sum of all s)
+  currently p and s only matter for intro, elim, dest and simp filters, 
+  otherwise the default ordering ("by package") is used.
+*)
+
 
 (* matching theorems *)
 
@@ -74,12 +88,21 @@ fun is_matching_thm (extract_thms, extract_term) ctxt po obj thm =
 
     fun matches pat =
       is_nontrivial pat andalso
-      Pattern.matches tsig (if po then (pat,obj) else (obj,pat))
-      handle Pattern.MATCH => false;
+      Pattern.matches tsig (if po then (pat,obj) else (obj,pat));
 
-    val match_thm = matches o extract_term o Thm.prop_of
+    fun substsize pat =
+      let 
+        val (_,subst) = Pattern.match tsig (if po then (pat,obj) else (obj,pat))
+      in Vartab.foldl (op + o apsnd (size_of_term o snd o snd)) (0, subst)
+      end;
+
+    fun bestmatch [] = NONE
+     |  bestmatch (x :: xs) = SOME (nprems_of thm, foldl Int.min x xs);
+
+    val match_thm = matches o extract_term o Thm.prop_of;
   in
-    List.exists match_thm (extract_thms thm)
+    map (substsize o extract_term o Thm.prop_of) 
+        (List.filter match_thm (extract_thms thm)) |> bestmatch
   end;
 
 
@@ -93,7 +116,9 @@ fun is_substring pat str =
 
 (*filter that just looks for a string in the name,
   substring match only (no regexps are performed)*)
-fun filter_name str_pat (thmref, _) = is_substring str_pat (PureThy.name_of_thmref thmref);
+fun filter_name str_pat (thmref, _) = 
+  if is_substring str_pat (PureThy.name_of_thmref thmref) 
+  then SOME (0,0) else NONE;
 
 
 (* filter intro/elim/dest rules *)
@@ -120,11 +145,19 @@ fun filter_elim_dest check_thm ctxt goal (_,thm) =
      (fn thm => if Thm.no_prems thm then [] else [thm],
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
+
+    fun try_subst prem = is_matching_thm extract_elim ctxt true prem thm;
+    
+    (*keep successful substitutions*)
+    val ss = prems |> List.map try_subst 
+             |> List.filter isSome 
+             |> List.map (#2 o valOf);
   in
-    prems |>
-    List.exists (fn prem =>
-      is_matching_thm extract_elim ctxt true prem thm
-      andalso (check_thm ctxt) thm)
+    (*if possible, keep best substitution (one with smallest size)*)
+    (*elim and dest rules always have assumptions, so an elim with one 
+      assumption is as good as an intro rule with none*)
+    if check_thm ctxt thm andalso not (null ss) 
+    then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
   end;
 
 in
@@ -157,8 +190,8 @@ fun filter_simp ctxt t (_,thm) =
 
 fun filter_pattern ctxt pat (_, thm) =
   let val tsig = Sign.tsig_of (ProofContext.sign_of ctxt)
-  in Pattern.matches_subterm tsig (pat, Thm.prop_of thm) end;
-
+  in if Pattern.matches_subterm tsig (pat, Thm.prop_of thm) then SOME (0,0) 
+     else NONE end;
 
 (* interpret criteria as filters *)
 
@@ -177,12 +210,33 @@ fun filter_crit _ _ (Name name) = filter_name name
   | filter_crit ctxt _ (Simp pat) = filter_simp ctxt pat
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
+fun opt_not x = if isSome x then NONE else SOME (0,0);
+
+fun opt_add (SOME (a,x), SOME (b,y)) = SOME ((Int.max (a,b)), (x + y))
+ |  opt_add _ = NONE;
+
 in
 
 fun filter_criterion ctxt opt_goal (b, c) =
-  (if b then I else not) o filter_crit ctxt opt_goal c;
+  (if b then I else opt_not) o filter_crit ctxt opt_goal c;
 
-fun all_filters filters = List.filter (fn x => List.all (fn f => f x) filters);
+fun all_filters filters thms =
+  let
+    fun eval_filters filters thm =
+      map (fn f => f thm) filters |> List.foldl opt_add (SOME (0,0));
+
+    (*filters return: (number of assumptions, substitution size) option, so
+      sort (desc. in both cases) according to whether a theorem has assumptions,
+      then by the substitution size*)
+    fun thm_ord (((p0,s0),_),((p1,s1),_)) =
+      prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) 
+               int_ord ((p1,s1),(p0,s0));
+
+    val processed = List.map (fn t => (eval_filters filters t, t)) thms;
+    val filtered = List.filter (isSome o #1) processed;
+  in
+    filtered |> List.map (apfst valOf) |> sort thm_ord |> map #2
+  end;
 
 end;
 
