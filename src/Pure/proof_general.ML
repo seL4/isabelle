@@ -176,6 +176,7 @@ local
       "pgip"
       ([("tag",    pgip_tag),
         ("class",  pgip_class),
+	("seq",    string_of_int (pgip_serial())),
         ("id",     !pgip_id)] @
        if_none (Option.map (single o (pair "destid")) (! pgip_refid)) [] @
        (* destid=refid since Isabelle only communicates back to sender,
