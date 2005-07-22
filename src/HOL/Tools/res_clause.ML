@@ -49,20 +49,17 @@ val eq_typ_wrapper = "typeinfo"; (* default string *)
 val schematic_var_prefix = "V_";
 val fixed_var_prefix = "v_";
 
-
-val tvar_prefix = "Typ_";
-val tfree_prefix = "typ_";
-
+val tvar_prefix = "T_";
+val tfree_prefix = "t_";
 
 val clause_prefix = "cls_"; 
 
 val arclause_prefix = "arcls_" 
 
-val const_prefix = "const_";
-val tconst_prefix = "tconst_"; 
+val const_prefix = "c_";
+val tconst_prefix = "tc_"; 
 
 val class_prefix = "class_"; 
-
 
 
 (**** some useful functions ****)
@@ -78,7 +75,10 @@ val const_trans_table =
 		   ("op Un", "union"),
 		   ("op Int", "inter")];
 
-
+val type_const_trans_table =
+      Symtab.make [("*", "t_prod"),
+	  	   ("+", "t_sum"),
+		   ("~=>", "t_map")];
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -103,26 +103,27 @@ val ascii_of = String.translate ascii_of_c;
 
 end;
 
+fun ascii_of_indexname (v,0) = ascii_of v
+  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i;
 
-(* another version of above functions that remove chars that may not be allowed by Vampire *)
-fun make_schematic_var v = schematic_var_prefix ^ (ascii_of v);
+fun make_schematic_var v = schematic_var_prefix ^ (ascii_of_indexname v);
 fun make_fixed_var x = fixed_var_prefix ^ (ascii_of x);
 
-fun make_schematic_type_var v = tvar_prefix ^ (ascii_of v);
+(*Type variables contain _H because the character ' translates to that.*)
+fun make_schematic_type_var v = tvar_prefix ^ (ascii_of_indexname v);
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of x);
 
-fun make_fixed_const c = const_prefix ^ (ascii_of c);
-fun make_fixed_type_const c = tconst_prefix ^ (ascii_of c);
-
-fun make_type_class clas = class_prefix ^ (ascii_of clas);
-
-
-
-
-fun lookup_const c =
+fun make_fixed_const c =
     case Symtab.lookup (const_trans_table,c) of
         SOME c' => c'
-      | NONE =>  make_fixed_const c;
+      | NONE =>  const_prefix ^ (ascii_of c);
+
+fun make_fixed_type_const c = 
+    case Symtab.lookup (type_const_trans_table,c) of
+        SOME c' => c'
+      | NONE =>  tconst_prefix ^ (ascii_of c);
+
+fun make_type_class clas = class_prefix ^ (ascii_of clas);
 
 
 
@@ -151,16 +152,11 @@ type indexname = Term.indexname;
 type tag = bool; 
 
 
-
-fun string_of_indexname (name,index) = name ^ "_" ^ (string_of_int index);
-
-
 val id_ref = ref 0;
+
 fun generate_id () = 
-     let val id = !id_ref
-     in
-	 (id_ref:=id + 1; id)
-     end;
+    let val id = !id_ref
+    in id_ref := id + 1; id end;
 
 
 
@@ -205,38 +201,33 @@ exception CLAUSE of string;
 (*** make clauses ***)
 
 
-fun make_clause (clause_id,axiom_name,kind,literals,types_sorts,tvar_type_literals,tfree_type_literals) =
-     Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind, literals = literals, types_sorts = types_sorts,tvar_type_literals = tvar_type_literals,tfree_type_literals = tfree_type_literals};
-
-
+fun make_clause (clause_id,axiom_name,kind,literals,
+                 types_sorts,tvar_type_literals,
+                 tfree_type_literals) =
+     Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind, 
+             literals = literals, types_sorts = types_sorts,
+             tvar_type_literals = tvar_type_literals,
+             tfree_type_literals = tfree_type_literals};
 
 fun type_of (Type (a, [])) = (make_fixed_type_const a,[]) 
   | type_of (Type (a, Ts)) = 
-    let val foltyps_ts = map type_of Ts
-        val (folTyps,ts) = ListPair.unzip foltyps_ts
-        val ts' = ResLib.flat_noDup ts
-    in    
-        (((make_fixed_type_const a) ^ (ResLib.list_to_string folTyps)),ts') 
-    end
+      let val foltyps_ts = map type_of Ts
+	  val (folTyps,ts) = ListPair.unzip foltyps_ts
+	  val ts' = ResLib.flat_noDup ts
+      in    
+	  (((make_fixed_type_const a) ^ (ResLib.list_to_string folTyps)), ts') 
+      end
   | type_of (TFree (a, s)) = (make_fixed_type_var a, [((FOLTFree a),s)])
-  | type_of (TVar (v, s))  = (make_schematic_type_var (string_of_indexname v), [((FOLTVar v),s)]);
+  | type_of (TVar (v, s))  = (make_schematic_type_var v, [((FOLTVar v),s)]);
 
-(* added: checkMeta: string -> bool *)
-(* Any meta vars like ?x should be treated as universal vars,although it is represented as "Free(...)" by Isabelle *)
-fun checkMeta s =
-    let val chars = explode s
-    in
-	["M", "E", "T", "A", "H", "Y", "P", "1"] prefix chars
-    end;
-
+(* Any variables created via the METAHYPS tactical should be treated as
+   universal vars, although it is represented as "Free(...)" by Isabelle *)
+val isMeta = String.isPrefix "METAHYP1_"
     
-fun pred_name_type (Const(c,T)) = (lookup_const c,type_of T)
+fun pred_name_type (Const(c,T)) = (make_fixed_const c,type_of T)
   | pred_name_type (Free(x,T))  = 
-    let val is_meta = checkMeta x
-    in
-	if is_meta then (raise CLAUSE("Predicate Not First Order")) else
-	(make_fixed_var x,type_of T)
-    end
+      if isMeta x then raise CLAUSE("Predicate Not First Order") 
+      else (make_fixed_var x, type_of T)
   | pred_name_type (Var(_,_))   = raise CLAUSE("Predicate Not First Order")
   | pred_name_type _          = raise CLAUSE("Predicate input unexpected");
 
@@ -252,7 +243,7 @@ fun eq_arg_type (Type("fun",[T,_])) =
 
 
 
-fun fun_name_type (Const(c,T)) = (lookup_const c,type_of T)
+fun fun_name_type (Const(c,T)) = (make_fixed_const c,type_of T)
   | fun_name_type (Free(x,T)) = (make_fixed_var x,type_of T)
   | fun_name_type _ = raise CLAUSE("Function Not First Order");
     
@@ -260,54 +251,52 @@ fun fun_name_type (Const(c,T)) = (lookup_const c,type_of T)
 (* FIX - add in funcs and stuff to this *)
 
 fun term_of (Var(ind_nm,T)) = 
-    let val (folType,ts) = type_of T
-    in
-	(UVar(make_schematic_var(string_of_indexname ind_nm),folType),ts)
-    end
+      let val (folType,ts) = type_of T
+      in
+	  (UVar(make_schematic_var ind_nm, folType), ts)
+      end
   | term_of (Free(x,T)) = 
-    let val is_meta = checkMeta x
-	val (folType,ts) = type_of T
-    in
-	if is_meta then (UVar(make_schematic_var x,folType),ts)
-	else
-            (Fun(make_fixed_var x,folType,[]),ts)
-    end
+      let val (folType,ts) = type_of T
+      in
+	  if isMeta x then (UVar(make_schematic_var(x,0), folType), ts)
+	  else (Fun(make_fixed_var x,folType,[]), ts)
+      end
   | term_of (Const(c,T)) =  (* impossible to be equality *)
-    let val (folType,ts) = type_of T
-     in
-        (Fun(lookup_const c,folType,[]),ts)
-    end    
+      let val (folType,ts) = type_of T
+      in
+	  (Fun(make_fixed_const c,folType,[]), ts)
+      end    
   | term_of (app as (t $ a)) = 
-    let val (f,args) = strip_comb app
-        fun term_of_aux () = 
-            let val (funName,(funType,ts1)) = fun_name_type f
-                 val (args',ts2) = ListPair.unzip (map term_of args)
-                 val ts3 = ResLib.flat_noDup (ts1::ts2)
-            in
-		(Fun(funName,funType,args'),ts3)
-            end
-	fun term_of_eq ((Const ("op =", typ)),args) =
-	    let val arg_typ = eq_arg_type typ
-		val (args',ts) = ListPair.unzip (map term_of args)
-		val equal_name = lookup_const ("op =")
-	    in
-		(Fun(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
-	    end
-    in
-        case f of Const ("op =", typ) => term_of_eq (f,args)
-	        | Const(_,_) => term_of_aux ()
-                | Free(s,_)  => if (checkMeta s) then (raise CLAUSE("Function Not First Order")) else term_of_aux ()
-                | _          => raise CLAUSE("Function Not First Order")
-    end
+      let val (f,args) = strip_comb app
+	  fun term_of_aux () = 
+	      let val (funName,(funType,ts1)) = fun_name_type f
+		   val (args',ts2) = ListPair.unzip (map term_of args)
+		   val ts3 = ResLib.flat_noDup (ts1::ts2)
+	      in
+		  (Fun(funName,funType,args'),ts3)
+	      end
+	  fun term_of_eq ((Const ("op =", typ)),args) =
+	      let val arg_typ = eq_arg_type typ
+		  val (args',ts) = ListPair.unzip (map term_of args)
+		  val equal_name = make_fixed_const ("op =")
+	      in
+		  (Fun(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
+	      end
+      in
+	  case f of Const ("op =", typ) => term_of_eq (f,args)
+		  | Const(_,_) => term_of_aux ()
+		  | Free(s,_)  => if isMeta s 
+		                  then raise CLAUSE("Function Not First Order") 
+		                  else term_of_aux()
+		  | _          => raise CLAUSE("Function Not First Order")
+      end
   | term_of _ = raise CLAUSE("Function Not First Order"); 
-
-
 
 
 fun pred_of_eq ((Const ("op =", typ)),args) =
     let val arg_typ = eq_arg_type typ 
 	val (args',ts) = ListPair.unzip (map term_of args)
-	val equal_name = lookup_const "op ="
+	val equal_name = make_fixed_const "op ="
     in
 	(Predicate(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
     end;
@@ -365,7 +354,7 @@ fun sorts_on_typs (_, []) = []
       sorts_on_typs (v,s)   (*Ignore sort "type"*)
   | sorts_on_typs ((FOLTVar(indx)), (s::ss)) =
       LTVar((make_type_class s) ^ 
-        "(" ^ (make_schematic_type_var(string_of_indexname indx)) ^ ")") :: 
+        "(" ^ (make_schematic_type_var indx) ^ ")") :: 
       (sorts_on_typs ((FOLTVar(indx)), ss))
   | sorts_on_typs ((FOLTFree(x)), (s::ss)) =
       LTFree((make_type_class s) ^ "(" ^ (make_fixed_type_var(x)) ^ ")") :: 
@@ -392,26 +381,11 @@ fun add_typs (Clause cls) = add_typs_aux (#types_sorts cls)
 
 (** make axiom clauses, hypothesis clauses and conjecture clauses. **)
 
-local 
-    fun replace_dot "." = "_"
-      | replace_dot c = c;
-
-in
-
-fun proper_ax_name ax_name = 
-    let val chars = explode ax_name
-    in
-	implode (map replace_dot chars)
-    end;
-end;
-
-fun make_axiom_clause_thm thm (name,number)=
+fun make_axiom_clause_thm thm (axname,cls_id)=
     let val (lits,types_sorts) = literals_of_thm thm
-	val cls_id = number
 	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-	val ax_name = proper_ax_name name
     in 
-	make_clause(cls_id,ax_name,Axiom,lits,types_sorts,tvar_lits,tfree_lits)
+	make_clause(cls_id,axname,Axiom,lits,types_sorts,tvar_lits,tfree_lits)
     end;
    
 fun make_hypothesis_clause_thm thm =
@@ -432,13 +406,11 @@ fun make_conjecture_clause_thm thm =
     end;
 
 
-fun make_axiom_clause term (name,number)=
+fun make_axiom_clause term (axname,cls_id) =
     let val (lits,types_sorts) = literals_of_term (term,([],[]))
-	val cls_id = number
 	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-	val ax_name = proper_ax_name name
     in 
-	make_clause(cls_id,ax_name,Axiom,lits,types_sorts,tvar_lits,tfree_lits)
+	make_clause(cls_id,axname,Axiom,lits,types_sorts,tvar_lits,tfree_lits)
     end;
 
 
@@ -548,8 +520,8 @@ fun classrelClauses_of (sub,sups) =
 (***** convert clauses to tptp format *****)
 
 
-fun string_of_clauseID (Clause cls) = clause_prefix ^ (string_of_int (#clause_id cls));
-
+fun string_of_clauseID (Clause cls) = 
+    clause_prefix ^ string_of_int (#clause_id cls);
 
 fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
 
@@ -570,7 +542,6 @@ fun string_of_equality (typ,terms) =
 	    "equal(" ^ tstr1 ^ "," ^ tstr2 ^ ")"
     end
 
-
 and
     string_of_term (UVar(x,_)) = x
   | string_of_term (Fun("equal",typ,terms)) = string_of_equality(typ,terms)
@@ -586,23 +557,25 @@ and
 
 (* Changed for typed equality *)
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
-fun string_of_predicate (Predicate("equal",typ,terms)) = string_of_equality(typ,terms)
+fun string_of_predicate (Predicate("equal",typ,terms)) = 
+       string_of_equality(typ,terms)
   | string_of_predicate (Predicate(name,_,[])) = name 
   | string_of_predicate (Predicate(name,typ,terms)) = 
-    let val terms_as_strings = map string_of_term terms
-    in
-        if (!keep_types) 
-        then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
-        else name ^ (ResLib.list_to_string terms_as_strings) 
-    end;
+      let val terms_as_strings = map string_of_term terms
+      in
+	  if (!keep_types) 
+	  then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
+	  else name ^ (ResLib.list_to_string terms_as_strings) 
+      end;
 
     
 
 
 fun tptp_literal (Literal(pol,pred,tag)) =
     let val pred_string = string_of_predicate pred
-	val tagged_pol = if (tag andalso !tagged) then (if pol then "+++" else "---")
-                         else (if pol then "++" else "--")
+	val tagged_pol = 
+	      if (tag andalso !tagged) then (if pol then "+++" else "---")
+	      else (if pol then "++" else "--")
      in
 	tagged_pol ^ pred_string
     end;
@@ -614,19 +587,26 @@ fun tptp_of_typeLit (LTVar x) = "--" ^ x
  
 
 fun gen_tptp_cls (cls_id,ax_name,knd,lits) = 
-    let val ax_str = (if ax_name = "" then "" else ("_" ^ ax_name))
+    let val ax_str = (if ax_name = "" then "" else ("_" ^ ascii_of ax_name))
     in
 	"input_clause(" ^ cls_id ^ ax_str ^ "," ^ knd ^ "," ^ lits ^ ")."
     end;
 
-
-fun gen_tptp_type_cls (cls_id,knd,tfree_lit,idx) = "input_clause(" ^ cls_id ^ "_tcs" ^ (string_of_int idx) ^ "," ^ knd ^ ",[" ^ tfree_lit ^ "]).";
+fun gen_tptp_type_cls (cls_id,knd,tfree_lit,idx) = 
+    "input_clause(" ^ cls_id ^ "_tcs" ^ (string_of_int idx) ^ "," ^ 
+    knd ^ ",[" ^ tfree_lit ^ "]).";
 
 
 fun tptp_clause_aux (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
-	val tvar_lits_strs = if (!keep_types) then (map tptp_of_typeLit (#tvar_type_literals cls)) else []
-	val tfree_lits = if (!keep_types) then (map tptp_of_typeLit (#tfree_type_literals cls)) else []
+	val tvar_lits_strs =
+	      if (!keep_types) 
+	      then (map tptp_of_typeLit (#tvar_type_literals cls)) 
+	      else []
+	val tfree_lits = 
+	      if (!keep_types) 
+	      then (map tptp_of_typeLit (#tfree_type_literals cls)) 
+	      else []
     in
 	(tvar_lits_strs @ lits,tfree_lits)
     end; 
@@ -660,7 +640,8 @@ fun clause2tptp cls =
     end;
 
 
-fun tfree_clause tfree_lit = "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).";
+fun tfree_clause tfree_lit =
+    "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).";
 
 val delim = "\n";
 val tptp_clauses2str = ResLib.list2str_sep delim; 
