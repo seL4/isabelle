@@ -89,7 +89,7 @@ rule) must be eliminated.
 This can be accomplished by applying the following transformation rules:
 *}
 
-theorem Suc_if_eq: "f 0 = g \<Longrightarrow> (\<And>n. f (Suc n) = h n) \<Longrightarrow>
+theorem Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
   f n = (if n = 0 then g else h (n - 1))"
   by (case_tac n) simp_all
 
@@ -110,7 +110,6 @@ val Suc_if_eq = thm "Suc_if_eq";
 fun remove_suc thy thms =
   let
     val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
-    val ctzero = cterm_of Main.thy HOLogic.zero;
     val vname = variant (map fst
       (fold (add_term_varnames o Thm.full_prop_of) thms [])) "x";
     val cv = cterm_of Main.thy (Var ((vname, 0), HOLogic.natT));
@@ -118,44 +117,38 @@ fun remove_suc thy thms =
       (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
     fun rhs_of th = snd (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))));
     fun find_vars ct = (case term_of ct of
-        (Const ("Suc", _) $ Var _) => [((cv, ctzero), snd (Thm.dest_comb ct))]
+        (Const ("Suc", _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
         in 
-          map (apfst (pairself (fn ct => Thm.capply ct ct2))) (find_vars ct1) @
-          map (apfst (pairself (Thm.capply ct1))) (find_vars ct2)
+          map (apfst (fn ct => Thm.capply ct ct2)) (find_vars ct1) @
+          map (apfst (Thm.capply ct1)) (find_vars ct2)
         end
       | _ => []);
-    val eqs1 = List.concat (map
+    val eqs = List.concat (map
       (fn th => map (pair th) (find_vars (lhs_of th))) thms);
-    val eqs2 = map (fn x as (_, ((_, ctzero), _)) => (x, List.mapPartial (fn th =>
-      SOME (th, Thm.cterm_match (lhs_of th, ctzero))
-        handle Pattern.MATCH => NONE) thms)) eqs1;
-    fun distinct_vars vs = forall is_Var vs andalso null (duplicates vs);
-    val eqs2' = map (apsnd (List.filter (fn (_, (_, s)) =>
-      distinct_vars (map (term_of o snd) s)))) eqs2;
-    fun mk_thms b ((th, ((ct, _), cv')), (th', s) :: _) =
+    fun mk_thms (th, (ct, cv')) =
       let
-        val th'' = Thm.instantiate s th';
-        val th''' =
-          Thm.implies_elim (Thm.implies_elim
+        val th' =
+          Thm.implies_elim
            (Drule.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
-                 SOME (rhs_of th''), SOME (Thm.cabs cv' (rhs_of th)), SOME cv']
-               Suc_if_eq')) th'') (Thm.forall_intr cv' th)
+                 SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
+               Suc_if_eq')) (Thm.forall_intr cv' th)
       in
-        List.mapPartial (fn thm =>
-          if thm = th then SOME th'''
-          else if b andalso thm = th' then NONE
-          else SOME thm) thms
+        case List.mapPartial (fn th'' =>
+            SOME (th'', standard (Drule.freeze_all th'' RS th'))
+          handle THM _ => NONE) thms of
+            [] => NONE
+          | thps =>
+              let val (ths1, ths2) = ListPair.unzip thps
+              in SOME (gen_rems eq_thm (thms, th :: ths1) @ ths2) end
       end
   in
-    case Library.find_first (not o null o snd) eqs2' of
-      NONE => (case Library.find_first (not o null o snd) eqs2 of
-        NONE => thms
-      | SOME x => remove_suc thy (mk_thms false x))
-    | SOME x => remove_suc thy (mk_thms true x)
+    case Library.get_first mk_thms eqs of
+      NONE => thms
+    | SOME x => remove_suc thy x
   end;
 
 fun eqn_suc_preproc thy ths =
