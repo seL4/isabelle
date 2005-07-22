@@ -13,11 +13,6 @@ val helper_path : string -> string -> string
 val list2str_sep : string -> string list -> string
 val list_to_string : string list -> string
 val list_to_string' : string list -> string
-val no_BDD : string -> string
-val no_blanks : string -> string
-val no_blanks_dots : string -> string
-val no_blanks_dots_dashes : string -> string
-val no_dots : string -> string
 val no_rep_add : ''a -> ''a list -> ''a list
 val no_rep_app : ''a list -> ''a list -> ''a list
 val pair_ins : 'a -> 'b list -> ('a * 'b) list
@@ -50,23 +45,6 @@ in
 end;
 
 (* remove some chars (not allowed by TPTP format) from a string *)
-fun no_blanks " " = "_"
-  | no_blanks c   = c;
-
-fun no_dots "." = "_dot_"
-  | no_dots c   = c;
-
-fun no_blanks_dots " " = "_"
-  | no_blanks_dots "." = "_dot_"
-  | no_blanks_dots c   = c;
-
-fun no_blanks_dots_dashes " " = "_"
-  | no_blanks_dots_dashes "." = "_dot_"
-  | no_blanks_dots_dashes "'" = "_da_"
-  | no_blanks_dots_dashes c   = c;
-
-fun no_BDD cs =
-	implode (map no_blanks_dots_dashes (explode cs));
 
 fun no_rep_add x []     = [x]
   | no_rep_add x (y::z) = if x=y then y::z else y::(no_rep_add x z);
