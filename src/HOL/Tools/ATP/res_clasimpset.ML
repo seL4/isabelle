@@ -110,8 +110,6 @@ signature RES_CLASIMP =
   val relevant : int ref
   val write_out_clasimp : string -> theory -> term -> 
                              (ResClause.clause * thm) Array.array * int
-  val write_out_clasimp_small :
-     string -> theory -> (ResClause.clause * thm) Array.array * int
   end;
 
 structure ResClasimp : RES_CLASIMP =
@@ -179,7 +177,8 @@ fun clause_numbering ((clause, theorem), cls) =
     end;
 
 (*Write out the claset and simpset rules of the supplied theory.
-  FIXME: argument "goal" is a hack to allow relevance filtering.*)
+  FIXME: argument "goal" is a hack to allow relevance filtering.
+  To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun write_out_clasimp filename thy goal = 
     let val claset_rules = 
               ReduceAxiomsN.relevant_filter (!relevant) goal 
@@ -222,53 +221,6 @@ fun write_out_clasimp filename thy goal =
   in
 	(clause_arr, num_of_clauses)
   end;
-
-
-
-
-
-(*Write out the claset and simpset rules of the supplied theory. Only include the first 50 rules*)
-fun write_out_clasimp_small filename thy = 
-    let val claset_rules = ResAxioms.claset_rules_of_thy thy;
-	val named_claset = List.filter has_name_pair claset_rules;
-	val claset_names = map remove_spaces_pair (named_claset)
-	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
-
-	val simpset_rules = ResAxioms.simpset_rules_of_thy thy;
-	val named_simpset = 
-	      map remove_spaces_pair (List.filter has_name_pair simpset_rules)
-	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
-
-	val cls_thms = (claset_cls_thms@simpset_cls_thms);
-	val cls_thms_list = List.concat cls_thms;
-        (* length 1429 *)
-	(*************************************************)
-	(* Write out clauses as tptp strings to filename *)
-	(*************************************************)
-	val clauses = map #1(cls_thms_list);
-	val cls_tptp_strs = map ResClause.tptp_clause clauses;
-        val alllist = pairup cls_thms_list cls_tptp_strs
-        val whole_list = List.concat (map clause_numbering alllist);
-        val mini_list = List.take ( whole_list,50)
-        (*********************************************************)
-	(* create array and put clausename, number pairs into it *)
-	(*********************************************************)
-	val num_of_clauses =  0;
-	val clause_arr = Array.fromList mini_list;
-	val num_of_clauses = List.length mini_list;
-
-	(* list of lists of tptp string clauses *)
-	val stick_clasrls =   List.concat cls_tptp_strs;
-        (* length 1581*)
-	val out = TextIO.openOut filename;
-	val _=   ResLib.writeln_strs out (List.take (stick_clasrls,50));
-	val _= TextIO.flushOut out;
-	val _= TextIO.closeOut out
-  in
-	(clause_arr, num_of_clauses)
-  end;
-
-
 
 end;
 
