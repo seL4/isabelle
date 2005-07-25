@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/prop_logic.ML
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2004
+    Copyright   2004-2005
 
 Formulas of propositional logic.
 *)
@@ -176,96 +176,73 @@ struct
 (*      'fm' of propositional logic, introducing auxiliary variables if      *)
 (*      necessary to avoid an exponential blowup of the formula.  The result *)
 (*      formula is satisfiable if and only if 'fm' is satisfiable.           *)
+(*      Auxiliary variables are introduced as switches for OR-nodes, based   *)
+(*      on the observation that "fm1 OR (fm21 AND fm22)" is equisatisfiable  *)
+(*      with "(fm1 OR ~aux) AND (fm21 OR aux) AND (fm22 OR aux)".            *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
 
 	fun defcnf fm =
 	let
-		(* prop_formula * int -> prop_formula * int *)
+		(* convert formula to NNF first *)
+		val fm' = nnf fm
 		(* 'new' specifies the next index that is available to introduce an auxiliary variable *)
+		(* int ref *)
+		val new = ref (maxidx fm' + 1)
+		(* unit -> int *)
+		fun new_idx () = let val idx = !new in new := idx+1; idx end
+		(* prop_formula -> prop_formula *)
 		fun
 		(* constants *)
-		    defcnf_from_nnf (True, new)            = (True, new)
-		  | defcnf_from_nnf (False, new)           = (False, new)
+		    defcnf_from_nnf True  = True
+		  | defcnf_from_nnf False = False
 		(* literals *)
-		  | defcnf_from_nnf (BoolVar i, new)       = (BoolVar i, new)
-		  | defcnf_from_nnf (Not fm1, new)         = (Not fm1, new)  (* 'fm1' must be a variable since the formula is in NNF *)
+		  | defcnf_from_nnf (BoolVar i) = BoolVar i
+		  | defcnf_from_nnf (Not fm1)   = Not fm1  (* 'fm1' must be a variable since the formula is in NNF *)
 		(* pushing 'or' inside of 'and' using auxiliary variables *)
-		  | defcnf_from_nnf (Or (fm1, fm2), new)   =
+		  | defcnf_from_nnf (Or (fm1, fm2)) =
 			let
-				val (fm1', new')  = defcnf_from_nnf (fm1, new)
-				val (fm2', new'') = defcnf_from_nnf (fm2, new')
-				(* prop_formula * prop_formula -> int -> prop_formula * int *)
-				fun defcnf_or (And (fm11, fm12), fm2) new =
+				val fm1' = defcnf_from_nnf fm1
+				val fm2' = defcnf_from_nnf fm2
+				(* prop_formula * prop_formula -> prop_formula *)
+				fun defcnf_or (And (fm11, fm12), fm2) =
 					(case fm2 of
 					(* do not introduce an auxiliary variable for literals *)
 					  BoolVar _ =>
-						let
-							val (fm_a, new')  = defcnf_or (fm11, fm2) new
-							val (fm_b, new'') = defcnf_or (fm12, fm2) new'
-						in
-							(And (fm_a, fm_b), new'')
-						end
+							And (defcnf_or (fm11, fm2), defcnf_or (fm12, fm2))
 					| Not _ =>
-						let
-							val (fm_a, new')  = defcnf_or (fm11, fm2) new
-							val (fm_b, new'') = defcnf_or (fm12, fm2) new'
-						in
-							(And (fm_a, fm_b), new'')
-						end
+							And (defcnf_or (fm11, fm2), defcnf_or (fm12, fm2))
 					| _ =>
 						let
-							val aux            = BoolVar new
-							val (fm_a, new')   = defcnf_or (fm11, aux)     (new+1)
-							val (fm_b, new'')  = defcnf_or (fm12, aux)     new'
-							val (fm_c, new''') = defcnf_or (fm2,  Not aux) new''
+							val aux = BoolVar (new_idx ())
 						in
-							(And (And (fm_a, fm_b), fm_c), new''')
+							And (And (defcnf_or (fm11, aux), defcnf_or (fm12, aux)), defcnf_or (fm2, Not aux))
 						end)
-				  | defcnf_or (fm1, And (fm21, fm22)) new =
+				  | defcnf_or (fm1, And (fm21, fm22)) =
 					(case fm1 of
 					(* do not introduce an auxiliary variable for literals *)
 					  BoolVar _ =>
-						let
-							val (fm_a, new')  = defcnf_or (fm1, fm21) new
-							val (fm_b, new'') = defcnf_or (fm1, fm22) new'
-						in
-							(And (fm_a, fm_b), new'')
-						end
+							And (defcnf_or (fm1, fm21), defcnf_or (fm1, fm22))
 					| Not _ =>
-						let
-							val (fm_a, new')  = defcnf_or (fm1, fm21) new
-							val (fm_b, new'') = defcnf_or (fm1, fm22) new'
-						in
-							(And (fm_a, fm_b), new'')
-						end
+							And (defcnf_or (fm1, fm21), defcnf_or (fm1, fm22))
 					| _ =>
 						let
-							val aux            = BoolVar new
-							val (fm_a, new')   = defcnf_or (fm1,  Not aux) (new+1)
-							val (fm_b, new'')  = defcnf_or (fm21, aux)     new'
-							val (fm_c, new''') = defcnf_or (fm22, aux)     new''
+							val aux = BoolVar (new_idx ())
 						in
-							(And (fm_a, And (fm_b, fm_c)), new''')
+							And (defcnf_or (fm1, Not aux), And (defcnf_or (fm21, aux), defcnf_or (fm22, aux)))
 						end)
 				(* neither subformula contains 'and' *)
-				  | defcnf_or (fm1, fm2) new =
-					(Or (fm1, fm2), new)
+				  | defcnf_or (fm1, fm2) =
+					Or (fm1, fm2)
 			in
-				defcnf_or (fm1', fm2') new''
+				defcnf_or (fm1', fm2')
 			end
 		(* 'and' as outermost connective is left untouched *)
-		  | defcnf_from_nnf (And (fm1, fm2), new)   =
-			let
-				val (fm1', new')  = defcnf_from_nnf (fm1, new)
-				val (fm2', new'') = defcnf_from_nnf (fm2, new')
-			in
-				(And (fm1', fm2'), new'')
-			end
-		val fm' = nnf fm
+		  | defcnf_from_nnf (And (fm1, fm2)) =
+				And (defcnf_from_nnf fm1, defcnf_from_nnf fm2)
 	in
-		(fst o defcnf_from_nnf) (fm', (maxidx fm')+1)
+		defcnf_from_nnf fm'
 	end;
 
 (* ------------------------------------------------------------------------- *)
