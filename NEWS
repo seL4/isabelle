@@ -389,6 +389,12 @@ The following theorems have been eliminated or modified
 * Theory RComplete: expanded support for floor and ceiling functions.
 
 
+*** HOL-Library ***
+
+* Theories SetsAndFunctions and BigO support asymptotic "big O" calculations.
+See the notes in BigO.thy.
+
+
 *** HOLCF ***
 
 * HOLCF: discontinued special version of 'constdefs' (which used to
