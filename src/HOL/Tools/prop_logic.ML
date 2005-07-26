@@ -224,10 +224,11 @@ struct
 
 (* ------------------------------------------------------------------------- *)
 (* Note: 'auxcnf' tends to use fewer variables and fewer clauses than        *)
-(*      'defcnf' below, but sometimes generates slightly larger SAT problems *)
+(*      'defcnf' below, but sometimes generates much larger SAT problems     *)
 (*      overall (hence it must sometimes generate longer clauses than        *)
 (*      'defcnf' does).  It is currently not quite clear to me if one of the *)
-(*      algorithms is clearly superior to the other.                         *)
+(*      algorithms is clearly superior to the other, but I suggest using     *)
+(*      'defcnf' instead.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
