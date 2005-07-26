@@ -26,7 +26,9 @@ struct
 
 val typedef_po = thm "typedef_po";
 val typedef_cpo = thm "typedef_cpo";
-val typedef_pcpo = thm "typedef_pcpo_UU";
+val typedef_pcpo = thm "typedef_pcpo";
+val typedef_lub = thm "typedef_lub";
+val typedef_thelub = thm "typedef_thelub";
 val cont_Rep = thm "typedef_cont_Rep";
 val cont_Abs = thm "typedef_cont_Abs";
 val Rep_strict = thm "typedef_Rep_strict";
@@ -104,6 +106,42 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
             (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
         |> rpair (type_definition, less_definition, set_def));
     
+    fun make_cpo admissible (theory, defs as (type_def, less_def, set_def)) =
+      let
+        val admissible' = option_fold_rule set_def admissible;
+        val cpo_thms = [type_def, less_def, admissible'];
+        val (theory', _) =
+          theory
+          |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.cpo"])
+            (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
+          |> Theory.add_path name
+          |> PureThy.add_thms
+            ([(("adm_" ^ name, admissible'), []),
+              (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
+              (("cont_" ^ Abs_name, cont_Abs OF cpo_thms), []),
+              (("lub_"    ^ name, typedef_lub    OF cpo_thms), []),
+              (("thelub_" ^ name, typedef_thelub OF cpo_thms), [])])
+          |>> Theory.parent_path;
+      in (theory', defs) end;
+
+    fun make_pcpo UUmem (theory, defs as (type_def, less_def, set_def)) =
+      let
+        val UUmem' = option_fold_rule set_def UUmem;
+        val pcpo_thms = [type_def, less_def, UUmem'];
+        val (theory', _) =
+          theory
+          |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.pcpo"])
+            (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
+          |> Theory.add_path name
+          |> PureThy.add_thms
+            ([((Rep_name ^ "_strict", Rep_strict OF pcpo_thms), []),
+              ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms), []),
+              ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms), []),
+              ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
+              ])
+          |>> Theory.parent_path;
+      in (theory', defs) end;
+    
     fun pcpodef_result (theory, UUmem_admissible) =
       let
         val UUmem = UUmem_admissible RS conjunct1;
@@ -111,30 +149,9 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       in
         theory
         |> make_po (Tactic.rtac exI 1 THEN Tactic.rtac UUmem 1)
-        |> (fn (theory', (type_definition, less_definition, set_def)) =>
-          let
-            val admissible' = option_fold_rule set_def admissible;
-            val UUmem' = option_fold_rule set_def UUmem;
-            val cpo_thms = [type_definition, less_definition, admissible'];
-            val pcpo_thms = [type_definition, less_definition, UUmem'];
-            val (theory'', _) =
-              theory'
-              |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.cpo"])
-                (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
-              |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.pcpo"])
-                (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
-              |> Theory.add_path name
-              |> PureThy.add_thms
-                ([(("adm_" ^ name, admissible'), []),
-                  (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
-                  (("cont_" ^ Abs_name, cont_Abs OF cpo_thms), []),
-                  ((Rep_name ^ "_strict", Rep_strict OF pcpo_thms), []),
-                  ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms), []),
-                  ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms), []),
-                  ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
-                  ])
-              |>> Theory.parent_path;
-          in (theory'', type_definition) end)
+        |> make_cpo admissible
+        |> make_pcpo UUmem
+        |> (fn (theory', (type_def, _, _)) => (theory', type_def))
       end;
   
     fun cpodef_result (theory, nonempty_admissible) =
@@ -144,21 +161,8 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       in
         theory
         |> make_po (Tactic.rtac nonempty 1)
-        |> (fn (theory', (type_definition, less_definition, set_def)) =>
-          let
-            val admissible' = option_fold_rule set_def admissible;
-            val cpo_thms = [type_definition, less_definition, admissible'];
-            val (theory'', _) =
-              theory'
-              |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.cpo"])
-                (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
-              |> Theory.add_path name
-              |> PureThy.add_thms
-                ([(("adm_" ^ name, admissible'), []),
-                  (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
-                  (("cont_" ^ Abs_name, cont_Abs OF cpo_thms), [])])
-              |>> Theory.parent_path;
-          in (theory'', type_definition) end)
+        |> make_cpo admissible
+        |> (fn (theory', (type_def, _, _)) => (theory', type_def))
       end;
   
   in (goal, if pcpo then pcpodef_result else cpodef_result) end
