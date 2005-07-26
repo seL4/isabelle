@@ -24,9 +24,6 @@ syntax (xsymbols)
 syntax (HTML output)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
 
-lemma UU_Abs_Ssum: "\<bottom> = Abs_Ssum <\<bottom>, \<bottom>>"
-by (simp add: Abs_Ssum_strict cpair_strict)
-
 
 subsection {* Definitions of constructors *}
 
@@ -87,19 +84,20 @@ by simp
 
 subsection {* Case analysis *}
 
-lemma Exh_Ssum1: 
+lemma Exh_Ssum: 
   "z = \<bottom> \<or> (\<exists>a. z = sinl\<cdot>a \<and> a \<noteq> \<bottom>) \<or> (\<exists>b. z = sinr\<cdot>b \<and> b \<noteq> \<bottom>)"
 apply (rule_tac x=z in Abs_Ssum_induct)
 apply (rule_tac p=y in cprodE)
-apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum UU_Abs_Ssum)
-apply (auto simp add: Ssum_def)
+apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum)
+apply (simp add: Abs_Ssum_inject Ssum_def)
+apply (auto simp add: cpair_strict Abs_Ssum_strict)
 done
 
 lemma ssumE:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q;
    \<And>x. \<lbrakk>p = sinl\<cdot>x; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q;
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (cut_tac z=p in Exh_Ssum1, auto)
+by (cut_tac z=p in Exh_Ssum, auto)
 
 lemma ssumE2:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
