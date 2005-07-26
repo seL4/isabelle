@@ -24,9 +24,9 @@ theorem typedef_po:
   shows "OFCLASS('b, po_class)"
  apply (intro_classes, unfold less)
    apply (rule refl_less)
-  apply (subst type_definition.Rep_inject [OF type, symmetric])
-  apply (rule antisym_less, assumption+)
- apply (rule trans_less, assumption+)
+  apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
+  apply (erule (1) antisym_less)
+ apply (erule (1) trans_less)
 done
 
 
@@ -40,44 +40,42 @@ text {*
   admissible predicate.
 *}
 
-lemma chain_Rep:
+lemma monofun_Rep:
   assumes less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  shows "chain S \<Longrightarrow> chain (\<lambda>n. Rep (S n))"
-by (rule chainI, drule chainE, unfold less)
+  shows "monofun Rep"
+by (rule monofunI, unfold less)
 
-lemma lub_Rep_in_A:
+lemmas ch2ch_Rep = ch2ch_monofun [OF monofun_Rep]
+lemmas ub2ub_Rep = ub2ub_monofun [OF monofun_Rep]
+
+lemma Abs_inverse_lub_Rep:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm:  "adm (\<lambda>x. x \<in> A)"
-  shows "chain S \<Longrightarrow> (LUB n. Rep (S n)) \<in> A"
- apply (erule admD [OF adm chain_Rep [OF less], rule_format])
+  shows "chain S \<Longrightarrow> Rep (Abs (\<Squnion>i. Rep (S i))) = (\<Squnion>i. Rep (S i))"
+ apply (rule type_definition.Abs_inverse [OF type])
+ apply (erule admD [OF adm ch2ch_Rep [OF less], rule_format])
  apply (rule type_definition.Rep [OF type])
 done
 
-theorem typedef_is_lub:
+theorem typedef_lub:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)"
-  shows "chain S \<Longrightarrow> range S <<| Abs (LUB n. Rep (S n))"
+  shows "chain S \<Longrightarrow> range S <<| Abs (\<Squnion>i. Rep (S i))"
+ apply (frule ch2ch_Rep [OF less])
  apply (rule is_lubI)
   apply (rule ub_rangeI)
-  apply (subst less)
-  apply (subst type_definition.Abs_inverse [OF type])
-   apply (erule lub_Rep_in_A [OF type less adm])
-  apply (rule is_ub_thelub)
-  apply (erule chain_Rep [OF less])
- apply (subst less)
- apply (subst type_definition.Abs_inverse [OF type])
-  apply (erule lub_Rep_in_A [OF type less adm])
- apply (rule is_lub_thelub)
-  apply (erule chain_Rep [OF less])
- apply (rule ub_rangeI)
- apply (drule ub_rangeD)
- apply (unfold less)
- apply assumption
+  apply (simp only: less Abs_inverse_lub_Rep [OF type less adm])
+  apply (erule is_ub_thelub)
+ apply (simp only: less Abs_inverse_lub_Rep [OF type less adm])
+ apply (erule is_lub_thelub)
+ apply (erule ub2ub_Rep [OF less])
 done
+
+lemmas typedef_thelub = typedef_lub [THEN thelubI, standard]
 
 theorem typedef_cpo:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
@@ -85,10 +83,12 @@ theorem typedef_cpo:
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)"
   shows "OFCLASS('b, cpo_class)"
- apply (intro_classes)
- apply (rule_tac x="Abs (LUB n. Rep (S n))" in exI)
- apply (erule typedef_is_lub [OF type less adm])
-done
+proof
+  fix S::"nat \<Rightarrow> 'b" assume "chain S"
+  hence "range S <<| Abs (\<Squnion>i. Rep (S i))"
+    by (rule typedef_lub [OF type less adm])
+  thus "\<exists>x. range S <<| x" ..
+qed
 
 
 subsubsection {* Continuity of @{term Rep} and @{term Abs} *}
@@ -102,11 +102,10 @@ theorem typedef_cont_Rep:
     and adm: "adm (\<lambda>x. x \<in> A)"
   shows "cont Rep"
  apply (rule contI)
- apply (simp only: typedef_is_lub [OF type less adm, THEN thelubI])
- apply (subst type_definition.Abs_inverse [OF type])
-  apply (erule lub_Rep_in_A [OF type less adm])
+ apply (simp only: typedef_thelub [OF type less adm])
+ apply (simp only: Abs_inverse_lub_Rep [OF type less adm])
  apply (rule thelubE [OF _ refl])
- apply (erule chain_Rep [OF less])
+ apply (erule ch2ch_Rep [OF less])
 done
 
 text {*
@@ -115,28 +114,31 @@ text {*
   composing it with another continuous function.
 *}
 
+theorem typedef_is_lubI:
+  assumes less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+  shows "range (\<lambda>i. Rep (S i)) <<| Rep x \<Longrightarrow> range S <<| x"
+ apply (rule is_lubI)
+  apply (rule ub_rangeI)
+  apply (subst less)
+  apply (erule is_ub_lub)
+ apply (subst less)
+ apply (erule is_lub_lub)
+ apply (erule ub2ub_Rep [OF less])
+done
+
 theorem typedef_cont_Abs:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
   fixes f :: "'c::cpo \<Rightarrow> 'a::cpo"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and adm: "adm (\<lambda>x. x \<in> A)"
+    and adm: "adm (\<lambda>x. x \<in> A)" (* not used *)
     and f_in_A: "\<And>x. f x \<in> A"
     and cont_f: "cont f"
   shows "cont (\<lambda>x. Abs (f x))"
  apply (rule contI)
- apply (rule is_lubI)
-  apply (rule ub_rangeI)
-  apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
-  apply (rule monofun_fun_arg [OF cont2mono [OF cont_f]])
-  apply (erule is_ub_thelub)
- apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
- apply (simp only: cont2contlubE [OF cont_f])
- apply (rule is_lub_thelub)
-  apply (erule ch2ch_cont [OF cont_f])
- apply (rule ub_rangeI)
- apply (drule_tac i=i in ub_rangeD)
- apply (simp only: less type_definition.Abs_inverse [OF type f_in_A])
+ apply (rule typedef_is_lubI [OF less])
+ apply (simp only: type_definition.Abs_inverse [OF type f_in_A])
+ apply (erule cont_f [THEN contE])
 done
 
 subsection {* Proving a subtype is pointed *}
@@ -146,7 +148,7 @@ text {*
   the defining subset has a least element.
 *}
 
-theorem typedef_pcpo:
+theorem typedef_pcpo_generic:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
@@ -165,13 +167,13 @@ text {*
   if the defining subset contains @{term \<bottom>}.
 *}
 
-theorem typedef_pcpo_UU:
+theorem typedef_pcpo:
   fixes Abs :: "'a::pcpo \<Rightarrow> 'b::cpo"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and UU_in_A: "\<bottom> \<in> A"
   shows "OFCLASS('b, pcpo_class)"
-by (rule typedef_pcpo [OF type less UU_in_A], rule minimal)
+by (rule typedef_pcpo_generic [OF type less UU_in_A], rule minimal)
 
 subsubsection {* Strictness of @{term Rep} and @{term Abs} *}
 
