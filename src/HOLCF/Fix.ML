@@ -1,36 +1,41 @@
 
 (* legacy ML bindings *)
 
-val iterate_0 = thm "iterate_0";
-val iterate_Suc = thm "iterate_Suc";
-val Ifix_def = thm "Ifix_def";
-val fix_def = thm "fix_def";
+val adm_chfindom = thm "adm_chfindom";
+val adm_impl_admw = thm "adm_impl_admw";
 val admw_def = thm "admw_def";
-val iterate_Suc2 = thm "iterate_Suc2";
 val chain_iterate2 = thm "chain_iterate2";
 val chain_iterate = thm "chain_iterate";
-val Ifix_eq = thm "Ifix_eq";
-val Ifix_least = thm "Ifix_least";
+val cont_Ifix = thm "cont_Ifix";
 val cont_iterate1 = thm "cont_iterate1";
 val cont_iterate2 = thm "cont_iterate2";
-val monofun_iterate2 = thm "monofun_iterate2";
-val contlub_iterate2 = thm "contlub_iterate2";
 val cont_iterate = thm "cont_iterate";
-val cont_Ifix = thm "cont_Ifix";
-val fix_eq = thm "fix_eq";
-val fix_least = thm "fix_least";
-val fix_eqI = thm "fix_eqI";
+val contlub_iterate2 = thm "contlub_iterate2";
+val def_fix_ind = thm "def_fix_ind";
+val def_wfix_ind = thm "def_wfix_ind";
+val fix_const = thm "fix_const";
+val fix_def2 = thm "fix_def2";
+val fix_defined = thm "fix_defined";
+val fix_defined_iff = thm "fix_defined_iff";
+val fix_def = thm "fix_def";
 val fix_eq2 = thm "fix_eq2";
 val fix_eq3 = thm "fix_eq3";
 val fix_eq4 = thm "fix_eq4";
 val fix_eq5 = thm "fix_eq5";
-val fix_def2 = thm "fix_def2";
-val def_fix_ind = thm "def_fix_ind";
-val adm_impl_admw = thm "adm_impl_admw";
+val fix_eqI = thm "fix_eqI";
+val fix_eq = thm "fix_eq";
+val fix_id = thm "fix_id";
 val fix_ind = thm "fix_ind";
-val def_fix_ind = thm "def_fix_ind";
+val fix_least = thm "fix_least";
+val fix_strict = thm "fix_strict";
+val Ifix_def = thm "Ifix_def";
+val Ifix_eq = thm "Ifix_eq";
+val Ifix_least = thm "Ifix_least";
+val iterate_0 = thm "iterate_0";
+val iterate_Suc2 = thm "iterate_Suc2";
+val iterate_Suc = thm "iterate_Suc";
+val monofun_iterate2 = thm "monofun_iterate2";
 val wfix_ind = thm "wfix_ind";
-val def_wfix_ind = thm "def_wfix_ind";
 
 structure Fix =
 struct
