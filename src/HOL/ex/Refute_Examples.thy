@@ -150,7 +150,7 @@ oops
 text {* A true statement (also testing names of free and bound variables being identical) *}
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
-  refute [maxsize=6]
+  refute
   apply fast
 done
 
@@ -258,7 +258,7 @@ lemma "(\<forall>x y. (P x y | R x y) \<longrightarrow> T x y) \<longrightarrow>
         \<longrightarrow> trans_closure TP P
         \<longrightarrow> trans_closure TR R
         \<longrightarrow> (T x y = (TP x y | TR x y))"
-  refute [satsolver="dpll"]
+  refute
 oops
 
 text {* "Every surjective function is invertible." *}
