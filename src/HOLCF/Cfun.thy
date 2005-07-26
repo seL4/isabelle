@@ -46,7 +46,7 @@ lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
 
 instance "->" :: (cpo, pcpo) pcpo
-by (rule typedef_pcpo_UU [OF type_definition_CFun less_CFun_def UU_CFun])
+by (rule typedef_pcpo [OF type_definition_CFun less_CFun_def UU_CFun])
 
 lemmas Rep_CFun_strict =
   typedef_Rep_strict [OF type_definition_CFun less_CFun_def UU_CFun]
@@ -204,14 +204,11 @@ done
 
 text {* type @{typ "'a -> 'b"} is chain complete *}
 
-lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (LAM x. LUB i. F i$x)"
-apply (subst thelub_fun [symmetric])
-apply (erule monofun_Rep_CFun [THEN ch2ch_monofun])
-apply (erule typedef_is_lub [OF type_definition_CFun less_CFun_def adm_CFun])
-done
+lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
+by (simp only: contlub_cfun_fun [symmetric] eta_cfun thelubE)
 
-lemmas thelub_cfun = lub_cfun [THEN thelubI, standard]
- -- {* @{thm thelub_cfun} *} (* chain F \<Longrightarrow> lub (range F) = (\<Lambda>x. \<Squnion>i. F i\<cdot>x) *)
+lemma thelub_cfun: "chain F \<Longrightarrow> lub (range F) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
+by (rule lub_cfun [THEN thelubI])
 
 subsection {* Miscellaneous *}
 

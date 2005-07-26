@@ -24,9 +24,6 @@ syntax (xsymbols)
 syntax (HTML output)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
 
-lemma UU_Abs_Sprod: "\<bottom> = Abs_Sprod <\<bottom>, \<bottom>>"
-by (simp add: Abs_Sprod_strict inst_cprod_pcpo2 [symmetric])
-
 lemma spair_lemma:
   "<strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a> \<in> Sprod"
 by (simp add: Sprod_def strictify_conv_if cpair_strict)
@@ -81,10 +78,10 @@ by (cut_tac z=p in Exh_Sprod2, auto)
 subsection {* Properties of @{term spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
-by (simp add: spair_Abs_Sprod UU_Abs_Sprod strictify_conv_if)
+by (simp add: spair_Abs_Sprod strictify_conv_if cpair_strict Abs_Sprod_strict)
 
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
-by (simp add: spair_Abs_Sprod UU_Abs_Sprod strictify_conv_if)
+by (simp add: spair_Abs_Sprod strictify_conv_if cpair_strict Abs_Sprod_strict)
 
 lemma spair_strict: "x = \<bottom> \<or> y = \<bottom> \<Longrightarrow> (:x, y:) = \<bottom>"
 by auto
@@ -94,12 +91,7 @@ by (erule contrapos_np, auto)
 
 lemma spair_defined [simp]: 
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<noteq> \<bottom>"
-apply (simp add: spair_Abs_Sprod UU_Abs_Sprod)
-apply (subst Abs_Sprod_inject)
-apply (simp add: Sprod_def)
-apply (simp add: Sprod_def inst_cprod_pcpo2)
-apply simp
-done
+by (simp add: spair_Abs_Sprod Abs_Sprod_defined cpair_defined_iff Sprod_def)
 
 lemma spair_defined_rev: "(:x, y:) = \<bottom> \<Longrightarrow> x = \<bottom> \<or> y = \<bottom>"
 by (erule contrapos_pp, simp)
@@ -176,7 +168,7 @@ subsection {* Properties of @{term ssplit} *}
 lemma ssplit1 [simp]: "ssplit\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: ssplit_def)
 
-lemma ssplit2 [simp]: "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> ssplit\<cdot>f\<cdot>(:x, y:)= f\<cdot>x\<cdot>y"
+lemma ssplit2 [simp]: "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> ssplit\<cdot>f\<cdot>(:x, y:) = f\<cdot>x\<cdot>y"
 by (simp add: ssplit_def)
 
 lemma ssplit3 [simp]: "ssplit\<cdot>spair\<cdot>z = z"
