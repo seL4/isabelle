@@ -414,7 +414,7 @@ let
 	in
 		fun dpll_solver fm =
 		let
-			(* We could use 'PropLogic.auxcnf fm' instead of 'PropLogic.nnf fm' *)
+			(* We could use 'PropLogic.defcnf fm' instead of 'PropLogic.nnf fm' *)
 			(* but that sometimes introduces more boolean variables than we can *)
 			(* handle efficiently.                                              *)
 			val fm' = PropLogic.nnf fm
@@ -537,7 +537,7 @@ let
 		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
-		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.auxcnf fm)
+		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
@@ -562,7 +562,7 @@ let
 		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
-		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.auxcnf fm)
+		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
@@ -587,7 +587,7 @@ let
 		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
-		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.auxcnf fm)
+		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
 		fun readfn ()  = SatSolver.parse_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
