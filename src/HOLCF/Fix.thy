@@ -29,8 +29,8 @@ defs
   Ifix_def:      "Ifix \<equiv> \<lambda>F. \<Squnion>i. iterate i F \<bottom>"
   fix_def:       "fix \<equiv> \<Lambda> F. Ifix F"
 
-  admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
-                            P (lub(range (%i. iterate i F UU)))" 
+  admw_def:      "admw P \<equiv> \<forall>F. (\<forall>n. P (iterate n F \<bottom>)) \<longrightarrow>
+                            P (\<Squnion>i. iterate i F \<bottom>)" 
 
 subsection {* Binder syntax for @{term fix} *}
 
@@ -161,14 +161,18 @@ done
 
 text {* strictness of @{term fix} *}
 
-lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F = \<bottom>"
-by (rule fix_least [THEN UU_I])
-
-lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
-apply (erule contrapos_nn)
+lemma fix_defined_iff: "(fix\<cdot>F = \<bottom>) = (F\<cdot>\<bottom> = \<bottom>)"
+apply (rule iffI)
 apply (erule subst)
 apply (rule fix_eq [symmetric])
+apply (erule fix_least [THEN UU_I])
 done
+
+lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F = \<bottom>"
+by (simp add: fix_defined_iff)
+
+lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
+by (simp add: fix_defined_iff)
 
 text {* @{term fix} applied to identity and constant functions *}
 
