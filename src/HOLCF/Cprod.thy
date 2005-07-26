@@ -132,7 +132,7 @@ by (rule minimal_cprod [THEN UU_I, symmetric])
 
 subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
-lemma contlub_pair1: "contlub (\<lambda>x. (x,y))"
+lemma contlub_pair1: "contlub (\<lambda>x. (x, y))"
 apply (rule contlubI)
 apply (subst thelub_cprod)
 apply (erule monofun_pair1 [THEN ch2ch_monofun])
@@ -252,11 +252,14 @@ by (simp add: cpair_eq_pair)
 lemma cpair_less: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
 by (simp add: cpair_eq_pair less_cprod_def)
 
+lemma cpair_defined_iff: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
+by (simp add: inst_cprod_pcpo cpair_eq_pair)
+
 lemma cpair_strict: "<\<bottom>, \<bottom>> = \<bottom>"
-by (simp add: cpair_eq_pair inst_cprod_pcpo)
+by (simp add: cpair_defined_iff)
 
 lemma inst_cprod_pcpo2: "\<bottom> = <\<bottom>, \<bottom>>"
-by (simp add: cpair_eq_pair inst_cprod_pcpo)
+by (rule cpair_strict [symmetric])
 
 lemma defined_cpair_rev: 
  "<a,b> = \<bottom> \<Longrightarrow> a = \<bottom> \<and> b = \<bottom>"
