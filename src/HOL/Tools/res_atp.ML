@@ -90,6 +90,8 @@ fun repeat_RS thm1 thm2 =
 (* a special version of repeat_RS *)
 fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 
+
+(*FIXME: is function isar_atp_h used? If not, delete!*)
 (*********************************************************************)
 (* convert clauses from "assume" to conjecture. write to file "hyps" *)
 (* hypotheses of the goal currently being proved                     *)
@@ -383,7 +385,7 @@ val _ = Toplevel.print_state_hook (fn _ => fn state =>
     debug ("initial thm in isar_atp: " ^ string_of_thm goal);
     debug ("subgoals in isar_atp: " ^ prems_string);
     debug ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
-    (*isar_local_thms (d_cs,d_ss_thms);*)
+    ResClause.init thy;
     isar_atp' (ctxt, ProofContext.prems_of ctxt, goal)
   end);
 

@@ -381,6 +381,7 @@ fun clausify_axiom_pairs (thm_name,thm) =
     let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
+        val thy = theory_of_thm thm
 	fun make_axiom_clauses _ [] []= []
 	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
 	      (ResClause.make_axiom_clause cls (thm_name,i), cls') :: 

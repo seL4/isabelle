@@ -12,20 +12,18 @@ signature RES_CLAUSE =
     exception CLAUSE of string
     type arityClause 
     type classrelClause
-    val classrelClauses_of :
-       string * string list -> classrelClause list
+    val classrelClauses_of : string * string list -> classrelClause list
     type clause
+    val init : theory -> unit
     val keep_types : bool ref
     val make_axiom_arity_clause :
        string * (string * string list list) -> arityClause
     val make_axiom_classrelClause :
        string * string option -> classrelClause
     val make_axiom_clause : Term.term -> string * int -> clause
-    val make_axiom_clause_thm : Thm.thm -> string * int -> clause
     val make_conjecture_clause : Term.term -> clause
     val make_conjecture_clause_thm : Thm.thm -> clause
     val make_hypothesis_clause : Term.term -> clause
-    val make_hypothesis_clause_thm : Thm.thm -> clause
     val special_equal : bool ref
     val tptp_arity_clause : arityClause -> string
     val tptp_classrelClause : classrelClause -> string
@@ -103,6 +101,11 @@ val ascii_of = String.translate ascii_of_c;
 
 end;
 
+(*Remove the initial ' character from a type variable, if it is present*)
+fun trim_type_var s =
+  if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
+  else error ("trim_type: Malformed type variable encountered: " ^ s);
+
 fun ascii_of_indexname (v,0) = ascii_of v
   | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i;
 
@@ -110,8 +113,9 @@ fun make_schematic_var v = schematic_var_prefix ^ (ascii_of_indexname v);
 fun make_fixed_var x = fixed_var_prefix ^ (ascii_of x);
 
 (*Type variables contain _H because the character ' translates to that.*)
-fun make_schematic_type_var v = tvar_prefix ^ (ascii_of_indexname v);
-fun make_fixed_type_var x = tfree_prefix ^ (ascii_of x);
+fun make_schematic_type_var (x,i) = 
+      tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
+fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
 fun make_fixed_const c =
     case Symtab.lookup (const_trans_table,c) of
@@ -209,6 +213,22 @@ fun make_clause (clause_id,axiom_name,kind,literals,
              tvar_type_literals = tvar_type_literals,
              tfree_type_literals = tfree_type_literals};
 
+
+(*Definitions of the current theory--to allow suppressing types.*)
+val curr_defs = ref Defs.empty;
+
+(*Initialize the type suppression mechanism with the current theory before
+    producing any clauses!*)
+fun init thy = (curr_defs := Theory.defs_of thy);
+
+(*Types aren't needed if the constant has at most one definition and is monomorphic*)
+fun no_types_needed s =
+  (case Defs.fast_overloading_info (!curr_defs) s of
+      NONE => true
+    | SOME (T,len,_) => len <= 1 andalso null (typ_tvars T))
+    
+(*Flatten a type to a string while accumulating sort constraints on the TFress and
+  TVars it contains.*)    
 fun type_of (Type (a, [])) = (make_fixed_type_const a,[]) 
   | type_of (Type (a, Ts)) = 
       let val foltyps_ts = map type_of Ts
@@ -220,11 +240,14 @@ fun type_of (Type (a, [])) = (make_fixed_type_const a,[])
   | type_of (TFree (a, s)) = (make_fixed_type_var a, [((FOLTFree a),s)])
   | type_of (TVar (v, s))  = (make_schematic_type_var v, [((FOLTVar v),s)]);
 
+fun maybe_type_of c T =
+ if no_types_needed c then ("",[]) else type_of T;
+
 (* Any variables created via the METAHYPS tactical should be treated as
    universal vars, although it is represented as "Free(...)" by Isabelle *)
 val isMeta = String.isPrefix "METAHYP1_"
     
-fun pred_name_type (Const(c,T)) = (make_fixed_const c,type_of T)
+fun pred_name_type (Const(c,T)) = (make_fixed_const c, maybe_type_of c T)
   | pred_name_type (Free(x,T))  = 
       if isMeta x then raise CLAUSE("Predicate Not First Order") 
       else (make_fixed_var x, type_of T)
@@ -241,9 +264,7 @@ fun eq_arg_type (Type("fun",[T,_])) =
 	folT
     end;
 
-
-
-fun fun_name_type (Const(c,T)) = (make_fixed_const c,type_of T)
+fun fun_name_type (Const(c,T)) = (make_fixed_const c, maybe_type_of c T)
   | fun_name_type (Free(x,T)) = (make_fixed_var x,type_of T)
   | fun_name_type _ = raise CLAUSE("Function Not First Order");
     
@@ -322,30 +343,28 @@ fun predicate_of term =
 		   | _ => pred_of_nonEq (pred,args)
     end;
 
-
  
-fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts) = literals_of_term(P,lits_ts)
+fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts) = literals_of_term (P,lits_ts)
   | literals_of_term ((Const("op |",_) $ P $ Q),(lits,ts)) = 
-    let val (lits',ts') = literals_of_term(P,(lits,ts))
-    in
-        literals_of_term(Q,(lits',ts'))
-    end
+      let val (lits',ts') = literals_of_term (P,(lits,ts))
+      in
+	  literals_of_term (Q, (lits',ts'))
+      end
   | literals_of_term ((Const("Not",_) $ P),(lits,ts)) = 
-    let val (pred,ts') = predicate_of P
-        val lits' = Literal(false,pred,false) :: lits
-        val ts'' = ResLib.no_rep_app ts ts'
-    in
-        (lits',ts'')
-    end
+      let val (pred,ts') = predicate_of P
+	  val lits' = Literal(false,pred,false) :: lits
+	  val ts'' = ResLib.no_rep_app ts ts'
+      in
+	  (lits',ts'')
+      end
   | literals_of_term (P,(lits,ts)) = 
-    let val (pred,ts') = predicate_of P
-        val lits' = Literal(true,pred,false) :: lits
-        val ts'' = ResLib.no_rep_app ts ts' 
-    in
-        (lits',ts'')
-    end;
+      let val (pred,ts') = predicate_of P
+	  val lits' = Literal(true,pred,false) :: lits
+	  val ts'' = ResLib.no_rep_app ts ts' 
+      in
+	  (lits',ts'')
+      end;
      
-
 fun literals_of_thm thm = literals_of_term (prop_of thm, ([],[]));
     
 (*Make literals for sorted type variables*) 
@@ -380,22 +399,7 @@ fun add_typs (Clause cls) = add_typs_aux (#types_sorts cls)
 
 
 (** make axiom clauses, hypothesis clauses and conjecture clauses. **)
-
-fun make_axiom_clause_thm thm (axname,cls_id)=
-    let val (lits,types_sorts) = literals_of_thm thm
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-    in 
-	make_clause(cls_id,axname,Axiom,lits,types_sorts,tvar_lits,tfree_lits)
-    end;
    
-fun make_hypothesis_clause_thm thm =
-    let val (lits,types_sorts) = literals_of_thm thm
-	val cls_id = generate_id()
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
-    in
-	make_clause(cls_id,"",Hypothesis,lits,types_sorts,tvar_lits,tfree_lits)
-    end;
-
 
 fun make_conjecture_clause_thm thm =
     let val (lits,types_sorts) = literals_of_thm thm
@@ -549,7 +553,7 @@ and
   | string_of_term (Fun (name,typ,terms)) = 
     let val terms' = map string_of_term terms
     in
-        if (!keep_types) then name ^ (ResLib.list_to_string (terms' @ [typ]))
+        if !keep_types andalso typ<>"" then name ^ (ResLib.list_to_string (terms' @ [typ]))
         else name ^ (ResLib.list_to_string terms')
     end;
 
@@ -563,7 +567,7 @@ fun string_of_predicate (Predicate("equal",typ,terms)) =
   | string_of_predicate (Predicate(name,typ,terms)) = 
       let val terms_as_strings = map string_of_term terms
       in
-	  if (!keep_types) 
+	  if !keep_types andalso typ<>""
 	  then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
 	  else name ^ (ResLib.list_to_string terms_as_strings) 
       end;
