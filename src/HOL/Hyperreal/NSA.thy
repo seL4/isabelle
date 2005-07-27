@@ -237,7 +237,7 @@ apply (blast intro!: SReal_add hrabs_add_less)
 done
 
 lemma HFinite_mult: "[|x \<in> HFinite; y \<in> HFinite|] ==> x*y \<in> HFinite"
-apply (simp add: HFinite_def)
+apply (simp add: HFinite_def abs_mult)
 apply (blast intro!: SReal_mult abs_mult_less)
 done
 
@@ -313,14 +313,15 @@ by (simp add: hypreal_diff_def Infinitesimal_add)
 
 lemma Infinitesimal_mult:
      "[| x \<in> Infinitesimal; y \<in> Infinitesimal |] ==> (x * y) \<in> Infinitesimal"
-apply (auto simp add: Infinitesimal_def)
-apply (case_tac "y=0")
-apply (cut_tac [2] a = "abs x" and b = 1 and c = "abs y" and d = r in mult_strict_mono, auto)
+apply (auto simp add: Infinitesimal_def abs_mult)
+apply (case_tac "y=0", simp) 
+apply (cut_tac a = "abs x" and b = 1 and c = "abs y" and d = r 
+       in mult_strict_mono, auto)
 done
 
 lemma Infinitesimal_HFinite_mult:
      "[| x \<in> Infinitesimal; y \<in> HFinite |] ==> (x * y) \<in> Infinitesimal"
-apply (auto dest!: HFiniteD simp add: Infinitesimal_def)
+apply (auto dest!: HFiniteD simp add: Infinitesimal_def abs_mult)
 apply (frule hrabs_less_gt_zero)
 apply (drule_tac x = "r/t" in bspec)
 apply (blast intro: SReal_divide)
@@ -344,11 +345,11 @@ apply (auto simp add: SReal_inverse)
 done
 
 lemma HInfinite_mult: "[|x \<in> HInfinite;y \<in> HInfinite|] ==> (x*y) \<in> HInfinite"
-apply (simp add: HInfinite_def, auto)
+apply (auto simp add: HInfinite_def  abs_mult)
 apply (erule_tac x = 1 in ballE)
 apply (erule_tac x = r in ballE)
-apply (case_tac "y=0")
-apply (cut_tac [2] c = 1 and d = "abs x" and a = r and b = "abs y" in mult_strict_mono)
+apply (case_tac "y=0", simp)
+apply (cut_tac c = 1 and d = "abs x" and a = r and b = "abs y" in mult_strict_mono)
 apply (auto simp add: mult_ac)
 done
 
@@ -422,7 +423,7 @@ by (auto intro: Infinitesimal_interval simp add: order_le_less)
 lemma not_Infinitesimal_mult:
      "[| x \<notin> Infinitesimal;  y \<notin> Infinitesimal|] ==> (x*y) \<notin>Infinitesimal"
 apply (unfold Infinitesimal_def, clarify)
-apply (simp add: linorder_not_less)
+apply (simp add: linorder_not_less abs_mult)
 apply (erule_tac x = "r*ra" in ballE)
 prefer 2 apply (fast intro: SReal_mult)
 apply (auto simp add: zero_less_mult_iff)

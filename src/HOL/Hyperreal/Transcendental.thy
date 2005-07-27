@@ -266,7 +266,7 @@ apply (cut_tac 'a = real in zero_less_one [THEN dense], safe)
 apply (cut_tac x = r in reals_Archimedean3, auto)
 apply (drule_tac x = "\<bar>x\<bar>" in spec, safe)
 apply (rule_tac N = n and c = r in ratio_test)
-apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc)
+apply (auto simp add: abs_mult mult_assoc [symmetric] simp del: fact_Suc)
 apply (rule mult_right_mono)
 apply (rule_tac b1 = "\<bar>x\<bar>" in mult_commute [THEN ssubst])
 apply (subst fact_Suc)
@@ -288,7 +288,7 @@ lemma summable_sin:
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
 apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse power_abs [symmetric] zero_le_mult_iff)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
 done
 
 lemma summable_cos: 
@@ -298,7 +298,7 @@ lemma summable_cos:
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
 apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse power_abs [symmetric] zero_le_mult_iff)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
 done
 
 lemma lemma_STAR_sin [simp]:
@@ -399,7 +399,7 @@ apply (rule_tac g = "%n. K * \<bar>z ^ n\<bar> * inverse (\<bar>x ^ n\<bar>)" in
 apply (rule_tac x = 0 in exI, safe)
 apply (subgoal_tac "0 < \<bar>x ^ n\<bar> ")
 apply (rule_tac c="\<bar>x ^ n\<bar>" in mult_right_le_imp_le) 
-apply (auto simp add: mult_assoc power_abs)
+apply (auto simp add: mult_assoc power_abs abs_mult)
  prefer 2
  apply (drule_tac x = 0 in spec, force)
 apply (auto simp add: power_abs mult_ac)
@@ -412,7 +412,9 @@ apply (subgoal_tac "\<bar>z ^ n\<bar> * inverse (\<bar>x\<bar> ^ n) = (\<bar>z\<
 apply (auto simp add: power_abs [symmetric])
 apply (subgoal_tac "x \<noteq> 0")
 apply (subgoal_tac [3] "x \<noteq> 0")
-apply (auto simp del: abs_inverse abs_mult simp add: abs_inverse [symmetric] realpow_not_zero abs_mult [symmetric] power_inverse power_mult_distrib [symmetric])
+apply (auto simp del: abs_inverse 
+            simp add: abs_inverse [symmetric] realpow_not_zero
+            abs_mult [symmetric] power_inverse power_mult_distrib [symmetric])
 apply (auto intro!: geometric_sums  simp add: power_abs inverse_eq_divide)
 done
 
@@ -420,7 +422,7 @@ lemma powser_inside:
      "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
       ==> summable (%n. f(n) * (z ^ n))"
 apply (drule_tac z = "\<bar>z\<bar>" in powser_insidea)
-apply (auto intro: summable_rabs_cancel simp add: power_abs [symmetric])
+apply (auto intro: summable_rabs_cancel simp add: abs_mult power_abs [symmetric])
 done
 
 
@@ -501,10 +503,10 @@ lemma lemma_termdiff3:
       ==> abs (((z + h) ^ n - z ^ n) * inverse h - real n * z ^ (n - Suc 0))  
           \<le> real n * real (n - Suc 0) * K ^ (n - 2) * \<bar>h\<bar>"
 apply (subst lemma_termdiff2, assumption)
-apply (simp add: mult_commute) 
+apply (simp add: mult_commute abs_mult) 
 apply (simp add: mult_commute [of _ "K ^ (n - 2)"]) 
 apply (rule setsum_abs [THEN real_le_trans])
-apply (simp add: mult_assoc [symmetric])
+apply (simp add: mult_assoc [symmetric] abs_mult)
 apply (simp add: mult_commute [of _ "real (n - Suc 0)"])
 apply (auto intro!: real_setsum_nat_ivl_bounded)
 apply (case_tac "n", auto)
@@ -515,13 +517,15 @@ apply (subgoal_tac "K ^ p * K ^ d * real (Suc (Suc (p + d))) =
                     K ^ p * (real (Suc (Suc (p + d))) * K ^ d)") 
 apply (simp (no_asm_simp) add: power_add del: setsum_op_ivl_Suc)
 apply (auto intro!: mult_mono simp del: setsum_op_ivl_Suc)
-apply (auto intro!: power_mono simp add: power_abs simp del: setsum_op_ivl_Suc)
+apply (auto intro!: power_mono simp add: power_abs
+           simp del: setsum_op_ivl_Suc)
 apply (rule_tac j = "real (Suc d) * (K ^ d)" in real_le_trans)
 apply (subgoal_tac [2] "0 \<le> K")
 apply (drule_tac [2] n = d in zero_le_power)
 apply (auto simp del: setsum_op_ivl_Suc)
 apply (rule setsum_abs [THEN real_le_trans])
-apply (rule real_setsum_nat_ivl_bounded, auto dest!: less_add_one intro!: mult_mono simp add: power_add)
+apply (rule real_setsum_nat_ivl_bounded)
+apply (auto dest!: less_add_one intro!: mult_mono simp add: power_add abs_mult)
 apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
 done
 
@@ -597,7 +601,7 @@ apply (simp add: diffs_def mult_assoc [symmetric])
 apply (subgoal_tac
         "\<forall>n. real (Suc n) * real (Suc (Suc n)) * \<bar>c (Suc (Suc n))\<bar> * (r ^ n) 
               = diffs (diffs (%n. \<bar>c n\<bar>)) n * (r ^ n) ") 
-apply auto
+apply (auto simp add: abs_mult)
 apply (drule diffs_equiv)
 apply (drule sums_summable)
 apply (simp_all add: diffs_def) 

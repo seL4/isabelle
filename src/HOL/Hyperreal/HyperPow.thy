@@ -68,10 +68,11 @@ lemma hrealpow_three_squares_add_zero_iff [simp]:
       (x = 0 & y = 0 & z = 0)"
 by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
-
+(*FIXME: This and RealPow.abs_realpow_two should be replaced by an abstract
+  result proved in Ring_and_Field*)
 lemma hrabs_hrealpow_two [simp]:
      "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)"
-by (simp)
+by (simp add: abs_mult)
 
 lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::hypreal"], simp)

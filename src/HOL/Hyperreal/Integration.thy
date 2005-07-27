@@ -361,7 +361,7 @@ apply (rule exI, auto)
 apply (drule spec)+
 apply auto
 apply (rule_tac z1 = "inverse (abs c)" in real_mult_less_iff1 [THEN iffD1])
-apply (auto simp add: divide_inverse [symmetric] right_diff_distrib [symmetric])
+apply (auto simp add: abs_mult divide_inverse [symmetric] right_diff_distrib [symmetric])
 done
 
 text{*Fundamental theorem of calculus (Part I)*}

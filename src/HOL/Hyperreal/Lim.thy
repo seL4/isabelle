@@ -178,7 +178,7 @@ done
 lemma LIM_mult_zero:
   assumes f: "f -- a --> 0" and g: "g -- a --> 0"
   shows "(%x. f(x) * g(x)) -- a --> 0"
-proof (simp add: LIM_eq, clarify)
+proof (simp add: LIM_eq abs_mult, clarify)
   fix r :: real
   assume r: "0<r"
   from LIM_D [OF f zero_less_one]

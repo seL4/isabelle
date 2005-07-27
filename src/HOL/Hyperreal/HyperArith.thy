@@ -71,8 +71,6 @@ done
 
 subsection{*Absolute Value Function for the Hyperreals*}
 
-declare abs_mult [simp]
-
 lemma hrabs_add_less:
      "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
 by (simp add: abs_if split: split_if_asm)
