@@ -389,23 +389,21 @@ val forall_elim_vars = PureThy.forall_elim_vars;
 fun gen_all thm =
   let
     val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
-    fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T))) th;
+    fun elim (x, T) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T)));
     val vs = Term.strip_all_vars prop;
-  in Library.foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
+  in fold elim (Term.variantlist (map #1 vs, []) ~~ map #2 vs) thm end;
 
-(*Specialization over a list of cterms*)
-fun forall_elim_list cts th = foldr (uncurry forall_elim) th (rev cts);
+(*specialization over a list of cterms*)
+val forall_elim_list = fold forall_elim;
 
-(* maps A1,...,An |- B   to   [| A1;...;An |] ==> B  *)
-fun implies_intr_list cAs th = foldr (uncurry implies_intr) th cAs;
+(*maps A1,...,An |- B  to  [| A1;...;An |] ==> B*)
+val implies_intr_list = fold_rev implies_intr;
 
-(* maps [| A1;...;An |] ==> B and [A1,...,An]   to   B *)
+(*maps [| A1;...;An |] ==> B and [A1,...,An]  to  B*)
 fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
 
-(* maps |- B to A1,...,An |- B *)
-fun impose_hyps chyps th =
-  let val chyps' = gen_rems (op aconv o apfst Thm.term_of) (chyps, #hyps (Thm.rep_thm th))
-  in implies_elim_list (implies_intr_list chyps' th) (map Thm.assume chyps') end;
+(*maps |- B to A1,...,An |- B*)
+val impose_hyps = fold Thm.weaken;
 
 (* maps A1,...,An and A1,...,An |- B to |- B *)
 fun satisfy_hyps ths th =
@@ -413,26 +411,13 @@ fun satisfy_hyps ths th =
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
-    let val {prop,thy,tpairs,...} = rep_thm th;
-        val (tpair_l, tpair_r) = Library.split_list tpairs;
-        val vars = foldr add_term_vars 
-                         (foldr add_term_vars (term_vars prop) tpair_l) tpair_r;
-        val bs = Library.foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
-        val inrs = 
-            foldr add_term_tvars 
-                  (foldr add_term_tvars (term_tvars prop) tpair_l) tpair_r;
-        val nms' = rev(Library.foldl add_new_id ([], map (#1 o #1) inrs));
-        val tye = ListPair.map (fn ((v, rs), a) => (TVar (v, rs), TVar ((a, 0), rs)))
-                     (inrs, nms')
-        val ctye = map (pairself (ctyp_of thy)) tye;
-        fun varpairs([],[]) = []
-          | varpairs((var as Var(v,T)) :: vars, b::bs) =
-                let val T' = typ_subst_atomic tye T
-                in (cterm_of thy (Var(v,T')),
-                    cterm_of thy (Var((b,0),T'))) :: varpairs(vars,bs)
-                end
-          | varpairs _ = raise TERM("varpairs", []);
-    in Thm.instantiate (ctye, varpairs(vars,rev bs)) th end;
+  let
+    val thy = Thm.theory_of_thm th;
+    val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
+    val (instT, inst) = Term.zero_var_indexes_inst (Thm.full_prop_of th);
+    val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
+    val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
+  in Thm.adjust_maxidx_thm (Thm.instantiate (cinstT, cinst) th) end;
 
 
 (** Standard form of object-rule: no hypotheses, flexflex constraints,
@@ -454,20 +439,27 @@ fun close_derivation thm =
   if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
   else thm;
 
-fun standard' th =
-  let val {maxidx,...} = rep_thm th in
-    th
-    |> implies_intr_hyps
-    |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-    |> strip_shyps_warning
-    |> zero_var_indexes |> Thm.varifyT |> Thm.compress
-  end;
+val standard' =
+  implies_intr_hyps
+  #> forall_intr_frees
+  #> `(#maxidx o Thm.rep_thm)
+  #-> (fn maxidx =>
+    forall_elim_vars (maxidx + 1)
+    #> strip_shyps_warning
+    #> zero_var_indexes
+    #> Thm.varifyT
+    #> Thm.compress);
 
-val standard = close_derivation o standard' o flexflex_unique;
+val standard =
+  flexflex_unique
+  #> standard'
+  #> close_derivation;
 
-fun local_standard th =
-  th |> strip_shyps |> zero_var_indexes
-  |> Thm.compress |> close_derivation;
+val local_standard =
+  strip_shyps
+  #> zero_var_indexes
+  #> Thm.compress
+  #> close_derivation;
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for
@@ -892,7 +884,7 @@ local
         and {thy=thyu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val thy' = Theory.merge(thy, Theory.merge(thyt, thyu))
-        val (tye',maxi') = Type.unify (Sign.tsig_of thy') (tye, maxi) (T, U)
+        val (tye',maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
           handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
     in  (thy', tye', maxi')  end;
 in
