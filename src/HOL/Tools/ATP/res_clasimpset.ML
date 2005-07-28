@@ -111,7 +111,7 @@ signature RES_CLASIMP =
   val relevant : int ref
   val use_simpset: bool ref
   val write_out_clasimp : string -> theory -> term -> 
-                             (ResClause.clause * thm) Array.array * int * ResClause.clause list
+                             (ResClause.clause * thm) Array.array * int (* * ResClause.clause list *)
 
   end;
 
@@ -121,10 +121,14 @@ val use_simpset = ref true;
 (*Relevance filtering is off by default*)
 val relevant = ref 0;  
 
-fun has_name th = ((Thm.name_of_thm th)  <>  "")
+(*The "name" of a theorem is its statement, if nothing else is available.*)
+val plain_string_of_thm =
+    setmp show_question_marks false 
+      (setmp print_mode [] 
+	(Pretty.setmp_margin 999 string_of_thm));
 
-fun has_name_pair (a,b) = (a <> "");
-
+fun put_name_pair ("",th) = (ResLib.trim_ends (plain_string_of_thm th), th)
+  | put_name_pair (a,th)  = (a,th);
 
 (* changed, now it also finds out the name of the theorem. *)
 (* convert a theorem into CNF and then into Clause.clause format. *)
@@ -142,6 +146,8 @@ fun remove_symb str =
     then  ((String.substring(str,0,5)) ^ (String.extract (str, 10, NONE)))
     else str;
 
+(*FIXME: this logic (especially concat_with_stop) needs to be replaced by code
+to invert the function ascii_of.*)
 fun remove_spaces str = 
     let val strlist = String.tokens Char.isSpace str
 	val spaceless = concat strlist
@@ -190,17 +196,16 @@ fun concat_with sep []  = ""
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun write_out_clasimp filename thy goal = 
     let val claset_rules = 
-              ReduceAxiomsN.relevant_filter (!relevant) goal 
-                (ResAxioms.claset_rules_of_thy thy);
-	val named_claset = List.filter has_name_pair claset_rules;
-
-	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
+              map put_name_pair
+	        (ReduceAxiomsN.relevant_filter (!relevant) goal 
+		  (ResAxioms.claset_rules_of_thy thy));
+	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs claset_rules []);
 
 	val simpset_rules =
 	      ReduceAxiomsN.relevant_filter (!relevant) goal 
                 (ResAxioms.simpset_rules_of_thy thy);
 	val named_simpset = 
-	      map remove_spaces_pair (List.filter has_name_pair simpset_rules)
+	      map remove_spaces_pair (map put_name_pair simpset_rules)
         val justnames = map #1 named_simpset
         val namestring = concat_with "\n" justnames
         val _ = File.append (File.tmp_path (Path.basic "clasimp_names"))
@@ -233,7 +238,7 @@ fun write_out_clasimp filename thy goal =
 	val _= TextIO.flushOut out;
 	val _= TextIO.closeOut out
   in
-	(clause_arr, num_of_clauses, clauses)
+	(clause_arr, num_of_clauses)
   end;
 
 
