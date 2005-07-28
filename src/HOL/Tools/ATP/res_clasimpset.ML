@@ -107,14 +107,17 @@ end;
 
 signature RES_CLASIMP = 
   sig
+
   val relevant : int ref
+  val use_simpset: bool ref
   val write_out_clasimp : string -> theory -> term -> 
-                             (ResClause.clause * thm) Array.array * int
+                             (ResClause.clause * thm) Array.array * int * ResClause.clause list
+
   end;
 
 structure ResClasimp : RES_CLASIMP =
 struct
-
+val use_simpset = ref true;
 (*Relevance filtering is off by default*)
 val relevant = ref 0;  
 
@@ -176,6 +179,12 @@ fun clause_numbering ((clause, theorem), cls) =
 	(multi_name)
     end;
 
+
+fun concat_with sep []  = ""
+  | concat_with sep [x] = "(" ^ x ^ ")"
+  | concat_with sep (x::xs) = "(" ^ x ^ ")" ^  sep ^ (concat_with sep xs);
+
+
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
@@ -184,6 +193,7 @@ fun write_out_clasimp filename thy goal =
               ReduceAxiomsN.relevant_filter (!relevant) goal 
                 (ResAxioms.claset_rules_of_thy thy);
 	val named_claset = List.filter has_name_pair claset_rules;
+
 	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_claset []);
 
 	val simpset_rules =
@@ -191,9 +201,13 @@ fun write_out_clasimp filename thy goal =
                 (ResAxioms.simpset_rules_of_thy thy);
 	val named_simpset = 
 	      map remove_spaces_pair (List.filter has_name_pair simpset_rules)
+        val justnames = map #1 named_simpset
+        val namestring = concat_with "\n" justnames
+        val _ = File.append (File.tmp_path (Path.basic "clasimp_names"))
+			  (namestring)
 	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
 
-	val cls_thms = (claset_cls_thms@simpset_cls_thms);
+	val cls_thms = if !use_simpset then (claset_cls_thms@simpset_cls_thms) else claset_cls_thms;
 	val cls_thms_list = List.concat cls_thms;
         (* length 1429 *)
 	(*************************************************)
@@ -219,8 +233,9 @@ fun write_out_clasimp filename thy goal =
 	val _= TextIO.flushOut out;
 	val _= TextIO.closeOut out
   in
-	(clause_arr, num_of_clauses)
+	(clause_arr, num_of_clauses, clauses)
   end;
+
 
 end;
 
