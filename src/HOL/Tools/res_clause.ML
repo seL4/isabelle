@@ -34,6 +34,15 @@ signature RES_CLAUSE =
     val untyped : unit -> unit
     val clause2tptp : clause -> string * string list
     val tfree_clause : string -> string
+    val schematic_var_prefix : string
+    val fixed_var_prefix : string
+    val tvar_prefix : string
+    val tfree_prefix : string
+    val clause_prefix : string 
+    val arclause_prefix : string
+    val const_prefix : string
+    val tconst_prefix : string 
+    val class_prefix : string 
   end;
 
 structure ResClause : RES_CLAUSE =

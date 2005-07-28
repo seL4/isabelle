@@ -366,28 +366,26 @@ fun implode_with_space [] = implode []
 
 (* FIX - should change the stars and pluses to many rather than explicit patterns *)
 
+fun trim_prefix a b =
+  let val n = String.size a 
+  in  String.substring (b, n, (size b) - n)  end;
+  
+
 (* FIX - add the other things later *)
-fun remove_typeinfo x  =  if (String.isPrefix "v_" x )
-                            then 
-                                 (String.substring (x,2, ((size x) - 2)))
-                            else if (String.isPrefix "V_" x )
-                                 then 
-                                      (String.substring (x,2, ((size x) - 2)))
-                                 else if (String.isPrefix "typ_" x )
-                                      then 
-                                          ""
-                                      else if (String.isPrefix "Typ_" x )
-                                           then 
-                                                ""
-                                           else  if (String.isPrefix "tconst_" x )
-                                                 then 
-                                                      ""
-                                                 else  if (String.isPrefix "const_" x )
-                                                       then 
-                                                            (String.substring  (x,6, ((size x) - 6)))
-                                                       else
-                                                           x
-                                               
+fun remove_typeinfo x  =  
+    if String.isPrefix ResClause.fixed_var_prefix x
+    then trim_prefix ResClause.fixed_var_prefix x
+    else if String.isPrefix ResClause.schematic_var_prefix x
+    then trim_prefix ResClause.schematic_var_prefix x
+    else if String.isPrefix ResClause.const_prefix x
+    then trim_prefix ResClause.const_prefix x
+    else if String.isPrefix ResClause.tfree_prefix x
+    then ""
+    else if String.isPrefix ResClause.tvar_prefix x
+    then ""
+    else if String.isPrefix ResClause.tconst_prefix x
+    then ""
+    else x;                                               
 
 fun term input = (  ntermlist ++ a (Other "-") ++ a (Other ">") ++ ptermlist >>(fn (a,(_,(_,b))) =>  (a@b))
                   ) input
