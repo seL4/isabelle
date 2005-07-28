@@ -227,7 +227,7 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
 
 fun unify_types sg (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of sg) (iTs, maxidx) (U, T)
+  else let val (iTs',maxidx') = Sign.typ_unify sg (U, T) (iTs, maxidx)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => (typ_clash sg (iTs,T,U); raise Unif);
 
@@ -343,8 +343,8 @@ and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
 
 exception MATCH;
 
-fun typ_match tsig args = (Type.typ_match tsig args)
-                          handle Type.TYPE_MATCH => raise MATCH;
+fun typ_match tsig (tyenv, TU) = Type.typ_match tsig TU tyenv
+  handle Type.TYPE_MATCH => raise MATCH;
 
 (*First-order matching;
   fomatch tsig (pattern, object) returns a (tyvar,typ)list and (var,term)list.
@@ -475,19 +475,16 @@ fun rewrite_term tsig rules procs tm =
   let
     val skel0 = Bound 0;
 
-    val rhs_names =
-      foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) [] rules;
-
-    fun variant_absfree (x, T, t) =
+    fun variant_absfree bounds (x, T, t) =
       let
-        val x' = variant (add_term_free_names (t, rhs_names)) x;
-        val t' = subst_bound (Free (x', T), t);
-      in (fn u => Abs (x, T, abstract_over (Free (x', T), u)), t') end;
+        val (x', t') = Term.dest_abs (Term.bound bounds x, T, t);
+        fun abs u = Abs (x, T, abstract_over (Free (x', T), u));
+      in (abs, t') end;
 
     fun match_rew tm (tm1, tm2) =
-      let val rtm = getOpt (Term.rename_abs tm1 tm tm2, tm2)
-      in SOME (Envir.subst_vars (match tsig (tm1, tm)) rtm, rtm)
-        handle MATCH => NONE
+      let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2 in
+        SOME (Envir.subst_vars (match tsig (tm1, tm)) rtm, rtm)
+          handle MATCH => NONE
       end;
 
     fun rew (Abs (_, _, body) $ t) = SOME (subst_bound (t, body), skel0)
@@ -495,42 +492,42 @@ fun rewrite_term tsig rules procs tm =
           NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
         | x => x);
 
-    fun rew1 (Var _) _ = NONE
-      | rew1 skel tm = (case rew2 skel tm of
+    fun rew1 bounds (Var _) _ = NONE
+      | rew1 bounds skel tm = (case rew2 bounds skel tm of
           SOME tm1 => (case rew tm1 of
-              SOME (tm2, skel') => SOME (getOpt (rew1 skel' tm2, tm2))
+              SOME (tm2, skel') => SOME (if_none (rew1 bounds skel' tm2) tm2)
             | NONE => SOME tm1)
         | NONE => (case rew tm of
-              SOME (tm1, skel') => SOME (getOpt (rew1 skel' tm1, tm1))
+              SOME (tm1, skel') => SOME (if_none (rew1 bounds skel' tm1) tm1)
             | NONE => NONE))
 
-    and rew2 skel (tm1 $ tm2) = (case tm1 of
+    and rew2 bounds skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in SOME (getOpt (rew2 skel0 tm', tm')) end
+              in SOME (if_none (rew2 bounds skel0 tm') tm') end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
               | _ => (skel0, skel0))
-            in case rew1 skel1 tm1 of
-                SOME tm1' => (case rew1 skel2 tm2 of
+            in case rew1 bounds skel1 tm1 of
+                SOME tm1' => (case rew1 bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1' $ tm2')
                   | NONE => SOME (tm1' $ tm2))
-              | NONE => (case rew1 skel2 tm2 of
+              | NONE => (case rew1 bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1 $ tm2')
                   | NONE => NONE)
             end)
-      | rew2 skel (Abs (x, T, tm)) =
+      | rew2 bounds skel (Abs body) =
           let
-            val (abs, tm') = variant_absfree (x, T, tm);
+            val (abs, tm') = variant_absfree bounds body;
             val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
-          in case rew1 skel' tm' of
+          in case rew1 (bounds + 1) skel' tm' of
               SOME tm'' => SOME (abs tm'')
             | NONE => NONE
           end
-      | rew2 _ _ = NONE
+      | rew2 _ _ _ = NONE;
 
-  in getOpt (rew1 skel0 tm, tm) end;
+  in if_none (rew1 0 skel0 tm) tm end;
 
 end;
 
