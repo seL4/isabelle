@@ -544,20 +544,19 @@ let fun xn_list(x,n) =
     val rhs = list_comb(f,xn_list("X",i-1) @ [Bound 0] @ yik)
 in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 
-fun find_subst tsig T =
+fun find_subst sg T =
 let fun find (thm::thms) =
         let val (Const(_,cT), va, vb) = dest_red(hd(prems_of thm));
             val [P] = add_term_vars(concl_of thm,[]) \\ [va,vb]
             val eqT::_ = binder_types cT
-        in if Type.typ_instance tsig (T,eqT) then SOME(thm,va,vb,P)
+        in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
            else find thms
         end
       | find [] = NONE
 in find subst_thms end;
 
 fun mk_cong sg (f,aTs,rT) (refl,eq) =
-let val tsig = Sign.tsig_of sg;
-    val k = length aTs;
+let val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
         let val ca = cterm_of sg va
             and cx = cterm_of sg (eta_Var(("X"^si,0),T))
@@ -568,7 +567,7 @@ let val tsig = Sign.tsig_of sg;
         in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
         let val si = radixstring(26,"a",i)
-        in case find_subst tsig T of
+        in case find_subst sg T of
              NONE => mk(c,Ts,i-1,eta_Var(("X"^si,0),T)::yik)
            | SOME s => let val c' = c RSN (2,ri(s,i,si,T,yik))
                        in mk(c',Ts,i-1,eta_Var(("Y"^si,0),T)::yik) end
@@ -578,10 +577,9 @@ in mk(refl,rev aTs,k-1,[]) end;
 
 fun mk_cong_type sg (f,T) =
 let val (aTs,rT) = strip_type T;
-    val tsig = Sign.tsig_of sg;
     fun find_refl(r::rs) =
         let val (Const(eq,eqT),_,_) = dest_red(concl_of r)
-        in if Type.typ_instance tsig (rT, hd(binder_types eqT))
+        in if Sign.typ_instance sg (rT, hd(binder_types eqT))
            then SOME(r,(eq,body_type eqT)) else find_refl rs
         end
       | find_refl([]) = NONE;
