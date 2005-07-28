@@ -2,8 +2,6 @@ For Isabelle2005:
 
 - update course material slides to new theory headers (Tobias)
 
-- shell script to convert to new theory headers
-
 - attach additional ML code to consts_code section (Stefan)
 
 - modular generation of ML code with structures (Stefan)
