@@ -114,7 +114,7 @@ by (rule ext, rule up_lemma3 [symmetric])
 lemma up_lemma6:
   "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk>  
       \<Longrightarrow> range Y <<| Iup (\<Squnion>i. THE a. Iup a = Y(i + j))"
-apply (rule_tac j1="j" in is_lub_range_shift [THEN iffD1])
+apply (rule_tac j1 = j in is_lub_range_shift [THEN iffD1])
 apply assumption
 apply (subst up_lemma5, assumption+)
 apply (rule is_lub_Iup)
