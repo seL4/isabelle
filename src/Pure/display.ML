@@ -186,7 +186,7 @@ fun pretty_full_theory thy =
 
     val pretty_arities = List.concat o map (fn (t, ars) => map (prt_arity t) ars);
 
-    fun pretty_const (c, (ty, _)) = Pretty.block
+    fun pretty_const (c, ty) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
     fun pretty_final (c, []) = Pretty.str c
@@ -197,13 +197,14 @@ fun pretty_full_theory thy =
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
     val {axioms, defs, oracles} = Theory.rep_theory thy;
-    val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
+    val {naming, syn = _, tsig, consts = (consts, constraints)} = Sign.rep_sg thy;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val clsses = NameSpace.dest_table (apsnd (Symtab.make o Graph.dest) classes);
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
-    val cnsts = NameSpace.extern_table consts;
+    val cnsts = NameSpace.extern_table consts |> map (apsnd fst);
+    val cnsts' = NameSpace.extern_table (#1 consts, constraints);
     val finals = NameSpace.extern_table (#1 consts, Defs.finals defs);
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
@@ -219,6 +220,7 @@ fun pretty_full_theory thy =
       Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
       Pretty.big_list "consts:" (map pretty_const cnsts),
+      Pretty.big_list "const constraints:" (map pretty_const cnsts'),
       Pretty.big_list "finals consts:" (map pretty_final finals),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
