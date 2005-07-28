@@ -372,6 +372,9 @@ The following theorems have been eliminated or modified
 
 * Theory Parity: added rules for simplifying exponents.
 
+* Theories SetsAndFunctions and BigO (see HOL/Library) support
+asymptotic "big O" calculations.  See the notes in BigO.thy.
+
 
 *** HOL-Complex ***
 
@@ -387,12 +390,6 @@ The following theorems have been eliminated or modified
   real_of_int_mult   reversed direction of equality (use [symmetric])
 
 * Theory RComplete: expanded support for floor and ceiling functions.
-
-
-*** HOL-Library ***
-
-* Theories SetsAndFunctions and BigO support asymptotic "big O" calculations.
-See the notes in BigO.thy.
 
 
 *** HOLCF ***
