@@ -4,7 +4,7 @@ The Isabelle Webpage
 (1) philosophy
 ==============
 
-The webpage sources consists of three different layers:
+The webpage sources consist of three different layers:
 
 a) the presentation layer
 -------------------------
@@ -37,7 +37,7 @@ file.
 c) the preprocessing layer
 --------------------------
 
-This allows to use things like includes, current date and so on:
+This allows to use things like includes, current date, and so on:
 
     "XHTML plus processing instructions"
 
@@ -53,7 +53,7 @@ The layer itself is implemented by a small tool "pypager", written in python.
 You may add arbitrary files to the dir structure, but adhere to the following:
 * use XHTML, not loose HTML
 * only structural markup; if you need layout effects, use CSS
-  (browse the exitings files to get some inspirations)
+  (browse the exiting files to get some inspirations)
 * any files ending with .html are considered as HTML files and are implicitly
   processed by the preprocessing layer
 * for HTML includes, it is most convenient to name them *.include.html to
@@ -67,7 +67,7 @@ You may add arbitrary files to the dir structure, but adhere to the following:
   in abc/def/itsme.html: <a href="//abc/ghi/itsyou.html">
                 becomes: <a href="../def/itsyou.html">
 
-  Further, targets are checked for existances.
+  Further, targets are checked for existance.
   This is a simple yet powerful thing easing to keep the pages consistent.
 * for the semantics of the processing instructions, see build/pypager.py
   source code
@@ -83,7 +83,7 @@ Then, you may edit the project configuration file conf/localconf.mak.
 After a correct configuration, the build process may be started by
 > make
 
-The project layer tries to be smart about dependencies, but inlucdes,
+The project layer tries to be smart about dependencies, but includes,
 embedded images and so on are not tracked; to built dependencies anew,
 do
 > make depends
