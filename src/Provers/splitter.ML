@@ -202,19 +202,19 @@ fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
 local
 exception MATCH
 in
-fun typ_match tsig args = (Type.typ_match tsig args)
+fun typ_match sg (tyenv, TU) = (Sign.typ_match sg TU tyenv)
                           handle Type.TYPE_MATCH => raise MATCH;
-fun fomatch tsig args =
+fun fomatch sg args =
   let
     fun mtch tyinsts = fn
-        (Ts,Var(_,T), t)  => typ_match tsig (tyinsts, (T, fastype_of1(Ts,t)))
+        (Ts,Var(_,T), t)  => typ_match sg (tyinsts, (T, fastype_of1(Ts,t)))
       | (_,Free (a,T), Free (b,U)) =>
-          if a=b then typ_match tsig (tyinsts,(T,U)) else raise MATCH
+          if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
       | (_,Const (a,T), Const (b,U))  =>
-          if a=b then typ_match tsig (tyinsts,(T,U)) else raise MATCH
+          if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
       | (_,Bound i, Bound j)  =>  if  i=j  then tyinsts else raise MATCH
       | (Ts,Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match tsig (tyinsts,(T,U))) (U::Ts,t,u)
+          mtch (typ_match sg (tyinsts,(T,U))) (U::Ts,t,u)
       | (Ts, f$t, g$u) => mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
       | _ => raise MATCH
   in (mtch Vartab.empty args; true) handle MATCH => false end;
@@ -236,7 +236,7 @@ fun split_posns cmap sg Ts t =
                       | find ((gcT, pat, thm, T, n)::tups) =
                           let val t2 = list_comb (h, Library.take (n, ts))
                           in if Sign.typ_instance sg (cT, gcT)
-                                andalso fomatch (Sign.tsig_of sg) (Ts,pat,t2)
+                                andalso fomatch sg (Ts,pat,t2)
                              then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
                              else find tups
                           end

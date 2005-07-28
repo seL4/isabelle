@@ -112,7 +112,6 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
 fun inst_adm_subst_thm state i params s T subt t paths =
   let val {sign, maxidx, ...} = rep_thm state;
       val j = maxidx+1;
-      val tsig = Sign.tsig_of sign;
       val parTs = map snd (rev params);
       val rule = lift_rule (state, i) adm_subst;
       val types = valOf o (fst (types_sorts rule));
@@ -123,8 +122,8 @@ fun inst_adm_subst_thm state i params s T subt t paths =
       val tt = cterm_of sign (mk_abs (params @ [(s, T)]) subt);
       val Pt = cterm_of sign (mk_abs (params @ [(s, fastype_of1 (T::parTs, subt))])
                      (make_term t [] paths 0));
-      val tye = Type.typ_match tsig (Vartab.empty, (tT, #T (rep_cterm tt)));
-      val tye' = Type.typ_match tsig (tye, (PT, #T (rep_cterm Pt)));
+      val tye = Sign.typ_match sign (tT, #T (rep_cterm tt)) Vartab.empty;
+      val tye' = Sign.typ_match sign (PT, #T (rep_cterm Pt)) tye;
       val ctye = map (fn (ixn, (S, T)) =>
         (ctyp_of sign (TVar (ixn, S)), ctyp_of sign T)) (Vartab.dest tye');
       val tv = cterm_of sign (Var (("t", j), Envir.typ_subst_TVars tye' tT));

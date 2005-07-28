@@ -40,8 +40,8 @@ fun match_term thry pat ob =
   in (map tmbind (Vartab.dest tm_theta), map tybind (Vartab.dest ty_theta))
   end;
 
-fun match_type thry pat ob = map tybind (Vartab.dest
-  (Type.typ_match (Sign.tsig_of (Theory.sign_of thry)) (Vartab.empty, (pat, ob))));
+fun match_type thry pat ob =
+  map tybind (Vartab.dest (Sign.typ_match thry (pat, ob) Vartab.empty));
 
 end;
 

@@ -156,13 +156,12 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
 
       val casethm_vars = rev (Term.term_vars (Thm.concl_of case_thm));
        
-      val tsig = Sign.tsig_of sgn;
       val casethm_tvars = Term.term_tvars (Thm.concl_of case_thm);
       val (Pv, Dv, type_insts) = 
           case (Thm.concl_of case_thm) of 
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) => 
             (Pv, Dv, 
-             Type.typ_match tsig (Vartab.empty, (Dty, ty)))
+             Sign.typ_match sgn (Dty, ty) Vartab.empty)
           | _ => raise ERROR_MESSAGE ("not a valid case thm");
       val type_cinsts = map (fn (ixn, (S, T)) => (ctypify (TVar (ixn, S)), ctypify T))
         (Vartab.dest type_insts);

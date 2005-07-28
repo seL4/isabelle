@@ -434,7 +434,7 @@ struct
 		let
 			fun find_typeSubs (Const (s', T')) =
 				(if s=s' then
-					SOME (Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T))) handle Type.TYPE_MATCH => NONE
+					SOME (Sign.typ_match thy (T', T) Vartab.empty) handle Type.TYPE_MATCH => NONE
 				else
 					NONE)
 			  | find_typeSubs (Free _)           = NONE
@@ -543,7 +543,7 @@ struct
 							  SOME T' =>
 								let
 									val T''      = (domain_type o domain_type) T'
-									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T'', T))
+									val typeSubs = Sign.typ_match thy (T'', T) Vartab.empty
 								in
 									SOME (axname, monomorphic_term typeSubs ax)
 								end
@@ -642,7 +642,7 @@ struct
 						in
 							if s=s' then
 								let
-									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T))
+									val typeSubs = Sign.typ_match thy (T', T) Vartab.empty
 								in
 									SOME (axname, monomorphic_term typeSubs ax)
 								end
@@ -668,7 +668,7 @@ struct
 								Library.exists (fn c =>
 									(case c of
 									  Const (cname, ctype) =>
-										cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T, ctype)
+										cname = s andalso Sign.typ_instance thy (T, ctype)
 									| _ =>
 										raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
 									constrs
@@ -1738,7 +1738,7 @@ struct
 									())
 							(* split the constructors into those occuring before/after 'Const (s, T)' *)
 							val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
-								not (cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T,
+								not (cname = s andalso Sign.typ_instance thy (T,
 									map (typ_of_dtyp descr typ_assoc) ctypes ---> Type (s', Ts')))) constrs
 						in
 							case constrs2 of
