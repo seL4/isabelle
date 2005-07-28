@@ -25,6 +25,8 @@ sig
   val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_const_constraint: xstring * string -> theory -> theory
+  val add_const_constraint_i: string * typ -> theory -> theory
   val add_classes: (bstring * xstring list) list -> theory -> theory
   val add_classes_i: (bstring * class list) list -> theory -> theory
   val add_classrel: (xstring * xstring) list -> theory -> theory
@@ -76,7 +78,7 @@ sig
    {naming: NameSpace.naming,
     syn: Syntax.syntax,
     tsig: Type.tsig,
-    consts: (typ * stamp) NameSpace.table}
+    consts: (typ * stamp) NameSpace.table * typ Symtab.table}
   val naming_of: theory -> NameSpace.naming
   val base_name: string -> bstring
   val full_name: theory -> bstring -> string
@@ -92,7 +94,10 @@ sig
   val universal_witness: theory -> (typ * sort) option
   val all_sorts_nonempty: theory -> bool
   val typ_instance: theory -> typ * typ -> bool
+  val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
+  val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
   val is_logtype: theory -> string -> bool
+  val const_constraint: theory -> string -> typ option
   val const_type: theory -> string -> typ option
   val the_const_type: theory -> string -> typ
   val declared_tyname: theory -> string -> bool
@@ -178,13 +183,19 @@ datatype sign = Sign of
  {naming: NameSpace.naming,                 (*common naming conventions*)
   syn: Syntax.syntax,                       (*concrete syntax for terms, types, sorts*)
   tsig: Type.tsig,                          (*order-sorted signature of types*)
-  consts: (typ * stamp) NameSpace.table};   (*type schemes of term constants*)
+  consts:
+    (typ * stamp) NameSpace.table *         (*type schemes of declared term constants*)
+    typ Symtab.table};                      (*type constraints for constants*)
+
 
 fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
 
 fun err_dup_consts cs =
   error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
+
+fun err_inconsistent_constraints cs =
+  error ("Inconsistent type constraints for constant(s) " ^ commas_quote cs);
 
 structure SignData = TheoryDataFun
 (struct
@@ -193,20 +204,22 @@ structure SignData = TheoryDataFun
   val copy = I;
   val extend = I;
 
-  val empty =
-    make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig, NameSpace.empty_table);
+  val empty = make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig,
+    (NameSpace.empty_table, Symtab.empty));
 
   fun merge pp (sign1, sign2) =
     let
-      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
-      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
+      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = (consts1, constraints1)} = sign1;
+      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = (consts2, constraints2)} = sign2;
 
       val naming = NameSpace.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
       val consts = NameSpace.merge_tables eq_snd (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
-    in make_sign (naming, syn, tsig, consts) end;
+      val constraints = Symtab.merge (op =) (constraints1, constraints2)
+        handle Symtab.DUPS cs => err_inconsistent_constraints cs;
+    in make_sign (naming, syn, tsig, (consts, constraints)) end;
 
   fun print _ _ = ();
 end);
@@ -249,12 +262,21 @@ val witness_sorts = Type.witness_sorts o tsig_of;
 val universal_witness = Type.universal_witness o tsig_of;
 val all_sorts_nonempty = is_some o universal_witness;
 val typ_instance = Type.typ_instance o tsig_of;
+val typ_match = Type.typ_match o tsig_of;
+val typ_unify = Type.unify o tsig_of;
 fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
 
 
 (* consts signature *)
 
-fun const_type thy c = Option.map #1 (Symtab.lookup (#2 (#consts (rep_sg thy)), c));
+fun const_constraint thy c =
+  let val ((_, consts), constraints) = #consts (rep_sg thy) in
+    (case Symtab.lookup (constraints, c) of
+      NONE => Option.map #1 (Symtab.lookup (consts, c))
+    | some => some)
+  end;
+
+fun const_type thy c = Option.map #1 (Symtab.lookup (#2 (#1 (#consts (rep_sg thy))), c));
 
 fun the_const_type thy c =
   (case const_type thy c of SOME T => T
@@ -269,7 +291,7 @@ val declared_const = is_some oo const_type;
 
 val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
 val type_space = #1 o #types o Type.rep_tsig o tsig_of;
-val const_space = #1 o #consts o rep_sg
+val const_space = #1 o #1 o #consts o rep_sg
 
 val intern_class = NameSpace.intern o class_space;
 val extern_class = NameSpace.extern o class_space;
@@ -509,7 +531,7 @@ fun infer_types_simult pp thy def_type def_sort used freeze args =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 
     fun infer ts = OK (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (const_type thy) def_type def_sort (intern_const thy) (intern_tycons thy)
+        (const_constraint thy) def_type def_sort (intern_const thy) (intern_tycons thy)
         (intern_sort thy) used freeze typs ts)
       handle TYPE (msg, _, _) => Error msg;
 
@@ -660,12 +682,27 @@ fun gen_add_consts prep_typ raw_args thy =
       handle Symtab.DUPS cs => err_dup_consts cs;
   in
     thy
-    |> map_consts extend_consts
+    |> map_consts (apfst extend_consts)
     |> add_syntax_i args
   end;
 
 val add_consts = gen_add_consts (read_typ o no_def_sort);
 val add_consts_i = gen_add_consts certify_typ;
+
+
+(* add constraints *)
+
+fun gen_add_constraint int_const prep_typ (raw_c, raw_T) thy =
+  let
+    val c = int_const thy raw_c;
+    val T = Term.zero_var_indexesT (Term.no_dummyT (prep_typ thy raw_T))
+      handle TYPE (msg, _, _) => error msg;
+    val _ = cert_term thy (Const (c, T))
+      handle TYPE (msg, _, _) => error msg;
+  in thy |> map_consts (apsnd (curry Symtab.update (c, T))) end;
+
+val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_sort);
+val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
 
 
 (* add type classes *)
@@ -757,7 +794,7 @@ val hide_classes_i = map_tsig oo Type.hide_classes;
 fun hide_types b xs thy = thy |> map_tsig (Type.hide_types b (map (intern_type thy) xs));
 val hide_types_i = map_tsig oo Type.hide_types;
 fun hide_consts b xs thy =
-  thy |> map_consts (apfst (fold (NameSpace.hide b o intern_const thy) xs));
-val hide_consts_i = (map_consts o apfst) oo (fold o NameSpace.hide);
+  thy |> map_consts (apfst (apfst (fold (NameSpace.hide b o intern_const thy) xs)));
+val hide_consts_i = (map_consts o apfst o apfst) oo (fold o NameSpace.hide);
 
 end;
