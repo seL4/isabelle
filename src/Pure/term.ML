@@ -68,6 +68,13 @@ sig
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_term_types: (typ -> typ) -> term -> term
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
+  val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
+  val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
+  val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
+  val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
+  val add_term_names: term * string list -> string list
+  val add_term_varnames: term -> indexname list -> indexname list
+  val term_varnames: term -> indexname list
   val aconv: term * term -> bool
   val aconvs: term list * term list -> bool
   structure Vartab: TABLE
@@ -127,12 +134,9 @@ sig
   val add_term_classes: term * class list -> class list
   val add_term_tycons: term * string list -> string list
   val add_term_consts: term * string list -> string list
-  val add_term_constsT: term * (string * typ) list -> (string * typ) list
   val term_consts: term -> string list
-  val term_constsT: term -> (string * typ) list
-  val exists_Const: (string * typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
-  val add_new_id: string list * string -> string list
+  val exists_Const: (string * typ -> bool) -> term -> bool
   val add_term_free_names: term * string list -> string list
   val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
   val add_typ_tfree_names: typ * string list -> string list
@@ -156,13 +160,6 @@ sig
   val term_frees: term -> term list
   val variant_abs: string * typ * term -> string * term
   val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
-  val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
-  val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
-  val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
-  val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
-  val add_term_names: term * string list -> string list
-  val add_term_varnames: term -> indexname list -> indexname list
-  val term_varnames: term -> indexname list
   val compress_type: typ -> typ
   val compress_term: term -> term
   val show_question_marks: bool ref
@@ -172,6 +169,12 @@ signature TERM =
 sig
   include BASIC_TERM
   val argument_type_of: term -> typ
+  val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
+  val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
+  val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
+  val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
+  val add_tfrees: term -> (string * sort) list -> (string * sort) list
+  val add_frees: term -> (string * typ) list -> (string * typ) list
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
   val sort_ord: sort * sort -> order
@@ -183,8 +186,10 @@ sig
   val term_lpo: (string -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
-  val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
+  val eq_var: (indexname * typ) * (indexname * typ) -> bool
+  val tvar_ord: (indexname * sort) * (indexname * sort) -> order
+  val var_ord: (indexname * typ) * (indexname * typ) -> order
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> term -> term
   val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
@@ -195,10 +200,11 @@ sig
   val map_typ: (string -> string) -> (string -> string) -> typ -> typ
   val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
   val dest_abs: string * typ * term -> string * term
-  val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
-  val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
-  val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
-  val add_frees: term -> (string * typ) list -> (string * typ) list
+  val bound: int -> string -> string
+  val zero_var_indexesT: typ -> typ
+  val zero_var_indexes: term -> term
+  val zero_var_indexes_inst: term ->
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
@@ -466,6 +472,40 @@ let fun iter(Const(_,T), a) = f(T,a)
 in iter end
 
 
+(* fold types and terms *)
+
+(*fold atoms of type*)
+fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
+  | fold_atyps f T = f T;
+
+(*fold atoms of term*)
+fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
+  | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
+  | fold_aterms f a = f a;
+
+(*fold types of term*)
+fun fold_term_types f (t as Const (_, T)) = f t T
+  | fold_term_types f (t as Free (_, T)) = f t T
+  | fold_term_types f (t as Var (_, T)) = f t T
+  | fold_term_types f (Bound _) = I
+  | fold_term_types f (t as Abs (_, T, b)) = f t T #> fold_term_types f b
+  | fold_term_types f (t $ u) = fold_term_types f t #> fold_term_types f u;
+
+fun fold_types f = fold_term_types (K f);
+
+(*collect variables*)
+val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
+val add_tvars = fold_types add_tvarsT;
+val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
+val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
+val add_tfrees = fold_types add_tfreesT;
+val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
+
+(*collect variable names*)
+val add_term_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
+fun term_varnames t = add_term_varnames t [];
+
+
 (** Comparing terms, types, sorts etc. **)
 
 (* fast syntactic comparison *)
@@ -584,14 +624,8 @@ fun term_ord tu =
     | (t, u) =>
         (case int_ord (size_of_term t, size_of_term u) of
           EQUAL =>
-            let
-              val (f, m) = hd_depth (t, 0)
-              and (g, n) = hd_depth (u, 0);
-            in
-              (case hd_ord (f, g) of EQUAL =>
-                (case int_ord (m, n) of EQUAL => args_ord (t, u) | ord => ord)
-              | ord => ord)
-            end
+            (case prod_ord hd_ord int_ord (hd_depth (t, 0), hd_depth (u, 0)) of
+              EQUAL => args_ord (t, u) | ord => ord)
         | ord => ord))
 and hd_ord (f, g) =
   prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
@@ -781,8 +815,11 @@ fun ins_ix (x, xs) = if mem_ix (x, xs) then xs else x :: xs;
 
 (* variables *)
 
-fun eq_var ((xi, T: typ), (yj, U)) = eq_ix (xi, yj) andalso T = U;
-fun eq_tvar ((xi, S: sort), (yj, S')) = eq_ix (xi, yj) andalso S = S';
+fun eq_tvar ((xi, S: sort), (xi', S')) = eq_ix (xi, xi') andalso S = S';
+fun eq_var ((xi, T: typ), (xi', T')) = eq_ix (xi, xi') andalso T = T';
+
+val tvar_ord = prod_ord indexname_ord sort_ord;
+val var_ord = prod_ord indexname_ord typ_ord;
 
 
 (* terms *)
@@ -933,12 +970,12 @@ fun subst_vars ([], []) tm = tm
       in subst tm end;
 
 
-(* efficient substitution of schematic variables *)
+(* instantiation of schematic variables (types before terms) *)
 
 local exception SAME in
 
-fun substT [] _ = raise SAME
-  | substT instT ty =
+fun instantiateT_same [] _ = raise SAME
+  | instantiateT_same instT ty =
       let
         fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
           | subst_typ (TVar v) =
@@ -955,23 +992,24 @@ fun substT [] _ = raise SAME
 fun instantiate ([], []) tm = tm
   | instantiate (instT, inst) tm =
       let
-        fun subst (Const (c, T)) = Const (c, substT instT T)
-          | subst (Free (x, T)) = Free (x, substT instT T)
+        val substT = instantiateT_same instT;
+        fun subst (Const (c, T)) = Const (c, substT T)
+          | subst (Free (x, T)) = Free (x, substT T)
           | subst (Var (xi, T)) =
-              let val (T', same) = (substT instT T, false) handle SAME => (T, true) in
+              let val (T', same) = (substT T, false) handle SAME => (T, true) in
                 (case gen_assoc eq_var (inst, (xi, T')) of
                    SOME t => t
                  | NONE => if same then raise SAME else Var (xi, T'))
               end
           | subst (Bound _) = raise SAME
           | subst (Abs (x, T, t)) =
-              (Abs (x, substT instT T, subst t handle SAME => t)
+              (Abs (x, substT T, subst t handle SAME => t)
                 handle SAME => Abs (x, T, subst t))
           | subst (t $ u) = (subst t $ (subst u handle SAME => u) handle SAME => t $ subst u);
       in subst tm handle SAME => tm end;
 
 fun instantiateT instT ty =
-  substT instT ty handle SAME => ty;
+  instantiateT_same instT ty handle SAME => ty;
 
 end;
 
@@ -1025,14 +1063,14 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 (*** Printing ***)
 
-(*Makes a variant of a name distinct from the names in bs.
+(*Makes a variant of a name distinct from the names in 'used'.
   First attaches the suffix and then increments this;
   preserves a suffix of underscores "_". *)
-fun variant bs name =
+fun variant used name =
   let
     val (c, u) = pairself implode (Library.take_suffix (equal "_") (Symbol.explode name));
-    fun vary2 c = if ((c ^ u) mem_string bs) then vary2 (Symbol.bump_string c) else c;
-    fun vary1 c = if ((c ^ u) mem_string bs) then vary2 (Symbol.bump_init c) else c;
+    fun vary2 c = if ((c ^ u) mem_string used) then vary2 (Symbol.bump_string c) else c;
+    fun vary1 c = if ((c ^ u) mem_string used) then vary2 (Symbol.bump_init c) else c;
   in vary1 (if c = "" then "u" else c) ^ u end;
 
 (*Create variants of the list of names, with priority to the first ones*)
@@ -1067,29 +1105,18 @@ fun add_term_consts (Const (c, _), cs) = c ins_string cs
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
 
-fun add_term_constsT (Const c, cs) = c::cs
-  | add_term_constsT (t $ u, cs) = add_term_constsT (t, add_term_constsT (u, cs))
-  | add_term_constsT (Abs (_, _, t), cs) = add_term_constsT (t, cs)
-  | add_term_constsT (_, cs) = cs;
-
 fun term_consts t = add_term_consts(t,[]);
 
-fun term_constsT t = add_term_constsT(t,[]);
-
-fun exists_Const P t = let
-        fun ex (Const c      ) = P c
-        |   ex (t $ u        ) = ex t orelse ex u
-        |   ex (Abs (_, _, t)) = ex t
-        |   ex _               = false
-    in ex t end;
-
 fun exists_subterm P =
-  let fun ex t = P t orelse
-                 (case t of
-                    u $ v        => ex u orelse ex v
-                  | Abs(_, _, u) => ex u
-                  | _            => false)
+  let
+    fun ex tm = P tm orelse
+      (case tm of
+        t $ u => ex t orelse ex u
+      | Abs (_, _, t) => ex t
+      | _ => false);
   in ex end;
+
+fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
 
 (*map classes, tycons*)
 fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
@@ -1106,9 +1133,6 @@ fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
 
 
 (** TFrees and TVars **)
-
-(*maps  (bs,v)  to   v'::bs    this reverses the identifiers bs*)
-fun add_new_id (bs, c) : string list =  variant bs c  ::  bs;
 
 (*Accumulates the names of Frees in the term, suppressing duplicates.*)
 fun add_term_free_names (Free(a,_), bs) = a ins_string bs
@@ -1228,6 +1252,8 @@ fun dest_abs (x, T, body) =
     else (x, subst_bound (Free (x, T), body))
   end;
 
+fun bound bounds x = "." ^ x ^ "." ^ string_of_int bounds;
+
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
   let fun rename_aT (vars,(a,T)) =
@@ -1237,36 +1263,28 @@ fun rename_aTs names vars : (string*typ)list =
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
 
-(* left-ro-right traversal *)
+(* zero var indexes *)
 
-(*fold atoms of type*)
-fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
-  | fold_atyps f T = f T;
+fun zero_var_inst vars =
+  fold (fn v as ((x, i), X) => fn (used, inst) =>
+    let
+      val x' = variant used x;
+      val used' = x' :: used;
+    in if x = x' andalso i = 0 then (used', inst) else (used', (v, ((x', 0), X)) :: inst) end)
+  vars ([], []) |> #2;
 
-(*fold atoms of term*)
-fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
-  | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
-  | fold_aterms f a = f a;
+fun zero_var_indexesT ty =
+  instantiateT (map (apsnd TVar) (zero_var_inst (sort tvar_ord (add_tvarsT ty [])))) ty;
 
-(*fold types of term*)
-fun fold_term_types f (t as Const (_, T)) = f t T
-  | fold_term_types f (t as Free (_, T)) = f t T
-  | fold_term_types f (t as Var (_, T)) = f t T
-  | fold_term_types f (Bound _) = I
-  | fold_term_types f (t as Abs (_, T, b)) = f t T #> fold_term_types f b
-  | fold_term_types f (t $ u) = fold_term_types f t #> fold_term_types f u;
+fun zero_var_indexes_inst tm =
+  let
+    val instT = map (apsnd TVar) (zero_var_inst (sort tvar_ord (fold_types add_tvarsT tm [])));
+    val inst =
+      add_vars tm [] |> map (apsnd (instantiateT instT))
+      |> sort var_ord |> zero_var_inst |> map (apsnd Var);
+  in (instT, inst) end;
 
-fun fold_types f = fold_term_types (K f);
-
-(*collect variables*)
-val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
-val add_tvars = fold_types add_tvarsT;
-val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
-val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
-
-(*collect variable names*)
-val add_term_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
-fun term_varnames t = add_term_varnames t [];
+fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
 
 
 
