@@ -223,18 +223,28 @@ end;
 
 (** add constant definitions **)
 
-(* overloading *)
+(* check_overloading *)
 
-datatype overloading = Clean | Implicit | Useless;
-
-fun overloading thy overloaded declT defT =
+fun check_overloading thy overloaded (c, T) =
   let
-    val defT' = Logic.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
+    val declT =
+      (case Sign.const_constraint thy c of
+        NONE => error ("Undeclared constant " ^ quote c)
+      | SOME declT => declT);
+    val T' = Type.varifyT T;
+
+    fun message txt =
+      [Pretty.block [Pretty.str "Specification of constant ",
+        Pretty.str c, Pretty.str " ::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ thy T)],
+        Pretty.str txt] |> Pretty.chunks |> Pretty.string_of;
   in
-    if Sign.typ_instance thy (declT, defT') then Clean
-    else if Sign.typ_instance thy (Type.strip_sorts declT, Type.strip_sorts defT') then Useless
-    else if overloaded then Clean
-    else Implicit
+    if Sign.typ_instance thy (declT, T') then ()
+    else if Type.raw_instance (declT, T') then
+      error (Library.setmp show_sorts true
+        message "imposes additional sort constraints on the constant declaration")
+    else if overloaded then ()
+    else warning (message "is strictly less general than the declared type");
+    (c, T)
   end;
 
 
@@ -279,35 +289,23 @@ fun dest_def pp tm =
 
 (* check_def *)
 
-fun pretty_const pp (c, T) =
- [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
-
 fun check_def thy overloaded (bname, tm) defs =
   let
     val pp = Sign.pp thy;
     fun prt_const (c, T) =
      [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
-    fun string_of_def const txt =
-      [Pretty.block (Pretty.str "Definition of " :: pretty_const pp const), Pretty.str txt]
-      |> Pretty.chunks |> Pretty.string_of;
+    fun declared (c, _) = (c, Sign.the_const_type thy c);
 
-    fun typed_const c = (c, Sign.the_const_type thy c);
-
-    val ((c, defT), rhs) = dest_def pp tm handle TERM (msg, _) => error msg;
-    val rhs_consts = Term.term_constsT rhs;
-    val declT = Sign.the_const_type thy c;
-    val _ =
-      (case overloading thy overloaded declT defT of
-        Clean => ()
-      | Implicit => warning (string_of_def (c, defT)
-          ("is strictly less general than the declared type (see " ^ quote bname ^ ")"))
-      | Useless => error (Library.setmp show_sorts true (string_of_def (c, defT))
-          "imposes additional sort constraints on the declared type of the constant"));
+    val _ = no_vars pp tm;
+    val (const, rhs) = dest_def pp tm handle TERM (msg, _) => error msg;
+    val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
+    val _ = check_overloading thy overloaded const;
   in
-    defs |> Defs.declare (typed_const c) |> fold (Defs.declare o typed_const o #1) rhs_consts
-    |> Defs.define pp (c, defT) (Sign.full_name thy bname) rhs_consts
+    defs
+    |> Defs.declare (declared const)
+    |> fold (Defs.declare o declared) rhs_consts
+    |> Defs.define pp const (Sign.full_name thy bname) rhs_consts
   end
   handle ERROR => error (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -339,22 +337,16 @@ local
 
 fun gen_add_finals prep_term overloaded raw_terms thy =
   let
+    val pp = Sign.pp thy;
     fun finalize tm finals =
       let
-        fun err msg = raise TERM (msg, [tm]);    (* FIXME error!? *)
-        val (c, defT) =
+        val _ = no_vars pp tm;
+        val const as (c, _) =
           (case tm of Const x => x
-          | Free _ => err "Attempt to finalize variable (or undeclared constant)"
-          | _ => err "Attempt to finalize non-constant term");
-        val declT = Sign.the_const_type thy c
-          handle TYPE (msg, _, _) => err msg;
-        val _ =    (* FIXME unify messages with defs *)
-          (case overloading thy overloaded declT defT of
-            Clean => ()
-          | Implicit => warning ("Finalizing " ^ quote c ^
-              " at a strictly less general type than declared")
-          | Useless => err "Sort constraints stronger than declared");
-      in finals |> Defs.declare (c, declT) |> Defs.finalize (c, defT) end;
+          | Free _ => error "Attempt to finalize variable (or undeclared constant)"
+          | _ => error "Attempt to finalize non-constant term")
+          |> check_overloading thy overloaded;
+      in finals |> Defs.declare (c, Sign.the_const_type thy c) |> Defs.finalize const end;
   in thy |> map_defs (fold finalize (map (prep_term thy) raw_terms)) end;
 
 fun read_term thy = Sign.simple_read_term thy TypeInfer.logicT;
