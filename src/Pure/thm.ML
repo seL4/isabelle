@@ -84,6 +84,7 @@ signature BASIC_THM =
   val nprems_of: thm -> int
   val cprop_of: thm -> cterm
   val transfer: theory -> thm -> thm
+  val weaken: cterm -> thm -> thm
   val extra_shyps: thm -> sort list
   val strip_shyps: thm -> thm
   val get_axiom_i: theory -> string -> thm
@@ -94,7 +95,6 @@ signature BASIC_THM =
 
   (*meta rules*)
   val assume: cterm -> thm
-  val compress: thm -> thm
   val implies_intr: cterm -> thm -> thm
   val implies_elim: thm -> thm -> thm
   val forall_intr: cterm -> thm -> thm
@@ -140,19 +140,21 @@ sig
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
   val no_attributes: 'a -> 'a * 'b attribute list
-  val apply_attributes: ('a * thm) * 'a attribute list -> ('a * thm)
-  val applys_attributes: ('a * thm list) * 'a attribute list -> ('a * thm list)
+  val apply_attributes: ('a * thm) * 'a attribute list -> 'a * thm
+  val applys_attributes: ('a * thm list) * 'a attribute list -> 'a * thm list
+  val terms_of_tpairs: (term * term) list -> term list
+  val full_prop_of: thm -> term
   val get_name_tags: thm -> string * tag list
   val put_name_tags: string * tag list -> thm -> thm
   val name_of_thm: thm -> string
   val tags_of_thm: thm -> tag list
   val name_thm: string * thm -> thm
+  val compress: thm -> thm
+  val adjust_maxidx_thm: thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
   val cterm_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_incr_indexes: int -> cterm -> cterm
-  val terms_of_tpairs: (term * term) list -> term list
-  val full_prop_of: thm -> term
 end;
 
 structure Thm: THM =
@@ -380,11 +382,20 @@ fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
 
 fun full_prop_of (Thm {tpairs, prop, ...}) = attach_tpairs tpairs prop;
-  
+
+
+(* merge theories of cterms/thms; raise exception if incompatible *)
+
+fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
+  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th]);
+
+fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
+  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
+
 
 (*attributes subsume any kind of rules or context modifiers*)
 type 'a attribute = 'a * thm -> 'a * thm;
-
+  
 fun no_attributes x = (x, []);
 fun apply_attributes (x_th, atts) = Library.apply atts x_th;
 fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
@@ -392,6 +403,7 @@ fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
 (* hyps *)
 
+val insert_hyps = OrdList.insert Term.fast_term_ord;
 val remove_hyps = OrdList.remove Term.fast_term_ord;
 val union_hyps = OrdList.union Term.fast_term_ord;
 val eq_set_hyps = OrdList.eq_set Term.fast_term_ord;
@@ -442,21 +454,38 @@ fun transfer thy' thm =
     val Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop} = thm;
     val thy = Theory.deref thy_ref;
   in
-    if eq_thy (thy, thy') then thm
-    else if subthy (thy, thy') then
-      Thm {thy_ref = Theory.self_ref thy', der = der, maxidx = maxidx,
-        shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}
-    else raise THM ("transfer: not a super theory", 0, [thm])
+    if not (subthy (thy, thy')) then
+      raise THM ("transfer: not a super theory", 0, [thm])
+    else if eq_thy (thy, thy') then thm
+    else
+      Thm {thy_ref = Theory.self_ref thy',
+        der = der,
+        maxidx = maxidx,
+        shyps = shyps,
+        hyps = hyps,
+        tpairs = tpairs,
+        prop = prop}
   end;
 
-
-(* merge theories of cterms/thms; raise exception if incompatible *)
-
-fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
-  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th]);
-
-fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
-  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
+(*explicit weakening: maps |- B to A |- B*)
+fun weaken raw_ct th =
+  let
+    val ct as Cterm {t = A, T, sorts, maxidx = maxidxA, ...} = adjust_maxidx raw_ct;
+    val Thm {der, maxidx, shyps, hyps, tpairs, prop, ...} = th;
+  in
+    if T <> propT then
+      raise THM ("weaken: assumptions must have type prop", 0, [])
+    else if maxidxA <> ~1 then
+      raise THM ("weaken: assumptions may not contain schematic variables", maxidxA, [])
+    else
+      Thm {thy_ref = merge_thys1 ct th,
+        der = der,
+        maxidx = maxidx,
+        shyps = Sorts.union sorts shyps,
+        hyps = insert_hyps A hyps,
+        tpairs = tpairs,
+        prop = prop}
+  end;
 
 
 
@@ -544,13 +573,22 @@ fun name_thm (name, thm) = put_name_tags (name, tags_of_thm thm) thm;
 (*Compression of theorems -- a separate rule, not integrated with the others,
   as it could be slow.*)
 fun compress (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
-    Thm {thy_ref = thy_ref,
-         der = der,     (*No derivation recorded!*)
-         maxidx = maxidx,
-         shyps = shyps,
-         hyps = map Term.compress_term hyps,
-         tpairs = map (pairself Term.compress_term) tpairs,
-         prop = Term.compress_term prop};
+  Thm {thy_ref = thy_ref,
+    der = der,
+    maxidx = maxidx,
+    shyps = shyps,
+    hyps = map Term.compress_term hyps,
+    tpairs = map (pairself Term.compress_term) tpairs,
+    prop = Term.compress_term prop};
+
+fun adjust_maxidx_thm (Thm {thy_ref, der, shyps, hyps, tpairs, prop, ...}) =
+  Thm {thy_ref = thy_ref,
+    der = der,
+    maxidx = maxidx_tpairs tpairs (maxidx_of_term prop),
+    shyps = shyps,
+    hyps = hyps,
+    tpairs = tpairs,
+    prop = prop};
 
 
 
