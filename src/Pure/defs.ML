@@ -121,13 +121,13 @@ fun subst s ty = Envir.norm_type s ty
 fun subst_history s history = map (fn (ty, cn, dn) => (subst s ty, cn, dn)) history
 
 fun is_instance instance_ty general_ty =
-    Type.typ_instance Type.empty_tsig (instance_ty, general_ty)
+    Type.raw_instance (instance_ty, general_ty)
 
 fun is_instance_r instance_ty general_ty =
     is_instance instance_ty (rename instance_ty general_ty)
 
 fun unify ty1 ty2 =
-    SOME (fst (Type.unify Type.empty_tsig (Vartab.empty, 0) (ty1, ty2)))
+    SOME (Type.raw_unify (ty1, ty2) Vartab.empty)
     handle Type.TUNIFY => NONE
 
 (*
@@ -656,7 +656,7 @@ fun fast_overloading_info (_, _, _, graph) c =
 
 fun pretty_const pp (c, T) =
  [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-  Pretty.quote (Pretty.typ pp (Type.freeze_type T))];    (* FIXME zero indexes!? *)
+  Pretty.quote (Pretty.typ pp (Type.freeze_type (Term.zero_var_indexesT T)))];
 
 fun pretty_path pp path = fold_rev (fn (T, c, def) =>
   fn [] => [Pretty.block (pretty_const pp (c, T))]
