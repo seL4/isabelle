@@ -62,7 +62,7 @@ fun mk_abs Ts t = Library.foldl (fn (u, T) => Abs ("", T, u)) (t, Ts);
 fun unifyT sg env T U =
   let
     val Envir.Envir {asol, iTs, maxidx} = env;
-    val (iTs', maxidx') = Type.unify (Sign.tsig_of sg) (iTs, maxidx) (T, U)
+    val (iTs', maxidx') = Sign.typ_unify sg (T, U) (iTs, maxidx)
   in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
     Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);

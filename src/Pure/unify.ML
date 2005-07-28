@@ -176,7 +176,7 @@ exception ASSIGN;	(*Raised if not an assignment*)
 
 fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of thy) (iTs, maxidx) (U, T)
+  else let val (iTs',maxidx') = Sign.typ_unify thy (U, T) (iTs, maxidx)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise CANTUNIFY;
 

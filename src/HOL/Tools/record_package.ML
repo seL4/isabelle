@@ -429,9 +429,7 @@ fun get_extT_fields sg T =
     val (flds,(more,_)) = split_last (Symtab.lookup_multi (extfields,name));
     val args = map varifyT (snd (#extension (valOf (Symtab.lookup (records,recname)))));
 
-    val tsig = Sign.tsig_of sg;
-    fun unify (t,env) = Type.unify tsig env t;
-    val (subst,_) = foldr unify (Vartab.empty,0) (but_last args ~~ but_last Ts);
+    val (subst,_) = fold (Sign.typ_unify sg) (but_last args ~~ but_last Ts) (Vartab.empty,0);
     val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
   in (flds',(more,moreT)) end;
 
@@ -570,12 +568,10 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                               | NONE => Sign.defaultS sg);
     
  
-    val tsig = Sign.tsig_of sg;
-    fun to_type t = Type.cert_typ tsig 
+    fun to_type t = Sign.certify_typ sg
                        (Sign.intern_typ sg 
                          (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t));
-    fun unify (t,env) = Type.unify tsig env t; 
-    
+
     fun mk_ext (fargs as (name,arg)::_) =
          (case get_fieldext sg (Sign.intern_const sg name) of
             SOME (ext,alphas) => 
@@ -587,9 +583,10 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                        val (args,rest) = splitargs (map fst flds') fargs;
                        val vartypes = map Type.varifyT types;
                        val argtypes = map to_type args;
-                       val (subst,_) = foldr unify (Vartab.empty,0) (vartypes ~~ argtypes);
+                       val (subst,_) = fold (Sign.typ_unify sg) (vartypes ~~ argtypes)
+                                            (Vartab.empty,0);
                        val alphas' = map ((Syntax.term_of_typ (! Syntax.show_sorts)) o 
-                                          (Envir.norm_type subst) o Type.varifyT) 
+                                          Envir.norm_type subst o Type.varifyT) 
                                          (but_last alphas);
  
                        val more' = mk_ext rest;   
@@ -727,13 +724,12 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
       
       val T = fixT (Sign.intern_typ sg 
                       (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm)); 
-      val tsig = Sign.tsig_of sg
 
       fun mk_type_abbr subst name alphas = 
           let val abbrT = Type (name, map (fn a => TVar ((a, 0), Sign.defaultS sg)) alphas);
           in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
 
-      fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T));
+      fun unify rT T = fst (Sign.typ_unify sg (Type.varifyT rT,T) (Vartab.empty,0));
 
    in if !print_record_type_abbr
       then (case last_extT T of
@@ -760,9 +756,6 @@ fun record_type_tr' sep mark record record_scheme sg t =
 
     val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
 
-    val tsig = Sign.tsig_of sg
-    fun unify (t,v) = Type.unify tsig v t;
-
     fun term_of_type T = Syntax.term_of_typ (!Syntax.show_sorts) (Sign.extern_typ sg T);
  
     fun field_lst T =
@@ -780,8 +773,9 @@ fun record_type_tr' sep mark record record_scheme sg t =
                                             ::map (apfst NameSpace.base) fs; 
                                 val (args',more) = split_last args; 
                                 val alphavars = map Type.varifyT (but_last alphas); 
-                                val (subst,_)= foldr unify (Vartab.empty,0) (alphavars~~args');
-                                val flds'' =map (apsnd ((Envir.norm_type subst)o(Type.varifyT)))
+                                val (subst,_)= fold (Sign.typ_unify sg) (alphavars~~args')
+                                                    (Vartab.empty,0);
+                                val flds'' =map (apsnd (Envir.norm_type subst o Type.varifyT))
                                                 flds';
                               in flds''@field_lst more end
                               handle TUNIFY         => [("",T)] 

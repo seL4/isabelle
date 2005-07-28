@@ -159,9 +159,8 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       (* is it OK to ignore the type instantiation info? 
          or should I be using it? *)
       val typs_unify = 
-          (SOME (Type.unify (Sign.tsig_of sgn) (Term.Vartab.empty, ix) 
-                            (pat_ty, tgt_ty)))
-          handle Type.TUNIFY => NONE;
+          SOME (Sign.typ_unify sgn (pat_ty, tgt_ty) (Term.Vartab.empty, ix))
+            handle Type.TUNIFY => NONE;
     in
       case typs_unify of
         SOME (typinsttab, ix2) =>

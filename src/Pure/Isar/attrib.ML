@@ -247,7 +247,7 @@ fun unify_types thy types ((unifier, maxidx), (xi, u)) =
     val U = Term.fastype_of u;
     val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
   in
-    Type.unify (Sign.tsig_of thy) (unifier, maxidx') (T, U)
+    Sign.typ_unify thy (T, U) (unifier, maxidx')
       handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
   end;
 
