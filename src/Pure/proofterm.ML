@@ -536,7 +536,7 @@ fun varify_proof t fixed prf =
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ variantlist (map fst fs, map #1 ixns)
     fun thaw (f as (a, S)) =
-      (case assoc (fmap, f) of
+      (case gen_assoc (op =) (fmap, f) of
         NONE => TFree f
       | SOME b => TVar ((b, 0), S));
   in map_proof_terms (map_term_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
@@ -1085,14 +1085,13 @@ fun rewrite_prf tymatch (rules, procs) prf =
 
   in getOpt (rew1 [] skel0 prf, prf) end;
 
-fun rewrite_proof tsig = rewrite_prf (fn (tab, f) =>
-  Type.typ_match tsig (tab, f ()) handle Type.TYPE_MATCH => raise PMatch);
+fun rewrite_proof tsig = rewrite_prf (fn (tyenv, f) =>
+  Type.typ_match tsig (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);
 
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
-(**** theory data ****)
 
-(* data kind 'Pure/proof' *)
+(**** theory data ****)
 
 structure ProofData = TheoryDataFun
 (struct
