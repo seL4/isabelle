@@ -73,11 +73,6 @@ val proofstring =
     String.translate (fn c => if is_proof_char c then str c else "");
 
 
-(*
-fun call_atp_tac thms n = (tptp_inputs thms ; dummy_tac);
-
-*)
-
 (**** For running in Isar ****)
 
 (* same function as that in res_axioms.ML *)
