@@ -116,12 +116,8 @@ sig
     (thm list -> tactic) -> thm list
   val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
-  val prove_multi_standard: theory -> string list -> term list -> term list ->
-    (thm list -> tactic) -> thm list
   val prove_plain: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove_standard: theory -> string list -> term list -> term ->
-    (thm list -> tactic) -> thm
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -550,11 +546,13 @@ fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
 fun norm_hhf_plain th =
-  if Drule.is_norm_hhf (prop_of th) then th
+  if Drule.is_norm_hhf (Thm.prop_of th) then th
   else rewrite_rule [Drule.norm_hhf_eq] th;
 
-fun norm_hhf_rule th =
-  th |> norm_hhf_plain |> Drule.gen_all;
+val norm_hhf_rule =
+  norm_hhf_plain
+  #> Thm.adjust_maxidx_thm
+  #> Drule.gen_all;
 
 val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
@@ -711,12 +709,9 @@ fun prove_multi thy xs asms prop tac =
   gen_prove_multi (fn fixed_tfrees => Drule.zero_var_indexes o
       (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf_rule)
     thy xs asms prop tac;
-fun prove_multi_standard thy xs asms prop tac =
-  map Drule.standard (prove_multi thy xs asms prop tac);
 
 fun prove_plain thy xs asms prop tac = hd (prove_multi_plain thy xs asms [prop] tac);
 fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
-fun prove_standard thy xs asms prop tac = Drule.standard (prove thy xs asms prop tac);
 
 end;
 
