@@ -1,4 +1,5 @@
-(*  Title:      BigO.thy
+(*  Title:      HOL/Library/BigO.thy
+    ID:		$Id$
     Authors:    Jeremy Avigad and Kevin Donnelly
 *)
 

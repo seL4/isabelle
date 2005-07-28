@@ -1,4 +1,5 @@
-(*  Title:      SetsAndFunctions.thy
+(*  Title:      HOL/Library/SetsAndFunctions.thy
+    ID:		$Id$
     Author:     Jeremy Avigad and Kevin Donnelly
 *)
 
