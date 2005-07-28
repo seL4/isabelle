@@ -452,7 +452,7 @@ fun read_props_thy freeze pp syn thy defs =
 
 fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
-  in #1 (Type.unify (Sign.tsig_of (theory_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
+  in #1 (Sign.typ_unify (theory_of ctxt) (T, U) (Vartab.empty, maxidx)) end;
 
 fun norm_term ctxt schematic =
   let
@@ -684,11 +684,11 @@ fun export_view view is_goal inner outer =
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
-  in fn thm => thm
-    |> Tactic.norm_hhf_rule
-    |> Seq.EVERY (rev exp_asms)
-    |> Seq.map (Drule.implies_intr_list view)
-    |> Seq.map (fn rule =>
+  in
+    Tactic.norm_hhf_rule
+    #> Seq.EVERY (rev exp_asms)
+    #> Seq.map (Drule.implies_intr_list view)
+    #> Seq.map (fn rule =>
       let
         val {thy, prop, ...} = Thm.rep_thm rule;
         val frees = map (Thm.cterm_of thy) (List.mapPartial (find_free prop) fixes);
@@ -706,11 +706,11 @@ fun export_view' view is_goal inner outer =
   let
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
-  in fn thm =>thm
-    |> Tactic.norm_hhf_plain
-    |> Seq.EVERY (rev exp_asms)
-    |> Seq.map (Drule.implies_intr_list view)
-    |> Seq.map Tactic.norm_hhf_plain
+  in
+    Tactic.norm_hhf_plain
+    #> Seq.EVERY (rev exp_asms)
+    #> Seq.map (Drule.implies_intr_list view)
+    #> Seq.map Tactic.norm_hhf_plain
   end;
 
 val export = export_view [];
@@ -779,7 +779,8 @@ fun simult_matches ctxt [] = []
         val _ =    (*may not assign variables from text*)
           if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
           then () else fail ();
-        fun norm_bind (xi, (_, t)) = if xi mem domain then SOME (xi, Envir.norm_term env t) else NONE;
+        fun norm_bind (xi, (_, t)) =
+          if mem_ix (xi, domain) then SOME (xi, Envir.norm_term env t) else NONE;
       in List.mapPartial norm_bind (Envir.alist_of env) end;
 
 
