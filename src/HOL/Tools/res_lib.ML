@@ -17,6 +17,7 @@ val no_rep_add : ''a -> ''a list -> ''a list
 val no_rep_app : ''a list -> ''a list -> ''a list
 val pair_ins : 'a -> 'b list -> ('a * 'b) list
 val rm_rep : ''a list -> ''a list
+val trim_ends : string -> string
 val write_strs : TextIO.outstream -> TextIO.vector list -> unit
 val writeln_strs : TextIO.outstream -> TextIO.vector list -> unit
 end;
@@ -24,6 +25,10 @@ end;
 
 structure ResLib : RES_LIB =
 struct
+
+(*Remove both ends from the string (presumably quotation marks?)*)
+fun trim_ends s = String.substring(s,1,String.size s - 2);
+
 
 (* convert a list of strings into one single string; surrounded by brackets *)
 fun list_to_string strings =
