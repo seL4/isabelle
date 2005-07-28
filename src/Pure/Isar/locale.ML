@@ -717,9 +717,9 @@ fun unify_frozen ctxt maxidx Ts Us =
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
     val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
-    val tsig = Sign.tsig_of (ProofContext.theory_of ctxt);
+    val thy = ProofContext.theory_of ctxt;
 
-    fun unify (env, (SOME T, SOME U)) = (Type.unify tsig env (U, T)
+    fun unify (env, (SOME T, SOME U)) = (Sign.typ_unify thy (U, T) env
           handle Type.TUNIFY =>
             raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
       | unify (env, _) = env;
@@ -770,7 +770,6 @@ fun unify_parms ctxt (fixed_parms : (string * typ) list)
   (raw_parmss : (string * typ option) list list) =
   let
     val thy = ProofContext.theory_of ctxt;
-    val tsig = Sign.tsig_of thy;
     val maxidx = length raw_parmss;
     val idx_parmss = (0 upto maxidx - 1) ~~ raw_parmss;
 
@@ -779,7 +778,7 @@ fun unify_parms ctxt (fixed_parms : (string * typ) list)
     val parms = fixed_parms @ List.concat (map varify_parms idx_parmss);
 
     fun unify T ((env, maxidx), U) =
-      Type.unify tsig (env, maxidx) (U, T)
+      Sign.typ_unify thy (U, T) (env, maxidx)
       handle Type.TUNIFY =>
         let val prt = Sign.string_of_typ thy
         in raise TYPE ("unify_parms: failed to unify types " ^
@@ -1594,8 +1593,7 @@ fun note_thmss_registrations kind target args thy =
       let
         val ts = map Logic.unvarify vts;
         (* type instantiation *)
-        val vtinst = Library.foldl (Type.typ_match (Sign.tsig_of thy))
-             (Vartab.empty, (parmvTs ~~ map Term.fastype_of ts));
+        val vtinst = fold (Sign.typ_match thy) (parmvTs ~~ map Term.fastype_of ts) Vartab.empty;
         val tinst = Vartab.dest vtinst |> map (fn ((x, 0), (_, T)) => (x, T))
              |> Symtab.make;            
         (* replace parameter names in ids by instantiations *)
@@ -1731,10 +1729,10 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val cert = Thm.cterm_of defs_thy;
 
-    val intro = Tactic.prove_standard defs_thy [] norm_ts statement (fn _ =>
+    val intro = Drule.standard (Tactic.prove defs_thy [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
+      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
 
     val conjuncts =
       Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
