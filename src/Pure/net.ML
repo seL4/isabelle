@@ -39,9 +39,6 @@ struct
 
 datatype key = CombK | VarK | AtomK of string;
 
-(*Bound variables*)
-fun string_of_bound i = "*B*" ^ chr (i div 256) ^ chr (i mod 256);
-
 (*Keys are preorder lists of symbols -- Combinations, Vars, Atoms.
   Any term whose head is a Var is regarded entirely as a Var.
   Abstractions are also regarded as Vars;  this covers eta-conversion
@@ -51,7 +48,7 @@ fun add_key_of_terms (t, cs) =
   let fun rands (f$t, cs) = CombK :: rands (f, add_key_of_terms(t, cs))
         | rands (Const(c,_), cs) = AtomK c :: cs
         | rands (Free(c,_),  cs) = AtomK c :: cs
-        | rands (Bound i,  cs)   = AtomK (string_of_bound i) :: cs
+        | rands (Bound i,  cs)   = AtomK (Term.bound i "") :: cs
   in case (head_of t) of
       Var _ => VarK :: cs
     | Abs _ => VarK :: cs
@@ -184,7 +181,7 @@ fun matching unif t (net,nets) =
                 f$t => foldr (matching unif t) nets (rands f (comb,[]))
               | Const(c,_) => look1 (atoms, c) nets
               | Free(c,_)  => look1 (atoms, c) nets
-              | Bound i    => look1 (atoms, string_of_bound i) nets
+              | Bound i    => look1 (atoms, Term.bound i "") nets
               | _          => nets
   in
      case net of

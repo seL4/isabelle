@@ -916,7 +916,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
        (case term_of t0 of
            Abs (a, T, t) =>
              let
-                 val (v, t') = Thm.dest_abs (SOME ("." ^ a ^ "." ^ string_of_int bounds)) t0;
+                 val (v, t') = Thm.dest_abs (SOME (Term.bound bounds a)) t0;
                  val ss' = incr_bounds ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
