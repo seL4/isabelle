@@ -110,6 +110,7 @@ signature RES_CLASIMP =
 
   val relevant : int ref
   val use_simpset: bool ref
+  val use_nameless: bool ref
   val write_out_clasimp : string -> theory -> term -> 
                              (ResClause.clause * thm) Array.array * int (* * ResClause.clause list *)
 
@@ -118,16 +119,22 @@ signature RES_CLASIMP =
 structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref true;
-(*Relevance filtering is off by default*)
-val relevant = ref 0;  
+val use_nameless = ref false;  (*Because most are useless [iff] rules*)
+
+val relevant = ref 0;  (*Relevance filtering is off by default*)
 
 (*The "name" of a theorem is its statement, if nothing else is available.*)
 val plain_string_of_thm =
     setmp show_question_marks false 
       (setmp print_mode [] 
 	(Pretty.setmp_margin 999 string_of_thm));
+	
+fun fake_thm_name th = 
+    Context.theory_name (theory_of_thm th) ^ "." ^ 
+    ResLib.trim_ends (plain_string_of_thm th);
 
-fun put_name_pair ("",th) = (ResLib.trim_ends (plain_string_of_thm th), th)
+fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
+                            else ("HOL.TrueI",TrueI)
   | put_name_pair (a,th)  = (a,th);
 
 (* changed, now it also finds out the name of the theorem. *)
