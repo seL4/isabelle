@@ -391,6 +391,8 @@ The following theorems have been eliminated or modified
 
 * Theory RComplete: expanded support for floor and ceiling functions.
 
+* Theory Ln is new, with properties of the natural logarithm
+
 
 *** HOLCF ***
 
