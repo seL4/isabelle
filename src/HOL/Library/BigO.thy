@@ -24,8 +24,8 @@ The main changes in this version are as follows:
 \item We have eliminated the $O$ operator on sets. (Most uses of this seem
   to be inessential.)
 \item We no longer use $+$ as output syntax for $+o$.
-\item Lemmas involving ``sumr-pos'' have been replaced by more
-  general lemmas involving ``setsum''.
+\item Lemmas involving ``sumr'' have been replaced by more general lemmas 
+  involving ``setsum''.
 \item The library has been expanded, with e.g.~support for expressions of
   the form $f < g + O(h)$.
 \end{itemize}
