@@ -858,7 +858,7 @@ local
             val thmnameP = (* see isar_syn.ML/theoremsP *)
                 let
                     val name_facts = P.and_list1 ((P.opt_thm_name "=" --| P.xthms1) >> #1)
-                    val theoremsP = P.locale_target |-- name_facts >> (fn [] => "" | x::_ => x)
+                    val theoremsP = P.opt_locale_target |-- name_facts >> (fn [] => "" | x::_ => x)
                 in
                     theoremsP
                 end
@@ -896,12 +896,12 @@ local
             statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
 
             val gen_theoremP =
-                P.locale_target -- Scan.optional (P.opt_thm_name ":" --|
+                P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
                  Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
                                  general_statement >> (fn ((locale, a), (elems, concl)) =>
                                                          fst a) (* a : (bstring * Args.src list) *)
 
-            val nameP = P.locale_target |-- (Scan.optional ((P.opt_thm_name ":") >> #1) "")
+            val nameP = P.opt_locale_target |-- (Scan.optional ((P.opt_thm_name ":") >> #1) "")
             (* TODO: add preference values for attributes
                val prefval = XML.element "prefval" [("name","thm-kind"),("value",name)]
             *)
