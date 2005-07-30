@@ -1,5 +1,6 @@
 (*  Title:      Ln.thy
     Author:     Jeremy Avigad
+    ID:         $Id$
 *)
 
 header {* Properties of ln *}
