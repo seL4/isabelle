@@ -78,16 +78,20 @@ fun pretty_criterion ctxt (b, c) =
 
 
 (* matching theorems *)
+    
+fun is_nontrivial sg = is_Const o head_of o ObjectLogic.drop_judgment sg;
 
-fun is_matching_thm (extract_thms, extract_term) ctxt po obj thm =
+(*extract terms from term_src, refine them to the parts that concern us,
+  if po try match them against obj else vice versa.
+  trivial matches are ignored.
+  returns: smallest substitution size*)
+fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
   let
     val sg = ProofContext.sign_of ctxt;
     val tsig = Sign.tsig_of sg;
 
-    val is_nontrivial = is_Const o head_of o ObjectLogic.drop_judgment sg;
-
     fun matches pat =
-      is_nontrivial pat andalso
+      is_nontrivial sg pat andalso
       Pattern.matches tsig (if po then (pat,obj) else (obj,pat));
 
     fun substsize pat =
@@ -97,12 +101,12 @@ fun is_matching_thm (extract_thms, extract_term) ctxt po obj thm =
       end;
 
     fun bestmatch [] = NONE
-     |  bestmatch (x :: xs) = SOME (nprems_of thm, foldl Int.min x xs);
+     |  bestmatch (x :: xs) = SOME (foldl Int.min x xs);
 
-    val match_thm = matches o extract_term o Thm.prop_of;
+    val match_thm = matches o refine_term;
   in
-    map (substsize o extract_term o Thm.prop_of) 
-        (List.filter match_thm (extract_thms thm)) |> bestmatch
+    map (substsize o refine_term) 
+        (List.filter match_thm (extract_terms term_src)) |> bestmatch
   end;
 
 
@@ -123,57 +127,61 @@ fun filter_name str_pat (thmref, _) =
 
 (* filter intro/elim/dest rules *)
 
-local
-
-(*elimination rule: conclusion is a Var which does not appear in the major premise*)
-fun is_elim ctxt thm =
+fun filter_dest ctxt goal (_,thm) =
   let
-    val sg = ProofContext.sign_of ctxt;
-    val prop = Thm.prop_of thm;
-    val concl = ObjectLogic.drop_judgment sg (Logic.strip_imp_concl prop);
-    val major_prem = Library.take (1, Logic.strip_imp_prems prop);
-    val prem_vars = Drule.vars_of_terms major_prem;
-  in
-    not (null major_prem) andalso
-    Term.is_Var concl andalso
-    not (Term.dest_Var concl mem prem_vars)
-  end;
-
-fun filter_elim_dest check_thm ctxt goal (_,thm) =
-  let
-    val extract_elim =
-     (fn thm => if Thm.no_prems thm then [] else [thm],
+    val extract_dest =
+     (fn thm => if Thm.no_prems thm then [] else [prop_of thm],
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
 
-    fun try_subst prem = is_matching_thm extract_elim ctxt true prem thm;
+    fun try_subst prem = is_matching_thm extract_dest ctxt true prem thm;
     
     (*keep successful substitutions*)
     val ss = prems |> List.map try_subst 
              |> List.filter isSome 
-             |> List.map (#2 o valOf);
+             |> List.map valOf;
   in
     (*if possible, keep best substitution (one with smallest size)*)
-    (*elim and dest rules always have assumptions, so an elim with one 
+    (*dest rules always have assumptions, so a dest with one 
       assumption is as good as an intro rule with none*)
-    if check_thm ctxt thm andalso not (null ss) 
+    if not (null ss) 
     then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
   end;
 
-in
-
 fun filter_intro ctxt goal (_,thm) =
   let
-    val extract_intro = (single, Logic.strip_imp_concl);
+    val extract_intro = (single o prop_of, Logic.strip_imp_concl);
     val concl = Logic.concl_of_goal goal 1;
+    val ss = is_matching_thm extract_intro ctxt true concl thm;
   in
-    is_matching_thm extract_intro ctxt true concl thm
+    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE
   end;
 
-fun filter_elim ctxt = filter_elim_dest is_elim ctxt;
-fun filter_dest ctxt = filter_elim_dest (not oo is_elim) ctxt;
-
-end;
+fun filter_elim ctxt goal (_,thm) =
+  if not (Thm.no_prems thm) then
+    let
+      val rule = prop_of thm;
+      val prems = Logic.prems_of_goal goal 1;
+      val goal_concl = Logic.concl_of_goal goal 1;
+      val rule_mp = (hd o Logic.strip_imp_prems) rule;
+      val rule_concl = Logic.strip_imp_concl rule;
+      fun combine t1 t2 = Const ("combine", dummyT --> dummyT) $ (t1 $ t2);
+      val rule_tree = combine rule_mp rule_concl;
+      fun goal_tree prem = (combine prem goal_concl);
+      fun try_subst prem = 
+        is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
+      (*keep successful substitutions*)
+      val ss = prems |> List.map try_subst 
+               |> List.filter isSome 
+               |> List.map valOf; 
+    in
+    (*elim rules always have assumptions, so an elim with one 
+      assumption is as good as an intro rule with none*)
+      if is_nontrivial (ProofContext.sign_of ctxt) (Thm.major_prem_of thm) 
+        andalso not (null ss)
+      then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
+    end
+  else NONE
 
 
 (* filter_simp *)
@@ -182,8 +190,12 @@ fun filter_simp ctxt t (_,thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
       MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
-    val extract_simp = (mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-  in is_matching_thm extract_simp ctxt false t thm end;
+    val extract_simp = 
+      ((List.map prop_of) o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
+    val ss = is_matching_thm extract_simp ctxt false t thm
+  in 
+    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE 
+  end;
 
 
 (* filter_pattern *)
@@ -226,11 +238,10 @@ fun all_filters filters thms =
       map (fn f => f thm) filters |> List.foldl opt_add (SOME (0,0));
 
     (*filters return: (number of assumptions, substitution size) option, so
-      sort (desc. in both cases) according to whether a theorem has assumptions,
+      sort (desc. in both cases) according to number of assumptions first,
       then by the substitution size*)
     fun thm_ord (((p0,s0),_),((p1,s1),_)) =
-      prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) 
-               int_ord ((p1,s1),(p0,s0));
+      prod_ord int_ord int_ord ((p1,s1),(p0,s0));
 
     val processed = List.map (fn t => (eval_filters filters t, t)) thms;
     val filtered = List.filter (isSome o #1) processed;
