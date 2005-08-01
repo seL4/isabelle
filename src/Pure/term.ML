@@ -152,16 +152,12 @@ sig
   val term_tvars: term -> (indexname * sort) list
   val add_typ_ixns: indexname list * typ -> indexname list
   val add_term_tvar_ixns: term * indexname list -> indexname list
-  val atless: term * term -> bool
-  val insert_aterm: term * term list -> term list
   val add_term_vars: term * term list -> term list
   val term_vars: term -> term list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
   val variant_abs: string * typ * term -> string * term
   val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
-  val compress_type: typ -> typ
-  val compress_term: term -> term
   val show_question_marks: bool ref
 end;
 
@@ -200,7 +196,8 @@ sig
   val map_typ: (string -> string) -> (string -> string) -> typ -> typ
   val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
   val dest_abs: string * typ * term -> string * term
-  val bound: int -> string -> string
+  val bound: int -> string
+  val is_bound: string -> bool
   val zero_var_indexesT: typ -> typ
   val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term ->
@@ -515,7 +512,7 @@ fun fast_indexname_ord ((x, i), (y, j)) =
 
 fun sort_ord SS =
   if pointer_eq SS then EQUAL
-  else list_ord fast_string_ord SS;
+  else dict_ord fast_string_ord SS;
 
 local
 
@@ -530,7 +527,7 @@ fun typ_ord TU =
   else
     (case TU of
       (Type (a, Ts), Type (b, Us)) =>
-        (case fast_string_ord (a, b) of EQUAL => list_ord typ_ord (Ts, Us) | ord => ord)
+        (case fast_string_ord (a, b) of EQUAL => dict_ord typ_ord (Ts, Us) | ord => ord)
     | (TFree (a, S), TFree (b, S')) =>
         (case fast_string_ord (a, b) of EQUAL => sort_ord (S, S') | ord => ord)
     | (TVar (xi, S), TVar (yj, S')) =>
@@ -880,14 +877,15 @@ fun xless ((a,i), (b,j): indexname) = i<j  orelse  (i=j andalso a<b);
   The resulting term is ready to become the body of an Abs.*)
 fun abstract_over (v, body) =
   let
-    fun abst (lev, u) =
-      if v aconv u then Bound lev
+    exception SAME;
+    fun abs lev tm =
+      if v aconv tm then Bound lev
       else
-        (case u of
-          Abs (a, T, t) => Abs (a, T, abst (lev + 1, t))
-        | f $ rand => abst (lev, f) $ abst (lev, rand)
-        | _ => u)
-  in abst(0, body) end;
+        (case tm of
+          Abs (a, T, t) => Abs (a, T, abs (lev + 1) t)
+        | t $ u => (abs lev t $ (abs lev u handle SAME => u) handle SAME => t $ abs lev u)
+        | _ => raise SAME);
+  in abs 0 body handle SAME => body end;
 
 fun lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
   | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
@@ -1038,7 +1036,7 @@ fun is_first_order quants =
     in  first_order1 []  end;
 
 
-(* maximum index of a typs and terms *)
+(* maximum index of typs and terms *)
 
 fun maxidx_typ (TVar ((_, j), _)) i = Int.max (i, j)
   | maxidx_typ (Type (_, Ts)) i = maxidx_typs Ts i
@@ -1200,25 +1198,9 @@ fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
 
 (** Frees and Vars **)
 
-(*a partial ordering (not reflexive) for atomic terms*)
-fun atless (Const (a,_), Const (b,_))  =  a<b
-  | atless (Free (a,_), Free (b,_)) =  a<b
-  | atless (Var(v,_), Var(w,_))  =  xless(v,w)
-  | atless (Bound i, Bound j)  =   i<j
-  | atless _  =  false;
-
-(*insert atomic term into partially sorted list, suppressing duplicates (?)*)
-fun insert_aterm (t,us) =
-  let fun inserta [] = [t]
-        | inserta (us as u::us') =
-              if atless(t,u) then t::us
-              else if t=u then us (*duplicate*)
-              else u :: inserta(us')
-  in  inserta us  end;
-
 (*Accumulates the Vars in the term, suppressing duplicates*)
 fun add_term_vars (t, vars: term list) = case t of
-    Var   _ => insert_aterm(t,vars)
+    Var   _ => OrdList.insert term_ord t vars
   | Abs (_,_,body) => add_term_vars(body,vars)
   | f$t =>  add_term_vars (f, add_term_vars(t, vars))
   | _ => vars;
@@ -1227,7 +1209,7 @@ fun term_vars t = add_term_vars(t,[]);
 
 (*Accumulates the Frees in the term, suppressing duplicates*)
 fun add_term_frees (t, frees: term list) = case t of
-    Free   _ => insert_aterm(t,frees)
+    Free   _ => OrdList.insert term_ord t frees
   | Abs (_,_,body) => add_term_frees(body,frees)
   | f$t =>  add_term_frees (f, add_term_frees(t, frees))
   | _ => frees;
@@ -1252,7 +1234,19 @@ fun dest_abs (x, T, body) =
     else (x, subst_bound (Free (x, T), body))
   end;
 
-fun bound bounds x = "." ^ x ^ "." ^ string_of_int bounds;
+(*names for numbered variables --
+  preserves order wrt. int_ord vs. string_ord, avoids allocating new strings*)
+local
+  val small_int = Vector.tabulate (1000, fn i =>
+    let val leading = if i < 10 then "00" else if i < 100 then "0" else ""
+    in ":" ^ leading ^ string_of_int i end);
+in
+  fun bound n =
+    if n < 1000 then Vector.sub (small_int, n)
+    else ":" ^ bound (n div 1000) ^ Vector.sub (small_int, n mod 1000);
+end;
+
+val is_bound = String.isPrefix ":";
 
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
@@ -1285,39 +1279,6 @@ fun zero_var_indexes_inst tm =
   in (instT, inst) end;
 
 fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
-
-
-
-(*** Compression of terms and types by sharing common subtrees.
-     Saves 50-75% on storage requirements.  As it is a bit slow,
-     it should be called only for axioms, stored theorems, etc.
-     Recorded term and type fragments are never disposed. ***)
-
-
-(** Sharing of types **)
-
-val memo_types = ref (Typtab.empty: typ Typtab.table);
-
-fun compress_type T =
-  (case Typtab.lookup (! memo_types, T) of
-    SOME T' => T'
-  | NONE =>
-      let val T' = (case T of Type (a, Ts) => Type (a, map compress_type Ts) | _ => T)
-      in memo_types := Typtab.update ((T', T'), ! memo_types); T' end);
-
-
-(** Sharing of atomic terms **)
-
-val memo_terms = ref (Termtab.empty : term Termtab.table);
-
-fun share_term (t $ u) = share_term t $ share_term u
-  | share_term (Abs (a, T, u)) = Abs (a, T, share_term u)
-  | share_term t =
-      (case Termtab.lookup (! memo_terms, t) of
-        SOME t' => t'
-      | NONE => (memo_terms := Termtab.update ((t, t), ! memo_terms); t));
-
-val compress_term = share_term o map_term_types compress_type;
 
 
 (* dummy patterns *)
