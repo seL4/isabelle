@@ -477,7 +477,7 @@ fun rewrite_term tsig rules procs tm =
 
     fun variant_absfree bounds (x, T, t) =
       let
-        val (x', t') = Term.dest_abs (Term.bound bounds x, T, t);
+        val (x', t') = Term.dest_abs (Term.bound bounds, T, t);
         fun abs u = Abs (x, T, abstract_over (Free (x', T), u));
       in (abs, t') end;
 

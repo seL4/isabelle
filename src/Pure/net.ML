@@ -48,7 +48,7 @@ fun add_key_of_terms (t, cs) =
   let fun rands (f$t, cs) = CombK :: rands (f, add_key_of_terms(t, cs))
         | rands (Const(c,_), cs) = AtomK c :: cs
         | rands (Free(c,_),  cs) = AtomK c :: cs
-        | rands (Bound i,  cs)   = AtomK (Term.bound i "") :: cs
+        | rands (Bound i,  cs)   = AtomK (Term.bound i) :: cs
   in case (head_of t) of
       Var _ => VarK :: cs
     | Abs _ => VarK :: cs
@@ -181,7 +181,7 @@ fun matching unif t (net,nets) =
                 f$t => foldr (matching unif t) nets (rands f (comb,[]))
               | Const(c,_) => look1 (atoms, c) nets
               | Free(c,_)  => look1 (atoms, c) nets
-              | Bound i    => look1 (atoms, Term.bound i "") nets
+              | Bound i    => look1 (atoms, Term.bound i) nets
               | _          => nets
   in
      case net of
