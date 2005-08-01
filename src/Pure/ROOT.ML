@@ -23,6 +23,7 @@ use "General/pretty.ML";
 use "sorts.ML";
 use "type.ML";
 use "context.ML";
+use "compress.ML";
 
 (*inner syntax module*)
 cd "Syntax"; use "ROOT.ML"; cd "..";
