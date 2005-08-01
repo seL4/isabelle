@@ -1144,11 +1144,11 @@ fun prod_ord a_ord b_ord ((x, y), (x', y')) =
   (case a_ord (x, x') of EQUAL => b_ord (y, y') | ord => ord);
 
 (*dictionary order -- in general NOT well-founded!*)
-fun dict_ord _ ([], []) = EQUAL
+fun dict_ord elem_ord (x :: xs, y :: ys) =
+      (case elem_ord (x, y) of EQUAL => dict_ord elem_ord (xs, ys) | ord => ord)
+  | dict_ord _ ([], []) = EQUAL
   | dict_ord _ ([], _ :: _) = LESS
-  | dict_ord _ (_ :: _, []) = GREATER
-  | dict_ord elem_ord (x :: xs, y :: ys) =
-      (case elem_ord (x, y) of EQUAL => dict_ord elem_ord (xs, ys) | ord => ord);
+  | dict_ord _ (_ :: _, []) = GREATER;
 
 (*lexicographic product of lists*)
 fun list_ord elem_ord (xs, ys) =
