@@ -219,9 +219,13 @@ type -path xemacs >/dev/null || \
 HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 
 # For configuring HOL/Matrix/cplex
+# LP_SOLVER is the default solver. It can be changed during runtime via Cplex.set_solver.
 # First option: use the commercial cplex solver
-#LP_SOLVER_NAME=CPLEX
-#LP_SOLVER_PATH=cplex
+# LP_SOLVER=CPLEX
+# CPLEX_PATH=cplex
 # Second option: use the open source glpk solver
-#LP_SOLVER_NAME=GLPK
-#LP_SOLVER_PATH=glpsol
+# LP_SOLVER=GLPK
+# GLPK_PATH=glpsol
+
+# toogles the detail of the error message in case of a cyclic definition
+DEFS_CHAIN_HISTORY=ON

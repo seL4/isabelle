@@ -35,6 +35,8 @@ sig
 			 | Optimal of string * 
 				      (((* name *) string * 
 					(* value *) string) list)
+
+    datatype cplexSolver = SOLVER_DEFAULT | SOLVER_CPLEX | SOLVER_GLPK
 						     
     exception Load_cplexFile of string
     exception Load_cplexResult of string
@@ -51,11 +53,19 @@ sig
 
     val is_normed_cplexProg : cplexProg -> bool
 
+    val get_solver : unit -> cplexSolver
+    val set_solver : cplexSolver -> unit
     val solve : cplexProg -> cplexResult
 end;
 
 structure Cplex  : CPLEX =
 struct
+
+datatype cplexSolver = SOLVER_DEFAULT | SOLVER_CPLEX | SOLVER_GLPK
+
+val cplexsolver = ref SOLVER_DEFAULT;
+fun get_solver () = !cplexsolver;
+fun set_solver s = (cplexsolver := s);
 
 exception Load_cplexFile of string;
 exception Load_cplexResult of string;
@@ -1139,7 +1149,7 @@ fun solve_glpk prog =
 	val lpname = tmp_file (name^".lp")
 	val resultname = tmp_file (name^".txt")
 	val _ = save_cplexFile lpname prog		
-	val cplex_path = getenv "LP_SOLVER_PATH"
+	val cplex_path = getenv "GLPK_PATH"
 	val cplex = if cplex_path = "" then "glpsol" else cplex_path
 	val command = (wrap cplex)^" --lpt "^(wrap lpname)^" --output "^(wrap resultname)
 	val answer = execute command
@@ -1171,7 +1181,7 @@ fun solve_cplex prog =
 	val resultname = tmp_file (name^".txt")
 	val scriptname = tmp_file (name^".script")
 	val _ = save_cplexFile lpname prog		
-	val cplex_path = getenv "LP_SOLVER_PATH"
+	val cplex_path = getenv "CPLEX_PATH"
 	val cplex = if cplex_path = "" then "cplex" else cplex_path
 	val _ = write_script scriptname lpname resultname
 	val command = (wrap cplex)^" < "^(wrap scriptname)^" > /dev/null"
@@ -1188,10 +1198,14 @@ fun solve_cplex prog =
     end
 
 fun solve prog = 
-    case getenv "LP_SOLVER_NAME" of
-	"CPLEX" => solve_cplex prog
-      | "GLPK" => solve_glpk prog
-      | _ => raise (Execute ("LP_SOLVER_NAME must be set to CPLEX or to GLPK"));
+    case get_solver () of
+      SOLVER_DEFAULT => 
+        (case getenv "LP_SOLVER" of
+	   "CPLEX" => solve_cplex prog
+         | "GLPK" => solve_glpk prog
+         | _ => raise (Execute ("LP_SOLVER must be set to CPLEX or to GLPK")))
+    | SOLVER_CPLEX => solve_cplex prog
+    | SOLVER_GLPK => solve_glpk prog
 		   
 end;
 
