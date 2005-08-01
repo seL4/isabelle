@@ -71,21 +71,17 @@ exception EQ_VAR;
 
 fun loose (i,t) = 0 mem_int add_loose_bnos(t,i,[]);
 
-local val odot = ord"."
-in
-(*Simplifier turns Bound variables to dotted Free variables:
-  change it back (any Bound variable will do)
-*)
+(*Simplifier turns Bound variables to special Free variables:
+  change it back (any Bound variable will do)*)
 fun contract t =
-    case Pattern.eta_contract_atom t of
-        Free(a,T) => if (ord a = odot) then Bound 0 else Free(a,T)
-      | t'        => t'
-end;
+  (case Pattern.eta_contract_atom t of
+    Free (a, T) => if Term.is_bound a then Bound 0 else Free (a, T)
+  | t' => t');
 
 fun has_vars t = maxidx_of_term t <> ~1;
 
 (*If novars then we forbid Vars in the equality.
-  If bnd then we only look for Bound (or dotted Free) variables to eliminate.
+  If bnd then we only look for Bound variables to eliminate.
   When can we safely delete the equality?
     Not if it equates two constants; consider 0=1.
     Not if it resembles x=t[x], since substitution does not eliminate x.
