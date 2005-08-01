@@ -332,8 +332,10 @@ lemmas ok_sym = ok_commute [THEN iffD1, standard]
 
 lemma ok_iff_OK:
      "OK {(0::int,F),(1,G),(2,H)} snd = (F ok G & (F\<squnion>G) ok H)"
-by (simp add: Ball_def conj_disj_distribR ok_def Join_def OK_def insert_absorb
-              all_conj_distrib eq_commute,   blast)
+apply (simp add: Ball_def conj_disj_distribR ok_def Join_def OK_def insert_absorb
+              all_conj_distrib)
+apply blast
+done
 
 lemma ok_Join_iff1 [iff]: "F ok (G\<squnion>H) = (F ok G & F ok H)"
 by (auto simp add: ok_def)
