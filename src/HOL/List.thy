@@ -715,6 +715,14 @@ by (induct xs) auto
 lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
 by (induct xs) (auto simp add: le_SucI)
 
+lemma filter_map:
+  "filter P (map f xs) = map f (filter (P o f) xs)"
+by (induct xs) simp_all
+
+lemma length_filter_map[simp]:
+  "length (filter P (map f xs)) = length(filter (P o f) xs)"
+by (simp add:filter_map)
+
 lemma filter_is_subset [simp]: "set (filter P xs) \<le> set xs"
 by auto
 
