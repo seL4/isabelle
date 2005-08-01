@@ -12,41 +12,22 @@
 ### ML compiler settings (ESSENTIAL!)
 ###
 
-# Note that ML_HOME specifies the location of the actual compiler
-# binaries.  Do not invent new ML system names unless you know what
-# you are doing.  Only one of the sections below should be activated.
+# ML_HOME specifies the location of the actual compiler binaries.  Do
+# not invent new ML system names unless you know what you are doing.
+# Only one of the sections below should be activated.
 
-# try finding the poly packages from the Isabelle site in the usual places
-POLYML_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/polyml" \
-  "$ISABELLE_HOME/../polyml" \
-  "/usr/share/polyml" \
-  "/usr/local/polyml" \
-  "/opt/polyml")
-
-if [ -n "$POLYML_HOME" -a -e "$POLYML_HOME/bin/polyml-version" ]; then
-  # looks like Isabelle poly packages
-  ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
-  ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo unknown-platform)
-  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-h 15000"
-elif [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
-  # maybe a shrink-wrapped polyml on x86-linux ...
-
-  # Poly/ML 4.0, 4.1, 4.1.x
-  # include version number, needed for choosing right options
-  # If automatic setting doesn't work, use e.g. ML_VERSION=4.1.3
-  ML_VERSION=$(echo "OS.Process.exit OS.Process.success;" | /usr/bin/poly | sed -n 's,.*Poly/ML[ ]*\([^ ]*\)[ ]*Release,\1,p')
-  ML_SYSTEM=polyml-${ML_VERSION}
-  # processor/OS type
-  ML_PLATFORM=x86-linux
-  # where to find binaries
-  ML_HOME=/usr/bin
-  # where to find the standard database
-  ML_DBASE=/usr/lib/poly/ML_dbase
-  # options to pass to poly
-  ML_OPTIONS="-h 15000"
-fi
+# Poly/ML 4.x
+POLY_HOME="$(type -p poly)"; [ -n "$POLY_HOME" ] && POLY_HOME="$(dirname "$POLY_HOME")"
+ML_PLATFORM=$("$ISABELLE_HOME/lib/scripts/polyml-platform")
+ML_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM" \
+  "$ISABELLE_HOME/../polyml/$ML_PLATFORM" \
+  "/usr/share/polyml/$ML_PLATFORM" \
+  "/usr/local/polyml/$ML_PLATFORM" \
+  "/opt/polyml/$ML_PLATFORM" \
+  $POLY_HOME)
+ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
+ML_OPTIONS="-h 50000"
 
 # Standard ML of New Jersey 110 or later
 #SMLNJ_CYGWIN_RUNTIME=1
@@ -159,8 +140,6 @@ PRINT_COMMAND=lp
 ### Interfaces
 ###
 
-# ISABELLE_INTERFACE is the program which is run by the Isabelle command
-
 # Fallback: the null interface (pass-through to raw isabelle process).
 ISABELLE_INTERFACE=none
 
@@ -174,7 +153,6 @@ ISABELLE_INTERFACE=$(choosefrom\
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 
-# Options to pass to Isabelle command when PG is selected as interface
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
 
@@ -221,11 +199,8 @@ HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 # For configuring HOL/Matrix/cplex
 # LP_SOLVER is the default solver. It can be changed during runtime via Cplex.set_solver.
 # First option: use the commercial cplex solver
-# LP_SOLVER=CPLEX
-# CPLEX_PATH=cplex
+#LP_SOLVER=CPLEX
+#CPLEX_PATH=cplex
 # Second option: use the open source glpk solver
-# LP_SOLVER=GLPK
-# GLPK_PATH=glpsol
-
-# toogles the detail of the error message in case of a cyclic definition
-DEFS_CHAIN_HISTORY=ON
+#LP_SOLVER=GLPK
+#GLPK_PATH=glpsol
