@@ -1,12 +1,12 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
+(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 (*  Title:      Provers/eqsubst.ML
     ID:         $Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
-    Modified:   18 Feb 2005 - Lucas - 
+    Modified:   18 Feb 2005 - Lucas -
     Created:    29 Jan 2005
 *)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
+(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 (*  DESCRIPTION:
 
     A Tactic to perform a substiution using an equation.
@@ -27,81 +27,81 @@ end;
 
 
 (* the signature of an instance of the SQSUBST tactic *)
-signature EQSUBST_TAC = 
+signature EQSUBST_TAC =
 sig
 
-  exception eqsubst_occL_exp of 
-            string * (int list) * (Thm.thm list) * int * Thm.thm;
+  exception eqsubst_occL_exp of
+            string * (int list) * (thm list) * int * thm;
 
 
-  type match = 
-       ((Term.indexname * (Term.sort * Term.typ)) list (* type instantiations *)
-        * (Term.indexname * (Term.typ * Term.term)) list) (* term instantiations *)
-       * (string * Term.typ) list (* fake named type abs env *)
-       * (string * Term.typ) list (* type abs env *)
-       * Term.term (* outer term *)
+  type match =
+       ((indexname * (sort * typ)) list (* type instantiations *)
+        * (indexname * (typ * term)) list) (* term instantiations *)
+       * (string * typ) list (* fake named type abs env *)
+       * (string * typ) list (* type abs env *)
+       * term (* outer term *)
 
-  type searchinfo = 
-       Sign.sg (* sign for matching *)
+  type searchinfo =
+       theory (* sign for matching *)
        * int (* maxidx *)
        * BasicIsaFTerm.FcTerm (* focusterm to search under *)
 
   val prep_subst_in_asm :
          int (* subgoal to subst in *)
-      -> Thm.thm (* target theorem with subgoals *)
+      -> thm (* target theorem with subgoals *)
       -> int (* premise to subst in *)
-      -> (Thm.cterm list (* certified free var placeholders for vars *) 
+      -> (cterm list (* certified free var placeholders for vars *)
           * int (* premice no. to subst *)
           * int (* number of assumptions of premice *)
-          * Thm.thm) (* premice as a new theorem for forward reasoning *)
+          * thm) (* premice as a new theorem for forward reasoning *)
          * searchinfo (* search info: prem id etc *)
 
   val prep_subst_in_asms :
          int (* subgoal to subst in *)
-      -> Thm.thm (* target theorem with subgoals *)
-      -> ((Thm.cterm list (* certified free var placeholders for vars *) 
+      -> thm (* target theorem with subgoals *)
+      -> ((cterm list (* certified free var placeholders for vars *)
           * int (* premice no. to subst *)
           * int (* number of assumptions of premice *)
-          * Thm.thm) (* premice as a new theorem for forward reasoning *)
+          * thm) (* premice as a new theorem for forward reasoning *)
          * searchinfo) list
 
   val apply_subst_in_asm :
       int (* subgoal *)
-      -> Thm.thm (* overall theorem *)
-      -> Thm.thm (* rule *)
-      -> (Thm.cterm list (* certified free var placeholders for vars *) 
+      -> thm (* overall theorem *)
+      -> thm (* rule *)
+      -> (cterm list (* certified free var placeholders for vars *)
           * int (* assump no being subst *)
-          * int (* num of premises of asm *) 
-          * Thm.thm) (* premthm *)
+          * int (* num of premises of asm *)
+          * thm) (* premthm *)
       * match
-      -> Thm.thm Seq.seq
+      -> thm Seq.seq
 
   val prep_concl_subst :
          int (* subgoal *)
-      -> Thm.thm (* overall goal theorem *)
-      -> (Thm.cterm list * Thm.thm) * searchinfo (* (cvfs, conclthm), matchf *)
+      -> thm (* overall goal theorem *)
+      -> (cterm list * thm) * searchinfo (* (cvfs, conclthm), matchf *)
 
   val apply_subst_in_concl :
         int (* subgoal *)
-        -> Thm.thm (* thm with all goals *)
-        -> Thm.cterm list (* certified free var placeholders for vars *)
-           * Thm.thm  (* trivial thm of goal concl *)
+        -> thm (* thm with all goals *)
+        -> cterm list (* certified free var placeholders for vars *)
+           * thm  (* trivial thm of goal concl *)
             (* possible matches/unifiers *)
-        -> Thm.thm (* rule *)
+        -> thm (* rule *)
         -> match
-        -> Thm.thm Seq.seq (* substituted goal *)
+        -> thm Seq.seq (* substituted goal *)
 
   (* basic notion of search *)
-  val searchf_tlr_unify_all : 
-      (searchinfo 
-       -> Term.term (* lhs *)
+  val searchf_tlr_unify_all :
+      (searchinfo
+       -> term (* lhs *)
        -> match Seq.seq Seq.seq)
-  val searchf_tlr_unify_valid : 
-      (searchinfo 
-       -> Term.term (* lhs *)
+  val searchf_tlr_unify_valid :
+      (searchinfo
+       -> term (* lhs *)
        -> match Seq.seq Seq.seq)
 
-  (* specialise search constructor for conclusion skipping occurnaces. *)
+  (* specialise search constructor for conclusion skipping occurrences. *)
      val skip_first_occs_search :
         int -> ('a -> 'b -> 'c Seq.seq Seq.seq) -> 'a -> 'b -> 'c Seq.seq
   (* specialised search constructor for assumptions using skips *)
@@ -110,98 +110,98 @@ sig
         'a -> int -> 'b -> 'c IsaPLib.skipseqT
 
   (* tactics and methods *)
-  val eqsubst_asm_meth : int list -> Thm.thm list -> Proof.method
-  val eqsubst_asm_tac : 
-      int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
-  val eqsubst_asm_tac' : 
+  val eqsubst_asm_meth : int list -> thm list -> Proof.method
+  val eqsubst_asm_tac :
+      int list -> thm list -> int -> thm -> thm Seq.seq
+  val eqsubst_asm_tac' :
       (* search function with skips *)
-      (searchinfo -> int -> Term.term -> match IsaPLib.skipseqT) 
+      (searchinfo -> int -> term -> match IsaPLib.skipseqT)
       -> int (* skip to *)
-      -> Thm.thm (* rule *)
+      -> thm (* rule *)
       -> int (* subgoal number *)
-      -> Thm.thm (* tgt theorem with subgoals *)
-      -> Thm.thm Seq.seq (* new theorems *)
+      -> thm (* tgt theorem with subgoals *)
+      -> thm Seq.seq (* new theorems *)
 
-  val eqsubst_meth : int list -> Thm.thm list -> Proof.method
-  val eqsubst_tac : 
-      int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
-  val eqsubst_tac' : 
-      (searchinfo -> Term.term -> match Seq.seq) 
-      -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+  val eqsubst_meth : int list -> thm list -> Proof.method
+  val eqsubst_tac :
+      int list -> thm list -> int -> thm -> thm Seq.seq
+  val eqsubst_tac' :
+      (searchinfo -> term -> match Seq.seq)
+      -> thm -> int -> thm -> thm Seq.seq
 
-  val meth : (bool * int list) * Thm.thm list -> Proof.context -> Proof.method
+  val meth : (bool * int list) * thm list -> Proof.context -> Proof.method
   val setup : (Theory.theory -> Theory.theory) list
 end;
 
 
-functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA) 
+functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA)
   : EQSUBST_TAC
 = struct
 
   (* a type abriviation for match information *)
-  type match = 
-       ((Term.indexname * (Term.sort * Term.typ)) list (* type instantiations *)
-        * (Term.indexname * (Term.typ * Term.term)) list) (* term instantiations *)
-       * (string * Term.typ) list (* fake named type abs env *)
-       * (string * Term.typ) list (* type abs env *)
-       * Term.term (* outer term *)
+  type match =
+       ((indexname * (sort * typ)) list (* type instantiations *)
+        * (indexname * (typ * term)) list) (* term instantiations *)
+       * (string * typ) list (* fake named type abs env *)
+       * (string * typ) list (* type abs env *)
+       * term (* outer term *)
 
-  type searchinfo = 
+  type searchinfo =
        Sign.sg (* sign for matching *)
        * int (* maxidx *)
        * BasicIsaFTerm.FcTerm (* focusterm to search under *)
 
 (* FOR DEBUGGING...
 type trace_subst_errT = int (* subgoal *)
-        * Thm.thm (* thm with all goals *)
+        * thm (* thm with all goals *)
         * (Thm.cterm list (* certified free var placeholders for vars *)
-           * Thm.thm)  (* trivial thm of goal concl *)
+           * thm)  (* trivial thm of goal concl *)
             (* possible matches/unifiers *)
-        * Thm.thm (* rule *)
-        * (((Term.indexname * Term.typ) list (* type instantiations *)
-              * (Term.indexname * Term.term) list ) (* term instantiations *)
-             * (string * Term.typ) list (* Type abs env *)
-             * Term.term) (* outer term *);
+        * thm (* rule *)
+        * (((indexname * typ) list (* type instantiations *)
+              * (indexname * term) list ) (* term instantiations *)
+             * (string * typ) list (* Type abs env *)
+             * term) (* outer term *);
 
 val trace_subst_err = (ref NONE : trace_subst_errT option ref);
 val trace_subst_search = ref false;
 exception trace_subst_exp of trace_subst_errT;
  *)
 
-(* also defined in /HOL/Tools/inductive_codegen.ML, 
+(* also defined in /HOL/Tools/inductive_codegen.ML,
    maybe move this to seq.ML ? *)
 infix 5 :->;
 fun s :-> f = Seq.flat (Seq.map f s);
 
 (* search from top, left to right, then down *)
-fun search_tlr_all_f f ft = 
+fun search_tlr_all_f f ft =
     let
-      fun maux ft = 
-          let val t' = (IsaFTerm.focus_of_fcterm ft) 
-            (* val _ = 
-                if !trace_subst_search then 
+      fun maux ft =
+          let val t' = (IsaFTerm.focus_of_fcterm ft)
+            (* val _ =
+                if !trace_subst_search then
                   (writeln ("Examining: " ^ (TermLib.string_of_term t'));
                    TermLib.writeterm t'; ())
                 else (); *)
-          in 
-          (case t' of 
-            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft), 
-                       Seq.cons(f ft, 
+          in
+          (case t' of
+            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
+                       Seq.cons(f ft,
                                   maux (IsaFTerm.focus_right ft)))
           | (Abs _) => Seq.cons(f ft, maux (IsaFTerm.focus_abs ft))
           | leaf => Seq.single (f ft)) end
     in maux ft end;
 
 (* search from top, left to right, then down *)
-fun search_tlr_valid_f f ft = 
+fun search_tlr_valid_f f ft =
     let
-      fun maux ft = 
-          let 
+      fun maux ft =
+          let
             val hereseq = if IsaFTerm.valid_match_start ft then f ft else Seq.empty
-          in 
-          (case (IsaFTerm.focus_of_fcterm ft) of 
-            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft), 
-                       Seq.cons(hereseq, 
+          in
+          (case (IsaFTerm.focus_of_fcterm ft) of
+            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
+                       Seq.cons(hereseq,
                                   maux (IsaFTerm.focus_right ft)))
           | (Abs _) => Seq.cons(hereseq, maux (IsaFTerm.focus_abs ft))
           | leaf => Seq.single (hereseq))
@@ -209,16 +209,16 @@ fun search_tlr_valid_f f ft =
     in maux ft end;
 
 (* search all unifications *)
-fun searchf_tlr_unify_all (sgn, maxidx, ft) lhs = 
-    IsaFTerm.find_fcterm_matches 
-      search_tlr_all_f 
+fun searchf_tlr_unify_all (sgn, maxidx, ft) lhs =
+    IsaFTerm.find_fcterm_matches
+      search_tlr_all_f
       (IsaFTerm.clean_unify_ft sgn maxidx lhs)
       ft;
 
 (* search only for 'valid' unifiers (non abs subterms and non vars) *)
-fun searchf_tlr_unify_valid (sgn, maxidx, ft) lhs  = 
-    IsaFTerm.find_fcterm_matches 
-      search_tlr_valid_f 
+fun searchf_tlr_unify_valid (sgn, maxidx, ft) lhs  =
+    IsaFTerm.find_fcterm_matches
+      search_tlr_valid_f
       (IsaFTerm.clean_unify_ft sgn maxidx lhs)
       ft;
 
@@ -228,7 +228,7 @@ fun searchf_tlr_unify_valid (sgn, maxidx, ft) lhs  =
 (* conclthm is a theorem of for just the conclusion *)
 (* m is instantiation/match information *)
 (* rule is the equation for substitution *)
-fun apply_subst_in_concl i th (cfvs, conclthm) rule m = 
+fun apply_subst_in_concl i th (cfvs, conclthm) rule m =
     (RWInst.rw m rule conclthm)
       |> IsaND.unfix_frees cfvs
       |> RWInst.beta_eta_contract
@@ -236,8 +236,8 @@ fun apply_subst_in_concl i th (cfvs, conclthm) rule m =
 
 (* substitute within the conclusion of goal i of gth, using a meta
 equation rule. Note that we assume rule has var indicies zero'd *)
-fun prep_concl_subst i gth = 
-    let 
+fun prep_concl_subst i gth =
+    let
       val th = Thm.incr_indexes 1 gth;
       val tgt_term = Thm.prop_of th;
 
@@ -251,20 +251,20 @@ fun prep_concl_subst i gth =
       val conclterm = Logic.strip_imp_concl fixedbody;
       val conclthm = trivify conclterm;
       val maxidx = Term.maxidx_of_term conclterm;
-      val ft = ((IsaFTerm.focus_right  
+      val ft = ((IsaFTerm.focus_right
                  o IsaFTerm.focus_left
-                 o IsaFTerm.fcterm_of_term 
+                 o IsaFTerm.fcterm_of_term
                  o Thm.prop_of) conclthm)
     in
       ((cfvs, conclthm), (sgn, maxidx, ft))
     end;
 
 (* substitute using an object or meta level equality *)
-fun eqsubst_tac' searchf instepthm i th = 
-    let 
+fun eqsubst_tac' searchf instepthm i th =
+    let
       val (cvfsconclthm, searchinfo) = prep_concl_subst i th;
-      val stepthms = 
-          Seq.map Drule.zero_var_indexes 
+      val stepthms =
+          Seq.map Drule.zero_var_indexes
                   (Seq.of_list (EqRuleData.prep_meta_eq instepthm));
       fun rewrite_with_thm r =
           let val (lhs,_) = Logic.dest_equals (Thm.concl_of r);
@@ -275,43 +275,43 @@ fun eqsubst_tac' searchf instepthm i th =
 
 (* Tactic.distinct_subgoals_tac -- fails to free type variables *)
 
-(* custom version of distinct subgoals that works with term and 
-   type variables. Asssumes th is in beta-eta normal form. 
+(* custom version of distinct subgoals that works with term and
+   type variables. Asssumes th is in beta-eta normal form.
    Also, does nothing if flexflex contraints are present. *)
 fun distinct_subgoals th =
     if List.null (Thm.tpairs_of th) then
       let val (fixes,fixedthm) = IsaND.fix_vars_and_tvars th
         val (fixedthconcl,cprems) = IsaND.hide_prems fixedthm
       in
-        IsaND.unfix_frees_and_tfrees 
+        IsaND.unfix_frees_and_tfrees
           fixes
-          (Drule.implies_intr_list 
-             (Library.gen_distinct 
+          (Drule.implies_intr_list
+             (Library.gen_distinct
                 (fn (x, y) => Thm.term_of x = Thm.term_of y)
                 cprems) fixedthconcl)
       end
     else th;
 
-(* General substiuttion of multiple occurances using one of 
+(* General substiuttion of multiple occurances using one of
    the given theorems*)
-exception eqsubst_occL_exp of 
-          string * (int list) * (Thm.thm list) * int * Thm.thm;
-fun skip_first_occs_search occ srchf sinfo lhs = 
-    case (IsaPLib.skipto_seqseq occ (srchf sinfo lhs)) of 
+exception eqsubst_occL_exp of
+          string * (int list) * (thm list) * int * thm;
+fun skip_first_occs_search occ srchf sinfo lhs =
+    case (IsaPLib.skipto_seqseq occ (srchf sinfo lhs)) of
       IsaPLib.skipmore _ => Seq.empty
     | IsaPLib.skipseq ss => Seq.flat ss;
 
-fun eqsubst_tac occL thms i th = 
+fun eqsubst_tac occL thms i th =
     let val nprems = Thm.nprems_of th in
       if nprems < i then Seq.empty else
-      let val thmseq = (Seq.of_list thms) 
-        fun apply_occ occ th = 
-            thmseq :-> 
-                    (fn r => eqsubst_tac' (skip_first_occs_search 
+      let val thmseq = (Seq.of_list thms)
+        fun apply_occ occ th =
+            thmseq :->
+                    (fn r => eqsubst_tac' (skip_first_occs_search
                                     occ searchf_tlr_unify_valid) r
                                  (i + ((Thm.nprems_of th) - nprems))
                                  th);
-        val sortedoccL = 
+        val sortedoccL =
             Library.sort (Library.rev_order o Library.int_ord) occL;
       in
         Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccL) th)
@@ -323,21 +323,21 @@ fun eqsubst_tac occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_meth occL inthms =
-    Method.METHOD 
+    Method.METHOD
       (fn facts =>
           HEADGOAL ( Method.insert_tac facts THEN' eqsubst_tac occL inthms ));
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
-fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) = 
-    let 
+fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) =
+    let
       val th2 = Thm.rotate_rule (j - 1) i th; (* put premice first *)
-      val preelimrule = 
+      val preelimrule =
           (RWInst.rw m rule pth)
             |> (Seq.hd o Tactic.prune_params_tac)
             |> Thm.permute_prems 0 ~1 (* put old asm first *)
             |> IsaND.unfix_frees cfvs (* unfix any global params *)
             |> RWInst.beta_eta_contract; (* normal form *)
-  (*    val elimrule = 
+  (*    val elimrule =
           preelimrule
             |> Tactic.make_elim (* make into elim rule *)
             |> Thm.lift_rule (th2, i); (* lift into context *)
@@ -347,7 +347,7 @@ fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) =
       Seq.map (Thm.rotate_rule (~j) ((Thm.nprems_of rule) + i))
       (Tactic.dtac preelimrule i th2)
 
-      (* (Thm.bicompose 
+      (* (Thm.bicompose
                  false (* use unification *)
                  (true, (* elim resolution *)
                   elimrule, (2 + (Thm.nprems_of rule)) - ngoalprems)
@@ -361,8 +361,8 @@ zero'd. Note that we also assume that premt is the j'th premice of
 subgoal i of gth. Note the repetition of work done for each
 assumption, i.e. this can be made more efficient for search over
 multiple assumptions.  *)
-fun prep_subst_in_asm i gth j = 
-    let 
+fun prep_subst_in_asm i gth j =
+    let
       val th = Thm.incr_indexes 1 gth;
       val tgt_term = Thm.prop_of th;
 
@@ -379,58 +379,58 @@ fun prep_subst_in_asm i gth j =
       val pth = trivify asmt;
       val maxidx = Term.maxidx_of_term asmt;
 
-      val ft = ((IsaFTerm.focus_right 
-                 o IsaFTerm.fcterm_of_term 
+      val ft = ((IsaFTerm.focus_right
+                 o IsaFTerm.fcterm_of_term
                  o Thm.prop_of) pth)
     in ((cfvs, j, asm_nprems, pth), (sgn, maxidx, ft)) end;
 
 (* prepare subst in every possible assumption *)
-fun prep_subst_in_asms i gth = 
+fun prep_subst_in_asms i gth =
     map (prep_subst_in_asm i gth)
-        ((rev o IsaPLib.mk_num_list o length) 
+        ((rev o IsaPLib.mk_num_list o length)
            (Logic.prems_of_goal (Thm.prop_of gth) i));
 
 
 (* substitute in an assumption using an object or meta level equality *)
-fun eqsubst_asm_tac' searchf skipocc instepthm i th = 
-    let 
+fun eqsubst_asm_tac' searchf skipocc instepthm i th =
+    let
       val asmpreps = prep_subst_in_asms i th;
-      val stepthms = 
-          Seq.map Drule.zero_var_indexes 
+      val stepthms =
+          Seq.map Drule.zero_var_indexes
               (Seq.of_list (EqRuleData.prep_meta_eq instepthm))
       fun rewrite_with_thm r =
           let val (lhs,_) = Logic.dest_equals (Thm.concl_of r)
             fun occ_search occ [] = Seq.empty
               | occ_search occ ((asminfo, searchinfo)::moreasms) =
-                (case searchf searchinfo occ lhs of 
+                (case searchf searchinfo occ lhs of
                    IsaPLib.skipmore i => occ_search i moreasms
-                 | IsaPLib.skipseq ss => 
+                 | IsaPLib.skipseq ss =>
                    Seq.append (Seq.map (Library.pair asminfo)
-                                       (Seq.flat ss), 
+                                       (Seq.flat ss),
                                occ_search 1 moreasms))
                               (* find later substs also *)
-          in 
+          in
             (occ_search skipocc asmpreps) :-> (apply_subst_in_asm i th r)
           end;
     in stepthms :-> rewrite_with_thm end;
 
 
-fun skip_first_asm_occs_search searchf sinfo occ lhs = 
+fun skip_first_asm_occs_search searchf sinfo occ lhs =
     IsaPLib.skipto_seqseq occ (searchf sinfo lhs);
 
-fun eqsubst_asm_tac occL thms i th = 
-    let val nprems = Thm.nprems_of th 
+fun eqsubst_asm_tac occL thms i th =
+    let val nprems = Thm.nprems_of th
     in
       if nprems < i then Seq.empty else
-      let val thmseq = (Seq.of_list thms) 
-        fun apply_occ occK th = 
-            thmseq :-> 
-                    (fn r => 
-                        eqsubst_asm_tac' (skip_first_asm_occs_search 
+      let val thmseq = (Seq.of_list thms)
+        fun apply_occ occK th =
+            thmseq :->
+                    (fn r =>
+                        eqsubst_asm_tac' (skip_first_asm_occs_search
                                             searchf_tlr_unify_valid) occK r
                                          (i + ((Thm.nprems_of th) - nprems))
                                          th);
-        val sortedoccs = 
+        val sortedoccs =
             Library.sort (Library.rev_order o Library.int_ord) occL
       in
         Seq.map distinct_subgoals
@@ -442,14 +442,14 @@ fun eqsubst_asm_tac occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_asm_meth occL inthms =
-    Method.METHOD 
+    Method.METHOD
       (fn facts =>
           HEADGOAL (Method.insert_tac facts THEN' eqsubst_asm_tac occL inthms ));
 
 (* combination method that takes a flag (true indicates that subst
 should be done to an assumption, false = apply to the conclusion of
 the goal) as well as the theorems to use *)
-fun meth ((asmflag, occL), inthms) ctxt = 
+fun meth ((asmflag, occL), inthms) ctxt =
     if asmflag then eqsubst_asm_meth occL inthms else eqsubst_meth occL inthms;
 
 (* syntax for options, given "(asm)" will give back true, without
@@ -464,13 +464,13 @@ val ith_syntax =
 
 (* method syntax, first take options, then theorems *)
 fun meth_syntax meth src ctxt =
-    meth (snd (Method.syntax ((Scan.lift options_syntax) 
-                                -- (Scan.lift ith_syntax) 
-                                -- Attrib.local_thms) src ctxt)) 
+    meth (snd (Method.syntax ((Scan.lift options_syntax)
+                                -- (Scan.lift ith_syntax)
+                                -- Attrib.local_thms) src ctxt))
          ctxt;
 
 (* setup function for adding method to theory. *)
-val setup = 
+val setup =
     [Method.add_method ("subst", meth_syntax meth, "Substiution with an equation. Use \"(asm)\" option to substitute in an assumption.")];
 
 end;

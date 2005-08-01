@@ -1,51 +1,49 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
+(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 (*  Title:      TFL/casesplit.ML
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Date:       17 Aug 2004
 *)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
+(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 (*  DESCRIPTION:
 
-    A structure that defines a tactic to program case splits. 
+    A structure that defines a tactic to program case splits.
 
     casesplit_free :
-      string * Term.type -> int -> Thm.thm -> Thm.thm Seq.seq
+      string * typ -> int -> thm -> thm Seq.seq
 
-    casesplit_name : 
-      string -> int -> Thm.thm -> Thm.thm Seq.seq
+    casesplit_name :
+      string -> int -> thm -> thm Seq.seq
 
     These use the induction theorem associated with the recursive data
-    type to be split. 
+    type to be split.
 
     The structure includes a function to try and recursively split a
-    conjecture into a list sub-theorems: 
+    conjecture into a list sub-theorems:
 
-    splitto : Thm.thm list -> Thm.thm -> Thm.thm
+    splitto : thm list -> thm -> thm
 *)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
+(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
 (* logic-specific *)
 signature CASE_SPLIT_DATA =
 sig
-  val dest_Trueprop : Term.term -> Term.term
-  val mk_Trueprop : Term.term -> Term.term
-  val read_cterm : Sign.sg -> string -> Thm.cterm
+  val dest_Trueprop : term -> term
+  val mk_Trueprop : term -> term
 
-  val localize : Thm.thm list
-  val local_impI : Thm.thm
-  val atomize : Thm.thm list
-  val rulify1 : Thm.thm list
-  val rulify2 : Thm.thm list
+  val localize : thm list
+  val local_impI : thm
+  val atomize : thm list
+  val rulify1 : thm list
+  val rulify2 : thm list
 
 end;
 
 (* for HOL *)
-structure CaseSplitData_HOL : CASE_SPLIT_DATA = 
+structure CaseSplitData_HOL : CASE_SPLIT_DATA =
 struct
 val dest_Trueprop = HOLogic.dest_Trueprop;
 val mk_Trueprop = HOLogic.mk_Trueprop;
-val read_cterm = HOLogic.read_cterm;
 
 val localize = [Thm.symmetric (thm "induct_implies_def")];
 val local_impI = thm "induct_impliesI";
@@ -62,29 +60,29 @@ sig
   exception find_split_exp of string
 
   (* getting a case split thm from the induction thm *)
-  val case_thm_of_ty : Sign.sg -> Term.typ -> Thm.thm
-  val cases_thm_of_induct_thm : Thm.thm -> Thm.thm
+  val case_thm_of_ty : theory -> typ -> thm
+  val cases_thm_of_induct_thm : thm -> thm
 
   (* case split tactics *)
   val casesplit_free :
-      string * Term.typ -> int -> Thm.thm -> Thm.thm Seq.seq
-  val casesplit_name : string -> int -> Thm.thm -> Thm.thm Seq.seq
+      string * typ -> int -> thm -> thm Seq.seq
+  val casesplit_name : string -> int -> thm -> thm Seq.seq
 
   (* finding a free var to split *)
   val find_term_split :
-      Term.term * Term.term -> (string * Term.typ) option
+      term * term -> (string * typ) option
   val find_thm_split :
-      Thm.thm -> int -> Thm.thm -> (string * Term.typ) option
+      thm -> int -> thm -> (string * typ) option
   val find_thms_split :
-      Thm.thm list -> int -> Thm.thm -> (string * Term.typ) option
+      thm list -> int -> thm -> (string * typ) option
 
   (* try to recursively split conjectured thm to given list of thms *)
-  val splitto : Thm.thm list -> Thm.thm -> Thm.thm
+  val splitto : thm list -> thm -> thm
 
   (* for use with the recdef package *)
   val derive_init_eqs :
-      Sign.sg ->
-      (Thm.thm * int) list -> Term.term list -> (Thm.thm * int) list
+      theory ->
+      (thm * int) list -> term list -> (thm * int) list
 end;
 
 functor CaseSplitFUN(Data : CASE_SPLIT_DATA) =
@@ -93,7 +91,7 @@ struct
 val rulify_goals = Tactic.rewrite_goals_rule Data.rulify1;
 val atomize_goals = Tactic.rewrite_goals_rule Data.atomize;
 
-(* 
+(*
 val localize = Tactic.norm_hhf_rule o Tactic.simplify false Data.localize;
 fun atomize_term sg =
   ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize [];
@@ -108,26 +106,26 @@ val atomize = Tactic.norm_hhf_rule o Tactic.simplify true Data.atomize;
 *)
 
 (* beta-eta contract the theorem *)
-fun beta_eta_contract thm = 
+fun beta_eta_contract thm =
     let
       val thm2 = equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
       val thm3 = equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
     in thm3 end;
 
 (* make a casethm from an induction thm *)
-val cases_thm_of_induct_thm = 
+val cases_thm_of_induct_thm =
      Seq.hd o (ALLGOALS (fn i => REPEAT (etac Drule.thin_rl i)));
 
 (* get the case_thm (my version) from a type *)
-fun case_thm_of_ty sgn ty  = 
-    let 
+fun case_thm_of_ty sgn ty  =
+    let
       val dtypestab = DatatypePackage.get_datatypes sgn;
-      val ty_str = case ty of 
+      val ty_str = case ty of
                      Type(ty_str, _) => ty_str
-                   | TFree(s,_)  => raise ERROR_MESSAGE 
-                                            ("Free type: " ^ s)   
-                   | TVar((s,i),_) => raise ERROR_MESSAGE 
-                                            ("Free variable: " ^ s)   
+                   | TFree(s,_)  => raise ERROR_MESSAGE
+                                            ("Free type: " ^ s)
+                   | TVar((s,i),_) => raise ERROR_MESSAGE
+                                            ("Free variable: " ^ s)
       val dt = case (Symtab.lookup (dtypestab,ty_str))
                 of SOME dt => dt
                  | NONE => raise ERROR_MESSAGE ("Not a Datatype: " ^ ty_str)
@@ -135,15 +133,15 @@ fun case_thm_of_ty sgn ty  =
       cases_thm_of_induct_thm (#induction dt)
     end;
 
-(* 
- val ty = (snd o hd o map Term.dest_Free o Term.term_frees) t;  
+(*
+ val ty = (snd o hd o map Term.dest_Free o Term.term_frees) t;
 *)
 
 
 (* for use when there are no prems to the subgoal *)
 (* does a case split on the given variable *)
-fun mk_casesplit_goal_thm sgn (vstr,ty) gt = 
-    let 
+fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
+    let
       val x = Free(vstr,ty)
       val abst = Abs(vstr, ty, Term.abstract_over (x, gt));
 
@@ -155,12 +153,12 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val free_ct = ctermify x;
 
       val casethm_vars = rev (Term.term_vars (Thm.concl_of case_thm));
-       
+
       val casethm_tvars = Term.term_tvars (Thm.concl_of case_thm);
-      val (Pv, Dv, type_insts) = 
-          case (Thm.concl_of case_thm) of 
-            (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) => 
-            (Pv, Dv, 
+      val (Pv, Dv, type_insts) =
+          case (Thm.concl_of case_thm) of
+            (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>
+            (Pv, Dv,
              Sign.typ_match sgn (Dty, ty) Vartab.empty)
           | _ => raise ERROR_MESSAGE ("not a valid case thm");
       val type_cinsts = map (fn (ixn, (S, T)) => (ctypify (TVar (ixn, S)), ctypify T))
@@ -168,17 +166,17 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val cPv = ctermify (Envir.subst_TVars type_insts Pv);
       val cDv = ctermify (Envir.subst_TVars type_insts Dv);
     in
-      (beta_eta_contract 
+      (beta_eta_contract
          (case_thm
-            |> Thm.instantiate (type_cinsts, []) 
+            |> Thm.instantiate (type_cinsts, [])
             |> Thm.instantiate ([], [(cPv, abs_ct), (cDv, free_ct)])))
     end;
 
 
 (* for use when there are no prems to the subgoal *)
 (* does a case split on the given variable (Free fv) *)
-fun casesplit_free fv i th = 
-    let 
+fun casesplit_free fv i th =
+    let
       val (subgoalth, exp) = IsaND.fix_alls i th;
       val subgoalth' = atomize_goals subgoalth;
       val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
@@ -189,27 +187,27 @@ fun casesplit_free fv i th =
 
       val split_goal_th = splitter_thm RS subgoalth';
       val rulified_split_goal_th = rulify_goals split_goal_th;
-    in 
+    in
       IsaND.export_back exp rulified_split_goal_th
     end;
 
 
 (* for use when there are no prems to the subgoal *)
 (* does a case split on the given variable *)
-fun casesplit_name vstr i th = 
-    let 
+fun casesplit_name vstr i th =
+    let
       val (subgoalth, exp) = IsaND.fix_alls i th;
       val subgoalth' = atomize_goals subgoalth;
       val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
 
       val freets = Term.term_frees gt;
-      fun getter x = 
-          let val (n,ty) = Term.dest_Free x in 
-            (if vstr = n orelse vstr = Syntax.dest_skolem n 
+      fun getter x =
+          let val (n,ty) = Term.dest_Free x in
+            (if vstr = n orelse vstr = Syntax.dest_skolem n
              then SOME (n,ty) else NONE )
             handle Fail _ => NONE (* dest_skolem *)
           end;
-      val (n,ty) = case Library.get_first getter freets 
+      val (n,ty) = case Library.get_first getter freets
                 of SOME (n, ty) => (n, ty)
                  | _ => raise ERROR_MESSAGE ("no such variable " ^ vstr);
       val sgn = Thm.sign_of_thm th;
@@ -220,12 +218,12 @@ fun casesplit_name vstr i th =
       val split_goal_th = splitter_thm RS subgoalth';
 
       val rulified_split_goal_th = rulify_goals split_goal_th;
-    in 
+    in
       IsaND.export_back exp rulified_split_goal_th
     end;
 
 
-(* small example: 
+(* small example:
 Goal "P (x :: nat) & (C y --> Q (y :: nat))";
 by (rtac (thm "conjI") 1);
 val th = topthm();
@@ -251,21 +249,21 @@ fun find_term_split (Free v, _ $ _) = SOME v
   | find_term_split (Free v, Const _) = SOME v
   | find_term_split (Free v, Abs _) = SOME v (* do we really want this case? *)
   | find_term_split (Free v, Var _) = NONE (* keep searching *)
-  | find_term_split (a $ b, a2 $ b2) = 
-    (case find_term_split (a, a2) of 
-       NONE => find_term_split (b,b2)  
+  | find_term_split (a $ b, a2 $ b2) =
+    (case find_term_split (a, a2) of
+       NONE => find_term_split (b,b2)
      | vopt => vopt)
-  | find_term_split (Abs(_,ty,t1), Abs(_,ty2,t2)) = 
+  | find_term_split (Abs(_,ty,t1), Abs(_,ty2,t2)) =
     find_term_split (t1, t2)
-  | find_term_split (Const (x,ty), Const(x2,ty2)) = 
+  | find_term_split (Const (x,ty), Const(x2,ty2)) =
     if x = x2 then NONE else (* keep searching *)
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Consts)"
-  | find_term_split (Bound i, Bound j) =     
+  | find_term_split (Bound i, Bound j) =
     if i = j then NONE else (* keep searching *)
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Bound)"
-  | find_term_split (a, b) = 
+  | find_term_split (a, b) =
     raise find_split_exp (* stop now *)
             "Terms are not identical upto a free varaible! (Other)";
 
@@ -273,7 +271,7 @@ fun find_term_split (Free v, _ $ _) = SOME v
 then look for a free variable to split, breaking the subgoal closer to
 splitth. *)
 fun find_thm_split splitth i genth =
-    find_term_split (Logic.get_goal (Thm.prop_of genth) i, 
+    find_term_split (Logic.get_goal (Thm.prop_of genth) i,
                      Thm.concl_of splitth) handle find_split_exp _ => NONE;
 
 (* as above but searches "splitths" for a theorem that suggest a case split *)
@@ -292,33 +290,33 @@ useful, drop it? *)
 (* Note: This should not be a separate tactic but integrated into the
 case split done during recdef's case analysis, this would avoid us
 having to (re)search for variables to split. *)
-fun splitto splitths genth = 
-    let 
+fun splitto splitths genth =
+    let
       val _ = assert (not (null splitths)) "splitto: no given splitths";
       val sgn = Thm.sign_of_thm genth;
 
-      (* check if we are a member of splitths - FIXME: quicker and 
+      (* check if we are a member of splitths - FIXME: quicker and
       more flexible with discrim net. *)
-      fun solve_by_splitth th split = 
+      fun solve_by_splitth th split =
           Thm.biresolution false [(false,split)] 1 th;
 
-      fun split th = 
-          (case find_thms_split splitths 1 th of 
-             NONE => 
+      fun split th =
+          (case find_thms_split splitths 1 th of
+             NONE =>
              (writeln "th:";
               Display.print_thm th; writeln "split ths:";
               Display.print_thms splitths; writeln "\n--";
               raise ERROR_MESSAGE "splitto: cannot find variable to split on")
-            | SOME v => 
-             let 
+            | SOME v =>
+             let
                val gt = Data.dest_Trueprop (List.nth(Thm.prems_of th, 0));
                val split_thm = mk_casesplit_goal_thm sgn v gt;
                val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
-             in 
+             in
                expf (map recsplitf subthms)
              end)
 
-      and recsplitf th = 
+      and recsplitf th =
           (* note: multiple unifiers! we only take the first element,
              probably fine -- there is probably only one anyway. *)
           (case Library.get_first (Seq.pull o solve_by_splitth th) splitths of
@@ -339,27 +337,27 @@ prefer leaving more fine grain control to the user. *)
 (* derive eqs, assuming strict, ie the rules have no assumptions = all
    the well-foundness conditions have been solved. *)
 local
-  fun get_related_thms i = 
+  fun get_related_thms i =
       List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
-      
-  fun solve_eq (th, [], i) = 
+
+  fun solve_eq (th, [], i) =
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"
     | solve_eq (th, [a], i) = (a, i)
     | solve_eq (th, splitths as (_ :: _), i) = (splitto splitths th,i);
 in
-fun derive_init_eqs sgn rules eqs = 
-    let 
-      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o Data.mk_Trueprop) 
+fun derive_init_eqs sgn rules eqs =
+    let
+      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o Data.mk_Trueprop)
                       eqs
     in
       (rev o map solve_eq)
-        (Library.foldln 
-           (fn (e,i) => 
-               (curry (op ::)) (e, (get_related_thms (i - 1) rules), i - 1)) 
+        (Library.foldln
+           (fn (e,i) =>
+               (curry (op ::)) (e, (get_related_thms (i - 1) rules), i - 1))
            eqths [])
     end;
 end;
-(* 
+(*
     val (rs_hwfc, unhidefs) = Library.split_list (map hide_prems rules)
     (map2 (op |>) (ths, expfs))
 *)
