@@ -451,6 +451,7 @@ val A = Free ("A", propT);
 
 val proto_pure =
   Context.pre_pure_thy
+  |> Compress.init_data
   |> Sign.init_data
   |> Theory.init_data
   |> Proofterm.init_data
