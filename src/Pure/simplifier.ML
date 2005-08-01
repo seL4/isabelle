@@ -60,6 +60,7 @@ sig
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val context_simproc: theory -> string -> string list
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
+  val inherit_bounds: simpset -> simpset -> simpset
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
