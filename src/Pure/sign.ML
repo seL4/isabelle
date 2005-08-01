@@ -672,7 +672,7 @@ val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
 fun gen_add_consts prep_typ raw_args thy =
   let
-    val prepT = compress_type o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
+    val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (c, T, mx) = ((c, prepT T, mx) handle TYPE (msg, _, _) => error msg)
       handle ERROR => error ("in declaration of constant " ^ quote (Syntax.const_name c mx));
     val args = map prep raw_args;
