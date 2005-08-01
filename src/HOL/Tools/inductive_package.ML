@@ -614,7 +614,10 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
       else
         (case ThyInfo.lookup_theory "Datatype" of
           NONE => []
-        | SOME thy' => PureThy.get_thms thy' (Name "sum.cases")))
+        | SOME thy' =>
+            if Theory.subthy (thy', thy) then
+              PureThy.get_thms thy' (Name "sum.cases")
+            else []))
       |> map mk_meta_eq;
 
     val (preds, ind_prems, mutual_ind_concl, factors) =
@@ -845,7 +848,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
 
 fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
   let
-    val cs = map (term_of o HOLogic.read_cterm thy) c_strings;
+    val cs = map (Sign.read_term thy) c_strings;
 
     val intr_names = map (fst o fst) intro_srcs;
     fun read_rule s = Thm.read_cterm thy (s, propT)

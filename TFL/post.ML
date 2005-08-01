@@ -37,9 +37,6 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* misc *)
 
-val read_term = Thm.term_of oo (HOLogic.read_cterm o Theory.sign_of);
-
-
 (*---------------------------------------------------------------------------
  * Extract termination goals so that they can be put it into a goalstack, or
  * have a tactic directly applied to them.
@@ -248,7 +245,7 @@ fun define_i strict thy cs ss congs wfs fid R eqs =
   in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
 
 fun define strict thy cs ss congs wfs fid R seqs =
-  define_i strict thy cs ss congs wfs fid (read_term thy R) (map (read_term thy) seqs)
+  define_i strict thy cs ss congs wfs fid (Sign.read_term thy R) (map (Sign.read_term thy) seqs)
     handle U.ERR {mesg,...} => error mesg;
 
 
@@ -275,7 +272,7 @@ fun defer_i thy congs fid eqs =
  end
 
 fun defer thy congs fid seqs =
-  defer_i thy congs fid (map (read_term thy) seqs)
+  defer_i thy congs fid (map (Sign.read_term thy) seqs)
     handle U.ERR {mesg,...} => error mesg;
 end;
 
