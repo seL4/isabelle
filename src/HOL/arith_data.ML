@@ -469,7 +469,7 @@ fun raw_arith_tac ex i st =
 fun presburger_tac i st =
   (case ArithTheoryData.get (Thm.theory_of_thm st) of
      {presburger = SOME tac, ...} =>
-       (warning "Trying full Presburger arithmetic..."; tac i st)
+       (warning "Trying full Presburger arithmetic ..."; tac i st)
    | _ => no_tac st);
 
 in
