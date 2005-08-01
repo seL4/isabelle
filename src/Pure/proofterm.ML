@@ -824,7 +824,7 @@ fun gen_axm_proof c name prop =
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if ixn mem nvs then SOME v else NONE) (vars_of prop) @
-      map SOME (sort (make_ord atless) (term_frees prop));
+      map SOME (sort Term.term_ord (term_frees prop));
   in
     proof_combt' (c (name, prop, NONE), args)
   end;
@@ -1123,7 +1123,7 @@ fun thm_proof thy (name, tags) hyps prop prf =
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if ixn mem nvs then SOME v else NONE) (vars_of prop) @
-      map SOME (sort (make_ord atless) (term_frees prop));
+      map SOME (sort Term.term_ord (term_frees prop));
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get thy)
           (foldr (uncurry implies_intr_proof) prf hyps)))

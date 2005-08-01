@@ -129,7 +129,7 @@ fun corr_name s vs = extr_name s vs ^ "_correctness";
 fun msg d s = priority (Symbol.spaces d ^ s);
 
 fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
-fun vfs_of t = vars_of t @ sort (make_ord atless) (term_frees t);
+fun vfs_of t = vars_of t @ sort Term.term_ord (term_frees t);
 
 fun forall_intr (t, prop) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
