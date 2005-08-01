@@ -57,7 +57,7 @@ struct
   structure Process = Process
   structure FileSys = FileSys
 end;
- 
+
 (*limit the printing depth*)
 fun print_depth n =
  (Meta.printDepth := n div 2;
@@ -114,13 +114,13 @@ fun use_text _ _ txt =
 
 
 
-(** interrupts **)	(*Note: may get into race conditions*)
+(** interrupts **)      (*Note: may get into race conditions*)
 
 (* FIXME proper implementation available? *)
 
 exception Interrupt;
 
-fun ignore_interrupt f x = f x;           
+fun ignore_interrupt f x = f x;
 fun raise_interrupt f x = f x;
 
 
@@ -135,8 +135,7 @@ fun raise_interrupt f x = f x;
 fun execute command =
   let
     val tmp_name = FileSys.tmpName ();
-    val is = (Process.system (command ^ " > " ^ tmp_name); TextIO.openIn 
-tmp_name);
+    val is = (Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
     val result = TextIO.inputAll is;
   in
     TextIO.closeIn is;
