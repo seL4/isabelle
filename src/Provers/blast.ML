@@ -180,21 +180,15 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) 
 (*Definitions of the theory in which blast is initialized.*)
 val curr_defs = ref Defs.empty;
 
-(*Types aren't needed if the constant has at most one definition and is monomorphic*)
-fun no_types_needed s =
-  (case Defs.fast_overloading_info (!curr_defs) s of
-      NONE => true
-    | SOME (T,len,_) => len <= 1 andalso null (typ_tvars T))
-
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.
   For efficiency, Const is used for FOL and for the logical constants.
   We can't use it for all non-overloaded operators because some preservation
   of type information is necessary to prevent PROOF FAILED elsewhere.*)
 fun fromConst alist (a,T) = 
-    if not Data.is_hol orelse a mem_string ["All","Ex","all"] orelse no_types_needed a 
-	then Const a 
-	else TConst(a, fromType alist T);
+  if not Data.is_hol orelse a mem_string ["All","Ex","all"] orelse
+    Defs.monomorphic (!curr_defs) a then Const a
+  else TConst(a, fromType alist T);
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)

@@ -229,12 +229,7 @@ val curr_defs = ref Defs.empty;
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
 fun init thy = (curr_defs := Theory.defs_of thy);
-
-(*Types aren't needed if the constant has at most one definition and is monomorphic*)
-fun no_types_needed s =
-  (case Defs.fast_overloading_info (!curr_defs) s of
-      NONE => true
-    | SOME (T,len,_) => len <= 1 andalso null (typ_tvars T))
+fun no_types_needed s = Defs.monomorphic (!curr_defs) s;
     
 (*Flatten a type to a string while accumulating sort constraints on the TFress and
   TVars it contains.*)    
