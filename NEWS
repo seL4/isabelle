@@ -582,9 +582,14 @@ theory node or theory hierarchy, respectively:
 
 * Pure: print_tac now outputs the goal through the trace channel.
 
-* Provers: Simplifier and Classical Reasoner now support proof context
-dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
-components are stored in the theory and patched into the
+* Pure/Simplifier: improved handling of bound variables (nameless
+representation, avoid allocating new strings).  Simprocs that invoke
+the Simplifier recursively should use Simplifier.inherit_bounds to
+avoid local name clashes.
+
+* Pure/Provers: Simplifier and Classical Reasoner now support proof
+context dependent plug-ins (simprocs, solvers, wrappers etc.).  These
+extra components are stored in the theory and patched into the
 simpset/claset when used in an Isar proof context.  Context dependent
 components are maintained by the following theory operations:
 
