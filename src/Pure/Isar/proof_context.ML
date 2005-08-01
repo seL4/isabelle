@@ -690,7 +690,8 @@ fun export_view view is_goal inner outer =
     #> Seq.map (Drule.implies_intr_list view)
     #> Seq.map (fn rule =>
       let
-        val {thy, prop, ...} = Thm.rep_thm rule;
+        val thy = Thm.theory_of_thm rule;
+        val prop = Thm.full_prop_of rule;
         val frees = map (Thm.cterm_of thy) (List.mapPartial (find_free prop) fixes);
         val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
