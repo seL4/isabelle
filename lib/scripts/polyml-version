@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# polyml-version --- determine Poly/ML runtime system version
+
+echo -n polyml
+
+if [ -x "$ML_HOME/poly" ]; then
+  "$ML_HOME/poly" -r /dev/null | head -n 1 | \
+    sed -n 's,^Poly/ML RTS version [^ ]*\(-[^ ]*\).*$,\1,p'
+fi
