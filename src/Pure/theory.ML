@@ -207,7 +207,7 @@ local
 
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apsnd (Term.compress_term o Logic.varify) o prep_axm thy) raw_axms;
+    val axms = map (apsnd (Compress.term thy o Logic.varify) o prep_axm thy) raw_axms;
     val axioms' = NameSpace.extend_table (Sign.naming_of thy) (axioms, axms)
       handle Symtab.DUPS dups => err_dup_axms dups;
   in axioms' end);
@@ -303,9 +303,9 @@ fun check_def thy overloaded (bname, tm) defs =
     val _ = check_overloading thy overloaded const;
   in
     defs
-    |> Defs.declare (declared const)
-    |> fold (Defs.declare o declared) rhs_consts
-    |> Defs.define pp const (Sign.full_name thy bname) rhs_consts
+    |> Defs.declare thy (declared const)
+    |> fold (Defs.declare thy o declared) rhs_consts
+    |> Defs.define thy const (Sign.full_name thy bname) rhs_consts
   end
   handle ERROR => error (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -338,7 +338,7 @@ local
 fun gen_add_finals prep_term overloaded raw_terms thy =
   let
     val pp = Sign.pp thy;
-    fun finalize tm finals =
+    fun finalize tm =
       let
         val _ = no_vars pp tm;
         val const as (c, _) =
@@ -346,8 +346,8 @@ fun gen_add_finals prep_term overloaded raw_terms thy =
           | Free _ => error "Attempt to finalize variable (or undeclared constant)"
           | _ => error "Attempt to finalize non-constant term")
           |> check_overloading thy overloaded;
-      in finals |> Defs.declare (c, Sign.the_const_type thy c) |> Defs.finalize const end;
-  in thy |> map_defs (fold finalize (map (prep_term thy) raw_terms)) end;
+      in Defs.declare thy (c, Sign.the_const_type thy c) #> Defs.finalize thy const end;
+  in thy |> map_defs (fold (finalize o prep_term thy) raw_terms) end;
 
 fun read_term thy = Sign.simple_read_term thy TypeInfer.logicT;
 fun cert_term thy = #1 o Sign.certify_term (Sign.pp thy) thy;

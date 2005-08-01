@@ -573,13 +573,15 @@ fun name_thm (name, thm) = put_name_tags (name, tags_of_thm thm) thm;
 (*Compression of theorems -- a separate rule, not integrated with the others,
   as it could be slow.*)
 fun compress (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
-  Thm {thy_ref = thy_ref,
-    der = der,
-    maxidx = maxidx,
-    shyps = shyps,
-    hyps = map Term.compress_term hyps,
-    tpairs = map (pairself Term.compress_term) tpairs,
-    prop = Term.compress_term prop};
+  let val thy = Theory.deref thy_ref in
+    Thm {thy_ref = thy_ref,
+      der = der,
+      maxidx = maxidx,
+      shyps = shyps,
+      hyps = map (Compress.term thy) hyps,
+      tpairs = map (pairself (Compress.term thy)) tpairs,
+      prop = Compress.term thy prop}
+  end;
 
 fun adjust_maxidx_thm (Thm {thy_ref, der, shyps, hyps, tpairs, prop, ...}) =
   Thm {thy_ref = thy_ref,
@@ -1310,7 +1312,7 @@ fun rename_bvs([],_,_,_) = I
         (*unknowns appearing elsewhere be preserved!*)
         val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
-                (case assoc(al,x) of
+                (case assoc_string (al,x) of
                    SOME(y) => if x mem_string vids orelse y mem_string vids then t
                               else Var((y,i),T)
                  | NONE=> t)
