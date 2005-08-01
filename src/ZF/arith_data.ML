@@ -14,7 +14,7 @@ sig
   val gen_trans_tac: thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Sign.sg ->
                   thm list -> string list -> term * term -> thm option
-  val simplify_meta_eq: thm list -> thm -> thm
+  val simplify_meta_eq: thm list -> simpset -> thm -> thm
   (*debugging*)
   structure EqCancelNumeralsData   : CANCEL_NUMERALS_DATA
   structure LessCancelNumeralsData : CANCEL_NUMERALS_DATA
@@ -128,9 +128,9 @@ val natifys = [natify_0, natify_ident, add_natify1, add_natify2,
                diff_natify1, diff_natify2];
 
 (*Final simplification: cancel + and **)
-fun simplify_meta_eq rules =
+fun simplify_meta_eq rules ss =
     mk_meta_eq o
-    simplify (FOL_ss addeqcongs[eq_cong2,iff_cong2]
+    simplify (Simplifier.inherit_bounds ss FOL_ss addeqcongs[eq_cong2,iff_cong2]
                      delsimps iff_simps (*these could erase the whole rule!*)
                      addsimps rules);
 
@@ -143,13 +143,14 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
-  val norm_tac_ss1 = ZF_ss addsimps add_0s@add_succs@mult_1s@add_ac
-  val norm_tac_ss2 = ZF_ss addsimps add_0s@mult_1s@
-                                    add_ac@mult_ac@tc_rules@natifys
-  val norm_tac = ALLGOALS (asm_simp_tac norm_tac_ss1)
-                 THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-  val numeral_simp_tac_ss = ZF_ss addsimps add_0s@tc_rules@natifys
-  val numeral_simp_tac  = ALLGOALS (asm_simp_tac numeral_simp_tac_ss)
+  val norm_tac_ss1      = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ add_ac
+  val norm_tac_ss2      = ZF_ss addsimps add_0s @ mult_1s @ add_ac @ mult_ac @ tc_rules @ natifys
+  fun norm_tac ss =
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
+  val numeral_simp_tac_ss = ZF_ss addsimps add_0s @ tc_rules @ natifys
+  fun numeral_simp_tac ss =
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss numeral_simp_tac_ss))
   val simplify_meta_eq  = simplify_meta_eq final_rules
   end;
 
@@ -164,7 +165,7 @@ structure EqCancelNumeralsData =
   val dest_bal = FOLogic.dest_eq
   val bal_add1 = eq_add_iff RS iff_trans
   val bal_add2 = eq_add_iff RS iff_trans
-  val trans_tac = gen_trans_tac iff_trans
+  fun trans_tac _ = gen_trans_tac iff_trans
   end;
 
 structure EqCancelNumerals = CancelNumeralsFun(EqCancelNumeralsData);
@@ -177,7 +178,7 @@ structure LessCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin "Ordinal.lt" iT
   val bal_add1 = less_add_iff RS iff_trans
   val bal_add2 = less_add_iff RS iff_trans
-  val trans_tac = gen_trans_tac iff_trans
+  fun trans_tac _ = gen_trans_tac iff_trans
   end;
 
 structure LessCancelNumerals = CancelNumeralsFun(LessCancelNumeralsData);
@@ -190,7 +191,7 @@ structure DiffCancelNumeralsData =
   val dest_bal = FOLogic.dest_bin "Arith.diff" iT
   val bal_add1 = diff_add_eq RS trans
   val bal_add2 = diff_add_eq RS trans
-  val trans_tac = gen_trans_tac trans
+  fun trans_tac _ = gen_trans_tac trans
   end;
 
 structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);

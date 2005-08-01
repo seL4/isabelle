@@ -163,11 +163,11 @@ ML {*
 	 "t - u::'a::ring",
 	 "t * u::'a::ring",
 	 "- t::'a::ring"];
-    fun proc sg _ t = 
+    fun proc sg ss t = 
       let val rew = Tactic.prove sg [] []
             (HOLogic.mk_Trueprop
               (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
-                (fn _ => simp_tac ring_ss 1)
+                (fn _ => simp_tac (Simplifier.inherit_bounds ss ring_ss) 1)
             |> mk_meta_eq;
           val (t', u) = Logic.dest_equals (Thm.prop_of rew);
       in if t' aconv u 
@@ -175,7 +175,7 @@ ML {*
         else SOME rew 
     end;
   in
-    val ring_simproc = Simplifier.simproc (sign_of (the_context ())) "ring" lhss proc;
+    val ring_simproc = Simplifier.simproc (the_context ()) "ring" lhss proc;
   end;
 *}
 

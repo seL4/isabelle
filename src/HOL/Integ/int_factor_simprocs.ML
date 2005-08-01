@@ -42,14 +42,16 @@ structure CancelNumeralFactorCommon =
   struct
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val trans_tac         = trans_tac
-  val norm_tac =
-     ALLGOALS (simp_tac (HOL_ss addsimps minus_from_mult_simps @ mult_1s))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@mult_minus_simps))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
-  val numeral_simp_tac  =
-         ALLGOALS (simp_tac (HOL_ss addsimps rel_number_of@bin_simps))
-  val simplify_meta_eq  = 
+  val trans_tac         = fn _ => trans_tac
+  fun norm_tac ss =
+    let val HOL_ss' = Simplifier.inherit_bounds ss HOL_ss in
+      ALLGOALS (simp_tac (HOL_ss' addsimps minus_from_mult_simps @ mult_1s))
+      THEN ALLGOALS (simp_tac (HOL_ss' addsimps bin_simps@mult_minus_simps))
+      THEN ALLGOALS (simp_tac (HOL_ss' addsimps mult_ac))
+    end
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps rel_number_of @ bin_simps))
+  val simplify_meta_eq = 
 	Int_Numeral_Simprocs.simplify_meta_eq
 	     [add_0, add_0_right,
 	      mult_zero_left, mult_zero_right, mult_1, mult_1_right];
@@ -235,8 +237,8 @@ val simplify_one =
     Int_Numeral_Simprocs.simplify_meta_eq  
        [mult_1_left, mult_1_right, zdiv_1, numeral_1_eq_1];
 
-fun cancel_simplify_meta_eq cancel_th th =
-    simplify_one (([th, cancel_th]) MRS trans);
+fun cancel_simplify_meta_eq cancel_th ss th =
+    simplify_one ss (([th, cancel_th]) MRS trans);
 
 (*At present, long_mk_prod creates Numeral1, so this requires the axclass
   number_ring*)
@@ -247,8 +249,9 @@ structure CancelFactorCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first        = find_first []
-  val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
+  val trans_tac         = fn _ => trans_tac
+  fun norm_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps mult_1s @ mult_ac))
   end;
 
 (*mult_cancel_left requires an ordered comm_ring_1, such as int. The version in

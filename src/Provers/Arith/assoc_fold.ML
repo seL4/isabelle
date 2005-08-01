@@ -42,7 +42,7 @@ struct
  val trace = ref false;
 
  (*Make a simproc to combine all literals in a associative nest*)
- fun proc thy _ lhs =
+ fun proc thy ss lhs =
    let fun show t = string_of_cterm (Thm.cterm_of thy t)
        val _ = if !trace then tracing ("assoc_fold simproc: LHS = " ^ show lhs)
                else ()
@@ -56,7 +56,7 @@ struct
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
        val th = Tactic.prove thy [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
-                            simp_tac assoc_ss 1)
+                            simp_tac (Simplifier.inherit_bounds ss assoc_ss) 1)
    in SOME th end
    handle Assoc_fail => NONE;
 

@@ -88,10 +88,10 @@ fun cancel sg t =
 
 (* A simproc to cancel complementary terms in arbitrary sums. *)
 
-fun sum_proc sg _ t =
+fun sum_proc sg ss t =
    let val t' = cancel sg t
        val thm = Tactic.prove sg [] [] (Logic.mk_equals (t, t'))
-                   (fn _ => simp_tac cancel_ss 1)
+                   (fn _ => simp_tac (Simplifier.inherit_bounds ss cancel_ss) 1)
    in SOME thm end
    handle Cancel => NONE;
 
@@ -108,12 +108,12 @@ fun sum_proc sg _ t =
    Reduces the problem to subtraction.
  *)
 
- fun rel_proc sg _ t =
+ fun rel_proc sg ss t =
    let val t' = cancel sg t
        val thm = Tactic.prove sg [] [] (Logic.mk_equals (t, t'))
                    (fn _ => rtac eq_reflection 1 THEN
                             resolve_tac eqI_rules 1 THEN
-                            simp_tac cancel_ss 1)
+                            simp_tac (Simplifier.inherit_bounds ss cancel_ss) 1)
    in SOME thm end
    handle Cancel => NONE;
 

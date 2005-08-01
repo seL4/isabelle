@@ -150,7 +150,7 @@ val numeral_syms = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym];
   ordering is not well-founded.*)
 fun num_ord (i,j) =
       (case IntInf.compare (IntInf.abs i, IntInf.abs j) of
-            EQUAL => Int.compare (IntInf.sign i, IntInf.sign j) 
+            EQUAL => int_ord (IntInf.sign i, IntInf.sign j) 
           | ord => ord);
 
 (*This resembles Term.term_ord, but it puts binary numerals before other
@@ -165,7 +165,7 @@ fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
   | numterm_ord (Const("Numeral.number_of", _) $ _, _) = LESS
   | numterm_ord (_, Const("Numeral.number_of", _) $ _) = GREATER
   | numterm_ord (t, u) =
-      (case Int.compare (size_of_term t, size_of_term u) of
+      (case int_ord (size_of_term t, size_of_term u) of
         EQUAL =>
           let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
             (case hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
@@ -308,8 +308,8 @@ val mult_minus_simps =
 fun trans_tac NONE      = all_tac
   | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
 
-fun simplify_meta_eq rules =
-    simplify (HOL_basic_ss addeqcongs[eq_cong2] addsimps rules)
+fun simplify_meta_eq rules ss =
+    simplify (Simplifier.inherit_bounds ss HOL_basic_ss addeqcongs[eq_cong2] addsimps rules)
     o mk_meta_eq;
 
 structure CancelNumeralsCommon =
@@ -319,15 +319,17 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  val trans_tac         = trans_tac
-  val norm_tac =
-     ALLGOALS (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
-                                         diff_simps@minus_simps@add_ac))
-     THEN ALLGOALS (simp_tac (num_ss addsimps non_add_bin_simps@mult_minus_simps))
-     THEN ALLGOALS (simp_tac (num_ss addsimps minus_from_mult_simps@
-                                              add_ac@mult_ac))
-  val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
-  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
+  val trans_tac         = fn _ => trans_tac
+  fun norm_tac ss =
+    let val num_ss' = Simplifier.inherit_bounds ss num_ss in
+      ALLGOALS (simp_tac (num_ss' addsimps numeral_syms @ add_0s @ mult_1s @
+                                         diff_simps @ minus_simps @ add_ac))
+      THEN ALLGOALS (simp_tac (num_ss' addsimps non_add_bin_simps @ mult_minus_simps))
+      THEN ALLGOALS (simp_tac (num_ss' addsimps minus_from_mult_simps @ add_ac @ mult_ac))
+    end
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps add_0s @ bin_simps))
+  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 
@@ -395,16 +397,17 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff 1
   val left_distrib      = combine_common_factor RS trans
   val prove_conv        = Bin_Simprocs.prove_conv_nohyps
-  val trans_tac          = trans_tac
-  val norm_tac =
-     ALLGOALS (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
-                                         diff_simps@minus_simps@add_ac))
-     THEN ALLGOALS (simp_tac (num_ss addsimps non_add_bin_simps@mult_minus_simps))
-     THEN ALLGOALS (simp_tac (num_ss addsimps minus_from_mult_simps@
-                                              add_ac@mult_ac))
-  val numeral_simp_tac  = ALLGOALS
-                    (simp_tac (HOL_ss addsimps add_0s@bin_simps))
-  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
+  val trans_tac         = fn _ => trans_tac
+  fun norm_tac ss =
+    let val num_ss' = Simplifier.inherit_bounds ss num_ss in
+      ALLGOALS (simp_tac (num_ss' addsimps numeral_syms @ add_0s @ mult_1s @
+                                          diff_simps @ minus_simps @ add_ac))
+      THEN ALLGOALS (simp_tac (num_ss' addsimps non_add_bin_simps @ mult_minus_simps))
+      THEN ALLGOALS (simp_tac (num_ss' addsimps minus_from_mult_simps @ add_ac @ mult_ac))
+    end
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps add_0s @ bin_simps))
+  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);

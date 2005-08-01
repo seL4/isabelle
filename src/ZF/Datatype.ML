@@ -62,9 +62,9 @@ struct
         fold_bal FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
- val datatype_ss = simpset_of (the_context ());
+ val datatype_ss = simpset ();
 
- fun proc sg _ old =
+ fun proc sg ss old =
    let val _ = if !trace then writeln ("data_free: OLD = " ^ 
                                        string_of_cterm (cterm_of sg old))
                else ()
@@ -88,7 +88,7 @@ struct
                else ();
        val goal = Logic.mk_equals (old, new)
        val thm = Tactic.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
-           simp_tac (datatype_ss addsimps #free_iffs lcon_info) 1)
+           simp_tac (Simplifier.inherit_bounds ss datatype_ss addsimps #free_iffs lcon_info) 1)
          handle ERROR_MESSAGE msg =>
          (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);
           raise Match)
@@ -96,9 +96,8 @@ struct
    handle Match => NONE;
 
 
- val conv = 
-     Simplifier.simproc (Theory.sign_of (theory "ZF")) "data_free" 
-                        ["(x::i) = y"] proc;
+ val conv = Simplifier.simproc (theory "ZF") "data_free" ["(x::i) = y"] proc;
+
 end;
 
 

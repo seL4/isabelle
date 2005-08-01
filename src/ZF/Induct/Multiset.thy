@@ -483,14 +483,12 @@ apply (erule ssubst)
 apply (rule int_of_diff, auto)
 done
 
-(*FIXME: we should not have to rename x to x' below!  There's a bug in the
-  interaction between simproc inteq_cancel_numerals and the simplifier.*)
 lemma setsum_decr2:
      "Finite(A)
       ==> \<forall>M. multiset(M) --> (\<forall>a \<in> mset_of(M).
-           setsum(%x'. $# mcount(funrestrict(M, mset_of(M)-{a}), x'), A) =
-           (if a \<in> A then setsum(%x'. $# mcount(M, x'), A) $- $# M`a
-            else setsum(%x'. $# mcount(M, x'), A)))"
+           setsum(%x. $# mcount(funrestrict(M, mset_of(M)-{a}), x), A) =
+           (if a \<in> A then setsum(%x. $# mcount(M, x), A) $- $# M`a
+            else setsum(%x. $# mcount(M, x), A)))"
 apply (simp add: multiset_def)
 apply (erule Finite_induct)
 apply (auto simp add: multiset_fun_iff mcount_def mset_of_def)

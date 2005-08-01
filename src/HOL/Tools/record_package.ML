@@ -833,7 +833,7 @@ fun quick_and_dirty_prf noopt opt () =
       else opt ();
 
 
-fun prove_split_simp sg T prop =
+fun prove_split_simp sg ss T prop =
   let 
     val {sel_upd={simpset,...},extsplit,...} = RecordsData.get sg;
     val extsplits = 
@@ -844,7 +844,9 @@ fun prove_split_simp sg T prop =
                      all_thm::(case extsplits of [thm] => [] | _ => extsplits)
                               (* [thm] is the same as all_thm *)
                  | NONE => extsplits)                                
-  in (quick_and_dirty_prove true sg [] prop (fn _ => (simp_tac (simpset addsimps thms) 1)))
+  in
+    quick_and_dirty_prove true sg [] prop
+      (fn _ => simp_tac (Simplifier.inherit_bounds ss simpset addsimps thms) 1)
   end;
 
 
@@ -868,7 +870,7 @@ in
  *)
 val record_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
-    (fn sg => fn _ => fn t =>
+    (fn sg => fn ss => fn t =>
       (case t of (sel as Const (s, Type (_,[domS,rangeS])))$
                    ((upd as Const (u,Type(_,[_,Type (_,[rT,_])]))) $ k $ r)=>
         (case get_selectors sg s of SOME () =>
@@ -908,9 +910,9 @@ val record_simproc =
 	      (case mk_eq_terms (upd$k$r) of
                  SOME (trm,trm',vars,update_s) 
                  => if update_s 
-		    then SOME (prove_split_simp sg domS 
+		    then SOME (prove_split_simp sg ss domS 
                                  (list_all(vars,(equals rangeS$(sel$trm)$trm'))))
-                    else SOME (prove_split_simp sg domS 
+                    else SOME (prove_split_simp sg ss domS 
                                  (list_all(vars,(equals rangeS$(sel$trm)$(sel$trm')))))
                | NONE => NONE)
             end
@@ -929,7 +931,7 @@ val record_simproc =
 *)
 val record_upd_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u k r)"]
-    (fn sg => fn _ => fn t =>
+    (fn sg => fn ss => fn t =>
       (case t of ((upd as Const (u, Type(_,[_,Type(_,[rT,_])]))) $ k $ r) =>
  	 let datatype ('a,'b) calc = Init of 'b | Inter of 'a  
              val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get sg;
@@ -1020,7 +1022,7 @@ val record_upd_simproc =
 
 	 in (case mk_updterm updates [] t of
 	       Inter (trm,trm',vars,_)
-                => SOME (prove_split_simp sg rT  
+                => SOME (prove_split_simp sg ss rT  
                           (list_all(vars,(equals rT$trm$trm'))))
              | _ => NONE)
 	 end
@@ -1083,11 +1085,12 @@ fun record_split_simproc P =
 
 val record_ex_sel_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
-    (fn sg => fn _ => fn t =>
+    (fn sg => fn ss => fn t =>
        let 
-         fun prove prop = (quick_and_dirty_prove true sg [] prop 
-                             (fn _ => (simp_tac ((get_simpset sg) addsimps simp_thms
-                                        addsimprocs [record_split_simproc (K ~1)]) 1)));
+         fun prove prop =
+           quick_and_dirty_prove true sg [] prop
+             (fn _ => simp_tac (Simplifier.inherit_bounds ss (get_simpset sg)
+               addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
 
          fun mkeq (lr,Teq,(sel,Tsel),x) i =
               (case get_selectors sg sel of SOME () =>

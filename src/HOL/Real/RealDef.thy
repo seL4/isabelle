@@ -425,9 +425,9 @@ apply (simp add: linorder_not_le [where 'a = real, symmetric]
                  linorder_not_le [where 'a = preal] 
                   real_zero_def real_le real_mult)
   --{*Reduce to the (simpler) @{text "\<le>"} relation *}
-apply (auto  dest!: less_add_left_Ex 
+apply (auto dest!: less_add_left_Ex
      simp add: preal_add_ac preal_mult_ac 
-          preal_add_mult_distrib2 preal_cancels preal_self_less_add_right)
+          preal_add_mult_distrib2 preal_cancels preal_self_less_add_left)
 done
 
 lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
@@ -478,7 +478,6 @@ apply (simp add: real_of_preal_def real_zero_def, cases x)
 apply (auto simp add: real_minus preal_add_ac)
 apply (cut_tac x = x and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: preal_add_assoc [symmetric])
-apply (auto simp add: preal_add_commute)
 done
 
 lemma real_of_preal_leD:

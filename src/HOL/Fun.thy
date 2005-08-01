@@ -486,15 +486,18 @@ local
         | find t = NONE
     in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
 
-  val ss = simpset ()
-  val fun_upd_prover = K (rtac eq_reflection 1 THEN rtac ext 1 THEN simp_tac ss 1)
+  val current_ss = simpset ()
+  fun fun_upd_prover ss =
+    rtac eq_reflection 1 THEN rtac ext 1 THEN
+    simp_tac (Simplifier.inherit_bounds ss current_ss) 1
 in
   val fun_upd2_simproc =
     Simplifier.simproc (Theory.sign_of (the_context ()))
       "fun_upd2" ["f(v := w, x := y)"]
-      (fn sg => fn _ => fn t =>
+      (fn sg => fn ss => fn t =>
         case find_double t of (T, NONE) => NONE
-        | (T, SOME rhs) => SOME (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) fun_upd_prover))
+        | (T, SOME rhs) =>
+            SOME (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
 end;
 Addsimprocs[fun_upd2_simproc];
 

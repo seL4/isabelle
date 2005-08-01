@@ -27,17 +27,17 @@ sig
   (*rules*)
   val left_distrib: thm
   (*proof tools*)
-  val prove_conv: tactic list -> Sign.sg -> string list -> term * term -> thm option
-  val trans_tac: thm option -> tactic (*applies the initial lemma*)
-  val norm_tac: tactic                (*proves the initial lemma*)
-  val numeral_simp_tac: tactic        (*proves the final theorem*)
-  val simplify_meta_eq: thm -> thm    (*simplifies the final theorem*)
+  val prove_conv: tactic list -> theory -> string list -> term * term -> thm option
+  val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
+  val norm_tac: simpset -> tactic                (*proves the initial lemma*)
+  val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
+  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
 end;
 
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: Sign.sg -> simpset -> term -> thm option
+  val proc: theory -> simpset -> term -> thm option
   end 
 =
 struct
@@ -64,7 +64,7 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
 	| NONE => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
-fun proc sg _ t =
+fun proc thy ss t =
   let (*first freeze any Vars in the term to prevent flex-flex problems*)
       val (t', xs) = Term.adhoc_freeze_vars t
       val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
@@ -73,15 +73,15 @@ fun proc sg _ t =
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if m=0 orelse n=0 then   (*trivial, so do nothing*)
 		raise TERM("combine_numerals", []) 
-	    else Data.prove_conv [Data.norm_tac] sg xs
+	    else Data.prove_conv [Data.norm_tac ss] thy xs
 			(t', 
 			 Data.mk_sum T ([Data.mk_coeff(m,u),
 				         Data.mk_coeff(n,u)] @ terms))
   in
-      Option.map Data.simplify_meta_eq
+      Option.map (Data.simplify_meta_eq ss)
 	 (Data.prove_conv 
-	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
-	     Data.numeral_simp_tac] sg xs
+	    [Data.trans_tac ss reshape, rtac Data.left_distrib 1,
+	     Data.numeral_simp_tac ss] thy xs
 	    (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   handle TERM _ => NONE

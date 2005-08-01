@@ -29,24 +29,24 @@ sig
   val neg_exchanges: bool  (*true if a negative coeff swaps the two operands,
                              as with < and <= but not = and div*)
   (*proof tools*)
-  val prove_conv: tactic list -> Sign.sg -> 
+  val prove_conv: tactic list -> theory -> 
                   thm list -> string list -> term * term -> thm option
-  val trans_tac: thm option -> tactic (*applies the initial lemma*)
-  val norm_tac: tactic                (*proves the initial lemma*)
-  val numeral_simp_tac: tactic        (*proves the final theorem*)
-  val simplify_meta_eq: thm -> thm    (*simplifies the final theorem*)
+  val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
+  val norm_tac: simpset -> tactic                (*proves the initial lemma*)
+  val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
+  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
 end;
 
 
 functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
   sig
-  val proc: Sign.sg -> simpset -> term -> thm option
+  val proc: theory -> simpset -> term -> thm option
   end 
 =
 struct
 
 (*the simplification procedure*)
-fun proc sg ss t =
+fun proc thy ss t =
   let
       val hyps = prems_of_ss ss;
       (*first freeze any Vars in the term to prevent flex-flex problems*)
@@ -67,13 +67,13 @@ fun proc sg ss t =
                 else Data.mk_bal (Data.mk_coeff(n1,t1'), Data.mk_coeff(n2,t2'))
       val reshape =  (*Move d to the front and put the rest into standard form
 		       i * #m * j == #d * (#n * (j * k)) *)
-	    Data.prove_conv [Data.norm_tac] sg hyps xs
+	    Data.prove_conv [Data.norm_tac ss] thy hyps xs
 	      (t',   Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-      Option.map Data.simplify_meta_eq
+      Option.map (Data.simplify_meta_eq ss)
        (Data.prove_conv 
-	       [Data.trans_tac reshape, rtac Data.cancel 1,
-		Data.numeral_simp_tac] sg hyps xs (t', rhs))
+	       [Data.trans_tac ss reshape, rtac Data.cancel 1,
+		Data.numeral_simp_tac ss] thy hyps xs (t', rhs))
   end
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)

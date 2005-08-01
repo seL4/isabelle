@@ -224,19 +224,21 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  val trans_tac         = ArithData.gen_trans_tac iff_trans
+  fun trans_tac _       = ArithData.gen_trans_tac iff_trans
   val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
                                     zminus_simps@zadd_ac
   val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
   val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
                                     zadd_ac@zmult_ac@tc_rules@intifys
-  val norm_tac          = ALLGOALS (asm_simp_tac norm_tac_ss1)
-                          THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-                          THEN ALLGOALS (asm_simp_tac norm_tac_ss3)
-  val numeral_simp_tac  =
-         ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
-         THEN ALLGOALS Asm_simp_tac
-  val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
+  fun norm_tac ss =
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss3))
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+      add_0s @ bin_simps @ tc_rules @ intifys))
+    THEN ALLGOALS (SIMPSET' (fn simpset => asm_simp_tac (Simplifier.inherit_bounds ss simpset)))
+  val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 
@@ -298,17 +300,19 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff 1
   val left_distrib      = left_zadd_zmult_distrib RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
-  val trans_tac         = ArithData.gen_trans_tac trans
+  fun trans_tac _       = ArithData.gen_trans_tac trans
   val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
                                     zminus_simps@zadd_ac@intifys
   val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
   val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
                                     zadd_ac@zmult_ac@tc_rules@intifys
-  val norm_tac          = ALLGOALS (asm_simp_tac norm_tac_ss1)
-                          THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-                          THEN ALLGOALS (asm_simp_tac norm_tac_ss3)
-  val numeral_simp_tac  =
-         ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
+  fun norm_tac ss =
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss3))
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+      add_0s @ bin_simps @ tc_rules @ intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
   end;
 
@@ -335,14 +339,16 @@ structure CombineNumeralsProdData =
   fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
   val left_distrib      = zmult_assoc RS sym RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
-  val trans_tac         = ArithData.gen_trans_tac trans
+  fun trans_tac _       = ArithData.gen_trans_tac trans
   val norm_tac_ss1 = ZF_ss addsimps mult_1s@diff_simps@zminus_simps
   val norm_tac_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym]@
                                     bin_simps@zmult_ac@tc_rules@intifys
-  val norm_tac          = ALLGOALS (asm_simp_tac norm_tac_ss1)
-                          THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
-  val numeral_simp_tac  =
-         ALLGOALS (simp_tac (ZF_ss addsimps bin_simps@tc_rules@intifys))
+  fun norm_tac ss =
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
+  fun numeral_simp_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+      bin_simps @ tc_rules @ intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s)
   end;
 

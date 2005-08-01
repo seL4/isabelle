@@ -326,7 +326,7 @@ val distinctN = "constr_distinct";
 
 exception ConstrDistinct of term;
 
-fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
+fun distinct_proc sg ss (t as Const ("op =", _) $ t1 $ t2) =
   (case (stripC (0, t1), stripC (0, t2)) of
      ((i, Const (cname1, T1)), (j, Const (cname2, T2))) =>
          (case (stripT (0, T1), stripT (0, T2)) of
@@ -347,9 +347,9 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
                                | FewConstrs thms => SOME (Tactic.prove sg [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
                                     atac 2, resolve_tac thms 1, etac FalseE 1])))
-                               | ManyConstrs (thm, ss) => SOME (Tactic.prove sg [] [] eq_t (K
+                               | ManyConstrs (thm, simpset) => SOME (Tactic.prove sg [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
-                                    full_simp_tac ss 1,
+                                    full_simp_tac (Simplifier.inherit_bounds ss simpset) 1,
                                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                                     eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
                                     etac FalseE 1]))))

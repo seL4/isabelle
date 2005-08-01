@@ -23,34 +23,34 @@ sig
   val dest_bal: term -> term * term
   val find_first: term -> term list -> term list
   (*proof tools*)
-  val prove_conv: tactic list -> Sign.sg -> 
+  val prove_conv: tactic list -> theory -> 
                   thm list -> string list -> term * term -> thm option
-  val norm_tac: tactic                (*proves the result*)
-  val simplify_meta_eq: thm -> thm    (*simplifies the result*)
+  val norm_tac: simpset -> tactic                (*proves the result*)
+  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the result*)
 end;
 
 
 functor ExtractCommonTermFun(Data: EXTRACT_COMMON_TERM_DATA):
   sig
-  val proc: Sign.sg -> simpset -> term -> thm option
+  val proc: theory -> simpset -> term -> thm option
   end 
 =
 struct
 
 (*Store the term t in the table*)
-fun update_by_coeff (tab, t) = Termtab.update ((t, ()), tab);
+fun update_by_coeff t tab = Termtab.update ((t, ()), tab);
 
 (*a left-to-right scan of terms1, seeking a term u that is also in terms2*)
 fun find_common (terms1,terms2) =
-  let val tab2 = Library.foldl update_by_coeff (Termtab.empty, terms2)
+  let val tab2 = fold update_by_coeff terms2 Termtab.empty
       fun seek [] = raise TERM("find_common", []) 
 	| seek (u::terms) =
-	      if isSome (Termtab.lookup (tab2, u)) then u
+	      if Termtab.defined tab2 u then u
 	      else seek terms
-  in  seek terms1 end;
+  in seek terms1 end;
 
 (*the simplification procedure*)
-fun proc sg ss t =
+fun proc thy ss t =
   let
       val hyps = prems_of_ss ss;
       (*first freeze any Vars in the term to prevent flex-flex problems*)
@@ -63,12 +63,12 @@ fun proc sg ss t =
       and terms2' = Data.find_first u terms2
       and T = Term.fastype_of u
       val reshape = 
-	    Data.prove_conv [Data.norm_tac] sg hyps xs
+	    Data.prove_conv [Data.norm_tac ss] thy hyps xs
 	        (t', 
 		 Data.mk_bal (Data.mk_sum T (u::terms1'), 
 		              Data.mk_sum T (u::terms2')))
   in
-      Option.map Data.simplify_meta_eq reshape
+      Option.map (Data.simplify_meta_eq ss) reshape
   end
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
