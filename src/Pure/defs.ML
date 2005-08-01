@@ -2,33 +2,26 @@
     ID:         $Id$
     Author:     Steven Obua, TU Muenchen
 
-    Checks if definitions preserve consistency of logic by enforcing
-    that there are no cyclic definitions. The algorithm is described in
-    "An Algorithm for Determining Definitional Cycles in Higher-Order Logic with Overloading",
-    Steven Obua, technical report, to be written :-)
+Checks if definitions preserve consistency of logic by enforcing that
+there are no cyclic definitions. The algorithm is described in "An
+Algorithm for Determining Definitional Cycles in Higher-Order Logic
+with Overloading", Steven Obua, technical report, to be written :-)
 *)
 
 signature DEFS =
 sig
+  (*true: record the full chain of definitions that lead to a circularity*)
+  val chain_history: bool ref
   type graph
   val empty: graph
-  val declare: string * typ -> graph -> graph
-  val define: Pretty.pp -> string * typ -> string -> (string * typ) list -> graph -> graph
-  val finalize: string * typ -> graph -> graph
+  val declare: theory -> string * typ -> graph -> graph
+  val define: theory -> string * typ -> string -> (string * typ) list -> graph -> graph
+  val finalize: theory -> string * typ -> graph -> graph
   val merge: Pretty.pp -> graph -> graph -> graph
-
-  val finals : graph -> (typ list) Symtab.table
-
-  (* If set to true then the exceptions CIRCULAR and INFINITE_CHAIN return the full
-     chain of definitions that lead to the exception. In the beginning, chain_history
-     is initialized with the Isabelle environment variable DEFS_CHAIN_HISTORY. *)
-  val set_chain_history : bool -> unit
-  val chain_history : unit -> bool
-
+  val finals: graph -> typ list Symtab.table
   datatype overloadingstate = Open | Closed | Final
-
-  val overloading_info : graph -> string -> (typ * (string*typ) list * overloadingstate) option
-  val fast_overloading_info : graph -> string -> (typ * int * overloadingstate) option
+  val overloading_info: graph -> string -> (typ * (string*typ) list * overloadingstate) option
+  val monomorphic: graph -> string -> bool
 end
 
 structure Defs :> DEFS = struct
@@ -61,22 +54,14 @@ fun get_defnode' graph noderef defname =
 
 fun table_size table = Symtab.foldl (fn (x, _) => x+1) (0, table)
 
-datatype graphaction = Declare of string * typ
-                     | Define of string * typ * string * string * (string * typ) list
-                     | Finalize of string * typ
+datatype graphaction =
+    Declare of string * typ
+  | Define of string * typ * string * string * (string * typ) list
+  | Finalize of string * typ
 
-type graph = int * (string Symtab.table) * (graphaction list) * (node Symtab.table)
+type graph = int * string Symtab.table * graphaction list * node Symtab.table
 
-val CHAIN_HISTORY =
-    let
-      fun f c = if Char.isSpace c then "" else String.str (Char.toUpper c)
-      val env = String.translate f (getenv "DEFS_CHAIN_HISTORY")
-    in
-      ref (env = "ON" orelse env = "TRUE")
-    end
-
-fun set_chain_history b = CHAIN_HISTORY := b
-fun chain_history () = !CHAIN_HISTORY
+val chain_history = ref true
 
 val empty = (0, Symtab.empty, [], Symtab.empty)
 
@@ -99,7 +84,7 @@ fun checkT' (Type (a, Ts)) = Type (a, map checkT' Ts)
   | checkT' (TVar ((a, 0), _)) = TVar ((a, 0), [])
   | checkT' (T as TVar _) = raise TYPE ("Illegal schematic type variable encountered", [T], []);
 
-val checkT = Term.compress_type o checkT';
+fun checkT thy = Compress.typ thy o checkT';
 
 fun rename ty1 ty2 = Logic.incr_tvar ((maxidx_of_typ ty1)+1) ty2;
 
@@ -153,19 +138,8 @@ fun unify_r max ty1 ty2 =
       | SOME s => SOME (max, merge s1 s, merge s2 s)
     end
 
-fun can_be_unified_r ty1 ty2 =
-    let
-      val ty2 = rename ty1 ty2
-    in
-      case unify ty1 ty2 of
-        NONE => false
-      | _ => true
-    end
-
-fun can_be_unified ty1 ty2 =
-    case unify ty1 ty2 of
-      NONE => false
-    | _ => true
+fun can_be_unified_r ty1 ty2 = is_some (unify ty1 (rename ty1 ty2))
+fun can_be_unified ty1 ty2 = is_some (unify ty1 ty2)
 
 fun normalize_edge_idx (edge as (maxidx, u1, v1, history)) =
     if maxidx <= 1000000 then edge else
@@ -244,7 +218,7 @@ fun declare' (g as (cost, axmap, actions, graph)) (cty as (name, ty)) =
                def_err "constant is already declared with different type"
            end
 
-fun declare'' g (name, ty) = declare' g (name, checkT ty)
+fun declare'' thy g (name, ty) = declare' g (name, checkT thy ty)
 
 val axcounter = ref (IntInf.fromInt 0)
 fun newaxname axmap axname =
@@ -330,7 +304,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
                               NONE => NONE
                             | SOME (max, sleft, sright) =>
                               SOME (max, subst sleft alpha1, subst sright beta2,
-                                    if !CHAIN_HISTORY then
+                                    if !chain_history then
                                       ((subst sleft beta1, bodyn, defname)::
                                        (subst_history sright history))
                                     else [])
@@ -492,16 +466,16 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
       (cost+3, axmap, actions', graph)
     end handle ex => translate_ex axmap ex
 
-fun define'' (g as (cost, axmap, actions, graph)) (mainref, ty) orig_axname body =
+fun define'' thy (g as (cost, axmap, actions, graph)) (mainref, ty) orig_axname body =
     let
-      val ty = checkT ty
+      val ty = checkT thy ty
       fun checkbody (n, t) =
           let
             val (Node (_, _, _,_, closed)) = getnode graph n
           in
             case closed of
               Final => NONE
-            | _ => SOME (n, checkT t)
+            | _ => SOME (n, checkT thy t)
           end
       val body = distinct (List.mapPartial checkbody body)
       val (axmap, axname) = newaxname axmap orig_axname
@@ -603,7 +577,7 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
           end
       end
 
-fun finalize'' g (noderef, ty) = finalize' g (noderef, checkT ty)
+fun finalize'' thy g (noderef, ty) = finalize' g (noderef, checkT thy ty)
 
 fun update_axname ax orig_ax (cost, axmap, history, graph) =
   (cost, Symtab.update ((ax, orig_ax), axmap), history, graph)
@@ -640,15 +614,18 @@ fun overloading_info (_, axmap, _, graph) c =
         SOME (ty, map translate (Symtab.dest defnodes), state)
     end
 
-fun fast_overloading_info (_, _, _, graph) c =
-    let
-      fun count (c, _) = c+1
-    in
-      case Symtab.lookup (graph, c) of
-        NONE => NONE
-      | SOME (Node (ty, defnodes, _, _, state)) =>
-        SOME (ty, Symtab.foldl count (0, defnodes), state)
-    end
+
+(* monomorphic consts -- neither parametric nor ad-hoc polymorphism *)
+
+fun monomorphicT (Type (_, Ts)) = forall monomorphicT Ts
+  | monomorphicT _ = false
+
+fun monomorphic (_, _, _, graph) c =
+  (case Symtab.lookup (graph, c) of
+    NONE => true
+  | SOME (Node (ty, defnodes, _, _, _)) =>
+      Symtab.min_key defnodes = Symtab.max_key defnodes andalso
+      monomorphicT ty);
 
 
 
@@ -663,16 +640,12 @@ fun pretty_path pp path = fold_rev (fn (T, c, def) =>
    | prts => Pretty.block (pretty_const pp (c, T) @
       [Pretty.brk 1, Pretty.str ("depends via " ^ quote def ^ " on")]) :: prts) path [];
 
-fun chain_history_msg s =    (* FIXME huh!? *)
-  if chain_history () then s ^ ": "
-  else s ^ " (set DEFS_CHAIN_HISTORY=ON for full history): ";
-
 fun defs_circular pp path =
-  Pretty.str (chain_history_msg "Cyclic dependency of definitions") :: pretty_path pp path
+  Pretty.str "Cyclic dependency of definitions: " :: pretty_path pp path
   |> Pretty.chunks |> Pretty.string_of;
 
 fun defs_infinite_chain pp path =
-  Pretty.str (chain_history_msg "Infinite chain of definitions") :: pretty_path pp path
+  Pretty.str "Infinite chain of definitions: " :: pretty_path pp path
   |> Pretty.chunks |> Pretty.string_of;
 
 fun defs_clash def1 def2 = "Type clash in definitions " ^ quote def1 ^ " and " ^ quote def2;
@@ -684,19 +657,19 @@ fun defs_final pp const =
 
 (* external interfaces *)
 
-fun declare const defs =
-  if_none (try (declare'' defs) const) defs;
+fun declare thy const defs =
+  if_none (try (declare'' thy defs) const) defs;
 
-fun define pp const name rhs defs =
-  define'' defs const name rhs
+fun define thy const name rhs defs =
+  define'' thy defs const name rhs
     handle DEFS msg => sys_error msg
-      | CIRCULAR path => error (defs_circular pp path)
-      | INFINITE_CHAIN path => error (defs_infinite_chain pp path)
+      | CIRCULAR path => error (defs_circular (Sign.pp thy) path)
+      | INFINITE_CHAIN path => error (defs_infinite_chain (Sign.pp thy) path)
       | CLASH (_, def1, def2) => error (defs_clash def1 def2)
-      | FINAL const => error (defs_final pp const);
+      | FINAL const => error (defs_final (Sign.pp thy) const);
 
-fun finalize const defs =
-  finalize'' defs const handle DEFS msg => sys_error msg;
+fun finalize thy const defs =
+  finalize'' thy defs const handle DEFS msg => sys_error msg;
 
 fun merge pp defs1 defs2 =
   merge'' defs1 defs2
