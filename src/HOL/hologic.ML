@@ -9,7 +9,6 @@ signature HOLOGIC =
 sig
   val typeS: sort
   val typeT: typ
-  val read_cterm: Sign.sg -> string -> cterm
   val boolN: string
   val boolT: typ
   val false_const: term
@@ -81,7 +80,7 @@ sig
   val min_const: term
   val bit_const: term
   val number_of_const: typ -> term
-  val int_of: int list -> IntInf.int 
+  val int_of: int list -> IntInf.int
   val dest_binum: term -> IntInf.int
   val mk_bin: IntInf.int -> term
   val bin_of : term -> int list
@@ -97,8 +96,6 @@ struct
 
 val typeS: sort = ["HOL.type"];
 val typeT = TypeInfer.anyT typeS;
-
-fun read_cterm sg s = Thm.read_cterm sg (s, typeT);
 
 
 (* bool and set *)
@@ -243,34 +240,14 @@ fun mk_snd p =
 fun prodT_factors (Type ("*", [T1, T2])) = prodT_factors T1 @ prodT_factors T2
   | prodT_factors T = [T];
 
-fun split_const (Ta, Tb, Tc) = 
+fun split_const (Ta, Tb, Tc) =
     Const ("split", [[Ta, Tb] ---> Tc, mk_prodT (Ta, Tb)] ---> Tc);
 
 (*Makes a nested tuple from a list, following the product type structure*)
-fun mk_tuple (Type ("*", [T1, T2])) tms = 
-        mk_prod (mk_tuple T1 tms, 
+fun mk_tuple (Type ("*", [T1, T2])) tms =
+        mk_prod (mk_tuple T1 tms,
                  mk_tuple T2 (Library.drop (length (prodT_factors T1), tms)))
   | mk_tuple T (t::_) = t;
-
-
-
-(* proper tuples *)
-
-local  (*currently unused*)
-
-fun mk_tupleT Ts = foldr mk_prodT unitT Ts;
-
-fun dest_tupleT (Type ("Product_Type.unit", [])) = []
-  | dest_tupleT (Type ("*", [T, U])) = T :: dest_tupleT U
-  | dest_tupleT T = raise TYPE ("dest_tupleT", [T], []);
-
-fun mk_tuple ts = foldr mk_prod unit ts;
-
-fun dest_tuple (Const ("Product_Type.Unity", _)) = []
-  | dest_tuple (Const ("Pair", _) $ t $ u) = t :: dest_tuple u
-  | dest_tuple t = raise TERM ("dest_tuple", [t]);
-
-in val _ = unit end;
 
 
 (* nat *)
@@ -310,7 +287,7 @@ and bit_const = Const ("Numeral.Bit", [binT, bitT] ---> binT);
 
 fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 
-fun int_of [] = 0 
+fun int_of [] = 0
   | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
 
 (*When called from a print translation, the Numeral qualifier will probably have
@@ -334,23 +311,20 @@ fun mk_bit 0 = B0_const
   | mk_bit _ = sys_error "mk_bit";
 
 fun mk_bin  n =
-    let
-	fun mk_bit n = if n = 0 then B0_const else B1_const
-								 
-	fun bin_of n = 
-	    if n = 0 then pls_const
-	    else if n = ~1 then min_const
-	    else 
-		let 
-		    (*val (q,r) = IntInf.divMod (n, 2): doesn't work in SML 10.0.7, but in newer versions!  FIXME: put this back after new SML released!*)
-	            val q = IntInf.div (n, 2)
-		    val r = IntInf.mod (n, 2)
-		in
-		    bit_const $ bin_of q $ mk_bit r
-		end
-    in 
-	bin_of n
-    end
+  let
+    fun mk_bit n = if n = 0 then B0_const else B1_const;
+
+    fun bin_of n =
+      if n = 0 then pls_const
+      else if n = ~1 then min_const
+      else
+        let
+          (*val (q,r) = IntInf.divMod (n, 2): doesn't work in SML 110.0.7,
+            but in newer versions!  FIXME: put this back after new SML released!*)
+          val q = IntInf.div (n, 2);
+          val r = IntInf.mod (n, 2);
+        in bit_const $ bin_of q $ mk_bit r end;
+  in bin_of n end;
 
 
 (* int *)
@@ -364,7 +338,7 @@ fun mk_int 0 = Const ("0", intT)
 
 (* real *)
 
-val realT = Type("RealDef.real", []);
+val realT = Type ("RealDef.real", []);
 
 
 (* list *)
