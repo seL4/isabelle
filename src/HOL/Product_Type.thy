@@ -412,9 +412,9 @@ local
   fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then SOME (i,t) else NONE
   |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
   |   split_pat tp i _ = NONE;
-  fun metaeq sg lhs rhs = mk_meta_eq (Tactic.prove sg [] []
+  fun metaeq thy ss lhs rhs = mk_meta_eq (Tactic.prove thy [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
-        (K (simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1)));
+        (K (simp_tac (Simplifier.inherit_bounds ss HOL_basic_ss addsimps [cond_split_eta]) 1)));
 
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
@@ -426,14 +426,14 @@ local
   |   subst arg k i (t $ u) = if Pair_pat k i (t $ u) then incr_boundvars k arg
                               else (subst arg k i t $ subst arg k i u)
   |   subst arg k i t = t;
-  fun beta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc thy ss (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
-        SOME (i,f) => SOME (metaeq sg s (subst arg 0 i f))
+        SOME (i,f) => SOME (metaeq thy ss s (subst arg 0 i f))
         | NONE => NONE)
   |   beta_proc _ _ _ = NONE;
-  fun eta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t)) =
+  fun eta_proc thy ss (s as Const ("split", _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          SOME (_,ft) => SOME (metaeq sg s (let val (f $ arg) = ft in f end))
+          SOME (_,ft) => SOME (metaeq thy ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
   |   eta_proc _ _ _ = NONE;
 in

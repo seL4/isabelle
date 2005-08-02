@@ -267,11 +267,11 @@ end);
 end;
 
 val defEX_regroup =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
+  Simplifier.simproc (the_context ())
     "defined EX" ["EX x. P(x)"] Quantifier1.rearrange_ex;
 
 val defALL_regroup =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
+  Simplifier.simproc (the_context ())
     "defined ALL" ["ALL x. P(x)"] Quantifier1.rearrange_all;
 
 
@@ -336,6 +336,10 @@ val FOL_basic_ss = empty_ss
   setSolver (mk_solver "FOL unsafe" unsafe_solver)
   setmksimps (mksimps mksimps_pairs)
   setmkcong mk_meta_cong;
+
+fun unfold_tac ss ths =
+  ALLGOALS (full_simp_tac
+    (Simplifier.inherit_bounds ss (Simplifier.clear_ss FOL_basic_ss) addsimps ths));
 
 
 (*intuitionistic simprules only*)

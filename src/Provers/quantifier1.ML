@@ -57,10 +57,10 @@ signature QUANTIFIER1 =
 sig
   val prove_one_point_all_tac: tactic
   val prove_one_point_ex_tac: tactic
-  val rearrange_all: Sign.sg -> simpset -> term -> thm option
-  val rearrange_ex:  Sign.sg -> simpset -> term -> thm option
-  val rearrange_ball: tactic -> Sign.sg -> simpset -> term -> thm option
-  val rearrange_bex:  tactic -> Sign.sg -> simpset -> term -> thm option
+  val rearrange_all: theory -> simpset -> term -> thm option
+  val rearrange_ex:  theory -> simpset -> term -> thm option
+  val rearrange_ball: (simpset -> tactic) -> theory -> simpset -> term -> thm option
+  val rearrange_bex:  (simpset -> tactic) -> theory -> simpset -> term -> thm option
 end;
 
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -103,8 +103,8 @@ fun extract_quant extract q =
         | exqu xs P = extract xs P
   in exqu end;
 
-fun prove_conv tac sg tu =
-  Tactic.prove sg [] [] (Logic.mk_equals tu) (K (rtac iff_reflection 1 THEN tac));
+fun prove_conv tac thy tu =
+  Tactic.prove thy [] [] (Logic.mk_equals tu) (K (rtac iff_reflection 1 THEN tac));
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
 
@@ -145,35 +145,35 @@ fun quantify qC x T xs P =
       val Q = if n=0 then P else renumber 0 n P
   in quant xs (qC $ Abs(x,T,Q)) end;
 
-fun rearrange_all sg _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
+fun rearrange_all thy _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
      (case extract_quant extract_imp q [] P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify all x T xs (imp $ eq $ Q)
-          in SOME(prove_conv prove_one_point_all_tac sg (F,R)) end)
+          in SOME(prove_conv prove_one_point_all_tac thy (F,R)) end)
   | rearrange_all _ _ _ = NONE;
 
-fun rearrange_ball tac sg _ (F as Ball $ A $ Abs(x,T,P)) =
+fun rearrange_ball tac thy ss (F as Ball $ A $ Abs(x,T,P)) =
      (case extract_imp [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
           let val R = imp $ eq $ Q
-          in SOME(prove_conv tac sg (F,Ball $ A $ Abs(x,T,R))) end)
+          in SOME(prove_conv (tac ss) thy (F,Ball $ A $ Abs(x,T,R))) end)
   | rearrange_ball _ _ _ _ = NONE;
 
-fun rearrange_ex sg _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
+fun rearrange_ex thy _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
      (case extract_quant extract_conj q [] P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify ex x T xs (conj $ eq $ Q)
-          in SOME(prove_conv prove_one_point_ex_tac sg (F,R)) end)
+          in SOME(prove_conv prove_one_point_ex_tac thy (F,R)) end)
   | rearrange_ex _ _ _ = NONE;
 
-fun rearrange_bex tac sg _ (F as Bex $ A $ Abs(x,T,P)) =
+fun rearrange_bex tac thy ss (F as Bex $ A $ Abs(x,T,P)) =
      (case extract_conj [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          SOME(prove_conv tac sg (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
+          SOME(prove_conv (tac ss) thy (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
   | rearrange_bex _ _ _ _ = NONE;
 
 end;

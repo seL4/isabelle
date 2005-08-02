@@ -53,22 +53,20 @@ simpset_ref() :=
   addcongs [if_weak_cong]
   setSolver type_solver;
 
-
-
 local
 
-val prove_bex_tac = rewtac Bex_def THEN Quantifier1.prove_one_point_ex_tac;
+fun prove_bex_tac ss = unfold_tac ss [Bex_def] THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-val prove_ball_tac = rewtac Ball_def THEN Quantifier1.prove_one_point_all_tac;
+fun prove_ball_tac ss = unfold_tac ss [Ball_def] THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
 
 in
 
-val defBEX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+val defBEX_regroup = Simplifier.simproc (the_context ())
   "defined BEX" ["EX x:A. P(x) & Q(x)"] rearrange_bex;
 
-val defBALL_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+val defBALL_regroup = Simplifier.simproc (the_context ())
   "defined BALL" ["ALL x:A. P(x) --> Q(x)"] rearrange_ball;
 
 end;

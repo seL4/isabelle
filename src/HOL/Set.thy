@@ -424,12 +424,16 @@ ML_setup {*
     val Ball_def = thm "Ball_def";
     val Bex_def = thm "Bex_def";
 
-    val prove_bex_tac =
-      rewrite_goals_tac [Bex_def] THEN Quantifier1.prove_one_point_ex_tac;
+    val simpset = Simplifier.clear_ss HOL_basic_ss;
+    fun unfold_tac ss th =
+      ALLGOALS (full_simp_tac (Simplifier.inherit_bounds ss simpset addsimps [th]));
+
+    fun prove_bex_tac ss =
+      unfold_tac ss Bex_def THEN Quantifier1.prove_one_point_ex_tac;
     val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-    val prove_ball_tac =
-      rewrite_goals_tac [Ball_def] THEN Quantifier1.prove_one_point_all_tac;
+    fun prove_ball_tac ss =
+      unfold_tac ss Ball_def THEN Quantifier1.prove_one_point_all_tac;
     val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
   in
     val defBEX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))

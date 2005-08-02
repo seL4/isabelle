@@ -400,17 +400,17 @@ text {* Setting up the one-point-rule simproc *}
 ML_setup {*
 local
 
-val prove_rex_tac = rewtac rex_def THEN Quantifier1.prove_one_point_ex_tac;
+fun prove_rex_tac ss = unfold_tac ss [rex_def] THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
 
-val prove_rall_tac = rewtac rall_def THEN Quantifier1.prove_one_point_all_tac;
+fun prove_rall_tac ss = unfold_tac ss [rall_def] THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
 in
 
-val defREX_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+val defREX_regroup = Simplifier.simproc (the_context ())
   "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
-val defRALL_regroup = Simplifier.simproc (Theory.sign_of (the_context ()))
+val defRALL_regroup = Simplifier.simproc (the_context ())
   "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
 
 end;
