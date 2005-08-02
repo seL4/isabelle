@@ -27,7 +27,7 @@ while (<ARGV>) {
 }
 
 foreach my $fun (keys %log) {
-    push @output, (sprintf "%12d %s\n", $log{$fun}, $fun);
+    push @output, (sprintf "%14u %s\n", $log{$fun}, $fun);
 }
 
 print (sort @output);

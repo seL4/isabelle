@@ -129,7 +129,8 @@ done
 lemma expand_split: 
   "u: A*B ==>    
         R(split(c,u)) <-> (ALL x:A. ALL y:B. u = <x,y> --> R(c(x,y)))"
-apply (simp add: split_def, auto)
+apply (simp add: split_def)
+apply auto
 done
 
 
