@@ -1124,13 +1124,19 @@ lemma Let_unfold: "f x \<equiv> g \<Longrightarrow>  Let x f \<equiv> g"
   by (unfold Let_def)
 
 text {*
-The following copy of the implication operator is useful for
-fine-tuning congruence rules.
+  The following copy of the implication operator is useful for
+  fine-tuning congruence rules.  It instructs the simplifier to simplify
+  its premise.
 *}
 
 consts
-  simp_implies :: "[prop, prop] => prop"  ("(_/ =simp=> _)" [2, 1] 1)
-defs simp_implies_def: "simp_implies \<equiv> op ==>"
+  "=simp=>" :: "[prop, prop] => prop"  (infixr 1)
+(*
+  "op =simp=>" :: "[prop, prop] => prop"  ("(_/ =simp=> _)" [2, 1] 1)
+syntax
+  "op =simp=>" :: "[prop, prop] => prop"  ("op =simp=>")
+*)
+defs simp_implies_def: "op =simp=> \<equiv> op ==>"
 
 lemma simp_impliesI: 
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"

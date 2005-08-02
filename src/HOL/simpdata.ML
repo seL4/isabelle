@@ -208,7 +208,7 @@ fun mk_eq_True r =
 fun lift_meta_eq_to_obj_eq i st =
   let
     val {sign, ...} = rep_thm st;
-    fun count_imp (Const ("HOL.simp_implies", _) $ P $ Q) = 1 + count_imp Q
+    fun count_imp (Const ("HOL.op =simp=>", _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
     val j = count_imp (Logic.strip_assums_concl (List.nth (prems_of st, i - 1)))
   in if j = 0 then meta_eq_to_obj_eq
@@ -216,7 +216,7 @@ fun lift_meta_eq_to_obj_eq i st =
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
         fun mk_simp_implies Q = foldr (fn (R, S) =>
-          Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Q Ps
+          Const ("HOL.op =simp=>", propT --> propT --> propT) $ R $ S) Q Ps
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
