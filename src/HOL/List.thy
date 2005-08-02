@@ -706,14 +706,24 @@ by (induct xs) simp_all
 lemma filter_filter [simp]: "filter P (filter Q xs) = filter (\<lambda>x. Q x \<and> P x) xs"
 by (induct xs) auto
 
+lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
+by (induct xs) (auto simp add: le_SucI)
+
 lemma filter_True [simp]: "\<forall>x \<in> set xs. P x ==> filter P xs = xs"
 by (induct xs) auto
 
 lemma filter_False [simp]: "\<forall>x \<in> set xs. \<not> P x ==> filter P xs = []"
 by (induct xs) auto
 
-lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
-by (induct xs) (auto simp add: le_SucI)
+lemma filter_empty_conv: "(filter P xs = []) = (\<forall>x\<in>set xs. \<not> P x)" 
+  by (induct xs) simp_all
+
+lemma filter_id_conv: "(filter P xs = xs) = (\<forall>x\<in>set xs. P x)"
+apply (induct xs)
+ apply auto
+apply(cut_tac P=P and xs=xs in length_filter_le)
+apply simp
+done
 
 lemma filter_map:
   "filter P (map f xs) = map f (filter (P o f) xs)"
