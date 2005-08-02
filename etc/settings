@@ -27,7 +27,7 @@ ML_HOME=$(choosefrom \
   "/opt/polyml/$ML_PLATFORM" \
   $POLY_HOME)
 ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
-ML_OPTIONS="-h 50000"
+ML_OPTIONS="-H 80"
 
 # Standard ML of New Jersey 110 or later
 #SMLNJ_CYGWIN_RUNTIME=1
