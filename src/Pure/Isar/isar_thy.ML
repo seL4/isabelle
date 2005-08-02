@@ -659,9 +659,24 @@ fun register_globally (((prfx, atts), expr), insts) int thy =
 fun register_in_locale (target, expr) int thy =
   let
     val target = Locale.intern thy target;
+    val (target_expr, thy', propss, activate) =
+        Locale.prep_registration_in_locale target expr thy;
+    fun witness id (thy, thm) = let
+        (* push outer quantifiers inside implications *)
+        val {prop, sign, ...} = rep_thm thm;
+        val frees = map (cterm_of sign o Free) (strip_all_vars prop);
+            (* are hopefully distinct *)
+        val prems = Logic.strip_imp_prems (strip_all_body prop);
+        val cprems = map (cterm_of sign) prems;
+        val thm' = thm |> forall_elim_list frees
+                       |> (fn th => implies_elim_list th (map Thm.assume cprems))
+                       |> forall_intr_list frees;
+      in (Locale.add_witness_in_locale target id thm' thy, thm') end;
   in
-    locale_multi_theorem_i Drule.internalK target ("",[]) []
-      [] (*concl*) int thy
+    multi_theorem_i Drule.internalK activate ProofContext.export_plain
+      ("",[]) [Locale.Expr target_expr]
+      (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]),
+        map (fn prop => (prop, ([], []))) props)) propss) int thy'
   end;
 
 fun register_locally (((prfx, atts), expr), insts) =
