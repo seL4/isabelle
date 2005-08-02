@@ -52,6 +52,8 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val clear_ss: simpset -> simpset
+  val inherit_bounds: simpset -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
@@ -60,7 +62,6 @@ sig
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val context_simproc: theory -> string -> string list
     -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
-  val inherit_bounds: simpset -> simpset -> simpset
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
