@@ -791,7 +791,7 @@ proof -
   thus ?thesis by (simp add:  exp_def) 
 qed
 
-lemma exp_ge_add_one_self [simp]: "0 \<le> x ==> (1 + x) \<le> exp(x)"
+lemma exp_ge_add_one_self_aux: "0 \<le> x ==> (1 + x) \<le> exp(x)"
 apply (drule real_le_imp_less_or_eq, auto)
 apply (simp add: exp_def)
 apply (rule real_le_trans)
@@ -801,7 +801,7 @@ done
 
 lemma exp_gt_one [simp]: "0 < x ==> 1 < exp x"
 apply (rule order_less_le_trans)
-apply (rule_tac [2] exp_ge_add_one_self, auto)
+apply (rule_tac [2] exp_ge_add_one_self_aux, auto)
 done
 
 lemma DERIV_exp_add_const: "DERIV (%x. exp (x + y)) x :> exp(x + y)"
@@ -915,7 +915,7 @@ apply (rule IVT)
 apply (auto intro: DERIV_exp [THEN DERIV_isCont] simp add: le_diff_eq)
 apply (subgoal_tac "1 + (y - 1) \<le> exp (y - 1)") 
 apply simp 
-apply (rule exp_ge_add_one_self, simp)
+apply (rule exp_ge_add_one_self_aux, simp)
 done
 
 lemma exp_total: "0 < y ==> \<exists>x. exp x = y"
@@ -979,7 +979,8 @@ by (auto dest!: exp_total simp add: exp_real_of_nat_mult [symmetric])
 
 lemma ln_add_one_self_le_self [simp]: "0 \<le> x ==> ln(1 + x) \<le> x"
 apply (rule ln_exp [THEN subst])
-apply (rule ln_le_cancel_iff [THEN iffD2], auto)
+apply (rule ln_le_cancel_iff [THEN iffD2]) 
+apply (auto simp add: exp_ge_add_one_self_aux)
 done
 
 lemma ln_less_self [simp]: "0 < x ==> ln x < x"
@@ -2639,7 +2640,7 @@ val DERIV_exp = thm "DERIV_exp";
 val DERIV_sin = thm "DERIV_sin";
 val DERIV_cos = thm "DERIV_cos";
 val exp_zero = thm "exp_zero";
-val exp_ge_add_one_self = thm "exp_ge_add_one_self";
+(* val exp_ge_add_one_self = thm "exp_ge_add_one_self"; *)
 val exp_gt_one = thm "exp_gt_one";
 val DERIV_exp_add_const = thm "DERIV_exp_add_const";
 val DERIV_exp_minus = thm "DERIV_exp_minus";
