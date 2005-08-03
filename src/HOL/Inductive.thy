@@ -6,7 +6,7 @@
 header {* Support for inductive sets and types *}
 
 theory Inductive 
-imports Gfp Sum_Type Relation Record
+imports FixedPoint Sum_Type Relation Record
 uses
   ("Tools/inductive_package.ML")
   ("Tools/inductive_realizer.ML")
