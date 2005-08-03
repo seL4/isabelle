@@ -495,8 +495,8 @@ fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
   let
     val names = filter_out (equal "") (map Thm.name_of_thm ths);
     val deps = filter_out (equal "")
-      (Symtab.keys (Library.foldl (uncurry Proofterm.thms_of_proof)
-        (Symtab.empty, map Thm.proof_of ths)));
+      (Symtab.keys (fold Proofterm.thms_of_proof
+        (map Thm.proof_of ths) Symtab.empty));
   in
     if null names orelse null deps then ()
     else thm_deps_message (spaces_quote names, spaces_quote deps)

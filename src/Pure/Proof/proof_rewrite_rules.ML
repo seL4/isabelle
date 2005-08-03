@@ -247,7 +247,7 @@ fun elim_defs sign r defs prf =
             if s mem defnames then []
             else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
               null (term_consts p inter cnames)) ps))
-          (Symtab.dest (thms_of_proof Symtab.empty prf)))
+          (Symtab.dest (thms_of_proof prf Symtab.empty)))
       in Reconstruct.expand_proof sign thms end
   in
     rewrite_terms (Pattern.rewrite_term tsig defs' [])
