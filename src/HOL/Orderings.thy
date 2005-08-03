@@ -583,4 +583,124 @@ in
 end
 *}
 
+subsection {* Extra transitivity rules *}
+
+text {* These support proving chains of decreasing inequalities
+    a >= b >= c ... in Isar proofs. *}
+
+lemma xt1: "a = b ==> b > c ==> a > c"
+by simp
+
+lemma xt2: "a > b ==> b = c ==> a > c"
+by simp
+
+lemma xt3: "a = b ==> b >= c ==> a >= c"
+by simp
+
+lemma xt4: "a >= b ==> b = c ==> a >= c"
+by simp
+
+lemma xt5: "(x::'a::order) >= y ==> y >= x ==> x = y"
+by simp
+
+lemma xt6: "(x::'a::order) >= y ==> y >= z ==> x >= z"
+by simp
+
+lemma xt7: "(x::'a::order) > y ==> y >= z ==> x > z"
+by simp
+
+lemma xt8: "(x::'a::order) >= y ==> y > z ==> x > z"
+by simp
+
+lemma xt9: "(a::'a::order) > b ==> b > a ==> ?P"
+by simp
+
+lemma xt10: "(x::'a::order) > y ==> y > z ==> x > z"
+by simp
+
+lemma xt11: "(a::'a::order) >= b ==> a ~= b ==> a > b"
+by simp
+
+lemma xt12: "(a::'a::order) ~= b ==> a >= b ==> a > b"
+by simp
+
+lemma xt13: "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==>
+    a > f c" 
+by simp
+
+lemma xt14: "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==>
+    f a > c"
+by auto
+
+lemma xt15: "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==>
+    a >= f c"
+by simp
+
+lemma xt16: "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==>
+    f a >= c"
+by auto
+
+lemma xt17: "(a::'a::order) >= f b ==> b >= c ==> 
+    (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
+by (subgoal_tac "f b >= f c", force, force)
+
+lemma xt18: "(a::'a::order) >= b ==> (f b::'b::order) >= c ==> 
+    (!!x y. x >= y ==> f x >= f y) ==> f a >= c"
+by (subgoal_tac "f a >= f b", force, force)
+
+lemma xt19: "(a::'a::order) > f b ==> (b::'b::order) >= c ==>
+  (!!x y. x >= y ==> f x >= f y) ==> a > f c"
+by (subgoal_tac "f b >= f c", force, force)
+
+lemma xt20: "(a::'a::order) > b ==> (f b::'b::order) >= c==>
+    (!!x y. x > y ==> f x > f y) ==> f a > c"
+by (subgoal_tac "f a > f b", force, force)
+
+lemma xt21: "(a::'a::order) >= f b ==> b > c ==>
+    (!!x y. x > y ==> f x > f y) ==> a > f c"
+by (subgoal_tac "f b > f c", force, force)
+
+lemma xt22: "(a::'a::order) >= b ==> (f b::'b::order) > c ==>
+    (!!x y. x >= y ==> f x >= f y) ==> f a > c"
+by (subgoal_tac "f a >= f b", force, force)
+
+lemma xt23: "(a::'a::order) > f b ==> (b::'b::order) > c ==>
+    (!!x y. x > y ==> f x > f y) ==> a > f c"
+by (subgoal_tac "f b > f c", force, force)
+
+lemma xt24: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
+    (!!x y. x > y ==> f x > f y) ==> f a > c"
+by (subgoal_tac "f a > f b", force, force)
+
+
+lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9 xt10 xt11 xt12
+    xt13 xt14 xt15 xt15 xt17 xt18 xt19 xt20 xt21 xt22 xt23 xt24
+
+(* 
+  Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
+  for the wrong thing in an Isar proof.
+
+  The extra transitivity rules can be used as follows: 
+
+lemma "(a::'a::order) > z"
+proof -
+  have "a >= b" (is "_ >= ?rhs")
+    sorry
+  also have "?rhs >= c" (is "_ >= ?rhs")
+    sorry
+  also (xtrans) have "?rhs = d" (is "_ = ?rhs")
+    sorry
+  also (xtrans) have "?rhs >= e" (is "_ >= ?rhs")
+    sorry
+  also (xtrans) have "?rhs > f" (is "_ > ?rhs")
+    sorry
+  also (xtrans) have "?rhs > z"
+    sorry
+  finally (xtrans) show ?thesis .
+qed
+
+  Alternatively, one can use "declare xtrans [trans]" and then
+  leave out the "(xtrans)" above.
+*)
+
 end
