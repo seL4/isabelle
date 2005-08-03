@@ -21,7 +21,7 @@ sig
    | PThm of (string * (string * string list) list) * proof * term * typ list option
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
-   | MinProof of proof list;
+   | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
 
   val %> : proof * term -> proof
 end;
@@ -60,11 +60,13 @@ sig
   val prf_subst_bounds : term list -> proof -> proof
   val prf_subst_pbounds : proof list -> proof -> proof
   val freeze_thaw_prf : proof -> proof * (proof -> proof)
+  val proof_of_min_axm : string * term -> proof
+  val proof_of_min_thm : (string * term) * proof -> proof
 
-  val thms_of_proof : (term * proof) list Symtab.table -> proof ->
+  val thms_of_proof : proof -> (term * proof) list Symtab.table ->
     (term * proof) list Symtab.table
-  val axms_of_proof : proof Symtab.table -> proof -> proof Symtab.table
-  val oracles_of_proof : proof list -> proof -> proof list
+  val axms_of_proof : proof -> proof Symtab.table -> proof Symtab.table
+  val oracles_of_proof : (string * term) list -> proof -> (string * term) list
 
   (** proof terms for specific inference rules **)
   val implies_intr_proof : term -> proof -> proof
@@ -127,57 +129,72 @@ datatype proof =
  | PThm of (string * (string * string list) list) * proof * term * typ list option
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
- | MinProof of proof list;
+ | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
 
-fun oracles_of_proof prfs prf =
+fun proof_of_min_axm (s, prop) = PAxm (s, prop, NONE);
+fun proof_of_min_thm ((s, prop), prf) = PThm ((s, []), prf, prop, NONE);
+
+val string_term_ord = prod_ord fast_string_ord Term.fast_term_ord;
+
+fun oracles_of_proof oras prf =
   let
-    fun oras_of (tabs, Abst (_, _, prf)) = oras_of (tabs, prf)
-      | oras_of (tabs, AbsP (_, _, prf)) = oras_of (tabs, prf)
-      | oras_of (tabs, prf % _) = oras_of (tabs, prf)
-      | oras_of (tabs, prf1 %% prf2) = oras_of (oras_of (tabs, prf1), prf2)
-      | oras_of (tabs as (thms, oras), PThm ((name, _), prf, prop, _)) =
-          (case Symtab.lookup (thms, name) of
-             NONE => oras_of ((Symtab.update ((name, [prop]), thms), oras), prf)
-           | SOME ps => if prop mem ps then tabs else
-               oras_of ((Symtab.update ((name, prop::ps), thms), oras), prf))
-      | oras_of ((thms, oras), prf as Oracle _) = (thms, prf ins oras)
-      | oras_of (tabs, MinProof prfs) = Library.foldl oras_of (tabs, prfs)
-      | oras_of (tabs, _) = tabs
+    fun oras_of (Abst (_, _, prf)) = oras_of prf
+      | oras_of (AbsP (_, _, prf)) = oras_of prf
+      | oras_of (prf % _) = oras_of prf
+      | oras_of (prf1 %% prf2) = oras_of prf1 #> oras_of prf2
+      | oras_of (PThm ((name, _), prf, prop, _)) = (fn tabs as (thms, oras) =>
+          case Symtab.lookup (thms, name) of
+            NONE => oras_of prf (Symtab.update ((name, [prop]), thms), oras)
+          | SOME ps => if prop mem ps then tabs else
+              oras_of prf (Symtab.update ((name, prop::ps), thms), oras))
+      | oras_of (Oracle (s, prop, _)) =
+          apsnd (OrdList.insert string_term_ord (s, prop))
+      | oras_of (MinProof (thms, _, oras)) =
+          apsnd (OrdList.union string_term_ord oras) #>
+          fold (oras_of o proof_of_min_thm) thms
+      | oras_of _ = I
   in
-    snd (oras_of ((Symtab.empty, prfs), prf))
+    snd (oras_of prf (Symtab.empty, oras))
   end;
 
-fun thms_of_proof tab (Abst (_, _, prf)) = thms_of_proof tab prf
-  | thms_of_proof tab (AbsP (_, _, prf)) = thms_of_proof tab prf
-  | thms_of_proof tab (prf1 %% prf2) = thms_of_proof (thms_of_proof tab prf1) prf2
-  | thms_of_proof tab (prf % _) = thms_of_proof tab prf
-  | thms_of_proof tab (prf' as PThm ((s, _), prf, prop, _)) =
-      (case Symtab.lookup (tab, s) of
-         NONE => thms_of_proof (Symtab.update ((s, [(prop, prf')]), tab)) prf
-       | SOME ps => if exists (equal prop o fst) ps then tab else
-           thms_of_proof (Symtab.update ((s, (prop, prf')::ps), tab)) prf)
-  | thms_of_proof tab (MinProof prfs) = Library.foldl (uncurry thms_of_proof) (tab, prfs)
-  | thms_of_proof tab _ = tab;
+fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
+  | thms_of_proof (AbsP (_, _, prf)) = thms_of_proof prf
+  | thms_of_proof (prf1 %% prf2) = thms_of_proof prf1 #> thms_of_proof prf2
+  | thms_of_proof (prf % _) = thms_of_proof prf
+  | thms_of_proof (prf' as PThm ((s, _), prf, prop, _)) = (fn tab =>
+      case Symtab.lookup (tab, s) of
+        NONE => thms_of_proof prf (Symtab.update ((s, [(prop, prf')]), tab))
+      | SOME ps => if exists (equal prop o fst) ps then tab else
+          thms_of_proof prf (Symtab.update ((s, (prop, prf')::ps), tab)))
+  | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
+  | thms_of_proof _ = I;
 
-fun axms_of_proof tab (Abst (_, _, prf)) = axms_of_proof tab prf
-  | axms_of_proof tab (AbsP (_, _, prf)) = axms_of_proof tab prf
-  | axms_of_proof tab (prf1 %% prf2) = axms_of_proof (axms_of_proof tab prf1) prf2
-  | axms_of_proof tab (prf % _) = axms_of_proof tab prf
-  | axms_of_proof tab (prf as PAxm (s, _, _)) = Symtab.update ((s, prf), tab)
-  | axms_of_proof tab (MinProof prfs) = Library.foldl (uncurry axms_of_proof) (tab, prfs)
-  | axms_of_proof tab _ = tab;
+fun axms_of_proof (Abst (_, _, prf)) = axms_of_proof prf
+  | axms_of_proof (AbsP (_, _, prf)) = axms_of_proof prf
+  | axms_of_proof (prf1 %% prf2) = axms_of_proof prf1 #> axms_of_proof prf2
+  | axms_of_proof (prf % _) = axms_of_proof prf
+  | axms_of_proof (prf as PAxm (s, _, _)) = curry Symtab.update (s, prf)
+  | axms_of_proof (MinProof (_, prfs, _)) = fold (axms_of_proof o proof_of_min_axm) prfs
+  | axms_of_proof _ = I;
 
 (** collect all theorems, axioms and oracles **)
 
-fun mk_min_proof (prfs, Abst (_, _, prf)) = mk_min_proof (prfs, prf)
-  | mk_min_proof (prfs, AbsP (_, _, prf)) = mk_min_proof (prfs, prf)
-  | mk_min_proof (prfs, prf % _) = mk_min_proof (prfs, prf)
-  | mk_min_proof (prfs, prf1 %% prf2) = mk_min_proof (mk_min_proof (prfs, prf1), prf2)
-  | mk_min_proof (prfs, prf as PThm _) = prf ins prfs
-  | mk_min_proof (prfs, prf as PAxm _) = prf ins prfs
-  | mk_min_proof (prfs, prf as Oracle _) = prf ins prfs
-  | mk_min_proof (prfs, MinProof prfs') = prfs union prfs'
-  | mk_min_proof (prfs, _) = prfs;
+fun map3 f g h (thms, axms, oras) = (f thms, g axms, h oras);
+
+fun mk_min_proof (Abst (_, _, prf)) = mk_min_proof prf
+  | mk_min_proof (AbsP (_, _, prf)) = mk_min_proof prf
+  | mk_min_proof (prf % _) = mk_min_proof prf
+  | mk_min_proof (prf1 %% prf2) = mk_min_proof prf1 #> mk_min_proof prf2
+  | mk_min_proof (PThm ((s, _), prf, prop, _)) =
+      map3 (OrdList.insert (string_term_ord o pairself fst) ((s, prop), prf)) I I
+  | mk_min_proof (PAxm (s, prop, _)) =
+      map3 I (OrdList.insert string_term_ord (s, prop)) I
+  | mk_min_proof (Oracle (s, prop, _)) =
+      map3 I I (OrdList.insert string_term_ord (s, prop))
+  | mk_min_proof (MinProof (thms, axms, oras)) =
+      map3 (OrdList.union (string_term_ord o pairself fst) thms)
+        (OrdList.union string_term_ord axms) (OrdList.union string_term_ord oras)
+  | mk_min_proof _ = I;
 
 (** proof objects with different levels of detail **)
 
@@ -192,11 +209,11 @@ fun infer_derivs f (ora1, prf1) (ora2, prf2) =
   (ora1 orelse ora2, 
    case !proofs of
      2 => f prf1 prf2
-   | 1 => MinProof (mk_min_proof (mk_min_proof ([], prf1), prf2))
-   | 0 => MinProof (if_ora ora2 (if_ora ora1 [] prf1) prf2)
+   | 1 => MinProof (([], [], []) |> mk_min_proof prf1 |> mk_min_proof prf2)
+   | 0 => MinProof ([], [], if_ora ora2 (if_ora ora1 [] prf1) prf2)
    | i => err_illegal_level i);
 
-fun infer_derivs' f = infer_derivs (K f) (false, MinProof []);
+fun infer_derivs' f = infer_derivs (K f) (false, MinProof ([], [], []));
 
 fun (prf %> t) = prf % SOME t;
 
@@ -830,7 +847,12 @@ fun gen_axm_proof c name prop =
   end;
 
 val axm_proof = gen_axm_proof PAxm;
-val oracle_proof = gen_axm_proof Oracle;
+
+val dummy = Const (Term.dummy_patternN, dummyT);
+
+fun oracle_proof name prop =
+  if !proofs = 0 then Oracle (name, dummy, NONE)
+  else gen_axm_proof Oracle name prop;
 
 fun shrink ls lev (prf as Abst (a, T, body)) =
       let val (b, is, ch, body') = shrink ls (lev+1) body
@@ -1127,7 +1149,7 @@ fun thm_proof thy (name, tags) hyps prop prf =
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get thy)
           (foldr (uncurry implies_intr_proof) prf hyps)))
-      else MinProof (mk_min_proof ([], prf));
+      else MinProof (mk_min_proof prf ([], [], []));
     val head = (case strip_combt (fst (strip_combP prf)) of
         (PThm ((old_name, _), prf', prop', NONE), args') =>
           if (old_name="" orelse old_name=name) andalso
