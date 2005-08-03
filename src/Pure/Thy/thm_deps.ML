@@ -26,22 +26,23 @@ fun enable () = if ! proofs = 0 then proofs := 1 else ();
 fun disable () = proofs := 0;
 
 fun dest_thm_axm (PThm (nt, prf, _, _)) = (nt, prf)
-  | dest_thm_axm (PAxm (n, _, _)) = ((n ^ " (Ax)", []), MinProof [])
-  | dest_thm_axm _ = (("", []), MinProof []);
+  | dest_thm_axm (PAxm (n, _, _)) = ((n ^ " (Ax)", []), MinProof ([], [], []))
+  | dest_thm_axm _ = (("", []), MinProof ([], [], []));
 
-fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
-  | make_deps_graph (p, Abst (_, _, prf)) = make_deps_graph (p, prf)
-  | make_deps_graph (p, prf1 %% prf2) =
-      make_deps_graph (make_deps_graph (p, prf1), prf2)
-  | make_deps_graph (p, prf % _) = make_deps_graph (p, prf)
-  | make_deps_graph (p, MinProof prfs) = Library.foldl make_deps_graph (p, prfs)
-  | make_deps_graph (p as (gra, parents), prf) =
+fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
+  | make_deps_graph (Abst (_, _, prf)) = make_deps_graph prf
+  | make_deps_graph (prf1 %% prf2) = make_deps_graph prf1 #> make_deps_graph prf2
+  | make_deps_graph (prf % _) = make_deps_graph prf
+  | make_deps_graph (MinProof (thms, axms, _)) =
+      fold (make_deps_graph o Proofterm.proof_of_min_thm) thms #>
+      fold (make_deps_graph o Proofterm.proof_of_min_axm) axms
+  | make_deps_graph prf = (fn p as (gra, parents) =>
       let val ((name, tags), prf') = dest_thm_axm prf
       in
         if name <> "" andalso not (Drule.has_internal tags) then
           if not (Symtab.defined gra name) then
             let
-              val (gra', parents') = make_deps_graph ((gra, []), prf');
+              val (gra', parents') = make_deps_graph prf' (gra, []);
               val prefx = #1 (Library.split_last (NameSpace.unpack name));
               val session =
                 (case prefx of
@@ -62,14 +63,14 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
             end
           else (gra, name ins parents)
         else
-          make_deps_graph ((gra, parents), prf')
-      end;
+          make_deps_graph prf' (gra, parents)
+      end);
 
 fun thm_deps thms =
   let
     val _ = writeln "Generating graph ...";
-    val gra = map snd (Symtab.dest (fst (Library.foldl make_deps_graph ((Symtab.empty, []),
-      map Thm.proof_of thms))));
+    val gra = map snd (Symtab.dest (fst
+      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, []))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
     val _ = Present.write_graph gra path;
     val _ = File.isatool ("browser -d " ^ File.shell_path path ^ " &");
