@@ -167,7 +167,7 @@ proof -
     done
   also have "... <= (1 + x + x^2) / (1 + x^2)"
     apply (rule divide_left_mono)
-    apply auto
+    apply (auto simp add: exp_ge_add_one_self_aux)
     apply (rule add_nonneg_nonneg)
     apply (insert prems, auto)
     apply (rule mult_pos_pos)
@@ -295,9 +295,9 @@ proof -
     by (rule order_trans)
 qed
 
-lemma exp_ge_add_one_self2: "1 + x <= exp x"
+lemma exp_ge_add_one_self [simp]: "1 + x <= exp x"
   apply (case_tac "0 <= x")
-  apply (erule exp_ge_add_one_self)
+  apply (erule exp_ge_add_one_self_aux)
   apply (case_tac "x <= -1")
   apply (subgoal_tac "1 + x <= 0")
   apply (erule order_trans)
@@ -320,7 +320,6 @@ lemma ln_add_one_self_le_self2: "-1 < x ==> ln(1 + x) <= x"
   apply (erule ssubst)back
   apply (subst ln_le_cancel_iff)
   apply auto
-  apply (rule exp_ge_add_one_self2)
 done
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
