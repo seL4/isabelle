@@ -91,7 +91,7 @@ fun add_proof_syntax thy =
 
 fun disambiguate_names thy prf =
   let
-    val thms = thms_of_proof Symtab.empty prf;
+    val thms = thms_of_proof prf Symtab.empty;
     val thms' = map (apsnd Thm.full_prop_of) (PureThy.all_thms_of thy);
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
@@ -246,8 +246,8 @@ fun read_proof thy =
 
 fun pretty_proof thy prf =
   let
-    val thm_names = map fst (Symtab.dest (thms_of_proof Symtab.empty prf)) \ "";
-    val axm_names = map fst (Symtab.dest (axms_of_proof Symtab.empty prf));
+    val thm_names = map fst (Symtab.dest (thms_of_proof prf Symtab.empty)) \ "";
+    val axm_names = map fst (Symtab.dest (axms_of_proof prf Symtab.empty));
     val thy' = thy |>
       add_proof_syntax |>
       add_proof_atom_consts
