@@ -312,6 +312,7 @@ done
 lemma starfun_exp_ge_add_one_self [simp]: "0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
 apply (cases x)
 apply (simp add: starfun hypreal_add hypreal_le hypreal_zero_num hypreal_one_num, ultra)
+apply (erule exp_ge_add_one_self_aux)
 done
 
 (* exp (oo) is infinite *)
