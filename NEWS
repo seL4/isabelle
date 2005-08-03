@@ -261,7 +261,8 @@ becomes available as variable, constant etc.  INCOMPATIBILITY,
 
 * "x > y" abbreviates "y < x" and "x >= y" abbreviates "y <= x".
 Similarly for all quantifiers: "ALL x > y" etc.  The x-symbol for >=
-is \<ge>.
+is \<ge>. New transitivity rules have been added to HOL/Orderings.thy to 
+support corresponding Isar calculations.
 
 * "{x:A. P}" abbreviates "{x. x:A & P}", and similarly for "\<in>"
 instead of ":".
@@ -384,10 +385,11 @@ integers in the reals.
 The following theorems have been eliminated or modified
 (INCOMPATIBILITY):
 
-  real_of_int_add    reversed direction of equality (use [symmetric])
-  real_of_int_minus  reversed direction of equality (use [symmetric])
-  real_of_int_diff   reversed direction of equality (use [symmetric])
-  real_of_int_mult   reversed direction of equality (use [symmetric])
+  exp_ge_add_one_self  now requires no hypotheses
+  real_of_int_add      reversed direction of equality (use [symmetric])
+  real_of_int_minus    reversed direction of equality (use [symmetric])
+  real_of_int_diff     reversed direction of equality (use [symmetric])
+  real_of_int_mult     reversed direction of equality (use [symmetric])
 
 * Theory RComplete: expanded support for floor and ceiling functions.
 
