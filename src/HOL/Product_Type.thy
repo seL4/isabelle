@@ -819,7 +819,7 @@ fun let_codegen thy defs gr dep thyname brack t = (case strip_comb t of
             val (gr1, qs) = foldl_map mk_code (gr, ps);
             val (gr2, pu) = Codegen.invoke_codegen thy defs dep thyname false (gr1, u);
             val (gr3, pargs) = foldl_map
-              (Codegen.invoke_codegen thy defs dep thyname false) (gr2, ts)
+              (Codegen.invoke_codegen thy defs dep thyname true) (gr2, ts)
           in
             SOME (gr3, Codegen.mk_app brack
               (Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, List.concat
@@ -840,7 +840,7 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
              val (gr1, q) = Codegen.invoke_codegen thy defs dep thyname false (gr, p);
              val (gr2, pu) = Codegen.invoke_codegen thy defs dep thyname false (gr1, u);
              val (gr3, pargs) = foldl_map
-               (Codegen.invoke_codegen thy defs dep thyname false) (gr2, ts)
+               (Codegen.invoke_codegen thy defs dep thyname true) (gr2, ts)
            in
              SOME (gr2, Codegen.mk_app brack
                (Pretty.block [Pretty.str "(fn ", q, Pretty.str " =>",
