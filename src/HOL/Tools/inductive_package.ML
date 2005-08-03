@@ -65,8 +65,8 @@ struct
 (** theory context references **)
 
 val mono_name = "Orderings.mono";
-val gfp_name = "Gfp.gfp";
-val lfp_name = "Lfp.lfp";
+val gfp_name = "FixedPoint.gfp";
+val lfp_name = "FixedPoint.lfp";
 val vimage_name = "Set.vimage";
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (Thm.concl_of vimageD);
 
