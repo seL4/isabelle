@@ -535,7 +535,8 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
 HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
 
 $(LOG)/HOL-Extraction.gz: $(OUT)/HOL \
-  Extraction/Higman.thy Extraction/ROOT.ML Extraction/QuotRem.thy \
+  Extraction/Higman.thy Extraction/ROOT.ML Extraction/Pigeonhole.thy \
+  Extraction/QuotRem.thy \
   Extraction/Warshall.thy Extraction/document/root.tex \
   Extraction/document/root.bib
 	@$(ISATOOL) usedir $(OUT)/HOL Extraction
