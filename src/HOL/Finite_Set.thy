@@ -305,6 +305,9 @@ lemma finite_UN [simp]: "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x
   by (blast intro: finite_UN_I finite_subset)
 
 
+lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
+by (simp add: Plus_def)
+
 text {* Sigma of finite sets *}
 
 lemma finite_SigmaI [simp]:
@@ -351,23 +354,6 @@ apply (subgoal_tac "\<exists>k. k<n & f k = (x,y)")
 apply clarify
 apply (rule_tac x=k in image_eqI, auto)
 done
-
-
-instance unit :: finite
-proof
-  have "finite {()}" by simp
-  also have "{()} = UNIV" by auto
-  finally show "finite (UNIV :: unit set)" .
-qed
-
-instance * :: (finite, finite) finite
-proof
-  show "finite (UNIV :: ('a \<times> 'b) set)"
-  proof (rule finite_Prod_UNIV)
-    show "finite (UNIV :: 'a set)" by (rule finite)
-    show "finite (UNIV :: 'b set)" by (rule finite)
-  qed
-qed
 
 
 text {* The powerset of a finite set *}
@@ -2312,5 +2298,68 @@ by(simp add: Min_def min.fold1_below_iff)
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
 by(simp add: Max_def max.fold1_below_iff)
+
+subsection {* Properties of axclass @{text finite} *}
+
+text{* Many of these are by Brian Huffman. *}
+
+lemma finite_set: "finite (A::'a::finite set)"
+by (rule finite_subset [OF subset_UNIV finite])
+
+
+instance unit :: finite
+proof
+  have "finite {()}" by simp
+  also have "{()} = UNIV" by auto
+  finally show "finite (UNIV :: unit set)" .
+qed
+
+instance bool :: finite
+proof
+  have "finite {True, False}" by simp
+  also have "{True, False} = UNIV" by auto
+  finally show "finite (UNIV :: bool set)" .
+qed
+
+
+instance * :: (finite, finite) finite
+proof
+  show "finite (UNIV :: ('a \<times> 'b) set)"
+  proof (rule finite_Prod_UNIV)
+    show "finite (UNIV :: 'a set)" by (rule finite)
+    show "finite (UNIV :: 'b set)" by (rule finite)
+  qed
+qed
+
+instance "+" :: (finite, finite) finite
+proof
+  have a: "finite (UNIV :: 'a set)" by (rule finite)
+  have b: "finite (UNIV :: 'b set)" by (rule finite)
+  from a b have "finite ((UNIV :: 'a set) <+> (UNIV :: 'b set))"
+    by (rule finite_Plus)
+  thus "finite (UNIV :: ('a + 'b) set)" by simp
+qed
+
+
+instance set :: (finite) finite
+proof
+  have "finite (UNIV :: 'a set)" by (rule finite)
+  hence "finite (Pow (UNIV :: 'a set))"
+    by (rule finite_Pow_iff [THEN iffD2])
+  thus "finite (UNIV :: 'a set set)" by simp
+qed
+
+lemma inj_graph: "inj (%f. {(x, y). y = f x})"
+by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
+
+instance fun :: (finite, finite) finite
+proof
+  show "finite (UNIV :: ('a => 'b) set)"
+  proof (rule finite_imageD)
+    let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
+    show "finite (range ?graph)" by (rule finite_set)
+    show "inj ?graph" by (rule inj_graph)
+  qed
+qed
 
 end
