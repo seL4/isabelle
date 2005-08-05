@@ -10,4 +10,6 @@ else
   (proofs := 2;
    time_use_thy "QuotRem";
    time_use_thy "Warshall";
-   time_use_thy "Higman");
+   time_use_thy "Higman";
+   no_document time_use_thy "EfficientNat";
+   time_use_thy "Pigeonhole");
