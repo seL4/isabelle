@@ -151,6 +151,14 @@ lemma sum_induct: "[| !!x. P (Inl x); !!x. P (Inr x) |] ==> P x"
 by (rule sumE [of x], auto)
 
 
+lemma UNIV_Plus_UNIV [simp]: "UNIV <+> UNIV = UNIV"
+apply (rule set_ext)
+apply(rename_tac s)
+apply(rule_tac s=s in sumE)
+apply auto
+done
+
+
 subsection{*The @{term Part} Primitive*}
 
 lemma Part_eqI [intro]: "[| a : A;  a=h(b) |] ==> a : Part A h"
