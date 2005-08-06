@@ -24,7 +24,7 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   done
 
 text {*
-We can decide whether an array @{term "f"} of length @{term "l+(1::nat)"}
+We can decide whether an array @{term "f"} of length @{term "l"}
 contains an element @{term "x"}.
 *}
 
