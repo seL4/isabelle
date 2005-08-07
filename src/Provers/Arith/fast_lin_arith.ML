@@ -167,8 +167,6 @@ fun elim_eqns(ineqs,Lineq(i,Le,cs,_)) = (i,true,cs)::ineqs
   | elim_eqns(ineqs,Lineq(i,Eq,cs,_)) = (i,true,cs)::(~i,true,map ~ cs)::ineqs
   | elim_eqns(ineqs,Lineq(i,Lt,cs,_)) = (i,false,cs)::ineqs;
 
-val rat0 = rat_of_int 0;
-
 (* PRE: ex[v] must be 0! *)
 fun eval (ex:rat list) v (a:IntInf.int,le,cs:IntInf.int list) =
   let val rs = map rat_of_intinf cs
@@ -177,9 +175,6 @@ fun eval (ex:rat list) v (a:IntInf.int,le,cs:IntInf.int list) =
 (* If el v rs < 0, le should be negated.
    Instead this swap is taken into account in ratrelmin2.
 *)
-
-fun ratge0 r = fst(rep_rat r) >= 0;
-fun ratle(r,s) = ratge0(ratadd(s,ratneg r));
 
 fun ratrelmin2(x as (r,ler),y as (s,les)) =
   if r=s then (r, (not ler) andalso (not les)) else if ratle(r,s) then x else y;
