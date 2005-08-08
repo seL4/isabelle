@@ -370,6 +370,10 @@ fun pretty_thm_style ctxt (name, thm) = pretty_term_style ctxt (name, Thm.prop_o
 fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
 
+fun pretty_mlidf mlidf =
+  (use_text Context.ml_output false ("val _ = fn _ => " ^ mlidf ^ ";");
+   Pretty.str mlidf);
+
 fun output_with pretty src ctxt x =
   let
     val prt = pretty ctxt x;      (*always pretty in order to catch errors!*)
@@ -384,14 +388,10 @@ fun output_seq_with pretty src ctxt xs =
 
 fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _ => fn _ =>
   Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
-      handle Toplevel.UNDEF => error "No proof state")))) src state;
+    handle Toplevel.UNDEF => error "No proof state")))) src state;
 
-(*this is just experimental*)
-fun output_ml_idf src ctxt idf = snd (use_text Context.ml_output true idf,
-    output_with (K pretty_text) src ctxt idf);
-
-val _ = add_commands
- [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
+val _ = add_commands [
+  ("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("thm_style", args ((Scan.lift (Args.name || Args.symbol)) -- Attrib.local_thm) (output_with pretty_thm_style)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
@@ -406,6 +406,7 @@ val _ = add_commands
   ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
   ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
   (*this is just experimental*)
-  ("ML_idf", args (Scan.lift Args.name) output_ml_idf)];
+  ("ML_idf", args (Scan.lift (Args.name || Args.symbol)) (output_with (K pretty_mlidf)))
+];
 
 end;
