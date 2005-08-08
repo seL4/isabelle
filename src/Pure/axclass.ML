@@ -319,7 +319,7 @@ local
 
 fun inst_proof mk_prop add_thms inst int theory =
   theory
-  |> IsarThy.multi_theorem_i Drule.internalK I ProofContext.export_standard
+  |> IsarThy.multi_theorem_i Drule.internalK (K I) ProofContext.export_standard
     ("", [fn (thy, th) => (add_thms [th] thy, th)]) []
     (map (fn t => (("", []), [(t, ([], []))])) (mk_prop theory inst)) int;
 

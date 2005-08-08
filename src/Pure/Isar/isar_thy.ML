@@ -58,24 +58,31 @@ sig
     -> bool -> theory -> ProofHistory.T
   val theorem_i: string -> (bstring * theory attribute list) *
     (term * (term list * term list)) -> bool -> theory -> ProofHistory.T
-  val multi_theorem: string -> (theory -> theory) ->
+  val multi_theorem: string -> (thm list * thm list -> theory -> theory) ->
     (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
     bstring * Attrib.src list -> Locale.element Locale.elem_expr list ->
     ((bstring * Attrib.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
-  val multi_theorem_i: string -> (theory -> theory) ->
+  val multi_theorem_i: string -> (thm list * thm list -> theory -> theory) ->
     (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
-    bstring * theory attribute list -> Locale.element_i Locale.elem_expr list
-    -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
-    -> bool -> theory -> ProofHistory.T
-  val locale_multi_theorem: string -> xstring
-    -> bstring * Attrib.src list -> Locale.element Locale.elem_expr list
-    -> ((bstring * Attrib.src list) * (string * (string list * string list)) list) list
-    -> bool -> theory -> ProofHistory.T
-  val locale_multi_theorem_i: string -> string -> bstring * Attrib.src list
-    -> Locale.element_i Locale.elem_expr list
-    -> ((bstring * Attrib.src list) * (term * (term list * term list)) list) list
-    -> bool -> theory -> ProofHistory.T
+    bstring * theory attribute list ->
+    Locale.element_i Locale.elem_expr list ->
+    ((bstring * theory attribute list) * (term * (term list * term list)) list) list ->
+    bool -> theory -> ProofHistory.T
+  val locale_multi_theorem:
+    string -> (thm list * thm list -> theory -> theory) ->
+    (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
+    xstring ->
+    bstring * Attrib.src list -> Locale.element Locale.elem_expr list ->
+    ((bstring * Attrib.src list) * (string * (string list * string list)) list) list ->
+    bool -> theory -> ProofHistory.T
+  val locale_multi_theorem_i:
+    string -> (thm list * thm list -> theory -> theory) ->
+    (cterm list -> Proof.context -> Proof.context -> thm -> thm) ->
+    string ->
+    bstring * Attrib.src list -> Locale.element_i Locale.elem_expr list ->
+    ((bstring * Attrib.src list) * (term * (term list * term list)) list) list ->
+    bool -> theory -> ProofHistory.T
   val smart_multi_theorem: string -> xstring option
     -> bstring * Attrib.src list -> Locale.element Locale.elem_expr list
     -> ((bstring * Attrib.src list) * (string * (string list * string list)) list) list
@@ -386,8 +393,8 @@ fun multi_theorem k after_qed export a elems concl int thy =
 fun multi_theorem_i k after_qed export a =
   global_statement_i o Proof.multi_theorem_i k after_qed export NONE a;
 
-fun locale_multi_theorem k locale (name, atts) elems concl int thy =
-  global_statement (Proof.multi_theorem k I  ProofContext.export_standard
+fun locale_multi_theorem k after_qed export locale (name, atts) elems concl int thy =
+  global_statement (Proof.multi_theorem k after_qed export
       (SOME (locale,
         (map (Attrib.intern_src thy) atts,
          map (map (Attrib.intern_src thy) o snd o fst) concl)))
@@ -395,34 +402,34 @@ fun locale_multi_theorem k locale (name, atts) elems concl int thy =
       (map (Locale.intern_attrib_elem_expr thy) elems))
     (map (apfst (apsnd (K []))) concl) int thy;
 
-fun locale_multi_theorem_i k locale (name, atts) elems concl =
-  global_statement_i (Proof.multi_theorem_i k I ProofContext.export_standard
+fun locale_multi_theorem_i k after_qed export locale (name, atts) elems concl =
+  global_statement_i (Proof.multi_theorem_i k after_qed export
       (SOME (locale, (atts, map (snd o fst) concl)))
       (name, []) elems) (map (apfst (apsnd (K []))) concl);
 
 fun theorem k (a, t) =
-  multi_theorem k I ProofContext.export_standard a [] [(("", []), [t])];
+  multi_theorem k (K I) ProofContext.export_standard a [] [(("", []), [t])];
 
 fun theorem_i k (a, t) =
-  multi_theorem_i k I ProofContext.export_standard a [] [(("", []), [t])];
+  multi_theorem_i k (K I) ProofContext.export_standard a [] [(("", []), [t])];
 
 fun smart_multi_theorem k NONE a elems =
-      multi_theorem k I ProofContext.export_standard a elems
+      multi_theorem k (K I) ProofContext.export_standard a elems
   | smart_multi_theorem k (SOME locale) a elems =
-      locale_multi_theorem k locale a elems;
+      locale_multi_theorem k (K I) ProofContext.export_standard locale a elems;
 
 val assume      = local_statement Proof.assume I;
 val assume_i    = local_statement_i Proof.assume_i I;
 val presume     = local_statement Proof.presume I;
 val presume_i   = local_statement_i Proof.presume_i I;
-val have        = local_statement (Proof.have Seq.single true) I;
-val have_i      = local_statement_i (Proof.have_i Seq.single true) I;
-val hence       = local_statement (Proof.have Seq.single true) Proof.chain;
-val hence_i     = local_statement_i (Proof.have_i Seq.single true) Proof.chain;
-val show        = local_statement' (Proof.show check_goal Seq.single true) I;
-val show_i      = local_statement_i' (Proof.show_i check_goal Seq.single true) I;
-val thus        = local_statement' (Proof.show check_goal Seq.single true) Proof.chain;
-val thus_i      = local_statement_i' (Proof.show_i check_goal Seq.single true) Proof.chain;
+val have        = local_statement (Proof.have (K Seq.single) true) I;
+val have_i      = local_statement_i (Proof.have_i (K Seq.single) true) I;
+val hence       = local_statement (Proof.have (K Seq.single) true) Proof.chain;
+val hence_i     = local_statement_i (Proof.have_i (K Seq.single) true) Proof.chain;
+val show        = local_statement' (Proof.show check_goal (K Seq.single) true) I;
+val show_i      = local_statement_i' (Proof.show_i check_goal (K Seq.single) true) I;
+val thus        = local_statement' (Proof.show check_goal (K Seq.single) true) Proof.chain;
+val thus_i      = local_statement_i' (Proof.show_i check_goal (K Seq.single) true) Proof.chain;
 
 fun gen_def f ((name, srcs), def) = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) srcs) def state);
@@ -641,58 +648,41 @@ fun add_locale (do_pred, name, import, body) thy =
 
 fun register_globally (((prfx, atts), expr), insts) int thy =
   let
-    val (thy', propss, activate) =
+    val (propss, after_qed) =
       Locale.prep_global_registration (prfx, atts) expr insts thy;
-    fun witness id (thy, thm) = let
-        val thm' = Drule.freeze_all thm;
-      in
-        (Locale.add_global_witness id thm' thy, thm')
-      end;
   in
-    multi_theorem_i Drule.internalK activate ProofContext.export_plain
+    multi_theorem_i Drule.internalK (fst #> after_qed) ProofContext.export_plain
       ("", []) []
-      (map (fn ((n, ps), props) =>
-          ((NameSpace.base n, [witness (n, map Logic.varify ps)]),
-        map (fn prop => (prop, ([], []))) props)) propss) int thy'
-  end;
-
-fun register_in_locale (target, expr) int thy =
-  let
-    val target = Locale.intern thy target;
-    val (target_expr, thy', propss, activate) =
-        Locale.prep_registration_in_locale target expr thy;
-    fun witness id (thy, thm) = let
-        (* push outer quantifiers inside implications *)
-        val {prop, sign, ...} = rep_thm thm;
-        val frees = map (cterm_of sign o Free) (strip_all_vars prop);
-            (* are hopefully distinct *)
-        val prems = Logic.strip_imp_prems (strip_all_body prop);
-        val cprems = map (cterm_of sign) prems;
-        val thm' = thm |> forall_elim_list frees
-                       |> (fn th => implies_elim_list th (map Thm.assume cprems))
-                       |> forall_intr_list frees;
-      in (Locale.add_witness_in_locale target id thm' thy, thm') end;
-  in
-    multi_theorem_i Drule.internalK activate ProofContext.export_plain
-      ("",[]) [Locale.Expr target_expr]
-      (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]),
-        map (fn prop => (prop, ([], []))) props)) propss) int thy'
+      (map (fn ((n, _), props) => ((NameSpace.base n, []),
+        map (fn prop => (prop, ([], []))) props)) propss) int thy
   end;
 
 fun register_locally (((prfx, atts), expr), insts) =
   ProofHistory.apply (fn state =>
     let
       val ctxt = Proof.context_of state;
-      val (ctxt', propss, activate) =
+      val (propss, after_qed) =
         Locale.prep_local_registration (prfx, atts) expr insts ctxt;
-      fun witness id (ctxt, thm) = (Locale.add_local_witness id thm ctxt, thm);
     in
       state
-      |> Proof.map_context (fn _ => ctxt')
-      |> Proof.have_i (Seq.single o Proof.map_context activate) true
-        (map (fn (id as (n, _), props) => ((NameSpace.base n, [witness id]),
+      |> Proof.map_context (fn _ => ctxt)
+      |> Proof.have_i (fn result => Seq.single o Proof.map_context (after_qed result)) true
+        (map (fn ((n, _), props) => ((NameSpace.base n, []),
           map (fn prop => (prop, ([], []))) props)) propss)
     end);
+
+fun register_in_locale (target, expr) int thy =
+  let
+    val target = Locale.intern thy target;
+    val (propss, after_qed) =
+        Locale.prep_registration_in_locale target expr thy;
+  in
+    locale_multi_theorem_i Drule.internalK (fst #> after_qed)
+      ProofContext.export_plain
+      target ("",[]) []
+      (map (fn ((n, _), props) => ((NameSpace.base n, []),
+        map (fn prop => (prop, ([], []))) props)) propss) int thy
+  end;
 
 
 (* theory init and exit *)

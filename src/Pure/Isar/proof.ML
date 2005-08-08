@@ -85,13 +85,13 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val multi_theorem: string -> (theory -> theory) ->
+  val multi_theorem: string -> (thm list * thm list -> theory -> theory) ->
     (cterm list -> context -> context -> thm -> thm) ->
     (xstring * (Attrib.src list * Attrib.src list list)) option ->
     bstring * theory attribute list -> Locale.element Locale.elem_expr list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
-  val multi_theorem_i: string -> (theory -> theory) ->
+  val multi_theorem_i: string -> (thm list * thm list -> theory -> theory) ->
     (cterm list -> context -> context -> thm -> thm) ->
     (string * (Attrib.src list * Attrib.src list list)) option
     -> bstring * theory attribute list
@@ -100,16 +100,16 @@ sig
     -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
-  val show: (bool -> state -> state) -> (state -> state Seq.seq) -> bool
+  val show: (bool -> state -> state) -> (thm list -> state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> bool -> state -> state
-  val show_i: (bool -> state -> state) -> (state -> state Seq.seq) -> bool
+  val show_i: (bool -> state -> state) -> (thm list -> state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> bool -> state -> state
-  val have: (state -> state Seq.seq) -> bool
+  val have: (thm list -> state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
-  val have_i: (state -> state Seq.seq) -> bool
+  val have_i: (thm list -> state -> state Seq.seq) -> bool
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val at_bottom: state -> bool
@@ -178,7 +178,9 @@ and state =
     node *              (*current*)
     node list           (*parents wrt. block structure*)
 and after_qed =
-  AfterQed of (state -> state Seq.seq) * (theory -> theory);
+  AfterQed of
+   (thm list -> state -> state Seq.seq) *
+   (thm list * thm list -> theory -> theory);
 
 fun make_node (context, facts, mode, goal) =
   Node {context = context, facts = facts, mode = mode, goal = goal};
@@ -708,7 +710,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
     val thy' = theory_of state';
 
     val AfterQed (after_local, after_global) = after_qed;
-    val after_qed' = AfterQed (after_local o map_context gen_binds, after_global);
+    val after_qed' = AfterQed (fn results => after_local results o map_context gen_binds, after_global);
 
     val props = List.concat propss;
     val cprop = Thm.cterm_of thy' (Logic.mk_conjunction_list props);
@@ -753,14 +755,14 @@ fun global_goal prep kind after_global export raw_locale a elems concl thy =
         locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (the opt_name, x)),
         view = view,
         export = export})
-      (AfterQed (Seq.single, after_global))
+      (AfterQed (K Seq.single, after_global))
       true (map (fst o fst) concl) propp
   end;
 
 fun local_goal' prepp kind (check: bool -> state -> state) after_local pr args int state =
   state
   |> setup_goal open_block prepp (K I) (kind (map (snd o fst) args))
-    (AfterQed (after_local, I)) pr (map (fst o fst) args) (map snd args)
+    (AfterQed (after_local, K I)) pr (map (fst o fst) args) (map snd args)
   |> warn_extra_tfrees state
   |> check int;
 
@@ -839,7 +841,7 @@ fun finish_local (print_result, print_rule) state =
     |> (fn st => Seq.map (fn res =>
       note_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
     |> (Seq.flat o Seq.map opt_solve)
-    |> (Seq.flat o Seq.map after_local)
+    |> (Seq.flat o Seq.map (after_local results))
   end;
 
 fun local_qed finalize print state =
@@ -886,7 +888,7 @@ fun finish_global state =
       |> (fn (thy, res) => (thy, res)
           |>> (#1 o Locale.smart_note_thmss k locale_name
             [((name, atts), [(List.concat (map #2 res), [])])]));
-  in (after_global theory', ((k, name), results')) end;
+  in (after_global (locale_results, results) theory', ((k, name), results')) end;
 
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)

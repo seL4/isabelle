@@ -106,7 +106,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
       Logic.list_rename_params ([AutoBind.thesisN],
         Term.list_all_free ([bound_thesis_var], Logic.mk_implies (that_prop, bound_thesis)));
 
-    fun after_qed st = st
+    fun after_qed _ st = st
       |> Method.local_qed false NONE print
       |> Seq.map (fn st' => st'
         |> Proof.fix_i vars
@@ -114,7 +114,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i Seq.single true [(("", []), [(obtain_prop, ([], []))])]
+    |> Proof.have_i (K Seq.single) true [(("", []), [(obtain_prop, ([], []))])]
     |> Method.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
