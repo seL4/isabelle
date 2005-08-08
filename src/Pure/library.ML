@@ -1262,7 +1262,7 @@ fun ratlt(Rat(a,p,q),Rat(b,r,s)) =
     in if a then p < r else r < p end
 
 fun ratadd(Rat(a,p,q),Rat(b,r,s)) =
-  let val (p,q,den) = ratcommon(p,q,r,s)
+  let val (p,r,den) = ratcommon(p,q,r,s)
       val num = (if a then p else ~p) + (if b then r else ~r)
   in ratnorm(true,num,den) end;
 
