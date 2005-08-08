@@ -255,9 +255,7 @@ lemmas (in IL2) AC = comm assoc lcomm
 lemma "(x::i) # y # z # w = y # x # w # z"
 proof -
   interpret my: IL2 ["op #"] by (rule IL2.intro [of "op #", OF i_assoc i_comm])
-    txt {* Chained fact required to discharge assumptions of @{text IL2}
-      and instantiate parameters. *}
-  show ?thesis by (simp only: my.OP.AC)  (* or simply AC *)
+  show ?thesis by (simp only: my.OP.AC)  (* or my.AC *)
 qed
 
 subsection {* Nested locale with assumptions *}
@@ -348,7 +346,7 @@ proof
 qed simp
 
 interpretation Rlgrp < Rrgrp
-  proof - (* (rule Rrgrp_axioms.intro) *)
+  proof -
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -516,13 +514,11 @@ print_locale Rplgrp
 
 (* use of derived theorem *)
 
-(* doesn't work yet
 lemma (in Rplgrp)
   "y ** x = z ** x <-> y = z"
   apply (rule rcancel)
   print_interps Rprgrp thm lcancel rcancel
   done
-*)
 
 (* circular interpretation *)
 
@@ -547,12 +543,123 @@ interpretation Rprgrp < Rplgrp
 print_locale Rprgrp
 print_locale Rplgrp
 
+subsection {* Interaction of Interpretation in Theories and Locales:
+  in locale, then in theory *}
+
+consts
+  rone :: i
+  rinv :: "i => i"
+
+axioms
+  r_one : "rone # x = x"
+  r_inv : "rinv(x) # x = rone"
+
+interpretation Rbool: Rlgrp ["op #" "rone" "rinv"]
+proof -
+  fix x y z
+  {
+    show "(x # y) # z = x # (y # z)" by (rule i_assoc)
+  next
+    show "rone # x = x" by (rule r_one)
+  next
+    show "rinv(x) # x = rone" by (rule r_inv)
+  }
+qed
+
+(* derived elements *)
+
+print_interps Rrgrp
+print_interps Rlgrp
+
+lemma "y # x = z # x <-> y = z" by (rule Rbool.rcancel)
+
+(* adding lemma to derived element *)
+
+lemma (in Rrgrp) new_cancel:
+  "b ** a = c ** a <-> b = c"
+  by (rule rcancel)
+
+thm Rbool.new_cancel (* additional prems discharged!! *)
+
+lemma "b # a = c # a <-> b = c" by (rule Rbool.new_cancel)
+
+
+subsection {* Interaction of Interpretation in Theories and Locales:
+  in theory, then in locale *}
+
+(* Another copy of the group example *)
+
+locale Rqsemi = var prod (infixl "**" 65) +
+  assumes assoc: "(x ** y) ** z = x ** (y ** z)"
+
+locale Rqlgrp = Rqsemi + var one + var inv +
+  assumes lone: "one ** x = x"
+    and linv: "inv(x) ** x = one"
+
+lemma (in Rqlgrp) lcancel:
+  "x ** y = x ** z <-> y = z"
+proof
+  assume "x ** y = x ** z"
+  then have "inv(x) ** x ** y = inv(x) ** x ** z" by (simp add: assoc)
+  then show "y = z" by (simp add: lone linv)
+qed simp
+
+locale Rqrgrp = Rqsemi + var one + var inv +
+  assumes rone: "x ** one = x"
+    and rinv: "x ** inv(x) = one"
+
+lemma (in Rqrgrp) rcancel:
+  "y ** x = z ** x <-> y = z"
+proof
+  assume "y ** x = z ** x"
+  then have "y ** (x ** inv(x)) = z ** (x ** inv(x))"
+    by (simp add: assoc [symmetric])
+  then show "y = z" by (simp add: rone rinv)
+qed simp
+
+interpretation R2: Rqlgrp ["op #" "rone" "rinv"] 
+proof -
+  apply_end (rule Rqsemi.intro)
+  fix x y z
+  {
+    show "(x # y) # z = x # (y # z)" by (rule i_assoc)
+  next
+  apply_end (rule Rqlgrp_axioms.intro)
+    show "rone # x = x" by (rule r_one)
+  next
+    show "rinv(x) # x = rone" by (rule r_inv)
+  }
+qed
+
+print_interps Rqsemi
+print_interps Rqlgrp
+
+interpretation Rqlgrp < Rqrgrp
+  proof (rule Rqrgrp_axioms.intro)
+    {
+      fix x
+      have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
+      then show "x ** one = x" by (simp add: assoc lcancel)
+    }
+    note rone = this
+    {
+      fix x
+      have "inv(x) ** x ** inv(x) = inv(x) ** one"
+	by (simp add: linv lone rone)
+      then show "x ** inv(x) = one" by (simp add: assoc lcancel)
+    }
+  qed
+
+(*
+print_interps Rqrgrp
+thm R2.rcancel
+*)
+
 end
 
 (* Known problems:
-- var vs. fixes in locale to be interpreted (interpretation command)
-  (possibly caused by early registrations)
-- registrations too early -> proper after qed
-- predicate generation in group example, thms have wrong hyps
-- reprocess registrations in theory (after qed)
+- var vs. fixes in locale to be interpreted (interpretation in locale)
+  (implicit locale expressions renerated by multiple registrations)
+- reprocess registrations in theory (after qed)?
+- current finish_global adds unwanted lemmas to theory/locale
 *)

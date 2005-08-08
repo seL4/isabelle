@@ -87,19 +87,21 @@ sig
   (* Locale interpretation *)
   val prep_global_registration:
     string * Attrib.src list -> expr -> string option list -> theory ->
-    theory * ((string * term list) * term list) list * (theory -> theory)
-  val prep_registration_in_locale:
-    string -> expr -> theory ->
-    expr * theory * ((string * string list) * term list) list * (theory -> theory)
+    ((string * term list) * term list) list * (thm list -> theory -> theory)
   val prep_local_registration:
     string * Attrib.src list -> expr -> string option list -> context ->
-    context * ((string * term list) * term list) list * (context -> context)
+    ((string * term list) * term list) list * (thm list -> context -> context)
+  val prep_registration_in_locale:
+    string -> expr -> theory ->
+    ((string * string list) * term list) list * (thm list -> theory -> theory)
+(*
   val add_global_witness:
     string * term list -> thm -> theory -> theory
   val add_witness_in_locale:
     string -> string * string list -> thm -> theory -> theory
   val add_local_witness:
     string * term list -> thm -> context -> context
+*)
 end;
 
 structure Locale: LOCALE =
@@ -772,9 +774,11 @@ fun merge_syntax ctxt ids ss = Symtab.merge (op =) ss
 
 datatype 'a mode = Assumed of 'a | Derived of 'a;
 
+fun map_mode2 f _ (Assumed x) = Assumed (f x)
+  | map_mode2 _ g (Derived x) = Derived (g x);
+
 fun map_mode f (Assumed x) = Assumed (f x)
   | map_mode f (Derived x) = Derived (f x);
-
 
 (* flatten expressions *)
 
@@ -851,8 +855,9 @@ fun unify_elemss' _ _ [] [] = []
   | unify_elemss' ctxt fixed_parms elemss c_parms =
       let
         val envs = unify_parms ctxt fixed_parms (map (#2 o #1 o #1) elemss @ map single c_parms);
-        fun inst ((((name, ps), mode), elems), env) =
-          (((name, map (apsnd (Option.map (inst_type env))) ps),  mode),
+        fun inst ((((name, ps), (ps', mode)), elems), env) =
+          (((name, map (apsnd (Option.map (inst_type env))) ps),
+              (ps', mode)),
            map (inst_elem ctxt env) elems);
       in map inst (elemss ~~ (Library.take (length elemss, envs))) end;
 
@@ -1016,7 +1021,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     val elemss = unify_elemss' ctxt [] raw_elemss
          (map (apsnd type_syntax) (Symtab.dest syntax));
     (* replace params in ids by params from axioms,
-       adjust types in axioms *)
+       adjust types in mode *)
     val all_params' = params_of' elemss;
     val all_params = param_types all_params';
     val elemss' = map (fn (((name, _), (ps, mode)), elems) =>
@@ -1083,8 +1088,9 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       in ((ctxt', mode), if is_ext then res else []) end;
 
 fun activate_elems (((name, ps), mode), elems) ctxt =
-  let val ((ctxt', _), res) =
-    foldl_map (activate_elem (name = "")) ((ProofContext.qualified_names ctxt, mode), elems)
+  let
+    val ((ctxt', _), res) =
+        foldl_map (activate_elem (name = "")) ((ProofContext.qualified_names ctxt, mode), elems)
       handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
     val ctxt'' = if name = "" then ctxt'
           else let
@@ -1551,9 +1557,6 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     (* replace extended ids (for axioms) by ids *)
     val all_elemss' = map (fn (((_, ps), _), (((n, ps'), mode), elems)) =>
         (((n, map (fn p => (p, assoc (ps', p) |> valOf)) ps), mode), elems))
-(*
-        (((n, List.filter (fn (p, _) => p mem ps) ps'), mode), elems))
-*)
       (ids ~~ all_elemss);
 
     (* CB: all_elemss and parms contain the correct parameter types *)
@@ -1719,7 +1722,8 @@ fun note_thmss_registrations kind target args thy =
           the_locale thy target |> #params |> fst |> map fst |> split_list;
     val parmvTs = map Type.varifyT parmTs;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
-      (([], Symtab.empty), Expr (Locale target)) |> fst |> fst |> map fst;
+      (([], Symtab.empty), Expr (Locale target)) |> fst |> fst
+      |> List.mapPartial (fn (id, (_, Assumed _)) => SOME id | _ => NONE)
 
     val regs = get_global_registrations thy target;
 
@@ -1739,7 +1743,7 @@ fun note_thmss_registrations kind target args thy =
         val ids' = map (apsnd vinst_names) ids;
         val prems = List.concat (map (snd o valOf o get_global_registration thy) ids');
         val args' = map (fn ((n, atts), [(ths, [])]) =>
-            ((if prfx = "" orelse n = "" then "" else NameSpace.pack [prfx, n],  (* FIXME *)
+            ((NameSpace.qualified prfx n,
               map (Attrib.global_attribute_i thy) (atts @ atts2)),
              [(map (Drule.standard o Drule.satisfy_hyps prems o inst_tab_thm thy (inst, tinst)) ths, [])]))
           args;
@@ -2018,59 +2022,75 @@ fun extract_asms_elemss elemss =
 
 (* activate instantiated facts in theory or context *)
 
-fun activate_facts_elem _ _ _ _ (thy_ctxt, Fixes _) = thy_ctxt
-  | activate_facts_elem _ _ _ _ (thy_ctxt, Constrains _) = thy_ctxt
-  | activate_facts_elem _ _ _ _ (thy_ctxt, Assumes _) = thy_ctxt
-  | activate_facts_elem _ _ _ _ (thy_ctxt, Defines _) = thy_ctxt
-  | activate_facts_elem note_thmss attrib
-        disch (prfx, atts) (thy_ctxt, Notes facts) =
-      let
-        val reg_atts = map (attrib thy_ctxt) atts;
-        (* discharge hyps in attributes *)
-        val facts = map_attrib_facts (attrib thy_ctxt o Args.map_values I I I disch) facts;
-        val facts' = map (apfst (apsnd (fn a => a @ reg_atts))) facts;
-        (* discharge hyps *)
-        val facts'' = map (apsnd (map (apfst (map disch)))) facts';
-        (* prefix names *)
-        val facts''' = map (apfst (apfst (NameSpace.qualified prfx))) facts'';
-      in
-        fst (note_thmss prfx facts''' thy_ctxt)
-      end;
+fun gen_activate_facts_elemss get_reg note_thmss attrib std put_reg add_wit
+        attn all_elemss new_elemss propss result thy_ctxt =
+    let
+      fun activate_elem disch (prfx, atts) (Notes facts) thy_ctxt =
+          let
+            val facts' = facts
+              (* discharge hyps in attributes *)
+              |> map_attrib_facts (attrib thy_ctxt o Args.map_values I I I disch)
+              (* insert interpretation attributes *)
+              |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
+              (* discharge hyps *)
+              |> map (apsnd (map (apfst (map disch))))
+              (* prefix names *)
+              |> map (apfst (apfst (NameSpace.qualified prfx)))
+          in fst (note_thmss prfx facts' thy_ctxt) end
+        | activate_elem _ _ _ thy_ctxt = thy_ctxt;
 
-fun activate_facts_elems get_reg note_thmss attrib
-        disch (thy_ctxt, ((id, _), elems)) =
-      let
-        val ((prfx, atts2), _) = valOf (get_reg thy_ctxt id)
-          handle Option => error ("(internal) unknown registration of " ^
-            quote (fst id) ^ " while activating facts.");
-      in
-        Library.foldl (activate_facts_elem note_thmss attrib
-          disch (prfx, atts2)) (thy_ctxt, elems)
-      end;
+      fun activate_elems disch ((id, mode), elems) thy_ctxt =
+          let
+            val ((prfx, atts2), _) = valOf (get_reg thy_ctxt id)
+                handle Option => sys_error ("Unknown registration of " ^
+                  quote (fst id) ^ " while activating facts.");
+          in
+            fold (activate_elem disch (prfx, atts2)) elems thy_ctxt
+          end;
 
-fun gen_activate_facts_elemss get_reg note_thmss attrib standard
-        all_elemss new_elemss thy_ctxt =
-      let
-        val prems = List.concat (List.mapPartial (fn ((id, _), _) =>
-              Option.map snd (get_reg thy_ctxt id)
-                handle Option => error ("(internal) unknown registration of " ^
-                  quote (fst id) ^ " while activating facts.")) all_elemss);
-      in Library.foldl (activate_facts_elems get_reg note_thmss attrib
-        (standard o Drule.fconv_rule (Thm.beta_conversion true) o
-          Drule.satisfy_hyps prems)) (thy_ctxt, new_elemss) end;
+      val thmss = unflat (map snd propss) result;
+
+      val thy_ctxt' = thy_ctxt
+        (* add registrations *)
+        |> fold (fn ((id, _), _) => put_reg id attn) new_elemss
+        (* add witnesses of Assumed elements *)
+        |> fold (fn (id, thms) => fold (add_wit id) thms)
+           (map fst propss ~~ thmss);
+
+      val prems = List.concat (List.mapPartial
+            (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
+              | ((_, Derived _), _) => NONE) all_elemss);
+      val disch = Drule.satisfy_hyps prems;
+      val disch' = std o Drule.fconv_rule (Thm.beta_conversion true) o disch;
+
+      val thy_ctxt'' = thy_ctxt'
+        (* add witnesses of Derived elements *)
+        |> fold (fn (id, thms) => fold (add_wit id o disch) thms)
+           (List.mapPartial (fn ((_, Assumed _), _) => NONE
+              | ((id, Derived thms), _) => SOME (id, thms)) all_elemss)
+    in
+      thy_ctxt''
+        (* add facts to theory or context *)
+        |> fold (activate_elems disch') new_elemss
+    end;
 
 val global_activate_facts_elemss = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
       (global_note_accesses_i (Drule.kind ""))
-      Attrib.global_attribute_i Drule.standard;
+      Attrib.global_attribute_i Drule.standard
+      (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
+      (fn (n, ps) => fn thm =>
+         add_global_witness (n, map Logic.varify ps) (Drule.freeze_all thm));
 
 val local_activate_facts_elemss = gen_activate_facts_elemss
       get_local_registration
       local_note_accesses_i
-      Attrib.context_attribute_i I;
+      Attrib.context_attribute_i I
+      put_local_registration
+      add_local_witness;
 
-fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
+fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     attn expr insts thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
@@ -2081,7 +2101,6 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
           (([], Symtab.empty), Expr expr);
     val ((parms, all_elemss, _), (_, (_, defs, _))) =
           read_elemss false ctxt' [] raw_elemss [];
-
 
     (** compute instantiation **)
 
@@ -2139,12 +2158,11 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     (* restore "small" ids *)
     val ids' = map (fn ((n, ps), (_, mode)) =>
           ((n, map (fn p => Free (p, valOf (assoc (parms, p)))) ps), mode)) ids;
-
     (* instantiate ids and elements *)
     val inst_elemss = map
-          (fn ((id, mode), (_, elems)) =>
+          (fn ((id, _), ((_, mode), elems)) =>
              inst_tab_elems thy (inst, tinst) (id, map (fn Int e => e) elems)
-               |> apfst (fn id => (id, mode))) 
+               |> apfst (fn id => (id, map_mode (map (inst_tab_thm thy (inst, tinst))) mode))) 
           (ids' ~~ all_elemss);
 
     (* remove fragments already registered with theory or context *)
@@ -2157,16 +2175,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg put_reg activate
     val bind_attrib = Attrib.crude_closure ctxt o Args.assignable;
     val attn' = apsnd (map (bind_attrib o Attrib.intern_src thy)) attn;
 
-    (** add registrations to theory or context,
-        without theorems, these are added after the proof **)
-    (* TODO: this is potentially problematic, since a proof of the
-       interpretation might contain a reference to the incomplete
-       registration. *)
-
-    val thy_ctxt' = Library.foldl (fn (thy_ctxt, ((id, _), _)) =>
-          put_reg id attn' thy_ctxt) (thy_ctxt, new_inst_elemss);
-
-  in (thy_ctxt', propss, activate inst_elemss new_inst_elemss) end;
+  in (propss, activate attn' inst_elemss new_inst_elemss propss) end;
 
 in
 
@@ -2176,14 +2185,12 @@ val prep_global_registration = gen_prep_registration
        Sign.read_def_terms (thy, K NONE, sorts) used true)
      (fn thy => fn (name, ps) =>
        test_global_registration thy (name, map Logic.varify ps))
-     (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
      global_activate_facts_elemss;
 
 val prep_local_registration = gen_prep_registration
      I true
      (fn ctxt => ProofContext.read_termTs ctxt (K false) (K NONE))
      smart_test_registration
-     put_local_registration
      local_activate_facts_elemss;
 
 fun prep_registration_in_locale target expr thy =
@@ -2209,10 +2216,17 @@ fun prep_registration_in_locale target expr thy =
     (* extract assumptions and defs *)
     val propss = extract_asms_elemss (ids' ~~ elemss');
 
-    (** add registrations to locale in theory **)
-    val thy' = fold (put_registration_in_locale target) (map fst ids') thy;
+    (** activation function: add registrations **)
+    fun activate locale_results thy = let
+        val thmss = unflat (map snd propss) locale_results;
+        fun activate_id (id, thms) thy =
+            thy |> put_registration_in_locale target id
+                |> fold (add_witness_in_locale target id) thms;
+      in
+        fold activate_id (map fst propss ~~ thmss) thy
+      end;
 
-  in (Locale target, thy', propss, I) end;
+  in (propss, activate) end;
 
 end;  (* local *)
 
