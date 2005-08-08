@@ -368,18 +368,21 @@ text {*
   Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
-    @{thm hd_Cons_tl}
+    @{thm [show_types] hd_Cons_tl}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    @{thm_style concl hd_Cons_tl}
+    @{thm_style [show_types] concl hd_Cons_tl}
   \end{center}
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm_style concl hd_Cons_tl}!\\
+    \verb!@!\verb!{thm_style [show_types] concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
+
+  Be aware that any options must be placed \emph{before}
+  the name of the style, as in this example.
 
   Further use cases can be found in \S\ref{sec:yourself}.
 
