@@ -79,4 +79,19 @@ lemmas [recdef_wf] =
   wf_same_fst
   wf_empty
 
+(* The following should really go into Datatype or Finite_Set, but
+each one lacks the other theory as a parent . . . *)
+
+lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
+by (rule set_ext, case_tac x, auto)
+
+instance option :: (finite) finite
+proof
+  have "finite (UNIV :: 'a set)" by (rule finite)
+  hence "finite (insert None (Some ` (UNIV :: 'a set)))" by simp
+  also have "insert None (Some ` (UNIV :: 'a set)) = UNIV"
+    by (rule insert_None_conv_UNIV)
+  finally show "finite (UNIV :: 'a option set)" .
+qed
+
 end
