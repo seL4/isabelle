@@ -45,6 +45,7 @@ sig
   val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
+  val dest_def: Pretty.pp -> term -> (string * typ) * term
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_defs: bool -> (bstring * string) list -> theory -> theory
