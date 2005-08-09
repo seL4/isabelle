@@ -98,6 +98,7 @@ sig
   val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
   val is_logtype: theory -> string -> bool
   val const_constraint: theory -> string -> typ option
+  val the_const_constraint: theory -> string -> typ
   val const_type: theory -> string -> typ option
   val the_const_type: theory -> string -> typ
   val declared_tyname: theory -> string -> bool
@@ -275,6 +276,10 @@ fun const_constraint thy c =
       NONE => Option.map #1 (Symtab.lookup (consts, c))
     | some => some)
   end;
+
+fun the_const_constraint thy c =
+  (case const_constraint thy c of SOME T => T
+  | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
 fun const_type thy c = Option.map #1 (Symtab.lookup (#2 (#1 (#consts (rep_sg thy))), c));
 
