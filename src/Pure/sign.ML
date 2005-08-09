@@ -86,6 +86,8 @@ sig
   val declare_name: theory -> string -> NameSpace.T -> NameSpace.T
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
+  val classes_of: theory -> Sorts.classes
+  val classes_arities_of: theory -> Sorts.classes * Sorts.arities
   val classes: theory -> class list
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
@@ -255,6 +257,11 @@ val syn_of = #syn o rep_sg;
 (* type signature *)
 
 val tsig_of = #tsig o rep_sg;
+val classes_of = snd o #classes o Type.rep_tsig o tsig_of
+fun classes_arities_of thy =
+  let
+    val tsig = (Type.rep_tsig o tsig_of) thy
+  in (snd (#classes tsig), #arities tsig) end
 val classes = Type.classes o tsig_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
