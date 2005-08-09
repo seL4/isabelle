@@ -19,10 +19,14 @@ sig
   val add_inst_subclass_i: class * class -> tactic -> theory -> theory
   val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
-  val instance_subclass_proof: xstring * xstring -> bool -> theory -> ProofHistory.T
-  val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof: xstring * string list * string -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof_i: string * sort list * sort -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof: xstring * xstring -> (theory -> theory)
+    -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof_i: class * class -> (theory -> theory)
+    -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof: xstring * string list * string -> (theory -> theory)
+    -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof_i: string * sort list * sort -> (theory -> theory)
+    -> bool -> theory -> ProofHistory.T
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
 
@@ -317,9 +321,9 @@ end;
 
 local
 
-fun inst_proof mk_prop add_thms inst int theory =
+fun inst_proof mk_prop add_thms inst after_qed int theory =
   theory
-  |> IsarThy.multi_theorem_i Drule.internalK (K I) ProofContext.export_standard
+  |> IsarThy.multi_theorem_i Drule.internalK (K after_qed) ProofContext.export_standard
     ("", [fn (thy, th) => (add_thms [th] thy, th)]) []
     (map (fn t => (("", []), [(t, ([], []))])) (mk_prop theory inst)) int;
 
@@ -368,8 +372,8 @@ val axclassP =
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname) >> instance_subclass_proof ||
-      (P.xname -- (P.$$$ "::" |-- P.arity) >> P.triple2) >> instance_arity_proof)
+    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname) >> (fn i => instance_subclass_proof i I) ||
+      (P.xname -- (P.$$$ "::" |-- P.arity) >> P.triple2) >> (fn i => instance_arity_proof i I))
       >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];
