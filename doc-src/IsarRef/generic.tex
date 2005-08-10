@@ -238,7 +238,8 @@ Locale expressions (more precisely, \emph{context expressions}) may be
 instantiated, and the instantiated facts added to the current context.
 This requires a proof of the instantiated specification and is called
 \emph{locale interpretation}.  Interpretation is possible in theories
-($\isarcmd{interpretation}$) and proof contexts
+and locales
+(command $\isarcmd{interpretation}$) and also in proof contexts
 ($\isarcmd{interpret}$).
 
 \indexisarcmd{interpretation}\indexisarcmd{interpret}
@@ -255,7 +256,7 @@ This requires a proof of the instantiated specification and is called
 \railterm{printinterps}
 
 \begin{rail}
-  'interpretation' interp
+  'interpretation' (interp | name ('<' | subseteq) contextexp)
   ;
   'interpret' interp
   ;
@@ -265,21 +266,24 @@ This requires a proof of the instantiated specification and is called
   ;
 \end{rail}
 
+
 \begin{descr}
 
 \item [$\isarcmd{interpretation}~expr~insts$]
-  interprets $expr$ in the theory.  The instantiation is positional.
+
+  The first form of $\isarcmd{interpretation}$ interprets $expr$
+  in the theory.  The instantiation is given as a list of
+  terms $insts$ and is positional.
   All parameters must receive an instantiation term --- with the
   exception of defined parameters.  These are, if omitted, derived
   from the defining equation and other instantiations.  Use ``\_'' to
   omit an instantiation term.  Free variables are automatically
   generalized.
 
-  The context expression may be preceded by a name and/or attributes.
-  These take effect in the post-processing of facts.  The name is used
-  to prefix fact names, for example to avoid accidental hiding of
-  other facts.  Attributes are applied after attributes of the
-  interpreted facts.
+  The command generates proof obligations for the instantiated
+  specifications (assumes and defines elements).  Once these are
+  discharged by the user, instantiated facts are added to the theory in
+  a post-processing phase.
 
   The command is aware of interpretations already active in the
   theory.  No proof obligations are generated for those, neither is
@@ -289,13 +293,46 @@ This requires a proof of the instantiated specification and is called
   active.  The command will only generate proof obligations and add
   facts for new parts.
 
+  The context expression may be preceded by a name and/or attributes.
+  These take effect in the post-processing of facts.  The name is used
+  to prefix fact names, for example to avoid accidental hiding of
+  other facts.  Attributes are applied after attributes of the
+  interpreted facts.
+
   Adding facts to locales has the
   effect of adding interpreted facts to the theory for all active
-  interpretations also.
-  
+  interpretations also.  That is, interpretations dynamically
+  participate in any facts added to locales.
+
+\item [$\isarcmd{interpretation}~name~\subseteq~expr$]
+
+  This form of the command interprets $expr$ in the locale $name$.  It
+  requires a proof that the specification of $name$ implies the
+  specification of $expr$.  As in the localized version of the theorem
+  command, the proof is in the context of $name$.  After the proof
+  obligation has been dischared, the facts of $expr$
+  become part of locale $name$ as \emph{derived} context elements and
+  are available when the context $name$ is subsequently entered.
+  Note that, like import, this is dynamic: facts added to a locale
+  part of $expr$ after the interpretation become also available in
+  $name$.  Like facts
+  of renamed context elements, facts obtained by interpretation may be
+  accessed by prefixing with the parameter renaming (where the parameters
+  are separated by `\_').
+
+  Unlike interpretation in theories, instantiation is confined to the
+  renaming of parameters, which may be specified as part of the context
+  expression $expr$.  Using defined parameters in $name$ one may
+  achieve an effect similar to instantiation, though.
+
+  Only specification fragments of $expr$ that are not already part of
+  $name$ (be it imported, derived or a derived fragment of the import)
+  are considered by interpretation.  This enables circular
+  interpretations.
+
 \item [$\isarcmd{interpret}~expr~insts$]
   interprets $expr$ in the proof context and is otherwise similar to
-  the previous command.  Free variables in instantiations are not
+  interpretation in theories.  Free variables in instantiations are not
   generalized, however.
 
 \item [$\isarcmd{print_interps}~loc$]
@@ -311,7 +348,10 @@ This requires a proof of the instantiated specification and is called
 \end{warn}
 
 \begin{warn}
-  An interpretation may subsume previous interpretations.  A warning
+  An interpretation in a theory may subsume previous interpretations.
+  This happens if the same specification fragment is interpreted twice
+  and the instantiation of the second interpretation is more general
+  than the interpretation of the first.  A warning
   is issued, since it is likely that these could have been generalized
   in the first place.  The locale package does not attempt to remove
   subsumed interpretations.  This situation is normally harmless, but
