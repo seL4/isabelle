@@ -55,9 +55,7 @@ signature ISA_FTERM =
        EncodeIsaFTerm.term * UpTerm -> UpTerm
     val enc_appr :
        EncodeIsaFTerm.term * UpTerm -> UpTerm
-    val fakefree_badbounds : 
-       (string * Term.typ) list -> Term.term ->
-       (string * Term.typ) list * (string * Term.typ) list * Term.term
+
     val fcterm_of_term : EncodeIsaFTerm.term -> FcTerm
     val find_fcterm_matches :
        ((FcTerm -> 'a) -> FcTerm -> 'b) ->
@@ -108,9 +106,6 @@ signature ISA_FTERM =
     exception isa_focus_term_exp of string
     val leaf_seq_of_fcterm :
        FcTerm -> FcTerm Seq.seq
-    val mk_foo_match :
-       (Term.term -> Term.term) ->
-       ('a * Term.typ) list -> Term.term -> Term.term
     val mk_term_of_upterm :
        EncodeIsaFTerm.term * UpTerm -> EncodeIsaFTerm.term
     val mk_termf_of_upterm :
@@ -121,11 +116,7 @@ signature ISA_FTERM =
     val next_leaf_of_fcterm_seq :
        FcTerm -> FcTerm Seq.seq
     exception out_of_term_exception of string
-    val prepmatch :
-       FcTerm ->
-       Term.term *
-       ((string * Term.typ) list * (string * Term.typ) list * Term.term)
-    val pretty_fcterm : FcTerm -> Pretty.T
+
     val pure_mk_termf_of_upterm :
        (EncodeIsaFTerm.term, Type) UpTermLib.T ->
        (string * Type) list *
@@ -157,7 +148,23 @@ signature ISA_FTERM =
     val upsize_of_fcterm : FcTerm -> int
     val upterm_of : FcTerm -> UpTerm
     val valid_match_start : FcTerm -> bool
-  end
+
+     (* pre-matching/pre-unification *)
+     val fakefree_badbounds : 
+       (string * Term.typ) list -> Term.term ->
+       (string * Term.typ) list * (string * Term.typ) list * Term.term
+     val mk_foo_match :
+       (Term.term -> Term.term) ->
+       ('a * Term.typ) list -> Term.term -> Term.term
+     val prepmatch :
+       FcTerm ->
+       Term.term *
+       ((string * Term.typ) list * (string * Term.typ) list * Term.term)
+
+
+    val pretty : Theory.theory -> FcTerm -> Pretty.T
+
+  end;
 
 
 
@@ -356,6 +363,7 @@ fun focus_to_term_goal_prem (premid,gaolid) t =
     focus_to_subgoal premid (focus_to_subgoal_of_term gaolid t);
 
 
+
 (* FIXME: make a sturcture for holding free variable names and making
 them distinct --- ? maybe part of the new prooftree datatype ?
 Alos: use this to fix below... *)
@@ -423,6 +431,25 @@ fun prepmatch ft =
     in
       (t', (FakeTs', Ts', absterm))
     end;
+
+
+fun pretty thy ft = 
+    let val (t', (_,_,absterm)) = prepmatch ft in 
+      Pretty.chunks
+        [ Pretty.block [Pretty.str "(Abs:",
+                        Pretty.quote (Display.pretty_cterm (Thm.cterm_of thy absterm)),
+                        Pretty.str ","],
+          Pretty.block [Pretty.str " Foc:",
+                        Pretty.quote (Display.pretty_cterm (Thm.cterm_of thy t')),
+                        Pretty.str ")" ] ]
+    end;
+
+(* 
+    Pretty.str "no yet implemented";
+      Display.pretty_cterm (Thm.cterm_of t)
+      Term.Free ("FOCUS", Term.type_of t)
+*)
+
 
 (* matching and unification for a focus term's focus *)
 
