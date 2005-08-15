@@ -122,7 +122,6 @@ sig
 
      (* analysis *)
      val upsize_of_fcterm : FcTerm -> int
-     val pretty_fcterm : FcTerm -> Pretty.T
 end;
 
 
@@ -293,7 +292,7 @@ local open MinTermS open UpTermLib in
   fun focus_up_abs_or_appr (focus(t, appl(l,m))) = NONE
     | focus_up_abs_or_appr (focus(t, appr(r,m))) = SOME (focus(t$r, m))
     | focus_up_abs_or_appr (focus(t, abs(s,ty,m))) = 
-      SOME (focus_up (focus(Abs(s,ty,t), m)))
+      SOME (focus(Abs(s,ty,t), m))
     | focus_up_abs_or_appr (focus(t, root)) = NONE;
 
 
@@ -338,10 +337,7 @@ local open MinTermS open UpTermLib in
       Seq.cons (botleft, (Seq.make (next_leaf_of_fcterm_seq_aux botleft)) )
     end;
 
-
   fun upsize_of_fcterm (focus(t, ut)) = upsize_of_upterm ut;
-
-  fun pretty_fcterm ft = Pretty.str "no yet implemented";
 
 end; (* local *)
 
