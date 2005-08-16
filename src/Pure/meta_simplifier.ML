@@ -1112,7 +1112,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
 fun rewrite_cterm mode prover ss ct =
   (inc simp_depth;
-   if !simp_depth mod 10 = 0
+   if !simp_depth mod 20 = 0
    then warning ("Simplification depth " ^ string_of_int (!simp_depth))
    else ();
    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
