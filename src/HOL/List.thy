@@ -26,11 +26,8 @@ consts
   last:: "'a list => 'a"
   butlast :: "'a list => 'a list"
   set :: "'a list => 'a set"
-  list_all:: "('a => bool) => ('a list => bool)"
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
-  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
   map :: "('a=>'b) => ('a list => 'b list)"
-  mem :: "'a => 'a list => bool"    (infixl 55)
   nth :: "'a list => nat => 'a"    (infixl "!" 100)
   list_update :: "'a list => nat => 'a => 'a list"
   take:: "nat => 'a list => 'a list"
@@ -48,6 +45,14 @@ consts
   rotate1 :: "'a list \<Rightarrow> 'a list"
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
   sublist :: "'a list => nat set => 'a list"
+(* For efficiency *)
+  mem :: "'a => 'a list => bool"    (infixl 55)
+  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+  list_all:: "('a => bool) => ('a list => bool)"
+  itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+  map_filter :: "('a => 'b) => ('a => bool) => 'a list => 'b list"
 
 
 nonterminals lupdbinds lupdbind
@@ -119,20 +124,8 @@ primrec
   "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
 
 primrec
-  "x mem [] = False"
-  "x mem (y#ys) = (if y=x then True else x mem ys)"
-
-primrec
   "set [] = {}"
   "set (x#xs) = insert x (set xs)"
-
-primrec
-  list_all_Nil:"list_all P [] = True"
-  list_all_Cons: "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
-
-primrec
-"list_ex P [] = False"
-"list_ex P (x#xs) = (P x \<or> list_ex P xs)"
 
 primrec
   "map f [] = []"
@@ -227,6 +220,38 @@ list_all2_def:
 
 sublist_def:
  "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..<size xs]))"
+
+primrec
+  "x mem [] = False"
+  "x mem (y#ys) = (if y=x then True else x mem ys)"
+
+primrec
+ "list_inter [] bs = []"
+ "list_inter (a#as) bs =
+  (if a \<in> set bs then a#(list_inter as bs) else list_inter as bs)"
+
+primrec
+  "list_all P [] = True"
+  "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
+
+primrec
+"list_ex P [] = False"
+"list_ex P (x#xs) = (P x \<or> list_ex P xs)"
+
+primrec
+ "filtermap f [] = []"
+ "filtermap f (x#xs) =
+    (case f x of None \<Rightarrow> filtermap f xs
+     | Some y \<Rightarrow> y # (filtermap f xs))"
+
+primrec
+  "map_filter f P [] = []"
+  "map_filter f P (x#xs) = (if P x then f x # map_filter f P xs else 
+               map_filter f P xs)"
+
+primrec
+"itrev [] ys = ys"
+"itrev (x#xs) ys = itrev xs (x#ys)"
 
 
 lemma not_Cons_self [simp]: "xs \<noteq> x # xs"
@@ -665,34 +690,6 @@ done
 
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
-
-
-subsubsection {* @{text mem}, @{text list_all} and @{text list_ex} *}
-
-text{* Only use @{text mem} for generating executable code.  Otherwise
-use @{prop"x : set xs"} instead --- it is much easier to reason about.
-The same is true for @{text list_all} and @{text list_ex}: write
-@{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
-quantifiers are aleady known to the automatic provers. For the purpose
-of generating executable code use the theorems @{text set_mem_eq},
-@{text list_all_conv} and @{text list_ex_iff} to get rid off or
-introduce the combinators. *}
-
-lemma set_mem_eq: "(x mem xs) = (x : set xs)"
-by (induct xs) auto
-
-lemma list_all_conv: "list_all P xs = (\<forall>x \<in> set xs. P x)"
-by (induct xs) auto
-
-lemma list_all_append [simp]:
-"list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
-by (induct xs) auto
-
-lemma list_all_rev [simp]: "list_all P (rev xs) = list_all P xs"
-by (simp add: list_all_conv)
-
-lemma list_ex_iff: "list_ex P xs = (\<exists>x \<in> set xs. P x)"
-by (induct xs) simp_all
 
 
 subsubsection {* @{text filter} *}
@@ -1930,6 +1927,101 @@ by (rule in_lists_conv_set [THEN iffD2])
 
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
+
+subsubsection {* For efficiency *}
+
+text{* Only use @{text mem} for generating executable code.  Otherwise
+use @{prop"x : set xs"} instead --- it is much easier to reason about.
+The same is true for @{const list_all} and @{const list_ex}: write
+@{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
+quantifiers are aleady known to the automatic provers. For the purpose
+of generating executable code use the theorems @{text mem_iff},
+@{text list_all_iff} and @{text list_ex_iff} to get rid off or
+introduce the combinators.
+
+The functions @{const itrev}, @{const filtermap} and @{const
+map_filter} are just there to generate efficient code. Do not use them
+for modelling and proving. *}
+
+lemma mem_iff: "(x mem xs) = (x : set xs)"
+by (induct xs) auto
+
+lemma list_inter_conv: "set(list_inter xs ys) = set xs \<inter> set ys"
+by (induct xs) auto
+
+lemma list_all_iff: "list_all P xs = (\<forall>x \<in> set xs. P x)"
+by (induct xs) auto
+
+lemma list_all_append [simp]:
+"list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
+by (induct xs) auto
+
+lemma list_all_rev [simp]: "list_all P (rev xs) = list_all P xs"
+by (simp add: list_all_iff)
+
+lemma list_ex_iff: "list_ex P xs = (\<exists>x \<in> set xs. P x)"
+by (induct xs) simp_all
+
+lemma itrev[simp]: "ALL ys. itrev xs ys = rev xs @ ys"
+by (induct xs) simp_all
+
+lemma filtermap_conv:
+ "filtermap f xs = map (%x. the(f x)) (filter (%x. f x \<noteq> None) xs)"
+by (induct xs) auto
+
+lemma map_filter_conv[simp]: "map_filter f P xs = map f (filter P xs)"
+by (induct xs) auto
+
+
+subsubsection {* Code generation *}
+
+text{* Defaults for generating efficient code for some standard functions. *}
+
+lemma [code]: "rev xs = itrev xs []"
+by simp
+
+declare upt_rec[code]
+
+lemma [code]: "distinct (x#xs) = (~(x mem xs) \<and> distinct xs)"
+by (simp add:mem_iff)
+
+lemma [code]:
+ "remdups (x#xs) = (if x mem xs then remdups xs else x # remdups xs)"
+by (simp add:mem_iff)
+
+lemma [code]:
+ "list_all2 P xs ys =
+  (length xs = length ys \<and> (list_all (%(x, y). P x y) (zip xs ys)))"
+by (simp add:list_all2_def list_all_iff)
+
+lemma [code]:  "list_inter (a#as) bs =
+  (if a mem bs then a#(list_inter as bs) else list_inter as bs)"
+by(simp add:mem_iff)
+
+(* If you want to replace bounded quantifiers over lists by list_ex/all:
+
+declare list_ex_iff[symmetric, THEN eq_reflection, code unfold]
+declare list_all_iff[symmetric, THEN eq_reflection, code unfold]
+*)
+
+
+subsubsection{* Inductive definition for membership *}
+
+consts ListMem :: "('a \<times> 'a list)set"
+inductive ListMem
+intros
+ elem:  "(x,x#xs) \<in> ListMem"
+ insert:  "(x,xs) \<in> ListMem \<Longrightarrow> (x,y#xs) \<in> ListMem"
+
+lemma ListMem_iff: "((x,xs) \<in> ListMem) = (x \<in> set xs)"
+apply (rule iffI)
+ apply (induct set: ListMem)
+  apply auto
+apply (induct xs)
+ apply (auto intro: ListMem.intros)
+done
+
+
 
 subsubsection{*Lists as Cartesian products*}
 
