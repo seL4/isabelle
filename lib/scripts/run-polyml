@@ -46,13 +46,18 @@ esac
 check_file "$POLY"
 
 if [ -z "$ML_DBASE" ]; then
+  if [ ! -e "$ML_HOME/ML_dbase${ML_DBASE_SUFFIX}" -a "$(basename "$ML_HOME")" = bin ]; then
+    ML_DBASE_HOME="$(cd "$ML_HOME"; cd "$(pwd -P)"; cd ../lib/poly; pwd)"
+  else
+    ML_DBASE_HOME="$ML_HOME"
+  fi
   if [ -z "$COPYDB" ]; then
-    ML_DBASE_PREFIX="$ML_HOME/"
+    ML_DBASE_PREFIX="$ML_DBASE_HOME/"
     ML_DBASE="ML_dbase${ML_DBASE_SUFFIX}"
   else
-    ML_DBASE="$ML_HOME/ML_dbase${ML_DBASE_SUFFIX}"
+    ML_DBASE="$ML_DBASE_HOME/ML_dbase${ML_DBASE_SUFFIX}"
   fi
-  export POLYPATH="$(fixpath "$ML_HOME")"
+  export POLYPATH="$(fixpath "$ML_DBASE_HOME")"
 else
   export POLYPATH="$(fixpath "$(dirname "$ML_DBASE")")"
 fi
