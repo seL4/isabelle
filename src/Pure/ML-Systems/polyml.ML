@@ -8,12 +8,20 @@ Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
 
 (** ML system and platform related **)
 
+(* String compatibility *)
+
+structure String =
+struct
+  fun isSuffix s1 s2 =
+    let val n1 = size s1 and n2 = size s2
+    in if n1 = n2 then s1 = s2 else n1 <= n2 andalso String.substring (s2, n2 - n1, n1) = s1 end;
+  open String;
+end;
+
+
 (* cygwin *)
 
-val cygwin_platform =
-  let val n = size ml_platform
-  in n >= 6 andalso String.substring (ml_platform, n - 6, 6) = "cygwin" end;
-
+val cygwin_platform = String.isSuffix "cygwin" ml_platform;
 fun if_cygwin f x = if cygwin_platform then f x else ();
 fun unless_cygwin f x = if not cygwin_platform then f x else ();
 
