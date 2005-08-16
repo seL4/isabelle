@@ -220,7 +220,7 @@ val setup =
 
 val print_tcsetP =
   OuterSyntax.improper_command "print_tcset" "print context of ZF type-checker"
-    OuterSyntax.Keyword.diag
+    OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o (Toplevel.keep
       (Toplevel.node_case print_tcset (LocalTypecheckingData.print o Proof.context_of)))));
 

@@ -338,7 +338,7 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val hints =
   P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- P.arguments) --| P.$$$ ")") >> Args.src;

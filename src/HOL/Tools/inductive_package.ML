@@ -878,7 +878,7 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 fun mk_ind coind ((sets, intrs), monos) =
   #1 o add_inductive true coind sets (map P.triple_swap intrs) monos;

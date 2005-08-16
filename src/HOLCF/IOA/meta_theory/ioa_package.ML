@@ -489,7 +489,7 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
 
 (* parsers *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val actionlist = P.list1 P.term;
 val inputslist = P.$$$ "inputs" |-- actionlist;

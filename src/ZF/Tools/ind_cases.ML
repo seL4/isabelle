@@ -79,7 +79,7 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val ind_cases =
   P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop)

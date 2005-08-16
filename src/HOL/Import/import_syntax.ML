@@ -30,7 +30,7 @@ struct
 
 type token = OuterSyntax.token
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 (* Parsers *)
 

@@ -54,7 +54,7 @@ struct
 
 	fun refute_parser tokens = (refute_scan_args tokens) |>> refute_trans;
 
-	val refute_cmd = OuterSyntax.improper_command "refute" "try to find a model that refutes a given subgoal" OuterSyntax.Keyword.diag refute_parser;
+	val refute_cmd = OuterSyntax.improper_command "refute" "try to find a model that refutes a given subgoal" OuterKeyword.diag refute_parser;
 
 (* ------------------------------------------------------------------------- *)
 (* set up the 'refute_params' command                                        *)
@@ -90,7 +90,7 @@ struct
 
 	fun refute_params_parser tokens = (refute_params_scan_args tokens) |>> refute_params_trans;
 
-	val refute_params_cmd = OuterSyntax.command "refute_params" "show/store default parameters for the 'refute' command" OuterSyntax.Keyword.thy_decl refute_params_parser;
+	val refute_params_cmd = OuterSyntax.command "refute_params" "show/store default parameters for the 'refute' command" OuterKeyword.thy_decl refute_params_parser;
 
 end;
 

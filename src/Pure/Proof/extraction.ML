@@ -761,7 +761,7 @@ fun extract thms thy =
 
 (**** interface ****)
 
-structure P = OuterParse and K = OuterSyntax.Keyword;
+structure P = OuterParse and K = OuterKeyword;
 
 val parse_vars = Scan.optional (P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") [];
 

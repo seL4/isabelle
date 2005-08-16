@@ -418,7 +418,7 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
   #1 o add_datatype (dom, map fst dts) (map snd dts) (monos, type_intrs, type_elims);

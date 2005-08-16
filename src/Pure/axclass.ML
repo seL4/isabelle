@@ -362,7 +362,7 @@ val _ = Context.add_setup [Method.add_methods
 
 (** outer syntax **)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl

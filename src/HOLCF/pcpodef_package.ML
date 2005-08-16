@@ -185,7 +185,7 @@ val cpodef_proof_i = gen_pcpodef_proof cert_term false;
 
 (** outer syntax **)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 (* copied from HOL/Tools/typedef_package.ML *)
 val typedef_proof_decl =

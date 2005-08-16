@@ -286,7 +286,7 @@ fun add_primrec alt_name eqns thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val primrec_decl =
   Scan.optional (P.$$$ "(" |-- P.name --| P.$$$ ")") "" --

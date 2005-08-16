@@ -896,7 +896,7 @@ val _ = Context.add_setup
        \  in (fn x => !f x) end;\n")]))]];
 
 
-structure P = OuterParse and K = OuterSyntax.Keyword;
+structure P = OuterParse and K = OuterKeyword;
 
 fun strip_newlines s = implode (fst (take_suffix (equal "\n")
   (snd (take_prefix (equal "\n") (explode s))))) ^ "\n";

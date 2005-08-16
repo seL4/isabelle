@@ -1369,7 +1369,7 @@ end
 
 (* additional outer syntax for Isar *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val undoP = (*undo without output*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
@@ -1483,7 +1483,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;;\n" ^
   defconst "major" (map #1 commands) ^
   defconst "minor" (List.filter Syntax.is_identifier keywords) ^
-  implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
+  implode (map (make_elisp_commands commands) OuterKeyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
 in

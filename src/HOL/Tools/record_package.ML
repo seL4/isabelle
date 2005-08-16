@@ -2131,7 +2131,7 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val record_decl =
   P.type_args -- P.name --

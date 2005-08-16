@@ -954,7 +954,7 @@ val setup = [DatatypesData.init, Method.add_methods tactic_emulations] @ simproc
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val datatype_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --

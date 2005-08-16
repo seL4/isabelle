@@ -239,7 +239,7 @@ fun process_spec axiomatic cos alt_props int thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 (* taken from ~~/Pure/Isar/isar_syn.ML *)
 val opt_overloaded =

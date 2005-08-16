@@ -200,7 +200,7 @@ fun add_primrec args thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val primrec_decl = Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
 

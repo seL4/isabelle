@@ -200,7 +200,7 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val rep_datatype_decl =
   (P.$$$ "elimination" |-- P.!!! P.xthm) --

@@ -140,7 +140,7 @@ end;
 
 (** outer syntax **)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val dest_decl =
   P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --

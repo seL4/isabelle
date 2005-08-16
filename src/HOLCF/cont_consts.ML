@@ -97,7 +97,7 @@ val add_consts_i = gen_add_consts Thm.ctyp_of;
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 val constsP =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl

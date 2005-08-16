@@ -596,7 +596,7 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterSyntax.Keyword in
+local structure P = OuterParse and K = OuterKeyword in
 
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
   #1 o add_inductive doms (map P.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
