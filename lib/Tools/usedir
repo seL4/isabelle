@@ -17,8 +17,8 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -D PATH      dump generated document sources into PATH"
-  echo "    -H BOOL      hide proofs and some other commands in document (default true)"
   echo "    -P PATH      set path for remote theory browsing information"
+  echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
@@ -62,11 +62,11 @@ function check_number()
 
 DUMP=""
 RPATH=""
+DOCUMENT_VERSIONS=""
 BUILD=""
 COMPRESS=true
 DOCUMENT=false
-HIDE=true
-ROOT_FILE=ROOT.ML
+ROOT_FILE="ROOT.ML"
 DOCUMENT_GRAPH=false
 INFO=false
 MODES=""
@@ -78,18 +78,21 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:H:P:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "D:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       D)
         DUMP="$OPTARG"
         ;;
-      H)
-        check_bool "$OPTARG"
-        HIDE="$OPTARG"
-        ;;
       P)
         RPATH="$OPTARG"
+        ;;
+      V)
+        if [ -z "$DOCUMENT_VERSIONS" ]; then
+          DOCUMENT_VERSIONS="\"$OPTARG\""
+        else
+          DOCUMENT_VERSIONS="$DOCUMENT_VERSIONS, \"$OPTARG\""
+        fi
         ;;
       b)
         BUILD=true
@@ -200,7 +203,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE $HIDE;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -209,7 +212,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE $HIDE; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
