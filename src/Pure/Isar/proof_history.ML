@@ -17,7 +17,7 @@ sig
   val clear: int -> T -> T
   val undo: T -> T
   val redo: T -> T
-  val back: bool -> T -> T
+  val back: T -> T
   val applys: (Proof.state -> Proof.state Seq.seq) -> T -> T
   val apply: (Proof.state -> Proof.state) -> T -> T
 end;
@@ -55,17 +55,12 @@ val undo = app History.undo;
 val redo = app History.redo;
 
 
-(* backtrack *)
+(* backtracking *)
 
-fun backtrack recur ((_, stq), nodes) =
+val back = hist_app (fn ((_, stq), nodes) =>
   (case Seq.pull stq of
-    NONE =>
-      if recur andalso not (null nodes) then
-        (writeln "back: trying previous proof state ..."; backtrack recur (hd nodes, tl nodes))
-      else raise FAIL "back: no alternatives"
-  | SOME result => (result, nodes));
-
-val back = hist_app o backtrack;
+    NONE => raise FAIL "back: no alternatives"
+  | SOME result => (result, nodes)));
 
 
 (* apply transformer *)
