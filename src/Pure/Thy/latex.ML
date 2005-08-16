@@ -10,9 +10,16 @@ sig
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
-  datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
-  val output_tokens: (token * string) list -> string
-  val flag_markup: bool -> string
+  val output_basic: OuterLex.token -> string
+  val output_markup: string -> string -> string
+  val output_markup_env: string -> string -> string
+  val output_verbatim: string -> string
+  val markup_true: string
+  val markup_false: string
+  val begin_delim: string -> string
+  val end_delim: string -> string
+  val begin_tag: string -> string
+  val end_tag: string -> string
   val tex_trailer: string
   val isabelle_file: string -> string -> string
   val symbol_source: (string -> bool) * (string -> bool) ->
@@ -88,38 +95,36 @@ end;
 
 structure T = OuterLex;
 
-datatype token =
-  Basic of T.token |
-  Markup of string |
-  MarkupEnv of string |
-  Verbatim;
-
-
 val invisible_token = T.keyword_with (equal ";") orf T.is_kind T.Comment;
 
-fun output_tok (Basic tok, _) =
-      let val s = T.val_of tok in
-        if invisible_token tok then ""
-        else if T.is_kind T.Command tok then
-          "\\isacommand{" ^ output_syms s ^ "}"
-        else if T.is_kind T.Keyword tok andalso Syntax.is_ascii_identifier s then
-          "\\isakeyword{" ^ output_syms s ^ "}"
-        else if T.is_kind T.String tok then output_syms (Library.quote s)
-        else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
-        else output_syms s
-      end
-  | output_tok (Markup cmd, txt) =
-      "%\n\\isamarkup" ^ cmd ^ "{" ^ Symbol.strip_blanks txt ^ "%\n}\n"
-  | output_tok (MarkupEnv cmd, txt) = "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-      Symbol.strip_blanks txt ^ "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
-  | output_tok (Verbatim, txt) = "%\n" ^ Symbol.strip_blanks txt ^ "\n";
+fun output_basic tok =
+  let val s = T.val_of tok in
+    if invisible_token tok then ""
+    else if T.is_kind T.Command tok then
+      "\\isacommand{" ^ output_syms s ^ "}"
+    else if T.is_kind T.Keyword tok andalso Syntax.is_ascii_identifier s then
+      "\\isakeyword{" ^ output_syms s ^ "}"
+    else if T.is_kind T.String tok then output_syms (Library.quote s)
+    else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
+    else output_syms s
+  end;
 
+fun output_markup cmd txt = "%\n\\isamarkup" ^ cmd ^ "{" ^ Symbol.strip_blanks txt ^ "%\n}\n";
 
-val output_tokens = implode o map output_tok;
+fun output_markup_env cmd txt =
+  "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
+  Symbol.strip_blanks txt ^
+  "%\n\\end{isamarkup" ^ cmd ^ "}%\n";
 
+fun output_verbatim txt = "%\n" ^ Symbol.strip_blanks txt ^ "\n";
 
-fun flag_markup true = "\\isamarkuptrue%\n"
-  | flag_markup false = "\\isamarkupfalse%\n";
+val markup_true = "\\isamarkuptrue%\n";
+val markup_false = "\\isamarkupfalse%\n";
+
+val begin_delim = enclose "%\n\\isadelim" "\n";
+val end_delim = enclose "%\n\\endisadelim" "\n";
+val begin_tag = enclose "%\n\\isatag" "\n";
+fun end_tag tg = enclose "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" tg;
 
 
 (* theory presentation *)
