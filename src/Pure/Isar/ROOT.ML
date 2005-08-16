@@ -15,10 +15,10 @@ use "args.ML";
 use "attrib.ML";
 use "locale.ML";
 use "proof.ML";
+use "method.ML";
 use "proof_history.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
-use "method.ML";
 
 (*derived proof elements*)
 use "calculation.ML";
@@ -28,15 +28,18 @@ use "skip_proof.ML";
 (*outer syntax*)
 use "antiquote.ML";
 use "outer_parse.ML";
+use "outer_keyword.ML";
 
 (*toplevel environment*)
 use "toplevel.ML";
+
+(*theory presentation*)
 use "term_style.ML";
 use "isar_output.ML";
-use "session.ML";
 
 (*theory syntax*)
 use "thy_header.ML";
+use "session.ML";
 use "outer_syntax.ML";
 
 (*theory and proof operations*)
