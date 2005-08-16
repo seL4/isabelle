@@ -367,11 +367,11 @@ done
 lemmas fun_upd_idem = fun_upd_idem_iff [THEN iffD2, standard]
 
 (* f(x := f x) = f *)
-declare refl [THEN fun_upd_idem, iff]
+lemmas fun_upd_triv = refl [THEN fun_upd_idem]
+declare fun_upd_triv [iff]
 
 lemma fun_upd_apply [simp]: "(f(x:=y))z = (if z=x then y else f z)"
-apply (simp (no_asm) add: fun_upd_def)
-done
+by (simp add: fun_upd_def)
 
 (* fun_upd_apply supersedes these two,   but they are useful
    if fun_upd_apply is intentionally removed from the simpset *)

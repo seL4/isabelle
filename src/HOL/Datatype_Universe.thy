@@ -156,8 +156,8 @@ apply (blast intro: Node_K0_I Rep_Node [THEN Node_Push_I]
          elim!: apfst_convE sym [THEN Push_neq_K0])  
 done
 
-lemmas Atom_not_Scons = Scons_not_Atom [THEN not_sym, standard, iff]
-
+lemmas Atom_not_Scons = Scons_not_Atom [THEN not_sym, standard]
+declare Atom_not_Scons [iff]
 
 (*** Injectiveness ***)
 
@@ -178,7 +178,8 @@ apply (rule inj_onI)
 apply (erule Atom_inject [THEN Inl_inject])
 done
 
-lemmas Leaf_inject = inj_Leaf [THEN injD, standard, dest!]
+lemmas Leaf_inject = inj_Leaf [THEN injD, standard]
+declare Leaf_inject [dest!]
 
 lemma inj_Numb: "inj(Numb)"
 apply (simp add: Numb_def o_def)
@@ -186,7 +187,8 @@ apply (rule inj_onI)
 apply (erule Atom_inject [THEN Inr_inject])
 done
 
-lemmas Numb_inject = inj_Numb [THEN injD, standard, dest!]
+lemmas Numb_inject = inj_Numb [THEN injD, standard]
+declare Numb_inject [dest!]
 
 
 (** Injectiveness of Push_Node **)
@@ -238,16 +240,16 @@ by (blast elim!: Scons_inject)
 lemma Scons_not_Leaf [iff]: "Scons M N \<noteq> Leaf(a)"
 by (simp add: Leaf_def o_def Scons_not_Atom)
 
-lemmas Leaf_not_Scons = Scons_not_Leaf [THEN not_sym, standard, iff]
-
+lemmas Leaf_not_Scons = Scons_not_Leaf [THEN not_sym, standard]
+declare Leaf_not_Scons [iff]
 
 (** Scons vs Numb **)
 
 lemma Scons_not_Numb [iff]: "Scons M N \<noteq> Numb(k)"
 by (simp add: Numb_def o_def Scons_not_Atom)
 
-lemmas Numb_not_Scons = Scons_not_Numb [THEN not_sym, standard, iff]
-
+lemmas Numb_not_Scons = Scons_not_Numb [THEN not_sym, standard]
+declare Numb_not_Scons [iff]
 
 
 (** Leaf vs Numb **)
@@ -255,8 +257,8 @@ lemmas Numb_not_Scons = Scons_not_Numb [THEN not_sym, standard, iff]
 lemma Leaf_not_Numb [iff]: "Leaf(a) \<noteq> Numb(k)"
 by (simp add: Leaf_def Numb_def)
 
-lemmas Numb_not_Leaf = Leaf_not_Numb [THEN not_sym, standard, iff]
-
+lemmas Numb_not_Leaf = Leaf_not_Numb [THEN not_sym, standard]
+declare Numb_not_Leaf [iff]
 
 
 (*** ndepth -- the depth of a node ***)
@@ -362,7 +364,8 @@ by (auto simp add: usum_def)
 lemma In0_not_In1 [iff]: "In0(M) \<noteq> In1(N)"
 by (auto simp add: In0_def In1_def One_nat_def)
 
-lemmas In1_not_In0 = In0_not_In1 [THEN not_sym, standard, iff]
+lemmas In1_not_In0 = In0_not_In1 [THEN not_sym, standard]
+declare In1_not_In0 [iff]
 
 lemma In0_inject: "In0(M) = In0(N) ==>  M=N"
 by (simp add: In0_def)

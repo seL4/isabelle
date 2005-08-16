@@ -391,7 +391,13 @@ fun rev_foldl f (e, l) = Library.foldl f (e, rev l);
 val op addSIs = rev_foldl addSI;
 val op addSEs = rev_foldl addSE;
 
-fun cs addSDs ths = cs addSEs (map Data.make_elim ths);
+(*Give new theorem a name, if it has one already.*)
+fun name_make_elim th =
+    case Thm.name_of_thm th of
+        "" => Data.make_elim th
+      | a  => Thm.name_thm (a ^ "_dest", Data.make_elim th);
+
+fun cs addSDs ths = cs addSEs (map name_make_elim ths);
 
 
 (*** Hazardous (unsafe) rules ***)
@@ -445,7 +451,7 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
 val op addIs = rev_foldl addI;
 val op addEs = rev_foldl addE;
 
-fun cs addDs ths = cs addEs (map Data.make_elim ths);
+fun cs addDs ths = cs addEs (map name_make_elim ths);
 
 
 (*** Deletion of rules

@@ -634,7 +634,8 @@ next
   thus "m mod d = 0" by auto
 qed
 
-declare zmod_eq_0_iff [THEN iffD1, dest!]
+lemmas zmod_eq_0D = zmod_eq_0_iff [THEN iffD1]
+declare zmod_eq_0D [dest!]
 
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 
@@ -1052,12 +1053,12 @@ lemma zdvd_zmult2: "k dvd (m::int) ==> k dvd m * n"
   apply (erule zdvd_zmult)
   done
 
-lemma [iff]: "(k::int) dvd m * k"
+lemma zdvd_triv_right [iff]: "(k::int) dvd m * k"
   apply (rule zdvd_zmult)
   apply (rule zdvd_refl)
   done
 
-lemma [iff]: "(k::int) dvd k * m"
+lemma zdvd_triv_left [iff]: "(k::int) dvd k * m"
   apply (rule zdvd_zmult2)
   apply (rule zdvd_refl)
   done

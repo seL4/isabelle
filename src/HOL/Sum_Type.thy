@@ -78,7 +78,8 @@ apply (rule Inl_RepI)
 apply (rule Inr_RepI)
 done
 
-lemmas Inr_not_Inl = Inl_not_Inr [THEN not_sym, standard, iff]
+lemmas Inr_not_Inl = Inl_not_Inr [THEN not_sym, standard]
+declare Inr_not_Inl [iff]
 
 lemmas Inl_neq_Inr = Inl_not_Inr [THEN notE, standard]
 lemmas Inr_neq_Inl = sym [THEN Inl_neq_Inr, standard]

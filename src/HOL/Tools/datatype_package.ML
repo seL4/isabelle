@@ -281,6 +281,9 @@ fun mk_case_names_exhausts descr new =
 
 end;
 
+fun name_notE th =
+    Thm.name_thm (Thm.name_of_thm th ^ "_E", th RS notE);
+      
 fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =
   (#1 o PureThy.add_thmss [(("simps", simps), []),
@@ -288,7 +291,7 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
           List.concat distinct  @ rec_thms), [Simplifier.simp_add_global]),
     (("", size_thms @ rec_thms),             [RecfunCodegen.add NONE]),
     (("", List.concat inject),               [iff_add_global]),
-    (("", List.concat distinct RL [notE]),   [Classical.safe_elim_global]),
+    (("", map name_notE (List.concat distinct)),  [Classical.safe_elim_global]),
     (("", weak_case_congs),                  [cong_att])]);
 
 

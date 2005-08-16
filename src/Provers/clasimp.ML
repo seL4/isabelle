@@ -114,6 +114,9 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
 fun cs addss' ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
                             CHANGED o Simplifier.asm_lr_simp_tac ss));
 
+(*Attach a suffix, provided we have a name to start with.*)
+fun suffix_thm "" _ th = th
+  | suffix_thm a b th = Thm.name_thm (a^b, th);
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
 
@@ -126,12 +129,14 @@ local
 
 fun addIff decls1 decls2 simp ((cs, ss), th) =
   let
+    val name = Thm.name_of_thm th;
     val n = nprems_of th;
-    val (dest, elim, intro) = if n = 0 then decls1 else decls2;
+    val (elim, intro) = if n = 0 then decls1 else decls2;
     val zero_rotate = zero_var_indexes o rotate_prems n;
   in
-    (dest (intro (cs, [zero_rotate (th RS Data.iffD2)]), [zero_rotate (th RS Data.iffD1)])
-      handle THM _ => (elim (cs, [zero_rotate (th RS Data.notE)])
+    (elim (intro (cs, [suffix_thm name "_iff2" (zero_rotate (th RS Data.iffD2))]),
+           [suffix_thm name "_iff1" (Data.cla_make_elim (zero_rotate (th RS Data.iffD1)))])
+      handle THM _ => (elim (cs, [suffix_thm name "_iff" (zero_rotate (th RS Data.notE))])
         handle THM _ => intro (cs, [th])),
      simp (ss, [th]))
   end;
@@ -151,8 +156,10 @@ fun store_clasimp (cs, ss) =
 in
 
 val op addIffs =
-  Library.foldl (addIff (Classical.addSDs, Classical.addSEs, Classical.addSIs)
-    (Classical.addDs, Classical.addEs, Classical.addIs) Simplifier.addsimps);
+  Library.foldl 
+      (addIff (Classical.addSEs, Classical.addSIs)
+              (Classical.addEs, Classical.addIs) 
+              Simplifier.addsimps);
 val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 
 fun AddIffs thms = store_clasimp (clasimpset () addIffs thms);
@@ -160,14 +167,14 @@ fun DelIffs thms = store_clasimp (clasimpset () delIffs thms);
 
 fun addIffs_global (thy, ths) =
   Library.foldl (addIff
-    (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global)
-    (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global) #1)
+    (ContextRules.addXEs_global, ContextRules.addXIs_global)
+    (ContextRules.addXEs_global, ContextRules.addXIs_global) #1)
   ((thy, ()), ths) |> #1;
 
 fun addIffs_local (ctxt, ths) =
   Library.foldl (addIff
-    (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local)
-    (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local) #1)
+    (ContextRules.addXEs_local, ContextRules.addXIs_local)
+    (ContextRules.addXEs_local, ContextRules.addXIs_local) #1)
   ((ctxt, ()), ths) |> #1;
 
 fun delIffs_global (thy, ths) =

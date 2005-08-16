@@ -562,8 +562,11 @@ apply (subst mult_commute)
 apply (erule dvd_mult)
 done
 
-(* k dvd (m*k) *)
-declare dvd_refl [THEN dvd_mult, iff] dvd_refl [THEN dvd_mult2, iff]
+lemma dvd_triv_right [iff]: "k dvd (m*k :: nat)"
+by (rule dvd_refl [THEN dvd_mult])
+
+lemma dvd_triv_left [iff]: "k dvd (k*m :: nat)"
+by (rule dvd_refl [THEN dvd_mult2])
 
 lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
 apply (rule iffI)
@@ -648,7 +651,9 @@ done
 
 lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
 by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
-declare mod_eq_0_iff [THEN iffD1, dest!]
+
+lemmas mod_eq_0D = mod_eq_0_iff [THEN iffD1]
+declare mod_eq_0D [dest!]
 
 (*Loses information, namely we also have r<d provided d is nonzero*)
 lemma mod_eqD: "(m mod d = r) ==> \<exists>q::nat. m = r + q*d"

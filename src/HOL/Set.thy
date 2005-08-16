@@ -671,10 +671,10 @@ text {*
   Classical prover.  Negated assumptions behave like formulae on the
   right side of the notional turnstile ... *}
 
-lemma ComplD: "c : -A ==> c~:A"
+lemma ComplD [dest!]: "c : -A ==> c~:A"
   by (unfold Compl_def) blast
 
-lemmas ComplE [elim!] = ComplD [elim_format]
+lemmas ComplE = ComplD [elim_format]
 
 
 subsubsection {* Binary union -- Un *}
@@ -764,10 +764,10 @@ lemma singletonI [intro!]: "a : {a}"
     -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
   by (rule insertI1)
 
-lemma singletonD: "b : {a} ==> b = a"
+lemma singletonD [dest!]: "b : {a} ==> b = a"
   by blast
 
-lemmas singletonE [elim!] = singletonD [elim_format]
+lemmas singletonE = singletonD [elim_format]
 
 lemma singleton_iff: "(b : {a}) = (b = a)"
   by blast
