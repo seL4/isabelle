@@ -24,19 +24,18 @@ struct
 
 (** add_constdefs(_i) **)
 
-fun pretty_const sg (c, T) =
+fun pretty_const thy (c, T) =
   Pretty.block [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-    Pretty.quote (Sign.pretty_typ sg T)];
+    Pretty.quote (Sign.pretty_typ thy T)];
 
-fun pretty_constdefs sg decls =
-  Pretty.big_list "constants" (map (pretty_const sg) decls);
+fun pretty_constdefs thy decls =
+  Pretty.big_list "constants" (map (pretty_const thy) decls);
 
 fun gen_constdef prep_typ prep_term prep_att
     structs (thy, (decl, ((raw_name, raw_atts), raw_prop))) =
   let
-    val sign = Theory.sign_of thy;
     fun err msg ts =
-      error (cat_lines (msg :: map (Sign.string_of_term sign) ts));
+      error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
 
     val ctxt =
       ProofContext.init thy |> ProofContext.add_fixes
@@ -60,7 +59,7 @@ fun gen_constdef prep_typ prep_term prep_att
         err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
       else ());
 
-    val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name sign c, T))] prop;
+    val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name thy c, T))] prop;
     val name = if raw_name = "" then Thm.def_name c else raw_name;
     val atts = map (prep_att thy) raw_atts;
 
@@ -75,7 +74,7 @@ fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy
     val structs = #2 (foldl_map prep_vars (ProofContext.init thy, raw_structs));
     val (thy', decls) = (thy, specs)
       |> foldl_map (gen_constdef prep_typ prep_term prep_att structs);
-  in Pretty.writeln (pretty_constdefs (Theory.sign_of thy') decls); thy' end;
+  in Pretty.writeln (pretty_constdefs thy' decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
   ProofContext.read_typ ProofContext.read_term_liberal Attrib.global_attribute;
