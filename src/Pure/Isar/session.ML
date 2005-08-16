@@ -9,8 +9,8 @@ signature SESSION =
 sig
   val name: unit -> string
   val welcome: unit -> string
-  val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool -> string
-    -> string -> string -> string -> int -> bool -> bool -> unit
+  val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool ->
+    string list -> string -> string -> string -> string -> int -> bool -> unit
   val finish: unit -> unit
 end;
 
@@ -74,14 +74,15 @@ fun get_rpath rpath_str =
        remote_path := SOME (Url.unpack rpath_str);
    (! remote_path, rpath_str <> ""));
 
-fun use_dir root build modes reset info doc doc_graph parent name dump rpath_str level verbose hide =
+fun use_dir root build modes reset info doc doc_graph doc_versions
+    parent name dump rpath_str level verbose =
   Library.setmp print_mode (modes @ ! print_mode)
-    (Library.setmp Proofterm.proofs level (Library.setmp IsarOutput.hide_commands hide (fn () =>
+    (Library.setmp Proofterm.proofs level (fn () =>
       (init reset parent name;
-       Present.init build info doc doc_graph (path ()) name
+       Present.init build info doc doc_graph doc_versions (path ()) name
          (if dump = "" then NONE else SOME (Path.unpack dump)) (get_rpath rpath_str) verbose;
        ThyInfo.time_use root;
-       finish ())))) ()
+       finish ()))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
