@@ -15,8 +15,9 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -c           cleanup -- be aggressive in removing old stuff"
-  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
-  echo "                 ps.gz, pdf"
+  echo "    -n NAME      specify document name (default 'document')"
+  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
+  echo "    -t TAGS      specify tagged region markup"
   echo
   echo "  Prepare the theory session document in DIR (default 'document')"
   echo "  producing the specified output format."
@@ -36,16 +37,24 @@ function fail()
 # options
 
 CLEAN=""
+NAME="document"
 OUTFORMAT=dvi
+TAGS=""
 
-while getopts "co:" OPT
+while getopts "cn:o:t:" OPT
 do
   case "$OPT" in
     c)
       CLEAN=true
       ;;
+    n)
+      NAME="$OPTARG"
+      ;;
     o)
       OUTFORMAT="$OPTARG"
+      ;;
+    t)
+      TAGS="$OPTARG"
       ;;
     \?)
       usage
@@ -77,6 +86,33 @@ case "$OUTFORMAT" in
 esac
 
 
+# tagged region markup
+
+function prep_tags ()
+{
+  (
+    IFS=","
+    for TAG in $TAGS
+    do
+      case "$TAG" in
+        /*)
+  	  echo "\\isafoldtag{${TAG:1}}"
+          ;;
+        -*)
+  	  echo "\\isadroptag{${TAG:1}}"
+          ;;
+        +*)
+  	  echo "\\isakeeptag{${TAG:1}}"
+          ;;
+        *)
+  	  echo "\\isakeeptag{${TAG}}"
+          ;;
+      esac
+    done
+  ) > isabelletags.sty
+}
+
+
 # prepare document
 
 function pre_latex ()
@@ -93,7 +129,9 @@ function pre_latex ()
 (
   cd "$DIR" || fail "Bad directory '$DIR'"
 
-  [ -n "$CLEAN" ] && rm -f "../document.$OUTFORMAT"
+  [ -n "$CLEAN" ] && rm -f "../$NAME.$OUTFORMAT"
+
+  prep_tags
 
   if [ -f IsaMakefile ]; then
     "$ISATOOL" make "$OUTFORMAT"
@@ -113,7 +151,7 @@ function pre_latex ()
   fi
 
   if [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ]; then
-    cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
+    cp -f "root.$OUTFORMAT" "../$NAME.$OUTFORMAT"
   fi
 
   exit "$RC"
@@ -123,7 +161,7 @@ RC="$?"
 
 # install
 
-[ "$RC" -ne 0 ] && fail "Failed to prepare document in directory '$DIR'"
+[ "$RC" -ne 0 ] && fail "Document preparation failure in directory '$DIR'"
 
 #beware!
 [ -n "$CLEAN" ] && rm -rf "$DIR"
