@@ -28,7 +28,7 @@ sig
   val undo_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
-  val back: bool -> Toplevel.transition -> Toplevel.transition
+  val back: Toplevel.transition -> Toplevel.transition
   val use: Path.T -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
@@ -155,7 +155,7 @@ val undo_theory = Toplevel.history (fn hist =>
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
 val kill = Toplevel.kill o kill_proof;
-val back = Toplevel.proof o ProofHistory.back;
+val back = Toplevel.proof ProofHistory.back;
 
 
 (* use ML text *)
@@ -216,10 +216,14 @@ val print_syntax = Toplevel.unknown_theory o
   Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
   Toplevel.keep (ProofContext.print_syntax o Proof.context_of o Toplevel.proof_of);
 
+val print_theorems_proof = Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose
+    ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
+
 val print_theorems = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   (case History.previous (Toplevel.node_history_of state) of
-    SOME (Toplevel.Theory prev_thy) => PureThy.print_theorems_diff prev_thy
-  | _ => PureThy.print_theorems) (Toplevel.theory_of state));
+    SOME (Toplevel.Theory (prev_thy, _)) => PureThy.print_theorems_diff prev_thy
+  | _ => PureThy.print_theorems) (Toplevel.theory_of state)) o print_theorems_proof;
 
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
@@ -275,9 +279,7 @@ val print_binds = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_binds (Proof.context_of (Toplevel.proof_of state)));
 
-val print_lthms = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose
-    ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
+val print_lthms = Toplevel.unknown_proof o print_theorems_proof;
 
 val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
@@ -291,18 +293,20 @@ fun string_of_thms state ms args = with_modes ms (fn () =>
     (IsarThy.get_thmss args state)));
 
 fun string_of_prfs full state ms arg = with_modes ms (fn () =>
-  Pretty.string_of (case arg of    (* FIXME context syntax!? *)
+  Pretty.string_of (case arg of
       NONE =>
         let
-          val (_, (_, thm)) = Proof.get_goal state;
-          val {sign, prop, der = (_, prf), ...} = rep_thm thm;
+          val (ctxt, (_, thm)) = Proof.get_goal state;
+          val {thy, der = (_, prf), ...} = Thm.rep_thm thm;
+          val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf
         in
-          ProofSyntax.pretty_proof sign
-            (if full then Reconstruct.reconstruct_proof sign prop prf' else prf')
+          ProofContext.pretty_proof ctxt
+            (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
         end
     | SOME args => Pretty.chunks
-        (map (ProofSyntax.pretty_proof_of full) (IsarThy.get_thmss args state))));
+        (map (ProofContext.pretty_proof_of (Proof.context_of state) full)
+          (IsarThy.get_thmss args state))));
 
 fun string_of_prop state ms s =
   let
