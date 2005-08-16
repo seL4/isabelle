@@ -19,39 +19,13 @@ end;
 signature OUTER_SYNTAX =
 sig
   include BASIC_OUTER_SYNTAX
-  structure Keyword:
-    sig
-      val control: string
-      val diag: string
-      val thy_begin: string
-      val thy_switch: string
-      val thy_end: string
-      val thy_heading: string
-      val thy_decl: string
-      val thy_script: string
-      val thy_goal: string
-      val qed: string
-      val qed_block: string
-      val qed_global: string
-      val prf_heading: string
-      val prf_goal: string
-      val prf_block: string
-      val prf_open: string
-      val prf_close: string
-      val prf_chain: string
-      val prf_decl: string
-      val prf_asm: string
-      val prf_asm_goal: string
-      val prf_script: string
-      val kinds: string list
-    end
   type token
   type parser
-  val command: string -> string -> string ->
+  val command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val markup_command: IsarOutput.markup -> string -> string -> string ->
+  val markup_command: IsarOutput.markup -> string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val improper_command: string -> string -> string ->
+  val improper_command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val is_keyword: string -> bool
   val dest_keywords: unit -> string list
@@ -77,46 +51,13 @@ structure P = OuterParse;
 
 (** outer syntax **)
 
-(* command keyword classification *)
-
-structure Keyword =
-struct
-  val control = "control";
-  val diag = "diag";
-  val thy_begin = "theory-begin";
-  val thy_switch = "theory-switch";
-  val thy_end = "theory-end";
-  val thy_heading = "theory-heading";
-  val thy_decl = "theory-decl";
-  val thy_script = "theory-script";
-  val thy_goal = "theory-goal";
-  val qed = "qed";
-  val qed_block = "qed-block";
-  val qed_global = "qed-global";
-  val prf_heading = "proof-heading";
-  val prf_goal = "proof-goal";
-  val prf_block = "proof-block";
-  val prf_open = "proof-open";
-  val prf_close = "proof-close";
-  val prf_chain = "proof-chain";
-  val prf_decl = "proof-decl";
-  val prf_asm = "proof-asm";
-  val prf_asm_goal = "proof-asm-goal";
-  val prf_script = "proof-script";
-
-  val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script,
-    thy_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
-end;
-
-
 (* parsers *)
 
 type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
 datatype parser =
-  Parser of string * (string * string * IsarOutput.markup option) * bool * parser_fn;
+  Parser of string * (string * OuterKeyword.T * IsarOutput.markup option) * bool * parser_fn;
 
 fun parser int_only markup name comment kind parse =
   Parser (name, (comment, kind, markup), int_only, parse);
@@ -132,10 +73,10 @@ fun terminate false = Scan.succeed ()
 fun trace false parse = parse
   | trace true parse = Scan.trace parse >> (fn (f, toks) => f o Toplevel.source toks);
 
-fun body cmd trc (name, _) =
+fun body cmd do_trace (name, _) =
   (case cmd name of
     SOME (int_only, parse) =>
-      P.!!! (Scan.prompt (name ^ "# ") (trace trc parse >> pair int_only))
+      P.!!! (Scan.prompt (name ^ "# ") (trace do_trace parse >> pair int_only))
   | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
 in
@@ -143,7 +84,7 @@ in
 fun command do_terminate do_trace cmd =
   P.semicolon >> K NONE ||
   P.sync >> K NONE ||
-  (P.position P.command :-- body cmd do_trace) --| terminate do_terminate
+  ((P.position P.command --| P.tags) :-- body cmd do_trace) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
@@ -158,7 +99,7 @@ local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers =
-  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * IsarOutput.markup option)
+  ref (Symtab.empty: (((string * OuterKeyword.T) * (bool * parser_fn)) * IsarOutput.markup option)
     Symtab.table);
 val global_markups = ref ([]: (string * IsarOutput.markup) list);
 
@@ -169,10 +110,9 @@ fun change_lexicons f =
     | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
   end;
 
-fun get_markup (ms, (name, (_, SOME m))) = (name, m) :: ms
-  | get_markup (ms, _) = ms;
+fun make_markups () = global_markups :=
+  Symtab.fold (fn (name, (_, SOME m)) => cons (name, m) | _ => I) (! global_parsers) [];
 
-fun make_markups () = global_markups := Symtab.foldl get_markup ([], ! global_parsers);
 fun change_parsers f = (Library.change global_parsers f; make_markups ());
 
 in
@@ -185,11 +125,14 @@ in
 
 fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
-fun get_parser () = Option.map (#2 o #1) o curry Symtab.lookup (! global_parsers);
+fun get_parser () = Option.map (#2 o #1) o curry Symtab.lookup (get_parsers ());
 
-fun is_markup kind name =
-  (case assoc (! global_markups, name) of SOME k => k = kind | NONE => false);
-fun markup kind = Scan.one (T.is_kind T.Command andf is_markup kind o T.val_of);
+fun command_tags name =
+  (case Symtab.lookup (get_parsers (), name) of
+    SOME (((_, k), _), _) => OuterKeyword.tags_of k
+  | NONE => []);
+
+fun is_markup kind name = (assoc_string (! global_markups, name) = SOME kind);
 
 
 (* augment syntax *)
@@ -197,13 +140,13 @@ fun markup kind = Scan.one (T.is_kind T.Command andf is_markup kind o T.val_of);
 fun add_keywords keywords = change_lexicons (apfst (fn lex =>
   (Scan.extend_lexicon lex (map Symbol.explode keywords))));
 
-fun add_parser (tab, Parser (name, (comment, kind, markup), int_only, parse)) =
+fun add_parser (Parser (name, (comment, kind, markup), int_only, parse)) tab =
  (if not (Symtab.defined tab name) then ()
   else warning ("Redefined outer syntax command " ^ quote name);
   Symtab.update ((name, (((comment, kind), (int_only, parse)), markup)), tab));
 
 fun add_parsers parsers =
-  (change_parsers (fn tab => Library.foldl add_parser (tab, parsers));
+  (change_parsers (fold add_parser parsers);
     change_lexicons (apsnd (fn lex => Scan.extend_lexicon lex
       (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers))));
 
@@ -217,7 +160,8 @@ fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
 
 fun dest_parsers () =
   get_parsers () |> Symtab.dest |> sort_wrt #1
-  |> map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only));
+  |> map (fn (name, (((cmt, kind), (int_only, _)), _)) =>
+    (name, cmt, OuterKeyword.kind_of kind, int_only));
 
 fun print_outer_syntax () =
   let
@@ -239,7 +183,7 @@ val print_commands = Toplevel.imperative print_outer_syntax;
 
 (* basic sources *)
 
-fun toplevel_source term trc do_recover cmd src =
+fun toplevel_source term do_trace do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
@@ -251,7 +195,7 @@ fun toplevel_source term trc do_recover cmd src =
       (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
       (if do_recover then SOME recover else NONE)
     |> Source.mapfilter I
-    |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term trc (cmd ())) xs))
+    |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term do_trace (cmd ())) xs))
       (if do_recover then SOME recover else NONE)
     |> Source.mapfilter I
   end;
@@ -325,11 +269,6 @@ fun try_ml_file name time =
     else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
-fun parse_thy src =
-  src
-  |> toplevel_source false false false (K (get_parser ()))
-  |> Source.exhaust;
-
 fun run_thy name path =
   let
     val pos = Path.position path;
@@ -347,10 +286,15 @@ fun run_thy name path =
           |> Symbol.source false
           |> T.source false (K (get_lexicons ())) pos
           |> Source.exhausted;
-        val out = Toplevel.excursion_result
-          (IsarOutput.parse_thy markup (#1 (get_lexicons ()))
-            (parse_thy tok_src) tok_src);
-      in Present.theory_output name (Buffer.content out) end
+        val trs =
+          tok_src
+          |> toplevel_source false false false (K (get_parser ()))
+          |> Source.exhaust;
+      in
+        IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs tok_src
+        |> Buffer.content
+        |> Present.theory_output name
+      end
   end;
 
 in
