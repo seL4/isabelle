@@ -47,6 +47,7 @@ sig
   val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
   val name: T list -> string * T list
   val symbol: T list -> string * T list
+  val liberal_name: T list -> string * T list
   val nat: T list -> int * T list
   val int: T list -> int * T list
   val var: T list -> indexname * T list
@@ -251,6 +252,7 @@ fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name = named >> sym_of;
 val symbol = symbolic >> sym_of;
+val liberal_name = symbol || name;
 
 val nat = some_ident Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
