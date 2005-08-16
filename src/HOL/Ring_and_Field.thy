@@ -429,7 +429,8 @@ instance ordered_idom \<subseteq> idom ..
 
 text{*All three types of comparision involving 0 and 1 are covered.*}
 
-declare zero_neq_one [THEN not_sym, simp]
+lemmas one_neq_zero = zero_neq_one [THEN not_sym]
+declare one_neq_zero [simp]
 
 lemma zero_le_one [simp]: "(0::'a::ordered_semidom) \<le> 1"
   by (rule zero_less_one [THEN order_less_imp_le]) 
@@ -1046,12 +1047,14 @@ by (simp add: divide_inverse minus_mult_right [symmetric])
 
 
 text{*The effect is to extract signs from divisions*}
-declare minus_divide_left  [symmetric, simp]
-declare minus_divide_right [symmetric, simp]
+lemmas divide_minus_left = minus_divide_left [symmetric]
+lemmas divide_minus_right = minus_divide_right [symmetric]
+declare divide_minus_left [simp]   divide_minus_right [simp]
 
 text{*Also, extract signs from products*}
-declare minus_mult_left [symmetric, simp]
-declare minus_mult_right [symmetric, simp]
+lemmas mult_minus_left = minus_mult_left [symmetric]
+lemmas mult_minus_right = minus_mult_right [symmetric]
+declare mult_minus_left [simp]   mult_minus_right [simp]
 
 lemma minus_divide_divide [simp]:
      "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
@@ -1553,10 +1556,15 @@ apply (auto simp add: nonzero_divide_eq_eq)
 done
 
 text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
-declare zero_less_divide_iff [of "1", simp]
-declare divide_less_0_iff [of "1", simp]
-declare zero_le_divide_iff [of "1", simp]
-declare divide_le_0_iff [of "1", simp]
+lemmas zero_less_divide_1_iff = zero_less_divide_iff [of "1"]
+lemmas divide_less_0_1_iff = divide_less_0_iff [of "1"]
+lemmas zero_le_divide_1_iff = zero_le_divide_iff [of "1"]
+lemmas divide_le_0_1_iff = divide_le_0_iff [of "1"]
+
+declare zero_less_divide_1_iff [simp]
+declare divide_less_0_1_iff [simp]
+declare zero_le_divide_1_iff [simp]
+declare divide_le_0_1_iff [simp]
 
 subsection {* Ordering Rules for Division *}
 

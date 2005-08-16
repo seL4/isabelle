@@ -284,7 +284,10 @@ lemma power3_eq_cube: "(x::'a::recpower) ^ 3 = x * x * x"
 done
 
 text{*Squares of literal numerals will be evaluated.*}
-declare power2_eq_square [of "number_of w", standard, simp]
+lemmas power2_eq_square_number_of =
+    power2_eq_square [of "number_of w", standard]
+declare power2_eq_square_number_of [simp]
+
 
 lemma zero_le_power2: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square zero_le_square)
@@ -543,7 +546,9 @@ by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def nat_power_eq
          split add: split_if cong: imp_cong)
 
 
-declare power_nat_number_of [of _ "number_of w", standard, simp]
+lemmas power_nat_number_of_number_of = power_nat_number_of [of _ "number_of w", standard]
+declare power_nat_number_of_number_of [simp]
+
 
 
 text{*For the integers*}
@@ -569,8 +574,14 @@ apply (rule_tac x = "number_of w" in spec, clarify)
 apply (auto simp add: nat_add_distrib nat_mult_distrib power_even_eq power2_eq_square neg_nat)
 done
 
-declare zpower_number_of_even [of "number_of v", standard, simp]
-declare zpower_number_of_odd  [of "number_of v", standard, simp]
+lemmas zpower_number_of_even_number_of =
+    zpower_number_of_even [of "number_of v", standard]
+declare zpower_number_of_even_number_of [simp]
+
+lemmas zpower_number_of_odd_number_of =
+    zpower_number_of_odd [of "number_of v", standard]
+declare zpower_number_of_odd_number_of [simp]
+
 
 
 

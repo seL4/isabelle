@@ -658,16 +658,20 @@ apply (simp add: compare_rls of_int le diff_int_def add minus
 done
 
 text{*Special cases where either operand is zero*}
-declare of_int_le_iff [of 0, simplified, simp]
-declare of_int_le_iff [of _ 0, simplified, simp]
+lemmas of_int_0_le_iff = of_int_le_iff [of 0, simplified]
+lemmas of_int_le_0_iff = of_int_le_iff [of _ 0, simplified]
+declare of_int_0_le_iff [simp]
+declare of_int_le_0_iff [simp]
 
 lemma of_int_less_iff [simp]:
      "(of_int w < (of_int z::'a::ordered_idom)) = (w < z)"
 by (simp add: linorder_not_le [symmetric])
 
 text{*Special cases where either operand is zero*}
-declare of_int_less_iff [of 0, simplified, simp]
-declare of_int_less_iff [of _ 0, simplified, simp]
+lemmas of_int_0_less_iff = of_int_less_iff [of 0, simplified]
+lemmas of_int_less_0_iff = of_int_less_iff [of _ 0, simplified]
+declare of_int_0_less_iff [simp]
+declare of_int_less_0_iff [simp]
 
 text{*The ordering on the @{text comm_ring_1} is necessary.
  See @{text of_nat_eq_iff} above.*}
@@ -676,8 +680,10 @@ lemma of_int_eq_iff [simp]:
 by (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
-declare of_int_eq_iff [of 0, simplified, simp]
-declare of_int_eq_iff [of _ 0, simplified, simp]
+lemmas of_int_0_eq_iff = of_int_eq_iff [of 0, simplified]
+lemmas of_int_eq_0_iff = of_int_eq_iff [of _ 0, simplified]
+declare of_int_0_eq_iff [simp]
+declare of_int_eq_0_iff [simp]
 
 lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
 proof
@@ -755,11 +761,6 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
 
 (* int (Suc n) = 1 + int n *)
 declare int_Suc [simp]
-
-text{*Simplification of @{term "x-y < 0"}, etc.*}
-declare less_iff_diff_less_0 [symmetric, simp]
-declare eq_iff_diff_eq_0 [symmetric, simp]
-declare le_iff_diff_le_0 [symmetric, simp]
 
 
 subsection{*More Properties of @{term setsum} and  @{term setprod}*}

@@ -303,8 +303,8 @@ subsection {* Rules and definitions *}
 text {* Isomorphisms between predicates and sets. *}
 
 axioms
-  mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
-  Collect_mem_eq [simp]: "{x. x:A} = A"
+  mem_Collect_eq: "(a : {x. P(x)}) = P(a)"
+  Collect_mem_eq: "{x. x:A} = A"
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
@@ -333,6 +333,8 @@ defs
 subsection {* Lemmas and proof tool setup *}
 
 subsubsection {* Relating predicates and sets *}
+
+declare mem_Collect_eq [iff]  Collect_mem_eq [simp]
 
 lemma CollectI: "P(a) ==> a : {x. P(x)}"
   by simp

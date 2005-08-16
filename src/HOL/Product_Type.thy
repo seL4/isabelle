@@ -269,7 +269,8 @@ lemma surjective_pairing: "p = (fst p, snd p)"
   -- {* Do not add as rewrite rule: invalidates some proofs in IMP *}
   by (cases p) simp
 
-declare surjective_pairing [symmetric, simp]
+lemmas pair_collapse = surjective_pairing [symmetric]
+declare pair_collapse [simp]
 
 lemma surj_pair [simp]: "EX x y. z = (x, y)"
   apply (rule exI)

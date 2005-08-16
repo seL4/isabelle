@@ -123,9 +123,9 @@ by arith
       i - j - k = i - (j + k),
       k \<le> j ==> j - k + i = j + i - k,
       k \<le> j ==> i + (j - k) = i + j - k *)
-declare diff_diff_left [simp] 
-        diff_add_assoc [symmetric, simp]
-        diff_add_assoc2[symmetric, simp]
+lemmas add_diff_assoc = diff_add_assoc [symmetric]
+lemmas add_diff_assoc2 = diff_add_assoc2[symmetric]
+declare diff_diff_left [simp]  add_diff_assoc [simp]  add_diff_assoc2[simp]
 
 text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
@@ -206,16 +206,20 @@ lemma of_nat_less_iff [simp]:
 by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
 
 text{*Special cases where either operand is zero*}
-declare of_nat_less_iff [of 0, simplified, simp]
-declare of_nat_less_iff [of _ 0, simplified, simp]
+lemmas of_nat_0_less_iff = of_nat_less_iff [of 0, simplified]
+lemmas of_nat_less_0_iff = of_nat_less_iff [of _ 0, simplified]
+declare of_nat_0_less_iff [simp]
+declare of_nat_less_0_iff [simp]
 
 lemma of_nat_le_iff [simp]:
      "(of_nat m \<le> (of_nat n::'a::ordered_semidom)) = (m \<le> n)"
 by (simp add: linorder_not_less [symmetric])
 
 text{*Special cases where either operand is zero*}
-declare of_nat_le_iff [of 0, simplified, simp]
-declare of_nat_le_iff [of _ 0, simplified, simp]
+lemmas of_nat_0_le_iff = of_nat_le_iff [of 0, simplified]
+lemmas of_nat_le_0_iff = of_nat_le_iff [of _ 0, simplified]
+declare of_nat_0_le_iff [simp]
+declare of_nat_le_0_iff [simp]
 
 text{*The ordering on the @{text comm_semiring_1_cancel} is necessary
 to exclude the possibility of a finite field, which indeed wraps back to
@@ -225,8 +229,10 @@ lemma of_nat_eq_iff [simp]:
 by (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
-declare of_nat_eq_iff [of 0, simplified, simp]
-declare of_nat_eq_iff [of _ 0, simplified, simp]
+lemmas of_nat_0_eq_iff = of_nat_eq_iff [of 0, simplified]
+lemmas of_nat_eq_0_iff = of_nat_eq_iff [of _ 0, simplified]
+declare of_nat_0_eq_iff [simp]
+declare of_nat_eq_0_iff [simp]
 
 lemma of_nat_diff [simp]:
      "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::comm_ring_1)"

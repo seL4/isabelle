@@ -151,8 +151,14 @@ by (simp add: Suc3_eq_add_3)
 lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
 by (simp add: Suc3_eq_add_3)
 
-declare Suc_div_eq_add3_div [of _ "number_of v", standard, simp]
-declare Suc_mod_eq_add3_mod [of _ "number_of v", standard, simp]
+lemmas Suc_div_eq_add3_div_number_of =
+    Suc_div_eq_add3_div [of _ "number_of v", standard]
+declare Suc_div_eq_add3_div_number_of [simp]
+
+lemmas Suc_mod_eq_add3_mod_number_of =
+    Suc_mod_eq_add3_mod [of _ "number_of v", standard]
+declare Suc_mod_eq_add3_mod_number_of [simp]
+
 
 
 subsection{*Special Simplification for Constants*}
@@ -162,17 +168,39 @@ interfering with proofs of abstract properties of instances of the function
 @{term number_of}*}
 
 text{*These distributive laws move literals inside sums and differences.*}
-declare left_distrib [of _ _ "number_of v", standard, simp]
-declare right_distrib [of "number_of v", standard, simp]
+lemmas left_distrib_number_of = left_distrib [of _ _ "number_of v", standard]
+declare left_distrib_number_of [simp]
 
-declare left_diff_distrib [of _ _ "number_of v", standard, simp]
-declare right_diff_distrib [of "number_of v", standard, simp]
+lemmas right_distrib_number_of = right_distrib [of "number_of v", standard]
+declare right_distrib_number_of [simp]
+
+
+lemmas left_diff_distrib_number_of =
+    left_diff_distrib [of _ _ "number_of v", standard]
+declare left_diff_distrib_number_of [simp]
+
+lemmas right_diff_distrib_number_of =
+    right_diff_distrib [of "number_of v", standard]
+declare right_diff_distrib_number_of [simp]
+
 
 text{*These are actually for fields, like real: but where else to put them?*}
-declare zero_less_divide_iff [of "number_of w", standard, simp]
-declare divide_less_0_iff [of "number_of w", standard, simp]
-declare zero_le_divide_iff [of "number_of w", standard, simp]
-declare divide_le_0_iff [of "number_of w", standard, simp]
+lemmas zero_less_divide_iff_number_of =
+    zero_less_divide_iff [of "number_of w", standard]
+declare zero_less_divide_iff_number_of [simp]
+
+lemmas divide_less_0_iff_number_of =
+    divide_less_0_iff [of "number_of w", standard]
+declare divide_less_0_iff_number_of [simp]
+
+lemmas zero_le_divide_iff_number_of =
+    zero_le_divide_iff [of "number_of w", standard]
+declare zero_le_divide_iff_number_of [simp]
+
+lemmas divide_le_0_iff_number_of =
+    divide_le_0_iff [of "number_of w", standard]
+declare divide_le_0_iff_number_of [simp]
+
 
 (****
 IF times_divide_eq_right and times_divide_eq_left are removed as simprules,
@@ -185,51 +213,119 @@ by (simp add: times_divide_eq)
 lemma times_recip_eq_left [simp]: "(1/c) * a = a / (c::'a::field)"
 by (simp add: times_divide_eq)
 
-declare times_divide_eq_right [of "number_of w", standard, simp]
-declare times_divide_eq_right [of _ _ "number_of w", standard, simp]
-declare times_divide_eq_left [of _ "number_of w", standard, simp]
-declare times_divide_eq_left [of _ _ "number_of w", standard, simp]
+lemmas times_divide_eq_right_number_of =
+    times_divide_eq_right [of "number_of w", standard]
+declare times_divide_eq_right_number_of [simp]
+
+lemmas times_divide_eq_right_number_of =
+    times_divide_eq_right [of _ _ "number_of w", standard]
+declare times_divide_eq_right_number_of [simp]
+
+lemmas times_divide_eq_left_number_of =
+    times_divide_eq_left [of _ "number_of w", standard]
+declare times_divide_eq_left_number_of [simp]
+
+lemmas times_divide_eq_left_number_of =
+    times_divide_eq_left [of _ _ "number_of w", standard]
+declare times_divide_eq_left_number_of [simp]
+
 ****)
 
 text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
   strange, but then other simprocs simplify the quotient.*}
 
-declare inverse_eq_divide [of "number_of w", standard, simp]
+lemmas inverse_eq_divide_number_of =
+    inverse_eq_divide [of "number_of w", standard]
+declare inverse_eq_divide_number_of [simp]
+
 
 text{*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
-declare less_minus_iff [of "number_of v", standard, simp]
-declare le_minus_iff [of "number_of v", standard, simp]
-declare equation_minus_iff [of "number_of v", standard, simp]
+lemmas less_minus_iff_number_of =
+    less_minus_iff [of "number_of v", standard]
+declare less_minus_iff_number_of [simp]
 
-declare minus_less_iff [of _ "number_of v", standard, simp]
-declare minus_le_iff [of _ "number_of v", standard, simp]
-declare minus_equation_iff [of _ "number_of v", standard, simp]
+lemmas le_minus_iff_number_of =
+    le_minus_iff [of "number_of v", standard]
+declare le_minus_iff_number_of [simp]
+
+lemmas equation_minus_iff_number_of =
+    equation_minus_iff [of "number_of v", standard]
+declare equation_minus_iff_number_of [simp]
+
+
+lemmas minus_less_iff_number_of =
+    minus_less_iff [of _ "number_of v", standard]
+declare minus_less_iff_number_of [simp]
+
+lemmas minus_le_iff_number_of =
+    minus_le_iff [of _ "number_of v", standard]
+declare minus_le_iff_number_of [simp]
+
+lemmas minus_equation_iff_number_of =
+    minus_equation_iff [of _ "number_of v", standard]
+declare minus_equation_iff_number_of [simp]
+
 
 text{*These simplify inequalities where one side is the constant 1.*}
-declare less_minus_iff [of 1, simplified, simp]
-declare le_minus_iff [of 1, simplified, simp]
-declare equation_minus_iff [of 1, simplified, simp]
+lemmas less_minus_iff_1 = less_minus_iff [of 1, simplified]
+declare less_minus_iff_1 [simp]
 
-declare minus_less_iff [of _ 1, simplified, simp]
-declare minus_le_iff [of _ 1, simplified, simp]
-declare minus_equation_iff [of _ 1, simplified, simp]
+lemmas le_minus_iff_1 = le_minus_iff [of 1, simplified]
+declare le_minus_iff_1 [simp]
+
+lemmas equation_minus_iff_1 = equation_minus_iff [of 1, simplified]
+declare equation_minus_iff_1 [simp]
+
+lemmas minus_less_iff_1 = minus_less_iff [of _ 1, simplified]
+declare minus_less_iff_1 [simp]
+
+lemmas minus_le_iff_1 = minus_le_iff [of _ 1, simplified]
+declare minus_le_iff_1 [simp]
+
+lemmas minus_equation_iff_1 = minus_equation_iff [of _ 1, simplified]
+declare minus_equation_iff_1 [simp]
+
 
 text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
-declare mult_less_cancel_left [of "number_of v", standard, simp]
-declare mult_less_cancel_right [of _ "number_of v", standard, simp]
-declare mult_le_cancel_left [of "number_of v", standard, simp]
-declare mult_le_cancel_right [of _ "number_of v", standard, simp]
+lemmas mult_less_cancel_left_number_of =
+    mult_less_cancel_left [of "number_of v", standard]
+declare mult_less_cancel_left_number_of [simp]
+
+lemmas mult_less_cancel_right_number_of =
+    mult_less_cancel_right [of _ "number_of v", standard]
+declare mult_less_cancel_right_number_of [simp]
+
+lemmas mult_le_cancel_left_number_of =
+    mult_le_cancel_left [of "number_of v", standard]
+declare mult_le_cancel_left_number_of [simp]
+
+lemmas mult_le_cancel_right_number_of =
+    mult_le_cancel_right [of _ "number_of v", standard]
+declare mult_le_cancel_right_number_of [simp]
+
 
 text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
-declare le_divide_eq [of _ _ "number_of w", standard, simp]
-declare divide_le_eq [of _ "number_of w", standard, simp]
-declare less_divide_eq [of _ _ "number_of w", standard, simp]
-declare divide_less_eq [of _ "number_of w", standard, simp]
-declare eq_divide_eq [of _ _ "number_of w", standard, simp]
-declare divide_eq_eq [of _ "number_of w", standard, simp]
+lemmas le_divide_eq_number_of = le_divide_eq [of _ _ "number_of w", standard]
+declare le_divide_eq_number_of [simp]
+
+lemmas divide_le_eq_number_of = divide_le_eq [of _ "number_of w", standard]
+declare divide_le_eq_number_of [simp]
+
+lemmas less_divide_eq_number_of = less_divide_eq [of _ _ "number_of w", standard]
+declare less_divide_eq_number_of [simp]
+
+lemmas divide_less_eq_number_of = divide_less_eq [of _ "number_of w", standard]
+declare divide_less_eq_number_of [simp]
+
+lemmas eq_divide_eq_number_of = eq_divide_eq [of _ _ "number_of w", standard]
+declare eq_divide_eq_number_of [simp]
+
+lemmas divide_eq_eq_number_of = divide_eq_eq [of _ "number_of w", standard]
+declare divide_eq_eq_number_of [simp]
+
 
 
 subsection{*Optional Simplification Rules Involving Constants*}

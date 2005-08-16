@@ -456,18 +456,48 @@ by (simp add: mod_def divAlg_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
 
-declare div_pos_pos [of "number_of v" "number_of w", standard, simp]
-declare div_neg_pos [of "number_of v" "number_of w", standard, simp]
-declare div_pos_neg [of "number_of v" "number_of w", standard, simp]
-declare div_neg_neg [of "number_of v" "number_of w", standard, simp]
+lemmas div_pos_pos_number_of =
+    div_pos_pos [of "number_of v" "number_of w", standard]
+declare div_pos_pos_number_of [simp]
 
-declare mod_pos_pos [of "number_of v" "number_of w", standard, simp]
-declare mod_neg_pos [of "number_of v" "number_of w", standard, simp]
-declare mod_pos_neg [of "number_of v" "number_of w", standard, simp]
-declare mod_neg_neg [of "number_of v" "number_of w", standard, simp]
+lemmas div_neg_pos_number_of =
+    div_neg_pos [of "number_of v" "number_of w", standard]
+declare div_neg_pos_number_of [simp]
 
-declare posDivAlg_eqn [of "number_of v" "number_of w", standard, simp]
-declare negDivAlg_eqn [of "number_of v" "number_of w", standard, simp]
+lemmas div_pos_neg_number_of =
+    div_pos_neg [of "number_of v" "number_of w", standard]
+declare div_pos_neg_number_of [simp]
+
+lemmas div_neg_neg_number_of =
+    div_neg_neg [of "number_of v" "number_of w", standard]
+declare div_neg_neg_number_of [simp]
+
+
+lemmas mod_pos_pos_number_of =
+    mod_pos_pos [of "number_of v" "number_of w", standard]
+declare mod_pos_pos_number_of [simp]
+
+lemmas mod_neg_pos_number_of =
+    mod_neg_pos [of "number_of v" "number_of w", standard]
+declare mod_neg_pos_number_of [simp]
+
+lemmas mod_pos_neg_number_of =
+    mod_pos_neg [of "number_of v" "number_of w", standard]
+declare mod_pos_neg_number_of [simp]
+
+lemmas mod_neg_neg_number_of =
+    mod_neg_neg [of "number_of v" "number_of w", standard]
+declare mod_neg_neg_number_of [simp]
+
+
+lemmas posDivAlg_eqn_number_of =
+    posDivAlg_eqn [of "number_of v" "number_of w", standard]
+declare posDivAlg_eqn_number_of [simp]
+
+lemmas negDivAlg_eqn_number_of =
+    negDivAlg_eqn [of "number_of v" "number_of w", standard]
+declare negDivAlg_eqn_number_of [simp]
+
 
 
 text{*Special-case simplification *}
@@ -493,13 +523,31 @@ by (cut_tac a = a and b = "-1" in zmod_zdiv_equality, auto)
 (** The last remaining special cases for constant arithmetic:
     1 div z and 1 mod z **)
 
-declare div_pos_pos [OF int_0_less_1, of "number_of w", standard, simp]
-declare div_pos_neg [OF int_0_less_1, of "number_of w", standard, simp]
-declare mod_pos_pos [OF int_0_less_1, of "number_of w", standard, simp]
-declare mod_pos_neg [OF int_0_less_1, of "number_of w", standard, simp]
+lemmas div_pos_pos_1_number_of =
+    div_pos_pos [OF int_0_less_1, of "number_of w", standard]
+declare div_pos_pos_1_number_of [simp]
 
-declare posDivAlg_eqn [of concl: 1 "number_of w", standard, simp]
-declare negDivAlg_eqn [of concl: 1 "number_of w", standard, simp]
+lemmas div_pos_neg_1_number_of =
+    div_pos_neg [OF int_0_less_1, of "number_of w", standard]
+declare div_pos_neg_1_number_of [simp]
+
+lemmas mod_pos_pos_1_number_of =
+    mod_pos_pos [OF int_0_less_1, of "number_of w", standard]
+declare mod_pos_pos_1_number_of [simp]
+
+lemmas mod_pos_neg_1_number_of =
+    mod_pos_neg [OF int_0_less_1, of "number_of w", standard]
+declare mod_pos_neg_1_number_of [simp]
+
+
+lemmas posDivAlg_eqn_1_number_of =
+    posDivAlg_eqn [of concl: 1 "number_of w", standard]
+declare posDivAlg_eqn_1_number_of [simp]
+
+lemmas negDivAlg_eqn_1_number_of =
+    negDivAlg_eqn [of concl: 1 "number_of w", standard]
+declare negDivAlg_eqn_1_number_of [simp]
+
 
 
 subsection{*Monotonicity in the First Argument (Dividend)*}

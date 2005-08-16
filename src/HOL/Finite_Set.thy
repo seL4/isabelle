@@ -2256,14 +2256,17 @@ interpretation min_max:
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}
 
-(* Making Min (resp. Max) a defined parameter of a locale suitably
-  extending ACIf could make the following interpretations more automatic. *)
+(* Making Min or Max a defined parameter of a locale, suitably
+  extending ACIf, could make the following interpretations more automatic. *)
 
-declare
-  fold1_singleton_def[OF Min_def, simp]
-  min.fold1_insert_idem_def[OF Min_def, simp]
-  fold1_singleton_def[OF Max_def, simp]
-  max.fold1_insert_idem_def[OF Max_def, simp]
+lemmas Min_singleton = fold1_singleton_def [OF Min_def]
+lemmas Max_singleton = fold1_singleton_def [OF Max_def]
+lemmas Min_insert = min.fold1_insert_idem_def [OF Min_def]
+lemmas Max_insert = max.fold1_insert_idem_def [OF Max_def]
+
+declare Min_singleton [simp]  Max_singleton [simp]
+declare Min_insert [simp]  Max_insert [simp]
+
 
 text{* Now we instantiate some @{text fold1} properties: *}
 

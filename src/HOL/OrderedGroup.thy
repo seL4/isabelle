@@ -1021,6 +1021,15 @@ proof -
   show ?thesis by (rule le_add_right_mono[OF 2 3])
 qed
 
+text{*Simplification of @{term "x-y < 0"}, etc.*}
+lemmas diff_less_0_iff_less = less_iff_diff_less_0 [symmetric]
+lemmas diff_eq_0_iff_eq = eq_iff_diff_eq_0 [symmetric]
+lemmas diff_le_0_iff_le = le_iff_diff_le_0 [symmetric]
+declare diff_less_0_iff_less [simp]
+declare diff_eq_0_iff_eq [simp]
+declare diff_le_0_iff_le [simp]
+
+
 ML {*
 val add_zero_left = thm"add_0";
 val add_zero_right = thm"add_0_right";

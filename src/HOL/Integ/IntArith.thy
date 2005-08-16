@@ -182,7 +182,9 @@ done
 
 text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
-declare int_eq_iff [of _ "number_of v", standard, simp]
+lemmas int_eq_iff_number_of = int_eq_iff [of _ "number_of v", standard]
+declare int_eq_iff_number_of [simp]
+
 
 lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"

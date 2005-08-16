@@ -460,7 +460,7 @@ apply (simp_all (no_asm_simp))
 done
 
 (* Similar for "less than" *) 
-lemma div_less_dividend [rule_format, simp]:
+lemma div_less_dividend [rule_format]:
      "!!n::nat. 1<n ==> 0 < m --> m div n < m"
 apply (induct_tac m rule: nat_less_induct)
 apply (rename_tac "m")
@@ -474,6 +474,8 @@ apply (case_tac "n<m")
 apply assumption
   apply (simp_all)
 done
+
+declare div_less_dividend [simp]
 
 text{*A fact for the mutilated chess board*}
 lemma mod_Suc: "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))"

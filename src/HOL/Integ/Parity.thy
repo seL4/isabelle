@@ -367,14 +367,35 @@ done
 
 (* Simplify, when the exponent is a numeral *)
 
-declare power_0_left [of "number_of w", standard, simp]
-declare zero_le_power_eq [of _ "number_of w", standard, simp]
-declare zero_less_power_eq [of _ "number_of w", standard, simp]
-declare power_le_zero_eq [of _ "number_of w", standard, simp]
-declare power_less_zero_eq [of _ "number_of w", standard, simp]
-declare zero_less_power_nat_eq [of _ "number_of w", standard, simp]
-declare power_eq_0_iff [of _ "number_of w", standard, simp]
-declare power_even_abs [of "number_of w" _, standard, simp]
+lemmas power_0_left_number_of = power_0_left [of "number_of w", standard]
+declare power_0_left_number_of [simp]
+
+lemmas zero_le_power_eq_number_of =
+    zero_le_power_eq [of _ "number_of w", standard]
+declare zero_le_power_eq_number_of [simp]
+
+lemmas zero_less_power_eq_number_of =
+    zero_less_power_eq [of _ "number_of w", standard]
+declare zero_less_power_eq_number_of [simp]
+
+lemmas power_le_zero_eq_number_of =
+    power_le_zero_eq [of _ "number_of w", standard]
+declare power_le_zero_eq_number_of [simp]
+
+lemmas power_less_zero_eq_number_of =
+    power_less_zero_eq [of _ "number_of w", standard]
+declare power_less_zero_eq_number_of [simp]
+
+lemmas zero_less_power_nat_eq_number_of =
+    zero_less_power_nat_eq [of _ "number_of w", standard]
+declare zero_less_power_nat_eq_number_of [simp]
+
+lemmas power_eq_0_iff_number_of = power_eq_0_iff [of _ "number_of w", standard]
+declare power_eq_0_iff_number_of [simp]
+
+lemmas power_even_abs_number_of = power_even_abs [of "number_of w" _, standard]
+declare power_even_abs_number_of [simp]
+
 
 subsection {* An Equivalence for @{term "0 \<le> a^n"} *}
 
