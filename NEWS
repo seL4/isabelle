@@ -51,12 +51,25 @@ displayed properly, everything else is left verbatim.  isatool display
 and isatool print are used as front ends (these are subject to the
 DVI/PDF_VIEWER and PRINT_COMMAND settings, respectively).
 
-* There is now a flag to control hiding of proofs and some other
-commands (such as 'ML' or 'parse/print_translation') in document
-output.  Hiding is enabled by default, and can be disabled by the
-option '-H false' of isatool usedir or by resetting the reference
-variable IsarOutput.hide_commands in ML.  Additional commands to be
-hidden may be declared using IsarOutput.add_hidden_commands.
+* Command tags control specific markup of certain regions of text,
+notably folding and hiding.  Predefined tags include "theory" (for
+theory begin and end), "proof" for proof commands, and "ML" for
+commands involving ML code; the additional tags "visible" and
+"invisible" are unused by default.  Users may give explicit tag
+specifications in the text, e.g. ''by %invisible (auto)''.  The
+interpretation of tags is determined by the LaTeX job during document
+preparation: see option -V of isatool usedir, or options -n and -t of
+isatool document, or even the LaTeX macros \isakeeptag, \isafoldtag,
+\isadroptag.
+
+Several document versions may be produced at the same time via isatool
+usedir (the generated index.html will link all of them).  Typical
+specifications include ''-V document=theory,proof,ML'' to present
+theory/proof/ML parts faithfully, ''-V outline=/proof,/ML'' to fold
+proof and ML commands, and ''-V mutilated=-theory,-proof,-ML'' to omit
+these parts without any formal replacement text.  The Isabelle site
+default settings produce ''document'' and ''outline'' versions as
+specified above.
 
 * Several new antiquotation:
 
