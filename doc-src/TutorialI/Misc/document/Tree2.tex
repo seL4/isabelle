@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Tree{\isadigit{2}}}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent In Exercise~\ref{ex:Tree} we defined a function
@@ -10,20 +23,52 @@
 quadratic. A linear time version of \isa{flatten} again reqires an extra
 argument, the accumulator:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{consts}\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{consts}\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Define \isa{flatten{\isadigit{2}}} and prove%
 \end{isamarkuptext}%
-\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequote}\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

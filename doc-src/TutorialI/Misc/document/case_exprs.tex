@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{case{\isacharunderscore}exprs}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsubsection{Case Expressions%
 }
@@ -64,10 +77,16 @@ it works for any datatype.  In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices.  This is performed
 by \methdx{case_tac}.  Here is a trivial example:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -79,9 +98,15 @@ results in the proof state
 \end{isabelle}
 which is solved automatically:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Note that we do not need to give a lemma a name if we do not intend to refer
@@ -102,8 +127,19 @@ simplification, so no special methods are provided for them.
   \isa{xs} in the goal.
 \end{warn}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

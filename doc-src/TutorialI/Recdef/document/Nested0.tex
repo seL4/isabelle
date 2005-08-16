@@ -1,14 +1,27 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{0}}}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{datatypes!nested}%
 In \S\ref{sec:nested-datatype} we defined the datatype of terms%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}a\ {\isacharbar}\ App\ {\isacharprime}b\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}a\ {\isacharbar}\ App\ {\isacharprime}b\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -21,9 +34,20 @@ We will now show you how \isacommand{recdef} can simplify
 definitions and proofs about nested recursive datatypes. As an example we
 choose exercise~\ref{ex:trev-trev}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{consts}\ trev\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{consts}\ trev\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

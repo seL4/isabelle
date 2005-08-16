@@ -1,17 +1,28 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Option{\isadigit{2}}}%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \indexbold{*option (type)}\indexbold{*None (constant)}%
 \indexbold{*Some (constant)}
 Our final datatype is very simple but still eminently useful:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -25,8 +36,19 @@ customized constructors like \isa{Error} and \isa{Infinity},
 but it is often simpler to use \isa{option}. For an application see
 \S\ref{sec:Trie}.%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Overloading{\isadigit{1}}}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{Controlled Overloading with Type Classes%
 }
@@ -13,8 +26,8 @@ in terms of the two binary symbols \isa{{\isacharless}{\isacharless}} and \isa{{
 to avoid clashes with \isa{{\isacharless}} and \isa{{\isacharless}{\isacharequal}} in theory \isa{Main}. To restrict the application of \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} we
 introduce the class \isa{ordrel}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{axclass}\ ordrel\ {\isacharless}\ type\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{axclass}\ ordrel\ {\isacharless}\ type\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -25,9 +38,9 @@ This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ less\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharless}{\isacharless}{\isachardoublequote}\ \ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ le\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharless}{\isacharless}{\isacharequal}{\isachardoublequote}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isamarkupfalse%
+\ \ \ \ \ \ \ le\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharless}{\isacharless}{\isacharequal}{\isachardoublequote}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -39,8 +52,14 @@ So far there are no types of class \isa{ordrel}. To breathe life
 into \isa{ordrel} we need to declare a type to be an \bfindex{instance} of
 \isa{ordrel}:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ ordrel%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ ordrel\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -49,8 +68,15 @@ Command \isacommand{instance} actually starts a proof, namely that
 There are none, but we still need to finish that proof, which we do
 by invoking the \methdx{intro_classes} method:%
 \end{isamarkuptxt}%
+\isamarkupfalse%
+\isacommand{by}\ intro{\isacharunderscore}classes%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isacommand{by}\ intro{\isacharunderscore}classes\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -60,19 +86,32 @@ in the context of proper axiomatic type classes.
 Although terms like \isa{False\ {\isacharless}{\isacharless}{\isacharequal}\ P} are now legal, we still need to say
 what the relation symbols actually mean at type \isa{bool}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 le{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequote}P\ {\isacharless}{\isacharless}{\isacharequal}\ Q\ {\isasymequiv}\ P\ {\isasymlongrightarrow}\ Q{\isachardoublequote}\isanewline
-less{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}P\ {\isacharless}{\isacharless}\ Q\ {\isasymequiv}\ {\isasymnot}P\ {\isasymand}\ Q{\isachardoublequote}\isamarkupfalse%
+less{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}P\ {\isacharless}{\isacharless}\ Q\ {\isasymequiv}\ {\isasymnot}P\ {\isasymand}\ Q{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Now \isa{False\ {\isacharless}{\isacharless}{\isacharequal}\ P} is provable:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}False\ {\isacharless}{\isacharless}{\isacharequal}\ P{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}False\ {\isacharless}{\isacharless}{\isacharequal}\ P{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -80,8 +119,19 @@ At this point, \isa{{\isacharbrackleft}{\isacharbrackright}\ {\isacharless}{\isa
 To make it well-typed,
 we need to make lists a type of class \isa{ordrel}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

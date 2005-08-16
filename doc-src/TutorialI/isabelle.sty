@@ -149,6 +149,7 @@
 \renewcommand{\isachargreater}{\isamath{>}}%
 \renewcommand{\isacharat}{\isamath{@}}%
 \renewcommand{\isacharbrackleft}{\isamath{[}}%
+\renewcommand{\isacharbackslash}{\isamath{\backslash}}%
 \renewcommand{\isacharbrackright}{\isamath{]}}%
 \renewcommand{\isacharunderscore}{\mbox{-}}%
 \renewcommand{\isacharbraceleft}{\isamath{\{}}%
@@ -163,3 +164,28 @@
 \renewcommand{\isastyleminor}{\sl}%
 \renewcommand{\isastylescript}{\footnotesize\sl}%
 }
+
+
+% tagged regions
+
+%plain TeX version of comment package -- much faster!
+\let\isafmtname\fmtname\def\fmtname{plain}
+\usepackage{comment}
+\let\fmtname\isafmtname
+
+\newcommand{\isafold}[1]{\emph{$\langle\mathord{\mathit{#1}}\rangle$}}
+
+\newcommand{\isakeeptag}[1]%
+{\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isadroptag}[1]%
+{\excludecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isafoldtag}[1]%
+{\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
+
+\isakeeptag{theory}
+\isakeeptag{proof}
+\isakeeptag{ML}
+\isakeeptag{visible}
+\isadroptag{invisible}
+
+\IfFileExists{isabelletags.sty}{\usepackage{isabelletags}}{}

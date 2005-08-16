@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{AB}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsection{Case Study: A Context Free Grammar%
 }
@@ -28,27 +41,40 @@ the original proof \cite[p.\ts81]{HopcroftUllman} and our formal version.
 We start by fixing the alphabet, which consists only of \isa{a}'s
 and~\isa{b}'s:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 For convenience we include the following easy lemmas as simplification rules:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}x\ {\isasymnoteq}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}x\ {\isasymnoteq}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharcomma}\ auto{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Words over this alphabet are of type \isa{alfa\ list}, and
 the three nonterminals are declared as sets of such words:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ S\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}alfa\ list\ set{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -56,7 +82,7 @@ The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
 of \isa{S}, \isa{A} and~\isa{B}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{inductive}\ S\ A\ B\isanewline
 \isakeyword{intros}\isanewline
 \ \ {\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}\ {\isasymin}\ S{\isachardoublequote}\isanewline
@@ -67,7 +93,7 @@ of \isa{S}, \isa{A} and~\isa{B}:%
 \ \ {\isachardoublequote}{\isasymlbrakk}\ v{\isasymin}A{\isacharsemicolon}\ w{\isasymin}A\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ b{\isacharhash}v{\isacharat}w\ {\isasymin}\ A{\isachardoublequote}\isanewline
 \isanewline
 \ \ {\isachardoublequote}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ b{\isacharhash}w\ \ \ {\isasymin}\ B{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequote}\isamarkupfalse%
+\ \ {\isachardoublequote}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -75,11 +101,17 @@ First we show that all words in \isa{S} contain the same number of \isa{a}'s and
 induction, so is the proof: we show at the same time that all words in
 \isa{A} contain one more \isa{a} than \isa{b} and all words in \isa{B} contains one more \isa{b} than \isa{a}.%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ correctness{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}w\ {\isasymin}\ S\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isasymand}\isanewline
 \ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -88,8 +120,15 @@ holds. Remember that on lists \isa{size} and \isa{length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:%
 \end{isamarkuptxt}%
+\isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isacommand{by}\ {\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}induct{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -125,10 +164,16 @@ and \isa{b}'s to an arbitrary property \isa{P}. Otherwise we would have
 to prove the desired lemma twice, once as stated above and once with the
 roles of \isa{a}'s and \isa{b}'s interchanged.%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i\ {\isacharless}\ size\ w{\isachardot}\isanewline
 \ \ {\isasymbar}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
+\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -143,20 +188,33 @@ The proof is by induction on \isa{w}, with a trivial base case, and a not
 so trivial induction step. Since it is essentially just arithmetic, we do not
 discuss it.%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ abs{\isacharunderscore}if\ take{\isacharunderscore}Cons\ split{\isacharcolon}\ nat{\isachardot}split{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ part{\isadigit{1}}{\isacharcolon}\isanewline
 \ {\isachardoublequote}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
-\ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
+\ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -164,10 +222,17 @@ This is proved by \isa{force} with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 \isa{step{\isadigit{1}}}:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{by}\ force\isamarkupfalse%
+\isacommand{by}\ force%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -175,14 +240,27 @@ instantiated appropriately and with its first premise disposed of by lemma
 Lemma \isa{part{\isadigit{1}}} tells us only about the prefix \isa{take\ i\ w}.
 An easy lemma deals with the suffix \isa{drop\ i\ w}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ part{\isadigit{2}}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymlbrakk}size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\isanewline
 \ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}{\isacharsemicolon}\isanewline
 \ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isasymrbrakk}\isanewline
 \ \ \ {\isasymLongrightarrow}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -199,8 +277,8 @@ to allow the simplifier to apply the following lemma instead:
 To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{declare}\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharbrackleft}simp{\isacharbrackright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{declare}\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharbrackleft}simp{\isacharbrackright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -210,11 +288,17 @@ The completeness theorem tells us that if a word has the same number of
 \isa{a}'s and \isa{b}'s, then it is in \isa{S}, and similarly 
 for \isa{A} and \isa{B}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{theorem}\ completeness{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
 \ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -223,9 +307,8 @@ because, as we can see from the grammar, we need to make bigger steps than
 merely appending a single letter at the front. Hence we induct on the length
 of \isa{w}, using the induction rule \isa{length{\isacharunderscore}induct}:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -237,11 +320,10 @@ holds for all words shorter than \isa{w}.
 The proof continues with a case distinction on \isa{w},
 on whether \isa{w} is empty or not.%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -256,14 +338,14 @@ We only consider the first case in detail.
 After breaking the conjunction up into two cases, we can apply
 \isa{part{\isadigit{1}}} to the assumption that \isa{w} contains two more \isa{a}'s than \isa{b}'s.%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
 \ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -276,18 +358,18 @@ With the help of \isa{part{\isadigit{2}}} it follows that
 \ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\ \isamarkuptrue%
+\ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
 Now it is time to decompose \isa{v} in the conclusion \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}
 into \isa{take\ i\ v\ {\isacharat}\ drop\ i\ v},%
 \end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isamarkupfalse%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -296,21 +378,21 @@ theorems \isa{subst} and \isa{append{\isacharunderscore}take{\isacharunderscore}
 after which the appropriate rule of the grammar reduces the goal
 to the two subgoals \isa{take\ i\ v\ {\isasymin}\ A} and \isa{drop\ i\ v\ {\isasymin}\ A}:%
 \end{isamarkuptxt}%
-\ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isamarkupfalse%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 Both subgoals follow from the induction hypothesis because both \isa{take\ i\ v} and \isa{drop\ i\ v} are shorter than \isa{w}:%
 \end{isamarkuptxt}%
-\ \ \isamarkuptrue%
+\ \ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}force\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}force\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
@@ -327,7 +409,14 @@ The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 We conclude this section with a comparison of our proof with 
@@ -354,8 +443,19 @@ cases.  Such errors are found in many pen-and-paper proofs when they
 are scrutinized formally.%
 \index{grammars!defining inductively|)}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

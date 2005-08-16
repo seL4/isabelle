@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{simp}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsubsection{Simplification Rules%
 }
@@ -111,12 +124,25 @@ laws:
 By default, assumptions are part of the simplification process: they are used
 as simplification rules and are simplified themselves. For example:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ xs\ {\isacharat}\ zs\ {\isacharequal}\ ys\ {\isacharat}\ xs{\isacharsemicolon}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ zs{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
 \isacommand{apply}\ simp\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -126,8 +152,14 @@ conclusion to \isa{ys\ {\isacharequal}\ ys} and hence to \isa{True}.
 
 In some cases, using the assumptions can lead to nontermination:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -137,10 +169,17 @@ the assumption.  (Isabelle notices certain simple forms of
 nontermination but not this one.)  The problem can be circumvented by
 telling the simplifier to ignore the assumptions:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -188,24 +227,30 @@ only the proofs of the abstract properties will be affected.
 
 For example, given%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{constdefs}\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 we may want to prove%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}xor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}xor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
 Typically, we begin by unfolding some definitions:
 \indexbold{definitions!unfolding}%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -215,11 +260,28 @@ In this particular case, the resulting goal
 \end{isabelle}
 can be proved by simplification. Thus we could have proved the lemma outright by%
 \end{isamarkuptxt}%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -252,20 +314,33 @@ Proving a goal containing \isa{let}-expressions almost invariably requires the
 the predefined constant \isa{Let}, expanding \isa{let}-constructs
 means rewriting with \tdx{Let_def}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}let\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ in\ xs{\isacharat}ys{\isacharat}xs{\isacharparenright}\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 If, in a particular context, there is no danger of a combinatorial explosion
 of nested \isa{let}s, you could even simplify with \isa{Let{\isacharunderscore}def} by
 default:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{declare}\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{declare}\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}\isamarkuptrue%
 %
 \isamarkupsubsection{Conditional Simplification Rules%
 }
@@ -276,12 +351,25 @@ default:%
 So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ hd{\isacharunderscore}Cons{\isacharunderscore}tl{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ \ {\isasymLongrightarrow}\ \ hd\ xs\ {\isacharhash}\ tl\ xs\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -291,9 +379,21 @@ sequence of methods. Assuming that the simplification rule
 is present as well,
 the lemma below is proved by plain simplification:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -315,15 +415,21 @@ Goals containing \isa{if}-expressions\index{*if expressions!splitting of}
 are usually proved by case
 distinction on the boolean condition.  Here is an example:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}xs{\isachardot}\ if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}xs{\isachardot}\ if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
 The goal can be split by a special method, \methdx{split}:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -339,11 +445,23 @@ on the initial goal above.
 This splitting idea generalizes from \isa{if} to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}split\ list{\isachardot}split{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}split\ list{\isachardot}split{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
@@ -358,11 +476,28 @@ Instead, the simplifier has a modifier
 for adding splitting rules explicitly.  The
 lemma above can be proved in one step by%
 \end{isamarkuptxt}%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -372,25 +507,36 @@ Every datatype $t$ comes with a theorem
 $t$\isa{{\isachardot}split} which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \attrdx{split} attribute globally:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split{\isacharbrackright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split{\isacharbrackright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 The \isa{split} attribute can be removed with the \isa{del} modifier,
 either locally%
 \end{isamarkuptext}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 or globally:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split\ del{\isacharbrackright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split\ del{\isacharbrackright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Polished proofs typically perform splitting within \isa{simp} rather than 
@@ -404,10 +550,16 @@ conclusion.  If you want to split an \isa{if} or \isa{case}-expression
 in the assumptions, you have to apply \tdx{split_if_asm} or
 $t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -431,8 +583,14 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
   cases or it is split.
 \end{warn}%
 \end{isamarkuptxt}%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isamarkupsubsection{Tracing%
 }
@@ -443,11 +601,23 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
 Using the simplifier effectively may take a bit of experimentation.  Set the
 Proof General flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Simplifier} to get a better idea of what is going on:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}rev\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -583,8 +753,19 @@ through previous searches and just modify them. This saves you having
 to type in lengthy expressions again and again.
 \end{pgnote}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

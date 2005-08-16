@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Ifexpr}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsubsection{Case Study: Boolean Expressions%
 }
@@ -24,9 +37,9 @@ We want to represent boolean expressions built up from variables and
 constants by negation and conjunction. The following datatype serves exactly
 that purpose:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{datatype}\ boolex\ {\isacharequal}\ Const\ bool\ {\isacharbar}\ Var\ nat\ {\isacharbar}\ Neg\ boolex\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ boolex\ boolex\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ boolex\ boolex\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -43,14 +56,14 @@ Hence the function \isa{value} takes an additional parameter, an
 \emph{environment} of type \isa{nat\ {\isasymRightarrow}\ bool}, which maps variables to their
 values:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ value\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}boolex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}value\ {\isacharparenleft}Const\ b{\isacharparenright}\ env\ {\isacharequal}\ b{\isachardoublequote}\isanewline
 {\isachardoublequote}value\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequote}\isanewline
 {\isachardoublequote}value\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ value\ b\ env{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}value\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}value\ b\ env\ {\isasymand}\ value\ c\ env{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+{\isachardoublequote}value\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}value\ b\ env\ {\isasymand}\ value\ c\ env{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -61,21 +74,21 @@ canonical) representation are so-called \emph{If-expressions} built up
 from constants (\isa{CIF}), variables (\isa{VIF}) and conditionals
 (\isa{IF}):%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{datatype}\ ifex\ {\isacharequal}\ CIF\ bool\ {\isacharbar}\ VIF\ nat\ {\isacharbar}\ IF\ ifex\ ifex\ ifex\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{datatype}\ ifex\ {\isacharequal}\ CIF\ bool\ {\isacharbar}\ VIF\ nat\ {\isacharbar}\ IF\ ifex\ ifex\ ifex\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 The evaluation of If-expressions proceeds as for \isa{boolex}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ valif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ifex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}valif\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ b{\isachardoublequote}\isanewline
 {\isachardoublequote}valif\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequote}\isanewline
 {\isachardoublequote}valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}if\ valif\ b\ env\ then\ valif\ t\ env\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ valif\ e\ env{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ valif\ e\ env{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \subsubsection{Converting Boolean and If-Expressions}
@@ -84,33 +97,46 @@ The type \isa{boolex} is close to the customary representation of logical
 formulae, whereas \isa{ifex} is designed for efficiency. It is easy to
 translate from \isa{boolex} into \isa{ifex}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ bool{\isadigit{2}}if\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}boolex\ {\isasymRightarrow}\ ifex{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}bool{\isadigit{2}}if\ {\isacharparenleft}Const\ b{\isacharparenright}\ {\isacharequal}\ CIF\ b{\isachardoublequote}\isanewline
 {\isachardoublequote}bool{\isadigit{2}}if\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ {\isacharequal}\ VIF\ x{\isachardoublequote}\isanewline
 {\isachardoublequote}bool{\isadigit{2}}if\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}\ {\isacharparenleft}CIF\ True{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}bool{\isadigit{2}}if\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}bool{\isadigit{2}}if\ c{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+{\isachardoublequote}bool{\isadigit{2}}if\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}bool{\isadigit{2}}if\ c{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 At last, we have something we can verify: that \isa{bool{\isadigit{2}}if} preserves the
 value of its argument:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}valif\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ env\ {\isacharequal}\ value\ b\ env{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}valif\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ env\ {\isacharequal}\ value\ b\ env{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
 The proof is canonical:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ b{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -124,7 +150,7 @@ repeatedly replacing a subterm of the form \isa{IF\ {\isacharparenleft}IF\ b\ x\
 \isa{IF\ b\ {\isacharparenleft}IF\ x\ z\ u{\isacharparenright}\ {\isacharparenleft}IF\ y\ z\ u{\isacharparenright}}, which has the same value. The following
 primitive recursive functions perform this task:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ normif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
@@ -138,7 +164,7 @@ primitive recursive functions perform this task:%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}norm\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ {\isacharequal}\ CIF\ b{\isachardoublequote}\isanewline
 {\isachardoublequote}norm\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ VIF\ x{\isachardoublequote}\isanewline
-{\isachardoublequote}norm\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ normif\ b\ {\isacharparenleft}norm\ t{\isacharparenright}\ {\isacharparenleft}norm\ e{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+{\isachardoublequote}norm\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ normif\ b\ {\isacharparenleft}norm\ t{\isacharparenright}\ {\isacharparenleft}norm\ e{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -146,23 +172,56 @@ Their interplay is tricky; we leave it to you to develop an
 intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{theorem}\ {\isachardoublequote}valif\ {\isacharparenleft}norm\ b{\isacharparenright}\ env\ {\isacharequal}\ valif\ b\ env{\isachardoublequote}\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}valif\ {\isacharparenleft}norm\ b{\isacharparenright}\ env\ {\isacharequal}\ valif\ b\ env{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 The proof is canonical, provided we first show the following simplification
 lemma, which also helps to understand what \isa{normif} does:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ valif\ {\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env{\isachardoublequote}\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+\ \ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ valif\ {\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -172,27 +231,48 @@ of the theorem shown above because of the \isa{{\isacharbrackleft}simp{\isacharb
 But how can we be sure that \isa{norm} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ normal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ifex\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}normal{\isacharparenleft}CIF\ b{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequote}\isanewline
 {\isachardoublequote}normal{\isacharparenleft}VIF\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequote}\isanewline
 {\isachardoublequote}normal{\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e\ {\isasymand}\isanewline
-\ \ \ \ \ {\isacharparenleft}case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ {\isacharbar}\ VIF\ x\ {\isasymRightarrow}\ True\ {\isacharbar}\ IF\ x\ y\ z\ {\isasymRightarrow}\ False{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ {\isacharparenleft}case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ {\isacharbar}\ VIF\ x\ {\isasymRightarrow}\ True\ {\isacharbar}\ IF\ x\ y\ z\ {\isasymRightarrow}\ False{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Now we prove \isa{normal\ {\isacharparenleft}norm\ b{\isacharparenright}}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip
@@ -211,26 +291,71 @@ can provide the clue.  The necessity of universal quantification
 \end{exercise}
 \index{boolean expressions example|)}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

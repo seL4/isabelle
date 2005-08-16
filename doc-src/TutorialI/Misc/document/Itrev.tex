@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Itrev}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsection{Induction Heuristics%
 }
@@ -45,12 +58,12 @@ because it calls function \isa{{\isacharat}} for each element of the list and
 \isa{rev} reqires an extra argument where the result is accumulated
 gradually, using only~\isa{{\isacharhash}}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ itrev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}itrev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ ys\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
-{\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+{\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -63,15 +76,21 @@ compiled into a loop.
 Naturally, we would like to show that \isa{itrev} does indeed reverse
 its first argument provided the second one is empty:%
 \end{isamarkuptext}%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
 There is no choice as to the induction variable, and we immediately simplify:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -90,10 +109,21 @@ This example suggests a heuristic:
 Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
 just not true.  The correct generalization is%
 \end{isamarkuptxt}%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkuptrue%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -117,10 +147,28 @@ the subgoal, but the induction hypothesis needs to be applied with
 \isa{a\ {\isacharhash}\ ys} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -156,8 +204,19 @@ Additionally, you can read \S\ref{sec:advanced-ind}
 to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

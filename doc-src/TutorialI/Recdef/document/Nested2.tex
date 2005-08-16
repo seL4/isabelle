@@ -1,12 +1,37 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{2}}}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
 \isanewline
+%
+\endisadelimtheory
 \isamarkupfalse%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -17,10 +42,16 @@ lemma directly.  We no longer need the verbose
 induction schema for type \isa{term} and can use the simpler one arising from
 \isa{trev}:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}\ trev{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}\ trev{\isachardot}induct{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
@@ -31,8 +62,15 @@ induction schema for type \isa{term} and can use the simpler one arising from
 \end{isabelle}
 Both the base case and the induction step fall to simplification:%
 \end{isamarkuptxt}%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isamarkuptrue%
-\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -76,17 +114,15 @@ into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
 the recursion equations:\cmmdx{hints}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Or you can declare them globally
 by giving them the \attrdx{recdef_cong} attribute:%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
@@ -96,8 +132,19 @@ simplification and making recursive definitions.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{ABexpr}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{datatypes!mutually recursive}%
@@ -17,7 +30,7 @@ language of arithmetic and boolean expressions where
 \end{itemize}
 In Isabelle this becomes%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{datatype}\ {\isacharprime}a\ aexp\ {\isacharequal}\ IF\ \ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Sum\ \ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Diff\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
@@ -25,7 +38,7 @@ In Isabelle this becomes%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Num\ nat\isanewline
 \isakeyword{and}\ \ \ \ \ \ {\isacharprime}a\ bexp\ {\isacharequal}\ Less\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -36,9 +49,9 @@ operations \isa{Sum} and \isa{Diff}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ \ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -48,7 +61,7 @@ value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 \ \ {\isachardoublequote}evala\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\isanewline
 \ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
@@ -59,15 +72,15 @@ section:%
 \isanewline
 \ \ {\isachardoublequote}evalb\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a{\isadigit{1}}\ env\ {\isacharless}\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}evalb\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b{\isadigit{1}}\ env\ {\isasymand}\ evalb\ b{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 In the same fashion we also define two functions that perform substitution:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ substa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequote}\isamarkupfalse%
+\ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -76,7 +89,7 @@ substitution. It is applied to all variables in the second argument. As a
 result, the type of variables in the expression may change from \isa{{\isacharprime}a}
 to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean variables.%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 \ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
@@ -87,7 +100,7 @@ to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean va
 \isanewline
 \ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Now we can prove a fundamental theorem about the interaction between
@@ -99,19 +112,31 @@ boolean expressions (by induction), you find that you always need the other
 theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
 \ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
 \end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\ simp{\isacharunderscore}all\isamarkupfalse%
 \isamarkupfalse%
+\isacommand{apply}\ simp{\isacharunderscore}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
@@ -134,20 +159,45 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
   of type annotations following lemma \isa{subst{\isacharunderscore}id} below).
 \end{exercise}%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
