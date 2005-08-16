@@ -22,8 +22,7 @@ sig
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
-  val begin_index: Url.T * string -> Url.T * string -> Url.T option
-    -> Url.T option -> Url.T -> text
+  val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
   val end_index: text
   val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
@@ -293,7 +292,8 @@ val verbatim = preform o output;
 (* document *)
 
 fun begin_document title =
-  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n\
+  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \
+  \\"http://www.w3.org/TR/html4/loose.dtd\">\n\
   \\n\
   \<html>\n\
   \<head>\n\
@@ -315,11 +315,10 @@ val back_link = gen_link "Back";
 
 (* session index *)
 
-fun begin_index up (index_path, session) opt_readme opt_doc graph =
+fun begin_index up (index_path, session) docs graph =
   begin_document ("Index of " ^ session) ^ up_link up ^
   para ("View " ^ href_path graph "theory dependencies" ^
-    (case opt_readme of NONE => "" | SOME p => "<br>\nView " ^ href_path p "README") ^
-    (case opt_doc of NONE => "" | SOME p => "<br>\nView " ^ href_path p "document")) ^
+    implode (map (fn (p, name) => "<br>\nView " ^ href_path p name) docs)) ^
   "\n</div>\n<hr>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
@@ -342,7 +341,8 @@ fun applet_pages session back =
         (name, begin_document ("Theory dependencies of " ^ session) ^
           back_link back ^
           para browser_size ^
-          "\n</div>\n<hr>\n<div class=\"graphbrowser\">\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
+          "\n</div>\n<hr>\n<div class=\"graphbrowser\">\n\
+          \<applet code=\"GraphBrowser/GraphBrowser.class\" \
           \archive=\"GraphBrowser.jar\" \
           \width=" ^ width ^ " height=" ^ height ^ ">\n\
           \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\">\n\
@@ -357,7 +357,8 @@ val theory_entry = entry;
 
 fun session_entries [] = "</ul>"
   | session_entries es =
-      "</ul>\n</div>\n<hr>\n<div class=\"sessions\">\n<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
+      "</ul>\n</div>\n<hr>\n<div class=\"sessions\">\n\
+      \<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
 
 
 (* theory *)
