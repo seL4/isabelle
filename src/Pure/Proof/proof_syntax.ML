@@ -7,19 +7,21 @@ Function for parsing and printing proof terms.
 
 signature PROOF_SYNTAX =
 sig
-  val proofT : typ
-  val add_proof_syntax : theory -> theory
-  val disambiguate_names : theory -> Proofterm.proof ->
+  val proofT: typ
+  val add_proof_syntax: theory -> theory
+  val disambiguate_names: theory -> Proofterm.proof ->
     Proofterm.proof * Proofterm.proof Symtab.table
-  val proof_of_term : theory -> Proofterm.proof Symtab.table ->
+  val proof_of_term: theory -> Proofterm.proof Symtab.table ->
     bool -> term -> Proofterm.proof
-  val term_of_proof : Proofterm.proof -> term
-  val cterm_of_proof : theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
-  val read_term : theory -> typ -> string -> term
-  val read_proof : theory -> bool -> string -> Proofterm.proof
-  val pretty_proof : theory -> Proofterm.proof -> Pretty.T
-  val pretty_proof_of : bool -> thm -> Pretty.T
-  val print_proof_of : bool -> thm -> unit
+  val term_of_proof: Proofterm.proof -> term
+  val cterm_of_proof: theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
+  val read_term: theory -> typ -> string -> term
+  val read_proof: theory -> bool -> string -> Proofterm.proof
+  val proof_syntax: Proofterm.proof -> theory -> theory
+  val proof_of: bool -> thm -> Proofterm.proof
+  val pretty_proof: theory -> Proofterm.proof -> Pretty.T
+  val pretty_proof_of: bool -> thm -> Pretty.T
+  val print_proof_of: bool -> thm -> unit
 end;
 
 structure ProofSyntax : PROOF_SYNTAX =
@@ -244,28 +246,30 @@ fun read_proof thy =
     (fn ty => fn s => proof_of_term thy Symtab.empty ty (Logic.varify (rd s)))
   end;
 
-fun pretty_proof thy prf =
+fun proof_syntax prf =
   let
     val thm_names = map fst (Symtab.dest (thms_of_proof prf Symtab.empty)) \ "";
     val axm_names = map fst (Symtab.dest (axms_of_proof prf Symtab.empty));
-    val thy' = thy |>
-      add_proof_syntax |>
-      add_proof_atom_consts
-        (map (NameSpace.append "thm") thm_names @ map (NameSpace.append "axm") axm_names)
   in
-    Sign.pretty_term thy' (term_of_proof prf)
+    add_proof_syntax #>
+    add_proof_atom_consts
+      (map (NameSpace.append "thm") thm_names @ map (NameSpace.append "axm") axm_names)
   end;
 
-fun pretty_proof_of full thm =
+fun proof_of full thm =
   let
-    val {thy, der = (_, prf), prop, ...} = rep_thm thm;
+    val {thy, der = (_, prf), ...} = Thm.rep_thm thm;
+    val prop = Thm.full_prop_of thm;
     val prf' = (case strip_combt (fst (strip_combP prf)) of
-        (PThm (_, prf', prop', _), _) => if prop=prop' then prf' else prf
+        (PThm (_, prf', prop', _), _) => if prop = prop' then prf' else prf
       | _ => prf)
-  in
-    pretty_proof thy
-      (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
-  end;
+  in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
+
+fun pretty_proof thy prf =
+  Sign.pretty_term (proof_syntax prf thy) (term_of_proof prf);
+
+fun pretty_proof_of full thm =
+  pretty_proof (Thm.theory_of_thm thm) (proof_of full thm);
 
 val print_proof_of = Pretty.writeln oo pretty_proof_of;
 
