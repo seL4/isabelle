@@ -23,10 +23,11 @@ sig
   val name_of: token -> string
   val is_proper: token -> bool
   val is_semicolon: token -> bool
+  val is_comment: token -> bool
   val is_begin_ignore: token -> bool
   val is_end_ignore: token -> bool
+  val is_blank: token -> bool
   val is_newline: token -> bool
-  val is_indent: token -> bool
   val unparse: token -> string
   val val_of: token -> string
   val is_sid: string -> bool
@@ -121,6 +122,9 @@ fun is_proper (Token (_, (Space, _))) = false
 fun is_semicolon (Token (_, (Keyword, ";"))) = true
   | is_semicolon _ = false;
 
+fun is_comment (Token (_, (Comment, _))) = true
+  | is_comment _ = false;
+
 fun is_begin_ignore (Token (_, (Comment, "<"))) = true
   | is_begin_ignore _ = false;
 
@@ -128,14 +132,13 @@ fun is_end_ignore (Token (_, (Comment, ">"))) = true
   | is_end_ignore _ = false;
 
 
-(* newline and indentations (note that space tokens obey lines) *)
+(* blanks and newlines -- space tokens obey lines *)
 
-fun is_newline (Token (_, (Space, "\n"))) = true
+fun is_blank (Token (_, (Space, s))) = not (String.isSuffix "\n" s)
+  | is_blank _ = false;
+
+fun is_newline (Token (_, (Space, s))) = String.isSuffix "\n" s
   | is_newline _ = false;
-
-fun is_indent (Token (_, (Space, s))) =
-      let val n = size s in n > 0 andalso String.substring (s, n - 1, 1) <> "\n" end
-  | is_indent _ = false;
 
 
 (* token content *)
