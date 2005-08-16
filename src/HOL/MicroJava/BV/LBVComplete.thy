@@ -27,7 +27,7 @@ lemma [code]: "list_ex P (x#xs) = (P x \<or> list_ex P xs)" by (simp add: list_e
 lemma [code]:
   "is_target step phi pc' =
   list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> pc' mem (map fst (step pc (phi!pc)))) [0..<length phi]"
-  apply (simp add: list_ex_def is_target_def set_mem_eq)
+  apply (simp add: list_ex_def is_target_def mem_iff)
   apply force
   done
 
