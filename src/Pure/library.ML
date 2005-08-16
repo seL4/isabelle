@@ -843,16 +843,12 @@ fun untabify chs =
 fun suffix sffx s = s ^ sffx;
 
 fun unsuffix sffx s =
-  let val m = size sffx; val n = size s - m in
-    if n >= 0 andalso String.substring (s, n, m) = sffx then String.substring (s, 0, n)
-    else raise Fail "unsuffix"
-  end;
+  if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
+  else raise Fail "unsuffix";
 
 fun unprefix prfx s =
-  let val m = size prfx; val n = size s - m in
-    if String.isPrefix prfx s then String.substring (s, m, n)
-    else raise Fail "unprefix"
-  end;
+  if String.isPrefix prfx s then String.substring (s, size prfx, size s - size prfx)
+  else raise Fail "unprefix";
 
 fun replicate_string 0 _ = ""
   | replicate_string 1 a = a
