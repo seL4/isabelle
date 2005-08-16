@@ -17,8 +17,8 @@ sig
   val get_info: theory -> {name: string, session: string list, is_local: bool}
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
-  val init: bool -> bool -> string -> bool -> string list -> string -> Path.T option
-    -> Url.T option * bool -> bool -> unit
+  val init: bool -> bool -> string -> bool -> string list -> string list ->
+    string -> Path.T option -> Url.T option * bool -> bool -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
@@ -51,7 +51,8 @@ val html_path = html_ext o Path.basic;
 val index_path = Path.basic "index.html";
 val readme_html_path = Path.basic "README.html";
 val readme_path = Path.basic "README";
-val doc_path = Path.basic "document";
+val documentN = "document";
+val document_path = Path.basic documentN;
 val doc_indexN = "session";
 val graph_path = Path.basic "session.graph";
 val graph_pdf_path = Path.basic "session_graph.pdf";
@@ -216,16 +217,17 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
-    info: bool, doc_format: string, doc_graph: bool, doc_prefix1: Path.T option,
-    doc_prefix2: Path.T option, remote_path: Url.T option, verbose: bool, readme: Path.T option};
+    info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
+    doc_prefix1: (Path.T * Path.T) option, doc_prefix2: Path.T option, remote_path: Url.T option,
+    verbose: bool, readme: Path.T option};
 
 fun make_session_info
-  (name, parent, session, path, html_prefix, info, doc_format, doc_graph, doc_prefix1,
-    doc_prefix2, remote_path, verbose, readme) =
+  (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
+    doc_prefix1, doc_prefix2, remote_path, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
-    info = info, doc_format = doc_format, doc_graph = doc_graph, doc_prefix1 = doc_prefix1,
-    doc_prefix2 = doc_prefix2, remote_path = remote_path, verbose = verbose,
-    readme = readme}: session_info;
+    info = info, doc_format = doc_format, doc_graph = doc_graph, documents = documents,
+    doc_prefix1 = doc_prefix1, doc_prefix2 = doc_prefix2, remote_path = remote_path,
+    verbose = verbose, readme = readme}: session_info;
 
 
 (* state *)
@@ -263,11 +265,25 @@ fun update_index dir name =
   | SOME es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
 
 
+(* document versions *)
+
+fun read_version str =
+  (case space_explode "=" str of
+    [name] => (name, "")
+  | [name, tags] => (name, tags)
+  | _ => error ("Malformed document version specification: " ^ quote str));
+
+fun read_versions strs =
+  rev (gen_distinct eq_fst (rev ((documentN, "") :: map read_version strs)))
+  |> filter_out (equal "-" o #2);
+
+
 (* init session *)
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
+fun init build info doc doc_graph doc_versions path name doc_prefix2
+    (remote_path, first_time) verbose =
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -277,11 +293,12 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
       val sess_prefix = Path.make path;
       val html_prefix = Path.append (Path.expand output_path) sess_prefix;
 
-      val (doc_prefix1, document_path) =
-        if doc = "" then (NONE, NONE)
-        else if not (File.exists doc_path) then (conditional verbose (fn () =>
-          std_error "Warning: missing document directory\n"); (NONE, NONE))
-        else (SOME (Path.append html_prefix doc_path), SOME (Path.ext doc doc_path));
+      val (doc_prefix1, documents) =
+        if doc = "" then (NONE, [])
+        else if not (File.exists document_path) then (conditional verbose (fn () =>
+          std_error "Warning: missing document directory\n"); (NONE, []))
+        else (SOME (Path.append html_prefix document_path, html_prefix),
+          read_versions doc_versions);
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then
@@ -292,15 +309,49 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
         else if File.exists readme_path then SOME readme_path
         else NONE;
 
+      val docs =
+        (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
+        map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
-        (Url.File index_path, session_name) (Option.map Url.File readme)
-          (Option.map Url.File document_path) (Url.unpack "medium.html");
+        (Url.File index_path, session_name) docs (Url.unpack "medium.html");
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-      info, doc, doc_graph, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
+      info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path;
       add_html_index index_text
     end;
+
+
+(* isatool wrappers *)
+
+fun isatool_document verbose format name tags path result_path =
+  let
+    val s = "\"$ISATOOL\" document -c -o '" ^ format ^ "' \
+      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^
+      " 2>&1" ^ (if verbose then "" else " >/dev/null");
+    val doc_path = Path.append result_path (Path.ext format (Path.basic name));
+  in
+    conditional verbose (fn () => writeln s);
+    system s;
+    conditional (not (File.exists doc_path)) (fn () =>
+      error ("No document: " ^ quote (show_path doc_path)));
+    doc_path
+  end;
+
+fun isatool_browser graph =
+  let
+    val pdf_path = File.tmp_path graph_pdf_path;
+    val eps_path = File.tmp_path graph_eps_path;
+    val gr_path = File.tmp_path graph_path;
+    val s = "browser -o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path gr_path;
+  in
+    write_graph graph gr_path;
+    if File.isatool s <> 0 orelse not (File.exists eps_path) orelse not (File.exists pdf_path)
+    then error "Failed to prepare dependency graph"
+    else
+      let val pdf = File.read pdf_path and eps = File.read eps_path
+      in File.rm pdf_path; File.rm eps_path; File.rm gr_path; (pdf, eps) end
+  end;
 
 
 (* finish session -- output all generated text *)
@@ -312,35 +363,8 @@ fun write_tex_index tex_index path =
   write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
 
 
-fun isatool_document verbose doc_format path =
-  let
-    val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
-      File.shell_path path ^ " 2>&1" ^ (if verbose then "" else " >/dev/null");
-    val doc_path = Path.ext doc_format path;
-  in
-    if verbose then writeln s else ();
-    system s;
-    if File.exists doc_path then ()
-    else error ("No document: " ^ quote (Path.pack (Path.expand doc_path)))
-  end;
-
-fun isatool_browser graph =
-  let
-    val pdfpath = File.tmp_path graph_pdf_path;
-    val epspath = File.tmp_path graph_eps_path;
-    val gpath = File.tmp_path graph_path;
-    val s = "browser -o " ^ File.shell_path pdfpath ^ " " ^ File.shell_path gpath;
-  in
-    write_graph graph gpath;
-    if File.isatool s <> 0 orelse not (File.exists epspath) orelse not (File.exists pdfpath)
-    then error "Failed to prepare dependency graph"
-    else
-      let val pdf = File.read pdfpath and eps = File.read epspath
-      in File.rm pdfpath; File.rm epspath; File.rm gpath; (pdf, eps) end
-  end;
-
 fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_graph,
-    doc_prefix1, doc_prefix2, path, verbose, readme, ...} =>
+    documents, doc_prefix1, doc_prefix2, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -357,7 +381,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
 
     fun prepare_sources path =
      (File.mkdir path;
-      File.copy_dir doc_path path;
+      File.copy_dir document_path path;
       File.copy (Path.unpack "~~/lib/texinputs/isabelle.sty") path;
       File.copy (Path.unpack "~~/lib/texinputs/isabellesym.sty") path;
       File.copy (Path.unpack "~~/lib/texinputs/pdfsetup.sty") path;
@@ -388,11 +412,14 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
      (prepare_sources path;
       conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
 
-    (case doc_prefix1 of NONE => () | SOME path =>
-     (prepare_sources path;
-      isatool_document true doc_format path;
-      conditional verbose (fn () =>
-        std_error ("Document at " ^ show_path (Path.ext doc_format path) ^ "\n"))));
+    (case doc_prefix1 of NONE => () | SOME (path, result_path) =>
+      documents |> List.app (fn (name, tags) =>
+       let
+         val _ = prepare_sources path;
+         val doc_path = isatool_document true doc_format name tags path result_path;
+       in
+         conditional verbose (fn () => std_error ("Document at " ^ show_path doc_path ^ "\n"))
+       end));
 
     browser_info := empty_browser_info;
     session_info := NONE
@@ -500,7 +527,8 @@ fun drafts doc_format src_paths =
       end;
     val (tex_index, srcs) = foldl_map prep_draft (Buffer.empty, src_paths);
 
-    val doc_path = File.tmp_path (Path.basic "document");
+    val doc_path = File.tmp_path document_path;
+    val result_path = Path.append doc_path Path.parent;
     val _ = File.mkdir doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = File.copy (Path.unpack "~~/lib/texinputs/draft.tex") root_path;
@@ -518,8 +546,7 @@ fun drafts doc_format src_paths =
       |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
-    val _ = isatool_document false doc_format doc_path;
-  in Path.ext doc_format doc_path end;
+  in isatool_document false doc_format documentN "" doc_path result_path end;
 
 
 end;
