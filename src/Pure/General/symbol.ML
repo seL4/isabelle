@@ -82,7 +82,15 @@ struct
 type symbol = string;
 
 val space = " ";
-fun spaces k = Library.replicate_string k space;
+
+local
+  val small_spaces = Vector.tabulate (65, fn i => Library.replicate_string i space);
+in
+  fun spaces k =
+    if k < 64 then Vector.sub (small_spaces, k)
+    else Library.replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
+      Vector.sub (small_spaces, k mod 64);
+end;
 
 fun is_char s = size s = 1;
 
@@ -170,7 +178,7 @@ fun malformed_symbol s =
 (* decode_raw *)
 
 fun is_raw s =
-  String.isPrefix "\\<^raw" s andalso String.substring (s, size s - 1, 1) = ">";
+  String.isPrefix "\\<^raw" s andalso String.isSuffix ">" s;
 
 fun decode_raw s =
   if not (is_raw s) then error (malformed_symbol s)
