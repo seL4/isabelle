@@ -84,6 +84,7 @@ sig
   val dest_binum: term -> IntInf.int
   val mk_bin: IntInf.int -> term
   val bin_of : term -> int list
+  val listT : typ -> typ
   val mk_list: ('a -> term) -> typ -> 'a list -> term
   val dest_list: term -> term list
 end;
@@ -343,9 +344,11 @@ val realT = Type ("RealDef.real", []);
 
 (* list *)
 
-fun mk_list f T [] = Const ("List.list.Nil", Type ("List.list", [T]))
+fun listT T =  Type ("List.list", [T])
+
+fun mk_list f T [] = Const ("List.list.Nil", listT T)
   | mk_list f T (x :: xs) = Const ("List.list.Cons",
-      T --> Type ("List.list", [T]) --> Type ("List.list", [T])) $ f x $
+      T --> listT T --> listT T) $ f x $
         mk_list f T xs;
 
 fun dest_list (Const ("List.list.Nil", _)) = []
