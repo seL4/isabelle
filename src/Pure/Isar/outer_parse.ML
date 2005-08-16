@@ -35,6 +35,8 @@ sig
   val semicolon: token list -> string * token list
   val underscore: token list -> string * token list
   val maybe: (token list -> 'a * token list) -> token list -> 'a option * token list
+  val tag_name: token list -> string * token list
+  val tags: token list -> string list * token list
   val opt_unit: token list -> unit * token list
   val opt_keyword: string -> token list -> bool * token list
   val nat: token list -> int * token list
@@ -162,8 +164,10 @@ fun maybe scan = underscore >> K NONE || scan >> SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 
-val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
+val tag_name = group "tag name" (short_ident || string);
+val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
+val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
 
 
