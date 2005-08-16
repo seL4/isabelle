@@ -28,6 +28,7 @@ ML_HOME=$(choosefrom \
   $POLY_HOME)
 ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 80"
+ML_DBASE=""
 
 # Standard ML of New Jersey 110 or later
 #SMLNJ_CYGWIN_RUNTIME=1
@@ -47,7 +48,7 @@ ML_OPTIONS="-H 80"
 ### Compilation options (cf. isatool usedir)
 ###
 
-ISABELLE_USEDIR_OPTIONS="-v true"
+ISABELLE_USEDIR_OPTIONS="-v true -V outline=/proof,/ML"
 
 # Specifically for the HOL image
 HOL_USEDIR_OPTIONS=""
