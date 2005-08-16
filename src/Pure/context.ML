@@ -67,7 +67,9 @@ sig
   val setup: unit -> (theory -> theory) list
   (*proof context*)
   type proof
+  exception PROOF of string * proof
   val theory_of_proof: proof -> theory
+  val transfer_proof: theory -> proof -> proof
   val init_proof: theory -> proof
   val proof_data_of: theory -> string list
   (*generic context*)
@@ -472,10 +474,10 @@ fun >> f = set_context (SOME (f (the_context ())));
 
 val ml_output = (writeln, error_msg);
 
-fun use_output verb txt = use_text ml_output verb (Symbol.escape txt);
+fun use_output verbose txt = use_text ml_output verbose (Symbol.escape txt);
 
-fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_output verb txt) ();
-fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_output verb) txt);
+fun use_mltext txt verbose opt_thy = setmp opt_thy (fn () => use_output verbose txt) ();
+fun use_mltext_theory txt verbose thy = #2 (pass_theory thy (use_output verbose) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
@@ -498,11 +500,18 @@ end;
 
 (* datatype proof *)
 
-datatype proof = Proof of theory * Object.T Inttab.table;
+datatype proof = Proof of theory_ref * Object.T Inttab.table;
 
-fun theory_of_proof (Proof (thy, _)) = thy;
+exception PROOF of string * proof;
+
+fun theory_of_proof (Proof (thy_ref, _)) = deref thy_ref;
 fun data_of_proof (Proof (_, data)) = data;
-fun map_prf f (Proof (thy, data)) = Proof (thy, f data);
+fun map_prf f (Proof (thy_ref, data)) = Proof (thy_ref, f data);
+
+fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
+  if not (subthy (deref thy_ref, thy')) then
+    raise PROOF ("transfer proof context: no a super theory", prf)
+  else Proof (self_ref thy', data);
 
 
 (* proof data kinds *)
@@ -529,7 +538,7 @@ in
 val proof_data_of = dest_data invoke_name o #proof o data_of;
 
 fun init_proof thy =
-  Proof (thy, Inttab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
+  Proof (self_ref thy, Inttab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
 
 structure ProofData =
 struct
