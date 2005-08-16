@@ -59,7 +59,7 @@ fun is_old src_pos =
 (* scan old/new headers *)
 
 val header_lexicon = T.make_lexicon
-  ["(", ")", "+", ":", ";", "=", beginN, filesN, headerN, importsN, theoryN, usesN];
+  ["%", "(", ")", "+", ":", ";", "=", beginN, filesN, headerN, importsN, theoryN, usesN];
 
 val file =
   (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
@@ -68,14 +68,14 @@ fun files keyword = Scan.optional (keyword |-- P.!!! (Scan.repeat1 file)) [];
 val args =
   P.name --
    (P.$$$ "=" |-- P.!!! (P.enum1 "+" P.name -- files (P.$$$ filesN) --| P.$$$ ":") ||
-    P.$$$ importsN |-- P.!!! (Scan.repeat1 P.name -- files (P.$$$ filesN || P.$$$ usesN)
-      --| P.$$$ beginN))
+    P.$$$ importsN |-- P.!!! (Scan.repeat1 P.name -- files (P.$$$ usesN) --| P.$$$ beginN))
   >> P.triple2;
 
 
 val new_header =
-  P.$$$ headerN |-- (P.!!! (P.text -- Scan.repeat P.semicolon -- P.$$$ theoryN |-- args)) ||
-  P.$$$ theoryN |-- P.!!! args;
+  (P.$$$ headerN -- P.tags) |-- (P.!!! (P.text -- Scan.repeat P.semicolon --
+    (P.$$$ theoryN -- P.tags) |-- args)) ||
+  (P.$$$ theoryN -- P.tags) |-- P.!!! args;
 
 val old_header =
   P.!!! (P.group "theory header"
