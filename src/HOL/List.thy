@@ -1243,13 +1243,13 @@ lemma list_all2_lengthD [intro?]:
   "list_all2 P xs ys ==> length xs = length ys"
 by (simp add: list_all2_def)
 
-lemma list_all2_Nil [iff]: "list_all2 P [] ys = (ys = [])"
+lemma list_all2_Nil [iff,code]: "list_all2 P [] ys = (ys = [])"
 by (simp add: list_all2_def)
 
 lemma list_all2_Nil2[iff]: "list_all2 P xs [] = (xs = [])"
 by (simp add: list_all2_def)
 
-lemma list_all2_Cons [iff]:
+lemma list_all2_Cons [iff,code]:
 "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
 by (auto simp add: list_all2_def)
 
@@ -1413,8 +1413,8 @@ by (induct ns) auto
 
 subsubsection {* @{text upto} *}
 
-lemma upt_rec: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
--- {* Does not terminate! *}
+lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
+-- {* simp does not terminate! *}
 by (induct j) auto
 
 lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
@@ -1934,10 +1934,8 @@ text{* Only use @{text mem} for generating executable code.  Otherwise
 use @{prop"x : set xs"} instead --- it is much easier to reason about.
 The same is true for @{const list_all} and @{const list_ex}: write
 @{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
-quantifiers are aleady known to the automatic provers. For the purpose
-of generating executable code use the theorems @{text mem_iff},
-@{text list_all_iff} and @{text list_ex_iff} to get rid off or
-introduce the combinators.
+quantifiers are aleady known to the automatic provers. In fact, the declarations in the Code subsection make sure that @{text"\<in>"}, @{text"\<forall>x\<in>set xs"}
+and @{text"\<exists>x\<in>set xs"} are implemented efficiently.
 
 The functions @{const itrev}, @{const filtermap} and @{const
 map_filter} are just there to generate efficient code. Do not use them
@@ -1977,32 +1975,27 @@ subsubsection {* Code generation *}
 
 text{* Defaults for generating efficient code for some standard functions. *}
 
-lemma [code]: "rev xs = itrev xs []"
+lemmas in_set_code[code unfold] = mem_iff[symmetric, THEN eq_reflection]
+
+lemma rev_code[code unfold]: "rev xs == itrev xs []"
 by simp
 
-declare upt_rec[code]
-
-lemma [code]: "distinct (x#xs) = (~(x mem xs) \<and> distinct xs)"
+lemma distinct_Cons_mem[code]: "distinct (x#xs) = (~(x mem xs) \<and> distinct xs)"
 by (simp add:mem_iff)
 
-lemma [code]:
+lemma remdups_Cons_mem[code]:
  "remdups (x#xs) = (if x mem xs then remdups xs else x # remdups xs)"
 by (simp add:mem_iff)
 
-lemma [code]:
- "list_all2 P xs ys =
-  (length xs = length ys \<and> (list_all (%(x, y). P x y) (zip xs ys)))"
-by (simp add:list_all2_def list_all_iff)
-
-lemma [code]:  "list_inter (a#as) bs =
+lemma list_inter_Cons_mem[code]:  "list_inter (a#as) bs =
   (if a mem bs then a#(list_inter as bs) else list_inter as bs)"
 by(simp add:mem_iff)
 
-(* If you want to replace bounded quantifiers over lists by list_ex/all:
+text{* For implementing bounded quantifiers over lists by
+@{const list_ex}/@{const list_all}: *}
 
-declare list_ex_iff[symmetric, THEN eq_reflection, code unfold]
-declare list_all_iff[symmetric, THEN eq_reflection, code unfold]
-*)
+lemmas list_bex_code[code unfold] = list_ex_iff[symmetric, THEN eq_reflection]
+lemmas list_ball_code[code unfold] = list_all_iff[symmetric, THEN eq_reflection]
 
 
 subsubsection{* Inductive definition for membership *}
@@ -2136,7 +2129,7 @@ subsubsection {* Lexicographic Ordering *}
 
 text {* Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
     This ordering does \emph{not} preserve well-foundedness.
-     Author: N. Voelker, March 2005 *} 
+     Author: N. Voelker, March 2005. *} 
 
 constdefs 
   lexord :: "('a * 'a)set \<Rightarrow> ('a list * 'a list) set" 

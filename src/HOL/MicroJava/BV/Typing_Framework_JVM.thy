@@ -42,15 +42,11 @@ lemma list_all' [iff]:
   "list_all' P xs = (\<forall>n < size xs. P (xs!n) n)"
   by (unfold list_all'_def) (simp add: list_all'_rec)
 
-lemma list_all_ball:
-  "list_all P xs = (\<forall>x \<in> set xs. P x)"
-  by (induct xs) auto
-
 lemma [code]:
   "check_bounded ins et = 
   (list_all' (\<lambda>i pc. list_all (\<lambda>pc'. pc' < length ins) (succs i pc)) ins \<and> 
    list_all (\<lambda>e. fst (snd (snd e)) < length ins) et)"
-  by (simp add: list_all_ball check_bounded_def)
+  by (simp add: list_all_iff check_bounded_def)
   
 
 section {* Connecting JVM and Framework *}

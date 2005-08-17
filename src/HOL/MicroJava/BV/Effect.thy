@@ -401,10 +401,6 @@ lemma effNone:
   by (auto simp add: eff_def xcpt_eff_def norm_eff_def)
 
 
-text {* some helpers to make the specification directly executable: *}
-declare list_all2_Nil [code]
-declare list_all2_Cons [code]
-
 lemma xcpt_app_lemma [code]:
   "xcpt_app i G pc et = list_all (is_class G) (xcpt_names (i, G, pc, et))"
   by (simp add: list_all_iff)

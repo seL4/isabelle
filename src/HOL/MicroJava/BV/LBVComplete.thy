@@ -6,7 +6,9 @@
 
 header {* \isaheader{Completeness of the LBV} *}
 
-theory LBVComplete imports LBVSpec Typing_Framework begin
+theory LBVComplete
+imports LBVSpec Typing_Framework
+begin
 
 constdefs
   is_target :: "['s step_type, 's list, nat] \<Rightarrow> bool" 
@@ -17,19 +19,11 @@ constdefs
   "make_cert step phi B \<equiv> 
      map (\<lambda>pc. if is_target step phi pc then phi!pc else B) [0..<length phi] @ [B]"
 
-constdefs
-  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  "list_ex P xs \<equiv> \<exists>x \<in> set xs. P x"
-
-lemma [code]: "list_ex P [] = False" by (simp add: list_ex_def)
-lemma [code]: "list_ex P (x#xs) = (P x \<or> list_ex P xs)" by (simp add: list_ex_def)
-
 lemma [code]:
   "is_target step phi pc' =
   list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> pc' mem (map fst (step pc (phi!pc)))) [0..<length phi]"
-  apply (simp add: list_ex_def is_target_def mem_iff)
-  apply force
-  done
+by (force simp: list_ex_iff is_target_def mem_iff)
+
 
 locale (open) lbvc = lbv + 
   fixes phi :: "'a list" ("\<phi>")

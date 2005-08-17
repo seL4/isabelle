@@ -6,7 +6,9 @@
 
 header {* \isaheader{LBV for the JVM}\label{sec:JVM} *}
 
-theory LBVJVM imports LBVCorrect LBVComplete Typing_Framework_JVM begin
+theory LBVJVM
+imports LBVCorrect LBVComplete Typing_Framework_JVM
+begin
 
 types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> state list"
 
@@ -65,7 +67,7 @@ lemma wt_method_def2:
 lemma check_certD:
   "check_cert G mxs mxr n cert \<Longrightarrow> cert_ok cert n Err (OK None) (states G mxs mxr)"
   apply (unfold cert_ok_def check_cert_def check_types_def)
-  apply (auto simp add: list_all_ball)
+  apply (auto simp add: list_all_iff)
   done
 
 
