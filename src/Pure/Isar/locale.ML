@@ -94,18 +94,17 @@ sig
   val prep_registration_in_locale:
     string -> expr -> theory ->
     ((string * string list) * term list) list * (thm list -> theory -> theory)
-(*
-  val add_global_witness:
-    string * term list -> thm -> theory -> theory
-  val add_witness_in_locale:
-    string -> string * string list -> thm -> theory -> theory
-  val add_local_witness:
-    string * term list -> thm -> context -> context
-*)
+
+  (* Diagnostic *)
+  val show_wits: bool ref;
 end;
 
 structure Locale: LOCALE =
 struct
+
+(** Diagnostic: whether to show witness theorems of registrations **)
+
+val show_wits = ref false;
 
 (** locale elements and expressions **)
 
@@ -526,14 +525,24 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
     val thy = ProofContext.theory_of ctxt;
 
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
-    val prt_atts = Args.pretty_attribs ctxt;
-    fun prt_inst (ts, (("", []), thms)) =
-          Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))
-      | prt_inst (ts, ((prfx, atts), thms)) =
-          Pretty.block (
-            (Pretty.breaks (Pretty.str prfx :: prt_atts atts) @
-              [Pretty.str ":", Pretty.brk 1,
-                Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts))]));
+    fun prt_inst ts =
+        Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts));
+    fun prt_attn (prfx, atts) =
+        Pretty.breaks (Pretty.str prfx :: Args.pretty_attribs ctxt atts);
+    val prt_thm = Pretty.quote o ProofContext.pretty_thm ctxt;
+    fun prt_thms thms =
+        Pretty.enclose "[" "]" (Pretty.breaks (map prt_thm thms));
+    fun prt_reg (ts, (("", []), thms)) =
+        if ! show_wits
+          then Pretty.block [prt_inst ts, Pretty.fbrk, prt_thms thms]
+          else prt_inst ts
+      | prt_reg (ts, (attn, thms)) =
+        if ! show_wits
+          then Pretty.block ((prt_attn attn @
+            [Pretty.str ":", Pretty.brk 1, prt_inst ts, Pretty.fbrk,
+              prt_thms thms]))
+          else Pretty.block ((prt_attn attn @
+            [Pretty.str ":", Pretty.brk 1, prt_inst ts]));
 
     val loc_int = intern thy loc;
     val regs = get_regs thy_ctxt;
@@ -545,7 +554,7 @@ fun gen_print_registrations get_regs mk_ctxt msg loc thy_ctxt =
             val r' = Registrations.dest r;
             val r'' = Library.sort_wrt (fn (_, ((prfx, _), _)) => prfx) r';
           in Pretty.big_list ("Interpretations in " ^ msg ^ ":")
-            (map prt_inst r'')
+            (map prt_reg r'')
           end)
     |> Pretty.writeln
   end;
@@ -899,13 +908,10 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     fun rename_parms top ren ((name, ps), (parms, mode)) =
       let val ps' = map (rename ren) ps in
         (case duplicates ps' of
-          [] => (case mode of
-              Assumed axs => ((name, ps'),
-                if top then (map (rename ren) parms, 
-                  Assumed (map (rename_thm ren) axs))
-                else (parms, Assumed axs))
-            | Derived ths => ((name, ps'),
-                (map (rename ren) parms, Derived (map (rename_thm ren) ths))))
+          [] => ((name, ps'),
+                 if top then (map (rename ren) parms,
+                   map_mode (map (rename_thm ren)) mode)
+                 else (parms, mode))
         | dups => err_in_locale ctxt ("Duplicate parameters: " ^ commas_quote dups) [(name, ps')])
       end;
 
@@ -915,18 +921,24 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     fun add_regs (name, ps) (ths, ids) =
         let
           val {params, regs, ...} = the_locale thy name;
-          val ren = map (#1 o #1) (#1 params) ~~ map (fn x => (x, NONE)) ps;
+          val ps' = map #1 (#1 params);
+          val ren = map #1 ps' ~~ map (fn (x, _) => (x, NONE)) ps;
             (* dummy syntax, since required by rename *)
+          val ps'' = map (fn ((p, _), (_, T)) => (p, T)) (ps ~~ ps');
+          val [env] = unify_parms ctxt ps [map (apsnd SOME) ps''];
+            (* propagate parameter types, to keep them consistent *)
           val regs' = map (fn ((name, ps), ths) =>
               ((name, map (rename ren) ps), ths)) regs;
           val new_regs = gen_rems eq_fst (regs', ids);
           val new_ids = map fst new_regs;
+          val new_idTs = map (apsnd (map (fn p => (p, valOf (assoc (ps, p)))))) new_ids;
+
           val new_ths = map (fn (_, ths') =>
-              map (Drule.satisfy_hyps ths o rename_thm ren) ths') new_regs;
+              map (Drule.satisfy_hyps ths o rename_thm ren o inst_thm ctxt env) ths') new_regs;
           val new_ids' = map (fn (id, ths) =>
               (id, ([], Derived ths))) (new_ids ~~ new_ths);
         in
-          fold add_regs new_ids (ths @ List.concat new_ths, ids @ new_ids')
+          fold add_regs new_idTs (ths @ List.concat new_ths, ids @ new_ids')
         end;
 
     (* distribute top-level axioms over assumed ids *)
@@ -943,49 +955,51 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
       | axiomify all_ps (id, (_, Derived ths)) axioms =
           ((id, (all_ps, Derived ths)), axioms);
 
+    (* identifiers of an expression *)
+
     fun identify top (Locale name) =
     (* CB: ids_ax is a list of tuples of the form ((name, ps), axs),
        where name is a locale name, ps a list of parameter names and axs
        a list of axioms relating to the identifier, axs is empty unless
        identify at top level (top = true);
+       ty is the parameter typing (empty if at top level);
        parms is accumulated list of parameters *)
           let
             val {predicate = (_, axioms), import, params, ...} =
               the_locale thy name;
             val ps = map (#1 o #1) (#1 params);
-            val (ids', parms', _, ths) = identify false import;
+            val (ids', parms', _) = identify false import;
                 (* acyclic import dependencies *)
             val ids'' = ids' @ [((name, ps), ([], Assumed []))];
-            val (ths', ids''') = add_regs (name, ps) (ths, ids'');
+            val (_, ids''') = add_regs (name, map #1 (#1 params)) ([], ids'');
 
             val ids_ax = if top then fst
                  (fold_map (axiomify ps) ids''' axioms)
               else ids''';
             val syn = Symtab.make (map (apfst fst) (#1 params));
-          in (ids_ax, merge_lists parms' ps, syn, ths') end
+            in (ids_ax, merge_lists parms' ps, syn) end
       | identify top (Rename (e, xs)) =
           let
-            val (ids', parms', syn', ths) = identify top e;
+            val (ids', parms', syn') = identify top e;
             val ren = renaming xs parms'
               handle ERROR_MESSAGE msg => err_in_locale' ctxt msg ids';
+
             val ids'' = gen_distinct eq_fst (map (rename_parms top ren) ids');
             val parms'' = distinct (List.concat (map (#2 o #1) ids''));
             val syn'' = syn' |> Symtab.dest |> map (rename_var ren) |>
                   Symtab.make;
             (* check for conflicting syntax? *)
-            val ths' = map (rename_thm ren) ths;
-          in (ids'', parms'', syn'', ths') end
+          in (ids'', parms'', syn'') end
       | identify top (Merge es) =
-          fold (fn e => fn (ids, parms, syn, ths) =>
+          fold (fn e => fn (ids, parms, syn) =>
                    let
-                     val (ids', parms', syn', ths') = identify top e
+                     val (ids', parms', syn') = identify top e
                    in
                      (merge_alists ids ids',
                       merge_lists parms parms',
-                      merge_syntax ctxt ids' (syn, syn'),
-                      merge_lists ths ths')
+                      merge_syntax ctxt ids' (syn, syn'))
                    end)
-            es ([], [], Symtab.empty, []);
+            es ([], [], Symtab.empty);
 
 
     (* CB: enrich identifiers by parameter types and 
@@ -1013,7 +1027,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
           in Ts |> Library.split_last |> op ---> |> SOME end;
 
     (* compute identifiers and syntax, merge with previous ones *)
-    val (ids, _, syn, _) = identify true expr;
+    val (ids, _, syn) = identify true expr;
     val idents = gen_rems eq_fst (ids, prev_idents);
     val syntax = merge_syntax ctxt ids (syn, prev_syntax);
     (* add types to params, check for unique params and unify them *)
@@ -1341,22 +1355,25 @@ fun eval_text _ _ _ (text, Fixes _) = text
    turn assumptions and definitions into facts,
    adjust hypotheses of facts using witness theorems *)
 
-fun finish_derived _ _ (Assumed _) elem = SOME elem
+fun finish_derived _ wits _ (Notes facts) = (Notes facts)
+      |> map_values I I (Drule.satisfy_hyps wits) |> SOME;
+
+fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
+  | finish_derived _ _ (Assumed _) (Constrains csts) = SOME (Constrains csts)
+  | finish_derived _ _ (Assumed _) (Assumes asms) = SOME (Assumes asms)
+  | finish_derived _ _ (Assumed _) (Defines defs) = SOME (Defines defs)
+
   | finish_derived _ _ (Derived _) (Fixes _) = NONE
   | finish_derived _ _ (Derived _) (Constrains _) = NONE
   | finish_derived sign wits (Derived _) (Assumes asms) = asms
-      |> map (apsnd (map (fn (a, _) =>
-           ([Thm.assume (cterm_of sign a) |> Drule.satisfy_hyps wits], []))))
-      |> Notes |> SOME
+      |> map (apsnd (map (fn (a, _) => ([Thm.assume (cterm_of sign a)], []))))
+      |> Notes |> map_values I I (Drule.satisfy_hyps wits) |> SOME
   | finish_derived sign wits (Derived _) (Defines defs) = defs
-      |> map (apsnd (fn (d, _) =>
-           [([Thm.assume (cterm_of sign d) |> Drule.satisfy_hyps wits], [])]))
-      |> Notes |> SOME
-  | finish_derived _ wits (Derived _) (Notes facts) =
-    SOME (map_elem {name = I, var = I, typ = I, term = I,
-            fact = map (Drule.satisfy_hyps wits),
-            attrib = I} (Notes facts));
+      |> map (apsnd (fn (d, _) => [([Thm.assume (cterm_of sign d)], [])]))
+      |> Notes |> map_values I I (Drule.satisfy_hyps wits) |> SOME
 
+  | finish_derived _ wits _ (Notes facts) = (Notes facts)
+      |> map_values I I (Drule.satisfy_hyps wits) |> SOME;
 
 (* CB: for finish_elems (Ext) *)
 
