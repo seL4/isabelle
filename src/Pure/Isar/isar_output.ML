@@ -206,13 +206,14 @@ val newline_token = basic_token T.is_newline;
 (* command spans *)
 
 type command = string * Position.T * string list;   (*name, position, tags*)
-type source = (string * token * int) list;          (*raw text, token, meta-comment depth*)
+type tok = string * token * int;                    (*raw text, token, meta-comment depth*)
+type source = tok list;          
 
 datatype span = Span of command * (source * source * source * source) * bool;
 
 fun make_span cmd src =
   let
-    fun take_newline (tok :: toks) =
+    fun take_newline ((tok: tok) :: toks) =
           if newline_token (#2 tok) then ([tok], toks, true)
           else ([], tok :: toks, false)
       | take_newline [] = ([], [], false);
