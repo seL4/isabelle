@@ -155,6 +155,9 @@ Note that non-logical types should be declared as 'nonterminals'
 rather than 'types'.  INCOMPATIBILITY for new object-logic
 specifications.
 
+* Attributes 'induct' and 'cases': type or set names may now be
+locally fixed variables as well.
+
 * Simplifier: can now control the depth to which conditional rewriting
 is traced via the PG menu Isabelle -> Settings -> Trace Simp Depth
 Limit.
@@ -186,20 +189,32 @@ theory development.
 
 
 *** Locales ***
-  
-* New commands for the interpretation of locale expressions in
-theories ('interpretation') and proof contexts ('interpret').  These
-take an instantiation of the locale parameters and compute proof
-obligations from the instantiated specification.  After the
-obligations have been discharged, the instantiated theorems of the
-locale are added to the theory or proof context.  Interpretation is
-smart in that already active interpretations do not occur in proof
-obligations, neither are instantiated theorems stored in duplicate.
-Use print_interps to inspect active interpretations of a particular
-locale.  For details, see the Isar Reference manual.
+
+* New commands for the interpretation of locale expressions in theories (1),
+locales (2) and proof contexts (3).  These generate proof obligations from
+the expression specification.  After the obligations have been discharged,
+theorems of the expression are added to the theory, target locale or proof
+context.  The synopsis of the commands is a follows:
+  (1) interpretation expr inst
+  (2) interpretation target < expr
+  (3) interpret expr inst
+Interpretation in theories and proof contexts require a parameter
+instantiation of terms from the current context.  This is applied to
+specifications and theorems of the interpreted expression.  Interpretation
+in locales only permits parameter renaming through the locale expression.
+Interpretation is smart in that interpretation that are active already
+do not occur in proof obligations, neither are instantiated theorems stored
+in duplicate.  Use 'print_interps' to inspect active interpretations of
+a particular locale.  For details, see the Isar Reference manual.
 
 INCOMPATIBILITY: former 'instantiate' has been withdrawn, use
 'interpret' instead.
+
+* New context element 'constrains' for adding type constraints to parameters.
+
+* Context expressions: renaming of parameters with syntax redeclaration.
+
+* Locale declaration: 'includes' disallowed.
 
 * Proper static binding of attribute syntax -- i.e. types / terms /
 facts mentioned as arguments are always those of the locale definition
@@ -218,22 +233,11 @@ intervention.  Only unusual applications -- such as "where" or "of"
 on the context and the facts involved -- may have to assign parsed
 values to argument tokens explicitly.
 
-* New context element "constrains" adds type constraints to parameters --
-there is no logical significance.
-
-* Context expressions: renaming parameters permits syntax
-redeclaration as well.
-
-* Locale definition: 'includes' now disallowed.
-
 * Changed parameter management in theorem generation for long goal
 statements with 'includes'.  INCOMPATIBILITY: produces a different
 theorem statement in rare situations.
 
-* Attributes 'induct' and 'cases': type or set names may now be
-locally fixed variables as well.
-
-* Antiquotations now provide the option 'locale=NAME' to specify an
+* Antiquotations provide the option 'locale=NAME' to specify an
 alternative context used for evaluating and printing the subsequent
 argument, as in @{thm [locale=LC] fold_commute}, for example.
 
