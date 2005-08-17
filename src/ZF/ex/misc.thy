@@ -10,7 +10,26 @@ header{*Miscellaneous ZF Examples*}
 
 theory misc imports Main begin
 
+
 subsection{*Various Small Problems*}
+
+text{*The singleton problems are much harder in HOL.*}
+lemma singleton_example_1:
+     "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+  by blast
+
+lemma singleton_example_2:
+     "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+  -- {*Variant of the problem above. *}
+  by blast
+
+lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
+  -- {* A unique fixpoint theorem --- @{text fast}/@{text best}/@{text auto} all fail. *} 
+  apply (erule ex1E, rule ex1I, erule subst_context)
+  apply (rule subst, assumption, erule allE, rule subst_context, erule mp)
+  apply (erule subst_context)
+  done
+
 
 text{*A weird property of ordered pairs.*}
 lemma "b\<noteq>c ==> <a,b> Int <a,c> = <a,a>"
