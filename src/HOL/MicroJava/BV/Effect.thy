@@ -407,7 +407,7 @@ declare list_all2_Cons [code]
 
 lemma xcpt_app_lemma [code]:
   "xcpt_app i G pc et = list_all (is_class G) (xcpt_names (i, G, pc, et))"
-  by (simp add: list_all_conv)
+  by (simp add: list_all_iff)
 
 lemmas [simp del] = app_def xcpt_app_def
 
