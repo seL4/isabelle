@@ -361,35 +361,14 @@ proof (rule up_eqI)
     done
 qed (simp_all add: R)
 
-(*
-Strange phenomenon in Isar:
-
-theorem (in UP_cring) UP_cring:
-  "cring P"
-proof (rule cringI)
-  show "abelian_group P" proof (rule abelian_groupI)
-  fix x y z
-  assume "x \<in> carrier P" and "y \<in> carrier P" and "z \<in> carrier P"
-  {
-  show "x \<oplus>\<^bsub>P\<^esub> y \<in> carrier P" sorry
-  next
-  show "x \<oplus>\<^bsub>P\<^esub> y \<oplus>\<^bsub>P\<^esub> z = x \<oplus>\<^bsub>P\<^esub> (y \<oplus>\<^bsub>P\<^esub> z)" sorry
-  next
-  show "x \<oplus>\<^bsub>P\<^esub> y = y \<oplus>\<^bsub>P\<^esub> x" sorry
-  next
-  show "\<zero>\<^bsub>P\<^esub> \<oplus>\<^bsub>P\<^esub> x = x" sorry
-  next
-  show "\<exists>y\<in>carrier P. y \<oplus>\<^bsub>P\<^esub> x = \<zero>\<^bsub>P\<^esub>" sorry
-  next
-  show "\<zero>\<^bsub>P\<^esub> \<in> carrier P" sorry  last goal rejected!!!
-*)
-
 theorem (in UP_cring) UP_cring:
   "cring P"
   by (auto intro!: cringI abelian_groupI comm_monoidI UP_a_assoc UP_l_zero
     UP_l_neg_ex UP_a_comm UP_m_assoc UP_l_one UP_m_comm UP_l_distr)
 
-lemma (in UP_cring) UP_ring:  (* preliminary *)
+lemma (in UP_cring) UP_ring:
+  (* preliminary,
+     we want "UP_ring R P ==> ring P", not "UP_cring R P ==> ring P" *)
   "ring P"
   by (auto intro: ring.intro cring.axioms UP_cring)
 
@@ -412,154 +391,13 @@ proof -
 qed
 
 text {*
-  Instantiation of lemmas from @{term cring}.
+  Interpretation of lemmas from @{term cring}.  Saves lifting 43
+  lemmas manually.
 *}
 
-(* TODO: this should be automated with an instantiation command. *)
-
-lemma (in UP_cring) UP_monoid:
-  "monoid P"
-  by (fast intro!: cring.is_comm_monoid comm_monoid.axioms monoid.intro
-    UP_cring)
-(* TODO: provide cring.is_monoid *)
-
-lemma (in UP_cring) UP_comm_monoid:
-  "comm_monoid P"
-  by (fast intro!: cring.is_comm_monoid UP_cring)
-
-lemma (in UP_cring) UP_abelian_monoid:
-  "abelian_monoid P"
-  by (fast intro!: abelian_group.axioms ring.is_abelian_group UP_ring)
-
-lemma (in UP_cring) UP_abelian_group:
-  "abelian_group P"
-  by (fast intro!: ring.is_abelian_group UP_ring)
-
-lemmas (in UP_cring) UP_r_one [simp] =
-  monoid.r_one [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_closed [intro, simp] =
-  monoid.nat_pow_closed [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_0 [simp] =
-  monoid.nat_pow_0 [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_Suc [simp] =
-  monoid.nat_pow_Suc [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_one [simp] =
-  monoid.nat_pow_one [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_mult =
-  monoid.nat_pow_mult [OF UP_monoid]
-
-lemmas (in UP_cring) UP_nat_pow_pow =
-  monoid.nat_pow_pow [OF UP_monoid]
-
-lemmas (in UP_cring) UP_m_lcomm =
-  comm_monoid.m_lcomm [OF UP_comm_monoid]
-
-lemmas (in UP_cring) UP_m_ac = UP_m_assoc UP_m_comm UP_m_lcomm
-
-lemmas (in UP_cring) UP_nat_pow_distr =
-  comm_monoid.nat_pow_distr [OF UP_comm_monoid]
-
-lemmas (in UP_cring) UP_a_lcomm = abelian_monoid.a_lcomm [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_r_zero [simp] =
-  abelian_monoid.r_zero [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_a_ac = UP_a_assoc UP_a_comm UP_a_lcomm
-
-lemmas (in UP_cring) UP_finsum_empty [simp] =
-  abelian_monoid.finsum_empty [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_insert [simp] =
-  abelian_monoid.finsum_insert [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_zero [simp] =
-  abelian_monoid.finsum_zero [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_closed [simp] =
-  abelian_monoid.finsum_closed [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_Un_Int =
-  abelian_monoid.finsum_Un_Int [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_Un_disjoint =
-  abelian_monoid.finsum_Un_disjoint [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_addf =
-  abelian_monoid.finsum_addf [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_cong' =
-  abelian_monoid.finsum_cong' [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_0 [simp] =
-  abelian_monoid.finsum_0 [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_Suc [simp] =
-  abelian_monoid.finsum_Suc [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_Suc2 =
-  abelian_monoid.finsum_Suc2 [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_add [simp] =
-  abelian_monoid.finsum_add [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_finsum_cong =
-  abelian_monoid.finsum_cong [OF UP_abelian_monoid]
-
-lemmas (in UP_cring) UP_minus_closed [intro, simp] =
-  abelian_group.minus_closed [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_a_l_cancel [simp] =
-  abelian_group.a_l_cancel [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_a_r_cancel [simp] =
-  abelian_group.a_r_cancel [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_l_neg =
-  abelian_group.l_neg [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_r_neg =
-  abelian_group.r_neg [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_minus_zero [simp] =
-  abelian_group.minus_zero [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_minus_minus [simp] =
-  abelian_group.minus_minus [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_minus_add =
-  abelian_group.minus_add [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_r_neg2 =
-  abelian_group.r_neg2 [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_r_neg1 =
-  abelian_group.r_neg1 [OF UP_abelian_group]
-
-lemmas (in UP_cring) UP_r_distr =
-  ring.r_distr [OF UP_ring]
-
-lemmas (in UP_cring) UP_l_null [simp] =
-  ring.l_null [OF UP_ring]
-
-lemmas (in UP_cring) UP_r_null [simp] =
-  ring.r_null [OF UP_ring]
-
-lemmas (in UP_cring) UP_l_minus =
-  ring.l_minus [OF UP_ring]
-
-lemmas (in UP_cring) UP_r_minus =
-  ring.r_minus [OF UP_ring]
-
-lemmas (in UP_cring) UP_finsum_ldistr =
-  cring.finsum_ldistr [OF UP_cring]
-
-lemmas (in UP_cring) UP_finsum_rdistr =
-  cring.finsum_rdistr [OF UP_cring]
+interpretation UP_cring < cring P
+  using UP_cring
+  by - (erule cring.axioms)+
 
 
 subsection {* Polynomials form an Algebra *}
@@ -589,32 +427,22 @@ lemma (in UP_cring) UP_smult_assoc2:
   by (rule up_eqI) (simp_all add: R.finsum_rdistr R.m_assoc Pi_def)
 
 text {*
-  Instantiation of lemmas from @{term algebra}.
+  Interpretation of lemmas from @{term algebra}.
 *}
 
-(* TODO: this should be automated with an instantiation command. *)
-
-(* TODO: move to CRing.thy, really a fact missing from the locales package *)
 lemma (in cring) cring:
   "cring R"
   by (fast intro: cring.intro prems)
 
 lemma (in UP_cring) UP_algebra:
   "algebra R P"
-  by (auto intro: algebraI cring UP_cring UP_smult_l_distr UP_smult_r_distr
+  by (auto intro: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
     UP_smult_assoc1 UP_smult_assoc2)
 
-lemmas (in UP_cring) UP_smult_l_null [simp] =
-  algebra.smult_l_null [OF UP_algebra]
+interpretation UP_cring < algebra R P
+  using UP_algebra
+  by - (erule algebra.axioms)+
 
-lemmas (in UP_cring) UP_smult_r_null [simp] =
-  algebra.smult_r_null [OF UP_algebra]
-
-lemmas (in UP_cring) UP_smult_l_minus =
-  algebra.smult_l_minus [OF UP_algebra]
-
-lemmas (in UP_cring) UP_smult_r_minus =
-  algebra.smult_r_minus [OF UP_algebra]
 
 subsection {* Further lemmas involving monomials *}
 
@@ -632,8 +460,8 @@ proof (rule up_eqI)
     case 0 with R show ?thesis by (simp add: R.m_comm)
   next
     case Suc with R show ?thesis
-      by (simp cong: finsum_cong add: R.r_null Pi_def)
-        (simp add: m_comm)
+      by (simp cong: R.finsum_cong add: R.r_null Pi_def)
+        (simp add: R.m_comm)
   qed
   with R show "coeff P (monom P a 0 \<otimes>\<^bsub>P\<^esub> p) n = coeff P (a \<odot>\<^bsub>P\<^esub> p) n"
     by (simp add: UP_m_comm)
@@ -658,14 +486,14 @@ proof (rule up_eqI)
       also from True
       have "... = (\<Oplus>i \<in> {..<n} \<union> {n}. coeff P (monom P \<one> n) i \<otimes>
         coeff P (monom P \<one> 1) (k - i))"
-        by (simp cong: finsum_cong add: finsum_Un_disjoint Pi_def)
+        by (simp cong: R.finsum_cong add: Pi_def)
       also have "... = (\<Oplus>i \<in>  {..n}. coeff P (monom P \<one> n) i \<otimes>
         coeff P (monom P \<one> 1) (k - i))"
         by (simp only: ivl_disj_un_singleton)
       also from True
       have "... = (\<Oplus>i \<in> {..n} \<union> {n<..k}. coeff P (monom P \<one> n) i \<otimes>
         coeff P (monom P \<one> 1) (k - i))"
-        by (simp cong: finsum_cong add: finsum_Un_disjoint ivl_disj_int_one
+        by (simp cong: R.finsum_cong add: R.finsum_Un_disjoint ivl_disj_int_one
           order_less_imp_not_eq Pi_def)
       also from True have "... = coeff P (monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> 1) k"
         by (simp add: ivl_disj_un_one)
@@ -680,34 +508,33 @@ proof (rule up_eqI)
     also have "... = (\<Oplus>i \<in> {..k}. ?s i)"
     proof -
       have f1: "(\<Oplus>i \<in> {..<n}. ?s i) = \<zero>"
-        by (simp cong: finsum_cong add: Pi_def)
+        by (simp cong: R.finsum_cong add: Pi_def)
       from neq have f2: "(\<Oplus>i \<in> {n}. ?s i) = \<zero>"
-        by (simp cong: finsum_cong add: Pi_def) arith
+        by (simp cong: R.finsum_cong add: Pi_def) arith
       have f3: "n < k ==> (\<Oplus>i \<in> {n<..k}. ?s i) = \<zero>"
-        by (simp cong: finsum_cong add: order_less_imp_not_eq Pi_def)
+        by (simp cong: R.finsum_cong add: order_less_imp_not_eq Pi_def)
       show ?thesis
       proof (cases "k < n")
-        case True then show ?thesis by (simp cong: finsum_cong add: Pi_def)
+        case True then show ?thesis by (simp cong: R.finsum_cong add: Pi_def)
       next
         case False then have n_le_k: "n <= k" by arith
         show ?thesis
         proof (cases "n = k")
           case True
           then have "\<zero> = (\<Oplus>i \<in> {..<n} \<union> {n}. ?s i)"
-            by (simp cong: finsum_cong add: finsum_Un_disjoint
-              ivl_disj_int_singleton Pi_def)
+            by (simp cong: R.finsum_cong add: ivl_disj_int_singleton Pi_def)
           also from True have "... = (\<Oplus>i \<in> {..k}. ?s i)"
             by (simp only: ivl_disj_un_singleton)
           finally show ?thesis .
         next
           case False with n_le_k have n_less_k: "n < k" by arith
           with neq have "\<zero> = (\<Oplus>i \<in> {..<n} \<union> {n}. ?s i)"
-            by (simp add: finsum_Un_disjoint f1 f2
+            by (simp add: R.finsum_Un_disjoint f1 f2
               ivl_disj_int_singleton Pi_def del: Un_insert_right)
           also have "... = (\<Oplus>i \<in> {..n}. ?s i)"
             by (simp only: ivl_disj_un_singleton)
           also from n_less_k neq have "... = (\<Oplus>i \<in> {..n} \<union> {n<..k}. ?s i)"
-            by (simp add: finsum_Un_disjoint f3 ivl_disj_int_one Pi_def)
+            by (simp add: R.finsum_Un_disjoint f3 ivl_disj_int_one Pi_def)
           also from n_less_k have "... = (\<Oplus>i \<in> {..k}. ?s i)"
             by (simp only: ivl_disj_un_one)
           finally show ?thesis .
@@ -733,7 +560,7 @@ proof (induct n)
   case 0 show ?case by simp
 next
   case Suc then show ?case
-    by (simp only: add_Suc monom_one_Suc) (simp add: UP_m_ac)
+    by (simp only: add_Suc monom_one_Suc) (simp add: P.m_ac)
 qed
 
 lemma (in UP_cring) monom_mult [simp]:
@@ -742,21 +569,21 @@ lemma (in UP_cring) monom_mult [simp]:
 proof -
   from R have "monom P (a \<otimes> b) (n + m) = monom P (a \<otimes> b \<otimes> \<one>) (n + m)" by simp
   also from R have "... = a \<otimes> b \<odot>\<^bsub>P\<^esub> monom P \<one> (n + m)"
-    by (simp add: monom_mult_smult del: r_one)
+    by (simp add: monom_mult_smult del: R.r_one)
   also have "... = a \<otimes> b \<odot>\<^bsub>P\<^esub> (monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> m)"
     by (simp only: monom_one_mult)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> (monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> m))"
     by (simp add: UP_smult_assoc1)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> (monom P \<one> m \<otimes>\<^bsub>P\<^esub> monom P \<one> n))"
-    by (simp add: UP_m_comm)
+    by (simp add: P.m_comm)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> ((b \<odot>\<^bsub>P\<^esub> monom P \<one> m) \<otimes>\<^bsub>P\<^esub> monom P \<one> n)"
     by (simp add: UP_smult_assoc2)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (monom P \<one> n \<otimes>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> monom P \<one> m))"
-    by (simp add: UP_m_comm)
+    by (simp add: P.m_comm)
   also from R have "... = (a \<odot>\<^bsub>P\<^esub> monom P \<one> n) \<otimes>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> monom P \<one> m)"
     by (simp add: UP_smult_assoc2)
   also from R have "... = monom P (a \<otimes> \<one>) n \<otimes>\<^bsub>P\<^esub> monom P (b \<otimes> \<one>) m"
-    by (simp add: monom_mult_smult del: r_one)
+    by (simp add: monom_mult_smult del: R.r_one)
   also from R have "... = monom P a n \<otimes>\<^bsub>P\<^esub> monom P b m" by simp
   finally show ?thesis .
 qed
@@ -773,6 +600,7 @@ proof (rule inj_onI)
   then have "coeff P (monom P x n) n = coeff P (monom P y n) n" by simp
   with R show "x = y" by simp
 qed
+
 
 subsection {* The degree function *}
 
@@ -877,7 +705,7 @@ lemma (in UP_cring) deg_eqI:
       !!n. n ~= 0 ==> coeff P p n ~= \<zero>; p \<in> carrier P |] ==> deg R p = n"
 by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 
-(* Degree and polynomial operations *)
+text {* Degree and polynomial operations *}
 
 lemma (in UP_cring) deg_add [simp]:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
@@ -929,7 +757,7 @@ proof (rule le_anti_sym)
 next
   show "deg R p <= deg R (\<ominus>\<^bsub>P\<^esub> p)"
     by (simp add: deg_belowI lcoeff_nonzero_deg
-      inj_on_iff [OF a_inv_inj, of _ "\<zero>", simplified] R)
+      inj_on_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
 qed
 
 lemma (in UP_domain) deg_smult_ring:
@@ -985,13 +813,13 @@ next
       = (\<Oplus>i \<in> {..< deg R p} \<union> {deg R p .. deg R p + deg R q}. ?s i)"
       by (simp only: ivl_disj_un_one)
     also have "... = (\<Oplus>i \<in> {deg R p .. deg R p + deg R q}. ?s i)"
-      by (simp cong: finsum_cong add: finsum_Un_disjoint ivl_disj_int_one
+      by (simp cong: R.finsum_cong add: R.finsum_Un_disjoint ivl_disj_int_one
         deg_aboveD less_add_diff R Pi_def)
     also have "...= (\<Oplus>i \<in> {deg R p} \<union> {deg R p <.. deg R p + deg R q}. ?s i)"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff P p (deg R p) \<otimes> coeff P q (deg R q)"
-      by (simp cong: finsum_cong add: finsum_Un_disjoint
-        ivl_disj_int_singleton deg_aboveD R Pi_def)
+      by (simp cong: R.finsum_cong
+	add: ivl_disj_int_singleton deg_aboveD R Pi_def)
     finally have "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i)
       = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" .
     with nz show "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i) ~= \<zero>"
@@ -1021,14 +849,14 @@ proof (rule up_eqI)
       by (simp only: ivl_disj_un_one)
     also from True
     have "... = coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..k}. ?s i) k"
-      by (simp cong: finsum_cong add: finsum_Un_disjoint
+      by (simp cong: R.finsum_cong add: R.finsum_Un_disjoint
         ivl_disj_int_one order_less_imp_not_eq2 coeff_finsum R RR Pi_def)
     also
     have "... = coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..<k} \<union> {k}. ?s i) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff P p k"
-      by (simp cong: finsum_cong add: setsum_Un_disjoint
-        ivl_disj_int_singleton coeff_finsum deg_aboveD R RR Pi_def)
+      by (simp cong: R.finsum_cong
+	add: ivl_disj_int_singleton coeff_finsum deg_aboveD R RR Pi_def)
     finally show ?thesis .
   next
     case False
@@ -1036,8 +864,8 @@ proof (rule up_eqI)
           coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..<deg R p} \<union> {deg R p}. ?s i) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff P p k"
-      by (simp cong: finsum_cong add: setsum_Un_disjoint ivl_disj_int_singleton
-        coeff_finsum deg_aboveD R Pi_def)
+      by (simp cong: R.finsum_cong
+	add: ivl_disj_int_singleton coeff_finsum deg_aboveD R Pi_def)
     finally show ?thesis .
   qed
 qed (simp_all add: R Pi_def)
@@ -1051,11 +879,12 @@ proof -
   then have "finsum P ?s {..n} = finsum P ?s ({..deg R p} \<union> {deg R p<..n})"
     by (simp only: ivl_disj_un_one)
   also have "... = finsum P ?s {..deg R p}"
-    by (simp cong: UP_finsum_cong add: UP_finsum_Un_disjoint ivl_disj_int_one
+    by (simp cong: P.finsum_cong add: P.finsum_Un_disjoint ivl_disj_int_one
       deg_aboveD R Pi_def)
   also have "... = p" by (rule up_repr)
   finally show ?thesis .
 qed
+
 
 subsection {* Polynomials over an integral domain form an integral domain *}
 
@@ -1111,27 +940,12 @@ theorem (in UP_domain) UP_domain:
   by (auto intro!: domainI UP_cring UP_one_not_zero UP_integral del: disjCI)
 
 text {*
-  Instantiation of theorems from @{term domain}.
+  Interpretation of theorems from @{term domain}.
 *}
 
-(* TODO: this should be automated with an instantiation command. *)
-
-lemmas (in UP_domain) UP_zero_not_one [simp] =
-  domain.zero_not_one [OF UP_domain]
-
-lemmas (in UP_domain) UP_integral_iff =
-  domain.integral_iff [OF UP_domain]
-
-lemmas (in UP_domain) UP_m_lcancel =
-  domain.m_lcancel [OF UP_domain]
-
-lemmas (in UP_domain) UP_m_rcancel =
-  domain.m_rcancel [OF UP_domain]
-
-lemma (in UP_domain) smult_integral:
-  "[| a \<odot>\<^bsub>P\<^esub> p = \<zero>\<^bsub>P\<^esub>; a \<in> carrier R; p \<in> carrier P |] ==> a = \<zero> | p = \<zero>\<^bsub>P\<^esub>"
-  by (simp add: monom_mult_is_smult [THEN sym] UP_integral_iff
-    inj_on_iff [OF monom_inj, of _ "\<zero>", simplified])
+interpretation UP_domain < "domain" P
+  using UP_domain
+  by (rule domain.axioms)
 
 
 subsection {* Evaluation Homomorphism and Universal Property*}
@@ -1183,7 +997,7 @@ theorem (in cring) cauchy_product:
   assumes bf: "bound \<zero> n f" and bg: "bound \<zero> m g"
     and Rf: "f \<in> {..n} -> carrier R" and Rg: "g \<in> {..m} -> carrier R"
   shows "(\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
-    (\<Oplus>i \<in> {..n}. f i) \<otimes> (\<Oplus>i \<in> {..m}. g i)"       (* State revese direction? *)
+    (\<Oplus>i \<in> {..n}. f i) \<otimes> (\<Oplus>i \<in> {..m}. g i)"      (* State reverse direction? *)
 proof -
   have f: "!!x. f x \<in> carrier R"
   proof -
@@ -1227,49 +1041,57 @@ constdefs (structure S)
   "eval R S phi s == \<lambda>p \<in> carrier (UP R).
     \<Oplus>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes> s (^) i"
 
-locale UP_univ_prop = ring_hom_cring R S + UP_cring R
 
 lemma (in UP) eval_on_carrier:
   includes struct S
-  shows  "p \<in> carrier P ==>
-    eval R S phi s p =
-    (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+  shows "p \<in> carrier P ==>
+  eval R S phi s p = (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
   by (unfold eval_def, fold P_def) simp
 
 lemma (in UP) eval_extensional:
-  "eval R S phi s \<in> extensional (carrier P)"
+  "eval R S phi p \<in> extensional (carrier P)"
   by (unfold eval_def, fold P_def) simp
 
-theorem (in UP_univ_prop) eval_ring_hom:
-  "s \<in> carrier S ==> eval R S h s \<in> ring_hom P S"
+
+text {* The universal property of the polynomial ring *}
+
+locale UP_pre_univ_prop = ring_hom_cring R S h + UP_cring R P
+
+locale UP_univ_prop = UP_pre_univ_prop + var s + var Eval +
+  assumes indet_img_carrier [simp, intro]: "s \<in> carrier S"
+  defines Eval_def: "Eval == eval R S h s"
+
+theorem (in UP_pre_univ_prop) eval_ring_hom:
+  assumes S: "s \<in> carrier S"
+  shows "eval R S h s \<in> ring_hom P S"
 proof (rule ring_hom_memI)
   fix p
-  assume RS: "p \<in> carrier P" "s \<in> carrier S"
+  assume R: "p \<in> carrier P"
   then show "eval R S h s p \<in> carrier S"
-    by (simp only: eval_on_carrier) (simp add: Pi_def)
+    by (simp only: eval_on_carrier) (simp add: S Pi_def)
 next
   fix p q
-  assume RS: "p \<in> carrier P" "q \<in> carrier P" "s \<in> carrier S"
+  assume R: "p \<in> carrier P" "q \<in> carrier P"
   then show "eval R S h s (p \<otimes>\<^bsub>P\<^esub> q) = eval R S h s p \<otimes>\<^bsub>S\<^esub> eval R S h s q"
   proof (simp only: eval_on_carrier UP_mult_closed)
-    from RS have
+    from R S have
       "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<otimes>\<^bsub>P\<^esub> q)<..deg R p + deg R q}.
         h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp cong: finsum_cong
-        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
+      by (simp cong: S.finsum_cong
+        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
         del: coeff_mult)
-    also from RS have "... =
+    also from R have "... =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
       by (simp only: ivl_disj_un_one deg_mult_cring)
-    also from RS have "... =
+    also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}.
          \<Oplus>\<^bsub>S\<^esub> k \<in> {..i}.
            h (coeff P p k) \<otimes>\<^bsub>S\<^esub> h (coeff P q (i - k)) \<otimes>\<^bsub>S\<^esub>
            (s (^)\<^bsub>S\<^esub> k \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> (i - k)))"
-      by (simp cong: finsum_cong add: nat_pow_mult Pi_def
+      by (simp cong: S.finsum_cong add: S.nat_pow_mult Pi_def
         S.m_ac S.finsum_rdistr)
-    also from RS have "... =
+    also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
       (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
       by (simp add: S.cauchy_product [THEN sym] bound.intro deg_aboveD S.m_ac
@@ -1281,101 +1103,59 @@ next
   qed
 next
   fix p q
-  assume RS: "p \<in> carrier P" "q \<in> carrier P" "s \<in> carrier S"
+  assume R: "p \<in> carrier P" "q \<in> carrier P"
   then show "eval R S h s (p \<oplus>\<^bsub>P\<^esub> q) = eval R S h s p \<oplus>\<^bsub>S\<^esub> eval R S h s q"
-  proof (simp only: eval_on_carrier UP_a_closed)
-    from RS have
+  proof (simp only: eval_on_carrier P.a_closed)
+    from S R have
       "(\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
       (\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<oplus>\<^bsub>P\<^esub> q)<..max (deg R p) (deg R q)}.
         h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp cong: finsum_cong
-        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
+      by (simp cong: S.finsum_cong
+        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
         del: coeff_add)
-    also from RS have "... =
+    also from R have "... =
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..max (deg R p) (deg R q)}.
           h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
       by (simp add: ivl_disj_un_one)
-    also from RS have "... =
+    also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
       (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp cong: finsum_cong
-        add: l_distr deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
+      by (simp cong: S.finsum_cong
+        add: S.l_distr deg_aboveD ivl_disj_int_one Pi_def)
     also have "... =
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p} \<union> {deg R p<..max (deg R p) (deg R q)}.
           h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q} \<union> {deg R q<..max (deg R p) (deg R q)}.
           h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
       by (simp only: ivl_disj_un_one le_maxI1 le_maxI2)
-    also from RS have "... =
+    also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp cong: finsum_cong
-        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
+      by (simp cong: S.finsum_cong
+        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def)
     finally show
       "(\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
       (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
       (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)" .
   qed
 next
-  assume S: "s \<in> carrier S"
-  then show "eval R S h s \<one>\<^bsub>P\<^esub> = \<one>\<^bsub>S\<^esub>"
+  show "eval R S h s \<one>\<^bsub>P\<^esub> = \<one>\<^bsub>S\<^esub>"
     by (simp only: eval_on_carrier UP_one_closed) simp
 qed
 
-text {* Instantiation of ring homomorphism lemmas. *}
+text {* Interpretation of ring homomorphism lemmas. *}
 
-(* TODO: again, automate with instantiation command *)
-
-lemma (in UP_univ_prop) ring_hom_cring_P_S:
-  "s \<in> carrier S ==> ring_hom_cring P S (eval R S h s)"
-  by (fast intro!: ring_hom_cring.intro UP_cring cring.axioms prems
-    intro: ring_hom_cring_axioms.intro eval_ring_hom)
-
-(*
-lemma (in UP_univ_prop) UP_hom_closed [intro, simp]:
-  "[| s \<in> carrier S; p \<in> carrier P |] ==> eval R S h s p \<in> carrier S"
-  by (rule ring_hom_cring.hom_closed [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_mult [simp]:
-  "[| s \<in> carrier S; p \<in> carrier P; q \<in> carrier P |] ==>
-  eval R S h s (p \<otimes>\<^bsub>P\<^esub> q) = eval R S h s p \<otimes>\<^bsub>S\<^esub> eval R S h s q"
-  by (rule ring_hom_cring.hom_mult [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_add [simp]:
-  "[| s \<in> carrier S; p \<in> carrier P; q \<in> carrier P |] ==>
-  eval R S h s (p \<oplus>\<^bsub>P\<^esub> q) = eval R S h s p \<oplus>\<^bsub>S\<^esub> eval R S h s q"
-  by (rule ring_hom_cring.hom_add [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_one [simp]:
-  "s \<in> carrier S ==> eval R S h s \<one>\<^bsub>P\<^esub> = \<one>\<^bsub>S\<^esub>"
-  by (rule ring_hom_cring.hom_one [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_zero [simp]:
-  "s \<in> carrier S ==> eval R S h s \<zero>\<^bsub>P\<^esub> = \<zero>\<^bsub>S\<^esub>"
-  by (rule ring_hom_cring.hom_zero [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_a_inv [simp]:
-  "[| s \<in> carrier S; p \<in> carrier P |] ==>
-  (eval R S h s) (\<ominus>\<^bsub>P\<^esub> p) = \<ominus>\<^bsub>S\<^esub> (eval R S h s) p"
-  by (rule ring_hom_cring.hom_a_inv [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_finsum [simp]:
-  "[| s \<in> carrier S; finite A; f \<in> A -> carrier P |] ==>
-  (eval R S h s) (finsum P f A) = finsum S (eval R S h s o f) A"
-  by (rule ring_hom_cring.hom_finsum [OF ring_hom_cring_P_S])
-
-lemma (in UP_univ_prop) UP_hom_finprod [simp]:
-  "[| s \<in> carrier S; finite A; f \<in> A -> carrier P |] ==>
-  (eval R S h s) (finprod P f A) = finprod S (eval R S h s o f) A"
-  by (rule ring_hom_cring.hom_finprod [OF ring_hom_cring_P_S])
-*)
+interpretation UP_univ_prop < ring_hom_cring P S Eval
+  by (unfold Eval_def)
+    (fast intro!: ring_hom_cring.intro UP_cring cring.axioms prems
+      intro: ring_hom_cring_axioms.intro eval_ring_hom)
 
 text {* Further properties of the evaluation homomorphism. *}
 
 (* The following lemma could be proved in UP\_cring with the additional
    assumption that h is closed. *)
 
-lemma (in UP_univ_prop) eval_const:
+lemma (in UP_pre_univ_prop) eval_const:
   "[| s \<in> carrier S; r \<in> carrier R |] ==> eval R S h s (monom P r 0) = h r"
   by (simp only: eval_on_carrier monom_closed) simp
 
@@ -1384,16 +1164,16 @@ text {* The following proof is complicated by the fact that in arbitrary
 
 (* TODO: simplify by cases "one R = zero R" *)
 
-lemma (in UP_univ_prop) eval_monom1:
-  "s \<in> carrier S ==> eval R S h s (monom P \<one> 1) = s"
+lemma (in UP_pre_univ_prop) eval_monom1:
+  assumes S: "s \<in> carrier S"
+  shows "eval R S h s (monom P \<one> 1) = s"
 proof (simp only: eval_on_carrier monom_closed R.one_closed)
-  assume S: "s \<in> carrier S"
-  then have
+   from S have
     "(\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R (monom P \<one> 1)}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
     (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R (monom P \<one> 1)} \<union> {deg R (monom P \<one> 1)<..1}.
       h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-    by (simp cong: finsum_cong del: coeff_monom
-      add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
+    by (simp cong: S.finsum_cong del: coeff_monom
+      add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def)
   also have "... =
     (\<Oplus>\<^bsub>S\<^esub> i \<in> {..1}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
     by (simp only: ivl_disj_un_one deg_monom_le R.one_closed)
@@ -1401,7 +1181,7 @@ proof (simp only: eval_on_carrier monom_closed R.one_closed)
   proof (cases "s = \<zero>\<^bsub>S\<^esub>")
     case True then show ?thesis by (simp add: Pi_def)
   next
-    case False with S show ?thesis by (simp add: Pi_def)
+    case False then show ?thesis by (simp add: S Pi_def)
   qed
   finally show "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (monom P \<one> 1)}.
     h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) = s" .
@@ -1421,33 +1201,36 @@ lemma (in ring_hom_cring) hom_pow [simp]:
   "x \<in> carrier R ==> h (x (^) n) = h x (^)\<^bsub>S\<^esub> (n::nat)"
   by (induct n) simp_all
 
-lemma (in UP_univ_prop) eval_monom:
-  "[| s \<in> carrier S; r \<in> carrier R |] ==>
-  eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
+lemma (in UP_univ_prop) Eval_monom:
+  "r \<in> carrier R ==> Eval (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
-  assume S: "s \<in> carrier S" and R: "r \<in> carrier R"
-  from ring_hom_cring_P_S [OF S] interpret ring_hom_cring [P S "eval R S h s"]
-    by - (rule ring_hom_cring.axioms, assumption)+
-    (* why is simplifier invoked --- in done ??? *)
-  from R S have "eval R S h s (monom P r n) =
-    eval R S h s (monom P r 0 \<otimes>\<^bsub>P\<^esub> (monom P \<one> 1) (^)\<^bsub>P\<^esub> n)"
-    by (simp del: monom_mult (* eval.hom_mult eval.hom_pow, delayed inst! *)
-      add: monom_mult [THEN sym] monom_pow)
+  assume R: "r \<in> carrier R"
+  from R have "Eval (monom P r n) = Eval (monom P r 0 \<otimes>\<^bsub>P\<^esub> (monom P \<one> 1) (^)\<^bsub>P\<^esub> n)"
+    by (simp del: monom_mult add: monom_mult [THEN sym] monom_pow)
   also
-  from R S eval_monom1 have "... = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
-    by (simp add: eval_const)
+  from R eval_monom1 [where s = s, folded Eval_def]
+  have "... = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
+    by (simp add: eval_const [where s = s, folded Eval_def])
   finally show ?thesis .
 qed
 
-lemma (in UP_univ_prop) eval_smult:
-  "[| s \<in> carrier S; r \<in> carrier R; p \<in> carrier P |] ==>
-  eval R S h s (r \<odot>\<^bsub>P\<^esub> p) = h r \<otimes>\<^bsub>S\<^esub> eval R S h s p"
+lemma (in UP_pre_univ_prop) eval_monom:
+  assumes R: "r \<in> carrier R" and S: "s \<in> carrier S"
+  shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
-  assume S: "s \<in> carrier S" and R: "r \<in> carrier R" and P: "p \<in> carrier P"
-  from ring_hom_cring_P_S [OF S] interpret ring_hom_cring [P S "eval R S h s"]
-    by - (rule ring_hom_cring.axioms, assumption)+
-  from S R P show ?thesis
-    by (simp add: monom_mult_is_smult [THEN sym] eval_const)
+  from S interpret UP_univ_prop [R S h P s _]
+    by (auto intro!: UP_univ_prop_axioms.intro)
+  from R
+  show ?thesis by (rule Eval_monom)
+qed
+
+lemma (in UP_univ_prop) Eval_smult:
+  "[| r \<in> carrier R; p \<in> carrier P |] ==> Eval (r \<odot>\<^bsub>P\<^esub> p) = h r \<otimes>\<^bsub>S\<^esub> Eval p"
+proof -
+  assume R: "r \<in> carrier R" and P: "p \<in> carrier P"
+  then show ?thesis
+    by (simp add: monom_mult_is_smult [THEN sym]
+      eval_const [where s = s, folded Eval_def])
 qed
 
 lemma ring_hom_cringI:
@@ -1458,59 +1241,56 @@ lemma ring_hom_cringI:
   by (fast intro: ring_hom_cring.intro ring_hom_cring_axioms.intro
     cring.axioms prems)
 
-lemma (in UP_univ_prop) UP_hom_unique:
-  assumes Phi: "Phi \<in> ring_hom P S" "Phi (monom P \<one> (Suc 0)) = s"
+lemma (in UP_pre_univ_prop) UP_hom_unique:
+  includes ring_hom_cring P S Phi
+  assumes Phi: "Phi (monom P \<one> (Suc 0)) = s"
       "!!r. r \<in> carrier R ==> Phi (monom P r 0) = h r"
-    and Psi: "Psi \<in> ring_hom P S" "Psi (monom P \<one> (Suc 0)) = s"
+  includes ring_hom_cring P S Psi
+  assumes Psi: "Psi (monom P \<one> (Suc 0)) = s"
       "!!r. r \<in> carrier R ==> Psi (monom P r 0) = h r"
-    and S: "s \<in> carrier S" and P: "p \<in> carrier P"
+    and P: "p \<in> carrier P" and S: "s \<in> carrier S"
   shows "Phi p = Psi p"
 proof -
-  from UP_cring interpret cring [P] by - (rule cring.axioms, assumption)+
-  interpret Phi: ring_hom_cring [P S Phi]
-    by (auto intro: ring_hom_cring.axioms ring_hom_cringI UP_cring S.cring Phi)
-  interpret Psi: ring_hom_cring [P S Psi]
-    by (auto intro: ring_hom_cring.axioms ring_hom_cringI UP_cring S.cring Psi)
-
   have "Phi p =
       Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
-    by (simp add: up_repr P S monom_mult [THEN sym] monom_pow del: monom_mult)
+    by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
   also
   have "... =
       Psi (\<Oplus>\<^bsub>P \<^esub>i\<in>{..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
-    by (simp add: Phi Psi P S Pi_def comp_def)
-(* Without interpret, the following command would have been necessary.
-    by (simp add: ring_hom_cring.hom_finsum [OF Phi_hom]
-      ring_hom_cring.hom_mult [OF Phi_hom]
-      ring_hom_cring.hom_pow [OF Phi_hom] Phi
-      ring_hom_cring.hom_finsum [OF Psi_hom]
-      ring_hom_cring.hom_mult [OF Psi_hom]
-      ring_hom_cring.hom_pow [OF Psi_hom] Psi RS Pi_def comp_def)
-*)
+    by (simp add: Phi Psi P Pi_def comp_def)
   also have "... = Psi p"
-    by (simp add: up_repr P S monom_mult [THEN sym] monom_pow del: monom_mult)
+    by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
   finally show ?thesis .
 qed
 
-theorem (in UP_univ_prop) UP_universal_property:
-  "s \<in> carrier S ==>
-  EX! Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
+lemma (in UP_pre_univ_prop) ring_homD:
+  assumes Phi: "Phi \<in> ring_hom P S"
+  shows "ring_hom_cring P S Phi"
+proof (rule ring_hom_cring.intro)
+  show "ring_hom_cring_axioms P S Phi"
+  by (rule ring_hom_cring_axioms.intro) (rule Phi)
+qed (auto intro: P.cring cring.axioms)
+
+theorem (in UP_pre_univ_prop) UP_universal_property:
+  assumes S: "s \<in> carrier S"
+  shows "EX! Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
     Phi (monom P \<one> 1) = s &
     (ALL r : carrier R. Phi (monom P r 0) = h r)"
-  using eval_monom1
+  using S eval_monom1
   apply (auto intro: eval_ring_hom eval_const eval_extensional)
   apply (rule extensionalityI)
-  apply (auto intro: UP_hom_unique)
+  apply (auto intro: UP_hom_unique ring_homD)
   done
+
 
 subsection {* Sample application of evaluation homomorphism *}
 
-lemma UP_univ_propI:
+lemma UP_pre_univ_propI:
   assumes "cring R"
     and "cring S"
     and "h \<in> ring_hom R S"
-  shows "UP_univ_prop R S h"
-  by (fast intro: UP_univ_prop.intro ring_hom_cring_axioms.intro
+  shows "UP_pre_univ_prop R S h "
+  by (fast intro: UP_pre_univ_prop.intro ring_hom_cring_axioms.intro
     cring.axioms prems)
 
 constdefs
@@ -1523,18 +1303,18 @@ lemma INTEG_cring:
     zadd_zminus_inverse2 zadd_zmult_distrib)
 
 lemma INTEG_id_eval:
-  "UP_univ_prop INTEG INTEG id"
-  by (fast intro: UP_univ_propI INTEG_cring id_ring_hom)
+  "UP_pre_univ_prop INTEG INTEG id"
+  by (fast intro: UP_pre_univ_propI INTEG_cring id_ring_hom)
 
 text {*
-  Interpretation allows now to import all theorems and lemmas
+  Interpretation now enables to import all theorems and lemmas
   valid in the context of homomorphisms between @{term INTEG} and @{term
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG: UP_univ_prop [INTEG INTEG id]
+interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id]
   using INTEG_id_eval
-  by - (rule UP_univ_prop.axioms, assumption)+
+  by - (erule UP_pre_univ_prop.axioms)+
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"
