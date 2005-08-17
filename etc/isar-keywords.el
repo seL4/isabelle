@@ -11,6 +11,7 @@
     "ML"
     "ML_command"
     "ML_setup"
+    "ProofGeneral\\.call_atp"
     "ProofGeneral\\.context_thy_only"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
@@ -272,6 +273,7 @@
 (defconst isar-keywords-diag
   '("ML"
     "ML_command"
+    "ProofGeneral\\.call_atp"
     "cd"
     "commit"
     "disable_pr"

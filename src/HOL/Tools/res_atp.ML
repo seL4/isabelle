@@ -7,7 +7,6 @@ ATPs with TPTP format input.
 
 signature RES_ATP =
 sig
-  val call_atp: bool ref
   val axiom_file : Path.T
   val hyps_file : Path.T
   val prob_file : Path.T;
@@ -21,8 +20,6 @@ end;
 
 structure ResAtp: RES_ATP =
 struct
-
-val call_atp = ref false;
 
 fun debug_tac tac = (debug "testing"; tac);
 
@@ -324,25 +321,6 @@ fun get_thms_ss [] = []
 
 
 (* convert locally declared rules to axiom clauses *)
-(* write axiom clauses to ax_file *)
-(* what about clasimpset - it should already be in the ax file - perhaps append to ax file rather than just *)
-(* write out ? Or keep as a separate file and then cat them all together in the watcher, like we do with the *)
-(*claset file and prob file*)
-(* FIX*)
-(*fun isar_local_thms (delta_cs, delta_ss_thms) =
-    let val thms_cs = get_thms_cs delta_cs
-        val thms_ss = get_thms_ss delta_ss_thms
-        val thms_clauses = ResLib.flat_noDup (map ResAxioms.clausify_axiom (thms_cs @ thms_ss))
-        val clauses_strs = ResLib.flat_noDup (map ResClause.tptp_clause thms_clauses) (*string list*)
-        val ax_file = File.platform_path axiom_file
-        val out = TextIO.openOut ax_file
-    in
-        ResLib.writeln_strs out clauses_strs; 
-        debug ("axiom file is "^ax_file));
-        TextIO.closeOut out
-    end;
-*)
-
 
 fun subtract_simpset thy ctxt =
   let
@@ -361,27 +339,34 @@ fun subtract_claset thy ctxt =
 
 (** the Isar toplevel hook **)
 
-val _ = Toplevel.print_state_hook (fn _ => fn state =>
+val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   let
-    val _ = if ! call_atp then () else raise Toplevel.UNDEF;
-    val prf =
-      (case Toplevel.node_of state of Toplevel.Proof prf => prf | _ => raise Toplevel.UNDEF);
-    val _ = Proof.assert_backward (the (ProofHistory.previous prf));
-    val proof = Proof.assert_forward (ProofHistory.current prf);
-    val (ctxt, (_, goal)) = Proof.get_goal proof;
-
+    val proof = Toplevel.proof_of state
+    val (ctxt, (_, goal)) = Proof.get_goal proof
+        handle Proof.STATE _ => error "No goal present";
     val thy = ProofContext.theory_of ctxt;
-    val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) (Thm.prems_of goal));
 
     (* FIXME presently unused *)
     val ss_thms = subtract_simpset thy ctxt;
     val cs_thms = subtract_claset thy ctxt;
   in
-    debug ("initial thm in isar_atp: " ^ string_of_thm goal);
-    debug ("subgoals in isar_atp: " ^ prems_string);
+    debug ("initial thm in isar_atp: " ^ 
+           Pretty.string_of (ProofContext.pretty_thm ctxt goal));
+    debug ("subgoals in isar_atp: " ^ 
+           Pretty.string_of (ProofContext.pretty_term ctxt
+             (Logic.mk_conjunction_list (Thm.prems_of goal))));
     debug ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
     ResClause.init thy;
     isar_atp' (ctxt, ProofContext.prems_of ctxt, goal)
   end);
+
+val call_atpP =
+  OuterSyntax.improper_command 
+    "ProofGeneral.call_atp" 
+    "call automatic theorem provers" 
+    OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o invoke_atp));
+
+val _ = OuterSyntax.add_parsers [call_atpP];
 
 end;
