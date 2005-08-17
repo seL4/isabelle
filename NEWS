@@ -386,6 +386,16 @@ The following theorems have been eliminated or modified
 
 * Theory Parity: added rules for simplifying exponents.
 
+* Theory List:
+
+The following theorems have been eliminated or modified
+(INCOMPATIBILITY):
+
+  list_all_Nil       now named list_all.simps(1)
+  list_all_Cons      now named list_all.simps(2)
+  list_all_conv      now named list_all_iff
+  set_mem_eq         now named mem_iff
+
 * Theories SetsAndFunctions and BigO (see HOL/Library) support
 asymptotic "big O" calculations.  See the notes in BigO.thy.
 
