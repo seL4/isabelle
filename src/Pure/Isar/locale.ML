@@ -70,6 +70,10 @@ sig
   val print_local_registrations: string -> context -> unit
 
   (* Storing results *)
+  val add_locale_context: bool -> bstring -> expr -> element list -> theory
+    -> theory * ProofContext.context
+  val add_locale_context_i: bool -> bstring -> expr -> element_i list -> theory
+    -> theory * ProofContext.context
   val add_locale: bool -> bstring -> expr -> element list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> element_i list -> theory -> theory
   val smart_note_thmss: string -> string option ->
@@ -77,10 +81,10 @@ sig
     theory -> theory * (bstring * thm list) list
   val note_thmss: string -> xstring ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> theory * (bstring * thm list) list
+    theory -> (theory * ProofContext.context) * (bstring * thm list) list
   val note_thmss_i: string -> string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    theory -> theory * (bstring * thm list) list
+    theory -> (theory * ProofContext.context) * (bstring * thm list) list
   val add_thmss: string -> string -> ((string * thm list) * Attrib.src list) list ->
     theory * context -> (theory * context) * (string * thm list) list
 
@@ -613,9 +617,6 @@ fun map_values typ term thm = map_elem
 
 (* map attributes *)
 
-fun map_attrib_specs f = map (apfst (apsnd (map f)));
-fun map_attrib_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))));
-
 fun map_attrib_elem f = map_elem {name = I, var = I, typ = I, term = I, fact = I, attrib = f};
 
 fun intern_attrib_elem thy = map_attrib_elem (Attrib.intern_src thy);
@@ -1075,7 +1076,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, mode), [])
   | activate_elem _ ((ctxt, Assumed axs), Assumes asms) =
       let
-        val asms' = map_attrib_specs (Attrib.context_attribute_i ctxt) asms;
+        val asms' = Attrib.map_specs (Attrib.context_attribute_i ctxt) asms;
         val ts = List.concat (map (map #1 o #2) asms');
         val (ps, qs) = splitAt (length ts, axs);
         val (ctxt', _) =
@@ -1086,7 +1087,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, Derived ths), [])
   | activate_elem _ ((ctxt, Assumed axs), Defines defs) =
       let
-        val defs' = map_attrib_specs (Attrib.context_attribute_i ctxt) defs;
+        val defs' = Attrib.map_specs (Attrib.context_attribute_i ctxt) defs;
         val (ctxt', _) =
         ctxt |> ProofContext.assume_i ProofContext.export_def
           (defs' |> map (fn ((name, atts), (t, ps)) =>
@@ -1097,7 +1098,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, Derived ths), [])
   | activate_elem is_ext ((ctxt, mode), Notes facts) =
       let
-        val facts' = map_attrib_facts (Attrib.context_attribute_i ctxt) facts;
+        val facts' = Attrib.map_facts (Attrib.context_attribute_i ctxt) facts;
         val (ctxt', res) = ctxt |> ProofContext.note_thmss_i facts';
       in ((ctxt', mode), if is_ext then res else []) end;
 
@@ -1796,16 +1797,17 @@ fun gen_note_thmss prep_locale prep_facts kind raw_loc args thy =
     val (_, (stmt, _), loc_ctxt, _, _) = cert_context_statement (SOME loc) [] [] thy_ctxt;
     val export = ProofContext.export_standard stmt loc_ctxt thy_ctxt;
 
-    val (args', facts) = #2 (activate_note prep_facts (loc_ctxt, args));
+    val (ctxt', (args', facts)) = activate_note prep_facts (loc_ctxt, args);
     val facts' =
       map (rpair [] o #1 o #1) args' ~~
       map (single o Thm.no_attributes o map export o #2) facts;
-  in
-    thy
-    |> put_facts loc args'
-    |> note_thmss_registrations kind loc args'
-    |> note_thmss_qualified kind loc facts'
-  end;
+
+    val (thy', result) =
+      thy
+      |> put_facts loc args'
+      |> note_thmss_registrations kind loc args'
+      |> note_thmss_qualified kind loc facts';
+  in ((thy', ctxt'), result) end;
 
 in
 
@@ -2001,12 +2003,15 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
         params = (params_of elemss' |>
           map (fn (x, SOME T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss)),
         regs = []}
+    |> rpair body_ctxt
   end;
 
 in
 
-val add_locale = gen_add_locale read_context intern_expr;
-val add_locale_i = gen_add_locale cert_context (K I);
+val add_locale_context = gen_add_locale read_context intern_expr;
+val add_locale_context_i = gen_add_locale cert_context (K I);
+fun add_locale b = #1 oooo add_locale_context b;
+fun add_locale_i b = #1 oooo add_locale_context_i b;
 
 end;
 
@@ -2046,7 +2051,7 @@ fun gen_activate_facts_elemss get_reg note_thmss attrib std put_reg add_wit
           let
             val facts' = facts
               (* discharge hyps in attributes *)
-              |> map_attrib_facts (attrib thy_ctxt o Args.map_values I I I disch)
+              |> Attrib.map_facts (attrib thy_ctxt o Args.map_values I I I disch)
               (* insert interpretation attributes *)
               |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
               (* discharge hyps *)
