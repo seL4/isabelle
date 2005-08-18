@@ -310,8 +310,8 @@ val local_prop = Scan.peek (named_term o ProofContext.read_prop);
 val dest_tyname = fn Type (c, _) => c | TFree (a, _) => a | _ => "";
 val dest_const = fn Const (c, _) => c | Free (x, _) => x | _ => "";
 
-val global_tyname = Scan.peek (named_typ o Sign.read_tyname o Theory.sign_of) >> dest_tyname;
-val global_const = Scan.peek (named_term o Sign.read_const o Theory.sign_of) >> dest_const;
+val global_tyname = Scan.peek (named_typ o Sign.read_tyname) >> dest_tyname;
+val global_const = Scan.peek (named_term o Sign.read_const) >> dest_const;
 val local_tyname = Scan.peek (named_typ o ProofContext.read_tyname) >> dest_tyname;
 val local_const = Scan.peek (named_term o ProofContext.read_const) >> dest_const;
 
