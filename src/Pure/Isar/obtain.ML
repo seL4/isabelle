@@ -20,7 +20,7 @@ proof texts.
 signature OBTAIN =
 sig
   val obtain: (string list * string option) list ->
-    ((string * Proof.context attribute list) * (string * (string list * string list)) list) list
+    ((string * Attrib.src list) * (string * (string list * string list)) list) list
     -> (Proof.context -> string * (string * thm list) list -> unit) *
       (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val obtain_i: (string list * typ option) list ->
@@ -37,8 +37,8 @@ struct
 
 fun export_obtain state parms rule _ cprops thm =
   let
-    val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
-    val cparms = map (Thm.cterm_of sign) parms;
+    val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
+    val cparms = map (Thm.cterm_of thy) parms;
 
     val thm' = thm
       |> Drule.implies_intr_goals cprops
@@ -52,7 +52,7 @@ fun export_obtain state parms rule _ cprops thm =
     if not (null bads) then
       raise Proof.STATE ("Conclusion contains obtained parameters: " ^
         space_implode " " (map (ProofContext.string_of_term (Proof.context_of state)) bads), state)
-    else if not (ObjectLogic.is_judgment sign (Logic.strip_assums_concl prop)) then
+    else if not (ObjectLogic.is_judgment thy (Logic.strip_assums_concl prop)) then
       raise Proof.STATE ("Conclusions of 'obtain' context must be object-logic judgments", state)
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
@@ -63,12 +63,11 @@ fun export_obtain state parms rule _ cprops thm =
 
 val thatN = "that";
 
-fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
+fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms print state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
     val thy = Proof.theory_of state;
-    val sign = Theory.sign_of thy;
 
     (*obtain vars*)
     val (vars_ctxt, vars) = foldl_map prep_vars (Proof.context_of state, raw_vars);
@@ -78,14 +77,14 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
     val asm_props = List.concat (map (map fst) proppss);
-    val asms = map fst raw_asms ~~ proppss;
+    val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*obtain statements*)
     val thesisN = Term.variant xs AutoBind.thesisN;
     val bind_thesis = ProofContext.bind_skolem fix_ctxt [thesisN];
-    val bound_thesis = bind_thesis (ObjectLogic.fixed_judgment sign thesisN);
+    val bound_thesis = bind_thesis (ObjectLogic.fixed_judgment thy thesisN);
     val bound_thesis_raw as (bound_thesis_name, _) =
       Term.dest_Free (bind_thesis (Free (thesisN, propT)));
     val bound_thesis_var =
@@ -106,25 +105,25 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
       Logic.list_rename_params ([AutoBind.thesisN],
         Term.list_all_free ([bound_thesis_var], Logic.mk_implies (that_prop, bound_thesis)));
 
-    fun after_qed _ st = st
-      |> Method.local_qed false NONE print
-      |> Seq.map (fn st' => st'
+    fun after_qed _ =
+      Proof.local_qed false NONE print
+      #> Seq.map (fn st => st
         |> Proof.fix_i vars
-        |> Proof.assm_i (export_obtain state parms (Proof.the_fact st')) asms);
+        |> Proof.assm_i (export_obtain state parms (Proof.the_fact st)) asms);
   in
     state
     |> Proof.enter_forward
     |> Proof.have_i (K Seq.single) true [(("", []), [(obtain_prop, ([], []))])]
-    |> Method.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
+    |> Proof.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
     ||> Proof.from_facts chain_facts
     ||> Proof.show_i (K I) after_qed false [(("", []), [(bound_thesis, ([], []))])] false
-    |-> (fn facts => Method.refine (Method.Basic (K (Method.insert facts))))
+    |-> (fn facts => Proof.refine (Method.Basic (K (Method.insert facts))))
   end;
 
-val obtain = gen_obtain ProofContext.read_vars ProofContext.read_propp;
-val obtain_i = gen_obtain ProofContext.cert_vars ProofContext.cert_propp;
+val obtain = gen_obtain Attrib.local_attribute ProofContext.read_vars ProofContext.read_propp;
+val obtain_i = gen_obtain (K I) ProofContext.cert_vars ProofContext.cert_propp;
 
 end;
