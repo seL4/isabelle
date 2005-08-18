@@ -414,7 +414,7 @@ local
 
 val string_of_thm =
   Output.output o Pretty.setmp_margin 80 Pretty.string_of o
-    Display.pretty_thm_no_quote o #1 o Drule.freeze_thaw;
+    setmp show_question_marks false Display.pretty_thm_no_quote;
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
 
