@@ -76,7 +76,7 @@ fun trace false parse = parse
 fun body cmd do_trace (name, _) =
   (case cmd name of
     SOME (int_only, parse) =>
-      P.!!! (Scan.prompt (name ^ "# ") (trace do_trace parse >> pair int_only))
+      P.!!! (Scan.prompt (name ^ "# ") (trace do_trace (P.tags |-- parse) >> pair int_only))
   | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
 in
@@ -84,7 +84,7 @@ in
 fun command do_terminate do_trace cmd =
   P.semicolon >> K NONE ||
   P.sync >> K NONE ||
-  ((P.position P.command --| P.tags) :-- body cmd do_trace) --| terminate do_terminate
+  (P.position P.command :-- body cmd do_trace) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
