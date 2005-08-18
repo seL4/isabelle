@@ -64,22 +64,22 @@ fun pretty_criterion ctxt (b, c) =
 
 (*generated filters are to be of the form
   input: (PureThy.thmref * Thm.thm)
-  output: (p::int, s::int) option, where
+  output: (p:int, s:int) option, where
     NONE indicates no match
-    p is the primary sorting criterion 
+    p is the primary sorting criterion
       (eg. number of assumptions in the theorem)
     s is the secondary sorting criterion
       (eg. size of the substitution for intro, elim and dest)
   when applying a set of filters to a thm, fold results in:
     (biggest p, sum of all s)
-  currently p and s only matter for intro, elim, dest and simp filters, 
-  otherwise the default ordering ("by package") is used.
+  currently p and s only matter for intro, elim, dest and simp filters,
+  otherwise the default ordering is used.
 *)
 
 
 (* matching theorems *)
-    
-fun is_nontrivial sg = is_Const o head_of o ObjectLogic.drop_judgment sg;
+
+fun is_nontrivial thy = is_Const o head_of o ObjectLogic.drop_judgment thy;
 
 (*extract terms from term_src, refine them to the parts that concern us,
   if po try match them against obj else vice versa.
@@ -87,15 +87,15 @@ fun is_nontrivial sg = is_Const o head_of o ObjectLogic.drop_judgment sg;
   returns: smallest substitution size*)
 fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
   let
-    val sg = ProofContext.sign_of ctxt;
-    val tsig = Sign.tsig_of sg;
+    val thy = ProofContext.theory_of ctxt;
+    val tsig = Sign.tsig_of thy;
 
     fun matches pat =
-      is_nontrivial sg pat andalso
+      is_nontrivial thy pat andalso
       Pattern.matches tsig (if po then (pat,obj) else (obj,pat));
 
     fun substsize pat =
-      let 
+      let
         val (_,subst) = Pattern.match tsig (if po then (pat,obj) else (obj,pat))
       in Vartab.foldl (op + o apsnd (size_of_term o snd o snd)) (0, subst)
       end;
@@ -105,7 +105,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
     val match_thm = matches o refine_term;
   in
-    map (substsize o refine_term) 
+    map (substsize o refine_term)
         (List.filter match_thm (extract_terms term_src)) |> bestmatch
   end;
 
@@ -120,8 +120,8 @@ fun is_substring pat str =
 
 (*filter that just looks for a string in the name,
   substring match only (no regexps are performed)*)
-fun filter_name str_pat (thmref, _) = 
-  if is_substring str_pat (PureThy.name_of_thmref thmref) 
+fun filter_name str_pat (thmref, _) =
+  if is_substring str_pat (PureThy.name_of_thmref thmref)
   then SOME (0,0) else NONE;
 
 
@@ -135,16 +135,16 @@ fun filter_dest ctxt goal (_,thm) =
     val prems = Logic.prems_of_goal goal 1;
 
     fun try_subst prem = is_matching_thm extract_dest ctxt true prem thm;
-    
+
     (*keep successful substitutions*)
-    val ss = prems |> List.map try_subst 
-             |> List.filter isSome 
+    val ss = prems |> List.map try_subst
+             |> List.filter isSome
              |> List.map valOf;
   in
     (*if possible, keep best substitution (one with smallest size)*)
-    (*dest rules always have assumptions, so a dest with one 
+    (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
-    if not (null ss) 
+    if not (null ss)
     then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
   end;
 
@@ -168,16 +168,16 @@ fun filter_elim ctxt goal (_,thm) =
       fun combine t1 t2 = Const ("combine", dummyT --> dummyT) $ (t1 $ t2);
       val rule_tree = combine rule_mp rule_concl;
       fun goal_tree prem = (combine prem goal_concl);
-      fun try_subst prem = 
+      fun try_subst prem =
         is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
       (*keep successful substitutions*)
-      val ss = prems |> List.map try_subst 
-               |> List.filter isSome 
-               |> List.map valOf; 
+      val ss = prems |> List.map try_subst
+               |> List.filter isSome
+               |> List.map valOf;
     in
-    (*elim rules always have assumptions, so an elim with one 
+    (*elim rules always have assumptions, so an elim with one
       assumption is as good as an intro rule with none*)
-      if is_nontrivial (ProofContext.sign_of ctxt) (Thm.major_prem_of thm) 
+      if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
         andalso not (null ss)
       then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
     end
@@ -190,19 +190,19 @@ fun filter_simp ctxt t (_,thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
       MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
-    val extract_simp = 
+    val extract_simp =
       ((List.map prop_of) o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm extract_simp ctxt false t thm
-  in 
-    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE 
+  in
+    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE
   end;
 
 
 (* filter_pattern *)
 
 fun filter_pattern ctxt pat (_, thm) =
-  let val tsig = Sign.tsig_of (ProofContext.sign_of ctxt)
-  in if Pattern.matches_subterm tsig (pat, Thm.prop_of thm) then SOME (0,0) 
+  let val tsig = Sign.tsig_of (ProofContext.theory_of ctxt)
+  in if Pattern.matches_subterm tsig (pat, Thm.prop_of thm) then SOME (0,0)
      else NONE end;
 
 (* interpret criteria as filters *)
