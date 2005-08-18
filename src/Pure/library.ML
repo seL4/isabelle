@@ -31,6 +31,7 @@ sig
   val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
   val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
   val ` : ('b -> 'a) -> 'b -> 'a * 'b
+  val tap: ('b -> 'a) -> 'b -> 'b
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
@@ -321,6 +322,7 @@ fun f #-> g = uncurry g o f;
 
 (*view results*)
 fun `f = fn x => (f x, x);
+fun tap f x = (f x; x);
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
