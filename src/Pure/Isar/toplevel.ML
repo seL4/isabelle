@@ -72,7 +72,7 @@ sig
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
   val proof_to_theory': (bool -> ProofHistory.T -> theory) -> transition -> transition
-  val proof_to_theory_context: (ProofHistory.T -> theory * Proof.context)
+  val proof_to_theory_context: (bool -> ProofHistory.T -> theory * Proof.context)
     -> transition -> transition
   val skip_proof_to_theory: (int History.T -> bool) -> transition -> transition
   val unknown_theory: transition -> transition
@@ -152,7 +152,7 @@ fun body_context_of state =
 val proof_of = node_case (fn _ => raise UNDEF) I;
 val is_proof = can proof_of;
 
-val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
+val enter_forward_proof = node_case Proof.init Proof.enter_forward;
 
 
 (* prompt state *)
@@ -421,7 +421,7 @@ fun theory_context f =
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
         if ! skip_proofs then SkipProof (History.init (undo_limit int) 0,
-          fst (SkipProof.global_skip_proof int (ProofHistory.current (f int thy))))
+          #1 (#1 (SkipProof.global_skip_proof int (ProofHistory.current (f int thy)))))
         else Proof (f int thy)
     | _ => raise UNDEF));
 
@@ -445,7 +445,7 @@ fun end_proof f =
 
 fun proof_to_theory' f = end_proof (rpair NONE oo f);
 fun proof_to_theory f = proof_to_theory' (K f);
-fun proof_to_theory_context f = end_proof (K (apsnd SOME o f));
+fun proof_to_theory_context f = end_proof (apsnd SOME oo f);
 
 fun skip_proof_to_theory p = map_current (fn _ =>
   (fn SkipProof (h, thy) => if p h then Theory (thy, NONE) else raise UNDEF | _ => raise UNDEF));
