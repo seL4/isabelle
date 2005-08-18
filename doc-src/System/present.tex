@@ -424,14 +424,16 @@ or any of \texttt{dvi}, \texttt{dvi.gz}, \texttt{ps}, \texttt{ps.gz},
 \texttt{document} directory.  See \S\ref{sec:tool-document} and
 \S\ref{sec:tool-latex} for more details.
 
-\medskip The \texttt{-V} option (which may be repeated) declares alternative
-document versions, consisting of name/tags pairs (cf.\ options \texttt{-n} and
-\texttt{-t} of the \texttt{document} tool, \S\ref{sec:tool-document}).  The
-standard document is equivalent to ``\texttt{document=theory,proof,ML}'',
-which means that all theory begin/end commands, proof body texts, and ML code
-will be presented faithfully.  An alternative version
-``\texttt{outline=/proof/ML}'' would fold proof and ML parts, replacing the
-original text by a short place-holder.
+\medskip The \texttt{-V} option declares alternative document versions,
+consisting of name/tags pairs (cf.\ options \texttt{-n} and \texttt{-t} of the
+\texttt{document} tool, \S\ref{sec:tool-document}).  The standard document is
+equivalent to ``\texttt{document=theory,proof,ML}'', which means that all
+theory begin/end commands, proof body texts, and ML code will be presented
+faithfully.  An alternative version ``\texttt{outline=/proof/ML}'' would fold
+proof and ML parts, replacing the original text by a short place-holder.  The
+form ``$name$\verb,=-,'' means to remove document $name$ from the list of
+versions to be processed.  Any number of \texttt{-V} options may be given;
+later declarations have precedence over earlier ones.
 
 \medskip The \texttt{-g} option produces images of the theory dependency graph
 (cf.\ \S\ref{sec:browse}) for inclusion in the generated document, both as
