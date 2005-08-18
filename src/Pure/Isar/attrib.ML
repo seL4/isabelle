@@ -28,6 +28,11 @@ sig
   val context_attribute: ProofContext.context -> Args.src -> ProofContext.context attribute
   val undef_global_attribute: theory attribute
   val undef_local_attribute: ProofContext.context attribute
+  val map_specs: ('a -> 'b attribute) ->
+    (('c * 'a list) * 'd) list -> (('c * 'b attribute list) * 'd) list
+  val map_facts: ('a -> 'b attribute) ->
+    (('c * 'a list) * ('d * 'a list) list) list ->
+    (('c * 'b attribute list) * ('d * 'b attribute list) list) list
   val crude_closure: ProofContext.context -> src -> src
   val add_attributes: (bstring * ((src -> theory attribute) *
       (src -> ProofContext.context attribute)) * string) list -> theory -> theory
@@ -119,6 +124,12 @@ val undef_global_attribute: theory attribute =
 
 val undef_local_attribute: ProofContext.context attribute =
   fn _ => error "attribute undefined in proof context";
+
+
+(* attributed declarations *)
+
+fun map_specs f = map (apfst (apsnd (map f)));
+fun map_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))));
 
 
 (* crude_closure *)
