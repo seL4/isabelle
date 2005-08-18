@@ -2,160 +2,169 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof methods.
+Isar proof methods.
 *)
 
 signature BASIC_METHOD =
 sig
+  val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
+  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
+  type method
   val trace_rules: bool ref
   val print_methods: theory -> unit
-  val Method: bstring -> (Args.src -> Proof.context -> Proof.method) -> string -> unit
+  val Method: bstring -> (Args.src -> ProofContext.context -> method) -> string -> unit
 end;
 
 signature METHOD =
 sig
   include BASIC_METHOD
-  type src
-  val trace: Proof.context -> thm list -> unit
-  val RAW_METHOD: (thm list -> tactic) -> Proof.method
-  val RAW_METHOD_CASES: (thm list -> RuleCases.tactic) -> Proof.method
-  val METHOD: (thm list -> tactic) -> Proof.method
-  val METHOD_CASES: (thm list -> RuleCases.tactic) -> Proof.method
-  val SIMPLE_METHOD: tactic -> Proof.method
-  val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> Proof.method
-  val fail: Proof.method
-  val succeed: Proof.method
-  val defer: int option -> Proof.method
-  val prefer: int -> Proof.method
-  val insert_tac: thm list -> int -> tactic
-  val insert: thm list -> Proof.method
-  val insert_facts: Proof.method
-  val unfold: thm list -> Proof.method
-  val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val rules_tac: Proof.context -> int option -> int -> tactic
+  val apply: method -> thm list -> RuleCases.tactic;
+  val RAW_METHOD_CASES: (thm list -> RuleCases.tactic) -> method
+  val RAW_METHOD: (thm list -> tactic) -> method
+  val METHOD_CASES: (thm list -> RuleCases.tactic) -> method
+  val METHOD: (thm list -> tactic) -> method
+  val fail: method
+  val succeed: method
+  val insert_tac: thm list -> int -> tactic
+  val insert: thm list -> method
+  val insert_facts: method
+  val SIMPLE_METHOD: tactic -> method
+  val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
+  val defer: int option -> method
+  val prefer: int -> method
+  val intro: thm list -> method
+  val elim: thm list -> method
+  val unfold: thm list -> method
+  val fold: thm list -> method
+  val atomize: bool -> method
+  val this: method
+  val assumption: ProofContext.context -> method
+  val close: bool -> ProofContext.context -> method
+  val trace: ProofContext.context -> thm list -> unit
   val rule_tac: thm list -> thm list -> int -> tactic
-  val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
-  val rule: thm list -> Proof.method
-  val erule: int -> thm list -> Proof.method
-  val drule: int -> thm list -> Proof.method
-  val frule: int -> thm list -> Proof.method
-  val this: Proof.method
-  val assumption: Proof.context -> Proof.method
-  val bires_inst_tac: bool -> Proof.context -> (indexname * string) list -> thm -> int -> tactic
-  val set_tactic: (Proof.context -> thm list -> tactic) -> unit
-  val tactic: string -> Proof.context -> Proof.method
-  exception METHOD_FAIL of (string * Position.T) * exn
-  val method: theory -> src -> Proof.context -> Proof.method
-  val add_method: bstring * (src -> Proof.context -> Proof.method) * string
-    -> theory -> theory
-  val add_methods: (bstring * (src -> Proof.context -> Proof.method) * string) list
-    -> theory -> theory
-  val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    src -> Proof.context -> Proof.context * 'a
-  val simple_args: (Args.T list -> 'a * Args.T list)
-    -> ('a -> Proof.context -> Proof.method) -> src -> Proof.context -> Proof.method
-  val ctxt_args: (Proof.context -> Proof.method) -> src -> Proof.context -> Proof.method
-  val no_args: Proof.method -> src -> Proof.context -> Proof.method
-  type modifier
-  val sectioned_args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    (Args.T list -> modifier * Args.T list) list ->
-    ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val bang_sectioned_args:
-    (Args.T list -> modifier * Args.T list) list ->
-    (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val bang_sectioned_args':
-    (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val only_sectioned_args:
-    (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
-  val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
+  val some_rule_tac: thm list -> ProofContext.context -> thm list -> int -> tactic
+  val rule: thm list -> method
+  val erule: int -> thm list -> method
+  val drule: int -> thm list -> method
+  val frule: int -> thm list -> method
+  val rules_tac: ProofContext.context -> int option -> int -> tactic
+  val bires_inst_tac: bool -> ProofContext.context -> (indexname * string) list ->
+    thm -> int -> tactic
+  val set_tactic: (ProofContext.context -> thm list -> tactic) -> unit
+  val tactic: string -> ProofContext.context -> method
+  type src
   datatype text =
-    Basic of (Proof.context -> Proof.method) |
+    Basic of (ProofContext.context -> method) |
     Source of src |
     Then of text list |
     Orelse of text list |
     Try of text |
     Repeat1 of text
-  val refine: text -> Proof.state -> Proof.state Seq.seq
-  val refine_end: text -> Proof.state -> Proof.state Seq.seq
-  val proof: text option -> Proof.state -> Proof.state Seq.seq
-  val local_qed: bool -> text option
-    -> (Proof.context -> string * (string * thm list) list -> unit) *
-      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_terminal_proof: text * text option
-    -> (Proof.context -> string * (string * thm list) list -> unit) *
-      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_default_proof: (Proof.context -> string * (string * thm list) list -> unit) *
-    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: (Proof.context -> string * (string * thm list) list -> unit) *
-    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_done_proof: (Proof.context -> string * (string * thm list) list -> unit) *
-    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val global_qed: bool -> text option
-    -> Proof.state -> theory * ((string * string) * (string * thm list) list)
-  val global_terminal_proof: text * text option
-    -> Proof.state -> theory * ((string * string) * (string * thm list) list)
-  val global_default_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
-  val global_immediate_proof: Proof.state ->
-    theory * ((string * string) * (string * thm list) list)
-  val global_done_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
+  val default_text: text
+  val this_text: text
+  val done_text: text
+  val finish_text: bool -> text option -> text
+  exception METHOD_FAIL of (string * Position.T) * exn
+  val method: theory -> src -> ProofContext.context -> method
+  val add_methods: (bstring * (src -> ProofContext.context -> method) * string) list
+    -> theory -> theory
+  val add_method: bstring * (src -> ProofContext.context -> method) * string
+    -> theory -> theory
+  val syntax: (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list))
+    -> src -> ProofContext.context -> ProofContext.context * 'a
+  val simple_args: (Args.T list -> 'a * Args.T list)
+    -> ('a -> ProofContext.context -> method) -> src -> ProofContext.context -> method
+  val ctxt_args: (ProofContext.context -> method) -> src -> ProofContext.context -> method
+  val no_args: method -> src -> ProofContext.context -> method
+  type modifier
+  val sectioned_args: (ProofContext.context * Args.T list ->
+      'a * (ProofContext.context * Args.T list)) ->
+    (Args.T list -> modifier * Args.T list) list ->
+    ('a -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
+  val bang_sectioned_args:
+    (Args.T list -> modifier * Args.T list) list ->
+    (thm list -> ProofContext.context -> 'a) -> src -> ProofContext.context -> 'a
+  val bang_sectioned_args':
+    (Args.T list -> modifier * Args.T list) list ->
+    (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list)) ->
+    ('a -> thm list -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
+  val only_sectioned_args:
+    (Args.T list -> modifier * Args.T list) list ->
+    (ProofContext.context -> 'a) -> src -> ProofContext.context -> 'a
+  val thms_ctxt_args: (thm list -> ProofContext.context -> 'a) -> src ->
+    ProofContext.context -> 'a
+  val thms_args: (thm list -> 'a) -> src -> ProofContext.context -> 'a
+  val thm_args: (thm -> 'a) -> src -> ProofContext.context -> 'a
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
-    -> src -> Proof.context -> Proof.method
-  val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
-    -> ('a -> int -> tactic) -> src -> Proof.context -> Proof.method
-  val goal_args_ctxt: (Args.T list -> 'a * Args.T list) -> (Proof.context -> 'a -> int -> tactic)
-    -> src -> Proof.context -> Proof.method
-  val goal_args_ctxt': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
-    -> (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> Proof.method
+    -> src -> ProofContext.context -> method
+  val goal_args': (ProofContext.context * Args.T list ->
+      'a * (ProofContext.context * Args.T list))
+    -> ('a -> int -> tactic) -> src -> ProofContext.context -> method
+  val goal_args_ctxt: (Args.T list -> 'a * Args.T list) ->
+    (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
+  val goal_args_ctxt': (ProofContext.context * Args.T list ->
+    'a * (ProofContext.context * Args.T list)) ->
+    (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
 end;
 
 structure Method: METHOD =
 struct
 
-type src = Args.src;
+(** generic tools **)
+
+(* goal addressing *)
+
+fun FINDGOAL tac st =
+  let fun find i n = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1) n)
+  in find 1 (Thm.nprems_of st) st end;
+
+fun HEADGOAL tac = tac 1;
+
+
+(* multi_resolve *)
+
+local
+
+fun res th i rule =
+  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+
+fun multi_res _ [] rule = Seq.single rule
+  | multi_res i (th :: ths) rule = Seq.flat (Seq.map (res th i) (multi_res (i + 1) ths rule));
+
+in
+
+val multi_resolve = multi_res 1;
+fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+
+end;
+
 
 
 (** proof methods **)
 
-(* tracing *)
+(* datatype method *)
 
-val trace_rules = ref false;
+datatype method = Method of thm list -> RuleCases.tactic;
 
-fun trace ctxt rules =
-  conditional (! trace_rules andalso not (null rules)) (fn () =>
-    Pretty.big_list "rules:" (map (ProofContext.pretty_thm ctxt) rules)
-    |> Pretty.string_of |> tracing);
+fun apply (Method m) = m;
 
+val RAW_METHOD_CASES = Method;
 
-(* make methods *)
+fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
 
-val RAW_METHOD = Proof.method;
-val RAW_METHOD_CASES = Proof.method_cases;
+fun METHOD_CASES tac = RAW_METHOD_CASES (fn facts =>
+  Seq.THEN (TRY Tactic.conjunction_tac, tac facts));
 
-fun METHOD m = Proof.method (fn facts => TRY Tactic.conjunction_tac THEN m facts);
-fun METHOD_CASES m =
-  Proof.method_cases (fn facts => Seq.THEN (TRY Tactic.conjunction_tac, m facts));
-
-
-(* primitive *)
+fun METHOD tac = RAW_METHOD (fn facts =>
+  TRY Tactic.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
 
 
-(* shuffle *)
-
-fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
-
-
-(* insert *)
+(* insert facts *)
 
 local
 
@@ -179,6 +188,18 @@ fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN'
 end;
 
 
+(* shuffle subgoals *)
+
+fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
+fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
+
+
+(* unfold intro/elim rules *)
+
+fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
+fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
+
+
 (* unfold/fold definitions *)
 
 fun unfold_meth ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
@@ -191,82 +212,48 @@ fun atomize false = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_
   | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
 
 
-(* unfold intro/elim rules *)
+(* this -- apply facts directly *)
 
-fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
-fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
+val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 
-(* multi_resolve *)
+(* assumption *)
 
 local
 
-fun res th i rule =
-  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+fun asm_tac ths =
+  foldr (op APPEND') (K no_tac) (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths);
 
-fun multi_res _ [] rule = Seq.single rule
-  | multi_res i (th :: ths) rule = Seq.flat (Seq.map (res th i) (multi_res (i + 1) ths rule));
+val refl_tac = SUBGOAL (fn (prop, i) =>
+  if can Logic.dest_equals (Logic.strip_assums_concl prop)
+  then Tactic.rtac Drule.reflexive_thm i else no_tac);
+
+fun assm_tac ctxt =
+  assume_tac APPEND'
+  asm_tac (ProofContext.prems_of ctxt) APPEND'
+  refl_tac;
+
+fun assumption_tac ctxt [] = assm_tac ctxt
+  | assumption_tac _ [fact] = asm_tac [fact]
+  | assumption_tac _ _ = K no_tac;
 
 in
 
-val multi_resolve = multi_res 1;
-fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
+fun close asm ctxt = METHOD (K
+  (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
 
 end;
 
 
-(* rules_tac *)
+(* rule etc. -- single-step refinements *)
 
-local
+val trace_rules = ref false;
 
-val remdups_tac = SUBGOAL (fn (g, i) =>
-  let val prems = Logic.strip_assums_hyp g in
-    REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
-    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
-  end);
-
-fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
-
-fun gen_eq_set e s1 s2 =
-  length s1 = length s2 andalso
-  gen_subset e (s1, s2) andalso gen_subset e (s2, s1);
-
-val bires_tac = Tactic.biresolution_from_nets_tac ContextRules.orderlist;
-
-fun safe_step_tac ctxt =
-  ContextRules.Swrap ctxt
-   (eq_assume_tac ORELSE'
-    bires_tac true (ContextRules.netpair_bang ctxt));
-
-fun unsafe_step_tac ctxt =
-  ContextRules.wrap ctxt
-   (assume_tac APPEND'
-    bires_tac false (ContextRules.netpair_bang ctxt) APPEND'
-    bires_tac false (ContextRules.netpair ctxt));
-
-fun step_tac ctxt i =
-  REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
-  REMDUPS (unsafe_step_tac ctxt) i;
-
-fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
-  let
-    val ps = Logic.strip_assums_hyp g;
-    val c = Logic.strip_assums_concl g;
-  in
-    if gen_mem (fn ((ps1, c1), (ps2, c2)) =>
-      c1 aconv c2 andalso gen_eq_set op aconv ps1 ps2) ((ps, c), gs) then no_tac
-    else (step_tac ctxt THEN_ALL_NEW intpr_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
-  end);
-
-in
-
-fun rules_tac ctxt opt_lim =
-  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4 1);
-
-end;
-
-
-(* rule_tac etc. *)
+fun trace ctxt rules =
+  conditional (! trace_rules andalso not (null rules)) (fn () =>
+    Pretty.big_list "rules:" (map (ProofContext.pretty_thm ctxt) rules)
+    |> Pretty.string_of |> tracing);
 
 local
 
@@ -301,40 +288,62 @@ val frule = meth' (gen_arule_tac Tactic.forward_tac);
 end;
 
 
-(* this *)
+(* rules -- intuitionistic proof search *)
 
-val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
+local
+
+val remdups_tac = SUBGOAL (fn (g, i) =>
+  let val prems = Logic.strip_assums_hyp g in
+    REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
+    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
+  end);
+
+fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
+
+fun gen_eq_set e s1 s2 =
+  length s1 = length s2 andalso
+  gen_subset e (s1, s2) andalso gen_subset e (s2, s1);
+
+val bires_tac = Tactic.biresolution_from_nets_tac ContextRules.orderlist;
+
+fun safe_step_tac ctxt =
+  ContextRules.Swrap ctxt
+   (eq_assume_tac ORELSE'
+    bires_tac true (ContextRules.netpair_bang ctxt));
+
+fun unsafe_step_tac ctxt =
+  ContextRules.wrap ctxt
+   (assume_tac APPEND'
+    bires_tac false (ContextRules.netpair_bang ctxt) APPEND'
+    bires_tac false (ContextRules.netpair ctxt));
+
+fun step_tac ctxt i =
+  REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
+  REMDUPS (unsafe_step_tac ctxt) i;
+
+fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
+  let
+    val ps = Logic.strip_assums_hyp g;
+    val c = Logic.strip_assums_concl g;
+  in
+    if gen_mem (fn ((ps1, c1), (ps2, c2)) =>
+      c1 aconv c2 andalso gen_eq_set op aconv ps1 ps2) ((ps, c), gs) then no_tac
+    else (step_tac ctxt THEN_ALL_NEW intprover_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
+  end);
+
+in
+
+fun rules_tac ctxt opt_lim =
+  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intprover_tac ctxt [] 0) 4 1);
+
+end;
 
 
-(* assumption *)
-
-fun asm_tac ths =
-  foldr (op APPEND') (K no_tac) (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths);
-
-val refl_tac = SUBGOAL (fn (prop, i) =>
-  if can Logic.dest_equals (Logic.strip_assums_concl prop)
-  then Tactic.rtac Drule.reflexive_thm i else no_tac);
-
-fun assm_tac ctxt =
-  assume_tac APPEND'
-  asm_tac (ProofContext.prems_of ctxt) APPEND'
-  refl_tac;
-
-fun assumption_tac ctxt [] = assm_tac ctxt
-  | assumption_tac _ [fact] = asm_tac [fact]
-  | assumption_tac _ _ = K no_tac;
-
-fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
-
-
-(* res_inst_tac etc. *)
-
-(*Reimplemented to support both static (Isar) and dynamic (proof state)
-  context.  By Clemens Ballarin.*)
+(* rule_tac etc. -- refer to dynamic goal state!! *)
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
-    val sign = ProofContext.sign_of ctxt;
+    val thy = ProofContext.theory_of ctxt;
     (* Separate type and term insts *)
     fun has_type_var ((x, _), _) = (case Symbol.explode x of
           "'"::cs => true | cs => false);
@@ -354,9 +363,9 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     val (rtypes, rsorts) = types_sorts thm;
     fun readT (xi, s) =
         let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-            val T = Sign.read_typ (sign, sorts) s;
+            val T = Sign.read_typ (thy, sorts) s;
             val U = TVar (xi, S);
-        in if Sign.typ_instance sign (T, U) then (U, T)
+        in if Sign.typ_instance thy (T, U) then (U, T)
            else error
              ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
         end;
@@ -387,7 +396,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val cenv =
           map
             (fn (xi, t) =>
-              pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
+              pairself (Thm.cterm_of thy) (Var (xi, fastype_of t), t))
             (gen_distinct
               (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
               (xis ~~ ts));
@@ -402,7 +411,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               (params, Logic.incr_indexes(paramTs,inc) t)
         fun liftpair (cv,ct) =
               (cterm_fun liftvar cv, cterm_fun liftterm ct)
-        val lifttvar = pairself (ctyp_of sign o Logic.incr_tvar inc);
+        val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate
               (map lifttvar envT', map liftpair cenv)
               (lift_rule (st, i) thm)
@@ -417,6 +426,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     tac
   end;
 
+local
+
 fun gen_inst _ tac _ (quant, ([], thms)) =
       METHOD (fn facts => quant (insert_tac facts THEN' tac thms))
   | gen_inst inst_tac _ ctxt (quant, (insts, [thm])) =
@@ -424,15 +435,11 @@ fun gen_inst _ tac _ (quant, ([], thms)) =
         quant (insert_tac facts THEN' inst_tac ctxt insts thm))
   | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
 
-val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
-
-val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
-
 (* Preserve Var indexes of rl; increment revcut_rl instead.
    Copied from tactic.ML *)
 fun make_elim_preserve rl =
   let val {maxidx,...} = rep_thm rl
-      fun cvar xi = cterm_of (Theory.sign_of ProtoPure.thy) (Var(xi,propT));
+      fun cvar xi = cterm_of ProtoPure.thy (Var(xi,propT));
       val revcut_rl' =
           instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
                              (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
@@ -441,16 +448,20 @@ fun make_elim_preserve rl =
   in  th  end
   handle Bind => raise THM("make_elim_preserve", 1, [rl]);
 
+in
+
+val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
+
+val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
+
 val cut_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => fn thm =>
-       bires_inst_tac false ctxt insts (make_elim_preserve thm))
+    (fn ctxt => fn insts => bires_inst_tac false ctxt insts o make_elim_preserve)
     Tactic.cut_rules_tac;
 
 val dres_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => fn rule =>
-       bires_inst_tac true ctxt insts (make_elim_preserve rule))
+    (fn ctxt => fn insts => bires_inst_tac true ctxt insts o make_elim_preserve)
     Tactic.dresolve_tac;
 
 val forw_inst_meth =
@@ -461,36 +472,24 @@ val forw_inst_meth =
     Tactic.forward_tac;
 
 fun subgoal_tac ctxt sprop =
-  DETERM o bires_inst_tac false ctxt [(("psi", 0), sprop)] cut_rl THEN'
-  SUBGOAL (fn (prop, _) =>
-    let val concl' = Logic.strip_assums_concl prop in
-      if null (term_tvars concl') then ()
-      else warning "Type variables in new subgoal: add a type constraint?";
-      all_tac
-  end);
+  DETERM o bires_inst_tac false ctxt [(("psi", 0), sprop)] cut_rl;
 
 fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
 
 fun thin_tac ctxt s =
   bires_inst_tac true ctxt [(("V", 0), s)] thin_rl;
 
-
-(* simple Prolog interpreter *)
-
-fun prolog_tac rules facts =
-  DEPTH_SOLVE_1 (HEADGOAL (Tactic.assume_tac APPEND' Tactic.resolve_tac (facts @ rules)));
-
-val prolog = METHOD o prolog_tac;
+end;
 
 
 (* ML tactics *)
 
-val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
+val tactic_ref = ref ((fn _ => raise Match): ProofContext.context -> thm list -> tactic);
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
   (Context.use_mltext
-    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
+    ("let fun tactic (ctxt: ProofContext.context) (facts: thm list) : tactic = \
        \let val thm = ProofContext.get_thm_closure ctxt o PureThy.Name\n\
        \  and thms = ProofContext.get_thms_closure ctxt o PureThy.Name in\n"
        ^ txt ^
@@ -500,14 +499,34 @@ fun tactic txt ctxt = METHOD (fn facts =>
 
 
 
-(** methods theory data **)
+(** method syntax **)
 
-(* data kind 'Isar/methods' *)
+(* method text *)
+
+type src = Args.src;
+
+datatype text =
+  Basic of (ProofContext.context -> method) |
+  Source of src |
+  Then of text list |
+  Orelse of text list |
+  Try of text |
+  Repeat1 of text;
+
+val default_text = Source (Args.src (("default", []), Position.none));
+val this_text = Basic (K this);
+val done_text = Basic (K (SIMPLE_METHOD all_tac));
+
+fun finish_text asm NONE = Basic (close asm)
+  | finish_text asm (SOME txt) = Then [txt, Basic (close asm)];
+
+
+(* method definitions *)
 
 structure MethodsData = TheoryDataFun
 (struct
   val name = "Isar/methods";
-  type T = (((src -> Proof.context -> Proof.method) * string) * stamp) NameSpace.table;
+  type T = (((src -> ProofContext.context -> method) * string) * stamp) NameSpace.table;
 
   val empty = NameSpace.empty_table;
   val copy = I;
@@ -548,37 +567,36 @@ fun method thy =
   in meth end;
 
 
-(* add_method(s) *)
+(* add method *)
 
 fun add_methods raw_meths thy =
   let
-    val sg = Theory.sign_of thy;
     val new_meths = raw_meths |> map (fn (name, f, comment) =>
       (name, ((f, comment), stamp ())));
 
-    fun add meths = NameSpace.extend_table (Sign.naming_of sg) (meths, new_meths)
+    fun add meths = NameSpace.extend_table (Sign.naming_of thy) (meths, new_meths)
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of method(s) " ^ commas_quote dups);
   in MethodsData.map add thy end;
 
 val add_method = add_methods o Library.single;
 
-(*implicit version*)
 fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
 
 
 
-(** method syntax **)
+(** concrete syntax **)
 
 (* basic *)
 
-fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
+fun syntax (scan:
+    (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list))) =
   Args.syntax "method" scan;
 
-fun simple_args scan f src ctxt : Proof.method =
+fun simple_args scan f src ctxt : method =
   #2 (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
 
-fun ctxt_args (f: Proof.context -> Proof.method) src ctxt =
+fun ctxt_args (f: ProofContext.context -> method) src ctxt =
   #2 (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 fun no_args m = ctxt_args (K m);
@@ -586,7 +604,7 @@ fun no_args m = ctxt_args (K m);
 
 (* sections *)
 
-type modifier = (Proof.context -> Proof.context) * Proof.context attribute;
+type modifier = (ProofContext.context -> ProofContext.context) * ProofContext.context attribute;
 
 local
 
@@ -630,7 +648,7 @@ val ruleN = "rule";
 
 fun modifier name kind kind' att =
   Args.$$$ name |-- (kind >> K NONE || kind' |-- Args.nat --| Args.colon >> SOME)
-    >> (pair (I: Proof.context -> Proof.context) o att);
+    >> (pair (I: ProofContext.context -> ProofContext.context) o att);
 
 val rules_modifiers =
  [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
@@ -668,7 +686,8 @@ val insts_var =
     (Args.enum1 "and" (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
       Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
 
-fun inst_args_var f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
+fun inst_args_var f src ctxt =
+  f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
 
 fun goal_args' args tac src ctxt = #2 (syntax (Args.goal_spec HEADGOAL -- args >>
   (fn (quant, s) => SIMPLE_METHOD' quant (tac s))) src ctxt);
@@ -680,86 +699,6 @@ fun goal_args_ctxt' args tac src ctxt =
   (fn (quant, s) => SIMPLE_METHOD' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
-
-
-(** method text **)
-
-(* datatype text *)
-
-datatype text =
-  Basic of (Proof.context -> Proof.method) |
-  Source of src |
-  Then of text list |
-  Orelse of text list |
-  Try of text |
-  Repeat1 of text;
-
-
-(* refine *)
-
-fun gen_refine f text state =
-  let
-    val thy = Proof.theory_of state;
-
-    fun eval (Basic mth) = f mth
-      | eval (Source src) = f (method thy src)
-      | eval (Then txts) = Seq.EVERY (map eval txts)
-      | eval (Orelse txts) = Seq.FIRST (map eval txts)
-      | eval (Try txt) = Seq.TRY (eval txt)
-      | eval (Repeat1 txt) = Seq.REPEAT1 (eval txt);
-  in eval text state end;
-
-val refine = gen_refine Proof.refine;
-val refine_end = gen_refine Proof.refine_end;
-
-
-(* structured proof steps *)
-
-val default_text = Source (Args.src (("default", []), Position.none));
-val this_text = Basic (K this);
-val done_text = Basic (K (SIMPLE_METHOD all_tac));
-
-fun close_text asm = Basic (fn ctxt => METHOD (K
-  (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac))));
-
-fun finish_text asm NONE = close_text asm
-  | finish_text asm (SOME txt) = Then [txt, close_text asm];
-
-fun proof opt_text state =
-  state
-  |> Proof.assert_backward
-  |> refine (if_none opt_text default_text)
-  |> Seq.map (Proof.goal_facts (K []))
-  |> Seq.map Proof.enter_forward;
-
-fun local_qed asm opt_text = Proof.local_qed (refine (finish_text asm opt_text));
-fun local_terminal_proof (text, opt_text) pr =
-  Seq.THEN (proof (SOME text), local_qed true opt_text pr);
-val local_default_proof = local_terminal_proof (default_text, NONE);
-val local_immediate_proof = local_terminal_proof (this_text, NONE);
-fun local_done_proof pr = Seq.THEN (proof (SOME done_text), local_qed false NONE pr);
-
-
-fun global_qeds asm opt_text = Proof.global_qed (refine (finish_text asm opt_text));
-
-fun global_qed asm opt_text state =
-  state
-  |> global_qeds asm opt_text
-  |> Proof.check_result "Failed to finish proof" state
-  |> Seq.hd;
-
-fun global_term_proof asm (text, opt_text) state =
-  state
-  |> proof (SOME text)
-  |> Proof.check_result "Terminal proof method failed" state
-  |> (Seq.flat o Seq.map (global_qeds asm opt_text))
-  |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
-  |> Seq.hd;
-
-val global_terminal_proof = global_term_proof true;
-val global_default_proof = global_terminal_proof (default_text, NONE);
-val global_immediate_proof = global_terminal_proof (this_text, NONE);
-val global_done_proof = global_term_proof false (done_text, NONE);
 
 
 (* misc tactic emulations *)
@@ -799,7 +738,6 @@ val pure_methods =
   ("thin_tac", thin_meth, "remove premise (dynamic instantiation)"),
   ("rename_tac", rename_meth, "rename parameters of goal (dynamic instantiation)"),
   ("rotate_tac", rotate_meth, "rotate assumptions of goal"),
-  ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
 val _ = Context.add_setup [add_methods pure_methods];
