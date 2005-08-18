@@ -13,8 +13,8 @@ sig
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val local_skip_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> bool -> Proof.state -> Proof.state Seq.seq
-  val global_skip_proof:
-    bool -> Proof.state -> theory * ((string * string) * (string * thm list) list)
+  val global_skip_proof: bool -> Proof.state ->
+    (theory * Proof.context) * ((string * string) * (string * thm list) list)
 end;
 
 structure SkipProof: SKIP_PROOF =
@@ -56,8 +56,8 @@ fun prove thy xs asms prop tac =
 fun cheating int ctxt = Method.METHOD (K (setmp quick_and_dirty (int orelse ! quick_and_dirty)
     (cheat_tac (ProofContext.theory_of ctxt))));
 
-fun local_skip_proof x int = Method.local_terminal_proof (Method.Basic (cheating int), NONE) x;
-fun global_skip_proof int = Method.global_terminal_proof (Method.Basic (cheating int), NONE);
+fun local_skip_proof x int = Proof.local_terminal_proof (Method.Basic (cheating int), NONE) x;
+fun global_skip_proof int = Proof.global_terminal_proof (Method.Basic (cheating int), NONE);
 
 end;
 
