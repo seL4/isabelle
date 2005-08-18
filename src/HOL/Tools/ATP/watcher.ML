@@ -266,9 +266,6 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     val dfg_dir = File.tmp_path (Path.basic "dfg"); 
     val dfg_path = File.platform_path dfg_dir;
     
-    val tptp2X = ResLib.helper_path "TPTP2X_HOME" "tptp2X"  		
-
-
     (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
     val probID = List.last(explode probfile)
     val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
@@ -286,7 +283,8 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
 	    warning("not converting to dfg")
     
     val _ = if !SpassComm.spass then 
-		system (tptp2X ^ " -fdfg -d "^dfg_path^" "^
+		system (ResLib.helper_path "TPTP2X_HOME" "tptp2X" ^ 
+		        " -fdfg -d " ^ dfg_path ^ " " ^
 			File.platform_path wholefile)
 	      else 7
     val newfile =   if !SpassComm.spass 
