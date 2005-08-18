@@ -202,7 +202,8 @@ fun incrT k =
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
-fun incr_indexes (Us, k) t =
+fun incr_indexes ([], 0) t = t
+  | incr_indexes (Us, k) t =
   let
     val n = length Us;
     val incrT = if k = 0 then I else incrT k;
