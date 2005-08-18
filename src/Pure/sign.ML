@@ -49,6 +49,12 @@ sig
     (string * string * (string -> string * real)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (string -> string * real)) list
     -> theory -> theory
+  val parse_ast_translation: bool * string -> theory -> theory
+  val parse_translation: bool * string -> theory -> theory
+  val print_translation: bool * string -> theory -> theory
+  val typed_print_translation: bool * string -> theory -> theory
+  val print_ast_translation: bool * string -> theory -> theory
+  val token_translation: string -> theory -> theory
   val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val add_trrules_i: ast Syntax.trrule list -> theory -> theory
   val add_path: string -> theory -> theory
@@ -772,6 +778,50 @@ end;
 
 val add_tokentrfuns = map_syn o Syntax.extend_tokentrfuns;
 fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
+
+
+(* compile translation functions *)
+
+local
+
+fun advancedT false = ""
+  | advancedT true = "theory -> ";
+
+fun advancedN false = ""
+  | advancedN true = "advanced_";
+
+in
+
+fun parse_ast_translation (a, txt) =
+  txt |> Context.use_let ("val parse_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], [])");
+
+fun parse_translation (a, txt) =
+  txt |> Context.use_let ("val parse_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], [])");
+
+fun print_translation (a, txt) =
+  txt |> Context.use_let ("val print_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, [])");
+
+fun print_ast_translation (a, txt) =
+  txt |> Context.use_let ("val print_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation)");
+
+fun typed_print_translation (a, txt) =
+  txt |> Context.use_let ("val typed_print_translation: (string * (" ^ advancedT a ^
+      "bool -> typ -> term list -> term)) list")
+    ("Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation");
+
+val token_translation =
+  Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
+    "Sign.add_tokentrfuns token_translation";
+
+end;
 
 
 (* add translation rules *)
