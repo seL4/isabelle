@@ -83,12 +83,15 @@ specified above.
   @{term_style style term} and @{thm_style style thm} print a term or
   theorem applying a "style" to it
 
+  @{ML text}
+
 Predefined styles are 'lhs' and 'rhs' printing the lhs/rhs of
 definitions, equations, inequations etc., 'concl' printing only the
 conclusion of a meta-logical statement theorem, and 'prem1' .. 'prem9'
 to print the specified premise.  TermStyle.add_style provides an ML
 interface for introducing further styles.  See also the "LaTeX Sugar"
-document practical applications.
+document practical applications.  The ML antiquotation prints
+type-checked ML expressions verbatim.
 
 * Proper output of proof terms (@{prf ...} and @{full_prf ...}) within
 a proof context.
