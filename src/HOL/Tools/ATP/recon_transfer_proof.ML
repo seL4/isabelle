@@ -305,9 +305,8 @@ fun addvars c (a,b)  = (a,b,c)
 (*********************************************************************)
 
 
-fun rules_to_string [] str = str
-|   rules_to_string [x] str = str^x
-|   rules_to_string (x::xs) str = rules_to_string xs (str^x^"   ")
+fun rules_to_string [] = "NONE"
+  | rules_to_string xs = "[" ^ space_implode ", " xs ^ "]"
                                   
 
 val dummy_tac = PRIMITIVE(fn thm => thm );
@@ -348,7 +347,8 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
       (* produced from the clasimpset rather than the problem *)
 
       val (axiom_names) = get_axiom_names proof_steps  thms clause_arr  num_of_clauses
-      val ax_str = "Rules from clasimpset used in proof found by SPASS: "^(rules_to_string axiom_names "")
+      val ax_str = "Rules from clasimpset used in proof found by SPASS: " ^ 
+                   rules_to_string axiom_names 
       val _ = File.append(File.tmp_path (Path.basic "reconstrfile"))
                          ("reconstring is: "^ax_str^"  "^goalstring)       
   in 
@@ -389,7 +389,8 @@ fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms c
     (***********************************)
 
      val (axiom_names) = get_axiom_names_vamp proofstr  thms clause_arr  num_of_clauses
-     val ax_str = "Rules from clasimpset used in proof found by Vampire: "^(rules_to_string axiom_names "")
+     val ax_str = "Rules from clasimpset used in proof found by Vampire: " ^
+                  rules_to_string axiom_names
     in 
 	 File.append(File.tmp_path (Path.basic "reconstrfile")) ("reconstring is: "^ax_str^"  "^goalstring);
          TextIO.output (toParent, ax_str^"\n");
