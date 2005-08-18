@@ -19,6 +19,7 @@ sig
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
   type tactic
+  val NO_CASES: Tactical.tactic -> tactic
 end;
 
 structure RuleCases: RULE_CASES =
@@ -144,4 +145,8 @@ fun params xss = Drule.rule_attribute (K (rename_params xss));
 
 type tactic = thm -> (thm * (string * T option) list) Seq.seq;
 
+fun NO_CASES tac = Seq.map (rpair []) o tac;
+
 end;
+
+val NO_CASES = RuleCases.NO_CASES;
