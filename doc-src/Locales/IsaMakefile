@@ -13,7 +13,7 @@ all: images test
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -i true -d "" -D generated
+USEDIR = $(ISATOOL) usedir -d false -D document
 
 
 ## Locales

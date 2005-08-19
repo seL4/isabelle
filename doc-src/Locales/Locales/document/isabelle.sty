@@ -3,6 +3,7 @@
 %%
 %% macros for Isabelle generated LaTeX output
 %%
+%% $Id$
 
 %%% Simple document preparation (based on theory token language and symbols)
 
@@ -21,19 +22,16 @@
 \newcommand{\isamath}[1]{\emph{$#1$}}
 \newcommand{\isatext}[1]{\emph{#1}}
 \newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
-\newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
-\newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
-\newcommand{\isactrlisub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
-\newcommand{\isactrlisup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
+\newcommand{\isactrlsub}[1]{\emph{${}\sb{\mbox{\isastylescript{#1}}}$}}
+\newcommand{\isactrlsup}[1]{\emph{${}\sp{\mbox{\isastylescript{#1}}}$}}
+\newcommand{\isactrlisub}[1]{\emph{${}\sb{\mbox{\isastylescript{#1}}}$}}
+\newcommand{\isactrlisup}[1]{\emph{${}\sp{\mbox{\isastylescript{#1}}}$}}
+\newcommand{\isactrlbsub}{\emph\bgroup\begin{math}{}\sb\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlesub}{\egroup\egroup\end{math}\egroup}
+\newcommand{\isactrlbsup}{\emph\bgroup\begin{math}{}\sp\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlesup}{\egroup\egroup\end{math}\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
 
-% somewhat hackish: spanning sub/super scripts (\<^bsub>..\<^esub>)
-\newcommand{\isactrlbsub}{%
-\def\isatext##1{\isastylescript##1}\begin{math}_\bgroup}
-\newcommand{\isactrlesub}{\egroup\end{math}}
-\newcommand{\isactrlbsup}{%
-\def\isatext##1{\isastylescript##1}\begin{math}^\bgroup}
-\newcommand{\isactrlesup}{\egroup\end{math}}
 
 \newdimen\isa@parindent\newdimen\isa@parskip
 
@@ -151,6 +149,7 @@
 \renewcommand{\isachargreater}{\isamath{>}}%
 \renewcommand{\isacharat}{\isamath{@}}%
 \renewcommand{\isacharbrackleft}{\isamath{[}}%
+\renewcommand{\isacharbackslash}{\isamath{\backslash}}%
 \renewcommand{\isacharbrackright}{\isamath{]}}%
 \renewcommand{\isacharunderscore}{\mbox{-}}%
 \renewcommand{\isacharbraceleft}{\isamath{\{}}%
@@ -165,3 +164,28 @@
 \renewcommand{\isastyleminor}{\sl}%
 \renewcommand{\isastylescript}{\footnotesize\sl}%
 }
+
+
+% tagged regions
+
+%plain TeX version of comment package -- much faster!
+\let\isafmtname\fmtname\def\fmtname{plain}
+\usepackage{comment}
+\let\fmtname\isafmtname
+
+\newcommand{\isafold}[1]{\emph{$\langle\mathord{\mathit{#1}}\rangle$}}
+
+\newcommand{\isakeeptag}[1]%
+{\includecomment{isadelim#1}\includecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isadroptag}[1]%
+{\excludecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{}}
+\newcommand{\isafoldtag}[1]%
+{\includecomment{isadelim#1}\excludecomment{isatag#1}\csarg\def{isafold#1}{\isafold{#1}}}
+
+\isakeeptag{theory}
+\isakeeptag{proof}
+\isakeeptag{ML}
+\isakeeptag{visible}
+\isadroptag{invisible}
+
+\IfFileExists{isabelletags.sty}{\usepackage{isabelletags}}{}
