@@ -1,7 +1,20 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Sugar}%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isamarkuptrue%
 %
 \isamarkupsection{Introduction%
 }
@@ -150,8 +163,20 @@ printed with a trailing \isa{{\isachardot}{\isadigit{0}}}, e.g. \isa{x{\isadigit
 internal index. This can be avoided by turning the last digit into a
 subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
 \end{isamarkuptext}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isamarkupsubsection{Variable names%
 }
@@ -329,12 +354,18 @@ Full proofs, even if written in beautiful Isar style, are likely to
   \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw}
   command:%
 \end{isamarkuptext}%
-\isamarkuptrue%
 %
 \begin{figure}
   \begin{center}\begin{minipage}{0.6\textwidth}  
   \isastyle\isamarkuptrue
+\isamarkupfalse%
 \isacommand{lemma}\ True\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
 \isamarkupfalse%
 \isacommand{proof}\ {\isacharminus}\isanewline
 \ \ %
@@ -345,11 +376,18 @@ Full proofs, even if written in beautiful Isar style, are likely to
 \isacommand{show}\ True\ \isamarkupfalse%
 \isacommand{by}\ force\isanewline
 \isamarkupfalse%
-\isacommand{qed}\isamarkupfalse%
+\isacommand{qed}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \end{minipage}\end{center}
   \caption{Example proof in a figure.}\label{fig:proof}
   \end{figure}
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{quote}
@@ -420,18 +458,21 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
-    \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{{\isacharparenleft}xs{\isasymColon}{\isacharprime}a\ list{\isacharparenright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{hd\ {\isacharparenleft}xs{\isasymColon}{\isacharprime}a\ list{\isacharparenright}{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm_style concl hd_Cons_tl}!\\
+    \verb!@!\verb!{thm_style [show_types] concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
+
+  Be aware that any options must be placed \emph{before}
+  the name of the style, as in this example.
 
   Further use cases can be found in \S\ref{sec:yourself}.
 
@@ -440,8 +481,20 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   \verb!Proof.context -> term -> term!.
   Have a look at the following example:%
 \end{isamarkuptext}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \begin{quote}
@@ -464,7 +517,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   style has some object-logic specific behaviour for example.
 
   The mapping from identifier name to the style function
-  is done by the \isa{TermStyle{\isachardot}add{\isacharunderscore}style} expression which expects the desired
+  is done by the \verb|TermStyle.add_style| expression which expects the desired
   style name and the style function as arguments.
   
   After this \verb!setup!,
@@ -472,8 +525,19 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   antiquoations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
   yielding \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}.%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
