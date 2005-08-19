@@ -1,11 +1,25 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Semigroups}%
+\isamarkuptrue%
 %
 \isamarkupheader{Semigroups%
 }
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isamarkupfalse%
+\isacommand{theory}\ Semigroups\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \isamarkuptrue%
-\isacommand{theory}\ Semigroups\ {\isacharequal}\ Main{\isacharcolon}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip\noindent An axiomatic type class is simply a class of types
@@ -19,12 +33,12 @@
   We illustrate these basic concepts by the following formulation of
   semigroups.%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\isanewline
 \ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{axclass}\ semigroup\ {\isasymsubseteq}\ type\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Above we have first declared a polymorphic constant \isa{{\isasymodot}\ {\isasymColon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and then defined the class \isa{semigroup} of
@@ -41,20 +55,32 @@
   Below, class \isa{plus{\isacharunderscore}semigroup} represents semigroups \isa{{\isacharparenleft}{\isasymtau}{\isacharcomma}\ {\isasymoplus}\isactrlsup {\isasymtau}{\isacharparenright}}, while the original \isa{semigroup} would
   correspond to semigroups of the form \isa{{\isacharparenleft}{\isasymtau}{\isacharcomma}\ {\isasymodot}\isactrlsup {\isasymtau}{\isacharparenright}}.%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\isanewline
 \ \ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{axclass}\ plus{\isacharunderscore}semigroup\ {\isasymsubseteq}\ type\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Even if classes \isa{plus{\isacharunderscore}semigroup} and \isa{semigroup} both represent semigroups in a sense, they are certainly
   not quite the same.%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{end}\isanewline
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
 \isamarkupfalse%
+\isacommand{end}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

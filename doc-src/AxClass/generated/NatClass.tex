@@ -1,11 +1,25 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{NatClass}%
+\isamarkuptrue%
 %
 \isamarkupheader{Defining natural numbers in FOL \label{sec:ex-natclass}%
 }
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isamarkupfalse%
+\isacommand{theory}\ NatClass\ \isakeyword{imports}\ FOL\ \isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \isamarkuptrue%
-\isacommand{theory}\ NatClass\ {\isacharequal}\ FOL{\isacharcolon}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip\noindent Axiomatic type classes abstract over exactly one
@@ -17,7 +31,7 @@
  Isabelle/FOL.\footnote{See also
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
-\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\isanewline
 \ \ zero\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymzero}{\isachardoublequote}{\isacharparenright}\isanewline
 \ \ Suc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
@@ -34,7 +48,7 @@
 \isamarkupfalse%
 \isacommand{constdefs}\isanewline
 \ \ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isacharcolon}{\isacharcolon}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 This is an abstract version of the plain \isa{Nat} theory in
@@ -61,8 +75,20 @@ This is an abstract version of the plain \isa{Nat} theory in
  re-used with some trivial changes only (mostly adding some type
  constraints).%
 \end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{end}\isamarkupfalse%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isamarkupfalse%
+\isacommand{end}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
