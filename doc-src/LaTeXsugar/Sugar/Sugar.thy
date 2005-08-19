@@ -128,7 +128,7 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}
 
 (*<*)ML"reset show_question_marks"(*>*)
 
-subsection "Variable names"
+subsection {*Variable names\label{sec:varnames}*}
 
 text{* It sometimes happens that you want to change the name of a
 variable in a theorem before printing it. This can easily be achieved
@@ -249,15 +249,9 @@ in \S\ref{sec:styles}.
 subsection "Patterns"
 
 text {*
-  Sometimes functions ignore one or more of their
-  arguments and some functional languages have nice 
-  syntax for that as in @{thm hd.simps [where xs=DUMMY]}.
 
-  You can simulate this in Isabelle by instantiating the @{term xs} in
-  definition \mbox{@{thm hd.simps}} with a constant @{text DUMMY} that
-  is printed as @{term DUMMY}. The code for the pattern above is 
-  \verb!@!\verb!{thm hd.simps [where xs=DUMMY]}!.
-
+  In \S\ref{sec:varnames} we shows how to create patterns containing
+  ``@{term DUMMY}''.
   You can drive this game even further and extend the syntax of let
   bindings such that certain functions like @{term fst}, @{term hd}, 
   etc.\ are printed as patterns. \texttt{OptionalSugar} provides the
@@ -380,8 +374,7 @@ text {*
     \verb!@!\verb!{thm_style [show_types] concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
-
-  Be aware that any options must be placed \emph{before}
+  Beware that any options must be placed \emph{before}
   the name of the style, as in this example.
 
   Further use cases can be found in \S\ref{sec:yourself}.
