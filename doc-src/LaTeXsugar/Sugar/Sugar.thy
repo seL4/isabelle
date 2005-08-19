@@ -422,7 +422,7 @@ text {*
   style has some object-logic specific behaviour for example.
 
   The mapping from identifier name to the style function
-  is done by the @{ML_idf TermStyle.add_style} expression which expects the desired
+  is done by the @{ML TermStyle.add_style} expression which expects the desired
   style name and the style function as arguments.
   
   After this \verb!setup!,
