@@ -178,7 +178,7 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub 
 \endisadelimML
 \isamarkuptrue%
 %
-\isamarkupsubsection{Variable names%
+\isamarkupsubsection{Variable names\label{sec:varnames}%
 }
 \isamarkuptrue%
 %
@@ -315,15 +315,8 @@ in \S\ref{sec:styles}.%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Sometimes functions ignore one or more of their
-  arguments and some functional languages have nice 
-  syntax for that as in \isa{hd\ {\isacharparenleft}x{\isasymcdot}\_{\isacharparenright}\ {\isacharequal}\ x}.
-
-  You can simulate this in Isabelle by instantiating the \isa{xs} in
-  definition \mbox{\isa{hd\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}\ {\isacharequal}\ x}} with a constant \isa{DUMMY} that
-  is printed as \isa{\_}. The code for the pattern above is 
-  \verb!@!\verb!{thm hd.simps [where xs=DUMMY]}!.
-
+In \S\ref{sec:varnames} we shows how to create patterns containing
+  ``\isa{\_}''.
   You can drive this game even further and extend the syntax of let
   bindings such that certain functions like \isa{fst}, \isa{hd}, 
   etc.\ are printed as patterns. \texttt{OptionalSugar} provides the
@@ -470,8 +463,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
     \verb!@!\verb!{thm_style [show_types] concl hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
-
-  Be aware that any options must be placed \emph{before}
+  Beware that any options must be placed \emph{before}
   the name of the style, as in this example.
 
   Further use cases can be found in \S\ref{sec:yourself}.
