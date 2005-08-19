@@ -13,7 +13,7 @@ all: images test
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -d "" -D ../generated
+USEDIR = $(ISATOOL) usedir -d false -D document
 
 
 ## Group
@@ -26,7 +26,7 @@ HOL:
 $(LOG)/HOL-Group.gz: $(OUT)/HOL Group/ROOT.ML Group/Group.thy \
   Group/Product.thy Group/Semigroups.thy
 	@$(USEDIR) $(OUT)/HOL Group
-	@rm -f generated/pdfsetup.sty generated/session.tex
+	@rm -f Group/document/pdfsetup.sty Group/document/session.tex
 
 
 ## Nat
@@ -38,7 +38,7 @@ FOL:
 
 $(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/NatClass.ML Nat/NatClass.thy
 	@$(USEDIR) $(OUT)/FOL Nat
-	@rm -f generated/pdfsetup.sty generated/session.tex
+	@rm -f Nat/document/*.sty Nat/document/session.tex
 
 
 ## clean
