@@ -21,7 +21,7 @@ open Proofterm;
 
 fun rew b =
   let
-    fun ? x = if b then SOME x else NONE;
+    fun ?? x = if b then SOME x else NONE;
     fun ax (prf as PAxm (s, prop, _)) Ts =
       if b then PAxm (s, prop, SOME Ts) else prf;
     fun ty T = if b then
@@ -52,7 +52,7 @@ fun rew b =
              _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1)) %%
         ((tg as PThm (("ProtoPure.triv_goal", _), _, _, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%
-          (symmetric_axm % ? B % ? A %% prf1) %% prf2))
+          (symmetric_axm % ?? B % ?? A %% prf1) %% prf2))
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % SOME X % SOME Y %%
         (PAxm ("ProtoPure.combination", _, _) % _ % _ % _ % _ %%
@@ -61,10 +61,10 @@ fun rew b =
         let
           val _ $ A $ C = Envir.beta_norm X;
           val _ $ B $ D = Envir.beta_norm Y
-        in SOME (AbsP ("H1", ? X, AbsP ("H2", ? B,
+        in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? B,
           equal_elim_axm %> C %> D %% incr_pboundvars 2 0 prf2 %%
             (PBound 1 %% (equal_elim_axm %> B %> A %%
-              (symmetric_axm % ? A % ? B %% incr_pboundvars 2 0 prf1) %% PBound 0)))))
+              (symmetric_axm % ?? A % ?? B %% incr_pboundvars 2 0 prf1) %% PBound 0)))))
         end
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % SOME X % SOME Y %%
@@ -75,9 +75,9 @@ fun rew b =
         let
           val _ $ A $ C = Envir.beta_norm Y;
           val _ $ B $ D = Envir.beta_norm X
-        in SOME (AbsP ("H1", ? X, AbsP ("H2", ? A,
+        in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? A,
           equal_elim_axm %> D %> C %%
-            (symmetric_axm % ? C % ? D %% incr_pboundvars 2 0 prf2)
+            (symmetric_axm % ?? C % ?? D %% incr_pboundvars 2 0 prf2)
               %% (PBound 1 %% (equal_elim_axm %> A %> B %% incr_pboundvars 2 0 prf1 %% PBound 0)))))
         end
 
@@ -88,7 +88,7 @@ fun rew b =
         let
           val Const (_, T) $ P = Envir.beta_norm X;
           val _ $ Q = Envir.beta_norm Y;
-        in SOME (AbsP ("H", ? X, Abst ("x", ty T,
+        in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
             equal_elim_axm %> incr_boundvars 1 P $ Bound 0 %> incr_boundvars 1 Q $ Bound 0 %%
               (incr_pboundvars 1 1 prf %> Bound 0) %% (PBound 0 %> Bound 0))))
         end
@@ -103,9 +103,9 @@ fun rew b =
           val _ $ Q = Envir.beta_norm Y;
           val t = incr_boundvars 1 P $ Bound 0;
           val u = incr_boundvars 1 Q $ Bound 0
-        in SOME (AbsP ("H", ? X, Abst ("x", ty T,
+        in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
           equal_elim_axm %> t %> u %%
-            (symmetric_axm % ? u % ? t %% (incr_pboundvars 1 1 prf %> Bound 0))
+            (symmetric_axm % ?? u % ?? t %% (incr_pboundvars 1 1 prf %> Bound 0))
               %% (PBound 0 %> Bound 0))))
         end
 
@@ -116,8 +116,8 @@ fun rew b =
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % SOME A % SOME C %%
         (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
           (PAxm ("ProtoPure.transitive", _, _) % _ % SOME B % _ %% prf1 %% prf2)) %% prf3) =
-           SOME (equal_elim_axm %> B %> C %% (symmetric_axm % ? C % ? B %% prf1) %%
-             (equal_elim_axm %> A %> B %% (symmetric_axm % ? B % ? A %% prf2) %% prf3))
+           SOME (equal_elim_axm %> B %> C %% (symmetric_axm % ?? C % ?? B %% prf1) %%
+             (equal_elim_axm %> A %> B %% (symmetric_axm % ?? B % ?? A %% prf2) %% prf3))
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf) = SOME prf
@@ -135,7 +135,7 @@ fun rew b =
               (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %% prf2) %% prf3) %% prf4) =
           SOME (equal_elim_axm %> C %> D %% prf2 %%
             (equal_elim_axm %> A %> C %% prf3 %%
-              (equal_elim_axm %> B %> A %% (symmetric_axm % ? A % ? B %% prf1) %% prf4)))
+              (equal_elim_axm %> B %> A %% (symmetric_axm % ?? A % ?? B %% prf1) %% prf4)))
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
@@ -144,8 +144,8 @@ fun rew b =
               (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
                 (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %% prf2) %% prf3)) %% prf4) =
           SOME (equal_elim_axm %> A %> B %% prf1 %%
-            (equal_elim_axm %> C %> A %% (symmetric_axm % ? A % ? C %% prf3) %%
-              (equal_elim_axm %> D %> C %% (symmetric_axm % ? C % ? D %% prf2) %% prf4)))
+            (equal_elim_axm %> C %> A %% (symmetric_axm % ?? A % ?? C %% prf3) %%
+              (equal_elim_axm %> D %> C %% (symmetric_axm % ?? C % ?? D %% prf2) %% prf4)))
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.equal_elim", _, _) % SOME (_ $ B $ D) % SOME (_ $ A $ C) %%
@@ -153,7 +153,7 @@ fun rew b =
             (PAxm ("ProtoPure.combination", _, _) % _ % _ % _ % _ %%
               (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
                 (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %% prf2)) %% prf3) %% prf4) =
-          SOME (equal_elim_axm %> D %> C %% (symmetric_axm % ? C % ? D %% prf2) %%
+          SOME (equal_elim_axm %> D %> C %% (symmetric_axm % ?? C % ?? D %% prf2) %%
             (equal_elim_axm %> B %> D %% prf3 %%
               (equal_elim_axm %> A %> B %% prf1 %% prf4)))
 
@@ -164,8 +164,8 @@ fun rew b =
               (PAxm ("ProtoPure.combination", _, _) % _ % _ % _ % _ %%
                 (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
                   (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %% prf2)) %% prf3)) %% prf4) =
-          SOME (equal_elim_axm %> B %> A %% (symmetric_axm % ? A % ? B %% prf1) %%
-            (equal_elim_axm %> D %> B %% (symmetric_axm % ? B % ? D %% prf3) %%
+          SOME (equal_elim_axm %> B %> A %% (symmetric_axm % ?? A % ?? B %% prf1) %%
+            (equal_elim_axm %> D %> B %% (symmetric_axm % ?? B % ?? D %% prf3) %%
               (equal_elim_axm %> C %> D %% prf2 %% prf4)))
 
       | rew' _ ((prf as PAxm ("ProtoPure.combination", _, _) %
@@ -173,8 +173,8 @@ fun rew b =
           (PAxm ("ProtoPure.reflexive", _, _) % _)) =
         let val (U, V) = (case T of
           Type (_, [U, V]) => (U, V) | _ => (dummyT, dummyT))
-        in SOME (prf %% (ax combination_axm [V, U] %> eq % ? eq % ? t % ? t %%
-          (ax reflexive_axm [T] % ? eq) %% (ax reflexive_axm [U] % ? t)))
+        in SOME (prf %% (ax combination_axm [V, U] %> eq % ?? eq % ?? t % ?? t %%
+          (ax reflexive_axm [T] % ?? eq) %% (ax reflexive_axm [U] % ?? t)))
         end
 
       | rew' _ _ = NONE;
