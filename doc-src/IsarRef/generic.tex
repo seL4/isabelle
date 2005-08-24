@@ -260,7 +260,7 @@ and locales
   ;
   'interpret' interp
   ;
-  printinterps name
+  printinterps '!'? name
   ;
   interp: thmdecl? contextexpr ('[' (inst+) ']')?
   ;
@@ -314,7 +314,7 @@ and locales
   become part of locale $name$ as \emph{derived} context elements and
   are available when the context $name$ is subsequently entered.
   Note that, like import, this is dynamic: facts added to a locale
-  part of $expr$ after the interpretation become also available in
+  part of $expr$ after interpretation become also available in
   $name$.  Like facts
   of renamed context elements, facts obtained by interpretation may be
   accessed by prefixing with the parameter renaming (where the parameters
@@ -330,6 +330,11 @@ and locales
   are considered by interpretation.  This enables circular
   interpretations.
 
+  If interpretations of $name$ exist in the current theory, the
+  command adds interpretations for $expr$ as well, with the same
+  prefix and attributes, although only for fragments of $expr$ that
+  are not interpreted in the theory already.
+
 \item [$\isarcmd{interpret}~expr~insts$]
   interprets $expr$ in the proof context and is otherwise similar to
   interpretation in theories.  Free variables in instantiations are not
@@ -337,7 +342,11 @@ and locales
 
 \item [$\isarcmd{print_interps}~loc$]
   prints the interpretations of a particular locale $loc$ that are
-  active in the current context, either theory or proof context.
+  active in the current context, either theory or proof context.  The
+  exclamation point argument causes triggers printing of
+  \emph{witness} theorems justifying interpretations.  These are
+  normally omitted from the output.
+
   
 \end{descr}
 
@@ -356,7 +365,7 @@ and locales
   in the first place.  The locale package does not attempt to remove
   subsumed interpretations.  This situation is normally harmless, but
   note that $blast$ gets confused by the presence of multiple axclass
-  instances a rule.
+  instances of a rule.
 \end{warn}
 
 

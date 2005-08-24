@@ -215,7 +215,7 @@ Interpretation in theories and proof contexts require a parameter
 instantiation of terms from the current context.  This is applied to
 specifications and theorems of the interpreted expression.  Interpretation
 in locales only permits parameter renaming through the locale expression.
-Interpretation is smart in that interpretation that are active already
+Interpretation is smart in that interpretations that are active already
 do not occur in proof obligations, neither are instantiated theorems stored
 in duplicate.  Use 'print_interps' to inspect active interpretations of
 a particular locale.  For details, see the Isar Reference manual.

@@ -465,7 +465,7 @@ fun register_globally (((prfx, atts), expr), insts) int thy =
     val (propss, after_qed) =
       Locale.prep_global_registration (prfx, atts) expr insts thy;
   in
-    multi_theorem_i Drule.internalK (fst #> after_qed) ProofContext.export_plain
+    multi_theorem_i Drule.internalK (after_qed o fst) ProofContext.export_plain
       ("", []) []
       (map (fn ((n, _), props) => ((NameSpace.base n, []),
         map (fn prop => (prop, ([], []))) props)) propss) int thy
@@ -491,7 +491,7 @@ fun register_in_locale (target, expr) int thy =
     val (propss, after_qed) =
         Locale.prep_registration_in_locale target expr thy;
   in
-    locale_multi_theorem_i Drule.internalK (fst #> after_qed)
+    locale_multi_theorem_i Drule.internalK (after_qed o fst)
       ProofContext.export_plain
       target ("",[]) []
       (map (fn ((n, _), props) => ((NameSpace.base n, []),
