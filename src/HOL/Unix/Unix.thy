@@ -129,7 +129,7 @@ text {*
 *}
 
 types
-  file = "(att \<times> string, att, name) env"
+  "file" = "(att \<times> string, att, name) env"
 
 text {*
   \medskip The HOL library also provides @{term lookup} and @{term
@@ -151,7 +151,7 @@ text {*
   \cite{Bauer-et-al:2002:HOL-Library}.  These will be routinely used
   later on without further notice.
 
-  \bigskip Apparently, the elements of type @{typ file} contain an
+  \bigskip Apparently, the elements of type @{typ "file"} contain an
   @{typ att} component in either case.  We now define a few auxiliary
   operations to manipulate this field uniformly, following the
   conventions for record types in Isabelle/HOL
@@ -178,7 +178,7 @@ lemma [simp]: "attributes (Env att dir) = att"
   by (simp add: attributes_def)
 
 lemma [simp]: "attributes (file \<lparr>attributes := att\<rparr>) = att"
-  by (cases file) (simp_all add: attributes_def attributes_update_def
+  by (cases "file") (simp_all add: attributes_def attributes_update_def
     split_tupled_all)
 
 lemma [simp]: "(Val (att, text)) \<lparr>attributes := att'\<rparr> = Val (att', text)"
@@ -934,7 +934,7 @@ lemma (in invariant)
     root \<midarrow>(Rmdir user1 [user1, name1])\<rightarrow> root' \<Longrightarrow> False"
 proof -
   assume "invariant root bogus_path"
-  then obtain file where "access root bogus_path user1 {} = Some file"
+  then obtain "file" where "access root bogus_path user1 {} = Some file"
     by (unfold invariant_def) blast
   moreover
   assume "root \<midarrow>(Rmdir user1 [user1, name1])\<rightarrow> root'"
@@ -1055,7 +1055,7 @@ proof -
       proof (cases ys)
         assume "ys = []"
         with path have parent: "path_of x = path @ [y]" by simp
-        with tr uid inv4 changed obtain file where
+        with tr uid inv4 changed obtain "file" where
             "root' = update (path_of x) (Some file) root"
           by cases auto
         with lookup parent have "lookup root' path = Some (Env att (dir(y\<mapsto>file)))"
