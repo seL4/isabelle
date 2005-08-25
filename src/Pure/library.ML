@@ -13,6 +13,8 @@ infix |> |-> ||> ||>> |>> |>>> #> #-> ~~ \ \\ ins ins_string ins_int
   union_string inter inter_int inter_string subset subset_int
   subset_string;
 
+infix 2 ?;
+
 infix 3 oo ooo oooo;
 
 signature BASIC_LIBRARY =
@@ -30,6 +32,7 @@ sig
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
   val #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd
+  val ? : ('a -> bool) * ('a -> 'a) -> 'a -> 'a
   val ` : ('b -> 'a) -> 'b -> 'a * 'b
   val tap: ('b -> 'a) -> 'b -> 'b
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
@@ -319,6 +322,9 @@ fun (x, y) ||>> f = let val (z, y') = f y in ((x, z), y') end;
 (*reverse composition*)
 fun f #> g = g o f;
 fun f #-> g = uncurry g o f;
+
+(*conditional application*)
+fun b ? f = fn x => if b x then f x else x
 
 (*view results*)
 fun `f = fn x => (f x, x);
