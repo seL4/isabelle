@@ -82,15 +82,15 @@ fun get_equations thy defs (s, T) =
        end);
 
 fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
-  SOME (_, SOME i) => "_def" ^ string_of_int i | _ => "");
+  SOME (_, SOME i) => " def" ^ string_of_int i | _ => "");
 
 exception EQN of string * typ * string;
 
 fun cycle g (xs, x) =
   if x mem xs then xs
-  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.find_paths g (x, x)));
+  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.find_paths (fst g) (x, x)));
 
-fun add_rec_funs thy defs gr dep eqs thyname =
+fun add_rec_funs thy defs gr dep eqs module =
   let
     fun dest_eq t = (fst (const_of t) ^ mk_suffix thy defs (const_of t),
       dest_eqn (rename_term t));
@@ -98,67 +98,71 @@ fun add_rec_funs thy defs gr dep eqs thyname =
     val (dname, _) :: _ = eqs';
     val (s, T) = const_of (hd eqs);
 
-    fun mk_fundef thyname fname prfx gr [] = (gr, [])
-      | mk_fundef thyname fname prfx gr ((fname', (lhs, rhs)) :: xs) =
+    fun mk_fundef module fname prfx gr [] = (gr, [])
+      | mk_fundef module fname prfx gr ((fname', (lhs, rhs)) :: xs) =
       let
-        val (gr1, pl) = invoke_codegen thy defs dname thyname false (gr, lhs);
-        val (gr2, pr) = invoke_codegen thy defs dname thyname false (gr1, rhs);
-        val (gr3, rest) = mk_fundef thyname fname' "and " gr2 xs
+        val (gr1, pl) = invoke_codegen thy defs dname module false (gr, lhs);
+        val (gr2, pr) = invoke_codegen thy defs dname module false (gr1, rhs);
+        val (gr3, rest) = mk_fundef module fname' "and " gr2 xs
       in
         (gr3, Pretty.blk (4, [Pretty.str (if fname = fname' then "  | " else prfx),
            pl, Pretty.str " =", Pretty.brk 1, pr]) :: rest)
       end;
 
-    fun put_code thyname fundef = Graph.map_node dname
-      (K (SOME (EQN ("", dummyT, dname)), thyname, Pretty.string_of (Pretty.blk (0,
+    fun put_code module fundef = map_node dname
+      (K (SOME (EQN ("", dummyT, dname)), module, Pretty.string_of (Pretty.blk (0,
       separate Pretty.fbrk fundef @ [Pretty.str ";"])) ^ "\n\n"));
 
   in
-    (case try (Graph.get_node gr) dname of
+    (case try (get_node gr) dname of
        NONE =>
          let
-           val gr1 = Graph.add_edge (dname, dep)
-             (Graph.new_node (dname, (SOME (EQN (s, T, "")), "", "")) gr);
-           val (gr2, fundef) = mk_fundef thyname "" "fun " gr1 eqs';
+           val gr1 = add_edge (dname, dep)
+             (new_node (dname, (SOME (EQN (s, T, "")), module, "")) gr);
+           val (gr2, fundef) = mk_fundef module "" "fun " gr1 eqs';
            val xs = cycle gr2 ([], dname);
-           val cs = map (fn x => case Graph.get_node gr2 x of
+           val cs = map (fn x => case get_node gr2 x of
                (SOME (EQN (s, T, _)), _, _) => (s, T)
              | _ => error ("RecfunCodegen: illegal cyclic dependencies:\n" ^
                 implode (separate ", " xs))) xs
          in (case xs of
-             [_] => put_code thyname fundef gr2
+             [_] => (put_code module fundef gr2, module)
            | _ =>
              if not (dep mem xs) then
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
+                 val module' = if_library thyname module;
                  val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
-                 val (gr3, fundef') = mk_fundef thyname "" "fun "
-                   (Graph.add_edge (dname, dep)
-                     (foldr (uncurry Graph.new_node) (Graph.del_nodes xs gr2)
+                 val (gr3, fundef') = mk_fundef module' "" "fun "
+                   (add_edge (dname, dep)
+                     (foldr (uncurry new_node) (del_nodes xs gr2)
                        (map (fn k =>
-                         (k, (SOME (EQN ("", dummyT, dname)), thyname, ""))) xs))) eqs''
-               in put_code thyname fundef' gr3 end
-             else gr2)
+                         (k, (SOME (EQN ("", dummyT, dname)), module', ""))) xs))) eqs''
+               in (put_code module' fundef' gr3, module') end
+             else (gr2, module))
          end
-     | SOME (SOME (EQN (_, _, s)), _, _) =>
-         if s = "" then
-           if dname = dep then gr else Graph.add_edge (dname, dep) gr
-         else if s = dep then gr else Graph.add_edge (s, dep) gr)
+     | SOME (SOME (EQN (_, _, s)), module', _) =>
+         (if s = "" then
+            if dname = dep then gr else add_edge (dname, dep) gr
+          else if s = dep then gr else add_edge (s, dep) gr,
+          module'))
   end;
 
-fun recfun_codegen thy defs gr dep thyname brack t = (case strip_comb t of
+fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
     (Const (p as (s, T)), ts) => (case (get_equations thy defs p, get_assoc_code thy s T) of
        (([], _), _) => NONE
      | (_, SOME _) => NONE
-     | ((eqns, thyname'), NONE) =>
+     | ((eqns, thyname), NONE) =>
         let
+          val module' = if_library thyname module;
           val (gr', ps) = foldl_map
-            (invoke_codegen thy defs dep thyname true) (gr, ts);
-          val suffix = mk_suffix thy defs p
+            (invoke_codegen thy defs dep module true) (gr, ts);
+          val suffix = mk_suffix thy defs p;
+          val (gr'', module'') =
+            add_rec_funs thy defs gr' dep (map prop_of eqns) module';
+          val (gr''', fname) = mk_const_id module'' (s ^ suffix) gr''
         in
-          SOME (add_rec_funs thy defs gr' dep (map prop_of eqns) thyname',
-            mk_app brack (Pretty.str
-              (mk_const_id (sign_of thy) thyname thyname' s ^ suffix)) ps)
+          SOME (gr''', mk_app brack (Pretty.str (mk_qual_id module fname)) ps)
         end)
   | _ => NONE);
 
