@@ -74,9 +74,9 @@ sig
 
   (* Storing results *)
   val add_locale_context: bool -> bstring -> expr -> element list -> theory
-    -> theory * ProofContext.context
+    -> (element_i list * ProofContext.context) * theory
   val add_locale_context_i: bool -> bstring -> expr -> element_i list -> theory
-    -> theory * ProofContext.context
+    -> (element_i list * ProofContext.context) * theory
   val add_locale: bool -> bstring -> expr -> element list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> element_i list -> theory -> theory
   val smart_note_thmss: string -> string option ->
@@ -2002,24 +2002,25 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
       (pred_ctxt, axiomify predicate_axioms elemss');
     val export = ProofContext.export_standard predicate_statement ctxt pred_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
+    val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))
   in
     pred_thy
     |> note_thmss_qualified "" name facts' |> #1
     |> declare_locale name
     |> put_locale name {predicate = predicate, import = import,
-        elems = map (fn e => (e, stamp ())) (List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))),
+        elems = map (fn e => (e, stamp ())) elems',
         params = (params_of elemss' |>
           map (fn (x, SOME T) => ((x, T), valOf (Symtab.lookup (syn, x)))), map #1 (params_of body_elemss)),
         regs = []}
-    |> rpair body_ctxt
+    |> pair (elems', body_ctxt)
   end;
 
 in
 
 val add_locale_context = gen_add_locale read_context intern_expr;
 val add_locale_context_i = gen_add_locale cert_context (K I);
-fun add_locale b = #1 oooo add_locale_context b;
-fun add_locale_i b = #1 oooo add_locale_context_i b;
+fun add_locale b = #2 oooo add_locale_context b;
+fun add_locale_i b = #2 oooo add_locale_context_i b;
 
 end;
 

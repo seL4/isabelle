@@ -314,7 +314,7 @@ val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
     ((P.opt_keyword "open" >> not) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
-      >> (Toplevel.theory_context o (fn ((x, y), (z, w)) => Locale.add_locale_context x y z w)));
+      >> (Toplevel.theory_context o (fn ((x, y), (z, w)) => Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (thy, ctxt)))));
 
 val opt_inst =
   Scan.optional (P.$$$ "[" |-- Scan.repeat1 (P.maybe P.term) --| P.$$$ "]") [];
