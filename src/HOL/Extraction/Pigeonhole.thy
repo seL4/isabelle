@@ -285,19 +285,20 @@ we generate ML code from them.
 consts_code
   arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
-generate_code
+code_module PH
+contains
   test = "\<lambda>n. pigeonhole n (\<lambda>m. m - 1)"
   test' = "\<lambda>n. pigeonhole_slow n (\<lambda>m. m - 1)"
   sel = "op !"
 
-ML "timeit (fn () => test 10)"
-ML "timeit (fn () => test' 10)"
-ML "timeit (fn () => test 20)"
-ML "timeit (fn () => test' 20)"
-ML "timeit (fn () => test 25)"
-ML "timeit (fn () => test' 25)"
-ML "timeit (fn () => test 500)"
+ML "timeit (fn () => PH.test 10)"
+ML "timeit (fn () => PH.test' 10)"
+ML "timeit (fn () => PH.test 20)"
+ML "timeit (fn () => PH.test' 20)"
+ML "timeit (fn () => PH.test 25)"
+ML "timeit (fn () => PH.test' 25)"
+ML "timeit (fn () => PH.test 500)"
 
-ML "pigeonhole 8 (sel [0,1,2,3,4,5,6,3,7,8])"
+ML "PH.pigeonhole 8 (PH.sel [0,1,2,3,4,5,6,3,7,8])"
 
 end

@@ -6,7 +6,6 @@
 header {* Quotient and remainder *}
 
 theory QuotRem imports Main begin
-
 text {* Derivation of quotient and remainder using program extraction. *}
 
 lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
@@ -46,7 +45,8 @@ text {*
   @{thm [display] division_correctness [no_vars]}
 *}
 
-generate_code
+code_module Div
+contains
   test = "division 9 2"
 
 end

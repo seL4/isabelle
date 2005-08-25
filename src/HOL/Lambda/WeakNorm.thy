@@ -524,7 +524,8 @@ consts_code
   arbitrary :: "'a"       ("(error \"arbitrary\")")
   arbitrary :: "'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
 
-generate_code
+code_module Norm
+contains
   test = "type_NF"
 
 text {*
@@ -535,29 +536,29 @@ normalized terms using Isabelle's pretty printer.
 *}
 
 ML {*
-fun nat_of_int 0 = id_0
-  | nat_of_int n = Suc (nat_of_int (n-1));
+fun nat_of_int 0 = Norm.id_0
+  | nat_of_int n = Norm.Suc (nat_of_int (n-1));
 
-fun int_of_nat id_0 = 0
-  | int_of_nat (Suc n) = 1 + int_of_nat n;
+fun int_of_nat Norm.id_0 = 0
+  | int_of_nat (Norm.Suc n) = 1 + int_of_nat n;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
-      Fun (dBtype_of_typ T, dBtype_of_typ U)
+      Norm.Fun (dBtype_of_typ T, dBtype_of_typ U)
   | dBtype_of_typ (TFree (s, _)) = (case explode s of
-        ["'", a] => Atom (nat_of_int (ord a - 97))
+        ["'", a] => Norm.Atom (nat_of_int (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
 
-fun dB_of_term (Bound i) = dB_Var (nat_of_int i)
-  | dB_of_term (t $ u) = dB_App (dB_of_term t, dB_of_term u)
-  | dB_of_term (Abs (_, _, t)) = dB_Abs (dB_of_term t)
+fun dB_of_term (Bound i) = Norm.dB_Var (nat_of_int i)
+  | dB_of_term (t $ u) = Norm.App (dB_of_term t, dB_of_term u)
+  | dB_of_term (Abs (_, _, t)) = Norm.Abs (dB_of_term t)
   | dB_of_term _ = error "dB_of_term: bad term";
 
-fun term_of_dB Ts (Type ("fun", [T, U])) (dB_Abs dBt) =
+fun term_of_dB Ts (Type ("fun", [T, U])) (Norm.Abs dBt) =
       Abs ("x", T, term_of_dB (T :: Ts) U dBt)
   | term_of_dB Ts _ dBt = term_of_dB' Ts dBt
-and term_of_dB' Ts (dB_Var n) = Bound (int_of_nat n)
-  | term_of_dB' Ts (dB_App (dBt, dBu)) =
+and term_of_dB' Ts (Norm.dB_Var n) = Bound (int_of_nat n)
+  | term_of_dB' Ts (Norm.App (dBt, dBu)) =
       let val t = term_of_dB' Ts dBt
       in case fastype_of1 (Ts, t) of
           Type ("fun", [T, U]) => t $ term_of_dB Ts T dBu
@@ -566,17 +567,17 @@ and term_of_dB' Ts (dB_Var n) = Bound (int_of_nat n)
   | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
 
 fun typing_of_term Ts e (Bound i) =
-      rtypingT_Var (e, nat_of_int i, dBtype_of_typ (List.nth (Ts, i)))
+      Norm.Var (e, nat_of_int i, dBtype_of_typ (List.nth (Ts, i)))
   | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
-        Type ("fun", [T, U]) => rtypingT_App (e, dB_of_term t,
+        Type ("fun", [T, U]) => Norm.rtypingT_App (e, dB_of_term t,
           dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
           typing_of_term Ts e t, typing_of_term Ts e u)
       | _ => error "typing_of_term: function type expected")
   | typing_of_term Ts e (Abs (s, T, t)) =
       let val dBT = dBtype_of_typ T
-      in rtypingT_Abs (e, dBT, dB_of_term t,
+      in Norm.rtypingT_Abs (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (shift e id_0 dBT) t)
+        typing_of_term (T :: Ts) (Norm.shift e Norm.id_0 dBT) t)
       end
   | typing_of_term _ _ _ = error "typing_of_term: bad term";
 
@@ -592,12 +593,12 @@ val sg = sign_of (the_context());
 fun rd s = read_cterm sg (s, TypeInfer.logicT);
 
 val ct1 = rd "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))";
-val (dB1, _) = type_NF (typing_of_term [] dummyf (term_of ct1));
+val (dB1, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct1));
 val ct1' = cterm_of sg (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = rd
   "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))";
-val (dB2, _) = type_NF (typing_of_term [] dummyf (term_of ct2));
+val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of sg (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 

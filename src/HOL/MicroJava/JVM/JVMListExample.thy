@@ -114,62 +114,63 @@ fun new_addr p none loc hp =
 
 subsection {* Single step execution *}
 
-generate_code
+code_module JVM
+contains
   test = "exec (E, start_state E test_name makelist_name)"
 
-ML {* test *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
-ML {* exec (E, the it) *}
+ML {* JVM.test *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
 
 end

@@ -290,10 +290,13 @@ text {*
   @{thm [display] prop3_def [no_vars]}
 *}
 
-generate_code
+code_module Higman
+contains
   test = good_prefix
 
 ML {*
+local open Higman in
+
 val a = 16807.0;
 val m = 2147483647.0;
 
@@ -309,27 +312,29 @@ fun mk_word seed l =
     apsnd (cons (if i mod 2 = 0 then A else B)) (mk_word r (l+1))
   end;
 
-fun f s id0 = mk_word s 0
+fun f s id_0 = mk_word s 0
   | f s (Suc n) = f (fst (mk_word s 0)) n;
 
 val g1 = snd o (f 20000.0);
 
 val g2 = snd o (f 50000.0);
 
-fun f1 id0 = [A,A]
-  | f1 (Suc id0) = [B]
-  | f1 (Suc (Suc id0)) = [A,B]
+fun f1 id_0 = [A,A]
+  | f1 (Suc id_0) = [B]
+  | f1 (Suc (Suc id_0)) = [A,B]
   | f1 _ = [];
 
-fun f2 id0 = [A,A]
-  | f2 (Suc id0) = [B]
-  | f2 (Suc (Suc id0)) = [B,A]
+fun f2 id_0 = [A,A]
+  | f2 (Suc id_0) = [B]
+  | f2 (Suc (Suc id_0)) = [B,A]
   | f2 _ = [];
 
 val xs1 = test g1;
 val xs2 = test g2;
 val xs3 = test f1;
 val xs4 = test f2;
+
+end;
 *}
 
 end

@@ -87,7 +87,8 @@ fun new_addr p none loc hp =
   "l3_nam" ("\"l3\"")
   "l4_nam" ("\"l4\"")
 
-generate_code
+code_module J
+contains
   test = "example_prg\<turnstile>Norm (empty, empty)
     -(Expr (l1_name::=NewC list_name);;
       Expr ({list_name}(LAcc l1_name)..val_name:=Lit (Intg 1));;
@@ -108,19 +109,19 @@ section {* Big step execution *}
 
 ML {*
 
-val SOME ((_, (heap, locs)), _) = Seq.pull test;
-locs l1_name;
-locs l2_name;
-locs l3_name;
-locs l4_name;
-snd (the (heap (Loc 0))) (val_name, "list");
-snd (the (heap (Loc 0))) (next_name, "list");
-snd (the (heap (Loc 1))) (val_name, "list");
-snd (the (heap (Loc 1))) (next_name, "list");
-snd (the (heap (Loc 2))) (val_name, "list");
-snd (the (heap (Loc 2))) (next_name, "list");
-snd (the (heap (Loc 3))) (val_name, "list");
-snd (the (heap (Loc 3))) (next_name, "list");
+val SOME ((_, (heap, locs)), _) = Seq.pull J.test;
+locs J.l1_name;
+locs J.l2_name;
+locs J.l3_name;
+locs J.l4_name;
+snd (J.the (heap (J.Loc 0))) (J.val_name, "list");
+snd (J.the (heap (J.Loc 0))) (J.next_name, "list");
+snd (J.the (heap (J.Loc 1))) (J.val_name, "list");
+snd (J.the (heap (J.Loc 1))) (J.next_name, "list");
+snd (J.the (heap (J.Loc 2))) (J.val_name, "list");
+snd (J.the (heap (J.Loc 2))) (J.next_name, "list");
+snd (J.the (heap (J.Loc 3))) (J.val_name, "list");
+snd (J.the (heap (J.Loc 3))) (J.next_name, "list");
 
 *}
 

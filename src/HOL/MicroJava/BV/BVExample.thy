@@ -475,12 +475,13 @@ lemmas [code] =
 
 lemmas [code ind] = rtrancl_refl converse_rtrancl_into_rtrancl
 
-generate_code
+code_module BV
+contains
   test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
     [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
   test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
 
-ML test1
-ML test2
+ML BV.test1
+ML BV.test2
 
 end
