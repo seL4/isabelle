@@ -247,8 +247,7 @@ fun present_span lex default_tags span state state'
     (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (raw, tok, d) =>
-      if d > 0 then I
-      else Buffer.add raw #> Buffer.add (output_token lex state' tok));
+      Buffer.add raw o (if d > 0 then I else Buffer.add (output_token lex state' tok)));
 
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
