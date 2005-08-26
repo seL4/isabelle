@@ -112,7 +112,7 @@ signature RES_CLASIMP =
   val use_simpset: bool ref
   val use_nameless: bool ref
   val write_out_clasimp : string -> theory -> term -> 
-                             (ResClause.clause * thm) Array.array * int (* * ResClause.clause list *)
+                             (ResClause.clause * thm) Array.array * int * ResClause.clause list 
 
   end;
 
@@ -245,7 +245,7 @@ fun write_out_clasimp filename thy goal =
 	val _= TextIO.flushOut out;
 	val _= TextIO.closeOut out
   in
-	(clause_arr, num_of_clauses)
+	(clause_arr, num_of_clauses, clauses)
   end;
 
 

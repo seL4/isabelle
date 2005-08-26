@@ -274,7 +274,7 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     (*** hyps/local axioms just now                                                ***)
     val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
     (*** check if the directory exists and, if not, create it***)
-    val _ = 
+   (* val _ = 
 	if !SpassComm.spass
 	then 
 	    if File.exists dfg_dir then warning("dfg dir exists")
@@ -292,7 +292,16 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
 			    dfg_path^"/ax_prob"^"_"^(probID)^".dfg" 
 
 		    else
-			    (File.platform_path wholefile)
+			    (File.platform_path wholefile)*)
+
+    (* if using spass prob_n already contains whole DFG file, otherwise need to mash axioms*)
+    (* from clasimpset onto problem file *)
+    val newfile =   if !SpassComm.spass 
+		    then 
+			 probfile
+                    else 
+			(File.platform_path wholefile)
+
     val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
 	       (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n")
   in
@@ -516,10 +525,10 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
                         val _ = File.append (File.tmp_path (Path.basic "child_command")) 
 			           (childCmd^"\n")
 			(* now get the number of the subgoal from the filename *)
-			val sg_num = if (!SpassComm.spass )
+			val sg_num = (*if (!SpassComm.spass )
 				     then 
 					int_of_string(ReconOrderClauses.get_nth 5 (rev(explode childCmd)))
-				     else
+				     else*)
 					int_of_string(hd (rev(explode childCmd)))
 
 			val childIncoming = pollChildInput childInput

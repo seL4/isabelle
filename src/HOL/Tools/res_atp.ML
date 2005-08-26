@@ -16,10 +16,16 @@ sig
 (*val spass: bool ref*)
   val vampire: bool ref
   val custom_spass: string list ref
+  val hook_count: int ref
+(*  val invoke_atp: Toplevel.transition -> Toplevel.transition*)
 end;
 
 structure ResAtp: RES_ATP =
 struct
+
+
+val call_atp = ref false;
+val hook_count = ref 0;
 
 fun debug_tac tac = (debug "testing"; tac);
 
@@ -56,6 +62,7 @@ val clasimp_file = File.tmp_path (Path.basic "clasimp");
 val hyps_file = File.tmp_path (Path.basic "hyps");
 val prob_file = File.tmp_path (Path.basic "prob");
 val dummy_tac = all_tac;
+val _ =debug  (File.platform_path prob_file);
 
 
 (**** for Isabelle/ML interface  ****)
@@ -135,20 +142,31 @@ fun tptp_inputs_tfrees thms n tfrees =
 (* write out a subgoal as DFG clauses to the file "probN"           *)
 (* where N is the number of this subgoal                             *)
 (*********************************************************************)
-(*
-fun dfg_inputs_tfrees thms n tfrees = 
-    let val _ = (debug ("in dfg_inputs_tfrees 0"))
-        val clss = map (ResClause.make_conjecture_clause_thm) thms
+
+(*fun dfg_inputs_tfrees thms n tfrees axclauses= 
+    let  val clss = map (ResClause.make_conjecture_clause_thm) thms
          val _ = (debug ("in dfg_inputs_tfrees 1"))
-	val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
-        val _ = (debug ("in dfg_inputs_tfrees 2"))
-	val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
-         val _ = (debug ("in dfg_inputs_tfrees 3"))
+	 val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
+	 val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
+         val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+         val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) axclauses [] [] [] tfrees   
+	 val out = TextIO.openOut(probfile)
+    in
+	(ResLib.writeln_strs out (tfree_clss @ dfg_clss); TextIO.closeOut out; debug probfile)
+    end;
+*)
+fun dfg_inputs_tfrees thms n tfrees axclauses = 
+    let val clss = map (ResClause.make_conjecture_clause_thm) thms
         val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+        val _ = warning ("about to write out dfg prob file "^probfile)
+       	(*val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
+        val tfree_clss = map ResClause.tfree_dfg_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) *)   
+        val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) axclauses [] [] [] tfrees   
 	val out = TextIO.openOut(probfile)
     in
-	(ResLib.writeln_strs out (tfree_clss @ dfg_clss); TextIO.closeOut out; debug probfile
-    end;*)
+	(ResLib.writeln_strs out [filestr]; TextIO.closeOut out; debug probfile )
+    end;
+
 
 (*********************************************************************)
 (* call SPASS with settings and problem file for the current subgoal *)
@@ -210,18 +228,22 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
 (* then call dummy_tac - should be call_res_tac           *)
 (**********************************************************)
 
-fun get_sko_thms tfrees sign sg_terms (childin, childout, pid) thm n sko_thms =
-  if n = 0 then
-    (call_resolve_tac (rev sko_thms)
-      sign sg_terms (childin, childout, pid) (List.length sg_terms);
-     dummy_tac thm)
-  else
-    SELECT_GOAL
-      (EVERY1 [rtac ccontr, atomize_tac, skolemize_tac,
-        METAHYPS (fn negs =>
-          (tptp_inputs_tfrees (make_clauses negs) n tfrees;
-           get_sko_thms tfrees sign sg_terms (childin, childout, pid) thm (n - 1)
-             (negs::sko_thms); dummy_tac))]) n thm;
+
+fun get_sko_thms tfrees sign sg_terms (childin, childout,pid) thm n sko_thms axclauses =
+    if n=0 then 
+       (call_resolve_tac  (rev sko_thms)
+        sign  sg_terms (childin, childout, pid) (List.length sg_terms);
+        dummy_tac thm)
+     else
+	
+     ( SELECT_GOAL
+        (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+          METAHYPS(fn negs => (if !SpassComm.spass then 
+				    dfg_inputs_tfrees (make_clauses negs) n tfrees axclauses
+ 				 else
+			  	    tptp_inputs_tfrees (make_clauses negs)  n tfrees;
+			            get_sko_thms  tfrees sign sg_terms (childin, childout, pid) thm  (n -1) (negs::sko_thms) axclauses; dummy_tac))]) n thm )
+
 
 
 (**********************************************)
@@ -230,7 +252,7 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout, pid) thm n sko_thms =
 (* in proof reconstruction                    *)
 (**********************************************)
 
-fun isar_atp_goal' thm n tfree_lits (childin, childout, pid) =
+fun isar_atp_goal' thm n tfree_lits (childin, childout, pid)  axclauses =
   let
     val prems = Thm.prems_of thm
     (*val sg_term = get_nth k prems*)
@@ -243,7 +265,7 @@ fun isar_atp_goal' thm n tfree_lits (childin, childout, pid) =
     (* isar_atp_g tfree_lits  sg_term (childin, childout, pid) k thm; *)
     (* recursive call to pick up the remaining subgoals *)
     (* isar_atp_goal' thm (k+1) n tfree_lits  (childin, childout, pid) *)
-    get_sko_thms tfree_lits sign prems (childin, childout, pid) thm n []
+    get_sko_thms tfree_lits sign prems (childin, childout, pid) thm n []  axclauses
   end;
 
 
@@ -255,11 +277,11 @@ fun isar_atp_goal' thm n tfree_lits (childin, childout, pid) =
 (* write to file "hyps"                           *)
 (**************************************************)
 
-fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) =
+fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid)  axclauses=
   let val tfree_lits = isar_atp_h thms
   in
     debug ("in isar_atp_aux");
-    isar_atp_goal' thm n_subgoals tfree_lits (childin, childout, pid)
+    isar_atp_goal' thm n_subgoals tfree_lits (childin, childout, pid)  axclauses
   end;
 
 (******************************************************************)
@@ -281,10 +303,10 @@ val isar_atp' = setmp print_mode [] (fn (ctxt, thms, thm) =>
       val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) prems)
 
       (*set up variables for writing out the clasimps to a tptp file*)
-      val (clause_arr, num_of_clauses) =
+      val (clause_arr, num_of_clauses, axclauses) =
         ResClasimp.write_out_clasimp (File.platform_path clasimp_file) thy
           (hd prems) (*FIXME: hack!! need to do all prems*)
-      val _ = debug ("clasimp_file is " ^ File.platform_path clasimp_file)
+      val _ = debug ("clasimp_file is " ^ File.platform_path clasimp_file ^ " with " ^ (string_of_int num_of_clauses)^ " clauses")
       val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr, num_of_clauses)
       val pid_string =
         string_of_int (Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid)))
@@ -293,7 +315,7 @@ val isar_atp' = setmp print_mode [] (fn (ctxt, thms, thm) =>
       debug ("initial thm: " ^ thm_string);
       debug ("subgoals: " ^ prems_string);
       debug ("pid: "^ pid_string);
-      isar_atp_aux thms thm (length prems) (childin, childout, pid);
+      isar_atp_aux thms thm (length prems) (childin, childout, pid) axclauses;
       ()
     end);
 
@@ -340,10 +362,13 @@ fun subtract_claset thy ctxt =
 (** the Isar toplevel hook **)
 
 val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
+
   let
+
     val proof = Toplevel.proof_of state
     val (ctxt, (_, goal)) = Proof.get_goal proof
         handle Proof.STATE _ => error "No goal present";
+
     val thy = ProofContext.theory_of ctxt;
 
     (* FIXME presently unused *)
@@ -356,6 +381,8 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
     debug ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
+    hook_count := !hook_count +1;
+    debug ("in hook for time: " ^(string_of_int (!hook_count)) );
     ResClause.init thy;
     isar_atp' (ctxt, ProofContext.prems_of ctxt, goal)
   end);
