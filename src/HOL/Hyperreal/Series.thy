@@ -334,13 +334,7 @@ done
 
 text{*Sum of a geometric progression.*}
 
-lemma sumr_geometric:
- "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) = (x ^ n - 1) / (x - 1::real)"
-apply (induct "n", auto)
-apply (rule_tac c1 = "x - 1" in real_mult_right_cancel [THEN iffD1])
-apply (auto simp add: mult_assoc left_distrib)
-apply (simp add: right_distrib diff_minus mult_commute)
-done
+lemmas sumr_geometric = geometric_sum [where 'a = real]
 
 lemma geometric_sums: "abs(x) < 1 ==> (%n. x ^ n) sums (1/(1 - x))"
 apply (case_tac "x = 1")

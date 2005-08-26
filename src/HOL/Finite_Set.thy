@@ -1144,6 +1144,7 @@ lemma setsum_mono3: "finite B ==> A <= B ==>
 done
 
 (* FIXME: this is distributitivty, name as such! *)
+(* suggested name: setsum_right_distrib (CB) *)
 
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
@@ -1155,6 +1156,34 @@ proof (cases "finite A")
     case empty thus ?case by simp
   next
     case (insert x A) thus ?case by (simp add: right_distrib)
+  qed
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
+
+lemma setsum_left_distrib:
+  "setsum f A * (r::'a::semiring_0_cancel) = (\<Sum>n\<in>A. f n * r)"
+proof (cases "finite A")
+  case True
+  then show ?thesis
+  proof induct
+    case empty thus ?case by simp
+  next
+    case (insert x A) thus ?case by (simp add: left_distrib)
+  qed
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
+
+lemma setsum_divide_distrib:
+  "setsum f A / (r::'a::field) = (\<Sum>n\<in>A. f n / r)"
+proof (cases "finite A")
+  case True
+  then show ?thesis
+  proof induct
+    case empty thus ?case by simp
+  next
+    case (insert x A) thus ?case by (simp add: add_divide_distrib)
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
@@ -1210,6 +1239,33 @@ proof (cases "finite A")
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
+qed
+
+
+text {* Commuting outer and inner summation *}
+
+lemma swap_inj_on:
+  "inj_on (%(i, j). (j, i)) (A \<times> B)"
+  by (unfold inj_on_def) fast
+
+lemma swap_product:
+  "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
+  by (simp add: split_def image_def) blast
+
+lemma setsum_commute:
+  "(\<Sum>i\<in>A. \<Sum>j\<in>B. f i j) = (\<Sum>j\<in>B. \<Sum>i\<in>A. f i j)"
+proof (simp add: setsum_cartesian_product)
+  have "(\<Sum>z\<in>A \<times> B. f (fst z) (snd z)) =
+    (\<Sum>z\<in>(%(i, j). (j, i)) ` (A \<times> B). f (snd z) (fst z))"
+    (is "?s = _")
+    apply (simp add: setsum_reindex [where f = "%(i, j). (j, i)"] swap_inj_on)
+    apply (simp add: split_def)
+    done
+  also have "... = (\<Sum>z\<in>B \<times> A. f (snd z) (fst z))"
+    (is "_ = ?t")
+    apply (simp add: swap_product)
+    done
+  finally show "?s = ?t" .
 qed
 
 

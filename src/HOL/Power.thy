@@ -351,6 +351,13 @@ apply (rule power_le_imp_le_exp, assumption)
 apply (erule dvd_imp_le, simp)
 done
 
+lemma power_diff:
+  assumes nz: "a ~= 0"
+  shows "n <= m ==> (a::'a::{recpower, field}) ^ (m-n) = (a^m) / (a^n)"
+  by (induct m n rule: diff_induct)
+    (simp_all add: power_Suc nonzero_mult_divide_cancel_left nz)
+
+
 text{*ML bindings for the general exponentiation theorems*}
 ML
 {*

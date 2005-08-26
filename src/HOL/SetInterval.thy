@@ -709,6 +709,18 @@ corollary setsum_shift_bounds_Suc_ivl:
   "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
 by (simp add:setsum_shift_bounds_nat_ivl[where k=1,simplified])
 
+subsection {* The formula for geometric sums *}
+
+lemma geometric_sum:
+  "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
+  (x ^ n - 1) / (x - 1::'a::{field, recpower, division_by_zero})"
+  apply (induct "n", auto)
+  apply (rule_tac c = "x - 1" in field_mult_cancel_right_lemma)
+  apply (auto simp add: mult_assoc left_distrib)
+  apply (simp add: right_distrib diff_minus mult_commute power_Suc)
+  done
+
+
 
 ML
 {*

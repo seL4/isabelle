@@ -362,6 +362,13 @@ by auto
 
 lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2, simp]
 
+(* The following lemma should appear in Divides.thy, but there the proof
+   doesn't work. *)
+
+lemma nat_dvd_not_less:
+  "[| 0 < m; m < n |] ==> \<not> n dvd (m::nat)"
+  by (unfold dvd_def) auto
+
 ML
 {*
 val divide_minus1 = thm "divide_minus1";
