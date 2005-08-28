@@ -144,6 +144,7 @@ val type_ident = kind T.TypeIdent;
 val type_var = kind T.TypeVar;
 val number = kind T.Nat;
 val string = kind T.String;
+val alt_string = kind T.AltString;
 val verbatim = kind T.Verbatim;
 val sync = kind T.Sync;
 val eof = kind T.EOF;
