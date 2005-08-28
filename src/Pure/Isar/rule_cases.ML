@@ -94,11 +94,14 @@ type T =
   assumes: (string * term list) list,
   binds: (indexname * term option) list};
 
+fun unskolem x =
+  (case try Syntax.dest_skolem x of SOME x' => x' | NONE => x);
+
 fun prep_case is_open sg (split, raw_prop) name =
   let
     val prop = Drule.norm_hhf sg raw_prop;
 
-    val xs = Logic.strip_params prop;
+    val xs = map (apfst unskolem) (Logic.strip_params prop);
     val rename = if is_open then I else map (apfst Syntax.internal);
     val named_xs =
       (case split of
