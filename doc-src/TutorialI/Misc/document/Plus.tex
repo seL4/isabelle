@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,27 +15,30 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Define the following addition function%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-{\isachardoublequote}plus\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
-{\isachardoublequote}plus\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ plus\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\isanewline
+{\isachardoublequoteopen}plus\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}plus\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ plus\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent and prove%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -42,13 +46,14 @@
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}plus\ m\ n\ {\isacharequal}\ m{\isacharplus}n{\isachardoublequote}%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}plus\ m\ n\ {\isacharequal}\ m{\isacharplus}n{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -62,6 +67,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

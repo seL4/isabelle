@@ -8,8 +8,8 @@
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{theory}\ Even\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
+\isacommand{theory}\isamarkupfalse%
+\ Even\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
@@ -19,14 +19,13 @@
 \endisadelimtheory
 \isanewline
 \isanewline
-\isamarkupfalse%
-\isacommand{consts}\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{inductive}\ even\isanewline
+\isacommand{consts}\isamarkupfalse%
+\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ even\isanewline
 \isakeyword{intros}\isanewline
-zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}\isamarkuptrue%
-%
+zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 An inductive definition consists of introduction rules. 
 
@@ -46,17 +45,17 @@ specified as \isa{intro!}
 
 Our first lemma states that numbers of the form $2\times k$ are even.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}induct{\isacharunderscore}tac\ k{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct{\isacharunderscore}tac\ k{\isacharparenright}%
 \begin{isamarkuptxt}%
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
@@ -67,17 +66,17 @@ two subgoals:
 Here \isa{auto} simplifies both subgoals so that they match the introduction
 rules, which then are applied automatically.%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Our goal is to prove the equivalence between the traditional definition
@@ -85,137 +84,137 @@ of even (using the divides relation) and our inductive definition.  Half of
 this equivalence is trivial using the lemma just proved, whose \isa{intro!}
 attribute ensures it will be applied automatically.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 our first rule induction!%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}\ clarify\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ clarify%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ Even{\isachardot}even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}Suc\ k{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}Suc\ k{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 no iff-attribute because we don't always want to use it%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}blast\ intro{\isacharcolon}\ dvd{\isacharunderscore}imp{\isacharunderscore}even\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}blast\ intro{\isacharcolon}\ dvd{\isacharunderscore}imp{\isacharunderscore}even\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 this result ISN'T inductive...%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ Even{\isachardot}even\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ n\ {\isasymin}\ Even{\isachardot}even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{oops}%
+\isamarkuptrue%
+\isacommand{oops}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 ...so we need an inductive lemma...%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ Even{\isachardot}even\isanewline
@@ -223,31 +222,32 @@ this result ISN'T inductive...%
 \isaindent{\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ }{\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 ...and prove it in a separate step%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}drule\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcomma}\ simp{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}drule\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcomma}\ simp{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -257,16 +257,16 @@ this result ISN'T inductive...%
 \endisadelimproof
 \isanewline
 \isanewline
-\isamarkupfalse%
-\isacommand{lemma}\ {\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}blast\ dest{\isacharcolon}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}blast\ dest{\isacharcolon}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -281,8 +281,8 @@ this result ISN'T inductive...%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{end}%
+\isacommand{end}\isamarkupfalse%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %

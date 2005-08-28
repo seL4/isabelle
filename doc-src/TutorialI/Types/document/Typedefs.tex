@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsection{Introducing New Types%
 }
@@ -45,9 +45,9 @@ standard means, then read on.
 The most trivial way of introducing a new type is by a \textbf{type
 declaration}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{typedecl}\ my{\isacharunderscore}new{\isacharunderscore}type\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{typedecl}\isamarkupfalse%
+\ my{\isacharunderscore}new{\isacharunderscore}type%
 \begin{isamarkuptext}%
 \noindent
 This does not define \isa{my{\isacharunderscore}new{\isacharunderscore}type} at all but merely introduces its
@@ -65,10 +65,10 @@ If you are looking for a quick and dirty way of introducing a new type
 together with its properties: declare the type and state its properties as
 axioms. Example:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{axioms}\isanewline
-just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isacharcolon}{\isacharcolon}my{\isacharunderscore}new{\isacharunderscore}type{\isachardot}\ {\isasymforall}y{\isachardot}\ x\ {\isacharequal}\ y{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{axioms}\isamarkupfalse%
+\isanewline
+just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x{\isacharcolon}{\isacharcolon}my{\isacharunderscore}new{\isacharunderscore}type{\isachardot}\ {\isasymforall}y{\isachardot}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 However, we strongly discourage this approach, except at explorative stages
@@ -98,14 +98,14 @@ non-empty subset of an existing type.
 Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{typedef}\ three\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{typedef}\isamarkupfalse%
+\ three\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharcomma}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -117,17 +117,17 @@ non-empty, this definition actually starts a proof to that effect:
 Fortunately, this is easy enough to show, even \isa{auto} could do it.
 In general, one has to provide a witness, in our case 0:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isadigit{0}}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{by}\ simp%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isadigit{0}}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{by}\isamarkupfalse%
+\ simp%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 This type definition introduces the new type \isa{three} and asserts
@@ -177,15 +177,15 @@ two levels.
 In our example it suffices to give the three elements of type \isa{three}
 names:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\isanewline
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\isanewline
 \ \ A{\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequote}A\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{0}}{\isachardoublequote}\isanewline
+\ {\isachardoublequoteopen}A\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
 \ \ B{\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequote}B\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{1}}{\isachardoublequote}\isanewline
+\ {\isachardoublequoteopen}B\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 \ \ C\ {\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequote}C\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{2}}{\isachardoublequote}\isamarkuptrue%
-%
+\ {\isachardoublequoteopen}C\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{2}}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 So far, everything was easy. But it is clear that reasoning about \isa{three} will be hell if we have to go back to \isa{nat} every time. Thus our
 aim must be to raise our level of abstraction by deriving enough theorems
@@ -223,23 +223,23 @@ Distinctness of \isa{A}, \isa{B} and \isa{C} follows immediately
 if we expand their definitions and rewrite with the injectivity
 of \isa{Abs{\isacharunderscore}three}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymnoteq}\ B\ {\isasymand}\ B\ {\isasymnoteq}\ A\ {\isasymand}\ A\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ A\ {\isasymand}\ B\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ B{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymnoteq}\ B\ {\isasymand}\ B\ {\isasymnoteq}\ A\ {\isasymand}\ A\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ A\ {\isasymand}\ B\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ B{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}inject\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}inject\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -250,21 +250,21 @@ best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
 (where \isa{x} is of type \isa{three}) it suffices to prove \isa{P\ A},
 \isa{P\ B} and \isa{P\ C}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent Again this follows easily from a pre-proved general theorem:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ rule{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}induct{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ x\ rule{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}y{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%
@@ -272,17 +272,17 @@ best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
 Simplification with \isa{three{\isacharunderscore}def} leads to the disjunction \isa{y\ {\isacharequal}\ {\isadigit{0}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{1}}\ {\isasymor}\ y\ {\isacharequal}\ {\isadigit{2}}} which \isa{auto} separates into three
 subgoals, each of which is easily solved by simplification:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -292,9 +292,9 @@ type \isa{three}.
 The attentive reader has realized long ago that the
 above lengthy definition can be collapsed into one line:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ better{\isacharunderscore}three\ {\isacharequal}\ A\ {\isacharbar}\ B\ {\isacharbar}\ C\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ better{\isacharunderscore}three\ {\isacharequal}\ A\ {\isacharbar}\ B\ {\isacharbar}\ C%
 \begin{isamarkuptext}%
 \noindent
 In fact, the \isacommand{datatype} command performs internally more or less
@@ -322,12 +322,14 @@ abstract functions $F$ and properties $P$.%
 \index{typedecl@\isacommand {typedef} (command)|)}%
 \index{types!defining|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

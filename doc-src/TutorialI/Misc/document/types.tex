@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,11 +15,10 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkupfalse%
-\isacommand{types}\ number\ \ \ \ \ \ \ {\isacharequal}\ nat\isanewline
-\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}alist\ {\isacharequal}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}list{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{types}\isamarkupfalse%
+\ number\ \ \ \ \ \ \ {\isacharequal}\ nat\isanewline
+\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}alist\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}list{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
@@ -26,10 +26,10 @@ output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
 type.  Here, we declare two constants of type \isa{gate}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ xor\ \ {\isacharcolon}{\isacharcolon}\ gate\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ xor\ \ {\isacharcolon}{\isacharcolon}\ gate%
 \isamarkupsubsection{Constant Definitions%
 }
 \isamarkuptrue%
@@ -39,10 +39,10 @@ type.  Here, we declare two constants of type \isa{gate}:%
 The constants \isa{nand} and \isa{xor} above are non-recursive and can 
 be defined directly:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{defs}\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequote}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{defs}\isamarkupfalse%
+\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequoteopen}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent%
 Here \commdx{defs} is a keyword and
@@ -58,23 +58,25 @@ A \commdx{constdefs} command combines the effects of \isacommand{consts} and
 \isacommand{defs}.  For instance, we can introduce \isa{nand} and \isa{xor} by a 
 single command:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \ \ \ \ xor{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}xor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}xor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The default name of each definition is $f$\isa{{\isacharunderscore}def}, where
 $f$ is the name of the defined constant.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

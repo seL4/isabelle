@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -15,23 +16,23 @@
 \isanewline
 %
 \endisadelimtheory
-\isamarkupfalse%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -42,17 +43,17 @@ lemma directly.  We no longer need the verbose
 induction schema for type \isa{term} and can use the simpler one arising from
 \isa{trev}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}\ trev{\isachardot}induct{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}\ trev{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x\isanewline
@@ -62,15 +63,15 @@ induction schema for type \isa{term} and can use the simpler one arising from
 \end{isabelle}
 Both the base case and the induction step fall to simplification:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -114,16 +115,18 @@ into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
 the recursion equations:\cmmdx{hints}%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Or you can declare them globally
 by giving them the \attrdx{recdef_cong} attribute:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{declare}\isamarkupfalse%
+\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}%
 \begin{isamarkuptext}%
 The \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
 intentionally kept apart because they control different activities, namely
@@ -132,12 +135,14 @@ simplification and making recursive definitions.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsubsection{Propositional Dynamic Logic --- PDL%
 }
@@ -30,13 +30,13 @@ syntax trees, they are naturally modelled as a datatype:%
 \cite{HarelKT-DL} looks quite different from ours, but the two are easily
 shown to be equivalent.}%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ formula\ {\isacharequal}\ Atom\ atom\isanewline
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ formula\ {\isacharequal}\ Atom\ atom\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ formula\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ formula\ formula\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AX\ formula\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ EF\ formula\isamarkuptrue%
-%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ EF\ formula%
 \begin{isamarkuptext}%
 \noindent
 This resembles the boolean expression case study in
@@ -44,23 +44,23 @@ This resembles the boolean expression case study in
 A validity relation between
 states and formulae specifies the semantics:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The syntax annotation allows us to write \isa{s\ {\isasymTurnstile}\ f} instead of
 \hbox{\isa{valid\ s\ f}}.
 The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ {\isacharparenleft}a\ {\isasymin}\ L\ s{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ Neg\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymnot}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
+\isanewline
+{\isachardoublequoteopen}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ {\isacharparenleft}a\ {\isasymin}\ L\ s{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}s\ {\isasymTurnstile}\ Neg\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymnot}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The first three equations should be self-explanatory. The temporal formula
@@ -72,16 +72,16 @@ closure. Because of reflexivity, the future includes the present.
 Now we come to the model checker itself. It maps a formula into the set of
 states where the formula is true.  It too is defined by recursion over the syntax:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}formula\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a\ {\isasymin}\ L\ s{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}Neg\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}formula\ {\isasymRightarrow}\ state\ set{\isachardoublequoteclose}\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\isanewline
+{\isachardoublequoteopen}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a\ {\isasymin}\ L\ s{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}mc{\isacharparenleft}Neg\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Only the equation for \isa{EF} deserves some comments. Remember that the
@@ -97,54 +97,55 @@ will be proved in a moment.
 First we prove monotonicity of the function inside \isa{lfp}
 in order to make sure it really has a least fixed point.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequoteopen}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}\ blast\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Now we can relate model checking and semantics. For the \isa{EF} case we need
 a separate lemma:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
 The equality is proved in the canonical fashion by proving that each set
 includes the other; the inclusion is shown pointwise:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkuptrue%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -154,13 +155,13 @@ Simplification leaves us with the following first subgoal
 \end{isabelle}
 which is proved by \isa{lfp}-induction:%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}erule\ lfp{\isacharunderscore}induct{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ mono{\isacharunderscore}ef{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}erule\ lfp{\isacharunderscore}induct{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ mono{\isacharunderscore}ef{\isacharparenright}\isanewline
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 Having disposed of the monotonicity subgoal,
@@ -173,18 +174,18 @@ simplification leaves us with the following goal:
 It is proved by \isa{blast}, using the transitivity of 
 \isa{M\isactrlsup {\isacharasterisk}}.%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptxt}%
 We now return to the second set inclusion subgoal, which is again proved
 pointwise:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharcomma}\ clarify{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}simp{\isacharcomma}\ clarify{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 After simplification and clarification we are left with
@@ -205,9 +206,9 @@ It says that if \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\
 \isa{P\ a} provided each step backwards from a predecessor \isa{z} of
 \isa{b} preserves \isa{P}.%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}erule\ converse{\isacharunderscore}rtrancl{\isacharunderscore}induct{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}erule\ converse{\isacharunderscore}rtrancl{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The base case
@@ -216,61 +217,61 @@ The base case
 \end{isabelle}
 is solved by unrolling \isa{lfp} once%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}%
 \end{isabelle}
 and disposing of the resulting trivial subgoal automatically:%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}blast{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The proof of the induction step is identical to the one for the base case:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The main theorem is proved in the familiar manner: induction followed by
 \isa{auto} augmented with the lemma as a simplification rule.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{exercise}
@@ -291,12 +292,17 @@ Show that the semantics for \isa{EF} satisfies the following recursion equation:
 \end{exercise}
 \index{PDL|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -304,12 +310,15 @@ Show that the semantics for \isa{EF} satisfies the following recursion equation:
 \isadelimproof
 %
 \endisadelimproof
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -317,12 +326,17 @@ Show that the semantics for \isa{EF} satisfies the following recursion equation:
 \isadelimproof
 %
 \endisadelimproof
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -336,6 +350,7 @@ Show that the semantics for \isa{EF} satisfies the following recursion equation:
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

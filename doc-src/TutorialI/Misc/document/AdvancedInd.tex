@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -39,17 +39,17 @@ Here is an example.
 Since \isa{hd} and \isa{last} return the first and last element of a
 non-empty list, this lemma looks easy to prove:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 But induction produces the warning
@@ -81,6 +81,8 @@ implication~(\isa{{\isasymlongrightarrow}}), letting
 \attrdx{rule_format} (\S\ref{sec:forward}) convert the
 result to the usual \isa{{\isasymLongrightarrow}} form:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -88,14 +90,14 @@ result to the usual \isa{{\isasymLongrightarrow}} form:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
-\isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}%
+\isacommand{lemma}\isamarkupfalse%
+\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
+\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -152,6 +154,8 @@ Unfortunately, this induction schema cannot be expressed as a
 single theorem because it depends on the number of free variables in $t$ ---
 the notation $\overline{y}$ is merely an informal device.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -159,7 +163,6 @@ the notation $\overline{y}$ is merely an informal device.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsection{Beyond Structural and Recursion Induction%
 }
@@ -185,11 +188,11 @@ holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 As an application, we prove a property of the following
 function:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{axioms}\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequote}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isacommand{axioms}\isamarkupfalse%
+\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequoteopen}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \begin{warn}
 We discourage the use of axioms because of the danger of
@@ -204,14 +207,14 @@ The axiom for \isa{f} implies \isa{n\ {\isasymle}\ f\ n}, which can
 be proved by induction on \mbox{\isa{f\ n}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -219,9 +222,9 @@ To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharu
 the same general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 We get the following proof state:
@@ -232,28 +235,28 @@ After stripping the \isa{{\isasymforall}i}, the proof continues with a case
 distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ {\isadigit{0}}} is trivial and we focus on
 the other case:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}case{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}m{\isacharless}n{\isachardot}\ {\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -284,21 +287,23 @@ proofs are easy to write but hard to read and understand.
 
 The desired result, \isa{i\ {\isasymle}\ f\ i}, follows from \isa{f{\isacharunderscore}incr{\isacharunderscore}lem}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{lemmas}\isamarkupfalse%
+\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequal}\ f\ {\isacharquery}i}. 
 We could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -306,7 +311,6 @@ We could have included this derivation in the original statement of the lemma:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{exercise}
@@ -353,34 +357,34 @@ of \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}. Assume we only h
 available for \isa{nat} and want to derive complete induction.  We
 must generalize the statement as shown:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The base case is vacuously true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
 hypothesis and case \isa{m\ {\isacharequal}\ n} follows from the assumption, again using
 the induction hypothesis:%
 \end{isamarkuptxt}%
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}\ less{\isacharunderscore}SucE{\isacharparenright}%
+\isamarkuptrue%
+\ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}blast\ elim{\isacharcolon}\ less{\isacharunderscore}SucE{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -396,23 +400,23 @@ and remove the trivial condition \isa{n\ {\isacharless}\ Suc\ n}. Fortunately, t
 happens automatically when we add the lemma as a new premise to the
 desired goal:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 HOL already provides the mother of
@@ -421,12 +425,14 @@ example theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} is
 a special case of \isa{wf{\isacharunderscore}induct} where \isa{r} is \isa{{\isacharless}} on
 \isa{nat}. The details can be found in theory \isa{Wellfounded_Recursion}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

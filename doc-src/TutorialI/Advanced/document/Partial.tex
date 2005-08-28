@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Throughout this tutorial, we have emphasized
@@ -41,21 +41,21 @@ We have already seen an instance of underdefinedness by means of
 non-exhaustive pattern matching: the definition of \isa{last} in
 \S\ref{sec:recdef-examples}. The same is allowed for \isacommand{primrec}%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ hd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{primrec}\ {\isachardoublequote}hd\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ hd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ {\isachardoublequoteopen}hd\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 although it generates a warning.
 Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\ minus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-{\isachardoublequote}n\ {\isasymle}\ m\ {\isasymLongrightarrow}\ minus\ m\ n\ {\isasymequiv}\ m\ {\isacharminus}\ n{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\ minus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}n\ {\isasymle}\ m\ {\isasymLongrightarrow}\ minus\ m\ n\ {\isasymequiv}\ m\ {\isacharminus}\ n{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The rest of this section is devoted to the question of how to define
 partial recursive functions by other means than non-exhaustive pattern
@@ -84,13 +84,13 @@ which is ideal for specifying underdefined functions on top of it.
 
 As a simple example we define division on \isa{nat}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ divi\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{recdef}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ arbitrary{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ divi\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isacommand{recdef}\isamarkupfalse%
+\ divi\ {\isachardoublequoteopen}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}divi{\isacharparenleft}m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Of course we could also have defined
 \isa{divi\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}} to be some specific number, for example 0. The
@@ -112,23 +112,23 @@ known \emph{Union-Find} algorithm.
 The snag is that it may not terminate if \isa{f} has non-trivial cycles.
 Phrased differently, the relation%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\ step{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}step{\isadigit{1}}\ f\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ y\ {\isacharequal}\ f\ x\ {\isasymand}\ y\ {\isasymnoteq}\ x{\isacharbraceright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\ step{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}step{\isadigit{1}}\ f\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ y\ {\isacharequal}\ f\ x\ {\isasymand}\ y\ {\isasymnoteq}\ x{\isacharbraceright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 must be well-founded. Thus we make the following definition:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymtimes}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{recdef}\ find\ {\isachardoublequote}same{\isacharunderscore}fst\ {\isacharparenleft}{\isasymlambda}f{\isachardot}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharparenright}\ step{\isadigit{1}}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymtimes}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\isacommand{recdef}\isamarkupfalse%
+\ find\ {\isachardoublequoteopen}same{\isacharunderscore}fst\ {\isacharparenleft}{\isasymlambda}f{\isachardot}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharparenright}\ step{\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ arbitrary{\isacharparenright}{\isachardoublequote}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isamarkuptrue%
-%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ arbitrary{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The recursion equation itself should be clear enough: it is our aborted
@@ -159,56 +159,56 @@ as specified in the \isacommand{hints} above.
 Normally you will then derive the following conditional variant from
 the recursion equation:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find{\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ simp%
+\isacommand{by}\isamarkupfalse%
+\ simp%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Then you should disable the original recursion equation:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{declare}\ find{\isachardot}simps{\isacharbrackleft}simp\ del{\isacharbrackright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{declare}\isamarkupfalse%
+\ find{\isachardot}simps{\isacharbrackleft}simp\ del{\isacharbrackright}%
 \begin{isamarkuptext}%
 Reasoning about such underdefined functions is like that for other
 recursive functions.  Here is a simple example of recursion induction:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymlongrightarrow}\ f{\isacharparenleft}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymlongrightarrow}\ f{\isacharparenleft}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}\ find{\isachardot}induct{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}\ find{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsubsection{The {\tt\slshape while} Combinator%
 }
@@ -232,11 +232,11 @@ That is, \isa{while\ b\ c\ s} is equivalent to the imperative program
 In general, \isa{s} will be a tuple or record.  As an example
 consider the following definition of function \isa{find}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\ find{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}find{\isadigit{2}}\ f\ x\ {\isasymequiv}\isanewline
-\ \ \ fst{\isacharparenleft}while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\ find{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}find{\isadigit{2}}\ f\ x\ {\isasymequiv}\isanewline
+\ \ \ fst{\isacharparenleft}while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The loop operates on two ``local variables'' \isa{x} and \isa{x{\isacharprime}}
@@ -265,57 +265,57 @@ of induction we apply the above while rule, suitably instantiated.
 Only the final premise of \isa{while{\isacharunderscore}rule} is left unproved
 by \isa{auto} but falls to \isa{simp}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ lem{\isacharcolon}\ {\isachardoublequoteopen}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
 \ \ {\isasymexists}y{\isachardot}\ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ f\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequote}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequote}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}\ auto\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequoteopen}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequoteopen}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequoteclose}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}\ inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The theorem itself is a simple consequence of this lemma:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ f{\isacharparenleft}find{\isadigit{2}}\ f\ x{\isacharparenright}\ {\isacharequal}\ find{\isadigit{2}}\ f\ x{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\ f{\isacharparenleft}find{\isadigit{2}}\ f\ x{\isacharparenright}\ {\isacharequal}\ find{\isadigit{2}}\ f\ x{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ lem{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ lem{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Let us conclude this section on partial functions by a
@@ -332,12 +332,14 @@ definition that is impossible to execute or prohibitively slow.
 Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need \isa{while}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

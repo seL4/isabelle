@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,16 +15,17 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \indexbold{*option (type)}\indexbold{*None (constant)}%
 \indexbold{*Some (constant)}
 Our final datatype is very simple but still eminently useful:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a%
 \begin{isamarkuptext}%
 \noindent
 Frequently one needs to add a distinguished element to some existing type.
@@ -36,12 +38,14 @@ customized constructors like \isa{Error} and \isa{Infinity},
 but it is often simpler to use \isa{option}. For an application see
 \S\ref{sec:Trie}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

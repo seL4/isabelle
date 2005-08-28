@@ -7,8 +7,8 @@
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{theory}\ ToyList\isanewline
+\isacommand{theory}\isamarkupfalse%
+\ ToyList\isanewline
 \isakeyword{imports}\ PreList\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -17,7 +17,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -28,10 +27,10 @@ contrast to what is recommended in \S\ref{sec:Basic:Theories},
 theory that contains pretty much everything but lists, thus avoiding
 ambiguities caused by defining lists twice.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ {\isacharprime}a\ list\ {\isacharequal}\ Nil\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ list{\isachardoublequote}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharhash}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ list\ {\isacharequal}\ Nil\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharhash}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The datatype\index{datatype@\isacommand {datatype} (command)}
@@ -63,10 +62,10 @@ The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isach
 \end{warn}
 Next, two functions \isa{app} and \cdx{rev} are declared:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharat}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ rev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharat}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ rev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 In contrast to many functional programming languages,
@@ -78,16 +77,16 @@ prefix syntax \isa{app\ xs\ ys} the infix
 \isa{xs\ {\isacharat}\ ys}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-{\isachardoublequote}{\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ \ \ \ \ \ \ {\isacharequal}\ ys{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharat}\ ys\ {\isacharequal}\ x\ {\isacharhash}\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-{\isachardoublequote}rev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
-{\isachardoublequote}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ \ {\isacharequal}\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}x\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ \ \ \ \ \ \ {\isacharequal}\ ys{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}{\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharat}\ ys\ {\isacharequal}\ x\ {\isacharhash}\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\isanewline
+{\isachardoublequoteopen}rev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ \ {\isacharequal}\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}x\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent\index{*rev (constant)|(}\index{append function|(}
 The equations for \isa{app} and \isa{rev} hardly need comments:
@@ -126,9 +125,9 @@ HOL-specific (terms and types) should be enclosed in
 To lessen this burden, quotation marks around a single identifier can be
 dropped, unless the identifier happens to be a keyword, as in%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ {\isachardoublequote}end{\isachardoublequote}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ {\isachardoublequoteopen}end{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
@@ -148,14 +147,14 @@ also the typical proof process.
 Our goal is to show that reversing a list twice produces the original
 list.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \index{theorem@\isacommand {theorem} (command)|bold}%
@@ -196,9 +195,9 @@ Let us now get back to \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\
 defined functions are best established by induction. In this case there is
 nothing obvious except induction on \isa{xs}:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable \isa{xs}. The suffix
@@ -232,9 +231,9 @@ are multiple assumptions, they are enclosed in the bracket pair
 
 Let us try to solve both goals automatically:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 This command tells Isabelle to apply a proof strategy called
@@ -248,6 +247,8 @@ of subgoal~2 becomes the new subgoal~1:
 \end{isabelle}
 In order to simplify this subgoal further, a lemma suggests itself.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -255,7 +256,6 @@ In order to simplify this subgoal further, a lemma suggests itself.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsubsection{First Lemma%
 }
@@ -266,14 +266,14 @@ In order to simplify this subgoal further, a lemma suggests itself.%
 After abandoning the above proof attempt (at the shell level type
 \commdx{oops}) we start a new proof:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkuptrue%
 %
 \begin{isamarkuptxt}%
 \noindent The keywords \commdx{theorem} and
@@ -285,16 +285,16 @@ There are two variables that we could induct on: \isa{xs} and
 \isa{ys}. Because \isa{{\isacharat}} is defined by recursion on
 the first argument, \isa{xs} is the correct one:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 This time not even the base case is solved automatically:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ rev\ ys\ {\isacharequal}\ rev\ ys\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}%
@@ -303,6 +303,8 @@ Again, we need to abandon this proof attempt and prove another simple lemma
 first. In the future the step of abandoning an incomplete proof before
 embarking on the proof of a lemma usually remains implicit.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -310,7 +312,6 @@ embarking on the proof of a lemma usually remains implicit.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsubsection{Second Lemma%
 }
@@ -319,19 +320,19 @@ embarking on the proof of a lemma usually remains implicit.%
 \begin{isamarkuptext}%
 We again try the canonical proof procedure:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ app{\isacharunderscore}Nil{\isadigit{2}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ app{\isacharunderscore}Nil{\isadigit{2}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 It works, yielding the desired message \isa{No\ subgoals{\isacharbang}}:
@@ -341,15 +342,15 @@ No\ subgoals{\isacharbang}%
 \end{isabelle}
 We still need to confirm that the proof is now finished:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{done}%
+\isamarkuptrue%
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -366,19 +367,19 @@ replaced by the unknown \isa{{\isacharquery}xs}, just as explained in
 
 Going back to the proof of the first lemma%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 we find that this time \isa{auto} solves the base case, but the
@@ -396,6 +397,8 @@ in their \isacommand{infixr} annotation). Thus the conclusion really is
 \end{isabelle}
 and the missing lemma is associativity of \isa{{\isacharat}}.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -403,7 +406,6 @@ and the missing lemma is associativity of \isa{{\isacharat}}.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsubsection{Third Lemma%
 }
@@ -413,79 +415,79 @@ and the missing lemma is associativity of \isa{{\isacharat}}.%
 Abandoning the previous attempt, the canonical proof procedure
 succeeds without further ado.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ app{\isacharunderscore}assoc\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ app{\isacharunderscore}assoc\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Now we can prove the first lemma:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Finally, we prove our main theorem:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -493,14 +495,15 @@ The final \commdx{end} tells Isabelle to close the current theory because
 we are finished with its development:%
 \index{*rev (constant)|)}\index{append function|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{end}%
+\isacommand{end}\isamarkupfalse%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %

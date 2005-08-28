@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsection{Case distinction and induction \label{sec:Induct}%
 }
@@ -36,35 +36,35 @@ and \isa{Cons}. \isa{Nil} is written \isa{{\isacharbrackleft}{\isacharbrackright
 We have already met the \isa{cases} method for performing
 binary case splits. Here is another example:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ cases\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isasymnot}\ A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The two cases must come in this order because \isa{cases} merely abbreviates \isa{{\isacharparenleft}rule\ case{\isacharunderscore}split{\isacharunderscore}thm{\isacharparenright}} where
@@ -78,35 +78,35 @@ The above proof is appropriate if \isa{A} is textually small.
 However, if \isa{A} is large, we do not want to repeat it. This can
 be avoided by the following idiom%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}cases\ {\isachardoublequote}A{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ True\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ False\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}A{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ True\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ False\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent which is like the previous proof but instantiates
@@ -119,35 +119,36 @@ The same game can be played with other datatypes, for example lists,
 where \isa{tl} is the tail of a list, and \isa{length} returns a
 natural number (remember: $0-1=0$):%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}length{\isacharparenleft}tl\ xs{\isacharparenright}\ {\isacharequal}\ length\ xs\ {\isacharminus}\ {\isadigit{1}}{\isachardoublequote}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}length{\isacharparenleft}tl\ xs{\isacharparenright}\ {\isacharequal}\ length\ xs\ {\isacharminus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}cases\ xs{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ Nil\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ Cons\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ xs{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Nil\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Cons\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Here `\isakeyword{case}~\isa{Nil}' abbreviates
@@ -177,23 +178,23 @@ of this.%
 \begin{isamarkuptext}%
 We start with an inductive proof where both cases are proved automatically:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}induct\ n{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The constraint \isa{{\isacharcolon}{\isacharcolon}nat} is needed because all of
@@ -203,71 +204,71 @@ If we want to expose more of the structure of the
 proof, we can use pattern matching to avoid having to repeat the goal
 statement:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}P\ n{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}P\ n{\isachardoublequoteclose}{\isacharparenright}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharquery}P\ {\isadigit{0}}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ n\ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}P\ n{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isacharquery}P{\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}P\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ n\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}P\ n{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}P{\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent We could refine this further to show more of the equational
 proof. Instead we explore the same avenue as for case distinctions:
 introducing context via the \isakeyword{case} command:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isasymle}\ n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isasymle}\ n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isadigit{0}}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ Suc\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Suc\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The implicitly defined \isa{{\isacharquery}case} refers to the
@@ -279,35 +280,35 @@ in the induction step because it has not been introduced via \isakeyword{fix}
 (in contrast to the previous proof). The solution is the one outlined for
 \isa{Cons} above: replace \isa{Suc} by \isa{{\isacharparenleft}Suc\ i{\isacharparenright}}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{fixes}\ n{\isacharcolon}{\isacharcolon}nat\ \isakeyword{shows}\ {\isachardoublequote}n\ {\isacharless}\ n{\isacharasterisk}n\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{fixes}\ n{\isacharcolon}{\isacharcolon}nat\ \isakeyword{shows}\ {\isachardoublequoteopen}n\ {\isacharless}\ n{\isacharasterisk}n\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isadigit{0}}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isacharparenleft}Suc\ i{\isacharparenright}\ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}Suc\ i\ {\isacharless}\ Suc\ i\ {\isacharasterisk}\ Suc\ i\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Suc\ i{\isacharparenright}\ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}Suc\ i\ {\isacharless}\ Suc\ i\ {\isacharasterisk}\ Suc\ i\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Of course we could again have written
@@ -335,73 +336,73 @@ It should be clear how this generalises to more complex formulae.
 As an example we will now prove complete induction via
 structural induction.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isacharparenleft}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequote}P{\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isacharparenleft}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}P{\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}rule\ A{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{case}\ {\isadigit{0}}\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{case}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ \ \ %
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ A{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Suc\ n{\isacharparenright}\ \ \ %
 \isamarkupcmt{\isakeyword{fix} \isa{m} \isakeyword{assume} \isa{Suc}: \isa{{\isachardoublequote}{\isacharquery}m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ {\isacharquery}m{\isachardoublequote}} \isa{{\isachardoublequote}m\ {\isacharless}\ Suc\ n{\isachardoublequote}}%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}case\ \ \ \ %
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \ \ \ %
 \isamarkupcmt{\isa{P\ m}%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{proof}\ cases\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ eq{\isacharcolon}\ {\isachardoublequote}m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{from}\ Suc\ \isakeyword{and}\ A\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}P\ n{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ eq\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}P\ m{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}m\ {\isasymnoteq}\ n{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ Suc\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}m\ {\isacharless}\ n{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ arith\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}P\ m{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}rule\ Suc{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ eq{\isacharcolon}\ {\isachardoublequoteopen}m\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
+\ Suc\ \isakeyword{and}\ A\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}P\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ eq\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}P\ m{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}m\ {\isasymnoteq}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ Suc\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}m\ {\isacharless}\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ arith\isanewline
+\ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}P\ m{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}rule\ Suc{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Given the explanations above and the comments in the
@@ -431,51 +432,51 @@ HOL also supports inductively defined sets. See \cite{LNCS2283}
 for details. As an example we define our own version of the reflexive
 transitive closure of a relation --- HOL provides a predefined one as well.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{inductive}\ {\isachardoublequote}r{\isacharasterisk}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequoteclose}\ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}{\isacharasterisk}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ {\isachardoublequoteopen}r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
 \isakeyword{intros}\isanewline
-refl{\isacharcolon}\ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-step{\isacharcolon}\ \ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isamarkuptrue%
-%
+refl{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+step{\isacharcolon}\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 First the constant is declared as a function on binary
 relations (with concrete syntax \isa{r{\isacharasterisk}} instead of \isa{rtc\ r}), then the defining clauses are given. We will now prove that
 \isa{r{\isacharasterisk}} is indeed transitive:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{using}\ A\isanewline
-\isamarkupfalse%
-\isacommand{proof}\ induct\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ refl\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ step\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isachardot}step{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{using}\isamarkupfalse%
+\ A\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ induct\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ refl\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ step\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isachardot}step{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Rule induction is triggered by a fact $(x_1,\dots,x_n)
@@ -486,54 +487,54 @@ the rule, analogous to structural induction.
 
 However, this proof is rather terse. Here is a more readable version:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \isakeyword{and}\ B{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\ B{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ A\ B\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ induct\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{fix}\ x\ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \ %
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ A\ B\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ induct\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \ %
 \isamarkupcmt{\isa{B}[\isa{y} := \isa{x}]%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{fix}\ x{\isacharprime}\ x\ y\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharprime}{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isachardoublequote}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ IH{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ B{\isacharcolon}\ \ {\isachardoublequote}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{from}\ {\isadigit{1}}\ IH{\isacharbrackleft}OF\ B{\isacharbrackright}\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x{\isacharprime}{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}rule\ rtc{\isachardot}step{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x{\isacharprime}\ x\ y\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ B{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isadigit{1}}\ IH{\isacharbrackleft}OF\ B{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}rule\ rtc{\isachardot}step{\isacharparenright}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent We start the proof with \isakeyword{from}~\isa{A\ B}. Only \isa{A} is ``consumed'' by the induction step.
@@ -567,17 +568,17 @@ general.
 
 The example is an unusual definition of rotation:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ rot\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{recdef}\ rot\ {\isachardoublequote}measure\ length{\isachardoublequote}\ \ %
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ rot\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
+\isacommand{recdef}\isamarkupfalse%
+\ rot\ {\isachardoublequoteopen}measure\ length{\isachardoublequoteclose}\ \ %
 \isamarkupcmt{for the internal termination proof%
 }
 \isanewline
-{\isachardoublequote}rot\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
-{\isachardoublequote}rot\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}\isanewline
-{\isachardoublequote}rot\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y\ {\isacharhash}\ rot{\isacharparenleft}x{\isacharhash}zs{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+{\isachardoublequoteopen}rot\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}rot\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}rot\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y\ {\isacharhash}\ rot{\isacharparenleft}x{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent This yields, among other things, the induction rule
 \isa{rot{\isachardot}induct}: \begin{isabelle}%
@@ -588,54 +589,54 @@ called 1, 2, etc, unless they have been named explicitly. The latter happens
 only with datatypes and inductively defined sets, but not with recursive
 functions.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ rot\ xs\ {\isacharequal}\ tl\ xs\ {\isacharat}\ {\isacharbrackleft}hd\ xs{\isacharbrackright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ rot\ xs\ {\isacharequal}\ tl\ xs\ {\isacharat}\ {\isacharbrackleft}hd\ xs{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isadigit{1}}\ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isadigit{2}}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{case}\ {\isacharparenleft}{\isadigit{3}}\ a\ b\ cs{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}rot\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharequal}\ b\ {\isacharhash}\ rot{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ b\ {\isacharhash}\ tl{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}{\isadigit{3}}{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ tl\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}case\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{1}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{2}}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}{\isadigit{3}}\ a\ b\ cs{\isacharparenright}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}rot\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharequal}\ b\ {\isacharhash}\ rot{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ b\ {\isacharhash}\ tl{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}{\isadigit{3}}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ tl\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -651,14 +652,16 @@ equation.
 
 The proof is so simple that it can be condensed to%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 %
 \endisatagproof
 {\isafoldproof}%
@@ -672,6 +675,7 @@ The proof is so simple that it can be condensed to%
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{datatypes!and nested recursion}%
@@ -25,9 +25,10 @@ datatype occurs nested in some other datatype (but not inside itself!).
 Consider the following model of terms
 where function symbols can be applied to a list of arguments:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isamarkupfalse%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}v\ {\isacharbar}\ App\ {\isacharprime}f\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}{\isachardoublequoteopen}term{\isachardoublequoteclose}\ {\isacharequal}\ Var\ {\isacharprime}v\ {\isacharbar}\ App\ {\isacharprime}f\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Note that we need to quote \isa{term} on the left to avoid confusion with
@@ -56,20 +57,20 @@ nested recursion.
 Let us define a substitution function on terms. Because terms involve term
 lists, we need to define two substitution functions simultaneously:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\isanewline
-subst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ \ \ \ \ \ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isachardoublequote}\isanewline
-substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
 \isanewline
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}subst\ s\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ s\ x{\isachardoublequote}\isanewline
+subst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ \ \ \ \ \ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isachardoublequoteclose}\isanewline
+substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\isanewline
+\ \ {\isachardoublequoteopen}subst\ s\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ s\ x{\isachardoublequoteclose}\isanewline
 \ \ subst{\isacharunderscore}App{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}substs\ s\ ts{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequoteopen}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}substs\ s\ ts{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ {\isachardoublequote}substs\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substs\ s\ {\isacharparenleft}t\ {\isacharhash}\ ts{\isacharparenright}\ {\isacharequal}\ subst\ s\ t\ {\isacharhash}\ substs\ s\ ts{\isachardoublequote}\isamarkuptrue%
-%
+\ \ {\isachardoublequoteopen}substs\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substs\ s\ {\isacharparenleft}t\ {\isacharhash}\ ts{\isacharparenright}\ {\isacharequal}\ subst\ s\ t\ {\isacharhash}\ substs\ s\ ts{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Individual equations in a \commdx{primrec} definition may be
@@ -81,26 +82,26 @@ to prove a related statement about term lists simultaneously. For example,
 the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ subst{\isacharunderscore}id{\isacharcolon}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ subst{\isacharunderscore}id{\isacharcolon}\ {\isachardoublequoteopen}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -138,12 +139,17 @@ where \isa{map} is the standard list function such that
 insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -151,12 +157,17 @@ that the suggested equation holds:%
 \isadelimproof
 %
 \endisadelimproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -164,12 +175,15 @@ that the suggested equation holds:%
 \isadelimproof
 %
 \endisadelimproof
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -178,34 +192,33 @@ that the suggested equation holds:%
 \isanewline
 %
 \endisadelimproof
-\isamarkupfalse%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{done}%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 What is more, we can now disable the old defining equation as a
 simplification rule:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{declare}\ subst{\isacharunderscore}App\ {\isacharbrackleft}simp\ del{\isacharbrackright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{declare}\isamarkupfalse%
+\ subst{\isacharunderscore}App\ {\isacharbrackleft}simp\ del{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The advantage is that now we have replaced \isa{substs} by
@@ -223,12 +236,14 @@ Of course, you may also combine mutual and nested recursion of datatypes. For ex
 constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: \isa{Sum}~\isa{{\isachardoublequote}{\isacharprime}a\ aexp\ list{\isachardoublequote}}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

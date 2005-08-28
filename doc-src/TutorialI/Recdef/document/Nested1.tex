@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -27,11 +27,11 @@ Defining \isa{trev} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{recdef}\ trev\ {\isachardoublequote}measure\ size{\isachardoublequote}\isanewline
-\ {\isachardoublequote}trev\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ Var\ x{\isachardoublequote}\isanewline
-\ {\isachardoublequote}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{recdef}\isamarkupfalse%
+\ trev\ {\isachardoublequoteopen}measure\ size{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}trev\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ Var\ x{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Remember that function \isa{size} is defined for each \isacommand{datatype}.
@@ -55,12 +55,14 @@ continue with our definition.  Below we return to the question of how
 
 The termination condition is easily proved by induction:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

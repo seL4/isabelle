@@ -1,25 +1,24 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Group}%
-\isamarkuptrue%
 %
 \isamarkupheader{Basic group theory%
 }
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{theory}\ Group\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
+\isacommand{theory}\isamarkupfalse%
+\ Group\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \medskip\noindent The meta-level type system of Isabelle supports
@@ -40,24 +39,24 @@
 First we declare some polymorphic constants required later for the
   signature parts of our structures.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\isanewline
-\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ invers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymone}{\isachardoublequote}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\isanewline
+\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymodot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ invers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent Next we define class \isa{monoid} of monoids with
   operations \isa{{\isasymodot}} and \isa{{\isasymone}}.  Note that multiple class
   axioms are allowed for user convenience --- they simply represent
   the conjunction of their respective universal closures.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{axclass}\ monoid\ {\isasymsubseteq}\ type\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{axclass}\isamarkupfalse%
+\ monoid\ {\isasymsubseteq}\ type\isanewline
+\ \ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent So class \isa{monoid} contains exactly those types
   \isa{{\isasymtau}} where \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} and \isa{{\isasymone}\ {\isasymColon}\ {\isasymtau}}
@@ -73,19 +72,19 @@ First we declare some polymorphic constants required later for the
   that the names of class axioms are automatically qualified with each
   class name, so we may re-use common names such as \isa{assoc}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{axclass}\ semigroup\ {\isasymsubseteq}\ type\isanewline
-\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{axclass}\isamarkupfalse%
+\ semigroup\ {\isasymsubseteq}\ type\isanewline
+\ \ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\isamarkupfalse%
-\isacommand{axclass}\ group\ {\isasymsubseteq}\ semigroup\isanewline
-\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymodot}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequote}\isanewline
+\isacommand{axclass}\isamarkupfalse%
+\ group\ {\isasymsubseteq}\ semigroup\isanewline
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequoteopen}x{\isasyminv}\ {\isasymodot}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
 \isanewline
-\isamarkupfalse%
-\isacommand{axclass}\ agroup\ {\isasymsubseteq}\ group\isanewline
-\ \ commute{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isacharequal}\ y\ {\isasymodot}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{axclass}\isamarkupfalse%
+\ agroup\ {\isasymsubseteq}\ group\isanewline
+\ \ commute{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ y\ {\isacharequal}\ y\ {\isasymodot}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Class \isa{group} inherits associativity of \isa{{\isasymodot}}
   from \isa{semigroup} and adds two further group axioms. Similarly,
@@ -111,115 +110,115 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
   ``abstract theorems''.  For example, we may now derive the following
   well-known laws of general groups.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymone}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymone}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ {\isacharparenleft}x\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ x{\isasyminv}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}{\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ {\isacharparenleft}x\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ x{\isasyminv}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}{\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent With \isa{group{\isacharunderscore}right{\isacharunderscore}inverse} already available, \isa{group{\isacharunderscore}right{\isacharunderscore}unit}\label{thm:group-right-unit} is now established
   much easier.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x\ {\isasymodot}\ x{\isasyminv}\ {\isasymodot}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x\ {\isasymodot}\ x{\isasyminv}\ {\isasymodot}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \medskip Abstract theorems may be instantiated to only those types
@@ -267,65 +266,65 @@ From the definition, the \isa{monoid} and \isa{group} classes
    \end{center}
  \end{figure}%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{instance}\ monoid\ {\isasymsubseteq}\ semigroup\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}monoid{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}rule\ monoid{\isachardot}assoc{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isamarkupfalse%
-\isacommand{instance}\ group\ {\isasymsubseteq}\ monoid\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}group{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}rule\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}rule\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}rule\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
 \isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ monoid\ {\isasymsubseteq}\ semigroup\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}monoid{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ monoid{\isachardot}assoc{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+\ group\ {\isasymsubseteq}\ monoid\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}group{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \begin{isamarkuptext}%
 \medskip The $\INSTANCE$ command sets up an appropriate goal that
@@ -357,12 +356,12 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
   exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
   \isa{False} as \isa{{\isasymone}} forms an Abelian group.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ times{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymnoteq}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ inverse{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequote}\isanewline
-\ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymequiv}\ False{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{defs}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+\ \ times{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymnoteq}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ inverse{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequoteclose}\isanewline
+\ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ False{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \medskip It is important to note that above $\DEFS$ are just
   overloaded meta-level constant definitions, where type classes are
@@ -377,40 +376,40 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
   operations on type \isa{bool} appropriately, the class membership
   \isa{bool\ {\isasymColon}\ agroup} may be now derived as follows.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ agroup\isanewline
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ bool\ {\isacharcolon}{\isacharcolon}\ agroup\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\isanewline
 \ \ \ \ unfold\ times{\isacharunderscore}bool{\isacharunderscore}def\ inverse{\isacharunderscore}bool{\isacharunderscore}def\ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ x\ y\ z\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isasymnoteq}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymnoteq}\ {\isacharparenleft}y\ {\isasymnoteq}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}False\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymnoteq}\ x{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ y\ z\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isasymnoteq}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymnoteq}\ {\isacharparenleft}y\ {\isasymnoteq}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}False\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymnoteq}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The result of an $\INSTANCE$ statement is both expressed as a
@@ -444,44 +443,44 @@ As already mentioned above, overloading in the simply-typed HOL
   products, direct sums or function spaces.  Subsequently we lift
   \isa{{\isasymodot}} component-wise to binary products \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}p\ {\isasymodot}\ q\ {\isasymequiv}\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{defs}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+\ \ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}p\ {\isasymodot}\ q\ {\isasymequiv}\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 It is very easy to see that associativity of \isa{{\isasymodot}} on \isa{{\isacharprime}a}
   and \isa{{\isasymodot}} on \isa{{\isacharprime}b} transfers to \isa{{\isasymodot}} on \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}.  Hence the binary type constructor \isa{{\isasymodot}} maps semigroups
   to semigroups.  This may be established formally as follows.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{instance}\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\ unfold\ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ p\ q\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\isanewline
-\ \ \ \ {\isachardoublequote}{\isacharparenleft}fst\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}\ {\isasymodot}\ fst\ r{\isacharcomma}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\ unfold\ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ p\ q\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\isanewline
+\ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}fst\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}\ {\isasymodot}\ fst\ r{\isacharcomma}\isanewline
 \ \ \ \ \ \ snd\ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymodot}\ snd\ q{\isacharparenright}\ {\isasymodot}\ snd\ r{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ \ \ {\isacharparenleft}fst\ p\ {\isasymodot}\ fst\ {\isacharparenleft}fst\ q\ {\isasymodot}\ fst\ r{\isacharcomma}\ snd\ q\ {\isasymodot}\ snd\ r{\isacharparenright}{\isacharcomma}\isanewline
-\ \ \ \ \ \ \ \ snd\ p\ {\isasymodot}\ snd\ {\isacharparenleft}fst\ q\ {\isasymodot}\ fst\ r{\isacharcomma}\ snd\ q\ {\isasymodot}\ snd\ r{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \ \ \ \ \ \ snd\ p\ {\isasymodot}\ snd\ {\isacharparenleft}fst\ q\ {\isasymodot}\ fst\ r{\isacharcomma}\ snd\ q\ {\isasymodot}\ snd\ r{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Thus, if we view class instances as ``structures'', then overloaded
@@ -489,14 +488,15 @@ Thus, if we view class instances as ``structures'', then overloaded
   some kind of ``functors'' --- i.e.\ mappings between abstract
   theories.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{end}%
+\isacommand{end}\isamarkupfalse%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %

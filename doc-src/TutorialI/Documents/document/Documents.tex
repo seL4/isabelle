@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsection{Concrete Syntax \label{sec:concrete-syntax}%
 }
@@ -54,11 +54,11 @@ Syntax annotations may be included wherever constants are declared,
   case of mixfixes.  The following example of the exclusive-or
   operation on boolean values illustrates typical infix declarations.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{constdefs}\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\isanewline
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Now \isa{xor\ A\ B} and \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} refer to the
   same expression internally.  Any curried function with at least two
@@ -155,12 +155,15 @@ Concrete syntax based on ASCII characters has inherent limitations.
   \medskip Replacing our definition of \isa{xor} by the following
   specifies an Isabelle symbol for the new operator:%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -168,10 +171,10 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isadelimML
 %
 \endisadelimML
-\isamarkupfalse%
-\isacommand{constdefs}\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
+\isacommand{constdefs}\isamarkupfalse%
+\isanewline
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent The X-Symbol package within Proof~General provides several
@@ -185,12 +188,15 @@ Concrete syntax based on ASCII characters has inherent limitations.
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
   consider the following hybrid declaration of \isa{xor}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -198,14 +204,14 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isadelimML
 %
 \endisadelimML
-\isamarkupfalse%
-\isacommand{constdefs}\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{constdefs}\isamarkupfalse%
 \isanewline
-\isamarkupfalse%
-\isacommand{syntax}\ {\isacharparenleft}xsymbols{\isacharparenright}\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isasymignore}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{syntax}\isamarkupfalse%
+\ {\isacharparenleft}xsymbols{\isacharparenright}\isanewline
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The \commdx{syntax} command introduced here acts like
@@ -232,13 +238,13 @@ Prefix syntax annotations\index{prefix annotation} are another form
   priorities --- just some literal syntax.  The following example
   associates common symbols with the constructors of a datatype.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ currency\ {\isacharequal}\isanewline
-\ \ \ \ Euro\ nat\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymeuro}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Pounds\ nat\ \ {\isacharparenleft}{\isachardoublequote}{\isasympounds}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Yen\ nat\ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymyen}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Dollar\ nat\ \ {\isacharparenleft}{\isachardoublequote}{\isachardollar}{\isachardoublequote}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ currency\ {\isacharequal}\isanewline
+\ \ \ \ Euro\ nat\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymeuro}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ {\isacharbar}\ Pounds\ nat\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasympounds}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ {\isacharbar}\ Yen\ nat\ \ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymyen}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ {\isacharbar}\ Dollar\ nat\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isachardollar}{\isachardoublequoteclose}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
@@ -276,17 +282,17 @@ Mixfix syntax annotations merely decorate particular constant
   relational notation for membership in a set of pair, replacing \
   \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim} by \isa{x\ {\isasymapprox}\ y}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\isanewline
-\ \ sim\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
 \isanewline
-\isamarkupfalse%
-\isacommand{syntax}\isanewline
-\ \ {\isachardoublequote}{\isacharunderscore}sim{\isachardoublequote}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequote}{\isasymapprox}{\isachardoublequote}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{translations}\isanewline
-\ \ {\isachardoublequote}x\ {\isasymapprox}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim{\isachardoublequote}\isamarkuptrue%
-%
+\ \ sim\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{syntax}\isamarkupfalse%
+\isanewline
+\ \ {\isachardoublequoteopen}{\isacharunderscore}sim{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymapprox}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isacommand{translations}\isamarkupfalse%
+\isanewline
+\ \ {\isachardoublequoteopen}x\ {\isasymapprox}\ y{\isachardoublequoteclose}\ {\isasymrightleftharpoons}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Here the name of the dummy constant \isa{{\isacharunderscore}sim} does
   not matter, as long as it is not used elsewhere.  Prefixing an
@@ -300,11 +306,11 @@ Mixfix syntax annotations merely decorate particular constant
   as \isa{{\isasymnoteq}} for negated equalities.  The following declaration
   stems from Isabelle/HOL itself:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{syntax}\ {\isachardoublequote}{\isacharunderscore}not{\isacharunderscore}equal{\isachardoublequote}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymnoteq}{\isasymignore}{\isachardoublequote}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{translations}\ {\isachardoublequote}x\ {\isasymnoteq}{\isasymignore}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{syntax}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharunderscore}not{\isacharunderscore}equal{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymnoteq}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isacommand{translations}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymnoteq}{\isasymignore}\ y{\isachardoublequoteclose}\ {\isasymrightleftharpoons}\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Normally one would introduce derived concepts like this
   within the logic, using \isakeyword{consts} + \isakeyword{defs}
@@ -342,18 +348,18 @@ Isabelle/Isar is centered around the concept of \bfindex{formal
   Here is an example to illustrate the idea of Isabelle document
   preparation.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \begin{quotation}
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The following datatype definition of \isa{{\isacharprime}a\ bintree} models
   binary trees with nodes being decorated by elements of type \isa{{\isacharprime}a}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ {\isacharprime}a\ bintree\ {\isacharequal}\isanewline
-\ \ \ \ \ Leaf\ {\isacharbar}\ Branch\ {\isacharprime}a\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\ \ {\isachardoublequote}{\isacharprime}a\ bintree{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ bintree\ {\isacharequal}\isanewline
+\ \ \ \ \ Leaf\ {\isacharbar}\ Branch\ {\isacharprime}a\ \ {\isachardoublequoteopen}{\isacharprime}a\ bintree{\isachardoublequoteclose}\ \ {\isachardoublequoteopen}{\isacharprime}a\ bintree{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent The datatype induction rule generated here is of the form
   \begin{isabelle}%
@@ -363,9 +369,9 @@ The following datatype definition of \isa{{\isacharprime}a\ bintree} models
 \isaindent{\ }{\isasymLongrightarrow}\ P\ bintree%
 \end{isabelle}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \end{quotation}
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The above document output has been produced as follows:
@@ -609,8 +615,9 @@ Isabelle \bfindex{source comments}, which are of the form
   marginal comments may be given at the same time.  Here is a simple
   example:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isacharminus}{\isacharminus}{\isachargreater}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isacharminus}{\isacharminus}{\isachargreater}\ A{\isachardoublequoteclose}\isanewline
 \ \ %
 \isamarkupcmt{a triviality of propositional logic%
 }
@@ -625,8 +632,8 @@ Isabelle \bfindex{source comments}, which are of the form
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}rule\ impI{\isacharparenright}\ %
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ impI{\isacharparenright}\ %
 \isamarkupcmt{implicit assumption step involved here%
 }
 %
@@ -636,7 +643,6 @@ Isabelle \bfindex{source comments}, which are of the form
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The above output has been produced as follows:
@@ -858,23 +864,23 @@ By default, Isabelle's document system generates a {\LaTeX} file for
   than they really were.  For example, this ``fully automatic'' proof
   is actually a fake:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}x\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isacharless}\ x\ {\isacharasterisk}\ x{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isacharless}\ x\ {\isacharasterisk}\ x{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}auto{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Here the real source of the proof has been as follows:
@@ -905,12 +911,14 @@ By default, Isabelle's document system generates a {\LaTeX} file for
   close parentheses need to be inserted carefully; it is easy to hide
   the wrong parts, especially after rearranging the theory text.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

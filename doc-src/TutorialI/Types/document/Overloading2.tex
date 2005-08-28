@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Of course this is not the only possible definition of the two relations.
@@ -22,16 +22,17 @@ Componentwise comparison of lists of equal length also makes sense. This time
 the elements of the list must also be of class \isa{ordrel} to permit their
 comparison:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ordrel{\isacharparenright}ordrel\isanewline
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ordrel{\isacharparenright}ordrel\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ intro{\isacharunderscore}classes%
+\isacommand{by}\isamarkupfalse%
+\ intro{\isacharunderscore}classes%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -40,11 +41,10 @@ comparison:%
 %
 \endisadelimproof
 \isanewline
-\isamarkupfalse%
-\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ {\isasymequiv}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{defs}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ {\isasymequiv}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The infix function \isa{{\isacharbang}} yields the nth element of a list.
@@ -76,12 +76,14 @@ In addition there is a special syntax for bounded quantifiers:
 \end{center}
 And analogously for \isa{{\isacharless}} instead of \isa{{\isasymle}}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

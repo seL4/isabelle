@@ -1,25 +1,24 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Product}%
-\isamarkuptrue%
 %
 \isamarkupheader{Syntactic classes%
 }
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{theory}\ Product\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
+\isacommand{theory}\isamarkupfalse%
+\ Product\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \medskip\noindent There is still a feature of Isabelle's type system
@@ -34,13 +33,13 @@
  The \isa{product} class below provides a less degenerate example of
  syntactic type classes.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{axclass}\isanewline
+\isamarkuptrue%
+\isacommand{axclass}\isamarkupfalse%
+\isanewline
 \ \ product\ {\isasymsubseteq}\ type\isanewline
-\isamarkupfalse%
-\isacommand{consts}\isanewline
-\ \ product\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{consts}\isamarkupfalse%
+\isanewline
+\ \ product\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymodot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 Here class \isa{product} is defined as subclass of \isa{type}
   without any additional axioms.  This effects in logical equivalence
@@ -67,15 +66,16 @@ Here class \isa{product} is defined as subclass of \isa{type}
   This is done for class \isa{product} and type \isa{bool} as
   follows.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ product%
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ bool\ {\isacharcolon}{\isacharcolon}\ product%
 \isadelimproof
 \ %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}%
+\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -83,10 +83,9 @@ Here class \isa{product} is defined as subclass of \isa{type}
 %
 \endisadelimproof
 \isanewline
-\isamarkupfalse%
-\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ product{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{defs}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+\ \ product{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The definition \isa{prod{\isacharunderscore}bool{\isacharunderscore}def} becomes syntactically
  well-formed only after the arity \isa{bool\ {\isasymColon}\ product} is made
@@ -110,14 +109,15 @@ The definition \isa{prod{\isacharunderscore}bool{\isacharunderscore}def} becomes
  Isabelle's meta-logic, because there is no internal notion of
  ``providing operations'' or even ``names of functions''.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
-\isacommand{end}%
+\isacommand{end}\isamarkupfalse%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %

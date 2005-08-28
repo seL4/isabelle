@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,27 +15,31 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Define the datatype of \rmindex{binary trees}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\ {\isacharprime}a\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\isamarkupfalse%
 \isamarkupfalse%
-\isacommand{datatype}\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{mirror} that mirrors a binary tree
 by swapping subtrees recursively. Prove%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ mirror{\isacharunderscore}mirror{\isacharcolon}\ {\isachardoublequote}mirror{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ mirror{\isacharunderscore}mirror{\isacharcolon}\ {\isachardoublequoteopen}mirror{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -42,20 +47,24 @@ by swapping subtrees recursively. Prove%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{flatten} that flattens a tree into a list
 by traversing it in infix order. Prove%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}flatten{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ rev{\isacharparenleft}flatten\ t{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}flatten{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ rev{\isacharparenleft}flatten\ t{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -69,6 +78,7 @@ by traversing it in infix order. Prove%
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent In Exercise~\ref{ex:Tree} we defined a function
@@ -23,18 +23,23 @@
 quadratic. A linear time version of \isa{flatten} again reqires an extra
 argument, the accumulator:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkuptrue%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent Define \isa{flatten{\isadigit{2}}} and prove%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -42,13 +47,14 @@ argument, the accumulator:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequote}%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -62,6 +68,7 @@ argument, the accumulator:%
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

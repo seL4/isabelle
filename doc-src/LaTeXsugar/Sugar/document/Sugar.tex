@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsection{Introduction%
 }
@@ -163,12 +163,14 @@ printed with a trailing \isa{{\isachardot}{\isadigit{0}}}, e.g. \isa{x{\isadigit
 internal index. This can be avoided by turning the last digit into a
 subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -176,7 +178,6 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub 
 \isadelimML
 %
 \endisadelimML
-\isamarkuptrue%
 %
 \isamarkupsubsection{Variable names\label{sec:varnames}%
 }
@@ -347,29 +348,30 @@ Full proofs, even if written in beautiful Isar style, are likely to
   \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw}
   command:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \begin{figure}
   \begin{center}\begin{minipage}{0.6\textwidth}  
   \isastyle\isamarkuptrue
-\isamarkupfalse%
-\isacommand{lemma}\ True\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ True\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
 \ \ %
 \isamarkupcmt{pretty trivial%
 }
 \isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ True\ \isamarkupfalse%
-\isacommand{by}\ force\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \isacommand{show}\isamarkupfalse%
+\ True\ \isacommand{by}\isamarkupfalse%
+\ force\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -380,7 +382,6 @@ Full proofs, even if written in beautiful Isar style, are likely to
 \end{minipage}\end{center}
   \caption{Example proof in a figure.}\label{fig:proof}
   \end{figure}
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{quote}
@@ -473,12 +474,14 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   \verb!Proof.context -> term -> term!.
   Have a look at the following example:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -486,7 +489,6 @@ The \verb!thm! antiquotation works nicely for single theorems, but
 \isadelimML
 %
 \endisadelimML
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{quote}
@@ -517,12 +519,14 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   antiquoations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
   yielding \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{datatypes!mutually recursive}%
@@ -30,16 +30,16 @@ language of arithmetic and boolean expressions where
 \end{itemize}
 In Isabelle this becomes%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{datatype}\ {\isacharprime}a\ aexp\ {\isacharequal}\ IF\ \ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Sum\ \ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Diff\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ aexp\ {\isacharequal}\ IF\ \ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Sum\ \ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Diff\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Var\ {\isacharprime}a\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Num\ nat\isanewline
-\isakeyword{and}\ \ \ \ \ \ {\isacharprime}a\ bexp\ {\isacharequal}\ Less\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isamarkuptrue%
-%
+\isakeyword{and}\ \ \ \ \ \ {\isacharprime}a\ bexp\ {\isacharequal}\ Less\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
@@ -49,10 +49,10 @@ operations \isa{Sum} and \isa{Diff}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ \ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ \ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Both take an expression and an environment (a mapping from variables \isa{{\isacharprime}a} to values
@@ -61,27 +61,27 @@ value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharplus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharminus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Var\ v{\isacharparenright}\ env\ {\isacharequal}\ env\ v{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evala\ {\isacharparenleft}Num\ n{\isacharparenright}\ env\ {\isacharequal}\ n{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a{\isadigit{1}}\ env\ {\isacharless}\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b{\isadigit{1}}\ env\ {\isasymand}\ evalb\ b{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\ \ {\isachardoublequoteopen}evala\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\isanewline
+\ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evala\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharplus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evala\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharminus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evala\ {\isacharparenleft}Var\ v{\isacharparenright}\ env\ {\isacharequal}\ env\ v{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evala\ {\isacharparenleft}Num\ n{\isacharparenright}\ env\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ {\isachardoublequoteopen}evalb\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a{\isadigit{1}}\ env\ {\isacharless}\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evalb\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b{\isadigit{1}}\ env\ {\isasymand}\ evalb\ b{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 In the same fashion we also define two functions that perform substitution:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ substa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ substa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The first argument is a function mapping variables to expressions, the
@@ -89,19 +89,19 @@ substitution. It is applied to all variables in the second argument. As a
 result, the type of variables in the expression may change from \isa{{\isacharprime}a}
 to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean variables.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Var\ v{\isacharparenright}\ {\isacharequal}\ s\ v{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Num\ n{\isacharparenright}\ {\isacharequal}\ Num\ n{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b{\isadigit{2}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\ \ {\isachardoublequoteopen}substa\ s\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Var\ v{\isacharparenright}\ {\isacharequal}\ s\ v{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Num\ n{\isacharparenright}\ {\isacharequal}\ Num\ n{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ {\isachardoublequoteopen}substb\ s\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substb\ s\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Now we can prove a fundamental theorem about the interaction between
 evaluation and substitution: applying a substitution $s$ to an expression $a$
@@ -112,31 +112,32 @@ boolean expressions (by induction), you find that you always need the other
 theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}\isamarkuptrue%
-%
+\isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
 \end{isamarkuptxt}%
-\isamarkupfalse%
-\isacommand{apply}\ simp{\isacharunderscore}all%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ simp{\isacharunderscore}all\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
@@ -159,12 +160,19 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
   of type annotations following lemma \isa{subst{\isacharunderscore}id} below).
 \end{exercise}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -172,12 +180,18 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \isadelimproof
 %
 \endisadelimproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -191,6 +205,7 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

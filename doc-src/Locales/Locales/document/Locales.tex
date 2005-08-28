@@ -8,6 +8,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -21,6 +22,7 @@
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -28,7 +30,6 @@
 \isadelimML
 %
 \endisadelimML
-\isamarkuptrue%
 %
 \isamarkupsection{Overview%
 }
@@ -317,11 +318,11 @@ From a logical point of view a \emph{context} is a formula schema of
   \textbf{assumes}.  Using these context elements one can define
   the specification of semigroups.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ semi\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymcdot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z\ {\isacharequal}\ x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ semi\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymcdot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z\ {\isacharequal}\ x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The parameter \isa{prod} has a
   syntax annotation enabling the infix ``\isa{{\isasymcdot}}'' in the
@@ -342,10 +343,10 @@ The parameter \isa{prod} has a
 \]
   The locale can be extended to commutative semigroups.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ comm{\isacharunderscore}semi\ {\isacharequal}\ semi\ {\isacharplus}\isanewline
-\ \ \isakeyword{assumes}\ comm{\isacharcolon}\ {\isachardoublequote}x\ {\isasymcdot}\ y\ {\isacharequal}\ y\ {\isasymcdot}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ comm{\isacharunderscore}semi\ {\isacharequal}\ semi\ {\isacharplus}\isanewline
+\ \ \isakeyword{assumes}\ comm{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcdot}\ y\ {\isacharequal}\ y\ {\isasymcdot}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This locale \emph{imports} all elements of \isa{semi}.  The
   latter locale is called the import of \isa{comm{\isacharunderscore}semi}. The
@@ -361,41 +362,41 @@ This locale \emph{imports} all elements of \isa{semi}.  The
   the context of \isa{comm{\isacharunderscore}semi} by specifying this locale as
   target, and by referring to the names of the assumptions \isa{assoc} and \isa{comm} in the proof.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isacharparenleft}\isakeyword{in}\ comm{\isacharunderscore}semi{\isacharparenright}\ lcomm{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ comm{\isacharunderscore}semi{\isacharparenright}\ lcomm{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymcdot}\ x{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ comm{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymcdot}\ x{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ comm{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 In this equational Isar proof, ``\isa{{\isasymdots}}'' refers to the
@@ -452,12 +453,14 @@ In this equational Isar proof, ``\isa{{\isasymdots}}'' refers to the
   defined.  If a locale has import but no assumptions, only the locale
   predicate is defined.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -465,7 +468,6 @@ In this equational Isar proof, ``\isa{{\isasymdots}}'' refers to the
 \isadelimML
 %
 \endisadelimML
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The Locales package generates a number of theorems for locale and
@@ -579,11 +581,11 @@ Definitions were available in Kamm\"uller's version of Locales, and
   on the right hand side of subsequent \textbf{defines}.  We call
   \isa{p} \emph{defined parameter}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ semi{\isadigit{2}}\ {\isacharequal}\ semi\ {\isacharplus}\isanewline
-\ \ \isakeyword{fixes}\ rprod\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{defines}\ rprod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}rprod\ x\ y\ {\isasymequiv}\ y\ {\isasymcdot}\ x\ {\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ semi{\isadigit{2}}\ {\isacharequal}\ semi\ {\isacharplus}\isanewline
+\ \ \isakeyword{fixes}\ rprod\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymodot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{defines}\ rprod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}rprod\ x\ y\ {\isasymequiv}\ y\ {\isasymcdot}\ x\ {\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This locale extends \isa{semi} by a second binary operation \isa{{\isachardoublequote}{\isasymodot}{\isachardoublequote}} that is like \isa{{\isachardoublequote}{\isasymcdot}{\isachardoublequote}} but with
   reversed arguments.  The
@@ -614,23 +616,23 @@ A fact is exported out
   reverse operation \isa{{\isachardoublequote}{\isasymodot}{\isachardoublequote}} defined in the locale
   \isa{semi{\isadigit{2}}} is also associative.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isacharparenleft}\isakeyword{in}\ semi{\isadigit{2}}{\isacharparenright}\ r{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ semi{\isadigit{2}}{\isacharparenright}\ r{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ rprod{\isacharunderscore}def\ assoc{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ only{\isacharcolon}\ rprod{\isacharunderscore}def\ assoc{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The exported fact is
@@ -703,11 +705,11 @@ The grammar of locale expressions is part of the grammar in
   combination with merge.  Both operations are used in the following
   specification of semigroup homomorphisms.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ semi{\isacharunderscore}hom\ {\isacharequal}\ comm{\isacharunderscore}semi\ sum\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\ {\isacharplus}\ comm{\isacharunderscore}semi\ {\isacharplus}\isanewline
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ semi{\isacharunderscore}hom\ {\isacharequal}\ comm{\isacharunderscore}semi\ sum\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\ {\isacharplus}\ comm{\isacharunderscore}semi\ {\isacharplus}\isanewline
 \ \ \isakeyword{fixes}\ hom\isanewline
-\ \ \isakeyword{assumes}\ hom{\isacharcolon}\ {\isachardoublequote}hom\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isacharequal}\ hom\ x\ {\isasymcdot}\ hom\ y{\isachardoublequote}\isamarkuptrue%
-%
+\ \ \isakeyword{assumes}\ hom{\isacharcolon}\ {\isachardoublequoteopen}hom\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isacharequal}\ hom\ x\ {\isasymcdot}\ hom\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This locale defines a context with three parameters \isa{sum},
   \isa{prod} and \isa{hom}.  The first two parameters have
@@ -730,41 +732,41 @@ This locale defines a context with three parameters \isa{sum},
   The following example is quite artificial, it illustrates the use of
   facts, though.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isacharparenleft}\isakeyword{in}\ semi{\isacharunderscore}hom{\isacharparenright}\ {\isachardoublequote}hom\ x\ {\isasymcdot}\ {\isacharparenleft}hom\ y\ {\isasymcdot}\ hom\ z{\isacharparenright}\ {\isacharequal}\ hom\ {\isacharparenleft}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ semi{\isacharunderscore}hom{\isacharparenright}\ {\isachardoublequoteopen}hom\ x\ {\isasymcdot}\ {\isacharparenleft}hom\ y\ {\isasymcdot}\ hom\ z{\isacharparenright}\ {\isacharequal}\ hom\ {\isacharparenleft}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}hom\ x\ {\isasymcdot}\ {\isacharparenleft}hom\ y\ {\isasymcdot}\ hom\ z{\isacharparenright}\ {\isacharequal}\ hom\ y\ {\isasymcdot}\ {\isacharparenleft}hom\ x\ {\isasymcdot}\ hom\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ prod{\isachardot}lcomm{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ hom\ {\isacharparenleft}y\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ hom{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ hom\ {\isacharparenleft}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ sum{\isachardot}lcomm{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}hom\ x\ {\isasymcdot}\ {\isacharparenleft}hom\ y\ {\isasymcdot}\ hom\ z{\isacharparenright}\ {\isacharequal}\ hom\ y\ {\isasymcdot}\ {\isacharparenleft}hom\ x\ {\isasymcdot}\ hom\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ prod{\isachardot}lcomm{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ hom\ {\isacharparenleft}y\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ hom{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ hom\ {\isacharparenleft}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ sum{\isachardot}lcomm{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Importing via a locale expression imports all facts of
@@ -778,6 +780,7 @@ Importing via a locale expression imports all facts of
 %
 \isamarkupsubsection{Normal Forms%
 }
+\isamarkuptrue%
 %
 \label{sec-normal-forms}
 \newcommand{\I}{\mathcal{I}}
@@ -785,7 +788,6 @@ Importing via a locale expression imports all facts of
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\App}{\mathbin{\overline{@}}}
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Locale expressions are interpreted in a two-step process.  First, an
@@ -1007,11 +1009,11 @@ Locale expressions are interpreted in a two-step process.  First, an
   Consider the specification of monads (in the algebraic sense)
   and monoids.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ monad\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymcdot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{and}\ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isacharparenleft}{\isachardoublequote}{\isasymone}{\isachardoublequote}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymcdot}\ x\ {\isacharequal}\ x{\isachardoublequote}\ \isakeyword{and}\ r{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}x\ {\isasymcdot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ monad\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymcdot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{and}\ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymcdot}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ r{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Monoids are both semigroups and monads and one would want to
   specify them as locale expression \isa{semi\ {\isacharplus}\ monad}.
@@ -1035,15 +1037,15 @@ Monoids are both semigroups and monads and one would want to
   parameter and defining its syntax.  The specifications of semigroup
   and monad are changed so that they import \isa{magma}.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ magma\ {\isacharequal}\ \isakeyword{fixes}\ prod\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymcdot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ magma\ {\isacharequal}\ \isakeyword{fixes}\ prod\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymcdot}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
 \isanewline
-\isamarkupfalse%
-\isacommand{locale}\ semi{\isacharprime}\ {\isacharequal}\ magma\ {\isacharplus}\ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z\ {\isacharequal}\ x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\isamarkupfalse%
-\isacommand{locale}\ monad{\isacharprime}\ {\isacharequal}\ magma\ {\isacharplus}\ \isakeyword{fixes}\ one\ {\isacharparenleft}{\isachardoublequote}{\isasymone}{\isachardoublequote}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymcdot}\ x\ {\isacharequal}\ x{\isachardoublequote}\ \isakeyword{and}\ r{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}x\ {\isasymcdot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isacommand{locale}\isamarkupfalse%
+\ semi{\isacharprime}\ {\isacharequal}\ magma\ {\isacharplus}\ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z\ {\isacharequal}\ x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{locale}\isamarkupfalse%
+\ monad{\isacharprime}\ {\isacharequal}\ magma\ {\isacharplus}\ \isakeyword{fixes}\ one\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymcdot}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ r{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Normalisation now yields
 \begin{align*%
@@ -1096,41 +1098,41 @@ Normalisation now yields
   with targets, the proved theorem is not stored
   in the locale.  Instead, it is exported immediately.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ lcomm{\isadigit{2}}{\isacharcolon}\isanewline
-\ \ \isakeyword{includes}\ comm{\isacharunderscore}semi\ \isakeyword{shows}\ {\isachardoublequote}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ lcomm{\isadigit{2}}{\isacharcolon}\isanewline
+\ \ \isakeyword{includes}\ comm{\isacharunderscore}semi\ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymcdot}\ x{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ comm{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{finally}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcdot}\ {\isacharparenleft}y\ {\isasymcdot}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcdot}\ y{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymcdot}\ x{\isacharparenright}\ {\isasymcdot}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ comm{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ y\ {\isasymcdot}\ {\isacharparenleft}x\ {\isasymcdot}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 This proof is identical to the proof of \isa{lcomm}.  The use of
@@ -1172,11 +1174,11 @@ This proof is identical to the proof of \isa{lcomm}.  The use of
   represents semigroups over the carrier type \isa{{\isacharprime}a}.  Let \isa{s{\isacharunderscore}op} be an operation that maps an object of \isa{{\isacharprime}a\ semi{\isacharunderscore}type} to
   a binary operation.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{typedecl}\ {\isacharprime}a\ semi{\isacharunderscore}type\isanewline
-\isamarkupfalse%
-\isacommand{consts}\ s{\isacharunderscore}op\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a\ semi{\isacharunderscore}type{\isacharcomma}\ {\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymstar}{\isasymindex}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{typedecl}\isamarkupfalse%
+\ {\isacharprime}a\ semi{\isacharunderscore}type\isanewline
+\isacommand{consts}\isamarkupfalse%
+\ s{\isacharunderscore}op\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharprime}a\ semi{\isacharunderscore}type{\isacharcomma}\ {\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymstar}{\isasymindex}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 Although \isa{s{\isacharunderscore}op} is a ternary operation, it is declared
   infix.  The syntax annotation contains the token  \isa{{\isasymindex}}
@@ -1189,51 +1191,51 @@ Although \isa{s{\isacharunderscore}op} is a ternary operation, it is declared
   Additionally, the subscript of the first structural parameter may be
   omitted, as in this specification of semigroups with structures:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ comm{\isacharunderscore}semi{\isacharprime}\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ G\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ semi{\isacharunderscore}type{\isachardoublequote}\ {\isacharparenleft}\isakeyword{structure}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymstar}\ y{\isacharparenright}\ {\isasymstar}\ z\ {\isacharequal}\ x\ {\isasymstar}\ {\isacharparenleft}y\ {\isasymstar}\ z{\isacharparenright}{\isachardoublequote}\ \isakeyword{and}\ comm{\isacharcolon}\ {\isachardoublequote}x\ {\isasymstar}\ y\ {\isacharequal}\ y\ {\isasymstar}\ x{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ comm{\isacharunderscore}semi{\isacharprime}\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ G\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ semi{\isacharunderscore}type{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{structure}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymstar}\ y{\isacharparenright}\ {\isasymstar}\ z\ {\isacharequal}\ x\ {\isasymstar}\ {\isacharparenleft}y\ {\isasymstar}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\ comm{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymstar}\ y\ {\isacharequal}\ y\ {\isasymstar}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Here \isa{x\ {\isasymstar}\ y} is equivalent to \isa{x\ {\isasymstar}\isactrlbsub G\isactrlesub \ y} and
   abbreviates \isa{s{\isacharunderscore}op\ G\ x\ y}.  A specification of homomorphisms
   requires a second structural parameter.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ semi{\isacharprime}{\isacharunderscore}hom\ {\isacharequal}\ comm{\isacharunderscore}semi{\isacharprime}\ {\isacharplus}\ comm{\isacharunderscore}semi{\isacharprime}\ H\ {\isacharplus}\isanewline
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ semi{\isacharprime}{\isacharunderscore}hom\ {\isacharequal}\ comm{\isacharunderscore}semi{\isacharprime}\ {\isacharplus}\ comm{\isacharunderscore}semi{\isacharprime}\ H\ {\isacharplus}\isanewline
 \ \ \isakeyword{fixes}\ hom\isanewline
-\ \ \isakeyword{assumes}\ hom{\isacharcolon}\ {\isachardoublequote}hom\ {\isacharparenleft}x\ {\isasymstar}\ y{\isacharparenright}\ {\isacharequal}\ hom\ x\ {\isasymstar}\isactrlbsub H\isactrlesub \ hom\ y{\isachardoublequote}\isamarkuptrue%
-%
+\ \ \isakeyword{assumes}\ hom{\isacharcolon}\ {\isachardoublequoteopen}hom\ {\isacharparenleft}x\ {\isasymstar}\ y{\isacharparenright}\ {\isacharequal}\ hom\ x\ {\isasymstar}\isactrlbsub H\isactrlesub \ hom\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The parameter \isa{H} is defined in the second \textbf{fixes}
   element of $\C(\isa{semi{\isacharprime}{\isacharunderscore}comm})$. Hence \isa{{\isasymstar}\isactrlbsub H\isactrlesub }
   abbreviates \isa{s{\isacharunderscore}op\ H\ x\ y}.  The same construction can be done
   with records instead of an \textit{ad-hoc} type.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{record}\ {\isacharprime}a\ semi\ {\isacharequal}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymbullet}{\isasymindex}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{record}\isamarkupfalse%
+\ {\isacharprime}a\ semi\ {\isacharequal}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymbullet}{\isasymindex}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 This declares the types \isa{{\isacharprime}a\ semi} and  \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ semi{\isacharunderscore}scheme}.  The latter is an extensible record, where the second
   type argument is the type of the extension field.  For details on
   records, see \cite{NipkowEtAl2002} Chapter~8.3.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{locale}\ semi{\isacharunderscore}w{\isacharunderscore}records\ {\isacharequal}\ struct\ G\ {\isacharplus}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymbullet}\ y{\isacharparenright}\ {\isasymbullet}\ z\ {\isacharequal}\ x\ {\isasymbullet}\ {\isacharparenleft}y\ {\isasymbullet}\ z{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ semi{\isacharunderscore}w{\isacharunderscore}records\ {\isacharequal}\ struct\ G\ {\isacharplus}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymbullet}\ y{\isacharparenright}\ {\isasymbullet}\ z\ {\isacharequal}\ x\ {\isasymbullet}\ {\isacharparenleft}y\ {\isasymbullet}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ semi{\isacharunderscore}scheme} is inferred for the parameter \isa{G}.  Using subtyping on records, the specification can be extended
   to groups easily.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{record}\ {\isacharprime}a\ group\ {\isacharequal}\ {\isachardoublequote}{\isacharprime}a\ semi{\isachardoublequote}\ {\isacharplus}\isanewline
-\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}{\isachardoublequote}l{\isasymindex}{\isachardoublequote}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ {\isacharparenleft}{\isachardoublequote}inv{\isasymindex}\ {\isacharunderscore}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{1}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{locale}\ group{\isacharunderscore}w{\isacharunderscore}records\ {\isacharequal}\ semi{\isacharunderscore}w{\isacharunderscore}records\ {\isacharplus}\isanewline
-\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}l\ {\isasymbullet}\ x\ {\isacharequal}\ x{\isachardoublequote}\ \isakeyword{and}\ l{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequote}inv\ x\ {\isasymbullet}\ x\ {\isacharequal}\ l{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{record}\isamarkupfalse%
+\ {\isacharprime}a\ group\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}a\ semi{\isachardoublequoteclose}\ {\isacharplus}\isanewline
+\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}l{\isasymindex}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}inv{\isasymindex}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{1}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isacommand{locale}\isamarkupfalse%
+\ group{\isacharunderscore}w{\isacharunderscore}records\ {\isacharequal}\ semi{\isacharunderscore}w{\isacharunderscore}records\ {\isacharplus}\isanewline
+\ \ \isakeyword{assumes}\ l{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequoteopen}l\ {\isasymbullet}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ l{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequoteopen}inv\ x\ {\isasymbullet}\ x\ {\isacharequal}\ l{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Finally, the predefined locale
 \begin{center}
@@ -1300,12 +1302,14 @@ Locales provide a simple means of modular reasoning.  They enable to
   \textbf{Acknowledgements.}  Lawrence C.\ Paulson and Norbert
   Schirmer made useful comments on a draft of this paper.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

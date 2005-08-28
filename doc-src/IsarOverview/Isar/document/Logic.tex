@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \isamarkupsection{Logic \label{sec:Logic}%
 }
@@ -32,30 +32,30 @@
 We start with a really trivial toy proof to introduce the basic
 features of structured proofs.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -68,30 +68,30 @@ Isar implements the following principle: \begin{quote}\em Command
 based on the goal and a predefined list of rules.  \end{quote} Here
 \isa{impI} is applied automatically:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ a{\isacharcolon}\ A\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ A\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ A\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ A\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Single-identifier formulae such as \isa{A} need not
@@ -102,60 +102,60 @@ Trivial proofs, in particular those by assumption, should be trivial
 to perform. Proof ``.'' does just that (and a bit more). Thus
 naming of assumptions is often superfluous:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 To hide proofs by assumption further, \isakeyword{by}\isa{{\isacharparenleft}method{\isacharparenright}}
 first applies \isa{method} and then tries to solve all remaining subgoals
 by assumption:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}A\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Rule \isa{conjI} is of course \isa{{\isasymlbrakk}{\isacharquery}P{\isacharsemicolon}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q}.
@@ -166,30 +166,30 @@ Proofs of the form \isakeyword{by}\isa{{\isacharparenleft}rule}~\emph{name}\isa{
 can be abbreviated to ``..''  if \emph{name} refers to one of the
 predefined introduction rules (or elimination rules, see below):%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}A\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -211,41 +211,41 @@ A typical elimination rule is \isa{conjE}, $\land$-elimination:
 by hand, after its first (\emph{major}) premise has been eliminated via
 \isa{{\isacharbrackleft}OF\ AB{\isacharbrackright}}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}rule\ conjE{\isacharbrackleft}OF\ AB{\isacharbrackright}{\isacharparenright}\ \ %
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ AB{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ conjE{\isacharbrackleft}OF\ AB{\isacharbrackright}{\isacharparenright}\ \ %
 \isamarkupcmt{\isa{conjE{\isacharbrackleft}OF\ AB{\isacharbrackright}}: \isa{{\isacharparenleft}{\isasymlbrakk}A{\isacharsemicolon}\ B{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}R}%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Note that the term \isa{{\isacharquery}thesis} always stands for the
@@ -268,39 +268,39 @@ an elimination rule (from a predefined list) is applied
 whose first premise is solved by the \emph{fact}. Thus the proof above
 is equivalent to the following one:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ AB\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ AB{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ AB\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Now we come to a second important principle:
@@ -311,39 +311,39 @@ such that the proof of each proposition builds on the previous proposition.
 The previous proposition can be referred to via the fact \isa{this}.
 This greatly reduces the need for explicit naming of propositions:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ this\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Because of the frequency of \isakeyword{from}~\isa{this}, Isar provides two abbreviations:
@@ -356,39 +356,39 @@ This greatly reduces the need for explicit naming of propositions:%
 
 Here is an alternative proof that operates purely by forward reasoning:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ ab{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ ab\ \isamarkupfalse%
-\isacommand{have}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ ab\ \isamarkupfalse%
-\isacommand{have}\ b{\isacharcolon}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ b\ a\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ ab{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ ab\ \isacommand{have}\isamarkupfalse%
+\ a{\isacharcolon}\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ ab\ \isacommand{have}\isamarkupfalse%
+\ b{\isacharcolon}\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ b\ a\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent It is worth examining this text in detail because it
@@ -436,41 +436,41 @@ more than one fact into a proof step, a frequent situation. Then the
 UNIX-pipe model appears to break down and we need to name the different
 facts to refer to them. But this can be avoided:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ ab{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ ab\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{moreover}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ ab\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{ultimately}\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ ab{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ ab\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ ab\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent You can combine any number of facts \isa{A{\isadigit{1}}} \dots\ \isa{An} into a sequence by separating their proofs with
@@ -486,72 +486,72 @@ far, Isar's predefined rules include all the usual natural deduction
 rules. We conclude our exposition of propositional logic with an extended
 example --- which rules are used implicitly where?%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ n{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ {\isacharparenleft}rule\ ccontr{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ nn{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymnot}\ A{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymnot}\ B{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ n\ \isamarkupfalse%
-\isacommand{show}\ False\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ nn\ \isamarkupfalse%
-\isacommand{show}\ False\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{with}\ nn\ \isamarkupfalse%
-\isacommand{show}\ False\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ n{\isacharcolon}\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ ccontr{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ nn{\isacharcolon}\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ n\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ nn\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{with}\isamarkupfalse%
+\ nn\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -578,35 +578,35 @@ abbreviations:
 So far our examples have been a bit unnatural: normally we want to
 prove rules expressed with \isa{{\isasymLongrightarrow}}, not \isa{{\isasymlongrightarrow}}. Here is an example:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The \isakeyword{proof} always works on the conclusion,
@@ -633,36 +633,36 @@ This is all very well as long as formulae are small. Let us now look at some
 devices to avoid repeating (possibly large) formulae. A very general method
 is pattern matching:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B\ {\isasymLongrightarrow}\ large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}AB\ {\isasymLongrightarrow}\ {\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B\ {\isasymLongrightarrow}\ large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}AB\ {\isasymLongrightarrow}\ {\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequoteclose}{\isacharparenright}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}AB{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}AB{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}AB{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}AB{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Any formula may be followed by
@@ -675,36 +675,36 @@ We can simplify things even more by stating the theorem by means of the
 \isakeyword{assumes} and \isakeyword{shows} elements which allow direct
 naming of assumptions:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequote}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequote}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequoteopen}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequoteclose}{\isacharparenright}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ AB\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ AB\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ AB\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ AB\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Note the difference between \isa{{\isacharquery}AB}, a term, and
@@ -714,32 +714,32 @@ Finally we want to start the proof with $\land$-elimination so we
 don't have to perform it twice, as above. Here is a slick way to
 achieve this:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequote}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequote}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequoteopen}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequoteclose}{\isacharparenright}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{using}\ AB\isanewline
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{using}\isamarkupfalse%
+\ AB\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}A{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharquery}B{\isachardoublequoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Command \isakeyword{using} can appear before a proof
@@ -758,42 +758,42 @@ Sometimes it is necessary to suppress the implicit application of rules in a
 trigger $\lor$-introduction, requiring us to prove \isa{A}. A simple
 ``\isa{{\isacharminus}}'' prevents this \emph{faux pas}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymor}\ B{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}B\ {\isasymor}\ A{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}B\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ AB\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ A\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ B\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ AB\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ B\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsection{Predicate calculus%
 }
@@ -807,37 +807,37 @@ meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 \isa{{\isasymLongrightarrow}}. Here is a sample proof, annotated with the rules that are
 applied implicitly:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ P{\isacharcolon}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P\ x{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ P{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ P\ x{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %
+\isacommand{proof}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %
 \isamarkupcmt{\isa{allI}: \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ {\isacharquery}P\ x}%
 }
 \isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ a\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ P\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}P{\isacharparenleft}f\ a{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\ \ %
+\ \ \isacommand{fix}\isamarkupfalse%
+\ a\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ P\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}P{\isacharparenleft}f\ a{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ %
 \isamarkupcmt{\isa{allE}: \isa{{\isasymlbrakk}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharsemicolon}\ {\isacharquery}P\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R}%
 }
 \isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Note that in the proof we have chosen to call the bound
@@ -846,45 +846,45 @@ local names is irrelevant.
 
 Next we look at \isa{{\isasymexists}} which is a bit more tricky.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ Pf\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ \ \ \ \ \ \ \ \ \ \ \ \ \ %
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ Pf\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ %
 \isamarkupcmt{\isa{exE}: \isa{{\isasymlbrakk}{\isasymexists}x{\isachardot}\ {\isacharquery}P\ x{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q}%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{fix}\ x\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\ \ %
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ %
 \isamarkupcmt{\isa{exI}: \isa{{\isacharquery}P\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isasymexists}x{\isachardot}\ {\isacharquery}P\ x}%
 }
 \isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Explicit $\exists$-elimination as seen above can become
@@ -892,32 +892,32 @@ cumbersome in practice.  The derived Isar language element
 \isakeyword{obtain} provides a more appealing form of generalised
 existence reasoning:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ Pf\ \isamarkupfalse%
-\isacommand{obtain}\ x\ \isakeyword{where}\ {\isachardoublequote}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ Pf\ \isacommand{obtain}\isamarkupfalse%
+\ x\ \isakeyword{where}\ {\isachardoublequoteopen}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Note how the proof text follows the usual mathematical style
@@ -929,37 +929,37 @@ the elimination involved.
 Here is a proof of a well known tautology.
 Which rule is used where?%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ ex{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ ex{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ y\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ ex\ \isamarkupfalse%
-\isacommand{obtain}\ x\ \isakeyword{where}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{thus}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ y\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ ex\ \isacommand{obtain}\isamarkupfalse%
+\ x\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}P\ x\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsection{Making bigger steps%
 }
@@ -971,59 +971,59 @@ powerful automatic methods can be used just as well. Here is an example,
 Cantor's theorem that there is no surjective function from a set to its
 powerset:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{let}\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{then}\ \isamarkupfalse%
-\isacommand{obtain}\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequote}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ False\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{proof}\ cases\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ fy\ \isamarkupfalse%
-\isacommand{show}\ False\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{with}\ fy\ \isamarkupfalse%
-\isacommand{show}\ False\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{let}\isamarkupfalse%
+\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ False\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ fy\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ fy\ \isacommand{show}\isamarkupfalse%
+\ False\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -1044,69 +1044,69 @@ by just a single rule. If you find the proof too cryptic for human
 consumption, here is a more detailed version; the beginning up to
 \isakeyword{obtain} stays unchanged.%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{let}\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{then}\ \isamarkupfalse%
-\isacommand{obtain}\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequote}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{{\isachardot}{\isachardot}}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ False\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{proof}\ cases\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}y\ {\isasymnotin}\ f\ y{\isachardoublequote}\ \ \ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\ \ \ \ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{thus}\ False\ \ \ \ \ \ \ \ \ \isamarkupfalse%
-\isacommand{by}\ contradiction\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{next}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}y\ {\isasymin}\ f\ y{\isachardoublequote}\ \ \ \isamarkupfalse%
-\isacommand{by}\ simp\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{hence}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\ \ \ \ \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{thus}\ False\ \ \ \ \ \ \ \ \ \isamarkupfalse%
-\isacommand{by}\ contradiction\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{let}\isamarkupfalse%
+\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ False\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ cases\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymnotin}\ f\ y{\isachardoublequoteclose}\ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequoteclose}\ \ \ \ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ False\ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ contradiction\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymin}\ f\ y{\isachardoublequoteclose}\ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequoteclose}\ \ \ \ \isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ False\ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ contradiction\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Method \isa{contradiction} succeeds if both $P$ and
@@ -1116,23 +1116,23 @@ As it happens, Cantor's theorem can be proved automatically by best-first
 search. Depth-first search would diverge, but best-first search successfully
 navigates through the large search space:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}\ best%
+\isacommand{by}\isamarkupfalse%
+\ best%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \isamarkupsubsection{Raw proof blocks%
 }
@@ -1144,12 +1144,14 @@ Although we have shown how to employ powerful automatic methods like
 tendency to use the default introduction and elimination rules to
 decompose goals and facts. This can lead to very tedious proofs:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
+\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -1157,44 +1159,43 @@ decompose goals and facts. This can lead to very tedious proofs:%
 \isadelimML
 %
 \endisadelimML
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{fix}\ x\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{fix}\ y\ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ x\ y\ {\isasymand}\ B\ x\ y{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{sorry}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ y\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x\ y\ {\isasymand}\ B\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent Since we are only interested in the decomposition and not the
@@ -1205,76 +1206,76 @@ is very convenient for top down proof development.
 
 Luckily we can avoid this step by step decomposition very easily:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isasymAnd}x\ y{\isachardot}\ {\isasymlbrakk}\ A\ x\ y{\isacharsemicolon}\ B\ x\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{fix}\ x\ y\ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ x\ y{\isachardoublequote}\ {\isachardoublequote}B\ x\ y{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{sorry}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{qed}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isachardot}\ {\isasymlbrakk}\ A\ x\ y{\isacharsemicolon}\ B\ x\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ y\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x\ y{\isachardoublequoteclose}\ {\isachardoublequoteopen}B\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 This can be simplified further by \emph{raw proof blocks}, i.e.\
 proofs enclosed in braces:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
-\isacommand{fix}\ x\ y\ \isamarkupfalse%
-\isacommand{assume}\ {\isachardoublequote}A\ x\ y{\isachardoublequote}\ {\isachardoublequote}B\ x\ y{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
-\isacommand{sorry}\ \isamarkupfalse%
-\isacommand{{\isacharbraceright}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ \isacommand{fix}\isamarkupfalse%
+\ x\ y\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x\ y{\isachardoublequoteclose}\ {\isachardoublequoteopen}B\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The result of the raw proof block is the same theorem
@@ -1306,72 +1307,78 @@ the $n$ cases are exhaustive (i.e.\ $P_1 \lor \dots \lor P_n$) and
 that each case $P_i$ implies the goal. Taken together, this proves the
 goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \renewcommand{\isamarkupcmt}[1]{#1}
+\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}P\isactrlisub {\isadigit{1}}\ {\isasymor}\ P\isactrlisub {\isadigit{2}}\ {\isasymor}\ P\isactrlisub {\isadigit{3}}{\isachardoublequote}\ \ %
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}P\isactrlisub {\isadigit{1}}\ {\isasymor}\ P\isactrlisub {\isadigit{2}}\ {\isasymor}\ P\isactrlisub {\isadigit{3}}{\isachardoublequoteclose}\ \isamarkupfalse%
+\ %
 \isamarkupcmt{\dots%
 }
 \isanewline
-\ \ \isamarkupfalse%
-\isacommand{moreover}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
-\isacommand{assume}\ P\isactrlisub {\isadigit{1}}\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ P\isactrlisub {\isadigit{1}}\isanewline
 \ \ \ \ %
 \isamarkupcmt{\dots%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isacharquery}thesis\ \ %
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
 \isamarkupcmt{\dots%
 }
-\ \isamarkupfalse%
-\isacommand{{\isacharbraceright}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{moreover}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
-\isacommand{assume}\ P\isactrlisub {\isadigit{2}}\isanewline
+\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ P\isactrlisub {\isadigit{2}}\isanewline
 \ \ \ \ %
 \isamarkupcmt{\dots%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isacharquery}thesis\ \ %
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
 \isamarkupcmt{\dots%
 }
-\ \isamarkupfalse%
-\isacommand{{\isacharbraceright}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{moreover}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
-\isacommand{assume}\ P\isactrlisub {\isadigit{3}}\isanewline
+\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ P\isactrlisub {\isadigit{3}}\isanewline
 \ \ \ \ %
 \isamarkupcmt{\dots%
 }
 \isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{have}\ {\isacharquery}thesis\ \ %
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
 \isamarkupcmt{\dots%
 }
-\ \isamarkupfalse%
-\isacommand{{\isacharbraceright}}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{ultimately}\ \isamarkupfalse%
-\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
-\isacommand{by}\ blast\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1380,7 +1387,6 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 \endisadelimproof
 %
 \renewcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
-\isamarkuptrue%
 %
 \isamarkupsubsection{Further refinements%
 }
@@ -1436,13 +1442,15 @@ constraints, as in Cantor's theorem above. These type constraints tend
 to make the theorem less readable. The situation can be improved a
 little by combining the type constraint with an outer \isa{{\isasymAnd}}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ {\isachardoublequote}{\isasymAnd}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardot}\ {\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardot}\ {\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -1450,20 +1458,21 @@ little by combining the type constraint with an outer \isa{{\isasymAnd}}:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent However, now \isa{f} is bound and we need a
 \isakeyword{fix}~\isa{f} in the proof before we can refer to \isa{f}.
 This is avoided by \isakeyword{fixes}:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{theorem}\ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -1471,34 +1480,33 @@ This is avoided by \isakeyword{fixes}:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent
 Even better, \isakeyword{fixes} allows to introduce concrete syntax locally:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ comm{\isacharunderscore}mono{\isacharcolon}\isanewline
-\ \ \isakeyword{fixes}\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isacharplus}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ comm{\isacharcolon}\ {\isachardoublequote}{\isasymAnd}x\ y{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isacharplus}{\isacharplus}\ y\ {\isacharequal}\ y\ {\isacharplus}{\isacharplus}\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ mono{\isacharcolon}\ {\isachardoublequote}{\isasymAnd}x\ y\ z{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ x\ {\isacharplus}{\isacharplus}\ z\ {\isachargreater}\ y\ {\isacharplus}{\isacharplus}\ z{\isachardoublequote}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequote}x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ z\ {\isacharplus}{\isacharplus}\ x\ {\isachargreater}\ z\ {\isacharplus}{\isacharplus}\ y{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ comm{\isacharunderscore}mono{\isacharcolon}\isanewline
+\ \ \isakeyword{fixes}\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isachargreater}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharplus}{\isacharplus}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ comm{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isacharplus}{\isacharplus}\ y\ {\isacharequal}\ y\ {\isacharplus}{\isacharplus}\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ mono{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}x\ y\ z{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ x\ {\isacharplus}{\isacharplus}\ z\ {\isachargreater}\ y\ {\isacharplus}{\isacharplus}\ z{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ z\ {\isacharplus}{\isacharplus}\ x\ {\isachargreater}\ z\ {\isacharplus}{\isacharplus}\ y{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ comm\ mono{\isacharparenright}%
+\isacommand{by}\isamarkupfalse%
+{\isacharparenleft}simp\ add{\isacharcolon}\ comm\ mono{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent The concrete syntax is dropped at the end of the proof and the
@@ -1519,27 +1527,28 @@ theorem becomes \begin{isabelle}%
 The \isakeyword{obtain} construct can introduce multiple
 witnesses and propositions as in the following proof fragment:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x\ y{\isachardot}\ P\ x\ y\ {\isasymand}\ Q\ x\ y{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}R{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x\ y{\isachardot}\ P\ x\ y\ {\isasymand}\ Q\ x\ y{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}R{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{from}\ A\ \isamarkupfalse%
-\isacommand{obtain}\ x\ y\ \isakeyword{where}\ P{\isacharcolon}\ {\isachardoublequote}P\ x\ y{\isachardoublequote}\ \isakeyword{and}\ Q{\isacharcolon}\ {\isachardoublequote}Q\ x\ y{\isachardoublequote}\ \ \isamarkupfalse%
-\isacommand{by}\ blast%
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ A\ \isacommand{obtain}\isamarkupfalse%
+\ x\ y\ \isakeyword{where}\ P{\isacharcolon}\ {\isachardoublequoteopen}P\ x\ y{\isachardoublequoteclose}\ \isakeyword{and}\ Q{\isacharcolon}\ {\isachardoublequoteopen}Q\ x\ y{\isachardoublequoteclose}\ \ \isacommand{by}\isamarkupfalse%
+\ blast\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Remember also that one does not even need to start with a formula
@@ -1556,39 +1565,39 @@ Finally, whole ``scripts'' (tactic-based proofs in the style of
 \cite{LNCS2283}) may appear in the leaves of the proof tree, although this is
 best avoided.  Here is a contrived example:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ {\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequote}\isanewline
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ {\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isacommand{proof}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{assume}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
-\ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymlongrightarrow}B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequote}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{apply}\ assumption\isanewline
-\ \ \ \ \isamarkupfalse%
-\isacommand{done}\isanewline
-\isamarkupfalse%
-\isacommand{qed}%
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}A\ {\isasymlongrightarrow}B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ assumption\isanewline
+\ \ \ \ \isacommand{done}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \noindent You may need to resort to this technique if an
@@ -1598,12 +1607,14 @@ When converting a proof from tactic-style into Isar you can proceed
 in a top-down manner: parts of the proof can be left in script form
 while the outer structure is already expressed in Isar.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

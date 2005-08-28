@@ -7,6 +7,7 @@
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -14,7 +15,6 @@
 \isadelimtheory
 %
 \endisadelimtheory
-\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 We start with a concept that is required for type classes but already
@@ -31,19 +31,19 @@ constant may have multiple definitions at non-overlapping types.%
 If we want to introduce the notion of an \emph{inverse} for arbitrary types we
 give it a polymorphic type%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{consts}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{consts}\isamarkupfalse%
+\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 and provide different definitions at different instances:%
 \end{isamarkuptext}%
-\isamarkupfalse%
-\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-inverse{\isacharunderscore}bool{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}b{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isasymequiv}\ {\isasymnot}\ b{\isachardoublequote}\isanewline
-inverse{\isacharunderscore}set{\isacharcolon}\ \ {\isachardoublequote}inverse{\isacharparenleft}A{\isacharcolon}{\isacharcolon}{\isacharprime}a\ set{\isacharparenright}\ {\isasymequiv}\ {\isacharminus}A{\isachardoublequote}\isanewline
-inverse{\isacharunderscore}pair{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}inverse{\isacharparenleft}fst\ p{\isacharparenright}{\isacharcomma}\ inverse{\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkuptrue%
-%
+\isamarkuptrue%
+\isacommand{defs}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+inverse{\isacharunderscore}bool{\isacharcolon}\ {\isachardoublequoteopen}inverse{\isacharparenleft}b{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isasymequiv}\ {\isasymnot}\ b{\isachardoublequoteclose}\isanewline
+inverse{\isacharunderscore}set{\isacharcolon}\ \ {\isachardoublequoteopen}inverse{\isacharparenleft}A{\isacharcolon}{\isacharcolon}{\isacharprime}a\ set{\isacharparenright}\ {\isasymequiv}\ {\isacharminus}A{\isachardoublequoteclose}\isanewline
+inverse{\isacharunderscore}pair{\isacharcolon}\ {\isachardoublequoteopen}inverse{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}inverse{\isacharparenleft}fst\ p{\isacharparenright}{\isacharcomma}\ inverse{\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Isabelle will not complain because the three definitions do not overlap: no
@@ -61,12 +61,14 @@ However, there is nothing to prevent the user from forming terms such as
 unspecified constants does not endanger soundness, but it is pointless.
 To prevent such terms from even being formed requires the use of type classes.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
+\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
