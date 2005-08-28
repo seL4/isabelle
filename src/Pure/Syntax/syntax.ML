@@ -60,7 +60,6 @@ sig
     string * bool -> (string * typ * mixfix) list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
-  val type_syn: syntax
   val pure_syn: syntax
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
@@ -295,10 +294,12 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
   end;
 
 
-(* type_syn *)
+(* pure_syn *)
 
-val type_syn = empty_syntax |> extend_syntax default_mode TypeExt.type_ext;
-val pure_syn = type_syn |> extend_syntax default_mode SynExt.pure_ext;
+val pure_syn =
+  empty_syntax
+  |> extend_syntax default_mode TypeExt.type_ext
+  |> extend_syntax default_mode SynExt.pure_ext;
 
 
 
