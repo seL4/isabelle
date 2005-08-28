@@ -48,6 +48,7 @@ sig
 
   (*options*)
   val the: 'a option -> 'a
+  val these: 'a list option -> 'a list
   val if_none: 'a option -> 'a -> 'a
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
@@ -220,13 +221,12 @@ sig
   val duplicates: ''a list -> ''a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
-  (*association lists*)
+  (*association lists -- see also Pure/General/alist.ML*)
   val assoc: (''a * 'b) list * ''a -> 'b option
   val assoc_int: (int * 'a) list * int -> 'a option
   val assoc_string: (string * 'a) list * string -> 'a option
   val assoc_string_int: ((string * int) * 'a) list * (string * int) -> 'a option
   val assocs: (''a * 'b list) list -> ''a -> 'b list
-  val assoc2: (''a * (''b * 'c) list) list * (''a * ''b) -> 'c option
   val gen_assoc: ('a * 'b -> bool) -> ('b * 'c) list * 'a -> 'c option
   val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
   val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
@@ -353,6 +353,8 @@ datatype invalid = None of invalid;
 exception OPTION of invalid;
 
 val the = Option.valOf;
+fun these (SOME x) = x
+  | these _ = []
 
 (*strict!*)
 fun if_none NONE y = y
@@ -1045,16 +1047,7 @@ fun assoc_string_int ([], (key:string*int)) = NONE
   | assoc_string_int ((keyi, xi) :: pairs, key) =
       if key = keyi then SOME xi else assoc_string_int (pairs, key);
 
-fun assocs ps x =
-  (case assoc (ps, x) of
-    NONE => []
-  | SOME ys => ys);
-
-(*two-fold association list lookup*)
-fun assoc2 (aal, (key1, key2)) =
-  (case assoc (aal, key1) of
-    SOME al => assoc (al, key2)
-  | NONE => NONE);
+fun assocs z = curry (these o assoc) z
 
 (*generalized association list lookup*)
 fun gen_assoc eq ([], key) = NONE
