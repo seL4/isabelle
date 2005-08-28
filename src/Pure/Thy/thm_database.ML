@@ -2,13 +2,15 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theorem database ML interface.
+ML toplevel interface to the theorem database.
 *)
 
 signature BASIC_THM_DATABASE =
 sig
   val store_thm: string * thm -> thm
   val store_thms: string * thm list -> thm list
+  val legacy_bindings: theory -> string
+  val use_legacy_bindings: theory -> unit
 end;
 
 signature THM_DATABASE =
@@ -72,6 +74,44 @@ fun ml_store_thms (name, thms) =
     else (qed_thms := thms'; use_text_verbose ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
   end;
 
+
+(* legacy bindings *)
+
+fun legacy_bindings thy =
+  let
+    val thy_name = Context.theory_name thy;
+    val (space, thms) = PureThy.theorems_of thy;
+
+    fun prune name =
+      let
+        val xname = NameSpace.extern space name;
+        fun result prfx bname =
+          if (prfx = "" orelse is_ml_identifier prfx) andalso is_ml_identifier bname andalso
+              NameSpace.intern space xname = name then
+            SOME (prfx, (bname, xname, length (the (Symtab.lookup (thms, name))) = 1))
+          else NONE;
+        val names = NameSpace.unpack name;
+      in
+        (case #2 (splitAt (length names - 2, names)) of
+          [bname] => result "" bname
+        | [prfx, bname] => result (if prfx = thy_name then "" else prfx) bname
+        | _ => NONE)
+      end;
+
+    fun mk_struct "" = I
+      | mk_struct prfx = enclose ("structure " ^ prfx ^ " =\nstruct\n") "\nend\n";
+
+    fun mk_thm (bname, xname, singleton) =
+      "val " ^ bname ^ " = thm" ^ (if singleton then "" else "s") ^ " " ^ quote xname;
+  in
+    Symtab.keys thms |> List.mapPartial prune
+    |> Symtab.make_multi |> Symtab.dest |> sort_wrt #1
+    |> map (fn (prfx, entries) =>
+      entries |> sort_wrt #1 |> map mk_thm |> cat_lines |> mk_struct prfx)
+    |> cat_lines
+  end;
+
+fun use_legacy_bindings thy = Context.use_mltext (legacy_bindings thy) true (SOME thy);
 
 end;
 
