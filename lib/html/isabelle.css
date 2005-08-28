@@ -9,6 +9,7 @@ body { background-color: #FFFFFF; }
 .bound  { color: green; }
 .var    { color: blue; }
 .xstr   { color: brown; }
+.loc    { color: brown; }
 
 .name     { font-style: italic; }
 .keyword  { font-weight: bold; }
