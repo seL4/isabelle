@@ -13,14 +13,6 @@ typedecl mname  --{* method name *}
 typedecl vname  --{* variable or field name *}
 typedecl label  --{* label as destination of break or continue *}
 
-arities
-  tnam  :: "type"
-  pname :: "type"
-  vname :: "type"
-  mname :: "type"
-  label :: "type"
-
-
 datatype ename        --{* expression name *} 
         = VNam vname 
         | Res         --{* special name to model the return value of methods *}
@@ -75,11 +67,10 @@ instance tname::has_tname ..
 defs (overloaded)
 tname_tname_def: "tname (t::tname) \<equiv> t"
 
-axclass has_qtname < "type"
+axclass has_qtname < type
 consts qtname:: "'a::has_qtname \<Rightarrow> qtname"
 
-(* Declare qtname as instance of has_qtname *)
-instance qtname_ext_type::("type") has_qtname ..
+instance qtname_ext_type :: (type) has_qtname ..
 
 defs (overloaded)
 qtname_qtname_def: "qtname (q::qtname) \<equiv> q"
@@ -108,4 +99,3 @@ by (simp add: Object_def SXcpt_def)
 lemma SXcpt_inject [simp]: "(SXcpt xn = SXcpt xm) = (xn = xm)"
 by (simp add: SXcpt_def)
 end
-
