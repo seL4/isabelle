@@ -382,9 +382,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
     fun prepare_sources path =
      (File.mkdir path;
       File.copy_dir document_path path;
-      File.copy (Path.unpack "~~/lib/texinputs/isabelle.sty") path;
-      File.copy (Path.unpack "~~/lib/texinputs/isabellesym.sty") path;
-      File.copy (Path.unpack "~~/lib/texinputs/pdfsetup.sty") path;
+      File.isatool ("latex -o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
