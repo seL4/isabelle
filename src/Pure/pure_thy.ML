@@ -25,7 +25,6 @@ signature PURE_THY =
 sig
   include BASIC_PURE_THY
   val string_of_thmref: thmref -> string
-  val theorem_space: theory -> NameSpace.T
   val print_theorems_diff: theory -> theory -> unit
   val get_thm_closure: theory -> thmref -> thm
   val get_thms_closure: theory -> thmref -> thm list
@@ -34,6 +33,8 @@ sig
   val map_name_of_thmref: (string -> string) -> thmref -> thmref
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
+  val theorems_of: theory -> thm list NameSpace.table
+  val theorem_space: theory -> NameSpace.T
   val fact_index_of: theory -> FactIndex.T
   val valid_thms: theory -> thmref * thm list -> bool
   val thms_containing: theory -> FactIndex.spec -> (string * thm list) list
@@ -114,7 +115,8 @@ end);
 
 val get_theorems_ref = TheoremsData.get;
 val get_theorems = ! o get_theorems_ref;
-val theorem_space = #1 o #theorems o get_theorems;
+val theorems_of = #theorems o get_theorems;
+val theorem_space = #1 o theorems_of;
 val fact_index_of = #index o get_theorems;
 
 
@@ -124,7 +126,7 @@ val print_theorems = TheoremsData.print;
 
 fun print_theorems_diff prev_thy thy =
   Pretty.writeln (pretty_theorems_diff thy
-    (#2 (#theorems (get_theorems prev_thy))) (#theorems (get_theorems thy)));
+    (#2 (theorems_of prev_thy)) (#theorems (get_theorems thy)));
 
 fun print_theory thy =
   Display.pretty_full_theory thy @
@@ -257,9 +259,8 @@ fun thms_containing_consts thy consts =
 (* thms_of etc. *)
 
 fun thms_of thy =
-  let val (_, thms) = #theorems (get_theorems thy) in
-    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms)))
-  end;
+  let val thms = #2 (theorems_of thy)
+  in map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms))) end;
 
 fun all_thms_of thy = List.concat (map thms_of (thy :: Theory.ancestors_of thy));
 
