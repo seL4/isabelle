@@ -22,6 +22,8 @@ sig
   val class_eq: classes -> class * class -> bool
   val class_less: classes -> class * class -> bool
   val class_le: classes -> class * class -> bool
+  val class_le_path: classes -> class * class -> class list option
+  val superclasses: classes -> class -> class list
   val sort_eq: classes -> sort * sort -> bool
   val sort_less: classes -> sort * sort -> bool
   val sort_le: classes -> sort * sort -> bool
@@ -106,11 +108,20 @@ fun class_eq (_: classes) (c1, c2:class) = c1 = c2;
 val class_less: classes -> class * class -> bool = Graph.is_edge;
 fun class_le classes (c1, c2) = c1 = c2 orelse class_less classes (c1, c2);
 
+fun class_le_path classes (subclass, superclass) =
+  if class_eq classes (subclass, superclass)
+  then SOME [subclass]
+  else case Graph.find_paths classes (subclass, superclass)
+    of [] => NONE
+     | (p::_) => SOME p
+
+val superclasses = Graph.imm_succs
+
 
 (* sorts *)
 
 fun sort_le classes (S1, S2) =
-  forall (fn c2 => exists  (fn c1 => class_le classes (c1, c2)) S1) S2;
+  forall (fn c2 => exists (fn c1 => class_le classes (c1, c2)) S1) S2;
 
 fun sorts_le classes (Ss1, Ss2) =
   ListPair.all (sort_le classes) (Ss1, Ss2);
