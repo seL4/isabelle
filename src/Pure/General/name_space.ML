@@ -39,7 +39,6 @@ sig
   val extern: T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
-  val dest: T -> (string * xstring list) list
   type naming
   val path_of: naming -> string
   val full: naming -> bstring -> string
@@ -181,16 +180,6 @@ fun hide fully name space =
 fun merge (NameSpace tab1, space2) = Symtab.fold (fn (xname, (names1, names1')) =>
   xname |> map_space (fn (names2, names2') =>
     (merge_lists' names2 names1, merge_lists' names2' names1'))) tab1 space2;
-
-
-(* dest *)
-
-fun dest_entry (xname, ([], _)) = NONE
-  | dest_entry (xname, (name :: _, _)) = SOME (name, xname);
-
-fun dest (NameSpace tab) =
-  map (apsnd (sort (int_ord o pairself size)))
-    (Symtab.dest (Symtab.make_multi (List.mapPartial dest_entry (Symtab.dest tab))));
 
 
 
