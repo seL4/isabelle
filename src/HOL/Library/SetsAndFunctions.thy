@@ -12,53 +12,40 @@ begin
 text {* 
 This library lifts operations like addition and muliplication to sets and
 functions of appropriate types. It was designed to support asymptotic
-calculations. See the comments at the top of BigO.thy
+calculations. See the comments at the top of theory @{text BigO}.
 *}
 
 subsection {* Basic definitions *} 
 
-instance set :: (plus)plus
-by intro_classes
-
-instance fun :: (type,plus)plus
-by intro_classes
+instance set :: (plus) plus ..
+instance fun :: (type, plus) plus ..
 
 defs (overloaded)
   func_plus: "f + g == (%x. f x + g x)"
   set_plus: "A + B == {c. EX a:A. EX b:B. c = a + b}"
 
-instance set :: (times)times
-by intro_classes
-
-instance fun :: (type,times)times
-by intro_classes
+instance set :: (times) times ..
+instance fun :: (type, times) times ..
 
 defs (overloaded)
   func_times: "f * g == (%x. f x * g x)" 
   set_times:"A * B == {c. EX a:A. EX b:B. c = a * b}"
 
-instance fun :: (type,minus)minus
-by intro_classes
+instance fun :: (type, minus) minus ..
 
 defs (overloaded)
   func_minus: "- f == (%x. - f x)"
   func_diff: "f - g == %x. f x - g x"                 
 
-instance fun :: (type,zero)zero
-by intro_classes
-
-instance set :: (zero)zero
-by(intro_classes)
+instance fun :: (type, zero) zero ..
+instance set :: (zero) zero ..
 
 defs (overloaded)
   func_zero: "0::(('a::type) => ('b::zero)) == %x. 0"
   set_zero: "0::('a::zero)set == {0}"
 
-instance fun :: (type,one)one
-by intro_classes
-
-instance set :: (one)one
-by intro_classes
+instance fun :: (type, one) one ..
+instance set :: (one) one ..
 
 defs (overloaded)
   func_one: "1::(('a::type) => ('b::one)) == %x. 1"

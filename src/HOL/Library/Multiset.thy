@@ -62,25 +62,23 @@ text {*
 *}
 
 lemma const0_in_multiset [simp]: "(\<lambda>a. 0) \<in> multiset"
-by (simp add: multiset_def)
+  by (simp add: multiset_def)
 
 lemma only1_in_multiset [simp]: "(\<lambda>b. if b = a then 1 else 0) \<in> multiset"
-by (simp add: multiset_def)
+  by (simp add: multiset_def)
 
 lemma union_preserves_multiset [simp]:
     "M \<in> multiset ==> N \<in> multiset ==> (\<lambda>a. M a + N a) \<in> multiset"
-  apply (unfold multiset_def, simp)
-  apply (drule finite_UnI, assumption)
+  apply (simp add: multiset_def)
+  apply (drule (1) finite_UnI)
   apply (simp del: finite_Un add: Un_def)
   done
 
 lemma diff_preserves_multiset [simp]:
     "M \<in> multiset ==> (\<lambda>a. M a - N a) \<in> multiset"
-  apply (unfold multiset_def, simp)
+  apply (simp add: multiset_def)
   apply (rule finite_subset)
-   prefer 2
-   apply assumption
-  apply auto
+   apply auto
   done
 
 
@@ -88,22 +86,27 @@ subsection {* Algebraic properties of multisets *}
 
 subsubsection {* Union *}
 
-theorem union_empty [simp]: "M + {#} = M \<and> {#} + M = M"
-by (simp add: union_def Mempty_def)
+lemma union_empty [simp]: "M + {#} = M \<and> {#} + M = M"
+  by (simp add: union_def Mempty_def)
 
-theorem union_commute: "M + N = N + (M::'a multiset)"
-by (simp add: union_def add_ac)
+lemma union_commute: "M + N = N + (M::'a multiset)"
+  by (simp add: union_def add_ac)
 
-theorem union_assoc: "(M + N) + K = M + (N + (K::'a multiset))"
-by (simp add: union_def add_ac)
+lemma union_assoc: "(M + N) + K = M + (N + (K::'a multiset))"
+  by (simp add: union_def add_ac)
 
-theorem union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
-  apply (rule union_commute [THEN trans])
-  apply (rule union_assoc [THEN trans])
-  apply (rule union_commute [THEN arg_cong])
-  done
+lemma union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
+proof -
+  have "M + (N + K) = (N + K) + M"
+    by (rule union_commute)
+  also have "\<dots> = N + (K + M)"
+    by (rule union_assoc)
+  also have "K + M = M + K"
+    by (rule union_commute)
+  finally show ?thesis .
+qed
 
-theorems union_ac = union_assoc union_commute union_lcomm
+lemmas union_ac = union_assoc union_commute union_lcomm
 
 instance multiset :: (type) comm_monoid_add
 proof 
@@ -116,66 +119,66 @@ qed
 
 subsubsection {* Difference *}
 
-theorem diff_empty [simp]: "M - {#} = M \<and> {#} - M = {#}"
-by (simp add: Mempty_def diff_def)
+lemma diff_empty [simp]: "M - {#} = M \<and> {#} - M = {#}"
+  by (simp add: Mempty_def diff_def)
 
-theorem diff_union_inverse2 [simp]: "M + {#a#} - {#a#} = M"
-by (simp add: union_def diff_def)
+lemma diff_union_inverse2 [simp]: "M + {#a#} - {#a#} = M"
+  by (simp add: union_def diff_def)
 
 
 subsubsection {* Count of elements *}
 
-theorem count_empty [simp]: "count {#} a = 0"
-by (simp add: count_def Mempty_def)
+lemma count_empty [simp]: "count {#} a = 0"
+  by (simp add: count_def Mempty_def)
 
-theorem count_single [simp]: "count {#b#} a = (if b = a then 1 else 0)"
-by (simp add: count_def single_def)
+lemma count_single [simp]: "count {#b#} a = (if b = a then 1 else 0)"
+  by (simp add: count_def single_def)
 
-theorem count_union [simp]: "count (M + N) a = count M a + count N a"
-by (simp add: count_def union_def)
+lemma count_union [simp]: "count (M + N) a = count M a + count N a"
+  by (simp add: count_def union_def)
 
-theorem count_diff [simp]: "count (M - N) a = count M a - count N a"
-by (simp add: count_def diff_def)
+lemma count_diff [simp]: "count (M - N) a = count M a - count N a"
+  by (simp add: count_def diff_def)
 
 
 subsubsection {* Set of elements *}
 
-theorem set_of_empty [simp]: "set_of {#} = {}"
-by (simp add: set_of_def)
+lemma set_of_empty [simp]: "set_of {#} = {}"
+  by (simp add: set_of_def)
 
-theorem set_of_single [simp]: "set_of {#b#} = {b}"
-by (simp add: set_of_def)
+lemma set_of_single [simp]: "set_of {#b#} = {b}"
+  by (simp add: set_of_def)
 
-theorem set_of_union [simp]: "set_of (M + N) = set_of M \<union> set_of N"
-by (auto simp add: set_of_def)
+lemma set_of_union [simp]: "set_of (M + N) = set_of M \<union> set_of N"
+  by (auto simp add: set_of_def)
 
-theorem set_of_eq_empty_iff [simp]: "(set_of M = {}) = (M = {#})"
-by (auto simp add: set_of_def Mempty_def count_def expand_fun_eq)
+lemma set_of_eq_empty_iff [simp]: "(set_of M = {}) = (M = {#})"
+  by (auto simp add: set_of_def Mempty_def count_def expand_fun_eq)
 
-theorem mem_set_of_iff [simp]: "(x \<in> set_of M) = (x :# M)"
-by (auto simp add: set_of_def)
+lemma mem_set_of_iff [simp]: "(x \<in> set_of M) = (x :# M)"
+  by (auto simp add: set_of_def)
 
 
 subsubsection {* Size *}
 
-theorem size_empty [simp]: "size {#} = 0"
-by (simp add: size_def)
+lemma size_empty [simp]: "size {#} = 0"
+  by (simp add: size_def)
 
-theorem size_single [simp]: "size {#b#} = 1"
-by (simp add: size_def)
+lemma size_single [simp]: "size {#b#} = 1"
+  by (simp add: size_def)
 
-theorem finite_set_of [iff]: "finite (set_of M)"
-  apply (cut_tac x = M in Rep_multiset)
-  apply (simp add: multiset_def set_of_def count_def)
-  done
+lemma finite_set_of [iff]: "finite (set_of M)"
+  using Rep_multiset [of M]
+  by (simp add: multiset_def set_of_def count_def)
 
-theorem setsum_count_Int:
+lemma setsum_count_Int:
     "finite A ==> setsum (count N) (A \<inter> set_of N) = setsum (count N) A"
-  apply (erule finite_induct, simp)
+  apply (erule finite_induct)
+   apply simp
   apply (simp add: Int_insert_left set_of_def)
   done
 
-theorem size_union [simp]: "size (M + N::'a multiset) = size M + size N"
+lemma size_union [simp]: "size (M + N::'a multiset) = size M + size N"
   apply (unfold size_def)
   apply (subgoal_tac "count (M + N) = (\<lambda>a. count M a + count N a)")
    prefer 2
@@ -185,12 +188,12 @@ theorem size_union [simp]: "size (M + N::'a multiset) = size M + size N"
   apply (simp (no_asm_simp) add: setsum_count_Int)
   done
 
-theorem size_eq_0_iff_empty [iff]: "(size M = 0) = (M = {#})"
+lemma size_eq_0_iff_empty [iff]: "(size M = 0) = (M = {#})"
   apply (unfold size_def Mempty_def count_def, auto)
   apply (simp add: set_of_def count_def expand_fun_eq)
   done
 
-theorem size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
+lemma size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
   apply (unfold size_def)
   apply (drule setsum_SucD, auto)
   done
@@ -198,41 +201,41 @@ theorem size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
 
 subsubsection {* Equality of multisets *}
 
-theorem multiset_eq_conv_count_eq: "(M = N) = (\<forall>a. count M a = count N a)"
-by (simp add: count_def expand_fun_eq)
+lemma multiset_eq_conv_count_eq: "(M = N) = (\<forall>a. count M a = count N a)"
+  by (simp add: count_def expand_fun_eq)
 
-theorem single_not_empty [simp]: "{#a#} \<noteq> {#} \<and> {#} \<noteq> {#a#}"
-by (simp add: single_def Mempty_def expand_fun_eq)
+lemma single_not_empty [simp]: "{#a#} \<noteq> {#} \<and> {#} \<noteq> {#a#}"
+  by (simp add: single_def Mempty_def expand_fun_eq)
 
-theorem single_eq_single [simp]: "({#a#} = {#b#}) = (a = b)"
-by (auto simp add: single_def expand_fun_eq)
+lemma single_eq_single [simp]: "({#a#} = {#b#}) = (a = b)"
+  by (auto simp add: single_def expand_fun_eq)
 
-theorem union_eq_empty [iff]: "(M + N = {#}) = (M = {#} \<and> N = {#})"
-by (auto simp add: union_def Mempty_def expand_fun_eq)
+lemma union_eq_empty [iff]: "(M + N = {#}) = (M = {#} \<and> N = {#})"
+  by (auto simp add: union_def Mempty_def expand_fun_eq)
 
-theorem empty_eq_union [iff]: "({#} = M + N) = (M = {#} \<and> N = {#})"
-by (auto simp add: union_def Mempty_def expand_fun_eq)
+lemma empty_eq_union [iff]: "({#} = M + N) = (M = {#} \<and> N = {#})"
+  by (auto simp add: union_def Mempty_def expand_fun_eq)
 
-theorem union_right_cancel [simp]: "(M + K = N + K) = (M = (N::'a multiset))"
-by (simp add: union_def expand_fun_eq)
+lemma union_right_cancel [simp]: "(M + K = N + K) = (M = (N::'a multiset))"
+  by (simp add: union_def expand_fun_eq)
 
-theorem union_left_cancel [simp]: "(K + M = K + N) = (M = (N::'a multiset))"
-by (simp add: union_def expand_fun_eq)
+lemma union_left_cancel [simp]: "(K + M = K + N) = (M = (N::'a multiset))"
+  by (simp add: union_def expand_fun_eq)
 
-theorem union_is_single:
+lemma union_is_single:
     "(M + N = {#a#}) = (M = {#a#} \<and> N={#} \<or> M = {#} \<and> N = {#a#})"
   apply (simp add: Mempty_def single_def union_def add_is_1 expand_fun_eq)
   apply blast
   done
 
-theorem single_is_union:
+lemma single_is_union:
      "({#a#} = M + N) = ({#a#} = M \<and> N = {#} \<or> M = {#} \<and> {#a#} = N)"
   apply (unfold Mempty_def single_def union_def)
   apply (simp add: add_is_1 one_is_add expand_fun_eq)
   apply (blast dest: sym)
   done
 
-theorem add_eq_conv_diff:
+lemma add_eq_conv_diff:
   "(M + {#a#} = N + {#b#}) =
    (M = N \<and> a = b \<or> M = N - {#a#} + {#b#} \<and> N = M - {#b#} + {#a#})"
   apply (unfold single_def union_def diff_def)
@@ -241,61 +244,36 @@ theorem add_eq_conv_diff:
   apply (simp add: eq_sym_conv)
   done
 
-(*
-val prems = Goal
- "[| !!F. [| finite F; !G. G < F --> P G |] ==> P F |] ==> finite F --> P F";
-by (res_inst_tac [("a","F"),("f","\<lambda>A. if finite A then card A else 0")]
-     measure_induct 1);
-by (Clarify_tac 1)
-by (resolve_tac prems 1)
- by (assume_tac 1)
-by (Clarify_tac 1)
-by (subgoal_tac "finite G" 1)
- by (fast_tac (claset() addDs [finite_subset,order_less_le RS iffD1]) 2);
-by (etac allE 1)
-by (etac impE 1)
- by (Blast_tac 2)
-by (asm_simp_tac (simpset() addsimps [psubset_card]) 1);
-no_qed();
-val lemma = result();
-
-val prems = Goal
- "[| finite F; !!F. [| finite F; !G. G < F --> P G |] ==> P F |] ==> P F";
-by (rtac (lemma RS mp) 1);
-by (REPEAT(ares_tac prems 1));
-qed "finite_psubset_induct";
-
-Better: use wf_finite_psubset in WF_Rel
-*)
-
 declare Rep_multiset_inject [symmetric, simp del]
 
 
 subsubsection {* Intersection *}
 
 lemma multiset_inter_count:
-  "count (A #\<inter> B) x = min (count A x) (count B x)"
-  by (simp add:multiset_inter_def min_def)
+    "count (A #\<inter> B) x = min (count A x) (count B x)"
+  by (simp add: multiset_inter_def min_def)
 
 lemma multiset_inter_commute: "A #\<inter> B = B #\<inter> A"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count 
-                min_max.below_inf.inf_commute)
+    min_max.below_inf.inf_commute)
 
 lemma multiset_inter_assoc: "A #\<inter> (B #\<inter> C) = A #\<inter> B #\<inter> C"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count 
-                min_max.below_inf.inf_assoc)
+    min_max.below_inf.inf_assoc)
 
 lemma multiset_inter_left_commute: "A #\<inter> (B #\<inter> C) = B #\<inter> (A #\<inter> C)"
   by (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def)
 
-lemmas multiset_inter_ac = multiset_inter_commute multiset_inter_assoc
-                           multiset_inter_left_commute
+lemmas multiset_inter_ac =
+  multiset_inter_commute
+  multiset_inter_assoc
+  multiset_inter_left_commute
 
 lemma multiset_union_diff_commute: "B #\<inter> C = {#} \<Longrightarrow> A + B - C = A - C + B"
-  apply (simp add:multiset_eq_conv_count_eq multiset_inter_count min_def 
-              split:split_if_asm)
+  apply (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def 
+    split: split_if_asm)
   apply clarsimp
-  apply (erule_tac x="a" in allE)
+  apply (erule_tac x = a in allE)
   apply auto
   done
 
@@ -310,11 +288,11 @@ lemma setsum_decr:
   done
 
 lemma rep_multiset_induct_aux:
-  "P (\<lambda>a. (0::nat)) ==> (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1)))
-    ==> \<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
+  assumes "P (\<lambda>a. (0::nat))"
+    and "!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))"
+  shows "\<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
 proof -
-  case rule_context
-  note premises = this [unfolded multiset_def]
+  note premises = prems [unfolded multiset_def]
   show ?thesis
     apply (unfold multiset_def)
     apply (induct_tac n, simp, clarify)
@@ -351,27 +329,26 @@ qed
 theorem rep_multiset_induct:
   "f \<in> multiset ==> P (\<lambda>a. 0) ==>
     (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))) ==> P f"
-  by (insert rep_multiset_induct_aux, blast)
+  using rep_multiset_induct_aux by blast
 
 theorem multiset_induct [induct type: multiset]:
-  "P {#} ==> (!!M x. P M ==> P (M + {#x#})) ==> P M"
+  assumes prem1: "P {#}"
+    and prem2: "!!M x. P M ==> P (M + {#x#})"
+  shows "P M"
 proof -
   note defns = union_def single_def Mempty_def
-  assume prem1 [unfolded defns]: "P {#}"
-  assume prem2 [unfolded defns]: "!!M x. P M ==> P (M + {#x#})"
   show ?thesis
     apply (rule Rep_multiset_inverse [THEN subst])
     apply (rule Rep_multiset [THEN rep_multiset_induct])
-     apply (rule prem1)
+     apply (rule prem1 [unfolded defns])
     apply (subgoal_tac "f(b := f b + 1) = (\<lambda>a. f a + (if a=b then 1 else 0))")
      prefer 2
      apply (simp add: expand_fun_eq)
     apply (erule ssubst)
     apply (erule Abs_multiset_inverse [THEN subst]) 
-    apply (erule prem2 [simplified])
+    apply (erule prem2 [unfolded defns, simplified])
     done
 qed
-
 
 lemma MCollect_preserves_multiset:
     "M \<in> multiset ==> (\<lambda>x. if P x then M x else 0) \<in> multiset"
@@ -379,22 +356,23 @@ lemma MCollect_preserves_multiset:
   apply (rule finite_subset, auto)
   done
 
-theorem count_MCollect [simp]:
+lemma count_MCollect [simp]:
     "count {# x:M. P x #} a = (if P a then count M a else 0)"
   by (simp add: count_def MCollect_def MCollect_preserves_multiset)
 
-theorem set_of_MCollect [simp]: "set_of {# x:M. P x #} = set_of M \<inter> {x. P x}"
-by (auto simp add: set_of_def)
+lemma set_of_MCollect [simp]: "set_of {# x:M. P x #} = set_of M \<inter> {x. P x}"
+  by (auto simp add: set_of_def)
 
-theorem multiset_partition: "M = {# x:M. P x #} + {# x:M. \<not> P x #}"
-by (subst multiset_eq_conv_count_eq, auto)
+lemma multiset_partition: "M = {# x:M. P x #} + {# x:M. \<not> P x #}"
+  by (subst multiset_eq_conv_count_eq, auto)
 
-theorem add_eq_conv_ex:
-      "(M + {#a#} = N + {#b#}) =
-       (M = N \<and> a = b \<or> (\<exists>K. M = K + {#b#} \<and> N = K + {#a#}))"
+lemma add_eq_conv_ex:
+  "(M + {#a#} = N + {#b#}) =
+    (M = N \<and> a = b \<or> (\<exists>K. M = K + {#b#} \<and> N = K + {#a#}))"
   by (auto simp add: add_eq_conv_diff)
 
 declare multiset_typedef [simp del]
+
 
 subsection {* Multiset orderings *}
 
@@ -611,7 +589,7 @@ lemma one_step_implies_mult_aux:
   apply (simp add: union_ac)
   done
 
-theorem one_step_implies_mult:
+lemma one_step_implies_mult:
   "trans r ==> J \<noteq> {#} ==> \<forall>k \<in> set_of K. \<exists>j \<in> set_of J. (k, j) \<in> r
     ==> (I + K, I + J) \<in> mult r"
   apply (insert one_step_implies_mult_aux, blast)
@@ -641,7 +619,7 @@ lemma mult_irrefl_aux:
    apply (auto intro: order_less_trans)
   done
 
-theorem mult_less_not_refl: "\<not> M < (M::'a::order multiset)"
+lemma mult_less_not_refl: "\<not> M < (M::'a::order multiset)"
   apply (unfold less_multiset_def, auto)
   apply (drule trans_base_order [THEN mult_implies_one_step], auto)
   apply (drule finite_set_of [THEN mult_irrefl_aux [rule_format (no_asm)]])
@@ -706,7 +684,7 @@ instance multiset :: (order) order
 
 subsubsection {* Monotonicity of multiset union *}
 
-theorem mult1_union:
+lemma mult1_union:
     "(B, D) \<in> mult1 r ==> trans r ==> (C + B, C + D) \<in> mult1 r"
   apply (unfold mult1_def, auto)
   apply (rule_tac x = a in exI)
@@ -727,18 +705,18 @@ lemma union_less_mono1: "B < D ==> B + C < D + (C::'a::order multiset)"
   apply (erule union_less_mono2)
   done
 
-theorem union_less_mono:
+lemma union_less_mono:
     "A < C ==> B < D ==> A + B < C + (D::'a::order multiset)"
   apply (blast intro!: union_less_mono1 union_less_mono2 mult_less_trans)
   done
 
-theorem union_le_mono:
+lemma union_le_mono:
     "A <= C ==> B <= D ==> A + B <= C + (D::'a::order multiset)"
   apply (unfold le_multiset_def)
   apply (blast intro: union_less_mono union_less_mono1 union_less_mono2)
   done
 
-theorem empty_leI [iff]: "{#} <= (M::'a::order multiset)"
+lemma empty_leI [iff]: "{#} <= (M::'a::order multiset)"
   apply (unfold le_multiset_def less_multiset_def)
   apply (case_tac "M = {#}")
    prefer 2
@@ -748,13 +726,13 @@ theorem empty_leI [iff]: "{#} <= (M::'a::order multiset)"
       apply (simp only: trans_def, auto)
   done
 
-theorem union_upper1: "A <= A + (B::'a::order multiset)"
+lemma union_upper1: "A <= A + (B::'a::order multiset)"
 proof -
   have "A + {#} <= A + B" by (blast intro: union_le_mono) 
   thus ?thesis by simp
 qed
 
-theorem union_upper2: "B <= A + (B::'a::order multiset)"
+lemma union_upper2: "B <= A + (B::'a::order multiset)"
 by (subst union_commute, rule union_upper1)
 
 
