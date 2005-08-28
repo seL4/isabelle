@@ -623,7 +623,7 @@ fun from_facts facts state =
 
 (* note / from / with *)
 
-fun no_result args = map (pair ("", [])) args;
+fun no_binding args = map (pair ("", [])) args;
 
 local
 
@@ -641,12 +641,12 @@ val note_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) I (K I);
 fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
 
 val from_thmss =
-  gen_thmss ProofContext.note_thmss (K []) chain Attrib.local_attribute o no_result;
-val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain (K I) o no_result;
+  gen_thmss ProofContext.note_thmss (K []) chain Attrib.local_attribute o no_binding;
+val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain (K I) o no_binding;
 
 val with_thmss =
-  gen_thmss ProofContext.note_thmss the_facts chain Attrib.local_attribute o no_result;
-val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain (K I) o no_result;
+  gen_thmss ProofContext.note_thmss the_facts chain Attrib.local_attribute o no_binding;
+val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain (K I) o no_binding;
 
 end;
 
@@ -658,7 +658,7 @@ local
 fun gen_using_thmss note prep_atts args state =
   state
   |> assert_backward
-  |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_result args)))
+  |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
   |> (fn (st, named_facts) =>
     let val (_, (_, ((result, (facts, thm)), x))) = find_goal st;
     in st |> map_goal I (K ((result, (facts @ List.concat (map snd named_facts), thm)), x)) end);
@@ -957,14 +957,8 @@ val global_done_proof = global_term_proof false (Method.done_text, NONE);
 fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
 fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
 
-fun apply text =
-  assert_backward
-  #> refine text
-  #> Seq.map (goal_facts (K []));
-
-fun apply_end text =
-  assert_forward
-  #> refine_end text;
+fun apply text = assert_backward #> refine text #> Seq.map (goal_facts (K []));
+fun apply_end text = assert_forward #> refine_end text;
 
 
 

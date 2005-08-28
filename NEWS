@@ -19,7 +19,7 @@ where the 'uses' part is optional.  The previous syntax
 
 will disappear in the next release.  Use isatool fixheaders to convert
 existing theory files.  Note that there is no change in ancient
-non-Isar theories.
+non-Isar theories now, but these are likely to disappear soon.
 
 * Theory loader: parent theories can now also be referred to via
 relative and absolute paths.
@@ -658,6 +658,11 @@ respectively, in order to see the context dependent fields!
 File.platform_path and File.shell_path (with appropriate hooks).  This
 provides a clean interface for unusual systems where the internal and
 external process view of file names are different.
+
+* ML functions legacy_bindings and use_legacy_bindings produce ML fact
+bindings for all theorems stored within a given theory; this may help
+in porting non-Isar theories to Isar ones, while keeping ML proof
+scripts for the time being.
 
 
 *** System ***
