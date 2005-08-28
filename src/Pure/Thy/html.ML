@@ -54,8 +54,6 @@ fun html_mode f x = setmp print_mode (htmlN :: ! print_mode) f x;
 (* symbol output *)
 
 local
-  val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
-
   val html_syms = Symtab.make
    [("\\<spacespace>", (2.0, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1.0, "&iexcl;")),
@@ -200,40 +198,39 @@ local
     ("\\<^bsub>", (0.0, "<sub>")),
     ("\\<^esub>", (0.0, "</sub>")),
     ("\\<^bsup>", (0.0, "<sup>")),
-    ("\\<^esup>", (0.0, "</sup>")),
-    ("\\<^sub>", (0.0, "\\<^sub>")),
-    ("\\<^sup>", (0.0, "\\<^sup>")),
-    ("\\<^isub>", (0.0, "\\<^isub>")),
-    ("\\<^isup>", (0.0, "\\<^isup>"))];
+    ("\\<^esup>", (0.0, "</sup>"))];
+
+  val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
 
   fun output_sym s =
     if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
     else
       (case Symtab.lookup (html_syms, s) of SOME x => x
-      | NONE => (real (size s), implode (map escape (explode s))));
+      | NONE => (real (size s), translate_string escape s));
 
-  fun add_sym (width, (w: real, s)) = (width + w, s);
+  fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
+  fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
+  fun output_loc s = apsnd (enclose "<span class=\"loc\">" "</span>") (output_sym s);
 
-  fun script (0, "\\<^sub>") = (1, "<sub>")
-    | script (0, "\\<^isub>") = (1, "<sub>")
-    | script (0, "\\<^sup>") = (2, "<sup>")
-    | script (0, "\\<^isup>") = (2, "<sup>")
-    | script (0, x) = (0, x)
-    | script (1, x) = (0, x ^ "</sub>")
-    | script (2, x) = (0, x ^ "</sup>");
-
-  fun scripts ss = #2 (foldl_map script (0, ss @ [""]));
+  fun output_syms ("\\<^sub>" :: s :: ss) = output_sub s :: output_syms ss
+    | output_syms ("\\<^isub>" :: s :: ss) = output_sub s :: output_syms ss
+    | output_syms ("\\<^sup>" :: s :: ss) = output_sup s :: output_syms ss
+    | output_syms ("\\<^isup>" :: s :: ss) = output_sup s :: output_syms ss
+    | output_syms ("\\<^loc>" :: s :: ss) = output_loc s :: output_syms ss
+    | output_syms (s :: ss) = output_sym s :: output_syms ss
+    | output_syms [] = [];
 in
 
 fun output_width str =
   if not (exists_string (equal "\\" orf equal "<" orf equal ">" orf equal "&") str)
   then Symbol.default_output str
   else
-    let val (width, syms) = foldl_map add_sym (0.0, map output_sym (Symbol.explode str))
-    in (implode (scripts syms), width) end;
+    let val (syms, width) = fold_map (fn (w, s) => fn width => (s, w + width))
+      (output_syms (Symbol.explode str)) 0.0
+    in (implode syms, width) end;
 
 val output = #1 o output_width;
-val output_symbols = scripts o map (#2 o output_sym);
+val output_symbols = map #2 o output_syms;
 
 end;
 
@@ -365,7 +362,7 @@ fun session_entries [] = "</ul>"
 
 fun verbatim_source ss =
   "\n</div>\n<hr>\n<div class=\"source\">\n<pre>" ^
-  implode (output_symbols ss)  ^
+  implode (output_symbols ss) ^
   "</pre>\n</div>\n<hr>\n<div class=\"theorems\">\n";
 
 
