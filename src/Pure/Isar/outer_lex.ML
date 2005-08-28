@@ -9,7 +9,7 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | Verbatim | Space | Comment | Sync | Malformed | EOF
+    Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed | EOF
   eqtype token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -42,7 +42,8 @@ sig
   val source: bool -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
     Position.T -> (Symbol.symbol, 'a) Source.source ->
     (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
-  val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
+  val source_proper: (token, 'a) Source.source ->
+    (token, (token, 'a) Source.source) Source.source
   val make_lexicon: string list -> Scan.lexicon
 end;
 
@@ -56,7 +57,7 @@ struct
 
 datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | Verbatim | Space | Comment | Sync | Malformed | EOF;
+  Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -71,6 +72,7 @@ val str_of_kind =
   | TypeVar => "schematic type variable"
   | Nat => "number"
   | String => "string"
+  | AltString => "back-quoted string"
   | Verbatim => "verbatim text"
   | Space => "white space"
   | Comment => "comment text"
@@ -151,6 +153,7 @@ fun name_of (tok as Token (_, (k, x))) =
 fun unparse (Token (_, (kind, x))) =
   (case kind of
     String => x |> quote
+  | AltString => x |> enclose "`" "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
   | _ => x);
@@ -184,7 +187,7 @@ val scan_blank =
 
 (* scan symbolic idents *)
 
-val sym_chars = explode "!#$%&*+-/:<=>?@^_`|~";
+val sym_chars = explode "!#$%&*+-/:<=>?@^_|~";
 fun is_sym_char s = s mem sym_chars;
 
 val scan_symid =
@@ -202,17 +205,26 @@ val is_sid = is_symid orf Syntax.is_identifier;
 
 (* scan strings *)
 
-val scan_str =
+local
+
+fun scan_str q =
   scan_blank ||
   keep_line ($$ "\\") |-- !!! "bad escape character in string"
-      (scan_blank || keep_line ($$ "\"" || $$ "\\")) ||
-  keep_line (Scan.one (not_equal "\\" andf not_equal "\"" andf
+      (scan_blank || keep_line ($$ q || $$ "\\")) ||
+  keep_line (Scan.one (not_equal q andf not_equal "\\" andf
     Symbol.not_sync andf Symbol.not_eof));
 
-val scan_string =
-  keep_line ($$ "\"") |--
+fun scan_strs q =
+  keep_line ($$ q) |--
     !!! "missing quote at end of string"
-      (change_prompt ((Scan.repeat scan_str >> implode) --| keep_line ($$ "\"")));
+      (change_prompt ((Scan.repeat (scan_str q) >> implode) --| keep_line ($$ q)));
+
+in
+
+val scan_string = scan_strs "\"";
+val scan_alt_string = scan_strs "`";
+
+end;
 
 
 (* scan verbatim text *)
@@ -263,6 +275,7 @@ fun scan (lex1, lex2) =
         fun sync _ = token Sync Symbol.sync;
       in
         scan_string >> token String ||
+        scan_alt_string >> token AltString ||
         scan_verbatim >> token Verbatim ||
         scan_space >> token Space ||
         scan_comment >> token Comment ||
