@@ -401,11 +401,11 @@ fun IT_EXISTS blist th =
        val tych = cterm_of sign
        val detype = #t o rep_cterm
        val blist' = map (fn (x,y) => (detype x, detype y)) blist
-       fun ?? v M  = cterm_of sign (S.mk_exists{Bvar=v,Body = M})
+       fun ex v M  = cterm_of sign (S.mk_exists{Bvar=v,Body = M})
 
   in
   fold_rev (fn (b as (r1,r2)) => fn thm =>
-        EXISTS(?? r2 (subst_free [b]
+        EXISTS(ex r2 (subst_free [b]
                    (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
               thm)
        blist' th
