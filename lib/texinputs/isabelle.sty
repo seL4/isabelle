@@ -49,11 +49,13 @@
 
 \newcommand{\isaindent}[1]{\hphantom{#1}}
 \newcommand{\isanewline}{\mbox{}\par\mbox{}}
-\newcommand{\isasep}{} % override with e.g. \renewcommand{\isasep}{\vspace{1ex}}
+\newcommand{\isasep}{}
 \newcommand{\isadigit}[1]{#1}
 
 \chardef\isacharbang=`\!
 \chardef\isachardoublequote=`\"
+\chardef\isachardoublequoteopen=`\"
+\chardef\isachardoublequoteclose=`\"
 \chardef\isacharhash=`\#
 \chardef\isachardollar=`\$
 \chardef\isacharpercent=`\%
@@ -80,6 +82,8 @@
 \chardef\isacharcircum=`\^
 \chardef\isacharunderscore=`\_
 \chardef\isacharbackquote=`\`
+\chardef\isacharbackquoteopen=`\`
+\chardef\isacharbackquoteclose=`\`
 \chardef\isacharbraceleft=`\{
 \chardef\isacharbar=`\|
 \chardef\isacharbraceright=`\}
@@ -129,6 +133,8 @@
 \renewcommand{\isakeywordcharunderscore}{\mbox{-}}%
 \renewcommand{\isacharbang}{\isamath{!}}%
 \renewcommand{\isachardoublequote}{}%
+\renewcommand{\isachardoublequoteopen}{}%
+\renewcommand{\isachardoublequoteclose}{}%
 \renewcommand{\isacharhash}{\isamath{\#}}%
 \renewcommand{\isachardollar}{\isamath{\$}}%
 \renewcommand{\isacharpercent}{\isamath{\%}}%
@@ -156,6 +162,8 @@
 \renewcommand{\isacharbar}{\isamath{\mid}}%
 \renewcommand{\isacharbraceright}{\isamath{\}}}%
 \renewcommand{\isachartilde}{\isamath{{}\sp{\sim}}}%
+\renewcommand{\isacharbackquoteopen}{\isatext{\raise.3ex\hbox{$\scriptscriptstyle\langle$}}}%
+\renewcommand{\isacharbackquoteclose}{\isatext{\raise.3ex\hbox{$\scriptscriptstyle\rangle$}}}%
 }
 
 \newcommand{\isabellestylesl}{%
