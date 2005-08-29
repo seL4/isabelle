@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Logic}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -1151,7 +1151,6 @@ decompose goals and facts. This can lead to very tedious proofs:%
 \endisadelimML
 %
 \isatagML
-\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -1310,7 +1309,6 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 \isamarkuptrue%
 %
 \renewcommand{\isamarkupcmt}[1]{#1}
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -1320,8 +1318,7 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}P\isactrlisub {\isadigit{1}}\ {\isasymor}\ P\isactrlisub {\isadigit{2}}\ {\isasymor}\ P\isactrlisub {\isadigit{3}}{\isachardoublequoteclose}\ \isamarkupfalse%
-\ %
+\ {\isachardoublequoteopen}P\isactrlisub {\isadigit{1}}\ {\isasymor}\ P\isactrlisub {\isadigit{2}}\ {\isasymor}\ P\isactrlisub {\isadigit{3}}{\isachardoublequoteclose}\ \ %
 \isamarkupcmt{\dots%
 }
 \isanewline
@@ -1335,8 +1332,7 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 }
 \isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isamarkupfalse%
-\ %
+\ {\isacharquery}thesis\ \ %
 \isamarkupcmt{\dots%
 }
 \ \isacommand{{\isacharbraceright}}\isamarkupfalse%
@@ -1351,8 +1347,7 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 }
 \isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isamarkupfalse%
-\ %
+\ {\isacharquery}thesis\ \ %
 \isamarkupcmt{\dots%
 }
 \ \isacommand{{\isacharbraceright}}\isamarkupfalse%
@@ -1367,8 +1362,7 @@ goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 }
 \isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isamarkupfalse%
-\ %
+\ {\isacharquery}thesis\ \ %
 \isamarkupcmt{\dots%
 }
 \ \isacommand{{\isacharbraceright}}\isamarkupfalse%
@@ -1450,7 +1444,6 @@ little by combining the type constraint with an outer \isa{{\isasymAnd}}:%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -1472,7 +1465,6 @@ This is avoided by \isakeyword{fixes}:%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -1541,8 +1533,7 @@ witnesses and propositions as in the following proof fragment:%
 \ \ \isacommand{from}\isamarkupfalse%
 \ A\ \isacommand{obtain}\isamarkupfalse%
 \ x\ y\ \isakeyword{where}\ P{\isacharcolon}\ {\isachardoublequoteopen}P\ x\ y{\isachardoublequoteclose}\ \isakeyword{and}\ Q{\isacharcolon}\ {\isachardoublequoteopen}Q\ x\ y{\isachardoublequoteclose}\ \ \isacommand{by}\isamarkupfalse%
-\ blast\isamarkupfalse%
-%
+\ blast%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1614,7 +1605,6 @@ while the outer structure is already expressed in Isar.%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

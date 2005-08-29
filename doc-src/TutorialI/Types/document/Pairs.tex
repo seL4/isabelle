@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Pairs}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -132,7 +132,6 @@ This subgoal is easily proved by simplification. Thus we could have combined
 simplification and splitting in one command that proves the goal outright:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -140,7 +139,6 @@ simplification and splitting in one command that proves the goal outright:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -178,7 +176,6 @@ A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -206,7 +203,6 @@ as above. If you are worried about the strange form of the premise:
 The same proof procedure works for%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -231,7 +227,6 @@ However, splitting \isa{split} is not always a solution, as no \isa{split}
 may be present in the goal. Consider the following function:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -285,7 +280,6 @@ You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal
 with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -335,7 +329,6 @@ The following command could fail (here it does not)
 where two separate \isa{simp} applications succeed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -343,8 +336,7 @@ where two separate \isa{simp} applications succeed.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -395,7 +387,6 @@ responsible simplification rules:
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

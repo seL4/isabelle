@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Tree}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -22,9 +22,7 @@ Define the datatype of \rmindex{binary trees}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\ {\isacharprime}a\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\isamarkupfalse%
-\isamarkupfalse%
-%
+\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\ {\isacharprime}a\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{mirror} that mirrors a binary tree
@@ -38,8 +36,6 @@ by swapping subtrees recursively. Prove%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -47,8 +43,6 @@ by swapping subtrees recursively. Prove%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -63,8 +57,6 @@ by traversing it in infix order. Prove%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -78,7 +70,6 @@ by traversing it in infix order. Prove%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

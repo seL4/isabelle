@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Documents}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -156,14 +156,12 @@ Concrete syntax based on ASCII characters has inherent limitations.
   specifies an Isabelle symbol for the new operator:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
-\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -174,8 +172,7 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isacommand{constdefs}\isamarkupfalse%
 \isanewline
 \ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isamarkupfalse%
-%
+\ \ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent The X-Symbol package within Proof~General provides several
   input methods to enter \isa{{\isasymoplus}} in the text.  If all fails one may
@@ -189,14 +186,12 @@ Concrete syntax based on ASCII characters has inherent limitations.
   consider the following hybrid declaration of \isa{xor}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimML
 %
 \endisadelimML
 %
 \isatagML
-\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -211,8 +206,7 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isanewline
 \isacommand{syntax}\isamarkupfalse%
 \ {\isacharparenleft}xsymbols{\isacharparenright}\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isamarkupfalse%
-%
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 The \commdx{syntax} command introduced here acts like
   \isakeyword{consts}, but without declaring a logical constant.  The
@@ -918,7 +912,6 @@ By default, Isabelle's document system generates a {\LaTeX} file for
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

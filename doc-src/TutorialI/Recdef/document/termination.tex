@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{termination}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -60,14 +60,11 @@ simplification, we include in our second attempt a hint: the
 simplification rule.\cmmdx{hints}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 \isacommand{recdef}\isamarkupfalse%
 \ qs\ {\isachardoublequoteopen}measure\ length{\isachardoublequoteclose}\isanewline
 \ {\isachardoublequoteopen}qs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 \ {\isachardoublequoteopen}qs{\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ y{\isasymle}x{\isacharparenright}\ xs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharat}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ x{\isacharless}y{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{qs{\isachardot}simps} contains precisely
@@ -111,7 +108,6 @@ turn it permanently into a simplification rule, in which case the above
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

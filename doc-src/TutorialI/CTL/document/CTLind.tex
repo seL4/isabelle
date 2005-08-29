@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CTLind}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -137,8 +137,7 @@ moment we assume this and proceed with the induction:%
 \ \isacommand{apply}\isamarkupfalse%
 {\isacharparenleft}erule{\isacharunderscore}tac\ a\ {\isacharequal}\ t\ \isakeyword{in}\ wf{\isacharunderscore}induct{\isacharparenright}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}clarsimp{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
@@ -239,7 +238,6 @@ by the first \isa{Avoid}-rule. Isabelle confirms this:%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CodeGen}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -116,7 +116,6 @@ execution of a compiled expression results in the value of the expression:%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -145,7 +144,6 @@ First, we must prove a lemma about executing the concatenation of two
 instruction sequences:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -171,8 +169,7 @@ automatic case splitting, which finishes the proof:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -187,8 +184,6 @@ be modified in the same way as \isa{simp}.  Thus the proof can be
 rewritten as%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -196,8 +191,7 @@ rewritten as%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -216,14 +210,12 @@ its instance.%
 \index{compiling expressions example|)}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -237,7 +229,6 @@ its instance.%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

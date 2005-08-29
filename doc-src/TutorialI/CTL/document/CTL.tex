@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CTL}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -29,7 +29,6 @@ We extend the datatype
 \isa{formula} by a new constructor%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
 \begin{isamarkuptext}%
 \noindent
@@ -51,8 +50,6 @@ presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
 a new datatype and a new function.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 {\isachardoublequoteopen}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -69,8 +66,6 @@ Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the leas
 \isa{mc\ f} and all states all of whose direct successors are in \isa{T}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 {\isachardoublequoteopen}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -98,15 +93,12 @@ that is irrelevant), \isa{af\ A} has a least fixed point:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -114,27 +106,12 @@ that is irrelevant), \isa{af\ A} has a least fixed point:%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -392,28 +369,12 @@ is extensionally equal to \isa{path\ s\ Q},
 where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -518,8 +479,7 @@ an auxiliary function:%
 \isacommand{primrec}\isamarkupfalse%
 \isanewline
 {\isachardoublequoteopen}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequoteclose}\isamarkupfalse%
-%
+{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Expressing the semantics of \isa{EU} is now straightforward:
@@ -546,21 +506,12 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -568,16 +519,12 @@ For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -585,24 +532,12 @@ For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -631,7 +566,6 @@ from HOL definitions, but that is beyond the scope of the tutorial.%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

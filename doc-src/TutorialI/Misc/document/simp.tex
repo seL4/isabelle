@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{simp}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -261,7 +261,6 @@ In this particular case, the resulting goal
 can be proved by simplification. Thus we could have proved the lemma outright by%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -269,7 +268,6 @@ can be proved by simplification. Thus we could have proved the lemma outright by
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -277,8 +275,7 @@ can be proved by simplification. Thus we could have proved the lemma outright by
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -390,7 +387,6 @@ the lemma below is proved by plain simplification:%
 \endisadelimproof
 %
 \isatagproof
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -450,7 +446,6 @@ This splitting idea generalizes from \isa{if} to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -482,7 +477,6 @@ for adding splitting rules explicitly.  The
 lemma above can be proved in one step by%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -490,7 +484,6 @@ lemma above can be proved in one step by%
 \isadelimproof
 %
 \endisadelimproof
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -498,8 +491,7 @@ lemma above can be proved in one step by%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -524,7 +516,6 @@ The \isa{split} attribute can be removed with the \isa{del} modifier,
 either locally%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \isadelimproof
 %
@@ -532,8 +523,7 @@ either locally%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -594,7 +584,6 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
 \end{warn}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -622,8 +611,7 @@ Proof General flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Sim
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -772,7 +760,6 @@ to type in lengthy expressions again and again.
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%

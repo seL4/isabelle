@@ -1,13 +1,13 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{AB}%
+\isamarkupfalse%
 %
 \isadelimtheory
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -309,8 +309,7 @@ of \isa{w}, using the induction rule \isa{length{\isacharunderscore}induct}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The \isa{rule} parameter tells \isa{induct{\isacharunderscore}tac} explicitly which induction
@@ -325,8 +324,7 @@ on whether \isa{w} is empty or not.%
 \isacommand{apply}\isamarkupfalse%
 {\isacharparenleft}case{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
-%
+{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 Simplification disposes of the base case and leaves only a conjunction
@@ -452,7 +450,6 @@ are scrutinized formally.%
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
