@@ -406,7 +406,7 @@ end;
 
 (* internalize Skolem constants *)
 
-fun lookup_skolem ctxt x = assoc (fixes_of ctxt, x);
+val lookup_skolem = AList.lookup (op =) o fixes_of;
 fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
 
 fun no_skolem internal ctxt x =
@@ -437,7 +437,7 @@ fun extern_skolem ctxt =
     val rev_fixes = map Library.swap (fixes_of ctxt);
 
     fun extern (t as Free (x, T)) =
-          (case assoc (rev_fixes, x) of
+          (case AList.lookup (op =) rev_fixes x of
             SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
           | NONE => t)
       | extern (t $ u) = extern t $ extern u
@@ -1259,7 +1259,7 @@ fun add_case ("", _) cases = cases
 in
 
 fun get_case ctxt name xs =
-  (case assoc_string (cases_of ctxt, name) of
+  (case AList.lookup (op =) (cases_of ctxt) name of
     NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
   | SOME c => prep_case ctxt name xs c);
 

@@ -150,7 +150,7 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 local
 
 fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
+  | inst_typ env (T as TFree (x, _)) = if_none (AList.lookup (op =) env x) T
   | inst_typ _ T = T;
 
 fun certify_typ normalize syntax tsig ty =
@@ -223,7 +223,7 @@ fun varify (t, fixed) =
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ map (rpair 0) (variantlist (map fst fs, map #1 ixns))
     fun thaw (f as (a, S)) =
-      (case gen_assoc (op =) (fmap, f) of
+      (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME xi => TVar (xi, S));
   in (map_term_types (map_type_tfree thaw) t, fmap) end;
@@ -238,11 +238,11 @@ fun new_name (ix, (pairs, used)) =
   in ((ix, v) :: pairs, v :: used) end;
 
 fun freeze_one alist (ix, sort) =
-  TFree (the (assoc_string_int (alist, ix)), sort)
+  TFree (the (AList.lookup (op =) alist ix), sort)
     handle Option =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
-fun thaw_one alist (a, sort) = TVar (the (assoc_string (alist, a)), sort)
+fun thaw_one alist (a, sort) = TVar (the (AList.lookup (op =) alist a), sort)
   handle Option => TFree (a, sort);
 
 in
@@ -464,7 +464,7 @@ fun coregular pp C t (c, Ss) ars =
   end;
 
 fun insert pp C t (c, Ss) ars =
-  (case assoc_string (ars, c) of
+  (case AList.lookup (op =) ars c of
     NONE => coregular pp C t (c, Ss) ars
   | SOME Ss' =>
       if Sorts.sorts_le C (Ss, Ss') then ars

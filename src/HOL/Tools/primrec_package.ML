@@ -72,11 +72,11 @@ fun process_eqn sign (eq, rec_fns) =
      (check_vars "repeated variable names in pattern: " (duplicates lfrees);
       check_vars "extra variables on rhs: "
         (map dest_Free (term_frees rhs) \\ lfrees);
-      case assoc (rec_fns, fnameT) of
+      case AList.lookup (op =) rec_fns fnameT of
         NONE =>
           (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
       | SOME (_, rpos', eqns) =>
-          if isSome (assoc (eqns, cname)) then
+          if AList.defined (op =) eqns cname then
             raise RecError "constructor already occurred as pattern"
           else if rpos <> rpos' then
             raise RecError "position of recursive argument inconsistent"
@@ -104,7 +104,7 @@ fun process_fun sign descr rec_eqns ((i, fnameT as (fname, _)), (fnameTs, fnss))
             if is_Const f andalso dest_Const f mem map fst rec_eqns then
               let
                 val fnameT' as (fname', _) = dest_Const f;
-                val (_, rpos, _) = valOf (assoc (rec_eqns, fnameT'));
+                val (_, rpos, _) = the (AList.lookup (op =) rec_eqns fnameT');
                 val ls = Library.take (rpos, ts);
                 val rest = Library.drop (rpos, ts);
                 val (x', rs) = (hd rest, tl rest)
@@ -112,7 +112,7 @@ fun process_fun sign descr rec_eqns ((i, fnameT as (fname, _)), (fnameTs, fnss))
                    \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
                 val (x, xs) = strip_comb x'
               in 
-                (case assoc (subs, x) of
+                (case AList.lookup (op =) subs x of
                     NONE =>
                       let
                         val (fs', ts') = foldl_map (subst subs) (fs, ts)
@@ -134,7 +134,7 @@ fun process_fun sign descr rec_eqns ((i, fnameT as (fname, _)), (fnameTs, fnss))
     (* translate rec equations into function arguments suitable for rec comb *)
 
     fun trans eqns ((cname, cargs), (fnameTs', fnss', fns)) =
-      (case assoc (eqns, cname) of
+      (case AList.lookup (op =) eqns cname of
           NONE => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
               (fnameTs', fnss', (Const ("arbitrary", dummyT))::fns))
@@ -154,13 +154,13 @@ fun process_fun sign descr rec_eqns ((i, fnameT as (fname, _)), (fnameTs, fnss))
 		(list_abs_free (cargs' @ subs @ ls @ rs, rhs'))::fns)
             end)
 
-  in (case assoc (fnameTs, i) of
+  in (case AList.lookup (op =) fnameTs i of
       NONE =>
         if exists (equal fnameT o snd) fnameTs then
           raise RecError ("inconsistent functions for datatype " ^ quote tname)
         else
           let
-            val (_, _, eqns) = valOf (assoc (rec_eqns, fnameT));
+            val (_, _, eqns) = the (AList.lookup (op =) rec_eqns fnameT);
             val (fnameTs', fnss', fns) = foldr (trans eqns)
               ((i, fnameT)::fnameTs, fnss, []) constrs
           in
@@ -175,7 +175,7 @@ fun process_fun sign descr rec_eqns ((i, fnameT as (fname, _)), (fnameTs, fnss))
 (* prepare functions needed for definitions *)
 
 fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
-  case assoc (fns, i) of
+  case AList.lookup (op =) fns i of
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const ("arbitrary",
@@ -216,7 +216,7 @@ fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
   let
     fun constrs_of (_, (_, _, cs)) =
       map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
-    val params_of = Library.assocs (List.concat (map constrs_of rec_eqns));
+    val params_of = these o AList.lookup (op =) (List.concat (map constrs_of rec_eqns));
   in
     induction
     |> RuleCases.rename_params (map params_of (List.concat (map (map #1 o #3 o #2) descr)))

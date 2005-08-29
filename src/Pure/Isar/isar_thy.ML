@@ -143,7 +143,7 @@ val kinds =
   ("const", (Sign.intern_const, Sign.declared_const, Theory.hide_consts_i))];
 
 fun gen_hide int (kind, xnames) thy =
-  (case assoc_string (kinds, kind) of
+  (case AList.lookup (op =) kinds kind of
     SOME (intern, check, hide) =>
       let
         val names = if int then map (intern thy) xnames else xnames;

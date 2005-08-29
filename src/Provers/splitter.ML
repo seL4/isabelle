@@ -240,7 +240,7 @@ fun split_posns cmap sg Ts t =
                              then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
                              else find tups
                           end
-                in find (assocs cmap c) end
+                in find (these (AList.lookup (op =) cmap c)) end
             | _ => []
           in snd(Library.foldl iter ((0, a), ts)) end
   in posns Ts [] [] t end;
@@ -331,7 +331,7 @@ fun split_tac [] i = no_tac
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,aT),args) =>
                   let val info = (aT,lhs,thm,fastype_of t,length args)
-                  in case assoc(cmap,a) of
+                  in case AList.lookup (op =) cmap a of
                        SOME infos => overwrite(cmap,(a,info::infos))
                      | NONE => (a,[info])::cmap
                   end

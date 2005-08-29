@@ -338,18 +338,18 @@ fun read_instantiate init mixed_insts (context, thm) =
     val external_insts''' = xs ~~ ts;
     val term_insts''' = internal_insts''' @ external_insts''';
     val thm''' = instantiate thy inferred external_insts''' thm'';
-  in
+
 
     (* assign internalized values *)
 
-    mixed_insts |> List.app (fn (arg, (xi, _)) =>
-      if is_tvar xi then
-        Args.assign (SOME (Args.Typ (the (assoc (type_insts''', xi))))) arg
-      else
-        Args.assign (SOME (Args.Term (the (assoc (term_insts''', xi))))) arg);
+    val _ =
+      mixed_insts |> List.app (fn (arg, (xi, _)) =>
+        if is_tvar xi then
+          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts''' xi)))) arg
+        else
+          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts''' xi)))) arg);
 
-    (context, thm''' |> RuleCases.save thm)
-  end;
+  in (context, thm''' |> RuleCases.save thm) end;
 
 end;
 

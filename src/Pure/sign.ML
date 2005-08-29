@@ -327,7 +327,7 @@ fun mapping add_names f t =
   let
     fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
     val tab = List.mapPartial f' (add_names (t, []));
-    fun get x = if_none (assoc_string (tab, x)) x;
+    fun get x = if_none (AList.lookup (op =) tab x) x;
   in get end;
 
 fun typ_mapping f g thy T =

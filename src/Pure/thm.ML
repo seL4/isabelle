@@ -1312,12 +1312,12 @@ fun rename_bvs([],_,_,_) = I
         (*unknowns appearing elsewhere be preserved!*)
         val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
-                (case assoc_string (al,x) of
+                (case AList.lookup (op =) al x of
                    SOME(y) => if x mem_string vids orelse y mem_string vids then t
                               else Var((y,i),T)
                  | NONE=> t)
           | rename(Abs(x,T,t)) =
-              Abs (if_none (assoc_string (al, x)) x, T, rename t)
+              Abs (if_none (AList.lookup (op =) al x) x, T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
         fun strip_ren Ai = strip_apply rename (Ai,B)

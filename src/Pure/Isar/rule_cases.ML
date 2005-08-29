@@ -38,7 +38,7 @@ val case_premsN = "prems";
 
 fun lookup_consumes thm =
   let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [thm]) in
-    (case Library.assoc (Thm.tags_of_thm thm, consumes_tagN) of
+    (case AList.lookup (op =) (Thm.tags_of_thm thm) (consumes_tagN) of
       NONE => NONE
     | SOME [s] => (case Syntax.read_nat s of SOME n => SOME n | _ => err ())
     | _ => err ())
@@ -64,7 +64,7 @@ fun put_case_names NONE thm = thm
       |> Drule.untag_rule cases_tagN
       |> Drule.tag_rule (cases_tagN, names);
 
-fun lookup_case_names thm = Library.assoc (Thm.tags_of_thm thm, cases_tagN);
+fun lookup_case_names thm = AList.lookup (op =) (Thm.tags_of_thm thm) cases_tagN;
 
 val save_case_names = put_case_names o lookup_case_names;
 val name = put_case_names o SOME;

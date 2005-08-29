@@ -191,8 +191,8 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-fun mode_tab prtabs mode = if_none (assoc (prtabs, mode)) Symtab.empty;
-fun mode_tabs prtabs modes = List.mapPartial (curry assoc prtabs) (modes @ [""]);
+fun mode_tab prtabs mode = if_none (AList.lookup (op =) prtabs mode) Symtab.empty;
+fun mode_tabs prtabs modes = List.mapPartial (AList.lookup (op =) prtabs) (modes @ [""]);
 
 
 (* xprod_to_fmt *)

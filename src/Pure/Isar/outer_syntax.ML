@@ -132,7 +132,7 @@ fun command_tags name =
     SOME (((_, k), _), _) => OuterKeyword.tags_of k
   | NONE => []);
 
-fun is_markup kind name = (assoc_string (! global_markups, name) = SOME kind);
+fun is_markup kind name = (AList.lookup (op =) (! global_markups) name = SOME kind);
 
 
 (* augment syntax *)
