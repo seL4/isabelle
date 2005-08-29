@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Vec imports HOL4Base begin
+theory HOL4Vec = HOL4Base:
 
 ;setup_theory res_quan
 
@@ -32,19 +32,7 @@ lemma RES_FORALL_UNIV: "ALL p. RES_FORALL pred_set.UNIV p = All p"
 lemma RES_FORALL_NULL: "ALL p m. RES_FORALL p (%x. m) = (p = EMPTY | m)"
   by (import res_quan RES_FORALL_NULL)
 
-lemma RES_EXISTS_DISJ_DIST: "(All::(('a => bool) => bool) => bool)
- (%P::'a => bool.
-     (All::(('a => bool) => bool) => bool)
-      (%Q::'a => bool.
-          (All::(('a => bool) => bool) => bool)
-           (%R::'a => bool.
-               (op =::bool => bool => bool)
-                ((RES_EXISTS::('a => bool) => ('a => bool) => bool) P
-                  (%i::'a. (op |::bool => bool => bool) (Q i) (R i)))
-                ((op |::bool => bool => bool)
-                  ((RES_EXISTS::('a => bool) => ('a => bool) => bool) P Q)
-                  ((RES_EXISTS::('a => bool) => ('a => bool) => bool) P
-                    R)))))"
+lemma RES_EXISTS_DISJ_DIST: "ALL P Q R. RES_EXISTS P (%i. Q i | R i) = (RES_EXISTS P Q | RES_EXISTS P R)"
   by (import res_quan RES_EXISTS_DISJ_DIST)
 
 lemma RES_DISJ_EXISTS_DIST: "ALL P Q R. RES_EXISTS (%i. P i | Q i) R = (RES_EXISTS P R | RES_EXISTS Q R)"

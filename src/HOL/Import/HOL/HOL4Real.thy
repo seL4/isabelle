@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Real imports HOL4Base begin
+theory HOL4Real = HOL4Base:
 
 ;setup_theory realax
 
@@ -369,12 +369,6 @@ lemma REAL_SUB_SUB: "ALL (x::real) y::real. x - y - x = - y"
 lemma REAL_ADD2_SUB2: "ALL (a::real) (b::real) (c::real) d::real. a + b - (c + d) = a - c + (b - d)"
   by (import real REAL_ADD2_SUB2)
 
-lemma REAL_LET_ADD: "ALL (x::real) y::real. (0::real) <= x & (0::real) < y --> (0::real) < x + y"
-  by (import real REAL_LET_ADD)
-
-lemma REAL_LTE_ADD: "ALL (x::real) y::real. (0::real) < x & (0::real) <= y --> (0::real) < x + y"
-  by (import real REAL_LTE_ADD)
-
 lemma REAL_SUB_LNEG: "ALL (x::real) y::real. - x - y = - (x + y)"
   by (import real REAL_SUB_LNEG)
 
@@ -405,16 +399,6 @@ lemma REAL_LE_MUL2: "ALL (x1::real) (x2::real) (y1::real) y2::real.
    x1 * y1 <= x2 * y2"
   by (import real REAL_LE_MUL2)
 
-lemma REAL_LE_LDIV: "ALL (x::real) (y::real) z::real. (0::real) < x & y <= z * x --> y / x <= z"
-  by (import real REAL_LE_LDIV)
-
-lemma REAL_LE_RDIV: "ALL (x::real) (y::real) z::real. (0::real) < x & y * x <= z --> y <= z / x"
-  by (import real REAL_LE_RDIV)
-
-lemma REAL_LT_DIV: "ALL (x::real) xa::real.
-   (0::real) < x & (0::real) < xa --> (0::real) < x / xa"
-  by (import real REAL_LT_DIV)
-
 lemma REAL_LE_DIV: "ALL (x::real) xa::real.
    (0::real) <= x & (0::real) <= xa --> (0::real) <= x / xa"
   by (import real REAL_LE_DIV)
@@ -441,6 +425,11 @@ lemma REAL_POASQ: "ALL x::real. ((0::real) < x * x) = (x ~= (0::real))"
 lemma REAL_SUMSQ: "ALL (x::real) y::real.
    (x * x + y * y = (0::real)) = (x = (0::real) & y = (0::real))"
   by (import real REAL_SUMSQ)
+
+lemma REAL_DIV_MUL2: "ALL (x::real) z::real.
+   x ~= (0::real) & z ~= (0::real) -->
+   (ALL y::real. y / z = x * y / (x * z))"
+  by (import real REAL_DIV_MUL2)
 
 lemma REAL_MIDDLE1: "ALL (a::real) b::real. a <= b --> a <= (a + b) / (2::real)"
   by (import real REAL_MIDDLE1)
@@ -481,12 +470,6 @@ lemma ABS_CIRCLE: "ALL (x::real) (y::real) h::real.
    abs h < abs y - abs x --> abs (x + h) < abs y"
   by (import real ABS_CIRCLE)
 
-lemma REAL_SUB_ABS: "ALL (x::real) y::real. abs x - abs y <= abs (x - y)"
-  by (import real REAL_SUB_ABS)
-
-lemma ABS_SUB_ABS: "ALL (x::real) y::real. abs (abs x - abs y) <= abs (x - y)"
-  by (import real ABS_SUB_ABS)
-
 lemma ABS_BETWEEN2: "ALL (x0::real) (x::real) (y0::real) y::real.
    x0 < y0 &
    abs (x - x0) < (y0 - x0) / (2::real) &
@@ -519,6 +502,9 @@ lemma POW_ZERO_EQ: "ALL (n::nat) x::real. (x ^ Suc n = (0::real)) = (x = (0::rea
 lemma REAL_POW_LT2: "ALL (n::nat) (x::real) y::real.
    n ~= (0::nat) & (0::real) <= x & x < y --> x ^ n < y ^ n"
   by (import real REAL_POW_LT2)
+
+lemma REAL_POW_MONO_LT: "ALL (m::nat) (n::nat) x::real. (1::real) < x & m < n --> x ^ m < x ^ n"
+  by (import real REAL_POW_MONO_LT)
 
 lemma REAL_SUP_SOMEPOS: "ALL P::real => bool.
    (EX x::real. P x & (0::real) < x) &

@@ -254,7 +254,7 @@ thm_maps
   "FIRSTN" > "HOL4Base.rich_list.FIRSTN"
   "FILTER_SNOC" > "HOL4Base.rich_list.FILTER_SNOC"
   "FILTER_REVERSE" > "List.rev_filter"
-  "FILTER_MAP" > "HOL4Base.rich_list.FILTER_MAP"
+  "FILTER_MAP" > "List.filter_map"
   "FILTER_IDEM" > "HOL4Base.rich_list.FILTER_IDEM"
   "FILTER_FOLDR" > "HOL4Base.rich_list.FILTER_FOLDR"
   "FILTER_FOLDL" > "HOL4Base.rich_list.FILTER_FOLDL"

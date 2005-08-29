@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Word32 imports HOL4Base begin
+theory HOL4Word32 = HOL4Base:
 
 ;setup_theory bits
 

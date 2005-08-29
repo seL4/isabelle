@@ -350,6 +350,13 @@ fun eta_contract sg assumes origt =
 fun beta_fun sg assume t =
     SOME (beta_conversion true (cterm_of sg t))
 
+val meta_sym_rew = thm "refl"
+
+fun equals_fun sg assume t =
+    case t of
+	Const("op ==",_) $ u $ v => if Term.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
+      | _ => NONE
+
 fun eta_expand sg assumes origt =
     let
 	val (typet,Tinst) = freeze_thaw_term origt
@@ -413,12 +420,19 @@ val P  = Var(("P",0),xT-->yT-->propT)
 val Q  = Var(("Q",0),xT-->yT)
 val R  = Var(("R",0),xT-->yT)
 val S  = Var(("S",0),xT)
+val S'  = Var(("S'",0),xT)
 in
 fun beta_simproc sg = Simplifier.simproc_i
 		      sg
 		      "Beta-contraction"
 		      [Abs("x",xT,Q) $ S]
 		      beta_fun
+
+fun equals_simproc sg = Simplifier.simproc_i
+		      sg
+		      "Ordered rewriting of meta equalities"
+		      [Const("op ==",xT) $ S $ S']
+		      equals_fun
 
 fun quant_simproc sg = Simplifier.simproc_i
 			   sg
@@ -584,7 +598,7 @@ fun set_prop thy t =
 		val norm_th = varifyT (norm_thm thy (close_thm (Thm.transfer sg th)))
 		val triv_th = trivial rhs
 		val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
-		val mod_th = case Seq.pull (bicompose true (false,norm_th,0) 1 triv_th) of
+		val mod_th = case Seq.pull (bicompose false (*true*) (false,norm_th,0) 1 triv_th) of
 				 SOME(th,_) => SOME th
 			       | NONE => NONE
 	    in

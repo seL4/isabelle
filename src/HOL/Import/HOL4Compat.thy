@@ -26,6 +26,9 @@ lemma bool_case_DEF: "(bool_case x y b) = (if b then x else y)"
 lemma INR_INL_11: "(ALL y x. (Inl x = Inl y) = (x = y)) & (ALL y x. (Inr x = Inr y) = (x = y))"
   by safe
 
+(*lemma INL_neq_INR: "ALL v1 v2. Sum_Type.Inr v2 ~= Sum_Type.Inl v1"
+  by simp*)
+
 consts
   ISL :: "'a + 'b => bool"
   ISR :: "'a + 'b => bool"

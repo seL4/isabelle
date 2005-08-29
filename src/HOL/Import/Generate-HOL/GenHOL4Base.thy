@@ -22,7 +22,7 @@ const_maps
   "?"             > Ex
   "?!"            > Ex1
   "~"             > Not
-  COND            > If
+  COND            > HOL.If
   bool_case       > Datatype.bool.bool_case
   ONE_ONE         > HOL4Setup.ONE_ONE
   ONTO            > HOL4Setup.ONTO

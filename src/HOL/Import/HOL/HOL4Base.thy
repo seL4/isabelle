@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin
+theory HOL4Base = "../HOL4Compat" + "../HOL4Syntax":
 
 ;setup_theory bool
 
@@ -2480,9 +2480,6 @@ lemma ONE_DIVIDES_ALL: "All (op dvd (1::nat))"
 lemma DIVIDES_ADD_2: "ALL (a::nat) (b::nat) c::nat. a dvd b & a dvd b + c --> a dvd c"
   by (import divides DIVIDES_ADD_2)
 
-lemma NOT_LT_DIV: "ALL (a::nat) b::nat. (0::nat) < b & b < a --> ~ a dvd b"
-  by (import divides NOT_LT_DIV)
-
 lemma DIVIDES_FACT: "ALL b>0. b dvd FACT b"
   by (import divides DIVIDES_FACT)
 
@@ -4071,10 +4068,6 @@ lemma FILTER_COMM: "ALL f1 f2 l. filter f1 (filter f2 l) = filter f2 (filter f1 
 
 lemma FILTER_IDEM: "ALL f l. filter f (filter f l) = filter f l"
   by (import rich_list FILTER_IDEM)
-
-lemma FILTER_MAP: "ALL (f1::'b => bool) (f2::'a => 'b) l::'a list.
-   filter f1 (map f2 l) = map f2 (filter (f1 o f2) l)"
-  by (import rich_list FILTER_MAP)
 
 lemma LENGTH_SEG: "ALL n k l. n + k <= length l --> length (SEG n k l) = n"
   by (import rich_list LENGTH_SEG)

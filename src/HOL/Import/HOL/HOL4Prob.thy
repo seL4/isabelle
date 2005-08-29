@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOL4Prob imports HOL4Real begin
+theory HOL4Prob = HOL4Real:
 
 ;setup_theory prob_extra
 

@@ -8,7 +8,7 @@ const_maps
 thm_maps
   "divides_def" > "HOL4Compat.divides_def"
   "ONE_DIVIDES_ALL" > "HOL4Base.divides.ONE_DIVIDES_ALL"
-  "NOT_LT_DIV" > "HOL4Base.divides.NOT_LT_DIV"
+  "NOT_LT_DIV" > "NatSimprocs.nat_dvd_not_less"
   "DIVIDES_TRANS" > "Divides.dvd_trans"
   "DIVIDES_SUB" > "Divides.dvd_diff"
   "DIVIDES_REFL" > "Divides.dvd_refl"
