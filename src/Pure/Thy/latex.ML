@@ -108,7 +108,8 @@ fun output_basic tok =
       enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
     else if T.is_kind T.AltString tok then
       enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
-    else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
+    else if T.is_kind T.Verbatim tok then
+      enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" (output_syms s)
     else output_syms s
   end;
 
