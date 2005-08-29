@@ -117,26 +117,25 @@ text {*
   printable symbol, respectively.  For example, \verb,A\<^sup>\<star>, is
   output as @{text "A\<^sup>\<star>"}.
 
-  A number of symbols are considered letters by the Isabelle lexer 
-  and can be used as part of identifiers. These are the greek letters
-  @{text "\<alpha>"} (\verb+\+\verb+<alpha>+), @{text "\<beta>"}, etc apart from
-  @{text "\<lambda>"}, caligraphic letters like @{text "\<A>"}
-  (\verb+\+\verb+<A>+) and @{text "\<AA>"} (\verb+\+\verb+<AA>+), 
-  and the special control symbols \verb+\+\verb+<^isub>+ and 
-  \verb+\+\verb+<^isup>+ for single letter sub and super scripts. This
-  means that the input 
+  A number of symbols are considered letters by the Isabelle lexer and
+  can be used as part of identifiers. These are the greek letters
+  @{text "\<alpha>"} (\verb+\+\verb+<alpha>+), @{text "\<beta>"}
+  (\verb+\+\verb+<beta>+), etc. (excluding @{text "\<lambda>"}),
+  special letters like @{text "\<A>"} (\verb+\+\verb+<A>+) and @{text
+  "\<AA>"} (\verb+\+\verb+<AA>+), and the control symbols
+  \verb+\+\verb+<^isub>+ and \verb+\+\verb+<^isup>+ for single letter
+  sub and super scripts. This means that the input
 
   \medskip
-  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.\,\verb,<alpha>\<^isub>1=\,\verb,<Pi>\<^isup>\<A>,}
+  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.,~\verb,\,\verb,<alpha>\<^isub>1 = \,\verb,<Pi>\<^isup>\<A>,}
 
   \medskip
   \noindent is recognized as the term @{term "\<forall>\<alpha>\<^isub>1. \<alpha>\<^isub>1 = \<Pi>\<^isup>\<A>"} 
-  by Isabelle. Note that @{text "\<Pi>\<^isup>\<A>"} is a single entity like 
-  @{text "PA"}, not an exponentiation.
+  by Isabelle. Note that @{text "\<Pi>\<^isup>\<A>"} is a single
+  syntactic entity, not an exponentiation.
 
-
-  \medskip Replacing our definition of @{text xor} by the following
-  specifies an Isabelle symbol for the new operator:
+  \medskip Replacing our previous definition of @{text xor} by the
+  following specifies an Isabelle symbol for the new operator:
 *}
 
 (*<*)
@@ -380,10 +379,7 @@ text {*
   location of the ultimate results.  The above dry run should be able
   to produce some \texttt{document.pdf} (with dummy title, empty table
   of contents etc.).  Any failure at this stage usually indicates
-  technical problems of the {\LaTeX} installation.\footnote{Especially
-  make sure that \texttt{pdflatex} is present; if in doubt one may
-  fall back on DVI output by changing \texttt{usedir} options in
-  \texttt{IsaMakefile} \cite{isabelle-sys}.}
+  technical problems of the {\LaTeX} installation.
 
   \medskip The detailed arrangement of the session sources is as
   follows.
@@ -751,44 +747,47 @@ text {*
   no_document use_thy "T";
 \end{verbatim}
 
-  \medskip Theory output may be suppressed more selectively.  Research
-  articles and slides usually do not include the formal content in
-  full.  Delimiting \bfindex{ignored material} by the special source
-  comments \verb,(,\verb,*,\verb,<,\verb,*,\verb,), and
-  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), tells the document
-  preparation system to suppress these parts; the formal checking of
-  the theory is unchanged, of course.
+  \medskip Theory output may be suppressed more selectively, either
+  via \bfindex{tagged command regions} or \bfindex{ignored material}.
 
-  In this example, we hide a theory's \isakeyword{theory} and
-  \isakeyword{end} brackets:
+  Tagged command regions works by annotating commands with named tags,
+  which correspond to certain {\LaTeX} markup that tells how to treat
+  particular parts of a document when doing the actual type-setting.
+  By default, certain Isabelle/Isar commands are implicitly marked up
+  using the predefined tags ``\emph{theory}'' (for theory begin and
+  end), ``\emph{proof}'' (for proof commands), and ``\emph{ML}'' (for
+  commands involving ML code).  Users may add their own tags using the
+  \verb,%,\emph{tag} notation right after a command name.  In the
+  subsequent example we hide a particularly irrelevant proof:
+*}
 
-  \medskip
+lemma "x = x" by %invisible (simp)
 
-  \begin{tabular}{l}
-  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
-  \texttt{theory T} \\
-  \texttt{imports Main} \\
-  \texttt{begin} \\
-  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
-  ~~$\vdots$ \\
-  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
-  \texttt{end} \\
-  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
-  \end{tabular}
+text {*
+  The original source has been ``\verb,lemma "x = x" by %invisible (simp),''.
+  Tags observe the structure of proofs; adjacent commands with the
+  same tag are joined into a single region.  The Isabelle document
+  preparation system allows the user to specify how to interpret a
+  tagged region, in order to keep, drop, or fold the corresponding
+  parts of the document.  See the \emph{Isabelle System Manual}
+  \cite{isabelle-sys} for further details, especially on
+  \texttt{isatool usedir} and \texttt{isatool document}.
 
-  \medskip
-
-  Text may be suppressed in a fine-grained manner.  We may even hide
-  vital parts of a proof, pretending that things have been simpler
-  than they really were.  For example, this ``fully automatic'' proof
-  is actually a fake:
+  Ignored material is specified by delimiting the original formal
+  source with special source comments
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), and
+  \verb,(,\verb,*,\verb,>,\verb,*,\verb,),.  These parts are stripped
+  before the type-setting phase, without affecting the formal checking
+  of the theory, of course.  For example, we may hide parts of a proof
+  that seem unfit for general public inspection.  The following
+  ``fully automatic'' proof is actually a fake:
 *}
 
 lemma "x \<noteq> (0::int) \<Longrightarrow> 0 < x * x"
   by (auto(*<*)simp add: zero_less_mult_iff(*>*))
 
 text {*
-  \noindent Here the real source of the proof has been as follows:
+  \noindent The real source of the proof has been as follows:
 
 \begin{verbatim}
   by (auto(*<*)simp add: zero_less_mult_iff(*>*))
@@ -798,23 +797,7 @@ text {*
   \medskip Suppressing portions of printed text demands care.  You
   should not misrepresent the underlying theory development.  It is
   easy to invalidate the visible text by hiding references to
-  questionable axioms.
-
-% I removed this because the page overflowed and I disagree a little. TN
-%
-%  Authentic reports of Isabelle/Isar theories, say as part of a
-% library, should suppress nothing.  Other users may need the full
-% information for their own derivative work.  If a particular
-% formalization appears inadequate for general public coverage, it is
-% often more appropriate to think of a better way in the first place.
-
-  \medskip Some technical subtleties of the
-  \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
-  elements need to be kept in mind, too --- the system performs few
-  sanity checks here.  Arguments of markup commands and formal
-  comments must not be hidden, otherwise presentation fails.  Open and
-  close parentheses need to be inserted carefully; it is easy to hide
-  the wrong parts, especially after rearranging the theory text.
+  questionable axioms, for example.
 *}
 
 (*<*)
