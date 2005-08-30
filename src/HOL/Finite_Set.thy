@@ -806,11 +806,11 @@ text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
 written @{text"\<Sum>x\<in>A. e"}. *}
 
 syntax
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_. _)" [0, 51, 10] 10)
+  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 
 translations -- {* Beware of argument permutation! *}
   "SUM i:A. b" == "setsum (%i. b) A"
@@ -820,11 +820,11 @@ text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
  @{text"\<Sum>x|P. e"}. *}
 
 syntax
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
+  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
 syntax (xsymbols)
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
 syntax (HTML output)
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
 
 translations
   "SUM x|P. t" => "setsum (%x. t) {x. P}"
@@ -930,13 +930,12 @@ done
 (*But we can't get rid of finite A. If infinite, although the lhs is 0, 
   the rhs need not be, since SIGMA A B could still be finite.*)
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
-    (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
+    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
 by(simp add:setsum_def AC_add.fold_Sigma split_def cong:setsum_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setsum_cartesian_product: 
-   "(\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) = (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
+   "(\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) = (\<Sum>(x,y) \<in> A <*> B. f x y)"
 apply (cases "finite A") 
  apply (cases "finite B") 
   apply (simp add: setsum_Sigma)
@@ -1255,13 +1254,13 @@ lemma swap_product:
 lemma setsum_commute:
   "(\<Sum>i\<in>A. \<Sum>j\<in>B. f i j) = (\<Sum>j\<in>B. \<Sum>i\<in>A. f i j)"
 proof (simp add: setsum_cartesian_product)
-  have "(\<Sum>z\<in>A \<times> B. f (fst z) (snd z)) =
-    (\<Sum>z\<in>(%(i, j). (j, i)) ` (A \<times> B). f (snd z) (fst z))"
+  have "(\<Sum>(x,y) \<in> A <*> B. f x y) =
+    (\<Sum>(y,x) \<in> (%(i, j). (j, i)) ` (A \<times> B). f x y)"
     (is "?s = _")
     apply (simp add: setsum_reindex [where f = "%(i, j). (j, i)"] swap_inj_on)
     apply (simp add: split_def)
     done
-  also have "... = (\<Sum>z\<in>B \<times> A. f (snd z) (fst z))"
+  also have "... = (\<Sum>(y,x)\<in>B \<times> A. f x y)"
     (is "_ = ?t")
     apply (simp add: swap_product)
     done
@@ -1276,11 +1275,11 @@ constdefs
   "setprod f A == if finite A then fold (op *) f 1 A else 1"
 
 syntax
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3PROD _:_. _)" [0, 51, 10] 10)
+  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3PROD _:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 
 translations -- {* Beware of argument permutation! *}
   "PROD i:A. b" == "setprod (%i. b) A" 
@@ -1290,11 +1289,11 @@ text{* Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
  @{text"\<Prod>x|P. e"}. *}
 
 syntax
-  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3PROD _ |/ _./ _)" [0,0,10] 10)
+  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3PROD _ |/ _./ _)" [0,0,10] 10)
 syntax (xsymbols)
-  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
+  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
 syntax (HTML output)
-  "_qsetprod" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
+  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
 
 translations
   "PROD x|P. t" => "setprod (%x. t) {x. P}"
@@ -1386,12 +1385,12 @@ done
 
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =
-    (\<Prod>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
+    (\<Prod>(x,y)\<in>(SIGMA x:A. B x). f x y)"
 by(simp add:setprod_def AC_mult.fold_Sigma split_def cong:setprod_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
-     "(\<Prod>x\<in>A. (\<Prod>y\<in> B. f x y)) = (\<Prod>z\<in>(A <*> B). f (fst z) (snd z))"
+     "(\<Prod>x\<in>A. (\<Prod>y\<in> B. f x y)) = (\<Prod>(x,y)\<in>(A <*> B). f x y)"
 apply (cases "finite A") 
  apply (cases "finite B") 
   apply (simp add: setprod_Sigma)

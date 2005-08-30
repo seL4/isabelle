@@ -19,7 +19,7 @@ where the 'uses' part is optional.  The previous syntax
 
 will disappear in the next release.  Use isatool fixheaders to convert
 existing theory files.  Note that there is no change in ancient
-non-Isar theories.
+non-Isar theories now, but these are likely to disappear soon.
 
 * Theory loader: parent theories can now also be referred to via
 relative and absolute paths.
@@ -315,7 +315,8 @@ patterns (these are not perfect but work quite well):
 
 * theory Finite_Set: changed the syntax for 'setsum', summation over
 finite sets: "setsum (%x. e) A", which used to be "\<Sum>x:A. e", is
-now either "SUM x:A. e" or "\<Sum>x \<in> A. e".
+now either "SUM x:A. e" or "\<Sum>x \<in> A. e". The bound variable can 
+be a tuple pattern.
 
 Some new syntax forms are available:
 
