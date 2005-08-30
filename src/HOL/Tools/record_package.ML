@@ -727,7 +727,8 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
 
       fun mk_type_abbr subst name alphas = 
           let val abbrT = Type (name, map (fn a => TVar ((a, 0), Sign.defaultS sg)) alphas);
-          in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
+          in Syntax.term_of_typ (! Syntax.show_sorts) 
+               (Sign.extern_typ sg (Envir.norm_type subst abbrT)) end;    
 
       fun unify rT T = fst (Sign.typ_unify sg (Type.varifyT rT,T) (Vartab.empty,0));
 
@@ -1694,7 +1695,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val adv_record_type_abbr_tr's =
       let val trnames = NameSpace.accesses' (hd extension_names);
           val lastExt = (unsuffix ext_typeN (fst extension));
-      in map (gen_record_type_abbr_tr' bname alphas zeta lastExt rec_schemeT0) trnames
+      in map (gen_record_type_abbr_tr' name alphas zeta lastExt rec_schemeT0) trnames
       end;
 
     val adv_record_type_tr's =
