@@ -18,7 +18,7 @@ sig
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
   val init: bool -> bool -> string -> bool -> string list -> string list ->
-    string -> Path.T option -> Url.T option * bool -> bool -> unit
+    string -> (bool * Path.T) option -> Url.T option * bool -> bool -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
@@ -218,8 +218,8 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    doc_prefix1: (Path.T * Path.T) option, doc_prefix2: Path.T option, remote_path: Url.T option,
-    verbose: bool, readme: Path.T option};
+    doc_prefix1: (Path.T * Path.T) option, doc_prefix2: (bool * Path.T) option,
+    remote_path: Url.T option, verbose: bool, readme: Path.T option};
 
 fun make_session_info
   (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
@@ -379,9 +379,9 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
         SOME (isatool_browser graph)
       else NONE;
 
-    fun prepare_sources path =
+    fun prepare_sources cp path =
      (File.mkdir path;
-      File.copy_dir document_path path;
+      if cp then File.copy_dir document_path path else ();
       File.isatool ("latex -o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
@@ -406,14 +406,14 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       conditional verbose (fn () =>
         std_error ("Browser info at " ^ show_path html_prefix ^ "\n"))));
 
-    (case doc_prefix2 of NONE => () | SOME path =>
-     (prepare_sources path;
+    (case doc_prefix2 of NONE => () | SOME (cp, path) =>
+     (prepare_sources cp path;
       conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
 
     (case doc_prefix1 of NONE => () | SOME (path, result_path) =>
       documents |> List.app (fn (name, tags) =>
        let
-         val _ = prepare_sources path;
+         val _ = prepare_sources true path;
          val doc_path = isatool_document true doc_format name tags path result_path;
        in
          conditional verbose (fn () => std_error ("Document at " ^ show_path doc_path ^ "\n"))
