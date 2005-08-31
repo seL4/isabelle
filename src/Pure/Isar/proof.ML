@@ -490,7 +490,6 @@ fun prep_result state ts raw_th =
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val {hyps, thy, ...} = Thm.rep_thm raw_th;
-    val tsig = Sign.tsig_of thy;
     val casms = List.concat (map #1 (ProofContext.assumptions_of (context_of state)));
     val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
 
@@ -500,7 +499,7 @@ fun prep_result state ts raw_th =
   in
     conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
-    conditional (exists (not o Pattern.matches tsig) (ts ~~ map Thm.prop_of ths)) (fn () =>
+    conditional (exists (not o Pattern.matches thy) (ts ~~ map Thm.prop_of ths)) (fn () =>
       err ("Proved a different theorem: " ^ Pretty.string_of (ProofContext.pretty_thm ctxt th)));
     ths
   end;

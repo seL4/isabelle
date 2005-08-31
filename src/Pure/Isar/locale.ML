@@ -287,19 +287,18 @@ struct
   fun dest regs = map (apfst untermify) (Termtab.dest regs);
 
   (* registrations that subsume t *)
-  fun subsumers tsig t regs =
-    List.filter (fn (t', _) => Pattern.matches tsig (t', t)) (Termtab.dest regs);
+  fun subsumers thy t regs =
+    List.filter (fn (t', _) => Pattern.matches thy (t', t)) (Termtab.dest regs);
 
   (* look up registration, pick one that subsumes the query *)
   fun lookup sign (regs, ts) =
     let
-      val tsig = Sign.tsig_of sign;
       val t = termify ts;
-      val subs = subsumers tsig t regs;
+      val subs = subsumers sign t regs;
     in (case subs of
         [] => NONE
       | ((t', (attn, thms)) :: _) => let
-            val (tinst, inst) = Pattern.match tsig (t', t);
+            val (tinst, inst) = Pattern.match sign (t', t);
             (* thms contain Frees, not Vars *)
             val tinst' = tinst |> Vartab.dest
                  |> map (fn ((x, 0), (_, T)) => (x, Type.unvarifyT T))
@@ -316,13 +315,12 @@ struct
      additionally returns registrations that are strictly subsumed *)
   fun insert sign (ts, attn) regs =
     let
-      val tsig = Sign.tsig_of sign;
       val t = termify ts;
-      val subs = subsumers tsig t regs ;
+      val subs = subsumers sign t regs ;
     in (case subs of
         [] => let
                 val sups =
-                  List.filter (fn (t', _) => Pattern.matches tsig (t, t')) (Termtab.dest regs);
+                  List.filter (fn (t', _) => Pattern.matches sign (t, t')) (Termtab.dest regs);
                 val sups' = map (apfst untermify) sups
               in (Termtab.update ((t, (attn, [])), regs), sups') end
       | _ => (regs, []))

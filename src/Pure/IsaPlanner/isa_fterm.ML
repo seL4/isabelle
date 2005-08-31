@@ -31,7 +31,7 @@ signature ISA_FTERM =
     val add_upterm :
        UpTerm -> FcTerm -> FcTerm
     val clean_match_ft :
-       Type.tsig ->
+       theory ->
        Term.term ->
        FcTerm ->
        (
@@ -457,9 +457,9 @@ fun pretty thy ft =
 bound variables. New names have been introduced to make sure they are
 unique w.r.t all names in the term and each other. usednames' is
 oldnames + new names. *)
-fun clean_match_ft tsig pat ft = 
+fun clean_match_ft thy pat ft = 
     let val (t, (FakeTs,Ts,absterm)) = prepmatch ft in
-      case TermLib.clean_match tsig (pat, t) of 
+      case TermLib.clean_match thy (pat, t) of 
         NONE => NONE 
       | SOME insts => SOME (insts, FakeTs, Ts, absterm) end;
 (* ix = max var index *)

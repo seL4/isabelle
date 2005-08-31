@@ -34,8 +34,7 @@ in
 
 fun match_term thry pat ob =
   let
-    val tsig = Sign.tsig_of (Theory.sign_of thry)
-    val (ty_theta, tm_theta) = Pattern.match tsig (pat,ob)
+    val (ty_theta, tm_theta) = Pattern.match thry (pat,ob)
     fun tmbind (ixn, (T, t)) = (Var (ixn, Envir.typ_subst_TVars ty_theta T), t)
   in (map tmbind (Vartab.dest tm_theta), map tybind (Vartab.dest ty_theta))
   end;
@@ -51,7 +50,7 @@ end;
  *---------------------------------------------------------------------------*)
 
 fun typecheck thry t =
-  Thm.cterm_of (Theory.sign_of thry) t
+  Thm.cterm_of thry t
     handle TYPE (msg, _, _) => raise THRY_ERR "typecheck" msg
       | TERM (msg, _) => raise THRY_ERR "typecheck" msg;
 

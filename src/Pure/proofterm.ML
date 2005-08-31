@@ -106,7 +106,7 @@ sig
   val add_prf_rrules : (proof * proof) list -> theory -> theory
   val add_prf_rprocs : (string * (Term.typ list -> proof -> proof option)) list ->
     theory -> theory
-  val rewrite_proof : Type.tsig -> (proof * proof) list *
+  val rewrite_proof : theory -> (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
@@ -1107,8 +1107,8 @@ fun rewrite_prf tymatch (rules, procs) prf =
 
   in getOpt (rew1 [] skel0 prf, prf) end;
 
-fun rewrite_proof tsig = rewrite_prf (fn (tyenv, f) =>
-  Type.typ_match tsig (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);
+fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
+  Sign.typ_match thy (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);
 
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 

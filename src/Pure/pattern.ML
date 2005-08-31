@@ -15,29 +15,26 @@ infix aeconv;
 
 signature PATTERN =
 sig
-  val trace_unify_fail  : bool ref
-  val aeconv            : term * term -> bool
-  val eta_contract      : term -> term
-  val eta_long          : typ list -> term -> term
-  val beta_eta_contract : term -> term
-  val eta_contract_atom : term -> term
-  val match             : Type.tsig -> term * term
-                          -> Type.tyenv * Envir.tenv
-  val first_order_match : Type.tsig -> term * term
-                          -> Type.tyenv * Envir.tenv
-  val matches           : Type.tsig -> term * term -> bool
-  val matches_subterm   : Type.tsig -> term * term -> bool
-  val unify             : Sign.sg * Envir.env * (term * term)list -> Envir.env
-  val first_order       : term -> bool
-  val pattern           : term -> bool
-  val rewrite_term      : Type.tsig -> (term * term) list -> (term -> term option) list
-                          -> term -> term
+  val trace_unify_fail: bool ref
+  val aeconv: term * term -> bool
+  val eta_contract: term -> term
+  val eta_long: typ list -> term -> term
+  val beta_eta_contract: term -> term
+  val eta_contract_atom: term -> term
+  val match: theory -> term * term -> Type.tyenv * Envir.tenv
+  val first_order_match: theory -> term * term -> Type.tyenv * Envir.tenv
+  val matches: theory -> term * term -> bool
+  val matches_subterm: theory -> term * term -> bool
+  val unify: theory * Envir.env * (term * term)list -> Envir.env
+  val first_order: term -> bool
+  val pattern: term -> bool
+  val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
   exception Unif
   exception MATCH
   exception Pattern
 end;
 
-structure Pattern : PATTERN =
+structure Pattern: PATTERN =
 struct
 
 exception Unif;
@@ -45,16 +42,16 @@ exception Pattern;
 
 val trace_unify_fail = ref false;
 
-fun string_of_term sg env binders t = Sign.string_of_term sg
+fun string_of_term thy env binders t = Sign.string_of_term thy
   (Envir.norm_term env (subst_bounds(map Free binders,t)));
 
 fun bname binders i = fst(List.nth(binders,i));
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
-fun typ_clash sg (tye,T,U) =
+fun typ_clash thy (tye,T,U) =
   if !trace_unify_fail
-  then let val t = Sign.string_of_typ sg (Envir.norm_type tye T)
-           and u = Sign.string_of_typ sg (Envir.norm_type tye U)
+  then let val t = Sign.string_of_typ thy (Envir.norm_type tye T)
+           and u = Sign.string_of_typ thy (Envir.norm_type tye U)
        in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
   else ()
 
@@ -72,11 +69,11 @@ fun clashB binders i s =
   if !trace_unify_fail then clash (boundVar binders i) s
   else ()
 
-fun proj_fail sg (env,binders,F,_,is,t) =
+fun proj_fail thy (env,binders,F,_,is,t) =
   if !trace_unify_fail
   then let val f = Syntax.string_of_vname F
            val xs = bnames binders is
-           val u = string_of_term sg env binders t
+           val u = string_of_term thy env binders t
            val ys = bnames binders (loose_bnos t \\ is)
        in tracing("Cannot unify variable " ^ f ^
                " (depending on bound variables " ^ xs ^ ")\nwith term " ^ u ^
@@ -84,10 +81,10 @@ fun proj_fail sg (env,binders,F,_,is,t) =
        end
   else ()
 
-fun ocheck_fail sg (F,t,binders,env) =
+fun ocheck_fail thy (F,t,binders,env) =
   if !trace_unify_fail
   then let val f = Syntax.string_of_vname F
-           val u = string_of_term sg env binders t
+           val u = string_of_term thy env binders t
        in tracing("Variable " ^ f ^ " occurs in term\n" ^ u ^
                   "\nCannot unify!\n")
        end
@@ -225,29 +222,29 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                  end;
   in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
-fun unify_types sg (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
+fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Sign.typ_unify sg (U, T) (iTs, maxidx)
+  else let val (iTs',maxidx') = Sign.typ_unify thy (U, T) (iTs, maxidx)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Type.TUNIFY => (typ_clash sg (iTs,T,U); raise Unif);
+       handle Type.TUNIFY => (typ_clash thy (iTs,T,U); raise Unif);
 
-fun unif sg binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
+fun unif thy binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
-         in unif sg ((name,Ts)::binders) (env,(ts,tt)) end
-    | (Abs(ns,Ts,ts),t) => unif sg ((ns,Ts)::binders) (env,(ts,(incr t)$Bound(0)))
-    | (t,Abs(nt,Tt,tt)) => unif sg ((nt,Tt)::binders) (env,((incr t)$Bound(0),tt))
-    | p => cases sg (binders,env,p)
+         in unif thy ((name,Ts)::binders) (env,(ts,tt)) end
+    | (Abs(ns,Ts,ts),t) => unif thy ((ns,Ts)::binders) (env,(ts,(incr t)$Bound(0)))
+    | (t,Abs(nt,Tt,tt)) => unif thy ((nt,Tt)::binders) (env,((incr t)$Bound(0),tt))
+    | p => cases thy (binders,env,p)
 
-and cases sg (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
+and cases thy (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
        ((Var(F,Fty),ss),(Var(G,Gty),ts)) =>
          if F = G then flexflex1(env,binders,F,Fty,ints_of' env ss,ints_of' env ts)
                   else flexflex2(env,binders,F,Fty,ints_of' env ss,G,Gty,ints_of' env ts)
-      | ((Var(F,Fty),ss),_)           => flexrigid sg (env,binders,F,Fty,ints_of' env ss,t)
-      | (_,(Var(F,Fty),ts))           => flexrigid sg (env,binders,F,Fty,ints_of' env ts,s)
-      | ((Const c,ss),(Const d,ts))   => rigidrigid sg (env,binders,c,d,ss,ts)
-      | ((Free(f),ss),(Free(g),ts))   => rigidrigid sg (env,binders,f,g,ss,ts)
-      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB sg (env,binders,i,j,ss,ts)
+      | ((Var(F,Fty),ss),_)           => flexrigid thy (env,binders,F,Fty,ints_of' env ss,t)
+      | (_,(Var(F,Fty),ts))           => flexrigid thy (env,binders,F,Fty,ints_of' env ts,s)
+      | ((Const c,ss),(Const d,ts))   => rigidrigid thy (env,binders,c,d,ss,ts)
+      | ((Free(f),ss),(Free(g),ts))   => rigidrigid thy (env,binders,f,g,ss,ts)
+      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB thy (env,binders,i,j,ss,ts)
       | ((Abs(_),_),_)                => raise Pattern
       | (_,(Abs(_),_))                => raise Pattern
       | ((Const(c,_),_),(Free(f,_),_)) => (clash c f; raise Unif)
@@ -258,21 +255,21 @@ and cases sg (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
       | ((Bound i,_),(Free(f,_),_))    => (clashB binders i f; raise Unif)
 
 
-and rigidrigid sg (env,binders,(a,Ta),(b,Tb),ss,ts) =
+and rigidrigid thy (env,binders,(a,Ta),(b,Tb),ss,ts) =
       if a<>b then (clash a b; raise Unif)
-      else Library.foldl (unif sg binders) (unify_types sg (Ta,Tb,env), ss~~ts)
+      else Library.foldl (unif thy binders) (unify_types thy (Ta,Tb,env), ss~~ts)
 
-and rigidrigidB sg (env,binders,i,j,ss,ts) =
+and rigidrigidB thy (env,binders,i,j,ss,ts) =
      if i <> j then (clashBB binders i j; raise Unif)
-     else Library.foldl (unif sg binders) (env ,ss~~ts)
+     else Library.foldl (unif thy binders) (env ,ss~~ts)
 
-and flexrigid sg (params as (env,binders,F,Fty,is,t)) =
-      if occurs(F,t,env) then (ocheck_fail sg (F,t,binders,env); raise Unif)
+and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
+      if occurs(F,t,env) then (ocheck_fail thy (F,t,binders,env); raise Unif)
       else (let val (u,env') = proj(t,env,binders,is)
             in Envir.update (((F, Fty), mkabs (binders, is, u)), env') end
-            handle Unif => (proj_fail sg params; raise Unif));
+            handle Unif => (proj_fail thy params; raise Unif));
 
-fun unify(sg,env,tus) = Library.foldl (unif sg []) (env,tus);
+fun unify(thy,env,tus) = Library.foldl (unif thy []) (env,tus);
 
 
 (*Eta-contract a term (fully)*)
@@ -343,38 +340,38 @@ and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
 
 exception MATCH;
 
-fun typ_match tsig (tyenv, TU) = Type.typ_match tsig TU tyenv
+fun typ_match thy (tyenv, TU) = Sign.typ_match thy TU tyenv
   handle Type.TYPE_MATCH => raise MATCH;
 
 (*First-order matching;
-  fomatch tsig (pattern, object) returns a (tyvar,typ)list and (var,term)list.
+  fomatch thy (pattern, object) returns a (tyvar,typ)list and (var,term)list.
   The pattern and object may have variables in common.
   Instantiation does not affect the object, so matching ?a with ?a+1 works.
   Object is eta-contracted on the fly (by eta-expanding the pattern).
   Precondition: the pattern is already eta-contracted!
   Note: types are matched on the fly *)
-fun fomatch tsig =
+fun fomatch thy =
   let
     fun mtch (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
           if loose_bvar(t,0) then raise MATCH
           else (case Envir.lookup' (insts, (ixn, T)) of
-                  NONE => (typ_match tsig (tyinsts, (T, fastype_of t)),
+                  NONE => (typ_match thy (tyinsts, (T, fastype_of t)),
                            Vartab.update_new ((ixn, (T, t)), insts))
                 | SOME u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
-          if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match thy (tyinsts,(T,U)), insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
-          if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match thy (tyinsts,(T,U)), insts) else raise MATCH
       | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match tsig (tyinsts,(T,U)),insts) (t,u)
+          mtch (typ_match thy (tyinsts,(T,U)),insts) (t,u)
       | (f$t, g$u) => mtch (mtch instsp (f,g)) (t, u)
       | (t, Abs(_,U,u))  =>  mtch instsp ((incr t)$(Bound 0), u)
       | _ => raise MATCH
   in mtch end;
 
-fun first_order_match tsig = fomatch tsig (Vartab.empty, Vartab.empty);
+fun first_order_match thy = fomatch thy (Vartab.empty, Vartab.empty);
 
 (* Matching of higher-order patterns *)
 
@@ -389,7 +386,7 @@ fun match_bind(itms,binders,ixn,T,is,t) =
           else raise MATCH
   end;
 
-fun match tsg (po as (pat,obj)) =
+fun match thy (po as (pat,obj)) =
 let
   (* Pre: pat and obj have same type *)
   fun mtch binders (env as (iTs,itms),(pat,obj)) =
@@ -410,7 +407,7 @@ let
               Library.foldl (mtch binders) ((iTs,itms), pargs~~oargs)
         fun rigrig2((a:string,Ta),(b,Tb),oargs) =
               if a <> b then raise MATCH
-              else rigrig1(typ_match tsg (iTs,(Ta,Tb)), oargs)
+              else rigrig1(typ_match thy (iTs,(Ta,Tb)), oargs)
     in case ph of
          Var(ixn,T) =>
            let val is = ints_of pargs
@@ -434,19 +431,19 @@ let
 
   val pT = fastype_of pat
   and oT = fastype_of obj
-  val iTs = typ_match tsg (Vartab.empty, (pT,oT))
+  val iTs = typ_match thy (Vartab.empty, (pT,oT))
   val insts2 = (iTs, Vartab.empty)
 
 in mtch [] (insts2, po)
-   handle Pattern => fomatch tsg insts2 po
+   handle Pattern => fomatch thy insts2 po
 end;
 
 (*Predicate: does the pattern match the object?*)
-fun matches tsig po = (match tsig po; true) handle MATCH => false;
+fun matches thy po = (match thy po; true) handle MATCH => false;
 
 (* Does pat match a subterm of obj? *)
-fun matches_subterm tsig (pat,obj) =
-  let fun msub(bounds,obj) = matches tsig (pat,obj) orelse
+fun matches_subterm thy (pat,obj) =
+  let fun msub(bounds,obj) = matches thy (pat,obj) orelse
             case obj of
               Abs(x,T,t) => let val y = variant bounds x
                                 val f = Free(":" ^ y,T)
@@ -471,7 +468,7 @@ fun pattern(Abs(_,_,t)) = pattern t
 
 (* rewriting -- simple but fast *)
 
-fun rewrite_term tsig rules procs tm =
+fun rewrite_term thy rules procs tm =
   let
     val skel0 = Bound 0;
 
@@ -483,7 +480,7 @@ fun rewrite_term tsig rules procs tm =
 
     fun match_rew tm (tm1, tm2) =
       let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2 in
-        SOME (Envir.subst_vars (match tsig (tm1, tm)) rtm, rtm)
+        SOME (Envir.subst_vars (match thy (tm1, tm)) rtm, rtm)
           handle MATCH => NONE
       end;
 

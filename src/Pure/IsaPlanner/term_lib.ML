@@ -20,7 +20,7 @@ sig
     val current_sign : unit -> Sign.sg
 
     (* Matching/unification with exceptions handled *)
-    val clean_match : Type.tsig -> Term.term * Term.term 
+    val clean_match : theory -> Term.term * Term.term 
                       -> ((Term.indexname * (Term.sort * Term.typ)) list 
                          * (Term.indexname * (Term.typ * Term.term)) list) option
     val clean_unify : Sign.sg -> int -> Term.term * Term.term 
@@ -83,7 +83,7 @@ sig
 		val has_new_vars : Term.term * Term.term -> bool
     val has_new_typ_vars : Term.term * Term.term -> bool
    (* checks to see if the lhs -> rhs is a invalid rewrite rule *)
-    val is_not_valid_rwrule : Type.tsig -> (Term.term * Term.term) -> bool
+    val is_not_valid_rwrule : theory -> (Term.term * Term.term) -> bool
 
     (* get the frees in a term that are of atomic type, ie non-functions *)
     val atomic_frees_of_term : Term.term -> (string * Term.typ) list
@@ -143,8 +143,8 @@ fun ho_term_height  (a $ b) =
 
 (* Higher order matching with exception handled *)
 (* returns optional instantiation *)
-fun clean_match tsig (a as (pat, t)) = 
-  let val (tyenv, tenv) = Pattern.match tsig a
+fun clean_match thy (a as (pat, t)) = 
+  let val (tyenv, tenv) = Pattern.match thy a
   in SOME (Vartab.dest tyenv, Vartab.dest tenv)
   end handle Pattern.MATCH => NONE;
 (* Higher order unification with exception handled, return the instantiations *)
@@ -408,11 +408,11 @@ fun readwty tstr tystr =
 which embeds into the rhs, this would be much closer to the normal
 notion of valid wave rule - ie there exists at least one case where it
 is a valid wave rule... *)
-	fun is_not_valid_rwrule tysig (lhs, rhs) = 
+	fun is_not_valid_rwrule thy (lhs, rhs) = 
       Term.is_Var (Term.head_of lhs) (* if lhs is essentially just a var *)
       orelse has_new_vars (lhs,rhs) 
       orelse has_new_typ_vars (lhs,rhs) 
-      orelse Pattern.matches_subterm tysig (lhs, rhs);
+      orelse Pattern.matches_subterm thy (lhs, rhs);
 
 
   (* first term contains the second in some name convertable way... *)

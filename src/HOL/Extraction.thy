@@ -38,11 +38,11 @@ in
   [Extraction.add_types
       [("bool", ([], NONE)),
        ("set", ([realizes_set_proc], SOME mk_realizes_set))],
-    Extraction.set_preprocessor (fn sg =>
+    Extraction.set_preprocessor (fn thy =>
       Proofterm.rewrite_proof_notypes
         ([], ("HOL/elim_cong", RewriteHOLProof.elim_cong) ::
           ProofRewriteRules.rprocs true) o
-      Proofterm.rewrite_proof (Sign.tsig_of sg)
+      Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
       ProofRewriteRules.elim_vars (curry Const "arbitrary"))]
 end

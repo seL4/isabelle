@@ -437,7 +437,7 @@ fun reorient thy prems lhs rhs =
 *)
   exists (fn t => Logic.occs (lhs, t)) (rhs :: prems)
     orelse
-  null prems andalso Pattern.matches (Sign.tsig_of thy) (lhs, rhs)
+  null prems andalso Pattern.matches thy (lhs, rhs)
     (*the condition "null prems" is necessary because conditional rewrites
       with extra variables in the conditions may terminate although
       the rhs is an instance of the lhs; example: ?m < ?n ==> f(?n) == f(?m)*)
@@ -796,7 +796,6 @@ fun rewritec (prover, thyt, maxt) ss t =
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = rhs_of eta_thm;
     val eta_t = term_of eta_t';
-    val tsigt = Sign.tsig_of thyt;
     fun rew {thm, name, lhs, elhs, fo, perm} =
       let
         val {thy, prop, maxidx, ...} = rep_thm thm;
@@ -853,7 +852,7 @@ fun rewritec (prover, thyt, maxt) ss t =
 
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
-          if Pattern.matches tsigt (Thm.term_of lhs, Thm.term_of t) then
+          if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") ss thyt eta_t;
              case transform_failure (curry SIMPROC_FAIL name)
                  (fn () => proc thyt ss eta_t) () of
@@ -1136,7 +1135,7 @@ fun simplify_aux _ _ [] = (fn th => th)
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
-  Pattern.rewrite_term (Sign.tsig_of thy) (map decomp_simp' rules) procs;
+  Pattern.rewrite_term thy (map decomp_simp' rules) procs;
 
 fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
 

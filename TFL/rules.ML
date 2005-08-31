@@ -308,8 +308,7 @@ fun GEN v th =
    let val gth = forall_intr v th
        val {prop=Const("all",_)$Abs(x,ty,rst),sign,...} = rep_thm gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
-       val tsig = Sign.tsig_of sign
-       val theta = Pattern.match tsig (P,P')
+       val theta = Pattern.match sign (P,P')
        val allI2 = instantiate (certify sign theta) allI
        val thm = Thm.implies_elim allI2 gth
        val {prop = tp $ (A $ Abs(_,_,M)),sign,...} = rep_thm thm

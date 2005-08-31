@@ -60,9 +60,8 @@ fun del (p as (thy, thm)) =
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
     let
-      val tsig = Sign.tsig_of (sign_of thy);
       val matches = curry
-        (Pattern.matches tsig o pairself (lhs_of o fst))
+        (Pattern.matches thy o pairself (lhs_of o fst))
     in del_redundant thy (eq :: eqs) (filter_out (matches eq) eqs') end;
 
 fun get_equations thy defs (s, T) =

@@ -693,7 +693,7 @@ fun gen_prove_multi finish_thm thy xs asms props tac =
 
     val raw_result = goal' RS Drule.rev_triv_goal;
     val prop' = prop_of raw_result;
-    val _ = conditional (not (Pattern.matches (Sign.tsig_of thy) (prop, prop'))) (fn () =>
+    val _ = conditional (not (Pattern.matches thy (prop, prop'))) (fn () =>
       err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
   in
     Drule.conj_elim_precise (length props) raw_result

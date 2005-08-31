@@ -290,7 +290,7 @@ fun gen_cterm_match match
      ct2 as Cterm {t = t2, maxidx = maxidx2, sorts = sorts2, ...}) =
   let
     val thy_ref = merge_thys0 ct1 ct2;
-    val (Tinsts, tinsts) = match (Sign.tsig_of (Theory.deref thy_ref)) (t1, t2);
+    val (Tinsts, tinsts) = match (Theory.deref thy_ref) (t1, t2);
     val maxidx = Int.max (maxidx1, maxidx2);
     val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst (ixn, (S, T)) =
@@ -988,7 +988,7 @@ fun add_instT (cT, cU) (thy_ref, sorts) =
     val sorts' = Sorts.union sorts_U sorts;
   in
     (case T of TVar (v as (_, S)) =>
-      if Type.of_sort (Sign.tsig_of thy') (U, S) then ((v, U), (thy_ref', sorts'))
+      if Sign.of_sort thy' (U, S) then ((v, U), (thy_ref', sorts'))
       else raise TYPE ("Type not of sort " ^ Sign.string_of_sort thy' S, [U], [])
     | _ => raise TYPE (Pretty.string_of (Pretty.block
         [Pretty.str "instantiate: not a type variable",

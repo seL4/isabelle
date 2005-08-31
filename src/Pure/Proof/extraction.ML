@@ -88,10 +88,8 @@ fun merge_rules
 
 fun condrew thy rules procs =
   let
-    val tsig = Sign.tsig_of thy;
-
     fun rew tm =
-      Pattern.rewrite_term tsig [] (condrew' :: procs) tm
+      Pattern.rewrite_term thy [] (condrew' :: procs) tm
     and condrew' tm =
       let
         val cache = ref ([] : (term * term) list);
@@ -105,7 +103,7 @@ fun condrew thy rules procs =
         let
           fun ren t = getOpt (Term.rename_abs tm1 tm t, t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
-          val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
+          val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm);
           val prems' = map (pairself (Envir.subst_vars env o inc o ren)) prems;
           val env' = Envir.Envir
             {maxidx = Library.foldl Int.max
@@ -321,7 +319,7 @@ fun prep_realizer thy =
     let
       val name = Thm.name_of_thm thm;
       val _ = assert (name <> "") "add_realizers: unnamed theorem";
-      val prop = Pattern.rewrite_term (Sign.tsig_of thy')
+      val prop = Pattern.rewrite_term thy'
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
       val vars = vars_of prop;
       val vars' = filter_out (fn v =>
@@ -350,7 +348,7 @@ fun realizes_of thy vs t prop =
       ExtractionData.get thy';
     val procs = List.concat (map (fst o snd) types);
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
-    val prop' = Pattern.rewrite_term (Sign.tsig_of thy')
+    val prop' = Pattern.rewrite_term thy'
       (map (Logic.dest_equals o prop_of) defs) [] prop;
   in freeze_thaw (condrew thy' eqns
     (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))

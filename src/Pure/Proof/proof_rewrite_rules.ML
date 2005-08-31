@@ -10,7 +10,7 @@ sig
   val rew : bool -> typ list -> Proofterm.proof -> Proofterm.proof option
   val rprocs : bool -> (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
-  val elim_defs : Sign.sg -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
+  val elim_defs : theory -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
 end;
 
@@ -235,9 +235,8 @@ fun insert_refl defs Ts (prf1 %% prf2) =
       | (_, []) => prf
       | (prf', ts) => proof_combt' (insert_refl defs Ts prf', ts));
 
-fun elim_defs sign r defs prf =
+fun elim_defs thy r defs prf =
   let
-    val tsig = Sign.tsig_of sign;
     val defs' = map (Logic.dest_equals o prop_of o Drule.abs_def) defs
     val defnames = map Thm.name_of_thm defs;
     val f = if not r then I else
@@ -248,9 +247,9 @@ fun elim_defs sign r defs prf =
             else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
               null (term_consts p inter cnames)) ps))
           (Symtab.dest (thms_of_proof prf Symtab.empty)))
-      in Reconstruct.expand_proof sign thms end
+      in Reconstruct.expand_proof thy thms end
   in
-    rewrite_terms (Pattern.rewrite_term tsig defs' [])
+    rewrite_terms (Pattern.rewrite_term thy defs' [])
       (insert_refl defnames [] (f prf))
   end;
 
