@@ -97,19 +97,19 @@ definition is obvious:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ comp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list{\isachardoublequoteclose}\isanewline
+\ compile\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
 \isanewline
-{\isachardoublequoteopen}comp\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}comp\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}comp\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}comp\ e{\isadigit{2}}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}comp\ e{\isadigit{1}}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}compile\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}compile\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isachardoublequoteopen}compile\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}compile\ e{\isadigit{2}}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}compile\ e{\isadigit{1}}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ {\isachardoublequoteopen}exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -129,7 +129,7 @@ This theorem needs to be generalized:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}value\ e\ s{\isacharparenright}\ {\isacharhash}\ vs{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}value\ e\ s{\isacharparenright}\ {\isacharhash}\ vs{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -202,7 +202,7 @@ rewritten as%
 \noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
-We could now go back and prove \isa{exec (comp e) s [] = [value e s]}
+We could now go back and prove \isa{exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.%

@@ -75,23 +75,23 @@ The compiler is a function from expressions to a list of instructions. Its
 definition is obvious:
 *}
 
-consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list";
+consts compile :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list"
 primrec
-"comp (Cex v)       = [Const v]"
-"comp (Vex a)       = [Load a]"
-"comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]";
+"compile (Cex v)       = [Const v]"
+"compile (Vex a)       = [Load a]"
+"compile (Bex f e1 e2) = (compile e2) @ (compile e1) @ [Apply f]"
 
 text{*
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:
 *}
-theorem "exec (comp e) s [] = [value e s]";
+theorem "exec (compile e) s [] = [value e s]";
 (*<*)oops;(*>*)
 text{*\noindent
 This theorem needs to be generalized:
 *}
 
-theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
+theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs";
 
 txt{*\noindent
 It will be proved by induction on @{term"e"} followed by simplification.  
@@ -124,14 +124,14 @@ apply(induct_tac xs, simp_all split: instr.split);
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
-We could now go back and prove \isa{exec (comp e) s [] = [value e s]}
+We could now go back and prove @{prop"exec (compile e) s [] = [value e s]"}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.%
 \index{compiling expressions example|)}
 *}
 (*<*)
-theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
+theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs";
 by(induct_tac e, auto);
 end
 (*>*)
