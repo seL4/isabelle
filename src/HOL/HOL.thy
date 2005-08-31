@@ -1129,14 +1129,9 @@ text {*
   its premise.
 *}
 
-consts
-  "=simp=>" :: "[prop, prop] => prop"  (infixr 1)
-(*
-  "op =simp=>" :: "[prop, prop] => prop"  ("(_/ =simp=> _)" [2, 1] 1)
-syntax
-  "op =simp=>" :: "[prop, prop] => prop"  ("op =simp=>")
-*)
-defs simp_implies_def: "op =simp=> \<equiv> op ==>"
+constdefs
+  simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
+  "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI: 
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
