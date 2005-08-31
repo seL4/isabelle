@@ -263,11 +263,8 @@ val syn_of = #syn o rep_sg;
 (* type signature *)
 
 val tsig_of = #tsig o rep_sg;
-val classes_of = snd o #classes o Type.rep_tsig o tsig_of
-fun classes_arities_of thy =
-  let
-    val tsig = (Type.rep_tsig o tsig_of) thy
-  in (snd (#classes tsig), #arities tsig) end
+val classes_of = snd o #classes o Type.rep_tsig o tsig_of;
+fun classes_arities_of thy = (classes_of thy, #arities (Type.rep_tsig (tsig_of thy)));
 val classes = Type.classes o tsig_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
