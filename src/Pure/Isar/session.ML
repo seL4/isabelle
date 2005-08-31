@@ -10,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool ->
-    string list -> string -> string -> string -> string -> int -> bool -> unit
+    string list -> string -> string -> bool * string -> string -> int -> bool -> unit
   val finish: unit -> unit
 end;
 
@@ -66,21 +66,24 @@ fun finish () =
 
 (* use_dir *)
 
-fun get_rpath rpath_str =
-  (if rpath_str = "" then () else
+fun get_rpath rpath =
+  (if rpath = "" then () else
      if is_some (! remote_path) then
        error "Path for remote theory browsing information may only be set once"
      else
-       remote_path := SOME (Url.unpack rpath_str);
-   (! remote_path, rpath_str <> ""));
+       remote_path := SOME (Url.unpack rpath);
+   (! remote_path, rpath <> ""));
+
+fun dumping (_, "") = NONE
+  | dumping (cp, path) = SOME (cp, Path.unpack path);
 
 fun use_dir root build modes reset info doc doc_graph doc_versions
-    parent name dump rpath_str level verbose =
+    parent name dump rpath level verbose =
   Library.setmp print_mode (modes @ ! print_mode)
     (Library.setmp Proofterm.proofs level (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph doc_versions (path ()) name
-         (if dump = "" then NONE else SOME (Path.unpack dump)) (get_rpath rpath_str) verbose;
+         (dumping dump) (get_rpath rpath) verbose;
        ThyInfo.time_use root;
        finish ()))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
