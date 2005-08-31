@@ -44,16 +44,18 @@ fun update eq (key, value) xs =
 fun default eq (key, value) xs =
   if defined eq xs key then xs else (key, value)::xs;
 
-fun map_entry eq _ _ [] = []
-  | map_entry eq key' f ((x as (key, value))::xs) =
-      if eq (key', key) then ((key, f value)::xs)
-      else x :: map_entry eq key' f xs;
-
 fun delete eq key xs =
   let
     fun del ((x as (key', _))::xs) =
       if eq (key, key') then xs
       else x :: del xs;
   in if defined eq xs key then del xs else xs end;
+
+fun map_entry eq key' f xs =
+  let
+    fun mapp ((x as (key, value))::xs) =
+      if eq (key', key) then (key, f value)::xs
+      else x :: mapp xs
+  in if defined eq xs key' then mapp xs else xs end;
 
 end;
