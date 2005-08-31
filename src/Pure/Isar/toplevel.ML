@@ -22,6 +22,7 @@ sig
   val theory_of: state -> theory
   val sign_of: state -> theory    (*obsolete*)
   val body_context_of: state -> Proof.context
+  val no_body_context: state -> state
   val proof_of: state -> Proof.state
   val is_proof: state -> bool
   val enter_forward_proof: state -> Proof.state
@@ -148,6 +149,10 @@ fun body_context_of state =
   (case node_of state of
     Theory (_, SOME ctxt) => ctxt
   | _ => node_case ProofContext.init Proof.context_of state);
+
+fun no_body_context (State NONE) = State NONE
+  | no_body_context (State (SOME (node, x))) =
+      State (SOME (History.apply (fn Theory (thy, _) => Theory (thy, NONE) | nd => nd) node, x));
 
 val proof_of = node_case (fn _ => raise UNDEF) I;
 val is_proof = can proof_of;
