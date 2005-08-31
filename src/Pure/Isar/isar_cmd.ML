@@ -354,7 +354,7 @@ local
 fun present_text assert_proof present (s, pos) = Toplevel.keep' (fn int => fn state =>
   (if can Toplevel.proof_of state = assert_proof then () else raise Toplevel.UNDEF;
     Context.setmp (SOME (Toplevel.theory_of state)) present s;
-    OuterSyntax.check_text (s, pos) int state;
+    OuterSyntax.check_text (s, pos) int (Toplevel.no_body_context state);
     raise Toplevel.UNDEF));
 
 fun theory f x = Toplevel.theory I o present_text false f x;
