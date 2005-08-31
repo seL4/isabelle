@@ -16,6 +16,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] LOGIC NAME"
   echo
   echo "  Options are:"
+  echo "    -C BOOL      copy existing document directory to -D PATH (default true)"
   echo "    -D PATH      dump generated document sources into PATH"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -V VERSION   declare alternative document VERSION"
@@ -60,6 +61,7 @@ function check_number()
 
 # options
 
+COPY_DUMP="true"
 DUMP=""
 RPATH=""
 DOCUMENT_VERSIONS=""
@@ -78,9 +80,13 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "C:D:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
+      C)
+        check_bool "$OPTARG"
+        COPY_DUMP="$OPTARG"
+        ;;
       D)
         DUMP="$OPTARG"
         ;;
@@ -203,7 +209,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -212,7 +218,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
