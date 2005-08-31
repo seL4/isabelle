@@ -60,7 +60,7 @@ val UnknownStart = EndToken;       (*productions for which no starting token is
    (used for expanding chain list)*)
 fun connected_with _ [] relatives = relatives
   | connected_with chains (root :: roots) relatives =
-    let val branches = (assocs chains root) \\ relatives;
+    let val branches = these (AList.lookup (op =) chains root) \\ relatives;
     in connected_with chains (branches @ roots) (branches @ relatives) end;
 
 (* convert productions to grammar;
@@ -74,9 +74,9 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
       (*store chain if it does not already exist*)
       val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from =>
-        let val old_tos = assocs chains from in
+        let val old_tos = these (AList.lookup (op =) chains from) in
           if lhs mem old_tos then (NONE, chains)
-          else (SOME from, overwrite (chains, (from, lhs ins old_tos)))
+          else (SOME from, AList.update (op =) (from, lhs ins old_tos) chains)
         end;
 
       (*propagate new chain in lookahead and lambda lists;
@@ -160,10 +160,12 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         (*associate production with new starting tokens*)
                         fun copy [] nt_prods = nt_prods
                           | copy (tk :: tks) nt_prods =
-                            let val old_prods = assocs nt_prods tk;
+                            let val old_prods = these (AList.lookup (op =) nt_prods tk);
 
                                 val prods' = p :: old_prods;
-                            in copy tks (overwrite (nt_prods, (tk, prods')))
+                            in nt_prods
+                               |> AList.update (op =) (tk, prods')
+                               |> copy tks
                             end;
 
                         val nt_prods' =
@@ -189,7 +191,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                       (*existing productions whose lookahead may depend on l*)
                       val tk_prods =
-                        assocs nt_prods
+                        (these o AList.lookup (op =) nt_prods)
                                (SOME (hd l_starts  handle Empty => UnknownStart));
 
                       (*add_lambda is true if an existing production of the nt
@@ -265,7 +267,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 Option.map (fn x => x+1) prod_count
                               else prod_count, is_new)
                   | store (tk :: tks) prods is_new =
-                    let val tk_prods = assocs prods tk;
+                    let val tk_prods = (these o AList.lookup (op =) prods) tk;
 
                         (*if prod_count = NONE then we can assume that
                           grammar does not contain new production already*)
@@ -275,9 +277,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             else (new_prod :: tk_prods, true)
                           else (new_prod :: tk_prods, true);
 
-                        val prods' = if is_new' then
-                                       overwrite (prods, (tk, tk_prods'))
-                                     else prods;
+                        val prods' = prods
+                                     |> K is_new' ? AList.update (op =) (tk, tk_prods');
                     in store tks prods' (is_new orelse is_new') end;
 
                 val (nt_prods', prod_count', changed) =
@@ -331,15 +332,17 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       fun copy [] nt_prods = nt_prods
                         | copy (tk :: tks) nt_prods =
                           let
-                            val tk_prods = assocs nt_prods (SOME tk);
+                            val tk_prods = (these o AList.lookup (op =) nt_prods) (SOME tk);
 
                             val tk_prods' =
                               if not lambda then p :: tk_prods
                               else p ins tk_prods;
                                       (*if production depends on lambda NT we
                                         have to look for duplicates*)
-                         in copy tks
-                                 (overwrite (nt_prods, (SOME tk, tk_prods')))
+                         in
+                           nt_prods
+                           |> AList.update (op =) (SOME tk, tk_prods')
+                           |> copy tks
                          end;
                       val result =
                         if update then
@@ -356,16 +359,15 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       val (lookahead as (old_nts, old_tks), nt_prods) =
                         Array.sub (prods, nt);
 
-                      val tk_prods = assocs nt_prods key;
+                      val tk_prods = (these o AList.lookup (op =) nt_prods) key;
 
                       (*associate productions with new lookahead tokens*)
                       val (tk_prods', nt_prods') =
                         update_prods tk_prods ([], nt_prods);
 
                       val nt_prods' =
-                        if key = SOME UnknownStart then
-                          overwrite (nt_prods', (key, tk_prods'))
-                        else nt_prods';
+                        nt_prods'
+                        |> (K (key = SOME UnknownStart)) ? AList.update (op =) (key, tk_prods')
 
                       val added_tks =
                         gen_rems matching_tokens (new_tks, old_tks);
@@ -413,7 +415,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
         val nt_prods =
           Library.foldl (op union) ([], map snd (snd (Array.sub (prods, tag)))) @
-          map prod_of_chain (assocs chains tag);
+          map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
   in List.concat (map pretty_nt taglist) end;
@@ -432,8 +434,8 @@ fun inverse_chains [] result = result
   | inverse_chains ((root, branches) :: cs) result =
     let fun add [] result = result
           | add (id :: ids) result =
-            let val old = assocs result id;
-            in add ids (overwrite (result, (id, root :: old))) end;
+            let val old = (these o AList.lookup (op =) result) id;
+            in add ids (AList.update (op =) (id, root :: old) result) end;
     in inverse_chains cs (add branches result) end;
 
 
@@ -833,7 +835,7 @@ fun produce prods chains stateset i indata prev_token =
                       val (_, nt_prods) = Array.sub (prods, nt);
 
                       val chained = map (fn nt => (nt, minPrec))
-                                        (assocs chains nt);
+                                        ((these o AList.lookup (op =) chains) nt);
                   in get_starts (chained @ nts)
                                 ((get nt_prods []) union result)
                   end;

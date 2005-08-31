@@ -252,7 +252,7 @@ fun provide path name info (deps as SOME {present, outdated, master, files}) =
      (if exists (equal path o #1) files then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
         " on file: " ^ quote (Path.pack path));
-      SOME (make_deps present outdated master (overwrite (files, (path, SOME info)))))
+      SOME (make_deps present outdated master (AList.update (op =) (path, SOME info) files)))
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =

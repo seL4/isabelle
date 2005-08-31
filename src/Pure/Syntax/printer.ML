@@ -246,7 +246,7 @@ fun change_prtabs f mode xprods prtabs =
   let
     val fmts = List.mapPartial xprod_to_fmt xprods;
     val tab = fold f fmts (mode_tab prtabs mode);
-  in overwrite (prtabs, (mode, tab)) end;
+  in AList.update (op =) (mode, tab) prtabs end;
 
 fun extend_prtabs m = change_prtabs (curry Symtab.update_multi) m;
 fun remove_prtabs m = change_prtabs (Symtab.remove_multi (op =)) m;
