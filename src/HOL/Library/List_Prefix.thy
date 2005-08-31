@@ -30,11 +30,11 @@ lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
   by (unfold strict_prefix_def prefix_def) blast
 
 lemma strict_prefixE' [elim?]:
-    "xs < ys ==> (!!z zs. ys = xs @ z # zs ==> C) ==> C"
+  assumes lt: "xs < ys"
+    and r: "!!z zs. ys = xs @ z # zs ==> C"
+  shows C
 proof -
-  assume r: "!!z zs. ys = xs @ z # zs ==> C"
-  assume "xs < ys"
-  then obtain us where "ys = xs @ us" and "xs \<noteq> ys"
+  from lt obtain us where "ys = xs @ us" and "xs \<noteq> ys"
     by (unfold strict_prefix_def prefix_def) blast
   with r show ?thesis by (auto simp add: neq_Nil_conv)
 qed
@@ -105,7 +105,7 @@ proof -
 qed
 
 lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
-by(simp add:prefix_def) blast
+  by (auto simp add: prefix_def)
 
 theorem prefix_Cons: "(xs \<le> y # ys) = (xs = [] \<or> (\<exists>zs. xs = y # zs \<and> zs \<le> ys))"
   by (cases xs) (auto simp add: prefix_def)
@@ -130,28 +130,27 @@ lemma append_one_prefix:
 theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
   by (auto simp add: prefix_def)
 
-
 lemma prefix_same_cases:
- "\<lbrakk> (xs\<^isub>1::'a list) \<le> ys; xs\<^isub>2 \<le> ys \<rbrakk> \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
-apply(simp add:prefix_def)
-apply(erule exE)+
-apply(simp add: append_eq_append_conv_if split:if_splits)
- apply(rule disjI2)
- apply(rule_tac x = "drop (size xs\<^isub>2) xs\<^isub>1" in exI)
- apply clarify
- apply(drule sym)
- apply(insert append_take_drop_id[of "length xs\<^isub>2" xs\<^isub>1])
- apply simp
-apply(rule disjI1)
-apply(rule_tac x = "drop (size xs\<^isub>1) xs\<^isub>2" in exI)
-apply clarify
-apply(insert append_take_drop_id[of "length xs\<^isub>1" xs\<^isub>2])
-apply simp
-done
+    "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
+  apply (simp add: prefix_def)
+  apply (erule exE)+
+  apply (simp add: append_eq_append_conv_if split: if_splits)
+   apply (rule disjI2)
+   apply (rule_tac x = "drop (size xs\<^isub>2) xs\<^isub>1" in exI)
+   apply clarify
+   apply (drule sym)
+   apply (insert append_take_drop_id [of "length xs\<^isub>2" xs\<^isub>1])
+   apply simp
+  apply (rule disjI1)
+  apply (rule_tac x = "drop (size xs\<^isub>1) xs\<^isub>2" in exI)
+  apply clarify
+  apply (insert append_take_drop_id [of "length xs\<^isub>1" xs\<^isub>2])
+  apply simp
+  done
 
 lemma set_mono_prefix:
- "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
-by(fastsimp simp add:prefix_def)
+    "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
+  by (auto simp add: prefix_def)
 
 
 subsection {* Parallel lists *}
@@ -215,48 +214,48 @@ qed
 
 
 subsection {* Postfix order on lists *}
-(*
+
 constdefs
-  postfix :: "'a list => 'a list => bool"  ("(_/ >= _)" [51, 50] 50)
-  "xs >= ys == \<exists>zs. xs = zs @ ys"
+  postfix :: "'a list => 'a list => bool"  ("(_/ >>= _)" [51, 50] 50)
+  "xs >>= ys == \<exists>zs. xs = zs @ ys"
 
-lemma postfix_refl [simp, intro!]: "xs >= xs"
+lemma postfix_refl [simp, intro!]: "xs >>= xs"
   by (auto simp add: postfix_def)
-lemma postfix_trans: "\<lbrakk>xs >= ys; ys >= zs\<rbrakk> \<Longrightarrow> xs >= zs"
+lemma postfix_trans: "\<lbrakk>xs >>= ys; ys >>= zs\<rbrakk> \<Longrightarrow> xs >>= zs"
   by (auto simp add: postfix_def)
-lemma postfix_antisym: "\<lbrakk>xs >= ys; ys >= xs\<rbrakk> \<Longrightarrow> xs = ys"
+lemma postfix_antisym: "\<lbrakk>xs >>= ys; ys >>= xs\<rbrakk> \<Longrightarrow> xs = ys"
   by (auto simp add: postfix_def)
 
-lemma Nil_postfix [iff]: "xs >= []"
+lemma Nil_postfix [iff]: "xs >>= []"
   by (simp add: postfix_def)
-lemma postfix_Nil [simp]: "([] >= xs) = (xs = [])"
+lemma postfix_Nil [simp]: "([] >>= xs) = (xs = [])"
   by (auto simp add:postfix_def)
 
-lemma postfix_ConsI: "xs >= ys \<Longrightarrow> x#xs >= ys"
+lemma postfix_ConsI: "xs >>= ys \<Longrightarrow> x#xs >>= ys"
   by (auto simp add: postfix_def)
-lemma postfix_ConsD: "xs >= y#ys \<Longrightarrow> xs >= ys"
+lemma postfix_ConsD: "xs >>= y#ys \<Longrightarrow> xs >>= ys"
   by (auto simp add: postfix_def)
 
-lemma postfix_appendI: "xs >= ys \<Longrightarrow> zs @ xs >= ys"
+lemma postfix_appendI: "xs >>= ys \<Longrightarrow> zs @ xs >>= ys"
   by (auto simp add: postfix_def)
-lemma postfix_appendD: "xs >= zs @ ys \<Longrightarrow> xs >= ys"
+lemma postfix_appendD: "xs >>= zs @ ys \<Longrightarrow> xs >>= ys"
   by(auto simp add: postfix_def)
 
 lemma postfix_is_subset_lemma: "xs = zs @ ys \<Longrightarrow> set ys \<subseteq> set xs"
   by (induct zs, auto)
-lemma postfix_is_subset: "xs >= ys \<Longrightarrow> set ys \<subseteq> set xs"
+lemma postfix_is_subset: "xs >>= ys \<Longrightarrow> set ys \<subseteq> set xs"
   by (unfold postfix_def, erule exE, erule postfix_is_subset_lemma)
 
-lemma postfix_ConsD2_lemma [rule_format]: "x#xs = zs @ y#ys \<longrightarrow> xs >= ys"
+lemma postfix_ConsD2_lemma [rule_format]: "x#xs = zs @ y#ys \<longrightarrow> xs >>= ys"
   by (induct zs, auto intro!: postfix_appendI postfix_ConsI)
-lemma postfix_ConsD2: "x#xs >= y#ys \<Longrightarrow> xs >= ys"
+lemma postfix_ConsD2: "x#xs >>= y#ys \<Longrightarrow> xs >>= ys"
   by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
 
-lemma postfix2prefix: "(xs >= ys) = (rev ys <= rev xs)"
+lemma postfix2prefix: "(xs >>= ys) = (rev ys <= rev xs)"
   apply (unfold prefix_def postfix_def, safe)
-  apply (rule_tac x = "rev zs" in exI, simp)
+   apply (rule_tac x = "rev zs" in exI, simp)
   apply (rule_tac x = "rev zs" in exI)
   apply (rule rev_is_rev_conv [THEN iffD1], simp)
   done
-*)
+
 end
