@@ -11,3 +11,6 @@ use_thy "Sqrt";
 use_thy "Sqrt_Script";
 (*This example also needs the theory Factorization.*)
 use_thy "NSPrimes";
+
+no_document use_thy "BigO";
+use_thy "BigO_Complex";
