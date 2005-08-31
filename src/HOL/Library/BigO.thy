@@ -11,31 +11,29 @@ begin
 
 text {*
 This library is designed to support asymptotic ``big O'' calculations,
-i.e.~reasoning with expressions of the form $f = O(g)$ and $f = g + O(h)$.
-An earlier version of this library is described in detail in
-\begin{quote}
-Avigad, Jeremy, and Kevin Donnelly, \emph{Formalizing O notation in 
-Isabelle/HOL}, in David Basin and Micha\"el Rusiowitch, editors, 
-\emph{Automated Reasoning: second international conference, IJCAR 2004}, 
-Springer, 357--371, 2004.
-\end{quote}
+i.e.~reasoning with expressions of the form $f = O(g)$ and $f = g +
+O(h)$.  An earlier version of this library is described in detail in
+\cite{Avigad-Donnelly}.
+
 The main changes in this version are as follows:
 \begin{itemize}
-\item We have eliminated the $O$ operator on sets. (Most uses of this seem
+\item We have eliminated the @{text O} operator on sets. (Most uses of this seem
   to be inessential.)
-\item We no longer use $+$ as output syntax for $+o$.
-\item Lemmas involving ``sumr'' have been replaced by more general lemmas 
-  involving ``setsum''.
+\item We no longer use @{text "+"} as output syntax for @{text "+o"}
+\item Lemmas involving @{text "sumr"} have been replaced by more general lemmas 
+  involving `@{text "setsum"}.
 \item The library has been expanded, with e.g.~support for expressions of
-  the form $f < g + O(h)$.
+  the form @{text "f < g + O(h)"}.
 \end{itemize}
-Note that two lemmas at the end of this file are commented out, as they 
-require the HOL-Complex library.
 
-Note also since the Big O library includes rules that demonstrate set 
-inclusion, to use the automated reasoners effectively with the library one 
-should redeclare the theorem ``subsetI'' as an intro rule, rather than as 
-an intro! rule, for example, using ``declare subsetI [del, intro]''.
+See \verb,Complex/ex/BigO_Complex.thy, for additional lemmas that
+require the \verb,HOL-Complex, logic image.
+
+Note also since the Big O library includes rules that demonstrate set
+inclusion, to use the automated reasoners effectively with the library
+one should redeclare the theorem @{text "subsetI"} as an intro rule,
+rather than as an @{text "intro!"} rule, for example, using
+\isa{\isakeyword{declare}}~@{text "subsetI [del, intro]"}.
 *}
 
 subsection {* Definitions *}
@@ -581,7 +579,7 @@ lemma bigo_setsum_main: "ALL x. ALL y : A x. 0 <= h x y ==>
       (%x. SUM y : A x. f x y) =o O(%x. SUM y : A x. h x y)"  
   apply (auto simp add: bigo_def)
   apply (rule_tac x = "abs c" in exI)
-  apply (subst abs_of_nonneg);back;back
+  apply (subst abs_of_nonneg) back back
   apply (rule setsum_nonneg)
   apply force
   apply (subst setsum_mult)
@@ -718,7 +716,7 @@ lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
   apply force
   apply force
   apply (subgoal_tac "x = Suc (x - 1)")
-  apply (erule ssubst)back
+  apply (erule ssubst) back
   apply (erule spec)
   apply simp
 done
@@ -802,7 +800,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply (case_tac "0 <= k x - g x")
   apply simp
   apply (subst abs_of_nonneg)
-  apply (drule_tac x = x in spec)back
+  apply (drule_tac x = x in spec) back
   apply (simp add: compare_rls)
   apply (subst diff_minus)+
   apply (rule add_right_mono)
@@ -826,7 +824,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (case_tac "0 <= f x - k x")
   apply simp
   apply (subst abs_of_nonneg)
-  apply (drule_tac x = x in spec)back
+  apply (drule_tac x = x in spec) back
   apply (simp add: compare_rls)
   apply (subst diff_minus)+
   apply (rule add_left_mono)
@@ -842,11 +840,11 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
     g =o h +o O(k) ==> f <o h =o O(k)"
   apply (unfold lesso_def)
   apply (drule set_plus_imp_minus)
-  apply (drule bigo_abs5)back
+  apply (drule bigo_abs5) back
   apply (simp add: func_diff)
   apply (drule bigo_useful_add)
   apply assumption
-  apply (erule bigo_lesseq2)back
+  apply (erule bigo_lesseq2) back
   apply (rule allI)
   apply (auto simp add: func_plus func_diff compare_rls 
     split: split_max abs_split)
@@ -874,44 +872,5 @@ lemma lesso_add: "f <o g =o O(h) ==>
   apply (force split: split_max)
   apply (auto split: split_max simp add: func_plus)
 done
-
-(* 
-These last two lemmas require the HOL-Complex library.
-
-lemma bigo_LIMSEQ1: "f =o O(g) ==> g ----> 0 ==> f ----> 0"
-  apply (simp add: LIMSEQ_def bigo_alt_def)
-  apply clarify
-  apply (drule_tac x = "r / c" in spec)
-  apply (drule mp)
-  apply (erule divide_pos_pos)
-  apply assumption
-  apply clarify
-  apply (rule_tac x = no in exI)
-  apply (rule allI)
-  apply (drule_tac x = n in spec)+
-  apply (rule impI)
-  apply (drule mp)
-  apply assumption
-  apply (rule order_le_less_trans)
-  apply assumption
-  apply (rule order_less_le_trans)
-  apply (subgoal_tac "c * abs(g n) < c * (r / c)")
-  apply assumption
-  apply (erule mult_strict_left_mono)
-  apply assumption
-  apply simp
-done
-
-lemma bigo_LIMSEQ2: "f =o g +o O(h) ==> h ----> 0 ==> f ----> a 
-    ==> g ----> a"
-  apply (drule set_plus_imp_minus)
-  apply (drule bigo_LIMSEQ1)
-  apply assumption
-  apply (simp only: func_diff)
-  apply (erule LIMSEQ_diff_approach_zero2)
-  apply assumption
-done
-
-*)
 
 end
