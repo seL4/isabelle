@@ -63,7 +63,7 @@ fun pretty_criterion ctxt (b, c) =
 (** search criterion filters **)
 
 (*generated filters are to be of the form
-  input: (PureThy.thmref * Thm.thm)
+  input: (thmref * thm)
   output: (p:int, s:int) option, where
     NONE indicates no match
     p is the primary sorting criterion
@@ -79,7 +79,7 @@ fun pretty_criterion ctxt (b, c) =
 
 (* matching theorems *)
 
-fun is_nontrivial thy = is_Const o head_of o ObjectLogic.drop_judgment thy;
+fun is_nontrivial thy = Term.is_Const o Term.head_of o ObjectLogic.drop_judgment thy;
 
 (*extract terms from term_src, refine them to the parts that concern us,
   if po try match them against obj else vice versa.
@@ -88,20 +88,17 @@ fun is_nontrivial thy = is_Const o head_of o ObjectLogic.drop_judgment thy;
 fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
   let
     val thy = ProofContext.theory_of ctxt;
-    val tsig = Sign.tsig_of thy;
 
     fun matches pat =
       is_nontrivial thy pat andalso
-      Pattern.matches tsig (if po then (pat,obj) else (obj,pat));
+      Pattern.matches thy (if po then (pat, obj) else (obj, pat));
 
     fun substsize pat =
-      let
-        val (_,subst) = Pattern.match tsig (if po then (pat,obj) else (obj,pat))
-      in Vartab.foldl (op + o apsnd (size_of_term o snd o snd)) (0, subst)
-      end;
+      let val (_, subst) = Pattern.match thy (if po then (pat, obj) else (obj, pat))
+      in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE
-     |  bestmatch (x :: xs) = SOME (foldl Int.min x xs);
+     |  bestmatch xs = SOME (foldr1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
@@ -122,45 +119,41 @@ fun is_substring pat str =
   substring match only (no regexps are performed)*)
 fun filter_name str_pat (thmref, _) =
   if is_substring str_pat (PureThy.name_of_thmref thmref)
-  then SOME (0,0) else NONE;
+  then SOME (0, 0) else NONE;
 
 
 (* filter intro/elim/dest rules *)
 
-fun filter_dest ctxt goal (_,thm) =
+fun filter_dest ctxt goal (_, thm) =
   let
     val extract_dest =
-     (fn thm => if Thm.no_prems thm then [] else [prop_of thm],
+     (fn thm => if Thm.no_prems thm then [] else [Thm.full_prop_of thm],
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
 
     fun try_subst prem = is_matching_thm extract_dest ctxt true prem thm;
-
-    (*keep successful substitutions*)
-    val ss = prems |> List.map try_subst
-             |> List.filter isSome
-             |> List.map valOf;
+    val successful = prems |> List.mapPartial try_subst;
   in
     (*if possible, keep best substitution (one with smallest size)*)
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
-    if not (null ss)
-    then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
+    if not (null successful)
+    then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
   end;
 
-fun filter_intro ctxt goal (_,thm) =
+fun filter_intro ctxt goal (_, thm) =
   let
-    val extract_intro = (single o prop_of, Logic.strip_imp_concl);
+    val extract_intro = (single o Thm.full_prop_of, Logic.strip_imp_concl);
     val concl = Logic.concl_of_goal goal 1;
     val ss = is_matching_thm extract_intro ctxt true concl thm;
   in
-    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE
+    if is_some ss then SOME (Thm.nprems_of thm, valOf ss) else NONE
   end;
 
-fun filter_elim ctxt goal (_,thm) =
+fun filter_elim ctxt goal (_, thm) =
   if not (Thm.no_prems thm) then
     let
-      val rule = prop_of thm;
+      val rule = Thm.full_prop_of thm;
       val prems = Logic.prems_of_goal goal 1;
       val goal_concl = Logic.concl_of_goal goal 1;
       val rule_mp = (hd o Logic.strip_imp_prems) rule;
@@ -170,40 +163,37 @@ fun filter_elim ctxt goal (_,thm) =
       fun goal_tree prem = (combine prem goal_concl);
       fun try_subst prem =
         is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
-      (*keep successful substitutions*)
-      val ss = prems |> List.map try_subst
-               |> List.filter isSome
-               |> List.map valOf;
+      val successful = prems |> List.mapPartial try_subst;
     in
     (*elim rules always have assumptions, so an elim with one
       assumption is as good as an intro rule with none*)
       if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
-        andalso not (null ss)
-      then SOME (nprems_of thm - 1, foldl Int.min (hd ss) (tl ss)) else NONE
+        andalso not (null successful)
+      then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
     end
   else NONE
 
 
 (* filter_simp *)
 
-fun filter_simp ctxt t (_,thm) =
+fun filter_simp ctxt t (_, thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
       MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
     val extract_simp =
-      ((List.map prop_of) o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
+      (map Thm.full_prop_of o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm extract_simp ctxt false t thm
   in
-    if is_some ss then SOME (nprems_of thm, valOf ss) else NONE
+    if is_some ss then SOME (Thm.nprems_of thm, valOf ss) else NONE
   end;
 
 
 (* filter_pattern *)
 
 fun filter_pattern ctxt pat (_, thm) =
-  let val tsig = Sign.tsig_of (ProofContext.theory_of ctxt)
-  in if Pattern.matches_subterm tsig (pat, Thm.prop_of thm) then SOME (0,0)
-     else NONE end;
+  if Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
+  then SOME (0, 0) else NONE;
+
 
 (* interpret criteria as filters *)
 
@@ -222,10 +212,10 @@ fun filter_crit _ _ (Name name) = filter_name name
   | filter_crit ctxt _ (Simp pat) = filter_simp ctxt pat
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
-fun opt_not x = if isSome x then NONE else SOME (0,0);
+fun opt_not x = if isSome x then NONE else SOME (0, 0);
 
-fun opt_add (SOME (a,x), SOME (b,y)) = SOME ((Int.max (a,b)), (x + y))
- |  opt_add _ = NONE;
+fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y)
+ |  opt_add _ _ = NONE;
 
 in
 
@@ -235,18 +225,17 @@ fun filter_criterion ctxt opt_goal (b, c) =
 fun all_filters filters thms =
   let
     fun eval_filters filters thm =
-      map (fn f => f thm) filters |> List.foldl opt_add (SOME (0,0));
+      fold opt_add (map (fn f => f thm) filters) (SOME (0, 0));
 
     (*filters return: (number of assumptions, substitution size) option, so
       sort (desc. in both cases) according to number of assumptions first,
       then by the substitution size*)
-    fun thm_ord (((p0,s0),_),((p1,s1),_)) =
-      prod_ord int_ord int_ord ((p1,s1),(p0,s0));
-
-    val processed = List.map (fn t => (eval_filters filters t, t)) thms;
-    val filtered = List.filter (isSome o #1) processed;
+    fun thm_ord (((p0, s0), _), ((p1, s1), _)) =
+      prod_ord int_ord int_ord ((p1, s1), (p0, s0));
   in
-    filtered |> List.map (apfst valOf) |> sort thm_ord |> map #2
+    map (`(eval_filters filters)) thms
+    |> List.mapPartial (fn (SOME x, y) => SOME (x, y) | (NONE, _) => NONE)
+    |> sort thm_ord |> map #2
   end;
 
 end;
