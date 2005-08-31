@@ -99,6 +99,13 @@ a proof context.
 * Proper output of antiquotations for theory commands involving a
 proof context (such as 'locale' or 'theorem (in loc) ...').
 
+* Delimiters of outer tokens (string etc.) now produce separate LaTeX
+macros (\isachardoublequoteopen, isachardoublequoteclose etc.).
+
+* isatool usedir: new option -C (default true) controls whether option
+-D should include a copy of the original document directory; -C false
+prevents unwanted effects such as copying of administrative CVS data.
+
 
 *** Pure ***
 
@@ -592,6 +599,8 @@ considerable INCOMPATIBILITY to gain more clarity:
 The most basic sign_of operations (Theory.sign_of, Thm.sign_of_thm
 etc.) as well as the sign field in Thm.rep_thm etc. have been retained
 for convenience -- they merely return the theory.
+
+* Pure: type Type.tsig is superceded by theory in most interfaces.
 
 * Pure: the Isar proof context type is already defined early in Pure
 as Context.proof (note that ProofContext.context and Proof.context are
