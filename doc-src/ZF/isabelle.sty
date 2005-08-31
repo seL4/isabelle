@@ -114,8 +114,8 @@
 \newcommand{\isabeginpar}{\par\ifisamarkup\relax\else\medskip\fi}
 \newcommand{\isaendpar}{\par\medskip}
 \newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\isabeginpar}{\isaendpar}
-\newenvironment{isamarkuptext}{\isastyletext\begin{isapar}}{\end{isapar}}
-\newenvironment{isamarkuptxt}{\isastyletxt\begin{isapar}}{\end{isapar}}
+\newenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}}{\end{isapar}}
+\newenvironment{isamarkuptxt}{\par\isastyletxt\begin{isapar}}{\end{isapar}}
 \newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
 
 

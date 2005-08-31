@@ -22,10 +22,10 @@
 \newcommand{\isamath}[1]{\emph{$#1$}}
 \newcommand{\isatext}[1]{\emph{#1}}
 \newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
-\newcommand{\isactrlsub}[1]{\emph{${}\sb{\mbox{\isastylescript{#1}}}$}}
-\newcommand{\isactrlsup}[1]{\emph{${}\sp{\mbox{\isastylescript{#1}}}$}}
-\newcommand{\isactrlisub}[1]{\emph{${}\sb{\mbox{\isastylescript{#1}}}$}}
-\newcommand{\isactrlisup}[1]{\emph{${}\sp{\mbox{\isastylescript{#1}}}$}}
+\newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
+\newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
+\newcommand{\isactrlisub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
+\newcommand{\isactrlisup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
 \newcommand{\isactrlbsub}{\emph\bgroup\begin{math}{}\sb\bgroup\mbox\bgroup\isastylescript}
 \newcommand{\isactrlesub}{\egroup\egroup\end{math}\egroup}
 \newcommand{\isactrlbsup}{\emph\bgroup\begin{math}{}\sp\bgroup\mbox\bgroup\isastylescript}
@@ -89,6 +89,8 @@
 \chardef\isacharbar=`\|
 \chardef\isacharbraceright=`\}
 \chardef\isachartilde=`\~
+\def\isacharverbatimopen{\isacharbraceleft\isacharasterisk}
+\def\isacharverbatimclose{\isacharasterisk\isacharbraceright}
 
 
 % keyword and section markup
@@ -112,8 +114,8 @@
 \newcommand{\isabeginpar}{\par\ifisamarkup\relax\else\medskip\fi}
 \newcommand{\isaendpar}{\par\medskip}
 \newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\isabeginpar}{\isaendpar}
-\newenvironment{isamarkuptext}{\isastyletext\begin{isapar}}{\end{isapar}}
-\newenvironment{isamarkuptxt}{\isastyletxt\begin{isapar}}{\end{isapar}}
+\newenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}}{\end{isapar}}
+\newenvironment{isamarkuptxt}{\par\isastyletxt\begin{isapar}}{\end{isapar}}
 \newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
 
 
@@ -165,6 +167,8 @@
 \renewcommand{\isachartilde}{\isamath{{}\sp{\sim}}}%
 \renewcommand{\isacharbackquoteopen}{\isatext{\raise.3ex\hbox{$\scriptscriptstyle\langle$}}}%
 \renewcommand{\isacharbackquoteclose}{\isatext{\raise.3ex\hbox{$\scriptscriptstyle\rangle$}}}%
+\renewcommand{\isacharverbatimopen}{\isamath{\langle\!\langle}}%
+\renewcommand{\isacharverbatimclose}{\isamath{\rangle\!\rangle}}%
 }
 
 \newcommand{\isabellestylesl}{%

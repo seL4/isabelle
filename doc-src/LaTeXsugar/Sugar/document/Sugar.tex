@@ -7,7 +7,6 @@
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -27,7 +26,7 @@ typeset a theorem by hand anymore because they have experienced the
 bliss of writing \verb!@!\verb!{thm[display]setsum_cartesian_product[no_vars]}!
 and seeing Isabelle typeset it for them:
 \begin{isabelle}%
-{\isacharparenleft}{\isasymSum}x{\isasymin}A{\isachardot}\ {\isasymSum}y{\isasymin}B{\isachardot}\ f\ x\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymSum}z{\isasymin}A\ {\isasymtimes}\ B{\isachardot}\ f\ {\isacharparenleft}fst\ z{\isacharparenright}\ {\isacharparenleft}snd\ z{\isacharparenright}{\isacharparenright}%
+{\isacharparenleft}{\isasymSum}x{\isasymin}A{\isachardot}\ {\isasymSum}y{\isasymin}B{\isachardot}\ f\ x\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymSum}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A\ {\isasymtimes}\ B{\isachardot}\ f\ x\ y{\isacharparenright}%
 \end{isabelle}
 No typos, no omissions, no sweat.
 If you have not experienced that joy, read Chapter 4, \emph{Presenting
@@ -170,7 +169,6 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub 
 \endisadelimML
 %
 \isatagML
-\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -481,7 +479,6 @@ The \verb!thm! antiquotation works nicely for single theorems, but
 \endisadelimML
 %
 \isatagML
-\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -526,7 +523,6 @@ The \verb!thm! antiquotation works nicely for single theorems, but
 \endisadelimtheory
 %
 \isatagtheory
-\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
