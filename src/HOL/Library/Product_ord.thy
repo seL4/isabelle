@@ -3,7 +3,7 @@
     Author:     Norbert Voelker
 *)
 
-header {* Instantiation of order classes for product types *}
+header {* Order on product types *}
 
 theory Product_ord
 imports Main
