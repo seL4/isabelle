@@ -380,7 +380,7 @@ local
   fun imports Bs =
     keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
 
-  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps);
+  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps) ^ "<br>\n";
 in
 
 fun begin_theory up A Bs Ps body =
