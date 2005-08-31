@@ -120,8 +120,8 @@ fun merge_tokentrtabs tabs1 tabs2 =
 
     fun merge mode =
       let
-        val trs1 = (these o AList.lookup (op =) tabs1) mode;
-        val trs2 = (these o AList.lookup (op =) tabs2) mode;
+        val trs1 = these (AList.lookup (op =) tabs1 mode);
+        val trs2 = these (AList.lookup (op =) tabs2 mode);
         val trs = gen_distinct eq_tr (trs1 @ trs2);
       in
         (case gen_duplicates eq_fst trs of
@@ -135,8 +135,9 @@ fun merge_tokentrtabs tabs1 tabs2 =
 
 fun extend_tokentrtab tokentrs tabs =
   let
-    fun ins_tokentr (m, c, f) ts =
-      AList.map_entry (op =) m (cons ("_" ^ c, (f, stamp ()))) ts;
+    fun ins_tokentr (m, c, f) =
+      AList.default (op =) (m, [])
+      #> AList.map_entry (op =) m (cons ("_" ^ c, (f, stamp ())));
   in merge_tokentrtabs tabs (fold ins_tokentr tokentrs []) end;
 
 
