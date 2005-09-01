@@ -208,8 +208,8 @@ fun lookup_thms thy =
     val (space, thms) = #theorems (get_theorems thy);
   in
     fn name =>
-      Option.map (map (Thm.transfer (Theory.deref thy_ref)))    (*dynamic identity*)
-      (Symtab.lookup (thms, NameSpace.intern space name))       (*static content*)
+      Option.map (map (Thm.transfer (Theory.deref thy_ref)))     (*dynamic identity*)
+      (Symtab.curried_lookup thms (NameSpace.intern space name)) (*static content*)
   end;
 
 fun get_thms_closure thy =
@@ -309,10 +309,10 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
         val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy';
         val space' = Sign.declare_name thy' name space;
-        val theorems' = Symtab.update ((name, thms'), theorems);
+        val theorems' = Symtab.curried_update (name, thms') theorems;
         val index' = FactIndex.add (K false) (name, thms') index;
       in
-        (case Symtab.lookup (theorems, name) of
+        (case Symtab.curried_lookup theorems name of
           NONE => ()
         | SOME thms'' =>
             if Thm.eq_thms (thms', thms'') then warn_same name

@@ -811,11 +811,11 @@ local
 
     fun get_keywords_classification_table () =
         case (!keywords_classification_table) of
-            SOME t => t
-          | NONE => (let
-                         val tab = Library.foldl (fn (tab,(c,_,k,_))=>Symtab.update((c,k),tab))
-                                         (Symtab.empty,OuterSyntax.dest_parsers())
-                     in (keywords_classification_table := SOME tab; tab) end)
+          SOME t => t
+        | NONE => (let
+                     val tab = fold (fn (c, _, k, _) => Symtab.curried_update (c, k))
+                                    (OuterSyntax.dest_parsers ()) Symtab.empty;
+                   in (keywords_classification_table := SOME tab; tab) end)
 
 
 
@@ -959,7 +959,7 @@ in
 
 fun xmls_of_transition (name,str,toks) =
    let
-       val classification = Symtab.lookup (get_keywords_classification_table(),name)
+     val classification = Symtab.curried_lookup (get_keywords_classification_table ()) name
    in case classification of
           SOME k => (xmls_of_kind k (name,toks,str))
         | NONE => (* an uncategorized keyword ignored for undo (maybe wrong) *)

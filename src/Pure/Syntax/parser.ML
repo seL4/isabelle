@@ -446,9 +446,9 @@ fun extend_gram gram [] = gram
   let
     (*Get tag for existing nonterminal or create a new one*)
     fun get_tag nt_count tags nt =
-      case Symtab.lookup (tags, nt) of
+      case Symtab.curried_lookup tags nt of
         SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
+      | NONE => (nt_count+1, Symtab.curried_update_new (nt, nt_count) tags,
                  nt_count);
 
     (*Convert symbols to the form used by the parser;
@@ -523,9 +523,9 @@ fun merge_grams gram_a gram_b =
 
     (*get existing tag from grammar1 or create a new one*)
     fun get_tag nt_count tags nt =
-      case Symtab.lookup (tags, nt) of
+      case Symtab.curried_lookup tags nt of
         SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count+1, Symtab.update_new ((nt, nt_count), tags),
+      | NONE => (nt_count+1, Symtab.curried_update_new (nt, nt_count) tags,
                 nt_count)
 
     val ((nt_count1', tags1'), tag_table) =
@@ -868,7 +868,7 @@ fun get_trees l = List.mapPartial (fn (_, _, [pt], _, _, _) => SOME pt | _ => NO
 
 fun earley prods tags chains startsymbol indata =
   let
-    val start_tag = case Symtab.lookup (tags, startsymbol) of
+    val start_tag = case Symtab.curried_lookup tags startsymbol of
                        SOME tag => tag
                      | NONE   => error ("parse: Unknown startsymbol " ^
                                         quote startsymbol);

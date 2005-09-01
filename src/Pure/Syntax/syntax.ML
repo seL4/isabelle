@@ -82,7 +82,7 @@ struct
 
 (* parse (ast) translations *)
 
-fun lookup_tr tab c = Option.map fst (Symtab.lookup (tab, c));
+fun lookup_tr tab c = Option.map fst (Symtab.curried_lookup tab c);
 
 fun err_dup_trfuns name cs =
   error ("More than one " ^ name ^ " for " ^ commas_quote cs);
@@ -98,8 +98,8 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
 
 (* print (ast) translations *)
 
-fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
-fun extend_tr'tab trfuns = fold_rev (curry Symtab.update_multi) trfuns;
+fun lookup_tr' tab c = map fst (Symtab.curried_lookup_multi tab c);
+fun extend_tr'tab trfuns = fold_rev Symtab.curried_update_multi trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_multi SynExt.eq_trfun) trfuns;
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' SynExt.eq_trfun (tab1, tab2);
 
@@ -147,16 +147,12 @@ fun extend_tokentrtab tokentrs tabs =
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
 fun dest_ruletab tab = List.concat (map snd (Symtab.dest tab));
-fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 
 
 (* empty, extend, merge ruletabs *)
 
-val extend_ruletab =
-  fold_rev (fn r => fn tab => Symtab.update_multi ((Ast.head_of_rule r, r), tab));
-
+val extend_ruletab = fold_rev (fn r => Symtab.curried_update_multi (Ast.head_of_rule r, r));
 val remove_ruletab = fold (fn r => Symtab.remove_multi (op =) (Ast.head_of_rule r, r));
-
 fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 
 
@@ -389,7 +385,7 @@ fun read thy is_logtype (syn as Syntax (tabs, _)) ty str =
     val asts = read_asts thy is_logtype syn false (SynExt.typ_to_nonterm ty) str;
   in
     SynTrans.asts_to_terms thy (lookup_tr parse_trtab)
-      (map (Ast.normalize_ast (lookup_ruletab parse_ruletab)) asts)
+      (map (Ast.normalize_ast (Symtab.curried_lookup_multi parse_ruletab)) asts)
   end;
 
 
@@ -473,7 +469,7 @@ fun pretty_t t_to_ast prt_t thy (syn as Syntax (tabs, _)) curried t =
   in
     prt_t thy curried prtabs (lookup_tr' print_ast_trtab)
       (lookup_tokentr tokentrtab (! print_mode))
-      (Ast.normalize_ast (lookup_ruletab print_ruletab) ast)
+      (Ast.normalize_ast (Symtab.curried_lookup_multi print_ruletab) ast)
   end;
 
 val pretty_term = pretty_t Printer.term_to_ast Printer.pretty_term_ast;

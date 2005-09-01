@@ -172,13 +172,13 @@ fun no_document f x = Library.setmp suppress_tex_source true f x;
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, files, tex_index, html_index, graph) =>
-    (Symtab.update ((name, info), theories), files, tex_index, html_index, graph));
+    (Symtab.curried_update (name, info) theories, files, tex_index, html_index, graph));
 
 fun change_theory_info name f =
   change_browser_info (fn (info as (theories, files, tex_index, html_index, graph)) =>
-    (case Symtab.lookup (theories, name) of
+    (case Symtab.curried_lookup theories name of
       NONE => (warning ("Browser info: cannot access theory document " ^ quote name); info)
-    | SOME info => (Symtab.update ((name, map_theory_info f info), theories), files,
+    | SOME info => (Symtab.curried_update (name, map_theory_info f info) theories, files,
         tex_index, html_index, graph)));
 
 

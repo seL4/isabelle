@@ -59,7 +59,7 @@ val global_options =
 fun add_item kind (name, x) tab =
  (if not (Symtab.defined tab name) then ()
   else warning ("Redefined antiquotation " ^ kind ^ ": " ^ quote name);
-  Symtab.update ((name, x), tab));
+  Symtab.curried_update (name, x) tab);
 
 in
 
@@ -68,13 +68,13 @@ val add_options = Library.change global_options o fold (add_item "option");
 
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
-    (case Symtab.lookup (! global_commands, name) of
+    (case Symtab.curried_lookup (! global_commands) name of
       NONE => error ("Unknown antiquotation command: " ^ quote name ^ Position.str_of pos)
     | SOME f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
   end;
 
 fun option (name, s) f () =
-  (case Symtab.lookup (! global_options, name) of
+  (case Symtab.curried_lookup (! global_options) name of
     NONE => error ("Unknown antiquotation option: " ^ quote name)
   | SOME opt => opt s f ());
 

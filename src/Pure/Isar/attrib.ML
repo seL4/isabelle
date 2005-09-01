@@ -104,7 +104,7 @@ fun gen_attribute which thy =
     val attrs = #2 (AttributesData.get thy);
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup (attrs, name) of
+        (case Symtab.curried_lookup attrs name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
         | SOME ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
       end;

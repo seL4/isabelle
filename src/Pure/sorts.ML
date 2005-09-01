@@ -180,7 +180,7 @@ exception DOMAIN of string * class;
 fun mg_domain (classes, arities) a S =
   let
     fun dom c =
-      (case AList.lookup (op =) (Symtab.lookup_multi (arities, a)) c of
+      (case AList.lookup (op =) (Symtab.curried_lookup_multi arities a) c of
         NONE => raise DOMAIN (a, c)
       | SOME Ss => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort classes) (dom c, Ss);

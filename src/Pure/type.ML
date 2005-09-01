@@ -167,7 +167,7 @@ fun certify_typ normalize syntax tsig ty =
             val Ts' = map cert Ts;
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
-            (case Symtab.lookup (types, c) of
+            (case Symtab.curried_lookup types c of
               SOME (LogicalType n, _) => (nargs n; Type (c, Ts'))
             | SOME (Abbreviation (vs, U, syn), _) => (nargs (length vs);
                 if syn then check_syntax c else ();
@@ -284,7 +284,7 @@ fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
   [TVar (ixn, S), TVar (ixn, S')], []);
 
 fun lookup (tye, (ixn, S)) =
-  (case Vartab.lookup (tye, ixn) of
+  (case Vartab.curried_lookup tye ixn of
     NONE => NONE
   | SOME (S', T) => if S = S' then SOME T else tvar_clash ixn S S');
 
@@ -298,7 +298,7 @@ fun typ_match tsig =
     fun match (TVar (v, S), T) subs =
           (case lookup (subs, (v, S)) of
             NONE =>
-              if of_sort tsig (T, S) then Vartab.update_new ((v, (S, T)), subs)
+              if of_sort tsig (T, S) then Vartab.curried_update_new (v, (S, T)) subs
               else raise TYPE_MATCH
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (Type (a, Ts), Type (b, Us)) subs =
@@ -317,7 +317,7 @@ fun typ_instance tsig (T, U) =
 (*purely structural matching*)
 fun raw_match (TVar (v, S), T) subs =
       (case lookup (subs, (v, S)) of
-        NONE => Vartab.update_new ((v, (S, T)), subs)
+        NONE => Vartab.curried_update_new (v, (S, T)) subs
       | SOME U => if U = T then subs else raise TYPE_MATCH)
   | raw_match (Type (a, Ts), Type (b, Us)) subs =
       if a <> b then raise TYPE_MATCH
@@ -366,8 +366,8 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) TU (tyenv, maxid
     fun meet (_, []) tye = tye
       | meet (TVar (xi, S'), S) tye =
           if Sorts.sort_le classes (S', S) then tye
-          else Vartab.update_new ((xi, (S',
-            gen_tyvar (Sorts.inter_sort classes (S', S)))), tye)
+          else Vartab.curried_update_new
+            (xi, (S', gen_tyvar (Sorts.inter_sort classes (S', S)))) tye
       | meet (TFree (_, S'), S) tye =
           if Sorts.sort_le classes (S', S) then tye
           else raise TUNIFY
@@ -381,19 +381,19 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) TU (tyenv, maxid
           if eq_ix (v, w) then
             if S1 = S2 then tye else tvar_clash v S1 S2
           else if Sorts.sort_le classes (S1, S2) then
-            Vartab.update_new ((w, (S2, T)), tye)
+            Vartab.curried_update_new (w, (S2, T)) tye
           else if Sorts.sort_le classes (S2, S1) then
-            Vartab.update_new ((v, (S1, U)), tye)
+            Vartab.curried_update_new (v, (S1, U)) tye
           else
             let val S = gen_tyvar (Sorts.inter_sort classes (S1, S2)) in
-              Vartab.update_new ((v, (S1, S)), Vartab.update_new ((w, (S2, S)), tye))
+              Vartab.curried_update_new (v, (S1, S)) (Vartab.curried_update_new (w, (S2, S)) tye)
             end
       | (TVar (v, S), T) =>
           if occurs v tye T then raise TUNIFY
-          else meet (T, S) (Vartab.update_new ((v, (S, T)), tye))
+          else meet (T, S) (Vartab.curried_update_new (v, (S, T)) tye)
       | (T, TVar (v, S)) =>
           if occurs v tye T then raise TUNIFY
-          else meet (T, S) (Vartab.update_new ((v, (S, T)), tye))
+          else meet (T, S) (Vartab.curried_update_new (v, (S, T)) tye)
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
           else unifs (Ts, Us) tye
@@ -408,13 +408,13 @@ fun raw_unify (ty1, ty2) tye =
     (T as TVar (v, S1), U as TVar (w, S2)) =>
       if eq_ix (v, w) then
         if S1 = S2 then tye else tvar_clash v S1 S2
-      else Vartab.update_new ((w, (S2, T)), tye)
+      else Vartab.curried_update_new (w, (S2, T)) tye
   | (TVar (v, S), T) =>
       if occurs v tye T then raise TUNIFY
-      else Vartab.update_new ((v, (S, T)), tye)
+      else Vartab.curried_update_new (v, (S, T)) tye
   | (T, TVar (v, S)) =>
       if occurs v tye T then raise TUNIFY
-      else Vartab.update_new ((v, (S, T)), tye)
+      else Vartab.curried_update_new (v, (S, T)) tye
   | (Type (a, Ts), Type (b, Us)) =>
       if a <> b then raise TUNIFY
       else raw_unifys (Ts, Us) tye
@@ -476,9 +476,9 @@ fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 
 fun insert_arities pp classes (t, ars) arities =
   let val ars' =
-    Symtab.lookup_multi (arities, t)
+    Symtab.curried_lookup_multi arities t
     |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
-  in Symtab.update ((t, ars'), arities) end;
+  in Symtab.curried_update (t, ars') arities end;
 
 fun insert_table pp classes = Symtab.fold (fn (t, ars) =>
   insert_arities pp classes (t, map (apsnd (map (Sorts.norm_sort classes))) ars));
@@ -488,7 +488,7 @@ in
 fun add_arities pp decls tsig = tsig |> map_tsig (fn (classes, default, types, arities) =>
   let
     fun prep (t, Ss, S) =
-      (case Symtab.lookup (#2 types, t) of
+      (case Symtab.curried_lookup (#2 types) t of
         SOME (LogicalType n, _) =>
           if length Ss = n then
             (t, map (cert_sort tsig) Ss, cert_sort tsig S)
@@ -591,18 +591,18 @@ fun new_decl naming (c, decl) (space, types) =
     val c' = NameSpace.full naming c;
     val space' = NameSpace.declare naming c' space;
     val types' =
-      (case Symtab.lookup (types, c') of
+      (case Symtab.curried_lookup types c' of
         SOME (decl', _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update ((c', (decl, stamp ())), types));
+      | NONE => Symtab.curried_update (c', (decl, stamp ())) types);
   in (space', types') end;
 
-fun the_decl (_, types) c = fst (the (Symtab.lookup (types, c)));
+fun the_decl (_, types) = fst o the o Symtab.curried_lookup types;
 
 fun change_types f = map_tsig (fn (classes, default, types, arities) =>
   (classes, default, f types, arities));
 
 fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup (types, c) of SOME (Nonterminal, _) => true | _ => false)
+      (case Symtab.curried_lookup types c of SOME (Nonterminal, _) => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 

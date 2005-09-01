@@ -42,11 +42,11 @@ fun typ thy =
   let
     val typs = #1 (CompressData.get thy);
     fun compress T =
-      (case Typtab.lookup (! typs, T) of
+      (case Typtab.curried_lookup (! typs) T of
         SOME T' => T'
       | NONE =>
           let val T' = (case T of Type (a, Ts) => Type (a, map compress Ts) | _ => T)
-          in change typs (curry Typtab.update (T', T')); T' end);
+          in change typs (Typtab.curried_update (T', T')); T' end);
   in compress end;
 
 
@@ -58,9 +58,9 @@ fun term thy =
     fun compress (t $ u) = compress t $ compress u
       | compress (Abs (a, T, t)) = Abs (a, T, compress t)
       | compress t =
-          (case Termtab.lookup (! terms, t) of
+          (case Termtab.curried_lookup (! terms) t of
             SOME t' => t'
-          | NONE => (change terms (curry Termtab.update (t, t)); t));
+          | NONE => (change terms (Termtab.curried_update (t, t)); t));
   in compress o map_term_types (typ thy) end;
 
 end;

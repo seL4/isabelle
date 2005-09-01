@@ -153,7 +153,7 @@ val print_axclasses = AxclassesData.print;
 
 (* get and put data *)
 
-fun lookup_axclass_info thy c = Symtab.lookup (AxclassesData.get thy, c);
+val lookup_axclass_info = Symtab.curried_lookup o AxclassesData.get;
 
 fun get_axclass_info thy c =
   (case lookup_axclass_info thy c of
@@ -161,7 +161,7 @@ fun get_axclass_info thy c =
   | SOME info => info);
 
 fun put_axclass_info c info thy =
-  thy |> AxclassesData.put (Symtab.update ((c, info), AxclassesData.get thy));
+  thy |> AxclassesData.put (Symtab.curried_update (c, info) (AxclassesData.get thy));
 
 
 (* class_axms *)

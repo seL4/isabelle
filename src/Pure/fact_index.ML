@@ -55,7 +55,7 @@ val empty =
 
 fun add pred (name, ths) (Index {next, facts, consts, frees}) =
   let
-    fun upd a tab = Symtab.update_multi ((a, (next, (name, ths))), tab);
+    fun upd a = Symtab.curried_update_multi (a, (next, (name, ths)));
     val (cs, xs) = fold (index_thm pred) ths ([], []);
   in
     Index {next = next + 1, facts = (name, ths) :: facts,
@@ -74,7 +74,7 @@ fun intersects [xs] = xs
 
 fun find idx ([], []) = facts idx
   | find (Index {consts, frees, ...}) (cs, xs) =
-      (map (curry Symtab.lookup_multi consts) cs @
-        map (curry Symtab.lookup_multi frees) xs) |> intersects |> map #2;
+      (map (Symtab.curried_lookup_multi consts) cs @
+        map (Symtab.curried_lookup_multi frees) xs) |> intersects |> map #2;
 
 end;

@@ -282,8 +282,8 @@ fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
 
 fun const_constraint thy c =
   let val ((_, consts), constraints) = #consts (rep_sg thy) in
-    (case Symtab.lookup (constraints, c) of
-      NONE => Option.map #1 (Symtab.lookup (consts, c))
+    (case Symtab.curried_lookup constraints c of
+      NONE => Option.map #1 (Symtab.curried_lookup consts c)
     | some => some)
   end;
 
@@ -291,7 +291,7 @@ fun the_const_constraint thy c =
   (case const_constraint thy c of SOME T => T
   | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
-fun const_type thy c = Option.map #1 (Symtab.lookup (#2 (#1 (#consts (rep_sg thy))), c));
+val const_type = Option.map #1 oo (Symtab.curried_lookup o #2 o #1 o #consts o rep_sg);
 
 fun the_const_type thy c =
   (case const_type thy c of SOME T => T
@@ -514,7 +514,7 @@ end;
 
 fun read_tyname thy raw_c =
   let val c = intern_type thy raw_c in
-    (case Symtab.lookup (#2 (#types (Type.rep_tsig (tsig_of thy))), c) of
+    (case Symtab.curried_lookup (#2 (#types (Type.rep_tsig (tsig_of thy)))) c of
       SOME (Type.LogicalType n, _) => Type (c, replicate n dummyT)
     | _ => error ("Undeclared type constructor: " ^ quote c))
   end;
@@ -714,7 +714,7 @@ fun gen_add_constraint int_const prep_typ (raw_c, raw_T) thy =
       handle TYPE (msg, _, _) => error msg;
     val _ = cert_term thy (Const (c, T))
       handle TYPE (msg, _, _) => error msg;
-  in thy |> map_consts (apsnd (curry Symtab.update (c, T))) end;
+  in thy |> map_consts (apsnd (Symtab.curried_update (c, T))) end;
 
 val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_sort);
 val add_const_constraint_i = gen_add_constraint (K I) certify_typ;

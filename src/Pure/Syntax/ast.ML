@@ -157,7 +157,7 @@ fun match ast pat =
           if a = b then env else raise NO_MATCH
       | mtch (Variable a) (Constant b) env =
           if a = b then env else raise NO_MATCH
-      | mtch ast (Variable x) env = Symtab.update ((x, ast), env)
+      | mtch ast (Variable x) env = Symtab.curried_update (x, ast) env
       | mtch (Appl asts) (Appl pats) env = mtch_lst asts pats env
       | mtch _ _ _ = raise NO_MATCH
     and mtch_lst (ast :: asts) (pat :: pats) env =
@@ -189,7 +189,7 @@ fun normalize trace stat get_rules pre_ast =
     val changes = ref 0;
 
     fun subst _ (ast as Constant _) = ast
-      | subst env (Variable x) = the (Symtab.lookup (env, x))
+      | subst env (Variable x) = the (Symtab.curried_lookup env x)
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
     fun try_rules ((lhs, rhs) :: pats) ast =

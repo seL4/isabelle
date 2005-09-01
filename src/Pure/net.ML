@@ -94,8 +94,8 @@ fun insert eq (keys,x) net =
             Net{comb=comb, var=ins1(keys,var), atoms=atoms}
         | ins1 (AtomK a :: keys, Net{comb,var,atoms}) =
             let
-              val net' = if_none (Symtab.lookup (atoms, a)) empty;
-              val atoms' = Symtab.update ((a, ins1(keys,net')), atoms);
+              val net' = if_none (Symtab.curried_lookup atoms a) empty;
+              val atoms' = Symtab.curried_update (a, ins1 (keys, net')) atoms;
             in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
 
@@ -126,12 +126,12 @@ fun delete eq (keys, x) net =
             newnet{comb=comb, var=del1(keys,var), atoms=atoms}
         | del1 (AtomK a :: keys, Net{comb,var,atoms}) =
             let val atoms' =
-              (case Symtab.lookup (atoms, a) of
+              (case Symtab.curried_lookup atoms a of
                 NONE => raise DELETE
               | SOME net' =>
                   (case del1 (keys, net') of
                     Leaf [] => Symtab.delete a atoms
-                  | net'' => Symtab.update ((a, net''), atoms)))
+                  | net'' => Symtab.curried_update (a, net'') atoms))
             in  newnet{comb=comb, var=var, atoms=atoms'}  end
   in  del1 (keys,net)  end;
 
@@ -143,7 +143,7 @@ fun delete_term eq (t, x) = delete eq (key_of_term t, x);
 exception ABSENT;
 
 fun the_atom atoms a =
-  (case Symtab.lookup (atoms, a) of
+  (case Symtab.curried_lookup atoms a of
     NONE => raise ABSENT
   | SOME net => net);
 
@@ -222,7 +222,7 @@ fun subtract eq net1 net2 =
           subtr comb1 comb2
           #> subtr var1 var2
           #> Symtab.fold (fn (a, net) =>
-            subtr (if_none (Symtab.lookup (atoms1, a)) emptynet) net) atoms2
+            subtr (if_none (Symtab.curried_lookup atoms1 a) emptynet) net) atoms2
   in subtr net1 net2 [] end;
 
 fun entries net = subtract (K false) empty net;

@@ -88,7 +88,7 @@ fun legacy_bindings thy =
         fun result prfx bname =
           if (prfx = "" orelse is_ml_identifier prfx) andalso is_ml_identifier bname andalso
               NameSpace.intern space xname = name then
-            SOME (prfx, (bname, xname, length (the (Symtab.lookup (thms, name))) = 1))
+            SOME (prfx, (bname, xname, length (the (Symtab.curried_lookup thms name)) = 1))
           else NONE;
         val names = NameSpace.unpack name;
       in
