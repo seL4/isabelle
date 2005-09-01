@@ -59,7 +59,7 @@ fun typecheck thry t =
  * Get information about datatypes
  *---------------------------------------------------------------------------*)
 
-fun get_info thy ty = Symtab.lookup (DatatypePackage.get_datatypes thy, ty);
+val get_info = Symtab.curried_lookup o DatatypePackage.get_datatypes;
 
 fun match_info thy tname =
   case (DatatypePackage.case_const_of thy tname, DatatypePackage.constrs_of thy tname) of
