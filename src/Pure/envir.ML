@@ -73,7 +73,7 @@ fun var_clash ixn T T' = raise TYPE ("Variable " ^
   [T', T], []);
 
 fun gen_lookup f asol (xname, T) =
-  (case Vartab.lookup (asol, xname) of
+  (case Vartab.curried_lookup asol xname of
      NONE => NONE
    | SOME (U, t) => if f (T, U) then SOME t
        else var_clash xname T U);
@@ -92,7 +92,7 @@ fun lookup2 (iTs, asol) p =
 fun lookup (Envir {asol, iTs, ...}, p) = lookup2 (iTs, asol) p;
 
 fun update (((xname, T), t), Envir {maxidx, asol, iTs}) =
-  Envir{maxidx=maxidx, asol=Vartab.update_new ((xname, (T, t)), asol), iTs=iTs};
+  Envir{maxidx=maxidx, asol=Vartab.curried_update_new (xname, (T, t)) asol, iTs=iTs};
 
 (*The empty environment.  New variables will start with the given index+1.*)
 fun empty m = Envir{maxidx=m, asol=Vartab.empty, iTs=Vartab.empty};
