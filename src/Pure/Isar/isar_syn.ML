@@ -692,6 +692,13 @@ val criterion =
   P.term >> FindTheorems.Pattern;
 
 val find_theoremsP =
+  OuterSyntax.improper_command "find_theorems"
+    "print theorems meeting specified criteria" K.diag
+    (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
+     Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+      >> (Toplevel.no_timing oo IsarCmd.find_theorems));
+
+val thms_containingP =   (* FIXME legacy *)
   OuterSyntax.improper_command "thms_containing"
     "print theorems meeting specified criteria" K.diag
     (Scan.option (P.$$$ "(" |-- P.!!! (P.nat --| P.$$$ ")")) --
@@ -870,6 +877,7 @@ val _ = OuterSyntax.add_parsers [
   print_registrationsP, print_attributesP, print_simpsetP,
   print_rulesP, print_induct_rulesP, print_trans_rulesP,
   print_methodsP, print_antiquotationsP, thm_depsP, find_theoremsP,
+  thms_containingP,  (* FIXME legacy *)
   print_bindsP, print_lthmsP, print_casesP, print_thmsP, print_prfsP,
   print_full_prfsP, print_propP, print_termP, print_typeP,
   (*system commands*)
