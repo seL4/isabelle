@@ -56,7 +56,6 @@ sig
   val default_output: string -> string * real
   val default_indent: string * int -> string
   val default_raw: string -> string
-  val symbolsN: string
   val xsymbolsN: string
   val symbol_output: string -> string * real
 end;
@@ -488,7 +487,6 @@ val _ = Output.add_mode "" (default_output, default_indent, default_raw);
 
 (* xsymbols *)
 
-val symbolsN = "symbols";    (*legacy!*)
 val xsymbolsN = "xsymbols";
 
 fun sym_len s =

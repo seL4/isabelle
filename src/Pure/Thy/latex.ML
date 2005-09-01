@@ -154,7 +154,7 @@ fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 (* print mode *)
 
 val latexN = "latex";
-val modes = [latexN, Symbol.xsymbolsN, Symbol.symbolsN];
+val modes = [latexN, Symbol.xsymbolsN];
 
 fun latex_output str =
   let val syms = Symbol.explode str
