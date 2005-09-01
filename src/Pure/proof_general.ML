@@ -63,12 +63,17 @@ fun pgip_emacs_compatibility () = (! pgip_emacs_compatibility_flag);
 (* print modes *)
 
 val proof_generalN = "ProofGeneral";  (*token markup (colouring vars, etc.)*)
+val pgasciiN = "PGASCII";             (*plain 7-bit ASCII communication*)
 val xsymbolsN = Symbol.xsymbolsN;     (*X-Symbol symbols*)
 val pgmlN = "PGML";                   (*XML escapes and PGML symbol elements*)
 val pgmlatomsN = "PGMLatoms";         (*variable kind decorations*)
 val thm_depsN = "thm_deps";           (*meta-information about theorem deps*)
 
 fun pgml () = Output.has_mode pgmlN;
+
+fun special oct =
+  if Output.has_mode pgasciiN then chr 1 ^ chr (ord (oct_char oct) - 167)
+  else oct_char oct;
 
 
 (* text output: print modes for xsymbol and PGML *)
@@ -114,20 +119,20 @@ end;
 
 local
 
-val end_tag = oct_char "350";
-val class_tag = ("class", oct_char "351");
-val tfree_tag = ("tfree", oct_char "352");
-val tvar_tag = ("tvar", oct_char "353");
-val free_tag = ("free", oct_char "354");
-val bound_tag = ("bound", oct_char "355");
-val var_tag = ("var", oct_char "356");
-val skolem_tag = ("skolem", oct_char "357");
+fun end_tag () = special "350";
+val class_tag = ("class", fn () => special "351");
+val tfree_tag = ("tfree", fn () => special "352");
+val tvar_tag = ("tvar", fn () => special "353");
+val free_tag = ("free", fn () => special "354");
+val bound_tag = ("bound", fn () => special "355");
+val var_tag = ("var", fn () => special "356");
+val skolem_tag = ("skolem", fn () => special "357");
 
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
 fun tagit (kind, bg_tag) x =
  (if Output.has_mode pgmlatomsN then xml_atom kind x
-  else bg_tag ^ x ^ end_tag, real (Symbol.length (Symbol.explode x)));
+  else bg_tag () ^ x ^ end_tag (), real (Symbol.length (Symbol.explode x)));
 
 fun free_or_skolem x =
   (case try Syntax.dest_skolem x of
@@ -161,7 +166,7 @@ end;
 
 (* assembling PGIP packets *)
 
-val pgip_refid  = ref NONE: string option ref;  
+val pgip_refid  = ref NONE: string option ref;
 val pgip_refseq = ref NONE: string option ref;
 
 local
@@ -176,7 +181,7 @@ local
       "pgip"
       ([("tag",    pgip_tag),
         ("class",  pgip_class),
-	("seq",    string_of_int (pgip_serial())),
+        ("seq",    string_of_int (pgip_serial())),
         ("id",     !pgip_id)] @
        if_none (Option.map (single o (pair "destid")) (! pgip_refid)) [] @
        (* destid=refid since Isabelle only communicates back to sender,
@@ -188,10 +193,10 @@ local
 
 in
 
-fun init_pgip_session_id () = 
+fun init_pgip_session_id () =
     pgip_id := getenv "HOSTNAME" ^ "/" ^ getenv "USER" ^ "/" ^
                getenv "ISABELLE_PID" ^ "/" ^ Time.toString (Time.now ())
-						       
+
 
 fun matching_pgip_id id = (id = !pgip_id)
 
@@ -203,7 +208,7 @@ fun decorated_output bg en prfx =
 fun issue_pgips ps =
   if pgip_emacs_compatibility() then
     decorated_output (*add urgent message annotation*)
-      (oct_char "360") (oct_char "361") ""
+      (special "360") (special "361") ""
       (assemble_pgips ps)
   else
     writeln_default (assemble_pgips ps);
@@ -215,7 +220,7 @@ fun assemble_pgipe resp attrs = assemble_pgips [XML.element resp attrs []];
 fun issue_pgip resp attrs txt =
   if pgip_emacs_compatibility () then
     decorated_output (*add urgent message annotation*)
-      (oct_char "360") (oct_char "361") ""
+      (special "360") (special "361") ""
       (assemble_pgip resp attrs txt)
   else
     writeln_default (assemble_pgip resp attrs txt);
@@ -274,28 +279,21 @@ local
 in
 
 fun setup_messages () =
- (writeln_fn  := message "normalresponse" [message_area] "" "" "";
-
-  priority_fn := message "normalresponse" [message_area, urgent_indication]
-                         (oct_char "360") (oct_char "361") "";
-
-  tracing_fn := message "normalresponse"  [message_area, tracing_category]
-                        (oct_char "360" ^ oct_char "375") (oct_char "361") "";
-
-  info_fn := message "normalresponse" [message_area, info_category]
-                     (oct_char "362") (oct_char "363") "+++ ";
-
-  debug_fn := message "normalresponse" [message_area, internal_category]
-                      (oct_char "362") (oct_char "363") "+++ ";
-
-  warning_fn := message "errorresponse" [nonfatal]
-                        (oct_char "362") (oct_char "363") "### ";
-
-  error_fn := message "errorresponse" [fatal]
-                      (oct_char "364") (oct_char "365") "*** ";
-
-  panic_fn := message "errorresponse" [panic]
-                      (oct_char "364") (oct_char "365") "!!! ");
+ (writeln_fn := (fn s => message "normalresponse" [message_area] "" "" "" s);
+  priority_fn := (fn s => message "normalresponse" [message_area, urgent_indication]
+    (special "360") (special "361") "" s);
+  tracing_fn := (fn s => message "normalresponse"  [message_area, tracing_category]
+    (special "360" ^ special "375") (special "361") "" s);
+  info_fn := (fn s => message "normalresponse" [message_area, info_category]
+    (special "362") (special "363") "+++ " s);
+  debug_fn := (fn s => message "normalresponse" [message_area, internal_category]
+    (special "362") (special "363") "+++ " s);
+  warning_fn := (fn s => message "errorresponse" [nonfatal]
+    (special "362") (special "363") "### " s);
+  error_fn := (fn s => message "errorresponse" [fatal]
+    (special "364") (special "365") "*** " s);
+  panic_fn := (fn s => message "errorresponse" [panic]
+    (special "364") (special "365") "!!! " s));
 
 
 (* accumulate printed output in a single PGIP response (inside <pgmltext>) *)
@@ -310,7 +308,7 @@ fun with_displaywrap (elt, attrs) dispfn =
     issue_pgip elt attrs (XML.element "pgmltext" [] (! lines))
   end;
 
-val emacs_notify = decorated_output (oct_char "360") (oct_char "361") "";
+fun emacs_notify s = decorated_output (special "360") (special "361") "" s;
 
 fun tell_clear_goals () =
   if pgip () then
@@ -344,13 +342,13 @@ fun tell_file_retracted path =
 local
 
 fun tmp_markers f =
-  setmp Display.current_goals_markers (oct_char "366", oct_char "367", "") f ();
+  setmp Display.current_goals_markers (special "366", special "367", "") f ();
 
 fun statedisplay prts =
   issue_pgip "proofstate" []
     (XML.element "pgml" []
       [XML.element "statedisplay" [] [Pretty.output (Pretty.chunks prts)]]);
-     
+
 fun print_current_goals n m st =
   if pgml () then statedisplay (Display.pretty_current_goals n m st)
   else tmp_markers (fn () => Display.print_current_goals_default n m st);
@@ -365,7 +363,8 @@ fun setup_state () =
   (Display.print_current_goals_fn := print_current_goals;
    Toplevel.print_state_fn := print_state;
    (* FIXME: check next octal char won't appear in pgip? *)
-   Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
+   Toplevel.prompt_state_fn := (fn s => suffix (special "372")
+     (Toplevel.prompt_state_default s)));
 
 end;
 
@@ -541,8 +540,8 @@ val proof_option = (pgipbool,
 
 val thm_deps_option = (pgipbool,
   with_default (fn () => Bool.toString (Output.has_mode thm_depsN)),
-  (fn "false" => print_mode := (! print_mode \ thm_depsN)
-    | "true" => print_mode := (thm_depsN ins ! print_mode)
+  (fn "false" => change print_mode (remove (op =) thm_depsN)
+    | "true" => change print_mode (insert (op =) thm_depsN)
     | x => error ("thm_deps_option: illegal value: " ^ x)));
 
 local
@@ -910,21 +909,21 @@ local
             (empty "openblock")
         end
 
-    fun xmls_of_qed (name,markup) = 
-	let val qedmarkup  = 
-		(case name of
-		     "sorry" => markup "postponegoal"
-		   | "oops"  => markup "giveupgoal"
-		   | "done"  => markup "closegoal" 
-		   | "by"    => markup "closegoal"  (* nested or toplevel *)
-		   | "qed"   => markup "closegoal"  (* nested or toplevel *)
-		   | "."     => markup "closegoal"  (* nested or toplevel *)
-		   | ".."    => markup "closegoal"  (* nested or toplevel *)
-		   | other => (* default to closegoal: may be wrong for extns *)
-				  (parse_warning 
-				       ("Unrecognized qed command: " ^ quote other); 
-				       markup "closegoal"))
-	in qedmarkup @ (empty "closeblock") end
+    fun xmls_of_qed (name,markup) =
+        let val qedmarkup  =
+                (case name of
+                     "sorry" => markup "postponegoal"
+                   | "oops"  => markup "giveupgoal"
+                   | "done"  => markup "closegoal"
+                   | "by"    => markup "closegoal"  (* nested or toplevel *)
+                   | "qed"   => markup "closegoal"  (* nested or toplevel *)
+                   | "."     => markup "closegoal"  (* nested or toplevel *)
+                   | ".."    => markup "closegoal"  (* nested or toplevel *)
+                   | other => (* default to closegoal: may be wrong for extns *)
+                                  (parse_warning
+                                       ("Unrecognized qed command: " ^ quote other);
+                                       markup "closegoal"))
+        in qedmarkup @ (empty "closeblock") end
 
     fun xmls_of_kind kind (name,toks,str) =
     let val markup = markup_text str in
@@ -1080,7 +1079,7 @@ val isabelle_pgip_version_supported = "2.0"
 (* TODO: would be cleaner to define a datatype here for the accepted elements,
    and mapping functions to/from strings.  At the moment this list must
    coincide with the strings in the function process_pgip_element. *)
-val isabelle_acceptedpgipelems = 
+val isabelle_acceptedpgipelems =
     ["askpgip","askpgml","askprefs","getpref","setpref",
      "proverinit","proverexit","startquiet","stopquiet",
      "pgmlsymbolson", "pgmlsymbolsoff",
@@ -1093,14 +1092,14 @@ val isabelle_acceptedpgipelems =
      "abortfile", "changecwd", "systemcmd"];
 
 fun usespgip () =
-    issue_pgip 
-	"usespgip" 
-	[("version", isabelle_pgip_version_supported)]
-	(XML.element "acceptedpgipelems" []
-		     (map (fn s=>XML.element "pgipelem" 
-					     [] (* if threads: possibility to add async here *)
-					     [s])
-			  isabelle_acceptedpgipelems))
+    issue_pgip
+        "usespgip"
+        [("version", isabelle_pgip_version_supported)]
+        (XML.element "acceptedpgipelems" []
+                     (map (fn s=>XML.element "pgipelem"
+                                             [] (* if threads: possibility to add async here *)
+                                             [s])
+                          isabelle_acceptedpgipelems))
 
 fun usespgml () =
     issue_pgipe "usespgml" [("version", isabelle_pgml_version_supported)]
@@ -1197,15 +1196,15 @@ local
      file we remove the path.  Leaving it there can cause confusion
      with difference in batch mode.a  NB: PGIP does not assume
      that the prover has a load path. *)
-  local 
+  local
       val current_working_dir = ref (NONE : string option)
   in
-      fun changecwd dir = 
-	  (case (!current_working_dir) of
-	       NONE => ()
+      fun changecwd dir =
+          (case (!current_working_dir) of
+               NONE => ()
              | SOME dir => ThyLoad.del_path dir;
-	   ThyLoad.add_path dir;
-	   current_working_dir := SOME dir)
+           ThyLoad.add_path dir;
+           current_working_dir := SOME dir)
   end
 
   val topnode = Toplevel.node_of o Toplevel.get_state
@@ -1230,8 +1229,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "proverexit"     => isarcmd "quit"
      | "startquiet"     => isarcmd "disable_pr"
      | "stopquiet"      => isarcmd "enable_pr"
-     | "pgmlsymbolson"   => (print_mode := !print_mode @ ["xsymbols"])
-     | "pgmlsymbolsoff"  => (print_mode := (!print_mode \ "xsymbols"))
+     | "pgmlsymbolson"   => change print_mode (insert (op =) Symbol.xsymbolsN)
+     | "pgmlsymbolsoff"  => change print_mode (remove (op =) Symbol.xsymbolsN)
      (* properproofcmd: proper commands which belong in script *)
      (* FIXME: next ten are by Eclipse interface, can be removed in favour of dostep *)
      (* NB: Isar doesn't make lemma name of goal accessible during proof *)
@@ -1261,9 +1260,9 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "parsescript"    => parsescript (xmltext data) attrs (* just pass back attrs unchanged *)
      | "showproofstate" => isarcmd "pr"
      | "showctxt"       => isarcmd "print_theory"   (* more useful than print_context *)
-     | "searchtheorems" => isarcmd ("thms_containing " ^ (xmltext data))
-     | "setlinewidth"   => isarcmd ("pretty_setmargin " ^ (xmltext data))
-     | "viewdoc"        => isarcmd ("print_" ^ (xmltext data)) (* FIXME: isatool doc? *)
+     | "searchtheorems" => isarcmd ("thms_containing " ^ xmltext data)
+     | "setlinewidth"   => isarcmd ("pretty_setmargin " ^ xmltext data)
+     | "viewdoc"        => isarcmd ("print_" ^ xmltext data) (* FIXME: isatool doc? *)
      (* properfilecmd: proper theory-level script commands *)
      (* FIXME: next three are sent by Eclipse, can be removed in favour of doitem *)
      | "opentheory"     => isarscript data
@@ -1271,14 +1270,14 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "closetheory"    => let
                               val thyname = topthy_name()
                            in (isarscript data;
-                               writeln ("Theory \""^thyname^"\" completed."))
+                               writeln ("Theory " ^ quote thyname ^ " completed."))
                            end
      (* improperfilecmd: theory-level commands not in script *)
      | "doitem"         => isarscript data
      | "undoitem"       => isarcmd "ProofGeneral.undo"
      | "redoitem"       => isarcmd "ProofGeneral.redo"
      | "aborttheory"    => isarcmd ("init_toplevel")
-     | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
+     | "retracttheory"  => isarcmd ("kill_thy " ^ quote (thyname_attr attrs))
      | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
      | "openfile"       => (openfile_retract (fileurl_of attrs);
                             currently_open_file := SOME (fileurl_of attrs))
@@ -1300,19 +1299,19 @@ fun process_pgip_tree xml =
           XML.Elem ("pgip", attrs, pgips) =>
           (let
                val class = xmlattr "class" attrs
-	       val dest  = xmlattro "destid" attrs
+               val dest  = xmlattro "destid" attrs
                val _ = (pgip_refid :=  xmlattro "id" attrs;
-			pgip_refseq := xmlattro "seq" attrs)
+                        pgip_refseq := xmlattro "seq" attrs)
            in
-	       (* We respond to broadcast messages to provers, or 
+               (* We respond to broadcast messages to provers, or
                   messages intended uniquely for us.  Silently ignore rest. *)
                case dest of
-		   NONE => if (class = "pa") then
-			       (List.app process_pgip_element pgips; true)
-			   else false
-		 | SOME id => if (matching_pgip_id id) then
-				  (List.app process_pgip_element pgips; true)
-			      else false
+                   NONE => if (class = "pa") then
+                               (List.app process_pgip_element pgips; true)
+                           else false
+                 | SOME id => if (matching_pgip_id id) then
+                                  (List.app process_pgip_element pgips; true)
+                              else false
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
      handle (PGIP msg) =>
@@ -1339,11 +1338,11 @@ fun loop ready src =
         case pgipo of
              NONE  => ()
            | SOME (pgip,src') =>
-	     let 
-		 val ready' = (process_pgip_tree pgip) handle e => (handler (e,SOME src'); true)
-	     in 
-		 loop ready' src'
-	     end 
+             let
+                 val ready' = (process_pgip_tree pgip) handle e => (handler (e,SOME src'); true)
+             in
+                 loop ready' src'
+             end
     end handle e => handler (e,SOME src)  (* i.e. error in ready/XML parse *)
 
 and handler (e,srco) =
@@ -1426,7 +1425,7 @@ val initialized = ref false;
 
 fun set_prompts true _ = ml_prompts "ML> " "ML# "
   | set_prompts false true = ml_prompts "PGIP-ML>" "PGIP-ML# "
-  | set_prompts false false = ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
+  | set_prompts false false = ml_prompts ("> " ^ special "372") ("- " ^ special "373");
 
 fun init_setup isar pgip =
   (conditional (not (! initialized)) (fn () =>
@@ -1439,10 +1438,10 @@ fun init_setup isar pgip =
     setup_present_hook ();
     set initialized; ()));
   sync_thy_loader ();
-  print_mode := proof_generalN :: (! print_mode \ proof_generalN);
+  change print_mode (cons proof_generalN o remove (op =) proof_generalN);
   if pgip then
       (init_pgip_session_id();
-       print_mode := pgmlN :: (pgmlatomsN :: (! print_mode \ pgmlN \ pgmlatomsN)))
+       change print_mode (append [pgmlN, pgmlatomsN] o fold (remove (op =)) [pgmlN, pgmlatomsN]))
   else
     pgip_emacs_compatibility_flag := true;  (* assume this for PG <3.6 compatibility *)
   set quick_and_dirty;
