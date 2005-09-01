@@ -11,7 +11,7 @@ where ~~ is an appropriate balancing operation (e.g. =, <=, <, -).
 
 It works by (a) massaging both sides to bring the selected term to the front:
 
-     #m*u + (i + j) ~~ #m'*u + (i' + j') 
+     #m*u + (i + j) ~~ #m'*u + (i' + j')
 
 (b) then using bal_add1 or bal_add2 to reach
 
@@ -36,7 +36,7 @@ sig
   val bal_add1: thm
   val bal_add2: thm
   (*proof tools*)
-  val prove_conv: tactic list -> theory -> 
+  val prove_conv: tactic list -> theory ->
                   thm list -> string list -> term * term -> thm option
   val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
   val norm_tac: simpset -> tactic                (*proves the initial lemma*)
@@ -48,24 +48,22 @@ end;
 functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA):
   sig
   val proc: theory -> simpset -> term -> thm option
-  end 
+  end
 =
 struct
 
 (*For t = #n*u then put u in the table*)
-fun update_by_coeff (tab, t) =
-  Termtab.update ((#2 (Data.dest_coeff t), ()), tab);
+fun update_by_coeff t =
+  Termtab.curried_update (#2 (Data.dest_coeff t), ());
 
 (*a left-to-right scan of terms1, seeking a term of the form #n*u, where
   #m*u is in terms2 for some m*)
 fun find_common (terms1,terms2) =
-  let val tab2 = Library.foldl update_by_coeff (Termtab.empty, terms2)
-      fun seek [] = raise TERM("find_common", []) 
-	| seek (t::terms) =
-	      let val (_,u) = Data.dest_coeff t 
-	      in  if isSome (Termtab.lookup (tab2, u)) then u
-		  else seek terms
-	      end
+  let val tab2 = fold update_by_coeff terms2 Termtab.empty
+      fun seek [] = raise TERM("find_common", [])
+        | seek (t::terms) =
+              let val (_,u) = Data.dest_coeff t
+              in if Termtab.defined tab2 u then u else seek terms end
   in  seek terms1 end;
 
 (*the simplification procedure*)
@@ -74,7 +72,7 @@ fun proc thy ss t =
       val hyps = prems_of_ss ss;
       (*first freeze any Vars in the term to prevent flex-flex problems*)
       val (t', xs) = Term.adhoc_freeze_vars t;
-      val (t1,t2) = Data.dest_bal t' 
+      val (t1,t2) = Data.dest_bal t'
       val terms1 = Data.dest_sum t1
       and terms2 = Data.dest_sum t2
       val u = find_common (terms1,terms2)
@@ -83,30 +81,30 @@ fun proc thy ss t =
       and T = Term.fastype_of u
       fun newshape (i,terms) = Data.mk_sum T (Data.mk_coeff(i,u)::terms)
       val reshape =  (*Move i*u to the front and put j*u into standard form
-		       i + #m + j + k == #m + i + (j + k) *)
-	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
-		raise TERM("cancel_numerals", []) 
-	    else Data.prove_conv [Data.norm_tac ss] thy hyps xs
-			(t', 
-			 Data.mk_bal (newshape(n1,terms1'), 
-				      newshape(n2,terms2')))
+                       i + #m + j + k == #m + i + (j + k) *)
+            if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
+                raise TERM("cancel_numerals", [])
+            else Data.prove_conv [Data.norm_tac ss] thy hyps xs
+                        (t',
+                         Data.mk_bal (newshape(n1,terms1'),
+                                      newshape(n2,terms2')))
   in
       Option.map (Data.simplify_meta_eq ss)
-       (if n2<=n1 then 
-	    Data.prove_conv 
-	       [Data.trans_tac ss reshape, rtac Data.bal_add1 1,
-		Data.numeral_simp_tac ss] thy hyps xs
-	       (t', Data.mk_bal (newshape(n1-n2,terms1'), 
-				 Data.mk_sum T terms2'))
-	else
-	    Data.prove_conv 
-	       [Data.trans_tac ss reshape, rtac Data.bal_add2 1,
-		Data.numeral_simp_tac ss] thy hyps xs
-	       (t', Data.mk_bal (Data.mk_sum T terms1', 
-				 newshape(n2-n1,terms2'))))
+       (if n2<=n1 then
+            Data.prove_conv
+               [Data.trans_tac ss reshape, rtac Data.bal_add1 1,
+                Data.numeral_simp_tac ss] thy hyps xs
+               (t', Data.mk_bal (newshape(n1-n2,terms1'),
+                                 Data.mk_sum T terms2'))
+        else
+            Data.prove_conv
+               [Data.trans_tac ss reshape, rtac Data.bal_add2 1,
+                Data.numeral_simp_tac ss] thy hyps xs
+               (t', Data.mk_bal (Data.mk_sum T terms1',
+                                 newshape(n2-n1,terms2'))))
   end
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
-			     Undeclared type constructor "Numeral.bin"*)
+                             Undeclared type constructor "Numeral.bin"*)
 
 end;

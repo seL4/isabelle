@@ -70,7 +70,7 @@ structure DatatypeTactics : DATATYPE_TACTICS =
 struct
 
 fun datatype_info thy name =
-  (case Symtab.lookup (DatatypesData.get thy, name) of
+  (case Symtab.curried_lookup (DatatypesData.get thy) name of
     SOME info => info
   | NONE => error ("Unknown datatype " ^ quote name));
 
@@ -163,14 +163,12 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
     val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors
 
   in
-      thy |> Theory.add_path (Sign.base_name big_rec_name)
-          |> (#1 o PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])])
-          |> DatatypesData.put
-              (Symtab.update
-               ((big_rec_name, dt_info), DatatypesData.get thy))
-          |> ConstructorsData.put
-               (foldr Symtab.update (ConstructorsData.get thy) con_pairs)
-          |> Theory.parent_path
+    thy
+    |> Theory.add_path (Sign.base_name big_rec_name)
+    |> (#1 o PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])])
+    |> DatatypesData.put (Symtab.curried_update (big_rec_name, dt_info) (DatatypesData.get thy))
+    |> ConstructorsData.put (fold_rev Symtab.curried_update con_pairs (ConstructorsData.get thy))
+    |> Theory.parent_path
   end;
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
