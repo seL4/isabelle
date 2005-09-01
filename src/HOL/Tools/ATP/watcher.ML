@@ -1,5 +1,4 @@
 (*  Title:      Watcher.ML
-
     ID:         $Id$
     Author:     Claire Quigley
     Copyright   2004  University of Cambridge
@@ -89,10 +88,6 @@ fun openInFD (name, fd) =
 	  TextIO.mkInstream (
 	    TextIO.StreamIO.mkInstream (
 	      fdReader (name, fd), ""));
-
-
-
-
 
 fun killChild child_handle = Unix.reap child_handle 
 
@@ -199,17 +194,16 @@ fun callSlayer (toWatcherStr) = (sendOutput (toWatcherStr, "Kill vampires\n");
 
 
  fun takeUntil ch [] res  = (res, [])
- |   takeUntil ch (x::xs) res = if   x = ch 
-                                then
-                                     (res, xs)
-                                else
-                                     takeUntil ch xs (res@[x])
+ |   takeUntil ch (x::xs) res = 
+        if   x = ch then (res, xs)
+	else takeUntil ch xs (res@[x])
 
  fun getSettings [] settings = settings
-|    getSettings (xs) settings = let val (set, rest ) = takeUntil "%" xs []
-                                 in
-                                     getSettings rest (settings@[(implode set)])
-                                 end
+|    getSettings (xs) settings = 
+       let val (set, rest ) = takeUntil "%" xs []
+       in
+	   getSettings rest (settings@[(implode set)])
+       end
 
 fun separateFields str =
   let val  outfile = TextIO.openAppend(*("sep_field")*)(File.platform_path(File.tmp_path (Path.basic "sep_field")))                                                                         
@@ -440,8 +434,6 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		fun killChildren [] = ()
 	     |      killChildren  (child_handle::children) = (killChild child_handle; killChildren children)
 
-	       
-     
 	      (*************************************************************)
 	      (* take an instream and poll its underlying reader for input *)
 	      (*************************************************************)
@@ -469,44 +461,38 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		 end
 		      
 	       fun pollChildInput (fromStr) = 
-
-		     let val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
-			           ("In child_poll\n")
-                       val iod = getInIoDesc fromStr
+		 let val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
+			       ("In child_poll\n")
+		     val iod = getInIoDesc fromStr
+		 in 
+		   if isSome iod 
+		   then 
+		     let val pd = OS.IO.pollDesc (valOf iod)
 		     in 
-
-		 
-
-		     if isSome iod 
-		     then 
-			 let val pd = OS.IO.pollDesc (valOf iod)
-			 in 
-			 if (isSome pd ) then 
-			     let val pd' = OS.IO.pollIn (valOf pd)
-				 val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
-                                 
-			     in
-				if null pdl 
-				then
-				  ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
-			           ("Null pdl \n");NONE)
-				else if (OS.IO.isIn (hd pdl)) 
-				     then
-					 (let val inval =  (TextIO.inputLine fromStr)
-                              	              val _ = File.append (File.tmp_path (Path.basic "child_poll_res")) (inval^"\n")
-					  in
-						SOME inval
-					  end)
-				     else
-					   ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
-			           ("Null pdl \n");NONE)
-			     end
-			   else
-			       NONE
-			   end
-		       else 
-			   NONE
-		 end
+		     if (isSome pd ) then 
+			 let val pd' = OS.IO.pollIn (valOf pd)
+			     val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
+			     
+			 in
+			    if null pdl 
+			    then
+			      ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
+			       ("Null pdl \n");NONE)
+			    else if (OS.IO.isIn (hd pdl)) 
+				 then
+				     (let val inval =  (TextIO.inputLine fromStr)
+					  val _ = File.append (File.tmp_path (Path.basic "child_poll_res")) (inval^"\n")
+				      in
+					    SOME inval
+				      end)
+				 else
+				       ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
+			       ("Null pdl \n");NONE)
+			 end
+		       else  NONE
+		       end
+		   else NONE
+	     end
 
 
 	     (****************************************************************************)
@@ -554,20 +540,16 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
                                  |"spass" => (SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)     ) )
 			   in
 			    if childDone      (**********************************************)
-			    then              (* child has found a proof and transferred it *)
-					      (**********************************************)
-
-			       (**********************************************)
+			    then (* child has found a proof and transferred it *)
 			       (* Remove this child and go on to check others*)
 			       (**********************************************)
-			       ( Unix.reap child_handle;
-				 checkChildren(otherChildren, toParentStr))
+			       (Unix.reap child_handle;
+				checkChildren(otherChildren, toParentStr))
 			    else 
 			       (**********************************************)
 			       (* Keep this child and go on to check others  *)
 			       (**********************************************)
-
-				 (childProc::(checkChildren (otherChildren, toParentStr)))
+			      (childProc::(checkChildren (otherChildren, toParentStr)))
 			 end
 		       else
 			 (File.append (File.tmp_path (Path.basic "child_incoming")) "No child output ";
@@ -611,16 +593,19 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		            (Unix.execute(proverCmd, (settings@[file])))
 		       val (instr, outstr) = Unix.streamsOf childhandle
 		       
-		       val newProcList =    (((CMDPROC{
+		       val newProcList = (CMDPROC{
 					    prover = prover,
 					    cmd = file,
 					    thmstring = thmstring,
 					    goalstring = goalstring,
 					    proc_handle = childhandle,
 					    instr = instr,
-					    outstr = outstr })::procList))
+					    outstr = outstr }) :: procList
 	  
-		       val _ = File.append (File.tmp_path (Path.basic "exec_child"))  ("executing command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+		       val _ = File.append (File.tmp_path (Path.basic "exec_child")) 
+		                 ("executing command for goal:\n"^
+		                  goalstring^proverCmd^(concat settings)^file^
+		                  " at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
 		   in
 		     Posix.Process.sleep (Time.fromSeconds 1); execCmds cmds newProcList
 		   end
@@ -649,83 +634,63 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	  (* Watcher Loop                               *)
 	  (**********************************************)
 
-
-
-
 	      fun keepWatching (toParentStr, fromParentStr,procList) = 
-		    let    fun loop (procList) =  
-			   (
-			   let val cmdsFromIsa = pollParentInput ()
-			       fun killchildHandler (n:int)  = (TextIO.output(toParentStr, "Killing child proof processes!\n");
-					    TextIO.flushOut toParentStr;
-					     killChildren (map (cmdchildHandle) procList);
-					      ())
-			       
-			   in 
-			      (*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
-										 (**********************************)
-			      if (isSome cmdsFromIsa) then                       (*  deal with input from Isabelle *)
-				   (                                             (**********************************)                             
-				    if (getProofCmd(hd(valOf cmdsFromIsa)) = "Kill children" )
-				    then 
-				      (
-					let val child_handles = map cmdchildHandle procList 
-					in
-					   killChildren child_handles;
-					   (*Posix.Process.kill(Posix.Process.K_PROC (Posix.ProcEnv.getppid()), Posix.Signal.usr2);*)                                                              loop ([])
-					end
-					   
-				       )
-				    else
-				      ( 
-					if ((length procList)<10)    (********************)
-					then                        (* Execute locally  *)
-					   (                        (********************)
-					    let 
-					      val newProcList = execCmds (valOf cmdsFromIsa) procList
-					      val parentID = Posix.ProcEnv.getppid()
-          					 val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
-					      val newProcList' =checkChildren (newProcList, toParentStr) 
+		let fun loop (procList) =  
+		     let val cmdsFromIsa = pollParentInput ()
+			 fun killchildHandler (n:int)  = 
+			       (TextIO.output(toParentStr, "Killing child proof processes!\n");
+				TextIO.flushOut toParentStr;
+				killChildren (map (cmdchildHandle) procList);
+				())
+		     in 
+			(*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
+									   (**********************************)
+			if (isSome cmdsFromIsa) 
+			then (*  deal with input from Isabelle *)
+			  if (getProofCmd(hd(valOf cmdsFromIsa)) = "Kill children" )
+			  then 
+			    let val child_handles = map cmdchildHandle procList 
+			    in
+			       killChildren child_handles;
+			       (*Posix.Process.kill(Posix.Process.K_PROC (Posix.ProcEnv.getppid()), Posix.Signal.usr2);*)    
+			       loop ([])
+			    end
+			  else
+			    if ((length procList)<10)    (********************)
+			    then                        (* Execute locally  *)
+			      let 
+				val newProcList = execCmds (valOf cmdsFromIsa) procList
+				val parentID = Posix.ProcEnv.getppid()
+				   val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
+				val newProcList' =checkChildren (newProcList, toParentStr) 
 
-					      val _ = warning("off to keep watching...")
-					     val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
-					    in
-					      (*Posix.Process.sleep (Time.fromSeconds 1);*)
-					      loop (newProcList') 
-					    end
-					    )
-					else                         (*********************************)
-								     (* Execute remotely              *)
-								     (* (actually not remote for now )*)
-					    (                        (*********************************)
-					    let 
-					      val newProcList = execCmds (valOf cmdsFromIsa) procList
-					      val parentID = Posix.ProcEnv.getppid()
-					      val newProcList' =checkChildren (newProcList, toParentStr) 
-					    in
-					      (*Posix.Process.sleep (Time.fromSeconds 1);*)
-					      loop (newProcList') 
-					    end
-					    )
-
-
-
-					)
-				     )                                              (******************************)
-			      else                                                  (* No new input from Isabelle *)
-										    (******************************)
-				  (    let val newProcList = checkChildren ((procList), toParentStr)
-				       in
-					 (*Posix.Process.sleep (Time.fromSeconds 1);*)
-					(File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
-					 loop (newProcList)
-				       end
-				   
-				   )
-			    end)
-		    in  
-			loop (procList)
-		    end
+				val _ = warning("off to keep watching...")
+			       val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
+			      in
+				(*Posix.Process.sleep (Time.fromSeconds 1);*)
+				loop (newProcList') 
+			      end
+			    else  (* Execute remotely              *)
+                                  (* (actually not remote for now )*)
+			      let 
+				val newProcList = execCmds (valOf cmdsFromIsa) procList
+				val parentID = Posix.ProcEnv.getppid()
+				val newProcList' =checkChildren (newProcList, toParentStr) 
+			      in
+				(*Posix.Process.sleep (Time.fromSeconds 1);*)
+				loop (newProcList') 
+			      end
+			else (* No new input from Isabelle *)
+			  let val newProcList = checkChildren ((procList), toParentStr)
+			  in
+			    (*Posix.Process.sleep (Time.fromSeconds 1);*)
+			   (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
+			    loop (newProcList)
+			  end
+		      end
+		in  
+		    loop (procList)
+		end
 		
     
 		in
@@ -798,176 +763,124 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 fun killWatcher pid= Posix.Process.kill(Posix.Process.K_PROC pid, Posix.Signal.kill);
 
 fun reapWatcher(pid, instr, outstr) =
-        let
-		val u = TextIO.closeIn instr;
-	        val u = TextIO.closeOut outstr;
-	
-		val (_, status) =
-			Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
-	in
-		status
-	end
-
-
-
-fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) = let val mychild = childInfo (setupWatcher(thm,clause_arr,  num_of_clauses))
-			   val streams =snd mychild
-                           val childin = fst streams
-                           val childout = snd streams
-                           val childpid = fst mychild
-                           val sign = sign_of_thm thm
-                           val prems = prems_of thm
-                           val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-                           val _ = (warning ("subgoals forked to createWatcher: "^prems_string));
-                           fun vampire_proofHandler (n) =
-                           (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                           VampComm.getVampInput childin; Pretty.writeln(Pretty.str  (oct_char "361"));() )               
-                          
-
-fun spass_proofHandler (n) = (
-                                 let  val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal1")));
-                                      val _ = TextIO.output (outfile, ("In signal handler now\n"))
-                                      val _ =  TextIO.closeOut outfile
-                                      val (reconstr, goalstring, thmstring) = SpassComm.getSpassInput childin
-                                      val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal")));
-
-                                      val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^thmstring^goalstring^"goals_being_watched is: "^(string_of_int (!goals_being_watched))))
-                                      val _ =  TextIO.closeOut outfile
-                                      in          (* if a proof has been found and sent back as a reconstruction proof *)
-                                                  if ( (substring (reconstr, 0,1))= "[")
-                                                  then 
-
-                                                            (
-                                                                 Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                 Recon_Transfer.apply_res_thm reconstr goalstring;
-                                                                 Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                 
-                                                                 goals_being_watched := ((!goals_being_watched) - 1);
-                                                         
-                                                                 if ((!goals_being_watched) = 0)
-                                                                 then 
-                                                                    (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_found")));
-                                                                         val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                         val _ =  TextIO.closeOut outfile
-                                                                     in
-                                                                         killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                     end)
-                                                                 else
-                                                                    ()
-                                                            )
-                                                    (* if there's no proof, but a message from Spass *)
-                                                    else if ((substring (reconstr, 0,5))= "SPASS")
-                                                         then
-                                                                 (
-                                                                     goals_being_watched := (!goals_being_watched) -1;
-                                                                     Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                      Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring)^reconstr));
-                                                                      Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                      if (!goals_being_watched = 0)
-                                                                      then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                           in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                           end )
-                                                                      else
-                                                                         ()
-                                                                ) 
-						   (* print out a list of rules used from clasimpset*)
-                                                    else if ((substring (reconstr, 0,5))= "Rules")
-                                                         then
-                                                                 (
-                                                                     goals_being_watched := (!goals_being_watched) -1;
-                                                                     Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                      Pretty.writeln(Pretty.str (goalstring^reconstr));
-                                                                      Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                      if (!goals_being_watched = 0)
-                                                                      then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                           in
-                                                                              killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
-                                                                           end )
-                                                                      else
-                                                                         ()
-                                                                )
-							
-                                                          (* if proof translation failed *)
-                                                          else if ((substring (reconstr, 0,5)) = "Proof")
-                                                               then 
-                                                                   (
-                                                                      goals_being_watched := (!goals_being_watched) -1;
-                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
-                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                       if (!goals_being_watched = 0)
-                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                            in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                            end )
-                                                                       else
-                                                                          ( )
-                                                                      )
-
-							        else if ((substring (reconstr, 0,1)) = "%")
-                                                               then 
-                                                                   (
-                                                                      goals_being_watched := (!goals_being_watched) -1;
-                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
-                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                       if (!goals_being_watched = 0)
-                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                            in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                            end )
-                                                                       else
-                                                                          ( )
-                                                                      )
-
-
-                                                                else  (* add something here ?*)
-                                                                   (
-                                                                      goals_being_watched := (!goals_being_watched) -1;
-                                                                      Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-                                                                       Pretty.writeln(Pretty.str ("Ran out of options in handler"));
-                                                                       Pretty.writeln(Pretty.str  (oct_char "361"));
-                                                                       if (!goals_being_watched = 0)
-                                                                       then 
-                                                                          (let val  outfile = TextIO.openOut(File.platform_path (File.tmp_path (Path.basic "foo_reap_comp")));
-                                                                               val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-                                                                               val _ =  TextIO.closeOut outfile
-                                                                            in
-                                                                              killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-                                                                            end )
-                                                                       else
-                                                                          ( )
-                                                                      )
-                                                                     
-                                                                           
-                                                            
-                                       end)
-
-
-                        
-                       in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
-                          IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE spass_proofHandler);
-                          (childin, childout, childpid)
-
-
-
+  let val u = TextIO.closeIn instr;
+      val u = TextIO.closeOut outstr;
+      val (_, status) = Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
+  in
+	  status
   end
 
 
 
+fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
+ let val mychild = childInfo (setupWatcher(thm,clause_arr,  num_of_clauses))
+     val streams =snd mychild
+     val childin = fst streams
+     val childout = snd streams
+     val childpid = fst mychild
+     val sign = sign_of_thm thm
+     val prems = prems_of thm
+     val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+     val _ = (warning ("subgoals forked to createWatcher: "^prems_string));
+     fun vampire_proofHandler (n) =
+	(Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	 VampComm.getVampInput childin; Pretty.writeln(Pretty.str (oct_char "361")))               
+     fun spass_proofHandler (n) = (
+       let val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal1")));
+	   val _ = TextIO.output (outfile, ("In signal handler now\n"))
+	   val _ =  TextIO.closeOut outfile
+	   val (reconstr, goalstring, thmstring) = SpassComm.getSpassInput childin
+	   val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_signal")));
+   
+	   val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^thmstring^goalstring^"goals_being_watched is: "^(string_of_int (!goals_being_watched))))
+	   val _ =  TextIO.closeOut outfile
+       in (* if a proof has been found and sent back as a reconstruction proof *)
+	 if ( (substring (reconstr, 0,1))= "[")
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Recon_Transfer.apply_res_thm reconstr goalstring;
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       
+	       goals_being_watched := ((!goals_being_watched) - 1);
+       
+	       if ((!goals_being_watched) = 0)
+	       then 
+		  (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_found")));
+		       val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
+		       val _ =  TextIO.closeOut outfile
+		   in
+		       killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
+		   end)
+		else () )
+	 (* if there's no proof, but a message from Spass *)
+	 else if ((substring (reconstr, 0,5))= "SPASS")
+	 then (goals_being_watched := (!goals_being_watched) -1;
+	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring)^reconstr));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       if (!goals_being_watched = 0)
+	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+	              ("Reaping a watcher, goals watched is: " ^
+	                 (string_of_int (!goals_being_watched))^"\n");
+	             killWatcher (childpid); reapWatcher (childpid,childin, childout); ())
+		else () ) 
+	(* print out a list of rules used from clasimpset*)
+	 else if ((substring (reconstr, 0,5))= "Rules")
+	 then (goals_being_watched := (!goals_being_watched) -1;
+	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Pretty.writeln(Pretty.str (goalstring^reconstr));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       if (!goals_being_watched = 0)
+	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+	              ("Reaping a watcher, goals watched is: " ^
+	                 (string_of_int (!goals_being_watched))^"\n");
+	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		     )
+	       else () )
+	  (* if proof translation failed *)
+	 else if ((substring (reconstr, 0,5)) = "Proof")
+	 then (goals_being_watched := (!goals_being_watched) -1;
+	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       if (!goals_being_watched = 0)
+	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+	              ("Reaping a watcher, goals watched is: " ^
+	                 (string_of_int (!goals_being_watched))^"\n");
+	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		     )
+	       else () )
 
+	 else if ((substring (reconstr, 0,1)) = "%")
+	 then (goals_being_watched := (!goals_being_watched) -1;
+	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       if (!goals_being_watched = 0)
+	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+	              ("Reaping a watcher, goals watched is: " ^
+	                 (string_of_int (!goals_being_watched))^"\n");
+	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		     )
+	       else () )
+
+	 else  (* add something here ?*)
+	      (goals_being_watched := (!goals_being_watched) -1;
+	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+		Pretty.writeln(Pretty.str ("Ran out of options in handler"));
+		Pretty.writeln(Pretty.str  (oct_char "361"));
+		if (!goals_being_watched = 0)
+	        then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+	              ("Reaping a watcher, goals watched is: " ^
+	                 (string_of_int (!goals_being_watched))^"\n");
+	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		     )
+	        else () )
+       end)
+
+ in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
+    IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE spass_proofHandler);
+    (childin, childout, childpid)
+
+  end
 
 end (* structure Watcher *)
