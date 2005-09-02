@@ -9,6 +9,7 @@ header{*Attributes for Reconstructing External Resolution Proofs*}
 theory Reconstruction
     imports Hilbert_Choice Map Infinite_Set Extraction
     uses "Tools/res_lib.ML"
+
 	 "Tools/res_clause.ML"
 	 "Tools/res_skolem_function.ML"
 	 "Tools/res_axioms.ML"
@@ -21,6 +22,7 @@ theory Reconstruction
 	 "Tools/ATP/recon_transfer_proof.ML"
 	 "Tools/ATP/VampCommunication.ML"
 	 "Tools/ATP/SpassCommunication.ML"
+         "Tools/ATP/ECommunication.ML"
 	 "Tools/ATP/watcher.sig"
 	 "Tools/ATP/watcher.ML"
 	 "Tools/ATP/res_clasimpset.ML"
