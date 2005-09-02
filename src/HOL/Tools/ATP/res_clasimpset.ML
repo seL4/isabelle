@@ -6,7 +6,9 @@
 
 structure ReduceAxiomsN =
 (* Author: Jia Meng, Cambridge University Computer Laboratory
-   Remove irrelevant axioms used for a proof of a goal, with with iteration control*)
+   Remove irrelevant axioms used for a proof of a goal, with with iteration control
+   
+   Initial version. Needs elaboration. *)
 
 struct
 
@@ -143,31 +145,6 @@ fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
 (* outputs a list of (thm,clause) pairs *)
 
 
-(* for tracing: encloses each string element in brackets. *)
-fun concat_with_stop [] = ""
-  | concat_with_stop [x] =  x
-  | concat_with_stop (x::xs) = x^ "." ^ concat_with_stop xs;
-
-fun remove_symb str = 
-    if String.isPrefix  "List.op @." str
-    then  ((String.substring(str,0,5)) ^ (String.extract (str, 10, NONE)))
-    else str;
-
-(*FIXME: this logic (especially concat_with_stop) needs to be replaced by code
-to invert the function ascii_of.*)
-fun remove_spaces str = 
-    let val strlist = String.tokens Char.isSpace str
-	val spaceless = concat strlist
-	val strlist' = String.tokens Char.isPunct spaceless
-    in
-	concat_with_stop strlist'
-    end
-
-fun remove_symb_pair (str, thm) = (remove_symb str, thm);
-
-fun remove_spaces_pair (str, thm) = (remove_spaces str, thm);
-
-
 (*Insert th into the result provided the name is not "".*)
 fun add_nonempty ((name,th), ths) = if name="" then ths else th::ths;
 
@@ -187,16 +164,10 @@ fun multi x 0 xlist = xlist
 fun clause_numbering ((clause, theorem), cls) = 
     let val num_of_cls = length cls
 	val numbers = 0 upto (num_of_cls -1)
-	val multi_name = multi (clause, theorem)  num_of_cls []
     in 
-	(multi_name)
+	multi (clause, theorem)  num_of_cls []
     end;
-
-
-fun concat_with sep []  = ""
-  | concat_with sep [x] = "(" ^ x ^ ")"
-  | concat_with sep (x::xs) = "(" ^ x ^ ")" ^  sep ^ (concat_with sep xs);
-
+    
 
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
@@ -211,17 +182,12 @@ fun write_out_clasimp filename thy goal =
 	val simpset_rules =
 	      ReduceAxiomsN.relevant_filter (!relevant) goal 
                 (ResAxioms.simpset_rules_of_thy thy);
-	val named_simpset = 
-	      map remove_spaces_pair (map put_name_pair simpset_rules)
-        val justnames = map #1 named_simpset
-        val namestring = concat_with "\n" justnames
-        val _ = File.append (File.tmp_path (Path.basic "clasimp_names"))
-			  (namestring)
+	val named_simpset = map put_name_pair simpset_rules
 	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
 
-	val cls_thms = if !use_simpset then (claset_cls_thms@simpset_cls_thms) else claset_cls_thms;
+	val cls_thms = if !use_simpset then (claset_cls_thms@simpset_cls_thms) 
+	               else claset_cls_thms;
 	val cls_thms_list = List.concat cls_thms;
-        (* length 1429 *)
 	(*************************************************)
 	(* Write out clauses as tptp strings to filename *)
 	(*************************************************)
@@ -239,10 +205,8 @@ fun write_out_clasimp filename thy goal =
 
 	(* list of lists of tptp string clauses *)
 	val stick_clasrls =   List.concat cls_tptp_strs;
-        (* length 1581*)
 	val out = TextIO.openOut filename;
 	val _=   ResLib.writeln_strs out stick_clasrls;
-	val _= TextIO.flushOut out;
 	val _= TextIO.closeOut out
   in
 	(clause_arr, num_of_clauses, clauses)

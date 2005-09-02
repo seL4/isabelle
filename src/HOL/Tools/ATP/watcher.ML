@@ -236,7 +236,9 @@ fun separateFields str =
 
       val _ = File.append (File.tmp_path (Path.basic "sep_comms"))                                                                                
                   ("Sep comms are: "^(implode str)^"**"^
-                   prover^" thmstring: "^thmstring^"\n goalstr:  "^goalstring^" \n provercmd: "^proverCmd^" \n  clasimp "^clasimpfile^" \n hyps "^hypsfile^"\n prob  "^file^"\n\n")
+                   prover^" thmstring: "^thmstring^"\n goalstr:  "^goalstring^
+                   " \n provercmd: "^proverCmd^" \n  clasimp "^clasimpfile^
+                   " \n hyps "^hypsfile^"\n prob  "^file^"\n\n")
   in
      (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile, file)
   end
@@ -255,20 +257,9 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     (*** only include problem and clasimp for the moment, not sure 
 	 how to refer to hyps/local axioms just now ***)
     val whole_prob_file = Unix.execute("/bin/cat", 
-	     [clasimpfile,(*axfile, hypsfile,*)probfile,  ">",
+	     [clasimpfile,probfile,  ">",
 	      File.platform_path wholefile])
     
-    val dfg_dir = File.tmp_path (Path.basic "dfg"); 
-    val dfg_path = File.platform_path dfg_dir;
-    
-    (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
-    val probID = List.last(explode probfile)
-    val wholefile = File.tmp_path (Path.basic ("ax_prob_"^probID))
-
-    (*** only include problem and clasimp for the moment, not sure how to refer to ***)
-    (*** hyps/local axioms just now                                                ***)
-    val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
-
     (* if using spass prob_n already contains whole DFG file, otherwise need to mash axioms*)
     (* from clasimpset onto problem file *)
     val newfile =   if !SpassComm.spass 
@@ -276,7 +267,8 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
                     else (File.platform_path wholefile)
 
     val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
-	       (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n")
+	       (thmstring^"\n goals_watched"^
+	       (string_of_int(!goals_being_watched))^newfile^"\n")
   in
     (prover,thmstring,goalstring, proverCmd, settings,newfile)	
   end;
@@ -378,317 +370,317 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
     (****** fork a watcher process and get it set up and going *)
     (***********************************************************)
     fun startWatcher (procList) =
-	     (case  Posix.Process.fork() (***************************************)
-	   of SOME pid =>  pid           (* parent - i.e. main Isabelle process *)
-					 (***************************************)
+     (case  Posix.Process.fork() (***************************************)
+      of SOME pid =>  pid           (* parent - i.e. main Isabelle process *)
+				    (***************************************)
 
-					   (*************************)
-	    | NONE => let                  (* child - i.e. watcher  *)
-		val oldchildin = #infd p1  (*************************)
-		val fromParent = Posix.FileSys.wordToFD 0w0
-		val oldchildout = #outfd p2
-		val toParent = Posix.FileSys.wordToFD 0w1
-		val fromParentIOD = Posix.FileSys.fdToIOD fromParent
-		val fromParentStr = openInFD ("_exec_in_parent", fromParent)
-		val toParentStr = openOutFD ("_exec_out_parent", toParent)
-		val sign = sign_of_thm thm
-		val prems = prems_of thm
-		val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-		val _ = (warning ("subgoals forked to startWatcher: "^prems_string));
-	       (* tracing *)
-	      (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
-		val tenth_ax_thms = memo_find_clause (tenth_ax, clause_tab)
-		val clause_str = Meson.concat_with_and (map string_of_thm tenth_ax_thms)
-		val _ = (warning ("tenth axiom in array in watcher is: "^tenth_ax))         
-		val _ = (warning ("tenth axiom in table in watcher is: "^clause_str))         
-		val _ = (warning ("num_of_clauses in watcher is: "^(string_of_int (num_of_clauses))) )       
-			 *)
-		(*val goalstr = string_of_thm (the_goal)
-		 val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "goal_in_watcher")));  
-		val _ = TextIO.output (outfile,goalstr )
-		val _ =  TextIO.closeOut outfile*)
-		fun killChildren [] = ()
-	     |      killChildren  (child_handle::children) = (killChild child_handle; killChildren children)
+				      (*************************)
+       | NONE => let                  (* child - i.e. watcher  *)
+	   val oldchildin = #infd p1  (*************************)
+	   val fromParent = Posix.FileSys.wordToFD 0w0
+	   val oldchildout = #outfd p2
+	   val toParent = Posix.FileSys.wordToFD 0w1
+	   val fromParentIOD = Posix.FileSys.fdToIOD fromParent
+	   val fromParentStr = openInFD ("_exec_in_parent", fromParent)
+	   val toParentStr = openOutFD ("_exec_out_parent", toParent)
+	   val sign = sign_of_thm thm
+	   val prems = prems_of thm
+	   val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+	   val _ = (warning ("subgoals forked to startWatcher: "^prems_string));
+	  (* tracing *)
+	 (*val tenth_ax = fst( Array.sub(clause_arr, 1))  
+	   val tenth_ax_thms = memo_find_clause (tenth_ax, clause_tab)
+	   val clause_str = Meson.concat_with_and (map string_of_thm tenth_ax_thms)
+	   val _ = (warning ("tenth axiom in array in watcher is: "^tenth_ax))         
+	   val _ = (warning ("tenth axiom in table in watcher is: "^clause_str))         
+	   val _ = (warning ("num_of_clauses in watcher is: "^(string_of_int (num_of_clauses))) )       
+		    *)
+	   (*val goalstr = string_of_thm (the_goal)
+	    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "goal_in_watcher")));  
+	   val _ = TextIO.output (outfile,goalstr )
+	   val _ =  TextIO.closeOut outfile*)
+	   fun killChildren [] = ()
+	|      killChildren  (child_handle::children) = (killChild child_handle; killChildren children)
 
-	      (*************************************************************)
-	      (* take an instream and poll its underlying reader for input *)
-	      (*************************************************************)
+	 (*************************************************************)
+	 (* take an instream and poll its underlying reader for input *)
+	 (*************************************************************)
 
-	      fun pollParentInput () = 
-		 let val pd = OS.IO.pollDesc (fromParentIOD)
-		 in 
-		   if (isSome pd ) then 
-		       let val pd' = OS.IO.pollIn (valOf pd)
-			   val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
-			   val _ = File.append (File.tmp_path (Path.basic "parent_poll")) 
-			     ("In parent_poll\n")	
-		       in
-			  if null pdl 
-			  then
-			     NONE
-			  else if (OS.IO.isIn (hd pdl)) 
-			       then SOME (getCmds (toParentStr, fromParentStr, []))
-			       else NONE
-		       end
-		     else NONE
-		 end
-		      
-	       fun pollChildInput (fromStr) = 
-		 let val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
-			       ("In child_poll\n")
-		     val iod = getInIoDesc fromStr
-		 in 
-		   if isSome iod 
-		   then 
-		     let val pd = OS.IO.pollDesc (valOf iod)
-		     in 
-		     if (isSome pd ) then 
-			 let val pd' = OS.IO.pollIn (valOf pd)
-			     val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
-			 in
-			    if null pdl 
+	 fun pollParentInput () = 
+	    let val pd = OS.IO.pollDesc (fromParentIOD)
+	    in 
+	      if (isSome pd ) then 
+		  let val pd' = OS.IO.pollIn (valOf pd)
+		      val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
+		      val _ = File.append (File.tmp_path (Path.basic "parent_poll")) 
+			("In parent_poll\n")	
+		  in
+		     if null pdl 
+		     then
+			NONE
+		     else if (OS.IO.isIn (hd pdl)) 
+			  then SOME (getCmds (toParentStr, fromParentStr, []))
+			  else NONE
+		  end
+		else NONE
+	    end
+		 
+	  fun pollChildInput (fromStr) = 
+	    let val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
+			  ("In child_poll\n")
+		val iod = getInIoDesc fromStr
+	    in 
+	      if isSome iod 
+	      then 
+		let val pd = OS.IO.pollDesc (valOf iod)
+		in 
+		if (isSome pd ) then 
+		    let val pd' = OS.IO.pollIn (valOf pd)
+			val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
+		    in
+		       if null pdl 
+		       then
+			 ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
+			  ("Null pdl \n");NONE)
+		       else if (OS.IO.isIn (hd pdl)) 
 			    then
-			      ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
-			       ("Null pdl \n");NONE)
-			    else if (OS.IO.isIn (hd pdl)) 
-				 then
-				     (let val inval =  (TextIO.inputLine fromStr)
-					  val _ = File.append (File.tmp_path (Path.basic "child_poll_res")) (inval^"\n")
-				      in
-					    SOME inval
-				      end)
-				 else
-				       ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
-			       ("Null pdl \n");NONE)
-			 end
-		       else  NONE
-		       end
-		   else NONE
-	     end
-
-
-	     (****************************************************************************)
-	     (* Check all vampire processes currently running for output                 *)
-	     (****************************************************************************) 
-							(*********************************)
-	      fun checkChildren ([], toParentStr) = []  (*** no children to check ********)
-							(*********************************)
-	      |   checkChildren ((childProc::otherChildren), toParentStr) = 
-		    let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
-			           ("In check child, length of queue:"^(string_of_int (length (childProc::otherChildren)))^"\n")
-                        val (childInput,childOutput) =  cmdstreamsOf childProc
-			val child_handle= cmdchildHandle childProc
-			(* childCmd is the .dfg file that the problem is in *)
-			val childCmd = fst(snd (cmdchildInfo childProc))
-                        val _ = File.append (File.tmp_path (Path.basic "child_command")) 
-			           (childCmd^"\n")
-			(* now get the number of the subgoal from the filename *)
-			val sg_num = (*if (!SpassComm.spass )
-				     then 
-					int_of_string(ReconOrderClauses.get_nth 5 (rev(explode childCmd)))
-				     else*)
-					int_of_string(hd (rev(explode childCmd)))
-
-			val childIncoming = pollChildInput childInput
- 			val _ = File.append (File.tmp_path (Path.basic "child_check_polled")) 
-			           ("finished polling child \n")
-			val parentID = Posix.ProcEnv.getppid()
-			val prover = cmdProver childProc
-			val thmstring = cmdThm childProc
-			val sign = sign_of_thm thm
-			val prems = prems_of thm
-			val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-			val _ = warning("subgoals forked to checkChildren: "^prems_string)
-			val goalstring = cmdGoal childProc							
-			val _ = File.append (File.tmp_path (Path.basic "child_comms")) 
-			           (prover^thmstring^goalstring^childCmd^"\n")
-		    in 
-		      if (isSome childIncoming) 
-		      then 
-			  (* check here for prover label on child*)
-			  let val _ = File.write (File.tmp_path (Path.basic "child_incoming")) 
-			             ("subgoals forked to checkChildren:"^
-			             prems_string^prover^thmstring^goalstring^childCmd) 
-		              val childDone = (case prover of
-	                          "vampire" => (VampComm.checkVampProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses) )                                              
-                                 |"spass" => (SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)     ) )
-			   in
-			    if childDone      (**********************************************)
-			    then (* child has found a proof and transferred it *)
-			       (* Remove this child and go on to check others*)
-			       (**********************************************)
-			       (Unix.reap child_handle;
-				checkChildren(otherChildren, toParentStr))
-			    else 
-			       (**********************************************)
-			       (* Keep this child and go on to check others  *)
-			       (**********************************************)
-			      (childProc::(checkChildren (otherChildren, toParentStr)))
-			 end
-		       else
-			 (File.append (File.tmp_path (Path.basic "child_incoming")) "No child output ";
-			  childProc::(checkChildren (otherChildren, toParentStr)))
+				(let val inval =  (TextIO.inputLine fromStr)
+				     val _ = File.append (File.tmp_path (Path.basic "child_poll_res")) (inval^"\n")
+				 in
+				       SOME inval
+				 end)
+			    else
+				  ( File.append (File.tmp_path (Path.basic "child_poll_res")) 
+			  ("Null pdl \n");NONE)
 		    end
+		  else  NONE
+		  end
+	      else NONE
+	end
 
-	     
-	  (********************************************************************)                  
-	  (* call resolution processes                                        *)
-	  (* settings should be a list of strings                             *)
-	  (* e.g. ["-t 300", "-m 100000"]         (TextIO.input instr)^                            *)
-	  (* takes list of (string, string, string list, string)list proclist *)
-	  (********************************************************************)
+
+	(****************************************************************************)
+	(* Check all vampire processes currently running for output                 *)
+	(****************************************************************************) 
+						   (*********************************)
+	 fun checkChildren ([], toParentStr) = []  (*** no children to check ********)
+						   (*********************************)
+	 |   checkChildren ((childProc::otherChildren), toParentStr) = 
+	       let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
+			      ("In check child, length of queue:"^(string_of_int (length (childProc::otherChildren)))^"\n")
+		   val (childInput,childOutput) =  cmdstreamsOf childProc
+		   val child_handle= cmdchildHandle childProc
+		   (* childCmd is the .dfg file that the problem is in *)
+		   val childCmd = fst(snd (cmdchildInfo childProc))
+		   val _ = File.append (File.tmp_path (Path.basic "child_command")) 
+			      (childCmd^"\n")
+		   (* now get the number of the subgoal from the filename *)
+		   val sg_num = (*if (!SpassComm.spass )
+				then 
+				   int_of_string(ReconOrderClauses.get_nth 5 (rev(explode childCmd)))
+				else*)
+				   int_of_string(hd (rev(explode childCmd)))
+
+		   val childIncoming = pollChildInput childInput
+		   val _ = File.append (File.tmp_path (Path.basic "child_check_polled")) 
+			      ("finished polling child \n")
+		   val parentID = Posix.ProcEnv.getppid()
+		   val prover = cmdProver childProc
+		   val thmstring = cmdThm childProc
+		   val sign = sign_of_thm thm
+		   val prems = prems_of thm
+		   val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+		   val _ = warning("subgoals forked to checkChildren: "^prems_string)
+		   val goalstring = cmdGoal childProc							
+		   val _ = File.append (File.tmp_path (Path.basic "child_comms")) 
+			      (prover^thmstring^goalstring^childCmd^"\n")
+	       in 
+		 if (isSome childIncoming) 
+		 then 
+		     (* check here for prover label on child*)
+		     let val _ = File.write (File.tmp_path (Path.basic "child_incoming")) 
+				("subgoals forked to checkChildren:"^
+				prems_string^prover^thmstring^goalstring^childCmd) 
+			 val childDone = (case prover of
+			     "vampire" => (VampComm.checkVampProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses) )                                              
+			    |"spass" => (SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)     ) )
+		      in
+		       if childDone      (**********************************************)
+		       then (* child has found a proof and transferred it *)
+			  (* Remove this child and go on to check others*)
+			  (**********************************************)
+			  (Unix.reap child_handle;
+			   checkChildren(otherChildren, toParentStr))
+		       else 
+			  (**********************************************)
+			  (* Keep this child and go on to check others  *)
+			  (**********************************************)
+			 (childProc::(checkChildren (otherChildren, toParentStr)))
+		    end
+		  else
+		    (File.append (File.tmp_path (Path.basic "child_incoming")) "No child output ";
+		     childProc::(checkChildren (otherChildren, toParentStr)))
+	       end
+
+	
+     (********************************************************************)                  
+     (* call resolution processes                                        *)
+     (* settings should be a list of strings                             *)
+     (* e.g. ["-t 300", "-m 100000"]         (TextIO.input instr)^                            *)
+     (* takes list of (string, string, string list, string)list proclist *)
+     (********************************************************************)
 
 
 (*** add subgoal id num to this *)
-	     fun execCmds  [] procList = procList
-	     |   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("\nAbout to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-	       in 
-		 if (prover = "spass") 
-		 then 
-		   let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
-		            (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
-		       val (instr, outstr) = Unix.streamsOf childhandle
-		       val newProcList =    (((CMDPROC{
-					    prover = prover,
-					    cmd = file,
-					    thmstring = thmstring,
-					    goalstring = goalstring,
-					    proc_handle = childhandle,
-					    instr = instr,
-					    outstr = outstr })::procList))
-			val _ = File.append (File.tmp_path (Path.basic "exec_child"))  
-			     ("\nexecuting command for goal:\n"^
-			      goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-		   in
-		      Posix.Process.sleep (Time.fromSeconds 1);execCmds cmds newProcList
-		   end
-		 else 
-		   let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
-		            (Unix.execute(proverCmd, (settings@[file])))
-		       val (instr, outstr) = Unix.streamsOf childhandle
-		       
-		       val newProcList = (CMDPROC{
-					    prover = prover,
-					    cmd = file,
-					    thmstring = thmstring,
-					    goalstring = goalstring,
-					    proc_handle = childhandle,
-					    instr = instr,
-					    outstr = outstr }) :: procList
-	  
-		       val _ = File.append (File.tmp_path (Path.basic "exec_child")) 
-		                 ("executing command for goal:\n"^
-		                  goalstring^proverCmd^(concat settings)^file^
-		                  " at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-		   in
-		     Posix.Process.sleep (Time.fromSeconds 1); execCmds cmds newProcList
-		   end
-		end
+	fun execCmds  [] procList = procList
+	|   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("\nAbout to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+	  in 
+	    if (prover = "spass") 
+	    then 
+	      let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+		       (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
+		  val (instr, outstr) = Unix.streamsOf childhandle
+		  val newProcList =    (((CMDPROC{
+				       prover = prover,
+				       cmd = file,
+				       thmstring = thmstring,
+				       goalstring = goalstring,
+				       proc_handle = childhandle,
+				       instr = instr,
+				       outstr = outstr })::procList))
+		   val _ = File.append (File.tmp_path (Path.basic "exec_child"))  
+			("\nexecuting command for goal:\n"^
+			 goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+	      in
+		 Posix.Process.sleep (Time.fromSeconds 1);
+		 execCmds cmds newProcList
+	      end
+	    else 
+	      let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+		       (Unix.execute(proverCmd, (settings@[file])))
+		  val (instr, outstr) = Unix.streamsOf childhandle
+		  
+		  val newProcList = (CMDPROC{
+				       prover = prover,
+				       cmd = file,
+				       thmstring = thmstring,
+				       goalstring = goalstring,
+				       proc_handle = childhandle,
+				       instr = instr,
+				       outstr = outstr }) :: procList
+     
+		  val _ = File.append (File.tmp_path (Path.basic "exec_child")) 
+			    ("executing command for goal:\n"^
+			     goalstring^proverCmd^(concat settings)^file^
+			     " at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+	      in
+		Posix.Process.sleep (Time.fromSeconds 1); 
+		execCmds cmds newProcList
+	      end
+	   end
 
 
-	  (****************************************)                  
-	  (* call resolution processes remotely   *)
-	  (* settings should be a list of strings *)
-	  (* e.g. ["-t 300", "-m 100000"]         *)
-	  (****************************************)
+     (****************************************)                  
+     (* call resolution processes remotely   *)
+     (* settings should be a list of strings *)
+     (* e.g. ["-t 300", "-m 100000"]         *)
+     (****************************************)
 
-	   (*  fun execRemoteCmds  [] procList = procList
-	     |   execRemoteCmds ((prover, thmstring,goalstring,proverCmd ,settings,file)::cmds) procList  =  
-				       let val  newProcList =  mySshExecuteToList ("/usr/bin/ssh",([prover,thmstring,goalstring,"-t", "shep"]@[proverCmd]@settings@[file]), procList)
-					   in
-						execRemoteCmds  cmds newProcList
-					   end
+      (*  fun execRemoteCmds  [] procList = procList
+	|   execRemoteCmds ((prover, thmstring,goalstring,proverCmd ,settings,file)::cmds) procList  =  
+				  let val  newProcList =  mySshExecuteToList ("/usr/bin/ssh",([prover,thmstring,goalstring,"-t", "shep"]@[proverCmd]@settings@[file]), procList)
+				      in
+					   execRemoteCmds  cmds newProcList
+				      end
 *)
 
-	     fun printList (outStr, []) = ()
-	     |   printList (outStr, (x::xs)) = (TextIO.output (outStr, x);TextIO.flushOut outStr; printList (outStr,xs))                  
+	fun printList (outStr, []) = ()
+	|   printList (outStr, (x::xs)) = (TextIO.output (outStr, x);TextIO.flushOut outStr; printList (outStr,xs))                  
 
 
-	  (**********************************************)                  
-	  (* Watcher Loop                               *)
-	  (**********************************************)
+     (**********************************************)                  
+     (* Watcher Loop                               *)
+     (**********************************************)
 
-	      fun keepWatching (toParentStr, fromParentStr,procList) = 
-		let fun loop (procList) =  
-		     let val cmdsFromIsa = pollParentInput ()
-			 fun killchildHandler (n:int)  = 
-			       (TextIO.output(toParentStr, "Killing child proof processes!\n");
-				TextIO.flushOut toParentStr;
-				killChildren (map (cmdchildHandle) procList);
-				())
-		     in 
-			(*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
-									   (**********************************)
-			if (isSome cmdsFromIsa) 
-			then (*  deal with input from Isabelle *)
-			  if (getProofCmd(hd(valOf cmdsFromIsa)) = "Kill children" )
-			  then 
-			    let val child_handles = map cmdchildHandle procList 
-			    in
-			       killChildren child_handles;
-			       (*Posix.Process.kill(Posix.Process.K_PROC (Posix.ProcEnv.getppid()), Posix.Signal.usr2);*)    
-			       loop ([])
-			    end
-			  else
-			    if ((length procList)<10)    (********************)
-			    then                        (* Execute locally  *)
-			      let 
-				val newProcList = execCmds (valOf cmdsFromIsa) procList
-				val parentID = Posix.ProcEnv.getppid()
-				   val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
-				val newProcList' =checkChildren (newProcList, toParentStr) 
+	 fun keepWatching (toParentStr, fromParentStr,procList) = 
+	   let fun loop (procList) =  
+		let val _ = Posix.Process.sleep (Time.fromMilliseconds 200)
+		    val cmdsFromIsa = pollParentInput ()
+		    fun killchildHandler (n:int)  = 
+			  (TextIO.output(toParentStr, "Killing child proof processes!\n");
+			   TextIO.flushOut toParentStr;
+			   killChildren (map (cmdchildHandle) procList);
+			   ())
+		in 
+		   (*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
+								      (**********************************)
+		   if (isSome cmdsFromIsa) 
+		   then (*  deal with input from Isabelle *)
+		     if (getProofCmd(hd(valOf cmdsFromIsa)) = "Kill children" )
+		     then 
+		       let val child_handles = map cmdchildHandle procList 
+		       in
+			  killChildren child_handles;
+			  (*Posix.Process.kill(Posix.Process.K_PROC (Posix.ProcEnv.getppid()), Posix.Signal.usr2);*)    
+			  loop ([])
+		       end
+		     else
+		       if ((length procList)<10)    (********************)
+		       then                        (* Execute locally  *)
+			 let 
+			   val newProcList = execCmds (valOf cmdsFromIsa) procList
+			   val parentID = Posix.ProcEnv.getppid()
+			      val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
+			   val newProcList' =checkChildren (newProcList, toParentStr) 
 
-				val _ = warning("off to keep watching...")
-			       val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
-			      in
-				(*Posix.Process.sleep (Time.fromSeconds 1);*)
-				loop (newProcList') 
-			      end
-			    else  (* Execute remotely              *)
-                                  (* (actually not remote for now )*)
-			      let 
-				val newProcList = execCmds (valOf cmdsFromIsa) procList
-				val parentID = Posix.ProcEnv.getppid()
-				val newProcList' =checkChildren (newProcList, toParentStr) 
-			      in
-				(*Posix.Process.sleep (Time.fromSeconds 1);*)
-				loop (newProcList') 
-			      end
-			else (* No new input from Isabelle *)
-			  let val newProcList = checkChildren ((procList), toParentStr)
-			  in
-			    (*Posix.Process.sleep (Time.fromSeconds 1);*)
-			   (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
-			    loop (newProcList)
-			  end
-		      end
-		in  
-		    loop (procList)
-		end
-		
-    
-		in
-		 (***************************)
-		 (*** Sort out pipes ********)
-		 (***************************)
+			   val _ = warning("off to keep watching...")
+			  val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
+			 in
+			   loop (newProcList') 
+			 end
+		       else  (* Execute remotely              *)
+			     (* (actually not remote for now )*)
+			 let 
+			   val newProcList = execCmds (valOf cmdsFromIsa) procList
+			   val parentID = Posix.ProcEnv.getppid()
+			   val newProcList' =checkChildren (newProcList, toParentStr) 
+			 in
+			   loop (newProcList') 
+			 end
+		   else (* No new input from Isabelle *)
+		     let val newProcList = checkChildren ((procList), toParentStr)
+		     in
+		      (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
+		       loop (newProcList)
+		     end
+		 end
+	   in  
+	       loop (procList)
+	   end
+	   
 
-		  Posix.IO.close (#outfd p1);
-		  Posix.IO.close (#infd p2);
-		  Posix.IO.dup2{old = oldchildin, new = fromParent};
-		  Posix.IO.close oldchildin;
-		  Posix.IO.dup2{old = oldchildout, new = toParent};
-		  Posix.IO.close oldchildout;
+	   in
+	    (***************************)
+	    (*** Sort out pipes ********)
+	    (***************************)
 
-		  (***************************)
-		  (* start the watcher loop  *)
-		  (***************************)
-		  keepWatching (toParentStr, fromParentStr, procList);
-		  (****************************************************************************)
-   (* fake return value - actually want the watcher to loop until killed *)
-		  (****************************************************************************)
-		  Posix.Process.wordToPid 0w0
-		end);
-	  (* end case *)
+	     Posix.IO.close (#outfd p1);
+	     Posix.IO.close (#infd p2);
+	     Posix.IO.dup2{old = oldchildin, new = fromParent};
+	     Posix.IO.close oldchildin;
+	     Posix.IO.dup2{old = oldchildout, new = toParent};
+	     Posix.IO.close oldchildout;
+
+	     (***************************)
+	     (* start the watcher loop  *)
+	     (***************************)
+	     keepWatching (toParentStr, fromParentStr, procList);
+	     (****************************************************************************)
+(* fake return value - actually want the watcher to loop until killed *)
+	     (****************************************************************************)
+	     Posix.Process.wordToPid 0w0
+	   end);
+     (* end case *)
 
 
     val _ = TextIO.flushOut TextIO.stdOut

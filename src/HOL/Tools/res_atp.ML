@@ -8,8 +8,6 @@ ATPs with TPTP format input.
 signature RES_ATP =
 sig
   val axiom_file : Path.T
-  val hyps_file : Path.T
-  val prob_file : Path.T;
 (*val atp_ax_tac : thm list -> int -> Tactical.tactic*)
 (*val atp_tac : int -> Tactical.tactic*)
   val full_spass: bool ref
@@ -53,16 +51,10 @@ val atomize_tac =
           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
-(* temporarily use these files, which will be loaded by Vampire *)
-val file_id_num = ref 0;
-fun new_prob_file () = "prob" ^ string_of_int (inc file_id_num);
-
 val axiom_file = File.tmp_path (Path.basic "axioms");
 val clasimp_file = File.tmp_path (Path.basic "clasimp");
 val hyps_file = File.tmp_path (Path.basic "hyps");
 val prob_file = File.tmp_path (Path.basic "prob");
-val dummy_tac = all_tac;
-val _ =debug  (File.platform_path prob_file);
 
 
 (**** for Isabelle/ML interface  ****)
@@ -149,11 +141,11 @@ fun dfg_inputs_tfrees thms n tfrees axclauses =
         val _ = debug ("about to write out dfg prob file " ^ probfile)
        	(*val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
         val tfree_clss = map ResClause.tfree_dfg_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) *)   
-        val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) 
+        val probN = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) 
                         axclauses [] [] [] tfrees   
 	val out = TextIO.openOut(probfile)
     in
-	(ResLib.writeln_strs out [filestr]; TextIO.closeOut out; debug probfile )
+	(ResLib.writeln_strs out [probN]; TextIO.closeOut out; debug probfile )
 (* (ResLib.writeln_strs out (tfree_clss @ dfg_clss); *)
     end;
 
@@ -210,12 +202,12 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
   in
     Watcher.callResProvers(childout,atp_list);
     debug "Sent commands to watcher!";
-    dummy_tac
+    all_tac
   end
 
 (**********************************************************)
 (* write out the current subgoal as a tptp file, probN,   *)
-(* then call dummy_tac - should be call_res_tac           *)
+(* then call all_tac - should be call_res_tac           *)
 (**********************************************************)
 
 
@@ -223,7 +215,7 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid) thm n sko_thms axc
     if n=0 then 
        (call_resolve_tac  (rev sko_thms)
         sign  sg_terms (childin, childout, pid) (List.length sg_terms);
-        dummy_tac thm)
+        all_tac thm)
      else
 	
      ( SELECT_GOAL
@@ -234,7 +226,7 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid) thm n sko_thms axc
              else tptp_inputs_tfrees (make_clauses negs) n tfrees;
              get_sko_thms tfrees sign sg_terms (childin, childout, pid) 
                           thm  (n -1) (negs::sko_thms) axclauses; 
-             dummy_tac))]) n thm )
+             all_tac))]) n thm )
 
 
 

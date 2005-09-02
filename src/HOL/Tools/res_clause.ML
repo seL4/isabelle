@@ -226,8 +226,12 @@ exception CLAUSE of string;
 
 (*** make clauses ***)
 
-fun make_clause (clause_id,axiom_name,kind,literals,types_sorts,tvar_type_literals,
+fun make_clause (clause_id,axiom_name,kind,literals,
+                 types_sorts,tvar_type_literals,
                  tfree_type_literals,tvars, predicates, functions) =
+  if null literals 
+  then error "Problem too trivial for resolution (empty clause)"
+  else
      Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind, 
              literals = literals, types_sorts = types_sorts,
              tvar_type_literals = tvar_type_literals,
@@ -400,28 +404,29 @@ fun predicate_of term =
 		   | _ => pred_of_nonEq (pred,args)
     end;
 
- 
-
-fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) = literals_of_term(P,lits_ts, preds, funcs)
+fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) =    
+      literals_of_term(P,lits_ts, preds, funcs)
   | literals_of_term ((Const("op |",_) $ P $ Q),(lits,ts), preds,funcs) = 
-    let val (lits',ts', preds', funcs') = literals_of_term(P,(lits,ts), preds,funcs)
-    in
-        literals_of_term(Q,(lits',ts'), distinct(preds'@preds), distinct(funcs'@funcs))
-    end
+      let val (lits',ts', preds', funcs') = 
+            literals_of_term(P,(lits,ts), preds,funcs)
+      in
+	  literals_of_term(Q, (lits',ts'), distinct(preds'@preds), 
+	                   distinct(funcs'@funcs))
+      end
   | literals_of_term ((Const("Not",_) $ P),(lits,ts), preds, funcs) = 
-    let val (pred,ts', preds', funcs') = predicate_of P
-        val lits' = Literal(false,pred,false) :: lits
-        val ts'' = ResLib.no_rep_app ts ts'
-    in
-        (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
-    end
+      let val (pred,ts', preds', funcs') = predicate_of P
+	  val lits' = Literal(false,pred,false) :: lits
+	  val ts'' = ResLib.no_rep_app ts ts'
+      in
+	  (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
+      end
   | literals_of_term (P,(lits,ts), preds, funcs) = 
-    let val (pred,ts', preds', funcs') = predicate_of P
-        val lits' = Literal(true,pred,false) :: lits
-        val ts'' = ResLib.no_rep_app ts ts' 
-    in
-        (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
-    end;
+      let val (pred,ts', preds', funcs') = predicate_of P
+	  val lits' = Literal(true,pred,false) :: lits
+	  val ts'' = ResLib.no_rep_app ts ts' 
+      in
+	  (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
+      end;
 
 
 fun literals_of_thm thm = literals_of_term (prop_of thm, ([],[]), [], []);
@@ -690,7 +695,8 @@ and string_of_term (UVar(x,_)) = x
       end;
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
-fun string_of_predicate (Predicate("equal",typ,terms)) = string_of_equality(typ,terms)
+fun string_of_predicate (Predicate("equal",typ,terms)) = 
+      string_of_equality(typ,terms)
   | string_of_predicate (Predicate(name,_,[])) = name 
   | string_of_predicate (Predicate(name,typ,terms)) = 
       let val terms_as_strings = map string_of_term terms
@@ -708,9 +714,8 @@ fun string_of_predicate (Predicate("equal",typ,terms)) = string_of_equality(typ,
 
 fun dfg_literal (Literal(pol,pred,tag)) =
     let val pred_string = string_of_predicate pred
-	val tagged_pol =if pol then pred_string else "not(" ^pred_string ^ ")"
-     in
-	tagged_pol  
+    in
+	if pol then pred_string else "not(" ^pred_string ^ ")"  
     end;
 
 
@@ -755,7 +760,7 @@ fun dfg_clause_aux (Clause cls) =
           if !keep_types then map dfg_of_typeLit (#tfree_type_literals cls)
           else []
   in
-      (tvar_lits_strs @ lits,tfree_lits)
+      (tvar_lits_strs @ lits, tfree_lits)
   end; 
 
 
@@ -766,7 +771,7 @@ fun dfg_folterms (Literal(pol,pred,tag)) =
   end
 
  
-fun get_uvars (UVar(str,typ)) =(*if (substring (str, 0,2))= "V_" then  *)[str] (*else []*)
+fun get_uvars (UVar(str,typ)) = [str] 
 |   get_uvars (Fun (str,typ,tlist)) = ResLib.flat_noDup(map get_uvars tlist)
 
 
@@ -819,12 +824,8 @@ fun concat_with sep []  = ""
   | concat_with sep [x] = "(" ^ x ^ ")"
   | concat_with sep (x::xs) = "(" ^ x ^ ")" ^  sep ^ (concat_with sep xs);
 
-fun concat_with_comma []  = ""
-  | concat_with_comma [x] =  x 
-  | concat_with_comma (x::xs) =  x  ^ ", " ^ (concat_with_comma xs);
-
-
-fun dfg_pred (Literal(pol,pred,tag)) ax_name = (string_of_predname pred)^" "^ax_name
+fun dfg_pred (Literal(pol,pred,tag)) ax_name = 
+    (string_of_predname pred) ^ " " ^ ax_name
 
 fun dfg_clause cls =
     let val (lits,tfree_lits) = dfg_clause_aux cls 
@@ -834,11 +835,12 @@ fun dfg_clause cls =
 	val cls_id = string_of_clauseID cls
 	val ax_name = string_of_axiomName cls
 	val knd = string_of_kind cls
-	val lits_str = concat_with_comma lits
+	val lits_str = commas lits
 	val cls_str = gen_dfg_cls(cls_id,ax_name,knd,lits_str,tvars, vars) 			
         fun typ_clss k [] = []
           | typ_clss k (tfree :: tfrees) = 
-            (gen_dfg_type_cls(cls_id,knd,tfree,k, tvars,vars)) ::  (typ_clss (k+1) tfrees)
+              (gen_dfg_type_cls(cls_id,knd,tfree,k, tvars,vars)) :: 
+              (typ_clss (k+1) tfrees)
     in 
 	cls_str :: (typ_clss 0 tfree_lits)
     end;
@@ -851,21 +853,26 @@ fun preds_of_cls (Clause cls) = #predicates cls;
 
 fun string_of_arity (name, num) =  name ^"," ^ (string_of_int num) 
 
+fun string_of_preds preds = 
+  "predicates[" ^ (concat_with ", " (map string_of_arity preds)) ^ "].\n";
 
-fun string_of_preds preds =  "predicates[" ^ (concat_with ", " (map string_of_arity preds)) ^ "].\n";
-
-fun string_of_funcs funcs ="functions[" ^ (concat_with ", " (map string_of_arity funcs)) ^ "].\n" ;
-
-
-fun string_of_symbols predstr funcstr = "list_of_symbols.\n" ^ predstr  ^ funcstr  ^ "end_of_list.\n\n";
+fun string_of_funcs funcs =
+  "functions[" ^ (concat_with ", " (map string_of_arity funcs)) ^ "].\n" ;
 
 
-fun string_of_axioms axstr = "list_of_clauses(axioms,cnf).\n" ^ axstr ^ "end_of_list.\n\n";
+fun string_of_symbols predstr funcstr = 
+  "list_of_symbols.\n" ^ predstr  ^ funcstr  ^ "end_of_list.\n\n";
 
 
-fun string_of_conjectures conjstr = "list_of_clauses(conjectures,cnf).\n" ^ conjstr ^ "end_of_list.\n\n";
+fun string_of_axioms axstr = 
+  "list_of_clauses(axioms,cnf).\n" ^ axstr ^ "end_of_list.\n\n";
 
-fun string_of_descrip () = "list_of_descriptions.\nname({*[ File     : ],[ Names    :]*}).\nauthor({*[ Source   :]*}).\nstatus(unknown).\ndescription({*[ Refs     :]*}).\nend_of_list.\n\n"
+
+fun string_of_conjectures conjstr = 
+  "list_of_clauses(conjectures,cnf).\n" ^ conjstr ^ "end_of_list.\n\n";
+
+fun string_of_descrip () = 
+  "list_of_descriptions.\nname({*[ File     : ],[ Names    :]*}).\nauthor({*[ Source   :]*}).\nstatus(unknown).\ndescription({*[ Refs     :]*}).\nend_of_list.\n\n"
 
 
 fun string_of_start name = "%------------------------------------------------------------------------------\nbegin_problem(" ^ name ^ ").\n\n";
@@ -878,7 +885,8 @@ val dfg_clauses2str = ResLib.list2str_sep delim;
      
 
 fun clause2dfg cls =
-    let val (lits,tfree_lits) = dfg_clause_aux cls (*"lits" includes the typing assumptions (TVars)*)
+    let val (lits,tfree_lits) = dfg_clause_aux cls 
+            (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = string_of_clauseID cls
 	val ax_name = string_of_axiomName cls
         val vars = dfg_vars cls
@@ -886,7 +894,7 @@ fun clause2dfg cls =
         val funcs = funcs_of_cls cls
         val preds = preds_of_cls cls
 	val knd = string_of_kind cls
-	val lits_str = concat_with_comma lits
+	val lits_str = commas lits
 	val cls_str = gen_dfg_cls(cls_id,ax_name,knd,lits_str,tvars,vars) 
     in
 	(cls_str,tfree_lits) 
@@ -894,7 +902,8 @@ fun clause2dfg cls =
 
 
 
-fun tfree_dfg_clause tfree_lit = "clause( %(conjecture)\n" ^  "or( " ^ tfree_lit ^ ")),\n" ^ "tfree_tcs" ^  ")."
+fun tfree_dfg_clause tfree_lit =
+  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ ")),\n" ^ "tfree_tcs" ^ ")."
 
 
 fun gen_dfg_file probname axioms conjectures funcs preds tfrees= 
@@ -1113,8 +1122,8 @@ fun string_of_arLit (TConsLit(b,(c,t,args))) =
 
 fun string_of_conclLit (ArityClause arcls) = string_of_arLit (#conclLit arcls);
      
-
-fun strings_of_premLits (ArityClause arcls) = map string_of_arLit (#premLits arcls);
+fun strings_of_premLits (ArityClause arcls) =
+ map string_of_arLit (#premLits arcls);
 		
 
 fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
@@ -1127,12 +1136,10 @@ fun tptp_arity_clause arcls =
 	val all_lits = concl_lit :: prems_lits
     in
 	"input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ (ResLib.list_to_string' all_lits) ^ ")."
-	
     end;
 
 
 val clrelclause_prefix = "relcls_";
-
 
 fun tptp_classrelLits sub sup = 
     let val tvar = "(T)"
