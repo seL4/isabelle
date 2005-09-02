@@ -970,7 +970,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                    val (h, ts) = strip_comb t
                in case cong_name h of
                     SOME a =>
-                      (case assoc_string (fst congs, a) of
+                      (case AList.lookup (op =) (fst congs) a of
                          NONE => appc ()
                        | SOME cong =>
   (*post processing: some partial applications h t1 ... tj, j <= length ts,

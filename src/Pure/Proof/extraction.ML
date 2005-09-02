@@ -93,7 +93,7 @@ fun condrew thy rules procs =
     and condrew' tm =
       let
         val cache = ref ([] : (term * term) list);
-        fun lookup f x = (case gen_assoc (op =) (!cache, x) of
+        fun lookup f x = (case AList.lookup (op =) (!cache) x of
             NONE =>
               let val y = f x
               in (cache := (x, y) :: !cache; y) end
@@ -160,10 +160,10 @@ fun get_var_type t =
     val vs = Term.add_vars t [];
     val fs = Term.add_frees t [];
   in fn 
-      Var (ixn, _) => (case assoc_string_int (vs, ixn) of
+      Var (ixn, _) => (case AList.lookup (op =) vs ixn of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Var (ixn, T))
-    | Free (s, _) => (case assoc_string (fs, s) of
+    | Free (s, _) => (case AList.lookup (op =) fs s of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Free (s, T))
     | _ => error "get_var_type: not a variable"

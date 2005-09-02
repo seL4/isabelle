@@ -357,7 +357,7 @@ fun expand_proof sg thms prf =
             fun inc i =
               map_proof_terms (Logic.incr_indexes ([], i)) (Logic.incr_tvar i);
             val (maxidx', prf, prfs') =
-              (case gen_assoc (op =) (prfs, (a, prop)) of
+              (case AList.lookup (op =) prfs (a, prop) of
                 NONE =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
