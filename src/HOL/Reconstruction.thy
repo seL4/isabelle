@@ -20,7 +20,6 @@ theory Reconstruction
 	 "Tools/ATP/recon_parse.ML"
 	 "Tools/ATP/recon_transfer_proof.ML"
 	 "Tools/ATP/VampCommunication.ML"
-	 "Tools/ATP/VampireCommunication.ML"
 	 "Tools/ATP/SpassCommunication.ML"
 	 "Tools/ATP/watcher.sig"
 	 "Tools/ATP/watcher.ML"
