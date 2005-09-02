@@ -67,7 +67,7 @@ sig
 
   (* Diagnostic functions *)
   val print_locales: theory -> unit
-  val print_locale: theory -> expr -> element list -> unit
+  val print_locale: theory -> bool -> expr -> element list -> unit
   val print_global_registrations: bool -> string -> theory -> unit
   val print_local_registrations': bool -> string -> context -> unit
   val print_local_registrations: bool -> string -> context -> unit
@@ -1620,7 +1620,7 @@ end;
 
 (* print locale *)
 
-fun print_locale thy import body =
+fun print_locale thy show_facts import body =
   let
     val thy_ctxt = ProofContext.init thy;
     val (((_, import_elemss), (ctxt, elemss, _)), _) = read_context import body thy_ctxt;
@@ -1661,7 +1661,8 @@ fun print_locale thy import body =
       | prt_elem (Constrains csts) = items "constrains" (map prt_cst csts)
       | prt_elem (Assumes asms) = items "assumes" (map prt_asm asms)
       | prt_elem (Defines defs) = items "defines" (map prt_def defs)
-      | prt_elem (Notes facts) = items "notes" (map prt_note facts);
+      | prt_elem (Notes facts) =
+        if show_facts then items "notes" (map prt_note facts) else [];
   in
     Pretty.big_list "context elements:" (map (Pretty.chunks o prt_elem) all_elems)
     |> Pretty.writeln
@@ -1974,10 +1975,16 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
       error ("Duplicate definition of locale " ^ quote name));
 
     val thy_ctxt = ProofContext.init thy;
-    val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)), text) =
+    val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)),
+      text as (parms, ((_, exts'), _), _)) =
       prep_ctxt raw_import raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss;
     val import = prep_expr thy raw_import;
+
+    val extraTs = foldr Term.add_term_tfrees [] exts' \\
+      foldr Term.add_typ_tfrees [] (map #2 parms);
+    val _ = if null extraTs then ()
+      else warning ("Encountered type variables in specification text that don't occur in the\n" ^ "locale parameters.");        
 
     val (pred_thy, (elemss', predicate as (predicate_statement, predicate_axioms))) =
       if do_pred then thy |> define_preds bname text elemss

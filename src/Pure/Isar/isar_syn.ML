@@ -643,7 +643,7 @@ val print_localesP =
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
-    (locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (Scan.optional (P.$$$ "!" >> K true) false -- locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_registrationsP =
   OuterSyntax.improper_command "print_interps"

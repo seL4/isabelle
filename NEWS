@@ -261,6 +261,9 @@ theorem statement in rare situations.
 alternative context used for evaluating and printing the subsequent
 argument, as in @{thm [locale=LC] fold_commute}, for example.
 
+* Locale inspection command 'print_locale' omits notes elements.  Use
+'print_locale!' to have them included in the output.
+
 
 *** Provers ***
 

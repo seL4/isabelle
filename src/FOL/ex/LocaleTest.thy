@@ -421,8 +421,8 @@ interpretation Rrgrp < Rlgrp
 
 (* effect on printed locale *)
 
-print_locale Rrgrp
-print_locale Rlgrp
+print_locale! Rrgrp
+print_locale! Rlgrp
 
 (* locale with many parameters ---
    interpretations generate alternating group A5 *)

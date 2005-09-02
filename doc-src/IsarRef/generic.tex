@@ -114,7 +114,7 @@ specifications.
 \begin{rail}
   'locale' ('(open)')? name ('=' localeexpr)?
   ;
-  printlocale localeexpr
+  printlocale '!'? localeexpr
   ;
   localeexpr: ((contextexpr '+' (contextelem+)) | contextexpr | (contextelem+))
   ;
@@ -224,7 +224,9 @@ specifications.
   expression in a flattened form.  The notable special case
   $\isarkeyword{print_locale}~loc$ just prints the contents of the named
   locale, but keep in mind that type-inference will normalize type variables
-  according to the usual alphabetical order.
+  according to the usual alphabetical order.  The command omits
+  $\isarkeyword{notes}$ elements by default.  Use
+  $\isarkeyword{print_locale}!$ to get them included.
 
 \item [$\isarkeyword{print_locales}$] prints the names of all locales of the
   current theory.
