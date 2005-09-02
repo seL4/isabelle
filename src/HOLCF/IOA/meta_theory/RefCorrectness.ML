@@ -1,10 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefCorrectness.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Correctness of Refinement Mappings in HOLCF/IOA.
 *)
-
 
 
 (* -------------------------------------------------------------------------------- *)
@@ -126,23 +123,23 @@ qed"mk_traceConc";
 
 
 (* ------------------------------------------------------
-                 Lemma 1 :Traces coincide  
+                 Lemma 1 :Traces coincide
    ------------------------------------------------------- *)
 Delsplits[split_if];
 Goalw [corresp_ex_def]
-  "[|is_ref_map f C A; ext C = ext A|] ==>  \     
+  "[|is_ref_map f C A; ext C = ext A|] ==>  \
 \        !s. reachable C s & is_exec_frag C (s,xs) --> \
 \            mk_trace C$xs = mk_trace A$(snd (corresp_ex A f (s,xs)))";
 
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
-(* cons case *) 
+(* cons case *)
 by (safe_tac set_cs);
 by (asm_full_simp_tac (simpset() addsimps [mk_traceConc]) 1);
 by (forward_tac [reachable.reachable_n] 1);
 by (assume_tac 1);
 by (eres_inst_tac [("x","y")] allE 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [move_subprop4] 
+by (asm_full_simp_tac (simpset() addsimps [move_subprop4]
                           addsplits [split_if]) 1);
 qed"lemma_1";
 Addsplits[split_if];
@@ -158,9 +155,9 @@ section "Lemmata for ==>";
 (*                   Lemma 2.1                        *)
 (* -------------------------------------------------- *)
 
-Goal 
+Goal
 "Finite xs --> \
-\(!s .is_exec_frag A (s,xs) & is_exec_frag A (t,ys) & \ 
+\(!s .is_exec_frag A (s,xs) & is_exec_frag A (t,ys) & \
 \     t = laststate (s,xs) \
 \ --> is_exec_frag A (s,xs @@ ys))";
 
@@ -181,7 +178,7 @@ qed_spec_mp"lemma_2_1";
 Goalw [corresp_ex_def]
  "[| is_ref_map f C A |] ==>\
 \ !s. reachable C s & is_exec_frag C (s,xs) \
-\ --> is_exec_frag A (corresp_ex A f (s,xs))"; 
+\ --> is_exec_frag A (corresp_ex A f (s,xs))";
 
 by (Asm_full_simp_tac 1);
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
@@ -221,30 +218,30 @@ section "Main Theorem: T R A C E - I N C L U S I O N";
 
 Goalw [traces_def]
   "[| ext C = ext A; is_ref_map f C A |] \
-\          ==> traces C <= traces A"; 
+\          ==> traces C <= traces A";
 
   by (simp_tac(simpset() addsimps [has_trace_def2])1);
   by (safe_tac set_cs);
 
   (* give execution of abstract automata *)
   by (res_inst_tac[("x","corresp_ex A f ex")] bexI 1);
-  
+
   (* Traces coincide, Lemma 1 *)
   by (pair_tac "ex" 1);
   by (etac (lemma_1 RS spec RS mp) 1);
   by (REPEAT (atac 1));
   by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
- 
+
   (* corresp_ex is execution, Lemma 2 *)
   by (pair_tac "ex" 1);
   by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
-  (* start state *) 
+  (* start state *)
   by (rtac conjI 1);
   by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
   (* is-execution-fragment *)
   by (etac (lemma_2 RS spec RS mp) 1);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
-qed"trace_inclusion"; 
+qed"trace_inclusion";
 
 
 (* -------------------------------------------------------------------------------- *)
@@ -290,11 +287,11 @@ by (safe_tac set_cs);
   by (etac (lemma_1 RS spec RS mp) 1);
   by (REPEAT (atac 1));
   by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
- 
+
   (* corresp_ex is execution, Lemma 2 *)
   by (pair_tac "ex" 1);
   by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
-  (* start state *) 
+  (* start state *)
   by (rtac conjI 1);
   by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
   (* is-execution-fragment *)
@@ -320,11 +317,11 @@ by (safe_tac set_cs);
   by (simp_tac (simpset() addsimps [externals_def])1);
   by (SELECT_GOAL (auto_tac (claset(),simpset()))1);
   by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
- 
+
   (* corresp_ex is execution, Lemma 2 *)
   by (pair_tac "ex" 1);
   by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
-  (* start state *) 
+  (* start state *)
   by (rtac conjI 1);
   by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
   (* is-execution-fragment *)
@@ -334,8 +331,3 @@ by (safe_tac set_cs);
  (* Fairness *)
 by Auto_tac;
 qed"fair_trace_inclusion2";
-
-
-
-
-

@@ -1,9 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Deadlock freedom of I/O Automata.
-*)   
+*)
 
 (********************************************************************************
                input actions may always be added to a schedule
@@ -83,7 +81,3 @@ by (REPEAT (atac 1));
 qed"IOA_deadlock_free";
 
 Addsplits [split_if];
-
-
-
-

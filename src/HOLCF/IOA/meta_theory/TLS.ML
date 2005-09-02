@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Temporal Logic of Steps -- tailored for I/O automata.
 *)    
 
 (* global changes to simpset() and claset(), repeated from Traces.ML *)

@@ -1,8 +1,6 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.ML
     ID:         $Id$
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
-
-Action signatures.
 *)
 
 val asig_projections = [asig_inputs_def, asig_outputs_def, asig_internals_def];
@@ -37,7 +35,7 @@ qed"out_is_act";
 Goal "(x: actions S & x : externals S) = (x: externals S)";
 by (fast_tac (claset() addSIs [ext_is_act]) 1 );
 qed"ext_and_act";
- 
+
 Goal "[|is_asig S;x: actions S|] ==> (x~:externals S) = (x: internals S)";
 by (asm_full_simp_tac (simpset() addsimps [actions_def,is_asig_def,externals_def]) 1);
 by (Blast_tac 1);
@@ -53,4 +51,3 @@ Goalw  [externals_def,actions_def,is_asig_def]
 by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed"int_is_not_ext";
-

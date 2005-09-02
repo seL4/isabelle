@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefMappings.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Refinement Mappings in HOLCF/IOA.
 *)
 
 
@@ -16,7 +14,7 @@ Goal "s -a--A-> t ==> ? ex. move A ex s a t";
 by (res_inst_tac [("x","(a,t)>>nil")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"transition_is_ex";
- 
+
 
 Goal "(~a:ext A) & s=t ==> ? ex. move A ex s a t";
 
@@ -36,7 +34,7 @@ qed"ei_transitions_are_ex";
 Goal "(s1 -a1--A-> s2) & (s2 -a2--A-> s3) & (s3 -a3--A-> s4) &\
 \     (~a2:ext A) & (~a3:ext A) ==> \
 \     ? ex. move A ex s1 a1 s4";
-  
+
 by (res_inst_tac [("x","(a1,s2)>>(a2,s3)>>(a3,s4)>>nil")] exI 1);
 by (asm_full_simp_tac (simpset() addsimps [move_def]) 1);
 qed"eii_transitions_are_ex";
@@ -105,5 +103,3 @@ by (ftac reachable_rename 1);
 by Auto_tac;
 qed"rename_through_pmap";
 Addsplits [split_if]; Addcongs [if_weak_cong];
-
-

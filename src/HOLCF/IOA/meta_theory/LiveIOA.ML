@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Live I/O Automata.
 *)   
 
 Delsimps [split_paired_Ex];

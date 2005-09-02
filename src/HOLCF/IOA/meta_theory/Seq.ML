@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.ML
     ID:         $Id$
     Author:     Olaf Mller
-*)  
+*)
 
-Addsimps (sfinite.intrs @ seq.rews);
+Addsimps (sfinite.intros @ seq.rews);
 
 
 (* Instead of adding UU_neq_nil every equation UU~=x could be changed to x~=UU *)
@@ -30,23 +30,23 @@ Addsimps [UU_neq_nil];
 (*                        smap                                 *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("smap_unfold", fix_prover2 thy smap_def 
+bind_thm ("smap_unfold", fix_prover2 (the_context ()) smap_def
    "smap = (LAM f tr. case tr of  \
  \                         nil  => nil \
  \                       | x##xs => f$x ## smap$f$xs)");
 
-Goal "smap$f$nil=nil"; 
+Goal "smap$f$nil=nil";
 by (stac smap_unfold 1);
 by (Simp_tac 1);
 qed"smap_nil";
 
-Goal "smap$f$UU=UU"; 
+Goal "smap$f$UU=UU";
 by (stac smap_unfold 1);
 by (Simp_tac 1);
 qed"smap_UU";
 
-Goal 
-"[|x~=UU|] ==> smap$f$(x##xs)= (f$x)##smap$f$xs"; 
+Goal
+"[|x~=UU|] ==> smap$f$(x##xs)= (f$x)##smap$f$xs";
 by (rtac trans 1);
 by (stac smap_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -57,7 +57,7 @@ qed"smap_cons";
 (*                        sfilter                              *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("sfilter_unfold", fix_prover2 thy sfilter_def 
+bind_thm ("sfilter_unfold", fix_prover2 (the_context ()) sfilter_def
   "sfilter = (LAM P tr. case tr of  \
  \         nil   => nil \
  \       | x##xs => If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)");
@@ -72,7 +72,7 @@ by (stac sfilter_unfold 1);
 by (Simp_tac 1);
 qed"sfilter_UU";
 
-Goal 
+Goal
 "x~=UU ==> sfilter$P$(x##xs)=   \
 \             (If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)";
 by (rtac trans 1);
@@ -85,22 +85,22 @@ qed"sfilter_cons";
 (*                        sforall2                             *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("sforall2_unfold", fix_prover2 thy sforall2_def 
+bind_thm ("sforall2_unfold", fix_prover2 (the_context ()) sforall2_def
    "sforall2 = (LAM P tr. case tr of  \
  \                         nil   => TT \
  \                       | x##xs => (P$x andalso sforall2$P$xs))");
 
-Goal "sforall2$P$nil=TT"; 
+Goal "sforall2$P$nil=TT";
 by (stac sforall2_unfold 1);
 by (Simp_tac 1);
 qed"sforall2_nil";
 
-Goal "sforall2$P$UU=UU"; 
+Goal "sforall2$P$UU=UU";
 by (stac sforall2_unfold 1);
 by (Simp_tac 1);
 qed"sforall2_UU";
 
-Goal 
+Goal
 "x~=UU ==> sforall2$P$(x##xs)= ((P$x) andalso sforall2$P$xs)";
 by (rtac trans 1);
 by (stac sforall2_unfold 1);
@@ -114,22 +114,22 @@ qed"sforall2_cons";
 (* ----------------------------------------------------------- *)
 
 
-bind_thm ("stakewhile_unfold", fix_prover2 thy stakewhile_def 
+bind_thm ("stakewhile_unfold", fix_prover2 (the_context ()) stakewhile_def
    "stakewhile = (LAM P tr. case tr of  \
  \                         nil   => nil \
  \                       | x##xs => (If P$x then x##(stakewhile$P$xs) else nil fi))");
 
-Goal "stakewhile$P$nil=nil"; 
+Goal "stakewhile$P$nil=nil";
 by (stac stakewhile_unfold 1);
 by (Simp_tac 1);
 qed"stakewhile_nil";
 
-Goal "stakewhile$P$UU=UU"; 
+Goal "stakewhile$P$UU=UU";
 by (stac stakewhile_unfold 1);
 by (Simp_tac 1);
 qed"stakewhile_UU";
 
-Goal 
+Goal
 "x~=UU ==> stakewhile$P$(x##xs) =   \
 \             (If P$x then x##(stakewhile$P$xs) else nil fi)";
 by (rtac trans 1);
@@ -143,22 +143,22 @@ qed"stakewhile_cons";
 (* ----------------------------------------------------------- *)
 
 
-bind_thm ("sdropwhile_unfold", fix_prover2 thy sdropwhile_def 
+bind_thm ("sdropwhile_unfold", fix_prover2 (the_context ()) sdropwhile_def
    "sdropwhile = (LAM P tr. case tr of  \
  \                         nil   => nil \
  \                       | x##xs => (If P$x then sdropwhile$P$xs else tr fi))");
 
-Goal "sdropwhile$P$nil=nil"; 
+Goal "sdropwhile$P$nil=nil";
 by (stac sdropwhile_unfold 1);
 by (Simp_tac 1);
 qed"sdropwhile_nil";
 
-Goal "sdropwhile$P$UU=UU"; 
+Goal "sdropwhile$P$UU=UU";
 by (stac sdropwhile_unfold 1);
 by (Simp_tac 1);
 qed"sdropwhile_UU";
 
-Goal 
+Goal
 "x~=UU ==> sdropwhile$P$(x##xs) =   \
 \             (If P$x then sdropwhile$P$xs else x##xs fi)";
 by (rtac trans 1);
@@ -173,23 +173,23 @@ qed"sdropwhile_cons";
 (* ----------------------------------------------------------- *)
 
 
-bind_thm ("slast_unfold", fix_prover2 thy slast_def 
+bind_thm ("slast_unfold", fix_prover2 (the_context ()) slast_def
    "slast = (LAM tr. case tr of  \
  \                         nil   => UU \
  \                       | x##xs => (If is_nil$xs then x else slast$xs fi))");
 
 
-Goal "slast$nil=UU"; 
+Goal "slast$nil=UU";
 by (stac slast_unfold 1);
 by (Simp_tac 1);
 qed"slast_nil";
 
-Goal "slast$UU=UU"; 
+Goal "slast$UU=UU";
 by (stac slast_unfold 1);
 by (Simp_tac 1);
 qed"slast_UU";
 
-Goal 
+Goal
 "x~=UU ==> slast$(x##xs)= (If is_nil$xs then x else slast$xs fi)";
 by (rtac trans 1);
 by (stac slast_unfold 1);
@@ -202,18 +202,18 @@ qed"slast_cons";
 (*                        sconc                                 *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("sconc_unfold", fix_prover2 thy sconc_def 
+bind_thm ("sconc_unfold", fix_prover2 (the_context ()) sconc_def
    "sconc = (LAM t1 t2. case t1 of  \
  \                         nil   => t2 \
  \                       | x##xs => x ## (xs @@ t2))");
 
 
-Goal "nil @@ y = y"; 
+Goal "nil @@ y = y";
 by (stac sconc_unfold 1);
 by (Simp_tac 1);
 qed"sconc_nil";
 
-Goal "UU @@ y=UU"; 
+Goal "UU @@ y=UU";
 by (stac sconc_unfold 1);
 by (Simp_tac 1);
 qed"sconc_UU";
@@ -233,22 +233,22 @@ Addsimps [sconc_nil,sconc_UU,sconc_cons];
 (*                        sflat                                 *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("sflat_unfold", fix_prover2 thy sflat_def 
+bind_thm ("sflat_unfold", fix_prover2 (the_context ()) sflat_def
    "sflat = (LAM tr. case tr of  \
  \                         nil   => nil \
  \                       | x##xs => x @@ sflat$xs)");
 
-Goal "sflat$nil=nil"; 
+Goal "sflat$nil=nil";
 by (stac sflat_unfold 1);
 by (Simp_tac 1);
 qed"sflat_nil";
 
-Goal "sflat$UU=UU"; 
+Goal "sflat$UU=UU";
 by (stac sflat_unfold 1);
 by (Simp_tac 1);
 qed"sflat_UU";
 
-Goal "sflat$(x##xs)= x@@(sflat$xs)"; 
+Goal "sflat$(x##xs)= x@@(sflat$xs)";
 by (rtac trans 1);
 by (stac sflat_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -263,24 +263,24 @@ qed"sflat_cons";
 (*                        szip                                 *)
 (* ----------------------------------------------------------- *)
 
-bind_thm ("szip_unfold", fix_prover2 thy szip_def 
+bind_thm ("szip_unfold", fix_prover2 (the_context ()) szip_def
    "szip = (LAM t1 t2. case t1 of \
 \               nil   => nil    \
 \             | x##xs => (case t2 of     \
 \                          nil => UU    \
 \                        | y##ys => <x,y>##(szip$xs$ys)))");
 
-Goal "szip$nil$y=nil"; 
+Goal "szip$nil$y=nil";
 by (stac szip_unfold 1);
 by (Simp_tac 1);
 qed"szip_nil";
 
-Goal "szip$UU$y=UU"; 
+Goal "szip$UU$y=UU";
 by (stac szip_unfold 1);
 by (Simp_tac 1);
 qed"szip_UU1";
 
-Goal "x~=nil ==> szip$x$UU=UU"; 
+Goal "x~=nil ==> szip$x$UU=UU";
 by (stac szip_unfold 1);
 by (Asm_full_simp_tac 1);
 by (res_inst_tac [("x","x")] seq.casedist 1);
@@ -304,10 +304,10 @@ Addsimps [sfilter_UU,sfilter_nil,sfilter_cons,
           smap_UU,smap_nil,smap_cons,
           sforall2_UU,sforall2_nil,sforall2_cons,
           slast_UU,slast_nil,slast_cons,
-          stakewhile_UU, stakewhile_nil, stakewhile_cons, 
+          stakewhile_UU, stakewhile_nil, stakewhile_cons,
           sdropwhile_UU, sdropwhile_nil, sdropwhile_cons,
           sflat_UU,sflat_nil,sflat_cons,
-          szip_UU1,szip_UU2,szip_nil,szip_cons_nil,szip_cons]; 
+          szip_UU1,szip_UU2,szip_nil,szip_cons_nil,szip_cons];
 
 
 
@@ -315,7 +315,7 @@ Addsimps [sfilter_UU,sfilter_nil,sfilter_cons,
 
 section "scons, nil";
 
-Goal 
+Goal
  "[|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
 by (rtac iffI 1);
 by (etac (hd seq.injects) 1);
@@ -436,7 +436,7 @@ section "induction";
 (*--------------------------------   *)
 
 
-qed_goalw "seq_finite_ind_lemma" thy  [seq.finite_def]
+qed_goalw "seq_finite_ind_lemma" (the_context ())  [seq.finite_def]
 "(!!n. P(seq_take n$s)) ==>  seq_finite(s) -->P(s)"
  (fn prems =>
         [
@@ -455,5 +455,3 @@ by (etac seq.finite_ind 1);
  by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed"seq_finite_ind";
-
-

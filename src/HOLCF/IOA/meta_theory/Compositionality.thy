@@ -1,8 +1,11 @@
 (*  Title:      HOLCF/IOA/meta_theory/Compositionality.thy
     ID:         $Id$
     Author:     Olaf Müller
+*)
 
-Compositionality of I/O automata.
-*) 
+header {* Compositionality of I/O automata *}
+theory Compositionality
+imports CompoTraces
+begin
 
-Compositionality = CompoTraces
+end

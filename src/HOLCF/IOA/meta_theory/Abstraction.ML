@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
     ID:         $Id$
     Author:     Olaf Müller
-
-Abstraction Theory -- tailored for I/O automata.
 *)   
 
 section "cex_abs";

@@ -1,22 +1,21 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.thy
     ID:         $Id$
     Author:     Olaf Müller
+*)
 
-A General Temporal Logic.
-*)   
-	       
-TL = Pred + Sequence +  
+header {* A General Temporal Logic *}
 
-default type
+theory TL
+imports Pred Sequence
+begin
+
+defaultsort type
 
 types
+  'a temporal = "'a Seq predicate"
 
-'a temporal      = 'a Seq predicate
 
- 
 consts
-
-
 suffix     :: "'a Seq => 'a Seq => bool"
 tsuffix    :: "'a Seq => 'a Seq => bool"
 
@@ -28,45 +27,46 @@ Init         ::"'a predicate => 'a temporal"          ("<_>" [0] 1000)
 
 Box          ::"'a temporal => 'a temporal"   ("[] (_)" [80] 80)
 Diamond      ::"'a temporal => 'a temporal"   ("<> (_)" [80] 80)
-Next         ::"'a temporal => 'a temporal"   
+Next         ::"'a temporal => 'a temporal"
 Leadsto      ::"'a temporal => 'a temporal => 'a temporal"  (infixr "~>" 22)
 
 syntax (xsymbols)
-   "Box"        ::"'a temporal => 'a temporal"   ("\\<box> (_)" [80] 80)
-   "Diamond"    ::"'a temporal => 'a temporal"   ("\\<diamond> (_)" [80] 80)
-   "Leadsto"    ::"'a temporal => 'a temporal => 'a temporal"  (infixr "\\<leadsto>" 22)
- 
+   "Box"        ::"'a temporal => 'a temporal"   ("\<box> (_)" [80] 80)
+   "Diamond"    ::"'a temporal => 'a temporal"   ("\<diamond> (_)" [80] 80)
+   "Leadsto"    ::"'a temporal => 'a temporal => 'a temporal"  (infixr "\<leadsto>" 22)
+
 defs
 
-
-unlift_def
-  "unlift x == (case x of 
+unlift_def:
+  "unlift x == (case x of
                  UU   => arbitrary
                | Def y   => y)"
 
 (* this means that for nil and UU the effect is unpredictable *)
-Init_def
-  "Init P s ==  (P (unlift (HD$s)))" 
+Init_def:
+  "Init P s ==  (P (unlift (HD$s)))"
 
-suffix_def
-  "suffix s2 s == ? s1. (Finite s1  & s = s1 @@ s2)" 
+suffix_def:
+  "suffix s2 s == ? s1. (Finite s1  & s = s1 @@ s2)"
 
-tsuffix_def
+tsuffix_def:
   "tsuffix s2 s == s2 ~= nil & s2 ~= UU & suffix s2 s"
 
-Box_def
+Box_def:
   "([] P) s == ! s2. tsuffix s2 s --> P s2"
 
-Next_def
+Next_def:
   "(Next P) s == if (TL$s=UU | TL$s=nil) then (P s) else P (TL$s)"
 
-Diamond_def
+Diamond_def:
   "<> P == .~ ([] (.~ P))"
 
-Leadsto_def
-   "P ~> Q == ([] (P .--> (<> Q)))"  
+Leadsto_def:
+   "P ~> Q == ([] (P .--> (<> Q)))"
 
-validT_def
+validT_def:
   "validT P == ! s. s~=UU & s~=nil --> (s |= P)"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

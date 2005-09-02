@@ -1,11 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/Simulations.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Simulations in HOLCF/IOA.
 *)
-
-
 
 Goal "(A~={}) = (? x. x:A)";
 by (safe_tac set_cs);
@@ -29,7 +25,3 @@ Goalw [is_ref_map_def,is_simulation_def]
 "!! f. is_ref_map f C A ==> is_simulation {p. (snd p) = f (fst p)} C A";
 by (Asm_full_simp_tac 1);
 qed"ref_map_is_simulation";
-
-
-
-

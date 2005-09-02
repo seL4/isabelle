@@ -1,11 +1,13 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.thy
     ID:         $Id$
     Author:     Olaf Müller
-
-Compositionality on Trace level.
 *) 
 
-CompoTraces = CompoScheds + ShortExecutions +
+header {* Compositionality on Trace level *}
+
+theory CompoTraces
+imports CompoScheds ShortExecutions
+begin
  
 
 consts  
@@ -15,7 +17,7 @@ consts
 
 defs
 
-mksch_def
+mksch_def:
   "mksch A B == (fix$(LAM h tr schA schB. case tr of 
        nil => nil
     | x##xs => 
@@ -50,7 +52,7 @@ mksch_def
        )))"
 
 
-par_traces_def
+par_traces_def:
   "par_traces TracesA TracesB == 
        let trA = fst TracesA; sigA = snd TracesA; 
            trB = fst TracesB; sigB = snd TracesB       
@@ -60,12 +62,12 @@ par_traces_def
         Int {tr. Forall (%x. x:(externals sigA Un externals sigB)) tr},
         asig_comp sigA sigB)"
 
-rules
+axioms
 
-
-finiteR_mksch
+finiteR_mksch:
   "Finite (mksch A B$tr$x$y) --> Finite tr"
 
+ML {* use_legacy_bindings (the_context ()) *}
 
 
 end

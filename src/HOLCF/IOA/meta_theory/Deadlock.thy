@@ -1,8 +1,12 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.thy
     ID:         $Id$
     Author:     Olaf Müller
+*)
 
-Deadlock freedom of I/O Automata.
-*)   
+header {* Deadlock freedom of I/O Automata *}
 
-Deadlock = RefCorrectness + CompoScheds
+theory Deadlock
+imports RefCorrectness CompoScheds
+begin
+
+end

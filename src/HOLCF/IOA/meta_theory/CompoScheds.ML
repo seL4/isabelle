@@ -1,11 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoScheds.ML
     ID:         $Id$
     Author:     Olaf Müller
-
-Compositionality on Schedule level.
-*) 
-
-
+*)
 
 Addsimps [surjective_pairing RS sym];
 
@@ -20,7 +16,7 @@ section "mkex rewrite rules";
 (* ---------------------------------------------------------------- *)
 
 
-bind_thm ("mkex2_unfold", fix_prover2 thy mkex2_def 
+bind_thm ("mkex2_unfold", fix_prover2 (the_context ()) mkex2_def
 "mkex2 A B = (LAM sch exA exB. (%s t. case sch of  \
 \      nil => nil \
 \   | x##xs => \
@@ -41,7 +37,7 @@ bind_thm ("mkex2_unfold", fix_prover2 thy mkex2_def
 \                  UU => UU  \
 \                | Def a => \
 \                  (y,(snd a,t))>>(mkex2 A B$xs$(TL$exA)$exB) (snd a) t)  \
-\             )  \       
+\             )  \
 \         else   \
 \            (if y:act B then \
 \               (case HD$exB of  \
@@ -117,7 +113,7 @@ by Auto_tac;
 qed"mkex_cons_1";
 
 Goal "[| x~:act A; x:act B |] \
-\   ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =  \ 
+\   ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =  \
 \       ((s,t), (x,s,snd b) >> snd (mkex A B sch (s,exA) (snd b,exB)))";
 by (simp_tac (simpset() addsimps [mkex_def]) 1);
 by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
@@ -166,7 +162,7 @@ qed"lemma_2_1a";
 (*    Lemma_2_2 : State-projections do not affect filter_act             *)
 (* --------------------------------------------------------------------- *)
 
-Goal 
+Goal
    "filter_act$(ProjA2$xs) =filter_act$xs &\
 \   filter_act$(ProjB2$xs) =filter_act$xs";
 
@@ -178,7 +174,7 @@ qed"lemma_2_1b";
 (*             Schedules of A||B have only  A- or B-actions              *)
 (* --------------------------------------------------------------------- *)
 
-(* very similar to lemma_1_1c, but it is not checking if every action element of 
+(* very similar to lemma_1_1c, but it is not checking if every action element of
    an ex is in A or B, but after projecting it onto the action schedule. Of course, this
    is the same proposition, but we cannot change this one, when then rather lemma_1_1c  *)
 
@@ -188,13 +184,13 @@ Goal "!s. is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @ 
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @
                                 [actions_asig_comp,asig_of_par]) 1));
 qed"sch_actions_in_AorB";
 
 
 (* --------------------------------------------------------------------------*)
-                 section "Lemmas for <=="; 
+                 section "Lemmas for <==";
 (* ---------------------------------------------------------------------------*)
 
 (*---------------------------------------------------------------------------
@@ -210,7 +206,7 @@ Goal "! exA exB s t. \
 
 by (Seq_induct_tac "sch" [Filter_def,Forall_def,sforall_def,mkex_def] 1);
 
-(* main case *) 
+(* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
 by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
@@ -218,13 +214,13 @@ by (safe_tac set_cs);
 (* Case y:A, y:B *)
 by (Seq_case_simp_tac "exA" 1);
 (* Case exA=UU, Case exA=nil*)
-(* These UU and nil cases are the only places where the assumption filter A sch<<f_act exA 
-   is used! --> to generate a contradiction using  ~a>>ss<< UU(nil), using theorems 
+(* These UU and nil cases are the only places where the assumption filter A sch<<f_act exA
+   is used! --> to generate a contradiction using  ~a>>ss<< UU(nil), using theorems
    Cons_not_less_UU and Cons_not_less_nil  *)
 by (Seq_case_simp_tac "exB" 1);
 (* Case exA=a>>x, exB=b>>y *)
-(* here it is important that Seq_case_simp_tac uses no !full!_simp_tac for the cons case, 
-   as otherwise mkex_cons_3 would  not be rewritten without use of rotate_tac: then tactic 
+(* here it is important that Seq_case_simp_tac uses no !full!_simp_tac for the cons case,
+   as otherwise mkex_cons_3 would  not be rewritten without use of rotate_tac: then tactic
    would not be generally applicable *)
 by (Asm_full_simp_tac 1);
 
@@ -243,8 +239,8 @@ qed"Mapfst_mkex_is_sch";
 
 (* generalizing the proof above to a tactic *)
 
-fun mkex_induct_tac sch exA exB = 
-    EVERY1[Seq_induct_tac sch [Filter_def,Forall_def,sforall_def,mkex_def,stutter_def], 
+fun mkex_induct_tac sch exA exB =
+    EVERY1[Seq_induct_tac sch [Filter_def,Forall_def,sforall_def,mkex_def,stutter_def],
            Asm_full_simp_tac,
            SELECT_GOAL (safe_tac set_cs),
            Seq_case_simp_tac exA,
@@ -323,7 +319,7 @@ qed"stutter_mkex_on_B";
 
 
 (*---------------------------------------------------------------------------
-     Filter of mkex(sch,exA,exB) to A after projection onto A is exA 
+     Filter of mkex(sch,exA,exB) to A after projection onto A is exA
         --  using zip$(proj1$exA)$(proj2$exA) instead of exA    --
         --           because of admissibility problems          --
                              structural induction
@@ -342,7 +338,7 @@ qed"filter_mkex_is_exA_tmp";
 
 (*---------------------------------------------------------------------------
                       zip$(proj1$y)$(proj2$y) = y   (using the lift operations)
-                    lemma for admissibility problems         
+                    lemma for admissibility problems
   --------------------------------------------------------------------------- *)
 
 Goal  "Zip$(Map fst$y)$(Map snd$y) = y";
@@ -351,8 +347,8 @@ qed"Zip_Map_fst_snd";
 
 
 (*---------------------------------------------------------------------------
-      filter A$sch = proj1$ex   -->  zip$(filter A$sch)$(proj2$ex) = ex 
-         lemma for eliminating non admissible equations in assumptions      
+      filter A$sch = proj1$ex   -->  zip$(filter A$sch)$(proj2$ex) = ex
+         lemma for eliminating non admissible equations in assumptions
   --------------------------------------------------------------------------- *)
 
 Goal "!! sch ex. \
@@ -363,7 +359,7 @@ by (rtac (Zip_Map_fst_snd RS sym) 1);
 qed"trick_against_eq_in_ass";
 
 (*---------------------------------------------------------------------------
-     Filter of mkex(sch,exA,exB) to A after projection onto A is exA 
+     Filter of mkex(sch,exA,exB) to A after projection onto A is exA
                        using the above trick
   --------------------------------------------------------------------------- *)
 
@@ -383,10 +379,10 @@ back();
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [filter_mkex_is_exA_tmp]) 1);
 qed"filter_mkex_is_exA";
- 
+
 
 (*---------------------------------------------------------------------------
-     Filter of mkex(sch,exA,exB) to B after projection onto B is exB 
+     Filter of mkex(sch,exA,exB) to B after projection onto B is exB
         --  using zip$(proj1$exB)$(proj2$exB) instead of exB    --
         --           because of admissibility problems          --
                              structural induction
@@ -407,7 +403,7 @@ qed"filter_mkex_is_exB_tmp";
 
 
 (*---------------------------------------------------------------------------
-     Filter of mkex(sch,exA,exB) to A after projection onto B is exB 
+     Filter of mkex(sch,exA,exB) to A after projection onto B is exB
                        using the above trick
   --------------------------------------------------------------------------- *)
 
@@ -450,19 +446,19 @@ qed"mkex_actions_in_AorB";
 (*                          Main Theorem                              *)
 (* ------------------------------------------------------------------ *)
 
-Goal  
+Goal
 "(sch : schedules (A||B)) = \
 \ (Filter (%a. a:act A)$sch : schedules A &\
 \  Filter (%a. a:act B)$sch : schedules B &\
 \  Forall (%x. x:act (A||B)) sch)";
 
 by (simp_tac (simpset() addsimps [schedules_def, has_schedule_def]) 1);
-by (safe_tac set_cs); 
-(* ==> *) 
+by (safe_tac set_cs);
+(* ==> *)
 by (res_inst_tac [("x","Filter_ex (asig_of A) (ProjA ex)")] bexI 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 2);
 by (simp_tac (simpset() addsimps [Filter_ex_def,ProjA_def,
-                                 lemma_2_1a,lemma_2_1b]) 1); 
+                                 lemma_2_1a,lemma_2_1b]) 1);
 by (res_inst_tac [("x","Filter_ex (asig_of B) (ProjB ex)")] bexI 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 2);
 by (simp_tac (simpset() addsimps [Filter_ex_def,ProjB_def,
@@ -485,7 +481,7 @@ by (asm_full_simp_tac (simpset() addsimps [Mapfst_mkex_is_sch]) 1);
 
 (* mkex is an execution -- use compositionality on ex-level *)
 by (asm_full_simp_tac (simpset() addsimps [compositionality_ex]) 1);
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
                  [stutter_mkex_on_A, stutter_mkex_on_B,
                   filter_mkex_is_exB,filter_mkex_is_exA]) 1);
 by (pair_tac "exA" 1);

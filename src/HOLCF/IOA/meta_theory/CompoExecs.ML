@@ -1,11 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoExecs.ML
     ID:         $Id$
     Author:     Olaf Müller
+*)
 
-Compositionality on Execution level.
-*)  
-
-Delsimps (ex_simps @ all_simps); 
+Delsimps (ex_simps @ all_simps);
 Delsimps [split_paired_All];
 
 (* ----------------------------------------------------------------------------------- *)
@@ -65,8 +63,8 @@ by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_nil";
 
 Goal "Filter_ex2 sig$(at >> xs) =    \
-\            (if (fst at:actions sig)    \       
-\                 then at >> (Filter_ex2 sig$xs) \   
+\            (if (fst at:actions sig)    \
+\                 then at >> (Filter_ex2 sig$xs) \
 \                 else        Filter_ex2 sig$xs)";
 
 by (asm_full_simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
@@ -80,7 +78,7 @@ qed"Filter_ex2_cons";
 
 Goal "stutter2 sig = (LAM ex. (%s. case ex of \
 \      nil => TT \
-\    | x##xs => (flift1 \ 
+\    | x##xs => (flift1 \
 \            (%p.(If Def ((fst p)~:actions sig) \
 \                 then Def (s=(snd p)) \
 \                 else TT fi) \
@@ -106,7 +104,7 @@ qed"stutter2_nil";
 
 Goal "(stutter2 sig$(at>>xs)) s = \
 \              ((if (fst at)~:actions sig then Def (s=snd at) else TT) \
-\                andalso (stutter2 sig$xs) (snd at))"; 
+\                andalso (stutter2 sig$xs) (snd at))";
 by (rtac trans 1);
 by (stac stutter2_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def,If_and_if]) 1);
@@ -175,7 +173,7 @@ qed"lemma_1_1a";
 
 Goal "!s. is_exec_frag (A||B) (s,xs) \
 \      --> stutter (asig_of A) (fst s,ProjA2$xs)  &\
-\          stutter (asig_of B) (snd s,ProjB2$xs)"; 
+\          stutter (asig_of B) (snd s,ProjB2$xs)";
 
 by (pair_induct_tac "xs" [stutter_def,is_exec_frag_def] 1);
 (* main case *)
@@ -194,7 +192,7 @@ Goal "!s. (is_exec_frag (A||B) (s,xs) \
 by (pair_induct_tac "xs" [Forall_def,sforall_def,is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @ 
+by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2 @
                                 [actions_asig_comp,asig_of_par]) 1));
 qed"lemma_1_1c";
 
@@ -203,7 +201,7 @@ qed"lemma_1_1c";
 (*  Lemma_1_2 : ex A, exB, stuttering and forall a:A|B implies ex (A||B)   *)
 (* ----------------------------------------------------------------------- *)
 
-Goal 
+Goal
 "!s. is_exec_frag A (fst s,Filter_ex2 (asig_of A)$(ProjA2$xs)) &\
 \    is_exec_frag B (snd s,Filter_ex2 (asig_of B)$(ProjB2$xs)) &\
 \    stutter (asig_of A) (fst s,(ProjA2$xs)) & \
@@ -229,7 +227,7 @@ qed"lemma_1_2";
 (* ------------------------------------------------------------------ *)
 
 
-Goal 
+Goal
 "(ex:executions(A||B)) =\
 \(Filter_ex (asig_of A) (ProjA ex) : executions A &\
 \ Filter_ex (asig_of B) (ProjB ex) : executions B &\
@@ -263,10 +261,3 @@ by (asm_full_simp_tac (simpset() addsimps [asig_of_par]) 1);
 by (rtac set_ext 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_ex,actions_of_par]) 1);
 qed"compositionality_ex_modules";
-
-
-
-
-
-
-

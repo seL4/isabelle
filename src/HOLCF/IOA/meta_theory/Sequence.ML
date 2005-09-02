@@ -1,10 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.ML
     ID:         $Id$
     Author:     Olaf Mller
-
-Theorems about Sequences over flat domains with lifted elements.
 *)
-
 
 Addsimps [andalso_and,andalso_or];
 
@@ -40,7 +37,7 @@ Goal "Filter P$nil =nil";
 by (simp_tac (simpset() addsimps [Filter_def]) 1);
 qed"Filter_nil";
 
-Goal "Filter P$(x>>xs)= (if P x then x>>(Filter P$xs) else Filter P$xs)"; 
+Goal "Filter P$(x>>xs)= (if P x then x>>(Filter P$xs) else Filter P$xs)";
 by (simp_tac (simpset() addsimps [Filter_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Filter_cons";
 
@@ -66,7 +63,7 @@ qed"Forall_cons";
 (* ---------------------------------------------------------------- *)
 
 
-Goal "(x>>xs) @@ y = x>>(xs @@y)"; 
+Goal "(x>>xs) @@ y = x>>(xs @@y)";
 by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Conc_cons";
 
@@ -82,7 +79,7 @@ Goal "Takewhile P$nil =nil";
 by (simp_tac (simpset() addsimps [Takewhile_def]) 1);
 qed"Takewhile_nil";
 
-Goal "Takewhile P$(x>>xs)= (if P x then x>>(Takewhile P$xs) else nil)"; 
+Goal "Takewhile P$(x>>xs)= (if P x then x>>(Takewhile P$xs) else nil)";
 by (simp_tac (simpset() addsimps [Takewhile_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Takewhile_cons";
 
@@ -98,7 +95,7 @@ Goal "Dropwhile P$nil =nil";
 by (simp_tac (simpset() addsimps [Dropwhile_def]) 1);
 qed"Dropwhile_nil";
 
-Goal "Dropwhile P$(x>>xs)= (if P x then Dropwhile P$xs else x>>xs)"; 
+Goal "Dropwhile P$(x>>xs)= (if P x then Dropwhile P$xs else x>>xs)";
 by (simp_tac (simpset() addsimps [Dropwhile_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Dropwhile_cons";
 
@@ -115,7 +112,7 @@ Goal "Last$nil =UU";
 by (simp_tac (simpset() addsimps [Last_def]) 1);
 qed"Last_nil";
 
-Goal "Last$(x>>xs)= (if xs=nil then Def x else Last$xs)"; 
+Goal "Last$(x>>xs)= (if xs=nil then Def x else Last$xs)";
 by (simp_tac (simpset() addsimps [Last_def, Consq_def]) 1);
 by (res_inst_tac [("x","xs")] seq.casedist 1);
 by (Asm_simp_tac 1);
@@ -135,7 +132,7 @@ Goal "Flat$nil =nil";
 by (simp_tac (simpset() addsimps [Flat_def]) 1);
 qed"Flat_nil";
 
-Goal "Flat$(x##xs)= x @@ (Flat$xs)"; 
+Goal "Flat$(x##xs)= x @@ (Flat$xs)";
 by (simp_tac (simpset() addsimps [Flat_def, Consq_def]) 1);
 qed"Flat_cons";
 
@@ -146,7 +143,7 @@ qed"Flat_cons";
 
 Goal "Zip = (LAM t1 t2. case t1 of \
 \               nil   => nil \
-\             | x##xs => (case t2 of \ 
+\             | x##xs => (case t2 of \
 \                          nil => UU  \
 \                        | y##ys => (case x of \
 \                                      UU  => UU \
@@ -177,12 +174,12 @@ by (stac Zip_unfold 1);
 by (Simp_tac 1);
 qed"Zip_nil";
 
-Goal "Zip$(x>>xs)$nil= UU"; 
+Goal "Zip$(x>>xs)$nil= UU";
 by (stac Zip_unfold 1);
 by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Zip_cons_nil";
 
-Goal "Zip$(x>>xs)$(y>>ys)= (x,y) >> Zip$xs$ys"; 
+Goal "Zip$(x>>xs)$(y>>ys)= (x,y) >> Zip$xs$ys";
 by (rtac trans 1);
 by (stac Zip_unfold 1);
 by (Simp_tac 1);
@@ -194,7 +191,7 @@ Delsimps [sfilter_UU,sfilter_nil,sfilter_cons,
           smap_UU,smap_nil,smap_cons,
           sforall2_UU,sforall2_nil,sforall2_cons,
           slast_UU,slast_nil,slast_cons,
-          stakewhile_UU, stakewhile_nil, stakewhile_cons, 
+          stakewhile_UU, stakewhile_nil, stakewhile_cons,
           sdropwhile_UU, sdropwhile_nil, sdropwhile_cons,
           sflat_UU,sflat_nil,sflat_cons,
           szip_UU1,szip_UU2,szip_nil,szip_cons_nil,szip_cons];
@@ -205,7 +202,7 @@ Addsimps [Filter_UU,Filter_nil,Filter_cons,
           Forall_UU,Forall_nil,Forall_cons,
           Last_UU,Last_nil,Last_cons,
           Conc_cons,
-          Takewhile_UU, Takewhile_nil, Takewhile_cons, 
+          Takewhile_UU, Takewhile_nil, Takewhile_cons,
           Dropwhile_UU, Dropwhile_nil, Dropwhile_cons,
           Zip_UU1,Zip_UU2,Zip_nil,Zip_cons_nil,Zip_cons];
 
@@ -238,7 +235,7 @@ by (Asm_full_simp_tac 1);
 qed"Seq_cases";
 
 fun Seq_case_tac s i = res_inst_tac [("x",s)] Seq_cases i
-	  THEN hyp_subst_tac i THEN hyp_subst_tac (i+1) THEN hyp_subst_tac (i+2);
+          THEN hyp_subst_tac i THEN hyp_subst_tac (i+1) THEN hyp_subst_tac (i+2);
 
 (* on a>>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
 fun Seq_case_simp_tac s i = Seq_case_tac s i THEN Asm_simp_tac (i+2)
@@ -337,7 +334,7 @@ by (etac sfinite.induct 1);
 by (assume_tac 1);
 by (def_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
-qed"Seq_Finite_ind"; 
+qed"Seq_Finite_ind";
 
 
 (* rws are definitions to be unfolded for admissibility check *)
@@ -349,13 +346,13 @@ fun Seq_Finite_induct_tac i = etac Seq_Finite_ind i
                               THEN (REPEAT_DETERM (CHANGED (Asm_simp_tac i)));
 
 fun pair_tac s = res_inst_tac [("p",s)] PairE
-			  THEN' hyp_subst_tac THEN' Asm_full_simp_tac;
+                          THEN' hyp_subst_tac THEN' Asm_full_simp_tac;
 
 (* induction on a sequence of pairs with pairsplitting and simplification *)
-fun pair_induct_tac s rws i = 
-           res_inst_tac [("x",s)] Seq_induct i 
-           THEN pair_tac "a" (i+3) 
-           THEN (REPEAT_DETERM (CHANGED (Simp_tac (i+1)))) 
+fun pair_induct_tac s rws i =
+           res_inst_tac [("x",s)] Seq_induct i
+           THEN pair_tac "a" (i+3)
+           THEN (REPEAT_DETERM (CHANGED (Simp_tac (i+1))))
            THEN simp_tac (simpset() addsimps rws) i;
 
 
@@ -448,7 +445,7 @@ qed"FiniteFilter";
 section "admissibility";
 
 (* Finite x is proven to be adm: Finite_flat shows that there are only chains of length one.
-   Then the assumption that an _infinite_ chain exists (from admI2) is set to a contradiction 
+   Then the assumption that an _infinite_ chain exists (from admI2) is set to a contradiction
    to Finite_flat *)
 
 Goal "!! (x:: 'a Seq). Finite x ==> !y. Finite (y:: 'a Seq) & x<<y --> x=y";
@@ -609,7 +606,7 @@ bind_thm ("ForallDropwhile",ForallDropwhile1 RS mp);
 
 Goal "! s. Forall P s --> t<<s --> Forall P t";
 by (Seq_induct_tac "t" [Forall_def,sforall_def] 1);
-by (strip_tac 1); 
+by (strip_tac 1);
 by (Seq_case_simp_tac "sa" 1);
 by (Asm_full_simp_tac 1);
 by Auto_tac;
@@ -791,16 +788,16 @@ Goal "HD$(Filter P$y) = Def x \
 \         --> y = ((Takewhile (%x. ~P x)$y) @@ (x >> TL$(Dropwhile (%a.~P a)$y)))  \
 \             & Finite (Takewhile (%x. ~ P x)$y)  & P x";
 
-(* FIX: pay attention: is only admissible with chain-finite package to be added to 
+(* FIX: pay attention: is only admissible with chain-finite package to be added to
         adm test and Finite f x admissibility *)
 by (Seq_induct_tac "y" [] 1);
 by (rtac adm_all 1);
-by (Asm_full_simp_tac 1); 
+by (Asm_full_simp_tac 1);
 by (case_tac "P a" 1);
- by (Asm_full_simp_tac 1); 
+ by (Asm_full_simp_tac 1);
  by (Blast_tac 1);
 (* ~ P a *)
-by (Asm_full_simp_tac 1); 
+by (Asm_full_simp_tac 1);
 qed"divide_Seq_lemma";
 
 Goal "(x>>xs) << Filter P$y  \
@@ -808,12 +805,12 @@ Goal "(x>>xs) << Filter P$y  \
 \      & Finite (Takewhile (%a. ~ P a)$y)  & P x";
 by (rtac (divide_Seq_lemma RS mp) 1);
 by (dres_inst_tac [("f","HD"),("x","x>>xs")]  monofun_cfun_arg 1);
-by (Asm_full_simp_tac 1); 
+by (Asm_full_simp_tac 1);
 qed"divide_Seq";
 
- 
+
 Goal "~Forall P y --> (? x. HD$(Filter (%a. ~P a)$y) = Def x)";
-(* Pay attention: is only admissible with chain-finite package to be added to 
+(* Pay attention: is only admissible with chain-finite package to be added to
         adm test *)
 by (Seq_induct_tac "y" [Forall_def,sforall_def] 1);
 qed"nForall_HDFilter";
@@ -851,7 +848,7 @@ by (resolve_tac seq.take_lemmas 1);
 by Auto_tac;
 qed"seq_take_lemma";
 
-Goal 
+Goal
 "  ! n. ((! k. k < n --> seq_take k$y1 = seq_take k$y2) \
 \   --> seq_take n$(x @@ (t>>y1)) =  seq_take n$(x @@ (t>>y2)))";
 by (Seq_induct_tac "x" [] 1);
@@ -870,10 +867,10 @@ by (auto_tac (claset() addSIs [take_reduction1 RS spec RS mp],simpset()));
 qed"take_reduction";
 
 (* ------------------------------------------------------------------
-          take-lemma and take_reduction for << instead of = 
+          take-lemma and take_reduction for << instead of =
    ------------------------------------------------------------------ *)
 
-Goal 
+Goal
 "  ! n. ((! k. k < n --> seq_take k$y1 << seq_take k$y2) \
 \   --> seq_take n$(x @@ (t>>y1)) <<  seq_take n$(x @@ (t>>y2)))";
 by (Seq_induct_tac "x" [] 1);
@@ -891,7 +888,7 @@ by (auto_tac (claset() addSIs [take_reduction_less1 RS spec RS mp],simpset()));
 qed"take_reduction_less";
 
 
-val prems = goalw thy [seq.take_def]
+val prems = goalw (the_context ()) [seq.take_def]
 "(!! n. seq_take n$s1 << seq_take n$s2)  ==> s1<<s2";
 
 by (res_inst_tac [("t","s1")] (seq.reach RS subst)  1);
@@ -940,15 +937,15 @@ by Auto_tac;
 qed"take_lemma_principle2";
 
 
-(* Note: in the following proofs the ordering of proof steps is very 
+(* Note: in the following proofs the ordering of proof steps is very
          important, as otherwise either (Forall Q s1) would be in the IH as
-         assumption (then rule useless) or it is not possible to strengthen 
+         assumption (then rule useless) or it is not possible to strengthen
          the IH by doing a forall closure of the sequence t (then rule also useless).
-         This is also the reason why the induction rule (nat_less_induct or nat_induct) has to 
-         to be imbuilt into the rule, as induction has to be done early and the take lemma 
+         This is also the reason why the induction rule (nat_less_induct or nat_induct) has to
+         to be imbuilt into the rule, as induction has to be done early and the take lemma
          has to be used in the trivial direction afterwards for the (Forall Q x) case.  *)
 
-Goal 
+Goal
 "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 \        !! s1 s2 y n. [| ! t. A t --> seq_take n$(f t) = seq_take n$(g t);\
 \                         Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2) |] \
@@ -970,7 +967,7 @@ by (auto_tac (claset() addSDs [divide_Seq3],simpset()));
 qed"take_lemma_induct";
 
 
-Goal 
+Goal
 "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 \        !! s1 s2 y n. [| ! t m. m < n --> A t --> seq_take m$(f t) = seq_take m$(g t);\
 \                         Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2) |] \
@@ -1022,7 +1019,7 @@ fun all_frees_tac x i thm =
 end;
 
 
-Goal 
+Goal
 "!! Q. [|!! s h1 h2. [| Forall Q s; A s h1 h2|] ==> (f s h1 h2) = (g s h1 h2) ; \
 \  !! s1 s2 y n. [| ! t h1 h2 m. m < n --> (A t h1 h2) --> seq_take m$(f t h1 h2) = seq_take m$(g t h1 h2);\
 \                         Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2) h1 h2|] \
@@ -1046,7 +1043,7 @@ qed"take_lemma_less_induct";
 
 
 
-Goal 
+Goal
 "!! Q. [|!! s. Forall Q s ==> P ((f s) = (g s)) ; \
 \        !! s1 s2 y n. [| ! t m. m < n --> P (seq_take m$(f t) = seq_take m$(g t));\
 \                         Forall Q s1; Finite s1; ~ Q y|] \
@@ -1075,7 +1072,7 @@ qed"take_lemma_less_induct";
 *)
 
 
-Goal 
+Goal
 "!! Q. [| A UU  ==> (f UU) = (g UU) ; \
 \         A nil ==> (f nil) = (g nil) ; \
 \         !! s y n. [| ! t. A t --> seq_take n$(f t) = seq_take n$(g t);\
@@ -1107,8 +1104,8 @@ section "alternative take_lemma proofs";
 Delsimps [FilterPQ];
 
 
-(* In general: How to do this case without the same adm problems 
-   as for the entire proof ? *) 
+(* In general: How to do this case without the same adm problems
+   as for the entire proof ? *)
 Goal "Forall (%x.~(P x & Q x)) s \
 \         --> Filter P$(Filter Q$s) =\
 \             Filter (%x. P x & Q x)$s";
@@ -1130,7 +1127,7 @@ qed"Filter_lemma3";
 
 
 Goal "Filter P$(Filter Q$s) = Filter (%x. P x & Q x)$s";
-by (res_inst_tac [("A1","%x. True") 
+by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~(P x & Q x)"),("x1","s")]
                  (take_lemma_induct RS mp) 1);
 (* better support for A = %x. True *)

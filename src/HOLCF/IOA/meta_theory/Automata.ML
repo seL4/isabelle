@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.ML
     ID:         $Id$
     Author:     Olaf Mueller, Tobias Nipkow, Konrad Slind
-
-The I/O automata of Lynch and Tuttle.
 *)
 
 (* this modification of the simpset is local to this file *)
@@ -37,14 +35,14 @@ Goal
 qed "starts_of_par";
 
 Goal
-"trans_of(A || B) = {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr)) \       
+"trans_of(A || B) = {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr)) \
 \            in (a:act A | a:act B) & \
-\               (if a:act A then       \                
-\                  (fst(s),a,fst(t)):trans_of(A) \                    
-\                else fst(t) = fst(s))            \                      
-\               &                                  \                     
-\               (if a:act B then                    \   
-\                  (snd(s),a,snd(t)):trans_of(B)     \                
+\               (if a:act A then       \
+\                  (fst(s),a,fst(t)):trans_of(A) \
+\                else fst(t) = fst(s))            \
+\               &                                  \
+\               (if a:act B then                    \
+\                  (snd(s),a,snd(t)):trans_of(B)     \
 \                else snd(t) = snd(s))}";
 
 by (simp_tac (simpset() addsimps (par_def::ioa_projections)) 1);
@@ -56,7 +54,7 @@ qed "trans_of_par";
 section "actions and par";
 
 
-Goal 
+Goal
 "actions(asig_comp a b) = actions(a) Un actions(b)";
   by (simp_tac (simpset() addsimps
                ([actions_def,asig_comp_def]@asig_projections)) 1);
@@ -73,24 +71,24 @@ Goal "ext (A1||A2) =    \
 \  (ext A1) Un (ext A2)";
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_of_par,asig_comp_def,
       asig_inputs_def,asig_outputs_def,Un_def,set_diff_def]) 1);
-by (rtac set_ext 1); 
+by (rtac set_ext 1);
 by (fast_tac set_cs 1);
-qed"externals_of_par"; 
+qed"externals_of_par";
 
 Goal "act (A1||A2) =    \
 \  (act A1) Un (act A2)";
 by (asm_full_simp_tac (simpset() addsimps [actions_def,asig_of_par,asig_comp_def,
       asig_inputs_def,asig_outputs_def,asig_internals_def,Un_def,set_diff_def]) 1);
-by (rtac set_ext 1); 
+by (rtac set_ext 1);
 by (fast_tac set_cs 1);
-qed"actions_of_par"; 
+qed"actions_of_par";
 
 Goal "inp (A1||A2) =\
 \         ((inp A1) Un (inp A2)) - ((out A1) Un (out A2))";
 by (asm_full_simp_tac (simpset() addsimps [actions_def,asig_of_par,asig_comp_def,
       asig_inputs_def,asig_outputs_def,Un_def,set_diff_def]) 1);
 qed"inputs_of_par";
-  
+
 Goal "out (A1||A2) =\
 \         (out A1) Un (out A2)";
 by (asm_full_simp_tac (simpset() addsimps [actions_def,asig_of_par,asig_comp_def,
@@ -105,7 +103,7 @@ qed"internals_of_par";
 
 (* ------------------------------------------------------------------------ *)
 
-section "actions and compatibility"; 
+section "actions and compatibility";
 
 Goal"compatible A B = compatible B A";
 by (asm_full_simp_tac (simpset() addsimps [compatible_def,Int_commute]) 1);
@@ -158,13 +156,13 @@ qed"inpAAactB_is_inpBoroutB";
 
 (* ------------------------------------------------------------------------- *)
 
-section "input_enabledness and par";  
+section "input_enabledness and par";
 
 
-(* ugly case distinctions. Heart of proof: 
+(* ugly case distinctions. Heart of proof:
      1. inpAAactB_is_inpBoroutB ie. internals are really hidden.
      2. inputs_of_par: outputs are no longer inputs of par. This is important here *)
-Goalw [input_enabled_def] 
+Goalw [input_enabled_def]
 "[| compatible A B; input_enabled A; input_enabled B|] \
 \     ==> input_enabled (A||B)";
 by (asm_full_simp_tac (simpset()addsimps[Let_def,inputs_of_par,trans_of_par])1);
@@ -232,7 +230,7 @@ qed"input_enabled_par";
 
 section "invariants";
 
-val [p1,p2] = goalw thy [invariant_def]
+val [p1,p2] = goalw (the_context ()) [invariant_def]
   "[| !!s. s:starts_of(A) ==> P(s);     \
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
@@ -246,7 +244,7 @@ by (REPEAT (atac 1));
 qed"invariantI";
 
 
-val [p1,p2] = goal thy
+val [p1,p2] = goal (the_context ())
  "[| !!s. s : starts_of(A) ==> P(s); \
 \    !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
@@ -254,7 +252,7 @@ val [p1,p2] = goal thy
 qed "invariantI1";
 
 Goalw [invariant_def] "[| invariant A P; reachable A s |] ==> P(s)";
-by (Blast_tac 1);   
+by (Blast_tac 1);
 qed "invariantE";
 
 (* ------------------------------------------------------------------------- *)
@@ -375,7 +373,7 @@ val trans_of_defs2 = [trans_A_proj,trans_B_proj,trans_A_proj2,
                       trans_B_proj2,trans_AB_proj];
 
 
-Goal 
+Goal
 "((s,a,t) : trans_of(A || B || C || D)) =                                    \
 \ ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |  \
 \   a:actions(asig_of(D))) &                                                 \
@@ -397,24 +395,24 @@ qed "trans_of_par4";
 
 (* ------------------------------------------------------------------------- *)
 
-section "proof obligation generator for IOA requirements";  
+section "proof obligation generator for IOA requirements";
 
 (* without assumptions on A and B because is_trans_of is also incorporated in ||def *)
 Goalw [is_trans_of_def] "is_trans_of (A||B)";
 by (simp_tac (simpset() addsimps [Let_def,actions_of_par,trans_of_par]) 1);
 qed"is_trans_of_par";
 
-Goalw [is_trans_of_def] 
+Goalw [is_trans_of_def]
 "is_trans_of A ==> is_trans_of (restrict A acts)";
 by (asm_simp_tac (simpset() addsimps [cancel_restrict,acts_restrict])1);
 qed"is_trans_of_restrict";
 
-Goalw [is_trans_of_def,restrict_def,restrict_asig_def] 
+Goalw [is_trans_of_def,restrict_def,restrict_asig_def]
 "is_trans_of A ==> is_trans_of (rename A f)";
 by (asm_full_simp_tac
     (simpset() addsimps [Let_def,actions_def,trans_of_def, asig_internals_def,
-			 asig_outputs_def,asig_inputs_def,externals_def,
-			 asig_of_def,rename_def,rename_set_def]) 1);
+                         asig_outputs_def,asig_inputs_def,externals_def,
+                         asig_of_def,rename_def,rename_set_def]) 1);
 by (Blast_tac 1);
 qed"is_trans_of_rename";
 
@@ -428,7 +426,7 @@ by Auto_tac;
 qed"is_asig_of_par";
 
 Goalw [is_asig_of_def,is_asig_def,asig_of_def,restrict_def,restrict_asig_def,
-           asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,o_def] 
+           asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,o_def]
 "is_asig_of A ==> is_asig_of (restrict A f)";
 by (Asm_full_simp_tac 1);
 by Auto_tac;
@@ -438,7 +436,7 @@ Goal "is_asig_of A ==> is_asig_of (rename A f)";
 by (asm_full_simp_tac (simpset() addsimps [is_asig_of_def,
      rename_def,rename_set_def,asig_internals_def,asig_outputs_def,
      asig_inputs_def,actions_def,is_asig_def,asig_of_def]) 1);
-by Auto_tac; 
+by Auto_tac;
 by   (ALLGOALS(dres_inst_tac [("s","Some ?x")] sym THEN' Asm_full_simp_tac));
 by   (ALLGOALS(Blast_tac));
 qed"is_asig_of_rename";
@@ -450,7 +448,7 @@ Addsimps [is_asig_of_par,is_asig_of_restrict,is_asig_of_rename,
 
 Goalw [compatible_def]
 "[|compatible A B; compatible A C |]==> compatible A (B||C)";
-by (asm_full_simp_tac (simpset() addsimps [internals_of_par, 
+by (asm_full_simp_tac (simpset() addsimps [internals_of_par,
    outputs_of_par,actions_of_par]) 1);
 by Auto_tac;
 qed"compatible_par";
@@ -458,7 +456,7 @@ qed"compatible_par";
 (*  better derive by previous one and compat_commute *)
 Goalw [compatible_def]
 "[|compatible A C; compatible B C |]==> compatible (A||B) C";
-by (asm_full_simp_tac (simpset() addsimps [internals_of_par, 
+by (asm_full_simp_tac (simpset() addsimps [internals_of_par,
    outputs_of_par,actions_of_par]) 1);
 by Auto_tac;
 qed"compatible_par2";

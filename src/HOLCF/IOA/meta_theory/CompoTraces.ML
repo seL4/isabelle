@@ -1,9 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.ML
-    ID:		$Id$
+    ID:         $Id$
     Author:     Olaf Müller
- 
-Compositionality on Trace level.
-*) 
+*)
 
 simpset_ref () := simpset() setmksym (K NONE);
 
@@ -11,15 +9,15 @@ simpset_ref () := simpset() setmksym (K NONE);
                    section "mksch rewrite rules";
 (* ---------------------------------------------------------------- *)
 
-bind_thm ("mksch_unfold", fix_prover2 thy mksch_def 
+bind_thm ("mksch_unfold", fix_prover2 (the_context ()) mksch_def
 "mksch A B = (LAM tr schA schB. case tr of \
 \       nil => nil\
 \    | x##xs => \
-\      (case x of  \ 
+\      (case x of  \
 \        UU => UU  \
 \      | Def y => \
 \         (if y:act A then \
-\             (if y:act B then \ 
+\             (if y:act B then \
 \                   ((Takewhile (%a. a:int A)$schA) \
 \                         @@(Takewhile (%a. a:int B)$schB) \
 \                              @@(y>>(mksch A B$xs   \
@@ -33,7 +31,7 @@ bind_thm ("mksch_unfold", fix_prover2 thy mksch_def
 \                              $schB)))  \
 \              )   \
 \          else    \
-\             (if y:act B then  \ 
+\             (if y:act B then  \
 \                 ((Takewhile (%a. a:int B)$schB)  \
 \                       @@ (y>>(mksch A B$xs   \
 \                              $schA   \
@@ -103,11 +101,11 @@ Addsimps compotr_simps;
 
 
 (* ---------------------------------------------------------------------------- *)
-                      section"Lemmata for ==>";                      
+                      section"Lemmata for ==>";
 (* ---------------------------------------------------------------------------- *)
 
-(* Consequence out of ext1_ext2_is_not_act1(2), which in turn are consequences out of 
-   the compatibility of IOA, in particular out of the condition that internals are 
+(* Consequence out of ext1_ext2_is_not_act1(2), which in turn are consequences out of
+   the compatibility of IOA, in particular out of the condition that internals are
    really hidden. *)
 
 Goal "(eB & ~eA --> ~A) -->       \
@@ -125,18 +123,18 @@ qed"compatibility_consequence2";
 
 
 (* ---------------------------------------------------------------------------- *)
-                      section"Lemmata for <==";                      
+                      section"Lemmata for <==";
 (* ---------------------------------------------------------------------------- *)
 
 
-(* Lemma for substitution of looping assumption in another specific assumption *) 
-val [p1,p2] = goal thy "[| f << (g x) ; x=(h x) |] ==> f << g (h x)";
+(* Lemma for substitution of looping assumption in another specific assumption *)
+val [p1,p2] = goal (the_context ()) "[| f << (g x) ; x=(h x) |] ==> f << g (h x)";
 by (cut_facts_tac [p1] 1);
 by (etac (p2 RS subst) 1);
 qed"subst_lemma1";
 
-(* Lemma for substitution of looping assumption in another specific assumption *) 
-val [p1,p2] = goal thy "[| (f x) = y >> g; x=(h x) |] ==> (f (h x)) = y >> g";
+(* Lemma for substitution of looping assumption in another specific assumption *)
+val [p1,p2] = goal (the_context ()) "[| (f x) = y >> g; x=(h x) |] ==> (f (h x)) = y >> g";
 by (cut_facts_tac [p1] 1);
 by (etac (p2 RS subst) 1);
 qed"subst_lemma2";
@@ -145,7 +143,7 @@ qed"subst_lemma2";
 Goal "!!A B. compatible A B ==> \
 \   ! schA schB. Forall (%x. x:act (A||B)) tr \
 \   --> Forall (%x. x:act (A||B)) (mksch A B$tr$schA$schB)";
-by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1); 
+by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 by (safe_tac set_cs);
 by (asm_full_simp_tac (simpset() addsimps [actions_of_par]) 1);
 by (case_tac "a:act A" 1);
@@ -214,7 +212,7 @@ by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 back();
 by (REPEAT (etac conjE 1));
 (* Finite (tw iA x) and Finite (tw iB y) *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,FiniteConc]) 1);
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","x"),
@@ -232,7 +230,7 @@ by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 
 by (REPEAT (etac conjE 1));
 (* Finite (tw iB y) *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,FiniteConc]) 1);
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","y"),
@@ -247,7 +245,7 @@ by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 
 by (REPEAT (etac conjE 1));
 (* Finite (tw iA x) *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,FiniteConc]) 1);
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","x"),
@@ -258,7 +256,7 @@ by (asm_full_simp_tac (simpset()
        addsimps [not_ext_is_int_or_not_act,ForallTL,ForallDropwhile]) 1);
 
 (* a~: act B; a~: act A *)
-by (fast_tac (claset() addSIs [ext_is_act] 
+by (fast_tac (claset() addSIs [ext_is_act]
                       addss (simpset() addsimps [externals_of_par]) ) 1);
 qed_spec_mp"FiniteL_mksch";
 
@@ -266,7 +264,7 @@ Addsimps [FiniteConc];
 
 
 (* otherwise subst_lemma2 does not fit exactly, just to avoid a subst_lemma3 *)
-Delsimps [FilterConc]; 
+Delsimps [FilterConc];
 
 Goal " [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
@@ -295,31 +293,31 @@ by (REPEAT (etac conjE 1));
 by (dres_inst_tac [("x","y"),
                    ("g","Filter (%a. a:act B)$(s@@z)")] subst_lemma2 1);
 by (assume_tac 1);
-Addsimps [FilterConc]; 
+Addsimps [FilterConc];
 by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
 by (eres_inst_tac [("x","TL$(Dropwhile (%a. a:int B)$y)")] allE 1);
 by (asm_full_simp_tac (simpset() addsimps [ForallTL,ForallDropwhile])1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
-by (Asm_full_simp_tac 1); 
+by (Asm_full_simp_tac 1);
 (* for replacing IH in conclusion *)
-by (rotate_tac ~2 1); 
-by (Asm_full_simp_tac 1); 
+by (rotate_tac ~2 1);
+by (Asm_full_simp_tac 1);
 (* instantiate y1a and y2a *)
 by (res_inst_tac [("x","Takewhile (%a. a:int B)$y @@ a>>y1")] exI 1);
 by (res_inst_tac [("x","y2")] exI 1);
 (* elminate all obligations up to two depending on Conc_assoc *)
 by (asm_full_simp_tac (simpset() addsimps [ForallPTakewhileQ, intA_is_not_actB,
-             int_is_act,int_is_not_ext]) 1); 
-by (simp_tac (simpset() addsimps [Conc_assoc]) 1); 
+             int_is_act,int_is_not_ext]) 1);
+by (simp_tac (simpset() addsimps [Conc_assoc]) 1);
 qed_spec_mp "reduceA_mksch1";
 
 bind_thm("reduceA_mksch",conjI RSN (6,conjI RSN (5,reduceA_mksch1)));
 
 
 (* otherwise subst_lemma2 does not fit exactly, just to avoid a subst_lemma3 *)
-Delsimps [FilterConc]; 
+Delsimps [FilterConc];
 
 
 Goal " [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
@@ -349,24 +347,24 @@ by (REPEAT (etac conjE 1));
 by (dres_inst_tac [("x","x"),
                    ("g","Filter (%a. a:act A)$(s@@z)")] subst_lemma2 1);
 by (assume_tac 1);
-Addsimps [FilterConc]; 
+Addsimps [FilterConc];
 by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
 by (eres_inst_tac [("x","TL$(Dropwhile (%a. a:int A)$x)")] allE 1);
 by (asm_full_simp_tac (simpset() addsimps [ForallTL,ForallDropwhile])1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
-by (Asm_full_simp_tac 1); 
+by (Asm_full_simp_tac 1);
 (* for replacing IH in conclusion *)
-by (rotate_tac ~2 1); 
-by (Asm_full_simp_tac 1); 
+by (rotate_tac ~2 1);
+by (Asm_full_simp_tac 1);
 (* instantiate y1a and y2a *)
 by (res_inst_tac [("x","Takewhile (%a. a:int A)$x @@ a>>x1")] exI 1);
 by (res_inst_tac [("x","x2")] exI 1);
 (* elminate all obligations up to two depending on Conc_assoc *)
 by (asm_full_simp_tac (simpset() addsimps [ForallPTakewhileQ, intA_is_not_actB,
-             int_is_act,int_is_not_ext]) 1); 
-by (simp_tac (simpset() addsimps [Conc_assoc]) 1); 
+             int_is_act,int_is_not_ext]) 1);
+by (simp_tac (simpset() addsimps [Conc_assoc]) 1);
 qed_spec_mp"reduceB_mksch1";
 
 bind_thm("reduceB_mksch",conjI RSN (6,conjI RSN (5,reduceB_mksch1)));
@@ -397,7 +395,7 @@ by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc,nil_is_Conc2]) 1);
 by (case_tac "s:act B" 1);
 by (rotate_tac ~2 1);
 by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc,nil_is_Conc2]) 1);
-by (fast_tac (claset() addSIs [ext_is_act] 
+by (fast_tac (claset() addSIs [ext_is_act]
                       addss (simpset() addsimps [externals_of_par]) ) 1);
 (* main case *)
 by (Seq_case_simp_tac "tr" 1);
@@ -455,13 +453,13 @@ finiteR_mksch
 *)
 
 
- 
+
 (*------------------------------------------------------------------------------------- *)
  section"Filtering external actions out of mksch(tr,schA,schB) yields the oracle tr";
 (*                             structural induction
   ------------------------------------------------------------------------------------- *)
 
-Goal 
+Goal
 "!! A B. [| compatible A B; compatible B A;\
 \           is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
@@ -472,7 +470,7 @@ Goal
 
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 
-(* main case *) 
+(* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
 by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
@@ -483,7 +481,7 @@ by (ftac divide_Seq 1);
 back();
 by (REPEAT (etac conjE 1));
 (* filtering internals of A in schA and of B in schB is nil *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 (* conclusion of IH ok, but assumptions of IH have to be transformed *)
@@ -499,7 +497,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
 by (ftac divide_Seq 1);
 by (REPEAT (etac conjE 1));
 (* filtering internals of A is nil *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 by (dres_inst_tac [("x","schA")] subst_lemma1 1);
@@ -511,7 +509,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
 by (ftac divide_Seq 1);
 by (REPEAT (etac conjE 1));
 (* filtering internals of A is nil *)
-by (asm_full_simp_tac (simpset() addsimps 
+by (asm_full_simp_tac (simpset() addsimps
           [not_ext_is_int_or_not_act,
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 by (dres_inst_tac [("x","schB")] subst_lemma1 1);
@@ -521,7 +519,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
                     ForallTL,ForallDropwhile]) 1);
 
 (* Case a~:A, a~:B *)
-by (fast_tac (claset() addSIs [ext_is_act] 
+by (fast_tac (claset() addSIs [ext_is_act]
                       addss (simpset() addsimps [externals_of_par]) ) 1);
 qed"FilterA_mksch_is_tr";
 
@@ -534,7 +532,7 @@ With uncomplete take lemma rule should be reused afterwards !!!!!!!!!!!!!!!!!
 **********************************************************************
 
 (*---------------------------------------------------------------------------
-              Filter of mksch(tr,schA,schB) to A is schA 
+              Filter of mksch(tr,schA,schB) to A is schA
                              take lemma
   --------------------------------------------------------------------------- *)
 
@@ -616,7 +614,7 @@ by (Asm_full_simp_tac  1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
- 
+
 (* bring in divide Seq for s *)
 by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 by (REPEAT (etac conjE 1));
@@ -639,7 +637,7 @@ by (rtac refl 1);
 (* now conclusion fulfills induction hypothesis, but assumptions are not ready *)
 (*
 
-nacessary anymore ???????????????? 
+nacessary anymore ????????????????
 by (rotate_tac ~10 1);
 
 *)
@@ -666,8 +664,8 @@ by (Asm_full_simp_tac 1);
 
 (*--------------------------------------------------------------------------- *)
 
-     section" Filter of mksch(tr,schA,schB) to A is schA -- take lemma proof";  
-  
+     section" Filter of mksch(tr,schA,schB) to A is schA -- take lemma proof";
+
 (*  --------------------------------------------------------------------------- *)
 
 
@@ -772,7 +770,7 @@ by (Asm_full_simp_tac  1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
- 
+
 (* bring in divide Seq for s *)
 by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 by (REPEAT (etac conjE 1));
@@ -860,7 +858,7 @@ by (dres_inst_tac [("x","schA"),
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [int_is_not_ext]) 1);
 
-(* f A (tw iB schB2) = nil *) 
+(* f A (tw iB schB2) = nil *)
 by (asm_full_simp_tac (simpset() addsimps [int_is_not_ext,not_ext_is_int_or_not_act,
              intA_is_not_actB]) 1);
 
@@ -907,7 +905,7 @@ qed"FilterAmksch_is_schA";
 (*---------------------------------------------------------------------------  *)
 
    section" Filter of mksch(tr,schA,schB) to B is schB -- take lemma proof";
-                
+
 (*  --------------------------------------------------------------------------- *)
 
 
@@ -1014,7 +1012,7 @@ by (Asm_full_simp_tac  1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
- 
+
 (* bring in divide Seq for s *)
 by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 by (REPEAT (etac conjE 1));
@@ -1073,7 +1071,7 @@ by (Asm_full_simp_tac  1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
- 
+
 (* bring in divide Seq for s *)
 by (forward_tac [sym RS antisym_less_inverse RS conjunct1 RS divide_Seq] 1);
 by (REPEAT (etac conjE 1));
@@ -1102,7 +1100,7 @@ by (dres_inst_tac [("x","schB"),
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [int_is_not_ext]) 1);
 
-(* f B (tw iA schA2) = nil *) 
+(* f B (tw iA schA2) = nil *)
 by (asm_full_simp_tac (simpset() addsimps [int_is_not_ext,not_ext_is_int_or_not_act,
              intA_is_not_actB]) 1);
 
@@ -1149,8 +1147,8 @@ qed"FilterBmksch_is_schB";
 (* ------------------------------------------------------------------ *)
          section"COMPOSITIONALITY on TRACE Level -- Main Theorem";
 (* ------------------------------------------------------------------ *)
- 
-Goal 
+
+Goal
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
 \       ==>  (tr: traces(A||B)) = \
@@ -1160,8 +1158,8 @@ Goal
 
 by (simp_tac (simpset() addsimps [traces_def,has_trace_def]) 1);
 by (safe_tac set_cs);
- 
-(* ==> *) 
+
+(* ==> *)
 (* There is a schedule of A *)
 by (res_inst_tac [("x","Filter (%a. a:act A)$sch")] bexI 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_sch]) 2);
@@ -1172,7 +1170,7 @@ by (res_inst_tac [("x","Filter (%a. a:act B)$sch")] bexI 1);
 by (asm_full_simp_tac (simpset() addsimps [compositionality_sch]) 2);
 by (asm_full_simp_tac (simpset() addsimps [compatibility_consequence2,
                   externals_of_par,ext1_ext2_is_not_act2]) 1);
-(* Traces of A||B have only external actions from A or B *)  
+(* Traces of A||B have only external actions from A or B *)
 by (rtac ForallPFilterP 1);
 
 (* <== *)
