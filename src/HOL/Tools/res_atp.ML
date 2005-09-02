@@ -189,13 +189,22 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
                      optionline, clasimpfile, axfile, hypsfile, probfile)] @ 
                   (make_atp_list xs sign (n+1)))
               end
-            else
+            else if !vampire 
+	    then 
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
               in
                 ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000",
                    clasimpfile, axfile, hypsfile, probfile)] @
                  (make_atp_list xs sign (n+1)))
               end
+      	     else
+             let val Eprover = ResLib.helper_path "E_HOME" "eproof"
+              in
+                ([("E", thmstr, goalstring, Eprover, "--tptp-in -l5",
+                   clasimpfile, axfile, hypsfile, probfile)] @
+                 (make_atp_list xs sign (n+1)))
+              end
+
           end
 
     val atp_list = make_atp_list (ListPair.zip (thms, sg_terms)) sign 1

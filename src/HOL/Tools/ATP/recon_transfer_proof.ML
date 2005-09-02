@@ -217,6 +217,26 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
    end
     
 
+fun get_axiom_names_E proofstr thms (clause_arr:(ResClause.clause * thm) Array.array) num_of_clauses  =
+   let 
+     (* not sure why this is necessary again, but seems to be *)
+      val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+      val step_nums =get_linenums proofstr
+  
+     (***********************************************)
+     (* here need to add the clauses from clause_arr*)
+     (***********************************************)
+  
+      val (clasimp_names_cls) = get_clasimp_cls clause_arr num_of_clauses step_nums 
+      val clasimp_names = map (#1 o ResClause.clause_info o #1) clasimp_names_cls
+  
+      val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
+                         (concat clasimp_names)
+      val _ = (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
+   in
+      clasimp_names
+   end
+
 (***********************************************)
 (* get axioms for reconstruction               *)
 (***********************************************)
@@ -418,6 +438,46 @@ fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms c
 	Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
     end;
 
+
+fun EString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clause_arr  num_of_clauses  = 
+ let val _ = File.append(File.tmp_path (Path.basic "thmstringfile"))
+               (" thmstring is: "^thmstring^"proofstr is: "^proofstr^
+                "goalstr is: "^goalstring^" num of clauses is: "^
+                (string_of_int num_of_clauses))
+
+    (***********************************)
+    (* get vampire axiom names         *)
+    (***********************************)
+
+     val (axiom_names) = get_axiom_names_E proofstr  thms clause_arr  num_of_clauses
+     val ax_str = "Rules from clasimpset used in proof found by E: " ^
+                  rules_to_string axiom_names
+    in 
+	 File.append(File.tmp_path (Path.basic "reconstrfile")) ("reconstring is: "^ax_str^"  "^goalstring);
+         TextIO.output (toParent, ax_str^"\n");
+	 TextIO.flushOut toParent;
+	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
+	 TextIO.flushOut toParent;
+	 TextIO.output (toParent, "thmstring: "^thmstring^"\n");
+	 TextIO.flushOut toParent;
+
+	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+	(* Attempt to prevent several signals from turning up simultaneously *)
+	 Posix.Process.sleep(Time.fromSeconds 1) ; dummy_tac
+    end
+    handle _ => 
+    let val _ = File.write(File.tmp_path (Path.basic "foo_handler")) "In exception handler"
+    in 
+	TextIO.output (toParent,"Proof found by Vampire but translation failed for resolution proof: "^(remove_linebreaks proofstr) );
+	TextIO.flushOut toParent;
+	 TextIO.output (toParent, thmstring^"\n");
+	 TextIO.flushOut toParent;
+	 TextIO.output (toParent, goalstring^"\n");
+	 TextIO.flushOut toParent;
+	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+	(* Attempt to prevent several signals from turning up simultaneously *)
+	Posix.Process.sleep(Time.fromSeconds 1) ;dummy_tac
+    end;
 
 (* val proofstr = "1582[0:Inp] || -> v_P*.\
                  \1583[0:Inp] || v_P* -> .\
