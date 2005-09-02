@@ -143,28 +143,18 @@ fun tptp_inputs_tfrees thms n tfrees =
 (* where N is the number of this subgoal                             *)
 (*********************************************************************)
 
-(*fun dfg_inputs_tfrees thms n tfrees axclauses= 
-    let  val clss = map (ResClause.make_conjecture_clause_thm) thms
-         val _ = (debug ("in dfg_inputs_tfrees 1"))
-	 val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
-	 val tfree_clss = map ResClause.tfree_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) 
-         val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
-         val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) axclauses [] [] [] tfrees   
-	 val out = TextIO.openOut(probfile)
-    in
-	(ResLib.writeln_strs out (tfree_clss @ dfg_clss); TextIO.closeOut out; debug probfile)
-    end;
-*)
 fun dfg_inputs_tfrees thms n tfrees axclauses = 
     let val clss = map (ResClause.make_conjecture_clause_thm) thms
         val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
-        val _ = warning ("about to write out dfg prob file "^probfile)
+        val _ = debug ("about to write out dfg prob file " ^ probfile)
        	(*val (dfg_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2dfg clss)
         val tfree_clss = map ResClause.tfree_dfg_clause ((ResLib.flat_noDup tfree_litss) \\ tfrees) *)   
-        val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) axclauses [] [] [] tfrees   
+        val filestr = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) 
+                        axclauses [] [] [] tfrees   
 	val out = TextIO.openOut(probfile)
     in
 	(ResLib.writeln_strs out [filestr]; TextIO.closeOut out; debug probfile )
+(* (ResLib.writeln_strs out (tfree_clss @ dfg_clss); *)
     end;
 
 
@@ -238,11 +228,13 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid) thm n sko_thms axc
 	
      ( SELECT_GOAL
         (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
-          METAHYPS(fn negs => (if !SpassComm.spass then 
-				    dfg_inputs_tfrees (make_clauses negs) n tfrees axclauses
- 				 else
-			  	    tptp_inputs_tfrees (make_clauses negs)  n tfrees;
-			            get_sko_thms  tfrees sign sg_terms (childin, childout, pid) thm  (n -1) (negs::sko_thms) axclauses; dummy_tac))]) n thm )
+          METAHYPS(fn negs => 
+            (if !SpassComm.spass 
+             then dfg_inputs_tfrees (make_clauses negs) n tfrees axclauses
+             else tptp_inputs_tfrees (make_clauses negs) n tfrees;
+             get_sko_thms tfrees sign sg_terms (childin, childout, pid) 
+                          thm  (n -1) (negs::sko_thms) axclauses; 
+             dummy_tac))]) n thm )
 
 
 
@@ -277,7 +269,7 @@ fun isar_atp_goal' thm n tfree_lits (childin, childout, pid)  axclauses =
 (* write to file "hyps"                           *)
 (**************************************************)
 
-fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid)  axclauses=
+fun isar_atp_aux thms thm n_subgoals  (childin, childout, pid) axclauses =
   let val tfree_lits = isar_atp_h thms
   in
     debug ("in isar_atp_aux");

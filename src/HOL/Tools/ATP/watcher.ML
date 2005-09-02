@@ -143,8 +143,9 @@ fun getArgs (fromParentStr, toParentStr,ys) =  let
 (*  Send request to Watcher for a vampire to be called for filename in arg      *)
 (********************************************************************************)
                     
-fun callResProver (toWatcherStr,  arg) = (sendOutput (toWatcherStr, arg^"\n"); 
-                                     TextIO.flushOut toWatcherStr)
+fun callResProver (toWatcherStr,  arg) = 
+      (sendOutput (toWatcherStr, arg^"\n"); 
+       TextIO.flushOut toWatcherStr)
 
 (*****************************************************************************************)
 (*  Send request to Watcher for multiple provers to be called for filenames in arg       *)
@@ -267,34 +268,12 @@ fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hy
     (*** only include problem and clasimp for the moment, not sure how to refer to ***)
     (*** hyps/local axioms just now                                                ***)
     val whole_prob_file = Unix.execute("/bin/cat", [clasimpfile,(*axfile, hypsfile,*)probfile,  ">", (File.platform_path wholefile)])
-    (*** check if the directory exists and, if not, create it***)
-   (* val _ = 
-	if !SpassComm.spass
-	then 
-	    if File.exists dfg_dir then warning("dfg dir exists")
-	    else File.mkdir dfg_dir
-	else
-	    warning("not converting to dfg")
-    
-    val _ = if !SpassComm.spass then 
-		system (ResLib.helper_path "TPTP2X_HOME" "tptp2X" ^ 
-		        " -fdfg -d " ^ dfg_path ^ " " ^
-			File.platform_path wholefile)
-	      else 7
-    val newfile =   if !SpassComm.spass 
-		    then 
-			    dfg_path^"/ax_prob"^"_"^(probID)^".dfg" 
-
-		    else
-			    (File.platform_path wholefile)*)
 
     (* if using spass prob_n already contains whole DFG file, otherwise need to mash axioms*)
     (* from clasimpset onto problem file *)
     val newfile =   if !SpassComm.spass 
-		    then 
-			 probfile
-                    else 
-			(File.platform_path wholefile)
+		    then probfile
+                    else (File.platform_path wholefile)
 
     val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
 	       (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^newfile^"\n")
@@ -366,7 +345,6 @@ fun getCmds (toParentStr,fromParentStr, cmdList) =
 (*  Get Io-descriptor for polling of an input stream          *)
 (**************************************************************)
 
-
 fun getInIoDesc someInstr = 
     let val (rd, buf) = TextIO.StreamIO.getReader(TextIO.getInstream someInstr)
         val _ = TextIO.output (TextIO.stdOut, buf)
@@ -384,8 +362,6 @@ fun getInIoDesc someInstr =
 (*************************************)
 (*  Set up a Watcher Process         *)
 (*************************************)
-
-
 
 fun setupWatcher (thm,clause_arr, num_of_clauses) = 
   let
@@ -451,13 +427,10 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			  then
 			     NONE
 			  else if (OS.IO.isIn (hd pdl)) 
-			       then
-				  (SOME ( getCmds (toParentStr, fromParentStr, [])))
-			       else
-				   NONE
+			       then SOME (getCmds (toParentStr, fromParentStr, []))
+			       else NONE
 		       end
-		     else
-			 NONE
+		     else NONE
 		 end
 		      
 	       fun pollChildInput (fromStr) = 
@@ -472,7 +445,6 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		     if (isSome pd ) then 
 			 let val pd' = OS.IO.pollIn (valOf pd)
 			     val pdl = OS.IO.poll ([pd'], SOME (Time.fromMilliseconds 2000)) 
-			     
 			 in
 			    if null pdl 
 			    then
@@ -534,7 +506,9 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		      if (isSome childIncoming) 
 		      then 
 			  (* check here for prover label on child*)
-			  let val _ = File.write (File.tmp_path (Path.basic "child_incoming"))  ("subgoals forked to checkChildren: "^prems_string^prover^thmstring^goalstring^childCmd) 
+			  let val _ = File.write (File.tmp_path (Path.basic "child_incoming")) 
+			             ("subgoals forked to checkChildren:"^
+			             prems_string^prover^thmstring^goalstring^childCmd) 
 		              val childDone = (case prover of
 	                          "vampire" => (VampComm.checkVampProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses) )                                              
                                  |"spass" => (SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)     ) )
@@ -709,13 +683,10 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		  (* start the watcher loop  *)
 		  (***************************)
 		  keepWatching (toParentStr, fromParentStr, procList);
-
-
 		  (****************************************************************************)
-		  (* fake return value - actually want the watcher to loop until killed       *)
+   (* fake return value - actually want the watcher to loop until killed *)
 		  (****************************************************************************)
 		  Posix.Process.wordToPid 0w0
-		  
 		end);
 	  (* end case *)
 
@@ -770,11 +741,9 @@ fun reapWatcher(pid, instr, outstr) =
 	  status
   end
 
-
-
 fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
  let val mychild = childInfo (setupWatcher(thm,clause_arr,  num_of_clauses))
-     val streams =snd mychild
+     val streams = snd mychild
      val childin = fst streams
      val childout = snd streams
      val childpid = fst mychild
@@ -795,24 +764,24 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
 	   val _ = TextIO.output (outfile, ("In signal handler  "^reconstr^thmstring^goalstring^"goals_being_watched is: "^(string_of_int (!goals_being_watched))))
 	   val _ =  TextIO.closeOut outfile
        in (* if a proof has been found and sent back as a reconstruction proof *)
-	 if ( (substring (reconstr, 0,1))= "[")
+	 if substring (reconstr, 0,1) = "["
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Recon_Transfer.apply_res_thm reconstr goalstring;
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       
 	       goals_being_watched := ((!goals_being_watched) - 1);
        
-	       if ((!goals_being_watched) = 0)
+	       if (!goals_being_watched) = 0
 	       then 
-		  (let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_reap_found")));
-		       val _ = TextIO.output (outfile, ("Reaping a watcher, goals watched is: "^(string_of_int (!goals_being_watched))^"\n"))
-		       val _ =  TextIO.closeOut outfile
+		  let val _ = File.write (File.tmp_path (Path.basic "foo_reap_found"))
+                                   ("Reaping a watcher, goals watched is: "^
+                                    (string_of_int (!goals_being_watched))^"\n")
 		   in
 		       killWatcher (childpid); reapWatcher (childpid,childin, childout); ()
-		   end)
+		   end
 		else () )
 	 (* if there's no proof, but a message from Spass *)
-	 else if ((substring (reconstr, 0,5))= "SPASS")
+	 else if substring (reconstr, 0,5) = "SPASS"
 	 then (goals_being_watched := (!goals_being_watched) -1;
 	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring)^reconstr));
@@ -824,7 +793,7 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
 	             killWatcher (childpid); reapWatcher (childpid,childin, childout); ())
 		else () ) 
 	(* print out a list of rules used from clasimpset*)
-	 else if ((substring (reconstr, 0,5))= "Rules")
+	 else if substring (reconstr, 0,5) = "Rules"
 	 then (goals_being_watched := (!goals_being_watched) -1;
 	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^reconstr));
@@ -837,7 +806,7 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
 		     )
 	       else () )
 	  (* if proof translation failed *)
-	 else if ((substring (reconstr, 0,5)) = "Proof")
+	 else if substring (reconstr, 0,5) = "Proof"
 	 then (goals_being_watched := (!goals_being_watched) -1;
 	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
@@ -850,7 +819,7 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
 		     )
 	       else () )
 
-	 else if ((substring (reconstr, 0,1)) = "%")
+	 else if substring (reconstr, 0,1) = "%"
 	 then (goals_being_watched := (!goals_being_watched) -1;
 	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
@@ -866,15 +835,15 @@ fun createWatcher (thm,clause_arr, ( num_of_clauses:int)) =
 	 else  (* add something here ?*)
 	      (goals_being_watched := (!goals_being_watched) -1;
 	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-		Pretty.writeln(Pretty.str ("Ran out of options in handler"));
-		Pretty.writeln(Pretty.str  (oct_char "361"));
-		if (!goals_being_watched = 0)
-	        then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-	              ("Reaping a watcher, goals watched is: " ^
-	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
-		     )
-	        else () )
+	       Pretty.writeln(Pretty.str ("Ran out of options in handler"));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       if (!goals_being_watched = 0)
+	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
+		     ("Reaping a watcher, goals watched is: " ^
+			(string_of_int (!goals_being_watched))^"\n");
+		    killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		    )
+	       else () )
        end)
 
  in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
