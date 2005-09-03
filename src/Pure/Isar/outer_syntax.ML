@@ -278,7 +278,9 @@ fun run_thy name path =
   in
     Present.init_theory name;
     Present.verbatim_source name present_text;
-    if ThyHeader.is_old (text_src, pos) then (ThySyn.load_thy name text;
+    if ThyHeader.is_old (text_src, pos) then
+     (warning ("Non-Isar file format for theory " ^ quote name ^ " -- deprecated!");
+      ThySyn.load_thy name text;
       Present.old_symbol_source name present_text)   (*note: text presented twice*)
     else
       let
