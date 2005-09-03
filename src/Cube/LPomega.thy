@@ -1,2 +1,0 @@
-
-LPomega = LP + Lomega
