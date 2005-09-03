@@ -1,17 +1,12 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
     ID:         $Id$
-    Author:     Olaf Mller
-
-Some properties about (Cut ex), defined as follows:
-
-For every execution ex there is another shorter execution (Cut ex) 
-that has the same trace as ex, but its schedule ends with an external action.
-*) 
+    Author:     Olaf Müller
+*)
 
 
 fun thin_tac' j =
   rotate_tac (j - 1) THEN'
-  etac thin_rl THEN' 
+  etac thin_rl THEN'
   rotate_tac (~ (j - 1));
 
 
@@ -21,11 +16,11 @@ fun thin_tac' j =
 (* ---------------------------------------------------------------- *)
 
 
-bind_thm ("oraclebuild_unfold", fix_prover2 thy oraclebuild_def 
+bind_thm ("oraclebuild_unfold", fix_prover2 (the_context ()) oraclebuild_def
 "oraclebuild P = (LAM s t. case t of \
 \       nil => nil\
 \    | x##xs => \
-\      (case x of\ 
+\      (case x of\
 \        UU => UU\
 \      | Def y => (Takewhile (%a.~ P a)$s)\
 \                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$xs))\
@@ -44,7 +39,7 @@ qed"oraclebuild_nil";
 
 Goal "oraclebuild P$s$(x>>t) = \
 \         (Takewhile (%a.~ P a)$s)   \
-\          @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$t))";     
+\          @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$t))";
 by (rtac trans 1);
 by (stac oraclebuild_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
@@ -53,7 +48,7 @@ qed"oraclebuild_cons";
 
 
 
- 
+
 (* ---------------------------------------------------------------- *)
                    section "Cut rewrite rules";
 (* ---------------------------------------------------------------- *)
@@ -133,14 +128,14 @@ by (res_inst_tac [("A1","%x. True")
                  (take_lemma_less_induct RS mp) 1);
 by (Fast_tac 3);
 by (case_tac "Finite s" 1);
-by (asm_full_simp_tac (simpset() addsimps [Cut_nil]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [Cut_nil]) 1);
 by (rtac (Cut_nil RS sym) 1);
-by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Map2Finite]) 1);
 (* csae ~ Finite s *)
 by (asm_full_simp_tac (simpset() addsimps [Cut_UU]) 1);
 by (rtac (Cut_UU (*RS sym*)) 1);
-by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [ForallMap,o_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Map2Finite]) 1);
 (* main case *)
 by (asm_full_simp_tac (simpset() addsimps [Cut_Cons,MapConc,
