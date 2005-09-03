@@ -1,14 +1,20 @@
 
-(*** Addition with fixpoint of successor ***)
+(* $Id$ *)
 
-Ex3 = LCF +
+header {* Addition with fixpoint of successor *}
+
+theory Ex3
+imports LCF
+begin
 
 consts
-  s	:: "'a => 'a"
-  p	:: "'a => 'a => 'a"
+  s     :: "'a => 'a"
+  p     :: "'a => 'a => 'a"
 
-rules
-  p_strict	"p(UU) = UU"
-  p_s		"p(s(x),y) = s(p(x,y))"
+axioms
+  p_strict:     "p(UU) = UU"
+  p_s:          "p(s(x),y) = s(p(x,y))"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

@@ -1,5 +1,5 @@
 
-val asms = goal thy "[| f(p) << p; !!q. f(q) << q ==> p << q |] ==> FIX(f)=p";
+val asms = goal (the_context ()) "[| f(p) << p; !!q. f(q) << q ==> p << q |] ==> FIX(f)=p";
 by (rewtac eq_def);
 by (rtac conjI 1);
 by (induct_tac "f" 1);

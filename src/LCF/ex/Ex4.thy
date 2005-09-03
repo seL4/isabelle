@@ -1,4 +1,8 @@
 
-(*** Prefixpoints ***)
+header {* Prefixpoints *}
 
-Ex4 = LCF
+theory Ex4
+imports LCF
+begin
+
+end

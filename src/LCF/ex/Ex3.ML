@@ -8,4 +8,3 @@ by (induct_tac "s" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "example";
-

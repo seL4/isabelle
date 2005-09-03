@@ -3,13 +3,13 @@ simpset_ref() := LCF_ss;
 
 Addsimps [P_strict,K];
 
-val H_unfold = prove_goal thy "H = K(H)"
+val H_unfold = prove_goal (the_context ()) "H = K(H)"
  (fn _ => [stac H 1, rtac (FIX_eq RS sym) 1]);
 
 bind_thm ("H_unfold", H_unfold);
 
 
-val H_strict = prove_goal thy "H(UU)=UU"
+val H_strict = prove_goal (the_context ()) "H(UU)=UU"
  (fn _ => [stac H_unfold 1, Simp_tac 1]);
 
 bind_thm ("H_strict", H_strict);
