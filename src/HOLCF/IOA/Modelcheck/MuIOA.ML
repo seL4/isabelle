@@ -3,7 +3,6 @@
 	There, implementation relations for I/O automatons are proved using
 	the model checker mucke (invoking cal_mucke_tac defined in MCSyn.ML). *)
 
-exception SimOracleExn of (term*(thm list));
 exception SimFailureExn of string;
 
 val ioa_simps = [asig_of_def,starts_of_def,trans_of_def];
@@ -162,7 +161,7 @@ merge_var_and_type _ _ = raise malformed;
 
 in
 
-fun mk_sim_oracle (sign, SimOracleExn (subgoal,thl)) =
+fun mk_sim_oracle sign (subgoal,thl) =
 (let
         val weak_case_congs = DatatypePackage.weak_case_congs_of sign;
 
