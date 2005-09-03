@@ -1,21 +1,6 @@
 Isabelle Verification of a protocol using IOA.
 
 ------------------------------------------------------------------------------
-The theory structure looks like this picture:
-
-     Correctness
-
-        Impl
-
-Sender Receiver Channels Spec
-
- Action    IOA      Multisets
-
- Packet        List 
-
-         Arith
-
-------------------------------------------------------------------------------
 
 The System.
 
