@@ -19,6 +19,9 @@ end;
 structure IoaPackage: IOA_PACKAGE =
 struct
 
+val string_of_typ = setmp print_mode [] o Sign.string_of_typ;
+val string_of_term = setmp print_mode [] o Sign.string_of_term;
+
 exception malformed;
 
 (* stripping quotes *)
@@ -52,7 +55,7 @@ param_tupel thy ((Type(_,l))::r) res = param_tupel thy (l @ r) res |
 param_tupel thy ((TFree(a,_))::r) res = 
 if (a mem res) then (param_tupel thy r res) else (param_tupel thy r (a::res)) |
 param_tupel thy (a::r) res =
-error ("one component of a statetype is a TVar: " ^ (Sign.string_of_typ (sign_of thy) a));
+error ("one component of a statetype is a TVar: " ^ (string_of_typ (sign_of thy) a));
 *)
 
 (* used by constr_list *)
@@ -80,7 +83,7 @@ extract_hd _ = raise malformed;
 (* delivers constructor term string from a prem of *.induct *)
 fun extract_constr thy (_ $ Abs(a,T,r)) = extract_constr thy (snd(variant_abs(a,T,r)))|
 extract_constr thy (Const("Trueprop",_) $ r) = extract_constr thy r |
-extract_constr thy (Var(_,_) $ r) =  delete_bold_string(Sign.string_of_term (sign_of thy) r) |
+extract_constr thy (Var(_,_) $ r) =  delete_bold_string(string_of_term (sign_of thy) r) |
 extract_constr _ _ = raise malformed;
 in
 (extract_hd a,extract_constr thy a) :: (extract_constrs thy r)
@@ -91,7 +94,7 @@ fun constr_list thy atyp =
 let
 fun act_name thy (Type(s,_)) = s |
 act_name _ s = 
-error("malformed action type: " ^ (Sign.string_of_typ (sign_of thy) s));
+error("malformed action type: " ^ (string_of_typ (sign_of thy) s));
 fun afpl ("." :: a) = [] |
 afpl [] = [] |
 afpl (a::r) = a :: (afpl r);
@@ -140,7 +143,7 @@ if (check_for_constr thy atyp trm) then
 else "(UN " ^ (list_elements_of l) ^ ". {" ^ ctstr ^ "})")
 else (raise malformed) 
 handle malformed => 
-error("malformed action term: " ^ (Sign.string_of_term (sign_of thy) trm))
+error("malformed action term: " ^ (string_of_term (sign_of thy) trm))
 end;
 
 (* extracting constructor heads *)
@@ -237,7 +240,7 @@ error("Two specifications for action: " ^ b)
 error("Action " ^ b ^ " is not in automaton signature")
 ))) else (write_alt thy (chead,ctrm) inp out int r)
 handle malformed =>
-error ("malformed action term: " ^ (Sign.string_of_term (sign_of thy) a))
+error ("malformed action term: " ^ (string_of_term (sign_of thy) a))
 end;
 
 (* used by make_alt_string *)
@@ -292,10 +295,10 @@ end;
 
 fun act_type_of thy (Type(pair1,(Type(pair_asig,(Type(actionset,[acttyp])::_))::_))) = acttyp |
 act_type_of thy t = error ("could not extract action type of following automaton type:\n" ^
-(Sign.string_of_typ (sign_of thy) t));
+(string_of_typ (sign_of thy) t));
 fun st_type_of thy (Type(pair1,_::(Type(pair2,Type(initial_set,[statetyp])::_))::_)) = statetyp |
 st_type_of thy t = error ("could not extract state type of following automaton type:\n" ^
-(Sign.string_of_typ (sign_of thy) t));
+(string_of_typ (sign_of thy) t));
 
 fun comp_st_type_of thy [a] = st_type_of thy (aut_type_of thy a) |
 comp_st_type_of thy (a::r) = Type("*",[st_type_of thy (aut_type_of thy a), comp_st_type_of thy r]) |
@@ -492,24 +495,24 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
 local structure P = OuterParse and K = OuterKeyword in
 
 val actionlist = P.list1 P.term;
-val inputslist = P.$$$ "inputs" |-- actionlist;
-val outputslist = P.$$$ "outputs" |-- actionlist;
-val internalslist = P.$$$ "internals" |-- actionlist;
-val stateslist = P.$$$ "states" |-- Scan.repeat1 (P.name --| P.$$$ "::" -- P.typ);
-val initial = P.$$$ "initially" |-- P.term;
-val assign_list = P.list1 (P.name --| P.$$$ ":=" -- P.term);
-val pre = P.$$$ "pre" |-- P.term;
-val post = P.$$$ "post" |-- assign_list;
+val inputslist = P.$$$ "inputs" |-- P.!!! actionlist;
+val outputslist = P.$$$ "outputs" |-- P.!!! actionlist;
+val internalslist = P.$$$ "internals" |-- P.!!! actionlist;
+val stateslist = P.$$$ "states" |-- P.!!! (Scan.repeat1 (P.name --| P.$$$ "::" -- P.typ));
+val initial = P.$$$ "initially" |-- P.!!! P.term;
+val assign_list = P.list1 (P.name --| P.$$$ ":=" -- P.!!! P.term);
+val pre = P.$$$ "pre" |-- P.!!! P.term;
+val post = P.$$$ "post" |-- P.!!! assign_list;
 val pre1 = (pre -- (Scan.optional post [])) >> mk_trans_of_prepost;
 val post1 = ((Scan.optional pre "True") -- post) >> mk_trans_of_prepost;
-val transrel =  (P.$$$ "transrel" |-- P.term) >> mk_trans_of_rel;
+val transrel =  (P.$$$ "transrel" |-- P.!!! P.term) >> mk_trans_of_rel;
 val transition = P.term -- (transrel || pre1 || post1);
-val translist = P.$$$ "transitions" |-- Scan.repeat1 transition;
+val translist = P.$$$ "transitions" |-- P.!!! (Scan.repeat1 transition);
 
 val ioa_decl =
   (P.name -- (P.$$$ "=" |--
     (P.$$$ "signature" |--
-      (P.$$$ "actions" |--
+      P.!!! (P.$$$ "actions" |--
         (P.typ --
           (Scan.optional inputslist []) --
           (Scan.optional outputslist []) --
@@ -517,12 +520,13 @@ val ioa_decl =
           stateslist --
           (Scan.optional initial "True") --
         translist))))) >> mk_ioa_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "compose" |-- P.list1 P.name))) >> mk_composition_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "hide_action" |-- P.list1 P.term -- (P.$$$ "in" |-- P.name))))
-    >> mk_hiding_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "restrict" |-- P.name -- (P.$$$ "to" |-- P.list1 P.term))))
-    >> mk_restriction_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- P.name -- (P.$$$ "to" |-- P.term))))
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "compose" |-- P.!!! (P.list1 P.name))))
+    >> mk_composition_decl ||
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "hide_action" |--
+      P.!!! (P.list1 P.term -- (P.$$$ "in" |-- P.name))))) >> mk_hiding_decl ||
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "restrict" |--
+      P.!!! (P.name -- (P.$$$ "to" |-- P.list1 P.term))))) >> mk_restriction_decl ||
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- (P.!!! (P.name -- (P.$$$ "to" |-- P.term))))))
     >> mk_rename_decl;
 
 val automatonP =
