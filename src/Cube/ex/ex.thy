@@ -20,12 +20,12 @@ method_setup depth_solve1 = {*
   (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms))))))
 *} ""
 
-ML {*
-local val strip_b = thm "strip_b" and strip_s = thm "strip_s" in
-fun strip_asms_tac thms  i =
-  REPEAT (resolve_tac [strip_b, strip_s] i THEN DEPTH_SOLVE_1 (ares_tac thms i))
-end
-*}
+method_setup strip_asms =  {*
+  let val strip_b = thm "strip_b" and strip_s = thm "strip_s" in
+    Method.thms_args (fn thms => Method.METHOD (fn facts =>
+      REPEAT (resolve_tac [strip_b, strip_s] 1 THEN DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1))))
+  end
+*} ""
 
 
 subsection {* Simple types *}
@@ -122,7 +122,7 @@ lemma (in Lomega2) "|- Lam A:*.Lam B:*.Lam x:A. Lam y:B. x : ?T"
   by (depth_solve rules)
 
 lemma (in Lomega2) "A:* B:* |- ?p : (A->B) -> ((B->Pi P:*.P)->(A->Pi P:*.P))"
-  apply (tactic {* strip_asms_tac (thms "rules") 1 *})
+  apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)
    prefer 2
@@ -155,7 +155,7 @@ lemma (in LP2) "A:* P:A->A->* |-
 lemma (in LP2) "A:* P:A->A->* |-
     ?p: (Pi a:A. Pi b:A. P^a^b->P^b^a->Pi P:*.P) -> Pi a:A. P^a^a->Pi P:*.P"
   -- {* Antisymmetry implies irreflexivity: *}
-  apply (tactic {* strip_asms_tac (thms "rules") 1 *})
+  apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)
    prefer 2
@@ -190,7 +190,7 @@ lemma (in CC) "|- Lam A:*.Lam P:A->*.Pi a:A. P^a: ?T"
   by (depth_solve rules)
 
 lemma (in CC) "A:* P:A->* a:A |- ?p : (Pi a:A. P^a)->P^a"
-  apply (tactic {* strip_asms_tac (thms "rules") 1 *})
+  apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)
    prefer 2
@@ -212,7 +212,7 @@ lemma (in CC) "Lam A:*.Lam c:A. Lam f:A->A.
 lemma (in LP2)
   "A:* a:A b:A |- ?p: (Pi P:A->*.P^a->P^b) -> (Pi P:A->*.P^b->P^a)"
   -- {* Symmetry of Leibnitz equality *}
-  apply (tactic {* strip_asms_tac (thms "rules") 1 *})
+  apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)
    prefer 2
