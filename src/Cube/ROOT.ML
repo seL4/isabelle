@@ -9,8 +9,4 @@ The Lambda-Cube a la Barendregt.
 val banner = "Barendregt's Lambda-Cube";
 writeln banner;
 
-print_depth 1;  
-
 use_thy "Cube";
-
-print_depth 8;
