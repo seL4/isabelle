@@ -3,7 +3,7 @@
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
 *)
 
-val asig_projections = [asig_inputs_def, asig_outputs_def, asig_internals_def];
+bind_thms ("asig_projections", [asig_inputs_def, asig_outputs_def, asig_internals_def]);
 
 Goal
  "(outputs    (a,b,c) = b)   & \

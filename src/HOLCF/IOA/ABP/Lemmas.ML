@@ -14,6 +14,11 @@ by (stac split_if 1);
 by (Fast_tac 1);
 qed "bool_if_impl_or";
 
+Goal "(? x. x=P & Q(x)) = Q(P)";
+by (Fast_tac 1);
+qed"exis_elim";
+
+
 (* Sets *)
 
 val set_lemmas =

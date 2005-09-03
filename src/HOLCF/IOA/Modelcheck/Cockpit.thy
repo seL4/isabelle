@@ -1,43 +1,49 @@
 
-Cockpit = MuIOAOracle +
+(* $Id$ *)
+
+theory Cockpit
+imports MuIOAOracle
+begin
 
 datatype 'a action = Alarm 'a | Info 'a | Ack 'a
 datatype event = NONE | PonR | Eng | Fue
 
 
-(*This cockpit automaton is a deeply simplified version of the
+text {*
+  This cockpit automaton is a deeply simplified version of the
   control component of a helicopter alarm system considered in a study
   of ESG.  Some properties will be proved by using model checker
-  mucke.*)
+  mucke. *}
 
 automaton cockpit =
   signature
-    actions event action
+    actions "event action"
     inputs "Alarm a"
-    outputs "Ack a","Info a"
+    outputs "Ack a", "Info a"
   states
     APonR_incl :: bool
     info :: event
-  initially "info=NONE & ~APonR_incl"
+  initially "info = NONE & ~APonR_incl"
   transitions
     "Alarm a"
-      post info:="if (a=NONE) then info else a",
-        APonR_incl:="if (a=PonR) then True else APonR_incl"
+      post info := "if (a=NONE) then info else a",
+        APonR_incl := "if (a=PonR) then True else APonR_incl"
     "Info a"
       pre "(a=info)"
     "Ack a"
       pre "(a=PonR --> APonR_incl) & (a=NONE --> ~APonR_incl)"
-      post info:="NONE",APonR_incl:="if (a=PonR) then False else APonR_incl"
+      post info := "NONE",
+        APonR_incl := "if (a=PonR) then False else APonR_incl"
 
 automaton cockpit_hide = hide_action "Info a" in cockpit
 
-
-(*Subsequent automata express the properties to be proved, see also
-  Cockpit.ML*)
+text {*
+  Subsequent automata express the properties to be proved, see also
+  Cockpit.ML *}
 
 automaton Al_before_Ack =
   signature
-    actions event action
+    actions "event action"
     inputs "Alarm a"
     outputs "Ack a"
   states
@@ -52,7 +58,7 @@ automaton Al_before_Ack =
 
 automaton Info_while_Al =
   signature
-    actions event action
+    actions "event action"
     inputs "Alarm a"
     outputs "Ack a", "Info i"
   states
@@ -69,7 +75,7 @@ automaton Info_while_Al =
 
 automaton Info_before_Al =
   signature
-    actions event action
+    actions "event action"
     inputs "Alarm a"
     outputs "Ack a", "Info i"
   states
@@ -82,5 +88,7 @@ automaton Info_before_Al =
       pre "(a=NONE) --> info_at_NONE"
     "Ack a"
       post info_at_NONE:="True"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

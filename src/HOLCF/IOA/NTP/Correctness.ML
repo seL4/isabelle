@@ -1,20 +1,18 @@
 (*  Title:      HOL/IOA/NTP/Correctness.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-
-The main correctness proof: Impl implements Spec.
 *)
 
 (* repeated from Traces.ML *)
 claset_ref() := claset() delSWrapper "split_all_tac";
 
 
-val hom_ioas = [Spec.ioa_def, Spec.trans_def,
-                Sender.sender_trans_def,Receiver.receiver_trans_def]
+val hom_ioas = [thm "Spec.ioa_def", thm "Spec.trans_def",
+                sender_trans_def,receiver_trans_def]
                @ impl_ioas;
 
-val impl_asigs = [Sender.sender_asig_def,Receiver.receiver_asig_def,
-                  Abschannel.srch_asig_def,Abschannel.rsch_asig_def];
+val impl_asigs = [sender_asig_def,receiver_asig_def,
+                  srch_asig_def,rsch_asig_def];
 
 (* Two simpsets: - simpset() is basic, ss' unfolds hom_ioas *)
 
@@ -40,7 +38,7 @@ Goal
 \   | C_r_s => False          \
 \   | C_r_r(m) => False)";
  by (simp_tac (simpset() addsimps ([externals_def, restrict_def,
-                            restrict_asig_def, Spec.sig_def]
+                            restrict_asig_def, thm "Spec.sig_def"]
                             @asig_projections)) 1);
 
   by (induct_tac "a" 1);
@@ -59,16 +57,16 @@ Goal
 qed "externals_lemma"; 
 
 
-val sels = [Sender.sbit_def, Sender.sq_def, Sender.ssending_def,
-            Receiver.rbit_def, Receiver.rq_def, Receiver.rsending_def];
+val sels = [sbit_def, sq_def, ssending_def,
+            rbit_def, rq_def, rsending_def];
 
 
 (* Proof of correctness *)
-Goalw [Spec.ioa_def, is_weak_ref_map_def]
+Goalw [thm "Spec.ioa_def", is_weak_ref_map_def]
   "is_weak_ref_map hom (Automata.restrict impl_ioa (externals spec_sig))  \
 \                  spec_ioa";
 by (simp_tac (simpset() delcongs [if_weak_cong] delsplits [split_if] 
- 	                addsimps [Correctness.hom_def, cancel_restrict, 
+ 	                addsimps [thm "Correctness.hom_def", cancel_restrict, 
 				  externals_lemma]) 1);
 by (rtac conjI 1);
  by (simp_tac ss' 1);

@@ -5,12 +5,10 @@
 Derived rules.
 *)
 
-open Abschannel;
-
-val unfold_renaming = 
- [srch_asig_def, rsch_asig_def, rsch_ioa_def, srch_ioa_def, ch_ioa_def, 
-   ch_asig_def, srch_actions_def, rsch_actions_def, rename_def, rename_set_def, asig_of_def, 
-   actions_def, srch_trans_def, rsch_trans_def, ch_trans_def,starts_of_def, 
+val unfold_renaming =
+ [srch_asig_def, rsch_asig_def, rsch_ioa_def, srch_ioa_def, ch_ioa_def,
+   ch_asig_def, srch_actions_def, rsch_actions_def, rename_def, rename_set_def, asig_of_def,
+   actions_def, srch_trans_def, rsch_trans_def, ch_trans_def,starts_of_def,
    trans_of_def] @ asig_projections;
 
 Goal
@@ -55,4 +53,3 @@ by (simp_tac (simpset() addsimps [rsch_asig_def,rsch_trans_def, asig_of_def, tra
               wfair_of_def, sfair_of_def,rsch_wfair_def,rsch_sfair_def]) 1);
 by (simp_tac (simpset() addsimps unfold_renaming) 1);
 qed"rsch_ioa_thm";
-

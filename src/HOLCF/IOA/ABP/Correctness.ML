@@ -4,10 +4,6 @@
 *)
 
 
-goal Abschannel.thy "(? x. x=P & Q(x)) = Q(P)";
-by (Fast_tac 1);
-qed"exis_elim";
-
 Delsimps [split_paired_All,Collect_empty_eq];
 Addsimps 
  ([srch_asig_def, rsch_asig_def, rsch_ioa_def, srch_ioa_def, ch_ioa_def, 
@@ -20,13 +16,13 @@ val abschannel_fin = [srch_fin_asig_def, rsch_fin_asig_def,
                       ch_fin_ioa_def,ch_fin_trans_def,ch_fin_asig_def];
 Addsimps abschannel_fin;
 
-val impl_ioas =  [Sender.sender_ioa_def,Receiver.receiver_ioa_def];
-val impl_trans = [Sender.sender_trans_def,Receiver.receiver_trans_def];
-val impl_asigs = [Sender.sender_asig_def,Receiver.receiver_asig_def];
+val impl_ioas =  [sender_ioa_def,receiver_ioa_def];
+val impl_trans = [sender_trans_def,receiver_trans_def];
+val impl_asigs = [sender_asig_def,receiver_asig_def];
 Addcongs [let_weak_cong];
 Addsimps [Let_def, ioa_triple_proj, starts_of_par];
 
-val env_ioas = [Env.env_ioa_def,Env.env_asig_def,Env.env_trans_def];
+val env_ioas = [env_ioa_def,env_asig_def,env_trans_def];
 val hom_ioas = env_ioas @ impl_ioas @ impl_trans @ impl_asigs @ 
                asig_projections @ set_lemmas;
 Addsimps hom_ioas;
@@ -58,11 +54,11 @@ qed_spec_mp "rev_red_not_nil";
 Goal "l~=[] ==> hd(reverse(reduce(a#l))) = hd(reverse(reduce(l)))";
  by (Simp_tac 1);
  by (auto_tac (claset(), HOL_ss addsplits [thm"list.split"]
-                                addsimps [reverse_Cons,hd_append,
-					  rev_red_not_nil]));
+                                addsimps (reverse.simps @ [hd_append,
+					  rev_red_not_nil])));
 qed"last_ind_on_first";
 
-val impl_ss = simpset() delsimps [reduce_Cons];
+val impl_ss = simpset() delsimps [reduce.reduce_Cons];
 
 (* Main Lemma 1 for S_pkt in showing that reduce is refinement  *) 
 Goal 
@@ -75,7 +71,7 @@ by (rtac conjI 1);
 by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
- by (asm_full_simp_tac (simpset() addsimps [reverse_Nil,reverse_Cons]) 1);
+ by (asm_full_simp_tac (simpset() addsimps reverse.simps) 1);
  by (rtac impI 1);
 by (Simp_tac 1);
 by (cut_inst_tac [("l","list")] cons_not_nil 1);
@@ -204,8 +200,8 @@ val ss =
   simpset() delsimps ([trans_of_def, srch_asig_def,rsch_asig_def,
                       asig_of_def, actions_def, srch_trans_def, rsch_trans_def,
                       srch_ioa_def, srch_fin_ioa_def, rsch_fin_ioa_def, 
-                      rsch_ioa_def, Sender.sender_trans_def,
-                      Receiver.receiver_trans_def] @ set_lemmas);
+                      rsch_ioa_def, sender_trans_def,
+                      receiver_trans_def] @ set_lemmas);
 
 Goal "compatible receiver_ioa (srch_ioa || rsch_ioa)";
 by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,

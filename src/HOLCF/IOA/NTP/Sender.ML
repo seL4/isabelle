@@ -15,10 +15,10 @@ Goal
 \ C_r_s : actions(sender_asig)          &   \
 \ C_r_r(m) ~: actions(sender_asig)";
 by (simp_tac (simpset() addsimps 
-             (Sender.sender_asig_def :: actions_def :: 
+             (sender_asig_def :: actions_def :: 
               asig_projections)) 1);
 qed "in_sender_asig";
 
 val sender_projections = 
-   [Sender.sq_def,Sender.ssent_def,Sender.srcvd_def,
-    Sender.sbit_def,Sender.ssending_def];
+   [sq_def,ssent_def,srcvd_def,
+    sbit_def,ssending_def];

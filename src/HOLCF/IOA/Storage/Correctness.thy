@@ -1,25 +1,24 @@
 (*  Title:      HOL/IOA/example/Correctness.thy
     ID:         $Id$
     Author:     Olaf Müller
-
-Correctness Proof.
 *)
 
-Correctness = SimCorrectness + Spec + Impl + 
+header {* Correctness Proof *}
 
-default type
+theory Correctness
+imports SimCorrectness Spec Impl
+begin
 
-consts
+defaultsort type
 
-sim_relation   :: "((nat * bool) * (nat set * bool)) set"
-
-defs
-  
-sim_relation_def
-  "sim_relation == {qua. let c = fst qua; a = snd qua ; 
+constdefs
+  sim_relation   :: "((nat * bool) * (nat set * bool)) set"
+  "sim_relation == {qua. let c = fst qua; a = snd qua ;
                              k = fst c;   b = snd c;
                              used = fst a; c = snd a
                          in
                          (! l:used. l < k) & b=c }"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

@@ -1,25 +1,27 @@
 (*  Title:      HOL/IOA/NTP/Spec.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-
-The specification of reliable transmission.
 *)
 
-Spec = List + IOA + Action +
+header {* The specification of reliable transmission *}
+
+theory Spec
+imports IOA Action
+begin
 
 consts
 
 spec_sig   :: "'m action signature"
-spec_trans :: ('m action, 'm list)transition set
-spec_ioa   :: ('m action, 'm list)ioa
+spec_trans :: "('m action, 'm list)transition set"
+spec_ioa   :: "('m action, 'm list)ioa"
 
 defs
 
-sig_def "spec_sig == (UN m.{S_msg(m)}, 
+sig_def: "spec_sig == (UN m.{S_msg(m)}, 
                      UN m.{R_msg(m)}, 
                      {})"
 
-trans_def "spec_trans ==                           
+trans_def: "spec_trans ==                           
  {tr. let s = fst(tr);                            
           t = snd(snd(tr))                        
       in                                          
@@ -36,6 +38,8 @@ trans_def "spec_trans ==
       C_r_s => False |                            
       C_r_r(m) => False}"
 
-ioa_def "spec_ioa == (spec_sig, {[]}, spec_trans,{},{})"
+ioa_def: "spec_ioa == (spec_sig, {[]}, spec_trans,{},{})"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

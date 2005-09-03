@@ -1,31 +1,33 @@
 (*  Title:      HOLCF/IOA/ABP/Spec.thy
     ID:         $Id$
     Author:     Olaf Müller
-
-The specification of reliable transmission.
 *)
 
-Spec = List + IOA + Action +
+header {* The specification of reliable transmission *}
+
+theory Spec
+imports IOA Action
+begin
 
 consts
 
 spec_sig   :: "'m action signature"
-spec_trans :: ('m action, 'm list)transition set
-spec_ioa   :: ('m action, 'm list)ioa
+spec_trans :: "('m action, 'm list)transition set"
+spec_ioa   :: "('m action, 'm list)ioa"
 
 defs
 
-sig_def "spec_sig == (UN m.{S_msg(m)}, 
+sig_def: "spec_sig == (UN m.{S_msg(m)}, 
                      UN m.{R_msg(m)} Un {Next}, 
                      {})"
 
-trans_def "spec_trans ==                           
+trans_def: "spec_trans ==                           
  {tr. let s = fst(tr);                            
           t = snd(snd(tr))                        
       in                                          
       case fst(snd(tr))                           
       of   
-      Next =>  t=s |\ (* Note that there is condition as in Sender *) 
+      Next =>  t=s |            (* Note that there is condition as in Sender *)
       S_msg(m) => t = s@[m]  |                    
       R_msg(m) => s = (m#t)  |                    
       S_pkt(pkt) => False |                    
@@ -33,6 +35,6 @@ trans_def "spec_trans ==
       S_ack(b) => False |                      
       R_ack(b) => False}"
 
-ioa_def "spec_ioa == (spec_sig, {[]}, spec_trans)"
+ioa_def: "spec_ioa == (spec_sig, {[]}, spec_trans)"
 
 end

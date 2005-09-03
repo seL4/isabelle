@@ -1,5 +1,9 @@
 
-Ring3 = MuIOAOracle +
+(* $Id$ *)
+
+theory Ring3
+imports MuIOAOracle
+begin
 
 datatype token = Leader | id0 | id1 | id2 | id3 | id4
 
@@ -8,7 +12,7 @@ datatype Comm =
   Leader_Zero | Leader_One | Leader_Two
 
 constdefs
-  Greater :: [token, token] => bool
+  Greater :: "[token, token] => bool"
   "Greater x y ==
     (x~=Leader & x~=id0 & y=id0) | (x=id4 & y~=id4 & y~=Leader) |
     (x=id2 & y=id1) | (x=id3 & y=id1) | (x=id3 & y=id2)"
@@ -79,7 +83,7 @@ automaton ring = compose aut0, aut1, aut2
 automaton one_leader =
   signature
     actions Comm
-    outputs "Zero_One t","One_Two t","Two_Zero t","Leader_Zero","Leader_One","Leader_Two" 
+    outputs "Zero_One t","One_Two t","Two_Zero t","Leader_Zero","Leader_One","Leader_Two"
   states
     leader :: token
   initially "leader=Leader"
@@ -89,16 +93,17 @@ automaton one_leader =
     "One_Two t"
       pre "True"
     "Two_Zero t"
-      pre "True" 
+      pre "True"
     "Leader_Zero"
       pre "leader=id0 | leader=Leader"
       post leader:="id0"
     "Leader_One"
       pre "leader=id1 | leader=Leader"
-      post leader:="id1" 
+      post leader:="id1"
     "Leader_Two"
       pre "leader=id2 | leader=Leader"
       post leader:="id2"
 
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

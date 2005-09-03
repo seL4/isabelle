@@ -1,7 +1,11 @@
 
-MuIOAOracle = MuIOA +
+(* $Id$ *)
 
-oracle
-  Sim = mk_sim_oracle
+theory MuIOAOracle
+imports MuIOA
+begin
+
+oracle sim_oracle ("term * thm list") =
+  mk_sim_oracle
 
 end
