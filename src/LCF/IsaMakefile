@@ -26,8 +26,7 @@ LCF: FOL $(OUT)/LCF
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/LCF: $(OUT)/FOL LCF.ML LCF.thy ROOT.ML fix.ML fix.thy pair.ML \
-  pair.thy simpdata.ML
+$(OUT)/LCF: $(OUT)/FOL LCF_lemmas.ML LCF.thy ROOT.ML fix.ML pair.ML
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL LCF
 
 
