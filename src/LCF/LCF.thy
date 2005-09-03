@@ -8,7 +8,7 @@ header {* LCF on top of First-Order Logic *}
 
 theory LCF
 imports FOL
-uses ("pair.ML") ("fix.ML")
+uses ("LCF_lemmas.ML") ("pair.ML") ("fix.ML")
 begin
 
 text {* This theory is based on Lawrence Paulson's book Logic and Computation. *}
