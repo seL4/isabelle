@@ -146,9 +146,8 @@ $(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML IOA/Modelcheck/Cockp
 
 IOA-Storage: IOA $(LOG)/IOA-Storage.gz
 
-$(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.ML \
-  IOA/Storage/Action.thy IOA/Storage/Correctness.ML \
-  IOA/Storage/Correctness.thy IOA/Storage/Impl.ML IOA/Storage/Impl.thy \
+$(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy IOA/Storage/Correctness.ML \
+  IOA/Storage/Correctness.thy IOA/Storage/Impl.thy \
   IOA/Storage/ROOT.ML IOA/Storage/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
 
