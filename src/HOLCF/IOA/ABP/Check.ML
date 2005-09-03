@@ -5,6 +5,8 @@
 The Model Checker.
 *)
 
+structure Check =
+struct
  
 (* ----------------------------------------------------------------
        P r o t o t y p e   M o d e l   C h e c k e r 
@@ -27,8 +29,8 @@ fun check(extacts,intacts,string_of_a,startsI,string_of_s,
                                  string_of_a a; writeln"";
                                  string_of_s t;writeln"";writeln"" ));
                      if t mem checked then unchecked else t ins unchecked)
-              in foldl check_sas (unchecked,nexts s a) end;
-              val unchecked' = foldl check_sa (unchecked,extacts @ intacts)
+              in Library.foldl check_sas (unchecked,nexts s a) end;
+              val unchecked' = Library.foldl check_sa (unchecked,extacts @ intacts)
         in    (if s mem startsI then 
                     (if hom(s) mem startsS then ()
                      else writeln("Error: At start states!"))
@@ -115,17 +117,17 @@ fun print_list (lpar, rpar, pre: 'a -> unit) (lll : 'a list) =
   in
     (case lll of
       [] => (std_output lpar; std_output rpar)
-    | x::lll => (std_output lpar; pre x; seq prec lll; std_output rpar))
+    | x::lll => (std_output lpar; pre x; List.app prec lll; std_output rpar))
    end;
 
-fun pr_bool true = output(std_out,"true")
-|   pr_bool false = output(std_out,"false");
+fun pr_bool true = std_output "true"
+|   pr_bool false = std_output "false";
 
-fun pr_msg m = output(std_out,"m")
-|   pr_msg n = output(std_out,"n")
-|   pr_msg l = output(std_out,"l");
+fun pr_msg m = std_output "m"
+|   pr_msg n = std_output "n"
+|   pr_msg l = std_output "l";
 
-fun pr_act a = output(std_out, case a of
+fun pr_act a = std_output (case a of
       Next => "Next"|                         
       S_msg(ma) => "S_msg(ma)"  |
       R_msg(ma) => "R_msg(ma)"  |
@@ -173,3 +175,5 @@ check([A],[],K"A", [0], string_of_int, nexts, hom, transA, [true]);
 fun nexts s A = [(s+1) mod 5];
 
 *)
+
+end;
