@@ -2,11 +2,7 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
-For ex/prolog.thy.  First-Order Logic: PROLOG examples
 *)
-
-open Prolog;
 
 Goal "app(a:b:c:Nil, d:e:Nil, ?x)";
 by (resolve_tac [appNil,appCons] 1);
@@ -70,5 +66,3 @@ Goal
 by (DEPTH_SOLVE (resolve_tac ([refl,conjI]@rules) 1));
 (*Poly/ML: 29 secs >> 20 lips*)
 result();
-
-writeln"Reached end of file.";

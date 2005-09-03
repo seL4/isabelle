@@ -9,8 +9,6 @@ To generate similar output to manual, execute these commands:
     Pretty.setmargin 72; print_depth 0;
 *)
 
-open Nat;
-
 Goal "Suc(k) ~= k";
 by (res_inst_tac [("n","k")] induct 1);
 by (rtac notI 1);

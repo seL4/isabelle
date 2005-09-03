@@ -2,20 +2,15 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
-
-For ex/nat.thy.  
-Examples of simplification and induction on the natural numbers
 *)
 
-open Nat2;
-
-Addsimps [pred_0, pred_succ, plus_0, plus_succ, 
-	  nat_distinct1, nat_distinct2, succ_inject,
-	  leq_0, leq_succ_succ, leq_succ_0, 
-	  lt_0_succ, lt_succ_succ, lt_0];
+Addsimps [pred_0, pred_succ, plus_0, plus_succ,
+          nat_distinct1, nat_distinct2, succ_inject,
+          leq_0, leq_succ_succ, leq_succ_0,
+          lt_0_succ, lt_succ_succ, lt_0];
 
 
-val prems = goal Nat2.thy 
+val prems = goal (the_context ())
     "[| P(0);  !!x. P(succ(x)) |] ==> All(P)";
 by (rtac nat_ind 1);
 by (REPEAT (resolve_tac (prems@[allI,impI]) 1));
@@ -115,7 +110,7 @@ by (cut_facts_tac [succ_le] 1);
 by (Fast_tac 1);
 qed "plus_le";
 
-val prems = goal Nat2.thy "[| ~m=0;  m <= n |] ==> ~n=0";
+val prems = goal (the_context ()) "[| ~m=0;  m <= n |] ==> ~n=0";
 by (cut_facts_tac prems 1);
 by (REPEAT (etac rev_mp 1));
 by (IND_TAC nat_exh Simp_tac "m" 1);
@@ -162,4 +157,3 @@ by (resolve_tac [impI RS allI] 1);
 by (ALL_IND_TAC nat_exh Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "less_succ";
-

@@ -2,13 +2,9 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
-
-For ex/list.thy.  Examples of simplification and induction on lists
 *)
 
-open List;
-
-val prems = goal List.thy "[| P([]);  !!x l. P(x . l) |] ==> All(P)";
+val prems = goal (the_context ()) "[| P([]);  !!x l. P(x . l) |] ==> All(P)";
 by (rtac list_ind 1);
 by (REPEAT (resolve_tac (prems@[allI,impI]) 1));
 qed "list_exh";
@@ -62,4 +58,3 @@ qed "at_app1";
 Goal "at(l1++(x . l2), len(l1)) = x";
 by (IND_TAC list_ind Simp_tac "l1" 1);
 qed "at_app_hd2";
-

@@ -5,8 +5,6 @@
 This is Nat.ML trivially modified to make it work with NatClass.thy.
 *)
 
-open NatClass;
-
 Goal "Suc(k) ~= (k::'a::nat)";
 by (res_inst_tac [("n","k")] induct 1);
 by (rtac notI 1);
@@ -54,7 +52,7 @@ by (res_inst_tac [("n","m")] induct 1);
 by (ALLGOALS (Asm_simp_tac));
 qed "add_Suc_right";
 
-val [prem] = goal NatClass.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+val [prem] = goal (the_context ()) "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [prem]) 1);
