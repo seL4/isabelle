@@ -206,7 +206,7 @@ val newline_token = basic_token T.is_newline;
 (* command spans *)
 
 type command = string * Position.T * string list;   (*name, position, tags*)
-type tok = token * string * int;                    (*token, markup flag, meta-comment depth*)
+type tok = token * string * int;         (*token, markup flag, meta-comment depth*)
 type source = tok list;
 
 datatype span = Span of command * (source * source * source * source) * bool;
@@ -247,7 +247,9 @@ fun present_span lex default_tags span state state'
     (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, flag, 0) =>
-      Buffer.add (output_token lex state' tok) #> Buffer.add flag | _ => I);
+        Buffer.add (output_token lex state' tok)
+        #> Buffer.add flag
+      | _ => I);
 
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
@@ -322,6 +324,10 @@ val ignore =
 
 val tag = (improper -- P.$$$ "%" -- improper) |-- P.!!! (P.tag_name --| improper_end);
 
+val locale =
+  Scan.option ((P.$$$ "(" -- improper -- P.$$$ "in") |--
+    P.!!! (improper |-- P.xname --| (improper -- P.$$$ ")")));
+
 in
 
 fun present_thy lex default_tags is_markup trs src =
@@ -332,10 +338,9 @@ fun present_thy lex default_tags is_markup trs src =
       >> (fn d => (NONE, (NoToken, "", d)));
 
     fun markup mark mk flag = Scan.peek (fn d =>
-      improper |--
-      P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.val_of)) --
+      improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.val_of)) --
       Scan.repeat tag --
-      P.!!!! (improper |-- P.position P.text --| improper_end)
+      P.!!!! ((improper -- locale -- improper) |-- P.position P.text --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
         let val name = T.val_of tok
         in (SOME (name, pos, tags), (mk (name, txt), flag, d)) end));
