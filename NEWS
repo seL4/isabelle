@@ -93,6 +93,15 @@ interface for introducing further styles.  See also the "LaTeX Sugar"
 document practical applications.  The ML antiquotation prints
 type-checked ML expressions verbatim.
 
+* Markup commands 'chapter', 'section', 'subsection', 'subsubsection',
+and 'text' support optional locale specification '(in loc)', which
+specifies the default context for interpreting antiquotations.
+For example: 'text (in LC) {* @{thm fold_cummute}*}'.
+
+* Option 'locale=NAME' of antiquotations specifies an alternative
+context interpreting the subsequent argument.  For example: @{thm
+[locale=LC] fold_commute}.
+
 * Proper output of proof terms (@{prf ...} and @{full_prf ...}) within
 a proof context.
 
@@ -256,10 +265,6 @@ values to argument tokens explicitly.
 * Changed parameter management in theorem generation for long goal
 statements with 'includes'.  INCOMPATIBILITY: produces a different
 theorem statement in rare situations.
-
-* Antiquotations provide the option 'locale=NAME' to specify an
-alternative context used for evaluating and printing the subsequent
-argument, as in @{thm [locale=LC] fold_commute}, for example.
 
 * Locale inspection command 'print_locale' omits notes elements.  Use
 'print_locale!' to have them included in the output.

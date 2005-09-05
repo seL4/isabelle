@@ -119,11 +119,10 @@ a structured way to insert text into the document generated from a theory (see
 \cite{isabelle-sys} for more information on Isabelle's document preparation
 tools).
 
-\railalias{textraw}{text\_raw}
-\railterm{textraw}
-
 \begin{rail}
-  ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text' | textraw) text
+  ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') locale? text
+  ;
+  'text\_raw' text
   ;
 \end{rail}
 
@@ -131,12 +130,16 @@ tools).
 \item [$\isarkeyword{chapter}$, $\isarkeyword{section}$,
   $\isarkeyword{subsection}$, and $\isarkeyword{subsubsection}$] mark chapter
   and section headings.
-\item [$\TEXT$] specifies paragraphs of plain text, including references to
-  formal entities (see also \S\ref{sec:antiq} on ``antiquotations'').
+\item [$\TEXT$] specifies paragraphs of plain text.
 \item [$\isarkeyword{text_raw}$] inserts {\LaTeX} source into the output,
   without additional markup.  Thus the full range of document manipulations
   becomes available.
 \end{descr}
+
+The $text$ argument of these markup commands (except for
+$\isarkeyword{text_raw}$) may contain references to formal entities
+(``antiquotations'', see also \S\ref{sec:antiq}).  These are interpreted in
+the present theory context, or the specified $locale$.
 
 Any of these markup elements corresponds to a {\LaTeX} command with the name
 prefixed by \verb,\isamarkup,.  For the sectioning commands this is a plain
