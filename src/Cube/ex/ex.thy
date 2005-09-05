@@ -1,4 +1,8 @@
 
+(* $Id$ *)
+
+header {* Lambda Cube Examples *}
+
 theory ex
 imports Cube
 begin

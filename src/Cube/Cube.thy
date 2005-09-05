@@ -36,10 +36,10 @@ syntax
   arrow         :: "[term, term] => term"               (infixr "->" 10)
 
 translations
-  ("prop") "x:X"  == ("prop") "|- x:X"
-  "Lam x:A. B"  == "Abs(A, %x. B)"
-  "Pi x:A. B"   => "Prod(A, %x. B)"
-  "A -> B"      => "Prod(A, _K(B))"
+  ("prop") "x:X" == ("prop") "|- x:X"
+  "Lam x:A. B"   == "Abs(A, %x. B)"
+  "Pi x:A. B"    => "Prod(A, %x. B)"
+  "A -> B"       => "Prod(A, _K(B))"
 
 syntax (xsymbols)
   Trueprop      :: "[context_, typing_] => prop"        ("(_/ \<turnstile> _)")
@@ -84,6 +84,7 @@ locale L2 =
 
 lemmas (in L2) rules = simple lam_bs pi_bs
 
+
 locale Lomega =
   assumes
     pi_bb: "[| A:[]; !!x. x:A ==> B(x):[] |] ==> Prod(A,B):[]"
@@ -100,17 +101,21 @@ locale LP =
 
 lemmas (in LP) rules = simple lam_sb pi_sb
 
+
 locale LP2 = LP + L2
 
 lemmas (in LP2) rules = simple lam_bs pi_bs lam_sb pi_sb
+
 
 locale Lomega2 = L2 + Lomega
 
 lemmas (in Lomega2) rules = simple lam_bs pi_bs lam_bb pi_bb
 
+
 locale LPomega = LP + Lomega
 
 lemmas (in LPomega) rules = simple lam_bb pi_bb lam_sb pi_sb
+
 
 locale CC = L2 + LP + Lomega
 
