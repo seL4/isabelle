@@ -219,54 +219,6 @@ lemma (in ring) minus_eq:
   by (simp only: minus_def)
 
 
-lemma (in ring) l_null [simp]:
-  "x \<in> carrier(R) \<Longrightarrow> \<zero> \<cdot> x = \<zero>"
-proof -
-  assume R: "x \<in> carrier(R)"
-  then have "\<zero> \<cdot> x \<oplus> \<zero> \<cdot> x = (\<zero> \<oplus> \<zero>) \<cdot> x"
-    by (simp add: l_distr del: l_zero r_zero)
-  also from R have "... = \<zero> \<cdot> x \<oplus> \<zero>" by simp
-  finally have "\<zero> \<cdot> x \<oplus> \<zero> \<cdot> x = \<zero> \<cdot> x \<oplus> \<zero>" .
-  with R show ?thesis by (simp del: r_zero)
-qed
-
-lemma (in ring) r_null [simp]:
-  "x \<in> carrier(R) \<Longrightarrow> x \<cdot> \<zero> = \<zero>"
-proof -
-  assume R: "x \<in> carrier(R)"
-  then have "x \<cdot> \<zero> \<oplus> x \<cdot> \<zero> = x \<cdot> (\<zero> \<oplus> \<zero>)"
-    by (simp add: r_distr del: l_zero r_zero)
-  also from R have "... = x \<cdot> \<zero> \<oplus> \<zero>" by simp
-  finally have "x \<cdot> \<zero> \<oplus> x \<cdot> \<zero> = x \<cdot> \<zero> \<oplus> \<zero>" .
-  with R show ?thesis by (simp del: r_zero)
-qed
-
-lemma (in ring) l_minus:
-  "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> \<ominus> x \<cdot> y = \<ominus> (x \<cdot> y)"
-proof -
-  assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
-  then have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y = (\<ominus> x \<oplus> x) \<cdot> y" by (simp add: l_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg l_null)
-  finally have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y = \<zero>" .
-  with R have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y \<oplus> \<ominus> (x \<cdot> y) = \<zero> \<oplus> \<ominus> (x \<cdot> y)" by simp
-  with R show ?thesis by (simp add: a_assoc r_neg)
-qed
-
-lemma (in ring) r_minus:
-  "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<cdot> \<ominus> y = \<ominus> (x \<cdot> y)"
-proof -
-  assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
-  then have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y = x \<cdot> (\<ominus> y \<oplus> y)" by (simp add: r_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg r_null)
-  finally have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y = \<zero>" .
-  with R have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y \<oplus> \<ominus> (x \<cdot> y) = \<zero> \<oplus> \<ominus> (x \<cdot> y)" by simp
-  with R show ?thesis by (simp add: a_assoc r_neg)
-qed
-
-lemma (in ring) minus_eq:
-  "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus> y = x \<oplus> \<ominus> y"
-  by (simp only: minus_def)
-
 subsection {* Morphisms *}
 
 constdefs
