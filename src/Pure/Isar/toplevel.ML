@@ -16,6 +16,7 @@ sig
   val is_toplevel: state -> bool
   val level: state -> int
   exception UNDEF
+  val assert: bool -> unit
   val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
@@ -81,6 +82,7 @@ sig
   val unknown_context: transition -> transition
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
+  val command: transition -> state -> state
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
   val set_state: state -> unit
@@ -130,6 +132,9 @@ fun str_of_state (State NONE) = "at top level"
 (* top node *)
 
 exception UNDEF;
+
+fun assert true = ()
+  | assert false = raise UNDEF;
 
 fun node_history_of (State NONE) = raise UNDEF
   | node_history_of (State (SOME (node, _))) = node;
@@ -553,6 +558,12 @@ fun apply int tr st =
   | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
   | (state', SOME exn) => SOME (state', SOME (exn, at_command tr))
   | (state', NONE) => SOME (state', NONE));
+
+fun command tr st =
+  (case apply false tr st of
+    SOME (st', NONE) => st'
+  | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
+  | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
 end;
 
