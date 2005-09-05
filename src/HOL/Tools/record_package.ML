@@ -1178,8 +1178,8 @@ fun record_split_simp_tac thms P i st =
    
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
    
-  in st |> (EVERY split_frees_tacs) 
-           THEN (Simplifier.full_simp_tac (simpset addsimps thms addsimprocs simprocs) i)
+  in st |> ((EVERY split_frees_tacs) 
+           THEN (Simplifier.full_simp_tac (simpset addsimps thms addsimprocs simprocs) i))
   end handle Empty => Seq.empty;
 end;
 

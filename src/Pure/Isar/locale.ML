@@ -1896,10 +1896,10 @@ fun def_pred bname parms defs ts norm_ts thy =
       Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
 
     val conjuncts =
-      Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
-        Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))]
+      (Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
+        Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Drule.conj_elim_precise (length ts);
-    val axioms = (ts ~~ conjuncts) |> map (fn (t, ax) =>
+    val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Tactic.prove_plain defs_thy [] [] t (fn _ =>
         Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));

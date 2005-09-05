@@ -8,14 +8,13 @@ rational numbers, strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
-infix |> |-> ||> ||>> |>> |>>> #> #-> ~~ \ \\ ins ins_string ins_int
-  orf andf prefix upto downto mem mem_int mem_string union union_int
-  union_string inter inter_int inter_string subset subset_int
-  subset_string;
-
+infix 1 |> |-> ||> ||>> |>> |>>> #> #->;
 infix 2 ?;
+infix 3 o oo ooo oooo;
 
-infix 3 oo ooo oooo;
+infix 4 ~~ upto downto;
+infix orf andf prefix \ \\ ins ins_string ins_int mem mem_int mem_string union union_int
+  union_string inter inter_int inter_string subset subset_int subset_string;
 
 signature BASIC_LIBRARY =
 sig
