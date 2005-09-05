@@ -35,24 +35,24 @@ val headerP = OuterSyntax.markup_command IsarOutput.Markup "header" "theory head
   (P.position P.text >> IsarCmd.add_header);
 
 val chapterP = OuterSyntax.markup_command IsarOutput.Markup "chapter" "chapter heading"
-  K.thy_heading (P.position P.text >> IsarCmd.add_chapter);
+  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_chapter);
 
 val sectionP = OuterSyntax.markup_command IsarOutput.Markup "section" "section heading"
-  K.thy_heading (P.position P.text >> IsarCmd.add_section);
+  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_section);
 
 val subsectionP = OuterSyntax.markup_command IsarOutput.Markup "subsection" "subsection heading"
-  K.thy_heading (P.position P.text >> IsarCmd.add_subsection);
+  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_subsection);
 
 val subsubsectionP =
   OuterSyntax.markup_command IsarOutput.Markup "subsubsection" "subsubsection heading"
-  K.thy_heading (P.position P.text >> IsarCmd.add_subsubsection);
+  K.thy_heading (P.opt_locale_target -- P.position P.text >> IsarCmd.add_subsubsection);
 
 val textP = OuterSyntax.markup_command IsarOutput.MarkupEnv "text" "formal comment (theory)"
-  K.thy_decl (P.position P.text >> IsarCmd.add_text);
+  K.thy_decl (P.opt_locale_target -- P.position P.text >> IsarCmd.add_text);
 
 val text_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "text_raw"
-  "raw document preparation text" K.thy_decl
-  (P.position P.text >> IsarCmd.add_text_raw);
+  "raw document preparation text"
+  K.thy_decl (P.position P.text >> IsarCmd.add_text_raw);
 
 val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)"
   (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_sect);
