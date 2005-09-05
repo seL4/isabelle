@@ -257,7 +257,7 @@ fun skolem thy (name,th) =
 (*Populate the clause cache using the supplied theorems*)
 fun skolemlist [] thy = thy
   | skolemlist ((name,th)::nths) thy = 
-      (case Symtab.lookup (!clause_cache,name) of
+      (case Symtab.curried_lookup (!clause_cache) name of
 	  NONE => 
 	    let val (nnfth,ok) = (to_nnf thy th, true)  
 	                 handle THM _ => (asm_rl, false)
@@ -265,8 +265,7 @@ fun skolemlist [] thy = thy
                 if ok then
                     let val (skoths,thy') = skolem thy (name, nnfth)
 			val cls = Meson.make_cnf skoths nnfth
-		    in  clause_cache := 
-		     	  Symtab.update ((name, (th,cls)), !clause_cache);
+		    in change clause_cache (Symtab.curried_update (name, (th, cls)));
 			skolemlist nths thy'
 		    end
 		else skolemlist nths thy
@@ -277,17 +276,15 @@ fun skolemlist [] thy = thy
 fun cnf_axiom (name,th) =
     case name of
 	  "" => cnf_axiom_aux th (*no name, so can't cache*)
-	| s  => case Symtab.lookup (!clause_cache,s) of
+	| s  => case Symtab.curried_lookup (!clause_cache) s of
 	  	  NONE => 
 		    let val cls = cnf_axiom_aux th
-		    in  clause_cache := Symtab.update ((s, (th,cls)), !clause_cache); cls
-		    end
+		    in change clause_cache (Symtab.curried_update (s, (th, cls))); cls end
 	        | SOME(th',cls) =>
 		    if eq_thm(th,th') then cls
 		    else (*New theorem stored under the same name? Possible??*)
 		      let val cls = cnf_axiom_aux th
-		      in  clause_cache := Symtab.update ((s, (th,cls)), !clause_cache); cls
-		      end;
+		      in change clause_cache (Symtab.curried_update (s, (th, cls))); cls end;
 
 fun pairname th = (Thm.name_of_thm th, th);
 

@@ -281,7 +281,7 @@ fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
  |  _ => NONE);
 
 fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
-      (case Symtab.lookup (DatatypePackage.get_datatypes thy, s) of
+      (case Symtab.curried_lookup (DatatypePackage.get_datatypes thy) s of
          NONE => NONE
        | SOME {descr, ...} =>
            if isSome (get_assoc_type thy s) then NONE else

@@ -136,16 +136,16 @@ fun make_schematic_type_var (x,i) =
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
 fun make_fixed_const c =
-    case Symtab.lookup (const_trans_table,c) of
+    case Symtab.curried_lookup const_trans_table c of
         SOME c' => c'
-      | NONE =>  const_prefix ^ (ascii_of c);
+      | NONE =>  const_prefix ^ ascii_of c;
 
 fun make_fixed_type_const c = 
-    case Symtab.lookup (type_const_trans_table,c) of
+    case Symtab.curried_lookup type_const_trans_table c of
         SOME c' => c'
-      | NONE =>  tconst_prefix ^ (ascii_of c);
+      | NONE =>  tconst_prefix ^ ascii_of c;
 
-fun make_type_class clas = class_prefix ^ (ascii_of clas);
+fun make_type_class clas = class_prefix ^ ascii_of clas;
 
 
 

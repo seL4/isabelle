@@ -212,7 +212,7 @@ fun set_elem vector index str =
     else if (approx_value_term 1 I str) = zero_interval then 
 	vector
     else  
-	Inttab.update ((index, str), vector)
+	Inttab.curried_update (index, str) vector
 
 fun set_vector matrix index vector = 
     if index < 0 then
@@ -220,7 +220,7 @@ fun set_vector matrix index vector =
     else if Inttab.is_empty vector then
 	matrix
     else
-	Inttab.update ((index, vector), matrix)
+	Inttab.curried_update (index, vector) matrix
 
 val empty_matrix = Inttab.empty
 val empty_vector = Inttab.empty
@@ -232,9 +232,9 @@ structure cplex = Cplex
 fun transpose_matrix matrix = 
     let
 	fun upd m j i x =
-	    case Inttab.lookup (m, j) of
-		SOME v => Inttab.update ((j, Inttab.update ((i, x), v)), m)
-	      | NONE => Inttab.update ((j, Inttab.update ((i, x), Inttab.empty)), m) 
+	    case Inttab.curried_lookup m j of
+		SOME v => Inttab.curried_update (j, Inttab.curried_update (i, x) v) m
+	      | NONE => Inttab.curried_update (j, Inttab.curried_update (i, x) Inttab.empty) m
 
 	fun updv j (m, (i, s)) = upd m i j s
 
@@ -258,7 +258,7 @@ fun cplexProg c A b =
 	fun nameof i = 
 	    let 
 		val s = "x"^(Int.toString i)
-		val _ = ytable := (Inttab.update ((i, s), !ytable))
+		val _ = change ytable (Inttab.curried_update (i, s))
 	    in
 		s
 	    end
@@ -281,7 +281,7 @@ fun cplexProg c A b =
 		       		       
 	fun mk_constr index vector c = 
 	    let 
-		val s = case Inttab.lookup (c, index) of SOME s => s | NONE => "0"
+		val s = case Inttab.curried_lookup c index of SOME s => s | NONE => "0"
 		val (p, s) = split_numstr s
 		val num = if p then cplex.cplexNum s else cplex.cplexNeg (cplex.cplexNum s)
 	    in
@@ -334,7 +334,7 @@ fun dual_cplexProg c A b =
 		       		       
 	fun mk_constr index vector c = 
 	    let 
-		val s = case Inttab.lookup (c, index) of SOME s => s | NONE => "0"
+		val s = case Inttab.curried_lookup c index of SOME s => s | NONE => "0"
 		val (p, s) = split_numstr s
 		val num = if p then cplex.cplexNum s else cplex.cplexNeg (cplex.cplexNum s)
 	    in
@@ -358,7 +358,7 @@ fun cut_vector size v =
 	val count = ref 0 
 	fun app (v, (i, s)) = 
 	    if (!count < size) then
-		(count := !count +1 ; Inttab.update ((i,s),v))
+		(count := !count +1 ; Inttab.curried_update (i,s) v)
 	    else
 		v
     in
@@ -368,18 +368,18 @@ fun cut_vector size v =
 fun cut_matrix vfilter vsize m = 
     let 
 	fun app (m, (i, v)) = 
-	    if (Inttab.lookup (vfilter, i) = NONE) then 
+	    if Inttab.curried_lookup vfilter i = NONE then 
 		m 
 	    else 
 		case vsize of
-		    NONE => Inttab.update ((i,v), m)
-		  | SOME s => Inttab.update((i, cut_vector s v),m)
+		    NONE => Inttab.curried_update (i,v) m
+		  | SOME s => Inttab.curried_update (i, cut_vector s v) m
     in
 	Inttab.foldl app (empty_matrix, m)
     end
 		 
-fun v_elem_at v i = Inttab.lookup (v,i)
-fun m_elem_at m i = Inttab.lookup (m,i)
+fun v_elem_at v i = Inttab.curried_lookup v i
+fun m_elem_at m i = Inttab.curried_lookup m i
 
 fun v_only_elem v = 
     case Inttab.min_key v of

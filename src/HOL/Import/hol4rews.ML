@@ -110,16 +110,12 @@ end;
 structure HOL4Imports = TheoryDataFun(HOL4ImportsArgs);
 
 fun get_segment2 thyname thy =
-    let
-	val imps = HOL4Imports.get thy
-    in
-	Symtab.lookup(imps,thyname)
-    end
+  Symtab.curried_lookup (HOL4Imports.get thy) thyname
 
 fun set_segment thyname segname thy =
     let
 	val imps = HOL4Imports.get thy
-	val imps' = Symtab.update_new((thyname,segname),imps)
+	val imps' = Symtab.curried_update_new (thyname,segname) imps
     in
 	HOL4Imports.put imps' thy
     end
@@ -295,23 +291,19 @@ val get_output_dir = #1 o HOL4Dump.get
 fun add_hol4_move bef aft thy =
     let
 	val curmoves = HOL4Moves.get thy
-	val newmoves = Symtab.update_new((bef,aft),curmoves)
+	val newmoves = Symtab.curried_update_new (bef, aft) curmoves
     in
 	HOL4Moves.put newmoves thy
     end
 
 fun get_hol4_move bef thy =
-    let
-	val moves = HOL4Moves.get thy
-    in
-	Symtab.lookup(moves,bef)
-    end
+  Symtab.curried_lookup (HOL4Moves.get thy) bef
 
 fun follow_name thmname thy =
     let
 	val moves = HOL4Moves.get thy
 	fun F thmname =
-	    case Symtab.lookup(moves,thmname) of
+	    case Symtab.curried_lookup moves thmname of
 		SOME name => F name
 	      | NONE => thmname
     in
@@ -321,23 +313,19 @@ fun follow_name thmname thy =
 fun add_hol4_cmove bef aft thy =
     let
 	val curmoves = HOL4CMoves.get thy
-	val newmoves = Symtab.update_new((bef,aft),curmoves)
+	val newmoves = Symtab.curried_update_new (bef, aft) curmoves
     in
 	HOL4CMoves.put newmoves thy
     end
 
 fun get_hol4_cmove bef thy =
-    let
-	val moves = HOL4CMoves.get thy
-    in
-	Symtab.lookup(moves,bef)
-    end
+  Symtab.curried_lookup (HOL4CMoves.get thy) bef
 
 fun follow_cname thmname thy =
     let
 	val moves = HOL4CMoves.get thy
 	fun F thmname =
-	    case Symtab.lookup(moves,thmname) of
+	    case Symtab.curried_lookup moves thmname of
 		SOME name => F name
 	      | NONE => thmname
     in

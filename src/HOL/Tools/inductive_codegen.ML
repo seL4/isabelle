@@ -55,9 +55,8 @@ fun add optmod (p as (thy, thm)) =
         Const (s, _) =>
           let val cs = foldr add_term_consts [] (prems_of thm)
           in (CodegenData.put
-            {intros = Symtab.update ((s,
-               getOpt (Symtab.lookup (intros, s), []) @
-                 [(thm, thyname_of s)]), intros),
+            {intros = intros |>
+             Symtab.curried_update (s, Symtab.curried_lookup_multi intros s @ [(thm, thyname_of s)]),
              graph = foldr (uncurry (Graph.add_edge o pair s))
                (Library.foldl add_node (graph, s :: cs)) cs,
              eqns = eqns} thy, thm)
@@ -66,16 +65,15 @@ fun add optmod (p as (thy, thm)) =
     | _ $ (Const ("op =", _) $ t $ _) => (case head_of t of
         Const (s, _) =>
           (CodegenData.put {intros = intros, graph = graph,
-             eqns = Symtab.update ((s,
-               getOpt (Symtab.lookup (eqns, s), []) @
-                 [(thm, thyname_of s)]), eqns)} thy, thm)
+             eqns = eqns |> Symtab.curried_update
+               (s, Symtab.curried_lookup_multi eqns s @ [(thm, thyname_of s)])} thy, thm)
       | _ => (warn thm; p))
     | _ => (warn thm; p))
   end;
 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
-  in case Symtab.lookup (intros, s) of
+  in case Symtab.curried_lookup intros s of
       NONE => (case InductivePackage.get_inductive thy s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, ...}) =>
@@ -86,7 +84,7 @@ fun get_clauses thy s =
           val SOME names = find_first
             (fn xs => s mem xs) (Graph.strong_conn graph);
           val intrs = List.concat (map
-            (fn s => valOf (Symtab.lookup (intros, s))) names);
+            (fn s => the (Symtab.curried_lookup intros s)) names);
           val (_, (_, thyname)) = split_last intrs
         in SOME (names, thyname, preprocess thy (map fst intrs)) end
   end;
@@ -718,7 +716,7 @@ fun inductive_codegen thy defs gr dep module brack (Const ("op :", _) $ t $ u) =
            (Pretty.block [Pretty.str "?! (", call_p, Pretty.str ")"])))
         handle TERM _ => mk_ind_call thy defs gr dep module t u true)
   | inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
-      (Const (s, _), ts) => (case Symtab.lookup (#eqns (CodegenData.get thy), s) of
+      (Const (s, _), ts) => (case Symtab.curried_lookup (#eqns (CodegenData.get thy)) s of
         NONE => list_of_indset thy defs gr dep module brack t
       | SOME eqns =>
           let

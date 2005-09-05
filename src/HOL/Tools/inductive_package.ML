@@ -112,7 +112,7 @@ val print_inductives = InductiveData.print;
 
 (* get and put data *)
 
-fun get_inductive thy name = Symtab.lookup (fst (InductiveData.get thy), name);
+val get_inductive = Symtab.curried_lookup o #1 o InductiveData.get;
 
 fun the_inductive thy name =
   (case get_inductive thy name of
@@ -123,7 +123,7 @@ val the_mk_cases = (#mk_cases o #2) oo the_inductive;
 
 fun put_inductives names info thy =
   let
-    fun upd ((tab, monos), name) = (Symtab.update_new ((name, info), tab), monos);
+    fun upd ((tab, monos), name) = (Symtab.curried_update_new (name, info) tab, monos);
     val tab_monos = Library.foldl upd (InductiveData.get thy, names)
       handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
   in InductiveData.put tab_monos thy end;

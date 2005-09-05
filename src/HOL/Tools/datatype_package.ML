@@ -104,7 +104,7 @@ val print_datatypes = DatatypesData.print;
 
 (** theory information about datatypes **)
 
-fun datatype_info thy name = Symtab.lookup (get_datatypes thy, name);
+val datatype_info = Symtab.curried_lookup o get_datatypes;
 
 fun datatype_info_err thy name = (case datatype_info thy name of
       SOME info => info
@@ -681,7 +681,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs Simplifier.cong_add_global |> 
-      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
+      put_datatypes (fold Symtab.curried_update dt_infos dt_info) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -739,7 +739,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
+      put_datatypes (fold Symtab.curried_update dt_infos dt_info) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -847,7 +847,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, []) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
+      put_datatypes (fold Symtab.curried_update dt_infos dt_info) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>

@@ -42,8 +42,7 @@ fun add optmod (p as (thy, thm)) =
     val (s, _) = const_of (prop_of thm);
   in
     if Pattern.pattern (lhs_of thm) then
-      (CodegenData.put (Symtab.update ((s,
-        (thm, optmod) :: getOpt (Symtab.lookup (tab, s), [])), tab)) thy, thm)
+      (CodegenData.put (Symtab.curried_update_multi (s, (thm, optmod)) tab) thy, thm)
     else (warn thm; p)
   end handle TERM _ => (warn thm; p);
 
@@ -51,10 +50,10 @@ fun del (p as (thy, thm)) =
   let
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
-  in case Symtab.lookup (tab, s) of
+  in case Symtab.curried_lookup tab s of
       NONE => p
-    | SOME thms => (CodegenData.put (Symtab.update ((s,
-        gen_rem (eq_thm o apfst fst) (thms, thm)), tab)) thy, thm)
+    | SOME thms => (CodegenData.put (Symtab.curried_update (s,
+        gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy, thm)
   end handle TERM _ => (warn thm; p);
 
 fun del_redundant thy eqs [] = eqs
@@ -65,7 +64,7 @@ fun del_redundant thy eqs [] = eqs
     in del_redundant thy (eq :: eqs) (filter_out (matches eq) eqs') end;
 
 fun get_equations thy defs (s, T) =
-  (case Symtab.lookup (CodegenData.get thy, s) of
+  (case Symtab.curried_lookup (CodegenData.get thy) s of
      NONE => ([], "")
    | SOME thms => 
        let val thms' = del_redundant thy []

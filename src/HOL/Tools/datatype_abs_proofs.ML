@@ -168,7 +168,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
         val inject = map (fn r => r RS iffD1)
           (if i < length newTs then List.nth (constr_inject, i)
-            else #inject (valOf (Symtab.lookup (dt_info, tname))));
+            else #inject (the (Symtab.curried_lookup dt_info tname)));
 
         fun mk_unique_constr_tac n ((tac, intr::intrs, j), (cname, cargs)) =
           let

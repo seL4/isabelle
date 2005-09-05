@@ -54,11 +54,11 @@ fun add_row_bound g dest_key row_index row_bound =
     let 
 	val x = 
 	    case VarGraph.lookup (g, dest_key) of
-		NONE => (NONE, Inttab.update ((row_index, (row_bound, [])), Inttab.empty))
+		NONE => (NONE, Inttab.curried_update (row_index, (row_bound, [])) Inttab.empty)
 	      | SOME (sure_bound, f) =>
 		(sure_bound,
-		 case Inttab.lookup (f, row_index) of
-		     NONE => Inttab.update ((row_index, (row_bound, [])), f)
+		 case Inttab.curried_lookup f row_index of
+		     NONE => Inttab.curried_update (row_index, (row_bound, [])) f
 		   | SOME _ => raise (Internal "add_row_bound"))				     
     in
 	VarGraph.update ((dest_key, x), g)
@@ -88,7 +88,7 @@ fun get_sure_bound g key =
     case VarGraph.lookup (g, key) of
 	NONE => NONE
       | SOME (sure_bound, f) =>
-	(case Inttab.lookup (f, row_index) of 
+	(case Inttab.curried_lookup f row_index of 
 	     NONE => NONE
 	   | SOME (row_bound, _) => (sure_bound, row_bound))*)
     
@@ -96,10 +96,10 @@ fun add_edge g src_key dest_key row_index coeff =
     case VarGraph.lookup (g, dest_key) of
 	NONE => raise (Internal "add_edge: dest_key not found")
       | SOME (sure_bound, f) =>
-	(case Inttab.lookup (f, row_index) of
+	(case Inttab.curried_lookup f row_index of
 	     NONE => raise (Internal "add_edge: row_index not found")
 	   | SOME (row_bound, sources) => 
-	     VarGraph.update ((dest_key, (sure_bound, Inttab.update ((row_index, (row_bound, (coeff, src_key) :: sources)), f))), g))
+	     VarGraph.curried_update (dest_key, (sure_bound, Inttab.curried_update (row_index, (row_bound, (coeff, src_key) :: sources)) f)) g)
 
 fun split_graph g = 
     let
@@ -108,8 +108,8 @@ fun split_graph g =
 		NONE => (r1, r2)
 	      | SOME bound => 
 		(case key of
-		     (u, UPPER) => (r1, Inttab.update ((u, bound), r2))
-		   | (u, LOWER) => (Inttab.update ((u, bound), r1), r2))
+		     (u, UPPER) => (r1, Inttab.curried_update (u, bound) r2)
+		   | (u, LOWER) => (Inttab.curried_update (u, bound) r1, r2))
     in
 	VarGraph.foldl split ((Inttab.empty, Inttab.empty), g)
     end
@@ -195,7 +195,7 @@ fun calcr safe_propagation xlen names prec A b =
     let
 	val empty = Inttab.empty
 
-	fun instab t i x = Inttab.update ((i,x), t)
+	fun instab t i x = Inttab.curried_update (i, x) t
 
 	fun isnegstr x = String.isPrefix "-" x
 	fun negstr x = if isnegstr x then String.extract (x, 1, NONE) else "-"^x
@@ -280,8 +280,8 @@ fun calcr safe_propagation xlen names prec A b =
 		let
 		    val index = xlen-i
 		    val (r, (r12_1, r12_2)) = abs_estimate (i-1) r1 r2 
-		    val b1 = case Inttab.lookup (r1, index) of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
-		    val b2 = case Inttab.lookup (r2, index) of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
+		    val b1 = case Inttab.curried_lookup r1 index of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
+		    val b2 = case Inttab.curried_lookup r2 index of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
 		    val abs_max = FloatArith.max (FloatArith.neg (FloatArith.negative_part b1)) (FloatArith.positive_part b2)    
 		in
 		    (add_row_entry r index abs_max, (add_row_entry r12_1 index b1, add_row_entry r12_2 index b2))
