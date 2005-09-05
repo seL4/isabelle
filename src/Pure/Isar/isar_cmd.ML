@@ -72,11 +72,16 @@ sig
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val add_header: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_chapter: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_section: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_subsection: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_subsubsection: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_text: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_chapter: xstring option * (string * Position.T) ->
+    Toplevel.transition -> Toplevel.transition
+  val add_section: xstring option * (string * Position.T) ->
+    Toplevel.transition -> Toplevel.transition
+  val add_subsection: xstring option * (string * Position.T) ->
+    Toplevel.transition -> Toplevel.transition
+  val add_subsubsection: xstring option * (string * Position.T) ->
+    Toplevel.transition -> Toplevel.transition
+  val add_text: xstring option * (string * Position.T) ->
+    Toplevel.transition -> Toplevel.transition
   val add_text_raw: string * Position.T -> Toplevel.transition -> Toplevel.transition
   val add_sect: string * Position.T -> Toplevel.transition -> Toplevel.transition
   val add_subsect: string * Position.T -> Toplevel.transition -> Toplevel.transition
@@ -346,19 +351,29 @@ val print_type = print_item string_of_type;
 (* markup commands *)
 
 fun add_header s = Toplevel.keep' (fn int => fn state =>
-  (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
-    OuterSyntax.check_text s int state));
+  (Toplevel.assert (Toplevel.is_toplevel state);
+   if int then OuterSyntax.check_text s state else ()));
 
 local
 
-fun present_text assert_proof present (s, pos) = Toplevel.keep' (fn int => fn state =>
-  (if can Toplevel.proof_of state = assert_proof then () else raise Toplevel.UNDEF;
-    Context.setmp (SOME (Toplevel.theory_of state)) present s;
-    OuterSyntax.check_text (s, pos) int (Toplevel.no_body_context state);
-    raise Toplevel.UNDEF));
+fun enter_locale NONE = Toplevel.theory I
+  | enter_locale (SOME loc) = Toplevel.theory_context (fn thy =>
+      (thy, #3 (Locale.read_context_statement (SOME loc) [] [] (ProofContext.init thy))));
 
-fun theory f x = Toplevel.theory I o present_text false f x;
-fun proof f x = Toplevel.print o Toplevel.proof (ProofHistory.apply I) o present_text true f x;
+fun present_text proof present loc (s, pos) = Toplevel.keep' (fn int => fn state =>
+ (Toplevel.assert (can Toplevel.proof_of state = proof);
+  if int then
+    state
+    |> Toplevel.no_body_context
+    |> Toplevel.command
+      (Toplevel.empty |> Toplevel.position pos |> enter_locale loc |> Toplevel.keep (K ()))
+    |> OuterSyntax.check_text (s, pos)
+  else Context.setmp (SOME (Toplevel.theory_of state)) present s;
+  raise Toplevel.UNDEF));
+
+fun theory f (loc, txt) = enter_locale loc o present_text false f loc txt;
+fun proof f txt =
+  Toplevel.print o Toplevel.proof (ProofHistory.apply I) o present_text true f NONE txt;
 
 in
 
@@ -367,7 +382,7 @@ val add_section = theory Present.section;
 val add_subsection = theory Present.subsection;
 val add_subsubsection = theory Present.subsubsection;
 val add_text = theory (K ());
-val add_text_raw = add_text;
+fun add_text_raw txt = theory (K ()) (NONE, txt);
 val add_txt = proof (K ());
 val add_txt_raw = add_txt;
 val add_sect = add_txt;
