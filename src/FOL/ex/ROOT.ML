@@ -13,8 +13,6 @@ time_use_thy "Nat";
 time_use     "foundn.ML";
 time_use_thy "Prolog";
 
-time_use_thy "LocaleTest";
-
 writeln"\n** Intuitionistic examples **\n";
 time_use_thy "Intuitionistic";
 
@@ -39,3 +37,6 @@ time_use_thy "List";
 
 writeln"\n** How to declare an oracle **\n";
 time_use_thy "IffOracle";
+
+(*regression test for locales -- sets several global flags!*)
+time_use_thy "LocaleTest";
