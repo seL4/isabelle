@@ -83,7 +83,7 @@ val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_dec
 
 (* tags *)
 
-fun update_tags t ts = t :: remove (op =) t ts;
+fun update_tags t ts = t :: remove (op = : string * string -> bool) t ts;
 
 fun tag t (Keyword (s, ts)) = Keyword (s, update_tags t ts);
 fun tags_of (Keyword (_, ts)) = ts;
