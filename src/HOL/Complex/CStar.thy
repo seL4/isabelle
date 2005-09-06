@@ -44,11 +44,11 @@ constdefs
 
     starfunRC :: "(real => complex) => hypreal => hcomplex"
                  ("*fRc* _" [80] 80)
-    "*fRc* f  == (%x. Abs_hcomplex(\<Union>X \<in> Rep_hypreal(x). hcomplexrel``{%n. f (X n)}))"
+    "*fRc* f  == (%x. Abs_hcomplex(\<Union>X \<in> Rep_star(x). hcomplexrel``{%n. f (X n)}))"
 
     starfunRC_n :: "(nat => (real => complex)) => hypreal => hcomplex"
                    ("*fRcn* _" [80] 80)
-    "*fRcn* F  == (%x. Abs_hcomplex(\<Union>X \<in> Rep_hypreal(x). hcomplexrel``{%n. (F n)(X n)}))"
+    "*fRcn* F  == (%x. Abs_hcomplex(\<Union>X \<in> Rep_star(x). hcomplexrel``{%n. (F n)(X n)}))"
 
     InternalRCFuns :: "(hypreal => hcomplex) set"
     "InternalRCFuns == {X. \<exists>F. X = *fRcn* F}"
@@ -57,11 +57,11 @@ constdefs
 
     starfunCR :: "(complex => real) => hcomplex => hypreal"
                  ("*fcR* _" [80] 80)
-    "*fcR* f  == (%x. Abs_hypreal(\<Union>X \<in> Rep_hcomplex(x). hyprel``{%n. f (X n)}))"
+    "*fcR* f  == (%x. Abs_star(\<Union>X \<in> Rep_hcomplex(x). starrel``{%n. f (X n)}))"
 
     starfunCR_n :: "(nat => (complex => real)) => hcomplex => hypreal"
                    ("*fcRn* _" [80] 80)
-    "*fcRn* F  == (%x. Abs_hypreal(\<Union>X \<in> Rep_hcomplex(x). hyprel``{%n. (F n)(X n)}))"
+    "*fcRn* F  == (%x. Abs_star(\<Union>X \<in> Rep_hcomplex(x). starrel``{%n. (F n)(X n)}))"
 
     InternalCRFuns :: "(hcomplex => hypreal) set"
     "InternalCRFuns == {X. \<exists>F. X = *fcRn* F}"
@@ -227,7 +227,7 @@ apply (simp add: hcomplex_of_complex_def starfunC, ultra)
 done
 
 lemma starfunRC:
-      "( *fRc* f) (Abs_hypreal(hyprel``{%n. X n})) =
+      "( *fRc* f) (Abs_star(starrel``{%n. X n})) =
        Abs_hcomplex(hcomplexrel `` {%n. f (X n)})"
 apply (simp add: starfunRC_def)
 apply (rule arg_cong [where f = Abs_hcomplex], auto, ultra)
@@ -235,9 +235,9 @@ done
 
 lemma starfunCR:
       "( *fcR* f) (Abs_hcomplex(hcomplexrel``{%n. X n})) =
-       Abs_hypreal(hyprel `` {%n. f (X n)})"
+       Abs_star(starrel `` {%n. f (X n)})"
 apply (simp add: starfunCR_def)
-apply (rule arg_cong [where f = Abs_hypreal])
+apply (rule arg_cong [where f = Abs_star])
 apply (auto iff add: hcomplexrel_iff, ultra)
 done
 
@@ -251,7 +251,7 @@ declare starfunC_mult [symmetric, simp]
 
 lemma starfunRC_mult:
     "( *fRc* f) z * ( *fRc* g) z = ( *fRc* (%x. f x * g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunRC hcomplex_mult)
 done
 declare starfunRC_mult [symmetric, simp]
@@ -272,7 +272,7 @@ done
 declare starfunC_add [symmetric, simp]
 
 lemma starfunRC_add: "( *fRc* f) z + ( *fRc* g) z = ( *fRc* (%x. f x + g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunRC hcomplex_add)
 done
 declare starfunRC_add [symmetric, simp]
@@ -290,7 +290,7 @@ apply (simp add: starfunC hcomplex_minus)
 done
 
 lemma starfunRC_minus [simp]: "( *fRc* (%x. - f x)) x = - ( *fRc* f) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfunRC hcomplex_minus)
 done
 
@@ -329,7 +329,7 @@ by (simp add: o_def starfunC_o2)
 lemma starfunC_starfunRC_o2:
     "(%x. ( *fc* f) (( *fRc* g) x)) = *fRc* (%x. f (g x))"
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypreal)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: starfunRC starfunC)
 done
 
@@ -352,13 +352,13 @@ apply (simp add: starfunC hcomplex_of_complex_def)
 done
 
 lemma starfunRC_const_fun [simp]: "( *fRc* (%x. k)) z = hcomplex_of_complex k"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunRC hcomplex_of_complex_def)
 done
 
 lemma starfunCR_const_fun [simp]: "( *fcR* (%x. k)) z = hypreal_of_real k"
 apply (cases z)
-apply (simp add: starfunCR hypreal_of_real_def)
+apply (simp add: starfunCR hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma starfunC_inverse: "inverse (( *fc* f) x) = ( *fc* (%x. inverse (f x))) x"
@@ -369,7 +369,7 @@ declare starfunC_inverse [symmetric, simp]
 
 lemma starfunRC_inverse:
     "inverse (( *fRc* f) x) = ( *fRc* (%x. inverse (f x))) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfunRC hcomplex_inverse)
 done
 declare starfunRC_inverse [symmetric, simp]
@@ -387,11 +387,11 @@ by (simp add: starfunC hcomplex_of_complex_def)
 
 lemma starfunRC_eq [simp]:
     "( *fRc* f) (hypreal_of_real a) = hcomplex_of_complex (f a)"
-by (simp add: starfunRC hcomplex_of_complex_def hypreal_of_real_def)
+by (simp add: starfunRC hcomplex_of_complex_def hypreal_of_real_def star_of_def star_n_def)
 
 lemma starfunCR_eq [simp]:
     "( *fcR* f) (hcomplex_of_complex a) = hypreal_of_real (f a)"
-by (simp add: starfunCR hcomplex_of_complex_def hypreal_of_real_def)
+by (simp add: starfunCR hcomplex_of_complex_def hypreal_of_real_def star_of_def star_n_def)
 
 lemma starfunC_capprox:
     "( *fc* f) (hcomplex_of_complex a) @c= hcomplex_of_complex (f a)"
@@ -428,8 +428,8 @@ done
 
 lemma starfunRC_lambda_cancel:
     "( *fRc* (%h. f (x + h))) y  = ( *fRc* f) (hypreal_of_real x + y)"
-apply (cases y)
-apply (simp add: starfunRC hypreal_of_real_def hypreal_add)
+apply (rule_tac z=y in eq_Abs_star)
+apply (simp add: starfunRC hypreal_of_real_def star_of_def star_n_def hypreal_add)
 done
 
 lemma starfunC_lambda_cancel2:
@@ -446,8 +446,8 @@ done
 
 lemma starfunRC_lambda_cancel2:
     "( *fRc* (%h. f(g(x + h)))) y = ( *fRc* (f o g)) (hypreal_of_real x + y)"
-apply (cases y)
-apply (simp add: starfunRC hypreal_of_real_def hypreal_add)
+apply (rule_tac z=y in eq_Abs_star)
+apply (simp add: starfunRC hypreal_of_real_def star_of_def star_n_def hypreal_add)
 done
 
 lemma starfunC_mult_CFinite_capprox:

@@ -70,7 +70,7 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
 lemma SEQ_Infinitesimal:
       "( *fNat* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
 apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfunNat)
-apply (rule bexI, rule_tac [2] lemma_hyprel_refl)
+apply (rule bexI, rule_tac [2] lemma_starrel_refl)
 apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done
 
@@ -95,8 +95,9 @@ apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
 apply (rule_tac z = N in eq_Abs_hypnat)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def
+              star_of_def star_n_def
               hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_hyprel_refl], safe)
+apply (rule bexI [OF _ lemma_starrel_refl], safe)
 apply (drule_tac x = u in spec, safe)
 apply (drule_tac x = no in spec, fuf)
 apply (blast dest: less_imp_le)
@@ -162,7 +163,7 @@ by auto
 lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> \<bar>X (f n) + - L\<bar>;
            ( *fNat* X) (Abs_hypnat (hypnatrel `` {f})) +
            - hypreal_of_real  L \<approx> 0 |] ==> False"
-apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
 apply (rename_tac "Y")
 apply (drule_tac x = r in spec, safe)
 apply (drule FreeUltrafilterNat_Int, assumption)
@@ -506,7 +507,7 @@ apply (simp add: Bseq_def NSBseq_def, safe)
 apply (rule_tac z = N in eq_Abs_hypnat)
 apply (auto simp add: starfunNat HFinite_FreeUltrafilterNat_iff 
                       HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_hyprel_refl]) 
+apply (rule bexI [OF _ lemma_starrel_refl]) 
 apply (drule_tac f = Xa in lemma_Bseq)
 apply (rule_tac x = "K+1" in exI)
 apply (drule_tac P="%n. ?f n \<le> K" in FreeUltrafilterNat_all, ultra)
@@ -537,9 +538,9 @@ done
 
 lemma real_seq_to_hypreal_HInfinite:
      "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
-      ==>  Abs_hypreal(hyprel``{X o f}) : HInfinite"
+      ==>  Abs_star(starrel``{X o f}) : HInfinite"
 apply (auto simp add: HInfinite_FreeUltrafilterNat_iff o_def)
-apply (rule bexI [OF _ lemma_hyprel_refl], clarify)  
+apply (rule bexI [OF _ lemma_starrel_refl], clarify)  
 apply (cut_tac u = u in FreeUltrafilterNat_nat_gt_real)
 apply (drule FreeUltrafilterNat_all)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])
@@ -1163,15 +1164,15 @@ by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
 subsection{*Hyperreals and Sequences*}
 
 text{*A bounded sequence is a finite hyperreal*}
-lemma NSBseq_HFinite_hypreal: "NSBseq X ==> Abs_hypreal(hyprel``{X}) : HFinite"
-by (auto intro!: bexI lemma_hyprel_refl 
+lemma NSBseq_HFinite_hypreal: "NSBseq X ==> Abs_star(starrel``{X}) : HFinite"
+by (auto intro!: bexI lemma_starrel_refl 
             intro: FreeUltrafilterNat_all [THEN FreeUltrafilterNat_subset]
             simp add: HFinite_FreeUltrafilterNat_iff Bseq_NSBseq_iff [symmetric]
                       Bseq_iff1a)
 
 text{*A sequence converging to zero defines an infinitesimal*}
 lemma NSLIMSEQ_zero_Infinitesimal_hypreal:
-      "X ----NS> 0 ==> Abs_hypreal(hyprel``{X}) : Infinitesimal"
+      "X ----NS> 0 ==> Abs_star(starrel``{X}) : Infinitesimal"
 apply (simp add: NSLIMSEQ_def)
 apply (drule_tac x = whn in bspec)
 apply (simp add: HNatInfinite_whn)

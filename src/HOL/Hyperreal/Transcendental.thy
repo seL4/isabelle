@@ -2473,7 +2473,7 @@ lemma lemma_DERIV_ln:
 by (erule DERIV_fun_exp)
 
 lemma STAR_exp_ln: "0 < z ==> ( *f* (%x. exp (ln x))) z = z"
-apply (rule_tac z = z in eq_Abs_hypreal)
+apply (rule_tac z = z in eq_Abs_star)
 apply (auto simp add: starfun hypreal_zero_def hypreal_less)
 done
 

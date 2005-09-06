@@ -14,8 +14,8 @@ begin
 constdefs 
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
    "sumhr p == 
-      (%(M,N,f). Abs_hypreal(\<Union>X \<in> Rep_hypnat(M). \<Union>Y \<in> Rep_hypnat(N).  
-                             hyprel ``{%n::nat. setsum f {X n..<Y n}})) p"
+      (%(M,N,f). Abs_star(\<Union>X \<in> Rep_hypnat(M). \<Union>Y \<in> Rep_hypnat(N).  
+                             starrel ``{%n::nat. setsum f {X n..<Y n}})) p"
 
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
    "f NSsums s  == (%n. setsum f {0..<n}) ----NS> s"
@@ -30,9 +30,9 @@ constdefs
 lemma sumhr: 
      "sumhr(Abs_hypnat(hypnatrel``{%n. M n}),  
             Abs_hypnat(hypnatrel``{%n. N n}), f) =  
-      Abs_hypreal(hyprel `` {%n. setsum f {M n..<N n}})"
+      Abs_star(starrel `` {%n. setsum f {M n..<N n}})"
 apply (simp add: sumhr_def)
-apply (rule arg_cong [where f = Abs_hypreal])
+apply (rule arg_cong [where f = Abs_star])
 apply (auto, ultra)
 done
 
@@ -78,7 +78,7 @@ done
 
 lemma sumhr_mult: "hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
 apply (cases m, cases n)
-apply (simp add: sumhr hypreal_of_real_def hypreal_mult setsum_mult)
+apply (simp add: sumhr hypreal_of_real_def star_of_def star_n_def hypreal_mult setsum_mult)
 done
 
 lemma sumhr_split_add: "n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
@@ -107,6 +107,7 @@ lemma sumhr_const:
      "sumhr(0, n, %i. r) = hypreal_of_hypnat n * hypreal_of_real r"
 apply (cases n)
 apply (simp add: sumhr hypnat_zero_def hypreal_of_real_def hypreal_of_hypnat 
+                 star_of_def star_n_def
                  hypreal_mult real_of_nat_def)
 done
 
@@ -139,7 +140,7 @@ by (simp add: hypnat_omega_def hypnat_zero_def sumhr hypreal_of_hypnat
 
 lemma sumhr_hypreal_omega_minus_one: "sumhr(0, whn, %i. 1) = omega - 1"
 by (simp add: hypnat_omega_def hypnat_zero_def omega_def hypreal_one_def
-              sumhr hypreal_diff real_of_nat_def)
+              sumhr hypreal_diff real_of_nat_def star_n_def)
 
 lemma sumhr_minus_one_realpow_zero [simp]: 
      "sumhr(0, whn + whn, %i. (-1) ^ (i+1)) = 0"
@@ -152,7 +153,7 @@ lemma sumhr_interval_const:
       ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) =  
           (hypreal_of_nat (na - m) * hypreal_of_real r)"
 by(simp add: sumhr hypreal_of_nat_eq hypnat_of_nat_eq hypreal_of_real_def
-             real_of_nat_def hypreal_mult cong: setsum_ivl_cong)
+             real_of_nat_def star_of_def star_n_def hypreal_mult cong: setsum_ivl_cong)
 
 lemma starfunNat_sumr: "( *fNat* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
 apply (cases N)

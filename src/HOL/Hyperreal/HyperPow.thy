@@ -10,13 +10,13 @@ theory HyperPow
 imports HyperArith HyperNat
 begin
 
-instance hypreal :: power ..
+(* instance hypreal :: power .. *)
 
 consts hpowr :: "[hypreal,nat] => hypreal"  
+(*
 primrec
    hpowr_0:   "r ^ 0       = (1::hypreal)"
    hpowr_Suc: "r ^ (Suc n) = (r::hypreal) * (r ^ n)"
-
 
 instance hypreal :: recpower
 proof
@@ -25,7 +25,13 @@ proof
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
+*)
 
+lemma hpowr_0 [simp]:   "r ^ 0       = (1::hypreal)"
+by (rule power_0)
+
+lemma hpowr_Suc [simp]: "r ^ (Suc n) = (r::hypreal) * (r ^ n)"
+by (rule power_Suc)
 
 consts
   "pow"  :: "[hypreal,hypnat] => hypreal"     (infixr 80)
@@ -35,8 +41,8 @@ defs
   (* hypernatural powers of hyperreals *)
   hyperpow_def:
   "(R::hypreal) pow (N::hypnat) ==
-      Abs_hypreal(\<Union>X \<in> Rep_hypreal(R). \<Union>Y \<in> Rep_hypnat(N).
-                        hyprel``{%n::nat. (X n) ^ (Y n)})"
+      Abs_star(\<Union>X \<in> Rep_star(R). \<Union>Y \<in> Rep_hypnat(N).
+                        starrel``{%n::nat. (X n) ^ (Y n)})"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
 by simp
@@ -84,9 +90,9 @@ apply (cut_tac n = n in two_hrealpow_ge_one, arith)
 done
 
 lemma hrealpow:
-    "Abs_hypreal(hyprel``{%n. X n}) ^ m = Abs_hypreal(hyprel``{%n. (X n) ^ m})"
+    "Abs_star(starrel``{%n. X n}) ^ m = Abs_star(starrel``{%n. (X n::real) ^ m})"
 apply (induct_tac "m")
-apply (auto simp add: hypreal_one_def hypreal_mult)
+apply (auto simp add: hypreal_one_def hypreal_mult power_0)
 done
 
 lemma hrealpow_sum_square_expand:
@@ -115,16 +121,16 @@ done
 
 subsection{*Powers with Hypernatural Exponents*}
 
-lemma hyperpow_congruent: "(%X Y. hyprel``{%n. (X n ^ Y n)}) respects hyprel"
+lemma hyperpow_congruent: "(%X Y. starrel``{%n. (X n ^ Y n)}) respects starrel"
 by (auto simp add: congruent_def intro!: ext, fuf+)
 
 lemma hyperpow:
-  "Abs_hypreal(hyprel``{%n. X n}) pow Abs_hypnat(hypnatrel``{%n. Y n}) =
-   Abs_hypreal(hyprel``{%n. X n ^ Y n})"
+  "Abs_star(starrel``{%n. X n}) pow Abs_hypnat(hypnatrel``{%n. Y n}) =
+   Abs_star(starrel``{%n. X n ^ Y n})"
 apply (unfold hyperpow_def)
-apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (auto intro!: lemma_hyprel_refl bexI 
-           simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse] equiv_hyprel 
+apply (rule_tac f = Abs_star in arg_cong)
+apply (auto intro!: lemma_starrel_refl bexI 
+           simp add: starrel_in_hypreal [THEN Abs_star_inverse] equiv_starrel 
                      hyperpow_congruent, fuf)
 done
 
@@ -138,54 +144,54 @@ declare hyperpow_zero [simp]
 
 lemma hyperpow_not_zero [rule_format (no_asm)]:
      "r \<noteq> (0::hypreal) --> r pow n \<noteq> 0"
-apply (simp (no_asm) add: hypreal_zero_def, cases n, cases r)
+apply (simp (no_asm) add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow)
 apply (drule FreeUltrafilterNat_Compl_mem, ultra)
 done
 
 lemma hyperpow_inverse:
      "r \<noteq> (0::hypreal) --> inverse(r pow n) = (inverse r) pow n"
-apply (simp (no_asm) add: hypreal_zero_def, cases n, cases r)
+apply (simp (no_asm) add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
 apply (auto dest!: FreeUltrafilterNat_Compl_mem simp add: hypreal_inverse hyperpow)
 apply (rule FreeUltrafilterNat_subset)
 apply (auto dest: realpow_not_zero intro: power_inverse)
 done
 
 lemma hyperpow_hrabs: "abs r pow n = abs (r pow n)"
-apply (cases n, cases r)
+apply (cases n, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hypreal_hrabs hyperpow power_abs [symmetric])
 done
 
 lemma hyperpow_add: "r pow (n + m) = (r pow n) * (r pow m)"
-apply (cases n, cases m, cases r)
+apply (cases n, cases m, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow hypnat_add hypreal_mult power_add)
 done
 
 lemma hyperpow_one [simp]: "r pow (1::hypnat) = r"
-apply (unfold hypnat_one_def, cases r)
+apply (unfold hypnat_one_def, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow)
 done
 
 lemma hyperpow_two:
      "r pow ((1::hypnat) + (1::hypnat)) = r * r"
-apply (unfold hypnat_one_def, cases r)
+apply (unfold hypnat_one_def, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow hypnat_add hypreal_mult)
 done
 
 lemma hyperpow_gt_zero: "(0::hypreal) < r ==> 0 < r pow n"
-apply (simp add: hypreal_zero_def, cases n, cases r)
+apply (simp add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
 apply (auto elim!: FreeUltrafilterNat_subset zero_less_power
                    simp add: hyperpow hypreal_less hypreal_le)
 done
 
 lemma hyperpow_ge_zero: "(0::hypreal) \<le> r ==> 0 \<le> r pow n"
-apply (simp add: hypreal_zero_def, cases n, cases r)
+apply (simp add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
 apply (auto elim!: FreeUltrafilterNat_subset zero_le_power 
             simp add: hyperpow hypreal_le)
 done
 
 lemma hyperpow_le: "[|(0::hypreal) < x; x \<le> y|] ==> x pow n \<le> y pow n"
-apply (simp add: hypreal_zero_def, cases n, cases x, cases y)
+apply (simp add: hypreal_zero_def, cases n, rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_le hypreal_less)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset], assumption)
 apply (auto intro: power_mono)
@@ -204,7 +210,7 @@ apply (auto simp add: hypreal_one_def hyperpow hypreal_minus hypreal_hrabs)
 done
 
 lemma hyperpow_mult: "(r * s) pow n = (r pow n) * (s pow n)"
-apply (cases n, cases r, cases s)
+apply (cases n, rule_tac z=r in eq_Abs_star, rule_tac z=s in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_mult power_mult_distrib)
 done
 
@@ -248,7 +254,7 @@ done
 
 lemma hyperpow_less_le:
      "[|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"
-apply (cases n, cases N, cases r)
+apply (cases n, cases N, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_le hypreal_less hypnat_less 
             hypreal_zero_def hypreal_one_def)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])
@@ -263,7 +269,7 @@ by (auto intro!: hyperpow_less_le simp add: HNatInfinite_iff)
 
 lemma hyperpow_realpow:
       "(hypreal_of_real r) pow (hypnat_of_nat n) = hypreal_of_real (r ^ n)"
-by (simp add: hypreal_of_real_def hypnat_of_nat_eq hyperpow)
+by (simp add: hypreal_of_real_def star_of_def star_n_def hypnat_of_nat_eq hyperpow)
 
 lemma hyperpow_SReal [simp]:
      "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
@@ -301,7 +307,7 @@ done
 
 lemma hrealpow_hyperpow_Infinitesimal_iff:
      "(x ^ n \<in> Infinitesimal) = (x pow (hypnat_of_nat n) \<in> Infinitesimal)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: hrealpow hyperpow hypnat_of_nat_eq)
 done
 

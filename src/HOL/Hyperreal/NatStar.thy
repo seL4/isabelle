@@ -33,12 +33,12 @@ constdefs
 
     starfunNat :: "(nat => real) => hypnat => hypreal"
                   ("*fNat* _" [80] 80)
-    "*fNat* f  == (%x. Abs_hypreal(\<Union>X\<in>Rep_hypnat(x). hyprel``{%n. f (X n)}))"
+    "*fNat* f  == (%x. Abs_star(\<Union>X\<in>Rep_hypnat(x). starrel``{%n. f (X n)}))"
 
    starfunNat_n :: "(nat => (nat => real)) => hypnat => hypreal"
                    ("*fNatn* _" [80] 80)
     "*fNatn* F ==
-      (%x. Abs_hypreal(\<Union>X\<in>Rep_hypnat(x). hyprel``{%n. (F n)(X n)}))"
+      (%x. Abs_star(\<Union>X\<in>Rep_hypnat(x). starrel``{%n. (F n)(X n)}))"
 
    InternalNatFuns :: "(hypnat => hypreal) set"
     "InternalNatFuns == {X. \<exists>F. X = *fNatn* F}"
@@ -194,9 +194,9 @@ done
 (* f::nat=>real *)
 lemma starfunNat:
       "( *fNat* f) (Abs_hypnat(hypnatrel``{%n. X n})) =
-       Abs_hypreal(hyprel `` {%n. f (X n)})"
+       Abs_star(starrel `` {%n. f (X n)})"
 apply (simp add: starfunNat_def)
-apply (rule arg_cong [where f = Abs_hypreal])
+apply (rule arg_cong [where f = Abs_star])
 apply (auto, ultra)
 done
 
@@ -287,7 +287,7 @@ text{*NS extension of constant function*}
 
 lemma starfunNat_const_fun [simp]: "( *fNat* (%x. k)) z = hypreal_of_real k"
 apply (cases z)
-apply (simp add: starfunNat hypreal_of_real_def)
+apply (simp add: starfunNat hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma starfunNat2_const_fun [simp]: "( *fNat2* (%x. k)) z = hypnat_of_nat  k"
@@ -312,7 +312,7 @@ text{* Extended function has same solution as its standard
 
 lemma starfunNat_eq [simp]:
      "( *fNat* f) (hypnat_of_nat a) = hypreal_of_real (f a)"
-by (simp add: starfunNat hypnat_of_nat_eq hypreal_of_real_def)
+by (simp add: starfunNat hypnat_of_nat_eq hypreal_of_real_def star_of_def star_n_def)
 
 lemma starfunNat2_eq [simp]:
      "( *fNat2* f) (hypnat_of_nat a) = hypnat_of_nat (f a)"
@@ -362,7 +362,7 @@ text{*The hyperpow function as a nonstandard extension of realpow*}
 
 lemma starfunNat_pow: "( *fNat* (%n. r ^ n)) N = (hypreal_of_real r) pow N"
 apply (cases N)
-apply (simp add: hyperpow hypreal_of_real_def starfunNat)
+apply (simp add: hyperpow hypreal_of_real_def star_of_def star_n_def starfunNat)
 done
 
 lemma starfunNat_pow2:
@@ -372,7 +372,7 @@ apply (simp add: hyperpow hypnat_of_nat_eq starfunNat)
 done
 
 lemma starfun_pow: "( *f* (%r. r ^ n)) R = (R) pow hypnat_of_nat n"
-apply (rule_tac z = R in eq_Abs_hypreal)
+apply (rule_tac z = R in eq_Abs_star)
 apply (simp add: hyperpow starfun hypnat_of_nat_eq)
 done
 
@@ -401,9 +401,9 @@ by (auto simp add: congruent_def, ultra+)
 
 lemma starfunNat_n:
      "( *fNatn* f) (Abs_hypnat(hypnatrel``{%n. X n})) =
-      Abs_hypreal(hyprel `` {%n. f n (X n)})"
+      Abs_star(starrel `` {%n. f n (X n)})"
 apply (simp add: starfunNat_n_def)
-apply (rule_tac f = Abs_hypreal in arg_cong, auto, ultra)
+apply (rule_tac f = Abs_star in arg_cong, auto, ultra)
 done
 
 text{*Multiplication: @{text "( *fn) x ( *gn) = *(fn x gn)"}*}
@@ -436,7 +436,7 @@ text{*Composition: @{text "( *fn) o ( *gn) = *(fn o gn)"}*}
 lemma starfunNat_n_const_fun [simp]:
      "( *fNatn* (%i x. k)) z = hypreal_of_real  k"
 apply (cases z)
-apply (simp add: starfunNat_n hypreal_of_real_def)
+apply (simp add: starfunNat_n hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma starfunNat_n_minus: "- ( *fNatn* f) x = ( *fNatn* (%i x. - (f i) x)) x"
@@ -445,7 +445,7 @@ apply (simp add: starfunNat_n hypreal_minus)
 done
 
 lemma starfunNat_n_eq [simp]:
-     "( *fNatn* f) (hypnat_of_nat n) = Abs_hypreal(hyprel `` {%i. f i n})"
+     "( *fNatn* f) (hypnat_of_nat n) = Abs_star(starrel `` {%i. f i n})"
 by (simp add: starfunNat_n hypnat_of_nat_eq)
 
 lemma starfun_eq_iff: "(( *fNat* f) = ( *fNat* g)) = (f = g)"

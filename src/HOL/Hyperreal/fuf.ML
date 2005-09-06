@@ -22,10 +22,10 @@ fun get_fuf_hyps [] zs = zs
 |   get_fuf_hyps (x::xs) zs =
         case (concl_of x) of
         (_ $ (Const ("Not",_) $ (Const ("op :",_) $ _ $
-             Const ("HyperDef.FreeUltrafilterNat",_)))) =>  get_fuf_hyps xs
+             Const ("StarType.FreeUltrafilterNat",_)))) =>  get_fuf_hyps xs
                                               ((x RS FreeUltrafilterNat_Compl_mem)::zs)
        |(_ $ (Const ("op :",_) $ _ $
-             Const ("HyperDef.FreeUltrafilterNat",_)))  =>  get_fuf_hyps xs (x::zs)
+             Const ("StarType.FreeUltrafilterNat",_)))  =>  get_fuf_hyps xs (x::zs)
        | _ => get_fuf_hyps xs zs;
 
 fun inter_prems [] = raise FUFempty

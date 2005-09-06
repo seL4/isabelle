@@ -126,7 +126,7 @@ apply (simp add: CLIM_def NSCLIM_def capprox_def, auto)
 apply (rule_tac z = xa in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_of_complex_def starfunC hcomplex_diff 
          CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_hyprel_refl, safe)
+apply (rule bexI, rule_tac [2] lemma_starrel_refl, safe)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
 apply (drule sym, auto)
@@ -196,8 +196,9 @@ apply (rule_tac z = xa in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_of_complex_def starfunCR hcomplex_diff
               CInfinitesimal_hcmod_iff hcmod hypreal_diff
               Infinitesimal_FreeUltrafilterNat_iff
+              star_of_def star_n_def
               Infinitesimal_approx_minus [symmetric] hypreal_of_real_def)
-apply (rule bexI, rule_tac [2] lemma_hyprel_refl, safe)
+apply (rule bexI, rule_tac [2] lemma_starrel_refl, safe)
 apply (drule_tac x = u in spec, auto)
 apply (drule_tac x = s in spec, auto, ultra)
 apply (drule sym, auto)
@@ -241,7 +242,7 @@ apply (drule_tac x = X in spec, auto)
 apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff hcomplex_of_complex_def 
              Infinitesimal_FreeUltrafilterNat_iff hcomplex_diff hcmod)
-apply (auto simp add: hypreal_of_real_def hypreal_diff)
+apply (auto simp add: hypreal_of_real_def star_of_def star_n_def hypreal_diff)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra)
 done
@@ -427,7 +428,7 @@ apply (auto intro: NSCLIM_NSCRLIM_Re NSCLIM_NSCRLIM_Im)
 apply (auto simp add: NSCLIM_def NSCRLIM_def)
 apply (auto dest!: spec) 
 apply (rule_tac z = x in eq_Abs_hcomplex)
-apply (simp add: capprox_approx_iff starfunC hcomplex_of_complex_def starfunCR hypreal_of_real_def)
+apply (simp add: capprox_approx_iff starfunC hcomplex_of_complex_def starfunCR hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma CLIM_CRLIM_Re_Im_iff:

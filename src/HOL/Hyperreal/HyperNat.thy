@@ -692,24 +692,24 @@ text{*Obtained using the nonstandard extension of the naturals*}
 constdefs
   hypreal_of_hypnat :: "hypnat => hypreal"
    "hypreal_of_hypnat N  == 
-      Abs_hypreal(\<Union>X \<in> Rep_hypnat(N). hyprel``{%n::nat. real (X n)})"
+      Abs_star(\<Union>X \<in> Rep_hypnat(N). starrel``{%n::nat. real (X n)})"
 
 
 lemma HNat_hypreal_of_nat [simp]: "hypreal_of_nat N \<in> Nats"
 by (simp add: hypreal_of_nat_def) 
 
 (*WARNING: FRAGILE!*)
-lemma lemma_hyprel_FUFN:
-     "(Ya \<in> hyprel ``{%n. f(n)}) = ({n. f n = Ya n} \<in> FreeUltrafilterNat)"
+lemma lemma_starrel_FUFN:
+     "(Ya \<in> starrel ``{%n. f(n)}) = ({n. f n = Ya n} \<in> FreeUltrafilterNat)"
 by force
 
 lemma hypreal_of_hypnat:
       "hypreal_of_hypnat (Abs_hypnat(hypnatrel``{%n. X n})) =
-       Abs_hypreal(hyprel `` {%n. real (X n)})"
+       Abs_star(starrel `` {%n. real (X n)})"
 apply (simp add: hypreal_of_hypnat_def)
-apply (rule_tac f = Abs_hypreal in arg_cong)
+apply (rule_tac f = Abs_star in arg_cong)
 apply (auto elim: FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset] 
-       simp add: lemma_hyprel_FUFN)
+       simp add: lemma_starrel_FUFN)
 done
 
 lemma hypreal_of_hypnat_inject [simp]:
@@ -756,7 +756,7 @@ lemma HNatInfinite_inverse_Infinitesimal [simp]:
 apply (cases n)
 apply (auto simp add: hypreal_of_hypnat hypreal_inverse 
       HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
-apply (rule bexI, rule_tac [2] lemma_hyprel_refl, auto)
+apply (rule bexI, rule_tac [2] lemma_starrel_refl, auto)
 apply (drule_tac x = "m + 1" in spec, ultra)
 done
 

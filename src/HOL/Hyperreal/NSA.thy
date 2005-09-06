@@ -1774,32 +1774,33 @@ done
 subsection{*Alternative Definitions for @{term HFinite} using Free Ultrafilter*}
 
 lemma FreeUltrafilterNat_Rep_hypreal:
-     "[| X \<in> Rep_hypreal x; Y \<in> Rep_hypreal x |]
+     "[| X \<in> Rep_star x; Y \<in> Rep_star x |]
       ==> {n. X n = Y n} \<in> FreeUltrafilterNat"
-by (rule_tac z = x in eq_Abs_hypreal, auto, ultra)
+by (rule_tac z = x in eq_Abs_star, auto, ultra)
 
 lemma HFinite_FreeUltrafilterNat:
     "x \<in> HFinite 
-     ==> \<exists>X \<in> Rep_hypreal x. \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat"
-apply (cases x)
+     ==> \<exists>X \<in> Rep_star x. \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat"
+apply (rule_tac z = x in eq_Abs_star)
 apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x] 
+              star_of_def star_n_def
               hypreal_less SReal_iff hypreal_minus hypreal_of_real_def)
 apply (rule_tac x=x in bexI) 
 apply (rule_tac x=y in exI, auto, ultra)
 done
 
 lemma FreeUltrafilterNat_HFinite:
-     "\<exists>X \<in> Rep_hypreal x.
+     "\<exists>X \<in> Rep_star x.
        \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat
        ==>  x \<in> HFinite"
-apply (cases x)
+apply (rule_tac z = x in eq_Abs_star)
 apply (auto simp add: HFinite_def abs_less_iff minus_less_iff [of x])
 apply (rule_tac x = "hypreal_of_real u" in bexI)
-apply (auto simp add: hypreal_less SReal_iff hypreal_minus hypreal_of_real_def, ultra+)
+apply (auto simp add: hypreal_less SReal_iff hypreal_minus hypreal_of_real_def star_of_def star_n_def, ultra+)
 done
 
 lemma HFinite_FreeUltrafilterNat_iff:
-     "(x \<in> HFinite) = (\<exists>X \<in> Rep_hypreal x.
+     "(x \<in> HFinite) = (\<exists>X \<in> Rep_star x.
            \<exists>u. {n. abs (X n) < u} \<in> FreeUltrafilterNat)"
 apply (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 done
@@ -1828,7 +1829,7 @@ by auto
   ultrafilter for Infinite numbers!
  -------------------------------------*)
 lemma FreeUltrafilterNat_const_Finite:
-     "[| xa: Rep_hypreal x;
+     "[| xa: Rep_star x;
                   {n. abs (xa n) = u} \<in> FreeUltrafilterNat
                |] ==> x \<in> HFinite"
 apply (rule FreeUltrafilterNat_HFinite)
@@ -1838,7 +1839,7 @@ apply (ultra, assumption)
 done
 
 lemma HInfinite_FreeUltrafilterNat:
-     "x \<in> HInfinite ==> \<exists>X \<in> Rep_hypreal x.
+     "x \<in> HInfinite ==> \<exists>X \<in> Rep_star x.
            \<forall>u. {n. u < abs (X n)} \<in> FreeUltrafilterNat"
 apply (frule HInfinite_HFinite_iff [THEN iffD1])
 apply (cut_tac x = x in Rep_hypreal_nonempty)
@@ -1861,7 +1862,7 @@ lemma lemma_Int_HIa: "{n. u < abs (X n)} Int {n. abs (X n) < (u::real)} = {}"
 by (auto intro: order_less_asym)
 
 lemma FreeUltrafilterNat_HInfinite:
-     "\<exists>X \<in> Rep_hypreal x. \<forall>u.
+     "\<exists>X \<in> Rep_star x. \<forall>u.
                {n. u < abs (X n)} \<in> FreeUltrafilterNat
                ==>  x \<in> HInfinite"
 apply (rule HInfinite_HFinite_iff [THEN iffD2])
@@ -1875,7 +1876,7 @@ apply (auto simp add: lemma_Int_HIa)
 done
 
 lemma HInfinite_FreeUltrafilterNat_iff:
-     "(x \<in> HInfinite) = (\<exists>X \<in> Rep_hypreal x.
+     "(x \<in> HInfinite) = (\<exists>X \<in> Rep_star x.
            \<forall>u. {n. u < abs (X n)} \<in> FreeUltrafilterNat)"
 by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
@@ -1883,31 +1884,31 @@ by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 subsection{*Alternative Definitions for @{term Infinitesimal} using Free Ultrafilter*}
 
 lemma Infinitesimal_FreeUltrafilterNat:
-          "x \<in> Infinitesimal ==> \<exists>X \<in> Rep_hypreal x.
+          "x \<in> Infinitesimal ==> \<exists>X \<in> Rep_star x.
            \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat"
 apply (simp add: Infinitesimal_def)
 apply (auto simp add: abs_less_iff minus_less_iff [of x])
-apply (cases x)
-apply (auto, rule bexI [OF _ lemma_hyprel_refl], safe)
+apply (rule_tac z = x in eq_Abs_star)
+apply (auto, rule bexI [OF _ lemma_starrel_refl], safe)
 apply (drule hypreal_of_real_less_iff [THEN iffD2])
 apply (drule_tac x = "hypreal_of_real u" in bspec, auto)
-apply (auto simp add: hypreal_less hypreal_minus hypreal_of_real_def, ultra)
+apply (auto simp add: hypreal_less hypreal_minus hypreal_of_real_def star_of_def star_n_def, ultra)
 done
 
 lemma FreeUltrafilterNat_Infinitesimal:
-     "\<exists>X \<in> Rep_hypreal x.
+     "\<exists>X \<in> Rep_star x.
             \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat
       ==> x \<in> Infinitesimal"
 apply (simp add: Infinitesimal_def)
-apply (cases x)
+apply (rule_tac z = x in eq_Abs_star)
 apply (auto simp add: abs_less_iff abs_interval_iff minus_less_iff [of x])
 apply (auto simp add: SReal_iff)
 apply (drule_tac [!] x=y in spec) 
-apply (auto simp add: hypreal_less hypreal_minus hypreal_of_real_def, ultra+)
+apply (auto simp add: hypreal_less hypreal_minus hypreal_of_real_def star_of_def star_n_def, ultra+)
 done
 
 lemma Infinitesimal_FreeUltrafilterNat_iff:
-     "(x \<in> Infinitesimal) = (\<exists>X \<in> Rep_hypreal x.
+     "(x \<in> Infinitesimal) = (\<exists>X \<in> Rep_star x.
            \<forall>u. 0 < u --> {n. abs (X n) < u} \<in> FreeUltrafilterNat)"
 apply (blast intro!: Infinitesimal_FreeUltrafilterNat FreeUltrafilterNat_Infinitesimal)
 done
@@ -2008,7 +2009,7 @@ by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
 text{*@{term omega} is a member of @{term HInfinite}*}
 
-lemma hypreal_omega: "hyprel``{%n::nat. real (Suc n)} \<in> hypreal"
+lemma hypreal_omega: "starrel``{%n::nat. real (Suc n)} \<in> star"
 by auto
 
 lemma FreeUltrafilterNat_omega: "{n. u < real n} \<in> FreeUltrafilterNat"
@@ -2017,10 +2018,10 @@ apply (auto dest: FreeUltrafilterNat_Compl_mem simp add: Compl_real_le_eq)
 done
 
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
-apply (simp add: omega_def)
+apply (simp add: omega_def star_n_def)
 apply (auto intro!: FreeUltrafilterNat_HInfinite)
 apply (rule bexI)
-apply (rule_tac [2] lemma_hyprel_refl, auto)
+apply (rule_tac [2] lemma_starrel_refl, auto)
 apply (simp (no_asm) add: real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
 done
 
@@ -2122,13 +2123,13 @@ text{* Example where we get a hyperreal from a real sequence
  -----------------------------------------------------*)
 lemma real_seq_to_hypreal_Infinitesimal:
      "\<forall>n. abs(X n + -x) < inverse(real(Suc n))
-     ==> Abs_hypreal(hyprel``{X}) + -hypreal_of_real x \<in> Infinitesimal"
-apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset simp add: hypreal_minus hypreal_of_real_def hypreal_add Infinitesimal_FreeUltrafilterNat_iff hypreal_inverse)
+     ==> Abs_star(starrel``{X}) + -hypreal_of_real x \<in> Infinitesimal"
+apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset simp add: hypreal_minus hypreal_of_real_def star_of_def star_n_def hypreal_add Infinitesimal_FreeUltrafilterNat_iff hypreal_inverse)
 done
 
 lemma real_seq_to_hypreal_approx:
      "\<forall>n. abs(X n + -x) < inverse(real(Suc n))
-      ==> Abs_hypreal(hyprel``{X}) @= hypreal_of_real x"
+      ==> Abs_star(starrel``{X}) @= hypreal_of_real x"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
 apply (erule real_seq_to_hypreal_Infinitesimal)
@@ -2136,14 +2137,14 @@ done
 
 lemma real_seq_to_hypreal_approx2:
      "\<forall>n. abs(x + -X n) < inverse(real(Suc n))
-               ==> Abs_hypreal(hyprel``{X}) @= hypreal_of_real x"
+               ==> Abs_star(starrel``{X}) @= hypreal_of_real x"
 apply (simp add: abs_minus_add_cancel real_seq_to_hypreal_approx)
 done
 
 lemma real_seq_to_hypreal_Infinitesimal2:
      "\<forall>n. abs(X n + -Y n) < inverse(real(Suc n))
-      ==> Abs_hypreal(hyprel``{X}) +
-          -Abs_hypreal(hyprel``{Y}) \<in> Infinitesimal"
+      ==> Abs_star(starrel``{X}) +
+          -Abs_star(starrel``{Y}) \<in> Infinitesimal"
 by (auto intro!: bexI
 	 dest: FreeUltrafilterNat_inverse_real_of_posnat 
 	       FreeUltrafilterNat_all FreeUltrafilterNat_Int

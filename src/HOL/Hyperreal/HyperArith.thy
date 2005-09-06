@@ -13,6 +13,7 @@ begin
 
 subsection{*Numerals and Arithmetic*}
 
+(*
 instance hypreal :: number ..
 
 defs (overloaded)
@@ -21,11 +22,11 @@ defs (overloaded)
 
 instance hypreal :: number_ring
 by (intro_classes, simp add: hypreal_number_of_def) 
-
+*)
 
 text{*Collapse applications of @{term hypreal_of_real} to @{term number_of}*}
 lemma hypreal_number_of [simp]: "hypreal_of_real (number_of w) = number_of w"
-by (simp add: hypreal_number_of_def real_number_of_def) 
+by (simp add: hypreal_of_real_def)
 
 
 
@@ -130,10 +131,11 @@ apply (simp_all add: hypreal_of_nat_def real_of_nat_def)
 done
 
 lemma hypreal_of_nat:
-     "hypreal_of_nat m = Abs_hypreal(hyprel``{%n. real m})"
-apply (induct m) 
-apply (simp_all add: hypreal_of_nat_def real_of_nat_def hypreal_zero_def 
-                     hypreal_one_def hypreal_add)
+     "hypreal_of_nat m = Abs_star(starrel``{%n. real m})"
+apply (fold star_n_def star_of_def)
+apply (induct m)
+apply (simp_all add: hypreal_of_nat_def real_of_nat_def
+                     hypreal_add)
 done
 
 lemma hypreal_of_nat_Suc:

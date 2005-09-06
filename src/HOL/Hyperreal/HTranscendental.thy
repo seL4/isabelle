@@ -54,13 +54,13 @@ lemma STAR_sqrt_one [simp]: "( *f* sqrt) 1 = 1"
 by (simp add: starfun hypreal_one_num)
 
 lemma hypreal_sqrt_pow2_iff: "(( *f* sqrt)(x) ^ 2 = x) = (0 \<le> x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (auto simp add: hypreal_le hypreal_zero_num starfun hrealpow 
             simp del: hpowr_Suc realpow_Suc)
 done
 
 lemma hypreal_sqrt_gt_zero_pow2: "0 < x ==> ( *f* sqrt) (x) ^ 2 = x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (auto intro: FreeUltrafilterNat_subset 
             simp add: hypreal_less starfun hrealpow hypreal_zero_num 
             simp del: hpowr_Suc realpow_Suc)
@@ -82,7 +82,7 @@ done
 
 lemma hypreal_sqrt_mult_distrib: 
     "[|0 < x; 0 <y |] ==> ( *f* sqrt)(x*y) =  ( *f* sqrt)(x) * ( *f* sqrt)(y)"
-apply (cases x, cases y)
+apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
 apply (simp add: hypreal_zero_def starfun hypreal_mult hypreal_less hypreal_zero_num, ultra)
 apply (auto intro: real_sqrt_mult_distrib) 
 done
@@ -120,7 +120,7 @@ apply (auto simp add: zero_le_square)
 done
 
 lemma hypreal_sqrt_gt_zero: "0 < x ==> 0 < ( *f* sqrt)(x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (auto simp add: starfun hypreal_zero_def hypreal_less hypreal_zero_num, ultra)
 apply (auto intro: real_sqrt_gt_zero)
 done
@@ -129,7 +129,7 @@ lemma hypreal_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> ( *f* sqrt)(x)"
 by (auto intro: hypreal_sqrt_gt_zero simp add: order_le_less)
 
 lemma hypreal_sqrt_hrabs [simp]: "( *f* sqrt)(x ^ 2) = abs(x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_hrabs hypreal_mult numeral_2_eq_2)
 done
 
@@ -141,7 +141,7 @@ done
 
 lemma hypreal_sqrt_hyperpow_hrabs [simp]:
      "( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_hrabs hypnat_of_nat_eq hyperpow)
 done
 
@@ -161,7 +161,7 @@ apply (auto simp add: st_hrabs st_zero_le star_sqrt_HFinite)
 done
 
 lemma hypreal_sqrt_sum_squares_ge1 [simp]: "x \<le> ( *f* sqrt)(x ^ 2 + y ^ 2)"
-apply (cases x, cases y)
+apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
 apply (simp add: starfun hypreal_add hrealpow hypreal_le 
             del: hpowr_Suc realpow_Suc)
 done
@@ -292,7 +292,7 @@ lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
 lemma STAR_exp_add: "( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
-apply (cases x, cases y)
+apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
 apply (simp add: starfun hypreal_add hypreal_mult exp_add)
 done
 
@@ -301,7 +301,7 @@ apply (simp add: exphr_def)
 apply (rule st_hypreal_of_real [THEN subst])
 apply (rule approx_st_eq, auto)
 apply (rule approx_minus_iff [THEN iffD2])
-apply (auto simp add: mem_infmal_iff [symmetric] hypreal_of_real_def hypnat_zero_def hypnat_omega_def sumhr hypreal_minus hypreal_add)
+apply (auto simp add: mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypnat_zero_def hypnat_omega_def sumhr hypreal_minus hypreal_add)
 apply (rule NSLIMSEQ_zero_Infinitesimal_hypreal)
 apply (insert exp_converges [of x]) 
 apply (simp add: sums_def) 
@@ -310,7 +310,7 @@ apply (simp add: LIMSEQ_NSLIMSEQ_iff)
 done
 
 lemma starfun_exp_ge_add_one_self [simp]: "0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_add hypreal_le hypreal_zero_num hypreal_one_num, ultra)
 apply (erule exp_ge_add_one_self_aux)
 done
@@ -324,7 +324,7 @@ apply (rule order_trans [of _ "1+x"], auto)
 done
 
 lemma starfun_exp_minus: "( *f* exp) (-x) = inverse(( *f* exp) x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_inverse hypreal_minus exp_minus)
 done
 
@@ -338,7 +338,7 @@ apply (auto intro!: HInfinite_inverse_Infinitesimal starfun_exp_HInfinite
 done
 
 lemma starfun_exp_gt_one [simp]: "0 < x ==> 1 < ( *f* exp) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_one_num hypreal_zero_num hypreal_less, ultra)
 done
 
@@ -346,7 +346,7 @@ done
    TRY a NS one today!!!
 
 Goal "x @= 1 ==> ( *f* ln) x @= 1"
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
+by (res_inst_tac [("z","x")] eq_Abs_star 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_one_def]));
 
 
@@ -356,12 +356,12 @@ Goalw [nsderiv_def] "0r < x ==> NSDERIV ln x :> inverse x";
 
 
 lemma starfun_ln_exp [simp]: "( *f* ln) (( *f* exp) x) = x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun)
 done
 
 lemma starfun_exp_ln_iff [simp]: "(( *f* exp)(( *f* ln) x) = x) = (0 < x)"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_zero_num hypreal_less)
 done
 
@@ -369,22 +369,22 @@ lemma starfun_exp_ln_eq: "( *f* exp) u = x ==> ( *f* ln) x = u"
 by (auto simp add: starfun)
 
 lemma starfun_ln_less_self [simp]: "0 < x ==> ( *f* ln) x < x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_zero_num hypreal_less, ultra)
 done
 
 lemma starfun_ln_ge_zero [simp]: "1 \<le> x ==> 0 \<le> ( *f* ln) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_zero_num hypreal_le hypreal_one_num, ultra)
 done
 
 lemma starfun_ln_gt_zero [simp]: "1 < x ==> 0 < ( *f* ln) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_zero_num hypreal_less hypreal_one_num, ultra)
 done
 
 lemma starfun_ln_not_eq_zero [simp]: "[| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (auto simp add: starfun hypreal_zero_num hypreal_less hypreal_one_num, ultra)
 done
 
@@ -395,15 +395,15 @@ apply (simp_all add: starfun_ln_less_self order_less_imp_le)
 done
 
 lemma starfun_ln_inverse: "0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfun hypreal_zero_num hypreal_minus hypreal_inverse hypreal_less, ultra)
 apply (simp add: ln_inverse)
 done
 
 lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) x \<in> HFinite"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_hyprel_refl, auto)
+apply (rule bexI, rule_tac [2] lemma_starrel_refl, auto)
 apply (rule_tac x = "exp u" in exI)
 apply (ultra, arith)
 done
@@ -449,7 +449,7 @@ apply (auto simp add: starfun_ln_inverse HInfinite_minus_iff)
 done
 
 lemma starfun_ln_less_zero: "[| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: hypreal_zero_num hypreal_one_num hypreal_less starfun, ultra)
 done
 
