@@ -123,8 +123,9 @@ by (simp add: NSCLIM_def NSCRLIM_def starfunC_approx_Re_Im_iff
 lemma CLIM_NSCLIM:
       "f -- x --C> L ==> f -- x --NSC> L"
 apply (simp add: CLIM_def NSCLIM_def capprox_def, auto)
-apply (rule_tac z = xa in eq_Abs_hcomplex)
+apply (rule_tac z = xa in eq_Abs_star)
 apply (auto simp add: hcomplex_of_complex_def starfunC hcomplex_diff 
+         star_of_def star_n_def
          CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
 apply (rule bexI, rule_tac [2] lemma_starrel_refl, safe)
 apply (drule_tac x = u in spec, auto)
@@ -132,10 +133,10 @@ apply (drule_tac x = s in spec, auto, ultra)
 apply (drule sym, auto)
 done
 
-lemma eq_Abs_hcomplex_ALL:
-     "(\<forall>t. P t) = (\<forall>X. P (Abs_hcomplex(hcomplexrel `` {X})))"
+lemma eq_Abs_star_ALL:
+     "(\<forall>t. P t) = (\<forall>X. P (Abs_star(starrel `` {X})))"
 apply auto
-apply (rule_tac z = t in eq_Abs_hcomplex, auto)
+apply (rule_tac z = t in eq_Abs_star, auto)
 done
 
 lemma lemma_CLIM:
@@ -168,15 +169,17 @@ lemma NSCLIM_CLIM:
      "f -- x --NSC> L ==> f -- x --C> L"
 apply (simp add: CLIM_def NSCLIM_def)
 apply (rule ccontr) 
-apply (auto simp add: eq_Abs_hcomplex_ALL starfunC 
+apply (auto simp add: eq_Abs_star_ALL starfunC 
             CInfinitesimal_capprox_minus [symmetric] hcomplex_diff
             CInfinitesimal_hcmod_iff hcomplex_of_complex_def 
+            star_of_def star_n_def
             Infinitesimal_FreeUltrafilterNat_iff hcmod)
 apply (simp add: linorder_not_less)
 apply (drule lemma_skolemize_CLIM2, safe)
 apply (drule_tac x = X in spec, auto)
 apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff hcomplex_of_complex_def 
+            star_of_def star_n_def
             Infinitesimal_FreeUltrafilterNat_iff hcomplex_diff hcmod,  blast)
 apply (drule_tac x = r in spec, clarify)
 apply (drule FreeUltrafilterNat_all, ultra, arith)
@@ -192,7 +195,7 @@ subsection{*Limit of Complex to Real Function*}
 
 lemma CRLIM_NSCRLIM: "f -- x --CR> L ==> f -- x --NSCR> L"
 apply (simp add: CRLIM_def NSCRLIM_def capprox_def, auto)
-apply (rule_tac z = xa in eq_Abs_hcomplex)
+apply (rule_tac z = xa in eq_Abs_star)
 apply (auto simp add: hcomplex_of_complex_def starfunCR hcomplex_diff
               CInfinitesimal_hcmod_iff hcmod hypreal_diff
               Infinitesimal_FreeUltrafilterNat_iff
@@ -232,15 +235,17 @@ by auto
 lemma NSCRLIM_CRLIM: "f -- x --NSCR> L ==> f -- x --CR> L"
 apply (simp add: CRLIM_def NSCRLIM_def capprox_def)
 apply (rule ccontr) 
-apply (auto simp add: eq_Abs_hcomplex_ALL starfunCR hcomplex_diff 
+apply (auto simp add: eq_Abs_star_ALL starfunCR hcomplex_diff 
              hcomplex_of_complex_def hypreal_diff CInfinitesimal_hcmod_iff 
-             hcmod Infinitesimal_approx_minus [symmetric] 
+             hcmod Infinitesimal_approx_minus [symmetric]
+             star_of_def star_n_def 
              Infinitesimal_FreeUltrafilterNat_iff)
 apply (simp add: linorder_not_less)
 apply (drule lemma_skolemize_CRLIM2, safe)
 apply (drule_tac x = X in spec, auto)
 apply (drule lemma_crsimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff hcomplex_of_complex_def 
+             star_of_def star_n_def
              Infinitesimal_FreeUltrafilterNat_iff hcomplex_diff hcmod)
 apply (auto simp add: hypreal_of_real_def star_of_def star_n_def hypreal_diff)
 apply (drule_tac x = r in spec, clarify)
@@ -408,8 +413,8 @@ lemma NSCLIM_NSCRLIM_iff:
    "(f -- x --NSC> L) = ((%y. cmod(f y - L)) -- x --NSCR> 0)"
 apply (auto simp add: NSCLIM_def NSCRLIM_def CInfinitesimal_capprox_minus [symmetric] CInfinitesimal_hcmod_iff)
 apply (auto dest!: spec) 
-apply (rule_tac [!] z = xa in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_diff starfunC starfunCR hcomplex_of_complex_def hcmod mem_infmal_iff)
+apply (rule_tac [!] z = xa in eq_Abs_star)
+apply (auto simp add: hcomplex_diff starfunC starfunCR hcomplex_of_complex_def hcmod mem_infmal_iff star_of_def star_n_def)
 done
 
 (** much, much easier standard proof **)
@@ -427,7 +432,7 @@ lemma NSCLIM_NSCRLIM_Re_Im_iff:
 apply (auto intro: NSCLIM_NSCRLIM_Re NSCLIM_NSCRLIM_Im)
 apply (auto simp add: NSCLIM_def NSCRLIM_def)
 apply (auto dest!: spec) 
-apply (rule_tac z = x in eq_Abs_hcomplex)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: capprox_approx_iff starfunC hcomplex_of_complex_def starfunCR hypreal_of_real_def star_of_def star_n_def)
 done
 
@@ -481,9 +486,9 @@ apply (drule_tac [2] x = "- hcomplex_of_complex a + x" in spec, safe, simp)
 apply (rule mem_cinfmal_iff [THEN iffD2, THEN CInfinitesimal_add_capprox_self [THEN capprox_sym]])
 apply (rule_tac [4] capprox_minus_iff2 [THEN iffD1])
  prefer 3 apply (simp add: compare_rls hcomplex_add_commute)
-apply (rule_tac [2] z = x in eq_Abs_hcomplex)
-apply (rule_tac [4] z = x in eq_Abs_hcomplex)
-apply (auto simp add: starfunC hcomplex_of_complex_def hcomplex_minus hcomplex_add)
+apply (rule_tac [2] z = x in eq_Abs_star)
+apply (rule_tac [4] z = x in eq_Abs_star)
+apply (auto simp add: starfunC hcomplex_of_complex_def hcomplex_minus hcomplex_add star_of_def star_n_def)
 done
 
 lemma NSCLIM_isContc_iff:
@@ -860,7 +865,7 @@ apply (frule_tac f = g in NSCDERIV_capprox)
 apply (auto simp add: starfunC_lambda_cancel2 starfunC_o [symmetric])
 apply (case_tac "( *fc* g) (hcomplex_of_complex (x) + xa) = hcomplex_of_complex (g x) ")
 apply (drule_tac g = g in NSCDERIV_zero)
-apply (auto simp add: hcomplex_divide_def)
+apply (auto simp add: divide_inverse)
 apply (rule_tac z1 = "( *fc* g) (hcomplex_of_complex (x) + xa) - hcomplex_of_complex (g x) " and y1 = "inverse xa" in lemma_complex_chain [THEN ssubst])
 apply (simp (no_asm_simp))
 apply (rule capprox_mult_hcomplex_of_complex)
@@ -1028,7 +1033,7 @@ val complex_add_eq_0_iff = thm "complex_add_eq_0_iff";
 val NSCLIM_NSCRLIM_Re = thm "NSCLIM_NSCRLIM_Re";
 val NSCLIM_NSCRLIM_Im = thm "NSCLIM_NSCRLIM_Im";
 val CLIM_NSCLIM = thm "CLIM_NSCLIM";
-val eq_Abs_hcomplex_ALL = thm "eq_Abs_hcomplex_ALL";
+val eq_Abs_star_ALL = thm "eq_Abs_star_ALL";
 val lemma_CLIM = thm "lemma_CLIM";
 val lemma_skolemize_CLIM2 = thm "lemma_skolemize_CLIM2";
 val lemma_csimp = thm "lemma_csimp";
