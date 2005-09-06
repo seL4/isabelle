@@ -736,7 +736,7 @@ fun rename_abs pat obj t =
   let
     val ren = match_bvs (pat, obj, []);
     fun ren_abs (Abs (x, T, b)) =
-          Abs (if_none (assoc_string (ren, x)) x, T, ren_abs b)
+          Abs (if_none (AList.lookup (op =) ren x) x, T, ren_abs b)
       | ren_abs (f $ t) = ren_abs f $ ren_abs t
       | ren_abs t = t
   in if null ren then NONE else SOME (ren_abs t) end;
@@ -934,7 +934,7 @@ fun typ_subst_TVars [] ty = ty
   | typ_subst_TVars inst ty =
       let
         fun subst (Type (a, Ts)) = Type (a, map subst Ts)
-          | subst (T as TVar (xi, _)) = if_none (assoc_string_int (inst, xi)) T
+          | subst (T as TVar (xi, _)) = if_none (AList.lookup (op =) inst xi) T
           | subst T = T;
       in subst ty end;
 
@@ -945,7 +945,7 @@ fun subst_TVars [] tm = tm
 fun subst_Vars [] tm = tm
   | subst_Vars inst tm =
       let
-        fun subst (t as Var (xi, _)) = if_none (assoc_string_int (inst, xi)) t
+        fun subst (t as Var (xi, _)) = if_none (AList.lookup (op =) inst xi) t
           | subst (Abs (a, T, t)) = Abs (a, T, subst t)
           | subst (t $ u) = subst t $ subst u
           | subst t = t;
@@ -959,7 +959,7 @@ fun subst_vars ([], []) tm = tm
         fun subst (Const (a, T)) = Const (a, typ_subst_TVars instT T)
           | subst (Free (a, T)) = Free (a, typ_subst_TVars instT T)
           | subst (t as Var (xi, T)) =
-              (case assoc_string_int (inst, xi) of
+              (case AList.lookup (op =) inst xi of
                 NONE => Var (xi, typ_subst_TVars instT T)
               | SOME t => t)
           | subst (t as Bound _) = t

@@ -111,7 +111,7 @@ fun polymorphicT T = Type ("_polymorphic_", [T]);
 fun pretyp_of is_param (params, typ) =
   let
     fun add_parms (TVar (xi as (x, _), S)) ps =
-          if is_param xi andalso is_none (assoc_string_int (ps, xi))
+          if is_param xi andalso is_none (AList.lookup (op =) ps xi)
           then (xi, mk_param S) :: ps else ps
       | add_parms (TFree _) ps = ps
       | add_parms (Type (_, Ts)) ps = fold add_parms Ts ps;
@@ -119,7 +119,7 @@ fun pretyp_of is_param (params, typ) =
     val params' = add_parms typ params;
 
     fun pre_of (TVar (v as (xi, _))) =
-          (case assoc_string_int (params', xi) of
+          (case AList.lookup (op =) params' xi of
             NONE => PTVar v
           | SOME p => p)
       | pre_of (TFree ("'_dummy_", S)) = mk_param S
@@ -137,7 +137,7 @@ fun pretyps_of is_param = foldl_map (pretyp_of is_param);
 fun preterm_of const_type is_param ((vparams, params), tm) =
   let
     fun add_vparm (ps, xi) =
-      if is_none (assoc_string_int (ps, xi)) then
+      if is_none (AList.lookup (op =) ps xi) then
         (xi, mk_param []) :: ps
       else ps;
 
@@ -149,7 +149,7 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
       | add_vparms (ps, _) = ps;
 
     val vparams' = add_vparms (vparams, tm);
-    fun var_param xi = the (assoc_string_int (vparams', xi));
+    fun var_param xi = (the o AList.lookup (op =) vparams') xi;
 
 
     val preT_of = pretyp_of is_param;
@@ -457,7 +457,7 @@ fun get_sort tsig def_sort map_sort raw_env =
           ^ commas_quote (map (Syntax.string_of_vname' o fst) dups)));
 
     fun get xi =
-      (case (assoc_string_int (env, xi), def_sort xi) of
+      (case (AList.lookup (op =) env xi, def_sort xi) of
         (NONE, NONE) => Type.defaultS tsig
       | (NONE, SOME S) => S
       | (SOME S, NONE) => S

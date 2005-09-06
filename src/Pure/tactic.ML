@@ -240,7 +240,7 @@ fun read_insts_in_state (st, i, sinsts, rule) =
   let val thy = Thm.theory_of_thm st
       and params = params_of_state st i
       and rts = types_sorts rule and (types,sorts) = types_sorts st
-      fun types'(a, ~1) = (case assoc_string (params, a) of NONE => types (a, ~1) | sm => sm)
+      fun types'(a, ~1) = (case AList.lookup (op =) params a of NONE => types (a, ~1) | sm => sm)
         | types' ixn = types ixn;
       val used = Drule.add_used rule (Drule.add_used st []);
   in read_insts thy rts (types',sorts) used sinsts end;
@@ -666,7 +666,7 @@ fun gen_prove_multi finish_thm thy xs asms props tac =
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
     val fixed_tfrees = foldr Term.add_typ_tfrees [] (map #2 fixed_frees);
-    val params = List.mapPartial (fn x => Option.map (pair x) (assoc_string (frees, x))) xs;
+    val params = List.mapPartial (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
 
     fun err msg = raise ERROR_MESSAGE
       (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^

@@ -532,7 +532,7 @@ fun extract thms thy =
                   (Bound (length Us), eT :: Us);
                 val u = list_comb (incr_boundvars (length Us') t,
                   map Bound (length Us - 1 downto 0));
-                val u' = (case assoc_string (types, tname_of T) of
+                val u' = (case AList.lookup (op =) types (tname_of T) of
                     SOME ((_, SOME f)) => f r eT u T
                   | _ => Const ("realizes", eT --> T --> T) $ r $ u)
               in app_rlz_rews Ts vs (list_abs (map (pair "x") Us', u')) end

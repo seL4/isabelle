@@ -625,7 +625,7 @@ fun intern_attrib_elem_expr thy (Elem elem) = Elem (intern_attrib_elem thy elem)
 (* ren maps names to (new) names and syntax; represented as association list *)
 
 fun rename_var ren (x, mx) =
-  case assoc_string (ren, x) of
+  case AList.lookup (op =) ren x of
       NONE => (x, mx)
     | SOME (x', NONE) =>
         (x', if mx = NONE then mx else SOME Syntax.NoSyn)     (*drop syntax*)
@@ -635,7 +635,7 @@ fun rename_var ren (x, mx) =
         else (x', SOME mx');                                (*change syntax*)
 
 fun rename ren x =
-  case assoc_string (ren, x) of
+  case AList.lookup (op =) ren x of
       NONE => x
     | SOME (x', _) => x';                                   (*ignore syntax*)
 
@@ -1391,9 +1391,9 @@ fun closeup _ false elem = elem
 
 
 fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
-      (x, assoc_string (parms, x), mx)) fixes)
+      (x, AList.lookup (op =) parms x, mx)) fixes)
   | finish_ext_elem parms _ (Constrains csts, _) =
-      Constrains (map (fn (x, _) => (x, valOf (assoc_string (parms, x)))) csts)
+      Constrains (map (fn (x, _) => (x, (the o AList.lookup (op =) parms) x)) csts)
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
   | finish_ext_elem _ close (Defines defs, propp) =

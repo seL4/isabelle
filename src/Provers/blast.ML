@@ -171,7 +171,7 @@ fun isTrueprop (Term.Const("Trueprop",_)) = true
 fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) Ts)
   | fromType alist (Term.TFree(a,_)) = Free a
   | fromType alist (Term.TVar (ixn,_)) =
-	      (case (assoc_string_int(!alist,ixn)) of
+	      (case (AList.lookup (op =) (!alist) ixn) of
 		   NONE => let val t' = Var(ref NONE)
 		           in  alist := (ixn, t') :: !alist;  t'
 			   end
@@ -381,7 +381,7 @@ fun fromTerm t =
 	| from (Term.Free  (a,_)) = Free a
 	| from (Term.Bound i)     = Bound i
 	| from (Term.Var (ixn,T)) = 
-	      (case (assoc_string_int(!alistVar,ixn)) of
+	      (case (AList.lookup (op =) (!alistVar) ixn) of
 		   NONE => let val t' = Var(ref NONE)
 		           in  alistVar := (ixn, t') :: !alistVar;  t'
 			   end
@@ -1214,7 +1214,7 @@ fun fromSubgoal t =
 	    | Term.Free  (a,_) => apply (Free a)
 	    | Term.Bound i     => apply (Bound i)
 	    | Term.Var (ix,_) => 
-		  (case (assoc_string_int(!alistVar,ix)) of
+		  (case (AList.lookup (op =) (!alistVar) ix) of
 		       NONE => (alistVar := (ix, (ref NONE, bounds ts))
 					  :: !alistVar;
 				Var (hdvar(!alistVar)))
