@@ -382,7 +382,7 @@ val constaxiom_decls =
 (* axclass *)
 
 fun mk_axclass_decl ((c, cs), axms) =
-  (mk_pair (c, cs) ^ "\n" ^ mk_axms' axms, unenclose c ^ "I" :: map fst axms);
+  (mk_pair (c, cs) ^ "\n" ^ mk_axms' axms, map fst axms);
 
 val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 
