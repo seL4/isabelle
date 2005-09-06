@@ -20,11 +20,11 @@ constdefs
 
     starsetNat :: "nat set => hypnat set"          ("*sNat* _" [80] 80)
     "*sNat* A ==
-       {x. \<forall>X\<in>Rep_hypnat(x). {n::nat. X n \<in> A}: FreeUltrafilterNat}"
+       {x. \<forall>X\<in>Rep_star(x). {n::nat. X n \<in> A}: FreeUltrafilterNat}"
 
    starsetNat_n :: "(nat => nat set) => hypnat set"      ("*sNatn* _" [80] 80)
     "*sNatn* As ==
-       {x. \<forall>X\<in>Rep_hypnat(x). {n::nat. X n \<in> (As n)}: FreeUltrafilterNat}"
+       {x. \<forall>X\<in>Rep_star(x). {n::nat. X n \<in> (As n)}: FreeUltrafilterNat}"
 
    InternalNatSets :: "hypnat set set"
     "InternalNatSets == {X. \<exists>As. X = *sNatn* As}"
@@ -33,12 +33,12 @@ constdefs
 
     starfunNat :: "(nat => real) => hypnat => hypreal"
                   ("*fNat* _" [80] 80)
-    "*fNat* f  == (%x. Abs_star(\<Union>X\<in>Rep_hypnat(x). starrel``{%n. f (X n)}))"
+    "*fNat* f  == (%x. Abs_star(\<Union>X\<in>Rep_star(x). starrel``{%n. f (X n)}))"
 
    starfunNat_n :: "(nat => (nat => real)) => hypnat => hypreal"
                    ("*fNatn* _" [80] 80)
     "*fNatn* F ==
-      (%x. Abs_star(\<Union>X\<in>Rep_hypnat(x). starrel``{%n. (F n)(X n)}))"
+      (%x. Abs_star(\<Union>X\<in>Rep_star(x). starrel``{%n. (F n)(X n)}))"
 
    InternalNatFuns :: "(hypnat => hypreal) set"
     "InternalNatFuns == {X. \<exists>F. X = *fNatn* F}"
@@ -47,12 +47,12 @@ constdefs
 
    starfunNat2 :: "(nat => nat) => hypnat => hypnat"
                    ("*fNat2* _" [80] 80)
-    "*fNat2* f == %x. Abs_hypnat(\<Union>X\<in>Rep_hypnat(x). hypnatrel``{%n. f (X n)})"
+    "*fNat2* f == %x. Abs_star(\<Union>X\<in>Rep_star(x). starrel``{%n. f (X n)})"
 
    starfunNat2_n :: "(nat => (nat => nat)) => hypnat => hypnat"
                      ("*fNat2n* _" [80] 80)
     "*fNat2n* F == 
-        %x. Abs_hypnat(\<Union>X\<in>Rep_hypnat(x). hypnatrel``{%n. (F n)(X n)})"
+        %x. Abs_star(\<Union>X\<in>Rep_star(x). starrel``{%n. (F n)(X n)})"
 
    InternalNatFuns2 :: "(hypnat => hypnat) set"
     "InternalNatFuns2 == {X. \<exists>F. X = *fNat2n* F}"
@@ -70,13 +70,13 @@ apply (auto simp add: starsetNat_def)
  prefer 2 apply (blast intro: FreeUltrafilterNat_subset)
 apply (drule FreeUltrafilterNat_Compl_mem)
 apply (drule bspec, assumption)
-apply (rule_tac z = x in eq_Abs_hypnat, auto, ultra)
+apply (rule_tac z = x in eq_Abs_star, auto, ultra)
 done
 
 lemma starsetNat_n_Un: "*sNatn* (%n. (A n) Un (B n)) = *sNatn* A Un *sNatn* B"
 apply (auto simp add: starsetNat_n_def)
 apply (drule_tac x = Xa in bspec)
-apply (rule_tac [2] z = x in eq_Abs_hypnat)
+apply (rule_tac [2] z = x in eq_Abs_star)
 apply (auto dest!: bspec, ultra+)
 done
 
@@ -104,15 +104,15 @@ by (auto simp add: InternalNatSets_def starsetNat_n_Int [symmetric])
 
 lemma NatStar_Compl: "*sNat* (-A) = -( *sNat* A)"
 apply (auto simp add: starsetNat_def)
-apply (rule_tac z = x in eq_Abs_hypnat)
-apply (rule_tac [2] z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
+apply (rule_tac [2] z = x in eq_Abs_star)
 apply (auto dest!: bspec, ultra+)
 done
 
 lemma starsetNat_n_Compl: "*sNatn* ((%n. - A n)) = -( *sNatn* A)"
 apply (auto simp add: starsetNat_n_def)
-apply (rule_tac z = x in eq_Abs_hypnat)
-apply (rule_tac [2] z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
+apply (rule_tac [2] z = x in eq_Abs_star)
 apply (auto dest!: bspec, ultra+)
 done
 
@@ -121,8 +121,8 @@ by (auto simp add: InternalNatSets_def starsetNat_n_Compl [symmetric])
 
 lemma starsetNat_n_diff: "*sNatn* (%n. (A n) - (B n)) = *sNatn* A - *sNatn* B"
 apply (auto simp add: starsetNat_n_def)
-apply (rule_tac [2] z = x in eq_Abs_hypnat)
-apply (rule_tac [3] z = x in eq_Abs_hypnat)
+apply (rule_tac [2] z = x in eq_Abs_star)
+apply (rule_tac [3] z = x in eq_Abs_star)
 apply (auto dest!: bspec, ultra+)
 done
 
@@ -154,7 +154,7 @@ apply (auto simp add: starsetNat_def hypnat_of_nat_eq SHNat_eq)
 apply (simp add: hypnat_of_nat_eq [symmetric])
 apply (rule imageI, rule ccontr)
 apply (drule bspec)
-apply (rule lemma_hypnatrel_refl)
+apply (rule lemma_starrel_refl)
 prefer 2 apply (blast intro: FreeUltrafilterNat_subset, auto)
 done
 
@@ -186,14 +186,14 @@ by (simp add: starfunNat_n_def starfunNat_def)
 lemma starfunNat2_n_starfunNat2: "\<forall>n. (F n = f) ==> *fNat2n* F = *fNat2* f"
 by (simp add: starfunNat2_n_def starfunNat2_def)
 
-lemma starfunNat_congruent: "(%X. hypnatrel``{%n. f (X n)}) respects hypnatrel"
+lemma starfunNat_congruent: "(%X. starrel``{%n. f (X n)}) respects starrel"
 apply (simp add: congruent_def, safe)
 apply (ultra+)
 done
 
 (* f::nat=>real *)
 lemma starfunNat:
-      "( *fNat* f) (Abs_hypnat(hypnatrel``{%n. X n})) =
+      "( *fNat* f) (Abs_star(starrel``{%n. X n})) =
        Abs_star(starrel `` {%n. f (X n)})"
 apply (simp add: starfunNat_def)
 apply (rule arg_cong [where f = Abs_star])
@@ -202,25 +202,25 @@ done
 
 (* f::nat=>nat *)
 lemma starfunNat2:
-      "( *fNat2* f) (Abs_hypnat(hypnatrel``{%n. X n})) =
-       Abs_hypnat(hypnatrel `` {%n. f (X n)})"
+      "( *fNat2* f) (Abs_star(starrel``{%n. X n})) =
+       Abs_star(starrel `` {%n. f (X n)})"
 apply (simp add: starfunNat2_def)
-apply (rule arg_cong [where f = Abs_hypnat])
-apply (simp add: hypnatrel_in_hypnat [THEN Abs_hypnat_inverse]
-         UN_equiv_class [OF equiv_hypnatrel starfunNat_congruent])
+apply (rule arg_cong [where f = Abs_star])
+apply (simp add: starrel_in_hypreal [THEN Abs_star_inverse]
+         UN_equiv_class [OF equiv_starrel starfunNat_congruent])
 done
 
 subsubsection{*Multiplication: @{text "( *f) x ( *g) = *(f x g)"}*}
 
 lemma starfunNat_mult:
      "( *fNat* f) z * ( *fNat* g) z = ( *fNat* (%x. f x * g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat hypreal_mult)
 done
 
 lemma starfunNat2_mult:
      "( *fNat2* f) z * ( *fNat2* g) z = ( *fNat2* (%x. f x * g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat2 hypnat_mult)
 done
 
@@ -228,19 +228,19 @@ subsubsection{*Addition: @{text "( *f) + ( *g) = *(f + g)"}*}
 
 lemma starfunNat_add:
      "( *fNat* f) z + ( *fNat* g) z = ( *fNat* (%x. f x + g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat hypreal_add)
 done
 
 lemma starfunNat2_add:
      "( *fNat2* f) z + ( *fNat2* g) z = ( *fNat2* (%x. f x + g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat2 hypnat_add)
 done
 
 lemma starfunNat2_minus:
      "( *fNat2* f) z - ( *fNat2* g) z = ( *fNat2* (%x. f x - g x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat2 hypnat_minus)
 done
 
@@ -251,7 +251,7 @@ subsubsection{*Composition: @{text "( *f) o ( *g) = *(f o g)"}*}
 lemma starfunNatNat2_o:
      "( *fNat* f) o ( *fNat2* g) = ( *fNat* (f o g))"
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: starfunNat2 starfunNat)
 done
 
@@ -264,7 +264,7 @@ done
 (***** ( *f::nat=>nat) o ( *g::nat=>nat) = *(f o g) *****)
 lemma starfunNat2_o: "( *fNat2* f) o ( *fNat2* g) = ( *fNat2* (f o g))"
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: starfunNat2)
 done
 
@@ -272,7 +272,7 @@ done
 
 lemma starfun_stafunNat_o: "( *f* f) o ( *fNat* g) = ( *fNat* (f o g))"
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: starfunNat starfun)
 done
 
@@ -286,23 +286,23 @@ done
 text{*NS extension of constant function*}
 
 lemma starfunNat_const_fun [simp]: "( *fNat* (%x. k)) z = hypreal_of_real k"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma starfunNat2_const_fun [simp]: "( *fNat2* (%x. k)) z = hypnat_of_nat  k"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat2 hypnat_of_nat_eq)
 done
 
 lemma starfunNat_minus: "- ( *fNat* f) x = ( *fNat* (%x. - f x)) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfunNat hypreal_minus)
 done
 
 lemma starfunNat_inverse:
      "inverse (( *fNat* f) x) = ( *fNat* (%x. inverse (f x))) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfunNat hypreal_inverse)
 done
 
@@ -330,7 +330,7 @@ lemma starfun_le_mono:
      "\<forall>n. N \<le> n --> f n \<le> g n
       ==> \<forall>n. hypnat_of_nat N \<le> n --> ( *fNat* f) n \<le> ( *fNat* g) n"
 apply safe
-apply (rule_tac z = n in eq_Abs_hypnat)
+apply (rule_tac z = n in eq_Abs_star)
 apply (auto simp add: starfunNat hypnat_of_nat_eq hypreal_le hypreal_less hypnat_le hypnat_less, ultra, auto)
 done
 
@@ -339,7 +339,7 @@ lemma starfun_less_mono:
      "\<forall>n. N \<le> n --> f n < g n
       ==> \<forall>n. hypnat_of_nat N \<le> n --> ( *fNat* f) n < ( *fNat* g) n"
 apply safe
-apply (rule_tac z = n in eq_Abs_hypnat)
+apply (rule_tac z = n in eq_Abs_star)
 apply (auto simp add: starfunNat hypnat_of_nat_eq hypreal_le hypreal_less hypnat_le hypnat_less, ultra, auto)
 done
 
@@ -347,27 +347,27 @@ text{*Nonstandard extension when we increment the argument by one*}
 
 lemma starfunNat_shift_one:
      "( *fNat* (%n. f (Suc n))) N = ( *fNat* f) (N + (1::hypnat))"
-apply (cases N)
+apply (rule_tac z=N in eq_Abs_star)
 apply (simp add: starfunNat hypnat_one_def hypnat_add)
 done
 
 text{*Nonstandard extension with absolute value*}
 
 lemma starfunNat_rabs: "( *fNat* (%n. abs (f n))) N = abs(( *fNat* f) N)"
-apply (cases N)
+apply (rule_tac z=N in eq_Abs_star)
 apply (simp add: starfunNat hypreal_hrabs)
 done
 
 text{*The hyperpow function as a nonstandard extension of realpow*}
 
 lemma starfunNat_pow: "( *fNat* (%n. r ^ n)) N = (hypreal_of_real r) pow N"
-apply (cases N)
+apply (rule_tac z=N in eq_Abs_star)
 apply (simp add: hyperpow hypreal_of_real_def star_of_def star_n_def starfunNat)
 done
 
 lemma starfunNat_pow2:
      "( *fNat* (%n. (X n) ^ m)) N = ( *fNat* X) N pow hypnat_of_nat m"
-apply (cases N)
+apply (rule_tac z=N in eq_Abs_star)
 apply (simp add: hyperpow hypnat_of_nat_eq starfunNat)
 done
 
@@ -381,7 +381,7 @@ text{*The @{term hypreal_of_hypnat} function as a nonstandard extension of
 
 lemma starfunNat_real_of_nat: "( *fNat* real) = hypreal_of_hypnat"
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
 apply (simp add: hypreal_of_hypnat starfunNat)
 done
 
@@ -396,11 +396,11 @@ done
 text{*Internal functions - some redundancy with *fNat* now*}
 
 lemma starfunNat_n_congruent:
-      "(%X. hypnatrel``{%n. f n (X n)}) respects hypnatrel"
+      "(%X. starrel``{%n. f n (X n)}) respects starrel"
 by (auto simp add: congruent_def, ultra+)
 
 lemma starfunNat_n:
-     "( *fNatn* f) (Abs_hypnat(hypnatrel``{%n. X n})) =
+     "( *fNatn* f) (Abs_star(starrel``{%n. X n})) =
       Abs_star(starrel `` {%n. f n (X n)})"
 apply (simp add: starfunNat_n_def)
 apply (rule_tac f = Abs_star in arg_cong, auto, ultra)
@@ -410,7 +410,7 @@ text{*Multiplication: @{text "( *fn) x ( *gn) = *(fn x gn)"}*}
 
 lemma starfunNat_n_mult:
      "( *fNatn* f) z * ( *fNatn* g) z = ( *fNatn* (% i x. f i x * g i x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat_n hypreal_mult)
 done
 
@@ -418,7 +418,7 @@ text{*Addition: @{text "( *fn) + ( *gn) = *(fn + gn)"}*}
 
 lemma starfunNat_n_add:
      "( *fNatn* f) z + ( *fNatn* g) z = ( *fNatn* (%i x. f i x + g i x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat_n hypreal_add)
 done
 
@@ -426,7 +426,7 @@ text{*Subtraction: @{text "( *fn) - ( *gn) = *(fn + - gn)"}*}
 
 lemma starfunNat_n_add_minus:
      "( *fNatn* f) z + -( *fNatn* g) z = ( *fNatn* (%i x. f i x + -g i x)) z"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat_n hypreal_minus hypreal_add)
 done
 
@@ -435,12 +435,12 @@ text{*Composition: @{text "( *fn) o ( *gn) = *(fn o gn)"}*}
 
 lemma starfunNat_n_const_fun [simp]:
      "( *fNatn* (%i x. k)) z = hypreal_of_real  k"
-apply (cases z)
+apply (rule_tac z=z in eq_Abs_star)
 apply (simp add: starfunNat_n hypreal_of_real_def star_of_def star_n_def)
 done
 
 lemma starfunNat_n_minus: "- ( *fNatn* f) x = ( *fNatn* (%i x. - (f i) x)) x"
-apply (cases x)
+apply (rule_tac z=x in eq_Abs_star)
 apply (simp add: starfunNat_n hypreal_minus)
 done
 
@@ -539,13 +539,13 @@ subsection{*Nonstandard Characterization of Induction*}
 constdefs
 
   starPNat :: "(nat => bool) => hypnat => bool"  ("*pNat* _" [80] 80)
-  "*pNat* P == (%x. \<exists>X. (X \<in> Rep_hypnat(x) &
+  "*pNat* P == (%x. \<exists>X. (X \<in> Rep_star(x) &
                       {n. P(X n)} \<in> FreeUltrafilterNat))"
 
 
   starPNat2 :: "(nat => nat => bool) => hypnat =>hypnat => bool"
                ("*pNat2* _" [80] 80)
-  "*pNat2* P == (%x y. \<exists>X. \<exists>Y. (X \<in> Rep_hypnat(x) & Y \<in> Rep_hypnat(y) &
+  "*pNat2* P == (%x y. \<exists>X. \<exists>Y. (X \<in> Rep_star(x) & Y \<in> Rep_star(y) &
                       {n. P(X n) (Y n)} \<in> FreeUltrafilterNat))"
 
   hSuc :: "hypnat => hypnat"
@@ -553,7 +553,7 @@ constdefs
 
 
 lemma starPNat:
-     "(( *pNat* P) (Abs_hypnat(hypnatrel``{%n. X n}))) =
+     "(( *pNat* P) (Abs_star(starrel``{%n. X n}))) =
       ({n. P (X n)} \<in> FreeUltrafilterNat)"
 by (auto simp add: starPNat_def, ultra)
 
@@ -564,7 +564,7 @@ lemma hypnat_induct_obj:
     "(( *pNat* P) 0 &
             (\<forall>n. ( *pNat* P)(n) --> ( *pNat* P)(n + 1)))
        --> ( *pNat* P)(n)"
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hypnat_zero_def hypnat_one_def starPNat, ultra)
 apply (erule nat_induct)
 apply (drule_tac x = "hypnat_of_nat n" in spec)
@@ -579,8 +579,8 @@ lemma hypnat_induct:
 by (insert hypnat_induct_obj [of P n], auto)
 
 lemma starPNat2:
-"(( *pNat2* P) (Abs_hypnat(hypnatrel``{%n. X n}))
-             (Abs_hypnat(hypnatrel``{%n. Y n}))) =
+"(( *pNat2* P) (Abs_star(starrel``{%n. X n}))
+             (Abs_star(starrel``{%n. Y n}))) =
       ({n. P (X n) (Y n)} \<in> FreeUltrafilterNat)"
 by (auto simp add: starPNat2_def, ultra)
 
@@ -588,17 +588,17 @@ lemma starPNat2_eq_iff: "( *pNat2* (op =)) = (op =)"
 apply (simp add: starPNat2_def)
 apply (rule ext)
 apply (rule ext)
-apply (rule_tac z = x in eq_Abs_hypnat)
-apply (rule_tac z = y in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
+apply (rule_tac z = y in eq_Abs_star)
 apply (auto, ultra)
 done
 
 lemma starPNat2_eq_iff2: "( *pNat2* (%x y. x = y)) X Y = (X = Y)"
 by (simp add: starPNat2_eq_iff)
 
-lemma lemma_hyp: "(\<exists>h. P(h::hypnat)) = (\<exists>x. P(Abs_hypnat(hypnatrel `` {x})))"
+lemma lemma_hyp: "(\<exists>h. P(h::hypnat)) = (\<exists>x. P(Abs_star(starrel `` {x})))"
 apply auto
-apply (rule_tac z = h in eq_Abs_hypnat, auto)
+apply (rule_tac z = h in eq_Abs_star, auto)
 done
 
 lemma hSuc_not_zero [iff]: "hSuc m \<noteq> 0"
@@ -615,7 +615,7 @@ by (erule LeastI)
 lemma nonempty_InternalNatSet_has_least:
     "[| S \<in> InternalNatSets; S \<noteq> {} |] ==> \<exists>n \<in> S. \<forall>m \<in> S. n \<le> m"
 apply (auto simp add: InternalNatSets_def starsetNat_n_def lemma_hyp)
-apply (rule_tac z = x in eq_Abs_hypnat)
+apply (rule_tac z = x in eq_Abs_star)
 apply (auto dest!: bspec simp add: hypnat_le)
 apply (drule_tac x = "%m. LEAST n. n \<in> As m" in spec, auto)
 apply (ultra, force dest: nonempty_nat_set_Least_mem)

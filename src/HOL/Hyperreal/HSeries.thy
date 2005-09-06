@@ -14,7 +14,7 @@ begin
 constdefs 
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
    "sumhr p == 
-      (%(M,N,f). Abs_star(\<Union>X \<in> Rep_hypnat(M). \<Union>Y \<in> Rep_hypnat(N).  
+      (%(M,N,f). Abs_star(\<Union>X \<in> Rep_star(M). \<Union>Y \<in> Rep_star(N).  
                              starrel ``{%n::nat. setsum f {X n..<Y n}})) p"
 
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
@@ -28,8 +28,8 @@ constdefs
 
 
 lemma sumhr: 
-     "sumhr(Abs_hypnat(hypnatrel``{%n. M n}),  
-            Abs_hypnat(hypnatrel``{%n. N n}), f) =  
+     "sumhr(Abs_star(starrel``{%n. M n}),  
+            Abs_star(starrel``{%n. N n}), f) =  
       Abs_star(starrel `` {%n. setsum f {M n..<N n}})"
 apply (simp add: sumhr_def)
 apply (rule arg_cong [where f = Abs_star])
@@ -38,7 +38,7 @@ done
 
 text{*Base case in definition of @{term sumr}*}
 lemma sumhr_zero [simp]: "sumhr (m,0,f) = 0"
-apply (cases m)
+apply (rule_tac z=m in eq_Abs_star)
 apply (simp add: hypnat_zero_def sumhr symmetric hypreal_zero_def)
 done
 
@@ -46,43 +46,43 @@ text{*Recursive case in definition of @{term sumr}*}
 lemma sumhr_if: 
      "sumhr(m,n+1,f) = 
       (if n + 1 \<le> m then 0 else sumhr(m,n,f) + ( *fNat* f) n)"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hypnat_one_def sumhr hypnat_add hypnat_le starfunNat
            hypreal_add hypreal_zero_def,   ultra+)
 done
 
 lemma sumhr_Suc_zero [simp]: "sumhr (n + 1, n, f) = 0"
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (simp add: hypnat_one_def sumhr hypnat_add hypreal_zero_def)
 done
 
 lemma sumhr_eq_bounds [simp]: "sumhr (n,n,f) = 0"
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypreal_zero_def)
 done
 
 lemma sumhr_Suc [simp]: "sumhr (m,m + 1,f) = ( *fNat* f) m"
-apply (cases m)
+apply (rule_tac z=m in eq_Abs_star)
 apply (simp add: sumhr hypnat_one_def  hypnat_add starfunNat)
 done
 
 lemma sumhr_add_lbound_zero [simp]: "sumhr(m+k,k,f) = 0"
-apply (cases m, cases k)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=k in eq_Abs_star)
 apply (simp add: sumhr hypnat_add hypreal_zero_def)
 done
 
 lemma sumhr_add: "sumhr (m,n,f) + sumhr(m,n,g) = sumhr(m,n,%i. f i + g i)"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypreal_add setsum_addf)
 done
 
 lemma sumhr_mult: "hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypreal_of_real_def star_of_def star_n_def hypreal_mult setsum_mult)
 done
 
 lemma sumhr_split_add: "n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
-apply (cases n, cases p)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=p in eq_Abs_star)
 apply (auto elim!: FreeUltrafilterNat_subset simp 
             add: hypnat_zero_def sumhr hypreal_add hypnat_less setsum_add_nat_ivl)
 done
@@ -91,7 +91,7 @@ lemma sumhr_split_diff: "n<p ==> sumhr(0,p,f) - sumhr(0,n,f) = sumhr(n,p,f)"
 by (drule_tac f1 = f in sumhr_split_add [symmetric], simp)
 
 lemma sumhr_hrabs: "abs(sumhr(m,n,f)) \<le> sumhr(m,n,%i. abs(f i))"
-apply (cases n, cases m)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=m in eq_Abs_star)
 apply (simp add: sumhr hypreal_le hypreal_hrabs setsum_abs)
 done
 
@@ -105,26 +105,26 @@ by (fastsimp simp add: sumhr hypnat_of_nat_eq intro:setsum_cong)
 
 lemma sumhr_const:
      "sumhr(0, n, %i. r) = hypreal_of_hypnat n * hypreal_of_real r"
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypnat_zero_def hypreal_of_real_def hypreal_of_hypnat 
                  star_of_def star_n_def
                  hypreal_mult real_of_nat_def)
 done
 
 lemma sumhr_less_bounds_zero [simp]: "n < m ==> sumhr(m,n,f) = 0"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (auto elim: FreeUltrafilterNat_subset 
             simp add: sumhr hypnat_less hypreal_zero_def)
 done
 
 lemma sumhr_minus: "sumhr(m, n, %i. - f i) = - sumhr(m, n, f)"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypreal_minus setsum_negf)
 done
 
 lemma sumhr_shift_bounds:
      "sumhr(m+hypnat_of_nat k,n+hypnat_of_nat k,f) = sumhr(m,n,%i. f(i + k))"
-apply (cases m, cases n)
+apply (rule_tac z=m in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: sumhr hypnat_add setsum_shift_bounds_nat_ivl hypnat_of_nat_eq)
 done
 
@@ -156,7 +156,7 @@ by(simp add: sumhr hypreal_of_nat_eq hypnat_of_nat_eq hypreal_of_real_def
              real_of_nat_def star_of_def star_n_def hypreal_mult cong: setsum_ivl_cong)
 
 lemma starfunNat_sumr: "( *fNat* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
-apply (cases N)
+apply (rule_tac z=N in eq_Abs_star)
 apply (simp add: hypnat_zero_def starfunNat sumhr)
 done
 

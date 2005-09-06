@@ -266,10 +266,8 @@ done
 lemma coshr_zero [simp]: "coshr 0 = 1"
 apply (simp add: coshr_def sumhr_split_add
                    [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (simp add: sumhr hypnat_zero_def starfunNat hypnat_one_def 
-         hypnat_add hypnat_omega_def st_add [symmetric] 
-         hypreal_one_def [symmetric] hypreal_zero_def [symmetric]
-       del: hypnat_add_zero_left)
+apply (simp add: sumhr hypnat_zero_def hypnat_one_def hypnat_omega_def)
+apply (simp add: hypreal_one_def [symmetric] hypreal_zero_def [symmetric])
 done
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) 0 @= 1"
@@ -301,6 +299,7 @@ apply (simp add: exphr_def)
 apply (rule st_hypreal_of_real [THEN subst])
 apply (rule approx_st_eq, auto)
 apply (rule approx_minus_iff [THEN iffD2])
+apply (simp only: mem_infmal_iff [symmetric])
 apply (auto simp add: mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypnat_zero_def hypnat_omega_def sumhr hypreal_minus hypreal_add)
 apply (rule NSLIMSEQ_zero_Infinitesimal_hypreal)
 apply (insert exp_converges [of x]) 

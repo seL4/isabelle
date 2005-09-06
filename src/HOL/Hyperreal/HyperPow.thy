@@ -41,7 +41,7 @@ defs
   (* hypernatural powers of hyperreals *)
   hyperpow_def:
   "(R::hypreal) pow (N::hypnat) ==
-      Abs_star(\<Union>X \<in> Rep_star(R). \<Union>Y \<in> Rep_hypnat(N).
+      Abs_star(\<Union>X \<in> Rep_star(R). \<Union>Y \<in> Rep_star(N).
                         starrel``{%n::nat. (X n) ^ (Y n)})"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
@@ -125,7 +125,7 @@ lemma hyperpow_congruent: "(%X Y. starrel``{%n. (X n ^ Y n)}) respects starrel"
 by (auto simp add: congruent_def intro!: ext, fuf+)
 
 lemma hyperpow:
-  "Abs_star(starrel``{%n. X n}) pow Abs_hypnat(hypnatrel``{%n. Y n}) =
+  "Abs_star(starrel``{%n. X n}) pow Abs_star(starrel``{%n. Y n}) =
    Abs_star(starrel``{%n. X n ^ Y n})"
 apply (unfold hyperpow_def)
 apply (rule_tac f = Abs_star in arg_cong)
@@ -137,33 +137,33 @@ done
 lemma hyperpow_zero: "(0::hypreal) pow (n + (1::hypnat)) = 0"
 apply (unfold hypnat_one_def)
 apply (simp (no_asm) add: hypreal_zero_def)
-apply (rule_tac z = n in eq_Abs_hypnat)
+apply (rule_tac z = n in eq_Abs_star)
 apply (auto simp add: hyperpow hypnat_add)
 done
 declare hyperpow_zero [simp]
 
 lemma hyperpow_not_zero [rule_format (no_asm)]:
      "r \<noteq> (0::hypreal) --> r pow n \<noteq> 0"
-apply (simp (no_asm) add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
+apply (simp (no_asm) add: hypreal_zero_def, rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow)
 apply (drule FreeUltrafilterNat_Compl_mem, ultra)
 done
 
 lemma hyperpow_inverse:
      "r \<noteq> (0::hypreal) --> inverse(r pow n) = (inverse r) pow n"
-apply (simp (no_asm) add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
+apply (simp (no_asm) add: hypreal_zero_def, rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto dest!: FreeUltrafilterNat_Compl_mem simp add: hypreal_inverse hyperpow)
 apply (rule FreeUltrafilterNat_subset)
 apply (auto dest: realpow_not_zero intro: power_inverse)
 done
 
 lemma hyperpow_hrabs: "abs r pow n = abs (r pow n)"
-apply (cases n, rule_tac z=r in eq_Abs_star)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hypreal_hrabs hyperpow power_abs [symmetric])
 done
 
 lemma hyperpow_add: "r pow (n + m) = (r pow n) * (r pow m)"
-apply (cases n, cases m, rule_tac z=r in eq_Abs_star)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=m in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow hypnat_add hypreal_mult power_add)
 done
 
@@ -179,38 +179,38 @@ apply (auto simp add: hyperpow hypnat_add hypreal_mult)
 done
 
 lemma hyperpow_gt_zero: "(0::hypreal) < r ==> 0 < r pow n"
-apply (simp add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
+apply (simp add: hypreal_zero_def, rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto elim!: FreeUltrafilterNat_subset zero_less_power
                    simp add: hyperpow hypreal_less hypreal_le)
 done
 
 lemma hyperpow_ge_zero: "(0::hypreal) \<le> r ==> 0 \<le> r pow n"
-apply (simp add: hypreal_zero_def, cases n, rule_tac z=r in eq_Abs_star)
+apply (simp add: hypreal_zero_def, rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto elim!: FreeUltrafilterNat_subset zero_le_power 
             simp add: hyperpow hypreal_le)
 done
 
 lemma hyperpow_le: "[|(0::hypreal) < x; x \<le> y|] ==> x pow n \<le> y pow n"
-apply (simp add: hypreal_zero_def, cases n, rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
+apply (simp add: hypreal_zero_def, rule_tac z=n in eq_Abs_star, rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_le hypreal_less)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset], assumption)
 apply (auto intro: power_mono)
 done
 
 lemma hyperpow_eq_one [simp]: "1 pow n = (1::hypreal)"
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hypreal_one_def hyperpow)
 done
 
 lemma hrabs_hyperpow_minus_one [simp]: "abs(-1 pow n) = (1::hypreal)"
 apply (subgoal_tac "abs ((- (1::hypreal)) pow n) = (1::hypreal) ")
 apply simp
-apply (cases n)
+apply (rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hypreal_one_def hyperpow hypreal_minus hypreal_hrabs)
 done
 
 lemma hyperpow_mult: "(r * s) pow n = (r pow n) * (s pow n)"
-apply (cases n, rule_tac z=r in eq_Abs_star, rule_tac z=s in eq_Abs_star)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=r in eq_Abs_star, rule_tac z=s in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_mult power_mult_distrib)
 done
 
@@ -247,14 +247,14 @@ lemma hyperpow_minus_one2 [simp]:
      "-1 pow ((1 + 1)*n) = (1::hypreal)"
 apply (subgoal_tac " (- ((1::hypreal))) pow ((1 + 1)*n) = (1::hypreal) ")
 apply simp
-apply (simp only: hypreal_one_def, cases n)
+apply (simp only: hypreal_one_def, rule_tac z=n in eq_Abs_star)
 apply (auto simp add: nat_mult_2 [symmetric] hyperpow hypnat_add hypreal_minus
-                      left_distrib)
+                      hypnat_mult left_distrib)
 done
 
 lemma hyperpow_less_le:
      "[|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"
-apply (cases n, cases N, rule_tac z=r in eq_Abs_star)
+apply (rule_tac z=n in eq_Abs_star, rule_tac z=N in eq_Abs_star, rule_tac z=r in eq_Abs_star)
 apply (auto simp add: hyperpow hypreal_le hypreal_less hypnat_less 
             hypreal_zero_def hypreal_one_def)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])

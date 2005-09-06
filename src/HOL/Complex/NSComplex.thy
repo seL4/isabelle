@@ -127,7 +127,7 @@ defs
   (* hypernatural powers of nonstandard complex numbers *)
   hcpow_def:
   "(z::hcomplex) hcpow (n::hypnat)
-      == Abs_hcomplex(UN X:Rep_hcomplex(z). UN Y: Rep_hypnat(n).
+      == Abs_hcomplex(UN X:Rep_hcomplex(z). UN Y: Rep_star(n).
              hcomplexrel `` {%n. (X n) ^ (Y n)})"
 
 
@@ -817,7 +817,7 @@ subsection{*A Few Nonlinear Theorems*}
 
 lemma hcpow:
   "Abs_hcomplex(hcomplexrel``{%n. X n}) hcpow
-   Abs_hypnat(hypnatrel``{%n. Y n}) =
+   Abs_star(starrel``{%n. Y n}) =
    Abs_hcomplex(hcomplexrel``{%n. X n ^ Y n})"
 apply (simp add: hcpow_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
@@ -826,12 +826,12 @@ done
 
 lemma hcomplex_of_hypreal_hyperpow:
      "hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) hcpow n"
-apply (rule_tac z=x in eq_Abs_star, cases n)
+apply (rule_tac z=x in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcomplex_of_hypreal hyperpow hcpow complex_of_real_pow)
 done
 
 lemma hcmod_hcpow: "hcmod(x hcpow n) = hcmod(x) pow n"
-apply (cases x, cases n)
+apply (cases x, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcpow hyperpow hcmod complex_mod_complexpow)
 done
 
@@ -882,18 +882,18 @@ done
 lemma hcpow_minus:
      "(-x::hcomplex) hcpow n =
       (if ( *pNat* even) n then (x hcpow n) else -(x hcpow n))"
-apply (cases x, cases n)
+apply (cases x, rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hcpow hyperpow starPNat hcomplex_minus, ultra)
 apply (auto simp add: neg_power_if, ultra)
 done
 
 lemma hcpow_mult: "((r::hcomplex) * s) hcpow n = (r hcpow n) * (s hcpow n)"
-apply (cases r, cases s, cases n)
+apply (cases r, cases s, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcpow hypreal_mult hcomplex_mult power_mult_distrib)
 done
 
 lemma hcpow_zero [simp]: "0 hcpow (n + 1) = 0"
-apply (simp add: hcomplex_zero_def hypnat_one_def, cases n)
+apply (simp add: hcomplex_zero_def hypnat_one_def, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcpow hypnat_add)
 done
 
@@ -901,7 +901,7 @@ lemma hcpow_zero2 [simp]: "0 hcpow (hSuc n) = 0"
 by (simp add: hSuc_def)
 
 lemma hcpow_not_zero [simp,intro]: "r \<noteq> 0 ==> r hcpow n \<noteq> (0::hcomplex)"
-apply (cases r, cases n)
+apply (cases r, rule_tac z=n in eq_Abs_star)
 apply (auto simp add: hcpow hcomplex_zero_def, ultra)
 done
 
@@ -1194,12 +1194,12 @@ done
 lemma hcis_hypreal_of_hypnat_Suc_mult:
      "hcis (hypreal_of_hypnat (n + 1) * a) =
       hcis a * hcis (hypreal_of_hypnat n * a)"
-apply (rule_tac z=a in eq_Abs_star, cases n)
+apply (rule_tac z=a in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcis hypreal_of_hypnat hypnat_add hypnat_one_def hypreal_mult hcomplex_mult cis_real_of_nat_Suc_mult)
 done
 
 lemma NSDeMoivre_ext: "(hcis a) hcpow n = hcis (hypreal_of_hypnat n * a)"
-apply (rule_tac z=a in eq_Abs_star, cases n)
+apply (rule_tac z=a in eq_Abs_star, rule_tac z=n in eq_Abs_star)
 apply (simp add: hcis hypreal_of_hypnat hypreal_mult hcpow DeMoivre)
 done
 

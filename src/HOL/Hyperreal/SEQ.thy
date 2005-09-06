@@ -92,7 +92,7 @@ lemma LIMSEQ_NSLIMSEQ:
       "X ----> L ==> X ----NS> L"
 apply (simp add: LIMSEQ_def NSLIMSEQ_def)
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule_tac z = N in eq_Abs_hypnat)
+apply (rule_tac z = N in eq_Abs_star)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def
               star_of_def star_n_def
@@ -145,9 +145,9 @@ done
 
 text{* thus, the sequence defines an infinite hypernatural! *}
 lemma HNatInfinite_NSLIMSEQ: "\<forall>n. n \<le> f n
-          ==> Abs_hypnat (hypnatrel `` {f}) : HNatInfinite"
+          ==> Abs_star (starrel `` {f}) : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_hypnatrel_refl], safe)
+apply (rule bexI [OF _ lemma_starrel_refl], safe)
 apply (erule FreeUltrafilterNat_NSLIMSEQ)
 done
 
@@ -161,7 +161,7 @@ lemma lemmaLIM2:
 by auto
 
 lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> \<bar>X (f n) + - L\<bar>;
-           ( *fNat* X) (Abs_hypnat (hypnatrel `` {f})) +
+           ( *fNat* X) (Abs_star (starrel `` {f})) +
            - hypreal_of_real  L \<approx> 0 |] ==> False"
 apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
 apply (rename_tac "Y")
@@ -179,7 +179,7 @@ apply (simp add: LIMSEQ_def NSLIMSEQ_def)
 apply (rule ccontr, simp, safe)
 txt{* skolemization step *}
 apply (drule choice, safe)
-apply (drule_tac x = "Abs_hypnat (hypnatrel``{f}) " in bspec)
+apply (drule_tac x = "Abs_star (starrel``{f}) " in bspec)
 apply (drule_tac [2] approx_minus_iff [THEN iffD1])
 apply (simp_all add: linorder_not_less)
 apply (blast intro: HNatInfinite_NSLIMSEQ)
@@ -504,7 +504,7 @@ by auto
 
 lemma Bseq_NSBseq: "Bseq X ==> NSBseq X"
 apply (simp add: Bseq_def NSBseq_def, safe)
-apply (rule_tac z = N in eq_Abs_hypnat)
+apply (rule_tac z = N in eq_Abs_star)
 apply (auto simp add: starfunNat HFinite_FreeUltrafilterNat_iff 
                       HNatInfinite_FreeUltrafilterNat_iff)
 apply (rule bexI [OF _ lemma_starrel_refl]) 
@@ -567,9 +567,9 @@ done
 
 lemma HNatInfinite_skolem_f:
      "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
-      ==> Abs_hypnat(hypnatrel``{f}) : HNatInfinite"
+      ==> Abs_star(starrel``{f}) : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_hypnatrel_refl], safe)
+apply (rule bexI [OF _ lemma_starrel_refl], safe)
 apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem)
 apply (rule lemma_finite_NSBseq2 [THEN FreeUltrafilterNat_finite, THEN notE]) 
 apply (subgoal_tac "{n. f n \<le> u & real (Suc n) < \<bar>X (f n)\<bar>} =
@@ -762,7 +762,7 @@ subsection{*Equivalence Between NS and Standard Cauchy Sequences*}
 subsubsection{*Standard Implies Nonstandard*}
 
 lemma lemmaCauchy1:
-     "Abs_hypnat (hypnatrel `` {x}) : HNatInfinite
+     "Abs_star (starrel `` {x}) : HNatInfinite
       ==> {n. M \<le> x n} : FreeUltrafilterNat"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
 apply (drule_tac x = M in spec, ultra)
@@ -776,8 +776,8 @@ by blast
 
 lemma Cauchy_NSCauchy: "Cauchy X ==> NSCauchy X"
 apply (simp add: Cauchy_def NSCauchy_def, safe)
-apply (rule_tac z = M in eq_Abs_hypnat)
-apply (rule_tac z = N in eq_Abs_hypnat)
+apply (rule_tac z = M in eq_Abs_star)
+apply (rule_tac z = N in eq_Abs_star)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (rule mem_infmal_iff [THEN iffD1])
 apply (auto simp add: starfunNat hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
@@ -797,7 +797,7 @@ apply (auto simp add: Cauchy_def NSCauchy_def)
 apply (rule ccontr, simp)
 apply (auto dest!: choice HNatInfinite_NSLIMSEQ simp add: all_conj_distrib)  
 apply (drule bspec, assumption)
-apply (drule_tac x = "Abs_hypnat (hypnatrel `` {fa}) " in bspec); 
+apply (drule_tac x = "Abs_star (starrel `` {fa}) " in bspec); 
 apply (auto simp add: starfunNat)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule mem_infmal_iff [THEN iffD2])
