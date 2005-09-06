@@ -94,21 +94,21 @@ text {*
 theorem group_right_inverse: "x \<odot> x\<inv> = (\<one>\<Colon>'a\<Colon>group)"
 proof -
   have "x \<odot> x\<inv> = \<one> \<odot> (x \<odot> x\<inv>)"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   also have "... = \<one> \<odot> x \<odot> x\<inv>"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = (x\<inv>)\<inv> \<odot> x\<inv> \<odot> x \<odot> x\<inv>"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = (x\<inv>)\<inv> \<odot> (x\<inv> \<odot> x) \<odot> x\<inv>"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = (x\<inv>)\<inv> \<odot> \<one> \<odot> x\<inv>"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = (x\<inv>)\<inv> \<odot> (\<one> \<odot> x\<inv>)"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = (x\<inv>)\<inv> \<odot> x\<inv>"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   also have "... = \<one>"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   finally show ?thesis .
 qed
 
@@ -121,13 +121,13 @@ text {*
 theorem group_right_unit: "x \<odot> \<one> = (x\<Colon>'a\<Colon>group)"
 proof -
   have "x \<odot> \<one> = x \<odot> (x\<inv> \<odot> x)"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = x \<odot> x\<inv> \<odot> x"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = \<one> \<odot> x"
     by (simp only: group_right_inverse)
   also have "... = x"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   finally show ?thesis .
 qed
 
@@ -185,16 +185,16 @@ instance monoid \<subseteq> semigroup
 proof
   fix x y z :: "'a\<Colon>monoid"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
-    by (rule monoid.assoc)
+    by (rule monoid_class.assoc)
 qed
 
 instance group \<subseteq> monoid
 proof
   fix x y z :: "'a\<Colon>group"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
-    by (rule semigroup.assoc)
+    by (rule semigroup_class.assoc)
   show "\<one> \<odot> x = x"
-    by (rule group.left_unit)
+    by (rule group_class.left_unit)
   show "x \<odot> \<one> = x"
     by (rule group_right_unit)
 qed
@@ -309,7 +309,7 @@ proof (intro_classes, unfold times_prod_def)
       snd (fst p \<odot> fst q, snd p \<odot> snd q) \<odot> snd r) =
        (fst p \<odot> fst (fst q \<odot> fst r, snd q \<odot> snd r),
         snd p \<odot> snd (fst q \<odot> fst r, snd q \<odot> snd r))"
-    by (simp add: semigroup.assoc)
+    by (simp add: semigroup_class.assoc)
 qed
 
 text {*

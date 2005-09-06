@@ -220,7 +220,6 @@ val one_eq_mult_iff = thm "one_eq_mult_iff";
 val one_is_add = thm "one_is_add";
 val one_le_mult_iff = thm "one_le_mult_iff";
 val one_reorient = thm "one_reorient";
-val powerI = thm "powerI";
 val pred_nat_def = thm "pred_nat_def";
 val trans_le_add1 = thm "trans_le_add1";
 val trans_le_add2 = thm "trans_le_add2";

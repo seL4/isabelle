@@ -686,9 +686,6 @@ subsection {* Theory and package setup *}
 
 ML
 {*
-val plusI = thm "plusI"
-val minusI = thm "minusI"
-val timesI = thm "timesI"
 val eq_reflection = thm "eq_reflection"
 val refl = thm "refl"
 val subst = thm "subst"

@@ -28,18 +28,18 @@ val f = Const("f", intT-->intT);
 
 (*** Rewrite rules ***)
 
-val a_assoc = thm "ring.a_assoc";
-val l_zero = thm "ring.l_zero";
-val l_neg = thm "ring.l_neg";
-val a_comm = thm "ring.a_comm";
-val m_assoc = thm "ring.m_assoc";
-val l_one = thm "ring.l_one";
-val l_distr = thm "ring.l_distr";
-val m_comm = thm "ring.m_comm";
-val minus_def = thm "ring.minus_def";
-val inverse_def = thm "ring.inverse_def";
-val divide_def = thm "ring.divide_def";
-val power_def = thm "ring.power_def";
+val a_assoc = thm "ring_class.a_assoc";
+val l_zero = thm "ring_class.l_zero";
+val l_neg = thm "ring_class.l_neg";
+val a_comm = thm "ring_class.a_comm";
+val m_assoc = thm "ring_class.m_assoc";
+val l_one = thm "ring_class.l_one";
+val l_distr = thm "ring_class.l_distr";
+val m_comm = thm "ring_class.m_comm";
+val minus_def = thm "ring_class.minus_def";
+val inverse_def = thm "ring_class.inverse_def";
+val divide_def = thm "ring_class.divide_def";
+val power_def = thm "ring_class.power_def";
 
 (* These are the following axioms:
 

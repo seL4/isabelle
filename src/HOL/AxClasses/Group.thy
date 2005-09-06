@@ -34,34 +34,34 @@ subsection {* Abstract reasoning *}
 theorem group_right_inverse: "x [*] invers x = (one::'a::group)"
 proof -
   have "x [*] invers x = one [*] (x [*] invers x)"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   also have "... = one [*] x [*] invers x"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = invers (invers x) [*] invers x [*] x [*] invers x"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = invers (invers x) [*] (invers x [*] x) [*] invers x"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = invers (invers x) [*] one [*] invers x"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = invers (invers x) [*] (one [*] invers x)"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = invers (invers x) [*] invers x"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   also have "... = one"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   finally show ?thesis .
 qed
 
 theorem group_right_unit: "x [*] one = (x::'a::group)"
 proof -
   have "x [*] one = x [*] (invers x [*] x)"
-    by (simp only: group.left_inverse)
+    by (simp only: group_class.left_inverse)
   also have "... = x [*] invers x [*] x"
-    by (simp only: semigroup.assoc)
+    by (simp only: semigroup_class.assoc)
   also have "... = one [*] x"
     by (simp only: group_right_inverse)
   also have "... = x"
-    by (simp only: group.left_unit)
+    by (simp only: group_class.left_unit)
   finally show ?thesis .
 qed
 
@@ -72,16 +72,16 @@ instance monoid < semigroup
 proof intro_classes
   fix x y z :: "'a::monoid"
   show "x [*] y [*] z = x [*] (y [*] z)"
-    by (rule monoid.assoc)
+    by (rule monoid_class.assoc)
 qed
 
 instance group < monoid
 proof intro_classes
   fix x y z :: "'a::group"
   show "x [*] y [*] z = x [*] (y [*] z)"
-    by (rule semigroup.assoc)
+    by (rule semigroup_class.assoc)
   show "one [*] x = x"
-    by (rule group.left_unit)
+    by (rule group_class.left_unit)
   show "x [*] one = x"
     by (rule group_right_unit)
 qed
@@ -118,7 +118,7 @@ proof (intro_classes, unfold times_prod_def)
       snd (fst p [*] fst q, snd p [*] snd q) [*] snd r) =
        (fst p [*] fst (fst q [*] fst r, snd q [*] snd r),
         snd p [*] snd (fst q [*] fst r, snd q [*] snd r))"
-    by (simp add: semigroup.assoc)
+    by (simp add: semigroup_class.assoc)
 qed
 
 end

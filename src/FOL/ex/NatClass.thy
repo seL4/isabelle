@@ -34,6 +34,6 @@ constdefs
   "m + n == rec(m, n, %x y. Suc(y))"
 
 ML {* use_legacy_bindings (the_context ()) *}
-ML {* open nat *}
+ML {* open nat_class *}
 
 end

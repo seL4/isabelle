@@ -21,7 +21,7 @@ lemma SUM_shrink_below_lemma:
    apply (induct_tac m)
     apply (simp)
    apply (force)
-  apply (simp add: ab_semigroup_add.add_commute[of m]) 
+  apply (simp add: ab_semigroup_add_class.add_commute[of m]) 
   done
 
 end

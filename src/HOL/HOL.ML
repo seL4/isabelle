@@ -5,9 +5,6 @@ val choice_eq = thm "choice_eq";
 structure HOL =
 struct
   val thy = the_context ();
-  val plusI = plusI;
-  val minusI = minusI;
-  val timesI = timesI;
   val eq_reflection = eq_reflection;
   val refl = refl;
   val subst = subst;

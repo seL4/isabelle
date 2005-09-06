@@ -51,7 +51,6 @@ val dvd_partition = thm "dvd_partition";
 val empty_foldSetE = thm "empty_foldSetE";
 val endo_inj_surj = thm "endo_inj_surj";
 val finite = thm "finite";
-val finiteI = thm "finiteI";
 val finite_Diff = thm "finite_Diff";
 val finite_Diff_insert = thm "finite_Diff_insert";
 val finite_Field = thm "finite_Field";
