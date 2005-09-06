@@ -49,7 +49,7 @@ case t of
 
 local
 
-  val move_thm = prove_goal MuckeSyn.thy "[| a = b ==> P a; a = b |] ==> P b"
+  val move_thm = prove_goal (the_context ()) "[| a = b ==> P a; a = b |] ==> P b"
 	(fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
 		     REPEAT (resolve_tac prems 1)]);
 
@@ -86,9 +86,9 @@ end; (* local *)
 (* Type of call_mucke_tac has changed: an argument t of type thy was inserted (TH); *)
 (* Normally t can be user-instantiated by the value thy of the Isabelle context     *)
 fun call_mucke_tac i state =
-let val sign = #sign (rep_thm state);
+let val thy = Thm.theory_of_thm state;
     val (subgoal::_) = Library.drop(i-1,prems_of state);
-    val OraAss = invoke_oracle MuckeSyn.thy "Mucke" (sign,MuckeOracleExn (subgoal));
+    val OraAss = mc_mucke_oracle thy subgoal;
 in 
 (cut_facts_tac [OraAss] i) state
 end;

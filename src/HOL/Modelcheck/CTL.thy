@@ -4,18 +4,19 @@
     Copyright   1997  TU Muenchen
 *)
 
-CTL = MuCalculus + 
-
+theory CTL
+imports MuCalculus
+begin
 
 types
   'a trans  = "('a * 'a) set"
 
-consts
-  CEX   ::"['a trans,'a pred, 'a]=>bool"
-  EG    ::"['a trans,'a pred]=> 'a pred"
+constdefs
+  CEX ::"['a trans,'a pred, 'a]=>bool"
+  "CEX N f u == (? v. (f v & (u,v):N))"
+  EG ::"['a trans,'a pred]=> 'a pred"
+  "EG N f == nu (% Q. % u.(f u & CEX N Q u))"
 
-defs
-  CEX_def  "CEX N f u == (? v. (f v & (u,v):N))"
-  EG_def   "EG N f == nu (% Q. % u.(f u & CEX N Q u))"
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

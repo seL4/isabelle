@@ -4,19 +4,11 @@
     Copyright   1997  TU Muenchen
 *)
 
-fun mc_eindhoven_tac i state =
-let val sign = #sign (rep_thm state)
-in 
-case Library.drop(i-1,prems_of state) of
-   [] => Seq.empty |
-   subgoal::_ => 
-	let val concl = Logic.strip_imp_concl subgoal;
-	    val OraAss = invoke_oracle EindhovenSyn.thy "eindhoven_mc" (sign,EindhovenOracleExn concl);
-	in
-	((cut_facts_tac [OraAss] i) THEN (atac i)) state
-        end
-end;
-
+fun mc_eindhoven_tac i state = SUBGOAL (fn (goal, _) =>
+  let
+    val thy = Thm.theory_of_thm state;
+    val assertion = mc_eindhoven_oracle thy (Logic.strip_imp_concl goal);
+  in cut_facts_tac [assertion] i THEN atac i end) i state;
 
 Goalw [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
   by (rtac ext 1);
@@ -25,7 +17,7 @@ Goalw [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
 qed "pair_eta_expand";
 
 val pair_eta_expand_proc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "pair_eta_expand" ["f::'a*'b=>'c"]
+  Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
   (fn _ => fn _ => fn t => case t of Abs _ => SOME (mk_meta_eq pair_eta_expand) | _ => NONE);
 
 val Eindhoven_ss =

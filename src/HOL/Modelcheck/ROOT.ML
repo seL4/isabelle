@@ -5,6 +5,14 @@
 Basic Modelchecker examples.
 *)
 
+time_use_thy "CTL";
+
+
+(* Einhoven model checker *)
+
+time_use_thy "EindhovenSyn";
+if_eindhoven_enabled time_use_thy "EindhovenExample";
+
 
 (* Mucke -- mu-calculus model checker from Karlsruhe *)
 
@@ -15,9 +23,3 @@ if_mucke_enabled time_use_thy "MuckeExample1";
 if_mucke_enabled time_use_thy "MuckeExample2";
 
 
-(* Einhoven model checker *)
-
-time_use_thy "CTL";
-time_use_thy "EindhovenSyn";
-
-if_eindhoven_enabled time_use_thy "EindhovenExample";

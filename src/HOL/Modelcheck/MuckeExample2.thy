@@ -4,24 +4,29 @@
     Copyright   1997  TU Muenchen
 *)
 
+theory MuckeExample2
+imports MuckeSyn
+begin
 
-MuckeExample2 = MuckeSyn +
-
-consts
-
+constdefs
   Init  :: "bool pred"
-  R	:: "[bool,bool] => bool"
-  Reach	:: "bool pred"
+  "Init x == x"
+  R     :: "[bool,bool] => bool"
+  "R x y == (x & ~y) | (~x & y)"
+  Reach :: "bool pred"
+  "Reach == mu (%Q x. Init x | (? y. Q y & R y x))"
   Reach2:: "bool pred"
+  "Reach2 == mu (%Q x. Reach x | (? y. Q y & R y x))"
 
-defs
+lemmas Reach_rws = Init_def R_def Reach_def Reach2_def
 
-  Init_def " Init x == x"
+lemma Reach: "Reach2 True"
+  apply (tactic {* simp_tac (Mucke_ss addsimps (thms "Reach_rws")) 1 *})
+  apply (tactic {* mc_mucke_tac [] 1 *})
+  done
 
-  R_def "R x y == (x & ~y) | (~x & y)"
-
-  Reach_def "Reach == mu (%Q x. Init x | (? y. Q y & R y x))"
-
-  Reach2_def "Reach2 == mu (%Q x. Reach x | (? y. Q y & R y x))"
+(*alternative:*)
+lemma Reach': "Reach2 True"
+  by (tactic {* mc_mucke_tac (thms "Reach_rws") 1 *})
 
 end

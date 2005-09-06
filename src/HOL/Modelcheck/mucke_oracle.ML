@@ -1,8 +1,6 @@
 
 (* $Id$ *)
 
-exception MuckeOracleExn of term;
-
 val trace_mc = ref false; 
 
 
@@ -1017,9 +1015,8 @@ in
 end;
 
 (**********************************************************)
-(* mk_mc_oracle:  new argument of MuckeOracleExn: source_thy *)
 
-fun mk_mucke_mc_oracle (sign, MuckeOracleExn (subgoal)) = 
+fun mk_mc_mucke_oracle sign subgoal = 
   let 	val Freesubgoal = freeze_thaw subgoal;
 
 	val prems = Logic.strip_imp_prems Freesubgoal; 
