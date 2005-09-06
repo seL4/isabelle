@@ -6,11 +6,7 @@
 More arithmetic lemmas.
 *)
 
-open Arith2;
-
-
 (*** cd ***)
-
 
 Goalw [cd_def] "0<n ==> cd n n n";
 by (Asm_simp_tac 1);
@@ -42,7 +38,7 @@ by (blast_tac (claset() addDs [cd_le]) 1);
 by (blast_tac (claset() addIs [le_anti_sym] addDs [cd_le]) 1);
 qed "gcd_nnn";
 
-val prems = goalw thy [gcd_def] "gcd m n = gcd n m";
+val prems = goalw (the_context ()) [gcd_def] "gcd m n = gcd n m";
 by (simp_tac (simpset() addsimps [cd_swap]) 1);
 qed "gcd_swap";
 
