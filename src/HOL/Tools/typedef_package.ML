@@ -61,9 +61,8 @@ structure TypedefData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-fun put_typedef newT oldT Abs_name Rep_name thy =
-  TypedefData.put (Symtab.curried_update_new
-    (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)) (TypedefData.get thy)) thy;
+fun put_typedef newT oldT Abs_name Rep_name =
+  TypedefData.map (Symtab.curried_update_new (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)));
 
 
 
@@ -101,7 +100,7 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
       witn1_tac THEN
       TRY (rewrite_goals_tac (List.filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      getOpt (witn2_tac, TRY (ALLGOALS (CLASET' blast_tac)));
+      if_none witn2_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
     Tactic.prove thy [] [] goal (K tac)
@@ -128,24 +127,29 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val full_name = full name;
     val cset = prep_term thy vs raw_set;
     val {T = setT, t = set, ...} = Thm.rep_cterm cset;
-    val rhs_tfrees = term_tfrees set;
+    val rhs_tfrees = Term.add_tfrees set [];
+    val rhs_tfreesT = Term.add_tfreesT setT [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Sign.string_of_typ thy setT));
     fun mk_nonempty A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
-    val vname = take_suffix Symbol.is_digit (Symbol.explode name)
-      |> apfst implode |> apsnd (#1 o Library.read_int);
-    val goal_pat = mk_nonempty (Var (vname, setT));
+    val goal_pat = mk_nonempty (Var (if_none (Syntax.read_variable name) (name, 0), setT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn v => (v, getOpt (assoc (rhs_tfrees, v), HOLogic.typeS))) vs;
+    val defS = Sign.defaultS thy;
+    val lhs_tfrees = map (fn v => (v, if_none (AList.lookup (op =) rhs_tfrees v) defS)) vs;
+    val args_setT = lhs_tfrees
+      |> filter (member (op =) rhs_tfrees andf (not o member (op =) rhs_tfreesT))
+      |> map TFree;
+
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
-    val (Rep_name, Abs_name) = getOpt (opt_morphs, ("Rep_" ^ name, "Abs_" ^ name));
-    val setC = Const (full_name, setT);
+    val (Rep_name, Abs_name) = if_none opt_morphs ("Rep_" ^ name, "Abs_" ^ name);
+    val setT' = map itselfT args_setT ---> setT;
+    val setC = Term.list_comb (Const (full_name, setT'), map Logic.mk_type args_setT);
     val RepC = Const (full Rep_name, newT --> oldT);
     val AbsC = Const (full Abs_name, oldT --> newT);
     val x_new = Free ("x", newT);
@@ -164,7 +168,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       |> put_typedef newT oldT (full Abs_name) (full Rep_name)
       |> add_typedecls [(t, vs, mx)]
       |> Theory.add_consts_i
-       ((if def then [(name, setT, NoSyn)] else []) @
+       ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
       |> (if def then (apsnd (SOME o hd) oo (PureThy.add_defs_i false o map Thm.no_attributes))
@@ -215,7 +219,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       | dups => ["Duplicate type variables on lhs: " ^ show_names dups]);
 
     val extra_rhs_tfrees =
-      (case gen_rems (op =) (rhs_tfrees, lhs_tfrees) of [] => []
+      (case fold (remove (op =)) lhs_tfrees rhs_tfrees of [] => []
       | extras => ["Extra type variables on rhs: " ^ show_names extras]);
 
     val illegal_frees =
@@ -246,7 +250,7 @@ fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
 
 fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
   gen_typedef prep_term def
-    (getOpt (opt_name, #1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
+    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
 
 fun add_typedef_x name typ set names thms tac =
   #1 o gen_typedef read_term true name typ set NONE (Tactic.rtac exI 1) names thms tac;
@@ -307,7 +311,7 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
       (case Symtab.curried_lookup (TypedefData.get thy) s of
          NONE => NONE
        | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
-           if isSome (Codegen.get_assoc_type thy tname) then NONE else
+           if is_some (Codegen.get_assoc_type thy tname) then NONE else
            let
              val module' = Codegen.if_library
                (Codegen.thyname_of_type tname thy) module;
@@ -383,7 +387,7 @@ val typedef_proof_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
 fun mk_typedef_proof ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef_proof ((def, getOpt (opt_name, Syntax.type_name t mx)), (t, vs, mx), A, morphs);
+  typedef_proof ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
