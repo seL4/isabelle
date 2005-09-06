@@ -1,6 +1,9 @@
+
+(* $Id$ *)
+
 (* first some logical trading *)
 
-val prems = goal Focus_ex.thy
+val prems = goal (the_context ())
 "is_g(g) = \ 
 \ (? f. is_f(f) &  (!x.(? z. <g$x,z> = f$<x,z> &  \
 \                  (! w y. <y,w> = f$<x,w>  --> z << w))))";
@@ -8,7 +11,7 @@ by (simp_tac (HOL_ss addsimps [is_g,is_net_g]) 1);
 by (fast_tac HOL_cs 1);
 val lemma1 = result();
 
-val prems = goal Focus_ex.thy
+val prems = goal (the_context ())
 "(? f. is_f(f) &  (!x. (? z. <g$x,z> = f$<x,z> &  \
 \                 (!w y. <y,w> = f$<x,w>  --> z << w)))) \
 \ = \ 
@@ -53,7 +56,7 @@ val lemma2 = result();
 
 (* direction def_g(g) --> is_g(g) *)
 
-val prems = goal Focus_ex.thy "def_g(g) --> is_g(g)";
+val prems = goal (the_context ()) "def_g(g) --> is_g(g)";
 by (simp_tac (HOL_ss addsimps [def_g,lemma1, lemma2]) 1);
 by (rtac impI 1);
 by (etac exE 1);
@@ -80,7 +83,7 @@ by (asm_simp_tac HOLCF_ss 1);
 val lemma3 = result();
 
 (* direction is_g(g) --> def_g(g) *)
-val prems = goal Focus_ex.thy "is_g(g) --> def_g(g)";
+val prems = goal (the_context ()) "is_g(g) --> def_g(g)";
 by (simp_tac (HOL_ss delsimps (ex_simps @ all_simps)
                      addsimps [lemma1,lemma2,def_g]) 1);
 by (rtac impI 1);
@@ -114,14 +117,14 @@ val lemma4 = result();
 
 (* now we assemble the result *)
 
-val prems = goal Focus_ex.thy "def_g = is_g";
+val prems = goal (the_context ()) "def_g = is_g";
 by (rtac ext 1);
 by (rtac iffI 1);
 by (etac (lemma3 RS mp) 1);
 by (etac (lemma4 RS mp) 1);
 val loopback_eq = result();
 
-val prems = goal Focus_ex.thy 
+val prems = goal (the_context ()) 
 "(? f.\
 \ is_f(f::'b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream))\
 \ -->\
@@ -129,7 +132,7 @@ val prems = goal Focus_ex.thy
 by (simp_tac (HOL_ss addsimps [def_g]) 1);
 val L2 = result();
 
-val prems = goal Focus_ex.thy 
+val prems = goal (the_context ()) 
 "(? f.\
 \ is_f(f::'b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream))\
 \ -->\

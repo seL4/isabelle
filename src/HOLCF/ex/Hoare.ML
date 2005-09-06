@@ -66,7 +66,7 @@ qed "hoare_lemma8";
 
 Goal "f$(y::'a)=(UU::tr) ==> f$UU = UU";
 by (etac (flat_codom RS disjE) 1);
-by Auto_tac;  
+by Auto_tac;
 qed "hoare_lemma28";
 
 
@@ -127,7 +127,7 @@ qed "hoare_lemma24";
 
 
 val hoare_lemma10 = (hoare_lemma8 RS (hoare_lemma9 RS mp));
-(* 
+(*
 val hoare_lemma10 = "[| EX k. b1$(iterate k g ?x1) ~= TT;
     Suc ?k3 = Least(%n. b1$(iterate n g ?x1) ~= TT) |] ==>
  p$(iterate ?k3 g ?x1) = p$?x1" : thm
@@ -285,7 +285,7 @@ qed "hoare_lemma22";
 (* -------- results about q for case (EX k. b1$(iterate k g x) ~= TT) ------- *)
 
 val hoare_lemma25 = (hoare_lemma8 RS (hoare_lemma24 RS mp) );
-(* 
+(*
 val hoare_lemma25 = "[| EX k. b1$(iterate k g ?x1) ~= TT;
     Suc ?k3 = Least(%n. b1$(iterate n g ?x1) ~= TT) |] ==>
  q$(iterate ?k3 g ?x1) = q$?x1" : thm
@@ -410,5 +410,3 @@ by (rtac (hoare_lemma3 RS disjE) 1);
 by (etac hoare_lemma23 1);
 by (etac hoare_lemma29 1);
 qed "hoare_main";
-
-

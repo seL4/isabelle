@@ -1,10 +1,10 @@
 (* $Id$ *)
 
-val YS_def2  = fix_prover2 Dagstuhl.thy  YS_def  "YS = y && YS";
-val YYS_def2 = fix_prover2 Dagstuhl.thy YYS_def "YYS = y && y && YYS";
+val YS_def2  = fix_prover2 (the_context ())  YS_def  "YS = y && YS";
+val YYS_def2 = fix_prover2 (the_context ()) YYS_def "YYS = y && y && YYS";
 
 
-val prems = goal Dagstuhl.thy "YYS << y && YYS";
+val prems = goal (the_context ()) "YYS << y && YYS";
 by (rtac (YYS_def RS def_fix_ind) 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
@@ -14,7 +14,7 @@ by (rtac monofun_cfun_arg 1);
 by (atac 1);
 val lemma3 = result();
 
-val prems = goal Dagstuhl.thy "y && YYS << YYS";
+val prems = goal (the_context ()) "y && YYS << YYS";
 by (stac YYS_def2 1);
 back();
 by (rtac monofun_cfun_arg 1);
@@ -23,13 +23,13 @@ val lemma4=result();
 
 (* val  lemma5 = lemma3 RS (lemma4 RS antisym_less) *)
 
-val prems = goal Dagstuhl.thy "y && YYS = YYS";
+val prems = goal (the_context ()) "y && YYS = YYS";
 by (rtac antisym_less 1);
 by (rtac lemma4 1);
 by (rtac lemma3 1);
 val lemma5=result();
 
-val prems = goal Dagstuhl.thy "YS = YYS";
+val prems = goal (the_context ()) "YS = YYS";
 by (resolve_tac (thms "stream.take_lemmas") 1);
 by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps (thms "stream.rews")) 1);
@@ -46,7 +46,7 @@ val wir_moel=result();
 (* verwendet lemma5                                                         *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goal Dagstuhl.thy "YYS << YS";
+val prems = goal (the_context ()) "YYS << YS";
 by (rewtac YYS_def);
 by (rtac fix_least 1);
 by (stac beta_cfun 1);
@@ -54,7 +54,7 @@ by (cont_tacR 1);
 by (simp_tac (simpset() addsimps [YS_def2 RS sym]) 1);
 val lemma6=result();
 
-val prems = goal Dagstuhl.thy "YS << YYS";
+val prems = goal (the_context ()) "YS << YYS";
 by (rtac (YS_def RS def_fix_ind) 1);
 by (Simp_tac 1);
 by (Simp_tac 1);

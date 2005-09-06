@@ -1,17 +1,19 @@
 (* $Id$ *)
 
-
-Dagstuhl  =  Stream +
+theory Dagstuhl
+imports Stream
+begin
 
 consts
-        y  :: "'a"
-       YS  :: "'a stream"
-       YYS :: "'a stream"
+  y  :: "'a"
 
-defs
+constdefs
+  YS :: "'a stream"
+  "YS == fix$(LAM x. y && x)"
+  YYS :: "'a stream"
+  "YYS == fix$(LAM z. y && y && z)"
 
-YS_def    "YS  == fix$(LAM x. y && x)"
-YYS_def   "YYS == fix$(LAM z. y && y && z)"
-  
+ML {* use_legacy_bindings (the_context ()) *}
+
 end
 
