@@ -166,6 +166,7 @@ by (auto simp add: InternalNatSets_def starsetNat_starsetNat_n_eq)
 
 lemma InternalNatSets_UNIV_diff:
      "X \<in> InternalNatSets ==> UNIV - X \<in> InternalNatSets"
+apply (subgoal_tac "UNIV - X = - X")
 by (auto intro: InternalNatSets_Compl)
 
 text{*Nonstandard extension of a set (defined using a constant

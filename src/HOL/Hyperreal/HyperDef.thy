@@ -15,7 +15,7 @@ begin
 constdefs
 
   FreeUltrafilterNat   :: "nat set set"    ("\<U>")
-    "FreeUltrafilterNat == (SOME U. U \<in> FreeUltrafilter (UNIV:: nat set))"
+    "FreeUltrafilterNat == (SOME U. freeultrafilter U)"
 
   hyprel :: "((nat=>real)*(nat=>real)) set"
     "hyprel == {p. \<exists>X Y. p = ((X::nat=>real),Y) &
@@ -113,66 +113,53 @@ subsection{*Existence of Free Ultrafilter over the Naturals*}
 text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
 an arbitrary free ultrafilter*}
 
-lemma FreeUltrafilterNat_Ex: "\<exists>U. U \<in> FreeUltrafilter (UNIV::nat set)"
-by (rule not_finite_nat [THEN FreeUltrafilter_Ex])
+lemma FreeUltrafilterNat_Ex: "\<exists>U::nat set set. freeultrafilter U"
+by (rule not_finite_nat [THEN freeultrafilter_Ex])
 
-lemma FreeUltrafilterNat_mem [simp]: 
-     "FreeUltrafilterNat \<in> FreeUltrafilter(UNIV:: nat set)"
+lemma FreeUltrafilterNat_mem [simp]: "freeultrafilter FreeUltrafilterNat"
 apply (unfold FreeUltrafilterNat_def)
-apply (rule FreeUltrafilterNat_Ex [THEN exE])
-apply (rule someI2, assumption+)
+apply (rule someI_ex)
+apply (rule FreeUltrafilterNat_Ex)
 done
+
+lemma UltrafilterNat_mem: "ultrafilter FreeUltrafilterNat"
+by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.ultrafilter])
+
+lemma FilterNat_mem: "filter FreeUltrafilterNat"
+by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.filter])
 
 lemma FreeUltrafilterNat_finite: "finite x ==> x \<notin> FreeUltrafilterNat"
-apply (unfold FreeUltrafilterNat_def)
-apply (rule FreeUltrafilterNat_Ex [THEN exE])
-apply (rule someI2, assumption)
-apply (blast dest: mem_FreeUltrafiltersetD1)
-done
+by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.finite])
 
 lemma FreeUltrafilterNat_not_finite: "x \<in> FreeUltrafilterNat ==> ~ finite x"
-by (blast dest: FreeUltrafilterNat_finite)
+by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.infinite])
 
 lemma FreeUltrafilterNat_empty [simp]: "{} \<notin> FreeUltrafilterNat"
-apply (unfold FreeUltrafilterNat_def)
-apply (rule FreeUltrafilterNat_Ex [THEN exE])
-apply (rule someI2, assumption)
-apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter 
-                   Filter_empty_not_mem)
-done
+by (rule FilterNat_mem [THEN filter.empty])
 
 lemma FreeUltrafilterNat_Int:
      "[| X \<in> FreeUltrafilterNat;  Y \<in> FreeUltrafilterNat |]   
       ==> X Int Y \<in> FreeUltrafilterNat"
-apply (insert FreeUltrafilterNat_mem)
-apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD1)
-done
+by (rule FilterNat_mem [THEN filter.Int])
 
 lemma FreeUltrafilterNat_subset:
      "[| X \<in> FreeUltrafilterNat;  X \<subseteq> Y |]  
       ==> Y \<in> FreeUltrafilterNat"
-apply (insert FreeUltrafilterNat_mem)
-apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD2)
-done
+by (rule FilterNat_mem [THEN filter.subset])
 
 lemma FreeUltrafilterNat_Compl:
      "X \<in> FreeUltrafilterNat ==> -X \<notin> FreeUltrafilterNat"
-proof
-  assume "X \<in> \<U>" and "- X \<in> \<U>"
-  hence "X Int - X \<in> \<U>" by (rule FreeUltrafilterNat_Int) 
-  thus False by force
-qed
+apply (erule contrapos_pn)
+apply (erule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff, THEN iffD2])
+done
 
 lemma FreeUltrafilterNat_Compl_mem:
      "X\<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
-apply (cut_tac FreeUltrafilterNat_mem [THEN FreeUltrafilter_iff [THEN iffD1]])
-apply (safe, drule_tac x = X in bspec)
-apply (auto)
-done
+by (rule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff, THEN iffD1])
 
 lemma FreeUltrafilterNat_Compl_iff1:
      "(X \<notin> FreeUltrafilterNat) = (-X \<in> FreeUltrafilterNat)"
-by (blast dest: FreeUltrafilterNat_Compl FreeUltrafilterNat_Compl_mem)
+by (rule UltrafilterNat_mem [THEN ultrafilter.not_mem_iff])
 
 lemma FreeUltrafilterNat_Compl_iff2:
      "(X \<in> FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
@@ -184,7 +171,7 @@ apply (simp add: FreeUltrafilterNat_Compl_iff2 [symmetric])
 done
 
 lemma FreeUltrafilterNat_UNIV [iff]: "UNIV \<in> FreeUltrafilterNat"
-by (rule FreeUltrafilterNat_mem [THEN FreeUltrafilter_Ultrafilter, THEN Ultrafilter_Filter, THEN mem_FiltersetD4])
+by (rule FilterNat_mem [THEN filter.UNIV])
 
 lemma FreeUltrafilterNat_Nat_set_refl [intro]:
      "{n. P(n) = P(n)} \<in> FreeUltrafilterNat"
