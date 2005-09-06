@@ -29,13 +29,13 @@ consts
 
   (* Connectives *)
 
-  "="           :: "['a, 'a] => o"              (infixl 50)
+  "op ="        :: "['a, 'a] => o"              (infixl "=" 50)
 
   Not           :: "o => o"                     ("~ _" [40] 40)
-  &             :: "[o, o] => o"                (infixr 35)
-  "|"           :: "[o, o] => o"                (infixr 30)
-  -->           :: "[o, o] => o"                (infixr 25)
-  <->           :: "[o, o] => o"                (infixr 25)
+  "op &"        :: "[o, o] => o"                (infixr "&" 35)
+  "op |"        :: "[o, o] => o"                (infixr "|" 30)
+  "op -->"      :: "[o, o] => o"                (infixr "-->" 25)
+  "op <->"      :: "[o, o] => o"                (infixr "<->" 25)
 
   (* Quantifiers *)
 
