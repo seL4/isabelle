@@ -368,7 +368,7 @@ fun simpset_rules_of_thy thy =
 fun cnf_rules [] err_list = ([],err_list)
   | cnf_rules ((name,th) :: thms) err_list = 
       let val (ts,es) = cnf_rules thms err_list
-      in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;
+      in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  (* FIXME avoid handle _ *)
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
@@ -392,7 +392,7 @@ fun clausify_rules_pairs [] err_list = ([],err_list)
       let val (ts,es) = clausify_rules_pairs thms err_list
       in
 	  ((clausify_axiom_pairs (name,thm))::ts, es) 
-	  handle  _ => (ts, (thm::es))
+	  handle  _ => (ts, (thm::es))  (* FIXME avoid handle _ *)
       end;
 
 
