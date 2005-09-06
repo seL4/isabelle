@@ -424,11 +424,9 @@ $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy \
 HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
 
 $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
-  Modelcheck/EindhovenExample.ML Modelcheck/EindhovenExample.thy \
-  Modelcheck/EindhovenSyn.ML Modelcheck/EindhovenSyn.thy \
-  Modelcheck/MuCalculus.ML Modelcheck/MuCalculus.thy \
-  Modelcheck/MuckeExample1.ML Modelcheck/MuckeExample1.thy \
-  Modelcheck/MuckeExample2.ML Modelcheck/MuckeExample2.thy \
+  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.ML \
+  Modelcheck/EindhovenSyn.thy Modelcheck/MuCalculus.thy \
+  Modelcheck/MuckeExample1.thy Modelcheck/MuckeExample2.thy \
   Modelcheck/MuckeSyn.ML Modelcheck/MuckeSyn.thy Modelcheck/ROOT.ML \
   Modelcheck/mucke_oracle.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
