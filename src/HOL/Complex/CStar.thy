@@ -186,6 +186,7 @@ by (auto simp add: InternalCSets_def starsetC_starsetC_n_eq)
 
 lemma InternalCSets_UNIV_diff:
     "X \<in> InternalCSets ==> UNIV - X \<in> InternalCSets"
+apply (subgoal_tac "UNIV - X = - X")
 by (auto intro: InternalCSets_Compl)
 
 text{*Nonstandard extension of a set (defined using a constant sequence) as a special case of an internal set*}
