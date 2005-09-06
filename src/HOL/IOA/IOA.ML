@@ -2,15 +2,13 @@
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen
-
-The I/O automata of Lynch and Tuttle.
 *)
 
 Addsimps [Let_def];
 
-val ioa_projections = [asig_of_def, starts_of_def, trans_of_def];
+bind_thms ("ioa_projections", [asig_of_def, starts_of_def, trans_of_def]);
 
-val exec_rws = [executions_def,is_execution_fragment_def];
+bind_thms ("exec_rws", [executions_def,is_execution_fragment_def]);
 
 Goal
 "asig_of(x,y,z) = x & starts_of(x,y,z) = y & trans_of(x,y,z) = z";
@@ -67,7 +65,7 @@ Goalw (reachable_def::exec_rws)
   by Auto_tac;
 qed "reachable_n";
 
-val [p1,p2] = goalw IOA.thy [invariant_def]
+val [p1,p2] = goalw (the_context ()) [invariant_def]
   "[| !!s. s:starts_of(A) ==> P(s);                                          \
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
@@ -85,19 +83,19 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
     by (ALLGOALS(fast_tac(claset() addDs [reachable_n])));
 qed "invariantI";
 
-val [p1,p2] = goal IOA.thy
+val [p1,p2] = goal (the_context ())
  "[| !!s. s : starts_of(A) ==> P(s); \
 \    !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
   by (fast_tac (claset() addSIs [invariantI] addSDs [p1,p2]) 1);
 qed "invariantI1";
 
-val [p1,p2] = goalw IOA.thy [invariant_def]
+val [p1,p2] = goalw (the_context ()) [invariant_def]
 "[| invariant A P; reachable A s |] ==> P(s)";
    by (rtac (p2 RS (p1 RS spec RS mp)) 1);
 qed "invariantE";
 
-Goal 
+Goal
 "actions(asig_comp a b) = actions(a) Un actions(b)";
   by (simp_tac (simpset() addsimps
                ([actions_def,asig_comp_def]@asig_projections)) 1);
@@ -110,13 +108,13 @@ Goal
 qed "starts_of_par";
 
 (* Every state in an execution is reachable *)
-Goalw [reachable_def] 
+Goalw [reachable_def]
 "ex:executions(A) ==> !n. reachable A (snd ex n)";
   by (Fast_tac 1);
 qed "states_of_exec_reachable";
 
 
-Goal 
+Goal
 "(s,a,t) : trans_of(A || B || C || D) =                                      \
 \ ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |  \
 \   a:actions(asig_of(D))) &                                                 \
@@ -150,9 +148,9 @@ qed "asig_of_par";
 Goal "externals(asig_of(A1||A2)) =    \
 \  (externals(asig_of(A1)) Un externals(asig_of(A2)))";
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_of_par,asig_comp_def,asig_inputs_def,asig_outputs_def,Un_def,set_diff_def]) 1);
-by (rtac set_ext 1); 
+by (rtac set_ext 1);
 by (Fast_tac 1);
-qed"externals_of_par"; 
+qed"externals_of_par";
 
 Goalw [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
  "[| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
@@ -168,4 +166,3 @@ qed"ext2_is_not_int1";
 
 val ext1_ext2_is_not_act2 = ext1_is_not_int2 RS int_and_ext_is_act;
 val ext1_ext2_is_not_act1 = ext2_is_not_int1 RS int_and_ext_is_act;
-

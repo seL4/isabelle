@@ -2,11 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen
-
-Weak possibilities mapping (abstraction)
 *)
-
-open Solve; 
 
 Addsimps [mk_trace_thm,trans_in_actions];
 
@@ -57,16 +53,16 @@ val imp_conj_lemma = result();
 
 
 (* fist_order_tautology of externals_of_par *)
-goal IOA.thy "a:externals(asig_of(A1||A2)) =    \
+goal (theory "IOA") "a:externals(asig_of(A1||A2)) =    \
 \  (a:externals(asig_of(A1)) & a:externals(asig_of(A2)) |  \
 \  a:externals(asig_of(A1)) & a~:externals(asig_of(A2)) |  \
 \  a~:externals(asig_of(A1)) & a:externals(asig_of(A2)))";
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_of_par,asig_comp_def,asig_inputs_def,asig_outputs_def]) 1);
  by (Fast_tac 1);
-val externals_of_par_extra = result(); 
+val externals_of_par_extra = result();
 
 Goal "[| reachable (C1||C2) s |] ==> reachable C1 (fst s)";
-by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1);
 by (etac bexE 1);
 by (res_inst_tac [("x",
    "(filter_oseq (%a. a:actions(asig_of(C1))) \
@@ -77,16 +73,16 @@ by (res_inst_tac [("x",
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() delcongs [if_weak_cong]
-		 addsimps [executions_def,is_execution_fragment_def,
-			   par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                 addsimps [executions_def,is_execution_fragment_def,
+                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
                  addsplits [option.split]) 1);
 qed"comp1_reachable";
 
 
-(* Exact copy of proof of comp1_reachable for the second 
+(* Exact copy of proof of comp1_reachable for the second
    component of a parallel composition.     *)
 Goal "[| reachable (C1||C2) s|] ==> reachable C2 (snd s)";
-by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1);
 by (etac bexE 1);
 by (res_inst_tac [("x",
    "(filter_oseq (%a. a:actions(asig_of(C2)))\
@@ -97,8 +93,8 @@ by (res_inst_tac [("x",
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() delcongs [if_weak_cong]
-		 addsimps [executions_def,is_execution_fragment_def,
-			   par_def,starts_of_def,trans_of_def,filter_oseq_def]
+                 addsimps [executions_def,is_execution_fragment_def,
+                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
                  addsplits [option.split]) 1);
 qed"comp2_reachable";
 
@@ -124,7 +120,7 @@ by (simp_tac (simpset() addsimps [par_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [trans_of_def]) 1);
 by (stac split_if 1);
 by (rtac conjI 1);
-by (rtac impI 1); 
+by (rtac impI 1);
 by (etac disjE 1);
 (* case 1      a:e(A1) | a:e(A2) *)
 by (asm_full_simp_tac (simpset() addsimps [comp1_reachable,comp2_reachable,
@@ -145,13 +141,13 @@ by (Fast_tac 2);
 by (simp_tac (simpset() addsimps [conj_disj_distribR] addcongs [conj_cong]
                  addsplits [split_if]) 1);
 by (REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
-	   asm_full_simp_tac(simpset() addsimps[comp1_reachable,
-						comp2_reachable])1));
+           asm_full_simp_tac(simpset() addsimps[comp1_reachable,
+                                                comp2_reachable])1));
 qed"fxg_is_weak_pmap_of_product_IOA";
 
 
 Goal "[| reachable (rename C g) s |] ==> reachable C s";
-by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1);
 by (etac bexE 1);
 by (res_inst_tac [("x",
    "((%i. case (fst ex i) \
@@ -202,8 +198,8 @@ by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
 by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 (* x is internal *)
-by (simp_tac (simpset() addsimps [de_Morgan_disj, de_Morgan_conj, not_ex] 
-	               addcongs [conj_cong]) 1);
+by (simp_tac (simpset() addsimps [de_Morgan_disj, de_Morgan_conj, not_ex]
+                       addcongs [conj_cong]) 1);
 by (rtac impI 1);
 by (etac conjE 1);
 by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
