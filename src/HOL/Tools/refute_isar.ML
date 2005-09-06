@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/refute_isar.ML
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2004
+    Copyright   2003-2005
 
 Adds the 'refute' and 'refute_params' commands to Isabelle/Isar's outer
 syntax.
@@ -45,8 +45,8 @@ struct
 			(fn state =>
 				(let
 					val (parms, subgoal) = args
-					val thy              = (Toplevel.theory_of state)
-					val thm              = ((snd o snd) (Proof.get_goal (Toplevel.proof_of state)))
+					val thy              = Toplevel.theory_of state
+					val thm              = (snd o snd) (Proof.get_goal (Toplevel.proof_of state))
 				in
 					Refute.refute_subgoal thy (getOpt (parms, [])) thm ((getOpt (subgoal, 1))-1)
 				end)
