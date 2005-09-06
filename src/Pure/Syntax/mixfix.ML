@@ -97,25 +97,27 @@ fun strip ("'" :: c :: cs) = c :: strip cs
 
 val strip_esc = implode o strip o Symbol.explode;
 
+fun deprecated c = (warning ("Unnamed infix operator " ^ quote c ^ " -- deprecated"); c);
+
 fun type_name t (InfixName _) = t
   | type_name t (InfixlName _) = t
   | type_name t (InfixrName _) = t
-  | type_name t (Infix _) = strip_esc t
-  | type_name t (Infixl _) = strip_esc t
-  | type_name t (Infixr _) = strip_esc t
+  | type_name t (Infix _) = deprecated (strip_esc t)
+  | type_name t (Infixl _) = deprecated (strip_esc t)
+  | type_name t (Infixr _) = deprecated (strip_esc t)
   | type_name t _ = t;
 
 fun const_name c (InfixName _) = c
   | const_name c (InfixlName _) = c
   | const_name c (InfixrName _) = c
-  | const_name c (Infix _) = "op " ^ strip_esc c
-  | const_name c (Infixl _) = "op " ^ strip_esc c
-  | const_name c (Infixr _) = "op " ^ strip_esc c
+  | const_name c (Infix _) = "op " ^ deprecated (strip_esc c)
+  | const_name c (Infixl _) = "op " ^ deprecated (strip_esc c)
+  | const_name c (Infixr _) = "op " ^ deprecated (strip_esc c)
   | const_name c _ = c;
 
-fun fix_mixfix c (Infix p) = (InfixName (c, p))
-  | fix_mixfix c (Infixl p) = (InfixlName (c, p))
-  | fix_mixfix c (Infixr p) = (InfixrName (c, p))
+fun fix_mixfix c (Infix p) = (deprecated (strip_esc c); InfixName (c, p))
+  | fix_mixfix c (Infixl p) = (deprecated (strip_esc c); InfixlName (c, p))
+  | fix_mixfix c (Infixr p) = (deprecated (strip_esc c); InfixrName (c, p))
   | fix_mixfix _ mx = mx;
 
 fun mixfix_args NoSyn = 0
