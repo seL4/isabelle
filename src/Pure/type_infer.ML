@@ -111,7 +111,7 @@ fun polymorphicT T = Type ("_polymorphic_", [T]);
 fun pretyp_of is_param (params, typ) =
   let
     fun add_parms (TVar (xi as (x, _), S)) ps =
-          if is_param xi andalso is_none (AList.lookup (op =) ps xi)
+          if is_param xi andalso not (AList.defined (op =) ps xi)
           then (xi, mk_param S) :: ps else ps
       | add_parms (TFree _) ps = ps
       | add_parms (Type (_, Ts)) ps = fold add_parms Ts ps;
@@ -137,7 +137,7 @@ fun pretyps_of is_param = foldl_map (pretyp_of is_param);
 fun preterm_of const_type is_param ((vparams, params), tm) =
   let
     fun add_vparm (ps, xi) =
-      if is_none (AList.lookup (op =) ps xi) then
+      if not (AList.defined (op =) ps xi) then
         (xi, mk_param []) :: ps
       else ps;
 
