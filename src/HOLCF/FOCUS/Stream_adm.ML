@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/ex/Stream_adm.ML
+(*  Title:      HOLCF/ex/Stream_adm.ML
     ID:         $Id$
-    Author: 	David von Oheimb, TU Muenchen
+    Author:     David von Oheimb, TU Muenchen
 *)
 
 (* ----------------------------------------------------------------------- *)
@@ -77,66 +77,66 @@ by (dtac mp 1);
 by ( etac (thm "slen_rt_mult") 1);
 by (dtac mp 1);
 by (etac (thm "monofun_rt_mult") 1);
-by (mp_tac 1); 
+by (mp_tac 1);
 by (atac 1);
 qed "stream_monoP2I";
 
 Goal "[| !i. ? l. !x y. \
 \Fin l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i;\
 \   down_cont F |] ==> adm (%x. x:gfp F)";
-byev[	etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
-	Simp_tac 1,
-	resolve_tac adm_lemmas 1,
-	rtac flatstream_admI 1,
-	etac allE 1,
-	etac exE 1,
-	etac allE 1 THEN etac exE 1,
-	etac allE 1 THEN etac allE 1 THEN dtac mp 1, (* stream_monoP *)
-	 dtac (thm "ileI1") 1,
-	 dtac (thm "ile_trans") 1,
-	  rtac (thm "ile_iSuc") 1,
-	 dtac (thm "iSuc_ile_mono" RS iffD1) 1,
-	 atac 1,
-	dtac mp 1,
-	 etac is_ub_thelub 1,
-	Fast_tac 1];
+byev[   etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
+        Simp_tac 1,
+        resolve_tac adm_lemmas 1,
+        rtac flatstream_admI 1,
+        etac allE 1,
+        etac exE 1,
+        etac allE 1 THEN etac exE 1,
+        etac allE 1 THEN etac allE 1 THEN dtac mp 1, (* stream_monoP *)
+         dtac (thm "ileI1") 1,
+         dtac (thm "ile_trans") 1,
+          rtac (thm "ile_iSuc") 1,
+         dtac (thm "iSuc_ile_mono" RS iffD1) 1,
+         atac 1,
+        dtac mp 1,
+         etac is_ub_thelub 1,
+        Fast_tac 1];
 qed "stream_monoP2_gfp_admI";
 
 bind_thm("fstream_gfp_admI",stream_monoP2I RS stream_monoP2_gfp_admI);
 
-qed_goalw "stream_antiP2I" thy [stream_antiP_def]
+qed_goalw "stream_antiP2I" (the_context ()) [stream_antiP_def]
 "!!X. [|stream_antiP (F::(('a::flat stream)set => ('a stream set)))|]\
 \ ==> !i x y. x << y --> y:down_iterate F i --> x:down_iterate F i" (K [
-	rtac allI 1,
-	induct_tac "i" 1,
-	 Simp_tac 1,
-	Simp_tac 1,
-	strip_tac 1,
-	etac allE 1 THEN etac all_dupE 1 THEN etac exE 1 THEN etac exE 1,
-	etac conjE 1,
-	case_tac "#x < Fin i" 1,
-	 fast_tac HOL_cs 1,
-	fold_goals_tac [thm "ile_def"],
-	mp_tac 1,
-	etac all_dupE 1 THEN dtac mp 1 THEN rtac refl_less 1,
-	etac ssubst 1,
+        rtac allI 1,
+        induct_tac "i" 1,
+         Simp_tac 1,
+        Simp_tac 1,
+        strip_tac 1,
+        etac allE 1 THEN etac all_dupE 1 THEN etac exE 1 THEN etac exE 1,
+        etac conjE 1,
+        case_tac "#x < Fin i" 1,
+         fast_tac HOL_cs 1,
+        fold_goals_tac [thm "ile_def"],
+        mp_tac 1,
+        etac all_dupE 1 THEN dtac mp 1 THEN rtac refl_less 1,
+        etac ssubst 1,
         etac allE 1 THEN mp_tac 1,
-	dres_inst_tac [("P","%x. x")] subst 1 THEN atac 1,
-	etac conjE 1 THEN rtac conjI 1,
-	 etac (thm "slen_take_lemma3" RS ssubst) 1 THEN atac 1,
-	 atac 1,
-	etac allE 1 THEN etac allE 1 THEN dtac mp 1 THEN etac (thm "monofun_rt_mult") 1,
-	mp_tac 1,
-	atac 1]);
+        dres_inst_tac [("P","%x. x")] subst 1 THEN atac 1,
+        etac conjE 1 THEN rtac conjI 1,
+         etac (thm "slen_take_lemma3" RS ssubst) 1 THEN atac 1,
+         atac 1,
+        etac allE 1 THEN etac allE 1 THEN dtac mp 1 THEN etac (thm "monofun_rt_mult") 1,
+        mp_tac 1,
+        atac 1]);
 
-qed_goalw "stream_antiP2_non_gfp_admI" thy [adm_def]
+qed_goalw "stream_antiP2_non_gfp_admI" (the_context ()) [adm_def]
 "!!X. [|!i x y. x << y --> y:down_iterate F i --> x:down_iterate F i; down_cont F |] \
 \ ==> adm (%u. ~ u:gfp F)" (K [
-	asm_simp_tac (simpset() addsimps [INTER_down_iterate_is_gfp]) 1,
-	fast_tac (claset() addSDs [is_ub_thelub]) 1]);
+        asm_simp_tac (simpset() addsimps [INTER_down_iterate_is_gfp]) 1,
+        fast_tac (claset() addSDs [is_ub_thelub]) 1]);
 
-bind_thm ("fstream_non_gfp_admI", stream_antiP2I RS 
-				stream_antiP2_non_gfp_admI);
+bind_thm ("fstream_non_gfp_admI", stream_antiP2I RS
+                                stream_antiP2_non_gfp_admI);
 
 
 
@@ -165,7 +165,7 @@ by (dtac gfp_upperbound 1);
 by (Fast_tac 1);
 qed "def_gfp_adm_nonP";
 
-Goalw [adm_def] 
+Goalw [adm_def]
 "{lub (range Y) |Y. chain Y & (\\<forall>i. Y i \\<in> P)} \\<subseteq> P \\<Longrightarrow> adm (\\<lambda>x. x\\<in>P)";
 by (Fast_tac 1);
 qed "adm_set";
