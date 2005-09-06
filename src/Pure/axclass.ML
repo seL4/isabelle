@@ -9,6 +9,7 @@ signature AX_CLASS =
 sig
   val quiet_mode: bool ref
   val print_axclasses: theory -> unit
+  val get_info: theory -> string -> {super_classes: class list, intro: thm, axioms: thm list}
   val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * {intro: thm, axioms: thm list}
   val add_axclass_i: bstring * class list -> ((bstring * term) * theory attribute list) list
@@ -70,7 +71,6 @@ fun dest_varT (TFree (x, S)) = ((x, ~1), S)
 
 (* names *)
 
-fun intro_name c = c ^ "I";
 val introN = "intro";
 val axiomsN = "axioms";
 
@@ -153,15 +153,12 @@ val print_axclasses = AxclassesData.print;
 
 (* get and put data *)
 
-val lookup_axclass_info = Symtab.curried_lookup o AxclassesData.get;
+val lookup_info = Symtab.curried_lookup o AxclassesData.get;
 
-fun get_axclass_info thy c =
-  (case lookup_axclass_info thy c of
+fun get_info thy c =
+  (case lookup_info thy c of
     NONE => error ("Unknown axclass " ^ quote c)
   | SOME info => info);
-
-fun put_axclass_info c info thy =
-  thy |> AxclassesData.put (Symtab.curried_update (c, info) (AxclassesData.get thy));
 
 
 (* class_axms *)
@@ -169,7 +166,7 @@ fun put_axclass_info c info thy =
 fun class_axms thy =
   let val classes = Sign.classes thy in
     map (Thm.class_triv thy) classes @
-    List.mapPartial (Option.map #intro o lookup_axclass_info thy) classes
+    List.mapPartial (Option.map #intro o lookup_info thy) classes
   end;
 
 
@@ -218,7 +215,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     (*declare axioms and rule*)
     val (axms_thy, ([intro], [axioms])) =
       class_thy
-      |> Theory.add_path bclass
+      |> Theory.add_path (Sign.const_of_class bclass)
       |> PureThy.add_axioms_i [Thm.no_attributes (introN, intro_axm)]
       |>>> PureThy.add_axiomss_i [Thm.no_attributes (axiomsN, abs_axms)];
     val info = {super_classes = super_classes, intro = intro, axioms = axioms};
@@ -228,8 +225,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       axms_thy
       |> (#1 o PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts))
       |> Theory.restore_naming class_thy
-      |> (#1 o PureThy.add_thms [Thm.no_attributes (intro_name bclass, intro)])
-      |> put_axclass_info class info;
+      |> AxclassesData.map (Symtab.curried_update (class, info));
   in (final_thy, {intro = intro, axioms = axioms}) end;
 
 in
@@ -372,9 +368,11 @@ val axclassP =
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname) >> (fn i => instance_subclass_proof i I) ||
-      (P.xname -- (P.$$$ "::" |-- P.arity) >> P.triple2) >> (fn i => instance_arity_proof i I))
-      >> (Toplevel.print oo Toplevel.theory_to_proof));
+   ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname)
+      >> (fn i => instance_subclass_proof i I) ||
+    (P.xname -- (P.$$$ "::" |-- P.arity) >> P.triple2)
+      >> (fn i => instance_arity_proof i I))
+   >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];
 
