@@ -18,16 +18,7 @@ signature VAMP_COMM =
 structure VampComm : VAMP_COMM =
 struct
 
-(***********************************)
-(*  Write Vampire output to a file *)
-(***********************************)
-
-fun logVampInput (instr, fd) =
-    let val thisLine = TextIO.inputLine instr
-    in if (thisLine = "%==============  End of proof. ==================\n" )
-       then TextIO.output (fd, thisLine)
-       else (TextIO.output (fd, thisLine); logVampInput (instr,fd))
-    end;
+exception EOF;
 
 (**********************************************************************)
 (*  Reconstruct the Vampire proof w.r.t. thmstring (string version of   *)
@@ -45,13 +36,17 @@ fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num
 		       goalstring toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
 
 
-fun transferVampInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num,clause_arr,  num_of_clauses) =
+fun transferVampInput (fromChild, toParent, ppid,thmstring,goalstring, 
+                       currentString, thm, sg_num,clause_arr, num_of_clauses) =
   let val thisLine = TextIO.inputLine fromChild
   in
-    if (thisLine = "%==============  End of proof. ==================\n" )
+    if thisLine = "" (*end of file?*)
+    then (File.write (File.tmp_path (Path.basic"vampire_extraction_failed")) currentString;
+	  raise EOF)                    
+    else if (thisLine = "%==============  End of proof. ==================\n" )
     then let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
 	 in
-	   File.write (File.tmp_path (Path.basic"extracted-prf-vamp")) proofextract; 
+	   File.write (File.tmp_path (Path.basic"vampire_extracted_prf")) proofextract; 
 	   reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num  
 	                   clause_arr num_of_clauses thm
 	 end
@@ -61,190 +56,114 @@ fun transferVampInput (fromChild, toParent, ppid,thmstring,goalstring, currentSt
 
 
 (*********************************************************************************)
-(*  Inspect the output of a Vampire process to see if it has found a proof,      *)
+(*  Inspect the output of a Vampire process to see if it has found a proof,     *)
 (*  and if so, transfer output to the input pipe of the main Isabelle process    *)
 (*********************************************************************************)
 
 
 fun startVampTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,
                        thm, sg_num,clause_arr, num_of_clauses) =
-    if isSome (TextIO.canInput(fromChild, 5))
-    then
-       let val thisLine = TextIO.inputLine fromChild
-       in
-         if (thisLine = "%================== Proof: ======================\n")
-         then
-          (File.append (File.tmp_path (Path.basic "transfer-vamp"))
-                       ("about to transfer proof, thm is: " ^ string_of_thm thm);
-           transferVampInput (fromChild, toParent, ppid,thmstring, goalstring,
-                              thisLine, thm, sg_num,clause_arr,  num_of_clauses);
-           true)
-         else
-            startVampTransfer (fromChild, toParent, ppid, thmstring, goalstring,
-                               childCmd, thm, sg_num,clause_arr, num_of_clauses)
-       end
-    else false
-
-
-fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  num_of_clauses) =
-    let val vamp_proof_file = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "vamp_proof")))
-        val _ = File.write (File.tmp_path (Path.basic "checking-prf-vamp"))
-                           ("checking if proof found, thm is: " ^ string_of_thm thm)
+    let val thisLine = TextIO.inputLine fromChild
     in
-      if (isSome (TextIO.canInput(fromChild, 5)))
+      if thisLine = "" then false
+      else if (thisLine = "%================== Proof: ======================\n")
       then
-        (
-         let val thisLine = TextIO.inputLine fromChild
-         in if (thisLine = "% Proof found. Thanks to Tanya!\n" )
-            then
-               let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));   
-                        val _ = TextIO.output (outfile, (thisLine))
-
-                        val _ =  TextIO.closeOut outfile
-               in
-                 startVampTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num, clause_arr,  num_of_clauses)
-               end
-            else if (thisLine = "% Unprovable.\n" )
-            then
-               let    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
-                           val _ = TextIO.output (outfile, (thisLine))
-
-                           val _ =  TextIO.closeOut outfile
-               in
-
-                 TextIO.output (toParent,childCmd^"\n" );
-                 TextIO.flushOut toParent;
-                 TextIO.output (vamp_proof_file, (thisLine));
-                 TextIO.flushOut vamp_proof_file;
-                 TextIO.closeOut vamp_proof_file;
-                 (*TextIO.output (toParent, thisLine);
-                  TextIO.flushOut toParent;
-                  TextIO.output (toParent, "bar\n");
-                  TextIO.flushOut toParent;*)
-
-                 TextIO.output (toParent, thisLine^"\n");
-                 TextIO.flushOut toParent;
-                 TextIO.output (toParent, thmstring^"\n");
-                 TextIO.flushOut toParent;
-                 TextIO.output (toParent, goalstring^"\n");
-                 TextIO.flushOut toParent;
-                 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-                 (* Attempt to prevent several signals from turning up simultaneously *)
-                 Posix.Process.sleep(Time.fromSeconds 1);
-                 true
-               end
-            else if (thisLine = "% Proof not found. Time limit expired.\n")
-            then
-              (let    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
-                           val _ = TextIO.output (outfile, (thisLine))
-
-                           val _ =  TextIO.closeOut outfile
-               in
-
-                 TextIO.output (toParent,childCmd^"\n" );
-                 TextIO.flushOut toParent;
-                 TextIO.output (vamp_proof_file, (thisLine));
-                 TextIO.flushOut vamp_proof_file;
-                 TextIO.closeOut vamp_proof_file;
-                 (*TextIO.output (toParent, thisLine);
-                  TextIO.flushOut toParent;
-                  TextIO.output (toParent, "bar\n");
-                  TextIO.flushOut toParent;*)
-
-                 TextIO.output (toParent, thisLine^"\n");
-                 TextIO.flushOut toParent;
-                 TextIO.output (toParent, thmstring^"\n");
-                 TextIO.flushOut toParent;
-                 TextIO.output (toParent, goalstring^"\n");
-                 TextIO.flushOut toParent;
-                 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-                 (* Attempt to prevent several signals from turning up simultaneously *)
-                 Posix.Process.sleep(Time.fromSeconds 1);
-                 true
-               end
-              )
-
-            else
-              (TextIO.output (vamp_proof_file, (thisLine));
-               TextIO.flushOut vamp_proof_file;
-               checkVampProofFound  (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num, clause_arr,  num_of_clauses))
-
-         end
-           )
+       (File.append (File.tmp_path (Path.basic "vampire_transfer"))
+		    ("about to transfer proof, thm is: " ^ string_of_thm thm);
+	transferVampInput (fromChild, toParent, ppid,thmstring, goalstring,
+			   thisLine, thm, sg_num,clause_arr, num_of_clauses);
+	true) handle EOF => false
       else
-        (TextIO.output (vamp_proof_file, ("No proof output seen \n"));TextIO.closeOut vamp_proof_file;false)
+	 startVampTransfer (fromChild, toParent, ppid, thmstring, goalstring,
+			    childCmd, thm, sg_num,clause_arr, num_of_clauses)
     end
 
 
+fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, 
+                         thm, sg_num, clause_arr, num_of_clauses) =
+ let val vamp_proof_file = TextIO.openAppend
+	   (File.platform_path(File.tmp_path (Path.basic "vampire_proof")))
+     val _ = File.write (File.tmp_path (Path.basic "vampire_checking_prf"))
+			("checking if proof found, thm is: " ^ string_of_thm thm)
+     val thisLine = TextIO.inputLine fromChild
+ in   
+     if thisLine = "" 
+     then (TextIO.output (vamp_proof_file, ("No proof output seen \n"));
+	   TextIO.closeOut vamp_proof_file;
+	   false)
+     else if thisLine = "% Proof found. Thanks to Tanya!\n"
+     then
+      (File.write (File.tmp_path (Path.basic "vampire_response")) thisLine;
+       startVampTransfer (fromChild, toParent, ppid, thmstring, goalstring,
+			  childCmd, thm, sg_num, clause_arr, num_of_clauses))
+     else if (thisLine = "% Unprovable.\n" )
+     then
+      (File.write (File.tmp_path (Path.basic "vampire_response")) thisLine;
+       TextIO.output (toParent,childCmd^"\n" );
+       TextIO.flushOut toParent;
+       TextIO.output (vamp_proof_file, thisLine);
+       TextIO.closeOut vamp_proof_file;
+       (*TextIO.output (toParent, thisLine);
+	TextIO.flushOut toParent;
+	TextIO.output (toParent, "bar\n");
+	TextIO.flushOut toParent;*)
+
+       TextIO.output (toParent, thisLine^"\n");
+       TextIO.output (toParent, thmstring^"\n");
+       TextIO.output (toParent, goalstring^"\n");
+       TextIO.flushOut toParent;
+       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+       (* Attempt to prevent several signals from turning up simultaneously *)
+       Posix.Process.sleep(Time.fromSeconds 1);
+       true)
+     else if (thisLine = "% Proof not found. Time limit expired.\n")
+     then
+      (File.write (File.tmp_path (Path.basic "vampire_response")) thisLine;
+       TextIO.output (toParent,childCmd^"\n" );
+       TextIO.flushOut toParent;
+       TextIO.output (vamp_proof_file, thisLine);
+       TextIO.closeOut vamp_proof_file;
+
+       TextIO.output (toParent, thisLine^"\n");
+       TextIO.output (toParent, thmstring^"\n");
+       TextIO.output (toParent, goalstring^"\n");
+       TextIO.flushOut toParent;
+       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+       (* Attempt to prevent several signals from turning up simultaneously *)
+       Posix.Process.sleep(Time.fromSeconds 1);
+       true)
+     else
+       (TextIO.output (vamp_proof_file, thisLine);
+	TextIO.flushOut vamp_proof_file;
+	checkVampProofFound  (fromChild, toParent, ppid, thmstring,
+	   goalstring,childCmd, thm, sg_num, clause_arr, num_of_clauses))
+  end
+
+
 (***********************************************************************)
-(*  Function used by the Isabelle process to read in a vamp proof   *)
+(*  Function used by the Isabelle process to read in a Vampire proof   *)
 (***********************************************************************)
 
 fun getVampInput instr =
-    if (isSome (TextIO.canInput(instr, 2)))
-    then
-      let val thisLine = TextIO.inputLine instr
-          val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_thisLine")));                                                                     val _ = TextIO.output (outfile, (thisLine))
+    let val thisLine = TextIO.inputLine instr
+	val _ = File.write (File.tmp_path (Path.basic "vampire_line")) thisLine
+    in    (* reconstructed proof string *)
+      if thisLine = "" then ("No output from reconstruction process.\n","","")
+      else if String.sub (thisLine, 0) = #"[" orelse
+              thisLine = "% Unprovable.\n" orelse
+              thisLine ="% Proof not found. Time limit expired.\n" orelse
+              String.isPrefix "Rules from" thisLine
+      then
+	let val thmstring = TextIO.inputLine instr
+	    val goalstring = TextIO.inputLine instr
+	in (thisLine, thmstring, goalstring) end
+      else if thisLine = "Proof found but translation failed!"
+      then
+	 let val thmstring = TextIO.inputLine instr
+	     val goalstring = TextIO.inputLine instr
+	     val _ = debug "getVampInput: translation of proof failed"
+	 in (thisLine, thmstring, goalstring) end
+      else getVampInput instr
+    end
 
-                                                                                                                                                                            val _ =  TextIO.closeOut outfile
-      in    (* reconstructed proof string *)
-        if ( (substring (thisLine, 0,1))= "[")
-        then
-          (*Pretty.writeln(Pretty.str (thisLine))*)
-          let val reconstr = thisLine
-              val thmstring = TextIO.inputLine instr
-              val goalstring = TextIO.inputLine instr
-          in
-            (reconstr, thmstring, goalstring)
-          end
-        else if (thisLine = "% Unprovable.\n" )
-        then
-          (
-           let val reconstr = thisLine
-               val thmstring = TextIO.inputLine instr
-               val goalstring = TextIO.inputLine instr
-           in
-             (reconstr, thmstring, goalstring)
-           end
-             )
-        else  if (thisLine = "% Proof not found. Time limit expired.\n")
-        then
-          (
-           let val reconstr = thisLine
-               val thmstring = TextIO.inputLine instr
-               val goalstring = TextIO.inputLine instr
-           in
-             (reconstr, thmstring, goalstring)
-           end
-             )
-        else if (String.isPrefix   "Rules from"  thisLine)
-        then
-          (
-           let val reconstr = thisLine
-               val thmstring = TextIO.inputLine instr
-               val goalstring = TextIO.inputLine instr
-           in
-             (reconstr, thmstring, goalstring)
-           end
-             )
-
-        else if (thisLine = "Proof found but translation failed!")
-        then
-          (
-           let val reconstr = thisLine
-               val thmstring = TextIO.inputLine instr
-               val goalstring = TextIO.inputLine instr
-               val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_getVamp")));
-                    val _ = TextIO.output (outfile, (thisLine))
-                    val _ =  TextIO.closeOut outfile
-           in
-             (reconstr, thmstring, goalstring)
-           end
-             )
-        else
-          getVampInput instr
-
-      end
-    else
-      ("No output from reconstruction process.\n","","")
 end;

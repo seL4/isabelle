@@ -25,7 +25,6 @@ fun string2int s =
 (* Parser combinators *)
 
 exception Noparse;
-exception SPASSError of string;
 exception VampError of string;
 
 
@@ -118,47 +117,22 @@ datatype token = Word of string
           raise (GandalfError "Couldn't find a proof.")
 *)
 
-val proofstring =
-"0:00:00.00 for the reduction.\
-\\
-\Here is a proof with depth 3, length 7 :\
-\1[0:Inp] ||  -> P(xa)*.\
-\2[0:Inp] ||  -> Q(xb)*.\
-\3[0:Inp] || R(U)* -> .\
-\4[0:Inp] || Q(U) P(V) -> R(x(V,U))*.\
-\9[0:Res:4.2,3.0] || Q(U)*+ P(V)* -> .\
-\11[0:Res:2.0,9.0] || P(U)* -> .\
-\12[0:Res:1.0,11.0] ||  -> .\
-\Formulae used in the proof :\
-\\
-\--------------------------SPASS-STOP------------------------------"
-
-fun extract_proof s
-      = if cut_exists "Here is a proof with" s then
-          (kill_lines 0
-           o snd o cut_after ":"
-           o snd o cut_after "Here is a proof with"
-           o fst o cut_after " ||  -> .") s
-        else if cut_exists "%================== Proof: ======================" s then
-          (kill_lines 0
-           o snd o cut_after "%================== Proof: ======================"
-           o fst o cut_before "==============  End of proof. ==================") s
-        else
-          raise SPASSError "Couldn't find a proof."
-
-(*fun extract_proof s
-      = if cut_exists "Here is a proof with" s then
-          (kill_lines 0
-           o snd o cut_after ":"
-           o snd o cut_after "Here is a proof with"
-           o fst o cut_after " ||  -> .") s
-        else
-          raise SPASSError "Couldn't find a proof."
-*)
-
-
-
-
+(*Identifies the start/end lines of an ATP's output*)
+fun extract_proof s =
+  if cut_exists "Here is a proof with" s then
+    (kill_lines 0
+     o snd o cut_after ":"
+     o snd o cut_after "Here is a proof with"
+     o fst o cut_after " ||  -> .") s
+  else if cut_exists "%================== Proof: ======================" s then
+    (kill_lines 0    (*Vampire 5.0*)
+     o snd o cut_after "%================== Proof: ======================"
+     o fst o cut_before "==============  End of proof. ==================") s
+  else if cut_exists "# Proof object ends here." s then
+    (kill_lines 0    (*eproof*)
+     o snd o cut_after "# Proof object starts here."
+     o fst o cut_before "# Proof object ends here.") s
+  else "??extract_proof failed" (*Couldn't find a proof*)
 
 fun several p = many (some p)
       fun collect (h, t) = h ^ (fold_rev (fn s1 => fn s2 => s1 ^ s2) t "")
@@ -358,12 +332,6 @@ datatype Tree = Leaf of string
      
 exception NOTERM
 
-
-fun implode_with_space [] = implode []
-|   implode_with_space [x] = implode [x]
-|   implode_with_space (x::[y]) = x^" "^y
-|   implode_with_space (x::xs) =  (x^" "^(implode_with_space xs))
-
 (* FIX - should change the stars and pluses to many rather than explicit patterns *)
 
 fun trim_prefix a b =
@@ -499,87 +467,22 @@ and ntermlist input = (many  nterm
 
 (*and arglist input = (    nterm >> (fn (a) => (a))
                      ||  nterm ++ many (a (Other ",") ++ nterm >> snd)
-                      >> (fn (a, b) => (a^" "^(implode_with_space b)))) input*)
+                      >> (fn (a, b) => (a^" "^(space_implode " " b)))) input*)
 
 and arglist input = (   nterm ++ many (a (Other ",") ++ nterm >> snd)
-                      >> (fn (a, b) => (a^" "^(implode_with_space b))) 
+                      >> (fn (a, b) => (a^" "^(space_implode " " b))) 
                       ||    nterm >> (fn (a) => (a)))input
 
  val clause =  term
-
-
-
- (*val line = number ++ justification ++ a (Other "|") ++ 
-            a (Other "|") ++ clause ++ a (Other ".")
-          >> (fn (a, (z, (_,( _, (c, _))))) => (a, z, c))*)
-
 
 (* not entirely sure nterm is right here, but I don't think you get negative things before the ||s *)
  val line = number ++ justification ++ many( nterm) ++ a (Other "|") ++ 
             a (Other "|") ++ clause ++ a (Other ".")
           >> (fn (a, (z, (w, (_,( _, (c, _)))))) => (a, z,(w@ c)))
        
-
-
  val lines = many line
  val alllines = (lines ++ finished) >> fst
     
  val parse = fst o alllines
- val s = proofstring;
- 
- 
-
-
-fun dropUntilNot ch []   = ( [])
- |   dropUntilNot ch (x::xs)  = if  not(x = ch )
-                                then
-                                     (x::xs)
-                                else
-                                     dropUntilNot ch xs
-
-
-fun remove_spaces str  []  = str
-|   remove_spaces str (x::[]) = if x = " " 
-                                then 
-                                    str 
-                                else 
-                                    (str^x)
-|   remove_spaces str (x::xs) = 
-      let val (first, rest) = ReconOrderClauses.takeUntil " " (x::xs) []
-	  val (next) = dropUntilNot " " rest 
-      in 
-	  if next = []
-	  then 
-	       (str^(implode first)) 
-	  else remove_spaces  (str^(implode first)^" ") next 
-      end
-
-
-fun remove_space_strs clsstrs = map (remove_spaces "") (map explode clsstrs)
-
-
-fun all_spaces xs = List.filter  (not_equal " " ) xs
-
-fun just_change_space []  = []
-|   just_change_space ((clausenum, step, strs)::xs) =
-      let val newstrs = remove_space_strs strs
-      in
-	 if (all_spaces newstrs = [] ) (* all type_info *)
-	 then    
-	    (clausenum, step, newstrs)::(just_change_space xs)
-	 else 
-	     (clausenum, step, newstrs)::(just_change_space xs) 
-      end;
-
-fun change_space []  = []
-|   change_space ((clausenum, step, strs)::xs) = 
-      let val newstrs = remove_space_strs strs
-      in
-	 if (all_spaces newstrs = [] ) (* all type_info *)
-	 then    
-	    (clausenum, step, T_info, newstrs)::(change_space xs)
-	 else 
-	     (clausenum, step, P_info, newstrs)::(change_space xs) 
-      end
 
 end;
