@@ -1,5 +1,6 @@
 (*
     File:        MemoryImplementation.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,9 +10,11 @@
     RPC-Memory example: Memory implementation
 *)
 
-MemoryImplementation = Memory + RPC + MemClerk + Datatype +
+theory MemoryImplementation
+imports Memory RPC MemClerk
+begin
 
-datatype  histState  =  histA | histB
+datatype histState = histA | histB
 
 types
   histType  = "(PrIds => histState) stfun"     (* the type of the history variable *)
@@ -22,7 +25,7 @@ consts
   memCh         :: "memChType"
      (* internal variables *)
   mm            :: "memType"
-  
+
   (* the state variables of the implementation *)
      (* channels *)
   (* same interface channel memCh *)
@@ -80,29 +83,29 @@ constdefs
   (* the implementation *)
   IPImp          :: "PrIds => temporal"
      "IPImp p == TEMP (  Init ~Calling memCh p & [][ENext p]_(e p)
-	               & MClkIPSpec memCh crCh cst p
-  	               & RPCIPSpec crCh rmCh rst p
-	               & RPSpec rmCh mm ires p
-		       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l))"
+                       & MClkIPSpec memCh crCh cst p
+                       & RPCIPSpec crCh rmCh rst p
+                       & RPSpec rmCh mm ires p
+                       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l))"
 
   ImpInit        :: "PrIds => stpred"
       "ImpInit p == PRED (  ~Calling memCh p
                           & MClkInit crCh cst p
-	                  & RPCInit rmCh rst p
-	                  & PInit ires p)"
+                          & RPCInit rmCh rst p
+                          & PInit ires p)"
 
   ImpNext        :: "PrIds => action"
-      "ImpNext p == ACT  [ENext p]_(e p) 
+      "ImpNext p == ACT  [ENext p]_(e p)
                        & [MClkNext memCh crCh cst p]_(c p)
-                       & [RPCNext crCh rmCh rst p]_(r p) 
+                       & [RPCNext crCh rmCh rst p]_(r p)
                        & [RNext rmCh mm ires p]_(m p)"
 
   ImpLive        :: "PrIds => temporal"
-      "ImpLive p == TEMP  WF(MClkFwd memCh crCh cst p)_(c p) 
-			& SF(MClkReply memCh crCh cst p)_(c p)
-			& WF(RPCNext crCh rmCh rst p)_(r p) 
-			& WF(RNext rmCh mm ires p)_(m p)
-			& WF(MemReturn rmCh ires p)_(m p)"
+      "ImpLive p == TEMP  WF(MClkFwd memCh crCh cst p)_(c p)
+                        & SF(MClkReply memCh crCh cst p)_(c p)
+                        & WF(RPCNext crCh rmCh rst p)_(r p)
+                        & WF(RNext rmCh mm ires p)_(m p)
+                        & WF(MemReturn rmCh ires p)_(m p)"
 
   Implementation :: "temporal"
       "Implementation == TEMP ( (ALL p. Init (~Calling memCh p) & [][ENext p]_(e p))
@@ -148,14 +151,14 @@ constdefs
   (* The invariant asserts that the system is always in one of S1 - S6, for every p *)
   ImpInv         :: "histType => PrIds => stpred"
       "ImpInv rmhist p == PRED (  S1 rmhist p | S2 rmhist p | S3 rmhist p
-				| S4 rmhist p | S5 rmhist p | S6 rmhist p)"
+                                | S4 rmhist p | S5 rmhist p | S6 rmhist p)"
 
   resbar        :: "histType => resType"        (* refinement mapping *)
-      "resbar rmhist s p == 
+      "resbar rmhist s p ==
                   (if (S1 rmhist p s | S2 rmhist p s)
                    then ires s p
                    else if S3 rmhist p s
-                   then if rmhist s p = histA 
+                   then if rmhist s p = histA
                         then ires s p else MemFailure
                    else if S4 rmhist p s
                    then if (rmhist s p = histB & ires s p = NotAResult)
@@ -167,11 +170,13 @@ constdefs
                         then MemFailure else res (crCh s p)
                    else NotAResult)" (* dummy value *)
 
-rules
+axioms
   (* the "base" variables: everything except resbar and hist (for any index) *)
-  MI_base       "basevars (caller memCh!p,
-			   (rtrner memCh!p, caller crCh!p, cst!p),
-			   (rtrner crCh!p, caller rmCh!p, rst!p),
-			   (mm!l, rtrner rmCh!p, ires!p))"
+  MI_base:       "basevars (caller memCh!p,
+                           (rtrner memCh!p, caller crCh!p, cst!p),
+                           (rtrner crCh!p, caller rmCh!p, rst!p),
+                           (mm!l, rtrner rmCh!p, ires!p))"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

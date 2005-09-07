@@ -1,5 +1,6 @@
-(* 
-    File:	 TLA/Init.thy
+(*
+    File:        TLA/Init.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
 
@@ -10,26 +11,26 @@ Introduces type of temporal formulas. Defines interface between
 temporal formulas and its "subformulas" (state predicates and actions).
 *)
 
-Init  =  Action +
+theory Init
+imports Action
+begin
+
+typedecl behavior
+instance behavior :: world ..
 
 types
-  behavior
-  temporal = behavior form
+  temporal = "behavior form"
 
-arities
-  behavior    :: type
-
-instance
-  behavior    :: world
 
 consts
-  Initial     :: ('w::world => bool) => temporal
-  first_world :: behavior => ('w::world)
-  st1, st2    :: behavior => state
+  Initial     :: "('w::world => bool) => temporal"
+  first_world :: "behavior => ('w::world)"
+  st1         :: "behavior => state"
+  st2         :: "behavior => state"
 
 syntax
-  TEMP       :: lift => 'a                          ("(TEMP _)")
-  "_Init"    :: lift => lift                        ("(Init _)"[40] 50)
+  TEMP       :: "lift => 'a"                          ("(TEMP _)")
+  "_Init"    :: "lift => lift"                        ("(Init _)"[40] 50)
 
 translations
   "TEMP F"   => "(F::behavior => _)"
@@ -37,8 +38,11 @@ translations
   "sigma |= Init F"  <= "_Init F sigma"
 
 defs
-  Init_def    "sigma |= Init F  ==  (first_world sigma) |= F"
-  fw_temp_def "first_world == %sigma. sigma"
-  fw_stp_def  "first_world == st1"
-  fw_act_def  "first_world == %sigma. (st1 sigma, st2 sigma)"
+  Init_def:    "sigma |= Init F  ==  (first_world sigma) |= F"
+  fw_temp_def: "first_world == %sigma. sigma"
+  fw_stp_def:  "first_world == st1"
+  fw_act_def:  "first_world == %sigma. (st1 sigma, st2 sigma)"
+
+ML {* use_legacy_bindings (the_context ()) *}
+
 end

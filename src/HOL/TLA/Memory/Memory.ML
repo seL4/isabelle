@@ -1,12 +1,13 @@
-(* 
+(*
     File:        Memory.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
     RPC-Memory example: Memory specification (theorems and proofs)
 *)
 
-val RM_action_defs = 
+val RM_action_defs =
    [MInit_def, PInit_def, RdRequest_def, WrRequest_def, MemInv_def,
     GoodRead_def, BadRead_def, ReadInner_def, Read_def,
     GoodWrite_def, BadWrite_def, WriteInner_def, Write_def,
@@ -24,7 +25,7 @@ val mem_css = (claset(), simpset());
 (* The reliable memory is an implementation of the unreliable one *)
 Goal "|- IRSpec ch mm rs --> IUSpec ch mm rs";
 by (force_tac (temp_css addsimps2 ([UNext_def,UPSpec_def,IUSpec_def] @ RM_temp_defs)
-			addSEs2 [STL4E,squareE]) 1);
+                        addSEs2 [STL4E,squareE]) 1);
 qed "ReliableImplementsUnReliable";
 
 (* The memory spec implies the memory invariant *)
@@ -43,7 +44,7 @@ by (case_tac "l : MemLoc" 1);
 by (auto_tac (temp_css addSEs2 [MemoryInvariant,NonMemLocInvariant]));
 qed "MemoryInvariantAll";
 
-(* The memory engages in an action for process p only if there is an 
+(* The memory engages in an action for process p only if there is an
    unanswered call from p.
    We need this only for the reliable memory.
 *)
@@ -79,14 +80,14 @@ Goal "!!p. basevars (mm!l, rtrner ch ! p, rs!p) ==> \
 \     |- Calling ch p & (arg<ch!p> = #(write l v)) \
 \        --> Enabled (WriteInner ch mm rs p l v)";
 by (case_tac "l:MemLoc & v:MemVal" 1);
-by (ALLGOALS 
+by (ALLGOALS
      (force_tac (mem_css addsimps2 [WriteInner_def,GoodWrite_def,
                                     BadWrite_def,WrRequest_def]
                          addSIs2 [exI] addSEs2 [base_enabled])));
 qed "WriteInner_enabled";
 
 Goal "|- Read ch mm rs p & (!l. $(MemInv mm l)) --> (rs!p)` ~= #NotAResult";
-by (force_tac (mem_css addsimps2 
+by (force_tac (mem_css addsimps2
                        [Read_def,ReadInner_def,GoodRead_def,BadRead_def,MemInv_def]) 1);
 qed "ReadResult";
 
@@ -103,8 +104,8 @@ Goal "|- (rs!p = #NotAResult) & (!l. MemInv mm l)  \
 \        & Enabled (Read ch mm rs p | (? l. Write ch mm rs p l)) \
 \        --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))";
 by (force_tac (mem_css addsimps2 [RNext_def,angle_def]
-	               addSEs2 [enabled_mono2]
-	               addDs2 [ReadResult, WriteResult]) 1);
+                       addSEs2 [enabled_mono2]
+                       addDs2 [ReadResult, WriteResult]) 1);
 qed "RWRNext_enabled";
 
 
@@ -121,5 +122,5 @@ by (case_tac "arg(ch w p)" 1);
  by (force_tac (mem_css addDs2 [base_pair]) 1);
 by (etac contrapos_np 1);
 by (action_simp_tac (simpset() addsimps [Write_def,enabled_ex])
-	            [WriteInner_enabled,exI] [] 1);
+                    [WriteInner_enabled,exI] [] 1);
 qed "RNext_enabled";

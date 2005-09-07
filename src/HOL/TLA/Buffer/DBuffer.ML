@@ -1,5 +1,6 @@
-(* 
+(*
     File:        DBuffer.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -37,7 +38,7 @@ qed "DBDeq_visible";
 
 Goalw [action_rewrite DBDeq_visible]
   "|- Enabled (<DBDeq>_(inp,mid,out,q1,q2)) = (q2 ~= #[])";
-by (force_tac (db_css addSIs2 [DB_base RS base_enabled] addSEs2 [enabledE] 
+by (force_tac (db_css addSIs2 [DB_base RS base_enabled] addSEs2 [enabledE]
                      addsimps2 [angle_def,DBDeq_def,Deq_def]) 1);
 qed "DBDeq_enabled";
 
@@ -47,7 +48,7 @@ qed "DBPass_visible";
 
 Goalw [action_rewrite DBPass_visible]
    "|- Enabled (<DBPass>_(inp,mid,out,q1,q2)) = (q1 ~= #[])";
-by (force_tac (db_css addSIs2 [DB_base RS base_enabled] addSEs2 [enabledE] 
+by (force_tac (db_css addSIs2 [DB_base RS base_enabled] addSEs2 [enabledE]
                      addsimps2 [angle_def,DBPass_def,Deq_def]) 1);
 qed "DBPass_enabled";
 
@@ -103,7 +104,7 @@ qed "DBFair_2";
 
 (* High-level fairness *)
 Goal "|- [][DBNext]_(inp,mid,out,q1,q2) & WF(DBPass)_(inp,mid,out,q1,q2) \
-\                                       & WF(DBDeq)_(inp,mid,out,q1,q2)  \ 
+\                                       & WF(DBDeq)_(inp,mid,out,q1,q2)  \
 \        --> WF(Deq inp qc out)_(inp,qc,out)";
 by (auto_tac (temp_css addSIs2 [leadsto_WF,
                                 (temp_use DBFair_1) RSN(2,(temp_use LatticeTransitivity)),

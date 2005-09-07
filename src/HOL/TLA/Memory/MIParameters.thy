@@ -1,5 +1,6 @@
 (*
     File:        MIParameters.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -12,5 +13,7 @@
 MIParameters = Main +
 
 datatype  histState  =  histA | histB
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

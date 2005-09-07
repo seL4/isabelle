@@ -1,5 +1,6 @@
 (* 
     File:        MIsafe.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 

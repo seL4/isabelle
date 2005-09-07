@@ -1,5 +1,6 @@
-(* 
+(*
     File:        ProcedureInterface.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -11,10 +12,10 @@ val mem_css = (claset(), simpset());
 
 (* ---------------------------------------------------------------------------- *)
 
-val Procedure_defs = [caller_def, rtrner_def, Calling_def, 
+val Procedure_defs = [caller_def, rtrner_def, Calling_def,
                       Call_def, Return_def,
-		      PLegalCaller_def, LegalCaller_def,
-		      PLegalReturner_def, LegalReturner_def];
+                      PLegalCaller_def, LegalCaller_def,
+                      PLegalReturner_def, LegalReturner_def];
 
 (* Calls and returns change their subchannel *)
 Goal "|- Call ch p v --> <Call ch p v>_((caller ch)!p)";

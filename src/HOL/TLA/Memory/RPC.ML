@@ -1,12 +1,13 @@
-(* 
+(*
     File:        RPC.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
     RPC-Memory example: RPC specification (theorems and proofs)
 *)
 
-val RPC_action_defs = [RPCInit_def, RPCFwd_def, RPCReject_def, RPCFail_def, 
+val RPC_action_defs = [RPCInit_def, RPCFwd_def, RPCReject_def, RPCFail_def,
                        RPCReply_def, RPCNext_def];
 
 val RPC_temp_defs = [RPCIPSpec_def, RPCISpec_def];
@@ -29,7 +30,7 @@ qed "RPCbusy";
 Goal "|- RPCFail send rcv rst p --> \
 \        <RPCNext send rcv rst p>_(rst!p, rtrner send!p, caller rcv!p)";
 by (auto_tac (claset() addSDs [Return_changed],
-	     simpset() addsimps [angle_def,RPCNext_def,RPCFail_def]));
+             simpset() addsimps [angle_def,RPCNext_def,RPCFail_def]));
 qed "RPCFail_vis";
 
 Goal "|- Enabled (RPCFail send rcv rst p) --> \

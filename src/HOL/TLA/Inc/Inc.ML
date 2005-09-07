@@ -1,5 +1,6 @@
-(* 
-    File:	 TLA/ex/inc/Inc.ML
+(*
+    File:        TLA/ex/inc/Inc.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -77,7 +78,7 @@ qed "Step_sim";
 (**** Proof of fairness ****)
 
 (*
-   The goal is to prove Fair_M1 far below, which asserts 
+   The goal is to prove Fair_M1 far below, which asserts
          |- Psi --> WF(M1)_(x,y)
    (the other fairness condition is symmetrical).
 
@@ -111,7 +112,7 @@ by (action_simp_tac (simpset() addsimps Psi_defs) [] [squareE] 1);
 by (action_simp_tac (simpset() addsimps angle_def::Psi_defs) [] [] 1);
 (* reduce |- []A --> <>Enabled B  to  |- A --> Enabled B *)
 by (auto_tac (Inc_css addSIs2 [InitDmd_gen, N1_enabled_at_g]
-	              addSDs2 [STL2_gen]
+                      addSDs2 [STL2_gen]
                       addsimps2 [Init_def]));
 qed "g1_leadsto_a1";
 
@@ -130,7 +131,7 @@ by (rtac SF1 1);
 by (action_simp_tac (simpset() addsimps Psi_defs) [] [squareE] 1);
 by (action_simp_tac (simpset() addsimps angle_def::Psi_defs) [] [] 1);
 by (auto_tac (Inc_css addSIs2 [InitDmd_gen, N2_enabled_at_g]
-	              addSDs2 [STL2_gen]
+                      addSDs2 [STL2_gen]
                       addsimps2 [Init_def]));
 qed "g2_leadsto_a2";
 
@@ -165,7 +166,7 @@ qed "N2_leadsto_a";
 Goal "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) \
 \        --> <>(pc2 = #a)";
 by (auto_tac (Inc_css addsimps2 Init_defs
-                      addSIs2 [(temp_use N2_leadsto_a) 
+                      addSIs2 [(temp_use N2_leadsto_a)
                                RSN(2, (temp_use leadsto_init))]));
 by (case_tac "pc2 (st1 sigma)" 1);
 by Auto_tac;
@@ -189,7 +190,7 @@ by (action_simp_tac (simpset() addsimps Psi_defs) [] [squareE] 1);
 by (action_simp_tac (simpset() addsimps angle_def::Psi_defs) [] [] 1);
 by (clarsimp_tac (Inc_css addSIs2 [N1_enabled_at_both_a RS (temp_use DmdImpl)]) 1);
 by (auto_tac (Inc_css addSIs2 [BoxDmd2_simple, N2_live]
-	              addsimps2 split_box_conj::more_temp_simps));
+                      addsimps2 split_box_conj::more_temp_simps));
 qed "a1_leadsto_b1";
 
 (* Combine the leadsto properties for N1: it will arrive at pc1 = b *)
@@ -201,14 +202,14 @@ by (auto_tac (Inc_css addSIs2 [LatticeDisjunctionIntro]));
 by (rtac (temp_use LatticeReflexivity) 1);
 by (rtac (temp_use LatticeTransitivity) 1);
 by (auto_tac (Inc_css addSIs2 [a1_leadsto_b1,g1_leadsto_a1]
-	              addsimps2 [split_box_conj]));
+                      addsimps2 [split_box_conj]));
 qed "N1_leadsto_b";
 
 Goal "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))             \
 \        & SF(N1)_(x,y,sem,pc1,pc2) & [] SF(N2)_(x,y,sem,pc1,pc2)  \
 \        --> <>(pc1 = #b)";
 by (auto_tac (Inc_css addsimps2 Init_defs
-                      addSIs2 [(temp_use N1_leadsto_b) 
+                      addSIs2 [(temp_use N1_leadsto_b)
                                RSN(2, temp_use leadsto_init)]));
 by (case_tac "pc1 (st1 sigma)" 1);
 by Auto_tac;
@@ -233,11 +234,11 @@ by (force_tac (Inc_css addsimps2 [angle_def,M1_def,beta1_def]) 1);
 by (force_tac (Inc_css addsimps2 angle_def::Psi_defs) 1);
 by (force_tac (Inc_css addSEs2 [N1_enabled_at_b]) 1);
    (* temporal premise: use previous lemmas and simple TL *)
-by (force_tac (Inc_css addSIs2 [DmdStable, N1_live,Stuck_at_b] 
+by (force_tac (Inc_css addSIs2 [DmdStable, N1_live,Stuck_at_b]
                        addEs2 [STL4E] addsimps2 [square_def]) 1);
 qed "Fair_M1_lemma";
 
 Goal "|- Psi --> WF(M1)_(x,y)";
 by (auto_tac (Inc_css addSIs2 [SFImplWF, Fair_M1_lemma, PsiInv]
-		      addsimps2 [Psi_def,split_box_conj]@more_temp_simps));
+                      addsimps2 [Psi_def,split_box_conj]@more_temp_simps));
 qed "Fair_M1";

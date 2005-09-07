@@ -1,5 +1,6 @@
-(* 
-    File:	 TLA/Intensional.thy
+(*
+    File:        TLA/Intensional.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
 
@@ -10,7 +11,9 @@ Define a framework for "intensional" (possible-world based) logics
 on top of HOL, with lifting of constants and functions.
 *)
 
-Intensional  =  Main +
+theory Intensional
+imports Main
+begin
 
 axclass
   world < type
@@ -18,15 +21,15 @@ axclass
 (** abstract syntax **)
 
 types
-  ('w,'a) expr = 'w => 'a               (* intention: 'w::world, 'a::type *)
-  'w form = ('w, bool) expr
+  ('w,'a) expr = "'w => 'a"               (* intention: 'w::world, 'a::type *)
+  'w form = "('w, bool) expr"
 
 consts
-  Valid    :: ('w::world) form => bool
-  const    :: 'a => ('w::world, 'a) expr
-  lift     :: ['a => 'b, ('w::world, 'a) expr] => ('w,'b) expr
-  lift2    :: ['a => 'b => 'c, ('w::world,'a) expr, ('w,'b) expr] => ('w,'c) expr
-  lift3    :: ['a => 'b => 'c => 'd, ('w::world,'a) expr, ('w,'b) expr, ('w,'c) expr] => ('w,'d) expr
+  Valid    :: "('w::world) form => bool"
+  const    :: "'a => ('w::world, 'a) expr"
+  lift     :: "['a => 'b, ('w::world, 'a) expr] => ('w,'b) expr"
+  lift2    :: "['a => 'b => 'c, ('w::world,'a) expr, ('w,'b) expr] => ('w,'c) expr"
+  lift3    :: "['a => 'b => 'c => 'd, ('w::world,'a) expr, ('w,'b) expr, ('w,'c) expr] => ('w,'d) expr"
 
   (* "Rigid" quantification (logic level) *)
   RAll     :: "('a => ('w::world) form) => 'w form"       (binder "Rall " 10)
@@ -40,59 +43,59 @@ nonterminals
   liftargs
 
 syntax
-  ""            :: id => lift                          ("_")
-  ""            :: longid => lift                      ("_")
-  ""            :: var => lift                         ("_")
-  "_applC"      :: [lift, cargs] => lift               ("(1_/ _)" [1000, 1000] 999)
-  ""            :: lift => lift                        ("'(_')")
-  "_lambda"     :: [idts, 'a] => lift                  ("(3%_./ _)" [0, 3] 3)
-  "_constrain"  :: [lift, type] => lift                ("(_::_)" [4, 0] 3)
-  ""            :: lift => liftargs                    ("_")
-  "_liftargs"   :: [lift, liftargs] => liftargs        ("_,/ _")
-  "_Valid"      :: lift => bool                        ("(|- _)" 5)
-  "_holdsAt"    :: ['a, lift] => bool                  ("(_ |= _)" [100,10] 10)
+  ""            :: "id => lift"                          ("_")
+  ""            :: "longid => lift"                      ("_")
+  ""            :: "var => lift"                         ("_")
+  "_applC"      :: "[lift, cargs] => lift"               ("(1_/ _)" [1000, 1000] 999)
+  ""            :: "lift => lift"                        ("'(_')")
+  "_lambda"     :: "[idts, 'a] => lift"                  ("(3%_./ _)" [0, 3] 3)
+  "_constrain"  :: "[lift, type] => lift"                ("(_::_)" [4, 0] 3)
+  ""            :: "lift => liftargs"                    ("_")
+  "_liftargs"   :: "[lift, liftargs] => liftargs"        ("_,/ _")
+  "_Valid"      :: "lift => bool"                        ("(|- _)" 5)
+  "_holdsAt"    :: "['a, lift] => bool"                  ("(_ |= _)" [100,10] 10)
 
   (* Syntax for lifted expressions outside the scope of |- or |= *)
-  "LIFT"        :: lift => 'a                          ("LIFT _")
+  "LIFT"        :: "lift => 'a"                          ("LIFT _")
 
   (* generic syntax for lifted constants and functions *)
-  "_const"      :: 'a => lift                          ("(#_)" [1000] 999)
-  "_lift"       :: ['a, lift] => lift                  ("(_<_>)" [1000] 999)
-  "_lift2"      :: ['a, lift, lift] => lift            ("(_<_,/ _>)" [1000] 999)
-  "_lift3"      :: ['a, lift, lift, lift] => lift      ("(_<_,/ _,/ _>)" [1000] 999)
+  "_const"      :: "'a => lift"                          ("(#_)" [1000] 999)
+  "_lift"       :: "['a, lift] => lift"                  ("(_<_>)" [1000] 999)
+  "_lift2"      :: "['a, lift, lift] => lift"            ("(_<_,/ _>)" [1000] 999)
+  "_lift3"      :: "['a, lift, lift, lift] => lift"      ("(_<_,/ _,/ _>)" [1000] 999)
 
   (* concrete syntax for common infix functions: reuse same symbol *)
-  "_liftEqu"    :: [lift, lift] => lift                ("(_ =/ _)" [50,51] 50)
-  "_liftNeq"    :: [lift, lift] => lift                ("(_ ~=/ _)" [50,51] 50)
-  "_liftNot"    :: lift => lift                        ("(~ _)" [40] 40)
-  "_liftAnd"    :: [lift, lift] => lift                ("(_ &/ _)" [36,35] 35)
-  "_liftOr"     :: [lift, lift] => lift                ("(_ |/ _)" [31,30] 30)
-  "_liftImp"    :: [lift, lift] => lift                ("(_ -->/ _)" [26,25] 25)
-  "_liftIf"     :: [lift, lift, lift] => lift          ("(if (_)/ then (_)/ else (_))" 10)
-  "_liftPlus"   :: [lift, lift] => lift                ("(_ +/ _)" [66,65] 65)
-  "_liftMinus"  :: [lift, lift] => lift                ("(_ -/ _)" [66,65] 65)
-  "_liftTimes"  :: [lift, lift] => lift                ("(_ */ _)" [71,70] 70)
-  "_liftDiv"    :: [lift, lift] => lift                ("(_ div _)" [71,70] 70)
-  "_liftMod"    :: [lift, lift] => lift                ("(_ mod _)" [71,70] 70)
-  "_liftLess"   :: [lift, lift] => lift                ("(_/ < _)"  [50, 51] 50)
-  "_liftLeq"    :: [lift, lift] => lift                ("(_/ <= _)" [50, 51] 50)
-  "_liftMem"    :: [lift, lift] => lift                ("(_/ : _)" [50, 51] 50)
-  "_liftNotMem" :: [lift, lift] => lift                ("(_/ ~: _)" [50, 51] 50)
-  "_liftFinset" :: liftargs => lift                    ("{(_)}")
+  "_liftEqu"    :: "[lift, lift] => lift"                ("(_ =/ _)" [50,51] 50)
+  "_liftNeq"    :: "[lift, lift] => lift"                ("(_ ~=/ _)" [50,51] 50)
+  "_liftNot"    :: "lift => lift"                        ("(~ _)" [40] 40)
+  "_liftAnd"    :: "[lift, lift] => lift"                ("(_ &/ _)" [36,35] 35)
+  "_liftOr"     :: "[lift, lift] => lift"                ("(_ |/ _)" [31,30] 30)
+  "_liftImp"    :: "[lift, lift] => lift"                ("(_ -->/ _)" [26,25] 25)
+  "_liftIf"     :: "[lift, lift, lift] => lift"          ("(if (_)/ then (_)/ else (_))" 10)
+  "_liftPlus"   :: "[lift, lift] => lift"                ("(_ +/ _)" [66,65] 65)
+  "_liftMinus"  :: "[lift, lift] => lift"                ("(_ -/ _)" [66,65] 65)
+  "_liftTimes"  :: "[lift, lift] => lift"                ("(_ */ _)" [71,70] 70)
+  "_liftDiv"    :: "[lift, lift] => lift"                ("(_ div _)" [71,70] 70)
+  "_liftMod"    :: "[lift, lift] => lift"                ("(_ mod _)" [71,70] 70)
+  "_liftLess"   :: "[lift, lift] => lift"                ("(_/ < _)"  [50, 51] 50)
+  "_liftLeq"    :: "[lift, lift] => lift"                ("(_/ <= _)" [50, 51] 50)
+  "_liftMem"    :: "[lift, lift] => lift"                ("(_/ : _)" [50, 51] 50)
+  "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ ~: _)" [50, 51] 50)
+  "_liftFinset" :: "liftargs => lift"                    ("{(_)}")
   (** TODO: syntax for lifted collection / comprehension **)
-  "_liftPair"   :: [lift,liftargs] => lift                   ("(1'(_,/ _'))")
+  "_liftPair"   :: "[lift,liftargs] => lift"                   ("(1'(_,/ _'))")
   (* infix syntax for list operations *)
-  "_liftCons" :: [lift, lift] => lift                  ("(_ #/ _)" [65,66] 65)
-  "_liftApp"  :: [lift, lift] => lift                  ("(_ @/ _)" [65,66] 65)
-  "_liftList" :: liftargs => lift                      ("[(_)]")
+  "_liftCons" :: "[lift, lift] => lift"                  ("(_ #/ _)" [65,66] 65)
+  "_liftApp"  :: "[lift, lift] => lift"                  ("(_ @/ _)" [65,66] 65)
+  "_liftList" :: "liftargs => lift"                      ("[(_)]")
 
   (* Rigid quantification (syntax level) *)
-  "_ARAll"  :: [idts, lift] => lift                    ("(3! _./ _)" [0, 10] 10)
-  "_AREx"   :: [idts, lift] => lift                    ("(3? _./ _)" [0, 10] 10)
-  "_AREx1"  :: [idts, lift] => lift                    ("(3?! _./ _)" [0, 10] 10)
-  "_RAll" :: [idts, lift] => lift                      ("(3ALL _./ _)" [0, 10] 10)
-  "_REx"  :: [idts, lift] => lift                      ("(3EX _./ _)" [0, 10] 10)
-  "_REx1" :: [idts, lift] => lift                      ("(3EX! _./ _)" [0, 10] 10)
+  "_ARAll"  :: "[idts, lift] => lift"                    ("(3! _./ _)" [0, 10] 10)
+  "_AREx"   :: "[idts, lift] => lift"                    ("(3? _./ _)" [0, 10] 10)
+  "_AREx1"  :: "[idts, lift] => lift"                    ("(3?! _./ _)" [0, 10] 10)
+  "_RAll" :: "[idts, lift] => lift"                      ("(3ALL _./ _)" [0, 10] 10)
+  "_REx"  :: "[idts, lift] => lift"                      ("(3EX _./ _)" [0, 10] 10)
+  "_REx1" :: "[idts, lift] => lift"                      ("(3EX! _./ _)" [0, 10] 10)
 
 translations
   "_const"        == "const"
@@ -135,7 +138,7 @@ translations
   "_liftList (_liftargs x xs)"  == "_liftCons x (_liftList xs)"
   "_liftList x"   == "_liftCons x (_const [])"
 
-  
+
 
   "w |= ~A"       <= "_liftNot A w"
   "w |= A & B"    <= "_liftAnd A B w"
@@ -147,41 +150,44 @@ translations
   "w |= EX! x. A"  <= "_REx1 x A w"
 
 syntax (xsymbols)
-  "_Valid"      :: lift => bool                        ("(\\<turnstile> _)" 5)
-  "_holdsAt"    :: ['a, lift] => bool                  ("(_ \\<Turnstile> _)" [100,10] 10)
-  "_liftNeq"    :: [lift, lift] => lift                (infixl "\\<noteq>" 50)
-  "_liftNot"    :: lift => lift                        ("\\<not> _" [40] 40)
-  "_liftAnd"    :: [lift, lift] => lift                (infixr "\\<and>" 35)
-  "_liftOr"     :: [lift, lift] => lift                (infixr "\\<or>" 30)
-  "_liftImp"    :: [lift, lift] => lift                (infixr "\\<longrightarrow>" 25)
-  "_RAll"       :: [idts, lift] => lift                ("(3\\<forall>_./ _)" [0, 10] 10)
-  "_REx"        :: [idts, lift] => lift                ("(3\\<exists>_./ _)" [0, 10] 10)
-  "_REx1"       :: [idts, lift] => lift                ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "_liftLeq"    :: [lift, lift] => lift                ("(_/ \\<le> _)" [50, 51] 50)
-  "_liftMem"    :: [lift, lift] => lift                ("(_/ \\<in> _)" [50, 51] 50)
-  "_liftNotMem" :: [lift, lift] => lift                ("(_/ \\<notin> _)" [50, 51] 50)
+  "_Valid"      :: "lift => bool"                        ("(\<turnstile> _)" 5)
+  "_holdsAt"    :: "['a, lift] => bool"                  ("(_ \<Turnstile> _)" [100,10] 10)
+  "_liftNeq"    :: "[lift, lift] => lift"                (infixl "\<noteq>" 50)
+  "_liftNot"    :: "lift => lift"                        ("\<not> _" [40] 40)
+  "_liftAnd"    :: "[lift, lift] => lift"                (infixr "\<and>" 35)
+  "_liftOr"     :: "[lift, lift] => lift"                (infixr "\<or>" 30)
+  "_liftImp"    :: "[lift, lift] => lift"                (infixr "\<longrightarrow>" 25)
+  "_RAll"       :: "[idts, lift] => lift"                ("(3\<forall>_./ _)" [0, 10] 10)
+  "_REx"        :: "[idts, lift] => lift"                ("(3\<exists>_./ _)" [0, 10] 10)
+  "_REx1"       :: "[idts, lift] => lift"                ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_liftLeq"    :: "[lift, lift] => lift"                ("(_/ \<le> _)" [50, 51] 50)
+  "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
+  "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
 
 syntax (HTML output)
-  "_liftNeq"    :: [lift, lift] => lift                (infixl "\\<noteq>" 50)
-  "_liftNot"    :: lift => lift                        ("\\<not> _" [40] 40)
-  "_liftAnd"    :: [lift, lift] => lift                (infixr "\\<and>" 35)
-  "_liftOr"     :: [lift, lift] => lift                (infixr "\\<or>" 30)
-  "_RAll"       :: [idts, lift] => lift                ("(3\\<forall>_./ _)" [0, 10] 10)
-  "_REx"        :: [idts, lift] => lift                ("(3\\<exists>_./ _)" [0, 10] 10)
-  "_REx1"       :: [idts, lift] => lift                ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "_liftLeq"    :: [lift, lift] => lift                ("(_/ \\<le> _)" [50, 51] 50)
-  "_liftMem"    :: [lift, lift] => lift                ("(_/ \\<in> _)" [50, 51] 50)
-  "_liftNotMem" :: [lift, lift] => lift                ("(_/ \\<notin> _)" [50, 51] 50)
+  "_liftNeq"    :: "[lift, lift] => lift"                (infixl "\<noteq>" 50)
+  "_liftNot"    :: "lift => lift"                        ("\<not> _" [40] 40)
+  "_liftAnd"    :: "[lift, lift] => lift"                (infixr "\<and>" 35)
+  "_liftOr"     :: "[lift, lift] => lift"                (infixr "\<or>" 30)
+  "_RAll"       :: "[idts, lift] => lift"                ("(3\<forall>_./ _)" [0, 10] 10)
+  "_REx"        :: "[idts, lift] => lift"                ("(3\<exists>_./ _)" [0, 10] 10)
+  "_REx1"       :: "[idts, lift] => lift"                ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_liftLeq"    :: "[lift, lift] => lift"                ("(_/ \<le> _)" [50, 51] 50)
+  "_liftMem"    :: "[lift, lift] => lift"                ("(_/ \<in> _)" [50, 51] 50)
+  "_liftNotMem" :: "[lift, lift] => lift"                ("(_/ \<notin> _)" [50, 51] 50)
 
-rules
-  Valid_def   "|- A    ==  ALL w. w |= A"
+axioms
+  Valid_def:   "|- A    ==  ALL w. w |= A"
 
-  unl_con     "LIFT #c w  ==  c" 
-  unl_lift    "LIFT f<x> w == f (x w)"
-  unl_lift2   "LIFT f<x, y> w == f (x w) (y w)"
-  unl_lift3   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
+  unl_con:     "LIFT #c w  ==  c"
+  unl_lift:    "LIFT f<x> w == f (x w)"
+  unl_lift2:   "LIFT f<x, y> w == f (x w) (y w)"
+  unl_lift3:   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
 
-  unl_Rall    "w |= ALL x. A x  ==  ALL x. (w |= A x)" 
-  unl_Rex     "w |= EX x. A x   ==  EX x. (w |= A x)"
-  unl_Rex1    "w |= EX! x. A x  ==  EX! x. (w |= A x)"
+  unl_Rall:    "w |= ALL x. A x  ==  ALL x. (w |= A x)"
+  unl_Rex:     "w |= EX x. A x   ==  EX x. (w |= A x)"
+  unl_Rex1:    "w |= EX! x. A x  ==  EX! x. (w |= A x)"
+
+ML {* use_legacy_bindings (the_context ()) *}
+
 end

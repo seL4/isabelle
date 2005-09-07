@@ -1,5 +1,6 @@
-(* 
-    File:	 Intensional.ML
+(*
+    File:        Intensional.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
 
@@ -14,7 +15,7 @@ by (rtac ext 1);
 by (etac spec 1);
 qed "inteq_reflection";
 
-val [prem] = goalw thy [Valid_def] "(!!w. w |= A) ==> |- A";
+val [prem] = goalw (the_context ()) [Valid_def] "(!!w. w |= A) ==> |- A";
 by (REPEAT (resolve_tac [allI,prem] 1));
 qed "intI";
 
@@ -25,8 +26,8 @@ qed "intD";
 (** Lift usual HOL simplifications to "intensional" level. **)
 local
 
-fun prover s = (prove_goal Intensional.thy s 
-                 (fn _ => [rewrite_goals_tac (Valid_def::intensional_rews), 
+fun prover s = (prove_goal (the_context ()) s
+                 (fn _ => [rewrite_goals_tac (Valid_def::intensional_rews),
                            blast_tac HOL_cs 1])) RS inteq_reflection
 
 in
@@ -34,19 +35,19 @@ in
 val int_simps = map prover
  [ "|- (x=x) = #True",
    "|- (~#True) = #False", "|- (~#False) = #True", "|- (~~ P) = P",
-   "|- ((~P) = P) = #False", "|- (P = (~P)) = #False", 
+   "|- ((~P) = P) = #False", "|- (P = (~P)) = #False",
    "|- (P ~= Q) = (P = (~Q))",
    "|- (#True=P) = P", "|- (P=#True) = P",
-   "|- (#True --> P) = P", "|- (#False --> P) = #True", 
+   "|- (#True --> P) = P", "|- (#False --> P) = #True",
    "|- (P --> #True) = #True", "|- (P --> P) = #True",
    "|- (P --> #False) = (~P)", "|- (P --> ~P) = (~P)",
-   "|- (P & #True) = P", "|- (#True & P) = P", 
-   "|- (P & #False) = #False", "|- (#False & P) = #False", 
+   "|- (P & #True) = P", "|- (#True & P) = P",
+   "|- (P & #False) = #False", "|- (#False & P) = #False",
    "|- (P & P) = P", "|- (P & ~P) = #False", "|- (~P & P) = #False",
-   "|- (P | #True) = #True", "|- (#True | P) = #True", 
-   "|- (P | #False) = P", "|- (#False | P) = P", 
+   "|- (P | #True) = #True", "|- (#True | P) = #True",
+   "|- (P | #False) = P", "|- (#False | P) = P",
    "|- (P | P) = P", "|- (P | ~P) = #True", "|- (~P | P) = #True",
-   "|- (! x. P) = P", "|- (? x. P) = P", 
+   "|- (! x. P) = P", "|- (? x. P) = P",
    "|- (~Q --> ~P) = (P --> Q)",
    "|- (P|Q --> R) = ((P-->R)&(Q-->R))" ]
 end;
@@ -72,7 +73,7 @@ fun int_unlift th =
   rewrite_rule intensional_rews ((th RS intD) handle _ => th);
 
 (* Turn  |- F = G  into meta-level rewrite rule  F == G *)
-fun int_rewrite th = 
+fun int_rewrite th =
     zero_var_indexes (rewrite_rule intensional_rews (th RS inteq_reflection));
 
 (* flattening turns "-->" into "==>" and eliminates conjunctions in the
@@ -85,18 +86,18 @@ fun int_rewrite th =
    unification, therefore the code is a little awkward.
 *)
 fun flatten t =
-  let 
+  let
     (* analogous to RS, but using matching instead of resolution *)
     fun matchres tha i thb =
       case Seq.chop (2, biresolution true [(false,tha)] i thb) of
-	  ([th],_) => th
-	| ([],_)   => raise THM("matchres: no match", i, [tha,thb])
-	|      _   => raise THM("matchres: multiple unifiers", i, [tha,thb])
+          ([th],_) => th
+        | ([],_)   => raise THM("matchres: no match", i, [tha,thb])
+        |      _   => raise THM("matchres: multiple unifiers", i, [tha,thb])
 
     (* match tha with some premise of thb *)
     fun matchsome tha thb =
       let fun hmatch 0 = raise THM("matchsome: no match", 0, [tha,thb])
-	    | hmatch n = (matchres tha n thb) handle _ => hmatch (n-1)
+            | hmatch n = (matchres tha n thb) handle _ => hmatch (n-1)
       in hmatch (nprems_of thb) end
 
     fun hflatten t =
@@ -122,4 +123,3 @@ qed "Not_Rall";
 Goalw [Valid_def] "|- (~ (? x. F x)) = (! x. ~ F x)";
 by (Simp_tac 1);
 qed "Not_Rex";
-

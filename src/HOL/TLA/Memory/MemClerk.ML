@@ -1,12 +1,13 @@
-(* 
+(*
     File:        MemClerk.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
     RPC-Memory example: Memory clerk specification (theorems and proofs)
 *)
 
-val MC_action_defs = 
+val MC_action_defs =
    [MClkInit_def, MClkFwd_def, MClkRetry_def, MClkReply_def, MClkNext_def];
 
 val MC_temp_defs = [MClkIPSpec_def, MClkISpec_def];
@@ -41,7 +42,7 @@ qed "MClkFwd_ch_enabled";
 Goal "|- MClkReply send rcv cst p --> \
 \        <MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p)";
 by (auto_tac (mem_css addsimps2 [angle_def,MClkReply_def]
-	              addEs2 [Return_changed]));
+                      addEs2 [Return_changed]));
 qed "MClkReply_change";
 
 Goal "!!p. basevars (rtrner send!p, caller rcv!p, cst!p) ==> \

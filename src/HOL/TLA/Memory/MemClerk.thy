@@ -1,5 +1,6 @@
 (*
     File:        MemClerk.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,7 +10,9 @@
     RPC-Memory example: specification of the memory clerk.
 *)
 
-MemClerk = Memory + RPC + MemClerkParameters +
+theory MemClerk
+imports Memory RPC MemClerkParameters
+begin
 
 types
   (* The clerk takes the same arguments as the memory and sends requests to the RPC *)
@@ -63,5 +66,7 @@ constdefs
 
   MClkISpec     :: "mClkSndChType => mClkRcvChType => mClkStType => temporal"
       "MClkISpec send rcv cst == TEMP (ALL p. MClkIPSpec send rcv cst p)"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

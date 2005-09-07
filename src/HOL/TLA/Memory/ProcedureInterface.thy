@@ -1,5 +1,6 @@
 (*
     File:        ProcedureInterface.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,28 +10,29 @@
    Procedure interface for RPC-Memory components.
 *)
 
-ProcedureInterface = TLA + RPCMemoryParams +
+theory ProcedureInterface
+imports TLA RPCMemoryParams
+begin
 
-types
+typedecl
   (* type of channels with argument type 'a and return type 'r.
-     we model a channel as an array of variables (of type chan) 
-     rather than a single array-valued variable because the 
+     we model a channel as an array of variables (of type chan)
+     rather than a single array-valued variable because the
      notation gets a little simpler.
   *)
   ('a,'r) chan
-  ('a,'r) channel = (PrIds => ('a,'r) chan) stfun
-
-arities
-  chan :: (type,type) type
+types
+  ('a,'r) channel =" (PrIds => ('a,'r) chan) stfun"
 
 consts
   (* data-level functions *)
-  cbit,rbit	:: "('a,'r) chan => bit"
+  cbit          :: "('a,'r) chan => bit"
+  rbit          :: "('a,'r) chan => bit"
   arg           :: "('a,'r) chan => 'a"
   res           :: "('a,'r) chan => 'r"
 
   (* state functions *)
-  caller	:: "('a,'r) channel => (PrIds => (bit * 'a)) stfun"
+  caller        :: "('a,'r) channel => (PrIds => (bit * 'a)) stfun"
   rtrner        :: "('a,'r) channel => (PrIds => (bit * 'r)) stfun"
 
   (* state predicates *)
@@ -50,10 +52,10 @@ consts
   slice        :: "('a => 'b) stfun => 'a => 'b stfun"
 
 syntax
-  "_slice"     :: [lift, 'a] => lift       ("(_!_)" [70,70] 70)
+  "_slice"    :: "[lift, 'a] => lift"      ("(_!_)" [70,70] 70)
 
-  "_Call"     :: ['a, 'b, lift] => lift    ("(Call _ _ _)" [90,90,90] 90)
-  "_Return"   :: ['a, 'b, lift] => lift    ("(Return _ _ _)" [90,90,90] 90)
+  "_Call"     :: "['a, 'b, lift] => lift"    ("(Call _ _ _)" [90,90,90] 90)
+  "_Return"   :: "['a, 'b, lift] => lift"    ("(Return _ _ _)" [90,90,90] 90)
 
 translations
   "_slice"  ==  "slice"
@@ -61,25 +63,27 @@ translations
   "_Call"   ==  "ACall"
   "_Return" ==  "AReturn"
 
-rules
-  slice_def     "(PRED (x!i)) s == x s i"
+defs
+  slice_def:     "(PRED (x!i)) s == x s i"
 
-  caller_def	"caller ch   == %s p. (cbit (ch s p), arg (ch s p))"
-  rtrner_def	"rtrner ch   == %s p. (rbit (ch s p), res (ch s p))"
+  caller_def:    "caller ch   == %s p. (cbit (ch s p), arg (ch s p))"
+  rtrner_def:    "rtrner ch   == %s p. (rbit (ch s p), res (ch s p))"
 
-  Calling_def	"Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
-  Call_def      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
+  Calling_def:   "Calling ch p  == PRED cbit< ch!p > ~= rbit< ch!p >"
+  Call_def:      "(ACT Call ch p v)   == ACT  ~ $Calling ch p
                                      & (cbit<ch!p>$ ~= $rbit<ch!p>)
                                      & (arg<ch!p>$ = $v)"
-  Return_def    "(ACT Return ch p v) == ACT  $Calling ch p
+  Return_def:    "(ACT Return ch p v) == ACT  $Calling ch p
                                      & (rbit<ch!p>$ = $cbit<ch!p>)
                                      & (res<ch!p>$ = $v)"
-  PLegalCaller_def      "PLegalCaller ch p == TEMP
+  PLegalCaller_def:      "PLegalCaller ch p == TEMP
                              Init(~ Calling ch p)
                              & [][ ? a. Call ch p a ]_((caller ch)!p)"
-  LegalCaller_def       "LegalCaller ch == TEMP (! p. PLegalCaller ch p)"
-  PLegalReturner_def    "PLegalReturner ch p == TEMP
+  LegalCaller_def:       "LegalCaller ch == TEMP (! p. PLegalCaller ch p)"
+  PLegalReturner_def:    "PLegalReturner ch p == TEMP
                                 [][ ? v. Return ch p v ]_((rtrner ch)!p)"
-  LegalReturner_def     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
+  LegalReturner_def:     "LegalReturner ch == TEMP (! p. PLegalReturner ch p)"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

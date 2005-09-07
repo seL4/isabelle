@@ -1,15 +1,16 @@
-(* 
-    File:	 Action.ML
+(*
+    File:        Action.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
 Lemmas and tactics for TLA actions.
 *)
 
-(* The following assertion specializes "intI" for any world type 
+(* The following assertion specializes "intI" for any world type
    which is a pair, not just for "state * state".
 *)
-val [prem] = goal thy "(!!s t. (s,t) |= A) ==> |- A";
+val [prem] = goal (the_context ()) "(!!s t. (s,t) |= A) ==> |- A";
 by (REPEAT (resolve_tac [prem,intI,prod_induct] 1));
 qed "actionI";
 
@@ -18,8 +19,8 @@ by (etac intD 1);
 qed "actionD";
 
 local
-  fun prover s = prove_goal Action.thy s 
-                    (fn _ => [rtac actionI 1, 
+  fun prover s = prove_goal (the_context ()) s
+                    (fn _ => [rtac actionI 1,
                               rewrite_goals_tac (unl_after::intensional_rews),
                               rtac refl 1])
 in
@@ -44,8 +45,8 @@ val action_rews = act_rews @ intensional_rews;
    functions defined in Intensional.ML in that they introduce a
    "world" parameter of the form (s,t) and apply additional rewrites.
 *)
-fun action_unlift th = 
-    (rewrite_rule action_rews (th RS actionD)) 
+fun action_unlift th =
+    (rewrite_rule action_rews (th RS actionD))
     handle _ => int_unlift th;
 
 (* Turn  |- A = B  into meta-level rewrite rule  A == B *)
@@ -72,7 +73,7 @@ Goalw [square_def] "(s,t) |= A ==> (s,t) |= [A]_v";
 by (Asm_simp_tac 1);
 qed "busy_squareI";
 
-val prems = goal thy
+val prems = goal (the_context ())
   "[| (s,t) |= [A]_v; A (s,t) ==> B (s,t); v t = v s ==> B (s,t) |] ==> B (s,t)";
 by (cut_facts_tac prems 1);
 by (rewrite_goals_tac (square_def::action_rews));
@@ -80,18 +81,18 @@ by (etac disjE 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "squareE";
 
-val prems = goalw thy (square_def::action_rews)
+val prems = goalw (the_context ()) (square_def::action_rews)
   "[| v t ~= v s ==> A (s,t) |] ==> (s,t) |= [A]_v";
 by (rtac disjCI 1);
 by (eresolve_tac prems 1);
 qed "squareCI";
 
-goalw thy [angle_def]
+goalw (the_context ()) [angle_def]
   "!!s t. [| A (s,t); v t ~= v s |] ==> (s,t) |= <A>_v";
 by (Asm_simp_tac 1);
 qed "angleI";
 
-val prems = goalw thy (angle_def::action_rews)
+val prems = goalw (the_context ()) (angle_def::action_rews)
   "[| (s,t) |= <A>_v; [| A (s,t); v t ~= v s |] ==> R |] ==> R";
 by (cut_facts_tac prems 1);
 by (etac conjE 1);
@@ -101,7 +102,7 @@ qed "angleE";
 AddIs [angleI, squareCI];
 AddEs [angleE, squareE];
 
-goal thy
+goal (the_context ())
    "!!f. [| |- unchanged f & ~B --> unchanged g;   \
 \           |- A & ~unchanged g --> B              \
 \        |] ==> |- [A]_f --> [B]_g";
@@ -110,23 +111,23 @@ by (etac squareE 1);
 by (auto_tac (claset(), simpset() addsimps [square_def]));
 qed "square_simulation";
 
-goalw thy [square_def,angle_def]
+goalw (the_context ()) [square_def,angle_def]
    "|- (~ [A]_v) = <~A>_v";
 by Auto_tac;
 qed "not_square";
 
-goalw thy [square_def,angle_def]
+goalw (the_context ()) [square_def,angle_def]
    "|- (~ <A>_v) = [~A]_v";
 by Auto_tac;
 qed "not_angle";
 
 (* ============================== Facts about ENABLED ============================== *)
 
-goal thy "|- A --> $Enabled A";
+goal (the_context ()) "|- A --> $Enabled A";
 by (auto_tac (claset(), simpset() addsimps [enabled_def]));
 qed "enabledI";
 
-val prems = goalw thy [enabled_def]
+val prems = goalw (the_context ()) [enabled_def]
   "[| s |= Enabled A; !!u. A (s,u) ==> Q |] ==> Q";
 by (cut_facts_tac prems 1);
 by (etac exE 1);
@@ -134,12 +135,12 @@ by (resolve_tac prems 1);
 by (atac 1);
 qed "enabledE";
 
-goal thy "|- ~$Enabled G --> ~ G";
+goal (the_context ()) "|- ~$Enabled G --> ~ G";
 by (auto_tac (claset(), simpset() addsimps [enabled_def]));
 qed "notEnabledD";
 
 (* Monotonicity *)
-val [min,maj] = goal thy
+val [min,maj] = goal (the_context ())
   "[| s |= Enabled F; |- F --> G |] ==> s |= Enabled G";
 by (rtac (min RS enabledE) 1);
 by (rtac (action_use enabledI) 1);
@@ -147,30 +148,30 @@ by (etac (action_use maj) 1);
 qed "enabled_mono";
 
 (* stronger variant *)
-val [min,maj] = goal thy
+val [min,maj] = goal (the_context ())
   "[| s |= Enabled F; !!t. F (s,t) ==> G (s,t) |] ==> s |= Enabled G";
 by (rtac (min RS enabledE) 1);
 by (rtac (action_use enabledI) 1);
 by (etac maj 1);
 qed "enabled_mono2";
 
-goal thy "|- Enabled F --> Enabled (F | G)";
+goal (the_context ()) "|- Enabled F --> Enabled (F | G)";
 by (auto_tac (claset() addSEs [enabled_mono], simpset()));
 qed "enabled_disj1";
 
-goal thy "|- Enabled G --> Enabled (F | G)";
+goal (the_context ()) "|- Enabled G --> Enabled (F | G)";
 by (auto_tac (claset() addSEs [enabled_mono], simpset()));
 qed "enabled_disj2";
 
-goal thy "|- Enabled (F & G) --> Enabled F";
+goal (the_context ()) "|- Enabled (F & G) --> Enabled F";
 by (auto_tac (claset() addSEs [enabled_mono], simpset()));
 qed "enabled_conj1";
 
-goal thy "|- Enabled (F & G) --> Enabled G";
+goal (the_context ()) "|- Enabled (F & G) --> Enabled G";
 by (auto_tac (claset() addSEs [enabled_mono], simpset()));
 qed "enabled_conj2";
 
-val prems = goal thy
+val prems = goal (the_context ())
   "[| s |= Enabled (F & G); [| s |= Enabled F; s |= Enabled G |] ==> Q |] ==> Q";
 by (cut_facts_tac prems 1);
 by (resolve_tac prems 1);
@@ -178,24 +179,24 @@ by (etac (action_use enabled_conj1) 1);
 by (etac (action_use enabled_conj2) 1);
 qed "enabled_conjE";
 
-goal thy "|- Enabled (F | G) --> Enabled F | Enabled G";
+goal (the_context ()) "|- Enabled (F | G) --> Enabled F | Enabled G";
 by (auto_tac (claset(), simpset() addsimps [enabled_def]));
 qed "enabled_disjD";
 
-goal thy "|- Enabled (F | G) = (Enabled F | Enabled G)";
+goal (the_context ()) "|- Enabled (F | G) = (Enabled F | Enabled G)";
 by (Clarsimp_tac 1);
 by (rtac iffI 1);
 by (etac (action_use enabled_disjD) 1);
 by (REPEAT (eresolve_tac (disjE::map action_use [enabled_disj1,enabled_disj2]) 1));
 qed "enabled_disj";
 
-goal thy "|- Enabled (EX x. F x) = (EX x. Enabled (F x))";
+goal (the_context ()) "|- Enabled (EX x. F x) = (EX x. Enabled (F x))";
 by (force_tac (claset(), simpset() addsimps [enabled_def]) 1);
 qed "enabled_ex";
 
 
 (* A rule that combines enabledI and baseE, but generates fewer instantiations *)
-val prems = goal thy
+val prems = goal (the_context ())
   "[| basevars vs; EX c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A";
 by (cut_facts_tac prems 1);
 by (etac exE 1);
@@ -213,10 +214,10 @@ qed "base_enabled";
    Note that it applies whatever simplifications are currently active.
 *)
 fun action_simp_tac ss intros elims =
-    asm_full_simp_tac 
+    asm_full_simp_tac
          (ss setloop ((resolve_tac ((map action_use intros)
                                     @ [refl,impI,conjI,actionI,intI,allI]))
-		      ORELSE' (eresolve_tac ((map action_use elims) 
+                      ORELSE' (eresolve_tac ((map action_use elims)
                                              @ [conjE,disjE,exE]))));
 
 (* default version without additional plug-in rules *)
@@ -240,7 +241,7 @@ fun enabled_tac base_vars =
 
 (* Example:
 
-val [prem] = goal thy "basevars (x,y,z) ==> |- x --> Enabled ($x & (y$ = #False))";
+val [prem] = goal (the_context ()) "basevars (x,y,z) ==> |- x --> Enabled ($x & (y$ = #False))";
 by (enabled_tac prem 1);
 by Auto_tac;
 

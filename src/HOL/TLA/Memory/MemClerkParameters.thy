@@ -1,5 +1,6 @@
 (*
     File:        MemClerkParameters.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,9 +10,11 @@
     RPC-Memory example: Parameters of the memory clerk.
 *)
 
-MemClerkParameters = RPCParameters + 
+theory MemClerkParameters
+imports RPCParameters
+begin
 
-datatype  mClkState  =  clkA | clkB
+datatype mClkState = clkA | clkB
 
 types
   (* types sent on the clerk's send and receive channels are argument types
@@ -26,5 +29,7 @@ constdefs
   (* translate RPC failures to memory failures *)
   MClkReplyVal     :: "Vals => Vals"
     "MClkReplyVal v == if v = RPCFailure then MemFailure else v"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

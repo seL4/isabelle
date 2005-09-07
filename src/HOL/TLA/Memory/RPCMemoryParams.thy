@@ -1,5 +1,6 @@
-(* 
+(*
     File:        RPCMemoryParams.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,7 +10,9 @@
     Basic declarations for the RPC-memory example.
 *)
 
-theory RPCMemoryParams imports Main begin
+theory RPCMemoryParams
+imports Main
+begin
 
 types
   bit = "bool"   (* Signal wires for the procedure interface.

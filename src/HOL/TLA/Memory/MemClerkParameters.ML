@@ -1,5 +1,6 @@
-(* 
+(*
     File:        MemClerkParameters.ML
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -8,5 +9,4 @@
 
 (*
 val CP_simps = RP_simps @ mClkState.simps;
-
 *)

@@ -1,5 +1,8 @@
+
+(* $Id$ *)
+
 local
-  fun prover s = prove_goal Init.thy s 
+  fun prover s = prove_goal (the_context ()) s
                     (K [force_tac (claset(), simpset() addsimps [Init_def]) 1])
 in
   val const_simps = map (int_rewrite o prover)
@@ -40,4 +43,3 @@ by (rtac refl 1);
 qed "Init_act";
 
 val Init_defs = [Init_stp, Init_act, int_use Init_temp];
-

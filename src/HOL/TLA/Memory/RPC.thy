@@ -1,5 +1,6 @@
 (*
     File:        RPC.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1997 University of Munich
 
@@ -9,7 +10,9 @@
     RPC-Memory example: RPC specification
 *)
 
-RPC = RPCParameters + ProcedureInterface + Memory +
+theory RPC
+imports RPCParameters ProcedureInterface Memory
+begin
 
 types
   rpcSndChType  = "(rpcOp,Vals) channel"
@@ -31,10 +34,10 @@ consts
   RPCIPSpec   :: "rpcSndChType => rpcRcvChType => rpcStType => PrIds => temporal"
   RPCISpec   :: "rpcSndChType => rpcRcvChType => rpcStType => temporal"
 
-rules
-  RPCInit_def       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) & ~Calling rcv p)"
+defs
+  RPCInit_def:       "RPCInit rcv rst p == PRED ((rst!p = #rpcA) & ~Calling rcv p)"
 
-  RPCFwd_def        "RPCFwd send rcv rst p == ACT
+  RPCFwd_def:        "RPCFwd send rcv rst p == ACT
                          $(Calling send p)
                          & $(rst!p) = # rpcA
                          & IsLegalRcvArg<arg<$(send!p)>>
@@ -42,36 +45,38 @@ rules
                          & (rst!p)$ = # rpcB
                          & unchanged (rtrner send!p)"
 
-  RPCReject_def     "RPCReject send rcv rst p == ACT
+  RPCReject_def:     "RPCReject send rcv rst p == ACT
                            $(rst!p) = # rpcA
                          & ~IsLegalRcvArg<arg<$(send!p)>>
                          & Return send p #BadCall
                          & unchanged ((rst!p), (caller rcv!p))"
 
-  RPCFail_def       "RPCFail send rcv rst p == ACT
+  RPCFail_def:       "RPCFail send rcv rst p == ACT
                            ~$(Calling rcv p)
                          & Return send p #RPCFailure
                          & (rst!p)$ = #rpcA
                          & unchanged (caller rcv!p)"
 
-  RPCReply_def      "RPCReply send rcv rst p == ACT
+  RPCReply_def:      "RPCReply send rcv rst p == ACT
                            ~$(Calling rcv p)
                          & $(rst!p) = #rpcB
-		         & Return send p res<rcv!p>
+                         & Return send p res<rcv!p>
                          & (rst!p)$ = #rpcA
                          & unchanged (caller rcv!p)"
 
-  RPCNext_def       "RPCNext send rcv rst p == ACT
+  RPCNext_def:       "RPCNext send rcv rst p == ACT
                         (  RPCFwd send rcv rst p
                          | RPCReject send rcv rst p
                          | RPCFail send rcv rst p
                          | RPCReply send rcv rst p)"
 
-  RPCIPSpec_def     "RPCIPSpec send rcv rst p == TEMP
+  RPCIPSpec_def:     "RPCIPSpec send rcv rst p == TEMP
                            Init RPCInit rcv rst p
                          & [][ RPCNext send rcv rst p ]_(rst!p, rtrner send!p, caller rcv!p)
                          & WF(RPCNext send rcv rst p)_(rst!p, rtrner send!p, caller rcv!p)"
 
-  RPCISpec_def      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
+  RPCISpec_def:      "RPCISpec send rcv rst == TEMP (ALL p. RPCIPSpec send rcv rst p)"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end

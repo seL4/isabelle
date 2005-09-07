@@ -1,5 +1,6 @@
-(* 
-    File:	 TLA/Stfun.thy
+(*
+    File:        TLA/Stfun.thy
+    ID:          $Id$
     Author:      Stephan Merz
     Copyright:   1998 University of Munich
 
@@ -9,18 +10,18 @@
 States and state functions for TLA as an "intensional" logic.
 *)
 
-Stfun  =  Intensional +
+theory Stfun
+imports Intensional
+begin
+
+typedecl state
+
+instance state :: world ..
 
 types
-    state
-    'a stfun = "state => 'a"
-    stpred   = "bool stfun"
+  'a stfun = "state => 'a"
+  stpred  = "bool stfun"
 
-arities
-  state :: type
-
-instance
-  state :: world
 
 consts
   (* Formalizing type "state" would require formulas to be tagged with
@@ -39,20 +40,22 @@ consts
   stvars    :: "'a stfun => bool"
 
 syntax
-  "PRED"    :: lift => 'a                          ("PRED _")
-  "_stvars" :: lift => bool                        ("basevars _")
+  "PRED"    :: "lift => 'a"                          ("PRED _")
+  "_stvars" :: "lift => bool"                        ("basevars _")
 
 translations
   "PRED P"   =>  "(P::state => _)"
   "_stvars"  ==  "stvars"
 
 defs
-  (* Base variables may be assigned arbitrary (type-correct) values. 
+  (* Base variables may be assigned arbitrary (type-correct) values.
      Note that vs may be a tuple of variables. The correct identification
      of base variables is up to the user who must take care not to
      introduce an inconsistency. For example, "basevars (x,x)" would
      definitely be inconsistent.
   *)
-  basevars_def	"stvars vs == range vs = UNIV"
+  basevars_def:  "stvars vs == range vs = UNIV"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end
