@@ -382,6 +382,10 @@ apply (rule ext)
 apply simp
 done
 
+lemma hypreal_inverse2 [unfolded star_n_def]: 
+      "inverse (star_n X) = star_n (%n. inverse(X n))"
+by (simp add: star_inverse_def Ifun_of_def star_of_def Ifun_star_n)
+
 lemma hypreal_mult_inverse: 
      "x \<noteq> 0 ==> x*inverse(x) = (1::hypreal)"
 by (rule right_inverse)
