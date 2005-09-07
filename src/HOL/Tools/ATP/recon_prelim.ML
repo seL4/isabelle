@@ -121,10 +121,6 @@ fun getnewsubsts seq = snd (fst (the (Seq.pull seq)));
 
 fun prover s = prove_goal HOL.thy s (fn _ => [blast_tac HOL_cs 1]);
 
-fun int_of_string str =
-  (case Int.fromString str of SOME n => n
-  | NONE => error ("int_of_string: " ^ str));
-
 val no_lines = filter_out (equal "\n");
 
 exception ASSERTION of string;

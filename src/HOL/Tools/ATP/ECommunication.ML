@@ -9,19 +9,16 @@
 (***************************************************************************)
 signature E_COMM =
   sig
-    val reconstruct : bool ref
     val E: bool ref
     val getEInput : TextIO.instream -> string * string * string
-    val checkEProofFound:  TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
-                               string *string * Thm.thm * int *(ResClause.clause * Thm.thm) Array.array  * int -> bool
-    
+    val checkEProofFound: 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
+          string * string * thm * int * (ResClause.clause * thm) Array.array * int -> bool
   end;
 
-structure EComm :E_COMM =
+structure EComm : E_COMM =
 struct
 
-(* switch for whether to reconstruct a proof found, or just list the lemmas used *)
-val reconstruct = ref true;
 val E = ref false;
 
 (***********************************)
@@ -41,27 +38,13 @@ fun logEInput (instr, fd) =
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-val atomize_tac = SUBGOAL
-  (fn (prop,_) =>
-      let val ts = Logic.strip_assums_hyp prop
-      in EVERY1 
-	  [METAHYPS
-	       (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
-           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-  end);
-
-
 fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
-                    clause_arr  (num_of_clauses:int ) = 
- (*FIXME: foo is never used!*)
- let val foo = TextIO.openOut( File.platform_path(File.tmp_path (Path.basic"foobar3")));
- in
+                    clause_arr num_of_clauses = 
    SELECT_GOAL
-    (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+    (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
              METAHYPS(fn negs => 
-    ( Recon_Transfer.EString_to_lemmaString proofextract thmstring goalstring 
+    (Recon_Transfer.EString_to_lemmaString proofextract thmstring goalstring 
               toParent ppid negs clause_arr  num_of_clauses ))]) sg_num	
- end ;
 
 
 fun transferEInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num,clause_arr,  num_of_clauses) = 
@@ -71,7 +54,7 @@ fun transferEInput (fromChild, toParent, ppid,thmstring,goalstring, currentStrin
      then 
        let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
        in 
-	   File.write (File.tmp_path (Path.basic"foobar2")) proofextract;
+	   File.write (File.tmp_path (Path.basic"extracted-prf-E")) proofextract;
 	   reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
 	       clause_arr num_of_clauses thm
        end
@@ -82,45 +65,40 @@ fun transferEInput (fromChild, toParent, ppid,thmstring,goalstring, currentStrin
 
 
 (*********************************************************************************)
-(*  Inspect the output of a E   process to see if it has found a proof,      *)
+(*  Inspect the output of an E process to see if it has found a proof,      *)
 (*  and if so, transfer output to the input pipe of the main Isabelle process    *)
 (*********************************************************************************)
 
  
-fun startETransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,thm, sg_num,clause_arr, num_of_clauses) = 
-(*let val _ = Posix.Process.wait ()
-in*)
-                                       
-   if (isSome (TextIO.canInput(fromChild, 5)))
-   then
-   let val thisLine = TextIO.inputLine fromChild  
-   in                 
-     if String.isPrefix "# Proof object starts" thisLine then     
-       let val outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_transfer")))
-	   val _=  TextIO.output (outfile, "about to transfer proof, thm is: "^(string_of_thm thm))
-	   val _ =  TextIO.closeOut outfile
-       in
- 	 transferEInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, 
- 	                     thm, sg_num,clause_arr,  num_of_clauses);
- 	 true
-       end     
-     else startETransfer (fromChild, toParent, ppid, thmstring, goalstring,
-                              childCmd, thm, sg_num,clause_arr, num_of_clauses)
-    end
-     else false
- (*  end*)
+fun startETransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,
+                    thm, sg_num,clause_arr, num_of_clauses) = 
+  if isSome (TextIO.canInput(fromChild, 5))
+  then
+    let val thisLine = TextIO.inputLine fromChild  
+    in                 
+      if String.isPrefix "# Proof object starts" thisLine 
+      then     
+	 (File.append (File.tmp_path (Path.basic "transfer-E"))
+		      ("about to transfer proof, thm is: " ^ string_of_thm thm);
+	  transferEInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, 
+			      thm, sg_num,clause_arr,  num_of_clauses);
+	  true)
+      else startETransfer (fromChild, toParent, ppid, thmstring, goalstring,
+			       childCmd, thm, sg_num,clause_arr, num_of_clauses)
+     end
+   else false
 
 
-fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  (num_of_clauses:int )) = 
+fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  num_of_clauses) = 
   let val E_proof_file = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "E_proof")))
-      val _ = File.write(File.tmp_path (Path.basic "foo_checkE"))
-                 ("checking if proof found, thm is: "^(string_of_thm thm))
+        val _ = File.write (File.tmp_path (Path.basic "checking-prf-E"))
+                           ("checking if proof found, thm is: " ^ string_of_thm thm)
   in 
   if (isSome (TextIO.canInput(fromChild, 5)))
   then
   let val thisLine = TextIO.inputLine fromChild  
       in if (*thisLine = "# Problem is unsatisfiable (or provable), constructing proof object\n"*)
-             thisLine = "# # TSTP exit status: Unsatisfiable\n"
+             thisLine = "# TSTP exit status: Unsatisfiable\n"
 	 then      
 	    let val outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                                (*val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
 		val _ = TextIO.output (outfile, thisLine)
@@ -131,9 +109,8 @@ fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, 
 	    end
 	 else if thisLine= "# Problem is satisfiable (or invalid), generating saturation derivation\n"
 	 then  
-	    let val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
+	    let val  outfile = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_proof"))); 
 		val _ = TextIO.output (outfile, thisLine)
-
 		val _ =  TextIO.closeOut outfile
 	    in
 	      TextIO.output (toParent,childCmd^"\n" );

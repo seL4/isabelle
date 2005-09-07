@@ -30,6 +30,7 @@ signature RES_CLAUSE =
     val clause_info : clause ->  string * string
     val typed : unit -> unit
     val untyped : unit -> unit
+    val num_of_clauses : clause -> int
 
     val dfg_clauses2str : string list -> string
     val clause2dfg : clause -> string * string list
@@ -626,6 +627,12 @@ fun make_axiom_arity_clause (tcons,(res,args)) =
 	 make_arity_clause (cls_id,Axiom,conclLit,premLits)
      end;
     
+(*The number of clauses generated from cls, including type clauses*)
+fun num_of_clauses (Clause cls) =
+    let val num_tfree_lits = 
+	      if !keep_types then length (#tfree_type_literals cls)
+	      else 0
+    in 	1 + num_tfree_lits  end;
 
 
 (**** Isabelle class relations ****)
@@ -818,8 +825,6 @@ fun string_of_predname (Predicate("equal",typ,terms)) = "EQUALITY"
       end;
 
 
-
-
 fun concat_with sep []  = ""
   | concat_with sep [x] = "(" ^ x ^ ")"
   | concat_with sep (x::xs) = "(" ^ x ^ ")" ^  sep ^ (concat_with sep xs);
@@ -954,20 +959,14 @@ fun fileout f str = let val out = TextIO.openOut f
 	ResLib.writeln_strs out str; TextIO.closeOut out
     end;
 
-(*val filestr = clauses2dfg newcls "flump" [] [] [] [];
-*)
-(* fileout "flump.dfg" [filestr];*)
 
 
-(*FIX: ask Jia what this is for *)
-
-
-fun string_of_arClauseID (ArityClause arcls) = arclause_prefix ^ string_of_int(#clause_id arcls);
-
+fun string_of_arClauseID (ArityClause arcls) =
+    arclause_prefix ^ string_of_int(#clause_id arcls);
 
 fun string_of_arLit (TConsLit(b,(c,t,args))) =
     let val pol = if b then "++" else "--"
-	val  arg_strs = (case args of [] => "" | _ => ResLib.list_to_string args)
+	val arg_strs = (case args of [] => "" | _ => ResLib.list_to_string args)
     in 
 	pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
     end
@@ -1027,8 +1026,6 @@ fun tptp_classrelClause (ClassrelClause cls) =
 (* code to produce TPTP files   *)
 (********************************)
 
-
-
 fun tptp_literal (Literal(pol,pred,tag)) =
     let val pred_string = string_of_predicate pred
 	val tagged_pol = 
@@ -1054,7 +1051,6 @@ fun gen_tptp_type_cls (cls_id,knd,tfree_lit,idx) =
     "input_clause(" ^ cls_id ^ "_tcs" ^ (string_of_int idx) ^ "," ^ 
     knd ^ ",[" ^ tfree_lit ^ "]).";
 
-
 fun tptp_clause_aux (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
 	val tvar_lits_strs =
@@ -1066,26 +1062,27 @@ fun tptp_clause_aux (Clause cls) =
 	      then (map tptp_of_typeLit (#tfree_type_literals cls)) 
 	      else []
     in
-	(tvar_lits_strs @ lits,tfree_lits)
+	(tvar_lits_strs @ lits, tfree_lits)
     end; 
 
-
 fun tptp_clause cls =
-    let val (lits,tfree_lits) = tptp_clause_aux cls (*"lits" includes the typing assumptions (TVars)*)
+    let val (lits,tfree_lits) = tptp_clause_aux cls 
+            (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = string_of_clauseID cls
 	val ax_name = string_of_axiomName cls
 	val knd = string_of_kind cls
 	val lits_str = ResLib.list_to_string' lits
-	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 			fun typ_clss k [] = []
+	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 			 
+	fun typ_clss k [] = []
           | typ_clss k (tfree :: tfrees) = 
-            (gen_tptp_type_cls(cls_id,knd,tfree,k)) ::  (typ_clss (k+1) tfrees)
+              (gen_tptp_type_cls(cls_id,knd,tfree,k)) :: typ_clss (k+1) tfrees
     in 
 	cls_str :: (typ_clss 0 tfree_lits)
     end;
 
-
 fun clause2tptp cls =
-    let val (lits,tfree_lits) = tptp_clause_aux cls (*"lits" includes the typing assumptions (TVars)*)
+    let val (lits,tfree_lits) = tptp_clause_aux cls 
+            (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = string_of_clauseID cls
 	val ax_name = string_of_axiomName cls
 	val knd = string_of_kind cls

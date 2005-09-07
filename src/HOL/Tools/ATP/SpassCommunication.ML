@@ -10,19 +10,17 @@
 signature SPASS_COMM =
   sig
     val reconstruct : bool ref
-    val spass: bool ref
     val getSpassInput : TextIO.instream -> string * string * string
     val checkSpassProofFound:  TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
                                string *string * Thm.thm * int *(ResClause.clause * Thm.thm) Array.array  * int -> bool
     
   end;
 
-structure SpassComm :SPASS_COMM =
+structure SpassComm : SPASS_COMM =
 struct
 
 (* switch for whether to reconstruct a proof found, or just list the lemmas used *)
 val reconstruct = ref true;
-val spass = ref true;
 
 (***********************************)
 (*  Write Spass   output to a file *)
@@ -41,23 +39,13 @@ fun logSpassInput (instr, fd) =
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-val atomize_tac = SUBGOAL
-  (fn (prop,_) =>
-      let val ts = Logic.strip_assums_hyp prop
-      in EVERY1 
-	  [METAHYPS
-	       (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
-           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-  end);
-
-
 fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
                     clause_arr  (num_of_clauses:int ) = 
  (*FIXME: foo is never used!*)
  let val foo = TextIO.openOut( File.platform_path(File.tmp_path (Path.basic"foobar3")));
  in
    SELECT_GOAL
-    (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+    (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
              METAHYPS(fn negs => 
     (if !reconstruct 
      then Recon_Transfer.spassString_to_reconString proofextract thmstring goalstring 

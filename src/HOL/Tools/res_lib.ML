@@ -8,6 +8,7 @@ Some auxiliary functions frequently used by files in this directory.
 
 signature RES_LIB =
 sig
+val atomize_tac : int -> tactic
 val flat_noDup : ''a list list -> ''a list
 val helper_path : string -> string -> string
 val list2str_sep : string -> string list -> string
@@ -16,7 +17,6 @@ val list_to_string' : string list -> string
 val no_rep_add : ''a -> ''a list -> ''a list
 val no_rep_app : ''a list -> ''a list -> ''a list
 val pair_ins : 'a -> 'b list -> ('a * 'b) list
-val rm_rep : ''a list -> ''a list
 val trim_ends : string -> string
 val write_strs : TextIO.outstream -> TextIO.vector list -> unit
 val writeln_strs : TextIO.outstream -> TextIO.vector list -> unit
@@ -25,6 +25,17 @@ end;
 
 structure ResLib : RES_LIB =
 struct
+
+val atomize_tac =
+ SUBGOAL
+  (fn (prop,_) =>
+    let val ts = Logic.strip_assums_hyp prop
+        val atom = ObjectLogic.atomize_thm o forall_intr_vars
+    in EVERY1
+	[METAHYPS
+	  (fn hyps => cut_facts_tac (map atom hyps) 1),
+         REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+  end);
 
 (*Remove both ends from the string (presumably quotation marks?)*)
 fun trim_ends s = String.substring(s,1,String.size s - 2);
@@ -56,9 +67,6 @@ fun no_rep_add x []     = [x]
 
 fun no_rep_app l1 []     = l1
   | no_rep_app l1 (x::y) = no_rep_app (no_rep_add x l1) y;
-
-fun rm_rep []     = []
-  | rm_rep (x::y) = if x mem y then rm_rep y else x::(rm_rep y);
 
 fun flat_noDup []     = []
   | flat_noDup (x::y) = no_rep_app x (flat_noDup y);

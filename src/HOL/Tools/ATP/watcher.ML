@@ -13,10 +13,40 @@
 (*  Hardwired version of where to pick up the tptp files for the moment    *)
 (***************************************************************************)
 
-(*use "Proof_Transfer";
-use "VampireCommunication";
-use "SpassCommunication";*)
-(*use "/homes/clq20/Jia_Code/TransStartIsar";*)
+
+signature WATCHER =
+sig
+
+(*****************************************************************************************)
+(*  Send request to Watcher for multiple spasses to be called for filenames in arg       *)
+(*  callResProvers (outstreamtoWatcher, prover name,prover-command, (settings,file) list             *)
+(*****************************************************************************************)
+
+val callResProvers :
+    TextIO.outstream * (string*string*string*string*string*string*string*string) list 
+    -> unit
+
+(************************************************************************)
+(* Send message to watcher to kill currently running resolution provers *)
+(************************************************************************)
+
+val callSlayer : TextIO.outstream -> unit
+
+(**********************************************************)
+(* Start a watcher and set up signal handlers             *)
+(**********************************************************)
+
+val createWatcher : thm*(ResClause.clause * thm) Array.array *  int -> TextIO.instream * TextIO.outstream * Posix.Process.pid
+
+(**********************************************************)
+(* Kill watcher process                                   *)
+(**********************************************************)
+
+val killWatcher : Posix.Process.pid -> unit
+
+end
+
+
 
 
 structure Watcher: WATCHER =
@@ -128,16 +158,6 @@ fun getArgs (fromParentStr, toParentStr,ys) =  let
                                         ((ys@[thisLine]))
                                     end
 
-(********************************************************************************)
-(*  Remove the \n character from the end of each filename                       *)
-(********************************************************************************)
-
-(*fun getCmd cmdStr = let val backList = ((rev(explode cmdStr))) 
-                    in
-                        if (String.isPrefix "\n"  (implode backList )) 
-                        then (implode (rev ((tl backList))))
-                        else cmdStr
-                    end*)
                             
 (********************************************************************************)
 (*  Send request to Watcher for a vampire to be called for filename in arg      *)
@@ -153,31 +173,24 @@ fun callResProver (toWatcherStr,  arg) =
 (*****************************************************************************************)
 
     
-(* need to modify to send over hyps file too *)
+(*Uses the $-character to separate items sent to watcher*)
 fun callResProvers (toWatcherStr,  []) = 
       (sendOutput (toWatcherStr, "End of calls\n");  TextIO.flushOut toWatcherStr)
 |   callResProvers (toWatcherStr,
-                    (prover,thmstring,goalstring, proverCmd,settings,clasimpfile, 
+                    (prover,thmstring,goalstring, proverCmd,settings, 
                      axfile, hypsfile,probfile)  ::  args) =
       let val _ = File.write (File.tmp_path (Path.basic "tog_comms"))
                              (prover^thmstring^goalstring^proverCmd^settings^
-                              clasimpfile^hypsfile^probfile)
+                              hypsfile^probfile)
       in sendOutput (toWatcherStr,    
             (prover^"$"^thmstring^"$"^goalstring^"$"^proverCmd^"$"^
-             settings^"$"^clasimpfile^"$"^hypsfile^"$"^probfile^"\n"));
+             settings^"$"^hypsfile^"$"^probfile^"\n"));
          goals_being_watched := (!goals_being_watched) + 1;
 	 TextIO.flushOut toWatcherStr;
 	 callResProvers (toWatcherStr,args)
       end   
                                                 
-
-(*
-fun callResProversStr (toWatcherStr,  []) =  "End of calls\n" 
-                                     
-|   callResProversStr (toWatcherStr,(prover,thmstring,goalstring, proverCmd,settings,clasimpfile, axfile, hypsfile, probfile)::args) =
-                                            ((prover^"*"^thmstring^"*"^goalstring^"*"^proverCmd^"*"^settings^"*"^clasimpfile^"*"^axfile^"*"^hypsfile^"*"^probfile^"\n")
-                                            
-     *)                                      
+                                    
  
 (**************************************************************)
 (* Send message to watcher to kill currently running vampires *)
@@ -193,111 +206,40 @@ fun callSlayer (toWatcherStr) = (sendOutput (toWatcherStr, "Kill vampires\n");
 (* prover, proverCmd, settings and file from input string     *)
 (**************************************************************)
 
-
- fun takeUntil ch [] res  = (res, [])
- |   takeUntil ch (x::xs) res = 
-        if   x = ch then (res, xs)
-	else takeUntil ch xs (res@[x])
-
- fun getSettings [] settings = settings
-|    getSettings (xs) settings = 
-       let val (set, rest ) = takeUntil "%" xs []
-       in
-	   getSettings rest (settings@[(implode set)])
-       end
-
 fun separateFields str =
-  let val  outfile = TextIO.openAppend(*("sep_field")*)(File.platform_path(File.tmp_path (Path.basic "sep_field")))                                                                         
-      val _ = TextIO.output (outfile,("In separateFields, str is: "^(implode str)^"\n\n") )
-      val _ =  TextIO.closeOut outfile
-      val (prover, rest) = takeUntil "$" str []
-      val prover = implode prover
-
-      val (thmstring, rest) =  takeUntil "$" rest []
-      val thmstring = implode thmstring
-
-      val (goalstring, rest) =  takeUntil "$" rest []
-      val goalstring = implode goalstring
-
-      val (proverCmd, rest ) =  takeUntil "$" rest []
-      val proverCmd = implode proverCmd
-      
-      val (settings, rest) =  takeUntil "$" rest []
-      val settings = getSettings settings []
-
-      val (clasimpfile, rest ) =  takeUntil "$" rest []
-      val clasimpfile = implode clasimpfile
-      
-      val (hypsfile, rest ) =  takeUntil "$" rest []
-      val hypsfile = implode hypsfile
-
-      val (file, rest) =  takeUntil "$" rest []
-      val file = implode file
-
+  let val _ = File.append (File.tmp_path (Path.basic "sep_field"))
+                          ("In separateFields, str is: " ^ str ^ "\n\n") 
+      val [prover,thmstring,goalstring,proverCmd,settingstr,hypsfile,probfile] = 
+          String.tokens (fn c => c = #"$") str
+      val settings = String.tokens (fn c => c = #"%") settingstr
       val _ = File.append (File.tmp_path (Path.basic "sep_comms"))                                                                                
-                  ("Sep comms are: "^(implode str)^"**"^
+                  ("Sep comms are: "^ str ^"**"^
                    prover^" thmstring: "^thmstring^"\n goalstr:  "^goalstring^
-                   " \n provercmd: "^proverCmd^" \n  clasimp "^clasimpfile^
-                   " \n hyps "^hypsfile^"\n prob  "^file^"\n\n")
+                   " \n provercmd: "^proverCmd^
+                   " \n hyps "^hypsfile^"\n prob  "^probfile^"\n\n")
   in
-     (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile, file)
+     (prover,thmstring,goalstring, proverCmd, settings, hypsfile, probfile)
   end
 
                       
-(***********************************************************************************)
-(* do tptp2x and cat to turn clasimpfile, hypsfile and probfile into one .dfg file *)
-(***********************************************************************************)
-
-fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, clasimpfile, hypsfile ,probfile) = 
+fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, hypsfile ,probfile) = 
   let
-    (*** want to cat clasimp ax hyps prob, then send the resulting file to tptp2x ***)
-    val probID = List.last(explode probfile)
-    val wholefile = File.tmp_path (Path.basic ("ax_prob_" ^ probID))
-    
-    (*** only include problem and clasimp for the moment, not sure 
-	 how to refer to hyps/local axioms just now ***)
-    val whole_prob_file = Unix.execute("/bin/cat", 
-	     [clasimpfile,probfile,  ">",
-	      File.platform_path wholefile])
-    
-    (* if using spass prob_n already contains whole DFG file, otherwise need to mash axioms*)
-    (* from clasimpset onto problem file *)
-    val newfile =   if !SpassComm.spass 
-		    then probfile
-                    else (File.platform_path wholefile)
-
     val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
-	       (thmstring^"\n goals_watched"^
-	       (string_of_int(!goals_being_watched))^newfile^"\n")
+	       (thmstring ^ "\n goals_watched" ^ 
+	       (string_of_int(!goals_being_watched)) ^ probfile^"\n")
   in
-    (prover,thmstring,goalstring, proverCmd, settings,newfile)	
+    (prover, thmstring, goalstring, proverCmd, settings, probfile)	
   end;
 
+val remove_newlines = String.translate (fn c => if c = #"\n" then "" else str c);
 
-
-(* remove \n from end of command and put back into tuple format *)
-             
-
-(*  val cmdStr = "spass*((ALL xa. (~ P x | P xa) & (~ P xa | P x)) & (P xa | (ALL x. P x)) & ((ALL x. ~ P x) | ~ P xb) [.])*(EX x. ALL y. P x = P y) --> (EX x. P x) = (ALL y. P y)*/homes/clq20/bin/SPASS*-DocProof*/local/scratch/clq20/27023/clasimp*/local/scratch/clq20/27023/hyps*/local/scratch/clq20/27023/prob_1\n"
-
-val cmdStr = "vampire*(length (rev xs) = length xs  [.]) & (length (rev (a # xs)) ~= length (a # xs) [.])*length (rev []) = length []*/homes/jm318/Vampire8/vkernel*-t 300%-m 100000*/local/scratch/clq20/23523/clasimp*/local/scratch/clq20/23523/hyps*/local/scratch/clq20/23523/prob_1\n"
- *)
-
-(*FIX:  are the two getCmd procs getting confused?  Why do I have two anyway? *)
-
- fun getCmd cmdStr = 
-       let val backList = rev(explode cmdStr)
-	   val _ = File.append (File.tmp_path (Path.basic"cmdStr")) cmdStr
-       in
-	   if (String.isPrefix "\n"  (implode backList )) 
-	   then 
-	       let val newCmdStr = (rev(tl backList))
-	       in  File.write (File.tmp_path (Path.basic"backlist")) 
-	                      ("about to call sepfields with "^(implode newCmdStr));
-		   formatCmd (separateFields newCmdStr)
-	       end
-	   else formatCmd (separateFields (explode cmdStr))
-       end
+fun getCmd cmdStr = 
+  let val cmdStr' = remove_newlines cmdStr
+  in
+      File.write (File.tmp_path (Path.basic"sepfields_call")) 
+		 ("about to call sepfields with " ^ cmdStr');
+      formatCmd (separateFields cmdStr')
+  end;
                       
 
 fun getProofCmd (a,b,c,d,e,f) = d
@@ -467,7 +409,8 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 						   (*********************************)
 	 |   checkChildren ((childProc::otherChildren), toParentStr) = 
 	       let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
-			      ("In check child, length of queue:"^(string_of_int (length (childProc::otherChildren)))^"\n")
+			      ("In check child, length of queue:"^
+			       (string_of_int (length (childProc::otherChildren)))^"\n")
 		   val (childInput,childOutput) =  cmdstreamsOf childProc
 		   val child_handle= cmdchildHandle childProc
 		   (* childCmd is the .dfg file that the problem is in *)
@@ -475,11 +418,12 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		   val _ = File.append (File.tmp_path (Path.basic "child_command")) 
 			      (childCmd^"\n")
 		   (* now get the number of the subgoal from the filename *)
-		   val sg_num = (*if (!SpassComm.spass )
-				then 
-				   int_of_string(ReconOrderClauses.get_nth 5 (rev(explode childCmd)))
-				else*)
-				   int_of_string(hd (rev(explode childCmd)))
+		   val path_parts = String.tokens(fn c => c = #"/") childCmd
+		   val digits = String.translate 
+		                  (fn c => if Char.isDigit c then str c else "")
+		                  (List.last path_parts);
+		   val sg_num = (case Int.fromString digits of SOME n => n
+                                  | NONE => error ("Watcher could not read subgoal nunber: " ^ childCmd));
 
 		   val childIncoming = pollChildInput childInput
 		   val _ = File.append (File.tmp_path (Path.basic "child_check_polled")) 

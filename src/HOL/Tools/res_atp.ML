@@ -8,14 +8,11 @@ ATPs with TPTP format input.
 signature RES_ATP =
 sig
   val axiom_file : Path.T
-(*val atp_ax_tac : thm list -> int -> Tactical.tactic*)
-(*val atp_tac : int -> Tactical.tactic*)
   val full_spass: bool ref
-(*val spass: bool ref*)
+  val spass: bool ref
   val vampire: bool ref
   val custom_spass: string list ref
   val hook_count: int ref
-(*  val invoke_atp: Toplevel.transition -> Toplevel.transition*)
 end;
 
 structure ResAtp: RES_ATP =
@@ -27,32 +24,14 @@ val hook_count = ref 0;
 
 fun debug_tac tac = (debug "testing"; tac);
 
-val full_spass = ref false;
-
-(* use spass as default prover *)
-(*val spass = ref true;*)
-
-val custom_spass = ref ["Auto=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub","-DocProof","-TimeLimit=60"];
-val vampire = ref false;
-
-val skolem_tac = skolemize_tac;
-
-val num_of_clauses = ref 0;
-val clause_arr = Array.array (3500, ("empty", 0));
-
-
-val atomize_tac =
-    SUBGOAL
-     (fn (prop,_) =>
-         let val ts = Logic.strip_assums_hyp prop
-         in EVERY1
-                [METAHYPS
-                     (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
-          REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-     end);
+val vampire = ref false;   (* use Vampire as default prover? *)
+val spass = ref true;      (* use spass as default prover *)
+val full_spass = ref true;  (*specifies Auto mode: SPASS can use all inference rules*)
+val custom_spass =   (*specialized options for SPASS*)
+      ref ["Auto=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
+           "-DocProof","-TimeLimit=60"];
 
 val axiom_file = File.tmp_path (Path.basic "axioms");
-val clasimp_file = File.tmp_path (Path.basic "clasimp");
 val hyps_file = File.tmp_path (Path.basic "hyps");
 val prob_file = File.tmp_path (Path.basic "prob");
 
@@ -82,12 +61,11 @@ fun repeat_RS thm1 thm2 =
 fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 
 
-(*FIXME: is function isar_atp_h used? If not, delete!*)
 (*********************************************************************)
 (* convert clauses from "assume" to conjecture. write to file "hyps" *)
 (* hypotheses of the goal currently being proved                     *)
 (*********************************************************************)
-(*perhaps have 2 different versions of this, depending on whether or not SpassComm.spass is set *)
+(*perhaps have 2 different versions of this, depending on whether or not spass is set *)
 fun isar_atp_h thms =
     let val prems = map (skolemize o make_nnf o ObjectLogic.atomize_thm) thms
         val prems' = map repeat_someI_ex prems
@@ -112,7 +90,7 @@ fun isar_atp_h thms =
 (* where N is the number of this subgoal                             *)
 (*********************************************************************)
 
-fun tptp_inputs_tfrees thms n tfrees =
+fun tptp_inputs_tfrees thms n tfrees axclauses =
     let
       val _ = debug ("in tptp_inputs_tfrees 0")
       val clss = map (ResClause.make_conjecture_clause_thm) thms
@@ -124,6 +102,7 @@ fun tptp_inputs_tfrees thms n tfrees =
       val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
       val out = TextIO.openOut(probfile)
     in
+      ResLib.writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
       ResLib.writeln_strs out (tfree_clss @ tptp_clss);
       TextIO.closeOut out;
       debug probfile
@@ -160,7 +139,6 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
     val axfile = (File.platform_path axiom_file)
 
     val hypsfile = (File.platform_path hyps_file)
-    val clasimpfile = (File.platform_path clasimp_file)
 
     fun make_atp_list [] sign n = []
       | make_atp_list ((sko_thm, sg_term)::xs) sign n =
@@ -174,7 +152,7 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
             val probfile = File.platform_path prob_file ^ "_" ^ (string_of_int n)
             val _ = debug ("prob file in call_resolve_tac is " ^ probfile)
           in
-            if !SpassComm.spass
+            if !spass
             then
               let val optionline = (*Custom SPASS options, or default?*)
 		      if !full_spass (*Auto mode: all SPASS inference rules*)
@@ -186,7 +164,7 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
               in 
                   ([("spass", thmstr, goalstring,
                      getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",
-                     optionline, clasimpfile, axfile, hypsfile, probfile)] @ 
+                     optionline, axfile, hypsfile, probfile)] @ 
                   (make_atp_list xs sign (n+1)))
               end
             else if !vampire 
@@ -194,14 +172,14 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
               in
                 ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000",
-                   clasimpfile, axfile, hypsfile, probfile)] @
+                   axfile, hypsfile, probfile)] @
                  (make_atp_list xs sign (n+1)))
               end
       	     else
              let val Eprover = ResLib.helper_path "E_HOME" "eproof"
               in
                 ([("E", thmstr, goalstring, Eprover, "--tptp-in -l5",
-                   clasimpfile, axfile, hypsfile, probfile)] @
+                   axfile, hypsfile, probfile)] @
                  (make_atp_list xs sign (n+1)))
               end
 
@@ -228,11 +206,11 @@ fun get_sko_thms tfrees sign sg_terms (childin, childout,pid) thm n sko_thms axc
      else
 	
      ( SELECT_GOAL
-        (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac, 
+        (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
           METAHYPS(fn negs => 
-            (if !SpassComm.spass 
+            (if !spass 
              then dfg_inputs_tfrees (make_clauses negs) n tfrees axclauses
-             else tptp_inputs_tfrees (make_clauses negs) n tfrees;
+             else tptp_inputs_tfrees (make_clauses negs) n tfrees axclauses;
              get_sko_thms tfrees sign sg_terms (childin, childout, pid) 
                           thm  (n -1) (negs::sko_thms) axclauses; 
              all_tac))]) n thm )
@@ -297,9 +275,8 @@ val isar_atp' = setmp print_mode [] (fn (ctxt, thms, thm) =>
 
       (*set up variables for writing out the clasimps to a tptp file*)
       val (clause_arr, num_of_clauses, axclauses) =
-        ResClasimp.write_out_clasimp (File.platform_path clasimp_file) thy
-          (hd prems) (*FIXME: hack!! need to do all prems*)
-      val _ = debug ("clasimp_file is " ^ File.platform_path clasimp_file ^ " with " ^ (string_of_int num_of_clauses)^ " clauses")
+        ResClasimp.get_clasimp_lemmas thy (hd prems) (*FIXME: hack!! need to do all prems*)
+      val _ = debug ("claset and simprules total " ^ (string_of_int num_of_clauses)^ " clauses")
       val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr, num_of_clauses)
       val pid_string =
         string_of_int (Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid)))
@@ -355,9 +332,7 @@ fun subtract_claset thy ctxt =
 (** the Isar toplevel hook **)
 
 val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-
   let
-
     val proof = Toplevel.proof_of state
     val (ctxt, (_, goal)) = Proof.get_goal proof
         handle Proof.STATE _ => error "No goal present";

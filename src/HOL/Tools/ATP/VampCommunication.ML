@@ -5,138 +5,91 @@
 *)
 
 (***************************************************************************)
-(*  Code to deal with the transfer of proofs from a Vamp process          *)
+(*  Code to deal with the transfer of proofs from a Vampire process          *)
 (***************************************************************************)
 signature VAMP_COMM =
   sig
-    val reconstruct : bool ref
     val getVampInput : TextIO.instream -> string * string * string
-    val checkVampProofFound:  TextIO.instream * TextIO.outstream * Posix.Process.pid * string *
-                               string *string * Thm.thm * int *(ResClause.clause * Thm.thm) Array.array  * int -> bool
-
+    val checkVampProofFound: 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * string *
+          string * string * thm * int * (ResClause.clause * thm) Array.array * int -> bool
   end;
 
-structure VampComm :VAMP_COMM =
+structure VampComm : VAMP_COMM =
 struct
 
-(* switch for whether to reconstruct a proof found, or just list the lemmas used *)
-val reconstruct = ref true;
-
 (***********************************)
-(*  Write Vamp   output to a file *)
+(*  Write Vampire output to a file *)
 (***********************************)
 
 fun logVampInput (instr, fd) =
     let val thisLine = TextIO.inputLine instr
     in if (thisLine = "%==============  End of proof. ==================\n" )
        then TextIO.output (fd, thisLine)
-       else (
-             TextIO.output (fd, thisLine); logVampInput (instr,fd))
+       else (TextIO.output (fd, thisLine); logVampInput (instr,fd))
     end;
 
 (**********************************************************************)
-(*  Reconstruct the Vamp proof w.r.t. thmstring (string version of   *)
+(*  Reconstruct the Vampire proof w.r.t. thmstring (string version of   *)
 (*  Isabelle goal to be proved), then transfer the reconstruction     *)
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-
-val atomize_tac =
-    SUBGOAL
-     (fn (prop,_) =>
-         let val ts = Logic.strip_assums_hyp prop
-         in EVERY1
-                [METAHYPS
-                     (fn hyps => (cut_facts_tac (map (ObjectLogic.atomize_thm o forall_intr_vars) hyps) 1)),
-          REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-     end);
-
-
-fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num clause_arr  (num_of_clauses:int ) =
-  let val foo =   TextIO.openOut( File.platform_path(File.tmp_path (Path.basic"foobar3")));
-  in
+fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
+                    clause_arr num_of_clauses =
     SELECT_GOAL
-      (EVERY1 [rtac ccontr,atomize_tac, skolemize_tac,
-               METAHYPS(fn negs =>
-                           ((*if !reconstruct
-                              then
-                                Recon_Transfer.vampString_to_reconString proofextract thmstring goalstring
-                                                                         toParent ppid negs clause_arr  num_of_clauses
-                              else*)
-                            Recon_Transfer.vampString_to_lemmaString proofextract thmstring goalstring
-                                                                     toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
-  end ;
+      (EVERY1
+        [rtac ccontr, ResLib.atomize_tac, skolemize_tac,
+	 METAHYPS(fn negs =>
+		     (Recon_Transfer.vampString_to_lemmaString proofextract thmstring 
+		       goalstring toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
 
 
 fun transferVampInput (fromChild, toParent, ppid,thmstring,goalstring, currentString, thm, sg_num,clause_arr,  num_of_clauses) =
-  let
-    val thisLine = TextIO.inputLine fromChild
+  let val thisLine = TextIO.inputLine fromChild
   in
     if (thisLine = "%==============  End of proof. ==================\n" )
-    then (
-          let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
-              val foo =   TextIO.openOut( File.platform_path(File.tmp_path (Path.basic"foobar2")));
-
-          in
-
-            TextIO.output(foo,(proofextract));TextIO.closeOut foo;
-            reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num  clause_arr  num_of_clauses thm
-
-          end
-            )
-    else (
-
-          transferVampInput (fromChild, toParent, ppid,thmstring, goalstring,(currentString^thisLine), thm, sg_num, clause_arr,  num_of_clauses)
-          )
+    then let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
+	 in
+	   File.write (File.tmp_path (Path.basic"extracted-prf-vamp")) proofextract; 
+	   reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num  
+	                   clause_arr num_of_clauses thm
+	 end
+    else transferVampInput (fromChild, toParent, ppid,thmstring, goalstring, 
+             currentString^thisLine, thm, sg_num, clause_arr, num_of_clauses)
   end;
 
 
-
-
 (*********************************************************************************)
-(*  Inspect the output of a Vamp   process to see if it has found a proof,      *)
+(*  Inspect the output of a Vampire process to see if it has found a proof,      *)
 (*  and if so, transfer output to the input pipe of the main Isabelle process    *)
 (*********************************************************************************)
 
 
-fun startVampTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,thm, sg_num,clause_arr, num_of_clauses) =
-    (*let val _ = Posix.Process.wait ()
-      in*)
-
-    if (isSome (TextIO.canInput(fromChild, 5)))
+fun startVampTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,
+                       thm, sg_num,clause_arr, num_of_clauses) =
+    if isSome (TextIO.canInput(fromChild, 5))
     then
-      (
        let val thisLine = TextIO.inputLine fromChild
        in
          if (thisLine = "%================== Proof: ======================\n")
          then
-           (
-            let
-              val outfile =  TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "foo_transfer")));
-                  val _=  TextIO.output (outfile, "about to transfer proof, thm is: "^(string_of_thm thm));
-                      val _ =  TextIO.closeOut outfile;
-            in
-              transferVampInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, thm, sg_num,clause_arr,  num_of_clauses);
-              true
-            end)
-
+          (File.append (File.tmp_path (Path.basic "transfer-vamp"))
+                       ("about to transfer proof, thm is: " ^ string_of_thm thm);
+           transferVampInput (fromChild, toParent, ppid,thmstring, goalstring,
+                              thisLine, thm, sg_num,clause_arr,  num_of_clauses);
+           true)
          else
-           (
-            startVampTransfer (fromChild, toParent, ppid, thmstring, goalstring,childCmd, thm, sg_num,clause_arr, num_of_clauses)
-            )
+            startVampTransfer (fromChild, toParent, ppid, thmstring, goalstring,
+                               childCmd, thm, sg_num,clause_arr, num_of_clauses)
        end
-         )
-    else (false)
-(*  end*)
+    else false
 
 
-
-fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  (num_of_clauses:int )) =
-    let val vamp_proof_file =  TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "vamp_proof")))
-        val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_checkvamp")));
-             val _ = TextIO.output (outfile, "checking if proof found, thm is: "^(string_of_thm thm))
-
-             val _ =  TextIO.closeOut outfile
+fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, thm, sg_num, clause_arr,  num_of_clauses) =
+    let val vamp_proof_file = TextIO.openAppend(File.platform_path(File.tmp_path (Path.basic "vamp_proof")))
+        val _ = File.write (File.tmp_path (Path.basic "checking-prf-vamp"))
+                           ("checking if proof found, thm is: " ^ string_of_thm thm)
     in
       if (isSome (TextIO.canInput(fromChild, 5)))
       then
@@ -144,19 +97,15 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
          let val thisLine = TextIO.inputLine fromChild
          in if (thisLine = "% Proof found. Thanks to Tanya!\n" )
             then
-              (
-               let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                                (*val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
+               let val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));   
                         val _ = TextIO.output (outfile, (thisLine))
 
                         val _ =  TextIO.closeOut outfile
                in
                  startVampTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd, thm, sg_num, clause_arr,  num_of_clauses)
                end
-                 )
             else if (thisLine = "% Unprovable.\n" )
             then
-
-              (
                let    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)
                            val _ = TextIO.output (outfile, (thisLine))
 
@@ -183,7 +132,7 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
                  (* Attempt to prevent several signals from turning up simultaneously *)
                  Posix.Process.sleep(Time.fromSeconds 1);
                  true
-               end)
+               end
             else if (thisLine = "% Proof not found. Time limit expired.\n")
             then
               (let    val  outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "foo_proof")));                                                                               (* val _ =  Posix.Process.sleep(Time.fromSeconds 3 );*)

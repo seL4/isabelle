@@ -108,18 +108,17 @@ end;
 
 signature RES_CLASIMP = 
   sig
-
   val relevant : int ref
   val use_simpset: bool ref
   val use_nameless: bool ref
-  val write_out_clasimp : string -> theory -> term -> 
-                             (ResClause.clause * thm) Array.array * int * ResClause.clause list 
-
+  val get_clasimp_lemmas : 
+         theory -> term -> 
+         (ResClause.clause * thm) Array.array * int * ResClause.clause list 
   end;
 
 structure ResClasimp : RES_CLASIMP =
 struct
-val use_simpset = ref true;
+val use_simpset = ref false;   (*Performance is much better without simprules*)
 val use_nameless = ref false;  (*Because most are useless [iff] rules*)
 
 val relevant = ref 0;  (*Relevance filtering is off by default*)
@@ -143,35 +142,20 @@ fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
 
 (* outputs a list of (thm,clause) pairs *)
 
-
-(*Insert th into the result provided the name is not "".*)
-fun add_nonempty ((name,th), ths) = if name="" then ths else th::ths;
-
-fun posinlist x [] n = "not in list"
-|   posinlist x (y::ys) n = if (x=y) 
-			    then
- 				string_of_int n
-			    else posinlist x (ys) (n+1)
-
-
-fun pairup [] [] = []
-|   pairup (x::xs) (y::ys) = (x,y)::(pairup xs ys)
-
 fun multi x 0 xlist = xlist
-   |multi x n xlist = multi x (n -1 ) (x::xlist);
+   |multi x n xlist = multi x (n-1) (x::xlist);
 
-fun clause_numbering ((clause, theorem), cls) = 
-    let val num_of_cls = length cls
-	val numbers = 0 upto (num_of_cls -1)
+fun clause_numbering ((clause, theorem), num_of_cls) = 
+    let val numbers = 0 upto (num_of_cls - 1)
     in 
-	multi (clause, theorem)  num_of_cls []
+	multi (clause, theorem) num_of_cls []
     end;
     
 
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
-fun write_out_clasimp filename thy goal = 
+fun get_clasimp_lemmas thy goal = 
     let val claset_rules = 
               map put_name_pair
 	        (ReduceAxiomsN.relevant_filter (!relevant) goal 
@@ -188,27 +172,19 @@ fun write_out_clasimp filename thy goal =
 	               else claset_cls_thms;
 	val cls_thms_list = List.concat cls_thms;
 	(*************************************************)
-	(* Write out clauses as tptp strings to filename *)
+	(* Identify the set of clauses to be written out *)
 	(*************************************************)
 	val clauses = map #1(cls_thms_list);
-	val cls_tptp_strs = map ResClause.tptp_clause clauses;
-        val alllist = pairup cls_thms_list cls_tptp_strs
-        val whole_list = List.concat (map clause_numbering alllist);
+	val cls_nums = map ResClause.num_of_clauses clauses;
+        val whole_list = List.concat 
+              (map clause_numbering (ListPair.zip (cls_thms_list, cls_nums)));
  
         (*********************************************************)
 	(* create array and put clausename, number pairs into it *)
 	(*********************************************************)
-	val num_of_clauses =  0;
 	val clause_arr = Array.fromList whole_list;
-	val num_of_clauses = List.length whole_list;
-
-	(* list of lists of tptp string clauses *)
-	val stick_clasrls =   List.concat cls_tptp_strs;
-	val out = TextIO.openOut filename;
-	val _=   ResLib.writeln_strs out stick_clasrls;
-	val _= TextIO.closeOut out
   in
-	(clause_arr, num_of_clauses, clauses)
+	(clause_arr, List.length whole_list, clauses)
   end;
 
 
