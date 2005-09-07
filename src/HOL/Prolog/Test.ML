@@ -3,8 +3,6 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-open Test;
-
 val prog_Test = prog_HOHH@[append, reverse, mappred, mapfun, age, eq, bag_appl];
 fun pgoal s = (case Goal s of _ => by (prolog_tac prog_Test));
 val p = ptac prog_Test 1;
@@ -44,7 +42,7 @@ back();
 
 
 (*
-goal thy "f a = ?g a a & ?g = x"; 
+goal (the_context ()) "f a = ?g a a & ?g = x";
 by (rtac conjI 1);
 by (rtac refl 1);
 back();
@@ -107,11 +105,11 @@ pgoal "(!P k l. P k l :- eq P (%x y. x | y)) => a | b";
 *)
 
 (* implication and disjunction in atom: *)
-goal thy "? Q. (!p q. R(q :- p) => R(Q p q)) & Q (t | s) (s | t)";
+goal (the_context ()) "? Q. (!p q. R(q :- p) => R(Q p q)) & Q (t | s) (s | t)";
 by (fast_tac HOL_cs 1);
 
 (* disjunction in atom: *)
-goal thy "(!P. g P :- (P => b | a)) => g(a | b)";
+goal (the_context ()) "(!P. g P :- (P => b | a)) => g(a | b)";
 by (step_tac HOL_cs 1);
 by (step_tac HOL_cs 1);
 by (step_tac HOL_cs 1);
@@ -119,7 +117,7 @@ by (fast_tac HOL_cs 2);
 by (fast_tac HOL_cs 1);
 (*
 hangs:
-goal thy "(!P. g P :- (P => b | a)) => g(a | b)";
+goal (the_context ()) "(!P. g P :- (P => b | a)) => g(a | b)";
 by (fast_tac HOL_cs 1);
 *)
 

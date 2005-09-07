@@ -1,40 +1,41 @@
 (*  Title:    HOL/Prolog/Func.thy
     ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
-
-untyped functional language, with call by value semantics 
 *)
 
-Func = HOHH +
+header {* Untyped functional language, with call by value semantics *}
 
-types tm
+theory Func
+imports HOHH
+begin
 
-arities tm :: type
+typedecl tm
 
-consts	abs	:: (tm => tm) => tm
-	app	:: tm => tm => tm
+consts
+  abs     :: "(tm => tm) => tm"
+  app     :: "tm => tm => tm"
 
-	cond	:: tm => tm => tm => tm
-	fix	:: (tm => tm) => tm
+  cond    :: "tm => tm => tm => tm"
+  "fix"   :: "(tm => tm) => tm"
 
-	true,
-	false	:: tm
-	"and"	:: tm => tm => tm	(infixr 999)
-	"eq"	:: tm => tm => tm	(infixr 999)
+  true    :: tm
+  false   :: tm
+  "and"   :: "tm => tm => tm"       (infixr 999)
+  "eq"    :: "tm => tm => tm"       (infixr 999)
 
-	"0"	:: tm			("Z")
-	S	:: tm => tm
+  "0"     :: tm                   ("Z")
+  S       :: "tm => tm"
 (*
-	"++", "--",
-	"**"	:: tm => tm => tm	(infixr 999)
+        "++", "--",
+        "**"    :: tm => tm => tm       (infixr 999)
 *)
-	eval	:: [tm, tm] => bool
+        eval    :: "[tm, tm] => bool"
 
-arities tm :: plus
-arities tm :: minus
-arities tm :: times
+instance tm :: plus ..
+instance tm :: minus ..
+instance tm :: times ..
 
-rules	eval "
+axioms   eval: "
 
 eval (abs RR) (abs RR)..
 eval (app F X) V :- eval F (abs R) & eval X U & eval (R U) V..
@@ -47,7 +48,7 @@ eval true  true ..
 eval false false..
 eval (P and Q) true  :- eval P true  & eval Q true ..
 eval (P and Q) false :- eval P false | eval Q false..
-eval (A1 eq B1) true  :- eval A1 C1 & eval B1 C1.. 
+eval (A1 eq B1) true  :- eval A1 C1 & eval B1 C1..
 eval (A2 eq B2) false :- True..
 
 eval Z Z..
@@ -58,5 +59,7 @@ eval (N     - Z) K     :- eval  N      K..
 eval ((S N) - (S M)) K :- eval (N- M)  K..
 eval ( Z    * M) Z..
 eval ((S N) * M) K :- eval (N * M) L & eval (L + M) K"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end
