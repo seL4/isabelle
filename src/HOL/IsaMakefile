@@ -663,8 +663,7 @@ $(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/Init.ML \
 
 TLA-Inc: TLA $(LOG)/TLA-Inc.gz
 
-$(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy TLA/Inc/Inc.ML \
-  TLA/Inc/Pcount.thy
+$(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy TLA/Inc/Inc.ML
 	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
 
 
