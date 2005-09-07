@@ -27,15 +27,15 @@ constdefs
     "is_starext F f == (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
                         ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
 
-    starfun :: "('a => 'a) => 'a star => 'a star"       ("*f* _" [80] 80)
+    starfun :: "('a => 'b) => 'a star => 'b star"       ("*f* _" [80] 80)
     "*f* f  == (%x. Abs_star(\<Union>X \<in> Rep_star(x). starrel``{%n. f(X n)}))"
 
     (* internal functions *)
-    starfun_n :: "(nat => ('a => 'a)) => 'a star => 'a star"
+    starfun_n :: "(nat => ('a => 'b)) => 'a star => 'b star"
                  ("*fn* _" [80] 80)
     "*fn* F  == (%x. Abs_star(\<Union>X \<in> Rep_star(x). starrel``{%n. (F n)(X n)}))"
 
-    InternalFuns :: "('a star => 'a star) set"
+    InternalFuns :: "('a star => 'b star) set"
     "InternalFuns == {X. \<exists>F. X = *fn* F}"
 
 
@@ -55,7 +55,7 @@ done
 
 subsection{*Properties of the Star-transform Applied to Sets of Reals*}
 
-lemma STAR_real_set: "*s*(UNIV::real set) = (UNIV::hypreal set)"
+lemma STAR_real_set: "*s*(UNIV::'a set) = (UNIV::'a star set)"
 by (simp add: starset_def)
 declare STAR_real_set [simp]
 
