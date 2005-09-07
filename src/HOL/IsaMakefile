@@ -96,7 +96,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/ATP/recon_order_clauses.ML Tools/ATP/recon_parse.ML			\
   Tools/ATP/recon_prelim.ML Tools/ATP/recon_transfer_proof.ML			\
   Tools/ATP/recon_translate_proof.ML Tools/ATP/res_clasimpset.ML		\
-  Tools/ATP/watcher.ML Tools/ATP/watcher.sig					\
+  Tools/ATP/watcher.ML 					\
   Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML				\
   Tools/datatype_codegen.ML Tools/datatype_package.ML				\
   Tools/datatype_prop.ML Tools/datatype_realizer.ML				\
