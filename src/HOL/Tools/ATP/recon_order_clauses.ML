@@ -23,8 +23,6 @@ exception Not_in_list;
 fun numlist 0 = []
 |   numlist n = (numlist (n - 1))@[n]
 
-
-fun last(x::xs) = if xs=[] then x else last xs
 fun butlast []= []
 |   butlast(x::xs) = if xs=[] then [] else (x::(butlast xs))
 
@@ -44,7 +42,7 @@ fun minus a b = b - a;
 fun contains_eq str = "=" mem str 
 
 fun eq_not_neq str = let val uptoeq = fst(takeUntil "=" str [])
-                     in (last uptoeq) <> "~" end
+                     in (List.last uptoeq) <> "~" end
                    
 fun get_eq_strs str =  if eq_not_neq  str   (*not an inequality *)
                        then 

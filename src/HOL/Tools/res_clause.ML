@@ -448,20 +448,9 @@ fun sorts_on_typs (_, [])   = ([])
       (sorts_on_typs ((FOLTFree x), ss));
 
 
-(*FIXME: duplicate code that needs removal??*)
-
-fun takeUntil ch [] res  = (res, [])
- |   takeUntil ch (x::xs) res = if   x = ch 
-                                then
-                                     (res, xs)
-                                else
-                                     takeUntil ch xs (res@[x])
-
-fun remove_type str = let val exp = explode str
-		 	  val (first,rest) =  (takeUntil "(" exp [])
-                      in
-                        implode first
-		      end
+(*UGLY: seems to be parsing the "show sorts" output, removing anything that
+  starts with a left parenthesis.*)
+fun remove_type str = hd (String.fields (fn c => c = #"(") str);
 
 fun pred_of_sort (LTVar x) = ((remove_type x),1)
 |   pred_of_sort (LTFree x) = ((remove_type x),1)
@@ -486,22 +475,6 @@ fun add_typs_aux [] preds  = ([],[], preds)
       in
 	  (vss, ResLib.no_rep_app fs fss,preds'')
       end;
-
-
-(*fun add_typs_aux [] = ([],[])
-  | add_typs_aux ((FOLTVar indx,s)::tss) = 
-      let val vs = sorts_on_typs (FOLTVar indx, s)
-	  val (vss,fss) = add_typs_aux tss
-      in
-	  (ResLib.no_rep_app vs vss, fss)
-      end
-  | add_typs_aux ((FOLTFree x,s)::tss) =
-      let val fs = sorts_on_typs (FOLTFree x, s)
-	  val (vss,fss) = add_typs_aux tss
-      in
-	  (vss, ResLib.no_rep_app fs fss)
-      end;*)
-
 
 fun add_typs (Clause cls) preds  = add_typs_aux (#types_sorts cls) preds 
 

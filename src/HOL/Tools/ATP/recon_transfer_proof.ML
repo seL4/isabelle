@@ -3,10 +3,6 @@
     Copyright   2004  University of Cambridge
 *)
 
-(******************)
-(* complete later *)
-(******************)
-
 structure Recon_Transfer =
 struct
 
@@ -104,10 +100,8 @@ fun extraAxs_to_string [] str = str
 	  extraAxs_to_string xs (str^newstr)
       end;
 
-fun is_axiom ( num:int,Axiom, str) = true
-|   is_axiom (num, _,_) = false
-
-fun get_init_axioms xs = List.filter (is_axiom) ( xs)
+fun is_axiom (_,Axiom,str) = true
+|   is_axiom (_,_,_) = false
 
 fun get_step_nums [] nums = nums
 |   get_step_nums (( num:int,Axiom, str)::xs) nums = get_step_nums xs (nums@[num])
@@ -159,23 +153,22 @@ fun numstr [] = ""
 
 (* retrieve the axioms that were obtained from the clasimpset *)
 
-fun get_clasimp_cls clause_arr clasimp_num step_nums = 
+fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num step_nums = 
     let val realnums = map subone step_nums	
 	val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
 (*	val axnums = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "axnums")))     
 	val _ = TextIO.output(axnums,(numstr clasimp_nums))
 	val _ = TextIO.closeOut(axnums)*)
     in
-	retrieve_axioms clause_arr  clasimp_nums
+	retrieve_axioms clause_arr clasimp_nums
     end
-
 
 
 (*****************************************************)
 (* get names of clasimp axioms used                  *)
 (*****************************************************)
 
- fun get_axiom_names step_nums thms (clause_arr:(ResClause.clause * thm) Array.array) num_of_clauses  =
+ fun get_axiom_names step_nums thms clause_arr num_of_clauses =
    let 
      (* not sure why this is necessary again, but seems to be *)
       val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
@@ -184,7 +177,7 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
      (* here need to add the clauses from clause_arr*)
      (***********************************************)
   
-      val (clasimp_names_cls) = get_clasimp_cls clause_arr num_of_clauses step_nums 
+      val clasimp_names_cls = get_clasimp_cls clause_arr num_of_clauses step_nums 
       val clasimp_names = map (#1 o ResClause.clause_info o #1) clasimp_names_cls
   
       val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
@@ -195,7 +188,7 @@ fun get_clasimp_cls clause_arr clasimp_num step_nums =
    end
    
  fun get_axiom_names_spass proof_steps thms clause_arr num_of_clauses  =
-   get_axiom_names (get_step_nums (get_init_axioms proof_steps) []) 
+   get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) 
                        thms clause_arr num_of_clauses;
     
  fun get_axiom_names_vamp_E proofstr thms clause_arr num_of_clauses  =
@@ -217,7 +210,7 @@ fun addvars c (a,b)  = (a,b,c)
  fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
      let 
 	val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-	val axioms = get_init_axioms proof_steps
+	val axioms = (List.filter is_axiom) proof_steps
 	val step_nums = get_step_nums axioms []
 
 	val clauses =(*(clasimp_cls)@*)( make_clauses thms)
@@ -322,9 +315,7 @@ fun spassString_to_lemmaString proofstr thmstring goalstring toParent ppid thms 
   let val _ = File.write(File.tmp_path (Path.basic "foo_handler")) "In exception handler"
   in 
      TextIO.output (toParent,"Proof found but parsing failed for resolution proof: "^(remove_linebreaks proofstr)^"\n" );
-      TextIO.flushOut toParent;
        TextIO.output (toParent, (remove_linebreaks thmstring)^"\n");
-       TextIO.flushOut toParent;
        TextIO.output (toParent, ( (remove_linebreaks goalstring)^"\n"));
        TextIO.flushOut toParent;
       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -343,11 +334,12 @@ fun vampString_to_lemmaString proofstr thmstring goalstring toParent ppid thms c
     (* get vampire axiom names         *)
     (***********************************)
 
-     val axiom_names = get_axiom_names_vamp_E proofstr  thms clause_arr  num_of_clauses
+     val axiom_names = get_axiom_names_vamp_E proofstr thms clause_arr num_of_clauses
      val ax_str = "Rules from clasimpset used in proof found by Vampire: " ^
                   rules_to_string axiom_names
     in 
-	 File.append(File.tmp_path (Path.basic "reconstrfile")) ("reconstring is: "^ax_str^"  "^goalstring);
+	 File.append(File.tmp_path (Path.basic "reconstrfile")) 
+	            ("reconstring is: "^ax_str^"  "^goalstring);
          TextIO.output (toParent, ax_str^"\n");
 	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
 	 TextIO.output (toParent, "thmstring: "^thmstring^"\n");
@@ -383,9 +375,10 @@ fun EString_to_lemmaString proofstr thmstring goalstring toParent ppid thms clau
      val ax_str = "Rules from clasimpset used in proof found by E: " ^
                   rules_to_string axiom_names
     in 
-	 File.append(File.tmp_path (Path.basic "reconstrfile")) ("reconstring is: "^ax_str^"  "^goalstring);
+	 File.append(File.tmp_path (Path.basic "reconstrfile"))
+	            ("reconstring is: "^ax_str^"  "^goalstring);
          TextIO.output (toParent, ax_str^"\n");
-	 TextIO.flushOut toParent;
+	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
 	 TextIO.output (toParent, "thmstring: "^thmstring^"\n");
 	 TextIO.flushOut toParent;
 
@@ -771,7 +764,7 @@ fun to_isar_proof (frees, xs, goalstring) =
 	
 	val steps = Library.drop (origax_num, axioms_and_steps)
 	val firststeps = ReconOrderClauses.butlast steps
-	val laststep = ReconOrderClauses.last steps
+	val laststep = List.last steps
 	val goalstring = implode(ReconOrderClauses.butlast(explode goalstring))
 	
 	val isar_proof = 

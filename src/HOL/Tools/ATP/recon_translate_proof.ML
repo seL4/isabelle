@@ -259,25 +259,6 @@ fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause
    end
    handle Option => reconstruction_failed "follow_standard_para"
 
-(*              
-fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs= 
-                          let 
-                            val th1 =  valOf (assoc (thml,clause1))
-                            val th2 =  valOf (assoc (thml,clause2)) 
-                            val eq_lit_th = select_literal (lit1+1) th1
-                            val mod_lit_th = select_literal (lit2+1) th2
-                            val eqsubst = eq_lit_th RSN (2,rev_subst)
-                            val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
-			    val newth' =negate_nead newth 
-                            val (res, numlist, symlist, nsymlist)  = (rearrange_clause newth' clause_strs allvars)
-                            val thmvars = thm_vars res
-                         in 
-                           (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
-                         end
-			 handle Option => reconstruction_failed "follow_standard_para"
-
-*)
-
 
 (********************************)
 (* Reconstruct a rewriting step *)
@@ -401,57 +382,12 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs =
 (* follow through the res. proof, creating an Isabelle theorem *)
 (***************************************************************)
 
-
-
-(*fun is_proof_char ch = (case ch of 
-                       
-                        "(" => true
-                       |  ")" => true
-                         | ":" => true
-                        |  "'" => true
-                        |  "&" => true
-                        | "|" => true
-                        | "~" => true
-                        |  "." => true
-                        |(is_alpha ) => true
-                       |(is_digit) => true
-                         | _ => false)*)
-
 fun is_proof_char ch = ((33 <= (ord ch)) andalso ((ord ch ) <= 126)) orelse (ch = " ")
 
 fun proofstring x = let val exp = explode x 
                     in
                         List.filter (is_proof_char ) exp
                     end
-
-
-(*
-
-fun follow clauses [] allvars thml recons = 
-                             let (* val _ = reset show_sorts*)
-                              val thmstring = Meson.concat_with_and (map string_of_thm (map snd thml))
-                              val thmproofstring = proofstring ( thmstring)
-                            val no_returns = no_lines thmproofstring
-                            val thmstr = implode no_returns
-                               val outfile = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "thml_file")))
-                               val _ = TextIO.output(outfile, "thmstr is "^thmstr)
-                               val _ = TextIO.flushOut outfile;
-                               val _ =  TextIO.closeOut outfile
-                                 (*val _ = set show_sorts*)
-                             in
-                                  ((snd( hd thml)), recons)
-                             end
-      | follow clauses (h::t) allvars thml recons 
-        = let
-            val (thml', recons') = follow_line clauses allvars  thml h recons
-            val  (thm, recons_list) = follow clauses t  allvars thml' recons'
-            
-
-          in
-             (thm,recons_list)
-          end
-
-*)
 
 fun replace_clause_strs [] recons newrecons = (newrecons)
 |   replace_clause_strs ((thmnum, thm)::thml)    
@@ -477,16 +413,10 @@ fun follow clauses [] allvars thml recons =
 	 (thm,recons_list)
       end
 
-
-
 (* Assume we have the cnf clauses as a list of (clauseno, clause) *)
  (* and the proof as a list of the proper datatype *)
 (* take the cnf clauses of the goal and the proof from the res. prover *)
 (* as a list of type Proofstep and return the thm goal ==> False *)
-
-fun first_pair (a,b,c) = (a,b);
-
-fun second_pair (a,b,c) = (b,c);
 
 (* takes original axioms, proof_steps parsed from spass, variables *)
 
@@ -496,10 +426,4 @@ fun translate_proof clauses proof allvars
              (thm, (recons))
           end
   
-
-
-fun remove_tinfo [] = []
-  | remove_tinfo ( (clausenum, step, T_info, newstrs)::xs) =
-      (clausenum, step , newstrs)::(remove_tinfo xs)
-
 end;

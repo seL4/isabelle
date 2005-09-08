@@ -33,7 +33,7 @@ fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num
         [rtac ccontr, ResLib.atomize_tac, skolemize_tac,
 	 METAHYPS(fn negs =>
 		     (Recon_Transfer.vampString_to_lemmaString proofextract thmstring 
-		       goalstring toParent ppid negs clause_arr  num_of_clauses ))]) sg_num
+		       goalstring toParent ppid negs clause_arr num_of_clauses))]) sg_num
 
 
 fun transferVampInput (fromChild, toParent, ppid,thmstring,goalstring, 

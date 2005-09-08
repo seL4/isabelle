@@ -25,8 +25,6 @@ fun string2int s =
 (* Parser combinators *)
 
 exception Noparse;
-exception VampError of string;
-
 
 fun (parser1 ++ parser2) input =
       let
@@ -158,53 +156,18 @@ fun several p = many (some p)
      fun lex s =  alltokens  (explode s)
 
 
-(*********************************************************)
-(*  Temporary code to "parse" Vampire proofs             *)
-(*********************************************************)
 
-fun num_int (Number n) = n
-|   num_int _ = raise VampError "Not a number"
+(*String contains multiple lines, terminated with newline characters.
+  A list consisting of the first number in each line is returned. *)
+fun get_linenums proofstr = 
+  let val numerics = String.tokens (not o Char.isDigit)
+      fun firstno [] = NONE
+        | firstno (x::xs) = Int.fromString x
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (firstno o numerics) lines  end
 
- fun takeUntil ch [] res  = (res, [])
- |   takeUntil ch (x::xs) res = if   x = ch 
-                                then
-                                     (res, xs)
-                                else
-                                     takeUntil ch xs (res@[x])
-       
-fun linenums [] nums = nums
-|   linenums (x::xs) nums = let val (fst, rest ) = takeUntil (Other "%") (x::xs) []
-                                in 
-				  if rest = [] 
-				  then 
-				      nums
-				  else
-			          let val first = hd rest
-				
-			          in
-				    if (first = (Other "*") ) 
-				    then 
-					
-					 linenums rest ((num_int (hd (tl rest)))::nums)
-				     else
-					  linenums rest ((num_int first)::nums)
-			         end
-                                end
-
-
-(* This relies on a Vampire proof line starting "% Number" or "% * Number"*)
-(* Check this is right *)
-
-fun get_linenums proofstr = let (*val s = extract_proof proofstr*)
-                                val tokens = #1(lex proofstr)
-	                 
-	                    in
-		                rev (linenums tokens [])
-		            end
 
 (************************************************************)
-(************************************************************)
-
 
 (**************************************************)
 (* Code to parse SPASS proofs                     *)
