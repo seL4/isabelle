@@ -48,6 +48,8 @@ sig
   (*options*)
   val the: 'a option -> 'a
   val these: 'a list option -> 'a list
+  val the_default: 'a -> 'a option -> 'a
+  val the_list: 'a option -> 'a list
   val if_none: 'a option -> 'a -> 'a
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
@@ -353,7 +355,11 @@ exception OPTION of invalid;
 
 val the = Option.valOf;
 fun these (SOME x) = x
-  | these _ = []
+  | these _ = [];
+fun the_default x (SOME y) = y
+  | the_default x _ = x;
+fun the_list (SOME x) = [x]
+  | the_list _ = []
 
 (*strict!*)
 fun if_none NONE y = y
