@@ -48,7 +48,7 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring,
  let val thisLine = TextIO.inputLine fromChild 
  in 
     if thisLine = "" (*end of file?*)
-    then (File.write (File.tmp_path (Path.basic"eprover_extraction_failed")) currentString;
+    then (File.write (File.tmp_path (Path.basic"spass_extraction_failed")) currentString;
 	  raise EOF)                    
     else if thisLine = "--------------------------SPASS-STOP------------------------------\n"
     then 

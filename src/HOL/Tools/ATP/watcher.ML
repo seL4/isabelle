@@ -434,7 +434,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			      prems_string^prover^thmstring^goalstring^childCmd) 
 		       val childDone = (case prover of
 			   "vampire" => VampComm.checkVampProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  
-			    | "E" => EComm.checkEProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)             
+			    | "E" => VampComm.checkEProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)             
 			  |"spass" => SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  )
 		    in
 		     if childDone      (**********************************************)

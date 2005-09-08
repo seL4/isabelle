@@ -3,7 +3,6 @@
     Copyright   2004  University of Cambridge
 *)
 
-(*use "Translate_Proof";*)
 (* Parsing functions *)
 
 (* Auxiliary functions *)
@@ -115,6 +114,12 @@ datatype token = Word of string
           raise (GandalfError "Couldn't find a proof.")
 *)
 
+val start_E = "# Proof object starts here."
+val end_E   = "# Proof object ends here."
+val start_V6 = "%================== Proof: ======================"
+val end_V6   = "%==============  End of proof. =================="
+
+
 (*Identifies the start/end lines of an ATP's output*)
 fun extract_proof s =
   if cut_exists "Here is a proof with" s then
@@ -122,14 +127,14 @@ fun extract_proof s =
      o snd o cut_after ":"
      o snd o cut_after "Here is a proof with"
      o fst o cut_after " ||  -> .") s
-  else if cut_exists "%================== Proof: ======================" s then
-    (kill_lines 0    (*Vampire 5.0*)
-     o snd o cut_after "%================== Proof: ======================"
-     o fst o cut_before "==============  End of proof. ==================") s
-  else if cut_exists "# Proof object ends here." s then
+  else if cut_exists start_V6 s then
+    (kill_lines 0    (*Vampire 6.0*)
+     o snd o cut_after start_V6
+     o fst o cut_before end_V6) s
+  else if cut_exists end_E s then
     (kill_lines 0    (*eproof*)
-     o snd o cut_after "# Proof object starts here."
-     o fst o cut_before "# Proof object ends here.") s
+     o snd o cut_after start_E
+     o fst o cut_before end_E) s
   else "??extract_proof failed" (*Couldn't find a proof*)
 
 fun several p = many (some p)

@@ -22,7 +22,6 @@ theory Reconstruction
 	 "Tools/ATP/recon_transfer_proof.ML"
 	 "Tools/ATP/VampCommunication.ML"
 	 "Tools/ATP/SpassCommunication.ML"
-     "Tools/ATP/ECommunication.ML"
 	 "Tools/ATP/watcher.ML"
 	 "Tools/ATP/res_clasimpset.ML"
 	 "Tools/res_atp.ML"
