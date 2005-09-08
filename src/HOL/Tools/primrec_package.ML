@@ -81,10 +81,8 @@ fun process_eqn sign (eq, rec_fns) =
           else if rpos <> rpos' then
             raise RecError "position of recursive argument inconsistent"
           else
-            overwrite (rec_fns, 
-		       (fnameT, 
-			(tname, rpos,
-			 (cname, (ls, cargs, rs, rhs, eq))::eqns))))
+            AList.update (op =) (fnameT, (tname, rpos, (cname, (ls, cargs, rs, rhs, eq))::eqns))
+              rec_fns)
   end
   handle RecError s => primrec_eq_err sign s eq;
 

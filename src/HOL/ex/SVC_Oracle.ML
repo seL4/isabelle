@@ -38,7 +38,7 @@ fun svc_abstract t =
         case t of
             Free _  => t  (*but not existing Vars, lest the names clash*)
           | Bound _ => t
-          | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
+          | _ => (case AList.lookup Pattern.aeconv (!pairs) t of
                       SOME v => v
                     | NONE   => insert t)
     (*abstraction of a numeric literal*)

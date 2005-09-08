@@ -111,7 +111,7 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
 fun print_rules prt x (Rules {rules, ...}) =
   let
     fun prt_kind (i, b) =
-      Pretty.big_list (the (assoc (kind_names, (i, b))) ^ ":")
+      Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
         (List.mapPartial (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
           (sort (int_ord o pairself fst) rules));
   in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;

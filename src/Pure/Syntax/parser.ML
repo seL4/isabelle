@@ -724,7 +724,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
         (_, _, _, Nonterminal (nt, minPrec) :: _, _, _) =>
           let                                       (*predictor operation*)
             val (used', new_states) =
-              (case assoc (used, nt) of
+              (case AList.lookup (op =) used nt of
                 SOME (usedPrec, l) =>       (*nonterminal has been processed*)
                   if usedPrec <= minPrec then
                                       (*wanted precedence has been processed*)

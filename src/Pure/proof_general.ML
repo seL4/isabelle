@@ -1116,12 +1116,12 @@ fun hasprefs () =
 fun allprefs () = Library.foldl (op @) ([], map snd (!preferences))
 
 fun setpref name value =
-    (case assoc (allprefs(), name) of
+    (case AList.lookup (op =) (allprefs ()) name of
          NONE => warning ("Unknown pref: " ^ quote name)
        | SOME (_, (_, _, set)) => set value);
 
 fun getpref name =
-    (case assoc (allprefs(), name) of
+    (case AList.lookup (op =) (allprefs ()) name of
          NONE => warning ("Unknown pref: " ^ quote name)
        | SOME (_, (_, (_,get), _)) =>
            issue_pgip "prefval" [("name", name)] (get ()));
@@ -1164,7 +1164,7 @@ fun use_thy_or_ml_file file =
 (* Proof control commands *)
 
 local
-  fun xmlattro attr attrs = assoc(attrs,attr)
+  fun xmlattro attr attrs = AList.lookup (op =) attrs attr
 
   fun xmlattr attr attrs =
       (case xmlattro attr attrs of

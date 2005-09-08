@@ -621,7 +621,7 @@ fun alpha_ex_unroll (xlist, tm) =
   let val (qvars,body) = S.strip_exists tm
       val vlist = #2(S.strip_comb (S.rhs body))
       val plist = ListPair.zip (vlist, xlist)
-      val args = map (fn qv => valOf (gen_assoc (op aconv) (plist, qv))) qvars
+      val args = map (the o AList.lookup (op aconv) plist) qvars
                    handle Option => sys_error
                        "TFL fault [alpha_ex_unroll]: no correspondence"
       fun build ex      []   = []

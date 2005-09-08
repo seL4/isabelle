@@ -271,7 +271,7 @@ struct
 	let
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
-		case assoc (interpreters, name) of
+		case AList.lookup (op =) interpreters name of
 		  NONE   => RefuteData.put {interpreters = (name, f) :: interpreters, printers = printers, parameters = parameters} thy
 		| SOME _ => error ("Interpreter " ^ name ^ " already declared")
 	end;
@@ -282,7 +282,7 @@ struct
 	let
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
-		case assoc (printers, name) of
+		case AList.lookup (op =) printers name of
 		  NONE   => RefuteData.put {interpreters = interpreters, printers = (name, f) :: printers, parameters = parameters} thy
 		| SOME _ => error ("Printer " ^ name ^ " already declared")
 	end;
@@ -335,14 +335,14 @@ struct
 	let
 		(* (string * string) list * string -> int *)
 		fun read_int (parms, name) =
-			case assoc_string (parms, name) of
+			case AList.lookup (op =) parms name of
 			  SOME s => (case Int.fromString s of
 				  SOME i => i
 				| NONE   => error ("parameter " ^ quote name ^ " (value is " ^ quote s ^ ") must be an integer value"))
 			| NONE   => error ("parameter " ^ quote name ^ " must be assigned a value")
 		(* (string * string) list * string -> string *)
 		fun read_string (parms, name) =
-			case assoc_string (parms, name) of
+			case AList.lookup (op =) parms name of
 			  SOME s => s
 			| NONE   => error ("parameter " ^ quote name ^ " must be assigned a value")
 		(* (string * string) list *)
@@ -382,12 +382,12 @@ struct
 
 	fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
 		(* replace a 'DtTFree' variable by the associated type *)
-		(valOf o assoc) (typ_assoc, DatatypeAux.DtTFree a)
+		(the o AList.lookup (op =) typ_assoc) (DatatypeAux.DtTFree a)
 	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
 		Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
 		let
-			val (s, ds, _) = (valOf o assoc) (descr, i)
+			val (s, ds, _) = (the o AList.lookup (op =) descr) i
 		in
 			Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 		end;
@@ -590,7 +590,7 @@ struct
 			| Const ("arbitrary", T)          => collect_type_axioms (axs, T)
 			| Const ("The", T)                =>
 				let
-					val ax = specialize_type (("The", T), (valOf o assoc) (axioms, "HOL.the_eq_trivial"))
+					val ax = specialize_type (("The", T), (the o AList.lookup (op =) axioms) "HOL.the_eq_trivial")
 				in
 					if mem_term (ax, axs) then
 						collect_type_axioms (axs, T)
@@ -600,7 +600,8 @@ struct
 				end
 			| Const ("Hilbert_Choice.Eps", T) =>
 				let
-					val ax = specialize_type (("Hilbert_Choice.Eps", T), (valOf o assoc) (axioms, "Hilbert_Choice.someI"))
+					val ax = specialize_type (("Hilbert_Choice.Eps", T),
+                      (the o AList.lookup (op =) axioms) "Hilbert_Choice.someI")
 				in
 					if mem_term (ax, axs) then
 						collect_type_axioms (axs, T)
@@ -690,7 +691,8 @@ struct
 							val inclass = Logic.mk_inclass (TVar (("'a", 0), [class]), class)
 							(* Term.term option *)
 							val ofclass_ax = (SOME (specialize_type ((s, T), inclass)) handle Type.TYPE_MATCH => NONE)
-							val intro_ax   = (Option.map (fn t => specialize_type ((s, T), t)) (assoc (axioms, s ^ ".intro")) handle Type.TYPE_MATCH => NONE)
+							val intro_ax   = (Option.map (fn t => specialize_type ((s, T), t))
+								(AList.lookup (op =) axioms (class ^ ".intro")) handle Type.TYPE_MATCH => NONE)
 							val axs'       = (case ofclass_ax of NONE => axs | SOME ax => if mem_term (ax, axs) then
 									(* collect relevant type axioms *)
 									collect_type_axioms (axs, T)
@@ -776,7 +778,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (valOf o assoc) (descr, index)
+							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -829,7 +831,7 @@ struct
 	fun first_universe xs sizes minsize =
 	let
 		fun size_of_typ T =
-			case assoc (sizes, string_of_typ T) of
+			case AList.lookup (op =) sizes (string_of_typ T) of
 			  SOME n => n
 			| NONE   => minsize
 	in
@@ -876,7 +878,7 @@ struct
 				(* continue search *)
 				next max (len+1) (sum+x1) (x2::xs)
 		(* only consider those types for which the size is not fixed *)
-		val mutables = List.filter (fn (T, _) => assoc (sizes, string_of_typ T) = NONE) xs
+		val mutables = List.filter (not o (AList.defined (op =) sizes) o string_of_typ o fst) xs
 		(* subtract 'minsize' from every size (will be added again at the end) *)
 		val diffs = map (fn (_, n) => n-minsize) mutables
 	in
@@ -884,7 +886,7 @@ struct
 		  SOME diffs' =>
 			(* merge with those types for which the size is fixed *)
 			SOME (snd (foldl_map (fn (ds, (T, _)) =>
-				case assoc (sizes, string_of_typ T) of
+				case AList.lookup (op =) sizes (string_of_typ T) of
 				  SOME n => (ds, (T, n))                    (* return the fixed size *)
 				| NONE   => (tl ds, (T, minsize + hd ds)))  (* consume the head of 'ds', add 'minsize' *)
 				(diffs', xs)))
@@ -949,7 +951,7 @@ struct
 						let
 							val index           = #index info
 							val descr           = #descr info
-							val (_, _, constrs) = (valOf o assoc) (descr, index)
+							val (_, _, constrs) = (the o AList.lookup (op =) descr) index
 						in
 							(* recursive datatype? *)
 							Library.exists (fn (_, ds) => Library.exists DatatypeAux.is_rec_type ds) constrs
@@ -1358,7 +1360,7 @@ struct
 			(* unit -> (interpretation * model * arguments) option *)
 			fun interpret_groundtype () =
 			let
-				val size = (if T = Term.propT then 2 else (valOf o assoc) (typs, T))                    (* the model MUST specify a size for ground types *)
+				val size = (if T = Term.propT then 2 else (the o AList.lookup (op =) typs) T)                    (* the model MUST specify a size for ground types *)
 				val next = next_idx+size
 				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
 				(* prop_formula list *)
@@ -1407,7 +1409,7 @@ struct
 			| TVar  _ => interpret_groundtype ()
 		end
 	in
-		case assoc (terms, t) of
+		case AList.lookup (op =) terms t of
 		  SOME intr =>
 			(* return an existing interpretation *)
 			SOME (intr, model, args)
@@ -1598,7 +1600,7 @@ struct
 	let
 		val (typs, terms) = model
 	in
-		case assoc (terms, t) of
+		case AList.lookup (op =) terms t of
 		  SOME intr =>
 			(* return an existing interpretation *)
 			SOME (intr, model, args)
@@ -1651,7 +1653,7 @@ struct
 			  SOME info =>  (* inductive datatype *)
 				let
 					(* int option -- only recursive IDTs have an associated depth *)
-					val depth = assoc (typs, Type (s, Ts))
+					val depth = AList.lookup (op =) typs (Type (s, Ts))
 				in
 					if depth = (SOME 0) then  (* termination condition to avoid infinite recursion *)
 						(* return a leaf of size 0 *)
@@ -1660,7 +1662,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (valOf o assoc) (descr, index)
+							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -1670,7 +1672,8 @@ struct
 								else
 									())
 							(* if the model specifies a depth for the current type, decrement it to avoid infinite recursion *)
-							val typs'    = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s, Ts), n-1)))
+							val typs'    = case depth of NONE => typs | SOME n =>
+								AList.update (op =) (Type (s, Ts), n-1) typs
 							(* recursively compute the size of the datatype *)
 							val size     = size_of_dtyp thy typs' descr typ_assoc constrs
 							val next_idx = #next_idx args
@@ -1695,7 +1698,7 @@ struct
 		  | interpret_term _ =  (* a (free or schematic) type variable *)
 			NONE
 	in
-		case assoc (terms, t) of
+		case AList.lookup (op =) terms t of
 		  SOME intr =>
 			(* return an existing interpretation *)
 			SOME (intr, model, args)
@@ -1713,7 +1716,7 @@ struct
 	let
 		val (typs, terms) = model
 	in
-		case assoc (terms, t) of
+		case AList.lookup (op =) terms t of
 		  SOME intr =>
 			(* return an existing interpretation *)
 			SOME (intr, model, args)
@@ -1727,7 +1730,7 @@ struct
 						let
 							val index               = #index info
 							val descr               = #descr info
-							val (_, dtyps, constrs) = (valOf o assoc) (descr, index)
+							val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
 							val typ_assoc           = dtyps ~~ Ts'
 							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 							val _ = (if Library.exists (fn d =>
@@ -1751,8 +1754,9 @@ struct
 									val (i, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type (s', Ts')))
 									val total     = size_of_type i
 									(* int option -- only recursive IDTs have an associated depth *)
-									val depth = assoc (typs, Type (s', Ts'))
-									val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s', Ts'), n-1)))
+									val depth = AList.lookup (op =) typs (Type (s', Ts'))
+									val typs' = (case depth of NONE => typs | SOME n =>
+										AList.update (op =) (Type (s', Ts'), n-1) typs)
 									(* returns an interpretation where everything is mapped to "undefined" *)
 									(* DatatypeAux.dtyp list -> interpretation *)
 									fun make_undef [] =
@@ -1904,7 +1908,7 @@ struct
 						let
 							val index              = #index info
 							val descr              = #descr info
-							val (dtname, dtyps, _) = (valOf o assoc) (descr, index)
+							val (dtname, dtyps, _) = (the o AList.lookup (op =) descr) index
 							(* number of all constructors, including those of different           *)
 							(* (mutually recursive) datatypes within the same descriptor 'descr'  *)
 							val mconstrs_count     = sum (map (fn (_, (_, _, cs)) => length cs) descr)
@@ -1995,7 +1999,7 @@ struct
 												  SOME args => (n, args)
 												| NONE      => get_cargs_rec (n+1, xs))
 										in
-											get_cargs_rec (0, (valOf o assoc) (mc_intrs, idx))
+											get_cargs_rec (0, (the o AList.lookup (op =) mc_intrs) idx)
 										end
 									(* returns the number of constructors in datatypes that occur in *)
 									(* the descriptor 'descr' before the datatype given by 'idx'     *)
@@ -2015,7 +2019,7 @@ struct
 									(* where 'idx' gives the datatype and 'elem' the element of it             *)
 									(* int -> int -> interpretation *)
 									fun compute_array_entry idx elem =
-										case Array.sub ((valOf o assoc) (INTRS, idx), elem) of
+										case Array.sub ((the o AList.lookup (op =) INTRS) idx, elem) of
 										  SOME result =>
 											(* simply return the previously computed result *)
 											result
@@ -2033,7 +2037,7 @@ struct
 												(* select the correct subtree of the parameter corresponding to constructor 'c' *)
 												val p_intr = select_subtree (List.nth (p_intrs, get_coffset idx + c), args)
 												(* find the indices of the constructor's recursive arguments *)
-												val (_, _, constrs) = (valOf o assoc) (descr, idx)
+												val (_, _, constrs) = (the o AList.lookup (op =) descr) idx
 												val constr_args     = (snd o List.nth) (constrs, c)
 												val rec_args        = List.filter (DatatypeAux.is_rec_type o fst) (constr_args ~~ args)
 												val rec_args'       = map (fn (dtyp, elem) => (DatatypeAux.dest_DtRec dtyp, elem)) rec_args
@@ -2041,7 +2045,7 @@ struct
 												val result = foldl (fn ((idx, elem), intr) =>
 													interpretation_apply (intr, compute_array_entry idx elem)) p_intr rec_args'
 												(* update 'INTRS' *)
-												val _ = Array.update ((valOf o assoc) (INTRS, idx), elem, SOME result)
+												val _ = Array.update ((the o AList.lookup (op =) INTRS) idx, elem, SOME result)
 											in
 												result
 											end
@@ -2060,13 +2064,13 @@ struct
 										in
 											modifyi_loop 0
 										end
-									val _ = modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((valOf o assoc) (INTRS, index))
+									val _ = modifyi (fn (i, _) => SOME (compute_array_entry index i)) ((the o AList.lookup (op =) INTRS) index)
 									(* 'a Array.array -> 'a list *)
 									fun toList arr =
 										Array.foldr op:: [] arr
 								in
 									(* return the part of 'INTRS' that corresponds to the current datatype *)
-									SOME ((Node o (map valOf) o toList o valOf o assoc) (INTRS, index), model', args')
+									SOME ((Node o map the o toList o the o AList.lookup (op =) INTRS) index, model', args')
 								end
 						end
 					else
@@ -2515,7 +2519,7 @@ struct
 					val (typs, _)           = model
 					val index               = #index info
 					val descr               = #descr info
-					val (_, dtyps, constrs) = (valOf o assoc) (descr, index)
+					val (_, dtyps, constrs) = (the o AList.lookup (op =) descr) index
 					val typ_assoc           = dtyps ~~ Ts
 					(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
 					val _ = (if Library.exists (fn d =>

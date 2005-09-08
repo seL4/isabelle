@@ -383,7 +383,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val params = rev(Term.rename_wrt_term Bi params)
                            (* as they are printed: bound variables with *)
                            (* the same name are renamed during printing *)
-        fun types' (a, ~1) = (case assoc (params, a) of
+        fun types' (a, ~1) = (case AList.lookup (op =) params a of
                 NONE => types (a, ~1)
               | some => some)
           | types' xi = types xi;

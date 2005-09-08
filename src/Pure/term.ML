@@ -861,7 +861,7 @@ fun could_unify (t,u) =
 fun subst_free [] = (fn t=>t)
   | subst_free pairs =
       let fun substf u =
-            case gen_assoc (op aconv) (pairs, u) of
+            case AList.lookup (op aconv) pairs u of
                 SOME u' => u'
               | NONE => (case u of Abs(a,T,t) => Abs(a, T, substf t)
                                  | t$u' => substf t $ substf u'
@@ -916,7 +916,7 @@ fun subst_atomic [] tm = tm
       let
         fun subst (Abs (a, T, body)) = Abs (a, T, subst body)
           | subst (t $ u) = subst t $ subst u
-          | subst t = if_none (gen_assoc (op aconv) (inst, t)) t;
+          | subst t = if_none (AList.lookup (op aconv) inst t) t;
       in subst tm end;
 
 (*Replace the ATOMIC type Ti by Ui;    inst = [(T1,U1), ..., (Tn,Un)].*)
@@ -924,7 +924,7 @@ fun typ_subst_atomic [] ty = ty
   | typ_subst_atomic inst ty =
       let
         fun subst (Type (a, Ts)) = Type (a, map subst Ts)
-          | subst T = if_none (gen_assoc (op = : typ * typ -> bool) (inst, T)) T;
+          | subst T = if_none (AList.lookup (op = : typ * typ -> bool) inst T) T;
       in subst ty end;
 
 fun subst_atomic_types [] tm = tm
@@ -977,7 +977,7 @@ fun instantiateT_same [] _ = raise SAME
       let
         fun subst_typ (Type (a, Ts)) = Type (a, subst_typs Ts)
           | subst_typ (TVar v) =
-              (case gen_assoc eq_tvar (instT, v) of
+              (case AList.lookup eq_tvar instT v of
                 SOME T => T
               | NONE => raise SAME)
           | subst_typ _ = raise SAME
@@ -995,7 +995,7 @@ fun instantiate ([], []) tm = tm
           | subst (Free (x, T)) = Free (x, substT T)
           | subst (Var (xi, T)) =
               let val (T', same) = (substT T, false) handle SAME => (T, true) in
-                (case gen_assoc eq_var (inst, (xi, T')) of
+                (case AList.lookup eq_var inst (xi, T') of
                    SOME t => t
                  | NONE => if same then raise SAME else Var (xi, T'))
               end

@@ -470,7 +470,7 @@ fun prf_subst_pbounds args prf =
 (**** Freezing and thawing of variables in proof terms ****)
 
 fun frzT names =
-  map_type_tvar (fn (ixn, xs) => TFree (valOf (assoc (names, ixn)), xs));
+  map_type_tvar (fn (ixn, xs) => TFree (the (assoc (names, ixn)), xs));
 
 fun thawT names =
   map_type_tfree (fn (s, xs) => case assoc (names, s) of
@@ -484,7 +484,7 @@ fun freeze names names' (t $ u) =
   | freeze names names' (Const (s, T)) = Const (s, frzT names' T)
   | freeze names names' (Free (s, T)) = Free (s, frzT names' T)
   | freeze names names' (Var (ixn, T)) =
-      Free (valOf (assoc (names, ixn)), frzT names' T)
+      Free (the (assoc (names, ixn)), frzT names' T)
   | freeze names names' t = t;
 
 fun thaw names names' (t $ u) =
@@ -553,7 +553,7 @@ fun varify_proof t fixed prf =
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ variantlist (map fst fs, map #1 ixns)
     fun thaw (f as (a, S)) =
-      (case gen_assoc (op =) (fmap, f) of
+      (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME b => TVar ((b, 0), S));
   in map_proof_terms (map_term_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
@@ -810,8 +810,9 @@ fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
   | add_npvars _ _ Ts (vs, t) = add_npvars' Ts (vs, t)
 and add_npvars' Ts (vs, t) = (case strip_comb t of
     (Var (ixn, _), ts) => if test_args [] ts then vs
-      else Library.foldl (add_npvars' Ts) (overwrite (vs,
-        (ixn, Library.foldl (add_funvars Ts) (getOpt (assoc (vs, ixn), []), ts))), ts)
+      else Library.foldl (add_npvars' Ts)
+        (AList.update (op =) (ixn,
+          Library.foldl (add_funvars Ts) ((these ooo AList.lookup) (op =) vs ixn, ts)) vs, ts)
   | (Abs (_, T, u), ts) => Library.foldl (add_npvars' (T::Ts)) (vs, u :: ts)
   | (_, ts) => Library.foldl (add_npvars' Ts) (vs, ts));
 

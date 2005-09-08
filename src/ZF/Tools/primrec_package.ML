@@ -80,7 +80,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
     else case rec_fn_opt of
         NONE => SOME (fname, ftype, ls, rs, con_info, [new_eqn])
       | SOME (fname', _, ls', rs', con_info': constructor_info, eqns) =>
-          if isSome (assoc (eqns, cname)) then
+          if AList.defined (op =) eqns cname then
             raise RecError "constructor already occurred as pattern"
           else if (ls <> ls') orelse (rs <> rs') then
             raise RecError "non-recursive arguments are inconsistent"
@@ -120,7 +120,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
       Missing cases are replaced by 0 and all cases are put into order.*)
     fun add_case ((cname, recursor_pair), cases) =
       let val (rhs, recursor_rhs, eq) =
-            case assoc (eqns, cname) of
+            case AList.lookup (op =) eqns cname of
                 NONE => (warning ("no equation for constructor " ^ cname ^
                                   "\nin definition of function " ^ fname);
                          (Const ("0", Ind_Syntax.iT),

@@ -110,7 +110,7 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' SynExt.eq_trfun (tab1, tab2);
 fun lookup_tokentr tabs modes =
   let val trs = gen_distinct eq_fst
     (List.concat (map (these o AList.lookup (op =) tabs) (modes @ [""])))
-  in fn c => Option.map fst (assoc (trs, c)) end;
+  in fn c => Option.map fst (AList.lookup (op =) trs c) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
   let
