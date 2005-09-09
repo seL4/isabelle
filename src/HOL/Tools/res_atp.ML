@@ -24,7 +24,7 @@ fun debug_tac tac = (debug "testing"; tac);
 
 val prover = ref "spass";   (* use spass as default prover *)
 val custom_spass =   (*specialized options for SPASS*)
-      ref ["Auto=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
+      ref ["Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
            "-DocProof","-TimeLimit=60"];
 
 val axiom_file = File.tmp_path (Path.basic "axioms");
@@ -147,6 +147,8 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
             val probfile = File.platform_path prob_file ^ "_" ^ (string_of_int n)
             val _ = debug ("prob file in call_resolve_tac is " ^ probfile)
           in
+            (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
+              versions of Unix.execute treat them differently!*)
             if !prover = "spass"
             then
               let val optionline = 
@@ -154,7 +156,7 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
 		          (*Proof reconstruction works for only a limited set of 
 		            inference rules*)
                       then "-" ^ space_implode "%-" (!custom_spass)
-                      else "-DocProof%-TimeLimit=60%-SOS" (*Auto mode*)
+                      else "-DocProof%-TimeLimit=60%-SOS%-FullRed=0" (*Auto mode*)
                   val _ = debug ("SPASS option string is " ^ optionline)
                   val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
                     (*We've checked that SPASS is there for ATP/spassshell to run.*)
@@ -168,7 +170,7 @@ fun call_resolve_tac  (thms: thm list list)  sign (sg_terms:  term list) (childi
 	    then 
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
               in
-                ([("vampire", thmstr, goalstring, vampire, "-t 60%-m 100000",
+                ([("vampire", thmstr, goalstring, vampire, "-t60%-m100000",
                    axfile, hypsfile, probfile)] @
                  (make_atp_list xs sign (n+1)))
               end

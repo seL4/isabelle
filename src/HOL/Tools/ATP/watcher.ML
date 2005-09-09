@@ -87,15 +87,12 @@ val fromStatus = Posix.Process.fromStatus
 
 
 fun reap(pid, instr, outstr) =
-        let
-		val u = TextIO.closeIn instr;
-	        val u = TextIO.closeOut outstr;
-	
-		val (_, status) =
-			Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
-	in
-		status
-	end
+  let val u = TextIO.closeIn instr;
+      val u = TextIO.closeOut outstr;
+      val (_, status) = Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
+  in
+	  status
+  end
 
 fun fdReader (name : string, fd : Posix.IO.file_desc) =
 	  Posix.IO.mkTextReader {initBlkMode = true,name = name,fd = fd };
@@ -106,8 +103,7 @@ fun fdWriter (name, fd) =
               initBlkMode = true,
               name = name,  
               chunkSize=4096,
-              fd = fd
-            };
+              fd = fd};
 
 fun openOutFD (name, fd) =
 	  TextIO.mkOutstream (
@@ -125,38 +121,31 @@ fun childInfo (PROC{pid,instr,outstr }) = (pid,(instr,outstr));
 
 fun cmdstreamsOf (CMDPROC{instr,outstr,...}) = (instr, outstr);
 
-fun cmdInStream (CMDPROC{instr,outstr,...}) = (instr);
+fun cmdInStream (CMDPROC{instr,outstr,...}) = instr;
 
-fun cmdchildInfo (CMDPROC{prover,cmd,thmstring,proc_handle,goalstring,instr,outstr}) = (prover,(cmd, (instr,outstr)));
+fun cmdchildInfo (CMDPROC{prover,cmd,thmstring,proc_handle,goalstring,instr,outstr}) = 
+  (prover,(cmd, (instr,outstr)));
 
-fun cmdchildHandle (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = proc_handle;
+fun cmdchildHandle (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = 
+  proc_handle;
 
-fun cmdProver (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = (prover);
+fun cmdProver (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  =
+  prover;
 
-fun cmdThm (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = (thmstring);
+fun cmdThm (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = 
+  thmstring;
 
-fun cmdGoal (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = (goalstring);
+fun cmdGoal (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  =
+  goalstring;
 
-fun sendOutput (outstr,str) = (TextIO.outputSubstr (outstr, (Substring.all str));TextIO.flushOut outstr);
-
-(********************************************************************************************)
-(*  takes a list of arguments and sends them individually to the watcher process by pipe    *)
-(********************************************************************************************)
-
-fun outputArgs (toWatcherStr, []) = ()
-|   outputArgs (toWatcherStr, (x::xs)) = (TextIO.output (toWatcherStr, x); 
-                                          TextIO.flushOut toWatcherStr;
-                                         outputArgs (toWatcherStr, xs))
 
 (********************************************************************************)
 (*    gets individual args from instream and concatenates them into a list      *)
 (********************************************************************************)
 
-fun getArgs (fromParentStr, toParentStr,ys) =  let 
-                                       val thisLine = TextIO.input fromParentStr
-                                    in
-                                        ((ys@[thisLine]))
-                                    end
+fun getArgs (fromParentStr, toParentStr, ys) =  
+  let val thisLine = TextIO.input fromParentStr
+  in ys@[thisLine] end
 
                             
 (********************************************************************************)
@@ -164,7 +153,7 @@ fun getArgs (fromParentStr, toParentStr,ys) =  let
 (********************************************************************************)
                     
 fun callResProver (toWatcherStr,  arg) = 
-      (sendOutput (toWatcherStr, arg^"\n"); 
+      (TextIO.output (toWatcherStr, arg^"\n"); 
        TextIO.flushOut toWatcherStr)
 
 (*****************************************************************************************)
@@ -175,14 +164,14 @@ fun callResProver (toWatcherStr,  arg) =
     
 (*Uses the $-character to separate items sent to watcher*)
 fun callResProvers (toWatcherStr,  []) = 
-      (sendOutput (toWatcherStr, "End of calls\n");  TextIO.flushOut toWatcherStr)
+      (TextIO.output (toWatcherStr, "End of calls\n");  TextIO.flushOut toWatcherStr)
 |   callResProvers (toWatcherStr,
                     (prover,thmstring,goalstring, proverCmd,settings, 
                      axfile, hypsfile,probfile)  ::  args) =
       let val _ = File.write (File.tmp_path (Path.basic "tog_comms"))
                              (prover^thmstring^goalstring^proverCmd^settings^
                               hypsfile^probfile)
-      in sendOutput (toWatcherStr,    
+      in TextIO.output (toWatcherStr,    
             (prover^"$"^thmstring^"$"^goalstring^"$"^proverCmd^"$"^
              settings^"$"^hypsfile^"$"^probfile^"\n"));
          goals_being_watched := (!goals_being_watched) + 1;
@@ -196,7 +185,7 @@ fun callResProvers (toWatcherStr,  []) =
 (* Send message to watcher to kill currently running vampires *)
 (**************************************************************)
 
-fun callSlayer (toWatcherStr) = (sendOutput (toWatcherStr, "Kill vampires\n"); 
+fun callSlayer toWatcherStr = (TextIO.output (toWatcherStr, "Kill vampires\n"); 
                             TextIO.flushOut toWatcherStr)
 
 
@@ -262,7 +251,7 @@ fun getCmds (toParentStr,fromParentStr, cmdList) =
 	     TextIO.flushOut toParentStr;
 	   (("","","","Kill children",[],"")::cmdList)
 	  )
-     else  let val thisCmd = getCmd (thisLine) 
+     else  let val thisCmd = getCmd thisLine 
 	       (*********************************************************)
 	       (* thisCmd = (prover,thmstring,proverCmd, settings, file)*)
 	       (* i.e. put back into tuple format                       *)
@@ -270,7 +259,7 @@ fun getCmds (toParentStr,fromParentStr, cmdList) =
 	   in
 	     (*TextIO.output (toParentStr, thisCmd); 
 	       TextIO.flushOut toParentStr;*)
-	       getCmds (toParentStr,fromParentStr, (thisCmd::cmdList))
+	       getCmds (toParentStr, fromParentStr, (thisCmd::cmdList))
 	   end
   end
 	    
@@ -302,16 +291,15 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
     (** pipes for communication between parent and watcher **)
     val p1 = Posix.IO.pipe ()
     val p2 = Posix.IO.pipe ()
-    fun closep () = (
-	  Posix.IO.close (#outfd p1); 
+    fun closep () = 
+	 (Posix.IO.close (#outfd p1); 
 	  Posix.IO.close (#infd p1);
 	  Posix.IO.close (#outfd p2); 
-	  Posix.IO.close (#infd p2)
-	)
+	  Posix.IO.close (#infd p2))
     (***********************************************************)
     (****** fork a watcher process and get it set up and going *)
     (***********************************************************)
-    fun startWatcher (procList) =
+    fun startWatcher procList =
      (case  Posix.Process.fork() (***************************************)
       of SOME pid =>  pid           (* parent - i.e. main Isabelle process *)
 				    (***************************************)
@@ -338,7 +326,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	 (*************************************************************)
 
 	 fun pollParentInput () = 
-	   let val pd = OS.IO.pollDesc (fromParentIOD)
+	   let val pd = OS.IO.pollDesc fromParentIOD
 	   in 
 	     if isSome pd then 
 		 let val pd' = OS.IO.pollIn (valOf pd)
@@ -356,7 +344,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	       else NONE
 	   end
 		 
-	  fun pollChildInput (fromStr) = 
+	  fun pollChildInput fromStr = 
 	   let val _ = File.append (File.tmp_path (Path.basic "child_poll")) 
 			 ("In child_poll\n")
 	       val iod = getInIoDesc fromStr
@@ -465,31 +453,13 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 
 (*** add subgoal id num to this *)
 	fun execCmds  [] procList = procList
-	|   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =             let val _ = File.append (File.tmp_path (Path.basic "pre_exec_child"))  ("\nAbout to execute command for goal:\n"^goalstring^proverCmd^(concat settings)^file^" at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-	  in 
-	    if prover = "spass"
-	    then 
-	      let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
-		       (Unix.execute(proverCmd, (["-FullRed=0"]@settings@[file])))
-		  val (instr, outstr) = Unix.streamsOf childhandle
-		  val newProcList =    (((CMDPROC{
-				       prover = prover,
-				       cmd = file,
-				       thmstring = thmstring,
-				       goalstring = goalstring,
-				       proc_handle = childhandle,
-				       instr = instr,
-				       outstr = outstr })::procList))
-		   val _ = File.append (File.tmp_path (Path.basic "exec_child"))  
-			("\nexecuting command for goal:\n"^
-			 goalstring^proverCmd^(concat settings)^file^
-			 " at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
-	      in
-		 Posix.Process.sleep (Time.fromSeconds 1);
-		 execCmds cmds newProcList
-	      end
-	    else 
-	      let val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+	|   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =
+	      let val _ = File.write (File.tmp_path (Path.basic "exec_child"))  
+	                    (space_implode "\n" 
+	                      (["About to execute command for goal:",
+	                        goalstring, proverCmd] @ settings @
+	                       [file, Date.toString(Date.fromTimeLocal(Time.now()))]))
+	          val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
 		       (Unix.execute(proverCmd, (settings@[file])))
 		  val (instr, outstr) = Unix.streamsOf childhandle
 		  
@@ -503,20 +473,18 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 				       outstr = outstr }) :: procList
      
 		  val _ = File.append (File.tmp_path (Path.basic "exec_child")) 
-			    ("executing command for goal:\n"^
-			     goalstring^proverCmd^(concat settings)^file^
-			     " at "^(Date.toString(Date.fromTimeLocal(Time.now()))))
+			    ("\nFinished at " ^
+			     Date.toString(Date.fromTimeLocal(Time.now())))
 	      in
 		Posix.Process.sleep (Time.fromSeconds 1); 
 		execCmds cmds newProcList
 	      end
-	   end
 
 
      (****************************************)                  
      (* call resolution processes remotely   *)
      (* settings should be a list of strings *)
-     (* e.g. ["-t 300", "-m 100000"]         *)
+     (* e.g. ["-t300", "-m100000"]         *)
      (****************************************)
 
       (*  fun execRemoteCmds  [] procList = procList
@@ -527,23 +495,19 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 				      end
 *)
 
-	fun printList (outStr, []) = ()
-	|   printList (outStr, (x::xs)) = (TextIO.output (outStr, x);TextIO.flushOut outStr; printList (outStr,xs))                  
-
-
      (**********************************************)                  
      (* Watcher Loop                               *)
      (**********************************************)
          val iterations_left = ref 1000;  (*200 seconds, 5 iterations per sec*)
 
 	 fun keepWatching (toParentStr, fromParentStr,procList) = 
-	   let fun loop (procList) =  
+	   let fun loop procList =  
 		let val _ = Posix.Process.sleep (Time.fromMilliseconds 200)
 		    val cmdsFromIsa = pollParentInput ()
 		    fun killchildHandler ()  = 
 			  (TextIO.output(toParentStr, "Timeout: Killing proof processes!\n");
 			   TextIO.flushOut toParentStr;
-			   killChildren (map (cmdchildHandle) procList);
+			   killChildren (map cmdchildHandle procList);
 			   ())
 		in 
 		   (*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
@@ -583,7 +547,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			   loop newProcList'
 			 end
 		   else (* No new input from Isabelle *)
-		     let val newProcList = checkChildren ((procList), toParentStr)
+		     let val newProcList = checkChildren (procList, toParentStr)
 		     in
 		      (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
 		       loop newProcList
@@ -625,7 +589,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
     (*******************************)
 
     val procList = []
-    val pid = startWatcher (procList)
+    val pid = startWatcher procList
     (**************************************************)
     (* communication streams to watcher               *)
     (**************************************************)
@@ -680,10 +644,10 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
      val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
      val _ = debug ("subgoals forked to createWatcher: "^prems_string);
 (*FIXME: do we need an E proofHandler??*)
-     fun vampire_proofHandler (n) =
+     fun vampire_proofHandler n =
 	(Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	 VampComm.getVampInput childin; Pretty.writeln(Pretty.str (oct_char "361")))               
-     fun spass_proofHandler (n) = (
+     fun spass_proofHandler n = (
        let val _ = File.append (File.tmp_path (Path.basic "spass_signal_in"))
                                "Starting SPASS signal handler\n"
 	   val (reconstr, goalstring, thmstring) = SpassComm.getSpassInput childin
@@ -717,7 +681,7 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
 	              ("Reaping a watcher, goals watched is: " ^
 	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher (childpid); reapWatcher (childpid,childin, childout); ())
+	             killWatcher childpid; reapWatcher (childpid,childin, childout); ())
 		else () ) 
 	(* print out a list of rules used from clasimpset*)
 	 else if substring (reconstr, 0,5) = "Rules"
@@ -729,7 +693,7 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
 	              ("Reaping a watcher, goals watched is: " ^
 	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
 		     )
 	       else () )
 	  (* if proof translation failed *)
@@ -742,7 +706,7 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
 	              ("Reaping a watcher, goals watched is: " ^
 	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
 		     )
 	       else () )
 
@@ -755,7 +719,7 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
 	              ("Reaping a watcher, goals watched is: " ^
 	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
 		     )
 	       else () )
 
@@ -768,7 +732,7 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
 		     ("Reaping a watcher, goals watched is: " ^
 			(string_of_int (!goals_being_watched))^"\n");
-		    killWatcher (childpid);  reapWatcher (childpid,childin, childout);()
+		    killWatcher childpid;  reapWatcher (childpid,childin, childout);()
 		    )
 	       else () )
        end)

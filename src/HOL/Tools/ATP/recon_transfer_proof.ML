@@ -172,8 +172,7 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num ste
      (***********************************************)
   
       val clasimp_names_cls = get_clasimp_cls clause_arr num_of_clauses step_nums 
-      val clasimp_names = map (#1 o ResClause.clause_info o #1) clasimp_names_cls
-  
+      val clasimp_names = map (ResClause.get_axiomName o #1) clasimp_names_cls
       val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
                          (concat clasimp_names)
       val _ = (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
@@ -541,37 +540,22 @@ val reconstr ="[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][
 (* then show for the last step *)
 
 (* replace ~ by not here *)
-fun change_nots [] = []
-|   change_nots (x::xs) = if x = "~" 
-                          then 
-                             ["\\", "<", "n", "o", "t", ">"]@(change_nots xs)
-                          else (x::(change_nots xs))
+val change_nots = String.translate (fn c => if c = #"~" then "\\<not>" else str c);
 
-(*
-fun clstrs_to_string [] str = str
-|   clstrs_to_string (x::[]) str = str^x
-|   clstrs_to_string (x::xs) str = clstrs_to_string xs (str^(x^"; "))
-*)
-fun clstrs_to_string [] str = implode (change_nots (explode str))
-|   clstrs_to_string (x::[]) str = implode (change_nots (explode (str^x)))
-|   clstrs_to_string (x::xs) str = implode (change_nots (explode (clstrs_to_string xs (str^(x^"; ")))))
-
-
+fun clstrs_to_string xs = space_implode "; " (map change_nots xs);
 
 fun thmvars_to_quantstring [] str = str
 |   thmvars_to_quantstring (x::[]) str =str^x^". "
 |   thmvars_to_quantstring (x::xs) str = thmvars_to_quantstring xs (str^(x^" "))
 
 
-fun clause_strs_to_isar clstrs [] =  "\"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> \\<Longrightarrow> False\""
-|   clause_strs_to_isar clstrs thmvars = "\"\\<And>"^(thmvars_to_quantstring thmvars "")^"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> \\<Longrightarrow> False\""
+fun clause_strs_to_isar clstrs [] =
+      "\"\\<lbrakk>"^(clstrs_to_string clstrs)^"\\<rbrakk> \\<Longrightarrow> False\""
+|   clause_strs_to_isar clstrs thmvars =
+      "\"\\<And>"^(thmvars_to_quantstring thmvars "")^
+      "\\<lbrakk>"^(clstrs_to_string clstrs)^"\\<rbrakk> \\<Longrightarrow> False\""
 
-fun frees_to_string [] str = implode (change_nots (explode str))
-|   frees_to_string (x::[]) str = implode (change_nots (explode (str^x)))
-|   frees_to_string  (x::xs) str = implode (change_nots (explode (frees_to_string xs (str^(x^" ")))))
-
-fun frees_to_isar_str [] =  ""
-|   frees_to_isar_str  clstrs = (frees_to_string clstrs "")
+fun frees_to_isar_str clstrs = space_implode " " (map change_nots clstrs)
 
 
 (***********************************************************************)
