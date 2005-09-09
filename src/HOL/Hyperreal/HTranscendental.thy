@@ -48,23 +48,19 @@ constdefs
 subsection{*Nonstandard Extension of Square Root Function*}
 
 lemma STAR_sqrt_zero [simp]: "( *f* sqrt) 0 = 0"
-by (simp add: starfun hypreal_zero_num)
+by (simp add: starfun star_n_zero_num)
 
 lemma STAR_sqrt_one [simp]: "( *f* sqrt) 1 = 1"
-by (simp add: starfun hypreal_one_num)
+by (simp add: starfun star_n_one_num)
 
 lemma hypreal_sqrt_pow2_iff: "(( *f* sqrt)(x) ^ 2 = x) = (0 \<le> x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (auto simp add: hypreal_le hypreal_zero_num starfun hrealpow 
+apply (cases x)
+apply (auto simp add: star_n_le star_n_zero_num starfun hrealpow star_n_eq_iff
             simp del: hpowr_Suc realpow_Suc)
 done
 
-lemma hypreal_sqrt_gt_zero_pow2: "0 < x ==> ( *f* sqrt) (x) ^ 2 = x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (auto intro: FreeUltrafilterNat_subset 
-            simp add: hypreal_less starfun hrealpow hypreal_zero_num 
-            simp del: hpowr_Suc realpow_Suc)
-done
+lemma hypreal_sqrt_gt_zero_pow2: "!!x. 0 < x ==> ( *f* sqrt) (x) ^ 2 = x"
+by (transfer, simp)
 
 lemma hypreal_sqrt_pow2_gt_zero: "0 < x ==> 0 < ( *f* sqrt) (x) ^ 2"
 by (frule hypreal_sqrt_gt_zero_pow2, auto)
@@ -81,9 +77,9 @@ apply (auto dest: hypreal_sqrt_gt_zero_pow2)
 done
 
 lemma hypreal_sqrt_mult_distrib: 
-    "[|0 < x; 0 <y |] ==> ( *f* sqrt)(x*y) =  ( *f* sqrt)(x) * ( *f* sqrt)(y)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: hypreal_zero_def starfun hypreal_mult hypreal_less hypreal_zero_num, ultra)
+    "!!x y. [|0 < x; 0 <y |] ==>
+      ( *f* sqrt)(x*y) = ( *f* sqrt)(x) * ( *f* sqrt)(y)"
+apply transfer
 apply (auto intro: real_sqrt_mult_distrib) 
 done
 
@@ -108,42 +104,34 @@ by (auto simp add: order_le_less)
 lemma hypreal_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y + z*z) @= 0) = (x*x + y*y + z*z @= 0)"
 apply (rule hypreal_sqrt_approx_zero2)
-apply (rule hypreal_le_add_order)+
+apply (rule add_nonneg_nonneg)+
 apply (auto simp add: zero_le_square)
 done
 
 lemma hypreal_sqrt_sum_squares2 [simp]:
      "(( *f* sqrt)(x*x + y*y) @= 0) = (x*x + y*y @= 0)"
 apply (rule hypreal_sqrt_approx_zero2)
-apply (rule hypreal_le_add_order)
+apply (rule add_nonneg_nonneg)
 apply (auto simp add: zero_le_square)
 done
 
-lemma hypreal_sqrt_gt_zero: "0 < x ==> 0 < ( *f* sqrt)(x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (auto simp add: starfun hypreal_zero_def hypreal_less hypreal_zero_num, ultra)
+lemma hypreal_sqrt_gt_zero: "!!x. 0 < x ==> 0 < ( *f* sqrt)(x)"
+apply transfer
 apply (auto intro: real_sqrt_gt_zero)
 done
 
 lemma hypreal_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> ( *f* sqrt)(x)"
 by (auto intro: hypreal_sqrt_gt_zero simp add: order_le_less)
 
-lemma hypreal_sqrt_hrabs [simp]: "( *f* sqrt)(x ^ 2) = abs(x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_hrabs hypreal_mult numeral_2_eq_2)
-done
+lemma hypreal_sqrt_hrabs [simp]: "!!x. ( *f* sqrt)(x ^ 2) = abs(x)"
+by (transfer, simp)
 
-lemma hypreal_sqrt_hrabs2 [simp]: "( *f* sqrt)(x*x) = abs(x)"
-apply (rule hrealpow_two [THEN subst])
-apply (rule numeral_2_eq_2 [THEN subst])
-apply (rule hypreal_sqrt_hrabs)
-done
+lemma hypreal_sqrt_hrabs2 [simp]: "!!x. ( *f* sqrt)(x*x) = abs(x)"
+by (transfer, simp)
 
 lemma hypreal_sqrt_hyperpow_hrabs [simp]:
-     "( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_hrabs hypnat_of_nat_eq hyperpow)
-done
+     "!!x. ( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)"
+by (unfold hyperpow_def, transfer, simp)
 
 lemma star_sqrt_HFinite: "\<lbrakk>x \<in> HFinite; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* sqrt) x \<in> HFinite"
 apply (rule HFinite_square_iff [THEN iffD1])
@@ -160,11 +148,8 @@ apply (rule_tac [5] hypreal_sqrt_mult_distrib2 [THEN subst])
 apply (auto simp add: st_hrabs st_zero_le star_sqrt_HFinite)
 done
 
-lemma hypreal_sqrt_sum_squares_ge1 [simp]: "x \<le> ( *f* sqrt)(x ^ 2 + y ^ 2)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: starfun hypreal_add hrealpow hypreal_le 
-            del: hpowr_Suc realpow_Suc)
-done
+lemma hypreal_sqrt_sum_squares_ge1 [simp]: "!!x y. x \<le> ( *f* sqrt)(x ^ 2 + y ^ 2)"
+by (transfer, simp)
 
 lemma HFinite_hypreal_sqrt:
      "[| 0 \<le> x; x \<in> HFinite |] ==> ( *f* sqrt) x \<in> HFinite"
@@ -189,7 +174,7 @@ by (blast intro: HFinite_hypreal_sqrt HFinite_hypreal_sqrt_imp_HFinite)
 lemma HFinite_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> HFinite) = (x*x + y*y \<in> HFinite)"
 apply (rule HFinite_hypreal_sqrt_iff)
-apply (rule hypreal_le_add_order)
+apply (rule add_nonneg_nonneg)
 apply (auto simp add: zero_le_square)
 done
 
@@ -216,7 +201,7 @@ by (blast intro: Infinitesimal_hypreal_sqrt_imp_Infinitesimal Infinitesimal_hypr
 lemma Infinitesimal_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> Infinitesimal) = (x*x + y*y \<in> Infinitesimal)"
 apply (rule Infinitesimal_hypreal_sqrt_iff)
-apply (rule hypreal_le_add_order)
+apply (rule add_nonneg_nonneg)
 apply (auto simp add: zero_le_square)
 done
 
@@ -243,35 +228,35 @@ by (blast intro: HInfinite_hypreal_sqrt HInfinite_hypreal_sqrt_imp_HInfinite)
 lemma HInfinite_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> HInfinite) = (x*x + y*y \<in> HInfinite)"
 apply (rule HInfinite_hypreal_sqrt_iff)
-apply (rule hypreal_le_add_order)
+apply (rule add_nonneg_nonneg)
 apply (auto simp add: zero_le_square)
 done
 
 lemma HFinite_exp [simp]:
      "sumhr (0, whn, %n. inverse (real (fact n)) * x ^ n) \<in> HFinite"
 by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-         simp add: starfunNat_sumr [symmetric] starfunNat hypnat_omega_def
+         simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
                    convergent_NSconvergent_iff [symmetric] 
                    summable_convergent_sumr_iff [symmetric] summable_exp)
 
 lemma exphr_zero [simp]: "exphr 0 = 1"
 apply (simp add: exphr_def sumhr_split_add
                    [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (simp add: sumhr hypnat_zero_def starfunNat hypnat_one_def hypnat_add
-                 hypnat_omega_def hypreal_add 
-            del: hypnat_add_zero_left)
-apply (simp add: hypreal_one_num [symmetric])
+apply (simp add: sumhr star_n_zero_num starfun star_n_one_num star_n_add
+                 hypnat_omega_def
+            del: OrderedGroup.add_0)
+apply (simp add: star_n_one_num [symmetric])
 done
 
 lemma coshr_zero [simp]: "coshr 0 = 1"
 apply (simp add: coshr_def sumhr_split_add
                    [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (simp add: sumhr hypnat_zero_def hypnat_one_def hypnat_omega_def)
-apply (simp add: hypreal_one_def [symmetric] hypreal_zero_def [symmetric])
+apply (simp add: sumhr star_n_zero_num star_n_one_num hypnat_omega_def)
+apply (simp add: star_n_one_num [symmetric] star_n_zero_num [symmetric])
 done
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) 0 @= 1"
-by (simp add: hypreal_zero_def hypreal_one_def starfun hypreal_one_num)
+by (simp add: star_n_zero_num star_n_one_num starfun)
 
 lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) x @= 1"
 apply (case_tac "x = 0")
@@ -289,10 +274,8 @@ done
 lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
-lemma STAR_exp_add: "( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: starfun hypreal_add hypreal_mult exp_add)
-done
+lemma STAR_exp_add: "!!x y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
+by (transfer, rule exp_add)
 
 lemma exphr_hypreal_of_real_exp_eq: "exphr x = hypreal_of_real (exp x)"
 apply (simp add: exphr_def)
@@ -300,7 +283,7 @@ apply (rule st_hypreal_of_real [THEN subst])
 apply (rule approx_st_eq, auto)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (simp only: mem_infmal_iff [symmetric])
-apply (auto simp add: mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypnat_zero_def hypnat_omega_def sumhr hypreal_minus hypreal_add)
+apply (auto simp add: mem_infmal_iff [symmetric] star_of_def star_n_zero_num hypnat_omega_def sumhr star_n_minus star_n_add)
 apply (rule NSLIMSEQ_zero_Infinitesimal_hypreal)
 apply (insert exp_converges [of x]) 
 apply (simp add: sums_def) 
@@ -308,11 +291,8 @@ apply (drule LIMSEQ_const [THEN [2] LIMSEQ_add, where b = "- exp x"])
 apply (simp add: LIMSEQ_NSLIMSEQ_iff)
 done
 
-lemma starfun_exp_ge_add_one_self [simp]: "0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_add hypreal_le hypreal_zero_num hypreal_one_num, ultra)
-apply (erule exp_ge_add_one_self_aux)
-done
+lemma starfun_exp_ge_add_one_self [simp]: "!!x. 0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
+by (transfer, rule exp_ge_add_one_self_aux)
 
 (* exp (oo) is infinite *)
 lemma starfun_exp_HInfinite:
@@ -322,10 +302,8 @@ apply (rule HInfinite_ge_HInfinite, assumption)
 apply (rule order_trans [of _ "1+x"], auto) 
 done
 
-lemma starfun_exp_minus: "( *f* exp) (-x) = inverse(( *f* exp) x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_inverse hypreal_minus exp_minus)
-done
+lemma starfun_exp_minus: "!!x. ( *f* exp) (-x) = inverse(( *f* exp) x)"
+by (transfer, rule exp_minus)
 
 (* exp (-oo) is infinitesimal *)
 lemma starfun_exp_Infinitesimal:
@@ -336,10 +314,8 @@ apply (auto intro!: HInfinite_inverse_Infinitesimal starfun_exp_HInfinite
             simp add: starfun_exp_minus HInfinite_minus_iff)
 done
 
-lemma starfun_exp_gt_one [simp]: "0 < x ==> 1 < ( *f* exp) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_one_num hypreal_zero_num hypreal_less, ultra)
-done
+lemma starfun_exp_gt_one [simp]: "!!x. 0 < x ==> 1 < ( *f* exp) x"
+by (transfer, simp)
 
 (* needs derivative of inverse function
    TRY a NS one today!!!
@@ -354,38 +330,26 @@ Goalw [nsderiv_def] "0r < x ==> NSDERIV ln x :> inverse x";
 *)
 
 
-lemma starfun_ln_exp [simp]: "( *f* ln) (( *f* exp) x) = x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun)
-done
+lemma starfun_ln_exp [simp]: "!!x. ( *f* ln) (( *f* exp) x) = x"
+by (transfer, simp)
 
-lemma starfun_exp_ln_iff [simp]: "(( *f* exp)(( *f* ln) x) = x) = (0 < x)"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_zero_num hypreal_less)
-done
+lemma starfun_exp_ln_iff [simp]: "!!x. (( *f* exp)(( *f* ln) x) = x) = (0 < x)"
+by (transfer, simp)
 
 lemma starfun_exp_ln_eq: "( *f* exp) u = x ==> ( *f* ln) x = u"
-by (auto simp add: starfun)
+by auto
 
-lemma starfun_ln_less_self [simp]: "0 < x ==> ( *f* ln) x < x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_zero_num hypreal_less, ultra)
-done
+lemma starfun_ln_less_self [simp]: "!!x. 0 < x ==> ( *f* ln) x < x"
+by (transfer, simp)
 
-lemma starfun_ln_ge_zero [simp]: "1 \<le> x ==> 0 \<le> ( *f* ln) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_zero_num hypreal_le hypreal_one_num, ultra)
-done
+lemma starfun_ln_ge_zero [simp]: "!!x. 1 \<le> x ==> 0 \<le> ( *f* ln) x"
+by (transfer, simp)
 
-lemma starfun_ln_gt_zero [simp]: "1 < x ==> 0 < ( *f* ln) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_zero_num hypreal_less hypreal_one_num, ultra)
-done
+lemma starfun_ln_gt_zero [simp]: "!!x .1 < x ==> 0 < ( *f* ln) x"
+by (transfer, simp)
 
-lemma starfun_ln_not_eq_zero [simp]: "[| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
-apply (rule_tac z=x in eq_Abs_star)
-apply (auto simp add: starfun hypreal_zero_num hypreal_less hypreal_one_num, ultra)
-done
+lemma starfun_ln_not_eq_zero [simp]: "!!x. [| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
+by (transfer, simp)
 
 lemma starfun_ln_HFinite: "[| x \<in> HFinite; 1 \<le> x |] ==> ( *f* ln) x \<in> HFinite"
 apply (rule HFinite_bounded)
@@ -393,16 +357,13 @@ apply assumption
 apply (simp_all add: starfun_ln_less_self order_less_imp_le)
 done
 
-lemma starfun_ln_inverse: "0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hypreal_zero_num hypreal_minus hypreal_inverse hypreal_less, ultra)
-apply (simp add: ln_inverse)
-done
+lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
+by (transfer, rule ln_inverse)
 
 lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) x \<in> HFinite"
-apply (rule_tac z=x in eq_Abs_star)
+apply (cases x)
 apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl, auto)
+apply (rule bexI [OF _ Rep_star_star_n], auto)
 apply (rule_tac x = "exp u" in exI)
 apply (ultra, arith)
 done
@@ -447,10 +408,8 @@ apply (drule_tac [2] starfun_ln_HInfinite)
 apply (auto simp add: starfun_ln_inverse HInfinite_minus_iff)
 done
 
-lemma starfun_ln_less_zero: "[| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: hypreal_zero_num hypreal_one_num hypreal_less starfun, ultra)
-done
+lemma starfun_ln_less_zero: "!!x. [| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
+by (transfer, simp)
 
 lemma starfun_ln_Infinitesimal_less_zero:
      "[| x \<in> Infinitesimal; 0 < x |] ==> ( *f* ln) x < 0"
@@ -470,19 +429,19 @@ lemma HFinite_sin [simp]:
               ((- 1) ^ ((n - 1) div 2))/(real (fact n))) * x ^ n)  
               \<in> HFinite"
 apply (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-            simp add: starfunNat_sumr [symmetric] starfunNat hypnat_omega_def
+            simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
                       convergent_NSconvergent_iff [symmetric] 
                       summable_convergent_sumr_iff [symmetric])
 apply (simp only: One_nat_def summable_sin)
 done
 
 lemma STAR_sin_zero [simp]: "( *f* sin) 0 = 0"
-by (simp add: starfun hypreal_zero_num)
+by (transfer, simp)
 
 lemma STAR_sin_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* sin) x @= x"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_sin)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def hypreal_of_real_zero)
+apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule bspec [where x = x], auto)
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
@@ -494,32 +453,32 @@ lemma HFinite_cos [simp]:
             ((- 1) ^ (n div 2))/(real (fact n)) else  
             0) * x ^ n) \<in> HFinite"
 by (auto intro!: NSBseq_HFinite_hypreal NSconvergent_NSBseq 
-         simp add: starfunNat_sumr [symmetric] starfunNat hypnat_omega_def
+         simp add: starfunNat_sumr [symmetric] starfun hypnat_omega_def
                    convergent_NSconvergent_iff [symmetric] 
                    summable_convergent_sumr_iff [symmetric] summable_cos)
 
 lemma STAR_cos_zero [simp]: "( *f* cos) 0 = 1"
-by (simp add: starfun hypreal_zero_num hypreal_one_num)
+by (simp add: starfun star_n_zero_num star_n_one_num)
 
 lemma STAR_cos_Infinitesimal [simp]: "x \<in> Infinitesimal ==> ( *f* cos) x @= 1"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_cos)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def hypreal_of_real_zero)
+apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule bspec [where x = x])
-apply (auto simp add: hypreal_of_real_zero hypreal_of_real_one)
+apply auto
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc hypreal_of_real_one)
+            simp add: mult_assoc)
 apply (rule approx_add_right_cancel [where d = "-1"], auto)
 done
 
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"
-by (simp add: starfun hypreal_zero_num)
+by (simp add: starfun star_n_zero_num)
 
 lemma STAR_tan_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* tan) x @= x"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_tan)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def hypreal_of_real_zero)
+apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 apply (drule bspec [where x = x], auto)
 apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
@@ -546,7 +505,7 @@ by (simp add: mult_assoc [symmetric] HNatInfinite_not_eq_zero)
 lemma STAR_sin_Infinitesimal_divide:
      "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
 apply (cut_tac x = 0 in DERIV_sin)
-apply (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def hypreal_of_real_zero hypreal_of_real_one)
+apply (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 done
 
 (*------------------------------------------------------------------------*) 
@@ -600,35 +559,40 @@ apply (erule STAR_sin_pi_divide_HNatInfinite_approx_pi)
 done
 
 lemma starfunNat_pi_divide_n_Infinitesimal: 
-     "N \<in> HNatInfinite ==> ( *fNat* (%x. pi / real x)) N \<in> Infinitesimal"
+     "N \<in> HNatInfinite ==> ( *f* (%x. pi / real x)) N \<in> Infinitesimal"
 by (auto intro!: Infinitesimal_HFinite_mult2 
-         simp add: starfunNat_mult [symmetric] divide_inverse
-                   starfunNat_inverse [symmetric] starfunNat_real_of_nat)
+         simp add: starfun_mult [symmetric] divide_inverse
+                   starfun_inverse [symmetric] starfunNat_real_of_nat)
 
 lemma STAR_sin_pi_divide_n_approx:
      "N \<in> HNatInfinite ==>  
-      ( *f* sin) (( *fNat* (%x. pi / real x)) N) @=  
+      ( *f* sin) (( *f* (%x. pi / real x)) N) @=  
       hypreal_of_real pi/(hypreal_of_hypnat N)"
-by (auto intro!: STAR_sin_Infinitesimal Infinitesimal_HFinite_mult2 
-         simp add: starfunNat_mult [symmetric] divide_inverse
-                   starfunNat_inverse_real_of_nat_eq)
+apply (simp add: starfunNat_real_of_nat [symmetric])
+apply (rule STAR_sin_Infinitesimal)
+apply (simp add: divide_inverse)
+apply (rule Infinitesimal_HFinite_mult2)
+apply (subst starfun_inverse)
+apply (erule starfunNat_inverse_real_of_nat_Infinitesimal)
+apply simp
+done
 
 lemma NSLIMSEQ_sin_pi: "(%n. real n * sin (pi / real n)) ----NS> pi"
-apply (auto simp add: NSLIMSEQ_def starfunNat_mult [symmetric] starfunNat_real_of_nat)
-apply (rule_tac f1 = sin in starfun_stafunNat_o2 [THEN subst])
-apply (auto simp add: starfunNat_mult [symmetric] starfunNat_real_of_nat divide_inverse)
-apply (rule_tac f1 = inverse in starfun_stafunNat_o2 [THEN subst])
+apply (auto simp add: NSLIMSEQ_def starfun_mult [symmetric] starfunNat_real_of_nat)
+apply (rule_tac f1 = sin in starfun_o2 [THEN subst])
+apply (auto simp add: starfun_mult [symmetric] starfunNat_real_of_nat divide_inverse)
+apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
 apply (auto dest: STAR_sin_pi_divide_HNatInfinite_approx_pi 
             simp add: starfunNat_real_of_nat mult_commute divide_inverse)
 done
 
 lemma NSLIMSEQ_cos_one: "(%n. cos (pi / real n))----NS> 1"
 apply (simp add: NSLIMSEQ_def, auto)
-apply (rule_tac f1 = cos in starfun_stafunNat_o2 [THEN subst])
+apply (rule_tac f1 = cos in starfun_o2 [THEN subst])
 apply (rule STAR_cos_Infinitesimal)
 apply (auto intro!: Infinitesimal_HFinite_mult2 
-            simp add: starfunNat_mult [symmetric] divide_inverse
-                      starfunNat_inverse [symmetric] starfunNat_real_of_nat)
+            simp add: starfun_mult [symmetric] divide_inverse
+                      starfun_inverse [symmetric] starfunNat_real_of_nat)
 done
 
 lemma NSLIMSEQ_sin_cos_pi:

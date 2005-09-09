@@ -18,7 +18,7 @@ constdefs
 
   NSLIMSEQ :: "[nat=>real,real] => bool"    ("((_)/ ----NS> (_))" [60, 60] 60)
     --{*Nonstandard definition of convergence of sequence*}
-  "X ----NS> L == (\<forall>N \<in> HNatInfinite. ( *fNat* X) N \<approx> hypreal_of_real L)"
+  "X ----NS> L == (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
 
   lim :: "(nat => real) => real"
     --{*Standard definition of limit using choice operator*}
@@ -42,7 +42,7 @@ constdefs
 
   NSBseq :: "(nat=>real) => bool"
     --{*Nonstandard definition for bounded sequence*}
-  "NSBseq X == (\<forall>N \<in> HNatInfinite. ( *fNat* X) N : HFinite)"
+  "NSBseq X == (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
   monoseq :: "(nat=>real)=>bool"
     --{*Definition for monotonicity*}
@@ -59,7 +59,7 @@ constdefs
   NSCauchy :: "(nat => real) => bool"
     --{*Nonstandard definition*}
   "NSCauchy X == (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite.
-                      ( *fNat* X) M \<approx> ( *fNat* X) N)"
+                      ( *f* X) M \<approx> ( *f* X) N)"
 
 
 
@@ -68,9 +68,10 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
    the whn'nth term of the hypersequence is a member of Infinitesimal*}
 
 lemma SEQ_Infinitesimal:
-      "( *fNat* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
-apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfunNat)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl)
+      "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
+apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfun)
+apply (simp add: star_n_inverse2)
+apply (rule bexI [OF _ Rep_star_star_n])
 apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done
 
@@ -82,7 +83,7 @@ lemma LIMSEQ_iff:
 by (simp add: LIMSEQ_def)
 
 lemma NSLIMSEQ_iff:
-    "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *fNat* X) N \<approx> hypreal_of_real L)"
+    "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
 by (simp add: NSLIMSEQ_def)
 
 
@@ -92,12 +93,11 @@ lemma LIMSEQ_NSLIMSEQ:
       "X ----> L ==> X ----NS> L"
 apply (simp add: LIMSEQ_def NSLIMSEQ_def)
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule_tac z = N in eq_Abs_star)
+apply (rule_tac x = N in star_cases)
 apply (rule approx_minus_iff [THEN iffD2])
-apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def
-              star_of_def star_n_def
-              hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_starrel_refl], safe)
+apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def
+              star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (drule_tac x = u in spec, safe)
 apply (drule_tac x = no in spec, fuf)
 apply (blast dest: less_imp_le)
@@ -145,9 +145,9 @@ done
 
 text{* thus, the sequence defines an infinite hypernatural! *}
 lemma HNatInfinite_NSLIMSEQ: "\<forall>n. n \<le> f n
-          ==> Abs_star (starrel `` {f}) : HNatInfinite"
+          ==> star_n f : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_starrel_refl], safe)
+apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (erule FreeUltrafilterNat_NSLIMSEQ)
 done
 
@@ -161,9 +161,9 @@ lemma lemmaLIM2:
 by auto
 
 lemma lemmaLIM3: "[| 0 < r; \<forall>n. r \<le> \<bar>X (f n) + - L\<bar>;
-           ( *fNat* X) (Abs_star (starrel `` {f})) +
+           ( *f* X) (star_n f) +
            - hypreal_of_real  L \<approx> 0 |] ==> False"
-apply (auto simp add: starfunNat mem_infmal_iff [symmetric] hypreal_of_real_def star_of_def star_n_def hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: starfun mem_infmal_iff [symmetric] star_of_def star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
 apply (rename_tac "Y")
 apply (drule_tac x = r in spec, safe)
 apply (drule FreeUltrafilterNat_Int, assumption)
@@ -179,7 +179,7 @@ apply (simp add: LIMSEQ_def NSLIMSEQ_def)
 apply (rule ccontr, simp, safe)
 txt{* skolemization step *}
 apply (drule choice, safe)
-apply (drule_tac x = "Abs_star (starrel``{f}) " in bspec)
+apply (drule_tac x = "star_n f" in bspec)
 apply (drule_tac [2] approx_minus_iff [THEN iffD1])
 apply (simp_all add: linorder_not_less)
 apply (blast intro: HNatInfinite_NSLIMSEQ)
@@ -201,7 +201,7 @@ by (simp add: LIMSEQ_def)
 
 lemma NSLIMSEQ_add:
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + Y n) ----NS> a + b"
-by (auto intro: approx_add simp add: NSLIMSEQ_def starfunNat_add [symmetric])
+by (auto intro: approx_add simp add: NSLIMSEQ_def starfun_add [symmetric])
 
 lemma LIMSEQ_add: "[| X ----> a; Y ----> b |] ==> (%n. X n + Y n) ----> a + b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_add)
@@ -218,13 +218,13 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_add_const)
 lemma NSLIMSEQ_mult:
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
 by (auto intro!: approx_mult_HFinite 
-        simp add: NSLIMSEQ_def starfunNat_mult [symmetric])
+        simp add: NSLIMSEQ_def starfun_mult [symmetric])
 
 lemma LIMSEQ_mult: "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_mult)
 
 lemma NSLIMSEQ_minus: "X ----NS> a ==> (%n. -(X n)) ----NS> -a"
-by (auto simp add: NSLIMSEQ_def starfunNat_minus [symmetric])
+by (auto simp add: NSLIMSEQ_def starfun_minus [symmetric])
 
 lemma LIMSEQ_minus: "X ----> a ==> (%n. -(X n)) ----> -a"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_minus)
@@ -266,7 +266,7 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [THEN sym] LIMSEQ_diff_const)
 text{*Proof is like that of @{text NSLIM_inverse}.*}
 lemma NSLIMSEQ_inverse:
      "[| X ----NS> a;  a ~= 0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)"
-by (simp add: NSLIMSEQ_def starfunNat_inverse [symmetric] 
+by (simp add: NSLIMSEQ_def starfun_inverse [symmetric] 
               hypreal_of_real_approx_inverse)
 
 
@@ -491,10 +491,10 @@ done
 lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. \<bar>X n\<bar> < real(Suc N))"
 by (simp add: Bseq_def lemma_NBseq_def2)
 
-lemma NSBseqD: "[| NSBseq X;  N: HNatInfinite |] ==> ( *fNat* X) N : HFinite"
+lemma NSBseqD: "[| NSBseq X;  N: HNatInfinite |] ==> ( *f* X) N : HFinite"
 by (simp add: NSBseq_def)
 
-lemma NSBseqI: "\<forall>N \<in> HNatInfinite. ( *fNat* X) N : HFinite ==> NSBseq X"
+lemma NSBseqI: "\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite ==> NSBseq X"
 by (simp add: NSBseq_def)
 
 text{*The standard definition implies the nonstandard definition*}
@@ -504,10 +504,10 @@ by auto
 
 lemma Bseq_NSBseq: "Bseq X ==> NSBseq X"
 apply (simp add: Bseq_def NSBseq_def, safe)
-apply (rule_tac z = N in eq_Abs_star)
-apply (auto simp add: starfunNat HFinite_FreeUltrafilterNat_iff 
+apply (rule_tac x = N in star_cases)
+apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff 
                       HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_starrel_refl]) 
+apply (rule bexI [OF _ Rep_star_star_n]) 
 apply (drule_tac f = Xa in lemma_Bseq)
 apply (rule_tac x = "K+1" in exI)
 apply (drule_tac P="%n. ?f n \<le> K" in FreeUltrafilterNat_all, ultra)
@@ -538,9 +538,9 @@ done
 
 lemma real_seq_to_hypreal_HInfinite:
      "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
-      ==>  Abs_star(starrel``{X o f}) : HInfinite"
+      ==>  star_n (X o f) : HInfinite"
 apply (auto simp add: HInfinite_FreeUltrafilterNat_iff o_def)
-apply (rule bexI [OF _ lemma_starrel_refl], clarify)  
+apply (rule bexI [OF _ Rep_star_star_n], clarify)  
 apply (cut_tac u = u in FreeUltrafilterNat_nat_gt_real)
 apply (drule FreeUltrafilterNat_all)
 apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset])
@@ -567,9 +567,9 @@ done
 
 lemma HNatInfinite_skolem_f:
      "\<forall>N. real(Suc N) < \<bar>X (f N)\<bar>
-      ==> Abs_star(starrel``{f}) : HNatInfinite"
+      ==> star_n f : HNatInfinite"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
-apply (rule bexI [OF _ lemma_starrel_refl], safe)
+apply (rule bexI [OF _ Rep_star_star_n], safe)
 apply (rule ccontr, drule FreeUltrafilterNat_Compl_mem)
 apply (rule lemma_finite_NSBseq2 [THEN FreeUltrafilterNat_finite, THEN notE]) 
 apply (subgoal_tac "{n. f n \<le> u & real (Suc n) < \<bar>X (f n)\<bar>} =
@@ -585,7 +585,7 @@ apply (auto simp add: linorder_not_less [symmetric])
 apply (drule lemmaNSBseq2, safe)
 apply (frule_tac X = X and f = f in real_seq_to_hypreal_HInfinite)
 apply (drule HNatInfinite_skolem_f [THEN [2] bspec])
-apply (auto simp add: starfunNat o_def HFinite_HInfinite_iff)
+apply (auto simp add: starfun o_def HFinite_HInfinite_iff)
 done
 
 text{* Equivalence of nonstandard and standard definitions
@@ -762,7 +762,7 @@ subsection{*Equivalence Between NS and Standard Cauchy Sequences*}
 subsubsection{*Standard Implies Nonstandard*}
 
 lemma lemmaCauchy1:
-     "Abs_star (starrel `` {x}) : HNatInfinite
+     "star_n x : HNatInfinite
       ==> {n. M \<le> x n} : FreeUltrafilterNat"
 apply (auto simp add: HNatInfinite_FreeUltrafilterNat_iff)
 apply (drule_tac x = M in spec, ultra)
@@ -776,16 +776,16 @@ by blast
 
 lemma Cauchy_NSCauchy: "Cauchy X ==> NSCauchy X"
 apply (simp add: Cauchy_def NSCauchy_def, safe)
-apply (rule_tac z = M in eq_Abs_star)
-apply (rule_tac z = N in eq_Abs_star)
+apply (rule_tac x = M in star_cases)
+apply (rule_tac x = N in star_cases)
 apply (rule approx_minus_iff [THEN iffD2])
 apply (rule mem_infmal_iff [THEN iffD1])
-apply (auto simp add: starfunNat hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: starfun star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
 apply (rule bexI, auto)
 apply (drule spec, auto)
 apply (drule_tac M = M in lemmaCauchy1)
 apply (drule_tac M = M in lemmaCauchy1)
-apply (rule_tac x1 = xa in lemmaCauchy2 [THEN [2] FreeUltrafilterNat_subset])
+apply (rule_tac x1 = Xaa in lemmaCauchy2 [THEN [2] FreeUltrafilterNat_subset])
 apply (rule FreeUltrafilterNat_Int)
 apply (auto intro: FreeUltrafilterNat_Int)
 done
@@ -797,11 +797,11 @@ apply (auto simp add: Cauchy_def NSCauchy_def)
 apply (rule ccontr, simp)
 apply (auto dest!: choice HNatInfinite_NSLIMSEQ simp add: all_conj_distrib)  
 apply (drule bspec, assumption)
-apply (drule_tac x = "Abs_star (starrel `` {fa}) " in bspec); 
-apply (auto simp add: starfunNat)
+apply (drule_tac x = "star_n fa" in bspec); 
+apply (auto simp add: starfun)
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule mem_infmal_iff [THEN iffD2])
-apply (auto simp add: hypreal_minus hypreal_add Infinitesimal_FreeUltrafilterNat_iff)
+apply (auto simp add: star_n_minus star_n_add Infinitesimal_FreeUltrafilterNat_iff)
 apply (rename_tac "Y")
 apply (drule_tac x = e in spec, auto)
 apply (drule FreeUltrafilterNat_Int, assumption)
@@ -971,7 +971,7 @@ text{*Shift a convergent series by 1:
 
 lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
 apply (frule NSconvergentI [THEN NSCauchy_NSconvergent_iff [THEN iffD2]])
-apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfunNat_shift_one)
+apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfun_shift_one)
 apply (drule bspec, assumption)
 apply (drule bspec, assumption)
 apply (drule Nats_1 [THEN [2] HNatInfinite_SHNat_add])
@@ -984,7 +984,7 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_Suc)
 
 lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
 apply (frule NSconvergentI [THEN NSCauchy_NSconvergent_iff [THEN iffD2]])
-apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfunNat_shift_one)
+apply (auto simp add: NSCauchy_def NSLIMSEQ_def starfun_shift_one)
 apply (drule bspec, assumption)
 apply (drule bspec, assumption)
 apply (frule Nats_1 [THEN [2] HNatInfinite_SHNat_diff])
@@ -1016,7 +1016,7 @@ text{*Generalization to other limits*}
 lemma NSLIMSEQ_imp_rabs: "f ----NS> l ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
 apply (simp add: NSLIMSEQ_def)
 apply (auto intro: approx_hrabs 
-            simp add: starfunNat_rabs hypreal_of_real_hrabs [symmetric])
+            simp add: starfun_abs hypreal_of_real_hrabs [symmetric])
 done
 
 text{* standard version *}
@@ -1123,7 +1123,7 @@ lemma NSLIMSEQ_realpow_zero: "[| 0 \<le> x; x < 1 |] ==> (%n. x ^ n) ----NS> 0"
 apply (simp add: NSLIMSEQ_def)
 apply (auto dest!: convergent_realpow simp add: convergent_NSconvergent_iff)
 apply (frule NSconvergentD)
-apply (auto simp add: NSLIMSEQ_def NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_pow)
+apply (auto simp add: NSLIMSEQ_def NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfun_pow)
 apply (frule HNatInfinite_add_one)
 apply (drule bspec, assumption)
 apply (drule bspec, assumption)
@@ -1131,7 +1131,7 @@ apply (drule_tac x = "N + (1::hypnat) " in bspec, assumption)
 apply (simp add: hyperpow_add)
 apply (drule approx_mult_subst_SReal, assumption)
 apply (drule approx_trans3, assumption)
-apply (auto simp del: hypreal_of_real_mult simp add: hypreal_of_real_mult [symmetric])
+apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
 done
 
 text{* standard version *}
@@ -1164,7 +1164,7 @@ by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
 subsection{*Hyperreals and Sequences*}
 
 text{*A bounded sequence is a finite hyperreal*}
-lemma NSBseq_HFinite_hypreal: "NSBseq X ==> Abs_star(starrel``{X}) : HFinite"
+lemma NSBseq_HFinite_hypreal: "NSBseq X ==> star_n X : HFinite"
 by (auto intro!: bexI lemma_starrel_refl 
             intro: FreeUltrafilterNat_all [THEN FreeUltrafilterNat_subset]
             simp add: HFinite_FreeUltrafilterNat_iff Bseq_NSBseq_iff [symmetric]
@@ -1172,11 +1172,11 @@ by (auto intro!: bexI lemma_starrel_refl
 
 text{*A sequence converging to zero defines an infinitesimal*}
 lemma NSLIMSEQ_zero_Infinitesimal_hypreal:
-      "X ----NS> 0 ==> Abs_star(starrel``{X}) : Infinitesimal"
+      "X ----NS> 0 ==> star_n X : Infinitesimal"
 apply (simp add: NSLIMSEQ_def)
 apply (drule_tac x = whn in bspec)
 apply (simp add: HNatInfinite_whn)
-apply (auto simp add: hypnat_omega_def mem_infmal_iff [symmetric] starfunNat)
+apply (auto simp add: hypnat_omega_def mem_infmal_iff [symmetric] starfun)
 done
 
 (***---------------------------------------------------------------

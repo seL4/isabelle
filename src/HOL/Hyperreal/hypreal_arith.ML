@@ -13,9 +13,9 @@ Instantiation of the generic linear arithmetic package for type hypreal.
 
 local
 
-val real_inj_thms = [hypreal_of_real_le_iff RS iffD2, 
-                     hypreal_of_real_less_iff RS iffD2,
-                     hypreal_of_real_eq_iff RS iffD2];
+val real_inj_thms = [thm "star_of_le" RS iffD2, 
+                     thm "star_of_less" RS iffD2,
+                     thm "star_of_eq" RS iffD2];
 
 in
 

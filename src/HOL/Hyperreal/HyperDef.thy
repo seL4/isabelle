@@ -8,73 +8,29 @@
 header{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
-(*imports Filter "../Real/Real"*)
 imports StarClasses "../Real/Real"
 uses ("fuf.ML")  (*Warning: file fuf.ML refers to the name Hyperdef!*)
 begin
 
 types hypreal = "real star"
-(*
-constdefs
 
-  FreeUltrafilterNat   :: "nat set set"    ("\<U>")
-    "FreeUltrafilterNat == (SOME U. freeultrafilter U)"
+syntax hypreal_of_real :: "real => real star"
+translations "hypreal_of_real" => "star_of :: real => real star"
 
-  hyprel :: "((nat=>real)*(nat=>real)) set"
-    "hyprel == {p. \<exists>X Y. p = ((X::nat=>real),Y) &
-                   {n::nat. X(n) = Y(n)} \<in> FreeUltrafilterNat}"
-
-typedef hypreal = "UNIV//hyprel" 
-    by (auto simp add: quotient_def) 
-
-instance hypreal :: "{ord, zero, one, plus, times, minus, inverse}" ..
-
-defs (overloaded)
-
-  hypreal_zero_def:
-  "0 == Abs_hypreal(hyprel``{%n. 0})"
-
-  hypreal_one_def:
-  "1 == Abs_hypreal(hyprel``{%n. 1})"
-
-  hypreal_minus_def:
-  "- P == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). hyprel``{%n. - (X n)})"
-
-  hypreal_diff_def:
-  "x - y == x + -(y::hypreal)"
-
-  hypreal_inverse_def:
-  "inverse P == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P).
-                    hyprel``{%n. if X n = 0 then 0 else inverse (X n)})"
-
-  hypreal_divide_def:
-  "P / Q::hypreal == P * inverse Q"
-*)
-
-lemma hypreal_zero_def: "0 == Abs_star(starrel``{%n. 0})"
-by (simp only: star_zero_def star_of_def star_n_def)
-
-lemma hypreal_one_def: "1 == Abs_star(starrel``{%n. 1})"
-by (simp only: star_one_def star_of_def star_n_def)
-
-lemma hypreal_diff_def: "x - y == x + -(y::hypreal)"
-by (rule diff_def)
-
-lemma hypreal_divide_def: "P / Q::hypreal == P * inverse Q"
-by (rule divide_inverse [THEN eq_reflection])
+typed_print_translation {*
+  let
+    fun hr_tr' _ (Type ("fun", (Type ("real", []) :: _))) [t] =
+          Syntax.const "hypreal_of_real" $ t
+      | hr_tr' _ _ _ = raise Match;
+  in [("star_of", hr_tr')] end
+*}
 
 constdefs
-
-  hypreal_of_real  :: "real => hypreal"
-(*  "hypreal_of_real r         == Abs_hypreal(hyprel``{%n. r})" *)
-  "hypreal_of_real r == star_of r"
 
   omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
-(*  "omega == Abs_hypreal(hyprel``{%n. real (Suc n)})" *)
   "omega == star_n (%n. real (Suc n))"
 
   epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
-(*  "epsilon == Abs_hypreal(hyprel``{%n. inverse (real (Suc n))})" *)
   "epsilon == star_n (%n. inverse (real (Suc n)))"
 
 syntax (xsymbols)
@@ -85,26 +41,6 @@ syntax (HTML output)
   omega   :: hypreal   ("\<omega>")
   epsilon :: hypreal   ("\<epsilon>")
 
-(*
-defs (overloaded)
-
-  hypreal_add_def:
-  "P + Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
-                hyprel``{%n. X n + Y n})"
-
-  hypreal_mult_def:
-  "P * Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
-                hyprel``{%n. X n * Y n})"
-
-  hypreal_le_def:
-  "P \<le> (Q::hypreal) == \<exists>X Y. X \<in> Rep_hypreal(P) &
-                               Y \<in> Rep_hypreal(Q) &
-                               {n. X n \<le> Y n} \<in> FreeUltrafilterNat"
-
-  hypreal_less_def: "(x < (y::hypreal)) == (x \<le> y & x \<noteq> y)"
-
-  hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
-*)
 
 subsection{*The Set of Naturals is not Finite*}
 
@@ -277,104 +213,46 @@ subsection{*@{term hypreal_of_real}:
             the Injection from @{typ real} to @{typ hypreal}*}
 
 lemma inj_hypreal_of_real: "inj(hypreal_of_real)"
-apply (rule inj_onI)
-apply (simp add: hypreal_of_real_def split: split_if_asm)
-done
+by (rule inj_onI, simp)
 
 lemma eq_Abs_star:
     "(!!x. z = Abs_star(starrel``{x}) ==> P) ==> P"
 by (fold star_n_def, auto intro: star_cases)
 
-(*
-theorem hypreal_cases [case_names Abs_hypreal, cases type: hypreal]:
-    "(!!x. z = star_n x ==> P) ==> P"
-by (rule eq_Abs_hypreal [of z], blast)
-*)
+lemma Rep_star_star_n_iff [simp]:
+  "(X \<in> Rep_star (star_n Y)) = ({n. Y n = X n} \<in> \<U>)"
+by (simp add: star_n_def)
+
+lemma Rep_star_star_n: "X \<in> Rep_star (star_n X)"
+by simp
 
 subsection{*Hyperreal Addition*}
-(*
-lemma hypreal_add_congruent2: 
-    "congruent2 starrel starrel (%X Y. starrel``{%n. X n + Y n})"
-by (simp add: congruent2_def, auto, ultra)
-*)
-lemma hypreal_add [unfolded star_n_def]: 
+
+lemma star_n_add:
   "star_n X + star_n Y = star_n (%n. X n + Y n)"
 by (simp add: star_add_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma hypreal_add_commute: "(z::hypreal) + w = w + z"
-by (rule add_commute)
-
-lemma hypreal_add_assoc: "((z1::hypreal) + z2) + z3 = z1 + (z2 + z3)"
-by (rule add_assoc)
-
-lemma hypreal_add_zero_left: "(0::hypreal) + z = z"
-by (rule comm_monoid_add_class.add_0)
-
-(*instance hypreal :: comm_monoid_add
-  by intro_classes
-    (assumption | 
-      rule hypreal_add_commute hypreal_add_assoc hypreal_add_zero_left)+*)
-
-lemma hypreal_add_zero_right [simp]: "z + (0::hypreal) = z"
-by (rule OrderedGroup.add_0_right)
-
-
 subsection{*Additive inverse on @{typ hypreal}*}
-(*
-lemma hypreal_minus_congruent: "(%X. starrel``{%n. - (X n)}) respects starrel"
-by (force simp add: congruent_def)
-*)
-lemma hypreal_minus [unfolded star_n_def]: 
+
+lemma star_n_minus:
    "- star_n X = star_n (%n. -(X n))"
 by (simp add: star_minus_def Ifun_of_def star_of_def Ifun_star_n)
 
-lemma hypreal_diff [unfolded star_n_def]:
+lemma star_n_diff:
      "star_n X - star_n Y = star_n (%n. X n - Y n)"
 by (simp add: star_diff_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma hypreal_add_minus [simp]: "z + -z = (0::hypreal)"
-by (rule right_minus)
-
-lemma hypreal_add_minus_left: "-z + z = (0::hypreal)"
-by (rule left_minus)
-
 
 subsection{*Hyperreal Multiplication*}
-(*
-lemma hypreal_mult_congruent2: 
-    "congruent2 starrel starrel (%X Y. starrel``{%n. X n * Y n})"
-by (simp add: congruent2_def, auto, ultra)
-*)
 
-lemma hypreal_mult [unfolded star_n_def]: 
+lemma star_n_mult:
   "star_n X * star_n Y = star_n (%n. X n * Y n)"
 by (simp add: star_mult_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma hypreal_mult_commute: "(z::hypreal) * w = w * z"
-by (rule mult_commute)
-
-lemma hypreal_mult_assoc: "((z1::hypreal) * z2) * z3 = z1 * (z2 * z3)"
-by (rule mult_assoc)
-
-lemma hypreal_mult_1: "(1::hypreal) * z = z"
-by (rule mult_1_left)
-
-lemma hypreal_add_mult_distrib:
-     "((z1::hypreal) + z2) * w = (z1 * w) + (z2 * w)"
-by (rule left_distrib)
-
-text{*one and zero are distinct*}
-lemma hypreal_zero_not_eq_one: "0 \<noteq> (1::hypreal)"
-by (rule zero_neq_one)
-
 
 subsection{*Multiplicative Inverse on @{typ hypreal} *}
-(*
-lemma hypreal_inverse_congruent: 
-  "(%X. starrel``{%n. if X n = 0 then 0 else inverse(X n)}) respects starrel"
-by (auto simp add: congruent_def, ultra)
-*)
-lemma hypreal_inverse [unfolded star_n_def]: 
+
+lemma star_n_inverse:
       "inverse (star_n X) = star_n (%n. if X n = (0::real) then 0 else inverse(X n))"
 apply (simp add: star_inverse_def Ifun_of_def star_of_def Ifun_star_n)
 apply (rule_tac f=star_n in arg_cong)
@@ -382,101 +260,22 @@ apply (rule ext)
 apply simp
 done
 
-lemma hypreal_inverse2 [unfolded star_n_def]: 
+lemma star_n_inverse2:
       "inverse (star_n X) = star_n (%n. inverse(X n))"
 by (simp add: star_inverse_def Ifun_of_def star_of_def Ifun_star_n)
 
-lemma hypreal_mult_inverse: 
-     "x \<noteq> 0 ==> x*inverse(x) = (1::hypreal)"
-by (rule right_inverse)
-
-lemma hypreal_mult_inverse_left:
-     "x \<noteq> 0 ==> inverse(x)*x = (1::hypreal)"
-by (rule left_inverse)
-
-(*
-instance hypreal :: field
-proof
-  fix x y z :: hypreal
-  show "- x + x = 0" by (simp add: hypreal_add_minus_left)
-  show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
-  show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
-  show "x * y = y * x" by (rule hypreal_mult_commute)
-  show "1 * x = x" by (simp add: hypreal_mult_1)
-  show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
-  show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
-  show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
-  show "x / y = x * inverse y" by (simp add: hypreal_divide_def)
-qed
-
-
-instance hypreal :: division_by_zero
-proof
-  show "inverse 0 = (0::hypreal)" 
-    by (simp add: hypreal_inverse hypreal_zero_def)
-qed
-*)
 
 subsection{*Properties of The @{text "\<le>"} Relation*}
 
-lemma hypreal_le [unfolded star_n_def]: 
+lemma star_n_le:
       "star_n X \<le> star_n Y =  
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
 by (simp add: star_le_def Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
 
-lemma hypreal_le_refl: "w \<le> (w::hypreal)"
-by (rule order_refl)
-
-lemma hypreal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypreal)"
-by (rule order_trans)
-
-lemma hypreal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypreal)"
-by (rule order_antisym)
-
-(* Axiom 'order_less_le' of class 'order': *)
-lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
-by (rule order_less_le)
-
-(*
-instance hypreal :: order
-  by intro_classes
-    (assumption |
-      rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym hypreal_less_le)+
-*)
-
-(* Axiom 'linorder_linear' of class 'linorder': *)
-lemma hypreal_le_linear: "(z::hypreal) \<le> w | w \<le> z"
-by (rule linorder_linear)
-
-(*
-instance hypreal :: linorder 
-  by intro_classes (rule hypreal_le_linear)
-*)
-
 lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
 by (auto)
 
-lemma hypreal_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::hypreal)"
-by (rule add_left_mono)
-
-lemma hypreal_mult_less_mono2: "[| (0::hypreal)<z; x<y |] ==> z*x<z*y"
-by (rule mult_strict_left_mono)
-
-
 subsection{*The Hyperreals Form an Ordered Field*}
-
-(*
-instance hypreal :: ordered_field
-proof
-  fix x y z :: hypreal
-  show "x \<le> y ==> z + x \<le> z + y" 
-    by (rule hypreal_add_left_mono)
-  show "x < y ==> 0 < z ==> z * x < z * y" 
-    by (simp add: hypreal_mult_less_mono2)
-  show "\<bar>x\<bar> = (if x < 0 then -x else x)"
-    by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
-qed
-*)
 
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
 by auto
@@ -488,88 +287,16 @@ lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
 by auto
 
 
-subsection{*The Embedding @{term hypreal_of_real} Preserves Field and 
-      Order Properties*}
-
-lemma hypreal_of_real_add [simp]: 
-     "hypreal_of_real (w + z) = hypreal_of_real w + hypreal_of_real z"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_minus [simp]:
-     "hypreal_of_real (-r) = - hypreal_of_real  r"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_diff [simp]: 
-     "hypreal_of_real (w - z) = hypreal_of_real w - hypreal_of_real z"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_mult [simp]: 
-     "hypreal_of_real (w * z) = hypreal_of_real w * hypreal_of_real z"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_one [simp]: "hypreal_of_real 1 = (1::hypreal)"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_zero [simp]: "hypreal_of_real 0 = 0"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_le_iff [simp]: 
-     "(hypreal_of_real w \<le> hypreal_of_real z) = (w \<le> z)"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_less_iff [simp]: 
-     "(hypreal_of_real w < hypreal_of_real z) = (w < z)"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_eq_iff [simp]:
-     "(hypreal_of_real w = hypreal_of_real z) = (w = z)"
-by (simp add: hypreal_of_real_def)
-
-text{*As above, for 0*}
-
-declare hypreal_of_real_less_iff [of 0, simplified, simp]
-declare hypreal_of_real_le_iff   [of 0, simplified, simp]
-declare hypreal_of_real_eq_iff   [of 0, simplified, simp]
-
-declare hypreal_of_real_less_iff [of _ 0, simplified, simp]
-declare hypreal_of_real_le_iff   [of _ 0, simplified, simp]
-declare hypreal_of_real_eq_iff   [of _ 0, simplified, simp]
-
-text{*As above, for 1*}
-
-declare hypreal_of_real_less_iff [of 1, simplified, simp]
-declare hypreal_of_real_le_iff   [of 1, simplified, simp]
-declare hypreal_of_real_eq_iff   [of 1, simplified, simp]
-
-declare hypreal_of_real_less_iff [of _ 1, simplified, simp]
-declare hypreal_of_real_le_iff   [of _ 1, simplified, simp]
-declare hypreal_of_real_eq_iff   [of _ 1, simplified, simp]
-
-lemma hypreal_of_real_inverse [simp]:
-     "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_divide [simp]:
-     "hypreal_of_real (w / z) = hypreal_of_real w / hypreal_of_real z"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_of_nat [simp]: "hypreal_of_real (of_nat n) = of_nat n"
-by (simp add: hypreal_of_real_def)
-
-lemma hypreal_of_real_of_int [simp]:  "hypreal_of_real (of_int z) = of_int z"
-by (simp add: hypreal_of_real_def)
-
-
 subsection{*Misc Others*}
 
-lemma hypreal_less [unfolded star_n_def]: 
+lemma star_n_less:
       "star_n X < star_n Y = ({n. X n < Y n} \<in> FreeUltrafilterNat)"
 by (simp add: star_less_def Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
 
-lemma hypreal_zero_num [unfolded star_n_def]: "0 = star_n (%n. 0)"
+lemma star_n_zero_num: "0 = star_n (%n. 0)"
 by (simp add: star_zero_def star_of_def)
 
-lemma hypreal_one_num [unfolded star_n_def]: "1 = star_n (%n. 1)"
+lemma star_n_one_num: "1 = star_n (%n. 1)"
 by (simp add: star_one_def star_of_def)
 
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
@@ -577,15 +304,12 @@ apply (simp only: omega_def star_zero_def star_less_def star_of_def)
 apply (simp add: Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
 done
 
-lemma hypreal_hrabs [unfolded star_n_def]:
+lemma star_n_abs:
      "abs (star_n X) = star_n (%n. abs (X n))"
 by (simp add: star_abs_def Ifun_of_def star_of_def Ifun_star_n)
 
 subsection{*Existence of Infinite Hyperreal Number*}
-(*
-lemma Rep_hypreal_omega: "Rep_hypreal(omega) \<in> hypreal"
-by (simp add: omega_def)
-*)
+
 text{*Existence of infinite number not corresponding to any real number.
 Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
 
@@ -601,7 +325,7 @@ by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_omega: 
       "~ (\<exists>x. hypreal_of_real x = omega)"
-apply (simp add: omega_def hypreal_of_real_def)
+apply (simp add: omega_def)
 apply (simp add: star_of_def star_n_eq_iff)
 apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] 
             lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
@@ -622,8 +346,7 @@ lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
-by (auto simp add: epsilon_def hypreal_of_real_def 
-                   star_of_def star_n_eq_iff
+by (auto simp add: epsilon_def star_of_def star_n_eq_iff
                    lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
 
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
@@ -641,22 +364,8 @@ done
 
 ML
 {*
-(* val hrabs_def = thm "hrabs_def"; *)
-(* val hypreal_hrabs = thm "hypreal_hrabs"; *)
-
-val hypreal_zero_def = thm "hypreal_zero_def";
-(* val hypreal_one_def = thm "hypreal_one_def"; *)
-(* val hypreal_minus_def = thm "hypreal_minus_def"; *)
-(* val hypreal_diff_def = thm "hypreal_diff_def"; *)
-(* val hypreal_inverse_def = thm "hypreal_inverse_def"; *)
-(* val hypreal_divide_def = thm "hypreal_divide_def"; *)
-val hypreal_of_real_def = thm "hypreal_of_real_def";
 val omega_def = thm "omega_def";
 val epsilon_def = thm "epsilon_def";
-(* val hypreal_add_def = thm "hypreal_add_def"; *)
-(* val hypreal_mult_def = thm "hypreal_mult_def"; *)
-(* val hypreal_less_def = thm "hypreal_less_def"; *)
-(* val hypreal_le_def = thm "hypreal_le_def"; *)
 
 val finite_exhausts = thm "finite_exhausts";
 val finite_not_covers = thm "finite_not_covers";
@@ -686,51 +395,21 @@ val hypreal_empty_not_mem = thm "hypreal_empty_not_mem";
 val Rep_hypreal_nonempty = thm "Rep_hypreal_nonempty";
 val inj_hypreal_of_real = thm "inj_hypreal_of_real";
 val eq_Abs_star = thm "eq_Abs_star";
-(* val hypreal_minus_congruent = thm "hypreal_minus_congruent"; *)
-val hypreal_minus = thm "hypreal_minus";
-val hypreal_add = thm "hypreal_add";
-val hypreal_diff = thm "hypreal_diff";
-val hypreal_add_commute = thm "hypreal_add_commute";
-val hypreal_add_assoc = thm "hypreal_add_assoc";
-val hypreal_add_zero_left = thm "hypreal_add_zero_left";
-val hypreal_add_zero_right = thm "hypreal_add_zero_right";
-val hypreal_add_minus = thm "hypreal_add_minus";
-val hypreal_add_minus_left = thm "hypreal_add_minus_left";
-val hypreal_mult = thm "hypreal_mult";
-val hypreal_mult_commute = thm "hypreal_mult_commute";
-val hypreal_mult_assoc = thm "hypreal_mult_assoc";
-val hypreal_mult_1 = thm "hypreal_mult_1";
-val hypreal_zero_not_eq_one = thm "hypreal_zero_not_eq_one";
-(* val hypreal_inverse_congruent = thm "hypreal_inverse_congruent"; *)
-val hypreal_inverse = thm "hypreal_inverse";
-val hypreal_mult_inverse = thm "hypreal_mult_inverse";
-val hypreal_mult_inverse_left = thm "hypreal_mult_inverse_left";
+val star_n_minus = thm "star_n_minus";
+val star_n_add = thm "star_n_add";
+val star_n_diff = thm "star_n_diff";
+val star_n_mult = thm "star_n_mult";
+val star_n_inverse = thm "star_n_inverse";
 val hypreal_mult_left_cancel = thm "hypreal_mult_left_cancel";
 val hypreal_mult_right_cancel = thm "hypreal_mult_right_cancel";
 val hypreal_not_refl2 = thm "hypreal_not_refl2";
-val hypreal_less = thm "hypreal_less";
+val star_n_less = thm "star_n_less";
 val hypreal_eq_minus_iff = thm "hypreal_eq_minus_iff";
-val hypreal_le = thm "hypreal_le";
-val hypreal_le_refl = thm "hypreal_le_refl";
-val hypreal_le_linear = thm "hypreal_le_linear";
-val hypreal_le_trans = thm "hypreal_le_trans";
-val hypreal_le_anti_sym = thm "hypreal_le_anti_sym";
-val hypreal_less_le = thm "hypreal_less_le";
-val hypreal_of_real_add = thm "hypreal_of_real_add";
-val hypreal_of_real_mult = thm "hypreal_of_real_mult";
-val hypreal_of_real_less_iff = thm "hypreal_of_real_less_iff";
-val hypreal_of_real_le_iff = thm "hypreal_of_real_le_iff";
-val hypreal_of_real_eq_iff = thm "hypreal_of_real_eq_iff";
-val hypreal_of_real_minus = thm "hypreal_of_real_minus";
-val hypreal_of_real_one = thm "hypreal_of_real_one";
-val hypreal_of_real_zero = thm "hypreal_of_real_zero";
-val hypreal_of_real_inverse = thm "hypreal_of_real_inverse";
-val hypreal_of_real_divide = thm "hypreal_of_real_divide";
-val hypreal_zero_num = thm "hypreal_zero_num";
-val hypreal_one_num = thm "hypreal_one_num";
+val star_n_le = thm "star_n_le";
+val star_n_zero_num = thm "star_n_zero_num";
+val star_n_one_num = thm "star_n_one_num";
 val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";
 
-(* val Rep_hypreal_omega = thm"Rep_hypreal_omega"; *)
 val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
 val lemma_finite_omega_set = thm"lemma_finite_omega_set";
 val not_ex_hypreal_of_real_eq_omega = thm"not_ex_hypreal_of_real_eq_omega";

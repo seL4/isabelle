@@ -80,7 +80,7 @@ by (drule SComplex_diff, assumption, simp)
 
 lemma SReal_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> Reals"
-by (simp add: hcomplex_of_complex_def hcmod SReal_def hypreal_of_real_def star_of_def star_n_def)
+by (auto simp add: hcmod SReal_def star_of_def)
 
 lemma SReal_hcmod_number_of [simp]: "hcmod (number_of w ::hcomplex) \<in> Reals"
 apply (subst hcomplex_number_of [symmetric])
@@ -134,8 +134,8 @@ done
 lemma SComplex_hcmod_SReal: 
       "z \<in> SComplex ==> hcmod z \<in> Reals"
 apply (simp add: SComplex_def SReal_def)
-apply (rule_tac z = z in eq_Abs_star)
-apply (auto simp add: hcmod hypreal_of_real_def star_of_def star_n_def hcomplex_of_complex_def cmod_def)
+apply (cases z)
+apply (auto simp add: hcmod star_of_def cmod_def star_n_eq_iff)
 apply (rule_tac x = "cmod r" in exI)
 apply (simp add: cmod_def, ultra)
 done
@@ -144,7 +144,7 @@ lemma SComplex_zero [simp]: "0 \<in> SComplex"
 by (simp add: SComplex_def hcomplex_of_complex_zero_iff)
 
 lemma SComplex_one [simp]: "1 \<in> SComplex"
-by (simp add: SComplex_def hcomplex_of_complex_def star_of_def star_n_def hypreal_one_def)
+by (simp add: SComplex_def star_of_def star_n_one_num star_n_eq_iff)
 
 (*
 Goalw [SComplex_def,SReal_def] "hcmod z \<in> Reals ==> z \<in> SComplex"
@@ -235,7 +235,7 @@ by (auto intro: Infinitesimal_HFinite_mult simp add: CInfinitesimal_hcmod_iff CF
 
 lemma CInfinitesimal_CFinite_mult2:
      "[| x \<in> CInfinitesimal; y \<in> CFinite |] ==> (y * x) \<in> CInfinitesimal"
-by (auto dest: CInfinitesimal_CFinite_mult simp add: hcomplex_mult_commute)
+by (auto dest: CInfinitesimal_CFinite_mult simp add: mult_commute)
 
 lemma CInfinite_hcmod_iff: "(z \<in> CInfinite) = (hcmod z \<in> HInfinite)"
 by (simp add: CInfinite_def HInfinite_def)
@@ -392,11 +392,11 @@ by (blast intro!: capprox_add capprox_minus)
 lemma capprox_mult1: 
       "[| a @c= b; c \<in> CFinite|] ==> a*c @c= b*c"
 apply (simp add: capprox_def diff_minus)
-apply (simp only: CInfinitesimal_CFinite_mult minus_mult_left hcomplex_add_mult_distrib [symmetric])
+apply (simp only: CInfinitesimal_CFinite_mult minus_mult_left left_distrib [symmetric])
 done
 
 lemma capprox_mult2: "[|a @c= b; c \<in> CFinite|] ==> c*a @c= c*b"
-by (simp add: capprox_mult1 hcomplex_mult_commute)
+by (simp add: capprox_mult1 mult_commute)
 
 lemma capprox_mult_subst:
      "[|u @c= v*x; x @c= y; v \<in> CFinite|] ==> u @c= v*y"
@@ -549,7 +549,7 @@ lemma Infinitesimal_hcmod_add_diff:
      "u @c= 0 ==> hcmod(x + u) - hcmod x \<in> Infinitesimal"
 apply (rule_tac e = "hcmod u" and e' = "- hcmod u" in Infinitesimal_interval2)
 apply (auto dest: capprox_approx_zero_iff [THEN iffD1]
-             simp add: mem_infmal_iff [symmetric] hypreal_diff_def)
+             simp add: mem_infmal_iff [symmetric] diff_def)
 apply (rule_tac c1 = "hcmod x" in add_le_cancel_left [THEN iffD1])
 apply (auto simp add: diff_minus [symmetric])
 done
@@ -659,12 +659,11 @@ lemma capprox_unique_complex:
 by (blast intro: SComplex_capprox_iff [THEN iffD1] capprox_trans2)
 
 lemma hcomplex_capproxD1:
-     "Abs_star(starrel ``{%n. X n}) @c= Abs_star(starrel``{%n. Y n})  
-      ==> Abs_star(starrel `` {%n. Re(X n)}) @=  
-          Abs_star(starrel `` {%n. Re(Y n)})"
+     "star_n X @c= star_n Y
+      ==> star_n (%n. Re(X n)) @= star_n (%n. Re(Y n))"
 apply (auto simp add: approx_FreeUltrafilterNat_iff)
 apply (drule capprox_minus_iff [THEN iffD1])
-apply (auto simp add: hcomplex_minus hcomplex_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (auto simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x = m in spec, ultra)
 apply (rename_tac Z x)
 apply (case_tac "X x")
@@ -678,12 +677,11 @@ done
 
 (* same proof *)
 lemma hcomplex_capproxD2:
-     "Abs_star(starrel ``{%n. X n}) @c= Abs_star(starrel``{%n. Y n})  
-      ==> Abs_star(starrel `` {%n. Im(X n)}) @=  
-          Abs_star(starrel `` {%n. Im(Y n)})"
+     "star_n X @c= star_n Y
+      ==> star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))"
 apply (auto simp add: approx_FreeUltrafilterNat_iff)
 apply (drule capprox_minus_iff [THEN iffD1])
-apply (auto simp add: hcomplex_minus hcomplex_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
+apply (auto simp add: star_n_minus star_n_add mem_cinfmal_iff [symmetric] CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x = m in spec, ultra)
 apply (rename_tac Z x)
 apply (case_tac "X x")
@@ -695,16 +693,14 @@ apply (auto simp del: realpow_Suc)
 done
 
 lemma hcomplex_capproxI:
-     "[| Abs_star(starrel `` {%n. Re(X n)}) @=  
-         Abs_star(starrel `` {%n. Re(Y n)});  
-         Abs_star(starrel `` {%n. Im(X n)}) @=  
-         Abs_star(starrel `` {%n. Im(Y n)})  
-      |] ==> Abs_star(starrel ``{%n. X n}) @c= Abs_star(starrel``{%n. Y n})"
+     "[| star_n (%n. Re(X n)) @= star_n (%n. Re(Y n));  
+         star_n (%n. Im(X n)) @= star_n (%n. Im(Y n))  
+      |] ==> star_n X @c= star_n Y"
 apply (drule approx_minus_iff [THEN iffD1])
 apply (drule approx_minus_iff [THEN iffD1])
 apply (rule capprox_minus_iff [THEN iffD2])
-apply (auto simp add: mem_cinfmal_iff [symmetric] mem_infmal_iff [symmetric] hypreal_minus hypreal_add hcomplex_minus hcomplex_add CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl, auto)
+apply (auto simp add: mem_cinfmal_iff [symmetric] mem_infmal_iff [symmetric] star_n_add star_n_minus CInfinitesimal_hcmod_iff hcmod Infinitesimal_FreeUltrafilterNat_iff)
+apply (rule bexI [OF _ Rep_star_star_n], auto)
 apply (drule_tac x = "u/2" in spec)
 apply (drule_tac x = "u/2" in spec, auto, ultra)
 apply (drule sym, drule sym)
@@ -718,23 +714,23 @@ apply (simp add: power2_eq_square)
 done
 
 lemma capprox_approx_iff:
-     "(Abs_star(starrel ``{%n. X n}) @c= Abs_star(starrel``{%n. Y n})) = 
-       (Abs_star(starrel `` {%n. Re(X n)}) @= Abs_star(starrel `` {%n. Re(Y n)}) &  
-        Abs_star(starrel `` {%n. Im(X n)}) @= Abs_star(starrel `` {%n. Im(Y n)}))"
+     "(star_n X @c= star_n Y) = 
+       (star_n (%n. Re(X n)) @= star_n (%n. Re(Y n)) &  
+        star_n (%n. Im(X n)) @= star_n (%n. Im(Y n)))"
 apply (blast intro: hcomplex_capproxI hcomplex_capproxD1 hcomplex_capproxD2)
 done
 
 lemma hcomplex_of_hypreal_capprox_iff [simp]:
      "(hcomplex_of_hypreal x @c= hcomplex_of_hypreal z) = (x @= z)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=z in eq_Abs_star)
+apply (cases x, cases z)
 apply (simp add: hcomplex_of_hypreal capprox_approx_iff)
 done
 
 lemma CFinite_HFinite_Re:
-     "Abs_star(starrel ``{%n. X n}) \<in> CFinite  
-      ==> Abs_star(starrel `` {%n. Re(X n)}) \<in> HFinite"
+     "star_n X \<in> CFinite  
+      ==> star_n (%n. Re(X n)) \<in> HFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl)
+apply (rule bexI [OF _ Rep_star_star_n])
 apply (rule_tac x = u in exI, ultra)
 apply (drule sym, case_tac "X x")
 apply (auto simp add: complex_mod numeral_2_eq_2 simp del: realpow_Suc)
@@ -745,10 +741,10 @@ apply (auto simp add: numeral_2_eq_2 [symmetric])
 done
 
 lemma CFinite_HFinite_Im:
-     "Abs_star(starrel ``{%n. X n}) \<in> CFinite  
-      ==> Abs_star(starrel `` {%n. Im(X n)}) \<in> HFinite"
+     "star_n X \<in> CFinite  
+      ==> star_n (%n. Im(X n)) \<in> HFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl)
+apply (rule bexI [OF _ Rep_star_star_n])
 apply (rule_tac x = u in exI, ultra)
 apply (drule sym, case_tac "X x")
 apply (auto simp add: complex_mod simp del: realpow_Suc)
@@ -758,12 +754,12 @@ apply (drule real_sqrt_ge_abs2 [THEN [2] order_less_le_trans], auto)
 done
 
 lemma HFinite_Re_Im_CFinite:
-     "[| Abs_star(starrel `` {%n. Re(X n)}) \<in> HFinite;  
-         Abs_star(starrel `` {%n. Im(X n)}) \<in> HFinite  
-      |] ==> Abs_star(starrel ``{%n. X n}) \<in> CFinite"
+     "[| star_n (%n. Re(X n)) \<in> HFinite;  
+         star_n (%n. Im(X n)) \<in> HFinite  
+      |] ==> star_n X \<in> CFinite"
 apply (auto simp add: CFinite_hcmod_iff hcmod HFinite_FreeUltrafilterNat_iff)
 apply (rename_tac Y Z u v)
-apply (rule bexI, rule_tac [2] lemma_starrel_refl)
+apply (rule bexI [OF _ Rep_star_star_n])
 apply (rule_tac x = "2* (u + v) " in exI)
 apply ultra
 apply (drule sym, case_tac "X x")
@@ -778,66 +774,65 @@ apply (simp add: power2_eq_square)
 done
 
 lemma CFinite_HFinite_iff:
-     "(Abs_star(starrel ``{%n. X n}) \<in> CFinite) =  
-      (Abs_star(starrel `` {%n. Re(X n)}) \<in> HFinite &  
-       Abs_star(starrel `` {%n. Im(X n)}) \<in> HFinite)"
+     "(star_n X \<in> CFinite) =  
+      (star_n (%n. Re(X n)) \<in> HFinite &  
+       star_n (%n. Im(X n)) \<in> HFinite)"
 by (blast intro: HFinite_Re_Im_CFinite CFinite_HFinite_Im CFinite_HFinite_Re)
 
 lemma SComplex_Re_SReal:
-     "Abs_star(starrel ``{%n. X n}) \<in> SComplex  
-      ==> Abs_star(starrel `` {%n. Re(X n)}) \<in> Reals"
-apply (auto simp add: SComplex_def hcomplex_of_complex_def SReal_def hypreal_of_real_def star_of_def star_n_def)
+     "star_n X \<in> SComplex  
+      ==> star_n (%n. Re(X n)) \<in> Reals"
+apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
 apply (rule_tac x = "Re r" in exI, ultra)
 done
 
 lemma SComplex_Im_SReal:
-     "Abs_star(starrel ``{%n. X n}) \<in> SComplex  
-      ==> Abs_star(starrel `` {%n. Im(X n)}) \<in> Reals"
-apply (auto simp add: SComplex_def hcomplex_of_complex_def SReal_def hypreal_of_real_def star_of_def star_n_def)
+     "star_n X \<in> SComplex  
+      ==> star_n (%n. Im(X n)) \<in> Reals"
+apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
 apply (rule_tac x = "Im r" in exI, ultra)
 done
 
 lemma Reals_Re_Im_SComplex:
-     "[| Abs_star(starrel `` {%n. Re(X n)}) \<in> Reals;  
-         Abs_star(starrel `` {%n. Im(X n)}) \<in> Reals  
-      |] ==> Abs_star(starrel ``{%n. X n}) \<in> SComplex"
-apply (auto simp add: SComplex_def hcomplex_of_complex_def SReal_def hypreal_of_real_def star_of_def star_n_def)
+     "[| star_n (%n. Re(X n)) \<in> Reals;  
+         star_n (%n. Im(X n)) \<in> Reals  
+      |] ==> star_n X \<in> SComplex"
+apply (auto simp add: SComplex_def SReal_def star_of_def star_n_eq_iff)
 apply (rule_tac x = "Complex r ra" in exI, ultra)
 done
 
 lemma SComplex_SReal_iff:
-     "(Abs_star(starrel ``{%n. X n}) \<in> SComplex) =  
-      (Abs_star(starrel `` {%n. Re(X n)}) \<in> Reals &  
-       Abs_star(starrel `` {%n. Im(X n)}) \<in> Reals)"
+     "(star_n X \<in> SComplex) =  
+      (star_n (%n. Re(X n)) \<in> Reals &  
+       star_n (%n. Im(X n)) \<in> Reals)"
 by (blast intro: SComplex_Re_SReal SComplex_Im_SReal Reals_Re_Im_SComplex)
 
 lemma CInfinitesimal_Infinitesimal_iff:
-     "(Abs_star(starrel ``{%n. X n}) \<in> CInfinitesimal) =  
-      (Abs_star(starrel `` {%n. Re(X n)}) \<in> Infinitesimal &  
-       Abs_star(starrel `` {%n. Im(X n)}) \<in> Infinitesimal)"
-by (simp add: mem_cinfmal_iff mem_infmal_iff hcomplex_zero_num hypreal_zero_num capprox_approx_iff)
+     "(star_n X \<in> CInfinitesimal) =  
+      (star_n (%n. Re(X n)) \<in> Infinitesimal &  
+       star_n (%n. Im(X n)) \<in> Infinitesimal)"
+by (simp add: mem_cinfmal_iff mem_infmal_iff star_n_zero_num capprox_approx_iff)
 
 lemma eq_Abs_star_EX:
-     "(\<exists>t. P t) = (\<exists>X. P (Abs_star(starrel `` {X})))"
+     "(\<exists>t. P t) = (\<exists>X. P (star_n X))"
 apply auto
-apply (rule_tac z = t in eq_Abs_star, auto)
+apply (rule_tac x = t in star_cases, auto)
 done
 
 lemma eq_Abs_star_Bex:
-     "(\<exists>t \<in> A. P t) = (\<exists>X. (Abs_star(starrel `` {X})) \<in> A &  
-                         P (Abs_star(starrel `` {X})))"
+     "(\<exists>t \<in> A. P t) = (\<exists>X. star_n X \<in> A & P (star_n X))"
 apply auto
-apply (rule_tac z = t in eq_Abs_star, auto)
+apply (rule_tac x = t in star_cases, auto)
 done
 
 (* Here we go - easy proof now!! *)
 lemma stc_part_Ex: "x:CFinite ==> \<exists>t \<in> SComplex. x @c= t"
-apply (rule_tac z = x in eq_Abs_star)
+apply (cases x)
 apply (auto simp add: CFinite_HFinite_iff eq_Abs_star_Bex SComplex_SReal_iff capprox_approx_iff)
 apply (drule st_part_Ex, safe)+
-apply (rule_tac z = t in eq_Abs_star)
-apply (rule_tac z = ta in eq_Abs_star, auto)
-apply (rule_tac x = "%n. Complex (xa n) (xb n) " in exI)
+apply (rule_tac x = t in star_cases)
+apply (rule_tac x = ta in star_cases, auto)
+apply (rule_tac x = "%n. Complex (Xa n) (Xb n) " in exI)
 apply auto
 done
 
@@ -1097,7 +1092,7 @@ apply (drule_tac [2] sym, drule_tac [2] sym)
  prefer 2 apply simp 
 apply (erule_tac V = "x = stc x + e" in thin_rl)
 apply (erule_tac V = "y = stc y + ea" in thin_rl)
-apply (simp add: hcomplex_add_mult_distrib right_distrib)
+apply (simp add: left_distrib right_distrib)
 apply (drule stc_SComplex)+
 apply (simp (no_asm_use) add: add_assoc)
 apply (rule stc_CInfinitesimal_add_SComplex)
@@ -1135,14 +1130,14 @@ by (blast intro: stc_CFinite stc_capprox_self capprox_stc_eq)
 
 lemma CFinite_HFinite_hcomplex_of_hypreal:
      "z \<in> HFinite ==> hcomplex_of_hypreal z \<in> CFinite"
-apply (rule_tac z=z in eq_Abs_star)
-apply (simp add: hcomplex_of_hypreal CFinite_HFinite_iff hypreal_zero_def [symmetric])
+apply (cases z)
+apply (simp add: hcomplex_of_hypreal CFinite_HFinite_iff star_n_zero_num [symmetric])
 done
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: hcomplex_of_hypreal SComplex_SReal_iff hypreal_zero_def [symmetric])
+apply (cases x)
+apply (simp add: hcomplex_of_hypreal SComplex_SReal_iff star_n_zero_num [symmetric])
 done
 
 lemma stc_hcomplex_of_hypreal: 
@@ -1171,53 +1166,52 @@ lemma CInfinitesimal_hcnj_iff [simp]:
 by (simp add: CInfinitesimal_hcmod_iff)
 
 lemma CInfinite_HInfinite_iff:
-     "(Abs_star(starrel ``{%n. X n}) \<in> CInfinite) =  
-      (Abs_star(starrel `` {%n. Re(X n)}) \<in> HInfinite |  
-       Abs_star(starrel `` {%n. Im(X n)}) \<in> HInfinite)"
+     "(star_n X \<in> CInfinite) =  
+      (star_n (%n. Re(X n)) \<in> HInfinite |  
+       star_n (%n. Im(X n)) \<in> HInfinite)"
 by (simp add: CInfinite_CFinite_iff HInfinite_HFinite_iff CFinite_HFinite_iff)
 
 text{*These theorems should probably be deleted*}
 lemma hcomplex_split_CInfinitesimal_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CInfinitesimal) =  
       (x \<in> Infinitesimal & y \<in> Infinitesimal)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CInfinitesimal_Infinitesimal_iff)
+apply (cases x, cases y)
+apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal CInfinitesimal_Infinitesimal_iff)
 done
 
 lemma hcomplex_split_CFinite_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CFinite) =  
       (x \<in> HFinite & y \<in> HFinite)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CFinite_HFinite_iff)
+apply (cases x, cases y)
+apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal CFinite_HFinite_iff)
 done
 
 lemma hcomplex_split_SComplex_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> SComplex) =  
       (x \<in> Reals & y \<in> Reals)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal SComplex_SReal_iff)
+apply (cases x, cases y)
+apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal SComplex_SReal_iff)
 done
 
 lemma hcomplex_split_CInfinite_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CInfinite) =  
       (x \<in> HInfinite | y \<in> HInfinite)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CInfinite_HInfinite_iff)
+apply (cases x, cases y)
+apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal CInfinite_HInfinite_iff)
 done
 
 lemma hcomplex_split_capprox_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y @c=  
        hcomplex_of_hypreal x' + iii * hcomplex_of_hypreal y') =  
       (x @= x' & y @= y')"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (rule_tac z=x' in eq_Abs_star, rule_tac z=y' in eq_Abs_star)
-apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal capprox_approx_iff)
+apply (cases x, cases y, cases x', cases y')
+apply (simp add: iii_def star_of_def star_n_add star_n_mult hcomplex_of_hypreal capprox_approx_iff)
 done
 
 lemma complex_seq_to_hcomplex_CInfinitesimal:
      "\<forall>n. cmod (X n - x) < inverse (real (Suc n)) ==>  
-      Abs_star(starrel``{X}) - hcomplex_of_complex x \<in> CInfinitesimal"
-apply (simp add: hcomplex_diff CInfinitesimal_hcmod_iff hcomplex_of_complex_def star_of_def star_n_def Infinitesimal_FreeUltrafilterNat_iff hcmod)
+      star_n X - hcomplex_of_complex x \<in> CInfinitesimal"
+apply (simp add: star_n_diff CInfinitesimal_hcmod_iff star_of_def Infinitesimal_FreeUltrafilterNat_iff hcmod)
 apply (rule bexI, auto)
 apply (auto dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat_all FreeUltrafilterNat_Int intro: order_less_trans FreeUltrafilterNat_subset)
 done
@@ -1228,13 +1222,11 @@ by (simp add: CInfinitesimal_hcmod_iff)
 
 lemma hcomplex_of_complex_approx_zero_iff [simp]:
      "(hcomplex_of_complex z @c= 0) = (z = 0)"
-by (simp add: hcomplex_of_complex_zero [symmetric]
-         del: hcomplex_of_complex_zero)
+by (simp add: star_of_zero [symmetric] del: star_of_zero)
 
 lemma hcomplex_of_complex_approx_zero_iff2 [simp]:
      "(0 @c= hcomplex_of_complex z) = (z = 0)"
-by (simp add: hcomplex_of_complex_zero [symmetric]
-         del: hcomplex_of_complex_zero)
+by (simp add: star_of_zero [symmetric] del: star_of_zero)
 
 
 ML

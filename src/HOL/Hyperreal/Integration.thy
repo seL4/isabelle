@@ -322,7 +322,8 @@ apply (subgoal_tac "\<bar>(rsum (D,p) f - k2) - (rsum (D,p) f - k1)\<bar> < \<ba
 apply arith
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric] 
-                mult_less_cancel_right, arith)
+                mult_less_cancel_right)
+apply arith
 done
 
 lemma Integral_zero [simp]: "Integral(a,a) f 0"

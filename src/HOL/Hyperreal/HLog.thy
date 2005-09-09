@@ -12,7 +12,7 @@ begin
 
 (* should be in NSA.ML *)
 lemma epsilon_ge_zero [simp]: "0 \<le> epsilon"
-by (simp add: epsilon_def star_n_def hypreal_zero_num hypreal_le)
+by (simp add: epsilon_def star_n_zero_num star_n_le)
 
 lemma hpfinite_witness: "epsilon : {x. 0 \<le> x & x : HFinite}"
 by auto
@@ -21,82 +21,52 @@ by auto
 constdefs
 
     powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80)
-    "x powhr a == ( *f* exp) (a * ( *f* ln) x)"
+    "x powhr a == Ifun2_of (op powr) x a"
   
     hlog :: "[hypreal,hypreal] => hypreal"
-    "hlog a x == Abs_star(\<Union>A \<in> Rep_star(a).\<Union>X \<in> Rep_star(x).
-			     starrel `` {%n. log (A n) (X n)})"
+    "hlog a x == Ifun2_of log a x"
 
 
-lemma powhr: 
-    "(Abs_star(starrel `` {X})) powhr (Abs_star(starrel `` {Y})) =  
-     Abs_star(starrel `` {%n.  (X n) powr (Y n)})"
-by (simp add: powhr_def starfun hypreal_mult powr_def)
+lemma powhr: "(star_n X) powhr (star_n Y) = star_n (%n. (X n) powr (Y n))"
+by (simp add: powhr_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma powhr_one_eq_one [simp]: "1 powhr a = 1"
-apply (rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_one_num)
-done
+lemma powhr_one_eq_one [simp]: "!!a. 1 powhr a = 1"
+by (unfold powhr_def, transfer, simp)
 
 lemma powhr_mult:
-     "[| 0 < x; 0 < y |] ==> (x * y) powhr a = (x powhr a) * (y powhr a)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_zero_num hypreal_mult hypreal_less, ultra)
-apply (simp add: powr_mult) 
-done
+  "!!a x y. [| 0 < x; 0 < y |] ==> (x * y) powhr a = (x powhr a) * (y powhr a)"
+by (unfold powhr_def, transfer, rule powr_mult)
 
-lemma powhr_gt_zero [simp]: "0 < x powhr a"
-apply (rule_tac z=a in eq_Abs_star, rule_tac z=x in eq_Abs_star)
-apply (simp add: hypreal_zero_def powhr hypreal_less hypreal_zero_num)
-done
+lemma powhr_gt_zero [simp]: "!!a x. 0 < x powhr a"
+by (unfold powhr_def, transfer, simp)
 
 lemma powhr_not_zero [simp]: "x powhr a \<noteq> 0"
 by (rule powhr_gt_zero [THEN hypreal_not_refl2, THEN not_sym])
 
-lemma hypreal_divide: 
-     "(Abs_star(starrel `` {X}))/(Abs_star(starrel `` {Y})) =  
-      (Abs_star(starrel `` {%n. (X n::real)/(Y n)}))"
-by (simp add: divide_inverse hypreal_zero_num hypreal_inverse hypreal_mult) 
-
 lemma powhr_divide:
-     "[| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_divide hypreal_zero_num hypreal_less, ultra)
-apply (simp add: powr_divide)
-done
+  "!!a x y. [| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
+by (unfold powhr_def, transfer, rule powr_divide)
 
-lemma powhr_add: "x powhr (a + b) = (x powhr a) * (x powhr b)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=b in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_add hypreal_mult powr_add)
-done
+lemma powhr_add: "!!a b x. x powhr (a + b) = (x powhr a) * (x powhr b)"
+by (unfold powhr_def, transfer, rule powr_add)
 
-lemma powhr_powhr: "(x powhr a) powhr b = x powhr (a * b)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=b in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_mult powr_powr)
-done
+lemma powhr_powhr: "!!a b x. (x powhr a) powhr b = x powhr (a * b)"
+by (unfold powhr_def, transfer, rule powr_powr)
 
-lemma powhr_powhr_swap: "(x powhr a) powhr b = (x powhr b) powhr a"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=b in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr powr_powr_swap)
-done
+lemma powhr_powhr_swap: "!!a b x. (x powhr a) powhr b = (x powhr b) powhr a"
+by (unfold powhr_def, transfer, rule powr_powr_swap)
 
-lemma powhr_minus: "x powhr (-a) = inverse (x powhr a)"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: powhr hypreal_minus hypreal_inverse hypreal_less powr_minus)
-done
+lemma powhr_minus: "!!a x. x powhr (-a) = inverse (x powhr a)"
+by (unfold powhr_def, transfer, rule powr_minus)
 
 lemma powhr_minus_divide: "x powhr (-a) = 1/(x powhr a)"
 by (simp add: divide_inverse powhr_minus)
 
-lemma powhr_less_mono: "[| a < b; 1 < x |] ==> x powhr a < x powhr b"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star, rule_tac z=b in eq_Abs_star)
-apply (simp add: powhr hypreal_one_num hypreal_less, ultra)
-done
+lemma powhr_less_mono: "!!a b x. [| a < b; 1 < x |] ==> x powhr a < x powhr b"
+by (unfold powhr_def, transfer, simp)
 
-lemma powhr_less_cancel: "[| x powhr a < x powhr b; 1 < x |] ==> a < b"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star, rule_tac z=b in eq_Abs_star)
-apply (simp add: powhr hypreal_one_num hypreal_less, ultra)
-done
+lemma powhr_less_cancel: "!!a b x. [| x powhr a < x powhr b; 1 < x |] ==> a < b"
+by (unfold powhr_def, transfer, simp)
 
 lemma powhr_less_cancel_iff [simp]:
      "1 < x ==> (x powhr a < x powhr b) = (a < b)"
@@ -106,57 +76,38 @@ lemma powhr_le_cancel_iff [simp]:
      "1 < x ==> (x powhr a \<le> x powhr b) = (a \<le> b)"
 by (simp add: linorder_not_less [symmetric])
 
-lemma hlog: 
-     "hlog (Abs_star(starrel `` {X})) (Abs_star(starrel `` {Y})) =  
-      Abs_star(starrel `` {%n. log (X n) (Y n)})"
-apply (simp add: hlog_def)
-apply (rule arg_cong [where f=Abs_star], auto, ultra)
-done
+lemma hlog:
+     "hlog (star_n X) (star_n Y) =  
+      star_n (%n. log (X n) (Y n))"
+by (simp add: hlog_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma hlog_starfun_ln: "( *f* ln) x = hlog (( *f* exp) 1) x"
-apply (rule_tac z=x in eq_Abs_star)
-apply (simp add: starfun hlog log_ln hypreal_one_num)
-done
+lemma hlog_starfun_ln: "!!x. ( *f* ln) x = hlog (( *f* exp) 1) x"
+by (unfold hlog_def, transfer, rule log_ln)
 
 lemma powhr_hlog_cancel [simp]:
-     "[| 0 < a; a \<noteq> 1; 0 < x |] ==> a powhr (hlog a x) = x"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: hlog powhr hypreal_zero_num hypreal_less hypreal_one_num, ultra)
-done
+     "!!a x. [| 0 < a; a \<noteq> 1; 0 < x |] ==> a powhr (hlog a x) = x"
+by (unfold powhr_def hlog_def, transfer, simp)
 
 lemma hlog_powhr_cancel [simp]:
-     "[| 0 < a; a \<noteq> 1 |] ==> hlog a (a powhr y) = y"
-apply (rule_tac z=y in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: hlog powhr hypreal_zero_num hypreal_less hypreal_one_num, ultra)
-apply (auto intro: log_powr_cancel) 
-done
+     "!!a y. [| 0 < a; a \<noteq> 1 |] ==> hlog a (a powhr y) = y"
+by (unfold powhr_def hlog_def, transfer, simp)
 
 lemma hlog_mult:
-     "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y  |]  
+     "!!a x y. [| 0 < a; a \<noteq> 1; 0 < x; 0 < y  |]  
       ==> hlog a (x * y) = hlog a x + hlog a y"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: hlog powhr hypreal_zero_num hypreal_one_num hypreal_less hypreal_add hypreal_mult, ultra)
-apply (simp add: log_mult)
-done
+by (unfold powhr_def hlog_def, transfer, rule log_mult)
 
 lemma hlog_as_starfun:
-     "[| 0 < a; a \<noteq> 1 |] ==> hlog a x = ( *f* ln) x / ( *f* ln) a"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star)
-apply (simp add: hlog starfun hypreal_zero_num hypreal_one_num hypreal_divide log_def)
-done
+     "!!a x. [| 0 < a; a \<noteq> 1 |] ==> hlog a x = ( *f* ln) x / ( *f* ln) a"
+by (unfold hlog_def, transfer, simp add: log_def)
 
 lemma hlog_eq_div_starfun_ln_mult_hlog:
-     "[| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  
+     "!!a b x. [| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  
       ==> hlog a x = (( *f* ln) b/( *f*ln) a) * hlog b x"
-apply (rule_tac z=x in eq_Abs_star, rule_tac z=a in eq_Abs_star, rule_tac z=b in eq_Abs_star)
-apply (simp add: hlog starfun hypreal_zero_num hypreal_one_num hypreal_less hypreal_divide hypreal_mult, ultra)
-apply (auto dest: log_eq_div_ln_mult_log) 
-done
+by (unfold hlog_def, transfer, rule log_eq_div_ln_mult_log)
 
-lemma powhr_as_starfun: "x powhr a = ( *f* exp) (a * ( *f* ln) x)"
-apply (rule_tac z=a in eq_Abs_star, rule_tac z=x in eq_Abs_star)
-apply (simp add: powhr starfun hypreal_mult powr_def)
-done
+lemma powhr_as_starfun: "!!a x. x powhr a = ( *f* exp) (a * ( *f* ln) x)"
+by (unfold powhr_def, transfer, simp add: powr_def)
 
 lemma HInfinite_powhr:
      "[| x : HInfinite; 0 < x; a : HFinite - Infinitesimal;  
@@ -179,16 +130,11 @@ lemma hlog_HInfinite_as_starfun:
      "[| a : HInfinite; 0 < a |] ==> hlog a x = ( *f* ln) x / ( *f* ln) a"
 by (rule hlog_as_starfun, auto)
 
-lemma hlog_one [simp]: "hlog a 1 = 0"
-apply (rule_tac z=a in eq_Abs_star)
-apply (simp add: hypreal_one_num hypreal_zero_num hlog)
-done
+lemma hlog_one [simp]: "!!a. hlog a 1 = 0"
+by (unfold hlog_def, transfer, simp)
 
-lemma hlog_eq_one [simp]: "[| 0 < a; a \<noteq> 1 |] ==> hlog a a = 1"
-apply (rule_tac z=a in eq_Abs_star)
-apply (simp add: hypreal_one_num hypreal_zero_num hlog hypreal_less, ultra)
-apply (auto intro: log_eq_one) 
-done
+lemma hlog_eq_one [simp]: "!!a. [| 0 < a; a \<noteq> 1 |] ==> hlog a a = 1"
+by (unfold hlog_def, transfer, rule log_eq_one)
 
 lemma hlog_inverse:
      "[| 0 < a; a \<noteq> 1; 0 < x |] ==> hlog a (inverse x) = - hlog a x"
@@ -201,10 +147,8 @@ lemma hlog_divide:
 by (simp add: hlog_mult hlog_inverse divide_inverse)
 
 lemma hlog_less_cancel_iff [simp]:
-     "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x < hlog a y) = (x < y)"
-apply (rule_tac z=a in eq_Abs_star, rule_tac z=x in eq_Abs_star, rule_tac z=y in eq_Abs_star)
-apply (auto simp add: hlog hypreal_less hypreal_zero_num hypreal_one_num, ultra+)
-done
+     "!!a x y. [| 1 < a; 0 < x; 0 < y |] ==> (hlog a x < hlog a y) = (x < y)"
+by (unfold hlog_def, transfer, simp)
 
 lemma hlog_le_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x \<le> hlog a y) = (x \<le> y)"
@@ -218,7 +162,6 @@ val powhr_one_eq_one = thm "powhr_one_eq_one";
 val powhr_mult = thm "powhr_mult";
 val powhr_gt_zero = thm "powhr_gt_zero";
 val powhr_not_zero = thm "powhr_not_zero";
-val hypreal_divide = thm "hypreal_divide";
 val powhr_divide = thm "powhr_divide";
 val powhr_add = thm "powhr_add";
 val powhr_powhr = thm "powhr_powhr";

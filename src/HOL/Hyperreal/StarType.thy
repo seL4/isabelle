@@ -89,7 +89,7 @@ constdefs
   star_of :: "'a \<Rightarrow> 'a star"
   "star_of x \<equiv> star_n (\<lambda>n. x)"
 
-theorem star_cases:
+theorem star_cases [case_names star_n, cases type: star]:
   "(\<And>X. x = star_n X \<Longrightarrow> P) \<Longrightarrow> P"
 by (unfold star_n_def, rule eq_Abs_star[of x], blast)
 
@@ -312,6 +312,22 @@ lemmas star_of_less_1 = star_of_less [of _ 1, simplified star_of_one]
 lemmas star_of_le_1   = star_of_le   [of _ 1, simplified star_of_one]
 lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
 
+text{*As above, for numerals*}
+
+lemmas star_of_number_less =
+  star_of_less [of "number_of b", simplified star_of_number_of, standard]
+lemmas star_of_number_le   =
+  star_of_le   [of "number_of b", simplified star_of_number_of, standard]
+lemmas star_of_number_eq   =
+  star_of_eq   [of "number_of b", simplified star_of_number_of, standard]
+
+lemmas star_of_less_number =
+  star_of_less [of _ "number_of b", simplified star_of_number_of, standard]
+lemmas star_of_le_number   =
+  star_of_le   [of _ "number_of b", simplified star_of_number_of, standard]
+lemmas star_of_eq_number   =
+  star_of_eq   [of _ "number_of b", simplified star_of_number_of, standard]
+
 lemmas star_of_simps =
   star_of_add     star_of_diff    star_of_minus
   star_of_mult    star_of_divide  star_of_inverse
@@ -323,6 +339,8 @@ lemmas star_of_simps =
   star_of_less_0  star_of_le_0    star_of_eq_0
   star_of_1_less  star_of_1_le    star_of_1_eq
   star_of_less_1  star_of_le_1    star_of_eq_1
+  star_of_number_less star_of_number_le star_of_number_eq
+  star_of_less_number star_of_le_number star_of_eq_number
 
 declare star_of_simps [simp]
 
