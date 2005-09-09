@@ -1661,10 +1661,11 @@ fun print_locale thy show_facts import body =
       | prt_elem (Constrains csts) = items "constrains" (map prt_cst csts)
       | prt_elem (Assumes asms) = items "assumes" (map prt_asm asms)
       | prt_elem (Defines defs) = items "defines" (map prt_def defs)
-      | prt_elem (Notes facts) =
-        if show_facts then items "notes" (map prt_note facts) else [];
+      | prt_elem (Notes facts) = items "notes" (map prt_note facts);
   in
-    Pretty.big_list "context elements:" (map (Pretty.chunks o prt_elem) all_elems)
+    Pretty.big_list "context elements:" (all_elems
+      |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
+      |> map (Pretty.chunks o prt_elem))
     |> Pretty.writeln
   end;
 
@@ -2178,7 +2179,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
         val (t, T) = case find_first (fn (Free (a, _), _) => a = p) defs of
                NONE => error ("Instance missing for parameter " ^ quote p)
              | SOME (Free (_, T), t) => (t, T);
-        val d = t |> inst_tab_term (inst, tinst) |> Envir.beta_norm;
+        val d = inst_tab_term (inst, tinst) t;
       in (Symtab.curried_update_new (p, d) inst, tinst) end;
     val (inst, tinst) = Library.foldl add_def ((inst, tinst), not_given);
     (* Note: inst and tinst contain no vars. *)
