@@ -16,13 +16,15 @@ primes by considering a property of nonstandard sets.*}
 
 constdefs
   hdvd  :: "[hypnat, hypnat] => bool"       (infixl "hdvd" 50)
+   "(M::hypnat) hdvd N == ( *p2* (op dvd)) M N"
+(*
    "(M::hypnat) hdvd N ==
 	           \<exists>X Y. X: Rep_hypnat(M) & Y: Rep_hypnat(N) &
                                {n::nat. X n dvd Y n} : FreeUltrafilterNat"
-
+*)
 constdefs
   starprime :: "hypnat set"
-  "starprime == ( *sNat* {p. prime p})"
+  "starprime == ( *s* {p. prime p})"
 
 constdefs
   choicefun :: "'a set => 'a"
@@ -78,23 +80,20 @@ done
 
 lemmas dvd_by_all2 = dvd_by_all [THEN spec, standard]
 
-lemma lemma_hypnat_P_EX: "(\<exists>(x::hypnat). P x) = (\<exists>f. P (Abs_hypnat(hypnatrel `` {f})))"
+lemma lemma_hypnat_P_EX: "(\<exists>(x::hypnat). P x) = (\<exists>f. P (star_n f))"
 apply auto
-apply (rule_tac z = x in eq_Abs_hypnat, auto)
+apply (rule_tac x = x in star_cases, auto)
 done
 
-lemma lemma_hypnat_P_ALL: "(\<forall>(x::hypnat). P x) = (\<forall>f. P (Abs_hypnat(hypnatrel `` {f})))"
+lemma lemma_hypnat_P_ALL: "(\<forall>(x::hypnat). P x) = (\<forall>f. P (star_n f))"
 apply auto
-apply (rule_tac z = x in eq_Abs_hypnat, auto)
+apply (rule_tac x = x in star_cases, auto)
 done
 
 lemma hdvd:
-      "(Abs_hypnat(hypnatrel``{%n. X n}) hdvd
-            Abs_hypnat(hypnatrel``{%n. Y n})) =
+      "(star_n X hdvd star_n Y) =
        ({n. X n dvd Y n} : FreeUltrafilterNat)"
-apply (unfold hdvd_def)
-apply (auto, ultra)
-done
+by (simp add: hdvd_def starP2)
 
 lemma hypnat_of_nat_le_zero_iff: "(hypnat_of_nat n <= 0) = (n = 0)"
 by (subst hypnat_of_nat_zero [symmetric], auto)
@@ -103,18 +102,7 @@ declare hypnat_of_nat_le_zero_iff [simp]
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
 lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m hdvd N)"
-apply safe
-apply (rule_tac z = M in eq_Abs_hypnat)
-apply (auto simp add: lemma_hypnat_P_EX lemma_hypnat_P_ALL
-              hypnat_zero_def hypnat_le hypnat_less hdvd)
-apply (cut_tac dvd_by_all)
-apply (subgoal_tac " \<forall>(n::nat) . \<exists>N. 0 < N & (\<forall>m. 0 < (m::nat) & m <= (x n) --> m dvd N)")
- prefer 2 apply blast
-apply (erule thin_rl)
-apply (drule choice, safe)
-apply (rule_tac x = f in exI, auto, ultra)
-apply auto
-done
+by (unfold hdvd_def, transfer, rule dvd_by_all)
 
 lemmas hdvd_by_all2 = hdvd_by_all [THEN spec, standard]
 
@@ -136,17 +124,7 @@ those hypernaturals exceeding 1 that have no nontrivial factors*}
 lemma starprime:
   "starprime = {p. 1 < p & (\<forall>m. m hdvd p --> m = 1 | m = p)}"
 apply (unfold starprime_def prime_def)
-apply (auto simp add: Collect_conj_eq NatStar_Int)
-apply (rule_tac [!] z = x in eq_Abs_hypnat)
-apply (rule_tac [2] z = m in eq_Abs_hypnat)
-apply (auto simp add: hdvd hypnat_one_def hypnat_less lemma_hypnat_P_ALL starsetNat_def)
-apply (drule bspec, drule_tac [2] bspec, auto)
-apply (ultra, ultra)
-apply (rule ccontr)
-apply (drule FreeUltrafilterNat_Compl_mem)
-apply (auto simp add: Collect_neg_eq [symmetric])
-apply (drule UF_choice, auto)
-apply (drule_tac x = f in spec, auto, ultra+)
+apply (unfold hdvd_def, transfer, rule refl)
 done
 
 lemma prime_two:  "prime 2"
@@ -169,28 +147,17 @@ apply (auto intro: dvd_mult2)
 done
 
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
-lemma hyperprime_factor_exists [rule_format]: "1 < n ==> (\<exists>k \<in> starprime. k hdvd n)"
-apply (rule_tac z = n in eq_Abs_hypnat)
-apply (auto simp add: hypnat_one_def hypnat_less starprime_def
-    lemma_hypnat_P_EX lemma_hypnat_P_ALL hdvd starsetNat_def Ball_def UF_if)
-apply (rule_tac x = "%n. @y. prime y & y dvd x n" in exI, auto, ultra)
-apply (drule sym, simp (no_asm_simp))
- prefer 2 apply ultra
-apply (rule_tac [!] someI2_ex)
-apply (auto dest!: prime_factor_exists)
-done
-
-(* behaves as expected! *)
-lemma NatStar_insert: "( *sNat* insert x A) = insert (hypnat_of_nat x) ( *sNat* A)"
-apply (auto simp add: starsetNat_def hypnat_of_nat_eq)
-apply (rule_tac [!] z = xa in eq_Abs_hypnat, auto)
-apply (drule_tac [!] bspec asm_rl, auto, ultra+)
+lemma hyperprime_factor_exists [rule_format]:
+  "!!n. 1 < n ==> (\<exists>k \<in> starprime. k hdvd n)"
+apply (unfold starprime_def hdvd_def)
+apply (transfer prime_def)
+apply (simp add: prime_factor_exists)
 done
 
 (* Goldblatt Exercise 3.10(1) - p. 29 *)
-lemma NatStar_hypnat_of_nat: "finite A ==> *sNat* A = hypnat_of_nat ` A"
-apply (rule_tac P = "%x. *sNat* x = hypnat_of_nat ` x" in finite_induct)
-apply (auto simp add: NatStar_insert)
+lemma NatStar_hypnat_of_nat: "finite A ==> *s* A = hypnat_of_nat ` A"
+apply (rule_tac P = "%x. *s* x = hypnat_of_nat ` x" in finite_induct)
+apply auto
 done
 
 (* proved elsewhere? *)
@@ -239,8 +206,8 @@ apply (subgoal_tac "\<forall>n. (f n = f x) = (x = n) ")
 apply auto
 done
 
-lemma inj_fun_not_hypnat_in_SHNat: "inj f ==> Abs_hypnat(hypnatrel `` {f}) \<notin> Nats"
-apply (auto simp add: SHNat_eq hypnat_of_nat_eq)
+lemma inj_fun_not_hypnat_in_SHNat: "inj (f::nat=>nat) ==> star_n f \<notin> Nats"
+apply (auto simp add: SHNat_eq hypnat_of_nat_eq star_n_eq_iff)
 apply (subgoal_tac "\<forall>m n. m \<noteq> n --> f n \<noteq> f m", auto)
 apply (drule_tac [2] injD)
 prefer 2 apply assumption
@@ -248,10 +215,9 @@ apply (drule_tac N = N in lemma_infinite_set_singleton, auto)
 done
 
 lemma range_subset_mem_starsetNat:
-   "range f <= A ==> Abs_hypnat(hypnatrel `` {f}) \<in> *sNat* A"
-apply (unfold starsetNat_def, auto, ultra)
-apply (drule_tac c = "f x" in subsetD)
-apply (rule rangeI, auto)
+   "range f <= A ==> star_n f \<in> *s* A"
+apply (simp add: Iset_of_def star_of_def Iset_star_n)
+apply (subgoal_tac "\<forall>n. f n \<in> A", auto)
 done
 
 (*--------------------------------------------------------------------------------*)
@@ -315,10 +281,10 @@ done
 text{*Only need the existence of an injective function from N to A for proof*}
 
 lemma hypnat_infinite_has_nonstandard:
-     "~ finite A ==> hypnat_of_nat ` A < ( *sNat* A)"
+     "~ finite A ==> hypnat_of_nat ` A < ( *s* A)"
 apply auto
 apply (rule subsetD)
-apply (rule NatStar_hypreal_of_real_image_subset, auto)
+apply (rule STAR_star_of_image_subset, auto)
 apply (subgoal_tac "A \<noteq> {}")
 prefer 2 apply force
 apply (drule infinite_set_has_order_preserving_inj)
@@ -328,15 +294,15 @@ apply (drule range_subset_mem_starsetNat)
 apply (auto simp add: SHNat_eq)
 done
 
-lemma starsetNat_eq_hypnat_of_nat_image_finite: "*sNat* A =  hypnat_of_nat ` A ==> finite A"
+lemma starsetNat_eq_hypnat_of_nat_image_finite: "*s* A =  hypnat_of_nat ` A ==> finite A"
 apply (rule ccontr)
 apply (auto dest: hypnat_infinite_has_nonstandard)
 done
 
-lemma finite_starsetNat_iff: "( *sNat* A = hypnat_of_nat ` A) = (finite A)"
+lemma finite_starsetNat_iff: "( *s* A = hypnat_of_nat ` A) = (finite A)"
 by (blast intro!: starsetNat_eq_hypnat_of_nat_image_finite NatStar_hypnat_of_nat)
 
-lemma hypnat_infinite_has_nonstandard_iff: "(~ finite A) = (hypnat_of_nat ` A < *sNat* A)"
+lemma hypnat_infinite_has_nonstandard_iff: "(~ finite A) = (hypnat_of_nat ` A < *s* A)"
 apply (rule iffI)
 apply (blast intro!: hypnat_infinite_has_nonstandard)
 apply (auto simp add: finite_starsetNat_iff [symmetric])
@@ -347,7 +313,7 @@ subsection{*Existence of Infinitely Many Primes: a Nonstandard Proof*}
 lemma lemma_not_dvd_hypnat_one: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n hdvd 1)"
 apply auto
 apply (rule_tac x = 2 in bexI)
-apply (auto simp add: hypnat_of_nat_eq hypnat_one_def hdvd dvd_def)
+apply (unfold hdvd_def, transfer, auto)
 done
 declare lemma_not_dvd_hypnat_one [simp]
 
@@ -359,18 +325,12 @@ declare lemma_not_dvd_hypnat_one2 [simp]
 
 (* not needed here *)
 lemma hypnat_gt_zero_gt_one:
-  "[| 0 < (N::hypnat); N \<noteq> 1 |] ==> 1 < N"
-apply (unfold hypnat_zero_def hypnat_one_def)
-apply (rule_tac z = N in eq_Abs_hypnat)
-apply (auto simp add: hypnat_less, ultra)
-done
+  "!!N. [| 0 < (N::hypnat); N \<noteq> 1 |] ==> 1 < N"
+by (transfer, simp)
 
 lemma hypnat_add_one_gt_one:
-    "0 < N ==> 1 < (N::hypnat) + 1"
-apply (unfold hypnat_zero_def hypnat_one_def)
-apply (rule_tac z = N in eq_Abs_hypnat)
-apply (auto simp add: hypnat_less hypnat_add)
-done
+    "!!N. 0 < N ==> 1 < (N::hypnat) + 1"
+by (transfer, simp)
 
 lemma zero_not_prime: "\<not> prime 0"
 apply safe
@@ -379,14 +339,12 @@ done
 declare zero_not_prime [simp]
 
 lemma hypnat_of_nat_zero_not_prime: "hypnat_of_nat 0 \<notin> starprime"
-by (auto intro!: bexI simp add: starprime_def starsetNat_def hypnat_of_nat_eq)
+by (unfold starprime_def, transfer prime_def, simp)
 declare hypnat_of_nat_zero_not_prime [simp]
 
 lemma hypnat_zero_not_prime:
    "0 \<notin> starprime"
-apply (unfold starprime_def starsetNat_def hypnat_zero_def)
-apply (auto intro!: bexI)
-done
+by (cut_tac hypnat_of_nat_zero_not_prime, simp)
 declare hypnat_zero_not_prime [simp]
 
 lemma one_not_prime: "\<not> prime 1"
@@ -402,31 +360,21 @@ done
 declare one_not_prime2 [simp]
 
 lemma hypnat_of_nat_one_not_prime: "hypnat_of_nat 1 \<notin> starprime"
-by (auto intro!: bexI simp add: starprime_def starsetNat_def hypnat_of_nat_eq)
+by (unfold starprime_def, transfer prime_def, simp)
 declare hypnat_of_nat_one_not_prime [simp]
 
 lemma hypnat_one_not_prime: "1 \<notin> starprime"
-apply (unfold starprime_def starsetNat_def hypnat_one_def)
-apply (auto intro!: bexI)
-done
+by (cut_tac hypnat_of_nat_one_not_prime, simp)
 declare hypnat_one_not_prime [simp]
 
-lemma hdvd_diff: "[| k hdvd m; k hdvd n |] ==> k hdvd (m - n)"
-apply (rule_tac z = k in eq_Abs_hypnat)
-apply (rule_tac z = m in eq_Abs_hypnat)
-apply (rule_tac z = n in eq_Abs_hypnat)
-apply (auto simp add: hdvd hypnat_minus, ultra)
-apply (blast intro: dvd_diff)
-done
+lemma hdvd_diff: "!!k m n. [| k hdvd m; k hdvd n |] ==> k hdvd (m - n)"
+by (unfold hdvd_def, transfer, rule dvd_diff)
 
 lemma dvd_one_eq_one: "x dvd (1::nat) ==> x = 1"
 by (unfold dvd_def, auto)
 
-lemma hdvd_one_eq_one: "x hdvd 1 ==> x = 1"
-apply (unfold hypnat_one_def)
-apply (rule_tac z = x in eq_Abs_hypnat)
-apply (auto simp add: hdvd)
-done
+lemma hdvd_one_eq_one: "!!x. x hdvd 1 ==> x = 1"
+by (unfold hdvd_def, transfer, rule dvd_one_eq_one)
 
 theorem not_finite_prime: "~ finite {p. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
@@ -436,7 +384,7 @@ apply (erule conjE)
 apply (subgoal_tac "1 < N + 1")
 prefer 2 apply (blast intro: hypnat_add_one_gt_one)
 apply (drule hyperprime_factor_exists)
-apply (auto intro: NatStar_mem)
+apply (auto intro: STAR_mem)
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def, safe)
 apply (drule_tac x = x in bspec)
