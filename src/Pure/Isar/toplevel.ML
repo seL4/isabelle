@@ -574,7 +574,7 @@ local
 
 fun excur [] x = x
   | excur ((tr, pr) :: trs) (st, res) =
-      (case apply false tr st of
+      (case apply (! debug) tr st of
         SOME (st', NONE) =>
           excur trs (st', transform_error (fn () => pr st st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
