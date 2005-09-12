@@ -1,0 +1,143 @@
+-- Changes from Isabelle 2004 version of HOL-Complex
+
+* There is a new type constructor "star" for making nonstandard types.
+  The old type names are now type synonyms:
+  - hypreal = real star
+  - hypnat = nat star
+  - hcomplex = complex star
+
+* Many groups of similarly-defined constants have been replaced by polymorphic
+  versions:
+
+star_of <-- hypreal_of_real, hypnat_of_nat, hcomplex_of_complex
+
+starset      <-- starsetNat, starsetC
+*s*          <-- *sNat*, *sc*
+starset_n    <-- starsetNat_n, starsetC_n
+*sn*         <-- *sNatn*, *scn*
+InternalSets <-- InternalNatSets, InternalCSets
+
+starfun      <-- starfunNat, starfunNat2, starfunC, starfunRC, starfunCR
+*f*          <-- *fNat*, *fNat2*, *fc*, *fRc*, *fcR*
+starfun_n    <-- starfunNat_n, starfunNat2_n, starfunC_n, starfunRC_n, starfunCR_n
+*fn*         <-- *fNatn*, *fNat2n*, *fcn*, *fRcn*, *fcRn*
+InternalFuns <-- InternalNatFuns, InternalNatFuns2, InternalCFuns, InternalRCFuns, InternalCRFuns
+
+* Many type-specific theorems have been removed in favor of theorems specific 
+  to various axiomatic type classes:
+
+add_commute <-- hypreal_add_commute, hypnat_add_commute, hcomplex_add_commute
+add_assoc   <-- hypreal_add_assoc, hypnat_add_assoc, hcomplex_add_assoc
+OrderedGroup.add_0 <-- hypreal_add_zero_left, hypnat_add_zero_left, hcomplex_add_zero_left
+OrderedGroup.add_0_right <-- hypreal_add_zero_right, hcomplex_add_zero_right
+right_minus <-- hypreal_add_minus
+left_minus <-- hypreal_add_minus_left, hcomplex_add_minus_left
+mult_commute <-- hypreal_mult_commute, hypnat_mult_commute, hcomplex_mult_commute
+mult_assoc <-- hypreal_mult_assoc, hypnat_mult_assoc, hcomplex_mult_assoc
+mult_1_left <-- hypreal_mult_1, hypnat_mult_1, hcomplex_mult_one_left
+mult_1_right <-- hcomplex_mult_one_right
+mult_zero_left <-- hcomplex_mult_zero_left
+left_distrib <-- hypreal_add_mult_distrib, hypnat_add_mult_distrib, hcomplex_add_mult_distrib
+right_distrib <-- hypnat_add_mult_distrib2
+zero_neq_one <-- hypreal_zero_not_eq_one, hypnat_zero_not_eq_one, hcomplex_zero_not_eq_one
+right_inverse <-- hypreal_mult_inverse
+left_inverse <-- hypreal_mult_inverse_left, hcomplex_mult_inv_left
+order_refl <-- hypreal_le_refl, hypnat_le_refl
+order_trans <-- hypreal_le_trans, hypnat_le_trans
+order_antisym <-- hypreal_le_anti_sym, hypnat_le_anti_sym
+order_less_le <-- hypreal_less_le, hypnat_less_le
+linorder_linear <-- hypreal_le_linear, hypnat_le_linear
+add_left_mono <-- hypreal_add_left_mono, hypnat_add_left_mono
+mult_strict_left_mono <-- hypreal_mult_less_mono2, hypnat_mult_less_mono2
+add_nonneg_nonneg <-- hypreal_le_add_order
+
+* Separate theorems having to do with type-specific versions of constants have
+  been merged into theorems that apply to the new polymorphic constants:
+
+STAR_UNIV_set <-- STAR_real_set, NatStar_real_set, STARC_complex_set
+STAR_empty_set <-- NatStar_empty_set, STARC_empty_set
+STAR_Un <-- NatStar_Un, STARC_Un
+STAR_Int <-- NatStar_Int, STARC_Int
+STAR_Compl <-- NatStar_Compl, STARC_Compl
+STAR_subset <-- NatStar_subset, STARC_subset
+STAR_mem <-- NatStar_mem, STARC_mem
+STAR_mem_Compl <-- STARC_mem_Compl
+STAR_diff <-- STARC_diff
+STAR_star_of_image_subset <-- STAR_hypreal_of_real_image_subset, NatStar_hypreal_of_real_image_subset, STARC_hcomplex_of_complex_image_subset
+starset_n_Un <-- starsetNat_n_Un, starsetC_n_Un
+starset_n_Int <-- starsetNat_n_Int, starsetC_n_Int
+starset_n_Compl <-- starsetNat_n_Compl, starsetC_n_Compl
+starset_n_diff <-- starsetNat_n_diff, starsetC_n_diff
+InternalSets_Un <-- InternalNatSets_Un, InternalCSets_Un
+InternalSets_Int <-- InternalNatSets_Int, InternalCSets_Int
+InternalSets_Compl <-- InternalNatSets_Compl, InternalCSets_Compl
+InternalSets_diff <-- InternalNatSets_diff, InternalCSets_diff
+InternalSets_UNIV_diff <-- InternalNatSets_UNIV_diff, InternalCSets_UNIV_diff
+InternalSets_starset_n <-- InternalNatSets_starsetNat_n, InternalCSets_starsetC_n
+starset_starset_n_eq <-- starsetNat_starsetNat_n_eq, starsetC_starsetC_n_eq
+starset_n_starset <-- starsetNat_n_starsetNat, starsetC_n_starsetC
+starfun_n_starfun <-- starfunNat_n_starfunNat, starfunNat2_n_starfunNat2, starfunC_n_starfunC, starfunRC_n_starfunRC, starfunCR_n_starfunCR
+starfun <-- starfunNat, starfunNat2, starfunC, starfunRC, starfunCR
+starfun_mult <-- starfunNat_mult, starfunNat2_mult, starfunC_mult, starfunRC_mult, starfunCR_mult
+starfun_add <-- starfunNat_add, starfunNat2_add, starfunC_add, starfunRC_add, starfunCR_add
+starfun_minus <-- starfunNat_minus, starfunNat2_minus, starfunC_minus, starfunRC_minus, starfunCR_minus
+starfun_diff <-- starfunC_diff, starfunRC_diff, starfunCR_diff
+starfun_o <-- starfunNatNat2_o, starfunNat2_o, starfun_stafunNat_o, starfunC_o, starfunC_starfunRC_o, starfun_starfunCR_o
+starfun_o2 <-- starfunNatNat2_o2, starfun_stafunNat_o2, starfunC_o2, starfunC_starfunRC_o2, starfun_starfunCR_o2
+starfun_const_fun <-- starfunNat_const_fun, starfunNat2_const_fun, starfunC_const_fun, starfunRC_const_fun, starfunCR_const_fun
+starfun_inverse <-- starfunNat_inverse, starfunC_inverse, starfunRC_inverse, starfunCR_inverse
+starfun_eq <-- starfunNat_eq, starfunNat2_eq, starfunC_eq, starfunRC_eq, starfunCR_eq
+starfun_eq_iff <-- starfunC_eq_iff, starfunRC_eq_iff, starfunCR_eq_iff
+starfun_Id <-- starfunC_Id
+starfun_approx <-- starfunNat_approx, starfunCR_approx
+starfun_capprox <-- starfunC_capprox, starfunRC_capprox
+starfun_abs <-- starfunNat_rabs
+starfun_lambda_cancel <-- starfunC_lambda_cancel, starfunCR_lambda_cancel, starfunRC_lambda_cancel
+starfun_lambda_cancel2 <-- starfunC_lambda_cancel2, starfunCR_lambda_cancel2, starfunRC_lambda_cancel2
+starfun_mult_HFinite_approx <-- starfunCR_mult_HFinite_capprox
+starfun_mult_CFinite_capprox <-- starfunC_mult_CFinite_capprox, starfunRC_mult_CFinite_capprox
+starfun_add_capprox <-- starfunC_add_capprox, starfunRC_add_capprox
+starfun_add_approx <-- starfunCR_add_approx
+starfun_inverse_inverse <-- starfunC_inverse_inverse
+starfun_divide <-- starfunC_divide, starfunCR_divide, starfunRC_divide
+starfun_n_congruent <-- starfunNat_n_congruent, starfunC_n_congruent
+starfun_n <-- starfunNat_n, starfunC_n
+starfun_n_mult <-- starfunNat_n_mult, starfunC_n_mult
+starfun_n_add <-- starfunNat_n_add, starfunC_n_add
+starfun_n_add_minus <-- starfunNat_n_add_minus
+starfun_n_const_fun <-- starfunNat_n_const_fun, starfunC_n_const_fun
+starfun_n_minus <-- starfunNat_n_minus, starfunC_n_minus
+starfun_n_eq <-- starfunNat_n_eq, starfunC_n_eq
+ 
+star_n_add <-- hypreal_add, hypnat_add, hcomplex_add
+star_n_minus <-- hypreal_minus, hcomplex_minus
+star_n_diff <-- hypreal_diff, hcomplex_diff
+star_n_mult <-- hypreal_mult, hcomplex_mult
+star_n_inverse <-- hypreal_inverse, hcomplex_inverse
+star_n_le <-- hypreal_le, hypnat_le
+star_n_less <-- hypreal_less, hypnat_less
+star_n_zero_num <-- hypreal_zero_num, hypnat_zero_num, hcomplex_zero_num
+star_n_one_num <-- hypreal_one_num, hypnat_one_num, hcomplex_one_num
+star_n_abs <-- hypreal_hrabs
+star_n_divide <-- hcomplex_divide
+
+star_of_add <-- hypreal_of_real_add
+star_of_minus <-- hypreal_of_real_minus
+star_of_diff <-- hypreal_of_real_diff
+star_of_mult <-- hypreal_of_real_mult
+star_of_one <-- hypreal_of_real_one
+star_of_zero <-- hypreal_of_real_zero
+star_of_le <-- hypreal_of_real_le_iff
+star_of_less <-- hypreal_of_real_less_iff
+star_of_eq <-- hypreal_of_real_eq_iff
+star_of_inverse <-- hypreal_of_real_inverse
+star_of_divide <-- hypreal_of_real_divide
+star_of_of_nat <-- hypreal_of_real_of_nat
+star_of_of_int <-- hypreal_of_real_of_int
+star_of_number_of <-- hypreal_number_of
+star_of_number_less <-- number_of_less_hypreal_of_real_iff
+star_of_number_le <-- number_of_le_hypreal_of_real_iff
+star_of_eq_number <-- hypreal_of_real_eq_number_of_iff
+star_of_less_number <-- hypreal_of_real_less_number_of_iff
+star_of_le_number <-- hypreal_of_real_le_number_of_iff
+star_of_power <-- hypreal_of_real_power
