@@ -123,6 +123,7 @@ datatype thm = HOLThm of (Term.term * Term.term) list * Thm.thm
 
 fun hthm2thm (HOLThm (_, th)) = th 
 
+
 datatype proof_info
   = Info of {disk_info: (string * string) option ref}
 	    
@@ -1019,46 +1020,6 @@ fun mk_INST dom rng th =
     th |> forall_intr_list dom
        |> forall_elim_list rng
 
-fun apply_tyinst_typ tyinst =
-    let
-	fun G (ty as TFree _) =
-	    (case try (Lib.assoc ty) tyinst of
-		 SOME ty' => ty'
-	       | NONE => ty)
-	  | G (Type(tyname,tys)) = Type(tyname,map G tys)
-	  | G (TVar _) = raise ERR "apply_tyinst_typ" "Scematic variable found"
-    in
-	G
-    end
-
-fun apply_tyinst_term tyinst =
-    let
-	val G = apply_tyinst_typ tyinst
-	fun F (tm as Bound _) = tm
-	  | F (tm as Free(vname,ty)) = Free(vname,G ty)
-	  | F (tm as Const(vname,ty)) = Const(vname,G ty)
-	  | F (tm1 $ tm2) = (F tm1) $ (F tm2)
-	  | F (Abs(vname,ty,body)) = Abs(vname,G ty,F body)
-	  | F (Var _) = raise ERR "apply_tyinst_term" "Schematic variable found"
-    in
-	F
-    end
-
-fun apply_inst_term tminst =
-    let
-	fun F (tm as Bound _) = tm
-	  | F (tm as Free _) =
-	    (case try (Lib.assoc tm) tminst of
-		 SOME tm' => tm'
-	       | NONE => tm)
-	  | F (tm as Const _) = tm
-	  | F (tm1 $ tm2) = (F tm1) $ (F tm2)
-	  | F (Abs(vname,ty,body)) = Abs(vname,ty,F body)
-	  | F (Var _) = raise ERR "apply_inst_term" "Schematic variable found"
-    in
-	F
-    end
-
 val collect_vars =
     let
 	fun F vars (Bound _) = vars
@@ -1354,8 +1315,7 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
 			     ))
 			 (zip tys_before tys_after)
 	val res = Drule.instantiate (tyinst,[]) th1
-	val appty = apboth (apply_tyinst_term lambda)
-	val hth = HOLThm(map appty rens,res)
+	val hth = HOLThm([],res)
 	val res = norm_hthm sg hth
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1370,12 +1330,9 @@ fun INST sigma hth thy =
 	val _ = if_debug pth hth
 	val sg = sign_of thy
 	val (sdom,srng) = ListPair.unzip sigma
-	val (info,th) = disamb_thm hth
-	val (info',srng') = disamb_terms_from info srng
-	val rens = rens_of info'
-	val sdom' = map (apply_inst_term rens) sdom
-	val th1 = mk_INST (map (cterm_of sg) sdom') (map (cterm_of sg) srng') th
-	val res = HOLThm(rens,th1)
+	val th = hthm2thm hth
+	val th1 = mk_INST (map (cterm_of sg) sdom) (map (cterm_of sg) srng) th
+	val res = HOLThm([],th1)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
     in
