@@ -37,6 +37,7 @@ sig
   val pretty_state: bool -> state -> Pretty.T list
   val quiet: bool ref
   val debug: bool ref
+  val interact: bool ref
   val timing: bool ref
   val profiling: int ref
   val skip_proofs: bool ref
@@ -215,6 +216,7 @@ fun print_state prf_only state =
 
 val quiet = ref false;
 val debug = ref false;
+val interact = ref false;
 val timing = Output.timing;
 val profiling = ref 0;
 val skip_proofs = ref false;
@@ -574,7 +576,7 @@ local
 
 fun excur [] x = x
   | excur ((tr, pr) :: trs) (st, res) =
-      (case apply (! debug) tr st of
+      (case apply (! interact) tr st of
         SOME (st', NONE) =>
           excur trs (st', transform_error (fn () => pr st st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
