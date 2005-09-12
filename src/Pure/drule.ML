@@ -302,8 +302,8 @@ fun types_sorts thm =
         val frees = map dest_Free (term_frees big);
         val tvars = term_tvars big;
         val tfrees = term_tfrees big;
-        fun typ(a,i) = if i<0 then assoc(frees,a) else assoc(vars,(a,i));
-        fun sort(a,i) = if i<0 then assoc(tfrees,a) else assoc(tvars,(a,i));
+        fun typ(a,i) = if i<0 then AList.lookup (op =) frees a else AList.lookup (op =) vars (a,i);
+        fun sort(a,i) = if i<0 then AList.lookup (op =) tfrees a else AList.lookup (op =) tvars (a,i);
     in (typ,sort) end;
 
 fun add_used thm used =
@@ -344,7 +344,7 @@ val corollaryK = "corollary";
 val internalK = "internal";
 
 fun get_kind thm =
-  (case Library.assoc (#2 (Thm.get_name_tags thm), "kind") of
+  (case AList.lookup (op =) ((#2 o Thm.get_name_tags) thm) "kind" of
     SOME (k :: _) => k
   | _ => "unknown");
 
@@ -479,7 +479,7 @@ fun freeze_thaw_robust th =
              val alist = foldr newName [] vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(valOf (assoc(alist,v)), T)))
+                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -503,7 +503,7 @@ fun freeze_thaw th =
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
-                  cterm_of thy (Free(valOf (assoc(alist,v)), T)))
+                  cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)
@@ -999,7 +999,7 @@ fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
     let
       val {thy, prop, ...} = rep_thm thm;
-      fun ren (Abs (x, T, t)) = Abs (getOpt (assoc (vs, x), x), T, ren t)
+      fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
         | ren (t $ u) = ren t $ ren u
         | ren t = t;
     in equal_elim (reflexive (cterm_of thy (ren prop))) thm end;

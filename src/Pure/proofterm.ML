@@ -470,10 +470,10 @@ fun prf_subst_pbounds args prf =
 (**** Freezing and thawing of variables in proof terms ****)
 
 fun frzT names =
-  map_type_tvar (fn (ixn, xs) => TFree (the (assoc (names, ixn)), xs));
+  map_type_tvar (fn (ixn, xs) => TFree ((the o AList.lookup (op =) names) ixn, xs));
 
 fun thawT names =
-  map_type_tfree (fn (s, xs) => case assoc (names, s) of
+  map_type_tfree (fn (s, xs) => case AList.lookup (op =) names s of
       NONE => TFree (s, xs)
     | SOME ixn => TVar (ixn, xs));
 
@@ -484,7 +484,7 @@ fun freeze names names' (t $ u) =
   | freeze names names' (Const (s, T)) = Const (s, frzT names' T)
   | freeze names names' (Free (s, T)) = Free (s, frzT names' T)
   | freeze names names' (Var (ixn, T)) =
-      Free (the (assoc (names, ixn)), frzT names' T)
+      Free ((the o AList.lookup (op =) names) ixn, frzT names' T)
   | freeze names names' t = t;
 
 fun thaw names names' (t $ u) =
@@ -494,7 +494,7 @@ fun thaw names names' (t $ u) =
   | thaw names names' (Const (s, T)) = Const (s, thawT names' T)
   | thaw names names' (Free (s, T)) = 
       let val T' = thawT names' T
-      in case assoc (names, s) of
+      in case AList.lookup (op =) names s of
           NONE => Free (s, T')
         | SOME ixn => Var (ixn, T')
       end
@@ -566,7 +566,7 @@ fun new_name (ix, (pairs,used)) =
   let val v = variant used (string_of_indexname ix)
   in  ((ix, v) :: pairs, v :: used)  end;
 
-fun freeze_one alist (ix, sort) = (case assoc (alist, ix) of
+fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
     NONE => TVar (ix, sort)
   | SOME name => TFree (name, sort));
 
@@ -892,7 +892,7 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
         val (ts', ts'') = splitAt (length vs, ts)
         val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
         val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
-          ixn ins (case assoc (insts, ixn) of
+          ixn ins (case AList.lookup (op =) insts ixn of
               SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
             | _ => ixns union ixns'))
               (needed prop ts'' prfs, add_npvars false true [] ([], prop));
@@ -982,7 +982,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
   let
     val substT = Envir.typ_subst_TVars tyinsts;
 
-    fun subst' lev (t as Var (ixn, _)) = (case assoc (insts, ixn) of
+    fun subst' lev (t as Var (ixn, _)) = (case AList.lookup (op =) insts ixn of
           NONE => t
         | SOME u => incr_boundvars lev u)
       | subst' lev (Const (s, T)) = Const (s, substT T)
@@ -997,7 +997,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
           Abst (a, Option.map substT T, subst plev (tlev+1) body)
       | subst plev tlev (prf %% prf') = subst plev tlev prf %% subst plev tlev prf'
       | subst plev tlev (prf % t) = subst plev tlev prf % Option.map (subst' tlev) t
-      | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case assoc (pinst, ixn) of
+      | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case AList.lookup (op =) pinst ixn of
           NONE => prf
         | SOME prf' => incr_pboundvars plev tlev prf')
       | subst _ _ (PThm (id, prf, prop, Ts)) =

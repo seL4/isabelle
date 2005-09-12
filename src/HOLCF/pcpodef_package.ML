@@ -79,7 +79,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       else HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_nonempty set, mk_admissible set));
   
     (*lhs*)
-    val lhs_tfrees = map (fn v => (v, getOpt (assoc (rhs_tfrees, v), HOLogic.typeS))) vs;
+    val lhs_tfrees = map (fn v => (v, AList.lookup (op =) rhs_tfrees v |> the_default HOLogic.typeS)) vs;
     val lhs_sorts = map snd lhs_tfrees;
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;

@@ -179,7 +179,7 @@ fun add_new_asm_vars new_asms =
         fun add_vars (tm,vars) = case tm of
                   Abs (_,_,body) => add_vars(body,vars)
                 | r$s => (case head_of tm of
-                          Const(c,T) => (case assoc(new_asms,c) of
+                          Const(c,T) => (case AList.lookup (op =) new_asms c of
                                   NONE => add_vars(r,add_vars(s,vars))
                                 | SOME(al) => add_list(tm,al,vars))
                         | _ => add_vars(r,add_vars(s,vars)))

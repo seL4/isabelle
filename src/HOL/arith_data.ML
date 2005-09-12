@@ -241,8 +241,8 @@ struct
 fun nT (Type("fun",[N,_])) = N = HOLogic.natT
   | nT _ = false;
 
-fun add_atom(t,m,(p,i)) = (case assoc(p,t) of NONE => ((t,m)::p,i)
-                           | SOME n => (overwrite(p,(t,ratadd(n,m))), i));
+fun add_atom(t,m,(p,i)) = (case AList.lookup (op =) p t of NONE => ((t, m) :: p, i)
+                           | SOME n => (AList.update (op =) (t, ratadd (n, m)) p, i));
 
 exception Zero;
 

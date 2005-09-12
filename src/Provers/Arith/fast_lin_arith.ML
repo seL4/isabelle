@@ -492,7 +492,7 @@ fun mkthm sg asms just =
 end;
 
 fun coeff poly atom : IntInf.int =
-  case assoc(poly,atom) of NONE => 0 | SOME i => i;
+  AList.lookup (op =) poly atom |> the_default 0;
 
 fun lcms is = Library.foldl lcm (1, is);
 

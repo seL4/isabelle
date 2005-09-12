@@ -65,14 +65,14 @@ open Domain_Library;
 	|   rm_sorts (TVar(s,_))  = TVar(s,[])
 	and remove_sorts l = map rm_sorts l;
 	val indirect_ok = ["*","Cfun.->","Ssum.++","Sprod.**","Up.u"]
-	fun analyse indirect (TFree(v,s))  = (case assoc_string(tvars,v) of 
+	fun analyse indirect (TFree(v,s))  = (case AList.lookup (op =) tvars v of 
 		    NONE => error ("Free type variable " ^ quote v ^ " on rhs.")
 	          | SOME sort => if eq_set_string (s,defaultS) orelse
 				    eq_set_string (s,sort    )
 				 then TFree(distinct_name v,sort)
 				 else error ("Inconsistent sort constraint" ^
 				             " for type variable " ^ quote v))
-        |   analyse indirect (t as Type(s,typl)) = (case assoc_string(dtnvs,s)of
+        |   analyse indirect (t as Type(s,typl)) = (case AList.lookup (op =) dtnvs s of
 		NONE          => if exists (fn x => x = s) indirect_ok
 				 then Type(s,map (analyse false) typl)
 				 else Type(s,map (analyse true) typl)

@@ -275,7 +275,7 @@ fun add_rule (rss, r) =
     val _ $ (_ $ _ $ S) = concl_of r;
     val (Const (s, _), _) = strip_comb S;
     val rs = getOpt (assoc (rss, s), []);
-  in overwrite (rss, (s, rs @ [r])) end;
+  in AList.update (op =) (s, rs @ [r]) rss end;
 
 fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let

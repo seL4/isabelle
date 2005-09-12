@@ -63,7 +63,7 @@ fun mat_name_ con = "match_"^ (strip_esc   con);
 fun mk_var_names ids : string list = let
     fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
-          (case assoc(occupied,vn) of
+          (case AList.lookup (op =) occupied vn of
              NONE => if vn mem vns
                      then (vn^"1") :: index_vnames(vns,(vn,1)  ::occupied)
                      else  vn      :: index_vnames(vns,          occupied)

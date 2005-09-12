@@ -458,7 +458,7 @@ fun case_tr' constrs sg ts =
     fun count_cases (cs, (_, _, true)) = cs
       | count_cases (cs, (cname, (_, body), false)) = (case assoc (cs, body) of
           NONE => (body, [cname]) :: cs
-        | SOME cnames => overwrite (cs, (body, cnames @ [cname])));
+        | SOME cnames => AList.update (op =) (body, cnames @ [cname]) cs);
     val cases' = sort (int_ord o Library.swap o pairself (length o snd))
       (Library.foldl count_cases ([], cases));
     fun mk_case1 (cname, (vs, body), _) = Syntax.const "_case1" $

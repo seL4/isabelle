@@ -310,7 +310,7 @@ fun is_open_loc thy =
 
 (* get theorems *)
 
-fun get_thm_locale name ((_, {thms, ...}: locale)) = assoc (thms, name);
+fun get_thm_locale name ((_, {thms, ...}: locale)) = AList.lookup (op =) thms name;
 
 fun get_thmx f get thy name =
   (case get_first (get_thm_locale name) (get_scope thy) of
@@ -338,7 +338,7 @@ fun get_defaults thy name =
 
 fun read_typ thy (envT, s) =
   let
-    fun def_sort (x, ~1) = assoc (envT, x)
+    fun def_sort (x, ~1) = AList.lookup (op =) envT x
       | def_sort _ = NONE;
     val T = Type.no_tvars (Sign.read_typ (thy, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, envT), T) end;
@@ -357,9 +357,9 @@ fun enter_term t (envS, envT, used) =
 
 fun read_axm thy ((envS, envT, used), (name, s)) =
   let
-    fun def_sort (x, ~1) = assoc (envS, x)
+    fun def_sort (x, ~1) = AList.lookup (op =) envS x
       | def_sort _ = NONE;
-    fun def_type (x, ~1) = assoc (envT, x)
+    fun def_type (x, ~1) = AList.lookup (op =) envT x
       | def_type _ = NONE;
     val (_, t) = Theory.read_def_axm (thy, def_type, def_sort) used (name, s);
   in
@@ -382,9 +382,9 @@ fun read_cterm thy =
         val envS = List.concat (map #1 defaults);
         val envT = List.concat (map #2 defaults);
         val used = List.concat (map #3 defaults);
-        fun def_sort (x, ~1) = assoc (envS, x)
+        fun def_sort (x, ~1) = AList.lookup (op =) envS x
           | def_sort _ = NONE;
-        fun def_type (x, ~1) = assoc (envT, x)
+        fun def_type (x, ~1) = AList.lookup (op =) envT x
           | def_type _ = NONE;
     in (if (is_open_loc thy)
         then (#1 o read_def_cterm (thy, def_type, def_sort) used true)

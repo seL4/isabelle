@@ -230,7 +230,7 @@ fun prod_factors p (Const ("Pair", _) $ t $ u) =
 
 fun mg_prod_factors ts (fs, t $ u) = if t mem ts then
         let val f = prod_factors [] u
-        in overwrite (fs, (t, f inter (curry getOpt) (assoc (fs, t)) f)) end
+        in AList.update (op =) (t, f inter (AList.lookup (op =) fs t) |> the_default f) fs end
       else mg_prod_factors ts (mg_prod_factors ts (fs, t), u)
   | mg_prod_factors ts (fs, Abs (_, _, t)) = mg_prod_factors ts (fs, t)
   | mg_prod_factors ts (fs, _) = fs;

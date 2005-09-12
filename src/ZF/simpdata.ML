@@ -15,7 +15,7 @@ fun atomize (conn_pairs, mem_pairs) th =
   let fun tryrules pairs t =
           case head_of t of
               Const(a,_) =>
-                (case assoc(pairs,a) of
+                (case AList.lookup (op =) pairs a of
                      SOME rls => List.concat (map (atomize (conn_pairs, mem_pairs))
                                        ([th] RL rls))
                    | NONE     => [th])
