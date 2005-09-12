@@ -15,6 +15,19 @@
 %
 \endisadelimtheory
 %
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
 \isamarkupsection{Induction Heuristics%
 }
 \isamarkuptrue%
@@ -69,10 +82,10 @@ gradually, using only~\isa{{\isacharhash}}:%
 The behaviour of \cdx{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and returning that second argument when the first one becomes
-empty. Note that \isa{Itrev{\isachardot}itrev} is tail-recursive: it can be
+empty. Note that \isa{itrev} is tail-recursive: it can be
 compiled into a loop.
 
-Naturally, we would like to show that \isa{Itrev{\isachardot}itrev} does indeed reverse
+Naturally, we would like to show that \isa{itrev} does indeed reverse
 its first argument provided the second one is empty:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -97,8 +110,7 @@ Unfortunately, this attempt does not prove
 the induction step:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }Itrev{\isachardot}itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }Itrev{\isachardot}itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\ itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
 \end{isabelle}
 The induction hypothesis is too weak.  The fixed
 argument,~\isa{{\isacharbrackleft}{\isacharbrackright}}, prevents it from rewriting the conclusion.  
@@ -106,7 +118,7 @@ This example suggests a heuristic:
 \begin{quote}\index{generalizing induction formulae}%
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this na\"{\i}vely: \isa{Itrev{\isachardot}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
+Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
 just not true.  The correct generalization is%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -138,8 +150,8 @@ induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }Itrev{\isachardot}itrev\ list\ ys\ {\isacharequal}\ rev\ list\ {\isacharat}\ ys\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }Itrev{\isachardot}itrev\ list\ {\isacharparenleft}a\ {\isacharhash}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ ys%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ ys\ {\isacharequal}\ rev\ list\ {\isacharat}\ ys\ {\isasymLongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharparenleft}a\ {\isacharhash}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ ys%
 \end{isabelle}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
@@ -185,7 +197,7 @@ matters in some cases. The variables that should be quantified are typically
 those that change in recursive calls.
 
 A final point worth mentioning is the orientation of the equation we just
-proved: the more complex notion (\isa{Itrev{\isachardot}itrev}) is on the left-hand
+proved: the more complex notion (\isa{itrev}) is on the left-hand
 side, the simpler one (\isa{rev}) on the right-hand side. This constitutes
 another, albeit weak heuristic that is not restricted to induction:
 \begin{quote}
@@ -193,8 +205,8 @@ another, albeit weak heuristic that is not restricted to induction:
     than the left-hand side.}
 \end{quote}
 This heuristic is tricky to apply because it is not obvious that
-\isa{rev\ xs\ {\isacharat}\ ys} is simpler than \isa{Itrev{\isachardot}itrev\ xs\ ys}. But see what
-happens if you try to prove \isa{rev\ xs\ {\isacharat}\ ys\ {\isacharequal}\ Itrev{\isachardot}itrev\ xs\ ys}!
+\isa{rev\ xs\ {\isacharat}\ ys} is simpler than \isa{itrev\ xs\ ys}. But see what
+happens if you try to prove \isa{rev\ xs\ {\isacharat}\ ys\ {\isacharequal}\ itrev\ xs\ ys}!
 
 If you have tried these heuristics and still find your
 induction does not go through, and no obvious lemma suggests itself, you may
@@ -205,6 +217,19 @@ to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 %
 \isadelimtheory
 %
