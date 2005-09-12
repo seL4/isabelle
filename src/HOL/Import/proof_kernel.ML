@@ -109,6 +109,8 @@ sig
     val new_type_definition : string -> string -> string -> thm -> theory -> theory * thm
     val new_axiom : string -> term -> theory -> theory * thm
 
+    val prin : term -> unit 
+
 end
 
 structure ProofKernel :> ProofKernel =
@@ -217,8 +219,8 @@ fun prc ct = writeln ((Library.setmp print_mode [] string_of_cterm) ct)
 val prin = Library.setmp print_mode [] prin
 fun pth (HOLThm(ren,thm)) =
     let
-	val _ = writeln "Renaming:"
-	val _ = app (fn(v,w) => (prin v; writeln " -->"; prin w)) ren
+	(*val _ = writeln "Renaming:"
+	val _ = app (fn(v,w) => (prin v; writeln " -->"; prin w)) ren*)
 	val _ = prth thm
     in
 	()
@@ -403,11 +405,15 @@ fun dom_rng (Type("fun",[dom,rng])) = (dom,rng)
 
 fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
-local
-    fun get_type sg thyname name =
-	case Sign.const_type sg name of
-	    SOME ty => ty
-	  | NONE => raise ERR "get_type" (name ^ ": No such constant")
+local 
+    (* fun get_const sg thyname name = 
+       (case term_of (read_cterm sg (name, TypeInfer.logicT)) of
+          c as Const _ => c)
+       handle _ => raise ERR "get_type" (name ^ ": No such constant")*)
+      fun get_const sg thyname name = 
+       (case Sign.const_type sg name of
+          SOME ty => Const (name, ty)
+        | NONE => raise ERR "get_type" (name ^ ": No such constant"))
 in
 fun prim_mk_const thy Thy Nam =
     let
@@ -416,7 +422,7 @@ fun prim_mk_const thy Thy Nam =
     in
 	case StringPair.lookup(cmaps,(Thy,Nam)) of
 	    SOME(_,_,SOME ty) => Const(name,ty)
-	  | _ => Const(name,get_type (sign_of thy) Thy name)
+	  | _ => get_const (sign_of thy) Thy name
     end
 end
 
@@ -447,8 +453,24 @@ fun protect_varname s =
 	s |> no_beg_underscore
     end
 
+val ty_num_prefix = "N_"
+
+fun startsWithDigit s = Char.isDigit (hd (String.explode s))
+
+fun protect_tyname tyn = 
+  let
+    val tyn' = 
+      if String.isPrefix ty_num_prefix tyn then raise (ERR "conv_ty_name" ("type name '"^tyn^"' is reserved")) else 
+      (if startsWithDigit tyn then ty_num_prefix^tyn else tyn)
+  in
+    tyn'
+  end
+
+
+
 structure TypeNet =
 struct
+
 fun get_type_from_index thy thyname types is =
     case Int.fromString is of
 	SOME i => (case Array.sub(types,i) of
@@ -468,13 +490,13 @@ and get_type_from_xml thy thyname types =
 	  | gtfx (Elem("tyc",atts,[])) =
 	    mk_thy_type thy
 			(get_segment thyname atts)
-			(get_name atts)
+			(protect_tyname (get_name atts))
 			[]
 	  | gtfx (Elem("tyv",[("n",s)],[])) = mk_vartype (protect_tyvarname s)
 	  | gtfx (Elem("tya",[],(Elem("tyc",atts,[]))::tys)) =
 	    mk_thy_type thy
 			(get_segment thyname atts)
-			(get_name atts)
+			(protect_tyname (get_name atts))
 			(map gtfx tys)
 	  | gtfx _ = raise ERR "get_type" "Bad type"
     in
@@ -497,6 +519,7 @@ end
 
 structure TermNet =
 struct
+
 fun get_term_from_index thy thyname types terms is =
     case Int.fromString is of
 	SOME i => (case Array.sub(terms,i) of
@@ -663,10 +686,10 @@ fun xml_to_proof thyname types terms prf thy =
 		val P = xml_to_term xP
 		val t = xml_to_term xt
 	    in
-		mk_proof (PTyIntro(seg,name,abs_name,rep_name,P,t,x2p p))
+		mk_proof (PTyIntro(seg,protect_tyname name,abs_name,rep_name,P,t,x2p p))
 	    end
 	  | x2p (Elem("ptydef",[("s",seg),("n",name)],[p])) =
-	    mk_proof (PTyDef(seg,name,x2p p))
+	    mk_proof (PTyDef(seg,protect_tyname name,x2p p))
 	  | x2p (xml as Elem("poracle",[],chldr)) =
 	    let
 		val (oracles,terms) = Library.partition (fn (Elem("oracle",_,_)) => true | _ => false) chldr
@@ -834,12 +857,33 @@ fun xml_to_proof thyname types terms prf thy =
 	x2p prf
     end
 
+fun import_proof_concl thyname thmname thy = 
+    let
+	val is = TextIO.openIn(proof_file_name thyname thmname thy)
+	val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
+	val _ = TextIO.closeIn is
+    in 
+	case proof_xml of
+	    Elem("proof",[],xtypes::xterms::prf::rest) =>
+	    let
+		val types = TypeNet.input_types thyname xtypes
+		val terms = TermNet.input_terms thyname types xterms
+                fun f xtm thy = TermNet.get_term_from_xml thy thyname types terms xtm               
+	    in
+		case rest of
+		    [] => NONE
+		  | [xtm] => SOME (f xtm)
+		  | _ => raise ERR "import_proof" "Bad argument list"
+	    end
+	  | _ => raise ERR "import_proof" "Bad proof"
+    end
+
 fun import_proof thyname thmname thy =
     let
 	val is = TextIO.openIn(proof_file_name thyname thmname thy)
 	val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
 	val _ = TextIO.closeIn is
-    in
+    in 
 	case proof_xml of
 	    Elem("proof",[],xtypes::xterms::prf::rest) =>
 	    let
@@ -1037,75 +1081,20 @@ fun rens_of {vars,rens} = rens
 fun name_of_var (Free(vname,_)) = vname
   | name_of_var _ = raise ERR "name_of_var" "Not a variable"
 
-fun disamb_helper {vars,rens} tm =
-    let
-	val varstm = collect_vars tm
-	fun process (v as Free(vname,ty),(vars,rens,inst)) =
-	    if v mem vars
-	    then (vars,rens,inst)
-	    else (case try (Lib.assoc v) rens of
-		      SOME vnew => (vars,rens,(v,vnew)::inst)
-		    | NONE => if exists (fn Free(vname',_) => vname = vname' | _ => raise ERR "disamb_helper" "Bad varlist") vars
-			      then
-				  let
-				      val tmnames = map name_of_var varstm
-				      val varnames = map name_of_var vars
-				      val (dom,rng) = ListPair.unzip rens
-				      val rensnames = (map name_of_var dom) @ (map name_of_var rng)
-				      val instnames = map name_of_var (snd (ListPair.unzip inst))
-				      val allnames = tmnames @ varnames @ rensnames @ instnames
-				      val vnewname = Term.variant allnames vname
-				      val vnew = Free(vnewname,ty)
-				  in
-				      (vars,(v,vnew)::rens,(v,vnew)::inst)
-				  end
-			      else (v::vars,rens,inst))
-	  | process _ = raise ERR "disamb_helper" "Internal error"
-
-	val (vars',rens',inst) =
-	    foldr process (vars,rens,[]) varstm
-    in
-	({vars=vars',rens=rens'},inst)
-    end
-
-fun disamb_term_from info tm =
-    let
-	val (info',inst) = disamb_helper info tm
-    in
-	(info',apply_inst_term inst tm)
-    end
+fun disamb_term_from info tm = (info, tm)
 
 fun swap (x,y) = (y,x)
 
-fun has_ren (HOLThm([],_)) = false
-  | has_ren _ = true
+fun has_ren (HOLThm _) = false
 
 fun prinfo {vars,rens} = (writeln "Vars:";
 			  app prin vars;
 			  writeln "Renaming:";
 			  app (fn(x,y)=>(prin x; writeln " -->"; prin y)) rens)
 
-fun disamb_thm_from info (hth as HOLThm(rens,thm)) =
-    let
-	val inv_rens = map swap rens
-	val orig_thm = apply_inst_term inv_rens (prop_of thm)
-	val (info',inst) = disamb_helper info orig_thm
-	val rens' = map (apsnd (apply_inst_term inst)) inv_rens
-	val (dom,rng) = ListPair.unzip (rens' @ inst)
-	val sg = sign_of_thm thm
-	val thm' = mk_INST (map (cterm_of sg) dom) (map (cterm_of sg) rng) thm
-    in
-	(info',thm')
-    end
+fun disamb_thm_from info (HOLThm (_,thm)) = (info, thm)
 
-fun disamb_terms_from info tms =
-    foldr (fn (tm,(info,tms)) =>
-	      let
-		  val (info',tm') = disamb_term_from info tm
-	      in
-		  (info',tm'::tms)
-	      end)
-	  (info,[]) tms
+fun disamb_terms_from info tms = (info, tms)
 
 fun disamb_thms_from info hthms =
     foldr (fn (hthm,(info,thms)) =>
@@ -1121,28 +1110,7 @@ fun disamb_terms tms = disamb_terms_from disamb_info_empty tms
 fun disamb_thm thm   = disamb_thm_from disamb_info_empty thm
 fun disamb_thms thms = disamb_thms_from disamb_info_empty thms
 
-fun norm_hthm sg (hth as HOLThm([],_)) = hth
-  | norm_hthm sg (hth as HOLThm(rens,th)) =
-    let
-	val vars = collect_vars (prop_of th)
-	val (rens',inst,_) =
-	    foldr (fn((ren as (vold as Free(vname,_),vnew)),
-		      (rens,inst,vars)) =>
-		     (case Library.find_first (fn Free(v,_) => v = vname | _ => false) vars of
-			  SOME v' => if v' = vold
-				     then (rens,(vnew,vold)::inst,vold::vars)
-				     else (ren::rens,(vold,vnew)::inst,vnew::vars)
-			| NONE => (rens,(vnew,vold)::inst,vold::vars))
-		   | _ => raise ERR "norm_hthm" "Internal error")
-		  ([],[],vars) rens
-	val (dom,rng) = ListPair.unzip inst
-	val th' = mk_INST (map (cterm_of sg) dom) (map (cterm_of sg) rng) th
-	val nvars = collect_vars (prop_of th')
-	val rens' = List.filter (fn(_,v) => v mem nvars) rens
-	val res = HOLThm(rens',th')
-    in
-	res
-    end
+fun norm_hthm sg (hth as HOLThm _) = hth
 
 (* End of disambiguating code *)
 
@@ -1213,7 +1181,6 @@ fun rewrite_hol4_term t thy =
 	Thm.transfer sg (Simplifier.full_rewrite hol4ss (cterm_of sg t))
     end
 
-
 fun get_isabelle_thm thyname thmname hol4conc thy =
     let
 	val _ = message "get_isabelle_thm called..."
@@ -1275,11 +1242,35 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
     end
     handle e => (message "Exception in get_isabelle_thm"; if_debug print_exn e handle _ => (); (thy,NONE))
 
+fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
+  let
+    val (a, b) = get_isabelle_thm thyname thmname hol4conc thy
+    fun warn () =
+        let
+            val sg = sign_of thy		     
+	    val (info,hol4conc') = disamb_term hol4conc
+	    val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
+	in
+	    case concl_of i2h_conc of
+		Const("==",_) $ lhs $ _ => 
+		(warning ("Failed lookup of theorem '"^thmname^"':");
+	         writeln "Original conclusion:";
+		 prin hol4conc';
+		 writeln "Modified conclusion:";
+		 prin lhs)
+	      | _ => ()
+	end
+  in
+      case b of 
+	  NONE => (warn () handle _ => (); (a,b))
+	| _ => (a, b)
+  end 
+
 fun get_thm thyname thmname thy =
     case get_hol4_thm thyname thmname thy of
 	SOME hth => (thy,SOME hth)
-      | NONE => ((case fst (import_proof thyname thmname thy) of
-		      SOME f => get_isabelle_thm thyname thmname (f thy) thy
+      | NONE => ((case import_proof_concl thyname thmname thy of
+		      SOME f => get_isabelle_thm_and_warn thyname thmname (f thy) thy
 		    | NONE => (message "No conclusion"; (thy,NONE)))
 		 handle e as IO.Io _ => (message "IO exception"; (thy,NONE))
 		      | e as PK _ => (message "PK exception"; (thy,NONE)))
@@ -1295,7 +1286,7 @@ fun get_def thyname constname rhs thy =
 	val (thmname,thy') = get_defname thyname constname thy
 	val _ = message ("Looking for definition " ^ thyname ^ "." ^ thmname)
     in
-	get_isabelle_thm thyname thmname (mk_teq (thyname ^ "." ^ constname) rhs thy') thy'
+	get_isabelle_thm_and_warn thyname thmname (mk_teq (thyname ^ "." ^ constname) rhs thy') thy'
     end
 
 fun get_axiom thyname axname thy =
@@ -1407,7 +1398,7 @@ fun EQ_IMP_RULE (hth as HOLThm(rens,th)) thy =
 	(thy,res)
     end
 
-fun mk_EQ_MP th1 th2 = [beta_eta_thm th1,beta_eta_thm th2] MRS eqmp_thm
+fun mk_EQ_MP th1 th2 = [beta_eta_thm th1, beta_eta_thm th2] MRS eqmp_thm
 
 fun EQ_MP hth1 hth2 thy =
     let
@@ -2086,7 +2077,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	Replaying _ => (thy,hth)
       | _ => 
 	let
-	    val _ = message "TYPE_INTRO:"
+            val _ = message "TYPE_INTRO:"
 	    val _ = if_debug pth hth
 	    val _ = warning ("Introducing type " ^ tycname ^ " (with morphisms " ^ abs_name ^ " and " ^ rep_name ^ ")")
 	    val (HOLThm(rens,td_th)) = norm_hthm (sign_of thy) hth
@@ -2105,13 +2096,14 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
-				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hollight
-
+            val _ = message "step 1"
 	    val th4 = Drule.freeze_all th3
+            val _ = message "step 2"
 	    val fulltyname = Sign.intern_type (sign_of thy') tycname
-	    val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
-
+	    val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
+            val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
+            val _ = message "step 4"
 	    val sg = sign_of thy''
 	    val (hth' as HOLThm args) = norm_hthm sg (HOLThm(rens,th4))
 	    val _ = if #maxidx (rep_thm th4) <> ~1
@@ -2120,7 +2112,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
 		    else ()
 	    val thy4 = add_hol4_pending thyname thmname args thy''
-
+	   
 	    val sg = sign_of thy4
 	    val P' = #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4)))
 	    val c   =
@@ -2129,7 +2121,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 		in
 		    Const("Collect",PT-->HOLogic.mk_setT (domain_type PT)) $ P'
 		end
-
+	    
 	    val tnames_string = if null tnames
 				then ""
 				else "(" ^ (commafy tnames) ^ ") "
@@ -2146,5 +2138,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	end
 	handle e => (message "exception in type_introduction"; print_exn e)
 end
+
+val prin = prin
 
 end

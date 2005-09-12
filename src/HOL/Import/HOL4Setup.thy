@@ -24,19 +24,18 @@ consts
 
 defs
   ONE_ONE_DEF: "ONE_ONE f == ALL x y. f x = f y --> x = y"
-  ONTO_DEF   : "ONTO f == ALL y. EX x. y = f x"
 
 lemma ONE_ONE_rew: "ONE_ONE f = inj_on f UNIV"
   by (simp add: ONE_ONE_DEF inj_on_def)
 
-lemma INFINITY_AX: "EX (f::ind \<Rightarrow> ind). (inj f & ~(ONTO f))"
+lemma INFINITY_AX: "EX (f::ind \<Rightarrow> ind). (inj f & ~(surj f))"
 proof (rule exI,safe)
   show "inj Suc_Rep"
     by (rule inj_Suc_Rep)
 next
-  assume "ONTO Suc_Rep"
+  assume "surj Suc_Rep"
   hence "ALL y. EX x. y = Suc_Rep x"
-    by (simp add: ONTO_DEF surj_def)
+    by (simp add: surj_def)
   hence "EX x. Zero_Rep = Suc_Rep x"
     by (rule spec)
   thus False

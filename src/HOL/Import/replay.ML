@@ -61,7 +61,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 	       | (thy',NONE) => 
 		 if seg = thyname
 		 then P.new_definition seg name rhs thy'
-		 else raise ERR "replay_proof" "Too late for term definition")
+		 else raise ERR "replay_proof" ("Too late for term definition: "^seg^" != "^thyname))
 	  | rp (POracle(tg,asl,c)) thy = (*P.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
 	  | rp (PSpec(prf,tm)) thy =
 	    let
@@ -234,6 +234,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 						    val (f_opt,prf) = import_proof thyname' thmname thy'
 						    val prf = prf thy'
 						    val (thy',th) = replay_proof int_thms thyname' thmname prf thy'
+                                                    val _ = writeln ("Successfully finished replaying "^thmname^" !")
 						in
 						    case content_of prf of
 							PTmSpec _ => (thy',th)
