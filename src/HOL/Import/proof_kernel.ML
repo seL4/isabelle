@@ -121,6 +121,8 @@ datatype tag = Tag of string list
 type ('a,'b) subst = ('a * 'b) list
 datatype thm = HOLThm of (Term.term * Term.term) list * Thm.thm
 
+fun hthm2thm (HOLThm (_, th)) = th 
+
 datatype proof_info
   = Info of {disk_info: (string * string) option ref}
 	    
@@ -1096,14 +1098,7 @@ fun disamb_thm_from info (HOLThm (_,thm)) = (info, thm)
 
 fun disamb_terms_from info tms = (info, tms)
 
-fun disamb_thms_from info hthms =
-    foldr (fn (hthm,(info,thms)) =>
-	      let
-		  val (info',tm') = disamb_thm_from info hthm
-	      in
-		  (info',tm'::thms)
-	      end)
-	  (info,[]) hthms
+fun disamb_thms_from info hthms = (info, map hthm2thm hthms)
 
 fun disamb_term tm   = disamb_term_from disamb_info_empty tm
 fun disamb_terms tms = disamb_terms_from disamb_info_empty tms
