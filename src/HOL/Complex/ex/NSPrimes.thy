@@ -17,14 +17,14 @@ primes by considering a property of nonstandard sets.*}
 constdefs
   hdvd  :: "[hypnat, hypnat] => bool"       (infixl "hdvd" 50)
    "(M::hypnat) hdvd N == ( *p2* (op dvd)) M N"
-(*
-   "(M::hypnat) hdvd N ==
-	           \<exists>X Y. X: Rep_hypnat(M) & Y: Rep_hypnat(N) &
-                               {n::nat. X n dvd Y n} : FreeUltrafilterNat"
-*)
+
+declare hdvd_def [transfer_unfold]
+
 constdefs
   starprime :: "hypnat set"
   "starprime == ( *s* {p. prime p})"
+
+declare starprime_def [transfer_unfold]
 
 constdefs
   choicefun :: "'a set => 'a"
@@ -102,7 +102,7 @@ declare hypnat_of_nat_le_zero_iff [simp]
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
 lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m hdvd N)"
-by (unfold hdvd_def, transfer, rule dvd_by_all)
+by (transfer, rule dvd_by_all)
 
 lemmas hdvd_by_all2 = hdvd_by_all [THEN spec, standard]
 
@@ -123,9 +123,7 @@ those hypernaturals exceeding 1 that have no nontrivial factors*}
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
   "starprime = {p. 1 < p & (\<forall>m. m hdvd p --> m = 1 | m = p)}"
-apply (unfold starprime_def prime_def)
-apply (unfold hdvd_def, transfer, rule refl)
-done
+by (transfer, auto simp add: prime_def)
 
 lemma prime_two:  "prime 2"
 apply (unfold prime_def, auto)
@@ -149,10 +147,7 @@ done
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
 lemma hyperprime_factor_exists [rule_format]:
   "!!n. 1 < n ==> (\<exists>k \<in> starprime. k hdvd n)"
-apply (unfold starprime_def hdvd_def)
-apply (transfer prime_def)
-apply (simp add: prime_factor_exists)
-done
+by (transfer, simp add: prime_factor_exists)
 
 (* Goldblatt Exercise 3.10(1) - p. 29 *)
 lemma NatStar_hypnat_of_nat: "finite A ==> *s* A = hypnat_of_nat ` A"
@@ -313,7 +308,7 @@ subsection{*Existence of Infinitely Many Primes: a Nonstandard Proof*}
 lemma lemma_not_dvd_hypnat_one: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n hdvd 1)"
 apply auto
 apply (rule_tac x = 2 in bexI)
-apply (unfold hdvd_def, transfer, auto)
+apply (transfer, auto)
 done
 declare lemma_not_dvd_hypnat_one [simp]
 
@@ -339,7 +334,7 @@ done
 declare zero_not_prime [simp]
 
 lemma hypnat_of_nat_zero_not_prime: "hypnat_of_nat 0 \<notin> starprime"
-by (unfold starprime_def, transfer prime_def, simp)
+by (transfer, simp)
 declare hypnat_of_nat_zero_not_prime [simp]
 
 lemma hypnat_zero_not_prime:
@@ -360,7 +355,7 @@ done
 declare one_not_prime2 [simp]
 
 lemma hypnat_of_nat_one_not_prime: "hypnat_of_nat 1 \<notin> starprime"
-by (unfold starprime_def, transfer prime_def, simp)
+by (transfer, simp)
 declare hypnat_of_nat_one_not_prime [simp]
 
 lemma hypnat_one_not_prime: "1 \<notin> starprime"
@@ -368,13 +363,13 @@ by (cut_tac hypnat_of_nat_one_not_prime, simp)
 declare hypnat_one_not_prime [simp]
 
 lemma hdvd_diff: "!!k m n. [| k hdvd m; k hdvd n |] ==> k hdvd (m - n)"
-by (unfold hdvd_def, transfer, rule dvd_diff)
+by (transfer, rule dvd_diff)
 
 lemma dvd_one_eq_one: "x dvd (1::nat) ==> x = 1"
 by (unfold dvd_def, auto)
 
 lemma hdvd_one_eq_one: "!!x. x hdvd 1 ==> x = 1"
-by (unfold hdvd_def, transfer, rule dvd_one_eq_one)
+by (transfer, rule dvd_one_eq_one)
 
 theorem not_finite_prime: "~ finite {p. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
