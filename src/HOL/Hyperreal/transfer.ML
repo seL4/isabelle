@@ -1,3 +1,10 @@
+(*  Title       : HOL/Hyperreal/transfer.ML
+    ID          : $Id$
+    Author      : Brian Huffman
+
+Transfer principle tactic for nonstandard analysis
+*)
+
 signature TRANSFER_TAC =
 sig
   val transfer_tac: thm list -> int -> tactic
