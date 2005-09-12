@@ -9,7 +9,148 @@ theory StarClasses
 imports Transfer
 begin
 
-subsection "HOL.thy"
+subsection {* Syntactic classes *}
+
+instance star :: (ord) ord ..
+instance star :: (zero) zero ..
+instance star :: (one) one ..
+instance star :: (plus) plus ..
+instance star :: (times) times ..
+instance star :: (minus) minus ..
+instance star :: (inverse) inverse ..
+instance star :: (number) number ..
+instance star :: ("Divides.div") "Divides.div" ..
+instance star :: (power) power ..
+
+defs (overloaded)
+  star_zero_def:    "0 \<equiv> star_of 0"
+  star_one_def:     "1 \<equiv> star_of 1"
+  star_number_def:  "number_of b \<equiv> star_of (number_of b)"
+  star_add_def:     "(op +) \<equiv> Ifun2_of (op +)"
+  star_diff_def:    "(op -) \<equiv> Ifun2_of (op -)"
+  star_minus_def:   "uminus \<equiv> Ifun_of uminus"
+  star_mult_def:    "(op *) \<equiv> Ifun2_of (op *)"
+  star_divide_def:  "(op /) \<equiv> Ifun2_of (op /)"
+  star_inverse_def: "inverse \<equiv> Ifun_of inverse"
+  star_le_def:      "(op \<le>) \<equiv> Ipred2_of (op \<le>)"
+  star_less_def:    "(op <) \<equiv> Ipred2_of (op <)"
+  star_abs_def:     "abs \<equiv> Ifun_of abs"
+  star_div_def:     "(op div) \<equiv> Ifun2_of (op div)"
+  star_mod_def:     "(op mod) \<equiv> Ifun2_of (op mod)"
+  star_power_def:   "(op ^) \<equiv> \<lambda>x n. Ifun_of (\<lambda>x. x ^ n) x"
+
+lemmas star_class_defs [transfer_unfold] =
+  star_zero_def     star_one_def      star_number_def
+  star_add_def      star_diff_def     star_minus_def
+  star_mult_def     star_divide_def   star_inverse_def
+  star_le_def       star_less_def     star_abs_def
+  star_div_def      star_mod_def      star_power_def
+
+text {* @{term star_of} preserves class operations *}
+
+lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
+by transfer (rule refl)
+
+lemma star_of_diff: "star_of (x - y) = star_of x - star_of y"
+by transfer (rule refl)
+
+lemma star_of_minus: "star_of (-x) = - star_of x"
+by transfer (rule refl)
+
+lemma star_of_mult: "star_of (x * y) = star_of x * star_of y"
+by transfer (rule refl)
+
+lemma star_of_divide: "star_of (x / y) = star_of x / star_of y"
+by transfer (rule refl)
+
+lemma star_of_inverse: "star_of (inverse x) = inverse (star_of x)"
+by transfer (rule refl)
+
+lemma star_of_div: "star_of (x div y) = star_of x div star_of y"
+by transfer (rule refl)
+
+lemma star_of_mod: "star_of (x mod y) = star_of x mod star_of y"
+by transfer (rule refl)
+
+lemma star_of_power: "star_of (x ^ n) = star_of x ^ n"
+by transfer (rule refl)
+
+lemma star_of_abs: "star_of (abs x) = abs (star_of x)"
+by transfer (rule refl)
+
+text {* @{term star_of} preserves numerals *}
+
+lemma star_of_zero: "star_of 0 = 0"
+by transfer (rule refl)
+
+lemma star_of_one: "star_of 1 = 1"
+by transfer (rule refl)
+
+lemma star_of_number_of: "star_of (number_of x) = number_of x"
+by transfer (rule refl)
+
+text {* @{term star_of} preserves orderings *}
+
+lemma star_of_less: "(star_of x < star_of y) = (x < y)"
+by transfer (rule refl)
+
+lemma star_of_le: "(star_of x \<le> star_of y) = (x \<le> y)"
+by transfer (rule refl)
+
+lemma star_of_eq: "(star_of x = star_of y) = (x = y)"
+by transfer (rule refl)
+
+text{*As above, for 0*}
+
+lemmas star_of_0_less = star_of_less [of 0, simplified star_of_zero]
+lemmas star_of_0_le   = star_of_le   [of 0, simplified star_of_zero]
+lemmas star_of_0_eq   = star_of_eq   [of 0, simplified star_of_zero]
+
+lemmas star_of_less_0 = star_of_less [of _ 0, simplified star_of_zero]
+lemmas star_of_le_0   = star_of_le   [of _ 0, simplified star_of_zero]
+lemmas star_of_eq_0   = star_of_eq   [of _ 0, simplified star_of_zero]
+
+text{*As above, for 1*}
+
+lemmas star_of_1_less = star_of_less [of 1, simplified star_of_one]
+lemmas star_of_1_le   = star_of_le   [of 1, simplified star_of_one]
+lemmas star_of_1_eq   = star_of_eq   [of 1, simplified star_of_one]
+
+lemmas star_of_less_1 = star_of_less [of _ 1, simplified star_of_one]
+lemmas star_of_le_1   = star_of_le   [of _ 1, simplified star_of_one]
+lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
+
+text{*As above, for numerals*}
+
+lemmas star_of_number_less =
+  star_of_less [of "number_of w", standard, simplified star_of_number_of]
+lemmas star_of_number_le   =
+  star_of_le   [of "number_of w", standard, simplified star_of_number_of]
+lemmas star_of_number_eq   =
+  star_of_eq   [of "number_of w", standard, simplified star_of_number_of]
+
+lemmas star_of_less_number =
+  star_of_less [of _ "number_of w", standard, simplified star_of_number_of]
+lemmas star_of_le_number   =
+  star_of_le   [of _ "number_of w", standard, simplified star_of_number_of]
+lemmas star_of_eq_number   =
+  star_of_eq   [of _ "number_of w", standard, simplified star_of_number_of]
+
+lemmas star_of_simps [simp] =
+  star_of_add     star_of_diff    star_of_minus
+  star_of_mult    star_of_divide  star_of_inverse
+  star_of_div     star_of_mod
+  star_of_power   star_of_abs
+  star_of_zero    star_of_one     star_of_number_of
+  star_of_less    star_of_le      star_of_eq
+  star_of_0_less  star_of_0_le    star_of_0_eq
+  star_of_less_0  star_of_le_0    star_of_eq_0
+  star_of_1_less  star_of_1_le    star_of_1_eq
+  star_of_less_1  star_of_le_1    star_of_eq_1
+  star_of_number_less star_of_number_le star_of_number_eq
+  star_of_less_number star_of_le_number star_of_eq_number
+
+subsection {* Ordering classes *}
 
 instance star :: (order) order
 apply (intro_classes)
@@ -23,7 +164,7 @@ instance star :: (linorder) linorder
 by (intro_classes, transfer, rule linorder_linear)
 
 
-subsection "LOrder.thy"
+subsection {* Lattice ordering classes *}
 
 text {*
   Some extra trouble is necessary because the class axioms 
@@ -57,17 +198,17 @@ done
 
 instance star :: (lorder) lorder ..
 
-lemma star_join_def: "join \<equiv> Ifun2_of join"
+lemma star_join_def [transfer_unfold]: "join \<equiv> Ifun2_of join"
  apply (rule is_join_unique[OF is_join_join, THEN eq_reflection])
  apply (transfer is_join_def, rule is_join_join)
 done
 
-lemma star_meet_def: "meet \<equiv> Ifun2_of meet"
+lemma star_meet_def [transfer_unfold]: "meet \<equiv> Ifun2_of meet"
  apply (rule is_meet_unique[OF is_meet_meet, THEN eq_reflection])
  apply (transfer is_meet_def, rule is_meet_meet)
 done
 
-subsection "OrderedGroup.thy"
+subsection {* Ordered group classes *}
 
 instance star :: (semigroup_add) semigroup_add
 by (intro_classes, transfer, rule add_assoc)
@@ -123,9 +264,7 @@ instance star :: (lordered_ab_group_meet) lordered_ab_group_meet ..
 instance star :: (lordered_ab_group) lordered_ab_group ..
 
 instance star :: (lordered_ab_group_abs) lordered_ab_group_abs
-apply (intro_classes)
-apply (transfer star_join_def, rule abs_lattice)
-done
+by (intro_classes, transfer, rule abs_lattice)
 
 text "Ring-and-Field.thy"
 
@@ -207,7 +346,7 @@ by (intro_classes, transfer, rule zero_less_one)
 instance star :: (ordered_idom) ordered_idom ..
 instance star :: (ordered_field) ordered_field ..
 
-subsection "Power.thy"
+subsection {* Power classes *}
 
 text {*
   Proving the class axiom @{thm [source] power_Suc} for type
@@ -227,10 +366,13 @@ next
     by transfer (rule power_Suc)
 qed
 
-subsection "Integ/Number.thy"
+subsection {* Number classes *}
 
-lemma star_of_nat_def: "of_nat n \<equiv> star_of (of_nat n)"
+lemma star_of_nat_def [transfer_unfold]: "of_nat n \<equiv> star_of (of_nat n)"
 by (rule eq_reflection, induct_tac n, simp_all)
+
+lemma star_of_of_nat [simp]: "star_of (of_nat n) = of_nat n"
+by transfer (rule refl)
 
 lemma int_diff_cases:
 assumes prem: "\<And>m n. z = int m - int n \<Longrightarrow> P" shows "P"
@@ -239,19 +381,13 @@ assumes prem: "\<And>m n. z = int m - int n \<Longrightarrow> P" shows "P"
  apply (rule_tac m=0 and n="Suc n" in prem, simp)
 done -- "Belongs in Integ/IntDef.thy"
 
-lemma star_of_int_def: "of_int z \<equiv> star_of (of_int z)"
- apply (rule eq_reflection)
- apply (rule_tac z=z in int_diff_cases)
- apply (simp add: star_of_nat_def)
-done
+lemma star_of_int_def [transfer_unfold]: "of_int z \<equiv> star_of (of_int z)"
+by (rule eq_reflection, rule_tac z=z in int_diff_cases, simp)
+
+lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
+by transfer (rule refl)
 
 instance star :: (number_ring) number_ring
 by (intro_classes, simp only: star_number_def star_of_int_def number_of_eq)
-
-lemma star_of_of_nat [simp]: "star_of (of_nat n) = of_nat n"
-by (simp add: star_of_nat_def)
-
-lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
-by (simp add: star_of_int_def)
 
 end

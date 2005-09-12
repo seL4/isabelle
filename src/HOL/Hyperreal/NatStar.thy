@@ -13,7 +13,7 @@ begin
 
 lemma starset_n_Un: "*sn* (%n. (A n) Un (B n)) = *sn* A Un *sn* B"
 apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n fuf_disj)
+apply (simp add: Iset_star_n ultrafilter.Collect_disj [OF ultrafilter_FUFNat])
 done
 
 lemma InternalSets_Un:
@@ -24,7 +24,7 @@ by (auto simp add: InternalSets_def starset_n_Un [symmetric])
 lemma starset_n_Int:
       "*sn* (%n. (A n) Int (B n)) = *sn* A Int *sn* B"
 apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n fuf_conj)
+apply (simp add: Iset_star_n filter.Collect_conj [OF filter_FUFNat])
 done
 
 lemma InternalSets_Int:
@@ -34,7 +34,7 @@ by (auto simp add: InternalSets_def starset_n_Int [symmetric])
 
 lemma starset_n_Compl: "*sn* ((%n. - A n)) = -( *sn* A)"
 apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n fuf_not)
+apply (simp add: Iset_star_n ultrafilter.Collect_not [OF ultrafilter_FUFNat])
 done
 
 lemma InternalSets_Compl: "X \<in> InternalSets ==> -X \<in> InternalSets"
@@ -42,7 +42,8 @@ by (auto simp add: InternalSets_def starset_n_Compl [symmetric])
 
 lemma starset_n_diff: "*sn* (%n. (A n) - (B n)) = *sn* A - *sn* B"
 apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n fuf_conj fuf_not)
+apply (simp add: Iset_star_n  filter.Collect_conj [OF filter_FUFNat]
+                 ultrafilter.Collect_not [OF ultrafilter_FUFNat])
 done
 
 lemma InternalSets_diff:
@@ -99,14 +100,14 @@ by (transfer, rule refl)
 text{*The hyperpow function as a nonstandard extension of realpow*}
 
 lemma starfun_pow: "!!N. ( *f* (%n. r ^ n)) N = (hypreal_of_real r) pow N"
-by (unfold hyperpow_def, transfer, rule refl)
+by (transfer, rule refl)
 
 lemma starfun_pow2:
      "!!N. ( *f* (%n. (X n) ^ m)) N = ( *f* X) N pow hypnat_of_nat m"
-by (unfold hyperpow_def, transfer, rule refl)
+by (transfer, rule refl)
 
 lemma starfun_pow3: "!!R. ( *f* (%r. r ^ n)) R = (R) pow hypnat_of_nat n"
-by (unfold hyperpow_def, transfer, rule refl)
+by (transfer, rule refl)
 
 text{*The @{term hypreal_of_hypnat} function as a nonstandard extension of
   @{term real_of_nat} *}

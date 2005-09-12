@@ -373,6 +373,7 @@ constdefs
   hypreal_of_hypnat :: "hypnat => hypreal"
    "hypreal_of_hypnat == *f* real"
 
+declare hypreal_of_hypnat_def [transfer_unfold]
 
 lemma HNat_hypreal_of_nat [simp]: "hypreal_of_nat N \<in> Nats"
 by (simp add: hypreal_of_nat_def) 
@@ -383,7 +384,7 @@ by (simp add: hypreal_of_hypnat_def starfun)
 
 lemma hypreal_of_hypnat_inject [simp]:
      "!!m n. (hypreal_of_hypnat m = hypreal_of_hypnat n) = (m=n)"
-by (unfold hypreal_of_hypnat_def, transfer, simp)
+by (transfer, simp)
 
 lemma hypreal_of_hypnat_zero: "hypreal_of_hypnat 0 = 0"
 by (simp add: star_n_zero_num hypreal_of_hypnat)
@@ -393,22 +394,22 @@ by (simp add: star_n_one_num hypreal_of_hypnat)
 
 lemma hypreal_of_hypnat_add [simp]:
      "!!m n. hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n"
-by (unfold hypreal_of_hypnat_def, transfer, rule real_of_nat_add)
+by (transfer, rule real_of_nat_add)
 
 lemma hypreal_of_hypnat_mult [simp]:
      "!!m n. hypreal_of_hypnat (m * n) = hypreal_of_hypnat m * hypreal_of_hypnat n"
-by (unfold hypreal_of_hypnat_def, transfer, rule real_of_nat_mult)
+by (transfer, rule real_of_nat_mult)
 
 lemma hypreal_of_hypnat_less_iff [simp]:
      "!!m n. (hypreal_of_hypnat n < hypreal_of_hypnat m) = (n < m)"
-by (unfold hypreal_of_hypnat_def, transfer, simp)
+by (transfer, simp)
 
 lemma hypreal_of_hypnat_eq_zero_iff: "(hypreal_of_hypnat N = 0) = (N = 0)"
 by (simp add: hypreal_of_hypnat_zero [symmetric])
 declare hypreal_of_hypnat_eq_zero_iff [simp]
 
 lemma hypreal_of_hypnat_ge_zero [simp]: "!!n. 0 \<le> hypreal_of_hypnat n"
-by (unfold hypreal_of_hypnat_def, transfer, simp)
+by (transfer, simp)
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"

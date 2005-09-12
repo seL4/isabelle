@@ -68,21 +68,15 @@ constdefs
   hexpi :: "hcomplex => hcomplex"
   "hexpi z == hcomplex_of_hypreal(( *f* exp) (hRe z)) * hcis (hIm z)"
 
-
-constdefs
   HComplex :: "[hypreal,hypreal] => hcomplex"
-(*   "HComplex x y == hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y"*)
-   "HComplex == Ifun2_of Complex"
+  "HComplex == Ifun2_of Complex"
 
+  hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80)
+  "(z::hcomplex) hcpow (n::hypnat) == Ifun2_of (op ^) z n"
 
-consts
-  "hcpow"  :: "[hcomplex,hypnat] => hcomplex"     (infixr "hcpow" 80)
-
-defs
-  (* hypernatural powers of nonstandard complex numbers *)
-  hcpow_def:
-  "(z::hcomplex) hcpow (n::hypnat)
-      == Ifun2_of (op ^) z n"
+lemmas hcomplex_defs [transfer_unfold] =
+  hRe_def hIm_def hcmod_def iii_def hcnj_def hsgn_def harg_def hcis_def
+  hcomplex_of_hypreal_def hrcis_def hexpi_def HComplex_def hcpow_def
 
 
 subsection{*Properties of Nonstandard Real and Imaginary Parts*}
@@ -95,7 +89,7 @@ by (simp add: hIm_def starfun)
 
 lemma hcomplex_hRe_hIm_cancel_iff:
      "!!w z. (w=z) = (hRe(w) = hRe(z) & hIm(w) = hIm(z))"
-by (unfold hRe_def hIm_def, transfer, rule complex_Re_Im_cancel_iff)
+by (transfer, rule complex_Re_Im_cancel_iff)
 
 lemma hcomplex_equality [intro?]: "hRe z = hRe w ==> hIm z = hIm w ==> z = w"
 by (simp add: hcomplex_hRe_hIm_cancel_iff)
@@ -116,18 +110,18 @@ by (simp add: hIm star_n_one_num star_n_zero_num)
 subsection{*Addition for Nonstandard Complex Numbers*}
 
 lemma hRe_add: "!!x y. hRe(x + y) = hRe(x) + hRe(y)"
-by (unfold hRe_def, transfer, rule complex_Re_add)
+by (transfer, rule complex_Re_add)
 
 lemma hIm_add: "!!x y. hIm(x + y) = hIm(x) + hIm(y)"
-by (unfold hIm_def, transfer, rule complex_Im_add)
+by (transfer, rule complex_Im_add)
 
 subsection{*More Minus Laws*}
 
 lemma hRe_minus: "!!z. hRe(-z) = - hRe(z)"
-by (unfold hRe_def, transfer, rule complex_Re_minus)
+by (transfer, rule complex_Re_minus)
 
 lemma hIm_minus: "!!z. hIm(-z) = - hIm(z)"
-by (unfold hIm_def, transfer, rule complex_Im_minus)
+by (transfer, rule complex_Im_minus)
 
 lemma hcomplex_add_minus_eq_minus:
       "x + y = (0::hcomplex) ==> x = -y"
@@ -179,7 +173,7 @@ by (simp add: hcomplex_of_hypreal_def starfun)
 
 lemma hcomplex_of_hypreal_cancel_iff [iff]:
      "!!x y. (hcomplex_of_hypreal x = hcomplex_of_hypreal y) = (x = y)"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_one [simp]: "hcomplex_of_hypreal 1 = 1"
 by (simp add: hcomplex_of_hypreal star_n_one_num)
@@ -189,31 +183,31 @@ by (simp add: star_n_zero_num hcomplex_of_hypreal)
 
 lemma hcomplex_of_hypreal_minus [simp]:
      "!!x. hcomplex_of_hypreal(-x) = - hcomplex_of_hypreal x"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_inverse [simp]:
      "!!x. hcomplex_of_hypreal(inverse x) = inverse(hcomplex_of_hypreal x)"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_add [simp]:
      "!!x y. hcomplex_of_hypreal (x + y) =
       hcomplex_of_hypreal x + hcomplex_of_hypreal y"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_diff [simp]:
      "!!x y. hcomplex_of_hypreal (x - y) =
       hcomplex_of_hypreal x - hcomplex_of_hypreal y "
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_mult [simp]:
      "!!x y. hcomplex_of_hypreal (x * y) =
       hcomplex_of_hypreal x * hcomplex_of_hypreal y"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_divide [simp]:
      "!!x y. hcomplex_of_hypreal(x/y) =
       hcomplex_of_hypreal x / hcomplex_of_hypreal y"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hRe_hcomplex_of_hypreal [simp]: "hRe(hcomplex_of_hypreal z) = z"
 apply (cases z)
@@ -233,10 +227,10 @@ by (simp add: hcomplex_of_hypreal epsilon_def star_n_zero_num star_n_eq_iff)
 subsection{*HComplex theorems*}
 
 lemma hRe_HComplex [simp]: "!!x y. hRe (HComplex x y) = x"
-by (unfold hRe_def HComplex_def, transfer, simp)
+by (transfer, simp)
 
 lemma hIm_HComplex [simp]: "!!x y. hIm (HComplex x y) = y"
-by (unfold hIm_def HComplex_def, transfer, simp)
+by (transfer, simp)
 
 text{*Relates the two nonstandard constructions*}
 lemma HComplex_eq_Abs_star_Complex:
@@ -275,28 +269,28 @@ by simp
 
 lemma HComplex_inject [simp]:
   "!!x y x' y'. HComplex x y = HComplex x' y' = (x=x' & y=y')"
-by (unfold HComplex_def, transfer, simp)
+by (transfer, simp)
 
 lemma HComplex_add [simp]:
   "!!x1 y1 x2 y2. HComplex x1 y1 + HComplex x2 y2 = HComplex (x1+x2) (y1+y2)"
-by (unfold HComplex_def, transfer, simp)
+by (transfer, simp)
 
 lemma HComplex_minus [simp]: "!!x y. - HComplex x y = HComplex (-x) (-y)"
-by (unfold HComplex_def, transfer, simp)
+by (transfer, simp)
 
 lemma HComplex_diff [simp]:
   "!!x1 y1 x2 y2. HComplex x1 y1 - HComplex x2 y2 = HComplex (x1-x2) (y1-y2)"
-by (unfold HComplex_def, transfer, rule complex_diff)
+by (transfer, rule complex_diff)
 
 lemma HComplex_mult [simp]:
   "!!x1 y1 x2 y2. HComplex x1 y1 * HComplex x2 y2 =
    HComplex (x1*x2 - y1*y2) (x1*y2 + y1*x2)"
-by (unfold HComplex_def, transfer, rule complex_mult)
+by (transfer, rule complex_mult)
 
 (*HComplex_inverse is proved below*)
 
 lemma hcomplex_of_hypreal_eq: "!!r. hcomplex_of_hypreal r = HComplex r 0"
-apply (unfold hcomplex_of_hypreal_def HComplex_def, transfer)
+apply (transfer)
 apply (simp add: complex_of_real_def)
 done
 
@@ -318,11 +312,11 @@ by (simp add: i_def hcomplex_of_hypreal_eq)
 
 lemma i_hcomplex_of_hypreal [simp]:
      "!!r. iii * hcomplex_of_hypreal r = HComplex 0 r"
-by (unfold iii_def hcomplex_of_hypreal_def HComplex_def, transfer, rule i_complex_of_real)
+by (transfer, rule i_complex_of_real)
 
 lemma hcomplex_of_hypreal_i [simp]:
      "!!r. hcomplex_of_hypreal r * iii = HComplex 0 r"
-by (unfold iii_def hcomplex_of_hypreal_def HComplex_def, transfer, rule complex_of_real_i)
+by (transfer, rule complex_of_real_i)
 
 
 subsection{*Conjugation*}
@@ -331,56 +325,54 @@ lemma hcnj: "hcnj (star_n X) = star_n (%n. cnj(X n))"
 by (simp add: hcnj_def starfun)
 
 lemma hcomplex_hcnj_cancel_iff [iff]: "!!x y. (hcnj x = hcnj y) = (x = y)"
-by (unfold hcnj_def, transfer, rule complex_cnj_cancel_iff)
+by (transfer, rule complex_cnj_cancel_iff)
 
 lemma hcomplex_hcnj_hcnj [simp]: "!!z. hcnj (hcnj z) = z"
-by (unfold hcnj_def, transfer, rule complex_cnj_cnj)
+by (transfer, rule complex_cnj_cnj)
 
 lemma hcomplex_hcnj_hcomplex_of_hypreal [simp]:
      "!!x. hcnj (hcomplex_of_hypreal x) = hcomplex_of_hypreal x"
-by (unfold hcnj_def hcomplex_of_hypreal_def, transfer, rule complex_cnj_complex_of_real)
+by (transfer, rule complex_cnj_complex_of_real)
 
 lemma hcomplex_hmod_hcnj [simp]: "!!z. hcmod (hcnj z) = hcmod z"
-by (unfold hcmod_def hcnj_def, transfer, rule complex_mod_cnj)
+by (transfer, rule complex_mod_cnj)
 
 lemma hcomplex_hcnj_minus: "!!z. hcnj (-z) = - hcnj z"
-by (unfold hcnj_def, transfer, rule complex_cnj_minus)
+by (transfer, rule complex_cnj_minus)
 
 lemma hcomplex_hcnj_inverse: "!!z. hcnj(inverse z) = inverse(hcnj z)"
-by (unfold hcnj_def, transfer, rule complex_cnj_inverse)
+by (transfer, rule complex_cnj_inverse)
 
 lemma hcomplex_hcnj_add: "!!w z. hcnj(w + z) = hcnj(w) + hcnj(z)"
-by (unfold hcnj_def, transfer, rule complex_cnj_add)
+by (transfer, rule complex_cnj_add)
 
 lemma hcomplex_hcnj_diff: "!!w z. hcnj(w - z) = hcnj(w) - hcnj(z)"
-by (unfold hcnj_def, transfer, rule complex_cnj_diff)
+by (transfer, rule complex_cnj_diff)
 
 lemma hcomplex_hcnj_mult: "!!w z. hcnj(w * z) = hcnj(w) * hcnj(z)"
-by (unfold hcnj_def, transfer, rule complex_cnj_mult)
+by (transfer, rule complex_cnj_mult)
 
 lemma hcomplex_hcnj_divide: "!!w z. hcnj(w / z) = (hcnj w)/(hcnj z)"
-by (unfold hcnj_def, transfer, rule complex_cnj_divide)
+by (transfer, rule complex_cnj_divide)
 
 lemma hcnj_one [simp]: "hcnj 1 = 1"
-by (unfold hcnj_def, transfer, rule complex_cnj_one)
+by (transfer, rule complex_cnj_one)
 
 lemma hcomplex_hcnj_zero [simp]: "hcnj 0 = 0"
-by (unfold hcnj_def, transfer, rule complex_cnj_zero)
+by (transfer, rule complex_cnj_zero)
 
 lemma hcomplex_hcnj_zero_iff [iff]: "!!z. (hcnj z = 0) = (z = 0)"
-by (unfold hcnj_def, transfer, rule complex_cnj_zero_iff)
+by (transfer, rule complex_cnj_zero_iff)
 
 lemma hcomplex_mult_hcnj:
      "!!z. z * hcnj z = hcomplex_of_hypreal (hRe(z) ^ 2 + hIm(z) ^ 2)"
-apply (unfold hcnj_def hcomplex_of_hypreal_def hRe_def hIm_def)
-apply (transfer, rule complex_mult_cnj)
-done
+by (transfer, rule complex_mult_cnj)
 
 
 subsection{*More Theorems about the Function @{term hcmod}*}
 
 lemma hcomplex_hcmod_eq_zero_cancel [simp]: "!!x. (hcmod x = 0) = (x = 0)"
-by (unfold hcmod_def, transfer, rule complex_mod_eq_zero_cancel)
+by (transfer, rule complex_mod_eq_zero_cancel)
 
 lemma hcmod_hcomplex_of_hypreal_of_nat [simp]:
      "hcmod (hcomplex_of_hypreal(hypreal_of_nat n)) = hypreal_of_nat n"
@@ -391,57 +383,57 @@ lemma hcmod_hcomplex_of_hypreal_of_hypnat [simp]:
 by (simp add: abs_if linorder_not_less)
 
 lemma hcmod_minus [simp]: "!!x. hcmod (-x) = hcmod(x)"
-by (unfold hcmod_def, transfer, rule complex_mod_minus)
+by (transfer, rule complex_mod_minus)
 
 lemma hcmod_mult_hcnj: "!!z. hcmod(z * hcnj(z)) = hcmod(z) ^ 2"
-by (unfold hcmod_def hcnj_def, transfer, rule complex_mod_mult_cnj)
+by (transfer, rule complex_mod_mult_cnj)
 
 lemma hcmod_ge_zero [simp]: "!!x. (0::hypreal) \<le> hcmod x"
-by (unfold hcmod_def, transfer, rule complex_mod_ge_zero)
+by (transfer, rule complex_mod_ge_zero)
 
 lemma hrabs_hcmod_cancel [simp]: "abs(hcmod x) = hcmod x"
 by (simp add: abs_if linorder_not_less)
 
 lemma hcmod_mult: "!!x y. hcmod(x*y) = hcmod(x) * hcmod(y)"
-by (unfold hcmod_def, transfer, rule complex_mod_mult)
+by (transfer, rule complex_mod_mult)
 
 lemma hcmod_add_squared_eq:
   "!!x y. hcmod(x + y) ^ 2 = hcmod(x) ^ 2 + hcmod(y) ^ 2 + 2 * hRe(x * hcnj y)"
-by (unfold hcmod_def hcnj_def hRe_def, transfer, rule complex_mod_add_squared_eq)
+by (transfer, rule complex_mod_add_squared_eq)
 
 lemma hcomplex_hRe_mult_hcnj_le_hcmod [simp]:
   "!!x y. hRe(x * hcnj y) \<le> hcmod(x * hcnj y)"
-by (unfold hcmod_def hcnj_def hRe_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcomplex_hRe_mult_hcnj_le_hcmod2 [simp]:
   "!!x y. hRe(x * hcnj y) \<le> hcmod(x * y)"
-by (unfold hcmod_def hcnj_def hRe_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_triangle_squared [simp]:
   "!!x y. hcmod (x + y) ^ 2 \<le> (hcmod(x) + hcmod(y)) ^ 2"
-by (unfold hcmod_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_triangle_ineq [simp]:
   "!!x y. hcmod (x + y) \<le> hcmod(x) + hcmod(y)"
-by (unfold hcmod_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_triangle_ineq2 [simp]:
   "!!a b. hcmod(b + a) - hcmod b \<le> hcmod a"
-by (unfold hcmod_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_diff_commute: "!!x y. hcmod (x - y) = hcmod (y - x)"
-by (unfold hcmod_def, transfer, rule complex_mod_diff_commute)
+by (transfer, rule complex_mod_diff_commute)
 
 lemma hcmod_add_less:
   "!!x y r s. [| hcmod x < r; hcmod y < s |] ==> hcmod (x + y) < r + s"
-by (unfold hcmod_def, transfer, rule complex_mod_add_less)
+by (transfer, rule complex_mod_add_less)
 
 lemma hcmod_mult_less:
   "!!x y r s. [| hcmod x < r; hcmod y < s |] ==> hcmod (x * y) < r * s"
-by (unfold hcmod_def, transfer, rule complex_mod_mult_less)
+by (transfer, rule complex_mod_mult_less)
 
 lemma hcmod_diff_ineq [simp]: "!!a b. hcmod(a) - hcmod(b) \<le> hcmod(a + b)"
-by (unfold hcmod_def, transfer, simp)
+by (transfer, simp)
 
 
 subsection{*A Few Nonlinear Theorems*}
@@ -451,15 +443,13 @@ by (simp add: hcpow_def Ifun2_of_def star_of_def Ifun_star_n)
 
 lemma hcomplex_of_hypreal_hyperpow:
      "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) hcpow n"
-apply (unfold hcomplex_of_hypreal_def hyperpow_def hcpow_def)
-apply (transfer, rule complex_of_real_pow)
-done
+by (transfer, rule complex_of_real_pow)
 
 lemma hcmod_hcpow: "!!x n. hcmod(x hcpow n) = hcmod(x) pow n"
-by (unfold hcmod_def hcpow_def hyperpow_def, transfer, rule complex_mod_complexpow)
+by (transfer, rule complex_mod_complexpow)
 
 lemma hcmod_hcomplex_inverse: "!!x. hcmod(inverse x) = inverse(hcmod x)"
-by (unfold hcmod_def, transfer, rule complex_mod_inverse)
+by (transfer, rule complex_mod_inverse)
 
 lemma hcmod_divide: "hcmod(x/y) = hcmod(x)/(hcmod y)"
 by (simp add: divide_inverse hcmod_mult hcmod_hcomplex_inverse)
@@ -496,11 +486,11 @@ done
 lemma hcpow_minus:
      "!!x n. (-x::hcomplex) hcpow n =
       (if ( *p* even) n then (x hcpow n) else -(x hcpow n))"
-by (unfold hcpow_def, transfer, rule neg_power_if)
+by (transfer, rule neg_power_if)
 
 lemma hcpow_mult:
   "!!r s n. ((r::hcomplex) * s) hcpow n = (r hcpow n) * (s hcpow n)"
-by (unfold hcpow_def, transfer, rule power_mult_distrib)
+by (transfer, rule power_mult_distrib)
 
 lemma hcpow_zero [simp]: "0 hcpow (n + 1) = 0"
 apply (simp add: star_n_zero_num star_n_one_num, cases n)
@@ -587,25 +577,23 @@ lemma hcomplex_inverse_complex_split:
      "!!x y. inverse(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y) =
       hcomplex_of_hypreal(x/(x ^ 2 + y ^ 2)) -
       iii * hcomplex_of_hypreal(y/(x ^ 2 + y ^ 2))"
-apply (unfold hcomplex_of_hypreal_def iii_def)
-apply (transfer, rule complex_inverse_complex_split)
-done
+by (transfer, rule complex_inverse_complex_split)
 
 lemma HComplex_inverse:
      "!!x y. inverse (HComplex x y) =
       HComplex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"
-by (unfold HComplex_def, transfer, rule complex_inverse)
+by (transfer, rule complex_inverse)
 
 lemma hRe_mult_i_eq[simp]:
     "!!y. hRe (iii * hcomplex_of_hypreal y) = 0"
-by (unfold hRe_def iii_def hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hIm_mult_i_eq [simp]:
     "!!y. hIm (iii * hcomplex_of_hypreal y) = y"
-by (unfold hIm_def iii_def hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_mult_i [simp]: "!!y. hcmod (iii * hcomplex_of_hypreal y) = abs y"
-by (unfold hcmod_def iii_def hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_mult_i2 [simp]: "hcmod (hcomplex_of_hypreal y * iii) = abs y"
 by (simp only: hcmod_mult_i mult_commute)
@@ -619,11 +607,11 @@ by (simp add: harg_def starfun)
 
 lemma cos_harg_i_mult_zero_pos:
      "!!y. 0 < y ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
-by (unfold harg_def HComplex_def, transfer, rule cos_arg_i_mult_zero_pos)
+by (transfer, rule cos_arg_i_mult_zero_pos)
 
 lemma cos_harg_i_mult_zero_neg:
      "!!y. y < 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
-by (unfold harg_def HComplex_def, transfer, rule cos_arg_i_mult_zero_neg)
+by (transfer, rule cos_arg_i_mult_zero_neg)
 
 lemma cos_harg_i_mult_zero [simp]:
      "y \<noteq> 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
@@ -632,7 +620,7 @@ by (auto simp add: linorder_neq_iff
 
 lemma hcomplex_of_hypreal_zero_iff [simp]:
      "!!y. (hcomplex_of_hypreal y = 0) = (y = 0)"
-by (unfold hcomplex_of_hypreal_def, transfer, simp)
+by (transfer, simp)
 
 
 subsection{*Polar Form for Nonstandard Complex Numbers*}
@@ -651,7 +639,7 @@ done
 
 lemma hcomplex_split_polar:
   "!!z. \<exists>r a. z = hcomplex_of_hypreal r * (HComplex(( *f* cos) a)(( *f* sin) a))"
-by (unfold hcomplex_of_hypreal_def HComplex_def, transfer, rule complex_split_polar)
+by (transfer, rule complex_split_polar)
 
 lemma hcis: "hcis (star_n X) = star_n (%n. cis (X n))"
 by (simp add: hcis_def starfun)
@@ -691,7 +679,7 @@ by (simp add: hrcis_def hcis_eq)
 
 lemma hcmod_unit_one [simp]:
      "!!a. hcmod (HComplex (( *f* cos) a) (( *f* sin) a)) = 1"
-by (unfold hcmod_def HComplex_def, transfer, simp)
+by (transfer, simp)
 
 lemma hcmod_complex_polar [simp]:
      "hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
@@ -873,11 +861,7 @@ by (simp add: star_of_def hcmod)
 subsection{*Numerals and Arithmetic*}
 
 lemma hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int (Rep_Bin w)"
-apply (rule eq_reflection)
-apply (unfold star_number_def star_of_int_def)
-apply (rule star_of_inject [THEN iffD2])
-apply (rule number_of_eq)
-done
+by (transfer, rule number_of_eq [THEN eq_reflection])
 
 lemma hcomplex_of_complex_of_nat:
      "hcomplex_of_complex (of_nat n) = of_nat n"

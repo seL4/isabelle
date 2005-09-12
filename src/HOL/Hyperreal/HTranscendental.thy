@@ -131,7 +131,7 @@ by (transfer, simp)
 
 lemma hypreal_sqrt_hyperpow_hrabs [simp]:
      "!!x. ( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma star_sqrt_HFinite: "\<lbrakk>x \<in> HFinite; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* sqrt) x \<in> HFinite"
 apply (rule HFinite_square_iff [THEN iffD1])

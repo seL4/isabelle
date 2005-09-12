@@ -166,6 +166,10 @@ constdefs
   Ipred2_of :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a star \<Rightarrow> 'b star \<Rightarrow> bool)"
   "Ipred2_of P \<equiv> \<lambda>x y. unstar (star_of P \<star> x \<star> y)"
 
+lemmas Ifun_defs =
+  Ifun_of_def Ifun2_def Ifun2_of_def
+  Ipred_def Ipred_of_def Ipred2_def Ipred2_of_def
+
 lemma Ifun_of [simp]:
   "Ifun_of f (star_of x) = star_of (f x)"
 by (simp only: Ifun_of_def Ifun)
@@ -182,10 +186,6 @@ lemma Ipred2_of [simp]:
   "Ipred2_of P (star_of x) (star_of y) = P x y"
 by (simp only: Ipred2_of_def Ifun unstar)
 
-lemmas Ifun_defs =
-  star_of_def Ifun_of_def Ifun2_def Ifun2_of_def
-  Ipred_def Ipred_of_def Ipred2_def Ipred2_of_def
-
 
 subsection {* Internal sets *}
 
@@ -201,147 +201,5 @@ lemma Iset_star_n:
 by (simp add: Iset_def Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
 
 
-subsection {* Class constants *}
-
-instance star :: (ord) ord ..
-instance star :: (zero) zero ..
-instance star :: (one) one ..
-instance star :: (plus) plus ..
-instance star :: (times) times ..
-instance star :: (minus) minus ..
-instance star :: (inverse) inverse ..
-instance star :: (number) number ..
-instance star :: ("Divides.div") "Divides.div" ..
-instance star :: (power) power ..
-
-defs (overloaded)
-  star_zero_def:    "0 \<equiv> star_of 0"
-  star_one_def:     "1 \<equiv> star_of 1"
-  star_number_def:  "number_of b \<equiv> star_of (number_of b)"
-  star_add_def:     "(op +) \<equiv> Ifun2_of (op +)"
-  star_diff_def:    "(op -) \<equiv> Ifun2_of (op -)"
-  star_minus_def:   "uminus \<equiv> Ifun_of uminus"
-  star_mult_def:    "(op *) \<equiv> Ifun2_of (op *)"
-  star_divide_def:  "(op /) \<equiv> Ifun2_of (op /)"
-  star_inverse_def: "inverse \<equiv> Ifun_of inverse"
-  star_le_def:      "(op \<le>) \<equiv> Ipred2_of (op \<le>)"
-  star_less_def:    "(op <) \<equiv> Ipred2_of (op <)"
-  star_abs_def:     "abs \<equiv> Ifun_of abs"
-  star_div_def:     "(op div) \<equiv> Ifun2_of (op div)"
-  star_mod_def:     "(op mod) \<equiv> Ifun2_of (op mod)"
-  star_power_def:   "(op ^) \<equiv> \<lambda>x n. Ifun_of (\<lambda>x. x ^ n) x"
-
-lemmas star_class_defs =
-  star_zero_def     star_one_def      star_number_def
-  star_add_def      star_diff_def     star_minus_def
-  star_mult_def     star_divide_def   star_inverse_def
-  star_le_def       star_less_def     star_abs_def
-  star_div_def      star_mod_def      star_power_def
-
-text {* @{term star_of} preserves class operations *}
-
-lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
-by (simp add: star_add_def)
-
-lemma star_of_diff: "star_of (x - y) = star_of x - star_of y"
-by (simp add: star_diff_def)
-
-lemma star_of_minus: "star_of (-x) = - star_of x"
-by (simp add: star_minus_def)
-
-lemma star_of_mult: "star_of (x * y) = star_of x * star_of y"
-by (simp add: star_mult_def)
-
-lemma star_of_divide: "star_of (x / y) = star_of x / star_of y"
-by (simp add: star_divide_def)
-
-lemma star_of_inverse: "star_of (inverse x) = inverse (star_of x)"
-by (simp add: star_inverse_def)
-
-lemma star_of_div: "star_of (x div y) = star_of x div star_of y"
-by (simp add: star_div_def)
-
-lemma star_of_mod: "star_of (x mod y) = star_of x mod star_of y"
-by (simp add: star_mod_def)
-
-lemma star_of_power: "star_of (x ^ n) = star_of x ^ n"
-by (simp add: star_power_def)
-
-lemma star_of_abs: "star_of (abs x) = abs (star_of x)"
-by (simp add: star_abs_def)
-
-text {* @{term star_of} preserves numerals *}
-
-lemma star_of_zero: "star_of 0 = 0"
-by (simp add: star_zero_def)
-
-lemma star_of_one: "star_of 1 = 1"
-by (simp add: star_one_def)
-
-lemma star_of_number_of: "star_of (number_of x) = number_of x"
-by (simp add: star_number_def)
-
-text {* @{term star_of} preserves orderings *}
-
-lemma star_of_less: "(star_of x < star_of y) = (x < y)"
-by (simp add: star_less_def)
-
-lemma star_of_le: "(star_of x \<le> star_of y) = (x \<le> y)"
-by (simp add: star_le_def)
-
-lemma star_of_eq: "(star_of x = star_of y) = (x = y)"
-by (rule star_of_inject)
-
-text{*As above, for 0*}
-
-lemmas star_of_0_less = star_of_less [of 0, simplified star_of_zero]
-lemmas star_of_0_le   = star_of_le   [of 0, simplified star_of_zero]
-lemmas star_of_0_eq   = star_of_eq   [of 0, simplified star_of_zero]
-
-lemmas star_of_less_0 = star_of_less [of _ 0, simplified star_of_zero]
-lemmas star_of_le_0   = star_of_le   [of _ 0, simplified star_of_zero]
-lemmas star_of_eq_0   = star_of_eq   [of _ 0, simplified star_of_zero]
-
-text{*As above, for 1*}
-
-lemmas star_of_1_less = star_of_less [of 1, simplified star_of_one]
-lemmas star_of_1_le   = star_of_le   [of 1, simplified star_of_one]
-lemmas star_of_1_eq   = star_of_eq   [of 1, simplified star_of_one]
-
-lemmas star_of_less_1 = star_of_less [of _ 1, simplified star_of_one]
-lemmas star_of_le_1   = star_of_le   [of _ 1, simplified star_of_one]
-lemmas star_of_eq_1   = star_of_eq   [of _ 1, simplified star_of_one]
-
-text{*As above, for numerals*}
-
-lemmas star_of_number_less =
-  star_of_less [of "number_of b", simplified star_of_number_of, standard]
-lemmas star_of_number_le   =
-  star_of_le   [of "number_of b", simplified star_of_number_of, standard]
-lemmas star_of_number_eq   =
-  star_of_eq   [of "number_of b", simplified star_of_number_of, standard]
-
-lemmas star_of_less_number =
-  star_of_less [of _ "number_of b", simplified star_of_number_of, standard]
-lemmas star_of_le_number   =
-  star_of_le   [of _ "number_of b", simplified star_of_number_of, standard]
-lemmas star_of_eq_number   =
-  star_of_eq   [of _ "number_of b", simplified star_of_number_of, standard]
-
-lemmas star_of_simps =
-  star_of_add     star_of_diff    star_of_minus
-  star_of_mult    star_of_divide  star_of_inverse
-  star_of_div     star_of_mod
-  star_of_power   star_of_abs
-  star_of_zero    star_of_one     star_of_number_of
-  star_of_less    star_of_le      star_of_eq
-  star_of_0_less  star_of_0_le    star_of_0_eq
-  star_of_less_0  star_of_le_0    star_of_eq_0
-  star_of_1_less  star_of_1_le    star_of_1_eq
-  star_of_less_1  star_of_le_1    star_of_eq_1
-  star_of_number_less star_of_number_le star_of_number_eq
-  star_of_less_number star_of_le_number star_of_eq_number
-
-declare star_of_simps [simp]
 
 end

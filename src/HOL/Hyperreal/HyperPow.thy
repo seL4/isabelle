@@ -24,7 +24,7 @@ consts
 defs
 
   (* hypernatural powers of hyperreals *)
-  hyperpow_def:
+  hyperpow_def [transfer_unfold]:
   "(R::hypreal) pow (N::hypnat) == Ifun2_of (op ^) R N"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
@@ -104,46 +104,46 @@ lemma hyperpow: "star_n X pow star_n Y = star_n (%n. X n ^ Y n)"
 by (simp add: hyperpow_def Ifun2_of_def star_of_def Ifun_star_n)
 
 lemma hyperpow_zero [simp]: "!!n. (0::hypreal) pow (n + (1::hypnat)) = 0"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_not_zero: "!!r n. r \<noteq> (0::hypreal) ==> r pow n \<noteq> 0"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_inverse:
      "!!r n. r \<noteq> (0::hypreal) ==> inverse(r pow n) = (inverse r) pow n"
-by (unfold hyperpow_def, transfer, rule power_inverse)
+by (transfer, rule power_inverse)
 
 lemma hyperpow_hrabs: "!!r n. abs r pow n = abs (r pow n)"
-by (unfold hyperpow_def, transfer, rule power_abs [symmetric])
+by (transfer, rule power_abs [symmetric])
 
 lemma hyperpow_add: "!!r n m. r pow (n + m) = (r pow n) * (r pow m)"
-by (unfold hyperpow_def, transfer, rule power_add)
+by (transfer, rule power_add)
 
 lemma hyperpow_one [simp]: "!!r. r pow (1::hypnat) = r"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_two:
      "!!r. r pow ((1::hypnat) + (1::hypnat)) = r * r"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_gt_zero: "!!r n. (0::hypreal) < r ==> 0 < r pow n"
-by (unfold hyperpow_def, transfer, rule zero_less_power)
+by (transfer, rule zero_less_power)
 
 lemma hyperpow_ge_zero: "!!r n. (0::hypreal) \<le> r ==> 0 \<le> r pow n"
-by (unfold hyperpow_def, transfer, rule zero_le_power)
+by (transfer, rule zero_le_power)
 
 lemma hyperpow_le:
   "!!x y n. [|(0::hypreal) < x; x \<le> y|] ==> x pow n \<le> y pow n"
-by (unfold hyperpow_def, transfer, rule power_mono [OF _ order_less_imp_le])
+by (transfer, rule power_mono [OF _ order_less_imp_le])
 
 lemma hyperpow_eq_one [simp]: "!!n. 1 pow n = (1::hypreal)"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hrabs_hyperpow_minus_one [simp]: "!!n. abs(-1 pow n) = (1::hypreal)"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_mult: "!!r s n. (r * s) pow n = (r pow n) * (s pow n)"
-by (unfold hyperpow_def, transfer, rule power_mult_distrib)
+by (transfer, rule power_mult_distrib)
 
 lemma hyperpow_two_le [simp]: "0 \<le> r pow (1 + 1)"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
@@ -176,11 +176,11 @@ done
 
 lemma hyperpow_minus_one2 [simp]:
      "!!n. -1 pow ((1 + 1)*n) = (1::hypreal)"
-by (unfold hyperpow_def, transfer, simp)
+by (transfer, simp)
 
 lemma hyperpow_less_le:
      "!!r n N. [|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"
-by (unfold hyperpow_def, transfer, rule power_decreasing [OF order_less_imp_le])
+by (transfer, rule power_decreasing [OF order_less_imp_le])
 
 lemma hyperpow_SHNat_le:
      "[| 0 \<le> r;  r \<le> (1::hypreal);  N \<in> HNatInfinite |]

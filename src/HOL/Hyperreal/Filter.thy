@@ -60,7 +60,7 @@ lemma (in ultrafilter) Un_iff: "(x \<union> y \<in> F) = (x \<in> F \<or> y \<in
  apply (auto elim: subset)
 done
 
-subsubsection {* Free ultrafilters *}
+subsubsection {* Free Ultrafilters *}
 
 locale freeultrafilter = ultrafilter +
   assumes infinite: "A \<in> F \<Longrightarrow> infinite A"
@@ -73,7 +73,40 @@ lemma (in freeultrafilter) filter: "filter F" .
 lemma (in freeultrafilter) ultrafilter: "ultrafilter F"
 by (rule ultrafilter.intro)
 
-subsection {* Maximal filter = ultrafilter *}
+subsection {* Collect properties *}
+
+lemma (in filter) Collect_ex:
+  "({n. \<exists>x. P n x} \<in> F) = (\<exists>X. {n. P n (X n)} \<in> F)"
+proof
+  assume "{n. \<exists>x. P n x} \<in> F"
+  hence "{n. P n (SOME x. P n x)} \<in> F"
+    by (auto elim: someI subset)
+  thus "\<exists>X. {n. P n (X n)} \<in> F" by fast
+next
+  show "\<exists>X. {n. P n (X n)} \<in> F \<Longrightarrow> {n. \<exists>x. P n x} \<in> F"
+    by (auto elim: subset)
+qed
+
+lemma (in filter) Collect_conj:
+  "({n. P n \<and> Q n} \<in> F) = ({n. P n} \<in> F \<and> {n. Q n} \<in> F)"
+by (subst Collect_conj_eq, rule Int_iff)
+
+lemma (in ultrafilter) Collect_not:
+  "({n. \<not> P n} \<in> F) = ({n. P n} \<notin> F)"
+by (subst Collect_neg_eq, rule Compl_iff)
+
+lemma (in ultrafilter) Collect_disj:
+  "({n. P n \<or> Q n} \<in> F) = ({n. P n} \<in> F \<or> {n. Q n} \<in> F)"
+by (subst Collect_disj_eq, rule Un_iff)
+
+lemma (in ultrafilter) Collect_all:
+  "({n. \<forall>x. P n x} \<in> F) = (\<forall>X. {n. P n (X n)} \<in> F)"
+apply (rule Not_eq_iff [THEN iffD1])
+apply (simp add: Collect_not [symmetric])
+apply (rule Collect_ex)
+done
+
+subsection {* Maximal filter = Ultrafilter *}
 
 text {*
    A filter F is an ultrafilter iff it is a maximal filter,
@@ -150,7 +183,7 @@ proof
   qed
 qed
 
-subsection {* ultrafilter Theorem *}
+subsection {* Ultrafilter Theorem *}
 
 text "A locale makes proof of ultrafilter Theorem more modular"
 locale (open) UFT =

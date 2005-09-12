@@ -127,13 +127,16 @@ end
 val transfer_method = Method.SIMPLE_METHOD' HEADGOAL o transfer_tac;
 
 val setup =
-  [ TransferData.init
-  , Attrib.add_attributes
-    [ ("transfer_intro", intro_attr, "transfer introduction rule")
-    , ("transfer_unfold", unfold_attr, "transfer unfolding rule")
-    , ("transfer_refold", refold_attr, "transfer refolding rule")
-    ]
-  , Method.add_method
+  [ TransferData.init,
+    Attrib.add_attributes
+    [ ("transfer_intro", intro_attr,
+       "declaration of transfer introduction rule"),
+      ("transfer_unfold", unfold_attr,
+       "declaration of transfer unfolding rule"),
+      ("transfer_refold", refold_attr,
+       "declaration of transfer refolding rule")
+    ],
+    Method.add_method
     ("transfer", Method.thms_args transfer_method, "transfer principle")
   ];
 
