@@ -146,7 +146,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
   Real/Float.thy Real/Float.ML                                                  \
   Hyperreal/StarType.thy Hyperreal/Transfer.thy Hyperreal/StarClasses.thy	\
   Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
-  Hyperreal/Filter.thy Hyperreal/HSeries.thy					\
+  Hyperreal/Filter.thy Hyperreal/HSeries.thy Hyperreal/transfer.ML		\
   Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy			\
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy					\
   Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy				\
