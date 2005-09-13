@@ -139,7 +139,8 @@ sig
   val cabs: cterm -> cterm -> cterm
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
-  val no_attributes: 'a -> 'a * 'b attribute list
+  val no_attributes: 'a -> 'a * 'b list
+  val simple_fact: 'a -> ('a * 'b list) list
   val apply_attributes: ('a * thm) * 'a attribute list -> 'a * thm
   val applys_attributes: ('a * thm list) * 'a attribute list -> 'a * thm list
   val terms_of_tpairs: (term * term) list -> term list
@@ -397,6 +398,7 @@ fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}
 type 'a attribute = 'a * thm -> 'a * thm;
   
 fun no_attributes x = (x, []);
+fun simple_fact x = [(x, [])];
 fun apply_attributes (x_th, atts) = Library.apply atts x_th;
 fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
