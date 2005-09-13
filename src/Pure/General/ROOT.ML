@@ -4,6 +4,7 @@
 Library of general tools --- prefer this over the 'Standard ML Library'.
 *)
 
+use "stack.ML";
 use "ord_list.ML";
 use "alist.ML";
 use "table.ML";
