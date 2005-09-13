@@ -64,7 +64,7 @@ fun apply_trans thy name a fns args =
       | app_first (f :: fs) = f thy args handle Match => app_first fs;
   in
     transform_failure (fn Match => Match
-      | exn => SynTrans.TRANSLATION_FAIL (exn, "Error in " ^ name ^ " for " ^ quote a))
+      | exn => EXCEPTION (exn, "Error in " ^ name ^ " for " ^ quote a))
       app_first fns
   end;
 

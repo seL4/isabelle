@@ -21,7 +21,6 @@ sig
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val variant_abs': string * typ * term -> string * term
-  exception TRANSLATION_FAIL of exn * string
 end;
 
 signature SYN_TRANS1 =
@@ -458,15 +457,13 @@ fun struct_trfuns structs =
 
 (** pts_to_asts **)
 
-exception TRANSLATION_FAIL of exn * string;
-
 fun pts_to_asts thy trf pts =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => transform_failure (fn exn =>
-            TRANSLATION_FAIL (exn, "Error in parse ast translation for " ^ quote a))
+            EXCEPTION (exn, "Error in parse ast translation for " ^ quote a))
           (fn () => f thy args) ());
 
     (*translate pt bottom-up*)
@@ -488,7 +485,7 @@ fun asts_to_terms thy trf asts =
       (case trf a of
         NONE => Term.list_comb (Lexicon.const a, args)
       | SOME f => transform_failure (fn exn =>
-            TRANSLATION_FAIL (exn, "Error in parse translation for " ^ quote a))
+            EXCEPTION (exn, "Error in parse translation for " ^ quote a))
           (fn () => f thy args) ());
 
     fun term_of (Ast.Constant a) = trans a []
