@@ -15,7 +15,8 @@ sig
   val get: thm -> string list * int
   val add: thm -> thm * (string list * int)
   type T
-  val make: bool -> term option -> Sign.sg * term -> string list -> (string * T option) list
+  val make: bool -> term option -> theory * term -> string list -> (string * T option) list
+  val simple: bool -> theory * term -> string -> string * T option
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
   type tactic
@@ -97,9 +98,9 @@ type T =
 fun unskolem x =
   (case try Syntax.dest_skolem x of SOME x' => x' | NONE => x);
 
-fun prep_case is_open sg (split, raw_prop) name =
+fun prep_case is_open thy (split, raw_prop) name =
   let
-    val prop = Drule.norm_hhf sg raw_prop;
+    val prop = Drule.norm_hhf thy raw_prop;
 
     val xs = map (apfst unskolem) (Logic.strip_params prop);
     val rename = if is_open then I else map (apfst Syntax.internal);
@@ -119,21 +120,23 @@ fun prep_case is_open sg (split, raw_prop) name =
           in [(case_hypsN, hyps), (case_premsN, prems)] end);
 
     val concl = Term.list_abs (named_xs, Logic.strip_assums_concl prop);
-    val bind = ((case_conclN, 0), SOME (ObjectLogic.drop_judgment sg concl));
+    val bind = ((case_conclN, 0), SOME (ObjectLogic.drop_judgment thy concl));
   in (name, SOME {fixes = named_xs, assumes = named_asms, binds = [bind]}) end;
 
-fun make is_open split (sg, prop) names =
+fun make is_open split (thy, prop) names =
   let
     val nprems = Logic.count_prems (prop, 0);
     fun add_case name (cases, i) =
       ((case try (fn () =>
           (Option.map (curry Logic.nth_prem i) split, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
-      | SOME sp => prep_case is_open sg sp name) :: cases, i - 1);
+      | SOME sp => prep_case is_open thy sp name) :: cases, i - 1);
   in
     fold_rev add_case (Library.drop (length names - nprems, names)) ([], length names)
     |> #1
   end;
+
+fun simple is_open (thy, prop) = prep_case is_open thy (NONE, prop);
 
 
 (* params *)
