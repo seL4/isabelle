@@ -54,6 +54,8 @@ sig
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val print': string -> transition -> transition
+  val three_buffersN: string
+  val print3: transition -> transition
   val no_timing: transition -> transition
   val reset: transition -> transition
   val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
@@ -68,7 +70,7 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
-  val theory_to_proof: (bool -> theory -> ProofHistory.T) -> transition -> transition
+  val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
@@ -163,7 +165,7 @@ fun no_body_context (State NONE) = State NONE
 val proof_of = node_case (fn _ => raise UNDEF) I;
 val is_proof = can proof_of;
 
-val enter_forward_proof = node_case Proof.init Proof.enter_forward;
+val enter_forward_proof = node_case (Proof.init o ProofContext.init) Proof.enter_forward;
 
 
 (* prompt state *)
@@ -389,16 +391,19 @@ fun source src = map_transition (fn (name, pos, _, int_only, print, no_timing, t
 fun interactive int_only = map_transition (fn (name, pos, source, _, print, no_timing, trans) =>
   (name, pos, source, int_only, print, no_timing, trans));
 
-fun print' mode = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
-  (name, pos, source, int_only, insert (op =) mode print, no_timing, trans));
-
-val print = print' "";
-
 val no_timing = map_transition (fn (name, pos, source, int_only, print, _, trans) =>
   (name, pos, source, int_only, print, true, trans));
 
 fun add_trans tr = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
   (name, pos, source, int_only, print, no_timing, trans @ [tr]));
+
+fun print' mode = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
+  (name, pos, source, int_only, insert (op =) mode print, no_timing, trans));
+
+val print = print' "";
+
+val three_buffersN = "three_buffers";
+val print3 = print' three_buffersN;
 
 
 (* build transitions *)
@@ -433,8 +438,8 @@ fun theory_context f =
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
         if ! skip_proofs then SkipProof (History.init (undo_limit int) 0,
-          #1 (#1 (SkipProof.global_skip_proof int (ProofHistory.current (f int thy)))))
-        else Proof (f int thy)
+          #1 (Proof.global_skip_proof int (f thy)))
+        else Proof (ProofHistory.init (undo_limit int) (f thy))
     | _ => raise UNDEF));
 
 fun proof' f = map_current (fn int =>
@@ -487,9 +492,8 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ Interrupt = "Interrupt."
   | exn_msg _ ERROR = "ERROR."
   | exn_msg _ (ERROR_MESSAGE msg) = msg
+  | exn_msg detailed (EXCEPTION (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
-  | exn_msg detailed (Context.DATA_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
-  | exn_msg detailed (Syntax.TRANSLATION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
   | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
   | exn_msg _ (ProofContext.CONTEXT (msg, _)) = msg
