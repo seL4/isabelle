@@ -265,6 +265,9 @@ done
 
 text {* the lub of a constant chain is the constant *}
 
+lemma chain_const: "chain (\<lambda>i. c)"
+by (simp add: chainI)
+
 lemma lub_const: "range(%x. c) <<| c"
 apply (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 done

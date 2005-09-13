@@ -9,6 +9,7 @@ val box_less = thm "box_less";
 val chain_def = thm "chain_def";
 val chainE = thm "chainE";
 val chainI = thm "chainI";
+val chain_const = thm "chain_const";
 val chain_mono3 = thm "chain_mono3";
 val chain_mono = thm "chain_mono";
 val chain_shift = thm "chain_shift";
