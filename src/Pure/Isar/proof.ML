@@ -7,44 +7,64 @@ The Isar/VM proof language interpreter.
 
 signature PROOF =
 sig
-  type context
-  type method
+  type context = Context.proof
+  type method = Method.method
   type state
   exception STATE of string * state
-  val init: theory -> state
+  val init: context -> state
+  val level: state -> int
+  val assert_bottom: bool -> state -> state
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> theory    (*obsolete*)
   val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
-  val put_thms: string * thm list -> state -> state
-  val reset_thms: string -> state -> state
+  val put_thms: string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
-  val thisN: string
-  val get_goal: state -> context * (thm list * thm)
-  val goal_facts: (state -> thm list) -> state -> state
-  val is_chain: state -> bool
   val assert_forward: state -> state
+  val assert_chain: state -> state
   val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
-  val level: state -> int
+  val get_goal: state -> context * (thm list * thm)
   val show_main_goal: bool ref
   val verbose: bool ref
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
+  val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
+  val fix: (string list * string option) list -> state -> state
+  val fix_i: (string list * typ option) list -> state -> state
+  val assm: ProofContext.exporter ->
+    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    state -> state
+  val assm_i: ProofContext.exporter ->
+    ((string * context attribute list) * (term * (term list * term list)) list) list
+    -> state -> state
+  val assume: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    state -> state
+  val assume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
+    -> state -> state
+  val presume: ((string * Attrib.src list) * (string * (string list * string list)) list) list
+    -> state -> state
+  val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
+    -> state -> state
+  val def: string * Attrib.src list -> string *  (string * string list) -> state -> state
+  val def_i: string * context attribute list -> string * (term * term list) -> state -> state
+  val chain: state -> state
+  val chain_facts: thm list -> state -> state
+  val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
   val simple_note_thms: string -> thm list -> state -> state
-  val note_thmss: ((bstring * Attrib.src list) *
+  val note_thmss: ((string * Attrib.src list) *
     (thmref * Attrib.src list) list) list -> state -> state
-  val note_thmss_i: ((bstring * context attribute list) *
+  val note_thmss_i: ((string * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
   val from_thmss: ((thmref * Attrib.src list) list) list -> state -> state
   val from_thmss_i: ((thm list * context attribute list) list) list -> state -> state
@@ -52,86 +72,59 @@ sig
   val with_thmss_i: ((thm list * context attribute list) list) list -> state -> state
   val using_thmss: ((thmref * Attrib.src list) list) list -> state -> state
   val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
-  val fix: (string list * string option) list -> state -> state
-  val fix_i: (string list * typ option) list -> state -> state
-  val assm: ProofContext.exporter
-    -> ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val assm_i: ProofContext.exporter
-    -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val assume:
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val assume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val presume:
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val def: string * Attrib.src list -> string *  (string * string list) -> state -> state
-  val def_i: string * context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * Attrib.src list -> state -> state
   val invoke_case_i: string * string option list * context attribute list -> state -> state
-  val chain: state -> state
-  val from_facts: thm list -> state -> state
-  val multi_theorem: string -> (thm list * thm list -> theory -> theory) ->
-    (cterm list -> context -> context -> thm -> thm) ->
-    (xstring * (Attrib.src list * Attrib.src list list)) option ->
-    bstring * Attrib.src list -> Locale.element Locale.elem_expr list
-    -> ((bstring * Attrib.src list) * (string * (string list * string list)) list) list
-    -> theory -> state
-  val multi_theorem_i: string -> (thm list * thm list -> theory -> theory) ->
-    (cterm list -> context -> context -> thm -> thm) ->
-    (string * (Attrib.src list * Attrib.src list list)) option
-    -> bstring * theory attribute list
-    -> Locale.element_i Locale.elem_expr list
-    -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
-    -> theory -> state
-  val show: (bool -> state -> state) -> (thm list -> state -> state Seq.seq) -> bool
-    -> ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> bool -> state -> state
-  val show_i: (bool -> state -> state) -> (thm list -> state -> state Seq.seq) -> bool
-    -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> bool -> state -> state
-  val have: (thm list -> state -> state Seq.seq) -> bool
-    -> ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val have_i: (thm list -> state -> state Seq.seq) -> bool
-    -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val at_bottom: state -> bool
-  val local_qed: bool -> Method.text option
-    -> (context -> string * (string * thm list) list -> unit) *
-      (context -> thm -> unit) -> state -> state Seq.seq
-  val global_qed: bool -> Method.text option
-    -> state -> (theory * context) * ((string * string) * (string * thm list) list)
+  val begin_block: state -> state
+  val next_block: state -> state
+  val end_block: state -> state Seq.seq
   val proof: Method.text option -> state -> state Seq.seq
-  val local_terminal_proof: Method.text * Method.text option
-    -> (context -> string * (string * thm list) list -> unit) *
-      (context -> thm -> unit) -> state -> state Seq.seq
-  val local_default_proof: (context -> string * (string * thm list) list -> unit) *
-    (context -> thm -> unit) -> state -> state Seq.seq
-  val local_immediate_proof: (context -> string * (string * thm list) list -> unit) *
-    (context -> thm -> unit) -> state -> state Seq.seq
-  val local_done_proof: (context -> string * (string * thm list) list -> unit) *
-    (context -> thm -> unit) -> state -> state Seq.seq
-  val global_terminal_proof: Method.text * Method.text option
-    -> state -> (theory * context) * ((string * string) * (string * thm list) list)
-  val global_default_proof: state ->
-    (theory * context) * ((string * string) * (string * thm list) list)
-  val global_immediate_proof: state ->
-    (theory * context) * ((string * string) * (string * thm list) list)
-  val global_done_proof: state ->
-    (theory * context) * ((string * string) * (string * thm list) list)
   val defer: int option -> state -> state Seq.seq
   val prefer: int -> state -> state Seq.seq
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
-  val begin_block: state -> state
-  val next_block: state -> state
-  val end_block: state -> state Seq.seq
+  val goal_names: string option -> string -> string list -> string
+  val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
+    (theory -> 'a -> context attribute) ->
+    (context * 'b list -> context * (term list list * (context -> context))) ->
+    string -> (context * thm list -> thm list list -> state -> state Seq.seq) ->
+    ((string * 'a list) * 'b) list -> state -> state
+  val local_qed: Method.text option * bool -> state -> state Seq.seq
+  val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
+   (theory -> 'a -> theory attribute) ->
+   (context * 'b list -> context * (term list list * (context -> context))) ->
+   string -> (context * thm list -> thm list list -> theory -> theory) -> string option ->
+   string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
+  val global_qed: Method.text option * bool -> state -> theory * context
+  val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
+  val local_default_proof: state -> state Seq.seq
+  val local_immediate_proof: state -> state Seq.seq
+  val local_done_proof: state -> state Seq.seq
+  val local_skip_proof: bool -> state -> state Seq.seq
+  val global_terminal_proof: Method.text * Method.text option -> state -> theory * context
+  val global_default_proof: state -> theory * context
+  val global_immediate_proof: state -> theory * context
+  val global_done_proof: state -> theory * context
+  val global_skip_proof: bool -> state -> theory * context
+  val have: (context * thm list -> thm list list -> state -> state Seq.seq) ->
+    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    bool -> state -> state
+  val have_i: (context * thm list -> thm list list -> state -> state Seq.seq) ->
+    ((string * context attribute list) * (term * (term list * term list)) list) list ->
+    bool -> state -> state
+  val show: (context * thm list -> thm list list -> state -> state Seq.seq) ->
+    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    bool -> state -> state
+  val show_i: (context * thm list -> thm list list -> state -> state Seq.seq) ->
+    ((string * context attribute list) * (term * (term list * term list)) list) list ->
+    bool -> state -> state
+  val theorem: string -> (context * thm list -> thm list list -> theory -> theory) ->
+    string option -> string * Attrib.src list ->
+    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    context -> state
+  val theorem_i: string -> (context * thm list -> thm list list -> theory -> theory) ->
+    string option -> string * theory attribute list ->
+    ((string * theory attribute list) * (term * (term list * term list)) list) list ->
+    context -> state
 end;
 
 structure Proof: PROOF =
@@ -143,167 +136,116 @@ type method = Method.method;
 
 (** proof state **)
 
-(* type goal *)
-
-datatype kind =
-  Theorem of {kind: string,
-    theory_spec: (bstring * theory attribute list) * theory attribute list list,
-    locale_spec: (string * (Attrib.src list * Attrib.src list list)) option,
-    view: cterm list * cterm list,  (* target view and includes view *)
-    export: cterm list -> context -> context -> thm -> thm} |
-                                   (* exporter to be used in finish_global *)
-  Show of context attribute list list |
-  Have of context attribute list list;
-
-fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
-        locale_spec = NONE, ...}) = s ^ (if a = "" then "" else " " ^ a)
-  | kind_name thy (Theorem {kind = s, theory_spec = ((a, _), _),
-        locale_spec = SOME (name, _), ...}) =
-      s ^ " (in " ^ Locale.extern thy name ^ ")" ^ (if a = "" then "" else " " ^ a)
-  | kind_name _ (Show _) = "show"
-  | kind_name _ (Have _) = "have";
-
-type goal =
- (kind *             (*result kind*)
-  string list *      (*result names*)
-  term list list) *  (*result statements*)
- (thm list *         (*use facts*)
-  thm);              (*goal: subgoals ==> statement*)
-
-
-(* type mode *)
-
-datatype mode = Forward | Chain | Backward;
-val mode_name = (fn Forward => "state" | Chain => "chain" | Backward => "prove");
-
-
 (* datatype state *)
 
-datatype node =
+datatype mode = Forward | Chain | Backward;
+
+datatype state =
+  State of node Stack.T
+and node =
   Node of
    {context: context,
     facts: thm list option,
     mode: mode,
-    goal: (goal * (after_qed * bool)) option}
-and state =
-  State of
-    node *              (*current node*)
-    node list           (*parent nodes wrt. block structure*)
-and after_qed =
-  AfterQed of
-   (thm list -> state -> state Seq.seq) *      (*after local qed*)
-   (thm list * thm list -> theory -> theory);  (*after global qed*)
+    goal: goal option}
+and goal =
+  Goal of
+   {statement: string * term list list,     (*goal kind and statement*)
+    using: thm list,                        (*goal facts*)
+    goal: thm,                              (*subgoals ==> statement*)
+    after_qed:   (* FIXME results only *)
+      (context * thm list -> thm list list -> state -> state Seq.seq) *
+      (context * thm list -> thm list list -> theory -> theory)};
+
+exception STATE of string * state;
+
+fun make_goal (statement, using, goal, after_qed) =
+  Goal {statement = statement, using = using, goal = goal, after_qed = after_qed};
 
 fun make_node (context, facts, mode, goal) =
   Node {context = context, facts = facts, mode = mode, goal = goal};
 
+fun map_node f (Node {context, facts, mode, goal}) =
+  make_node (f (context, facts, mode, goal));
 
-exception STATE of string * state;
+fun init ctxt = State (Stack.init (make_node (ctxt, NONE, Forward, NONE)));
 
-fun err_malformed name state =
-  raise STATE (name ^ ": internal error -- malformed proof state", state);
-
-
-fun map_current f (State (Node {context, facts, mode, goal}, nodes)) =
-  State (make_node (f (context, facts, mode, goal)), nodes);
-
-fun init thy =
-  State (make_node (ProofContext.init thy, NONE, Forward, NONE), []);
+fun current (State st) = Stack.top st |> (fn Node node => node);
+fun map_current f (State st) = State (Stack.map (map_node f) st);
 
 
 
 (** basic proof state operations **)
 
+(* block structure *)
+
+fun open_block (State st) = State (Stack.push st);
+
+fun close_block (state as State st) = State (Stack.pop st)
+  handle Empty => raise STATE ("Unbalanced block parentheses", state);
+
+fun level (State st) = Stack.level st;
+
+fun assert_bottom b state =
+  let val b' = (level state <= 2) in
+    if b andalso not b' then raise STATE ("Not at bottom of proof!", state)
+    else if not b andalso b' then raise STATE ("Already at bottom of proof!", state)
+    else state
+  end;
+
+
 (* context *)
 
-fun context_of (State (Node {context, ...}, _)) = context;
+val context_of = #context o current;
 val theory_of = ProofContext.theory_of o context_of;
 val sign_of = theory_of;
 
-fun map_context f = map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
+fun map_context f =
+  map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
-fun map_context_result f (state as State (Node {context, facts, mode, goal}, nodes)) =
-  let val (context', result) = f context
-  in (State (make_node (context', facts, mode, goal), nodes), result) end;
-
+fun map_context_result f state =
+  f (context_of state) |> swap ||> (fn ctxt => map_context (K ctxt) state);
 
 val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
 val add_binds_i = map_context o ProofContext.add_binds_i;
-val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
-val auto_bind_facts = map_context o ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
-val put_thmss = map_context o ProofContext.put_thmss;
-val reset_thms = map_context o ProofContext.reset_thms;
 val get_case = ProofContext.get_case o context_of;
 
 
 (* facts *)
 
-fun the_facts (State (Node {facts = SOME facts, ...}, _)) = facts
-  | the_facts state = raise STATE ("No current facts available", state);
+val get_facts = #facts o current;
+
+fun the_facts state =
+  (case get_facts state of SOME facts => facts
+  | NONE => raise STATE ("No current facts available", state));
 
 fun the_fact state =
-  (case the_facts state of
-    [thm] => thm
-  | _ => raise STATE ("Single fact expected", state));
+  (case the_facts state of [thm] => thm
+  | _ => raise STATE ("Single theorem expected", state));
 
-fun assert_facts state = (the_facts state; state);
-fun get_facts (State (Node {facts, ...}, _)) = facts;
+fun put_facts facts =
+  map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
+  #> put_thms (AutoBind.thisN, facts);
 
+fun these_factss more_facts (named_factss, state) =
+  (named_factss, state |> put_facts (SOME (List.concat (map snd named_factss) @ more_facts)));
 
-val thisN = "this";
-
-fun put_facts facts state =
-  state
-  |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> (case facts of NONE => reset_thms thisN | SOME ths => put_thms (thisN, ths));
-
-val reset_facts = put_facts NONE;
-
-fun these_factss more_facts (state, named_factss) =
-  state |> put_facts (SOME (List.concat (map snd named_factss) @ more_facts));
-
-
-(* goal *)
-
-local
-  fun find i (state as State (Node {goal = SOME goal, ...}, _)) = (context_of state, (i, goal))
-    | find i (State (Node {goal = NONE, ...}, node :: nodes)) =
-        find (i + 1) (State (node, nodes))
-    | find _ (state as State (_, [])) = raise STATE ("No goal present", state);
-in val find_goal = find 0 end;
-
-fun get_goal state =
-  let val (ctxt, (_, ((_, x), _))) = find_goal state
-  in (ctxt, x) end;
-
-fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
-
-fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
-      State (make_node (f context, facts, mode, SOME (g goal)), nodes)
-  | map_goal f g (State (nd, node :: nodes)) =
-      let val State (node', nodes') = map_goal f g (State (node, nodes))
-      in map_context f (State (nd, node' :: nodes')) end
-  | map_goal _ _ state = state;
-
-fun goal_facts get state =
-  state
-  |> map_goal I (fn ((result, (_, thm)), f) => ((result, (get state, thm)), f));
-
-fun use_facts state =
-  state
-  |> goal_facts the_facts
-  |> reset_facts;
+fun export_facts inner outer =
+  (case get_facts inner of
+    NONE => Seq.single (put_facts NONE outer)
+  | SOME thms =>
+      thms
+      |> Seq.map_list (ProofContext.export false (context_of inner) (context_of outer))
+      |> Seq.map (fn ths => put_facts (SOME ths) outer));
 
 
 (* mode *)
 
-fun get_mode (State (Node {mode, ...}, _)) = mode;
+val get_mode = #mode o current;
 fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
-val enter_forward = put_mode Forward;
-val enter_forward_chain = put_mode Chain;
-val enter_backward = put_mode Backward;
+val mode_name = (fn Forward => "state" | Chain => "chain" | Backward => "prove");
 
 fun assert_mode pred state =
   let val mode = get_mode state in
@@ -312,26 +254,60 @@ fun assert_mode pred state =
       ^ quote (mode_name mode) ^ " mode", state)
   end;
 
-fun is_chain state = get_mode state = Chain;
 val assert_forward = assert_mode (equal Forward);
+val assert_chain = assert_mode (equal Chain);
 val assert_forward_or_chain = assert_mode (equal Forward orf equal Chain);
 val assert_backward = assert_mode (equal Backward);
 val assert_no_chain = assert_mode (not_equal Chain);
 
+val enter_forward = put_mode Forward;
+val enter_chain = put_mode Chain;
+val enter_backward = put_mode Backward;
 
-(* blocks *)
 
-fun level (State (_, nodes)) = length nodes;
+(* current goal *)
 
-fun open_block (State (node, nodes)) = State (node, node :: nodes);
+fun current_goal state =
+  (case current state of
+    {context, goal = SOME (Goal goal), ...} => (context, goal)
+  | _ => raise STATE ("No current goal!", state));
 
-fun new_block state =
-  state
-  |> open_block
-  |> put_goal NONE;
+fun assert_current_goal g state =
+  let val g' = can current_goal state in
+    if g andalso not g' then raise STATE ("No goal in this block!", state)
+    else if not g andalso g' then raise STATE ("Goal present in this block!", state)
+    else state
+  end;
 
-fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
-  | close_block state = raise STATE ("Unbalanced block parentheses", state);
+fun put_goal goal = map_current (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
+
+
+(* nested goal *)
+
+fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
+      let
+        val Goal {statement, using, goal, after_qed} = goal;
+        val goal' = make_goal (g (statement, using, goal, after_qed));
+      in State (make_node (f context, facts, mode, SOME goal'), nodes) end
+  | map_goal f g (State (nd, node :: nodes)) =
+      let val State (node', nodes') = map_goal f g (State (node, nodes))
+      in map_context f (State (nd, node' :: nodes')) end
+  | map_goal _ _ state = state;
+
+fun using_facts using =
+  map_goal I (fn (statement, _, goal, after_qed) => (statement, using, goal, after_qed));
+
+local
+  fun find i state =
+    (case try current_goal state of
+      SOME (ctxt, goal) => (ctxt, (i, goal))
+    | NONE => find (i + 1) (close_block state
+        handle STATE _ => raise STATE ("No goal present", state)));
+in val find_goal = find 0 end;
+
+fun get_goal state =
+  let val (ctxt, (_, {using, goal, ...})) = find_goal state
+  in (ctxt, (using, goal)) end;
 
 
 
@@ -346,55 +322,55 @@ fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
-fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
+fun pretty_state nr state =
   let
-    val ref (_, _, begin_goal) = Display.current_goals_markers;
+    val {context, facts, mode, goal = _} = current state;
+    val ref (_, _, bg) = Display.current_goals_markers;
 
     fun levels_up 0 = ""
-      | levels_up 1 = ", 1 level up"
-      | levels_up i = ", " ^ string_of_int i ^ " levels up";
+      | levels_up 1 = "1 level up"
+      | levels_up i = string_of_int i ^ " levels up";
 
     fun subgoals 0 = ""
-      | subgoals 1 = ", 1 subgoal"
-      | subgoals n = ", " ^ string_of_int n ^ " subgoals";
+      | subgoals 1 = "1 subgoal"
+      | subgoals n = string_of_int n ^ " subgoals";
 
-    fun prt_names names =
-      (case filter_out (equal "") names of [] => ""
-      | nms => " " ^ enclose "(" ")" (space_implode " and " (Library.take (7, nms) @
-          (if length nms > 7 then ["..."] else []))));
+    fun description strs =
+      (case filter_out (equal "") strs of [] => ""
+      | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
-      pretty_facts "using " ctxt
-        (if mode <> Backward orelse null goal_facts then NONE else SOME goal_facts) @
-      [Pretty.str ("goal (" ^ kind_name (theory_of state) kind ^ prt_names names ^
-          levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
-      pretty_goals_local ctxt begin_goal (true, ! show_main_goal) (! Display.goals_limit) thm;
+    fun prt_goal (SOME (ctxt, (i, {statement = (kind, _), using, goal, after_qed = _}))) =
+          pretty_facts "using " ctxt
+            (if mode <> Backward orelse null using then NONE else SOME using) @
+          [Pretty.str ("goal" ^ description [kind, levels_up (i div 2),
+              subgoals (Thm.nprems_of goal)] ^ ":")] @
+          pretty_goals_local ctxt bg (true, ! show_main_goal) (! Display.goals_limit) goal
+      | prt_goal NONE = [];
 
-    val ctxt_prts =
-      if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
-      else if mode = Backward then ProofContext.pretty_asms ctxt
+    val prt_ctxt =
+      if ! verbose orelse mode = Forward then ProofContext.pretty_context context
+      else if mode = Backward then ProofContext.pretty_asms context
       else [];
-
-    val prts =
-     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-        (if ! verbose then ", depth " ^ string_of_int (length nodes div 2 - 1)
-        else "")), Pretty.str ""] @
-     (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
-     (if ! verbose orelse mode = Forward then
-       (pretty_facts "" ctxt facts @ prt_goal (find_goal state))
-      else if mode = Chain then pretty_facts "picking " ctxt facts
-      else prt_goal (find_goal state))
-  in prts end;
+  in
+    [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
+      (if ! verbose then ", depth " ^ string_of_int (level state div 2 - 1) else "")),
+      Pretty.str ""] @
+    (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
+    (if ! verbose orelse mode = Forward then
+       pretty_facts "" context facts @ prt_goal (try find_goal state)
+     else if mode = Chain then pretty_facts "picking " context facts
+     else prt_goal (try find_goal state))
+  end;
 
 fun pretty_goals main state =
-  let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
-  in pretty_goals_local ctxt "" (false, main) (! Display.goals_limit) thm end;
+  let val (ctxt, (_, {goal, ...})) = find_goal state
+  in pretty_goals_local ctxt "" (false, main) (! Display.goals_limit) goal end;
 
 
 
 (** proof steps **)
 
-(* refine goal *)
+(* refine via method *)
 
 local
 
@@ -412,15 +388,15 @@ fun check_theory thy state =
 
 fun apply_method current_context meth_fun state =
   let
-    val (goal_ctxt, (_, ((result, (facts, st)), x))) = find_goal state;
+    val (goal_ctxt, (_, {statement, using, goal, after_qed})) = find_goal state;
     val meth = meth_fun (if current_context then context_of state else goal_ctxt);
   in
-    Method.apply meth facts st |> Seq.map (fn (st', meth_cases) =>
+    Method.apply meth using goal |> Seq.map (fn (goal', meth_cases) =>
       state
-      |> check_theory (Thm.theory_of_thm st')
+      |> check_theory (Thm.theory_of_thm goal')
       |> map_goal
-          (ProofContext.add_cases (no_goal_cases st @ goal_cases st' @ meth_cases))
-          (K ((result, (facts, st')), x)))
+          (ProofContext.add_cases (no_goal_cases goal @ goal_cases goal' @ meth_cases))
+          (K (statement, using, goal', after_qed)))
   end;
 
 fun apply_text cc text state =
@@ -443,7 +419,9 @@ val refine_end = apply_text false;
 end;
 
 
-(* export results *)
+(* refine via sub-proof *)
+
+local
 
 fun refine_tac rule =
   Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
@@ -451,55 +429,49 @@ fun refine_tac rule =
       Tactic.etac Drule.triv_goal i
     else all_tac));
 
-fun export_goal inner print_rule raw_rule state =
-  let
-    val (outer, (_, ((result, (facts, thm)), x))) = find_goal state;
-    val exp_tac = ProofContext.export true inner outer;
-    fun exp_rule rule =
-      let
-        val _ = print_rule outer rule;
-        val thmq = FINDGOAL (refine_tac rule) thm;
-      in Seq.map (fn th => map_goal I (K ((result, (facts, th)), x)) state) thmq end;
-  in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
+fun refine_goal print_rule inner raw_rule state =
+  let val (outer, (_, {statement, using, goal, after_qed})) = find_goal state in
+    raw_rule
+    |> ProofContext.export true inner outer
+    |> Seq.maps (fn rule =>
+      (print_rule outer rule;
+        goal
+        |> FINDGOAL (refine_tac rule)
+        |> Seq.map (fn goal' => map_goal I (K (statement, using, goal', after_qed)) state)))
+  end;
 
-fun export_goals inner print_rule raw_rules =
-  Seq.EVERY (map (export_goal inner print_rule) raw_rules);
+in
 
-fun transfer_facts inner_state state =
-  (case get_facts inner_state of
-    NONE => Seq.single (reset_facts state)
-  | SOME thms =>
-      let
-        val exp_tac = ProofContext.export false (context_of inner_state) (context_of state);
-        val thmqs = map exp_tac thms;
-      in Seq.map (fn ths => put_facts (SOME ths) state) (Seq.commute thmqs) end);
+fun refine_goals print_rule inner raw_rules =
+  Seq.EVERY (map (refine_goal print_rule inner) raw_rules);
+
+end;
 
 
-(* prepare result *)
+(* conclude_goal *)
 
-fun prep_result state ts raw_th =
+fun conclude_goal state props goal =
   let
     val ctxt = context_of state;
     fun err msg = raise STATE (msg, state);
 
-    val ngoals = Thm.nprems_of raw_th;
-    val _ =
-      if ngoals = 0 then ()
-      else (err (Pretty.string_of (Pretty.chunks
-        (pretty_goals_local ctxt "" (true, !show_main_goal) (! Display.goals_limit) raw_th @
+    val ngoals = Thm.nprems_of goal;
+    val _ = conditional (ngoals > 0) (fn () =>
+      err (Pretty.string_of (Pretty.chunks
+        (pretty_goals_local ctxt "" (true, ! show_main_goal) (! Display.goals_limit) goal @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
-    val {hyps, thy, ...} = Thm.rep_thm raw_th;
-    val casms = List.concat (map #1 (ProofContext.assumptions_of (context_of state)));
-    val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
+    val {hyps, thy, ...} = Thm.rep_thm goal;
+    val casms = List.concat (map #1 (ProofContext.assumptions_of ctxt));
+    val bad_hyps = fold (remove (fn (asm, hyp) => Thm.term_of asm aconv hyp)) casms hyps;
 
-    val th = raw_th RS Drule.rev_triv_goal;
-    val ths = Drule.conj_elim_precise (length ts) th
+    val th = goal RS Drule.rev_triv_goal;
+    val ths = Drule.conj_elim_precise (length props) th
       handle THM _ => err "Main goal structure corrupted";
   in
     conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
-    conditional (exists (not o Pattern.matches thy) (ts ~~ map Thm.prop_of ths)) (fn () =>
+    conditional (exists (not o Pattern.matches thy) (props ~~ map Thm.prop_of ths)) (fn () =>
       err ("Proved a different theorem: " ^ Pretty.string_of (ProofContext.pretty_thm ctxt th)));
     ths
   end;
@@ -514,11 +486,11 @@ fun prep_result state ts raw_th =
 
 local
 
-fun gen_bind f args state =
+fun gen_bind bind args state =
   state
   |> assert_forward
-  |> map_context (f args)
-  |> reset_facts;
+  |> map_context (bind args)
+  |> put_facts NONE;
 
 in
 
@@ -530,15 +502,14 @@ val let_bind_i = gen_bind (ProofContext.match_bind_i true);
 end;
 
 
-(* fixes *)
+(* fix *)
 
 local
 
-fun gen_fix fix_ctxt args state =
-  state
-  |> assert_forward
-  |> map_context (fix_ctxt args)
-  |> reset_facts;
+fun gen_fix fx args =
+  assert_forward
+  #> map_context (fx args)
+  #> put_facts NONE;
 
 in
 
@@ -548,7 +519,7 @@ val fix_i = gen_fix ProofContext.fix_i;
 end;
 
 
-(* assumptions *)
+(* assume etc. *)
 
 local
 
@@ -556,7 +527,7 @@ fun gen_assume asm prep_att exp args state =
   state
   |> assert_forward
   |> map_context_result (asm exp (Attrib.map_specs (prep_att (theory_of state)) args))
-  |> these_factss [];
+  |> these_factss [] |> #2;
 
 in
 
@@ -570,7 +541,7 @@ val presume_i = assm_i ProofContext.export_presume;
 end;
 
 
-(* local definitions *)
+(* def *)
 
 local
 
@@ -606,46 +577,51 @@ end;
 
 (** facts **)
 
-(* forward chaining *)
+(* chain *)
 
-fun chain state =
-  state
-  |> assert_forward
-  |> assert_facts
-  |> enter_forward_chain;
+val chain =
+  assert_forward
+  #> tap the_facts
+  #> enter_chain;
 
-fun from_facts facts state =
-  state
-  |> put_facts (SOME facts)
-  |> chain;
+fun chain_facts facts =
+  put_facts (SOME facts)
+  #> chain;
 
 
-(* note / from / with *)
+(* note etc. *)
 
 fun no_binding args = map (pair ("", [])) args;
 
 local
 
-fun gen_thmss note_ctxt more_facts opt_chain prep_atts args state =
+fun gen_thmss note_ctxt more_facts opt_chain opt_result prep_atts args state =
   state
   |> assert_forward
   |> map_context_result (note_ctxt (Attrib.map_facts (prep_atts (theory_of state)) args))
   |> these_factss (more_facts state)
-  |> opt_chain;
+  ||> opt_chain
+  |> opt_result;
 
 in
 
-val note_thmss = gen_thmss ProofContext.note_thmss (K []) I Attrib.local_attribute;
-val note_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) I (K I);
-fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
+val note_thmss = gen_thmss ProofContext.note_thmss (K []) I #2 Attrib.local_attribute;
+val note_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) I #2 (K I);
 
 val from_thmss =
-  gen_thmss ProofContext.note_thmss (K []) chain Attrib.local_attribute o no_binding;
-val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain (K I) o no_binding;
+  gen_thmss ProofContext.note_thmss (K []) chain #2 Attrib.local_attribute o no_binding;
+val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain #2 (K I) o no_binding;
 
 val with_thmss =
-  gen_thmss ProofContext.note_thmss the_facts chain Attrib.local_attribute o no_binding;
-val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain (K I) o no_binding;
+  gen_thmss ProofContext.note_thmss the_facts chain #2 Attrib.local_attribute o no_binding;
+val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) o no_binding;
+
+val local_results = gen_thmss ProofContext.note_thmss_i (K []) I I (K I);
+fun global_results kind =
+  swap oo (PureThy.note_thmss_i (Drule.kind kind) o map (apsnd Thm.simple_fact));
+
+fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
+fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
 
 end;
 
@@ -658,9 +634,8 @@ fun gen_using_thmss note prep_atts args state =
   state
   |> assert_backward
   |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
-  |> (fn (st, named_facts) =>
-    let val (_, (_, ((result, (facts, thm)), x))) = find_goal st;
-    in st |> map_goal I (K ((result, (facts @ List.concat (map snd named_facts), thm)), x)) end);
+  |-> (fn named_facts => map_goal I (fn (statement, using, goal, after_qed) =>
+    (statement, using @ List.concat (map snd named_facts), goal, after_qed)));
 
 in
 
@@ -677,14 +652,14 @@ local
 fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
     val atts = map (prep_att (theory_of state)) raw_atts;
-    val (state', (lets, asms)) =
+    val ((lets, asms), state') =
       map_context_result (ProofContext.apply_case (get_case state name xs)) state;
     val assumptions = asms |> map (fn (a, ts) =>
       ((NameSpace.qualified name a, atts), map (rpair ([], [])) ts));
   in
     state'
     |> add_binds_i lets
-    |> map_context (ProofContext.no_base_names o ProofContext.qualified_names)
+    |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)
     |> assume_i assumptions
     |> map_context (ProofContext.restore_naming (context_of state))
     |> `the_facts |-> simple_note_thms name
@@ -699,282 +674,22 @@ end;
 
 
 
-(** goals **)
+(** proof structure **)
 
-(* setup goals *)
+(* blocks *)
 
-local
+val begin_block =
+  assert_forward
+  #> open_block
+  #> put_goal NONE
+  #> open_block;
 
-val rule_contextN = "rule_context";
-
-fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
-  let
-    val (state', (propss, gen_binds)) =
-      state
-      |> assert_forward_or_chain
-      |> enter_forward
-      |> opt_block
-      |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
-    val thy' = theory_of state';
-
-    val AfterQed (after_local, after_global) = after_qed;
-    val after_qed' = AfterQed (fn res => after_local res o map_context gen_binds, after_global);
-
-    val props = List.concat propss;
-    val cprop = Thm.cterm_of thy' (Logic.mk_conjunction_list props);
-    val goal = Drule.mk_triv_goal cprop;
-
-    val tvars = foldr Term.add_term_tvars [] props;
-    val vars = foldr Term.add_term_vars [] props;
-  in
-    if null tvars then ()
-    else raise STATE ("Goal statement contains illegal schematic type variable(s): " ^
-      commas (map (Syntax.string_of_vname o #1) tvars), state);
-    if null vars then ()
-    else warning ("Goal statement contains unbound schematic variable(s): " ^
-      commas (map (ProofContext.string_of_term (context_of state')) vars));
-    state'
-    |> map_context (autofix props)
-    |> put_goal (SOME (((kind, names, propss), ([], goal)), (after_qed', pr)))
-    |> map_context (ProofContext.add_cases
-     (if length props = 1 then
-      RuleCases.make true NONE (Thm.theory_of_thm goal, Thm.prop_of goal) [rule_contextN]
-      else [(rule_contextN, NONE)]))
-    |> auto_bind_goal props
-    |> (if is_chain state then use_facts else reset_facts)
-    |> new_block
-    |> enter_backward
-  end;
-
-fun global_goal prep_att prep kind after_global export raw_locale (name, atts) elems concl thy =
-  let
-    val prep_atts = map (prep_att thy);
-    val init_state = init thy;
-    val (opt_name, view, locale_ctxt, elems_ctxt, propp) =
-      prep (Option.map fst raw_locale) elems (map snd concl) (context_of init_state);
-  in
-    init_state
-    |> open_block
-    |> map_context (K locale_ctxt)
-    |> open_block
-    |> map_context (K elems_ctxt)
-    |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
-      (Theorem {kind = kind,
-        theory_spec = ((name, prep_atts atts), map (prep_atts o snd o fst) concl),
-        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (the opt_name, x)),
-        view = view,
-        export = export})
-      (AfterQed (K Seq.single, after_global))
-      true (map (fst o fst) concl) propp
-  end;
-
-fun local_goal' prep_att prepp kind (check: bool -> state -> state)
-    after_local pr raw_args int state =
-  let val args = Attrib.map_specs (prep_att (theory_of state)) raw_args in
-    state
-    |> setup_goal open_block prepp (K I) (kind (map (snd o fst) args))
-      (AfterQed (after_local, K I)) pr (map (fst o fst) args) (map snd args)
-    |> warn_extra_tfrees state
-    |> check int
-  end;
-
-fun local_goal prep_att prepp kind f pr args =
-  local_goal' prep_att prepp kind (K I) f pr args false;
-
-in
-
-val multi_theorem = global_goal Attrib.global_attribute Locale.read_context_statement;
-val multi_theorem_i = global_goal (K I) Locale.cert_context_statement;
-val show = local_goal' Attrib.local_attribute ProofContext.bind_propp Show;
-val show_i = local_goal' (K I) ProofContext.bind_propp_i Show;
-val have = local_goal Attrib.local_attribute ProofContext.bind_propp Have;
-val have_i = local_goal (K I) ProofContext.bind_propp_i Have;
-
-end;
-
-
-
-(** conclusions **)
-
-(* current goal *)
-
-fun current_goal (State (Node {context, goal = SOME goal, ...}, _)) = (context, goal)
-  | current_goal state = raise STATE ("No current goal!", state);
-
-fun assert_current_goal true (state as State (Node {goal = NONE, ...}, _)) =
-      raise STATE ("No goal in this block!", state)
-  | assert_current_goal false (state as State (Node {goal = SOME _, ...}, _)) =
-      raise STATE ("Goal present in this block!", state)
-  | assert_current_goal _ state = state;
-
-fun assert_bottom b (state as State (_, nodes)) =
-  let val bot = (length nodes <= 2) in
-    if b andalso not bot then raise STATE ("Not at bottom of proof!", state)
-    else if not b andalso bot then raise STATE ("Already at bottom of proof!", state)
-    else state
-  end;
-
-val at_bottom = can (assert_bottom true o close_block);
-
-fun end_proof bot state =
-  state
-  |> assert_forward
-  |> close_block
-  |> assert_bottom bot
-  |> assert_current_goal true
-  |> goal_facts (K []);
-
-
-(* local_qed *)
-
-fun finish_local (print_result, print_rule) state =
-  let
-    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (AfterQed (after_local, _), pr))) =
-      current_goal state;
-    val outer_state = state |> close_block;
-    val outer_ctxt = context_of outer_state;
-
-    val ts = List.concat tss;
-    val results = prep_result state ts raw_thm;
-    val resultq =
-      results |> map (ProofContext.export false goal_ctxt outer_ctxt)
-      |> Seq.commute |> Seq.map (Library.unflat tss);
-
-    val (attss, opt_solve) =
-      (case kind of
-        Show attss => (attss,
-          export_goals goal_ctxt (if pr then print_rule else (K (K ()))) results)
-      | Have attss => (attss, Seq.single)
-      | _ => err_malformed "finish_local" state);
-  in
-    conditional pr (fn () => print_result goal_ctxt
-      (kind_name (theory_of state) kind, names ~~ Library.unflat tss results));
-    outer_state
-    |> auto_bind_facts (ProofContext.generalize goal_ctxt outer_ctxt ts)
-    |> (fn st => Seq.map (fn res =>
-      note_thmss_i ((names ~~ attss) ~~ map (single o Thm.no_attributes) res) st) resultq)
-    |> (Seq.flat o Seq.map opt_solve)
-    |> (Seq.flat o Seq.map (after_local results))
-  end;
-
-fun local_qed asm opt_text print state =
-  state
-  |> end_proof false
-  |> refine (Method.finish_text asm opt_text)
-  |> (Seq.flat o Seq.map (finish_local print));
-
-
-(* global_qed *)
-
-fun check_result msg state sq =
-  (case Seq.pull sq of
-    NONE => raise STATE (msg, state)
-  | SOME res => Seq.cons res);
-
-fun finish_global state =
-  let
-    val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), (AfterQed (_, after_global), _))) =
-      current_goal state;
-    val locale_ctxt = context_of (state |> close_block);
-    val theory_ctxt = context_of (state |> close_block |> close_block);
-    val {kind = k, theory_spec = ((name, atts), attss),
-        locale_spec, view = (target_view, elems_view), export} =
-      (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
-    val locale_name = Option.map fst locale_spec;
-
-    val ts = List.concat tss;
-    val locale_results = map (export elems_view goal_ctxt locale_ctxt)
-      (prep_result state ts raw_thm);
-
-    val results = map (Drule.strip_shyps_warning o
-      export target_view locale_ctxt theory_ctxt) locale_results;
-
-    val (theory', results') =
-      theory_of state
-      |> (case locale_spec of NONE => I
-                            | SOME (loc, (loc_atts, loc_attss)) => fn thy =>
-        if length names <> length loc_attss then
-          raise THEORY ("Bad number of locale attributes", [thy])
-        else (thy, locale_ctxt)
-          |> Locale.add_thmss k loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
-          |> (fn ((thy', ctxt'), res) =>
-            if name = "" andalso null loc_atts then thy'
-            else (thy', ctxt')
-              |> (#1 o #1 o Locale.add_thmss k loc [((name, List.concat (map #2 res)), loc_atts)])))
-      |> Locale.smart_note_thmss k locale_name
-        ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
-      |> (fn (thy, res) => (thy, res)
-          |>> (#1 o Locale.smart_note_thmss k locale_name
-            [((name, atts), [(List.concat (map #2 res), [])])]));
-  in ((after_global (locale_results, results) theory', locale_ctxt), ((k, name), results')) end;
-
-fun global_qeds asm opt_text =
-  end_proof true
-  #> refine (Method.finish_text asm opt_text)
-  #> Seq.map finish_global
-  |> Seq.DETERM;   (*backtracking may destroy theory!*)
-
-fun global_qed asm opt_text state =
-  state
-  |> global_qeds asm opt_text
-  |> check_result "Failed to finish proof" state
-  |> Seq.hd;
-
-
-(* structured proof steps *)
-
-fun proof opt_text state =
-  state
-  |> assert_backward
-  |> refine (if_none opt_text Method.default_text)
-  |> Seq.map (goal_facts (K []))
-  |> Seq.map enter_forward;
-
-fun local_terminal_proof (text, opt_text) pr =
-  Seq.THEN (proof (SOME text), local_qed true opt_text pr);
-
-val local_default_proof = local_terminal_proof (Method.default_text, NONE);
-val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
-fun local_done_proof pr = Seq.THEN (proof (SOME Method.done_text), local_qed false NONE pr);
-
-fun global_term_proof asm (text, opt_text) state =
-  state
-  |> proof (SOME text)
-  |> check_result "Terminal proof method failed" state
-  |> (Seq.flat o Seq.map (global_qeds asm opt_text))
-  |> check_result "Failed to finish proof (after successful terminal method)" state
-  |> Seq.hd;
-
-val global_terminal_proof = global_term_proof true;
-val global_default_proof = global_terminal_proof (Method.default_text, NONE);
-val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
-val global_done_proof = global_term_proof false (Method.done_text, NONE);
-
-
-(* unstructured proof steps *)
-
-fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
-fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
-
-fun apply text = assert_backward #> refine text #> Seq.map (goal_facts (K []));
-fun apply_end text = assert_forward #> refine_end text;
-
-
-
-(** blocks **)
-
-fun begin_block state =
-  state
-  |> assert_forward
-  |> new_block
-  |> open_block;
-
-fun next_block state =
-  state
-  |> assert_forward
-  |> close_block
-  |> new_block
-  |> reset_facts;
+val next_block =
+  assert_forward
+  #> close_block
+  #> open_block
+  #> put_goal NONE
+  #> put_facts NONE;
 
 fun end_block state =
   state
@@ -982,6 +697,267 @@ fun end_block state =
   |> close_block
   |> assert_current_goal false
   |> close_block
-  |> transfer_facts state;
+  |> export_facts state;
+
+
+(* sub-proofs *)
+
+fun proof opt_text =
+  assert_backward
+  #> refine (if_none opt_text Method.default_text)
+  #> Seq.map (using_facts [] #> enter_forward);
+
+fun end_proof bot txt =
+  assert_forward
+  #> assert_bottom bot
+  #> close_block
+  #> assert_current_goal true
+  #> using_facts []
+  #> refine (Method.finish_text txt);
+
+
+(* unstructured refinement *)
+
+fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
+fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
+
+fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
+fun apply_end text = assert_forward #> refine_end text;
+
+
+
+(** goals **)
+
+(* goal names *)
+
+fun prep_names prep_att stmt =
+  let
+    val (names_attss, propp) = split_list (Attrib.map_specs prep_att stmt);
+    val (names, attss) = split_list names_attss;
+  in ((names, attss), propp) end;
+
+fun goal_names target name names =
+  (case target of NONE => "" | SOME loc => " (in " ^ loc ^ ")") ^
+  (if name = "" then "" else " " ^ name) ^
+  (case filter_out (equal "") names of [] => ""
+  | nms => " " ^ enclose "(" ")" (space_implode " and " (Library.take (7, nms) @
+      (if length nms > 7 then ["..."] else []))));
+
+
+(* generic goals *)
+
+fun check_tvars props state =
+  (case fold Term.add_tvars props [] of [] => ()
+  | tvars => raise STATE ("Goal statement contains illegal schematic type variable(s): " ^
+      commas (map (ProofContext.string_of_typ (context_of state) o TVar) tvars), state));
+
+fun check_vars props state =
+  (case fold Term.add_vars props [] of [] => ()
+  | vars => warning ("Goal statement contains unbound schematic variable(s): " ^
+      commas (map (ProofContext.string_of_term (context_of state) o Var) vars)));
+
+fun generic_goal prepp kind after_qed raw_propp state =
+  let
+    val thy = theory_of state;
+    val chaining = can assert_chain state;
+
+    val ((propss, after_ctxt), goal_state) =
+      state
+      |> assert_forward_or_chain
+      |> enter_forward
+      |> open_block
+      |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
+
+    val props = List.concat propss;
+    val goal = Drule.mk_triv_goal (Thm.cterm_of thy (Logic.mk_conjunction_list props));
+
+    val after_qed' = after_qed |>> (fn after_local => fn raw_results => fn results =>
+      map_context after_ctxt
+      #> after_local raw_results results);
+  in
+    goal_state
+    |> tap (check_tvars props)
+    |> tap (check_vars props)
+    |> put_goal (SOME (make_goal ((kind, propss), [], goal, after_qed')))
+    |> map_context (ProofContext.add_cases (AutoBind.cases thy props))
+    |> map_context (ProofContext.auto_bind_goal props)
+    |> K chaining ? (`the_facts #-> using_facts)
+    |> put_facts NONE
+    |> open_block
+    |> put_goal NONE
+    |> enter_backward
+  end;
+
+fun generic_qed state =
+  let
+    val (goal_ctxt, {statement = (_, stmt), using, goal, after_qed}) = current_goal state;
+    val outer_state = state |> close_block;
+    val outer_ctxt = context_of outer_state;
+
+    val raw_props = List.concat stmt;
+    val raw_results = conclude_goal state raw_props goal;
+    val props = ProofContext.generalize goal_ctxt outer_ctxt raw_props;
+    val results =
+      Seq.map_list (ProofContext.export false goal_ctxt outer_ctxt) raw_results
+      |> Seq.map (Library.unflat stmt);
+  in
+    outer_state
+    |> map_context (ProofContext.auto_bind_facts props)
+    |> pair (after_qed, ((goal_ctxt, raw_results), results))
+  end;
+
+
+(* local goals *)
+
+fun local_goal print_results prep_att prepp kind after_qed stmt state =
+  let
+    val ((names, attss), propp) = prep_names (prep_att (theory_of state)) stmt;
+
+    fun after_qed' raw_results results =
+      local_results ((names ~~ attss) ~~ map Thm.simple_fact results)
+      #-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
+      #> after_qed raw_results results;
+  in
+    state
+    |> generic_goal prepp (kind ^ goal_names NONE "" names) (after_qed', K (K I)) propp
+    |> warn_extra_tfrees state
+  end;
+
+fun local_qed txt =
+  end_proof false txt
+  #> Seq.map generic_qed
+  #> Seq.maps (uncurry (fn (after_qed, (raw_results, results)) =>
+      Seq.lifts (#1 after_qed raw_results) results));
+
+
+(* global goals *)
+
+fun global_goal print_results prep_att prepp
+    kind after_qed target (name, raw_atts) stmt ctxt =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val thy_ctxt = ProofContext.init thy;
+
+    val atts = map (prep_att thy) raw_atts;
+    val ((names, attss), propp) = prep_names (prep_att thy) stmt;
+
+    fun after_qed' raw_results results =
+      (map o map) (ProofContext.export_standard ctxt thy_ctxt
+        #> Drule.strip_shyps_warning) results
+      |> (fn res => global_results kind ((names ~~ attss) ~~ res))
+      #-> (fn res' =>
+        (print_results thy_ctxt ((kind, name), res') : unit;
+          #2 o global_results kind [((name, atts), List.concat (map #2 res'))]))
+      #> after_qed raw_results results;
+
+    val prepp' = prepp #> (fn (ctxt, (propss, after_ctxt)) =>
+      (ctxt |> ProofContext.fix_frees (List.concat propss), (propss, after_ctxt)));
+  in
+    init ctxt
+    |> generic_goal prepp' (kind ^ goal_names target name names)
+      (K (K Seq.single), after_qed') propp
+  end;
+
+fun check_result msg state sq =
+  (case Seq.pull sq of
+    NONE => raise STATE (msg, state)
+  | SOME res => Seq.cons res);
+
+fun global_qeds txt =
+  end_proof true txt
+  #> Seq.map generic_qed
+  #> Seq.maps (fn ((after_qed, (raw_results, results)), state) =>
+    Seq.lift (#2 after_qed raw_results) results (theory_of state)
+    |> Seq.map (rpair (context_of state)))
+  |> Seq.DETERM;   (*backtracking may destroy theory!*)
+
+fun global_qed txt state =
+  state
+  |> global_qeds txt
+  |> check_result "Failed to finish proof" state
+  |> Seq.hd;
+
+
+(* concluding steps *)
+
+fun local_terminal_proof (text, opt_text) =
+  proof (SOME text) #> Seq.maps (local_qed (opt_text, true));
+
+val local_default_proof = local_terminal_proof (Method.default_text, NONE);
+val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
+val local_done_proof = proof (SOME Method.done_text) #> Seq.maps (local_qed (NONE, false));
+fun local_skip_proof int = local_terminal_proof (Method.sorry_text int, NONE);
+
+fun global_term_proof immed (text, opt_text) state =
+  state
+  |> proof (SOME text)
+  |> check_result "Terminal proof method failed" state
+  |> Seq.maps (global_qeds (opt_text, immed))
+  |> check_result "Failed to finish proof (after successful terminal method)" state
+  |> Seq.hd;
+
+val global_terminal_proof = global_term_proof true;
+val global_default_proof = global_terminal_proof (Method.default_text, NONE);
+val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
+val global_done_proof = global_term_proof false (Method.done_text, NONE);
+fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
+
+
+(* common goal statements *)
+
+local
+
+fun gen_have prep_att prepp after_qed stmt int =
+  local_goal (ProofDisplay.print_results int) prep_att prepp "have" after_qed stmt;
+
+fun gen_show prep_att prepp after_qed stmt int state =
+  let
+    val testing = ref false;
+    val rule = ref (NONE: thm option);
+    fun fail_msg ctxt =
+      "Local statement will fail to solve any pending goal" ::
+      (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])
+      |> cat_lines;
+
+    fun print_results ctxt res =
+      if ! testing then () else ProofDisplay.print_results int ctxt res;
+    fun print_rule ctxt th =
+      if ! testing then rule := SOME th
+      else if int then priority (ProofDisplay.string_of_rule ctxt "Successful" th)
+      else ();
+    val test_proof =
+      (Seq.pull oo local_skip_proof) true
+      |> setmp testing true
+      |> setmp proofs 0
+      |> transform_error
+      |> capture;
+
+    fun after_qed' raw_results results =
+      refine_goals print_rule (context_of state) (List.concat results)
+      #> Seq.maps (after_qed raw_results results);
+  in
+    state
+    |> local_goal print_results prep_att prepp "show" after_qed' stmt
+    |> K int ? (fn goal_state =>
+      (case test_proof goal_state of
+        Result (SOME _) => goal_state
+      | Result NONE => raise STATE (fail_msg (context_of goal_state), goal_state)
+      | Exn Interrupt => raise Interrupt
+      | Exn exn => raise EXCEPTION (exn, fail_msg (context_of goal_state))))
+  end;
+
+fun gen_theorem prep_att prepp kind after_qed target a =
+  global_goal ProofDisplay.present_results prep_att prepp kind after_qed target a;
+
+in
+
+val have = gen_have Attrib.local_attribute ProofContext.bind_propp;
+val have_i = gen_have (K I) ProofContext.bind_propp_i;
+val show = gen_show Attrib.local_attribute ProofContext.bind_propp;
+val show_i = gen_show (K I) ProofContext.bind_propp_i;
+val theorem = gen_theorem Attrib.global_attribute ProofContext.bind_propp_schematic;
+val theorem_i = gen_theorem (K I) ProofContext.bind_propp_schematic_i;
+
+end;
 
 end;
