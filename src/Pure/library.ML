@@ -54,6 +54,7 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
 
+  exception EXCEPTION of exn * string
   exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
@@ -354,10 +355,13 @@ datatype invalid = None of invalid;
 exception OPTION of invalid;
 
 val the = Option.valOf;
+
 fun these (SOME x) = x
   | these _ = [];
+
 fun the_default x (SOME y) = y
   | the_default x _ = x;
+
 fun the_list (SOME x) = [x]
   | the_list _ = []
 
@@ -372,7 +376,9 @@ fun is_none (SOME _) = false
   | is_none NONE = true;
 
 
-(* exception handling *)
+(* exceptions *)
+
+exception EXCEPTION of exn * string;
 
 exception ERROR;
 
@@ -1281,7 +1287,8 @@ fun rat_of_intinf i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
 
 fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
 
-val rat0 = rat_of_int 0; 
+val rat0 = rat_of_int 0;
+
 
 (** misc **)
 
