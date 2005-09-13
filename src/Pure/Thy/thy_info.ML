@@ -42,7 +42,7 @@ sig
   val pretend_use_thy_only: string -> unit
   val begin_theory: (Path.T option -> string -> string list ->
       (Path.T * bool) list -> theory -> theory) ->
-    bool -> string -> string list -> (Path.T * bool) list -> theory
+    string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
   val register_theory: theory -> unit
@@ -412,24 +412,33 @@ fun remove_thy name =
 
 (* begin / end theory *)
 
-fun begin_theory present upd name parents paths =
+fun check_uses name uses =
+  let val illegal = map (fn ext => Path.ext ext (Path.basic name)) ThyLoad.ml_exts in
+    (case find_first (member (op =) illegal o Path.base o Path.expand o #1) uses of
+      NONE => ()
+    | SOME (path, _) => error ("Illegal use of theory ML file: " ^ quote (Path.pack path)))
+  end;
+
+fun begin_theory present name parents uses int =
   let
     val bparents = map base_of_path parents;
     val dir' = opt_path'' (lookup_deps name);
     val dir = if_none dir' Path.current;
-    val assert_thy = if upd then quiet_update_thy' true dir else weak_use_thy dir;
+    val assert_thy = if int then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = List.app assert_thy parents;
+    val _ = check_uses name uses;
+
     val theory = Theory.begin_theory name (map get_theory bparents);
     val deps =
       if known_thy name then get_deps name
-      else (init_deps NONE (map #1 paths));   (*records additional ML files only!*)
-    val use_paths = List.mapPartial (fn (x, true) => SOME x | _ => NONE) paths;
+      else (init_deps NONE (map #1 uses));   (*records additional ML files only!*)
+    val uses_now = List.mapPartial (fn (x, true) => SOME x | _ => NONE) uses;
 
     val _ = change_thys (update_node name bparents (deps, SOME (Theory.copy theory)));
-    val theory' = theory |> present dir' name bparents paths;
+    val theory' = theory |> present dir' name bparents uses;
     val _ = put_theory name (Theory.copy theory');
-    val ((), theory'') = Context.pass_theory theory' (List.app (load_file false)) use_paths;
+    val ((), theory'') = Context.pass_theory theory' (List.app (load_file false)) uses_now;
     val _ = put_theory name (Theory.copy theory'');
   in theory'' end;
 
