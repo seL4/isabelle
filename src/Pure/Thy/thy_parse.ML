@@ -453,7 +453,7 @@ fun make_syntax keywords sects =
 (* header *)
 
 fun mk_header (thy_name, parents) =
-  (thy_name, "IsarThy.begin_theory " ^ cat (Library.quote thy_name) (mk_list parents) ^ " []");
+  (thy_name, "IsarThy.begin_theory " ^ cat (Library.quote thy_name) (mk_list parents) ^ " [] false");
 
 val header = ident --$$ "=" -- enum1 "+" name >> mk_header;
 
