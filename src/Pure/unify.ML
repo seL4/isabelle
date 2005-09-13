@@ -338,8 +338,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
 		 (env, dpairs)));
 	(*Produce sequence of all possible ways of copying the arg list*)
     fun copyargs [] = Seq.cons( ([],ed), Seq.empty)
-      | copyargs (uarg::uargs) =
-	    Seq.flat (Seq.map (copycons uarg) (copyargs uargs));
+      | copyargs (uarg::uargs) = Seq.maps (copycons uarg) (copyargs uargs);
     val (uhead,uargs) = strip_comb u;
     val base = body_type env (fastype env (rbinder,uhead));
     fun joinargs (uargs',ed') = (list_comb(uhead,uargs'), ed');

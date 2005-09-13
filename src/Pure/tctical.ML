@@ -86,7 +86,7 @@ type tactic = thm -> thm Seq.seq;
 (*** LCF-style tacticals ***)
 
 (*the tactical THEN performs one tactic followed by another*)
-fun (tac1 THEN tac2) st = Seq.flat (Seq.map tac2 (tac1 st));
+fun (tac1 THEN tac2) st = Seq.maps tac2 (tac1 st);
 
 
 (*The tactical ORELSE uses the first tactic that returns a nonempty sequence.
@@ -116,9 +116,8 @@ fun (tac1 INTLEAVE tac2) st =
 *)
 fun (tac THEN_ELSE (tac1, tac2)) st =
     case Seq.pull(tac st) of
-        NONE    => tac2 st              (*failed; try tactic 2*)
-      | seqcell => Seq.flat       (*succeeded; use tactic 1*)
-                    (Seq.map tac1 (Seq.make(fn()=> seqcell)));
+        NONE    => tac2 st                                   (*failed; try tactic 2*)
+      | seqcell => Seq.maps tac1 (Seq.make(fn()=> seqcell)); (*succeeded; use tactic 1*)
 
 
 (*Versions for combining tactic-valued functions, as in
@@ -383,8 +382,7 @@ fun select tac st i =
     fun restore th = Seq.hd (bicompose false (false, th, nprems_of th) 1
       (Thm.incr_indexes (#maxidx (rep_thm th) + 1) Drule.rev_triv_goal));
     fun next st' = bicompose false (false, restore st', nprems_of st') i st;
-  in  Seq.flat (Seq.map next (tac thm))
-  end;
+  in Seq.maps next (tac thm) end;
 
 fun SELECT_GOAL tac i st =
   let val np = nprems_of st
@@ -492,8 +490,7 @@ fun metahyps_aux_tac tacf (prem,i) state =
       (*function to replace the current subgoal*)
       fun next st = bicompose false (false, relift st, nprems_of st)
                     i state
-  in  Seq.flat (Seq.map next (tacf subprems st0))
-  end;
+  in Seq.maps next (tacf subprems st0) end;
 end;
 
 fun METAHYPS tacf = SUBGOAL (metahyps_aux_tac tacf);
