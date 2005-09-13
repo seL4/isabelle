@@ -74,6 +74,8 @@ sig
   val hide_types_i: bool -> string list -> theory -> theory
   val hide_consts: bool -> xstring list -> theory -> theory
   val hide_consts_i: bool -> string list -> theory -> theory
+  val hide_names: bool -> string * xstring list -> theory -> theory
+  val hide_names_i: bool -> string * string list -> theory -> theory
 end
 
 signature SIGN =
@@ -855,5 +857,31 @@ val hide_types_i = map_tsig oo Type.hide_types;
 fun hide_consts b xs thy =
   thy |> map_consts (apfst (apfst (fold (NameSpace.hide b o intern_const thy) xs)));
 val hide_consts_i = (map_consts o apfst o apfst) oo (fold o NameSpace.hide);
+
+local
+
+val kinds =
+ [("class", (intern_class, can o certify_class, hide_classes_i)),
+  ("type", (intern_type, declared_tyname, hide_types_i)),
+  ("const", (intern_const, declared_const, hide_consts_i))];
+
+fun gen_hide int b (kind, xnames) thy =
+  (case AList.lookup (op =) kinds kind of
+    SOME (intern, check, hide) =>
+      let
+        val names = if int then map (intern thy) xnames else xnames;
+        val bads = filter_out (check thy) names;
+      in
+        if null bads then hide b names thy
+        else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
+      end
+  | NONE => error ("Bad name space specification: " ^ quote kind));
+
+in
+
+val hide_names = gen_hide true;
+val hide_names_i = gen_hide false;
+
+end;
 
 end;
