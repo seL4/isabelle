@@ -7,23 +7,24 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 
 (*basic proof engine*)
 use "object_logic.ML";
-use "auto_bind.ML";
 use "rule_cases.ML";
+use "auto_bind.ML";
 use "proof_context.ML";
+use "proof_display.ML";
 use "context_rules.ML";
 use "args.ML";
 use "attrib.ML";
-use "locale.ML";
+use "skip_proof.ML";
 use "method.ML";
 use "proof.ML";
-use "proof_history.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 
-(*derived proof elements*)
-use "calculation.ML";
+(*derived theory and proof elements*)
+use "constdefs.ML";
+use "locale.ML";
 use "obtain.ML";
-use "skip_proof.ML";
+use "calculation.ML";
 
 (*outer syntax*)
 use "antiquote.ML";
@@ -31,6 +32,7 @@ use "outer_parse.ML";
 use "outer_keyword.ML";
 
 (*toplevel environment*)
+use "proof_history.ML";
 use "toplevel.ML";
 
 (*theory presentation*)
@@ -43,9 +45,8 @@ use "session.ML";
 use "outer_syntax.ML";
 
 (*theory and proof operations*)
-use "isar_thy.ML";
-use "constdefs.ML";
 use "../simplifier.ML";
 use "find_theorems.ML";
+use "isar_thy.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
