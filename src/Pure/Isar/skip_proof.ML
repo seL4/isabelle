@@ -5,34 +5,25 @@
 Skipping proofs -- quick_and_dirty mode.
 *)
 
+(*if true then some tools will OMIT some proofs*)
+val quick_and_dirty = ref false;
+
 signature SKIP_PROOF =
 sig
-  val quick_and_dirty: bool ref
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val local_skip_proof: (Proof.context -> string * (string * thm list) list -> unit) *
-    (Proof.context -> thm -> unit) -> bool -> Proof.state -> Proof.state Seq.seq
-  val global_skip_proof: bool -> Proof.state ->
-    (theory * Proof.context) * ((string * string) * (string * thm list) list)
 end;
 
 structure SkipProof: SKIP_PROOF =
 struct
 
-
-(* quick_and_dirty *)
-
-(*if true then some packages will OMIT SOME PROOFS*)
-val quick_and_dirty = ref false;
-
-
 (* oracle setup *)
 
 exception SkipProof of term;
 
-fun skip_proof (_, SkipProof t) =
-  if ! quick_and_dirty then t
+fun skip_proof (_, SkipProof prop) =
+  if ! quick_and_dirty then prop
   else error "Proof may be skipped in quick_and_dirty mode only!";
 
 val _ = Context.add_setup [Theory.add_oracle ("skip_proof", skip_proof)];
@@ -40,8 +31,8 @@ val _ = Context.add_setup [Theory.add_oracle ("skip_proof", skip_proof)];
 
 (* basic cheating *)
 
-fun make_thm thy t =
-  Thm.invoke_oracle_i thy "Pure.skip_proof" (thy, SkipProof t);
+fun make_thm thy prop =
+  Thm.invoke_oracle_i thy "Pure.skip_proof" (thy, SkipProof prop);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
@@ -50,16 +41,4 @@ fun prove thy xs asms prop tac =
   Tactic.prove thy xs asms prop
     (if ! quick_and_dirty then (K (cheat_tac thy)) else tac);
 
-
-(* "sorry" proof command *)
-
-fun cheating int ctxt = Method.METHOD (K (setmp quick_and_dirty (int orelse ! quick_and_dirty)
-    (cheat_tac (ProofContext.theory_of ctxt))));
-
-fun local_skip_proof x int = Proof.local_terminal_proof (Method.Basic (cheating int), NONE) x;
-fun global_skip_proof int = Proof.global_terminal_proof (Method.Basic (cheating int), NONE);
-
 end;
-
-
-val quick_and_dirty = SkipProof.quick_and_dirty;
