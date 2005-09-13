@@ -1329,7 +1329,7 @@ fun INST sigma hth thy =
 	val _ = if_debug (app (fn (x,y) => (prin x; prin y))) sigma
 	val _ = if_debug pth hth
 	val sg = sign_of thy
-	val (sdom,srng) = ListPair.unzip sigma
+	val (sdom,srng) = ListPair.unzip (rev sigma)
 	val th = hthm2thm hth
 	val th1 = mk_INST (map (cterm_of sg) sdom) (map (cterm_of sg) srng) th
 	val res = HOLThm([],th1)
