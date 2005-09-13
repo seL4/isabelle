@@ -54,7 +54,7 @@ done
 
 lemma SComplex_inverse: "x \<in> SComplex ==> inverse x \<in> SComplex"
 apply (simp add: SComplex_def)
-apply (blast intro: hcomplex_of_complex_inverse [symmetric])
+apply (blast intro: star_of_inverse [symmetric])
 done
 
 lemma SComplex_divide: "[| x \<in> SComplex;  y \<in> SComplex |] ==> x/y \<in> SComplex"
@@ -62,7 +62,7 @@ by (simp add: SComplex_mult SComplex_inverse divide_inverse)
 
 lemma SComplex_minus: "x \<in> SComplex ==> -x \<in> SComplex"
 apply (simp add: SComplex_def)
-apply (blast intro: hcomplex_of_complex_minus [symmetric])
+apply (blast intro: star_of_minus [symmetric])
 done
 
 lemma SComplex_minus_iff [simp]: "(-x \<in> SComplex) = (x \<in> SComplex)"
@@ -83,7 +83,7 @@ lemma SReal_hcmod_hcomplex_of_complex [simp]:
 by (auto simp add: hcmod SReal_def star_of_def)
 
 lemma SReal_hcmod_number_of [simp]: "hcmod (number_of w ::hcomplex) \<in> Reals"
-apply (subst hcomplex_number_of [symmetric])
+apply (subst star_of_number_of [symmetric])
 apply (rule SReal_hcmod_hcomplex_of_complex)
 done
 
@@ -94,7 +94,7 @@ lemma SComplex_hcomplex_of_complex [simp]: "hcomplex_of_complex x \<in> SComplex
 by (simp add: SComplex_def)
 
 lemma SComplex_number_of [simp]: "(number_of w ::hcomplex) \<in> SComplex"
-apply (subst hcomplex_number_of [symmetric])
+apply (subst star_of_number_of [symmetric])
 apply (rule SComplex_hcomplex_of_complex)
 done
 
@@ -141,10 +141,10 @@ apply (simp add: cmod_def, ultra)
 done
 
 lemma SComplex_zero [simp]: "0 \<in> SComplex"
-by (simp add: SComplex_def hcomplex_of_complex_zero_iff)
+by (simp add: SComplex_def)
 
 lemma SComplex_one [simp]: "1 \<in> SComplex"
-by (simp add: SComplex_def star_of_def star_n_one_num star_n_eq_iff)
+by (simp add: SComplex_def)
 
 (*
 Goalw [SComplex_def,SReal_def] "hcmod z \<in> Reals ==> z \<in> SComplex"
@@ -595,7 +595,7 @@ by (rule SComplex_CFinite_diff_CInfinitesimal, auto)
 
 lemma hcomplex_of_complex_CInfinitesimal_iff_0 [iff]:
      "(hcomplex_of_complex x \<in> CInfinitesimal) = (x=0)"
-apply (auto simp add: hcomplex_of_complex_zero)
+apply (auto)
 apply (rule ccontr)
 apply (rule hcomplex_of_complex_CFinite_diff_CInfinitesimal [THEN DiffD2], auto)
 done

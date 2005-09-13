@@ -61,12 +61,14 @@ constdefs
 
   (* abbreviation for r*(cos a + i sin a) *)
   hrcis :: "[hypreal, hypreal] => hcomplex"
-  "hrcis r a == hcomplex_of_hypreal r * hcis a"
+(*  "hrcis r a == hcomplex_of_hypreal r * hcis a" *)
+  "hrcis r a == Ifun2_of rcis r a"
 
   (*------------ e ^ (x + iy) ------------*)
 
   hexpi :: "hcomplex => hcomplex"
-  "hexpi z == hcomplex_of_hypreal(( *f* exp) (hRe z)) * hcis (hIm z)"
+(*  "hexpi z == hcomplex_of_hypreal(( *f* exp) (hRe z)) * hcis (hIm z)"*)
+  "hexpi z == ( *f* expi) z"
 
   HComplex :: "[hypreal,hypreal] => hcomplex"
   "HComplex == Ifun2_of Complex"
@@ -209,15 +211,11 @@ lemma hcomplex_of_hypreal_divide [simp]:
       hcomplex_of_hypreal x / hcomplex_of_hypreal y"
 by (transfer, simp)
 
-lemma hRe_hcomplex_of_hypreal [simp]: "hRe(hcomplex_of_hypreal z) = z"
-apply (cases z)
-apply (simp add: hcomplex_of_hypreal hRe)
-done
+lemma hRe_hcomplex_of_hypreal [simp]: "!!z. hRe(hcomplex_of_hypreal z) = z"
+by (transfer, simp)
 
-lemma hIm_hcomplex_of_hypreal [simp]: "hIm(hcomplex_of_hypreal z) = 0"
-apply (cases z)
-apply (simp add: hcomplex_of_hypreal hIm star_n_zero_num)
-done
+lemma hIm_hcomplex_of_hypreal [simp]: "!!z. hIm(hcomplex_of_hypreal z) = 0"
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_epsilon_not_zero [simp]:
      "hcomplex_of_hypreal epsilon \<noteq> 0"
@@ -257,10 +255,9 @@ by (simp add: star_n_zero_num hcmod)
 lemma hcmod_one [simp]: "hcmod(1) = 1"
 by (simp add: hcmod star_n_one_num)
 
-lemma hcmod_hcomplex_of_hypreal [simp]: "hcmod(hcomplex_of_hypreal x) = abs x"
-apply (cases x)
-apply (auto simp add: hcmod hcomplex_of_hypreal star_n_abs)
-done
+lemma hcmod_hcomplex_of_hypreal [simp]:
+  "!!x. hcmod(hcomplex_of_hypreal x) = abs x"
+by (transfer, simp)
 
 lemma hcomplex_of_hypreal_abs:
      "hcomplex_of_hypreal (abs x) =
@@ -492,18 +489,15 @@ lemma hcpow_mult:
   "!!r s n. ((r::hcomplex) * s) hcpow n = (r hcpow n) * (s hcpow n)"
 by (transfer, rule power_mult_distrib)
 
-lemma hcpow_zero [simp]: "0 hcpow (n + 1) = 0"
-apply (simp add: star_n_zero_num star_n_one_num, cases n)
-apply (simp add: hcpow star_n_add)
-done
+lemma hcpow_zero [simp]: "!!n. 0 hcpow (n + 1) = 0"
+by (transfer, simp)
 
 lemma hcpow_zero2 [simp]: "0 hcpow (hSuc n) = 0"
 by (simp add: hSuc_def)
 
-lemma hcpow_not_zero [simp,intro]: "r \<noteq> 0 ==> r hcpow n \<noteq> (0::hcomplex)"
-apply (cases r, cases n)
-apply (auto simp add: hcpow star_n_zero_num star_n_eq_iff, ultra)
-done
+lemma hcpow_not_zero [simp,intro]:
+  "!!r n. r \<noteq> 0 ==> r hcpow n \<noteq> (0::hcomplex)"
+by (transfer, simp)
 
 lemma hcpow_zero_zero: "r hcpow n = (0::hcomplex) ==> r = 0"
 by (blast intro: ccontr dest: hcpow_not_zero)
@@ -522,22 +516,14 @@ by (simp add: star_n_zero_num hsgn)
 lemma hsgn_one [simp]: "hsgn 1 = 1"
 by (simp add: star_n_one_num hsgn)
 
-lemma hsgn_minus: "hsgn (-z) = - hsgn(z)"
-apply (cases z)
-apply (simp add: hsgn star_n_minus sgn_minus)
-done
+lemma hsgn_minus: "!!z. hsgn (-z) = - hsgn(z)"
+by (transfer, rule sgn_minus)
 
-lemma hsgn_eq: "hsgn z = z / hcomplex_of_hypreal (hcmod z)"
-apply (cases z)
-apply (simp add: hsgn star_n_divide hcomplex_of_hypreal hcmod sgn_eq)
-done
+lemma hsgn_eq: "!!z. hsgn z = z / hcomplex_of_hypreal (hcmod z)"
+by (transfer, rule sgn_eq)
 
-
-lemma hcmod_i: "hcmod (HComplex x y) = ( *f* sqrt) (x ^ 2 + y ^ 2)"
-apply (cases x, cases y) 
-apply (simp add: HComplex_eq_Abs_star_Complex starfun 
-                 star_n_mult star_n_add hcmod numeral_2_eq_2)
-done
+lemma hcmod_i: "!!x y. hcmod (HComplex x y) = ( *f* sqrt) (x ^ 2 + y ^ 2)"
+by (transfer, rule complex_mod)
 
 lemma hcomplex_eq_cancel_iff1 [simp]:
      "(hcomplex_of_hypreal xa = HComplex x y) = (xa = x & y = 0)"
@@ -559,15 +545,11 @@ by (insert hcomplex_of_hypreal_i [of 1], simp)
 lemma HComplex_eq_i [simp]: "(HComplex x y = iii) = (x = 0 & y = 1)"
 by (simp add: i_eq_HComplex_0_1) 
 
-lemma hRe_hsgn [simp]: "hRe(hsgn z) = hRe(z)/hcmod z"
-apply (cases z)
-apply (simp add: hsgn hcmod hRe star_n_divide)
-done
+lemma hRe_hsgn [simp]: "!!z. hRe(hsgn z) = hRe(z)/hcmod z"
+by (transfer, simp)
 
-lemma hIm_hsgn [simp]: "hIm(hsgn z) = hIm(z)/hcmod z"
-apply (cases z)
-apply (simp add: hsgn hcmod hIm star_n_divide)
-done
+lemma hIm_hsgn [simp]: "!!z. hIm(hsgn z) = hIm(z)/hcmod z"
+by (transfer, simp)
 
 (*????move to RealDef????*)
 lemma real_two_squares_add_zero_iff [simp]: "(x*x + y*y = 0) = ((x::real) = 0 & y = 0)"
@@ -645,36 +627,32 @@ lemma hcis: "hcis (star_n X) = star_n (%n. cis (X n))"
 by (simp add: hcis_def starfun)
 
 lemma hcis_eq:
-   "hcis a =
+   "!!a. hcis a =
     (hcomplex_of_hypreal(( *f* cos) a) +
     iii * hcomplex_of_hypreal(( *f* sin) a))"
-apply (cases a)
-apply (simp add: starfun hcis hcomplex_of_hypreal iii_def star_of_def star_n_mult star_n_add cis_def star_n_eq_iff)
-done
+by (transfer, simp add: cis_def)
 
 lemma hrcis: "hrcis (star_n X) (star_n Y) = star_n (%n. rcis (X n) (Y n))"
-by (simp add: hrcis_def hcomplex_of_hypreal star_n_mult hcis rcis_def)
+by (simp add: hrcis_def Ifun2_of_def star_of_def Ifun_star_n)
 
-lemma hrcis_Ex: "\<exists>r a. z = hrcis r a"
-apply (simp add: hrcis_def hcis_eq hcomplex_of_hypreal_mult_HComplex [symmetric])
-apply (rule hcomplex_split_polar)
-done
+lemma hrcis_Ex: "!!z. \<exists>r a. z = hrcis r a"
+by (transfer, rule rcis_Ex)
 
 lemma hRe_hcomplex_polar [simp]:
      "hRe (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
       r * ( *f* cos) a"
 by (simp add: hcomplex_of_hypreal_mult_HComplex)
 
-lemma hRe_hrcis [simp]: "hRe(hrcis r a) = r * ( *f* cos) a"
-by (simp add: hrcis_def hcis_eq)
+lemma hRe_hrcis [simp]: "!!r a. hRe(hrcis r a) = r * ( *f* cos) a"
+by (transfer, rule Re_rcis)
 
 lemma hIm_hcomplex_polar [simp]:
      "hIm (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
       r * ( *f* sin) a"
 by (simp add: hcomplex_of_hypreal_mult_HComplex)
 
-lemma hIm_hrcis [simp]: "hIm(hrcis r a) = r * ( *f* sin) a"
-by (simp add: hrcis_def hcis_eq)
+lemma hIm_hrcis [simp]: "!!r a. hIm(hrcis r a) = r * ( *f* sin) a"
+by (transfer, rule Im_rcis)
 
 
 lemma hcmod_unit_one [simp]:
@@ -684,44 +662,34 @@ by (transfer, simp)
 lemma hcmod_complex_polar [simp]:
      "hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
       abs r"
-apply (simp only: hcmod_mult hcmod_unit_one, simp)  
-done
+by (simp only: hcmod_mult hcmod_unit_one, simp)
 
-lemma hcmod_hrcis [simp]: "hcmod(hrcis r a) = abs r"
-by (simp add: hrcis_def hcis_eq)
+lemma hcmod_hrcis [simp]: "!!r a. hcmod(hrcis r a) = abs r"
+by (transfer, rule complex_mod_rcis)
 
 (*---------------------------------------------------------------------------*)
 (*  (r1 * hrcis a) * (r2 * hrcis b) = r1 * r2 * hrcis (a + b)                *)
 (*---------------------------------------------------------------------------*)
 
-lemma hcis_hrcis_eq: "hcis a = hrcis 1 a"
-by (simp add: hrcis_def)
+lemma hcis_hrcis_eq: "!!a. hcis a = hrcis 1 a"
+by (transfer, rule cis_rcis_eq)
 declare hcis_hrcis_eq [symmetric, simp]
 
 lemma hrcis_mult:
-  "hrcis r1 a * hrcis r2 b = hrcis (r1*r2) (a + b)"
-apply (simp add: hrcis_def, rule_tac z=r1 in eq_Abs_star, rule_tac z=r2 in eq_Abs_star, cases a, cases b)
-apply (simp add: hrcis hcis star_n_add star_n_mult hcomplex_of_hypreal
-                      star_n_mult cis_mult [symmetric])
-done
+  "!!a b r1 r2. hrcis r1 a * hrcis r2 b = hrcis (r1*r2) (a + b)"
+by (transfer, rule rcis_mult)
 
-lemma hcis_mult: "hcis a * hcis b = hcis (a + b)"
-apply (cases a, cases b)
-apply (simp add: hcis star_n_mult star_n_add cis_mult)
-done
+lemma hcis_mult: "!!a b. hcis a * hcis b = hcis (a + b)"
+by (transfer, rule cis_mult)
 
 lemma hcis_zero [simp]: "hcis 0 = 1"
-by (simp add: star_n_one_num hcis star_n_zero_num)
+by (transfer, rule cis_zero)
 
-lemma hrcis_zero_mod [simp]: "hrcis 0 a = 0"
-apply (simp add: star_n_zero_num, cases a)
-apply (simp add: hrcis star_n_zero_num)
-done
+lemma hrcis_zero_mod [simp]: "!!a. hrcis 0 a = 0"
+by (transfer, rule rcis_zero_mod)
 
-lemma hrcis_zero_arg [simp]: "hrcis r 0 = hcomplex_of_hypreal r"
-apply (cases r)
-apply (simp add: hrcis star_n_zero_num hcomplex_of_hypreal)
-done
+lemma hrcis_zero_arg [simp]: "!!r. hrcis r 0 = hcomplex_of_hypreal r"
+by (transfer, rule rcis_zero_arg)
 
 lemma hcomplex_i_mult_minus [simp]: "iii * (iii * x) = - x"
 by (simp add: mult_assoc [symmetric])
@@ -730,9 +698,12 @@ lemma hcomplex_i_mult_minus2 [simp]: "iii * iii * x = - x"
 by simp
 
 lemma hcis_hypreal_of_nat_Suc_mult:
-   "hcis (hypreal_of_nat (Suc n) * a) = hcis a * hcis (hypreal_of_nat n * a)"
-apply (cases a)
-apply (simp add: hypreal_of_nat hcis star_n_mult star_n_mult cis_real_of_nat_Suc_mult)
+   "!!a. hcis (hypreal_of_nat (Suc n) * a) =
+     hcis a * hcis (hypreal_of_nat n * a)"
+apply (unfold hypreal_of_nat_def)
+apply transfer
+apply (fold real_of_nat_def)
+apply (rule cis_real_of_nat_Suc_mult)
 done
 
 lemma NSDeMoivre: "(hcis a) ^ n = hcis (hypreal_of_nat n * a)"
@@ -741,47 +712,37 @@ apply (simp_all add: hcis_hypreal_of_nat_Suc_mult)
 done
 
 lemma hcis_hypreal_of_hypnat_Suc_mult:
-     "hcis (hypreal_of_hypnat (n + 1) * a) =
+     "!! a n. hcis (hypreal_of_hypnat (n + 1) * a) =
       hcis a * hcis (hypreal_of_hypnat n * a)"
-apply (cases a, cases n)
-apply (simp add: hcis hypreal_of_hypnat star_n_add star_n_one_num star_n_mult star_n_mult cis_real_of_nat_Suc_mult)
-done
+by (transfer, simp add: cis_real_of_nat_Suc_mult)
 
-lemma NSDeMoivre_ext: "(hcis a) hcpow n = hcis (hypreal_of_hypnat n * a)"
-apply (cases a, cases n)
-apply (simp add: hcis hypreal_of_hypnat star_n_mult hcpow DeMoivre)
-done
+lemma NSDeMoivre_ext:
+  "!!a n. (hcis a) hcpow n = hcis (hypreal_of_hypnat n * a)"
+by (transfer, rule DeMoivre)
 
-lemma DeMoivre2:
-  "(hrcis r a) ^ n = hrcis (r ^ n) (hypreal_of_nat n * a)"
-apply (simp add: hrcis_def power_mult_distrib NSDeMoivre hcomplex_of_hypreal_pow)
+lemma NSDeMoivre2:
+  "!!a r. (hrcis r a) ^ n = hrcis (r ^ n) (hypreal_of_nat n * a)"
+apply (unfold hypreal_of_nat_def)
+apply transfer
+apply (fold real_of_nat_def)
+apply (rule DeMoivre2)
 done
 
 lemma DeMoivre2_ext:
-  "(hrcis r a) hcpow n = hrcis (r pow n) (hypreal_of_hypnat n * a)"
-apply (simp add: hrcis_def hcpow_mult NSDeMoivre_ext hcomplex_of_hypreal_hyperpow)
-done
+  "!! a r n. (hrcis r a) hcpow n = hrcis (r pow n) (hypreal_of_hypnat n * a)"
+by (transfer, rule DeMoivre2)
 
-lemma hcis_inverse [simp]: "inverse(hcis a) = hcis (-a)"
-apply (cases a)
-apply (simp add: star_n_inverse2 hcis star_n_minus)
-done
+lemma hcis_inverse [simp]: "!!a. inverse(hcis a) = hcis (-a)"
+by (transfer, simp)
 
-lemma hrcis_inverse: "inverse(hrcis r a) = hrcis (inverse r) (-a)"
-apply (cases a, cases r)
-apply (simp add: star_n_inverse2 hrcis star_n_minus rcis_inverse star_n_eq_iff, ultra)
-apply (simp add: real_divide_def)
-done
+lemma hrcis_inverse: "!!a r. inverse(hrcis r a) = hrcis (inverse r) (-a)"
+by (transfer, simp add: rcis_inverse inverse_eq_divide [symmetric])
 
-lemma hRe_hcis [simp]: "hRe(hcis a) = ( *f* cos) a"
-apply (cases a)
-apply (simp add: hcis starfun hRe)
-done
+lemma hRe_hcis [simp]: "!!a. hRe(hcis a) = ( *f* cos) a"
+by (transfer, rule Re_cis)
 
-lemma hIm_hcis [simp]: "hIm(hcis a) = ( *f* sin) a"
-apply (cases a)
-apply (simp add: hcis starfun hIm)
-done
+lemma hIm_hcis [simp]: "!!a. hIm(hcis a) = ( *f* sin) a"
+by (transfer, rule Im_cis)
 
 lemma cos_n_hRe_hcis_pow_n: "( *f* cos) (hypreal_of_nat n * a) = hRe(hcis a ^ n)"
 by (simp add: NSDeMoivre)
@@ -795,10 +756,8 @@ by (simp add: NSDeMoivre_ext)
 lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a hcpow n)"
 by (simp add: NSDeMoivre_ext)
 
-lemma hexpi_add: "hexpi(a + b) = hexpi(a) * hexpi(b)"
-apply (simp add: hexpi_def, cases a, cases b)
-apply (simp add: hcis hRe hIm star_n_add star_n_mult star_n_mult starfun hcomplex_of_hypreal cis_mult [symmetric] complex_Im_add complex_Re_add exp_add complex_of_real_mult star_n_eq_iff)
-done
+lemma hexpi_add: "!!a b. hexpi(a + b) = hexpi(a) * hexpi(b)"
+by (transfer, rule expi_add)
 
 
 subsection{*@{term hcomplex_of_complex}: the Injection from
@@ -808,54 +767,19 @@ lemma inj_hcomplex_of_complex: "inj(hcomplex_of_complex)"
 by (rule inj_onI, simp)
 
 lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex ii"
-by (simp add: iii_def star_of_def star_n_def)
-
-lemma hcomplex_of_complex_add:
-     "hcomplex_of_complex (z1 + z2) = hcomplex_of_complex z1 + hcomplex_of_complex z2"
-by simp
-
-lemma hcomplex_of_complex_mult:
-     "hcomplex_of_complex (z1 * z2) = hcomplex_of_complex z1 * hcomplex_of_complex z2"
-by simp
-
-lemma hcomplex_of_complex_eq_iff:
-     "(hcomplex_of_complex z1 = hcomplex_of_complex z2) = (z1 = z2)"
-by simp
-
-lemma hcomplex_of_complex_minus:
-     "hcomplex_of_complex (-r) = - hcomplex_of_complex  r"
-by simp
-
-lemma hcomplex_of_complex_one: "hcomplex_of_complex 1 = 1"
-by simp
-
-lemma hcomplex_of_complex_zero: "hcomplex_of_complex 0 = 0"
-by simp
-
-lemma hcomplex_of_complex_zero_iff:
-     "(hcomplex_of_complex r = 0) = (r = 0)"
-by simp
-
-lemma hcomplex_of_complex_inverse:
-     "hcomplex_of_complex (inverse r) = inverse (hcomplex_of_complex r)"
-by simp
-
-lemma hcomplex_of_complex_divide:
-     "hcomplex_of_complex (z1 / z2) = 
-      hcomplex_of_complex z1 / hcomplex_of_complex z2"
-by simp
+by (simp add: iii_def)
 
 lemma hRe_hcomplex_of_complex:
    "hRe (hcomplex_of_complex z) = hypreal_of_real (Re z)"
-by (simp add: star_of_def hRe)
+by (transfer, rule refl)
 
 lemma hIm_hcomplex_of_complex:
    "hIm (hcomplex_of_complex z) = hypreal_of_real (Im z)"
-by (simp add: star_of_def hIm)
+by (transfer, rule refl)
 
 lemma hcmod_hcomplex_of_complex:
      "hcmod (hcomplex_of_complex x) = hypreal_of_real (cmod x)"
-by (simp add: star_of_def hcmod)
+by (transfer, rule refl)
 
 
 subsection{*Numerals and Arithmetic*}
@@ -863,28 +787,14 @@ subsection{*Numerals and Arithmetic*}
 lemma hcomplex_number_of_def: "(number_of w :: hcomplex) == of_int (Rep_Bin w)"
 by (transfer, rule number_of_eq [THEN eq_reflection])
 
-lemma hcomplex_of_complex_of_nat:
-     "hcomplex_of_complex (of_nat n) = of_nat n"
-by (rule star_of_of_nat)
-
-lemma hcomplex_of_complex_of_int:
-     "hcomplex_of_complex (of_int z) = of_int z"
-by (rule star_of_of_int)
-
-lemma hcomplex_number_of:
-     "hcomplex_of_complex (number_of w) = number_of w"
-by (rule star_of_number_of)
-
 lemma hcomplex_of_hypreal_eq_hcomplex_of_complex: 
      "hcomplex_of_hypreal (hypreal_of_real x) =  
       hcomplex_of_complex (complex_of_real x)"
-by (simp add: hcomplex_of_hypreal star_of_def
-              complex_of_real_def)
+by (transfer, rule refl)
 
 lemma hcomplex_hypreal_number_of: 
   "hcomplex_of_complex (number_of w) = hcomplex_of_hypreal(number_of w)"
-by (simp only: complex_number_of [symmetric] star_of_number_of [symmetric] 
-               hcomplex_of_hypreal_eq_hcomplex_of_complex)
+by (transfer, rule complex_number_of [symmetric])
 
 text{*This theorem is necessary because theorems such as
    @{text iszero_number_of_0} only hold for ordered rings. They cannot
@@ -892,10 +802,7 @@ text{*This theorem is necessary because theorems such as
    They work for type complex because the reals can be embedded in them.*}
 lemma iszero_hcomplex_number_of [simp]:
      "iszero (number_of w :: hcomplex) = iszero (number_of w :: real)"
-apply (simp only: iszero_complex_number_of [symmetric])  
-apply (simp only: hcomplex_of_complex_zero_iff hcomplex_number_of [symmetric] 
-                  iszero_def)  
-done
+by (transfer iszero_def, simp)
 
 
 (*
@@ -914,11 +821,6 @@ by (auto_tac (claset(),simpset() addsimps [hIm,hcnj,hcomplex_diff,
     complex_diff_cnj,iii_def,star_n_mult]));
 qed "hcomplex_diff_hcnj";
 *)
-
-
-lemma hcomplex_hcnj_num_zero_iff [simp]: "(hcnj z = 0) = (z = 0)"
-apply (auto simp add: hcomplex_hcnj_zero_iff)
-done
 
 
 (*** Real and imaginary stuff ***)
@@ -1007,23 +909,19 @@ Addsimps [hcomplex_number_of_eq_cancel_iff3a];
 
 lemma hcomplex_number_of_hcnj [simp]:
      "hcnj (number_of v :: hcomplex) = number_of v"
-by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
-               hcomplex_hcnj_hcomplex_of_hypreal)
+by (transfer, rule complex_number_of_cnj)
 
 lemma hcomplex_number_of_hcmod [simp]: 
       "hcmod(number_of v :: hcomplex) = abs (number_of v :: hypreal)"
-by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
-               hcmod_hcomplex_of_hypreal)
+by (transfer, rule complex_number_of_cmod)
 
 lemma hcomplex_number_of_hRe [simp]: 
       "hRe(number_of v :: hcomplex) = number_of v"
-by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
-               hRe_hcomplex_of_hypreal)
+by (transfer, simp)
 
 lemma hcomplex_number_of_hIm [simp]: 
       "hIm(number_of v :: hcomplex) = 0"
-by (simp only: hcomplex_number_of [symmetric] hcomplex_hypreal_number_of
-               hIm_hcomplex_of_hypreal)
+by (transfer, simp)
 
 
 ML
@@ -1174,15 +1072,6 @@ val sin_n_hIm_hcis_pow_n = thm"sin_n_hIm_hcis_pow_n";
 val cos_n_hRe_hcis_hcpow_n = thm"cos_n_hRe_hcis_hcpow_n";
 val sin_n_hIm_hcis_hcpow_n = thm"sin_n_hIm_hcis_hcpow_n";
 val hexpi_add = thm"hexpi_add";
-val hcomplex_of_complex_add = thm"hcomplex_of_complex_add";
-val hcomplex_of_complex_mult = thm"hcomplex_of_complex_mult";
-val hcomplex_of_complex_eq_iff = thm"hcomplex_of_complex_eq_iff";
-val hcomplex_of_complex_minus = thm"hcomplex_of_complex_minus";
-val hcomplex_of_complex_one = thm"hcomplex_of_complex_one";
-val hcomplex_of_complex_zero = thm"hcomplex_of_complex_zero";
-val hcomplex_of_complex_zero_iff = thm"hcomplex_of_complex_zero_iff";
-val hcomplex_of_complex_inverse = thm"hcomplex_of_complex_inverse";
-val hcomplex_of_complex_divide = thm"hcomplex_of_complex_divide";
 val hRe_hcomplex_of_complex = thm"hRe_hcomplex_of_complex";
 val hIm_hcomplex_of_complex = thm"hIm_hcomplex_of_complex";
 val hcmod_hcomplex_of_complex = thm"hcmod_hcomplex_of_complex";

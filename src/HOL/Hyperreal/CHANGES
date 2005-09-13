@@ -121,23 +121,24 @@ star_n_one_num <-- hypreal_one_num, hypnat_one_num, hcomplex_one_num
 star_n_abs <-- hypreal_hrabs
 star_n_divide <-- hcomplex_divide
 
-star_of_add <-- hypreal_of_real_add
-star_of_minus <-- hypreal_of_real_minus
+star_of_add <-- hypreal_of_real_add, hcomplex_of_complex_add
+star_of_minus <-- hypreal_of_real_minus, hcomplex_of_complex_minus
 star_of_diff <-- hypreal_of_real_diff
-star_of_mult <-- hypreal_of_real_mult
-star_of_one <-- hypreal_of_real_one
-star_of_zero <-- hypreal_of_real_zero
+star_of_mult <-- hypreal_of_real_mult, hcomplex_of_complex_mult
+star_of_one <-- hypreal_of_real_one, hcomplex_of_complex_one
+star_of_zero <-- hypreal_of_real_zero, hcomplex_of_complex_zero
 star_of_le <-- hypreal_of_real_le_iff
 star_of_less <-- hypreal_of_real_less_iff
-star_of_eq <-- hypreal_of_real_eq_iff
-star_of_inverse <-- hypreal_of_real_inverse
-star_of_divide <-- hypreal_of_real_divide
-star_of_of_nat <-- hypreal_of_real_of_nat
-star_of_of_int <-- hypreal_of_real_of_int
-star_of_number_of <-- hypreal_number_of
+star_of_eq <-- hypreal_of_real_eq_iff, hcomplex_of_complex_eq_iff
+star_of_inverse <-- hypreal_of_real_inverse, hcomplex_of_complex_inverse
+star_of_divide <-- hypreal_of_real_divide, hcomplex_of_complex_divide
+star_of_of_nat <-- hypreal_of_real_of_nat, hcomplex_of_complex_of_nat
+star_of_of_int <-- hypreal_of_real_of_int, hcomplex_of_complex_of_int
+star_of_number_of <-- hypreal_number_of, hcomplex_number_of
 star_of_number_less <-- number_of_less_hypreal_of_real_iff
 star_of_number_le <-- number_of_le_hypreal_of_real_iff
 star_of_eq_number <-- hypreal_of_real_eq_number_of_iff
 star_of_less_number <-- hypreal_of_real_less_number_of_iff
 star_of_le_number <-- hypreal_of_real_le_number_of_iff
 star_of_power <-- hypreal_of_real_power
+star_of_eq_0 <-- hcomplex_of_complex_zero_iff

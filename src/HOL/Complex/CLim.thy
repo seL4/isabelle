@@ -351,10 +351,10 @@ by (drule_tac g = "%x. l" and m = l in CLIM_add, auto)
 (*** NSCLIM_not zero and hence CLIM_not_zero ***)
 
 lemma NSCLIM_not_zero: "k \<noteq> 0 ==> ~ ((%x. k) -- x --NSC> 0)"
-apply (auto simp del: hcomplex_of_complex_zero simp add: NSCLIM_def)
+apply (auto simp del: star_of_zero simp add: NSCLIM_def)
 apply (rule_tac x = "hcomplex_of_complex x + hcomplex_of_hypreal epsilon" in exI)
 apply (auto intro: CInfinitesimal_add_capprox_self [THEN capprox_sym]
-            simp del: hcomplex_of_complex_zero)
+            simp del: star_of_zero)
 done
 
 (* [| k \<noteq> 0; (%x. k) -- x --NSC> 0 |] ==> R *)
