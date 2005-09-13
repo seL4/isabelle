@@ -34,6 +34,7 @@ sig
   val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
   val defer: int option -> method
   val prefer: int -> method
+  val cheating: bool -> ProofContext.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
   val unfold: thm list -> method
@@ -65,13 +66,15 @@ sig
   val default_text: text
   val this_text: text
   val done_text: text
-  val finish_text: bool -> text option -> text
+  val sorry_text: bool -> text
+  val finish_text: text option * bool -> text
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> src -> ProofContext.context -> method
   val add_methods: (bstring * (src -> ProofContext.context -> method) * string) list
     -> theory -> theory
   val add_method: bstring * (src -> ProofContext.context -> method) * string
     -> theory -> theory
+  val method_setup: bstring * string * string -> theory -> theory
   val syntax: (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list))
     -> src -> ProofContext.context -> ProofContext.context * 'a
   val simple_args: (Args.T list -> 'a * Args.T list)
@@ -131,12 +134,12 @@ fun res th i rule =
   Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
 
 fun multi_res _ [] rule = Seq.single rule
-  | multi_res i (th :: ths) rule = Seq.flat (Seq.map (res th i) (multi_res (i + 1) ths rule));
+  | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
 
 in
 
 val multi_resolve = multi_res 1;
-fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
 
 end;
 
@@ -194,6 +197,12 @@ fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0
 fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
 
 
+(* cheating *)
+
+fun cheating int ctxt = METHOD (K (setmp quick_and_dirty (int orelse ! quick_and_dirty)
+    (SkipProof.cheat_tac (ProofContext.theory_of ctxt))));
+
+
 (* unfold intro/elim rules *)
 
 fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
@@ -240,8 +249,8 @@ fun assumption_tac ctxt [] = assm_tac ctxt
 in
 
 fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
-fun close asm ctxt = METHOD (K
-  (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
+fun close immed ctxt = METHOD (K
+  (FILTER Thm.no_prems ((if immed then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
 
 end;
 
@@ -259,7 +268,7 @@ local
 
 fun gen_rule_tac tac rules [] i st = tac rules i st
   | gen_rule_tac tac rules facts i st =
-      Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts rules));
+      Seq.maps (fn rule => (tac o single) rule i st) (multi_resolves facts rules);
 
 fun gen_arule_tac tac j rules facts =
   EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
@@ -516,9 +525,10 @@ datatype text =
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
+val sorry_text = Basic o cheating;
 
-fun finish_text asm NONE = Basic (close asm)
-  | finish_text asm (SOME txt) = Then [txt, Basic (close asm)];
+fun finish_text (NONE, immed) = Basic (close immed)
+  | finish_text (SOME txt, immed) = Then [txt, Basic (close immed)];
 
 
 (* method definitions *)
@@ -582,6 +592,17 @@ fun add_methods raw_meths thy =
 val add_method = add_methods o Library.single;
 
 fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
+
+
+(* method_setup *)
+
+fun method_setup (name, txt, cmt) =
+  Context.use_let
+    "val thm = PureThy.get_thm_closure (Context.the_context ()) o PureThy.Name;\n\
+    \val thms = PureThy.get_thms_closure (Context.the_context ()) o PureThy.Name;\n\
+    \val method: bstring * (Method.src -> ProofContext.context -> Proof.method) * string"
+    "Method.add_method method"
+    ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
 
 
 
