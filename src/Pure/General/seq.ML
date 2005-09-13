@@ -22,15 +22,19 @@ sig
   val chop: int * 'a seq -> 'a list * 'a seq
   val list_of: 'a seq -> 'a list
   val of_list: 'a list -> 'a seq
-  val map: ('a -> 'b) -> 'a seq -> 'b seq
-  val mapp: ('a -> 'b) -> 'a seq -> 'b seq -> 'b seq
   val append: 'a seq * 'a seq -> 'a seq
+  val mapp: ('a -> 'b) -> 'a seq -> 'b seq -> 'b seq
+  val interleave: 'a seq * 'a seq -> 'a seq
   val filter: ('a -> bool) -> 'a seq -> 'a seq
   val flat: 'a seq seq -> 'a seq
-  val interleave: 'a seq * 'a seq -> 'a seq
+  val map: ('a -> 'b) -> 'a seq -> 'b seq
+  val maps: ('a -> 'b seq) -> 'a seq -> 'b seq
+  val lift: ('a -> 'b -> 'c) -> 'a seq -> 'b -> 'c seq
+  val lifts: ('a -> 'b -> 'c seq) -> 'a seq -> 'b -> 'c seq
   val print: (int -> 'a -> unit) -> int -> 'a seq -> unit
   val it_right : ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
   val commute: 'a seq list -> 'a list seq
+  val map_list: ('a -> 'b seq) -> 'a list -> 'b list seq
   val succeed: 'a -> 'a seq
   val fail: 'a -> 'b seq
   val THEN: ('a -> 'b seq) * ('b -> 'c seq) -> 'a -> 'c seq
@@ -100,12 +104,15 @@ fun list_of xq =
 fun of_list xs = foldr cons empty xs;
 
 
-(*map the function f over the sequence, making a new sequence*)
-fun map f xq =
-  make (fn () =>
-    (case pull xq of
-      NONE => NONE
-    | SOME (x, xq') => SOME (f x, map f xq')));
+(*sequence append:  put the elements of xq in front of those of yq*)
+fun append (xq, yq) =
+  let
+    fun copy s =
+      make (fn () =>
+        (case pull s of
+          NONE => pull yq
+        | SOME (x, s') => SOME (x, copy s')))
+  in copy xq end;
 
 (*map over a sequence xq, append the sequence yq*)
 fun mapp f xq yq =
@@ -117,15 +124,12 @@ fun mapp f xq yq =
         | SOME (x, s') => SOME (f x, copy s')))
   in copy xq end;
 
-(*sequence append:  put the elements of xq in front of those of yq*)
-fun append (xq, yq) =
-  let
-    fun copy s =
-      make (fn () =>
-        (case pull s of
-          NONE => pull yq
-        | SOME (x, s') => SOME (x, copy s')))
-  in copy xq end;
+(*interleave elements of xq with those of yq -- fairer than append*)
+fun interleave (xq, yq) =
+  make (fn () =>
+    (case pull xq of
+      NONE => pull yq
+    | SOME (x, xq') => SOME (x, interleave (yq, xq'))));
 
 (*filter sequence by predicate*)
 fun filter pred xq =
@@ -144,12 +148,17 @@ fun flat xqq =
       NONE => NONE
     | SOME (xq, xqq') => pull (append (xq, flat xqq'))));
 
-(*interleave elements of xq with those of yq -- fairer than append*)
-fun interleave (xq, yq) =
+(*map the function f over the sequence, making a new sequence*)
+fun map f xq =
   make (fn () =>
     (case pull xq of
-      NONE => pull yq
-    | SOME (x, xq') => SOME (x, interleave (yq, xq'))));
+      NONE => NONE
+    | SOME (x, xq') => SOME (f x, map f xq')));
+
+fun maps f = flat o map f;
+
+fun lift f xq y = map (fn x => f x y) xq;
+fun lifts f xq y = maps (fn x => f x y) xq;
 
 (*print a sequence, up to "count" elements*)
 fun print print_elem count =
@@ -183,6 +192,8 @@ fun commute [] = single []
               NONE => NONE
             | SOME (xs, xsq) =>
                 SOME (x :: xs, append (map (Library.cons x) xsq, commute (xq' :: xqs))))));
+
+fun map_list f = commute o List.map f;
 
 
 
