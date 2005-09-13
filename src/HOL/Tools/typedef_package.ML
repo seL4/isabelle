@@ -21,10 +21,10 @@ sig
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
       Rep_induct: thm, Abs_induct: thm}
-  val typedef_proof: (bool * string) * (bstring * string list * mixfix) * string
-    * (string * string) option -> bool -> theory -> ProofHistory.T
-  val typedef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
-    * (string * string) option -> bool -> theory -> ProofHistory.T
+  val typedef: (bool * string) * (bstring * string list * mixfix) * string
+    * (string * string) option -> theory -> Proof.state
+  val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
+    * (string * string) option -> theory -> Proof.state
   val setup: (theory -> theory) list
 end;
 
@@ -240,6 +240,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
 (* add_typedef interfaces *)
 
+local
+
 fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
   let
     val (cset, goal, _, typedef_result) =
@@ -252,24 +254,34 @@ fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
   gen_typedef prep_term def
     (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
 
+in
+
 fun add_typedef_x name typ set names thms tac =
   #1 o gen_typedef read_term true name typ set NONE (Tactic.rtac exI 1) names thms tac;
 
 val add_typedef = sane_typedef read_term;
 val add_typedef_i = sane_typedef cert_term;
 
+end;
 
-(* typedef_proof interface *)
 
-fun gen_typedef_proof prep_term ((def, name), typ, set, opt_morphs) int thy =
+(* Isar typedef interface *)
+
+local
+
+fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
     val (_, goal, goal_pat, att_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     val att = #1 o att_result;
-  in thy |> IsarThy.theorem_i Drule.internalK (("", [att]), (goal, ([goal_pat], []))) int end;
+  in IsarThy.theorem_i Drule.internalK ("", [att]) (goal, ([goal_pat], [])) thy end;
 
-val typedef_proof = gen_typedef_proof read_term;
-val typedef_proof_i = gen_typedef_proof cert_term;
+in
+
+val typedef = gen_typedef read_term;
+val typedef_i = gen_typedef cert_term;
+
+end;
 
 
 
@@ -379,19 +391,19 @@ val typedeclP =
       Toplevel.theory (add_typedecls [(t, vs, mx)])));
 
 
-val typedef_proof_decl =
+val typedef_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
         --| P.$$$ ")") (true, NONE) --
     (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
-fun mk_typedef_proof ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef_proof ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
+fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
+  typedef ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
-    (typedef_proof_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_typedef_proof)));
+    (typedef_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_typedef)));
 
 
 val _ = OuterSyntax.add_keywords ["morphisms"];
