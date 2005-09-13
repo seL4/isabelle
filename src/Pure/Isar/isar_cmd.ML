@@ -268,7 +268,7 @@ val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 (* retrieve theorems *)
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));
+  ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_forward_proof state) args));
 
 fun find_theorems (opt_lim, spec) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
@@ -295,7 +295,7 @@ val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 
 fun string_of_thms state ms args = with_modes ms (fn () =>
   Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
-    (IsarThy.get_thmss args state)));
+    (Proof.get_thmss state args)));
 
 fun string_of_prfs full state ms arg = with_modes ms (fn () =>
   Pretty.string_of (case arg of
@@ -311,7 +311,7 @@ fun string_of_prfs full state ms arg = with_modes ms (fn () =>
         end
     | SOME args => Pretty.chunks
         (map (ProofContext.pretty_proof_of (Proof.context_of state) full)
-          (IsarThy.get_thmss args state))));
+          (Proof.get_thmss state args))));
 
 fun string_of_prop state ms s =
   let
