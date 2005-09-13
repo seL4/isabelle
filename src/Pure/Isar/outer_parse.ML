@@ -73,6 +73,8 @@ sig
   val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
   val xthm: token list -> (thmref * Attrib.src list) * token list
   val xthms1: token list -> (thmref * Attrib.src list) list * token list
+  val name_facts: token list ->
+    ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
   val locale_target: token list -> xstring * token list
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
@@ -313,6 +315,8 @@ val thm_sel = $$$ "(" |-- list1
 
 val xthm = (xname -- thm_sel >> NameSelection || xname >> Name) -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
+
+val name_facts = and_list1 (opt_thm_name "=" -- xthms1);
 
 
 (* locale elements *)
