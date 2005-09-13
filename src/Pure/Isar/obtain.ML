@@ -21,12 +21,10 @@ signature OBTAIN =
 sig
   val obtain: (string list * string option) list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> (Proof.context -> string * (string * thm list) list -> unit) *
-      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
+    -> bool -> Proof.state -> Proof.state
   val obtain_i: (string list * typ option) list ->
     ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
-    -> (Proof.context -> string * (string * thm list) list -> unit) *
-      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
+    -> bool -> Proof.state -> Proof.state
 end;
 
 structure Obtain: OBTAIN =
@@ -63,10 +61,10 @@ fun export_obtain state parms rule _ cprops thm =
 
 val thatN = "that";
 
-fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms print state =
+fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
-    val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
+    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
     val thy = Proof.theory_of state;
 
     (*obtain vars*)
@@ -105,22 +103,22 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms print state =
       Logic.list_rename_params ([AutoBind.thesisN],
         Term.list_all_free ([bound_thesis_var], Logic.mk_implies (that_prop, bound_thesis)));
 
-    fun after_qed _ =
-      Proof.local_qed false NONE print
-      #> Seq.map (fn st => st
-        |> Proof.fix_i vars
-        |> Proof.assm_i (export_obtain state parms (Proof.the_fact st)) asms);
+    fun after_qed _ _ =
+      Proof.local_qed (NONE, false)
+      #> Seq.map (`Proof.the_fact #-> (fn this =>
+        Proof.fix_i vars
+        #> Proof.assm_i (export_obtain state parms this) asms));
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i (K Seq.single) true [(("", []), [(obtain_prop, ([], []))])]
+    |> Proof.have_i (K (K Seq.single)) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME (Method.Basic (K Method.succeed))) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
-    ||> Proof.from_facts chain_facts
-    ||> Proof.show_i (K I) after_qed false [(("", []), [(bound_thesis, ([], []))])] false
-    |-> (fn facts => Proof.refine (Method.Basic (K (Method.insert facts))))
+    ||> Proof.chain_facts chain_facts
+    ||> Proof.show_i after_qed [(("", []), [(bound_thesis, ([], []))])] false
+    |-> (Proof.refine o Method.Basic o K o Method.insert) |> Seq.hd
   end;
 
 val obtain = gen_obtain Attrib.local_attribute ProofContext.read_vars ProofContext.read_propp;
