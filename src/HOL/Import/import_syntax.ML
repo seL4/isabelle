@@ -156,7 +156,7 @@ fun import_thy s =
     end
 
 fun create_int_thms thyname thy =
-    if !SkipProof.quick_and_dirty
+    if ! quick_and_dirty
     then thy
     else
 	case ImportData.get thy of
@@ -164,7 +164,7 @@ fun create_int_thms thyname thy =
 	  | SOME _ => error "Import data not closed - forgotten an end_setup, mayhap?"
 
 fun clear_int_thms thy =
-    if !SkipProof.quick_and_dirty
+    if ! quick_and_dirty
     then thy
     else
 	case ImportData.get thy of

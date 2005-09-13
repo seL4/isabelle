@@ -33,7 +33,7 @@ val string_of_thm = Library.setmp print_mode [] string_of_thm;
 val string_of_cterm = Library.setmp print_mode [] string_of_cterm;
 
 fun import_tac (thyname,thmname) =
-    if !SkipProof.quick_and_dirty
+    if ! quick_and_dirty
     then SkipProof.cheat_tac
     else
      fn thy =>
