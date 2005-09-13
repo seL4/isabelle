@@ -51,7 +51,7 @@ fun add rule (Rules {eq, index, rules, next, net}) =
 
 fun merge (Rules {eq, index, rules = rules1, ...}, Rules {rules = rules2, ...}) =
   let val rules = Library.gen_merge_lists' eq rules1 rules2
-  in foldr (uncurry add) (init eq index) rules end;
+  in fold_rev add rules (init eq index) end;
 
 fun delete rule (rs as Rules {eq, index, rules, next, net}) =
   if not (Library.gen_mem eq (rule, rules)) then rs
