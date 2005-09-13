@@ -19,7 +19,6 @@ end;
 signature CONTEXT =
 sig
   include BASIC_CONTEXT
-  exception DATA_FAIL of exn * string
   (*theory context*)
   val theory_name: theory -> string
   val parents_of: theory -> theory list
@@ -107,8 +106,6 @@ struct
 
 (* data kinds and access methods *)
 
-exception DATA_FAIL of exn * string;
-
 local
 
 type kind =
@@ -123,7 +120,7 @@ val kinds = ref (Inttab.empty: kind Inttab.table);
 fun invoke meth_name meth_fn k =
   (case Inttab.curried_lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
-      DATA_FAIL (exn, "Theory data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
+      EXCEPTION (exn, "Theory data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid theory data identifier " ^ string_of_int k));
 
 in
@@ -527,7 +524,7 @@ val kinds = ref (Inttab.empty: kind Inttab.table);
 fun invoke meth_name meth_fn k =
   (case Inttab.curried_lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
-      DATA_FAIL (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
+      EXCEPTION (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid proof data identifier " ^ string_of_int k));
 
 fun invoke_name k = invoke "name" (K o #name) k ();
