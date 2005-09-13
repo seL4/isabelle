@@ -9,7 +9,7 @@ val show_structs = ref false;
 
 signature PROOF_CONTEXT =
 sig
-  type context
+  type context = Context.proof
   type exporter
   exception CONTEXT of string * context
   val theory_of: context -> theory
@@ -31,6 +31,7 @@ sig
   val pretty_fact: context -> string * thm list -> Pretty.T
   val pretty_proof: context -> Proofterm.proof -> Pretty.T
   val pretty_proof_of: context -> bool -> thm -> Pretty.T
+  val string_of_typ: context -> typ -> string
   val string_of_term: context -> term -> string
   val default_type: context -> string -> typ option
   val used_types: context -> string list
@@ -66,8 +67,8 @@ sig
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
-  val export_standard: cterm list -> context -> context -> thm -> thm
-  val export_plain: cterm list -> context -> context -> thm -> thm
+  val export_standard: context -> context -> thm -> thm
+  val export_plain: context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -103,10 +104,7 @@ sig
   val custom_accesses: (string list -> string list list) -> context -> context
   val restore_naming: context -> context -> context
   val hide_thms: bool -> string list -> context -> context
-  val put_thm: string * thm -> context -> context
-  val put_thms: string * thm list -> context -> context
-  val put_thmss: (string * thm list) list -> context -> context
-  val reset_thms: string -> context -> context
+  val put_thms: string * thm list option -> context -> context
   val note_thmss:
     ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
       context -> context * (bstring * thm list) list
@@ -123,6 +121,8 @@ sig
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> context * (bstring * thm list) list
+  val add_view: context -> cterm list -> context -> context
+  val export_standard_view: cterm list -> context -> context -> thm -> thm
   val read_vars: context * (string list * string option)
     -> context * (string list * typ option)
   val cert_vars: context * (string list * typ option)
@@ -176,7 +176,7 @@ datatype ctxt =
    {syntax: (Syntax.syntax * Syntax.syntax * (Syntax.syntax -> Syntax.syntax)) *
       string list * string list,                (*global/local syntax with structs and mixfixed*)
     asms:
-      ((cterm list * exporter) list *           (*assumes: A ==> _*)
+      ((cterm list * exporter) list *           (*assumes and views: A ==> _*)
         (string * thm list) list) *             (*prems: A |- A *)
       (string * string) list,                   (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,           (*term bindings*)
@@ -337,6 +337,7 @@ fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
 
+val string_of_typ = Pretty.string_of oo pretty_typ;
 val string_of_term = Pretty.string_of oo pretty_term;
 
 fun pretty_thm ctxt thm =
@@ -709,7 +710,7 @@ fun get_free x (t as Free (y, _)) NONE = if x = y then SOME t else NONE
 
 fun find_free t x = fold_aterms (get_free x) t NONE;
 
-fun export_view view is_goal inner outer =
+fun export is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
@@ -718,7 +719,6 @@ fun export_view view is_goal inner outer =
   in
     Tactic.norm_hhf_rule
     #> Seq.EVERY (rev exp_asms)
-    #> Seq.map (Drule.implies_intr_list view)
     #> Seq.map (fn rule =>
       let
         val thy = Thm.theory_of_thm rule;
@@ -734,29 +734,26 @@ fun export_view view is_goal inner outer =
   end;
 
 (*without varification*)
-fun export_view' view is_goal inner outer =
+fun export' is_goal inner outer =
   let
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
     Tactic.norm_hhf_plain
     #> Seq.EVERY (rev exp_asms)
-    #> Seq.map (Drule.implies_intr_list view)
     #> Seq.map Tactic.norm_hhf_plain
   end;
 
-val export = export_view [];
-
-fun gen_export_std exp_view view inner outer =
-  let val exp = exp_view view false inner outer in
+fun gen_export exp inner outer =
+  let val e = exp false inner outer in
     fn th =>
-      (case Seq.pull (exp th) of
+      (case Seq.pull (e th) of
         SOME (th', _) => th' |> Drule.local_standard
       | NONE => sys_error "Failed to export theorem")
   end;
 
-val export_standard = gen_export_std export_view;
-val export_plain = gen_export_std export_view';
+val export_standard = gen_export export;
+val export_plain = gen_export export';
 
 
 
@@ -982,10 +979,16 @@ fun hide_thms fully names = map_context
       (naming, (fold (NameSpace.hide fully) names space, tab), index), cases, defs));
 
 
-(* put_thm(s) *)
+(* put_thms *)
 
 fun put_thms ("", _) ctxt = ctxt
-  | put_thms (bname, ths) ctxt = ctxt |> map_context
+  | put_thms (bname, NONE) ctxt = ctxt |> map_context
+      (fn (syntax, asms, binds, (naming, (space, tab), index), cases, defs) =>
+        let
+          val name = NameSpace.full naming bname;
+          val tab' = Symtab.delete_safe name tab;
+        in (syntax, asms, binds, (naming, (space, tab'), index), cases, defs) end)
+  | put_thms (bname, SOME ths) ctxt = ctxt |> map_context
       (fn (syntax, asms, binds, (naming, (space, tab), index), cases, defs) =>
         let
           val name = NameSpace.full naming bname;
@@ -994,16 +997,6 @@ fun put_thms ("", _) ctxt = ctxt
           val index' = FactIndex.add (is_known ctxt) (name, ths) index;
         in (syntax, asms, binds, (naming, (space', tab'), index'), cases, defs) end);
 
-fun put_thm (name, th) = put_thms (name, [th]);
-val put_thmss = fold put_thms;
-
-
-(* reset_thms *)
-
-fun reset_thms name =
-  map_context (fn (syntax, asms, binds, (q, (space, tab), index), cases, defs) =>
-    (syntax, asms, binds, (q, (space, Symtab.delete_safe name tab), index), cases, defs));
-
 
 (* note_thmss *)
 
@@ -1011,12 +1004,12 @@ local
 
 fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
   let
-    fun app ((ct, ths), (th, attrs)) =
+    fun app (th, attrs) (ct, ths) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
       in (ct', th' :: ths) end;
-    val (ctxt', rev_thms) = Library.foldl app ((ctxt, []), ths_attrs);
+    val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
     val thms = List.concat (rev rev_thms);
-  in (ctxt' |> put_thms (name, thms), (name, thms)) end;
+  in (ctxt' |> put_thms (name, SOME thms), (name, thms)) end;
 
 fun gen_note_thmss get args ctxt =
   foldl_map (gen_note_thss get) (ctxt, args);
@@ -1108,7 +1101,7 @@ fun gen_assms prepp exp args ctxt =
       (fn (syntax, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
         (syntax, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
           cases, defs));
-    val ctxt4 = ctxt3 |> put_thms ("prems", prems_of ctxt3);
+    val ctxt4 = ctxt3 |> put_thms ("prems", SOME (prems_of ctxt3));
   in (warn_extra_tfrees ctxt ctxt4, thmss) end;
 
 in
@@ -1117,6 +1110,19 @@ val assume = gen_assms (apsnd #1 o bind_propp);
 val assume_i = gen_assms (apsnd #1 o bind_propp_i);
 
 end;
+
+
+(* views *)
+
+fun add_view outer view =
+  map_context (fn (syntax, ((asms, prems), fixes), binds, thms, cases, defs) =>
+    let
+      val (asms1, asms2) = splitAt (length (assumptions_of outer), asms);
+      val asms' = asms1 @ [(view, export_assume)] @ asms2;
+    in (syntax, ((asms', prems), fixes), binds, thms, cases, defs) end);
+
+fun export_standard_view view inner outer =
+  export_standard (add_view outer view inner) outer;
 
 
 (* variables *)
@@ -1395,7 +1401,7 @@ fun pretty_context ctxt =
 
     (*theory*)
     val pretty_thy = Pretty.block
-      [Pretty.str "Theory:", Pretty.brk 1, Context.pretty_thy (theory_of ctxt)];
+      [Pretty.str "Theory:", Pretty.brk 1, Context.pretty_thy (theory_of ctxt)];  (* FIXME lowercase *)
 
     (*defaults*)
     fun prt_atom prt prtT (x, X) = Pretty.block
