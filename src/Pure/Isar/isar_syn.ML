@@ -5,9 +5,7 @@
 Isar/Pure outer syntax.
 *)
 
-signature ISAR_SYN = sig end;
-
-structure IsarSyn: ISAR_SYN =
+structure IsarSyn: sig end =
 struct
 
 structure P = OuterParse and K = OuterKeyword;
@@ -198,18 +196,14 @@ val constdefsP =
 
 (* theorems *)
 
-val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1);
-
-fun theorems kind = P.opt_locale_target -- name_facts
-  >> uncurry (#1 ooo IsarThy.smart_theorems kind);
+fun theorems kind = P.opt_locale_target -- P.name_facts
+  >> (Toplevel.theory_context o uncurry (IsarThy.smart_theorems kind));
 
 val theoremsP =
-  OuterSyntax.command "theorems" "define theorems" K.thy_decl
-    (theorems Drule.theoremK >> Toplevel.theory_context);
+  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Drule.theoremK);
 
 val lemmasP =
-  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl
-    (theorems Drule.lemmaK >> Toplevel.theory_context);
+  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Drule.lemmaK);
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
@@ -229,7 +223,7 @@ val localP =
 
 val hideP =
   OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
-    (P.name -- Scan.repeat1 P.xname >> (Toplevel.theory o IsarThy.hide_names));
+    (P.name -- Scan.repeat1 P.xname >> (Toplevel.theory o Sign.hide_names true));
 
 
 (* use ML text *)
@@ -252,12 +246,12 @@ val ml_setupP =
 
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (P.text >> (Toplevel.theory o IsarThy.generic_setup));
+    (P.text >> (Toplevel.theory o PureThy.generic_setup));
 
 val method_setupP =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
     (((P.name -- P.!!! (P.$$$ "=" |-- P.text -- P.text) >> P.triple2))
-      >> (Toplevel.theory o IsarThy.method_setup));
+      >> (Toplevel.theory o Method.method_setup));
 
 
 (* translation functions *)
@@ -300,7 +294,7 @@ val token_translationP =
 val oracleP =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
-      -- P.text >> (Toplevel.theory o IsarThy.add_oracle o P.triple1));
+      -- P.text >> (Toplevel.theory o PureThy.add_oracle o P.triple1));
 
 
 (* locales *)
@@ -317,28 +311,22 @@ val localeP =
       >> (Toplevel.theory_context o (fn ((x, y), (z, w)) => Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (thy, ctxt)))));
 
 val opt_inst =
-  Scan.optional (P.$$$ "[" |-- Scan.repeat1 (P.maybe P.term) --| P.$$$ "]") [];
+  Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) [];
 
 val interpretationP =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
-    (
-      (* with target: in locale *)
-      P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") --
-        P.locale_expr >>
-        ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_in_locale)
-    ||
-      (* without target: in theory *)
-      P.opt_thm_name ":" -- P.locale_expr -- P.!!! opt_inst >>
-        ((Toplevel.print oo Toplevel.theory_to_proof) o IsarThy.register_globally)
-    );
+    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! P.locale_expr
+      >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale)) ||
+     P.opt_thm_name ":" -- P.locale_expr -- opt_inst >> (fn ((x, y), z) =>
+      Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation x y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.opt_thm_name ":" -- P.locale_expr -- P.!!! opt_inst
-      >> ((Toplevel.print oo Toplevel.proof) o IsarThy.register_locally));
+    (P.opt_thm_name ":" -- P.locale_expr -- opt_inst >> (fn ((x, y), z) =>
+      Toplevel.print o Toplevel.proof' (ProofHistory.apply o Locale.interpret x y z)));
 
 
 
@@ -350,36 +338,36 @@ val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
 val general_statement =
   statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
 
-fun gen_theorem k =
-  OuterSyntax.command k ("state " ^ k) K.thy_goal
+fun gen_theorem kind =
+  OuterSyntax.command kind ("state " ^ kind) K.thy_goal
     (P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
       Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
       general_statement >> (fn ((x, y), (z, w)) =>
-      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z w))));
+      (Toplevel.print o Toplevel.theory_to_proof (Locale.smart_theorem kind x y z w))));
 
 val theoremP = gen_theorem Drule.theoremK;
 val lemmaP = gen_theorem Drule.lemmaK;
 val corollaryP = gen_theorem Drule.corollaryK;
 
-val showP =
-  OuterSyntax.command "show" "state local goal, solving current obligation"
-    (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.show));
-
 val haveP =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof) o IsarThy.have));
-
-val thusP =
-  OuterSyntax.command "thus" "abbreviates \"then show\""
-    (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.thus));
+    (statement >> ((Toplevel.print oo Toplevel.proof') o (ProofHistory.apply oo IsarThy.have)));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof) o IsarThy.hence));
+    (statement >> ((Toplevel.print oo Toplevel.proof') o (ProofHistory.apply oo IsarThy.hence)));
+
+val showP =
+  OuterSyntax.command "show" "state local goal, solving current obligation"
+    (K.tag_proof K.prf_goal)
+    (statement >> ((Toplevel.print oo Toplevel.proof') o (ProofHistory.apply oo IsarThy.show)));
+
+val thusP =
+  OuterSyntax.command "thus" "abbreviates \"then show\""
+    (K.tag_proof K.prf_goal)
+    (statement >> ((Toplevel.print oo Toplevel.proof') o (ProofHistory.apply oo IsarThy.thus)));
 
 
 (* facts *)
@@ -404,7 +392,8 @@ val withP =
 val noteP =
   OuterSyntax.command "note" "define facts"
     (K.tag_proof K.prf_decl)
-    (name_facts >> (Toplevel.print oo (Toplevel.proof o ProofHistory.apply o Proof.note_thmss)));
+    (P.name_facts >>
+      (Toplevel.print oo (Toplevel.proof o ProofHistory.apply o Proof.note_thmss)));
 
 val usingP =
   OuterSyntax.command "using" "augment goal facts"
@@ -440,7 +429,8 @@ val obtainP =
     (K.tag_proof K.prf_asm_goal)
     (Scan.optional
       (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-        --| P.$$$ "where") [] -- statement >> (Toplevel.print oo IsarThy.obtain));
+        --| P.$$$ "where") [] -- statement
+      >> (Toplevel.print oo (Toplevel.proof' o (ProofHistory.apply oo uncurry Obtain.obtain))));
 
 val letP =
   OuterSyntax.command "let" "bind text variables"
@@ -481,32 +471,32 @@ val nextP =
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof"
     (K.tag_proof K.qed_block)
-    (Scan.option P.method >> (IsarThy.cond_print oo IsarThy.qed));
+    (Scan.option P.method >> (Toplevel.print3 oo IsarThy.qed));
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof"
     (K.tag_proof K.qed)
-    (P.method -- Scan.option P.method >> (IsarThy.cond_print oo IsarThy.terminal_proof));
+    (P.method -- Scan.option P.method >> (Toplevel.print3 oo IsarThy.terminal_proof));
 
 val default_proofP =
   OuterSyntax.command ".." "default proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.default_proof));
+    (Scan.succeed (Toplevel.print3 o IsarThy.default_proof));
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.immediate_proof));
+    (Scan.succeed (Toplevel.print3 o IsarThy.immediate_proof));
 
 val done_proofP =
   OuterSyntax.command "done" "done proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.done_proof));
+    (Scan.succeed (Toplevel.print3 o IsarThy.done_proof));
 
 val skip_proofP =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)"
     (K.tag_proof K.qed)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.skip_proof));
+    (Scan.succeed (Toplevel.print3 o IsarThy.skip_proof));
 
 val forget_proofP =
   OuterSyntax.command "oops" "forget proof"
@@ -553,22 +543,22 @@ val calc_args =
 val alsoP =
   OuterSyntax.command "also" "combine calculation and current facts"
     (K.tag_proof K.prf_decl)
-    (calc_args >> (IsarThy.cond_print oo IsarThy.also));
+    (calc_args >> (Toplevel.proof' o (ProofHistory.applys oo Calculation.also)));
 
 val finallyP =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result"
     (K.tag_proof K.prf_chain)
-    (calc_args >> (IsarThy.cond_print oo IsarThy.finally));
+    (calc_args >> (Toplevel.proof' o (ProofHistory.applys oo Calculation.finally)));
 
 val moreoverP =
   OuterSyntax.command "moreover" "augment calculation by current facts"
     (K.tag_proof K.prf_decl)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.moreover));
+    (Scan.succeed (Toplevel.proof' (ProofHistory.apply o Calculation.moreover)));
 
 val ultimatelyP =
   OuterSyntax.command "ultimately" "augment calculation by current facts, exhibit result"
     (K.tag_proof K.prf_chain)
-    (Scan.succeed (IsarThy.cond_print o IsarThy.ultimately));
+    (Scan.succeed (Toplevel.proof' (ProofHistory.apply o Calculation.ultimately)));
 
 
 (* proof navigation *)
@@ -863,7 +853,7 @@ val _ = OuterSyntax.add_parsers [
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
-  theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, fixP,
+  theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,
   noteP, usingP, beginP, endP, nextP, qedP, terminal_proofP,
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
