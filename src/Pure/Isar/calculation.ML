@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Support for calculational proofs.
+Generic calculational proofs.
 *)
 
 signature CALCULATION =
@@ -20,12 +20,13 @@ sig
   val sym_del_local: Proof.context attribute
   val symmetric_global: theory attribute
   val symmetric_local: Proof.context attribute
-  val also: thm list option -> (Proof.context -> thm list -> unit)
-    -> Proof.state -> Proof.state Seq.seq
-  val finally: thm list option -> (Proof.context -> thm list -> unit)
-    -> Proof.state -> Proof.state Seq.seq
-  val moreover: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
-  val ultimately: (Proof.context -> thm list -> unit) -> Proof.state -> Proof.state
+  val also: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val also_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val finally: (thmref * Attrib.src list) list option -> bool ->
+    Proof.state -> Proof.state Seq.seq
+  val finally_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val moreover: bool -> Proof.state -> Proof.state
+  val ultimately: bool -> Proof.state -> Proof.state
 end;
 
 structure Calculation: CALCULATION =
@@ -80,13 +81,12 @@ fun get_calculation state =
     NONE => NONE
   | SOME (thms, lev) => if lev = Proof.level state then SOME thms else NONE);
 
-fun put_calculation thms state =
-  Proof.map_context
-    (LocalCalculation.put (get_local_rules state, SOME (thms, Proof.level state))) state;
+val calculationN = "calculation";
 
-fun reset_calculation state =
-  Proof.map_context (LocalCalculation.put (get_local_rules state, NONE)) state;
-
+fun put_calculation calc =
+  `Proof.level #-> (fn lev => Proof.map_context
+    (LocalCalculation.map (apsnd (K (Option.map (rpair lev) calc)))))
+  #> Proof.put_thms (calculationN, calc);
 
 
 (** attributes **)
@@ -143,42 +143,37 @@ val _ = Context.add_setup
 
 (** proof commands **)
 
+fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
+
 fun assert_sane final =
   if final then Proof.assert_forward else Proof.assert_forward_or_chain;
 
+fun maintain_calculation false calc = put_calculation (SOME calc)
+  | maintain_calculation true calc = put_calculation NONE #> Proof.chain_facts calc;
 
-(* maintain calculation register *)
-
-val calculationN = "calculation";
-
-fun maintain_calculation false calc state =
-      state
-      |> put_calculation calc
-      |> Proof.put_thms (calculationN, calc)
-  | maintain_calculation true calc state =
-      state
-      |> reset_calculation
-      |> Proof.reset_thms calculationN
-      |> Proof.simple_note_thms "" calc
-      |> Proof.chain;
+fun print_calculation false _ _ = ()
+  | print_calculation true ctxt calc =
+      Pretty.writeln (Pretty.big_list "calculation:" (map (ProofContext.pretty_thm ctxt) calc));
+(* FIXME 
+      Pretty.writeln (ProofContext.pretty_fact ctxt (calculationN, calc));
+*)
 
 
-(* 'also' and 'finally' *)
+(* also and finally *)
 
-fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
-
-fun calculate final opt_rules print state =
+fun calculate prep_rules final raw_rules int state =
   let
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
     fun projection ths th = Library.exists (Library.curry eq_prop th) ths;
 
+    val opt_rules = Option.map (prep_rules state) raw_rules;
     fun combine ths =
       (case opt_rules of SOME rules => rules
       | NONE =>
           (case ths of [] => NetRules.rules (#1 (get_local_rules state))
           | th :: _ => NetRules.retrieve (#1 (get_local_rules state)) (strip_assums_concl th)))
-      |> Seq.of_list |> Seq.map (Method.multi_resolve ths) |> Seq.flat
+      |> Seq.of_list |> Seq.maps (Method.multi_resolve ths)
       |> Seq.filter (not o projection ths);
 
     val facts = Proof.the_facts (assert_sane final state);
@@ -189,17 +184,19 @@ fun calculate final opt_rules print state =
   in
     err_if state (initial andalso final) "No calculation yet";
     err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
-    calculations |> Seq.map (fn calc => (print (Proof.context_of state) calc;
+    calculations |> Seq.map (fn calc => (print_calculation int (Proof.context_of state) calc;
         state |> maintain_calculation final calc))
   end;
 
-fun also print = calculate false print;
-fun finally print = calculate true print;
+val also = calculate Proof.get_thmss false;
+val also_i = calculate (K I) false;
+val finally = calculate Proof.get_thmss true;
+val finally_i = calculate (K I) true;
 
 
-(* 'moreover' and 'ultimately' *)
+(* moreover and ultimately *)
 
-fun collect final print state =
+fun collect final int state =
   let
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, thms) =
@@ -209,12 +206,11 @@ fun collect final print state =
     val calc = thms @ facts;
   in
     err_if state (initial andalso final) "No calculation yet";
-    print (Proof.context_of state) calc;
+    print_calculation int (Proof.context_of state) calc;
     state |> maintain_calculation final calc
   end;
 
-fun moreover print = collect false print;
-fun ultimately print = collect true print;
-
+val moreover = collect false;
+val ultimately = collect true;
 
 end;
