@@ -2,14 +2,17 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Logic specific patterns and automatic term bindings.
+Automatic bindings of Isar text elements.
 *)
 
 signature AUTO_BIND =
 sig
-  val goal: Sign.sg -> term list -> (indexname * term option) list
-  val facts: Sign.sg -> term list -> (indexname * term option) list
+  val rule_contextN: string
   val thesisN: string
+  val thisN: string
+  val goal: theory -> term list -> (indexname * term option) list
+  val cases: theory -> term list -> (string * RuleCases.T option) list
+  val facts: theory -> term list -> (indexname * term option) list
 end;
 
 structure AutoBind: AUTO_BIND =
@@ -17,32 +20,36 @@ struct
 
 (** bindings **)
 
+val rule_contextN = "rule_context";
 val thesisN = "thesis";
 val thisN = "this";
 
-fun strip_judgment sg = ObjectLogic.drop_judgment sg o Logic.strip_assums_concl;
+fun strip_judgment thy = ObjectLogic.drop_judgment thy o Logic.strip_assums_concl;
 
-fun statement_binds sg name prop =
-  [((name, 0), SOME (Term.list_abs (Logic.strip_params prop, strip_judgment sg prop)))];
+fun statement_binds thy name prop =
+  [((name, 0), SOME (Term.list_abs (Logic.strip_params prop, strip_judgment thy prop)))];
 
 
 (* goal *)
 
-fun goal sg [prop] = statement_binds sg thesisN prop
+fun goal thy [prop] = statement_binds thy thesisN prop
   | goal _ _ = [((thesisN, 0), NONE)];
+
+fun cases thy [prop] = [RuleCases.simple true (thy, prop) rule_contextN]
+  | cases _ _ = [(rule_contextN, NONE)];
 
 
 (* facts *)
 
-fun get_arg sg prop =
-  (case strip_judgment sg prop of
+fun get_arg thy prop =
+  (case strip_judgment thy prop of
     _ $ t => SOME (Term.list_abs (Logic.strip_params prop, t))
   | _ => NONE);
 
 fun facts _ [] = []
-  | facts sg props =
+  | facts thy props =
       let val prop = Library.last_elem props
-      in [(Syntax.dddot_indexname, get_arg sg prop)] @ statement_binds sg thisN prop end;
+      in [(Syntax.dddot_indexname, get_arg thy prop)] @ statement_binds thy thisN prop end;
 
 
 end;
