@@ -82,8 +82,6 @@ val AbsN = "Abs_";
 (*** utilities ***)
 
 fun but_last xs = fst (split_last xs);
-fun list NONE = []
-  | list (SOME x) = [x]
 
 (* messages *)
 
@@ -828,7 +826,7 @@ fun prove_split_simp sg ss T prop =
   let
     val {sel_upd={simpset,...},extsplit,...} = RecordsData.get sg;
     val extsplits =
-            Library.foldl (fn (thms,(n,_)) => list (Symtab.curried_lookup extsplit n) @ thms)
+            Library.foldl (fn (thms,(n,_)) => the_list (Symtab.curried_lookup extsplit n) @ thms)
                     ([],dest_recTs T);
     val thms = (case get_splits sg (rec_id (~1) T) of
                    SOME (all_thm,_,_,_) =>
