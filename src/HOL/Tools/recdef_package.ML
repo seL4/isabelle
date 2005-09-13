@@ -35,10 +35,9 @@ sig
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
     -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option
-    -> bool -> theory -> ProofHistory.T
+  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
   val recdef_tc_i: bstring * theory attribute list -> string -> int option
-    -> bool -> theory -> ProofHistory.T
+    -> theory -> Proof.state
   val setup: (theory -> theory) list
 end;
 
@@ -302,7 +301,7 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 
 (** recdef_tc(_i) **)
 
-fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
+fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i thy =
   let
     val name = prep_name thy raw_name;
     val atts = map (prep_att thy) raw_atts;
@@ -314,10 +313,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
     val tc = List.nth (tcs, i - 1) handle Subscript =>
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
-  in
-    thy
-    |> IsarThy.theorem_i Drule.internalK ((bname, atts), (HOLogic.mk_Trueprop tc, ([], []))) int
-  end;
+  in IsarThy.theorem_i Drule.internalK (bname, atts) (HOLogic.mk_Trueprop tc, ([], [])) thy end;
 
 val recdef_tc = gen_recdef_tc Attrib.global_attribute Sign.intern_const;
 val recdef_tc_i = gen_recdef_tc (K I) (K I);
@@ -362,15 +358,11 @@ val defer_recdefP =
   OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
-
-val recdef_tc_decl =
-  P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")");
-
-fun mk_recdef_tc ((thm_name, name), i) = recdef_tc thm_name name i;
-
 val recdef_tcP =
   OuterSyntax.command "recdef_tc" "recommence proof of termination condition (TFL)" K.thy_goal
-    (recdef_tc_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_recdef_tc)));
+    (P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+      >> (fn ((thm_name, name), i) =>
+        Toplevel.print o Toplevel.theory_to_proof (recdef_tc thm_name name i)));
 
 
 val _ = OuterSyntax.add_keywords ["permissive", "congs", "hints"];

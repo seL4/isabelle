@@ -9,13 +9,13 @@ signature PCPODEF_PACKAGE =
 sig
   val quiet_mode: bool ref
   val pcpodef_proof: (bool * string) * (bstring * string list * mixfix) * string
-    * (string * string) option -> bool -> theory -> ProofHistory.T
+    * (string * string) option -> theory -> Proof.state
   val pcpodef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
-    * (string * string) option -> bool -> theory -> ProofHistory.T
+    * (string * string) option -> theory -> Proof.state
   val cpodef_proof: (bool * string) * (bstring * string list * mixfix) * string
-    * (string * string) option -> bool -> theory -> ProofHistory.T
+    * (string * string) option -> theory -> Proof.state
   val cpodef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
-    * (string * string) option -> bool -> theory -> ProofHistory.T
+    * (string * string) option -> theory -> Proof.state
 end;
 
 structure PcpodefPackage: PCPODEF_PACKAGE =
@@ -170,11 +170,11 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
 
 (* cpodef_proof interface *)
 
-fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) int thy =
+fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
   let
     val (goal, att) =
       gen_prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
-  in thy |> IsarThy.theorem_i Drule.internalK (("", [att]), (goal, ([], []))) int end;
+  in IsarThy.theorem_i Drule.internalK ("", [att]) (goal, ([], [])) thy end;
 
 val pcpodef_proof = gen_pcpodef_proof read_term true;
 val pcpodef_proof_i = gen_pcpodef_proof cert_term true;
