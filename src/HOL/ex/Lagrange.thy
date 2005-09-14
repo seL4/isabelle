@@ -2,28 +2,31 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1996 TU Muenchen
-
-
-This theory only contains a single theorem, which is a lemma in Lagrange's
-proof that every natural number is the sum of 4 squares.  Its sole purpose is
-to demonstrate ordered rewriting for commutative rings.
-
-The enterprising reader might consider proving all of Lagrange's theorem.
 *)
 
+header {* A lemma for Lagrange's theorem *}
+
 theory Lagrange imports Main begin
+
+text {* This theory only contains a single theorem, which is a lemma
+in Lagrange's proof that every natural number is the sum of 4 squares.
+Its sole purpose is to demonstrate ordered rewriting for commutative
+rings.
+
+The enterprising reader might consider proving all of Lagrange's
+theorem.  *}
 
 constdefs sq :: "'a::times => 'a"
          "sq x == x*x"
 
-(* The following lemma essentially shows that every natural number is the sum
-of four squares, provided all prime numbers are.  However, this is an
-abstract theorem about commutative rings.  It has, a priori, nothing to do
-with nat.*)
+text {* The following lemma essentially shows that every natural
+number is the sum of four squares, provided all prime numbers are.
+However, this is an abstract theorem about commutative rings.  It has,
+a priori, nothing to do with nat. *}
 
 ML"Delsimprocs[ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]"
 
-(*once a slow step, but now (2001) just three seconds!*)
+-- {* once a slow step, but now (2001) just three seconds! *}
 lemma Lagrange_lemma:
  "!!x1::'a::comm_ring.
   (sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
@@ -36,7 +39,6 @@ by(simp add: sq_def ring_eq_simps)
 
 text{*A challenge by John Harrison. Takes about 74s on a 2.5GHz Apple G5.*}
 
-(*
 lemma "!!p1::'a::comm_ring.
  (sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 
  (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2) 
@@ -48,6 +50,8 @@ lemma "!!p1::'a::comm_ring.
     sq (p1*u2 + q1*t2 - r1*w2 + s1*v2 - t1*q2 + u1*p2 - v1*s2 + w1*r2) +
     sq (p1*v2 + q1*w2 + r1*t2 - s1*u2 - t1*r2 + u1*s2 + v1*p2 - w1*q2) +
     sq (p1*w2 - q1*v2 + r1*u2 + s1*t2 - t1*s2 - u1*r2 + v1*q2 + w1*p2)"
+oops
+(*
 by(simp add: sq_def ring_eq_simps)
 *)
 

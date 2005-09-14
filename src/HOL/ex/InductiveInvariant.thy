@@ -1,12 +1,15 @@
+(*  ID:         $Id$
+    Author:	Sava Krsti\'{c} and John Matthews
+*)
+
+header {* Some of the results in Inductive Invariants for Nested Recursion *}
+
 theory InductiveInvariant imports Main begin
 
-(** Authors: Sava Krsti\'{c} and John Matthews **)
-(**    Date: Sep 12, 2003                      **)
-
-text {* A formalization of some of the results in
-        \emph{Inductive Invariants for Nested Recursion},
-        by Sava Krsti\'{c} and John Matthews.
-        Appears in the proceedings of TPHOLs 2003, LNCS vol. 2758, pp. 253-269. *}
+text {* A formalization of some of the results in \emph{Inductive
+  Invariants for Nested Recursion}, by Sava Krsti\'{c} and John
+  Matthews.  Appears in the proceedings of TPHOLs 2003, LNCS
+  vol. 2758, pp. 253-269. *}
 
 
 text "S is an inductive invariant of the functional F with respect to the wellfounded relation r."

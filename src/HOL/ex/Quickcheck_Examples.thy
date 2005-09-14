@@ -144,5 +144,3 @@ theorem "hd(inOrder xt) = root xt"
   oops
 
 end
-
-

@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, LMU München
 *)
 
-header {* Using locales in Isabelle/Isar *}
+header {* Using locales in Isabelle/Isar -- outdated version! *}
 
 theory Locales imports Main begin
 

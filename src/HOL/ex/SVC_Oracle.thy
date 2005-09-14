@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 
-Installing the oracle for SVC (Stanford Validity Checker)
-
-Based upon the work of Søren T. Heilmann
+Based upon the work of Søren T. Heilmann.
 *)
+
+header {* Installing an oracle for SVC (Stanford Validity Checker) *}
 
 theory SVC_Oracle
 imports Main

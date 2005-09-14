@@ -1,10 +1,15 @@
-(* A formalization of quantifier elimination for Presburger arithmetic*)
-(* based on a generic quantifier elimination algorithm and 
-   cooper's methos to eliminate on \<exists> *)
+(*  Title:      HOL/ex/PresburgerEx.thy
+    ID:         $Id$
+    Author:     Amine Chaieb, TU Muenchen
+
+A formalization of quantifier elimination for Presburger arithmetic
+based on a generic quantifier elimination algorithm and Cooper's
+methos to eliminate on \<exists>. *)
+
+header {* Quantifier elimination for Presburger arithmetic *}
 
 theory Reflected_Presburger
 imports Main
-(* uses ("rcooper.ML") ("rpresbtac.ML") *)
 begin
 
 (* Shadow syntax for integer terms *)
@@ -2051,7 +2056,6 @@ lemma adjustcoeff_eq_corr:
   and dvd: "i dvd l"
   shows "(i*x + r = 0) = (l*x + ((l div i)*r) = 0)"
 proof-
-  thm dvd_div_pos[OF lpos inz dvd]
   have ldvdii: "(l div i)*i = l" by (rule dvd_div_pos[OF lpos inz dvd])
   have ldivinz: "l div i \<noteq> 0" using inz ldvdii lpos by auto
   have "(i*x + r = 0) = ((l div i)*(i*x + r) = (l div i)*0)"
@@ -2224,7 +2228,6 @@ next
 	    assume nz: "n=0"
 	    from prems have inz: "i \<noteq> 0" by auto
 	    from prems nz have idvdl: "i dvd l" by simp
-	    thm adjustcoeff_eq_corr[OF lpos inz idvdl]
 	    have "(i * a + (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0) =
 	      (l * a + l div i * (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0)"
 	      by (rule adjustcoeff_eq_corr[OF lpos inz idvdl])
@@ -2700,7 +2703,6 @@ lemma divlcm_corr:
   assumes 
   linp: "islinform p"
   shows "alldivide (divlcm p,p)"
-thm nz_le[OF divlcm_pos[OF linp]]
   using linp divlcm_pos
 proof (induct p rule: divlcm.induct,simp_all add: zdvd_refl_abs,clarsimp simp add: Nat.gr0_conv_Suc)
   case (goal1 f)
@@ -5722,4 +5724,5 @@ oracle rpresburger_oracle ("term") = RCooper.rpresburger_oracle
 use "rpresbtac.ML"
 setup RPresburger.setup
 *)
+
 end

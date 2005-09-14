@@ -1,5 +1,11 @@
 
-svc_test = SVC_Oracle +
+(* $Id$ *)
+
+header {* Demonstrating the interface SVC *}
+
+theory svc_test
+imports SVC_Oracle
+begin
 
 syntax
     "<->"         :: [bool, bool] => bool                  (infixr 25)

@@ -1,9 +1,12 @@
- (* $Id$ *)
+(*  ID:         $Id$
+    Author:     Bernhard Haeupler
+*)
+
+header {* Some examples demonstrating the comm-ring method *}
+
 theory Commutative_RingEx
 imports Main
 begin
-
-  (* Some examples demonstrating the comm_ring method *)
 
 lemma "4*(x::int)^5*y^3*x^2*3 + x*z + 3^5 = 12*x^7*y^3 + z*x + 243"
 by comm_ring

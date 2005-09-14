@@ -8,6 +8,8 @@ A question from "Bundeswettbewerb Mathematik"
 Proof due to Herbert Ehler
 *)
 
+header {* A question from ``Bundeswettbewerb Mathematik'' *}
+
 theory Puzzle imports Main begin
 
 consts f :: "nat => nat"

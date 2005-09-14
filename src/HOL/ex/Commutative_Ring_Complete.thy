@@ -1,9 +1,12 @@
 (*  ID:         $Id$
     Author:     Bernhard Haeupler
 
-  This theory is about the relative completeness of the tactic 
-  As long as the reified atomic polynomials of type 'a pol 
-  are in normal form, the cring method is complete *)	
+This theory is about of the relative completeness of method comm-ring
+method.  As long as the reified atomic polynomials of type 'a pol are
+in normal form, the cring method is complete.
+*)
+
+header {* Proof of the relative completeness of method comm-ring *}
 
 theory Commutative_Ring_Complete
 imports Main

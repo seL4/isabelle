@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Higher-Order Logic: Intuitionistic predicate calculus problems
-
 Taken from FOL/ex/int.ML
 *)
+
+header {* Higher-Order Logic: Intuitionistic predicate calculus problems *}
 
 theory Intuitionistic imports Main begin
 

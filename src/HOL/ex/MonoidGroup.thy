@@ -1,11 +1,9 @@
 (*  Title:      HOL/ex/MonoidGroup.thy
     ID:         $Id$
     Author:     Markus Wenzel
-
-Monoids and Groups as predicates over record schemes.
 *)
 
-header {* Monoids and Groups *}
+header {* Monoids and Groups as predicates over record schemes *}
 
 theory MonoidGroup imports Main begin
 

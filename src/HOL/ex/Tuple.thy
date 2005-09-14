@@ -1,11 +1,6 @@
 (*  Title:      HOL/ex/Tuple.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-
-Properly nested products (see also theory Prod).
-
-Unquestionably, this should be used as the standard representation of
-tuples in HOL, but it breaks many existing theories!
 *)
 
 header {* Properly nested products *}

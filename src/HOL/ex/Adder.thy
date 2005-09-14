@@ -1,11 +1,9 @@
 (*  Title:      HOL/ex/Adder.thy
     ID:         $Id$
     Author:     Sergey Tverdyshev (Universitaet des Saarlandes)
-
-Implementation of carry chain incrementor and adder.
 *)
 
-header{* Adder *}
+header {* Implementation of carry chain incrementor and adder *}
 
 theory Adder imports Main Word begin
 

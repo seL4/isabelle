@@ -1,9 +1,9 @@
 (*  Title:      HOL/ex/PresburgerEx.thy
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
-
-Some examples for Presburger Arithmetic
 *)
+
+header {* Some examples for Presburger Arithmetic *}
 
 theory PresburgerEx imports Main begin
 
