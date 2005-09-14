@@ -6,7 +6,7 @@
 header {* Main HOL *}
 
 theory Main
-    imports Refute Reconstruction
+imports Commutative_Ring Refute Reconstruction
 
 begin
 
