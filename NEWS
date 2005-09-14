@@ -41,6 +41,11 @@ prints the last 100 theorems matching the pattern "(_::nat) + _ + _",
 matching the current goal as introduction rule and not having "HOL."
 in their name (i.e. not being defined in theory HOL).
 
+* Communication with Proof General is now 8bit clean, which means that
+Unicode text in UTF-8 encoding may be used within theory texts (both
+formal and informal parts).  See option -U of the Isabelle Proof
+General interface.
+
 
 *** Document preparation ***
 
@@ -224,29 +229,35 @@ theory development.
 
 *** Locales ***
 
-* New commands for the interpretation of locale expressions in theories (1),
-locales (2) and proof contexts (3).  These generate proof obligations from
-the expression specification.  After the obligations have been discharged,
-theorems of the expression are added to the theory, target locale or proof
-context.  The synopsis of the commands is a follows:
+* New commands for the interpretation of locale expressions in
+theories (1), locales (2) and proof contexts (3).  These generate
+proof obligations from the expression specification.  After the
+obligations have been discharged, theorems of the expression are added
+to the theory, target locale or proof context.  The synopsis of the
+commands is a follows:
+
   (1) interpretation expr inst
   (2) interpretation target < expr
   (3) interpret expr inst
+
 Interpretation in theories and proof contexts require a parameter
 instantiation of terms from the current context.  This is applied to
-specifications and theorems of the interpreted expression.  Interpretation
-in locales only permits parameter renaming through the locale expression.
-Interpretation is smart in that interpretations that are active already
-do not occur in proof obligations, neither are instantiated theorems stored
-in duplicate.  Use 'print_interps' to inspect active interpretations of
-a particular locale.  For details, see the Isar Reference manual.
+specifications and theorems of the interpreted expression.
+Interpretation in locales only permits parameter renaming through the
+locale expression.  Interpretation is smart in that interpretations
+that are active already do not occur in proof obligations, neither are
+instantiated theorems stored in duplicate.  Use 'print_interps' to
+inspect active interpretations of a particular locale.  For details,
+see the Isar Reference manual.
 
 INCOMPATIBILITY: former 'instantiate' has been withdrawn, use
 'interpret' instead.
 
-* New context element 'constrains' for adding type constraints to parameters.
+* New context element 'constrains' for adding type constraints to
+parameters.
 
-* Context expressions: renaming of parameters with syntax redeclaration.
+* Context expressions: renaming of parameters with syntax
+redeclaration.
 
 * Locale declaration: 'includes' disallowed.
 
