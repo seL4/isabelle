@@ -2,11 +2,11 @@
 
     (* Caution: This file should not be modified. *)
     (* It is autmatically generated from HOL/ex/Reflected_Presburger.thy *)
-fun nat i = if i < 0 then 0 else i;
+fun (nat: IntInf.int -> IntInf.int) i = if i < 0 then 0 else i;
 structure Generated =
 struct
 
-datatype intterm = Cst of int | Var of int | Neg of intterm
+datatype intterm = Cst of IntInf.int | Var of IntInf.int | Neg of intterm
   | Add of intterm * intterm | Sub of intterm * intterm
   | Mult of intterm * intterm;
 
@@ -178,7 +178,7 @@ fun op_45_def2 z w = (z + ~ w);
 
 fun op_45_def0 m n = nat (op_45_def2 (m) (n));
 
-val id_1_def0 : int = (0 + 1);
+val id_1_def0 : IntInf.int = (0 + 1);
 
 fun decrvarsI (Cst i) = Cst i
   | decrvarsI (Var n) = Var (op_45_def0 n id_1_def0)
@@ -207,9 +207,9 @@ fun op_64 [] ys = ys
 fun map f [] = []
   | map f (x :: xs) = (f x :: map f xs);
 
-fun iupto (i, j) = (if (j < i) then [] else (i :: iupto ((i + 1), j)));
+fun iupto (i:IntInf.int, j:IntInf.int) = (if (j < i) then [] else (i :: iupto ((i + 1), j)));
 
-fun all_sums (j, []) = []
+fun all_sums (j:IntInf.int, []) = []
   | all_sums (j, (i :: is)) =
     op_64 (map (fn x => lin_add (i, Cst x)) (iupto (1, j))) (all_sums (j, is));
 
@@ -218,20 +218,20 @@ fun split x = (fn p => x (fst p) (snd p));
 fun negateSnd x = split (fn q => fn r => (q, ~ r)) x;
 
 fun adjust b =
-  (fn (q, r) =>
-    (if (0 <= op_45_def2 r b) then (((2 * q) + 1), op_45_def2 r b)
-      else ((2 * q), r)));
+  (fn (q:IntInf.int, r:IntInf.int) =>
+    (if (0 <= op_45_def2 r b) then ((((2:IntInf.int) * q) + (1:IntInf.int)), op_45_def2 r b)
+      else (((2:IntInf.int) * q), r)));
 
-fun negDivAlg (a, b) =
+fun negDivAlg (a:IntInf.int, b:IntInf.int) =
     (if ((0 <= (a + b)) orelse (b <= 0)) then (~1, (a + b))
       else adjust b (negDivAlg (a, (2 * b))));
 
-fun posDivAlg (a, b) =
+fun posDivAlg (a:IntInf.int, b:IntInf.int) =
     (if ((a < b) orelse (b <= 0)) then (0, a)
       else adjust b (posDivAlg (a, (2 * b))));
 
 fun divAlg x =
-  split (fn a => fn b =>
+  split (fn a:IntInf.int => fn b:IntInf.int =>
           (if (0 <= a)
             then (if (0 <= b) then posDivAlg (a, b)
                    else (if (a = 0) then (0, 0)
@@ -240,7 +240,7 @@ fun divAlg x =
                    else negateSnd (posDivAlg (~ a, ~ b)))))
     x;
 
-fun op_mod_def1 a b = snd (divAlg (a, b));
+fun op_mod_def1 (a:IntInf.int) (b:IntInf.int) = snd (divAlg (a, b));
 
 fun op_dvd m n = (op_mod_def1 n m = 0);
 
@@ -1139,17 +1139,17 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (QAll ap) = QAll ap
   | minusinf (QEx aq) = QEx aq;
 
-fun abs i = (if (i < 0) then ~ i else i);
+fun (abs: IntInf.int -> IntInf.int) i = (if (i < 0) then ~ i else i);
 
-fun op_div_def1 a b = fst (divAlg (a, b));
+fun op_div_def1 (a:IntInf.int) (b:IntInf.int) = fst (divAlg (a, b));
 
 fun op_mod_def0 m n = nat (op_mod_def1 (m) (n));
 
-fun ngcd (m, n) = (if (n = 0) then m else ngcd (n, op_mod_def0 m n));
+fun ngcd (m:IntInf.int, n:IntInf.int) = (if (n = 0) then m else ngcd (n, op_mod_def0 m n));
 
 fun igcd x = split (fn a => fn b => (ngcd (nat (abs a), nat (abs b)))) x;
 
-fun ilcm a b = op_div_def1 (a * b) (igcd (a, b));
+fun ilcm (a:IntInf.int) (b:IntInf.int) = op_div_def1 (a * b) (igcd (a, b));
 
 fun divlcm (NOT p) = divlcm p
   | divlcm (And (p, q)) = ilcm (divlcm p) (divlcm q)
@@ -1567,7 +1567,7 @@ fun mirror (And (p, q)) = And (mirror p, mirror q)
 
 fun op_43_def0 m n = nat ((m) + (n));
 
-fun size_def1 [] = 0
+fun size_def1 [] = (0:IntInf.int)
   | size_def1 (a :: list) = op_43_def0 (size_def1 list) (0 + 1);
 
 fun aset (And (p, q)) = op_64 (aset p) (aset q)
@@ -1776,7 +1776,7 @@ fun bset (And (p, q)) = op_64 (bset p) (bset q)
   | bset (QAll ap) = []
   | bset (QEx aq) = [];
 
-fun adjustcoeff (l, Le (Add (Mult (Cst c, Var 0), r), Cst i)) =
+fun adjustcoeff (l:IntInf.int, Le (Add (Mult (Cst c, Var 0), r), Cst i)) =
     (if (c <= 0)
       then Le (Add (Mult (Cst ~1, Var 0), lin_mul (~ (op_div_def1 l c), r)),
                 Cst 0)
