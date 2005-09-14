@@ -463,7 +463,7 @@ fun add_parents thy NONE parents = parents
         val bads = List.mapPartial bad_inst (args ~~ types);
 
         val inst = map fst args ~~ types;
-        val subst = Term.map_type_tfree (fn (x, _) => valOf (assoc (inst, x)));
+        val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
         val parent' = Option.map (apfst (map subst)) parent;
         val fields' = map (apsnd subst) fields;
         val extension' = apsnd (map subst) extension;
@@ -551,10 +551,7 @@ fun gen_ext_type_tr sep mark sfx more sg t =
       | splitargs (_::_) [] = raise TERM (msg ^ "expecting more fields", [t])
       | splitargs _ _ = ([],[]);
 
-    fun get_sort xs n = (case assoc (xs,n) of
-                                SOME s => s
-                              | NONE => Sign.defaultS sg);
-
+    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS sg);
 
     fun to_type t = Sign.certify_typ sg
                        (Sign.intern_typ sg
@@ -692,9 +689,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
       (* tm is term representation of a (nested) field type. We first reconstruct the      *)
       (* type from tm so that we can continue on the type level rather then the term level.*)
 
-      fun get_sort xs n = (case assoc (xs,n) of
-                             SOME s => s
-                           | NONE => Sign.defaultS sg);
+      fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS sg);
 
       (* WORKAROUND:
        * If a record type occurs in an error message of type inference there
@@ -739,9 +734,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
 
 fun record_type_tr' sep mark record record_scheme sg t =
   let
-    fun get_sort xs n = (case assoc (xs,n) of
-                             SOME s => s
-                           | NONE => Sign.defaultS sg);
+    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS sg);
 
     val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
 
@@ -1214,7 +1207,7 @@ fun read_raw_parent sign s =
 
 fun read_typ sign (env, s) =
   let
-    fun def_sort (x, ~1) = assoc (env, x)
+    fun def_sort (x, ~1) = AList.lookup (op =) env x
       | def_sort _ = NONE;
     val T = Type.no_tvars (Sign.read_typ (sign, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, env), T) end;
@@ -1254,7 +1247,7 @@ fun try_param_tac s rule i st =
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' = cterm_instantiate (map (pairself cert) (case (rev params) of
-        [] => (case assoc (map dest_Free (term_frees (prop_of st)), s) of
+        [] => (case AList.lookup (op =) (map dest_Free (term_frees (prop_of st))) s of
           NONE => sys_error "try_param_tac: no such variable"
         | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl),
             (x, Free (s, T))])
