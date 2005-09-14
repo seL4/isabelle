@@ -344,7 +344,9 @@ patterns (these are not perfect but work quite well):
   {)\([^\.]*\)\.\.  ->  {\1<\.\.}
   \.\.\([^(}]*\)(}  ->  \.\.<\1}
 
-* theory Finite_Set: changed the syntax for 'setsum', summation over
+* Method comm_ring for proving equalities in commutative rings.
+
+* Theory Finite_Set: changed the syntax for 'setsum', summation over
 finite sets: "setsum (%x. e) A", which used to be "\<Sum>x:A. e", is
 now either "SUM x:A. e" or "\<Sum>x \<in> A. e". The bound variable can
 be a tuple pattern.
