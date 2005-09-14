@@ -9,7 +9,7 @@ in normal form, the cring method is complete.
 header {* Proof of the relative completeness of method comm-ring *}
 
 theory Commutative_Ring_Complete
-imports Main
+imports Commutative_Ring  (*do not use Main here, since it hides our consts*)
 begin
 	
   (* Fromalization of normal form *)
