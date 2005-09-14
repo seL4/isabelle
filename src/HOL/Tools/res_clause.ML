@@ -87,7 +87,11 @@ val const_trans_table =
 		   ("op <", "less"),
 		   ("op &", "and"),
 		   ("op |", "or"),
+		   ("op +", "plus"),
+		   ("op -", "minus"),
+		   ("op *", "times"),
 		   ("op -->", "implies"),
+		   ("{}", "emptyset"),
 		   ("op :", "in"),
 		   ("op Un", "union"),
 		   ("op Int", "inter")];
