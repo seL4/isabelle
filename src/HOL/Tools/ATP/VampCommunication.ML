@@ -216,78 +216,29 @@ fun getVampInput instr =
     end
 
 
-(*FIXME!!: The following code is a mess. It mostly refers to SPASS-specific things*)
-
 (***********************************************************************)
 (*  Function used by the Isabelle process to read in an E proof   *)
 (***********************************************************************)
 
-fun getEInput instr = 
-    let val thisLine = TextIO.inputLine instr 
-        val _ = File.write (File.tmp_path (Path.basic "eprover_line")) thisLine
-    in 
+fun getEInput instr =
+    let val thisLine = TextIO.inputLine instr
+	val _ = File.write (File.tmp_path (Path.basic "atp_line")) thisLine
+    in    (* reconstructed proof string *)
       if thisLine = "" then ("No output from reconstruction process.\n","","")
-      else if String.sub (thisLine, 0) = #"["
-      then 
-	let val reconstr = thisLine
-	    val thmstring = TextIO.inputLine instr 
-	    val goalstring = TextIO.inputLine instr   
-	in
-	    (reconstr, thmstring, goalstring)
-	end
-      else if String.isPrefix "SPASS beiseite:" thisLine (*FIXME: wrong!!*)
-      then 
-	 let val reconstr = thisLine
-	     val thmstring = TextIO.inputLine instr
-	     val goalstring = TextIO.inputLine instr
-	 in
-	     (reconstr, thmstring, goalstring)
-	 end
-
-       else if String.isPrefix "# No proof" thisLine 
-      then 
-	 let val reconstr = thisLine
-	     val thmstring = TextIO.inputLine instr
-	     val goalstring = TextIO.inputLine instr
-	 in
-	     (reconstr, thmstring, goalstring)
-	 end
-
-       else if String.isPrefix "# Failure" thisLine 
-      then 
-	 let val reconstr = thisLine
-	     val thmstring = TextIO.inputLine instr
-	     val goalstring = TextIO.inputLine instr
-	 in
-	     (reconstr, thmstring, goalstring)
-	 end
-      else if String.isPrefix  "Rules from"  thisLine
-      then 
-	   let val reconstr = thisLine
-	       val thmstring = TextIO.inputLine instr
-	       val goalstring = TextIO.inputLine instr
-	   in
-	       (reconstr, thmstring, goalstring)
-	   end
-      else if substring (thisLine, 0,5) = "Proof"
+      else if String.isPrefix "# Problem is satisfiable" thisLine orelse
+              String.isPrefix "# Cannot determine problem status" thisLine orelse
+              String.isPrefix "# Failure:" thisLine
       then
-	let val reconstr = thisLine
-	    val thmstring = TextIO.inputLine instr
+	let val thmstring = TextIO.inputLine instr
 	    val goalstring = TextIO.inputLine instr
-	in
-          File.write (File.tmp_path (Path.basic "foo_getSpass")) thisLine;
-          (reconstr, thmstring, goalstring)
-        end
-      else if substring (thisLine, 0,1) = "%"
+	in (thisLine, thmstring, goalstring) end
+      else if thisLine = "Proof found but translation failed!"
       then
-	let val reconstr = thisLine
-	    val thmstring = TextIO.inputLine instr
-	    val goalstring = TextIO.inputLine instr
-	in
-           File.write (File.tmp_path (Path.basic "foo_getSpass")) thisLine;
-	   (reconstr, thmstring, goalstring)
-	end
+	 let val thmstring = TextIO.inputLine instr
+	     val goalstring = TextIO.inputLine instr
+	     val _ = debug "getEInput: translation of proof failed"
+	 in (thisLine, thmstring, goalstring) end
       else getEInput instr
-     end
+    end
 
 end;
