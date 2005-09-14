@@ -92,7 +92,7 @@ specified above.
 
 Predefined styles are 'lhs' and 'rhs' printing the lhs/rhs of
 definitions, equations, inequations etc., 'concl' printing only the
-conclusion of a meta-logical statement theorem, and 'prem1' .. 'prem9'
+conclusion of a meta-logical statement theorem, and 'prem1' .. 'prem19'
 to print the specified premise.  TermStyle.add_style provides an ML
 interface for introducing further styles.  See also the "LaTeX Sugar"
 document practical applications.  The ML antiquotation prints
