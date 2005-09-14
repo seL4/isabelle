@@ -15,6 +15,18 @@ text {*
   PreList} already includes most HOL theories.
 *}
 
+
+subsection {* Misc *}
+
+text {* Hide the rather generic names used in theory @{text Commutative_Ring}. *}
+
+hide (open) const
+  Pc Pinj PX
+  Pol Add Sub Mul Pow Neg
+  add mul neg sqr pow sub
+  norm
+
+
 subsection {* Configuration of the code generator *}
 
 types_code
@@ -69,6 +81,7 @@ end;
 setup eq_codegen_setup
 
 lemmas [code] = imp_conv_disj
+
 
 subsection {* Configuration of the 'refute' command *}
 
