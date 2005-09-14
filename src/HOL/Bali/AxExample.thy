@@ -40,7 +40,7 @@ declare split_if_asm [split del]
 declare lvar_def [simp]
 
 ML {*
-fun inst1_tac s t st = case assoc (rev (term_varnames (prop_of st)), s) of
+fun inst1_tac s t st = case AList.lookup (op =) (rev (term_varnames (prop_of st))) s of
   SOME i => Tactic.instantiate_tac' [((s, i), t)] st | NONE => Seq.empty;
 val ax_tac = REPEAT o rtac allI THEN'
              resolve_tac(thm "ax_Skip"::thm "ax_StatRef"::thm "ax_MethdN"::

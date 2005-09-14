@@ -89,7 +89,7 @@ fun reconstruction_failed fname = error (fname ^ ": reconstruction failed")
 (************************************************)
 
 fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
-    let val this_axiom = valOf (assoc (clauses,clausenum))
+    let val this_axiom = (the o AList.lookup (op =) clauses) clausenum
 	val (res, numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause this_axiom clause_strs allvars)         
 	val thmvars = thm_vars res
     in
@@ -103,8 +103,8 @@ fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =
 
                  (* numbers of clauses and literals*) (*vars*) (*list of current thms*) (* literal strings as parsed from spass *)
 fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs =
-    let val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
-	val thm2 =  valOf (assoc (thml,clause2))
+    let val thm1 =  select_literal (lit1 + 1) ((the o AList.lookup (op =) thml) clause1)
+	val thm2 =  (the o AList.lookup (op =) thml) clause2
 	val res =   thm1 RSN ((lit2 +1), thm2)
 	val (res', numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause res clause_strs allvars)
 	val thmvars = thm_vars res
@@ -121,8 +121,8 @@ fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs =
 
 
 fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs =
-    let val thm1 =  select_literal (lit1 + 1) (valOf (assoc (thml,clause1)))
-	val thm2 =  valOf (assoc (thml,clause2))
+    let val thm1 =  select_literal (lit1 + 1) ((the o AList.lookup (op =) thml) clause1)
+	val thm2 =  (the o AList.lookup (op =) thml) clause2
 	val res =   thm1 RSN ((lit2 +1), thm2)
 	val (res', numlist, symlist, nsymlist) = 
 	    (ReconOrderClauses.rearrange_clause res clause_strs allvars)
@@ -169,7 +169,7 @@ fun delete_assump_tac state lit =
 (*FIXME: share code with that in Tools/reconstruction.ML*)
 fun follow_factor clause lit1 lit2 allvars thml clause_strs = 
     let 
-      val th =  valOf (assoc (thml,clause))
+      val th =  (the o AList.lookup (op =) thml) clause
       val prems = prems_of th
       val sign = sign_of_thm th
       val fac1 = ReconOrderClauses.get_nth (lit1+1) prems
@@ -237,8 +237,8 @@ val rev_ssubst = rotate_prems 1 ssubst;
 
 fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs = 
     let 
-      val th1 =  valOf (assoc (thml,clause1))
-      val th2 =  valOf (assoc (thml,clause2)) 
+      val th1 =  (the o AList.lookup (op =) thml) clause1
+      val th2 =  (the o AList.lookup (op =) thml) clause2 
       val eq_lit_th = select_literal (lit1+1) th1
       val mod_lit_th = select_literal (lit2+1) th2
       val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -295,8 +295,8 @@ fun delete_assumps 0 th = th
 (* changed negate_nead to negate_head here too*)
                     (* clause1, lit1 is thing to rewrite with *)
 (*fun follow_rewrite ((clause1, lit1), (clause2, lit2)) allvars thml clause_strs = 
-      let val th1 =  valOf (assoc (thml,clause1))
-	  val th2 = valOf (assoc (thml,clause2))
+      let val th1 =  (the o AList.lookup (op =) thml) clause1
+	  val th2 = (the o AList.lookup (op =) thml) clause2
 	  val eq_lit_th = select_literal (lit1+1) th1
 	  val mod_lit_th = select_literal (lit2+1) th2
 	  val eqsubst = eq_lit_th RSN (2,rev_subst)
@@ -321,7 +321,7 @@ fun delete_assumps 0 th = th
 
 
 fun follow_obvious  (clause1, lit1)  allvars thml clause_strs = 
-    let val th1 =  valOf (assoc (thml,clause1))
+    let val th1 =  (the o AList.lookup (op =) thml) clause1
 	val prems1 = prems_of th1
 	val newthm = refl RSN ((lit1+ 1), th1)
 		     handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
