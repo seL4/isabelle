@@ -155,12 +155,9 @@ ISABELLE_INTERFACE=$(choosefrom\
   "$ISABELLE_INTERFACE")
 
 PROOFGENERAL_OPTIONS=""
-#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true"
+#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true -p xemacs"
 
-type -path xemacs >/dev/null || \
-  PROOFGENERAL_OPTIONS="-p emacs $PROOFGENERAL_OPTIONS"
-
-# Executed before xemacs with ProofGeneral is called; required for remote fonts.
+# Automatic setup of remote fonts
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 
