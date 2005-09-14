@@ -98,7 +98,7 @@ primrec
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
 
 
-subsection {* @{term empty} *}
+subsection {* @{term [source] empty} *}
 
 lemma empty_upd_none[simp]: "empty(x := None) = empty"
 apply (rule ext)
@@ -112,7 +112,7 @@ apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
 
-subsection {* @{term map_upd} *}
+subsection {* @{term [source] map_upd} *}
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
 apply (rule ext)
@@ -145,7 +145,7 @@ done
 
 
 (* FIXME: what is this sum_case nonsense?? *)
-subsection {* @{term sum_case} and @{term empty}/@{term map_upd} *}
+subsection {* @{term [source] sum_case} and @{term [source] empty}/@{term [source] map_upd} *}
 
 lemma sum_case_map_upd_empty[simp]:
  "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
@@ -166,7 +166,7 @@ apply (simp (no_asm) split add: sum.split)
 done
 
 
-subsection {* @{term chg_map} *}
+subsection {* @{term [source] chg_map} *}
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
 by (unfold chg_map_def, auto)
@@ -178,7 +178,7 @@ lemma chg_map_other [simp]: "a \<noteq> b \<Longrightarrow> chg_map f a m b = m 
 by (auto simp: chg_map_def split add: option.split)
 
 
-subsection {* @{term map_of} *}
+subsection {* @{term [source] map_of} *}
 
 lemma map_of_eq_None_iff:
  "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
@@ -247,7 +247,7 @@ lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs
 by (induct "xs", auto)
 
 
-subsection {* @{term option_map} related *}
+subsection {* @{term [source] option_map} related *}
 
 lemma option_map_o_empty[simp]: "option_map f o empty = empty"
 apply (rule ext)
@@ -260,7 +260,7 @@ apply (rule ext)
 apply (simp (no_asm))
 done
 
-subsection {* @{term map_comp} related *}
+subsection {* @{term [source] map_comp} related *}
 
 lemma map_comp_empty [simp]: 
   "m \<circ>\<^sub>m empty = empty"
@@ -343,7 +343,7 @@ lemma inj_on_map_add_dom[iff]:
  "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
 by(fastsimp simp add:map_add_def dom_def inj_on_def split:option.splits)
 
-subsection {* @{term restrict_map} *}
+subsection {* @{term [source] restrict_map} *}
 
 lemma restrict_map_to_empty[simp]: "m|`{} = empty"
 by(simp add: restrict_map_def)
@@ -386,7 +386,7 @@ lemma fun_upd_restrict_conv[simp]:
 by(simp add: restrict_map_def expand_fun_eq)
 
 
-subsection {* @{term map_upds} *}
+subsection {* @{term [source] map_upds} *}
 
 lemma map_upds_Nil1[simp]: "m([] [|->] bs) = m"
 by(simp add:map_upds_def)
@@ -461,7 +461,7 @@ apply(simp add: map_upd_upds_conv_if)
 done
 
 
-subsection {* @{term map_upd_s} *}
+subsection {* @{term [source] map_upd_s} *}
 
 lemma map_upd_s_apply [simp]: 
   "(m(as{|->}b)) x = (if x : as then Some b else m x)"
@@ -471,7 +471,7 @@ lemma map_subst_apply [simp]:
   "(m(a~>b)) x = (if m x = Some a then Some b else m x)" 
 by (simp add: map_subst_def)
 
-subsection {* @{term dom} *}
+subsection {* @{term [source] dom} *}
 
 lemma domI: "m a = Some b ==> a : dom m"
 by (unfold dom_def, auto)
@@ -531,7 +531,7 @@ apply(rule ext)
 apply(fastsimp simp:map_add_def split:option.split)
 done
 
-subsection {* @{term ran} *}
+subsection {* @{term [source] ran} *}
 
 lemma ranI: "m a = Some b ==> b : ran m" 
 by (auto simp add: ran_def)
