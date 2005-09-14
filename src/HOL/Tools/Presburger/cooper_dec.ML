@@ -44,7 +44,6 @@ sig
   val evalc : term -> term
   val cooper_w : string list -> term -> (term option * term)
   val integer_qelim : Term.term -> Term.term
-  val presburger_oracle : theory -> term -> term
 end;
 
 structure  CooperDec : COOPER_DEC =
@@ -938,8 +937,4 @@ val integer_qelim = simpl o evalc o (lift_qelim linform (simpl o (cnnf posineq o
 
 val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) cooper is_arith_rel) ; 
 
-fun presburger_oracle thy t =
-    if (!quick_and_dirty) 
-    then HOLogic.mk_Trueprop (HOLogic.mk_eq(t,integer_qelim t))
-    else error "Presburger oracle: not in quick_and_dirty mode"
 end;

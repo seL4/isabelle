@@ -10,7 +10,8 @@ header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
 imports NatSimprocs SetInterval
-uses ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") ("presburger.ML")
+uses ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") 
+	("reflected_presburger.ML") ("reflected_cooper.ML") ("presburger.ML")
 begin
 
 text {* Theorem for unitifying the coeffitients of @{text x} in an existential formula*}
@@ -982,8 +983,10 @@ theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <=
   by (simp cong: conj_cong)
 
 use "cooper_dec.ML"
+use "reflected_presburger.ML" 
+use "reflected_cooper.ML"
 oracle
-  presburger_oracle ("term") = CooperDec.presburger_oracle
+  presburger_oracle ("term") = ReflectedCooper.presburger_oracle
 
 use "cooper_proof.ML"
 use "qelim.ML"
