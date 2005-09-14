@@ -399,7 +399,7 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'hide' name (nameref + )
+  'hide' ('(' 'open' ')')? name (nameref + )
   ;
 \end{rail}
 
@@ -418,11 +418,15 @@ following commands provide some way to do so.
   Note that global names are prone to get hidden accidently later, when
   qualified names of the same base name are introduced.
   
-\item [$\isarkeyword{hide}~space~names$] removes declarations from a given
-  name space (which may be $class$, $type$, or $const$).  Hidden objects
-  remain valid within the logic, but are inaccessible from user input.  In
-  output, the special qualifier ``$\mathord?\mathord?$'' is prefixed to the
-  full internal name.  Unqualified (global) names may not be hidden.
+\item [$\isarkeyword{hide}~space~names$] fully removes declarations from a
+  given name space (which may be $class$, $type$, or $const$); with the
+  $(open)$ option, only the base name is hidden.  Global (unqualified) names
+  may never be hidden.
+  
+  Note that hiding name space accesses has no impact on logical declarations
+  -- they remain valid internally.  Entities that are no longer accessible to
+  the user are printed with the special qualifier ``$\mathord?\mathord?$''
+  prefixed to the full internal name.
 \end{descr}
 
 

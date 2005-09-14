@@ -223,6 +223,8 @@ selections of theorems in named facts via index ranges.
 wrt. the last state (works for interactive theory development only),
 in proof mode print all local facts (cf. 'print_facts');
 
+* 'hide': option '(open)' hides only base names.
+
 * More efficient treatment of intermediate checkpoints in interactive
 theory development.
 

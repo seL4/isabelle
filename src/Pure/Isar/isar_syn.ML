@@ -223,7 +223,8 @@ val localP =
 
 val hideP =
   OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
-    (P.name -- Scan.repeat1 P.xname >> (Toplevel.theory o Sign.hide_names true));
+    ((P.opt_keyword "open" >> not) -- (P.name -- Scan.repeat1 P.xname) >>
+      (Toplevel.theory o uncurry Sign.hide_names));
 
 
 (* use ML text *)
