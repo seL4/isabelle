@@ -4,7 +4,7 @@
 
 theory Reflected_Presburger
 imports Main
-uses ("rcooper.ML") ("rpresbtac.ML")
+(* uses ("rcooper.ML") ("rpresbtac.ML") *)
 begin
 
 (* Shadow syntax for integer terms *)
@@ -5717,10 +5717,9 @@ declare zdvd_iff_zmod_eq_0 [code]
 
 (*
 generate_code ("presburger.ML") test = "pa"
-*)
 use "rcooper.ML"
 oracle rpresburger_oracle ("term") = RCooper.rpresburger_oracle
 use "rpresbtac.ML"
 setup RPresburger.setup
-
+*)
 end
