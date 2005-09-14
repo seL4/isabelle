@@ -210,10 +210,7 @@ fun smart_string_of_cterm ct =
     in
 	transform_error (Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true (F false))) 0
     end
-    handle ERROR_MESSAGE mesg =>
-	   (writeln "Exception in smart_string_of_cterm!";
-	    writeln mesg;
-	    quote (string_of_cterm ct))
+    handle ERROR_MESSAGE mesg => quote (string_of_cterm ct)
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
@@ -2044,25 +2041,25 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 			_ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
 		      | _ => raise ERR "type_introduction" "Bad type definition theorem"
 	    val tfrees = term_tfrees c
-	    val tnames = map fst tfrees
+	    val tnames = sort string_ord (map fst tfrees)
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
-	    val th3 = (#type_definition typedef_info) RS typedef_hol2hollight
-            val _ = message "step 1"
-	    val th4 = Drule.freeze_all th3
-            val _ = message "step 2"
 	    val fulltyname = Sign.intern_type (sign_of thy') tycname
+	    val aty = Type (fulltyname, map mk_vartype tnames)
+            val typedef_hol2hollight' = 
+		Drule.instantiate' 
+		    [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)] 
+		    [NONE, NONE, NONE, SOME (cterm_of thy' (Free ("a", aty))), SOME (cterm_of thy' (Free ("r", tT)))]
+                    typedef_hol2hollight
+	    val th4 = (#type_definition typedef_info) RS typedef_hol2hollight'
+            val _ = if Drule.tvars_of th4 = [] then () else raise ERR "type_introduction" "no type variables expected any more" 
+            val _ = if Drule.vars_of th4 = [] then () else raise ERR "type_introduction" "no term variables expected any more"
 	    val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
             val _ = message "step 4"
 	    val sg = sign_of thy''
 	    val (hth' as HOLThm args) = norm_hthm sg (HOLThm(rens,th4))
-	    val _ = if #maxidx (rep_thm th4) <> ~1
-		    then (Library.setmp show_types true pth hth' ; error "SCHEME!")
-		    else ()
-	    val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
-		    else ()
 	    val thy4 = add_hol4_pending thyname thmname args thy''
 	   
 	    val sg = sign_of thy4
