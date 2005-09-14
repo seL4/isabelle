@@ -7,7 +7,7 @@
 
 theory Commutative_Ring
 imports List
-uses ("comm_ring.ML")
+uses ("Tools/comm_ring.ML")
 begin
 
   (* Syntax of multivariate polynomials (pol) and polynomial expressions*)
@@ -304,7 +304,7 @@ Does not work, since no generic ring operations implementation is there
 generate_code ("ring.ML") test = "norm"*)
 
 
- use "comm_ring.ML"
+ use "Tools/comm_ring.ML"
 setup "CommRing.setup"
 
 end
