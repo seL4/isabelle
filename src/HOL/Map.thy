@@ -30,10 +30,9 @@ map_subst::"('a ~=> 'b) => 'b => 'b =>
 	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
 
-syntax
-  fun_map_comp :: "('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
-translations
-  "f o_m m" == "option_map f o m"
+constdefs
+  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
+  "f o_m g  == (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 nonterminals
   maplets maplet
@@ -50,7 +49,7 @@ syntax
 syntax (xsymbols)
   "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
 
-  fun_map_comp :: "('b => 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "\<circ>\<^sub>m" 55)
+  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "\<circ>\<^sub>m" 55)
 
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
@@ -261,6 +260,25 @@ apply (rule ext)
 apply (simp (no_asm))
 done
 
+subsection {* @{term map_comp} related *}
+
+lemma map_comp_empty [simp]: 
+  "m \<circ>\<^sub>m empty = empty"
+  "empty \<circ>\<^sub>m m = empty"
+  by (auto simp add: map_comp_def intro: ext split: option.splits)
+
+lemma map_comp_simps [simp]: 
+  "m2 k = None \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = None"
+  "m2 k = Some k' \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = m1 k'" 
+  by (auto simp add: map_comp_def)
+
+lemma map_comp_Some_iff:
+  "((m1 \<circ>\<^sub>m m2) k = Some v) = (\<exists>k'. m2 k = Some k' \<and> m1 k' = Some v)" 
+  by (auto simp add: map_comp_def split: option.splits)
+
+lemma map_comp_None_iff:
+  "((m1 \<circ>\<^sub>m m2) k = None) = (m2 k = None \<or> (\<exists>k'. m2 k = Some k' \<and> m1 k' = None)) " 
+  by (auto simp add: map_comp_def split: option.splits)
 
 subsection {* @{text "++"} *}
 
