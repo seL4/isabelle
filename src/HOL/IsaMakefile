@@ -390,9 +390,9 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Library/NatPair.thy \
   Auth/Guard/Analz.thy Auth/Guard/Extensions.thy Auth/Guard/GuardK.thy \
   Auth/Guard/Guard_Public.thy Auth/Guard/Guard_Shared.thy \
   Auth/Guard/Guard.thy Auth/Guard/List_Msg.thy \
-  Auth/Guard/NS_Public.thy Auth/Guard/OtwayRees.thy \
+  Auth/Guard/Guard_NS_Public.thy Auth/Guard/Guard_OtwayRees.thy \
   Auth/Guard/P1.thy Auth/Guard/P2.thy \
-  Auth/Guard/Proto.thy Auth/Guard/Yahalom.thy\
+  Auth/Guard/Proto.thy Auth/Guard/Guard_Yahalom.thy\
   Auth/document/root.tex 
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Auth
 

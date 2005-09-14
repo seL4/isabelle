@@ -8,6 +8,8 @@ Root file for protocol proofs.
 
 no_document use_thy "NatPair";
 
+add_path "Guard";
+
 set timing;
 
 (*Shared-key protocols*)
@@ -31,9 +33,9 @@ time_use_thy "TLS";
 time_use_thy "CertifiedEmail";
 
 (*Blanqui's "guard" concept: protocol-independent secrecy*)
-time_use_thy "Guard/P1";
-time_use_thy "Guard/P2";
-time_use_thy "Guard/NS_Public";
-time_use_thy "Guard/OtwayRees";
-time_use_thy "Guard/Yahalom";
-time_use_thy "Guard/Proto";
+time_use_thy "P1";
+time_use_thy "P2";
+time_use_thy "Guard_NS_Public";
+time_use_thy "Guard_OtwayRees";
+time_use_thy "Guard_Yahalom";
+time_use_thy "Proto";
