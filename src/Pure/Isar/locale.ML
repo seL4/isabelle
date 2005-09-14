@@ -2105,7 +2105,7 @@ val theorem_in_locale =
 val theorem_in_locale_i =
   gen_theorem_in_locale (K I) (K I) (K I) cert_context_statement;
 
-fun smart_theorem kind NONE a [] concl =   (* FIXME tune *)
+fun smart_theorem kind NONE a [] concl =
       Proof.theorem kind (K (K I)) NONE a concl o ProofContext.init
   | smart_theorem kind NONE a elems concl =
       theorem kind (K (K I)) a elems concl

@@ -153,10 +153,7 @@ fun maintain_calculation false calc = put_calculation (SOME calc)
 
 fun print_calculation false _ _ = ()
   | print_calculation true ctxt calc =
-      Pretty.writeln (Pretty.big_list "calculation:" (map (ProofContext.pretty_thm ctxt) calc));
-(* FIXME 
       Pretty.writeln (ProofContext.pretty_fact ctxt (calculationN, calc));
-*)
 
 
 (* also and finally *)

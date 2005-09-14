@@ -1401,7 +1401,7 @@ fun pretty_context ctxt =
 
     (*theory*)
     val pretty_thy = Pretty.block
-      [Pretty.str "Theory:", Pretty.brk 1, Context.pretty_thy (theory_of ctxt)];  (* FIXME lowercase *)
+      [Pretty.str "theory:", Pretty.brk 1, Context.pretty_thy (theory_of ctxt)];
 
     (*defaults*)
     fun prt_atom prt prtT (x, X) = Pretty.block
