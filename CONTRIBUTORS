@@ -1,4 +1,7 @@
 
+* September 2005: Bernhard Haeupler
+  Method comm_ring for proving equalities in commutative rings.
+
 * July 2005: Jeremy Avigad, Carnegie Mellon University
   Various improvements of the HOL and HOL-Complex library.
 
