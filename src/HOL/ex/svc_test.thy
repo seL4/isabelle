@@ -8,7 +8,7 @@ imports SVC_Oracle
 begin
 
 syntax
-    "<->"         :: [bool, bool] => bool                  (infixr 25)
+  "<->" :: "[bool, bool] => bool"    (infixr 25)
 
 translations
   "x <-> y" => "x = y"
