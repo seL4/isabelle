@@ -225,7 +225,7 @@ fun has_bool (Type("bool",_)) = true
   incomplete, since when actually called, the only connectives likely to
   remain are & | Not.*)  
 fun is_conn c = c mem_string
-    ["Trueprop", "op &", "op |", "op -->", "op =", "Not", 
+    ["Trueprop", "HOL.tag", "op &", "op |", "op -->", "op =", "Not", 
      "All", "Ex", "Ball", "Bex"];
 
 (*True if the term contains a function where the type of any argument contains
@@ -329,8 +329,11 @@ fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM _ => th;
 
-(*The simplification removes defined quantifiers and occurrences of True and False.*)
-val nnf_ss = HOL_basic_ss addsimps Ex1_def::Ball_def::Bex_def::simp_thms;
+(*The simplification removes defined quantifiers and occurrences of True and False, as well as tags applied to True and False.*)
+val tag_True = thm "tag_True";
+val tag_False = thm "tag_False";
+val nnf_simps = [Ex1_def,Ball_def,Bex_def,tag_True,tag_False]
+val nnf_ss = HOL_basic_ss addsimps nnf_simps@simp_thms;
 
 fun make_nnf th = th |> simplify nnf_ss
                      |> check_is_fol |> make_nnf1

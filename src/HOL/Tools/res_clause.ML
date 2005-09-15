@@ -10,49 +10,49 @@ Typed equality is treated differently.
 (* works for writeoutclasimp on typed *)
 signature RES_CLAUSE =
   sig
-    exception ARCLAUSE of string
-    exception CLAUSE of string
-    type arityClause 
-    type classrelClause
-    val classrelClauses_of : string * string list -> classrelClause list
-    type clause
-    val init : theory -> unit
-    val keep_types : bool ref
-    val make_axiom_arity_clause :
-       string * (string * string list list) -> arityClause
-    val make_axiom_classrelClause :
-       string * string option -> classrelClause
-    val make_axiom_clause : Term.term -> string * int -> clause
-    val make_conjecture_clause : Term.term -> clause
-    val make_conjecture_clause_thm : Thm.thm -> clause
-    val make_hypothesis_clause : Term.term -> clause
-    val special_equal : bool ref
-    val get_axiomName : clause ->  string
-    val typed : unit -> unit
-    val untyped : unit -> unit
-    val num_of_clauses : clause -> int
+  val keep_types : bool ref
+  val special_equal : bool ref
+  val tagged : bool ref
 
-    val dfg_clauses2str : string list -> string
-    val clause2dfg : clause -> string * string list
-    val clauses2dfg : clause list -> string -> clause list -> clause list ->
-             (string * int) list -> (string * int) list -> string list -> string
-    val tfree_dfg_clause : string -> string
+  exception ARCLAUSE of string
+  exception CLAUSE of string * term
+  type arityClause 
+  type classrelClause
+  val classrelClauses_of : string * string list -> classrelClause list
+  type clause
+  val init : theory -> unit
+  val make_axiom_arity_clause :
+     string * (string * string list list) -> arityClause
+  val make_axiom_classrelClause :  string * string option -> classrelClause
+  val make_axiom_clause : Term.term -> string * int -> clause
+  val make_conjecture_clause : Term.term -> clause
+  val make_conjecture_clause_thm : Thm.thm -> clause
+  val make_hypothesis_clause : Term.term -> clause
+  val get_axiomName : clause ->  string
+  val isTaut : clause -> bool
+  val num_of_clauses : clause -> int
 
-    val tptp_arity_clause : arityClause -> string
-    val tptp_classrelClause : classrelClause -> string
-    val tptp_clause : clause -> string list
-    val tptp_clauses2str : string list -> string
-    val clause2tptp : clause -> string * string list
-    val tfree_clause : string -> string
-    val schematic_var_prefix : string
-    val fixed_var_prefix : string
-    val tvar_prefix : string
-    val tfree_prefix : string
-    val clause_prefix : string 
-    val arclause_prefix : string
-    val const_prefix : string
-    val tconst_prefix : string 
-    val class_prefix : string 
+  val dfg_clauses2str : string list -> string
+  val clause2dfg : clause -> string * string list
+  val clauses2dfg : clause list -> string -> clause list -> clause list ->
+	   (string * int) list -> (string * int) list -> string list -> string
+  val tfree_dfg_clause : string -> string
+
+  val tptp_arity_clause : arityClause -> string
+  val tptp_classrelClause : classrelClause -> string
+  val tptp_clause : clause -> string list
+  val tptp_clauses2str : string list -> string
+  val clause2tptp : clause -> string * string list
+  val tfree_clause : string -> string
+  val schematic_var_prefix : string
+  val fixed_var_prefix : string
+  val tvar_prefix : string
+  val tfree_prefix : string
+  val clause_prefix : string 
+  val arclause_prefix : string
+  val const_prefix : string
+  val tconst_prefix : string 
+  val class_prefix : string 
   end;
 
 structure ResClause: RES_CLAUSE =
@@ -157,9 +157,6 @@ fun make_type_class clas = class_prefix ^ ascii_of clas;
 (***** definitions and functions for FOL clauses, prepared for conversion into TPTP format or SPASS format. *****)
 
 val keep_types = ref true;
-fun untyped () = (keep_types := false);
-fun typed () = (keep_types := true);
-
 
 datatype kind = Axiom | Hypothesis | Conjecture;
 fun name_of_kind Axiom = "axiom"
@@ -189,7 +186,6 @@ fun generate_id () =
 
 (**** Isabelle FOL clauses ****)
 
-(* by default it is false *)
 val tagged = ref false;
 
 type pred_name = string;
@@ -223,7 +219,7 @@ datatype clause =
                     functions: (string*int) list};
 
 
-exception CLAUSE of string;
+exception CLAUSE of string * term;
 
 
 (*** make clauses ***)
@@ -232,6 +228,13 @@ fun isFalse (Literal (pol,Predicate(a,_,[]),_)) =
       (pol andalso a = "c_False") orelse
       (not pol andalso a = "c_True")
   | isFalse _ = false;
+
+fun isTrue (Literal (pol,Predicate(a,_,[]),_)) =
+      (pol andalso a = "c_True") orelse
+      (not pol andalso a = "c_False")
+  | isTrue _ = false;
+  
+fun isTaut (Clause {literals,...}) = exists isTrue literals;  
 
 fun make_clause (clause_id,axiom_name,kind,literals,
                  types_sorts,tvar_type_literals,
@@ -303,10 +306,10 @@ fun pred_name_type (Const(c,T)) =
       let val (typof,(folTyps,funcs)) = maybe_type_of c T
       in (make_fixed_const c, (typof,folTyps), funcs) end
   | pred_name_type (Free(x,T))  = 
-      if isMeta x then raise CLAUSE("Predicate Not First Order") 
+      if isMeta x then raise CLAUSE("Predicate Not First Order 1", Free(x,T)) 
       else (make_fixed_var x, ("",[]), [])
-  | pred_name_type (Var(_,_))   = raise CLAUSE("Predicate Not First Order")
-  | pred_name_type _          = raise CLAUSE("Predicate input unexpected");
+  | pred_name_type (v as Var _) = raise CLAUSE("Predicate Not First Order 2", v)
+  | pred_name_type t        = raise CLAUSE("Predicate input unexpected", t);
 
 
 (* For type equality *)
@@ -330,7 +333,7 @@ fun fun_name_type (Const(c,T)) args =
       in
 	    (t, ("",[]), [(t, length args)])
       end
-  | fun_name_type _  args = raise CLAUSE("Function Not First Order");
+  | fun_name_type f args = raise CLAUSE("Function Not First Order 1", f);
 
 
 fun term_of (Var(ind_nm,T)) = 
@@ -339,17 +342,19 @@ fun term_of (Var(ind_nm,T)) =
 	  (UVar(make_schematic_var ind_nm, folType), (ts, funcs))
       end
   | term_of (Free(x,T)) = 
-      let val (folType,(ts, funcs)) = type_of T
+      let val (folType, (ts,funcs)) = type_of T
       in
 	  if isMeta x then (UVar(make_schematic_var(x,0),folType),
 			    (ts, ((make_schematic_var(x,0)),0)::funcs))
 	  else
-	      (Fun(make_fixed_var x,folType,[]), (ts, ((make_fixed_var x),0)::funcs))
+	      (Fun(make_fixed_var x, folType, []), 
+	       (ts, ((make_fixed_var x),0)::funcs))
       end
   | term_of (Const(c,T)) =  (* impossible to be equality *)
       let val (folType,(ts,funcs)) = type_of T
-       in
-	  (Fun(make_fixed_const c,folType,[]),(ts, ((make_fixed_const c),0)::funcs))
+      in
+	  (Fun(make_fixed_const c, folType, []),
+	   (ts, ((make_fixed_const c),0)::funcs))
       end    
   | term_of (app as (t $ a)) = 
       let val (f,args) = strip_comb app
@@ -360,7 +365,7 @@ fun term_of (Var(ind_nm,T)) =
 		  val ts3 = ResLib.flat_noDup (ts1::ts2)
 		  val funcs'' = ResLib.flat_noDup((funcs::funcs'))
 	      in
-		  (Fun(funName,funType,args'),(ts3,funcs''))
+		  (Fun(funName,funType,args'), (ts3,funcs''))
 	      end
 	  fun term_of_eq ((Const ("op =", typ)),args) =
 	      let val arg_typ = eq_arg_type typ
@@ -370,60 +375,58 @@ fun term_of (Var(ind_nm,T)) =
 	      in
 		  (Fun(equal_name,arg_typ,args'),
 		   (ResLib.flat_noDup ts, 
-		    (((make_fixed_var equal_name),2):: ResLib.flat_noDup funcs)))
+		    (make_fixed_var equal_name, 2):: ResLib.flat_noDup funcs))
 	      end
       in
-	    case f of Const ("op =", typ) => term_of_eq (f,args)
-		  | Const(_,_) => term_of_aux ()
-		    | Free(s,_)  => if isMeta s 
-				    then raise CLAUSE("Function Not First Order") 
-				    else term_of_aux()
-		    | _          => raise CLAUSE("Function Not First Order")
+	 case f of Const ("op =", typ) => term_of_eq (f,args)
+		 | Const(_,_) => term_of_aux ()
+		 | Free(s,_)  => 
+		     if isMeta s 
+		     then raise CLAUSE("Function Not First Order 2", f)
+		     else term_of_aux()
+		 | _ => raise CLAUSE("Function Not First Order 3", f)
       end
-  | term_of _ = raise CLAUSE("Function Not First Order"); 
+  | term_of t = raise CLAUSE("Function Not First Order 4", t); 
 
 
-fun pred_of_eq ((Const ("op =", typ)),args) =
-    let val arg_typ = eq_arg_type typ 
-	val (args',ts_funcs) = ListPair.unzip (map term_of args)
-        val (ts,funcs) = ListPair.unzip ts_funcs
-	val equal_name = make_fixed_const "op ="
-    in
-	(Predicate(equal_name,arg_typ,args'),
-	 ResLib.flat_noDup ts, 
-	 [((make_fixed_var equal_name), 2)], 
-	 (ResLib.flat_noDup funcs))
-    end;
-
-(* The input "pred" cannot be an equality *)
-fun pred_of_nonEq (pred,args) = 
-    let val (predName,(predType,ts1), pfuncs) = pred_name_type pred
-	val (args',ts_funcs) = ListPair.unzip (map term_of args)
-        val (ts2,ffuncs) = ListPair.unzip ts_funcs
-	val ts3 = ResLib.flat_noDup (ts1::ts2)
-        val ffuncs' = (ResLib.flat_noDup ffuncs)
-        val newfuncs = distinct (pfuncs@ffuncs')
-	val arity = 
-	  case pred of
-	      Const (c,_) => 
-	            if !keep_types andalso not (no_types_needed c)
-	            then 1 + length args
-	            else length args
-	    | _ => length args
-    in
-	(Predicate(predName,predType,args'), ts3, 
-	 [(predName, arity)], newfuncs)
-    end;
+fun pred_of (Const("op =", typ), args) =
+      let val arg_typ = eq_arg_type typ 
+	  val (args',ts_funcs) = ListPair.unzip (map term_of args)
+	  val (ts,funcs) = ListPair.unzip ts_funcs
+	  val equal_name = make_fixed_const "op ="
+      in
+	  (Predicate(equal_name,arg_typ,args'),
+	   ResLib.flat_noDup ts, 
+	   [((make_fixed_var equal_name), 2)], 
+	   (ResLib.flat_noDup funcs))
+      end
+  | pred_of (pred,args) = 
+      let val (predName,(predType,ts1), pfuncs) = pred_name_type pred
+	  val (args',ts_funcs) = ListPair.unzip (map term_of args)
+	  val (ts2,ffuncs) = ListPair.unzip ts_funcs
+	  val ts3 = ResLib.flat_noDup (ts1::ts2)
+	  val ffuncs' = (ResLib.flat_noDup ffuncs)
+	  val newfuncs = distinct (pfuncs@ffuncs')
+	  val arity = 
+	    case pred of
+		Const (c,_) => 
+		      if !keep_types andalso not (no_types_needed c)
+		      then 1 + length args
+		      else length args
+	      | _ => length args
+      in
+	  (Predicate(predName,predType,args'), ts3, 
+	   [(predName, arity)], newfuncs)
+      end;
 
 
-(* Changed for typed equality *)
-(* First check if the predicate is an equality or not, then call different functions for equality and non-equalities *)
-fun predicate_of term =
-    let val (pred,args) = strip_comb term
-    in
-	case pred of (Const ("op =", _)) => pred_of_eq (pred,args)
-		   | _ => pred_of_nonEq (pred,args)
-    end;
+(*Treatment of literals, possibly negated or tagged*)
+fun predicate_of ((Const("Not",_) $ P), polarity, tag) =
+      predicate_of (P, not polarity, tag)
+  | predicate_of ((Const("HOL.tag",_) $ P), polarity, tag) =
+      predicate_of (P, polarity, true)
+  | predicate_of (term,polarity,tag) =
+        (pred_of (strip_comb term), polarity, tag);
 
 fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) =    
       literals_of_term(P,lits_ts, preds, funcs)
@@ -434,16 +437,10 @@ fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) =
 	  literals_of_term(Q, (lits',ts'), distinct(preds'@preds), 
 	                   distinct(funcs'@funcs))
       end
-  | literals_of_term ((Const("Not",_) $ P),(lits,ts), preds, funcs) = 
-      let val (pred,ts', preds', funcs') = predicate_of P
-	  val lits' = Literal(false,pred,false) :: lits
-	  val ts'' = ResLib.no_rep_app ts ts'
-      in
-	  (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
-      end
   | literals_of_term (P,(lits,ts), preds, funcs) = 
-      let val (pred,ts', preds', funcs') = predicate_of P
-	  val lits' = Literal(true,pred,false) :: lits
+      let val ((pred,ts', preds', funcs'), pol, tag) = 
+              predicate_of (P,true,false)
+	  val lits' = Literal(pol,pred,tag) :: lits
 	  val ts'' = ResLib.no_rep_app ts ts' 
       in
 	  (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
@@ -759,27 +756,24 @@ fun dfg_folterms (Literal(pol,pred,tag)) =
   end
 
  
-fun get_uvars (UVar(str,typ)) = [str] 
-|   get_uvars (Fun (str,typ,tlist)) = ResLib.flat_noDup(map get_uvars tlist)
+fun get_uvars (UVar(a,typ)) = [a] 
+|   get_uvars (Fun (_,typ,tlist)) = ResLib.flat_noDup(map get_uvars tlist)
 
 
-fun is_uvar  (UVar(str,typ)) = true
-|   is_uvar  (Fun (str,typ,tlist)) = false;
+fun is_uvar (UVar _) = true
+|   is_uvar (Fun _) = false;
 
-fun uvar_name  (UVar(str,typ)) = str
-|   uvar_name  _ = (raise CLAUSE("Not a variable"));
-
+fun uvar_name (UVar(a,_)) = a
+|   uvar_name (Fun (a,_,_)) = raise CLAUSE("Not a variable", Const(a,dummyT));
 
 fun mergelist [] = []
-|   mergelist (x::xs ) = x@(mergelist xs)
-
+|   mergelist (x::xs ) = x @ mergelist xs
 
 fun dfg_vars (Clause cls) =
-    let val lits =  (#literals cls)
+    let val lits = #literals cls
         val folterms = mergelist(map dfg_folterms lits)
-        val vars =  ResLib.flat_noDup(map get_uvars folterms)	
     in 
-        vars
+        ResLib.flat_noDup(map get_uvars folterms)
     end
 
 

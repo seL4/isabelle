@@ -22,7 +22,7 @@ val hook_count = ref 0;
 
 fun debug_tac tac = (debug "testing"; tac);
 
-val prover = ref "spass";   (* use spass as default prover *)
+val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
       ref ["Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
            "-DocProof","-TimeLimit=60"];

@@ -8,18 +8,17 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature RES_AXIOMS =
   sig
   exception ELIMR2FOL of string
+  val tagging_enabled : bool
   val elimRule_tac : thm -> Tactical.tactic
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
   val clausify_axiom_pairs : (string*thm) -> (ResClause.clause*thm) list
   val cnf_axiom : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
-  val cnf_rule : thm -> thm list
-  val cnf_rules : (string*thm) list -> thm list -> thm list list * thm list
   val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
-  val clausify_rules_pairs : (string * thm) list -> thm list -> (ResClause.clause * thm) list list * thm list
+  val clausify_rules_pairs : (string*thm) list -> thm list -> (ResClause.clause*thm) list list * thm list
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
   end;
@@ -27,6 +26,8 @@ signature RES_AXIOMS =
 structure ResAxioms : RES_AXIOMS =
  
 struct
+
+val tagging_enabled = false (*compile_time option*)
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -133,8 +134,6 @@ fun transform_elim th =
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
 
-(* to be fixed: cnf_intro, cnf_rule, is_introR *)
-
 (* repeated resolution *)
 fun repeat_RS thm1 thm2 =
     let val thm1' =  thm1 RS thm2 handle THM _ => thm1
@@ -182,7 +181,7 @@ fun cnf_axiom_aux th =
 
 (*Traverse a term, accumulating Skolem function definitions.*)
 fun declare_skofuns s t thy =
-  let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (n, thy) =
+  let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (n, (thy, axs)) =
 	    (*Existential: declare a Skolem function, then insert into body and continue*)
 	    let val cname = s ^ "_" ^ Int.toString n
 		val args = term_frees xtp  (*get the formal parameter list*)
@@ -194,20 +193,25 @@ fun declare_skofuns s t thy =
 		val def = equals cT $ c $ rhs
 		val thy' = Theory.add_consts_i [(cname, cT, NoSyn)] thy
 		           (*Theory is augmented with the constant, then its def*)
-		val thy'' = Theory.add_defs_i false [(cname ^ "_def", def)] thy'
-	    in dec_sko (subst_bound (list_comb(c,args), p)) (n+1, thy'') end
-	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) (n, thy) =
+		val cdef = cname ^ "_def"
+		val thy'' = Theory.add_defs_i false [(cdef, def)] thy'
+	    in dec_sko (subst_bound (list_comb(c,args), p)) 
+	               (n+1, (thy'', get_axiom thy'' cdef :: axs)) 
+	    end
+	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) (n, thx) =
 	    (*Universal quant: insert a free variable into body and continue*)
 	    let val fname = variant (add_term_names (p,[])) a
-	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thy) end
+	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thx) end
 	| dec_sko (Const ("op &", _) $ p $ q) nthy = 
 	    dec_sko q (dec_sko p nthy)
 	| dec_sko (Const ("op |", _) $ p $ q) nthy = 
 	    dec_sko q (dec_sko p nthy)
+	| dec_sko (Const ("HOL.tag", _) $ p) nthy = 
+	    dec_sko p nthy
 	| dec_sko (Const ("Trueprop", _) $ p) nthy = 
 	    dec_sko p nthy
-	| dec_sko t (n,thy) = (n,thy) (*Do nothing otherwise*)
-  in  #2 (dec_sko t (1,thy))  end;
+	| dec_sko t nthx = nthx (*Do nothing otherwise*)
+  in  #2 (dec_sko t (1, (thy,[])))  end;
 
 (*cterms are used throughout for efficiency*)
 val cTrueprop = Thm.cterm_of (Theory.sign_of HOL.thy) HOLogic.Trueprop;
@@ -251,8 +255,8 @@ val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
 fun skolem thy (name,th) =
   let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
-      val thy' = declare_skofuns cname (#prop (rep_thm th)) thy
-  in (map (skolem_of_def o #2) (axioms_of thy'), thy') end;
+      val (thy',axs) = declare_skofuns cname (#prop (rep_thm th)) thy
+  in (map skolem_of_def axs, thy') end;
 
 (*Populate the clause cache using the supplied theorems*)
 fun skolemlist [] thy = thy
@@ -313,17 +317,14 @@ fun get_new_skolem epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,tp,_)))  =
 	(sk_term,(t,sk_term)::epss)
     end;
 
-
+(*FIXME: use a-list lookup!!*)
 fun sk_lookup [] t = NONE
   | sk_lookup ((tm,sk_tm)::tms) t = if (t = tm) then SOME (sk_tm) else (sk_lookup tms t);
-
-
 
 (* get the proper skolem term to replace epsilon term *)
 fun get_skolem epss t = 
     case (sk_lookup epss t) of NONE => get_new_skolem epss t
 		             | SOME sk => (sk,epss);
-
 
 fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = 
        get_skolem epss t
@@ -333,11 +334,9 @@ fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) =
        in (P' $ Q',epss'') end
   | rm_Eps_cls_aux epss t = (t,epss);
 
-
 fun rm_Eps_cls epss th = rm_Eps_cls_aux epss (prop_of th);
 
-
-(* remove the epsilon terms in a formula, by skolem terms. *)
+(* replace the epsilon terms in a formula by skolem terms. *)
 fun rm_Eps _ [] = []
   | rm_Eps epss (th::thms) = 
       let val (th',epss') = rm_Eps_cls epss th
@@ -347,15 +346,26 @@ fun rm_Eps _ [] = []
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
+(*Preserve the name of "th" after the transformation "f"*)
+fun preserve_name f th = Thm.name_thm (Thm.name_of_thm th, f th);
+
+(*Tags identify the major premise or conclusion, as hints to resolution provers.
+  However, they don't appear to help in recent tests, and they complicate the code.*)
+val tagI = thm "tagI";
+val tagD = thm "tagD";
+
+val tag_intro = preserve_name (fn th => th RS tagI);
+val tag_elim  = preserve_name (fn th => tagD RS th);
+
 fun claset_rules_of_thy thy =
-    let val clsset = rep_cs (claset_of thy)
-	val safeEs = #safeEs clsset
-	val safeIs = #safeIs clsset
-	val hazEs = #hazEs clsset
-	val hazIs = #hazIs clsset
-    in
-	map pairname (safeEs @ safeIs @ hazEs @ hazIs)
-    end;
+  let val cs = rep_cs (claset_of thy)
+      val intros = (#safeIs cs) @ (#hazIs cs)
+      val elims  = (#safeEs cs) @ (#hazEs cs)
+  in
+     if tagging_enabled 
+     then map pairname (map tag_intro intros @ map tag_elim elims)
+     else map pairname (intros @  elims)
+  end;
 
 fun simpset_rules_of_thy thy =
     let val rules = #rules (fst (rep_ss (simpset_of thy)))
@@ -368,31 +378,40 @@ fun simpset_rules_of_thy thy =
 fun cnf_rules [] err_list = ([],err_list)
   | cnf_rules ((name,th) :: thms) err_list = 
       let val (ts,es) = cnf_rules thms err_list
-      in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  (* FIXME avoid handle _ *)
+      in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
+fun addclause (c,th) l =
+  if ResClause.isTaut c then l else (c,th) :: l;
+
 (* outputs a list of (clause,thm) pairs *)
 fun clausify_axiom_pairs (thm_name,thm) =
-    let val isa_clauses = cnf_axiom (thm_name,thm) (*"isa_clauses" are already "standard"ed. *)
+    let val isa_clauses = cnf_axiom (thm_name,thm) 
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
-        val thy = theory_of_thm thm
 	fun make_axiom_clauses _ [] []= []
 	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
-	      (ResClause.make_axiom_clause cls (thm_name,i), cls') :: 
-	      make_axiom_clauses (i+1) clss clss'
+	      addclause (ResClause.make_axiom_clause cls (thm_name,i), cls') 
+	                (make_axiom_clauses (i+1) clss clss')
     in
 	make_axiom_clauses 0 isa_clauses' isa_clauses		
-    end;
+    end
 
 fun clausify_rules_pairs [] err_list = ([],err_list)
   | clausify_rules_pairs ((name,thm)::thms) err_list =
       let val (ts,es) = clausify_rules_pairs thms err_list
       in
 	  ((clausify_axiom_pairs (name,thm))::ts, es) 
-	  handle  _ => (ts, (thm::es))  (* FIXME avoid handle _ *)
+	  handle THM (msg,_,_) =>  
+		  (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
+		   (ts, (thm::es)))
+             |  ResClause.CLAUSE (msg,t) => 
+                  (debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
+                          ": " ^ TermLib.string_of_term t); 
+		   (ts, (thm::es)))
+
       end;
 
 
