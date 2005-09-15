@@ -596,6 +596,9 @@ val preferences = ref
     [("trace-simplifier",
       ("Trace simplification rules.",
        bool_option trace_simp)),
+     ("trace-simplifier-depth",
+      ("Trace simplifier depth limit.",
+       nat_option trace_simp_depth_limit)),
      ("trace-rules",
       ("Trace application of the standard rules",
        bool_option trace_rules)),
@@ -813,7 +816,7 @@ local
         case (!keywords_classification_table) of
           SOME t => t
         | NONE => (let
-                     val tab = fold (fn (c, _, k, _) => Symtab.curried_update (c, k))
+                     val tab = fold (fn (c, _, k, _) => Symtab.update (c, k))
                                     (OuterSyntax.dest_parsers ()) Symtab.empty;
                    in (keywords_classification_table := SOME tab; tab) end)
 
@@ -959,7 +962,7 @@ in
 
 fun xmls_of_transition (name,str,toks) =
    let
-     val classification = Symtab.curried_lookup (get_keywords_classification_table ()) name
+     val classification = Symtab.lookup (get_keywords_classification_table ()) name
    in case classification of
           SOME k => (xmls_of_kind k (name,toks,str))
         | NONE => (* an uncategorized keyword ignored for undo (maybe wrong) *)
