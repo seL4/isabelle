@@ -549,6 +549,9 @@ by blast
 lemma ex_forward: "[| \<exists>x. P'(x);  !!x. P'(x) ==> P(x) |] ==> \<exists>x. P(x)"
 by blast
 
+
+text{*Many of these bindings are used by the ATP linkup, and not just by
+legacy proof scripts.*}
 ML
 {*
 val inv_def = thm "inv_def";
