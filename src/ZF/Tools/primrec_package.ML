@@ -56,7 +56,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
       else strip_comb (hd middle);
     val (cname, _) = dest_Const constr
       handle TERM _ => raise RecError "ill-formed constructor";
-    val con_info = the (Symtab.curried_lookup (ConstructorsData.get thy) cname)
+    val con_info = the (Symtab.lookup (ConstructorsData.get thy) cname)
       handle Option =>
       raise RecError "cannot determine datatype associated with function"
 

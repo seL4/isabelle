@@ -19,9 +19,9 @@ open Proofterm;
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = fold_rev Symtab.curried_update (PureThy.all_thms_of thy) Symtab.empty
+  let val tab = fold_rev Symtab.update (PureThy.all_thms_of thy) Symtab.empty
   in
-    (fn s => case Symtab.curried_lookup tab s of
+    (fn s => case Symtab.lookup tab s of
        NONE => error ("Unknown theorem " ^ quote s)
      | SOME thm => thm)
   end;

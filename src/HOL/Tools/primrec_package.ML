@@ -203,7 +203,7 @@ fun make_def sign fs (fname, ls, rec_name, tname) =
 
 fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
-      (case Symtab.curried_lookup dt_info tname of
+      (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a datatype")
         | SOME dt =>
             if tnames' subset (map (#1 o snd) (#descr dt)) then

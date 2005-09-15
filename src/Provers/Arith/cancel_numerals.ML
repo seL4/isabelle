@@ -54,7 +54,7 @@ struct
 
 (*For t = #n*u then put u in the table*)
 fun update_by_coeff t =
-  Termtab.curried_update (#2 (Data.dest_coeff t), ());
+  Termtab.update (#2 (Data.dest_coeff t), ());
 
 (*a left-to-right scan of terms1, seeking a term of the form #n*u, where
   #m*u is in terms2 for some m*)

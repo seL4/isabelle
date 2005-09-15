@@ -40,12 +40,12 @@ val print_styles = StyleData.print;
 (* accessors *)
 
 fun the_style thy name =
-  (case Symtab.curried_lookup (StyleData.get thy) name of
+  (case Symtab.lookup (StyleData.get thy) name of
     NONE => error ("Unknown antiquote style: " ^ quote name)
   | SOME (style, _) => style);
 
 fun add_style name style thy =
-  StyleData.map (Symtab.curried_update_new (name, (style, stamp ()))) thy
+  StyleData.map (Symtab.update_new (name, (style, stamp ()))) thy
     handle Symtab.DUP _ => err_dup_styles [name];
 
 

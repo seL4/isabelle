@@ -143,10 +143,10 @@ fun oracles_of_proof oras prf =
       | oras_of (prf % _) = oras_of prf
       | oras_of (prf1 %% prf2) = oras_of prf1 #> oras_of prf2
       | oras_of (PThm ((name, _), prf, prop, _)) = (fn tabs as (thms, oras) =>
-          case Symtab.curried_lookup thms name of
-            NONE => oras_of prf (Symtab.curried_update (name, [prop]) thms, oras)
+          case Symtab.lookup thms name of
+            NONE => oras_of prf (Symtab.update (name, [prop]) thms, oras)
           | SOME ps => if prop mem ps then tabs else
-              oras_of prf (Symtab.curried_update (name, prop::ps) thms, oras))
+              oras_of prf (Symtab.update (name, prop::ps) thms, oras))
       | oras_of (Oracle (s, prop, _)) =
           apsnd (OrdList.insert string_term_ord (s, prop))
       | oras_of (MinProof (thms, _, oras)) =
@@ -162,10 +162,10 @@ fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
   | thms_of_proof (prf1 %% prf2) = thms_of_proof prf1 #> thms_of_proof prf2
   | thms_of_proof (prf % _) = thms_of_proof prf
   | thms_of_proof (prf' as PThm ((s, _), prf, prop, _)) = (fn tab =>
-      case Symtab.curried_lookup tab s of
-        NONE => thms_of_proof prf (Symtab.curried_update (s, [(prop, prf')]) tab)
+      case Symtab.lookup tab s of
+        NONE => thms_of_proof prf (Symtab.update (s, [(prop, prf')]) tab)
       | SOME ps => if exists (equal prop o fst) ps then tab else
-          thms_of_proof prf (Symtab.curried_update (s, (prop, prf')::ps) tab))
+          thms_of_proof prf (Symtab.update (s, (prop, prf')::ps) tab))
   | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
   | thms_of_proof _ = I;
 
@@ -173,7 +173,7 @@ fun axms_of_proof (Abst (_, _, prf)) = axms_of_proof prf
   | axms_of_proof (AbsP (_, _, prf)) = axms_of_proof prf
   | axms_of_proof (prf1 %% prf2) = axms_of_proof prf1 #> axms_of_proof prf2
   | axms_of_proof (prf % _) = axms_of_proof prf
-  | axms_of_proof (prf as PAxm (s, _, _)) = Symtab.curried_update (s, prf)
+  | axms_of_proof (prf as PAxm (s, _, _)) = Symtab.update (s, prf)
   | axms_of_proof (MinProof (_, prfs, _)) = fold (axms_of_proof o proof_of_min_axm) prfs
   | axms_of_proof _ = I;
 

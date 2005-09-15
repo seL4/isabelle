@@ -301,7 +301,7 @@ fun gen_add_realizers prep_rlz rs thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
-       realizers = fold (Symtab.curried_update_multi o prep_rlz thy) rs realizers,
+       realizers = fold (Symtab.update_multi o prep_rlz thy) rs realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -564,7 +564,7 @@ fun extract thms thy =
               else fst (extr d defs vs ts Ts hs prf0)
           in
             if T = nullT andalso realizes_null vs' prop aconv prop then (defs, prf0)
-            else case Symtab.curried_lookup realizers name of
+            else case Symtab.lookup realizers name of
               NONE => (case find vs' (find' name defs') of
                 NONE =>
                   let
@@ -600,7 +600,7 @@ fun extract thms thy =
           in
             if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (defs, prf0)
-            else case find vs' (Symtab.curried_lookup_multi realizers s) of
+            else case find vs' (Symtab.lookup_multi realizers s) of
               SOME (_, prf) => (defs, prf_subst_TVars tye' prf)
             | NONE => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
@@ -648,7 +648,7 @@ fun extract thms thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
-            case Symtab.curried_lookup realizers s of
+            case Symtab.lookup realizers s of
               NONE => (case find vs' (find' s defs) of
                 NONE =>
                   let
@@ -707,7 +707,7 @@ fun extract thms thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
-            case find vs' (Symtab.curried_lookup_multi realizers s) of
+            case find vs' (Symtab.lookup_multi realizers s) of
               SOME (t, _) => (defs, subst_TVars tye' t)
             | NONE => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm

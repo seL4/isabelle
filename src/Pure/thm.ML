@@ -526,7 +526,7 @@ fun extra_shyps (th as Thm {shyps, ...}) = Sorts.subtract (present_sorts th) shy
 fun get_axiom_i theory name =
   let
     fun get_ax thy =
-      Symtab.curried_lookup (#2 (#axioms (Theory.rep_theory thy))) name
+      Symtab.lookup (#2 (#axioms (Theory.rep_theory thy))) name
       |> Option.map (fn prop =>
           Thm {thy_ref = Theory.self_ref thy,
             der = Pt.infer_derivs' I (false, Pt.axm_proof name prop),
@@ -1484,7 +1484,7 @@ fun biresolution match brules i state =
 fun invoke_oracle_i thy1 name =
   let
     val oracle =
-      (case Symtab.curried_lookup (#2 (#oracles (Theory.rep_theory thy1))) name of
+      (case Symtab.lookup (#2 (#oracles (Theory.rep_theory thy1))) name of
         NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
       | SOME (f, _) => f);
     val thy_ref1 = Theory.self_ref thy1;

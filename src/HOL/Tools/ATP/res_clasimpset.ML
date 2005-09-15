@@ -57,7 +57,7 @@ fun consts_in_goal goal = consts_of_term goal;
 
 fun axioms_having_consts_aux [] tab thms = thms
   | axioms_having_consts_aux (c::cs) tab thms =
-    let val thms1 = Symtab.curried_lookup tab c
+    let val thms1 = Symtab.lookup tab c
       val thms2 = 
           case thms1 of (SOME x) => x
                       | NONE => []

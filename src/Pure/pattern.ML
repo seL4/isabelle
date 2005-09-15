@@ -357,7 +357,7 @@ fun fomatch thy =
           if loose_bvar(t,0) then raise MATCH
           else (case Envir.lookup' (insts, (ixn, T)) of
                   NONE => (typ_match thy (tyinsts, (T, fastype_of t)),
-                           Vartab.curried_update_new (ixn, (T, t)) insts)
+                           Vartab.update_new (ixn, (T, t)) insts)
                 | SOME u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
           if a=b then (typ_match thy (tyinsts,(T,U)), insts) else raise MATCH
@@ -378,11 +378,11 @@ fun first_order_match thy = fomatch thy (Vartab.empty, Vartab.empty);
 fun match_bind(itms,binders,ixn,T,is,t) =
   let val js = loose_bnos t
   in if null is
-     then if null js then Vartab.curried_update_new (ixn, (T, t)) itms else raise MATCH
+     then if null js then Vartab.update_new (ixn, (T, t)) itms else raise MATCH
      else if js subset_int is
           then let val t' = if downto0(is,length binders - 1) then t
                             else mapbnd (idx is) t
-               in Vartab.curried_update_new (ixn, (T, mkabs (binders, is, t'))) itms end
+               in Vartab.update_new (ixn, (T, mkabs (binders, is, t'))) itms end
           else raise MATCH
   end;
 

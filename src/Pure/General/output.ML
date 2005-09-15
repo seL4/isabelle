@@ -84,7 +84,7 @@ val modes = ref (Symtab.empty: mode_fns Symtab.table);
 
 exception MISSING_DEFAULT_OUTPUT;
 
-fun lookup_mode name = Symtab.curried_lookup (! modes) name;
+fun lookup_mode name = Symtab.lookup (! modes) name;
 
 fun get_mode () =
   (case Library.get_first lookup_mode (! print_mode) of SOME p => p
@@ -141,7 +141,7 @@ fun panic_msg s = ! panic_fn (output s);
 fun add_mode name (f, g, h) =
  (if is_none (lookup_mode name) then ()
   else warning ("Redeclaration of symbol print mode: " ^ quote name);
-  modes := Symtab.curried_update (name, {output_width = f, indent = g, raw = h}) (! modes));
+  modes := Symtab.update (name, {output_width = f, indent = g, raw = h}) (! modes));
 
 
 (* produce errors *)

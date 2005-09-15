@@ -44,13 +44,13 @@ exception Mono of term;
 val remove_types =
     let
         fun remove_types_var table invtable ccount vcount ldepth t =
-            (case Termtab.curried_lookup table t of
+            (case Termtab.lookup table t of
                  NONE =>
                  let
                      val a = AbstractMachine.Var vcount
                  in
-                     (Termtab.curried_update (t, a) table,
-                      AMTermTab.curried_update (a, t) invtable,
+                     (Termtab.update (t, a) table,
+                      AMTermTab.update (a, t) invtable,
                       ccount,
                       inc vcount,
                       AbstractMachine.Var (add vcount ldepth))
@@ -60,13 +60,13 @@ val remove_types =
                | SOME _ => sys_error "remove_types_var: lookup should be a var")
 
         fun remove_types_const table invtable ccount vcount ldepth t =
-            (case Termtab.curried_lookup table t of
+            (case Termtab.lookup table t of
                  NONE =>
                  let
                      val a = AbstractMachine.Const ccount
                  in
-                     (Termtab.curried_update (t, a) table,
-                      AMTermTab.curried_update (a, t) invtable,
+                     (Termtab.update (t, a) table,
+                      AMTermTab.update (a, t) invtable,
                       inc ccount,
                       vcount,
                       a)
@@ -114,12 +114,12 @@ fun infer_types naming =
     let
         fun infer_types invtable ldepth bounds ty (AbstractMachine.Var v) =
             if v < ldepth then (Bound v, List.nth (bounds, v)) else
-            (case AMTermTab.curried_lookup invtable (AbstractMachine.Var (v-ldepth)) of
+            (case AMTermTab.lookup invtable (AbstractMachine.Var (v-ldepth)) of
                  SOME (t as Var (_, ty)) => (t, ty)
                | SOME (t as Free (_, ty)) => (t, ty)
                | _ => sys_error "infer_types: lookup should deliver Var or Free")
           | infer_types invtable ldepth _ ty (c as AbstractMachine.Const _) =
-            (case AMTermTab.curried_lookup invtable c of
+            (case AMTermTab.lookup invtable c of
                  SOME (c as Const (_, ty)) => (c, ty)
                | _ => sys_error "infer_types: lookup should deliver Const")
           | infer_types invtable ldepth bounds (n,ty) (AbstractMachine.App (a, b)) =
@@ -176,10 +176,10 @@ fun basic_make thy raw_ths =
 
                 fun make_pattern table invtable n vars (var as AbstractMachine.Var v) =
                     let
-                        val var' = valOf (AMTermTab.curried_lookup invtable var)
+                        val var' = valOf (AMTermTab.lookup invtable var)
                         val table = Termtab.delete var' table
                         val invtable = AMTermTab.delete var invtable
-                        val vars = Inttab.curried_update_new (v, n) vars handle Inttab.DUP _ =>
+                        val vars = Inttab.update_new (v, n) vars handle Inttab.DUP _ =>
                           raise (Make "no duplicate variable in pattern allowed")
                     in
                         (table, invtable, n+1, vars, AbstractMachine.PVar)
@@ -217,7 +217,7 @@ fun basic_make thy raw_ths =
 
                 fun rename ldepth vars (var as AbstractMachine.Var v) =
                     if v < ldepth then var
-                    else (case Inttab.curried_lookup vars (v - ldepth) of
+                    else (case Inttab.lookup vars (v - ldepth) of
                               NONE => raise (Make "new variable on right hand side")
                             | SOME n => AbstractMachine.Var ((vcount-n-1)+ldepth))
                   | rename ldepth vars (c as AbstractMachine.Const _) = c

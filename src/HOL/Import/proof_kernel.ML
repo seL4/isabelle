@@ -420,7 +420,7 @@ fun prim_mk_const thy Thy Nam =
 	val name = intern_const_name Thy Nam thy
 	val cmaps = HOL4ConstMaps.get thy
     in
-	case StringPair.lookup(cmaps,(Thy,Nam)) of
+	case StringPair.lookup cmaps (Thy,Nam) of
 	    SOME(_,_,SOME ty) => Const(name,ty)
 	  | _ => get_const (sign_of thy) Thy name
     end
@@ -1081,7 +1081,7 @@ fun get_hol4_thm thyname thmname thy =
 	let
 	    val pending = HOL4Pending.get thy
 	in
-	    case StringPair.lookup (pending,(thyname,thmname)) of
+	    case StringPair.lookup pending (thyname,thmname) of
 		SOME hth => SOME (HOLThm hth)
 	      | NONE => NONE
 	end

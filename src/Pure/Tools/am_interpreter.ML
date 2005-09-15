@@ -107,7 +107,7 @@ fun match_rules n [] clos = NONE
 fun match_closure prog clos =
     case len_head_of_closure 0 clos of
         (len, CConst c) =>
-        (case prog_struct.lookup (prog, (c, len)) of
+        (case prog_struct.lookup prog (c, len) of
             NONE => NONE
           | SOME rules => match_rules 0 rules clos)
       | _ => NONE

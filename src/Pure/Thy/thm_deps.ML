@@ -55,7 +55,7 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
                  | _ => ["global"]);
             in
               if name mem parents' then (gra', parents union parents')
-              else (Symtab.curried_update (name,
+              else (Symtab.update (name,
                 {name = Sign.base_name name, ID = name,
                  dir = space_implode "/" (session @ prefx),
                  unfold = false, path = "", parents = parents'}) gra',

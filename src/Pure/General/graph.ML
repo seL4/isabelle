@@ -86,11 +86,11 @@ fun minimals (Graph tab) = Table.fold (fn (m, (_, ([], _))) => cons m | _ => I) 
 fun maximals (Graph tab) = Table.fold (fn (m, (_, (_, []))) => cons m | _ => I) tab [];
 
 fun get_entry (Graph tab) x =
-  (case Table.curried_lookup tab x of
+  (case Table.lookup tab x of
     SOME entry => entry
   | NONE => raise UNDEF x);
 
-fun map_entry x f (G as Graph tab) = Graph (Table.curried_update (x, f (get_entry G x)) tab);
+fun map_entry x f (G as Graph tab) = Graph (Table.update (x, f (get_entry G x)) tab);
 
 
 (* nodes *)
@@ -142,7 +142,7 @@ fun find_paths G (x, y) =
 (* nodes *)
 
 fun new_node (x, info) (Graph tab) =
-  Graph (Table.curried_update_new (x, (info, ([], []))) tab);
+  Graph (Table.update_new (x, (info, ([], []))) tab);
 
 fun default_node (x, info) (Graph tab) =
   Graph (Table.default (x, (info, ([], []))) tab);

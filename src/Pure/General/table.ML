@@ -32,12 +32,9 @@ sig
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
   val defined: 'a table -> key -> bool
-  val lookup: 'a table * key -> 'a option
-  val update: (key * 'a) * 'a table -> 'a table
-  val update_new: (key * 'a) * 'a table -> 'a table                    (*exception DUP*)
-  val curried_lookup: 'a table -> key -> 'a option
-  val curried_update: (key * 'a) -> 'a table -> 'a table
-  val curried_update_new: (key * 'a) -> 'a table -> 'a table           (*exception DUP*)
+  val lookup: 'a table -> key -> 'a option
+  val update: (key * 'a) -> 'a table -> 'a table
+  val update_new: (key * 'a) -> 'a table -> 'a table                   (*exception DUP*)
   val default: key * 'a -> 'a table -> 'a table
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
@@ -50,10 +47,8 @@ sig
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
-  val lookup_multi: 'a list table * key -> 'a list
-  val update_multi: (key * 'a) * 'a list table -> 'a list table
-  val curried_lookup_multi: 'a list table -> key -> 'a list
-  val curried_update_multi: (key * 'a) -> 'a list table -> 'a list table
+  val lookup_multi: 'a list table -> key -> 'a list
+  val update_multi: (key * 'a) -> 'a list table -> 'a list table
   val remove_multi: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
@@ -136,25 +131,23 @@ fun max_key Empty = NONE
 
 (* lookup *)
 
-fun curried_lookup Empty _ = NONE
-  | curried_lookup (Branch2 (left, (k, x), right)) key =
+fun lookup Empty _ = NONE
+  | lookup (Branch2 (left, (k, x), right)) key =
       (case Key.ord (key, k) of
-        LESS => curried_lookup left key
+        LESS => lookup left key
       | EQUAL => SOME x
-      | GREATER => curried_lookup right key)
-  | curried_lookup (Branch3 (left, (k1, x1), mid, (k2, x2), right)) key =
+      | GREATER => lookup right key)
+  | lookup (Branch3 (left, (k1, x1), mid, (k2, x2), right)) key =
       (case Key.ord (key, k1) of
-        LESS => curried_lookup left key
+        LESS => lookup left key
       | EQUAL => SOME x1
       | GREATER =>
           (case Key.ord (key, k2) of
-            LESS => curried_lookup mid key
+            LESS => lookup mid key
           | EQUAL => SOME x2
-          | GREATER => curried_lookup right key));
+          | GREATER => lookup right key));
 
-fun lookup (tab, key) = curried_lookup tab key;
-
-fun defined tab key = is_some (curried_lookup tab key);
+fun defined tab key = is_some (lookup tab key);
 
 
 (* updates *)
@@ -209,11 +202,9 @@ fun modify key f tab =
     handle SAME => tab
   end;
 
-fun update ((key, x), tab) = modify key (fn _ => x) tab;
-fun update_new ((key, x), tab) = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
-fun curried_update (key, x) tab = modify key (fn _ => x) tab;
-fun curried_update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
-fun default (p as (key, x)) tab = if defined tab key then tab else curried_update p tab;
+fun update (key, x) tab = modify key (fn _ => x) tab;
+fun update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
+fun default (p as (key, x)) tab = if defined tab key then tab else update p tab;
 fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
 
 
@@ -223,7 +214,7 @@ fun extend (table, args) =
   let
     fun add (key, x) (tab, dups) =
       if defined tab key then (tab, key :: dups)
-      else (curried_update (key, x) tab, dups);
+      else (update (key, x) tab, dups);
   in
     (case fold add args (table, []) of
       (table', []) => table'
@@ -319,7 +310,7 @@ end;
 (* member, insert and remove *)
 
 fun member eq tab (key, x) =
-  (case curried_lookup tab key of
+  (case lookup tab key of
     NONE => false
   | SOME y => eq (x, y));
 
@@ -327,7 +318,7 @@ fun insert eq (key, x) =
   modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
 
 fun remove eq (key, x) tab =
-  (case curried_lookup tab key of
+  (case lookup tab key of
     NONE => tab
   | SOME y => if eq (x, y) then delete key tab else tab);
 
@@ -337,11 +328,11 @@ fun remove eq (key, x) tab =
 fun join f (table1, table2) =
   let
     fun add (key, x) (tab, dups) =
-      (case curried_lookup tab key of
-        NONE => (curried_update (key, x) tab, dups)
+      (case lookup tab key of
+        NONE => (update (key, x) tab, dups)
       | SOME y =>
           (case f key (y, x) of
-            SOME z => (curried_update (key, z) tab, dups)
+            SOME z => (update (key, z) tab, dups)
           | NONE => (tab, key :: dups)));
   in
     (case fold_table add table2 (table1, []) of
@@ -354,17 +345,14 @@ fun merge eq tabs = join (fn _ => fn (y, x) => if eq (y, x) then SOME y else NON
 
 (* tables with multiple entries per key *)
 
-fun lookup_multi arg = if_none (lookup arg) [];
-fun update_multi ((key, x), tab) = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
-
-fun curried_lookup_multi tab key = if_none (curried_lookup tab key) [];
-fun curried_update_multi (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
+fun lookup_multi tab key = if_none (lookup tab key) [];
+fun update_multi (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
 fun remove_multi eq (key, x) tab =
   map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
   handle UNDEF _ => delete key tab;
 
-fun make_multi args = fold_rev curried_update_multi args empty;
+fun make_multi args = fold_rev update_multi args empty;
 fun dest_multi tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
 fun merge_multi eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists eq xs xs'));
 fun merge_multi' eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists' eq xs xs'));

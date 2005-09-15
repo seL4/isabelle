@@ -110,12 +110,12 @@ end;
 structure HOL4Imports = TheoryDataFun(HOL4ImportsArgs);
 
 fun get_segment2 thyname thy =
-  Symtab.curried_lookup (HOL4Imports.get thy) thyname
+  Symtab.lookup (HOL4Imports.get thy) thyname
 
 fun set_segment thyname segname thy =
     let
 	val imps = HOL4Imports.get thy
-	val imps' = Symtab.curried_update_new (thyname,segname) imps
+	val imps' = Symtab.update_new (thyname,segname) imps
     in
 	HOL4Imports.put imps' thy
     end
@@ -273,7 +273,7 @@ fun ignore_hol4 bthy bthm thy =
     let
 	val _ = message ("Ignoring " ^ bthy ^ "." ^ bthm)
 	val curmaps = HOL4Maps.get thy
-	val newmaps = StringPair.update_new(((bthy,bthm),NONE),curmaps)
+	val newmaps = StringPair.update_new ((bthy,bthm),NONE) curmaps
 	val upd_thy = HOL4Maps.put newmaps thy
     in
 	upd_thy
@@ -291,19 +291,19 @@ val get_output_dir = #1 o HOL4Dump.get
 fun add_hol4_move bef aft thy =
     let
 	val curmoves = HOL4Moves.get thy
-	val newmoves = Symtab.curried_update_new (bef, aft) curmoves
+	val newmoves = Symtab.update_new (bef, aft) curmoves
     in
 	HOL4Moves.put newmoves thy
     end
 
 fun get_hol4_move bef thy =
-  Symtab.curried_lookup (HOL4Moves.get thy) bef
+  Symtab.lookup (HOL4Moves.get thy) bef
 
 fun follow_name thmname thy =
     let
 	val moves = HOL4Moves.get thy
 	fun F thmname =
-	    case Symtab.curried_lookup moves thmname of
+	    case Symtab.lookup moves thmname of
 		SOME name => F name
 	      | NONE => thmname
     in
@@ -313,19 +313,19 @@ fun follow_name thmname thy =
 fun add_hol4_cmove bef aft thy =
     let
 	val curmoves = HOL4CMoves.get thy
-	val newmoves = Symtab.curried_update_new (bef, aft) curmoves
+	val newmoves = Symtab.update_new (bef, aft) curmoves
     in
 	HOL4CMoves.put newmoves thy
     end
 
 fun get_hol4_cmove bef thy =
-  Symtab.curried_lookup (HOL4CMoves.get thy) bef
+  Symtab.lookup (HOL4CMoves.get thy) bef
 
 fun follow_cname thmname thy =
     let
 	val moves = HOL4CMoves.get thy
 	fun F thmname =
-	    case Symtab.curried_lookup moves thmname of
+	    case Symtab.lookup moves thmname of
 		SOME name => F name
 	      | NONE => thmname
     in
@@ -337,7 +337,7 @@ fun add_hol4_mapping bthy bthm isathm thy =
 	val isathm = follow_name isathm thy
 	val _ = message ("Adding theorem map: " ^ bthy ^ "." ^ bthm ^ " --> " ^ isathm)
 	val curmaps = HOL4Maps.get thy
-	val newmaps = StringPair.update_new(((bthy,bthm),SOME isathm),curmaps)
+	val newmaps = StringPair.update_new ((bthy,bthm),SOME isathm) curmaps
 	val upd_thy = HOL4Maps.put newmaps thy
     in
 	upd_thy
@@ -347,14 +347,14 @@ fun get_hol4_type_mapping bthy tycon thy =
     let
 	val maps = HOL4TypeMaps.get thy
     in
-	StringPair.lookup(maps,(bthy,tycon))
+	StringPair.lookup maps (bthy,tycon)
     end
 
 fun get_hol4_mapping bthy bthm thy =
     let
 	val curmaps = HOL4Maps.get thy
     in
-	StringPair.lookup(curmaps,(bthy,bthm))
+	StringPair.lookup curmaps (bthy,bthm)
     end;
 
 fun add_hol4_const_mapping bthy bconst internal isaconst thy =
@@ -366,7 +366,7 @@ fun add_hol4_const_mapping bthy bconst internal isaconst thy =
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
-	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,NONE)),curmaps)
+	val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst,NONE)) curmaps
 	val upd_thy = HOL4ConstMaps.put newmaps thy
     in
 	upd_thy
@@ -376,7 +376,7 @@ fun add_hol4_const_renaming bthy bconst newname thy =
     let
 	val currens = HOL4Rename.get thy
 	val _ = message ("Adding renaming " ^ bthy ^ "." ^ bconst ^ " -> " ^ newname)
-	val newrens = StringPair.update_new(((bthy,bconst),newname),currens)
+	val newrens = StringPair.update_new ((bthy,bconst),newname) currens
 	val upd_thy = HOL4Rename.put newrens thy
     in
 	upd_thy
@@ -386,7 +386,7 @@ fun get_hol4_const_renaming bthy bconst thy =
     let
 	val currens = HOL4Rename.get thy
     in
-	StringPair.lookup(currens,(bthy,bconst))
+	StringPair.lookup currens (bthy,bconst)
     end;
 
 fun get_hol4_const_mapping bthy bconst thy =
@@ -396,7 +396,7 @@ fun get_hol4_const_mapping bthy bconst thy =
 		       | NONE => bconst
 	val maps = HOL4ConstMaps.get thy
     in
-	StringPair.lookup(maps,(bthy,bconst))
+	StringPair.lookup maps (bthy,bconst)
     end
 
 fun add_hol4_const_wt_mapping bthy bconst internal isaconst typ thy =
@@ -408,7 +408,7 @@ fun add_hol4_const_wt_mapping bthy bconst internal isaconst typ thy =
 				    else thy
 	val _ = message ("Adding cmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
 	val curmaps = HOL4ConstMaps.get thy
-	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst,SOME typ)),curmaps)
+	val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst,SOME typ)) curmaps
 	val upd_thy = HOL4ConstMaps.put newmaps thy
     in
 	upd_thy
@@ -418,8 +418,8 @@ fun add_hol4_type_mapping bthy bconst internal isaconst thy =
     let
 	val curmaps = HOL4TypeMaps.get thy
 	val _ = writeln ("Adding tmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
-	val newmaps = StringPair.update_new(((bthy,bconst),(internal,isaconst)),curmaps)
-               handle x => let val (internal, isaconst') = the (StringPair.lookup (curmaps, (bthy, bconst))) in
+	val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst)) curmaps
+               handle x => let val (internal, isaconst') = the (StringPair.lookup curmaps (bthy, bconst)) in
                       warning ("couldn't map type "^bthy^"."^bconst^" to "^isaconst^": already mapped to "^isaconst'); raise x end
         val upd_thy = HOL4TypeMaps.put newmaps thy
     in
@@ -431,7 +431,7 @@ fun add_hol4_pending bthy bthm hth thy =
 	val thmname = Sign.full_name (sign_of thy) bthm
 	val _ = message ("Add pending " ^ bthy ^ "." ^ bthm)
 	val curpend = HOL4Pending.get thy
-	val newpend = StringPair.update_new(((bthy,bthm),hth),curpend)
+	val newpend = StringPair.update_new ((bthy,bthm),hth) curpend
 	val upd_thy = HOL4Pending.put newpend thy
 	val thy' = case opt_get_output_thy upd_thy of
 		       "" => add_hol4_mapping bthy bthm thmname upd_thy
@@ -450,14 +450,14 @@ fun get_hol4_theorem thyname thmname thy =
     let
 	val isathms = HOL4Thms.get thy
     in
-	StringPair.lookup (isathms,(thyname,thmname))
+	StringPair.lookup isathms (thyname,thmname)
     end
 
 fun add_hol4_theorem thyname thmname hth thy =
     let
 	val _ = message ("Adding HOL4 theorem " ^ thyname ^ "." ^ thmname)
 	val isathms = HOL4Thms.get thy
-	val isathms' = StringPair.update_new (((thyname,thmname),hth),isathms)
+	val isathms' = StringPair.update_new ((thyname,thmname),hth) isathms
 	val thy' = HOL4Thms.put isathms' thy
     in
 	thy'
@@ -692,14 +692,14 @@ fun get_defmap thyname const thy =
     let
 	val maps = HOL4DefMaps.get thy
     in
-	StringPair.lookup(maps,(thyname,const))
+	StringPair.lookup maps (thyname,const)
     end
 
 fun add_defmap thyname const defname thy =
     let
 	val _ = message ("Adding defmap " ^ thyname ^ "." ^ const ^ " --> " ^ defname)
 	val maps = HOL4DefMaps.get thy
-	val maps' = StringPair.update_new(((thyname,const),defname),maps)
+	val maps' = StringPair.update_new ((thyname,const),defname) maps
 	val thy' = HOL4DefMaps.put maps' thy
     in
 	thy'
@@ -710,7 +710,7 @@ fun get_defname thyname name thy =
 	val maps = HOL4DefMaps.get thy
 	fun F dname = (dname,add_defmap thyname name dname thy)
     in
-	case StringPair.lookup(maps,(thyname,name)) of
+	case StringPair.lookup maps (thyname,name) of
 	    SOME thmname => (thmname,thy)
 	  | NONE =>
 	    let

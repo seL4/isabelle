@@ -248,7 +248,7 @@ fun change_prtabs f mode xprods prtabs =
     val tab = fold f fmts (mode_tab prtabs mode);
   in AList.update (op =) (mode, tab) prtabs end;
 
-fun extend_prtabs m = change_prtabs Symtab.curried_update_multi m;
+fun extend_prtabs m = change_prtabs Symtab.update_multi m;
 fun remove_prtabs m = change_prtabs (Symtab.remove_multi (op =)) m;
 
 fun merge_prtabs prtabs1 prtabs2 =
@@ -330,7 +330,7 @@ fun pretty thy tabs trf tokentrf type_mode curried ast0 p0 =
 
         (*find matching table entry, or print as prefix / postfix*)
         fun prnt ([], []) = prefixT tup
-          | prnt ([], tb :: tbs) = prnt (Symtab.curried_lookup_multi tb a, tbs)
+          | prnt ([], tb :: tbs) = prnt (Symtab.lookup_multi tb a, tbs)
           | prnt ((pr, n, p') :: prnps, tbs) =
               if nargs = n then parT (pr, args, p, p')
               else if nargs > n andalso not type_mode then

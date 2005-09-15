@@ -182,7 +182,7 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 fun tinst_tab_type tinst T = if Symtab.is_empty tinst
       then T
       else Term.map_type_tfree
-        (fn (v as (x, _)) => getOpt (Symtab.curried_lookup tinst x, (TFree v))) T;
+        (fn (v as (x, _)) => getOpt (Symtab.lookup tinst x, (TFree v))) T;
 
 fun tinst_tab_term tinst t = if Symtab.is_empty tinst
       then t
@@ -215,7 +215,7 @@ fun inst_tab_term (inst, tinst) = if Symtab.is_empty inst
       else (* instantiate terms and types simultaneously *)
         let
           fun instf (Const (x, T)) = Const (x, tinst_tab_type tinst T)
-            | instf (Free (x, T)) = (case Symtab.curried_lookup inst x of
+            | instf (Free (x, T)) = (case Symtab.lookup inst x of
                  NONE => Free (x, tinst_tab_type tinst T)
                | SOME t => t)
             | instf (Var (xi, T)) = Var (xi, tinst_tab_type tinst T)
@@ -336,7 +336,7 @@ struct
                 val sups =
                   List.filter (fn (t', _) => Pattern.matches sign (t, t')) (Termtab.dest regs);
                 val sups' = map (apfst untermify) sups
-              in (Termtab.curried_update (t, (attn, [])) regs, sups') end
+              in (Termtab.update (t, (attn, [])) regs, sups') end
       | _ => (regs, []))
     end;
 
@@ -345,9 +345,9 @@ struct
   fun add_witness ts thm regs =
     let
       val t = termify ts;
-      val (x, thms) = valOf (Termtab.curried_lookup regs t);
+      val (x, thms) = valOf (Termtab.lookup regs t);
     in
-      Termtab.curried_update (t, (x, thm::thms)) regs
+      Termtab.update (t, (x, thm::thms)) regs
     end;
 end;
 
@@ -412,9 +412,9 @@ fun declare_locale name thy =
 
 fun put_locale name loc =
   GlobalLocalesData.map (fn (space, locs, regs) =>
-    (space, Symtab.curried_update (name, loc) locs, regs));
+    (space, Symtab.update (name, loc) locs, regs));
 
-fun get_locale thy name = Symtab.curried_lookup (#2 (GlobalLocalesData.get thy)) name;
+fun get_locale thy name = Symtab.lookup (#2 (GlobalLocalesData.get thy)) name;
 
 fun the_locale thy name =
   (case get_locale thy name of
@@ -431,7 +431,7 @@ fun the_locale thy name =
 (* retrieve registration from theory or context *)
 
 fun gen_get_registrations get thy_ctxt name =
-  case Symtab.curried_lookup (get thy_ctxt) name of
+  case Symtab.lookup (get thy_ctxt) name of
       NONE => []
     | SOME reg => Registrations.dest reg;
 
@@ -441,7 +441,7 @@ val get_local_registrations =
      gen_get_registrations LocalLocalesData.get;
 
 fun gen_get_registration get thy_of thy_ctxt (name, ps) =
-  case Symtab.curried_lookup (get thy_ctxt) name of
+  case Symtab.lookup (get thy_ctxt) name of
       NONE => NONE
     | SOME reg => Registrations.lookup (thy_of thy_ctxt) (reg, ps);
 
@@ -466,7 +466,7 @@ fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
   map_data (fn regs =>
     let
       val thy = thy_of thy_ctxt;
-      val reg = getOpt (Symtab.curried_lookup regs name, Registrations.empty);
+      val reg = getOpt (Symtab.lookup regs name, Registrations.empty);
       val (reg', sups) = Registrations.insert thy (ps, attn) reg;
       val _ = if not (null sups) then warning
                 ("Subsumed interpretation(s) of locale " ^
@@ -474,7 +474,7 @@ fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
                  "\nby interpretation(s) with the following prefix(es):\n" ^
                   commas_quote (map (fn (_, ((s, _), _)) => s) sups))
               else ();
-    in Symtab.curried_update (name, reg') regs end) thy_ctxt;
+    in Symtab.update (name, reg') regs end) thy_ctxt;
 
 val put_global_registration =
      gen_put_registration (fn f =>
@@ -559,7 +559,7 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
 
     val loc_int = intern thy loc;
     val regs = get_regs thy_ctxt;
-    val loc_regs = Symtab.curried_lookup regs loc_int;
+    val loc_regs = Symtab.lookup regs loc_int;
   in
     (case loc_regs of
         NONE => Pretty.str ("no interpretations in " ^ msg)
@@ -771,7 +771,7 @@ fun params_of elemss = gen_distinct eq_fst (List.concat (map (snd o fst) elemss)
 fun params_of' elemss = gen_distinct eq_fst (List.concat (map (snd o fst o fst) elemss));
 fun params_syn_of syn elemss =
   gen_distinct eq_fst (List.concat (map (snd o fst) elemss)) |>
-    map (apfst (fn x => (x, valOf (Symtab.curried_lookup syn x))));
+    map (apfst (fn x => (x, valOf (Symtab.lookup syn x))));
 
 
 (* CB: param_types has the following type:
@@ -1017,7 +1017,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val {params = (ps, qs), elems, ...} = the_locale thy name;
         val ps' = map (apsnd SOME o #1) ps;
         val ren = map #1 ps' ~~
-              map (fn x => (x, valOf (Symtab.curried_lookup syn x))) xs;
+              map (fn x => (x, valOf (Symtab.lookup syn x))) xs;
         val (params', elems') =
           if null ren then ((ps', qs), map #1 elems)
           else ((map (apfst (rename ren)) ps', map (rename ren) qs),
@@ -1754,7 +1754,7 @@ fun collect_global_witnesses thy parms ids vts = let
         |> Symtab.make;            
     (* replace parameter names in ids by instantiations *)
     val vinst = Symtab.make (parms ~~ vts);
-    fun vinst_names ps = map (the o Symtab.curried_lookup vinst) ps;
+    fun vinst_names ps = map (the o Symtab.lookup vinst) ps;
     val inst = Symtab.make (parms ~~ ts);
     val ids' = map (apsnd vinst_names) ids;
     val wits = List.concat (map (snd o valOf o get_global_registration thy) ids');
@@ -2028,7 +2028,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) elems',
         params = (params_of elemss' |>
-          map (fn (x, SOME T) => ((x, T), the (Symtab.curried_lookup syn x))), map #1 (params_of body_elemss)),
+          map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))), map #1 (params_of body_elemss)),
         regs = []}
     |> pair (elems', body_ctxt)
   end;
@@ -2264,7 +2264,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
                NONE => error ("Instance missing for parameter " ^ quote p)
              | SOME (Free (_, T), t) => (t, T);
         val d = inst_tab_term (inst, tinst) t;
-      in (Symtab.curried_update_new (p, d) inst, tinst) end;
+      in (Symtab.update_new (p, d) inst, tinst) end;
     val (inst, tinst) = Library.foldl add_def ((inst, tinst), not_given);
     (* Note: inst and tinst contain no vars. *)
 

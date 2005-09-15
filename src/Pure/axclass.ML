@@ -148,7 +148,7 @@ val print_axclasses = AxclassesData.print;
 
 (* get and put data *)
 
-val lookup_info = Symtab.curried_lookup o AxclassesData.get;
+val lookup_info = Symtab.lookup o AxclassesData.get;
 
 fun get_info thy c =
   (case lookup_info thy c of
@@ -220,7 +220,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       axms_thy
       |> (#1 o PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts))
       |> Theory.restore_naming class_thy
-      |> AxclassesData.map (Symtab.curried_update (class, info));
+      |> AxclassesData.map (Symtab.update (class, info));
   in (final_thy, {intro = intro, axioms = axioms}) end;
 
 in

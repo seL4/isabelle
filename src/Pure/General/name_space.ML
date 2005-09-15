@@ -113,7 +113,7 @@ datatype T =
 val empty = NameSpace Symtab.empty;
 
 fun lookup (NameSpace tab) xname =
-  (case Symtab.curried_lookup tab xname of
+  (case Symtab.lookup tab xname of
     NONE => (xname, true)
   | SOME ([], []) => (xname, true)
   | SOME ([name], _) => (name, true)
@@ -150,7 +150,7 @@ fun extern space name =
 (* basic operations *)
 
 fun map_space f xname (NameSpace tab) =
-  NameSpace (Symtab.curried_update (xname, f (if_none (Symtab.curried_lookup tab xname) ([], []))) tab);
+  NameSpace (Symtab.update (xname, f (if_none (Symtab.lookup tab xname) ([], []))) tab);
 
 fun del (name: string) = remove (op =) name;
 fun add name names = name :: del name names;

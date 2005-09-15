@@ -126,12 +126,12 @@ end);
 val print_recdefs = GlobalRecdefData.print;
 
 
-val get_recdef = Symtab.curried_lookup o #1 o GlobalRecdefData.get;
+val get_recdef = Symtab.lookup o #1 o GlobalRecdefData.get;
 
 fun put_recdef name info thy =
   let
     val (tab, hints) = GlobalRecdefData.get thy;
-    val tab' = Symtab.curried_update_new (name, info) tab
+    val tab' = Symtab.update_new (name, info) tab
       handle Symtab.DUP _ => error ("Duplicate recursive function definition " ^ quote name);
   in GlobalRecdefData.put (tab', hints) thy end;
 

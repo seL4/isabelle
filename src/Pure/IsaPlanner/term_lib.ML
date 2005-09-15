@@ -516,10 +516,10 @@ is a valid wave rule... *)
 (* a runtime-quick function which makes sure that every variable has a
 unique name *)
 fun unique_namify_aux (ntab,(Abs(s,ty,t))) =
-    (case Symtab.curried_lookup ntab s of
+    (case Symtab.lookup ntab s of
        NONE =>
        let
-	 val (ntab2,t2) = unique_namify_aux (Symtab.curried_update (s, s) ntab, t)
+	 val (ntab2,t2) = unique_namify_aux (Symtab.update (s, s) ntab, t)
        in
 	 (ntab2,Abs(s,ty,t2))
        end
@@ -527,7 +527,7 @@ fun unique_namify_aux (ntab,(Abs(s,ty,t))) =
        let
 	 val s_new = (Term.variant (Symtab.keys ntab) s)
 	 val (ntab2,t2) =
-	     unique_namify_aux (Symtab.curried_update (s_new, s_new) ntab, t)
+	     unique_namify_aux (Symtab.update (s_new, s_new) ntab, t)
        in
 	 (ntab2,Abs(s_new,ty,t2))
        end)
@@ -540,12 +540,12 @@ fun unique_namify_aux (ntab,(Abs(s,ty,t))) =
     end
   | unique_namify_aux (nt as (ntab,Const x)) = nt
   | unique_namify_aux (nt as (ntab,f as Free (s,ty))) =
-    (case Symtab.curried_lookup ntab s of
-       NONE => (Symtab.curried_update (s, s) ntab, f)
+    (case Symtab.lookup ntab s of
+       NONE => (Symtab.update (s, s) ntab, f)
      | SOME _ => nt)
   | unique_namify_aux (nt as (ntab,v as Var ((s,i),ty))) =
-    (case Symtab.curried_lookup ntab s of
-       NONE => (Symtab.curried_update (s, s) ntab, v)
+    (case Symtab.lookup ntab s of
+       NONE => (Symtab.update (s, s) ntab, v)
      | SOME _ => nt)
   | unique_namify_aux (nt as (ntab, Bound i)) = nt;
 		
@@ -559,11 +559,11 @@ manipulation, which doesn't have necessary relation to the original
 sematics of the term. This is really a trick for our embedding code. *)
 
 fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
-    (case Symtab.curried_lookup ntab s of
+    (case Symtab.lookup ntab s of
       NONE =>
       let
 	val (ntab2,t2) =
-          bounds_to_frees_aux ((s,ty)::T) (Symtab.curried_update (s, s) ntab, t)
+          bounds_to_frees_aux ((s,ty)::T) (Symtab.update (s, s) ntab, t)
       in
 	(ntab2,Abs(s,ty,t2))
       end
@@ -572,7 +572,7 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
 	val s_new = (Term.variant (Symtab.keys ntab) s)
 	val (ntab2,t2) =
 	  bounds_to_frees_aux ((s_new,ty)::T)
-            (Symtab.curried_update (s_new, s_new) ntab, t)
+            (Symtab.update (s_new, s_new) ntab, t)
       in
 	(ntab2,Abs(s_new,ty,t2))
       end)
@@ -585,12 +585,12 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
     end
   | bounds_to_frees_aux T (nt as (ntab,Const x)) = nt
   | bounds_to_frees_aux T (nt as (ntab,f as Free (s,ty))) =
-    (case Symtab.curried_lookup ntab s of
-      NONE => (Symtab.curried_update (s, s) ntab, f)
+    (case Symtab.lookup ntab s of
+      NONE => (Symtab.update (s, s) ntab, f)
     | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab,v as Var ((s,i),ty))) =
-     (case Symtab.curried_lookup ntab s of
-      NONE => (Symtab.curried_update (s, s) ntab, v)
+     (case Symtab.lookup ntab s of
+      NONE => (Symtab.update (s, s) ntab, v)
     | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab, Bound i)) =
     let

@@ -35,7 +35,7 @@ val myinv_f_f = thm "myinv_f_f";
 
 
 fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
-  #exhaustion (the (Symtab.curried_lookup dt_info tname));
+  #exhaustion (the (Symtab.lookup dt_info tname));
 
 (******************************************************************************)
 
@@ -356,7 +356,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       let
         val ks = map fst ds;
         val (_, (tname, _, _)) = hd ds;
-        val {rec_rewrites, rec_names, ...} = the (Symtab.curried_lookup dt_info tname);
+        val {rec_rewrites, rec_names, ...} = the (Symtab.lookup dt_info tname);
 
         fun process_dt ((fs, eqns, isos), (k, (tname, _, constrs))) =
           let
@@ -412,7 +412,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
         val (_, (tname, _, _)) = hd ds;
-        val {induction, ...} = the (Symtab.curried_lookup dt_info tname);
+        val {induction, ...} = the (Symtab.lookup dt_info tname);
 
         fun mk_ind_concl (i, _) =
           let

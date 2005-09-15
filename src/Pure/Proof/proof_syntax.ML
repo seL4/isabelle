@@ -100,7 +100,7 @@ fun disambiguate_names thy prf =
       let val prop = if_none (AList.lookup (op =) thms' key) (Bound 0)
       in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
         if prop <> prop' then
-          (Symtab.curried_update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
+          (Symtab.update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
         else x) (tab, 1) ps)
       end) (Symtab.empty, thms);
 
@@ -111,7 +111,7 @@ fun disambiguate_names thy prf =
       | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
           let
             val prop' = if_none (AList.lookup (op =) thms' s) (Bound 0);
-            val ps = map fst (the (Symtab.curried_lookup thms s)) \ prop'
+            val ps = map fst (the (Symtab.lookup thms s)) \ prop'
           in if prop = prop' then prf' else
             PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
               prf, prop, Ts)
@@ -146,7 +146,7 @@ fun proof_of_term thy tab ty =
                  let val name = NameSpace.pack xs;
                  in (case AList.lookup (op =) thms name of
                      SOME thm => fst (strip_combt (Thm.proof_of thm))
-                   | NONE => (case Symtab.curried_lookup tab name of
+                   | NONE => (case Symtab.lookup tab name of
                          SOME prf => prf
                        | NONE => error ("Unknown theorem " ^ quote name)))
                  end

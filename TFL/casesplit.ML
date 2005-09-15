@@ -126,7 +126,7 @@ fun case_thm_of_ty sgn ty  =
                                             ("Free type: " ^ s)
                    | TVar((s,i),_) => raise ERROR_MESSAGE
                                             ("Free variable: " ^ s)
-      val dt = case Symtab.curried_lookup dtypestab ty_str
+      val dt = case Symtab.lookup dtypestab ty_str
                 of SOME dt => dt
                  | NONE => raise ERROR_MESSAGE ("Not a Datatype: " ^ ty_str)
     in

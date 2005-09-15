@@ -46,11 +46,11 @@ datatype node = Node of
          typ  (* type of the constant in this particular definition *)
          * (edgelabel list) Symtab.table (* The edges, grouped by nodes. *)
 
-fun getnode graph = the o Symtab.curried_lookup graph
+fun getnode graph = the o Symtab.lookup graph
 fun get_nodedefs (Node (_, defs, _, _, _)) = defs
-fun get_defnode (Node (_, defs, _, _, _)) defname = Symtab.curried_lookup defs defname
+fun get_defnode (Node (_, defs, _, _, _)) defname = Symtab.lookup defs defname
 fun get_defnode' graph noderef =
-  Symtab.curried_lookup (get_nodedefs (the (Symtab.curried_lookup graph noderef)))
+  Symtab.lookup (get_nodedefs (the (Symtab.lookup graph noderef)))
 
 fun table_size table = Symtab.fold (K (fn x => x + 1)) table 0;
 
@@ -94,7 +94,7 @@ fun subst_incr_tvar inc t =
         val tv = typ_tvars t
         val t' = Logic.incr_tvar inc t
         fun update_subst ((n, i), _) =
-          Vartab.curried_update ((n, i), ([], TVar ((n, i + inc), [])));
+          Vartab.update ((n, i), ([], TVar ((n, i + inc), [])));
       in
         (t', fold update_subst tv Vartab.empty)
       end
@@ -157,9 +157,9 @@ fun normalize_edge_idx (edge as (maxidx, u1, v1, history)) =
             ((tab,max), []) ts
 
       fun idx (tab,max) (TVar ((a,i),_)) =
-          (case Inttab.curried_lookup tab i of
+          (case Inttab.lookup tab i of
              SOME j => ((tab, max), TVar ((a,j),[]))
-           | NONE => ((Inttab.curried_update (i, max) tab, max + 1), TVar ((a,max),[])))
+           | NONE => ((Inttab.update (i, max) tab, max + 1), TVar ((a,max),[])))
         | idx (tab,max) (Type (t, ts)) =
           let
             val ((tab, max), ts) = idxlist idx I fst (tab, max) ts
@@ -207,10 +207,10 @@ fun merge_edges xs ys = foldl merge_edges_1 xs ys
 
 fun declare' (g as (cost, axmap, actions, graph)) (cty as (name, ty)) =
     (cost, axmap, (Declare cty)::actions,
-     Symtab.curried_update_new (name, Node (ty, Symtab.empty, Symtab.empty, [], Open)) graph)
+     Symtab.update_new (name, Node (ty, Symtab.empty, Symtab.empty, [], Open)) graph)
     handle Symtab.DUP _ =>
            let
-             val (Node (gty, _, _, _, _)) = the (Symtab.curried_lookup graph name)
+             val (Node (gty, _, _, _, _)) = the (Symtab.lookup graph name)
            in
              if is_instance_r ty gty andalso is_instance_r gty ty then
                g
@@ -227,13 +227,13 @@ fun newaxname axmap axname =
       val _ = axcounter := c+1
       val axname' = axname^"_"^(IntInf.toString c)
     in
-      (Symtab.curried_update (axname', axname) axmap, axname')
+      (Symtab.update (axname', axname) axmap, axname')
     end
 
 fun translate_ex axmap x =
     let
       fun translate (ty, nodename, axname) =
-          (ty, nodename, the (Symtab.curried_lookup axmap axname))
+          (ty, nodename, the (Symtab.lookup axmap axname))
     in
       case x of
         INFINITE_CHAIN chain => raise (INFINITE_CHAIN (map translate chain))
@@ -243,7 +243,7 @@ fun translate_ex axmap x =
 
 fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body =
     let
-      val mainnode  = (case Symtab.curried_lookup graph mainref of
+      val mainnode  = (case Symtab.lookup graph mainref of
                          NONE => def_err ("constant "^mainref^" is not declared")
                        | SOME n => n)
       val (Node (gty, defs, backs, finals, _)) = mainnode
@@ -273,8 +273,8 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
              let
                val links = map normalize_edge_idx links
              in
-               Symtab.curried_update (nodename,
-                               case Symtab.curried_lookup edges nodename of
+               Symtab.update (nodename,
+                               case Symtab.lookup edges nodename of
                                  NONE => links
                                | SOME links' => merge_edges links' links) edges
              end)
@@ -282,7 +282,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
       fun make_edges ((bodyn, bodyty), edges) =
           let
             val bnode =
-                (case Symtab.curried_lookup graph bodyn of
+                (case Symtab.lookup graph bodyn of
                    NONE => def_err "body of constant definition references undeclared constant"
                  | SOME x => x)
             val (Node (general_btyp, bdefs, bbacks, bfinals, closed)) = bnode
@@ -345,13 +345,13 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
                         sys_error ("install_backrefs: closed node cannot be updated")
                       else ()
               val defnames =
-                  (case Symtab.curried_lookup backs mainref of
+                  (case Symtab.lookup backs mainref of
                      NONE => Symtab.empty
                    | SOME s => s)
-              val defnames' = Symtab.curried_update_new (axname, ()) defnames
-              val backs' = Symtab.curried_update (mainref, defnames') backs
+              val defnames' = Symtab.update_new (axname, ()) defnames
+              val backs' = Symtab.update (mainref, defnames') backs
             in
-              Symtab.curried_update (noderef, Node (ty, defs, backs', finals, closed)) graph
+              Symtab.update (noderef, Node (ty, defs, backs', finals, closed)) graph
             end
           else
             graph
@@ -364,7 +364,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
           else if closed = Open andalso is_instance_r gty ty then Closed else closed
 
       val thisDefnode = Defnode (ty, edges)
-      val graph = Symtab.curried_update (mainref, Node (gty, Symtab.curried_update_new
+      val graph = Symtab.update (mainref, Node (gty, Symtab.update_new
         (axname, thisDefnode) defs, backs, finals, closed)) graph
 
       (* Now we have to check all backreferences to this node and inform them about
@@ -377,8 +377,8 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
                       getnode graph noderef
                   val _ = if closed = Final then sys_error "update_defs: closed node" else ()
                   val (Defnode (def_ty, defnode_edges)) =
-                      the (Symtab.curried_lookup nodedefs defname)
-                  val edges = the (Symtab.curried_lookup defnode_edges mainref)
+                      the (Symtab.lookup nodedefs defname)
+                  val edges = the (Symtab.lookup defnode_edges mainref)
                   val refclosed = ref false
 
                   (* the type of thisDefnode is ty *)
@@ -416,7 +416,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
                   val defnames' = if edges' = [] then
                                     defnames
                                   else
-                                    Symtab.curried_update (defname, ()) defnames
+                                    Symtab.update (defname, ()) defnames
                 in
                   if changed then
                     let
@@ -424,14 +424,14 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
                           if edges' = [] then
                             Symtab.delete mainref defnode_edges
                           else
-                            Symtab.curried_update (mainref, edges') defnode_edges
+                            Symtab.update (mainref, edges') defnode_edges
                       val defnode' = Defnode (def_ty, defnode_edges')
-                      val nodedefs' = Symtab.curried_update (defname, defnode') nodedefs
+                      val nodedefs' = Symtab.update (defname, defnode') nodedefs
                       val closed = if closed = Closed andalso Symtab.is_empty defnode_edges'
                                       andalso no_forwards nodedefs'
                                    then Final else closed
                       val graph' =
-                        Symtab.curried_update
+                        Symtab.update
                           (noderef, Node (nodety, nodedefs', nodebacks, nodefinals, closed)) graph
                     in
                       (defnames', graph')
@@ -447,7 +447,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
               (backs, graph')
             else
               let
-                val backs' = Symtab.curried_update_new (noderef, defnames') backs
+                val backs' = Symtab.update_new (noderef, defnames') backs
               in
                 (backs', graph')
               end
@@ -458,7 +458,7 @@ fun define' (cost, axmap, actions, graph) (mainref, ty) axname orig_axname body 
       (* If a Circular exception is thrown then we never reach this point. *)
       val (Node (gty, defs, _, finals, closed)) = getnode graph mainref
       val closed = if closed = Closed andalso no_forwards defs then Final else closed
-      val graph = Symtab.curried_update (mainref, Node (gty, defs, backs, finals, closed)) graph
+      val graph = Symtab.update (mainref, Node (gty, defs, backs, finals, closed)) graph
       val actions' = (Define (mainref, ty, axname, orig_axname, body))::actions
     in
       (cost+3, axmap, actions', graph)
@@ -482,7 +482,7 @@ fun define'' thy (g as (cost, axmap, actions, graph)) (mainref, ty) orig_axname 
     end
 
 fun finalize' (cost, axmap, history, graph) (noderef, ty) =
-    case Symtab.curried_lookup graph noderef of
+    case Symtab.lookup graph noderef of
       NONE => def_err ("cannot finalize constant "^noderef^"; it is not declared")
     | SOME (Node (nodety, defs, backs, finals, closed)) =>
       let
@@ -519,7 +519,7 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
             val closed = if closed = Open andalso is_instance_r nodety ty then
                            Closed else
                          closed
-            val graph = Symtab.curried_update (noderef, Node (nodety, defs, backs, finals, closed)) graph
+            val graph = Symtab.update (noderef, Node (nodety, defs, backs, finals, closed)) graph
 
             fun update_backref ((graph, backs), (backrefname, backdefnames)) =
                 let
@@ -532,7 +532,7 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
                             the (get_defnode backnode backdefname)
 
                         val (defnames', all_edges') =
-                            case Symtab.curried_lookup all_edges noderef of
+                            case Symtab.lookup all_edges noderef of
                               NONE => sys_error "finalize: corrupt backref"
                             | SOME edges =>
                               let
@@ -542,11 +542,11 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
                                 if edges' = [] then
                                   (defnames, Symtab.delete noderef all_edges)
                                 else
-                                  (Symtab.curried_update (backdefname, ()) defnames,
-                                   Symtab.curried_update (noderef, edges') all_edges)
+                                  (Symtab.update (backdefname, ()) defnames,
+                                   Symtab.update (noderef, edges') all_edges)
                               end
                         val defnode' = Defnode (def_ty, all_edges')
-                        val backdefs' = Symtab.curried_update (backdefname, defnode') backdefs
+                        val backdefs' = Symtab.update (backdefname, defnode') backdefs
                         val backclosed' = if backclosed = Closed andalso
                                              Symtab.is_empty all_edges'
                                              andalso no_forwards backdefs'
@@ -554,19 +554,19 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
                         val backnode' =
                             Node (backty, backdefs', backbacks, backfinals, backclosed')
                       in
-                        (Symtab.curried_update (backrefname, backnode') graph, defnames')
+                        (Symtab.update (backrefname, backnode') graph, defnames')
                       end
 
                   val (graph', defnames') =
                       Symtab.foldl update_backdef ((graph, Symtab.empty), backdefnames)
                 in
                   (graph', if Symtab.is_empty defnames' then backs
-                           else Symtab.curried_update (backrefname, defnames') backs)
+                           else Symtab.update (backrefname, defnames') backs)
                 end
             val (graph', backs') = Symtab.foldl update_backref ((graph, Symtab.empty), backs)
             val Node ( _, defs, _, _, closed) = getnode graph' noderef
             val closed = if closed = Closed andalso no_forwards defs then Final else closed
-            val graph' = Symtab.curried_update (noderef, Node (nodety, defs, backs',
+            val graph' = Symtab.update (noderef, Node (nodety, defs, backs',
                                                         finals, closed)) graph'
             val history' = (Finalize (noderef, ty)) :: history
           in
@@ -577,14 +577,14 @@ fun finalize' (cost, axmap, history, graph) (noderef, ty) =
 fun finalize'' thy g (noderef, ty) = finalize' g (noderef, checkT thy ty)
 
 fun update_axname ax orig_ax (cost, axmap, history, graph) =
-  (cost, Symtab.curried_update (ax, orig_ax) axmap, history, graph)
+  (cost, Symtab.update (ax, orig_ax) axmap, history, graph)
 
 fun merge' (Declare cty, g) = declare' g cty
   | merge' (Define (name, ty, axname, orig_axname, body), g as (cost, axmap, history, graph)) =
-    (case Symtab.curried_lookup graph name of
+    (case Symtab.lookup graph name of
        NONE => define' (update_axname axname orig_axname g) (name, ty) axname orig_axname body
      | SOME (Node (_, defs, _, _, _)) =>
-       (case Symtab.curried_lookup defs axname of
+       (case Symtab.lookup defs axname of
           NONE => define' (update_axname axname orig_axname g) (name, ty) axname orig_axname body
         | SOME _ => g))
   | merge' (Finalize finals, g) = finalize' g finals
@@ -598,14 +598,14 @@ fun merge'' (g1 as (cost1, _, actions1, _)) (g2 as (cost2, _, actions2, _)) =
 fun finals (_, _, history, graph) =
     Symtab.foldl
       (fn (finals, (name, Node(_, _, _, ftys, _))) =>
-          Symtab.curried_update_new (name, ftys) finals)
+          Symtab.update_new (name, ftys) finals)
       (Symtab.empty, graph)
 
 fun overloading_info (_, axmap, _, graph) c =
     let
-      fun translate (ax, Defnode (ty, _)) = (the (Symtab.curried_lookup axmap ax), ty)
+      fun translate (ax, Defnode (ty, _)) = (the (Symtab.lookup axmap ax), ty)
     in
-      case Symtab.curried_lookup graph c of
+      case Symtab.lookup graph c of
         NONE => NONE
       | SOME (Node (ty, defnodes, _, _, state)) =>
         SOME (ty, map translate (Symtab.dest defnodes), state)
@@ -618,7 +618,7 @@ fun monomorphicT (Type (_, Ts)) = forall monomorphicT Ts
   | monomorphicT _ = false
 
 fun monomorphic (_, _, _, graph) c =
-  (case Symtab.curried_lookup graph c of
+  (case Symtab.lookup graph c of
     NONE => true
   | SOME (Node (ty, defnodes, _, _, _)) =>
       Symtab.min_key defnodes = Symtab.max_key defnodes andalso

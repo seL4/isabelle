@@ -383,8 +383,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           (("recursor_eqns", recursor_eqns), []),
           (("free_iffs", free_iffs), []),
           (("free_elims", free_SEs), [])])
-        |> DatatypesData.map (Symtab.curried_update (big_rec_name, dt_info))
-        |> ConstructorsData.map (fold Symtab.curried_update con_pairs)
+        |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
+        |> ConstructorsData.map (fold Symtab.update con_pairs)
         |> Theory.parent_path,
    ind_result,
    {con_defs = con_defs,

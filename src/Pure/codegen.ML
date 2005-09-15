@@ -427,13 +427,13 @@ fun mk_long_id (p as (tab, used)) module s =
           let
             val s' = NameSpace.pack ys
             val s'' = NameSpace.append module s'
-          in case Symtab.curried_lookup used s'' of
+          in case Symtab.lookup used s'' of
               NONE => ((module, s'),
-                (Symtab.curried_update_new (s, (module, s')) tab,
-                 Symtab.curried_update_new (s'', ()) used))
+                (Symtab.update_new (s, (module, s')) tab,
+                 Symtab.update_new (s'', ()) used))
             | SOME _ => find_name yss
           end
-  in case Symtab.curried_lookup tab s of
+  in case Symtab.lookup tab s of
       NONE => find_name (Library.suffixes1 (NameSpace.unpack s))
     | SOME name => (name, p)
   end;
@@ -453,7 +453,7 @@ fun mk_const_id module cname (gr, (tab1, tab2)) =
   in ((gr, (tab1', tab2)), (module, s'')) end;
 
 fun get_const_id cname (gr, (tab1, tab2)) =
-  case Symtab.curried_lookup (fst tab1) cname of
+  case Symtab.lookup (fst tab1) cname of
     NONE => error ("get_const_id: no such constant: " ^ quote cname)
   | SOME (module, s) =>
       let
@@ -469,7 +469,7 @@ fun mk_type_id module tyname (gr, (tab1, tab2)) =
   in ((gr, (tab1, tab2')), (module, s'')) end;
 
 fun get_type_id tyname (gr, (tab1, tab2)) =
-  case Symtab.curried_lookup (fst tab2) tyname of
+  case Symtab.lookup (fst tab2) tyname of
     NONE => error ("get_type_id: no such type: " ^ quote tyname)
   | SOME (module, s) =>
       let
@@ -557,15 +557,15 @@ fun mk_deftab thy =
         NONE => defs
       | SOME _ => (case dest (prep_def (Thm.get_axiom thy name)) of
           NONE => defs
-        | SOME (s, (T, (args, rhs))) => Symtab.curried_update
+        | SOME (s, (T, (args, rhs))) => Symtab.update
             (s, (T, (thyname, split_last (rename_terms (args @ [rhs])))) ::
-            if_none (Symtab.curried_lookup defs s) []) defs))
+            if_none (Symtab.lookup defs s) []) defs))
   in
     foldl (fn ((thyname, axms), defs) =>
       Symtab.foldl (add_def thyname) (defs, axms)) Symtab.empty axmss
   end;
 
-fun get_defn thy defs s T = (case Symtab.curried_lookup defs s of
+fun get_defn thy defs s T = (case Symtab.lookup defs s of
     NONE => NONE
   | SOME ds =>
       let val i = find_index (is_instance thy T o fst) ds
@@ -829,7 +829,7 @@ fun gen_generate_code prep_term thy modules module =
         (Graph.merge (fn ((_, module, _), (_, module', _)) =>
            module = module') (gr, gr'),
          (merge_nametabs (tab1, tab1'), merge_nametabs (tab2, tab2')))) emptygr
-           (map (fn s => case Symtab.curried_lookup graphs s of
+           (map (fn s => case Symtab.lookup graphs s of
                 NONE => error ("Undefined code module: " ^ s)
               | SOME gr => gr) modules))
       handle Graph.DUPS ks => error ("Duplicate code for " ^ commas ks);
@@ -1056,7 +1056,7 @@ fun parse_code lib =
                    "use \"" ^ name ^ ".ML\";\n") code)) :: code)
            else File.write (Path.unpack fname) (snd (hd code)));
            if lib then thy
-           else map_modules (Symtab.curried_update (module, gr)) thy)
+           else map_modules (Symtab.update (module, gr)) thy)
      end));
 
 val code_libraryP =

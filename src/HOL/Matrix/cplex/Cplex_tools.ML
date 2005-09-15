@@ -725,7 +725,7 @@ fun bound2constr (cplexBounds (t1,c1,t2,c2,t3)) =
 
 val emptyset = Symtab.empty
 
-fun singleton v = Symtab.update ((v, ()), emptyset)
+fun singleton v = Symtab.update (v, ()) emptyset
 
 fun merge a b = Symtab.merge (op =) (a, b)
 

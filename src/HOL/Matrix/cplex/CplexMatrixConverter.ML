@@ -57,14 +57,14 @@ fun convert_prog (cplexProg (s, goal, constrs, bounds)) =
     let	
 	fun build_naming index i2s s2i [] = (index, i2s, s2i)
 	  | build_naming index i2s s2i (cplexBounds (cplexNeg cplexInf, cplexLeq, cplexVar v, cplexLeq, cplexInf)::bounds)
-	    = build_naming (index+1) (Inttab.curried_update (index, v) i2s) (Symtab.curried_update_new (v, index) s2i) bounds
+	    = build_naming (index+1) (Inttab.update (index, v) i2s) (Symtab.update_new (v, index) s2i) bounds
 	  | build_naming _ _ _ _ = raise (Converter "nonfree bound")
 
 	val (varcount, i2s_tab, s2i_tab) = build_naming 0 Inttab.empty Symtab.empty bounds
 
-	fun i2s i = case Inttab.curried_lookup i2s_tab i of NONE => raise (Converter "index not found")
+	fun i2s i = case Inttab.lookup i2s_tab i of NONE => raise (Converter "index not found")
 						     | SOME n => n
-	fun s2i s = case Symtab.curried_lookup s2i_tab s of NONE => raise (Converter ("name not found: "^s))
+	fun s2i s = case Symtab.lookup s2i_tab s of NONE => raise (Converter ("name not found: "^s))
 						     | SOME i => i
 	fun num2str positive (cplexNeg t) = num2str (not positive) t
 	  | num2str positive (cplexNum num) = if positive then num else "-"^num			

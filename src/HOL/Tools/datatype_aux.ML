@@ -299,7 +299,7 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table
       Sign.string_of_typ sign (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
 
     fun get_dt_descr T i tname dts =
-      (case Symtab.curried_lookup dt_info tname of
+      (case Symtab.lookup dt_info tname of
          NONE => typ_error T (tname ^ " is not a datatype - can't use it in\
            \ nested recursion")
        | (SOME {index, descr, ...}) =>

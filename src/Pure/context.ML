@@ -118,7 +118,7 @@ type kind =
 val kinds = ref (Inttab.empty: kind Inttab.table);
 
 fun invoke meth_name meth_fn k =
-  (case Inttab.curried_lookup (! kinds) k of
+  (case Inttab.lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
       EXCEPTION (exn, "Theory data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid theory data identifier " ^ string_of_int k));
@@ -137,7 +137,7 @@ fun declare_theory_data name empty copy extend merge =
     val kind = {name = name, empty = empty, copy = copy, extend = extend, merge = merge};
     val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
       warning ("Duplicate declaration of theory data " ^ quote name));
-    val _ = change kinds (Inttab.curried_update (k, kind));
+    val _ = change kinds (Inttab.update (k, kind));
   in k end;
 
 val copy_data = Inttab.map' invoke_copy;
@@ -253,7 +253,7 @@ fun check_ins id ids =
   if draft_id id orelse Inttab.defined ids (#1 id) then ids
   else if Inttab.exists (equal (#2 id) o #2) ids then
     raise TERM ("Different versions of theory component " ^ quote (#2 id), [])
-  else Inttab.curried_update id ids;
+  else Inttab.update id ids;
 
 fun check_insert intermediate id (ids, iids) =
   let val ids' = check_ins id ids and iids' = check_ins id iids
@@ -420,12 +420,12 @@ struct
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  (case Inttab.curried_lookup (#theory (data_of thy)) k of
+  (case Inttab.lookup (#theory (data_of thy)) k of
     SOME x => (dest x handle Match =>
       error ("Failed to access theory data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized theory data " ^ quote (invoke_name k)));
 
-fun put k mk x = modify_thy (map_theory (Inttab.curried_update (k, mk x)));
+fun put k mk x = modify_thy (map_theory (Inttab.update (k, mk x)));
 fun init k = put k I (invoke_empty k);
 
 end;
@@ -522,7 +522,7 @@ type kind =
 val kinds = ref (Inttab.empty: kind Inttab.table);
 
 fun invoke meth_name meth_fn k =
-  (case Inttab.curried_lookup (! kinds) k of
+  (case Inttab.lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
       EXCEPTION (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid proof data identifier " ^ string_of_int k));
@@ -546,18 +546,18 @@ fun declare name init =
     val kind = {name = name, init = init};
     val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
       warning ("Duplicate declaration of proof data " ^ quote name));
-    val _ = change kinds (Inttab.curried_update (k, kind));
+    val _ = change kinds (Inttab.update (k, kind));
   in k end;
 
-fun init k = modify_thy (map_proof (Inttab.curried_update (k, ())));
+fun init k = modify_thy (map_proof (Inttab.update (k, ())));
 
 fun get k dest prf =
-  (case Inttab.curried_lookup (data_of_proof prf) k of
+  (case Inttab.lookup (data_of_proof prf) k of
     SOME x => (dest x handle Match =>
       error ("Failed to access proof data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized proof data " ^ quote (invoke_name k)));
 
-fun put k mk x = map_prf (Inttab.curried_update (k, mk x));
+fun put k mk x = map_prf (Inttab.update (k, mk x));
 
 end;
 

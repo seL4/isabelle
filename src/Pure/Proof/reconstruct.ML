@@ -81,10 +81,10 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
             end)
       else (t, T, vTs, env)
   | infer_type sg env Ts vTs (t as Free (s, T)) =
-      if T = dummyT then (case Symtab.curried_lookup vTs s of
+      if T = dummyT then (case Symtab.lookup vTs s of
           NONE =>
             let val (env', T) = mk_tvar (env, [])
-            in (Free (s, T), T, Symtab.curried_update_new (s, T) vTs, env') end
+            in (Free (s, T), T, Symtab.update_new (s, T) vTs, env') end
         | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
   | infer_type sg env Ts vTs (Var _) = error "reconstruct_proof: internal error"

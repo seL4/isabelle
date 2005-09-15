@@ -62,7 +62,7 @@ structure TypedefData = TheoryDataFun
 end);
 
 fun put_typedef newT oldT Abs_name Rep_name =
-  TypedefData.map (Symtab.curried_update_new (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)));
+  TypedefData.map (Symtab.update_new (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)));
 
 
 
@@ -299,7 +299,7 @@ fun typedef_codegen thy defs gr dep module brack t =
         val id = Codegen.mk_qual_id module (Codegen.get_const_id s gr'')
       in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
     fun lookup f T =
-      (case Symtab.curried_lookup (TypedefData.get thy) (get_name T) of
+      (case Symtab.lookup (TypedefData.get thy) (get_name T) of
         NONE => ""
       | SOME s => f s);
   in
@@ -320,7 +320,7 @@ fun mk_tyexpr [] s = Pretty.str s
   | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
 
 fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
-      (case Symtab.curried_lookup (TypedefData.get thy) s of
+      (case Symtab.lookup (TypedefData.get thy) s of
          NONE => NONE
        | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
            if is_some (Codegen.get_assoc_type thy tname) then NONE else

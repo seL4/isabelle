@@ -125,10 +125,10 @@ in
 
 fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
-fun get_parser () = Option.map (#2 o #1) o Symtab.curried_lookup (get_parsers ());
+fun get_parser () = Option.map (#2 o #1) o Symtab.lookup (get_parsers ());
 
 fun command_tags name =
-  (case Symtab.curried_lookup (get_parsers ()) name of
+  (case Symtab.lookup (get_parsers ()) name of
     SOME (((_, k), _), _) => OuterKeyword.tags_of k
   | NONE => []);
 
@@ -143,7 +143,7 @@ fun add_keywords keywords = change_lexicons (apfst (fn lex =>
 fun add_parser (Parser (name, (comment, kind, markup), int_only, parse)) tab =
  (if not (Symtab.defined tab name) then ()
   else warning ("Redefined outer syntax command " ^ quote name);
-  Symtab.curried_update (name, (((comment, kind), (int_only, parse)), markup)) tab);
+  Symtab.update (name, (((comment, kind), (int_only, parse)), markup)) tab);
 
 fun add_parsers parsers =
   (change_parsers (fold add_parser parsers);

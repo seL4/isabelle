@@ -365,18 +365,18 @@ fun pretty_proof_of ctxt full th =
 
 (** default sorts and types **)
 
-val def_sort = Vartab.curried_lookup o #2 o defaults_of;
+val def_sort = Vartab.lookup o #2 o defaults_of;
 
 fun def_type ctxt pattern xi =
   let val {binds, defs = (types, _, _, _), ...} = rep_context ctxt in
-    (case Vartab.curried_lookup types xi of
+    (case Vartab.lookup types xi of
       NONE =>
         if pattern then NONE
-        else Vartab.curried_lookup binds xi |> Option.map (TypeInfer.polymorphicT o #2)
+        else Vartab.lookup binds xi |> Option.map (TypeInfer.polymorphicT o #2)
     | some => some)
   end;
 
-fun default_type ctxt x = Vartab.curried_lookup (#1 (defaults_of ctxt)) (x, ~1);
+fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
 val used_types = #3 o defaults_of;
 
 
@@ -493,7 +493,7 @@ fun norm_term ctxt schematic =
 
     val binds = binds_of ctxt;
     fun norm (t as Var (xi, T)) =
-          (case Vartab.curried_lookup binds xi of
+          (case Vartab.lookup binds xi of
             SOME (u, U) =>
               let
                 val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
@@ -597,24 +597,24 @@ end;
 local
 
 val ins_types = fold_aterms
-  (fn Free (x, T) => Vartab.curried_update ((x, ~1), T)
-    | Var v => Vartab.curried_update v
+  (fn Free (x, T) => Vartab.update ((x, ~1), T)
+    | Var v => Vartab.update v
     | _ => I);
 
 val ins_sorts = fold_types (fold_atyps
-  (fn TFree (x, S) => Vartab.curried_update ((x, ~1), S)
-    | TVar v => Vartab.curried_update v
+  (fn TFree (x, S) => Vartab.update ((x, ~1), S)
+    | TVar v => Vartab.update v
     | _ => I));
 
 val ins_used = fold_term_types (fn t =>
   fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I));
 
 val ins_occs = fold_term_types (fn t =>
-  fold_atyps (fn TFree (x, _) => Symtab.curried_update_multi (x, t) | _ => I));
+  fold_atyps (fn TFree (x, _) => Symtab.update_multi (x, t) | _ => I));
 
 fun ins_skolem def_ty = fold_rev (fn (x, x') =>
   (case def_ty x' of
-    SOME T => Vartab.curried_update ((x, ~1), T)
+    SOME T => Vartab.update ((x, ~1), T)
   | NONE => I));
 
 fun map_defaults f = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
@@ -633,7 +633,7 @@ fun declare_term t ctxt =
   |> declare_term_syntax t
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs t occ))
   |> map_defaults (fn (types, sorts, used, occ) =>
-      (ins_skolem (fn x => Vartab.curried_lookup types (x, ~1)) (fixes_of ctxt) types,
+      (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
         sorts, used, occ));
 
 end;
@@ -691,7 +691,7 @@ fun generalize_tfrees inner outer =
     val occs_outer = type_occs_of outer;
     fun add a gen =
       if Symtab.defined occs_outer a orelse
-        exists still_fixed (Symtab.curried_lookup_multi occs_inner a)
+        exists still_fixed (Symtab.lookup_multi occs_inner a)
       then gen else a :: gen;
   in fn tfrees => fold add tfrees [] end;
 
@@ -774,7 +774,7 @@ fun upd_bind ((x, i), t) =
       else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
   in
     map_context (fn (syntax, asms, binds, thms, cases, defs) =>
-      (syntax, asms, Vartab.curried_update ((x, i), (t', T)) binds, thms, cases, defs))
+      (syntax, asms, Vartab.update ((x, i), (t', T)) binds, thms, cases, defs))
     o declare_term t'
   end;
 
@@ -932,7 +932,7 @@ fun retrieve_thms from_thy pick ctxt =
         val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
         val name = PureThy.name_of_thmref thmref;
       in
-        (case Symtab.curried_lookup tab name of
+        (case Symtab.lookup tab name of
           SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
         | NONE => from_thy thy xthmref) |> pick name
       end
@@ -993,7 +993,7 @@ fun put_thms ("", _) ctxt = ctxt
         let
           val name = NameSpace.full naming bname;
           val space' = NameSpace.declare naming name space;
-          val tab' = Symtab.curried_update (name, ths) tab;
+          val tab' = Symtab.update (name, ths) tab;
           val index' = FactIndex.add (is_known ctxt) (name, ths) index;
         in (syntax, asms, binds, (naming, (space', tab'), index'), cases, defs) end);
 

@@ -570,7 +570,7 @@ fun method thy =
         val ((raw_name, _), pos) = Args.dest_src src;
         val name = NameSpace.intern space raw_name;
       in
-        (case Symtab.curried_lookup meths name of
+        (case Symtab.lookup meths name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
         | SOME ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
       end;

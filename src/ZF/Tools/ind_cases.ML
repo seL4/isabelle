@@ -31,7 +31,7 @@ structure IndCasesData = TheoryDataFun
 end);
 
 
-fun declare name f = IndCasesData.map (Symtab.curried_update (name, f));
+fun declare name f = IndCasesData.map (Symtab.update (name, f));
 
 fun smart_cases thy ss read_prop s =
   let
@@ -40,7 +40,7 @@ fun smart_cases thy ss read_prop s =
     val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (FOLogic.dest_Trueprop
       (Logic.strip_imp_concl A)))))) handle TERM _ => err ();
   in
-    (case Symtab.curried_lookup (IndCasesData.get thy) c of
+    (case Symtab.lookup (IndCasesData.get thy) c of
       NONE => error ("Unknown inductive cases rule for set " ^ quote c)
     | SOME f => f ss (Thm.cterm_of (Theory.sign_of thy) A))
   end;

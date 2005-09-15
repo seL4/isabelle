@@ -213,13 +213,13 @@ val print_locales = LocalesData.print;
 
 (* access locales *)
 
-val get_locale = Symtab.curried_lookup o #locales o LocalesData.get;
+val get_locale = Symtab.lookup o #locales o LocalesData.get;
 
 fun put_locale (name, locale) thy =
   let
     val {space, locales, scope} = LocalesData.get thy;
     val space' = Sign.declare_name thy name space;
-    val locales' = Symtab.curried_update (name, locale) locales;
+    val locales' = Symtab.update (name, locale) locales;
   in thy |> LocalesData.put (make_locale_data space' locales' scope) end;
 
 fun lookup_locale thy xname =

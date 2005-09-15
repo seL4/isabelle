@@ -469,7 +469,7 @@ fun mk_extension (txts, mltxt) =
   end;
 
 fun sect tab ((Keyword, s, n) :: toks) =
-      (case Symtab.curried_lookup tab s of
+      (case Symtab.lookup tab s of
         SOME parse => !! parse toks
       | NONE => syn_err "section" s n)
   | sect _ ((_, s, n) :: _) = syn_err "section" s n

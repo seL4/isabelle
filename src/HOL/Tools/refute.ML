@@ -298,11 +298,11 @@ struct
 	let
 		val {interpreters, printers, parameters} = RefuteData.get thy
 	in
-		case Symtab.curried_lookup parameters name of
+		case Symtab.lookup parameters name of
 		  NONE   => RefuteData.put
 			{interpreters = interpreters, printers = printers, parameters = Symtab.extend (parameters, [(name, value)])} thy
 		| SOME _ => RefuteData.put
-			{interpreters = interpreters, printers = printers, parameters = Symtab.curried_update (name, value) parameters} thy
+			{interpreters = interpreters, printers = printers, parameters = Symtab.update (name, value) parameters} thy
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -312,7 +312,7 @@ struct
 
 	(* theory -> string -> string option *)
 
-	val get_default_param = Symtab.curried_lookup o #parameters o RefuteData.get;
+	val get_default_param = Symtab.lookup o #parameters o RefuteData.get;
 
 (* ------------------------------------------------------------------------- *)
 (* get_default_params: returns a list of all '(name, value)' pairs that are  *)

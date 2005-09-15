@@ -57,9 +57,9 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
   | find_repeated (tab, past, t::terms) =
       case try Data.dest_coeff t of
 	  SOME(n,u) => 
-	      (case Termtab.curried_lookup tab u of
+	      (case Termtab.lookup tab u of
 		  SOME m => (u, m, n, rev (remove (m,u,past)) @ terms)
-		| NONE => find_repeated (Termtab.curried_update (u, n) tab, 
+		| NONE => find_repeated (Termtab.update (u, n) tab, 
 					 t::past,  terms))
 	| NONE => find_repeated (tab, t::past, terms);
 

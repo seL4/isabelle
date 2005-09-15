@@ -301,13 +301,13 @@ val print_records = RecordsData.print;
 
 (* access 'records' *)
 
-val get_record = Symtab.curried_lookup o #records o RecordsData.get;
+val get_record = Symtab.lookup o #records o RecordsData.get;
 
 fun put_record name info thy =
   let
     val {records, sel_upd, equalities, extinjects,extsplit,splits,extfields,fieldext} =
           RecordsData.get thy;
-    val data = make_record_data (Symtab.curried_update (name, info) records)
+    val data = make_record_data (Symtab.update (name, info) records)
       sel_upd equalities extinjects extsplit splits extfields fieldext;
   in RecordsData.put data thy end;
 
@@ -315,10 +315,10 @@ fun put_record name info thy =
 
 val get_sel_upd = #sel_upd o RecordsData.get;
 
-val get_selectors = Symtab.curried_lookup o #selectors o get_sel_upd;
+val get_selectors = Symtab.lookup o #selectors o get_sel_upd;
 fun is_selector sg name = is_some (get_selectors sg (Sign.intern_const sg name));
 
-val get_updates = Symtab.curried_lookup o #updates o get_sel_upd;
+val get_updates = Symtab.lookup o #updates o get_sel_upd;
 val get_simpset = #simpset o get_sel_upd;
 
 fun put_sel_upd names simps thy =
@@ -342,11 +342,11 @@ fun add_record_equalities name thm thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} =
           RecordsData.get thy;
     val data = make_record_data records sel_upd
-           (Symtab.curried_update_new (name, thm) equalities) extinjects extsplit
+           (Symtab.update_new (name, thm) equalities) extinjects extsplit
            splits extfields fieldext;
   in RecordsData.put data thy end;
 
-val get_equalities =Symtab.curried_lookup o #equalities o RecordsData.get;
+val get_equalities =Symtab.lookup o #equalities o RecordsData.get;
 
 (* access 'extinjects' *)
 
@@ -367,11 +367,11 @@ fun add_extsplit name thm thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} =
           RecordsData.get thy;
     val data = make_record_data records sel_upd
-      equalities extinjects (Symtab.curried_update_new (name, thm) extsplit) splits
+      equalities extinjects (Symtab.update_new (name, thm) extsplit) splits
       extfields fieldext;
   in RecordsData.put data thy end;
 
-val get_extsplit = Symtab.curried_lookup o #extsplit o RecordsData.get;
+val get_extsplit = Symtab.lookup o #extsplit o RecordsData.get;
 
 (* access 'splits' *)
 
@@ -380,17 +380,17 @@ fun add_record_splits name thmP thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} =
           RecordsData.get thy;
     val data = make_record_data records sel_upd
-      equalities extinjects extsplit (Symtab.curried_update_new (name, thmP) splits)
+      equalities extinjects extsplit (Symtab.update_new (name, thmP) splits)
       extfields fieldext;
   in RecordsData.put data thy end;
 
-val get_splits = Symtab.curried_lookup o #splits o RecordsData.get;
+val get_splits = Symtab.lookup o #splits o RecordsData.get;
 
 
 
 (* extension of a record name *)
 val get_extension =
-  Option.map #extension oo (Symtab.curried_lookup o #records o RecordsData.get);
+  Option.map #extension oo (Symtab.lookup o #records o RecordsData.get);
 
 
 (* access 'extfields' *)
@@ -401,10 +401,10 @@ fun add_extfields name fields thy =
           RecordsData.get thy;
     val data = make_record_data records sel_upd
          equalities extinjects extsplit splits
-         (Symtab.curried_update_new (name, fields) extfields) fieldext;
+         (Symtab.update_new (name, fields) extfields) fieldext;
   in RecordsData.put data thy end;
 
-val get_extfields = Symtab.curried_lookup o #extfields o RecordsData.get;
+val get_extfields = Symtab.lookup o #extfields o RecordsData.get;
 
 fun get_extT_fields sg T =
   let
@@ -415,8 +415,8 @@ fun get_extT_fields sg T =
     fun varify (a, S) = TVar ((a, midx), S);
     val varifyT = map_type_tfree varify;
     val {records,extfields,...} = RecordsData.get sg;
-    val (flds,(more,_)) = split_last (Symtab.curried_lookup_multi extfields name);
-    val args = map varifyT (snd (#extension (the (Symtab.curried_lookup records recname))));
+    val (flds,(more,_)) = split_last (Symtab.lookup_multi extfields name);
+    val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
     val (subst,_) = fold (Sign.typ_unify sg) (but_last args ~~ but_last Ts) (Vartab.empty,0);
     val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
@@ -438,13 +438,13 @@ fun add_fieldext extname_types fields thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
            RecordsData.get thy;
     val fieldext' =
-      fold (fn field => Symtab.curried_update_new (field, extname_types)) fields fieldext;
+      fold (fn field => Symtab.update_new (field, extname_types)) fields fieldext;
     val data=make_record_data records sel_upd equalities extinjects extsplit
               splits extfields fieldext';
   in RecordsData.put data thy end;
 
 
-val get_fieldext = Symtab.curried_lookup o #fieldext o RecordsData.get;
+val get_fieldext = Symtab.lookup o #fieldext o RecordsData.get;
 
 (* parent records *)
 
@@ -819,7 +819,7 @@ fun prove_split_simp sg ss T prop =
   let
     val {sel_upd={simpset,...},extsplit,...} = RecordsData.get sg;
     val extsplits =
-            Library.foldl (fn (thms,(n,_)) => the_list (Symtab.curried_lookup extsplit n) @ thms)
+            Library.foldl (fn (thms,(n,_)) => the_list (Symtab.lookup extsplit n) @ thms)
                     ([],dest_recTs T);
     val thms = (case get_splits sg (rec_id (~1) T) of
                    SOME (all_thm,_,_,_) =>
@@ -835,7 +835,7 @@ fun prove_split_simp sg ss T prop =
 local
 fun eq (s1:string) (s2:string) = (s1 = s2);
 fun has_field extfields f T =
-     exists (fn (eN,_) => exists (eq f o fst) (Symtab.curried_lookup_multi extfields eN))
+     exists (fn (eN,_) => exists (eq f o fst) (Symtab.lookup_multi extfields eN))
        (dest_recTs T);
 in
 (* record_simproc *)
@@ -861,7 +861,7 @@ val record_simproc =
               val {sel_upd={updates,...},extfields,...} = RecordsData.get sg;
 
               fun mk_eq_terms ((upd as Const (u,Type(_,[kT,_]))) $ k $ r) =
-                  (case Symtab.curried_lookup updates u of
+                  (case Symtab.lookup updates u of
                      NONE => NONE
                    | SOME u_name
                      => if u_name = s

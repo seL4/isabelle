@@ -39,7 +39,7 @@ struct
 
 (*a left-to-right scan of terms1, seeking a term u that is also in terms2*)
 fun find_common (terms1,terms2) =
-  let val tab2 = fold (Termtab.curried_update o rpair ()) terms2 Termtab.empty
+  let val tab2 = fold (Termtab.update o rpair ()) terms2 Termtab.empty
       fun seek [] = raise TERM("find_common", []) 
 	| seek (u::terms) =
 	      if Termtab.defined tab2 u then u
