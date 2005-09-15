@@ -7,6 +7,8 @@
                   provides some of the definitions.
 *)
 
+header {* Positive real numbers *}
+
 theory PReal
 imports Rational
 begin
