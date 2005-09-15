@@ -238,7 +238,7 @@ done
 
 text{*It is impossible to re-use a nonce in both OR1 and OR2.  This holds because
   OR2 encrypts Nonce NB.  It prevents the attack that can occur in the
-  over-simplified version of this protocol: see OtwayRees_Bad.*}
+  over-simplified version of this protocol: see @{text OtwayRees_Bad}.*}
 lemma no_nonce_OR1_OR2:
    "[| Crypt (shrK A) {|NA, Agent A, Agent B|} \<in> parts (knows Spy evs);
        A \<notin> bad;  evs \<in> otway |]
@@ -270,7 +270,7 @@ done
 text{*Corollary: if A receives B's OR4 message and the nonce NA agrees
   then the key really did come from the Server!  CANNOT prove this of the
   bad form of this protocol, even though we can prove
-  Spy_not_see_encrypted_key*}
+  @{text Spy_not_see_encrypted_key} *}
 lemma A_trusts_OR4:
      "[| Says A  B {|NA, Agent A, Agent B,
                      Crypt (shrK A) {|NA, Agent A, Agent B|}|} \<in> set evs;

@@ -297,10 +297,12 @@ txt{*Fake, YM3*}
 apply blast+
 done
 
-text{*B knows, by the second part of A's message, that the Server distributed
-  the key quoting nonce NB.  This part says nothing about agent names.
-  Secrecy of NB is crucial.  Note that  Nonce NB \<notin> analz(knows Spy evs)  must
-  be the FIRST antecedent of the induction formula.*}
+text{*B knows, by the second part of A's message, that the Server
+  distributed the key quoting nonce NB.  This part says nothing about
+  agent names.  Secrecy of NB is crucial.  Note that @{term "Nonce NB
+  \<notin> analz(knows Spy evs)"} must be the FIRST antecedent of the
+  induction formula.*}
+
 lemma B_trusts_YM4_newK [rule_format]:
      "[|Crypt K (Nonce NB) \<in> parts (knows Spy evs);
         Nonce NB \<notin> analz (knows Spy evs);  evs \<in> yahalom|]
@@ -392,9 +394,10 @@ apply (simp_all del: image_insert image_Un
             analz_image_freshK fresh_not_KeyWithNonce
             imp_disj_not1               (*Moves NBa\<noteq>NB to the front*)
             Says_Server_KeyWithNonce)
-txt{*For Oops, simplification proves NBa\<noteq>NB.  By Says_Server_KeyWithNonce,
-  we get (~ KeyWithNonce K NB evs); then simplification can apply the
-  induction hypothesis with KK = {K}.*}
+txt{*For Oops, simplification proves @{prop "NBa\<noteq>NB"}.  By
+  @{term Says_Server_KeyWithNonce}, we get @{prop "~ KeyWithNonce K NB
+  evs"}; then simplification can apply the induction hypothesis with
+  @{term "KK = {K}"}.*}
 txt{*Fake*}
 apply spy_analz
 txt{*YM2*}
@@ -403,8 +406,9 @@ txt{*YM3*}
 apply blast
 txt{*YM4*}
 apply (erule_tac V = "\<forall>KK. ?P KK" in thin_rl, clarify)
-txt{*If A \<in> bad then NBa is known, therefore NBa \<noteq> NB.  Previous two steps 
-   make the next step faster.*}
+txt{*If @{prop "A \<in> bad"} then @{term NBa} is known, therefore
+  @{prop "NBa \<noteq> NB"}.  Previous two steps make the next step
+  faster.*}
 apply (blast dest!: Gets_imp_Says Says_imp_spies Crypt_Spy_analz_bad
          dest: analz.Inj
            parts.Inj [THEN parts.Fst, THEN A_trusts_YM3, THEN KeyWithNonceI])
@@ -501,7 +505,7 @@ txt{*LEVEL 7: YM4 and Oops remain*}
 apply (clarify, simp add: all_conj_distrib)
 txt{*YM4: key K is visible to Spy, contradicting session key secrecy theorem*}
 txt{*Case analysis on Aa:bad; PROOF FAILED problems
-  use Says_unique_NB to identify message components: Aa=A, Ba=B*}
+  use @{text Says_unique_NB} to identify message components: @{term "Aa=A"}, @{term "Ba=B"}*}
 apply (blast dest!: Says_unique_NB analz_shrK_Decrypt
                     parts.Inj [THEN parts.Fst, THEN A_trusts_YM3]
              dest: Gets_imp_Says Says_imp_spies Says_Server_imp_YM2
@@ -513,7 +517,7 @@ apply (frule Says_Server_imp_YM2, assumption)
 apply (case_tac "NB = NBa")
 txt{*If NB=NBa then all other components of the Oops message agree*}
 apply (blast dest: Says_unique_NB)
-txt{*case NB \<noteq> NBa*}
+txt{*case @{prop "NB \<noteq> NBa"}*}
 apply (simp add: single_Nonce_secrecy)
 apply (blast dest!: no_nonce_YM1_YM2 (*to prove NB\<noteq>NAa*))
 done
@@ -521,7 +525,7 @@ done
 
 text{*B's session key guarantee from YM4.  The two certificates contribute to a
   single conclusion about the Server's message.  Note that the "Notes Spy"
-  assumption must quantify over \<forall>POSSIBLE keys instead of our particular K.
+  assumption must quantify over @{text \<forall>} POSSIBLE keys instead of our particular K.
   If this run is broken and the spy substitutes a certificate containing an
   old key, B has no means of telling.*}
 lemma B_trusts_YM4:
