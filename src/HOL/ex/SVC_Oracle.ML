@@ -97,8 +97,8 @@ fun svc_tac i st =
   let
     val (abs_goal, _) = svc_abstract (Logic.get_goal (Thm.prop_of st) i)
     val th = svc_oracle (Thm.theory_of_thm st) abs_goal
-   in compose_tac (false, th, 0) i end
-   handle TERM _ => no_tac;
+   in compose_tac (false, th, 0) i st end
+   handle TERM _ => no_tac st;
 
 
 (*check if user has SVC installed*)
