@@ -48,6 +48,10 @@ Unicode text in UTF-8 encoding may be used within theory texts (both
 formal and informal parts).  Cf. option -U of the Isabelle Proof
 General interface; HOL/ex/Hebrew.thy provides a simple example.
 
+* Improved efficiency of the Simplifier and, to a lesser degree, the
+Classical Reasoner.  Typical big applications run around 2 times
+faster.
+
 
 *** Document preparation ***
 
