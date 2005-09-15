@@ -19,7 +19,7 @@ val real_inj_thms = [thm "star_of_le" RS iffD2,
 
 in
 
-val hyprealT = Type("Rational.hypreal", []);
+val hyprealT = Type("StarDef.star", [HOLogic.realT]);
 
 val fast_hypreal_arith_simproc =
     Simplifier.simproc (Theory.sign_of (the_context ()))
@@ -35,7 +35,7 @@ val hypreal_arith_setup =
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the hypreals are dense!*)
     neqE = neqE,
     simpset = simpset}),
-  arith_inj_const ("HyperDef.hypreal_of_real", HOLogic.realT --> hyprealT),
+  arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT),
   Simplifier.change_simpset_of (op addsimprocs) [fast_hypreal_arith_simproc]];
 
 end;

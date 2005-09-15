@@ -1432,9 +1432,8 @@ lemma Infinitesimal_add_hypreal_of_real_less:
      "[| x < y;  u \<in> Infinitesimal |]
       ==> hypreal_of_real x + u < hypreal_of_real y"
 apply (simp add: Infinitesimal_def)
-apply (drule_tac x = "hypreal_of_real y + -hypreal_of_real x" in bspec, simp)  
-apply (auto simp add: add_commute abs_less_iff SReal_minus)
-apply (simp add: compare_rls) 
+apply (drule_tac x = "hypreal_of_real y + -hypreal_of_real x" in bspec, simp)
+apply (simp add: abs_less_iff)
 done
 
 lemma Infinitesimal_add_hrabs_hypreal_of_real_less:
