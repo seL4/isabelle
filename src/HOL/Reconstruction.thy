@@ -7,7 +7,7 @@
 header{*Attributes for Reconstructing External Resolution Proofs*}
 
 theory Reconstruction
-    imports Hilbert_Choice Map Infinite_Set Extraction
+    imports Hilbert_Choice Map Infinite_Set Commutative_Ring Extraction
     uses "Tools/res_lib.ML"
 
 	 "Tools/res_clause.ML"

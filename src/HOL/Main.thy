@@ -6,7 +6,8 @@
 header {* Main HOL *}
 
 theory Main
-imports Commutative_Ring Refute Reconstruction
+imports Refute Reconstruction 
+        (*other theores need to be ancestors of Reconstruction, not Main!!*)
 
 begin
 
