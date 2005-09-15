@@ -76,7 +76,7 @@ these parts without any formal replacement text.  The Isabelle site
 default settings produce ''document'' and ''outline'' versions as
 specified above.
 
-* Several new antiquotation:
+* Several new antiquotations:
 
   @{term_type term} prints a term with its type annotated;
 
@@ -577,6 +577,21 @@ elapsed wall-clock time that the outer shell wrapper produces.
 
 * Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
 reasonably efficient light-weight implementation of sets as lists.
+
+* Pure: structure AList (cf. Pure/General/alist.ML) superseedes the
+former associaton list functions in library. INCOMPATIBILITY.
+Naive rewrites:
+
+  assoc == uncurry (AList.lookup (op =))
+  assocs == these oo AList.lookup (op =)
+  overwrite == uncurry (AList.update (op =)) o swap
+
+* Pure: new functions in the family of normalisators for the option type:
+
+  the:               'a option -> 'a
+  these:             'a option -> 'a where 'a = 'b list
+  the_default: 'a -> 'a option -> 'a
+  the_list:          'a option -> 'a list
 
 * Pure: more efficient orders for basic syntactic entities: added
 fast_string_ord, fast_indexname_ord, fast_term_ord; changed sort_ord
