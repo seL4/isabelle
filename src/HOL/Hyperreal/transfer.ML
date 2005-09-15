@@ -47,8 +47,7 @@ fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t
 
 fun unstar_term consts term =
   let
-    fun delete a = exists (fn x => x = a) consts
-    fun unstar (Const(a,T) $ t) = if (delete a) then (unstar t)
+    fun unstar (Const(a,T) $ t) = if (a mem consts) then (unstar t)
           else (Const(a,unstar_typ T) $ unstar t)
       | unstar (f $ t) = unstar f $ unstar t
       | unstar (Const(a,T)) = Const(a,unstar_typ T)
