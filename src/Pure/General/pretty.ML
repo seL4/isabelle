@@ -40,6 +40,7 @@ sig
   val strs: string list -> T
   val enclose: string -> string -> T list -> T
   val list: string -> string -> T list -> T
+  val gen_list: string -> string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
   val chunks: T list -> T
@@ -204,8 +205,13 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 fun quote prt =
   blk (1, [str "\"", prt, str "\""]);
 
-fun commas prts =
-  List.concat (separate [str ",", brk 1] (map (fn x => [x]) prts));
+fun separate_pretty delim prts =
+  prts
+  |> map single
+  |> separate [str delim, brk 1]
+  |> List.concat;
+
+val commas = separate_pretty ",";
 
 fun breaks prts = separate (brk 1) prts;
 fun fbreaks prts = separate fbrk prts;
@@ -217,7 +223,8 @@ val strs = block o breaks o map str;
 fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
-fun list lpar rpar prts = enclose lpar rpar (commas prts);
+fun gen_list delim lpar rpar prts = enclose lpar rpar (separate_pretty delim prts);
+val list = gen_list ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
 fun big_list name prts = block (fbreaks (str name :: prts));
 fun chunks prts = blk (0, fbreaks prts);
