@@ -15,7 +15,7 @@ fun i_of_term vs t =
 			 | SOME n => Var n)
       | Const("0",iT) => Cst 0
       | Const("1",iT) => Cst 1
-      | Bound i => Var (nat i)
+      | Bound i => Var (nat (IntInf.fromInt i))
       | Const("uminus",_)$t' => Neg (i_of_term vs t')
       | Const ("op +",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
       | Const ("op -",_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
@@ -61,7 +61,7 @@ fun zip [] [] = []
 
 fun start_vs t =
     let val fs = term_frees t
-    in zip fs (map nat (0 upto (length fs - 1)))
+    in zip fs (map (nat o IntInf.fromInt) (0 upto  (length fs - 1)))
     end ;
 
 (* transform intterm and QF back to terms *)
