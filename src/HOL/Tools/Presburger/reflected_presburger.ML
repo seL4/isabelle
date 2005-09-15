@@ -2,7 +2,7 @@
 
     (* Caution: This file should not be modified. *)
     (* It is autmatically generated from HOL/ex/Reflected_Presburger.thy *)
-fun (nat: IntInf.int -> IntInf.int) i = if i < 0 then 0 else i;
+fun nat (i:IntInf.int) = if i < 0 then 0 else i : IntInf.int;
 structure Generated =
 struct
 
