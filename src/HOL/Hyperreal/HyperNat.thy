@@ -145,44 +145,14 @@ constdefs
 
 
 lemma hypnat_of_nat_def: "hypnat_of_nat m == of_nat m"
-by (transfer star_of_nat_def) simp
-
-lemma hypnat_of_nat_add:
-      "hypnat_of_nat ((z::nat) + w) = hypnat_of_nat z + hypnat_of_nat w"
-by simp
-
-lemma hypnat_of_nat_mult:
-      "hypnat_of_nat (z * w) = hypnat_of_nat z * hypnat_of_nat w"
-by simp
-
-lemma hypnat_of_nat_less_iff:
-      "(hypnat_of_nat z < hypnat_of_nat w) = (z < w)"
-by simp
-
-lemma hypnat_of_nat_le_iff:
-      "(hypnat_of_nat z \<le> hypnat_of_nat w) = (z \<le> w)"
-by simp
-
-lemma hypnat_of_nat_eq_iff:
-      "(hypnat_of_nat z = hypnat_of_nat w) = (z = w)"
-by simp
+by (transfer, simp)
 
 lemma hypnat_of_nat_one [simp]: "hypnat_of_nat (Suc 0) = (1::hypnat)"
-by simp
-
-lemma hypnat_of_nat_zero: "hypnat_of_nat 0 = 0"
-by simp
-
-lemma hypnat_of_nat_zero_iff: "(hypnat_of_nat n = 0) = (n = 0)"
 by simp
 
 lemma hypnat_of_nat_Suc [simp]:
      "hypnat_of_nat (Suc n) = hypnat_of_nat n + (1::hypnat)"
 by (simp add: hypnat_of_nat_def)
-
-lemma hypnat_of_nat_minus:
-      "hypnat_of_nat ((j::nat) - k) = hypnat_of_nat j - hypnat_of_nat k"
-by simp
 
 
 subsection{*Existence of an infinite hypernatural number*}
@@ -217,9 +187,7 @@ by (simp add: Collect_neg_eq [symmetric] linorder_not_le)
 
 lemma hypnat_of_nat_eq:
      "hypnat_of_nat m  = star_n (%n::nat. m)"
-apply (induct m) 
-apply (simp_all add: star_n_zero_num star_n_one_num star_n_add)
-done
+by (simp add: star_of_def)
 
 lemma SHNat_eq: "Nats = {n. \<exists>N. n = hypnat_of_nat N}"
 by (force simp add: hypnat_of_nat_def Nats_def) 
@@ -436,7 +404,6 @@ val hypnat_omega_def = thm"hypnat_omega_def";
 
 val starrel_iff = thm "starrel_iff";
 val lemma_starrel_refl = thm "lemma_starrel_refl";
-val eq_Abs_star = thm "eq_Abs_star";
 val hypnat_minus_zero = thm "hypnat_minus_zero";
 val hypnat_diff_0_eq_0 = thm "hypnat_diff_0_eq_0";
 val hypnat_add_is_0 = thm "hypnat_add_is_0";
@@ -461,16 +428,8 @@ val hypnat_add_one_self_less = thm "hypnat_add_one_self_less";
 val hypnat_neq0_conv = thm "hypnat_neq0_conv";
 val hypnat_gt_zero_iff = thm "hypnat_gt_zero_iff";
 val hypnat_gt_zero_iff2 = thm "hypnat_gt_zero_iff2";
-val hypnat_of_nat_add = thm "hypnat_of_nat_add";
-val hypnat_of_nat_minus = thm "hypnat_of_nat_minus";
-val hypnat_of_nat_mult = thm "hypnat_of_nat_mult";
-val hypnat_of_nat_less_iff = thm "hypnat_of_nat_less_iff";
-val hypnat_of_nat_le_iff = thm "hypnat_of_nat_le_iff";
-val hypnat_of_nat_eq = thm"hypnat_of_nat_eq"
 val SHNat_eq = thm"SHNat_eq"
 val hypnat_of_nat_one = thm "hypnat_of_nat_one";
-val hypnat_of_nat_zero = thm "hypnat_of_nat_zero";
-val hypnat_of_nat_zero_iff = thm "hypnat_of_nat_zero_iff";
 val hypnat_of_nat_Suc = thm "hypnat_of_nat_Suc";
 val SHNAT_omega_not_mem = thm "SHNAT_omega_not_mem";
 val cofinite_mem_FreeUltrafilterNat = thm "cofinite_mem_FreeUltrafilterNat";

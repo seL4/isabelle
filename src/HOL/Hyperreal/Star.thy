@@ -10,13 +10,6 @@ theory Star
 imports NSA
 begin
 
-(* nonstandard extension of sets *)
-syntax starset :: "'a set => 'a star set" ("*s* _" [80] 80)
-translations "starset" == "Iset_of"
-
-syntax starfun :: "('a => 'b) => 'a star => 'b star" ("*f* _" [80] 80)
-translations "starfun" == "Ifun_of"
-
 constdefs
     (* internal sets *)
     starset_n :: "(nat => 'a set) => 'a star set"        ("*sn* _" [80] 80)
@@ -54,10 +47,10 @@ done
 
 subsection{*Properties of the Star-transform Applied to Sets of Reals*}
 
-lemma STAR_UNIV_set [simp]: "*s*(UNIV::'a set) = (UNIV::'a star set)"
+lemma STAR_UNIV_set: "*s*(UNIV::'a set) = (UNIV::'a star set)"
 by (transfer UNIV_def, rule refl)
 
-lemma STAR_empty_set [simp]: "*s* {} = {}"
+lemma STAR_empty_set: "*s* {} = {}"
 by (transfer empty_def, rule refl)
 
 lemma STAR_Un: "*s* (A Un B) = *s* A Un *s* B"
@@ -98,12 +91,9 @@ by auto
 
 lemma STAR_real_seq_to_hypreal:
     "\<forall>n. (X n) \<notin> M ==> star_n X \<notin> *s* M"
-apply (unfold Iset_of_def star_of_def)
+apply (unfold starset_def star_of_def)
 apply (simp add: Iset_star_n)
 done
-
-lemma STAR_insert [simp]: "*s* (insert x A) = insert (star_of x) ( *s* A)"
-by (transfer insert_def Un_def, rule refl)
 
 lemma STAR_singleton: "*s* {x} = {star_of x}"
 by simp
@@ -119,7 +109,7 @@ text{*Nonstandard extension of a set (defined using a constant
 
 lemma starset_n_starset: "\<forall>n. (As n = A) ==> *sn* As = *s* A"
 apply (drule expand_fun_eq [THEN iffD2])
-apply (simp add: starset_n_def Iset_of_def star_of_def)
+apply (simp add: starset_n_def starset_def star_of_def)
 done
 
 
@@ -134,7 +124,7 @@ done
 
 lemma starfun_n_starfun: "\<forall>n. (F n = f) ==> *fn* F = *f* f"
 apply (drule expand_fun_eq [THEN iffD2])
-apply (simp add: starfun_n_def Ifun_of_def star_of_def)
+apply (simp add: starfun_n_def starfun_def star_of_def)
 done
 
 
@@ -148,34 +138,31 @@ done
 
 lemma hrabs_is_starext_rabs: "is_starext abs abs"
 apply (simp add: is_starext_def, safe)
-apply (rule_tac z = x in eq_Abs_star)
-apply (rule_tac z = y in eq_Abs_star, auto)
+apply (rule_tac x=x in star_cases)
+apply (rule_tac x=y in star_cases)
+apply (unfold star_n_def, auto)
 apply (rule bexI, rule_tac [2] lemma_starrel_refl)
 apply (rule bexI, rule_tac [2] lemma_starrel_refl)
 apply (fold star_n_def)
-apply (unfold star_abs_def Ifun_of_def star_of_def)
+apply (unfold star_abs_def starfun_def star_of_def)
 apply (simp add: Ifun_star_n star_n_eq_iff)
 done
 
 lemma Rep_star_FreeUltrafilterNat:
      "[| X \<in> Rep_star z; Y \<in> Rep_star z |]
       ==> {n. X n = Y n} : FreeUltrafilterNat"
-apply (rule_tac z = z in eq_Abs_star)
-apply (auto, ultra)
-done
+by (rule FreeUltrafilterNat_Rep_hypreal)
 
 text{*Nonstandard extension of functions*}
 
 lemma starfun:
       "( *f* f) (star_n X) = star_n (%n. f (X n))"
-by (simp add: Ifun_of_def star_of_def Ifun_star_n)
+by (simp add: starfun_def star_of_def Ifun_star_n)
 
 lemma starfun_if_eq:
-     "w \<noteq> hypreal_of_real x
+     "!!w. w \<noteq> star_of x
        ==> ( *f* (\<lambda>z. if z = x then a else g z)) w = ( *f* g) w"
-apply (cases w)
-apply (simp add: star_of_def starfun star_n_eq_iff, ultra)
-done
+by (transfer, simp)
 
 (*-------------------------------------------
   multiplication: ( *f) x ( *g) = *(f x g)

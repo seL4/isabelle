@@ -70,7 +70,7 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
 lemma SEQ_Infinitesimal:
       "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
 apply (simp add: hypnat_omega_def Infinitesimal_FreeUltrafilterNat_iff starfun)
-apply (simp add: star_n_inverse2)
+apply (simp add: star_n_inverse)
 apply (rule bexI [OF _ Rep_star_star_n])
 apply (simp add: real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat)
 done

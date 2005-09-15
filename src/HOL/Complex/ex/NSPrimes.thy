@@ -96,7 +96,7 @@ lemma hdvd:
 by (simp add: hdvd_def starP2)
 
 lemma hypnat_of_nat_le_zero_iff: "(hypnat_of_nat n <= 0) = (n = 0)"
-by (subst hypnat_of_nat_zero [symmetric], auto)
+by (transfer, simp)
 declare hypnat_of_nat_le_zero_iff [simp]
 
 
@@ -113,7 +113,7 @@ apply (cut_tac hdvd_by_all)
 apply (drule_tac x = whn in spec, auto)
 apply (rule exI, auto)
 apply (drule_tac x = "hypnat_of_nat n" in spec)
-apply (auto simp add: linorder_not_less hypnat_of_nat_zero_iff)
+apply (auto simp add: linorder_not_less star_of_eq_0)
 done
 
 
@@ -211,7 +211,7 @@ done
 
 lemma range_subset_mem_starsetNat:
    "range f <= A ==> star_n f \<in> *s* A"
-apply (simp add: Iset_of_def star_of_def Iset_star_n)
+apply (simp add: starset_def star_of_def Iset_star_n)
 apply (subgoal_tac "\<forall>n. f n \<in> A", auto)
 done
 
@@ -278,8 +278,6 @@ text{*Only need the existence of an injective function from N to A for proof*}
 lemma hypnat_infinite_has_nonstandard:
      "~ finite A ==> hypnat_of_nat ` A < ( *s* A)"
 apply auto
-apply (rule subsetD)
-apply (rule STAR_star_of_image_subset, auto)
 apply (subgoal_tac "A \<noteq> {}")
 prefer 2 apply force
 apply (drule infinite_set_has_order_preserving_inj)

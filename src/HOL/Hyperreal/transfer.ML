@@ -8,16 +8,12 @@ Transfer principle tactic for nonstandard analysis
 signature TRANSFER_TAC =
 sig
   val transfer_tac: thm list -> int -> tactic
+  val add_const: string -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
 structure Transfer: TRANSFER_TAC =
 struct
-
-(* TODO: make this list extensible *)
-val star_consts =
-  [ "StarType.star_of", "StarType.Ifun"
-  , "StarType.unstar", "StarType.Iset" ]
 
 structure TransferData = TheoryDataFun
 (struct
@@ -28,7 +24,7 @@ structure TransferData = TheoryDataFun
     refolds: thm list,
     consts: string list
   };
-  val empty = {intros = [], unfolds = [], refolds = [], consts = star_consts};
+  val empty = {intros = [], unfolds = [], refolds = [], consts = []};
   val copy = I;
   val extend = I;
   fun merge _
@@ -45,7 +41,7 @@ end);
 
 val transfer_start = thm "transfer_start"
 
-fun unstar_typ (Type ("StarType.star",[t])) = unstar_typ t
+fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t
   | unstar_typ (Type (a, Ts)) = Type (a, map unstar_typ Ts)
   | unstar_typ T = T
 
@@ -102,10 +98,6 @@ fun map_unfolds f = TransferData.map
 fun map_refolds f = TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=f refolds, consts=consts})
-
-fun map_consts f = TransferData.map
-  (fn {intros,unfolds,refolds,consts} =>
-    {intros=intros, unfolds=unfolds, refolds=refolds, consts=f consts})
 in
 fun intro_add_global (thy, thm) = (map_intros (Drule.add_rule thm) thy, thm);
 fun intro_del_global (thy, thm) = (map_intros (Drule.del_rule thm) thy, thm);
@@ -116,6 +108,10 @@ fun unfold_del_global (thy, thm) = (map_unfolds (Drule.del_rule thm) thy, thm);
 fun refold_add_global (thy, thm) = (map_refolds (Drule.add_rule thm) thy, thm);
 fun refold_del_global (thy, thm) = (map_refolds (Drule.del_rule thm) thy, thm);
 end
+
+fun add_const c = TransferData.map
+  (fn {intros,unfolds,refolds,consts} =>
+    {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts})
 
 local
   val undef_local =

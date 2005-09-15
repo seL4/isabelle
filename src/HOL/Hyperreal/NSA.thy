@@ -1777,7 +1777,7 @@ subsection{*Alternative Definitions for @{term HFinite} using Free Ultrafilter*}
 lemma FreeUltrafilterNat_Rep_hypreal:
      "[| X \<in> Rep_star x; Y \<in> Rep_star x |]
       ==> {n. X n = Y n} \<in> FreeUltrafilterNat"
-by (rule_tac z = x in eq_Abs_star, auto, ultra)
+by (cases x, unfold star_n_def, auto, ultra)
 
 lemma HFinite_FreeUltrafilterNat:
     "x \<in> HFinite 

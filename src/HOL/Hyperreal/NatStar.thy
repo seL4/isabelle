@@ -113,11 +113,7 @@ text{*The @{term hypreal_of_hypnat} function as a nonstandard extension of
   @{term real_of_nat} *}
 
 lemma starfunNat_real_of_nat: "( *f* real) = hypreal_of_hypnat"
-apply (unfold hypreal_of_hypnat_def)
-apply (rule ext)
-apply (rule_tac z = x in eq_Abs_star)
-apply (simp add: hypreal_of_hypnat starfun)
-done
+by (transfer, rule refl)
 
 lemma starfun_inverse_real_of_nat_eq:
      "N \<in> HNatInfinite
@@ -225,24 +221,13 @@ val starfunNat_inverse_real_of_nat_Infinitesimal = thm "starfunNat_inverse_real_
 
 subsection{*Nonstandard Characterization of Induction*}
 
-syntax
-  starP :: "('a => bool) => 'a star => bool" ("*p* _" [80] 80)
-  starP2 :: "('a => 'b => bool) => 'a star => 'b star => bool"
-               ("*p2* _" [80] 80)
-
-translations
-  "starP" == "Ipred_of"
-  "starP2" == "Ipred2_of"
 
 constdefs
   hSuc :: "hypnat => hypnat"
   "hSuc n == n + 1"
 
 lemma starP: "(( *p* P) (star_n X)) = ({n. P (X n)} \<in> FreeUltrafilterNat)"
-by (simp add: Ipred_of_def star_of_def Ifun_star_n unstar_star_n)
-
-lemma starP_star_of [simp]: "( *p* P) (star_of n) = P n"
-by (transfer, rule refl)
+by (rule starP_star_n)
 
 lemma hypnat_induct_obj:
     "!!n. (( *p* P) (0::hypnat) &
@@ -259,18 +244,13 @@ by (transfer, induct_tac n, auto)
 lemma starP2:
 "(( *p2* P) (star_n X) (star_n Y)) =
       ({n. P (X n) (Y n)} \<in> FreeUltrafilterNat)"
-by (simp add: Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
+by (rule starP2_star_n)
 
 lemma starP2_eq_iff: "( *p2* (op =)) = (op =)"
 by (transfer, rule refl)
 
 lemma starP2_eq_iff2: "( *p2* (%x y. x = y)) X Y = (X = Y)"
 by (simp add: starP2_eq_iff)
-
-lemma lemma_hyp: "(\<exists>h. P(h::hypnat)) = (\<exists>x. P(Abs_star(starrel `` {x})))"
-apply auto
-apply (rule_tac z = h in eq_Abs_star, auto)
-done
 
 lemma hSuc_not_zero [iff]: "hSuc m \<noteq> 0"
 by (simp add: hSuc_def)

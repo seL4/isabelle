@@ -43,7 +43,7 @@ subsection{*Embedding the Naturals into the Hyperreals*}
 
 constdefs
   hypreal_of_nat   :: "nat => hypreal"
-   "hypreal_of_nat m  == of_nat m"
+   "hypreal_of_nat m == of_nat m"
 
 lemma SNat_eq: "Nats = {n. \<exists>N. n = hypreal_of_nat N}"
 by (force simp add: hypreal_of_nat_def Nats_def) 

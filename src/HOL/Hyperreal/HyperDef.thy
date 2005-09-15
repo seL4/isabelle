@@ -17,14 +17,6 @@ types hypreal = "real star"
 syntax hypreal_of_real :: "real => real star"
 translations "hypreal_of_real" => "star_of :: real => real star"
 
-typed_print_translation {*
-  let
-    fun hr_tr' _ (Type ("fun", (Type ("real", []) :: _))) [t] =
-          Syntax.const "hypreal_of_real" $ t
-      | hr_tr' _ _ _ = raise Match;
-  in [("star_of", hr_tr')] end
-*}
-
 constdefs
 
   omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
@@ -42,34 +34,13 @@ syntax (HTML output)
   epsilon :: hypreal   ("\<epsilon>")
 
 
-subsection{*The Set of Naturals is not Finite*}
-
-(*** based on James' proof that the set of naturals is not finite ***)
-lemma finite_exhausts [rule_format]:
-     "finite (A::nat set) --> (\<exists>n. \<forall>m. Suc (n + m) \<notin> A)"
-apply (rule impI)
-apply (erule_tac F = A in finite_induct)
-apply (blast, erule exE)
-apply (rule_tac x = "n + x" in exI)
-apply (rule allI, erule_tac x = "x + m" in allE)
-apply (auto simp add: add_ac)
-done
-
-lemma finite_not_covers [rule_format (no_asm)]:
-     "finite (A :: nat set) --> (\<exists>n. n \<notin>A)"
-by (rule impI, drule finite_exhausts, blast)
-
-lemma not_finite_nat: "~ finite(UNIV:: nat set)"
-by (fast dest!: finite_exhausts)
-
-
 subsection{*Existence of Free Ultrafilter over the Naturals*}
 
 text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
 an arbitrary free ultrafilter*}
 
 lemma FreeUltrafilterNat_Ex: "\<exists>U::nat set set. freeultrafilter U"
-by (rule not_finite_nat [THEN freeultrafilter_Ex])
+by (rule nat_infinite [THEN freeultrafilter_Ex])
 
 lemma FreeUltrafilterNat_mem: "freeultrafilter FreeUltrafilterNat"
 apply (unfold FreeUltrafilterNat_def)
@@ -170,7 +141,7 @@ subsection{*Properties of @{term starrel}*}
 text{*Proving that @{term starrel} is an equivalence relation*}
 
 lemma starrel_iff: "((X,Y) \<in> starrel) = ({n. X n = Y n} \<in> FreeUltrafilterNat)"
-by (simp add: starrel_def)
+by (rule StarDef.starrel_iff)
 
 lemma starrel_refl: "(x,x) \<in> starrel"
 by (simp add: starrel_def)
@@ -183,7 +154,7 @@ lemma starrel_trans:
 by (simp add: starrel_def, ultra)
 
 lemma equiv_starrel: "equiv UNIV starrel"
-by (rule StarType.equiv_starrel)
+by (rule StarDef.equiv_starrel)
 
 (* (starrel `` {x} = starrel `` {y}) = ((x,y) \<in> starrel) *)
 lemmas equiv_starrel_iff =
@@ -194,7 +165,6 @@ by (simp add: star_def starrel_def quotient_def, blast)
 
 declare Abs_star_inject [simp] Abs_star_inverse [simp]
 declare equiv_starrel [THEN eq_equiv_class_iff, simp]
-declare starrel_iff [iff]
 
 lemmas eq_starrelD = eq_equiv_class [OF _ equiv_starrel]
 
@@ -215,10 +185,6 @@ subsection{*@{term hypreal_of_real}:
 lemma inj_hypreal_of_real: "inj(hypreal_of_real)"
 by (rule inj_onI, simp)
 
-lemma eq_Abs_star:
-    "(!!x. z = Abs_star(starrel``{x}) ==> P) ==> P"
-by (fold star_n_def, auto intro: star_cases)
-
 lemma Rep_star_star_n_iff [simp]:
   "(X \<in> Rep_star (star_n Y)) = ({n. Y n = X n} \<in> \<U>)"
 by (simp add: star_n_def)
@@ -226,56 +192,51 @@ by (simp add: star_n_def)
 lemma Rep_star_star_n: "X \<in> Rep_star (star_n X)"
 by simp
 
-subsection{*Hyperreal Addition*}
+subsection{* Properties of @{term star_n} *}
 
 lemma star_n_add:
   "star_n X + star_n Y = star_n (%n. X n + Y n)"
-by (simp add: star_add_def Ifun2_of_def star_of_def Ifun_star_n)
-
-subsection{*Additive inverse on @{typ hypreal}*}
+by (simp only: star_add_def starfun2_star_n)
 
 lemma star_n_minus:
    "- star_n X = star_n (%n. -(X n))"
-by (simp add: star_minus_def Ifun_of_def star_of_def Ifun_star_n)
+by (simp only: star_minus_def starfun_star_n)
 
 lemma star_n_diff:
      "star_n X - star_n Y = star_n (%n. X n - Y n)"
-by (simp add: star_diff_def Ifun2_of_def star_of_def Ifun_star_n)
-
-
-subsection{*Hyperreal Multiplication*}
+by (simp only: star_diff_def starfun2_star_n)
 
 lemma star_n_mult:
   "star_n X * star_n Y = star_n (%n. X n * Y n)"
-by (simp add: star_mult_def Ifun2_of_def star_of_def Ifun_star_n)
-
-
-subsection{*Multiplicative Inverse on @{typ hypreal} *}
+by (simp only: star_mult_def starfun2_star_n)
 
 lemma star_n_inverse:
-      "inverse (star_n X) = star_n (%n. if X n = (0::real) then 0 else inverse(X n))"
-apply (simp add: star_inverse_def Ifun_of_def star_of_def Ifun_star_n)
-apply (rule_tac f=star_n in arg_cong)
-apply (rule ext)
-apply simp
-done
-
-lemma star_n_inverse2:
       "inverse (star_n X) = star_n (%n. inverse(X n))"
-by (simp add: star_inverse_def Ifun_of_def star_of_def Ifun_star_n)
-
-
-subsection{*Properties of The @{text "\<le>"} Relation*}
+by (simp only: star_inverse_def starfun_star_n)
 
 lemma star_n_le:
       "star_n X \<le> star_n Y =  
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
-by (simp add: star_le_def Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
+by (simp only: star_le_def starP2_star_n)
+
+lemma star_n_less:
+      "star_n X < star_n Y = ({n. X n < Y n} \<in> FreeUltrafilterNat)"
+by (simp only: star_less_def starP2_star_n)
+
+lemma star_n_zero_num: "0 = star_n (%n. 0)"
+by (simp only: star_zero_def star_of_def)
+
+lemma star_n_one_num: "1 = star_n (%n. 1)"
+by (simp only: star_one_def star_of_def)
+
+lemma star_n_abs:
+     "abs (star_n X) = star_n (%n. abs (X n))"
+by (simp only: star_abs_def starfun_star_n)
+
+subsection{*Misc Others*}
 
 lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
 by (auto)
-
-subsection{*The Hyperreals Form an Ordered Field*}
 
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
 by auto
@@ -286,27 +247,8 @@ by auto
 lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
 by auto
 
-
-subsection{*Misc Others*}
-
-lemma star_n_less:
-      "star_n X < star_n Y = ({n. X n < Y n} \<in> FreeUltrafilterNat)"
-by (simp add: star_less_def Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
-
-lemma star_n_zero_num: "0 = star_n (%n. 0)"
-by (simp add: star_zero_def star_of_def)
-
-lemma star_n_one_num: "1 = star_n (%n. 1)"
-by (simp add: star_one_def star_of_def)
-
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
-apply (simp only: omega_def star_zero_def star_less_def star_of_def)
-apply (simp add: Ipred2_of_def star_of_def Ifun_star_n unstar_star_n)
-done
-
-lemma star_n_abs:
-     "abs (star_n X) = star_n (%n. abs (X n))"
-by (simp add: star_abs_def Ifun_of_def star_of_def Ifun_star_n)
+by (simp add: omega_def star_n_zero_num star_n_less)
 
 subsection{*Existence of Infinite Hyperreal Number*}
 
@@ -357,9 +299,7 @@ by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff
          del: star_of_zero)
 
 lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
-apply (simp add: epsilon_def omega_def star_inverse_def)
-apply (simp add: Ifun_of_def star_of_def Ifun_star_n)
-done
+by (simp add: epsilon_def omega_def star_n_inverse)
 
 
 ML
@@ -367,9 +307,6 @@ ML
 val omega_def = thm "omega_def";
 val epsilon_def = thm "epsilon_def";
 
-val finite_exhausts = thm "finite_exhausts";
-val finite_not_covers = thm "finite_not_covers";
-val not_finite_nat = thm "not_finite_nat";
 val FreeUltrafilterNat_Ex = thm "FreeUltrafilterNat_Ex";
 val FreeUltrafilterNat_mem = thm "FreeUltrafilterNat_mem";
 val FreeUltrafilterNat_finite = thm "FreeUltrafilterNat_finite";
@@ -394,7 +331,7 @@ val lemma_starrel_refl = thm "lemma_starrel_refl";
 val hypreal_empty_not_mem = thm "hypreal_empty_not_mem";
 val Rep_hypreal_nonempty = thm "Rep_hypreal_nonempty";
 val inj_hypreal_of_real = thm "inj_hypreal_of_real";
-val eq_Abs_star = thm "eq_Abs_star";
+(* val eq_Abs_star = thm "eq_Abs_star"; *)
 val star_n_minus = thm "star_n_minus";
 val star_n_add = thm "star_n_add";
 val star_n_diff = thm "star_n_diff";

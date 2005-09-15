@@ -14,12 +14,7 @@ begin
 constdefs 
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
    "sumhr == 
-      %(M,N,f). Ifun2_of (%m n. setsum f {m..<n}) M N"
-(*
-   "sumhr p == 
-      (%(M,N,f). Abs_star(\<Union>X \<in> Rep_star(M). \<Union>Y \<in> Rep_star(N).  
-                             starrel ``{%n::nat. setsum f {X n..<Y n}})) p"
-*)
+      %(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N"
 
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
    "f NSsums s  == (%n. setsum f {0..<n}) ----NS> s"
@@ -34,7 +29,7 @@ constdefs
 lemma sumhr:
      "sumhr(star_n M, star_n N, f) =  
       star_n (%n. setsum f {M n..<N n})"
-by (simp add: sumhr_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: sumhr_def starfun2_star_n)
 
 text{*Base case in definition of @{term sumr}*}
 lemma sumhr_zero [simp]: "sumhr (m,0,f) = 0"

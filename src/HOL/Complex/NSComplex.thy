@@ -21,16 +21,16 @@ constdefs
   (*--- real and Imaginary parts ---*)
 
   hRe :: "hcomplex => hypreal"
-  "hRe(z) == ( *f* Re) z"
+  "hRe == *f* Re"
 
   hIm :: "hcomplex => hypreal"
-  "hIm(z) == ( *f* Im) z"
+  "hIm == *f* Im"
 
 
   (*----------- modulus ------------*)
 
   hcmod :: "hcomplex => hypreal"
-  "hcmod z == ( *f* cmod) z"
+  "hcmod == *f* cmod"
 
   (*------ imaginary unit ----------*)
 
@@ -40,41 +40,39 @@ constdefs
   (*------- complex conjugate ------*)
 
   hcnj :: "hcomplex => hcomplex"
-  "hcnj z == ( *f* cnj) z"
+  "hcnj == *f* cnj"
 
   (*------------ Argand -------------*)
 
   hsgn :: "hcomplex => hcomplex"
-  "hsgn z == ( *f* sgn) z"
+  "hsgn == *f* sgn"
 
   harg :: "hcomplex => hypreal"
-  "harg z == ( *f* arg) z"
+  "harg == *f* arg"
 
   (* abbreviation for (cos a + i sin a) *)
   hcis :: "hypreal => hcomplex"
-  "hcis a == ( *f* cis) a"
+  "hcis == *f* cis"
 
   (*----- injection from hyperreals -----*)
 
   hcomplex_of_hypreal :: "hypreal => hcomplex"
-  "hcomplex_of_hypreal r == ( *f* complex_of_real) r"
+  "hcomplex_of_hypreal == *f* complex_of_real"
 
   (* abbreviation for r*(cos a + i sin a) *)
   hrcis :: "[hypreal, hypreal] => hcomplex"
-(*  "hrcis r a == hcomplex_of_hypreal r * hcis a" *)
-  "hrcis r a == Ifun2_of rcis r a"
+  "hrcis == *f2* rcis"
 
   (*------------ e ^ (x + iy) ------------*)
 
   hexpi :: "hcomplex => hcomplex"
-(*  "hexpi z == hcomplex_of_hypreal(( *f* exp) (hRe z)) * hcis (hIm z)"*)
-  "hexpi z == ( *f* expi) z"
+  "hexpi == *f* expi"
 
   HComplex :: "[hypreal,hypreal] => hcomplex"
-  "HComplex == Ifun2_of Complex"
+  "HComplex == *f2* Complex"
 
   hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80)
-  "(z::hcomplex) hcpow (n::hypnat) == Ifun2_of (op ^) z n"
+  "(z::hcomplex) hcpow (n::hypnat) == ( *f2* op ^) z n"
 
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def hcmod_def iii_def hcnj_def hsgn_def harg_def hcis_def
@@ -436,7 +434,7 @@ by (transfer, simp)
 subsection{*A Few Nonlinear Theorems*}
 
 lemma hcpow: "star_n X hcpow star_n Y = star_n (%n. X n ^ Y n)"
-by (simp add: hcpow_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: hcpow_def starfun2_star_n)
 
 lemma hcomplex_of_hypreal_hyperpow:
      "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) hcpow n"
@@ -503,7 +501,7 @@ lemma hcpow_zero_zero: "r hcpow n = (0::hcomplex) ==> r = 0"
 by (blast intro: ccontr dest: hcpow_not_zero)
 
 lemma star_n_divide: "star_n X / star_n Y = star_n (%n. X n / Y n)"
-by (simp add: star_divide_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: star_divide_def starfun2_star_n)
 
 subsection{*The Function @{term hsgn}*}
 
@@ -633,7 +631,7 @@ lemma hcis_eq:
 by (transfer, simp add: cis_def)
 
 lemma hrcis: "hrcis (star_n X) (star_n Y) = star_n (%n. rcis (X n) (Y n))"
-by (simp add: hrcis_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: hrcis_def starfun2_star_n)
 
 lemma hrcis_Ex: "!!z. \<exists>r a. z = hrcis r a"
 by (transfer, rule rcis_Ex)

@@ -25,7 +25,7 @@ defs
 
   (* hypernatural powers of hyperreals *)
   hyperpow_def [transfer_unfold]:
-  "(R::hypreal) pow (N::hypnat) == Ifun2_of (op ^) R N"
+  "(R::hypreal) pow (N::hypnat) == ( *f2* op ^) R N"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
 by simp
@@ -101,7 +101,7 @@ done
 subsection{*Powers with Hypernatural Exponents*}
 
 lemma hyperpow: "star_n X pow star_n Y = star_n (%n. X n ^ Y n)"
-by (simp add: hyperpow_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: hyperpow_def starfun2_star_n)
 
 lemma hyperpow_zero [simp]: "!!n. (0::hypreal) pow (n + (1::hypnat)) = 0"
 by (transfer, simp)

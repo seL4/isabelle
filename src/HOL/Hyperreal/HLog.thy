@@ -21,16 +21,16 @@ by auto
 constdefs
 
     powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80)
-    "x powhr a == Ifun2_of (op powr) x a"
+    "x powhr a == starfun2 (op powr) x a"
   
     hlog :: "[hypreal,hypreal] => hypreal"
-    "hlog a x == Ifun2_of log a x"
+    "hlog a x == starfun2 log a x"
 
 declare powhr_def [transfer_unfold]
 declare hlog_def [transfer_unfold]
 
 lemma powhr: "(star_n X) powhr (star_n Y) = star_n (%n. (X n) powr (Y n))"
-by (simp add: powhr_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: powhr_def starfun2_star_n)
 
 lemma powhr_one_eq_one [simp]: "!!a. 1 powhr a = 1"
 by (transfer, simp)
@@ -81,7 +81,7 @@ by (simp add: linorder_not_less [symmetric])
 lemma hlog:
      "hlog (star_n X) (star_n Y) =  
       star_n (%n. log (X n) (Y n))"
-by (simp add: hlog_def Ifun2_of_def star_of_def Ifun_star_n)
+by (simp add: hlog_def starfun2_star_n)
 
 lemma hlog_starfun_ln: "!!x. ( *f* ln) x = hlog (( *f* exp) 1) x"
 by (transfer, rule log_ln)

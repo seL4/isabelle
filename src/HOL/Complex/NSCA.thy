@@ -133,12 +133,7 @@ done
 
 lemma SComplex_hcmod_SReal: 
       "z \<in> SComplex ==> hcmod z \<in> Reals"
-apply (simp add: SComplex_def SReal_def)
-apply (cases z)
-apply (auto simp add: hcmod star_of_def cmod_def star_n_eq_iff)
-apply (rule_tac x = "cmod r" in exI)
-apply (simp add: cmod_def, ultra)
-done
+by (auto simp add: SComplex_def SReal_def hcmod_def)
 
 lemma SComplex_zero [simp]: "0 \<in> SComplex"
 by (simp add: SComplex_def)
@@ -815,15 +810,11 @@ by (simp add: mem_cinfmal_iff mem_infmal_iff star_n_zero_num capprox_approx_iff)
 
 lemma eq_Abs_star_EX:
      "(\<exists>t. P t) = (\<exists>X. P (star_n X))"
-apply auto
-apply (rule_tac x = t in star_cases, auto)
-done
+by (rule ex_star_eq)
 
 lemma eq_Abs_star_Bex:
      "(\<exists>t \<in> A. P t) = (\<exists>X. star_n X \<in> A & P (star_n X))"
-apply auto
-apply (rule_tac x = t in star_cases, auto)
-done
+by (simp add: Bex_def ex_star_eq)
 
 (* Here we go - easy proof now!! *)
 lemma stc_part_Ex: "x:CFinite ==> \<exists>t \<in> SComplex. x @c= t"
@@ -1136,9 +1127,7 @@ done
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-apply (cases x)
-apply (simp add: hcomplex_of_hypreal SComplex_SReal_iff star_n_zero_num [symmetric])
-done
+by (auto simp add: SReal_def SComplex_def hcomplex_of_hypreal_def)
 
 lemma stc_hcomplex_of_hypreal: 
  "z \<in> HFinite ==> stc(hcomplex_of_hypreal z) = hcomplex_of_hypreal (st z)"
