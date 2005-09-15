@@ -213,7 +213,8 @@ structure SignData = TheoryDataFun
   val name = "Pure/sign";
   type T = sign;
   val copy = I;
-  val extend = I;
+  fun extend (Sign {syn, tsig, consts, ...}) =
+    make_sign (NameSpace.default_naming, syn, tsig, consts);
 
   val empty = make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig,
     (NameSpace.empty_table, Symtab.empty));
