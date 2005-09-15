@@ -160,7 +160,8 @@ val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
 
 val forget_proof =
-  Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current) o
+  Toplevel.proof_to_theory (Sign.local_path o Sign.restore_naming ProtoPure.thy o   (* FIXME tmp *)
+    Proof.theory_of o ProofHistory.current) o
   Toplevel.skip_proof_to_theory (K true);
 
 
