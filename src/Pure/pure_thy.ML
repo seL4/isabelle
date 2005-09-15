@@ -211,7 +211,7 @@ fun lookup_thms thy =
   in
     fn name =>
       Option.map (map (Thm.transfer (Theory.deref thy_ref)))     (*dynamic identity*)
-      (Symtab.curried_lookup thms (NameSpace.intern space name)) (*static content*)
+      (Symtab.lookup thms (NameSpace.intern space name)) (*static content*)
   end;
 
 fun get_thms_closure thy =
@@ -311,10 +311,10 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
         val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy';
         val space' = Sign.declare_name thy' name space;
-        val theorems' = Symtab.curried_update (name, thms') theorems;
+        val theorems' = Symtab.update (name, thms') theorems;
         val index' = FactIndex.add (K false) (name, thms') index;
       in
-        (case Symtab.curried_lookup theorems name of
+        (case Symtab.lookup theorems name of
           NONE => ()
         | SOME thms'' =>
             if Thm.eq_thms (thms', thms'') then warn_same name
@@ -415,8 +415,8 @@ fun forall_elim_var i th = forall_elim_vars_aux
 (* store axioms as theorems *)
 
 local
-  fun get_axs thy named_axs =
-    map (forall_elim_vars 0 o Thm.get_axiom thy o fst) named_axs;
+  fun get_ax thy (name, _) = Thm.get_axiom_i thy (Sign.full_name thy name);
+  fun get_axs thy named_axs = map (forall_elim_vars 0 o get_ax thy) named_axs;
 
   fun add_single add (thy, ((name, ax), atts)) =
     let
