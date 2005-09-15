@@ -180,7 +180,7 @@ local
     XML.element
       "pgip"
       ([("tag",    pgip_tag),
-        ("messageclass",  pgip_class),
+        ("class",  pgip_class),
         ("seq",    string_of_int (pgip_serial())),
         ("id",     !pgip_id)] @
        if_none (Option.map (single o (pair "destid")) (! pgip_refid)) [] @
@@ -1298,7 +1298,7 @@ fun process_pgip_tree xml =
      (case xml of
           XML.Elem ("pgip", attrs, pgips) =>
           (let
-               val class = xmlattr "messageclass" attrs
+               val class = xmlattr "class" attrs
                val dest  = xmlattro "destid" attrs
                val _ = (pgip_refid :=  xmlattro "id" attrs;
                         pgip_refseq := xmlattro "seq" attrs)
