@@ -585,22 +585,20 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy						\
-  ex/BT.thy ex/BinEx.thy ex/Commutative_RingEx.thy					\
-  ex/Commutative_Ring_Complete.thy ex/Higher_Order_Logic.thy				\
-  ex/Hilbert_Classical.thy ex/InSort.thy						\
-  ex/InductiveInvariant.thy  ex/InductiveInvariant_examples.thy				\
-  ex/Intuitionistic.thy									\
-  ex/Lagrange.thy ex/Locales.thy ex/MergeSort.thy					\
-  ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy				\
-  ex/NatSum.thy ex/PER.thy ex/PresburgerEx.thy ex/Reflected_Presburger.thy		\
-  ex/Primrec.thy ex/Puzzle.thy								\
-  ex/Qsort.thy ex/Quickcheck_Examples.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy	\
-  ex/Refute_Examples.thy								\
-  ex/StringEx.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy					\
-  ex/Tarski.thy ex/Tuple.thy ex/Classical.thy						\
-  ex/mesontest2.ML ex/mesontest2.thy ex/set.thy ex/svc_funcs.ML				\
-  ex/svc_test.ML ex/svc_test.thy ex/document/root.bib ex/document/root.tex
+$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy ex/BT.thy ex/BinEx.thy	\
+  ex/Classical.thy ex/Commutative_RingEx.thy				\
+  ex/Commutative_Ring_Complete.thy ex/Hebrew.thy			\
+  ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy	\
+  ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
+  ex/Intuitionistic.thy ex/Lagrange.thy ex/Locales.thy ex/MT.ML		\
+  ex/MT.thy ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy	\
+  ex/NatSum.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
+  ex/Puzzle.thy ex/Qsort.thy ex/Quickcheck_Examples.thy ex/ROOT.ML	\
+  ex/Recdefs.thy ex/Records.thy ex/Reflected_Presburger.thy		\
+  ex/Refute_Examples.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy		\
+  ex/StringEx.thy ex/Tarski.thy ex/Tuple.thy ex/document/root.bib	\
+  ex/document/root.tex ex/mesontest2.ML ex/mesontest2.thy ex/set.thy	\
+  ex/svc_funcs.ML ex/svc_test.ML ex/svc_test.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
