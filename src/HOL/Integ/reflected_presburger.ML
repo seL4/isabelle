@@ -52,7 +52,7 @@ fun lin_mul (c, Cst i) = Cst (c * i)
     (if (c = 0) then Cst 0
       else Add (Mult (Cst (c * c'), Var n), lin_mul (c, r)));
 
-fun op_60_def0 m n = ((m) < (n));
+fun op_60_def0 m n = IntInf.< (m,n);
 
 fun op_60_61_def0 m n = not (op_60_def0 n m);
 
@@ -174,7 +174,7 @@ fun nnf (Lt (it1, it2)) = Le (Sub (it1, it2), Cst (~ 1))
   | nnf (NOT (Equ (p, q))) =
     Or (And (nnf p, nnf (NOT q)), And (nnf (NOT p), nnf q));
 
-fun op_45_def2 z w = (z + ~ w);
+fun op_45_def2 z w =  IntInf.+ (z,~ w);
 
 fun op_45_def0 m n = nat (op_45_def2 (m) (n));
 
@@ -215,7 +215,7 @@ fun all_sums (j:IntInf.int, []) = []
 
 fun split x = (fn p => x (fst p) (snd p));
 
-fun negateSnd x = split (fn q => fn r => (q, ~ r)) x;
+fun negateSnd x = split (fn q => fn r => (q, IntInf.~ r)) x;
 
 fun adjust b =
   (fn (q:IntInf.int, r:IntInf.int) =>
@@ -240,7 +240,7 @@ fun divAlg x =
                    else negateSnd (posDivAlg (~ a, ~ b)))))
     x;
 
-fun op_mod_def1 (a:IntInf.int) (b:IntInf.int) = snd (divAlg (a, b));
+fun op_mod_def1 a b = snd (divAlg (a, b));
 
 fun op_dvd m n = (op_mod_def1 n m = 0);
 
@@ -1139,9 +1139,9 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (QAll ap) = QAll ap
   | minusinf (QEx aq) = QEx aq;
 
-fun (abs: IntInf.int -> IntInf.int) i = (if (i < 0) then ~ i else i);
+fun abs (i:IntInf.int) = (if (i < 0) then IntInf.~ i else i);
 
-fun op_div_def1 (a:IntInf.int) (b:IntInf.int) = fst (divAlg (a, b));
+fun op_div_def1 a b = fst (divAlg (a, b));
 
 fun op_mod_def0 m n = nat (op_mod_def1 (m) (n));
 
