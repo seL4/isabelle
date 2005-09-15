@@ -23,7 +23,7 @@ sig
 (*****************************************************************************************)
 
 val callResProvers :
-    TextIO.outstream * (string*string*string*string*string*string*string*string) list 
+    TextIO.outstream * (string*string*string*string*string) list 
     -> unit
 
 (************************************************************************)
@@ -73,7 +73,6 @@ datatype proc = PROC of {
 datatype cmdproc = CMDPROC of {
         prover: string,             (* Name of the resolution prover used, e.g. Vampire, SPASS *)
         cmd:  string,              (* The file containing the goal for res prover to prove *)     
-        thmstring: string,         (* string representation of subgoal after negation, skolemization*) 
         goalstring: string,         (* string representation of subgoal*) 
         proc_handle : (TextIO.instream,TextIO.outstream) Unix.proc,
         instr : TextIO.instream,   (*  Input stream to child process *)
@@ -123,19 +122,16 @@ fun cmdstreamsOf (CMDPROC{instr,outstr,...}) = (instr, outstr);
 
 fun cmdInStream (CMDPROC{instr,outstr,...}) = instr;
 
-fun cmdchildInfo (CMDPROC{prover,cmd,thmstring,proc_handle,goalstring,instr,outstr}) = 
+fun cmdchildInfo (CMDPROC{prover,cmd,proc_handle,goalstring,instr,outstr}) = 
   (prover,(cmd, (instr,outstr)));
 
-fun cmdchildHandle (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = 
+fun cmdchildHandle (CMDPROC{prover,cmd,goalstring,proc_handle,instr,outstr})  = 
   proc_handle;
 
-fun cmdProver (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  =
+fun cmdProver (CMDPROC{prover,cmd,goalstring,proc_handle,instr,outstr})  =
   prover;
 
-fun cmdThm (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  = 
-  thmstring;
-
-fun cmdGoal (CMDPROC{prover,cmd,thmstring,goalstring,proc_handle,instr,outstr})  =
+fun cmdGoal (CMDPROC{prover,cmd,goalstring,proc_handle,instr,outstr})  =
   goalstring;
 
 
@@ -166,14 +162,14 @@ fun callResProver (toWatcherStr,  arg) =
 fun callResProvers (toWatcherStr,  []) = 
       (TextIO.output (toWatcherStr, "End of calls\n");  TextIO.flushOut toWatcherStr)
 |   callResProvers (toWatcherStr,
-                    (prover,thmstring,goalstring, proverCmd,settings, 
-                     axfile, hypsfile,probfile)  ::  args) =
+                    (prover,goalstring, proverCmd,settings, 
+                     probfile)  ::  args) =
       let val _ = File.write (File.tmp_path (Path.basic "tog_comms"))
-                             (prover^thmstring^goalstring^proverCmd^settings^
-                              hypsfile^probfile)
+                             (prover^goalstring^proverCmd^settings^
+                              probfile)
       in TextIO.output (toWatcherStr,    
-            (prover^"$"^thmstring^"$"^goalstring^"$"^proverCmd^"$"^
-             settings^"$"^hypsfile^"$"^probfile^"\n"));
+            (prover^"$"^goalstring^"$"^proverCmd^"$"^
+             settings^"$"^probfile^"\n"));
          goals_being_watched := (!goals_being_watched) + 1;
 	 TextIO.flushOut toWatcherStr;
 	 callResProvers (toWatcherStr,args)
@@ -198,27 +194,17 @@ fun callSlayer toWatcherStr = (TextIO.output (toWatcherStr, "Kill vampires\n");
 fun separateFields str =
   let val _ = File.append (File.tmp_path (Path.basic "sep_field"))
                           ("In separateFields, str is: " ^ str ^ "\n\n") 
-      val [prover,thmstring,goalstring,proverCmd,settingstr,hypsfile,probfile] = 
+      val [prover,goalstring,proverCmd,settingstr,probfile] = 
           String.tokens (fn c => c = #"$") str
       val settings = String.tokens (fn c => c = #"%") settingstr
       val _ = File.append (File.tmp_path (Path.basic "sep_comms"))                                                                                
                   ("Sep comms are: "^ str ^"**"^
-                   prover^" thmstring: "^thmstring^"\n goalstr:  "^goalstring^
-                   " \n provercmd: "^proverCmd^
-                   " \n hyps "^hypsfile^"\n prob  "^probfile^"\n\n")
+                   prover^" goalstr:  "^goalstring^
+                   "\n provercmd: "^proverCmd^
+                   "\n prob  "^probfile^"\n\n")
   in
-     (prover,thmstring,goalstring, proverCmd, settings, hypsfile, probfile)
+     (prover,goalstring, proverCmd, settings, probfile)
   end
-
-                      
-fun formatCmd (prover,thmstring,goalstring, proverCmd, settings, hypsfile ,probfile) = 
-  let
-    val _ =  File.append (File.tmp_path (Path.basic"thmstring_in_watcher"))
-	       (thmstring ^ "\n goals_watched" ^ 
-	       (string_of_int(!goals_being_watched)) ^ probfile^"\n")
-  in
-    (prover, thmstring, goalstring, proverCmd, settings, probfile)	
-  end;
 
 val remove_newlines = String.translate (fn c => if c = #"\n" then "" else str c);
 
@@ -226,40 +212,34 @@ fun getCmd cmdStr =
   let val cmdStr' = remove_newlines cmdStr
   in
       File.write (File.tmp_path (Path.basic"sepfields_call")) 
-		 ("about to call sepfields with " ^ cmdStr');
-      formatCmd (separateFields cmdStr')
+		 ("about to call separateFields with " ^ cmdStr');
+      separateFields cmdStr'
   end;
                       
-
-fun getProofCmd (a,b,c,d,e,f) = d
-
-                        
 (**************************************************************)
 (* Get commands from Isabelle                                 *)
 (**************************************************************)
-(* FIX: or perhaps do the tptp2x stuff here - so it's get commands and then format them, before passing them to spass *)
 
 fun getCmds (toParentStr,fromParentStr, cmdList) = 
   let val thisLine = TextIO.inputLine fromParentStr 
       val _ = File.append (File.tmp_path (Path.basic "parent_comms")) thisLine
   in
-     if (thisLine = "End of calls\n") 
-     then cmdList
-     else if (thisLine = "Kill children\n") 
+     if thisLine = "End of calls\n" then cmdList
+     else if thisLine = "Kill children\n"
      then 
 	 (   TextIO.output (toParentStr,thisLine ); 
 	     TextIO.flushOut toParentStr;
-	   (("","","","Kill children",[],"")::cmdList)
+	   (("","","Kill children",[],"")::cmdList)
 	  )
-     else  let val thisCmd = getCmd thisLine 
+     else let val thisCmd = getCmd thisLine 
 	       (*********************************************************)
-	       (* thisCmd = (prover,thmstring,proverCmd, settings, file)*)
+	       (* thisCmd = (prover,proverCmd, settings, file)*)
 	       (* i.e. put back into tuple format                       *)
 	       (*********************************************************)
 	   in
 	     (*TextIO.output (toParentStr, thisCmd); 
 	       TextIO.flushOut toParentStr;*)
-	       getCmds (toParentStr, fromParentStr, (thisCmd::cmdList))
+	       getCmds (toParentStr, fromParentStr, thisCmd::cmdList)
 	   end
   end
 	    
@@ -285,6 +265,8 @@ fun getInIoDesc someInstr =
 (*************************************)
 (*  Set up a Watcher Process         *)
 (*************************************)
+
+fun getProofCmd (a,c,d,e,f) = d
 
 fun setupWatcher (thm,clause_arr, num_of_clauses) = 
   let
@@ -405,25 +387,24 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			      ("finished polling child \n")
 		   val parentID = Posix.ProcEnv.getppid()
 		   val prover = cmdProver childProc
-		   val thmstring = cmdThm childProc
 		   val sign = sign_of_thm thm
 		   val prems = prems_of thm
 		   val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
 		   val _ = debug("subgoals forked to checkChildren: "^prems_string)
 		   val goalstring = cmdGoal childProc							
 		   val _ = File.append (File.tmp_path (Path.basic "child_comms")) 
-			      (prover^thmstring^goalstring^childCmd^"\n")
+			      (prover^goalstring^childCmd^"\n")
 	       in 
 		 if isSome childIncoming
 		 then 
 		   (* check here for prover label on child*)
 		   let val _ = File.write (File.tmp_path (Path.basic "child_incoming")) 
 			      ("subgoals forked to checkChildren:"^
-			      prems_string^prover^thmstring^goalstring^childCmd) 
+			      prems_string^prover^goalstring^childCmd) 
 		       val childDone = (case prover of
-			   "vampire" => VampComm.checkVampProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  
-			    | "E" => VampComm.checkEProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)             
-			  |"spass" => SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,thmstring,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  )
+			   "vampire" => VampComm.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  
+			    | "E" => VampComm.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)             
+			  |"spass" => SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  )
 		    in
 		     if childDone      (**********************************************)
 		     then (* child has found a proof and transferred it *)
@@ -453,7 +434,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 
 (*** add subgoal id num to this *)
 	fun execCmds  [] procList = procList
-	|   execCmds  ((prover, thmstring,goalstring,proverCmd,settings,file)::cmds) procList  =
+	|   execCmds  ((prover, goalstring,proverCmd,settings,file)::cmds) procList  =
 	      let val _ = File.write (File.tmp_path (Path.basic "exec_child"))  
 	                    (space_implode "\n" 
 	                      (["About to execute command for goal:",
@@ -466,7 +447,6 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		  val newProcList = (CMDPROC{
 				       prover = prover,
 				       cmd = file,
-				       thmstring = thmstring,
 				       goalstring = goalstring,
 				       proc_handle = childhandle,
 				       instr = instr,
@@ -488,11 +468,11 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
      (****************************************)
 
       (*  fun execRemoteCmds  [] procList = procList
-	|   execRemoteCmds ((prover, thmstring,goalstring,proverCmd ,settings,file)::cmds) procList  =  
-				  let val  newProcList =  mySshExecuteToList ("/usr/bin/ssh",([prover,thmstring,goalstring,"-t", "shep"]@[proverCmd]@settings@[file]), procList)
-				      in
-					   execRemoteCmds  cmds newProcList
-				      end
+	|   execRemoteCmds ((prover, goalstring,proverCmd ,settings,file)::cmds) procList  =  
+	      let val  newProcList =  mySshExecuteToList ("/usr/bin/ssh",([prover,goalstring,"-t", "shep"]@[proverCmd]@settings@[file]), procList)
+		  in
+		       execRemoteCmds  cmds newProcList
+		  end
 *)
 
      (**********************************************)                  
@@ -648,11 +628,11 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	(Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	 VampComm.getVampInput childin; Pretty.writeln(Pretty.str (oct_char "361")))               
      fun spass_proofHandler n = (
-       let val _ = File.append (File.tmp_path (Path.basic "spass_signal_in"))
+       let val _ = File.append (File.tmp_path (Path.basic "spass_signal"))
                                "Starting SPASS signal handler\n"
-	   val (reconstr, goalstring, thmstring) = SpassComm.getSpassInput childin
-	   val _ = File.append (File.tmp_path (Path.basic "spass_signal_out"))
-		       ("In SPASS signal handler "^reconstr^thmstring^goalstring^
+	   val (reconstr, goalstring) = SpassComm.getSpassInput childin
+	   val _ = File.append (File.tmp_path (Path.basic "spass_signal"))
+		       ("In SPASS signal handler "^reconstr^goalstring^
 		       "goals_being_watched: "^ string_of_int (!goals_being_watched))
        in (* if a proof has been found and sent back as a reconstruction proof *)
 	 if substring (reconstr, 0,1) = "["

@@ -118,6 +118,8 @@ val start_E = "# Proof object starts here."
 val end_E   = "# Proof object ends here."
 val start_V6 = "%================== Proof: ======================"
 val end_V6   = "%==============  End of proof. =================="
+val start_V8 = "=========== Refutation =========="
+val end_V8 = "======= End of refutation ======="
 
 
 (*Identifies the start/end lines of an ATP's output*)

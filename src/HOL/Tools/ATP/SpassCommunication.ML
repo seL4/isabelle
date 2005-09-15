@@ -10,9 +10,9 @@
 signature SPASS_COMM =
   sig
     val reconstruct : bool ref
-    val getSpassInput : TextIO.instream -> string * string * string
+    val getSpassInput : TextIO.instream -> string * string
     val checkSpassProofFound:  
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * string * thm * int * (ResClause.clause * thm) Array.array * int -> bool
   end;
 
@@ -30,7 +30,7 @@ exception EOF;
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
+fun reconstruct_tac proofextract goalstring toParent ppid sg_num 
                     clause_arr num_of_clauses = 
  let val f = if !reconstruct then Recon_Transfer.spassString_to_reconString
                              else Recon_Transfer.spassString_to_lemmaString
@@ -38,12 +38,11 @@ fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num
    SELECT_GOAL
     (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
              METAHYPS(fn negs => 
-    f proofextract thmstring goalstring 
-              toParent ppid negs clause_arr num_of_clauses)]) sg_num	
+    f proofextract goalstring toParent ppid negs clause_arr num_of_clauses)]) sg_num	
  end;
 
 
-fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring, 
+fun transferSpassInput (fromChild, toParent, ppid, goalstring, 
                         currentString, thm, sg_num,clause_arr, num_of_clauses) = 
  let val thisLine = TextIO.inputLine fromChild 
  in 
@@ -55,10 +54,10 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring,
       let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
       in 
 	  File.write (File.tmp_path (Path.basic"spass_extracted_prf")) proofextract;
-	  reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
+	  reconstruct_tac proofextract goalstring toParent ppid sg_num 
 	      clause_arr num_of_clauses thm
       end
-    else transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,
+    else transferSpassInput (fromChild, toParent, ppid, goalstring,
 			     (currentString^thisLine), thm, sg_num, clause_arr, 
 			     num_of_clauses)
  end;
@@ -70,7 +69,7 @@ fun transferSpassInput (fromChild, toParent, ppid,thmstring,goalstring,
 (*********************************************************************************)
 
  
-fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd,
+fun startSpassTransfer (fromChild, toParent, ppid, goalstring,childCmd,
                         thm, sg_num,clause_arr, num_of_clauses) = 
    let val thisLine = TextIO.inputLine fromChild  
    in                 
@@ -78,15 +77,15 @@ fun startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,childCmd
       else if String.isPrefix "Here is a proof" thisLine then     
 	 (File.append (File.tmp_path (Path.basic "spass_transfer"))
 		      ("about to transfer proof, thm is: " ^ string_of_thm thm ^ "\n");
-	  transferSpassInput (fromChild, toParent, ppid,thmstring, goalstring,thisLine, 
+	  transferSpassInput (fromChild, toParent, ppid, goalstring,thisLine, 
  	                     thm, sg_num,clause_arr, num_of_clauses);
 	  true) handle EOF => false
-      else startSpassTransfer (fromChild, toParent, ppid, thmstring, goalstring,
+      else startSpassTransfer (fromChild, toParent, ppid, goalstring,
                                childCmd, thm, sg_num,clause_arr, num_of_clauses)
     end
 
 
-fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd,
+fun checkSpassProofFound (fromChild, toParent, ppid, goalstring, childCmd,
                           thm, sg_num, clause_arr, (num_of_clauses:int )) = 
  let val spass_proof_file = TextIO.openAppend
            (File.platform_path(File.tmp_path (Path.basic "spass_proof")))
@@ -101,7 +100,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
      else if thisLine = "SPASS beiseite: Proof found.\n"
      then      
        (File.write (File.tmp_path (Path.basic "spass_response")) thisLine;
-	startSpassTransfer (fromChild, toParent, ppid, thmstring,goalstring,
+	startSpassTransfer (fromChild, toParent, ppid, goalstring,
 	                    childCmd, thm, sg_num, clause_arr, num_of_clauses))
      else if thisLine = "SPASS beiseite: Completion found.\n"
      then  
@@ -113,7 +112,6 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
 	TextIO.closeOut spass_proof_file;
 
 	TextIO.output (toParent, thisLine^"\n");
-	TextIO.output (toParent, thmstring^"\n");
 	TextIO.output (toParent, goalstring^"\n");
 	TextIO.flushOut toParent;
 	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -124,7 +122,6 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
      then  
        (File.write (File.tmp_path (Path.basic "spass_response")) thisLine;
         TextIO.output (toParent, thisLine^"\n");
-	TextIO.output (toParent, thmstring^"\n");
 	TextIO.output (toParent, goalstring^"\n");
 	TextIO.flushOut toParent;
 	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -144,7 +141,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid,thmstring,goalstring, childC
     else
        (TextIO.output (spass_proof_file, thisLine);
        TextIO.flushOut spass_proof_file;
-       checkSpassProofFound  (fromChild, toParent, ppid, thmstring,goalstring,
+       checkSpassProofFound  (fromChild, toParent, ppid, goalstring,
        childCmd, thm, sg_num, clause_arr, num_of_clauses))
  end
 
@@ -157,22 +154,20 @@ fun getSpassInput instr =
     let val thisLine = TextIO.inputLine instr 
         val _ = File.write (File.tmp_path (Path.basic "spass_line")) thisLine
     in 
-      if thisLine = "" then ("No output from reconstruction process.\n","","")
+      if thisLine = "" then ("No output from reconstruction process.\n","")
       else if String.sub (thisLine, 0) = #"[" orelse
          String.isPrefix "SPASS beiseite:" thisLine orelse
          String.isPrefix  "Rules from" thisLine
       then 
-	let val thmstring = TextIO.inputLine instr 
-	    val goalstring = TextIO.inputLine instr   
-	in (thisLine, thmstring, goalstring) end
+	let val goalstring = TextIO.inputLine instr   
+	in (thisLine, goalstring) end
       else if substring (thisLine,0,5) = "Proof" orelse
               String.sub (thisLine, 0) = #"%"
       then
-	let val thmstring = TextIO.inputLine instr
-	    val goalstring = TextIO.inputLine instr
+	let val goalstring = TextIO.inputLine instr
 	in
           File.write (File.tmp_path (Path.basic "getSpassInput")) thisLine;
-          (thisLine, thmstring, goalstring)
+          (thisLine, goalstring)
         end
       else getSpassInput instr
      end

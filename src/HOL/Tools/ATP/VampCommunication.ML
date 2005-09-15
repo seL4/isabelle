@@ -9,14 +9,14 @@
 (***************************************************************************)
 signature VAMP_COMM =
   sig
-    val getEInput : TextIO.instream -> string * string * string
+    val getEInput : TextIO.instream -> string * string
     val checkEProofFound: 
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * string * 
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * string * thm * int * (ResClause.clause * thm) Array.array * int -> bool
 
-    val getVampInput : TextIO.instream -> string * string * string
+    val getVampInput : TextIO.instream -> string * string
     val checkVampProofFound: 
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * string *
+          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * string * thm * int * (ResClause.clause * thm) Array.array * int -> bool
   end;
 
@@ -31,13 +31,13 @@ exception EOF;
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num 
+fun reconstruct_tac proofextract goalstring toParent ppid sg_num 
                     clause_arr num_of_clauses =
     SELECT_GOAL
       (EVERY1
         [rtac ccontr, ResLib.atomize_tac, skolemize_tac,
 	 METAHYPS(fn negs =>
-		     (Recon_Transfer.proverString_to_lemmaString proofextract thmstring 
+		     (Recon_Transfer.proverString_to_lemmaString proofextract  
 		       goalstring toParent ppid negs clause_arr num_of_clauses))]) sg_num
 
 
@@ -47,7 +47,7 @@ fun reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num
 (*********************************************************************************)
 
 fun startTransfer (startS,endS)
-      (fromChild, toParent, ppid, thmstring,goalstring,childCmd,
+      (fromChild, toParent, ppid, goalstring,childCmd,
        thm, sg_num,clause_arr, num_of_clauses) =
  let val thisLine = TextIO.inputLine fromChild
      fun transferInput currentString =
@@ -63,7 +63,7 @@ fun startTransfer (startS,endS)
 	then let val proofextract = Recon_Parse.extract_proof (currentString^thisLine)
 	     in
 	       File.write (File.tmp_path (Path.basic"extracted_prf")) proofextract; 
-	       reconstruct_tac proofextract thmstring goalstring toParent ppid sg_num  
+	       reconstruct_tac proofextract goalstring toParent ppid sg_num  
 			       clause_arr num_of_clauses thm
 	     end
 	else transferInput (currentString^thisLine)
@@ -78,12 +78,12 @@ fun startTransfer (startS,endS)
      true) handle EOF => false
    else
       startTransfer (startS,endS)
-                    (fromChild, toParent, ppid, thmstring, goalstring,
+                    (fromChild, toParent, ppid, goalstring,
 		     childCmd, thm, sg_num,clause_arr, num_of_clauses)
  end
 
 
-fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd, 
+fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, 
                          thm, sg_num, clause_arr, num_of_clauses) =
  let val proof_file = TextIO.openAppend
 	   (File.platform_path(File.tmp_path (Path.basic "atp_proof")))
@@ -99,7 +99,7 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
      then
        (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
 	startTransfer (Recon_Parse.start_V6, Recon_Parse.end_V6)
-	      (fromChild, toParent, ppid, thmstring, goalstring,
+	      (fromChild, toParent, ppid, goalstring,
 	       childCmd, thm, sg_num, clause_arr, num_of_clauses))
      else if (thisLine = "% Unprovable.\n" ) orelse
              (thisLine = "% Proof not found. Time limit expired.\n")
@@ -111,7 +111,6 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
 	TextIO.closeOut proof_file;
  
 	TextIO.output (toParent, thisLine^"\n");
-	TextIO.output (toParent, thmstring^"\n");
 	TextIO.output (toParent, goalstring^"\n");
 	TextIO.flushOut toParent;
 	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -121,16 +120,16 @@ fun checkVampProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCm
      else
        (TextIO.output (proof_file, thisLine);
 	TextIO.flushOut proof_file;
-	checkVampProofFound  (fromChild, toParent, ppid, thmstring,
+	checkVampProofFound  (fromChild, toParent, ppid, 
 	   goalstring,childCmd, thm, sg_num, clause_arr, num_of_clauses))
   end
 
 
-fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd,
+fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
                       thm, sg_num, clause_arr, num_of_clauses) = 
  let val E_proof_file = TextIO.openAppend
-	   (File.platform_path(File.tmp_path (Path.basic "eprover_proof")))
-     val _ = File.write (File.tmp_path (Path.basic "eprover_checking_prf"))
+	   (File.platform_path(File.tmp_path (Path.basic "atp_proof")))
+     val _ = File.write (File.tmp_path (Path.basic "atp_checking_prf"))
 			("checking if proof found, thm is: " ^ string_of_thm thm)
      val thisLine = TextIO.inputLine fromChild  
  in   
@@ -140,20 +139,19 @@ fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd,
 	    false)
      else if thisLine = "# TSTP exit status: Unsatisfiable\n"
      then      
-       (File.write (File.tmp_path (Path.basic "eprover_response")) thisLine;
+       (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
        startTransfer (Recon_Parse.start_E, Recon_Parse.end_E)
-             (fromChild, toParent, ppid, thmstring, goalstring,
+             (fromChild, toParent, ppid, goalstring,
 	      childCmd, thm, sg_num, clause_arr, num_of_clauses))
      else if thisLine= "# Problem is satisfiable (or invalid), generating saturation derivation\n"
      then  
-       (File.write (File.tmp_path (Path.basic "eprover_response")) thisLine;
+       (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
 	TextIO.output (toParent,childCmd^"\n" );
 	TextIO.flushOut toParent;
 	TextIO.output (E_proof_file, thisLine);
 	TextIO.closeOut E_proof_file;
 
 	TextIO.output (toParent, thisLine^"\n");
-	TextIO.output (toParent, thmstring^"\n");
 	TextIO.output (toParent, goalstring^"\n");
 	TextIO.flushOut toParent;
 	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -162,9 +160,8 @@ fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd,
 	 true)
      else if thisLine = "# Failure: Resource limit exceeded (time)\n" 
      then  
-       (File.write (File.tmp_path (Path.basic "eprover_response")) thisLine;
+       (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
 	TextIO.output (toParent, thisLine^"\n");
-	TextIO.output (toParent, thmstring^"\n");
 	TextIO.output (toParent, goalstring^"\n");
 	TextIO.flushOut toParent;
 	Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
@@ -184,7 +181,7 @@ fun checkEProofFound (fromChild, toParent, ppid,thmstring,goalstring, childCmd,
      else
 	(TextIO.output (E_proof_file, thisLine);
 	TextIO.flushOut E_proof_file;
-	checkEProofFound  (fromChild, toParent, ppid, thmstring,goalstring,
+	checkEProofFound  (fromChild, toParent, ppid, goalstring,
 	childCmd, thm, sg_num, clause_arr, num_of_clauses))
  end
 
@@ -197,21 +194,19 @@ fun getVampInput instr =
     let val thisLine = TextIO.inputLine instr
 	val _ = File.write (File.tmp_path (Path.basic "atp_line")) thisLine
     in    (* reconstructed proof string *)
-      if thisLine = "" then ("No output from reconstruction process.\n","","")
+      if thisLine = "" then ("No output from reconstruction process.\n","")
       else if String.sub (thisLine, 0) = #"[" orelse
               thisLine = "% Unprovable.\n" orelse
               thisLine ="% Proof not found. Time limit expired.\n" orelse
               String.isPrefix "Rules from" thisLine
       then
-	let val thmstring = TextIO.inputLine instr
-	    val goalstring = TextIO.inputLine instr
-	in (thisLine, thmstring, goalstring) end
+	let val goalstring = TextIO.inputLine instr
+	in (thisLine, goalstring) end
       else if thisLine = "Proof found but translation failed!"
       then
-	 let val thmstring = TextIO.inputLine instr
-	     val goalstring = TextIO.inputLine instr
+	 let val goalstring = TextIO.inputLine instr
 	     val _ = debug "getVampInput: translation of proof failed"
-	 in (thisLine, thmstring, goalstring) end
+	 in (thisLine, goalstring) end
       else getVampInput instr
     end
 
@@ -224,20 +219,18 @@ fun getEInput instr =
     let val thisLine = TextIO.inputLine instr
 	val _ = File.write (File.tmp_path (Path.basic "atp_line")) thisLine
     in    (* reconstructed proof string *)
-      if thisLine = "" then ("No output from reconstruction process.\n","","")
+      if thisLine = "" then ("No output from reconstruction process.\n","")
       else if String.isPrefix "# Problem is satisfiable" thisLine orelse
               String.isPrefix "# Cannot determine problem status" thisLine orelse
               String.isPrefix "# Failure:" thisLine
       then
-	let val thmstring = TextIO.inputLine instr
-	    val goalstring = TextIO.inputLine instr
-	in (thisLine, thmstring, goalstring) end
+	let val goalstring = TextIO.inputLine instr
+	in (thisLine, goalstring) end
       else if thisLine = "Proof found but translation failed!"
       then
-	 let val thmstring = TextIO.inputLine instr
-	     val goalstring = TextIO.inputLine instr
+	 let val goalstring = TextIO.inputLine instr
 	     val _ = debug "getEInput: translation of proof failed"
-	 in (thisLine, thmstring, goalstring) end
+	 in (thisLine, goalstring) end
       else getEInput instr
     end
 

@@ -35,7 +35,7 @@ signature RES_CLAUSE =
   val dfg_clauses2str : string list -> string
   val clause2dfg : clause -> string * string list
   val clauses2dfg : clause list -> string -> clause list -> clause list ->
-	   (string * int) list -> (string * int) list -> string list -> string
+	   (string * int) list -> (string * int) list -> string
   val tfree_dfg_clause : string -> string
 
   val tptp_arity_clause : arityClause -> string
@@ -878,16 +878,16 @@ fun clause2dfg cls =
 
 
 fun tfree_dfg_clause tfree_lit =
-  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ ")),\n" ^ "tfree_tcs" ^ ")."
+  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ")."
 
 
-fun gen_dfg_file probname axioms conjectures funcs preds tfrees= 
+fun gen_dfg_file probname axioms conjectures funcs preds = 
     let val axstrs_tfrees = (map clause2dfg axioms)
 	val (axstrs, atfrees) = ListPair.unzip axstrs_tfrees
         val axstr = ResLib.list2str_sep delim axstrs
         val conjstrs_tfrees = (map clause2dfg conjectures)
 	val (conjstrs, atfrees) = ListPair.unzip conjstrs_tfrees
-        val tfree_clss = map tfree_dfg_clause ((ResLib.flat_noDup atfrees) \\ tfrees) 
+        val tfree_clss = map tfree_dfg_clause (ResLib.flat_noDup atfrees) 
         val conjstr = ResLib.list2str_sep delim (tfree_clss@conjstrs)
         val funcstr = string_of_funcs funcs
         val predstr = string_of_preds preds
@@ -898,14 +898,13 @@ fun gen_dfg_file probname axioms conjectures funcs preds tfrees=
        (string_of_conjectures conjstr) ^ (string_of_end ())
     end;
    
-fun clauses2dfg [] probname axioms conjectures funcs preds tfrees = 
+fun clauses2dfg [] probname axioms conjectures funcs preds = 
       let val funcs' = (ResLib.flat_noDup(map funcs_of_cls axioms)) @ funcs
 	  val preds' = (ResLib.flat_noDup(map preds_of_cls axioms)) @ preds
       in
-	 gen_dfg_file probname axioms conjectures funcs' preds' tfrees 
-	 (*(probname, axioms, conjectures, funcs, preds)*)
+	 gen_dfg_file probname axioms conjectures funcs' preds' 
       end
- | clauses2dfg (cls::clss) probname axioms conjectures funcs preds tfrees = 
+ | clauses2dfg (cls::clss) probname axioms conjectures funcs preds = 
      let val (lits,tfree_lits) = dfg_clause_aux cls
 	       (*"lits" includes the typing assumptions (TVars)*)
 	 val cls_id = get_clause_id cls
@@ -920,15 +919,8 @@ fun clauses2dfg [] probname axioms conjectures funcs preds tfrees =
 	 val conjectures' = 
 	     if knd = "conjecture" then (cls::conjectures) else conjectures
      in
-	 clauses2dfg clss probname axioms' conjectures' funcs' preds' tfrees 
+	 clauses2dfg clss probname axioms' conjectures' funcs' preds' 
      end;
-
-
-fun fileout f str = let val out = TextIO.openOut f
-    in
-	ResLib.writeln_strs out str; TextIO.closeOut out
-    end;
-
 
 
 fun string_of_arClauseID (ArityClause arcls) =
@@ -997,7 +989,7 @@ fun gen_tptp_type_cls (cls_id,ax_name,knd,tfree_lit,idx) =
     "input_clause(" ^ string_of_type_clsname (cls_id,ax_name,idx) ^ "," ^ 
     knd ^ ",[" ^ tfree_lit ^ "]).";
 
-fun tptp_clause_aux (Clause cls) = 
+fun tptp_type_lits (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
 	val tvar_lits_strs =
 	      if !keep_types 
@@ -1012,7 +1004,7 @@ fun tptp_clause_aux (Clause cls) =
     end; 
 
 fun tptp_clause cls =
-    let val (lits,tfree_lits) = tptp_clause_aux cls 
+    let val (lits,tfree_lits) = tptp_type_lits cls 
             (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = get_clause_id cls
 	val ax_name = get_axiomName cls
@@ -1028,7 +1020,7 @@ fun tptp_clause cls =
     end;
 
 fun clause2tptp cls =
-    let val (lits,tfree_lits) = tptp_clause_aux cls 
+    let val (lits,tfree_lits) = tptp_type_lits cls 
             (*"lits" includes the typing assumptions (TVars)*)
 	val cls_id = get_clause_id cls
 	val ax_name = get_axiomName cls
