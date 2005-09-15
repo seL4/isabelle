@@ -24,16 +24,15 @@ non-Isar theories now, but these will disappear soon.
 * Theory loader: parent theories can now also be referred to via
 relative and absolute paths.
 
-* Improved version of thms_containing searches for a list of criteria
-instead of a list of constants. Known criteria are: intro, elim, dest,
-name:string, simp:term, and any term. Criteria can be preceded by '-'
-to select theorems that do not match. Intro, elim, dest select
-theorems that match the current goal, name:s selects theorems whose
-fully qualified name contain s, and simp:term selects all
-simplification rules whose lhs match term.  Any other term is
-interpreted as pattern and selects all theorems matching the
-pattern. Available in ProofGeneral under 'ProofGeneral -> Find
-Theorems' or C-c C-f.  Example:
+* Command 'find_theorems' searches for a list of criteria instead of a
+list of constants. Known criteria are: intro, elim, dest, name:string,
+simp:term, and any term. Criteria can be preceded by '-' to select
+theorems that do not match. Intro, elim, dest select theorems that
+match the current goal, name:s selects theorems whose fully qualified
+name contain s, and simp:term selects all simplification rules whose
+lhs match term.  Any other term is interpreted as pattern and selects
+all theorems matching the pattern. Available in ProofGeneral under
+'ProofGeneral -> Find Theorems' or C-c C-f.  Example:
 
   C-c C-f (100) "(_::nat) + _ + _" intro -name: "HOL."
 
@@ -41,10 +40,13 @@ prints the last 100 theorems matching the pattern "(_::nat) + _ + _",
 matching the current goal as introduction rule and not having "HOL."
 in their name (i.e. not being defined in theory HOL).
 
+* Command 'thms_containing' has been discontinued in favour of
+'find_theorems'; INCOMPATIBILITY.
+
 * Communication with Proof General is now 8bit clean, which means that
 Unicode text in UTF-8 encoding may be used within theory texts (both
-formal and informal parts).  See option -U of the Isabelle Proof
-General interface.
+formal and informal parts).  Cf. option -U of the Isabelle Proof
+General interface; HOL/ex/Hebrew.thy provides a simple example.
 
 
 *** Document preparation ***
@@ -524,7 +526,7 @@ transformations, notably reverse application and composition:
   x |> f                f #> g
   (x, y) |-> f          f #-> g
 
-* Pure/library.ML: canonical list combinators fold, fold_rev, and
+* Pure/library.ML: natural list combinators fold, fold_rev, and
 fold_map support linear functional transformations and nesting.  For
 example:
 
@@ -540,58 +542,60 @@ example:
   (fold o fold) f [xs1, ..., xsN] =
     fold f xs1 #> ... #> fold f xsN
 
-* Pure/term.ML: combinators fold_atyps, fold_aterms, fold_term_types,
-fold_types traverse types/terms from left to right, observing
-canonical argument order.  Supercedes previous foldl_XXX versions,
-add_frees, add_vars etc. have been adapted as well: INCOMPATIBILITY.
+* Pure/library.ML: the following selectors on type 'a option are
+available:
 
-* Pure: output via the Isabelle channels of writeln/warning/error
-etc. is now passed through Output.output, with a hook for arbitrary
-transformations depending on the print_mode (cf. Output.add_mode --
-the first active mode that provides a output function wins).  Already
-formatted output may be embedded into further text via Output.raw; the
-result of Pretty.string_of/str_of and derived functions
-(string_of_term/cterm/thm etc.) is already marked raw to accommodate
-easy composition of diagnostic messages etc.  Programmers rarely need
-to care about Output.output or Output.raw at all, with some notable
-exceptions: Output.output is required when bypassing the standard
-channels (writeln etc.), or in token translations to produce properly
-formatted results; Output.raw is required when capturing already
-output material that will eventually be presented to the user a second
-time.  For the default print mode, both Output.output and Output.raw
-have no effect.
-
-* Pure: Output.time_accumulator NAME creates an operator ('a -> 'b) ->
-'a -> 'b to measure runtime and count invocations; the cumulative
-results are displayed at the end of a batch session.
-
-* Isar toplevel: improved diagnostics, mostly for Poly/ML only.
-Reference Toplevel.debug (default false) controls detailed printing
-and tracing of low-level exceptions; Toplevel.profiling (default 0)
-controls execution profiling -- set to 1 for time and 2 for space
-(both increase the runtime).
-
-* Isar session: The initial use of ROOT.ML is now always timed,
-i.e. the log will show the actual process times, in contrast to the
-elapsed wall-clock time that the outer shell wrapper produces.
-
-* Pure: structure OrdList (cf. Pure/General/ord_list.ML) provides a
-reasonably efficient light-weight implementation of sets as lists.
-
-* Pure: structure AList (cf. Pure/General/alist.ML) superseedes the
-former associaton list functions in library. INCOMPATIBILITY.
-Naive rewrites:
-
-  assoc == uncurry (AList.lookup (op =))
-  assocs == these oo AList.lookup (op =)
-  overwrite == uncurry (AList.update (op =)) o swap
-
-* Pure: new functions in the family of normalisators for the option type:
-
-  the:               'a option -> 'a
-  these:             'a option -> 'a where 'a = 'b list
+  the:               'a option -> 'a  (*partial*)
+  these:             'a option -> 'a  where 'a = 'b list
   the_default: 'a -> 'a option -> 'a
   the_list:          'a option -> 'a list
+
+* Pure/General: structure AList (cf. Pure/General/alist.ML) provides
+basic operations for association lists, following natural argument
+order.  The old functions may be expressed as follows:
+
+  assoc = uncurry (AList.lookup (op =))
+  assocs = these oo AList.lookup (op =)
+  overwrite = uncurry (AList.update (op =)) o swap
+
+* Pure/General: structure AList (cf. Pure/General/alist.ML) provides
+basic operations for association lists, following natural argument
+order; moreover the explicit equality predicate passed here avoids
+potentially expensive polymorphic runtime equality checks.
+
+* Pure/General: structure OrdList (cf. Pure/General/ord_list.ML)
+provides a reasonably efficient light-weight implementation of sets as
+lists.
+
+* Pure/General: generic tables (cf. Pure/General/table.ML) provide a
+few new operations; existing lookup and update are now curried to
+follow natural argument order (for use with fold etc.);
+INCOMPATIBILITY, use (uncurry Symtab.lookup) etc. as last resort.
+
+* Pure/General: output via the Isabelle channels of
+writeln/warning/error etc. is now passed through Output.output, with a
+hook for arbitrary transformations depending on the print_mode
+(cf. Output.add_mode -- the first active mode that provides a output
+function wins).  Already formatted output may be embedded into further
+text via Output.raw; the result of Pretty.string_of/str_of and derived
+functions (string_of_term/cterm/thm etc.) is already marked raw to
+accommodate easy composition of diagnostic messages etc.  Programmers
+rarely need to care about Output.output or Output.raw at all, with
+some notable exceptions: Output.output is required when bypassing the
+standard channels (writeln etc.), or in token translations to produce
+properly formatted results; Output.raw is required when capturing
+already output material that will eventually be presented to the user
+a second time.  For the default print mode, both Output.output and
+Output.raw have no effect.
+
+* Pure/General: Output.time_accumulator NAME creates an operator ('a
+-> 'b) -> 'a -> 'b to measure runtime and count invocations; the
+cumulative results are displayed at the end of a batch session.
+
+* Pure/General: File.sysify_path and File.quote_sysify path have been
+replaced by File.platform_path and File.shell_path (with appropriate
+hooks).  This provides a clean interface for unusual systems where the
+internal and external process view of file names are different.
 
 * Pure: more efficient orders for basic syntactic entities: added
 fast_string_ord, fast_indexname_ord, fast_term_ord; changed sort_ord
@@ -600,6 +604,11 @@ NOT affected); structures Symtab, Vartab, Typtab, Termtab use the fast
 orders now -- potential INCOMPATIBILITY for code that depends on a
 particular order for Symtab.keys, Symtab.dest, etc. (consider using
 Library.sort_strings on result).
+
+* Pure/term.ML: combinators fold_atyps, fold_aterms, fold_term_types,
+fold_types traverse types/terms from left to right, observing natural
+argument order.  Supercedes previous foldl_XXX versions, add_frees,
+add_vars etc. have been adapted as well: INCOMPATIBILITY.
 
 * Pure: name spaces have been refined, with significant changes of the
 internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
@@ -680,14 +689,24 @@ theory node or theory hierarchy, respectively:
 
 * Pure: print_tac now outputs the goal through the trace channel.
 
-* Pure/Simplifier: improved handling of bound variables (nameless
+* Isar toplevel: improved diagnostics, mostly for Poly/ML only.
+Reference Toplevel.debug (default false) controls detailed printing
+and tracing of low-level exceptions; Toplevel.profiling (default 0)
+controls execution profiling -- set to 1 for time and 2 for space
+(both increase the runtime).
+
+* Isar session: The initial use of ROOT.ML is now always timed,
+i.e. the log will show the actual process times, in contrast to the
+elapsed wall-clock time that the outer shell wrapper produces.
+
+* Simplifier: improved handling of bound variables (nameless
 representation, avoid allocating new strings).  Simprocs that invoke
 the Simplifier recursively should use Simplifier.inherit_bounds to
 avoid local name clashes.
 
-* Pure/Provers: Simplifier and Classical Reasoner now support proof
-context dependent plug-ins (simprocs, solvers, wrappers etc.).  These
-extra components are stored in the theory and patched into the
+* Provers: Simplifier and Classical Reasoner now support proof context
+dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
+components are stored in the theory and patched into the
 simpset/claset when used in an Isar proof context.  Context dependent
 components are maintained by the following theory operations:
 
@@ -709,11 +728,6 @@ IMPORTANT NOTE: proof tools (methods etc.) need to use
 local_simpset_of and local_claset_of to instead of the primitive
 Simplifier.get_local_simpset and Classical.get_local_claset,
 respectively, in order to see the context dependent fields!
-
-* File.sysify_path and File.quote_sysify path have been replaced by
-File.platform_path and File.shell_path (with appropriate hooks).  This
-provides a clean interface for unusual systems where the internal and
-external process view of file names are different.
 
 * ML functions legacy_bindings and use_legacy_bindings produce ML fact
 bindings for all theorems stored within a given theory; this may help
