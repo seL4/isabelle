@@ -136,7 +136,7 @@ print_interps ID  (* output: i2 *)
 
 interpretation i3: ID [X "Y::i"] .
 
-(* duplicate: not registered *)
+(* duplicate: thm not added *)
 
 (* thm i3.a.asm_A *)
 

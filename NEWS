@@ -256,7 +256,8 @@ locale expression.  Interpretation is smart in that interpretations
 that are active already do not occur in proof obligations, neither are
 instantiated theorems stored in duplicate.  Use 'print_interps' to
 inspect active interpretations of a particular locale.  For details,
-see the Isar Reference manual.
+see the Isar Reference manual.  Examples can be found in
+HOL/Finite_Set.thy and HOL/Algebra/UnivPoly.thy.
 
 INCOMPATIBILITY: former 'instantiate' has been withdrawn, use
 'interpret' instead.
