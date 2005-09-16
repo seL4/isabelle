@@ -110,7 +110,7 @@ sig
     val new_axiom : string -> term -> theory -> theory * thm
 
     val prin : term -> unit 
-
+    val protect_factname : string -> string
 end
 
 structure ProofKernel :> ProofKernel =
@@ -427,7 +427,6 @@ fun prim_mk_const thy Thy Nam =
 end
 
 fun mk_comb(f,a) = f $ a
-fun mk_abs(x,a) = Term.lambda x a
 
 (* Needed for HOL Light *)
 fun protect_tyvarname s =
@@ -443,6 +442,7 @@ fun protect_tyvarname s =
     in
 	s |> no_quest |> beg_prime
     end
+
 fun protect_varname s =
     let
 	fun no_beg_underscore s =
@@ -453,6 +453,36 @@ fun protect_varname s =
 	s |> no_beg_underscore
     end
 
+local
+  val sg = theory "Main"
+in
+  fun is_valid_bound_varname s = (read_cterm sg ("SOME "^s^" . True", TypeInfer.logicT); true) handle _ => false
+end
+
+fun protect_boundvarname s = if is_valid_bound_varname s then s else "u"
+
+fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
+  | mk_lambda (v as Var ((x, _), T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
+  | mk_lambda v t = raise TERM ("lambda", [v, t]);
+ 
+fun replacestr x y s = 
+let
+  val xl = explode x
+  val yl = explode y
+  fun isprefix [] ys = true
+    | isprefix (x::xs) (y::ys) = if x = y then isprefix xs ys else false
+    | isprefix _ _ = false  
+  fun isp s = isprefix xl s
+  fun chg s = yl@(List.drop (s, List.length xl))
+  fun r [] = []
+    | r (S as (s::ss)) = if isp S then r (chg S) else s::(r ss) 
+in
+  implode(r (explode s))
+end    
+
+fun protect_factname s = replacestr "." "_dot_" s
+fun unprotect_factname s = replacestr "_dot_" "." s 
+
 val ty_num_prefix = "N_"
 
 fun startsWithDigit s = Char.isDigit (hd (String.explode s))
@@ -460,13 +490,13 @@ fun startsWithDigit s = Char.isDigit (hd (String.explode s))
 fun protect_tyname tyn = 
   let
     val tyn' = 
-      if String.isPrefix ty_num_prefix tyn then raise (ERR "conv_ty_name" ("type name '"^tyn^"' is reserved")) else 
+      if String.isPrefix ty_num_prefix tyn then raise (ERR "protect_ty_name" ("type name '"^tyn^"' is reserved")) else 
       (if startsWithDigit tyn then ty_num_prefix^tyn else tyn)
   in
     tyn'
   end
 
-
+fun protect_constname tcn = implode (map (fn c => if c = "." then "_dot_" else c) (explode tcn))
 
 structure TypeNet =
 struct
@@ -543,7 +573,7 @@ and get_term_from_xml thy thyname types terms =
 	  | gtfx (Elem("tmc",atts,[])) =
 	    let
 		val segment = get_segment thyname atts
-		val name = get_name atts
+		val name = protect_constname(get_name atts)
 	    in
 		mk_thy_const thy segment name (TypeNet.get_type_from_index thy thyname types (Lib.assoc "t" atts))
 		handle PK _ => prim_mk_const thy segment name
@@ -555,12 +585,12 @@ and get_term_from_xml thy thyname types terms =
 	    in
 		mk_comb(f,a)
 	    end
-	  | gtfx (Elem("tml",[("x",tmx),("a",tma)],[])) =
+	  | gtfx (Elem("tml",[("x",tmx),("a",tma)],[])) = 
 	    let
 		val x = get_term_from_index thy thyname types terms tmx
 		val a = get_term_from_index thy thyname types terms tma
 	    in
-		mk_abs(x,a)
+		mk_lambda x a
 	    end
 	  | gtfx (Elem("tmi",[("i",iS)],[])) =
 	    get_term_from_index thy thyname types terms iS
@@ -612,7 +642,7 @@ fun proof_file_name thyname thmname thy =
 		     | NONE => error "Cannot find proof files"
 	val _ = OS.FileSys.mkDir path handle OS.SysErr _ => ()
     in
-	OS.Path.joinDirFile {dir = path, file = OS.Path.joinBaseExt {base = thmname, ext = SOME "prf"}}
+	OS.Path.joinDirFile {dir = path, file = OS.Path.joinBaseExt {base = (unprotect_factname thmname), ext = SOME "prf"}}
     end
 	
 fun xml_to_proof thyname types terms prf thy =
@@ -666,14 +696,14 @@ fun xml_to_proof thyname types terms prf thy =
 	  | x2p (Elem("pfact",atts,[])) =
 	    let
 		val thyname = get_segment thyname atts
-		val thmname = get_name atts
+		val thmname = protect_factname (get_name atts)
 		val p = mk_proof PDisk
 		val _  = set_disk_info_of p thyname thmname
 	    in
 		p
 	    end
 	  | x2p (Elem("pdef",[("s",seg),("n",name),("i",is)],[])) =
-	    mk_proof (PDef(seg,name,index_to_term is))
+	    mk_proof (PDef(seg,protect_constname name,index_to_term is))
 	  | x2p (Elem("ptmspec",[("s",seg)],p::names)) =
 	    let
 		val names = map (fn Elem("name",[("n",name)],[]) => name
@@ -686,7 +716,7 @@ fun xml_to_proof thyname types terms prf thy =
 		val P = xml_to_term xP
 		val t = xml_to_term xt
 	    in
-		mk_proof (PTyIntro(seg,protect_tyname name,abs_name,rep_name,P,t,x2p p))
+		mk_proof (PTyIntro(seg,protect_tyname name,protect_constname abs_name,protect_constname rep_name,P,t,x2p p))
 	    end
 	  | x2p (Elem("ptydef",[("s",seg),("n",name)],[p])) =
 	    mk_proof (PTyDef(seg,protect_tyname name,x2p p))

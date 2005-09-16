@@ -343,9 +343,9 @@ fun eta_contract sg assumes origt =
 		       SOME res
 		  end
 	      else NONE)
-	     handle e => (writeln "eta_contract:";print_exn e))
-	  | _ => (error ("Bad eta_contract argument" ^ (string_of_cterm (cterm_of sg t))); NONE)
-    end
+	     handle e => print_exn e)
+	  | _ => NONE
+       end
 
 fun beta_fun sg assume t =
     SOME (beta_conversion true (cterm_of sg t))
@@ -486,6 +486,7 @@ fun disamb_bound sg t =
 be handy in its own right, for example for indexing terms. *)
 
 fun norm_term thy t =
+    PolyML.exception_trace (fn () =>
     let
 	val sg = sign_of thy
 
@@ -494,8 +495,8 @@ fun norm_term thy t =
 			  addsimps (map (Thm.transfer sg) norms)
 	fun chain f th =
 	    let
-		val rhs = snd (dest_equals (cprop_of th))
-	    in
+                val rhs = snd (dest_equals (cprop_of th))
+      	    in
 		transitive th (f rhs)
 	    end
 
@@ -508,7 +509,7 @@ fun norm_term thy t =
 	val _ = message ("norm_term: " ^ (string_of_thm th))
     in
 	th
-    end
+    end)
     handle e => (writeln "norm_term internal error"; print_sign_exn (sign_of thy) e)
 
 
