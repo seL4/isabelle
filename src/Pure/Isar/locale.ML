@@ -2412,13 +2412,9 @@ fun prep_registration_in_locale target expr thy =
 fun prep_propp propss = propss |> map (fn ((name, _), props) =>
   map (rpair ([], [])) props);
 
-fun prop_name thy propss =
-    propss |> map (fn ((name, _), _) => extern thy name);
-fun goal_name thy kind NONE propss =
-    kind ^ (Proof.goal_names NONE "" (prop_name thy propss))
-  | goal_name thy kind (SOME target) propss =
-    kind ^ (Proof.goal_names (SOME (extern thy target)) ""
-      (prop_name thy propss));
+fun goal_name thy kind target propss =
+    kind ^ Proof.goal_names (Option.map (extern thy) target) ""
+      (propss |> map (fn ((name, _), _) => extern thy name));
 
 in
 
