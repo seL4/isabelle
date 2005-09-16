@@ -10,13 +10,6 @@ Should be executed in the subdirectory CTT.
 val banner = "Constructive Type Theory";
 writeln banner;
 
-print_depth 1;  
-
-use_thy "CTT";
-use "~~/src/Provers/typedsimp.ML";
-use "rew.ML";
 use_thy "Main";
-
-print_depth 8;
 
 Goal "tt : T";  (*leave subgoal package empty*)

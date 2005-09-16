@@ -2,8 +2,6 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
-
-The two-element type (booleans and conditionals)
 *)
 
 val bool_defs = [Bool_def,true_def,false_def,cond_def];
@@ -27,7 +25,7 @@ by (typechk_tac []) ;
 qed "boolI_false";
 
 (*elimination rule: typing of cond*)
-Goalw bool_defs 
+Goalw bool_defs
     "[| p:Bool;  a : C(true);  b : C(false) |] ==> cond(p,a,b) : C(p)";
 by (typechk_tac []);
 by (ALLGOALS (etac TE));
@@ -43,7 +41,7 @@ qed "boolEL";
 
 (*computation rules for true, false*)
 
-Goalw bool_defs 
+Goalw bool_defs
     "[| a : C(true);  b : C(false) |] ==> cond(true,a,b) = a : C(true)";
 by (resolve_tac comp_rls 1);
 by (typechk_tac []);
@@ -58,6 +56,3 @@ by (typechk_tac []);
 by (ALLGOALS (etac TE));
 by (typechk_tac []) ;
 qed "boolC_false";
-
-writeln"Reached end of file.";
-

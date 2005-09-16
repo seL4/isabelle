@@ -1,6 +1,9 @@
 
-(*theory Main includes everything*)
+(* $Id$ *)
 
-theory Main imports CTT Arith Bool begin
+header {* Main includes everything *}
 
+theory Main
+imports CTT Arith Bool
+begin
 end

@@ -1,4 +1,4 @@
-(*  Title:      CTT/Arith
+(*  Title:      CTT/Arith.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -31,7 +31,7 @@ qed "addC0";
 
 Goalw arith_defs "[| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N";
 by (rew_tac []) ;
-qed "addC_succ"; 
+qed "addC_succ";
 
 
 (** Multiplication *)
@@ -144,7 +144,7 @@ qed "add_assoc";
 
 
 (*Commutative law for addition.  Can be proved using three inductions.
-  Must simplify after first induction!  Orientation of rewrites is delicate*)  
+  Must simplify after first induction!  Orientation of rewrites is delicate*)
 Goal "[| a:N;  b:N |] ==> a #+ b = b #+ a : N";
 by (NE_tac "a" 1);
 by (hyp_arith_rew_tac []);
@@ -182,7 +182,7 @@ by (NE_tac "a" 1);
 by (hyp_arith_rew_tac [add_assoc RS sym_elem]);
 by (REPEAT (assume_tac 1
      ORELSE resolve_tac ([add_commute,mult_typingL,add_typingL]@ intrL_rls@
-			 [refl_elem])   1)) ;
+                         [refl_elem])   1)) ;
 qed "mult_succ_right";
 
 (*Commutative law for multiplication*)
@@ -227,18 +227,18 @@ val add_0_right = addC0 RSN (3, add_commute RS trans_elem);
 Goal "b:N ==> ?a : PROD x:N. Eq(N, b-x, 0) --> Eq(N, b #+ (x-b), x)";
 by (NE_tac "b" 1);
 (*strip one "universal quantifier" but not the "implication"*)
-by (resolve_tac intr_rls 3);  
+by (resolve_tac intr_rls 3);
 (*case analysis on x in
     (succ(u) <= x) --> (succ(u)#+(x-succ(u)) = x) *)
-by (NE_tac "x" 4 THEN assume_tac 4); 
+by (NE_tac "x" 4 THEN assume_tac 4);
 (*Prepare for simplification of types -- the antecedent succ(u)<=x *)
 by (rtac replace_type 5);
 by (rtac replace_type 4);
-by (arith_rew_tac []); 
+by (arith_rew_tac []);
 (*Solves first 0 goal, simplifies others.  Two sugbgoals remain.
   Both follow by rewriting, (2) using quantified induction hyp*)
 by (intr_tac[]);  (*strips remaining PRODs*)
-by (hyp_arith_rew_tac [add_0_right]);  
+by (hyp_arith_rew_tac [add_0_right]);
 by (assume_tac 1);
 qed "add_diff_inverse_lemma";
 
@@ -319,7 +319,7 @@ by (resolve_tac [add_commute RS trans_elem] 6);
 by (typechk_tac [diff_typing]);
 qed "absdiff_eq0_lem";
 
-(*if  a |-| b = 0  then  a = b  
+(*if  a |-| b = 0  then  a = b
   proof: a-b=0 and b-a=0, so b = a+(b-a) = a+0 = a*)
 Goal "[| a |-| b = 0 : N;  a:N;  b:N |] ==> a = b : N";
 by (rtac EqE 1);
@@ -340,11 +340,11 @@ qed "absdiff_eq0";
 Goalw [mod_def] "[| a:N;  b:N |] ==> a mod b : N";
 by (typechk_tac [absdiff_typing]) ;
 qed "mod_typing";
- 
+
 Goalw [mod_def] "[| a=c:N;  b=d:N |] ==> a mod b = c mod d : N";
 by (equal_tac [absdiff_typingL]) ;
 qed "mod_typingL";
- 
+
 
 (*computation for  mod : 0 and successor cases*)
 
@@ -352,7 +352,7 @@ Goalw [mod_def]   "b:N ==> 0 mod b = 0 : N";
 by (rew_tac [absdiff_typing]) ;
 qed "modC0";
 
-Goalw [mod_def]   
+Goalw [mod_def]
 "[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y. succ(a mod b)) : N";
 by (rew_tac [absdiff_typing]) ;
 qed "modC_succ";
@@ -377,7 +377,7 @@ Goalw [div_def]   "b:N ==> 0 div b = 0 : N";
 by (rew_tac [mod_typing, absdiff_typing]) ;
 qed "divC0";
 
-Goalw [div_def] 
+Goalw [div_def]
  "[| a:N;  b:N |] ==> succ(a) div b = \
 \    rec(succ(a) mod b, succ(a div b), %x y. a div b) : N";
 by (rew_tac [mod_typing]) ;
@@ -406,19 +406,17 @@ qed "iszero_decidable";
 (*Main Result.  Holds when b is 0 since   a mod 0 = a     and    a div 0 = 0  *)
 Goal "[| a:N;  b:N |] ==> a mod b  #+  (a div b) #* b = a : N";
 by (NE_tac "a" 1);
-by (arith_rew_tac (div_typing_rls@[modC0,modC_succ,divC0,divC_succ2])); 
+by (arith_rew_tac (div_typing_rls@[modC0,modC_succ,divC0,divC_succ2]));
 by (rtac EqE 1);
 (*case analysis on   succ(u mod b)|-|b  *)
-by (res_inst_tac [("a1", "succ(u mod b) |-| b")] 
+by (res_inst_tac [("a1", "succ(u mod b) |-| b")]
                  (iszero_decidable RS PlusE) 1);
 by (etac SumE 3);
 by (hyp_arith_rew_tac (div_typing_rls @
-        [modC0,modC_succ, divC0, divC_succ2])); 
+        [modC0,modC_succ, divC0, divC_succ2]));
 (*Replace one occurence of  b  by succ(u mod b).  Clumsy!*)
 by (resolve_tac [ add_typingL RS trans_elem ] 1);
 by (eresolve_tac [EqE RS absdiff_eq0 RS sym_elem] 1);
 by (rtac refl_elem 3);
-by (hyp_arith_rew_tac (div_typing_rls)); 
+by (hyp_arith_rew_tac (div_typing_rls));
 qed "mod_div_equality";
-
-writeln"Reached end of file.";

@@ -6,7 +6,7 @@
 
 writeln"Synthesis examples, using a crude form of narrowing";
 
-context Arith.thy;
+context (theory "Arith");
 
 writeln"discovery of predecessor function";
 Goal 
