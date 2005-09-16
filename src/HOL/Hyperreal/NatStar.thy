@@ -11,9 +11,12 @@ theory NatStar
 imports HyperPow
 begin
 
+lemma star_n_eq_starfun_whn: "star_n X = ( *f* X) whn"
+by (simp add: hypnat_omega_def starfun_def star_of_def Ifun_star_n)
+
 lemma starset_n_Un: "*sn* (%n. (A n) Un (B n)) = *sn* A Un *sn* B"
-apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n ultrafilter.Collect_disj [OF ultrafilter_FUFNat])
+apply (simp add: starset_n_def star_n_eq_starfun_whn Un_def)
+apply (rule_tac x=whn in spec, transfer, simp)
 done
 
 lemma InternalSets_Un:
@@ -23,8 +26,8 @@ by (auto simp add: InternalSets_def starset_n_Un [symmetric])
 
 lemma starset_n_Int:
       "*sn* (%n. (A n) Int (B n)) = *sn* A Int *sn* B"
-apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n filter.Collect_conj [OF filter_FUFNat])
+apply (simp add: starset_n_def star_n_eq_starfun_whn Int_def)
+apply (rule_tac x=whn in spec, transfer, simp)
 done
 
 lemma InternalSets_Int:
@@ -33,17 +36,16 @@ lemma InternalSets_Int:
 by (auto simp add: InternalSets_def starset_n_Int [symmetric])
 
 lemma starset_n_Compl: "*sn* ((%n. - A n)) = -( *sn* A)"
-apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n ultrafilter.Collect_not [OF ultrafilter_FUFNat])
+apply (simp add: starset_n_def star_n_eq_starfun_whn Compl_def)
+apply (rule_tac x=whn in spec, transfer, simp)
 done
 
 lemma InternalSets_Compl: "X \<in> InternalSets ==> -X \<in> InternalSets"
 by (auto simp add: InternalSets_def starset_n_Compl [symmetric])
 
 lemma starset_n_diff: "*sn* (%n. (A n) - (B n)) = *sn* A - *sn* B"
-apply (simp add: starset_n_def expand_set_eq all_star_eq)
-apply (simp add: Iset_star_n  filter.Collect_conj [OF filter_FUFNat]
-                 ultrafilter.Collect_not [OF ultrafilter_FUFNat])
+apply (simp add: starset_n_def star_n_eq_starfun_whn set_diff_def)
+apply (rule_tac x=whn in spec, transfer, simp)
 done
 
 lemma InternalSets_diff:

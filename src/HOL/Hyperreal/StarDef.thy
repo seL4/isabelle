@@ -23,25 +23,14 @@ lemma freeultrafilter_FUFNat: "freeultrafilter \<U>"
  apply (rule nat_infinite)
 done
 
-lemmas ultrafilter_FUFNat =
-  freeultrafilter_FUFNat [THEN freeultrafilter.ultrafilter]
-
-lemmas filter_FUFNat =
-  freeultrafilter_FUFNat [THEN freeultrafilter.filter]
-
-lemmas FUFNat_empty [iff] =
-  filter_FUFNat [THEN filter.empty]
-
-lemmas FUFNat_UNIV [iff] =
-  filter_FUFNat [THEN filter.UNIV]
+interpretation FUFNat: freeultrafilter [FreeUltrafilterNat]
+by (cut_tac [!] freeultrafilter_FUFNat, simp_all add: freeultrafilter_def)
 
 text {* This rule takes the place of the old ultra tactic *}
 
 lemma ultra:
   "\<lbrakk>{n. P n} \<in> \<U>; {n. P n \<longrightarrow> Q n} \<in> \<U>\<rbrakk> \<Longrightarrow> {n. Q n} \<in> \<U>"
-by (simp add: Collect_imp_eq
-    ultrafilter_FUFNat [THEN ultrafilter.Un_iff]
-    ultrafilter_FUFNat [THEN ultrafilter.Compl_iff])
+by (simp add: Collect_imp_eq FUFNat.F.Un_iff FUFNat.F.Compl_iff)
 
 
 subsection {* Definition of @{text star} type constructor *}
@@ -105,26 +94,26 @@ text {* Transfer introduction rules. *}
 lemma transfer_ex [transfer_intro]:
   "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
     \<Longrightarrow> \<exists>x::'a star. p x \<equiv> {n. \<exists>x. P n x} \<in> \<U>"
-by (simp only: ex_star_eq filter.Collect_ex [OF filter_FUFNat])
+by (simp only: ex_star_eq FUFNat.F.Collect_ex)
 
 lemma transfer_all [transfer_intro]:
   "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
     \<Longrightarrow> \<forall>x::'a star. p x \<equiv> {n. \<forall>x. P n x} \<in> \<U>"
-by (simp only: all_star_eq ultrafilter.Collect_all [OF ultrafilter_FUFNat])
+by (simp only: all_star_eq FUFNat.F.Collect_all)
 
 lemma transfer_not [transfer_intro]:
   "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>\<rbrakk> \<Longrightarrow> \<not> p \<equiv> {n. \<not> P n} \<in> \<U>"
-by (simp only: ultrafilter.Collect_not [OF ultrafilter_FUFNat])
+by (simp only: FUFNat.F.Collect_not)
 
 lemma transfer_conj [transfer_intro]:
   "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
     \<Longrightarrow> p \<and> q \<equiv> {n. P n \<and> Q n} \<in> \<U>"
-by (simp only: filter.Collect_conj [OF filter_FUFNat])
+by (simp only: FUFNat.F.Collect_conj)
 
 lemma transfer_disj [transfer_intro]:
   "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
     \<Longrightarrow> p \<or> q \<equiv> {n. P n \<or> Q n} \<in> \<U>"
-by (simp only: ultrafilter.Collect_disj [OF ultrafilter_FUFNat])
+by (simp only: FUFNat.F.Collect_disj)
 
 lemma transfer_imp [transfer_intro]:
   "\<lbrakk>p \<equiv> {n. P n} \<in> \<U>; q \<equiv> {n. Q n} \<in> \<U>\<rbrakk>
