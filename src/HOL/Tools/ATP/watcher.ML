@@ -614,14 +614,20 @@ fun reapWatcher(pid, instr, outstr) =
 
 
 fun createWatcher (thm,clause_arr, num_of_clauses) =
- let val mychild = childInfo (setupWatcher(thm,clause_arr,  num_of_clauses))
-     val streams = snd mychild
-     val childin = fst streams
-     val childout = snd streams
-     val childpid = fst mychild
+ let val (childpid,(childin,childout)) =
+           childInfo (setupWatcher(thm,clause_arr, num_of_clauses))
+     fun decr_watched() =
+	  (goals_being_watched := (!goals_being_watched) - 1;
+	   if !goals_being_watched = 0
+	   then 
+	     (File.append (File.tmp_path (Path.basic "reap_found"))
+	       ("Reaping a watcher, childpid = "^
+		LargeWord.toString (Posix.Process.pidToWord childpid)^"\n");
+	      killWatcher childpid; reapWatcher (childpid,childin, childout); ())
+	    else ())
      val sign = sign_of_thm thm
      val prems = prems_of thm
-     val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
+     val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
      val _ = debug ("subgoals forked to createWatcher: "^prems_string);
 (*FIXME: do we need an E proofHandler??*)
      fun vampire_proofHandler n =
@@ -639,82 +645,35 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Recon_Transfer.apply_res_thm reconstr goalstring;
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       
-	       goals_being_watched := (!goals_being_watched) - 1;
-       
-	       if !goals_being_watched = 0
-	       then 
-		  let val _ = File.write (File.tmp_path (Path.basic "reap_found"))
-                                   ("Reaping a watcher, goals watched now "^
-                                    string_of_int (!goals_being_watched)^"\n")
-		   in
-		       killWatcher childpid; reapWatcher (childpid,childin, childout); ()
-		   end
-		else () )
+	       decr_watched())
 	 (* if there's no proof, but a message from Spass *)
 	 else if substring (reconstr, 0,5) = "SPASS"
-	 then (goals_being_watched := (!goals_being_watched) -1;
-	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring)^reconstr));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       if (!goals_being_watched = 0)
-	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-	              ("Reaping a watcher, goals watched is: " ^
-	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher childpid; reapWatcher (childpid,childin, childout); ())
-		else () ) 
+	       decr_watched()) 
 	(* print out a list of rules used from clasimpset*)
 	 else if substring (reconstr, 0,5) = "Rules"
-	 then (goals_being_watched := (!goals_being_watched) -1;
-	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^reconstr));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       if (!goals_being_watched = 0)
-	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-	              ("Reaping a watcher, goals watched is: " ^
-	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
-		     )
-	       else () )
+	       decr_watched())
 	  (* if proof translation failed *)
 	 else if substring (reconstr, 0,5) = "Proof"
-	 then (goals_being_watched := (!goals_being_watched) -1;
-	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       if (!goals_being_watched = 0)
-	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-	              ("Reaping a watcher, goals watched is: " ^
-	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
-		     )
-	       else () )
-
+	       decr_watched())
 	 else if substring (reconstr, 0,1) = "%"
-	 then (goals_being_watched := (!goals_being_watched) -1;
-	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       if (!goals_being_watched = 0)
-	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-	              ("Reaping a watcher, goals watched is: " ^
-	                 (string_of_int (!goals_being_watched))^"\n");
-	             killWatcher childpid;  reapWatcher (childpid,childin, childout);()
-		     )
-	       else () )
-
+	       decr_watched())
 	 else  (* add something here ?*)
-	      (goals_being_watched := (!goals_being_watched) -1;
-	       Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	      (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str ("Ran out of options in handler"));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       if (!goals_being_watched = 0)
-	       then (File.write (File.tmp_path (Path.basic "foo_reap_comp"))
-		     ("Reaping a watcher, goals watched is: " ^
-			(string_of_int (!goals_being_watched))^"\n");
-		    killWatcher childpid;  reapWatcher (childpid,childin, childout);()
-		    )
-	       else () )
+	       decr_watched())
        end)
 
  in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);

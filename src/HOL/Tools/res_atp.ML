@@ -132,11 +132,10 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
               end
             else if !prover = "vampire"
 	    then 
-              let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vkernel"
+              let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vampire"
               in
-                ([("vampire", goalstring, vampire, "-t60%-m100000",
-                   probfile)] @
-                 (make_atp_list xs (n+1)))
+                ([("vampire", goalstring, vampire, "-t 60%-m 100000", probfile)] @
+                 (make_atp_list xs (n+1)))       (*BEWARE! spaces in options!*)
               end
       	     else if !prover = "E"
       	     then

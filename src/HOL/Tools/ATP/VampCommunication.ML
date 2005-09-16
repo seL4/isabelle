@@ -95,14 +95,14 @@ fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd,
      then (TextIO.output (proof_file, "No proof output seen \n");
 	   TextIO.closeOut proof_file;
 	   false)
-     else if thisLine = "% Proof found. Thanks to Tanya!\n"
+     else if String.isPrefix "Refutation found. Thanks to Tanya" thisLine
      then
        (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
-	startTransfer (Recon_Parse.start_V6, Recon_Parse.end_V6)
+	startTransfer (Recon_Parse.start_V8, Recon_Parse.end_V8)
 	      (fromChild, toParent, ppid, goalstring,
 	       childCmd, thm, sg_num, clause_arr, num_of_clauses))
-     else if (thisLine = "% Unprovable.\n" ) orelse
-             (thisLine = "% Proof not found. Time limit expired.\n")
+     else if (String.isPrefix "Satisfiability detected" thisLine) orelse
+             (String.isPrefix "Refutation not found" thisLine)
      then
        (File.write (File.tmp_path (Path.basic "atp_response")) thisLine;
 	TextIO.output (toParent,childCmd^"\n");
@@ -174,7 +174,6 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
      then
 	(Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
 	 TextIO.output (toParent,childCmd^"\n" );
-	 TextIO.flushOut toParent;
 	 TextIO.output (toParent, thisLine);
 	 TextIO.flushOut toParent;
 	 true)
@@ -195,9 +194,9 @@ fun getVampInput instr =
 	val _ = File.write (File.tmp_path (Path.basic "atp_line")) thisLine
     in    (* reconstructed proof string *)
       if thisLine = "" then ("No output from reconstruction process.\n","")
-      else if String.sub (thisLine, 0) = #"[" orelse
-              thisLine = "% Unprovable.\n" orelse
-              thisLine ="% Proof not found. Time limit expired.\n" orelse
+      else if String.sub (thisLine, 0) = #"[" orelse (*FIXME: for SPASS?*)
+              String.isPrefix "Satisfiability detected" thisLine orelse
+              String.isPrefix "Refutation not found" thisLine orelse
               String.isPrefix "Rules from" thisLine
       then
 	let val goalstring = TextIO.inputLine instr

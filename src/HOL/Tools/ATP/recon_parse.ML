@@ -129,10 +129,10 @@ fun extract_proof s =
      o snd o cut_after ":"
      o snd o cut_after "Here is a proof with"
      o fst o cut_after " ||  -> .") s
-  else if cut_exists start_V6 s then
-    (kill_lines 0    (*Vampire 6.0*)
-     o snd o cut_after start_V6
-     o fst o cut_before end_V6) s
+  else if cut_exists start_V8 s then
+    (kill_lines 0    (*Vampire 8.0*)
+     o snd o cut_after start_V8
+     o fst o cut_before end_V8) s
   else if cut_exists end_E s then
     (kill_lines 0    (*eproof*)
      o snd o cut_after start_E
