@@ -6,6 +6,8 @@
     Additional contributions by Jeremy Avigad
 *)
 
+header {* Sequences and Series *}
+
 theory SEQ
 imports NatStar
 begin
