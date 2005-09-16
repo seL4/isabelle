@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp    
 *)
 
-header{*Construction of Hypernaturals using Ultrafilters*}
+header{*Hypernatural numbers*}
 
 theory HyperNat
 imports Star
@@ -16,11 +16,7 @@ types hypnat = "nat star"
 syntax hypnat_of_nat :: "nat => nat star"
 translations "hypnat_of_nat" => "star_of :: nat => nat star"
 
-consts whn :: hypnat
-
-defs
-  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
-  hypnat_omega_def:  "whn == star_n (%n::nat. n)"
+subsection{*Properties Transferred from Naturals*}
 
 lemma hypnat_minus_zero [simp]: "!!z. z - z = (0::hypnat)"
 by transfer (rule diff_self_eq_0)
@@ -52,16 +48,11 @@ by transfer (rule diff_cancel2)
 lemma hypnat_diff_add_0 [simp]: "!!m n. (n::hypnat) - (n+m) = (0::hypnat)"
 by transfer (rule diff_add_0)
 
-
-subsection{*Hyperreal Multiplication*}
-
 lemma hypnat_diff_mult_distrib: "!!k m n. ((m::hypnat) - n) * k = (m * k) - (n * k)"
 by transfer (rule diff_mult_distrib)
 
 lemma hypnat_diff_mult_distrib2: "!!k m n. (k::hypnat) * (m - n) = (k * m) - (k * n)"
 by transfer (rule diff_mult_distrib2)
-
-subsection{*Properties of The @{text "\<le>"} Relation*}
 
 lemma hypnat_le_zero_cancel [iff]: "!!n. (n \<le> (0::hypnat)) = (n = 0)"
 by transfer (rule le_0_eq)
@@ -71,10 +62,6 @@ by transfer (rule mult_is_0)
 
 lemma hypnat_diff_is_0_eq [simp]: "!!m n. ((m::hypnat) - n = 0) = (m \<le> n)"
 by transfer (rule diff_is_0_eq)
-
-
-
-subsection{*Theorems for Ordering*}
 
 lemma hypnat_not_less0 [iff]: "!!n. ~ n < (0::hypnat)"
 by transfer (rule not_less0)
@@ -103,8 +90,8 @@ by transfer (rule le_add2)
 lemma hypnat_add_one_self_less [simp]: "(x::hypnat) < x + (1::hypnat)"
 by (insert add_strict_left_mono [OF zero_less_one], auto)
 
-lemma hypnat_neq0_conv [iff]: "(n \<noteq> 0) = (0 < (n::hypnat))"
-by (simp add: order_less_le)
+lemma hypnat_neq0_conv [iff]: "!!n. (n \<noteq> 0) = (0 < (n::hypnat))"
+by transfer (rule neq0_conv)
 
 lemma hypnat_gt_zero_iff: "((0::hypnat) < n) = ((1::hypnat) \<le> n)"
 by (auto simp add: linorder_not_less [symmetric])
@@ -133,16 +120,7 @@ next
       by (auto simp add: linorder_not_less dest: order_le_less_trans) 
 qed
 
-
-subsection{*The Embedding @{term hypnat_of_nat} Preserves @{text
-comm_ring_1} and Order Properties*}
-
-constdefs
-
-  (* the set of infinite hypernatural numbers *)
-  HNatInfinite :: "hypnat set"
-  "HNatInfinite == {n. n \<notin> Nats}"
-
+subsection{*Properties of the set of embedded natural numbers*}
 
 lemma hypnat_of_nat_def: "hypnat_of_nat m == of_nat m"
 by (transfer, simp)
@@ -154,16 +132,6 @@ lemma hypnat_of_nat_Suc [simp]:
      "hypnat_of_nat (Suc n) = hypnat_of_nat n + (1::hypnat)"
 by (simp add: hypnat_of_nat_def)
 
-
-subsection{*Existence of an infinite hypernatural number*}
-
-text{*Existence of infinite number not corresponding to any natural number
-follows because member @{term FreeUltrafilterNat} is not finite.
-See @{text HyperDef.thy} for similar argument.*}
-
-
-subsection{*Properties of the set of embedded natural numbers*}
-
 lemma of_nat_eq_add [rule_format]:
      "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
 apply (induct n) 
@@ -174,6 +142,21 @@ done
 
 lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in> Nats"
 by (auto simp add: of_nat_eq_add Nats_def split: hypnat_diff_split)
+
+
+
+subsection{*Existence of an infinite hypernatural number*}
+
+consts whn :: hypnat
+
+defs
+  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
+  hypnat_omega_def:  "whn == star_n (%n::nat. n)"
+
+text{*Existence of infinite number not corresponding to any natural number
+follows because member @{term FreeUltrafilterNat} is not finite.
+See @{text HyperDef.thy} for similar argument.*}
+
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
 apply (insert finite_atMost [of m]) 
@@ -217,6 +200,12 @@ by (simp add: hypnat_omega_gt_SHNat)
 
 subsection{*Infinite Hypernatural Numbers -- @{term HNatInfinite}*}
 
+constdefs
+
+  (* the set of infinite hypernatural numbers *)
+  HNatInfinite :: "hypnat set"
+  "HNatInfinite == {n. n \<notin> Nats}"
+
 lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
 
@@ -227,7 +216,7 @@ lemma HNatInfinite_not_Nats_iff: "(x \<in> HNatInfinite) = (x \<notin> Nats)"
 by (simp add: HNatInfinite_def)
 
 
-subsection{*Alternative characterization of the set of infinite hypernaturals*}
+subsubsection{*Alternative characterization of the set of infinite hypernaturals*}
 
 text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 
@@ -250,7 +239,7 @@ apply (auto elim: HNatInfinite_FreeUltrafilterNat_lemma
 done
 
 
-subsection{*Alternative Characterization of @{term HNatInfinite} using 
+subsubsection{*Alternative Characterization of @{term HNatInfinite} using 
 Free Ultrafilter*}
 
 lemma HNatInfinite_FreeUltrafilterNat:
@@ -294,7 +283,7 @@ lemma HNatInfinite_ge_one [simp]: "x \<in> HNatInfinite ==> (1::hypnat) \<le> x"
 by (blast intro: order_less_imp_le HNatInfinite_gt_one)
 
 
-subsection{*Closure Rules*}
+subsubsection{*Closure Rules*}
 
 lemma HNatInfinite_add:
      "[| x \<in> HNatInfinite; y \<in> HNatInfinite |] ==> x + y \<in> HNatInfinite"
