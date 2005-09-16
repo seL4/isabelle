@@ -83,12 +83,20 @@ sig
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
   val goal_names: string option -> string -> string list -> string
+  val generic_goal:
+   (context * 'a -> context * (term list list * (context -> context))) ->
+   string ->
+   (context * thm list -> thm list list -> state -> state Seq.seq) *
+   (context * thm list -> thm list list -> theory -> theory) ->
+   'a -> state -> state
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (theory -> 'a -> context attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> (context * thm list -> thm list list -> state -> state Seq.seq) ->
     ((string * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
+  val auto_fix: context * (term list list * 'a) ->
+    context * (term list list * 'a)
   val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
    (theory -> 'a -> theory attribute) ->
    (context * 'b list -> context * (term list list * (context -> context))) ->
@@ -832,6 +840,9 @@ fun local_qed txt =
 
 (* global goals *)
 
+fun auto_fix (ctxt, (propss, after_ctxt)) =
+  (ctxt |> ProofContext.fix_frees (List.concat propss), (propss, after_ctxt));
+
 fun global_goal print_results prep_att prepp
     kind after_qed target (name, raw_atts) stmt ctxt =
   let
@@ -850,8 +861,7 @@ fun global_goal print_results prep_att prepp
           #2 o global_results kind [((name, atts), List.concat (map #2 res'))]))
       #> after_qed raw_results results;
 
-    val prepp' = prepp #> (fn (ctxt, (propss, after_ctxt)) =>
-      (ctxt |> ProofContext.fix_frees (List.concat propss), (propss, after_ctxt)));
+    val prepp' = prepp #> auto_fix;
   in
     init ctxt
     |> generic_goal prepp' (kind ^ goal_names target name names)
