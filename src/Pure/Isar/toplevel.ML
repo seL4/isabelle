@@ -638,9 +638,11 @@ fun >> tr =
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
 
-(*Note: this is for Poly/ML only, we really do not intend to exhibit
-  interrupts here*)
-fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
+(*Note: we really do not intend to exhibit interrupts here.
+  Poly/ML needs exception Interrupt to be handled. SML/NJ needs IO to be handled.*)
+fun get_interrupt src = SOME (Source.get_single src) 
+                        handle Interrupt => NONE
+                             | IO.Io _ => get_interrupt src;
 
 fun raw_loop src =
   (case get_interrupt (Source.set_prompt (prompt_state (get_state ())) src) of
