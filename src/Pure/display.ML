@@ -76,7 +76,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val q = if quote then Pretty.quote else I;
     val prt_term = q o (Pretty.term pp);
 
-    val hyps' = if ! show_hyps then hyps else fold (remove (op =)) asms hyps;
+    val hyps' = if ! show_hyps then hyps else fold (remove (op aconv)) asms hyps;
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora then []
