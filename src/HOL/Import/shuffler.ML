@@ -486,7 +486,6 @@ fun disamb_bound sg t =
 be handy in its own right, for example for indexing terms. *)
 
 fun norm_term thy t =
-    PolyML.exception_trace (fn () =>
     let
 	val sg = sign_of thy
 
@@ -509,7 +508,7 @@ fun norm_term thy t =
 	val _ = message ("norm_term: " ^ (string_of_thm th))
     in
 	th
-    end)
+    end
     handle e => (writeln "norm_term internal error"; print_sign_exn (sign_of thy) e)
 
 
