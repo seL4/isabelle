@@ -29,7 +29,7 @@ signature DISPLAY =
 sig
   include BASIC_DISPLAY
   val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
-  val pretty_thm_aux: Pretty.pp -> bool -> thm -> Pretty.T
+  val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
@@ -66,8 +66,9 @@ val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 fun pretty_flexpair pp (t, u) = Pretty.block
   [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
 
-fun pretty_thm_aux pp quote th =
+fun pretty_thm_aux pp quote show_hyps' asms raw_th =
   let
+    val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, der = (ora, _), ...} = Thm.rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
@@ -75,12 +76,13 @@ fun pretty_thm_aux pp quote th =
     val q = if quote then Pretty.quote else I;
     val prt_term = q o (Pretty.term pp);
 
-    val hlen = length xshyps + length hyps + length tpairs;
+    val hyps' = if ! show_hyps then hyps else fold (remove (op =)) asms hyps;
+    val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora then []
-      else if ! show_hyps then
+      else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps @
+          (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps' @
            map (Pretty.sort pp) xshyps @
             (if ora then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
@@ -91,7 +93,7 @@ fun pretty_thm_aux pp quote th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun gen_pretty_thm quote th =
-  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) quote th;
+  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) quote false [] th;
 
 val pretty_thm = gen_pretty_thm true;
 val pretty_thm_no_quote = gen_pretty_thm false;
