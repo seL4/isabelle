@@ -912,7 +912,7 @@ use "blastdata.ML"
 setup Blast.setup
 
 
-subsection {* Simplifier setup *}
+subsubsection {* Simplifier setup *}
 
 lemma meta_eq_to_obj_eq: "x == y ==> x = y"
 proof -
@@ -1168,19 +1168,66 @@ next
     by (rule equal_elim_rule1)
 qed
 
-subsubsection {* Actual Installation of the Simplifier *}
+
+text {* \medskip Actual Installation of the Simplifier. *}
 
 use "simpdata.ML"
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
 
-subsubsection {* Lucas Dixon's eqstep tactic *}
+text {* \medskip Lucas Dixon's eqstep tactic. *}
 
 use "~~/src/Provers/eqsubst.ML";
 use "eqrule_HOL_data.ML";
-
 setup EQSubstTac.setup
+
+
+subsubsection {* Code generator setup *}
+
+types_code
+  "bool"  ("bool")
+attach (term_of) {*
+fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+*}
+attach (test) {*
+fun gen_bool i = one_of [false, true];
+*}
+
+consts_code
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "HOL.If"      ("(if _/ then _/ else _)")
+
+ML {*
+local
+
+fun eq_codegen thy defs gr dep thyname b t =
+    (case strip_comb t of
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const ("op =", _), [t, u]) =>
+          let
+            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
+            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u)
+          in
+            SOME (gr'', Codegen.parens
+              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
+          end
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
+     | _ => NONE);
+
+in
+
+val eq_codegen_setup = [Codegen.add_codegen "eq_codegen" eq_codegen];
+
+end;
+*}
+
+setup eq_codegen_setup
 
 
 subsection {* Other simple lemmas *}

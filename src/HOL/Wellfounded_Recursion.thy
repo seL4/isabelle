@@ -280,6 +280,15 @@ apply (blast intro: wfrec)
 done
 
 
+subsection {* Code generator setup *}
+
+consts_code
+  "wfrec"   ("\<module>wf'_rec?")
+attach {*
+fun wf_rec f x = f (wf_rec f) x;
+*}
+
+
 subsection{*Variants for TFL: the Recdef Package*}
 
 lemma tfl_wf_induct: "ALL R. wf R -->  
