@@ -5,7 +5,7 @@
 ## targets
 
 default: HOL
-generate: HOL-Complex-Generate-HOL
+generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
 images: HOL HOL-Algebra HOL-Complex TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
@@ -268,11 +268,15 @@ $(LOG)/HOL-Complex-Generate-HOL.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)  \
   Import/Generate-HOL/GenHOL4Word32.thy Import/Generate-HOL/ROOT.ML
 	@cd Import; $(ISATOOL) usedir $(OUT)/HOL-Complex Generate-HOL
 
+
+## HOL-Complex-Generate-HOLLight
+
 HOL-Complex-Generate-HOLLight: HOL-Complex $(LOG)/HOL-Complex-Generate-HOLLight.gz
 
 $(LOG)/HOL-Complex-Generate-HOLLight.gz: $(OUT)/HOL-Complex $(IMPORTER_HOLLIGHT_FILES)  \
   Import/Generate-HOLLight/GenHOLLight.thy Import/Generate-HOLLight/ROOT.ML
 	@cd Import; $(ISATOOL) usedir $(OUT)/HOL-Complex Generate-HOLLight
+
 
 ## HOL-Import-HOL
 
