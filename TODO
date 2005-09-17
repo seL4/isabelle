@@ -9,10 +9,6 @@ For Isabelle2005:
 
 - convert fast_lin_arith.ML and cooper_dec.ML to use IntInf (Tobias)
 
-- update or remove ex/MT (Larry)  
-
-- Include IsaPlanner? (Larry to co-ordinate)
-
 - ball, bex and setsum congruence rules (Tobias & Stefan)
 
 - remove this file (Tobias)
