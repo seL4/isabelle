@@ -22,6 +22,7 @@ sig
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
+  val with_charset: string -> ('a -> 'b) -> 'a -> 'b
   val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
   val end_index: text
   val applet_pages: string -> Url.T * string -> (string * string) list
@@ -288,13 +289,16 @@ val verbatim = preform o output;
 
 (* document *)
 
+val charset = ref "iso-8859-1";
+fun with_charset s = setmp charset s;
+
 fun begin_document title =
   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \
   \\"http://www.w3.org/TR/html4/loose.dtd\">\n\
   \\n\
   \<html>\n\
   \<head>\n\
-  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n\
+  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" ^ ! charset ^ "\">\n\
   \<title>" ^ plain (title ^ " (" ^ version ^ ")") ^ "</title>\n\
   \<link rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\">\n\
   \</head>\n\
