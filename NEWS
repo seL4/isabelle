@@ -673,6 +673,12 @@ makes use of TC rules declared to Isar proof contexts (or locales);
 the old version is still required for ML proof scripts.
 
 
+*** Cube ***
+
+* Converted to Isar theory format; use locales instead of axiomatic
+theories.
+
+
 *** ML ***
 
 * Pure/library.ML no longer defines its own option datatype, but uses
