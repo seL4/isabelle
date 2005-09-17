@@ -5,9 +5,6 @@
 Skipping proofs -- quick_and_dirty mode.
 *)
 
-(*if true then some tools will OMIT some proofs*)
-val quick_and_dirty = ref false;
-
 signature SKIP_PROOF =
 sig
   val make_thm: theory -> term -> thm
