@@ -454,7 +454,7 @@ consts_code
   "op :"   ("(_ mem _)")
   "op Un"  ("(_ union _)")
   "image"  ("map")
-  "UNION"  ("(fn A => fn f => BasisLibrary.List.concat (map f A))")
+  "UNION"  ("(fn A => fn f => List.concat (map f A))")
   "Bex"    ("(fn A => fn f => exists f A)")
   "Ball"   ("(fn A => fn f => forall f A)")
   "some_elem" ("hd")

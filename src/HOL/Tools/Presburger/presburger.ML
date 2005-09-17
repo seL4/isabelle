@@ -2,10 +2,12 @@
     ID:         $Id$
     Author:     Amine Chaieb and Stefan Berghofer, TU Muenchen
 
-Tactic for solving arithmetical Goals in Presburger Arithmetic
-*)
+Tactic for solving arithmetical Goals in Presburger Arithmetic.
 
-(* This version of presburger deals with occurences of functional symbols in the subgoal and abstract over them to try to prove the more general formula. It then resolves with the subgoal. To enable this feature call the procedure with the parameter abs
+This version of presburger deals with occurences of functional symbols
+in the subgoal and abstract over them to try to prove the more general
+formula. It then resolves with the subgoal. To enable this feature
+call the procedure with the parameter abs.
 *)
 
 signature PRESBURGER = 
@@ -237,7 +239,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
   let
-    val g = BasisLibrary.List.nth (prems_of st, i - 1)
+    val g = List.nth (prems_of st, i - 1)
     val sg = sign_of_thm st
     (* The Abstraction step *)
     val g' = if a then abstract_pres sg g else g

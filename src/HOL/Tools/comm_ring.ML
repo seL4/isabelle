@@ -1,7 +1,8 @@
 (*  ID:         $Id$
     Author:     Amine Chaieb
 
-Tactic for solving equalities over commutative rings *)
+Tactic for solving equalities over commutative rings.
+*)
 
 signature COMM_RING =
 sig
@@ -114,7 +115,7 @@ val cring_ss = simpset_of (the_context())
 val norm_eq = thm "norm_eq"
 fun comm_ring_tac i =(fn st =>
     let
-        val g = BasisLibrary.List.nth (prems_of st, i - 1)
+        val g = List.nth (prems_of st, i - 1)
         val sg = sign_of_thm st
         val (ca,cvs,clhs,crhs) = reif_eq sg (HOLogic.dest_Trueprop g)
         val norm_eq_th = simplify cring_ss

@@ -269,7 +269,6 @@ val dist_eqs = let
         if nonlazy args1 = [] then [eq1, eq1 RS not_sym] else
         if nonlazy args2 = [] then [eq2, eq2 RS not_sym] else
                                         [eq1, eq2] end;
-    open BasisLibrary (*restore original List*)
     fun distincts []      = []
     |   distincts ((c,leqs)::cs) = List.concat
 	            (ListPair.map (distinct c) ((map #1 cs),leqs)) @

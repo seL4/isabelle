@@ -30,8 +30,6 @@ struct
    | Int of IntInf.int
    | Rat of IntInf.int * IntInf.int;
 
- open BasisLibrary
-
  fun signedInt i =
      if i < 0 then "-" ^ IntInf.toString (~i)
      else IntInf.toString i;

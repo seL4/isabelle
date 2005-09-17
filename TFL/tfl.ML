@@ -45,8 +45,6 @@ struct
 
 val trace = ref false;
 
-open BasisLibrary;
-
 structure R = Rules;
 structure S = USyntax;
 structure U = Utils;

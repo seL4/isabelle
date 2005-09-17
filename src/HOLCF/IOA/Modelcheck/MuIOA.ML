@@ -120,40 +120,40 @@ structured_tuple (a::r) t = (r,a) |
 structured_tuple [] _ = raise malformed;
 
 fun varlist_of _ _ [] = [] |
-varlist_of n s (a::r) = (s ^ (BasisLibrary.Int.toString(n))) :: (varlist_of (n+1) s r);
+varlist_of n s (a::r) = (s ^ (Int.toString(n))) :: (varlist_of (n+1) s r);
 
 fun string_of [] = "" |
 string_of (a::r) = a ^ " " ^ (string_of r);
 
 fun tupel_typed_of _ _ _ [] = "" |
-tupel_typed_of sign s n [a] = s ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a |
+tupel_typed_of sign s n [a] = s ^ (Int.toString(n)) ^ "::" ^ a |
 tupel_typed_of sign s n (a::r) =
- s ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a ^ "," ^ (tupel_typed_of sign s (n+1) r);
+ s ^ (Int.toString(n)) ^ "::" ^ a ^ "," ^ (tupel_typed_of sign s (n+1) r);
 
 fun double_tupel_typed_of _ _ _ _ [] = "" |
 double_tupel_typed_of sign s t n [a] =
- s ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a ^ "," ^
- t ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a |
+ s ^ (Int.toString(n)) ^ "::" ^ a ^ "," ^
+ t ^ (Int.toString(n)) ^ "::" ^ a |
 double_tupel_typed_of sign s t n (a::r) =
- s ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a ^ "," ^
- t ^ (BasisLibrary.Int.toString(n)) ^ "::" ^ a ^ "," ^ (double_tupel_typed_of sign s t (n+1) r);
+ s ^ (Int.toString(n)) ^ "::" ^ a ^ "," ^
+ t ^ (Int.toString(n)) ^ "::" ^ a ^ "," ^ (double_tupel_typed_of sign s t (n+1) r);
 
 fun tupel_of _ _ _ [] = "" |
-tupel_of sign s n [a] = s ^ (BasisLibrary.Int.toString(n)) |
-tupel_of sign s n (a::r) = s ^ (BasisLibrary.Int.toString(n)) ^ "," ^ (tupel_of sign s (n+1) r);
+tupel_of sign s n [a] = s ^ (Int.toString(n)) |
+tupel_of sign s n (a::r) = s ^ (Int.toString(n)) ^ "," ^ (tupel_of sign s (n+1) r);
 
 fun double_tupel_of _ _ _ _ [] = "" |
-double_tupel_of sign s t n [a] = s ^ (BasisLibrary.Int.toString(n)) ^ "," ^
-				 t ^ (BasisLibrary.Int.toString(n)) |
-double_tupel_of sign s t n (a::r) = s ^ (BasisLibrary.Int.toString(n)) ^ "," ^
-		t ^ (BasisLibrary.Int.toString(n)) ^ "," ^ (double_tupel_of sign s t (n+1) r);
+double_tupel_of sign s t n [a] = s ^ (Int.toString(n)) ^ "," ^
+				 t ^ (Int.toString(n)) |
+double_tupel_of sign s t n (a::r) = s ^ (Int.toString(n)) ^ "," ^
+		t ^ (Int.toString(n)) ^ "," ^ (double_tupel_of sign s t (n+1) r);
 
 fun eq_string _ _ _ [] = "" |
-eq_string s t n [a] = s ^ (BasisLibrary.Int.toString(n)) ^ " = " ^
-			 t ^ (BasisLibrary.Int.toString(n)) |
+eq_string s t n [a] = s ^ (Int.toString(n)) ^ " = " ^
+			 t ^ (Int.toString(n)) |
 eq_string s t n (a::r) =
- s ^ (BasisLibrary.Int.toString(n)) ^ " = " ^
- t ^ (BasisLibrary.Int.toString(n)) ^ " & " ^ (eq_string s t (n+1) r);
+ s ^ (Int.toString(n)) ^ " = " ^
+ t ^ (Int.toString(n)) ^ " & " ^ (eq_string s t (n+1) r);
 
 fun merge_var_and_type [] [] = "" |
 merge_var_and_type (a::r) (b::s) = "(" ^ a ^ " ::" ^ b ^ ") " ^ (merge_var_and_type r s) |
