@@ -1,20 +1,10 @@
-(*  Title:      CCL/wfd.ML
+(*  Title:      CCL/Wfd.ML
     ID:         $Id$
-
-For wfd.thy.
-
-Based on
-    Titles:     ZF/wf.ML and HOL/ex/lex-prod
-    Authors:    Lawrence C Paulson and Tobias Nipkow
-    Copyright   1992  University of Cambridge
-
 *)
-
-open Wfd;
 
 (***********)
 
-val [major,prem] = goalw Wfd.thy [Wfd_def]
+val [major,prem] = goalw (the_context ()) [Wfd_def]
     "[| Wfd(R);       \
 \       !!x.[| ALL y. <y,x>: R --> P(y) |] ==> P(x) |]  ==>  \
 \    P(a)";
@@ -22,7 +12,7 @@ by (rtac (major RS spec RS mp RS spec RS CollectD) 1);
 by (fast_tac (set_cs addSIs [prem RS CollectI]) 1);
 qed "wfd_induct";
 
-val [p1,p2,p3] = goal Wfd.thy
+val [p1,p2,p3] = goal (the_context ())
     "[| !!x y.<x,y> : R ==> Q(x); \
 \       ALL x. (ALL y. <y,x> : R --> y : P) --> x : P; \
 \       !!x. Q(x) ==> x:P |] ==> a:P";
@@ -33,21 +23,21 @@ qed "wfd_strengthen_lemma";
 fun wfd_strengthen_tac s i = res_inst_tac [("Q",s)] wfd_strengthen_lemma i THEN
                              assume_tac (i+1);
 
-val wfd::prems = goal Wfd.thy "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P";
+val wfd::prems = goal (the_context ()) "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P";
 by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (fast_tac (FOL_cs addIs prems) 1);
 by (rtac (wfd RS  wfd_induct) 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
 qed "wf_anti_sym";
 
-val prems = goal Wfd.thy "[| Wfd(r);  <a,a>: r |] ==> P";
+val prems = goal (the_context ()) "[| Wfd(r);  <a,a>: r |] ==> P";
 by (rtac wf_anti_sym 1);
 by (REPEAT (resolve_tac prems 1));
 qed "wf_anti_refl";
 
 (*** Irreflexive transitive closure ***)
 
-val [prem] = goal Wfd.thy "Wfd(R) ==> Wfd(R^+)";
+val [prem] = goal (the_context ()) "Wfd(R) ==> Wfd(R^+)";
 by (rewtac Wfd_def);
 by (REPEAT (ares_tac [allI,ballI,impI] 1));
 (*must retain the universal formula for later use!*)
@@ -63,22 +53,22 @@ qed "trancl_wf";
 
 (*** Lexicographic Ordering ***)
 
-Goalw [lex_def] 
+Goalw [lex_def]
  "p : ra**rb <-> (EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb))";
 by (fast_tac ccl_cs 1);
 qed "lexXH";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
  "<a,a'> : ra ==> <<a,b>,<a',b'>> : ra**rb";
 by (fast_tac (ccl_cs addSIs (prems @ [lexXH RS iffD2])) 1);
 qed "lexI1";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
  "<b,b'> : rb ==> <<a,b>,<a,b'>> : ra**rb";
 by (fast_tac (ccl_cs addSIs (prems @ [lexXH RS iffD2])) 1);
 qed "lexI2";
 
-val major::prems = goal Wfd.thy
+val major::prems = goal (the_context ())
  "[| p : ra**rb;  \
 \    !!a a' b b'.[| <a,a'> : ra; p=<<a,b>,<a',b'>> |] ==> R;  \
 \    !!a b b'.[| <b,b'> : rb;  p = <<a,b>,<a,b'>> |] ==> R  |] ==> \
@@ -88,13 +78,13 @@ by (REPEAT_SOME (eresolve_tac ([exE,conjE,disjE]@prems)));
 by (ALLGOALS (fast_tac ccl_cs));
 qed "lexE";
 
-val [major,minor] = goal Wfd.thy
+val [major,minor] = goal (the_context ())
  "[| p : r**s;  !!a a' b b'. p = <<a,b>,<a',b'>> ==> P |] ==>P";
 by (rtac (major RS lexE) 1);
 by (ALLGOALS (fast_tac (set_cs addSEs [minor])));
 qed "lex_pair";
 
-val [wfa,wfb] = goal Wfd.thy
+val [wfa,wfb] = goal (the_context ())
  "[| Wfd(R); Wfd(S) |] ==> Wfd(R**S)";
 by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
@@ -109,24 +99,24 @@ qed "lex_wf";
 
 (*** Mapping ***)
 
-Goalw [wmap_def] 
+Goalw [wmap_def]
  "p : wmap(f,r) <-> (EX x y. p=<x,y>  &  <f(x),f(y)> : r)";
 by (fast_tac ccl_cs 1);
 qed "wmapXH";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
  "<f(a),f(b)> : r ==> <a,b> : wmap(f,r)";
 by (fast_tac (ccl_cs addSIs (prems @ [wmapXH RS iffD2])) 1);
 qed "wmapI";
 
-val major::prems = goal Wfd.thy
+val major::prems = goal (the_context ())
  "[| p : wmap(f,r);  !!a b.[| <f(a),f(b)> : r;  p=<a,b> |] ==> R |] ==> R";
 by (rtac (major RS (wmapXH RS iffD1) RS exE) 1);
 by (REPEAT_SOME (eresolve_tac ([exE,conjE,disjE]@prems)));
 by (ALLGOALS (fast_tac ccl_cs));
 qed "wmapE";
 
-val [wf] = goal Wfd.thy
+val [wf] = goal (the_context ())
  "Wfd(r) ==> Wfd(wmap(f,r))";
 by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
@@ -143,33 +133,33 @@ qed "wmap_wf";
 
 (* Projections *)
 
-val prems = goal Wfd.thy "<xa,ya> : r ==> <<xa,xb>,<ya,yb>> : wmap(fst,r)";
+val prems = goal (the_context ()) "<xa,ya> : r ==> <<xa,xb>,<ya,yb>> : wmap(fst,r)";
 by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 qed "wfstI";
 
-val prems = goal Wfd.thy "<xb,yb> : r ==> <<xa,xb>,<ya,yb>> : wmap(snd,r)";
+val prems = goal (the_context ()) "<xb,yb> : r ==> <<xa,xb>,<ya,yb>> : wmap(snd,r)";
 by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 qed "wsndI";
 
-val prems = goal Wfd.thy "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)";
+val prems = goal (the_context ()) "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)";
 by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 qed "wthdI";
 
 (*** Ground well-founded relations ***)
 
-val prems = goalw Wfd.thy [wf_def] 
+val prems = goalw (the_context ()) [wf_def]
     "[| Wfd(r);  a : r |] ==> a : wf(r)";
 by (fast_tac (set_cs addSIs prems) 1);
 qed "wfI";
 
-val prems = goalw Wfd.thy [Wfd_def] "Wfd({})";
+val prems = goalw (the_context ()) [Wfd_def] "Wfd({})";
 by (fast_tac (set_cs addEs [EmptyXH RS iffD1 RS FalseE]) 1);
 qed "Empty_wf";
 
-val prems = goalw Wfd.thy [wf_def] "Wfd(wf(R))";
+val prems = goalw (the_context ()) [wf_def] "Wfd(wf(R))";
 by (res_inst_tac [("Q","Wfd(R)")] (excluded_middle RS disjE) 1);
 by (ALLGOALS (asm_simp_tac CCL_ss));
 by (rtac Empty_wf 1);
@@ -201,4 +191,3 @@ by (fast_tac (type_cs addSEs [XH_to_E ListPRXH]) 1);
 by (etac List_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E ListPRXH])));
 qed "ListPR_wf";
-

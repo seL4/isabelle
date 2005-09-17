@@ -1,12 +1,8 @@
-(*  Title:      CCL/types
+(*  Title:      CCL/Type.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
-For types.thy.
 *)
-
-open Type;
 
 val simp_type_defs = [Subtype_def,Unit_def,Bool_def,Plus_def,Sigma_def,Pi_def,
                       Lift_def,Tall_def,Tex_def];
@@ -15,14 +11,14 @@ val ind_type_defs = [Nat_def,List_def];
 val simp_data_defs = [one_def,inl_def,inr_def];
 val ind_data_defs = [zero_def,succ_def,nil_def,cons_def];
 
-goal Set.thy "A <= B <-> (ALL x. x:A --> x:B)";
+goal (the_context ()) "A <= B <-> (ALL x. x:A --> x:B)";
 by (fast_tac set_cs 1);
 qed "subsetXH";
 
 (*** Exhaustion Rules ***)
 
 fun mk_XH_tac thy defs rls s = prove_goalw thy defs s (fn _ => [cfast_tac rls 1]);
-val XH_tac = mk_XH_tac Type.thy simp_type_defs [];
+val XH_tac = mk_XH_tac (the_context ()) simp_type_defs [];
 
 val EmptyXH = XH_tac "a : {} <-> False";
 val SubtypeXH = XH_tac "a : {x:A. P(x)} <-> (a:A & P(a))";
@@ -42,9 +38,9 @@ val case_rls = XH_to_Es XHs;
 
 (*** Canonical Type Rules ***)
 
-fun mk_canT_tac thy xhs s = prove_goal thy s 
+fun mk_canT_tac thy xhs s = prove_goal thy s
                  (fn prems => [fast_tac (set_cs addIs (prems @ (xhs RL [iffD2]))) 1]);
-val canT_tac = mk_canT_tac Type.thy XHs;
+val canT_tac = mk_canT_tac (the_context ()) XHs;
 
 val oneT   = canT_tac "one : Unit";
 val trueT  = canT_tac "true : Bool";
@@ -59,32 +55,32 @@ val canTs = [oneT,trueT,falseT,pairT,lamT,inlT,inrT];
 (*** Non-Canonical Type Rules ***)
 
 local
-val lemma = prove_goal Type.thy "[| a:B(u);  u=v |] ==> a : B(v)"
+val lemma = prove_goal (the_context ()) "[| a:B(u);  u=v |] ==> a : B(v)"
                    (fn prems => [cfast_tac prems 1]);
 in
-fun mk_ncanT_tac thy defs top_crls crls s = prove_goalw thy defs s 
+fun mk_ncanT_tac thy defs top_crls crls s = prove_goalw thy defs s
   (fn major::prems => [(resolve_tac ([major] RL top_crls) 1),
                        (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
                        (ALLGOALS (asm_simp_tac term_ss)),
-                       (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE' 
+                       (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE'
                                   etac bspec )),
                        (safe_tac (ccl_cs addSIs prems))]);
 end;
 
-val ncanT_tac = mk_ncanT_tac Type.thy [] case_rls case_rls;
+val ncanT_tac = mk_ncanT_tac (the_context ()) [] case_rls case_rls;
 
-val ifT = ncanT_tac 
+val ifT = ncanT_tac
      "[| b:Bool; b=true ==> t:A(true); b=false ==> u:A(false) |] ==> \
 \     if b then t else u : A(b)";
 
-val applyT = ncanT_tac 
+val applyT = ncanT_tac
     "[| f : Pi(A,B);  a:A |] ==> f ` a : B(a)";
 
-val splitT = ncanT_tac 
+val splitT = ncanT_tac
     "[| p:Sigma(A,B); !!x y. [| x:A;  y:B(x); p=<x,y>  |] ==> c(x,y):C(<x,y>) |] ==>  \
 \     split(p,c):C(p)";
 
-val whenT = ncanT_tac 
+val whenT = ncanT_tac
      "[| p:A+B; !!x.[| x:A;  p=inl(x) |] ==> a(x):C(inl(x)); \
 \               !!y.[| y:B;  p=inr(y) |] ==> b(y):C(inr(y)) |] ==> \
 \     when(p,a,b) : C(p)";
@@ -96,12 +92,12 @@ val ncanTs = [ifT,applyT,splitT,whenT];
 val SubtypeD1 = standard ((SubtypeXH RS iffD1) RS conjunct1);
 val SubtypeD2 = standard ((SubtypeXH RS iffD1) RS conjunct2);
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
      "[| a:A;  P(a) |] ==> a : {x:A. P(x)}";
 by (REPEAT (resolve_tac (prems@[SubtypeXH RS iffD2,conjI]) 1));
 qed "SubtypeI";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
      "[| a : {x:A. P(x)};  [| a:A;  P(a) |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[SubtypeD1,SubtypeD2]) 1));
 qed "SubtypeE";
@@ -116,7 +112,7 @@ Goal "mono(%X. A)";
 by (REPEAT (ares_tac [monoI,subset_refl] 1));
 qed "constM";
 
-val major::prems = goal Type.thy
+val major::prems = goal (the_context ())
     "mono(%X. A(X)) ==> mono(%X.[A(X)])";
 by (rtac (subsetI RS monoI) 1);
 by (dtac (LiftXH RS iffD1) 1);
@@ -127,7 +123,7 @@ by (etac (major RS monoD RS subsetD) 1);
 by (assume_tac 1);
 qed "LiftM";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
     "[| mono(%X. A(X)); !!x X. x:A(X) ==> mono(%X. B(X,x)) |] ==> \
 \    mono(%X. Sigma(A(X),B(X)))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
@@ -136,7 +132,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             hyp_subst_tac 1));
 qed "SgM";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
     "[| !!x. x:A ==> mono(%X. B(X,x)) |] ==> mono(%X. Pi(A,B(X)))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
@@ -144,7 +140,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             hyp_subst_tac 1));
 qed "PiM";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
      "[| mono(%X. A(X));  mono(%X. B(X)) |] ==> mono(%X. A(X)+B(X))";
 by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
@@ -176,7 +172,7 @@ val ind_type_eqs = [def_NatB,def_ListB,def_ListsB,def_IListsB];
 
 (*** Exhaustion Rules ***)
 
-fun mk_iXH_tac teqs ddefs rls s = prove_goalw Type.thy ddefs s 
+fun mk_iXH_tac teqs ddefs rls s = prove_goalw (the_context ()) ddefs s
            (fn _ => [resolve_tac (teqs RL [XHlemma1]) 1,
                      fast_tac (set_cs addSIs canTs addSEs case_rls) 1]);
 
@@ -192,8 +188,8 @@ val icase_rls = XH_to_Es iXHs;
 
 (*** Type Rules ***)
 
-val icanT_tac = mk_canT_tac Type.thy iXHs;
-val incanT_tac = mk_ncanT_tac Type.thy [] icase_rls case_rls;
+val icanT_tac = mk_canT_tac (the_context ()) iXHs;
+val incanT_tac = mk_ncanT_tac (the_context ()) [] icase_rls case_rls;
 
 val zeroT = icanT_tac "zero : Nat";
 val succT = icanT_tac "n:Nat ==> succ(n) : Nat";
@@ -202,7 +198,7 @@ val consT = icanT_tac "[| h:A;  t:List(A) |] ==> h$t : List(A)";
 
 val icanTs = [zeroT,succT,nilT,consT];
 
-val ncaseT = incanT_tac 
+val ncaseT = incanT_tac
      "[| n:Nat; n=zero ==> b:C(zero); \
 \        !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |] ==>  \
 \     ncase(n,b,c) : C(n)";
@@ -218,7 +214,7 @@ val incanTs = [ncaseT,lcaseT];
 
 val ind_Ms = [NatM,ListM];
 
-fun mk_ind_tac ddefs tdefs Ms canTs case_rls s = prove_goalw Type.thy ddefs s 
+fun mk_ind_tac ddefs tdefs Ms canTs case_rls s = prove_goalw (the_context ()) ddefs s
      (fn major::prems => [resolve_tac (Ms RL ([major] RL (tdefs RL [def_induct]))) 1,
                           fast_tac (set_cs addSIs (prems @ canTs) addSEs case_rls) 1]);
 
@@ -237,7 +233,7 @@ val inds = [Nat_ind,List_ind];
 
 (*** Primitive Recursive Rules ***)
 
-fun mk_prec_tac inds s = prove_goal Type.thy s
+fun mk_prec_tac inds s = prove_goal (the_context ()) s
      (fn major::prems => [resolve_tac ([major] RL inds) 1,
                           ALLGOALS (simp_tac term_ss THEN'
                                     fast_tac (set_cs addSIs prems))]);
@@ -258,7 +254,7 @@ val precTs = [nrecT,lrecT];
 
 (*** Theorem proving ***)
 
-val [major,minor] = goal Type.thy
+val [major,minor] = goal (the_context ())
     "[| <a,b> : Sigma(A,B);  [| a:A;  b:B(a) |] ==> P   \
 \    |] ==> P";
 by (rtac (major RS (XH_to_E SgXH)) 1);
@@ -276,13 +272,13 @@ val type_cs = term_cs addSIs (SubtypeI::(canTs @ icanTs))
 
 (*** Infinite Data Types ***)
 
-val [mono] = goal Type.thy "mono(f) ==> lfp(f) <= gfp(f)";
+val [mono] = goal (the_context ()) "mono(f) ==> lfp(f) <= gfp(f)";
 by (rtac (lfp_lowerbound RS subset_trans) 1);
 by (rtac (mono RS gfp_lemma3) 1);
 by (rtac subset_refl 1);
 qed "lfp_subset_gfp";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
     "[| a:A;  !!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : gfp(B)";
 by (rtac coinduct 1);
@@ -290,7 +286,7 @@ by (res_inst_tac [("P","%x. EX y:A. x=t(y)")] CollectI 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
 qed "gfpI";
 
-val rew::prem::prems = goal Type.thy
+val rew::prem::prems = goal (the_context ())
     "[| C==gfp(B);  a:A;  !!x X.[| x:A;  ALL y:A. t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : C";
 by (rewtac rew);
@@ -299,7 +295,7 @@ qed "def_gfpI";
 
 (* EG *)
 
-val prems = goal Type.thy 
+val prems = goal (the_context ())
     "letrec g x be zero$g(x) in g(bot) : Lists(Nat)";
 by (rtac (refl RS (XH_to_I UnitXH) RS (Lists_def RS def_gfpI)) 1);
 by (stac letrecB 1);

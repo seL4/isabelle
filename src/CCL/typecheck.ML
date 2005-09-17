@@ -1,8 +1,7 @@
-(*  Title:      CCL/typecheck
+(*  Title:      CCL/typecheck.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
 *)
 
 (*** Lemmas for constructors and subtypes ***)
@@ -10,11 +9,11 @@
 (* 0-ary constructors do not need additional rules as they are handled *)
 (*                                      correctly by applying SubtypeI *)
 (*
-val Subtype_canTs = 
+val Subtype_canTs =
        let fun tac prems = cut_facts_tac prems 1 THEN
                 REPEAT (ares_tac (SubtypeI::canTs@icanTs) 1 ORELSE
                         etac SubtypeE 1)
-           fun solve s = prove_goal Type.thy s (fn prems => [tac prems])
+           fun solve s = prove_goal (the_context ()) s (fn prems => [tac prems])
        in map solve
            ["P(one) ==> one : {x:Unit.P(x)}",
             "P(true) ==> true : {x:Bool.P(x)}",
@@ -28,11 +27,11 @@ val Subtype_canTs =
             "h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
         ] end;
 *)
-val Subtype_canTs = 
+val Subtype_canTs =
        let fun tac prems = cut_facts_tac prems 1 THEN
                 REPEAT (ares_tac (SubtypeI::canTs@icanTs) 1 ORELSE
                         etac SubtypeE 1)
-           fun solve s = prove_goal Type.thy s (fn prems => [tac prems])
+           fun solve s = prove_goal (the_context ()) s (fn prems => [tac prems])
        in map solve
            ["a : {x:A. b:{y:B(a).P(<x,y>)}} ==> <a,b> : {x:Sigma(A,B).P(x)}",
             "a : {x:A. P(inl(x))} ==> inl(a) : {x:A+B. P(x)}",
@@ -41,24 +40,24 @@ val Subtype_canTs =
             "h : {x:A. t : {y:List(A).P(x$y)}} ==> h$t : {x:List(A).P(x)}"
         ] end;
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
      "[| f(t):B;  ~t=bot  |] ==> let x be t in f(x) : B";
 by (cut_facts_tac prems 1);
 by (etac (letB RS ssubst) 1);
 by (assume_tac 1);
 qed "letT";
 
-val prems = goal Type.thy
+val prems = goal (the_context ())
      "[| a:A;  f : Pi(A,B)  |] ==> f ` a  : B(a)";
 by (REPEAT (ares_tac (applyT::prems) 1));
 qed "applyT2";
 
-val prems = goal Type.thy 
+val prems = goal (the_context ())
     "[| a:A;  a:A ==> P(a) |] ==> a : {x:A. P(x)}";
 by (fast_tac (type_cs addSIs prems) 1);
 qed "rcall_lemma1";
 
-val prems = goal Type.thy 
+val prems = goal (the_context ())
     "[| a:{x:A. Q(x)};  [| a:A; Q(a) |] ==> P(a) |] ==> a : {x:A. P(x)}";
 by (cut_facts_tac prems 1);
 by (fast_tac (type_cs addSIs prems) 1);
@@ -71,7 +70,7 @@ val rcall_lemmas = [asm_rl,rcall_lemma1,SubtypeD1,rcall_lemma2];
 fun bvars (Const("all",_) $ Abs(s,_,t)) l = bvars t (s::l)
   | bvars _ l = l;
 
-fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t 
+fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t
   | get_bno l n (Const("Trueprop",_) $ t) = get_bno l n t
   | get_bno l n (Const("Ball",_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
   | get_bno l n (Const("op :",_) $ t $ _) = get_bno l n t
@@ -98,8 +97,8 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 val type_rls = canTs@icanTs@(applyT2::ncanTs)@incanTs@
                precTs@letrecTs@[letT]@Subtype_canTs;
 
-fun is_rigid_prog t = 
-     case (Logic.strip_assums_concl t) of 
+fun is_rigid_prog t =
+     case (Logic.strip_assums_concl t) of
         (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) => (term_vars a = [])
        | _ => false;
 
@@ -125,7 +124,7 @@ val tac = typechk_tac [] 1;
 val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([SubtypeE]@rmIHs) ORELSE'
                                  hyp_subst_tac);
 
-val clean_ccs_tac = 
+val clean_ccs_tac =
        let fun tac ps rl i = eres_inst_tac ps rl i THEN atac i;
        in TRY (REPEAT_FIRST (IHinst tac hyprcallTs ORELSE'
                        eresolve_tac ([asm_rl,SubtypeE]@rmIHs) ORELSE'
@@ -133,5 +132,3 @@ val clean_ccs_tac =
 
 fun gen_ccs_tac rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac rls) THEN
                                      clean_ccs_tac) i;
-
-

@@ -1,16 +1,12 @@
-(*  Title:      CCL/fix
+(*  Title:      CCL/Fix.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-For fix.thy.
 *)
-
-open Fix;
 
 (*** Fixed Point Induction ***)
 
-val [base,step,incl] = goalw Fix.thy [INCL_def]
+val [base,step,incl] = goalw (the_context ()) [INCL_def]
     "[| P(bot);  !!x. P(x) ==> P(f(x));  INCL(P) |] ==> P(fix(f))";
 by (rtac (incl RS spec RS mp) 1);
 by (rtac (Nat_ind RS ballI) 1 THEN atac 1);
@@ -20,23 +16,23 @@ qed "fix_ind";
 
 (*** Inclusive Predicates ***)
 
-val prems = goalw Fix.thy [INCL_def]
+val prems = goalw (the_context ()) [INCL_def]
      "INCL(P) <-> (ALL f. (ALL n:Nat. P(f ^ n ` bot)) --> P(fix(f)))";
 by (rtac iff_refl 1);
 qed "inclXH";
 
-val prems = goal Fix.thy
+val prems = goal (the_context ())
      "[| !!f. ALL n:Nat. P(f^n`bot) ==> P(fix(f)) |] ==> INCL(%x. P(x))";
 by (fast_tac (term_cs addIs (prems @ [XH_to_I inclXH])) 1);
 qed "inclI";
 
-val incl::prems = goal Fix.thy
+val incl::prems = goal (the_context ())
      "[| INCL(P);  !!n. n:Nat ==> P(f^n`bot) |] ==> P(fix(f))";
-by (fast_tac (term_cs addIs ([ballI RS (incl RS (XH_to_D inclXH) RS spec RS mp)] 
+by (fast_tac (term_cs addIs ([ballI RS (incl RS (XH_to_D inclXH) RS spec RS mp)]
                        @ prems)) 1);
 qed "inclD";
 
-val incl::prems = goal Fix.thy
+val incl::prems = goal (the_context ())
      "[| INCL(P);  (ALL n:Nat. P(f^n`bot))-->P(fix(f)) ==> R |] ==> R";
 by (fast_tac (term_cs addIs ([incl RS inclD] @ prems)) 1);
 qed "inclE";
@@ -55,15 +51,15 @@ by (stac napplyBzero 1);
 by (rtac po_cong 1 THEN rtac po_bot 1);
 qed "npo_INCL";
 
-val prems = goal Fix.thy "[| INCL(P);  INCL(Q) |] ==> INCL(%x. P(x) & Q(x))";
+val prems = goal (the_context ()) "[| INCL(P);  INCL(Q) |] ==> INCL(%x. P(x) & Q(x))";
 by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 qed "conj_INCL";
 
-val prems = goal Fix.thy "[| !!a. INCL(P(a)) |] ==> INCL(%x. ALL a. P(a,x))";
+val prems = goal (the_context ()) "[| !!a. INCL(P(a)) |] ==> INCL(%x. ALL a. P(a,x))";
 by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 qed "all_INCL";
 
-val prems = goal Fix.thy "[| !!a. a:A ==> INCL(P(a)) |] ==> INCL(%x. ALL a:A. P(a,x))";
+val prems = goal (the_context ()) "[| !!a. a:A ==> INCL(P(a)) |] ==> INCL(%x. ALL a:A. P(a,x))";
 by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 qed "ball_INCL";
 
@@ -88,7 +84,7 @@ qed "id_idgenfp";
 
 (* All fixed points are lam-expressions *)
 
-val [prem] = goal Fix.thy "idgen(d) = d ==> d = lam x.?f(x)";
+val [prem] = goal (the_context ()) "idgen(d) = d ==> d = lam x.?f(x)";
 by (rtac (prem RS subst) 1);
 by (rewtac idgen_def);
 by (rtac refl 1);
@@ -96,13 +92,13 @@ qed "idgenfp_lam";
 
 (* Lemmas for rewriting fixed points of idgen *)
 
-val prems = goalw Fix.thy [idgen_def] 
+val prems = goalw (the_context ()) [idgen_def]
     "[| a = b;  a ` t = u |] ==> b ` t = u";
 by (simp_tac (term_ss addsimps (prems RL [sym])) 1);
 qed "l_lemma";
 
 val idgen_lemmas =
-    let fun mk_thm s = prove_goalw Fix.thy [idgen_def] s
+    let fun mk_thm s = prove_goalw (the_context ()) [idgen_def] s
            (fn [prem] => [rtac (prem RS l_lemma) 1,simp_tac term_ss 1])
     in map mk_thm
           [    "idgen(d) = d ==> d ` bot = bot",
@@ -112,22 +108,22 @@ val idgen_lemmas =
                "idgen(d) = d ==> d ` (lam x. f(x)) = lam x. d ` f(x)"]
     end;
 
-(* Proof of Reachability law - show that fix and lam x.x both give LEAST fixed points 
+(* Proof of Reachability law - show that fix and lam x.x both give LEAST fixed points
                                of idgen and hence are they same *)
 
-val [p1,p2,p3] = goal CCL.thy
+val [p1,p2,p3] = goal (the_context ())
     "[| ALL x. t ` x [= u ` x;  EX f. t=lam x. f(x);  EX f. u=lam x. f(x) |] ==> t [= u";
 by (stac (p2 RS cond_eta) 1);
 by (stac (p3 RS cond_eta) 1);
 by (rtac (p1 RS (po_lam RS iffD2)) 1);
 qed "po_eta";
 
-val [prem] = goalw Fix.thy [idgen_def] "idgen(d) = d ==> d = lam x.?f(x)";
+val [prem] = goalw (the_context ()) [idgen_def] "idgen(d) = d ==> d = lam x.?f(x)";
 by (rtac (prem RS subst) 1);
 by (rtac refl 1);
 qed "po_eta_lemma";
 
-val [prem] = goal Fix.thy
+val [prem] = goal (the_context ())
     "idgen(d) = d ==> \
 \      {p. EX a b. p=<a,b> & (EX t. a=fix(idgen) ` t & b = d ` t)} <=   \
 \      POgen({p. EX a b. p=<a,b> & (EX t. a=fix(idgen) ` t  & b = d ` t)})";
@@ -137,14 +133,14 @@ by (ALLGOALS (simp_tac (term_ss addsimps (POgenXH::([prem,fix_idgenfp] RL idgen_
 by (ALLGOALS (fast_tac set_cs));
 qed "lemma1";
 
-val [prem] = goal Fix.thy
+val [prem] = goal (the_context ())
     "idgen(d) = d ==> fix(idgen) [= d";
 by (rtac (allI RS po_eta) 1);
 by (rtac (lemma1 RSN(2,po_coinduct)) 1);
 by (ALLGOALS (fast_tac (term_cs addIs [prem,po_eta_lemma,fix_idgenfp])));
 qed "fix_least_idgen";
 
-val [prem] = goal Fix.thy
+val [prem] = goal (the_context ())
     "idgen(d) = d ==> \
 \      {p. EX a b. p=<a,b> & b = d ` a} <= POgen({p. EX a b. p=<a,b> & b = d ` a})";
 by (REPEAT (step_tac term_cs 1));
@@ -153,7 +149,7 @@ by (ALLGOALS (simp_tac (term_ss addsimps (POgenXH::([prem] RL idgen_lemmas)))));
 by (ALLGOALS (fast_tac set_cs));
 qed "lemma2";
 
-val [prem] = goal Fix.thy
+val [prem] = goal (the_context ())
     "idgen(d) = d ==> lam x. x [= d";
 by (rtac (allI RS po_eta) 1);
 by (rtac (lemma2 RSN(2,po_coinduct)) 1);
@@ -169,12 +165,12 @@ qed "reachability";
 
 (********)
 
-val [prem] = goal Fix.thy "f = lam x. x ==> f`t = t";
+val [prem] = goal (the_context ()) "f = lam x. x ==> f`t = t";
 by (rtac (prem RS sym RS subst) 1);
 by (rtac applyB 1);
 qed "id_apply";
 
-val prems = goal Fix.thy
+val prems = goal (the_context ())
      "[| P(bot);  P(true);  P(false);  \
 \        !!x y.[| P(x);  P(y) |] ==> P(<x,y>);  \
 \        !!u.(!!x. P(u(x))) ==> P(lam x. u(x));  INCL(P) |] ==> \
@@ -191,4 +187,3 @@ by (res_inst_tac [("t","xa")] term_case 1);
 by (ALLGOALS (simp_tac term_ss));
 by (ALLGOALS (fast_tac (term_cs addIs ([all_INCL,INCL_subst] @ prems))));
 qed "term_ind";
-

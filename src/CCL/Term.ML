@@ -1,12 +1,8 @@
-(*  Title:      CCL/terms
+(*  Title:      CCL/Term.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-For terms.thy.
 *)
-
-open Term;
 
 val simp_can_defs = [one_def,inl_def,inr_def];
 val simp_ncan_defs = [if_def,when_def,split_def,fst_def,snd_def,thd_def];
@@ -49,19 +45,19 @@ qed "fixB";
 
 Goalw [letrec_def]
       "letrec g x be h(x,g) in g(a) = h(a,%y. letrec g x be h(x,g) in g(y))";
-by (resolve_tac [fixB RS ssubst] 1 THEN 
+by (resolve_tac [fixB RS ssubst] 1 THEN
     resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
 qed "letrecB";
 
 val rawBs = caseBs @ [applyB,applyBbot];
 
-fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
+fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
            (fn _ => [stac letrecB 1,
                      simp_tac (CCL_ss addsimps rawBs) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
-fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
-           (fn _ => [simp_tac (CCL_ss addsimps rawBs 
+fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
+           (fn _ => [simp_tac (CCL_ss addsimps rawBs
                                setloop (stac letrecB)) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
@@ -115,7 +111,7 @@ val termBs = [letB,applyB,applyBbot,splitB,splitBbot,
 
 (*** Constructors are injective ***)
 
-val term_injs = map (mk_inj_rl Term.thy 
+val term_injs = map (mk_inj_rl (the_context ())
                      [applyB,splitB,whenBinl,whenBinr,ncaseBsucc,lcaseBcons])
                ["(inl(a) = inl(a')) <-> (a=a')",
                 "(inr(a) = inr(a')) <-> (a=a')",
@@ -124,13 +120,13 @@ val term_injs = map (mk_inj_rl Term.thy
 
 (*** Constructors are distinct ***)
 
-val term_dstncts = mkall_dstnct_thms Term.thy data_defs (ccl_injs @ term_injs)
+val term_dstncts = mkall_dstnct_thms (the_context ()) data_defs (ccl_injs @ term_injs)
                     [["bot","inl","inr"],["bot","zero","succ"],["bot","nil","op $"]];
 
 (*** Rules for pre-order [= ***)
 
 local
-  fun mk_thm s = prove_goalw Term.thy data_defs s (fn _ => 
+  fun mk_thm s = prove_goalw (the_context ()) data_defs s (fn _ =>
                   [simp_tac (ccl_ss addsimps (ccl_porews)) 1]);
 in
   val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
@@ -144,5 +140,5 @@ end;
 val term_rews = termBs @ term_injs @ term_dstncts @ ccl_porews @ term_porews;
 val term_ss = ccl_ss addsimps term_rews;
 
-val term_cs = ccl_cs addSEs (term_dstncts RL [notE]) 
+val term_cs = ccl_cs addSEs (term_dstncts RL [notE])
                      addSDs (XH_to_Ds term_injs);

@@ -1,12 +1,8 @@
-(*  Title:      CCL/ccl
+(*  Title:      CCL/CCL.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-For ccl.thy.
 *)
-
-open CCL;
 
 val ccl_data_defs = [apply_def,fix_def];
 
@@ -15,11 +11,11 @@ val CCL_ss = set_ss addsimps [po_refl];
 (*** Congruence Rules ***)
 
 (*similar to AP_THM in Gordon's HOL*)
-qed_goal "fun_cong" CCL.thy "(f::'a=>'b) = g ==> f(x)=g(x)"
+qed_goal "fun_cong" (the_context ()) "(f::'a=>'b) = g ==> f(x)=g(x)"
   (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
 
 (*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
-qed_goal "arg_cong" CCL.thy "x=y ==> f(x)=f(y)"
+qed_goal "arg_cong" (the_context ()) "x=y ==> f(x)=f(y)"
  (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
 
 Goal  "(ALL x. f(x) = g(x)) --> (%x. f(x)) = (%x. g(x))";
@@ -27,10 +23,10 @@ by (simp_tac (CCL_ss addsimps [eq_iff]) 1);
 by (fast_tac (set_cs addIs [po_abstractn]) 1);
 bind_thm("abstractn", standard (allI RS (result() RS mp)));
 
-fun type_of_terms (Const("Trueprop",_) $ 
+fun type_of_terms (Const("Trueprop",_) $
                    (Const("op =",(Type ("fun", [t,_]))) $ _ $ _)) = t;
 
-fun abs_prems thm = 
+fun abs_prems thm =
    let fun do_abs n thm (Type ("fun", [_,t])) = do_abs n (abstractn RSN (n,thm)) t
          | do_abs n thm _                     = thm
        fun do_prems n      [] thm = thm
@@ -52,12 +48,12 @@ qed "Dvg_iff";
 
 (*** Constructors are injective ***)
 
-val prems = goal CCL.thy
+val prems = goal (the_context ())
     "[| x=a;  y=b;  x=y |] ==> a=b";
 by  (REPEAT (SOMEGOAL (ares_tac (prems@[box_equals]))));
 qed "eq_lemma";
 
-fun mk_inj_rl thy rews s = 
+fun mk_inj_rl thy rews s =
       let fun mk_inj_lemmas r = ([arg_cong] RL [(r RS (r RS eq_lemma))]);
           val inj_lemmas = List.concat (map mk_inj_lemmas rews);
           val tac = REPEAT (ares_tac [iffI,allI,conjI] 1 ORELSE
@@ -66,7 +62,7 @@ fun mk_inj_rl thy rews s =
       in prove_goal thy s (fn _ => [tac])
       end;
 
-val ccl_injs = map (mk_inj_rl CCL.thy caseBs)
+val ccl_injs = map (mk_inj_rl (the_context ()) caseBs)
                ["<a,b> = <a',b'> <-> (a=a' & b=b')",
                 "(lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"];
 
@@ -82,7 +78,7 @@ local
     | mk_combs ff (x::xs) = (pairs_of ff x xs) @ mk_combs ff xs;
 
 (* Doesn't handle binder types correctly *)
-  fun saturate thy sy name = 
+  fun saturate thy sy name =
        let fun arg_str 0 a s = s
          | arg_str 1 a s = "(" ^ a ^ "a" ^ s ^ ")"
          | arg_str n a s = arg_str (n-1) a ("," ^ a ^ (chr((ord "a")+n-1)) ^ s);
@@ -94,9 +90,9 @@ local
 
   fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b");
 
-  val lemma = prove_goal CCL.thy "t=t' --> case(t,b,c,d,e) = case(t',b,c,d,e)"
+  val lemma = prove_goal (the_context ()) "t=t' --> case(t,b,c,d,e) = case(t',b,c,d,e)"
                    (fn _ => [simp_tac CCL_ss 1]) RS mp;
-  fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL 
+  fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL
                            [distinctness RS notE,sym RS (distinctness RS notE)];
 in
   fun mk_lemmas rls = List.concat (map mk_lemma (mk_combs pair rls));
@@ -106,14 +102,14 @@ end;
 
 val caseB_lemmas = mk_lemmas caseBs;
 
-val ccl_dstncts = 
-        let fun mk_raw_dstnct_thm rls s = 
-                  prove_goal CCL.thy s (fn _=> [rtac notI 1,eresolve_tac rls 1])
-        in map (mk_raw_dstnct_thm caseB_lemmas) 
-                (mk_dstnct_rls CCL.thy ["bot","true","false","pair","lambda"]) end;
+val ccl_dstncts =
+        let fun mk_raw_dstnct_thm rls s =
+                  prove_goal (the_context ()) s (fn _=> [rtac notI 1,eresolve_tac rls 1])
+        in map (mk_raw_dstnct_thm caseB_lemmas)
+                (mk_dstnct_rls (the_context ()) ["bot","true","false","pair","lambda"]) end;
 
-fun mk_dstnct_thms thy defs inj_rls xs = 
-          let fun mk_dstnct_thm rls s = prove_goalw thy defs s 
+fun mk_dstnct_thms thy defs inj_rls xs =
+          let fun mk_dstnct_thm rls s = prove_goalw thy defs s
                                (fn _ => [simp_tac (CCL_ss addsimps (rls@inj_rls)) 1])
           in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end;
 
@@ -131,12 +127,12 @@ val XH_to_Es = map XH_to_E;
 val ccl_rews = caseBs @ ccl_injs @ ccl_dstncts;
 val ccl_ss = CCL_ss addsimps ccl_rews;
 
-val ccl_cs = set_cs addSEs (pair_inject::(ccl_dstncts RL [notE])) 
+val ccl_cs = set_cs addSEs (pair_inject::(ccl_dstncts RL [notE]))
                     addSDs (XH_to_Ds ccl_injs);
 
 (****** Facts from gfp Definition of [= and = ******)
 
-val major::prems = goal Set.thy "[| A=B;  a:B <-> P |] ==> a:A <-> P";
+val major::prems = goal (the_context ()) "[| A=B;  a:B <-> P |] ==> a:A <-> P";
 by (resolve_tac (prems RL [major RS ssubst]) 1);
 qed "XHlemma1";
 
@@ -166,7 +162,7 @@ Goal
 \                (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') | \
 \                (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))";
 by (simp_tac (ccl_ss addsimps [PO_iff] delsimps ex_simps) 1);
-by (rtac (rewrite_rule [POgen_def,SIM_def] 
+by (rtac (rewrite_rule [POgen_def,SIM_def]
                  (POgen_mono RS (PO_def RS def_gfp_Tarski) RS XHlemma1)) 1);
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "poXH";
@@ -198,31 +194,31 @@ qed "po_lam";
 
 val ccl_porews = [po_bot,po_pair,po_lam];
 
-val [p1,p2,p3,p4,p5] = goal CCL.thy
+val [p1,p2,p3,p4,p5] = goal (the_context ())
     "[| t [= t';  a [= a';  b [= b';  !!x y. c(x,y) [= c'(x,y); \
 \       !!u. d(u) [= d'(u) |] ==> case(t,a,b,c,d) [= case(t',a',b',c',d')";
 by (rtac (p1 RS po_cong RS po_trans) 1);
 by (rtac (p2 RS po_cong RS po_trans) 1);
 by (rtac (p3 RS po_cong RS po_trans) 1);
 by (rtac (p4 RS po_abstractn RS po_abstractn RS po_cong RS po_trans) 1);
-by (res_inst_tac [("f1","%d. case(t',a',b',c',d)")] 
+by (res_inst_tac [("f1","%d. case(t',a',b',c',d)")]
                (p5 RS po_abstractn RS po_cong RS po_trans) 1);
 by (rtac po_refl 1);
 qed "case_pocong";
 
-val [p1,p2] = goalw CCL.thy ccl_data_defs
+val [p1,p2] = goalw (the_context ()) ccl_data_defs
     "[| f [= f';  a [= a' |] ==> f ` a [= f' ` a'";
 by (REPEAT (ares_tac [po_refl,case_pocong,p1,p2 RS po_cong] 1));
 qed "apply_pocong";
 
 
-val prems = goal CCL.thy "~ lam x. b(x) [= bot";
+val prems = goal (the_context ()) "~ lam x. b(x) [= bot";
 by (rtac notI 1);
 by (dtac bot_poleast 1);
 by (etac (distinctness RS notE) 1);
 qed "npo_lam_bot";
 
-val eq1::eq2::prems = goal CCL.thy
+val eq1::eq2::prems = goal (the_context ())
     "[| x=a;  y=b;  x[=y |] ==> a[=b";
 by (rtac (eq1 RS subst) 1);
 by (rtac (eq2 RS subst) 1);
@@ -243,7 +239,7 @@ by (etac (case_pocong RS (caseBpair RS (caseBlam RS po_lemma))) 1);
 by (REPEAT (resolve_tac [po_refl,npo_lam_bot] 1));
 qed "npo_lam_pair";
 
-fun mk_thm s = prove_goal CCL.thy s (fn _ => 
+fun mk_thm s = prove_goal (the_context ()) s (fn _ =>
                           [rtac notI 1,dtac case_pocong 1,etac rev_mp 5,
                            ALLGOALS (simp_tac ccl_ss),
                            REPEAT (resolve_tac [po_refl,npo_lam_bot] 1)]);
@@ -257,7 +253,7 @@ val npo_rls = [npo_pair_lam,npo_lam_pair] @ map mk_thm
 
 (* Coinduction for [= *)
 
-val prems = goal CCL.thy "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u";
+val prems = goal (the_context ()) "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u";
 by (rtac (PO_def RS def_coinduct RS (PO_iff RS iffD2)) 1);
 by (REPEAT (ares_tac prems 1));
 qed "po_coinduct";
@@ -297,12 +293,12 @@ by (rtac (rewrite_rule [EQgen_def,SIM_def]
 by (rtac (iff_refl RS XHlemma2) 1);
 qed "eqXH";
 
-val prems = goal CCL.thy "[|  <t,u> : R;  R <= EQgen(R) |] ==> t = u";
+val prems = goal (the_context ()) "[|  <t,u> : R;  R <= EQgen(R) |] ==> t = u";
 by (rtac (EQ_def RS def_coinduct RS (EQ_iff RS iffD2)) 1);
 by (REPEAT (ares_tac prems 1));
 qed "eq_coinduct";
 
-val prems = goal CCL.thy 
+val prems = goal (the_context ())
     "[|  <t,u> : R;  R <= EQgen(lfp(%x. EQgen(x) Un R Un EQ)) |] ==> t = u";
 by (rtac (EQ_def RS def_coinduct3 RS (EQ_iff RS iffD2)) 1);
 by (REPEAT (ares_tac (EQgen_mono::prems) 1));
@@ -323,7 +319,7 @@ by (cut_facts_tac [refl RS (eqXH RS iffD1)] 1);
 by (fast_tac set_cs 1);
 qed "exhaustion";
 
-val prems = goal CCL.thy 
+val prems = goal (the_context ())
     "[| P(bot);  P(true);  P(false);  !!x y. P(<x,y>);  !!b. P(lam x. b(x)) |] ==> P(t)";
 by (cut_facts_tac [exhaustion] 1);
 by (REPEAT_SOME (ares_tac prems ORELSE' eresolve_tac [disjE,exE,ssubst]));

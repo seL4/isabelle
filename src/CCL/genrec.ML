@@ -1,4 +1,4 @@
-(*  Title:      92/CCL/genrec
+(*  Title:      CCL/genrec.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -7,7 +7,7 @@
 
 (*** General Recursive Functions ***)
 
-val major::prems = goal Wfd.thy 
+val major::prems = goal (the_context ())
     "[| a : A;  \
 \       !!p g.[| p:A; ALL x:{x: A. <x,p>:wf(R)}. g(x) : D(x) |] ==>\
 \               h(p,g) : D(p) |] ==> \
@@ -22,12 +22,12 @@ by (etac (spec RS mp RS mp) 1);
 by (REPEAT (eresolve_tac [SubtypeD1,SubtypeD2] 1));
 qed "letrecT";
 
-goalw Wfd.thy [SPLIT_def] "SPLIT(<a,b>,B) = B(a,b)";
+goalw (the_context ()) [SPLIT_def] "SPLIT(<a,b>,B) = B(a,b)";
 by (rtac set_ext 1);
 by (fast_tac ccl_cs 1);
 qed "SPLITB";
 
-val prems = goalw Wfd.thy [letrec2_def]
+val prems = goalw (the_context ()) [letrec2_def]
     "[| a : A;  b : B;  \
 \     !!p q g.[| p:A; q:B; \
 \             ALL x:A. ALL y:{y: B. <<x,y>,<p,q>>:wf(R)}. g(x,y) : D(x,y) |] ==>\
@@ -38,15 +38,15 @@ by (REPEAT (ares_tac ([letrecT,pairT,splitT]@prems) 1));
 by (stac SPLITB 1);
 by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 by (rtac (SPLITB RS subst) 1);
-by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 
+by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE
             eresolve_tac [bspec,SubtypeE,sym RS subst] 1));
 qed "letrec2T";
 
-goal Wfd.thy "SPLIT(<a,<b,c>>,%x xs. SPLIT(xs,%y z. B(x,y,z))) = B(a,b,c)";
+goal (the_context ()) "SPLIT(<a,<b,c>>,%x xs. SPLIT(xs,%y z. B(x,y,z))) = B(a,b,c)";
 by (simp_tac (ccl_ss addsimps [SPLITB]) 1);
 qed "lemma";
 
-val prems = goalw Wfd.thy [letrec3_def]
+val prems = goalw (the_context ()) [letrec3_def]
     "[| a : A;  b : B;  c : C;  \
 \    !!p q r g.[| p:A; q:B; r:C; \
 \      ALL x:A. ALL y:B. ALL z:{z:C. <<x,<y,z>>,<p,<q,r>>> : wf(R)}. \
@@ -58,7 +58,7 @@ by (REPEAT (ares_tac ([letrecT,pairT,splitT]@prems) 1));
 by (simp_tac (ccl_ss addsimps [SPLITB]) 1);
 by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 by (rtac (lemma RS subst) 1);
-by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 
+by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE
             eresolve_tac [bspec,SubtypeE,sym RS subst] 1));
 qed "letrec3T";
 
@@ -67,21 +67,21 @@ val letrecTs = [letrecT,letrec2T,letrec3T];
 
 (*** Type Checking for Recursive Calls ***)
 
-val major::prems = goal Wfd.thy
+val major::prems = goal (the_context ())
     "[| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); \
 \       g(a) : D(a) ==> g(a) : E;  a:A;  <a,p>:wf(R) |] ==> \
 \   g(a) : E";
 by (REPEAT (ares_tac ([SubtypeI,major RS bspec,major]@prems) 1));
 qed "rcallT";
 
-val major::prems = goal Wfd.thy
+val major::prems = goal (the_context ())
     "[| ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); \
 \       g(a,b) : D(a,b) ==> g(a,b) : E;  a:A;  b:B;  <<a,b>,<p,q>>:wf(R) |] ==> \
 \   g(a,b) : E";
 by (REPEAT (ares_tac ([SubtypeI,major RS bspec RS bspec,major]@prems) 1));
 qed "rcall2T";
 
-val major::prems = goal Wfd.thy
+val major::prems = goal (the_context ())
     "[| ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}. g(x,y,z):D(x,y,z); \
 \       g(a,b,c) : D(a,b,c) ==> g(a,b,c) : E;  \
 \       a:A;  b:B;  c:C;  <<a,<b,c>>,<p,<q,r>>> : wf(R) |] ==> \
@@ -93,7 +93,7 @@ val rcallTs = [rcallT,rcall2T,rcall3T];
 
 (*** Instantiating an induction hypothesis with an equality assumption ***)
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
     "[| g(a) = b; ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);  \
 \       [| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);  b=g(a);  g(a) : D(a) |] ==> P; \
 \       ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x) ==> a:A;  \
@@ -105,7 +105,7 @@ by (rtac rcallT 1);
 by (REPEAT (ares_tac prems 1));
 val hyprcallT = result();
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
     "[| g(a) = b; ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);\
 \       [| b=g(a);  g(a) : D(a) |] ==> P; a:A;  <a,p>:wf(R) |] ==> \
 \   P";
@@ -115,7 +115,7 @@ by (rtac rcallT 1);
 by (REPEAT (ares_tac prems 1));
 qed "hyprcallT";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
     "[| g(a,b) = c; ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); \
 \       [| c=g(a,b);  g(a,b) : D(a,b) |] ==> P; \
 \       a:A;  b:B;  <<a,b>,<p,q>>:wf(R) |] ==> \
@@ -126,7 +126,7 @@ by (rtac rcall2T 1);
 by (REPEAT (ares_tac prems 1));
 qed "hyprcall2T";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
   "[| g(a,b,c) = d; \
 \     ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z); \
 \   [| d=g(a,b,c);  g(a,b,c) : D(a,b,c) |] ==> P; \
@@ -142,19 +142,19 @@ val hyprcallTs = [hyprcallT,hyprcall2T,hyprcall3T];
 
 (*** Rules to Remove Induction Hypotheses after Type Checking ***)
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
     "[| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); P |] ==> \
 \    P";
 by (REPEAT (ares_tac prems 1));
 qed "rmIH1";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
     "[| ALL x:A. ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); P |] ==> \
 \    P";
 by (REPEAT (ares_tac prems 1));
 qed "rmIH2";
 
-val prems = goal Wfd.thy
+val prems = goal (the_context ())
  "[| ALL x:A. ALL y:B. ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z); \
 \    P |] ==> \
 \    P";

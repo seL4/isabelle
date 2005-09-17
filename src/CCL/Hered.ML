@@ -1,12 +1,8 @@
-(*  Title:      CCL/hered
+(*  Title:      CCL/Hered.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-For hered.thy.
 *)
-
-open Hered;
 
 fun type_of_terms (Const("Trueprop",_) $ (Const("op =",(Type ("fun", [t,_])))$_$_)) = t;
 
@@ -26,7 +22,7 @@ qed "HTTgenXH";
 Goal
   "t : HTT <-> t=true | t=false | (EX a b. t=<a,b> & a : HTT & b : HTT) | \
 \                                  (EX f. t=lam x. f(x) & (ALL x. f(x) : HTT))";
-by (rtac (rewrite_rule [HTTgen_def] 
+by (rtac (rewrite_rule [HTTgen_def]
                  (HTTgen_mono RS (HTT_def RS def_gfp_Tarski) RS XHlemma1)) 1);
 by (fast_tac set_cs 1);
 qed "HTTXH";
@@ -60,7 +56,7 @@ qed "HTT_lam";
 
 local
   val raw_HTTrews = [HTT_bot,HTT_true,HTT_false,HTT_pair,HTT_lam];
-  fun mk_thm s = prove_goalw Hered.thy data_defs s (fn _ => 
+  fun mk_thm s = prove_goalw (the_context ()) data_defs s (fn _ =>
                   [simp_tac (term_ss addsimps raw_HTTrews) 1]);
 in
   val HTT_rews = raw_HTTrews @
@@ -77,14 +73,14 @@ val HTT_Is = HTT_rews @ (HTT_rews RL [iffD2]);
 
 (*** Coinduction for HTT ***)
 
-val prems = goal Hered.thy "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT";
+val prems = goal (the_context ()) "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT";
 by (rtac (HTT_def RS def_coinduct) 1);
 by (REPEAT (ares_tac prems 1));
 qed "HTT_coinduct";
 
 fun HTT_coinduct_tac s i = res_inst_tac [("R",s)] HTT_coinduct i;
 
-val prems = goal Hered.thy 
+val prems = goal (the_context ())
     "[|  t : R;   R <= HTTgen(lfp(%x. HTTgen(x) Un R Un HTT)) |] ==> t : HTT";
 by (rtac (HTTgen_mono RSN(3,HTT_def RS def_coinduct3)) 1);
 by (REPEAT (ares_tac prems 1));
@@ -93,7 +89,7 @@ val HTT_coinduct3_raw = rewrite_rule [HTTgen_def] HTT_coinduct3;
 
 fun HTT_coinduct3_tac s i = res_inst_tac [("R",s)] HTT_coinduct3 i;
 
-val HTTgenIs = map (mk_genIs Hered.thy data_defs HTTgenXH HTTgen_mono)
+val HTTgenIs = map (mk_genIs (the_context ()) data_defs HTTgenXH HTTgen_mono)
        ["true : HTTgen(R)",
         "false : HTTgen(R)",
         "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)",
@@ -121,12 +117,12 @@ by (simp_tac (CCL_ss addsimps ([subsetXH,BoolXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 qed "BoolF";
 
-val prems = goal Hered.thy "[| A <= HTT;  B <= HTT |] ==> A + B  <= HTT";
+val prems = goal (the_context ()) "[| A <= HTT;  B <= HTT |] ==> A + B  <= HTT";
 by (simp_tac (CCL_ss addsimps ([subsetXH,PlusXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 qed "PlusF";
 
-val prems = goal Hered.thy 
+val prems = goal (the_context ())
      "[| A <= HTT;  !!x. x:A ==> B(x) <= HTT |] ==> SUM x:A. B(x) <= HTT";
 by (simp_tac (CCL_ss addsimps ([subsetXH,SgXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
@@ -146,38 +142,38 @@ val NatF = result();
 Goal "Nat <= HTT";
 by (safe_tac set_cs);
 by (etac HTT_coinduct3 1);
-by (fast_tac (set_cs addIs HTTgenIs 
+by (fast_tac (set_cs addIs HTTgenIs
                  addSEs [HTTgen_mono RS ci3_RI] addEs [XH_to_E NatXH]) 1);
 qed "NatF";
 
-val [prem] = goal Hered.thy "A <= HTT ==> List(A) <= HTT";
+val [prem] = goal (the_context ()) "A <= HTT ==> List(A) <= HTT";
 by (safe_tac set_cs);
 by (etac HTT_coinduct3 1);
-by (fast_tac (set_cs addSIs HTTgenIs 
-                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
+by (fast_tac (set_cs addSIs HTTgenIs
+                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)]
                  addEs [XH_to_E ListXH]) 1);
 qed "ListF";
 
-val [prem] = goal Hered.thy "A <= HTT ==> Lists(A) <= HTT";
+val [prem] = goal (the_context ()) "A <= HTT ==> Lists(A) <= HTT";
 by (safe_tac set_cs);
 by (etac HTT_coinduct3 1);
-by (fast_tac (set_cs addSIs HTTgenIs 
-                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
+by (fast_tac (set_cs addSIs HTTgenIs
+                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)]
                  addEs [XH_to_E ListsXH]) 1);
 qed "ListsF";
 
-val [prem] = goal Hered.thy "A <= HTT ==> ILists(A) <= HTT";
+val [prem] = goal (the_context ()) "A <= HTT ==> ILists(A) <= HTT";
 by (safe_tac set_cs);
 by (etac HTT_coinduct3 1);
-by (fast_tac (set_cs addSIs HTTgenIs 
-                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
+by (fast_tac (set_cs addSIs HTTgenIs
+                 addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)]
                  addEs [XH_to_E IListsXH]) 1);
 qed "IListsF";
 
 (*** A possible use for this predicate is proving equality from pre-order       ***)
 (*** but it seems as easy (and more general) to do this directly by coinduction ***)
 (*
-val prems = goal Hered.thy "[| t : HTT;  t [= u |] ==> u [= t";
+val prems = goal (the_context ()) "[| t : HTT;  t [= u |] ==> u [= t";
 by (po_coinduct_tac "{p. EX a b. p=<a,b> & b : HTT & b [= a}" 1);
 by (fast_tac (ccl_cs addIs prems) 1);
 by (safe_tac ccl_cs);
@@ -188,7 +184,7 @@ by (ALLGOALS (simp_tac (term_ss addsimps HTT_rews)));
 by (ALLGOALS (fast_tac ccl_cs));
 qed "HTT_po_op";
 
-val prems = goal Hered.thy "[| t : HTT;  t [= u |] ==> t = u";
+val prems = goal (the_context ()) "[| t : HTT;  t [= u |] ==> t = u";
 by (REPEAT (ares_tac (prems @ [conjI RS (eq_iff RS iffD2),HTT_po_op]) 1));
 qed "HTT_po_eq";
 *)
