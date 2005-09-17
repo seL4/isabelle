@@ -105,7 +105,7 @@ fun local_goal opt_chain goal stmt int =
   opt_chain #> goal (K (K Seq.single)) stmt int;
 
 fun global_goal goal kind a propp thy =
-  goal kind (K (K I)) NONE a [(("", []), [propp])] (ProofContext.init thy);
+  goal kind (K (K I)) (SOME "") a [(("", []), [propp])] (ProofContext.init thy);
 
 in
 
@@ -160,8 +160,7 @@ val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
 
 val forget_proof =
-  Toplevel.proof_to_theory (Sign.local_path o Sign.restore_naming ProtoPure.thy o   (* FIXME tmp *)
-    Proof.theory_of o ProofHistory.current) o
+  Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current) o
   Toplevel.skip_proof_to_theory (K true);
 
 
