@@ -10,3 +10,4 @@ val banner = "Barendregt's Lambda-Cube";
 writeln banner;
 
 use_thy "Cube";
+use_thy "Example";

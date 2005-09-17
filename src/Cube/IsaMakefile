@@ -6,9 +6,9 @@
 
 ## targets
 
-default: Cube
-images: Cube
-test: Cube-ex
+default: Pure-Cube
+images:
+test: Pure-Cube
 all: images test
 
 
@@ -19,26 +19,20 @@ OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
 
-## Cube
+## Pure-Cube
 
-Cube: Pure $(OUT)/Cube
+Pure-Cube: Pure $(LOG)/Pure-Cube.gz
 
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Cube: $(OUT)/Pure Cube.thy ROOT.ML
-	@$(ISATOOL) usedir -b $(OUT)/Pure Cube
+Pure-Cube: Pure $(LOG)/Pure-Cube.gz
 
-
-## Cube-ex
-
-Cube-ex: Cube $(LOG)/Cube-ex.gz
-
-$(LOG)/Cube-ex.gz: $(OUT)/Cube ex/ex.thy ex/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/Cube ex
+$(LOG)/Pure-Cube.gz: $(OUT)/Pure Cube.thy Example.thy ROOT.ML
+	@cd ..; $(ISATOOL) usedir $(OUT)/Pure Cube
 
 
 ## clean
 
 clean:
-	@rm -f $(OUT)/Cube $(LOG)/Cube.gz $(LOG)/Cube-ex.gz
+	@rm -f $(LOG)/Pure-Cube.gz
