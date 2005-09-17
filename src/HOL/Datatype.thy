@@ -206,4 +206,6 @@ lemma option_map_o_sum_case [simp]:
   apply (simp split add: sum.split)
   done
 
+lemmas [code] = imp_conv_disj
+
 end
