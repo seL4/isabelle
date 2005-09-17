@@ -22,6 +22,7 @@ sig
   val put_thms: string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
+  val put_facts: thm list option -> state -> state
   val assert_forward: state -> state
   val assert_chain: state -> state
   val assert_forward_or_chain: state -> state
@@ -83,25 +84,17 @@ sig
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
   val goal_names: string option -> string -> string list -> string
-  val generic_goal:
-   (context * 'a -> context * (term list list * (context -> context))) ->
-   string ->
-   (context * thm list -> thm list list -> state -> state Seq.seq) *
-   (context * thm list -> thm list list -> theory -> theory) ->
-   'a -> state -> state
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (theory -> 'a -> context attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> (context * thm list -> thm list list -> state -> state Seq.seq) ->
     ((string * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
-  val auto_fix: context * (term list list * 'a) ->
-    context * (term list list * 'a)
   val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
-   (theory -> 'a -> theory attribute) ->
-   (context * 'b list -> context * (term list list * (context -> context))) ->
-   string -> (context * thm list -> thm list list -> theory -> theory) -> string option ->
-   string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
+    (theory -> 'a -> theory attribute) ->
+    (context * 'b list -> context * (term list list * (context -> context))) ->
+    string -> (context * thm list -> thm list list -> theory -> theory) -> string option ->
+    string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
   val global_qed: Method.text option * bool -> state -> theory * context
   val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
   val local_default_proof: state -> state Seq.seq
@@ -470,8 +463,7 @@ fun conclude_goal state props goal =
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val {hyps, thy, ...} = Thm.rep_thm goal;
-    val casms = List.concat (map #1 (ProofContext.assumptions_of ctxt));
-    val bad_hyps = fold (remove (fn (asm, hyp) => Thm.term_of asm aconv hyp)) casms hyps;
+    val bad_hyps = fold (remove (op aconv)) (ProofContext.assms_of ctxt) hyps;
 
     val th = goal RS Drule.rev_triv_goal;
     val ths = Drule.conj_elim_precise (length props) th
@@ -745,7 +737,7 @@ fun prep_names prep_att stmt =
   in ((names, attss), propp) end;
 
 fun goal_names target name names =
-  (case target of NONE => "" | SOME loc => " (in " ^ loc ^ ")") ^
+  (case target of NONE => "" | SOME "" => "" | SOME loc => " (in " ^ loc ^ ")") ^
   (if name = "" then "" else " " ^ name) ^
   (case filter_out (equal "") names of [] => ""
   | nms => " " ^ enclose "(" ")" (space_implode " and " (Library.take (7, nms) @
@@ -794,6 +786,7 @@ fun generic_goal prepp kind after_qed raw_propp state =
     |> open_block
     |> put_goal NONE
     |> enter_backward
+    |> K (null props) ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
 fun generic_qed state =
@@ -840,9 +833,6 @@ fun local_qed txt =
 
 (* global goals *)
 
-fun auto_fix (ctxt, (propss, after_ctxt)) =
-  (ctxt |> ProofContext.fix_frees (List.concat propss), (propss, after_ctxt));
-
 fun global_goal print_results prep_att prepp
     kind after_qed target (name, raw_atts) stmt ctxt =
   let
@@ -852,19 +842,23 @@ fun global_goal print_results prep_att prepp
     val atts = map (prep_att thy) raw_atts;
     val ((names, attss), propp) = prep_names (prep_att thy) stmt;
 
-    fun after_qed' raw_results results =
-      (map o map) (ProofContext.export_standard ctxt thy_ctxt
-        #> Drule.strip_shyps_warning) results
-      |> (fn res => global_results kind ((names ~~ attss) ~~ res))
+    fun store_results prfx res =
+      K (prfx <> "") ? (Sign.add_path prfx #> Sign.no_base_names)
+      #> global_results kind ((names ~~ attss) ~~ res)
       #-> (fn res' =>
         (print_results thy_ctxt ((kind, name), res') : unit;
           #2 o global_results kind [((name, atts), List.concat (map #2 res'))]))
-      #> after_qed raw_results results;
+      #> Sign.restore_naming thy;
 
-    val prepp' = prepp #> auto_fix;
+    fun after_qed' raw_results results =
+      (case target of NONE => I
+      | SOME prfx => store_results (NameSpace.base prfx)
+          (map (map (ProofContext.export_standard ctxt thy_ctxt
+            #> Drule.strip_shyps_warning)) results))
+      #> after_qed raw_results results;
   in
     init ctxt
-    |> generic_goal prepp' (kind ^ goal_names target name names)
+    |> generic_goal (prepp #> ProofContext.auto_fix) (kind ^ goal_names target name names)
       (K (K Seq.single), after_qed') propp
   end;
 
