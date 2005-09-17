@@ -89,31 +89,18 @@ use "goals.ML";
 (*the IsaPlanner subsystem*)
 cd "IsaPlanner"; use "ROOT.ML"; cd "..";
 
-(*configuration for Proof General*)
-use "proof_general.ML";
-
 cd "Tools"; use "ROOT.ML"; cd "..";
+
+(*configuration for Proof General*)
+setmp proofs 1 use "proof_general.ML";
 
 use_thy "Pure"; structure Pure = struct val thy = theory "Pure" end;
 use_thy "CPure"; structure CPure = struct val thy = theory "CPure" end;
 
-
-(*several object-logics declare theories that hide basis library structures*)
-structure BasisLibrary =
-struct
-  structure List = List;
-  structure Option = Option;
-  structure Bool = Bool;
-  structure String = String;
-  structure Int = Int;
-  structure Real = Real;
-end;
-
+(*final ML setup*)
 use "install_pp.ML";
-
 val use = ThyInfo.use;
 val cd = File.cd o Path.unpack;
-
 ml_prompts "ML> " "ML# ";
 
 proofs := 0;
