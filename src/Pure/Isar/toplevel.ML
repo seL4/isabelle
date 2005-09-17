@@ -437,9 +437,13 @@ fun theory_context f =
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
-        if ! skip_proofs then SkipProof (History.init (undo_limit int) 0,
-          #1 (Proof.global_skip_proof int (f thy)))
-        else Proof (ProofHistory.init (undo_limit int) (f thy))
+      let val st = f thy in
+        if Theory.eq_thy (thy, Proof.theory_of st) then ()
+        else error "Theory changed at start of proof";
+        if ! skip_proofs then
+          SkipProof (History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int st))
+        else Proof (ProofHistory.init (undo_limit int) st)
+      end
     | _ => raise UNDEF));
 
 fun proof' f = map_current (fn int =>
