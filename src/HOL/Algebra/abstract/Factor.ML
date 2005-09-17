@@ -33,14 +33,14 @@ by (rtac (irred_dvd_list_lemma RS mp) 1);
 by (Auto_tac);
 qed "irred_dvd_list";
 
-Goalw [Factorisation_def] "!! c::'a::factorial. \
+Goalw [thm "Factorisation_def"] "!! c::'a::factorial. \
 \  [| irred c; Factorisation x factors u; c dvd x |] ==> \
 \  EX d. c assoc d & d : set factors";
 by (rtac (irred_dvd_list_lemma RS mp) 1);
 by (Auto_tac);
 qed "Factorisation_dvd";
 
-Goalw [Factorisation_def] "!! c::'a::factorial. \
+Goalw [thm "Factorisation_def"] "!! c::'a::factorial. \
 \  [| Factorisation x factors u; a : set factors |] ==> irred a";
 by (Blast_tac 1);
 qed "Factorisation_irred";

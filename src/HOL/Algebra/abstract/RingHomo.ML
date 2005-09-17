@@ -6,21 +6,21 @@
 
 (* Ring homomorphism *)
 
-Goalw [homo_def]
+Goalw [thm "homo_def"]
   "!! f. [| !! a b. f (a + b) = f a + f b; !! a b. f (a * b) = f a * f b; \
 \           f 1 = 1 |] ==> homo f";
 by Auto_tac;
 qed "homoI";
 
-Goalw [homo_def] "!! f. homo f ==> f (a + b) = f a + f b";
+Goalw [thm "homo_def"] "!! f. homo f ==> f (a + b) = f a + f b";
 by (Fast_tac 1);
 qed "homo_add";
 
-Goalw [homo_def] "!! f. homo f ==> f (a * b) = f a * f b";
+Goalw [thm "homo_def"] "!! f. homo f ==> f (a * b) = f a * f b";
 by (Fast_tac 1);
 qed "homo_mult";
 
-Goalw [homo_def] "!! f. homo f ==> f 1 = 1";
+Goalw [thm "homo_def"] "!! f. homo f ==> f 1 = 1";
 by (Fast_tac 1);
 qed "homo_one";
 

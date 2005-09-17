@@ -111,7 +111,7 @@ val monom_mult_is_smult = thm "monom_mult_is_smult";
 Goal
   "!! phi::('a::ring=>'b::ring). homo phi ==> homo (EVAL2 phi a)";
 by (rtac homoI 1);
-by (rewtac EVAL2_def);
+by (rewtac (thm "EVAL2_def"));
 (* + commutes *)
 (* degree estimations:
   bound of all sums can be extended to max (deg aa) (deg b) *)
@@ -153,18 +153,18 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "EVAL2_homo";
 
-Goalw [EVAL2_def]
+Goalw [thm "EVAL2_def"]
   "!! phi::'a::ring=>'b::ring. EVAL2 phi a (monom b 0) = phi b";
 by (Simp_tac 1);
 qed "EVAL2_const";
 
-Goalw [EVAL2_def]
+Goalw [thm "EVAL2_def"]
   "!! phi::'a::domain=>'b::ring. homo phi ==> EVAL2 phi a (monom 1 1) = a";
 (* Must be able to distinguish 0 from 1, hence 'a::domain *)
 by (Asm_simp_tac 1);
 qed "EVAL2_monom1";
 
-Goalw [EVAL2_def]
+Goalw [thm "EVAL2_def"]
   "!! phi::'a::domain=>'b::ring. homo phi ==> EVAL2 phi a (monom 1 n) = a ^ n";
 by (Simp_tac 1);
 by (case_tac "n" 1); 
@@ -194,23 +194,23 @@ by (asm_simp_tac (simpset()
     addsimps [EVAL2_homo, EVAL2_const, EVAL2_monom]) 1);
 qed "EVAL2_monom_n";
 
-Goalw [EVAL_def] "!! a::'a::ring. homo (EVAL a)";
+Goalw [thm "EVAL_def"] "!! a::'a::ring. homo (EVAL a)";
 by (asm_simp_tac (simpset() addsimps [EVAL2_homo]) 1);
 qed "EVAL_homo";
 
-Goalw [EVAL_def] "!! a::'a::ring. EVAL a (monom b 0) = b";
+Goalw [thm "EVAL_def"] "!! a::'a::ring. EVAL a (monom b 0) = b";
 by (asm_simp_tac (simpset() addsimps [EVAL2_const]) 1);
 qed "EVAL_const";
 
-Goalw [EVAL_def] "!! a::'a::domain. EVAL a (monom 1 n) = a ^ n";
+Goalw [thm "EVAL_def"] "!! a::'a::domain. EVAL a (monom 1 n) = a ^ n";
 by (asm_simp_tac (simpset() addsimps [EVAL2_monom]) 1);
 qed "EVAL_monom";
 
-Goalw [EVAL_def] "!! a::'a::ring. EVAL a (b *s p) = b * EVAL a p";
+Goalw [thm "EVAL_def"] "!! a::'a::ring. EVAL a (b *s p) = b * EVAL a p";
 by (asm_simp_tac (simpset() addsimps [EVAL2_smult]) 1);
 qed "EVAL_smult";
 
-Goalw [EVAL_def] "!! a::'a::domain. EVAL a (monom b n) = b * a ^ n";
+Goalw [thm "EVAL_def"] "!! a::'a::domain. EVAL a (monom b n) = b * a ^ n";
 by (asm_simp_tac (simpset() addsimps [EVAL2_monom_n]) 1);
 qed "EVAL_monom_n";
 

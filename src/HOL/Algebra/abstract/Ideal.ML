@@ -6,38 +6,38 @@
 
 (* is_ideal *)
 
-Goalw [is_ideal_def]
+Goalw [thm "is_ideal_def"]
   "!! I. [| !! a b. [| a:I; b:I |] ==> a + b : I; \
 \     !! a. a:I ==> - a : I; 0 : I; \
 \     !! a r. a:I ==> a * r : I |] ==> is_ideal I";
 by Auto_tac;
 qed "is_idealI";
 
-Goalw [is_ideal_def] "[| is_ideal I; a:I; b:I |] ==> a + b : I";
+Goalw [thm "is_ideal_def"] "[| is_ideal I; a:I; b:I |] ==> a + b : I";
 by (Fast_tac 1);
 qed "is_ideal_add";
 
-Goalw [is_ideal_def] "[| is_ideal I; a:I |] ==> - a : I";
+Goalw [thm "is_ideal_def"] "[| is_ideal I; a:I |] ==> - a : I";
 by (Fast_tac 1);
 qed "is_ideal_uminus";
 
-Goalw [is_ideal_def] "[| is_ideal I |] ==> 0 : I";
+Goalw [thm "is_ideal_def"] "[| is_ideal I |] ==> 0 : I";
 by (Fast_tac 1);
 qed "is_ideal_zero";
 
-Goalw [is_ideal_def] "[| is_ideal I; a:I |] ==> a * r : I";
+Goalw [thm "is_ideal_def"] "[| is_ideal I; a:I |] ==> a * r : I";
 by (Fast_tac 1);
 qed "is_ideal_mult";
 
-Goalw [dvd_def, is_ideal_def] "[| a dvd b; is_ideal I; a:I |] ==> b:I";
+Goalw [dvd_def, thm "is_ideal_def"] "[| a dvd b; is_ideal I; a:I |] ==> b:I";
 by (Fast_tac 1);
 qed "is_ideal_dvd";
 
-Goalw [is_ideal_def] "is_ideal (UNIV::('a::ring) set)";
+Goalw [thm "is_ideal_def"] "is_ideal (UNIV::('a::ring) set)";
 by Auto_tac;
 qed "UNIV_is_ideal";
 
-Goalw [is_ideal_def] "is_ideal {0::'a::ring}";
+Goalw [thm "is_ideal_def"] "is_ideal {0::'a::ring}";
 by Auto_tac;
 qed "zero_is_ideal";
 
@@ -69,21 +69,21 @@ qed "is_ideal_2";
 
 (* ideal_of *)
 
-Goalw [is_ideal_def, ideal_of_def] "is_ideal (ideal_of S)";
+Goalw [thm "is_ideal_def", thm "ideal_of_def"] "is_ideal (ideal_of S)";
 by (Blast_tac 1);  (* Here, blast_tac is much superior to fast_tac! *)
 qed "ideal_of_is_ideal";
 
-Goalw [ideal_of_def] "a:S ==> a : (ideal_of S)";
+Goalw [thm "ideal_of_def"] "a:S ==> a : (ideal_of S)";
 by Auto_tac;
 qed "generator_in_ideal";
 
-Goalw [ideal_of_def] "ideal_of {1::'a::ring} = UNIV";
+Goalw [thm "ideal_of_def"] "ideal_of {1::'a::ring} = UNIV";
 by (force_tac (claset() addDs [is_ideal_mult], 
   simpset() addsimps [l_one] delsimprocs [ring_simproc]) 1);
   (* FIXME: Zumkeller's order raises Domain exn *)
 qed "ideal_of_one_eq";
 
-Goalw [ideal_of_def] "ideal_of {} = {0::'a::ring}";
+Goalw [thm "ideal_of_def"] "ideal_of {} = {0::'a::ring}";
 by (rtac subset_antisym 1);
 by (rtac subsetI 1);
 by (dtac InterD 1);
@@ -91,7 +91,7 @@ by (assume_tac 2);
 by (auto_tac (claset(), simpset() addsimps [is_ideal_zero]));
 qed "ideal_of_empty_eq";
 
-Goalw [ideal_of_def] "ideal_of {a} = {x::'a::ring. a dvd x}";
+Goalw [thm "ideal_of_def"] "ideal_of {a} = {x::'a::ring. a dvd x}";
 by (rtac subset_antisym 1);
 by (rtac subsetI 1);
 by (dtac InterD 1);
@@ -100,7 +100,7 @@ by (auto_tac (claset() addIs [is_ideal_1], simpset()));
 by (asm_simp_tac (simpset() addsimps [is_ideal_dvd]) 1);
 qed "pideal_structure";
 
-Goalw [ideal_of_def]
+Goalw [thm "ideal_of_def"]
   "ideal_of {a, b} = {x::'a::ring. EX u v. x = a * u + b * v}";
 by (rtac subset_antisym 1);
 by (rtac subsetI 1);
@@ -117,7 +117,7 @@ by (Simp_tac 1);
 by (Simp_tac 1);
 qed "ideal_of_2_structure";
 
-Goalw [ideal_of_def] "A <= B ==> ideal_of A <= ideal_of B";
+Goalw [thm "ideal_of_def"] "A <= B ==> ideal_of A <= ideal_of B";
 by Auto_tac;
 qed "ideal_of_mono";
 
@@ -134,15 +134,15 @@ qed "element_generates_subideal";
 
 (* is_pideal *)
 
-Goalw [is_pideal_def] "is_pideal (I::('a::ring) set) ==> is_ideal I";
+Goalw [thm "is_pideal_def"] "is_pideal (I::('a::ring) set) ==> is_ideal I";
 by (fast_tac (claset() addIs [ideal_of_is_ideal]) 1);
 qed "is_pideal_imp_is_ideal";
 
-Goalw [is_pideal_def] "is_pideal (ideal_of {a::'a::ring})";
+Goalw [thm "is_pideal_def"] "is_pideal (ideal_of {a::'a::ring})";
 by (Fast_tac 1);
 qed "pideal_is_pideal";
 
-Goalw [is_pideal_def] "is_pideal I ==> EX a. I = ideal_of {a}";
+Goalw [thm "is_pideal_def"] "is_pideal I ==> EX a. I = ideal_of {a}";
 by (assume_tac 1);
 qed "is_pidealD";
 
@@ -284,8 +284,8 @@ by (rtac conjI 2);
 by (Clarify_tac 3);
 by (dres_inst_tac [("I", "ideal_of {a, b}"), ("x", "1")]
   irred_imp_max_ideal 3);
-by (auto_tac (claset() addIs [ideal_of_is_ideal, pid_ax],
-  simpset() addsimps [thm "irred_def", not_dvd_psubideal, pid_ax]));
+by (auto_tac (claset() addIs [ideal_of_is_ideal, thm "pid_ax"],
+  simpset() addsimps [thm "irred_def", not_dvd_psubideal, thm "pid_ax"]));
 by (full_simp_tac (simpset() addsimps [ideal_of_2_structure]) 1);
 by (Clarify_tac 1);
 by (dres_inst_tac [("f", "op* aa")] arg_cong 1);
@@ -311,7 +311,7 @@ Goal "[| is_ideal I; I ~= {0} |] ==> {0} < I";
 by (asm_simp_tac (simpset() addsimps [psubset_eq, not_sym, is_ideal_zero]) 1);
 qed "proper_ideal";
 
-Goalw [is_pideal_def] "is_ideal (I::('a::field) set) ==> is_pideal I";
+Goalw [thm "is_pideal_def"] "is_ideal (I::('a::field) set) ==> is_pideal I";
 by (case_tac "I = {0}" 1);
 by (res_inst_tac [("x", "0")] exI 1);
 by (asm_simp_tac (simpset() addsimps [ideal_of_zero_eq]) 1);
