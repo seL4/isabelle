@@ -17,7 +17,7 @@ sig
   val is_fixed: context -> string -> bool
   val is_known: context -> string -> bool
   val fixed_names_of: context -> string list
-  val assumptions_of: context -> (cterm list * exporter) list
+  val assms_of: context -> term list
   val prems_of: context -> thm list
   val fact_index_of: context -> FactIndex.T
   val init: theory -> context
@@ -136,6 +136,7 @@ sig
   val add_fixes: (string * typ option * Syntax.mixfix option) list -> context -> context
   val add_fixes_liberal: (string * typ option * Syntax.mixfix option) list -> context -> context
   val fix_frees: term list -> context -> context
+  val auto_fix: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_skolem: context -> string list -> term -> term
   val apply_case: RuleCases.T -> context
     -> context * ((indexname * term option) list * (string * term list) list)
@@ -213,6 +214,7 @@ fun map_context f = ContextData.map (fn Ctxt {syntax, asms, binds, thms, cases, 
 val syntax_of = #syntax o rep_context;
 
 val assumptions_of = #1 o #1 o #asms o rep_context;
+val assms_of = map Thm.term_of o List.concat o map #1 o assumptions_of;
 val prems_of = List.concat o map #2 o #2 o #1 o #asms o rep_context;
 val fixes_of = #2 o #asms o rep_context;
 val fixed_names_of = map #2 o fixes_of;
@@ -340,10 +342,8 @@ fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
 val string_of_typ = Pretty.string_of oo pretty_typ;
 val string_of_term = Pretty.string_of oo pretty_term;
 
-fun pretty_thm ctxt thm =
-  if ! Display.show_hyps then
-    Display.pretty_thm_aux (pp ctxt) false thm
-  else pretty_term ctxt (Thm.prop_of thm);
+fun pretty_thm ctxt th =
+  Display.pretty_thm_aux (pp ctxt) false true (assms_of ctxt) th;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
@@ -659,22 +659,23 @@ fun read_const ctxt c =
 
 fun warn_extra_tfrees ctxt1 ctxt2 =
   let
-    fun known_tfree a (Type (_, Ts)) = exists (known_tfree a) Ts
-      | known_tfree a (TFree (a', _)) = a = a'
-      | known_tfree _ _ = false;
+    fun occs_typ a (Type (_, Ts)) = exists (occs_typ a) Ts
+      | occs_typ a (TFree (b, _)) = a = b
+      | occs_typ _ (TVar _) = false;
+    fun occs_free a (Free (x, _)) =
+          (case def_type ctxt1 false (x, ~1) of
+            SOME T => if occs_typ a T then I else cons (a, x)
+          | NONE => cons (a, x))
+      | occs_free _ _ = I;
 
-    val extras =
-      Library.gen_rems Library.eq_fst (pairself (Symtab.dest o type_occs_of) (ctxt1, ctxt2))
-      |> map (fn (a, ts) => map (pair a) (List.mapPartial (try (#1 o Term.dest_Free)) ts))
-      |> List.concat
-      |> List.mapPartial (fn (a, x) =>
-          (case def_type ctxt1 false (x, ~1) of NONE => SOME (a, x)
-          | SOME T => if known_tfree a T then NONE else SOME (a, x)));
+    val occs1 = type_occs_of ctxt1 and occs2 = type_occs_of ctxt2;
+    val extras = Symtab.fold (fn (a, ts) =>
+      if Symtab.defined occs1 a then I else fold (occs_free a) ts) occs2 [];
     val tfrees = map #1 extras |> Library.sort_strings |> Library.unique_strings;
     val frees = map #2 extras |> Library.sort_strings |> Library.unique_strings;
   in
     if null extras then ()
-    else warning ("Just introduced free type variable(s): " ^ commas tfrees ^ " in " ^
+    else warning ("Introduced fixed type variable(s): " ^ commas tfrees ^ " in " ^
       space_implode " or " frees);
     ctxt2
   end;
@@ -1216,6 +1217,8 @@ fun fix_frees ts ctxt =
     val frees = fold Term.add_frees ts [];
     fun new (x, T) = if is_fixed ctxt x then NONE else SOME ([x], SOME T);
   in fix_direct false (rev (List.mapPartial new frees)) ctxt end;
+
+fun auto_fix (ctxt, (propss, x)) = (ctxt |> fix_frees (List.concat propss), (propss, x));
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
