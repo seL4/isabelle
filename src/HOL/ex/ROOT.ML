@@ -51,4 +51,4 @@ time_use_thy "Quickcheck_Examples";
 no_document use_thy "Word";
 time_use_thy "Adder";
 
-no_document time_use_thy "Hebrew";
+HTML.with_charset "utf-8" (no_document time_use_thy) "Hebrew";
