@@ -918,6 +918,11 @@ bindings for all theorems stored within a given theory; this may help
 in porting non-Isar theories to Isar ones, while keeping ML proof
 scripts for the time being.
 
+* ML operator HTML.with_charset specifies the charset begin used for
+generated HTML files.  For example:
+
+  HTML.with_charset "utf-8" use_thy "Hebrew";
+
 
 *** System ***
 
