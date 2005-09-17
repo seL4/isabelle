@@ -443,23 +443,29 @@ fun protect_tyvarname s =
 	s |> no_quest |> beg_prime
     end
 
-fun protect_varname s =
-    let
-	fun no_beg_underscore s =
-	    if String.isPrefix "_" s
-	    then "dummy" ^ s
-	    else s
-    in
-	s |> no_beg_underscore
-    end
+val protected_varnames = ref (Symtab.empty:string Symtab.table)
+val invented_isavar = ref (IntInf.fromInt 0)
 
-local
+fun protect_varname s =
+    if Syntax.is_identifier s then s else
+    case Symtab.lookup (!protected_varnames) s of
+      SOME t => t
+    | NONE => 
+      let
+	  val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
+	  val t = "invented_isavar_"^(IntInf.toString (!invented_isavar))
+          val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
+      in
+	  t
+      end
+
+(*local
   val sg = theory "Main"
 in
   fun is_valid_bound_varname s = (read_cterm sg ("SOME "^s^" . True", TypeInfer.logicT); true) handle _ => false
-end
+end*)
 
-fun protect_boundvarname s = if is_valid_bound_varname s then s else "u"
+fun protect_boundvarname s = if Syntax.is_identifier s then s else "u"
 
 fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
   | mk_lambda (v as Var ((x, _), T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
@@ -496,7 +502,10 @@ fun protect_tyname tyn =
     tyn'
   end
 
-fun protect_constname tcn = implode (map (fn c => if c = "." then "_dot_" else c) (explode tcn))
+fun protect_constname tcn = tcn 
+ (* if tcn = ".." then "dotdot"
+  else if tcn = "==" then "eqeq"
+  else tcn*)
 
 structure TypeNet =
 struct

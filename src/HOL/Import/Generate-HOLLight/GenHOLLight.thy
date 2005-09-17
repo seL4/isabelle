@@ -41,6 +41,10 @@ type_maps
   num > nat;
  (* sum > "+";*)
 
+const_renames
+  "==" > "eqeq"
+  ".." > "dotdot";
+
 const_maps
   T > True
   F > False
