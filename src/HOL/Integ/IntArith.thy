@@ -226,7 +226,7 @@ apply (auto simp add: abs_if nat_mult_distrib [symmetric]
 done
 
 
-subsubsection "Induction principles for int"
+subsection "Induction principles for int"
 
                      (* `set:int': dummy construction *)
 theorem int_ge_induct[case_names base step,induct set:int]:

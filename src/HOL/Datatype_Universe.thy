@@ -145,7 +145,7 @@ apply (fast intro!: apfst_conv nat_case_Suc [THEN trans])
 done
 
 
-subsubsection{*Freeness: Distinctness of Constructors*}
+subsection{*Freeness: Distinctness of Constructors*}
 
 (** Scons vs Atom **)
 

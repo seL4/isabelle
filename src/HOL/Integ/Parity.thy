@@ -3,7 +3,7 @@
     Author:     Jeremy Avigad
 *)
 
-header {* Parity: Even and Odd for ints and nats*}
+header {* Even and Odd for ints and nats*}
 
 theory Parity
 imports Divides IntDiv NatSimprocs
@@ -397,7 +397,7 @@ lemmas power_even_abs_number_of = power_even_abs [of "number_of w" _, standard]
 declare power_even_abs_number_of [simp]
 
 
-subsection {* An Equivalence for @{term "0 \<le> a^n"} *}
+subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
 
 lemma even_power_le_0_imp_0:
      "a ^ (2*k) \<le> (0::'a::{ordered_idom,recpower}) ==> a=0"

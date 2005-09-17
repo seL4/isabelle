@@ -346,7 +346,7 @@ lemmas divide_const_simps =
   divide_less_eq_number_of eq_divide_eq_number_of divide_eq_eq_number_of
   le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
 
-subsubsection{*Division By @{term "-1"}*}
+subsubsection{*Division By @{text "-1"}*}
 
 lemma divide_minus1 [simp]:
      "x/-1 = -(x::'a::{field,division_by_zero,number_ring})" 
