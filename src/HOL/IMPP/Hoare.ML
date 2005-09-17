@@ -6,8 +6,8 @@
 Soundness and relative completeness of Hoare rules wrt operational semantics
 *)
 
-Goalw [state_not_singleton_def] 
-	"state_not_singleton ==> !t. (!s::state. s = t) --> False";
+Goalw [state_not_singleton_def]
+        "state_not_singleton ==> !t. (!s::state. s = t) --> False";
 by (Clarify_tac 1);
 by (case_tac "ta = t" 1);
 by  (ALLGOALS (blast_tac (HOL_cs addDs [not_sym])));
@@ -18,7 +18,7 @@ Addsimps[peek_and_def];
 
 section "validity";
 
-Goalw [triple_valid_def] 
+Goalw [triple_valid_def]
   "|=n:{P}.c.{Q} = (!Z s. P Z s --> (!s'. <c,s> -n-> s' --> Q Z s'))";
 by Auto_tac;
 qed "triple_valid_def2";
@@ -105,16 +105,16 @@ qed "thin";
 Goal "G'||-ts ==> !G. G' <= G --> G||-ts";
 by (etac hoare_derivs.induct 1);
 by                (ALLGOALS (EVERY'[Clarify_tac, REPEAT o smp_tac 1]));
-by (rtac 		  hoare_derivs.empty 1);
+by (rtac                  hoare_derivs.empty 1);
 by               (eatac hoare_derivs.insert 1 1);
 by              (fast_tac (claset() addIs [hoare_derivs.asm]) 1);
 by             (fast_tac (claset() addIs [hoare_derivs.cut]) 1);
 by            (fast_tac (claset() addIs [hoare_derivs.weaken]) 1);
 by           (EVERY'[rtac hoare_derivs.conseq, strip_tac, smp_tac 2,Clarify_tac,
-	             smp_tac 1,rtac exI, rtac exI, eatac conjI 1] 1);
-by          (EVERY'[rtac hoare_derivs.Body,dtac spec,etac mp,Fast_tac] 7); 
-by         (ALLGOALS (resolve_tac ((funpow 5 tl) hoare_derivs.intrs)
-	              THEN_ALL_NEW Fast_tac));
+                     smp_tac 1,rtac exI, rtac exI, eatac conjI 1] 1);
+by          (EVERY'[rtac hoare_derivs.Body,dtac spec,etac mp,Fast_tac] 7);
+by         (ALLGOALS (resolve_tac ((funpow 5 tl) hoare_derivs.intros)
+                      THEN_ALL_NEW Fast_tac));
 qed_spec_mp "thin";
 
 Goal "G|-{P}. the (body pn) .{Q} ==> G|-{P}. BODY pn .{Q}";
@@ -178,8 +178,8 @@ by           (Blast_tac 1);
 by          (Blast_tac 1); (* asm *)
 by         (Blast_tac 1); (* cut *)
 by        (Blast_tac 1); (* weaken *)
-by       (ALLGOALS (EVERY'[REPEAT o thin_tac "?x : hoare_derivs", 
-	                   Simp_tac, Clarify_tac, REPEAT o smp_tac 1]));
+by       (ALLGOALS (EVERY'[REPEAT o thin_tac "?x : hoare_derivs",
+                           Simp_tac, Clarify_tac, REPEAT o smp_tac 1]));
 by       (ALLGOALS (full_simp_tac (simpset() addsimps [triple_valid_def2])));
 by       (EVERY'[strip_tac, smp_tac 2, Blast_tac] 1); (* conseq *)
 by      (ALLGOALS Clarsimp_tac); (* Skip, Ass, Local *)
@@ -212,17 +212,12 @@ by (dtac single_stateE 1);
 by (Blast_tac 1);
 qed "MGT_alternD";
 
-Goalw [MGT_def] 
+Goalw [MGT_def]
  "{}|-(MGT c::state triple) ==> {}|={P}.c.{Q} ==> {}|-{P}.c.{Q::state assn}";
 by (etac conseq12 1);
-by (clarsimp_tac (claset(), simpset() addsimps 
+by (clarsimp_tac (claset(), simpset() addsimps
   [hoare_valids_def,eval_eq,triple_valid_def2]) 1);
 qed "MGF_complete";
-
-val WTs_elim_cases = map WTs.mk_cases
-   ["WT SKIP", "WT (X:==a)", "WT (LOCAL Y:=a IN c)", 
-    "WT (c1;;c2)","WT (IF b THEN c1 ELSE c2)", "WT (WHILE b DO c)",
-    "WT (BODY P)", "WT (X:=CALL P(a))"];
 
 AddSEs WTs_elim_cases;
 (* requires com_det, escape (i.e. hoare_derivs.conseq) *)
@@ -234,15 +229,15 @@ by        (fast_tac (claset() addIs [(thm"domI")]) 7);
 by (etac MGT_alternD 6);
 by       (rewtac MGT_def);
 by       (EVERY'[dtac bspec, etac (thm"domI")] 7);
-by       (EVERY'[rtac escape, Clarsimp_tac, res_inst_tac 
-	     [("P1","%Z' s. s=(setlocs Z newlocs)[Loc Arg ::= fun Z]")]
-	     (hoare_derivs.Call RS conseq1), etac conseq12] 7);
+by       (EVERY'[rtac escape, Clarsimp_tac, res_inst_tac
+             [("P1","%Z' s. s=(setlocs Z newlocs)[Loc Arg ::= fun Z]")]
+             (hoare_derivs.Call RS conseq1), etac conseq12] 7);
 by        (ALLGOALS (etac thin_rl));
 by (rtac (hoare_derivs.Skip RS conseq2) 1);
 by (rtac (hoare_derivs.Ass RS conseq1) 2);
-by        (EVERY'[rtac escape, Clarsimp_tac, res_inst_tac 
-	          [("P1","%Z' s. s=(Z[Loc loc::=fun Z])")] 
-		  (hoare_derivs.Local RS conseq1), etac conseq12] 3);
+by        (EVERY'[rtac escape, Clarsimp_tac, res_inst_tac
+                  [("P1","%Z' s. s=(Z[Loc loc::=fun Z])")]
+                  (hoare_derivs.Local RS conseq1), etac conseq12] 3);
 by         (EVERY'[etac hoare_derivs.Comp, etac conseq12] 5);
 by         ((rtac hoare_derivs.If THEN_ALL_NEW etac conseq12) 6);
 by          (EVERY'[rtac (hoare_derivs.Loop RS conseq2), etac conseq12] 8);
@@ -278,7 +273,7 @@ by   (eresolve_tac (tl(tl(tl(premises())))) 3);
 by   (Fast_tac 1);
 by (dtac finite_subset 1);
 by (etac finite_imageI 1);
-by (Asm_simp_tac 1); 
+by (Asm_simp_tac 1);
 by (arith_tac 1);
 qed_spec_mp "nesting_lemma";
 
@@ -329,8 +324,8 @@ by (rotate_tac 2 1);
 by (make_imp_tac 1);
 by (etac finite_induct 1);
 by  (ALLGOALS (clarsimp_tac (
-	claset() addSIs [hoare_derivs.empty,hoare_derivs.insert],
-	simpset() delsimps [range_composition])));
+        claset() addSIs [hoare_derivs.empty,hoare_derivs.insert],
+        simpset() delsimps [range_composition])));
 by (etac MGF_lemma1 1);
 by  (fast_tac (claset() addDs [WT_bodiesD]) 2);
 by (Clarsimp_tac 1);
@@ -354,7 +349,7 @@ by (rtac subset_refl 1);
 qed "MGF'";
 
 (* requires Body+empty+insert / BodyN, com_det *)
-bind_thm ("hoare_complete", MGF' RS MGF_complete); 
+bind_thm ("hoare_complete", MGF' RS MGF_complete);
 
 section "unused derived rules";
 

@@ -4,21 +4,8 @@
     Copyright   1999 TUM
 *)
 
-open Natural;
-
-AddIs evalc.intrs;
-AddIs evaln.intrs;
-
-val evalc_elim_cases = map evalc.mk_cases
-   ["<SKIP,s> -c-> t", "<X:==a,s> -c-> t", "<LOCAL Y:=a IN c,s> -c-> t", 
-    "<c1;;c2,s> -c-> t","<IF b THEN c1 ELSE c2,s> -c-> t",
-    "<BODY P,s> -c-> s1", "<X:=CALL P(a),s> -c-> s1"];
-val evaln_elim_cases = map evaln.mk_cases
-   ["<SKIP,s> -n-> t", "<X:==a,s> -n-> t", "<LOCAL Y:=a IN c,s> -n-> t",
-    "<c1;;c2,s> -n-> t","<IF b THEN c1 ELSE c2,s> -n-> t",
-    "<BODY P,s> -n-> s1", "<X:=CALL P(a),s> -n-> s1"];
-val evalc_WHILE_case = evalc.mk_cases "<WHILE b DO c,s> -c-> t";
-val evaln_WHILE_case = evaln.mk_cases "<WHILE b DO c,s> -n-> t";
+AddIs evalc.intros;
+AddIs evaln.intros;
 
 AddSEs evalc_elim_cases;
 AddSEs evaln_elim_cases;
@@ -33,7 +20,7 @@ qed_spec_mp "com_det";
 
 Goal "<c,s> -n-> t ==> <c,s> -c-> t";
 by (etac evaln.induct 1);
-by (ALLGOALS (resolve_tac evalc.intrs THEN_ALL_NEW atac));
+by (ALLGOALS (resolve_tac evalc.intros THEN_ALL_NEW atac));
 qed "evaln_evalc";
 
 Goal "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'";
@@ -46,7 +33,7 @@ qed "Suc_le_D_lemma";
 Goal "<c,s> -n-> t ==> !m. n<=m --> <c,s> -m-> t";
 by (etac evaln.induct 1);
 by (ALLGOALS (EVERY'[strip_tac,TRY o etac Suc_le_D_lemma, REPEAT o smp_tac 1]));
-by (ALLGOALS (resolve_tac evaln.intrs THEN_ALL_NEW atac));
+by (ALLGOALS (resolve_tac evaln.intros THEN_ALL_NEW atac));
 qed_spec_mp "evaln_nonstrict";
 
 Goal "<c,s> -n-> s' ==> <c,s> -Suc n-> s'";
@@ -64,7 +51,7 @@ Goal "<c,s> -c-> t ==> ? n. <c,s> -n-> t";
 by (etac evalc.induct 1);
 by (ALLGOALS (REPEAT o etac exE));
 by (TRYALL(EVERY'[datac evaln_max2 1, REPEAT o eresolve_tac [exE, conjE]]));
-by (ALLGOALS (rtac exI THEN' resolve_tac evaln.intrs THEN_ALL_NEW atac));
+by (ALLGOALS (rtac exI THEN' resolve_tac evaln.intros THEN_ALL_NEW atac));
 qed "evalc_evaln";
 
 Goal "<c,s> -c-> t = (? n. <c,s> -n-> t)";

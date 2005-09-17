@@ -4,7 +4,7 @@
     Copyright   1999 TUM
 *)
 
-section "even"; 
+section "even";
 
 Goalw [even_def] "even 0";
 by (Simp_tac 1);
@@ -71,14 +71,14 @@ by (Clarsimp_tac 1);
 by (res_inst_tac [("Q","%Z s. ?P Z s & Res_ok Z s")] hoare_derivs.Comp 1);
 by (rtac export_s 1);
 by  (res_inst_tac [("I1","%Z l. Z = l Arg & 0 < Z"),
-		   ("Q1","Res_ok")] (Call_invariant RS conseq12) 1);
+                   ("Q1","Res_ok")] (Call_invariant RS conseq12) 1);
 by (rtac (single_asm RS conseq2) 1);
 by   (clarsimp_tac Arg_Res_css 1);
 by  (force_tac Arg_Res_css 1);
 by (rtac export_s 1);
 by (res_inst_tac [("I1","%Z l. even Z = (l Res = 0)"),
-		  ("Q1","%Z s. even Z = (s<Arg> = 0)")]
-		 (Call_invariant RS conseq12) 1);
+                  ("Q1","%Z s. even Z = (s<Arg> = 0)")]
+                 (Call_invariant RS conseq12) 1);
 by (rtac (single_asm RS conseq2) 1);
 by  (clarsimp_tac Arg_Res_css 1);
 by (force_tac Arg_Res_css 1);
@@ -97,7 +97,7 @@ qed "Even_ok_N";
 
 Goal "{}|-{Z=Arg+0}. BODY Even .{Res_ok}";
 by (rtac conseq1 1);
-by  (res_inst_tac [("Procs","{Odd, Even}"), ("pn","Even"), 
+by  (res_inst_tac [("Procs","{Odd, Even}"), ("pn","Even"),
       ("P","%pn. Z=Arg+(if pn = Odd then 1 else 0)"),
       ("Q","%pn. Res_ok")] Body1 1);
 by    Auto_tac;
