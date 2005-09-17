@@ -911,6 +911,8 @@ fun number_of_codegen thy defs gr s thyname b (Const ("Numeral.number_of",
 
 setup {* [Codegen.add_codegen "number_of_codegen" number_of_codegen] *}
 
+quickcheck_params [default_type = int]
+
 
 (*Legacy ML bindings, but no longer the structure Int.*)
 ML
