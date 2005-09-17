@@ -2,10 +2,6 @@ For Isabelle2005:
 
 - update course material slides to new theory headers (Tobias)
 
-- attach additional ML code to consts_code section (Stefan)
-
-- modular generation of ML code with structures (Stefan)
-
 - Library/ExecutableSet.thy (Stefan)
 
 - a global "disprove" menu item both as an action and (if it can be done)
@@ -16,8 +12,6 @@ For Isabelle2005:
 - update or remove ex/MT (Larry)  
 
 - Include IsaPlanner? (Larry to co-ordinate)
-
-- rules -> iprover (Stefan)
 
 - ball, bex and setsum congruence rules (Tobias & Stefan)
 
