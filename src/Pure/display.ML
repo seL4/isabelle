@@ -77,16 +77,17 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val prt_term = q o (Pretty.term pp);
 
     val hyps' = if ! show_hyps then hyps else fold (remove (op aconv)) asms hyps;
+    val ora' = ora andalso (! show_hyps orelse not (! quick_and_dirty));
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
-      if hlen = 0 andalso not ora then []
+      if hlen = 0 andalso not ora' then []
       else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
           (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps' @
            map (Pretty.sort pp) xshyps @
-            (if ora then [Pretty.str "!"] else []))]
+            (if ora' then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
-        (if ora then "!" else "") ^ "]")];
+        (if ora' then "!" else "") ^ "]")];
     val tsymbs =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];
