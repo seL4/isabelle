@@ -2,20 +2,9 @@
     ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
 
-Isabelle configuration for Proof General (see http://proofgeneral.inf.ed.ac.uk)
-Includes support for PGIP control language for Isabelle/Isar.
-
-===========================================================================
-NOTE: With this version you will lose support for the Isabelle
-settings menu in the currently released version of Proof General (3.5).
-No other changes should be visible in the Emacs interface.
-
-The 3.6pre pre-release versions of Emacs Proof General now support the
-new PGIP format for preferences and restore the settings menu.
-Please visit http://proofgeneral.inf.ed.ac.uk/develdownload
-===========================================================================
-
-STATUS: this version is an experimental version that supports PGIP 2.X.
+Isabelle configuration for Proof General (see
+http://proofgeneral.inf.ed.ac.uk).  Also includes experimental support
+for PGIP control language for Isabelle/Isar (PGIP 2.X).
 *)
 
 signature PROOF_GENERAL =
