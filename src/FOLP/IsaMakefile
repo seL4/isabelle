@@ -26,7 +26,7 @@ FOLP: Pure $(OUT)/FOLP
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/FOLP: $(OUT)/Pure FOLP.ML FOLP.thy IFOLP.ML IFOLP.thy ROOT.ML \
+$(OUT)/FOLP: $(OUT)/Pure FOLP_lemmas.ML FOLP.thy IFOLP.ML IFOLP.thy ROOT.ML \
   classical.ML hypsubst.ML intprover.ML simp.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOLP
 

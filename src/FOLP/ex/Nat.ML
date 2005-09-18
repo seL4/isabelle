@@ -2,16 +2,7 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
-Examples for the manual "Introduction to Isabelle"
-
-Proofs about the natural numbers
-
-To generate similar output to manual, execute these commands:
-    Pretty.setmargin 72; print_depth 0;
 *)
-
-open Nat;
 
 Goal "?p : ~ (Suc(k) = k)";
 by (res_inst_tac [("n","k")] induct 1);
@@ -42,23 +33,23 @@ by (rtac rec_Suc 1);
 val add_Suc = result();
 
 (*
-val nat_congs = mk_congs Nat.thy ["Suc", "op +"];
+val nat_congs = mk_congs (the_context ()) ["Suc", "op +"];
 prths nat_congs;
 *)
-val prems = goal Nat.thy "p: x=y ==> ?p : Suc(x) = Suc(y)";
+val prems = goal (the_context ()) "p: x=y ==> ?p : Suc(x) = Suc(y)";
 by (resolve_tac (prems RL [subst]) 1);
 by (rtac refl 1);
 val Suc_cong = result();
 
-val prems = goal Nat.thy "[| p : a=x;  q: b=y |] ==> ?p : a+b=x+y";
-by (resolve_tac (prems RL [subst]) 1 THEN resolve_tac (prems RL [subst]) 1 THEN 
+val prems = goal (the_context ()) "[| p : a=x;  q: b=y |] ==> ?p : a+b=x+y";
+by (resolve_tac (prems RL [subst]) 1 THEN resolve_tac (prems RL [subst]) 1 THEN
     rtac refl 1);
 val Plus_cong = result();
 
 val nat_congs = [Suc_cong,Plus_cong];
 
 
-val add_ss = FOLP_ss  addcongs nat_congs  
+val add_ss = FOLP_ss  addcongs nat_congs
                      addrews  [add_0, add_Suc];
 
 Goal "?p : (k+m)+n = k+(m+n)";
@@ -79,4 +70,3 @@ by (ALLGOALS (ASM_SIMP_TAC add_ss));
 val add_Suc_right = result();
 
 (*mk_typed_congs appears not to work with FOLP's version of subst*)
-

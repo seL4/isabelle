@@ -3,13 +3,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Simplification data for FOLP
+Simplification data for FOLP.
 *)
 
 (*** Rewrite rules ***)
 
-fun int_prove_fun_raw s = 
-    (writeln s;  prove_goal IFOLP.thy s
+fun int_prove_fun_raw s =
+    (writeln s;  prove_goal (the_context ()) s
        (fn prems => [ (cut_facts_tac prems 1), (IntPr.fast_tac 1) ]));
 
 fun int_prove_fun s = int_prove_fun_raw ("?p : "^s);
@@ -32,7 +32,7 @@ val not_rews = map int_prove_fun
 
 val imp_rews = map int_prove_fun
  ["(P --> False) <-> ~P",       "(P --> True) <-> True",
-  "(False --> P) <-> True",     "(True --> P) <-> P", 
+  "(False --> P) <-> True",     "(True --> P) <-> P",
   "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
 
 val iff_rews = map int_prove_fun
@@ -70,7 +70,7 @@ val not_P_imp_P_iff_F = int_prove_fun_raw "p:~P ==> ?p:(P <-> False)";
 fun mk_eq th = case concl_of th of
       _ $ (Const("op <->",_)$_$_) $ _ => th
     | _ $ (Const("op =",_)$_$_) $ _ => th
-    | _ $ (Const("Not",_)$_) $ _ => th RS not_P_imp_P_iff_F 
+    | _ $ (Const("Not",_)$_) $ _ => th RS not_P_imp_P_iff_F
     | _ => make_iff_T th;
 
 
@@ -113,12 +113,12 @@ structure FOLP_SimpData : SIMP_DATA =
 structure FOLP_Simp = SimpFun(FOLP_SimpData);
 
 (*not a component of SIMP_DATA, but an argument of SIMP_TAC *)
-val FOLP_congs = 
+val FOLP_congs =
    [all_cong,ex_cong,eq_cong,
     conj_cong,disj_cong,imp_cong,iff_cong,not_cong] @ pred_congs;
 
 val IFOLP_rews =
-   [refl_iff_T] @ conj_rews @ disj_rews @ not_rews @ 
+   [refl_iff_T] @ conj_rews @ disj_rews @ not_rews @
     imp_rews @ iff_rews @ quant_rews;
 
 open FOLP_Simp;
@@ -128,8 +128,8 @@ val auto_ss = empty_ss setauto ares_tac [TrueI];
 val IFOLP_ss = auto_ss addcongs FOLP_congs addrews IFOLP_rews;
 
 (*Classical version...*)
-fun prove_fun s = 
-    (writeln s;  prove_goal FOLP.thy s
+fun prove_fun s =
+    (writeln s;  prove_goal (the_context ()) s
        (fn prems => [ (cut_facts_tac prems 1), (Cla.fast_tac FOLP_cs 1) ]));
 
 val cla_rews = map prove_fun
@@ -139,5 +139,3 @@ val cla_rews = map prove_fun
 val FOLP_rews = IFOLP_rews@cla_rews;
 
 val FOLP_ss = auto_ss addcongs FOLP_congs addrews FOLP_rews;
-
-

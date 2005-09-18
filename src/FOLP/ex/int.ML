@@ -15,8 +15,6 @@ by (IntPr.mp_tac 1);
 by (IntPr.fast_tac 1);
 *)
 
-writeln"File FOLP/ex/int.ML";
-
 (*Note: for PROPOSITIONAL formulae...
   ~A is classically provable iff it is intuitionistically provable.  
   Therefore A is classically provable iff ~~A is intuitionistically provable.
@@ -29,34 +27,34 @@ since ~~Q is intuitionistically provable.  Finally, if P is a negation then
 ~~P is intuitionstically equivalent to P.  [Andy Pitts]
 *)
 
-goal IFOLP.thy "?p : ~~(P&Q) <-> ~~P & ~~Q";
+goal (theory "IFOLP") "?p : ~~(P&Q) <-> ~~P & ~~Q";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : ~~~P <-> ~P";
+goal (theory "IFOLP") "?p : ~~~P <-> ~P";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : ~~((P --> Q | R)  -->  (P-->Q) | (P-->R))";
+goal (theory "IFOLP") "?p : ~~((P --> Q | R)  -->  (P-->Q) | (P-->R))";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : (P<->Q) <-> (Q<->P)";
+goal (theory "IFOLP") "?p : (P<->Q) <-> (Q<->P)";
 by (IntPr.fast_tac 1);
 result();
 
 
 writeln"Lemmas for the propositional double-negation translation";
 
-goal IFOLP.thy "?p : P --> ~~P";
+goal (theory "IFOLP") "?p : P --> ~~P";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : ~~(~~P --> P)";
+goal (theory "IFOLP") "?p : ~~(~~P --> P)";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : ~~P & ~~(P --> Q) --> ~~Q";
+goal (theory "IFOLP") "?p : ~~P & ~~(P --> Q) --> ~~Q";
 by (IntPr.fast_tac 1);
 result();
 
@@ -64,12 +62,12 @@ result();
 writeln"The following are classically but not constructively valid.";
 
 (*The attempt to prove them terminates quickly!*)
-goal IFOLP.thy "?p : ((P-->Q) --> P)  -->  P";
+goal (theory "IFOLP") "?p : ((P-->Q) --> P)  -->  P";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
 
-goal IFOLP.thy "?p : (P&Q-->R)  -->  (P-->R) | (Q-->R)";
+goal (theory "IFOLP") "?p : (P&Q-->R)  -->  (P-->R) | (Q-->R)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1;  
 
@@ -77,99 +75,99 @@ getgoal 1;
 writeln"Intuitionistic FOL: propositional problems based on Pelletier.";
 
 writeln"Problem ~~1";
-goal IFOLP.thy "?p : ~~((P-->Q)  <->  (~Q --> ~P))";
+goal (theory "IFOLP") "?p : ~~((P-->Q)  <->  (~Q --> ~P))";
 by (IntPr.fast_tac 1);
 result();
 (*5 secs*)
 
 
 writeln"Problem ~~2";
-goal IFOLP.thy "?p : ~~(~~P  <->  P)";
+goal (theory "IFOLP") "?p : ~~(~~P  <->  P)";
 by (IntPr.fast_tac 1);
 result();
 (*1 secs*)
 
 
 writeln"Problem 3";
-goal IFOLP.thy "?p : ~(P-->Q) --> (Q-->P)";
+goal (theory "IFOLP") "?p : ~(P-->Q) --> (Q-->P)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~4";
-goal IFOLP.thy "?p : ~~((~P-->Q)  <->  (~Q --> P))";
+goal (theory "IFOLP") "?p : ~~((~P-->Q)  <->  (~Q --> P))";
 by (IntPr.fast_tac 1);
 result();
 (*9 secs*)
 
 writeln"Problem ~~5";
-goal IFOLP.thy "?p : ~~((P|Q-->P|R) --> P|(Q-->R))";
+goal (theory "IFOLP") "?p : ~~((P|Q-->P|R) --> P|(Q-->R))";
 by (IntPr.fast_tac 1);
 result();
 (*10 secs*)
 
 
 writeln"Problem ~~6";
-goal IFOLP.thy "?p : ~~(P | ~P)";
+goal (theory "IFOLP") "?p : ~~(P | ~P)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~7";
-goal IFOLP.thy "?p : ~~(P | ~~~P)";
+goal (theory "IFOLP") "?p : ~~(P | ~~~P)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~8.  Peirce's law";
-goal IFOLP.thy "?p : ~~(((P-->Q) --> P)  -->  P)";
+goal (theory "IFOLP") "?p : ~~(((P-->Q) --> P)  -->  P)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 9";
-goal IFOLP.thy "?p : ((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)";
+goal (theory "IFOLP") "?p : ((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)";
 by (IntPr.fast_tac 1);
 result();
 (*9 secs*)
 
 
 writeln"Problem 10";
-goal IFOLP.thy "?p : (Q-->R) --> (R-->P&Q) --> (P-->(Q|R)) --> (P<->Q)";
+goal (theory "IFOLP") "?p : (Q-->R) --> (R-->P&Q) --> (P-->(Q|R)) --> (P<->Q)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"11.  Proved in each direction (incorrectly, says Pelletier!!) ";
-goal IFOLP.thy "?p : P<->P";
+goal (theory "IFOLP") "?p : P<->P";
 by (IntPr.fast_tac 1);
 
 writeln"Problem ~~12.  Dijkstra's law  ";
-goal IFOLP.thy "?p : ~~(((P <-> Q) <-> R)  <->  (P <-> (Q <-> R)))";
+goal (theory "IFOLP") "?p : ~~(((P <-> Q) <-> R)  <->  (P <-> (Q <-> R)))";
 by (IntPr.fast_tac 1);
 result();
 
-goal IFOLP.thy "?p : ((P <-> Q) <-> R)  -->  ~~(P <-> (Q <-> R))";
+goal (theory "IFOLP") "?p : ((P <-> Q) <-> R)  -->  ~~(P <-> (Q <-> R))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 13.  Distributive law";
-goal IFOLP.thy "?p : P | (Q & R)  <-> (P | Q) & (P | R)";
+goal (theory "IFOLP") "?p : P | (Q & R)  <-> (P | Q) & (P | R)";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~14";
-goal IFOLP.thy "?p : ~~((P <-> Q) <-> ((Q | ~P) & (~Q|P)))";
+goal (theory "IFOLP") "?p : ~~((P <-> Q) <-> ((Q | ~P) & (~Q|P)))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~15";
-goal IFOLP.thy "?p : ~~((P --> Q) <-> (~P | Q))";
+goal (theory "IFOLP") "?p : ~~((P --> Q) <-> (~P | Q))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~16";
-goal IFOLP.thy "?p : ~~((P-->Q) | (Q-->P))";
+goal (theory "IFOLP") "?p : ~~((P-->Q) | (Q-->P))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem ~~17";
-goal IFOLP.thy
+goal (theory "IFOLP")
   "?p : ~~(((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S)))";
 by (IntPr.fast_tac 1);
 (*over 5 minutes?? -- printing the proof term takes 40 secs!!*)
@@ -180,23 +178,23 @@ writeln"** Examples with quantifiers **";
 
 writeln"The converse is classical in the following implications...";
 
-goal IFOLP.thy "?p : (EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q";
+goal (theory "IFOLP") "?p : (EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : ((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
+goal (theory "IFOLP") "?p : ((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : ((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))";
+goal (theory "IFOLP") "?p : ((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : (ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)";
+goal (theory "IFOLP") "?p : (ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOLP.thy "?p : (EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))";
+goal (theory "IFOLP") "?p : (EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))";
 by (IntPr.fast_tac 1);
 result();  
 
@@ -206,24 +204,24 @@ result();
 writeln"The following are not constructively valid!";
 (*The attempt to prove them terminates quickly!*)
 
-goal IFOLP.thy "?p : ((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)";
+goal (theory "IFOLP") "?p : ((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOLP.thy "?p : (P --> (EX x. Q(x))) --> (EX x. P-->Q(x))";
+goal (theory "IFOLP") "?p : (P --> (EX x. Q(x))) --> (EX x. P-->Q(x))";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOLP.thy "?p : (ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)";
+goal (theory "IFOLP") "?p : (ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOLP.thy "?p : (ALL x. ~~P(x)) --> ~~(ALL x. P(x))";
+goal (theory "IFOLP") "?p : (ALL x. ~~P(x)) --> ~~(ALL x. P(x))";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
 (*Classically but not intuitionistically valid.  Proved by a bug in 1986!*)
-goal IFOLP.thy "?p : EX x. Q(x) --> (ALL x. Q(x))";
+goal (theory "IFOLP") "?p : EX x. Q(x) --> (ALL x. Q(x))";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
@@ -234,36 +232,36 @@ writeln"Hard examples with quantifiers";
   Some will require quantifier duplication -- not currently available*)
 
 writeln"Problem ~~18";
-goal IFOLP.thy "?p : ~~(EX y. ALL x. P(y)-->P(x))";
+goal (theory "IFOLP") "?p : ~~(EX y. ALL x. P(y)-->P(x))";
 (*NOT PROVED*)
 
 writeln"Problem ~~19";
-goal IFOLP.thy "?p : ~~(EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x)))";
+goal (theory "IFOLP") "?p : ~~(EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x)))";
 (*NOT PROVED*)
 
 writeln"Problem 20";
-goal IFOLP.thy "?p : (ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
+goal (theory "IFOLP") "?p : (ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
 \   --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))";
 by (IntPr.fast_tac 1); 
 result();
 
 writeln"Problem 21";
-goal IFOLP.thy
+goal (theory "IFOLP")
     "?p : (EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))";
 (*NOT PROVED*)
 
 writeln"Problem 22";
-goal IFOLP.thy "?p : (ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))";
+goal (theory "IFOLP") "?p : (ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))";
 by (IntPr.fast_tac 1); 
 result();
 
 writeln"Problem ~~23";
-goal IFOLP.thy "?p : ~~ ((ALL x. P | Q(x))  <->  (P | (ALL x. Q(x))))";
+goal (theory "IFOLP") "?p : ~~ ((ALL x. P | Q(x))  <->  (P | (ALL x. Q(x))))";
 by (IntPr.best_tac 1);  
 result();
 
 writeln"Problem 24";
-goal IFOLP.thy "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
+goal (theory "IFOLP") "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
 \    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> ~~(EX x. P(x)&R(x))";
 (*Not clear why fast_tac, best_tac, ASTAR and ITER_DEEPEN all take forever*)
@@ -274,7 +272,7 @@ by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 25";
-goal IFOLP.thy "?p : (EX x. P(x)) &  \
+goal (theory "IFOLP") "?p : (EX x. P(x)) &  \
 \       (ALL x. L(x) --> ~ (M(x) & R(x))) &  \
 \       (ALL x. P(x) --> (M(x) & L(x))) &   \
 \       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
@@ -283,21 +281,21 @@ by (IntPr.best_tac 1);
 result();
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
-goal IFOLP.thy "?p : (EX x. P(x)) & (EX y. Q(y))  \
+goal (theory "IFOLP") "?p : (EX x. P(x)) & (EX y. Q(y))  \
 \   --> ((ALL x. P(x)-->R(x)) & (ALL y. Q(y)-->S(y))   <->     \
 \        (ALL x y. P(x) & Q(y) --> R(x) & S(y)))";
 by (IntPr.fast_tac 1); 
 result();
 
 writeln"Problem ~~30";
-goal IFOLP.thy "?p : (ALL x. (P(x) | Q(x)) --> ~ R(x)) & \
+goal (theory "IFOLP") "?p : (ALL x. (P(x) | Q(x)) --> ~ R(x)) & \
 \       (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))  \
 \   --> (ALL x. ~~S(x))";
 by (IntPr.fast_tac 1);  
 result();
 
 writeln"Problem 31";
-goal IFOLP.thy "?p : ~(EX x. P(x) & (Q(x) | R(x))) & \
+goal (theory "IFOLP") "?p : ~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
@@ -305,7 +303,7 @@ by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 32";
-goal IFOLP.thy "?p : (ALL x. P(x) & (Q(x)|R(x))-->S(x)) & \
+goal (theory "IFOLP") "?p : (ALL x. P(x) & (Q(x)|R(x))-->S(x)) & \
 \       (ALL x. S(x) & R(x) --> L(x)) & \
 \       (ALL x. M(x) --> R(x))  \
 \   --> (ALL x. P(x) & M(x) --> L(x))";
@@ -313,18 +311,18 @@ by (IntPr.best_tac 1);  (*SLOW*)
 result();
 
 writeln"Problem 39";
-goal IFOLP.thy "?p : ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
+goal (theory "IFOLP") "?p : ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 40.  AMENDED";
-goal IFOLP.thy "?p : (EX y. ALL x. F(x,y) <-> F(x,x)) -->  \
+goal (theory "IFOLP") "?p : (EX y. ALL x. F(x,y) <-> F(x,x)) -->  \
 \             ~(ALL x. EX y. ALL z. F(z,y) <-> ~ F(z,x))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 44";
-goal IFOLP.thy "?p : (ALL x. f(x) -->                                   \
+goal (theory "IFOLP") "?p : (ALL x. f(x) -->                                   \
 \             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &       \
 \             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
 \             --> (EX x. j(x) & ~f(x))";
@@ -332,34 +330,32 @@ by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 48";
-goal IFOLP.thy "?p : (a=b | c=d) & (a=c | b=d) --> a=d | b=c";
+goal (theory "IFOLP") "?p : (a=b | c=d) & (a=c | b=d) --> a=d | b=c";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 51";
-goal IFOLP.thy
+goal (theory "IFOLP")
     "?p : (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
 by (IntPr.best_tac 1);  (*60 seconds*)
 result();
 
 writeln"Problem 56";
-goal IFOLP.thy
+goal (theory "IFOLP")
     "?p : (ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 57";
-goal IFOLP.thy
+goal (theory "IFOLP")
     "?p : P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) & \
 \    (ALL x y z. P(x,y) & P(y,z) --> P(x,z))    -->   P(f(a,b), f(a,c))";
 by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 60";
-goal IFOLP.thy
+goal (theory "IFOLP")
     "?p : ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 by (IntPr.fast_tac 1);
 result();
-
-writeln"Reached end of file.";

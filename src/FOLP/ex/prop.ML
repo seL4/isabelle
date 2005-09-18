@@ -7,9 +7,6 @@ First-Order Logic: propositional examples (intuitionistic and classical)
 Needs declarations of the theory "thy" and the tactic "tac"
 *)
 
-writeln"File FOLP/ex/prop.ML";
-
-
 writeln"commutative laws of & and | ";
 Goal "?p : P & Q  -->  Q & P";
 by tac;
@@ -149,5 +146,3 @@ Goal "?p : (((P8 --> P2) --> P9) --> P3 --> P10) \
 \    --> (P1 --> P3) --> (P1 --> P8) --> P6 --> P7 --> P5";
 by tac;
 result();
-
-writeln"Reached end of file.";
