@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Executes all examples for Classical Logic. 
+Examples for Classical Logic.
 *)
 
 time_use "prop.ML";

@@ -1,33 +1,38 @@
 
+(* $Id$ *)
 
-(* code by Sara Kalvala, based on Paulson's LK 
+(* code by Sara Kalvala, based on Paulson's LK
                            and Moore's tisl.ML *)
 
-washing = ILL +
+theory washing
+imports ILL
+begin
 
 consts
+  dollar :: o
+  quarter :: o
+  loaded :: o
+  dirty :: o
+  wet :: o
+  clean :: o
 
-dollar,quarter,loaded,dirty,wet,clean        :: "o"			
-
-  
-rules
-
-
-  change
+axioms
+  change:
   "dollar |- (quarter >< quarter >< quarter >< quarter)"
 
-  load1
+  load1:
   "quarter , quarter , quarter , quarter , quarter |- loaded"
 
-  load2
+  load2:
   "dollar , quarter |- loaded"
 
-  wash
+  wash:
   "loaded , dirty |- wet"
 
-  dry
+  dry:
   "wet, quarter , quarter , quarter |- clean"
+
+ML {* use_legacy_bindings (the_context ()) *}
 
 end
 
-  

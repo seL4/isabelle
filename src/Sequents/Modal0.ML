@@ -4,19 +4,19 @@
     Copyright   1991  University of Cambridge
 *)
 
-structure Modal0_rls = 
+structure Modal0_rls =
 struct
 
-val rewrite_rls = [Modal0.strimp_def,Modal0.streqv_def];
+val rewrite_rls = [strimp_def,streqv_def];
 
 local
-  val iffR = prove_goal thy 
+  val iffR = prove_goal (the_context ())
       "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
    (fn prems=>
     [ (rewtac iff_def),
       (REPEAT (resolve_tac (prems@[conjR,impR]) 1)) ]);
 
-  val iffL = prove_goal thy 
+  val iffL = prove_goal (the_context ())
      "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
    (fn prems=>
     [ rewtac iff_def,

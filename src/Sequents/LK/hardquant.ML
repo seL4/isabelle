@@ -12,25 +12,23 @@ From  F. J. Pelletier,
 Uses pc_tac rather than fast_tac when the former is significantly faster.
 *)
 
-writeln"File LK/ex/hard-quant.";
-
-context LK.thy;
+context (theory "LK");
 
 Goal "|- (ALL x. P(x) & Q(x)) <-> (ALL x. P(x))  &  (ALL x. Q(x))";
 by (Fast_tac 1);
-result(); 
+result();
 
 Goal "|- (EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))";
 by (Fast_tac 1);
-result(); 
+result();
 
 Goal "|- (EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q";
 by (Fast_tac 1);
-result(); 
+result();
 
 Goal "|- (ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (Fast_tac 1);
-result(); 
+result();
 
 writeln"Problems requiring quantifier duplication";
 
@@ -53,7 +51,7 @@ writeln"Hard examples with quantifiers";
 writeln"Problem 18";
 Goal "|- EX y. ALL x. P(y)-->P(x)";
 by (best_tac LK_dup_pack 1);
-result(); 
+result();
 
 writeln"Problem 19";
 Goal "|- EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))";
@@ -63,7 +61,7 @@ result();
 writeln"Problem 20";
 Goal "|- (ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
 \   --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))";
-by (Fast_tac 1); 
+by (Fast_tac 1);
 result();
 
 writeln"Problem 21";
@@ -73,12 +71,12 @@ result();
 
 writeln"Problem 22";
 Goal "|- (ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))";
-by (Fast_tac 1); 
+by (Fast_tac 1);
 result();
 
 writeln"Problem 23";
 Goal "|- (ALL x. P | Q(x))  <->  (P | (ALL x. Q(x)))";
-by (best_tac LK_pack 1);  
+by (best_tac LK_pack 1);
 result();
 
 writeln"Problem 24";
@@ -94,7 +92,7 @@ Goal "|- (EX x. P(x)) &  \
 \       (ALL x. P(x) --> (M(x) & L(x))) &   \
 \       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
 \   --> (EX x. Q(x)&P(x))";
-by (best_tac LK_pack 1);  
+by (best_tac LK_pack 1);
 result();
 
 writeln"Problem 26";
@@ -110,7 +108,7 @@ Goal "|- (EX x. P(x) & ~Q(x)) &   \
 \             (ALL x. M(x) & L(x) --> P(x)) &   \
 \             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
 \         --> (ALL x. M(x) --> ~L(x))";
-by (pc_tac LK_pack 1); 
+by (pc_tac LK_pack 1);
 result();
 
 writeln"Problem 28.  AMENDED";
@@ -118,21 +116,21 @@ Goal "|- (ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       ((ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
 \       ((EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
-by (pc_tac LK_pack 1);  
+by (pc_tac LK_pack 1);
 result();
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
 Goal "|- (EX x. P(x)) & (EX y. Q(y))  \
 \   --> ((ALL x. P(x)-->R(x)) & (ALL y. Q(y)-->S(y))   <->     \
 \        (ALL x y. P(x) & Q(y) --> R(x) & S(y)))";
-by (pc_tac LK_pack 1); 
+by (pc_tac LK_pack 1);
 result();
 
 writeln"Problem 30";
 Goal "|- (ALL x. P(x) | Q(x) --> ~ R(x)) & \
 \       (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))  \
 \   --> (ALL x. S(x))";
-by (Fast_tac 1);  
+by (Fast_tac 1);
 result();
 
 writeln"Problem 31";
@@ -238,7 +236,7 @@ Goal "|- (ALL x. f(x) & (ALL y. g(y) & h(x,y) --> j(x,y))        \
 \     (EX x. f(x) & (ALL y. h(x,y) --> l(y))                    \
 \                  & (ALL y. g(y) & h(x,y) --> j(x,y)))         \
 \     --> (EX x. f(x) & ~ (EX y. g(y) & h(x,y)))";
-by (best_tac LK_pack 1); 
+by (best_tac LK_pack 1);
 result();
 
 
@@ -249,7 +247,7 @@ Goal "|- (a=b | c=d) & (a=c | b=d) --> a=d | b=c";
 by (fast_tac (pack() add_safes [subst]) 1);
 result();
 
-writeln"Problem 50";  
+writeln"Problem 50";
 Goal "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))";
 by (best_tac LK_dup_pack 1);
 result();
@@ -287,7 +285,7 @@ result();
 writeln"Problem 59";
 (*Unification works poorly here -- the abstraction %sobj prevents efficient
   operation of the occurs check*)
-Unify.trace_bound := !Unify.search_bound - 1; 
+Unify.trace_bound := !Unify.search_bound - 1;
 Goal "|- (ALL x. P(x) <-> ~P(f(x))) --> (EX x. P(x) & ~P(f(x)))";
 by (best_tac LK_dup_pack 1);
 result();
@@ -304,8 +302,7 @@ Goal "|- (ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->     \
 by (Fast_tac 1);
 result();
 
-writeln"Reached end of file.";
-
 (*18 June 92: loaded in 372 secs*)
 (*19 June 92: loaded in 166 secs except #34, using repeat_goal_tac*)
 (*29 June 92: loaded in 370 secs*)
+(*18 September 2005: loaded in 1.809 secs*)

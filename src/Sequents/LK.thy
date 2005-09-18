@@ -1,4 +1,4 @@
-(*  Title:      LK/LK
+(*  Title:      LK/LK.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -13,12 +13,20 @@ CANNOT be added to LK0.thy because modal logic is built upon it, and
 various modal rules would become inconsistent.
 *)
 
-LK = LK0 +
+theory LK
+imports LK0
+uses ("simpdata.ML")
+begin
 
-rules
+axioms
 
-  monotonic  "($H |- P ==> $H |- Q) ==> $H, P |- Q"
+  monotonic:  "($H |- P ==> $H |- Q) ==> $H, P |- Q"
 
-  left_cong  "[| P == P';  |- P' ==> ($H |- $F) == ($H' |- $F') |] 
-              ==> (P, $H |- $F) == (P', $H' |- $F')"
+  left_cong:  "[| P == P';  |- P' ==> ($H |- $F) == ($H' |- $F') |]
+               ==> (P, $H |- $F) == (P', $H' |- $F')"
+
+ML {* use_legacy_bindings (the_context ()) *}
+
+use "simpdata.ML"
+
 end

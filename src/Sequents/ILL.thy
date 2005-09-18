@@ -1,11 +1,12 @@
-(*  Title:      ILL.thy
+(*  Title:      Sequents/ILL.thy
     ID:         $Id$
     Author:     Sara Kalvala and Valeria de Paiva
     Copyright   1995  University of Cambridge
 *)
 
-
-ILL = Sequents +
+theory ILL
+imports Sequents
+begin
 
 consts
   Trueprop       :: "two_seqi"
@@ -35,98 +36,93 @@ syntax
   "@Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
   "@PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
+parse_translation {*
+  [("@Trueprop", single_tr "Trueprop"),
+   ("@Context", two_seq_tr "Context"),
+   ("@PromAux", three_seq_tr "PromAux")] *}
+
+print_translation {*
+  [("Trueprop", single_tr' "@Trueprop"),
+   ("Context", two_seq_tr'"@Context"),
+   ("PromAux", three_seq_tr'"@PromAux")] *}
+
 defs
 
-liff_def        "P o-o Q == (P -o Q) >< (Q -o P)"
+liff_def:        "P o-o Q == (P -o Q) >< (Q -o P)"
 
-aneg_def        "~A == A -o 0"
-
-
+aneg_def:        "~A == A -o 0"
 
 
-rules
+axioms
 
-identity        "P |- P"
+identity:        "P |- P"
 
-zerol           "$G, 0, $H |- A"
+zerol:           "$G, 0, $H |- A"
 
   (* RULES THAT DO NOT DIVIDE CONTEXT *)
 
-derelict   "$F, A, $G |- C ==> $F, !A, $G |- C"
+derelict:   "$F, A, $G |- C ==> $F, !A, $G |- C"
   (* unfortunately, this one removes !A  *)
 
-contract  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C"
+contract:  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C"
 
-weaken     "$F, $G |- C ==> $G, !A, $F |- C"
+weaken:     "$F, $G |- C ==> $G, !A, $F |- C"
   (* weak form of weakening, in practice just to clean context *)
   (* weaken and contract not needed (CHECK)  *)
 
-promote2        "promaux{ || $H || B} ==> $H |- !B"
-promote1        "promaux{!A, $G || $H || B}
-                 ==> promaux {$G || $H, !A || B}"
-promote0        "$G |- A ==> promaux {$G || || A}"
+promote2:        "promaux{ || $H || B} ==> $H |- !B"
+promote1:        "promaux{!A, $G || $H || B}
+                  ==> promaux {$G || $H, !A || B}"
+promote0:        "$G |- A ==> promaux {$G || || A}"
 
 
 
-tensl     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C"
+tensl:     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C"
 
-impr      "A, $F |- B ==> $F |- A -o B"
+impr:      "A, $F |- B ==> $F |- A -o B"
 
-conjr           "[| $F |- A ;
+conjr:           "[| $F |- A ;
                  $F |- B |]
                 ==> $F |- (A && B)"
 
-conjll          "$G, A, $H |- C ==> $G, A && B, $H |- C"
+conjll:          "$G, A, $H |- C ==> $G, A && B, $H |- C"
 
-conjlr          "$G, B, $H |- C ==> $G, A && B, $H |- C"
+conjlr:          "$G, B, $H |- C ==> $G, A && B, $H |- C"
 
-disjrl          "$G |- A ==> $G |- A ++ B"
-disjrr          "$G |- B ==> $G |- A ++ B"
-disjl           "[| $G, A, $H |- C ;
-                    $G, B, $H |- C |]
-                ==> $G, A ++ B, $H |- C"
+disjrl:          "$G |- A ==> $G |- A ++ B"
+disjrr:          "$G |- B ==> $G |- A ++ B"
+disjl:           "[| $G, A, $H |- C ;
+                     $G, B, $H |- C |]
+                 ==> $G, A ++ B, $H |- C"
 
 
       (* RULES THAT DIVIDE CONTEXT *)
 
-tensr           "[| $F, $J :=: $G;
-                    $F |- A ;
-                    $J |- B     |]
-                    ==> $G |- A >< B"
+tensr:           "[| $F, $J :=: $G;
+                     $F |- A ;
+                     $J |- B     |]
+                     ==> $G |- A >< B"
 
-impl            "[| $G, $F :=: $J, $H ;
-                    B, $F |- C ;
-                       $G |- A |]
-                    ==> $J, A -o B, $H |- C"
+impl:            "[| $G, $F :=: $J, $H ;
+                     B, $F |- C ;
+                        $G |- A |]
+                     ==> $J, A -o B, $H |- C"
 
 
-cut " [| $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
-         $H1, $H2, $H3, $H4 |- A ;
-         $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B"
+cut: " [| $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
+          $H1, $H2, $H3, $H4 |- A ;
+          $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B"
 
 
   (* CONTEXT RULES *)
 
-context1     "$G :=: $G"
-context2     "$F, $G :=: $H, !A, $G ==> $F, A, $G :=: $H, !A, $G"
-context3     "$F, $G :=: $H, $J ==> $F, A, $G :=: $H, A, $J"
-context4a    "$F :=: $H, $G ==> $F :=: $H, !A, $G"
-context4b    "$F, $H :=: $G ==> $F, !A, $H :=: $G"
-context5     "$F, $G :=: $H ==> $G, $F :=: $H"
+context1:     "$G :=: $G"
+context2:     "$F, $G :=: $H, !A, $G ==> $F, A, $G :=: $H, !A, $G"
+context3:     "$F, $G :=: $H, $J ==> $F, A, $G :=: $H, A, $J"
+context4a:    "$F :=: $H, $G ==> $F :=: $H, !A, $G"
+context4b:    "$F, $H :=: $G ==> $F, !A, $H :=: $G"
+context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
 
-
-
+ML {* use_legacy_bindings (the_context ()) *}
 
 end
-
-ML
-
-val parse_translation = [("@Trueprop",Sequents.single_tr "Trueprop"),
-                         ("@Context",Sequents.two_seq_tr "Context"),
-                         ("@PromAux", Sequents.three_seq_tr "PromAux")];
-
-val print_translation = [("Trueprop",Sequents.single_tr' "@Trueprop"),
-                         ("Context",Sequents.two_seq_tr'"@Context"),
-                         ("PromAux", Sequents.three_seq_tr'"@PromAux")];
-
-

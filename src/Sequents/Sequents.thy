@@ -1,29 +1,29 @@
-(*  Title: 	Sequents/Sequents.thy
+(*  Title:      Sequents/Sequents.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-Basis theory for parsing and pretty-printing of sequences to be used in
-Sequent Calculi. 
 *)
 
-Sequents = Pure +
+header {* Parsing and pretty-printing of sequences *}
+
+theory Sequents
+imports Pure
+uses ("prover.ML")
+begin
 
 global
 
-types
-  o 
-
+typedecl o
 
 (* Sequences *)
 
-types
+typedecl
  seq'
 
 consts
- SeqO'         :: [o,seq']=>seq'
- Seq1'         :: o=>seq'
-    
+ SeqO'         :: "[o,seq']=>seq'"
+ Seq1'         :: "o=>seq'"
+
 
 (* concrete syntax *)
 
@@ -32,37 +32,33 @@ nonterminals
 
 
 syntax
- SeqEmp         :: seq                                ("")
- SeqApp         :: [seqobj,seqcont] => seq            ("__")
+ SeqEmp         :: seq                                  ("")
+ SeqApp         :: "[seqobj,seqcont] => seq"            ("__")
 
- SeqContEmp     :: seqcont                            ("")
- SeqContApp     :: [seqobj,seqcont] => seqcont        (",/ __")
-  
- SeqO           :: o => seqobj                        ("_")
- SeqId          :: 'a => seqobj                       ("$_")
+ SeqContEmp     :: seqcont                              ("")
+ SeqContApp     :: "[seqobj,seqcont] => seqcont"        (",/ __")
+
+ SeqO           :: "o => seqobj"                        ("_")
+ SeqId          :: "'a => seqobj"                       ("$_")
 
 types
-    
- single_seqe = [seq,seqobj] => prop
- single_seqi = [seq'=>seq',seq'=>seq'] => prop
- two_seqi    = [seq'=>seq', seq'=>seq'] => prop
- two_seqe    = [seq, seq] => prop
- three_seqi  = [seq'=>seq', seq'=>seq', seq'=>seq'] => prop
- three_seqe  = [seq, seq, seq] => prop
- four_seqi   = [seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop
- four_seqe   = [seq, seq, seq, seq] => prop
+ single_seqe = "[seq,seqobj] => prop"
+ single_seqi = "[seq'=>seq',seq'=>seq'] => prop"
+ two_seqi    = "[seq'=>seq', seq'=>seq'] => prop"
+ two_seqe    = "[seq, seq] => prop"
+ three_seqi  = "[seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+ three_seqe  = "[seq, seq, seq] => prop"
+ four_seqi   = "[seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+ four_seqe   = "[seq, seq, seq, seq] => prop"
 
-
- sequence_name = seq'=>seq'
+ sequence_name = "seq'=>seq'"
 
 
 syntax
   (*Constant to allow definitions of SEQUENCES of formulas*)
-  "@Side"        :: seq=>(seq'=>seq')     ("<<(_)>>")
+  "@Side"        :: "seq=>(seq'=>seq')"     ("<<(_)>>")
 
-end
-
-ML
+ML {*
 
 (* parse translation for sequences *)
 
@@ -70,49 +66,49 @@ fun abs_seq' t = Abs("s", Type("seq'",[]), t);
 
 fun seqobj_tr(Const("SeqO",_) $ f) = Const("SeqO'",dummyT) $ f |
     seqobj_tr(_ $ i) = i;
-    
+
 fun seqcont_tr(Const("SeqContEmp",_)) = Bound 0 |
-    seqcont_tr(Const("SeqContApp",_) $ so $ sc) = 
+    seqcont_tr(Const("SeqContApp",_) $ so $ sc) =
       (seqobj_tr so) $ (seqcont_tr sc);
 
 fun seq_tr(Const("SeqEmp",_)) = abs_seq'(Bound 0) |
-    seq_tr(Const("SeqApp",_) $ so $ sc) = 
+    seq_tr(Const("SeqApp",_) $ so $ sc) =
       abs_seq'(seqobj_tr(so) $ seqcont_tr(sc));
 
 
 fun singlobj_tr(Const("SeqO",_) $ f) =
     abs_seq' ((Const("SeqO'",dummyT) $ f) $ Bound 0);
-    
 
-    
+
+
 (* print translation for sequences *)
 
-fun seqcont_tr' (Bound 0) = 
+fun seqcont_tr' (Bound 0) =
       Const("SeqContEmp",dummyT) |
     seqcont_tr' (Const("SeqO'",_) $ f $ s) =
-      Const("SeqContApp",dummyT) $ 
-      (Const("SeqO",dummyT) $ f) $ 
+      Const("SeqContApp",dummyT) $
+      (Const("SeqO",dummyT) $ f) $
       (seqcont_tr' s) |
-(*    seqcont_tr' ((a as Abs(_,_,_)) $ s)= 
+(*    seqcont_tr' ((a as Abs(_,_,_)) $ s)=
       seqcont_tr'(betapply(a,s)) | *)
-    seqcont_tr' (i $ s) = 
-      Const("SeqContApp",dummyT) $ 
-      (Const("SeqId",dummyT) $ i) $ 
+    seqcont_tr' (i $ s) =
+      Const("SeqContApp",dummyT) $
+      (Const("SeqId",dummyT) $ i) $
       (seqcont_tr' s);
 
 fun seq_tr' s =
-    let fun seq_itr' (Bound 0) = 
+    let fun seq_itr' (Bound 0) =
               Const("SeqEmp",dummyT) |
             seq_itr' (Const("SeqO'",_) $ f $ s) =
-              Const("SeqApp",dummyT) $ 
+              Const("SeqApp",dummyT) $
               (Const("SeqO",dummyT) $ f) $ (seqcont_tr' s) |
 (*            seq_itr' ((a as Abs(_,_,_)) $ s) =
               seq_itr'(betapply(a,s)) |    *)
             seq_itr' (i $ s) =
-              Const("SeqApp",dummyT) $ 
-              (Const("SeqId",dummyT) $ i) $ 
+              Const("SeqApp",dummyT) $
+              (Const("SeqId",dummyT) $ i) $
               (seqcont_tr' s)
-    in case s of 
+    in case s of
          Abs(_,_,t) => seq_itr' t |
          _ => s $ (Bound 0)
     end;
@@ -138,22 +134,28 @@ fun singlobj_tr'(Const("SeqO'",_) $ fm) = fm |
 
 
 fun single_tr' c [s1, s2] =
-(Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 ); 
+(Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 );
 
 
 fun two_seq_tr' c [s1, s2] =
-  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2; 
+  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2;
 
 fun three_seq_tr' c [s1, s2, s3] =
-  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 $ seq_tr' s3; 
+  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 $ seq_tr' s3;
 
 fun four_seq_tr' c [s1, s2, s3, s4] =
-  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 $ seq_tr' s3 $ seq_tr' s4; 
+  Const (c, dummyT) $ seq_tr' s1 $ seq_tr' s2 $ seq_tr' s3 $ seq_tr' s4;
 
 
-			 
+
 (** for the <<...>> notation **)
-  
-fun side_tr [s1] = seq_tr s1;
 
-val parse_translation = [("@Side", side_tr)];
+fun side_tr [s1] = seq_tr s1;
+*}
+
+parse_translation {* [("@Side", side_tr)] *}
+
+use "prover.ML"
+
+end
+

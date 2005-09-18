@@ -1,10 +1,10 @@
-(*  Title:      Modal/T
+(*  Title:      Modal/T.ML
     ID:         $Id$
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
-local open Modal0_rls T
+local open Modal0_rls
 in structure MP_Rule : MODAL_PROVER_RULE =
    struct
     val rewrite_rls = rewrite_rls
@@ -14,4 +14,4 @@ in structure MP_Rule : MODAL_PROVER_RULE =
     val aside_rls   = [lstar0,lstar1,lstar2,rstar0,rstar1,rstar2]
    end
 end;
-structure T_Prover = Modal_ProverFun(MP_Rule);  
+structure T_Prover = Modal_ProverFun(MP_Rule);

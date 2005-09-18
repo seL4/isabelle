@@ -1,3 +1,5 @@
+(* $Id$ *)
+
 (* "activate" definitions for use in proof *)
 
 val changeI = [context1] RL ([change] RLN (2,[cut]));
@@ -16,15 +18,11 @@ by (best_tac (lazy_cs add_safes (changeI @ load1I @ washI @ dryI)) 1);
 
 (* order of premises doesn't matter *)
 
-prove_goal thy "dollar , dirty , dollar |- clean"
+prove_goal (the_context ()) "dollar , dirty , dollar |- clean"
 (fn _ => [best_tac (lazy_cs add_safes (changeI @ load1I @ washI @ dryI)) 1]);
 
 
 (* alternative formulation *)
 
-prove_goal thy "dollar , dollar |- dirty -o clean"
+prove_goal (the_context ()) "dollar , dollar |- dirty -o clean"
 (fn _ => [best_tac (lazy_cs add_safes (changeI @ load1I @ washI @ dryI)) 1]);
-
-
-
-

@@ -1,9 +1,7 @@
-(*  Title:      Sequents/LK/Nat
+(*  Title:      Sequents/LK/Nat.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
-
-Theory of the natural numbers: Peano's axioms, primitive recursion
 *)
 
 Addsimps [Suc_neq_0];

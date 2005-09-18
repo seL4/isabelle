@@ -1,10 +1,10 @@
-(*  Title:      Modal/S4
+(*  Title:      Modal/S4.ML
     ID:         $Id$
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
-local open Modal0_rls S4
+local open Modal0_rls
 in structure MP_Rule : MODAL_PROVER_RULE =
    struct
     val rewrite_rls = rewrite_rls

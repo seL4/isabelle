@@ -12,7 +12,7 @@ Borrows from the DC simplifier of Soren Heilmann.
 
 fun prove_fun s =
  (writeln s;
-  prove_goal LK.thy s
+  prove_goal (the_context ()) s
    (fn prems => [ (cut_facts_tac prems 1),
                   (fast_tac (pack() add_safes [subst]) 1) ]));
 
@@ -144,7 +144,7 @@ fun mk_meta_cong rl =
 
 (*** Named rewrite rules ***)
 
-fun prove nm thm  = qed_goal nm LK.thy thm
+fun prove nm thm  = qed_goal nm (the_context ()) thm
     (fn prems => [ (cut_facts_tac prems 1),
                    (fast_tac LK_pack 1) ]);
 
@@ -264,7 +264,7 @@ simpset_ref() := LK_ss;
 
 (* To create substition rules *)
 
-qed_goal "eq_imp_subst" LK.thy "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
+qed_goal "eq_imp_subst" (the_context ()) "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
   (fn prems =>
    [cut_facts_tac prems 1,
     asm_simp_tac LK_basic_ss 1]);
