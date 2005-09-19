@@ -18,9 +18,9 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG distributionpath settings1 [settings2 ...]"
+  echo "Usage: $PRG settings1 [settings2 ...]"
   echo
-  echo "  Runs isatool makeall from specified distribution and settings."
+  echo "  Runs isatool makeall for specified settings."
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
   exit 1
