@@ -3,9 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-Compatibility file for Moscow ML 2.00
+Compatibility file for Moscow ML 2.01
 
-NOTE: saving images does not work (yet!?), may run it interactively as follows:
+NOTE: saving images does not work; may run it interactively as follows:
 
 $ cd ~~/src/Pure
 $ isabelle RAW_ML_SYSTEM
@@ -42,6 +42,14 @@ structure Real =
 struct
   open Real;
   val realFloor = real o floor;
+end;
+
+structure String =
+struct
+  fun isSuffix s1 s2 =
+    let val n1 = size s1 and n2 = size s2
+    in if n1 = n2 then s1 = s2 else n1 <= n2 andalso String.substring (s2, n2 - n1, n1) = s1 end;
+  open String;
 end;
 
 structure Time =
