@@ -225,13 +225,7 @@ sig
 
   (*association lists -- see also Pure/General/alist.ML*)
   val assoc: (''a * 'b) list * ''a -> 'b option
-  val assoc_int: (int * 'a) list * int -> 'a option
-  val assoc_string: (string * 'a) list * string -> 'a option
-  val assoc_string_int: ((string * int) * 'a) list * (string * int) -> 'a option
-  val assocs: (''a * 'b list) list -> ''a -> 'b list
-  val gen_assoc: ('a * 'b -> bool) -> ('b * 'c) list * 'a -> 'c option
   val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
-  val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
 
   (*lists as tables*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
@@ -1043,38 +1037,10 @@ fun assoc ([], key) = NONE
   | assoc ((keyi, xi) :: pairs, key) =
       if key = keyi then SOME xi else assoc (pairs, key);
 
-(*association list lookup, optimized version for ints*)
-fun assoc_int ([], (key:int)) = NONE
-  | assoc_int ((keyi, xi) :: pairs, key) =
-      if key = keyi then SOME xi else assoc_int (pairs, key);
-
-(*association list lookup, optimized version for strings*)
-fun assoc_string ([], (key:string)) = NONE
-  | assoc_string ((keyi, xi) :: pairs, key) =
-      if key = keyi then SOME xi else assoc_string (pairs, key);
-
-(*association list lookup, optimized version for string*ints*)
-fun assoc_string_int ([], (key:string*int)) = NONE
-  | assoc_string_int ((keyi, xi) :: pairs, key) =
-      if key = keyi then SOME xi else assoc_string_int (pairs, key);
-
-fun assocs z = curry (these o assoc) z
-
-(*generalized association list lookup*)
-fun gen_assoc eq ([], key) = NONE
-  | gen_assoc eq ((keyi, xi) :: pairs, key) =
-      if eq (key, keyi) then SOME xi else gen_assoc eq (pairs, key);
-
 (*association list update*)
 fun overwrite (al, p as (key, _)) =
   let fun over ((q as (keyi, _)) :: pairs) =
             if keyi = key then p :: pairs else q :: (over pairs)
-        | over [] = [p]
-  in over al end;
-
-fun gen_overwrite eq (al, p as (key, _)) =
-  let fun over ((q as (keyi, _)) :: pairs) =
-            if eq (keyi, key) then p :: pairs else q :: (over pairs)
         | over [] = [p]
   in over al end;
 
