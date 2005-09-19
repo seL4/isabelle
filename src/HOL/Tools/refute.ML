@@ -986,7 +986,7 @@ struct
 				  SatSolver.SATISFIABLE assignment =>
 					(writeln " model found!";
 					writeln ("*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of SOME b => b | NONE => true)))
-				| SatSolver.UNSATISFIABLE =>
+				| SatSolver.UNSATISFIABLE _ =>
 					(immediate_output " no model exists.\n";
 					case next_universe universe sizes minsize maxsize of
 					  SOME universe' => find_model_loop universe'
