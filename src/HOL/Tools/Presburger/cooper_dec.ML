@@ -483,13 +483,13 @@ fun evalc_atom at = case at of
 
 fun evalc_atom at = case at of  
   (Const (p,_) $ s $ t) =>
-   ( case assoc (operations,p) of 
+   ( case AList.lookup (op =) operations p of 
     SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) then HOLogic.true_const 
                 else HOLogic.false_const)  
     handle _ => at) 
       | _ =>  at) 
       |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
-  case assoc (operations,p) of 
+  case AList.lookup (op =) operations p of 
     SOME f => ((if (f ((dest_numeral s),(dest_numeral t))) 
                then HOLogic.false_const else HOLogic.true_const)  
     handle _ => at) 

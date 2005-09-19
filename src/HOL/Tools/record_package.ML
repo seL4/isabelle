@@ -2054,7 +2054,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     (* args *)
 
     val defaultS = Sign.defaultS sign;
-    val args = map (fn x => (x, getOpt (assoc (envir, x), defaultS))) params;
+    val args = map (fn x => (x, AList.lookup (op =) envir x |> the_default defaultS)) params;
 
 
     (* errors *)

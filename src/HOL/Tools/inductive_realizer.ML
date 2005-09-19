@@ -112,7 +112,7 @@ fun mk_realizes_eqn n vs intrs =
     val rname = space_implode "_" (s ^ "R" :: vs);
 
     fun mk_Tprem n v =
-      let val SOME T = assoc (rvs, v)
+      let val T = (the o AList.lookup (op =) rvs) v
       in (Const ("typeof", T --> Type ("Type", [])) $ Var ((v, 0), T),
         Extraction.mk_typ (if n then Extraction.nullT
           else TVar (("'" ^ v, 0), HOLogic.typeS)))
@@ -226,7 +226,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       val x = Free ("x", Extraction.etype_of thy vs [] (hd (prems_of induct)));
       fun name_of_fn intr = "r" ^ Sign.base_name (Thm.name_of_thm intr);
       val r' = list_abs_free (List.mapPartial (fn intr =>
-        Option.map (pair (name_of_fn intr)) (assoc (frees, name_of_fn intr))) intrs,
+        Option.map (pair (name_of_fn intr)) (AList.lookup (op =) frees (name_of_fn intr))) intrs,
           if length concls = 1 then r $ x else r)
     in
       if length concls = 1 then lambda x r' else r'
@@ -253,7 +253,7 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
     val xs = rev (Term.add_vars (prop_of rule) []);
     val vs1 = map Var (filter_out (fn ((a, _), _) => a mem rvs) xs);
     val rlzvs = rev (Term.add_vars (prop_of rrule) []);
-    val vs2 = map (fn (ixn, _) => Var (ixn, valOf (assoc (rlzvs, ixn)))) xs;
+    val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
     val rs = gen_rems (op = o pairself fst) (rlzvs, xs);
 
     fun mk_prf _ [] prf = prf
@@ -270,12 +270,15 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
       (prf_of rrule, map PBound (length prems - 1 downto 0)))) vs2))
   end;
 
-fun add_rule (rss, r) =
+fun add_rule r rss =
   let
     val _ $ (_ $ _ $ S) = concl_of r;
     val (Const (s, _), _) = strip_comb S;
-    val rs = getOpt (assoc (rss, s), []);
-  in AList.update (op =) (s, rs @ [r]) rss end;
+  in
+    rss
+    |> AList.default (op =) (s, [])
+    |> AList.map_entry (op =) s (fn rs => rs @ [r])
+  end;
 
 fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let
@@ -284,7 +287,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val (_ $ (_ $ _ $ S)) = Logic.strip_imp_concl (prop_of (hd intrs));
     val (_, params) = strip_comb S;
     val params' = map dest_Var params;
-    val rss = Library.foldl add_rule ([], intrs);
+    val rss = [] |> Library.fold add_rule intrs;
     val (prfx, _) = split_last (NameSpace.unpack (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
 

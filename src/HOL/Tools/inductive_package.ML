@@ -228,12 +228,12 @@ fun prod_factors p (Const ("Pair", _) $ t $ u) =
       p :: prod_factors (1::p) t @ prod_factors (2::p) u
   | prod_factors p _ = [];
 
-fun mg_prod_factors ts (fs, t $ u) = if t mem ts then
+fun mg_prod_factors ts (t $ u) fs = if t mem ts then
         let val f = prod_factors [] u
         in AList.update (op =) (t, f inter (AList.lookup (op =) fs t) |> the_default f) fs end
-      else mg_prod_factors ts (mg_prod_factors ts (fs, t), u)
-  | mg_prod_factors ts (fs, Abs (_, _, t)) = mg_prod_factors ts (fs, t)
-  | mg_prod_factors ts (fs, _) = fs;
+      else mg_prod_factors ts u (mg_prod_factors ts t fs)
+  | mg_prod_factors ts (Abs (_, _, t)) fs = mg_prod_factors ts t fs
+  | mg_prod_factors ts _ fs = fs;
 
 fun prodT_factors p ps (T as Type ("*", [T1, T2])) =
       if p mem ps then prodT_factors (1::p) ps T1 @ prodT_factors (2::p) ps T2
@@ -265,11 +265,11 @@ fun split_rule_var' ((t as Var (v, Type ("fun", [T1, T2])), ps), rl) =
 val remove_split = rewrite_rule [split_conv RS eq_reflection];
 
 fun split_rule_vars vs rl = standard (remove_split (foldr split_rule_var'
-  rl (mg_prod_factors vs ([], Thm.prop_of rl))));
+  rl (mg_prod_factors vs (Thm.prop_of rl) [])));
 
 fun split_rule vs rl = standard (remove_split (foldr split_rule_var'
   rl (List.mapPartial (fn (t as Var ((a, _), _)) =>
-      Option.map (pair t) (assoc (vs, a))) (term_vars (Thm.prop_of rl)))));
+      Option.map (pair t) (AList.lookup (op =) vs a)) (term_vars (Thm.prop_of rl)))));
 
 
 (** process rules **)
@@ -377,7 +377,7 @@ fun mk_indrule cs cTs params intr_ts =
       let
         val frees = map dest_Free ((add_term_frees (r, [])) \\ params);
 
-        val pred_of = curry (Library.gen_assoc (op aconv)) (cs ~~ preds);
+        val pred_of = AList.lookup (op aconv) (cs ~~ preds);
 
         fun subst (s as ((m as Const ("op :", T)) $ t $ u)) =
               (case pred_of u of
@@ -408,13 +408,13 @@ fun mk_indrule cs cTs params intr_ts =
 
     val ind_prems = map mk_ind_prem intr_ts;
 
-    val factors = Library.foldl (mg_prod_factors preds) ([], ind_prems);
+    val factors = Library.fold (mg_prod_factors preds) ind_prems [];
 
     (* make conclusions for induction rules *)
 
     fun mk_ind_concl ((c, P), (ts, x)) =
       let val T = HOLogic.dest_setT (fastype_of c);
-          val ps = getOpt (assoc (factors, P), []);
+          val ps = AList.lookup (op =) factors P |> the_default [];
           val Ts = prodT_factors [] ps T;
           val (frees, x') = foldr (fn (T', (fs, s)) =>
             ((Free (s, T'))::fs, Symbol.bump_string s)) ([], x) Ts;

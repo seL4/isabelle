@@ -787,7 +787,7 @@ fun not_ast_p_proof_of_c sg (x as Free(xn,xT)) fm dlcm A t =
 
 fun rho_for_evalc sg at = case at of  
     (Const (p,_) $ s $ t) =>(  
-    case assoc (operations,p) of 
+    case AList.lookup (op =) operations p of 
         SOME f => 
            ((if (f ((dest_numeral s),(dest_numeral t))) 
              then prove_elementar sg "ss" (HOLogic.mk_eq(at,HOLogic.true_const)) 
@@ -795,7 +795,7 @@ fun rho_for_evalc sg at = case at of
 		   handle _ => instantiate' [SOME cboolT] [SOME (cterm_of sg at)] refl)
         | _ => instantiate' [SOME cboolT] [SOME (cterm_of sg at)] refl )
      |Const("Not",_)$(Const (p,_) $ s $ t) =>(  
-       case assoc (operations,p) of 
+       case AList.lookup (op =) operations p of 
          SOME f => 
            ((if (f ((dest_numeral s),(dest_numeral t))) 
              then prove_elementar sg "ss" (HOLogic.mk_eq(at, HOLogic.false_const))  

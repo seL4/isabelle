@@ -205,7 +205,7 @@ fun tinst_tab_thm thy tinst thm = if Symtab.is_empty tinst
           else thm |> Drule.implies_intr_list (map cert hyps)
             |> Drule.tvars_intr_list (map #1 tinst')
             |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
+                ((map (fn (a, T) => (certT (TVar ((the o AList.lookup (op =) al) a)), certT T)) tinst'),
                   []))
             |> (fn th => Drule.implies_elim_list th
                  (map (Thm.assume o cert o tinst_tab_term tinst) hyps))
@@ -251,7 +251,7 @@ fun inst_tab_thm thy (inst, tinst) thm = if Symtab.is_empty inst
           else thm |> Drule.implies_intr_list (map cert hyps)
             |> Drule.tvars_intr_list (map #1 tinst')
             |> (fn (th, al) => th |> Thm.instantiate
-                ((map (fn (a, T) => (certT (TVar (valOf (assoc (al, a)))), certT T)) tinst'),
+                ((map (fn (a, T) => (certT (TVar ((the o AList.lookup (op =) al) a)), certT T)) tinst'),
                   []))
             |> Drule.forall_intr_list (map (cert o #1) inst')
             |> Drule.forall_elim_list (map (cert o #2) inst') 
@@ -691,7 +691,7 @@ fun rename_facts prfx =
 (* type instantiation *)
 
 fun inst_type [] T = T
-  | inst_type env T = Term.map_type_tfree (fn v => getOpt (assoc (env, v), TFree v)) T;
+  | inst_type env T = Term.map_type_tfree (fn v => AList.lookup (op =) env v |> the_default (TFree v)) T;
 
 fun inst_term [] t = t
   | inst_term env t = Term.map_term_types (inst_type env) t;
@@ -713,7 +713,7 @@ fun inst_thm _ [] th = th
           |> Drule.tvars_intr_list (map (#1 o #1) env')
           |> (fn (th', al) => th' |>
             Thm.instantiate ((map (fn ((a, _), T) =>
-              (certT (TVar (valOf (assoc (al, a)))), certT T)) env'), []))
+              (certT (TVar ((the o AList.lookup (op =) al) a)), certT T)) env'), []))
           |> (fn th'' => Drule.implies_elim_list th''
               (map (Thm.assume o cert o inst_term env') hyps))
       end;
@@ -941,7 +941,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
               ((name, map (rename ren) ps), ths)) regs;
           val new_regs = gen_rems eq_fst (regs', ids);
           val new_ids = map fst new_regs;
-          val new_idTs = map (apsnd (map (fn p => (p, valOf (assoc (ps, p)))))) new_ids;
+          val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) ps) p)))) new_ids;
 
           val new_ths = map (fn (_, ths') =>
               map (Drule.satisfy_hyps ths o rename_thm ren o inst_thm ctxt env) ths') new_regs;
@@ -1048,7 +1048,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     val all_params' = params_of' elemss;
     val all_params = param_types all_params';
     val elemss' = map (fn (((name, _), (ps, mode)), elems) =>
-         (((name, map (fn p => (p, assoc (all_params, p))) ps), mode), elems))
+         (((name, map (fn p => (p, AList.lookup (op =) all_params p)) ps), mode), elems))
          elemss;
     fun inst_th th = let
          val {hyps, prop, ...} = Thm.rep_thm th;
@@ -1423,7 +1423,7 @@ fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
    If so, which are these??? *)
 
 fun finish_parms parms (((name, ps), mode), elems) =
-  (((name, map (fn (x, _) => (x, assoc (parms, x))) ps), mode), elems);
+  (((name, map (fn (x, _) => (x, AList.lookup (op =) parms x)) ps), mode), elems);
 
 fun finish_elems ctxt parms _ ((text, wits), ((id, Int e), _)) =
       let
@@ -1582,7 +1582,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
     (* replace extended ids (for axioms) by ids *)
     val all_elemss' = map (fn (((_, ps), _), (((n, ps'), mode), elems)) =>
-        (((n, map (fn p => (p, assoc (ps', p) |> valOf)) ps), mode), elems))
+        (((n, map (fn p => (p, (the o AList.lookup (op =) ps') p)) ps), mode), elems))
       (ids ~~ all_elemss);
 
     (* CB: all_elemss and parms contain the correct parameter types *)
@@ -2229,7 +2229,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val (given_ps, given_insts) = split_list given;
     val tvars = foldr Term.add_typ_tvars [] pvTs;
     val used = foldr Term.add_typ_varnames [] pvTs;
-    fun sorts (a, i) = assoc (tvars, (a, i));
+    fun sorts (a, i) = AList.lookup (op =) tvars (a, i);
     val (vs, vinst) = read_terms thy_ctxt sorts used given_insts;
     val vars = foldl Term.add_term_tvar_ixns [] vs \\ map fst tvars;
     val vars' = fold Term.add_term_varnames vs vars;
@@ -2242,7 +2242,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val renameT =
           if is_local then I
           else Type.unvarifyT o Term.map_type_tfree (fn (a, s) =>
-            TFree (valOf (assoc (new_Tnames ~~ new_Tnames', a)), s));
+            TFree ((the o AList.lookup (op =) (new_Tnames ~~ new_Tnames')) a, s));
     val rename =
           if is_local then I
           else Term.map_term_types renameT;
@@ -2269,7 +2269,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
 
     (* restore "small" ids *)
     val ids' = map (fn ((n, ps), (_, mode)) =>
-          ((n, map (fn p => Free (p, valOf (assoc (parms, p)))) ps), mode)) ids;
+          ((n, map (fn p => Free (p, (the o AList.lookup (op =) parms) p)) ps), mode)) ids;
     (* instantiate ids and elements *)
     val inst_elemss = map
           (fn ((id, _), ((_, mode), elems)) =>
@@ -2348,8 +2348,8 @@ fun prep_registration_in_locale target expr thy =
         fun activate_reg (vts, ((prfx, atts2), _)) thy = let
             val ((inst, tinst), wits) =
                 collect_global_witnesses thy fixed t_ids vts;
-            fun inst_parms ps = map (fn p =>
-                  valOf (assoc (map #1 fixed ~~ vts, p))) ps;
+            fun inst_parms ps = map 
+                  (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
             val disch = Drule.fconv_rule (Thm.beta_conversion true) o
                 Drule.satisfy_hyps wits;
             val new_elemss = List.filter (fn (((name, ps), _), _) =>

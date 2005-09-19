@@ -196,9 +196,7 @@ type datatype_info =
 fun mk_Free s T i = Free (s ^ (string_of_int i), T);
 
 fun subst_DtTFree _ substs (T as (DtTFree name)) =
-      (case assoc (substs, name) of
-         NONE => T
-       | SOME U => U)
+      AList.lookup (op =) substs name |> the_default T
   | subst_DtTFree i substs (DtType (name, ts)) =
       DtType (name, map (subst_DtTFree i substs) ts)
   | subst_DtTFree i _ (DtRec j) = DtRec (i + j);
@@ -236,15 +234,15 @@ fun name_of_typ (Type (s, Ts)) =
 fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
   | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
   | dtyp_of_typ new_dts (Type (tname, Ts)) =
-      (case assoc (new_dts, tname) of
+      (case AList.lookup (op =) new_dts tname of
          NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
        | SOME vs => if map (try dest_TFree) Ts = map SOME vs then
              DtRec (find_index (curry op = tname o fst) new_dts)
            else error ("Illegal occurence of recursive type " ^ tname));
 
-fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, valOf (assoc (sorts, a)))
+fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) sorts) a)
   | typ_of_dtyp descr sorts (DtRec i) =
-      let val (s, ds, _) = valOf (assoc (descr, i))
+      let val (s, ds, _) = (the o AList.lookup (op =) descr) i
       in Type (s, map (typ_of_dtyp descr sorts) ds) end
   | typ_of_dtyp descr sorts (DtType (s, ds)) =
       Type (s, map (typ_of_dtyp descr sorts) ds);
@@ -279,7 +277,7 @@ fun check_nonempty descr =
     val descr' = List.concat descr;
     fun is_nonempty_dt is i =
       let
-        val (_, _, constrs) = valOf (assoc (descr', i));
+        val (_, _, constrs) = (the o AList.lookup (op =) descr') i;
         fun arg_nonempty (_, DtRec i) = if i mem is then false
               else is_nonempty_dt (i::is) i
           | arg_nonempty _ = true;
@@ -303,7 +301,7 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table
          NONE => typ_error T (tname ^ " is not a datatype - can't use it in\
            \ nested recursion")
        | (SOME {index, descr, ...}) =>
-           let val (_, vars, _) = valOf (assoc (descr, index));
+           let val (_, vars, _) = (the o AList.lookup (op =) descr) index;
                val subst = ((map dest_DtTFree vars) ~~ dts) handle UnequalLengths =>
                  typ_error T ("Type constructor " ^ tname ^ " used with wrong\
                   \ number of arguments")
