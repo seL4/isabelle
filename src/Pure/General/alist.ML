@@ -19,6 +19,7 @@ sig
     -> ('b * 'c) list -> ('b * 'c) list
   val map_entry: ('a * 'b -> bool) -> 'a -> ('c -> 'c)
     -> ('b * 'c) list -> ('b * 'c) list
+  val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
 end;
 
 structure AList: ALIST =
@@ -57,5 +58,9 @@ fun map_entry eq key' f xs =
       if eq (key', key) then (key, f value)::xs
       else x :: mapp xs
   in if defined eq xs key' then mapp xs else xs end;
+
+fun make keyfun =
+  let fun keypair x = (x, keyfun x)
+  in map keypair end;
 
 end;
