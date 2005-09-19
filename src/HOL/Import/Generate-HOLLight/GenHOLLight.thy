@@ -43,7 +43,8 @@ type_maps
 
 const_renames
   "==" > "eqeq"
-  ".." > "dotdot";
+  ".." > "dotdot"
+  "ALL" > ALL_list;
 
 const_maps
   T > True

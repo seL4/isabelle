@@ -1,6 +1,6 @@
 (*  Title:      HOL/Import/proof_kernel.ML
     ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg (TU Muenchen), Steven Obua
 *)
 
 signature ProofKernel =
@@ -446,26 +446,26 @@ fun protect_tyvarname s =
 val protected_varnames = ref (Symtab.empty:string Symtab.table)
 val invented_isavar = ref (IntInf.fromInt 0)
 
+fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
+
+val check_name_thy = theory "Main"
+fun valid_boundvarname s = (read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT); true) handle _ => false 
+fun valid_varname s = (read_cterm check_name_thy (s, TypeInfer.logicT); true) handle _ => false 
+
 fun protect_varname s =
-    if Syntax.is_identifier s then s else
+    if innocent_varname s andalso valid_varname s then s else
     case Symtab.lookup (!protected_varnames) s of
       SOME t => t
     | NONE => 
       let
 	  val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
-	  val t = "invented_isavar_"^(IntInf.toString (!invented_isavar))
+	  val t = "u_"^(IntInf.toString (!invented_isavar))
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
       in
 	  t
       end
 
-(*local
-  val sg = theory "Main"
-in
-  fun is_valid_bound_varname s = (read_cterm sg ("SOME "^s^" . True", TypeInfer.logicT); true) handle _ => false
-end*)
-
-fun protect_boundvarname s = if Syntax.is_identifier s then s else "u"
+fun protect_boundvarname s = if innocent_varname s andalso valid_boundvarname s then s else "u"
 
 fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
   | mk_lambda (v as Var ((x, _), T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
@@ -595,9 +595,9 @@ and get_term_from_xml thy thyname types terms =
 		mk_comb(f,a)
 	    end
 	  | gtfx (Elem("tml",[("x",tmx),("a",tma)],[])) = 
-	    let
-		val x = get_term_from_index thy thyname types terms tmx
-		val a = get_term_from_index thy thyname types terms tma
+	    let		
+                val x = get_term_from_index thy thyname types terms tmx 
+                val a = get_term_from_index thy thyname types terms tma
 	    in
 		mk_lambda x a
 	    end
@@ -1296,7 +1296,7 @@ fun intern_store_thm gen_output thyname thmname hth thy =
 	val th  = equal_elim rew th
 	val thy' = add_hol4_pending thyname thmname args thy
 	val thy2 = if gen_output
-		   then add_dump ("lemma " ^ thmname ^ ": " ^ (smart_string_of_thm th) ^ "\n  by (import " ^ thyname ^ " " ^ thmname ^ ")") thy'
+		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^ (smart_string_of_thm th) ^ "\n  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")") thy'
 		   else thy'
     in
 	(thy2,hth')
@@ -2050,9 +2050,11 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ (Syntax.string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
-	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]")
-		       thy5
+	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " 
+				 ^ (Syntax.string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
+	    
+	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]") thy5
+              
 	    val _ = message "RESULT:"
 	    val _ = if_debug pth hth'
 	in
@@ -2060,9 +2062,21 @@ fun new_type_definition thyname thmname tycname hth thy =
 	end
 	handle e => (message "exception in new_type_definition"; print_exn e)
 
+fun add_dump_constdefs thy defname constname rhs ty =
+    let
+	val n = quotename constname
+	val t = string_of_ctyp (ctyp_of thy ty)
+	val syn = Syntax.string_of_mixfix (mk_syn thy constname)
+	(*val eq = smart_string_of_cterm (cterm_of thy (Const(rhs, ty)))*)
+        val eq = quote (constname ^ " == "^rhs)
+	val d = case defname of NONE => "" | SOME defname => (quotename defname)^" : "
+    in
+	add_dump ("constdefs\n  " ^ n ^ " :: \"" ^ t ^ "\" " ^ syn ^ "\n  " ^ d ^ eq) thy    
+    end
+
 fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
     case HOL4DefThy.get thy of
-	Replaying _ => (thy,hth)
+	Replaying _ => (thy, HOLThm([], thm (thmname^"_@intern")) handle _ => hth)
       | _ => 
 	let
             val _ = message "TYPE_INTRO:"
@@ -2086,6 +2100,8 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
 	    val fulltyname = Sign.intern_type (sign_of thy') tycname
 	    val aty = Type (fulltyname, map mk_vartype tnames)
+	    val abs_ty = tT --> aty
+	    val rep_ty = aty --> tT
             val typedef_hol2hollight' = 
 		Drule.instantiate' 
 		    [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)] 
@@ -2116,13 +2132,22 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ (Syntax.string_of_mixfix tsyn) ^ "\n  by (rule light_ex_imp_nonempty,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
-	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hollight [OF type_definition_" ^ tycname ^ "]")
-		       thy5
+	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ 
+				 (Syntax.string_of_mixfix tsyn) ^ " \n"^
+				 ( "  apply (rule light_ex_imp_nonempty[where t="^(proc_prop (cterm_of sg t))^"]) \n")^ 
+				 ("  by (import " ^ thyname ^ " " ^ thmname ^ ")")) thy4
+            val isa_rep_name = "Rep_"^tycname
+	    val isa_abs_name = "Abs_"^tycname
+	    val isa_rep_name_def = isa_rep_name^"_symdest"
+	    val isa_abs_name_def = isa_abs_name^"_symdest"
+	    val thy = add_dump_constdefs thy (SOME isa_rep_name_def) rep_name isa_rep_name rep_ty
+	    val thy = add_dump_constdefs thy (SOME isa_abs_name_def) abs_name isa_abs_name abs_ty
+	    val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^ " = typedef_hol2hollight [OF "^(quotename ("type_definition_" ^ tycname)) ^ 
+				" ,\n   simplified "^(quotename isa_rep_name_def)^" [symmetric] "^(quotename isa_abs_name_def)^" [symmetric]"^"]") thy
 	    val _ = message "RESULT:"
 	    val _ = if_debug pth hth'
 	in
-	    (thy6,hth')
+	    (thy,hth')
 	end
 	handle e => (message "exception in type_introduction"; print_exn e)
 end
