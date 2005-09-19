@@ -12,10 +12,10 @@ signature ATP_COMMUNICATION =
     val reconstruct : bool ref
     val checkEProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string * thm * int * (ResClause.clause * thm) Array.array -> bool
+          string * string * (ResClause.clause * thm) Array.array -> bool
     val checkVampProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string * thm * int * (ResClause.clause * thm) Array.array -> bool
+          string * string * (ResClause.clause * thm) Array.array -> bool
     val checkSpassProofFound:  
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * string * thm * int * (ResClause.clause * thm) Array.array -> bool
@@ -55,20 +55,6 @@ fun extract_proof s =
   else "??extract_proof failed" (*Couldn't find a proof*)
 end;
 
-(**********************************************************************)
-(*  Reconstruct the Vampire/E proof w.r.t. thmstring (string version of   *)
-(*  Isabelle goal to be proved), then transfer the reconstruction     *)
-(*  steps as a string to the input pipe of the main Isabelle process  *)
-(**********************************************************************)
-
-fun reconstruct_tac proofextract goalstring toParent ppid sg_num clause_arr =
-    SELECT_GOAL
-      (EVERY1
-        [rtac ccontr, ResLib.atomize_tac, skolemize_tac,
-	 METAHYPS(fn negs =>
-		     (Recon_Transfer.prover_lemma_list proofextract  
-		       goalstring toParent ppid negs clause_arr))]) sg_num
-
 
 (*********************************************************************************)
 (*  Inspect the output of an ATP process to see if it has found a proof,     *)
@@ -76,7 +62,7 @@ fun reconstruct_tac proofextract goalstring toParent ppid sg_num clause_arr =
 (*********************************************************************************)
 
 fun startTransfer (startS,endS)
-      (fromChild, toParent, ppid, goalstring, childCmd, thm, sg_num, clause_arr) =
+      (fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =
  let val thisLine = TextIO.inputLine fromChild
      fun transferInput currentString =
       let val thisLine = TextIO.inputLine fromChild
@@ -91,8 +77,7 @@ fun startTransfer (startS,endS)
 	then let val proofextract = extract_proof (currentString^thisLine)
 	     in
 	       File.write (File.tmp_path (Path.basic"extracted_prf")) proofextract; 
-	       reconstruct_tac proofextract goalstring toParent ppid sg_num  
-			       clause_arr thm
+	       Recon_Transfer.prover_lemma_list proofextract goalstring toParent ppid clause_arr
 	     end
 	else transferInput (currentString^thisLine)
       end
@@ -101,22 +86,22 @@ fun startTransfer (startS,endS)
    else if String.isPrefix startS thisLine
    then
     (File.append (File.tmp_path (Path.basic "transfer_start"))
-		 ("about to transfer proof, thm is: " ^ string_of_thm thm);
+		 ("about to transfer proof, first line is: " ^ thisLine);
      transferInput thisLine;
      true) handle EOF => false
    else
       startTransfer (startS,endS)
                     (fromChild, toParent, ppid, goalstring,
-		     childCmd, thm, sg_num,clause_arr)
+		     childCmd, clause_arr)
  end
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
-fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, 
-                         thm, sg_num, clause_arr) =
+fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =
  let val proof_file = TextIO.openAppend
 	   (File.platform_path(File.tmp_path (Path.basic "vampire_proof")))
      val _ = File.write (File.tmp_path (Path.basic "vampire_checking_prf"))
-			("checking if proof found, thm is: " ^ string_of_thm thm)
+			("checking if proof found. childCmd is " ^ childCmd ^
+			 "\ngoalstring is: " ^ goalstring)
      val thisLine = TextIO.inputLine fromChild
  in   
      File.write (File.tmp_path (Path.basic "vampire_response")) thisLine;
@@ -128,7 +113,7 @@ fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd,
      then
        startTransfer (start_V8, end_V8)
 	      (fromChild, toParent, ppid, goalstring,
-	       childCmd, thm, sg_num, clause_arr)
+	       childCmd, clause_arr)
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
      then
@@ -145,18 +130,17 @@ fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd,
        (TextIO.output (proof_file, thisLine);
 	TextIO.flushOut proof_file;
 	checkVampProofFound  (fromChild, toParent, ppid, 
-	   goalstring,childCmd, thm, sg_num, clause_arr))
+	   goalstring,childCmd, clause_arr))
   end
 
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
-                      thm, sg_num, clause_arr) = 
+fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr) = 
  let val E_proof_file = TextIO.openAppend
 	   (File.platform_path(File.tmp_path (Path.basic "e_proof")))
      val _ = File.write (File.tmp_path (Path.basic "e_checking_prf"))
 			("checking if proof found. childCmd is " ^ childCmd ^
-			 "\nthm is: " ^ string_of_thm thm)
+			 "\ngoalstring is: " ^ goalstring)
      val thisLine = TextIO.inputLine fromChild  
  in   
      File.write (File.tmp_path (Path.basic "e_response")) thisLine;
@@ -167,8 +151,7 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
      else if thisLine = "# TSTP exit status: Unsatisfiable\n"
      then      
        startTransfer (start_E, end_E)
-             (fromChild, toParent, ppid, goalstring,
-	      childCmd, thm, sg_num, clause_arr)
+             (fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
      else if String.isPrefix "# Problem is satisfiable" thisLine
      then  
        (TextIO.output (toParent, "Invalid\n");
@@ -195,8 +178,7 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
      else
 	(TextIO.output (E_proof_file, thisLine);
 	TextIO.flushOut E_proof_file;
-	checkEProofFound  (fromChild, toParent, ppid, goalstring,
-	childCmd, thm, sg_num, clause_arr))
+	checkEProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr))
  end
 
 
@@ -208,14 +190,10 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd,
 
 fun spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
                     clause_arr = 
- let val f = if !reconstruct then Recon_Transfer.spass_reconstruct
-                             else Recon_Transfer.spass_lemma_list
- in                             
-   SELECT_GOAL
-    (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
-             METAHYPS(fn negs => 
-    f proofextract goalstring toParent ppid negs clause_arr)]) sg_num	
- end;
+ SELECT_GOAL
+  (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
+	   METAHYPS(fn negs => 
+  Recon_Transfer.spass_reconstruct proofextract goalstring toParent ppid negs clause_arr)]) sg_num;
 
 
 fun transferSpassInput (fromChild, toParent, ppid, goalstring, 
@@ -225,13 +203,16 @@ fun transferSpassInput (fromChild, toParent, ppid, goalstring,
     if thisLine = "" (*end of file?*)
     then (File.write (File.tmp_path (Path.basic"spass_extraction_failed")) currentString;
 	  raise EOF)                    
-    else if thisLine = "--------------------------SPASS-STOP------------------------------\n"
+    else if String.isPrefix "--------------------------SPASS-STOP" thisLine
     then 
       let val proofextract = extract_proof (currentString^thisLine)
       in 
-	  File.write (File.tmp_path (Path.basic"spass_extracted_prf")) proofextract;
-	  spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
-	      clause_arr thm
+	 File.write (File.tmp_path (Path.basic"spass_extracted_prf")) proofextract;
+	 if !reconstruct 
+	 then (spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
+		clause_arr thm; ())
+	 else Recon_Transfer.spass_lemma_list proofextract goalstring 
+	        toParent ppid clause_arr 
       end
     else transferSpassInput (fromChild, toParent, ppid, goalstring,
 			     (currentString^thisLine), thm, sg_num, clause_arr)

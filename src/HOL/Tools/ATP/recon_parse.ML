@@ -10,7 +10,7 @@
 structure Recon_Parse =
 struct
 
-open ReconPrelim ReconTranslateProof;
+open ReconTranslateProof;
 
 exception NOPARSE_WORD
 exception NOPARSE_NUM
@@ -18,7 +18,7 @@ fun to_upper s = String.translate (Char.toString o Char.toUpper) s;
 
 fun string2int s =
   (case Int.fromString s of SOME i => i
-  | NONE => raise ASSERTION "string -> int failed");
+  | NONE => error "string -> int failed");
 
 
 (* Parser combinators *)
@@ -77,7 +77,7 @@ datatype token = Word of string
         | is_prefix (h::t) [] = false
         | is_prefix (h::t) (h'::t') = (h = h') andalso is_prefix t t'
       fun remove_prefix [] l = l
-        | remove_prefix (h::t) [] = raise (ASSERTION "can't remove prefix")
+        | remove_prefix (h::t) [] = error "can't remove prefix"
         | remove_prefix (h::t) (h'::t') = remove_prefix t t'
       fun ccut t [] = raise NOCUT
         | ccut t s =

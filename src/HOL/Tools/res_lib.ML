@@ -20,6 +20,8 @@ val pair_ins : 'a -> 'b list -> ('a * 'b) list
 val trim_ends : string -> string
 val write_strs : TextIO.outstream -> TextIO.vector list -> unit
 val writeln_strs : TextIO.outstream -> TextIO.vector list -> unit
+val intOfPid : Posix.Process.pid -> Int.int
+val pidOfInt : Int.int -> Posix.Process.pid
 end;
 
 
@@ -94,5 +96,11 @@ fun helper_path evar base =
         in  if File.exists (File.unpack_platform_path path) then path 
 	    else error ("Could not find the file " ^ path)
 	end;  
+
+(*** Converting between process ids and integers ***)
+
+fun intOfPid pid = Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid));
+
+fun pidOfInt n = Posix.Process.wordToPid (Word.toLargeWord (Word.fromInt n));
 
 end;

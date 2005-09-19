@@ -15,7 +15,6 @@ uses "Tools/res_lib.ML"
   "Tools/res_axioms.ML"
   "Tools/res_types_sorts.ML"
 
-  "Tools/ATP/recon_prelim.ML"
   "Tools/ATP/recon_order_clauses.ML"
   "Tools/ATP/recon_translate_proof.ML"
   "Tools/ATP/recon_parse.ML"

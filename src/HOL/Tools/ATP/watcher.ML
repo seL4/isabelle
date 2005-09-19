@@ -44,6 +44,7 @@ val createWatcher :
 (**********************************************************)
 
 val killWatcher : Posix.Process.pid -> unit
+val killWatcher' : int -> unit
 
 end
 
@@ -52,7 +53,7 @@ end
 structure Watcher: WATCHER =
 struct
 
-open ReconPrelim Recon_Transfer
+open Recon_Transfer
 
 val goals_being_watched = ref 0;
 
@@ -401,8 +402,8 @@ fun setupWatcher (thm,clause_arr) =
 		   let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
 			         "\nInput available from childIncoming" 
 		       val childDone = (case prover of
-			   "vampire" => AtpCommunication.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)  
-			    | "E" => AtpCommunication.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)             
+			   "vampire" => AtpCommunication.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, clause_arr)  
+			    | "E" => AtpCommunication.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, clause_arr)             
 			  |"spass" => AtpCommunication.checkSpassProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)  )
 		    in
 		     if childDone
@@ -603,6 +604,8 @@ fun setupWatcher (thm,clause_arr) =
 (**********************************************************)
 
 fun killWatcher pid = Posix.Process.kill(Posix.Process.K_PROC pid, Posix.Signal.kill);
+
+val killWatcher' = killWatcher o ResLib.pidOfInt;
 
 fun reapWatcher(pid, instr, outstr) =
   (TextIO.closeIn instr; TextIO.closeOut outstr;

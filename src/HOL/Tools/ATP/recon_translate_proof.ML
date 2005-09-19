@@ -6,8 +6,6 @@
 structure ReconTranslateProof =
 struct
 
-open ReconPrelim;
-
 fun add_in_order (x:string) [] = [x]
 |   add_in_order (x:string) ((y:string)::ys) = if (x < y) 
                              then 
@@ -165,6 +163,8 @@ fun delete_assump_tac state lit =
 (*************************************)
 (* Reconstruct a factoring step      *)
 (*************************************)
+
+fun getnewenv seq = fst (fst (the (Seq.pull seq)));
 
 (*FIXME: share code with that in Tools/reconstruction.ML*)
 fun follow_factor clause lit1 lit2 allvars thml clause_strs = 
@@ -361,7 +361,7 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs =
       (*| follow_proof clauses  clausenum thml (Hyper l)
         = follow_hyper l thml*)
       | follow_proof clauses  allvars clausenum  thml _ _ =
-          raise ASSERTION  "proof step not implemented"
+          error "proof step not implemented"
 
 
 
@@ -370,13 +370,12 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs =
 (* reconstruct a single line of the res. proof - at the moment do only inference steps*)
 (**************************************************************************************)
 
-    fun follow_line clauses  allvars thml (clause_num, proof_step, clause_strs) recons
-        = let
-            val (thm, recon_fun) = follow_proof clauses  allvars clause_num thml proof_step clause_strs 
-            val recon_step = (recon_fun)
-          in
-            (((clause_num, thm)::thml), ((clause_num,recon_step)::recons))
-          end
+    fun follow_line clauses  allvars thml (clause_num, proof_step, clause_strs) recons =
+      let
+	val (thm, recon_fun) = follow_proof clauses allvars clause_num thml proof_step clause_strs 
+      in
+	((clause_num, thm)::thml, (clause_num,recon_fun)::recons)
+      end
 
 (***************************************************************)
 (* follow through the res. proof, creating an Isabelle theorem *)

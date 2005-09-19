@@ -201,12 +201,10 @@ val isar_atp = setmp print_mode []
       val _ = debug ("claset and simprules total clauses = " ^ 
                      string_of_int (Array.length clause_arr))
       val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr)
-      val pid_string =
-        string_of_int (Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid)))
     in
       debug ("initial thms: " ^ thms_string);
       debug ("subgoals: " ^ prems_string);
-      debug ("pid: "^ pid_string);
+      debug ("pid: " ^ Int.toString (ResLib.intOfPid pid));
       write_problem_files axclauses thm (length prems);
       watcher_call_provers (sign_of_thm thm) (Thm.prems_of thm) (childin, childout, pid)
     end);

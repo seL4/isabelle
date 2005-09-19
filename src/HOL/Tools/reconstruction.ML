@@ -55,8 +55,6 @@ fun inst_subst sign substs cl =
     then inst_single sign (snd (hd substs)) (fst (hd substs)) cl
     else raise THM ("inst_subst", 0, [cl]);
 
-(*Grabs the environment from the result of Unify.unifiers*)
-fun getnewenv thisseq = fst (hd (Seq.list_of thisseq));
 
 (** Factoring **)
 
@@ -67,7 +65,7 @@ fun factor_rule (cl, lit1, lit2) =
        val fac2 = List.nth (prems,lit2)
        val sign = sign_of_thm cl
        val unif_env = Unify.unifiers (sign, Envir.empty 0, [(fac1, fac2)])
-       val newenv = getnewenv unif_env
+       val newenv = ReconTranslateProof.getnewenv unif_env
        val envlist = Envir.alist_of newenv
      in
        inst_subst sign (mksubstlist envlist []) cl

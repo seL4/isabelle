@@ -158,7 +158,7 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
 (* get names of clasimp axioms used                  *)
 (*****************************************************)
 
- fun get_axiom_names step_nums thms clause_arr =
+ fun get_axiom_names step_nums clause_arr =
    let 
      (* not sure why this is necessary again, but seems to be *)
       val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
@@ -177,7 +177,7 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
    end
    
 
-fun get_axiom_names_spass proofstr thms clause_arr =
+fun get_axiom_names_spass proofstr clause_arr =
   let (* parse spass proof into datatype *)
       val _ = File.write (File.tmp_path (Path.basic "parsing_progress")) 
                          ("Started parsing:\n" ^ proofstr)
@@ -186,8 +186,7 @@ fun get_axiom_names_spass proofstr thms clause_arr =
       val _ = File.append (File.tmp_path (Path.basic "parsing_progress")) "\nFinished!"
       (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
   in
-    get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) 
-                    thms clause_arr
+    get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) clause_arr
   end;
     
  (*String contains multiple lines, terminated with newline characters.
@@ -199,8 +198,8 @@ fun get_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (firstno o numerics) lines  end
 
-fun get_axiom_names_vamp_E proofstr thms clause_arr  =
-   get_axiom_names (get_linenums proofstr) thms clause_arr;
+fun get_axiom_names_vamp_E proofstr clause_arr  =
+   get_axiom_names (get_linenums proofstr) clause_arr;
     
 
 (***********************************************)
@@ -274,13 +273,12 @@ val remove_linebreaks = subst_for #"\n" #"\t";
 val restore_linebreaks = subst_for #"\t" #"\n";
 
 
-fun prover_lemma_list_aux proofstr goalstring toParent ppid thms clause_arr getax = 
+fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr = 
  let val _ = File.append(File.tmp_path (Path.basic "prover_lemmastring"))
                ("proofstr is " ^ proofstr ^
                 "\ngoalstr is " ^ goalstring ^
                 "\nnum of clauses is " ^ string_of_int (Array.length clause_arr))
-
-     val axiom_names = getax proofstr thms clause_arr
+     val axiom_names = getax proofstr clause_arr
      val ax_str = rules_to_string axiom_names
     in 
 	 File.append(File.tmp_path (Path.basic "prover_lemmastring"))
@@ -292,7 +290,7 @@ fun prover_lemma_list_aux proofstr goalstring toParent ppid thms clause_arr geta
 
 	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
 	(* Attempt to prevent several signals from turning up simultaneously *)
-	 Posix.Process.sleep(Time.fromSeconds 1) ; all_tac
+	 Posix.Process.sleep(Time.fromSeconds 1); ()
     end
     handle exn => (*FIXME: exn handler is too general!*)
      (File.write(File.tmp_path (Path.basic "proverString_handler")) 
@@ -303,15 +301,11 @@ fun prover_lemma_list_aux proofstr goalstring toParent ppid thms clause_arr geta
       TextIO.flushOut toParent;
       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
       (* Attempt to prevent several signals from turning up simultaneously *)
-      Posix.Process.sleep(Time.fromSeconds 1); all_tac);
+      Posix.Process.sleep(Time.fromSeconds 1); ());
 
-fun prover_lemma_list proofstr goalstring toParent ppid thms clause_arr  = 
-  prover_lemma_list_aux proofstr goalstring toParent ppid thms        
-       clause_arr get_axiom_names_vamp_E;
+val prover_lemma_list = prover_lemma_list_aux get_axiom_names_vamp_E;
 
-fun spass_lemma_list proofstr goalstring toParent ppid thms clause_arr = 
-  prover_lemma_list_aux proofstr goalstring toParent ppid thms        
-       clause_arr get_axiom_names_spass;
+val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 
 
 (**** Full proof reconstruction for SPASS (not really working) ****)
