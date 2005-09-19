@@ -56,7 +56,7 @@ struct
 (*      contains the IDs of clauses that must be resolved (in the given      *)
 (*      order) to obtain the new clause 'x'.  Each list 'xs' must be         *)
 (*      non-empty, and the literal to be resolved upon must always be unique *)
-(*      (e.g. "A | ~B" must not be resolved with "~A| B").  Circular         *)
+(*      (e.g. "A | ~B" must not be resolved with "~A | B").  Circular        *)
 (*      dependencies of clauses are not allowed.  (At least) one of the      *)
 (*      clauses in the table must be the empty clause (i.e. contain no       *)
 (*      literals); its ID is given by the second component of the proof.     *)
@@ -591,7 +591,7 @@ let
 							val rs  = map int_from_string ids
 						in
 							(* update clause table *)
-							(Inttab.update_new ((cid, rs), clause_table), conflict_id)
+							(Inttab.update_new (cid, rs) clause_table, conflict_id)
 								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once.")
 						end
 					| _ =>
@@ -628,7 +628,7 @@ let
 							val rs   = aid :: map (fn v => !clause_offset + v) vids
 						in
 							(* update clause table *)
-							(Inttab.update_new ((cid, rs), clause_table), conflict_id)
+							(Inttab.update_new (cid, rs) clause_table, conflict_id)
 								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int cid ^ " (antecedent for variable " ^ id ^ ") defined more than once.")
 						end
 					| _ =>
