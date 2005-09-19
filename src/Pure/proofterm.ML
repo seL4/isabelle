@@ -145,7 +145,7 @@ fun oracles_of_proof oras prf =
       | oras_of (PThm ((name, _), prf, prop, _)) = (fn tabs as (thms, oras) =>
           case Symtab.lookup thms name of
             NONE => oras_of prf (Symtab.update (name, [prop]) thms, oras)
-          | SOME ps => if prop mem ps then tabs else
+          | SOME ps => if member (op =) ps prop then tabs else
               oras_of prf (Symtab.update (name, prop::ps) thms, oras))
       | oras_of (Oracle (s, prop, _)) =
           apsnd (OrdList.insert string_term_ord (s, prop))
@@ -375,17 +375,17 @@ fun prf_loose_Pbvar1 (PBound i) k = i = k
   | prf_loose_Pbvar1 _ _ = false;
 
 fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
-      if i < plev then (is, js) else ((i-plev) ins is, js)
+      if i < plev then (is, js) else (insert (op =) (i-plev) is, js)
   | prf_add_loose_bnos plev tlev (prf1 %% prf2) p =
       prf_add_loose_bnos plev tlev prf2
         (prf_add_loose_bnos plev tlev prf1 p)
   | prf_add_loose_bnos plev tlev (prf % opt) (is, js) =
       prf_add_loose_bnos plev tlev prf (case opt of
-          NONE => (is, ~1 ins js)
+          NONE => (is, insert (op =) ~1 js)
         | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (AbsP (_, opt, prf)) (is, js) =
       prf_add_loose_bnos (plev+1) tlev prf (case opt of
-          NONE => (is, ~1 ins js)
+          NONE => (is, insert (op =) ~1 js)
         | SOME t => (is, add_loose_bnos (t, tlev, js)))
   | prf_add_loose_bnos plev tlev (Abst (_, _, prf)) p =
       prf_add_loose_bnos plev (tlev+1) prf p
@@ -784,12 +784,11 @@ fun equal_elim A B prf1 prf2 =
 
 (***** axioms and theorems *****)
 
-fun vars_of t = rev (fold_aterms
-  (fn v as Var _ => (fn vs => v ins vs) | _ => I) t []);
+fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 
 fun test_args _ [] = true
   | test_args is (Bound i :: ts) =
-      not (i mem is) andalso test_args (i :: is) ts
+      not (member (op =) is i) andalso test_args (i :: is) ts
   | test_args _ _ = false;
 
 fun is_fun (Type ("fun", _)) = true
@@ -841,7 +840,7 @@ fun gen_axm_proof c name prop =
   let
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
-        if ixn mem nvs then SOME v else NONE) (vars_of prop) @
+        if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (sort Term.term_ord (term_frees prop));
   in
     proof_combt' (c (name, prop, NONE), args)
@@ -855,55 +854,62 @@ fun oracle_proof name prop =
   if !proofs = 0 then Oracle (name, dummy, NONE)
   else gen_axm_proof Oracle name prop;
 
-fun shrink ls lev (prf as Abst (a, T, body)) =
-      let val (b, is, ch, body') = shrink ls (lev+1) body
-      in (b, is, ch, if ch then Abst (a, T, body') else prf) end
-  | shrink ls lev (prf as AbsP (a, t, body)) =
-      let val (b, is, ch, body') = shrink (lev::ls) lev body
-      in (b orelse 0 mem is, List.mapPartial (fn 0 => NONE | i => SOME (i-1)) is,
-        ch, if ch then AbsP (a, t, body') else prf)
-      end
-  | shrink ls lev prf =
-      let val (is, ch, _, prf') = shrink' ls lev [] [] prf
-      in (false, is, ch, prf') end
-and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
-      let
-        val p as (_, is', ch', prf') = shrink ls lev prf2;
-        val (is, ch, ts', prf'') = shrink' ls lev ts (p::prfs) prf1
-      in (is union is', ch orelse ch', ts',
-          if ch orelse ch' then prf'' %% prf' else prf)
-      end
-  | shrink' ls lev ts prfs (prf as prf1 % t) =
-      let val (is, ch, (ch', t')::ts', prf') = shrink' ls lev (t::ts) prfs prf1
-      in (is, ch orelse ch', ts', if ch orelse ch' then prf' % t' else prf) end
-  | shrink' ls lev ts prfs (prf as PBound i) =
-      (if exists (fn SOME (Bound j) => lev-j <= List.nth (ls, i) | _ => true) ts
-         orelse not (null (duplicates
-           (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
-         orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
-  | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
-  | shrink' ls lev ts prfs (prf as MinProof _) =
-      ([], false, map (pair false) ts, prf)
-  | shrink' ls lev ts prfs prf =
-      let
-        val prop = (case prf of PThm (_, _, prop, _) => prop | PAxm (_, prop, _) => prop
-          | Oracle (_, prop, _) => prop | _ => error "shrink: proof not in normal form");
-        val vs = vars_of prop;
-        val (ts', ts'') = splitAt (length vs, ts)
-        val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
-        val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
-          ixn ins (case AList.lookup (op =) insts ixn of
-              SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
-            | _ => ixns union ixns'))
-              (needed prop ts'' prfs, add_npvars false true [] ([], prop));
-        val insts' = map
-          (fn (ixn, x as SOME _) => if ixn mem nvs then (false, x) else (true, NONE)
-            | (_, x) => (false, x)) insts
-      in ([], false, insts' @ map (pair false) ts'', prf) end
-and needed (Const ("==>", _) $ t $ u) ts ((b, _, _, _)::prfs) =
-      (if b then map (fst o dest_Var) (vars_of t) else []) union needed u ts prfs
-  | needed (Var (ixn, _)) (_::_) _ = [ixn]
-  | needed _ _ _ = [];
+fun shrink_proof thy =
+  let
+    val compress_typ = Compress.typ thy;
+    val compress_term = Compress.term thy;
+  
+    fun shrink ls lev (prf as Abst (a, T, body)) =
+          let val (b, is, ch, body') = shrink ls (lev+1) body
+          in (b, is, ch, if ch then Abst (a, Option.map compress_typ T, body') else prf) end
+      | shrink ls lev (prf as AbsP (a, t, body)) =
+          let val (b, is, ch, body') = shrink (lev::ls) lev body
+          in (b orelse member (op =) is 0, List.mapPartial (fn 0 => NONE | i => SOME (i-1)) is,
+            ch, if ch then AbsP (a, Option.map compress_term t, body') else prf)
+          end
+      | shrink ls lev prf =
+          let val (is, ch, _, prf') = shrink' ls lev [] [] prf
+          in (false, is, ch, prf') end
+    and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
+          let
+            val p as (_, is', ch', prf') = shrink ls lev prf2;
+            val (is, ch, ts', prf'') = shrink' ls lev ts (p::prfs) prf1
+          in (is union is', ch orelse ch', ts',
+              if ch orelse ch' then prf'' %% prf' else prf)
+          end
+      | shrink' ls lev ts prfs (prf as prf1 % t) =
+          let val (is, ch, (ch', t')::ts', prf') = shrink' ls lev (t::ts) prfs prf1
+          in (is, ch orelse ch', ts',
+              if ch orelse ch' then prf' % Option.map compress_term t' else prf) end
+      | shrink' ls lev ts prfs (prf as PBound i) =
+          (if exists (fn SOME (Bound j) => lev-j <= List.nth (ls, i) | _ => true) ts
+             orelse not (null (duplicates
+               (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
+             orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp (compress_term t))
+      | shrink' ls lev ts prfs (prf as MinProof _) =
+          ([], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs prf =
+          let
+            val prop = (case prf of PThm (_, _, prop, _) => prop | PAxm (_, prop, _) => prop
+              | Oracle (_, prop, _) => prop | _ => error "shrink: proof not in normal form");
+            val vs = vars_of prop;
+            val (ts', ts'') = splitAt (length vs, ts)
+            val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
+            val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
+              insert (op =) ixn (case AList.lookup (op =) insts ixn of
+                  SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
+                | _ => ixns union ixns'))
+                  (needed prop ts'' prfs, add_npvars false true [] ([], prop));
+            val insts' = map
+              (fn (ixn, x as SOME _) => if member (op =) nvs ixn then (false, x) else (true, NONE)
+                | (_, x) => (false, x)) insts
+          in ([], false, insts' @ map (pair false) ts'', prf) end
+    and needed (Const ("==>", _) $ t $ u) ts ((b, _, _, _)::prfs) =
+          (if b then map (fst o dest_Var) (vars_of t) else []) union needed u ts prfs
+      | needed (Var (ixn, _)) (_::_) _ = [ixn]
+      | needed _ _ _ = [];
+  in shrink end;
 
 
 (**** Simple first order matching functions for terms and proofs ****)
@@ -1145,10 +1151,10 @@ fun thm_proof thy (name, tags) hyps prop prf =
     val prop = Logic.list_implies (hyps, prop);
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
-        if ixn mem nvs then SOME v else NONE) (vars_of prop) @
+        if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (sort Term.term_ord (term_frees prop));
     val opt_prf = if ! proofs = 2 then
-        #4 (shrink [] 0 (rewrite_prf fst (ProofData.get thy)
+        #4 (shrink_proof thy [] 0 (rewrite_prf fst (ProofData.get thy)
           (foldr (uncurry implies_intr_proof) prf hyps)))
       else MinProof (mk_min_proof prf ([], [], []));
     val head = (case strip_combt (fst (strip_combP prf)) of
