@@ -112,8 +112,8 @@ signature RES_CLASIMP =
   val use_simpset: bool ref
   val use_nameless: bool ref
   val get_clasimp_lemmas : 
-         theory -> term -> 
-         (ResClause.clause * thm) Array.array * int * ResClause.clause list 
+         Proof.context -> term -> 
+         (ResClause.clause * thm) Array.array * ResClause.clause list 
   end;
 
 structure ResClasimp : RES_CLASIMP =
@@ -155,16 +155,16 @@ fun clause_numbering ((clause, theorem), num_of_cls) =
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
-fun get_clasimp_lemmas thy goal = 
+fun get_clasimp_lemmas ctxt goal = 
     let val claset_rules = 
               map put_name_pair
 	        (ReduceAxiomsN.relevant_filter (!relevant) goal 
-		  (ResAxioms.claset_rules_of_thy thy));
+		  (ResAxioms.claset_rules_of_ctxt ctxt));
 	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs claset_rules []);
 
 	val simpset_rules =
 	      ReduceAxiomsN.relevant_filter (!relevant) goal 
-                (ResAxioms.simpset_rules_of_thy thy);
+                (ResAxioms.simpset_rules_of_ctxt ctxt);
 	val named_simpset = map put_name_pair simpset_rules
 	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
 
@@ -184,7 +184,7 @@ fun get_clasimp_lemmas thy goal =
 	(*********************************************************)
 	val clause_arr = Array.fromList whole_list;
   in
-	(clause_arr, List.length whole_list, clauses)
+	(clause_arr, clauses)
   end;
 
 

@@ -39,12 +39,10 @@ fun proofstep_to_string Axiom = "Axiom()"
 (*|   proofstep_to_string (Rewrite((a,b),(c,d))) =
       "Rewrite(("^(string_of_int a)^","^(string_of_int b)^"),("^(string_of_int c)^","^(string_of_int d)^"))"*)
 
-fun list_to_string [] liststr = liststr
-|   list_to_string (x::[]) liststr = liststr^(string_of_int x)
-|   list_to_string (x::xs) liststr = list_to_string xs (liststr^(string_of_int x)^",")
 
-
-fun proof_to_string (num,(step,clause_strs, thmvars)) = (string_of_int num)^(proofstep_to_string step)^"["^(clause_strs_to_string clause_strs "")^"]["^(thmvars_to_string thmvars "")^"]"
+fun proof_to_string (num,(step,clause_strs, thmvars)) =
+ (string_of_int num)^(proofstep_to_string step)^
+ "["^(clause_strs_to_string clause_strs "")^"]["^(thmvars_to_string thmvars "")^"]"
  
 
 fun proofs_to_string [] str = str
@@ -55,7 +53,9 @@ fun proofs_to_string [] str = str
 
 
 
-fun init_proofstep_to_string (num, step, clause_strs) = (string_of_int num)^" "^(proofstep_to_string step)^" "^(clause_strs_to_string clause_strs "")^" "
+fun init_proofstep_to_string (num, step, clause_strs) =
+ (string_of_int num)^" "^(proofstep_to_string step)^" "^
+ (clause_strs_to_string clause_strs "")^" "
 
 fun init_proofsteps_to_string [] str = str
 |   init_proofsteps_to_string (x::xs) str = let val newstr = init_proofstep_to_string x 
@@ -144,12 +144,11 @@ fun numstr [] = ""
 
 (* retrieve the axioms that were obtained from the clasimpset *)
 
-fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num step_nums = 
-    let val realnums = map subone step_nums	
-	val clasimp_nums = List.filter (is_clasimp_ax (clasimp_num - 1)) realnums
-(*	val axnums = TextIO.openOut(File.platform_path(File.tmp_path (Path.basic "axnums")))     
-	val _ = TextIO.output(axnums,(numstr clasimp_nums))
-	val _ = TextIO.closeOut(axnums)*)
+fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums = 
+    let val clasimp_nums = List.filter (is_clasimp_ax (Array.length clause_arr - 1)) 
+	                   (map subone step_nums)
+(*	val _ = File.write (File.tmp_path (Path.basic "axnums")) 
+                     (numstr clasimp_nums) *)
     in
 	map (fn x =>  Array.sub(clause_arr, x)) clasimp_nums
     end
@@ -159,7 +158,7 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num ste
 (* get names of clasimp axioms used                  *)
 (*****************************************************)
 
- fun get_axiom_names step_nums thms clause_arr num_of_clauses =
+ fun get_axiom_names step_nums thms clause_arr =
    let 
      (* not sure why this is necessary again, but seems to be *)
       val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
@@ -168,7 +167,7 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num ste
      (* here need to add the clauses from clause_arr*)
      (***********************************************)
   
-      val clasimp_names_cls = get_clasimp_cls clause_arr num_of_clauses step_nums 
+      val clasimp_names_cls = get_clasimp_cls clause_arr step_nums 
       val clasimp_names = map (ResClause.get_axiomName o #1) clasimp_names_cls
       val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
                          (concat clasimp_names)
@@ -178,20 +177,30 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) clasimp_num ste
    end
    
 
-fun get_axiom_names_spass proofstr thms clause_arr num_of_clauses =
+fun get_axiom_names_spass proofstr thms clause_arr =
   let (* parse spass proof into datatype *)
+      val _ = File.write (File.tmp_path (Path.basic "parsing_progress")) 
+                         ("Started parsing:\n" ^ proofstr)
       val tokens = #1(lex proofstr)
       val proof_steps = parse tokens
-      val _ = File.write (File.tmp_path (Path.basic "parsing_done")) 
-                         ("Did parsing on "^proofstr)
+      val _ = File.append (File.tmp_path (Path.basic "parsing_progress")) "\nFinished!"
       (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
   in
     get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) 
-                    thms clause_arr num_of_clauses
+                    thms clause_arr
   end;
     
- fun get_axiom_names_vamp_E proofstr thms clause_arr num_of_clauses  =
-   get_axiom_names (get_linenums proofstr) thms clause_arr num_of_clauses;
+ (*String contains multiple lines, terminated with newline characters.
+  A list consisting of the first number in each line is returned. *)
+fun get_linenums proofstr = 
+  let val numerics = String.tokens (not o Char.isDigit)
+      fun firstno [] = NONE
+        | firstno (x::xs) = Int.fromString x
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (firstno o numerics) lines  end
+
+fun get_axiom_names_vamp_E proofstr thms clause_arr  =
+   get_axiom_names (get_linenums proofstr) thms clause_arr;
     
 
 (***********************************************)
@@ -206,13 +215,13 @@ fun numclstr (vars, []) str = str
 
 fun addvars c (a,b)  = (a,b,c)
 
-fun get_axioms_used proof_steps thms clause_arr num_of_clauses  =
+fun get_axioms_used proof_steps thms clause_arr  =
   let 
      val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
      val axioms = (List.filter is_axiom) proof_steps
      val step_nums = get_step_nums axioms []
 
-     val clauses =(*(clasimp_cls)@*)( make_clauses thms)
+     val clauses = make_clauses thms    (*FIXME: must this be repeated??*)
      
      val vars = map thm_vars clauses
     
@@ -265,19 +274,19 @@ val remove_linebreaks = subst_for #"\n" #"\t";
 val restore_linebreaks = subst_for #"\t" #"\n";
 
 
-fun proverString_to_lemmaString_aux proofstr goalstring toParent ppid thms clause_arr num_of_clauses getax = 
- let val _ = File.append(File.tmp_path (Path.basic "spass_lemmastring"))
+fun prover_lemma_list_aux proofstr goalstring toParent ppid thms clause_arr getax = 
+ let val _ = File.append(File.tmp_path (Path.basic "prover_lemmastring"))
                ("proofstr is " ^ proofstr ^
                 "\ngoalstr is " ^ goalstring ^
-                "\nnum of clauses is " ^ string_of_int num_of_clauses)
+                "\nnum of clauses is " ^ string_of_int (Array.length clause_arr))
 
-     val axiom_names = getax proofstr thms clause_arr num_of_clauses
-     val ax_str = "Rules from clasimpset used in automatic proof: " ^
-                  rules_to_string axiom_names
+     val axiom_names = getax proofstr thms clause_arr
+     val ax_str = rules_to_string axiom_names
     in 
-	 File.append(File.tmp_path (Path.basic "spass_lemmastring"))
-	            ("reconstring is: "^ax_str^"  "^goalstring);
-         TextIO.output (toParent, ax_str^"\n");
+	 File.append(File.tmp_path (Path.basic "prover_lemmastring"))
+	            ("\nlemma list is: " ^ ax_str);
+         TextIO.output (toParent, "Success. Lemmas used in automatic proof: " ^
+                  ax_str ^ "\n");
 	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
 	 TextIO.flushOut toParent;
 
@@ -285,9 +294,10 @@ fun proverString_to_lemmaString_aux proofstr goalstring toParent ppid thms claus
 	(* Attempt to prevent several signals from turning up simultaneously *)
 	 Posix.Process.sleep(Time.fromSeconds 1) ; all_tac
     end
-    handle _ => (*FIXME: exn handler is too general!*)
-     (File.write(File.tmp_path (Path.basic "proverString_handler")) "In exception handler";
-      TextIO.output (toParent, "Proof found but translation failed : " ^ 
+    handle exn => (*FIXME: exn handler is too general!*)
+     (File.write(File.tmp_path (Path.basic "proverString_handler")) 
+         ("In exception handler: " ^ Toplevel.exn_message exn);
+      TextIO.output (toParent, "Translation failed for the proof: " ^ 
                      remove_linebreaks proofstr ^ "\n");
       TextIO.output (toParent, remove_linebreaks goalstring ^ "\n");
       TextIO.flushOut toParent;
@@ -295,21 +305,19 @@ fun proverString_to_lemmaString_aux proofstr goalstring toParent ppid thms claus
       (* Attempt to prevent several signals from turning up simultaneously *)
       Posix.Process.sleep(Time.fromSeconds 1); all_tac);
 
-fun proverString_to_lemmaString proofstr goalstring toParent ppid thms
-      clause_arr num_of_clauses  = 
-  proverString_to_lemmaString_aux proofstr goalstring toParent ppid thms        
-       clause_arr num_of_clauses get_axiom_names_vamp_E;
+fun prover_lemma_list proofstr goalstring toParent ppid thms clause_arr  = 
+  prover_lemma_list_aux proofstr goalstring toParent ppid thms        
+       clause_arr get_axiom_names_vamp_E;
 
-fun spassString_to_lemmaString proofstr goalstring toParent ppid thms
-      clause_arr  num_of_clauses  = 
-  proverString_to_lemmaString_aux proofstr goalstring toParent ppid thms        
-       clause_arr num_of_clauses get_axiom_names_spass;
+fun spass_lemma_list proofstr goalstring toParent ppid thms clause_arr = 
+  prover_lemma_list_aux proofstr goalstring toParent ppid thms        
+       clause_arr get_axiom_names_spass;
 
 
 (**** Full proof reconstruction for SPASS (not really working) ****)
 
-fun spassString_to_reconString proofstr goalstring toParent ppid thms clause_arr  num_of_clauses  = 
-  let val _ = File.write(File.tmp_path (Path.basic "spass_reconstruction")) 
+fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr = 
+  let val _ = File.write(File.tmp_path (Path.basic "prover_reconstruction")) 
                  ("proofstr is: "^proofstr)
       val tokens = #1(lex proofstr)
 
@@ -318,7 +326,7 @@ fun spassString_to_reconString proofstr goalstring toParent ppid thms clause_arr
   (***********************************)
       val proof_steps = parse tokens
 
-      val _ = File.append (File.tmp_path (Path.basic "spass_reconstruction"))
+      val _ = File.append (File.tmp_path (Path.basic "prover_reconstruction"))
                       ("Did parsing on "^proofstr)
     
   (************************************)
@@ -329,19 +337,19 @@ fun spassString_to_reconString proofstr goalstring toParent ppid thms clause_arr
       (* subgoal this is, and turn it into meta_clauses *)
       (* should prob add array and table here, so that we can get axioms*)
       (* produced from the clasimpset rather than the problem *)
-      val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr  num_of_clauses
+      val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr
       
       (*val numcls_string = numclstr ( vars, numcls) ""*)
-      val _ = File.append (File.tmp_path (Path.basic "spass_reconstruction")) "got axioms"
+      val _ = File.append (File.tmp_path (Path.basic "prover_reconstruction")) "got axioms"
 	
   (************************************)
   (* translate proof                  *)
   (************************************)
-      val _ = File.append (File.tmp_path (Path.basic "spass_reconstruction"))                                                                           
+      val _ = File.append (File.tmp_path (Path.basic "prover_reconstruction"))                                                                           
                        ("about to translate proof, steps: "
                        ^(init_proofsteps_to_string proof_steps ""))
       val (newthm,proof) = translate_proof numcls  proof_steps vars
-      val _ = File.append (File.tmp_path (Path.basic "spass_reconstruction"))                                                                       
+      val _ = File.append (File.tmp_path (Path.basic "prover_reconstruction"))                                                                       
                        ("translated proof, steps: "^(init_proofsteps_to_string proof_steps ""))
   (***************************************************)
   (* transfer necessary steps as strings to Isabelle *)
@@ -371,9 +379,10 @@ fun spassString_to_reconString proofstr goalstring toParent ppid thms clause_arr
       (* Attempt to prevent several signals from turning up simultaneously *)
        Posix.Process.sleep(Time.fromSeconds 1) ; all_tac
   end
-  handle _ => 
-   (File.append(File.tmp_path (Path.basic "spass_reconstruction")) "In exception handler";
-    TextIO.output (toParent,"Proof found but translation failed for resolution proof:"^
+  handle exn => (*FIXME: exn handler is too general!*)
+   (File.append(File.tmp_path (Path.basic "prover_reconstruction"))
+       ("In exception handler: " ^ Toplevel.exn_message exn);
+    TextIO.output (toParent,"Translation failed for the proof:"^
          (remove_linebreaks proofstr) ^"\n");
     TextIO.output (toParent, goalstring^"\n");
     TextIO.flushOut toParent;

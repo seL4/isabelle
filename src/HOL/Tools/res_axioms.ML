@@ -18,7 +18,10 @@ signature RES_AXIOMS =
   val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
-  val clausify_rules_pairs : (string*thm) list -> thm list -> (ResClause.clause*thm) list list * thm list
+  val claset_rules_of_ctxt: Proof.context -> (string * thm) list
+  val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
+  val clausify_rules_pairs : 
+        (string*thm) list -> thm list -> (ResClause.clause*thm) list list * thm list
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
   end;
@@ -357,19 +360,31 @@ val tagD = thm "tagD";
 val tag_intro = preserve_name (fn th => th RS tagI);
 val tag_elim  = preserve_name (fn th => tagD RS th);
 
-fun claset_rules_of_thy thy =
-  let val cs = rep_cs (claset_of thy)
-      val intros = (#safeIs cs) @ (#hazIs cs)
-      val elims  = (#safeEs cs) @ (#hazEs cs)
+fun rules_of_claset cs =
+  let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
+      val intros = safeIs @ hazIs
+      val elims  = safeEs @ hazEs
   in
+     debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
+            " elims: " ^ Int.toString(length elims));
      if tagging_enabled 
      then map pairname (map tag_intro intros @ map tag_elim elims)
-     else map pairname (intros @  elims)
+     else map pairname (intros @ elims)
   end;
 
-fun simpset_rules_of_thy thy =
-    let val rules = #rules (fst (rep_ss (simpset_of thy)))
-    in map (fn r => (#name r, #thm r)) (Net.entries rules) end;
+fun rules_of_simpset ss =
+  let val ({rules,...}, _) = rep_ss ss
+      val simps = Net.entries rules
+  in 
+      debug ("rules_of_simpset: " ^ Int.toString(length simps));
+      map (fn r => (#name r, #thm r)) simps
+  end;
+
+fun claset_rules_of_thy thy = rules_of_claset (claset_of thy);
+fun simpset_rules_of_thy thy = rules_of_simpset (simpset_of thy);
+
+fun claset_rules_of_ctxt ctxt = rules_of_claset (local_claset_of ctxt);
+fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
 
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)

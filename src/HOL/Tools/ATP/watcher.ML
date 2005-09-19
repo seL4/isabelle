@@ -13,7 +13,6 @@
 (*  Hardwired version of where to pick up the tptp files for the moment    *)
 (***************************************************************************)
 
-
 signature WATCHER =
 sig
 
@@ -36,7 +35,9 @@ val callSlayer : TextIO.outstream -> unit
 (* Start a watcher and set up signal handlers             *)
 (**********************************************************)
 
-val createWatcher : thm*(ResClause.clause * thm) Array.array *  int -> TextIO.instream * TextIO.outstream * Posix.Process.pid
+val createWatcher : 
+    thm * (ResClause.clause * thm) Array.array -> 
+    TextIO.instream * TextIO.outstream * Posix.Process.pid
 
 (**********************************************************)
 (* Kill watcher process                                   *)
@@ -48,9 +49,8 @@ end
 
 
 
-
 structure Watcher: WATCHER =
-  struct
+struct
 
 open ReconPrelim Recon_Transfer
 
@@ -268,7 +268,10 @@ fun getInIoDesc someInstr =
 
 fun getProofCmd (a,c,d,e,f) = d
 
-fun setupWatcher (thm,clause_arr, num_of_clauses) = 
+fun prems_string_of th =
+  Meson.concat_with_and (map (Sign.string_of_term (sign_of_thm th)) (prems_of th))
+
+fun setupWatcher (thm,clause_arr) = 
   let
     (** pipes for communication between parent and watcher **)
     val p1 = Posix.IO.pipe ()
@@ -295,10 +298,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	   val fromParentIOD = Posix.FileSys.fdToIOD fromParent
 	   val fromParentStr = openInFD ("_exec_in_parent", fromParent)
 	   val toParentStr = openOutFD ("_exec_out_parent", toParent)
-	   val sign = sign_of_thm thm
-	   val prems = prems_of thm
-	   val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-	   val _ = debug ("subgoals forked to startWatcher: "^prems_string);
+	   val _ = debug ("subgoals forked to startWatcher: "^ prems_string_of thm);
 	   fun killChildren [] = ()
 	|      killChildren  (child_handle::children) =
 	         (killChild child_handle; killChildren children)
@@ -367,46 +367,45 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 	 |   checkChildren ((childProc::otherChildren), toParentStr) = 
 	       let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
 			      ("In check child, length of queue:"^
-			       (string_of_int (length (childProc::otherChildren)))^"\n")
+			       string_of_int (length (childProc::otherChildren)))
 		   val (childInput,childOutput) =  cmdstreamsOf childProc
 		   val child_handle= cmdchildHandle childProc
 		   (* childCmd is the .dfg file that the problem is in *)
 		   val childCmd = fst(snd (cmdchildInfo childProc))
-		   val _ = File.append (File.tmp_path (Path.basic "child_command")) 
-			      (childCmd^"\n")
+		   val _ = File.append (File.tmp_path (Path.basic "child_check")) 
+			      ("\nchildCmd = " ^ childCmd)
 		   (* now get the number of the subgoal from the filename *)
 		   val path_parts = String.tokens(fn c => c = #"/") childCmd
 		   val digits = String.translate 
 		                  (fn c => if Char.isDigit c then str c else "")
 		                  (List.last path_parts);
-		   val sg_num = (case Int.fromString digits of SOME n => n
-                                  | NONE => error ("Watcher could not read subgoal nunber: " ^ childCmd));
-
+		   val sg_num =
+		     (case Int.fromString digits of SOME n => n
+                        | NONE => (File.append (File.tmp_path (Path.basic "child_check")) 
+                                   "\nWatcher could not read subgoal nunber!!";
+                                   raise ERROR));
 		   val childIncoming = pollChildInput childInput
-		   val _ = File.append (File.tmp_path (Path.basic "child_check_polled")) 
-			      ("finished polling child \n")
+		   val _ = File.append (File.tmp_path (Path.basic "child_check")) 
+			         "\nfinished polling child"
 		   val parentID = Posix.ProcEnv.getppid()
 		   val prover = cmdProver childProc
-		   val sign = sign_of_thm thm
-		   val prems = prems_of thm
-		   val prems_string =  Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-		   val _ = debug("subgoals forked to checkChildren: "^prems_string)
+		   val prems_string = prems_string_of thm
 		   val goalstring = cmdGoal childProc							
-		   val _ = File.append (File.tmp_path (Path.basic "child_comms")) 
-			      (prover^goalstring^childCmd^"\n")
+		   val _ =  File.append (File.tmp_path (Path.basic "child_check")) 
+		             ("\nsubgoals forked to checkChildren: " ^ 
+		              space_implode "\n" [prems_string,prover,goalstring])
 	       in 
 		 if isSome childIncoming
 		 then 
 		   (* check here for prover label on child*)
-		   let val _ = File.write (File.tmp_path (Path.basic "child_incoming")) 
-			      ("subgoals forked to checkChildren:"^
-			      prems_string^prover^goalstring^childCmd) 
+		   let val _ = File.append (File.tmp_path (Path.basic "child_check")) 
+			         "\nInput available from childIncoming" 
 		       val childDone = (case prover of
-			   "vampire" => VampComm.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  
-			    | "E" => VampComm.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)             
-			  |"spass" => SpassComm.checkSpassProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr, num_of_clauses)  )
+			   "vampire" => AtpCommunication.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)  
+			    | "E" => AtpCommunication.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)             
+			  |"spass" => AtpCommunication.checkSpassProofFound(childInput, toParentStr, parentID,goalstring, childCmd, thm, sg_num,clause_arr)  )
 		    in
-		     if childDone      (**********************************************)
+		     if childDone
 		     then (* child has found a proof and transferred it *)
 			(* Remove this child and go on to check others*)
 			(**********************************************)
@@ -419,7 +418,8 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		       (childProc::(checkChildren (otherChildren, toParentStr)))
 		  end
 		else
-		  (File.append (File.tmp_path (Path.basic "child_incoming")) "No child output ";
+		  (File.append (File.tmp_path (Path.basic "child_check"))
+		               "No child output";
 		   childProc::(checkChildren (otherChildren, toParentStr)))
 	       end
 
@@ -509,12 +509,12 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 			 let 
 			   val newProcList = execCmds (valOf cmdsFromIsa) procList
 			   val parentID = Posix.ProcEnv.getppid()
-			      val _ = (File.append (File.tmp_path (Path.basic "prekeep_watch")) "Just execed a child\n ")
-			   val newProcList' =checkChildren (newProcList, toParentStr) 
-
-			   val _ = debug("off to keep watching...")
-			  val _ = (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...\n ")
+			      val _ = File.append (File.tmp_path (Path.basic "prekeep_watch"))
+			      "Just execed a child\n"
+			   val newProcList' = checkChildren (newProcList, toParentStr) 
 			 in
+			   File.append (File.tmp_path (Path.basic "keep_watch")) 
+			       "Off to keep watching...\n";
 			   loop newProcList'
 			 end
 		       else  (* Execute remotely              *)
@@ -529,7 +529,7 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 		   else (* No new input from Isabelle *)
 		     let val newProcList = checkChildren (procList, toParentStr)
 		     in
-		      (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching.2..\n ");
+		      (File.append (File.tmp_path (Path.basic "keep_watch")) "Off to keep watching...2\n ");
 		       loop newProcList
 		     end
 		 end
@@ -602,20 +602,14 @@ fun setupWatcher (thm,clause_arr, num_of_clauses) =
 (* Start a watcher and set up signal handlers             *)
 (**********************************************************)
 
-fun killWatcher pid= Posix.Process.kill(Posix.Process.K_PROC pid, Posix.Signal.kill);
+fun killWatcher pid = Posix.Process.kill(Posix.Process.K_PROC pid, Posix.Signal.kill);
 
 fun reapWatcher(pid, instr, outstr) =
-  let val u = TextIO.closeIn instr;
-      val u = TextIO.closeOut outstr;
-      val (_, status) = Posix.Process.waitpid(Posix.Process.W_CHILD pid, [])
-  in
-	  status
-  end
+  (TextIO.closeIn instr; TextIO.closeOut outstr;
+   Posix.Process.waitpid(Posix.Process.W_CHILD pid, []); ())
 
-
-fun createWatcher (thm,clause_arr, num_of_clauses) =
- let val (childpid,(childin,childout)) =
-           childInfo (setupWatcher(thm,clause_arr, num_of_clauses))
+fun createWatcher (thm, clause_arr) =
+ let val (childpid,(childin,childout)) = childInfo (setupWatcher(thm,clause_arr))
      fun decr_watched() =
 	  (goals_being_watched := (!goals_being_watched) - 1;
 	   if !goals_being_watched = 0
@@ -623,63 +617,54 @@ fun createWatcher (thm,clause_arr, num_of_clauses) =
 	     (File.append (File.tmp_path (Path.basic "reap_found"))
 	       ("Reaping a watcher, childpid = "^
 		LargeWord.toString (Posix.Process.pidToWord childpid)^"\n");
-	      killWatcher childpid; reapWatcher (childpid,childin, childout); ())
+	      killWatcher childpid; reapWatcher (childpid,childin, childout))
 	    else ())
-     val sign = sign_of_thm thm
-     val prems = prems_of thm
-     val prems_string = Meson.concat_with_and (map (Sign.string_of_term sign) prems) 
-     val _ = debug ("subgoals forked to createWatcher: "^prems_string);
-(*FIXME: do we need an E proofHandler??*)
-     fun vampire_proofHandler n =
-	(Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	 VampComm.getVampInput childin; Pretty.writeln(Pretty.str (oct_char "361")))               
-     fun spass_proofHandler n = (
-       let val _ = File.append (File.tmp_path (Path.basic "spass_signal"))
-                               "Starting SPASS signal handler\n"
-	   val (reconstr, goalstring) = SpassComm.getSpassInput childin
-	   val _ = File.append (File.tmp_path (Path.basic "spass_signal"))
-		       ("In SPASS signal handler "^reconstr^goalstring^
-		       "goals_being_watched: "^ string_of_int (!goals_being_watched))
+     val _ = debug ("subgoals forked to createWatcher: "^ prems_string_of thm);
+     fun proofHandler n = 
+       let val outcome = TextIO.inputLine childin
+	   val goalstring = TextIO.inputLine childin
+	   val _ = debug ("In signal handler. outcome = \"" ^ outcome ^ 
+		        "\"\ngoalstring = " ^ goalstring ^
+		        "\ngoals_being_watched: "^ string_of_int (!goals_being_watched))
        in (* if a proof has been found and sent back as a reconstruction proof *)
-	 if substring (reconstr, 0,1) = "["
+	 if String.isPrefix "[" outcome
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Recon_Transfer.apply_res_thm reconstr goalstring;
+	       Recon_Transfer.apply_res_thm outcome goalstring;
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched())
-	 (* if there's no proof, but a message from Spass *)
-	 else if substring (reconstr, 0,5) = "SPASS"
+	 (* if there's no proof, but a message from the signalling process*)
+	 else if String.isPrefix "Invalid" outcome
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring)^reconstr));
+	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring) 
+	       ^ "is not provable"));
+	       Pretty.writeln(Pretty.str  (oct_char "361"));
+	       decr_watched())
+	 else if String.isPrefix "Failure" outcome
+	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
+	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring) 
+	       ^ "proof attempt failed"));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched()) 
 	(* print out a list of rules used from clasimpset*)
-	 else if substring (reconstr, 0,5) = "Rules"
+	 else if String.isPrefix "Success" outcome
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Pretty.writeln(Pretty.str (goalstring^reconstr));
+	       Pretty.writeln(Pretty.str (goalstring^outcome));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched())
 	  (* if proof translation failed *)
-	 else if substring (reconstr, 0,5) = "Proof"
+	 else if String.isPrefix "Translation failed" outcome
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
+	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks outcome)));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched())
-	 else if substring (reconstr, 0,1) = "%"
-	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Pretty.writeln(Pretty.str (goalstring^(Recon_Transfer.restore_linebreaks reconstr)));
-	       Pretty.writeln(Pretty.str  (oct_char "361"));
-	       decr_watched())
-	 else  (* add something here ?*)
+	 else  
 	      (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
-	       Pretty.writeln(Pretty.str ("Ran out of options in handler"));
+	       Pretty.writeln(Pretty.str ("System error in proof handler"));
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched())
-       end)
-
- in IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE vampire_proofHandler);
-    IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE spass_proofHandler);
+       end
+ in IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE proofHandler);
     (childin, childout, childpid)
-
   end
 
 end (* structure Watcher *)

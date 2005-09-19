@@ -9,24 +9,30 @@ signature RES_ATP =
 sig
   val prover: string ref
   val custom_spass: string list ref
+  val destdir: string ref
   val hook_count: int ref
+  val problem_name: string ref
 end;
 
 structure ResAtp: RES_ATP =
 struct
 
-
 val call_atp = ref false;
 val hook_count = ref 0;
-
-fun debug_tac tac = (debug "testing"; tac);
 
 val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
       ref ["Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
            "-DocProof","-TimeLimit=60"];
 
-val prob_file = File.tmp_path (Path.basic "prob");
+val destdir = ref "";   (*Empty means write files to /tmp*)
+val problem_name = ref "prob";
+
+fun prob_pathname() = 
+  if !destdir = "" then File.platform_path (File.tmp_path (Path.basic (!problem_name)))
+  else if File.exists (File.unpack_platform_path (!destdir))
+  then !destdir ^ "/" ^ !problem_name
+  else error ("No such directory: " ^ !destdir);
 
 
 (**** for Isabelle/ML interface  ****)
@@ -68,7 +74,7 @@ fun tptp_inputs_tfrees thms n axclauses =
       val _ = debug ("in tptp_inputs_tfrees 2")
       val tfree_clss = map ResClause.tfree_clause (ResLib.flat_noDup tfree_litss)
       val _ = debug ("in tptp_inputs_tfrees 3")
-      val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
+      val probfile = prob_pathname() ^ "_" ^ string_of_int n
       val out = TextIO.openOut(probfile)
     in
       ResLib.writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
@@ -85,7 +91,7 @@ fun tptp_inputs_tfrees thms n axclauses =
 
 fun dfg_inputs_tfrees thms n axclauses = 
     let val clss = map (ResClause.make_conjecture_clause_thm) thms
-        val probfile = (File.platform_path prob_file) ^ "_" ^ (string_of_int n)
+        val probfile = prob_pathname() ^ "_" ^ (string_of_int n)
         val _ = debug ("about to write out dfg prob file " ^ probfile)
         val probN = ResClause.clauses2dfg clss ("prob" ^ (string_of_int n)) 
                         axclauses [] [] []    
@@ -108,7 +114,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
             val goalstring = proofstring (Sign.string_of_term sign sg_term)
             val _ = debug ("goalstring in make_atp_lists is " ^ goalstring)
 
-            val probfile = File.platform_path prob_file ^ "_" ^ (string_of_int n)
+            val probfile = prob_pathname() ^ "_" ^ string_of_int n
             val _ = debug ("prob file in watcher_call_provers is " ^ probfile)
           in
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
@@ -116,7 +122,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
             if !prover = "spass"
             then
               let val optionline = 
-		      if !SpassComm.reconstruct 
+		      if !AtpCommunication.reconstruct 
 		          (*Proof reconstruction works for only a limited set of 
 		            inference rules*)
                       then "-" ^ space_implode "%-" (!custom_spass)
@@ -170,30 +176,31 @@ fun write_problem_files axclauses thm n =
         ());
 
 
+(*FIXME: WHAT IS THMS FOR????*)
+
 (******************************************************************)
 (* called in Isar automatically                                   *)
 (* writes out the current clasimpset to a tptp file               *)
 (* turns off xsymbol at start of function, restoring it at end    *)
 (******************************************************************)
 (*FIX changed to clasimp_file *)
-val isar_atp' = setmp print_mode [] 
+val isar_atp = setmp print_mode [] 
  (fn (ctxt, thms, thm) =>
   if Thm.no_prems thm then ()
   else
     let
-      val _= debug ("in isar_atp'")
+      val _= debug ("in isar_atp")
       val thy = ProofContext.theory_of ctxt
       val prems = Thm.prems_of thm
       val thms_string = Meson.concat_with_and (map string_of_thm thms)
       val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) prems)
 
       (*set up variables for writing out the clasimps to a tptp file*)
-      val (clause_arr, num_of_clauses, axclauses) =
-        ResClasimp.get_clasimp_lemmas thy (hd prems) (*FIXME: hack!! need to do all prems*)
-      val _ = debug ("claset and simprules total " ^ (string_of_int num_of_clauses)^
-                  " clauses")
-      val (childin, childout, pid) = 
-          Watcher.createWatcher (thm, clause_arr, num_of_clauses)
+      val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
+              (*FIXME: hack!! need to consider relevance for all prems*)
+      val _ = debug ("claset and simprules total clauses = " ^ 
+                     string_of_int (Array.length clause_arr))
+      val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr)
       val pid_string =
         string_of_int (Word.toInt (Word.fromLargeWord (Posix.Process.pidToWord pid)))
     in
@@ -205,43 +212,17 @@ val isar_atp' = setmp print_mode []
     end);
 
 val isar_atp_writeonly = setmp print_mode [] 
- (fn (ctxt, thms, thm) =>
+ (fn (ctxt, thms: thm list, thm) =>
   if Thm.no_prems thm then ()
   else
-    let
-      val thy = ProofContext.theory_of ctxt
-      val prems = Thm.prems_of thm
-
-      (*set up variables for writing out the clasimps to a tptp file*)
-      val (clause_arr, num_of_clauses, axclauses) =
-        ResClasimp.get_clasimp_lemmas thy (hd prems) (*FIXME: hack!! need to do all prems*)
+    let val prems = Thm.prems_of thm
+        val (_, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
     in
       write_problem_files axclauses thm (length prems)
     end);
 
-fun get_thms_cs claset =
-  let val {safeEs, safeIs, hazEs, hazIs, ...} = rep_cs claset
-  in safeEs @ safeIs @ hazEs @ hazIs end;
 
-fun append_name name [] _ = []
-  | append_name name (thm :: thms) k =
-      Thm.name_thm ((name ^ "_" ^ string_of_int k), thm) :: append_name name thms (k + 1);
-
-fun append_names (name :: names) (thms :: thmss) =
-  append_name name thms 0 :: append_names names thmss;
-
-fun get_thms_ss [] = []
-  | get_thms_ss thms =
-      let
-        val names = map Thm.name_of_thm thms
-        val thms' = map (mksimps mksimps_pairs) thms
-        val thms'' = append_names names thms'
-      in
-        ResLib.flat_noDup thms''
-      end;
-
-
-(* convert locally declared rules to axiom clauses *)
+(* convert locally declared rules to axiom clauses: UNUSED *)
 
 fun subtract_simpset thy ctxt =
   let
@@ -265,12 +246,7 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     val proof = Toplevel.proof_of state
     val (ctxt, (_, goal)) = Proof.get_goal proof
         handle Proof.STATE _ => error "No goal present";
-
     val thy = ProofContext.theory_of ctxt;
-
-    (* FIXME presently unused *)
-    val ss_thms = subtract_simpset thy ctxt;
-    val cs_thms = subtract_claset thy ctxt;
   in
     debug ("initial thm in isar_atp: " ^ 
            Pretty.string_of (ProofContext.pretty_thm ctxt goal));
@@ -278,10 +254,12 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
     debug ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
+    debug ("current theory: " ^ Context.theory_name thy);
     hook_count := !hook_count +1;
     debug ("in hook for time: " ^(string_of_int (!hook_count)) );
     ResClause.init thy;
-    isar_atp' (ctxt, ProofContext.prems_of ctxt, goal)
+    if !destdir = "" then isar_atp (ctxt, ProofContext.prems_of ctxt, goal)
+    else isar_atp_writeonly (ctxt, ProofContext.prems_of ctxt, goal)
   end);
 
 val call_atpP =

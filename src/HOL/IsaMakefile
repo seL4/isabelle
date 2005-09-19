@@ -93,8 +93,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Orderings.ML Orderings.thy Power.thy PreList.thy Product_Type.thy		\
   ROOT.ML Recdef.thy Reconstruction.thy Record.thy Refute.thy			\
   Relation.ML Relation.thy Relation_Power.thy Ring_and_Field.thy Set.ML		\
-  Set.thy SetInterval.thy Sum_Type.thy Tools/ATP/SpassCommunication.ML		\
-  Tools/ATP/VampCommunication.ML						\
+  Set.thy SetInterval.thy Sum_Type.thy Tools/ATP/AtpCommunication.ML		\
   Tools/ATP/recon_order_clauses.ML Tools/ATP/recon_parse.ML			\
   Tools/ATP/recon_prelim.ML Tools/ATP/recon_transfer_proof.ML			\
   Tools/ATP/recon_translate_proof.ML Tools/ATP/res_clasimpset.ML		\

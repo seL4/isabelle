@@ -66,9 +66,6 @@ fun a tok = some (fn item => item = tok);
 fun finished input = if input = [] then (0, input) else raise Noparse;
 
 
-
-
-
   (* Parsing the output from gandalf *)
 datatype token = Word of string
                | Number of int
@@ -105,39 +102,6 @@ datatype token = Word of string
     fun kill_lines 0 = Library.I
       | kill_lines n = kill_lines (n - 1) o snd o cut_after "\n";
 
-    (*fun extract_proof s
-      = if cut_exists "EMPTY CLAUSE DERIVED" s then
-          (kill_lines 6
-           o snd o cut_after "EMPTY CLAUSE DERIVED"
-           o fst o cut_after "contradiction.\n") s
-        else
-          raise (GandalfError "Couldn't find a proof.")
-*)
-
-val start_E = "# Proof object starts here."
-val end_E   = "# Proof object ends here."
-val start_V6 = "%================== Proof: ======================"
-val end_V6   = "%==============  End of proof. =================="
-val start_V8 = "=========== Refutation =========="
-val end_V8 = "======= End of refutation ======="
-
-
-(*Identifies the start/end lines of an ATP's output*)
-fun extract_proof s =
-  if cut_exists "Here is a proof with" s then
-    (kill_lines 0
-     o snd o cut_after ":"
-     o snd o cut_after "Here is a proof with"
-     o fst o cut_after " ||  -> .") s
-  else if cut_exists start_V8 s then
-    (kill_lines 0    (*Vampire 8.0*)
-     o snd o cut_after start_V8
-     o fst o cut_before end_V8) s
-  else if cut_exists end_E s then
-    (kill_lines 0    (*eproof*)
-     o snd o cut_after start_E
-     o fst o cut_before end_E) s
-  else "??extract_proof failed" (*Couldn't find a proof*)
 
 fun several p = many (some p)
       fun collect (h, t) = h ^ (fold_rev (fn s1 => fn s2 => s1 ^ s2) t "")
@@ -161,17 +125,6 @@ fun several p = many (some p)
     
      (* val lex = fst ( alltokens ( (map str)  explode))*)
      fun lex s =  alltokens  (explode s)
-
-
-
-(*String contains multiple lines, terminated with newline characters.
-  A list consisting of the first number in each line is returned. *)
-fun get_linenums proofstr = 
-  let val numerics = String.tokens (not o Char.isDigit)
-      fun firstno [] = NONE
-        | firstno (x::xs) = Int.fromString x
-      val lines = String.tokens (fn c => c = #"\n") proofstr
-  in  List.mapPartial (firstno o numerics) lines  end
 
 
 (************************************************************)
