@@ -107,7 +107,7 @@ fun reif_eq sg (eq as Const("op =",Type("fun",a::_))$lhs$rhs) =
 (*The cring tactic  *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
 (* Use simply rewriting t^0 = 1 *)
-val cring_ss = simpset_of (the_context())
+fun cring_ss sg = simpset_of sg
                            addsimps
                            (map thm ["mkPX_def", "mkPinj_def","sub_def",
                                      "power_add","even_def","pow_if"])
@@ -119,12 +119,12 @@ fun comm_ring_tac i =(fn st =>
         val g = List.nth (prems_of st, i - 1)
         val sg = sign_of_thm st
         val (ca,cvs,clhs,crhs) = reif_eq sg (HOLogic.dest_Trueprop g)
-        val norm_eq_th = simplify cring_ss
+        val norm_eq_th = simplify (cring_ss sg)
                         (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs]
                                                 norm_eq)
     in ((cut_rules_tac [norm_eq_th] i)
-            THEN (simp_tac cring_ss i)
-            THEN (simp_tac cring_ss i)) st
+            THEN (simp_tac (cring_ss sg) i)
+            THEN (simp_tac (cring_ss sg) i)) st
     end);
 
 fun comm_ring_method i = Method.METHOD (fn facts =>
