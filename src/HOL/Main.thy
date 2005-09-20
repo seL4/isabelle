@@ -14,16 +14,6 @@ text {*
 
 subsection {* Special hacks, late package setup etc. *}
 
-text {* \medskip Hide the rather generic names used in theory @{text
-  Commutative_Ring}. *}
-
-hide (open) const
-  Pc Pinj PX
-  Pol Add Sub Mul Pow Neg
-  add mul neg sqr pow sub
-  norm
-
-
 text {* \medskip Default values for rufute, see also theory @{text
   Refute}.
 *}
