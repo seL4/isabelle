@@ -18,6 +18,7 @@ imports
   Word
   Zorn
   Char_ord
+  Commutative_Ring
 begin
 end
 (*>*)
