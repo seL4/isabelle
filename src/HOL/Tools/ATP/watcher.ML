@@ -270,7 +270,9 @@ fun getProofCmd (a,c,d,e,f) = d
 fun prems_string_of th =
   Meson.concat_with_and (map (Sign.string_of_term (sign_of_thm th)) (prems_of th))
 
-fun killChildren procs = List.app (ignore o Unix.reap) procs;
+fun killChild proc = (Unix.kill(proc, Posix.Signal.kill); Unix.reap proc);
+
+fun killChildren procs = List.app (ignore o killChild) procs;
 
 fun setupWatcher (thm,clause_arr) = 
   let

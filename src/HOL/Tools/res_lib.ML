@@ -8,16 +8,12 @@ Some auxiliary functions frequently used by files in this directory.
 
 signature RES_LIB =
 sig
-val atomize_tac : int -> tactic
 val flat_noDup : ''a list list -> ''a list
 val helper_path : string -> string -> string
 val list2str_sep : string -> string list -> string
-val list_to_string : string list -> string
-val list_to_string' : string list -> string
 val no_rep_add : ''a -> ''a list -> ''a list
 val no_rep_app : ''a list -> ''a list -> ''a list
 val pair_ins : 'a -> 'b list -> ('a * 'b) list
-val trim_ends : string -> string
 val write_strs : TextIO.outstream -> TextIO.vector list -> unit
 val writeln_strs : TextIO.outstream -> TextIO.vector list -> unit
 val intOfPid : Posix.Process.pid -> Int.int
@@ -27,42 +23,6 @@ end;
 
 structure ResLib : RES_LIB =
 struct
-
-val atomize_tac =
- SUBGOAL
-  (fn (prop,_) =>
-    let val ts = Logic.strip_assums_hyp prop
-        val atom = ObjectLogic.atomize_thm o forall_intr_vars
-    in EVERY1
-	[METAHYPS
-	  (fn hyps => cut_facts_tac (map atom hyps) 1),
-         REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-  end);
-
-(*Remove both ends from the string (presumably quotation marks?)*)
-fun trim_ends s = String.substring(s,1,String.size s - 2);
-
-
-(* convert a list of strings into one single string; surrounded by brackets *)
-fun list_to_string strings =
-let
-	fun str_of [s]      = s
-	  | str_of (s1::ss) = s1 ^ "," ^ (str_of ss)
-	  | str_of _        = ""
-in
-	"(" ^ str_of strings ^ ")"
-end;
-
-fun list_to_string' strings =
-let
-	fun str_of [s]      = s
-	  | str_of (s1::ss) = s1 ^ "," ^ (str_of ss)
-	  | str_of _        = ""
-in
-	"[" ^ str_of strings ^ "]"
-end;
-
-(* remove some chars (not allowed by TPTP format) from a string *)
 
 fun no_rep_add x []     = [x]
   | no_rep_add x (y::z) = if x=y then y::z else y::(no_rep_add x z);

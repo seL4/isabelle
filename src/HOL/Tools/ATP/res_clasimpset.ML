@@ -130,8 +130,7 @@ val plain_string_of_thm =
 	(Pretty.setmp_margin 999 string_of_thm));
 	
 fun fake_thm_name th = 
-    Context.theory_name (theory_of_thm th) ^ "." ^ 
-    ResLib.trim_ends (plain_string_of_thm th);
+    Context.theory_name (theory_of_thm th) ^ "." ^ unenclose (plain_string_of_thm th);
 
 fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
                             else ("HOL.TrueI",TrueI)

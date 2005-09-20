@@ -61,30 +61,29 @@ fun repeat_someI_ex thm = repeat_RS thm someI_ex;
 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_inputs_tfrees thms n axclauses =
+fun tptp_inputs_tfrees thms n (axclauses,classrel_clauses,arity_clauses) =
     let
-      val _ = debug ("in tptp_inputs_tfrees 0")
       val clss = map (ResClause.make_conjecture_clause_thm) thms
-      val _ = debug ("in tptp_inputs_tfrees 1")
       val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
-      val _ = debug ("in tptp_inputs_tfrees 2")
       val tfree_clss = map ResClause.tfree_clause (ResLib.flat_noDup tfree_litss)
-      val _ = debug ("in tptp_inputs_tfrees 3")
-      val probfile = prob_pathname() ^ "_" ^ string_of_int n
+      val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
+      val arity_cls = map ResClause.tptp_arity_clause arity_clauses
+      val probfile = prob_pathname() ^ "_" ^ Int.toString n
       val out = TextIO.openOut(probfile)
     in
       ResLib.writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
-      ResLib.writeln_strs out (tfree_clss @ tptp_clss);
+      ResLib.writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
       TextIO.closeOut out;
       debug probfile
     end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
-fun dfg_inputs_tfrees thms n axclauses = 
+fun dfg_inputs_tfrees thms n (axclauses,classrel_clauses,arity_clauses) = 
     let val clss = map (ResClause.make_conjecture_clause_thm) thms
-        val probfile = prob_pathname() ^ "_" ^ (string_of_int n)
+        val probfile = prob_pathname() ^ "_" ^ (Int.toString n)
+        (*FIXME: classrel_clauses and arity_clauses*)
         val _ = debug ("about to write out dfg prob file " ^ probfile)
-        val probN = ResClause.clauses2dfg clss (!problem_name ^ "_" ^ string_of_int n)
+        val probN = ResClause.clauses2dfg clss (!problem_name ^ "_" ^ Int.toString n)
                         axclauses [] [] []    
 	val out = TextIO.openOut(probfile)
     in
@@ -104,7 +103,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
             val goalstring = proofstring (Sign.string_of_term sign sg_term)
             val _ = debug ("goalstring in make_atp_lists is " ^ goalstring)
 
-            val probfile = prob_pathname() ^ "_" ^ string_of_int n
+            val probfile = prob_pathname() ^ "_" ^ Int.toString n
             val _ = debug ("problem file in watcher_call_provers is " ^ probfile)
           in
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
@@ -151,34 +150,31 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
     debug "Sent commands to watcher!"
   end
 
-(*We write out problem files for each subgoal, but work is repeated (skolemize)*)
-fun write_problem_files axclauses thm n =
+(*We write out problem files for each subgoal*)
+fun write_problem_files clause thm n =
     if n=0 then ()
      else
        (SELECT_GOAL
-        (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
+        (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
           METAHYPS(fn negs => 
             (if !prover = "spass" 
-             then dfg_inputs_tfrees (make_clauses negs) n axclauses
-             else tptp_inputs_tfrees (make_clauses negs) n axclauses;
-             write_problem_files axclauses thm (n-1); 
+             then dfg_inputs_tfrees (make_clauses negs) n clause
+             else tptp_inputs_tfrees (make_clauses negs) n clause;
+             write_problem_files clause thm (n-1); 
              all_tac))]) n thm;
         ());
 
 val last_watcher_pid = ref (NONE : Posix.Process.pid option);
 
-(******************************************************************)
-(* called in Isar automatically                                   *)
-(* writes out the current clasimpset to a tptp file               *)
-(* turns off xsymbol at start of function, restoring it at end    *)
-(******************************************************************)
-(*FIX changed to clasimp_file *)
+
+(*writes out the current clasimpset to a tptp file;
+  turns off xsymbol at start of function, restoring it at end    *)
 val isar_atp = setmp print_mode [] 
  (fn (ctxt, thm) =>
   if Thm.no_prems thm then ()
   else
     let
-      val _= debug ("in isar_atp")
+      val _= debug "in isar_atp"
       val thy = ProofContext.theory_of ctxt
       val prems = Thm.prems_of thm
       val prems_string = Meson.concat_with_and (map (Sign.string_of_term thy) prems)
@@ -193,13 +189,17 @@ val isar_atp = setmp print_mode []
       val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
               (*FIXME: hack!! need to consider relevance for all prems*)
       val _ = debug ("claset and simprules total clauses = " ^ 
-                     string_of_int (Array.length clause_arr))
+                     Int.toString (Array.length clause_arr))
+      val classrel_clauses = ResTypesSorts.classrel_clauses_thy thy
+      val _ = debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
+      val arity_clauses = ResTypesSorts.arity_clause_thy thy
+      val _ = debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val (childin, childout, pid) = Watcher.createWatcher (thm, clause_arr)
     in
       last_watcher_pid := SOME pid;
       debug ("subgoals: " ^ prems_string);
       debug ("pid: " ^ Int.toString (ResLib.intOfPid pid));
-      write_problem_files axclauses thm (length prems);
+      write_problem_files (axclauses,classrel_clauses,arity_clauses) thm (length prems);
       watcher_call_provers (sign_of_thm thm) (Thm.prems_of thm) (childin, childout, pid)
     end);
 
@@ -207,10 +207,14 @@ val isar_atp_writeonly = setmp print_mode []
  (fn (ctxt, thm) =>
   if Thm.no_prems thm then ()
   else
-    let val prems = Thm.prems_of thm
-        val (_, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
+    let 
+      val prems = Thm.prems_of thm
+      val (_, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
+      val thy = ProofContext.theory_of ctxt
+      val classrel_clauses = ResTypesSorts.classrel_clauses_thy thy
+      val arity_clauses = ResTypesSorts.arity_clause_thy thy
     in
-      write_problem_files axclauses thm (length prems)
+      write_problem_files (axclauses,classrel_clauses,arity_clauses) thm (length prems)
     end);
 
 
@@ -228,10 +232,10 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     debug ("subgoals in isar_atp: " ^ 
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
-    debug ("number of subgoals in isar_atp: " ^ string_of_int (Thm.nprems_of goal));
+    debug ("number of subgoals in isar_atp: " ^ Int.toString (Thm.nprems_of goal));
     debug ("current theory: " ^ Context.theory_name thy);
     hook_count := !hook_count +1;
-    debug ("in hook for time: " ^(string_of_int (!hook_count)) );
+    debug ("in hook for time: " ^(Int.toString (!hook_count)) );
     ResClause.init thy;
     if !destdir = "" then isar_atp (ctxt, goal)
     else isar_atp_writeonly (ctxt, goal)

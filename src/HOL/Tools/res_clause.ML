@@ -70,8 +70,8 @@ val tvar_prefix = "T_";
 val tfree_prefix = "t_";
 
 val clause_prefix = "cls_"; 
-val arclause_prefix = "arcls_" 
-val clrelclause_prefix = "relcls_";
+val arclause_prefix = "clsarity_" 
+val clrelclause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val tconst_prefix = "tc_"; 
@@ -124,13 +124,19 @@ val ascii_of = String.translate ascii_of_c;
 
 end;
 
+(* convert a list of strings into one single string; surrounded by brackets *)
+fun paren_pack strings = "(" ^ commas strings ^ ")";
+
+fun bracket_pack strings = "[" ^ commas strings ^ "]";
+
+
 (*Remove the initial ' character from a type variable, if it is present*)
 fun trim_type_var s =
   if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
   else error ("trim_type: Malformed type variable encountered: " ^ s);
 
 fun ascii_of_indexname (v,0) = ascii_of v
-  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i;
+  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ Int.toString i;
 
 fun make_schematic_var v = schematic_var_prefix ^ (ascii_of_indexname v);
 fun make_fixed_var x = fixed_var_prefix ^ (ascii_of x);
@@ -287,7 +293,7 @@ fun type_of (Type (a, [])) =
 	  val funcs' = ResLib.flat_noDup funcslist
 	  val t = make_fixed_type_const a
       in    
-	  ((t ^ (ResLib.list_to_string folTyps)),(ts', (t, length Ts)::funcs') )
+	  ((t ^ paren_pack folTyps), (ts', (t, length Ts)::funcs') )
       end
   | type_of (TFree (a, s)) = 
       let val t = make_fixed_type_var a
@@ -587,7 +593,7 @@ datatype arityClause =
 
 
 fun get_TVars 0 = []
-  | get_TVars n = ("T_" ^ (string_of_int n)) :: get_TVars (n-1);
+  | get_TVars n = ("T_" ^ (Int.toString n)) :: get_TVars (n-1);
 
 
 
@@ -677,8 +683,8 @@ and string_of_term (UVar(x,_)) = x
       let val terms' = map string_of_term terms
       in
 	  if !keep_types andalso typ<>"" 
-	  then name ^ (ResLib.list_to_string (terms' @ [typ]))
-	  else name ^ (ResLib.list_to_string terms')
+	  then name ^ (paren_pack (terms' @ [typ]))
+	  else name ^ (paren_pack terms')
       end;
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
@@ -689,16 +695,16 @@ fun string_of_predicate (Predicate("equal",typ,terms)) =
       let val terms_as_strings = map string_of_term terms
       in
 	  if !keep_types andalso typ<>""
-	  then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
-	  else name ^ (ResLib.list_to_string terms_as_strings) 
+	  then name ^ (paren_pack (terms_as_strings @ [typ]))
+	  else name ^ (paren_pack terms_as_strings) 
       end;
 
 
 fun string_of_clausename (cls_id,ax_name) = 
-    clause_prefix ^ ascii_of ax_name ^ "_" ^ string_of_int cls_id;
+    clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id;
 
 fun string_of_type_clsname (cls_id,ax_name,idx) = 
-    string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (string_of_int idx);
+    string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
     
 
 (********************************)
@@ -796,8 +802,8 @@ fun string_of_predicate (Predicate("equal",typ,terms)) =
       let val terms_as_strings = map string_of_term terms
       in
 	  if !keep_types andalso typ<>""
-	  then name ^ (ResLib.list_to_string  (terms_as_strings @ [typ]))
-	  else name ^ (ResLib.list_to_string terms_as_strings) 
+	  then name ^ (paren_pack  (terms_as_strings @ [typ]))
+	  else name ^ (paren_pack terms_as_strings) 
       end;
 
 
@@ -826,7 +832,7 @@ fun dfg_clause cls =
 	cls_str :: (typ_clss 0 tfree_lits)
     end;
 
-fun string_of_arity (name, num) =  name ^ "," ^ (string_of_int num) 
+fun string_of_arity (name, num) =  name ^ "," ^ (Int.toString num) 
 
 fun string_of_preds preds = 
   "predicates[" ^ (concat_with ", " (map string_of_arity preds)) ^ "].\n";
@@ -924,42 +930,43 @@ fun clauses2dfg [] probname axioms conjectures funcs preds =
 
 
 fun string_of_arClauseID (ArityClause arcls) =
-    arclause_prefix ^ string_of_int(#clause_id arcls);
-
-fun string_of_arLit (TConsLit(b,(c,t,args))) =
-    let val pol = if b then "++" else "--"
-	val arg_strs = (case args of [] => "" | _ => ResLib.list_to_string args)
-    in 
-	pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
-    end
-  | string_of_arLit (TVarLit(b,(c,str))) =
-    let val pol = if b then "++" else "--"
-    in
-	pol ^ c ^ "(" ^ str ^ ")"
-    end;
-    
-
-fun string_of_conclLit (ArityClause arcls) = string_of_arLit (#conclLit arcls);
-     
-
-fun strings_of_premLits (ArityClause arcls) = map string_of_arLit (#premLits arcls);
-		
+    arclause_prefix ^ Int.toString(#clause_id arcls);
 
 fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
 
-(*FIX: would this have variables in a forall? *)
+(*FIXME!!! currently is TPTP format!*)
+fun dfg_of_arLit (TConsLit(b,(c,t,args))) =
+      let val pol = if b then "++" else "--"
+	  val arg_strs = (case args of [] => "" | _ => paren_pack args)
+      in 
+	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
+      end
+  | dfg_of_arLit (TVarLit(b,(c,str))) =
+      let val pol = if b then "++" else "--"
+      in
+	  pol ^ c ^ "(" ^ str ^ ")"
+      end;
+    
+
+fun dfg_of_conclLit (ArityClause arcls) = dfg_of_arLit (#conclLit arcls);
+     
+
+fun dfg_of_premLits (ArityClause arcls) = map dfg_of_arLit (#premLits arcls);
+		
+
+
+(*FIXME: would this have variables in a forall? *)
 
 fun dfg_arity_clause arcls = 
-    let val arcls_id = string_of_arClauseID arcls
-	val concl_lit = string_of_conclLit arcls
-	val prems_lits = strings_of_premLits arcls
-	val knd = string_of_arKind arcls
-	val all_lits = concl_lit :: prems_lits
-    in
-
-	"clause( %(" ^ knd ^ ")\n" ^  "or( " ^ (ResLib.list_to_string' all_lits) ^ ")),\n" ^
-	 arcls_id ^  ")."
-    end;
+  let val arcls_id = string_of_arClauseID arcls
+      val concl_lit = dfg_of_conclLit arcls
+      val prems_lits = dfg_of_premLits arcls
+      val knd = string_of_arKind arcls
+      val all_lits = concl_lit :: prems_lits
+  in
+      "clause( %(" ^ knd ^ ")\n" ^  "or( " ^ (bracket_pack all_lits) ^ ")),\n" ^
+       arcls_id ^  ")."
+  end;
 
 
 (********************************)
@@ -1009,7 +1016,7 @@ fun tptp_clause cls =
 	val cls_id = get_clause_id cls
 	val ax_name = get_axiomName cls
 	val knd = string_of_kind cls
-	val lits_str = ResLib.list_to_string' lits
+	val lits_str = bracket_pack lits
 	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 			 
 	fun typ_clss k [] = []
           | typ_clss k (tfree :: tfrees) = 
@@ -1025,7 +1032,7 @@ fun clause2tptp cls =
 	val cls_id = get_clause_id cls
 	val ax_name = get_axiomName cls
 	val knd = string_of_kind cls
-	val lits_str = ResLib.list_to_string' lits
+	val lits_str = bracket_pack lits
 	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 
     in
 	(cls_str,tfree_lits) 
@@ -1039,40 +1046,32 @@ val delim = "\n";
 val tptp_clauses2str = ResLib.list2str_sep delim; 
      
 
-fun string_of_arClauseID (ArityClause arcls) =
-  arclause_prefix ^ string_of_int(#clause_id arcls);
-
-
-fun string_of_arLit (TConsLit(b,(c,t,args))) =
-    let val pol = if b then "++" else "--"
-	val  arg_strs = (case args of [] => "" | _ => ResLib.list_to_string args)
-    in 
-	pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
-    end
-  | string_of_arLit (TVarLit(b,(c,str))) =
-    let val pol = if b then "++" else "--"
-    in
-	pol ^ c ^ "(" ^ str ^ ")"
-    end;
+fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
+      let val pol = if b then "++" else "--"
+	  val  arg_strs = (case args of [] => "" | _ => paren_pack args)
+      in 
+	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
+      end
+  | tptp_of_arLit (TVarLit(b,(c,str))) =
+      let val pol = if b then "++" else "--"
+      in
+	  pol ^ c ^ "(" ^ str ^ ")"
+      end;
     
 
-fun string_of_conclLit (ArityClause arcls) = string_of_arLit (#conclLit arcls);
+fun tptp_of_conclLit (ArityClause arcls) = tptp_of_arLit (#conclLit arcls);
      
-fun strings_of_premLits (ArityClause arcls) =
- map string_of_arLit (#premLits arcls);
+fun tptp_of_premLits (ArityClause arcls) = map tptp_of_arLit (#premLits arcls);
 		
-
-fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
-
 fun tptp_arity_clause arcls = 
     let val arcls_id = string_of_arClauseID arcls
-	val concl_lit = string_of_conclLit arcls
-	val prems_lits = strings_of_premLits arcls
+	val concl_lit = tptp_of_conclLit arcls
+	val prems_lits = tptp_of_premLits arcls
 	val knd = string_of_arKind arcls
 	val all_lits = concl_lit :: prems_lits
     in
 	"input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ 
-	(ResLib.list_to_string' all_lits) ^ ")."
+	(bracket_pack all_lits) ^ ")."
     end;
 
 fun tptp_classrelLits sub sup = 
@@ -1084,7 +1083,7 @@ fun tptp_classrelLits sub sup =
 
 
 fun tptp_classrelClause (ClassrelClause cls) =
-    let val relcls_id = clrelclause_prefix ^ string_of_int(#clause_id cls)
+    let val relcls_id = clrelclause_prefix ^ Int.toString(#clause_id cls)
 	val sub = #subclass cls
 	val sup = #superclass cls
 	val lits = tptp_classrelLits sub sup

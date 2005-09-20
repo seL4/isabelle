@@ -191,7 +191,7 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr
 fun spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
                     clause_arr = 
  SELECT_GOAL
-  (EVERY1 [rtac ccontr, ResLib.atomize_tac, skolemize_tac, 
+  (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
 	   METAHYPS(fn negs => 
   Recon_Transfer.spass_reconstruct proofextract goalstring toParent ppid negs clause_arr)]) sg_num;
 
