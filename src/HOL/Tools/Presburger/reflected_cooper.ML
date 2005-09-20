@@ -10,7 +10,7 @@ open Generated;
 
 fun i_of_term vs t = 
     case t of
-	Free(xn,xT) => (case assoc(vs,t) of 
+	Free(xn,xT) => (case AList.lookup (op =) vs t of 
 			   NONE   => error "Variable not found in the list!!"
 			 | SOME n => Var n)
       | Const("0",iT) => Cst 0

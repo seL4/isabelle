@@ -267,7 +267,7 @@ fun map_modules f thy =
 fun add_codegen name f thy =
   let val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
     CodegenData.get thy
-  in (case assoc (codegens, name) of
+  in (case AList.lookup (op =) codegens name of
       NONE => CodegenData.put {codegens = (name, f) :: codegens,
         tycodegens = tycodegens, consts = consts, types = types,
         attrs = attrs, preprocs = preprocs, modules = modules,
@@ -278,7 +278,7 @@ fun add_codegen name f thy =
 fun add_tycodegen name f thy =
   let val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
     CodegenData.get thy
-  in (case assoc (tycodegens, name) of
+  in (case AList.lookup (op =) tycodegens name of
       NONE => CodegenData.put {tycodegens = (name, f) :: tycodegens,
         codegens = codegens, consts = consts, types = types,
         attrs = attrs, preprocs = preprocs, modules = modules,
@@ -292,7 +292,7 @@ fun add_tycodegen name f thy =
 fun add_attribute name att thy =
   let val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
     CodegenData.get thy
-  in (case assoc (attrs, name) of
+  in (case AList.lookup (op =) attrs name of
       NONE => CodegenData.put {tycodegens = tycodegens,
         codegens = codegens, consts = consts, types = types,
         attrs = if name = "" then attrs @ [(name, att)] else (name, att) :: attrs,
@@ -358,7 +358,7 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
                   in if Sign.typ_instance thy (U, T) then U
                     else error ("Illegal type constraint for constant " ^ cname)
                   end)
-         in (case assoc (consts, (cname, T')) of
+         in (case AList.lookup (op =) consts (cname, T') of
              NONE => CodegenData.put {codegens = codegens,
                tycodegens = tycodegens,
                consts = ((cname, T'), syn) :: consts,
@@ -381,7 +381,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
       CodegenData.get thy;
     val tc = Sign.intern_type thy s
   in
-    (case assoc (types, tc) of
+    (case AList.lookup (op =) types tc of
        NONE => CodegenData.put {codegens = codegens,
          tycodegens = tycodegens, consts = consts,
          types = (tc, syn) :: types, attrs = attrs,
@@ -389,7 +389,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
      | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
   end) (thy, xs);
 
-fun get_assoc_type thy s = assoc (#types (CodegenData.get thy), s);
+fun get_assoc_type thy s = AList.lookup (op =) ((#types o CodegenData.get) thy) s;
 
 
 (**** make valid ML identifiers ****)
@@ -514,7 +514,7 @@ fun rename_terms ts =
     val ps = (reserved @ illegal) ~~
       variantlist (map (suffix "'") reserved @ alt_names, names);
 
-    fun rename_id s = getOpt (assoc (ps, s), s);
+    fun rename_id s = AList.lookup (op =) ps s |> the_default s;
 
     fun rename (Var ((a, i), T)) = Var ((rename_id a, i), T)
       | rename (Free (a, T)) = Free (rename_id a, T)
@@ -748,7 +748,7 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
   | default_tycodegen thy defs gr dep module brack (TFree (s, _)) =
       SOME (gr, Pretty.str s)
   | default_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
-      (case assoc (#types (CodegenData.get thy), s) of
+      (case AList.lookup (op =) ((#types o CodegenData.get) thy) s of
          NONE => NONE
        | SOME (ms, aux) =>
            let
@@ -779,8 +779,7 @@ val _ = Context.add_setup
 
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
-fun add_to_module name s ms =
-  overwrite (ms, (name, the (assoc (ms, name)) ^ s));
+fun add_to_module name s = AList.map_entry (op =) name (suffix s);
 
 fun output_code gr module xs =
   let
@@ -954,8 +953,8 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
     val (gi, frees) = Logic.goal_params
       (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
     val gi' = ObjectLogic.atomize_term thy (map_term_types
-      (map_type_tfree (fn p as (s, _) => getOpt (assoc (tvinsts, s),
-        getOpt (default_type,TFree p)))) (subst_bounds (frees, strip gi)));
+      (map_type_tfree (fn p as (s, _) => getOpt (AList.lookup (op =) tvinsts s,
+        getOpt (default_type, TFree p)))) (subst_bounds (frees, strip gi)));
   in case test_term (Toplevel.theory_of st) size iterations gi' of
       NONE => writeln "No counterexamples found."
     | SOME cex => writeln ("Counterexample found:\n" ^
@@ -1075,7 +1074,7 @@ val params =
    ("default_type", P.typ >> set_default_type)];
 
 val parse_test_params = P.short_ident :-- (fn s =>
-  P.$$$ "=" |-- getOpt (assoc (params, s), Scan.fail)) >> snd;
+  P.$$$ "=" |-- (AList.lookup (op =) params s |> the_default Scan.fail)) >> snd;
 
 fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>

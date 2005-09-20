@@ -124,15 +124,15 @@ fun infer_factors sg extra_fs (fs, (optf, t)) =
   let fun err s = error (s ^ "\n" ^ Sign.string_of_term sg t)
   in (case (optf, strip_comb t) of
       (SOME f, (Const (name, _), args)) =>
-        (case assoc (extra_fs, name) of
-           NONE => overwrite (fs, (name, getOpt
-             (Option.map (mg_factor f) (assoc (fs, name)), f)))
+        (case AList.lookup (op =) extra_fs name of
+           NONE => AList.update (op =) (name, getOpt
+             (Option.map (mg_factor f) (AList.lookup (op =) fs name), f)) fs
          | SOME (fs', f') => (mg_factor f (FFix f');
              Library.foldl (infer_factors sg extra_fs)
                (fs, map (Option.map FFix) fs' ~~ args)))
     | (SOME f, (Var ((name, _), _), [])) =>
-        overwrite (fs, (name, getOpt
-          (Option.map (mg_factor f) (assoc (fs, name)), f)))
+        AList.update (op =) (name, getOpt
+          (Option.map (mg_factor f) (AList.lookup (op =) fs name), f)) fs
     | (NONE, _) => fs
     | _ => err "Illegal term")
       handle Factors => err "Product factor mismatch in"
@@ -152,7 +152,7 @@ fun is_constrt thy =
       (Symtab.dest (DatatypePackage.get_datatypes thy))));
     fun check t = (case strip_comb t of
         (Var _, []) => true
-      | (Const (s, _), ts) => (case assoc (cnstrs, s) of
+      | (Const (s, _), ts) => (case AList.lookup (op =) cnstrs s of
             NONE => false
           | SOME i => length ts = i andalso forall check ts)
       | _ => false)
@@ -209,7 +209,7 @@ fun modes_of modes t =
         (fn (NONE, _) => [NONE]
           | (SOME js, arg) => map SOME
               (List.filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
-                (iss ~~ args)))) (valOf (assoc (modes, name))))
+                (iss ~~ args)))) ((the o AList.lookup (op =) modes) name))
 
   in (case strip_comb t of
       (Const ("op =", Type (_, [T, _])), _) =>
@@ -230,7 +230,7 @@ fun select_mode_prem thy modes vs ps =
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
             val vTs = List.concat (map term_vTs out_ts');
             val dupTs = map snd (duplicates vTs) @
-              List.mapPartial (curry assoc vTs) vs;
+              List.mapPartial (AList.lookup (op =) vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
             forall (is_eqT o fastype_of) in_ts' andalso
@@ -264,7 +264,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   end;
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
-  let val SOME rs = assoc (preds, p)
+  let val SOME rs = AList.lookup (op =) preds p
   in (p, List.filter (fn m => case find_index
     (not o check_mode_clause thy arg_vs modes m) rs of
       ~1 => true
@@ -339,10 +339,10 @@ fun conv_ntuple' fs T ps =
     else ps
   end;
 
-fun mk_v ((names, vs), s) = (case assoc (vs, s) of
+fun mk_v ((names, vs), s) = (case AList.lookup (op =) vs s of
       NONE => ((names, (s, [s])::vs), s)
     | SOME xs => let val s' = variant names s in
-        ((s'::names, overwrite (vs, (s, s'::xs))), s') end);
+        ((s'::names, AList.update (op =) (s, s'::xs) vs), s') end);
 
 fun distinct_v (nvs, Var ((s, 0), T)) =
       apsnd (Var o rpair T o rpair 0) (mk_v (nvs, s))
@@ -417,7 +417,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
       foldl_map check_constrt ((all_vs, []), in_ts);
 
     fun is_ind t = (case head_of t of
-          Const (s, _) => s = "op =" orelse isSome (assoc (modes, s))
+          Const (s, _) => s = "op =" orelse AList.defined (op =) modes s
         | Var ((s, _), _) => s mem arg_vs);
 
     fun compile_prems out_ts' vs names gr [] =
@@ -508,7 +508,7 @@ fun compile_preds thy defs gr dep module all_vs arg_vs modes preds =
   let val ((gr', _), prs) = foldl_map (fn ((gr, prfx), (s, cls)) =>
     foldl_map (fn ((gr', prfx'), mode) => compile_pred thy defs gr'
       dep module prfx' all_vs arg_vs modes s cls mode)
-        ((gr, prfx), valOf (assoc (modes, s)))) ((gr, "fun "), preds)
+        ((gr, prfx), ((the o AList.lookup (op =) modes) s))) ((gr, "fun "), preds)
   in
     (gr', space_implode "\n\n" (map Pretty.string_of (List.concat prs)) ^ ";\n\n")
   end;
@@ -532,7 +532,7 @@ fun print_factors factors = message ("Factors:\n" ^
 fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
 
 fun constrain cs [] = []
-  | constrain cs ((s, xs) :: ys) = (s, case assoc (cs, s) of
+  | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs s of
       NONE => xs
     | SOME xs' => xs inter xs') :: constrain cs ys;
 
@@ -554,7 +554,7 @@ and mk_ind_def thy defs gr dep names module modecs factorcs intrs =
       val arg_vs = List.concat (map term_vs args);
 
       fun dest_prem factors (_ $ (p as (Const ("op :", _) $ t $ u))) =
-            (case assoc (factors, case head_of u of
+            (case AList.lookup (op =) factors (case head_of u of
                  Const (name, _) => name | Var ((name, _), _) => name) of
                NONE => Prem (full_split_prod t, u)
              | SOME f => Prem (split_prod [] f t, u))
@@ -568,8 +568,8 @@ and mk_ind_def thy defs gr dep names module modecs factorcs intrs =
           val Const (name, _) = head_of u;
           val prems = map (dest_prem factors) (Logic.strip_imp_prems intr);
         in
-          (overwrite (clauses, (name, getOpt (assoc (clauses, name), []) @
-             [(split_prod [] (valOf (assoc (factors, name))) t, prems)])))
+          AList.update (op =) (name, ((these o AList.lookup (op =) clauses) name) @
+             [(split_prod [] ((the o AList.lookup (op =) factors) name) t, prems)]) clauses
         end;
 
       fun check_set (Const (s, _)) = s mem names orelse isSome (get_clauses thy s)
@@ -592,7 +592,7 @@ and mk_ind_def thy defs gr dep names module modecs factorcs intrs =
           Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs))));
       val factors = List.mapPartial (fn (name, f) =>
         if name mem arg_vs then NONE
-        else SOME (name, (map (curry assoc fs) arg_vs, f))) fs;
+        else SOME (name, (map (AList.lookup (op =) fs) arg_vs, f))) fs;
       val clauses =
         Library.foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs);
       val modes = constrain modecs
@@ -626,7 +626,7 @@ fun mk_ind_call thy defs gr dep module t u is_query = (case head_of u of
              (mk_ind_def thy defs gr dep names module'
              [] [] (prep_intrs intrs)) dep names module' [u];
            val (modes, factors) = lookup_modes gr1 dep;
-           val ts = split_prod [] (snd (valOf (assoc (factors, s)))) t;
+           val ts = split_prod [] ((snd o the o AList.lookup (op =) factors) s) t;
            val (ts', is) = if is_query then
                fst (Library.foldl mk_mode ((([], []), 1), ts))
              else (ts, 1 upto length ts);
@@ -659,7 +659,7 @@ fun list_of_indset thy defs gr dep module brack u = (case head_of u of
            SOME (gr2, (if brack then parens else I)
              (Pretty.block ([Pretty.str "Seq.list_of", Pretty.brk 1,
                Pretty.str "("] @
-               conv_ntuple' (snd (valOf (assoc (factors, s))))
+                conv_ntuple' (snd (valOf (AList.lookup (op =) factors s)))
                  (HOLogic.dest_setT (fastype_of u))
                  (ps @ [Pretty.brk 1, Pretty.str "()"]) @
                [Pretty.str ")"])))

@@ -36,8 +36,8 @@ fun mk_atomize pairs =
            Const("Trueprop",_) $ p =>
              (case Term.head_of p of
                 Const(a,_) =>
-                  (case Library.assoc(pairs,a) of
-                     SOME(rls) => List.concat (map atoms ([th] RL rls))
+                  (case AList.lookup (op =) pairs a of
+                     SOME rls => List.concat (map atoms ([th] RL rls))
                    | NONE => [th])
               | _ => [th])
          | _ => [th])

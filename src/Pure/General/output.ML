@@ -160,10 +160,13 @@ fun assert_all pred l msg_fn =
   in asl l end;
 
 fun overwrite_warn (args as (alist, (a, _))) msg =
- (if is_none (assoc (alist, a)) then () else warning msg;
+ (if is_none (AList.lookup (op =) alist a) then () else warning msg;
   overwrite args);
 
-
+fun update_warn eq msg (kv as (key, value)) xs = (
+  if (not o AList.defined eq xs) key then () else warning msg;
+  AList.update eq kv xs
+)
 
 (** handle errors  **)
 

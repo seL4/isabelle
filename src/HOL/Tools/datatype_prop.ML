@@ -44,7 +44,7 @@ val dtK = ref 7;
 fun indexify_names names =
   let
     fun index (x :: xs) tab =
-      (case assoc (tab, x) of
+      (case AList.lookup (op =) tab x of
         NONE => if x mem xs then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
       | SOME i => (x ^ Library.string_of_int i) :: index xs ((x, i + 1) :: tab))
     | index [] _ = [];

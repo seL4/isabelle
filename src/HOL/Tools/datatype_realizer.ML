@@ -141,7 +141,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     val rvs = Drule.vars_of_terms [prop_of thm'];
     val ivs1 = map Var (filter_out (fn (_, T) =>
       tname_of (body_type T) mem ["set", "bool"]) ivs);
-    val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (assoc (rvs, ixn)))) ivs;
+    val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf = foldr forall_intr_prf
      (foldr (fn ((f, p), prf) =>
@@ -182,7 +182,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
             list_comb (r, free_ts)))))
       end;
 
-    val SOME (_, _, constrs) = assoc (descr, index);
+    val SOME (_, _, constrs) = AList.lookup (op =) descr index;
     val T = List.nth (get_rec_types descr sorts, index);
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);

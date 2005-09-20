@@ -112,7 +112,7 @@ fun datatype_info_err thy name = (case datatype_info thy name of
 
 fun constrs_of thy tname = (case datatype_info thy tname of
    SOME {index, descr, ...} =>
-     let val (_, _, constrs) = valOf (assoc (descr, index))
+     let val (_, _, constrs) = valOf (AList.lookup (op =) descr index)
      in SOME (map (fn (cname, _) => Const (cname, Sign.the_const_type thy cname)) constrs)
      end
  | _ => NONE);
@@ -126,7 +126,7 @@ val weak_case_congs_of = map (#weak_case_cong o #2) o Symtab.dest o get_datatype
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
       val params = rename_wrt_term Bi (Logic.strip_params Bi);
-  in case assoc (frees @ params, var) of
+  in case AList.lookup (op =) (frees @ params) var of
        NONE => error ("No such variable in subgoal: " ^ quote var)
      | SOME(Type (tn, _)) => tn
      | _ => error ("Cannot determine type of " ^ quote var)
@@ -139,7 +139,7 @@ fun infer_tname state i aterm =
     val params = Logic.strip_params Bi;   (*params of subgoal i*)
     val params = rev (rename_wrt_term Bi params);   (*as they are printed*)
     val (types, sorts) = types_sorts state;
-    fun types' (a, ~1) = (case assoc (params, a) of NONE => types(a, ~1) | sm => sm)
+    fun types' (a, ~1) = (case AList.lookup (op =) params a of NONE => types(a, ~1) | sm => sm)
       | types' ixn = types ixn;
     val (ct, _) = read_def_cterm (sign, types', sorts) [] false (aterm, TypeInfer.logicT);
   in case #T (rep_cterm ct) of
@@ -261,7 +261,7 @@ fun dt_recs (DtTFree _) = []
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Sign.base_name (#1 (valOf (assoc (descr, i))));
+    fun the_bname i = Sign.base_name (#1 (valOf (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct (List.concat (map dt_recs args)));
   in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
 
@@ -269,7 +269,7 @@ fun dt_cases (descr: descr) (_, args, constrs) =
 fun induct_cases descr =
   DatatypeProp.indexify_names (List.concat (map (dt_cases descr) (map #2 descr)));
 
-fun exhaust_cases descr i = dt_cases descr (valOf (assoc (descr, i)));
+fun exhaust_cases descr i = dt_cases descr (valOf (AList.lookup (op =) descr i));
 
 in
 
@@ -456,7 +456,7 @@ fun case_tr' constrs sg ts =
        strip_abs (length dts) t, is_dependent (length dts) t))
       (constrs ~~ fs);
     fun count_cases (cs, (_, _, true)) = cs
-      | count_cases (cs, (cname, (_, body), false)) = (case assoc (cs, body) of
+      | count_cases (cs, (cname, (_, body), false)) = (case AList.lookup (op =) cs body of
           NONE => (body, [cname]) :: cs
         | SOME cnames => AList.update (op =) (body, cnames @ [cname]) cs);
     val cases' = sort (int_ord o Library.swap o pairself (length o snd))
@@ -489,7 +489,7 @@ val trfun_setup =
 
 fun read_typ sign ((Ts, sorts), str) =
   let
-    val T = Type.no_tvars (Sign.read_typ (sign, (curry assoc)
+    val T = Type.no_tvars (Sign.read_typ (sign, AList.lookup (op =)
       (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
   in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
 

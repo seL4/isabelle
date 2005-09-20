@@ -26,7 +26,7 @@ fun mk_tuple [p] = p
 
 fun find_nonempty (descr: DatatypeAux.descr) is i =
   let
-    val (_, _, constrs) = valOf (assoc (descr, i));
+    val (_, _, constrs) = valOf (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then NONE
           else Option.map (curry op + 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
@@ -160,7 +160,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) =
                  [Pretty.block [Pretty.str "(case", Pretty.brk 1,
                    Pretty.str "i", Pretty.brk 1, Pretty.str "of",
                    Pretty.brk 1, Pretty.str "0 =>", Pretty.brk 1,
-                   mk_constr "0" true (cname, valOf (assoc (cs, cname))),
+                   mk_constr "0" true (cname, valOf (AList.lookup (op =) cs cname)),
                    Pretty.brk 1, Pretty.str "| _ =>", Pretty.brk 1,
                    mk_choice cs1, Pretty.str ")"]]
                else [mk_choice cs2])) ::
@@ -263,15 +263,15 @@ fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
    (c as Const (s, T), ts) =>
        (case find_first (fn (_, {index, descr, case_name, ...}) =>
          s = case_name orelse
-           isSome (assoc (#3 (valOf (assoc (descr, index))), s)))
+           AList.defined (op =) ((#3 o the o AList.lookup (op =) descr) index) s)
              (Symtab.dest (DatatypePackage.get_datatypes thy)) of
           NONE => NONE
         | SOME (tname, {index, descr, ...}) =>
            if isSome (get_assoc_code thy s T) then NONE else
-           let val SOME (_, _, constrs) = assoc (descr, index)
-           in (case (assoc (constrs, s), strip_type T) of
+           let val SOME (_, _, constrs) = AList.lookup (op =) descr index
+           in (case (AList.lookup (op =) constrs s, strip_type T) of
                (NONE, _) => SOME (pretty_case thy defs gr dep module brack
-                 (#3 (valOf (assoc (descr, index)))) c ts)
+                 (#3 (valOf (AList.lookup (op =) descr index))) c ts)
              | (SOME args, (_, Type _)) => SOME (pretty_constr thy defs
                  (fst (invoke_tycodegen thy defs dep module false
                     (gr, snd (strip_type T))))

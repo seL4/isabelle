@@ -79,7 +79,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       else fold_bal (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
     val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names [] (leafTs' @ branchTs);
-    val leafTs = leafTs' @ (map (fn n => TFree (n, valOf (assoc (sorts, n)))) unneeded_vars);
+    val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
     val oldTs = Library.drop (length (hd descr), recTs);
