@@ -127,7 +127,9 @@ lemma (in semilat) merges_same_conv [rule_format]:
   apply (rule iffI)
    apply (rule context_conjI)
     apply (subgoal_tac "xs[p := x +_f xs!p] <=[r] xs")
-     apply (force dest!: le_listD simp add: nth_list_update)
+     apply (drule_tac p = p in le_listD)
+      apply simp
+     apply simp
     apply (erule subst, rule merges_incr)
        apply (blast intro!: listE_set intro: closedD listE_length [THEN nth_in])
       apply clarify
