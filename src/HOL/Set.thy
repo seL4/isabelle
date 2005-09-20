@@ -6,7 +6,7 @@
 header {* Set theory for higher-order logic *}
 
 theory Set
-imports Orderings
+imports LOrder
 begin
 
 text {* A set in HOL is simply a predicate. *}

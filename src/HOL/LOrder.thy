@@ -285,48 +285,4 @@ proof -
   from b c show ?thesis by (simp add: meet_imp_le)
 qed
 
-ML {*
-val is_meet_unique = thm "is_meet_unique";
-val is_join_unique = thm "is_join_unique";
-val join_exists = thm "join_exists";
-val meet_exists = thm "meet_exists";
-val is_meet_meet = thm "is_meet_meet";
-val meet_unique = thm "meet_unique";
-val is_join_join = thm "is_join_join";
-val join_unique = thm "join_unique";
-val meet_left_le = thm "meet_left_le";
-val meet_right_le = thm "meet_right_le";
-val meet_imp_le = thm "meet_imp_le";
-val join_left_le = thm "join_left_le";
-val join_right_le = thm "join_right_le";
-val join_imp_le = thm "join_imp_le";
-val meet_join_le = thms "meet_join_le";
-val is_meet_min = thm "is_meet_min";
-val is_join_max = thm "is_join_max";
-val meet_min = thm "meet_min";
-val join_max = thm "join_max";
-val meet_idempotent = thm "meet_idempotent";
-val join_idempotent = thm "join_idempotent";
-val meet_comm = thm "meet_comm";
-val join_comm = thm "join_comm";
-val meet_assoc = thm "meet_assoc";
-val join_assoc = thm "join_assoc";
-val meet_left_comm = thm "meet_left_comm";
-val meet_left_idempotent = thm "meet_left_idempotent";
-val join_left_comm = thm "join_left_comm";
-val join_left_idempotent = thm "join_left_idempotent";
-val meet_aci = thms "meet_aci";
-val join_aci = thms "join_aci";
-val le_def_meet = thm "le_def_meet";
-val le_def_join = thm "le_def_join";
-val meet_join_absorp = thm "meet_join_absorp";
-val join_meet_absorp = thm "join_meet_absorp";
-val meet_mono = thm "meet_mono";
-val join_mono = thm "join_mono";
-val distrib_join_le = thm "distrib_join_le";
-val distrib_meet_le = thm "distrib_meet_le";
-val meet_join_eq_imp_le = thm "meet_join_eq_imp_le";
-val modular_le = thm "modular_le";
-*}
-
 end

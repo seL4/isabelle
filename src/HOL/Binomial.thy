@@ -2,13 +2,12 @@
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1997  University of Cambridge
-
 *)
 
 header{*Binomial Coefficients*}
 
 theory Binomial
-imports SetInterval
+imports GCD
 begin
 
 text{*This development is based on the work of Andy Gordon and
@@ -24,7 +23,7 @@ primrec
                  (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
 
 lemma binomial_n_0 [simp]: "(n choose 0) = 1"
-by (case_tac "n", simp_all)
+by (cases n) simp_all
 
 lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
 by simp
@@ -187,22 +186,5 @@ next
     using decomp by simp
   finally show ?case by simp
 qed
-
-ML
-{*
-val binomial_n_0 = thm"binomial_n_0";
-val binomial_0_Suc = thm"binomial_0_Suc";
-val binomial_Suc_Suc = thm"binomial_Suc_Suc";
-val binomial_eq_0 = thm"binomial_eq_0";
-val binomial_n_n = thm"binomial_n_n";
-val binomial_Suc_n = thm"binomial_Suc_n";
-val binomial_1 = thm"binomial_1";
-val zero_less_binomial = thm"zero_less_binomial";
-val binomial_eq_0_iff = thm"binomial_eq_0_iff";
-val zero_less_binomial_iff = thm"zero_less_binomial_iff";
-val Suc_times_binomial_eq = thm"Suc_times_binomial_eq";
-val binomial_Suc_Suc_eq_times = thm"binomial_Suc_Suc_eq_times";
-val times_binomial_minus1_eq = thm"times_binomial_minus1_eq";
-*}
 
 end

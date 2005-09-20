@@ -7,7 +7,7 @@
 header{*A Basis for Building the Theory of Lists*}
 
 theory PreList
-imports Wellfounded_Relations Presburger Relation_Power GCD
+imports Wellfounded_Relations Presburger Relation_Power Binomial
 begin
 
 text {*
