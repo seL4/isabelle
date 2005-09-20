@@ -586,6 +586,7 @@ let
 					  id::sep::ids =>
 						let
 							val _   = if !clause_offset = ~1 then () else raise INVALID_PROOF ("File format error: \"CL:\" disallowed after \"VAR:\".")
+							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF ("File format error: \"CL:\" disallowed after \"CONF:\".")
 							val cid = int_from_string id
 							val _   = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
 							val rs  = map int_from_string ids
@@ -600,11 +601,12 @@ let
 					case toks of
 					  id::levsep::levid::valsep::valid::antesep::anteid::litsep::lits =>
 						let
+							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF ("File format error: \"VAR:\" disallowed after \"CONF:\".")
 							(* set 'clause_offset' to the largest used clause ID *)
 							val _   = if !clause_offset = ~1 then clause_offset :=
 								(case Inttab.max_key clause_table of
 								  SOME id => id
-								| NONE    => cnf_number_of_clauses (PropLogic.defcnf fm))
+								| NONE    => cnf_number_of_clauses (PropLogic.defcnf fm) - 1  (* the first clause ID is 0, not 1 *))
 								else
 									()
 							val vid = int_from_string id
@@ -629,7 +631,7 @@ let
 						in
 							(* update clause table *)
 							(Inttab.update_new (cid, rs) clause_table, conflict_id)
-								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int cid ^ " (antecedent for variable " ^ id ^ ") defined more than once.")
+								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int cid ^ " (derived from antecedent for variable " ^ id ^ ") already defined.")
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"VAR:\" followed by an insufficient number of tokens."
@@ -637,13 +639,19 @@ let
 					case toks of
 					  id::sep::ids =>
 						let
+							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF "File format error: more than one conflicting clause specified."
 							val cid = int_from_string id
 							val _   = if sep = "==" then () else raise INVALID_PROOF ("File format error: \"==\" expected (" ^ quote sep ^ " encountered).")
-							val _   = map int_from_string ids
-							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF "File format error: more than one conflicting clause specified."
+							val ls  = map int_from_string ids
+							(* the conflict clause must be resolved with the unit clauses *)
+							(* for its literals to obtain the empty clause                *)
+							val vids     = map (fn l => l div 2) ls
+							val rs       = cid :: map (fn v => !clause_offset + v) vids
+							val empty_id = getOpt (Inttab.max_key clause_table, ~1) + 1
 						in
-							(* update conflict id *)
-							(clause_table, cid)
+							(* update clause table and conflict id *)
+							(Inttab.update_new (empty_id, rs) clause_table, empty_id)
+								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int empty_id ^ " (empty clause derived from clause " ^ id ^ ") already defined.")
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"CONF:\" followed by an insufficient number of tokens."
