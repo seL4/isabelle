@@ -359,7 +359,9 @@ patterns (these are not perfect but work quite well):
   {)\([^\.]*\)\.\.  ->  {\1<\.\.}
   \.\.\([^(}]*\)(}  ->  \.\.<\1}
 
-* Method comm_ring for proving equalities in commutative rings.
+* Theory Commutative_Ring (in Library): method comm_ring for proving
+equalities in commutative rings; method 'algebra' provides a generic
+interface.
 
 * Theory Finite_Set: changed the syntax for 'setsum', summation over
 finite sets: "setsum (%x. e) A", which used to be "\<Sum>x:A. e", is
@@ -642,30 +644,31 @@ standard variables must have explicit universal quantifiers.
 
 *** HOLCF ***
 
-* HOLCF: discontinued special version of 'constdefs' (which used to
-support continuous functions) in favor of the general Pure one with
-full type-inference.
+* Discontinued special version of 'constdefs' (which used to support
+continuous functions) in favor of the general Pure one with full
+type-inference.
 
-* HOLCF: new simplification procedure for solving continuity conditions;
-it is much faster on terms with many nested lambda abstractions (cubic
+* New simplification procedure for solving continuity conditions; it
+is much faster on terms with many nested lambda abstractions (cubic
 instead of exponential time).
 
-* HOLCF: new syntax for domain package: selector names are now optional.
+* New syntax for domain package: selector names are now optional.
 Parentheses should be omitted unless argument is lazy, for example:
 
   domain 'a stream = cons "'a" (lazy "'a stream")
 
-* HOLCF: new command "fixrec" for defining recursive functions with pattern
-matching; defining multiple functions with mutual recursion is also supported.
-Patterns may include the constants cpair, spair, up, sinl, sinr, or any data
-constructor defined by the domain package. The given equations are proven as
-rewrite rules. See HOLCF/ex/Fixrec_ex.thy for syntax and examples.
+* New command 'fixrec' for defining recursive functions with pattern
+matching; defining multiple functions with mutual recursion is also
+supported.  Patterns may include the constants cpair, spair, up, sinl,
+sinr, or any data constructor defined by the domain package. The given
+equations are proven as rewrite rules. See HOLCF/ex/Fixrec_ex.thy for
+syntax and examples.
 
-* HOLCF: new commands "cpodef" and "pcpodef" for defining predicate subtypes
-of cpo and pcpo types. Syntax is exactly like the "typedef" command, but the
-proof obligation additionally includes an admissibility requirement. The
-packages generate instances of class cpo or pcpo, with continuity and
-strictness theorems for Rep and Abs.
+* New commands 'cpodef' and 'pcpodef' for defining predicate subtypes
+of cpo and pcpo types. Syntax is exactly like the 'typedef' command,
+but the proof obligation additionally includes an admissibility
+requirement. The packages generate instances of class cpo or pcpo,
+with continuity and strictness theorems for Rep and Abs.
 
 
 *** ZF ***
