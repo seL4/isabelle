@@ -778,6 +778,12 @@ next
   qed
 qed
 
+lemma filter_cong:
+ "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
+apply simp
+apply(erule thin_rl)
+by (induct ys) simp_all
+
 
 subsubsection {* @{text concat} *}
 
@@ -840,6 +846,9 @@ apply (rename_tac j)
 apply (rule_tac x = j in exI, simp)
 done
 
+lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"
+by(auto simp:set_conv_nth)
+
 lemma list_ball_nth: "[| n < length xs; !x : set xs. P x|] ==> P(xs!n)"
 by (auto simp add: set_conv_nth)
 
@@ -877,6 +886,13 @@ by (induct xs) (auto split: nat.split)
 lemma list_update_id[simp]: "!!i. i < length xs ==> xs[i := xs!i] = xs"
 apply (induct xs, simp)
 apply(simp split:nat.splits)
+done
+
+lemma list_update_beyond[simp]: "\<And>i. length xs \<le> i \<Longrightarrow> xs[i:=x] = xs"
+apply (induct xs)
+ apply simp
+apply (case_tac i)
+apply simp_all
 done
 
 lemma list_update_same_conv:
@@ -954,6 +970,12 @@ by (induct xs) (auto split: split_if_asm)
 lemma in_set_butlast_appendI:
 "x : set (butlast xs) | x : set (butlast ys) ==> x : set (butlast (xs @ ys))"
 by (auto dest: in_set_butlastD simp add: butlast_append)
+
+lemma last_drop[simp]: "!!n. n < length xs \<Longrightarrow> last (drop n xs) = last xs"
+apply (induct xs)
+ apply simp
+apply (auto split:nat.split)
+done
 
 
 subsubsection {* @{text take} and @{text drop} *}
@@ -1131,6 +1153,28 @@ apply simp
 apply(simp add:drop_Cons split:nat.split)
 done
 
+lemma id_take_nth_drop:
+ "i < length xs \<Longrightarrow> xs = take i xs @ xs!i # drop (Suc i) xs" 
+proof -
+  assume si: "i < length xs"
+  hence "xs = take (Suc i) xs @ drop (Suc i) xs" by auto
+  moreover
+  from si have "take (Suc i) xs = take i xs @ [xs!i]"
+    apply (rule_tac take_Suc_conv_app_nth) by arith
+  ultimately show ?thesis by auto
+qed
+  
+lemma upd_conv_take_nth_drop:
+ "i < length xs \<Longrightarrow> xs[i:=a] = take i xs @ a # drop (Suc i) xs"
+proof -
+  assume i: "i < length xs"
+  have "xs[i:=a] = (take i xs @ xs!i # drop (Suc i) xs)[i:=a]"
+    by(rule arg_cong[OF id_take_nth_drop[OF i]])
+  also have "\<dots> = take i xs @ a # drop (Suc i) xs"
+    using i by (simp add: list_update_append)
+  finally show ?thesis .
+qed
+
 
 subsubsection {* @{text takeWhile} and @{text dropWhile} *}
 
@@ -1170,6 +1214,22 @@ by(induct xs, auto)
 lemma dropWhile_eq_Cons_conv:
  "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys & \<not> P y)"
 by(induct xs, auto)
+
+text{* The following two lemmmas could be generalized to an arbitrary
+property. *}
+
+lemma takeWhile_neq_rev: "\<lbrakk>distinct xs; x \<in> set xs\<rbrakk> \<Longrightarrow>
+ takeWhile (\<lambda>y. y \<noteq> x) (rev xs) = rev (tl (dropWhile (\<lambda>y. y \<noteq> x) xs))"
+by(induct xs) (auto simp: takeWhile_tail[where l="[]"])
+
+lemma dropWhile_neq_rev: "\<lbrakk>distinct xs; x \<in> set xs\<rbrakk> \<Longrightarrow>
+  dropWhile (\<lambda>y. y \<noteq> x) (rev xs) = x # rev (takeWhile (\<lambda>y. y \<noteq> x) xs)"
+apply(induct xs)
+ apply simp
+apply auto
+apply(subst dropWhile_append2)
+apply auto
+done
 
 
 subsubsection {* @{text zip} *}
@@ -1461,6 +1521,12 @@ apply (subst upt_rec)
 apply (simp del: upt.simps)
 done
 
+lemma drop_upt[simp]: "drop m [i..<j] = [i+m..<j]"
+apply(induct j)
+apply auto
+apply arith
+done
+
 lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..n]"
 by (induct n) auto
 
@@ -1565,11 +1631,45 @@ apply(induct xs)
 apply force
 done
 
-text {*
-It is best to avoid this indexed version of distinct, but sometimes
-it is useful. *}
+lemma distinct_upt[simp]: "distinct[i..<j]"
+by (induct j) auto
+
+lemma distinct_take[simp]: "\<And>i. distinct xs \<Longrightarrow> distinct (take i xs)"
+apply(induct xs)
+ apply simp
+apply (case_tac i)
+ apply simp_all
+apply(blast dest:in_set_takeD)
+done
+
+lemma distinct_drop[simp]: "\<And>i. distinct xs \<Longrightarrow> distinct (drop i xs)"
+apply(induct xs)
+ apply simp
+apply (case_tac i)
+ apply simp_all
+done
+
+lemma distinct_list_update:
+assumes d: "distinct xs" and a: "a \<notin> set xs - {xs!i}"
+shows "distinct (xs[i:=a])"
+proof (cases "i < length xs")
+  case True
+  with a have "a \<notin> set (take i xs @ xs ! i # drop (Suc i) xs) - {xs!i}"
+    apply (drule_tac id_take_nth_drop) by simp
+  with d True show ?thesis
+    apply (simp add: upd_conv_take_nth_drop)
+    apply (drule subst [OF id_take_nth_drop]) apply assumption
+    apply simp apply (cases "a = xs!i") apply simp by blast
+next
+  case False with d show ?thesis by auto
+qed
+
+
+text {* It is best to avoid this indexed version of distinct, but
+sometimes it is useful. *}
+
 lemma distinct_conv_nth:
-"distinct xs = (\<forall>i j. i < size xs \<and> j < size xs \<and> i \<noteq> j --> xs!i \<noteq> xs!j)"
+"distinct xs = (\<forall>i < size xs. \<forall>j < size xs. i \<noteq> j --> xs!i \<noteq> xs!j)"
 apply (induct xs, simp, simp)
 apply (rule iffI, clarsimp)
  apply (case_tac i)
@@ -1579,9 +1679,9 @@ apply (simp add: set_conv_nth)
 apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
  apply (clarsimp simp add: set_conv_nth)
- apply (erule_tac x = 0 in allE)
+ apply (erule_tac x = 0 in allE, simp)
  apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
-apply (erule_tac x = "Suc i" in allE)
+apply (erule_tac x = "Suc i" in allE, simp)
 apply (erule_tac x = "Suc j" in allE, simp)
 done
 
@@ -1884,6 +1984,16 @@ lemma sublist_upt_eq_take [simp]: "sublist l {..<n} = take n l"
 apply (induct l rule: rev_induct, simp)
 apply (simp split: nat_diff_split add: sublist_append)
 done
+
+lemma filter_in_sublist: "\<And>s. distinct xs \<Longrightarrow>
+  filter (%x. x \<in> set(sublist xs s)) xs = sublist xs s"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons a xs)
+  moreover hence "!x. x: set xs \<longrightarrow> x \<noteq> a" by auto
+  ultimately show ?case by(simp add: sublist_Cons cong:filter_cong)
+qed
 
 
 subsubsection{*Sets of Lists*}
