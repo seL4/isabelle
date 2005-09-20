@@ -4,14 +4,16 @@
 
 Compatibility file for Standard ML of New Jersey 110.44 or later. Here
 signatures that have changed to adhere to the SML Basis Library are
-changed back to their old values. So much for standards...
+changed back to their old values.
 *)
 
 structure TextIO =
 struct
-open TextIO
-fun inputLine is =
-    case TextIO.inputLine is of
-	SOME str => str
-      | NONE => ""
+  open TextIO;
+
+  fun inputLine is =
+    (case TextIO.inputLine is of
+      SOME str => str
+    | NONE => "")
+    handle IO.Io _ => raise Interrupt;
 end;
