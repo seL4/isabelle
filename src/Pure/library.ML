@@ -38,8 +38,6 @@ sig
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
-  val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
-  val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
 
   (*old options -- invalidated*)
   datatype invalid = None of invalid
@@ -69,8 +67,8 @@ sig
   val rpair: 'a -> 'b -> 'b * 'a
   val fst: 'a * 'b -> 'a
   val snd: 'a * 'b -> 'b
-  val eq_fst: (''a * 'b) * (''a * 'c) -> bool
-  val eq_snd: ('a * ''b) * ('c * ''b) -> bool
+  val eq_fst: ('a * 'c -> bool) -> ('a * 'b) * ('c * 'd) -> bool
+  val eq_snd: ('b * 'd -> bool) -> ('a * 'b) * ('c * 'd) -> bool
   val swap: 'a * 'b -> 'b * 'a
   val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
   val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
@@ -268,8 +266,6 @@ sig
   val pwd: unit -> string
 
   (*misc*)
-  val make_keylist: ('a -> 'b) -> 'a list -> ('a * 'b) list
-  val keyfilter: ('a * ''b) list -> ''b -> 'a list
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
@@ -337,10 +333,6 @@ fun funpow n f x =
         | rep (n, x) = rep (n - 1, f x)
   in rep (n, x) end;
 
-(*application of (infix) operator to its left or right argument*)
-fun apl (x, f) y = f (x, y);
-fun apr (f, y) x = f (x, y);
-
 
 (** options **)
 
@@ -407,8 +399,8 @@ fun rpair x y = (y, x);
 fun fst (x, y) = x;
 fun snd (x, y) = y;
 
-fun eq_fst ((x1, _), (x2, _)) = x1 = x2;
-fun eq_snd ((_, y1), (_, y2)) = y1 = y2;
+fun eq_fst eq ((x1, _), (x2, _)) = eq (x1, x2);
+fun eq_snd eq ((_, y1), (_, y2)) = eq (y1, y2);
 
 fun swap (x, y) = (y, x);
 
@@ -1057,8 +1049,8 @@ fun gen_merge_lists' _ xs [] = xs
 
 fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
 fun merge_lists' xs ys = gen_merge_lists' (op =) xs ys;
-fun merge_alists al = gen_merge_lists eq_fst al;
-fun merge_alists' al = gen_merge_lists' eq_fst al;
+fun merge_alists al = gen_merge_lists (eq_fst (op =)) al;
+fun merge_alists' al = gen_merge_lists' (eq_fst (op =)) al;
 
 
 
@@ -1257,19 +1249,6 @@ val rat0 = rat_of_int 0;
 
 
 (** misc **)
-
-(*use the keyfun to make a list of (x, key) pairs*)
-fun make_keylist (keyfun: 'a->'b) : 'a list -> ('a * 'b) list =
-  let fun keypair x = (x, keyfun x)
-  in map keypair end;
-
-(*given a list of (x, key) pairs and a searchkey
-  return the list of xs from each pair whose key equals searchkey*)
-fun keyfilter [] searchkey = []
-  | keyfilter ((x, key) :: pairs) searchkey =
-      if key = searchkey then x :: keyfilter pairs searchkey
-      else keyfilter pairs searchkey;
-
 
 (*Partition list into elements that satisfy predicate and those that don't.
   Preserves order of elements in both lists.*)
