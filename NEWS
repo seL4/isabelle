@@ -46,8 +46,10 @@ in their name (i.e. not being defined in theory HOL).
 * Communication with Proof General is now 8bit clean, which means that
 Unicode text in UTF-8 encoding may be used within theory texts (both
 formal and informal parts).  Cf. option -U of the Isabelle Proof
-General interface; see HOL/ex/Hebrew.thy and HOL/ex/Chinese.thy for
-some simple examples.
+General interface.  Here are some simple examples (cf. src/HOL/ex):
+
+  http://isabelle.in.tum.de/library/HOL/ex/Hebrew.html
+  http://isabelle.in.tum.de/library/HOL/ex/Chinese.html
 
 * Improved efficiency of the Simplifier and, to a lesser degree, the
 Classical Reasoner.  Typical big applications run around 2 times
@@ -940,6 +942,7 @@ scripts for the time being.
 generated HTML files.  For example:
 
   HTML.with_charset "utf-8" use_thy "Hebrew";
+  HTML.with_charset "utf-8" use_thy "Chinese";
 
 
 *** System ***
