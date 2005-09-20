@@ -69,12 +69,6 @@ fun profile (n: int) f x = f x;
 (*dummy implementation*)
 fun exception_trace f = f ();
 
-(case #version_id (Compiler.version) of
-  [110, x] => if x >= 44
-              then use "ML-Systems/smlnj-basis-compat.ML"
-              else ()
-| _ => ());
-
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
@@ -142,6 +136,12 @@ fun raise_interrupt f x =
   end;
 
 end;
+
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 44
+              then use "ML-Systems/smlnj-basis-compat.ML"
+              else ()
+| _ => ());
 
 
 (** Signal handling: emulation of the Poly/ML Signal structure. Note that types
