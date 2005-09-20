@@ -8,6 +8,7 @@ signature COMM_RING =
 sig
   val comm_ring_tac : int -> tactic
   val comm_ring_method: int -> Proof.method
+  val algebra_method: int -> Proof.method
   val setup : (theory -> theory) list
 end
 
@@ -128,10 +129,14 @@ fun comm_ring_tac i =(fn st =>
 
 fun comm_ring_method i = Method.METHOD (fn facts =>
   Method.insert_tac facts 1 THEN comm_ring_tac i);
+val algebra_method = comm_ring_method;
 
 val setup =
   [Method.add_method ("comm_ring",
      Method.no_args (comm_ring_method 1),
-     "reflective decision procedure for equalities over commutative rings")];
+     "reflective decision procedure for equalities over commutative rings"),
+   Method.add_method ("algebra",
+     Method.no_args (algebra_method 1),
+     "Method for proving algebraic properties: for now only comm_ring")];
 
 end;
