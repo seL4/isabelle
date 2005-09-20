@@ -414,9 +414,10 @@ with 0 <= n.
 local
  exception FalseE of thm
 in
-fun mkthm sg asms just =
+fun mkthm (sg, ss) asms just =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} =
           Data.get sg;
+      val simpset' = Simplifier.inherit_bounds ss simpset;
       val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], List.mapPartial (fn thm => if Thm.no_prems thm
@@ -462,7 +463,7 @@ fun mkthm sg asms just =
         in instantiate ([],[(cv,ct)]) mth end
 
       fun simp thm =
-        let val thm' = trace_thm "Simplified:" (full_simplify simpset thm)
+        let val thm' = trace_thm "Simplified:" (full_simplify simpset' thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = trace_thm "Asm" (List.nth(asms,i))
@@ -477,7 +478,7 @@ fun mkthm sg asms just =
 
   in trace_msg "mkthm";
      let val thm = trace_thm "Final thm:" (mk just)
-     in let val fls = simplify simpset thm
+     in let val fls = simplify simpset' thm
         in trace_thm "After simplification:" fls;
            if LA_Logic.is_False fls then fls
            else
@@ -623,7 +624,7 @@ fun refute_tac(i,justs) =
     let val sg = #sign(rep_thm state)
         val {neqE, ...} = Data.get sg;
         fun just1 j = REPEAT_DETERM(eresolve_tac neqE i) THEN
-                      METAHYPS (fn asms => rtac (mkthm sg asms j) 1) i
+                      METAHYPS (fn asms => rtac (mkthm (sg, Simplifier.empty_ss) asms j) 1) i
     in DETERM(resolve_tac [LA_Logic.notI,LA_Logic.ccontr] i) THEN
        EVERY(map just1 justs)
     end
@@ -699,21 +700,21 @@ let val {neqE, ...}  = Data.get sg;
        | NONE => split(asm::asms', asms))
 in split([],asms) end;
 
-fun fwdproof sg (Tip asms) (j::js) = (mkthm sg asms j, js)
-  | fwdproof sg (Spl(thm,ct1,tree1,ct2,tree2)) js =
-    let val (thm1,js1) = fwdproof sg tree1 js
-        val (thm2,js2) = fwdproof sg tree2 js1
+fun fwdproof ctxt (Tip asms) (j::js) = (mkthm ctxt asms j, js)
+  | fwdproof ctxt (Spl(thm,ct1,tree1,ct2,tree2)) js =
+    let val (thm1,js1) = fwdproof ctxt tree1 js
+        val (thm2,js2) = fwdproof ctxt tree2 js1
         val thm1' = implies_intr ct1 thm1
         val thm2' = implies_intr ct2 thm2
     in (thm2' COMP (thm1' COMP thm), js2) end;
 (* needs handle THM _ => NONE ? *)
 
-fun prover sg thms Tconcl js pos =
+fun prover (ctxt as (sg, _)) thms Tconcl js pos =
 let val nTconcl = LA_Logic.neg_prop Tconcl
     val cnTconcl = cterm_of sg nTconcl
     val nTconclthm = assume cnTconcl
     val tree = splitasms sg (thms @ [nTconclthm])
-    val (thm,_) = fwdproof sg tree js
+    val (thm,_) = fwdproof ctxt tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
 in SOME(LA_Logic.mk_Eq((implies_intr cnTconcl thm) COMP contr)) end
 (* in case concl contains ?-var, which makes assume fail: *)
@@ -731,10 +732,10 @@ let
     val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove sg ([],[]) false Hs Tconcl of (* concl provable? *)
-     SOME js => prover sg thms Tconcl js true
+     SOME js => prover (sg, ss) thms Tconcl js true
    | NONE => let val nTconcl = LA_Logic.neg_prop Tconcl
           in case prove sg ([],[]) false Hs nTconcl of (* ~concl provable? *)
-               SOME js => prover sg thms nTconcl js false
+               SOME js => prover (sg, ss) thms nTconcl js false
              | NONE => NONE
           end
 end;
