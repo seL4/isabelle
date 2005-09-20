@@ -46,11 +46,17 @@ in their name (i.e. not being defined in theory HOL).
 * Communication with Proof General is now 8bit clean, which means that
 Unicode text in UTF-8 encoding may be used within theory texts (both
 formal and informal parts).  Cf. option -U of the Isabelle Proof
-General interface; HOL/ex/Hebrew.thy provides a simple example.
+General interface; see HOL/ex/Hebrew.thy and HOL/ex/Chinese.thy for
+some simple examples.
 
 * Improved efficiency of the Simplifier and, to a lesser degree, the
 Classical Reasoner.  Typical big applications run around 2 times
 faster.
+
+* ProofGeneral interface: the default settings no longer prefer xemacs
+over GNU emacs.  Users typically need to experiment with various
+variations on PROOFGENERAL_OPTIONS="... -p emacs" to find the most
+stable Emacs version on their platform.
 
 
 *** Document preparation ***
