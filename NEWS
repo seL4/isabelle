@@ -710,6 +710,16 @@ transformations, notably reverse application and composition:
   x |> f                f #> g
   (x, y) |-> f          f #-> g
 
+* Pure/library.ML: introduced/changed precedence of infix operators:
+
+  infix 1 |> |-> ||> ||>> |>> |>>> #> #->;
+  infix 2 ?;
+  infix 3 o oo ooo oooo;
+  infix 4 ~~ upto downto;
+
+Maybe INCOMPATIBILITY when any of those is used in conjunction with other
+infix operators.
+
 * Pure/library.ML: natural list combinators fold, fold_rev, and
 fold_map support linear functional transformations and nesting.  For
 example:
@@ -736,16 +746,13 @@ available:
 
 * Pure/General: structure AList (cf. Pure/General/alist.ML) provides
 basic operations for association lists, following natural argument
-order.  The old functions may be expressed as follows:
+order; ; moreover the explicit equality predicate passed here avoids
+potentially expensive polymorphic runtime equality checks.
+The old functions may be expressed as follows:
 
   assoc = uncurry (AList.lookup (op =))
   assocs = these oo AList.lookup (op =)
   overwrite = uncurry (AList.update (op =)) o swap
-
-* Pure/General: structure AList (cf. Pure/General/alist.ML) provides
-basic operations for association lists, following natural argument
-order; moreover the explicit equality predicate passed here avoids
-potentially expensive polymorphic runtime equality checks.
 
 * Pure/General: structure OrdList (cf. Pure/General/ord_list.ML)
 provides a reasonably efficient light-weight implementation of sets as
