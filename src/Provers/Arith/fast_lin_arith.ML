@@ -278,7 +278,7 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
   if n = 1 then i
   else if n = 0 andalso ty = Lt then sys_error "multiply_ineq"
   else if n < 0 andalso (ty=Le orelse ty=Lt) then sys_error "multiply_ineq"
-  else Lineq (n * k, ty, map (curry (op *) n) l, Multiplied (n, just));
+  else Lineq (n * k, ty, map (curry op* n) l, Multiplied (n, just));
 
 (* ------------------------------------------------------------------------- *)
 (* Add together (in)equations.                                               *)
