@@ -1,24 +1,67 @@
 
+Contributions to Isabelle 2005
+------------------------------
+
 * September 2005: Bernhard Haeupler
   Method comm_ring for proving equalities in commutative rings.
 
-* July 2005: Jeremy Avigad, Carnegie Mellon University
+* July/August 2005: Jeremy Avigad, Carnegie Mellon University
   Various improvements of the HOL and HOL-Complex library.
-
-* July 2005: Florian Haftmann, TUM
-  Some combinators for linear functional transformations in ML:
-  |->  #->  fold_map  etc.
 
 * July 2005: Florian Zuleger, Johannes Hoelzl, and Simon Funke, TUM
   Some structured proofs about completeness of real numbers.
 
-* May 2005: Rafal Kolanski, NICTA
-  Substantially improved retrieval of facts from theory/proof context.
-
-* May 2005: Florian Haftmann, TUM
-  Several new antiquotation.
+* May 2005: Rafal Kolanski and Gerwin Klein, NICTA
+  Improved retrieval of facts from theory/proof context.
 
 * February 2005: Lucas Dixon, University of Edinburgh
-  Substantially improved subst method.
+  Improved subst method.
+
+* 2005: Brian Huffman, OGI
+  Various improvements of HOLCF.
+  Some improvements of the HOL-Complex library.
+
+* 2005: Claire Quigley and Jia Meng, University of Cambridge
+  Some support for asynchronous communication with external provers
+  (experimental).
+
+* 2005: Florian Haftmann, TUM
+  Various ML combinators, notably linear functional transformations.
+  Some cleanup of ML legacy.
+  Additional antiquotations.
+  Improved Isabelle web site.
+
+* 2004/2005: David Aspinall, University of Edinburgh
+  Various elements of XML and PGIP based communication with user
+  interfaces (experimental).
+
+* 2004/2005: Gerwin Klein, NICTA
+  Contributions to document 'sugar'.
+  Improved Isabelle web site.
+  Improved HTML presentation of theories.
+
+* 2004/2005: Clemens Ballarin, TUM
+  Provers: tools for transitive relations and quasi orders.
+  Improved version of locales, notably interpretation of locales.
+  Improved version of HOL-Algebra.
+
+* 2004/2005: Amine Chaieb, TUM
+  Improved version of HOL presburger method.
+
+* 2004/2005: Steven Obua, TUM
+  Pure/defs: more sophisticated check on well-formedness of overloading.
+  Improved version of HOL/Import, support for HOL-Light.
+  Improved version of HOL-Complex-Matrix.
+
+* 2004/2005: Norbert Schirmer, TUM
+  Contributions to document 'sugar'.
+  Improved version of HOL/record.
+
+* 2004/2005: Sebastian Skalberg, TUM
+  Improved version of HOL/Import.
+  Some internal ML reorganizations.
+
+* 2004/2005: Tjark Weber, TUM
+  Improved version of HOL/refute.
 
 $Id$
