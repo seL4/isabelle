@@ -20,6 +20,7 @@ sig
   val map_entry: ('a * 'b -> bool) -> 'a -> ('c -> 'c)
     -> ('b * 'c) list -> ('b * 'c) list
   val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
+  val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
 end;
 
 structure AList: ALIST =
@@ -62,5 +63,11 @@ fun map_entry eq key' f xs =
 fun make keyfun =
   let fun keypair x = (x, keyfun x)
   in map keypair end;
+
+fun find eq [] _ = []
+  | find eq ((key, value) :: xs) value' =
+      let
+        val values = find eq xs value'
+      in if eq (value', value) then key :: values else values end;
 
 end;
