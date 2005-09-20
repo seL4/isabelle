@@ -251,7 +251,7 @@ fun prune dp e = if dp > 0 then pruning dp e else e;
 fun output_buffer e = #tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty);
 val output = Buffer.content o output_buffer;
 val string_of = Output.raw o output;
-val writeln = writeln o string_of;
+val writeln = Output.writeln o string_of;
 fun writelns [] = () | writelns es = writeln (chunks es);
 
 
