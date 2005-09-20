@@ -315,9 +315,7 @@ fun put_record name info thy =
 
 val get_sel_upd = #sel_upd o RecordsData.get;
 
-val get_selectors = Symtab.lookup o #selectors o get_sel_upd;
-fun is_selector sg name = is_some (get_selectors sg (Sign.intern_const sg name));
-
+val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
 val get_simpset = #simpset o get_sel_upd;
 
@@ -851,11 +849,11 @@ in
  *   subrecord.
  *)
 val record_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
+  Simplifier.simproc HOL.thy "record_simp" ["s (u k r)"]   (* FIXME pattern!? *)
     (fn sg => fn ss => fn t =>
       (case t of (sel as Const (s, Type (_,[domS,rangeS])))$
                    ((upd as Const (u,Type(_,[_,Type (_,[rT,_])]))) $ k $ r)=>
-        (case get_selectors sg s of SOME () =>
+        if is_selector sg s then
           (case get_updates sg u of SOME u_name =>
             let
               val {sel_upd={updates,...},extfields,...} = RecordsData.get sg;
@@ -899,7 +897,7 @@ val record_simproc =
                | NONE => NONE)
             end
           | NONE => NONE)
-        | NONE => NONE)
+        else NONE
       | _ => NONE));
 
 (* record_upd_simproc *)
@@ -912,7 +910,7 @@ val record_simproc =
  * (But r(|more := r; A := A (r(|more := r|))|) = r(|more := r|)
 *)
 val record_upd_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u k r)"]
+  Simplifier.simproc HOL.thy "record_upd_simp" ["u k r"]    (* FIXME pattern *)
     (fn sg => fn ss => fn t =>
       (case t of ((upd as Const (u, Type(_,[_,Type(_,[rT,_])]))) $ k $ r) =>
          let datatype ('a,'b) calc = Init of 'b | Inter of 'a
@@ -1025,7 +1023,7 @@ end
  *
  *)
 val record_eq_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_eq_simp" ["r = s"]
+  Simplifier.simproc HOL.thy "record_eq_simp" ["r = s"]
     (fn sg => fn _ => fn t =>
       (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
         (case rec_id (~1) T of
@@ -1043,7 +1041,7 @@ val record_eq_simproc =
  * P t > 0: split up to given bound of record extensions
  *)
 fun record_split_simproc P =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_split_simp" ["(a t)"]
+  Simplifier.simproc HOL.thy "record_split_simp" ["a t"]
     (fn sg => fn _ => fn t =>
       (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
@@ -1066,7 +1064,7 @@ fun record_split_simproc P =
        | _ => NONE))
 
 val record_ex_sel_eq_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
+  Simplifier.simproc HOL.thy "record_ex_sel_eq_simproc" ["Ex t"]
     (fn sg => fn ss => fn t =>
        let
          fun prove prop =
@@ -1075,14 +1073,14 @@ val record_ex_sel_eq_simproc =
                addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
 
          fun mkeq (lr,Teq,(sel,Tsel),x) i =
-              (case get_selectors sg sel of SOME () =>
+              if is_selector sg sel then
                  let val x' = if not (loose_bvar1 (x,0))
                               then Free ("x" ^ string_of_int i, range_type Tsel)
                               else raise TERM ("",[x]);
                      val sel' = Const (sel,Tsel)$Bound 0;
                      val (l,r) = if lr then (sel',x') else (x',sel');
                   in Const ("op =",Teq)$l$r end
-               | NONE => raise TERM ("",[Const (sel,Tsel)]));
+              else raise TERM ("",[Const (sel,Tsel)]);
 
          fun dest_sel_eq (Const ("op =",Teq)$(Const (sel,Tsel)$Bound 0)$X) =
                            (true,Teq,(sel,Tsel),X)
@@ -1234,7 +1232,7 @@ fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps 
 
 fun try_param_tac s rule i st =
   let
-    val cert = cterm_of (Thm.sign_of_thm st);
+    val cert = cterm_of (Thm.theory_of_thm st);
     val g = List.nth (prems_of st, i - 1);
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
@@ -1410,8 +1408,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
 
-    fun prove stndrd = quick_and_dirty_prove stndrd (Theory.sign_of defs_thy);
-    val prove_standard = quick_and_dirty_prove true (Theory.sign_of defs_thy);
+    fun prove stndrd = quick_and_dirty_prove stndrd defs_thy;
+    val prove_standard = quick_and_dirty_prove true defs_thy;
     fun prove_simp stndrd simps =
       let val tac = simp_all_tac HOL_ss simps
       in fn prop => prove stndrd [] prop (K tac) end;
@@ -1831,14 +1829,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 3rd stage: thms_thy *)
 
-    fun prove stndrd = quick_and_dirty_prove stndrd (Theory.sign_of defs_thy);
-    val prove_standard = quick_and_dirty_prove true (Theory.sign_of defs_thy);
+    fun prove stndrd = quick_and_dirty_prove stndrd defs_thy;
+    val prove_standard = quick_and_dirty_prove true defs_thy;
 
     fun prove_simp stndrd ss simps =
       let val tac = simp_all_tac ss simps
       in fn prop => prove stndrd [] prop (K tac) end;
 
-    val ss = get_simpset (sign_of defs_thy);
+    val ss = get_simpset defs_thy;
 
     fun sel_convs_prf () = map (prove_simp false ss
                            (sel_defs@ext_dest_convs)) sel_conv_props;
