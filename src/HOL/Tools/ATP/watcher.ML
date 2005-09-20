@@ -115,8 +115,6 @@ fun openInFD (name, fd) =
 	    TextIO.StreamIO.mkInstream (
 	      fdReader (name, fd), ""));
 
-fun killChild child_handle = Unix.reap child_handle 
-
 fun childInfo (PROC{pid,instr,outstr }) = (pid,(instr,outstr));
 
 fun cmdstreamsOf (CMDPROC{instr,outstr,...}) = (instr, outstr);
@@ -272,6 +270,8 @@ fun getProofCmd (a,c,d,e,f) = d
 fun prems_string_of th =
   Meson.concat_with_and (map (Sign.string_of_term (sign_of_thm th)) (prems_of th))
 
+fun killChildren procs = List.app (ignore o Unix.reap) procs;
+
 fun setupWatcher (thm,clause_arr) = 
   let
     (** pipes for communication between parent and watcher **)
@@ -300,9 +300,6 @@ fun setupWatcher (thm,clause_arr) =
 	   val fromParentStr = openInFD ("_exec_in_parent", fromParent)
 	   val toParentStr = openOutFD ("_exec_out_parent", toParent)
 	   val _ = debug ("subgoals forked to startWatcher: "^ prems_string_of thm);
-	   fun killChildren [] = ()
-	|      killChildren  (child_handle::children) =
-	         (killChild child_handle; killChildren children)
 
 	 (*************************************************************)
 	 (* take an instream and poll its underlying reader for input *)
@@ -485,15 +482,13 @@ fun setupWatcher (thm,clause_arr) =
 	   let fun loop procList =  
 		let val _ = Posix.Process.sleep (Time.fromMilliseconds 200)
 		    val cmdsFromIsa = pollParentInput ()
-		    fun killchildHandler ()  = 
-			  (TextIO.output(toParentStr, "Timeout: Killing proof processes!\n");
-			   TextIO.flushOut toParentStr;
-			   killChildren (map cmdchildHandle procList);
-			   ())
 		in 
-		   (*Signal.signal (Posix.Signal.usr2, Signal.SIG_HANDLE killchildHandler);*)
 		   iterations_left := !iterations_left - 1;
-		   if !iterations_left = 0 then killchildHandler ()
+		   if !iterations_left = 0 
+		   then (*Sadly, this code fails to terminate the watcher!*)
+		    (TextIO.output(toParentStr, "Timeout: Killing proof processes!\n");
+		     TextIO.flushOut toParentStr;
+		     killChildren (map cmdchildHandle procList))
 		   else if isSome cmdsFromIsa
 		   then (*  deal with input from Isabelle *)
 		     if getProofCmd(hd(valOf cmdsFromIsa)) = "Kill children" 
@@ -501,7 +496,6 @@ fun setupWatcher (thm,clause_arr) =
 		       let val child_handles = map cmdchildHandle procList 
 		       in
 			  killChildren child_handles;
-			  (*Posix.Process.kill(Posix.Process.K_PROC (Posix.ProcEnv.getppid()), Posix.Signal.usr2);*)    
 			  loop []
 		       end
 		     else
@@ -614,7 +608,7 @@ fun reapWatcher(pid, instr, outstr) =
 fun createWatcher (thm, clause_arr) =
  let val (childpid,(childin,childout)) = childInfo (setupWatcher(thm,clause_arr))
      fun decr_watched() =
-	  (goals_being_watched := (!goals_being_watched) - 1;
+	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
 	   then 
 	     (File.append (File.tmp_path (Path.basic "reap_found"))
@@ -629,13 +623,12 @@ fun createWatcher (thm, clause_arr) =
 	   val _ = debug ("In signal handler. outcome = \"" ^ outcome ^ 
 		        "\"\ngoalstring = " ^ goalstring ^
 		        "\ngoals_being_watched: "^ string_of_int (!goals_being_watched))
-       in (* if a proof has been found and sent back as a reconstruction proof *)
-	 if String.isPrefix "[" outcome
+       in 
+	 if String.isPrefix "[" outcome (*indicates a proof reconstruction*)
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Recon_Transfer.apply_res_thm outcome goalstring;
 	       Pretty.writeln(Pretty.str  (oct_char "361"));
 	       decr_watched())
-	 (* if there's no proof, but a message from the signalling process*)
 	 else if String.isPrefix "Invalid" outcome
 	 then (Pretty.writeln(Pretty.str ( (concat[(oct_char "360"), (oct_char "377")])));
 	       Pretty.writeln(Pretty.str ((Recon_Transfer.restore_linebreaks goalstring) 
