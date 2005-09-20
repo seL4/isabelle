@@ -78,7 +78,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/TFL/casesplit.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML		\
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML			\
   $(SRC)/TFL/thry.ML $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML			\
-  Binomial.thy Commutative_Ring.thy Datatype.ML Datatype.thy			\
+  Binomial.thy Datatype.ML Datatype.thy			\
   Datatype_Universe.thy Divides.thy						\
   Equiv_Relations.thy Extraction.thy Finite_Set.ML Finite_Set.thy		\
   FixedPoint.thy Fun.thy HOL.ML HOL.thy Hilbert_Choice.thy Inductive.thy	\
@@ -589,7 +589,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy ex/BT.thy ex/BinEx.thy	\
-  ex/Classical.thy ex/Commutative_RingEx.thy				\
+  ex/Classical.thy ex/Chinese.thy ex/Commutative_Ring.thy ex/Commutative_RingEx.thy \
   ex/Commutative_Ring_Complete.thy ex/Hebrew.thy			\
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy	\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
