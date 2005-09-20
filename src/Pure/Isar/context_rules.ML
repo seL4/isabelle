@@ -121,7 +121,7 @@ fun print_rules prt x (Rules {rules, ...}) =
 
 structure GlobalRulesArgs =
 struct
-  val name = "Isar/rule_context";
+  val name = "Isar/rules";
   type T = T;
 
   val empty = make_rules ~1 [] empty_netpairs ([], []);

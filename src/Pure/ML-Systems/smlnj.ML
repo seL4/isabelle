@@ -63,10 +63,10 @@ fun print_depth n =
 fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
 
-(*dummy impelemtation*)
+(*dummy implementation*)
 fun profile (n: int) f x = f x;
 
-(*dummy impelemtation*)
+(*dummy implementation*)
 fun exception_trace f = f ();
 
 (case #version_id (Compiler.version) of
@@ -142,6 +142,7 @@ fun raise_interrupt f x =
   end;
 
 end;
+
 
 (** Signal handling: emulation of the Poly/ML Signal structure. Note that types
     Posix.Signal.signal and Signals.signal differ **)
