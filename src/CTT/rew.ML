@@ -9,7 +9,7 @@ Simplifier for CTT, using Typedsimp
 (*Make list of ProdE RS ProdE ... RS ProdE RS EqE
   for using assumptions as rewrite rules*)
 fun peEs 0 = []
-  | peEs n = EqE :: map (apl(ProdE, op RS)) (peEs (n-1));
+  | peEs n = EqE :: map (curry (op RS) ProdE) (peEs (n-1));
 
 (*Tactic used for proving conditions for the cond_rls*)
 val prove_cond_tac = eresolve_tac (peEs 5);

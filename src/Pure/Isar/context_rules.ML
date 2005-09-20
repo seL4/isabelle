@@ -131,7 +131,7 @@ struct
   fun merge _ (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
       Rules {rules = rules2, wrappers = (ws2, ws2'), ...}) =
     let
-      val wrappers = (gen_merge_lists' eq_snd ws1 ws2, gen_merge_lists' eq_snd ws1' ws2');
+      val wrappers = (gen_merge_lists' (eq_snd (op =)) ws1 ws2, gen_merge_lists' (eq_snd (op =)) ws1' ws2');
       val rules = gen_merge_lists' (fn ((_, (k1, th1)), (_, (k2, th2))) =>
           k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) rules1 rules2;
       val next = ~ (length rules);

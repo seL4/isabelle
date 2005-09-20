@@ -958,7 +958,7 @@ fun valid_thms ctxt (name, ths) =
 fun lthms_containing ctxt spec =
   FactIndex.find (fact_index_of ctxt) spec
   |> List.filter (valid_thms ctxt)
-  |> gen_distinct eq_fst;
+  |> gen_distinct (eq_fst (op =));
 
 
 (* name space operations *)

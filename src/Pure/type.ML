@@ -632,7 +632,7 @@ val add_abbrevs = fold o add_abbrev;
 fun add_nonterminals naming = change_types o fold (new_decl naming) o map (rpair Nonterminal);
 
 fun merge_types (types1, types2) =
-  NameSpace.merge_tables Library.eq_snd (types1, types2) handle Symtab.DUPS (d :: _) =>
+  NameSpace.merge_tables (Library.eq_snd (op =)) (types1, types2) handle Symtab.DUPS (d :: _) =>
     err_in_decls d (the_decl types1 d) (the_decl types2 d);
 
 end;

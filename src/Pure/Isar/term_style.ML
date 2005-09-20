@@ -28,7 +28,7 @@ structure StyleData = TheoryDataFun
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ tabs = Symtab.merge eq_snd tabs
+  fun merge _ tabs = Symtab.merge (eq_snd (op =)) tabs
     handle Symtab.DUPS dups => err_dup_styles dups;
   fun print _ tab = Pretty.writeln (Pretty.strs ("antiquote styles:" :: Symtab.keys tab));
 end);

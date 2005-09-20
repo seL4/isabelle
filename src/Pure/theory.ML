@@ -120,7 +120,7 @@ structure ThyData = TheoryDataFun
 
       val axioms = NameSpace.empty_table;
       val defs = Defs.merge pp defs1 defs2;
-      val oracles = NameSpace.merge_tables eq_snd (oracles1, oracles2)
+      val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
         handle Symtab.DUPS dups => err_dup_oras dups;
     in make_thy (axioms, defs, oracles) end;
 

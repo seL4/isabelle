@@ -292,7 +292,7 @@ fun print_ss ss =
     val cngs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs);
     val prcs = Net.entries procs |>
       map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
-      |> partition_eq eq_snd
+      |> partition_eq (eq_snd (op =))
       |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
       |> Library.sort_wrt #1;
   in

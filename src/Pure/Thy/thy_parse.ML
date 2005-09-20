@@ -284,8 +284,8 @@ fun mk_type_decl (((xs, t), NONE), syn) =
       [(parens (commas [t, mk_list xs, rhs, syn]), true)];
 
 fun mk_type_decls tys =
-  "|> Theory.add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
-  \|> Theory.add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
+  "|> Theory.add_types\n" ^ mk_big_list (AList.find (op =) tys false) ^ "\n\n\
+  \|> Theory.add_tyabbrs\n" ^ mk_big_list (AList.find (op =) tys true);
 
 
 val old_type_decl = names1 -- nat -- opt_infix >> mk_old_type_decl;
@@ -390,8 +390,8 @@ val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 (* instance *)
 
 fun mk_witness (axths, opt_tac) =
-  mk_list (keyfilter axths false) ^ "\n" ^
-  mk_list (keyfilter axths true) ^ "\n" ^
+  mk_list (AList.find (op =) axths false) ^ "\n" ^
+  mk_list (AList.find (op =) axths true) ^ "\n" ^
   opt_tac;
 
 val axm_or_thm =
@@ -441,7 +441,7 @@ fun get_lexicon (lex, _) = lex;
 fun make_syntax keywords sects =
   let
     val dups = duplicates (map fst sects);
-    val sects' = gen_distinct eq_fst sects;
+    val sects' = gen_distinct (eq_fst (op =)) sects;
     val keys = map Symbol.explode (map fst sects' @ keywords);
   in
     if null dups then ()

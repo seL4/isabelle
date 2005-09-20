@@ -278,7 +278,7 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
   if n = 1 then i
   else if n = 0 andalso ty = Lt then sys_error "multiply_ineq"
   else if n < 0 andalso (ty=Le orelse ty=Lt) then sys_error "multiply_ineq"
-  else Lineq(n * k,ty,map (apl(n,op * )) l,Multiplied(n,just));
+  else Lineq (n * k, ty, map (curry (op *) n) l, Multiplied (n, just));
 
 (* ------------------------------------------------------------------------- *)
 (* Add together (in)equations.                                               *)
@@ -317,7 +317,7 @@ fun is_answer (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
 fun calc_blowup (l:IntInf.int list) =
-  let val (p,n) = List.partition (apl(0,op<)) (List.filter (apl(0,op<>)) l)
+  let val (p,n) = List.partition (curry (op <) 0) (List.filter (curry (op <>) 0) l)
   in (length p) * (length n) end;
 
 (* ------------------------------------------------------------------------- *)
@@ -538,11 +538,11 @@ fun print_atom((a,d),r) =
   in a ^ " = " ^ s end;
 
 fun print_ex sds =
-  tracing o
-  apl("Counter example:\n",op ^) o
-  commas o
-  map print_atom o
-  apl(sds, op ~~);
+  curry (op ~~) sds
+  #> map print_atom
+  #> commas
+  #> curry (op ^) "Counter example:\n"
+  #> tracing;
 
 fun trace_ex(sg,params,atoms,discr,n,hist:history) =
   if null hist then ()

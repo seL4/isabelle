@@ -250,7 +250,7 @@ fun thms_containing theory spec =
   |> map (fn thy =>
       FactIndex.find (fact_index_of thy) spec
       |> List.filter (fn (name, ths) => valid_thms theory (Name name, ths))
-      |> gen_distinct eq_fst)
+      |> gen_distinct (eq_fst (op =)))
   |> List.concat;
 
 fun thms_containing_consts thy consts =

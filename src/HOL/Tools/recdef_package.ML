@@ -245,7 +245,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
     val (thy, {rules = rules_idx, induct, tcs}) =
         tfl_fn strict thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
-    val rules = map (map #1) (Library.partition_eq Library.eq_snd rules_idx);
+    val rules = map (map #1) (Library.partition_eq (Library.eq_snd (op =)) rules_idx);
     val simp_att = if null tcs then
       [Simplifier.simp_add_global, RecfunCodegen.add NONE] else [];
 

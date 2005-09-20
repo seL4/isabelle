@@ -157,7 +157,7 @@ val unsafe_brls =
 
 (*0 subgoals vs 1 or more*)
 val (safe0_brls, safep_brls) =
-    List.partition (apl(0,op=) o subgoals_of_brl) safe_brls;
+    List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls;
 
 fun safestep_tac thms i =
     form_tac  ORELSE

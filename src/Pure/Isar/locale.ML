@@ -372,7 +372,7 @@ structure GlobalLocalesData = TheoryDataFun
   fun join_locs _ ({predicate, import, elems, params, regs}: locale,
       {elems = elems', regs = regs', ...}: locale) =
     SOME {predicate = predicate, import = import,
-      elems = gen_merge_lists eq_snd elems elems',
+      elems = gen_merge_lists (eq_snd (op =)) elems elems',
       params = params,
       regs = merge_alists regs regs'};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
@@ -770,10 +770,10 @@ fun unify_frozen ctxt maxidx Ts Us =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (List.mapPartial I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = gen_distinct eq_fst (List.concat (map (snd o fst) elemss));
-fun params_of' elemss = gen_distinct eq_fst (List.concat (map (snd o fst o fst) elemss));
+fun params_of elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss));
+fun params_of' elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst o fst) elemss));
 fun params_syn_of syn elemss =
-  gen_distinct eq_fst (List.concat (map (snd o fst) elemss)) |>
+  gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss)) |>
     map (apfst (fn x => (x, valOf (Symtab.lookup syn x))));
 
 
@@ -843,7 +843,7 @@ fun unify_parms ctxt (fixed_parms : (string * typ) list)
     val (unifier, _) = Library.foldl unify_list
       ((Vartab.empty, maxidx), map #2 (Symtab.dest (Symtab.make_multi parms)));
 
-    val parms' = map (apsnd (Envir.norm_type unifier)) (gen_distinct eq_fst parms);
+    val parms' = map (apsnd (Envir.norm_type unifier)) (gen_distinct (eq_fst (op =)) parms);
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
@@ -939,7 +939,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             (* propagate parameter types, to keep them consistent *)
           val regs' = map (fn ((name, ps), ths) =>
               ((name, map (rename ren) ps), ths)) regs;
-          val new_regs = gen_rems eq_fst (regs', ids);
+          val new_regs = gen_rems (eq_fst (op =)) (regs', ids);
           val new_ids = map fst new_regs;
           val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) ps) p)))) new_ids;
 
@@ -993,7 +993,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             val ren = renaming xs parms'
               handle ERROR_MESSAGE msg => err_in_locale' ctxt msg ids';
 
-            val ids'' = gen_distinct eq_fst (map (rename_parms top ren) ids');
+            val ids'' = gen_distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
             val parms'' = distinct (List.concat (map (#2 o #1) ids''));
             val syn'' = syn' |> Symtab.dest |> map (rename_var ren) |>
                   Symtab.make;
@@ -1037,7 +1037,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
 
     (* compute identifiers and syntax, merge with previous ones *)
     val (ids, _, syn) = identify true expr;
-    val idents = gen_rems eq_fst (ids, prev_idents);
+    val idents = gen_rems (eq_fst (op =)) (ids, prev_idents);
     val syntax = merge_syntax ctxt ids (syn, prev_syntax);
     (* add types to params, check for unique params and unify them *)
     val raw_elemss = unique_parms ctxt (map (eval syntax) idents);

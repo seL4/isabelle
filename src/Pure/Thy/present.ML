@@ -274,7 +274,7 @@ fun read_version str =
   | _ => error ("Malformed document version specification: " ^ quote str));
 
 fun read_versions strs =
-  rev (gen_distinct eq_fst (rev ((documentN, "") :: map read_version strs)))
+  rev (gen_distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_version strs)))
   |> filter_out (equal "-" o #2);
 
 

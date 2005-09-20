@@ -227,7 +227,7 @@ structure SignData = TheoryDataFun
       val naming = NameSpace.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
-      val consts = NameSpace.merge_tables eq_snd (consts1, consts2)
+      val consts = NameSpace.merge_tables (eq_snd (op =)) (consts1, consts2)
         handle Symtab.DUPS cs => err_dup_consts cs;
       val constraints = Symtab.merge (op =) (constraints1, constraints2)
         handle Symtab.DUPS cs => err_inconsistent_constraints cs;
