@@ -156,7 +156,6 @@
     "theory"
     "thm"
     "thm_deps"
-    "thms_containing"
     "thus"
     "token_translation"
     "touch_all_thys"
@@ -179,6 +178,7 @@
     "use_thy"
     "use_thy_only"
     "using"
+    "value"
     "welcome"
     "with"
     "{"
@@ -287,7 +287,6 @@
     "term"
     "thm"
     "thm_deps"
-    "thms_containing"
     "touch_all_thys"
     "touch_child_thys"
     "touch_thy"
@@ -297,6 +296,7 @@
     "use"
     "use_thy"
     "use_thy_only"
+    "value"
     "welcome"))
 
 (defconst isar-keywords-theory-begin
