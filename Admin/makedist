@@ -87,7 +87,7 @@ if [ "$VERSION" = "-" ]; then
   [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
   DISTVERSION="$DISTNAME"
   EXPORT="cvs -f -q checkout -P -d $DISTNAME isabelle"
-  UNOFFICIAL="unofficial"
+  UNOFFICIAL=true
 else
   DISTIDENT="$VERSION"
   [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
