@@ -511,7 +511,7 @@ end;
 
 (* ------------------------------------------------------------------------- *)
 (* Internal SAT solver, available as 'SatSolver.invoke_solver "auto"': uses  *)
-(* the first installed solver (other than "auto" itself) that does not raise *)
+(* the last installed solver (other than "auto" itself) that does not raise  *)
 (* 'NOT_CONFIGURED'.  (However, the solver may return 'UNKNOWN'.)            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -564,7 +564,6 @@ let
 			(* string list *)
 			val proof_lines = ((split_lines o File.read) (Path.unpack "resolve_trace"))
 				handle _ => raise INVALID_PROOF "Could not read file \"resolve_trace\""
-			val _ = try File.rm (Path.unpack "resolve_trace")
 			(* PropLogic.prop_formula -> int *)
 			fun cnf_number_of_clauses (PropLogic.And (fm1, fm2)) = cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
 			  | cnf_number_of_clauses _                          = 1
