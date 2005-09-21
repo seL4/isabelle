@@ -8,7 +8,7 @@ formal and informal ones.
 
 header {* A Chinese theory *}
 
-theory Chinese = Main:
+theory Chinese imports Main begin
 
 text{* 数学家能把咖啡变成理论,如今中国的数学家也可
        以在伊莎贝拉的帮助下把茶变成理论.  
