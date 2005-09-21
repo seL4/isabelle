@@ -14,7 +14,7 @@ MAIL=$HOME/bin/pmail
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=gtar
-CVS2CL=$HOME/bin/cvs2cl
+CVS2CL="$HOME/bin/cvs2cl --follow-only TRUNK"
 
 SSH="ssh -f"
 
