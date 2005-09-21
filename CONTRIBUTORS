@@ -53,9 +53,9 @@ Contributions to Isabelle 2005
   Improved version of HOL presburger method.
 
 * 2004/2005: Steven Obua, TUM
-  Pure/defs: more sophisticated checks on well-formedness of overloading.
   Improved version of HOL/Import, support for HOL-Light.
   Improved version of HOL-Complex-Matrix.
+  Pure/defs: more sophisticated checks on well-formedness of overloading.
   Pure/Tools: an experimental evaluator for lambda terms.
 
 * 2004/2005: Norbert Schirmer, TUM

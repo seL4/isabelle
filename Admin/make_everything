@@ -16,7 +16,7 @@ date
 REPOS=~/isabelle/src
 DIST=~/tmp/isadist
 
-$REPOS/Admin/makedist ${1:---}
+$REPOS/Admin/makedist ${1:--}
 ISABELLE_DIST=$(cat $DIST/ISABELLE_DIST)
 
 case $(hostname) in

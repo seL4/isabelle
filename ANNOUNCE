@@ -3,9 +3,9 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2005 is now available.
 
-This release provides substantial advances over Isabelle2004.  Some
-highlights are as follows (see the NEWS of the distribution for more
-details):
+This release provides substantial advances over Isabelle2004, see the
+first 1000 lines of NEWS in the distribution for more details.  Some
+notable highlights are:
 
 * Interpretation of locale expressions in theories, locales, and proof
 contexts.
