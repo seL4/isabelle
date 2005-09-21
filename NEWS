@@ -759,13 +759,36 @@ available:
 
 * Pure/General: structure AList (cf. Pure/General/alist.ML) provides
 basic operations for association lists, following natural argument
-order; ; moreover the explicit equality predicate passed here avoids
+order; moreover the explicit equality predicate passed here avoids
 potentially expensive polymorphic runtime equality checks.
 The old functions may be expressed as follows:
 
   assoc = uncurry (AList.lookup (op =))
   assocs = these oo AList.lookup (op =)
   overwrite = uncurry (AList.update (op =)) o swap
+
+* Pure/General: structure AList (cf. Pure/General/alist.ML) provides
+
+  val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
+  val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
+
+replacing make_keylist and keyfilter (occassionally used)
+Naive rewrites:
+
+  make_keylist = AList.make
+  keyfilter = AList.find (op =)
+
+* eq_fst and eq_snd now take explicit equality parameter, thus
+  avoiding eqtypes. Naive rewrites:
+
+    eq_fst = eq_fst (op =)
+    eq_snd = eq_snd (op =)
+
+* Removed deprecated apl and apr (rarely used).
+  Naive rewrites:
+
+    apl (n, op) =>>= curry op n
+    apr (op, m) =>>= fn n => op (n, m)
 
 * Pure/General: structure OrdList (cf. Pure/General/ord_list.ML)
 provides a reasonably efficient light-weight implementation of sets as
