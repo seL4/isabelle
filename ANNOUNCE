@@ -1,53 +1,31 @@
-Subject: Announcing Isabelle2004
+Subject: Announcing Isabelle2005
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2004 is now available.
+Isabelle2005 is now available.
 
-This release provides many improvements and a few substantial advances over
-Isabelle2003.  The most prominent highlights of Isabelle2004 are as follows
-(see the NEWS of the distribution for more details):
+This release provides substantial advances over Isabelle2004.  Some
+highlights are as follows (see the NEWS of the distribution for more
+details):
 
+* Interpretation of locale expressions in theories, locales, and proof
+contexts.
 
-* New image HOL4 with imported library from HOL4 system on top of
-  HOL-Complex (about 2500 additional theorems). 
+* Substantial library improvements (HOL, HOL-Complex, HOLCF).
 
-* New theory Ring_and_Field with over 250 basic numerical laws, 
-  all proved in axiomatic type classes for semirings, rings and fields.
+* Proof tools for transitivity reasoning.
 
-* Type "rat" of the rational numbers available in HOL-Complex.
+* General 'find_theorems' command (by term patterns, as
+intro/elim/simp rules etc.).
 
-* New locale "ring" for non-commutative rings in HOL-Algebra.
+* Commands for generating adhoc draft documents.
 
-* New theory of matrices with an application to linear programming in
-  HOL-Matrix.
+* Support for Unicode proof documents (UTF-8).
 
-* Improved locales (named proof contexts), instantiation of locales.
-
-* Improved handling of linear and partial orders in simplifier.
- 
-* New "specification" command for definition by specification.
-
-* New Isar command "finalconsts" prevents constants being given a definition
-  later.
-
-* Command "arith" now generates counterexamples for reals as well.
-
-* New "quickcheck" command to search for counterexamples of executable goals.
-  (see HOL/ex/Quickcheck_Examples.thy)
-
-* New "refute" command to search for finite countermodels of goals.
-  (see HOL/ex/Refute_Examples.thy)
-
-* Presentation and x-symbol enhancements, greek letters and sub/superscripts
-  allowed in identifiers.
+* Major internal reorganizations and performance improvements.
 
 
-You may get Isabelle2004 from the following mirror sites:
+You may get Isabelle2005 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)     http://isabelle.in.tum.de/dist/
   Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle/
-
-Gerwin Klein
-Tobias Nipkow
-Larry Paulson
