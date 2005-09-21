@@ -7,21 +7,11 @@
 
 ## global settings
 
+DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
-case $(hostname) in
-  *lapbroy*)
-    export CVSROOT=sunbroy2:/usr/proj/isabelle-repository/archive
-    ;;
-  *broy*)
-    export CVSROOT=/usr/proj/isabelle-repository/archive
-    ;;
-  *)
-    export CVSROOT=sunbroy2.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive
-    ;;
-esac
-
-DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
+export CVSROOT=/usr/proj/isabelle-repository/archive
+[ ! -d "$CVSROOT" ] && CVSROOT="sunbroy2.informatik.tu-muenchen.de:$CVSROOT"
 
 umask 022
 
@@ -41,22 +31,24 @@ function usage()
 {
   cat <<EOF
 
-Usage: $PRG VERSION
+Usage: $PRG VERSION [NAME]
 
   Make Isabelle distribution from the master sources at TUM.
 
-  VERSION may be either a tag like "Isabelle2002-XX" that specifies the
+  VERSION may be either a tag like "Isabelle2005" that specifies the
   release to be exported from the repository, or "-" to checkout the
-  current sources as an unofficial release, or "--" to produce a
-  tentative release from the present copy of the Isabelle repository.
+  current sources as an unofficial release.
+
+  NAME specifies an explicit distribution name, by default it is
+  derived from VERSION.
 
   Checklist for official releases (before running this script):
 
-    * Check Admin/page contents.
-    * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
+    * Check Admin/website contents.
+    * Check ANNOUNCE, README.html, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
-        cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle2002 isabelle
+        cvs -d /usr/proj/isabelle-repository/archive rtag Isabelle2005 isabelle
       PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
 
 EOF
@@ -72,10 +64,15 @@ function fail()
 
 ## process command line
 
-[ "$#" -ne 1 ] && usage
+[ "$#" -ne 1 -a "$#" -ne 2 ] && usage
 
-VERSION="$1"
-shift
+VERSION="$1"; shift
+
+if [ "$#" -eq 0 ]; then
+  DISTNAME=""
+else
+  DISTNAME="$1"; shift
+fi
 
 
 ## main
@@ -85,20 +82,17 @@ shift
 DATE=$(date "+%d-%b-%Y")
 DISTDATE=$(date "+%B %Y")
 
-if [ "$VERSION" = "--" ]; then
-  DISTNAME="Isabelle_$DATE"
-  DISTVERSION="$DISTNAME"
-  EXPORT="$THIS/cvs-copy $THIS/.. $DISTNAME"
-  UNOFFICIAL="unofficial test"
-elif [ "$VERSION" = "-" ]; then
-  DISTNAME="Isabelle_$DATE"
+if [ "$VERSION" = "-" ]; then
+  DISTIDENT="Isabelle_$DATE"
+  [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
   DISTVERSION="$DISTNAME"
   EXPORT="cvs -f -q checkout -P -d $DISTNAME isabelle"
   UNOFFICIAL="unofficial"
 else
-  DISTNAME="$VERSION"
+  DISTIDENT="$VERSION"
+  [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
   DISTVERSION="$DISTNAME: $DISTDATE"
-  EXPORT="cvs -f -q export -r $VERSION -d $DISTNAME isabelle"
+  EXPORT="cvs -f -q export -P -r $VERSION -d $DISTNAME isabelle"
   UNOFFICIAL=""
 fi
 
@@ -111,7 +105,7 @@ mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir $DISTBASE!"
 # export repository
 
 echo "###"
-echo "### Exporting $DISTNAME ..."
+echo "### Exporting $DISTIDENT ..."
 echo "###"
 
 cd "$DISTBASE"
@@ -128,11 +122,7 @@ fi
 
 $FIND . -name CVS -print | xargs rm -rf
 $FIND . -name .cvsignore -print | xargs rm -rf
-$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
-$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
-$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
-$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
-$FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
+$FIND . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
 
 
 # build docs
@@ -148,7 +138,7 @@ for DOC in $(cat Contents)
 do
   cd "$DOC"
   make dvi || fail "DVI document for $DOC failed!"
-  ([ -n "$PDFLATEX" ] && make clean pdf) || fail "PDF document for $DOC failed!"
+  { [ -n "$PDFLATEX" ] && make clean pdf; } || fail "PDF document for $DOC failed!"
   cd ..
 done
 
@@ -159,21 +149,15 @@ echo "###"
 echo "### Preparing distribution ..."
 echo "###"
 
-cd "$DISTBASE/$DISTNAME" || fail "Something is wrong: dist directory doesn't exist!"
+cd "$DISTBASE/$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
-#~ # old site framework
-#~ cp -R Admin/page ..
-#~ cp Distribution/doc/Contents ../page
-#~ cp Distribution/lib/logo/isabelle.gif ../page/main-content
-#~ cp Distribution/lib/logo/isabelle.gif ../page/dist-content
-#~ echo "$DISTNAME" > ../page/DISTNAME
-# new site framework
 cp -R Admin/website ..
 mkdir -p ../website/conf
 cat > ../website/conf/distname.mak <<EOF
-# this is a generated file - do not edit unless you know what you are doing
+# this is a generated file - do not edit!
 
 DISTNAME=$DISTNAME
+DISTIDENT=$DISTIDENT
 EOF
 
 MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
@@ -198,14 +182,13 @@ if [ -n "$UNOFFICIAL" ]; then
     echo "IMPORTANT NOTE"
     echo "=============="
     echo
-    echo "This is an $UNOFFICIAL release of Isabelle, created by $LOGNAME $DATE."
+    echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
     echo
   } >ANNOUNCE
 fi
 
 perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index.html
-perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML
-perl -pi -e "s/Isabelle repository version/$DISTVERSION/" lib/Tools/version
+perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README.html
 lynx -dump README.html >README
 
@@ -268,8 +251,8 @@ mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
 mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" \
-   "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
-   "$DISTNAME"
+  "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
+  "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/index.html" "$DISTNAME/doc"
 
