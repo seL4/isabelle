@@ -103,10 +103,10 @@ use_thy "HOL4";
 EOF
 
 if [ -n "$DO_LIBRARY" ]; then
-  perl -pi -e 's/^ISABELLE_USEDIR_OPTIONS=.*$/ISABELLE_USEDIR_OPTIONS="-i true -d pdf -V outline=/proof,/ML"/' \
+  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-i true -d pdf -V outline=/proof,/ML":' \
     etc/settings
 else
-  perl -pi -e 's/^ISABELLE_USEDIR_OPTIONS=.*$/ISABELLE_USEDIR_OPTIONS="-p 2"/' \
+  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 2":' \
     etc/settings
 fi
 
