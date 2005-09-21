@@ -358,7 +358,7 @@ struct
 	(* string * solver -> unit *)
 
 	fun add_solver (name, new_solver) =
-		(solvers := overwrite_warn (!solvers, (name, new_solver)) ("SAT solver " ^ quote name ^ " was defined before"));
+		(solvers := update_warn (op =) ("SAT solver " ^ quote name ^ " was defined before") (name, new_solver) (!solvers));
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
@@ -369,7 +369,7 @@ struct
 	(* string -> solver *)
 
 	fun invoke_solver name =
-		(valOf o assoc) (!solvers, name);
+		(the o AList.lookup (op =) (!solvers)) name;
 
 end;  (* SatSolver *)
 
