@@ -221,11 +221,7 @@ sig
   val duplicates: ''a list -> ''a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
-  (*association lists -- see also Pure/General/alist.ML*)
-  val assoc: (''a * 'b) list * ''a -> 'b option
-  val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
-
-  (*lists as tables*)
+  (*lists as tables -- see also Pure/General/alist.ML*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val gen_merge_lists': ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val merge_lists: ''a list -> ''a list -> ''a list
@@ -1023,19 +1019,6 @@ fun has_duplicates eq =
 
 
 (** association lists **)
-
-(*association list lookup*)
-fun assoc ([], key) = NONE
-  | assoc ((keyi, xi) :: pairs, key) =
-      if key = keyi then SOME xi else assoc (pairs, key);
-
-(*association list update*)
-fun overwrite (al, p as (key, _)) =
-  let fun over ((q as (keyi, _)) :: pairs) =
-            if keyi = key then p :: pairs else q :: (over pairs)
-        | over [] = [p]
-  in over al end;
-
 
 (* lists as tables *)
 
