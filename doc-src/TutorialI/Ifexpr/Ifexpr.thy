@@ -36,7 +36,7 @@ Hence the function @{text"value"} takes an additional parameter, an
 values:
 *}
 
-consts value :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
+consts "value" :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
 primrec
 "value (Const b) env = b"
 "value (Var x)   env = env x"

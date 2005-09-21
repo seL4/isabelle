@@ -19,7 +19,7 @@ which is fine because products are datatypes as well.
 We define two selector functions:
 *};
 
-consts value :: "('a,'v)trie \<Rightarrow> 'v option"
+consts "value" :: "('a,'v)trie \<Rightarrow> 'v option"
        alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list";
 primrec "value(Trie ov al) = ov";
 primrec "alist(Trie ov al) = al";

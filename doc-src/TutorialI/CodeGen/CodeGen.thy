@@ -28,7 +28,7 @@ The value of an expression with respect to an environment that maps variables to
 values is easily defined:
 *}
 
-consts value :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v";
+consts "value" :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v";
 primrec
 "value (Cex v) env = v"
 "value (Vex a) env = env a"
