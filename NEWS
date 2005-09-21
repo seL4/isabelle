@@ -188,7 +188,7 @@ following works without printing of awkward ".0" indexes:
 
 * Inner syntax includes (*(*nested*) comments*).
 
-* Pretty pinter now supports unbreakable blocks, specified in mixfix
+* Pretty printer now supports unbreakable blocks, specified in mixfix
 annotations as "(00...)".
 
 * Clear separation of logical types and nonterminals, where the latter
