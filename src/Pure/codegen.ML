@@ -29,6 +29,7 @@ sig
   val add_attribute: string -> (Args.T list -> theory attribute * Args.T list) -> theory -> theory
   val add_preprocessor: (theory -> thm list -> thm list) -> theory -> theory
   val preprocess: theory -> thm list -> thm list
+  val preprocess_term: theory -> term -> term
   val print_codegens: theory -> unit
   val generate_code: theory -> string list -> string -> (string * string) list ->
     (string * string) list * codegr
@@ -74,8 +75,11 @@ sig
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> int -> int -> term -> (string * term) list option
+  val eval_result: term ref
+  val eval_term: theory -> term -> term
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val mk_deftab: theory -> deftab
+
   val get_node: codegr -> string -> node
   val add_edge: string * string -> codegr -> codegr
   val add_edge_acyclic: string * string -> codegr -> codegr
@@ -328,6 +332,18 @@ fun preprocess thy ths =
   let val {preprocs, ...} = CodegenData.get thy
   in Library.foldl (fn (ths, (_, f)) => f thy ths) (ths, preprocs) end;
 
+fun preprocess_term thy t =
+  let
+    val x = Free (variant (add_term_names (t, [])) "x", fastype_of t);
+    (* fake definition *)
+    val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
+      (Logic.mk_equals (x, t));
+    fun err () = error "preprocess_term: bad preprocessor"
+  in case map prop_of (preprocess thy [eq]) of
+      [Const ("==", _) $ x' $ t'] => if x = x' then t' else err ()
+    | _ => err ()
+  end;
+    
 fun unfold_attr (thy, eqn) =
   let
     val (name, _) = dest_Const (head_of
@@ -672,6 +688,8 @@ fun default_codegen thy defs gr dep module brack t =
                  val (gr1, ps1) = codegens false (gr, ts1);
                  val (gr2, ps2) = codegens true (gr1, ts2);
                  val (gr3, ps3) = codegens false (gr2, quotes_of ms);
+                 val (gr4, _) = invoke_tycodegen thy defs dep module false
+                   (gr3, funpow (length ts) (hd o tl o snd o dest_Type) T);
                  val (module', suffix) = (case get_defn thy defs s T of
                      NONE => (if_library (thyname_of_const s thy) module, "")
                    | SOME ((U, (module', _)), NONE) =>
@@ -681,14 +699,14 @@ fun default_codegen thy defs gr dep module brack t =
                  val node_id = s ^ suffix;
                  fun p module' = mk_app brack (Pretty.block
                    (pretty_mixfix module module' ms ps1 ps3)) ps2
-               in SOME (case try (get_node gr3) node_id of
+               in SOME (case try (get_node gr4) node_id of
                    NONE => (case get_aux_code aux of
-                       [] => (gr3, p module)
+                       [] => (gr4, p module)
                      | xs => (add_edge (node_id, dep) (new_node
-                         (node_id, (NONE, module', space_implode "\n" xs ^ "\n")) gr3),
+                         (node_id, (NONE, module', space_implode "\n" xs ^ "\n")) gr4),
                            p module'))
                  | SOME (_, module'', _) =>
-                     (add_edge (node_id, dep) gr3, p module''))
+                     (add_edge (node_id, dep) gr4, p module''))
                end
            end
        | NONE => (case get_defn thy defs s T of
@@ -837,7 +855,7 @@ fun gen_generate_code prep_term thy modules module =
           Type ("fun", [T, U]) => Abs ("x", T, t $ Bound 0) | _ => t);
     val (gr', ps) = foldl_map (fn (gr, (s, t)) => apsnd (pair s)
       (invoke_codegen thy defs "<Top>" module false (gr, t)))
-        (gr, map (apsnd (expand o prep_term thy)) xs);
+        (gr, map (apsnd (expand o preprocess_term thy o prep_term thy)) xs);
     val code = List.mapPartial
       (fn ("", _) => NONE
         | (s', p) => SOME (Pretty.string_of (Pretty.block
@@ -907,30 +925,31 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
     val _ = assert (null (term_vars t))
       "Term to be tested contains schematic variables";
     val frees = map dest_Free (term_frees t);
-    val szname = variant (map fst frees) "i";
+    val frees' = frees ~~
+      map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
     val s = "structure TestTerm =\nstruct\n\n" ^
       space_implode "\n" (map snd code) ^
       "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
-          Pretty.brk 1, Pretty.str ("(fn " ^ szname ^ " =>"), Pretty.brk 1,
+          Pretty.brk 1, Pretty.str ("(fn i =>"), Pretty.brk 1,
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
-            Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
-              Pretty.block [Pretty.str ("val " ^ mk_id s ^ " ="), Pretty.brk 1,
+            Pretty.blk (0, separate Pretty.fbrk (map (fn ((s, T), s') =>
+              Pretty.block [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1,
               mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-              Pretty.str (szname ^ ";")]) frees)),
+              Pretty.str "i;"]) frees')),
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
-              mk_app false (Pretty.str "testf") (map (Pretty.str o mk_id o fst) frees),
+              mk_app false (Pretty.str "testf") (map (Pretty.str o snd) frees'),
               Pretty.brk 1, Pretty.str "then NONE",
               Pretty.brk 1, Pretty.str "else ",
               Pretty.block [Pretty.str "SOME ", Pretty.block (Pretty.str "[" ::
                 List.concat (separate [Pretty.str ",", Pretty.brk 1]
-                  (map (fn (s, T) => [Pretty.block
+                  (map (fn ((s, T), s') => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of gr "Generated" false T)
-                       [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
+                       [Pretty.str s'], Pretty.str ")"]]) frees')) @
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
       "\n\nend;\n";
@@ -962,6 +981,43 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
             Sign.pretty_term thy t]) cex)))
   end;
+
+
+(**** Evaluator for terms ****)
+
+val eval_result = ref (Bound 0);
+
+fun eval_term thy = setmp print_mode [] (fn t =>
+  let
+    val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
+      "Term to be evaluated contains type variables";
+    val _ = assert (null (term_vars t) andalso null (term_frees t))
+      "Term to be evaluated contains variables";
+    val (code, gr) = setmp mode ["term_of"]
+      (generate_code_i thy [] "Generated") [("result", t)];
+    val s = "structure EvalTerm =\nstruct\n\n" ^
+      space_implode "\n" (map snd code) ^
+      "\nopen Generated;\n\n" ^ Pretty.string_of
+        (Pretty.block [Pretty.str "val () = Codegen.eval_result :=",
+          Pretty.brk 1,
+          mk_app false (mk_term_of gr "Generated" false (fastype_of t))
+            [Pretty.str "result"],
+          Pretty.str ";"])  ^
+      "\n\nend;\n";
+    val _ = use_text Context.ml_output false s
+  in !eval_result end);
+
+fun print_evaluated_term s = Toplevel.keep (fn state =>
+  let
+    val state' = Toplevel.enter_forward_proof state;
+    val ctxt = Proof.context_of state';
+    val t = eval_term (Proof.theory_of state') (ProofContext.read_term ctxt s);
+    val T = Term.type_of t;
+  in
+    writeln (Pretty.string_of
+      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
+  end);
 
 
 (**** Interface ****)
@@ -1099,9 +1155,13 @@ val testP =
           (map (fn f => f (Toplevel.sign_of st))) ps, []))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
 
+val valueP =
+  OuterSyntax.improper_command "value" "read, evaluate and print term" K.diag
+    (P.term >> (Toplevel.no_timing oo print_evaluated_term));
+
 val _ = OuterSyntax.add_keywords ["attach", "file", "contains"];
 
 val _ = OuterSyntax.add_parsers
-  [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP];
+  [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP, valueP];
 
 end;
