@@ -35,6 +35,8 @@ sig
   val assert: bool -> string -> unit
   val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
+  val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b)
+    -> ('a * 'b) list -> ('a * 'b) list
   val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   datatype 'a error = Error of string | OK of 'a
   val get_error: 'a error -> string option
@@ -158,6 +160,12 @@ fun assert_all pred l msg_fn =
   let fun asl [] = ()
         | asl (x::xs) = if pred x then asl xs else error (msg_fn x)
   in asl l end;
+
+fun overwrite (al, p as (key, _)) =
+  let fun over ((q as (keyi, _)) :: pairs) =
+            if keyi = key then p :: pairs else q :: (over pairs)
+        | over [] = [p]
+  in over al end;
 
 fun overwrite_warn (args as (alist, (a, _))) msg =
  (if is_none (AList.lookup (op =) alist a) then () else warning msg;
