@@ -9,7 +9,7 @@ import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Word32";
 
-append_dump "theory HOL4Word32 = HOL4Base:";
+append_dump "theory HOL4Word32 imports HOL4Base begin";
 
 import_theory bits;
 

@@ -9,7 +9,7 @@ import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Vec";
 
-append_dump "theory HOL4Vec = HOL4Base:";
+append_dump "theory HOL4Vec imports HOL4Base begin";
 
 import_theory res_quan;
 end_import;

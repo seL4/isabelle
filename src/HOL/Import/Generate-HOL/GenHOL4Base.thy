@@ -9,7 +9,7 @@ import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Base";
 
-append_dump {*theory HOL4Base = "../HOL4Compat" + "../HOL4Syntax":*};
+append_dump {*theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin*};
 
 import_theory bool;
 

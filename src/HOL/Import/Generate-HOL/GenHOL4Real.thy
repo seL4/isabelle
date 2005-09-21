@@ -9,7 +9,7 @@ import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Real";
 
-append_dump "theory HOL4Real = HOL4Base:";
+append_dump "theory HOL4Real imports HOL4Base begin";
 
 import_theory realax;
 

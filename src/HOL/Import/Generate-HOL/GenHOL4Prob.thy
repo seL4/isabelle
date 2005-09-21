@@ -9,7 +9,7 @@ import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Prob";
 
-append_dump "theory HOL4Prob = HOL4Real:";
+append_dump "theory HOL4Prob imports HOL4Real begin";
 
 import_theory prob_extra;
 
