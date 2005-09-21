@@ -11,7 +11,7 @@ project: site
 	#~ mkdir -p $(OUTPUTROOT)/dist
 	#~ ln -s $< $@
 
-DEP_SYMLINKS=dist/packages $(OUTPUTROOT)/library
+DEP_SYMLINKS=dist/packages $(OUTPUTROOT)/dist/library
 
 dist/packages: $(ISABELLE_DIST)
 	ln -s $< $@
@@ -19,7 +19,7 @@ dist/packages: $(ISABELLE_DIST)
 #~ library: $(ISABELLE_LIBR)
 #~	ln -s $< $@
 
-$(OUTPUTROOT)/library: $(ISABELLE_LIBR)
+$(OUTPUTROOT)/dist/library: $(ISABELLE_LIBR)
 	ln -s $< $@
 	chmod $(TARGET_UMASK_DIR) $@
 
@@ -33,7 +33,7 @@ include conf/distname.mak
 conf/distname.mak:
 	@echo 'There is no conf/distname.mak file; it should have been'; \
 	echo 'allocated by makedist.'; \
-	echo 'If you have no makedist at hands, allocate a conf/distname.mak file'; \
+	echo 'If you have no makedist at hand, allocate a conf/distname.mak file'; \
 	echo 'yourself, e. g. by:'; \
 	echo; \
 	echo 'echo "DISTNAME=Isabelle2004" > conf/distname.mak'; \

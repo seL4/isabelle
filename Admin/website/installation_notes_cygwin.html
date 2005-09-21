@@ -108,9 +108,6 @@
         <li>tar -C /usr/opt -xvzf ProofGeneral.tar.gz</li>
       </ul>
       
-      <p>During extraction, one inconvenience may occur, see <a href=
-      "#inconvenience">below</a>.</p>
-    
       <p>The location <tt class="shellcmd">/opt</tt> again is just a proposal; if you choose other
       locations, some tweaking in the <a href="#config"><tt class="shellcmd">etc/settings</tt>
       file</a> may be neccessary later.</p>
@@ -166,8 +163,9 @@
     
       <ul class="shellcmd">
         <li>cd /opt/Isabelle</li>
-        <li>build HOL</li>
+        <li>build FOL</li>
         <li>build ZF</li>
+        <li>build HOL</li>
       </ul>
 
       <p>The compilation process may take some time (depending on how fast the
@@ -214,38 +212,6 @@
       </blockquote>
       
       <p>and assigning a shortcut in the start menu to it.</p>
-    
-      <h2 id="inconvenience">Inconveniencies with the current version of
-      Isabelle</h2>
-    
-      <p>With the current Isabelle release (Isabelle 2004), there are two
-      inconveniencies:</p>
-    
-      <ul>
-        <li>During extraction you will get a warning that file
-        <tt class="shellcmd">Real/HahnBanach/Aux.thy</tt> can not be created. This is because
-        <tt class="shellcmd">Aux</tt> is not allowed as a filename under Windows. If you do not want
-        to run the HahnBanach example, you might simply want to ignore this
-        warning.</li>
-    
-        <li>The tool <tt class="shellcmd">isatool mkdir</tt> tries to detect the name of the current
-        user, to put it into the generated <tt class="shellcmd">root.tex</tt>. Alas, on Windows,
-        this leads to an unquoted <tt>\</tt> in the TeX file. So you either must
-        edit your <tt class="shellcmd">root.tex</tt> manually to fix this, or directly patch
-        <tt class="shellcmd">/opt/Isabelle/lib/Tools/mkdir</tt> by replacing
-    
-          <blockquote>
-            <tt>AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)</tt>
-          </blockquote>with
-    
-          <blockquote>
-            <tt>AUTHOR="default author name"</tt>
-          </blockquote>
-        </li>
-      </ul>
-    
-      <p>To get around these inconveniencies, consider using a recent developer
-      snapshot of Isabelle; both will be fixed in the next Isabelle release.</p>
     
       <h2 id="polyml">A note on Poly/ML</h2>
     

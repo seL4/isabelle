@@ -11,10 +11,10 @@ FIND=gfind
 TIDY=tidy
 
 # dirs to copy to build target
-STATICDIRS=img media dist/css dist/img dist/packages dist/misc
+STATICDIRS=css img media misc dist
 
 # build target (attention: ~ will not work!)
-OUTPUTROOT=/usr/proj/isabelle-repository/www
+OUTPUTROOT=/home/proj/isabelle/website
 
 # location of isabelle distribution packages
 ISABELLE_DIST=/home/proj/isabelle/dist/Isabelle2004
