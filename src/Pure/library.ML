@@ -312,11 +312,11 @@ fun f #> g = g o f;
 fun f #-> g = uncurry g o f;
 
 (*conditional application*)
-fun b ? f = fn x => if b x then f x else x
+fun b ? f = fn x => if b x then f x else x;
 
 (*view results*)
 fun `f = fn x => (f x, x);
-fun tap f x = (f x; x);
+fun tap f = fn x => (f x; x);
 
 (*composition with multiple args*)
 fun (f oo g) x y = f (g x y);
