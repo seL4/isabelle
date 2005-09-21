@@ -17,7 +17,6 @@ system, the Isabelle sources, and some major object-logics.  A minimal
 site installation of Isabelle on Linux/x86 works like this:
 
   tar -C /usr/local -xzf Isabelle.tar.gz
-  tar -C /usr/local -xzf polyml_base.tar.gz
   tar -C /usr/local -xzf polyml_x86-linux.tar.gz
   tar -C /usr/local -xzf HOL_x86-linux.tar.gz
 
@@ -27,8 +26,8 @@ any of the following locations:
 
   1) [ISABELLE_HOME]/contrib
   2) [ISABELLE_HOME]/..
-  3) /usr/share
   4) /usr/local
+  3) /usr/share
   5) /opt
 
 This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
@@ -49,7 +48,7 @@ Compiling logics
 ----------------
 
 The Isabelle.tar.gz archive already contains all Isabelle sources (and
-documentation). Precompiled object-logics are provided for
+documentation).  Precompiled object-logics are provided for
 convenience.
 
 Assuming proper configuration of the underlying ML system
@@ -60,7 +59,7 @@ like this:
 
 Special object-logic targets may be specified as follows:
 
-  [ISABELLE_HOME]/build -m HOL-Complex HOL
+  [ISABELLE_HOME]/build -m HOL-Algebra HOL
 
 
 2) User installation
