@@ -189,7 +189,7 @@ fun get_axiom_names_spass proofstr clause_arr =
     get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) clause_arr
   end;
     
- (*String contains multiple lines, terminated with newline characters.
+ (*String contains multiple lines.
   A list consisting of the first number in each line is returned. *)
 fun get_linenums proofstr = 
   let val numerics = String.tokens (not o Char.isDigit)
@@ -198,8 +198,21 @@ fun get_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (firstno o numerics) lines  end
 
-fun get_axiom_names_vamp_E proofstr clause_arr  =
+fun get_axiom_names_e proofstr clause_arr  =
    get_axiom_names (get_linenums proofstr) clause_arr;
+    
+ (*String contains multiple lines. We want those of the form 
+     "*********** [448, input] ***********".
+  A list consisting of the first number in each line is returned. *)
+fun get_vamp_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno [n,"input"] = Int.fromString n
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_vamp proofstr clause_arr  =
+   get_axiom_names (get_vamp_linenums proofstr) clause_arr;
     
 
 (***********************************************)
@@ -303,7 +316,9 @@ fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr =
       (* Attempt to prevent several signals from turning up simultaneously *)
       Posix.Process.sleep(Time.fromSeconds 1); ());
 
-val prover_lemma_list = prover_lemma_list_aux get_axiom_names_vamp_E;
+val e_lemma_list = prover_lemma_list_aux get_axiom_names_e;
+
+val vamp_lemma_list = prover_lemma_list_aux get_axiom_names_vamp;
 
 val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 
