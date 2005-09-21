@@ -60,11 +60,11 @@ startup, rather than the raw ML top-level.  So the most basic way to do
 anything with Isabelle/Isar is as follows:
 \begin{ttbox}
 isabelle -I HOL\medskip
-\out{> Welcome to Isabelle/HOL (Isabelle2002)}\medskip
-theory Foo = Main:
+\out{> Welcome to Isabelle/HOL (Isabelle2005)}\medskip
+theory Foo imports Main begin;
 constdefs foo :: nat  "foo == 1";
 lemma "0 < foo" by (simp add: foo_def);
-end
+end;
 \end{ttbox}
 Note that any Isabelle/Isar command may be retracted by \texttt{undo}.  See
 the Isabelle/Isar Quick Reference (appendix~\ref{ap:refcard}) for a

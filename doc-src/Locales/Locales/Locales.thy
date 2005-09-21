@@ -8,7 +8,7 @@
 (*<*)
 theory Locales imports Main begin
 
-ML_setup {* print_mode := "type_brackets" :: !print_mode; *}
+ML {* print_mode := "type_brackets" :: !print_mode; *}
 (*>*)
 
 section {* Overview *}
@@ -35,7 +35,7 @@ text {*
   Wenzel~\cite{Wenzel2002a}.  Subsequently, Wenzel re-implemented
   locales for
   the new proof format.  The implementation, available with
-  Isabelle2003, constitutes a complete re-design and exploits that
+  Isabelle2002 or later, constitutes a complete re-design and exploits that
   both Isar and locales are based on the notion of context,
   and thus locales are seen as a natural extension of Isar.
   Nevertheless, locales can also be used with proof scripts:
