@@ -29,6 +29,7 @@ Contributions to Isabelle 2005
   (experimental).
 
 * 2005: Florian Haftmann, TUM
+  Contributions to document 'sugar'.
   Various ML combinators, notably linear functional transformations.
   Some cleanup of ML legacy.
   Additional antiquotations.
@@ -52,9 +53,10 @@ Contributions to Isabelle 2005
   Improved version of HOL presburger method.
 
 * 2004/2005: Steven Obua, TUM
-  Pure/defs: more sophisticated check on well-formedness of overloading.
+  Pure/defs: more sophisticated checks on well-formedness of overloading.
   Improved version of HOL/Import, support for HOL-Light.
   Improved version of HOL-Complex-Matrix.
+  Pure/Tools: an experimental evaluator for lambda terms.
 
 * 2004/2005: Norbert Schirmer, TUM
   Contributions to document 'sugar'.
