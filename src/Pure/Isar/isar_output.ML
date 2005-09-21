@@ -233,8 +233,8 @@ local
 fun err_bad_nesting pos =
   error ("Bad nesting of commands in presentation" ^ pos);
 
-fun edge1 f (x, y) = if_none (Option.map (Buffer.add o f) (if x = y then NONE else x)) I;
-fun edge2 f (x, y) = if_none (Option.map (Buffer.add o f) (if x = y then NONE else y)) I;
+fun edge1 f (x, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else x));
+fun edge2 f (x, y) = the_default I (Option.map (Buffer.add o f) (if x = y then NONE else y));
 
 val begin_tag = edge2 Latex.begin_tag;
 val end_tag = edge1 Latex.end_tag;
@@ -254,10 +254,7 @@ fun present_span lex default_tags span state state'
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
     val (tag, tags) = tag_stack;
-    val tag' =
-      (case tag of NONE => [] | SOME tg => [tg])
-      |> fold OuterKeyword.update_tags cmd_tags
-      |> try hd;
+    val tag' = try hd (fold OuterKeyword.update_tags cmd_tags (the_list tag));
 
     val active_tag' =
       if is_some tag' then tag'
@@ -389,7 +386,7 @@ fun present_thy lex default_tags is_markup trs src =
         Scan.repeat (Scan.unless before_cmd non_cmd) --
         Scan.option (newline >> (single o #2))
       >> (fn (((toks1, (cmd, tok2)), toks3), tok4) =>
-          make_span (the cmd) (toks1 @ tok2 :: toks3 @ if_none tok4 []));
+          make_span (the cmd) (toks1 @ tok2 :: toks3 @ the_default [] tok4));
 
     val spans =
       src
