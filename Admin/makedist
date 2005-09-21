@@ -92,7 +92,7 @@ else
   DISTIDENT="$VERSION"
   [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
   DISTVERSION="$DISTNAME: $DISTDATE"
-  EXPORT="cvs -f -q export -P -r $VERSION -d $DISTNAME isabelle"
+  EXPORT="cvs -f -q export -r $VERSION -d $DISTNAME isabelle"
   UNOFFICIAL=""
 fi
 
