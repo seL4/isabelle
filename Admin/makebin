@@ -102,11 +102,13 @@ use_thy "HOL4Prob";
 use_thy "HOL4";
 EOF
 
+perl -pi \
+  -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 1":;' \
+  -e 's:^HOL_USEDIR_OPTIONS=.*$:HOL_USEDIR_OPTIONS="-p 2":;' \
+  etc/settings
+
 if [ -n "$DO_LIBRARY" ]; then
-  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-i true -d pdf -V outline=/proof,/ML":' \
-    etc/settings
-else
-  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 2":' \
+  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 1 -i true -d pdf -V outline=/proof,/ML":;' \
     etc/settings
 fi
 
@@ -132,10 +134,8 @@ elif [ -n "$DO_LIBRARY" ]; then
   ./build -bait
 else
   ./build -b -m HOL-Complex HOL
-  ./build -b ZF
-  perl -pi -e 's/^ISABELLE_USEDIR_OPTIONS=.*$/ISABELLE_USEDIR_OPTIONS="-p 1"/' \
-    etc/settings
   ./build -b -m HOL4 HOL
+  ./build -b ZF
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
 fi
 
