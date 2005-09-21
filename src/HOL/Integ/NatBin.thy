@@ -28,6 +28,8 @@ declare nat_0 [simp] nat_1 [simp]
 lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
 by (simp add: nat_number_of_def)
 
+declare nat_number_of [symmetric, THEN eq_reflection, code unfold]
+
 lemma nat_numeral_0_eq_0 [simp]: "Numeral0 = (0::nat)"
 by (simp add: nat_number_of_def)
 
