@@ -674,6 +674,16 @@ but the proof obligation additionally includes an admissibility
 requirement. The packages generate instances of class cpo or pcpo,
 with continuity and strictness theorems for Rep and Abs.
 
+* HOLCF: Many theorems have been renamed according to a more standard naming
+scheme (INCOMPATIBILITY):
+
+  foo_inject:  "foo$x = foo$y ==> x = y"
+  foo_eq:      "(foo$x = foo$y) = (x = y)"
+  foo_less:    "(foo$x << foo$y) = (x << y)"
+  foo_strict:  "foo$UU = UU"
+  foo_defined: "... ==> foo$x ~= UU"
+  foo_defined_iff: "(foo$x = UU) = (x = UU)"
+
 
 *** ZF ***
 
