@@ -18,6 +18,7 @@ sig
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
+  val fold_map_nodes: (key * 'b -> 'a -> 'c * 'a) -> 'b T -> 'a -> 'c T * 'a
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val imm_preds: 'a T -> key -> key list
@@ -96,6 +97,11 @@ fun map_entry x f (G as Graph tab) = Graph (Table.update (x, f (get_entry G x)) 
 (* nodes *)
 
 fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
+
+fun fold_map_nodes f (Graph tab) s =
+  s
+  |> Table.fold_map (fn (k, (i, ps)) => f (k, i) #> apfst (rpair ps)) tab
+  |> apfst Graph;
 
 fun get_node G = #1 o get_entry G;
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
