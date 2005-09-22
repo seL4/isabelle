@@ -531,25 +531,6 @@ apply(induct xs,simp+)
 apply(case_tac "length xs",simp+)
 done
 
-lemma last_drop: "Suc m<length x \<Longrightarrow> last(drop (Suc m) x) = last x"
-apply(case_tac "(drop (Suc m) x)\<noteq>[]")
- apply(drule last_length2)
- apply(erule ssubst)
- apply(simp only:length_drop)
- apply(subgoal_tac "Suc m + (length x - Suc m - (Suc 0)) \<le> length x")
-  apply(simp only:nth_drop)
-  apply(case_tac "x\<noteq>[]")
-   apply(drule last_length2)
-   apply(erule ssubst)
-   apply simp
-   apply(subgoal_tac "Suc (length x - 2)=(length x - Suc 0)")
-    apply simp
-   apply arith
-  apply simp
- apply arith
-apply (simp add:length_greater_0_conv [THEN sym])
-done
-
 lemma Cond_sound: 
   "\<lbrakk> stable pre rely; \<Turnstile> P1 sat [pre \<inter> b, rely, guar, post]; 
   \<Turnstile> P2 sat [pre \<inter> - b, rely, guar, post]; \<forall>s. (s,s)\<in>guar\<rbrakk>
@@ -598,49 +579,49 @@ apply(erule ctran.elims,simp_all)
    apply(erule_tac x=i in allE, erule impE, assumption)
    apply simp+
  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
-    apply arith
-   apply arith
-  apply arith
-  apply(case_tac "length (drop (Suc m) x)",simp)
-  apply(erule_tac x="sa" in allE)
-  back
-  apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
-   apply(rule conjI)
-    apply force
-   apply clarify
-   apply(subgoal_tac "(Suc m) + i \<le> length x")
-    apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
-     apply(rotate_tac -2)
-     apply simp
-     apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
-     apply(subgoal_tac "Suc (Suc (m + i)) < length x")
-      apply simp
-     apply arith
-    apply arith
-   apply arith
-  apply simp
-  apply clarify
-  apply(case_tac "i\<le>m")
-   apply(drule le_imp_less_or_eq)
-   apply(erule disjE)
-    apply(erule_tac x=i in allE, erule impE, assumption)
-    apply simp
+ apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+  apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+   apply(rotate_tac -2)
    apply simp
-  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
+   apply(erule mp)
    apply arith
   apply arith
  apply arith
- done  
+apply(case_tac "length (drop (Suc m) x)",simp)
+apply(erule_tac x="sa" in allE)
+back
+apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
+ apply(rule conjI)
+  apply force
+ apply clarify
+ apply(subgoal_tac "(Suc m) + i \<le> length x")
+  apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
+   apply(rotate_tac -2)
+   apply simp
+   apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
+   apply(subgoal_tac "Suc (Suc (m + i)) < length x")
+    apply simp
+   apply arith
+  apply arith
+ apply arith
+apply simp
+apply clarify
+apply(case_tac "i\<le>m")
+ apply(drule le_imp_less_or_eq)
+ apply(erule disjE)
+  apply(erule_tac x=i in allE, erule impE, assumption)
+  apply simp
+ apply simp
+apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
+apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+ apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+  apply(rotate_tac -2)
+  apply simp
+  apply(erule mp)
+  apply arith
+ apply arith
+apply arith
+done  
 
 subsubsection{* Soundness of the Sequential rule *}
 
