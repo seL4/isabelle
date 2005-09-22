@@ -50,7 +50,7 @@ sig
   val erule: int -> thm list -> method
   val drule: int -> thm list -> method
   val frule: int -> thm list -> method
-  val rules_tac: ProofContext.context -> int option -> int -> tactic
+  val iprover_tac: ProofContext.context -> int option -> int -> tactic
   val bires_inst_tac: bool -> ProofContext.context -> (indexname * string) list ->
     thm -> int -> tactic
   val set_tactic: (ProofContext.context -> thm list -> tactic) -> unit
@@ -297,7 +297,7 @@ val frule = meth' (gen_arule_tac Tactic.forward_tac);
 end;
 
 
-(* rules -- intuitionistic proof search *)
+(* iprover -- intuitionistic proof search *)
 
 local
 
@@ -342,7 +342,7 @@ fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac e
 
 in
 
-fun rules_tac ctxt opt_lim =
+fun iprover_tac ctxt opt_lim =
   SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intprover_tac ctxt [] 0) 4 1);
 
 end;
@@ -658,7 +658,7 @@ fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expec
 end;
 
 
-(* rules syntax *)
+(* iprover syntax *)
 
 local
 
@@ -671,7 +671,7 @@ fun modifier name kind kind' att =
   Args.$$$ name |-- (kind >> K NONE || kind' |-- Args.nat --| Args.colon >> SOME)
     >> (pair (I: ProofContext.context -> ProofContext.context) o att);
 
-val rules_modifiers =
+val iprover_modifiers =
  [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
   modifier destN Args.colon (Scan.succeed ()) ContextRules.dest_local,
   modifier elimN Args.bang_colon Args.bang ContextRules.elim_bang_local,
@@ -682,10 +682,10 @@ val rules_modifiers =
 
 in
 
-fun rules_args m = bang_sectioned_args' rules_modifiers (Scan.lift (Scan.option Args.nat)) m;
+fun iprover_args m = bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option Args.nat)) m;
 
-fun rules_meth n prems ctxt = METHOD (fn facts =>
-  HEADGOAL (insert_tac (prems @ facts) THEN' ObjectLogic.atomize_tac THEN' rules_tac ctxt n));
+fun iprover_meth n prems ctxt = METHOD (fn facts =>
+  HEADGOAL (insert_tac (prems @ facts) THEN' ObjectLogic.atomize_tac THEN' iprover_tac ctxt n));
 
 end;
 
@@ -743,7 +743,7 @@ val pure_methods =
   ("fold", thms_args fold_meth, "fold definitions"),
   ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
-  ("rules", rules_args rules_meth, "apply many rules, including proof search"),
+  ("iprover", iprover_args iprover_meth, "intuitionistic proof search"),
   ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
   ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
