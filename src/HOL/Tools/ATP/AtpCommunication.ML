@@ -87,9 +87,7 @@ fun signal_parent (toParent, ppid, msg, goalstring) =
  (TextIO.output (toParent, msg);
   TextIO.output (toParent, goalstring^"\n");
   TextIO.flushOut toParent;
-  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-  (*Space apart signals arising from multiple subgoals*)
-  Posix.Process.sleep(Time.fromMilliseconds 200));
+  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
 fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =

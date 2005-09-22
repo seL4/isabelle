@@ -301,9 +301,7 @@ fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr =
 	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
 	 TextIO.flushOut toParent;
 
-	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-	(* Attempt to prevent several signals from turning up simultaneously *)
-	 Posix.Process.sleep(Time.fromSeconds 1); ()
+	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
     end
     handle exn => (*FIXME: exn handler is too general!*)
      (File.write(File.tmp_path (Path.basic "proverString_handler")) 
@@ -312,9 +310,7 @@ fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr =
                      remove_linebreaks proofstr ^ "\n");
       TextIO.output (toParent, remove_linebreaks goalstring ^ "\n");
       TextIO.flushOut toParent;
-      Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-      (* Attempt to prevent several signals from turning up simultaneously *)
-      Posix.Process.sleep(Time.fromSeconds 1); ());
+      Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
 val e_lemma_list = prover_lemma_list_aux get_axiom_names_e;
 
@@ -383,10 +379,8 @@ fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr =
        TextIO.output (toParent, reconstr^"\n");
        TextIO.output (toParent, goalstring^"\n");
        TextIO.flushOut toParent;
-
        Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-      (* Attempt to prevent several signals from turning up simultaneously *)
-       Posix.Process.sleep(Time.fromSeconds 1) ; all_tac
+       all_tac
   end
   handle exn => (*FIXME: exn handler is too general!*)
    (File.append(File.tmp_path (Path.basic "prover_reconstruction"))
@@ -395,9 +389,7 @@ fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr =
          (remove_linebreaks proofstr) ^"\n");
     TextIO.output (toParent, goalstring^"\n");
     TextIO.flushOut toParent;
-    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-    (* Attempt to prevent several signals from turning up simultaneously *)
-    Posix.Process.sleep(Time.fromSeconds 1); all_tac)
+    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2); all_tac)
 
 (**********************************************************************************)
 (* At other end, want to turn back into datatype so can apply reconstruct_proof.  *)
@@ -699,10 +691,8 @@ fun apply_res_thm str goalstring  =
       val _ = File.append (File.tmp_path (Path.basic "apply_res_1")) 
 	 ("str is: "^str^" goalstr is: "^goalstring^"\n")	
       val (frees,recon_steps) = parse_step tokens 
-      val isar_str = to_isar_proof (frees, recon_steps, goalstring)
-      val foo = File.write (File.tmp_path (Path.basic "apply_res_2")) isar_str
   in 
-     Pretty.writeln(Pretty.str isar_str)
+      to_isar_proof (frees, recon_steps, goalstring)
   end 
 
 end;
