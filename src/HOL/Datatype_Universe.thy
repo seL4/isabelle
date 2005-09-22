@@ -218,17 +218,17 @@ done
 
 lemma Scons_inject1: "Scons M N = Scons M' N' ==> M=M'"
 apply (erule equalityE)
-apply (rules intro: equalityI Scons_inject_lemma1)
+apply (iprover intro: equalityI Scons_inject_lemma1)
 done
 
 lemma Scons_inject2: "Scons M N = Scons M' N' ==> N=N'"
 apply (erule equalityE)
-apply (rules intro: equalityI Scons_inject_lemma2)
+apply (iprover intro: equalityI Scons_inject_lemma2)
 done
 
 lemma Scons_inject:
     "[| Scons M N = Scons M' N';  [| M=M';  N=N' |] ==> P |] ==> P"
-by (rules dest: Scons_inject1 Scons_inject2)
+by (iprover dest: Scons_inject1 Scons_inject2)
 
 lemma Scons_Scons_eq [iff]: "(Scons M N = Scons M' N') = (M=M' & N=N')"
 by (blast elim!: Scons_inject)

@@ -1350,18 +1350,18 @@ proof -
   from da  
   show "\<And> B'. B \<subseteq> B' \<Longrightarrow> \<exists> A'. Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" (is "PROP ?Hyp Env B t")
   proof (induct) 
-    case Skip thus ?case by (rules intro: da.Skip)
+    case Skip thus ?case by (iprover intro: da.Skip)
   next
-    case Expr thus ?case by (rules intro: da.Expr)
+    case Expr thus ?case by (iprover intro: da.Expr)
   next
     case (Lab A B C Env c l B')  
     have "PROP ?Hyp Env B \<langle>c\<rangle>" .
     moreover
     have B': "B \<subseteq> B'" .
     ultimately obtain C' where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
-      by rules
+      by iprover
     then obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>Break l\<bullet> c\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Lab)
+      by (iprover intro: da.Lab)
     thus ?case ..
   next
     case (Comp A B C1 C2 Env c1 c2 B')
@@ -1370,7 +1370,7 @@ proof -
     moreover
     have B': "B \<subseteq> B'" .
     ultimately obtain C1' where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
-      by rules
+      by iprover
     with da_c1 B'
     have
       "nrm C1 \<subseteq> nrm C1'"
@@ -1378,9 +1378,9 @@ proof -
     moreover
     have "PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle>" .
     ultimately obtain C2' where "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
-      by rules
+      by iprover
     with da_c1' obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Comp)
+      by (iprover intro: da.Comp)
     thus ?case ..
   next
     case (If A B C1 C2 E Env c1 c2 e B')
@@ -1389,7 +1389,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule If.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain C1' where "Env\<turnstile> (B' \<union> assigns_if True e) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
@@ -1400,7 +1400,7 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle>" by (rule If.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain C2' where "Env\<turnstile> (B' \<union> assigns_if False e) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
@@ -1410,11 +1410,11 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle>" by (rule If.hyps)
       ultimately
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.If)
+      by (iprover intro: da.If)
     thus ?case ..
   next  
     case (Loop A B C E Env c e l B')
@@ -1423,7 +1423,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Loop.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain C' where "Env\<turnstile> (B' \<union> assigns_if True e) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
@@ -1434,11 +1434,11 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle>" by (rule Loop.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Loop )
+      by (iprover intro: da.Loop )
     thus ?case ..
   next
     case (Jmp A B Env jump B') 
@@ -1453,12 +1453,12 @@ proof -
                                 | Cont l \<Rightarrow> \<lambda>k. UNIV
                                 | Ret \<Rightarrow> \<lambda>k. UNIV)"
                      
-      by  rules
+      by  iprover
     ultimately have "Env\<turnstile> B' \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A'"
       by (rule da.Jmp)
     thus ?case ..
   next
-    case Throw thus ?case by (rules intro: da.Throw )
+    case Throw thus ?case by (iprover intro: da.Throw )
   next
     case (Try A B C C1 C2 Env c1 c2 vn B')
     have B': "B \<subseteq> B'" .
@@ -1466,7 +1466,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Try.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain C2' where 
@@ -1478,11 +1478,11 @@ proof -
                       (B \<union> {VName vn}) \<langle>c2\<rangle>" 
 	by (rule Try.hyps)
       ultimately
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Try )
+      by (iprover intro: da.Try )
     thus ?case ..
   next
     case (Fin A B C1 C2 Env c1 c2 B')
@@ -1491,33 +1491,33 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Fin.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain C2' where "Env\<turnstile> B' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
     proof -
       have "PROP ?Hyp Env B \<langle>c2\<rangle>" by (rule Fin.hyps)
       with B'
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Fin )
+      by (iprover intro: da.Fin )
     thus ?case ..
   next
-    case Init thus ?case by (rules intro: da.Init)
+    case Init thus ?case by (iprover intro: da.Init)
   next
-    case NewC thus ?case by (rules intro: da.NewC)
+    case NewC thus ?case by (iprover intro: da.NewC)
   next
-    case NewA thus ?case by (rules intro: da.NewA)
+    case NewA thus ?case by (iprover intro: da.NewA)
   next
-    case Cast thus ?case by (rules intro: da.Cast)
+    case Cast thus ?case by (iprover intro: da.Cast)
   next
-    case Inst thus ?case by (rules intro: da.Inst)
+    case Inst thus ?case by (iprover intro: da.Inst)
   next
-    case Lit thus ?case by (rules intro: da.Lit)
+    case Lit thus ?case by (iprover intro: da.Lit)
   next
-    case UnOp thus ?case by (rules intro: da.UnOp)
+    case UnOp thus ?case by (iprover intro: da.UnOp)
   next
     case (CondAnd A B E1 E2 Env e1 e2 B')
     have B': "B \<subseteq> B'" .
@@ -1525,7 +1525,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondAnd.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain E2' where "Env\<turnstile> B' \<union>  assigns_if True e1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
@@ -1534,11 +1534,11 @@ proof -
 	by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e1) \<langle>e2\<rangle>" by (rule CondAnd.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.CondAnd)
+      by (iprover intro: da.CondAnd)
     thus ?case ..
   next
     case (CondOr A B E1 E2 Env e1 e2 B')
@@ -1547,7 +1547,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondOr.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain E2' where "Env\<turnstile> B' \<union> assigns_if False e1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
@@ -1556,11 +1556,11 @@ proof -
 	by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False e1) \<langle>e2\<rangle>" by (rule CondOr.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed
     ultimately
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondOr e1 e2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.CondOr)
+      by (iprover intro: da.CondOr)
     thus ?case ..
   next
     case (BinOp A B E1 Env binop e1 e2 B')
@@ -1569,7 +1569,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule BinOp.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain A' where "Env\<turnstile> nrm E1' \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A'"
@@ -1580,35 +1580,35 @@ proof -
 	by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E1) \<langle>e2\<rangle>" by (rule BinOp.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed
     ultimately
     have "Env\<turnstile> B' \<guillemotright>\<langle>BinOp binop e1 e2\<rangle>\<guillemotright> A'"
-      using BinOp.hyps by (rules intro: da.BinOp)
+      using BinOp.hyps by (iprover intro: da.BinOp)
     thus ?case ..
   next
     case (Super B Env B')
     have B': "B \<subseteq> B'" .
     with Super.hyps have "This \<in> B' "
       by auto
-    thus ?case by (rules intro: da.Super)
+    thus ?case by (iprover intro: da.Super)
   next
     case (AccLVar A B Env vn B')
     have "vn \<in> B" .
     moreover
     have "B \<subseteq> B'" .
     ultimately have "vn \<in> B'" by auto
-    thus ?case by (rules intro: da.AccLVar)
+    thus ?case by (iprover intro: da.AccLVar)
   next
-    case Acc thus ?case by (rules intro: da.Acc)
+    case Acc thus ?case by (iprover intro: da.Acc)
   next 
     case (AssLVar A B E Env e vn B')
     have B': "B \<subseteq> B'" .
     then obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
-      by (rule AssLVar.hyps [elim_format]) rules
+      by (rule AssLVar.hyps [elim_format]) iprover
     then obtain A' where  
       "Env\<turnstile> B' \<guillemotright>\<langle>LVar vn:=e\<rangle>\<guillemotright> A'"
-      by (rules intro: da.AssLVar)
+      by (iprover intro: da.AssLVar)
     thus ?case ..
   next
     case (Ass A B Env V e v B') 
@@ -1619,7 +1619,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>v\<rangle>" by (rule Ass.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain A' where "Env\<turnstile> nrm V' \<guillemotright>\<langle>e\<rangle>\<guillemotright> A'"
@@ -1630,11 +1630,11 @@ proof -
 	by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm V) \<langle>e\<rangle>" by (rule Ass.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed  
     ultimately
     have "Env\<turnstile> B' \<guillemotright>\<langle>v := e\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Ass)
+      by (iprover intro: da.Ass)
     thus ?case ..
   next
     case (CondBool A B C E1 E2 Env c e1 e2 B')
@@ -1644,7 +1644,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule CondBool.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover 
     obtain E1' where "Env\<turnstile> B' \<union> assigns_if True c \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
@@ -1655,7 +1655,7 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle>" by (rule CondBool.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain E2' where "Env\<turnstile> B' \<union> assigns_if False c \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
@@ -1666,11 +1666,11 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle>" by(rule CondBool.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately 
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.CondBool)
+      by (iprover intro: da.CondBool)
     thus ?case ..
   next
     case (Cond A B C E1 E2 Env c e1 e2 B')
@@ -1680,7 +1680,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule Cond.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover 
     obtain E1' where "Env\<turnstile> B' \<union> assigns_if True c \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
@@ -1691,7 +1691,7 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle>" by (rule Cond.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain E2' where "Env\<turnstile> B' \<union> assigns_if False c \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
@@ -1702,11 +1702,11 @@ proof -
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle>" by (rule Cond.hyps)
       ultimately 
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     ultimately 
     obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Cond)
+      by (iprover intro: da.Cond)
     thus ?case ..
   next
     case (Call A B E Env accC args e mn mode pTs statT B')
@@ -1715,7 +1715,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Call.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain A' where "Env\<turnstile> nrm E' \<guillemotright>\<langle>args\<rangle>\<guillemotright> A'"
@@ -1726,14 +1726,14 @@ proof -
 	by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E) \<langle>args\<rangle>" by (rule Call.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed  
     ultimately
     have "Env\<turnstile> B' \<guillemotright>\<langle>{accC,statT,mode}e\<cdot>mn( {pTs}args)\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Call)
+      by (iprover intro: da.Call)
     thus ?case ..
   next
-    case Methd thus ?case by (rules intro: da.Methd)
+    case Methd thus ?case by (iprover intro: da.Methd)
   next
     case (Body A B C D Env c B')  
     have B': "B \<subseteq> B'" .
@@ -1747,7 +1747,7 @@ proof -
       ultimately
       have "nrm C \<subseteq> nrm C'"
 	by (rule da_monotone [THEN conjE])
-      with da_c that show ?thesis by rules
+      with da_c that show ?thesis by iprover
     qed
     moreover 
     have "Result \<in> nrm C" .
@@ -1756,12 +1756,12 @@ proof -
     moreover have "jumpNestingOkS {Ret} c" .
     ultimately obtain A' where
       "Env\<turnstile> B' \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Body)
+      by (iprover intro: da.Body)
     thus ?case ..
   next
-    case LVar thus ?case by (rules intro: da.LVar)
+    case LVar thus ?case by (iprover intro: da.LVar)
   next
-    case FVar thus ?case by (rules intro: da.FVar)
+    case FVar thus ?case by (iprover intro: da.FVar)
   next
     case (AVar A B E1 Env e1 e2 B')
     have B': "B \<subseteq> B'" .
@@ -1769,7 +1769,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule AVar.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain A' where "Env\<turnstile> nrm E1' \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A'"
@@ -1780,14 +1780,14 @@ proof -
 	by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E1) \<langle>e2\<rangle>" by (rule AVar.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed  
     ultimately
     have "Env\<turnstile> B' \<guillemotright>\<langle>e1.[e2]\<rangle>\<guillemotright> A'"
-      by (rules intro: da.AVar)
+      by (iprover intro: da.AVar)
     thus ?case ..
   next
-    case Nil thus ?case by (rules intro: da.Nil)
+    case Nil thus ?case by (iprover intro: da.Nil)
   next
     case (Cons A B E Env e es B')
     have B': "B \<subseteq> B'" .
@@ -1795,7 +1795,7 @@ proof -
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Cons.hyps)
       with B'  
-      show ?thesis using that by rules
+      show ?thesis using that by iprover
     qed
     moreover
     obtain A' where "Env\<turnstile> nrm E' \<guillemotright>\<langle>es\<rangle>\<guillemotright> A'"
@@ -1806,11 +1806,11 @@ proof -
 	by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E) \<langle>es\<rangle>" by (rule Cons.hyps)
-      ultimately show ?thesis using that by rules
+      ultimately show ?thesis using that by iprover
     qed  
     ultimately
     have "Env\<turnstile> B' \<guillemotright>\<langle>e # es\<rangle>\<guillemotright> A'"
-      by (rules intro: da.Cons)
+      by (iprover intro: da.Cons)
     thus ?case ..
   qed
 qed
@@ -1841,13 +1841,13 @@ corollary da_weakenE [consumes 2]:
 proof -
   from da B'
   obtain A' where A': "Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'"
-    by (rule da_weaken [elim_format]) rules
+    by (rule da_weaken [elim_format]) iprover
   with da B'
   have "nrm A \<subseteq> nrm A' \<and> (\<forall> l. brk A l \<subseteq> brk A' l)"
     by (rule da_monotone)
   with A' ex_mono
   show ?thesis
-    by rules
+    by iprover
 qed
 
 end

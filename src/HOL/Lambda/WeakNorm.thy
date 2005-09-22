@@ -26,7 +26,7 @@ theorem listall_nil: "listall P []"
   by (simp add: listall_def)
 
 theorem listall_nil_eq [simp]: "listall P [] = True"
-  by (rules intro: listall_nil)
+  by (iprover intro: listall_nil)
 
 theorem listall_cons: "P x \<Longrightarrow> listall P xs \<Longrightarrow> listall P (x # xs)"
   apply (simp add: listall_def)
@@ -84,14 +84,14 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
   apply (case_tac n)
   apply (case_tac [3] n)
-  apply (simp only: nat.simps, rules?)+
+  apply (simp only: nat.simps, iprover?)+
   done
 
 lemma nat_le_dec: "\<And>n::nat. m < n \<or> \<not> (m < n)"
   apply (induct m)
   apply (case_tac n)
   apply (case_tac [3] n)
-  apply (simp del: simp_thms, rules?)+
+  apply (simp del: simp_thms, iprover?)+
   done
 
 lemma App_NF_D: assumes NF: "Var n \<degree>\<degree> ts \<in> NF"
@@ -125,11 +125,11 @@ lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> (\<And>i j. t[Var i/j] \<in> N
   apply (erule NF.App)
   apply (rule_tac m=j and n=x in nat_le_dec [THEN disjE, standard])
   apply simp
-  apply (rules intro: NF.App)
+  apply (iprover intro: NF.App)
   apply simp
-  apply (rules intro: NF.App)
+  apply (iprover intro: NF.App)
   apply simp
-  apply (rules intro: NF.Abs)
+  apply (iprover intro: NF.Abs)
   done
 
 lemma app_Var_NF: "t \<in> NF \<Longrightarrow> \<exists>t'. t \<degree> Var i \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF"
@@ -199,7 +199,7 @@ proof (induct U)
 	proof (cases ts)
 	  case Nil
 	  with eq have "(Var x \<degree>\<degree> [])[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* u" by simp
-	  with Nil and uNF show ?thesis by simp rules
+	  with Nil and uNF show ?thesis by simp iprover
 	next
 	  case (Cons a as)
           with appT have "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> (a # as) : T'" by simp
@@ -235,10 +235,10 @@ proof (induct U)
 	    then obtain bs' where
 	      bsred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) bs \<rightarrow>\<^sub>\<beta>\<^sup>*
 	        Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs'"
-	      and bsNF: "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs' \<in> NF" by rules
+	      and bsNF: "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs' \<in> NF" by iprover
 	    from snoc have "?R b" by simp
-	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by rules
-	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by rules
+	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by iprover
+	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by iprover
 	    from bsNF have "listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t 0) bs')"
 	      by (rule App_NF_D)
 	    moreover have "lift b' 0 \<in> NF" by (rule lift_NF)
@@ -253,20 +253,20 @@ proof (induct U)
 	    ultimately have "?ex Us (bs @ [b]) (bs' @ [b'])" by simp
 	    thus ?case ..
 	  qed
-	  from App and Cons have "listall ?R as" by simp (rules dest: listall_conj2)
+	  from App and Cons have "listall ?R as" by simp (iprover dest: listall_conj2)
 	  with argsT have "\<exists>as'. ?ex Ts as as'" by (rule as)
 	  then obtain as' where
 	    asred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
 	      Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as'"
-	    and asNF: "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<in> NF" by rules
+	    and asNF: "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<in> NF" by iprover
 	  from App and Cons have "?R a" by simp
 	  with argT and uNF and uT have "\<exists>a'. a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a' \<and> a' \<in> NF"
-	    by rules
-	  then obtain a' where ared: "a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a'" and aNF: "a' \<in> NF" by rules
+	    by iprover
+	  then obtain a' where ared: "a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a'" and aNF: "a' \<in> NF" by iprover
 	  from uNF have "lift u 0 \<in> NF" by (rule lift_NF)
 	  hence "\<exists>u'. lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u' \<and> u' \<in> NF" by (rule app_Var_NF)
 	  then obtain u' where ured: "lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u'" and u'NF: "u' \<in> NF"
-	    by rules
+	    by iprover
 	  from T and u'NF have "\<exists>ua. u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua \<and> ua \<in> NF"
 	  proof (rule MI1)
 	    have "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<degree> Var 0 : Ts \<Rrightarrow> T'"
@@ -278,7 +278,7 @@ proof (induct U)
 	    from ared aT show "e \<turnstile> a' : T''" by (rule subject_reduction')
 	  qed
 	  then obtain ua where uared: "u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" and uaNF: "ua \<in> NF"
-	    by rules
+	    by iprover
 	  from ared have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* (lift u 0 \<degree> Var 0)[a'/0]"
 	    by (rule subst_preserves_beta2')
 	  also from ured have "(lift u 0 \<degree> Var 0)[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* u'[a'/0]"
@@ -305,7 +305,7 @@ proof (induct U)
 	    with uared' show "e \<turnstile> ua : Ts \<Rrightarrow> T'" by (rule subject_reduction')
 	  qed
 	  then obtain r where rred: "(Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r"
-	    and rnf: "r \<in> NF" by rules
+	    and rnf: "r \<in> NF" by iprover
 	  from asred have
 	    "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>*
 	    (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[u \<degree> a[u/i]/0]"
@@ -315,7 +315,7 @@ proof (induct U)
 	  also note rred
 	  finally have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r" .
 	  with rnf Cons eq show ?thesis
-	    by (simp add: map_compose [symmetric] o_def) rules
+	    by (simp add: map_compose [symmetric] o_def) iprover
 	qed
       next
 	assume neq: "x \<noteq> i"
@@ -342,10 +342,10 @@ proof (induct U)
 	    with bs have "\<exists>bs'. ?ex Vs bs bs'" by (rule snoc)
 	    then obtain bs' where
 	      bsred: "\<And>x'. Var x' \<degree>\<degree> map (\<lambda>t. t[u/i]) bs \<rightarrow>\<^sub>\<beta>\<^sup>* Var x' \<degree>\<degree> bs'"
-	      and bsNF: "\<And>x'. Var x' \<degree>\<degree> bs' \<in> NF" by rules
+	      and bsNF: "\<And>x'. Var x' \<degree>\<degree> bs' \<in> NF" by iprover
 	    from snoc have "?R b" by simp
-	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by rules
-	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by rules
+	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by iprover
+	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by iprover
 	    from bsred bred have "\<And>x'. (Var x' \<degree>\<degree> map (\<lambda>t. t[u/i]) bs) \<degree> b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>*
               (Var x' \<degree>\<degree> bs') \<degree> b'" by (rule rtrancl_beta_App)
 	    moreover from bsNF [of 0] have "listall (\<lambda>t. t \<in> NF) bs'"
@@ -355,16 +355,16 @@ proof (induct U)
 	    ultimately have "?ex Us (bs @ [b]) (bs' @ [b'])" by simp
 	    thus ?case ..
 	  qed
-	  from App have "listall ?R ts" by (rules dest: listall_conj2)
+	  from App have "listall ?R ts" by (iprover dest: listall_conj2)
 	  with argsT have "\<exists>ts'. ?ex Ts ts ts'" by (rule ts)
 	  then obtain ts' where NF: "?ex Ts ts ts'" ..
 	  from nat_le_dec show ?thesis
 	  proof
 	    assume "i < x"
-	    with NF show ?thesis by simp rules
+	    with NF show ?thesis by simp iprover
 	  next
 	    assume "\<not> (i < x)"
-	    with NF neq show ?thesis by (simp add: subst_Var) rules
+	    with NF neq show ?thesis by (simp add: subst_Var) iprover
 	  qed
 	qed
       qed
@@ -376,7 +376,7 @@ proof (induct U)
       moreover have "e\<langle>0:R\<rangle> \<turnstile> lift u 0 : T" by (rule lift_type)
       ultimately have "\<exists>t'. r[lift u 0/Suc i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF" by (rule Abs)
       thus "\<exists>t'. Abs r[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF"
-	by simp (rules intro: rtrancl_beta_Abs NF.Abs)
+	by simp (iprover intro: rtrancl_beta_Abs NF.Abs)
     }
   qed
 qed
@@ -411,15 +411,15 @@ theorem type_NF: assumes T: "e \<turnstile>\<^sub>R t : T"
   shows "\<exists>t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF" using T
 proof induct
   case Var
-  show ?case by (rules intro: Var_NF)
+  show ?case by (iprover intro: Var_NF)
 next
   case Abs
-  thus ?case by (rules intro: rtrancl_beta_Abs NF.Abs)
+  thus ?case by (iprover intro: rtrancl_beta_Abs NF.Abs)
 next
   case (App T U e s t)
   from App obtain s' t' where
     sred: "s \<rightarrow>\<^sub>\<beta>\<^sup>* s'" and sNF: "s' \<in> NF"
-    and tred: "t \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and tNF: "t' \<in> NF" by rules
+    and tred: "t \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and tNF: "t' \<in> NF" by iprover
   have "\<exists>u. (Var 0 \<degree> lift t' 0)[s'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* u \<and> u \<in> NF"
   proof (rule subst_type_NF)
     have "lift t' 0 \<in> NF" by (rule lift_NF)
@@ -438,10 +438,10 @@ next
     from sred show "e \<turnstile> s' : T \<Rightarrow> U"
       by (rule subject_reduction') (rule rtyping_imp_typing)
   qed
-  then obtain u where ured: "s' \<degree> t' \<rightarrow>\<^sub>\<beta>\<^sup>* u" and unf: "u \<in> NF" by simp rules
+  then obtain u where ured: "s' \<degree> t' \<rightarrow>\<^sub>\<beta>\<^sup>* u" and unf: "u \<in> NF" by simp iprover
   from sred tred have "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'" by (rule rtrancl_beta_App)
   hence "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* u" using ured by (rule rtrancl_trans)
-  with unf show ?case by rules
+  with unf show ?case by iprover
 qed
 
 

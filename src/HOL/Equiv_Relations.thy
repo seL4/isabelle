@@ -35,7 +35,7 @@ lemma equiv_comp_eq: "equiv A r ==> r\<inverse> O r = r"
   apply (unfold equiv_def)
   apply clarify
   apply (rule equalityI)
-   apply (rules intro: sym_trans_comp_subset refl_comp_subset)+
+   apply (iprover intro: sym_trans_comp_subset refl_comp_subset)+
   done
 
 text {* Second half. *}
@@ -73,7 +73,7 @@ lemma subset_equiv_class:
 
 lemma eq_equiv_class:
     "r``{a} = r``{b} ==> equiv A r ==> b \<in> A ==> (a, b) \<in> r"
-  by (rules intro: equalityD2 subset_equiv_class)
+  by (iprover intro: equalityD2 subset_equiv_class)
 
 lemma equiv_class_nondisjoint:
     "equiv A r ==> x \<in> (r``{a} \<inter> r``{b}) ==> (a, b) \<in> r"

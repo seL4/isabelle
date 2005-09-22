@@ -244,10 +244,10 @@ lemma not_ast_p_fm: "ALL (x::int). Q(x::int) \<and> ~(EX (j::int) : {1..d}. EX (
 text {* Theorems to be deleted from simpset when proving simplified formulaes. *}
 
 lemma P_eqtrue: "(P=True) = P"
-  by rules
+  by iprover
 
 lemma P_eqfalse: "(P=False) = (~P)"
-  by rules
+  by iprover
 
 text {*
   \medskip Theorems for the generation of the bachwards direction of
@@ -831,10 +831,10 @@ lemma qe_exI2: "A = B ==> (EX (x::int). A(x)) = (EX (x::int). B(x))"
   by simp
 
 lemma qe_exI: "(!!x::int. A x = B x) ==> (EX (x::int). A(x)) = (EX (x::int). B(x))"
-  by rules
+  by iprover
 
 lemma qe_ALLI: "(!!x::int. A x = B x) ==> (ALL (x::int). A(x)) = (ALL (x::int). B(x))"
-  by rules
+  by iprover
 
 lemma cp_expand: "(EX (x::int). P (x)) = (EX (j::int) : {1..d}. EX (b::int) : B. (P1 (j) | P(b+j)))
 ==>(EX (x::int). P (x)) = (EX (j::int) : {1..d}. EX (b::int) : B. (P1 (j) | P(b+j))) "
@@ -952,13 +952,13 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply (simp only: dvd_def ex_nat int_int_eq [symmetric] zmult_int [symmetric]
     nat_0_le cong add: conj_cong)
   apply (rule iffI)
-  apply rules
+  apply iprover
   apply (erule exE)
   apply (case_tac "x=0")
   apply (rule_tac x=0 in exI)
   apply simp
   apply (case_tac "0 \<le> k")
-  apply rules
+  apply iprover
   apply (simp add: linorder_not_le)
   apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
   apply assumption

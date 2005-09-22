@@ -149,7 +149,7 @@ lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
   apply simp
   apply (case_tac "ts @ [t]")
   apply (simp add: types_snoc_eq)+
-  apply rules
+  apply iprover
   done
 
 
@@ -269,7 +269,7 @@ lemma var_app_types: "\<And>ts Ts U. e \<turnstile> Var i \<degree>\<degree> ts 
 lemma var_app_typesE: "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow>
   (\<And>Ts. e \<turnstile> Var i : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> P) \<Longrightarrow> P"
   apply (drule var_app_types [of _ _ "[]", simplified])
-  apply (rules intro: typing.Var)+
+  apply (iprover intro: typing.Var)+
   done
 
 lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<langle>0:U\<rangle> \<turnstile> t : V \<Longrightarrow> P) \<Longrightarrow> P"
@@ -346,7 +346,7 @@ lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> (\<And>t'. t ->
   done
 
 theorem subject_reduction': "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<turnstile> t' : T"
-  by (induct set: rtrancl) (rules intro: subject_reduction)+
+  by (induct set: rtrancl) (iprover intro: subject_reduction)+
 
 
 subsection {* Alternative induction rule for types *}

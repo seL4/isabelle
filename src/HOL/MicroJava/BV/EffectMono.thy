@@ -78,7 +78,7 @@ proof (induct (open) ?P x)
       fix n' assume s: "n = Suc n'"
       with l have  "n' \<le> length ls" by simp
       hence "\<exists>a b. ls = a @ b \<and> length a = n'" by (rule Cons [rule_format])
-      then obtain a b where "ls = a @ b" "length a = n'" by rules
+      then obtain a b where "ls = a @ b" "length a = n'" by iprover
       with s have "l # ls = (l#a) @ b \<and> length (l#a) = n" by simp
       thus ?thesis by blast
     qed
@@ -91,9 +91,9 @@ proof -
   assume n: "n < length x"
   hence "n \<le> length x" by simp
   hence "\<exists>a b. x = a @ b \<and> length a = n" by (rule append_length_n)
-  then obtain r d where x: "x = r@d" "length r = n" by rules
+  then obtain r d where x: "x = r@d" "length r = n" by iprover
   with n have "\<exists>b c. d = b#c" by (simp add: neq_Nil_conv)
-  then obtain b c where "d = b#c" by rules
+  then obtain b c where "d = b#c" by iprover
   with x have "x = (rev (rev r)) @ b # c \<and> length (rev r) = n" by simp
   thus ?thesis by blast
 qed

@@ -154,7 +154,7 @@ proof induct
   proof (rule converse_rtranclE)
     assume "x = b"
     with xc have "(b, c) \<in> R\<^sup>*" by simp
-    thus ?thesis by rules
+    thus ?thesis by iprover
   next
     fix y
     assume xy: "(x, y) \<in> R"
@@ -163,23 +163,23 @@ proof induct
     proof (rule converse_rtranclE)
       assume "x = c"
       with xb have "(c, b) \<in> R\<^sup>*" by simp
-      thus ?thesis by rules
+      thus ?thesis by iprover
     next
       fix y'
       assume y'c: "(y', c) \<in> R\<^sup>*"
       assume xy': "(x, y') \<in> R"
       with xy have "\<exists>u. (y, u) \<in> R\<^sup>* \<and> (y', u) \<in> R\<^sup>*" by (rule lc)
-      then obtain u where yu: "(y, u) \<in> R\<^sup>*" and y'u: "(y', u) \<in> R\<^sup>*" by rules
+      then obtain u where yu: "(y, u) \<in> R\<^sup>*" and y'u: "(y', u) \<in> R\<^sup>*" by iprover
       from xy have "(y, x) \<in> R\<inverse>" ..
       from this and yb yu have "\<exists>d. (b, d) \<in> R\<^sup>* \<and> (u, d) \<in> R\<^sup>*" by (rule less)
-      then obtain v where bv: "(b, v) \<in> R\<^sup>*" and uv: "(u, v) \<in> R\<^sup>*" by rules
+      then obtain v where bv: "(b, v) \<in> R\<^sup>*" and uv: "(u, v) \<in> R\<^sup>*" by iprover
       from xy' have "(y', x) \<in> R\<inverse>" ..
       moreover from y'u and uv have "(y', v) \<in> R\<^sup>*" by (rule rtrancl_trans)
       moreover note y'c
       ultimately have "\<exists>d. (v, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*" by (rule less)
-      then obtain w where vw: "(v, w) \<in> R\<^sup>*" and cw: "(c, w) \<in> R\<^sup>*" by rules
+      then obtain w where vw: "(v, w) \<in> R\<^sup>*" and cw: "(c, w) \<in> R\<^sup>*" by iprover
       from bv vw have "(b, w) \<in> R\<^sup>*" by (rule rtrancl_trans)
-      with cw show ?thesis by rules
+      with cw show ?thesis by iprover
     qed
   qed
 qed
@@ -208,7 +208,7 @@ proof induct
   proof (rule converse_rtranclE)
     assume "x = b"
     with xc have "(b, c) \<in> R\<^sup>*" by simp
-    thus ?thesis by rules
+    thus ?thesis by iprover
   next
     fix y
     assume xy: "(x, y) \<in> R"
@@ -217,7 +217,7 @@ proof induct
     proof (rule converse_rtranclE)
       assume "x = c"
       with xb have "(c, b) \<in> R\<^sup>*" by simp
-      thus ?thesis by rules
+      thus ?thesis by iprover
     next
       fix y'
       assume y'c: "(y', c) \<in> R\<^sup>*"

@@ -192,7 +192,7 @@ proof -
   from evaln have "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v, s1)"
     by (rule evaln_eval)
   from this wt da wf elim show P
-    by (rule da_good_approxE') rules+
+    by (rule da_good_approxE') iprover+
 qed
 
 lemma validI: 
@@ -336,7 +336,7 @@ corollary dom_locals_evaln_mono_elim [consumes 1]:
 proof -
   from evaln have "G\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" by (rule evaln_eval)
   from this hyps show ?thesis
-    by (rule dom_locals_eval_mono_elim) rules+
+    by (rule dom_locals_eval_mono_elim) iprover+
 qed
 
 
@@ -616,7 +616,7 @@ next
 	proof -
 	  from eval_e1  wt_e1 da_e1 wf True
 	  have "nrm E1 \<subseteq> dom (locals (store s1))"
-	    by (cases rule: da_good_approx_evalnE) rules
+	    by (cases rule: da_good_approx_evalnE) iprover
 	  with da_e2 show ?thesis
 	    by (rule da_weakenE)
 	qed
@@ -944,7 +944,7 @@ next
 	obtain E2 where
 	  da_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) 
                    \<guillemotright>(if need_second_arg binop v1 then \<langle>e2\<rangle>\<^sub>e else \<langle>Skip\<rangle>\<^sub>s)\<guillemotright> E2"
-	  by (rule da_e2_BinOp [elim_format]) rules
+	  by (rule da_e2_BinOp [elim_format]) iprover
 	from wt_e2 wt_Skip obtain T2 
 	  where "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile>(if need_second_arg binop v1 then \<langle>e2\<rangle>\<^sub>e else \<langle>Skip\<rangle>\<^sub>s)\<Colon>T2"
@@ -957,7 +957,7 @@ next
 	case False
 	note ve=validE [OF valid_e2,OF Q' valid_A conf_s1 eval_e2]
 	with False show ?thesis
-	  by rules
+	  by iprover
       qed
       with v have "R \<lfloor>v\<rfloor>\<^sub>e s2 Z"
 	by simp
@@ -1068,7 +1068,7 @@ next
 	  proof -
 	    from eval_var wt_var da_var wf True
 	    have "nrm V \<subseteq>  dom (locals (store s1))"
-	      by (cases rule: da_good_approx_evalnE) rules
+	      by (cases rule: da_good_approx_evalnE) iprover
 	    with da_e show ?thesis
 	      by (rule da_weakenE) 
 	  qed
@@ -1079,7 +1079,7 @@ next
 	  case False
 	  note ve=validE [OF valid_e,OF Q' valid_A conf_s1 eval_e]
 	  with False show ?thesis
-	    by rules
+	    by iprover
 	qed
 	with s3 show "R \<lfloor>v\<rfloor>\<^sub>e s3 Z"
 	  by simp
@@ -1120,7 +1120,7 @@ next
 	  case False
 	  note ve=validE [OF valid_e,OF Q' valid_A conf_s1 eval_e]
 	  with False show ?thesis
-	    by rules
+	    by iprover
 	qed
 	with s3 show "R \<lfloor>v\<rfloor>\<^sub>e s3 Z"
 	  by simp
@@ -1213,7 +1213,7 @@ next
 	case False
 	with valid_then_else P' valid_A conf_s1 eval_then_else
 	show ?thesis
-	  by (cases rule: validE) rules+
+	  by (cases rule: validE) iprover+
       qed
       moreover
       from eval wt da conf_s0 wf
@@ -1308,7 +1308,7 @@ next
 	proof -
 	  from evaln_e wt_e da_e wf True
 	  have "nrm C \<subseteq>  dom (locals (store s1))"
-	    by (cases rule: da_good_approx_evalnE) rules
+	    by (cases rule: da_good_approx_evalnE) iprover
 	  with da_args show ?thesis
 	    by (rule da_weakenE) 
 	qed
@@ -1328,7 +1328,7 @@ next
 	case False
 	with valid_args Q valid_A conf_s1 evaln_args
 	obtain "(R a) \<lfloor>vs\<rfloor>\<^sub>l s2 Z" "s2\<Colon>\<preceq>(G,L)" 
-	  by (cases rule: validE) rules+
+	  by (cases rule: validE) iprover+
 	moreover
 	from False evaln_args have "s2=s1"
 	  by auto
@@ -1413,7 +1413,7 @@ next
 	proof -
 	  from evaln_e wt_e da_e wf normal_s1
 	  have "nrm C \<subseteq>  dom (locals (store s1))"
-	    by (cases rule: da_good_approx_evalnE) rules
+	    by (cases rule: da_good_approx_evalnE) iprover
 	  with da_args show ?thesis
 	    by (rule da_weakenE) 
 	qed
@@ -1545,7 +1545,7 @@ next
                ,lcl=callee_lcl invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> (mthd dynM)
                \<rparr> \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'" and
               res: "Result \<in> nrm M'"
-	      by (rule wf_mdeclE) rules
+	      by (rule wf_mdeclE) iprover
 	    from da_body is_static_eq L' have
 	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
                  \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'"
@@ -1594,7 +1594,7 @@ next
 	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> \<turnstile> dom (locals (store s3')) 
                      \<guillemotright>\<langle>Body (declclass dynM) (stmt (mbody (mthd dynM)))\<rangle>\<guillemotright> M3"
 	      using da
-	      by (rules intro: da.Body assigned.select_convs)
+	      by (iprover intro: da.Body assigned.select_convs)
 	    from _ this [simplified]
 	    show ?thesis
 	      by (rule da.Methd [simplified,elim_format])
@@ -1602,12 +1602,12 @@ next
 	  qed
 	  from valid_methd R' valid_A conf_s3' evaln_methd wt_methd da_methd
 	  have "(set_lvars l .; S) \<lfloor>v\<rfloor>\<^sub>e s4 Z"
-	    by (cases rule: validE) rules+
+	    by (cases rule: validE) iprover+
 	  with s5 l show ?thesis
 	    by simp
 	qed
       qed
-      with conf_s5 show ?thesis by rules
+      with conf_s5 show ?thesis by iprover
     qed
   qed
 next
@@ -1755,7 +1755,7 @@ next
 	proof -
 	  from eval_e wt_e da_e wf True
 	  have "nrm E1 \<subseteq> dom (locals (store s1))"
-	    by (cases rule: da_good_approx_evalnE) rules
+	    by (cases rule: da_good_approx_evalnE) iprover
 	  with da_es show ?thesis
 	    by (rule da_weakenE)
 	qed
@@ -1766,7 +1766,7 @@ next
 	case False
 	with valid_es Q' valid_A conf_s1 eval_es 
 	show ?thesis
-	  by (cases rule: validE) rules+
+	  by (cases rule: validE) iprover+
       qed
       with v have "R \<lfloor>v\<rfloor>\<^sub>l s2 Z"
 	by simp
@@ -1904,7 +1904,7 @@ next
 	proof -
 	  from eval_c1 wt_c1 da_c1 wf True
 	  have "nrm C1 \<subseteq> dom (locals (store s1))"
-	    by (cases rule: da_good_approx_evalnE) rules
+	    by (cases rule: da_good_approx_evalnE) iprover
 	  with da_c2 show ?thesis
 	    by (rule da_weakenE)
 	qed
@@ -1915,7 +1915,7 @@ next
 	case False
 	from valid_c2 Q valid_A conf_s1 eval_c2 False
 	show ?thesis
-	  by (cases rule: validE) rules+
+	  by (cases rule: validE) iprover+
       qed
       moreover
       from eval wt da conf_s0 wf
@@ -1992,7 +1992,7 @@ next
 	case False
 	with valid_then_else P' valid_A conf_s1 eval_then_else
 	show ?thesis
-	  by (cases rule: validE) rules+
+	  by (cases rule: validE) iprover+
       qed
       moreover
       from eval wt da conf_s0 wf

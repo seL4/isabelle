@@ -287,7 +287,7 @@ done
 subsection {*Equality of booleans -- iff*}
 
 lemma iffI: assumes prems: "P ==> Q" "Q ==> P" shows "P=Q"
-apply (rules intro: iff [THEN mp, THEN mp] impI prems)
+apply (iprover intro: iff [THEN mp, THEN mp] impI prems)
 done
 
 lemma iffD2: "[| P=Q; Q |] ==> P"
@@ -307,7 +307,7 @@ lemma iffE:
   assumes major: "P=Q"
       and minor: "[| P --> Q; Q --> P |] ==> R"
   shows "R"
-by (rules intro: minor impI major [THEN iffD2] major [THEN iffD1])
+by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
 
 
 subsection {*True*}
@@ -318,7 +318,7 @@ apply (rule refl)
 done
 
 lemma eqTrueI: "P ==> P=True"
-by (rules intro: iffI TrueI)
+by (iprover intro: iffI TrueI)
 
 lemma eqTrueE: "P=True ==> P"
 apply (erule iffD2)
@@ -330,7 +330,7 @@ subsection {*Universal quantifier*}
 
 lemma allI: assumes p: "!!x::'a. P(x)" shows "ALL x. P(x)"
 apply (unfold All_def)
-apply (rules intro: ext eqTrueI p)
+apply (iprover intro: ext eqTrueI p)
 done
 
 lemma spec: "ALL x::'a. P(x) ==> P(x)"
@@ -343,13 +343,13 @@ lemma allE:
   assumes major: "ALL x. P(x)"
       and minor: "P(x) ==> R"
   shows "R"
-by (rules intro: minor major [THEN spec])
+by (iprover intro: minor major [THEN spec])
 
 lemma all_dupE:
   assumes major: "ALL x. P(x)"
       and minor: "[| P(x); ALL x. P(x) |] ==> R"
   shows "R"
-by (rules intro: minor major major [THEN spec])
+by (iprover intro: minor major major [THEN spec])
 
 
 subsection {*False*}
@@ -370,7 +370,7 @@ lemma notI:
   assumes p: "P ==> False"
   shows "~P"
 apply (unfold not_def)
-apply (rules intro: impI p)
+apply (iprover intro: impI p)
 done
 
 lemma False_not_True: "False ~= True"
@@ -399,24 +399,24 @@ subsection {*Implication*}
 lemma impE:
   assumes "P-->Q" "P" "Q ==> R"
   shows "R"
-by (rules intro: prems mp)
+by (iprover intro: prems mp)
 
 (* Reduces Q to P-->Q, allowing substitution in P. *)
 lemma rev_mp: "[| P;  P --> Q |] ==> Q"
-by (rules intro: mp)
+by (iprover intro: mp)
 
 lemma contrapos_nn:
   assumes major: "~Q"
       and minor: "P==>Q"
   shows "~P"
-by (rules intro: notI minor major [THEN notE])
+by (iprover intro: notI minor major [THEN notE])
 
 (*not used at all, but we already have the other 3 combinations *)
 lemma contrapos_pn:
   assumes major: "Q"
       and minor: "P ==> ~Q"
   shows "~P"
-by (rules intro: notI minor major notE)
+by (iprover intro: notI minor major notE)
 
 lemma not_sym: "t ~= s ==> s ~= t"
 apply (erule contrapos_nn)
@@ -436,7 +436,7 @@ subsection {*Existential quantifier*}
 
 lemma exI: "P x ==> EX x::'a. P x"
 apply (unfold Ex_def)
-apply (rules intro: allI allE impI mp)
+apply (iprover intro: allI allE impI mp)
 done
 
 lemma exE:
@@ -444,7 +444,7 @@ lemma exE:
       and minor: "!!x. P(x) ==> Q"
   shows "Q"
 apply (rule major [unfolded Ex_def, THEN spec, THEN mp])
-apply (rules intro: impI [THEN allI] minor)
+apply (iprover intro: impI [THEN allI] minor)
 done
 
 
@@ -452,17 +452,17 @@ subsection {*Conjunction*}
 
 lemma conjI: "[| P; Q |] ==> P&Q"
 apply (unfold and_def)
-apply (rules intro: impI [THEN allI] mp)
+apply (iprover intro: impI [THEN allI] mp)
 done
 
 lemma conjunct1: "[| P & Q |] ==> P"
 apply (unfold and_def)
-apply (rules intro: impI dest: spec mp)
+apply (iprover intro: impI dest: spec mp)
 done
 
 lemma conjunct2: "[| P & Q |] ==> Q"
 apply (unfold and_def)
-apply (rules intro: impI dest: spec mp)
+apply (iprover intro: impI dest: spec mp)
 done
 
 lemma conjE:
@@ -476,19 +476,19 @@ done
 
 lemma context_conjI:
   assumes prems: "P" "P ==> Q" shows "P & Q"
-by (rules intro: conjI prems)
+by (iprover intro: conjI prems)
 
 
 subsection {*Disjunction*}
 
 lemma disjI1: "P ==> P|Q"
 apply (unfold or_def)
-apply (rules intro: allI impI mp)
+apply (iprover intro: allI impI mp)
 done
 
 lemma disjI2: "Q ==> P|Q"
 apply (unfold or_def)
-apply (rules intro: allI impI mp)
+apply (iprover intro: allI impI mp)
 done
 
 lemma disjE:
@@ -496,7 +496,7 @@ lemma disjE:
       and minorP: "P ==> R"
       and minorQ: "Q ==> R"
   shows "R"
-by (rules intro: minorP minorQ impI
+by (iprover intro: minorP minorQ impI
                  major [unfolded or_def, THEN spec, THEN mp, THEN mp])
 
 
@@ -536,7 +536,7 @@ lemma contrapos_pp:
   assumes p1: "Q"
       and p2: "~P ==> ~Q"
   shows "P"
-by (rules intro: classical p1 p2 notE)
+by (iprover intro: classical p1 p2 notE)
 
 
 subsection {*Unique existence*}
@@ -544,14 +544,14 @@ subsection {*Unique existence*}
 lemma ex1I:
   assumes prems: "P a" "!!x. P(x) ==> x=a"
   shows "EX! x. P(x)"
-by (unfold Ex1_def, rules intro: prems exI conjI allI impI)
+by (unfold Ex1_def, iprover intro: prems exI conjI allI impI)
 
 text{*Sometimes easier to use: the premises have no shared variables.  Safe!*}
 lemma ex_ex1I:
   assumes ex_prem: "EX x. P(x)"
       and eq: "!!x y. [| P(x); P(y) |] ==> x=y"
   shows "EX! x. P(x)"
-by (rules intro: ex_prem [THEN exE] ex1I eq)
+by (iprover intro: ex_prem [THEN exE] ex1I eq)
 
 lemma ex1E:
   assumes major: "EX! x. P(x)"
@@ -559,7 +559,7 @@ lemma ex1E:
   shows "R"
 apply (rule major [unfolded Ex1_def, THEN exE])
 apply (erule conjE)
-apply (rules intro: minor)
+apply (iprover intro: minor)
 done
 
 lemma ex1_implies_ex: "EX! x. P x ==> EX x. P x"
@@ -586,7 +586,7 @@ done
 lemma theI:
   assumes "P a" and "!!x. P x ==> x=a"
   shows "P (THE x. P x)"
-by (rules intro: prems the_equality [THEN ssubst])
+by (iprover intro: prems the_equality [THEN ssubst])
 
 lemma theI': "EX! x. P x ==> P (THE x. P x)"
 apply (erule ex1E)
@@ -600,7 +600,7 @@ done
 lemma theI2:
   assumes "P a" "!!x. P x ==> x=a" "!!x. P x ==> Q x"
   shows "Q (THE x. P x)"
-by (rules intro: prems theI)
+by (iprover intro: prems theI)
 
 lemma the1_equality: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
 apply (rule the_equality)
@@ -627,11 +627,11 @@ subsection {*Classical intro rules for disjunction and existential quantifiers*}
 lemma disjCI:
   assumes "~Q ==> P" shows "P|Q"
 apply (rule classical)
-apply (rules intro: prems disjI1 disjI2 notI elim: notE)
+apply (iprover intro: prems disjI1 disjI2 notI elim: notE)
 done
 
 lemma excluded_middle: "~P | P"
-by (rules intro: disjCI)
+by (iprover intro: disjCI)
 
 text{*case distinction as a natural deduction rule. Note that @{term "~P"}
    is the second case, not the first.*}
@@ -650,7 +650,7 @@ lemma impCE:
       and minor: "~P ==> R" "Q ==> R"
   shows "R"
 apply (rule excluded_middle [of P, THEN disjE])
-apply (rules intro: minor major [THEN mp])+
+apply (iprover intro: minor major [THEN mp])+
 done
 
 (*This version of --> elimination works on Q before P.  It works best for
@@ -661,7 +661,7 @@ lemma impCE':
       and minor: "Q ==> R" "~P ==> R"
   shows "R"
 apply (rule excluded_middle [of P, THEN disjE])
-apply (rules intro: minor major [THEN mp])+
+apply (iprover intro: minor major [THEN mp])+
 done
 
 (*Classical <-> elimination. *)
@@ -670,14 +670,14 @@ lemma iffCE:
       and minor: "[| P; Q |] ==> R"  "[| ~P; ~Q |] ==> R"
   shows "R"
 apply (rule major [THEN iffE])
-apply (rules intro: minor elim: impCE notE)
+apply (iprover intro: minor elim: impCE notE)
 done
 
 lemma exCI:
   assumes "ALL x. ~P(x) ==> P(a)"
   shows "EX x. P(x)"
 apply (rule ccontr)
-apply (rules intro: prems exI allI notI notE [of "\<exists>x. P x"])
+apply (iprover intro: prems exI allI notI notE [of "\<exists>x. P x"])
 done
 
 
@@ -949,10 +949,10 @@ lemma simp_thms:
     "!!P. (EX x. t=x & P(x)) = P(t)"
     "!!P. (ALL x. x=t --> P(x)) = P(t)"
     "!!P. (ALL x. t=x --> P(x)) = P(t)"
-  by (blast, blast, blast, blast, blast, rules+)
+  by (blast, blast, blast, blast, blast, iprover+)
 
 lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
-  by rules
+  by iprover
 
 lemma ex_simps:
   "!!P Q. (EX x. P x & Q)   = ((EX x. P x) & Q)"
@@ -962,7 +962,7 @@ lemma ex_simps:
   "!!P Q. (EX x. P x --> Q) = ((ALL x. P x) --> Q)"
   "!!P Q. (EX x. P --> Q x) = (P --> (EX x. Q x))"
   -- {* Miniscoping: pushing in existential quantifiers. *}
-  by (rules | blast)+
+  by (iprover | blast)+
 
 lemma all_simps:
   "!!P Q. (ALL x. P x & Q)   = ((ALL x. P x) & Q)"
@@ -972,7 +972,7 @@ lemma all_simps:
   "!!P Q. (ALL x. P x --> Q) = ((EX x. P x) --> Q)"
   "!!P Q. (ALL x. P --> Q x) = (P --> (ALL x. Q x))"
   -- {* Miniscoping: pushing in universal quantifiers. *}
-  by (rules | blast)+
+  by (iprover | blast)+
 
 lemma disj_absorb: "(A | A) = A"
   by blast
@@ -989,28 +989,28 @@ lemma conj_left_absorb: "(A & (A & B)) = (A & B)"
 lemma eq_ac:
   shows eq_commute: "(a=b) = (b=a)"
     and eq_left_commute: "(P=(Q=R)) = (Q=(P=R))"
-    and eq_assoc: "((P=Q)=R) = (P=(Q=R))" by (rules, blast+)
-lemma neq_commute: "(a~=b) = (b~=a)" by rules
+    and eq_assoc: "((P=Q)=R) = (P=(Q=R))" by (iprover, blast+)
+lemma neq_commute: "(a~=b) = (b~=a)" by iprover
 
 lemma conj_comms:
   shows conj_commute: "(P&Q) = (Q&P)"
-    and conj_left_commute: "(P&(Q&R)) = (Q&(P&R))" by rules+
-lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by rules
+    and conj_left_commute: "(P&(Q&R)) = (Q&(P&R))" by iprover+
+lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by iprover
 
 lemma disj_comms:
   shows disj_commute: "(P|Q) = (Q|P)"
-    and disj_left_commute: "(P|(Q|R)) = (Q|(P|R))" by rules+
-lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by rules
+    and disj_left_commute: "(P|(Q|R)) = (Q|(P|R))" by iprover+
+lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by iprover
 
-lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by rules
-lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by rules
+lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by iprover
+lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by iprover
 
-lemma disj_conj_distribL: "(P|(Q&R)) = ((P|Q) & (P|R))" by rules
-lemma disj_conj_distribR: "((P&Q)|R) = ((P|R) & (Q|R))" by rules
+lemma disj_conj_distribL: "(P|(Q&R)) = ((P|Q) & (P|R))" by iprover
+lemma disj_conj_distribR: "((P&Q)|R) = ((P|R) & (Q|R))" by iprover
 
-lemma imp_conjR: "(P --> (Q&R)) = ((P-->Q) & (P-->R))" by rules
-lemma imp_conjL: "((P&Q) -->R)  = (P --> (Q --> R))" by rules
-lemma imp_disjL: "((P|Q) --> R) = ((P-->R)&(Q-->R))" by rules
+lemma imp_conjR: "(P --> (Q&R)) = ((P-->Q) & (P-->R))" by iprover
+lemma imp_conjL: "((P&Q) -->R)  = (P --> (Q --> R))" by iprover
+lemma imp_disjL: "((P|Q) --> R) = ((P-->R)&(Q-->R))" by iprover
 
 text {* These two are specialized, but @{text imp_disj_not1} is useful in @{text "Auth/Yahalom"}. *}
 lemma imp_disj_not1: "(P --> Q | R) = (~Q --> P --> R)" by blast
@@ -1019,7 +1019,7 @@ lemma imp_disj_not2: "(P --> Q | R) = (~R --> P --> Q)" by blast
 lemma imp_disj1: "((P-->Q)|R) = (P--> Q|R)" by blast
 lemma imp_disj2: "(Q|(P-->R)) = (P--> Q|R)" by blast
 
-lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by rules
+lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by iprover
 lemma de_Morgan_conj: "(~(P & Q)) = (~P | ~Q)" by blast
 lemma not_imp: "(~(P --> Q)) = (P & ~Q)" by blast
 lemma not_iff: "(P~=Q) = (P = (~Q))" by blast
@@ -1028,7 +1028,7 @@ lemma disj_not2: "(P | ~Q) = (Q --> P)"  -- {* changes orientation :-( *}
   by blast
 lemma imp_conv_disj: "(P --> Q) = ((~P) | Q)" by blast
 
-lemma iff_conv_conj_imp: "(P = Q) = ((P --> Q) & (Q --> P))" by rules
+lemma iff_conv_conj_imp: "(P = Q) = ((P --> Q) & (Q --> P))" by iprover
 
 
 lemma cases_simp: "((P --> Q) & (~P --> Q)) = Q"
@@ -1038,11 +1038,11 @@ lemma cases_simp: "((P --> Q) & (~P --> Q)) = Q"
 
 lemma not_all: "(~ (! x. P(x))) = (? x.~P(x))" by blast
 lemma imp_all: "((! x. P x) --> Q) = (? x. P x --> Q)" by blast
-lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by rules
-lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by rules
+lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by iprover
+lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by iprover
 
-lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by rules
-lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by rules
+lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by iprover
+lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by iprover
 
 text {*
   \medskip The @{text "&"} congruence rule: not included by default!
@@ -1050,11 +1050,11 @@ text {*
 
 lemma conj_cong:
     "(P = P') ==> (P' ==> (Q = Q')) ==> ((P & Q) = (P' & Q'))"
-  by rules
+  by iprover
 
 lemma rev_conj_cong:
     "(Q = Q') ==> (Q' ==> (P = P')) ==> ((P & Q) = (P' & Q'))"
-  by rules
+  by iprover
 
 text {* The @{text "|"} congruence rule: not included by default! *}
 
@@ -1063,7 +1063,7 @@ lemma disj_cong:
   by blast
 
 lemma eq_sym_conv: "(x = y) = (y = x)"
-  by rules
+  by iprover
 
 
 text {* \medskip if-then-else rules *}
@@ -1109,8 +1109,8 @@ lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
   apply (simplesubst split_if, blast)
   done
 
-lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
-lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) rules
+lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) iprover
+lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) iprover
 
 text {* \medskip let rules for simproc *}
 
@@ -1285,11 +1285,11 @@ lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
 
 lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
     induct_conj (induct_forall A) (induct_forall B)"
-  by (unfold induct_forall_def induct_conj_def) rules
+  by (unfold induct_forall_def induct_conj_def) iprover
 
 lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
     induct_conj (induct_implies C A) (induct_implies C B)"
-  by (unfold induct_implies_def induct_conj_def) rules
+  by (unfold induct_implies_def induct_conj_def) iprover
 
 lemma induct_conj_curry: "(induct_conj A B ==> PROP C) == (A ==> B ==> PROP C)"
 proof

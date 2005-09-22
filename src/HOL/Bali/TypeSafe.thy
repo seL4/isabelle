@@ -1233,7 +1233,7 @@ next
   next
     case (Cons y ys')
     have "(tab(x\<mapsto>y)(xs[\<mapsto>]ys')) z = (tab'(x\<mapsto>y)(xs[\<mapsto>]ys')) z"
-      by (rules intro: Hyps map_upd_cong_ext)
+      by (iprover intro: Hyps map_upd_cong_ext)
     with Cons show ?thesis
       by simp
   qed
@@ -1701,7 +1701,7 @@ proof -
 	  by cases simp+
 	from eval_e1 wt_e1 da_e1 wf normal_s1 
 	have "nrm E1' \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') rules
+	  by (cases rule: da_good_approxE') iprover
 	with da_e2 show ?thesis
 	  using that by (rule da_weakenE) (simp add: True)
       qed
@@ -1836,7 +1836,7 @@ proof -
       proof -
 	from eval_c1 wt_c1 da_c1 wf True
 	have "nrm C1 \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') rules
+	  by (cases rule: da_good_approxE') iprover
 	with da_c2 show ?thesis
 	  by (rule da_weakenE)
       qed
@@ -2806,7 +2806,7 @@ proof -
 	proof -
 	  from eval_var wt_var da_var wf normal_s1
 	  have "nrm V \<subseteq>  dom (locals (store s1))"
-	    by (cases rule: da_good_approxE') rules
+	    by (cases rule: da_good_approxE') iprover
 	  with da_e show ?thesis
 	    by (rule da_weakenE) 
 	qed
@@ -3094,7 +3094,7 @@ proof -
       proof -
 	from eval_e wt_e da_e wf normal_s1
 	have "nrm E \<subseteq>  dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') rules
+	  by (cases rule: da_good_approxE') iprover
 	with da_args show ?thesis
 	  by (rule da_weakenE) 
       qed
@@ -3256,7 +3256,7 @@ proof -
                ,lcl=callee_lcl invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> (mthd dynM)
                \<rparr> \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'" and
               res: "Result \<in> nrm M'"
-	      by (rule wf_mdeclE) rules
+	      by (rule wf_mdeclE) iprover
 	    from da_body is_static_eq L' have
 	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
                  \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'"
@@ -3308,7 +3308,7 @@ proof -
 	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> \<turnstile> dom (locals (store s3')) 
                      \<guillemotright>\<langle>Body (declclass dynM) (stmt (mbody (mthd dynM)))\<rangle>\<guillemotright> M3"
 	      using da
-	      by (rules intro: da.Body assigned.select_convs)
+	      by (iprover intro: da.Body assigned.select_convs)
 	    from _ this [simplified]
 	    show ?thesis
 	      by (rule da.Methd [simplified,elim_format])
@@ -3672,7 +3672,7 @@ proof -
       proof -
 	from eval_e1 wt_e1 da_e1 wf True
 	have "nrm E1 \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') rules
+	  by (cases rule: da_good_approxE') iprover
 	with da_e2 show ?thesis
 	  by (rule da_weakenE)
       qed
@@ -3768,7 +3768,7 @@ proof -
       proof -
 	from eval_e wt_e da_e wf True
 	have "nrm E \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') rules
+	  by (cases rule: da_good_approxE') iprover
 	with da_es show ?thesis
 	  by (rule da_weakenE)
       qed
@@ -3806,7 +3806,7 @@ corollary eval_type_soundE [consumes 5]:
                   error_free s0 = error_free s1\<rbrakk> \<Longrightarrow> P"
   shows "P"
 using eval wt da wf conf
-by (rule eval_type_sound [elim_format]) (rules intro: elim) 
+by (rule eval_type_sound [elim_format]) (iprover intro: elim) 
 
  
 corollary eval_ts: 
@@ -3995,19 +3995,19 @@ proof -
 	proof -
 	  from eval_c1 wt_c1 da_c1 wf normal_s1
 	  have "nrm C1 \<subseteq> dom (locals (store s1))"
-	    by (cases rule: da_good_approxE') rules
+	    by (cases rule: da_good_approxE') iprover
 	  with da_c2 show ?thesis
 	    by (rule da_weakenE)
 	qed
 	with wt_c2 have "P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2"
 	  by (rule Comp.hyps)
 	with da show ?thesis
-	  using elim by rules
+	  using elim by iprover
       qed
     }
     with eval_c1 eval_c2 wt_c1 wt_c2 da_c1 P_c1 
     show ?case
-      by (rule comp) rules+
+      by (rule comp) iprover+
   next
     case (If b c1 c2 e s0 s1 s2 L accC T A)
     have eval_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1" .
@@ -4058,12 +4058,12 @@ proof -
 	with wt_then_else
 	have "P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2"
 	  by (rule If.hyps)
-	with da show ?thesis using elim by rules
+	with da show ?thesis using elim by iprover
       qed
     }
     with eval_e eval_then_else wt_e wt_then_else da_e P_e
     show ?case
-      by (rule if) rules+
+      by (rule if) iprover+
   next
     oops
 

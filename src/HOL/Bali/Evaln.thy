@@ -554,7 +554,7 @@ proof (induct)
   case (Abrupt s t xc)
   obtain n where
     "G\<turnstile>(Some xc, s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (arbitrary3 t, Some xc, s)"
-    by (rules intro: evaln.Abrupt)
+    by (iprover intro: evaln.Abrupt)
   then show ?case ..
 next
   case Skip
@@ -563,7 +563,7 @@ next
   case (Expr e s0 s1 v)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   then have "G\<turnstile>Norm s0 \<midarrow>Expr e\<midarrow>n\<rightarrow> s1"
     by (rule evaln.Expr) 
   then show ?case ..
@@ -571,7 +571,7 @@ next
   case (Lab c l s0 s1)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>c\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   then have "G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<midarrow>n\<rightarrow> abupd (absorb l) s1"
     by (rule evaln.Lab)
   then show ?case ..
@@ -580,7 +580,7 @@ next
   then obtain n1 n2 where
     "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2"
-    by (rules)
+    by (iprover)
   then have "G\<turnstile>Norm s0 \<midarrow>c1;; c2\<midarrow>max n1 n2\<rightarrow> s2"
     by (blast intro: evaln.Comp dest: evaln_max2 )
   then show ?case ..
@@ -589,7 +589,7 @@ next
   then obtain n1 n2 where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<midarrow>n2\<rightarrow> s2"
-    by (rules)
+    by (iprover)
   then have "G\<turnstile>Norm s0 \<midarrow>If(e) c1 Else c2\<midarrow>max n1 n2\<rightarrow> s2"
     by (blast intro: evaln.If dest: evaln_max2)
   then show ?case ..
@@ -597,18 +597,18 @@ next
   case (Loop b c e l s0 s1 s2 s3)
   from Loop.hyps obtain n1 where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<midarrow>n1\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   moreover from Loop.hyps obtain n2 where
     "if the_Bool b 
         then (G\<turnstile>s1 \<midarrow>c\<midarrow>n2\<rightarrow> s2 \<and> 
               G\<turnstile>(abupd (absorb (Cont l)) s2)\<midarrow>l\<bullet> While(e) c\<midarrow>n2\<rightarrow> s3)
 	else s3 = s1"
-    by simp (rules intro: evaln_nonstrict le_maxI1 le_maxI2)
+    by simp (iprover intro: evaln_nonstrict le_maxI1 le_maxI2)
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>l\<bullet> While(e) c\<midarrow>max n1 n2\<rightarrow> s3"
     apply -
     apply (rule evaln.Loop)
-    apply   (rules intro: evaln_nonstrict intro: le_maxI1)
+    apply   (iprover intro: evaln_nonstrict intro: le_maxI1)
 
     apply   (auto intro: evaln_nonstrict intro: le_maxI2)
     done
@@ -622,7 +622,7 @@ next
   case (Throw a e s0 s1)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   then have "G\<turnstile>Norm s0 \<midarrow>Throw e\<midarrow>n\<rightarrow> abupd (throw a) s1"
     by (rule evaln.Throw)
   then show ?case ..
@@ -630,7 +630,7 @@ next
   case (Try catchC c1 c2 s0 s1 s2 s3 vn)
   from Try.hyps obtain n1 where
     "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   moreover 
   have sxalloc: "G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2" .
   moreover
@@ -646,7 +646,7 @@ next
   from Fin obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> (x1, s1)"
     "G\<turnstile>Norm s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2"
-    by rules
+    by iprover
   moreover
   have s3: "s3 = (if \<exists>err. x1 = Some (Error err) 
                      then (x1, s1)
@@ -673,17 +673,17 @@ next
   case (NewC C a s0 s1 s2)
   then obtain n where 
     "G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   with NewC 
   have "G\<turnstile>Norm s0 \<midarrow>NewC C-\<succ>Addr a\<midarrow>n\<rightarrow> s2"
-    by (rules intro: evaln.NewC)
+    by (iprover intro: evaln.NewC)
   then show ?case ..
 next
   case (NewA T a e i s0 s1 s2 s3)
   then obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>init_comp_ty T\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>e-\<succ>i\<midarrow>n2\<rightarrow> s2"      
-    by (rules)
+    by (iprover)
   moreover
   have "G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3" .
   ultimately
@@ -694,7 +694,7 @@ next
   case (Cast castT e s0 s1 s2 v)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   moreover 
   have "s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits castT) ClassCast) s1" .
   ultimately
@@ -705,7 +705,7 @@ next
   case (Inst T b e s0 s1 v)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   moreover 
   have "b = (v \<noteq> Null \<and> G,snd s1\<turnstile>v fits RefT T)" .
   ultimately
@@ -721,7 +721,7 @@ next
   case (UnOp e s0 s1 unop v )
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   hence "G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>eval_unop unop v\<midarrow>n\<rightarrow> s1"
     by (rule evaln.UnOp)
   then show ?case ..
@@ -731,7 +731,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
                else In1r Skip)\<succ>\<midarrow>n2\<rightarrow> (In1 v2, s2)"    
-    by (rules)
+    by (iprover)
   hence "G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<midarrow>max n1 n2
           \<rightarrow> s2"
     by (blast intro!: evaln.BinOp dest: evaln_max2)
@@ -749,7 +749,7 @@ next
   case (Acc f s0 s1 v va)
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v, f)\<midarrow>n\<rightarrow> s1"
-    by (rules)
+    by (iprover)
   then
   have "G\<turnstile>Norm s0 \<midarrow>Acc va-\<succ>v\<midarrow>n\<rightarrow> s1"
     by (rule evaln.Acc)
@@ -759,7 +759,7 @@ next
   then obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>var=\<succ>(w, f)\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>e-\<succ>v\<midarrow>n2\<rightarrow> s2"      
-    by (rules)
+    by (iprover)
   then
   have "G\<turnstile>Norm s0 \<midarrow>var:=e-\<succ>v\<midarrow>max n1 n2\<rightarrow> assign f v s2"
     by (blast intro: evaln.Ass dest: evaln_max2)
@@ -769,7 +769,7 @@ next
   then obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<midarrow>n2\<rightarrow> s2"
-    by (rules)
+    by (iprover)
   then
   have "G\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<midarrow>max n1 n2\<rightarrow> s2"
     by (blast intro: evaln.Cond dest: evaln_max2)
@@ -780,7 +780,7 @@ next
   then obtain n1 n2 where
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<midarrow>n2\<rightarrow> s2"
-    by rules
+    by iprover
   moreover
   have "invDeclC = invocation_declclass G mode (store s2) a' statT 
                        \<lparr>name=mn,parTs=pTs'\<rparr>" .
@@ -792,7 +792,7 @@ next
   from Call.hyps
   obtain m where 
     "G\<turnstile>s3' \<midarrow>Methd invDeclC \<lparr>name=mn, parTs=pTs'\<rparr>-\<succ>v\<midarrow>m\<rightarrow> s4"
-    by rules
+    by iprover
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>{accC',statT,mode}e\<cdot>mn( {pTs'}args)-\<succ>v\<midarrow>max n1 (max n2 m)\<rightarrow> 
             (set_lvars (locals (store s2))) s4"
@@ -802,7 +802,7 @@ next
   case (Methd D s0 s1 sig v )
   then obtain n where
     "G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<midarrow>n\<rightarrow> s1"
-    by rules
+    by iprover
   then have "G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<midarrow>Suc n\<rightarrow> s1"
     by (rule evaln.Methd)
   then show ?case ..
@@ -811,7 +811,7 @@ next
   from Body.hyps obtain n1 n2 where 
     evaln_init: "G\<turnstile>Norm s0 \<midarrow>Init D\<midarrow>n1\<rightarrow> s1" and
     evaln_c: "G\<turnstile>s1 \<midarrow>c\<midarrow>n2\<rightarrow> s2"
-    by (rules)
+    by (iprover)
   moreover
   have "s3 = (if \<exists>l. fst s2 = Some (Jump (Break l)) \<or> 
                      fst s2 = Some (Jump (Cont l))
@@ -821,33 +821,33 @@ next
   have
      "G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)\<midarrow>max n1 n2
        \<rightarrow> abupd (absorb Ret) s3"
-    by (rules intro: evaln.Body dest: evaln_max2)
+    by (iprover intro: evaln.Body dest: evaln_max2)
   then show ?case ..
 next
   case (LVar s vn )
   obtain n where
     "G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<midarrow>n\<rightarrow> Norm s"
-    by (rules intro: evaln.LVar)
+    by (iprover intro: evaln.LVar)
   then show ?case ..
 next
   case (FVar a accC e fn s0 s1 s2 s2' s3 stat statDeclC v)
   then obtain n1 n2 where
     "G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>e-\<succ>a\<midarrow>n2\<rightarrow> s2"
-    by rules
+    by iprover
   moreover
   have "s3 = check_field_access G accC statDeclC fn stat a s2'" 
        "(v, s2') = fvar statDeclC stat fn a s2" .
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<midarrow>max n1 n2\<rightarrow> s3"
-    by (rules intro: evaln.FVar dest: evaln_max2)
+    by (iprover intro: evaln.FVar dest: evaln_max2)
   then show ?case ..
 next
   case (AVar a e1 e2 i s0 s1 s2 s2' v )
   then obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>a\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>e2-\<succ>i\<midarrow>n2\<rightarrow> s2"      
-    by rules
+    by iprover
   moreover 
   have "(v, s2') = avar G i a s2" .
   ultimately 
@@ -856,13 +856,13 @@ next
   then show ?case ..
 next
   case (Nil s0)
-  show ?case by (rules intro: evaln.Nil)
+  show ?case by (iprover intro: evaln.Nil)
 next
   case (Cons e es s0 s1 s2 v vs)
   then obtain n1 n2 where 
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n1\<rightarrow> s1"
     "G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<midarrow>n2\<rightarrow> s2"      
-    by rules
+    by iprover
   then
   have "G\<turnstile>Norm s0 \<midarrow>e # es\<doteq>\<succ>v # vs\<midarrow>max n1 n2\<rightarrow> s2"
     by (blast intro!: evaln.Cons dest: evaln_max2)

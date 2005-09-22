@@ -405,7 +405,7 @@ proof -
         linearformE: "linearform E g"
       and a: "\<forall>x \<in> F. g x = f x"
       and b: "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
-    by (rule abs_HahnBanach [elim_format]) rules
+    by (rule abs_HahnBanach [elim_format]) iprover
 
   txt {* We furthermore have to show that @{text g} is also continuous: *}
 

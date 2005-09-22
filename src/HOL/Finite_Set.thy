@@ -604,7 +604,7 @@ proof (induct n rule: less_induct)
 	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
 	  with AbB have "finite ?D" by simp
 	  then obtain d where Dfoldd: "(?D,d) \<in> foldSet f g z"
-	    using finite_imp_foldSet by rules
+	    using finite_imp_foldSet by iprover
 	  moreover have cinB: "c \<in> B" using B by auto
 	  ultimately have "(B,g c \<cdot> d) \<in> foldSet f g z"
 	    by(rule Diff1_foldSet)

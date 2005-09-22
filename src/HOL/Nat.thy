@@ -73,7 +73,7 @@ theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (unfold Zero_nat_def Suc_def)
   apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
   apply (erule Rep_Nat [THEN Nat.induct])
-  apply (rules elim: Abs_Nat_inverse [THEN subst])
+  apply (iprover elim: Abs_Nat_inverse [THEN subst])
   done
 
 text {* Distinctness of constructors *}
@@ -128,7 +128,7 @@ theorem diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
   apply (induct n)
   prefer 2
   apply (rule allI)
-  apply (induct_tac x, rules+)
+  apply (induct_tac x, iprover+)
   done
 
 subsection {* Basic properties of "less than" *}
@@ -340,7 +340,7 @@ lemma le_Suc_eq: "(m \<le> Suc n) = (m \<le> n | m = Suc n)"
   by (simp del: less_Suc_eq_le add: less_Suc_eq_le [symmetric] less_Suc_eq)
 
 lemma le_SucE: "m \<le> Suc n ==> (m \<le> n ==> R) ==> (m = Suc n ==> R) ==> R"
-  by (drule le_Suc_eq [THEN iffD1], rules+)
+  by (drule le_Suc_eq [THEN iffD1], iprover+)
 
 lemma Suc_leI: "m < n ==> Suc(m) \<le> n"
   apply (simp add: le_def less_Suc_eq)
@@ -385,7 +385,7 @@ lemma less_or_eq_imp_le: "m < n | m = n ==> m \<le> (n::nat)"
   done
 
 lemma le_eq_less_or_eq: "(m \<le> (n::nat)) = (m < n | m=n)"
-  by (rules intro: less_or_eq_imp_le le_imp_less_or_eq)
+  by (iprover intro: less_or_eq_imp_le le_imp_less_or_eq)
 
 text {* Useful with @{text Blast}. *}
 lemma eq_imp_le: "(m::nat) = n ==> m \<le> n"
@@ -505,7 +505,7 @@ lemma neq0_conv [iff]: "!!n::nat. (n \<noteq> 0) = (0 < n)"
 
 text {* This theorem is useful with @{text blast} *}
 lemma gr0I: "((n::nat) = 0 ==> False) ==> 0 < n"
-  by (rule iffD1, rule neq0_conv, rules)
+  by (rule iffD1, rule neq0_conv, iprover)
 
 lemma gr0_conv_Suc: "(0 < n) = (\<exists>m. n = Suc m)"
   by (fast intro: not0_implies_Suc)
@@ -779,7 +779,7 @@ lemma less_add_Suc2: "i < Suc (m + i)"
   by (rule le_less_trans, rule le_add2, rule lessI)
 
 lemma less_iff_Suc_add: "(m < n) = (\<exists>k. n = Suc (m + k))"
-  by (rules intro!: less_add_Suc1 less_imp_Suc_add)
+  by (iprover intro!: less_add_Suc1 less_imp_Suc_add)
 
 lemma trans_le_add1: "(i::nat) \<le> j ==> i \<le> j + m"
   by (rule le_trans, assumption, rule le_add1)
@@ -909,12 +909,12 @@ lemma less_imp_add_positive: "i < j  ==> \<exists>k::nat. 0 < k & i + k = j"
 lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
   apply (induct k i rule: diff_induct)
   apply (simp_all (no_asm))
-  apply rules
+  apply iprover
   done
 
 lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
   apply (rule diff_self_eq_0 [THEN subst])
-  apply (rule zero_induct_lemma, rules+)
+  apply (rule zero_induct_lemma, iprover+)
   done
 
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"

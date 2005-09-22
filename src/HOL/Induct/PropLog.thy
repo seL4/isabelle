@@ -236,12 +236,12 @@ lemma completeness_0_lemma:
 apply (rule hyps_subset [THEN hyps_finite [THEN finite_subset_induct]])
  apply (simp add: sat_thms_p, safe)
  txt{*Case @{text"hyps p t-insert(#v,Y) |- p"} *}
- apply (rules intro: thms_excluded_middle_rule 
+ apply (iprover intro: thms_excluded_middle_rule 
 		     insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left] 
                      hyps_Diff [THEN Diff_weaken_left])
 txt{*Case @{text"hyps p t-insert(#v -> false,Y) |- p"} *}
- apply (rules intro: thms_excluded_middle_rule 
+ apply (iprover intro: thms_excluded_middle_rule 
 		     insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left] 
                      hyps_insert [THEN Diff_weaken_left])
@@ -260,7 +260,7 @@ by (unfold sat_def, auto)
 theorem completeness [rule_format]: "finite H ==> \<forall>p. H |= p --> H |- p"
 apply (erule finite_induct)
  apply (blast intro: completeness_0)
-apply (rules intro: sat_imp thms.H insertI1 weaken_left_insert [THEN thms.MP])
+apply (iprover intro: sat_imp thms.H insertI1 weaken_left_insert [THEN thms.MP])
 done
 
 theorem syntax_iff_semantics: "finite H ==> (H |- p) = (H |= p)"

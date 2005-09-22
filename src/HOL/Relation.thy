@@ -70,7 +70,7 @@ lemma IdI [intro]: "(a, a) : Id"
   by (simp add: Id_def)
 
 lemma IdE [elim!]: "p : Id ==> (!!x. p = (x, x) ==> P) ==> P"
-  by (unfold Id_def) (rules elim: CollectE)
+  by (unfold Id_def) (iprover elim: CollectE)
 
 lemma pair_in_Id_conv [iff]: "((a, b) : Id) = (a = b)"
   by (unfold Id_def) blast
@@ -100,7 +100,7 @@ lemma diagI [intro!]: "a : A ==> (a, a) : diag A"
 lemma diagE [elim!]:
   "c : diag A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
   -- {* The general elimination rule. *}
-  by (unfold diag_def) (rules elim!: UN_E singletonE)
+  by (unfold diag_def) (iprover elim!: UN_E singletonE)
 
 lemma diag_iff: "((x, y) : diag A) = (x = y & x : A)"
   by blast
@@ -117,11 +117,11 @@ lemma rel_compI [intro]:
 
 lemma rel_compE [elim!]: "xz : r O s ==>
   (!!x y z. xz = (x, z) ==> (x, y) : s ==> (y, z) : r  ==> P) ==> P"
-  by (unfold rel_comp_def) (rules elim!: CollectE splitE exE conjE)
+  by (unfold rel_comp_def) (iprover elim!: CollectE splitE exE conjE)
 
 lemma rel_compEpair:
   "(a, c) : r O s ==> (!!y. (a, y) : s ==> (y, c) : r ==> P) ==> P"
-  by (rules elim: rel_compE Pair_inject ssubst)
+  by (iprover elim: rel_compE Pair_inject ssubst)
 
 lemma R_O_Id [simp]: "R O Id = R"
   by fast
@@ -146,7 +146,7 @@ lemma rel_comp_subset_Sigma:
 subsection {* Reflexivity *}
 
 lemma reflI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl A r"
-  by (unfold refl_def) (rules intro!: ballI)
+  by (unfold refl_def) (iprover intro!: ballI)
 
 lemma reflD: "refl A r ==> a : A ==> (a, a) : r"
   by (unfold refl_def) blast
@@ -156,10 +156,10 @@ subsection {* Antisymmetry *}
 
 lemma antisymI:
   "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
-  by (unfold antisym_def) rules
+  by (unfold antisym_def) iprover
 
 lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
-  by (unfold antisym_def) rules
+  by (unfold antisym_def) iprover
 
 
 subsection {* Symmetry and Transitivity *}
@@ -169,10 +169,10 @@ lemma symD: "sym r ==> (a, b) : r ==> (b, a) : r"
 
 lemma transI:
   "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
-  by (unfold trans_def) rules
+  by (unfold trans_def) iprover
 
 lemma transD: "trans r ==> (a, b) : r ==> (b, c) : r ==> (a, c) : r"
-  by (unfold trans_def) rules
+  by (unfold trans_def) iprover
 
 
 subsection {* Converse *}
@@ -189,7 +189,7 @@ lemma converseD[sym]: "(a,b) : r^-1 ==> (b, a) : r"
 lemma converseE [elim!]:
   "yx : r^-1 ==> (!!x y. yx = (y, x) ==> (x, y) : r ==> P) ==> P"
     -- {* More general than @{text converseD}, as it ``splits'' the member of the relation. *}
-  by (unfold converse_def) (rules elim!: CollectE splitE bexE)
+  by (unfold converse_def) (iprover elim!: CollectE splitE bexE)
 
 lemma converse_converse [simp]: "(r^-1)^-1 = r"
   by (unfold converse_def) blast
@@ -219,11 +219,11 @@ lemma Domain_iff: "(a : Domain r) = (EX y. (a, y) : r)"
   by (unfold Domain_def) blast
 
 lemma DomainI [intro]: "(a, b) : r ==> a : Domain r"
-  by (rules intro!: iffD2 [OF Domain_iff])
+  by (iprover intro!: iffD2 [OF Domain_iff])
 
 lemma DomainE [elim!]:
   "a : Domain r ==> (!!y. (a, y) : r ==> P) ==> P"
-  by (rules dest!: iffD1 [OF Domain_iff])
+  by (iprover dest!: iffD1 [OF Domain_iff])
 
 lemma Domain_empty [simp]: "Domain {} = {}"
   by blast
@@ -259,10 +259,10 @@ lemma Range_iff: "(a : Range r) = (EX y. (y, a) : r)"
   by (simp add: Domain_def Range_def)
 
 lemma RangeI [intro]: "(a, b) : r ==> b : Range r"
-  by (unfold Range_def) (rules intro!: converseI DomainI)
+  by (unfold Range_def) (iprover intro!: converseI DomainI)
 
 lemma RangeE [elim!]: "b : Range r ==> (!!x. (x, b) : r ==> P) ==> P"
-  by (unfold Range_def) (rules elim!: DomainE dest!: converseD)
+  by (unfold Range_def) (iprover elim!: DomainE dest!: converseD)
 
 lemma Range_empty [simp]: "Range {} = {}"
   by blast
@@ -305,7 +305,7 @@ lemma ImageI [intro]: "(a, b) : r ==> a : A ==> b : r``A"
 
 lemma ImageE [elim!]:
     "b : r `` A ==> (!!x. (x, b) : r ==> x : A ==> P) ==> P"
-  by (unfold Image_def) (rules elim!: CollectE bexE)
+  by (unfold Image_def) (iprover elim!: CollectE bexE)
 
 lemma rev_ImageI: "a : A ==> (a, b) : r ==> b : r `` A"
   -- {* This version's more effective when we already have the required @{text a} *}
@@ -334,7 +334,7 @@ lemma Un_Image: "(R \<union> S) `` A = R `` A \<union> S `` A"
   by blast
 
 lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"
-  by (rules intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
+  by (iprover intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
 
 lemma Image_eq_UN: "r``B = (\<Union>y\<in> B. r``{y})"
   -- {* NOT suitable for rewriting *}

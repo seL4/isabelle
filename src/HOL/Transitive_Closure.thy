@@ -74,8 +74,8 @@ theorem rtrancl_induct [consumes 1, induct set: rtrancl]:
   shows "P b"
 proof -
   from a have "a = a --> P b"
-    by (induct "%x y. x = a --> P y" a b) (rules intro: cases)+
-  thus ?thesis by rules
+    by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
+  thus ?thesis by iprover
 qed
 
 lemmas rtrancl_induct2 =
@@ -88,7 +88,7 @@ proof (rule transI)
   fix x y z
   assume "(x, y) \<in> r\<^sup>*"
   assume "(y, z) \<in> r\<^sup>*"
-  thus "(x, z) \<in> r\<^sup>*" by induct (rules!)+
+  thus "(x, z) \<in> r\<^sup>*" by induct (iprover!)+
 qed
 
 lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
@@ -112,7 +112,7 @@ qed
 
 lemma converse_rtrancl_into_rtrancl:
   "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> r\<^sup>* \<Longrightarrow> (a, c) \<in> r\<^sup>*"
-  by (rule rtrancl_trans) rules+
+  by (rule rtrancl_trans) iprover+
 
 text {*
   \medskip More @{term "r^*"} equations and inclusions.
@@ -158,7 +158,7 @@ theorem rtrancl_converseD:
   shows "(y, x) \<in> r^*"
 proof -
   from r show ?thesis
-    by induct (rules intro: rtrancl_trans dest!: converseD)+
+    by induct (iprover intro: rtrancl_trans dest!: converseD)+
 qed
 
 theorem rtrancl_converseI:
@@ -166,7 +166,7 @@ theorem rtrancl_converseI:
   shows "(x, y) \<in> (r^-1)^*"
 proof -
   from r show ?thesis
-    by induct (rules intro: rtrancl_trans converseI)+
+    by induct (iprover intro: rtrancl_trans converseI)+
 qed
 
 lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
@@ -179,7 +179,7 @@ theorem converse_rtrancl_induct[consumes 1]:
 proof -
   from rtrancl_converseI [OF major]
   show ?thesis
-    by induct (rules intro: cases dest!: converseD rtrancl_converseD)+
+    by induct (iprover intro: cases dest!: converseD rtrancl_converseD)+
 qed
 
 lemmas converse_rtrancl_induct2 =
@@ -197,8 +197,8 @@ proof -
   show ?thesis
     apply (subgoal_tac "x = z | (EX y. (x,y) : r & (y,z) : r^*)")
      apply (rule_tac [2] major [THEN converse_rtrancl_induct])
-      prefer 2 apply rules
-     prefer 2 apply rules
+      prefer 2 apply iprover
+     prefer 2 apply iprover
     apply (erule asm_rl exE disjE conjE prems)+
     done
 qed
@@ -221,7 +221,7 @@ subsection {* Transitive closure *}
 lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
   apply (simp only: split_tupled_all)
   apply (erule trancl.induct)
-  apply (rules dest: subsetD)+
+  apply (iprover dest: subsetD)+
   done
 
 lemma r_into_trancl': "!!p. p : r ==> p : r^+"
@@ -232,15 +232,15 @@ text {*
 *}
 
 lemma trancl_into_rtrancl: "(a, b) \<in> r^+ ==> (a, b) \<in> r^*"
-  by (erule trancl.induct) rules+
+  by (erule trancl.induct) iprover+
 
 lemma rtrancl_into_trancl1: assumes r: "(a, b) \<in> r^*"
   shows "!!c. (b, c) \<in> r ==> (a, c) \<in> r^+" using r
-  by induct rules+
+  by induct iprover+
 
 lemma rtrancl_into_trancl2: "[| (a,b) : r;  (b,c) : r^* |]   ==>  (a,c) : r^+"
   -- {* intro rule from @{text r} and @{text rtrancl} *}
-  apply (erule rtranclE, rules)
+  apply (erule rtranclE, iprover)
   apply (rule rtrancl_trans [THEN rtrancl_into_trancl1])
    apply (assumption | rule r_into_rtrancl)+
   done
@@ -253,8 +253,8 @@ lemma trancl_induct [consumes 1, induct set: trancl]:
   -- {* Nice induction rule for @{text trancl} *}
 proof -
   from a have "a = a --> P b"
-    by (induct "%x y. x = a --> P y" a b) (rules intro: cases)+
-  thus ?thesis by rules
+    by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
+  thus ?thesis by iprover
 qed
 
 lemma trancl_trans_induct:
@@ -267,7 +267,7 @@ proof -
   assume major: "(x,y) : r^+"
   case rule_context
   show ?thesis
-    by (rules intro: r_into_trancl major [THEN trancl_induct] prems)
+    by (iprover intro: r_into_trancl major [THEN trancl_induct] prems)
 qed
 
 inductive_cases tranclE: "(a, b) : r^+"
@@ -281,14 +281,14 @@ proof (rule transI)
   fix x y z
   assume "(x, y) \<in> r^+"
   assume "(y, z) \<in> r^+"
-  thus "(x, z) \<in> r^+" by induct (rules!)+
+  thus "(x, z) \<in> r^+" by induct (iprover!)+
 qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
 
 lemma rtrancl_trancl_trancl: assumes r: "(x, y) \<in> r^*"
   shows "!!z. (y, z) \<in> r^+ ==> (x, z) \<in> r^+" using r
-  by induct (rules intro: trancl_trans)+
+  by induct (iprover intro: trancl_trans)+
 
 lemma trancl_into_trancl2: "(a, b) \<in> r ==> (b, c) \<in> r^+ ==> (a, c) \<in> r^+"
   by (erule transD [OF trans_trancl r_into_trancl])
@@ -309,13 +309,13 @@ lemma trancl_insert:
 lemma trancl_converseI: "(x, y) \<in> (r^+)^-1 ==> (x, y) \<in> (r^-1)^+"
   apply (drule converseD)
   apply (erule trancl.induct)
-  apply (rules intro: converseI trancl_trans)+
+  apply (iprover intro: converseI trancl_trans)+
   done
 
 lemma trancl_converseD: "(x, y) \<in> (r^-1)^+ ==> (x, y) \<in> (r^+)^-1"
   apply (rule converseI)
   apply (erule trancl.induct)
-  apply (rules dest: converseD intro: trancl_trans)+
+  apply (iprover dest: converseD intro: trancl_trans)+
   done
 
 lemma trancl_converse: "(r^-1)^+ = (r^+)^-1"

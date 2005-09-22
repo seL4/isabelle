@@ -264,7 +264,7 @@ by (induct xs) auto
 
 lemma length_induct:
 "(!!xs. \<forall>ys. length ys < length xs --> P ys ==> P xs) ==> P xs"
-by (rule measure_induct [of length]) rules
+by (rule measure_induct [of length]) iprover
 
 
 subsubsection {* @{text length} *}
@@ -550,7 +550,7 @@ lemma inj_map_eq_map[simp]: "inj f \<Longrightarrow> (map f xs = map f ys) = (xs
 by(blast dest:map_injective)
 
 lemma inj_mapI: "inj f ==> inj (map f)"
-by (rules dest: map_injective injD intro: inj_onI)
+by (iprover dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) ==> inj f"
 apply (unfold inj_on_def, clarify)
@@ -976,6 +976,9 @@ apply (induct xs)
  apply simp
 apply (auto split:nat.split)
 done
+
+lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
+by(induct xs)(auto simp:neq_Nil_conv)
 
 
 subsubsection {* @{text take} and @{text drop} *}

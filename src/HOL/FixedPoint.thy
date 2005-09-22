@@ -31,13 +31,13 @@ lemma lfp_greatest: "[| !!u. f(u) \<subseteq> u ==> A\<subseteq>u |] ==> A \<sub
 by (auto simp add: lfp_def)
 
 lemma lfp_lemma2: "mono(f) ==> f(lfp(f)) \<subseteq> lfp(f)"
-by (rules intro: lfp_greatest subset_trans monoD lfp_lowerbound)
+by (iprover intro: lfp_greatest subset_trans monoD lfp_lowerbound)
 
 lemma lfp_lemma3: "mono(f) ==> lfp(f) \<subseteq> f(lfp(f))"
-by (rules intro: lfp_lemma2 monoD lfp_lowerbound)
+by (iprover intro: lfp_lemma2 monoD lfp_lowerbound)
 
 lemma lfp_unfold: "mono(f) ==> lfp(f) = f(lfp(f))"
-by (rules intro: equalityI lfp_lemma2 lfp_lemma3)
+by (iprover intro: equalityI lfp_lemma2 lfp_lemma3)
 
 subsection{*General induction rules for greatest fixed points*}
 
@@ -105,13 +105,13 @@ lemma gfp_least: "[| !!u. u \<subseteq> f(u) ==> u\<subseteq>X |] ==> gfp(f) \<s
 by (auto simp add: gfp_def)
 
 lemma gfp_lemma2: "mono(f) ==> gfp(f) \<subseteq> f(gfp(f))"
-by (rules intro: gfp_least subset_trans monoD gfp_upperbound)
+by (iprover intro: gfp_least subset_trans monoD gfp_upperbound)
 
 lemma gfp_lemma3: "mono(f) ==> f(gfp(f)) \<subseteq> gfp(f)"
-by (rules intro: gfp_lemma2 monoD gfp_upperbound)
+by (iprover intro: gfp_lemma2 monoD gfp_upperbound)
 
 lemma gfp_unfold: "mono(f) ==> gfp(f) = f(gfp(f))"
-by (rules intro: equalityI gfp_lemma2 gfp_lemma3)
+by (iprover intro: equalityI gfp_lemma2 gfp_lemma3)
 
 subsection{*Coinduction rules for greatest fixed points*}
 
@@ -141,7 +141,7 @@ text{* Weakens the condition @{term "X \<subseteq> f(X)"} to one expressed using
   @{term lfp} and @{term gfp}*}
 
 lemma coinduct3_mono_lemma: "mono(f) ==> mono(%x. f(x) Un X Un B)"
-by (rules intro: subset_refl monoI Un_mono monoD)
+by (iprover intro: subset_refl monoI Un_mono monoD)
 
 lemma coinduct3_lemma:
      "[| X \<subseteq> f(lfp(%x. f(x) Un X Un gfp(f)));  mono(f) |]

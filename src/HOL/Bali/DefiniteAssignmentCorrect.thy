@@ -165,7 +165,7 @@ proof -
   qed (simp_all)
   with jumpNestingOk_l' subset
   show ?thesis
-    by rules
+    by iprover
 qed
    
 corollary jumpNestingOk_mono: 
@@ -429,7 +429,7 @@ proof -
             by simp
           moreover from jmp_s1 have "?Jmp ({Cont l} \<union> jmps) s1" by simp
           ultimately have jmp_s2: "?Jmp ({Cont l} \<union> jmps) s2" 
-            using wt_c G by rules
+            using wt_c G by iprover
           have "?Jmp jmps (abupd (absorb (Cont l)) s2)"
           proof -
             {
@@ -1701,7 +1701,7 @@ proof -
 	by - (erule halloc_no_abrupt [rule_format])
       hence "normal s2" by (cases s2) simp
       with NewA.hyps
-      show ?thesis by rules
+      show ?thesis by iprover
     qed
     also
     from halloc 
@@ -1732,7 +1732,7 @@ proof -
     hence "normal s1" by - (erule eval_no_abrupt_lemma [rule_format]) 
     with BinOp.hyps
     have "assigns (In1l e1) \<subseteq> dom (locals (store s1))"
-      by rules
+      by iprover
     also
     have "\<dots>  \<subseteq> dom (locals (store s2))"
     proof -
@@ -1768,7 +1768,7 @@ proof -
       by - (erule eval_no_abrupt_lemma [rule_format]) 
     with Ass.hyps
     have "assigns (In2 va) \<subseteq> dom (locals (store s1))" 
-      by rules
+      by iprover
     also
     from Ass.hyps
     have "\<dots> \<subseteq> dom (locals (store s2))"
@@ -1776,7 +1776,7 @@ proof -
     also
     from nrm_s2 Ass.hyps
     have "assigns (In1l e) \<subseteq> dom (locals (store s2))"
-      by rules
+      by iprover
     ultimately
     have "assigns (In2 va) \<union> assigns (In1l e) \<subseteq>  dom (locals (store s2))"
       by (rule Un_least)
@@ -1816,7 +1816,7 @@ proof -
       by - (erule eval_no_abrupt_lemma [rule_format])
     with Cond.hyps
     have "assigns (In1l e0) \<subseteq> dom (locals (store s1))"
-      by rules
+      by iprover
     also from Cond.hyps
     have "\<dots> \<subseteq> dom (locals (store s2))"
       by - (erule dom_locals_eval_mono_elim)
@@ -1868,14 +1868,14 @@ proof -
       by - (erule eval_no_abrupt_lemma [rule_format])
     with Call.hyps
     have "assigns (In1l e) \<subseteq> dom (locals (store s1))"
-      by rules
+      by iprover
     also from Call.hyps
     have "\<dots> \<subseteq>  dom (locals (store s2))"
       by - (erule dom_locals_eval_mono_elim)
     also
     from nrm_s2 Call.hyps
     have "assigns (In3 args) \<subseteq> dom (locals (store s2))"
-      by rules
+      by iprover
     ultimately have "assigns (In1l e) \<union> assigns (In3 args) \<subseteq> \<dots>"
       by (rule Un_least)
     also 
@@ -1903,7 +1903,7 @@ proof -
     qed
     with FVar.hyps 
     have "assigns (In1l e) \<subseteq> dom (locals (store s2))"
-      by rules
+      by iprover
     also
     have "\<dots> \<subseteq>  dom (locals (store s2'))"
     proof -
@@ -1932,14 +1932,14 @@ proof -
       by - (erule eval_no_abrupt_lemma [rule_format])
     with AVar.hyps
     have "assigns (In1l e1) \<subseteq> dom (locals (store s1))"
-      by rules
+      by iprover
     also from AVar.hyps
     have "\<dots> \<subseteq>  dom (locals (store s2))"
       by - (erule dom_locals_eval_mono_elim)
     also
     from AVar.hyps nrm_s2
     have "assigns (In1l e2) \<subseteq> dom (locals (store s2))"
-      by rules
+      by iprover
     ultimately
     have "assigns (In1l e1) \<union> assigns (In1l e2) \<subseteq> \<dots>"
       by (rule Un_least)
@@ -1962,14 +1962,14 @@ proof -
     proof -
       from Cons
       have "normal s1" by - (erule eval_no_abrupt_lemma [rule_format])
-      with Cons.hyps show ?thesis by rules
+      with Cons.hyps show ?thesis by iprover
     qed
     also from Cons.hyps
     have "\<dots> \<subseteq>  dom (locals (store s2))"
       by - (erule dom_locals_eval_mono_elim)
     also from Cons
     have "assigns (In3 es) \<subseteq> dom (locals (store s2))"
-      by rules
+      by iprover
     ultimately
     have "assigns (In1l e) \<union> assigns (In3 es) \<subseteq> dom (locals (store s2))"
       by (rule Un_least)
@@ -2043,7 +2043,7 @@ proof -
       by cases simp
     from ce ve
     obtain eq_ve_ce: "ve=ce" and nrm_s: "normal s"
-      by (rule UnOp.hyps [elim_format]) rules
+      by (rule UnOp.hyps [elim_format]) iprover
     from eq_ve_ce const ce v 
     have "v=c" 
       by simp
@@ -2066,7 +2066,7 @@ proof -
     from c1 v1
     obtain eq_v1_c1: "v1 = c1" and 
              nrm_s1: "normal s1"
-      by (rule BinOp.hyps [elim_format]) rules
+      by (rule BinOp.hyps [elim_format]) iprover
     show ?case
     proof (cases "need_second_arg binop v1")
       case True
@@ -2074,7 +2074,7 @@ proof -
 	where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v2\<rightarrow> s" 
 	by (cases s1) simp
       with c2 obtain "v2 = c2" "normal s"
-	by (rule BinOp.hyps [elim_format]) rules
+	by (rule BinOp.hyps [elim_format]) iprover
       with c c1 c2 eq_v1_c1 v 
       show ?thesis by simp
     next
@@ -2111,7 +2111,7 @@ proof -
       by cases simp 
     from cb vb
     obtain eq_vb_cb: "vb = cb" and nrm_s1: "normal s1"
-      by (rule Cond.hyps [elim_format]) rules 
+      by (rule Cond.hyps [elim_format]) iprover 
     show ?case
     proof (cases "the_Bool vb")
       case True
@@ -2123,7 +2123,7 @@ proof -
 	where "G\<turnstile>Norm s1' \<midarrow>e1-\<succ>v\<rightarrow> s"
 	by (cases s1) simp
       with c1 obtain "c1 = v" "normal s"
-	by (rule Cond.hyps [elim_format]) rules 
+	by (rule Cond.hyps [elim_format]) iprover 
       ultimately show ?thesis by simp
     next
       case False
@@ -2135,7 +2135,7 @@ proof -
 	where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v\<rightarrow> s"
 	by (cases s1) simp
       with c2 obtain "c2 = v" "normal s"
-	by (rule Cond.hyps [elim_format]) rules 
+	by (rule Cond.hyps [elim_format]) iprover 
       ultimately show ?thesis by simp
     qed
   next
@@ -2143,7 +2143,7 @@ proof -
   qed simp_all
   with const eval
   show ?thesis
-    by rules
+    by iprover
 qed
   
 lemmas constVal_eval_elim = constVal_eval [THEN conjE]
@@ -2235,7 +2235,7 @@ proof -
   qed simp_all
   with const wt
   show ?thesis
-    by rules
+    by iprover
 qed	
       
 lemma assigns_if_good_approx:
@@ -2777,12 +2777,12 @@ proof -
     show ?case
     proof (cases "normal s1")
       case True
-      with nrm_c1 have "nrm C1 \<subseteq> dom (locals (snd s1))" by rules
+      with nrm_c1 have "nrm C1 \<subseteq> dom (locals (snd s1))" by iprover
       with da_c2 obtain C2' 
 	where  da_c2': "Env\<turnstile> dom (locals (snd s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
                nrm_c2: "nrm C2 \<subseteq> nrm C2'"                  and
                brk_c2: "\<forall> l. brk C2 l \<subseteq> brk C2' l"
-        by (rule da_weakenE) rules
+        by (rule da_weakenE) iprover
       have "PROP ?Hyp (In1r c2) s1 s2" .
       with wt_c2 da_c2' G
       obtain nrm_c2': "?NormalAssigned s2 C2'" and 
@@ -2871,7 +2871,7 @@ proof -
 	  where da_c1': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
 	        nrm_c1: "nrm C1 \<subseteq> nrm C1'"                  and
                 brk_c1: "\<forall> l. brk C1 l \<subseteq> brk C1' l"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
 	from If.hyps True have "PROP ?Hyp (In1r c1) s1 s2" by simp
 	with wt_c1 da_c1'
 	obtain nrm_c1': "?NormalAssigned s2 C1'" and 
@@ -2901,7 +2901,7 @@ proof -
 	  where da_c2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
 	        nrm_c2: "nrm C2 \<subseteq> nrm C2'"                  and
                 brk_c2: "\<forall> l. brk C2 l \<subseteq> brk C2' l"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
 	from If.hyps False have "PROP ?Hyp (In1r c2) s1 s2" by simp
 	with wt_c2 da_c2'
 	obtain nrm_c2': "?NormalAssigned s2 C2'" and 
@@ -2993,7 +2993,7 @@ proof -
 	  where da_c': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
 	     nrm_C_C': "nrm C \<subseteq> nrm C'"                  and
              brk_C_C': "\<forall> l. brk C l \<subseteq> brk C' l"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
 	from hyp_c wt_c da_c'
 	obtain nrm_C': "?NormalAssigned s2 C'" and 
           brk_C': "?BreakAssigned s1 s2 C'" and
@@ -3855,11 +3855,11 @@ proof -
           with wt_e1 da_e1 G normal_s1
           obtain "?NormalAssigned s1 E1"  
             by simp
-          with normal_s1 have "nrm E1 \<subseteq> dom (locals (store s1))" by rules
+          with normal_s1 have "nrm E1 \<subseteq> dom (locals (store s1))" by iprover
           with da_e2 obtain A' 
             where  da_e2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A'" and
                  nrm_A_A': "nrm A \<subseteq> nrm A'"                  
-            by (rule da_weakenE) rules
+            by (rule da_weakenE) iprover
           from notAndOr have "need_second_arg binop v1" by simp
           with BinOp.hyps 
           have "PROP ?Hyp (In1l e2) s1 s2" by simp
@@ -4004,7 +4004,7 @@ proof -
         with da_e obtain A' 
           where  da_e': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A'" and
                  nrm_A_A': "nrm A \<subseteq> nrm A'"                  
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
         from hyp_e wt_e da_e' G normal_s2
         obtain "nrm A' \<subseteq> dom (locals (store s2))"   
           by simp
@@ -4121,7 +4121,7 @@ proof -
           with da_e1 obtain E1' where
                   da_e1': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'" and
               nrm_E1_E1': "nrm E1 \<subseteq> nrm E1'"
-            by (rule da_weakenE) rules
+            by (rule da_weakenE) iprover
           ultimately have "nrm E1' \<subseteq> dom (locals (store s2))"
             using wt_e1 G normal_s2 by simp 
           with nrm_E1_E1' show ?thesis
@@ -4140,7 +4140,7 @@ proof -
           with da_e2 obtain E2' where
                   da_e2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'" and
               nrm_E2_E2': "nrm E2 \<subseteq> nrm E2'"
-            by (rule da_weakenE) rules
+            by (rule da_weakenE) iprover
           ultimately have "nrm E2' \<subseteq> dom (locals (store s2))"
             using wt_e2 G normal_s2 by simp 
           with nrm_E2_E2' show ?thesis
@@ -4206,7 +4206,7 @@ proof -
         with da_args obtain A' where
           da_args': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>args\<rangle>\<guillemotright> A'" and
           nrm_A_A': "nrm A \<subseteq> nrm A'"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
         have "PROP ?Hyp (In3 args) s1 s2" .
         with da_args' wt_args G normal_s2
         have "nrm A' \<subseteq> dom (locals (store s2))"
@@ -4313,7 +4313,7 @@ proof -
         with da_e obtain A' where
           da_e': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e\<rangle>\<guillemotright> A'" and
           nrm_A_A': "nrm A \<subseteq> nrm A'"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
         have normal_s2: "normal s2"
         proof -
           from normal_s3 s3 
@@ -4391,7 +4391,7 @@ proof -
         with da_e2 obtain A' where
           da_e2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e2\<rangle>\<guillemotright> A'" and
           nrm_A_A': "nrm A \<subseteq> nrm A'"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
         have "PROP ?Hyp (In1l e2) s1 s2" .
         with da_e2' wt_e2 G normal_s2
         have "nrm A' \<subseteq> dom (locals (store s2))"
@@ -4459,7 +4459,7 @@ proof -
         with da_es obtain A' where
           da_es': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>es\<rangle>\<guillemotright> A'" and
           nrm_A_A': "nrm A \<subseteq> nrm A'"
-          by (rule da_weakenE) rules
+          by (rule da_weakenE) iprover
         have "PROP ?Hyp (In3 es) s1 s2" .
         with da_es' wt_es G normal_s2
         have "nrm A' \<subseteq> dom (locals (store s2))"
@@ -4523,7 +4523,7 @@ proof -
   moreover note wt da
   moreover from wf have "wf_prog (prg \<lparr>prg=G,cls=C,lcl=L\<rparr>)" by simp
   ultimately show ?thesis
-    using elim by (rule da_good_approxE) rules+
+    using elim by (rule da_good_approxE) iprover+
 qed
 
 ML {*

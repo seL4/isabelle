@@ -370,7 +370,7 @@ next
     by (cases s') (auto simp add: subst_Var free_par_eta [symmetric] split: split_if_asm)
   then have "\<exists>u1 u2 k. s = eta_expand k (u1 \<degree> u2) \<and> u1 \<Rightarrow>\<^sub>\<eta> u1'' \<and> u2 \<Rightarrow>\<^sub>\<eta> u2''" by (rule eta)
   then obtain u1 u2 k where s: "s = eta_expand k (u1 \<degree> u2)"
-    and u1: "u1 \<Rightarrow>\<^sub>\<eta> u1''" and u2: "u2 \<Rightarrow>\<^sub>\<eta> u2''" by rules
+    and u1: "u1 \<Rightarrow>\<^sub>\<eta> u1''" and u2: "u2 \<Rightarrow>\<^sub>\<eta> u2''" by iprover
   from u1 u2 eta s' have "\<not> free u1 0" and "\<not> free u2 0"
     by (simp_all del: free_par_eta add: free_par_eta [symmetric])
   with s have "Abs (s \<degree> Var 0) = eta_expand (Suc k) (u1[dummy/0] \<degree> u2[dummy/0])"
@@ -399,7 +399,7 @@ next
   then obtain u'' where s': "s' = Abs u''"
     by (cases s') (auto simp add: subst_Var free_par_eta [symmetric] split: split_if_asm)
   then have "\<exists>u k. s = eta_expand k (Abs u) \<and> u \<Rightarrow>\<^sub>\<eta> u''" by (rule eta)
-  then obtain u k where s: "s = eta_expand k (Abs u)" and u: "u \<Rightarrow>\<^sub>\<eta> u''" by rules
+  then obtain u k where s: "s = eta_expand k (Abs u)" and u: "u \<Rightarrow>\<^sub>\<eta> u''" by iprover
   from eta u s' have "\<not> free u (Suc 0)"
     by (simp del: free_par_eta add: free_par_eta [symmetric])
   with s have "Abs (s \<degree> Var 0) = eta_expand (Suc k) (Abs (u[lift dummy 0/Suc 0]))"
@@ -481,7 +481,7 @@ next
     by (blast dest: 2)
   from par_eta_subset_eta t' have "t' -e>> s'''" ..
   with t'' have "t'' -e>> s'''" by (rule rtrancl_trans)
-  with s show ?case by rules
+  with s show ?case by iprover
 qed
 
 theorem eta_postponement:

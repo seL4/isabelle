@@ -451,9 +451,9 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
 	  proof -
 	    from eval_e wt_e da_e wf normal_s1
 	    have "nrm C \<subseteq>  dom (locals (store s1))"
-	      by (cases rule: da_good_approxE') rules
+	      by (cases rule: da_good_approxE') iprover
 	    with da_ps show ?thesis
-	      by (rule da_weakenE) rules
+	      by (rule da_weakenE) iprover
 	  qed
 	}
 	ultimately show ?thesis
@@ -845,7 +845,7 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
 	  show ?thesis
 	    by (rule eval_type_soundE)
 	qed
-	ultimately show ?thesis by rules
+	ultimately show ?thesis by iprover
       qed
     qed
   next
@@ -1528,7 +1528,7 @@ proof (rule ax_no_hazard)
     proof -
       from eval_t type_ok wf 
       obtain n where evaln: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y', s')"
-	by (rule eval_to_evaln [elim_format]) rules
+	by (rule eval_to_evaln [elim_format]) iprover
       from valid have 
 	valid_expanded:
 	"\<forall>n Y s Z. P Y s Z \<longrightarrow> type_ok G t s 

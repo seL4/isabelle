@@ -542,7 +542,7 @@ by(auto intro:set_ext)
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
-  by (rules intro: set_ext subsetD)
+  by (iprover intro: set_ext subsetD)
 
 lemmas equalityI [intro!] = subset_antisym
 
@@ -1046,10 +1046,10 @@ lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subsete
 text {* \medskip Big Union -- least upper bound of a set. *}
 
 lemma Union_upper: "B \<in> A ==> B \<subseteq> Union A"
-  by (rules intro: subsetI UnionI)
+  by (iprover intro: subsetI UnionI)
 
 lemma Union_least: "(!!X. X \<in> A ==> X \<subseteq> C) ==> Union A \<subseteq> C"
-  by (rules intro: subsetI elim: UnionE dest: subsetD)
+  by (iprover intro: subsetI elim: UnionE dest: subsetD)
 
 
 text {* \medskip General union. *}
@@ -1058,7 +1058,7 @@ lemma UN_upper: "a \<in> A ==> B a \<subseteq> (\<Union>x\<in>A. B x)"
   by blast
 
 lemma UN_least: "(!!x. x \<in> A ==> B x \<subseteq> C) ==> (\<Union>x\<in>A. B x) \<subseteq> C"
-  by (rules intro: subsetI elim: UN_E dest: subsetD)
+  by (iprover intro: subsetI elim: UN_E dest: subsetD)
 
 
 text {* \medskip Big Intersection -- greatest lower bound of a set. *}
@@ -1071,13 +1071,13 @@ lemma Inter_subset:
   by blast
 
 lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> Inter A"
-  by (rules intro: InterI subsetI dest: subsetD)
+  by (iprover intro: InterI subsetI dest: subsetD)
 
 lemma INT_lower: "a \<in> A ==> (\<Inter>x\<in>A. B x) \<subseteq> B a"
   by blast
 
 lemma INT_greatest: "(!!x. x \<in> A ==> C \<subseteq> B x) ==> C \<subseteq> (\<Inter>x\<in>A. B x)"
-  by (rules intro: INT_I subsetI dest: subsetD)
+  by (iprover intro: INT_I subsetI dest: subsetD)
 
 
 text {* \medskip Finite Union -- the least upper bound of two sets. *}
@@ -1809,7 +1809,7 @@ lemma ex_in_conv: "(\<exists>x. x \<in> A) = (A \<noteq> {})"
   by blast
 
 lemma distinct_lemma: "f x \<noteq> f y ==> x \<noteq> y"
-  by rules
+  by iprover
 
 
 text {* \medskip Miniscoping: pushing in quantifiers and big Unions
@@ -1955,21 +1955,21 @@ lemma in_mono: "A \<subseteq> B ==> x \<in> A --> x \<in> B"
   done
 
 lemma conj_mono: "P1 --> Q1 ==> P2 --> Q2 ==> (P1 & P2) --> (Q1 & Q2)"
-  by rules
+  by iprover
 
 lemma disj_mono: "P1 --> Q1 ==> P2 --> Q2 ==> (P1 | P2) --> (Q1 | Q2)"
-  by rules
+  by iprover
 
 lemma imp_mono: "Q1 --> P1 ==> P2 --> Q2 ==> (P1 --> P2) --> (Q1 --> Q2)"
-  by rules
+  by iprover
 
 lemma imp_refl: "P --> P" ..
 
 lemma ex_mono: "(!!x. P x --> Q x) ==> (EX x. P x) --> (EX x. Q x)"
-  by rules
+  by iprover
 
 lemma all_mono: "(!!x. P x --> Q x) ==> (ALL x. P x) --> (ALL x. Q x)"
-  by rules
+  by iprover
 
 lemma Collect_mono: "(!!x. P x --> Q x) ==> Collect P \<subseteq> Collect Q"
   by blast
@@ -1983,10 +1983,10 @@ lemmas basic_monos =
   ex_mono Collect_mono in_mono
 
 lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
-  by rules
+  by iprover
 
 lemma eq_to_mono2: "a = b ==> c = d ==> ~ b --> ~ d ==> ~ a --> ~ c"
-  by rules
+  by iprover
 
 lemma Least_mono:
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
