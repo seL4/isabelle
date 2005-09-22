@@ -93,6 +93,11 @@ by (fast intro: admI elim: admD)
 
 lemmas adm_all2 = adm_all [rule_format]
 
+lemma adm_ball: "\<forall>y\<in>A. adm (P y) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P y x)"
+by (fast intro: admI elim: admD)
+
+lemmas adm_ball2 = adm_ball [rule_format]
+
 lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
 apply (simp add: cont2contlubE)
@@ -224,6 +229,8 @@ val adm_not_free = thm "adm_not_free";
 val adm_not_less = thm "adm_not_less";
 val adm_all = thm "adm_all";
 val adm_all2 = thm "adm_all2";
+val adm_ball = thm "adm_ball";
+val adm_ball2 = thm "adm_ball2";
 val adm_subst = thm "adm_subst";
 val adm_UU_not_less = thm "adm_UU_not_less";
 val adm_not_UU = thm "adm_not_UU";
