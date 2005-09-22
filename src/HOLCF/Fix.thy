@@ -228,7 +228,7 @@ done
 
 text {* computational induction for weak admissible formulae *}
 
-lemma wfix_ind: "\<lbrakk>admw P; \<forall>n. P (iterate n F UU)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
+lemma wfix_ind: "\<lbrakk>admw P; \<forall>n. P (iterate n F \<bottom>)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
 by (simp add: fix_def2 admw_def)
 
 lemma def_wfix_ind:

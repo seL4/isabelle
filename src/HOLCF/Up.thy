@@ -130,9 +130,7 @@ apply (rule disjCI)
 apply (simp add: expand_fun_eq)
 apply (erule exE, rename_tac j)
 apply (rule_tac x="\<lambda>i. THE a. Iup a = Y (i + j)" in exI)
-apply (rule conjI)
 apply (simp add: up_lemma4)
-apply (rule conjI)
 apply (simp add: up_lemma6 [THEN thelubI])
 apply (rule_tac x=j in exI)
 apply (simp add: up_lemma3)
@@ -143,8 +141,7 @@ apply (frule up_chain_cases, safe)
 apply (rule_tac x="Iup (lub (range A))" in exI)
 apply (erule_tac j1="j" in is_lub_range_shift [THEN iffD1])
 apply (simp add: is_lub_Iup thelubE)
-apply (rule_tac x="Ibottom" in exI)
-apply (rule lub_const)
+apply (rule exI, rule lub_const)
 done
 
 instance u :: (cpo) cpo
@@ -152,7 +149,7 @@ by intro_classes (rule cpo_up)
 
 subsection {* Type @{typ "'a u"} is pointed *}
 
-lemma least_up: "EX x::'a u. ALL y. x\<sqsubseteq>y"
+lemma least_up: "\<exists>x::'a u. \<forall>y. x \<sqsubseteq> y"
 apply (rule_tac x = "Ibottom" in exI)
 apply (rule minimal_up [THEN allI])
 done
