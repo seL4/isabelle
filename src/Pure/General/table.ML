@@ -24,6 +24,7 @@ sig
   val map: ('a -> 'b) -> 'a table -> 'b table
   val map': (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
+  val fold_map: (key * 'b -> 'a -> 'c * 'a) -> 'b table -> 'a -> 'c table * 'a
   val foldl: ('a * (key * 'b) -> 'a) -> 'a * 'b table -> 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
@@ -102,6 +103,25 @@ fun fold_table f =
       | fold (Branch3 (left, p1, mid, p2, right)) x =
           fold right (f p2 (fold mid (f p1 (fold left x))));
   in fold end;
+
+fun fold_map_table f = 
+  let
+    fun fold_map Empty s = (Empty, s)
+      | fold_map (Branch2 (left, p as (k, x), right)) s =
+          s
+          |> fold_map left
+          ||>> f p
+          ||>> fold_map right
+          |-> (fn ((l, e), r) => pair (Branch2 (l, (k, e), r)))
+      | fold_map (Branch3 (left, p1 as (k1, x1), mid, p2 as (k2, x2), right)) s =
+          s
+          |> fold_map left
+          ||>> f p1
+          ||>> fold_map mid
+          ||>> f p2
+          ||>> fold_map right
+          |-> (fn ((((l, e1), m), e2), r) => pair (Branch3 (l, (k1, e1), m, (k2, e2), r)))
+  in fold_map end;
 
 fun dest tab = rev (fold_table cons tab []);
 fun keys tab = rev (fold_table (cons o #1) tab []);
@@ -363,6 +383,7 @@ fun map f = map_table (K f);
 val map' = map_table;
 val fold = fold_table;
 fun foldl f (x, tab) = fold (fn p => fn x' => f (x', p)) tab x;
+val fold_map = fold_map_table;
 
 end;
 
