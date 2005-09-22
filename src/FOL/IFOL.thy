@@ -190,7 +190,7 @@ setup {*
 
 
 lemma iff_not_sym: "~ (Q <-> P) ==> ~ (P <-> Q)"
-  by rules
+  by iprover
 
 lemmas [sym] = sym iff_sym not_sym iff_not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
