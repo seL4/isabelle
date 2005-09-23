@@ -38,7 +38,7 @@ theorem is_path'_snoc [simp]:
   by (induct ys) simp+
 
 theorem list_all_scoc [simp]: "list_all P (xs @ [x]) = (P x \<and> list_all P xs)"
-  by (induct xs, simp+, rules)
+  by (induct xs, simp+, iprover)
 
 theorem list_all_lemma: 
   "list_all P xs \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> list_all Q xs"
@@ -188,7 +188,7 @@ qed
 theorem lemma5':
   "\<And>p. is_path r p (Suc i) j k \<Longrightarrow> \<not> is_path r p i j k \<Longrightarrow>
    \<not> (\<forall>q. \<not> is_path r q i j i) \<and> \<not> (\<forall>q'. \<not> is_path r q' i i k)"
-  by (rules dest: lemma5)
+  by (iprover dest: lemma5)
 
 theorem warshall: 
   "\<And>j k. \<not> (\<exists>p. is_path r p i j k) \<or> (\<exists>p. is_path r p i j k)"
@@ -205,7 +205,7 @@ proof (induct i)
     assume "r j k = F"
     hence "r j k ~= T" by simp
     hence "\<not> (\<exists>p. is_path r p 0 j k)"
-      by (rules dest: lemma2)
+      by (iprover dest: lemma2)
     thus ?thesis ..
   qed
 next
@@ -217,7 +217,7 @@ next
     proof
       assume "\<not> (\<exists>p. is_path r p i j i)"
       with h1 have "\<not> (\<exists>p. is_path r p (Suc i) j k)"
-	by (rules dest: lemma5')
+	by (iprover dest: lemma5')
       thus ?case ..
     next
       assume "\<exists>p. is_path r p i j i"
@@ -226,7 +226,7 @@ next
       proof
 	assume "\<not> (\<exists>p. is_path r p i i k)"
 	with h1 have "\<not> (\<exists>p. is_path r p (Suc i) j k)"
-	  by (rules dest: lemma5')
+	  by (iprover dest: lemma5')
 	thus ?case ..
       next
 	assume "\<exists>q. is_path r q i i k"
@@ -240,7 +240,7 @@ next
   next
     assume "\<exists>p. is_path r p i j k"
     hence "\<exists>p. is_path r p (Suc i) j k"
-      by (rules intro: lemma1)
+      by (iprover intro: lemma1)
     thus ?case ..
   qed
 qed

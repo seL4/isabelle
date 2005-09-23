@@ -12,27 +12,27 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
   apply (case_tac n)
   apply (case_tac [3] n)
-  apply (simp only: nat.simps, rules?)+
+  apply (simp only: nat.simps, iprover?)+
   done
 
 theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
 proof (induct a)
   case 0
   have "0 = Suc b * 0 + 0 \<and> 0 \<le> b" by simp
-  thus ?case by rules
+  thus ?case by iprover
 next
   case (Suc a)
-  then obtain r q where I: "a = Suc b * q + r" and "r \<le> b" by rules
+  then obtain r q where I: "a = Suc b * q + r" and "r \<le> b" by iprover
   from nat_eq_dec show ?case
   proof
     assume "r = b"
     with I have "Suc a = Suc b * (Suc q) + 0 \<and> 0 \<le> b" by simp
-    thus ?case by rules
+    thus ?case by iprover
   next
     assume "r \<noteq> b"
     hence "r < b" by (simp add: order_less_le)
     with I have "Suc a = Suc b * q + (Suc r) \<and> (Suc r) \<le> b" by simp
-    thus ?case by rules
+    thus ?case by iprover
   qed
 qed
 

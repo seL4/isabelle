@@ -20,7 +20,7 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
   apply (case_tac n)
   apply (case_tac [3] n)
-  apply (simp only: nat.simps, rules?)+
+  apply (simp only: nat.simps, iprover?)+
   done
 
 text {*
@@ -34,7 +34,7 @@ proof (induct l)
   have "\<not> (\<exists>j<0. x = f j)"
   proof
     assume "\<exists>j<0. x = f j"
-    then obtain j where j: "j < (0::nat)" by rules
+    then obtain j where j: "j < (0::nat)" by iprover
     thus "False" by simp
   qed
   thus ?case ..
@@ -44,23 +44,23 @@ next
   proof
     assume "\<exists>j<l. x = f j"
     then obtain j where j: "j < l"
-      and eq: "x = f j" by rules
+      and eq: "x = f j" by iprover
     from j have "j < Suc l" by simp
-    with eq show ?case by rules
+    with eq show ?case by iprover
   next
     assume nex: "\<not> (\<exists>j<l. x = f j)"
     from nat_eq_dec show ?case
     proof
       assume eq: "x = f l"
       have "l < Suc l" by simp
-      with eq show ?case by rules
+      with eq show ?case by iprover
     next
       assume neq: "x \<noteq> f l"
       have "\<not> (\<exists>j<Suc l. x = f j)"
       proof
 	assume "\<exists>j<Suc l. x = f j"
 	then obtain j where j: "j < Suc l"
-	  and eq: "x = f j" by rules
+	  and eq: "x = f j" by iprover
 	show False
 	proof cases
 	  assume "j = l"
@@ -69,7 +69,7 @@ next
 	next
 	  assume "j \<noteq> l"
 	  with j have "j < l" by simp
-	  with nex and eq show False by rules
+	  with nex and eq show False by iprover
 	qed
       qed
       thus ?case ..
@@ -86,7 +86,7 @@ theorem pigeonhole:
 proof (induct n)
   case 0
   hence "Suc 0 \<le> Suc 0 \<and> 0 < Suc 0 \<and> f (Suc 0) = f 0" by simp
-  thus ?case by rules
+  thus ?case by iprover
 next
   case (Suc n)
   {
@@ -102,7 +102,7 @@ next
       proof
 	assume "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j"
       	then obtain i j where i: "i \<le> Suc n" and j: "j < i"
-	  and f: "?f i = ?f j" by rules
+	  and f: "?f i = ?f j" by iprover
       	from j have i_nz: "Suc 0 \<le> i" by simp
       	from i have iSSn: "i \<le> Suc (Suc n)" by simp
       	have S0SSn: "Suc 0 \<le> Suc (Suc n)" by simp
@@ -164,7 +164,7 @@ next
       from search show ?case
       proof
 	assume "\<exists>j<Suc k. f (Suc k) = f j"
-	thus ?case by (rules intro: le_refl)
+	thus ?case by (iprover intro: le_refl)
       next
 	assume nex: "\<not> (\<exists>j<Suc k. f (Suc k) = f j)"
 	have "\<exists>i j. i \<le> k \<and> j < i \<and> f i = f j"
@@ -179,7 +179,7 @@ next
 	    proof
 	      assume "f i = f j"
 	      hence "f (Suc k) = f j" by (simp add: eq)
-	      with nex and j and eq show False by rules
+	      with nex and j and eq show False by iprover
 	    qed
 	  next
 	    assume "i \<noteq> Suc k"
@@ -187,7 +187,7 @@ next
 	    thus ?thesis using i and j by (rule Suc)
 	  qed
 	qed
-	thus ?thesis by (rules intro: le_SucI)
+	thus ?thesis by (iprover intro: le_SucI)
       qed
     qed
   }
@@ -207,16 +207,16 @@ proof (induct n)
   have "Suc 0 \<le> Suc 0" ..
   moreover have "0 < Suc 0" ..
   moreover from 0 have "f (Suc 0) = f 0" by simp
-  ultimately show ?case by rules
+  ultimately show ?case by iprover
 next
   case (Suc n)
   from search show ?case
   proof
     assume "\<exists>j < Suc (Suc n). f (Suc (Suc n)) = f j"
-    thus ?case by (rules intro: le_refl)
+    thus ?case by (iprover intro: le_refl)
   next
     assume "\<not> (\<exists>j < Suc (Suc n). f (Suc (Suc n)) = f j)"
-    hence nex: "\<forall>j < Suc (Suc n). f (Suc (Suc n)) \<noteq> f j" by rules
+    hence nex: "\<forall>j < Suc (Suc n). f (Suc (Suc n)) \<noteq> f j" by iprover
     let ?f = "\<lambda>i. if f i = Suc n then f (Suc (Suc n)) else f i"
     have "\<And>i. i \<le> Suc n \<Longrightarrow> ?f i \<le> n"
     proof -
@@ -237,7 +237,7 @@ next
     qed
     hence "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j" by (rule Suc)
     then obtain i j where i: "i \<le> Suc n" and ji: "j < i" and f: "?f i = ?f j"
-      by rules
+      by iprover
     have "f i = f j"
     proof (cases "f i = Suc n")
       case True
@@ -263,7 +263,7 @@ next
       qed
     qed
     moreover from i have "i \<le> Suc (Suc n)" by simp
-    ultimately show ?thesis using ji by rules
+    ultimately show ?thesis using ji by iprover
   qed
 qed
 

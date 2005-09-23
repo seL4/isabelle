@@ -65,10 +65,10 @@ intros
   bar1 [Pure.intro]: "ws \<in> good \<Longrightarrow> ws \<in> bar"
   bar2 [Pure.intro]: "(\<And>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
 
-theorem prop1: "([] # ws) \<in> bar" by rules
+theorem prop1: "([] # ws) \<in> bar" by iprover
 
 theorem lemma1: "ws \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
-  by (erule L.induct, rules+)
+  by (erule L.induct, iprover+)
 
 lemma lemma2': "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> L as \<Longrightarrow> ws \<in> L (a # as)"
   apply (induct set: R)
@@ -83,7 +83,7 @@ lemma lemma2': "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> L as \<Longrightar
 
 lemma lemma2: "(vs, ws) \<in> R a \<Longrightarrow> vs \<in> good \<Longrightarrow> ws \<in> good"
   apply (induct set: R)
-  apply rules
+  apply iprover
   apply (erule good.elims)
   apply simp_all
   apply (rule good0)
@@ -102,7 +102,7 @@ lemma lemma3': "(vs, ws) \<in> T a \<Longrightarrow> vs \<in> L as \<Longrightar
   apply (erule lemma1)
   apply (erule L.elims)
   apply simp_all
-  apply rules+
+  apply iprover+
   done
 
 lemma lemma3: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> good \<Longrightarrow> zs \<in> good"
@@ -116,12 +116,12 @@ lemma lemma3: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> good \<Longrightarr
   apply simp_all
   apply (rule good0)
   apply (erule lemma3')
-  apply rules+
+  apply iprover+
   done
 
 lemma lemma4: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> [] \<Longrightarrow> (ws, zs) \<in> T a"
   apply (induct set: R)
-  apply rules
+  apply iprover
   apply (case_tac vs)
   apply (erule R.elims)
   apply simp
@@ -186,12 +186,12 @@ next
 	from letter_eq_dec show ?thesis
 	proof
 	  assume ca: "c = a"
-	  from ab have "(a # cs) # zs \<in> bar" by (rules intro: I ys Ta Tb)
+	  from ab have "(a # cs) # zs \<in> bar" by (iprover intro: I ys Ta Tb)
 	  thus ?thesis by (simp add: Cons ca)
 	next
 	  assume "c \<noteq> a"
 	  with ab have cb: "c = b" by (rule letter_neq)
-	  from ab have "(b # cs) # zs \<in> bar" by (rules intro: I' Ta Tb)
+	  from ab have "(b # cs) # zs \<in> bar" by (iprover intro: I' Ta Tb)
 	  thus ?thesis by (simp add: Cons cb)
 	qed
       qed
@@ -222,11 +222,11 @@ next
       from letter_eq_dec show ?case
       proof
 	assume "c = a"
-	thus ?thesis by (rules intro: I [simplified] R)
+	thus ?thesis by (iprover intro: I [simplified] R)
       next
 	from R xsn have T: "(xs, zs) \<in> T a" by (rule lemma4)
 	assume "c \<noteq> a"
-	thus ?thesis by (rules intro: prop2 Cons xsb xsn R T)
+	thus ?thesis by (iprover intro: prop2 Cons xsb xsn R T)
       qed
     qed
   qed
@@ -240,7 +240,7 @@ proof (rule bar2)
     show "[[]] \<in> bar" by (rule prop1)
   next
     fix c cs assume "[cs] \<in> bar"
-    thus "[c # cs] \<in> bar" by (rule prop3) (simp, rules)
+    thus "[c # cs] \<in> bar" by (rule prop3) (simp, iprover)
   qed
 qed
 
@@ -256,11 +256,11 @@ theorem good_prefix_lemma:
   shows "is_prefix ws f \<Longrightarrow> \<exists>vs. is_prefix vs f \<and> vs \<in> good" using bar
 proof induct
   case bar1
-  thus ?case by rules
+  thus ?case by iprover
 next
   case (bar2 ws)
   have "is_prefix (f (length ws) # ws) f" by simp
-  thus ?case by (rules intro: bar2)
+  thus ?case by (iprover intro: bar2)
 qed
 
 theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> vs \<in> good"
