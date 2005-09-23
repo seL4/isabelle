@@ -14,7 +14,7 @@ text {*
 
 subsection {* Special hacks, late package setup etc. *}
 
-text {* \medskip Default values for rufute, see also theory @{text
+text {* \medskip Default values for refute, see also theory @{text
   Refute}.
 *}
 
