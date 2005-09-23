@@ -1177,7 +1177,7 @@ fun rewrite_hol4_term t thy =
 
 fun get_isabelle_thm thyname thmname hol4conc thy =
     let
-	val _ = message "get_isabelle_thm called..."
+	val _ = writeln ("get_isabelle_thm called: "^thmname)
 	val sg = sign_of thy
 
 	val (info,hol4conc') = disamb_term hol4conc
@@ -1196,7 +1196,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	case get_hol4_mapping thyname thmname thy of
 	    SOME (SOME thmname) =>
 	    let
-		val _ = message ("Looking for " ^ thmname)
+		val _ = writeln ("Looking for " ^ thmname)
 		val th1 = (SOME (transform_error (PureThy.get_thm thy) (Name thmname))
 			   handle ERROR_MESSAGE _ =>
 				  (case split_name thmname of
@@ -1213,14 +1213,14 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	    end
 	  | SOME NONE => error ("Trying to access ignored theorem " ^ thmname)
 	  | NONE =>
-	    let
-		val _ = (message "Looking for conclusion:";
+	    let		
+		val _ = (writeln "Looking for conclusion:";
 			 if_debug prin isaconc)
 		val cs = non_trivial_term_consts isaconc
-		val _ = (message "Looking for consts:";
-			 message (commas cs))
+		val _ = (writeln "Looking for consts:";
+			 writeln (commas cs))
 		val pot_thms = Shuffler.find_potential thy isaconc
-		val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
+		val _ = writeln ((Int.toString (length pot_thms)) ^ " potential theorems")
 	    in
 		case Shuffler.set_prop thy isaconc pot_thms of
 		    SOME (isaname,th) =>

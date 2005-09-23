@@ -558,6 +558,7 @@ fun dump_import_thy thyname thy =
     let
 	val output_dir = get_output_dir thy
 	val output_thy = get_output_thy thy
+	val input_thy = Context.theory_name thy
 	val import_segment = get_import_segment thy
 	val sg = sign_of thy
 	val os = TextIO.openOut (OS.Path.joinDirFile {dir=output_dir,
@@ -655,10 +656,20 @@ fun dump_import_thy thyname thy =
 		then ()
 		else out "\n\n"
 
+	fun gen2replay in_thy out_thy s = 
+	    let
+		val ss = NameSpace.unpack s
+	    in
+		if (hd ss = in_thy) then 
+		    NameSpace.pack (out_thy::(tl ss))
+		else
+		    s
+	    end 
+
 	val _ = if null mapped
 		then ()
 		else out "thm_maps"
-	val _ = app (fn (hol,isa) => out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string isa))) mapped
+	val _ = app (fn (hol,isa) => out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (gen2replay input_thy output_thy isa)))) mapped
 	val _ = if null mapped 
 		then ()
 		else out "\n\n"
