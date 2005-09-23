@@ -1027,7 +1027,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \ref{ch:logics}).
 
 \indexisarmeth{$-$}\indexisarmeth{assumption}
-\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{rules}
+\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{iprover}
 \indexisarattof{Pure}{intro}\indexisarattof{Pure}{elim}
 \indexisarattof{Pure}{dest}\indexisarattof{Pure}{rule}
 \indexisaratt{OF}\indexisaratt{of}\indexisaratt{where}
@@ -1036,7 +1036,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   assumption & : & \isarmeth \\
   this & : & \isarmeth \\
   rule & : & \isarmeth \\
-  rules & : & \isarmeth \\[0.5ex]
+  iprover & : & \isarmeth \\[0.5ex]
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
@@ -1049,7 +1049,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \begin{rail}
   'rule' thmrefs?
   ;
-  'rules' ('!' ?) (rulemod *)
+  'iprover' ('!' ?) (rulemod *)
   ;
   rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
   ;
@@ -1094,10 +1094,10 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   $\PROOFNAME$ and ``$\DDOT$'' (double-dot) steps (see
   \S\ref{sec:proof-steps}).
   
-\item [$rules$] performs intuitionistic proof search, depending on
+\item [$iprover$] performs intuitionistic proof search, depending on
   specifically declared rules from the context, or given as explicit
   arguments.  Chained facts are inserted into the goal before commencing proof
-  search; ``$rules!$'' means to include the current $prems$ as well.
+  search; ``$iprover!$'' means to include the current $prems$ as well.
   
   Rules need to be classified as $intro$, $elim$, or $dest$; here the ``$!$''
   indicator refers to ``safe'' rules, which may be applied aggressively
@@ -1107,7 +1107,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   number of rule premises will be taken into account here.
   
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
-  destruct rules, to be used with the $rule$ and $rules$ methods.  Note that
+  destruct rules, to be used with the $rule$ and $iprover$ methods.  Note that
   the latter will ignore rules declared with ``$?$'', while ``$!$'' are used
   most aggressively.
   
