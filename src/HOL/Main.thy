@@ -1,4 +1,6 @@
-(* $Id$ *)
+(*  Title:      HOL/Main.thy
+    ID:         $Id$
+*)
 
 header {* Main HOL *}
 
