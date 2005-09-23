@@ -188,8 +188,8 @@ fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = REPEAT (cont_tac i);
 
 local val flift1_def = thm "flift1_def"
-in fun cont_tacRs i =
-  simp_tac (simpset()) i THEN
+in fun cont_tacRs ss i =
+  simp_tac ss i THEN
   REPEAT (cont_tac i)
 end;
 *}
