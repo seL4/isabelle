@@ -22,9 +22,7 @@ fun add_term_consts_rm ncs (Const(c, _)) cs =
 
 fun term_consts_rm ncs t = add_term_consts_rm ncs t [];
 
-
 fun thm_consts_rm ncs thm = term_consts_rm ncs (prop_of thm);
-
 
 fun consts_of_thm (n,thm) = thm_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] thm;
 
@@ -32,8 +30,6 @@ fun consts_of_term term = term_consts_rm ["Trueprop","==>","all","Ex","op &", "o
 
 fun make_pairs [] _ = []
   | make_pairs (x::xs) y = (x,y)::(make_pairs xs y);
-
-
 
 fun const_thm_list_aux [] cthms = cthms
   | const_thm_list_aux (thm::thms) cthms =
@@ -80,11 +76,9 @@ fun relevant_axioms goal thmTab n =
 
     in  relevant_axioms_aux1 consts 1  end;
 
-
 fun relevant_filter n goal thms = 
     if n<=0 then thms 
     else #2 (relevant_axioms goal (make_thm_table thms) n);
-
 
 (* find the thms from thy that contain relevant constants, n is the iteration number *)
 fun find_axioms_n thy goal n =
@@ -94,7 +88,6 @@ fun find_axioms_n thy goal n =
     in
 	relevant_axioms goal table n
     end;
-
 
 fun find_axioms_n_c thy goal n =
     let val current_thms = PureThy.thms_of thy
@@ -119,7 +112,7 @@ signature RES_CLASIMP =
 structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref false;   (*Performance is much better without simprules*)
-val use_nameless = ref false;  (*Because most are useless [iff] rules*)
+val use_nameless = ref true;
 
 val relevant = ref 0;  (*Relevance filtering is off by default*)
 
@@ -135,9 +128,6 @@ fun fake_thm_name th =
 fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
                             else ("HOL.TrueI",TrueI)
   | put_name_pair (a,th)  = (a,th);
-
-(* changed, now it also finds out the name of the theorem. *)
-(* convert a theorem into CNF and then into Clause.clause format. *)
 
 (* outputs a list of (thm,clause) pairs *)
 
