@@ -45,6 +45,9 @@ time_use_thy "Tarski";
 time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
 
+(* requires zChaff with proof generation to be installed: *)
+time_use_thy "SAT_Examples" handle ERROR => ();
+
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
 

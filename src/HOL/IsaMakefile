@@ -91,12 +91,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Nat.ML Nat.thy NatArith.thy OrderedGroup.ML OrderedGroup.thy			\
   Orderings.ML Orderings.thy Power.thy PreList.thy Product_Type.thy		\
   ROOT.ML Recdef.thy Reconstruction.thy Record.thy Refute.thy			\
-  Relation.ML Relation.thy Relation_Power.thy Ring_and_Field.thy Set.ML		\
+  Relation.ML Relation.thy Relation_Power.thy Ring_and_Field.thy SAT.thy Set.ML		\
   Set.thy SetInterval.thy Sum_Type.thy Tools/ATP/AtpCommunication.ML		\
   Tools/ATP/recon_order_clauses.ML Tools/ATP/recon_parse.ML			\
   Tools/ATP/recon_transfer_proof.ML			\
   Tools/ATP/recon_translate_proof.ML Tools/ATP/res_clasimpset.ML		\
   Tools/ATP/watcher.ML 					\
+  Tools/cnf_funcs.ML					\
   Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML				\
   Tools/datatype_codegen.ML Tools/datatype_package.ML				\
   Tools/datatype_prop.ML Tools/datatype_realizer.ML				\
@@ -108,6 +109,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/refute_isar.ML Tools/res_atp.ML Tools/res_axioms.ML			\
   Tools/res_clause.ML Tools/res_lib.ML Tools/res_skolem_function.ML		\
   Tools/res_types_sorts.ML Tools/rewrite_hol_proof.ML				\
+  Tools/sat_funcs.ML					\
   Tools/sat_solver.ML Tools/specification_package.ML Tools/split_rule.ML	\
   Tools/typedef_package.ML Transitive_Closure.ML Transitive_Closure.thy		\
   Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
@@ -598,7 +600,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy ex/BT.thy ex/BinEx.thy	\
   ex/NatSum.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
   ex/Puzzle.thy ex/Qsort.thy ex/Quickcheck_Examples.thy ex/ROOT.ML	\
   ex/Recdefs.thy ex/Records.thy ex/Reflected_Presburger.thy		\
-  ex/Refute_Examples.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy		\
+  ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.ML ex/SVC_Oracle.thy		\
   ex/StringEx.thy ex/Tarski.thy ex/Tuple.thy ex/document/root.bib	\
   ex/document/root.tex ex/mesontest2.ML ex/mesontest2.thy ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.ML ex/svc_test.thy

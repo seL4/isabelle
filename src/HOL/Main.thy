@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Refute Reconstruction
+imports Refute Reconstruction SAT
 begin
 
 text {*
