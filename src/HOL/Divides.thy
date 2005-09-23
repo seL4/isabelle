@@ -201,7 +201,7 @@ val trans = trans
 
 val prove_eq_sums =
   let val simps = add_0 :: add_0_right :: add_ac
-  in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all simps) end
+  in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all_tac simps) end;
 
 end;
 
