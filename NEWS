@@ -392,6 +392,9 @@ is now 'case (insert x F)' instead of the old counterintuitive 'case
 fragment of HOL, including axiomatic type classes, constdefs and
 typedefs, inductive datatypes and recursion.
 
+* New tactic 'sat' to prove propositional tautologies.  Requires
+zChaff with proof generation to be installed.
+
 * Datatype induction via method 'induct' now preserves the name of the
 induction variable. For example, when proving P(xs::'a list) by
 induction on xs, the induction step is now P(xs) ==> P(a#xs) rather
