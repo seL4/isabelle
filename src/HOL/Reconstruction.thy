@@ -1,5 +1,5 @@
 (*  Title:      HOL/Reconstruction.thy
-    ID: $Id$
+    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   2004  University of Cambridge
 *)
