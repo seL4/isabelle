@@ -14,12 +14,14 @@ project: site
 DEP_SYMLINKS=dist/packages $(OUTPUTROOT)/dist/library
 
 dist/packages: $(ISABELLE_DIST)
+	mkdir -p dist
 	ln -s $< $@
 
 #~ library: $(ISABELLE_LIBR)
 #~	ln -s $< $@
 
 $(OUTPUTROOT)/dist/library: $(ISABELLE_LIBR)
+	mkdir -p $(OUTPUTROOT)/dist
 	ln -s $< $@
 	chmod $(TARGET_UMASK_DIR) $@
 
