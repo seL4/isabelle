@@ -644,7 +644,7 @@ fun record_tr' sep mark record record_scheme unit sg t =
   let
     fun field_lst t =
       (case strip_comb t of
-        (Const (ext,_),args)
+        (Const (ext,_),args as (_::_))
          => (case try (unsuffix extN) (Sign.intern_const sg ext) of
                SOME ext'
                => (case get_extfields sg ext' of
