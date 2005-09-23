@@ -14,10 +14,10 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
-  HOL-Complex-ex \
+  HOL-Complex-HahnBanach \
   HOL-Complex-Import \
+  HOL-Complex-ex \
   HOL-Extraction \
-      HOL-Complex-HahnBanach \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-IMP \
