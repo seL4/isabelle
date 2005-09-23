@@ -19,14 +19,15 @@ sig
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type cong
-  type solver
-  val mk_solver: string -> (thm list -> int -> tactic) -> solver
   type simpset
   type proc
+  type solver
+  val mk_solver': string -> (simpset -> int -> tactic) -> solver
+  val mk_solver: string -> (thm list -> int -> tactic) -> solver
   val rep_ss: simpset ->
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int * (string * (string * typ)) list} *
+    bounds: int * ((string * typ) * string) list} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews:
@@ -80,6 +81,7 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val revert_bound: simpset -> string -> string option
   val inherit_bounds: simpset -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
@@ -135,23 +137,7 @@ fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
   Drule.eq_thm_prop (thm1, thm2);
 
 
-(* solvers *)
-
-datatype solver =
-  Solver of
-   {name: string,
-    solver: thm list -> int -> tactic,
-    id: stamp};
-
-fun mk_solver name solver = Solver {name = name, solver = solver, id = stamp ()};
-
-fun solver_name (Solver {name, ...}) = name;
-fun solver ths (Solver {solver = tacf, ...}) = tacf ths;
-fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
-val merge_solvers = gen_merge_lists eq_solver;
-
-
-(* simplification sets and procedures *)
+(* simplification sets, procedures, and solvers *)
 
 (*A simpset contains data required during conversion:
     rules: discrimination net of rewrite rules;
@@ -180,7 +166,7 @@ datatype simpset =
   Simpset of
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int * (string * (string * typ)) list} *
+    bounds: int * ((string * typ) * string) list} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews: mk_rews,
@@ -193,9 +179,13 @@ and proc =
    {name: string,
     lhs: cterm,
     proc: theory -> simpset -> term -> thm option,
+    id: stamp}
+and solver =
+  Solver of
+   {name: string,
+    solver: simpset -> int -> tactic,
     id: stamp};
 
-fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
 
 fun rep_ss (Simpset args) = args;
 
@@ -222,6 +212,19 @@ fun map_simpset f (Simpset ({rules, prems, bounds},
 fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
 fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
+fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
+
+
+fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
+
+fun mk_solver' name solver = Solver {name = name, solver = solver, id = stamp ()};
+fun mk_solver name solver = mk_solver' name (solver o prems_of_ss);
+
+fun solver_name (Solver {name, ...}) = name;
+fun solver ths (Solver {solver = tacf, ...}) = tacf ths;
+fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
+val merge_solvers = gen_merge_lists eq_solver;
+
 
 (* diagnostics *)
 
@@ -244,8 +247,8 @@ fun prnt warn a = if warn then warning a else println a;
 fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
   let
     val used = Term.add_term_names (t, []);
-    val xs = rev (Term.variantlist (rev (map #1 bs), used));
-    fun subst ((_, (b, T)), x) = (Free (b, T), Syntax.mark_boundT (x, T));
+    val xs = rev (Term.variantlist (rev (map #2 bs), used));
+    fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
 fun prtm warn a ss thy t = prnt warn (a ^ "\n" ^
@@ -377,6 +380,10 @@ fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
 
 (* bounds and prems *)
 
+fun eq_bound (x: string, (y, _)) = x = y;
+
+fun revert_bound (Simpset ({bounds = (_, bs), ...}, _)) = AList.lookup eq_bound bs;
+
 fun inherit_bounds (Simpset ({bounds, ...}, _)) =
   map_simpset1 (fn (rules, prems, _) => (rules, prems, bounds));
 
@@ -385,8 +392,6 @@ fun add_bound bound = map_simpset1 (fn (rules, prems, (count, bounds)) =>
 
 fun add_prems ths = map_simpset1 (fn (rules, prems, bounds) =>
   (rules, ths @ prems, bounds));
-
-fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
 
 
 (* addsimps *)
@@ -935,7 +940,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
                  val _ = conditional (b <> b') (fn () =>
                    warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b'));
-                 val ss' = add_bound (a, (b', T)) ss;
+                 val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
                   SOME thm => SOME (abstract_rule a v thm)
@@ -1109,12 +1114,22 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
+fun check_bounds ss ct = conditional (! debug_simp) (fn () =>
+  let
+    val Simpset ({bounds = (_, bounds), ...}, _) = ss;
+    val bs = fold_aterms (fn Free (x, _) =>
+        if Term.is_bound x andalso not (AList.defined eq_bound bounds x)
+        then insert (op =) x else I
+      | _ => I) (term_of ct) [];
+  in if null bs then () else warning ("Simplifier: term contains loose bounds: " ^ commas bs) end);
+
 fun rewrite_cterm mode prover ss ct =
   (inc simp_depth;
    if !simp_depth mod 20 = 0
    then warning ("Simplification depth " ^ string_of_int (!simp_depth))
    else ();
    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
+   check_bounds ss ct;
    let val {thy, t, maxidx, ...} = Thm.rep_cterm ct
        val res = bottomc (mode, prover, thy, maxidx) ss ct
          handle THM (s, _, thms) =>
@@ -1169,9 +1184,9 @@ fun solve_all_tac solvers ss =
 (*NOTE: may instantiate unknowns that appear also in other subgoals*)
 fun generic_simp_tac safe mode ss =
   let
-    val Simpset ({prems, ...}, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = ss;
+    val Simpset (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = ss;
     val loop_tac = FIRST' (map #2 loop_tacs);
-    val solve_tac = FIRST' (map (solver prems) (if safe then solvers else unsafe_solvers));
+    val solve_tac = FIRST' (map (solver ss) (if safe then solvers else unsafe_solvers));
 
     fun simp_loop_tac i =
       asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
