@@ -80,7 +80,7 @@ sig
   val fast_arith_neq_limit: int ref
   val lin_arith_prover: theory -> simpset -> term -> thm option
   val     lin_arith_tac:     bool -> int -> tactic
-  val cut_lin_arith_tac: thm list -> int -> tactic
+  val cut_lin_arith_tac: simpset -> int -> tactic
 end;
 
 functor Fast_Lin_Arith(structure LA_Logic:LIN_ARITH_LOGIC 
@@ -619,12 +619,12 @@ in refute end;
 
 fun refute sg ps ex items = refutes sg ps ex (split_items items) [];
 
-fun refute_tac(i,justs) =
+fun refute_tac ss (i,justs) =
   fn state =>
     let val sg = #sign(rep_thm state)
         val {neqE, ...} = Data.get sg;
         fun just1 j = REPEAT_DETERM(eresolve_tac neqE i) THEN
-                      METAHYPS (fn asms => rtac (mkthm (sg, Simplifier.empty_ss) asms j) 1) i
+          METAHYPS (fn asms => rtac (mkthm (sg, ss) asms j) 1) i
     in DETERM(resolve_tac [LA_Logic.notI,LA_Logic.ccontr] i) THEN
        EVERY(map just1 justs)
     end
@@ -654,7 +654,7 @@ end;
 Fast but very incomplete decider. Only premises and conclusions
 that are already (negated) (in)equations are taken into account.
 *)
-fun lin_arith_tac ex i st = SUBGOAL (fn (A,_) =>
+fun simpset_lin_arith_tac ss ex i st = SUBGOAL (fn (A,_) =>
   let val params = rev(Logic.strip_params A)
       val pTs = map snd params
       val Hs = Logic.strip_assums_hyp A
@@ -662,10 +662,14 @@ fun lin_arith_tac ex i st = SUBGOAL (fn (A,_) =>
   in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
      case prove (Thm.sign_of_thm st) (pTs,params) ex Hs concl of
        NONE => (trace_msg "Refutation failed."; no_tac)
-     | SOME js => (trace_msg "Refutation succeeded."; refute_tac(i,js))
+     | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i,js))
   end) i st;
 
-fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac false i;
+val lin_arith_tac = simpset_lin_arith_tac Simplifier.empty_ss;
+
+fun cut_lin_arith_tac ss i =
+  cut_facts_tac (Simplifier.prems_of_ss ss) i THEN
+  simpset_lin_arith_tac ss false i;
 
 (** Forward proof from theorems **)
 

@@ -17,14 +17,14 @@ sig
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
   (*rules*)
-  val prove_conv: tactic -> tactic -> Sign.sg -> term * term -> thm
-  val norm_tac: tactic                   	(*AC0 etc.*)
-  val uncancel_tac: cterm -> tactic      	(*apply A ~~ B  ==  x + A ~~ x + B*)
+  val prove_conv: tactic -> (simpset -> tactic) -> theory -> simpset -> term * term -> thm
+  val norm_tac: simpset -> tactic            (*AC0 etc.*)
+  val uncancel_tac: cterm -> tactic          (*apply A ~~ B  ==  x + A ~~ x + B*)
 end;
 
 signature CANCEL_SUMS =
 sig
-  val proc: Sign.sg -> simpset -> term -> thm option
+  val proc: theory -> simpset -> term -> thm option
 end;
 
 
@@ -51,14 +51,14 @@ fun cancel ts [] vs = (ts, [], vs)
 (* uncancel *)
 
 fun uncancel_sums_tac _ [] = all_tac
-  | uncancel_sums_tac sg (t :: ts) =
-      Data.uncancel_tac (Thm.cterm_of sg t) THEN
-      uncancel_sums_tac sg ts;
+  | uncancel_sums_tac thy (t :: ts) =
+      Data.uncancel_tac (Thm.cterm_of thy t) THEN
+      uncancel_sums_tac thy ts;
 
 
 (* the simplification procedure *)
 
-fun proc sg _ t =
+fun proc thy ss t =
   (case try Data.dest_bal t of
     NONE => NONE
   | SOME bal =>
@@ -68,7 +68,7 @@ fun proc sg _ t =
       in
         if null vs then NONE
         else SOME
-          (Data.prove_conv (uncancel_sums_tac sg vs) Data.norm_tac sg
+          (Data.prove_conv (uncancel_sums_tac thy vs) Data.norm_tac thy ss
             (t, Data.mk_bal (Data.mk_sum ts', Data.mk_sum us')))
       end);
 
