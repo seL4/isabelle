@@ -225,7 +225,7 @@ allow for use in a context of fixed variables.
 or ==>.  More generally, erule now works even if the major premise of
 the elimination rule contains !! or ==>.
 
-* Method "rules" has been renamed to "iprover"
+* Method 'rules' has been renamed to 'iprover'. INCOMPATIBILITY.
 
 * Reorganized bootstrapping of the Pure theories; CPure is now derived
 from Pure, which contains all common declarations already.  Both
