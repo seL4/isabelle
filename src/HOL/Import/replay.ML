@@ -77,11 +77,8 @@ fun replay_proof int_thms thyname thmname prf thy =
 	    end
 	  | rp (PGen(prf,v)) thy =
 	    let
-		val _ = writeln "enter rp PGen"
 		val (thy',th) = rp' prf thy
-		val _ = writeln "replayed inner proof"
 		val p = P.GEN v th thy'
-		val _ = writeln "exit rp PGen"
 	    in
 		p
 	    end
@@ -229,7 +226,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 				       else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")
 				     | NONE => 
 				       (case P.get_thm thyname' thmname thy of
-					    (thy',SOME res) => (writeln "Found theorem, no replay necessary!"; (thy',res))
+					    (thy',SOME res) => (thy',res)
 					  | (thy',NONE) => 
 					    if thyname' = thyname
 					    then
@@ -304,13 +301,10 @@ fun import_single_thm thyname int_thms thmname thy =
     let
 	fun replay_fact (thmname,thy) =
 	    let
-		val _ = writeln ("import_single_thm: Replaying " ^ thmname)
 		val prf = mk_proof PDisk
-		val _ = writeln ("Made proof.")
 		val _ = set_disk_info_of prf thyname thmname
-		val _ = writeln ("set disk info")	    
+                val _ = writeln ("Replaying "^thmname^" ...")
 		val p = fst (replay_proof int_thms thyname thmname prf thy)
-		val _ = writeln ("exit replay_fact")
 	    in
 		p
 	    end
@@ -322,13 +316,10 @@ fun import_thms thyname int_thms thmnames thy =
     let
 	fun replay_fact (thy,thmname) =
 	    let
-		val _ = writeln ("import_thms: Replaying " ^ thmname)
 		val prf = mk_proof PDisk	
-		val _ = writeln ("Made proof.")
-		val _ = set_disk_info_of prf thyname thmname	
-		val _ = writeln ("set disk info")	    
+		val _ = set_disk_info_of prf thyname thmname
+                val _ = writeln ("Replaying "^thmname^" ...")
 		val p = fst (replay_proof int_thms thyname thmname prf thy)
-		val _ = writeln ("exit replay_fact")
 	    in
 		p
 	    end
@@ -342,13 +333,10 @@ fun import_thm thyname thmname thy =
 	val int_thms = fst (setup_int_thms thyname thy)
 	fun replay_fact (thmname,thy) =
 	    let
-		val _ = writeln ("import_thm: Replaying " ^ thmname)
 		val prf = mk_proof PDisk	
-		val _ = writeln ("Made proof.")
-		val _ = set_disk_info_of prf thyname thmname 
-		val _ = writeln ("set disk info")	    
+		val _ = set_disk_info_of prf thyname thmname 	    
+                val _ = writeln ("Replaying "^thmname^" ...")
 		val p = fst (replay_proof int_thms thyname thmname prf thy)
-		val _ = writeln ("exit replay_fact")	    
 	    in 
 		p
 	    end

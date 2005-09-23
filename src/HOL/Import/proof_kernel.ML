@@ -1009,7 +1009,6 @@ fun norm_hyps th =
 
 fun mk_GEN v th sg =
     let
-	val _ = writeln "enter mk_GEN"
 	val c = HOLogic.dest_Trueprop (concl_of th)
 	val cv = cterm_of sg v
 	val lc = Term.lambda v c
@@ -1027,7 +1026,6 @@ fun mk_GEN v th sg =
 			    | _ => raise ERR "mk_GEN" "Unknown conclusion"
 	val th4 = Thm.rename_boundvars cold cnew th3
 	val res = implies_intr_hyps th4
-	val _ = writeln "exit mk_GEN"
     in
 	res
     end
@@ -1198,7 +1196,6 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	case get_hol4_mapping thyname thmname thy of
 	    SOME (SOME thmname) =>
 	    let
-		val _ = writeln "isabelle_thm: SOME SOME"
 		val _ = message ("Looking for " ^ thmname)
 		val th1 = (SOME (transform_error (PureThy.get_thm thy) (Name thmname))
 			   handle ERROR_MESSAGE _ =>
@@ -1217,14 +1214,13 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	  | SOME NONE => error ("Trying to access ignored theorem " ^ thmname)
 	  | NONE =>
 	    let
-		val _ = writeln "isabelle_thm: None"
 		val _ = (message "Looking for conclusion:";
 			 if_debug prin isaconc)
 		val cs = non_trivial_term_consts isaconc
 		val _ = (message "Looking for consts:";
 			 message (commas cs))
 		val pot_thms = Shuffler.find_potential thy isaconc
-		val _ = writeln ((Int.toString (length pot_thms)) ^ " potential theorems")
+		val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
 	    in
 		case Shuffler.set_prop thy isaconc pot_thms of
 		    SOME (isaname,th) =>
@@ -1242,7 +1238,6 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 
 fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
   let
-      val _ = writeln "enter get_isabelle_thm_and_warn"
     val (a, b) = get_isabelle_thm thyname thmname hol4conc thy
     fun warn () =
         let
@@ -1261,13 +1256,13 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
 	end
   in
       case b of 
-	  NONE => (warn () handle _ => (); writeln "exit get_isabelle_thm_and_warn"; (a,b))
-	| _ => (writeln "exit get_isabelle_thm_and_warn"; (a, b))
+	  NONE => (warn () handle _ => (); (a,b))
+	| _ => (a, b)
   end 
 
 fun get_thm thyname thmname thy =
     case get_hol4_thm thyname thmname thy of
-	SOME hth => (writeln "got hol4 thm"; (thy,SOME hth))
+	SOME hth => (thy,SOME hth)
       | NONE => ((case import_proof_concl thyname thmname thy of
 		      SOME f => get_isabelle_thm_and_warn thyname thmname (f thy) thy
 		    | NONE => (message "No conclusion"; (thy,NONE)))
@@ -1647,7 +1642,7 @@ fun CHOOSE v hth1 hth2 thy =
 
 fun GEN v hth thy =
     let
-	val _ = writeln "GEN:"
+      val _ = message "GEN:"
 	val _ = if_debug prin v
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
@@ -1655,7 +1650,6 @@ fun GEN v hth thy =
 	val res = HOLThm(rens_of info',mk_GEN v' th (sign_of thy))
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
-	val _ = writeln "exit GEN"
     in
 	(thy,res)
     end
@@ -2082,6 +2076,14 @@ fun add_dump_constdefs thy defname constname rhs ty =
 	add_dump ("constdefs\n  " ^ n ^ " :: \"" ^ t ^ "\" " ^ syn ^ "\n  " ^ d ^ eq) thy    
     end
 
+fun add_dump_syntax thy name = 
+    let
+      val n = quotename name
+      val syn = Syntax.string_of_mixfix (mk_syn thy name)
+    in
+      add_dump ("syntax\n  "^n^" :: _ "^syn) thy
+    end
+      
 (*val type_intro_replay_history = ref (Symtab.empty:unit Symtab.table)
 fun choose_upon_replay_history thy s dth = 
     case Symtab.lookup (!type_intro_replay_history) s of
@@ -2147,20 +2149,20 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ 
-				 (Syntax.string_of_mixfix tsyn) ^ " \n"^
-				 ( "  apply (rule light_ex_imp_nonempty[where t="^(proc_prop (cterm_of sg t))^"]) \n")^ 
-				 ("  by (import " ^ thyname ^ " " ^ thmname ^ ")")) thy4
-            val isa_rep_name = "Rep_"^tycname
-	    val isa_abs_name = "Abs_"^tycname
-	    val isa_rep_name_def = isa_rep_name^"_symdest"
-	    val isa_abs_name_def = isa_abs_name^"_symdest"
-	    val thy = add_dump_constdefs thy (SOME isa_rep_name_def) rep_name isa_rep_name rep_ty
-	    val thy = add_dump_constdefs thy (SOME isa_abs_name_def) abs_name isa_abs_name abs_ty
+	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ 
+              " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ 
+	      (Syntax.string_of_mixfix tsyn) ^ " morphisms "^
+              (quote rep_name)^" "^(quote abs_name)^"\n"^ 
+	      ("  apply (rule light_ex_imp_nonempty[where t="^
+              (proc_prop (cterm_of sg t))^"])\n"^              
+	      ("  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")"))) thy4
 	    val str_aty = string_of_ctyp (ctyp_of thy aty)
-	    val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^ " = typedef_hol2hollight [where a=\"a :: "^str_aty^"\" and r=r" ^
-	                    " ,\n    OF "^(quotename ("type_definition_" ^ tycname)) ^ 
-            		    " ,\n    simplified "^(quotename isa_rep_name_def)^" [symmetric] "^(quotename isa_abs_name_def)^" [symmetric]"^"]") thy
+            val thy = add_dump_syntax thy rep_name 
+            val thy = add_dump_syntax thy abs_name
+	    val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^ 
+              " = typedef_hol2hollight \n"^
+              "  [where a=\"a :: "^str_aty^"\" and r=r" ^
+	      " ,\n   OF "^(quotename ("type_definition_" ^ tycname)) ^ "]") thy 
 	    val _ = message "RESULT:"
 	    val _ = if_debug pth hth'
 	in
