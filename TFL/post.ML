@@ -216,7 +216,7 @@ local
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
       handle ERROR_MESSAGE s => 
-             (writeln ("WARNING:post.ML:solve_eq: " ^ s); map (fn x => (x,i)) splitths); 
+             (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
 fun derive_init_eqs sgn rules eqs = 
     let 
