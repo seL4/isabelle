@@ -442,6 +442,9 @@ INCOMPATIBILITY since simplification is more powerful by default.
 
 * Classical reasoning: the meson method now accepts theorems as arguments.
 
+* Prover support: pre-release of the Isabelle-ATP linkup, which runs background
+jobs to provide advice on the provability of subgoals.
+
 * Theory OrderedGroup and Ring_and_Field: various additions and
 improvements to faciliate calculations involving equalities and
 inequalities.
