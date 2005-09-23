@@ -849,7 +849,7 @@ in
  *   subrecord.
  *)
 val record_simproc =
-  Simplifier.simproc HOL.thy "record_simp" ["s (u k r)"]   (* FIXME pattern!? *)
+  Simplifier.simproc HOL.thy "record_simp" ["x"]
     (fn sg => fn ss => fn t =>
       (case t of (sel as Const (s, Type (_,[domS,rangeS])))$
                    ((upd as Const (u,Type(_,[_,Type (_,[rT,_])]))) $ k $ r)=>
@@ -910,7 +910,7 @@ val record_simproc =
  * (But r(|more := r; A := A (r(|more := r|))|) = r(|more := r|)
 *)
 val record_upd_simproc =
-  Simplifier.simproc HOL.thy "record_upd_simp" ["u k r"]    (* FIXME pattern *)
+  Simplifier.simproc HOL.thy "record_upd_simp" ["x"]
     (fn sg => fn ss => fn t =>
       (case t of ((upd as Const (u, Type(_,[_,Type(_,[rT,_])]))) $ k $ r) =>
          let datatype ('a,'b) calc = Init of 'b | Inter of 'a
@@ -1041,7 +1041,7 @@ val record_eq_simproc =
  * P t > 0: split up to given bound of record extensions
  *)
 fun record_split_simproc P =
-  Simplifier.simproc HOL.thy "record_split_simp" ["a t"]
+  Simplifier.simproc HOL.thy "record_split_simp" ["x"]
     (fn sg => fn _ => fn t =>
       (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
