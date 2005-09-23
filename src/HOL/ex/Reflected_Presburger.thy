@@ -4,7 +4,7 @@
 
 A formalization of quantifier elimination for Presburger arithmetic
 based on a generic quantifier elimination algorithm and Cooper's
-methos to eliminate on \<exists>. *)
+method to eliminate on \<exists>. *)
 
 header {* Quantifier elimination for Presburger arithmetic *}
 
@@ -21,7 +21,7 @@ datatype intterm =
   | Sub intterm intterm
   | Mult intterm intterm
 
-(* interpretatation of intterms , takes bound variables and free variables *)
+(* interpretation of intterms, takes bound variables and free variables *)
 consts I_intterm :: "int list \<Rightarrow> intterm \<Rightarrow> int"
 primrec 
 "I_intterm ats (Cst b) = b"
@@ -31,7 +31,7 @@ primrec
 "I_intterm ats (Sub it1 it2) = (I_intterm ats it1) - (I_intterm ats it2)"
 "I_intterm ats (Mult it1 it2) = (I_intterm ats it1) * (I_intterm ats it2)"
 
-(*Shadow syntax for Presburger formulae *)
+(* Shadow syntax for Presburger formulae *)
 datatype QF = 
    Lt intterm intterm
   |Gt intterm intterm
@@ -49,7 +49,7 @@ datatype QF =
   |QAll QF
   |QEx QF
 
-(* Interpretation of Presburger  formulae *)
+(* Interpretation of Presburger formulae *)
 consts qinterp :: "int list \<Rightarrow> QF \<Rightarrow> bool"
 primrec
 "qinterp ats (Lt it1 it2) = (I_intterm ats it1 < I_intterm ats it2)"
@@ -70,8 +70,8 @@ primrec
 
 (* quantifier elimination based on qe, quantifier elimination for an
    existential formula, with quantifier free body 
-   Since quantifier elimination for one formula is allowed to fail, 
-   the reult is of type QF option *)
+   Since quantifier elimination for one formula is allowed to fail,
+   the result is of type QF option *)
 
 consts lift_bin:: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<times> 'a option \<times> 'a option \<Rightarrow> 'b option"
 recdef lift_bin "measure (\<lambda>(c,a,b). size a)"
@@ -565,8 +565,8 @@ lemma intterm_novar0:
   shows "I_intterm (x#ats) r = I_intterm (y#ats) r"
 using lin
 by (induct r rule: islinintterm.induct) (simp_all add: nth_pos2)
-(* a simple version of a general theorem: Interpretation doese not depend 
-   on the first variable if it doese not occur in the term *)
+(* a simple version of a general theorem: Interpretation does not depend 
+   on the first variable if it does not occur in the term *)
 
 lemma linterm_novar0:
   assumes lin: "islintn (n,t)"
