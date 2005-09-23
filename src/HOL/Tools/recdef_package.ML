@@ -82,7 +82,8 @@ in
 
 fun add_cong raw_thm congs =
   let val (c, thm) = prep_cong raw_thm
-  in update_warn (op =) ("Overwriting recdef congruence rule for " ^ quote c) (c, thm) congs end;
+(*   in update_warn (op =) ("Overwriting recdef congruence rule for " ^ quote c) (c, thm) congs end;  *)
+  in overwrite_warn (congs, (c, thm)) ("Overwriting recdef congruence rule for " ^ quote c) end;
 
 fun del_cong raw_thm congs =
   let
