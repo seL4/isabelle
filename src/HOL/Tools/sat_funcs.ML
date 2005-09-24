@@ -124,7 +124,7 @@ fun dual_mem x []      = false
 
 fun replay_chain sg clauses idx (c::cs) =
 let
-	val (SOME fc) = Array.sub (clauses, c)
+	val fc = (valOf o Array.sub) (clauses, c)
 
 	fun strip_neg (Const ("Trueprop", _) $ x) = strip_neg x
 	  | strip_neg (Const ("Not", _) $ x)      = x
@@ -175,25 +175,22 @@ end;
 
 fun replay_proof sg clauses (clause_table, empty_id) =
 let
-	fun complete []      =
-		true
-	  | complete (x::xs) =
-		(isSome o Array.sub) (clauses, x) andalso complete xs
+	(* int -> unit *)
+	fun prove_clause id =
+		case Array.sub (clauses, id) of
+		  SOME _ =>
+			()
+		| NONE   =>
+			let
+				val ids = valOf (Inttab.lookup clause_table id)
+				val _   = map prove_clause ids
+			in
+				replay_chain sg clauses id ids
+			end
 
-	fun do_chains []        =
-		()
-	  | do_chains (ch::chs) =
-		let
-			val (idx, cls) = ch
-		in
-			if complete cls then (
-				replay_chain sg clauses idx cls;
-				do_chains chs
-			) else
-				do_chains (chs @ [ch])
-		end
+	val _ = counter := 0
 
-	val _ = do_chains (Inttab.dest clause_table)
+	val _ = prove_clause empty_id
 
 	val _ = if !trace_sat then
 			tracing (string_of_int (!counter) ^ " resolution steps total.")
