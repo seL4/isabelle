@@ -20,7 +20,7 @@ sig
 	(* auxiliary functions to create external SAT solvers *)
 	val write_dimacs_cnf_file : Path.T -> PropLogic.prop_formula -> unit
 	val write_dimacs_sat_file : Path.T -> PropLogic.prop_formula -> unit
-	val parse_std_result_file : Path.T -> string * string * string -> result
+	val read_std_result_file  : Path.T -> string * string * string -> result
 	val make_external_solver  : string -> (PropLogic.prop_formula -> unit) -> (unit -> result) -> solver
 
 	val read_dimacs_cnf_file : Path.T -> PropLogic.prop_formula
@@ -200,7 +200,7 @@ struct
 	end;
 
 (* ------------------------------------------------------------------------- *)
-(* parse_std_result_file: scans a SAT solver's output file for a satisfying  *)
+(* read_std_result_file: scans a SAT solver's output file for a satisfying   *)
 (*      variable assignment.  Returns the assignment, or 'UNSATISFIABLE' if  *)
 (*      the file contains 'unsatisfiable', or 'UNKNOWN' if the file contains *)
 (*      neither 'satisfiable' nor 'unsatisfiable'.  Empty lines are ignored. *)
@@ -215,7 +215,7 @@ struct
 
 	(* Path.T -> string * string * string -> result *)
 
-	fun parse_std_result_file path (satisfiable, assignment_prefix, unsatisfiable) =
+	fun read_std_result_file path (satisfiable, assignment_prefix, unsatisfiable) =
 	let
 		(* string -> int list *)
 		fun int_list_from_string s =
@@ -685,7 +685,7 @@ let
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
-		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
+		fun readfn ()  = SatSolver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
@@ -710,7 +710,7 @@ let
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
-		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
+		fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
@@ -735,7 +735,7 @@ let
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
-		fun readfn ()  = SatSolver.parse_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
+		fun readfn ()  = SatSolver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
