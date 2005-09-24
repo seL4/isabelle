@@ -10,7 +10,7 @@ header {* Reconstructing external resolution proofs for propositional logic *}
 
 theory SAT imports HOL
 
-uses "Tools/sat_solver.ML"
+uses (* "Tools/sat_solver.ML" -- already loaded by Refute.thy *)
      "Tools/cnf_funcs.ML"
      "Tools/sat_funcs.ML"
 
