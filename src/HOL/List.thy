@@ -778,6 +778,48 @@ next
   qed
 qed
 
+lemma Cons_eq_filterD:
+ "x#xs = filter P ys \<Longrightarrow>
+  \<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs"
+  (concl is "\<exists>us vs. ?P ys us vs")
+proof(induct ys)
+  case Nil thus ?case by simp
+next
+  case (Cons y ys)
+  show ?case (is "\<exists>x. ?Q x")
+  proof cases
+    assume Py: "P y"
+    show ?thesis
+    proof cases
+      assume xy: "x = y"
+      show ?thesis
+      proof from Py xy Cons(2) show "?Q []" by simp qed
+    next
+      assume "x \<noteq> y" with Py Cons(2) show ?thesis by simp
+    qed
+  next
+    assume Py: "\<not> P y"
+    with Cons obtain us vs where 1 : "?P (y#ys) (y#us) vs" by fastsimp
+    show ?thesis (is "? us. ?Q us")
+    proof show "?Q (y#us)" using 1 by simp qed
+  qed
+qed
+
+lemma filter_eq_ConsD:
+ "filter P ys = x#xs \<Longrightarrow>
+  \<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs"
+by(rule Cons_eq_filterD) simp
+
+lemma filter_eq_Cons_iff:
+ "(filter P ys = x#xs) =
+  (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
+by(auto dest:filter_eq_ConsD)
+
+lemma Cons_eq_filter_iff:
+ "(x#xs = filter P ys) =
+  (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
+by(auto dest:Cons_eq_filterD)
+
 lemma filter_cong:
  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
 apply simp
