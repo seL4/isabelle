@@ -579,19 +579,19 @@ let
 			(* string list -> proof -> proof *)
 			fun process_tokens [] proof =
 				proof
-			  | process_tokens (tok::toks) (clause_table, conflict_id) =
+			  | process_tokens (tok::toks) (clause_table, empty_id) =
 				if tok="CL:" then (
 					case toks of
 					  id::sep::ids =>
 						let
 							val _   = if !clause_offset = ~1 then () else raise INVALID_PROOF ("File format error: \"CL:\" disallowed after \"VAR:\".")
-							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF ("File format error: \"CL:\" disallowed after \"CONF:\".")
+							val _   = if empty_id = ~1 then () else raise INVALID_PROOF ("File format error: \"CL:\" disallowed after \"CONF:\".")
 							val cid = int_from_string id
 							val _   = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
 							val rs  = map int_from_string ids
 						in
 							(* update clause table *)
-							(Inttab.update_new (cid, rs) clause_table, conflict_id)
+							(Inttab.update_new (cid, rs) clause_table, empty_id)
 								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once.")
 						end
 					| _ =>
@@ -600,7 +600,7 @@ let
 					case toks of
 					  id::levsep::levid::valsep::valid::antesep::anteid::litsep::lits =>
 						let
-							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF ("File format error: \"VAR:\" disallowed after \"CONF:\".")
+							val _   = if empty_id = ~1 then () else raise INVALID_PROOF ("File format error: \"VAR:\" disallowed after \"CONF:\".")
 							(* set 'clause_offset' to the largest used clause ID *)
 							val _   = if !clause_offset = ~1 then clause_offset :=
 								(case Inttab.max_key clause_table of
@@ -629,7 +629,7 @@ let
 							val rs   = aid :: map (fn v => !clause_offset + v) vids
 						in
 							(* update clause table *)
-							(Inttab.update_new (cid, rs) clause_table, conflict_id)
+							(Inttab.update_new (cid, rs) clause_table, empty_id)
 								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int cid ^ " (derived from antecedent for variable " ^ id ^ ") already defined.")
 						end
 					| _ =>
@@ -638,19 +638,19 @@ let
 					case toks of
 					  id::sep::ids =>
 						let
-							val _   = if conflict_id = ~1 then () else raise INVALID_PROOF "File format error: more than one conflicting clause specified."
+							val _   = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: more than one conflicting clause specified."
 							val cid = int_from_string id
 							val _   = if sep = "==" then () else raise INVALID_PROOF ("File format error: \"==\" expected (" ^ quote sep ^ " encountered).")
 							val ls  = map int_from_string ids
 							(* the conflict clause must be resolved with the unit clauses *)
 							(* for its literals to obtain the empty clause                *)
-							val vids     = map (fn l => l div 2) ls
-							val rs       = cid :: map (fn v => !clause_offset + v) vids
-							val empty_id = getOpt (Inttab.max_key clause_table, ~1) + 1
+							val vids         = map (fn l => l div 2) ls
+							val rs           = cid :: map (fn v => !clause_offset + v) vids
+							val new_empty_id = getOpt (Inttab.max_key clause_table, !clause_offset) + 1
 						in
 							(* update clause table and conflict id *)
-							(Inttab.update_new (empty_id, rs) clause_table, empty_id)
-								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int empty_id ^ " (empty clause derived from clause " ^ id ^ ") already defined.")
+							(Inttab.update_new (new_empty_id, rs) clause_table, new_empty_id)
+								handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ string_of_int new_empty_id ^ " (empty clause derived from clause " ^ id ^ ") already defined.")
 						end
 					| _ =>
 						raise INVALID_PROOF "File format error: \"CONF:\" followed by an insufficient number of tokens."
@@ -662,10 +662,10 @@ let
 			  | process_lines (l::ls) proof =
 				process_lines ls (process_tokens (String.tokens (fn c => c = #" " orelse c = #"\t") l) proof)
 			(* proof *)
-			val (clause_table, conflict_id) = process_lines proof_lines (Inttab.empty, ~1)
-			val _                           = if conflict_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
+			val (clause_table, empty_id) = process_lines proof_lines (Inttab.empty, ~1)
+			val _                        = if empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
 		in
-			SatSolver.UNSATISFIABLE (SOME (clause_table, conflict_id))
+			SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id))
 		end handle INVALID_PROOF reason => (warning reason; SatSolver.UNSATISFIABLE NONE))
 	| result =>
 		result
