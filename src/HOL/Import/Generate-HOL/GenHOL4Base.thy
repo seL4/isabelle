@@ -25,7 +25,7 @@ const_maps
   COND            > HOL.If
   bool_case       > Datatype.bool.bool_case
   ONE_ONE         > HOL4Setup.ONE_ONE
-  ONTO            > HOL4Setup.ONTO
+  ONTO            > Fun.surj
   TYPE_DEFINITION > HOL4Setup.TYPE_DEFINITION
   LET             > HOL4Compat.LET;
 
