@@ -2135,7 +2135,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val thy4 = add_hol4_pending thyname thmname args thy''
 	   
 	    val sg = sign_of thy4
-	    val P' = #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4)))
+	    val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
 	    val c   =
 		let
 		    val PT = type_of P'
