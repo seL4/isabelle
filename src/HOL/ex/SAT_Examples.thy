@@ -4,11 +4,13 @@
     Copyright   2005
 *)
 
-header {* Examples for the 'sat' command *}
+header {* Examples for the 'sat' and 'satx' tactic *}
 
 theory SAT_Examples imports Main
 
 begin
+
+ML {* set sat.trace_sat; *}
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
 
