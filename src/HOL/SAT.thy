@@ -3,7 +3,7 @@
     Author:     Alwen Tiu, Tjark Weber
     Copyright   2005
 
-Basic setup for the 'sat' tactic.
+Basic setup for the 'sat' and 'satx' tactic.
 *)
 
 header {* Reconstructing external resolution proofs for propositional logic *}
@@ -16,8 +16,7 @@ uses "Tools/sat_solver.ML"
 
 begin
 
-(*
-ML {* structure sat = SATFunc(structure cnf_struct = cnf); *}
+ML {* structure sat = SATFunc(structure cnf = cnf); *}
 
 method_setup sat = {* Method.no_args (Method.SIMPLE_METHOD sat.sat_tac) *}
   "SAT solver"
@@ -25,7 +24,7 @@ method_setup sat = {* Method.no_args (Method.SIMPLE_METHOD sat.sat_tac) *}
 method_setup satx = {* Method.no_args (Method.SIMPLE_METHOD sat.satx_tac) *}
   "SAT solver (with definitional CNF)"
 
-
+(*
 method_setup cnf = {* Method.no_args (Method.SIMPLE_METHOD cnf.cnf_tac) *}
   "Transforming hypotheses in a goal into CNF"
 
