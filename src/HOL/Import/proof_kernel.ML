@@ -1216,7 +1216,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 			 if_debug prin isaconc)
 		val cs = non_trivial_term_consts isaconc
 		val _ = (message "Looking for consts:";
-			 writeln (commas cs))
+			 message (commas cs))
 		val pot_thms = Shuffler.find_potential thy isaconc
 		val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
 	    in
