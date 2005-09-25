@@ -1211,9 +1211,10 @@ fun eq_codegen thy defs gr dep thyname b t =
      | (Const ("op =", _), [t, u]) =>
           let
             val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
-            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u)
+            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
+            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
           in
-            SOME (gr'', Codegen.parens
+            SOME (gr''', Codegen.parens
               (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
           end
      | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
