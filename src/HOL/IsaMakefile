@@ -156,6 +156,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
   Hyperreal/Ln.thy Hyperreal/MacLaurin.thy Hyperreal/NatStar.thy		\
   Hyperreal/NSA.thy Hyperreal/NthRoot.thy Hyperreal/Poly.thy			\
   Hyperreal/SEQ.thy Hyperreal/Series.thy Hyperreal/Star.thy			\
+  Hyperreal/Taylor.thy								\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML	\
   Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy			\
   Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy			\
@@ -180,7 +181,8 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/SetsAndFunctions.thy Library/BigO.thy \
-  Library/EfficientNat.thy Library/FuncSet.thy Library/Library.thy \
+  Library/EfficientNat.thy Library/ExecutableSet.thy \
+  Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
   Library/Nat_Infinity.thy Library/Word.thy Library/word_setup.ML \
@@ -484,7 +486,8 @@ $(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
 
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
-$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
+$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL Library/ExecutableSet.thy \
+  MicroJava/ROOT.ML \
   MicroJava/Comp/AuxLemmas.thy \
   MicroJava/Comp/CorrComp.thy \
   MicroJava/Comp/CorrCompTp.thy \
@@ -549,7 +552,7 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
 
 HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
 
-$(LOG)/HOL-Extraction.gz: $(OUT)/HOL \
+$(LOG)/HOL-Extraction.gz: $(OUT)/HOL Library/EfficientNat.thy \
   Extraction/Higman.thy Extraction/ROOT.ML Extraction/Pigeonhole.thy \
   Extraction/QuotRem.thy \
   Extraction/Warshall.thy Extraction/document/root.tex \
