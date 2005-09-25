@@ -653,6 +653,8 @@ replaces it with an equivalent one that mentions only standard types.
 To be successful, all free variables must have standard types; non-
 standard variables must have explicit universal quantifiers.
 
+* Hyperreal: A theory of Taylor series.
+
 
 *** HOLCF ***
 
