@@ -918,7 +918,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
-fun test_term thy sz i = setmp print_mode [] (fn t =>
+fun test_term thy sz i t =
   let
     val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
       "Term to be tested contains type variables";
@@ -929,7 +929,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
       map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
-    val s = "structure TestTerm =\nstruct\n\n" ^
+    val s = setmp print_mode [] (fn () => "structure TestTerm =\nstruct\n\n" ^
       space_implode "\n" (map snd code) ^
       "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
@@ -952,7 +952,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
                        [Pretty.str s'], Pretty.str ")"]]) frees')) @
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
-      "\n\nend;\n";
+      "\n\nend;\n") ();
     val _ = use_text Context.ml_output false s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
@@ -962,7 +962,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
       else (priority ("Test data size: " ^ string_of_int k);
         case iter (fn () => !test_fn k) 1 of
           NONE => test (k+1) | SOME x => SOME x);
-  in test 0 end);
+  in test 0 end;
 
 fun test_goal ({size, iterations, default_type}, tvinsts) i st =
   let
