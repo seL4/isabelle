@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
-theory BVExample imports JVMListExample BVSpecTypeSafe JVM begin
+theory BVExample imports JVMListExample BVSpecTypeSafe JVM ExecutableSet begin
 
 text {*
   This theory shows type correctness of the example program in section 
@@ -445,20 +445,8 @@ lemma [code]:
        (ss,w)"
   by (unfold iter_def some_elem_def, rule refl)
 
-types_code
-  set ("_ list")
-
 consts_code
-  "{}"     ("[]")
-  "insert" ("(_ ins _)")
-  "op :"   ("(_ mem _)")
-  "op Un"  ("(_ union _)")
-  "image"  ("map")
-  "UNION"  ("(fn A => fn f => List.concat (map f A))")
-  "Bex"    ("(fn A => fn f => exists f A)")
-  "Ball"   ("(fn A => fn f => forall f A)")
   "some_elem" ("hd")
-  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  ("(_ \\\\ _)")
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
