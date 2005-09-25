@@ -5,6 +5,7 @@ imports
   BigO
   Continuity
   EfficientNat
+  ExecutableSet
   FuncSet
   Multiset
   NatPair
