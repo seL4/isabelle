@@ -1262,7 +1262,7 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 fun zero_var_inst vars =
   fold (fn v as ((x, i), X) => fn (used, inst) =>
     let
-      val x' = variant used x;
+      val x' = variant used (if is_bound x then "u" else x);
       val used' = x' :: used;
     in if x = x' andalso i = 0 then (used', inst) else (used', (v, ((x', 0), X)) :: inst) end)
   vars ([], []) |> #2;
