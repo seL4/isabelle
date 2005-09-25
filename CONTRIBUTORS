@@ -2,6 +2,12 @@
 Contributions to Isabelle 2005
 ------------------------------
 
+* September 2005: Lukas Bulwahn and Bernhard Haeupler, TUM
+  HOL-Complex: Formalization of Taylor series.
+
+* September 2005: Stephan Merz, Alwen Tiu, QSL Loria
+  Components for SAT solver method using zChaff.
+
 * September 2005: Ning Zhang and Christian Urban, LMU Munich
   A Chinese theory.
 
@@ -67,6 +73,7 @@ Contributions to Isabelle 2005
   Some internal ML reorganizations.
 
 * 2004/2005: Tjark Weber, TUM
+  SAT solver method using zChaff.
   Improved version of HOL/refute.
 
 $Id$
