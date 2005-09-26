@@ -84,16 +84,16 @@ primrec
   bitxor_zero: "(\<zero> bitxor y) = y"
   bitxor_one:  "(\<one> bitxor y) = (bitnot y)"
 
-lemma [simp]: "(bitnot (bitnot b)) = b"
+lemma bitnot_bitnot [simp]: "(bitnot (bitnot b)) = b"
   by (cases b,simp_all)
 
-lemma [simp]: "(b bitand b) = b"
+lemma bitand_cancel [simp]: "(b bitand b) = b"
   by (cases b,simp_all)
 
-lemma [simp]: "(b bitor b) = b"
+lemma bitor_cancel [simp]: "(b bitor b) = b"
   by (cases b,simp_all)
 
-lemma [simp]: "(b bitxor b) = \<zero>"
+lemma bitxor_cancel [simp]: "(b bitxor b) = \<zero>"
   by (cases b,simp_all)
 
 subsection {* Bit Vectors *}
@@ -152,35 +152,35 @@ constdefs
 lemma bv_length_extend [simp]: "length w \<le> i ==> length (bv_extend i b w) = i"
   by (simp add: bv_extend_def)
 
-lemma [simp]: "bv_not [] = []"
+lemma bv_not_Nil [simp]: "bv_not [] = []"
   by (simp add: bv_not_def)
 
-lemma [simp]: "bv_not (b#bs) = (bitnot b) # bv_not bs"
+lemma bv_not_Cons [simp]: "bv_not (b#bs) = (bitnot b) # bv_not bs"
   by (simp add: bv_not_def)
 
-lemma [simp]: "bv_not (bv_not w) = w"
+lemma bv_not_bv_not [simp]: "bv_not (bv_not w) = w"
   by (rule bit_list_induct [of _ w],simp_all)
 
-lemma [simp]: "bv_msb [] = \<zero>"
+lemma bv_msb_Nil [simp]: "bv_msb [] = \<zero>"
   by (simp add: bv_msb_def)
 
-lemma [simp]: "bv_msb (b#bs) = b"
+lemma bv_msb_Cons [simp]: "bv_msb (b#bs) = b"
   by (simp add: bv_msb_def)
 
-lemma [simp]: "0 < length w ==> bv_msb (bv_not w) = (bitnot (bv_msb w))"
+lemma bv_msb_bv_not [simp]: "0 < length w ==> bv_msb (bv_not w) = (bitnot (bv_msb w))"
   by (cases w,simp_all)
 
-lemma [simp,intro]: "bv_msb w = \<one> ==> 0 < length w"
+lemma bv_msb_one_length [simp,intro]: "bv_msb w = \<one> ==> 0 < length w"
   by (cases w,simp_all)
 
-lemma [simp]: "length (bv_not w) = length w"
+lemma length_bv_not [simp]: "length (bv_not w) = length w"
   by (induct w,simp_all)
 
 constdefs
   bv_to_nat :: "bit list => nat"
   "bv_to_nat == foldl (%bn b. 2 * bn + bitval b) 0"
 
-lemma [simp]: "bv_to_nat [] = 0"
+lemma bv_to_nat_Nil [simp]: "bv_to_nat [] = 0"
   by (simp add: bv_to_nat_def)
 
 lemma bv_to_nat_helper [simp]: "bv_to_nat (b # bs) = bitval b * 2 ^ length bs + bv_to_nat bs"
@@ -232,12 +232,12 @@ proof (induct w,simp_all)
   qed
 qed
 
-lemma [simp]:
+lemma bv_extend_longer [simp]:
   assumes wn: "n \<le> length w"
   shows       "bv_extend n b w = w"
   by (simp add: bv_extend_def wn)
 
-lemma [simp]:
+lemma bv_extend_shorter [simp]:
   assumes wn: "length w < n"
   shows       "bv_extend n b w = bv_extend n b (b#w)"
 proof -
@@ -330,16 +330,16 @@ constdefs
   norm_unsigned :: "bit list => bit list"
   "norm_unsigned == rem_initial \<zero>"
 
-lemma [simp]: "norm_unsigned [] = []"
+lemma norm_unsigned_Nil [simp]: "norm_unsigned [] = []"
   by (simp add: norm_unsigned_def)
 
-lemma [simp]: "norm_unsigned (\<zero>#bs) = norm_unsigned bs"
+lemma norm_unsigned_Cons0 [simp]: "norm_unsigned (\<zero>#bs) = norm_unsigned bs"
   by (simp add: norm_unsigned_def)
 
-lemma [simp]: "norm_unsigned (\<one>#bs) = \<one>#bs"
+lemma norm_unsigned_Cons1 [simp]: "norm_unsigned (\<one>#bs) = \<one>#bs"
   by (simp add: norm_unsigned_def)
 
-lemma [simp]: "norm_unsigned (norm_unsigned w) = norm_unsigned w"
+lemma norm_unsigned_idem [simp]: "norm_unsigned (norm_unsigned w) = norm_unsigned w"
   by (rule bit_list_induct [of _ w],simp_all)
 
 consts
@@ -566,10 +566,10 @@ proof (induct n rule: less_induct)
   qed
 qed
 
-lemma [simp]: "bv_to_nat (norm_unsigned w) = bv_to_nat w"
+lemma bv_to_nat_type [simp]: "bv_to_nat (norm_unsigned w) = bv_to_nat w"
   by (rule bit_list_induct,simp_all)
 
-lemma [simp]: "length (norm_unsigned w) \<le> length w"
+lemma length_norm_unsigned_le [simp]: "length (norm_unsigned w) \<le> length w"
   by (rule bit_list_induct,simp_all)
 
 lemma bv_to_nat_rew_msb: "bv_msb w = \<one> ==> bv_to_nat w = 2 ^ (length w - 1) + bv_to_nat (tl w)"
@@ -771,9 +771,6 @@ proof (rule bit_list_induct [of _ w],simp_all)
     by (rule nat_helper2)
 qed
 
-lemma [simp]: "bv_to_nat (norm_unsigned xs) = bv_to_nat xs"
-  by (rule bit_list_induct [of _ w],simp_all)
-
 lemma bv_to_nat_qinj:
   assumes one: "bv_to_nat xs = bv_to_nat ys"
   and     len: "length xs = length ys"
@@ -863,13 +860,13 @@ constdefs
   bv_add :: "[bit list, bit list ] => bit list"
   "bv_add w1 w2 == nat_to_bv (bv_to_nat w1 + bv_to_nat w2)"
 
-lemma [simp]: "bv_add (norm_unsigned w1) w2 = bv_add w1 w2"
+lemma bv_add_type1 [simp]: "bv_add (norm_unsigned w1) w2 = bv_add w1 w2"
   by (simp add: bv_add_def)
 
-lemma [simp]: "bv_add w1 (norm_unsigned w2) = bv_add w1 w2"
+lemma bv_add_type2 [simp]: "bv_add w1 (norm_unsigned w2) = bv_add w1 w2"
   by (simp add: bv_add_def)
 
-lemma [simp]: "norm_unsigned (bv_add w1 w2) = bv_add w1 w2"
+lemma bv_add_returntype [simp]: "norm_unsigned (bv_add w1 w2) = bv_add w1 w2"
   by (simp add: bv_add_def)
 
 lemma bv_add_length: "length (bv_add w1 w2) \<le> Suc (max (length w1) (length w2))"
@@ -915,13 +912,13 @@ constdefs
   bv_mult :: "[bit list, bit list ] => bit list"
   "bv_mult w1 w2 == nat_to_bv (bv_to_nat w1 * bv_to_nat w2)"
 
-lemma [simp]: "bv_mult (norm_unsigned w1) w2 = bv_mult w1 w2"
+lemma bv_mult_type1 [simp]: "bv_mult (norm_unsigned w1) w2 = bv_mult w1 w2"
   by (simp add: bv_mult_def)
 
-lemma [simp]: "bv_mult w1 (norm_unsigned w2) = bv_mult w1 w2"
+lemma bv_mult_type2 [simp]: "bv_mult w1 (norm_unsigned w2) = bv_mult w1 w2"
   by (simp add: bv_mult_def)
 
-lemma [simp]: "norm_unsigned (bv_mult w1 w2) = bv_mult w1 w2"
+lemma bv_mult_returntype [simp]: "norm_unsigned (bv_mult w1 w2) = bv_mult w1 w2"
   by (simp add: bv_mult_def)
 
 lemma bv_mult_length: "length (bv_mult w1 w2) \<le> length w1 + length w2"
@@ -951,22 +948,22 @@ primrec
   norm_signed_Nil: "norm_signed [] = []"
   norm_signed_Cons: "norm_signed (b#bs) = (case b of \<zero> => if norm_unsigned bs = [] then [] else b#norm_unsigned bs | \<one> => b#rem_initial b bs)"
 
-lemma [simp]: "norm_signed [\<zero>] = []"
+lemma norm_signed0 [simp]: "norm_signed [\<zero>] = []"
   by simp
 
-lemma [simp]: "norm_signed [\<one>] = [\<one>]"
+lemma norm_signed1 [simp]: "norm_signed [\<one>] = [\<one>]"
   by simp
 
-lemma [simp]: "norm_signed (\<zero>#\<one>#xs) = \<zero>#\<one>#xs"
+lemma norm_signed01 [simp]: "norm_signed (\<zero>#\<one>#xs) = \<zero>#\<one>#xs"
   by simp
 
-lemma [simp]: "norm_signed (\<zero>#\<zero>#xs) = norm_signed (\<zero>#xs)"
+lemma norm_signed00 [simp]: "norm_signed (\<zero>#\<zero>#xs) = norm_signed (\<zero>#xs)"
   by simp
 
-lemma [simp]: "norm_signed (\<one>#\<zero>#xs) = \<one>#\<zero>#xs"
+lemma norm_signed10 [simp]: "norm_signed (\<one>#\<zero>#xs) = \<one>#\<zero>#xs"
   by simp
 
-lemma [simp]: "norm_signed (\<one>#\<one>#xs) = norm_signed (\<one>#xs)"
+lemma norm_signed11 [simp]: "norm_signed (\<one>#\<one>#xs) = norm_signed (\<one>#xs)"
   by simp
 
 lemmas [simp del] = norm_signed_Cons
@@ -983,7 +980,7 @@ lemma int_to_bv_ge0 [simp]: "0 \<le> n ==> int_to_bv n = norm_signed (\<zero> # 
 lemma int_to_bv_lt0 [simp]: "n < 0 ==> int_to_bv n = norm_signed (bv_not (\<zero>#nat_to_bv (nat (-n- 1))))"
   by (simp add: int_to_bv_def)
 
-lemma [simp]: "norm_signed (norm_signed w) = norm_signed w"
+lemma norm_signed_idem [simp]: "norm_signed (norm_signed w) = norm_signed w"
 proof (rule bit_list_induct [of _ w],simp_all)
   fix xs
   assume "norm_signed (norm_signed xs) = norm_signed xs"
@@ -1010,16 +1007,16 @@ constdefs
   bv_to_int :: "bit list => int"
   "bv_to_int w == case bv_msb w of \<zero> => int (bv_to_nat w) | \<one> => - int (bv_to_nat (bv_not w) + 1)"
 
-lemma [simp]: "bv_to_int [] = 0"
+lemma bv_to_int_Nil [simp]: "bv_to_int [] = 0"
   by (simp add: bv_to_int_def)
 
-lemma [simp]: "bv_to_int (\<zero>#bs) = int (bv_to_nat bs)"
+lemma bv_to_int_Cons0 [simp]: "bv_to_int (\<zero>#bs) = int (bv_to_nat bs)"
   by (simp add: bv_to_int_def)
 
-lemma [simp]: "bv_to_int (\<one>#bs) = - int (bv_to_nat (bv_not bs) + 1)"
+lemma bv_to_int_Cons1 [simp]: "bv_to_int (\<one>#bs) = - int (bv_to_nat (bv_not bs) + 1)"
   by (simp add: bv_to_int_def)
 
-lemma [simp]: "bv_to_int (norm_signed w) = bv_to_int w"
+lemma bv_to_int_type [simp]: "bv_to_int (norm_signed w) = bv_to_int w"
 proof (rule bit_list_induct [of _ w],simp_all)
   fix xs
   assume ind: "bv_to_int (norm_signed xs) = bv_to_int xs"
@@ -1203,7 +1200,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma [simp]: "norm_signed (int_to_bv w) = int_to_bv w"
+lemma int_to_bv_returntype [simp]: "norm_signed (int_to_bv w) = int_to_bv w"
   by (simp add: int_to_bv_def)
 
 lemma bv_to_int_msb0: "0 \<le> bv_to_int w1 ==> bv_msb w1 = \<zero>"
@@ -1593,10 +1590,10 @@ constdefs
   utos :: "bit list => bit list"
   "utos w == norm_signed (\<zero> # w)"
 
-lemma [simp]: "utos (norm_unsigned w) = utos w"
+lemma utos_type [simp]: "utos (norm_unsigned w) = utos w"
   by (simp add: utos_def norm_signed_Cons)
 
-lemma [simp]: "norm_signed (utos w) = utos w"
+lemma utos_returntype [simp]: "norm_signed (utos w) = utos w"
   by (simp add: utos_def)
 
 lemma utos_length: "length (utos w) \<le> Suc (length w)"
@@ -1617,10 +1614,10 @@ constdefs
   bv_uminus :: "bit list => bit list"
   "bv_uminus w == int_to_bv (- bv_to_int w)"
 
-lemma [simp]: "bv_uminus (norm_signed w) = bv_uminus w"
+lemma bv_uminus_type [simp]: "bv_uminus (norm_signed w) = bv_uminus w"
   by (simp add: bv_uminus_def)
 
-lemma [simp]: "norm_signed (bv_uminus w) = bv_uminus w"
+lemma bv_uminus_returntype [simp]: "norm_signed (bv_uminus w) = bv_uminus w"
   by (simp add: bv_uminus_def)
 
 lemma bv_uminus_length: "length (bv_uminus w) \<le> Suc (length w)"
@@ -1716,13 +1713,13 @@ constdefs
   bv_sadd :: "[bit list, bit list ] => bit list"
   "bv_sadd w1 w2 == int_to_bv (bv_to_int w1 + bv_to_int w2)"
 
-lemma [simp]: "bv_sadd (norm_signed w1) w2 = bv_sadd w1 w2"
+lemma bv_sadd_type1 [simp]: "bv_sadd (norm_signed w1) w2 = bv_sadd w1 w2"
   by (simp add: bv_sadd_def)
 
-lemma [simp]: "bv_sadd w1 (norm_signed w2) = bv_sadd w1 w2"
+lemma bv_sadd_type2 [simp]: "bv_sadd w1 (norm_signed w2) = bv_sadd w1 w2"
   by (simp add: bv_sadd_def)
 
-lemma [simp]: "norm_signed (bv_sadd w1 w2) = bv_sadd w1 w2"
+lemma bv_sadd_returntype [simp]: "norm_signed (bv_sadd w1 w2) = bv_sadd w1 w2"
   by (simp add: bv_sadd_def)
 
 lemma adder_helper:
@@ -1829,13 +1826,13 @@ constdefs
   bv_sub :: "[bit list, bit list] => bit list"
   "bv_sub w1 w2 == bv_sadd w1 (bv_uminus w2)"
 
-lemma [simp]: "bv_sub (norm_signed w1) w2 = bv_sub w1 w2"
+lemma bv_sub_type1 [simp]: "bv_sub (norm_signed w1) w2 = bv_sub w1 w2"
   by (simp add: bv_sub_def)
 
-lemma [simp]: "bv_sub w1 (norm_signed w2) = bv_sub w1 w2"
+lemma bv_sub_type2 [simp]: "bv_sub w1 (norm_signed w2) = bv_sub w1 w2"
   by (simp add: bv_sub_def)
 
-lemma [simp]: "norm_signed (bv_sub w1 w2) = bv_sub w1 w2"
+lemma bv_sub_returntype [simp]: "norm_signed (bv_sub w1 w2) = bv_sub w1 w2"
   by (simp add: bv_sub_def)
 
 lemma bv_sub_length: "length (bv_sub w1 w2) \<le> Suc (max (length w1) (length w2))"
@@ -1923,13 +1920,13 @@ constdefs
   bv_smult :: "[bit list, bit list] => bit list"
   "bv_smult w1 w2 == int_to_bv (bv_to_int w1 * bv_to_int w2)"
 
-lemma [simp]: "bv_smult (norm_signed w1) w2 = bv_smult w1 w2"
+lemma bv_smult_type1 [simp]: "bv_smult (norm_signed w1) w2 = bv_smult w1 w2"
   by (simp add: bv_smult_def)
 
-lemma [simp]: "bv_smult w1 (norm_signed w2) = bv_smult w1 w2"
+lemma bv_smult_type2 [simp]: "bv_smult w1 (norm_signed w2) = bv_smult w1 w2"
   by (simp add: bv_smult_def)
 
-lemma [simp]: "norm_signed (bv_smult w1 w2) = bv_smult w1 w2"
+lemma bv_smult_returntype [simp]: "norm_signed (bv_smult w1 w2) = bv_smult w1 w2"
   by (simp add: bv_smult_def)
 
 lemma bv_smult_length: "length (bv_smult w1 w2) \<le> length w1 + length w2"
@@ -2643,10 +2640,10 @@ constdefs
 lemma bv_length_bv_mapzip [simp]: "length (bv_mapzip f w1 w2) = max (length w1) (length w2)"
   by (simp add: bv_mapzip_def Let_def split: split_max)
 
-lemma [simp]: "bv_mapzip f [] [] = []"
+lemma bv_mapzip_Nil [simp]: "bv_mapzip f [] [] = []"
   by (simp add: bv_mapzip_def Let_def)
 
-lemma [simp]: "length w1 = length w2 ==> bv_mapzip f (x#w1) (y#w2) = f x y # bv_mapzip f w1 w2"
+lemma bv_mapzip_Cons [simp]: "length w1 = length w2 ==> bv_mapzip f (x#w1) (y#w2) = f x y # bv_mapzip f w1 w2"
   by (simp add: bv_mapzip_def Let_def)
 
 end
