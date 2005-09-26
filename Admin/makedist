@@ -217,7 +217,9 @@ chmod -R g=o "$DISTNAME"
 chgrp -R isabelle "$DISTNAME" Isabelle
 
 mkdir -p "pdf/$DISTNAME/doc"
-mv "$DISTNAME/doc/"*.pdf "$DISTNAME/doc/Contents" "pdf/$DISTNAME/doc"
+mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
+
+sync; sleep 3
 
 echo "$DISTNAME.tar.gz"
 "$TAR" cf "$DISTNAME.tar" Isabelle "$DISTNAME"
@@ -227,7 +229,7 @@ echo "${DISTNAME}_pdf.tar.gz"
 ( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 gzip "${DISTNAME}_pdf.tar"
 
-mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc/Contents" "$DISTNAME/doc"
+mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
 rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 
 
@@ -240,7 +242,7 @@ mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS
   "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
   "$DISTNAME"
 mkdir "$DISTNAME/doc"
-mv "${DISTNAME}-old/doc/"*.pdf "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 
 chgrp -R isabelle "$DISTNAME"
 
